@@ -6,9 +6,10 @@ Games, 2003) in Rust — simulation first, art last.
 Named for the mechanic no open-source RTS has ever implemented: units bleeding
 health inside hostile national borders.
 
-> **Status: Phase 0, pre-data.** The only thing here is the fixed-point math
-> the simulation will stand on. Real work begins once the game's data layer is
-> extracted.
+> **Status: Phase 0, extraction.** The only code here is the fixed-point math
+> the simulation will stand on. The install has been surveyed and the data
+> model is documented — see `docs/FORMATS.md`. Next is the tool that turns it
+> into open data.
 
 ## What this is
 
@@ -17,11 +18,10 @@ awesome-game-remakes, not on Wikipedia's engine-recreation list. No public
 decompile, no format wiki. The field is empty.
 
 This aims to fill it, following the arc that OpenTTD and Beyond All Reason both
-completed: reimplement the engine against the original's own data files, reach
-parity, then progressively replace the original assets until the game stands on
-its own.
+completed: reimplement the engine against the original's own data files, then
+progressively replace the original assets until the game stands on its own.
 
-Two things make Rise of Nations an unusually good target:
+Three things make Rise of Nations an unusually good target:
 
 - **Its design is already readable.** `rules.xml`, `unitrules.xml`, and
   `buildingrules.xml` ship as plain text — nation powers, attrition rates, pop
@@ -30,6 +30,11 @@ Two things make Rise of Nations an unusually good target:
 - **Its art is not the point.** Nobody is nostalgic for 2003 low-poly RTS
   units. The appeal is the systems — territory, attrition, eight ages in forty
   minutes — and those survive a total art replacement intact.
+- **It ships its own debug symbols.** The Extended Edition depot includes a
+  full, unstripped private PDB that GUID-matches the shipped executable:
+  complete struct layouts, the source tree, function names and line numbers.
+  The original is a readable specification rather than a black box, which is
+  the difference between years of archaeology and months of translation.
 
 ## Requirements
 
@@ -51,10 +56,12 @@ scripts/fetch-depot.sh
 ```
 
 This uses SteamCMD with a forced Windows platform type to download the depot
-without running it. Phase 1 needs the files, not a running game.
+without running it. Extraction needs the files, not a running game.
 
-Actually *playing* it on a Mac (to generate controlled recorded games) is a
-separate problem — CrossOver or Whisky, later.
+Actually *playing* it on a Mac — to generate controlled recorded games and to
+have a behavioural oracle — is a separate problem. The executable is 32-bit
+x86, so on Apple Silicon it means CrossOver, Wine with the new WoW64, or a
+Windows VM. That is its own phase; see `CLAUDE.md`.
 
 ## Layout
 

@@ -97,3 +97,104 @@ Game mechanics are not copyrightable; only the assets are. So even the
 its starting point rather than rediscovering them over years.
 
 Buy the cheap option now; defer the expensive decision.
+
+## 6. The shipped debug symbols are the specification
+
+**Chosen:** treat `game/sbl/rise.pdb` as the project's primary specification.
+
+**Over:** black-box reverse engineering, with a recorded-game diff as the only
+oracle.
+
+The Steam depot ships a full, unstripped private PDB for the shipped
+executable. Not a public symbol file — the real one:
+
+```
+Has Types: true   Has Globals: true   Has Publics: true   Is stripped: false
+GUID: {51D4F219-61C6-4F84-9D5B-C3361B0D291F}   Age: 1
+```
+
+`riseofnations.exe`'s own `RSDS` debug directory carries that same GUID and
+age, so these symbols belong to the binary we have, not to some other build.
+It yields 5,880 class and struct definitions with complete field layouts,
+1,251 source file paths, and function names, addresses, and line numbers.
+`game/sbl/` also holds `rise_z.map`, a 13 MB linker map, and PDBs for five
+further modules.
+
+This retires the founding premise. `CLAUDE.md` used to open with "the original
+executable is the only specification that exists, and a recorded game is the
+only oracle that can prove we match it." Both halves were wrong the moment the
+depot finished downloading. The executable is now a *readable* specification,
+and the checksum and RNG machinery it describes is a better oracle than a
+replay diff — see [4] below and `docs/FORMATS.md`.
+
+The consequence that matters: "diverge early and you lose the oracle" was true
+only because divergence destroyed the ability to test. With per-subsystem
+ground truth available directly, it no longer is. Parity stops being a gate
+and becomes a menu — which is what makes decision 8 possible.
+
+Same rule as assets: **no PDB-derived dump is ever committed.** Tools in this
+repo generate them from the user's own install, on demand.
+
+## 7. The decompiler is a reading tool, not a source
+
+**Chosen:** use Ghidra with the PDB loaded to read, understand, and verify;
+write the understanding down as prose in `docs/`; implement from the prose.
+
+**Over:** transcribing decompiled function bodies into Rust.
+
+The immediate reason is not legal. It is that the thing being decompiled is
+2003 C++ built on hardcoded eight-player arrays, global singletons, and a
+bespoke `String`, and one of this project's actual goals is to escape exactly
+that. Transcription would import the design we are trying to leave, and the
+result would be worse Rust for no speed gain — the expensive part is
+understanding a mechanic, not typing it.
+
+The secondary reason is that it keeps the door open. Field layouts, symbol
+names, and file/line data are interface facts; a line-by-line port of a
+function body is a different kind of artifact. Reading widely costs us
+nothing, and writing from a spec leaves the redistribution question open
+rather than answering it early and badly.
+
+## 8. Fidelity is chosen per subsystem
+
+**Chosen:** full fidelity where the original's behaviour is the asset;
+deliberate divergence everywhere else, from the start.
+
+**Over:** whole-game parity first, then fork.
+
+Decision 1 said reach parity, then fork, because divergence was a one-way
+door. Decision 6 removed the door. What is left is a straightforward question
+of where the original is actually worth copying:
+
+| Layer | Posture | Why |
+| --- | --- | --- |
+| Sim rules, balance, pacing | **Full fidelity** | Twenty years of tuned numbers. The reason the game still holds up, and the part nobody else has. |
+| Engine internals | **Diverge immediately** | Eight-player arrays, positional XML, a 2002 scripting VM. Copying this buys nothing. |
+| Renderer and art | **Diverge** | This was always the point. |
+| Content | **Superset** | Cheap once the tables are open data. |
+
+Decision 1 is not reversed — it is narrowed to the row where it was always
+doing the work.
+
+**Cut from v1:** Conquer the World, the scenario editor, the trigger system,
+GameSpy and the multiplayer meta, and the ~90 `iface*` windows. That is
+roughly half of the 796 files in the `game/` module. CtW in particular is
+worth building eventually; it is not worth building first.
+
+## 9. Data loaders are index-keyed; tag names are labels
+
+**Chosen:** load the XML tables positionally — Nth record into slot N — and
+treat element names as human-readable annotation only.
+
+**Over:** generating types from the shipped DTDs and keying by tag name.
+
+This is not a preference. It is what the data requires; the evidence is in
+`docs/FORMATS.md`. The engine's parser ignores tag names entirely, `rules.xml`
+contains duplicate tag names inside a single parent, and the shipped
+`rules.dtd` describes about a fifth of one section of the file it claims to
+document. A name-keyed loader built from the DTD cannot load the shipped game
+data.
+
+The upside is large: a record's index *is* the engine's type id, which is
+almost certainly how orders encode unit and building types. Getting this right
+is what connects the content work to the replay work later.
