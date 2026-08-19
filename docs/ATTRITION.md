@@ -173,7 +173,73 @@ shown to the local player.
 
 ---
 
-## Porting notes
+## Territory
+
+Ownership is a **weighted-distance Voronoi**, recomputed wholesale rather than
+incrementally. `World::compute_all_territory` drives it; `compute_reg_territory`
+does the work for one map region.
+
+### The shape of it
+
+- The map is divided into at most 64 land regions and 64 sea regions — hence
+  the `BitMask<64>` in `regions.obj`. Territory is computed per land region.
+- **Sea is never owned.** Every cell of every sea region has `who` and `who2`
+  set to `0xFF` after the land pass.
+- Each player keeps a `u16` territory count per region, summed afterwards into
+  a running total and an all-time peak.
+- For each cell, every city and fort of every player computes a cost. The
+  lowest cost owns the cell and lands in `who`; the runner-up lands in `who2`.
+  If the lowest cost exceeds `TERRITORY_BASE << 8` (24 × 256 = 6144) the cell
+  stays unowned.
+
+### The cost
+
+```
+cost = TERRITORY_DEN * distance * 256
+     / (TERRITORY_NUM + CITY_TERRITORY_MULTIPLIER * bonuses)
+```
+
+Integer division, `256` being an 8.8 fixed-point scale. Forts use
+`FORT_TERRITORY_MULTIPLIER` in place of the city one. This is the reciprocal of
+the designers' own comment on `TERRITORY_NUM` —
+`(Numerator + (CityorFortMultiplier * BorderBonuses)) / Denominator` — which
+describes the radius; the code works in cost per unit distance instead, so a
+larger bonus makes distance cheaper and the border reach further.
+
+Bonuses accumulate from `CITY_UPGRADE_TERR` by city level (or
+`CAPITAL_TERRITORY_BONUS` if it is the capital), `FORT_UPGRADE_TERR`,
+`TEMPLE_UPGRADE_TERR`, `CIVIC_UPGRADE_TERR` by civic tech level, and flat
+additions from the Colosseum, the Eiffel Tower, gems, Roman fort borders, and
+Russian borders (which also scale per age).
+
+### Distance is not Euclidean, and this matters
+
+Two departures, neither of which anyone would arrive at by guessing, and both
+of which change border *shape* rather than just size.
+
+**First**, distance is an integer approximation of the hypotenuse, never a
+square root. With `hi` the larger of `|dx|`, `|dy|` and `lo` the smaller, it is
+either `hi + lo² / (2·hi)` or `hi + lo/2`, selected by a size test. Both are
+cheap first-order approximations, and both are consistently *wrong* in a way
+the border outline inherits — this is why RoN's borders read as slightly
+octagonal rather than circular. Substituting a true `hypot` would produce
+visibly different territory.
+
+**Second**, short distances are contracted by three compounding tests, applied
+in order to the running value:
+
+```
+if d < 13 { d = d * 2 / 3 }
+if d <  9 { d = d * 2 / 3 }
+if d <  5 { d = d / 2 }
+```
+
+Because each test reads the value the previous one wrote, they stack: 4 becomes
+2, then 1, then 0. The effect is that the near field around a city costs almost
+nothing, so borders bulge close in and taper further out.
+
+Object positions are XOR-masked like everything else and converted to cell
+coordinates through a division table rather than a divide.
 
 **`anti_att` is an `f32` in the original, and it is in the middle of the sim.**
 It is multiplied by `1/256` and truncated to an integer inside
@@ -200,17 +266,14 @@ it ports directly.
 
 ## Open questions
 
-- **How territory is actually computed.** `World::compute_all_territory` and
-  `World::compute_reg_territory` have been decompiled but not yet read to the
-  standard the rest of this document meets. What is established is the
-  designers' own formula, left as a trailing comment on `TERRITORY_NUM`:
-  `(Numerator + (CityorFortMultiplier * BorderBonuses)) / Denominator`, which
-  with the shipped constants is `(11 + 4 * bonuses) / 5` tiles. Border bonuses
-  come from `CITY_UPGRADE_TERR`, `FORT_UPGRADE_TERR`, `TEMPLE_UPGRADE_TERR`,
-  `CIVIC_UPGRADE_TERR`, `CAPITAL_TERRITORY_BONUS`, and the Colosseum, Eiffel
-  Tower, and gems bonuses. Unverified against the implementation.
-- What resolves a contested cell — the roles of `who2`, `down`, and `down_who`
-  are inferred from their names and not yet confirmed.
+- **What unit the distance is in.** The cost formula and its metric are
+  established, but whether `distance` counts world cells or something finer is
+  not, so the absolute reach of a border is still unpinned. Everything about
+  its *shape* is settled; only the scale is not. This is the one thing most
+  cheaply answered by a screenshot of the real game once it runs.
+- `down` and `down_who` are named in `WData` and look like a stored claim and
+  claimant, but the territory pass writes `who`/`who2` and does not obviously
+  touch them. They may belong to a different system.
 - What the three specific unit type ids that take double attrition are.
 - Whether `attrition_stamp2` and `attrition_stamp3` matter to the sim or are
   purely presentation.
