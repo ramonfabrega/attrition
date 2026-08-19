@@ -120,7 +120,14 @@ not worth building first.
 
 - `llvm-pdbutil` (Homebrew LLVM) reads `rise.pdb` on macOS. `dump --types`
   works; `pretty` needs the Windows DIA SDK and does not.
-- Ghidra with the PDB loaded gives named, typed decompilation.
+- Ghidra 12.1.3 (`brew install ghidra` — a formula now, not a cask; it wants
+  `openjdk@21`). With the PDB loaded it gives named, typed decompilation.
+  Scripted work goes through `analyzeHeadless`, under
+  `$(brew --prefix ghidra)/libexec/support/`.
+- `cargo run -p rondata -- <install>` surveys the data layer and re-derives
+  every structural claim in `docs/FORMATS.md` from the user's own files. If a
+  claim stops being true it exits non-zero. Run it after touching anything
+  that reads the game's data.
 
 ## Prior art worth reading
 

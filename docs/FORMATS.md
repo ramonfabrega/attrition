@@ -241,6 +241,38 @@ against `UNIT_MOVE_SPEED = 1/192 tile` gives 25/192 tiles per frame.
 `ATTRITION` is `48 frames`, described in its own trailing comment as the
 baseline level for regular attrition.
 
+**A `/` does not always mean division.** In `CONSTANTS` it does. In a `COST` or
+`SUPPORT` field it separates resources: `75g/40m` is seventy-five gold *and*
+forty metal. The two are told apart by the resource letter. Six letters occur
+across all 27,645 record-table field values — `f` food, `t` timber, `g` gold,
+`k` knowledge, `m` metal, `o` oil — matching the six `entry0`..`entry5` slots
+of `STARTING_GOODS`, whose commentary names them. The only other numeric
+suffixes anywhere are `rng` (on `RANGE`, which is a `min-max` pair) and `tsx`
+(on `JOB_EXTRA_TIME`).
+
+`support` is likewise an annotation, not data: all 364 `SUPPORT` values end
+with the word. Thirteen of them are *only* the word — records 351–363,
+Boadicea and the herd animals — which are engine-spawned objects with no
+upkeep. A parser that requires an amount before the annotation rejects those
+thirteen.
+
+### A rounding hazard the data creates
+
+The game's units are deliberately tiny, and `Fx` truncates toward zero on
+every operation by design. So evaluating a scaled rational in two steps is not
+the same as evaluating it in one:
+
+| | raw Q16.16 |
+| --- | --- |
+| `ratio(1,192)` then `× 25` | 8525 |
+| `ratio(25,192)` | 8533 |
+
+Eight raw units is a fifth of a thousandth of a tile. Over ten thousand steps
+it is a tile and a half, and in a lockstep sim that is a desync rather than a
+rounding error. **Scale inside the ratio.** `rondata::Scalar::scaled_fx` exists
+to make the correct form the easy one, and the difference is pinned by a test
+so it cannot quietly change.
+
 ### `TRIBE_MASK` is a 24-bit string, MSB-first
 
 Leftmost character is tribe 23; rightmost is tribe 0. Verified three ways

@@ -67,6 +67,7 @@ Windows VM. That is its own phase; see `CLAUDE.md`.
 
 ```
 crates/fixed/     deterministic Q16.16 fixed-point math
+crates/rondata/   reads the game's data tables from an installed copy
 docs/DECISIONS.md architectural decisions and their rationale
 docs/FORMATS.md   file-format reverse-engineering log
 ```
@@ -76,10 +77,21 @@ Crates appear here when they have real code, not in anticipation of it.
 ## Development
 
 ```sh
-cargo test          # 13 tests, all in crates/fixed
+cargo test          # 39 tests
 cargo clippy --all-targets
 cargo fmt
 ```
+
+To point the extractor at your install and check that everything we believe
+about the format still holds:
+
+```sh
+cargo run -p rondata -- /path/to/Rise\ of\ Nations
+```
+
+It prints the table shapes and re-derives each structural claim in
+`docs/FORMATS.md` from your own files, exiting non-zero if one stops being
+true. Nothing is copied anywhere; it only reads.
 
 The toolchain is pinned to stable in `rust-toolchain.toml`.
 
