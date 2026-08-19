@@ -1,0 +1,16 @@
+[workspace]
+resolver = "3"
+members = ["crates/fixed"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/rfabrega/attrition"
+
+[workspace.lints.rust]
+# The sim must never reach for floating point. This makes it loud.
+unsafe_code = "forbid"
+
+[profile.release]
+# Determinism: identical codegen assumptions across builds.
+overflow-checks = true
