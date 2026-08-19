@@ -29,19 +29,32 @@ if ! command -v steamcmd >/dev/null 2>&1; then
 	exit 1
 fi
 
+# Anonymous login cannot fetch an owned game, so a real account is required.
+if [ -z "${STEAM_USER:-}" ]; then
+	printf 'Steam username: '
+	read -r STEAM_USER
+fi
+
+if [ -z "$STEAM_USER" ]; then
+	echo "No Steam username given; nothing to log in as." >&2
+	exit 1
+fi
+
 mkdir -p "$INSTALL_DIR"
 
-echo "Downloading app $APP_ID (Windows depot) into:"
+echo
+echo "Downloading app $APP_ID (Windows depot) as '$STEAM_USER' into:"
 echo "  $INSTALL_DIR"
 echo
-echo "You will be prompted for your Steam login and Steam Guard code."
+echo "You will be prompted for your password and Steam Guard code. Both are"
+echo "handled by steamcmd directly and are not stored by this script."
 echo
 
 # force_install_dir must precede login, and login must precede app_update.
 steamcmd \
 	+@sSteamCmdForcePlatformType windows \
 	+force_install_dir "$INSTALL_DIR" \
-	+login "${STEAM_USER:-anonymous}" \
+	+login "$STEAM_USER" \
 	+app_update "$APP_ID" validate \
 	+quit
 
