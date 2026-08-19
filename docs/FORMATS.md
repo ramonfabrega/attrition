@@ -6,8 +6,59 @@ prior work. No inferred struct layouts, no "probably a length prefix". If we
 cannot show why we believe something, it does not get written down as fact; it
 goes under *Open questions*.
 
-Nothing in this file has been verified yet. Everything below is either prior
-art from other people or a hypothesis to be tested once we have the game.
+---
+
+## Verified: the shipped install (2026-08-19)
+
+Depot `287450` pulled to `game/` (2.87 GB). Everything in this section is a
+direct observation of that install.
+
+**The XML layer ships with formal schemas.** `game/Data/` contains `.dtd` files
+alongside the data they describe:
+
+| Schema | Lines | Describes |
+| --- | --- | --- |
+| `rules.dtd` | 685 | `rules.xml` (2,438 lines) |
+| `unitrules.dtd` | 61 | `unitrules.xml` (20,857 lines) |
+| `buildingrules.dtd` | 48 | `buildingrules.xml` |
+| `techrules.dtd` | 28 | `techrules.xml` (1,621 lines) |
+
+Also present with schemas: `resourcerules`, `craftrules`, `citytemplates`,
+`goods`, `paramtypes`, `soundtypes`, `soundfiles`, `sound`, `playerprofile`,
+`triggerbuilder`. Plus `unitrules.xsd`, `sound.xsd`, and a `.sps` file beside
+most `.dtd` (schema-project files from whatever editor Big Huge Games used).
+
+**This is bigger than it looks.** A DTD is a machine-readable specification of
+the data model — element structure, attribute names, cardinality, enumerated
+values, defaults. Phase 1 was scoped as reverse-engineering; for the XML layer
+it is not. It is schema-driven code generation, and the schemas are *theirs*,
+not our inference. `rules.dtd` at 685 lines is effectively Big Huge Games'
+own description of how a nation, a government, an age, and an attrition rule
+are shaped.
+
+**The AI is partly scripted, in the open.** `game/ai/scripts/` contains three
+`.bhs` files: `aibestbuildlibrary.bhs`, `defensive.bhs`, `economic.bhs`. Three
+files is far too little to be a whole RTS AI, so the tactical core is
+presumably in the executable — but build libraries and economic/defensive
+posture are exactly the layer that is hardest to reconstruct by observation.
+Phase 4 was called the hardest and least-oracled part of the project; this
+softens that, and the phase plan in `CLAUDE.md` should be revisited once these
+three files have actually been read.
+
+**Two executables:** `riseofnations.exe` and `patriots.exe` — base game and
+Thrones & Patriots, shipped side by side rather than merged.
+
+**Loose plain-text data at the install root**, outside `Data/` and outside any
+archive: `balancerules.txt`, `counterchart.txt`, `game.txt`, `graphics.txt`,
+`interface.txt`, `labels.txt`, `masks.txt`, `soundlist.txt`, `soundtypes.txt`,
+`taunts.txt`, `saveobjects.txt`, `obsoletescriptfuncs.txt`. `counterchart.txt`
+is the likely home of the rock-paper-scissors combat matrix.
+
+**Not yet identified:** `rules.dat`, `Ron.s14`, `rise xml.spp`, and the `bond`,
+`sbl`, `tribes`, `mapstyles`, `conquest`, `scenario` directories.
+
+**Localisation noise:** many `Data/` files have `.xml.4`, `.xml.7`, `.xml.9`
+… siblings. These are per-language variants and can be ignored wholesale.
 
 ---
 
@@ -25,6 +76,10 @@ The only serious public RoN format work is
 Neither the repo nor RoN Heaven's modding library publishes an actual byte-level
 format spec, so anything we need precisely we will have to establish ourselves —
 reading their implementations counts as evidence, guessing does not.
+
+This applies to the *binary* formats only. As the verified section above
+records, the XML layer ships with its own DTDs and needs no reverse
+engineering at all.
 
 ---
 
@@ -62,10 +117,11 @@ The asset containers. Extraction already solved by ptasev's tooling; we need our
 own reader eventually, but borrowing to start is correct — Phase 1 is about
 getting at the contents, not about owning the container.
 
-### 3. XML rules — *not actually a reverse-engineering problem*
+### 3. XML rules — *not a reverse-engineering problem at all*
 
-`rules.xml`, `unitrules.xml`, `buildingrules.xml` and friends ship as plain text
-and are documented by the modding community:
+Confirmed present as plain text, with formal DTDs (see the verified section
+above). Generate Rust types from the schemas rather than hand-writing them; the
+DTD is the authority, and community documentation is only a cross-check.
 
 - `rules.xml` — nation powers, government effects, attrition rates, population
   caps, game-setup options, and the global scaling factors (`UNIT_COST_FACTOR`,
