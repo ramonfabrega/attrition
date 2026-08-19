@@ -115,6 +115,10 @@ not worth building first.
 - Format recon notes live in `docs/FORMATS.md`; decisions and their rationale
   in `docs/DECISIONS.md`. A decision that gets overturned is amended in place
   with its successor named, never deleted.
+- One document per mechanic, written from the original and implemented from the
+  document — `docs/ATTRITION.md` is the first. Each states how confident it is
+  and lists what it has not established, so a reader can tell a derived formula
+  from a plausible guess.
 
 ## Tooling
 
