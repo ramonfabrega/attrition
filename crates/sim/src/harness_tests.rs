@@ -716,20 +716,39 @@ fn a_queued_citizen_is_paid_for_up_front_and_arrives_on_time() {
     // branch, so the `6/5` that stretches every trained unit does not touch
     // this one. Fifty frames of `JOB_TIME`, doubled by
     // `RESEARCH_PREMIUM_TIME`, is a hundred; the counter is read before it is
-    // advanced, so the delivery lands on the hundred and first.
+    // advanced, so it completes on the hundred and first.
+    //
+    // And completing it sets the bit and delivers nothing: in the original
+    // the entry falls through `Build::finished` to `Leader::gain_tech`, which
+    // is `BitMask::set` and a return of 1. (An earlier draft of this test
+    // expected a unit here; the second reading corrected it — see
+    // `docs/PRODUCTION.md`, "Completion".)
+    let mut frames = 0;
+    while !sim.muster[0].researched[citizen] {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 1000, "the queue should have completed by now");
+    }
+    assert_eq!(frames, 101);
+    assert!(sim.units.is_empty(), "research trains nothing");
+    assert_eq!(sim.muster[0].control, 0);
+    assert_eq!(sim.muster[0].by_type[citizen], 0);
+    assert!(sim.buildings[hall].queue.items.is_empty());
+
+    // The second order is the first *train* job: the ordinary time stretched
+    // by `UNIT_RATE_BASE`, with nothing yet owned to ramp against. Sixty
+    // frames, observed on the sixty-first.
+    sim.queue_up(hall, citizen).unwrap();
     let mut frames = 0;
     while sim.units.is_empty() {
         sim.tick();
         frames += 1;
         assert!(frames < 1000, "the queue should have delivered by now");
     }
-    assert_eq!(frames, 101);
+    assert_eq!(frames, 61);
     assert_eq!(sim.muster[0].control, 1);
-    assert!(sim.muster[0].researched[citizen]);
-    assert!(sim.buildings[hall].queue.items.is_empty());
 
-    // The second is a train job at the ordinary time, plus one ramp step for
-    // the one already standing.
+    // The third pays one ramp step for the one already standing.
     sim.queue_up(hall, citizen).unwrap();
     let mut frames = 0;
     while sim.units.len() < 2 {
@@ -738,6 +757,162 @@ fn a_queued_citizen_is_paid_for_up_front_and_arrives_on_time() {
         assert!(frames < 1000);
     }
     assert_eq!(frames, 69);
+}
+
+#[test]
+fn the_first_of_a_type_is_researched_and_trains_nothing() {
+    // D4 of `docs/audit/2026-08-20-production.md`, end to end, with both
+    // orders placed up front. The head is the research entry; the one behind
+    // it waits, because a barracks advances slot 0 only. On the hundred and
+    // first frame the bit flips, the entry leaves, and nothing is born. The
+    // second entry is then the head, reads the bit as set, and is a train job
+    // from its first frame — sixty frames, landing on the hundred and
+    // sixty-second.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
+    sim.queue_up(hall, citizen).unwrap();
+    sim.queue_up(hall, citizen).unwrap();
+
+    for _ in 0..100 {
+        sim.tick();
+    }
+    assert!(!sim.muster[0].researched[citizen]);
+    assert_eq!(sim.buildings[hall].queue.items.len(), 2);
+    assert_eq!(
+        sim.buildings[hall].queue.items[1].job_counter, 0,
+        "the entry behind a live head does not move"
+    );
+
+    sim.tick();
+    assert!(sim.muster[0].researched[citizen], "frame 101: the bit");
+    assert!(sim.units.is_empty(), "and no unit");
+    assert_eq!(sim.muster[0].control, 0);
+    assert_eq!(sim.muster[0].queued_by_type[citizen], 1);
+    assert_eq!(sim.buildings[hall].queue.items.len(), 1);
+    assert_eq!(sim.buildings[hall].queue.items[0].job_counter, 0);
+
+    let mut frames = 101;
+    while sim.units.is_empty() {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 1000);
+    }
+    assert_eq!(frames, 162);
+    assert_eq!(sim.muster[0].control, 1);
+    assert_eq!(sim.muster[0].queued_by_type[citizen], 0);
+}
+
+#[test]
+fn only_the_first_library_fans_out() {
+    // D1 of `docs/audit/2026-08-20-production.md`. `do_queue` recurses into
+    // slot `i + 1`, bounded by `get_building_cities`, inside its library
+    // branch and nowhere else. A barracks with four library cities behind it
+    // still advances one entry at a time; the player's first library advances
+    // four; a second library's own queue never advances, because orders given
+    // to it land on the first one anyway.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    // A second unit type, so the library holds two distinct research jobs —
+    // with no technology types in the simulation, a unit type whose bit is
+    // clear is what a research entry is.
+    let other = sim.add_unit_type(citizen_type());
+    let food = economy::Resource::Food.index();
+    sim.ledgers[0].bucket[food] = 100_000;
+    sim.muster[0].library_cities = 4;
+    sim.muster[0].researched[citizen] = true;
+
+    let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
+    let library = sim.add_library(0, centre_of(Cell::new(3, 0)), 8);
+    let annex = sim.add_library(0, centre_of(Cell::new(4, 0)), 8);
+
+    sim.queue_up(hall, citizen).unwrap();
+    sim.queue_up(hall, citizen).unwrap();
+    sim.queue_up(hall, citizen).unwrap();
+    // One order at each library: both land on the first.
+    sim.queue_up(library, citizen).unwrap();
+    sim.queue_up(annex, other).unwrap();
+    assert_eq!(sim.buildings[library].queue.items.len(), 2);
+    assert!(sim.buildings[annex].queue.items.is_empty());
+
+    for _ in 0..10 {
+        sim.tick();
+    }
+    let counters = |sim: &Sim, at: usize| -> Vec<i32> {
+        sim.buildings[at]
+            .queue
+            .items
+            .iter()
+            .map(|i| i.job_counter)
+            .collect()
+    };
+    // The barracks: head only. (An earlier draft advanced all three.)
+    assert_eq!(counters(&sim, hall), [1000, 0, 0]);
+    // The first library: both slots, in step.
+    assert_eq!(counters(&sim, library), [1000, 1000]);
+
+    // One library city, and the same library advances one slot.
+    sim.muster[0].library_cities = 1;
+    for _ in 0..10 {
+        sim.tick();
+    }
+    assert_eq!(counters(&sim, library), [2000, 1000]);
+}
+
+#[test]
+fn a_stuck_head_lets_a_research_entry_behind_it_advance() {
+    // D2 of `docs/audit/2026-08-20-production.md`. When slot 0 is done and
+    // `finished` refuses it, `do_queue` asks `get_next_non_unit` for the first
+    // research entry behind the head and advances that one instead — the
+    // population cap blocks every train job and only train jobs. A second
+    // train entry behind the head never moves; the research entry runs to
+    // completion while the head sits at full progress.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let other = sim.add_unit_type(citizen_type());
+    let food = economy::Resource::Food.index();
+    let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
+    sim.ledgers[0].bucket[food] = 100_000;
+
+    // At the Ancient cap of twenty-five, with the citizen already researched
+    // and the other type not.
+    sim.muster[0].control = 25;
+    sim.muster[0].researched[citizen] = true;
+    sim.queue_up(hall, citizen).unwrap();
+    sim.queue_up(hall, citizen).unwrap();
+    sim.queue_up(hall, other).unwrap();
+
+    // Sixty frames to the head's target; nothing behind it moves yet.
+    for _ in 0..60 {
+        sim.tick();
+    }
+    assert_eq!(sim.buildings[hall].queue.items[0].job_counter, 6000);
+    assert_eq!(sim.buildings[hall].queue.items[1].job_counter, 0);
+    assert_eq!(sim.buildings[hall].queue.items[2].job_counter, 0);
+
+    // Frame 61: the head is done, offered, refused — and the research entry
+    // in slot 2 takes the frame. The train entry in slot 1 does not.
+    sim.tick();
+    assert!(sim.units.is_empty());
+    assert_eq!(sim.buildings[hall].queue.items[0].job_counter, 6000);
+    assert_eq!(sim.buildings[hall].queue.items[1].job_counter, 0);
+    assert_eq!(sim.buildings[hall].queue.items[2].job_counter, 100);
+
+    // A hundred frames of research at one frame per frame, observed on the
+    // hundred and first — all while the head is stuck.
+    for _ in 0..100 {
+        sim.tick();
+    }
+    assert!(sim.muster[0].researched[other], "the research got through");
+    assert!(sim.units.is_empty(), "and the cap still holds");
+    assert_eq!(sim.buildings[hall].queue.items.len(), 2);
+    assert_eq!(sim.buildings[hall].queue.items[1].job_counter, 0);
+
+    // Room appears and the head is handed over at once.
+    sim.muster[0].age = 1;
+    sim.recompute_pop_caps();
+    sim.tick();
+    assert_eq!(sim.units.len(), 1);
 }
 
 #[test]
@@ -814,10 +989,17 @@ fn a_trained_citizen_walks_and_bleeds_like_any_other() {
     let citizen = sim.add_unit_type(citizen_type());
     let start = Cell::new(2, 0);
     let hall = sim.add_building(0, centre_of(start), 8);
+    // Two orders: the first of a type is a research job and trains nothing
+    // (`docs/PRODUCTION.md`, "Completion"), so the unit this test wants is
+    // the second entry's.
+    sim.queue_up(hall, citizen).expect("affordable");
     sim.queue_up(hall, citizen).expect("affordable");
 
+    let mut frames = 0;
     while sim.units.is_empty() {
         sim.tick();
+        frames += 1;
+        assert!(frames < 1000, "research, then a train job, then a unit");
     }
     let unit = sim.units.len() - 1;
     make_mobile(&mut sim, unit, movement::Angle::EAST);

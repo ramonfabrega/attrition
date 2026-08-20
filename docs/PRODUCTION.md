@@ -34,6 +34,15 @@ which is one expression repeated about thirty times; the individual predicates
 are enumerated rather than each separately derived. What remains open is listed
 at the end.
 
+A blind second reading (`docs/audit/2026-08-20-production.md`) doubly
+confirmed every number above and overturned several of the *predicates* around
+them — which building the parallel-slot rule belongs to, what a blocked head
+lets through, and what completing the first of a unit type actually produces.
+Those corrections are landed below and marked where they changed what an
+earlier draft said. Where the decompile had to settle a devirtualised `is`
+call whose argument Ghidra dropped, the audit did it from the raw bytes; this
+document cites the audit for those.
+
 **Where the implementation is.** `crates/sim/src/production.rs`. Every constant
 below is re-read from the user's own install by
 `cargo run -p rondata -- <install>`, which fails if any has drifted.
@@ -88,9 +97,14 @@ nothing else.
 **Research is queued at one library.** Before anything else, if this building
 is a library and is not `LeaderData::get_first_library`, the entire call is
 forwarded to that first library. Every research job in the game therefore lives
-on one building's queue, no matter which library the order was given to. This
-is the same redirection `Build::do_queue` and `Build::unqueue` perform, and it
-is what makes the parallel-slot rule below mean what it means.
+on one building's queue, no matter which library the order was given to.
+`Build::unqueue` forwards the same way, and `Build::do_queue` returns at once
+for a library that is not the first — so a non-first library's own queue never
+advances, and **the parallel-slot rule below is a rule about that one
+building.** `get_first_library` walks the owner's building list from its
+lowest index and returns the first library that is active, stands in a city
+and is not unassimilated; a library queue_up with no such building refuses
+outright.
 
 Then two gates, in this order:
 
@@ -101,17 +115,27 @@ Then two gates, in this order:
   - `can_make(type, 1)` — can this building make this at all. Failing sets
     `QUEUE_CANT_TRAIN`.
   - `queued < queue_size`. Failing sets `QUEUE_FULL`.
-  - one special case: a dock queueing a fishing boat refuses when the queued
-    count plus the current gatherer count would exceed six, also as
-    `QUEUE_FULL`.
+  - one special case: a **University** (`0x1a4`) queueing a **Scholar**
+    (`0x34`/`0x35`) refuses when its queued scholars plus its current
+    gatherers would exceed six, also as `QUEUE_FULL`. (An earlier draft called
+    this a dock's six-fishing-boat rule; the `is` argument is `0x1a4` and the
+    type test is `0x34 || 0x35`, which by position in the shipped files are the
+    University and the Scholar. The rule is not implemented either way.)
 
 Note what is **not** here: the population cap. A player at the cap can queue
 freely. What the cap stops is further down, at completion.
 
+`queue_size` is decided in `Build::init`: **20** for a building whose
+`build_flags` say military trainer or training building, **10** for one with
+`build_flags & 0x08000000`, **2** for everything else, and `BuildQueue::init`
+accepts only those three. `crates/sim/src/production.rs` still takes the
+capacity as an input, because the flags that choose it are a building-type
+system the simulation does not have.
+
 Past the gates:
 
 ```
-if game.semaphore bit 3:  cost = [0, 0, 0, 0, 0, 0]
+if game.semaphore bit 11: cost = [0, 0, 0, 0, 0, 0]    # the scenario editor
 else:                     cost = type.pay_cost(...)     # charges the stockpile
 
 slot = queued
@@ -134,12 +158,25 @@ was empty — an extra zeroing of slot 0's counter.
 
 ## The clock
 
-`Build::process` calls `do_queue(0)` **unconditionally, every frame the
-building is processed.** There is no phasing modulo here, unlike the per-unit
-upkeep in `docs/ATTRITION.md`, and no gating on the building's index. The head
-of every queue in the game advances on every frame.
+`Build::process` calls `do_queue(0)` **once, every frame the building is
+processed** — it returns before the call only for a building that is not
+`is_active`, or, in the subclasses, one that is neutralized. There is no
+phasing modulo here, unlike the per-unit upkeep in `docs/ATTRITION.md`, and no
+gating on the building's index. The head of every live queue in the game
+advances on every frame. (An earlier draft said "unconditionally"; the two
+gates above are the only conditions, and both readings agree on "every frame
+the building is processed".)
 
-`Build::do_queue(i)` then does four things.
+`Build::do_queue(i)` then returns at once in two cases, and otherwise does four
+things.
+
+**The two early returns.** A library that is not the player's first library
+returns (unless the entry is `DISBAND`), which is the other half of the
+forwarding above. And a **missile silo** (`is(0x208, 1)`) whose `inside_down`
+is non-negative and whose entry is a unit type with the availability bit set
+returns without advancing — a silo with a missile already garrisoned does not
+build the next one. Neither is modelled; the second is recorded under what is
+not established.
 
 **It picks an accelerator**, by what kind of thing the entry is:
 
@@ -168,12 +205,22 @@ the one on which its counter first reaches the target: the frame that lands on
 the target sets it, and the next frame observes it. A `train_time` of exactly 1
 is special-cased to complete immediately.
 
-**It recurses into the next slot** when `i + 1` is below both `queued` and
-`LeaderData::get_building_cities()`. That function counts how many of your
-cities contain a **library**. This is the parallel-research rule: with the
-whole research queue living on the first library, the number of library-holding
-cities is the number of queue slots that advance at once. One library, one tech
-at a time. Four libraries, four.
+**At a library — and only at a library — it recurses into the next slot**,
+when `i + 1` is below both `queued` and `LeaderData::get_building_cities()`.
+That function counts how many of your cities contain a **library**. This is
+the parallel-research rule: with the whole research queue living on the first
+library, the number of library-holding cities is the number of that queue's
+slots that advance at once. One library, one tech at a time. Four libraries,
+four. The recursion happens before the handover below, so a deeper slot
+completes in the same frame before the head does.
+
+(An earlier draft stated the recursion unconditionally, and the implementation
+applied it to every building — a barracks owned by a player with four library
+cities advanced four entries at once. The recursion sits inside `do_queue`'s
+third `is(0x1b3, 0)` branch, the library test; the audit settled the dropped
+argument from the bytes. **Every other building advances slot 0, and slot 0
+only** — with the one exception below, which is not a fan-out but a redirect
+when the head is stuck.)
 
 **And when the counter is done, it hands the item over** — the next section.
 
@@ -253,9 +300,12 @@ original's arithmetic either way — `docs/DECISIONS.md` entry 15.
 looks.** `UNIT_RATE_BASE` is applied here and nowhere else, so a *research*
 job — the first of any unit type — is not scaled by `6/5` at all. A Citizen's
 first costs `JOB_TIME` doubled by `RESEARCH_PREMIUM_TIME`, a flat hundred
-frames; its second costs `JOB_TIME` stretched by a fifth and ramped once,
-sixty-seven and a half. The twenty percent every trained unit pays does not
-apply to the one that unlocks it.
+frames, and produces no citizen (see "Completion"); the first one *trained*
+costs `JOB_TIME` stretched by a fifth with nothing yet owned, sixty; the next,
+ramped once for the one standing, sixty-seven and a half. The twenty percent
+every trained unit pays does not apply to the one that unlocks it. (An earlier
+draft had the second order at sixty-seven and a half, because it also had the
+research entry delivering a unit.)
 
 `UNIT_RATE_BASE` ships as `6/5` and `UNIT_RATE_PROGRESSION` as `3/4`, both
 scaled by 100, so 120 and 75. `job_extra_time` is the `JOB_EXTRA_TIME` column,
@@ -289,9 +339,12 @@ enumerated here rather than each derived:
   anti-air, French siege and special units, German aircraft and submarines,
   Roman legions, Mongol stables, Greek research, Lakota razing.
 - **Wonders.** Angkor Wat on research, Statue of Liberty on ground units,
-  Porcelain Tower on ships, Space Program on aircraft, and the Pyramids —
-  wonder `0x21d` — which zero research time entirely for everything that is
-  neither a unit nor a building.
+  Porcelain Tower on ships, Space Program on aircraft, and the
+  **Supercollider** — wonder `0x21d` — which zeroes research time entirely for
+  everything that is neither a unit nor a building. (An earlier draft named
+  `0x21d` the Pyramids; by position in `buildingrules.xml` the Pyramids are
+  `0x20e` and `0x21d` is the Supercollider, whose whole point in the shipped
+  game is free research.)
 - **Governments and technologies.** Monarchy at two levels, Socialism,
   `TROOPS_FASTER` and `RESEARCH_FASTER` as a three-quarters multiplier,
   `SPIES_GENERALS_CREATED_FASTER` as a half, `INSTANT_UNIT_BONUS` returning
@@ -306,34 +359,108 @@ enumerated here rather than each derived:
   the game counts how many other players are ahead of you, weighting an
   opponent double and a teammate single, and scales the time by
   `(2N - ahead + 2) / (2N + 2)`. Falling behind in ages makes catching up
-  cheaper in time, automatically.
+  cheaper in time, automatically. The Greek research bonus is applied after
+  this, and only on this path.
+- **A catch-up discount on ordinary technologies** too, which the earlier
+  draft omitted: for a tech that is neither an age nor an epoch,
+  `n = TypeData::count_discovered()` — how many players already have it — and
+  if `n > 0`, `t = (P - n + 1) * t / (P + 1)` with `P` the player count. The
+  Greek bonus does not apply here.
 - **A science speedup**, `TECH_SCIENCE_SPEEDUP` percent per level of science
   above the tech's own level.
+- **An unassimilated-city penalty** at the very end, applied to everything:
+  a building in a city whose owner's race is not the player's, while the
+  assimilation flags say so, takes `t = t * 5 / 4`. Then the `max(1, t)`.
+
+**The tail is partitioned, and the partition is load-bearing.** `train_time`
+reaches the research-only block — `RESEARCH_FASTER`, Angkor Wat, relics, the
+Great Thinker loop, the handicap, the lobby tech-cost setting, the science
+speedup, the Supercollider zero — only when the type is a technology or a unit
+or building type whose availability bit is **clear**; a train job jumps over
+it to the common tail. The train-only block — `UNIT_RATE_BASE`, the ramp, the
+national unit bonuses, `TROOPS_FASTER`, the speed-upgrade counts, cotton, wool,
+`SPIES_GENERALS_CREATED_FASTER`, Monarchy, Socialism, the unit wonders,
+Kremlin and `INSTANT_UNIT_BONUS` — is reached only with the bit set. Since
+`crates/sim/src/production.rs` takes the tail as an ordered input, **the
+caller must never feed a research-only modifier to a train job or a train-only
+one to a research job.** No caller builds a tail yet; when one does, this is
+its first rule. The full order, spot-checked against the decompile, is in
+`docs/audit/2026-08-20-production.md` §3 O7.
 
 ---
 
 ## Completion, and what the population cap actually stops
 
-When `do_queue` sees `done`, it calls `Build::finished(type)` and reads the
-sign of the answer.
+When `do_queue` sees `done`, it pins the counter to the target, calls
+`Build::finished(type)` and reads the sign of the answer.
 
 ```
-if type is a unit type and the availability bit is set:
+if type is a unit type and the availability bit is SET:
     if pop_cap < type.control_cost + leader.control:   return 0
     if it is a caravan and count >= caravan limit:      return -1
     if it is an aircraft and the pad is full:           return -1
     train(type)
     return 1
+if type is a spell the leader has:   cast it;            return 1
+if type is a building type:          (the construction path)
+otherwise:
+    Leader::gain_tech(type, x, y, 1, 1)                  # sets the bit
+    return 1
 ```
 
-and the caller:
+**The first of a unit type completes as a technology, and trains nothing.**
+A unit-type entry whose availability bit is clear falls past every branch
+above to `Leader::gain_tech`, which sets the bit — `BitMask::set` on the
+leader's `tech` mask at `+0x6c0c`, the bit this whole document turns on — and
+returns 1. No unit is placed. The pop-cap, caravan and aircraft checks are
+inside the bit-set branch, so a research entry is subject to none of them
+either. The player then queues again, and *that* entry is the first train job:
+`ACCEL_TRAIN`, `UNIT_RATE_BASE`, the ramp. (An earlier draft was silent on
+this and the implementation spawned a unit from the research entry, so the
+first order of a type yielded both the bit and a unit. It yields the bit.)
 
-- **positive** — `Build::unqueue(i, 0)` removes the entry, with no refund.
-- **zero** — nothing happens. The entry stays at full progress and the whole
-  attempt repeats next frame.
-- **negative** — the entry also stays, but the building goes looking for a
-  *different* slot to advance instead, through
-  `BuildQueueData::get_next_non_caravan` or `get_next_helicopter`.
+`Build::train` itself is short. `Objects::init_unit` places the unit at the
+building's own position and returns its index, or a negative on failure;
+`Unit::go_inside` then puts it *into* the building, so every unit is born
+garrisoned and leaves by the ejection path. Stance and gather-point orders are
+applied on the way out. `finished` returns 1 whether or not `init_unit`
+succeeded, so a placement failure still removes the entry.
+
+The caller reads the sign, and what it does with it differs between the
+library and everything else.
+
+**At a non-library building:**
+
+- **positive** — `Build::unqueue(i, 0)` removes the entry, with no refund. If
+  the entry was a train job and the building's `build_masks & 0x40` — the
+  **infinite-queue** flag — is set, the bit is cleared, `queue_up(type, 0)` is
+  tried, and the bit is set back on success; `unqueue` clears it when the
+  queue empties. Not modelled.
+- **zero or negative, at any slot but 0** — nothing. The entry stays at full
+  progress and the attempt repeats next frame.
+- **zero or negative, at slot 0** — the entry stays, and the building looks
+  for a *different* slot to advance this frame instead. First
+  `BuildQueueData::get_next_non_unit`: the lowest slot from 1 up whose entry
+  is not a unit type, or is a unit type whose bit is clear — **the first
+  research entry** — and if there is one, `do_queue` runs on it. Only if there
+  is none, the queue holds at least two, and the answer was **negative**, the
+  building tries `get_next_helicopter` (at an Airbase, `is(0x1bf, 0)`) or
+  `get_next_non_caravan` (anywhere else), and runs `do_queue` on that. A
+  redirected slot that is itself done and refused does nothing further, by the
+  "any slot but 0" rule.
+
+(An earlier draft said zero means "nothing happens" and that "a pop cap blocks
+the whole queue". It blocks every *train* entry behind it; a research entry
+behind it advances, one frame per frame, and completes. The negative case's
+non-caravan / helicopter search is a second fallback after the research
+search, not the first response.)
+
+**At the first library:** `finished()`, then `unqueue(i, 0)` if the answer is
+non-zero and the building's `+0x8 & 1` is set. There is no redirect — the
+library's parallelism is the `get_building_cities` recursion above, which runs
+whether or not the head is done. Note the quirk: a *negative* answer at a
+library removes the entry too. With shipped data a library queues only
+technologies, whose answer is always 1, so the quirk is unreachable.
 
 **This is what the population cap does.** `docs/COSTS.md` asked what stops the
 queue rather than the spawn, and observed that `check_population` has no
@@ -344,15 +471,9 @@ counter — the accelerator it picks afterwards is `ACCEL_TRAIN` either way, so
 paid for, indefinitely. The unit appears on the frame after a citizen dies or
 a house goes up. Which is exactly what the interface shows a player.
 
-The distinction between 0 and -1 is worth keeping: a pop cap blocks the whole
-queue, and a caravan or aircraft limit blocks only that entry and lets the ones
-behind it through.
-
-`Build::train` itself is short. `Objects::init_unit` places the unit at the
-building's own position and returns its index, or a negative on failure;
-`Unit::go_inside` then puts it *into* the building, so every unit is born
-garrisoned and leaves by the ejection path. Stance and gather-point orders are
-applied on the way out.
+The distinction between 0 and -1 is still worth keeping: both let a research
+entry through, but only -1 — a caravan or aircraft limit — goes on to let a
+non-caravan or a helicopter through as well.
 
 ---
 
@@ -388,9 +509,14 @@ by the three-pair limit above.
 
 ## Science re-prices the queue in place
 
-`Build::refund_cost(i)` has exactly one caller: `Leader::gain_tech`. When your
-science level rises, every queued item is re-priced where it sits, and the
-difference is handed back.
+`Build::refund_cost(i)` has exactly one caller: `Leader::gain_tech`, and a
+narrow one. When the tech just gained is an **epoch** whose `techtype` category
+is 3 — the science line — and the game is past frame 0 and the player has a
+first library, `gain_tech` walks **that library's queue** and re-prices every
+entry that is a tech type other than the one just gained, where it sits,
+handing the difference back. (An earlier draft said "every queued item"; unit
+entries in a barracks are never re-priced, and `refund_cost` reads the tech
+type's age at `+0x1c8`, so it is only meaningful for a tech entry anyway.)
 
 For each of the three stored pairs, with `d` the number of science levels
 above the tech's own level:
@@ -455,67 +581,79 @@ the first time it was asked a question with a five in the denominator.
 
 ## What is not established
 
-- **`BuildQueue::init` and where `queue_size` comes from.** The capacity is
-  read at every bound but its allocation is unread, so the queue length a
-  building actually offers is not derived here. `crates/sim/src/production.rs`
-  takes it as an input for the same reason movement takes `speed` as one.
-- **`BuildData::can_make`**, the first gate in `could_queue`. It is the tech
-  tree wearing a different name, and this document assumes its answer the same
-  way `docs/COSTS.md` assumes `type_avail`.
-- **What sets the availability bit at `leader + 0x6c18`.** The whole
-  research-then-train distinction turns on it, and it is read here rather than
-  derived. `Leader::gain_tech` is the obvious writer and is unread except for
-  its call to `refund_cost`.
-- **`game.semaphore` bit 3**, which makes everything free at queue time. A
-  cheat and a scenario-editor mode are the obvious candidates; neither is
-  confirmed.
+- ~~**`BuildQueue::init` and where `queue_size` comes from.**~~ Closed by the
+  second reading: `Build::init` chooses 20, 10 or 2 from the building type's
+  flags (see "Queueing charges the price"), and `BuildQueue::init` accepts
+  only those. `crates/sim/src/production.rs` still takes the capacity as an
+  input, because the flags are a building-type system the simulation lacks.
+- ~~**`BuildData::can_make`**, the first gate in `could_queue`.~~ Read by the
+  second reading: active; unless the scenario-editor semaphore or
+  `DISBAND`/`DEPOPULATE`, not neutralized and not unassimilated;
+  `BuildTypeData::queue_here(type)`; `type_avail(type, p) != 0`; a tech is
+  refused if already held or already researching; a unit with the bit set and
+  `build_flags & 0x10` clear returns `type_avail` itself. `queue_here` and
+  `type_eligible` are the tech tree's and stay with it; this document still
+  assumes their answer the way `docs/COSTS.md` assumes `type_avail`.
+- ~~**What sets the availability bit at `leader + 0x6c18`.**~~ It is the
+  `tech` bitmask — `BitMask<806>` at `LeaderData + 0x6c0c`, whose pointer
+  sits at `+0x6c18` — and `Leader::gain_tech` sets it, for a unit type exactly
+  as for a technology (see "Completion"). `LeaderData::type_avail` reports 2
+  for a type whose prerequisites are met but whose bit is clear and 4 once it
+  is set.
+- ~~**`game.semaphore` bit 3**, which makes everything free at queue time.~~
+  It is bit 11 of the `BitMask<256>` (byte 1, bit 3 — same predicate, the
+  earlier draft named it by the byte), set by `ConsoleWin::run_cmd` on
+  entering the **scenario editor** and cleared on leaving. It also skips
+  `can_make`'s neutralized/unassimilated gate and makes `can_pay_cost` return
+  10.
 - **`BuildData::construct_time`.** Read in full — a stored base, the Hanging
   Gardens, a general, an Iroquois senate clause that returns 0, and a
   first-wonder clause that appears to return 1 if no other player is building
   the same wonder — but it belongs to putting a *building* up, which is a
   different mechanic from running a queue, and its stored base at `+0x50` is
-  written somewhere unread. Not implemented here.
-- **The build-time analogue of the price ramp's four ceilings.** There is one
-  ceiling and it is 3×, so this may simply be the whole story; but the price
-  side had four, and nothing has been read that rules out a second.
+  written somewhere unread. The second reading agrees it is the foundation
+  clock and not the queue path. Not implemented here.
+- ~~**The build-time analogue of the price ramp's four ceilings.**~~ There is
+  exactly one cap in `train_time`, the `×3`, and the second reading found no
+  other. Closed.
 - **Whether any two of the tail's thirty modifiers can apply at once in an
-  order that matters.** They are implemented in the original's order, which
-  makes the question moot for fidelity and interesting for balance.
+  order that matters.** The full order is now recorded (audit §3 O7) and the
+  research/train partition is stated above; which pairs can coincide is a
+  balance question, not a fidelity one.
 - **The AI counters** at `leader + 0xa10` through `+0xa24`, moved by both
   `queue_up` and `unqueue`. They are per-production-building tallies and
   nothing in the simulation reads them yet.
+- **Not modelled, by choice, and recorded so nobody looks for it:** the
+  caravan-limit and aircraft-pad refusals (`finished` returning -1) and the
+  `get_next_non_caravan` / `get_next_helicopter` fallback that follows them,
+  because the simulation has neither caravans nor aircraft; the missile-silo
+  gate in `do_queue`; the infinite-queue flag; the University's six-scholar
+  rule; the library quirk that removes an entry on a negative answer. Each is
+  named where it belongs above and each is a small addition once the thing it
+  depends on exists.
+- **Which building is a library** is, in the simulation, a flag on the
+  building (`Building::is_library`) set by `Sim::add_library`, and "the first
+  library" is the lowest-indexed such building the player owns — the same
+  order `get_first_library` walks. That is the smallest honest stand-in for a
+  building-type system, and it is what `docs/PRODUCTION.md`'s two library
+  rules — forwarding and the parallel fan-out — are keyed on.
 
 ---
 
-## Second reading (2026-08-20) — corrections owed
+## Second reading (2026-08-20) — landed
 
-Blind second derivation and adjudication:
+A blind second derivation and its adjudication are in
 `docs/audit/2026-08-20-production.md`. The queue record, the 3-of-6 pair
 recording, charge-on-queue, every loader scale, the accelerator choice,
 done-before-increment, the base and research-time shifts, the ramp on
 `num_units` only, the age/epoch catch-up, `finished`'s sign semantics and the
 cancel walk with exact refund are **doubly confirmed**. Seven disagreements,
-six resolved against this document; until they land here and in
-`crates/sim/src/lib.rs` (`process_queues`, `advance_slot`), this document is
-wrong on:
-
-- **The parallel-slot fan-out is library-only** (`is(0x1b3, 0)`);
-  `process_queues` currently advances several slots at every building.
-- **A blocked head does not block the queue**: `do_queue` at slot 0 with
-  `finished() <= 0` advances the first research entry (`get_next_non_unit`),
-  then a non-caravan / helicopter entry.
-- **A unit-type research entry completes through `gain_tech` and spawns no
-  unit**; `advance_slot` spawns one.
-- The `could_queue` special case is University + Scholar, not dock + fishing
-  boat; `refund_cost` re-prices the first library's tech entries on a
-  category-3 epoch; `0x21d` is Supercollider, not Pyramids; the free-queue
-  semaphore is bit 11 (scenario editor).
-
-Open questions closed, all verified by the adjudicator: `queue_size` is
-20/10/2 from `Build::init`; the availability bit is the `LeaderData::tech`
-bitmask (`+0x6c0c`, pointer at `+0x6c18`), set by `Leader::gain_tech`;
-`can_make` read; semaphore bit 11 = scenario editor; exactly one ×3 ceiling;
-the full modifier tail order and its research-only/train-only partition; the
-ordinary-tech catch-up `(P−n+1)/(P+1)`; the unassimilated ×5/4 tail; the silo
-gate; the infinite-queue flag. Resolved for this document: frames-to-complete
-as written here (the second reader's `ceil(T/a)` is off by one).
+six resolved against the earlier draft of this document, all landed above and
+in `crates/sim` (`production.rs`, `lib.rs`, `harness_tests.rs`) on the same
+day; each place that changed says so inline. The three that changed observable
+behaviour: the parallel-slot fan-out belongs to the first library and to no
+other building; a blocked head lets the first research entry behind it
+advance; and the first of a unit type completes through `gain_tech` and trains
+nothing. The one point resolved for the earlier draft: frames-to-complete as
+written here (the second reader's `ceil(T/a)` is off by one). Every open
+question the second reading closed is struck above with its answer.
