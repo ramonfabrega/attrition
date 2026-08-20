@@ -16,12 +16,26 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(root) = args.next() else {
-        eprintln!("usage: rondata <install-root>");
+        eprintln!("usage: rondata <install-root> [--gamelog <Logs/gamelog.txt>]");
         eprintln!();
         eprintln!("The directory holding riseofnations.exe. No game data is");
         eprintln!("copied anywhere; this only reads.");
+        eprintln!();
+        eprintln!("--gamelog  a start-of-game dump written by the original with");
+        eprintln!("           InitialDump=1 (docs/ORACLE.md): its CONSTANTS block");
+        eprintln!("           is checked against rules.xml and sim::Tuning::RON.");
         return ExitCode::from(2);
     };
+    let mut gamelog: Option<String> = None;
+    while let Some(a) = args.next() {
+        match a.as_str() {
+            "--gamelog" => gamelog = args.next(),
+            other => {
+                eprintln!("unknown argument {other}");
+                return ExitCode::from(2);
+            }
+        }
+    }
 
     let install = Install::new(&root);
     if !install.looks_valid() {
@@ -29,7 +43,11 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     }
 
-    match survey(&install) {
+    let result = survey(&install).and_then(|f| match &gamelog {
+        Some(path) => Ok(f + gamelog_report(&install, path)?),
+        None => Ok(f),
+    });
+    match result {
         Ok(0) => ExitCode::SUCCESS,
         Ok(failures) => {
             eprintln!("\n{failures} structural check(s) failed.");
@@ -40,6 +58,148 @@ fn main() -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+/// Reads a start-of-game dump and checks the constants it carries.
+fn gamelog_report(install: &Install, path: &str) -> Result<usize, rondata::Error> {
+    use rondata::dump::{self, Loaded};
+    use rondata::gamelog::Log;
+
+    let text = std::fs::read_to_string(path).map_err(|source| rondata::Error::Io {
+        path: path.to_string(),
+        source,
+    })?;
+    let log = Log::parse(&text);
+    let Some(init) = log.initial() else {
+        return Err(rondata::Error::Missing {
+            path: path.to_string(),
+            what: "BEGIN GAME".into(),
+        });
+    };
+    let rules = install.rules()?;
+    let mut failures = 0;
+
+    println!("\ngamelog: {path}");
+    println!("  {:<24} {:>5}", "frames", log.frames().len());
+    println!("  {:<24} {:>5}", "CONSTANTS keys", init.constants.len());
+    println!("  {:<24} {:>5}", "units", init.units.len());
+    println!("  {:<24} {:>5}", "buildings", init.builds.len());
+    println!("  {:<24} {:>5}", "leaders", init.leaders.len());
+    println!("  {:<24} {:>5}", "cities", init.cities.len());
+    if let Some((_, seed)) = init.game_info.iter().find(|(k, _)| *k == "(int)seed") {
+        println!("  {:<24} {:>5}", "seed", seed);
+    }
+
+    let (xml_only, dump_only) = dump::unmatched(&rules, &init.constants);
+    println!(
+        "\nconstants: {} tags matched by lowercased name; {} in the file only; {} in the dump only",
+        rules.constants.len() - xml_only.len(),
+        xml_only.len(),
+        dump_only.len()
+    );
+    if !xml_only.is_empty() {
+        println!("  file only: {}", xml_only.join(", "));
+    }
+    if !dump_only.is_empty() {
+        println!("  dump only: {}", dump_only.join(", "));
+    }
+
+    let classified = dump::classify(&rules, &init.constants);
+    let count = |f: &dyn Fn(&Loaded) -> bool| classified.iter().filter(|c| f(&c.loaded)).count();
+    println!("\nhow the engine loads them, from the dump");
+    println!("  {:<24} {:>5}", "plain", count(&|l| *l == Loaded::Plain));
+    println!(
+        "  {:<24} {:>5}",
+        "x256 (8.8)",
+        count(&|l| *l == Loaded::Scaled256)
+    );
+    println!(
+        "  {:<24} {:>5}",
+        "x100",
+        count(&|l| *l == Loaded::Scaled100)
+    );
+    println!(
+        "  {:<24} {:>5}",
+        "x192",
+        count(&|l| *l == Loaded::Scaled192)
+    );
+    println!(
+        "  {:<24} {:>5}",
+        "x48 (UCoord)",
+        count(&|l| *l == Loaded::Scaled48)
+    );
+    println!(
+        "  {:<24} {:>5}",
+        "x10 (attack)",
+        count(&|l| *l == Loaded::Scaled10)
+    );
+    println!(
+        "  {:<24} {:>5}",
+        "ambiguous",
+        count(&|l| matches!(l, Loaded::Ambiguous(_)))
+    );
+    println!(
+        "  {:<24} {:>5}",
+        "unexplained",
+        count(&|l| *l == Loaded::Unexplained)
+    );
+    for (title, want) in [
+        ("x256 (8.8)", Loaded::Scaled256),
+        ("x100", Loaded::Scaled100),
+        ("x192", Loaded::Scaled192),
+        ("x48 (UCoord)", Loaded::Scaled48),
+        ("x10 (attack)", Loaded::Scaled10),
+        ("unexplained", Loaded::Unexplained),
+    ] {
+        let names: Vec<String> = classified
+            .iter()
+            .filter(|c| c.loaded == want)
+            .map(|c| {
+                format!(
+                    "{} ({} -> {})",
+                    c.name,
+                    join(c.written.iter().map(|s| describe(*s))),
+                    join(c.dumped.iter().map(i64::to_string))
+                )
+            })
+            .collect();
+        if !names.is_empty() {
+            println!("  {title}:");
+            for n in names {
+                println!("    {n}");
+            }
+        }
+    }
+
+    println!("\ntuning against the dump");
+    let report = dump::tuning_drift(&init.constants);
+    if !report.missing.is_empty() {
+        println!(
+            "  not in the dump (Constants::log_data omits them): {}",
+            report.missing.join(", ")
+        );
+    }
+    let drift = report.mismatched;
+    failures += check(
+        "every sim::Tuning::RON slot the dump carries equals the loaded field",
+        drift.is_empty(),
+        &if drift.is_empty() {
+            format!(
+                "{} slots",
+                sim::tuning::Tuning::ron_slots().len() - report.missing.len()
+            )
+        } else {
+            join(drift.iter().map(|d| {
+                format!(
+                    "{}: ours {} theirs {}",
+                    d.name,
+                    d.ours,
+                    d.theirs.as_deref().unwrap_or("missing")
+                )
+            }))
+        },
+    );
+    Ok(failures)
 }
 
 fn survey(install: &Install) -> Result<usize, rondata::Error> {
