@@ -579,15 +579,26 @@ Written to `Documents/My Games/Rise of Nations/Recorded Games/`. Playback via
 *Tools and Extras*. No public parser exists; `RepInfo`, an old third-party
 replay manager, is proof the header is tractable.
 
-What we now know without having seen one: the payload is a stream of
-`CommandPackage` records (layout above), the engine computes per-player
-per-frame checksums with a configurable window, and it keeps a random log
-keyed by frame, source file, and line. `recordgame.cpp` is named in the PDB and
-its symbols are readable.
+**Specified in `docs/ORACLE.md` (2026-08-20)**, which also corrects this
+paragraph. The claim that "the engine computes per-frame checksums and keeps a
+random log keyed by frame, source file and line" is true of the *engine* and
+was wrongly carried here as a property of the *file*. It is not one.
+`RecordGame::write_package` writes six fields — frame, play, valid, stamp,
+size, payload — and `CommandPackage::checksums` is a **static** `ulong *`
+beside the class, never serialised. A recorded game is the command stream, a
+full initial-state snapshot walked by `Game::walk_data`, and the random seeds.
+Nothing per-frame.
+
+The random log is real but is a separate, switchable facility — `SyncLogger`,
+37 named categories, driven by `.\synclogger.ini`, writing plain text in which
+each entry carries its own source file and line. It is off by default and it is
+a better oracle than the recording. See `docs/ORACLE.md`.
 
 **We have no recorded games yet** — the install is fresh. Producing one
 requires running the game, which requires solving 32-bit x86 Windows on Apple
-Silicon.
+Silicon. That is now less urgent than it looked: the tracer needs a running
+game too, but the reading it enables no longer depends on obtaining a
+recording first.
 
 ### 2. XML rules — solved, see above
 
@@ -616,9 +627,12 @@ played on. `game/scenario/` and `game/mapstyles/` are unexamined.
 - Where is a nation's *bonus* loaded from? The per-nation files themselves are
   found — see below — and they do not contain one, yet `LeaderData::has_tribe_bonus`
   reads a single power id per nation from the loaded tribe record at +0x54.
-- Does the recorded-game container embed the checksums and the random log, or
-  only the command stream? *(Determines whether the oracle is exact or
-  inferred — still the highest-value unknown, but no longer unanswerable.)*
+- ~~Does the recorded-game container embed the checksums and the random log, or
+  only the command stream?~~ **Answered** in `docs/ORACLE.md`: only the command
+  stream, plus an initial-state snapshot and the seeds. So a replay diff is an
+  *inferred* oracle — but the executable ships a switchable per-frame,
+  per-category sync tracer that is an *exact* one, and it is independent of
+  recordings.
 - What is `rules.dat`? Gzipped binary records, not referenced by filename from
   either executable.
 - Is the map stored in the recording, or referenced by name and hash?

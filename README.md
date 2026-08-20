@@ -80,6 +80,7 @@ docs/MOVEMENT.md   speed, facing, and one frame of movement
 docs/ECONOMY.md    income: rates, commerce caps, and the remainder accumulator
 docs/COSTS.md      what a thing is worth, and what stops you paying
 docs/PRODUCTION.md queues, build time, and spending a price over time
+docs/ORACLE.md     how the original can be made to tell us what it did
 docs/DECISIONS.md  architectural decisions and their rationale
 docs/FORMATS.md    file-format reverse-engineering log
 ```

@@ -89,9 +89,18 @@ artifact is the next phase's tool.
    method is proven and the rest is repetition. **Done**, specified in
    `docs/ATTRITION.md` and `docs/SUPPLY.md`.
 2. **Run the original** — 32-bit x86 Windows on Apple Silicon, via Wine,
-   CrossOver, or a VM. Unblocks recorded games, gives us a visual and
-   behavioural oracle, and lets us check any claim instead of reasoning about
-   it. Not a prerequisite for 0 or 1; a hard prerequisite for trusting 3.
+   CrossOver, or a VM. Gives us a visual and behavioural oracle, and lets us
+   check any claim instead of reasoning about it. Not a prerequisite for 0 or 1;
+   a hard prerequisite for trusting 3.
+
+   **What it unlocks is bigger than recorded games**, per `docs/ORACLE.md`. The
+   shipped executable contains `SyncLogger`: a per-frame, per-category state
+   tracer over 37 named subsystems, switched on by a `synclogger.ini` beside
+   the binary, with three forced RNG seeds and a plain-text log in which every
+   entry carries the source file and line that emitted it. A recorded game
+   turns out to hold only the command stream, an initial-state snapshot and the
+   seeds — no per-frame checksums — so the tracer, not the recording, is the
+   exact oracle. One configured run is worth more than a library of replays.
 3. **Sim skeleton** — economy, one unit type, movement. Replay a recorded game
    and diff. Score is ticks before divergence. This is the long middle.
 4. **Renderer** — thin client. Original assets first; they are the visual
