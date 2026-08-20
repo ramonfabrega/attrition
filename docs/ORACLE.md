@@ -148,17 +148,47 @@ still contains in full: `beginNewLogSession`, `newTurn`,
 The two memory-management methods are the tell: this logs enough per frame that
 it has to defend itself against its own size.
 
+### It runs in single player
+
+`SyncLogger::initialize` is called from `Main::main`, so the logger exists from
+startup. `setupWithConfigSettings` and `beginNewLogSession` are then called
+**unconditionally** from `Game::run_solo` and `Game::run_playback`, and
+`beginNewLogSession` additionally from `SetupWin::setup_game`.
+
+`run_solo` settles the question the first draft of this document left open. The
+tracer does not need a networked game, a lobby, or a second client: a skirmish
+against the AI drives it. And `run_playback` means it also runs while a
+recorded game is being played back — so a recording plus the tracer gives a
+per-frame trace of a real match, which is the combination worth having.
+
 ### It is switched on by a file, not a build flag
 
 `SyncLogger::setupWithConfigSettings` sets `mSettingsReason =
-SettingsCameFromConfig` and reads through `Prefs`. The path is a wide string in
-the binary:
+SettingsCameFromConfig` and reads through `Prefs`.
+
+**The file is not beside the executable**, despite the literal. The path in the
+binary is `.\synclogger.ini`, but `Prefs::init` strips a leading `.` and
+appends the rest to `Prefs::get_primary_app_directory`, which is
+`SHGetFolderPathW(CSIDL_APPDATA)` plus `\Microsoft Games` plus
+`\Rise of Nations`, creating each. So the real path is:
 
 ```
-.\synclogger.ini
+%APPDATA%\Microsoft Games\Rise of Nations\synclogger.ini
 ```
 
-— beside the executable. The keys, also wide strings in the binary, are:
+**The syntax is a standard Windows INI** — `Prefs::get`/`put` go through
+`GetPrivateProfileStringW`/`WritePrivateProfileStringW` — and the section name
+is the second argument to `Prefs::init`, an eight-character wide string at
+`0xb18294`:
+
+```ini
+[Settings]
+```
+
+Nothing is created if the file is absent. `Prefs::init` copies a template when
+one exists and otherwise leaves the defaults alone, and this install ships no
+template, so the file has to be authored. The keys, also wide strings in the
+binary, are:
 
 | key | what it does |
 | --- | --- |
@@ -267,6 +297,66 @@ diff from "the states differ somewhere" into "`LeadersSync` diverged at frame
 prerequisite for *trust* and becomes a prerequisite for *evidence*: the reading
 can continue without it, and when it happens, one configured run yields more
 than a recorded game would have.
+
+---
+
+## Running it: how far Wine gets, and what stops it (2026-08-20)
+
+The first attempt at phase 2, recorded because the failure is specific and the
+partial success is reusable.
+
+**What works.** Homebrew's `wine-stable` cask (Wine 11.0, x86-64 under Rosetta)
+installs without admin rights if `--skip-cask-deps` skips the `gstreamer-runtime`
+`.pkg`, which needs a password and which Wine only wants for media playback. The
+cask fails Gatekeeper, so `xattr -dr com.apple.quarantine` on the app bundle is
+required or the binary is `SIGKILL`ed on launch. A prefix built with `wineboot`
+comes up `win64` with a populated `syswow64`, and **32-bit PE execution works** —
+`syswow64\cmd.exe /c ver` returns `Microsoft Windows 10.0.19045`.
+
+`riseofnations.exe` then launches, loads 70 modules, and runs far enough to
+write its own configuration.
+
+**Which incidentally confirmed this document's INI derivation.** The game
+created `rise.ini` and `rise2.ini` at
+`%APPDATA%\Microsoft Games\Rise of Nations\`, the exact path derived above from
+`Prefs::get_primary_app_directory`, alongside the `synclogger.ini` placed there
+in advance. `rise.ini` also confirms the `[Section] key=value` shape, and turns
+up two settings worth knowing:
+
+```ini
+[RISE OF NATIONS]
+GraphicsDLL=d3dgl.dll
+AllowLogs=0
+Dialog Error Level (0 - 3)=2
+```
+
+`GraphicsDLL` means the renderer is a swappable module — but `d3dgl.dll` is the
+only one the install ships, so there is no D3D9 fallback to switch to.
+`rise2.ini`'s `Fullscreen=3` accepts `0` for windowed, which works.
+
+**What stops it, and it is not a configuration problem.** Despite its name,
+`d3dgl.dll` implements a **Direct3D 11** context — the strings around its error
+are `d3d11context.cpp`, `IDXGIDevice`, `IDXGIFactory`, `IDXGIAdapter` — and it
+requests exactly one feature level, `D3D_FEATURE_LEVEL_10_0`, with no fallback.
+Three ways of providing that were tried and all three fail:
+
+| path | failure |
+| --- | --- |
+| wined3d over OpenGL (default) | `wined3d_select_feature_level`: none of the requested levels supported with the current shader backend — macOS OpenGL caps at 4.1 |
+| DXVK 3.0.2 | `Skipping: Device does not support required feature 'geometryShader'` → no adapters |
+| wined3d over Vulkan (`renderer=vulkan`) | creates a `VkDevice` on the M4 Max, then `dxgi_device_init` fails `0x80004005` |
+
+The DXVK line is the informative one. **Metal has never had geometry shaders**,
+so MoltenVK cannot advertise the feature, and DXVK requires it. That is an
+architectural gap rather than a missing package, and no amount of prefix
+configuration closes it.
+
+The remaining candidate is **D3DMetal**, Apple's Game Porting Toolkit
+translation of D3D11 straight to Metal, which CrossOver bundles and which
+handles the gaps that MoltenVK exposes. Untried.
+
+None of this touches the reading above; the tracer's configuration is derived
+from the binary and is now placed and waiting.
 
 ---
 
