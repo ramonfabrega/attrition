@@ -527,6 +527,29 @@ under construction, on the next frame; what is frozen is only the value
 between two dirty flags. `crates/sim` keeps the flag per player
 (`Sim::wall_stats_dirty`) and re-bakes in `tick` before any object runs.
 
+**Confirmed in a logged run (2026-08-20)**, and it is the second reading that
+was right. A tower site placed with no techs held `constr_time = 100000`. With
+`cheat tech all on` (`docs/ORACLE.md`) a freshly placed tower site read
+**70000** — exactly `(10 − 3) × 100000 / 10`, so all three `BUILDINGS_FASTER`
+upgrades were counted by `get_building_speed_upgrade()`. Then `cheat tech all
+off` while that site was still standing unstarted, and its `constr_time`
+went **70000 → 100000** within a few frames, without the site being touched.
+A value frozen at placement cannot do that.
+
+The same run pins the *scope* of the re-bake, which is the part a reading is
+most likely to get wrong. The tower built earlier (`flags = 7`, active) kept
+`constr_time = 100000` across both the grant and the revocation, and the
+completed barracks kept 42000. So `calc_wall_stats` really does skip active
+buildings and touch only the not-yet-active ones — and note that "not yet
+active" includes a site **nobody has started building**, not merely one under
+construction.
+
+One thing the run did *not* show: `BUILDINGS_CREATED_FASTER` (`0x313`, the
+`t × 3 >> 2` step). With every tech granted the tower still landed on exactly
+`100000 × 7/10`, with no sign of a further ×3/4. Either the preq is not a
+tech `cheat tech all` reaches, or it is gated on something else. Recorded as
+open; the arithmetic of the other steps is unaffected.
+
 **The per-call modifiers — `BuildData::construct_time(flag)@0062d5c0`**,
 vtable `+0x18c`, what `job_counter` is compared against. `flag != 0` returns
 the base. Else, in order:
@@ -587,6 +610,37 @@ before any building, so `n` builders advance the site `accel·(1 + 1/2 + … +
 eight ~2.72×. **Frames to finish with one builder** = `⌈construct_time /
 ACCEL_CONSTRUCT⌉`; `ACCEL_CONSTRUCT` loads `get_fraction(…, 100)`, ships
 `1/1` = 100, so an unmodified type takes exactly `job_time` frames.
+
+**Confirmed in a logged run (2026-08-20)**, the check §15 named. A barracks
+site (`constr_time = 42000`) and a tower site (`100000`) were placed with
+`cheat add NEW`, and `BUILDS=6` under `[End Frame]` logged `job_counter`
+every frame (`docs/ORACLE.md`). One builder advanced the site by **exactly
+100 a frame**, unbroken for the whole run — so `ACCEL_CONSTRUCT` is 100 and
+an unmodified type does take `job_time` frames. A second builder joining the
+tower changed the increment to **exactly 150**, and it stayed there: 53
+frames at 100, then 194 at 150.
+
+That 150 is worth more than the rate. It settles the harmonic rule *and* the
+process order together, because the two readings differ: if `Objects::
+process_all` ran buildings before units, `helpers` would be reset between the
+two builders' `do_build` calls and each would contribute a full `amount`, for
+200 a frame. 150 is only reachable if both builders run against the same
+un-reset `helpers` — **every unit does process before any building**, and the
+second builder's share is `100 / 2` floored to 50.
+
+Three smaller things the same run pinned:
+
+- **`helpers` always reads 0 in the dump.** `Wall::process` resets it at the
+  end of the frame and the log is written after that, so the field can never
+  show the count. The *increment* is the only way to read the builder number
+  out of a log — worth knowing before designing a diff around it.
+- **`recharging` counts up one per frame while building** (0, 1, 2, …),
+  which is the `build_masks & 0x800` step, and confirms it is set once per
+  frame rather than once per builder.
+- **The object's `flags` are a state machine**: `1` placed but not started,
+  `3` started and under construction, `7` active. On completion
+  `job_counter` resets to 0 and `flags` goes 3 → 7 in one frame — the
+  `activate(0, 1, 1)` of §4.
 
 ### 3.4 Hit points during construction — `Wall::update_hits@0063f0d0`
 
@@ -1556,6 +1610,19 @@ heal, ejection), then the sites' `construct_hits` refresh.
     the Red Fort (3); a captured city's hit points (10) and its heal (level
     per 4 frames) once assimilated; the capture count with one citizen versus
     one tower (tower: 7 — the citizen loses).
+
+    **Status, 2026-08-20.** The first is **run and confirmed** (§3.2, §3.3):
+    two builders give `accel + accel/2` exactly, and the construction clock
+    re-bakes on a tech change. The **city-spacing one is still open, and the
+    obvious way to run it does not work** — `cheat add` force-places without
+    calling `blocked_site` (`docs/ORACLE.md`), so a placement cheat can never
+    test a placement rule: cities went down four tiles apart. The method that
+    *will* work, for this and for every other `blocked_site` verdict in the
+    list (the dock's ¾ water, the island, the unstarted enemy city): `add NEW`
+    the site at the distance under test, send one builder, and watch whether
+    the site starts (`flags` 1 → 3) or is disbanded when `do_construct` runs
+    the check (§3.3). That needs a unit order, which is the one thing the
+    cheat vocabulary does not provide.
 
 ---
 

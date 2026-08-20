@@ -662,6 +662,53 @@ most of the way), and a scenario is *reproducible*: the same seed plus the
 same cheat lines in the same order is the same run, which is the property the
 eventual diff harness needs.
 
+#### The coordinate argument, and what `add` does not check
+
+`add`'s optional `x,y` is worth calibrating once, because it removes the mouse
+from the loop entirely. Measured against the logged `x_internal`/`y_internal`
+of what it places:
+
+- **One internal unit is 1/192 of a tile.** The world dump's per-tile records
+  come to 32,400 for this map, i.e. a **180 × 180** tile grid, and the largest
+  coordinate seen is 34,272 < 180 × 192. (`xs 60 ys 60` in the `WORLD` block
+  is therefore *not* the tile count; it counts something 3× coarser.)
+- **One unit of `add`'s bare `x,y` is four tiles**, and the object lands at
+  the cell's centre: `internal = arg × 768 + half a footprint`. `30,20`
+  placed a tower at `(23424, 15744)`; `20,20` placed a city at
+  `(15840, 15840)`. So the argument gives 4-tile granularity, and a distance
+  that is not a multiple of 4 tiles cannot be expressed with it — use the
+  mouse cursor, which is per-tile, when you need finer.
+- The `w`-prefixed form in the shipped usage string (`w30,w20`) placed
+  nothing; not pursued.
+
+**`add` force-places. It does not run `blocked_site`.** Two cities were
+placed four tiles apart, which no legality check would permit, and neither
+`ConsoleWin::run_cmd` nor `Objects::init_build` references `blocked_site` at
+all. This matters more than it sounds: **a placement cheat can never be used
+to test a placement rule.** The legality check the rule lives in runs on the
+*normal* build path, and — per `docs/CITIES.md` §3.3 — again inside
+`Wall::do_construct` when the first builder reaches a site, where a verdict
+outside `{0, ONE, ONE_OTHER, FARM, NEED_WALL}` disbands the site with a
+refund. So the way to test a placement rule from a cheat-staged scenario is
+to `add NEW` the site at the distance under test, send one builder, and watch
+whether the site **starts** (`flags` 1 → 3) or **vanishes**.
+
+#### Three traps that cost a run each
+
+- **Cheats are orders, and orders need ticks.** Issued while the game is
+  paused they queue and do nothing. A probe that "failed" while paused looks
+  exactly like a probe that was refused — check the frame counter is still
+  advancing before believing any negative result.
+- **Creating a city opens a modal rename dialog**, which pauses the
+  simulation and swallows every subsequent keystroke, including the Return
+  that would open the chat box. `add NEW city` (a site) does not, but a
+  completed one does.
+- **The game window is 1920 × 1080 inside whatever the desktop is** — on this
+  machine a 3440 × 1440 ultrawide, with the window in the top-left corner.
+  `screencapture` returns the whole desktop, so screenshot coordinates are
+  desktop coordinates and the game occupies only part of them. Re-locate
+  after any relaunch (§ "Driving it").
+
 ### Driving it: the traps that cost a run each
 
 - **The window is not always real fullscreen.** Relaunched from a terminal it
