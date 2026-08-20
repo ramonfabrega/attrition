@@ -59,7 +59,7 @@ below is re-read from the user's own install by
 | `UnitData` (344 B) | `attrition` @ +158 | `i16` | Pending tick period, in frames |
 | | `inside_up` @ +130 | `i16` | Sign bit set means on the map |
 | | `o_up`, `o_down` | `i16` | Links to the other figures of the same squad |
-| `UnitTypeData` | *(domain)* @ +536 | `i32` | 0 land, 1 sea, 2 air — unnamed in the PDB, inferred from `num_aircraft_here` / `in_a_ship` |
+| `ObjectTypeData` | `domain` @ +536 | `i32` | 0 land, 1 sea, 2 air — values from `num_aircraft_here` / `in_a_ship` |
 | | `uber_size` @ +776 | `i32` | Figures per squad |
 | | *(attack)* @ +488 | `i32` | Base attack; zero makes the type exempt |
 | `LeaderData` (28,388 B) | `who` @ +8 | `i32` | The player's own slot index |
@@ -231,12 +231,14 @@ hurts six times as much as being in a war zone; against a strong one the
 computed rate takes over.
 
 **Which units reach which period is decided by the type's domain**, the `i32`
-at `UnitTypeData + 0x218`: `0` land, `1` sea, `2` air. The PDB leaves the
-field unnamed; the reading comes from `ObjectData::num_aircraft_here` counting
-types with `2` and `ObjectData::in_a_ship` / `Unit::add_to_army` testing for
-`1`, and it is consistent everywhere. (An earlier draft called this a
-three-way "attrition mode". The code paths were right; the meaning was
-not.) Only **land** units ever reach the computed period. **Ships** are
+at `ObjectTypeData + 0x218`, which the PDB names `domain` (between `armor`
+and `los`): `0` land, `1` sea, `2` air. The values come from
+`ObjectData::num_aircraft_here` counting types with `2` and
+`ObjectData::in_a_ship` / `Unit::add_to_army` testing for `1`, consistently
+everywhere. (An earlier draft called this a three-way "attrition mode", and
+the audit's reading called the field unnamed; neither is right. The code paths
+were right; the meaning was not.) Only **land** units ever reach the computed
+period. **Ships** are
 outright immune — eligibility check 9 below. **Aircraft** get the halved
 special periods and nothing else: in a war zone with no assassin target an
 aircraft takes no attrition at all, and the air halving inside
@@ -270,7 +272,9 @@ only the first one reached is the reason.
    vslot `0x94` returns 0 and the type is not the University), not a scenario
    flag. **Merchants, heroes and supply units** skip the rest of the block
    and are **not** exempt here. Everything else is exempt if its type has
-   **zero base attack** (`+0x1e8`), is flagged `is_special`, is a spy
+   **zero base attack** (`+0x1e8`), is flagged `is_special` — `unit_flags2 &
+   0x10`, which `UnitType::init_final_flags` sets for the **scout** line, so
+   that is concretely what "special" means here — is a spy
    (`TypeIndex` 0x3a), or is a caravan. (An earlier draft had heroes and
    supply units exempt and did not have the zero-attack gate at all; supply
    units get their own, conditional, exemption at the computed-period step

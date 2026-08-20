@@ -184,11 +184,12 @@ impl UnitKind {
 /// A unit type's domain — the `i32` at `UnitTypeData + 0x218`, which decides
 /// which attrition period a unit can reach at all.
 ///
-/// The PDB leaves the field unnamed; the reading is from
-/// `ObjectData::num_aircraft_here` counting `2` and `ObjectData::in_a_ship` /
-/// `Unit::add_to_army` testing `1`, and it is consistent everywhere. An
-/// earlier draft of this crate called it a three-way "attrition mode"; the code
-/// paths were right and the meaning was not.
+/// The PDB names it `domain` (`ObjectTypeData`, between `armor` and `los`);
+/// the values are from `ObjectData::num_aircraft_here` counting `2` and
+/// `ObjectData::in_a_ship` / `Unit::add_to_army` testing `1`, consistently
+/// everywhere. An earlier draft of this crate called it a three-way "attrition
+/// mode"; the code paths were right and the meaning was not. `supply` uses
+/// this same enum rather than a second name for the same three values.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Domain {
     /// The ordinary case, and the only one that gets a computed period.
