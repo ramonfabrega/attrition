@@ -34,3 +34,13 @@ entry points and the traps but not the documents, writing to a scratch
 directory; then one adjudicator per report with both readings and the export.
 About an hour of wall clock for all seven, because `tools/ghidra/export.sh`
 had already turned the decompile into files.
+
+The tech tree (`2026-08-20-tech.md`, the same day, the eighth mechanic) was
+read by two blind readers at once — one over the predicates, one over
+`gain_tech` and the state — because the mechanic is twice the size of the
+others. Its headline was different in kind: the predicates were doubly
+confirmed branch by branch, and what the first reading had missed was in the
+**loaders** — a derived prerequisite (`UnitType::init` giving every combat
+unit its age's Military epoch) and derived back-links that no amount of
+reading the consumers reveals. Read the `init` of every type the mechanic
+touches, not only the functions that ask about it.

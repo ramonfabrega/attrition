@@ -38,6 +38,16 @@ shortened game has been played to confirm the remapped levels. Medium for the
 nation-power exceptions: they are enumerated, but there are forty of them and
 each was read once. Everything open is listed at the end.
 
+A blind second reading (`docs/audit/2026-08-20-tech.md`) doubly confirmed
+the type space, the loaders' columns, every predicate branch by branch,
+`gain_tech`'s order and cascades, `lose_tech`, the starting position and the
+lobby encodings — and overturned what the first reading had **not** read: the
+loaders' derived fields (a combat unit's implicit Military requirement, the
+`upgrade`/`to`/`where` back-links), `lose_tech` leaving building bits alone,
+`gov` being written, and which check is the Tech Race win. Those are landed
+below and marked "second reading" where they changed what an earlier draft
+said.
+
 **Where the implementation is.** `crates/sim/src/tech.rs`: the tree as data
 (`TechTree`, `TypeDef`, `Kind`), one `PlayerTech` per player, and the
 predicates and procedures below under their original names. The rules that
@@ -132,17 +142,44 @@ tree reads:
 +0x50  TypeIndex[2]  show           display gating only
 ```
 
-and `num_preq()` is virtual: **2 for a unit, 3 for a building or a tech** —
-the unit's third slot exists but is never read.
+and `num_preq()` is virtual: **2 for a unit or a good, 3 for a building or a
+tech** (the base `TypeData` answers 1) — the unit's third slot exists but is
+never read.
 
 Which column feeds which field, read at each class's `init`:
 
 | class | file | `preq` | `from` | `where` | `jump`/`upgrade` | `obs` |
 | --- | --- | --- | --- | --- | --- | --- |
 | tech | `techrules.xml` | `PREQ0 PREQ1 PREQ2` | — | `WHERE` (`set_research`) | — | — |
-| unit | `unitrules.xml` | `PREQ0 PREQ1` | `FROM` | `WHERE` | `JUMP → jump` | fixed `-2` |
-| building | `buildingrules.xml` | `PREQ0 PREQ1 PREQ2` | `FROM` | — | `JUMP → jump`, copied to `upgrade` if ≥ 0 | `OBSOLETE` |
+| unit | `unitrules.xml` | `PREQ0 PREQ1` (+ the implicit slot below) | `FROM` | `WHERE` | `JUMP → jump`; `upgrade` derived | fixed `-2` |
+| building | `buildingrules.xml` | `PREQ0 PREQ1 PREQ2` | `FROM` | derived: `from`, or nothing at the base of a line | `JUMP → jump`, copied to `upgrade` if ≥ 0; `to`/`upgrade` derived | `OBSOLETE` |
 | good | `resourcerules.xml` | `PREQ0 PREQ1` | — | — | — | `OBS` |
+
+**Four things the loaders derive after reading the columns** (second
+reading; `crates/sim/src/tech.rs` does them in `TechTree::finalize`):
+
+- **A combat unit that names only an age also needs that age's Military
+  epoch.** `UnitType::init`: if `preq[0]` is an age, `preq[1]` is `none` and
+  `attack ≠ 0`, then `preq[1] = preq[0] + 0x1c` — Classical `0x220` becomes
+  `THE_ART_OF_WAR 0x23c`, Medieval `MERCENARIES`, and so on. The shipped file
+  writes `none` in most military units' `PREQ1` and relies on this; the
+  Phalanx needs Classical **and** The Art of War.
+- **A unit's `upgrade` is a back-link.** A unit with a `FROM`, unless it is a
+  hero (`OBJ_MASK 1`), writes itself into `U[from].upgrade` — when it has no
+  graft, or its predecessor has one, or it is free (`h`); a grafted unit
+  inherits its graft's `upgrade` if it has none. `current_upgrade` falls
+  back through it.
+- **A building's `to` and `upgrade`, and its `where`.** `BuildType::init`: a
+  building with a `FROM`, unless a hero, is its predecessor's `to`, and its
+  `upgrade` too when it carries `build_flags & 4` (the `BUILD_FLAGS` letter
+  `c`); and a building's `where` is its `FROM` unless it is the base of its
+  line (`basic_type() == self`), when it is nothing. So a Keep is queued at a
+  Stockade.
+- **`Types::finalize_grafting`** rewrites the `tribe_mask` of every unique
+  unit's graft: the graft loses the unique unit's nations (or gains them
+  under "No Unique Units"), and barbarian tribes always get the graft. Not
+  modelled in the simulation — it needs the roster's barbarian flags and the
+  lobby flag at load time.
 
 Every prerequisite column is resolved by `Types::tech_key`, which compares the
 text — case-insensitively; the shipped file writes both `none` and `None`, and
@@ -179,7 +216,9 @@ drops the argument, and it was read from the bytes (`push 0x4000000` at
 
 `ObjectTypeData::is(x, strict)` is not equality. Non-strict: `type == x`, or `x`
 is in the type's `is_list`, or — failing both — `ObjectTypeData::is_slow`:
-`graft == x`, or recurse into `from`. So `is(X, 0)` reads "this type is X or
+`graft == x`, or recurse into `from`. (`is_list` and `is_strict_list` are
+filled by `ObjectType::init_is_list` by evaluating `is_slow` over every type
+once: they are a cache of the walk, not a second source.) So `is(X, 0)` reads "this type is X or
 descends from X along the upgrade chain, or is X's nation variant". Strict
 `is(x, 1)` uses `is_strict_list` and, for units, only `graft == x` and `x` not
 unique. This is the predicate behind `queue_here`, the machine-gun rule, the
@@ -489,10 +528,17 @@ cascade below call it with `upgrade_units = 1`; the cascades pass
    — the predecessors are owned and obsolete at once.
 8. **A building type**: every live building whose type's `upgrade == t` is
    marked obsolete (`obs_flags` of its type) and converted (`set_type`), and
-   `obs_flags.set(t.from)` if `from ≥ 0`.
+   `obs_flags.set(t.from)` if `from ≥ 0`. **A unit or a building type stops
+   here** — a unit `goto`s the epilogue after step 7, and everything that is
+   not a tech type returns after step 8; none of the cascades below run for
+   them.
 9. **A tech**: an epoch zeroes `misery` and, if Military, recomputes the
-   population cap; a final, when announced, is a message; and if `epochs`
-   is now 28, `victory(3)` — the Tech Race win.
+   population cap; a final, when announced, is a message; a government
+   writes `LeaderData::gov = t`, and Capitalism gained after frame 0 adds
+   `CAPITALISM_OIL_GIFT` (500) to the oil bucket; and **an age under the
+   Tech Race victory (`victory == 9`), outside Conquer the World, with `ages`
+   now equal to `ending_technology`, is `victory(3)`** — the win. (Conquer
+   the World's variant is in the epoch arm: all 28 epochs owned.)
 10. **Civic epoch**: `fix_all_borders`, walls re-masked around every city.
 11. **Buildings cascade.** For every building type `B` with `has_preq(B)` and
     some `get_preq(B, i, who) == t`: if `B.is(TOWN, 0)`, every city runs
@@ -502,10 +548,14 @@ cascade below call it with `upgrade_units = 1`; the cascades pass
     `get_preq(u, 1) == t`, `has_preq(u)`, not `has_tech(u)`, **flag `h`**, not
     a hero, and `type_eligible(u, 1)`: `gain_tech(u, 0, 0, 0, 1)`. This is
     what hands out the first unit of every line with its age.
-13. **Nation and wonder free techs.** Each is "for every candidate `c` with
-    `has_preq(c)` and some `get_preq(c, i, who) == t` and
+13. **Nation and wonder free techs.** The common shape is "for every candidate
+    `c` with `has_preq(c)` and some `get_preq(c, i, who) == t` and
     `type_eligible(c, 1)`: `gain_tech(c, 0, 0, 0, 1)`", gated by a power and a
-    constant:
+    constant. Two blocks differ (second reading): the **unit-line blocks**
+    (Lakota, Iroquois, Indians, Korean militia) match "one of the candidate's
+    two prerequisites is `t` and the other is owned" instead of `has_preq`;
+    and the **Statue of Liberty** block compares a grafted prerequisite and
+    asks `type_eligible(c, 0)`.
 
     | gate | constant (shipped) | candidates |
     | --- | --- | --- |
@@ -545,12 +595,19 @@ cascade below call it with `upgrade_units = 1`; the cascades pass
 **Research completes through this path and trains nothing**: the first of a
 unit type sets the bit and upgrades the units already standing; the player
 queues again for the first trained one (`docs/PRODUCTION.md`, "Completion").
+`Build::finished` sends everything through `gain_tech(t, x, y, 1, 1)` except
+three cases: a unit type already owned trains; a spell is cast; and **a
+building type without `build_flags & 4` converts only the building that
+finished it** (`set_type`), never reaching `gain_tech` — the global upgrades
+(`c`) are the ones the whole nation takes at once.
 
 ### `lose_tech`
 
 `Leader::lose_tech(t)`, the scenario and console inverse:
 
 - A **unit** type: if `has_tech(t)`, `discovered −= 1`; clear the bit.
+- **A building, good, spell or bonus: nothing — the bit is not touched**
+  (second reading; the function has a unit arm and a tech arm and no other).
 - A **tech**: clear the bit; then for every owned tech `y` in `0x220–0x274`:
   if `y` and `t` are both ages, lose `y` when `t.age ≤ y − 0x220`; otherwise
   lose `y` when `TechType::is_ultimate_preq(t, y)` — `t` appears somewhere in
@@ -649,13 +706,36 @@ allowed grants it at once and queues nothing.
 - **`LeaderData::researching`'s same-line clause** for units is read from the
   loop and not exercised: it refuses a second unit type of the same lineage
   while one is queued anywhere.
-- **The nation free-upgrade blocks for unit ranges** (Lakota, Iroquois,
-  Indians, Koreans, Germans, British, Spanish, Turks) have per-block
-  differences in which slot and which range they match; the common shape is
-  recorded above and implemented, the per-block ranges are in the decompile.
+- ~~**The nation free-upgrade blocks for unit ranges** have per-block
+  differences.~~ Read by the second reading: two shapes, recorded at step 13;
+  the Statue of Liberty variant is recorded and not implemented.
+- **`Types::finalize_grafting`**, the unique-unit mask rewrite, is read and
+  not modelled.
 - **`misery`** (`LeaderData +0x7ec`), zeroed on every epoch; its reader is
   elsewhere.
 - **`tech_frame` and `tech_cat_frame`** (`+0x7c4`, `+0x7c8`): named, logged
   by `LeaderData::log_data`, and written by nothing read here.
 - Whether **`epoch[cat]` ever diverges from `compute_epoch`** in play, since
   `gain_tech` increments and `lose_tech` recounts.
+
+---
+
+## Second reading (2026-08-20) — landed
+
+Two blind readers and an adjudication are in `docs/audit/2026-08-20-tech.md`.
+Doubly confirmed: the type space, the columns, `tech_key`, `cat` and the
+`epoch[]` order, the flag letters and the hero mask (both from the bytes),
+`has_tech`, every `get_preq` substitution, `special_preq`, every `has_preq`
+waiver and the age quota and the government tiers, every `type_eligible` and
+`type_avail` branch, `queue_here`, the lobby encodings, the tribe ids (now
+read from `Tribe::parse`), `gain_tech`'s order, the cascades and all 27
+free-tech blocks with their bytes-read `is()` arguments, `lose_tech`'s
+cascade, `reset_obs_flags`, `set_age`/`set_epoch`, the starting position, and
+`Build::finished`. Corrected, each marked inline above: the loaders' derived
+fields (a combat unit's implicit Military epoch, `upgrade`/`to`/`where`
+back-links, `finalize_grafting`), `num_preq` for goods, `lose_tech` leaving
+building bits alone, `gov` written on a government, the Tech Race win on the
+ending age, units and buildings stopping before the cascades, the two other
+shapes of the free-tech blocks, `Build::finished`'s local building upgrades,
+and `is_list` as a cache. Implementation and tests followed in the same
+commit.

@@ -76,6 +76,10 @@ pub struct UnitTraits {
     pub hero: bool,
     /// One of the six government patriots (`0x160–0x165`).
     pub patriot: bool,
+    /// A non-zero `ATTACK`: a combat unit. `UnitType::init` gives every
+    /// combat unit that names only an age an implicit second prerequisite,
+    /// the Military epoch of that age — see [`TechTree::finalize`].
+    pub combat: bool,
 }
 
 /// What class of thing an entry is — the original's `TypeIndex` range.
@@ -137,8 +141,12 @@ pub struct TypeDef {
     pub from: Option<TypeId>,
     /// `JUMP`: the next upgrade in a unit's line.
     pub jump: Option<TypeId>,
-    /// What a building becomes — its `JUMP`, when it has one.
+    /// What this type becomes. A building's `JUMP`; otherwise derived by the
+    /// loader from the successor's `FROM` — see [`TechTree::finalize`].
     pub upgrade: Option<TypeId>,
+    /// A building's successor by `FROM`, derived by the loader
+    /// (`BuildTypeData::to`); the Town's count of upgrades reads it.
+    pub to: Option<TypeId>,
     /// `OBS`/`OBSOLETE`: the tech that makes this type obsolete.
     pub obs: Preq,
     /// `WHERE`: the building type that makes it.
@@ -165,6 +173,7 @@ impl TypeDef {
             from: None,
             jump: None,
             upgrade: None,
+            to: None,
             obs: Preq::Disabled,
             where_: None,
             tribe_mask: u32::MAX,
@@ -295,15 +304,28 @@ pub enum Gate {
     Wonder(TypeId),
 }
 
+/// How a free-tech block matches a candidate against the tech just gained.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Shape {
+    /// The common shape: the candidate's prerequisites are met and one of
+    /// them is the tech just gained.
+    #[default]
+    PreqMatch,
+    /// The unit-line blocks (Lakota, Iroquois, Indians, Korean militia): one
+    /// of the candidate's two prerequisites is the tech just gained and the
+    /// other is owned.
+    TwoPreq,
+}
+
 /// One of the nation and wonder free-tech blocks at the end of `gain_tech`:
-/// for every candidate with its prerequisites met, one of which is the tech
-/// just gained, and eligible, gain it.
+/// for every candidate that matches and is eligible, gain it.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FreeRule {
     pub gate: Gate,
     /// The `rules.xml` constant behind the block, as loaded: non-zero is on.
     pub enabled: i32,
     pub candidates: Vec<TypeId>,
+    pub shape: Shape,
 }
 
 /// The lobby's game-rule setting, as far as the tree reads it.
@@ -336,6 +358,8 @@ pub struct Setup {
     pub no_nation_powers: bool,
     /// `info.flags & 8`, "No Unique Units".
     pub no_unique_units: bool,
+    /// `victory == 9`, the Tech Race: reaching the ending age wins.
+    pub tech_race: bool,
 }
 
 impl Setup {
@@ -348,6 +372,7 @@ impl Setup {
         no_finals: false,
         no_nation_powers: false,
         no_unique_units: false,
+        tech_race: false,
     };
 }
 
@@ -394,6 +419,8 @@ pub struct PlayerTech {
     pub no_patriots: bool,
     /// `leader_flags2 & 0x800`: no governments.
     pub no_governments: bool,
+    /// `LeaderData::gov`: the government last gained, if any.
+    pub gov: Option<TypeId>,
 }
 
 impl PlayerTech {
@@ -416,6 +443,7 @@ impl PlayerTech {
             wonders: Vec::new(),
             no_patriots: false,
             no_governments: false,
+            gov: None,
         }
     }
 
@@ -450,7 +478,7 @@ pub enum Gained {
     /// A unit type arrived: standing units of `from` (and of every type in
     /// the jump chain below it) convert to it, and so do their queue entries.
     UnitUpgrade { to: TypeId },
-    /// Every library tech is owned: the Tech Race victory.
+    /// Under the Tech Race victory, the age just gained is the ending age.
     TechRaceWon,
 }
 
@@ -512,13 +540,82 @@ impl TechTree {
         self.tribes.len() - 1
     }
 
+    /// What the original's loaders derive after reading the columns, done
+    /// once the whole table is in. Call it after the last [`TechTree::add`].
+    ///
+    /// - `UnitType::init`: a **combat** unit whose `PREQ0` is an age and
+    ///   whose `PREQ1` is `none` gets the Military epoch of that age as its
+    ///   second prerequisite (`preq[1] = preq[0] + 0x1c`).
+    /// - `UnitType::init`: a unit with a `FROM`, unless it is a hero, writes
+    ///   itself into its predecessor's `upgrade` — when it has no graft, or
+    ///   the predecessor has one, or it is free (`h`); a grafted unit
+    ///   inherits its graft's `upgrade` if it has none.
+    /// - `BuildType::init`: a building with a `FROM`, unless a hero, is its
+    ///   predecessor's `to`, and its `upgrade` too when it carries
+    ///   `build_flags & 4`; and a building's `where` is its `FROM`, unless
+    ///   it is the base of its line (`basic_type() == self`), when it is
+    ///   nothing.
+    pub fn finalize(&mut self) {
+        let n = self.types.len();
+        for u in 0..n {
+            let Kind::Unit(traits) = self.types[u].kind else {
+                continue;
+            };
+            if traits.combat
+                && let Preq::Of(a) = self.types[u].preq[0]
+                && let Some(level) = self.age_of(a)
+                && self.types[u].preq[1] == Preq::None
+                && let Some(m) = self.epochs[Line::Military.index()][level as usize]
+            {
+                self.types[u].preq[1] = Preq::Of(m);
+            }
+            if let Some(f) = self.types[u].from
+                && !traits.hero
+                && (self.types[u].graft.is_none() || self.types[f].graft.is_some() || traits.free)
+            {
+                self.types[f].upgrade = Some(u);
+            }
+            if let Some(g) = self.types[u].graft
+                && self.types[u].upgrade.is_none()
+            {
+                self.types[u].upgrade = self.types[g].upgrade;
+            }
+        }
+        for b in 0..n {
+            let Kind::Building { auto, .. } = self.types[b].kind else {
+                continue;
+            };
+            if let Some(f) = self.types[b].from {
+                self.types[f].to = Some(b);
+                if auto {
+                    self.types[f].upgrade = Some(b);
+                }
+            }
+            // `basic_type()`: the root of the `from` chain.
+            let mut root = b;
+            let mut guard = 0;
+            while let Some(f) = self.types[root].from {
+                root = f;
+                guard += 1;
+                if guard > 1024 {
+                    break;
+                }
+            }
+            self.types[b].where_ = if root == b { None } else { self.types[b].from };
+        }
+    }
+
     pub fn kind(&self, t: TypeId) -> Kind {
         self.types[t].kind
     }
 
-    /// `num_preq()`: two for a unit, three for anything else.
+    /// `num_preq()`: two for a unit or a good, three for a building or a
+    /// tech.
     pub fn num_preq(&self, t: TypeId) -> usize {
-        if self.kind(t).is_unit() { 2 } else { 3 }
+        match self.kind(t) {
+            Kind::Unit(_) | Kind::Good => 2,
+            _ => 3,
+        }
     }
 
     fn epoch_of(&self, t: TypeId) -> Option<(Line, u8)> {
@@ -1342,7 +1439,10 @@ impl TechTree {
         {
             out.push(Gained::MilitaryEpoch);
         }
-        if matches!(kind, Kind::Epoch { .. }) && p.epochs == EPOCHS {
+        if let Kind::Gov { .. } = kind {
+            p.gov = Some(t);
+        }
+        if matches!(kind, Kind::Age(_)) && setup.tech_race && p.ages == setup.ending {
             out.push(Gained::TechRaceWon);
         }
 
@@ -1390,11 +1490,19 @@ impl TechTree {
                 continue;
             }
             for &c in &rule.candidates {
-                if !self.has_preq(setup, p, c) {
-                    continue;
-                }
-                let hit = (0..self.num_preq(c))
-                    .any(|i| self.get_preq(setup, Some(p), c, i) == Preq::Of(t));
+                let hit = match rule.shape {
+                    Shape::PreqMatch => {
+                        self.has_preq(setup, p, c)
+                            && (0..self.num_preq(c))
+                                .any(|i| self.get_preq(setup, Some(p), c, i) == Preq::Of(t))
+                    }
+                    Shape::TwoPreq => {
+                        let q0 = self.get_preq(setup, Some(p), c, 0);
+                        let q1 = self.get_preq(setup, Some(p), c, 1);
+                        (q0 == Preq::Of(t) && self.has_tech_p(setup, p, q1))
+                            || (q1 == Preq::Of(t) && self.has_tech_p(setup, p, q0))
+                    }
+                };
                 if hit && self.type_eligible(setup, p, c, true) != 0 {
                     self.gain(setup, p, c, frame, out, depth + 1);
                 }
@@ -1439,7 +1547,7 @@ impl TechTree {
             return;
         }
         if !kind.is_tech() {
-            p.tech[t] = false;
+            // A building, good, spell or bonus: the bit is not touched.
             return;
         }
         p.tech[t] = false;
@@ -1709,6 +1817,7 @@ mod tests {
         unique: false,
         hero: false,
         patriot: false,
+        combat: true,
     };
     const J: UnitTraits = UnitTraits {
         free: false,
@@ -1716,6 +1825,7 @@ mod tests {
         unique: false,
         hero: false,
         patriot: false,
+        combat: true,
     };
     const PLAIN: UnitTraits = UnitTraits {
         free: false,
@@ -1723,6 +1833,7 @@ mod tests {
         unique: false,
         hero: false,
         patriot: false,
+        combat: true,
     };
 
     fn fixture() -> Fixture {
@@ -2118,20 +2229,105 @@ mod tests {
     }
 
     #[test]
-    fn the_last_epoch_is_the_tech_race_win() {
+    fn the_tech_race_is_won_on_the_ending_age() {
+        let f = fixture();
+        let race = Setup {
+            tech_race: true,
+            ..Setup::STANDARD
+        };
+        let mut p = fresh(&f);
+        age_up(&f, &mut p, 5);
+        for line in Line::ALL {
+            for level in 0..LEVELS {
+                f.tree
+                    .gain_tech(&race, &mut p, f.epochs[line.index()][level], 1);
+            }
+        }
+        // Every library tech is owned and nothing is won yet: the win is the
+        // ending age, under that victory setting only.
+        assert_eq!(p.epochs, EPOCHS);
+        assert!(f.tree.has_preq(&race, &p, f.ages[6]));
+        let plain = f
+            .tree
+            .gain_tech(&Setup::STANDARD, &mut p.clone(), f.ages[6], 9);
+        assert!(!plain.contains(&Gained::TechRaceWon));
+        let won = f.tree.gain_tech(&race, &mut p, f.ages[6], 9);
+        assert!(won.contains(&Gained::TechRaceWon));
+        assert_eq!(p.ages, 7);
+        assert_eq!(p.epoch, [7, 7, 7, 7]);
+    }
+
+    #[test]
+    fn finalize_derives_what_the_loaders_derive() {
+        let f = fixture();
+        let mut t = f.tree.clone();
+        let mil = f.epochs[Line::Military.index()];
+        // A combat unit naming only Medieval gets Military 2 as well; a
+        // civilian (Citizen: not combat) does not.
+        let knight = t.add(
+            TypeDef::unit("Knight", J)
+                .at(f.barracks)
+                .from(f.hoplites)
+                .needs(0, f.ages[1]),
+        );
+        let stable = t.add(TypeDef::building("Stable"));
+        let keep = t.add(TypeDef::building("Keep").from(stable));
+        t.types[keep].kind = Kind::Building {
+            auto: true,
+            wonder: false,
+        };
+        t.finalize();
+        assert_eq!(
+            t.types[knight].preq,
+            [Preq::Of(f.ages[1]), Preq::Of(mil[1]), Preq::None]
+        );
+        assert_eq!(t.types[f.citizen].preq[1], Preq::None);
+        assert_eq!(t.types[f.phalanx].preq[1], Preq::Of(mil[0]));
+        // The predecessor's `upgrade` is the successor (the last one written).
+        assert_eq!(t.types[f.hoplites].upgrade, Some(knight));
+        assert_eq!(t.types[f.phalanx].upgrade, Some(f.pikemen));
+        // Buildings: `to` and, for an auto-upgrade, `upgrade`; `where` is the
+        // predecessor unless the building is the base of its line.
+        assert_eq!(t.types[stable].to, Some(keep));
+        assert_eq!(t.types[stable].upgrade, Some(keep));
+        assert_eq!(t.types[keep].where_, Some(stable));
+        assert_eq!(t.types[stable].where_, None);
+        // And so a Keep queues at a Stable.
+        assert!(t.queue_here(stable, keep));
+        // Which means the implicit requirement bites: with Medieval owned but
+        // Military 2 not, the Knight is not researchable.
+        let s = Setup::STANDARD;
+        let mut p = PlayerTech::new(&t);
+        t.start(&s, &Tuning::RON, &mut p);
+        let fx = Fixture {
+            tree: t.clone(),
+            ..f
+        };
+        age_up(&fx, &mut p, 1);
+        assert!(p.tech[mil[0]] && p.tech[mil[1]], "the quota owns both");
+        t.lose_tech(&s, &mut p, mil[1]);
+        assert!(!t.has_preq(&s, &p, knight));
+        t.gain_tech(&s, &mut p, mil[1], 3);
+        assert!(t.has_preq(&s, &p, knight));
+    }
+
+    #[test]
+    fn losing_touches_only_unit_and_tech_bits_and_gaining_a_government_sets_it() {
         let f = fixture();
         let s = Setup::STANDARD;
         let mut p = fresh(&f);
-        let mut last = Vec::new();
-        for line in Line::ALL {
-            for level in 0..LEVELS {
-                last = f
-                    .tree
-                    .gain_tech(&s, &mut p, f.epochs[line.index()][level], 1);
-            }
-        }
-        assert!(last.contains(&Gained::TechRaceWon));
-        assert_eq!(p.epoch, [7, 7, 7, 7]);
+        age_up(&f, &mut p, 0);
+        let [despotism, _] = f.govs[0];
+        assert_eq!(p.gov, None);
+        f.tree.gain_tech(&s, &mut p, despotism, 2);
+        assert_eq!(p.gov, Some(despotism));
+        // A building's bit survives lose_tech; a unit's does not.
+        assert!(p.tech[f.barracks]);
+        f.tree.lose_tech(&s, &mut p, f.barracks);
+        assert!(p.tech[f.barracks]);
+        assert!(p.tech[f.catapult]);
+        f.tree.lose_tech(&s, &mut p, f.catapult);
+        assert!(!p.tech[f.catapult]);
     }
 
     #[test]
@@ -2237,6 +2433,7 @@ mod tests {
             gate: Gate::Power(14),
             enabled: 1,
             candidates: vec![f.herbal_lore, f.medicine],
+            shape: Shape::PreqMatch,
         });
         let mut p = PlayerTech::new(&t);
         p.power = Some(14);

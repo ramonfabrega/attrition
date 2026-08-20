@@ -147,8 +147,10 @@ better, in which case say so and take that.
    `type_eligible`, `type_avail`, `queue_here`, `gain_tech` with its cascades,
    `lose_tech`, `set_age`, the starting position, the lobby's start/end ages.
    The `TypeIndex` enum is now dumped whole by
-   `tools/ghidra/scripts/DumpEnumAll.java`. Second reading pending; see
-   `docs/audit/`.
+   `tools/ghidra/scripts/DumpEnumAll.java`. Second reading done and landed
+   (`docs/audit/2026-08-20-tech.md`): it found the loaders' derived fields —
+   every combat unit implicitly needs its age's Military epoch — which a
+   reading of the predicates alone cannot see. Read the loader too.
 2. **Combat** — attack, damage, armour, target selection. Attrition is still
    the only thing in the simulation that can kill.
 3. **Cities and buildings** — placement, construction, city levels, the
