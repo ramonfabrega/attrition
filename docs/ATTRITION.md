@@ -20,6 +20,12 @@ confirmed from a second direction by the designers' `"24 tiles"` and
 from `Unit::process`, the sole caller of both halves. What remains open is
 listed at the end and none of it changes the numbers.
 
+A blind second reading (`docs/audit/2026-08-20-attrition.md`) doubly confirmed
+every formula above and overturned several of the *predicates* around them —
+which unit kinds are exempt, what the damage number is a unit of, what two
+type fields mean. Those corrections are landed below and marked where they
+changed what an earlier draft said.
+
 **One correction to an earlier draft of this document**, which claimed the
 cadence could not be found because `suffer_attrition` "is called through a
 vtable, so there are no direct references to follow". That was wrong, and
@@ -48,9 +54,16 @@ below is re-read from the user's own install by
 | `SubObjectData` (28 B) | `who` @ +9 | `u8` | Owning player |
 | | `o` @ +10 | `i16` | Index in the owner's object list; **phases every periodic thing the unit does** |
 | | `x_internal` @ +16, `y_internal` @ +20 | `Coord` | Position, XOR-masked |
+| `ObjectData` | `damage` @ +36 | `i32` | Hit points lost so far; the unit dies when it reaches `hits` |
+| | `damage_frac` @ +59 | `i8` | Sixteenths of a hit point not yet carried into `damage` |
 | `UnitData` (344 B) | `attrition` @ +158 | `i16` | Pending tick period, in frames |
 | | `inside_up` @ +130 | `i16` | Sign bit set means on the map |
-| `LeaderData` (28,388 B) | `anti_att` @ +2036 | **`f32`** | Resistance scale, 256 = baseline |
+| | `o_up`, `o_down` | `i16` | Links to the other figures of the same squad |
+| `UnitTypeData` | *(domain)* @ +536 | `i32` | 0 land, 1 sea, 2 air — unnamed in the PDB, inferred from `num_aircraft_here` / `in_a_ship` |
+| | `uber_size` @ +776 | `i32` | Figures per squad |
+| | *(attack)* @ +488 | `i32` | Base attack; zero makes the type exempt |
+| `LeaderData` (28,388 B) | `who` @ +8 | `i32` | The player's own slot index |
+| | `anti_att` @ +2036 | **`f32`** | Resistance scale, 256 = baseline |
 | | *(strength)* @ +2032 | `i32` | Attrition level this player inflicts |
 | | *(give disabled)* @ +2040 | `i32` | Scenario flag; suppresses the above |
 | | *(take disabled)* @ +2044 | `i32` | Scenario flag; suppresses resistance |
@@ -58,17 +71,20 @@ below is re-read from the user's own install by
 | | `attrition_stamp{,2,3}` @ +500/504/508 | `i32` | Warning-message throttles |
 | `WorldData` (364 B) | `player_territory_limit{,_civic,_city}` @ +56/60/64 | `i32` | Seeded from `TERRITORY_LIMIT_*` |
 
-`WorldData` carries a **second** triple of limits at +68/72/76. The territory
-pass picks between the two on a per-region flag, so some regions are computed
-against a different reach than others. Which regions, and why, is not
-established.
+`WorldData` carries a **second** triple of limits at +68/72/76:
+`colonized_territory_limit{,_civic,_city}`. The territory pass picks the
+player triple for a region whose `Region::flags` has bit 4 set and the
+colonized triple otherwise, so some regions are computed against a different
+reach than others. Which regions carry the flag, and why, is not established.
 
 Two incidental findings worth recording, because they will bite anyone reading
 memory or a save file:
 
 - **Unit coordinates are stored XOR-masked with `0x63637`**, the player's age
-  with `0x62766`, and a city's stored age with `0x63187`. A tamper-resistance
-  measure, not encryption.
+  with `0x62766`, and the player's civic level — `LeaderDataEncrypt::epoch[1]`,
+  which the territory pass reads — with `0x63187`. A tamper-resistance measure,
+  not encryption. (An earlier draft called the last one "a city's stored age";
+  it is the leader's civic level, and it indexes `CIVIC_UPGRADE_TERR`.)
 - `Unit` derives from `UnitData` and adds no fields; `Leader`/`LeaderData` the
   same. The split is behaviour over state, matching the `GameAccess` /
   `GameAccessConst` accessor layering visible in `obsoletescriptfuncs.txt`.
@@ -164,9 +180,9 @@ Liberty works.
 - Everything else: `scale * anti_att / 256`. Additionally, a player holding
   Foraging tier 1 takes **no** attrition while the unit is idle.
 - **Merchants, Dutch merchants and fur trappers** halve the result, and so
-  does any type whose attrition mode is `2`. Those three are `TypeIndex` 61,
-  62 and 400 — the economic units whose whole job is to stand outside your
-  borders, which is why they were singled out.
+  does any **air** unit (type domain `2`; see below). Those three are
+  `TypeIndex` 61, 62 and 400 — the economic units whose whole job is to stand
+  outside your borders, which is why they were singled out.
 - Finally, if the owner is at the same age or later than the victim, strength
   is scaled by `(ATTRITION_AGED_UP * ages_ahead + 100) / 100`, **rounding up**.
 
@@ -200,8 +216,8 @@ can produce, susceptibility is `256 / 72 = 3` and `48 * 3 / 256` truncates to
 zero. The `max(1)` is therefore what actually sets the fastest attrition in the
 game: one tick per frame, fifteen a second.
 
-**Special periods**, assigned directly rather than computed, and halved when
-the unit's attrition mode is `2`:
+**Special periods**, assigned directly rather than computed, and halved for
+air units:
 
 - `PEACE_ATTRITION` = 8 frames — border violation while at peace.
 - `ASSASSIN_ATTRITION` = 8 frames — assassin game mode, in the territory of
@@ -214,10 +230,18 @@ substitute for the rate. Against a weak player, crossing a peaceful border
 hurts six times as much as being in a war zone; against a strong one the
 computed rate takes over.
 
-Only units whose attrition mode is `0` ever reach the computed period. Mode `1`
-is outright immune and mode `2` gets the halved special periods and nothing
-else — which means the mode-`2` halving inside `get_attrition` is unreachable
-from the tick, and survives only because the function is called from elsewhere.
+**Which units reach which period is decided by the type's domain**, the `i32`
+at `UnitTypeData + 0x218`: `0` land, `1` sea, `2` air. The PDB leaves the
+field unnamed; the reading comes from `ObjectData::num_aircraft_here` counting
+types with `2` and `ObjectData::in_a_ship` / `Unit::add_to_army` testing for
+`1`, and it is consistent everywhere. (An earlier draft called this a
+three-way "attrition mode". The code paths were right; the meaning was
+not.) Only **land** units ever reach the computed period. **Ships** are
+outright immune — eligibility check 9 below. **Aircraft** get the halved
+special periods and nothing else: in a war zone with no assassin target an
+aircraft takes no attrition at all, and the air halving inside
+`get_attrition` is unreachable from the tick, surviving only because the
+function is called from elsewhere.
 
 ---
 
@@ -231,20 +255,45 @@ only the first one reached is the reason.
 2. The cell is unowned *and* the victim's `neutral_attrition` is zero.
 3. The cell's owner is the unit's own player.
 4. The owner is not an active, initialised player.
-5. The owner is the victim's team.
+5. The owner is `leaders[victim].who` — the victim's own slot index again.
+   There is no team concept here; this is check 3 a second time, and it can
+   never fire. (An earlier draft read it as a team test. The implementation
+   had grown a `team` field to match, defaulting to 0, which exempted every
+   unit on player 0's ground until a test set it by hand. Both are gone.)
 6. Both sides hold a mutual treaty of type 2.
 7. The victim has take-attrition disabled, or the owner has give-attrition
    disabled (both scenario-scriptable).
-8. **Unit kind.** Workers and merchants are subject. Heroes, supply units,
-   spies and "special" units are exempt, as are caravans. A worker actively
-   gathering at a site flagged exempt is also spared.
-9. The unit's type has attrition mode `1` (outright immune).
+8. **Unit kind.** The block is nested, and the nesting is the rule. A
+   **worker** is exempt only while gathering from a site whose
+   `GatherOrder::non_flat_gather` is set — a property of the building type
+   being gathered from (set in `Unit::add_gather_order` when the type's
+   vslot `0x94` returns 0 and the type is not the University), not a scenario
+   flag. **Merchants, heroes and supply units** skip the rest of the block
+   and are **not** exempt here. Everything else is exempt if its type has
+   **zero base attack** (`+0x1e8`), is flagged `is_special`, is a spy
+   (`TypeIndex` 0x3a), or is a caravan. (An earlier draft had heroes and
+   supply units exempt and did not have the zero-attack gate at all; supply
+   units get their own, conditional, exemption at the computed-period step
+   below.)
+9. The unit's type is **sea** domain — ships are outright immune.
 10. The victim has a non-zero `neutral_attrition`. A player with a neutral
     period set therefore takes *only* that period and never territorial
     attrition — it replaces the mechanic rather than adding to it.
 11. In Conquer the World with a particular conquest bonus, and outside a
     specific team style.
-12. Inside the `ally_to_war_grace` window after an ally became an enemy.
+12. Not at war, with an alliance broken less than `ally_to_war_grace` frames
+    ago — "alliance broken, not yet at war". This lives in the *not-at-war*
+    branch, and with shipped data it is **dead code**: `ALLY_TO_WAR_DELAY`
+    and `ALLY_TO_WAR_GRACE` are absent from `rules.xml`, `Constants::get_item`
+    returns `-1` for a missing attribute, and with a delay of `-1` every
+    "recently broke alliance" test is already past its window. Only a mod that
+    adds the two constants can make it fire.
+13. A **land supply unit** whose bleed did not come from the peace or
+    assassin path. The test is on the `0x400000` flag those two paths set:
+    clear, and a supply unit returns with no period; set, and the wagon bleeds
+    like anything else — the peace period *and* the computed one, smaller
+    wins. So a supply wagon is safe in a war zone and bleeds over a peaceful
+    border. (An earlier draft had wagons exempt outright.)
 
 Check 2 has a wrinkle worth recording. When the ground is unowned and the
 victim *does* have a neutral period, the original sets that period and then
@@ -321,9 +370,11 @@ still computed, still set, and still shown in the interface.
 Two exclusions carry weight. **Militia are never sheltered**, which is the
 other half of why they take four times the rate: they are the emergency
 defenders of your own ground, and the game declines to let them campaign behind
-a wagon. And the **peace and assassin paths set a flag that makes the supply
-check give up immediately**, so a supply wagon protects an army in a war zone
-but does nothing for a unit caught over a border in peacetime.
+a wagon. And the **peace and assassin paths both set the same flag,
+`0x400080`, and the supply check gives up immediately on `0x400000`**, so a
+supply wagon protects an army in a war zone but does nothing for a unit caught
+over a border in peacetime — and, per eligibility check 13, that is also the
+state in which the wagon itself bleeds.
 
 The supply network itself — what registers as a source, how far it reaches, and
 the two other things it does that have nothing to do with attrition — is
@@ -333,12 +384,18 @@ wagon does nothing for your units.
 
 ## The damage
 
-`Unit::suffer_attrition` applies it when the period elapses.
+`Unit::suffer_attrition` applies it when the period elapses, and **the unit it
+applies it to is one figure, not one squad.** RoN units are squads of one to
+four figures, and each figure is its own `UnitData` in the owner's unit list,
+linked to the others through `o_up` / `o_down`; each runs its own
+`Unit::process`, its own cadence and its own `suffer_attrition`. The squad is
+the thing the player selects; the figure is the thing that bleeds.
 
-The amount depends only on squad size — RoN units are squads of one to four
-figures — via `curr_uber_size`:
+The amount is in **sixteenths of a hit point**, and depends only on how many
+figures the squad currently has — `curr_uber_size`, which walks up to the
+captain and counts down the chain:
 
-| Squad size | Damage |
+| Figures in the squad | Sixteenths per figure per tick |
 | --- | --- |
 | 1 | 16 |
 | 2 | 8 |
@@ -346,12 +403,28 @@ figures — via `curr_uber_size`:
 | 4 | 4 |
 
 Size 3 is special-cased to 6 rather than the `16 / 3 = 5` the formula would
-give, so the per-squad total stays near 16.
+give, so the per-squad total stays near 16 — that is, near **one hit point per
+squad per tick**. A lone figure loses one whole point a tick; a figure in a
+squad of four loses one whole point every fourth tick.
 
-A type flagged at `+0x308` takes a different path: the damage call gets its
-first argument set to 1 and an amount of 0, where the ordinary case passes 0
-and the amount. That first argument is a damage *kind* rather than an amount,
-and what the kind does is unread.
+The sixteenths go through `Object::take_damage(whole, sixteenths, …)`, which
+accumulates them in `ObjectData::damage_frac`: `acc = damage_frac + sixteenths;
+damage += whole + acc / 16; damage_frac = acc % 16`. Nothing is ever lost to
+truncation; a squad of three carries its 18/16 forward exactly. The figure dies
+when `damage` reaches its share of the type's hits.
+
+A type whose `uber_size` (`+0x308`) is exactly 1 takes the same call with
+`(whole = 1, sixteenths = 0)` — one whole point directly, which is what
+sixteen sixteenths comes to anyway. (An earlier draft read that first argument
+as a damage *kind* and left it open. It is the whole-point half of the same
+amount, and the question is closed.)
+
+**At the baseline rate this is slow.** One attrition tech, a lone figure, 48
+frames a tick: one hit point every 3.2 seconds, so a hundred-point unit lasts
+over five minutes. That is the right order of magnitude for the mechanic the
+game actually has — a campaign abroad without supply is a slow bleed, not a
+rout — and it is sixteen times slower than an earlier draft of `crates/sim`
+applied it, which took the sixteenths as whole points.
 
 The victim's `who` is read from the world cell at the unit's position; the
 warning message and sound are throttled by a per-player frame stamp and only
@@ -361,9 +434,25 @@ shown to the local player.
 
 ## Territory
 
-Ownership is a **weighted-distance Voronoi**, recomputed wholesale rather than
-incrementally. `World::compute_all_territory` drives it; `compute_reg_territory`
-does the work for one map region.
+Ownership is a **weighted-distance Voronoi**. `World::compute_reg_territory`
+does the work for one map region, and is driven two ways:
+
+- **At setup**, `World::compute_all_territory` runs every region to completion
+  with the cell budget set to "unlimited" (`GameDaemon::borders = -1`).
+- **In play**, `GameDaemon::check_borders` runs every frame with a **shared
+  budget of 256 cells per frame**. A region whose borders have been
+  invalidated (`Region::fix_borders` resets its resume index, `Region::borders`
+  at +0x2c) is recomputed cell by cell, region by region, picking up next frame
+  where the budget ran out; per-player territory totals and the all-time peak
+  are only re-summed once every region is complete. So after a city is
+  captured, a cell can carry **stale ownership for up to `land cells / 256`
+  frames**, and `process_attrition` reads whatever is there.
+
+`crates/sim` recomputes wholesale, every region, whenever territory changes.
+That is a deliberate simplification: steady-state ownership is identical, and
+the transient — a few frames of stale borders on a large map — is not worth
+reproducing until a recorded-game diff says it matters. (An earlier draft said
+the original recomputed wholesale too. It does not.)
 
 ### The shape of it
 
@@ -381,6 +470,14 @@ does the work for one map region.
 - A claim too expensive to *own* a cell can still be recorded as its
   runner-up. A cell can therefore name a second claimant it would never grant
   to anybody.
+- The runner-up bookkeeping differs between the two source kinds, and it looks
+  like an oversight rather than a rule. When a **city** becomes the new best,
+  the previous best is demoted to runner-up only if there was one; when a
+  **fort** does, the previous best is copied unconditionally — so a fort that
+  is the first in-cap claim after an over-cap city was recorded as runner-up
+  *erases* that runner-up. It touches `who2` only, never `who`, so it has no
+  ownership or attrition consequence. `crates/sim` matches it, because it is
+  one line and the alternative is being silently different.
 
 ### Two independent bounds, not one
 
@@ -508,25 +605,40 @@ resolves such a city's *bonuses* from the owner it records while taking its
 
 ## Open questions
 
-- **The second entry into `suffer_attrition`.** `Unit::process` calls it from
-  two places. The one documented above is the territorial mechanic; the other
-  fires when the unit is on the map and a lookup into a **half-cell** grid —
-  `div_3_table[pos >> 7]`, so 384 position units per step — comes back with
-  bits set outside the player's own visibility mask. It deals the same damage
-  every frame, with the graphic on every seventh. It is plainly not the border
-  mechanic and it has not been identified.
-- **The second limit triple** at `WorldData` +68/72/76, and the per-region flag
-  that selects between it and the first.
+- ~~**The second entry into `suffer_attrition`.**~~ Closed by the second
+  reading: it is the **decoy** path. The `else` of `(unit_flags2 & 2) == 0` in
+  `Unit::process` runs a counter at `+0x96` against
+  `decoy_time * (general_upgrade + 2) / 2`, and while the decoy is on the map
+  and the half-cell visibility byte (`div_3_table[pos >> 7]`) has bits outside
+  the owner's ally mask, it calls `suffer_attrition(frame % 7 == 0)` every
+  frame — a seen decoy dissolves at one hit point a frame. Same damage
+  routine, not the border mechanic.
+- ~~**The second limit triple** at `WorldData` +68/72/76, and the per-region flag
+  that selects between it and the first.~~ The triple is
+  `colonized_territory_limit{,_civic,_city}` and the selector is
+  `Region::flags & 4` (set → player limits, clear → colonized). **Still open:**
+  which regions carry the flag, and what sets it.
 - `down` and `down_who` are named in `WData` and look like a stored claim and
   claimant, but the territory pass writes `who`/`who2` and does not obviously
   touch them. They may belong to a different system.
-- What the damage *kind* is that a type flagged at `+0x308` receives.
-- Whether `attrition_stamp2` and `attrition_stamp3` matter to the sim or are
-  purely presentation.
+- ~~What the damage *kind* is that a type flagged at `+0x308` receives.~~
+  `+0x308` is `uber_size`; see the damage section.
+- ~~Whether `attrition_stamp2` and `attrition_stamp3` matter to the sim or are
+  purely presentation.~~ `attrition_stamp2` (`+0x1f8`) is the once-per-game
+  "your units are suffering attrition" message throttle in
+  `suffer_attrition` — presentation. `attrition_stamp3` is still unseen.
 - Whether the constant Ghidra resolves as `tikal_temple_hp` is really
   `TIKAL_TEMPLE_BORDERS`, which is what its use implies and what its position
   in the shipped file suggests. Both are 50, so the shipped behaviour is
   identical either way and only a mod could tell them apart.
+- **Tribe bonus 4 counts one attrition tech step as held** in
+  `Leader::calc_attrition` — the step whose `TypeIndex` Ghidra resolves as
+  `BUY_SELL`. The code is there; which step that actually is stays unresolved,
+  because the `TypeIndex` enum is not in the type stream. A logged run with a
+  Nubian player (`docs/ORACLE.md`) would settle it.
+- In Conquer the World, the Tikal temple bonus is further scaled by
+  `(100 + CTW_MISSIONARIES_BONUS) / 100` from a leader byte at `+0x6916`.
+  Campaign-only; recorded, not implemented.
 
 ## Not open, and why
 
@@ -560,32 +672,16 @@ it ports directly.
 
 ---
 
-## Second reading (2026-08-20) — corrections owed
+## Second reading (2026-08-20) — landed
 
 A blind second derivation and its adjudication are in
 `docs/audit/2026-08-20-attrition.md`. The strength chain, the resistance
 rational, `get_attrition`, the period/floor, the 32-frame cadence, the supply
 predicate and the whole territory formula (contraction, tie-break, the `-2`
 owner, the limits) are **doubly confirmed**. Twelve disagreements, nine
-resolved against this document; until they land here and in
-`crates/sim/src/attrition.rs` / `lib.rs`, this document is wrong on:
-
-- **Damage is in sixteenths of a hit point per figure** (`damage_frac`, via
-  `take_damage`), not whole points — the implementation currently hits 16×
-  too hard.
-- **Exemptions:** heroes and supply units are *not* exempt (supply units are
-  exempt only while `masks & 0x400000` is clear, i.e. outside the
-  peace-violation/assassin state); zero-attack types *are* exempt.
-- Check 5 compares `leaders[who].who` (the player's own index), not a team;
-  `PlayerState::team` defaulting to 0 currently exempts everyone on player 0's
-  ground.
-- `+0x308` is `uber_size`; `+0x218` is the domain (land/sea/air); the decoy
-  path is the second `suffer_attrition` entry; territory is recomputed
-  incrementally at 256 cells a frame, not wholesale; `0x63187` masks the
-  leader's `epoch[1]`; the runner-up (`who2`) bookkeeping differs between the
-  city and fort paths.
-- `ALLY_TO_WAR_*` is absent from `rules.xml`, so the grace window never fires
-  with shipped data.
-
-The one point resolved for this document: the assassin path sets `0x400080`,
-so it defeats supply as written here.
+resolved against the earlier draft of this document, all landed above and in
+`crates/sim` (`attrition.rs`, `lib.rs`, `territory.rs`) on the same day; each
+place that changed says so inline. The two that changed observable behaviour:
+damage is sixteenths of a hit point per figure, and supply units and heroes
+bleed. The one point resolved for the earlier draft: the assassin path sets
+`0x400080`, so it defeats supply as written here.

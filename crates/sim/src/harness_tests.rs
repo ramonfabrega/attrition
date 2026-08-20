@@ -43,10 +43,8 @@ fn skirmish(tech_steps: usize) -> Sim {
     ));
     sim.players[1] = PlayerState {
         strength: strength(&t, tech_steps, &StrengthMods::default()),
-        team: 1,
         ..PlayerState::default()
     };
-    sim.players[0].team = 0;
     sim.declare_war(0, 1);
     sim.recompute_territory();
     sim
@@ -55,12 +53,13 @@ fn skirmish(tech_steps: usize) -> Sim {
 /// Parks a supply wagon on a cell, registered in its owner's supply list the
 /// way `Unit::init` registers one.
 ///
-/// Wagons are exempt from attrition themselves and never sheltered by another
-/// wagon, so one standing in a war zone is inert apart from what it supplies.
+/// A wagon in a war zone takes no attrition itself — the supply-unit
+/// exemption at the computed-period step — so one standing there is inert
+/// apart from what it supplies. Over a peaceful border it bleeds like anything
+/// else; see `a_wagon_bleeds_over_a_peaceful_border_and_nothing_shelters_it`.
 fn wagon_at(sim: &mut Sim, owner: Player, index: i16, c: Cell) -> usize {
     let mut w = Unit::new(owner, index, centre_of(c), 100);
     w.kind.supply_unit = true;
-    w.kind.exempt_kind = true;
     sim.add_unit(w)
 }
 
@@ -107,14 +106,17 @@ fn a_unit_inside_a_hostile_border_bleeds_on_schedule() {
         .push(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100));
     assert_eq!(sim.world.owner_at(sim.units[0].pos), Owner::Player(1));
 
-    // One attrition tech, a plain unit: 48 frames a tick, 16 damage a tick, so
-    // 3.2 seconds and a sixth of a full-health squaddie's life. Index 0, so
-    // the phase is the raw frame and ticks land on multiples of 48 — including
+    // One attrition tech, a lone figure: 48 frames a tick, sixteen sixteenths
+    // a tick — one whole hit point every 3.2 seconds, so a hundred-point unit
+    // lasts over five minutes. Slow, and the right order of magnitude: a
+    // campaign abroad without supply is a bleed, not a rout. Index 0, so the
+    // phase is the raw frame and ticks land on multiples of 48 — including
     // frame 0, where the first refresh also happens.
     let ticks = run(&mut sim, 48 * 3);
     assert_eq!(frames_of(&ticks, 0), vec![0, 48, 96]);
-    assert!(ticks.iter().all(|t| t.damage == 16));
-    assert_eq!(sim.units[0].health, 100 - 48);
+    assert!(ticks.iter().all(|t| t.sixteenths == 16 && t.lost == 1));
+    assert_eq!(sim.units[0].health, 100 - 3);
+    assert_eq!(sim.units[0].damage_frac, 0);
     assert_eq!(48 / FRAMES_PER_SECOND, 3);
 }
 
@@ -140,14 +142,15 @@ fn the_unit_index_staggers_the_schedule() {
 fn attrition_kills() {
     let mut sim = skirmish(4);
     sim.units
-        .push(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100));
-    // Four tech steps is strength 8, so six frames a tick: a lone figure dies
-    // in seven ticks, the first of them on frame 0.
+        .push(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 10));
+    // Four tech steps is strength 8, so six frames a tick and one hit point
+    // a tick: a ten-point lone figure dies on its tenth tick, the first of
+    // them on frame 0.
     let ticks = run(&mut sim, 600);
-    assert_eq!(ticks.iter().find(|t| t.killed).map(|t| t.frame), Some(36));
+    assert_eq!(ticks.iter().find(|t| t.killed).map(|t| t.frame), Some(54));
     assert!(!sim.units[0].alive());
     // And nothing happens after death.
-    assert_eq!(frames_of(&ticks, 0).len(), 7);
+    assert_eq!(frames_of(&ticks, 0).len(), 10);
 }
 
 #[test]
@@ -156,9 +159,16 @@ fn a_bigger_squad_bleeds_slower_per_figure() {
     let mut four = Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100);
     four.squad_size = 4;
     sim.units.push(four);
-    let total: i32 = run(&mut sim, 48 * 4).iter().map(|t| t.damage).sum();
-    // Four ticks at 4 damage rather than four at 16.
-    assert_eq!(total, 16);
+    let ticks = run(&mut sim, 48 * 4);
+    // Four ticks at four sixteenths rather than four at sixteen: one whole
+    // point over the run, landing on the fourth tick, nothing carried over.
+    assert_eq!(ticks.iter().map(|t| t.sixteenths).sum::<i32>(), 16);
+    assert_eq!(
+        ticks.iter().map(|t| t.lost).collect::<Vec<_>>(),
+        [0, 0, 0, 1]
+    );
+    assert_eq!(sim.units[0].health, 99);
+    assert_eq!(sim.units[0].damage_frac, 0);
 }
 
 #[test]
@@ -263,19 +273,37 @@ fn supply_does_not_shelter_militia() {
 }
 
 #[test]
-fn a_wagon_does_not_shelter_itself() {
-    // Two wagons standing on each other still bleed: the check is on the
-    // victim's own type, before any search happens. In the shipped game they
-    // are exempt from attrition outright, so make this one subject to it in
-    // order to see the supply refusal on its own.
+fn a_wagon_is_safe_in_a_war_zone() {
+    // The supply-unit exemption: at war a wagon gets no period at all, not
+    // even one that supply would then have to veto.
     let mut sim = skirmish(4);
-    let mut w = Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100);
-    w.kind.supply_unit = true;
-    sim.add_unit(w);
+    let w = wagon_at(&mut sim, 0, 0, Cell::new(15, 0));
+    assert!(run(&mut sim, 600).is_empty());
+    assert_eq!(sim.units[w].attrition, 0);
+    assert_eq!(sim.units[w].health, 100);
+}
+
+#[test]
+fn a_wagon_bleeds_over_a_peaceful_border_and_nothing_shelters_it() {
+    // The same exemption is lifted by the peace flag, so over a peaceful
+    // border a wagon takes the peace period like anything else — and since
+    // that flag also defeats supply before the "not itself a supply unit"
+    // refusal is reached, a second wagon standing on it changes nothing. The
+    // self-shelter refusal is real but unobservable from attrition: the only
+    // bleeds a wagon ever has are the ones that bypass supply anyway.
+    let mut sim = skirmish(4);
+    sim.at_war = vec![vec![false; 2]; 2];
+    let w = wagon_at(&mut sim, 0, 0, Cell::new(15, 0));
     wagon_at(&mut sim, 0, 1, Cell::new(15, 0));
-    assert!(sim.supplied_at(0, sim.units[0].pos));
-    assert!(!run(&mut sim, 600).is_empty());
-    assert!(!sim.units[0].sheltered);
+    assert!(sim.supplied_at(0, sim.units[w].pos));
+    let ticks = run(&mut sim, 96);
+    // Strength 8 computes to 6 frames, shorter than the 8-frame peace period,
+    // and the shorter wins — the wagon gets both, like anything else.
+    assert_eq!(sim.units[w].attrition, 6);
+    assert!(sim.units[w].ignores_supply);
+    assert!(!sim.units[w].sheltered);
+    assert!(!ticks.is_empty());
+    assert!(sim.units[w].health < 100);
 }
 
 #[test]

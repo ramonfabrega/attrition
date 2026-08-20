@@ -336,9 +336,11 @@ behaviour-relevant points went against this document; until they land here and
 in `crates/sim/src/supply.rs` (doc comments and the `Category` name — no
 arithmetic changes), this document is wrong on:
 
-- Whether wagons bleed: a land supply unit takes no attrition unless in the
+- ~~Whether wagons bleed: a land supply unit takes no attrition unless in the
   peace-violation/assassin state (`process_attrition`), and heroes are *not*
-  exempt — both corrections belong to `docs/ATTRITION.md` and are listed there.
+  exempt — both corrections belong to `docs/ATTRITION.md` and are listed there.~~
+  Landed in `docs/ATTRITION.md` (eligibility checks 8 and 13) and
+  `crates/sim/src/attrition.rs` on 2026-08-20.
 - The nation-bonus "free supply step" is dead code (`BUY_SELL = 0x2ad` is
   outside the `0x2fb..0x2fd` loop); bonus 4 is Nubia, 10 is France, and
   `FRENCH_FREE_SUPPLY` spawns a wagon.

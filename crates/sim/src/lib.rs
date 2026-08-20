@@ -60,7 +60,13 @@ pub const UNIT_UPKEEP_FRAMES: i64 = 16;
 /// until the next refresh, and one that walks in takes nothing until then.
 pub const ATTRITION_REFRESH_FRAMES: i64 = 32;
 
-/// A unit, as attrition sees one.
+/// A unit, as attrition sees one — which is **one figure**, not one squad.
+///
+/// Rise of Nations units are squads of one to four figures, and each figure is
+/// its own `UnitData` in the owner's unit list with its own health and its own
+/// cadence; the squad is what the player selects, the figure is what bleeds.
+/// This struct is the figure. [`Unit::squad_size`] is how many figures its
+/// squad currently has, which is what sets its share of the damage.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Unit {
     pub owner: Player,
@@ -72,9 +78,14 @@ pub struct Unit {
     /// given unit bleeds on.
     pub index: i16,
     pub pos: Pos,
+    /// Whole hit points left.
     pub health: i32,
-    /// Figures in the squad, one to four. Damage per tick is set by this and
-    /// nothing else.
+    /// Sixteenths of a hit point taken but not yet carried into
+    /// [`Unit::health`] — `ObjectData::damage_frac`. Attrition deals its damage
+    /// in sixteenths, and nothing is lost to truncation between ticks.
+    pub damage_frac: i32,
+    /// Figures currently in this figure's squad, one to four — the original's
+    /// `curr_uber_size`. Damage per tick is set by this and nothing else.
     pub squad_size: i32,
     pub kind: attrition::UnitKind,
     /// Whether the unit is on the map, rather than garrisoned in a building or
@@ -207,6 +218,7 @@ impl Unit {
             index,
             pos,
             health,
+            damage_frac: 0,
             squad_size: 1,
             kind: attrition::UnitKind::default(),
             on_map: true,
@@ -673,8 +685,13 @@ impl Sim {
 
     /// Recomputes every border from scratch.
     ///
-    /// Wholesale, like the original: one captured city can change ownership
-    /// arbitrarily far away, so there is no incremental path worth having.
+    /// Wholesale, which is what the original does at game setup and **not**
+    /// what it does in play: there, `GameDaemon::check_borders` recomputes
+    /// invalidated regions on a shared budget of 256 cells a frame, so a cell
+    /// can carry stale ownership for up to `land cells / 256` frames after a
+    /// city changes hands. Steady-state ownership is identical; the transient
+    /// is a deliberate simplification until a recorded-game diff says it
+    /// matters. See `docs/ATTRITION.md`, "Territory".
     pub fn recompute_territory(&mut self) {
         let players = u8::try_from(self.players.len()).expect("too many players");
         territory::compute_all_territory(&mut self.world, &self.tuning, &self.sources, players);
@@ -786,8 +803,14 @@ impl Sim {
             unit.sheltered = true;
             return None;
         }
-        let d = attrition::damage(unit.squad_size);
-        unit.health -= d;
+        // The damage is sixteenths of a hit point per figure, carried through
+        // a fractional accumulator the way `Object::take_damage` carries it,
+        // so a lone figure loses one whole point a tick and a figure in a
+        // squad of four loses one every fourth tick.
+        let sixteenths = attrition::damage(unit.squad_size);
+        let (lost, frac) = attrition::take_damage(unit.damage_frac, sixteenths);
+        unit.damage_frac = frac;
+        unit.health -= lost;
         let killed = !unit.alive();
         if killed {
             self.close_supply(i);
@@ -795,7 +818,8 @@ impl Sim {
         Some(Tick {
             unit: i,
             frame,
-            damage: d,
+            sixteenths,
+            lost,
             killed,
         })
     }
@@ -859,12 +883,17 @@ impl Sim {
     }
 }
 
-/// One unit taking one tick of attrition damage.
+/// One figure taking one tick of attrition damage.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Tick {
     pub unit: usize,
     pub frame: i64,
-    pub damage: i32,
+    /// Sixteenths of a hit point dealt — [`attrition::damage`] for the
+    /// figure's squad size.
+    pub sixteenths: i32,
+    /// Whole hit points actually deducted this tick, after the fractional
+    /// accumulator. Zero on most ticks for a figure in a squad of four.
+    pub lost: i32,
     pub killed: bool,
 }
 

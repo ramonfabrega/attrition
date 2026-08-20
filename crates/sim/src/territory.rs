@@ -1,7 +1,9 @@
 //! Territory: which player owns which cell.
 //!
-//! A weighted-distance Voronoi over cities and forts, recomputed wholesale
-//! rather than incrementally, per land region. Sea is never owned.
+//! A weighted-distance Voronoi over cities and forts, per land region. Sea is
+//! never owned. This crate recomputes it wholesale; the original does that at
+//! setup and then incrementally in play, 256 cells a frame — see
+//! [`compute_all_territory`].
 //!
 //! Two things about it are worth stating before the code, because neither is
 //! what a fresh implementation would do and both are visible in the shape of
@@ -316,8 +318,14 @@ pub const fn cost_cap(t: &Tuning) -> i32 {
 
 /// Recomputes ownership for every land region, and clears every sea region.
 ///
-/// Wholesale, like the original: there is no incremental path, because a
-/// single captured city changes ownership arbitrarily far away.
+/// Wholesale. That is what the original's `World::compute_all_territory` does
+/// at game setup, with its cell budget set to unlimited — and **not** what it
+/// does in play, where `GameDaemon::check_borders` re-runs only invalidated
+/// regions on a shared budget of 256 cells a frame, resuming each region where
+/// it left off, so a cell can carry stale ownership for up to
+/// `land cells / 256` frames after a city changes hands. Steady-state
+/// ownership is identical either way; the transient is a deliberate
+/// simplification here until a recorded-game diff says it matters.
 pub fn compute_all_territory(world: &mut World, t: &Tuning, sources: &[Source], players: u8) {
     let regions: Vec<(u16, Terrain)> = world.regions().collect();
     for (region, terrain) in regions {
@@ -390,8 +398,21 @@ pub fn compute_region_territory(
                         second = Some((c, claimant));
                     }
                 } else {
-                    if best.is_some() {
-                        second = best;
+                    // The two source paths demote the old best differently,
+                    // and the difference looks like an oversight rather than
+                    // a rule: the city path keeps an existing runner-up when
+                    // there was no best to demote, the fort path overwrites
+                    // it with "nobody". So a fort that is the first in-cap
+                    // claim after an over-cap city was recorded as runner-up
+                    // erases that runner-up. It touches `who2` only, never
+                    // `who`, and it is one line to match.
+                    match s.kind {
+                        SourceKind::City => {
+                            if best.is_some() {
+                                second = best;
+                            }
+                        }
+                        SourceKind::Fort => second = best,
                     }
                     best = Some((c, claimant));
                 }
@@ -592,6 +613,48 @@ mod tests {
         assert_eq!(w.second(Cell::new(9, 0)), Owner::Player(1));
         // Where only one reaches, there is no runner-up at all.
         assert_eq!(w.second(Cell::new(2, 0)), Owner::None);
+    }
+
+    #[test]
+    fn a_fort_winning_first_erases_an_over_cap_runner_up_and_a_city_keeps_it() {
+        // The original's runner-up bookkeeping differs between its two source
+        // paths. An over-cap city is recorded as runner-up; then the first
+        // in-cap claim arrives. If it is a city, the runner-up survives; if it
+        // is a fort, it is overwritten with nobody. `who2` only.
+        let mut w = World::new(40, 1);
+        w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 0));
+        let at = |cx: i32| Pos::new(cx * UNITS_PER_CELL + UNITS_PER_CELL / 2, UNITS_PER_CELL / 2);
+        // Player 0 is scanned first at x = 0. Its city is 156 tiles away —
+        // far over the cost cap, but inside a limit large enough to be
+        // considered at all, so it lands as the runner-up and nothing more.
+        let far_city = Source {
+            owner: 0,
+            kind: SourceKind::City,
+            pos: at(39),
+            bonuses: 0,
+            limit: 1000,
+            owner_agrees: true,
+        };
+        let near_fort = Source {
+            owner: 1,
+            kind: SourceKind::Fort,
+            pos: at(0),
+            bonuses: 0,
+            limit: 1000,
+            owner_agrees: true,
+        };
+        let near_city = Source {
+            kind: SourceKind::City,
+            ..near_fort
+        };
+
+        compute_all_territory(&mut w, &T, &[far_city, near_fort], 2);
+        assert_eq!(w.owner(Cell::new(0, 0)), Owner::Player(1));
+        assert_eq!(w.second(Cell::new(0, 0)), Owner::None);
+
+        compute_all_territory(&mut w, &T, &[far_city, near_city], 2);
+        assert_eq!(w.owner(Cell::new(0, 0)), Owner::Player(1));
+        assert_eq!(w.second(Cell::new(0, 0)), Owner::Player(0));
     }
 
     #[test]

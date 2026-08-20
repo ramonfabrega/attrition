@@ -148,17 +148,22 @@ pub struct UnitKind {
     /// Merchants, Dutch merchants and fur trappers take double rate — the
     /// three economic units whose whole job is to stand outside your borders.
     pub trader: bool,
-    /// The unit type's attrition mode. See [`Mode`].
-    pub mode: Mode,
-    /// Workers and merchants are subject to attrition; heroes, supply units,
-    /// spies, "special" units and caravans are not.
+    /// The unit type's domain. See [`Domain`].
+    pub domain: Domain,
+    /// Whether the unit is of a kind attrition does not apply to at all —
+    /// eligibility check 8, whose rule is [`kind_exempt`]. Workers, merchants,
+    /// heroes and supply units are **not** exempt by kind; the rest are if
+    /// their type has zero base attack, is "special", a spy, or a caravan.
     pub exempt_kind: bool,
-    /// A supply unit. Already covered by [`Self::exempt_kind`] for the
-    /// eligibility checks, but tracked separately because the supply shelter
-    /// tests it a second time on its own.
+    /// A supply unit. Not exempt by kind: exempt from the *computed* period
+    /// only, and only when the bleed did not come from the peace or assassin
+    /// path — over a peaceful border a wagon bleeds like anything else. Also
+    /// read by the supply shelter, which never covers a wagon.
     pub supply_unit: bool,
-    /// A worker actively gathering at a site the scenario flagged exempt.
-    pub gathering_at_exempt_site: bool,
+    /// A worker actively gathering from a site whose `GatherOrder` is
+    /// `non_flat_gather` — a property of the building type being gathered
+    /// from, not a scenario flag. Exempt while it lasts.
+    pub gathering_non_flat: bool,
     /// Whether the unit is standing still, for the Foraging tier 1 exemption.
     pub idle: bool,
 }
@@ -170,25 +175,67 @@ impl UnitKind {
     /// Militia never are, which is the other half of why they take four times
     /// the rate: they are the emergency defenders of your own ground, and the
     /// game declines to let them campaign behind a supply wagon. Supply units
-    /// are excluded too, though they are already exempt outright.
+    /// are excluded too: a wagon does not shelter itself.
     pub const fn shelterable(&self) -> bool {
         !self.militia && !self.supply_unit
     }
 }
 
-/// A unit type's attrition mode, the original's three-way switch.
+/// A unit type's domain — the `i32` at `UnitTypeData + 0x218`, which decides
+/// which attrition period a unit can reach at all.
+///
+/// The PDB leaves the field unnamed; the reading is from
+/// `ObjectData::num_aircraft_here` counting `2` and `ObjectData::in_a_ship` /
+/// `Unit::add_to_army` testing `1`, and it is consistent everywhere. An
+/// earlier draft of this crate called it a three-way "attrition mode"; the code
+/// paths were right and the meaning was not.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum Mode {
+pub enum Domain {
     /// The ordinary case, and the only one that gets a computed period.
     #[default]
-    Normal,
-    /// Outright immune.
-    Immune,
-    /// Takes the special periods at half length, and never a computed one.
+    Land,
+    /// Ships are outright immune.
+    Sea,
+    /// Aircraft take the special periods at half length, and never a computed
+    /// one — in a war zone with no assassin target an aircraft takes nothing.
     /// The halving inside [`susceptibility`] is therefore unreachable in the
     /// original's own tick — it is kept because the function is called from
     /// elsewhere.
-    Special,
+    Air,
+}
+
+/// What a unit's type is, as far as eligibility check 8 is concerned.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct KindFacts {
+    pub worker: bool,
+    pub merchant: bool,
+    pub hero: bool,
+    pub supply: bool,
+    /// The type's base attack, `UnitTypeData + 0x1e8`.
+    pub attack: i32,
+    pub special: bool,
+    pub spy: bool,
+    pub caravan: bool,
+}
+
+/// Eligibility check 8: whether a unit is of a kind attrition never applies
+/// to. The original's block is nested, and the nesting *is* the rule.
+///
+/// Workers, merchants, heroes and supply units skip the inner tests and are
+/// **not** exempt here — a worker has its own gathering exemption
+/// ([`UnitKind::gathering_non_flat`]) and a supply unit its own conditional one
+/// at the computed-period step. Every other type is exempt if its base attack
+/// is zero, or it is "special", a spy, or a caravan.
+///
+/// The second reading found the earlier draft of this rule wrong in three
+/// places at once — heroes exempt, supply units exempt, no zero-attack gate —
+/// which is why the predicate is a function with a test rather than a comment
+/// on a field.
+pub const fn kind_exempt(f: &KindFacts) -> bool {
+    if f.worker || f.merchant || f.hero || f.supply {
+        return false;
+    }
+    f.attack == 0 || f.special || f.spy || f.caravan
 }
 
 /// Everything about a player that attrition reads.
@@ -200,8 +247,6 @@ pub struct PlayerState {
     pub resistance: Resistance,
     /// Current age, for the aged-up strength bonus.
     pub age: i32,
-    /// Team, for the same-team exemption. Players on no team are their own.
-    pub team: u8,
     /// Period applied to this player's units on unowned ground. Zero, which is
     /// the normal case, means unowned ground is safe.
     pub neutral_attrition: i32,
@@ -221,7 +266,6 @@ impl Default for PlayerState {
             strength: 0,
             resistance: Resistance::BASE,
             age: 0,
-            team: 0,
             neutral_attrition: 0,
             take_disabled: false,
             give_disabled: false,
@@ -274,7 +318,7 @@ pub fn susceptibility(
     if kind.trader {
         v /= 2;
     }
-    if kind.mode == Mode::Special {
+    if kind.domain == Domain::Air {
         v /= 2;
     }
 
@@ -317,24 +361,29 @@ pub enum Exempt {
     OwnTerritory,
     /// The claimant is not a live player.
     NoOwner,
-    /// The territory belongs to the unit's own team.
-    SameTeam,
     /// Both sides hold a mutual treaty.
     Treaty,
     /// A scenario disabled taking or giving attrition.
     Disabled,
-    /// The unit is a kind attrition does not apply to.
+    /// The unit is a kind attrition does not apply to — [`kind_exempt`], or a
+    /// worker gathering from a non-flat site.
     UnitKind,
-    /// The unit's type is outright immune.
-    ImmuneType,
+    /// The unit is a ship.
+    Ship,
     /// The victim has a neutral-ground period set, which in the original
     /// replaces territorial attrition rather than adding to it.
     NeutralOverride,
     /// A Conquer the World conquest bonus.
     ConquestBonus,
-    /// Inside the grace window after an ally became an enemy.
+    /// Not at war, inside the grace window after an alliance was broken.
+    /// Dead code with shipped data: the constants behind it are absent from
+    /// `rules.xml`. See [`Situation::in_war_grace`].
     WarGrace,
-    /// The unit is subject in principle but resists completely.
+    /// A land supply unit whose bleed did not come from the peace or assassin
+    /// path. Over a peaceful border the wagon bleeds like anything else.
+    SupplyUnit,
+    /// The unit is subject in principle but resists completely — or is an
+    /// aircraft with no special period to take.
     Immune,
 }
 
@@ -377,8 +426,12 @@ pub struct Situation {
     /// short `PEACE_ATTRITION` period *as well as* whatever the ordinary
     /// calculation gives, and the shorter of the two wins.
     pub at_war: bool,
-    /// Inside the grace window after an ally turned into an enemy, during
-    /// which the border does not bite at all.
+    /// Not at war, and an alliance between the two was broken less than
+    /// `ALLY_TO_WAR_GRACE` frames ago, during which the border does not bite
+    /// at all. With shipped data this can never be true: `ALLY_TO_WAR_DELAY`
+    /// and `ALLY_TO_WAR_GRACE` are absent from `rules.xml`, load as `-1`, and
+    /// with a delay of `-1` every "recently broke alliance" test is already
+    /// past its window. Only a mod that adds them can make it fire.
     pub in_war_grace: bool,
     /// Assassin game mode, standing in the territory of somebody who is not
     /// your target. Earns `ASSASSIN_ATTRITION` the same way peace does.
@@ -418,7 +471,7 @@ pub fn process(
     let Some(owner_id) = situation.ground.player() else {
         // Unowned, or claimed ambiguously — the original's `who < 0` test
         // covers both.
-        return if victim.neutral_attrition == 0 || kind.mode == Mode::Immune {
+        return if victim.neutral_attrition == 0 || kind.domain == Domain::Sea {
             Outcome::Exempt(NeutralGround)
         } else {
             Outcome::Period {
@@ -435,20 +488,20 @@ pub fn process(
     if !owner.active {
         return Outcome::Exempt(NoOwner);
     }
-    if owner_id == victim.team {
-        return Outcome::Exempt(SameTeam);
-    }
+    // The original's next test is `owner == leaders[victim].who` — the
+    // victim's own slot index, which is the own-territory test a second time
+    // and can never fire. It is not a team test; there is no team here.
     if situation.mutual_treaty {
         return Outcome::Exempt(Treaty);
     }
     if victim.take_disabled || owner.give_disabled {
         return Outcome::Exempt(Disabled);
     }
-    if kind.exempt_kind || kind.gathering_at_exempt_site {
+    if kind.exempt_kind || kind.gathering_non_flat {
         return Outcome::Exempt(UnitKind);
     }
-    if kind.mode == Mode::Immune {
-        return Outcome::Exempt(ImmuneType);
+    if kind.domain == Domain::Sea {
+        return Outcome::Exempt(Ship);
     }
     if victim.neutral_attrition != 0 {
         return Outcome::Exempt(NeutralOverride);
@@ -457,10 +510,10 @@ pub fn process(
         return Outcome::Exempt(ConquestBonus);
     }
 
-    // A short period can be assigned outright — halved for a `Special`-mode
-    // unit — and the ordinary calculation still runs afterwards. Where both
-    // apply the shorter wins, so peace is a floor on how slowly a border
-    // violation hurts, not a replacement for the rate.
+    // A short period can be assigned outright — halved for an aircraft — and
+    // the ordinary calculation still runs afterwards. Where both apply the
+    // shorter wins, so peace is a floor on how slowly a border violation
+    // hurts, not a replacement for the rate.
     let mut assigned = None;
     if !situation.at_war {
         if situation.in_war_grace {
@@ -473,15 +526,20 @@ pub fn process(
     // Both of those paths set a flag the supply check tests first, so a bleed
     // that came from one of them cannot be sheltered.
     let ignores_supply = assigned.is_some();
-    if kind.mode == Mode::Special {
+    if kind.domain == Domain::Air {
         assigned = assigned.map(|p| p / 2);
     }
 
-    // Only `Normal`-mode units ever reach the computed period.
-    if kind.mode == Mode::Normal
-        && let Some(p) = period(t, susceptibility(t, kind, victim, &owner))
-    {
-        assigned = Some(assigned.map_or(p, |a| a.min(p)));
+    // Only land units ever reach the computed period — and a supply wagon
+    // only if the same flag that defeats supply is set. At war it returns
+    // here with nothing; over a peaceful border it bleeds like anything else.
+    if kind.domain == Domain::Land {
+        if kind.supply_unit && !ignores_supply {
+            return Outcome::Exempt(SupplyUnit);
+        }
+        if let Some(p) = period(t, susceptibility(t, kind, victim, &owner)) {
+            assigned = Some(assigned.map_or(p, |a| a.min(p)));
+        }
     }
 
     match assigned {
@@ -493,17 +551,41 @@ pub fn process(
     }
 }
 
-/// Damage one attrition tick deals, by squad size.
+/// Damage one attrition tick deals to one **figure**, in **sixteenths of a
+/// hit point**, by how many figures its squad currently has.
 ///
-/// Rise of Nations units are squads of one to four figures. The damage is
+/// Rise of Nations units are squads of one to four figures, and each figure
+/// is its own object with its own cadence and its own health — the squad is
+/// what the player selects, the figure is what bleeds. The amount is
 /// `16 / size`, except that size three is special-cased to 6 rather than the 5
-/// that would give, so the per-squad total stays near sixteen.
+/// that would give, so the per-squad total stays near sixteen: near one whole
+/// hit point per squad per tick. A lone figure loses one point a tick; a
+/// figure in a squad of four loses one every fourth tick.
+///
+/// A type whose `uber_size` is exactly 1 is dealt one whole point directly in
+/// the original, which is what sixteen sixteenths comes to; the two paths are
+/// the same amount and [`take_damage`] treats them the same.
+///
+/// An earlier draft of this crate applied these as whole points — sixteen
+/// times too strong. The second reading caught it.
 pub const fn damage(squad_size: i32) -> i32 {
     match squad_size {
         0 => 0,
         3 => 6,
         n => 16 / n,
     }
+}
+
+/// Carries sixteenths of damage into whole hit points, the way
+/// `Object::take_damage` does: the sixteenths are added to the figure's
+/// fractional accumulator, every full sixteen becomes one whole point, and the
+/// remainder stays in the accumulator. Nothing is lost to truncation — a squad
+/// of three carries its 18/16 forward exactly.
+///
+/// Returns `(whole points to deduct now, new accumulator)`.
+pub const fn take_damage(frac: i32, sixteenths: i32) -> (i32, i32) {
+    let acc = frac + sixteenths;
+    (acc / 16, acc % 16)
 }
 
 #[cfg(test)]
@@ -784,17 +866,45 @@ mod tests {
 
     #[test]
     fn damage_by_squad_size() {
+        // Sixteenths of a hit point per figure.
         assert_eq!(damage(1), 16);
         assert_eq!(damage(2), 8);
         // The special case: 16/3 would be 5, and 6 keeps the squad total near
         // sixteen.
         assert_eq!(damage(3), 6);
         assert_eq!(damage(4), 4);
-        // Total damage per squad stays close to constant, which is the point.
+        // Total damage per squad stays close to one whole point a tick, which
+        // is the point.
         for n in 1..=4 {
             let total = damage(n) * n;
             assert!((16..=18).contains(&total), "size {n} totals {total}");
         }
+    }
+
+    #[test]
+    fn sixteenths_accumulate_without_loss() {
+        // A lone figure: one whole point every tick, nothing carried.
+        assert_eq!(take_damage(0, damage(1)), (1, 0));
+        // A figure in a squad of four: nothing for three ticks, then one.
+        let mut frac = 0;
+        let mut lost = Vec::new();
+        for _ in 0..8 {
+            let (l, f) = take_damage(frac, damage(4));
+            frac = f;
+            lost.push(l);
+        }
+        assert_eq!(lost, [0, 0, 0, 1, 0, 0, 0, 1]);
+        // A squad of three carries its 18/16 forward exactly: 6, 12, 18 -> 1
+        // carry 2, then 8, 14, 20 -> 1 carry 4, ... eight ticks of 6 is 48
+        // sixteenths, exactly three points, nothing left over.
+        let mut frac = 0;
+        let mut total = 0;
+        for _ in 0..8 {
+            let (l, f) = take_damage(frac, damage(3));
+            frac = f;
+            total += l;
+        }
+        assert_eq!((total, frac), (3, 0));
     }
 
     fn at_war_with(who: Owner) -> Situation {
@@ -895,14 +1005,120 @@ mod tests {
             }
         );
 
-        // A Special-mode unit gets the peace period halved, and never reaches
-        // the computed one at all.
-        let special = UnitKind {
-            mode: Mode::Special,
+        // An aircraft gets the peace period halved, and never reaches the
+        // computed one at all.
+        let aircraft = UnitKind {
+            domain: Domain::Air,
             ..UnitKind::default()
         };
-        let out = process(&T, &special, 0, &me, &s, |_| owner_with(16));
+        let out = process(&T, &aircraft, 0, &me, &s, |_| owner_with(16));
         assert_eq!(out.frames(), Some(T.peace_attrition / 2));
+    }
+
+    #[test]
+    fn ships_are_immune_and_aircraft_only_bleed_over_peaceful_borders() {
+        let me = PlayerState::default();
+        let at_war = at_war_with(Owner::Player(1));
+        let ship = UnitKind {
+            domain: Domain::Sea,
+            ..UnitKind::default()
+        };
+        let aircraft = UnitKind {
+            domain: Domain::Air,
+            ..UnitKind::default()
+        };
+        assert_eq!(
+            process(&T, &ship, 0, &me, &at_war, |_| owner_with(16)),
+            Outcome::Exempt(Exempt::Ship)
+        );
+        // In a war zone with no special period to take, an aircraft takes
+        // nothing: only land units reach the computed period.
+        assert_eq!(
+            process(&T, &aircraft, 0, &me, &at_war, |_| owner_with(16)),
+            Outcome::Exempt(Exempt::Immune)
+        );
+    }
+
+    #[test]
+    fn a_supply_wagon_is_safe_at_war_and_bleeds_over_a_peaceful_border() {
+        // The supply-unit exemption sits in the computed-period path and is
+        // lifted by the same flag that defeats supply. So at war a wagon has
+        // no period at all, and over a peaceful border it takes the peace
+        // period — and the computed one, smaller wins — like anything else.
+        let me = PlayerState::default();
+        let wagon = UnitKind {
+            supply_unit: true,
+            ..UnitKind::default()
+        };
+        let at_war = at_war_with(Owner::Player(1));
+        let mut at_peace = at_war;
+        at_peace.at_war = false;
+        assert_eq!(
+            process(&T, &wagon, 0, &me, &at_war, |_| owner_with(1)),
+            Outcome::Exempt(Exempt::SupplyUnit)
+        );
+        assert_eq!(
+            process(&T, &wagon, 0, &me, &at_peace, |_| owner_with(1)),
+            Outcome::Period {
+                frames: T.peace_attrition,
+                ignores_supply: true
+            }
+        );
+        assert_eq!(
+            process(&T, &wagon, 0, &me, &at_peace, |_| owner_with(16)),
+            Outcome::Period {
+                frames: 3,
+                ignores_supply: true
+            }
+        );
+    }
+
+    #[test]
+    fn the_kind_exemption_is_the_originals_nesting() {
+        // Workers, merchants, heroes and supply units skip the inner tests
+        // and are not exempt — even with zero attack, even flagged special.
+        let zero_attack = KindFacts::default();
+        assert!(kind_exempt(&zero_attack));
+        for skip in [
+            KindFacts {
+                worker: true,
+                ..zero_attack
+            },
+            KindFacts {
+                merchant: true,
+                ..zero_attack
+            },
+            KindFacts {
+                hero: true,
+                special: true,
+                ..zero_attack
+            },
+            KindFacts {
+                supply: true,
+                caravan: true,
+                ..zero_attack
+            },
+        ] {
+            assert!(!kind_exempt(&skip), "{skip:?} should not be exempt");
+        }
+        // Everything else: exempt on zero attack, special, spy or caravan.
+        let fighter = KindFacts {
+            attack: 10,
+            ..KindFacts::default()
+        };
+        assert!(!kind_exempt(&fighter));
+        assert!(kind_exempt(&KindFacts {
+            spy: true,
+            ..fighter
+        }));
+        assert!(kind_exempt(&KindFacts {
+            special: true,
+            ..fighter
+        }));
+        assert!(kind_exempt(&KindFacts {
+            caravan: true,
+            ..fighter
+        }));
     }
 
     #[test]
@@ -971,7 +1187,7 @@ mod tests {
         };
         let kind = UnitKind {
             exempt_kind: true,
-            mode: Mode::Immune,
+            domain: Domain::Sea,
             ..UnitKind::default()
         };
         let mut s = at_war_with(Owner::Player(1));
