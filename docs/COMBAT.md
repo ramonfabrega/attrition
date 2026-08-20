@@ -1428,11 +1428,27 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
    only when it is non-zero. Every melee type plainly does strike, so the
    zeroing must not reach them; which graphics it does reach was not read.
    The simulation strikes whenever `attack != 0`.
-9. **The `Flag_` rows of `balance.xml`.** Whether internal string 17 loads as
+9. ~~**The `Flag_` rows of `balance.xml`.** Whether internal string 17 loads as
    a space (the rows match and the file's `Flag_Y_OBJMASK_HEAVY_CAV="95"`
    and friends apply) or as empty (they never match). `rondata` generates
    both and the `RULES=1` dump picks; until then the implementation takes
-   the space, because that is what the hash says was written.
+   the space, because that is what the hash says was written.~~
+   **Settled 2026-08-20 against the program's own loaded table: the `Flag_`
+   rows never match. They are dead data.** The dump is `BEGIN COMBATTABLE`
+   in a `DUMP_ALL=1` start-of-game log (`docs/ORACLE.md`) — 243,049 values,
+   **493 × 493**, which is `TypeIndex − 50` over the 364 units and 129
+   buildings, not the 399 balance categories (`types.txt` declares
+   `short[493][493] final_balance_table`; `Balance::fill_tables` loops
+   `BASE_UNITTYPES`…`0x21f`, and the 399×399 XML table is the `malloc`
+   scratch inside it). Orientation is `[attacker][target]`.
+   Over the 364×364 unit block the two variants differ in 22,629 cells; on
+   those the dump agrees with *never-match* 19,387 times and with *match*
+   **zero** times. Direct probe: `Flag_Y_OBJMASK_HEAVY_CAV="115"` would give
+   Cataphract-versus-War-Elephant 115, and the dump holds 100. So the engine
+   builds the row name with a separator that is not the file's, all 64
+   lookups miss, and every one of those entries keeps the 100 default.
+   `rondata::balance::tail_names()` must stop emitting the matching names.
+   **This also left a live defect** — see §15.
 
 ---
 
@@ -1458,3 +1474,46 @@ type test (§7.2), the militia arrows (§8.6), whose tile `is_in_range` reads
 air-target miss rolls (§9.1), `work`'s early return (§8.1). The
 implementation was corrected to match and `a_shot_flies…`, the overkill and
 the new `siege_fires_at_the_ground…` tests pin the changes.
+
+---
+
+## 15. The table, checked against the original's own (2026-08-20)
+
+A `DUMP_ALL=1` start-of-game log contains `BEGIN COMBATTABLE`: the engine's
+`final_balance_table` as it stands after `Balance::fill_tables` has run, which
+is the *composed* result of the XML table and the hardcoded `type_damage`
+half. That is a direct oracle for §5 — not for one formula, for all 243,049
+entries at once — and it is the first time this document has had one.
+
+Extracted and compared against `crates/sim/src/balance.rs` over the 364×364
+unit block (132,496 cells):
+
+- **The `Flag_` question is closed** (§14.9): the flag rows are dead, and the
+  variant that ignores them is right in 19,387 of the 22,629 cells that
+  distinguish the two.
+- **14,577 cells still disagree**, and they are the hardcoded half, not the
+  file half. 11,917 of them (82%) are pairs whose two units sit in different
+  ages, i.e. the age-bonus step.
+
+The three sharpest leads, in the order worth chasing:
+
+1. **`Companion` (type 181): 352 of 364 columns wrong**, almost all
+   `dump=100` against `ours=105`. A whole `type_damage` factor is being
+   applied to Companion that the original does not apply — a lineage
+   predicate, of exactly the kind the second reading found wrong elsewhere.
+2. **The elephants (211–214): ~890 cells**, each one multiplication step
+   below ours (`115 → 100`, `80 → 70`). A step that should not run, or runs
+   against a different mask.
+3. **The patriots (304, 306, 307 — The Monarch, The Comrade, The CEO):
+   ~490 cells.** These have no `balance.xml` row at all, so their errors are
+   purely hardcoded-half.
+
+None of this was reachable before: the second reading confirmed the *formula*
+twice over, and the formula is right — what is wrong is which units it is
+applied to, which is precisely what a table dump can see and a reading cannot.
+The building half of the dump (indices 364–492) is still unchecked; `rondata`
+builds no building side of the table at all.
+
+**Not established.** Whether the 14,577 are three bugs or thirty. The count is
+a ceiling on the damage, not a diagnosis, and each lead above needs the same
+treatment as a mechanic: read the predicate, fix the document, then the code.

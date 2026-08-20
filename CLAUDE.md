@@ -189,6 +189,22 @@ better, in which case say so and take that.
    that runs them all turns a page of open questions into facts and proves
    the logging path the eventual diff depends on. The original runs here;
    that is the asset not yet cashed.
+
+   **Started 2026-08-20; the tooling half is done, the checks are not.** What
+   landed: the logging mechanism, which was being read wrong — the ini's 37
+   keys are per-category *detail thresholds*, not booleans, so every earlier
+   run silently dropped every field above the object base. `UNITS=3
+   BUILDS=6 CITIES=5` gives the fields the checks need at 560 frames in
+   55 MB and full speed; `DUMP_ALL=1` is a different switch that dumps
+   everything every frame and hangs the game, but is the only way to get the
+   type tables and `COMBATTABLE` in the start-of-game dump. Also landed: the
+   chat-cheat vocabulary that stages a scenario in one line each
+   (`cheat add`, `insert NEW`, `war`, `tech`, `age`, `die`, `damage`,
+   `move`, `select`, `finish`), and the driving traps. All of it is
+   `docs/ORACLE.md`, "The detail level is the knob" onward. The
+   `balance.xml` separator was settled a different way (see 6). **What
+   remains is the checks themselves** — each is now a handful of `cheat`
+   lines plus one `track.py` read, which is the cheap part.
 5. ~~**The data layer into the sim, and the diff**~~ — **done, 2026-08-20**,
    `docs/DATALAYER.md`, `crates/rondata/src/{gamelog,dump,load,diff}.rs`:
    the gamelog reader, the loader (364 units, 129 buildings, 628-entry tree,
@@ -202,7 +218,20 @@ better, in which case say so and take that.
    landed on the way: XML *fields* are read by tag name from
    `internal_strings.xml` (records stay positional — `docs/FORMATS.md`), and
    `RULES=1` does not dump the type tables (`docs/ORACLE.md`).
-6. **AI** — last, because it is the least oracled, and better oracled once
+6. **The combat table's hardcoded half** — new, 2026-08-20, and it jumped
+   the queue on evidence. The start-of-game dump contains `COMBATTABLE`, the
+   engine's own composed `final_balance_table` (493×493, `TypeIndex − 50`),
+   which is a total oracle for `docs/COMBAT.md` §5. Diffed against ours:
+   the `Flag_` rows are dead data (§14.9 closed), and **14,577 of 132,496
+   unit cells still disagree** — 82% of them across an age boundary. Three
+   leads, in `docs/COMBAT.md` §15: Companion's spurious ×105 across 352
+   columns, the elephants' missing step, the patriots. The formula is right
+   and doubly confirmed; what is wrong is which units it runs on. This is a
+   reading job with a total oracle attached, which is the cheapest kind.
+   The building half of the table is unchecked and `rondata` does not build
+   one.
+
+7. **AI** — last, because it is the least oracled, and better oracled once
    4 and 5 stand.
 
 **One mechanic per session.** The document is the handoff: a fresh session

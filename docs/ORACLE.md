@@ -483,11 +483,13 @@ Frame]` and `[End Frame]`, the simulation crawled to about one frame per five
 seconds and the file grew at ~25 MB a minute — unusable. With `[End Frame]`
 `UNITS`, `LEADERS`, `DEATHS`, `CHECKSUM` only, the game ran at full speed and
 logged 1,730 frames (1:55 of game time) in 20 MB: one `BEGIN FRAME n` per
-simulation frame, every unit's `flags o who x y z` per frame. Per-unit detail
+simulation frame, every unit's `flags o who x y z` per frame. ~~Per-unit detail
 beyond the object base (`UnitData::log_data` goes on to `collide_frame`,
 `damage_frame`, `angle`, and some fifty more fields) is emitted with a
 detail-level argument of 1, which is presumably what `DUMP_ALL=1` unlocks;
-untried.
+untried.~~ **Both halves of that were wrong** — the detail argument is not 1,
+and `DUMP_ALL=1` is not how you ask for it. See "The detail level is the
+knob" below.
 
 **`Seed (0 for random)` in `rise.ini` fixes the game.** Two runs with
 `Seed=12345` produced the same nation, the same map and the same opening; two
@@ -510,10 +512,15 @@ ran: the **unit balance tool** (`game/balancerules.txt`, `UnitBalance` in
 `unitbalance.cpp`) runs scripted unit-versus-unit combats and writes results —
 its switch is `game.semaphore.ptr[1] & 2`, set somewhere unread — and the
 `[Start Game]` dump with `RULES=1` ~~should print the loaded type tables~~
-— **it does not**: the 114 MB run had `RULES=1` under `[Start Game]` and
+— ~~**it does not**: the 114 MB run had `RULES=1` under `[Start Game]` and
 wrote no type table and no `COMBATTABLE`; the only `RULES` in it are the
 `GAME_RULES` and `RUSH_RULES` lobby settings. `Game::log_rules_data` is
-reached some other way, or under a flag not yet found.
+reached some other way, or under a flag not yet found.~~ **Found: the flag is
+`DUMP_ALL=1`.** `RULES=1` was never the switch — `Game::log_rules_data` is
+reached from `dump_all`, which `full_dump` calls only when it is passed a
+non-zero argument, and the only thing that passes one is `do_dump_all`. With
+it the type tables are all there: 1,820 `UNITTYPE` blocks, 387 `BUILDTYPE`,
+255 `TECHTYPE`, and a `COMBATTABLE` of 493×493 shorts. See below.
 
 ### Read back (2026-08-20, later)
 
@@ -532,6 +539,149 @@ constants and checks against every `Tuning::RON` slot (231 of 232 equal;
 the game to the position unit: two runs with `Seed=12345` move the same
 units to the same coordinates on the same frames.
 
+### The detail level is the knob (2026-08-20, third session)
+
+The two earlier sessions read `gamelog.ini`'s 37 per-category keys as
+booleans, and read `DUMP_ALL` as the switch that adds per-object detail. Both
+are wrong, and the correction is what makes a per-frame diff affordable.
+
+**The ini value is a threshold, not a flag.** Every `log_data` announces the
+detail level of the block it is about to write, by calling the `Log` vtable's
+`+0x28` slot — `GameLog::set_detail`, which stores `current_detail`. Every
+line then passes through `GameLog::check_accept`, whose only test is
+
+> `if (detail_override == 0 && details[current_mode][current_type] < current_detail) return 0;`
+
+`details[mode][type]` is the number parsed out of the ini for that category
+under that phase. So `UNITS=1` does not mean "units on"; it means **"accept
+unit lines up to detail level 1"**, and every richer field is silently
+dropped. That is why two sessions of logging produced nothing but the object
+base: the base is what `ObjectData::log_data` writes at level 2 or below, and
+everything interesting sits above the threshold.
+
+The levels each record uses, read out of the decompile (`0x28))(n)`):
+
+| record | levels it opens |
+|---|---|
+| `ObjectData::log_data` | 2 |
+| `UnitData::log_data` | 3 |
+| `WallData::log_data` | 3 |
+| `BuildData::log_data` | 4, 5, 6, 7 |
+| `CityData::log_data` | 1, 2, 3, 4, 5 |
+| `GuyData::log_data` | 1, 2, 3, 4 |
+
+So the useful settings are **`UNITS=3`, `BUILDS=6`, `CITIES=5`**, and they are
+what the mechanics' checks want: at `UNITS=3` a unit line carries `damage`,
+`myhits`, `damage_frac`, `angle`, `attrition`, `supply`, `stance`, `myspeed`,
+`myarmor`, `healing`, `collide_frame`, `damage_frame`, `orders_x/y`, `group`,
+`hero`, `special`, `unit_masks`, `recharging`, `idle`, `num_queued` and some
+forty more; at `BUILDS=6`, `job_counter`, `job_counter_2`, `constr_time`,
+`construct_hits`, `helpers`, `city`, `city_down`, `recharging`, `attack_whom`,
+`founder`, `wonder`, `fort`, `dock`, `orig_type` and the whole 20-slot
+`BUILDQUEUE` with each entry's `type`, `job_counter` and three costs. Those
+are, field for field, the quantities `docs/CITIES.md` and `docs/COMBAT.md`
+list as needing a behavioural check.
+
+**`DUMP_ALL=1` is a different thing entirely, and not the one you want per
+frame.** It is `game_log.do_dump_all`, and its only use is as the argument to
+`GameLog::full_dump`. Non-zero takes the early branch: set `detail_override=1`
+— which makes `check_accept` return 1 unconditionally, ignoring every
+threshold — and call `dump_all`, i.e. *every* subsystem regardless of its ini
+key. Under `[End Frame]` that writes ~2.5M lines and ~70 MB **per frame**, the
+game stops responding to input, and the run is useless. Under `[Start Game]`
+with `InitialDump=1` it is exactly right, and it is the only way to get the
+type tables (above).
+
+**The recipe that works**, measured on this machine:
+
+| configuration | cost |
+|---|---|
+| `DUMP_ALL=1`, `[End Frame]` anything | ~70 MB/frame, ~1 frame per 30 s, unusable |
+| `DUMP_ALL=1`, `[Start Game]` only, `InitialDump=1` | ~150 MB once, ~4 min to load, has every type table |
+| `DUMP_ALL=0`, `[End Frame] UNITS=3 BUILDS=6 CITIES=5 DEATHS=1 LEADERS=1` | **560 frames in 55 MB, full speed** |
+
+The last row is the setting for a behavioural check: fix `Seed`, set
+`InitialDump=0`, play a minute, quit through the in-game menu. `~100 KB` a
+frame buys every field the mechanics documents ask about.
+
+The three artifacts kept in the bottle's `Logs\` (they are large and outside
+the repo, per `CLAUDE.md`): `gamelog-run1-fulldump.txt` (114 MB, the first
+everything-per-frame run), `gamelog-run3-fulldump-types.txt` (152 MB, the
+start-of-game dump **with the type tables and `COMBATTABLE`**), and
+`gamelog-run2-units.txt` (21 MB, 1,730 frames at the old detail 0).
+
+### Staging a scenario: the chat cheats
+
+A behavioural check needs a *situation* — two builders on one site, a citizen
+against a tower, one squad hitting another from behind — and building one by
+playing is slow and imprecise. The engine has a console for exactly this, and
+in a solo game it is reachable from the chat box.
+
+`ChatBox::on_modal_end` compares the typed line's prefix against
+`get_cheat_string` (`translated_strings.xml` 263 = `"CHEAT "`,
+case-insensitive). In a solo game the whole line is issued through
+`CommandManager::issue_chat`, so **a cheat travels in the order stream and
+executes inside the tick** — which is what makes it safe for a logged run.
+`CommandPackage::process_chat` strips the prefix and hands the rest to
+`ConsoleWin::parse_cmd`, which first captures the live mouse tile, then
+matches token 0 against the 102-entry command table. `run_cmd`'s first switch
+is skipped when the call came from chat, so only its second switch is
+chat-reachable; the rest are `~`-console only.
+
+The ones that stage a scenario:
+
+| `cheat …` | syntax | what it does |
+|---|---|---|
+| `add` / `insert` | `[#] [NEW] typename [who=RED] [x,y]` | places units or a building **at the mouse cursor**. Without `NEW` a building is **completed instantly**; with `NEW` it is left as a construction site. Count capped at 300 |
+| `be` | `[who]` | switches the viewpoint every other cheat defaults to |
+| `war` / `peace` / `ally` | `[who \| All]` | `Leader::set_diplo(…, 0 / 1 / 2)` |
+| `tech` | `[who] [techname\|all] [on\|off\|show]` | `gain_tech` / `lose_tech` |
+| `age` | `[who] <n>` | `Leader::set_age` |
+| `military` / `civic` / `commerce` / `science` | `[who] <n>` | `Leader::set_epoch` for that category |
+| `library` | `[who] <n>` | all four epochs **and** the age |
+| `resource` | `[who] [goodtype\|all] [+\|-]amount` | `bucket_set` |
+| `die` | `[o[,who] \| select]` | kills |
+| `damage` | `(o[,who]\|select) [+\|-]n` | writes the damage field, clamped to max hits |
+| `move` | `(o[,who]\|select) (x,y\|cursor)` | `find_nearby_spot` + `set_new_location` |
+| `finish` / `hurry` | — | completes the selected building, queue item or research |
+| `select` | `[[ob#\|type] [who] [+]]` | selects by object number or type; `+` appends |
+| `reveal` / `explore` | `[1\|0]` / `normal\|explored\|all` | vision |
+| `ffwd` | `[minute]` | `fast_forward_frame = n × 900` |
+| `keys` | `[1\|0]` | enables the Alt-key cheats (Alt+F5 resources, Alt+F9 hurry, Alt+Q reveal) |
+| `diff` | `[0-5]` | difficulty |
+
+`parse_who` accepts a player name, one of the colour words (`RED BLUE PURPLE
+GREEN YELLOW CYAN WHITE ORANGE GAIA`), or a bare number **only** with a `who=`
+prefix — which is why `cheat age 3` reads 3 as the age and not as a player.
+`parse_type` takes a minimum-match prefix (3 characters for `add`) over units
+50–401, buildings 414–542, techs 544–628.
+
+Two things this buys beyond convenience. The AI can be taken out of the
+picture (`ai off` is console-only, but `diff 0` and a `war`/`peace` set-up get
+most of the way), and a scenario is *reproducible*: the same seed plus the
+same cheat lines in the same order is the same run, which is the property the
+eventual diff harness needs.
+
+### Driving it: the traps that cost a run each
+
+- **The window is not always real fullscreen.** Relaunched from a terminal it
+  came up borderless-windowed once and fullscreen the next time, and the menu
+  coordinates differ by ~70 px between the two. Screenshot and locate the
+  buttons before clicking; do not trust stored coordinates across launches.
+- **It does not take focus on launch.** `osascript -e 'tell application
+  "System Events" to set frontmost of process "riseofnations.exe" to true'`
+  before driving, and verify.
+- **Keystrokes sent while the sim is busy land wherever focus is.** During a
+  `DUMP_ALL` frame the window stops servicing input for minutes; a `Return`
+  meant to open the chat box and the cheat line after it went into the city
+  **rename** dialog instead, twice. Confirm the chat box is open (screenshot)
+  before typing, and never type while the log is growing by tens of MB.
+- **`cliclick t:` types; `cliclick kp:return` submits.** System Events
+  keystrokes reach the menus but clicks do not, per the earlier session.
+- Quit through the in-game menu, never `pkill` — the SyncLogger writes only
+  when `Game::run_solo` returns. (The `Log` system flushes per line, so
+  `gamelog.txt` survives a kill; only the sync log does not.)
+
 ---
 
 ## What is not established
@@ -548,9 +698,12 @@ units to the same coordinates on the same frames.
   to set up and write the header in a solo game; the per-category keys are what
   was missing.
 - ~~**`DesyncCategoryMask`'s encoding.**~~ There is none; 37 keys.
-- **`DUMP_ALL=1`, `Checksum Dump` and `Checksum Break`** in `gamelog.ini` —
+- ~~**`DUMP_ALL=1`, `Checksum Dump` and `Checksum Break`** in `gamelog.ini` —
   the first presumably unlocks the detail-level-1 fields, the other two
-  presumably take a frame number; all three untried.
+  presumably take a frame number; all three untried.~~ `DUMP_ALL` is now run
+  and read ("The detail level is the knob" above): it is not a detail flag at
+  all, it is the argument to `GameLog::full_dump` and it dumps *everything*
+  every frame. `Checksum Dump` / `Checksum Break` are still untried.
 - **The whole `walk_data` graph**, which is the actual header format. Read in
   outline only.
 - **The recorded game's file extension and naming.** `String::time_stamp` builds
