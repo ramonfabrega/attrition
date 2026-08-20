@@ -8,19 +8,32 @@ health inside hostile national borders.
 
 ## Thesis
 
-The original executable is the only specification that exists, and a recorded
-game is the only oracle that can prove we match it. So we build *toward* the
-original rather than away from it: **reach parity, then fork.**
+Rise of Nations' Extended Edition depot ships **full, unstripped private debug
+symbols for the shipped executable** — `game/sbl/rise.pdb`, GUID-matched to
+`riseofnations.exe`. 5,880 struct layouts, 1,251 source file paths, function
+names and line numbers. Alongside them: intact RTTI, a 13 MB linker map, and
+947 lines of the engine's own C++ left in `obsoletescriptfuncs.txt`.
 
-Diverging early is a one-way door. The moment the sim stops matching a real
-recorded game, the oracle is gone and every subsequent bug becomes
-unfalsifiable. Fidelity is not the conservative path here — it is the only
-path that keeps the creative one open.
+So the original is not a black box to be probed. **It is a readable
+specification**, and the job is translation rather than archaeology.
 
-Once the sim is at parity and we own the renderer, replacing 2003 art with our
-own is a *content* decision, not an engineering one. That is the road OpenTTD
-walked (OpenGFX replaced every original sprite by Dec 2009, making the game
-standalone) and the one Beyond All Reason walked out of Total Annihilation.
+That changes what fidelity is for. The old plan reached parity before changing
+anything, because divergence destroyed the only oracle — a recorded-game diff —
+and every later bug became unfalsifiable. With per-subsystem ground truth
+available directly from the symbols, that trap is gone. Parity stops being a
+gate and becomes a menu.
+
+So we copy what is worth copying and leave the rest:
+
+- **The rules are the treasure.** Twenty years of tuned balance, the age and
+  tech pacing, supply, borders, attrition. Full fidelity, verified against the
+  original.
+- **The engine is not.** Hardcoded eight-player arrays, positionally-parsed
+  XML, a 2002 scripting VM. We are here to escape that, not to reproduce it.
+- **The art is the upgrade.** Original assets are the visual oracle while the
+  renderer is built, and then they go.
+
+The end state is our own game that plays like the best RTS nobody maintains.
 
 ## Architecture
 
@@ -29,7 +42,7 @@ downstream of it.
 
 - **sim** — headless, deterministic, no engine dependency, fixed tick rate.
   Knows nothing about pixels, windows, or input devices. ~90% of the work.
-  Runnable in a test harness against recorded games with zero graphics.
+  Runnable in a test harness with zero graphics.
 - **renderer** — a thin client over observed sim state. Swappable. This is
   where art lives, and the only place it lives.
 
@@ -41,37 +54,59 @@ testable, and makes the eventual art swap free.
 - **No floating point in the sim. Ever.** Not `f32`, not `f64`, not "just for
   this one distance check". All gameplay arithmetic goes through `fixed::Fx`.
   Float results vary across compilers, architectures, and optimisation levels;
-  a lockstep sim that varies is not a sim.
+  a lockstep sim that varies is not a sim. The original's own data is stored as
+  rationals (`1/192 tile`, `2/3`, `6/5`), so `Fx::ratio` takes it exactly.
 - **The sim crate depends on no graphics, windowing, or async runtime.** If it
   cannot run in a `#[test]` with no display attached, it is wrong.
-- **No original Rise of Nations assets in this repo. Ever.** Not models, not
-  textures, not audio, not the shipped XML. The tools read from the user's own
-  installed copy. This is both the legal line and the OpenTTD model.
+- **Nothing from the user's install ever enters this repo.** Not models, not
+  textures, not audio, not the shipped XML — and not PDB dumps, symbol lists,
+  or decompiler output. `/game` is gitignored. Tools take an install path and
+  generate what they need on demand. This is both the legal line and the
+  OpenTTD model.
+- **The decompiler is a reading tool, not a source.** Read anything; write from
+  understanding. Decompiled function bodies are never transcribed into Rust —
+  that would import the design we are here to escape, for no gain, since the
+  expensive part is understanding a mechanic rather than typing it.
 - **Every format claim is evidence-backed.** No guessing at a struct layout.
-  If we assert a field, `docs/FORMATS.md` cites the bytes that prove it.
+  If we assert a field, `docs/FORMATS.md` cites what proves it.
 
 ## Phases
 
 Each phase produces something independently valuable, and each phase's
 artifact is the next phase's tool.
 
-0. **Oracle** — reverse the Recorded Game format; headless replay reader and
-   sim-state differ. Publishable on its own; genuinely useful to the live
-   RoN:EE community. Tells us whether the multi-year middle is real *before*
-   committing to it.
-1. **Content** — extract the game's data layer into open formats: BIG archives
-   → `rules.xml` / `unitrules.xml` / `buildingrules.xml` / techs; BH3/BHA
-   models → glTF. Yields 20 years of Big Huge Games' tuned balance numbers as
-   open data. **Correct under every possible end state** — do it regardless.
-2. **Sim skeleton** — load that data, replay a recorded game, diff against the
-   oracle. Start with economy + one unit type + movement. Score = ticks before
-   divergence. This is the long middle.
-3. **Renderer** — thin client. Original assets first; they are the visual
+0. **Extract** — one tool that reads the user's install and emits the XML
+   tables as typed, index-keyed open data, plus the PDB type stream as
+   documented layouts. Turns `docs/` into a real specification of RoN's data
+   model and sim state. Weeks, not years; publishable alone; immediately useful
+   to the RoN:EE modding community.
+1. **Attrition** — one mechanic, end to end, headless. Borders → territory →
+   damage, and supply cancelling it. It is the namesake, it is self-contained,
+   no open-source RTS has it, and everything needed is in reach: `borders.cpp`
+   in the symbols, and `TERRITORY_BASE`/`_DEN`/`_NUM`/`_LIMIT_*`,
+   `CITY_TERRITORY_MULTIPLIER`, the `*_UPGRADE_TERR` arrays, and
+   `ATTRITION = 48 frames` in the data. If this comes out exactly right, the
+   method is proven and the rest is repetition. **Done**, specified in
+   `docs/ATTRITION.md` and `docs/SUPPLY.md`.
+2. **Run the original** — 32-bit x86 Windows on Apple Silicon, via Wine,
+   CrossOver, or a VM. Unblocks recorded games, gives us a visual and
+   behavioural oracle, and lets us check any claim instead of reasoning about
+   it. Not a prerequisite for 0 or 1; a hard prerequisite for trusting 3.
+3. **Sim skeleton** — economy, one unit type, movement. Replay a recorded game
+   and diff. Score is ticks before divergence. This is the long middle.
+4. **Renderer** — thin client. Original assets first; they are the visual
    oracle.
-4. **AI** — hardest, least-oracled. Defer as long as possible; ship
-   vs-human first.
-5. **The fork** — at parity, swap assets. The art project starts here, and by
-   then it is content work, not engineering.
+5. **AI** — hardest, least-oracled, and less bad than it looked: build order
+   and economic posture are scripted in the open under `game/ai/scripts/`, and
+   the whole BHS toolchain is enumerated in the symbols. Combat and target
+   selection are still in the executable. Ship vs-human first.
+6. **The fork** — swap the assets, then build past the original.
+
+**Cut from v1**, to be revisited only once the above stands up: Conquer the
+World, the scenario editor, the trigger system, GameSpy and the multiplayer
+meta, and the ~90 `iface*` windows. That is roughly half of the 796 files in
+the engine's `game/` module. CtW is genuinely good and worth building; it is
+not worth building first.
 
 ## Conventions
 
@@ -80,7 +115,33 @@ artifact is the next phase's tool.
 - Toolchain is pinned in `rust-toolchain.toml` so the Solana toolchain on this
   machine can never leak in.
 - Format recon notes live in `docs/FORMATS.md`; decisions and their rationale
-  in `docs/DECISIONS.md`.
+  in `docs/DECISIONS.md`. A decision that gets overturned is amended in place
+  with its successor named, never deleted.
+- One document per mechanic, written from the original and implemented from the
+  document — `docs/ATTRITION.md` is the first. Each states how confident it is
+  and lists what it has not established, so a reader can tell a derived formula
+  from a plausible guess.
+
+## Tooling
+
+- `llvm-pdbutil` (Homebrew LLVM) reads `rise.pdb` on macOS. `dump --types`
+  works; `pretty` needs the Windows DIA SDK and does not.
+- Ghidra 12.1.3 (`brew install ghidra` — a formula now, not a cask; it wants
+  `openjdk@21`). With the PDB loaded it gives named, typed decompilation.
+  Scripted work goes through `analyzeHeadless`, under
+  `$(brew --prefix ghidra)/libexec/support/`. Two things the decompiler does
+  not do for you and a script must: name the field behind a `field_0xNN`, and
+  name the method behind an indirect call like `(*(code **)(*this + 0xcc))()`.
+  The second is a vtable slot; resolving it turns a wall of offsets into
+  ordinary code, and is what settled both the supply eligibility checks and
+  the shared siege predicate.
+- Constants are not all loaded in the representation the file writes. At least
+  one rational arrives scaled to 8.8 fixed point. Read the consumer before
+  believing the digits.
+- `cargo run -p rondata -- <install>` surveys the data layer and re-derives
+  every structural claim in `docs/FORMATS.md` from the user's own files. If a
+  claim stops being true it exits non-zero. Run it after touching anything
+  that reads the game's data.
 
 ## Prior art worth reading
 

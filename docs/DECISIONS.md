@@ -97,3 +97,235 @@ Game mechanics are not copyrightable; only the assets are. So even the
 its starting point rather than rediscovering them over years.
 
 Buy the cheap option now; defer the expensive decision.
+
+## 6. The shipped debug symbols are the specification
+
+**Chosen:** treat `game/sbl/rise.pdb` as the project's primary specification.
+
+**Over:** black-box reverse engineering, with a recorded-game diff as the only
+oracle.
+
+The Steam depot ships a full, unstripped private PDB for the shipped
+executable. Not a public symbol file — the real one:
+
+```
+Has Types: true   Has Globals: true   Has Publics: true   Is stripped: false
+GUID: {51D4F219-61C6-4F84-9D5B-C3361B0D291F}   Age: 1
+```
+
+`riseofnations.exe`'s own `RSDS` debug directory carries that same GUID and
+age, so these symbols belong to the binary we have, not to some other build.
+It yields 5,880 class and struct definitions with complete field layouts,
+1,251 source file paths, and function names, addresses, and line numbers.
+`game/sbl/` also holds `rise_z.map`, a 13 MB linker map, and PDBs for five
+further modules.
+
+This retires the founding premise. `CLAUDE.md` used to open with "the original
+executable is the only specification that exists, and a recorded game is the
+only oracle that can prove we match it." Both halves were wrong the moment the
+depot finished downloading. The executable is now a *readable* specification,
+and the checksum and RNG machinery it describes is a better oracle than a
+replay diff — see [4] below and `docs/FORMATS.md`.
+
+The consequence that matters: "diverge early and you lose the oracle" was true
+only because divergence destroyed the ability to test. With per-subsystem
+ground truth available directly, it no longer is. Parity stops being a gate
+and becomes a menu — which is what makes decision 8 possible.
+
+Same rule as assets: **no PDB-derived dump is ever committed.** Tools in this
+repo generate them from the user's own install, on demand.
+
+## 7. The decompiler is a reading tool, not a source
+
+**Chosen:** use Ghidra with the PDB loaded to read, understand, and verify;
+write the understanding down as prose in `docs/`; implement from the prose.
+
+**Over:** transcribing decompiled function bodies into Rust.
+
+The immediate reason is not legal. It is that the thing being decompiled is
+2003 C++ built on hardcoded eight-player arrays, global singletons, and a
+bespoke `String`, and one of this project's actual goals is to escape exactly
+that. Transcription would import the design we are trying to leave, and the
+result would be worse Rust for no speed gain — the expensive part is
+understanding a mechanic, not typing it.
+
+The secondary reason is that it keeps the door open. Field layouts, symbol
+names, and file/line data are interface facts; a line-by-line port of a
+function body is a different kind of artifact. Reading widely costs us
+nothing, and writing from a spec leaves the redistribution question open
+rather than answering it early and badly.
+
+## 8. Fidelity is chosen per subsystem
+
+**Chosen:** full fidelity where the original's behaviour is the asset;
+deliberate divergence everywhere else, from the start.
+
+**Over:** whole-game parity first, then fork.
+
+Decision 1 said reach parity, then fork, because divergence was a one-way
+door. Decision 6 removed the door. What is left is a straightforward question
+of where the original is actually worth copying:
+
+| Layer | Posture | Why |
+| --- | --- | --- |
+| Sim rules, balance, pacing | **Full fidelity** | Twenty years of tuned numbers. The reason the game still holds up, and the part nobody else has. |
+| Engine internals | **Diverge immediately** | Eight-player arrays, positional XML, a 2002 scripting VM. Copying this buys nothing. |
+| Renderer and art | **Diverge** | This was always the point. |
+| Content | **Superset** | Cheap once the tables are open data. |
+
+Decision 1 is not reversed — it is narrowed to the row where it was always
+doing the work.
+
+**Cut from v1:** Conquer the World, the scenario editor, the trigger system,
+GameSpy and the multiplayer meta, and the ~90 `iface*` windows. That is
+roughly half of the 796 files in the `game/` module. CtW in particular is
+worth building eventually; it is not worth building first.
+
+## 9. Data loaders are index-keyed; tag names are labels
+
+**Chosen:** load the XML tables positionally — Nth record into slot N — and
+treat element names as human-readable annotation only.
+
+**Over:** generating types from the shipped DTDs and keying by tag name.
+
+This is not a preference. It is what the data requires; the evidence is in
+`docs/FORMATS.md`. The engine's parser ignores tag names entirely, `rules.xml`
+contains duplicate tag names inside a single parent, and the shipped
+`rules.dtd` describes about a fifth of one section of the file it claims to
+document. A name-keyed loader built from the DTD cannot load the shipped game
+data.
+
+The upside is large: a record's index *is* the engine's type id, which is
+almost certainly how orders encode unit and building types. Getting this right
+is what connects the content work to the replay work later.
+
+## 10. Exact rationals where the original used a float
+
+**Chosen:** carry `anti_att` as an exact `i64` numerator and denominator, and
+divide once at the point the original truncates.
+
+**Over:** `fixed::Fx`, and over truncating to an integer after each factor.
+
+`CLAUDE.md` says all gameplay arithmetic goes through `Fx`. That rule exists to
+keep floating point out of the simulation, and here the better way to satisfy
+it is not to reach for `Fx` at all.
+
+`anti_att` is the one value Rise of Nations keeps as an `f32` in the middle of
+its simulation. Its only inputs are `256` and a chain of `100 / (100 - pct)`
+factors with integer `pct`, and the original truncates it exactly once, at the
+`* 1/256` step, after every multiplication has compounded. So:
+
+- **Truncating per factor** would drift. This is the same lesson
+  `Scalar::scaled_fx` already encodes for movement speeds, arriving from a
+  different direction.
+- **`Fx`** would round at 1/65536 where the original does not round at all. It
+  would import error the original does not have, in exchange for nothing: the
+  value is a ratio of small integers and never needs a fractional
+  representation.
+- **An exact rational** reproduces the original bit for bit and is checkable by
+  hand. Of the factors in play only 4/3 is not dyadic, so the reachable values
+  form a family of eight, all pinned by tests.
+
+Nothing in attrition needs fixed point. `crates/sim` therefore depends on
+nothing at all, not even `fixed` — the dependency will be earned when movement
+arrives. See `docs/ATTRITION.md`, "Not open, and why".
+
+## 11. The simulation takes its tuning as an input, and a tool checks it
+
+**Chosen:** `sim::Tuning` is a plain struct the simulation is handed;
+`Tuning::RON` holds the shipped values, and `rondata` re-derives all 49 of them
+from the user's own `rules.xml` and fails if any has drifted.
+
+**Over:** reading the game's XML from inside the sim, and over hardcoding the
+numbers with no check on them.
+
+Two rules pull against each other here. Nothing from the user's install may
+enter the repository; and a formula whose inputs nobody can see is not a
+specification. Writing the numbers down resolves it — game mechanics are not
+copyrightable, and `docs/ATTRITION.md` already quotes them, because a document
+that says "substitute the shipped constants" and then does not is useless.
+
+Writing them down is also how they go stale, which is what the check is for. It
+is the same discipline `docs/FORMATS.md` gets from the structural checks,
+applied to values instead of structure: a patch that rebalances attrition shows
+up as a failed check rather than as a simulation that is quietly wrong.
+
+The consequence is that `rondata` depends on `sim`. That is the right
+direction: `rondata` is the tool that validates this repository's claims
+against a real install, and the tuning table is one of those claims.
+
+
+## 12. A constant the original does not read is not tuning
+
+**Chosen:** `Tuning` carries only values that can change the simulation's
+answer. `SIEGE_OUT_OF_SUPPLY_RELOAD` and `ARTILLERY_OUT_OF_SUPPLY_RELOAD` are
+therefore absent, and `crates/sim` writes the same literals the original does.
+
+**Over:** carrying every named constant in `rules.xml` that touches a mechanic
+we implement, on the grounds that entry 11 says to write the numbers down.
+
+Both constants exist in the shipped file, annotated `"3/2 normal delay"` and
+`"2/1 normal delay"`. Both are parsed and stored in the engine's constants
+table. Neither is read: `UnitData::recharge` multiplies by literal `3 / 2` and
+literal `2`. The annotations describe the code rather than feeding it, and a
+mod that edited them would change nothing.
+
+Entry 11 exists so that a formula's inputs are visible and so that drift
+against a real install is caught. A tuning entry here would defeat both. It
+would be visible and *wrong* — a reader would take it for an input — and the
+drift check would faithfully compare a number that cannot affect anything. The
+simulation would also diverge from the original for exactly the modded data the
+check is meant to protect.
+
+So the rule is about behaviour, not about names: a value belongs in `Tuning`
+when changing it changes what the simulation does. Where a constant is inert,
+`docs/SUPPLY.md` records that it is inert and why, which is the part a reader
+actually needs.
+
+The same reading in the other direction added `Slot::Ratio256`.
+`PARMENIO_RADIUS_ADJUST` *is* read, but not in the form the file writes it —
+`3/2` on disk is 384 in memory, because the original consumes it with a shift
+right by eight. Comparing the written digits would have failed a correct table.
+The check reconstructs the scale instead. Reading the consumer is what
+distinguishes the two cases, and it is the only thing that could have.
+
+
+## 13. Pin a table the original computes with floating point
+
+**Chosen:** write the 256 integers of the engine's sine table down as
+constants, and reproduce the generator only in prose.
+
+**Over:** recomputing the table at startup from the same expression, and over
+treating it as install-derived data that may not be written down.
+
+`trig_init` fills the table once, before any simulation runs, with
+`sin(i * 1.570796327 / 255.0) * 65535.0` in doubles. Three consequences pull
+the same way.
+
+The values are a **specification, not a computation**. They are fixed for the
+lifetime of the process, and every later frame reads them as integers. Nothing
+downstream ever sees a float.
+
+Recomputing them would import the one hazard `CLAUDE.md` exists to prevent.
+`sin` is not correctly rounded and is not required to agree between platforms
+or libm versions, so a table regenerated at startup could differ by a unit in
+the last place between two clients — which is a desync, arriving through the
+back door of a rule meant to prevent exactly that.
+
+And they are not the user's data. The generator was read and understood, and
+the numbers follow from it and from pi; this is the same standing as
+`div_3_table`, which `docs/FORMATS.md` records as `i / 3` rather than as a
+dump. Writing down a table anybody can regenerate from a documented formula is
+the opposite of copying an asset.
+
+The general rule this sets: **where the original computes a constant with
+floating point before the simulation starts, we pin the result.** Where it
+computes with floating point *during* the simulation — `anti_att` — we carry an
+exact rational instead, which is decision 10. Both are the same principle
+applied at different times: no float ever reaches a frame.
+
+This is also why `Fx` is still unearned. Three mechanics in — attrition,
+supply, and the kinematic half of movement — nothing has needed a fraction.
+`crates/sim` depends on `fixed` in `Cargo.toml` and uses nothing from it; that
+dependency is unearned by the convention in `CLAUDE.md` and should go if the
+next mechanic does not want it.
