@@ -133,13 +133,15 @@ re-deriving it.
 next unstarted one unless something has made a different order obviously
 better, in which case say so and take that.
 
-0. **Corrections from the second reading** — each mechanic document now ends
-   with a "Second reading — corrections owed" section pointing at
-   `docs/audit/`. Land them mechanic by mechanic, document first, then
-   implementation and tests, striking the note when done. Attrition's
-   sixteenths-damage and production's library-only fan-out are the two that
-   change observable behaviour most; movement's unit-versus-body step is the
-   largest rewrite. Do these before building on the mechanics they correct.
+0. ~~**Corrections from the second reading**~~ — **done, 2026-08-20.** All six
+   mechanics' audits under `docs/audit/` are landed; each document now ends
+   with a "Second reading — landed" section, and each place a claim changed
+   says so inline. The ones that changed observable behaviour: attrition's
+   sixteenths-damage and bleeding wagons, production's library-only fan-out
+   and research-that-trains-nothing, costs' redirect table, movement's
+   unit-versus-body step. Done the way the next one should be: one worker per
+   mechanic, each re-verifying every claim against the decompile before
+   changing it, document first, then implementation and tests.
 1. **The tech tree** — `has_preq`, `type_avail`, `type_eligible`, ages, epochs,
    research. Three documents already assume its answers, and
    `docs/PRODUCTION.md` specifically needs whatever writes the availability bit
