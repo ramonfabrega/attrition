@@ -369,3 +369,49 @@ a struct's layout. It is also cheap to enforce: the check re-derives the scaled
 value from the install and fails if it drifts, so a wrong guess about a scale
 shows up as a failed check rather than as an economy that is a hundred and
 fifty times too fast.
+
+
+## 15. Reproduce the original's arithmetic, including where it is wrong
+
+**Chosen:** implement what the original computes, in the order it computes it,
+even when the result is plainly not what the code was trying to compute. Say so
+in the document and in the test name.
+
+**Over:** quietly writing the corrected version, and over refusing to implement
+something until we understand why it is like that.
+
+The economy already had one of these and it was easy: `Leader::do_gather`'s
+remainder loop is arithmetically an accumulator with no drift, but is written
+as a `while` that runs at most once, and the equivalence only holds because a
+guard above makes the rate non-negative. Writing the loop rather than the
+accumulator costs nothing and keeps the guard load-bearing.
+
+The cost path has a sharper one. `TypeData::can_pay_cost` answers "how many of
+these can I afford" and takes the **maximum** across resources where the answer
+is the minimum. It is not ambiguous and it is not a decompiler artefact; it is
+a `<` that should be a `>`. `crates/sim/src/cost.rs` takes the maximum, and the
+test that pins it is called `the_affordability_count_takes_the_maximum`.
+
+Three reasons, in order of weight.
+
+**It is the specification.** Entry 6 says the executable is what we are
+translating. A behaviour is not less part of the spec for being unintended, and
+"unintended" is a claim about the authors' minds that we cannot check. Twenty
+years of balance was tuned against what the code *does*.
+
+**Divergence is unfalsifiable.** Entry 1's trap in miniature: once we have
+silently corrected one thing, a later disagreement with a recorded game has two
+possible causes and no way to tell them apart. A deliberate divergence recorded
+in a document and a test is a different object — it can be turned off.
+
+**Most of them do not matter, and finding out which is the interesting part.**
+This one is blunted by an early return: any resource you cannot afford one of
+answers zero immediately, so for a single item the maximum and the minimum
+agree, and a single item is what almost every caller asks about. That
+observation is worth more than the fix would have been, and we would not have
+made it if the first instinct had been to correct the code.
+
+The limit is entry 8: fidelity is chosen per subsystem. When a subsystem is one
+we have decided to diverge from, this entry does not apply — but the divergence
+is then a decision with an entry of its own, not a quiet repair inside a
+translation.

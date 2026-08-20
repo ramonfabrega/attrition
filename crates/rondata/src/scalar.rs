@@ -219,14 +219,20 @@ impl Scalar {
     }
 }
 
-/// A price or an upkeep: an amount of each of one or more resources.
+/// A price: an amount of each of one or more resources.
 ///
 /// Written as slash-separated `<amount><letter>` pairs, sometimes with a
-/// trailing ` support` that the engine ignores — `2f`, `75g/40m`,
-/// `1f support`. Amounts are stored ×10 against `UNIT_COST_FACTOR`,
+/// trailing ` support` that is a unit annotation rather than a value — `2f`,
+/// `75g/40m`, `1f support`. Amounts are stored ×10 against `UNIT_COST_FACTOR`,
 /// `BUILD_COST_FACTOR`, and `TECH_COST_FACTOR`, all of which are 10, so a
 /// Citizen's `2f` is twenty food. This type holds the raw stored amount;
 /// scaling belongs with the constants that define it.
+///
+/// The grammar is shared by two columns that mean different things. `COST` is
+/// what a thing costs once; `SUPPORT`, despite the word, is not upkeep but the
+/// **ramp** — what the price rises by per one you already have. See
+/// `docs/COSTS.md`, and [`Cost::support_slots`] for the two-slot rule the
+/// engine reads a `SUPPORT` field under.
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct Cost(pub Vec<(Resource, i32)>);
 
@@ -267,6 +273,25 @@ impl Cost {
     /// Whether this cost is free.
     pub fn is_free(&self) -> bool {
         self.0.iter().all(|(_, n)| *n == 0)
+    }
+
+    /// The pairs a `SUPPORT` field actually reaches the engine as.
+    ///
+    /// `ObjectType::load_support` keeps two ordered `(resource, amount)`
+    /// slots, not a six-slot array. It walks the written pairs in order, skips
+    /// any whose amount is zero without consuming a slot, and stops after the
+    /// second. Two consequences the engine really has: anything a designer
+    /// wrote past the second pair is silently dropped, and a field naming the
+    /// same resource twice fills both slots with it, so that resource ramps
+    /// twice. The militia line — Militia, Minuteman, Partisan — writes
+    /// `2f/2f support` and is the only place the second happens.
+    pub fn support_slots(&self) -> Vec<(Resource, i32)> {
+        self.0
+            .iter()
+            .filter(|(_, n)| *n != 0)
+            .take(2)
+            .copied()
+            .collect()
     }
 }
 

@@ -230,6 +230,11 @@ pub struct Holdings {
     /// Industrial age, and an unavailable resource takes no part at all: no
     /// rate, no cap, no accrual.
     pub available: [bool; RESOURCES],
+    /// Whether the player holds each good's prerequisite — `has_preq`. Only
+    /// the cost path reads it, and only for a resource that is *not*
+    /// available: it chooses which of the two redirect tables in
+    /// `crates/sim/src/cost.rs` charges the price somewhere else.
+    pub discovered: [bool; RESOURCES],
 }
 
 impl Holdings {
@@ -253,6 +258,12 @@ impl Holdings {
 pub struct Ledger {
     /// The stockpile: what can be spent.
     pub bucket: [i32; RESOURCES],
+    /// A reservation held back from ordinary spending, fed at `escrow_rate`
+    /// percent of income. `crates/sim/src/cost.rs` is what reads it: a payment
+    /// may not dip into it, and a payment that needs to abandons the whole
+    /// reservation rather than consuming part of it. What sets the rate is
+    /// still unread; see `docs/COSTS.md`.
+    pub escrow: [i32; RESOURCES],
     /// Fractional carry between frames, in rate-frames.
     pub leftover: [i32; RESOURCES],
     /// The assembled rate, in sixteenths.

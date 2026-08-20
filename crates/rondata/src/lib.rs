@@ -165,17 +165,41 @@ impl Install {
         self.records("techrules.xml", "TECH")
     }
 
+    /// Reads `resourcerules.xml`. The first six records are the basic goods in
+    /// the engine's own order; the other forty-four are the rare resources.
+    ///
+    /// This one file wraps its records in a `RESOURCES` element rather than
+    /// hanging them off the root the way the other tables do — the same
+    /// inconsistency `rules.xml` has, and the reason [`Install::records`] takes
+    /// the container to look inside.
+    pub fn resources(&self) -> Result<Table, Error> {
+        self.records_in("resourcerules.xml", Some("RESOURCES"), "RESOURCE")
+    }
+
     /// Reads a flat table of same-named records from a data file.
     ///
     /// `COMMENTS` elements are skipped: they are a designer's header, and
     /// counting one as a record would shift every type id by one.
     fn records(&self, file: &str, tag: &str) -> Result<Table, Error> {
+        self.records_in(file, None, tag)
+    }
+
+    /// [`Install::records`], optionally descending through one wrapper element
+    /// first.
+    fn records_in(&self, file: &str, container: Option<&str>, tag: &str) -> Result<Table, Error> {
         let path = self.data(file);
         let text = read(&path)?;
         let doc = parse(&path, &text)?;
-        let records: Vec<Record> = doc
-            .root_element()
-            .children()
+        let root = doc.root_element();
+        let parent = match container {
+            None => Some(root),
+            Some(c) => root
+                .children()
+                .find(|n| n.is_element() && n.tag_name().name() == c),
+        };
+        let records: Vec<Record> = parent
+            .into_iter()
+            .flat_map(|p| p.children())
             .filter(|n| n.is_element() && n.tag_name().name() == tag)
             .map(table::record_from)
             .collect();

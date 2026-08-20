@@ -210,6 +210,67 @@ pub struct Tuning {
     pub territory_taxes: [i32; 5],
     /// The ceiling on every capped resource's rate, by commerce level.
     pub commerce_cap: [i32; 8],
+
+    // ---- costs ----
+    /// What a unit's written `COST` is multiplied by.
+    pub unit_cost_factor: i32,
+    /// The same, for buildings.
+    pub build_cost_factor: i32,
+    /// The same, for techs and for anything that is not a unit, building or
+    /// spell.
+    pub tech_cost_factor: i32,
+    /// The same, for spells.
+    pub spell_cost_factor: i32,
+    /// What a *building's* `SUPPORT` ramp is multiplied by. Ships as one, and
+    /// there is no unit equivalent: a unit's ramp is not scaled at all.
+    pub build_support_factor: i32,
+    /// Ceiling on a scholar's ramp, as a percentage of its base price.
+    pub unit_scholar_ramp_max: i32,
+    /// Ceiling on a citizen's or merchant's ramp.
+    pub unit_worker_ramp_max: i32,
+    /// Ceiling on the ramp of a civilian that is neither. Generals, spies,
+    /// supply wagons, caravans.
+    pub unit_other_civilian_ramp_max: i32,
+    /// Ceiling on a fighting unit's ramp. The lowest of the four, which is why
+    /// an army's price plateaus.
+    pub unit_military_ramp_max: i32,
+    /// Percentage the maize rare resource takes off a ramp term.
+    pub maize_ramping_bonus: i32,
+    /// Largest per-resource price difference a refit may be charged for.
+    pub unit_refit_max_cost: i32,
+    /// Global multiplier on the price of researching an upgrade, as 8.8 fixed
+    /// point. Ships as `1/1` and is the identity; the per-unit
+    /// `RESEARCH_PREMIUM_COST` is where the doubling actually lives.
+    pub research_premium: i32,
+    /// Percentage a final tech's price rises per final tech already held.
+    pub ramp_final: i32,
+    /// Percentage off a tech per age the player is behind the leader.
+    pub tech_age_behind_discount: i32,
+    /// The same, for the knowledge component. Twice the size.
+    pub tech_age_behind_knowledge_discount: i32,
+    /// Percentage off a tech per library colour the player is behind in.
+    pub tech_color_behind_discount: i32,
+    /// The same, for the knowledge component.
+    pub tech_color_behind_knowledge_discount: i32,
+    /// Percentage off a unit per military level the player's age is ahead of
+    /// the unit's — how obsolete units get cheap.
+    pub military_unit_discount: i32,
+    /// The same, when researching the upgrade rather than building the unit.
+    pub military_upgrade_discount: i32,
+
+    // ---- population ----
+    /// The population cap by age, before the lobby's ceiling.
+    pub pop_cap: [i32; 8],
+    /// What one city adds to the cap. Ships as zero, so cities add nothing.
+    pub village_pop: i32,
+    /// Flat addition from the Colossus.
+    pub colossus_pop_cap: i32,
+    /// Percentage the Bantu add to their cap.
+    pub bantu_pop_cap: i32,
+    /// Percentage the Bantu add to the ceiling their cap is clamped by.
+    pub bantu_final_pop_cap: i32,
+    /// Percentage the peacock rare resource adds, after the clamp.
+    pub peacocks_pop: i32,
 }
 
 impl Tuning {
@@ -298,6 +359,33 @@ impl Tuning {
         library_literacy: 0,
         territory_taxes: [0, 50, 100, 200, 300],
         commerce_cap: [70, 100, 150, 200, 260, 320, 400, 500],
+
+        unit_cost_factor: 10,
+        build_cost_factor: 10,
+        tech_cost_factor: 10,
+        spell_cost_factor: 10,
+        build_support_factor: 1,
+        unit_scholar_ramp_max: 2000,
+        unit_worker_ramp_max: 500,
+        unit_other_civilian_ramp_max: 200,
+        unit_military_ramp_max: 125,
+        maize_ramping_bonus: 50,
+        unit_refit_max_cost: 40,
+        research_premium: 256,
+        ramp_final: 50,
+        tech_age_behind_discount: 10,
+        tech_age_behind_knowledge_discount: 20,
+        tech_color_behind_discount: 10,
+        tech_color_behind_knowledge_discount: 20,
+        military_unit_discount: 5,
+        military_upgrade_discount: 10,
+
+        pop_cap: [25, 50, 75, 100, 125, 150, 175, 200],
+        village_pop: 0,
+        colossus_pop_cap: 50,
+        bantu_pop_cap: 100,
+        bantu_final_pop_cap: 25,
+        peacocks_pop: 10,
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -306,7 +394,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 71] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 96] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -425,6 +513,58 @@ impl Tuning {
             ("PEASANT_RATE", Slot::Ratio256(T.peasant_rate)),
             ("OIL_RATE", Slot::Ratio256(T.oil_rate)),
             ("SCHOLAR_RATE", Slot::Entries256(&T.scholar_rate)),
+            ("UNIT_COST_FACTOR", Slot::Value(T.unit_cost_factor)),
+            ("BUILD_COST_FACTOR", Slot::Value(T.build_cost_factor)),
+            ("TECH_COST_FACTOR", Slot::Value(T.tech_cost_factor)),
+            ("SPELL_COST_FACTOR", Slot::Value(T.spell_cost_factor)),
+            ("BUILD_SUPPORT_FACTOR", Slot::Value(T.build_support_factor)),
+            (
+                "UNIT_SCHOLAR_RAMP_MAX",
+                Slot::Value(T.unit_scholar_ramp_max),
+            ),
+            ("UNIT_WORKER_RAMP_MAX", Slot::Value(T.unit_worker_ramp_max)),
+            (
+                "UNIT_OTHER_CIVILIAN_RAMP_MAX",
+                Slot::Value(T.unit_other_civilian_ramp_max),
+            ),
+            (
+                "UNIT_MILITARY_RAMP_MAX",
+                Slot::Value(T.unit_military_ramp_max),
+            ),
+            ("MAIZE_RAMPING_BONUS", Slot::Value(T.maize_ramping_bonus)),
+            ("UNIT_REFIT_MAX_COST", Slot::Value(T.unit_refit_max_cost)),
+            ("RESEARCH_PREMIUM", Slot::Ratio256(T.research_premium)),
+            ("RAMP_FINAL", Slot::Value(T.ramp_final)),
+            (
+                "TECH_AGE_BEHIND_DISCOUNT",
+                Slot::Value(T.tech_age_behind_discount),
+            ),
+            (
+                "TECH_AGE_BEHIND_KNOWLEDGE_DISCOUNT",
+                Slot::Value(T.tech_age_behind_knowledge_discount),
+            ),
+            (
+                "TECH_COLOR_BEHIND_DISCOUNT",
+                Slot::Value(T.tech_color_behind_discount),
+            ),
+            (
+                "TECH_COLOR_BEHIND_KNOWLEDGE_DISCOUNT",
+                Slot::Value(T.tech_color_behind_knowledge_discount),
+            ),
+            (
+                "MILITARY_UNIT_DISCOUNT",
+                Slot::Value(T.military_unit_discount),
+            ),
+            (
+                "MILITARY_UPGRADE_DISCOUNT",
+                Slot::Value(T.military_upgrade_discount),
+            ),
+            ("POP_CAP", Slot::Entries(&T.pop_cap)),
+            ("VILLAGE_POP", Slot::Value(T.village_pop)),
+            ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),
+            ("BANTU_POP_CAP", Slot::Value(T.bantu_pop_cap)),
+            ("BANTU_FINAL_POP_CAP", Slot::Value(T.bantu_final_pop_cap)),
+            ("PEACOCKS_POP", Slot::Value(T.peacocks_pop)),
         ]
     }
 }

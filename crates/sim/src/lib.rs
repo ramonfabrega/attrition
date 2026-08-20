@@ -4,12 +4,13 @@
 //! threads. Everything in it runs in a `#[test]` with no display attached,
 //! which is the property that makes determinism testable at all.
 //!
-//! Five mechanics run here, and they run together. Borders produce territory,
+//! Six mechanics run here, and they run together. Borders produce territory,
 //! territory produces damage, supply cancels it, units walk in and out of it
-//! under orders, and the ground they hold pays its owner. Each has a
+//! under orders, the ground they hold pays its owner, and that income buys the
+//! next unit at a price that climbs with every one already built. Each has a
 //! specification written from the original — `docs/ATTRITION.md`,
-//! `docs/SUPPLY.md`, `docs/MOVEMENT.md`, `docs/ECONOMY.md` — and each says how
-//! much of itself is established rather than guessed.
+//! `docs/SUPPLY.md`, `docs/MOVEMENT.md`, `docs/ECONOMY.md`, `docs/COSTS.md` —
+//! and each says how much of itself is established rather than guessed.
 //!
 //! [`Sim::tick`] is where they meet, and the order it does them in is the
 //! original's, twice over. `Game::do_frame` pays every player before it
@@ -28,6 +29,7 @@
 //! only add rounding the original does not have.
 
 pub mod attrition;
+pub mod cost;
 pub mod economy;
 pub mod movement;
 pub mod supply;
@@ -110,6 +112,71 @@ pub struct Movement {
     pub turn_rate: i32,
 }
 
+/// A unit type the simulation knows how to build.
+///
+/// The price is the data's, the kind is what attrition and supply read, and
+/// the group is which production building's output the ramp counts against —
+/// `None` for a type whose progression counts by type, which is every civilian
+/// in the shipped data.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct UnitType {
+    pub price: cost::Price,
+    pub kind: attrition::UnitKind,
+    pub group: Option<usize>,
+    /// The `HITS` column: what a unit of this type is built with.
+    pub hits: i32,
+}
+
+/// What a player has built, as the price and the population cap see it.
+///
+/// Both counts are `built + queued` in the original. There is no queue here
+/// yet, so they are built, and the difference will matter the moment there is
+/// one: the original charges you for what is *ordered*, not for what exists.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Muster {
+    /// Units of each type, indexed by [`Sim::unit_types`].
+    pub by_type: Vec<i32>,
+    /// The same, by production group.
+    pub by_group: Vec<i32>,
+    /// Population occupied — `LeaderData::control`.
+    pub control: i32,
+    /// The cap it is measured against. Recomputed from scratch by
+    /// [`Sim::recompute_pop_caps`] rather than maintained incrementally,
+    /// because `Leader::calc_pop_cap` recomputes it from scratch too.
+    pub cap: i32,
+    /// The player's age, indexing `POP_CAP`. An input until there is a tech
+    /// layer to produce it.
+    pub age: usize,
+    /// The lobby's population setting. The shipped choices are 50, 75, 100,
+    /// 125, 150 and 200, and the largest is exactly `POP_CAP[7]`.
+    pub limit: i32,
+    /// The wonders, nations and scenario overrides that move the cap.
+    pub bonuses: cost::PopBonuses,
+}
+
+/// The largest population the lobby offers, and this simulation's default.
+pub const DEFAULT_POP_LIMIT: i32 = 200;
+
+impl Muster {
+    fn new(t: &Tuning) -> Muster {
+        let mut m = Muster {
+            limit: DEFAULT_POP_LIMIT,
+            ..Muster::default()
+        };
+        m.cap = cost::pop_cap(t, m.age, m.limit, &m.bonuses);
+        m
+    }
+}
+
+/// Why a unit was not built.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Refused {
+    /// The population cap would be exceeded — `check_population`.
+    Population,
+    /// Something in the price could not be paid — `Leader::can_pay`.
+    Cost,
+}
+
 impl Unit {
     pub fn new(owner: Player, index: i16, pos: Pos, health: i32) -> Unit {
         Unit {
@@ -164,6 +231,14 @@ pub struct Sim {
     /// accrued, and changes every frame.
     pub holdings: Vec<economy::Holdings>,
     pub ledgers: Vec<economy::Ledger>,
+    /// The unit types this simulation can build. A type's index is its id, the
+    /// way the original's tables are index-keyed; see `docs/DECISIONS.md`
+    /// entry 9.
+    pub unit_types: Vec<UnitType>,
+    /// One per player: what they have built, and the population it occupies.
+    pub muster: Vec<Muster>,
+    /// Where an unavailable resource's price is charged instead.
+    pub redirects: cost::Redirects,
     pub frame: i64,
 }
 
@@ -177,6 +252,9 @@ impl Sim {
             at_war: vec![vec![false; players]; players],
             holdings: vec![economy::Holdings::new(); players],
             ledgers: vec![economy::Ledger::starting(&tuning); players],
+            unit_types: Vec::new(),
+            muster: vec![Muster::new(&tuning); players],
+            redirects: cost::Redirects::RON,
             tuning,
             world,
             frame: 0,
@@ -185,7 +263,7 @@ impl Sim {
 
     /// Adds a player and returns their index.
     ///
-    /// Five vectors are kept in step by this. Growing one of them by hand
+    /// Six vectors are kept in step by this. Growing one of them by hand
     /// leaves the others short, and the failure shows up as an index panic in
     /// whichever pass reaches the longest one first.
     pub fn add_player(&mut self) -> Player {
@@ -194,6 +272,7 @@ impl Sim {
         self.supply.push(supply::Network::default());
         self.holdings.push(economy::Holdings::new());
         self.ledgers.push(economy::Ledger::starting(&self.tuning));
+        self.muster.push(Muster::new(&self.tuning));
         for row in &mut self.at_war {
             row.push(false);
         }
@@ -226,6 +305,103 @@ impl Sim {
             self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
         }
         i
+    }
+
+    /// Registers a unit type and returns its id.
+    ///
+    /// Every player's muster grows with it, because a type nobody has built is
+    /// still a type whose count the ramp reads — as zero, which is what makes
+    /// the first one cheap.
+    pub fn add_unit_type(&mut self, ty: UnitType) -> usize {
+        let id = self.unit_types.len();
+        let groups = ty.group.map_or(0, |g| g + 1);
+        self.unit_types.push(ty);
+        for m in &mut self.muster {
+            m.by_type.push(0);
+            if m.by_group.len() < groups {
+                m.by_group.resize(groups, 0);
+            }
+        }
+        id
+    }
+
+    /// Recomputes every player's population cap from scratch —
+    /// `Leader::calc_pop_cap`, which the original also calls wholesale
+    /// whenever anything that feeds it changes.
+    pub fn recompute_pop_caps(&mut self) {
+        for m in &mut self.muster {
+            m.cap = cost::pop_cap(&self.tuning, m.age, m.limit, &m.bonuses);
+        }
+    }
+
+    /// What a player would be charged for one of a type, per resource.
+    ///
+    /// The discount tail is `docs/COSTS.md`'s forty predicates and arrives as
+    /// [`cost::Modifiers`] when the nation, wonder and government layers exist
+    /// to produce it. Until then it is the undiscounted price, which is
+    /// exactly what a stock game with no bonuses charges.
+    pub fn price_of(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
+        self.price_with(who, ty, &cost::Modifiers::default())
+    }
+
+    /// [`Sim::price_of`], with the discount tail supplied.
+    pub fn price_with(
+        &self,
+        who: Player,
+        ty: usize,
+        m: &cost::Modifiers,
+    ) -> [i32; economy::RESOURCES] {
+        let muster = &self.muster[who as usize];
+        let holdings = &self.holdings[who as usize];
+        let unit = &self.unit_types[ty];
+        let counts = cost::Counts {
+            of_type: muster.by_type[ty],
+            of_group: unit.group.map_or(0, |g| muster.by_group[g]),
+        };
+        cost::charges(
+            &self.tuning,
+            &unit.price,
+            counts,
+            m,
+            &holdings.available,
+            &holdings.discovered,
+            &self.redirects,
+        )
+    }
+
+    /// Builds one unit of a type, if the player can pay for it and has room.
+    ///
+    /// The order is the original's and it is observable: **the population is
+    /// checked before the price**, so a player at the cap is refused without
+    /// being charged. Everything after that is bookkeeping the ramp depends
+    /// on — a count that is not incremented leaves the next one just as cheap.
+    pub fn produce(&mut self, who: Player, ty: usize, pos: Pos) -> Result<usize, Refused> {
+        let charges = self.price_of(who, ty);
+        let pop = self.unit_types[ty].price.pop;
+        let muster = &self.muster[who as usize];
+        if cost::exceeds_population(muster.cap, muster.control, pop) {
+            return Err(Refused::Population);
+        }
+
+        let available = self.holdings[who as usize].available;
+        if !cost::can_pay(&charges, &self.ledgers[who as usize], &available, 1) {
+            return Err(Refused::Cost);
+        }
+        cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+
+        let muster = &mut self.muster[who as usize];
+        muster.by_type[ty] += 1;
+        if let Some(g) = self.unit_types[ty].group {
+            muster.by_group[g] += 1;
+        }
+        muster.control += pop;
+
+        let index = i16::try_from(self.units.len()).unwrap_or(i16::MAX);
+        let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
+        unit.kind = self.unit_types[ty].kind;
+        let at = self.add_unit(unit);
+        self.economy_changed(who);
+        Ok(at)
     }
 
     /// Gives a dead unit's supply slot back — `Unit::close`.

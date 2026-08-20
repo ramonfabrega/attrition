@@ -424,7 +424,16 @@ economy and every other RTS economy it will be compared to, and because a
 reader with `resourcerules.xml` open would reasonably conclude the opposite.
 
 By `docs/DECISIONS.md` entry 12 — a constant the original does not read is not
-tuning — the support fields do not enter `Tuning`.
+tuning — the support fields do not enter `Tuning` *here*.
+
+**What they are actually for was settled afterwards, from the other side.**
+`docs/COSTS.md` reads the cost path, where all of them turn out to be live: a
+unit's `SUPPORT` is the ramp that makes each one more expensive than the last,
+and the four `*_SUPPORT_GOOD`/`*_SUPPORT_RATE` fields decide which resource a
+price is charged in when the one it is written in is not available yet. In this
+engine's data vocabulary "support" means price, not upkeep — which leaves the
+conclusion above unchanged and makes it sharper. The field a reader would take
+for upkeep is the one that makes the eleventh hoplite cost double the first.
 
 ---
 
@@ -439,7 +448,9 @@ tuning — the support fields do not enter `Tuning`.
   `MiningList` are unread. Everything downstream of a gatherer count is
   specified here; the count is not.
 - **`base_rate`.** Added to every rate before the cap, never seen written.
-- **`escrow` and `escrow_rate`.** The second accumulator's purpose.
+- **`escrow_rate`.** What sets it. `escrow` itself is no longer open:
+  `docs/COSTS.md` reads it in `Type::pay_cost` as a soft reservation that
+  ordinary spending may not touch and abandons entirely the moment it needs to.
 - **The two building types collected outside cities**, `0x1a2` and `0x1a3`.
 - **Merchants and caravans.** `Unit::do_gather` on an idle merchant, and
   `MERCHANTS_BONUS`, are how rare resources pay. Unread.
@@ -448,9 +459,9 @@ tuning — the support fields do not enter `Tuning`.
 - **The market.** `MARKET_BASEMENT`, `MARKET_EQUILIBRIUM`, `MARKET_CYCLE_RATE`
   and the rest describe a price simulation with supply and demand. Entirely
   unread, and the only part of the economy that is not a sum of rates.
-- **Costs.** `UNIT_COST_FACTOR`, `BUILD_COST_FACTOR`, `TECH_COST_FACTOR`, the
-  age and behind-in-knowledge discounts, and `LeaderData::can_pay`. The other
-  half of an economy.
-- **Population.** `calc_pop_cap` is called from the same function that assembles
-  the rates, and pop is what bounds citizens, and citizens are what the rates
-  are made of.
+- ~~**Costs.**~~ and ~~**Population.**~~ Closed by `docs/COSTS.md`, which
+  specifies `UNIT_COST_FACTOR` and its siblings, the ramp, the
+  unavailable-resource redirect, the discount tail, `Leader::can_pay` and
+  `Leader::calc_pop_cap`. What remains open there is the *production* half:
+  `Build::queue_up`, `JOB_TIME` and when in an item's life the price is
+  actually charged.

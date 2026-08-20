@@ -310,9 +310,48 @@ suffixes anywhere are `rng` (on `RANGE`, which is a `min-max` pair) and `tsx`
 
 `support` is likewise an annotation, not data: all 364 `SUPPORT` values end
 with the word. Thirteen of them are *only* the word — records 351–363,
-Boadicea and the herd animals — which are engine-spawned objects with no
-upkeep. A parser that requires an amount before the annotation rejects those
+Boadicea and the herd animals — which are engine-spawned objects that never
+ramp. A parser that requires an amount before the annotation rejects those
 thirteen.
+
+The word is misleading and the annotation is the least of it: `SUPPORT` is not
+upkeep. It is the **ramping cost**, and `docs/COSTS.md` establishes that from
+its consumer. The designers say so themselves in the column comment above
+`COST`.
+
+### `SUPPORT` reaches the engine as two ordered slots (2026-08-19)
+
+`COST` and `SUPPORT` share a grammar and do not share a storage. `Type::load_cost`
+zeroes a six-integer array and writes each parsed pair into the slot its
+resource letter names, so a duplicate letter overwrites. `ObjectType::load_support`
+does something else entirely: it keeps `int support_good[2]` and
+`int support_amount[2]`, walks the pairs in written order, **skips any whose
+amount is zero without consuming a slot**, and **stops after the second**.
+
+Two behaviours follow, and `cargo run -p rondata` checks both against the
+install. Anything written past the second non-zero pair is silently dropped —
+no shipped record does that. And a field naming the same resource twice fills
+both slots with it, so the ramp matches both and that resource ramps twice:
+records 16, 17 and 18 — Militia, Minuteman, Partisan — write `2f/2f support`
+and therefore ramp four food each and no metal, which reads as a typo for
+`2f/2m` and behaves as written.
+
+Buildings reach the same two slots through named columns instead —
+`SUPPORT0`/`SUPPORTVALUE0` and `SUPPORT1`/`SUPPORTVALUE1` in
+`buildingrules.xml`, with the resource written out as a word rather than a
+letter. Same fields, two spellings.
+
+### `resourcerules.xml` wraps its records one level deeper
+
+Every other record table hangs its records off the document root.
+`resourcerules.xml` puts its 50 `RESOURCE` records inside a `RESOURCES`
+element, the way `rules.xml` groups its several unrelated arrays. A reader that
+only looks at root children finds nothing and must be told the container.
+
+The first six records are the basic goods in the engine's order — Food, Timber,
+Wealth, Knowledge, Metal, Oil — and the other forty-four are the rare
+resources. Each of the six carries the two redirect pairs `docs/COSTS.md`
+depends on.
 
 ### A rounding hazard the data creates
 

@@ -183,6 +183,85 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         &join(named.iter().cloned()),
     );
 
+    // `SUPPORT` is the ramping cost, and the engine keeps it in two ordered
+    // slots rather than a six-slot array: `ObjectType::load_support` walks the
+    // pairs in order, skips zero amounts, and stops after two. So a field can
+    // name the same resource twice, and if one does, that resource ramps
+    // twice. Both halves of that are checked here.
+    let mut overlong = Vec::new();
+    let mut duplicated = Vec::new();
+    for (i, rec) in units.iter() {
+        let Some(c) = rec.text("SUPPORT").and_then(rondata::Cost::parse) else {
+            continue;
+        };
+        let written = c.0.iter().filter(|(_, n)| *n != 0).count();
+        if written > 2 {
+            overlong.push(format!("[{i}] {}", rec.text("NAME").unwrap_or("?")));
+        }
+        let slots = c.support_slots();
+        if slots.len() == 2 && slots[0].0 == slots[1].0 {
+            duplicated.push(format!(
+                "[{i}] {} {}×2",
+                rec.text("NAME").unwrap_or("?"),
+                slots[0].0.letter()
+            ));
+        }
+    }
+    failures += check(
+        "no unit's SUPPORT names more than the two slots the engine keeps",
+        overlong.is_empty(),
+        &if overlong.is_empty() {
+            format!(
+                "{} with a duplicated resource, which therefore ramps twice: {}",
+                duplicated.len(),
+                join(duplicated.iter().take(3).cloned())
+            )
+        } else {
+            format!(
+                "{} overlong: {}",
+                overlong.len(),
+                join(overlong.iter().take(5).cloned())
+            )
+        },
+    );
+
+    // Where a cost written in an unavailable resource is charged instead —
+    // `docs/COSTS.md`'s headline, and why early units want timber and later
+    // ones want metal.
+    let resources = install.resources()?;
+    let mut redirect_drift = Vec::new();
+    for (i, r) in Resource::ALL.iter().enumerate() {
+        let Some(rec) = resources.records.get(i) else {
+            redirect_drift.push(format!("{} is missing", name_of(*r)));
+            continue;
+        };
+        let ours = sim::cost::Redirects::RON.undiscovered[i];
+        let theirs_good = rec.text("UNDISC_SUPPORT_GOOD").unwrap_or("");
+        let theirs_rate = rec
+            .text("UNDISC_SUPPORT_RATE")
+            .and_then(Scalar::parse)
+            .map(|s| s.to_fx().raw() / 256);
+        let good_agrees = theirs_good.eq_ignore_ascii_case(sim_name_of(ours.good));
+        if !good_agrees || theirs_rate != Some(ours.rate) {
+            redirect_drift.push(format!(
+                "{}: we say {} at {}, install says {theirs_good} at {:?}",
+                name_of(*r),
+                sim_name_of(ours.good),
+                ours.rate,
+                theirs_rate
+            ));
+        }
+    }
+    failures += check(
+        "the undiscovered-resource redirect matches this install",
+        redirect_drift.is_empty(),
+        &if redirect_drift.is_empty() {
+            "metal is charged as timber, knowledge as food, the rest as wealth".into()
+        } else {
+            join(redirect_drift.iter().cloned())
+        },
+    );
+
     // Every number the attrition simulation is built on, re-read from the
     // user's own file. A drift here means the sim is running on values this
     // install does not have.
@@ -277,6 +356,19 @@ fn name_of(r: Resource) -> &'static str {
         Resource::Knowledge => "knowledge",
         Resource::Metal => "metal",
         Resource::Oil => "oil",
+    }
+}
+
+/// The same six, named the way `resourcerules.xml` names them — which calls
+/// slot 2 "Wealth" where the cost grammar's letter for it is `g`.
+fn sim_name_of(r: sim::economy::Resource) -> &'static str {
+    match r {
+        sim::economy::Resource::Food => "food",
+        sim::economy::Resource::Timber => "timber",
+        sim::economy::Resource::Wealth => "wealth",
+        sim::economy::Resource::Knowledge => "knowledge",
+        sim::economy::Resource::Metal => "metal",
+        sim::economy::Resource::Oil => "oil",
     }
 }
 

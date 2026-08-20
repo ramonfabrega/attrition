@@ -533,3 +533,125 @@ fn a_city_pays_from_the_first_frame_of_the_game() {
         Tuning::RON.starting_goods[food]
     );
 }
+
+/// The Citizen, as `unitrules.xml` writes it: `2f`, `1f support`,
+/// `PROGRESSION 0`, `POP 1`, forty hit points.
+fn citizen_type() -> UnitType {
+    UnitType {
+        price: cost::Price {
+            class: cost::RampClass::Worker,
+            pop: 1,
+            ..cost::Price::free()
+                .with_base(economy::Resource::Food, 2)
+                .with_support(economy::Resource::Food, 1)
+        },
+        kind: attrition::UnitKind::default(),
+        group: None,
+        hits: 40,
+    }
+}
+
+#[test]
+fn income_buys_a_citizen_and_the_next_one_costs_more() {
+    // The loop closing: a player earns, the earnings buy a unit, and the
+    // unit's price has moved by the time the next one is asked for. This is
+    // `docs/ECONOMY.md` feeding `docs/COSTS.md`.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let food = economy::Resource::Food.index();
+    let at = centre_of(Cell::new(2, 0));
+
+    assert_eq!(sim.price_of(0, citizen)[food], 20, "the first is unramped");
+
+    let purse = sim.ledgers[0].bucket[food];
+    sim.produce(0, citizen, at)
+        .expect("two hundred starting food buys one");
+    assert_eq!(sim.ledgers[0].bucket[food], purse - 20);
+    assert_eq!(sim.muster[0].control, 1);
+
+    // One owned, one food of ramp.
+    assert_eq!(sim.price_of(0, citizen)[food], 21);
+    sim.produce(0, citizen, at).unwrap();
+    assert_eq!(sim.price_of(0, citizen)[food], 22);
+    assert_eq!(sim.ledgers[0].bucket[food], purse - 41);
+
+    // And they are real units, standing where they were put.
+    assert_eq!(sim.units.len(), 2);
+    assert!(sim.units.iter().all(|u| u.alive() && u.pos == at));
+}
+
+#[test]
+fn the_population_cap_refuses_before_the_price_does() {
+    // `check_population` runs before `can_pay`, so a player at the cap is
+    // turned away without being charged — which is observable, because the
+    // stockpile is untouched.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let food = economy::Resource::Food.index();
+    let at = centre_of(Cell::new(2, 0));
+
+    // The Ancient age caps a player at twenty-five, and a citizen is one pop.
+    assert_eq!(sim.muster[0].cap, 25);
+    sim.ledgers[0].bucket[food] = 100_000;
+    for _ in 0..25 {
+        sim.produce(0, citizen, at).expect("under the cap");
+    }
+    assert_eq!(sim.muster[0].control, 25);
+
+    let purse = sim.ledgers[0].bucket[food];
+    assert_eq!(sim.produce(0, citizen, at), Err(Refused::Population));
+    assert_eq!(sim.ledgers[0].bucket[food], purse, "refused, not charged");
+
+    // An age raises the cap, and the same order goes through.
+    sim.muster[0].age = 1;
+    sim.recompute_pop_caps();
+    assert_eq!(sim.muster[0].cap, 50);
+    sim.produce(0, citizen, at)
+        .expect("room in the Classical age");
+}
+
+#[test]
+fn an_empty_purse_refuses_and_takes_nothing() {
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let food = economy::Resource::Food.index();
+    let at = centre_of(Cell::new(2, 0));
+
+    sim.ledgers[0].bucket[food] = 19;
+    assert_eq!(sim.produce(0, citizen, at), Err(Refused::Cost));
+    assert_eq!(sim.ledgers[0].bucket[food], 19);
+    assert!(sim.units.is_empty());
+
+    sim.ledgers[0].bucket[food] = 20;
+    sim.produce(0, citizen, at).expect("exactly enough");
+    assert_eq!(sim.ledgers[0].bucket[food], 0);
+}
+
+#[test]
+fn a_bought_unit_walks_and_bleeds_like_any_other() {
+    // The whole crate in one test: a citizen is paid for, walks into a hostile
+    // border, and starts taking attrition there. Six mechanics, one unit.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let start = Cell::new(2, 0);
+    let unit = sim
+        .produce(0, citizen, centre_of(start))
+        .expect("affordable");
+    make_mobile(&mut sim, unit, movement::Angle::EAST);
+
+    let inside = (0..24)
+        .map(|x| Cell::new(x, 0))
+        .find(|&c| sim.world.owner(c).player() == Some(1))
+        .expect("player 1's border claims something");
+    sim.order_move(unit, centre_of(inside));
+
+    let mut ticks = 0;
+    for _ in 0..4000 {
+        ticks += sim.tick().len();
+        if ticks > 0 {
+            break;
+        }
+    }
+    assert!(ticks > 0, "a unit that walked in should be bleeding");
+    assert!(sim.units[unit].health < 40);
+}
