@@ -1539,7 +1539,14 @@ heal, ejection), then the sites' `construct_hits` refresh.
     `CAPITAL_PLUNDER`** (the second reading's capture reader: a loader bug or a
     shared key) — which is why the two ship equal. Not checked further; the
     team-style branch that reads it is not modelled.
-14. **Behavioural checks worth running**, all cheap under `BUILDS=1` /
+14. **`BuildTypeData::to` is last-writer-wins** (2026-08-20, the loader,
+    `docs/DATALAYER.md`): `BuildType::init` writes `B[from].to = this` for
+    every non-hero record with a `FROM`, in record order, so the Forbidden
+    City (record 117, `FROM Small City`) overwrites the Large City's link and
+    the program's Small City `to` is the Forbidden City. Whatever reads `to`
+    for the city line reads that. Reproduced as read by the loader; the
+    sim's lineage tests walk `from`, which is unaffected.
+15. **Behavioural checks worth running**, all cheap under `BUILDS=1` /
     `CITIES=1` per frame: two builders on one site (expect `accel +
     accel/2` a frame — settles the harmonic rule and the unit-before-building
     order together); a second city at exactly `CITY_SPACING` tiles (expect

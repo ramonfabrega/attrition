@@ -189,15 +189,19 @@ better, in which case say so and take that.
    that runs them all turns a page of open questions into facts and proves
    the logging path the eventual diff depends on. The original runs here;
    that is the asset not yet cashed.
-5. **The data layer into the sim, and the diff** — one or two sessions. The
-   ten mechanics run on hand-written fixtures; `rondata` already reads
-   `unitrules.xml`, `buildingrules.xml`, `techrules.xml`, `balance.xml`.
-   Write the loaders that turn those into `UnitType`/`BuildType`/the tech
-   tree, then a `gamelog.txt` harness — `InitialDump` → the initial state,
-   per-frame `UNITS`/`BUILDS` → the diff. That is Phase 3's actual score,
-   ticks before divergence, and it surfaces integration bugs across the ten
-   mechanics far more cheaply than the AI would — which cannot be exercised
-   without it anyway.
+5. ~~**The data layer into the sim, and the diff**~~ — **done, 2026-08-20**,
+   `docs/DATALAYER.md`, `crates/rondata/src/{gamelog,dump,load,diff}.rs`:
+   the gamelog reader, the loader (364 units, 129 buildings, 628-entry tree,
+   the combat table — every key resolved, by `TYPENAME`), and the harness
+   (`rondata <install> --gamelog <dump> --diff`). The dump's `CONSTANTS`
+   block checked 231 of 232 `Tuning::RON` slots against the program's own
+   loaded values and classified the representation of all 716. Taken out of
+   order, before 4, because the game window was on the user's screen; the
+   harness's score is the expected ceiling (1 tick — no AI, no orders) and
+   its next inputs are `DUMP_ALL=1` and an order stream. Two corrections
+   landed on the way: XML *fields* are read by tag name from
+   `internal_strings.xml` (records stay positional — `docs/FORMATS.md`), and
+   `RULES=1` does not dump the type tables (`docs/ORACLE.md`).
 6. **AI** — last, because it is the least oracled, and better oracled once
    4 and 5 stand.
 

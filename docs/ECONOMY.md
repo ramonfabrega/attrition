@@ -144,6 +144,12 @@ multiplies by 256:
 | `OIL_RATE` | `35 oil` | 8960 | `>> 8` → 35 |
 | `SCHOLAR_RATE` | `5 7 10 15 20 25` | ×256 each | `* 16 >> 8` → ×16 rate |
 
+(All three confirmed against the program's own `CONSTANTS` dump, 2026-08-20,
+`docs/DATALAYER.md`: `peasant_rate 2560`, `oil_rate 8960`, `scholar_rate
+1280 1792 2560 3840 5120`. The dump writes five of `scholar_rate`'s six —
+the symbols say `int[6]`, `LeaderData::get_university` goes to 6, and the
+fifth line of the log is a logging count, not a loader one.)
+
 This is the trap `CLAUDE.md` warns about, in its sharpest form: these are
 written as **plain integers with no `/` in them**, so nothing about the text
 suggests a scale. `CITY_GATHER`'s `10food`, three lines away in the same file,

@@ -190,6 +190,16 @@ tech, nothing, or *impossible* — and the three behave differently, below.
 `FROM`/`JUMP` go through `unit_key`/`build_key` with the same `none` word.
 Unit `UPGRADE` is empty in the shipped file; the unit chain is `JUMP`.
 
+**`type_name` is the `TYPENAME` column** (2026-08-20, `docs/DATALAYER.md`):
+`TypeData + 0xb0`, which `UnitType::init` fills from `TYPENAME` and falls
+back to the `NAME` when that is empty, and which `unit_key`/`build_key`/
+`tech_key` search. Techs have no `TYPENAME`, so for them it is the name; units
+and buildings differ in 40-odd records, and three shipped keys — `FROM
+Marines`, `JUMP Arquebus Immortal`, `JUMP ECONQUISTADOR` — resolve only
+through it. The back-links `Types::finalize` derives (`U[from].upgrade`,
+`B[from].to`) are written unconditionally in record order, so the last
+record naming a `FROM` wins; `docs/CITIES.md` has the building case.
+
 `TechTypeData` adds `+0x1c8 age` (the `AGE` column, 0–7) and
 `+0x1e2 leader_off`, an eight-bit mask of players for whom a scenario has
 disabled the tech (`TechType::set_disabled`; zero at load).

@@ -37,10 +37,13 @@ what it and a second, older logger actually produce. The recorded-game
 container claims in Part 1 remain unexercised: this install ships no recorded
 games and none has yet been made.
 
-**Where the implementation is.** Nowhere yet, deliberately. A reader written
-against no sample is a reader that cannot be wrong in any detectable way, which
-is the opposite of what `docs/FORMATS.md`'s evidence rule is for. The reader
-waits for a file to read.
+**Where the implementation is.** ~~Nowhere yet, deliberately.~~ The
+recorded-game reader still waits for a file to read — a reader written
+against no sample is a reader that cannot be wrong in any detectable way,
+which is the opposite of what `docs/FORMATS.md`'s evidence rule is for. The
+**gamelog** reader exists as of 2026-08-20: `crates/rondata/src/gamelog.rs`,
+written against two dumps from this install, with the constants check in
+`dump.rs` and the diff harness in `diff.rs` (`docs/DATALAYER.md`).
 
 ---
 
@@ -506,7 +509,28 @@ Two more things the running game offers, both read from the binary before it
 ran: the **unit balance tool** (`game/balancerules.txt`, `UnitBalance` in
 `unitbalance.cpp`) runs scripted unit-versus-unit combats and writes results —
 its switch is `game.semaphore.ptr[1] & 2`, set somewhere unread — and the
-`[Start Game]` dump with `RULES=1` should print the loaded type tables.
+`[Start Game]` dump with `RULES=1` ~~should print the loaded type tables~~
+— **it does not**: the 114 MB run had `RULES=1` under `[Start Game]` and
+wrote no type table and no `COMBATTABLE`; the only `RULES` in it are the
+`GAME_RULES` and `RUSH_RULES` lobby settings. `Game::log_rules_data` is
+reached some other way, or under a flag not yet found.
+
+### Read back (2026-08-20, later)
+
+The dump is now read by `crates/rondata/src/gamelog.rs`, and what it holds
+is written up in `docs/DATALAYER.md`. In short: at detail level 0, per unit
+per frame the object base (`flags o who x_internal y_internal z_internal`)
+and nothing else — the `GUY` blocks carry `type` (a `TypeIndex`), position
+and `angle` only in the start-of-game dump; per leader `who tribe
+defeated_by gov score leader_flags leader_flags2`, no goods; buildings the
+same base with no type; no terrain under any category the two runs enabled.
+The `CONSTANTS` block's keys are the `Constants` struct's field names — the
+lowercased `rules.xml` tags, one renamed — and its values the loaded
+representation, which `rondata --gamelog` classifies for all 716 matched
+constants and checks against every `Tuning::RON` slot (231 of 232 equal;
+`LIBERTY_FREE_UPGRADES` is loaded and not logged). And the seed reproduces
+the game to the position unit: two runs with `Seed=12345` move the same
+units to the same coordinates on the same frames.
 
 ---
 

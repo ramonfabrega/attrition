@@ -24,12 +24,29 @@ fn main() -> ExitCode {
         eprintln!("--gamelog  a start-of-game dump written by the original with");
         eprintln!("           InitialDump=1 (docs/ORACLE.md): its CONSTANTS block");
         eprintln!("           is checked against rules.xml and sim::Tuning::RON.");
+        eprintln!("--diff [N] with --gamelog: load the tables into the sim, stand");
+        eprintln!("           it up from the dump's initial state, and step it");
+        eprintln!("           against the logged frames (at most N), reporting");
+        eprintln!("           ticks before divergence.");
         return ExitCode::from(2);
     };
     let mut gamelog: Option<String> = None;
+    let mut diff: Option<Option<usize>> = None;
     while let Some(a) = args.next() {
         match a.as_str() {
             "--gamelog" => gamelog = args.next(),
+            "--diff" => {
+                diff = Some(None);
+                if let Some(n) = args.next() {
+                    match n.parse() {
+                        Ok(n) => diff = Some(Some(n)),
+                        Err(_) => {
+                            eprintln!("--diff takes an optional frame count, not {n:?}");
+                            return ExitCode::from(2);
+                        }
+                    }
+                }
+            }
             other => {
                 eprintln!("unknown argument {other}");
                 return ExitCode::from(2);
@@ -44,7 +61,13 @@ fn main() -> ExitCode {
     }
 
     let result = survey(&install).and_then(|f| match &gamelog {
-        Some(path) => Ok(f + gamelog_report(&install, path)?),
+        Some(path) => {
+            let mut f = f + gamelog_report(&install, path)?;
+            if let Some(limit) = diff {
+                f += diff_report(&install, path, limit)?;
+            }
+            Ok(f)
+        }
         None => Ok(f),
     });
     match result {
@@ -58,6 +81,95 @@ fn main() -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+/// Loads the tables, stands the simulation up from the dump and diffs it
+/// against the logged frames.
+fn diff_report(
+    install: &Install,
+    path: &str,
+    limit: Option<usize>,
+) -> Result<usize, rondata::Error> {
+    use rondata::gamelog::Log;
+
+    let text = std::fs::read_to_string(path).map_err(|source| rondata::Error::Io {
+        path: path.to_string(),
+        source,
+    })?;
+    let log = Log::parse(&text);
+    let loaded = rondata::load::load(install)?;
+    let mut failures = 0;
+    println!("\ndiff");
+    failures += check(
+        "the shipped tables load with every name resolved",
+        loaded.warnings.is_empty(),
+        &if loaded.warnings.is_empty() {
+            format!(
+                "{} units, {} buildings, {} techs, {} goods; tree of {}",
+                loaded.unit_types.len(),
+                loaded.build_types.len(),
+                loaded.tech_names.len(),
+                loaded.good_names.len(),
+                loaded.tree.types.len()
+            )
+        } else {
+            join(loaded.warnings.iter().cloned())
+        },
+    );
+    let Some(report) = rondata::diff::run(&loaded, &log, sim::Tuning::RON, limit) else {
+        println!("  no BEGIN GAME in the log; nothing to diff");
+        return Ok(failures);
+    };
+    for n in &report.notes {
+        println!("  note: {n}");
+    }
+    let compared: usize = report.frames.iter().map(|f| f.compared).sum();
+    let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
+    println!(
+        "  {} frames stepped, {} unit-frames compared, {} unit-frames the sim has no unit for",
+        report.frames.len(),
+        compared,
+        unlinked
+    );
+    println!(
+        "  ticks before divergence: {}",
+        report.ticks_before_divergence()
+    );
+    for (who, first) in &report.first_divergence {
+        match first {
+            Some(f) => {
+                let d = report
+                    .frames
+                    .iter()
+                    .find(|fr| fr.frame == *f)
+                    .and_then(|fr| fr.diverged.iter().find(|d| d.who == *who));
+                match d {
+                    Some(d) => println!(
+                        "  player {who}: first divergence at frame {f} — unit o {} ours ({}, {}) theirs ({}, {})",
+                        d.o, d.ours.x, d.ours.y, d.theirs.x, d.theirs.y
+                    ),
+                    None => println!("  player {who}: first divergence at frame {f}"),
+                }
+            }
+            None => println!(
+                "  player {who}: no divergence over {} frames",
+                report.frames.len()
+            ),
+        }
+    }
+    if let Some(last) = report.frames.last() {
+        let s: Vec<String> = last
+            .scores
+            .iter()
+            .map(|(w, s)| format!("{w}: {s}"))
+            .collect();
+        println!(
+            "  logged scores at frame {} (not matched yet): {}",
+            last.frame,
+            s.join(", ")
+        );
+    }
+    Ok(failures)
 }
 
 /// Reads a start-of-game dump and checks the constants it carries.

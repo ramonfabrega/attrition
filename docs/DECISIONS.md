@@ -183,6 +183,12 @@ worth building eventually; it is not worth building first.
 
 ## 9. Data loaders are index-keyed; tag names are labels
 
+> **Amended 2026-08-20.** Record index is the type id, as below; but fields
+> within a record are looked up **by tag name** from the internal string
+> table (`docs/FORMATS.md`, the correction under "parsed positionally"). So:
+> records by index, fields by name. The loader in `crates/rondata/src/
+> load.rs` works that way; nothing else in this entry changes.
+
 **Chosen:** load the XML tables positionally — Nth record into slot N — and
 treat element names as human-readable annotation only.
 
