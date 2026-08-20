@@ -1227,7 +1227,7 @@ fn archer_type() -> UnitType {
             recharge: 30,
             max_range: 5,
             to_hit: 80,
-            attenuate: -1,
+            attenuate: 1,
             proj_speed: 200,
             obj_masks: mask::FOOT | mask::FOOT_ARCHER | mask::ARCHERY,
             uber_size: 1,
@@ -1406,9 +1406,10 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
     let p = sim.projectiles[0];
     assert_eq!(p.shooter, Obj::Unit(a));
     assert_eq!(p.target, Some(Obj::Unit(b)));
-    // Accuracy: 80 − (attack_dist / 96). attack_dist: 576 − 48 − 48 = 480 →
-    // 80 − 5 = 75. Scatter: 96 × 100 / ((100 − 75) / 5 + 75) = 120.
-    assert_eq!(p.accuracy, 75);
+    // Accuracy: 80 − attenuate × (attack_dist / 192). attack_dist: 576 − 48
+    // − 48 = 480 → two whole tiles → 78. Scatter: 96 × 100 / ((100 − 78) /
+    // 5 + 78) = 117.
+    assert_eq!(p.accuracy, 78);
     assert!((p.landing.x - 1000).abs() <= 60 && (p.landing.y - 1000).abs() <= 60);
     // Flight time: sqrt(dx² + dy²) / 200, truncated.
     let dx = i64::from(p.landing.x - p.launch.x);
@@ -1438,10 +1439,15 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
     } else {
         assert!(hit.is_empty(), "a miss lands on nothing here");
     }
-    // Two RNG draws were taken for the scatter, none else.
+    // Two RNG draws were taken for the scatter — and two more for where a
+    // miss punctured the ground, none else.
     let mut r = combat::Rng::new(7);
     r.roll();
     r.roll();
+    if d > 48 {
+        r.roll();
+        r.roll();
+    }
     assert_eq!(sim.rng, r);
 }
 
@@ -1651,7 +1657,6 @@ fn splash_hurts_the_neighbours_as_a_fringe_and_never_the_shooters_side() {
     cat.combat.to_hit = 400;
     cat.combat.attenuate = 0;
     cat.combat.obj_masks = mask::SIEGE | mask::BOMBARD;
-    cat.combat.siege = true;
     cat.combat.max_range = 8;
     let catapult = sim.add_unit_type(cat);
     // A line of three enemy hoplites — the second inside the splash fringe
@@ -1708,4 +1713,47 @@ fn splash_hurts_the_neighbours_as_a_fringe_and_never_the_shooters_side() {
     assert_eq!(on(t1)[0].dealt.whole, (on(t0)[0].damage * 192) >> 8);
     assert!(on(t2).is_empty(), "four tiles off is beyond the splash");
     assert!(on(friend).is_empty(), "splash skips the shooter's own side");
+}
+
+#[test]
+fn siege_fires_at_the_ground_under_a_unit_and_hits_whoever_stands_there() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let mut cat = archer_type();
+    cat.combat.attack = 300;
+    cat.combat.splash_area = 2;
+    cat.combat.splash_percent = 100;
+    cat.combat.to_hit = 400;
+    cat.combat.attenuate = 0;
+    cat.combat.obj_masks = mask::SIEGE | mask::BOMBARD;
+    cat.combat.siege = true;
+    cat.combat.packs = true;
+    cat.combat.max_range = 8;
+    let catapult = sim.add_unit_type(cat);
+    let t0 = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::SOUTH,
+    );
+    sim.set_stance(t0, Stance::HoldFire);
+    let c = combatant(
+        &mut sim,
+        0,
+        catapult,
+        Pos::new(1000, 1000 + 4 * 192),
+        movement::Angle::NORTH,
+    );
+    sim.order_attack(c, Obj::Unit(t0));
+    sim.tick();
+    // The shot has no target: it is aimed at the ground where the unit stood.
+    assert_eq!(sim.projectiles.len(), 1);
+    assert_eq!(sim.projectiles[0].target, None);
+    // A siege shot's flight time is its range, not its distance: 8 × 192 /
+    // 200 = 7.
+    assert_eq!(sim.projectiles[0].total_time, 7);
+    run(&mut sim, 8);
+    // It found the unit standing there.
+    assert_eq!(hits_on(&sim, t0).len(), 1);
 }

@@ -365,6 +365,15 @@ pub const fn in_range(
     d + if melee_bonus { 0x90 } else { 0 } <= max_range * 0xc0 + 6
 }
 
+/// The side of the square of cells a splash searches (§9.3): the spiral
+/// table `move_x/move_y` walked to `radius[k]`, `k = splash_area / 4 + 1`
+/// capped at 10, which visits the `(2k+1)²` cells within Chebyshev distance
+/// `k` of the landing cell.
+pub const fn splash_cells(splash_area: i32) -> i32 {
+    let k = splash_area / 4 + 1;
+    if k > 10 { 10 } else { k }
+}
+
 /// The ring a cell offset belongs to in `circle_x/circle_y` — the original's
 /// own integer distance, `max + min² / (2·max)` — and the order within it,
 /// `dx` ascending then `dy`.
@@ -450,7 +459,7 @@ impl Table {
 }
 
 /// The nation, wonder, general and patriot layer of the damage formula, as
-/// inputs (§4, §6 steps 12, 13, 27). Each is `false`/zero until the layer
+/// inputs (§4, §6 steps 12, 13, 25). Each is `false`/zero until the layer
 /// that produces it exists, which is also the stock game with no such bonus.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Modifiers {
@@ -651,7 +660,7 @@ pub fn get_damage(
             base *= 4;
         }
     }
-    // 21. Flanking.
+    // 19. Flanking.
     if at.unit
         && tt.unit
         && amask & mask::CIVILIAN == 0
@@ -670,9 +679,9 @@ pub fn get_damage(
         }
         base = (fb * level + 100) * base / 100;
     }
-    // 22. Net damage.
+    // 20. Net damage.
     let mut dmg = (base + 5) / 10 - armor;
-    // 23. Overkill.
+    // 21. Overkill.
     if a.is_ranged()
         && at.unit
         && tt.unit
@@ -685,11 +694,11 @@ pub fn get_damage(
             dmg /= 2;
         }
     }
-    // 24. Rocky.
+    // 22. Rocky.
     if tmask & (mask::LIGHT_INF | mask::MODERN_INF | mask::MUSKET_INF) != 0 && tt.rocky {
         dmg = shr8(dmg * t.rocky_modifier);
     }
-    // 25. Height.
+    // 23. Height.
     if !matches!(tp.domain, Domain::Air)
         && !matches!(a.domain, Domain::Air)
         && !a.siege
@@ -697,7 +706,7 @@ pub fn get_damage(
     {
         dmg += (at.z - tt.z) * t.height_bonus * dmg / (t.height_increment * 100);
     }
-    // 26. Entrenchment.
+    // 24. Entrenchment.
     if tt.unit && tt.entrenched && !a.is(role::FLAMETHROWER) {
         let d = tt.trench_facing.0.wrapping_sub(angle.0) as u32;
         let c = if d.wrapping_add(0x5555_5556) < 0xaaaa_aaac {
@@ -712,7 +721,7 @@ pub fn get_damage(
             }
         }
     }
-    // 27. Cossacks.
+    // 25. Cossacks.
     if t.russian_cossack_damage != 0
         && m.russian
         && at.unit
@@ -721,7 +730,7 @@ pub fn get_damage(
     {
         dmg = (t.russian_cossack_damage + 100) * dmg / 100;
     }
-    // 28. At least one.
+    // 26. At least one.
     if dmg < 1
         && (!matches!(a.domain, Domain::Land) || !matches!(tp.domain, Domain::Sea))
         && (tmask & mask::AIR != 0) == (amask & mask::ANTI_AIR != 0)
@@ -729,11 +738,11 @@ pub fn get_damage(
     {
         dmg = 1;
     }
-    // 29.
+    // 27.
     if tp.is(role::SUPERCOLLIDER) && matches!(a.domain, Domain::Air) && t.super_immune != 0 {
         dmg = 0;
     }
-    // 30. Recapture.
+    // 28. Recapture.
     if tt.build_proper && tt.recapturable_city {
         dmg = shr8(dmg * t.recapture_city_modifier);
     }
@@ -741,7 +750,7 @@ pub fn get_damage(
 }
 
 /// The flank level of an attack arriving along `angle` at a target facing
-/// `facing` (§6 step 21): `None` when the target faces the attacker to within
+/// `facing` (§6 step 19): `None` when the target faces the attacker to within
 /// 60°, `Some(1)` when it faces away to within 45°, `Some(2)` in the sectors
 /// between.
 pub const fn flank_level(facing: Angle, angle: Angle) -> Option<i32> {
@@ -866,10 +875,13 @@ pub const fn recharge(base: i32, out_of_supply_ratio: bool, bombard: bool) -> i3
     r & 0xff
 }
 
-/// A projectile's accuracy at launch (§9.1): `to_hit + (dist / 96) *
-/// attenuate`, floored at 5. `dist` is `attack_dist` in position units.
+/// A projectile's accuracy at launch (§9.1): `to_hit − attenuate × (dist /
+/// 192)`, floored at 5 — `attenuate` percent lost per whole tile of
+/// `attack_dist`. (An earlier draft had `+ (dist / 96) × attenuate`; the
+/// second reading and the disassembly's `/ -192` settled it. `attenuate` is
+/// the column's absolute value, §2.1.)
 pub const fn accuracy(to_hit: i32, attenuate: i32, dist: i32) -> i32 {
-    let acc = to_hit + (dist / 96) * attenuate;
+    let acc = to_hit - attenuate * (dist / 0xc0);
     if acc < 5 { 5 } else { acc }
 }
 
@@ -1651,8 +1663,10 @@ mod tests {
         assert_eq!(recharge(40, true, true), 80);
         // The byte.
         assert_eq!(recharge(200, true, true), 400 & 0xff);
-        // Accuracy: to_hit 80, attenuate −1, 10 tiles = 1920 units → 80 − 20.
-        assert_eq!(accuracy(80, -1, 1920), 60);
+        // Accuracy: to_hit 80, attenuate 1, ten tiles = 1920 units → 80 − 10;
+        // a tile and a half is still one whole tile.
+        assert_eq!(accuracy(80, 1, 1920), 70);
+        assert_eq!(accuracy(80, 1, 287), 79);
         assert_eq!(accuracy(3, 0, 0), 5);
         // Scatter at 60 %: 96 × 100 / (8 + 60) = 141; at 120 %: 96 × 100 /
         // (−4 + 120) = 82 → quartered 20.

@@ -44,3 +44,14 @@ confirmed branch by branch, and what the first reading had missed was in the
 unit its age's Military epoch) and derived back-links that no amount of
 reading the consumers reveals. Read the `init` of every type the mechanic
 touches, not only the functions that ask about it.
+
+Combat (`2026-08-20-combat.md`, the ninth mechanic, later the same day) was
+read by two blind readers split by function rather than by half — the damage
+pipeline and the firing path — because the mechanic is the largest yet and the
+two halves share almost nothing but `do_damage`. Its headline: the formula was
+doubly confirmed step by step and the **edges of the reading** were where the
+first draft was wrong — a magic-number division read as `/96` instead of
+`/192`, a `goto` inverted, an enum value of 1 read as a tag, a branch not read
+to its end, a block read and not written down. Five corrections, four
+additions, all landed the same day.
+

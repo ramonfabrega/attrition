@@ -50,11 +50,22 @@ recharge cadence and its decrement, the melee and projectile paths,
 reload and arrows, the combat table's *structure* and the RNG. High for the
 hardcoded `type_damage` rules as a list (§5), medium for their completeness:
 there are around a hundred multiplicative steps and each was read once.
-Medium for the flank direction (§6 step 21 — the arithmetic is certain, which
+Medium for the flank direction (§6 step 19 — the arithmetic is certain, which
 side counts as the rear is a convention the decompile does not settle) and
 for three virtual calls whose argument the decompiler dropped (noted inline).
 Medium for target selection (§12), read by a second reader and adjudicated.
 Everything open is listed at the end.
+
+A blind second reading (`docs/audit/2026-08-20-combat.md`, two readers — one
+over the damage pipeline, one over the cadence and projectiles) doubly
+confirmed the formula step by step, the scaling, the per-figure share, the
+RNG, the recharge rule, `attack_dist`, the hit tests and the building reload,
+and **overturned five things in the first draft**, each marked "second
+reading" where it is landed below: the accuracy formula (`− attenuate × (d /
+192)`, not `+ (d / 96) × attenuate`), when the one-in-five retarget draw is
+taken, that siege fire at a unit is ground fire, the splash search square,
+and the anti-air building gate. It also added the `total_time` floor and the
+moving-target lead the first reading had missed.
 
 **Where the implementation is.** `crates/sim/src/combat.rs` (the RNG, the
 profile, the table, the damage formula, the scaling and the take, recharge,
@@ -117,9 +128,9 @@ combat is where a projectile lands.
 
 | column | field | how it is loaded |
 | --- | --- | --- |
-| `ATTACK` | `+0x1e8 attack` | **×10** — `attack = get_text_num(...) * 10`. Every attack figure in the engine is in tenths; the formula divides by ten at the end (§6 step 22). Bonuses that say "+N attack" are added as `N * 10`. |
+| `ATTACK` | `+0x1e8 attack` | **×10** — `attack = get_text_num(...) * 10`. Every attack figure in the engine is in tenths; the formula divides by ten at the end (§6 step 20). Bonuses that say "+N attack" are added as `N * 10`. |
 | `TO_HIT` | `+0x1ec to_hit` | plain; default −1 |
-| `ATTENUATE` | `+0x1f0 attenuate` | absolute value of the number read |
+| `ATTENUATE` | `+0x1f0 attenuate` | **absolute value** of the number read — the file writes it negative (`-1`), the engine stores `1`, and the accuracy formula subtracts it (§9.1) |
 | `RANGE` | `+0x1f8 min_range`, `+0x1fc max_range` | one string, `min-max`; the part before the `-` is `min_range`, the part after is `max_range`. No `-`: `max_range = min_range`. **A cavalry-archer type (`unit_flags & 0x400`, letter `k`) has its `max_range` moved to `U +0x2d0 second_max_range` and `max_range` set to 0**, so it is a melee unit whose ranged mode is switched on by stance (§8.5). |
 | `SPLASH_AREA` | `+0x200 splash_area` | plain, in tiles |
 | `SPLASH_PERCENT` | `+0x204 splash_percent` | plain |
@@ -154,7 +165,7 @@ hits taken); `+0x3b damage_frac` (sixteenths taken, 0–15); `+0x32
 hold_frames`; `+0x3d targeted`.
 
 `UnitData`: `+0x4c damage_frame`, `+0xa4 damage_o`, `+0xa9 damage_who` (the
-overkill record, §6 step 23); `+0x50 angle` (facing; `docs/MOVEMENT.md`);
+overkill record, §6 step 21); `+0x50 angle` (facing; `docs/MOVEMENT.md`);
 `+0x5c trench_angle`; `+0x68 unit_masks` — bits this mechanic reads: `0x1`
 **decoy** (set on a spy's decoy; read in `Unit::process` as "age out after
 `decoy_time`"), `0x10`, `0x80000` packed, `0x400000`, `0x1000000`
@@ -183,7 +194,7 @@ is a fact about the loader line, per `docs/DECISIONS.md` entry 14.
 | constant | field | loaded | shipped |
 | --- | --- | --- | --- |
 | `FLANK_BONUS` | `flank_bonus` | plain, percent | 50 |
-| `CAVALRY_FLANK_BONUS` | `cavalry_flank_bonus` | plain, percent of base — but consumed with `>> 8` (step 21), so the shipped `40` is `40/256` of the base, not 40 % | 40 |
+| `CAVALRY_FLANK_BONUS` | `cavalry_flank_bonus` | plain, percent of base — but consumed with `>> 8` (step 19), so the shipped `40` is `40/256` of the base, not 40 % | 40 |
 | `VEHICLE_FLANK_BONUS` | `vehicle_flank_bonus` | plain, consumed `>> 8` | 33 |
 | `ROCKY_MODIFIER` | `rocky_modifier` | `get_fraction(…, 0x100)` — 8.8 | `2/3` → 170 |
 | `OVERKILL_FRAMES` | `overkill_frames` | plain, frames | 30 |
@@ -652,9 +663,7 @@ tmask  = T.type.obj_masks
 18. **Unfriendly territory**: T is a building and `WallData::in_unfriendly_
     territory` and the game is not in balance-test mode: `armor = 0`; if T is
     not Build-proper (a wall) or T's type has zero attack: `base *= 4`.
-19. (no step — the numbering follows the function; see 20)
-20. — reserved —
-21. **Flanking.** Only if A and T are both units; neither `amask` nor `tmask`
+19. **Flanking.** Only if A and T are both units; neither `amask` nor `tmask`
     has **CIVILIAN**; neither has **AIR**; `amask & NAVAL == tmask & NAVAL` and
     `tmask` lacks NAVAL. Let `d = T.angle − angle` (the `angle` argument is
     the attacker's facing toward T at the moment of the attack, §8.4) and
@@ -672,10 +681,10 @@ tmask  = T.type.obj_masks
     is a register the decompiler lost (`extraout_EDX`); the natural candidate,
     and the one taken, is `amask` — a vehicle or cavalry **attacker** takes a
     reduced flank bonus. Open question 2.
-22. **Net damage:** `dmg = (base + 5) / 10 − armor`. Attack was in tenths;
+20. **Net damage:** `dmg = (base + 5) / 10 − armor`. Attack was in tenths;
     this is the rounding back to whole hits, and armour is subtracted
     *after* every multiplier above.
-23. **Overkill** (only when `check_overkill`, which `do_damage` always passes):
+21. **Overkill** (only when `check_overkill`, which `do_damage` always passes):
     if `A.max_range() != 0` and A and T are both units, and T's
     `damage_frame != 0` and `frame − T.damage_frame < overkill_frames` and
     `A.get_captain() != T.damage_o`: `dmg = (dmg * overkill_damage) >> 8`; and
@@ -683,30 +692,30 @@ tmask  = T.type.obj_masks
     the record is kept: the **first** ranged squad to hit a figure owns a
     30-frame window; every other squad's hits in it are cut to a third.
     Melee attackers neither suffer it nor open a window.
-24. **Rocky**: `tmask` has any of **LIGHT_INF**, **MODERN_INF**, **MUSKET_INF**
+22. **Rocky**: `tmask` has any of **LIGHT_INF**, **MODERN_INF**, **MUSKET_INF**
     and the tile under T has terrain flag `0x8`: `dmg = (dmg *
     rocky_modifier) >> 8`.
-25. **Height**: neither domain is air, A's type is not siege, and `T.z <
+23. **Height**: neither domain is air, A's type is not siege, and `T.z <
     A.z`: `dmg += (A.z − T.z) * height_bonus * dmg / (height_increment *
     100)`.
-26. **Entrenchment**: T is a unit with `unit_masks & 0x2000000` and
+24. **Entrenchment**: T is a unit with `unit_masks & 0x2000000` and
     `!A.is(FLAMETHROWER)`: `d = T.trench_angle − angle`; `c = 0` if `|d| >
     120°` (as `d + 0x55555556 ≥ 0xaaaaaaac`), else `1 + (d + 0x20000000 >
     0x40000000)`. If `splash` or `c == 0`: `dmg = (dmg *
     entrenchment_modifier) >> 8`, and if `T.unit_masks2 & 0x1000`: `dmg =
     (dmg * antipater_entrench_bonus) >> 8`. The trench protects against fire
     from within 60° of the direction it faces, and against all splash.
-27. **Cossacks**: `russian_cossack_damage != 0`, A's owner has tribe bonus
+25. **Cossacks**: `russian_cossack_damage != 0`, A's owner has tribe bonus
     0xd, A is a unit made at a `STABLE`, and T `is_supply` or T's type
     `is_siege`: `dmg = (russian_cossack_damage + 100) * dmg / 100`.
-28. **At least one**: if `dmg < 1`: if (A's domain is not land, or T's domain
+26. **At least one**: if `dmg < 1`: if (A's domain is not land, or T's domain
     is not sea) and `(tmask & AIR) == (amask & ANTI_AIR ? AIR : 0)` and not
     `splash`: `dmg = 1`. So a land attacker never scratches a ship, an
     anti-air unit never scratches a ground target, a non-anti-air unit never
     scratches a plane, and splash can do nothing.
-29. `super_immune`: T's type is `SUPERCOLLIDER` and A is air and the flag is
+27. `super_immune`: T's type is `SUPERCOLLIDER` and A is air and the flag is
     on: `dmg = 0`.
-30. **Recapture**: T is Build-proper, active, a city building (flag `0x20`)
+28. **Recapture**: T is Build-proper, active, a city building (flag `0x20`)
     with a city index, and the city's original owner is A's owner: `dmg =
     (dmg * recapture_city_modifier) >> 8`.
 
@@ -782,10 +791,10 @@ passed on).
    takes at least a sixteenth.
 3. Combat only (`attrition == 0`): the owner's last-attacked frame (AI, on
    low difficulty); on the **first** damage to a building (`damage == 0`)
-   that is a `TEMPLE` or `TOWN` or not a dock, a 5 % roll of
-   `Random::get(0, 0xffff) % 100 < 5` spawns a flock of birds — cosmetic,
-   but it **consumes game random**, and a second roll decides the flock
-   size; a missile fired by a non-`NUCLEARMISSILE` at someone not yet at war
+   a roll of `Random::get(0, 0xffff) % 100 < 5` is taken, and if the building
+   is a fort (`BuildTypeData::is_fort`), `TEMPLE` or `TOWN` and the attacker
+   is siege a second draw sizes a flock of birds — cosmetic, but both
+   **consume game random** *(second reading corrected the type test)*; a missile fired by a non-`NUCLEARMISSILE` at someone not yet at war
    declares war.
 4. **Accumulate**: `t = T.damage_frac + frac; whole += t / 16 (sign-fixed);
    T.damage_frac = t % 16 (sign-fixed); T.damage += whole`.
@@ -849,7 +858,8 @@ order) begins by decrementing `recharging` if it is non-zero, and `full` (the
 `Unit::fight`. An idle unit runs `Unit::do_idle` → `Unit::think` →
 `Unit::think_attack`, which is how it acquires a target without being told
 (§12). A `recharging` unit with no range and no cavalry-archer flag returns
-from `work` before doing anything else unless its order has flag `4`.
+from `work` before doing anything else unless its order has flag `4`; so a
+recharging melee unit does not even move that frame.
 
 ### 8.2 `Unit::fight(o, who, flag, …, cavarch)` — the attack
 
@@ -861,8 +871,25 @@ to an attack position, unpacking, the cavalry-archer dual mode). The
 returns 0 at the top, after a little animation housekeeping); and `T` is in
 range (`ObjectData::is_in_range`, §13). Then, in this order:
 
+0. *(second reading)* Before the range test, on every frame a **captain**
+   with a non-mandatory order is not recharging and its target is a unit,
+   **one `Random::get` draw is taken**; if the target is not a combat unit
+   (`role & 0x10000` clear — or, for a unit with `unit_masks2 & 4`, is one
+   that is not a `unit_flags & 0x2000` type) and the draw is not `% 5 == 0`,
+   or the order has flag `0x10`, the unit looks for a better target
+   (`find_new_target`) and rewrites the order if it finds one; otherwise
+   `poor_target` decides. (An earlier draft took the draw only for
+   non-combat targets.) A group order takes this path only for the group's
+   leader. Under AI control a guarding unit also rolls once per frame and
+   drops a charge on an odd draw.
 1. A packed siege type in range **unpacks** (`add_cast_order(UNPACK)`) and
    returns — it cannot fire packed — unless it can get a better position.
+   *(second reading)* **An unpacked packer type (`unit_flags2 & 4`, not the
+   Dutch merchant) that is siege, with a unit target, does not shoot the
+   unit: it inserts an `ATTACK_GROUND` order at the target's current position**
+   (`accuracy` flag set when the target is at sea) and returns — siege fire
+   at units is ground fire, with no target to home on, and what it hits is
+   what stands where it lands (§9.3, §9.4).
 2. `unit_masks |= 0x11000` (in combat, attacking). `set_attack(o, who)`:
    every figure's `attack_o`/`attack_who` are set and, for a ranged type with
    pivot restrictions, `Guy::set_all_pivots` — a return that means "wait for
@@ -943,8 +970,11 @@ A building with non-zero `type.attack` runs `do_attack` every frame it has a
 target, every 32nd frame (`(frame + o) & 0x1f == 0`) when it has none, and
 whenever the object adjacent to it (`near_o`) is in range. `do_attack`:
 
-- A `LOOKOUT`/`OBSERVATIONPOST` with ANTI_AIR, or any building whose
-  `recharging` is non-zero: decrement `recharging` and return.
+- *(second reading — the first draft had this inverted)* A building without
+  ANTI_AIR, or a `LOOKOUT`/`OBSERVATIONPOST`: if `recharging` is non-zero,
+  decrement it and return. Any **other** ANTI_AIR building skips the reload
+  gate altogether and is refused at the firing step below — its shots go
+  through the `do_launch` path, not this one.
 - Every 32 frames the seen-by mask is cleared; `hits_left() == 0` returns;
   `is_jammed` (a radar-jammed building) sets the misfire flag and returns;
   `get_garrison_arrows() == 0` returns.
@@ -962,8 +992,10 @@ whenever the object adjacent to it (`near_o`) is in range. `do_attack`:
 base_arrows (+ maya_garrison_arrows for a Mayan, except an unassimilated
 city)`. `g = count_inside(GARRISON_ARROWS)` — the sum over garrisoned
 **captain, non-decoy, FOOT, non-siege** units of `attack / 10`, halved
-(`(a+1)/2`) for a melee one, with a worker counting as the owner's militia
-type and a militia counting nothing. If `base == 0`: `g += a / 2`. `g /= a`;
+(`(a+1)/2`) for a melee one; a militia-line unit, and a worker whose owner
+has the militia tech, counts `(militia upgrade type's attack / 10 + 2) / 3`
+— a third, rounded *(second reading; an earlier draft had militia counting
+nothing)*. If `base == 0`: `g += a / 2`. `g /= a`;
 `arrows = base + min(g, most_shots)`. A tower with three archers inside
 reloads in a third of the time.
 
@@ -984,14 +1016,26 @@ ammo; none on a zero-width axis), `z + 250`, angle 0, graphic by
 
 `Ammo::init` then (for a normal shot at a unit or building target):
 
-**Accuracy.** `acc = A.type.to_hit + (attack_dist(A, T) / 96) * A.type.
-attenuate`, floored at 5, stored as `accuracy`. (`attack_dist` is §13; the
-`/ 96` is the `* 0x2aaaaaab >> 37` the compiler emits.) `RANGE_INACCURACY`
-is not read.
+**Accuracy.** `acc = A.type.to_hit − A.type.attenuate × (attack_dist(A, T) /
+0xc0)`, floored at 5, stored as `accuracy` — `attenuate` percent lost per
+whole tile of `attack_dist`, with `attenuate` the column's absolute value.
+*(Second reading: the first draft had `+ (d / 96) × attenuate`; the
+compiler's `× −0x2aaaaaab >> 37` is a division by `−192`.) For a ground shot
+the distance is the plain `vector_dist` to the point. `RANGE_INACCURACY` is
+not read.
+
+**Air targets.** Before anything else, a shot at an air unit (domain 2, not a
+helicopter, not a missile) rolls to miss: a shooter without ANTI_AIR draws
+`% 100` against the target's `fly_high` (or `fly_low`), and if that passes
+draws again against its own; an ANTI_AIR shooter on the ground draws once
+against its own `fly_high`/`fly_low`; an ANTI_AIR aircraft does not roll. A
+miss sets the cosmetic flag — the shot flies and does nothing. Aircraft are
+not modelled here; the draws are listed for the sequence (§9.5).
 
 **Scatter radius `s`.** If A is a unit with `unit_flags & 0x400000` ('w'):
-`s = 0`. Else for an **attack-ground** shot: `s = 0` unless the order says
-otherwise. Else if T is a unit of **land** domain: `s = target_radius * 100
+`s = 0`. Else for an **attack-ground** shot: `s = 0` if the order's `accuracy`
+flag is set (a point at sea), else the land-unit formula below against the
+plain distance. Else if T is a unit of **land** domain: `s = target_radius * 100
 / ((100 − acc) / 5 + acc)`, quartered when `acc > 100`, and the shot is
 marked **rolling** (`flags |= 4`, and its landing z is raised by 0x4b) if it
 is not a lofted piece (ammo flag 8). Else (T is a building, ship or
@@ -1024,6 +1068,14 @@ noted as the one cosmetic float on this path). Clamp to the map.
 - a lofted piece (ammo flag 8) flies a spline; missiles fly a nuke spline
   (`Spline::calc_nuke_spline`, float) — not modelled.
 
+**`total_time` of zero becomes 1** *(second reading)* — a shot always lands
+at least a frame after launch, which with `cur_time` counted up before the
+test means the same frame. Then **the lead** *(second reading; missed by the
+first)*: a unit target whose order is a move (or an air order) has the
+landing point pushed `sinx(·) × total_time` in x and `− cosx(·) × total_time`
+in y — the decompiler dropped the operands; the natural reading, taken here,
+is the target's heading and per-frame speed, so the shot is aimed where the
+target will be. Not for ground shots, bombers or lofted pieces.
 `splash_area = A.type.splash_area`; `flags |= 2` (live); `cur_time = 0`;
 `num_guys = A.guy_mark` (unit) or 0.
 
@@ -1052,19 +1104,23 @@ do_damage(A, ox, whom, find_angle(launch → target), num_guys, index,
 0x100, 0, 0)`.
 
 **Splash**: (nuke and missile-shield branches aside) `hit_target()` /
-`check_hit()` as above — then, for every object on every tile within
-`radius[min(splash_area / 4, 10)]` of the landing point (`move_x/move_y`,
-walking each tile's object chain through `down/down_who`), skipping the
-shooter's own team and allies, **damaging the intended target with `splash
+`check_hit()` as above — then, for every object on every cell of the
+**square** the spiral table `move_x/move_y` walks to `radius[k]`, `k =
+splash_area / 4 + 1` capped at 10 (the `(2k+1)²` cells within Chebyshev
+distance `k` of the landing cell — 3×3 for a splash of up to three tiles;
+*second reading: the first draft had a circle of `splash_area / 4`*), walking
+each cell's object chain through `down/down_who`, skipping the shooter's own
+team and allies, **damaging the intended target with `splash
 = 0` and everything else with `splash = 1`**: a unit that is active, on the
 map, in the same air/ground class as the ammo's domain, not a missile:
 `d = max(0, vector_dist(landing, unit) − 0xc0 − unit.type.guy_radius)`;
 `count = 0x100 − (d << 8) / (splash_area × 0xc0)`; if `count > 0`:
 `do_damage(A, unit, …, count, splash, 0)`. A building, for a non-air ammo:
-`d = |landing − building| − x_size × 0xc0` (as written — the y term is
-dropped); `count` likewise; `do_damage` if `count ≥ 0`. The `splash`
+`d = vector_dist(|Δx| − x_size × 0xc0, |Δy| − y_size × 0xc0)` — the x term is
+explicit and the y term is in a register the decompiler lost, read by
+symmetry; `count` likewise; `do_damage` if `count ≥ 0`. The `splash`
 argument is what makes `get_damage` apply step 15 and lets the fringe do
-nothing (step 28).
+nothing (step 26).
 
 ### 9.4 The hit test — `Ammo::hit_target` and `check_hit`
 
@@ -1085,11 +1141,16 @@ building it lands on, and does full damage to it.**
 
 ### 9.5 What a shot costs in random draws
 
-Two draws for the landing scatter (when `s > 1`), two more when a building
-is the shooter (the launch offset), two more for a no-target landing, one
-or two in `take_damage`'s first-damage flock roll on a building. Every one
-is `Random::get(game_random, 0, 0xffff)` and the order above is the order
-they are taken, so a sim that reproduces the sequence reproduces the misses.
+In order: two per shot when a building is the shooter (the launch offset,
+x then y, each only when the footprint axis exceeds one unit); one or two
+`% 100` for a shot at an aircraft; two for the landing scatter (when `s >
+1`); at landing, two more for where a no-target shot punctures the ground;
+in `take_damage`, one `% 100` on the first wound of a fort, temple or town
+and a second for the flock's size when the attacker is siege; and, outside
+the shot, one per frame from `fight`'s retarget test (§8.2 step 0). Every
+one is `Random::get(game_random, 0, 0xffff)` and the order above is the
+order they are taken, so a sim that reproduces the sequence reproduces the
+misses.
 
 ---
 
@@ -1146,8 +1207,9 @@ All of, in order: the target exists and is not mine; **the owners are at war**
 me); the target is active; it is **seen** by my owner (`is_seen(who, 0)`); a
 unit target is on the map (not garrisoned); a submarine or a self-destructing
 attacker (`unit_flags & 0x102000`) only targets sea units; **a melee attacker
-(`max_range == 0`) cannot target into an unseen tile** (`TData.mask & 0x30 ==
-0x30`); a submarine attacker on land domain cannot target sea; **air targets**
+(`max_range == 0`) cannot target a unit standing on a tile whose class bits
+are `0x30`** (`TData.mask & 0x30 == 0x30` — the same two bits read `0x20`
+for ocean in `check_hit`; `0x30` is not identified, and is not fog); a submarine attacker on land domain cannot target sea; **air targets**
 need a ranged attacker, and then a ladder of `fly_high`/`fly_low` against the
 attacker's own `fly_high`/`fly_low` and ANTI_AIR flag (helicopters are
 targetable by anything ranged but siege, tanks, missiles and bombers;
@@ -1304,8 +1366,9 @@ footprint; `block_radius` is the type's `BLOCK_RADIUS × UNIT_BLOCK_RADIUS`.
 
 ### 13.2 `ObjectData::is_in_range(o, who, x, y, …, melee_bonus, &dist)`
 
-The target must be active, a unit target on the map, and its tile not
-unseen (`& 0x30 == 0x30`). `d = attack_dist(o, who, snap(x) + 0x18, snap(y) +
+The target must be active, a unit target on the map, and **the attacker's
+own** tile not of class `0x30` (`& 0x30 == 0x30`; *second reading* — the
+first draft had the target's tile, and called it fog). `d = attack_dist(o, who, snap(x) + 0x18, snap(y) +
 0x18)`. **Melee** (`type.max_range == 0`): `d ≤ 0x66` (102 units — a little
 over half a tile), or `d ≤ 0xf6` for the `HOPLITES` line. **Ranged**: `d <
 min_range() × 0xc0 − 6` is out — unless adding both units' `big_radius`
@@ -1323,7 +1386,7 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
 
 ## 14. Open questions
 
-1. **The flank direction.** §6 step 21 is arithmetic; whether level 1 (`d`
+1. **The flank direction.** §6 step 19 is arithmetic; whether level 1 (`d`
    within ±45° of zero) is "attacked from behind" depends on whether a unit's
    `angle` is the direction it faces and `find_angle(T − A)` is the direction
    A→T, both as `docs/MOVEMENT.md` reads them. If so, rear ×1.5 and side ×2.0
@@ -1354,7 +1417,14 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
    jitter and the flock roll are taken only on the paths described; if a
    later reader finds another `Random::get` between launch and impact, the
    draw order in §9.5 is what has to change.
-8. **The `Flag_` rows of `balance.xml`.** Whether internal string 17 loads as
+8. **`fire_proj` after the graphics loader.** `UnitType::init` sets it to 1
+   for any attacking type and `GraphicEvents::init_unit_events` then
+   rewrites it — to the first ammo piece, to a named ammo piece, or to
+   **zero** for graphics with certain elements — and `fight` strikes in melee
+   only when it is non-zero. Every melee type plainly does strike, so the
+   zeroing must not reach them; which graphics it does reach was not read.
+   The simulation strikes whenever `attack != 0`.
+9. **The `Flag_` rows of `balance.xml`.** Whether internal string 17 loads as
    a space (the rows match and the file's `Flag_Y_OBJMASK_HEAVY_CAV="95"`
    and friends apply) or as empty (they never match). `rondata` generates
    both and the `RULES=1` dump picks; until then the implementation takes
@@ -1362,4 +1432,25 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
 
 ---
 
-*Second reading: pending — see `docs/audit/` once run.*
+## Second reading (2026-08-20) — landed
+
+Two blind readers (`docs/audit/2026-08-20-combat.md`): one over `get_damage`,
+`do_damage`, `take_damage`, the stat accessors and the table's composition;
+one over `fight`, `recharge`, `fire_ammo`, `Ammo::*`, `Build::do_attack` and
+the range tests. **Doubly confirmed:** every step of the damage formula and
+its order, the `(base + 5) / 10 − armour` rounding, the `0x101` floor and the
+two `>> 4`s of the scaling, the per-figure share and the captain's remainder,
+the decoy overflow, the city clamp, the construction-progress loss, the
+RNG's constants and mapping, the recharge rule and its literals, `attack_dist`
+from the disassembly, the melee `0x66`/`0xf6`, the ranged bounds and the big-
+radius rescue, the building reload `recharge / arrows` and the arrows formula,
+the hit tests, `check_hit`'s two-tile search across all players, the splash
+falloff, the flank sectors, and the combat table's name space and product
+loop. **Overturned and landed above:** the accuracy formula (§9.1), the
+retarget draw's condition (§8.2 step 0), siege fire at units (§8.2 step 1),
+the splash square (§9.3), the anti-air building gate (§8.6), the flock roll's
+type test (§7.2), the militia arrows (§8.6), whose tile `is_in_range` reads
+(§13.2). **Added:** the `total_time` floor and the lead (§9.1), the
+air-target miss rolls (§9.1), `work`'s early return (§8.1). The
+implementation was corrected to match and `a_shot_flies…`, the overkill and
+the new `siege_fires_at_the_ground…` tests pin the changes.

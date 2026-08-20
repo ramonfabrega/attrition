@@ -311,16 +311,17 @@ impl Sim {
         if state.stance == Stance::HoldFire {
             return;
         }
-        // The one-in-five retarget roll (§12.4): on a frame the unit is not
-        // recharging, with a non-mandatory order on a unit that is not a
-        // combat unit, one draw; four times in five it looks again.
+        // The one-in-five retarget roll (§8.2 step 0, §12.4): on every frame
+        // a captain with a non-mandatory order is not recharging and its
+        // target is a unit, one draw — and if that target is not a combat
+        // unit, four times in five it looks for a better one.
         if !state.mandatory
             && state.recharging == 0
+            && state.captain == i32::from(self.units[i].index)
             && let Obj::Unit(t) = target
-            && !self.profile(Obj::Unit(t)).combat_role
         {
             let roll = self.rng.roll();
-            if roll % 5 != 0 {
+            if !self.profile(Obj::Unit(t)).combat_role && roll % 5 != 0 {
                 let found = self.find_melee_target(i, -1);
                 if let Some(f) = found
                     && f != target
@@ -374,15 +375,39 @@ impl Sim {
     }
 
     /// `Object::fire_ammo` for a unit (§9.1): one `Ammo` per figure, here one.
+    ///
+    /// A siege type firing at a **unit** fires at the ground under it
+    /// (`fight` inserts an `ATTACK_GROUND` order at the target's position,
+    /// §8.2 step 1): the shot has no target to home on or to test against,
+    /// and finds what it finds where it lands.
     fn fire_ammo(&mut self, shooter: Obj, target: Obj, angle: Angle, frame: i64) {
         let p = self.profile(shooter);
         let launch = self.pos_of(shooter);
         let tp = self.profile(target);
         let target_pos = self.pos_of(target);
-        // Accuracy and scatter.
-        let acc = combat::accuracy(p.to_hit, p.attenuate, self.attack_dist(shooter, target));
+        let ground_fire = p.siege && p.packs && matches!(target, Obj::Unit(_));
+        // Accuracy and scatter. A ground shot's accuracy is against the plain
+        // distance to the point, and its scatter the land-unit formula unless
+        // the point is at sea (`accuracy` flag set by `fight`), which is exact.
+        let acc = if ground_fire {
+            combat::accuracy(
+                p.to_hit,
+                p.attenuate,
+                vector_dist(target_pos.x - launch.x, target_pos.y - launch.y),
+            )
+        } else {
+            combat::accuracy(p.to_hit, p.attenuate, self.attack_dist(shooter, target))
+        };
         let land_unit = matches!(target, Obj::Unit(_)) && matches!(tp.domain, Domain::Land);
-        let s = combat::scatter(&self.tuning, acc, land_unit, p.has(mask::MISSILE), false);
+        let s = if ground_fire {
+            if matches!(tp.domain, Domain::Sea) {
+                0
+            } else {
+                combat::scatter(&self.tuning, acc, true, false, false)
+            }
+        } else {
+            combat::scatter(&self.tuning, acc, land_unit, p.has(mask::MISSILE), false)
+        };
         // A building target shot by a non-siege unit: aim at the near face.
         let mut aim = target_pos;
         if matches!(target, Obj::Building(_)) && !p.siege && s != 0 {
@@ -393,11 +418,14 @@ impl Sim {
             );
         }
         let landing = combat::scatter_point(&mut self.rng, aim, s);
-        let landing = Pos::new(
-            landing.x.clamp(0, self.world.width() * UNITS_PER_CELL - 1),
-            landing.y.clamp(0, self.world.height() * UNITS_PER_CELL - 1),
-        );
-        // Flight time.
+        let clamp = |q: Pos, w: &crate::World| {
+            Pos::new(
+                q.x.clamp(0, w.width() * UNITS_PER_CELL - 1),
+                q.y.clamp(0, w.height() * UNITS_PER_CELL - 1),
+            )
+        };
+        let mut landing = clamp(landing, &self.world);
+        // Flight time — never zero.
         let d = i64::from(p.proj_speed) * i64::from(combat::UNIT_MOVE_SPEED);
         let total_time = if p.siege {
             combat::siege_flight_time(
@@ -409,12 +437,28 @@ impl Sim {
             let dx = i64::from(landing.x - launch.x);
             let dy = i64::from(landing.y - launch.y);
             combat::flight_time(dx * dx + dy * dy, d)
-        };
+        }
+        .max(1);
+        // The lead: a unit target that is moving has the landing point pushed
+        // along its heading by its speed for the time of flight (§9.1).
+        if !ground_fire
+            && let Obj::Unit(t) = target
+            && self.units[t].movement.dest.is_some()
+        {
+            let m = self.units[t].movement;
+            landing = clamp(
+                Pos::new(
+                    landing.x + crate::movement::sin_component(m.facing, m.speed) * total_time,
+                    landing.y - crate::movement::cos_component(m.facing, m.speed) * total_time,
+                ),
+                &self.world,
+            );
+        }
         let _ = frame;
         self.projectiles.push(combat::Projectile {
             shooter,
             owner: self.owner_of(shooter),
-            target: Some(target),
+            target: if ground_fire { None } else { Some(target) },
             launch,
             landing,
             cur_time: 0,
@@ -995,7 +1039,7 @@ impl Sim {
             let d = i64::from(p.proj_speed) * i64::from(combat::UNIT_MOVE_SPEED);
             let dx = i64::from(landing.x - launch.x);
             let dy = i64::from(landing.y - launch.y);
-            let total_time = combat::flight_time(dx * dx + dy * dy, d);
+            let total_time = combat::flight_time(dx * dx + dy * dy, d).max(1);
             self.projectiles.push(combat::Projectile {
                 shooter: me,
                 owner: self.buildings[b].owner,
@@ -1071,9 +1115,9 @@ impl Sim {
             self.do_damage(p.shooter, t, angle, true, 0x100, false, false, frame);
             return;
         }
-        // Splash: everything within the radius, the intended target at full
-        // count and everything else as a fringe.
-        let radius = (p.splash_area / 4).min(10);
+        // Splash: everything on the square of cells the spiral table walks,
+        // the intended target at full count and everything else as a fringe.
+        let k = combat::splash_cells(p.splash_area);
         let landing_cell = p.landing.cell();
         let candidates: Vec<Obj> = (0..self.units.len())
             .map(Obj::Unit)
@@ -1081,7 +1125,7 @@ impl Sim {
             .filter(|&o| self.active(o))
             .filter(|&o| {
                 let c = self.pos_of(o).cell();
-                combat::ring_of(c.x - landing_cell.x, c.y - landing_cell.y) <= radius
+                (c.x - landing_cell.x).abs() <= k && (c.y - landing_cell.y).abs() <= k
             })
             .filter(|&o| {
                 let owner = self.owner_of(o);
@@ -1112,7 +1156,12 @@ impl Sim {
                     if p.air {
                         continue;
                     }
-                    let d = (p.landing.x - pos.x).abs() - op.x_size * 0xc0;
+                    // The x term is explicit in the decompile and the y term
+                    // is a lost register; by symmetry both axes less the
+                    // footprint, then the hypotenuse.
+                    let dx = ((p.landing.x - pos.x).abs() - op.x_size * 0xc0).max(0);
+                    let dy = ((p.landing.y - pos.y).abs() - op.y_size * 0xc0).max(0);
+                    let d = vector_dist(dx, dy);
                     let c = combat::splash_count(d, p.splash_area);
                     if c < 0 {
                         continue;
