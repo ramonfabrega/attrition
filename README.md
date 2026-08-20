@@ -81,7 +81,7 @@ Crates appear here when they have real code, not in anticipation of it.
 ## Development
 
 ```sh
-cargo test          # 88 tests
+cargo test          # 96 tests
 cargo clippy --all-targets
 cargo fmt
 ```

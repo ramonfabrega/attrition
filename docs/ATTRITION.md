@@ -10,14 +10,24 @@ was read to understand it, and this document is the understanding written down.
 Implementation follows from this document, not from a decompiler window. See
 `docs/DECISIONS.md` entry 7.
 
-**Confidence.** High, and higher than it was. The rate formula is derived and
-then independently checked: substituting the shipped constants into it
-reproduces the designers' own annotation on `ATTRITION` ("48 frames — the
-baseline level for regular attrition") exactly. The territory computation is
-now at the same standard: the distance unit, which was the last thing left
-open, is settled from the original's own coordinate conversion and confirmed
-from a second direction by the designers' `"24 tiles"` and `"44 tiles"`
-annotations. What remains open is listed at the end and is small.
+**Confidence.** High. The rate formula is derived and then independently
+checked: substituting the shipped constants into it reproduces the designers'
+own annotation on `ATTRITION` ("48 frames — the baseline level for regular
+attrition") exactly. The territory computation is at the same standard: the
+distance unit is settled from the original's own coordinate conversion and
+confirmed from a second direction by the designers' `"24 tiles"` and
+`"44 tiles"` annotations. The cadence — when a period actually fires — is read
+from `Unit::process`, the sole caller of both halves. What remains open is
+listed at the end and none of it changes the numbers.
+
+**One correction to an earlier draft of this document**, which claimed the
+cadence could not be found because `suffer_attrition` "is called through a
+vtable, so there are no direct references to follow". That was wrong, and
+wrong in an instructive way: the Ghidra script behind it looked the symbol up
+with `getGlobalSymbols`, which only searches the global namespace and so never
+matched a C++ method at all. A lookup that finds nothing reads exactly like a
+symbol with no callers. Both functions have one caller and it is ordinary
+code.
 
 **Where the implementation is.** `crates/sim`, in three modules that follow
 this document's three sections: `world` for the grid and its units of length,
@@ -35,7 +45,11 @@ below is re-read from the user's own install by
 | `WData` (per world cell, 28 B) | `who` @ +15 | `i8` | Owning player, `-1` unowned, `-2` ambiguous |
 | | `who2` @ +16 | `i8` | Second claimant |
 | | `down` @ +8, `down_who` @ +10 | `i16` | Claim strength and its claimant |
+| `SubObjectData` (28 B) | `who` @ +9 | `u8` | Owning player |
+| | `o` @ +10 | `i16` | Index in the owner's object list; **phases every periodic thing the unit does** |
+| | `x_internal` @ +16, `y_internal` @ +20 | `Coord` | Position, XOR-masked |
 | `UnitData` (344 B) | `attrition` @ +158 | `i16` | Pending tick period, in frames |
+| | `inside_up` @ +130 | `i16` | Sign bit set means on the map |
 | `LeaderData` (28,388 B) | `anti_att` @ +2036 | **`f32`** | Resistance scale, 256 = baseline |
 | | *(strength)* @ +2032 | `i32` | Attrition level this player inflicts |
 | | *(give disabled)* @ +2040 | `i32` | Scenario flag; suppresses the above |
@@ -209,8 +223,8 @@ from the tick, and survives only because the function is called from elsewhere.
 
 ## Eligibility
 
-`Unit::process_attrition` runs per unit per tick and returns early on any of
-these. Ordering is preserved because several are reachable in the same tick and
+`Unit::process_attrition` runs per unit every 32 frames — see the cadence
+below — and returns early on any of these. Ordering is preserved because several are reachable in the same tick and
 only the first one reached is the reason.
 
 1. The unit is inside a scenario-defined attrition-free radius.
@@ -246,6 +260,69 @@ on-screen warning — `ally_to_war_delay` and `ally_to_war_grace` windows, a
 and `S_ATTRITION_WARNING`. None of it changes the damage.
 
 ---
+
+## The cadence
+
+`Unit::process` is the only caller of both halves, and the cadence is **not a
+countdown**. Everything is phased against `SubObjectData::o` — the unit's own
+index in its owner's object list — so that a hundred units do not all do their
+upkeep on the same frame. Writing `phase` for `frame + o`:
+
+```
+if phase % 16 == 0 {              // the per-unit upkeep block
+    process_cloak()
+    if phase % 32 == 0 {
+        attrition = 0             // process_attrition clears it on entry
+        process_attrition()       // and may set it again
+    }
+}
+if attrition != 0 && phase % attrition == 0 {
+    if !process_supply() { suffer_attrition() }
+    else { mark sheltered }
+}
+```
+
+Three consequences, none of which a countdown would give, and all of which are
+observable in play:
+
+- **The damage is phase-locked to the global frame**, not to when the unit
+  entered hostile ground. A unit whose period changes from 48 to 24 re-locks to
+  the 24-frame grid immediately, mid-interval.
+- **The period is refreshed only every 32 frames.** Leaving hostile territory
+  does not stop the bleeding at once — the stale period survives until the next
+  refresh, so a unit can take one more tick up to two seconds after walking
+  out.
+- **And the same in reverse: walking in costs nothing until the next refresh.**
+  A raid that is in and out inside 32 frames of a unit's own phase takes no
+  attrition at all. Whether that was designed or merely tolerated, it is what
+  the code does.
+
+Because the two moduli share the phase, a unit with a 48-frame period lands a
+tick and a refresh on the same frame every 96.
+
+## Supply is the counter to attrition, and this is where that happens
+
+`Unit::process_supply` gets first refusal on every tick that comes due. It
+returns "supplied" — and the tick is dropped, with only a display flag set —
+when all of:
+
+- the unit is not flagged as a peace or assassin bleed (see below);
+- the unit is not itself a supply unit;
+- the unit is not militia;
+- and `Supplies::find_supply` finds a friendly supply radius at its position,
+  or the player has one of three general units with a supply aura nearby.
+
+So a supply wagon does not reduce attrition; it **cancels** it. That is the
+mechanic that lets an army campaign abroad at all, and it is implemented as a
+veto on the damage rather than as anything to do with the rate — the period is
+still computed, still set, and still shown in the interface.
+
+Two exclusions carry weight. **Militia are never sheltered**, which is the
+other half of why they take four times the rate: they are the emergency
+defenders of your own ground, and the game declines to let them campaign behind
+a wagon. And the **peace and assassin paths set a flag that makes the supply
+check give up immediately**, so a supply wagon protects an army in a war zone
+but does nothing for a unit caught over a border in peacetime.
 
 ## The damage
 
@@ -418,13 +495,13 @@ resolves such a city's *bonuses* from the owner it records while taking its
 
 ## Open questions
 
-- **The tick cadence.** `process_attrition` sets a period and
-  `suffer_attrition` applies the damage, but the code that counts between them
-  has not been found: `suffer_attrition` is called through a vtable, so there
-  are no direct references to follow. `crates/sim` decrements the period each
-  tick and re-derives it every tick, so leaving hostile ground stops the
-  bleeding at once. That is the straightforward reading and it is an
-  assumption, not a finding. `OVERKILL_FRAMES` is 30 and may be involved.
+- **The second entry into `suffer_attrition`.** `Unit::process` calls it from
+  two places. The one documented above is the territorial mechanic; the other
+  fires when the unit is on the map and a lookup into a **half-cell** grid —
+  `div_3_table[pos >> 7]`, so 384 position units per step — comes back with
+  bits set outside the player's own visibility mask. It deals the same damage
+  every frame, with the graphic on every seventh. It is plainly not the border
+  mechanic and it has not been identified.
 - **The second limit triple** at `WorldData` +68/72/76, and the per-region flag
   that selects between it and the first.
 - `down` and `down_who` are named in `WData` and look like a stored claim and

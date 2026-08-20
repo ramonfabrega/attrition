@@ -153,10 +153,27 @@ pub struct UnitKind {
     /// Workers and merchants are subject to attrition; heroes, supply units,
     /// spies, "special" units and caravans are not.
     pub exempt_kind: bool,
+    /// A supply unit. Already covered by [`Self::exempt_kind`] for the
+    /// eligibility checks, but tracked separately because the supply shelter
+    /// tests it a second time on its own.
+    pub supply_unit: bool,
     /// A worker actively gathering at a site the scenario flagged exempt.
     pub gathering_at_exempt_site: bool,
     /// Whether the unit is standing still, for the Foraging tier 1 exemption.
     pub idle: bool,
+}
+
+impl UnitKind {
+    /// Whether standing inside a friendly supply radius can shelter this unit
+    /// from a tick that is otherwise due.
+    ///
+    /// Militia never are, which is the other half of why they take four times
+    /// the rate: they are the emergency defenders of your own ground, and the
+    /// game declines to let them campaign behind a supply wagon. Supply units
+    /// are excluded too, though they are already exempt outright.
+    pub const fn shelterable(&self) -> bool {
+        !self.militia && !self.supply_unit
+    }
 }
 
 /// A unit type's attrition mode, the original's three-way switch.
@@ -327,7 +344,24 @@ pub enum Outcome {
     /// Nothing, for this reason.
     Exempt(Exempt),
     /// The unit is subject to attrition on this period, in frames.
-    Period(i32),
+    Period {
+        frames: i32,
+        /// Whether this bleed goes through supply. The peace and assassin
+        /// paths set a flag that makes the supply check give up immediately,
+        /// so a supply wagon shelters an army in a war zone but not a unit
+        /// caught over a border in peacetime. See [`Situation::at_war`].
+        ignores_supply: bool,
+    },
+}
+
+impl Outcome {
+    /// The period, if there is one.
+    pub const fn frames(self) -> Option<i32> {
+        match self {
+            Outcome::Period { frames, .. } => Some(frames),
+            Outcome::Exempt(_) => None,
+        }
+    }
 }
 
 /// Facts about the situation a unit is in, other than the unit itself.
@@ -387,7 +421,10 @@ pub fn process(
         return if victim.neutral_attrition == 0 || kind.mode == Mode::Immune {
             Outcome::Exempt(NeutralGround)
         } else {
-            Outcome::Period(victim.neutral_attrition)
+            Outcome::Period {
+                frames: victim.neutral_attrition,
+                ignores_supply: false,
+            }
         };
     };
 
@@ -433,6 +470,9 @@ pub fn process(
     } else if situation.assassin {
         assigned = Some(t.assassin_attrition);
     }
+    // Both of those paths set a flag the supply check tests first, so a bleed
+    // that came from one of them cannot be sheltered.
+    let ignores_supply = assigned.is_some();
     if kind.mode == Mode::Special {
         assigned = assigned.map(|p| p / 2);
     }
@@ -445,7 +485,10 @@ pub fn process(
     }
 
     match assigned {
-        Some(p) => Outcome::Period(p),
+        Some(frames) => Outcome::Period {
+            frames,
+            ignores_supply,
+        },
         None => Outcome::Exempt(Immune),
     }
 }
@@ -805,7 +848,7 @@ mod tests {
             &at_war_with(Owner::None),
             |_| owner_with(8),
         );
-        assert_eq!(out, Outcome::Period(30));
+        assert_eq!(out.frames(), Some(30));
     }
 
     #[test]
@@ -831,12 +874,26 @@ mod tests {
         // 8-frame peace period is what bites: crossing a peaceful border hurts
         // far more than being in a war zone.
         let out = process(&T, &UnitKind::default(), 0, &me, &s, |_| owner_with(1));
-        assert_eq!(out, Outcome::Period(T.peace_attrition));
+        assert_eq!(
+            out,
+            Outcome::Period {
+                frames: T.peace_attrition,
+                // And a supply wagon does not help you here.
+                ignores_supply: true,
+            }
+        );
 
         // Against a strong owner the computed period is shorter still, and it
-        // is the one that wins — the two are combined, not substituted.
+        // is the one that wins — the two are combined, not substituted. The
+        // supply bypass came from the peace path and survives the swap.
         let out = process(&T, &UnitKind::default(), 0, &me, &s, |_| owner_with(16));
-        assert_eq!(out, Outcome::Period(3));
+        assert_eq!(
+            out,
+            Outcome::Period {
+                frames: 3,
+                ignores_supply: true
+            }
+        );
 
         // A Special-mode unit gets the peace period halved, and never reaches
         // the computed one at all.
@@ -845,7 +902,53 @@ mod tests {
             ..UnitKind::default()
         };
         let out = process(&T, &special, 0, &me, &s, |_| owner_with(16));
-        assert_eq!(out, Outcome::Period(T.peace_attrition / 2));
+        assert_eq!(out.frames(), Some(T.peace_attrition / 2));
+    }
+
+    #[test]
+    fn a_war_zone_bleed_can_be_sheltered_but_a_border_violation_cannot() {
+        let me = PlayerState::default();
+        let at_war = at_war_with(Owner::Player(1));
+        let mut at_peace = at_war;
+        at_peace.at_war = false;
+
+        let war = process(&T, &UnitKind::default(), 0, &me, &at_war, |_| owner_with(1));
+        let peace = process(&T, &UnitKind::default(), 0, &me, &at_peace, |_| {
+            owner_with(1)
+        });
+        assert_eq!(
+            war,
+            Outcome::Period {
+                frames: 48,
+                ignores_supply: false
+            }
+        );
+        assert!(matches!(
+            peace,
+            Outcome::Period {
+                ignores_supply: true,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn militia_and_supply_units_are_never_sheltered() {
+        assert!(UnitKind::default().shelterable());
+        assert!(
+            !UnitKind {
+                militia: true,
+                ..UnitKind::default()
+            }
+            .shelterable()
+        );
+        assert!(
+            !UnitKind {
+                supply_unit: true,
+                ..UnitKind::default()
+            }
+            .shelterable()
+        );
     }
 
     #[test]
@@ -896,6 +999,6 @@ mod tests {
             |_| owner_with(strength(&T, 2, &StrengthMods::default())),
         );
         // Strength 2: 48 * (256/2) / 256 = 24 frames.
-        assert_eq!(out, Outcome::Period(24));
+        assert_eq!(out.frames(), Some(24));
     }
 }

@@ -29,37 +29,75 @@ pub use world::{Cell, Owner, Player, Pos, Terrain, World};
 /// period is quoted in.
 pub const FRAMES_PER_SECOND: i32 = 15;
 
+/// How often a unit's periodic work runs at all. `Unit::process` gates a whole
+/// block of per-unit upkeep on this.
+pub const UNIT_UPKEEP_FRAMES: i64 = 16;
+
+/// How often a unit's attrition period is recomputed.
+///
+/// Not every frame. This is the single most consequential fact about the
+/// cadence: a unit that walks out of hostile territory keeps its stale period
+/// until the next refresh, and one that walks in takes nothing until then.
+pub const ATTRITION_REFRESH_FRAMES: i64 = 32;
+
 /// A unit, as attrition sees one.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Unit {
     pub owner: Player,
+    /// The unit's index in its owner's object list — `SubObjectData::o`.
+    ///
+    /// Every periodic thing a unit does is phased by this, so that a hundred
+    /// units do not all do their upkeep on the same frame. It is part of the
+    /// simulation rather than an optimisation: it decides *which* frames a
+    /// given unit bleeds on.
+    pub index: i16,
     pub pos: Pos,
     pub health: i32,
     /// Figures in the squad, one to four. Damage per tick is set by this and
     /// nothing else.
     pub squad_size: i32,
     pub kind: attrition::UnitKind,
-    /// Frames until the next attrition tick, or zero for "not currently
-    /// bleeding". The original stores this on the unit as an `i16` and
-    /// recomputes it every tick, so a unit that walks out of hostile territory
-    /// stops immediately rather than finishing its countdown.
-    pub countdown: i32,
+    /// Whether the unit is on the map, rather than garrisoned in a building or
+    /// riding in a transport. Off the map, none of this runs.
+    pub on_map: bool,
+    /// Whether the unit is inside a friendly supply radius. Supply is not
+    /// implemented yet; this stands in for `Supplies::find_supply`.
+    pub in_supply: bool,
+    /// The period the last refresh wrote, in frames. Zero means not bleeding.
+    /// Public because it is observable state, not a private counter — the
+    /// original keeps it in `UnitData::attrition` and the interface shows it.
+    pub attrition: i32,
+    /// Whether the current bleed goes through supply.
+    pub ignores_supply: bool,
+    /// Whether supply sheltered this unit from a tick that was otherwise due.
+    /// The original tracks the same thing in a display flag.
+    pub sheltered: bool,
 }
 
 impl Unit {
-    pub fn new(owner: Player, pos: Pos, health: i32) -> Unit {
+    pub fn new(owner: Player, index: i16, pos: Pos, health: i32) -> Unit {
         Unit {
             owner,
+            index,
             pos,
             health,
             squad_size: 1,
             kind: attrition::UnitKind::default(),
-            countdown: 0,
+            on_map: true,
+            in_supply: false,
+            attrition: 0,
+            ignores_supply: false,
+            sheltered: false,
         }
     }
 
     pub fn alive(&self) -> bool {
         self.health > 0
+    }
+
+    /// The frame counter this unit's periodic work is phased against.
+    pub const fn phase(&self, frame: i64) -> i64 {
+        frame + self.index as i64
     }
 }
 
@@ -112,48 +150,70 @@ impl Sim {
 
     /// Advances one frame.
     ///
-    /// Every unit's period is recomputed each tick and its countdown is
-    /// clamped to it, so leaving hostile ground stops the bleeding at once and
-    /// walking into worse territory speeds it up immediately. The countdown
-    /// itself is where this implementation goes beyond what has been read out
-    /// of the original: `process_attrition` sets the period and
-    /// `suffer_attrition` applies the damage, but the code that counts between
-    /// them has not been found. This is the straightforward reading, and
-    /// `docs/ATTRITION.md` records it as an assumption rather than a finding.
+    /// The cadence is the part of this mechanic that would be easiest to get
+    /// plausibly wrong, and it is not a countdown. `Unit::process` recomputes
+    /// the period every 32 frames and, on **every** frame, applies damage when
+    /// `(frame + unit index) % period == 0`. Two things follow that a
+    /// countdown would not give:
+    ///
+    /// - **The damage is phase-locked to the global frame**, not to when the
+    ///   unit entered hostile ground. Change a period from 48 to 24 and the
+    ///   unit re-locks to the 24-frame grid immediately, mid-interval.
+    /// - **Leaving hostile territory does not stop the bleeding at once.** The
+    ///   stale period survives until the next refresh, so a unit can take one
+    ///   more tick up to 32 frames after walking out — and, symmetrically,
+    ///   takes nothing for up to 32 frames after walking in.
     pub fn tick(&mut self) -> Vec<Tick> {
-        self.frame += 1;
+        let frame = self.frame;
         let mut events = Vec::new();
         for i in 0..self.units.len() {
-            if !self.units[i].alive() {
+            if !self.units[i].alive() || !self.units[i].on_map {
                 continue;
             }
-            let outcome = self.attrition_for(i);
-            let unit = &mut self.units[i];
-            match outcome {
-                attrition::Outcome::Exempt(_) => unit.countdown = 0,
-                attrition::Outcome::Period(p) => {
-                    // Clamp rather than reset, so that a unit already part way
-                    // through a long period is not made to start again when it
-                    // steps into faster attrition.
-                    unit.countdown = if unit.countdown == 0 {
-                        p
-                    } else {
-                        unit.countdown.min(p)
-                    };
-                    unit.countdown -= 1;
-                    if unit.countdown == 0 {
-                        let d = attrition::damage(unit.squad_size);
-                        unit.health -= d;
-                        events.push(Tick {
-                            unit: i,
-                            frame: self.frame,
-                            damage: d,
-                            killed: !unit.alive(),
-                        });
+            let phase = self.units[i].phase(frame);
+
+            // The refresh. `process_attrition` clears the period on entry, so
+            // an exempt unit comes out of it with nothing pending.
+            if phase % ATTRITION_REFRESH_FRAMES == 0 {
+                let outcome = self.attrition_for(i);
+                let unit = &mut self.units[i];
+                unit.sheltered = false;
+                match outcome {
+                    attrition::Outcome::Exempt(_) => {
+                        unit.attrition = 0;
+                        unit.ignores_supply = false;
+                    }
+                    attrition::Outcome::Period {
+                        frames,
+                        ignores_supply,
+                    } => {
+                        unit.attrition = frames;
+                        unit.ignores_supply = ignores_supply;
                     }
                 }
             }
+
+            let unit = &mut self.units[i];
+            if unit.attrition == 0 || phase % i64::from(unit.attrition) != 0 {
+                continue;
+            }
+            // Supply gets first refusal. A unit inside a friendly supply
+            // radius takes no attrition at all — which is what supply is for,
+            // and the whole reason an army can campaign abroad.
+            if unit.in_supply && !unit.ignores_supply && unit.kind.shelterable() {
+                unit.sheltered = true;
+            } else {
+                let d = attrition::damage(unit.squad_size);
+                unit.health -= d;
+                events.push(Tick {
+                    unit: i,
+                    frame,
+                    damage: d,
+                    killed: !unit.alive(),
+                });
+            }
         }
+        self.frame += 1;
         events
     }
 
@@ -194,192 +254,5 @@ pub struct Tick {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::attrition::{PlayerState, Resistance, StrengthMods, strength};
-    use crate::territory::{City, NationBonuses, PlayerBorders, Wonders, city_source};
-    use crate::world::UNITS_PER_CELL;
-
-    fn centre_of(c: Cell) -> Pos {
-        Pos::new(
-            c.x * UNITS_PER_CELL + UNITS_PER_CELL / 2,
-            c.y * UNITS_PER_CELL + UNITS_PER_CELL / 2,
-        )
-    }
-
-    /// Two players on a strip of land. Player 1 holds a city at one end and
-    /// enough attrition tech to make its border bite; player 0 has a unit.
-    fn skirmish(tech_steps: usize) -> Sim {
-        let t = Tuning::RON;
-        let mut world = World::new(24, 1);
-        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(23, 0));
-
-        let mut sim = Sim::new(t, world, 2);
-        let borders = PlayerBorders::new(
-            &t,
-            0,
-            1,
-            1,
-            &Wonders::default(),
-            &NationBonuses::default(),
-            0,
-        );
-        sim.sources.push(city_source(
-            &t,
-            1,
-            &borders,
-            &City {
-                pos: centre_of(Cell::new(20, 0)),
-                level: 0,
-                capital: false,
-                temple: false,
-                owner_agrees: true,
-            },
-        ));
-        sim.players[1] = PlayerState {
-            strength: strength(&t, tech_steps, &StrengthMods::default()),
-            team: 1,
-            ..PlayerState::default()
-        };
-        sim.players[0].team = 0;
-        sim.declare_war(0, 1);
-        sim.recompute_territory();
-        sim
-    }
-
-    #[test]
-    fn a_unit_outside_the_border_never_bleeds() {
-        let mut sim = skirmish(1);
-        // Cell 8 is 48 tiles from the city, past its 44-tile limit.
-        sim.units
-            .push(Unit::new(0, centre_of(Cell::new(8, 0)), 100));
-        assert_eq!(sim.world.owner_at(sim.units[0].pos), Owner::None);
-        for _ in 0..600 {
-            assert!(sim.tick().is_empty());
-        }
-        assert_eq!(sim.units[0].health, 100);
-    }
-
-    #[test]
-    fn a_unit_inside_a_hostile_border_bleeds_on_schedule() {
-        let mut sim = skirmish(1);
-        sim.units
-            .push(Unit::new(0, centre_of(Cell::new(15, 0)), 100));
-        assert_eq!(sim.world.owner_at(sim.units[0].pos), Owner::Player(1));
-
-        // One attrition tech, a plain unit: 48 frames a tick, 16 damage a
-        // tick, so 3.2 seconds and a sixth of a full-health squaddie's life.
-        let mut ticks = Vec::new();
-        for _ in 0..(48 * 3) {
-            ticks.extend(sim.tick());
-        }
-        assert_eq!(ticks.len(), 3);
-        assert_eq!(
-            ticks.iter().map(|t| t.frame).collect::<Vec<_>>(),
-            vec![48, 96, 144]
-        );
-        assert!(ticks.iter().all(|t| t.damage == 16));
-        assert_eq!(sim.units[0].health, 100 - 48);
-        assert_eq!(48 / FRAMES_PER_SECOND, 3);
-    }
-
-    #[test]
-    fn attrition_kills() {
-        let mut sim = skirmish(4);
-        sim.units
-            .push(Unit::new(0, centre_of(Cell::new(15, 0)), 100));
-        // Four tech steps is strength 8, so six frames a tick: a lone figure
-        // dies in seven ticks, inside three seconds.
-        let mut killed_at = None;
-        for _ in 0..600 {
-            for t in sim.tick() {
-                if t.killed {
-                    killed_at = Some(t.frame);
-                }
-            }
-        }
-        assert_eq!(killed_at, Some(42));
-        assert!(!sim.units[0].alive());
-    }
-
-    #[test]
-    fn a_bigger_squad_bleeds_slower_per_figure() {
-        let mut sim = skirmish(1);
-        let mut four = Unit::new(0, centre_of(Cell::new(15, 0)), 100);
-        four.squad_size = 4;
-        sim.units.push(four);
-        let mut total = 0;
-        for _ in 0..(48 * 4) {
-            total += sim.tick().iter().map(|t| t.damage).sum::<i32>();
-        }
-        // Four ticks at 4 damage rather than four at 16.
-        assert_eq!(total, 16);
-    }
-
-    #[test]
-    fn walking_out_of_the_border_stops_the_bleeding_at_once() {
-        let mut sim = skirmish(1);
-        sim.units
-            .push(Unit::new(0, centre_of(Cell::new(15, 0)), 100));
-        for _ in 0..40 {
-            sim.tick();
-        }
-        assert!(sim.units[0].countdown > 0);
-        // Step outside. The period is recomputed every tick, so the countdown
-        // is discarded rather than run down.
-        sim.units[0].pos = centre_of(Cell::new(8, 0));
-        for _ in 0..600 {
-            assert!(sim.tick().is_empty());
-        }
-        assert_eq!(sim.units[0].health, 100);
-        assert_eq!(sim.units[0].countdown, 0);
-    }
-
-    #[test]
-    fn a_players_own_territory_is_safe() {
-        let mut sim = skirmish(1);
-        // Give the unit to the player who owns the border.
-        let mut u = Unit::new(1, centre_of(Cell::new(15, 0)), 100);
-        u.kind = attrition::UnitKind::default();
-        sim.units.push(u);
-        for _ in 0..600 {
-            assert!(sim.tick().is_empty());
-        }
-    }
-
-    #[test]
-    fn the_statue_of_liberty_walks_through_anything() {
-        let mut sim = skirmish(4);
-        sim.players[0].resistance = Resistance::Immune;
-        sim.units
-            .push(Unit::new(0, centre_of(Cell::new(15, 0)), 100));
-        for _ in 0..600 {
-            assert!(sim.tick().is_empty());
-        }
-        assert_eq!(sim.units[0].health, 100);
-    }
-
-    #[test]
-    fn the_whole_run_is_deterministic() {
-        // The property the entire project rests on. Two independent runs of
-        // the same setup must agree frame for frame, not merely in the end
-        // state.
-        let run = || {
-            let mut sim = skirmish(3);
-            sim.units
-                .push(Unit::new(0, centre_of(Cell::new(15, 0)), 100));
-            sim.units
-                .push(Unit::new(0, centre_of(Cell::new(21, 0)), 100));
-            let mut log = Vec::new();
-            for _ in 0..500 {
-                log.extend(sim.tick());
-            }
-            (log, sim.units.clone(), sim.world.clone())
-        };
-        let (log_a, units_a, _) = run();
-        let (log_b, units_b, _) = run();
-        assert_eq!(log_a, log_b);
-        assert_eq!(units_a, units_b);
-        assert!(!log_a.is_empty());
-    }
-}
+#[path = "harness_tests.rs"]
+mod tests;
