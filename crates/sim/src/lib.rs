@@ -4,12 +4,15 @@
 //! threads. Everything in it runs in a `#[test]` with no display attached,
 //! which is the property that makes determinism testable at all.
 //!
-//! Phase 1 is one mechanic end to end: **attrition**. Borders produce
-//! territory, territory produces damage, and supply cancels it. See
-//! `docs/ATTRITION.md` and `docs/SUPPLY.md` for the specifications this
-//! implements and how much of each is established rather than guessed.
-//! `movement` is the beginning of phase 3 and says in its own header how far
-//! it goes.
+//! Four mechanics run here, and they run together. Borders produce territory,
+//! territory produces damage, supply cancels it, and units walk in and out of
+//! it under orders. Each has a specification written from the original —
+//! `docs/ATTRITION.md`, `docs/SUPPLY.md`, `docs/MOVEMENT.md` — and each says
+//! how much of itself is established rather than guessed.
+//!
+//! [`Sim::tick`] is where they meet, and the order it does them in is the
+//! original's: attrition before movement, so a unit stepping over a border is
+//! not standing there when that frame's attrition looks.
 //!
 //! # Arithmetic
 //!
@@ -79,6 +82,28 @@ pub struct Unit {
     /// Whether supply sheltered this unit from a tick that was otherwise due.
     /// The original tracks the same thing in a display flag.
     pub sheltered: bool,
+    /// Where it is going and how fast it gets there.
+    pub movement: Movement,
+}
+
+/// What a unit needs in order to move.
+///
+/// `speed` and `turn_rate` are **inputs**, not computed here. They are the
+/// output of `UnitData::get_speed`'s three-layer pipeline, which reads tech,
+/// nation, hero and terrain state the simulation does not model yet. Taking
+/// them as inputs is the same choice supply made for a general's aura radius:
+/// the mechanic is complete, and the number feeding it arrives when the layer
+/// that produces it does. `docs/MOVEMENT.md` documents the pipeline in full.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Movement {
+    /// Which way the unit faces. North is zero.
+    pub facing: movement::Angle,
+    /// Where it is headed. `None` means it is not going anywhere.
+    pub dest: Option<Pos>,
+    /// Effective speed, in position units per frame.
+    pub speed: i32,
+    /// How far it can turn in one frame, in binary angle units.
+    pub turn_rate: i32,
 }
 
 impl Unit {
@@ -95,6 +120,7 @@ impl Unit {
             attrition: 0,
             ignores_supply: false,
             sheltered: false,
+            movement: Movement::default(),
         }
     }
 
@@ -222,63 +248,109 @@ impl Sim {
             if !self.units[i].alive() || !self.units[i].on_map {
                 continue;
             }
-            let phase = self.units[i].phase(frame);
-
-            // The refresh. `process_attrition` clears the period on entry, so
-            // an exempt unit comes out of it with nothing pending.
-            if phase % ATTRITION_REFRESH_FRAMES == 0 {
-                let outcome = self.attrition_for(i);
-                let unit = &mut self.units[i];
-                unit.sheltered = false;
-                match outcome {
-                    attrition::Outcome::Exempt(_) => {
-                        unit.attrition = 0;
-                        unit.ignores_supply = false;
-                    }
-                    attrition::Outcome::Period {
-                        frames,
-                        ignores_supply,
-                    } => {
-                        unit.attrition = frames;
-                        unit.ignores_supply = ignores_supply;
-                    }
-                }
+            // Attrition first, movement second. That is the order inside
+            // `Unit::process`, and it is observable: a unit that steps over a
+            // border this frame is not standing there when this frame's
+            // attrition looks, so it cannot bleed for the crossing until the
+            // next one — and, because the period is only refreshed every 32
+            // frames, usually not for a good while after that.
+            if let Some(tick) = self.process_attrition(i, frame) {
+                events.push(tick);
             }
-
-            let unit = &self.units[i];
-            if unit.attrition == 0 || phase % i64::from(unit.attrition) != 0 {
-                continue;
-            }
-            // Supply gets first refusal — `Unit::process_supply`. A unit
-            // inside a friendly supply radius takes no attrition at all, which
-            // is the whole reason an army can campaign abroad. The two
-            // refusals before the search are the interesting ones: a peace or
-            // assassin bleed gives up immediately, and militia and supply
-            // units are never sheltered.
-            let sheltered = !unit.ignores_supply
-                && unit.kind.shelterable()
-                && self.supplied_at(unit.owner, unit.pos);
-
-            let unit = &mut self.units[i];
-            if sheltered {
-                unit.sheltered = true;
-                continue;
-            }
-            let d = attrition::damage(unit.squad_size);
-            unit.health -= d;
-            let killed = !unit.alive();
-            events.push(Tick {
-                unit: i,
-                frame,
-                damage: d,
-                killed,
-            });
-            if killed {
-                self.close_supply(i);
-            }
+            self.process_movement(i);
         }
         self.frame += 1;
         events
+    }
+
+    /// One unit's attrition for one frame — the refresh, the supply veto, and
+    /// the damage.
+    fn process_attrition(&mut self, i: usize, frame: i64) -> Option<Tick> {
+        let phase = self.units[i].phase(frame);
+
+        // The refresh. `process_attrition` clears the period on entry, so an
+        // exempt unit comes out of it with nothing pending.
+        if phase % ATTRITION_REFRESH_FRAMES == 0 {
+            let outcome = self.attrition_for(i);
+            let unit = &mut self.units[i];
+            unit.sheltered = false;
+            match outcome {
+                attrition::Outcome::Exempt(_) => {
+                    unit.attrition = 0;
+                    unit.ignores_supply = false;
+                }
+                attrition::Outcome::Period {
+                    frames,
+                    ignores_supply,
+                } => {
+                    unit.attrition = frames;
+                    unit.ignores_supply = ignores_supply;
+                }
+            }
+        }
+
+        let unit = &self.units[i];
+        if unit.attrition == 0 || phase % i64::from(unit.attrition) != 0 {
+            return None;
+        }
+        // Supply gets first refusal — `Unit::process_supply`. A unit inside a
+        // friendly supply radius takes no attrition at all, which is the whole
+        // reason an army can campaign abroad. The two refusals before the
+        // search are the interesting ones: a peace or assassin bleed gives up
+        // immediately, and militia and supply units are never sheltered.
+        let sheltered = !unit.ignores_supply
+            && unit.kind.shelterable()
+            && self.supplied_at(unit.owner, unit.pos);
+
+        let unit = &mut self.units[i];
+        if sheltered {
+            unit.sheltered = true;
+            return None;
+        }
+        let d = attrition::damage(unit.squad_size);
+        unit.health -= d;
+        let killed = !unit.alive();
+        if killed {
+            self.close_supply(i);
+        }
+        Some(Tick {
+            unit: i,
+            frame,
+            damage: d,
+            killed,
+        })
+    }
+
+    /// One unit's movement for one frame — the original's `Guy::move`, which
+    /// `Unit::process` reaches last.
+    ///
+    /// A step the world refuses is not an error and does not cancel the order:
+    /// the unit stays put and tries again next frame. It still turns, because
+    /// the original turns before it asks.
+    fn process_movement(&mut self, i: usize) {
+        let unit = &self.units[i];
+        let Some(dest) = unit.movement.dest else {
+            return;
+        };
+        let m = unit.movement;
+        let step = movement::advance(unit.pos, m.facing, dest, m.speed, m.turn_rate);
+        let accepted = self.world.accepts(step.pos);
+
+        let unit = &mut self.units[i];
+        unit.movement.facing = step.facing;
+        if !accepted {
+            return;
+        }
+        unit.pos = step.pos;
+        if step.arrived {
+            unit.movement.dest = None;
+        }
+    }
+
+    /// Sends a unit somewhere. It faces whatever way it already faces and turns
+    /// as it goes.
+    pub fn order_move(&mut self, unit: usize, dest: Pos) {
+        self.units[unit].movement.dest = Some(dest);
     }
 
     fn attrition_for(&self, i: usize) -> attrition::Outcome {

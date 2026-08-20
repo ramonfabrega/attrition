@@ -279,6 +279,15 @@ impl World {
         })
     }
 
+    /// Whether the world will accept a position — the original's
+    /// `WorldData::is_valid`, which `Guy::move` asks before committing a step.
+    ///
+    /// A refused step is not an error and does not stop the order: the figure
+    /// simply does not move that frame and tries again on the next.
+    pub fn accepts(&self, p: Pos) -> bool {
+        self.index(p.cell()).is_some()
+    }
+
     /// Who owns a cell. Cells outside the world are unowned.
     pub fn owner(&self, c: Cell) -> Owner {
         self.index(c).map_or(Owner::None, |i| self.who[i])

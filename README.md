@@ -11,9 +11,9 @@ health inside hostile national borders.
 > whole thing runs in a test with no display attached. The specifications they
 > were written from are `docs/ATTRITION.md` and `docs/SUPPLY.md`; the tuned
 > numbers they use are re-checked against your own install on every run of
-> `rondata`. Movement is in: a unit walks from A to B on the original's own
-> geometry — its integer arctangent, its sine table, its Manhattan arrival test
-> — with the trajectory pinned in a test. See `docs/MOVEMENT.md`.
+> `rondata`. Movement is in and wired to the rest: a unit takes an order,
+> walks across a hostile border on the original's own geometry, bleeds for it,
+> and stops bleeding when a supply wagon covers the march.
 
 ## What this is
 
@@ -85,7 +85,7 @@ Crates appear here when they have real code, not in anticipation of it.
 ## Development
 
 ```sh
-cargo test          # 125 tests
+cargo test          # 129 tests
 cargo clippy --all-targets
 cargo fmt
 ```
