@@ -626,7 +626,8 @@ fn the_population_cap_refuses_before_the_price_does() {
     let food = economy::Resource::Food.index();
     let at = centre_of(Cell::new(2, 0));
 
-    // The Ancient age caps a player at twenty-five, and a citizen is one pop.
+    // A player with no Military tech is capped at twenty-five, and a citizen
+    // is one pop.
     assert_eq!(sim.muster[0].cap, 25);
     sim.ledgers[0].bucket[food] = 100_000;
     for _ in 0..25 {
@@ -638,12 +639,12 @@ fn the_population_cap_refuses_before_the_price_does() {
     assert_eq!(sim.produce(0, citizen, at), Err(Refused::Population));
     assert_eq!(sim.ledgers[0].bucket[food], purse, "refused, not charged");
 
-    // An age raises the cap, and the same order goes through.
-    sim.muster[0].age = 1;
+    // The Art of War raises the cap, and the same order goes through.
+    sim.muster[0].military_level = 1;
     sim.recompute_pop_caps();
     assert_eq!(sim.muster[0].cap, 50);
     sim.produce(0, citizen, at)
-        .expect("room in the Classical age");
+        .expect("room once the Military line has one tech in it");
 }
 
 #[test]
@@ -764,8 +765,9 @@ fn the_population_cap_stalls_a_queue_at_full_progress() {
     let counter = sim.buildings[hall].queue.items[0].job_counter;
     assert_eq!(counter, sim.queue_target(hall, 0), "but done");
 
-    // An age raises the cap and the stalled item is handed over at once.
-    sim.muster[0].age = 1;
+    // A Military tech raises the cap and the stalled item is handed over at
+    // once.
+    sim.muster[0].military_level = 1;
     sim.recompute_pop_caps();
     sim.tick();
     assert_eq!(sim.units.len(), 1);

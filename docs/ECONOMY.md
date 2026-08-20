@@ -427,13 +427,18 @@ By `docs/DECISIONS.md` entry 12 — a constant the original does not read is not
 tuning — the support fields do not enter `Tuning` *here*.
 
 **What they are actually for was settled afterwards, from the other side.**
-`docs/COSTS.md` reads the cost path, where all of them turn out to be live: a
-unit's `SUPPORT` is the ramp that makes each one more expensive than the last,
-and the four `*_SUPPORT_GOOD`/`*_SUPPORT_RATE` fields decide which resource a
-price is charged in when the one it is written in is not available yet. In this
-engine's data vocabulary "support" means price, not upkeep — which leaves the
-conclusion above unchanged and makes it sharper. The field a reader would take
-for upkeep is the one that makes the eleventh hoplite cost double the first.
+`docs/COSTS.md` reads the cost path, where a unit's `SUPPORT` turns out to be
+the ramp that makes each one more expensive than the last. In this engine's
+data vocabulary "support" means price, not upkeep — which leaves the conclusion
+above unchanged and makes it sharper. The field a reader would take for upkeep
+is the one that makes the eleventh hoplite cost double the first.
+
+~~The four `*_SUPPORT_GOOD`/`*_SUPPORT_RATE` fields decide which resource a
+price is charged in when the one it is written in is not available yet.~~ Not
+those four. `docs/COSTS.md`'s second reading (2026-08-20) found the redirect
+reads the `*_COST_GOOD`/`*_COST_RATE` pair that precedes them in each record;
+**no reader of the four support pairs has been found in either path**, so as
+far as anything read goes they are as dead as `calc_support`.
 
 ---
 

@@ -178,9 +178,11 @@ pub struct Muster {
     /// [`Sim::recompute_pop_caps`] rather than maintained incrementally,
     /// because `Leader::calc_pop_cap` recomputes it from scratch too.
     pub cap: i32,
-    /// The player's age, indexing `POP_CAP`. An input until there is a tech
-    /// layer to produce it.
-    pub age: usize,
+    /// The player's Military library level, `epoch[0]` — how many of the seven
+    /// Military techs they hold, from The Art of War up. It indexes `POP_CAP`,
+    /// and it is not the age. An input until there is a tech layer to produce
+    /// it.
+    pub military_level: usize,
     /// The lobby's population setting. The shipped choices are 50, 75, 100,
     /// 125, 150 and 200, and the largest is exactly `POP_CAP[7]`.
     pub limit: i32,
@@ -197,7 +199,7 @@ impl Muster {
             limit: DEFAULT_POP_LIMIT,
             ..Muster::default()
         };
-        m.cap = cost::pop_cap(t, m.age, m.limit, &m.bonuses);
+        m.cap = cost::pop_cap(t, m.military_level, m.limit, &m.bonuses);
         m
     }
 }
@@ -395,7 +397,7 @@ impl Sim {
     /// whenever anything that feeds it changes.
     pub fn recompute_pop_caps(&mut self) {
         for m in &mut self.muster {
-            m.cap = cost::pop_cap(&self.tuning, m.age, m.limit, &m.bonuses);
+            m.cap = cost::pop_cap(&self.tuning, m.military_level, m.limit, &m.bonuses);
         }
     }
 

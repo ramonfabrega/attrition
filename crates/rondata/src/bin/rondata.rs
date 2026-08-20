@@ -228,6 +228,12 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
     // Where a cost written in an unavailable resource is charged instead —
     // `docs/COSTS.md`'s headline, and why early units want timber and later
     // ones want metal.
+    //
+    // The columns are `UNDISC_COST_GOOD`/`UNDISC_COST_RATE` and their obsolete
+    // pair. They are what `TypeData::get_cost` reads, at `GoodTypeData +0x2b4`
+    // and `+0x2c8`. This check used to read the `*_SUPPORT_*` columns four
+    // fields further on, which are a different table and are read by nothing
+    // found — so it agreed with a wrong `Redirects::RON` and proved nothing.
     let resources = install.resources()?;
     let mut redirect_drift = Vec::new();
     for (i, r) in Resource::ALL.iter().enumerate() {
@@ -235,28 +241,38 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
             redirect_drift.push(format!("{} is missing", name_of(*r)));
             continue;
         };
-        let ours = sim::cost::Redirects::RON.undiscovered[i];
-        let theirs_good = rec.text("UNDISC_SUPPORT_GOOD").unwrap_or("");
-        let theirs_rate = rec
-            .text("UNDISC_SUPPORT_RATE")
-            .and_then(Scalar::parse)
-            .map(|s| s.to_fx().raw() / 256);
-        let good_agrees = theirs_good.eq_ignore_ascii_case(sim_name_of(ours.good));
-        if !good_agrees || theirs_rate != Some(ours.rate) {
-            redirect_drift.push(format!(
-                "{}: we say {} at {}, install says {theirs_good} at {:?}",
-                name_of(*r),
-                sim_name_of(ours.good),
-                ours.rate,
-                theirs_rate
-            ));
+        let tables = [
+            (
+                "undiscovered",
+                "UNDISC",
+                sim::cost::Redirects::RON.undiscovered[i],
+            ),
+            ("obsolete", "OBS", sim::cost::Redirects::RON.obsolete[i]),
+        ];
+        for (which, prefix, ours) in tables {
+            let theirs_good = rec.text(&format!("{prefix}_COST_GOOD")).unwrap_or("");
+            let theirs_rate = rec
+                .text(&format!("{prefix}_COST_RATE"))
+                .and_then(Scalar::parse)
+                .map(|s| s.to_fx().raw() / 256);
+            let good_agrees = theirs_good.eq_ignore_ascii_case(sim_name_of(ours.good));
+            if !good_agrees || theirs_rate != Some(ours.rate) {
+                redirect_drift.push(format!(
+                    "{} {which}: we say {} at {}, install says {theirs_good} at {:?}",
+                    name_of(*r),
+                    sim_name_of(ours.good),
+                    ours.rate,
+                    theirs_rate
+                ));
+            }
         }
     }
     failures += check(
         "the undiscovered-resource redirect matches this install",
         redirect_drift.is_empty(),
         &if redirect_drift.is_empty() {
-            "metal is charged as timber, knowledge as food, the rest as wealth".into()
+            "metal is charged as timber at 5/4, knowledge as food at 3/2, oil as metal at 3/2"
+                .into()
         } else {
             join(redirect_drift.iter().cloned())
         },

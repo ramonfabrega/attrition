@@ -23,12 +23,15 @@ Ghidra, with those symbols applied. Nothing is transcribed; see
 its shapes, the four ramp ceilings, the unavailable-good redirect, the payment
 and refund arithmetic, and the population cap are each read end to end at their
 consumers, and two of them are confirmed against the designers' own column
-comments in `unitrules.xml`. High for the *shape* of the discount tail, which
-is one expression repeated forty times; the individual predicates behind each
-are enumerated rather than each separately derived. **Lower for the research
-path** — what an *upgrade* costs, as opposed to a unit — where the refit
-surcharge is read but the loop that drives it is only partly understood. What
-remains open is listed at the end.
+comments in `unitrules.xml`. All of it has now been derived twice, blind, and
+adjudicated back to the decompiled functions; see the last section for what that
+changed. High for the *shape* of the discount tail, which is one expression
+repeated forty times; the individual predicates behind each are enumerated
+rather than each separately derived, and *where in the sequence* each one sits
+was the second reading's most common correction. The research path — what an
+*upgrade* costs, as opposed to a unit — is now read end to end too. What remains
+open is listed at the end, and the building and wonder ramps are the largest
+piece of it.
 
 **Where the implementation is.** `crates/sim/src/cost.rs`. Every constant below
 is re-read from the user's own install by `cargo run -p rondata -- <install>`,
@@ -52,13 +55,19 @@ the column comment two lines above `COST`:
 
 > `SUPPORT` = Ramping cost of unit
 
-`TypeData::get_cost` reads it as the per-unit ramp, and the four
-`*_SUPPORT_GOOD` / `*_SUPPORT_RATE` fields in `resourcerules.xml` — which
-`docs/ECONOMY.md` correctly reported the income path never touches — are read
-here, as the redirect that decides which resource a cost is charged in. In this
-engine's data vocabulary **"support" means price, not upkeep**, and the two
-subsystems together settle it: the income path reads none of these fields and
-the cost path reads all of them.
+`TypeData::get_cost` reads it as the per-unit ramp. In this engine's data
+vocabulary **"support" means price, not upkeep**, and the two subsystems
+together settle it: the field the income path never touches is the one the cost
+path builds its ramp out of.
+
+The word is overloaded twice over, and the second one cost this document a
+whole table. `resourcerules.xml` also carries four `*_SUPPORT_GOOD` /
+`*_SUPPORT_RATE` columns per resource, sitting immediately after four
+`*_COST_GOOD` / `*_COST_RATE` columns that look just like them. The redirect
+below reads the **cost** pair. Nothing found reads the support pair — not the
+cost path, not the income path in `docs/ECONOMY.md`. (An earlier draft of this
+document transcribed the support columns into the redirect table and got every
+rate wrong; see §The redirect.)
 
 `docs/ECONOMY.md`'s conclusion is unchanged and gets stronger. Not only is
 there no upkeep — the field a reader would take for upkeep is the thing that
@@ -102,13 +111,26 @@ count = num_queued[type] + num_units[type]
 
 plus, for nukes and missiles, the number already *used* — a spent nuke goes on
 making the next one more expensive forever. The Americans subtract their free
-bombers.
+bombers. For the Nuclear Missile specifically, `nukes_used` is added **twice** —
+once by `get_support_count` and once again by `get_cost` itself, which repeats
+the test for that one type. Nothing in the data suggests that is deliberate.
 
-If the type's `PROGRESSION` has bit 0 set, the count is taken over the whole
-**production group** instead of the type — barracks units, stable units,
-factory units, dock units, or air units, each as `queued + built`. This is why
-switching from crossbowmen to musketeers does not reset the price: they draw
-on the same barracks count.
+If the type's `PROGRESSION` has bit 0 set **and its `attack` is not zero**, the
+count is taken over the whole **production group** instead of the type —
+barracks units, stable units, factory units, dock units, or air units, each as
+`queued + built`. This is why switching from crossbowmen to musketeers does not
+reset the price: they draw on the same barracks count. (An earlier draft had
+only the progression bit. The `attack != 0` half is inert in the shipped data —
+no non-attacking type sets the bit — but it is the rule, and the same pair
+gates the counters in `LeaderData::track_unit_type`.)
+
+Two more terms belong to the count and not to the arithmetic, and both are
+about citizens. A citizen's count adds every militia, minuteman and partisan
+the player has made, minus the ones made from *scholars*; a scholar's count
+adds those back. So converting citizens to militia does not reset the citizen
+ramp — the militia go on making the next citizen more expensive, and a scholar
+who picked up a rifle goes on making the next scholar more expensive. (Not in
+an earlier draft at all.)
 
 **The shape.** `PROGRESSION` is two bits, and the designers' comment enumerates
 all four combinations:
@@ -162,9 +184,18 @@ kind of unit it is:
 | Constant | Ships | Applies to |
 | --- | --- | --- |
 | `UNIT_SCHOLAR_RAMP_MAX` | 2000% | scholars |
-| `UNIT_WORKER_RAMP_MAX` | 500% | citizens, merchants |
-| `UNIT_OTHER_CIVILIAN_RAMP_MAX` | 200% | generals, spies, supply wagons, caravans |
+| `UNIT_WORKER_RAMP_MAX` | 500% | citizens, merchants, caravans, merchant fleets |
+| `UNIT_OTHER_CIVILIAN_RAMP_MAX` | 200% | generals, spies, supply wagons |
 | `UNIT_MILITARY_RAMP_MAX` | 125% | everything that fights |
+
+The test is a nest rather than a table, and the order decides two records.
+Scholars go by name; then citizens, `is_merchant`, and anything with
+`unit_flags2 & 8` are workers; and only if all of those fail does `obj_masks &
+4` — the designers' letter `C`, for Civilian — separate the other civilians
+from the fighting units. `UnitType::init_final_flags` sets bit 8 for exactly
+two types, the Caravan and the Merchant Fleet, and both also carry the `C` in
+their `OBJ_MASK`. The flags test runs first, so both ramp to 500%, not 200%.
+(An earlier draft had caravans in the 200% class and merchant fleets nowhere.)
 
 **A military unit's price at most doubles, and it gets there fast.** A hoplite
 is `5f/3m` — fifty food and thirty metal — with `1f/1m support` and
@@ -207,65 +238,103 @@ goods:
 ```
 for g in goods:
     if g is available:            continue
-    if player has g's prerequisite:  redirect, rate = OBS_SUPPORT_GOOD,    OBS_SUPPORT_RATE
-    else:                            redirect, rate = UNDISC_SUPPORT_GOOD, UNDISC_SUPPORT_RATE
+    if player has g's prerequisite:  redirect, rate = OBS_COST_GOOD,    OBS_COST_RATE
+    else:                            redirect, rate = UNDISC_COST_GOOD, UNDISC_COST_RATE
     if redirect == the good being priced:
-        cost += get_cost(g) * rate >> 8
+        cost += get_cost(g, include_redirect=1) * rate >> 8
 ```
 
 and `Type::pay_cost` charges only the goods that *are* available. Together
 those two facts say: **a cost written in a resource you cannot yet gather is
 charged in a different resource instead**, at a rate the data gives per
 resource. The `>> 8` fixes the rate as 8.8 fixed point, the same scale as
-`OBS_PROD_RATE` in `docs/ECONOMY.md`.
+`OBS_PROD_RATE` in `docs/ECONOMY.md`; `GoodType::init` loads all four columns
+through `String::fraction(text, 0x100)`, which is where the scale comes from.
+The fields are `GoodTypeData +0x2b4`/`+0x2c8` and `+0x2b8`/`+0x2cc`.
 
 Shipped, the undiscovered table is:
 
 | Unavailable | Charged as | Rate |
 | --- | --- | --- |
-| Food | Wealth | 1/1 |
-| Timber | Wealth | 1/1 |
-| Wealth | Wealth | 1/1 |
-| Knowledge | Food | 1/1 |
-| Metal | **Timber** | 1/1 |
-| Oil | Wealth | 1/1 |
+| Food | Wealth | 3/2 |
+| Timber | Wealth | 3/2 |
+| Wealth | Wealth | 3/2 |
+| Knowledge | **Food** | 3/2 |
+| Metal | **Timber** | 5/4 |
+| Oil | **Metal** | 3/2 |
 
-The obsolete table is Wealth at 1/1 for all six.
+and the obsolete table is Wealth at 1/1 for all six except Timber, which goes
+to Oil at 1/2. Every resource's `<OBS>` ships as `disable`, so the obsolete
+table never fires in a stock game; the undiscovered one fires constantly.
+
+(An earlier draft of this document had all six undiscovered entries at 1/1,
+Oil going to Wealth, and a uniform obsolete table. It had read the
+`*_SUPPORT_GOOD`/`*_SUPPORT_RATE` columns, which sit four fields further along
+each record and which nothing found reads. Every worked number below moved as a
+result, and so did `Redirects::RON` and the `rondata` check that was supposed to
+be guarding it — the check was reading the same wrong columns, so it agreed
+with the wrong table and proved nothing.)
 
 **Three of the six resources are not available from the start.**
 `resourcerules.xml` gives Knowledge and Metal the Classical Age as their
-prerequisite and Oil the Industrial Age, so in the Ancient Age exactly two
-entries of that table are live and both of them bite.
+prerequisite and Oil the Industrial Age, so in the Ancient Age three entries of
+that table are live. Two of them bite on shipped prices; the third, Oil, has
+nothing priced in it that early and matters only because of what it points at.
 
 Knowledge is the visible one. `Mathematics` costs `8k/12g` and its own
 prerequisite, Written Word, is Ancient — so a player who researches it before
-reaching Classical is charged eighty **food** and a hundred and twenty wealth,
-and the same tech costs eighty knowledge from the Classical Age on. The `25f`
-on `Classical Age` itself is not a special case in the code; it is a tech
-priced in food like any other.
+reaching Classical is charged `(80 × 384) >> 8` = **a hundred and twenty food**
+and a hundred and twenty wealth, and the same tech costs eighty knowledge from
+the Classical Age on. The rate is not a formality: **researching early costs
+half again as much as the file's number**, which is the designers' thumb on the
+scale against skipping the age. The `25f` on `Classical Age` itself is not a
+special case in the code; it is a tech priced in food like any other.
 
-Metal is the same rule against timber, and it is why the shape of an early
-army's bill is different from a later one's: a Militia is `8m/8f`, which is
-eighty timber and eighty food in the Ancient Age and eighty metal and eighty
-food afterwards. Oil behaves the same way against wealth, though nothing
-reachable before the Industrial Age is priced in oil, so that entry never
-fires in a normal game.
+Metal is the same rule against timber at five quarters, and it is why the shape
+of an early army's bill is different from a later one's: a Militia is `8m/8f`,
+which is `(80 × 320) >> 8` = a hundred timber and eighty food in the Ancient
+Age, and eighty metal and eighty food afterwards.
+
+Oil is the one that chains. It redirects into **metal**, not wealth, and metal
+is itself unavailable until the Classical Age — so in the Ancient Age an oil
+price is charged in metal at three halves, and that metal price is charged in
+timber at five quarters. Thirty oil is forty-five metal is fifty-six timber.
+The original gets this by recursion: the redirect calls `get_cost` on the
+missing good with `include_redirect` set, so the inner call runs the whole loop
+again. (An earlier draft said one pass was exact, on the strength of a table
+where nothing pointed at an unavailable good. In the real table Oil points at
+Metal, and it does chain. Nothing shipped is priced in oil that early, so it is
+a correctness note rather than a stock-game effect — but the implementation
+recurses now, and `charges()` is tested on the chain.)
 
 Two notes on the arithmetic. The redirected amount is the source good's own
 full price — base, ramp and all its discounts — and it is added *after* the
 target good's discounts, so it is not discounted twice. And Wealth's redirect
 names Wealth, which would recur forever; it cannot fire, because wealth is
-never unavailable. Nothing else in the shipped table points at an unavailable
-good, so one pass is exact.
+never unavailable. The original has no cycle guard at all, so a modded table
+that closed a loop would run the stack out; `crates/sim` refuses to re-enter a
+good already on the recursion stack, which is exact for the shipped table and
+terminates for any other.
 
 ## The discounts
 
-Between the base price and the ramp sits a tail of about forty adjustments,
-and with three exceptions every one of them is the same expression:
+Around the ramp sits a tail of about forty adjustments, and with three
+exceptions every one of them is the same expression:
 
 ```
 cost = cost * (100 - X) / 100
 ```
+
+Most of them land between the scaled base and the ramp. Six land **after** it,
+in this order: `MILITARY_UNIT_DISCOUNT`, Monarchy on stable units, Socialism on
+siege, air and dock units, Salmon on ships, then the common tail of Coal /
+Sugar / Gold / Iron by resource and Gypsum on everything, and after the
+captured-building doubling the Supercollider surcharge and the Indian elephant
+discount. (An earlier draft said the whole tail sat before the ramp. Where a
+discount sits decides whether the ramp's ceiling — a percentage of the
+*undiscounted* base — is measured against a number that discount has already
+touched, so it is not bookkeeping. `Modifiers` in `crates/sim` has carried two
+slots for this all along; the late one now names them.)
 
 They are worth enumerating by *what* rather than one at a time, because the
 shape carries no information and the predicates do:
@@ -286,15 +355,35 @@ shape carries no information and the predicates do:
   ships, the Pyramids on cities, the Colosseum on forts, the Space Program on
   aircraft, the Statue of Liberty on missiles and bombers. The Supercollider is
   the only one that runs the other way: an *enemy* holding it makes your
-  missiles cost more.
+  missiles cost more. Two of these are not what they look like. Terra Cotta's
+  clause has no `has_wonder` test on it at all — it applies
+  `TERRA_COTTA_COST` to every barracks, stable and auto-plant unit whether or
+  not anyone built the wonder, which is invisible only because the constant
+  ships as `0% reduction`. And nested inside that same clause is a second
+  application of `ANGKOR_SHIPS`, gated on holding Angkor Wat but applied to
+  those **land** units, on top of the correct one that the sea domain gets a
+  few lines later. `ANGKOR_SHIPS` ships as 25%, so this one is live: an Angkor
+  Wat owner buys barracks, stable and auto-plant units a quarter off, which no
+  description of the wonder mentions.
+- **Rare resources that are not.** Salt on barracks units does not read
+  `SALT_BARRACKS_COST`, which ships as 15%. The code multiplies by a literal
+  nine tenths, so Salt is worth 10% and the constant is decoration.
 - **Governments.** Despotism has three tiers on barracks units, Monarchy two on
   stable units, Socialism one on siege, aircraft and ships, Democracy two on
-  research.
-- **Being behind.** `MILITARY_UNIT_DISCOUNT` is 5% per military level the
-  player's age is ahead of the unit's, and `MILITARY_UPGRADE_DISCOUNT` is 10%
-  per level when researching the upgrade rather than building the unit. Both
-  are scaled down when the scenario spans fewer than eight ages, by
-  `discount * ages / 8`. Obsolete units get cheap; that is the mechanism.
+  research. Despotism's three are an else-chain, so only the highest tier the
+  player holds applies rather than all three compounding.
+- **Being behind.** `MILITARY_UNIT_DISCOUNT` is 5% per **Military tech level**
+  the player holds above the unit's own `MILITARY_LEVEL`, and
+  `MILITARY_UPGRADE_DISCOUNT` is 10% per level when researching the upgrade
+  rather than building the unit. Obsolete units get cheap; that is the
+  mechanism. (An earlier draft called it "per military level the player's age
+  is ahead of the unit's". It is the Military library line — `epoch[0]`, the
+  same count that sets the population cap — and the age has nothing to do with
+  it.) Both are scaled down when the scenario spans fewer than eight ages, and
+  the scaling rounds **up**: `(ages × pct + 7) >> 3`, not `pct × ages / 8`. The
+  unit discount additionally floors the result at 1 and reads the unit's
+  military level as `max(level, 1)`, so a level-zero unit is treated as
+  level 1.
 
 Three that are not the standard shape, and are the interesting ones:
 
@@ -307,6 +396,16 @@ Three that are not the standard shape, and are the interesting ones:
   is 10% and 20% behind by one age, 20% and 40% behind by two.
   `TECH_COLOR_BEHIND_DISCOUNT` is the same idea against the library's tech
   colours.
+- **Science cheapens every technology, and can make one dearer.**
+  `LeaderData::calc_science_discount` subtracts
+  `(science_level - age) × TECH_SCIENCE_DISCOUNT × cost / 100`, where
+  `science_level` is `epoch[3]`, the Science library line, and `age` is the
+  tech's own `AGE` column plus one unless the tech is itself an age or a
+  library tech. A player whose Science level is behind the tech's age gets a
+  negative discount — a surcharge, from the same expression. It is
+  part of every technology's price and was missing from an earlier draft of
+  this list. `Build::refund_cost` inverts exactly this expression, which is why
+  a queued item's price is re-derived rather than remembered.
 - **Final techs ramp against each other.** `cost *= (100 + RAMP_FINAL * n) / 100`
   where `n` is how many of the four final techs you already hold or are
   researching, and `RAMP_FINAL` ships as 50%. Four final techs, each half again
@@ -327,16 +426,27 @@ time.
 ## Researching an upgrade is not building a unit
 
 `get_cost` takes the same fork everywhere: is this type already available to
-this player? A bit per type id in the leader's availability set answers it, and
-the two arms are entirely different prices.
+this player? A bit per type id in the leader's availability set — `leader +
+0x6c18` — answers it, and the two arms are entirely different prices.
 
-**Available** — you are building one, and the ramp above is what happens.
+**Available** — you are building one, and the ramp above is what happens. With
+one addition that an earlier draft could not place. Before the cost factor is
+applied, the engine walks every unit type with something *queued*, and for each
+one whose `FROM` resolves to this type, or which lies on this type's graft
+chain, adds `max(0, that type's base − this type's base)` per resource. So
+**ordering the upgrade makes the old unit cost the new one's price while the
+research is in the queue**: start researching Musketeers and the Arquebusiers
+you keep training in the meantime are charged at the Musketeer's base. It is
+added to the unscaled base, so the cost factor multiplies it too.
 
 **Not available** — you are paying to *research* it, and instead of the ramp:
 
 ```
+if wine:  cost = cost * (100 - WINE_UNIT_UPGRADES) / 100
 cost = cost * RESEARCH_PREMIUM >> 8
 cost = cost * RESEARCH_PREMIUM_COST >> 8
+if type.SPECIAL_UPGRADE == the resource being priced:
+    cost += type.SPECIAL_UPGRADE_COST
 ```
 
 `RESEARCH_PREMIUM` is a global, written `1/1` and loaded through
@@ -348,13 +458,28 @@ individually, and it is **2** for 355 of the 364 unit records. **Researching an
 upgrade costs twice what one of the new units costs**, and the same holds for
 time through `RESEARCH_PREMIUM_TIME`.
 
-On top of that, a surcharge for the army you already have. For each unit type
-that upgrades into this one, the engine takes the price difference per unit,
-clamps it to `UNIT_REFIT_MAX_COST` — 40 per resource per unit — and adds
-`UNIT_COST_FACTOR * difference * count`. So upgrading is not free of your
-existing army's size: refitting thirty knights into cuirassiers is charged for.
-This is the part of the cost path that is read but not fully understood; see
-the open questions.
+On top of that, a surcharge for the army you already have:
+
+```
+for each unit type p whose FROM resolves to this type:
+    d = this.base[res] - p.base[res]
+    if p.base[res] == 0:  d = d / 2
+    if d > 0:
+        d = min(d, UNIT_REFIT_MAX_COST)
+        n = num_queued[p] + num_units[p]
+        cost += UNIT_COST_FACTOR * n * d
+```
+
+`UNIT_REFIT_MAX_COST` is 40 per resource per unit. So upgrading is not free of
+your existing army's size: refitting thirty knights into cuirassiers is charged
+for. The halving is the interesting clause — if the old unit was free in this
+resource, the difference is the new unit's whole price and the engine charges
+half of it. The citizen types 0x42–0x44 skip the loop entirely.
+
+**Which loop runs when is now settled**, and it is the fork itself: the
+bump-while-queued loop is the *available* arm and the refit loop is the *not
+available* arm. They never both run. (An earlier draft of this document could
+not tell them apart and said so; this closes it.)
 
 ## Paying
 
@@ -420,6 +545,13 @@ minimum over resources, not the maximum, and the difference is real: with a
 tank costing metal and oil, a player holding ten tanks' worth of metal and two
 of oil is told they can afford ten.
 
+Note the early return: it is `n == 0`, not `n <= 0`. A purse smaller than its
+own escrow divides to a *negative*, which neither returns zero nor raises the
+running maximum — so a price met by that one resource alone falls out of the
+loop having raised nothing and answers the "plenty" sentinel. (An earlier draft
+of `crates/sim` wrote `n <= 0` and returned zero there. The original's quirk is
+reproduced now, and tested.)
+
 It is stated here as arithmetic rather than as a verdict, because the early
 return blunts it. Any resource you cannot afford even one of returns zero
 immediately, so for a single item — which is what `can_pay` is asked about
@@ -441,14 +573,16 @@ anything; it is the sentinel this function uses for "plenty".
 
 ```
 if a scenario set this player's cap explicitly:  use it, and skip to the end
+if the leader's 0x100000 flag is set:            cap = limit, skip to the end
 
-cap   = POP_CAP[age]
+mil   = epoch[0], the player's Military library level
+cap   = POP_CAP[mil]
 limit = the lobby's population setting
 
 if limit > POP_CAP[7]:
-    if age == 7:                      cap = limit
-    elif limit - POP_CAP[7] >= 100:   if age > 3:  cap = POP_CAP[age] + (age - 3) * 25
-    elif limit - POP_CAP[7] >  49:    if age > 5:  cap = POP_CAP[age] + (age - 5) * 25
+    if mil == 7:                      cap = limit
+    elif limit - POP_CAP[7] >= 100:   if mil > 3:  cap = POP_CAP[mil] + (mil - 3) * 25
+    elif limit - POP_CAP[7] >  49:    if mil > 5:  cap = POP_CAP[mil] + (mil - 5) * 25
 
 for each city:  cap += CityData::pop_cap(city)
 
@@ -463,7 +597,18 @@ if peacocks:  cap = cap * (100 + PEACOCKS_POP) / 100
 if Colossus:  cap = cap + COLOSSUS_POP_CAP
 ```
 
-`POP_CAP` ships as `25 50 75 100 125 150 175 200` by age, and the lobby offers
+**The index is not the age.** `Leader::calc_pop_cap` reads `epoch[0]`, and
+`LeaderData::compute_epoch` builds that by counting how many consecutive
+`BASE_MILITARYTYPES` techs the player holds — the Military library line, The
+Art of War through Selective Service, seven of them. So the eight entries of
+`POP_CAP` are "no Military tech" through "all seven", and **the way a player
+raises their population limit is by researching Military techs**, not by aging
+up. (An earlier draft of this document read the index as the age, and said "the
+age table is the whole of it". It is the Military table. The arithmetic below is
+unchanged and the numbers in the tests still hold; what changes is what makes
+them move.)
+
+`POP_CAP` ships as `25 50 75 100 125 150 175 200`, and the lobby offers
 `50 75 100 125 150 200`. **The largest lobby setting is exactly `POP_CAP[7]`**,
 so the three bracketed clauses cannot fire in a stock game — they exist for
 scenarios, which reach a custom limit through `ScenarioFuncSet::set_population_cap`
@@ -472,10 +617,10 @@ city, twice that for a town, three times for a metropolis or a Forbidden City,
 and `VILLAGE_POP` ships as **zero**.
 
 So, shipped and stripped of everything that does not fire: **your population
-cap is `min(POP_CAP[age], the lobby setting)`, plus fifty for the Colossus,
-plus a tenth for peacocks, doubled for the Bantu.** Cities do not raise it.
-Twenty-five in the Ancient age, two hundred in the Information age, and the
-age table is the whole of it.
+cap is `min(POP_CAP[Military level], the lobby setting)`, plus fifty for the
+Colossus, plus a tenth for peacocks, doubled for the Bantu.** Cities do not
+raise it. Twenty-five with no Military tech, fifty with The Art of War, two
+hundred with all seven, and the Military line is the whole of it.
 
 `MILITARY_POP` and `GRANARY_POP` are read into `Constants` and ship as zero,
 and nothing that has been read consumes them. By `docs/DECISIONS.md` entry 12
@@ -509,11 +654,12 @@ production" would predict.
 
 ## What is not established
 
-- **The upgrade path's cost.** Two loops in `get_cost` walk unit types looking
-  for ones that upgrade or graft into the type being priced, one adding the
-  positive price difference and one adding the refit surcharge. The surcharge's
-  arithmetic is read; which of the two loops runs when is not. Everything in
-  this document about *building* a unit is unaffected.
+- ~~**The upgrade path's cost.** Which of the two loops runs when is not
+  read.~~ **Closed** by the second reading: the availability fork decides it.
+  The loop that adds the positive base difference is the *available* arm — the
+  old unit costs the new one's base while the upgrade sits in the queue — and
+  the refit surcharge is the *not available* arm. See §Researching an upgrade,
+  which now writes both out.
 
   **The two count arrays are settled**, by `docs/PRODUCTION.md`. `+0x5a22` is
   `num_queued`, `ushort[806]`, indexed by type id and moved by `Build::queue_up`
@@ -524,9 +670,11 @@ production" would predict.
   `built + queued` above literal.
 - **A third `(resource, amount)` pair on the type**, at `+0x260`/`+0x264`,
   which the research branch adds as a flat surcharge when it names the resource
-  being priced. It sits immediately before the two `SUPPORT` slots and is
-  filled by neither `ObjectType::load_support` nor `Type::load_cost`. Which
-  column writes it is unread.
+  being priced. ~~What it is~~ is settled: the symbols call it
+  `special_upgrade` and `special_upgrade_cost`. **Which column writes it is
+  still unread** — neither reader found a `SPECIAL_UPGRADE` in `unitrules.xml`
+  or `buildingrules.xml`, and it is filled by neither `ObjectType::load_support`
+  nor `Type::load_cost`.
 - ~~**`Build::queue_up` and when the price is actually charged.**~~ **Closed**
   by `docs/PRODUCTION.md`: on queue. `Type::pay_cost` both debits and reports,
   and the report is written into the queue entry as up to three
@@ -548,39 +696,54 @@ production" would predict.
   answers rather than deriving them. The redirect above depends on `type_avail`
   for goods, which `docs/ECONOMY.md` also leans on.
 - **Building and wonder ramps.** The building branch of `get_cost` has its own
-  count escalation — military production buildings and forts step their count
-  up super-linearly past the second, third and fourth — and wonders ramp
-  against how many wonders you and your team already hold. Read in outline,
-  not derived.
+  count escalation and wonders ramp against how many wonders you and your team
+  already hold. The second reading read the escalation out — military
+  production buildings step `n → 2n−2` past two, `+2n−10` past five, `+3n−24`
+  past eight, `+4n−48` past twelve; forts `n → 2n−1` past one, then `+n−3`,
+  `+n−5`, `+n−7`; the city count is all three city types, queued and built; the
+  wonder count is twice your own with team adjustments and its ramp is halved;
+  and the Indians zero the ramp on everything but forts. It is recorded here
+  rather than in the body because neither reader has derived it line by line,
+  and nothing in `crates/sim` builds buildings yet.
 - **`MIN_POP_LIMIT` and `MAX_POP_LIMIT`.** Loaded into `Constants` and not
   consumed by anything read so far; the lobby is the likely reader and the
   lobby is cut from v1.
 
 ---
 
-## Second reading (2026-08-20) — corrections owed
+## Second reading (2026-08-20) — landed
 
-Blind second derivation and adjudication: `docs/audit/2026-08-20-costs.md`.
-Nine disagreements, eight resolved against this document and one an
-implementation slip neither reading stated. Until they land here and in
-`crates/sim/src/cost.rs`, this document is wrong on:
+A blind second derivation and its adjudication are in
+`docs/audit/2026-08-20-costs.md`. The spine is **doubly confirmed**: the cost
+factors and the `f t g k m o` slots, `SUPPORT` as two ordered slots, the ramp in
+all four of its shapes, the four ceilings measured against the undiscounted
+base, the scholar's second term, the maize bonus, the research premium pair, the
+payment and escrow arithmetic, the `can_pay_cost` maximum, and the whole
+population chain from the scenario override to the Colossus.
 
-- **The redirect table.** `get_cost` reads `UNDISC_COST_GOOD` / `UNDISC_COST_RATE`
-  (`undiscovered_cost_good/rate`): Knowledge → Food ×3/2, Metal → Timber ×5/4,
-  Oil → Metal ×3/2, obsolete Timber → Oil ×1/2 — and it chains recursively
-  (Oil → Metal → Timber). This document transcribed the unread `*_SUPPORT_*`
-  columns (all 1/1), and `Redirects::RON` does a single pass.
-- **Pop cap indexes `POP_CAP` by `epoch[0]`** — the Military tech level — not
-  the age.
-- Caravans and merchant fleets ramp to 500% (`unit_flags2 & 8`), not 200%;
-  the citizen count adds militia/minuteman/partisan and subtracts
-  scholar-militia; group counting requires `attack != 0`.
-- Monarchy, Socialism, Salmon, `MILITARY_UNIT_DISCOUNT`, Indians and
-  Supercollider land **after** the ramp, not before; short-game scaling is
-  `ceil(ages × pct / 8)` against the Military tech level.
-- `can_pay_cost`'s early return is `== 0`; `cost.rs` uses `<= 0`.
+Nine disagreements, eight resolved against the earlier draft of this document
+and one an implementation slip neither reading had stated; all landed above and
+in `crates/sim/src/cost.rs` (with `lib.rs`, `harness_tests.rs` and the `rondata`
+check) on the same day, and each place that changed says so inline. Three
+changed observable behaviour:
 
-The second reading also settles the upgrade-loop cases (bump while queued,
-refit while researching, halving when the old cost is 0), `+0x260` as
-`special_upgrade`, the ignore-pop-cap flag `0x100000`, the hard-coded Salt
-9/10, Terra Cotta without a wonder check, and the exact `refund_cost` formula.
+- **The redirect table was the wrong table.** It reads
+  `UNDISC_COST_GOOD`/`RATE`, not `UNDISC_SUPPORT_*`: Knowledge → Food ×3/2,
+  Metal → Timber ×5/4, Oil → **Metal** ×3/2, obsolete Timber → Oil ×1/2. An
+  Ancient-age Mathematics costs 120 food, not 80; a Militia's `8m` is 100
+  timber, not 80. And the redirect recurses, so Oil chains through Metal into
+  Timber. The `rondata` check that should have caught this was reading the same
+  wrong columns; it now reads both cost tables and passes on the corrected one.
+- **The population cap is indexed by the Military library level**, `epoch[0]`,
+  not the age. `Muster::age` is now `Muster::military_level`.
+- **`affordable()` returned zero on a negative quotient**, where the original
+  returns only on an exact zero and lets the negative fall through to the
+  sentinel.
+
+The rest were a wrong ramp class for caravans and merchant fleets, three terms
+missing from the ramp count, the `attack != 0` gate on group counting, and six
+discounts placed before the ramp that belong after it. The second reading also
+settled the two upgrade loops, `+0x260` as `special_upgrade`, the ignore-pop-cap
+flag `0x100000`, Salt's hard-coded nine tenths, Terra Cotta's missing wonder
+check with Angkor Wat's live 25% on land units, the tech science discount, and
+the exact `refund_cost` inversion.

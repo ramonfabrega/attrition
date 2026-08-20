@@ -350,8 +350,12 @@ only looks at root children finds nothing and must be told the container.
 
 The first six records are the basic goods in the engine's order — Food, Timber,
 Wealth, Knowledge, Metal, Oil — and the other forty-four are the rare
-resources. Each of the six carries the two redirect pairs `docs/COSTS.md`
-depends on.
+resources. Each of the six carries four redirect pairs, of which
+`docs/COSTS.md` depends on the first two — `UNDISC_COST_GOOD`/`_RATE` and
+`OBS_COST_GOOD`/`_RATE`. The `*_SUPPORT_*` pairs that follow them look
+identical and are read by nothing found; `cargo run -p rondata` checks the cost
+pairs specifically, because checking the support pairs is what let a wrong
+redirect table stand.
 
 ### A rounding hazard the data creates
 
