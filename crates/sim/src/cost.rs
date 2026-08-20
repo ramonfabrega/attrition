@@ -72,18 +72,23 @@ impl Progression {
 
 /// Which ceiling holds a type's ramp down.
 ///
-/// The original picks between these by type identity and object flags —
-/// scholars by name, workers and merchants by predicate, then a civilian flag
-/// separating everything else from the fighting units. Taking it as a field is
-/// the same choice movement made for `speed`: the mechanic is complete and the
-/// classification arrives with the layer that produces it.
+/// The original picks between these in one nested test: scholars by name, then
+/// citizens, merchants and anything with `unit_flags2 & 8` — the caravan and
+/// merchant-fleet bit — as workers, and only then `obj_masks & 4`, the
+/// designers' letter `C` for Civilian, separating the rest from the fighting
+/// units. Taking it as a field is the same choice movement made for `speed`:
+/// the mechanic is complete and the classification arrives with the layer that
+/// produces it.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum RampClass {
     /// 2000%, and the only class with a second, convex term.
     Scholar,
-    /// 500%. Citizens and merchants.
+    /// 500%. Citizens, merchants, caravans and merchant fleets — the last two
+    /// by `unit_flags2 & 8`, which is tested before the civilian mask and
+    /// therefore wins over it.
     Worker,
-    /// 200%. Generals, spies, supply wagons, caravans.
+    /// 200%. Generals, spies and supply wagons — the civilian mask, reached
+    /// only once the worker tests have all failed.
     OtherCivilian,
     /// 125%. Everything that fights.
     #[default]
@@ -161,6 +166,13 @@ impl Price {
 /// Both are `built + queued` in the original, and for nukes and missiles the
 /// count also includes the ones already spent — a used nuke goes on making the
 /// next one more expensive forever.
+///
+/// Three predicates belong to whatever fills this in, because they are about
+/// unit identity rather than arithmetic: the group count is only taken when the
+/// type's `PROGRESSION` has bit 0 set **and** its `attack` is non-zero; a
+/// citizen's count adds the militia, minutemen and partisans made from citizens
+/// and subtracts the ones made from scholars; and a scholar's count adds those
+/// back. `docs/COSTS.md` §The ramp states them.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Counts {
     pub of_type: i32,
@@ -182,16 +194,24 @@ impl Counts {
 ///
 /// The original applies about forty discounts, and with three exceptions every
 /// one is `cost * (100 - X) / 100`. They are folded into two numbers here
-/// because the shape carries no information and the position does: the
-/// national, wonder and government tail lands **before** the ramp and the
-/// per-resource rare bonuses land **after** it, so the two cannot be one
-/// number without changing what the ceiling is measured against.
+/// because the shape carries no information and the position does: most of the
+/// national, wonder and government tail lands **before** the ramp and the rest
+/// lands **after** it, so the two cannot be one number without changing what
+/// the ceiling is measured against.
+///
+/// The fold is itself a simplification, and a stated one: the original
+/// truncates after every single percentage, so a fold of two of them can differ
+/// by a unit from the original's chain. It stands until the nation, wonder and
+/// government layers exist to apply their own, one at a time.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Modifiers {
     /// Percentage off the scaled base, before the ramp.
     pub discount: i32,
-    /// Percentage off the whole price, after the ramp. Sugar, Coal, Gold,
-    /// Iron and Gypsum.
+    /// Percentage off the whole price, after the ramp. `MILITARY_UNIT_DISCOUNT`,
+    /// Monarchy on stable units, Socialism on siege, air and dock units, Salmon
+    /// on ships, then Sugar, Coal, Gold, Iron and Gypsum by resource, and — in
+    /// the original, after the captured-building doubling rather than before it
+    /// — the Supercollider surcharge and the Indian elephant discount.
     pub late_discount: i32,
     /// Maize halves the ramp term — `MAIZE_RAMPING_BONUS`.
     pub maize: bool,
@@ -277,8 +297,10 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
 
 /// Where a cost written in an unavailable resource is charged instead.
 ///
-/// The rate is 8.8 fixed point, because the original multiplies and shifts
-/// right by eight. Every rate in the shipped tables is `1/1`, which is 256.
+/// The rate is 8.8 fixed point, because `GoodType::init` loads it through
+/// `String::fraction(text, 0x100)` and `TypeData::get_cost` multiplies and
+/// shifts right by eight. `1/1` is 256, `3/2` is 384, `5/4` is 320, `1/2` is
+/// 128, and the shipped tables use all four.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Redirect {
     pub good: Resource,
@@ -289,12 +311,18 @@ pub struct Redirect {
 /// prerequisite the player does not hold and one for a resource that has gone
 /// obsolete.
 ///
+/// They are the `UNDISC_COST_GOOD`/`UNDISC_COST_RATE` and
+/// `OBS_COST_GOOD`/`OBS_COST_RATE` columns — `GoodTypeData +0x2b4`/`+0x2c8` and
+/// `+0x2b8`/`+0x2cc`. The four `*_SUPPORT_GOOD`/`*_SUPPORT_RATE` columns that
+/// follow them in the file are a different pair of tables and no reader of them
+/// has been found.
+///
 /// The undiscovered table is the interesting one, because
 /// `resourcerules.xml` gives Knowledge and Metal the Classical Age as their
 /// prerequisite and Oil the Industrial Age. So in the Ancient Age a tech
-/// priced in knowledge is charged in **food** — Mathematics is `8k/12g` and a
-/// player who researches it early pays eighty food — and anything priced in
-/// metal is charged in **timber**.
+/// priced in knowledge is charged in **food at three halves** — Mathematics is
+/// `8k/12g` and a player who researches it early pays a hundred and twenty food
+/// — and anything priced in metal is charged in **timber at five quarters**.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Redirects {
     pub undiscovered: [Redirect; RESOURCES],
@@ -302,35 +330,38 @@ pub struct Redirects {
 }
 
 impl Redirects {
-    /// What Rise of Nations ships.
+    /// What Rise of Nations ships, read from `resourcerules.xml` and re-read
+    /// from the user's own copy by `cargo run -p rondata -- <install>`.
     ///
-    /// Wealth's undiscovered entry names Wealth, which would recur forever.
-    /// It cannot fire: wealth is never unavailable. Nothing else in either
-    /// table points at a resource that can itself be unavailable, so one pass
-    /// is exact and no recursion is needed.
+    /// Wealth's undiscovered entry names Wealth, which would recur forever. It
+    /// cannot fire: wealth is never unavailable. Oil's names Metal, which
+    /// *can* be unavailable, and that chain is why [`charges`] recurses.
     pub const RON: Redirects = {
-        const fn w() -> Redirect {
-            Redirect {
-                good: Resource::Wealth,
-                rate: 256,
-            }
+        const fn to(good: Resource, rate: i32) -> Redirect {
+            Redirect { good, rate }
         }
+        // The four rates the tables use, in 8.8.
+        const THREE_HALVES: i32 = 384;
+        const FIVE_QUARTERS: i32 = 320;
+        const ONE: i32 = 256;
+        const HALF: i32 = 128;
         Redirects {
             undiscovered: [
-                w(),
-                w(),
-                w(),
-                Redirect {
-                    good: Resource::Food,
-                    rate: 256,
-                },
-                Redirect {
-                    good: Resource::Timber,
-                    rate: 256,
-                },
-                w(),
+                to(Resource::Wealth, THREE_HALVES),
+                to(Resource::Wealth, THREE_HALVES),
+                to(Resource::Wealth, THREE_HALVES),
+                to(Resource::Food, THREE_HALVES),
+                to(Resource::Timber, FIVE_QUARTERS),
+                to(Resource::Metal, THREE_HALVES),
             ],
-            obsolete: [w(), w(), w(), w(), w(), w()],
+            obsolete: [
+                to(Resource::Wealth, ONE),
+                to(Resource::Oil, HALF),
+                to(Resource::Wealth, ONE),
+                to(Resource::Wealth, ONE),
+                to(Resource::Wealth, ONE),
+                to(Resource::Wealth, ONE),
+            ],
         }
     };
 
@@ -346,12 +377,72 @@ impl Redirects {
     }
 }
 
+/// One resource's price with the redirect loop folded in — `TypeData::get_cost`
+/// with its `include_redirect` argument set, which is how every caller that
+/// matters calls it.
+///
+/// The redirect is the last thing the original does, and it does it by calling
+/// itself: for every good the player cannot use whose redirect names `r`, it
+/// adds `get_cost(that good) * rate >> 8`, and that inner call runs the loop
+/// again. So the chain composes. In the Ancient age an oil price is charged in
+/// metal at three halves, and metal is not available either, so the whole thing
+/// arrives in timber at a further five quarters.
+///
+/// `seen` is the one place this departs from the original. The original has no
+/// cycle guard and a table pointing a good at itself would recurse until the
+/// stack ran out; the shipped table has no cycle, so refusing to re-enter a
+/// good already on the stack is exact for it and terminates for anything else.
+fn redirected_cost(
+    t: &Tuning,
+    price: &Price,
+    r: Resource,
+    counts: Counts,
+    m: &Modifiers,
+    goods: Goods<'_>,
+    seen: u8,
+) -> i32 {
+    let mut cost = cost_of(t, price, r, counts, m);
+    for g in Resource::ALL {
+        let i = g.index();
+        if goods.available[i] || seen & (1 << i) != 0 {
+            continue;
+        }
+        let to = goods.redirects.of(g, goods.discovered[i]);
+        if to.good != r {
+            continue;
+        }
+        let inner = redirected_cost(t, price, g, counts, m, goods, seen | (1 << i));
+        cost += apply_rate(inner, to.rate);
+    }
+    cost
+}
+
+/// What the redirect loop needs to know about the player: which goods they can
+/// spend, which they hold the prerequisite for, and the two tables that say
+/// where the rest is charged instead.
+#[derive(Clone, Copy)]
+struct Goods<'a> {
+    available: &'a [bool; RESOURCES],
+    discovered: &'a [bool; RESOURCES],
+    redirects: &'a Redirects,
+}
+
+/// An 8.8 rate applied the original's way: multiply, then shift right by eight
+/// with the sign fix that makes the truncation go toward zero rather than down.
+/// It only matters if a price ever goes negative, which a discount tail summing
+/// past a hundred percent can do.
+const fn apply_rate(cost: i32, rate: i32) -> i32 {
+    let scaled = cost * rate;
+    (scaled + ((scaled >> 31) & 0xff)) >> 8
+}
+
 /// What a player is actually charged, per resource.
 ///
 /// Unavailable resources come back as zero — `Type::pay_cost` charges only the
 /// available ones — and their prices are redirected into whatever the tables
-/// name. The redirected amount is the source resource's own full price, added
-/// after the target's own discounts, which is where the original adds it.
+/// name, through [`redirected_cost`]. The redirected amount is the source
+/// resource's own full price, added after the target's own discounts, which is
+/// where the original adds it.
 pub fn charges(
     t: &Tuning,
     price: &Price,
@@ -361,25 +452,17 @@ pub fn charges(
     discovered: &[bool; RESOURCES],
     redirects: &Redirects,
 ) -> [i32; RESOURCES] {
-    let mut raw = [0; RESOURCES];
-    for r in Resource::ALL {
-        raw[r.index()] = cost_of(t, price, r, counts, m);
-    }
-
+    let goods = Goods {
+        available,
+        discovered,
+        redirects,
+    };
     let mut out = [0; RESOURCES];
     for r in Resource::ALL {
-        if available[r.index()] {
-            out[r.index()] = raw[r.index()];
-        }
-    }
-    for g in Resource::ALL {
-        if available[g.index()] || raw[g.index()] == 0 {
+        if !available[r.index()] {
             continue;
         }
-        let to = redirects.of(g, discovered[g.index()]);
-        if available[to.good.index()] {
-            out[to.good.index()] += (raw[g.index()] * to.rate) >> 8;
-        }
+        out[r.index()] = redirected_cost(t, price, r, counts, m, goods, 0);
     }
     out
 }
@@ -397,6 +480,12 @@ pub const PLENTY: i32 = 10;
 /// at once, so for a single item the maximum and the minimum agree, and a
 /// single item is what almost every caller asks about. For a queue order of
 /// five it does not agree, and `docs/COSTS.md` says so.
+///
+/// The early return is `== 0`, not `<= 0`, and the difference is reachable: a
+/// purse smaller than its own escrow divides to a negative, which neither
+/// returns zero nor raises the maximum, so a price met by nothing but that one
+/// resource answers the [`PLENTY`] sentinel. It is the original's quirk and
+/// this reproduces it.
 pub fn affordable(
     charges: &[i32; RESOURCES],
     ledger: &Ledger,
@@ -415,7 +504,7 @@ pub fn affordable(
             ledger.bucket[i] - ledger.escrow[i]
         };
         let n = purse / charges[i];
-        if n <= 0 {
+        if n == 0 {
             return 0;
         }
         if n > best {
@@ -501,12 +590,16 @@ impl CityLevel {
     }
 }
 
-/// The things outside the age table that move a population cap.
+/// The things outside the military table that move a population cap.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct PopBonuses {
     /// A scenario's explicit cap for this player, which overrides everything
     /// before the last two lines.
     pub scenario: Option<i32>,
+    /// The leader flag `0x100000`, the scenario editor's "ignore population
+    /// cap". It hands the player the lobby limit outright and skips the same
+    /// way a scenario cap does.
+    pub ignore_cap: bool,
     pub cities: Vec<CityLevel>,
     pub bantu: bool,
     pub virtual_reality: bool,
@@ -514,7 +607,7 @@ pub struct PopBonuses {
     pub colossus: bool,
 }
 
-/// The step the three dead clauses of `calc_pop_cap` add per age.
+/// The step the three dead clauses of `calc_pop_cap` add per military level.
 ///
 /// A literal in the original with no constant behind it, and exactly
 /// `POP_CAP`'s own step.
@@ -522,35 +615,44 @@ const POP_CAP_STEP: i32 = 25;
 
 /// A player's population cap — `Leader::calc_pop_cap`.
 ///
-/// `age` indexes `POP_CAP` and `limit` is the lobby's population setting. The
-/// three bracketed clauses below cannot fire in a stock game: the largest
+/// `military_level` indexes `POP_CAP` and `limit` is the lobby's population
+/// setting. **It is the Military library level, not the age**: the original
+/// indexes with `epoch[0]`, which `LeaderData::compute_epoch` computes by
+/// counting consecutive `has_tech` up the `BASE_MILITARYTYPES` line, and the
+/// shipped line is seven techs — The Art of War through Selective Service. So
+/// the eight entries of `POP_CAP` are "no military tech" through "all seven",
+/// and the ages never enter it.
+///
+/// The three bracketed clauses below cannot fire in a stock game: the largest
 /// setting the lobby offers is exactly `POP_CAP[7]`, so `limit > POP_CAP[7]`
 /// is only reachable from a scenario. They are here because a scenario is
 /// exactly what would reach them.
 ///
 /// Shipped and stripped of everything that never fires, this is
-/// `min(POP_CAP[age], limit)` plus the Colossus. Cities do not raise it.
-pub fn pop_cap(t: &Tuning, age: usize, limit: i32, b: &PopBonuses) -> i32 {
+/// `min(POP_CAP[military_level], limit)` plus the Colossus. Cities do not
+/// raise it.
+pub fn pop_cap(t: &Tuning, military_level: usize, limit: i32, b: &PopBonuses) -> i32 {
     let mut cap = match b.scenario {
         Some(explicit) => explicit,
+        None if b.ignore_cap => limit,
         None => {
-            let age = age.min(t.pop_cap.len() - 1);
-            let base = t.pop_cap[age];
+            let level = military_level.min(t.pop_cap.len() - 1);
+            let base = t.pop_cap[level];
             let top = t.pop_cap[t.pop_cap.len() - 1];
-            let age = age as i32;
+            let level = level as i32;
 
             let mut cap = base;
             let mut limit = limit;
             if limit > top {
                 let over = limit - top;
-                if age == 7 {
+                if level == 7 {
                     cap = limit;
                 } else if over >= 100 {
-                    if age > 3 {
-                        cap = base + (age - 3) * POP_CAP_STEP;
+                    if level > 3 {
+                        cap = base + (level - 3) * POP_CAP_STEP;
                     }
-                } else if over > 49 && age > 5 {
-                    cap = base + (age - 5) * POP_CAP_STEP;
+                } else if over > 49 && level > 5 {
+                    cap = base + (level - 5) * POP_CAP_STEP;
                 }
             }
 
@@ -741,7 +843,8 @@ mod tests {
     }
 
     /// The headline of the whole document: the same hoplite costs timber
-    /// before Metal is available and metal after.
+    /// before Metal is available and metal after — and the timber is five
+    /// quarters of the metal, because `UNDISC_COST_RATE` is `5/4`.
     #[test]
     fn metal_is_charged_as_timber_until_it_is_available() {
         let h = hoplite();
@@ -759,17 +862,93 @@ mod tests {
         let before = charges(&T, &h, owned(0), &m, &early, &none, &Redirects::RON);
         assert_eq!(before[Resource::Food.index()], 50);
         assert_eq!(before[Resource::Metal.index()], 0);
-        assert_eq!(before[Resource::Timber.index()], 30);
+        // (30 * 320) >> 8.
+        assert_eq!(before[Resource::Timber.index()], 37);
+    }
+
+    /// A tech priced in knowledge before the Classical Age is charged three
+    /// halves of it in food. Mathematics is `8k/12g`: a hundred and twenty
+    /// food, not eighty.
+    #[test]
+    fn an_ancient_tech_pays_three_halves_of_its_knowledge_in_food() {
+        let mathematics = Price {
+            kind: Kind::Tech,
+            ..Price::free()
+                .with_base(Resource::Knowledge, 8)
+                .with_base(Resource::Wealth, 12)
+        };
+        let mut available = [true; RESOURCES];
+        available[Resource::Knowledge.index()] = false;
+        let out = charges(
+            &T,
+            &mathematics,
+            owned(0),
+            &Modifiers::default(),
+            &available,
+            &[false; RESOURCES],
+            &Redirects::RON,
+        );
+        assert_eq!(out[Resource::Food.index()], 120);
+        assert_eq!(out[Resource::Wealth.index()], 120);
+        assert_eq!(out[Resource::Knowledge.index()], 0);
+    }
+
+    /// The redirect is a recursive call, so it chains. Oil names Metal and
+    /// Metal names Timber, and in the Ancient age neither is available: an oil
+    /// price arrives in timber, through metal, at both rates.
+    #[test]
+    fn a_redirect_chains_through_a_resource_that_is_itself_unavailable() {
+        let tanker = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Oil, 3)
+        };
+        let mut available = [true; RESOURCES];
+        available[Resource::Oil.index()] = false;
+        available[Resource::Metal.index()] = false;
+        let out = charges(
+            &T,
+            &tanker,
+            owned(0),
+            &Modifiers::default(),
+            &available,
+            &[false; RESOURCES],
+            &Redirects::RON,
+        );
+        // (30 * 384) >> 8 = 45 in metal, and (45 * 320) >> 8 = 56 in timber.
+        assert_eq!(out[Resource::Timber.index()], 56);
+        assert_eq!(out[Resource::Metal.index()], 0);
+        assert_eq!(out[Resource::Oil.index()], 0);
+
+        // With Metal available the chain stops one link short.
+        available[Resource::Metal.index()] = true;
+        let out = charges(
+            &T,
+            &tanker,
+            owned(0),
+            &Modifiers::default(),
+            &available,
+            &[false; RESOURCES],
+            &Redirects::RON,
+        );
+        assert_eq!(out[Resource::Metal.index()], 45);
+        assert_eq!(out[Resource::Timber.index()], 0);
     }
 
     /// An obsolete resource redirects somewhere else than an undiscovered one,
-    /// and the choice is the prerequisite.
+    /// and the choice is the prerequisite. Every `<OBS>` ships as `disable`, so
+    /// the obsolete table is inert in a stock game — including its one
+    /// interesting entry, Timber at half into Oil.
     #[test]
     fn obsolete_and_undiscovered_are_different_tables() {
         let r = Redirects::RON;
         assert_eq!(r.of(Resource::Metal, false).good, Resource::Timber);
+        assert_eq!(r.of(Resource::Metal, false).rate, 320);
         assert_eq!(r.of(Resource::Metal, true).good, Resource::Wealth);
+        assert_eq!(r.of(Resource::Metal, true).rate, 256);
         assert_eq!(r.of(Resource::Knowledge, false).good, Resource::Food);
+        assert_eq!(r.of(Resource::Knowledge, false).rate, 384);
+        assert_eq!(r.of(Resource::Timber, true).good, Resource::Oil);
+        assert_eq!(r.of(Resource::Timber, true).rate, 128);
     }
 
     fn ledger_with(bucket: [i32; RESOURCES]) -> Ledger {
@@ -832,13 +1011,48 @@ mod tests {
         assert_eq!(affordable(&[0; RESOURCES], &l, &all, false), PLENTY);
     }
 
+    /// The early return is `== 0`. A purse smaller than its own escrow divides
+    /// to a negative, which is neither zero nor larger than the running
+    /// maximum, so the loop ends having raised nothing and answers the
+    /// sentinel. The original's quirk, reproduced rather than corrected.
     #[test]
-    fn the_population_cap_is_the_age_table_clamped_by_the_lobby() {
+    fn a_purse_below_its_own_escrow_falls_through_to_the_sentinel() {
+        let mut l = ledger_with([10, 0, 0, 0, 0, 0]);
+        l.escrow[Resource::Food.index()] = 100;
+        let all = [true; RESOURCES];
+        assert_eq!(affordable(&[30, 0, 0, 0, 0, 0], &l, &all, false), PLENTY);
+        // Against the escrow the purse is the whole bucket, and thirty of ten
+        // is a plain zero.
+        assert_eq!(affordable(&[30, 0, 0, 0, 0, 0], &l, &all, true), 0);
+    }
+
+    /// The index is the Military library level, so this is the table a player
+    /// climbs by researching The Art of War and the six techs above it —
+    /// twenty-five with none of them, two hundred with all seven.
+    #[test]
+    fn the_population_cap_is_the_military_table_clamped_by_the_lobby() {
         let b = PopBonuses::default();
         assert_eq!(pop_cap(&T, 0, 200, &b), 25);
+        assert_eq!(pop_cap(&T, 1, 200, &b), 50);
         assert_eq!(pop_cap(&T, 7, 200, &b), 200);
         assert_eq!(pop_cap(&T, 7, 100, &b), 100);
         assert_eq!(pop_cap(&T, 3, 50, &b), 50);
+    }
+
+    /// The scenario editor's ignore-cap flag hands over the lobby limit and
+    /// skips the table, the cities and the clamp — but not the wonders.
+    #[test]
+    fn the_ignore_cap_flag_is_the_lobby_limit_outright() {
+        let b = PopBonuses {
+            ignore_cap: true,
+            ..PopBonuses::default()
+        };
+        assert_eq!(pop_cap(&T, 0, 200, &b), 200);
+        let with_colossus = PopBonuses {
+            colossus: true,
+            ..b
+        };
+        assert_eq!(pop_cap(&T, 0, 200, &with_colossus), 250);
     }
 
     #[test]

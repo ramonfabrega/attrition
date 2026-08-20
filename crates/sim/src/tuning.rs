@@ -263,8 +263,10 @@ pub struct Tuning {
     pub tech_color_behind_discount: i32,
     /// The same, for the knowledge component.
     pub tech_color_behind_knowledge_discount: i32,
-    /// Percentage off a unit per military level the player's age is ahead of
-    /// the unit's — how obsolete units get cheap.
+    /// Percentage off a unit per Military library level the player holds above
+    /// the unit's own `MILITARY_LEVEL` — how obsolete units get cheap. The
+    /// player's side of the comparison is `epoch[0]`, the Military tech line,
+    /// and not the age.
     pub military_unit_discount: i32,
     /// The same, when researching the upgrade rather than building the unit.
     pub military_upgrade_discount: i32,
