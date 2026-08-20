@@ -230,7 +230,15 @@ doubly confirmed almost everywhere and the *predicates* wrong in several places
 — which unit kinds are exempt, which step the 11/8 belongs to, which array a
 level indexes — exactly the kind of error that tests written from the same
 reading cannot catch. The full decompile export under `tools/ghidra/` is what
-makes the second reading cost an hour rather than a session.
+makes the second reading cost an hour rather than a session. The cities audit (the tenth
+mechanic, same day, five readers each way) added a sibling to the tech audit's
+"read the loaders": **grep the writers of every field you call frozen, and
+the callers of every function you call once-only** — its corrections were a
+caller nobody looked for (`calc_wall_stats`), a table taken on trust
+(`even_circle_init`) and a gate read with its sense inverted, all at the edges
+of the first reading's scope rather than inside it. And when the decompiler
+prints a local that cannot be right, the listing (`llvm-objdump`) or the PE
+bytes settle it in a minute.
 
 **Emit traces under the original's own names.** `docs/ORACLE.md` lists the 37
 `SyncDefine` categories the engine considers sync-critical. Where a mechanic
