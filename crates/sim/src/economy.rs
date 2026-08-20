@@ -149,10 +149,16 @@ impl Site {
 
 /// A city, as income sees one.
 ///
-/// The four enhancer percentages are stored rather than derived because that is
-/// how `CityData` stores them: `City::calc_gather` fills four bytes from
+/// The enhancer percentages are stored rather than derived because that is how
+/// `CityData` stores them: `City::calc_gather` fills the bytes from
 /// `GRANARY_BONUS` and friends before anything reads them, and a city with no
 /// granary carries a zero rather than a missing level.
+///
+/// There are **three** of them, not four. `CityData` has a fourth byte at
+/// `+0x59` that `CityData::enhancer_amount` would read for oil, and
+/// `City::calc_gather` writes it as an unconditional zero every time it runs —
+/// so a city never enhances oil, and refineries act at the player level
+/// instead ([`Holdings::refineries`]).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct City {
     /// Percentage bonus to food from a granary, zero if there is none.
@@ -161,8 +167,6 @@ pub struct City {
     pub lumber_mill: i32,
     /// Percentage bonus to metal from a smelter.
     pub smelter: i32,
-    /// Percentage bonus to oil from a refinery.
-    pub refinery: i32,
     /// Buildings in the city, for `BUILDING_TAXES`.
     pub buildings: i32,
     pub market: bool,
@@ -183,7 +187,10 @@ impl City {
     /// `ATTRITION_UPGRADE`; here the arrays are separate and the index is
     /// written the way the designers meant it.
     ///
-    /// Wealth and knowledge have no enhancer and are left alone.
+    /// Wealth, knowledge and **oil** have no enhancer and are left alone. The
+    /// original gates the three that exist — granary and lumber mill on city
+    /// flags, smelter on the metal enhancer actually standing in the city —
+    /// and this call is the caller saying the gate passed.
     pub fn set_enhancer(&mut self, t: &Tuning, r: Resource, level: usize) {
         let pick = |a: &[i32; 5]| a[(level.max(1) - 1).min(a.len() - 1)];
         match r {
@@ -195,14 +202,18 @@ impl City {
     }
 
     /// The enhancer percentage for a resource — `CityData::enhancer_amount`,
-    /// which returns zero for the two resources with no enhancer.
+    /// which returns zero for the three resources with no city enhancer.
+    ///
+    /// Oil is one of the three: its byte exists but is written zero, so
+    /// `REFINERY_BONUS` is applied once at the player level in [`assemble`]
+    /// rather than here. Scaling oil in both places would count refineries
+    /// twice.
     pub const fn enhancer(&self, r: Resource) -> i32 {
         match r {
             Resource::Food => self.granary,
             Resource::Timber => self.lumber_mill,
             Resource::Metal => self.smelter,
-            Resource::Oil => self.refinery,
-            Resource::Wealth | Resource::Knowledge => 0,
+            Resource::Wealth | Resource::Knowledge | Resource::Oil => 0,
         }
     }
 }
@@ -221,10 +232,19 @@ pub struct Holdings {
     pub taxation: usize,
     /// Level of the commerce tech line, indexing `COMMERCE_CAP`.
     pub commerce: usize,
-    /// Cap bonuses accumulated by `LeaderData::resource_cap_add`.
+    /// A flat addition to the commerce cap, `LeaderData + 0x918`.
+    ///
+    /// **Scenario-script only.** `ScenarioFuncSet::set_bonus_cap` is its one
+    /// writer in the whole executable; nothing in a skirmish touches it, so it
+    /// is zero unless a scenario says otherwise. It is *not* where
+    /// `LeaderData::resource_cap_add` (Angkor Wat) puts its bonus — that adds
+    /// straight into the cap itself, which is why [`commerce_cap`] adds it
+    /// after the percentages rather than before.
     pub bonus_cap: [i32; RESOURCES],
-    /// Percentage adjustment to income from the difficulty setting. See
-    /// [`gather_handicap`].
+    /// Percentage adjustment to income from the difficulty setting.
+    ///
+    /// **AI leaders only.** A human earns 100% of their capped rate unless the
+    /// multiplayer handicap option is on. See [`gather_handicap`].
     pub handicap: i32,
     /// Whether each good type is available yet. Oil is not, before the
     /// Industrial age, and an unavailable resource takes no part at all: no
@@ -303,11 +323,17 @@ impl Ledger {
 /// 256× and read back with `>> 8`; `SCHOLAR_RATE` is multiplied by 16 before
 /// the same shift, which is how it arrives already scaled.
 ///
-/// The oil case is the one inference: `OIL_RATE` is read standing in exactly
-/// `PEASANT_RATE`'s place in the tile-survey path, and the flat path for oil
-/// has not been read. Since an oil well is the only thing that gathers oil and
-/// it goes through the survey, the substitution is the original's; only its
-/// use here, in the flat shape, is assumed.
+/// **This is exact for a mine, a woodcutter's camp and a university, and it is
+/// one particular case of a farm or an oil well.** The original's mine and
+/// woodcutter branches really do use a land-independent `(PEASANT_RATE >> 8)
+/// << 4` = 160, and a university `(SCHOLAR_RATE[level - 1] * 16) >> 8`. Its
+/// *flat* branch — farms, oil wells, oil platforms — instead sums the land's
+/// `num_make` richness over every tcoord of the building's footprint,
+/// doubling river tcoords by `RIVER_RESOURCE_VALUE` and skipping tcoords owned
+/// by a non-ally, and only then multiplies by the rate and shifts. 160 is what
+/// that comes to for a farm whose sixteen tcoords each make one food; a farm
+/// straddling a border yields less. Reproducing it needs the tile survey that
+/// [`Site::gatherers`] is an input to stand in for, so it is deferred with it.
 pub fn per_gatherer(t: &Tuning, r: Resource, level: i32) -> i32 {
     match r {
         Resource::Knowledge => {
@@ -320,6 +346,13 @@ pub fn per_gatherer(t: &Tuning, r: Resource, level: i32) -> i32 {
 }
 
 /// What one city contributes, in sixteenths — `LeaderData::calc_city_resources`.
+///
+/// One term of the original's is missing: its very first line adds the city's
+/// `trade_val` (`CityData + 0x52`) to wealth, which is where **caravan income
+/// arrives** — recomputed by `City::compute_trade` when a route starts or ends
+/// rather than every recompute. Trade routes are not modelled yet; see
+/// `docs/ECONOMY.md`. The Forbidden City's percentage and the CEO hero's are
+/// missing for the same reason the rest of the wonder layer is.
 pub fn city_rates(t: &Tuning, city: &City) -> [i32; RESOURCES] {
     let mut out = [0; RESOURCES];
 
@@ -382,9 +415,12 @@ pub fn literacy(t: &Tuning, city: &City) -> i32 {
 
 /// Assembles the six rates — `Leader::calc_gather`, in its order.
 ///
-/// The terms this leaves out are the ones `docs/ECONOMY.md` lists as unread:
-/// rare resources, merchants and caravans, and the nation and wonder
-/// multipliers.
+/// The terms this leaves out are the ones `docs/ECONOMY.md` lists as unread or
+/// out of scope: the nation and wonder multipliers, and the idle-unit loop —
+/// which is where **fishermen and merchants** pay, and with them every owned
+/// rare resource, since a rare pays only while a merchant stands on it.
+/// Caravans are not in this function at all; they arrive per city, through
+/// [`city_rates`].
 pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     let mut out = [0; RESOURCES];
 
@@ -454,6 +490,12 @@ pub fn caps(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
 /// No constant stands behind these six numbers; they are literals in the
 /// function. They are also the only place the difficulty setting touches the
 /// economy.
+///
+/// **This table is for AI leaders.** `get_gather_handicap` returns zero for a
+/// human before it reaches the table, unless the multiplayer handicap option
+/// is on, in which case a human takes their own per-player handicap from a
+/// different table. So "hard" does not mean the player earns less; it means
+/// every AI earns 25% or 50% more.
 pub const fn gather_handicap(difficulty: u8) -> i32 {
     match difficulty {
         0 => -35,
@@ -814,6 +856,16 @@ mod tests {
         h.refineries = 3;
         let with = assemble(&t, &h)[Resource::Oil.index()];
         assert_eq!(with, (3 * 33 + 100) * bare / 100);
+
+        // And only at the player level. `City::calc_gather` writes the oil
+        // enhancer byte as an unconditional zero, so a city can never scale
+        // oil as well — which would count the same refineries twice.
+        let mut city = City::default();
+        for r in Resource::ALL {
+            city.set_enhancer(&t, r, 5);
+        }
+        assert_eq!(city.enhancer(Resource::Oil), 0);
+        assert_eq!(city.enhancer(Resource::Food), 250);
     }
 
     #[test]
@@ -821,6 +873,8 @@ mod tests {
         let t = Tuning::RON;
         let mut h = Holdings::new();
         h.cities.push(farm_city(2));
+        // An AI on the hardest setting. A human would carry a handicap of
+        // zero here whatever the difficulty — see `gather_handicap`.
         h.handicap = gather_handicap(5); // +50%
 
         let mut l = Ledger {

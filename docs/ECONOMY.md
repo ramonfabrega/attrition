@@ -24,6 +24,13 @@ gatherer *count*:** `BuildTypeData::calc_gather` is a thousand lines of inlined
 tile walking and only its arithmetic tail has been read. What remains open is
 listed at the end.
 
+A blind second reading (`docs/audit/2026-08-20-economy.md`) doubly confirmed
+every formula in that spine and overturned several of the *predicates* around
+them — where caravans pay, where rare resources pay, who the difficulty
+handicap applies to, which enhancer bytes are ever non-zero. **No number
+changed.** Those corrections are landed below and marked where they changed
+what an earlier draft said.
+
 **Where the implementation is.** `crates/sim/src/economy.rs`. Every constant
 below is re-read from the user's own install by
 `cargo run -p rondata -- <install>`, which fails if any has drifted.
@@ -48,7 +55,12 @@ followed by forty-four rare resources.
 
 A resource participates at all only while `LeaderData::type_avail` says its
 good type is available. Oil is not available before the Industrial age, and
-`Leader::do_gather` skips it entirely until it is: no rate, no cap, no accrual.
+`Leader::do_gather` skips it entirely until it is. **Only the accrual is
+skipped**, though: the rate is still assembled — `calc_gather` has no per-good
+availability gate except the Americans' bonus and the obsolete pass — and the
+cap is still computed, since `calc_resource_caps` has no gate at all. So an
+unavailable resource has a live rate and a live cap that nothing ever pays out.
+(An earlier draft said "no rate, no cap, no accrual"; only the last is true.)
 
 ## The state it touches
 
@@ -68,24 +80,39 @@ never mentioned again.
 | | `resources` @ +0x64 | `i32[6]` | `0x872` | The assembled gather **rate**, in ¹⁄₁₆ units |
 | | `support` @ +0x7c | `i32[6]` | `0x26076` | Upkeep to subtract. Always zero — see below |
 | | `income` @ +0x94 | `i32[6]` | `0x90236` | The net rate the interface shows |
-| `LeaderData` | `base_rate` @ +0x4b0 | `i32[6]` | — | Added to the rate before the cap. Unread |
+| `LeaderData` | `base_rate` @ +0x4b0 | `i32[6]` | — | Added to the rate before the cap. Scenario-script only, and stored `<< 4` |
 | | `escrow` @ +0x468 | `i32[6]` | — | A second pile, fed at `escrow_rate` percent |
 | | `escrow_rate` @ +0x480 | `i32[6]` | — | Percent of income diverted to escrow |
 | | `collected` @ +0x874 | `i32[6]` | — | Lifetime total, for the score screen |
-| | `bonus_cap` @ +0x918 | `i32[7]` | — | Cap bonuses accumulated by `resource_cap_add` |
+| | `bonus_cap` @ +0x918 | `i32[7]` | — | A flat addition to the cap. Scenario-script only |
+| | `rare_owned` @ +0x6dac | `BitMask<44>` | — | Rares a merchant is standing on, rebuilt each recompute |
+| | `rare_conquest` @ +0x6dc0 | `BitMask<44>` | — | Conquer-the-World conquest rares |
 | | `gather_stamp` @ +0x7ac | `i32` | — | Frame of the last rate recompute |
 | | `territory` @ +0x9d8 | `i32` | — | Owned tiles, for the territory tax |
 | | `city_mark` @ +0x408 | `i32` | — | Number of cities; the loop bound |
 | | `oil_well_mark` @ +0x430 | `i32` | — | Number of oil wells; the loop bound |
-| `CityData` | `granary` @ +0x56 | `u8` | — | Food enhancer, as a percentage bonus |
+| `CityData` | `trade_val` @ +0x52 | `i16` | — | Caravan income, in ¹⁄₁₆ units; see below |
+| | `granary` @ +0x56 | `u8` | — | Food enhancer, as a percentage bonus |
 | | `lumber_mill` @ +0x57 | `u8` | — | Timber enhancer |
 | | `smelter` @ +0x58 | `u8` | — | Metal enhancer |
-| | `refinery` @ +0x59 | `u8` | — | Oil enhancer |
+| | *(oil enhancer)* @ +0x59 | `u8` | — | Read for oil, written zero unconditionally |
 | `WorldData` | `land_size` @ +0x78 | `i32` | — | Total land tiles; the territory tax divisor |
 
 `resource_cap` and `bonus_cap` are seven long where six would do, and the loop
 in `Leader::calc_resource_caps` really does run seven times. The seventh slot is
 written and never read.
+
+**`base_rate` and `bonus_cap` have exactly one writer each, and it is the
+scenario scripting layer:** `ScenarioFuncSet::set_base_rate` and
+`ScenarioFuncSet::set_bonus_cap`. Nothing in a skirmish touches either, so both
+are zero in ordinary play. `set_base_rate` writes `value << 4`, which fixes
+`base_rate` as sixteenths like everything else on the rate path.
+(An earlier draft listed both as "never seen written" and additionally
+attributed `bonus_cap` to `LeaderData::resource_cap_add`. It does not: that
+function — Angkor Wat's metal bonus is its caller — decodes `resource_cap`,
+adds, and re-encodes, never touching `+0x918`. The distinction matters because
+`bonus_cap` is added *after* the percentage multipliers and `resource_cap_add`
+lands wherever in the sequence its caller sits.)
 
 ## A rate is sixteenths of a resource per 450 frames
 
@@ -182,20 +209,52 @@ sixteenths.
 3. **Every city**, via `City::calc_gather` → `LeaderData::calc_city_resources`.
    See below.
 4. **Every oil well**, via `BuildData::calc_gather`.
-5. **Buildings outside a city** of two specific types, via the same call.
-6. **Every idle merchant and caravan**, via `Unit::do_gather`.
+5. **Buildings outside a city** — the Woodcutter's Camp (`0x1a2`) and the Mine
+   (`0x1a3`), via the same call. The filter is: the object is active, its
+   `city` link is negative, it is not neutralized, and its type is one of those
+   two.
+6. **Every idle fisherman and merchant**, via `Unit::do_gather`. The test is
+   `type == 0x13d` (Fisherman) *or* `UnitData::is_merchant`, and
+   `UnitData::order_type == NONE` — a merchant walking somewhere earns nothing.
+   **This is also where every owned rare resource pays**; see step 9.
 7. **Refineries**: `oil = oil * (refineries * REFINERY_BONUS + 100) / 100`.
    `REFINERY_BONUS` is `33% per refinery` and this is where "per refinery"
    lives; every other enhancer is a per-city percentage.
 8. **Capitalism** adds `CAPITALISM_OIL_PROD * 16` to oil.
-9. **Rare resources** — one `LeaderData::calc_rare` per owned rare.
+9. **Conquest rares** — one `LeaderData::calc_rare` per bit of
+   `rare_conquest`, and only when no other in-game leader exists. See below.
 10. **Coffee** scales all six.
 11. **The territory tax** (below).
 12. **`LeaderData::calc_resource_bonuses`** — the wonder and nation percentage
-    multipliers: Pyramids on food, Colossus and Taj on wealth, Angkor on metal,
-    Tikal on timber, Eiffel and the Russians on oil, Hanging Gardens as a flat
-    addition to knowledge.
+    multipliers, in this order: Russians on oil, Pyramids on food, Colossus on
+    wealth, Hanging Gardens as a flat `HANGING_GARDENS_KNOWLEDGE * 16` addition
+    to knowledge, Angkor on metal, Taj on wealth, Eiffel on oil, Tikal on
+    timber, then the Virtual Reality bonus scaling all five capped resources by
+    `GLOBAL_PROSPERITY` (knowledge is skipped), then a per-good Conquer-the-World
+    bonus.
 13. **The obsolete redirect** (below).
+
+### Rare resources pay through merchants, not through ownership
+
+Step 9 is not "one `calc_rare` per rare you own", which is what an earlier
+draft of this document said and what a reader would reasonably expect. The
+loop there walks `rare_conquest` — the Conquer-the-World campaign's *conquest*
+rares — and it is reached only when no other initialised in-game leader
+exists, so in a skirmish it never runs at all.
+
+Owned rares pay in **step 6**. `Unit::do_gather` on an idle merchant or
+fisherman calls `UnitData::calc_gather`, which calls `calc_rare` for the rare
+the unit is standing on and sets that rare's bit in `rare_owned` on the way
+past. `rare_owned` is cleared at the top of every recompute and rebuilt from
+the units, which is why **a rare with no merchant on it pays nothing** — the
+bonus is the merchant, not the deposit. The one exception is the Porcelain
+Tower, whose pass at the top of `calc_gather` sets `rare_owned` bits directly
+for every rare inside the player's own territory.
+
+After the rare terms, `rare_owned | rare_conquest` is compared against the
+previous frame's `rare` mask; when it differs the player's population cap is
+recomputed, the borders are marked for a redraw if the rare that changed is
+one of the territory-affecting ones, and two more dirty bits go up.
 
 ### The territory tax
 
@@ -210,6 +269,13 @@ full taxation is twenty wealth — two markets' worth, from borders alone. This
 is the one place in the game where territory pays rather than merely hurting
 whoever stands in it, and it is the economic mirror of `docs/ATTRITION.md`.
 
+Three modifiers sit on it, all read: the British scale `TERRITORY_TAXES` by
+`(BRITISH_TAXATION + 100) / 100`, which as shipped doubles it; a Conquer-the-World
+conquest bonus scales it by `CTW_MISSIONARIES_BONUS`; and the Mongols
+additionally take **food** from the same ratio, `num_nations * territory * 800
+/ land_size / MONGOL_NOMADIC_FOOD`, which is the one term in the economy that
+reads how many players are in the game.
+
 ### The obsolete redirect
 
 The last thing `calc_gather` does is walk the six goods looking for one that is
@@ -217,9 +283,15 @@ The last thing `calc_gather` does is walk the six goods looking for one that is
 such good it moves the whole rate somewhere else and zeroes it:
 
 ```
-out[obs_prod_good] += out[t] * obs_prod_rate >> 8
+if obs_prod_good >= 0:
+    out[obs_prod_good] += out[t] * obs_prod_rate >> 8
 out[t] = 0
 ```
+
+The guard matters: a good with no redirect target still has its rate zeroed.
+And the shift is the sign-corrected kind — `(x + (x >> 31 & 0xff)) >> 8`, which
+truncates toward zero rather than down, the same idiom the rest of the engine
+uses wherever an 8.8 value can go negative.
 
 `obs_prod_good` and `obs_prod_rate` are `OBS_PROD_GOOD` and `OBS_PROD_RATE`
 from `resourcerules.xml` — Food's are `Wealth` and `1/2`. The `>> 8` is what
@@ -233,20 +305,80 @@ meaning.
 
 ## What a city gives
 
-`LeaderData::calc_city_resources` sums four things for one city.
+`LeaderData::calc_city_resources` sums five things for one city.
+
+**`trade_val`, into wealth, before anything else.** The very first thing the
+function does is add the city's own `trade_val` — `CityData + 0x52`, a `short`
+already in sixteenths — to wealth. **This is where caravan income arrives.**
+(An earlier draft put caravans in the idle-unit loop alongside merchants. They
+are not in `Leader::calc_gather` at all; a caravan on a route has an order, and
+the loop takes only idle units.) See below.
 
 **Its buildings.** Every gathering building attached to the city contributes
 through `BuildData::calc_gather`. Two building types are excluded by identity,
 and the general shape of the contribution is `per-gatherer rate × gatherers`,
-with the per-gatherer rate coming from `PEASANT_RATE` (or `OIL_RATE` for oil,
-or `SCHOLAR_RATE[university_level - 1]` for knowledge) and then scaled by the
-city's enhancer for that resource.
+with the per-gatherer rate scaled by the city's enhancer for that resource
+before the multiply.
+
+Where the per-gatherer rate comes from depends on which of four branches the
+building takes, and **only three of them are the land-independent constant this
+document originally described**:
+
+| Building | Slots | Per gatherer, in ¹⁄₁₆ |
+| --- | --- | --- |
+| Mine | `MountainRangeData::gather_size` (+ German, Taj, Kremlin) | `(PEASANT_RATE >> 8) << 4` = 160 |
+| Woodcutter's camp | from the tile survey, `(sum + 8) >> 4` | 160, or `IROQUOIS_FOOD * 16` for the Iroquois' food |
+| University | 7 | `(SCHOLAR_RATE[level - 1] * 16) >> 8` |
+| **Flat** (farm, oil well, oil platform) | 1 | `(Σ num_make × PEASANT_RATE or OIL_RATE) >> 8` |
+
+The flat branch is the correction. Its per-gatherer rate is not a constant: it
+walks the building's whole footprint — `[cx, cx + X_SIZE) × [cy, cy + Y_SIZE)`
+in tcoords — summing each tcoord's `num_make` richness for the land under it,
+doubling a river tcoord by `RIVER_RESOURCE_VALUE`, and **skipping any tcoord
+owned by somebody who is neither the owner nor an ally.** Unowned ground counts
+normally. **160 is what that comes to for a farm whose sixteen tcoords each
+make one food**, which is the ordinary case and the reason the constant looked
+land-independent; a farm straddling an enemy border earns strictly less, and an
+oil well on a rich site earns more. (An earlier draft stated 160 and 560 as the
+rule. They are one case of it.)
+
+Two further terms live in the same branch: the Japanese scale food by
+`(JAPANESE_FISHING_BOATS + 100) / 100`, and the Egyptians add
+`EGYPTIAN_FARM_WEALTH * 16` of wealth per farm. The mine branch has one of its
+own — the Inca earn `gatherers * INCA_WEALTH_PER_MINER * 16` of wealth per
+mine, when that constant is positive. When it is *negative*, a separate branch
+back in `Leader::calc_gather` instead adds the player's whole metal rate to
+their wealth rate, which is a strange enough way to spell "the Inca sell their
+metal" that it is recorded here rather than explained.
+
+The flat branch is also the only one that does not bound gatherers by slots:
+it adds `per × n` for whatever `n` it was handed, where the mine, woodcutter
+and university branches all take `min(slots, n)` — and the woodcutter
+additionally caps at twice its `total_gather_access`.
 
 **`CITY_GATHER[t] * 16`, once per city.** Ships as `10 food, 10 timber` and
 zero for the rest — so **a city is worth ten food and ten timber per thirty
-seconds before anybody works in it.** A Forbidden City replaces this with
-`FORBIDDEN_CITY_BASE_GATHER` for every resource, and scales the city's whole
-output by `FORBIDDEN_CITY_GATHER` percent.
+seconds before anybody works in it.**
+
+A Forbidden City changes that in two ways, and both are narrower than an
+earlier draft of this document said.
+
+- The `FORBIDDEN_CITY_BASE_GATHER` substitution happens **inside the loop's own
+  `CITY_GATHER[t] != 0` guard**, so it replaces only the slots that already
+  pay. With shipped data that is food and timber and nothing else: a Forbidden
+  City is worth fifty food and fifty timber, not fifty of all six. (It also
+  needs `FORBIDDEN_CITY_BASE_GATHER` to be non-zero, or the ordinary value is
+  used.)
+- The `FORBIDDEN_CITY_GATHER` percentage — 25%, applied as
+  `(pct + 100) * out[t] / 100` to all six — runs **immediately after the
+  building walk and before everything below it.** So it multiplies the
+  gatherers and nothing else: not the flat city gather, not the Roman or German
+  per-city bonuses, not taxes, not literacy.
+
+Between those two sits one more multiplier of the same shape: a CEO hero
+(`TypeIndex 0x165`) standing in the city scales all six by
+`THECEO_PRODUCTION_BONUS`, with the same reach as the Forbidden City's — the
+building walk only.
 
 **Taxes, into wealth.** `CityData::get_taxes` is:
 
@@ -261,6 +393,11 @@ as shipped, is "a market is worth ten wealth per thirty seconds."** The other
 three constants are read, so they are tuning rather than dead weight, but they
 do nothing in a stock game.
 
+The market term has one modifier, which lives inside `get_taxes` rather than in
+the wonder layer: a player holding the **Porcelain Tower** takes
+`MARKET_TAXES * (PORCELAIN_MARKET + 100) / 100` instead. It is per city with a
+market, so it scales with how many the player has.
+
 **Literacy, into knowledge.** `CityData::get_literacy` is the same shape:
 `VILLAGE_LITERACY` (0) plus `UNIVERSITY_LITERACY` (10) if the city has a
 university plus `LIBRARY_LITERACY` (0) if it has a library. **A university is
@@ -270,13 +407,63 @@ nothing — the library's value is that scholars can live in it.
 Then the Romans add wealth per city and the Germans add food, timber and metal
 per city.
 
+### Caravans, and the city they are cached in
+
+`trade_val` is not recomputed with the rate. `City::compute_trade` rebuilds it
+when a trade route starts or ends, walks the city's caravan links, and for each
+one whose caravan is active and whose *both* endpoint cities are active adds:
+
+```
+trade_val += (Caravan::trade_value(a, b) * 16) / 2
+```
+
+then, if the total changed, sets the owner's `0x2000000` dirty flag — so a new
+trade route makes the income display move within eight frames, by the same
+route a new farm does.
+
+`Caravan::trade_value` is:
+
+```
+v = get_trade_value(a) + get_trade_value(b)
+if distance != 0:  v = (distance + 3) * v / 3
+if owners differ:  v = v * 3 / 2
+Indians:           v = (INDIANS_CARAVAN   + 100) * v / 100
+Spice:             v = (SPICE_CARAVAN_INCOME + 100) * v / 100
+```
+
+`CityData::get_trade_value` is the city's building count plus 2 for a Large
+City, plus 4 for a Major City or a Forbidden City. `Caravan::distance` is a
+four-step bucket on world width `W`: 0 under `W/4`, 1 under `W/2`, 2 under
+`4W/5`, else 3 — so the multiplier runs 1, 4/3, 5/3, 2. **A long international
+route between two big cities is worth roughly four times a short domestic one
+between two small ones**, and the whole thing is halved on the way into
+`trade_val` because both endpoint cities compute it and each keeps half.
+
+None of this is implemented; trade routes are not modelled yet.
+
 ### The enhancers, and an array that runs off its end
 
 `CityData::enhancer_amount(t, base)` returns `(pct[t] + 100) * base / 100`,
-where `pct` is the city's `granary` / `lumber_mill` / `smelter` / `refinery`
-byte. Wealth and knowledge have no enhancer and take the default zero.
+where `pct` is the city's `granary` / `lumber_mill` / `smelter` byte. Wealth
+and knowledge have no enhancer and take the default zero.
 
-`City::calc_gather` fills those four bytes from four constant arrays, and it
+**So does oil.** There is a fourth byte at `+0x59` that `enhancer_amount` would
+read for oil, and `City::calc_gather` writes it as an unconditional zero — it
+calls `count_buildings` for the oil enhancer first and throws the answer away.
+A city therefore never scales oil; refineries act nation-wide instead, through
+step 7 of the assembly. (An earlier draft called this byte the oil enhancer and
+`crates/sim` carried a `City::refinery` field a caller could set. Anyone who
+had set it would have counted their refineries twice. The field is gone.)
+
+The three that do exist are each gated, and the gates differ:
+
+- **granary** on the city's flag `0x200`,
+- **lumber mill** on the city's flag `0x400`,
+- **smelter** on the metal enhancer building actually standing in this city —
+  `count_buildings(get_enhancer(METAL))` non-zero. So the smelter, alone of the
+  three, is a building the city must contain rather than a bit it must carry.
+
+`City::calc_gather` fills the three bytes from three constant arrays, and it
 reaches them the way this codebase has now seen three times:
 
 ```
@@ -312,6 +499,15 @@ cap *= 16
 with two overrides that skip the whole body: **knowledge (slot 3) is always
 999**, and so is everything if the player holds the Virtual Reality bonus.
 
+Filled in, the modifiers are: British `BRITISH_COMMERCE` on every slot; then
+one nation term per resource — Egyptian food, French timber, Inca wealth;
+Diamonds (rare bit 22, in either `rare` or `rare_conquest`) on every slot;
+then the flat wonder additions — Pyramids on food and wealth, Colossus on
+timber and wealth, Taj on wealth, Eiffel on oil, Kremlin on food, timber, metal
+and oil but *not* wealth, Tikal on timber, and Angkor on metal via
+`resource_cap_add`; then the republic term, which takes the highest tier held
+rather than summing; then `bonus_cap`; then the clamp and the `<< 4`.
+
 `COMMERCE_CAP` ships as `70 100 150 200 260 320 400 500`, indexed by the
 player's commerce level — one of four `epoch` counters on the encrypted block.
 So a player at commerce level 0 cannot earn more than seventy of any capped
@@ -336,9 +532,13 @@ twice the highest commerce cap is why nobody notices.
 `Leader::do_gather`, every frame, per available resource:
 
 ```
+if <infinite-resources option>:
+    bucket[t] = 99999; escrow[t] = 0; continue
+
 rate = resources[t] - support[t] + base_rate[t]
 if rate < 0:
     income[t] = rate            # shown, not charged
+    over_cap[t] = 0
     continue                    # a negative rate takes nothing away
 
 if rate > resource_cap[t]:
@@ -347,14 +547,14 @@ if rate > resource_cap[t]:
 else:
     over_cap[t] = 0
 
-<Dutch interest on the stockpile, itself capped>
+<Dutch interest on the stockpile, itself capped — below>
 
 income[t] = rate                # what the interface shows
 
 rate = rate * (100 + gather_handicap) / 100
-if t == KNOWLEDGE and tech_cost setting is high:  rate = rate * 3/4, or /2
-if <fast-economy game option>:                    rate = rate * 3/2
-if ai_speed > 1:                                  rate = rate * ai_speed
+if t == KNOWLEDGE and tech_cost > 4:  rate = rate * 3/4 if tech_cost < 7 else rate / 2
+if <fast-economy game option>:        rate = rate * 3/2
+if ai_speed > 1:                      rate = rate * ai_speed
 
 denom      = GATHER_RATE * 16
 whole      = rate / denom
@@ -367,11 +567,18 @@ bucket[t]    += whole
 collected[t] += whole
 ```
 
-Four things in that are worth stating plainly.
+Five things in that are worth stating plainly.
 
 **A negative rate costs nothing.** It is displayed and then abandoned. Since
 `support` is always zero, the only way to reach one is a negative `base_rate`,
-and whatever writes that has not been read.
+which only a scenario script can write.
+
+**Two options short-circuit the whole thing.** With the infinite-resources
+setting (`starting_resources == 8`) the stockpile is *assigned* 99999 and the
+escrow zeroed, every frame, per resource: nothing accrues because nothing needs
+to. And the knowledge penalty from a high tech-cost setting has two steps, not
+one — three quarters up to setting 6, a half from 7. Both truncate toward zero
+the way the rest of the pipeline does.
 
 **`income` is captured before the multipliers.** The number on screen is the
 capped rate, not the rate the player actually receives. On a hard difficulty
@@ -383,7 +590,8 @@ leftover %= denom` — an exact accumulator with no drift. It is written the
 original's way in the implementation, because the equivalence holds only while
 `rate` is non-negative and the guard above is the only thing that makes it so.
 
-**The handicap is a difficulty table**, from `LeaderData::get_gather_handicap`:
+**The handicap is a difficulty table, and it is for the AI**, from
+`LeaderData::get_gather_handicap`:
 
 | Difficulty | 0 | 1 | 2 | 3 | 4 | 5 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -393,18 +601,79 @@ There is no constant behind those six numbers; they are literals in the
 function. They are also, notably, the only place in this pipeline where the
 difficulty setting touches the economy.
 
+**A human never reaches that table.** The function's first act is to test the
+human flag (`leader_flags & 4`, which is exactly `LeaderData::is_human`) and
+return **zero** — unless the multiplayer-handicap option is on, in which case a
+human takes their own `get_handicap()` from the per-player handicaps instead
+and still never sees the difficulty table. (An earlier draft presented the
+table as the whole function, and this document's tests apply it to an ordinary
+player. It is not wrong as arithmetic — the handicap is an input — but it
+invites the wrong reading: "hard" does not mean you earn 100% and the AI earns
+100%; it means you earn 100% and every AI earns 125% or 150%. On the easiest
+setting the AI earns 65%.)
+
+For an AI, which difficulty the table is indexed by has its own small tangle:
+the leader's own `multi_diff` when the multiplayer-handicap option is on or
+when a lobby setting says so, and the game's global `info.difficulty`
+otherwise.
+
 `ai_speed` appears here as a plain multiplier on income, exactly as it appears
 in `Guy::move` as a plain multiplier on the step — see `docs/MOVEMENT.md`. Two
 subsystems now read the same global, and the question it raises there is the
 question it raises here.
 
+### Dutch interest
+
+Between the cap and the `income` capture sits the one term that reads the
+*stockpile* rather than the rate. For a Dutch player and any resource but
+knowledge:
+
+```
+start  = <this player's starting amount for t>
+excess = bucket[t] - start
+if excess > 0:
+    rate = rate + (DUTCH_INTEREST * excess / 100) * 16
+    rate = min(rate, DUTCH_INTEREST_CAP * 16 + resource_cap[t])
+rate = min(rate, 16000)
+```
+
+So the Dutch earn interest on savings above what they started with, capped
+twice — once by `DUTCH_INTEREST_CAP` above the ordinary commerce cap, and again
+by a flat 16000 sixteenths (a thousand a rate) that exists **only inside this
+branch**. Nobody else in the game is subject to it. `start` is the game's
+starting amount, scaled by the starting-resources setting in a team game and by
+`CTW_NOMAD_STARTING_RES_X` for a Conquer-the-World nomad start.
+
 ### Escrow
 
-Below the accrual, guarded by a diplomacy flag, a second accumulator runs the
-same arithmetic against `escrow_rate[t]` percent of the same rate, with
-`GATHER_RATE * 1600` as its denominator, and adds the result to `escrow[t]`.
-`escrow` is reset alongside `bucket` when the game starts everyone at zero. It
-is not spendable and nothing read so far reads it back.
+Below the accrual, a second amount is computed from `escrow_rate[t]` percent of
+the same (post-multiplier) rate with `GATHER_RATE * 1600` as its denominator,
+and added to `escrow[t]`.
+
+Two corrections to an earlier draft. **The guard is `(leader_flags & 0xc) != 4`
+— it is not a diplomacy flag.** Bit `0x4` is the human bit; bit `0x8` is
+unnamed. So a plain human never accrues escrow and everything else does, which
+fits what `docs/COSTS.md` found escrow *is*: a soft reservation the AI holds
+back for something it is saving toward.
+
+**And it is not an accumulator.** Where the stockpile carries its remainder
+forward in `leftover`, escrow throws its remainder away and buys it back with a
+frame modulus:
+
+```
+q, r = divmod(escrow_rate[t] * rate, GATHER_RATE * 1600)
+if r != 0:
+    n = max(2, (denom + r/2) / r)
+    if frame % n == 0: q += 1
+escrow[t] += q
+```
+
+`n` is "one frame in how many should round up", derived from how big the
+remainder is; a remainder of half the denominator rounds up every other frame.
+Nothing is stored between frames, so it is approximate where the stockpile is
+exact — which is affordable precisely because escrow is a reservation rather
+than a balance. `pay()` does not implement it; when it does, it must not be
+written as the accumulator next to it.
 
 ## Support was removed
 
@@ -439,23 +708,34 @@ for upkeep is the one that makes the eleventh hoplite cost double the first.
 
 ## What is not established
 
-- **How many gatherers a building has, and how many it may have.**
-  `BuildTypeData::calc_gather` walks the tiles in a radius, counts resource
-  richness and river tiles, and produces both a slot count and a per-gatherer
-  rate. Only its arithmetic tail is read: the per-gatherer rates, the enhancer
-  scaling, and the `PEASANT_RATE`/`OIL_RATE`/`SCHOLAR_RATE` representation. The
-  tile survey itself, `max_gatherers`, `total_gather_access` and the
-  `MiningList` are unread. Everything downstream of a gatherer count is
-  specified here; the count is not.
-- **`base_rate`.** Added to every rate before the cap, never seen written.
+- **How many gatherers a building has, and how many it may have.** Still the
+  big one, but smaller than it was. The *shape* is now read — four branches,
+  their slot counts and their per-gatherer rates, above — and what remains
+  unread is the surveys those branches call: the circle tables behind the
+  woodcutter's tile walk, `MountainRangeData::gather_size`,
+  `total_gather_access`, and the `MiningList`. Everything downstream of a
+  gatherer count is specified here; the count is not, and `Site::gatherers`
+  stays an input.
+- ~~**`base_rate`.**~~ `ScenarioFuncSet::set_base_rate` is its only writer, and
+  it stores `value << 4`. Scenario-script only; zero in a skirmish.
 - **`escrow_rate`.** What sets it. `escrow` itself is no longer open:
   `docs/COSTS.md` reads it in `Type::pay_cost` as a soft reservation that
-  ordinary spending may not touch and abandons entirely the moment it needs to.
-- **The two building types collected outside cities**, `0x1a2` and `0x1a3`.
-- **Merchants and caravans.** `Unit::do_gather` on an idle merchant, and
-  `MERCHANTS_BONUS`, are how rare resources pay. Unread.
+  ordinary spending may not touch and abandons entirely the moment it needs to,
+  and the accrual is specified above.
+- ~~**The two building types collected outside cities**, `0x1a2` and `0x1a3`.~~
+  `BuildTypeData::gather_radius` returns `WOODCUTTER_RADIUS` for `0x1a2` and
+  `MINE_RADIUS` otherwise, which names them: the Woodcutter's Camp and the
+  Mine. They are collected outside the city loop because they are the two
+  gathering buildings that are placed on terrain rather than in a city.
+- ~~**Merchants and caravans.**~~ Both are read: merchants pay in the idle-unit
+  loop and are what makes an owned rare pay at all; caravans pay through their
+  cities' `trade_val`. What is still unread is `UnitData::calc_gather`'s own
+  body — `MERCHANTS_BONUS`, `FISHERMEN_BONUS` and the Porcelain/Nubian terms
+  appear in `calc_rare`, in the `((pct + extra) * out) / 100` shape, but the
+  chain has not been followed end to end.
 - **Rare resources.** `LeaderData::calc_rare`, forty-four of them, each with
-  its own constant in `rules.xml`.
+  its own constant in `rules.xml`. *Where* they pay is settled (above); what
+  each one pays is not.
 - **The market.** `MARKET_BASEMENT`, `MARKET_EQUILIBRIUM`, `MARKET_CYCLE_RATE`
   and the rest describe a price simulation with supply and demand. Entirely
   unread, and the only part of the economy that is not a sum of rates.
@@ -468,33 +748,39 @@ for upkeep is the one that makes the eleventh hoplite cost double the first.
 
 ---
 
-## Second reading (2026-08-20) — corrections owed
+## Second reading (2026-08-20) — landed
 
-Blind second derivation and adjudication: `docs/audit/2026-08-20-economy.md`.
-The frame order, the gather order, the 8/512-frame cadence, sixteenths and the
-7200 denominator, the ×256 trio, the assembly order, city flat/taxes/literacy,
-the per-gatherer truncation, the cap pipeline and `do_gather`'s arithmetic are
-**doubly confirmed**; no number in `crates/sim/src/economy.rs` changes and the
-existing tests stand. Nine behaviour-relevant points went against this
-document, all about *where* something happens or *who* it applies to:
+A blind second derivation and its adjudication are in
+`docs/audit/2026-08-20-economy.md`. The frame order, the gather order, the
+8/512-frame cadence, sixteenths and the 7200 denominator, the ×256 trio, the
+assembly order, city flat/taxes/literacy, the per-gatherer truncation, the cap
+pipeline and `do_gather`'s arithmetic are **doubly confirmed**.
 
-- Caravans pay through `City::compute_trade` → `trade_val` inside
-  `calc_city_resources`, not `Unit::do_gather`; the `calc_rare` loop is
-  Conquer-the-World-only, and owned rares pay through idle merchants and
-  fishermen.
-- The difficulty handicap is AI-only (`get_gather_handicap` returns 0 for a
-  human); `bonus_cap` and `base_rate` are scenario-script writers only, and
-  `resource_cap_add` writes `resource_cap` directly.
-- The AI escrow guard is `(flags & 0xc) != 4` and rounds by frame modulus; it
-  is not an accumulator.
-- Forbidden City's base gather only replaces non-zero `CITY_GATHER` slots, and
-  its ×125% precedes flat/taxes/literacy.
-- The city `refinery` byte is always 0 — a smelter must be present — so
-  `City.refinery` in the implementation can double-scale oil and should go.
-- The flat per-gatherer rate is `(Σ num_make × PEASANT/OIL_RATE) >> 8` over
-  the footprint, river ×2, non-ally tcoords excluded; 160/560 is the
-  sum == 16 case. (The second reader was itself slightly off here: unowned
-  tcoords count.)
+Nine behaviour-relevant points went against the earlier draft of this document
+— every one of them about *where* something happens or *who* it applies to,
+not about a number. **No arithmetic changed and every existing test stands.**
+All nine are landed above, each marked where it changed what an earlier draft
+said, and the one implementation change they force — deleting `City::refinery`,
+a field the original always writes zero and a caller could have used to count
+refineries twice — is landed in `crates/sim/src/economy.rs` on the same day.
+The two that most change what a reader would build: caravans and rares pay
+somewhere other than where this document put them, and the difficulty handicap
+is the AI's.
 
-Resolved for this document: enhancer arrays are `int[5]` with 1-based levels,
-so `fishermen_bonus[lvl+4]` is `GRANARY_BONUS[lvl-1]` as written here.
+The nine also came with a dozen extensions that closed open items rather than
+contradicting anything: Dutch interest, the infinite-resources option, the
+tech-cost thresholds, the four gatherer branches and their slot counts, the
+full wonder and cap-modifier lists, the Porcelain Tower on market taxes, the
+territory-tax modifiers, the writers of `base_rate` and `bonus_cap`, and the
+names of the two outside-city building types. Those are folded in above too.
+
+Resolved for the earlier draft: the enhancer arrays are `int[5]` with 1-based
+levels, so `fishermen_bonus[lvl + 4]` really is `GRANARY_BONUS[lvl - 1]`, as
+written here; the second reader had it off by one.
+
+Two places where re-reading the decompile sharpened the adjudication itself:
+the infinite-resources literal is `0x104be` *as stored*, which is 99999 once
+the `bucket` XOR mask comes off — not 66750; and the enhancer reaches
+`BuildTypeData::calc_gather` as the rational pair
+`(enhancer_amount(t, 100), 100)`, applied to the per-gatherer value before the
+multiply by gatherers, which is what this document already said.
