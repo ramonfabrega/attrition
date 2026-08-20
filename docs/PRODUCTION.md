@@ -607,13 +607,14 @@ the first time it was asked a question with a five in the denominator.
   entering the **scenario editor** and cleared on leaving. It also skips
   `can_make`'s neutralized/unassimilated gate and makes `can_pay_cost` return
   10.
-- **`BuildData::construct_time`.** Read in full — a stored base, the Hanging
-  Gardens, a general, an Iroquois senate clause that returns 0, and a
-  first-wonder clause that appears to return 1 if no other player is building
-  the same wonder — but it belongs to putting a *building* up, which is a
-  different mechanic from running a queue, and its stored base at `+0x50` is
-  written somewhere unread. The second reading agrees it is the foundation
-  clock and not the queue path. Not implemented here.
+- ~~**`BuildData::construct_time`.**~~ Closed by `docs/CITIES.md` §3.2: the
+  stored base at `+0x50` is written once, at placement, by
+  `Wall::update_construct_time` (`job_time × 100` through the nation, wonder
+  and speed-tech factors and the nomad's first-city ×3), and the four per-call
+  clauses are the Americans' free first wonder, the Hanging Gardens, the
+  President and the Iroquois' first senate. It is the foundation clock that
+  `Wall::do_construct` compares `job_counter` against; implemented in
+  `crates/sim/src/build.rs`.
 - ~~**The build-time analogue of the price ramp's four ceilings.**~~ There is
   exactly one cap in `train_time`, the `×3`, and the second reading found no
   other. Closed.

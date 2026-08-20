@@ -314,7 +314,10 @@ already in sixteenths — to wealth. **This is where caravan income arrives.**
 are not in `Leader::calc_gather` at all; a caravan on a route has an order, and
 the loop takes only idle units.) See below.
 
-**Its buildings.** Every gathering building attached to the city contributes
+**Its buildings.** (`CityData::num_buildings`, where the taxes and trade value
+read it, walks the member chain from the city building itself, so **the city
+counts as one of its own buildings** — `docs/CITIES.md` §5.5.) Every gathering
+building attached to the city contributes
 through `BuildData::calc_gather`. Two building types are excluded by identity,
 and the general shape of the contribution is `per-gatherer rate × gatherers`,
 with the per-gatherer rate scaled by the city's enhancer for that resource

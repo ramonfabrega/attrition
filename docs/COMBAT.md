@@ -716,8 +716,12 @@ tmask  = T.type.obj_masks
 27. `super_immune`: T's type is `SUPERCOLLIDER` and A is air and the flag is
     on: `dmg = 0`.
 28. **Recapture**: T is Build-proper, active, a city building (flag `0x20`)
-    with a city index, and the city's original owner is A's owner: `dmg =
-    (dmg * recapture_city_modifier) >> 8`.
+    with a city index, and the city's **`race`** (`CityData +0x5f`, the nation
+    it is assimilated to) is A's owner: `dmg = (dmg * recapture_city_modifier)
+    >> 8`. *(Corrected by `docs/CITIES.md` §7.4: an earlier draft said "the
+    city's original owner", which is `founder` at `+0x60`. So the bonus is for
+    the nation a stolen city still belongs to while it is unassimilated, and
+    is gone once it assimilates.)*
 
 Return `dmg` — whole hits, possibly zero or negative; `do_damage` clamps and
 scales next.
@@ -1209,14 +1213,14 @@ unit target is on the map (not garrisoned); a submarine or a self-destructing
 attacker (`unit_flags & 0x102000`) only targets sea units; **a melee attacker
 (`max_range == 0`) cannot target a unit standing on a tile whose class bits
 are `0x30`** (`TData.mask & 0x30 == 0x30` — the same two bits read `0x20`
-for ocean in `check_hit`; `0x30` is not identified, and is not fog); a submarine attacker on land domain cannot target sea; **air targets**
+for ocean in `check_hit`; `0x30` is **forest** — `docs/CITIES.md` §2.3 names the surface field); a submarine attacker on land domain cannot target sea; **air targets**
 need a ranged attacker, and then a ladder of `fly_high`/`fly_low` against the
 attacker's own `fly_high`/`fly_low` and ANTI_AIR flag (helicopters are
 targetable by anything ranged but siege, tanks, missiles and bombers;
 missiles never target or are targeted by missiles); and finally **a land-
 domain or building attacker with ANTI_AIR never targets ground or sea**.
 `Object::valid_target` adds: a city that is capture-eligible is not attacked
-(the capture path takes it) unless the attacker is a `VEHICLE|WAR_MACHINE`
+(the capture path takes it) unless the attacker is a `VEHICLE` **and** `WAR_MACHINE` (both masks; `docs/CITIES.md` §7.1)
 unit under a mandatory attack order on it, or a missile. `GroupData::
 valid_target` is "any captain in the group passes". `LeaderData::get_target`
 is the diplomatic target (the next in-play leader in start order), not a

@@ -190,6 +190,41 @@ pub struct World {
     /// regions because it stores the set in a `BitMask<64>`; we do not.
     region: Vec<Option<u16>>,
     regions: Vec<Terrain>,
+    /// One mask per **tile** — four by four per cell — the original's `TData`
+    /// (`World +0x138`, one `ushort` each). Placement reads it, buildings mark
+    /// it; see `docs/CITIES.md` §2.3 for the bit legend, and [`tile`] for the
+    /// names.
+    tiles: Vec<u16>,
+}
+
+/// The bits of a tile mask, as the placement code names them — `TData.mask`
+/// in the original. Two-bit fields are tested as `(mask & field) == value`.
+pub mod tile {
+    /// The two-bit terrain-object field: `3` a building footprint, `2` a
+    /// mountain.
+    pub const OBJECT: u16 = 0x3;
+    pub const OBJECT_BUILDING: u16 = 0x3;
+    pub const OBJECT_MOUNTAIN: u16 = 0x2;
+    /// The two-bit surface field: `0` plain land, `0x10` road, `0x20` ocean,
+    /// `0x30` forest.
+    pub const SURFACE: u16 = 0x30;
+    pub const SURFACE_ROAD: u16 = 0x10;
+    pub const SURFACE_OCEAN: u16 = 0x20;
+    pub const SURFACE_FOREST: u16 = 0x30;
+    /// A second building placed on this tile (`start_me`).
+    pub const PLACED_TWICE: u16 = 0x40;
+    /// A building placed, not yet started, here (`start_me`).
+    pub const PLACED: u16 = 0x80;
+    /// Inside some city's radius (`Wall::mask_city`).
+    pub const CITY_RADIUS: u16 = 0x100;
+    /// Treated as a building (unnamed in the original).
+    pub const AS_BUILDING: u16 = 0x200;
+    /// River.
+    pub const RIVER: u16 = 0x800;
+    /// Next to something blocked (`set_bad_path`).
+    pub const BAD_PATH: u16 = 0x2000;
+    /// Blocked (`set_blocked_at`).
+    pub const BLOCKED: u16 = 0x4000;
 }
 
 impl World {
@@ -204,6 +239,7 @@ impl World {
             who2: vec![Owner::None; n],
             region: vec![None; n],
             regions: Vec::new(),
+            tiles: vec![0; n * (TILES_PER_CELL as usize) * (TILES_PER_CELL as usize)],
         }
     }
 
@@ -309,6 +345,66 @@ impl World {
     /// Who owns the cell a position falls in.
     pub fn owner_at(&self, p: Pos) -> Owner {
         self.owner(p.cell())
+    }
+
+    /// Whether a tile coordinate is on the map — `blocked_tcoord`'s first
+    /// test.
+    pub const fn tile_in_bounds(&self, t: Pos) -> bool {
+        t.x >= 0
+            && t.y >= 0
+            && t.x < self.width * TILES_PER_CELL
+            && t.y < self.height * TILES_PER_CELL
+    }
+
+    fn tile_index(&self, t: Pos) -> Option<usize> {
+        self.tile_in_bounds(t).then(|| {
+            (t.y as usize) * (self.width as usize) * (TILES_PER_CELL as usize) + (t.x as usize)
+        })
+    }
+
+    /// The mask of a tile coordinate (see [`tile`]); zero off the map.
+    pub fn tile_mask(&self, t: Pos) -> u16 {
+        self.tile_index(t).map_or(0, |i| self.tiles[i])
+    }
+
+    /// Sets bits of a tile's mask.
+    pub fn set_tile_bits(&mut self, t: Pos, bits: u16) {
+        if let Some(i) = self.tile_index(t) {
+            self.tiles[i] |= bits;
+        }
+    }
+
+    /// Clears bits of a tile's mask.
+    pub fn clear_tile_bits(&mut self, t: Pos, bits: u16) {
+        if let Some(i) = self.tile_index(t) {
+            self.tiles[i] &= !bits;
+        }
+    }
+
+    /// Replaces a two-bit field of a tile's mask.
+    pub fn set_tile_field(&mut self, t: Pos, field: u16, value: u16) {
+        if let Some(i) = self.tile_index(t) {
+            self.tiles[i] = (self.tiles[i] & !field) | (value & field);
+        }
+    }
+
+    /// The cell a tile coordinate lies in.
+    pub const fn cell_of_tile(t: Pos) -> Cell {
+        Cell {
+            x: floor_div(t.x, TILES_PER_CELL),
+            y: floor_div(t.y, TILES_PER_CELL),
+        }
+    }
+
+    /// The region of the cell under a tile — `WorldData::get_tregion`,
+    /// without the coastal `region2` refinement.
+    pub fn tregion(&self, t: Pos) -> Option<u16> {
+        self.region_of(Self::cell_of_tile(t))
+    }
+
+    /// How many cells a region has — `Region.size`.
+    pub fn region_size(&self, region: u16) -> i32 {
+        self.region.iter().filter(|r| **r == Some(region)).count() as i32
     }
 }
 

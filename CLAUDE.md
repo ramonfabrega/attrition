@@ -162,10 +162,23 @@ better, in which case say so and take that.
    predicates that need a tree loader; what it left open: the flank direction
    convention (a behavioural check) and the `balance.xml` flag-row separator
    (the `RULES=1` log settles it).
-3. **Cities and buildings** — placement, construction, city levels, the
-   `BuildData::construct_time` path `docs/PRODUCTION.md` read but did not
-   implement; garrisons, which combat's tower arrows and the ejection path
-   both wait on; capture, which `take_damage`'s city clamp hands off to.
+3. ~~**Cities and buildings**~~ — **done, 2026-08-20**, `docs/CITIES.md`,
+   `crates/sim/src/build.rs` (the type, the construction clock, the site's
+   hit points, repair, refunds), `place.rs` (the tile layer and the
+   `blocked_site` predicates with the original's `BlockIndex` verdicts),
+   `city.rs` (the record, membership, the automatic level-up, capture,
+   assimilation, the city heal, plunder, default-mode elimination) and
+   `garrison.rs` (the FIFO chain, `can_garrison`, the `do_garrison` gates,
+   one-squad-a-frame ejection, the garrison heal). Read by five readers in
+   parallel, one per sub-area, and re-read blind the same way
+   (`docs/audit/2026-08-20-cities.md`). Two of the first reading's claims were
+   settled in the disassembly rather than the decompile — the argument
+   `do_build` passes and the value `capture_strength` takes — which is the
+   cheap move whenever the decompiler prints a local that cannot be right.
+   What it left as inputs: the nation, wonder and tech layers (`city::Nation`,
+   `build::BuildMods`/`ClockMods`/`HitsMods`), the per-wonder one-offs of
+   `activate`, the AI branches, visibility, the capital-countdown elimination
+   mode.
 4. **AI** — last, because it is the least oracled.
 
 **One mechanic per session.** The document is the handoff: a fresh session

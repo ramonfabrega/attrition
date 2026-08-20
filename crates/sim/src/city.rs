@@ -1,0 +1,2019 @@
+//! Cities and the building lifecycle — `docs/CITIES.md` §3–§5, §7–§9.
+//!
+//! A city is a building with a record behind it: who owns it, whose nation it
+//! is assimilated to, which buildings belong to it, and the stamps that gate
+//! capture and assimilation. This file holds the record, the lifecycle every
+//! typed building goes through (placed → started → active → closed), the
+//! level-up, the capture test and hand-over, the assimilation tick, the city
+//! heal, plunder, and what losing the last city does. The arithmetic it leans
+//! on is `build.rs`'s; the placement predicates are `place.rs`'s; the
+//! garrison `garrison.rs`'s.
+
+use crate::build::{self, Ident, flags};
+use crate::combat::Obj;
+use crate::cost;
+use crate::economy::RESOURCES;
+use crate::place::Blocked;
+use crate::territory;
+use crate::world::{Owner, Pos, UNITS_PER_TILE, tile, vector_dist};
+use crate::{Building, Job, Player, Sim};
+
+/// The nation, wonder and tech inputs this mechanic reads per player — the
+/// `has_tribe_bonus`, `has_wonder` and `has_preq` answers, as inputs until
+/// the layers that produce them exist.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Nation {
+    /// `leader_flags & 4`: a human player. The 75-frame lost-city grace on
+    /// city placement applies to humans only.
+    pub human: bool,
+    pub lakota: bool,
+    pub dutch: bool,
+    pub egyptians: bool,
+    pub indians: bool,
+    pub bantu: bool,
+    pub turks: bool,
+    pub chinese: bool,
+    pub koreans: bool,
+    pub russians: bool,
+    pub aztecs: bool,
+    pub germans: bool,
+    pub maya: bool,
+    pub romans: bool,
+    pub british: bool,
+    pub nubians: bool,
+    /// The Pyramids, Versailles, the Taj Mahal, the Red Fort, Tikal.
+    pub pyramids: bool,
+    pub versailles: bool,
+    pub taj_mahal: bool,
+    pub red_fort: bool,
+    pub tikal: bool,
+    /// The Tobacco rare; `BUILDINGS_CREATED_FASTER`; `COLONIZE_BONUS`;
+    /// `GLOBAL_GOVERNMENT_BONUS`.
+    pub tobacco: bool,
+    pub created_faster: bool,
+    pub colonize_bonus: bool,
+    pub global_government: bool,
+    /// `get_building_speed_upgrade`, `get_building_hp_upgrade`, 0..3.
+    pub speed_upgrade: i32,
+    pub hp_upgrade: i32,
+    /// `get_heal_level`, 0..3.
+    pub heal_level: i32,
+    /// The temple border tech level 1..4 for a city with a temple; 0 none.
+    pub temple_level: i32,
+    /// `FORTGARRISON2..4`: 1..4.
+    pub fort_garrison_level: i32,
+    /// `disable_building_attrition`.
+    pub disable_building_attrition: bool,
+    /// Whether the player has a Despot or Spitamenes patriot standing by the
+    /// city — the hero cut on plunder.
+    pub plunder_hero: bool,
+}
+
+impl Default for Nation {
+    fn default() -> Nation {
+        Nation {
+            human: true,
+            lakota: false,
+            dutch: false,
+            egyptians: false,
+            indians: false,
+            bantu: false,
+            turks: false,
+            chinese: false,
+            koreans: false,
+            russians: false,
+            aztecs: false,
+            germans: false,
+            maya: false,
+            romans: false,
+            british: false,
+            nubians: false,
+            pyramids: false,
+            versailles: false,
+            taj_mahal: false,
+            red_fort: false,
+            tikal: false,
+            tobacco: false,
+            created_faster: false,
+            colonize_bonus: false,
+            global_government: false,
+            speed_upgrade: 0,
+            hp_upgrade: 0,
+            heal_level: 0,
+            temple_level: 0,
+            fort_garrison_level: 1,
+            disable_building_attrition: false,
+            plunder_hero: false,
+        }
+    }
+}
+
+/// `LeaderData::cities_built`, `cities_captured`, `cities_lost`, and the
+/// frame the capital was last lost.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Tally {
+    pub built: i32,
+    pub captured: i32,
+    pub lost: i32,
+    pub lost_capital_frame: Option<i64>,
+    /// `leader_flags & 0x400000`: the first capital loss has been plundered.
+    pub capital_plundered: bool,
+}
+
+/// A city record — `CityData`, as far as this mechanic reads it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct City {
+    /// `city_flags & 1`.
+    pub alive: bool,
+    pub owner: Player,
+    /// `race`: the nation the city is assimilated to. `None` is the −1 of a
+    /// record that has not been founded; `!= Some(owner)` is unassimilated.
+    pub race: Option<Player>,
+    pub founder: Player,
+    /// The city building — the head of the member chain.
+    pub building: usize,
+    /// The other members, in the order they joined.
+    pub members: Vec<usize>,
+    pub reg: Option<u16>,
+    pub pos: Pos,
+    /// `city_flags & 0x10`, `0x4000`, `0x8000`, `0x100`, `0x2`, `0x40`.
+    pub capital: bool,
+    pub founding_capital: bool,
+    pub was_founding_capital: bool,
+    pub unassimilated: bool,
+    pub no_heal: bool,
+    pub alarm: bool,
+    /// `was_capital_flags`, a bit per player.
+    pub was_capital: u64,
+    /// `capture_stamp`, `assimilation_timer`, `attack_stamp` — frames; zero
+    /// on founding, the current frame on a transfer.
+    pub capture_stamp: i64,
+    pub assimilation_timer: i64,
+    pub attack_stamp: i64,
+    pub capture_strength: i32,
+    /// `get_pop_value`, kept for the record.
+    pub pop: i32,
+    /// The Citizen patriot is in this city.
+    pub has_citizen: bool,
+    /// This city's entry in [`Sim::sources`], while it projects territory.
+    pub source: Option<usize>,
+}
+
+/// Why a placement order was refused — `Group::action_build`'s three gates.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PlaceFail {
+    Blocked(Blocked),
+    CityLimit,
+    Cost,
+}
+
+/// What a unit counts for in a capture — `UnitData::get_capture_value`: a
+/// decoy or siege type counts nothing; anything else at least one.
+pub const fn capture_value(siege: bool, squad: i32, figures: i32) -> i32 {
+    if siege {
+        return 0;
+    }
+    let v = if squad < figures { squad } else { figures };
+    if v < 1 { 1 } else { v }
+}
+
+/// `ObjectData::health_level`: 0 at ≥ 90 %, 1 ≥ 75 %, 2 ≥ 50 %, 3 ≥ 25 %,
+/// 4 ≥ 10 %, 5 ≥ 1 hit, 6 none left.
+pub const fn health_level(hits: i32, damage: i32) -> i32 {
+    let mut left = hits - damage;
+    if left < 0 {
+        left = 0;
+    }
+    if left > hits {
+        left = hits;
+    }
+    if left >= hits * 90 / 100 {
+        0
+    } else if left >= hits * 75 / 100 {
+        1
+    } else if left >= hits * 50 / 100 {
+        2
+    } else if left >= hits * 25 / 100 {
+        3
+    } else if left >= hits * 10 / 100 {
+        4
+    } else if left >= 1 {
+        5
+    } else {
+        6
+    }
+}
+
+/// `LeaderData::get_radius` without the sim: the level's radius in tiles.
+pub const fn radius_for_level(t: &crate::Tuning, level: i32, indians: bool) -> i32 {
+    let mut r = t.city_center_radius + (level - 1) * t.city_center_pop_radius;
+    if indians {
+        r += t.indians_city_radius;
+    }
+    if r > 64 { 64 } else { r }
+}
+
+/// `CityData::get_pop_value`: 1, 3, 5 by level.
+pub const fn pop_value(level: i32) -> i32 {
+    match level {
+        2 => 3,
+        3 => 5,
+        _ => 1,
+    }
+}
+
+/// How close a builder must stand: its tile within one tile of the
+/// footprint (on it counts too, since movement here does not path around
+/// buildings) — `docs/CITIES.md` §11.
+fn adjacent(corner: Pos, xs: i32, ys: i32, at: Pos) -> bool {
+    let t = at.tile();
+    t.x >= corner.x - 1 && t.x <= corner.x + xs && t.y >= corner.y - 1 && t.y <= corner.y + ys
+}
+
+impl Sim {
+    // ------------------------------------------------------------------
+    // Small accessors
+    // ------------------------------------------------------------------
+
+    /// The ident of a building's type, `Other` for the bare object.
+    pub fn building_ident(&self, b: usize) -> Ident {
+        self.buildings[b]
+            .ty
+            .map_or(Ident::Other, |t| self.build_types[t].ident)
+    }
+
+    fn building_is(&self, b: usize, ident: Ident) -> bool {
+        self.buildings[b]
+            .ty
+            .is_some_and(|t| build::is(&self.build_types, t, ident))
+    }
+
+    /// Whether a building is a city — `flags & 0x20`.
+    pub fn building_is_city(&self, b: usize) -> bool {
+        self.building_is(b, Ident::Village)
+    }
+
+    /// `LeaderData::get_radius(who, type)`: in tiles, capped at 64.
+    pub fn city_radius(&self, who: Player, ty: Option<usize>) -> i32 {
+        let level = ty.map_or(1, |t| build::city_level(&self.build_types, t).max(1));
+        radius_for_level(&self.tuning, level, self.nation[who as usize].indians)
+    }
+
+    /// `CityData::get_level`.
+    pub fn city_level_of(&self, c: usize) -> i32 {
+        self.buildings[self.cities[c].building]
+            .ty
+            .map_or(1, |t| build::city_level(&self.build_types, t).max(1))
+    }
+
+    /// The city's radius, `CityData::get_radius`.
+    pub fn radius_of(&self, c: usize) -> i32 {
+        let city = &self.cities[c];
+        self.city_radius(city.owner, self.buildings[city.building].ty)
+    }
+
+    /// `CityData::count_buildings(t, exact = 0, active_only)`: members,
+    /// including the city building, whose type `is(t, 0)`.
+    pub fn count_buildings(&self, c: usize, ident: Ident, active_only: bool) -> i32 {
+        let city = &self.cities[c];
+        std::iter::once(city.building)
+            .chain(city.members.iter().copied())
+            .filter(|&b| {
+                let bd = &self.buildings[b];
+                bd.alive && (!active_only || bd.active) && self.building_is(b, ident)
+            })
+            .count() as i32
+    }
+
+    /// `CityData::num_buildings`: alive, active members — the city building
+    /// counts itself.
+    pub fn num_buildings(&self, c: usize) -> i32 {
+        let city = &self.cities[c];
+        std::iter::once(city.building)
+            .chain(city.members.iter().copied())
+            .filter(|&b| self.buildings[b].alive && self.buildings[b].active)
+            .count() as i32
+    }
+
+    /// `CityData::num_wonders(exclude_city)`: finished wonders on the chain,
+    /// never the Red Fort, and not the city building itself when asked.
+    pub fn num_wonders(&self, c: usize, exclude_city: bool) -> i32 {
+        let city = &self.cities[c];
+        std::iter::once(city.building)
+            .chain(city.members.iter().copied())
+            .filter(|&b| {
+                let bd = &self.buildings[b];
+                bd.alive
+                    && bd.active
+                    && bd.ty.is_some_and(|t| self.build_types[t].wonder)
+                    && !self.building_is(b, Ident::RedFort)
+                    && !(exclude_city && self.building_is_city(b))
+            })
+            .count() as i32
+    }
+
+    /// `CityData::get_farm_limit`.
+    pub fn farm_limit(&self, c: usize) -> i32 {
+        let n = &self.nation[self.cities[c].owner as usize];
+        let base = if n.egyptians {
+            self.tuning.egyptian_farms_per_city_base
+        } else {
+            self.tuning.farms_per_city_base
+        };
+        base + (self.city_level_of(c) - 1) * self.tuning.farms_per_city_level
+    }
+
+    /// Whether the city holds an active building of a kind — the
+    /// `city_flags` bits `0x80`/`0x200`/`0x400`/`0x800`, derived.
+    pub fn city_has(&self, c: usize, ident: Ident) -> bool {
+        self.count_buildings(c, ident, true) > 0
+    }
+
+    /// `BuildData::is_unassimilated`: in a city whose race is not the owner,
+    /// and either the city itself or a type that needs a city.
+    pub fn building_unassimilated(&self, b: usize) -> bool {
+        let bd = &self.buildings[b];
+        let Some(c) = bd.city else {
+            return false;
+        };
+        let city = &self.cities[c];
+        city.alive
+            && city.race != Some(bd.owner)
+            && (self.building_is_city(b)
+                || bd
+                    .ty
+                    .is_some_and(|t| !self.build_types[t].has(flags::NO_CITY)))
+    }
+
+    /// `CityData::is_unassimilated`.
+    pub fn city_unassimilated(&self, c: usize) -> bool {
+        let city = &self.cities[c];
+        city.race != Some(city.owner)
+    }
+
+    // ------------------------------------------------------------------
+    // The record
+    // ------------------------------------------------------------------
+
+    /// `Cities::init_city` → `City::init`: a record for a city building.
+    fn init_city(&mut self, who: Player, b: usize, transfer: bool, capital: bool) -> usize {
+        let pos = self.buildings[b].pos;
+        let stamp = if transfer { self.frame } else { 0 };
+        let reg = self.world.region_of(pos.cell());
+        let city = City {
+            alive: true,
+            owner: who,
+            race: None,
+            founder: who,
+            building: b,
+            members: Vec::new(),
+            reg,
+            pos,
+            capital,
+            founding_capital: capital,
+            was_founding_capital: false,
+            unassimilated: false,
+            no_heal: false,
+            alarm: false,
+            was_capital: 0,
+            capture_stamp: stamp,
+            assimilation_timer: stamp,
+            attack_stamp: stamp,
+            capture_strength: 0,
+            pop: 0,
+            has_citizen: false,
+            source: None,
+        };
+        let c = match self.cities.iter().position(|c| !c.alive) {
+            Some(i) => {
+                self.cities[i] = city;
+                i
+            }
+            None => {
+                self.cities.push(city);
+                self.cities.len() - 1
+            }
+        };
+        self.cities[c].pop = pop_value(self.city_level_of(c));
+        self.buildings[b].city = Some(c);
+        c
+    }
+
+    /// `City::close`: the record dies; members re-home.
+    fn close_city(&mut self, c: usize, captor: Option<Player>) {
+        let owner = self.cities[c].owner;
+        let was_capital = self.cities[c].capital;
+        self.cities[c].alive = false;
+        self.lost_city_stamp[owner as usize] = Some(self.frame);
+        self.remove_source_of_city(c);
+        let members = std::mem::take(&mut self.cities[c].members);
+        for m in members {
+            self.buildings[m].city = None;
+            if self.buildings[m].alive && !self.building_is_city(m) {
+                self.find_city(m);
+            }
+        }
+        self.lost_a_city(owner, was_capital, captor);
+        self.sync_pop_cities();
+        self.sync_territory();
+    }
+
+    /// `Leader::lost_a_city` in the default elimination mode: a player with no
+    /// city left is defeated.
+    fn lost_a_city(&mut self, who: Player, _was_capital: bool, captor: Option<Player>) {
+        if self.city_num(who) == 0 {
+            self.defeat(who, captor);
+        }
+    }
+
+    /// `Leader::defeat` → `defeat_by`: the loser's cities go to the captor
+    /// (or to their living allied founder), their military trainers inside
+    /// the captor's cities too, everything else dies; queues and orders are
+    /// cleared.
+    pub fn defeat(&mut self, who: Player, by: Option<Player>) {
+        if self.defeated[who as usize] {
+            return;
+        }
+        self.defeated[who as usize] = true;
+        if let Some(by) = by {
+            for c in 0..self.cities.len() {
+                if !self.cities[c].alive || self.cities[c].owner != who {
+                    continue;
+                }
+                let founder = self.cities[c].founder;
+                let race = self.cities[c].race;
+                let taker = if founder != who
+                    && founder != by
+                    && self.is_ally(by, founder)
+                    && !self.defeated[founder as usize]
+                {
+                    founder
+                } else if let Some(r) = race
+                    && r != who
+                    && r != by
+                    && self.is_ally(by, r)
+                    && !self.defeated[r as usize]
+                {
+                    r
+                } else {
+                    by
+                };
+                self.capture_city(taker, c, who);
+            }
+        }
+        for b in 0..self.buildings.len() {
+            if !self.buildings[b].alive || self.buildings[b].owner != who {
+                continue;
+            }
+            if !self.buildings[b].active {
+                self.die_building(b);
+                continue;
+            }
+            let trainer = self.buildings[b].ty.is_some_and(|t| {
+                matches!(
+                    self.build_types[t].ident,
+                    Ident::Barracks
+                        | Ident::Stable
+                        | Ident::AutoPlant
+                        | Ident::SiegeFactory
+                        | Ident::Factory
+                        | Ident::Dock
+                        | Ident::Airbase
+                )
+            });
+            if let Some(by) = by
+                && trainer
+                && self.find_city_at(by, self.buildings[b].pos, None).is_some()
+                && let Some(n) = self.swap_team(b, by)
+            {
+                self.activate(n, false, false);
+                self.close_building(b, true);
+                continue;
+            }
+            self.die_building(b);
+        }
+        for u in &mut self.units {
+            if u.owner == who {
+                u.job = None;
+                u.combat.target = None;
+                u.movement.dest = None;
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Membership
+    // ------------------------------------------------------------------
+
+    /// `Build::find_city`: a non-city building joins its owner's nearest
+    /// covering city, through `get_town`.
+    pub fn find_city(&mut self, b: usize) -> Option<usize> {
+        if self.building_is_city(b) {
+            return self.buildings[b].city;
+        }
+        if self.buildings[b].city.is_some() {
+            self.remove_from_city(b);
+        }
+        let (who, pos, ty) = {
+            let bd = &self.buildings[b];
+            (bd.owner, bd.pos, bd.ty?)
+        };
+        let c = self.get_town(who, ty, pos)?;
+        self.add_to_city(b, c);
+        Some(c)
+    }
+
+    /// `Build::add_to_city`.
+    pub fn add_to_city(&mut self, b: usize, c: usize) {
+        self.buildings[b].city = Some(c);
+        if self.building_is_city(b) {
+            return;
+        }
+        if !self.cities[c].members.contains(&b) {
+            self.cities[c].members.push(b);
+        }
+        if self.buildings[b].active && self.building_is(b, Ident::Temple) {
+            self.sync_territory();
+        }
+    }
+
+    /// `Build::remove_from_city`.
+    pub fn remove_from_city(&mut self, b: usize) {
+        if let Some(c) = self.buildings[b].city.take() {
+            self.cities[c].members.retain(|&m| m != b);
+            if self.buildings[b].active && self.building_is(b, Ident::Temple) {
+                self.sync_territory();
+            }
+        }
+    }
+
+    /// `City::find_buildings`: the radius sweep — own city-bound buildings
+    /// inside the radius join; foreign ones that need a city are converted.
+    /// Ends in `check_upgrade`.
+    pub fn find_buildings(&mut self, c: usize) {
+        let (who, pos) = (self.cities[c].owner, self.cities[c].pos);
+        let r = self.radius_of(c).min(64);
+        let ct = pos.tile();
+        for b in 0..self.buildings.len() {
+            let bd = &self.buildings[b];
+            if !bd.alive || bd.city.is_some() || self.building_is_city(b) {
+                continue;
+            }
+            let Some(ty) = bd.ty else {
+                continue;
+            };
+            let p = bd.owner;
+            if p != who && self.build_types[ty].has(flags::NO_CITY) {
+                continue;
+            }
+            let bt = bd.pos.tile();
+            if vector_dist(ct.x - bt.x, ct.y - bt.y) > r {
+                continue;
+            }
+            if p == who {
+                self.add_to_city(b, c);
+            } else if let Some(n) = self.swap_team(b, who) {
+                self.activate(n, false, false);
+                self.close_building(b, true);
+            } else {
+                self.die_building(b);
+            }
+        }
+        self.check_upgrade(c);
+    }
+
+    /// `CityData::enough_kinds(n)`: at least `n` distinct completed building
+    /// types on the chain, the city itself first.
+    pub fn enough_kinds(&self, c: usize, n: i32) -> bool {
+        let n = n.min(24);
+        let city = &self.cities[c];
+        let mut kinds: Vec<usize> = Vec::new();
+        for b in std::iter::once(city.building).chain(city.members.iter().copied()) {
+            let bd = &self.buildings[b];
+            if !bd.alive || !bd.active {
+                continue;
+            }
+            let Some(t) = bd.ty else { continue };
+            if !kinds.contains(&t) {
+                kinds.push(t);
+                if kinds.len() as i32 >= n {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    /// `CityData::num_kinds`: the same count, unbounded.
+    pub fn num_kinds(&self, c: usize) -> i32 {
+        let city = &self.cities[c];
+        let mut kinds: Vec<usize> = Vec::new();
+        for b in std::iter::once(city.building).chain(city.members.iter().copied()) {
+            let bd = &self.buildings[b];
+            if bd.alive
+                && bd.active
+                && let Some(t) = bd.ty
+                && !kinds.contains(&t)
+            {
+                kinds.push(t);
+            }
+        }
+        kinds.len() as i32
+    }
+
+    /// `CityData::ready_to_upgrade`: not at the top, the next level
+    /// available to the owner, and enough kinds.
+    pub fn ready_to_upgrade(&self, c: usize) -> Option<usize> {
+        let city = &self.cities[c];
+        let t = self.buildings[city.building].ty?;
+        let next = build::upgrades_to(&self.build_types, t)?;
+        if let Some(id) = self.build_types[next].tree
+            && self.type_avail(city.owner, id) != crate::tech::AVAILABLE
+        {
+            return None;
+        }
+        let needed = match self.build_types[next].ident {
+            Ident::Town => self.tuning.city_buildings + 1,
+            _ => self.tuning.metro_buildings + 1,
+        };
+        self.enough_kinds(c, needed).then_some(next)
+    }
+
+    /// `City::check_upgrade`: the automatic level-up.
+    pub fn check_upgrade(&mut self, c: usize) {
+        let Some(next) = self.ready_to_upgrade(c) else {
+            return;
+        };
+        let b = self.cities[c].building;
+        self.set_type(b, next);
+        self.mask_city(c, true);
+        self.update_all_hits();
+        self.find_buildings(c);
+        self.cities[c].pop = pop_value(self.city_level_of(c));
+        self.sync_pop_cities();
+        self.sync_territory();
+    }
+
+    /// `Wall::set_type`: the building becomes another type of the same
+    /// lineage; its damage is kept.
+    fn set_type(&mut self, b: usize, ty: usize) {
+        self.buildings[b].ty = Some(ty);
+        self.buildings[b].combat = Some(self.build_types[ty].combat.unwrap_or_default());
+        self.update_hits(b);
+    }
+
+    // ------------------------------------------------------------------
+    // Territory and the population cap
+    // ------------------------------------------------------------------
+
+    /// The territory sources the cities and forts project, rebuilt from the
+    /// records — and the borders recomputed wholesale (`docs/ATTRITION.md`'s
+    /// stated simplification).
+    pub fn sync_territory(&mut self) {
+        // Drop every source a city or fort owns, keep the ones tests put in
+        // by hand, then add the live ones back.
+        let mut owned: Vec<usize> = self
+            .cities
+            .iter()
+            .filter_map(|c| c.source)
+            .chain(self.buildings.iter().filter_map(|b| b.fort_source))
+            .collect();
+        owned.sort_unstable();
+        owned.dedup();
+        for i in owned.into_iter().rev() {
+            self.sources.remove(i);
+        }
+        for c in &mut self.cities {
+            c.source = None;
+        }
+        for b in &mut self.buildings {
+            b.fort_source = None;
+        }
+        for c in 0..self.cities.len() {
+            if !self.cities[c].alive {
+                continue;
+            }
+            let city = &self.cities[c];
+            let owner = city.owner;
+            let level = (self.city_level_of(c) - 1).clamp(0, 2) as usize;
+            let src = territory::city_source(
+                &self.tuning,
+                owner,
+                &self.borders[owner as usize],
+                &territory::City {
+                    pos: city.pos,
+                    level,
+                    capital: city.capital,
+                    temple: self.city_has(c, Ident::Temple),
+                    owner_agrees: true,
+                },
+            );
+            self.sources.push(src);
+            self.cities[c].source = Some(self.sources.len() - 1);
+        }
+        for b in 0..self.buildings.len() {
+            let bd = &self.buildings[b];
+            if !bd.alive
+                || !bd.active
+                || !bd.ty.is_some_and(|t| build::is_fort(&self.build_types, t))
+            {
+                continue;
+            }
+            let src = territory::fort_source(
+                &self.tuning,
+                bd.owner,
+                &self.borders[bd.owner as usize],
+                &territory::Fort {
+                    pos: bd.pos,
+                    red_fort: self.building_ident(b) == Ident::RedFort,
+                },
+            );
+            self.sources.push(src);
+            self.buildings[b].fort_source = Some(self.sources.len() - 1);
+        }
+        self.recompute_territory();
+        self.update_territory_holdings();
+    }
+
+    fn remove_source_of_city(&mut self, c: usize) {
+        // Rebuilt wholesale by `sync_territory`; nothing to do here beyond
+        // marking, which the `alive` flag already does.
+        let _ = c;
+    }
+
+    /// `Leader::calc_pop_cap`'s city term: every live city's level into the
+    /// owner's [`cost::PopBonuses::cities`].
+    pub fn sync_pop_cities(&mut self) {
+        for m in &mut self.muster {
+            m.bonuses.cities.clear();
+        }
+        for c in 0..self.cities.len() {
+            if !self.cities[c].alive {
+                continue;
+            }
+            let level = match self.city_level_of(c) {
+                2 => cost::CityLevel::Town,
+                3 => cost::CityLevel::Metropolis,
+                _ => cost::CityLevel::Village,
+            };
+            let owner = self.cities[c].owner as usize;
+            self.muster[owner].bonuses.cities.push(level);
+        }
+        self.recompute_pop_caps();
+    }
+
+    // ------------------------------------------------------------------
+    // Placement and construction
+    // ------------------------------------------------------------------
+
+    /// What a building of a type costs a player now — `get_cost` through
+    /// `docs/COSTS.md`'s ramp, with the count of this type the player has
+    /// placed.
+    pub fn building_price(&self, who: Player, ty: usize) -> [i32; RESOURCES] {
+        let of_type = self
+            .buildings
+            .iter()
+            .filter(|b| b.alive && b.owner == who && b.ty == Some(ty))
+            .count() as i32;
+        let holdings = &self.holdings[who as usize];
+        cost::charges(
+            &self.tuning,
+            &self.build_types[ty].price,
+            cost::Counts {
+                of_type,
+                of_group: 0,
+            },
+            &cost::Modifiers::default(),
+            &holdings.available,
+            &holdings.discovered,
+            &self.redirects,
+        )
+    }
+
+    /// `Group::action_build`: the player's order — the site, the city limit,
+    /// the price, then the building. Returns its index.
+    pub fn place_building(&mut self, who: Player, ty: usize, pos: Pos) -> Result<usize, PlaceFail> {
+        let r = self.blocked_site(Some(who), ty, pos, None);
+        if r != Blocked::Clear {
+            return Err(PlaceFail::Blocked(r));
+        }
+        if build::is_city(&self.build_types, ty)
+            && self.build_types[ty].ident != Ident::ForbiddenCity
+            && self.at_city_limit(who)
+        {
+            return Err(PlaceFail::CityLimit);
+        }
+        let charges = self.building_price(who, ty);
+        let available = self.holdings[who as usize].available;
+        if !cost::can_pay(&charges, &self.ledgers[who as usize], &available, 1) {
+            return Err(PlaceFail::Cost);
+        }
+        cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+        self.economy_changed(who);
+        Ok(self.init_build(who, ty, pos, false))
+    }
+
+    /// `Objects::init_build` → `Build::init` → `Wall::init`: the building
+    /// exists, placed and unstarted; its footprint is reserved, its
+    /// construction time frozen, its hit points at the site's first frame,
+    /// and — if it is not a city — its city chosen. `restore` is the
+    /// "re-creating, not building" flag `Wall::swap_team` passes; nothing this
+    /// mechanic models reads it (the original skips a build particle and the
+    /// `buildings_built` tally), so it is accepted and ignored.
+    pub fn init_build(&mut self, who: Player, ty: usize, pos: Pos, _restore: bool) -> usize {
+        let pos = self.snap_center(ty, pos);
+        let bt = self.build_types[ty].clone();
+        let capacity = if bt.has(flags::DEEP_QUEUE) { 10 } else { 20 };
+        let b = self.buildings.len();
+        self.buildings.push(Building {
+            owner: who,
+            pos,
+            queue: crate::production::Queue::new(capacity),
+            is_library: bt.ident == Ident::Library,
+            combat: Some(bt.combat.unwrap_or_default()),
+            hits: 0,
+            health: 0,
+            damage_frac: 0,
+            active: false,
+            garrison_attack: 0,
+            recharging: 0,
+            target: None,
+            ordered: false,
+            targeted: 0,
+            ty: Some(ty),
+            orig_ty: Some(ty),
+            alive: true,
+            started: false,
+            activated: false,
+            damage: 0,
+            job_counter: 0,
+            job_counter_2: 0,
+            constr_time: 0,
+            construct_hits: 0,
+            helpers: 0,
+            under_attack: 0,
+            eject_pending: false,
+            hold_frames: 0,
+            city: None,
+            garrison: Vec::new(),
+            founder: who,
+            clock: build::ClockMods::default(),
+            hit_frame: None,
+            fort_source: None,
+        });
+        // `start_me(1)`: reserve the footprint.
+        let corner = self.tile_corner(ty, pos);
+        for t in self.footprint(ty, corner) {
+            if self.world.tile_mask(t) & tile::PLACED != 0 {
+                self.world.set_tile_bits(t, tile::PLACED_TWICE);
+            } else {
+                self.world.set_tile_bits(t, tile::PLACED);
+            }
+        }
+        // The clock, once.
+        let n = &self.nation[who as usize];
+        let mods = build::BuildMods {
+            maya: n.maya,
+            created_faster: n.created_faster,
+            versailles: n.versailles,
+            tobacco: n.tobacco,
+            british: n.british,
+            dutch: n.dutch,
+            romans: n.romans,
+            no_city: self.city_num(who) == 0,
+            speed_upgrade: n.speed_upgrade,
+        };
+        self.buildings[b].constr_time =
+            build::construct_base(&self.tuning, &self.build_types, ty, &mods);
+        self.update_hits(b);
+        // Membership is decided at placement, restoring or not.
+        if !build::is_city(&self.build_types, ty) {
+            self.find_city(b);
+        }
+        b
+    }
+
+    /// `BuildData::construct_time(0)` for a building.
+    pub fn construct_time_of(&self, b: usize) -> i32 {
+        let bd = &self.buildings[b];
+        match bd.ty {
+            Some(t) => build::construct_time(
+                &self.tuning,
+                &self.build_types[t],
+                bd.constr_time,
+                &bd.clock,
+            ),
+            None => 1,
+        }
+    }
+
+    /// `Wall::update_hits`: the full figure and the site's growing one.
+    pub fn update_hits(&mut self, b: usize) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let bd = &self.buildings[b];
+        let owner = bd.owner as usize;
+        let n = &self.nation[owner];
+        let (city_level, has_temple) = match bd.city {
+            Some(c) if self.cities[c].alive => {
+                (self.city_level_of(c), self.city_has(c, Ident::Temple))
+            }
+            _ => (0, false),
+        };
+        let m = build::HitsMods {
+            maya: n.maya,
+            romans: n.romans,
+            hp_upgrade: n.hp_upgrade,
+            taj_mahal: n.taj_mahal,
+            red_fort: n.red_fort,
+            nubians: n.nubians,
+            tikal: n.tikal,
+            temple_level: n.temple_level,
+        };
+        let full = build::full_hits(
+            &self.tuning,
+            &self.build_types,
+            ty,
+            bd.active,
+            city_level,
+            has_temple,
+            &m,
+        );
+        let ct = self.construct_time_of(b);
+        let bd = &mut self.buildings[b];
+        bd.hits = full;
+        bd.construct_hits = if bd.active {
+            full
+        } else {
+            build::site_hits(full, bd.job_counter, ct, self.build_types[ty].wonder)
+        };
+        bd.sync_health();
+        if bd.construct_hits <= bd.damage && !bd.garrison.is_empty() {
+            bd.eject_pending = true;
+        }
+    }
+
+    /// `update_hits` on every building — the `leader_flags |= 0x8000000`
+    /// dirty flag's consequence, after a level-up.
+    fn update_all_hits(&mut self) {
+        for b in 0..self.buildings.len() {
+            if self.buildings[b].alive {
+                self.update_hits(b);
+            }
+        }
+    }
+
+    /// `Wall::start` → `Build::start`: the site is committed.
+    pub fn start_building(&mut self, b: usize) {
+        if self.buildings[b].started {
+            return;
+        }
+        let Some(ty) = self.buildings[b].ty else {
+            self.buildings[b].started = true;
+            return;
+        };
+        self.buildings[b].started = true;
+        let corner = self.tile_corner(ty, self.buildings[b].pos);
+        // `kill_competing_buildings`: every other not-started building on a
+        // double-placed footprint tile goes back, refunded in full.
+        let tiles = self.footprint(ty, corner);
+        let mut victims = Vec::new();
+        for t in &tiles {
+            if self.world.tile_mask(*t) & tile::PLACED_TWICE == 0 {
+                continue;
+            }
+            for o in 0..self.buildings.len() {
+                if o == b || !self.buildings[o].alive || self.buildings[o].started {
+                    continue;
+                }
+                let Some(oty) = self.buildings[o].ty else {
+                    continue;
+                };
+                let oc = self.tile_corner(oty, self.buildings[o].pos);
+                let ot = &self.build_types[oty];
+                if t.x >= oc.x
+                    && t.x < oc.x + ot.x_size
+                    && t.y >= oc.y
+                    && t.y < oc.y + ot.y_size
+                    && !victims.contains(&o)
+                {
+                    victims.push(o);
+                }
+            }
+        }
+        for o in victims {
+            self.disband_building(o, true);
+        }
+        self.mask_building(b, true);
+    }
+
+    /// `Wall::mask_me` → `BuildType::mask_me`: the footprint marked (or
+    /// unmarked) and, for a city, its radius.
+    fn mask_building(&mut self, b: usize, on: bool) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let corner = self.tile_corner(ty, self.buildings[b].pos);
+        for t in self.footprint(ty, corner) {
+            if on {
+                self.world
+                    .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
+                self.world
+                    .set_tile_field(t, tile::OBJECT, tile::OBJECT_BUILDING);
+                self.world.set_tile_bits(t, tile::BLOCKED);
+            } else {
+                self.world.set_tile_field(t, tile::OBJECT, 0);
+                self.world
+                    .clear_tile_bits(t, tile::BLOCKED | tile::PLACED | tile::PLACED_TWICE);
+            }
+        }
+        if build::is_city(&self.build_types, ty) {
+            let r = match self.buildings[b].city {
+                Some(c) if self.cities[c].alive => self.radius_of(c),
+                _ => self.city_radius(self.buildings[b].owner, Some(ty)),
+            };
+            let pos = self.buildings[b].pos;
+            for t in self.city_mask_tiles(pos, r) {
+                if on {
+                    self.world.set_tile_bits(t, tile::CITY_RADIUS);
+                } else {
+                    self.world.clear_tile_bits(t, tile::CITY_RADIUS);
+                }
+            }
+            if !on {
+                // `Build::close`: every other alive started city re-lays its
+                // mask, so an overlap survives.
+                for o in 0..self.cities.len() {
+                    if self.cities[o].alive && o != self.buildings[b].city.unwrap_or(usize::MAX) {
+                        self.mask_city(o, true);
+                    }
+                }
+            }
+        }
+    }
+
+    /// `Wall::mask_city` for a city record.
+    fn mask_city(&mut self, c: usize, on: bool) {
+        let r = self.radius_of(c);
+        let pos = self.cities[c].pos;
+        for t in self.city_mask_tiles(pos, r) {
+            if on {
+                self.world.set_tile_bits(t, tile::CITY_RADIUS);
+            } else {
+                self.world.clear_tile_bits(t, tile::CITY_RADIUS);
+            }
+        }
+    }
+
+    /// `Wall::do_construct(amount)`: one builder's contribution this frame.
+    /// Returns whether the building finished.
+    pub fn do_construct(&mut self, b: usize, amount: i32) -> bool {
+        if !self.buildings[b].alive {
+            return false;
+        }
+        if !self.buildings[b].started {
+            let (who, ty, pos) = {
+                let bd = &self.buildings[b];
+                (bd.owner, bd.ty, bd.pos)
+            };
+            if let Some(ty) = ty {
+                let r = self.blocked_site(Some(who), ty, pos, Some(b));
+                let wonder_ok = r == Blocked::Wonder
+                    && self.buildings[b].city.is_some_and(|c| {
+                        self.num_wonders(c, true)
+                            <= 1 + i32::from(self.nation[who as usize].egyptians)
+                    });
+                let ok = matches!(
+                    r,
+                    Blocked::Clear
+                        | Blocked::One
+                        | Blocked::OneOther
+                        | Blocked::Farm
+                        | Blocked::NeedWall
+                ) || wonder_ok;
+                if !ok {
+                    self.disband_building(b, true);
+                    return false;
+                }
+            }
+            self.start_building(b);
+        }
+        if self.buildings[b].active {
+            return false;
+        }
+        let ct = self.construct_time_of(b);
+        let bd = &mut self.buildings[b];
+        let share = build::contribution(amount, bd.helpers);
+        bd.helpers += 1;
+        bd.job_counter_2 += share;
+        bd.job_counter += share;
+        if bd.job_counter >= ct {
+            self.activate(b, false, true);
+            return true;
+        }
+        false
+    }
+
+    /// `Build::activate(captured, announce, counted)` — `docs/CITIES.md` §4.
+    pub fn activate(&mut self, b: usize, captured: bool, counted: bool) {
+        if !self.buildings[b].started {
+            self.start_building(b);
+        }
+        let who = self.buildings[b].owner;
+        let Some(ty) = self.buildings[b].ty else {
+            self.buildings[b].active = true;
+            self.buildings[b].activated = true;
+            return;
+        };
+        // Chinese cities are founded as Large Cities.
+        if build::is_city(&self.build_types, ty)
+            && !captured
+            && self.nation[who as usize].chinese
+            && self.tuning.chinese_large_cities != 0
+            && self.build_types[ty].ident != Ident::ForbiddenCity
+            && let Some(town) = self.build_types.iter().position(|t| t.ident == Ident::Town)
+        {
+            self.buildings[b].ty = Some(town);
+            self.buildings[b].combat = Some(self.build_types[town].combat.unwrap_or_default());
+        }
+        {
+            let bd = &mut self.buildings[b];
+            bd.active = true;
+            bd.activated = true;
+            bd.job_counter = 0;
+            bd.job_counter_2 = 0;
+        }
+        if self.building_is_city(b) {
+            let capital = !captured && self.city_num(who) == 0;
+            let c = self.init_city(who, b, captured, capital);
+            if !captured {
+                self.cities[c].race = Some(who);
+                self.cities[c].founder = who;
+            }
+            if counted {
+                self.city_tally[who as usize].built += 1;
+            }
+            self.mask_city(c, true);
+            self.find_buildings(c);
+            self.sync_pop_cities();
+            self.sync_territory();
+        } else {
+            if let Some(c) = self.buildings[b].city
+                && self.cities[c].alive
+                && self.building_is(b, Ident::Temple)
+            {
+                self.sync_territory();
+            }
+            if build::is_fort(&self.build_types, ty) {
+                self.sync_territory();
+            }
+        }
+        self.update_hits(b);
+        if !self.building_is_city(b)
+            && let Some(c) = self.buildings[b].city
+            && self.cities[c].alive
+        {
+            self.check_upgrade(c);
+        }
+    }
+
+    /// `Object::disband(full)`: the building goes back; the refund is the
+    /// fraction not yet built, or the whole price.
+    pub fn disband_building(&mut self, b: usize, full: bool) {
+        if !self.buildings[b].alive {
+            return;
+        }
+        let who = self.buildings[b].owner;
+        for u in &mut self.units {
+            if matches!(u.job, Some(Job::Build(at)) if at == b) {
+                u.job = None;
+            }
+        }
+        let mut full = full;
+        if self.nation[who as usize].lakota && self.tuning.lakota_raze_price != 0 {
+            full = true;
+        }
+        if let Some(ty) = self.buildings[b].ty {
+            let bd = &self.buildings[b];
+            let ct = self.construct_time_of(b);
+            let partial =
+                !full && !bd.active && bd.job_counter < self.build_types[ty].job_time * 100;
+            if partial || full {
+                let price = self.building_price(who, ty);
+                let ledger = &mut self.ledgers[who as usize];
+                for (g, p) in price.iter().enumerate() {
+                    let r = if full {
+                        *p
+                    } else {
+                        build::refund(*p, ct, bd.job_counter_2)
+                    };
+                    ledger.bucket[g] += r;
+                }
+            }
+        }
+        if !self.buildings[b].started {
+            self.close_building(b, false);
+        } else {
+            self.die_building(b);
+        }
+    }
+
+    /// `Object::die` on a building: close it and keep the slot while the
+    /// garrison streams out.
+    pub fn die_building(&mut self, b: usize) {
+        self.close_building(b, false);
+        self.buildings[b].hold_frames = 1;
+    }
+
+    /// `Build::close` / `Wall::close`. `silent` is reason 5, a transfer:
+    /// the footprint stays marked for the copy that replaces it.
+    pub fn close_building(&mut self, b: usize, silent: bool) {
+        if !self.buildings[b].alive {
+            return;
+        }
+        let who = self.buildings[b].owner;
+        // `clean_queue(refund)`.
+        {
+            let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
+            while !self.buildings[b].queue.items.is_empty() {
+                if let Some(item) = self.buildings[b].queue.unqueue(0, !silent, &mut ledger) {
+                    self.muster[who as usize].queued_by_type[item.ty] -= 1;
+                    self.track_tree_queued(who, item.ty, -1);
+                }
+            }
+            self.ledgers[who as usize] = ledger;
+        }
+        if self.buildings[b].started && !silent {
+            self.mask_building(b, false);
+        } else if let Some(ty) = self.buildings[b].ty {
+            // `start_me(0)`: release the reservation.
+            let corner = self.tile_corner(ty, self.buildings[b].pos);
+            for t in self.footprint(ty, corner) {
+                self.world
+                    .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
+            }
+        }
+        if !self.buildings[b].garrison.is_empty() {
+            self.buildings[b].eject_pending = true;
+        }
+        self.buildings[b].alive = false;
+        self.buildings[b].damage = self.buildings[b].hits_now();
+        self.buildings[b].sync_health();
+        self.removed.push(b);
+        self.forget(Obj::Building(b));
+        for u in &mut self.units {
+            if matches!(u.job, Some(Job::Build(at) | Job::Repair(at)) if at == b) {
+                u.job = None;
+            }
+        }
+        if self.building_is_city(b) {
+            if let Some(c) = self.buildings[b].city
+                && self.cities[c].alive
+                && self.cities[c].building == b
+            {
+                self.close_city(c, None);
+            }
+        } else {
+            self.remove_from_city(b);
+        }
+        if self.buildings[b]
+            .ty
+            .is_some_and(|t| build::is_fort(&self.build_types, t))
+        {
+            self.sync_territory();
+        }
+        self.economy_changed(who);
+    }
+
+    // ------------------------------------------------------------------
+    // Every frame
+    // ------------------------------------------------------------------
+
+    /// `Wall::process` and the Build-specific tail this mechanic owns:
+    /// the under-attack decay, the helpers reset, the building's own
+    /// attrition, deferred ejection, the capture re-test, the assimilation
+    /// tick and the city heal. Queues and combat run from `Sim::tick`.
+    pub(crate) fn process_building(&mut self, b: usize, frame: i64) {
+        if !self.buildings[b].alive {
+            if self.buildings[b].hold_frames > 0 {
+                if self.buildings[b].garrison.is_empty() {
+                    self.buildings[b].hold_frames = 0;
+                } else {
+                    self.process_ejection(b);
+                }
+            }
+            return;
+        }
+        let phase = frame + b as i64;
+        if phase & 31 == 0 {
+            let bd = &mut self.buildings[b];
+            if bd.under_attack & 0x1 != 0 {
+                bd.under_attack &= !0x1;
+            } else {
+                bd.under_attack &= !0x2;
+            }
+        }
+        self.buildings[b].helpers = 0;
+        // A building in enemy territory bleeds.
+        let who = self.buildings[b].owner;
+        if phase % build::ENEMY_TERRITORY_PERIOD == 0
+            && !self.nation[who as usize].disable_building_attrition
+            && let Owner::Player(t) = self.world.owner_at(self.buildings[b].pos)
+            && t != who
+            && !self.is_ally(who, t)
+        {
+            if !self.buildings[b].started {
+                self.disband_building(b, false);
+                return;
+            }
+            self.building_attrition(b, frame);
+            if !self.buildings[b].alive {
+                return;
+            }
+        }
+        if !self.buildings[b].active {
+            return;
+        }
+        if self.buildings[b].eject_pending {
+            self.process_ejection(b);
+        }
+        // The capture re-test, twice a second, with the nearest enemy land
+        // unit within sixteen tiles.
+        if phase & 63 == 0 && self.capture_eligible(b) {
+            let pos = self.buildings[b].pos;
+            let mut best: Option<(i32, usize)> = None;
+            for (i, u) in self.units.iter().enumerate() {
+                if !u.alive() || !u.on_map || !self.is_enemy(who, u.owner) {
+                    continue;
+                }
+                if !matches!(u.kind.domain, crate::attrition::Domain::Land) {
+                    continue;
+                }
+                let d = vector_dist(u.pos.x - pos.x, u.pos.y - pos.y);
+                if d <= 16 * UNITS_PER_TILE && best.is_none_or(|(bd, _)| d < bd) {
+                    best = Some((d, i));
+                }
+            }
+            if let Some((_, u)) = best
+                && self.check_capture(b, u)
+            {
+                return;
+            }
+        }
+        if self.building_is_city(b)
+            && let Some(c) = self.buildings[b].city
+            && self.cities[c].alive
+        {
+            self.assimilation_tick(c, frame);
+            // The city heal.
+            let bd = &self.buildings[b];
+            if bd.damage != 0
+                && self.cities[c].race == Some(bd.owner)
+                && !self.cities[c].no_heal
+                && self.tuning.city_heal_rate > 0
+                && phase % i64::from(self.tuning.city_heal_rate) == 0
+            {
+                let level = self.city_level_of(c);
+                self.repair_building(b, level);
+            }
+        }
+    }
+
+    /// `Wall::process`'s enemy-territory hit: eight hits through
+    /// `take_damage` with the attrition flag.
+    fn building_attrition(&mut self, b: usize, frame: i64) {
+        let hit = crate::combat::Sixteenths {
+            whole: build::ENEMY_TERRITORY_DAMAGE,
+            frac: 0,
+        };
+        self.damage_building(b, hit, None, frame, true);
+    }
+
+    /// `Build::repair_damage(amount)`.
+    pub fn repair_building(&mut self, b: usize, amount: i32) {
+        let bd = &mut self.buildings[b];
+        let hits = bd.hits_now();
+        bd.damage = bd.damage.clamp(0, hits);
+        bd.damage_frac = 0;
+        bd.damage = (bd.damage - amount).max(0);
+        bd.sync_health();
+    }
+
+    /// The sites' hit points refreshed from their progress — `Wall::inc_time`
+    /// after every object has been processed.
+    pub(crate) fn refresh_site_hits(&mut self) {
+        for b in 0..self.buildings.len() {
+            if self.buildings[b].alive
+                && !self.buildings[b].active
+                && self.buildings[b].ty.is_some()
+            {
+                self.update_hits(b);
+            }
+        }
+    }
+
+    /// `Unit::do_build` / `Unit::do_repair`: one unit's job for one frame.
+    /// Returns whether the unit had a job (and so did not fight).
+    pub(crate) fn process_unit_job(&mut self, i: usize, frame: i64) -> bool {
+        let Some(job) = self.units[i].job else {
+            return false;
+        };
+        let who = self.units[i].owner;
+        let at = match job {
+            Job::Build(at) | Job::Repair(at) => at,
+            Job::Garrison(_) => return false,
+        };
+        if at >= self.buildings.len() || !self.buildings[at].alive {
+            self.units[i].job = None;
+            return true;
+        }
+        let (bpos, ty) = (self.buildings[at].pos, self.buildings[at].ty);
+        let Some(ty) = ty else {
+            self.units[i].job = None;
+            return true;
+        };
+        let corner = self.tile_corner(ty, bpos);
+        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        match job {
+            Job::Build(_) => {
+                if self.buildings[at].active {
+                    self.units[i].job = None;
+                    return true;
+                }
+                if !adjacent(corner, xs, ys, self.units[i].pos) {
+                    self.units[i].movement.dest = Some(bpos);
+                    return true;
+                }
+                self.units[i].movement.dest = None;
+                let amount = build::builder_amount(
+                    &self.tuning,
+                    self.buildings[at].is_under_attack(),
+                    self.nation[who as usize].koreans,
+                );
+                if self.do_construct(at, amount) {
+                    self.units[i].job = None;
+                }
+            }
+            Job::Garrison(_) => return false,
+            Job::Repair(_) => {
+                let bd = &self.buildings[at];
+                let owner_ok = bd.owner == who || self.is_ally(who, bd.owner);
+                let terr_ok =
+                    !matches!(self.world.owner_at(bpos), Owner::Player(p) if self.is_enemy(who, p));
+                if !owner_ok || !bd.active || bd.is_under_attack() || !terr_ok || bd.damage == 0 {
+                    self.units[i].job = None;
+                    return true;
+                }
+                if !adjacent(corner, xs, ys, self.units[i].pos) {
+                    self.units[i].movement.dest = Some(bpos);
+                    return true;
+                }
+                self.units[i].movement.dest = None;
+                let (city, captured) = match bd.city {
+                    Some(c) if self.building_is_city(at) && self.cities[c].alive => {
+                        (true, self.cities[c].race != Some(bd.owner))
+                    }
+                    _ => (false, false),
+                };
+                let target = build::RepairTarget {
+                    helpers: bd.helpers,
+                    construct_time: self.construct_time_of(at),
+                    hits: bd.hits_now(),
+                    city,
+                    captured,
+                    under_attack: bd.is_under_attack(),
+                    fresh_hit: bd.under_attack & 0x1 != 0,
+                };
+                let period =
+                    build::repair_period(&self.tuning, &target, self.nation[who as usize].koreans);
+                self.buildings[at].helpers += 1;
+                let amount = build::repair_amount(frame, period, self.buildings[at].damage);
+                if amount == 0 {
+                    return true;
+                }
+                // The price, again: one unit of a good whenever the repaired
+                // figure crosses a multiple of `hits / cost`. Pinned as the
+                // exact rational.
+                let hits = i64::from(self.buildings[at].hits_now());
+                let left = i64::from(hits as i32 - self.buildings[at].damage);
+                let price = self.building_price(who, ty);
+                let mut due = [0i32; RESOURCES];
+                for (g, p) in price.iter().enumerate() {
+                    if *p <= 0 || hits <= 0 {
+                        continue;
+                    }
+                    let before = left * i64::from(*p) / hits;
+                    let after = (left + i64::from(amount)) * i64::from(*p) / hits;
+                    if after > before {
+                        due[g] = 1;
+                    }
+                }
+                let ledger = &mut self.ledgers[who as usize];
+                if due.iter().enumerate().any(|(g, d)| *d > ledger.bucket[g]) {
+                    self.units[i].job = None;
+                    return true;
+                }
+                for (g, d) in due.iter().enumerate() {
+                    ledger.bucket[g] -= d;
+                }
+                self.repair_building(at, amount);
+            }
+        }
+        true
+    }
+
+    // ------------------------------------------------------------------
+    // Capture
+    // ------------------------------------------------------------------
+
+    /// `BuildData::check_capture_eligible`: a city building, active, at zero.
+    pub fn capture_eligible(&self, b: usize) -> bool {
+        let bd = &self.buildings[b];
+        bd.alive
+            && bd.active
+            && self.building_is_city(b)
+            && health_level(bd.hits_now(), bd.damage) > 5
+    }
+
+    /// `Build::check_capture(B, o, who)` with an enemy unit as the would-be
+    /// captor. Returns whether ownership changed. `docs/CITIES.md` §7.2.
+    pub fn check_capture(&mut self, b: usize, unit: usize) -> bool {
+        if !self.capture_eligible(b) {
+            return false;
+        }
+        if !self.buildings[b].garrison.is_empty() {
+            self.buildings[b].eject_pending = true;
+            return false;
+        }
+        let owner = self.buildings[b].owner;
+        let u = &self.units[unit];
+        let a = u.owner;
+        if (a == owner || self.is_ally(owner, a)) && !self.defeated[owner as usize] {
+            return false;
+        }
+        if self.defeated[a as usize] {
+            return false;
+        }
+        if !matches!(u.kind.domain, crate::attrition::Domain::Land) || !u.alive() {
+            return false;
+        }
+        if self.attack_of(Obj::Unit(unit)) == 0 {
+            return false;
+        }
+        let Some(c) = self.buildings[b].city else {
+            return false;
+        };
+        if self.frame - self.cities[c].capture_stamp <= 74 {
+            return false;
+        }
+        let radius = self.tuning.city_capture_radius;
+        let dist_max = radius * UNITS_PER_TILE;
+        let bpos = self.buildings[b].pos;
+        let land = self.world.region_of(bpos.cell());
+        let def_base = if self.frame - self.cities[c].capture_stamp < 900 {
+            self.cities[c].capture_strength
+        } else {
+            2
+        };
+        let mine = self.unit_capture_value(unit);
+        let mut per_player = vec![0i32; self.players.len()];
+        per_player[a as usize] = mine;
+        per_player[owner as usize] += def_base;
+        let mut attackers = mine;
+        let mut defenders = def_base;
+        let side = |s: &Sim, p: Player, v: i32, attackers: &mut i32, defenders: &mut i32| {
+            if p == a || (s.is_ally(a, p) && s.is_enemy(owner, p)) {
+                *attackers += v;
+            } else if p == owner || (s.is_ally(owner, p) && s.is_enemy(a, p)) {
+                *defenders += v;
+            }
+        };
+        for (i, x) in self.units.iter().enumerate() {
+            if i == unit || !x.alive() || !x.on_map {
+                continue;
+            }
+            if !matches!(x.kind.domain, crate::attrition::Domain::Land) {
+                continue;
+            }
+            if self.world.region_of(x.pos.cell()) != land {
+                continue;
+            }
+            if vector_dist(x.pos.x - bpos.x, x.pos.y - bpos.y) > dist_max {
+                continue;
+            }
+            let v = self.unit_capture_value(i);
+            per_player[x.owner as usize] += v;
+            side(self, x.owner, v, &mut attackers, &mut defenders);
+        }
+        for (i, x) in self.buildings.iter().enumerate() {
+            if i == b || !x.alive {
+                continue;
+            }
+            if self.world.region_of(x.pos.cell()) != land {
+                continue;
+            }
+            if vector_dist(x.pos.x - bpos.x, x.pos.y - bpos.y) > dist_max {
+                continue;
+            }
+            let mut v = 1;
+            if x.owner == owner {
+                let fort = x.ty.is_some_and(|t| build::is_fort(&self.build_types, t));
+                v += x.garrison.len() as i32 + if fort { 12 } else { 6 };
+            }
+            per_player[x.owner as usize] += v;
+            side(self, x.owner, v, &mut attackers, &mut defenders);
+        }
+        if defenders >= attackers {
+            return false;
+        }
+        // The captor: the allied player with the most in the radius.
+        let mut taker = a;
+        let mut best = 0;
+        for p in 0..self.players.len() {
+            let p = p as Player;
+            if self.defeated[p as usize] || !(p == a || self.is_ally(p, a)) {
+                continue;
+            }
+            if per_player[p as usize] > best {
+                best = per_player[p as usize];
+                taker = p;
+            }
+        }
+        let founder = self.cities[c].founder;
+        let race = self.cities[c].race;
+        if founder != owner
+            && founder != taker
+            && self.is_ally(taker, founder)
+            && !self.defeated[founder as usize]
+        {
+            taker = founder;
+        } else if let Some(r) = race
+            && r != owner
+            && r != taker
+            && self.is_ally(taker, r)
+            && !self.defeated[r as usize]
+        {
+            taker = r;
+        }
+        if let Some(newcity) = self.capture_city(taker, c, owner) {
+            self.cities[newcity].capture_strength = mine;
+        }
+        true
+    }
+
+    /// `UnitData::get_capture_value` for one figure.
+    fn unit_capture_value(&self, i: usize) -> i32 {
+        let u = &self.units[i];
+        let siege = u.kind.siege;
+        capture_value(siege, u.squad_size, 1)
+    }
+
+    /// `Cities::capture_city(A, c, O)`: the hand-over. Returns the new city's
+    /// index. `docs/CITIES.md` §7.3.
+    pub fn capture_city(&mut self, a: Player, c: usize, o: Player) -> Option<usize> {
+        if !self.cities[c].alive {
+            return None;
+        }
+        let old_building = self.cities[c].building;
+        let was_capital = self.cities[c].capital;
+        self.city_tally[o as usize].lost += 1;
+        self.city_tally[a as usize].captured += 1;
+        let mut base;
+        let mut to_close: Vec<usize> = vec![old_building];
+        let newcity = match self.swap_team(old_building, a) {
+            None => {
+                base = 0;
+                for m in self.cities[c].members.clone() {
+                    if self.buildings[m]
+                        .ty
+                        .is_some_and(|t| !self.build_types[t].has(flags::NO_CITY))
+                    {
+                        to_close.push(m);
+                        base += 25;
+                    }
+                }
+                None
+            }
+            Some(n) => {
+                self.activate(n, true, false);
+                let newcity = self.buildings[n]
+                    .city
+                    .expect("a city building activates with a record");
+                base = self.tuning.city_plunder_per_level * (self.city_level_of(newcity) - 1);
+                self.city_capture_record(newcity, c, a, n);
+                for m in self.cities[c].members.clone() {
+                    let Some(t) = self.buildings[m].ty else {
+                        continue;
+                    };
+                    if self.build_types[t].has(flags::NOT_CIVILIAN) {
+                        continue;
+                    }
+                    to_close.push(m);
+                    let farmish = matches!(self.build_types[t].ident, Ident::Farm | Ident::Granary);
+                    if farmish && self.nation[a as usize].lakota {
+                        continue;
+                    }
+                    if self.buildings[m].active
+                        && let Some(nm) = self.swap_team(m, a)
+                    {
+                        self.activate(nm, true, false);
+                        base += 25;
+                    }
+                }
+                self.find_buildings(newcity);
+                Some(newcity)
+            }
+        };
+        self.plunder_on_capture(a, o, c, base, was_capital);
+        for b in to_close {
+            if self.buildings[b].alive {
+                if !self.buildings[b].active {
+                    self.disband_building(b, false);
+                } else {
+                    self.close_building(b, true);
+                }
+            }
+        }
+        if was_capital && self.city_tally[o as usize].lost_capital_frame.is_none() {
+            self.city_tally[o as usize].lost_capital_frame = Some(self.frame);
+        }
+        if let Some(nc) = newcity
+            && self.cities[nc].capital
+        {
+            self.city_tally[a as usize].lost_capital_frame = None;
+        }
+        // The old record.
+        if self.cities[c].alive {
+            self.cities[c].members.clear();
+            self.close_city(c, Some(a));
+        }
+        if let Some(nc) = newcity {
+            let nb = self.cities[nc].building;
+            self.update_hits(nb);
+            let bd = &mut self.buildings[nb];
+            bd.damage = bd.hits_now() - 10;
+            bd.sync_health();
+            self.sync_pop_cities();
+            self.sync_territory();
+        }
+        newcity
+    }
+
+    /// `City::capture(new, old, c, A, o)`: the record hand-over.
+    fn city_capture_record(&mut self, newcity: usize, old: usize, a: Player, n: usize) {
+        let o = self.cities[old].owner;
+        let oldc = self.cities[old].clone();
+        let friendly = o == a || self.is_ally(a, o);
+        let assimilate_now = friendly || self.nation[a as usize].global_government;
+        let nc = &mut self.cities[newcity];
+        nc.owner = a;
+        nc.building = n;
+        nc.attack_stamp = self.frame;
+        nc.reg = oldc.reg;
+        nc.founder = oldc.founder;
+        nc.race = if assimilate_now { Some(a) } else { oldc.race };
+        nc.was_capital = oldc.was_capital;
+        nc.pop = oldc.pop;
+        nc.unassimilated = !friendly;
+        nc.no_heal = oldc.no_heal;
+        if oldc.capital {
+            nc.was_capital |= 1 << o;
+            if oldc.founding_capital {
+                nc.was_founding_capital = true;
+            }
+        }
+        nc.capital = false;
+        nc.founding_capital = false;
+        if nc.was_capital & (1 << a) != 0 {
+            nc.capital = true;
+            nc.was_capital &= !(1 << a);
+            if nc.was_founding_capital && a == nc.founder {
+                nc.founding_capital = true;
+                nc.was_founding_capital = false;
+            }
+            nc.race = Some(a);
+        }
+        if nc.race == Some(a) {
+            nc.unassimilated = false;
+        }
+    }
+
+    /// `Build::swap_team(B, A)` → `Wall::swap_team`: the garrison out, the
+    /// queue cleared, a copy of the building under the new owner with the
+    /// progress and damage carried over. Returns the new index; the old one
+    /// is the caller's to close.
+    pub fn swap_team(&mut self, b: usize, a: Player) -> Option<usize> {
+        let ty = self.buildings[b].ty?;
+        if !self.buildings[b].garrison.is_empty() {
+            self.eject_contents(b, true);
+        }
+        if !self.buildings[b].is_library {
+            let who = self.buildings[b].owner;
+            let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);
+            while !self.buildings[b].queue.items.is_empty() {
+                if let Some(item) = self.buildings[b].queue.unqueue(0, true, &mut ledger) {
+                    self.muster[who as usize].queued_by_type[item.ty] -= 1;
+                    self.track_tree_queued(who, item.ty, -1);
+                }
+            }
+            self.ledgers[who as usize] = ledger;
+        }
+        let pos = self.buildings[b].pos;
+        let n = self.init_build(a, ty, pos, true);
+        let old = self.buildings[b].clone();
+        let bd = &mut self.buildings[n];
+        bd.started = old.started;
+        bd.active = old.active;
+        bd.activated = old.activated;
+        bd.under_attack = old.under_attack;
+        bd.job_counter = old.job_counter;
+        bd.job_counter_2 = old.job_counter_2;
+        bd.constr_time = old.constr_time;
+        bd.construct_hits = old.construct_hits;
+        bd.damage = old.damage;
+        bd.damage_frac = old.damage_frac;
+        bd.founder = old.founder;
+        bd.recharging = old.recharging;
+        bd.clock = old.clock;
+        self.update_hits(n);
+        Some(n)
+    }
+
+    // ------------------------------------------------------------------
+    // Assimilation, plunder
+    // ------------------------------------------------------------------
+
+    /// The assimilation tick of `Build::process` for an unassimilated city.
+    fn assimilation_tick(&mut self, c: usize, frame: i64) {
+        let owner = self.cities[c].owner;
+        if self.cities[c].race == Some(owner) {
+            return;
+        }
+        if self.cities[c].has_citizen {
+            self.cities[c].assimilation_timer +=
+                1 - i64::from(self.tuning.thecitizen_assimilation_speed);
+        }
+        let mut e = frame - self.cities[c].assimilation_timer;
+        if self.nation[owner as usize].turks {
+            e = i64::from(self.tuning.turk_assimilate + 100) * e / 100;
+        }
+        if self.cities[c].founder == owner {
+            e = i64::from(self.tuning.reassimilation + 100) * e / 100;
+        }
+        if e >= i64::from(self.tuning.assimilation_timer) {
+            self.assimilate(c);
+        }
+    }
+
+    /// `City::assimilate`.
+    pub fn assimilate(&mut self, c: usize) {
+        let owner = self.cities[c].owner;
+        self.cities[c].unassimilated = false;
+        if self.cities[c].race != Some(owner) {
+            self.cities[c].race = Some(owner);
+            if self.nation[owner as usize].chinese
+                && self.tuning.chinese_large_cities != 0
+                && let Some(town) = self.build_types.iter().position(|t| t.ident == Ident::Town)
+                && self.building_ident(self.cities[c].building) == Ident::Village
+            {
+                let b = self.cities[c].building;
+                self.set_type(b, town);
+                self.mask_city(c, true);
+            }
+            self.sync_territory();
+        }
+    }
+
+    /// The plunder of `Cities::capture_city` — `docs/CITIES.md` §8.3.
+    fn plunder_on_capture(&mut self, a: Player, o: Player, c: usize, base: i32, was_capital: bool) {
+        if base == 0 && !was_capital {
+            return;
+        }
+        let old = &self.cities[c];
+        if old.unassimilated || (old.capture_stamp != 0 && self.frame - old.capture_stamp < 0x1195)
+        {
+            return;
+        }
+        let hero = self.nation[a as usize].plunder_hero;
+        let russian = self.nation[o as usize].russians && self.tuning.russian_plunder_steal != 0;
+        let first_capital = was_capital && !self.city_tally[o as usize].capital_plundered;
+        let usable: Vec<usize> = (0..5)
+            .filter(|g| {
+                self.holdings[a as usize].available[*g] && self.holdings[o as usize].available[*g]
+            })
+            .collect();
+        if !first_capital {
+            let (take, steal) = if !russian {
+                (
+                    if hero {
+                        self.tuning.thedespot_plunder * base / 100
+                    } else {
+                        base
+                    },
+                    0,
+                )
+            } else {
+                (if hero { base } else { 0 }, base)
+            };
+            if take > 0
+                && let Some(&g) = usable
+                    .iter()
+                    .min_by_key(|g| self.ledgers[a as usize].bucket[**g])
+            {
+                self.ledgers[a as usize].bucket[g] += take;
+            }
+            if steal > 0
+                && let Some(&g) = usable
+                    .iter()
+                    .min_by_key(|g| self.ledgers[o as usize].bucket[**g])
+            {
+                self.ledgers[o as usize].bucket[g] += steal;
+            }
+        } else {
+            self.city_tally[o as usize].capital_plundered = true;
+            let base = base.max(self.tuning.capital_plunder);
+            let (take, steal) = if !russian {
+                (
+                    if hero {
+                        self.tuning.thedespot_plunder * base / 100
+                    } else {
+                        base
+                    },
+                    0,
+                )
+            } else {
+                (if hero { base } else { 0 }, base)
+            };
+            for &g in &usable {
+                self.ledgers[a as usize].bucket[g] += take;
+                self.ledgers[o as usize].bucket[g] += steal;
+            }
+        }
+    }
+
+    /// `Build::plunder(B, o, who)` on a building's death by `killer`.
+    pub(crate) fn plunder_kill(&mut self, b: usize, killer: Player) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let owner = self.buildings[b].owner;
+        let no = &self.nation[owner as usize];
+        if killer == owner && no.lakota && self.tuning.lakota_raze_price != 0 {
+            return;
+        }
+        let bt = &self.build_types[ty];
+        let mut v = bt.plunder_value;
+        let Some(g) = bt.plunder_good else { return };
+        if v == 0 || !self.holdings[killer as usize].available[g] {
+            return;
+        }
+        if no.germans && bt.ident == Ident::Mine {
+            v = (100 - self.tuning.german_mine_cost) * v / 100;
+            if v == 0 {
+                return;
+            }
+        }
+        let bd = &self.buildings[b];
+        if killer == owner {
+            if !bd.activated {
+                return;
+            }
+            if bt.ident == Ident::Temple && no.tikal {
+                v = (100 - self.tuning.tikal_temple_cost) * v / 100;
+            }
+        }
+        if !bd.activated {
+            let ct = self.construct_time_of(b).max(1);
+            let jc2 = bd.job_counter_2.min(ct);
+            v = ((i64::from(v) * i64::from(jc2)) / i64::from(ct)) as i32;
+        } else if killer == owner {
+            let foreign = bd
+                .city
+                .is_some_and(|c| self.cities[c].alive && self.cities[c].race != Some(owner));
+            if foreign {
+                v = self.tuning.plunder * v / 100;
+            }
+        } else {
+            v = self.tuning.plunder * v / 100;
+        }
+        if v == 0 {
+            return;
+        }
+        if self.tuning.aztec_plunder != 0 && killer != owner && self.nation[killer as usize].aztecs
+        {
+            v = (self.tuning.aztec_plunder + 100) * v / 100;
+        }
+        let hero = if killer != owner && self.nation[killer as usize].plunder_hero {
+            self.tuning.thedespot_plunder * v / 100
+        } else {
+            0
+        };
+        if no.russians && self.tuning.russian_plunder_steal != 0 && killer != owner {
+            self.ledgers[owner as usize].bucket[g] += v;
+            self.ledgers[killer as usize].bucket[g] += hero;
+        } else {
+            self.ledgers[killer as usize].bucket[g] += v + hero;
+        }
+    }
+}

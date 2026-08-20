@@ -4,14 +4,16 @@
 //! threads. Everything in it runs in a `#[test]` with no display attached,
 //! which is the property that makes determinism testable at all.
 //!
-//! Eight mechanics run here, and they run together. Borders produce territory,
+//! Ten mechanics run here, and they run together. Borders produce territory,
 //! territory produces damage, supply cancels it, units walk in and out of it
 //! under orders, the ground they hold pays its owner, that income buys the next
 //! unit at a price that climbs with every one already built, the unit takes
-//! time to arrive — and whether it may be bought at all, and what the first
-//! one owns, is the tech tree's to say. Each has a specification written from
-//! the original — `docs/ATTRITION.md`, `docs/SUPPLY.md`, `docs/MOVEMENT.md`,
-//! `docs/ECONOMY.md`, `docs/COSTS.md`, `docs/PRODUCTION.md`, `docs/TECH.md` —
+//! time to arrive — whether it may be bought at all, and what the first one
+//! owns, is the tech tree's to say; units fight, and buildings are placed,
+//! built, garrisoned and captured, and the cities among them grow and fall.
+//! Each has a specification written from the original — `docs/ATTRITION.md`,
+//! `docs/SUPPLY.md`, `docs/MOVEMENT.md`, `docs/ECONOMY.md`, `docs/COSTS.md`,
+//! `docs/PRODUCTION.md`, `docs/TECH.md`, `docs/COMBAT.md`, `docs/CITIES.md` —
 //! and each says how much of itself is established rather than guessed.
 //!
 //! [`Sim::tick`] is where they meet, and the order it does them in is the
@@ -35,11 +37,15 @@
 
 pub mod attrition;
 pub mod balance;
+pub mod build;
+pub mod city;
 pub mod combat;
 pub mod cost;
 pub mod economy;
 pub mod fight;
+pub mod garrison;
 pub mod movement;
+pub mod place;
 pub mod production;
 pub mod supply;
 pub mod tech;
@@ -118,6 +124,26 @@ pub struct Unit {
     /// What combat keeps on the unit: the reload counter, the target, the
     /// overkill record. See `docs/COMBAT.md`.
     pub combat: combat::State,
+    /// The building this unit is garrisoned in — `UnitData::inside_up` when
+    /// it points at a building. `Some` implies `on_map == false`. See
+    /// `docs/CITIES.md` §6.
+    pub inside: Option<usize>,
+    /// The hit points a whole figure carries, what the garrison heal repairs
+    /// up to.
+    pub max_health: i32,
+    /// The construction or repair order the unit is working, if any.
+    pub job: Option<Job>,
+}
+
+/// A builder's order — `Unit::do_build` or `Unit::do_repair` on a building.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Job {
+    /// `BUILD_AT`: walk to the site and advance it.
+    Build(usize),
+    /// `REPAIR`: walk to the building and mend it, paying its price again.
+    Repair(usize),
+    /// `GARRISON`: walk to the building and go inside.
+    Garrison(usize),
 }
 
 /// What a unit needs in order to move.
@@ -207,6 +233,8 @@ pub struct UnitType {
     /// it the type is outside the tree, as every type was before the tree
     /// existed, and [`Muster::researched`] is the whole story.
     pub tree: Option<tech::TypeId>,
+    /// What the type needs in order to garrison — `docs/CITIES.md` §6.4.
+    pub garrison: garrison::UnitTraits,
 }
 
 /// What a player has built, as the price and the population cap see it.
@@ -298,6 +326,9 @@ impl Unit {
                 captain: i32::from(index),
                 ..combat::State::default()
             },
+            inside: None,
+            max_health: health,
+            job: None,
         }
     }
 
@@ -371,20 +402,40 @@ pub struct Sim {
     /// Every delivery of damage so far, newest last. Tests read it; nothing
     /// in the simulation does.
     pub hits: Vec<combat::Hit>,
+    /// The building types — `docs/CITIES.md` §1.5. A building with
+    /// [`Building::ty`] set obeys the placement, construction, city and
+    /// garrison rules; one without is the bare production-and-combat object
+    /// the earlier mechanics used.
+    pub build_types: Vec<build::BuildType>,
+    /// The city records — `docs/CITIES.md` §5.
+    pub cities: Vec<city::City>,
+    /// One per player: the nation, wonder and tech inputs this mechanic reads.
+    pub nation: Vec<city::Nation>,
+    /// One per player: the border bonuses a city or fort of theirs projects,
+    /// `docs/ATTRITION.md`. Zero until something sets them.
+    pub borders: Vec<territory::PlayerBorders>,
+    /// Alliance, as a matrix; `is_ally` needs it both ways.
+    pub allied: Vec<Vec<bool>>,
+    /// Whether each player has been defeated — `leader_flags & 2` clear.
+    pub defeated: Vec<bool>,
+    /// `LeaderData::lost_city_stamp`: the frame each player last lost a city.
+    pub lost_city_stamp: Vec<Option<i64>>,
+    /// `LeaderData::cities_built`, `cities_captured`, `cities_lost`.
+    pub city_tally: Vec<city::Tally>,
+    /// Buildings disbanded or died this frame, for tests.
+    pub removed: Vec<usize>,
     pub frame: i64,
 }
 
-/// A building with a production queue.
-///
-/// The simulation does not model buildings as objects yet — they take no
-/// damage, hold no garrison and occupy no ground. This is the production half
-/// of one, which is what the queue needs and all it needs.
+/// A building: a production queue, a combat profile, and — when it has a
+/// type — a footprint, a construction clock, a city and a garrison.
+/// `docs/CITIES.md` §1.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Building {
     pub owner: Player,
-    /// Where a finished unit appears. `Build::train` places it at the
-    /// building's own position and then puts it inside, so every unit is born
-    /// garrisoned and leaves by the ejection path — which this does not model.
+    /// Its snapped centre. Where a finished unit appears: `Build::train`
+    /// places it at the building's own position and then puts it inside, so
+    /// every unit is born garrisoned and leaves by the ejection path.
     pub pos: Pos,
     pub queue: production::Queue,
     /// Whether this is a library — the original's `is(LIBRARY, 0)`. Two rules
@@ -416,6 +467,69 @@ pub struct Building {
     pub ordered: bool,
     /// `ObjectData::targeted`.
     pub targeted: i32,
+    /// Its type, as an index into [`Sim::build_types`]; `None` for the bare
+    /// object.
+    pub ty: Option<usize>,
+    /// The type it was placed as — `BuildData::orig_type`.
+    pub orig_ty: Option<usize>,
+    /// `flags & 1`: in use. A dead building keeps its slot (and ejects its
+    /// garrison) until `hold_frames` runs out.
+    pub alive: bool,
+    /// `flags & 2`: `Wall::start` has run — the footprint is committed.
+    pub started: bool,
+    /// `build_masks & 0x1000`: has been activated at some point.
+    pub activated: bool,
+    /// `ObjectData::damage`, whole hits taken. [`Building::health`] is kept
+    /// equal to `hits_now − damage` and is what combat reads as the share.
+    pub damage: i32,
+    /// `WallData::job_counter`, `job_counter_2`, `constr_time`,
+    /// `construct_hits`; `docs/CITIES.md` §3.
+    pub job_counter: i32,
+    pub job_counter_2: i32,
+    pub constr_time: i32,
+    pub construct_hits: i32,
+    /// `WallData::helpers`: builders or repairers that contributed this frame.
+    pub helpers: i32,
+    /// `build_masks & 0x10 | 0x20`: the two-stage under-attack latch.
+    pub under_attack: u8,
+    /// `build_masks & 0x4000`: eject one squad a frame.
+    pub eject_pending: bool,
+    /// `ObjectData::hold_frames` on a dead building.
+    pub hold_frames: i32,
+    /// The city it belongs to, as an index into [`Sim::cities`].
+    pub city: Option<usize>,
+    /// The garrison chain — squad captains, in the order they entered.
+    pub garrison: Vec<usize>,
+    /// `BuildData::founder`.
+    pub founder: Player,
+    /// The four per-call construction-clock clauses, as inputs.
+    pub clock: build::ClockMods,
+    /// Frame of the last hit by another player, for the repair gate.
+    pub hit_frame: Option<i64>,
+    /// A fort's entry in [`Sim::sources`], while it projects territory.
+    pub fort_source: Option<usize>,
+}
+
+impl Building {
+    /// `hits(0)`: the site's growing figure while not active, the full one
+    /// after.
+    pub const fn hits_now(&self) -> i32 {
+        if self.active {
+            self.hits
+        } else {
+            self.construct_hits
+        }
+    }
+
+    /// Keeps `health` — combat's share — equal to `hits_now − damage`.
+    pub(crate) const fn sync_health(&mut self) {
+        self.health = self.hits_now() - self.damage;
+    }
+
+    /// `WallData::is_under_attack` = `build_masks & 0x20`.
+    pub const fn is_under_attack(&self) -> bool {
+        self.under_attack & 0x2 != 0
+    }
 }
 
 /// A unit that came out of a queue this frame.
@@ -468,6 +582,15 @@ impl Sim {
             projectiles: Vec::new(),
             mods: vec![combat::Modifiers::default(); players],
             hits: Vec::new(),
+            build_types: Vec::new(),
+            cities: Vec::new(),
+            nation: vec![city::Nation::default(); players],
+            borders: vec![territory::PlayerBorders::plain(&tuning); players],
+            allied: vec![vec![false; players]; players],
+            defeated: vec![false; players],
+            lost_city_stamp: vec![None; players],
+            city_tally: vec![city::Tally::default(); players],
+            removed: Vec::new(),
             tuning,
             world,
             frame: 0,
@@ -488,11 +611,43 @@ impl Sim {
         self.ledgers.push(economy::Ledger::starting(&self.tuning));
         self.muster.push(Muster::new(&self.tuning));
         self.mods.push(combat::Modifiers::default());
+        self.nation.push(city::Nation::default());
+        self.borders
+            .push(territory::PlayerBorders::plain(&self.tuning));
+        self.defeated.push(false);
+        self.lost_city_stamp.push(None);
+        self.city_tally.push(city::Tally::default());
         for row in &mut self.at_war {
             row.push(false);
         }
         self.at_war.push(vec![false; who + 1]);
+        for row in &mut self.allied {
+            row.push(false);
+        }
+        self.allied.push(vec![false; who + 1]);
         u8::try_from(who).expect("too many players")
+    }
+
+    /// Sets two players as mutual allies — both `diplos` entries at 2.
+    pub fn make_allies(&mut self, a: Player, b: Player) {
+        self.allied[a as usize][b as usize] = true;
+        self.allied[b as usize][a as usize] = true;
+    }
+
+    /// `LeaderData::is_ally`: the same player, or allied both ways.
+    pub fn is_ally(&self, a: Player, b: Player) -> bool {
+        a == b || (self.allied[a as usize][b as usize] && self.allied[b as usize][a as usize])
+    }
+
+    /// `LeaderData::is_enemy`: different players with war declared either way.
+    pub fn is_enemy(&self, a: Player, b: Player) -> bool {
+        a != b && (self.at_war[a as usize][b as usize] || self.at_war[b as usize][a as usize])
+    }
+
+    /// Registers a building type and returns its id.
+    pub fn add_build_type(&mut self, ty: build::BuildType) -> usize {
+        self.build_types.push(ty);
+        self.build_types.len() - 1
     }
 
     /// Marks a player's economy as changed, so the next reassembly happens
@@ -624,6 +779,26 @@ impl Sim {
             target: None,
             ordered: false,
             targeted: 0,
+            ty: None,
+            orig_ty: None,
+            alive: true,
+            started: true,
+            activated: true,
+            damage: 0,
+            job_counter: 0,
+            job_counter_2: 0,
+            constr_time: 0,
+            construct_hits: 0,
+            helpers: 0,
+            under_attack: 0,
+            eject_pending: false,
+            hold_frames: 0,
+            city: None,
+            garrison: Vec::new(),
+            founder: owner,
+            clock: build::ClockMods::default(),
+            hit_frame: None,
+            fort_source: None,
         });
         self.buildings.len() - 1
     }
@@ -668,6 +843,14 @@ impl Sim {
     pub fn queue_up(&mut self, at: usize, ty: usize) -> Result<usize, production::QueueFail> {
         let at = self.queue_home(at);
         let who = self.buildings[at].owner;
+        // `BuildData::can_make`: not active, or in an unassimilated city, makes
+        // nothing.
+        if !self.buildings[at].active
+            || !self.buildings[at].alive
+            || self.building_unassimilated(at)
+        {
+            return Err(production::QueueFail::CantTrain);
+        }
         // `BuildData::can_make` comes before the price: a type the tree says
         // is not available is refused before anything is charged. Only a type
         // that is in the tree can be refused by it.
@@ -1099,6 +1282,14 @@ impl Sim {
         // frame visible to this frame's unit loop, which is what the original
         // does whenever the building's index is the lower of the two — and it
         // is, for a building that existed before the unit it just made.
+        //
+        // `Wall::process` first — the under-attack decay, the helpers reset,
+        // the building's own attrition, ejection, the capture re-test, the
+        // assimilation tick and the city heal (`docs/CITIES.md`) — then the
+        // queue, then the tower.
+        for b in 0..self.buildings.len() {
+            self.process_building(b, frame);
+        }
         self.process_queues();
         // A building that shoots does so from `Build::process`, which in the
         // original interleaves with the units by index; here the buildings
@@ -1108,7 +1299,13 @@ impl Sim {
         }
 
         for i in 0..self.units.len() {
-            if !self.units[i].alive() || !self.units[i].on_map {
+            if !self.units[i].alive() {
+                continue;
+            }
+            // `process_healing` runs for every unit, inside or out; the
+            // garrison branch is the only heal this mechanic owns.
+            self.garrison_heal(i, frame);
+            if !self.units[i].on_map {
                 continue;
             }
             // `Unit::process` begins by counting the reload down, before
@@ -1128,19 +1325,35 @@ impl Sim {
             if !self.units[i].alive() {
                 continue;
             }
-            // Then the order: an attack order runs `Unit::fight`, an idle unit
-            // thinks about finding one. `docs/COMBAT.md` §8.
-            self.process_unit_combat(i, frame);
-            if !self.units[i].alive() {
+            // Then the order: a build, repair or garrison order runs its own
+            // step (`docs/CITIES.md` §3.3, §9.3, §6.4); otherwise an attack
+            // order runs `Unit::fight`, an idle unit thinks about finding one
+            // (`docs/COMBAT.md` §8).
+            if !self.process_unit_job(i, frame) && !self.process_garrison_job(i) {
+                self.process_unit_combat(i, frame);
+            }
+            if !self.units[i].alive() || !self.units[i].on_map {
                 continue;
             }
             self.process_movement(i);
         }
         // Ammo after every object — `Objects::inc_time` runs the ammo list
-        // after `process_all`.
+        // after `process_all` — and the sites' hit points refreshed from the
+        // progress the builders just made, `Wall::inc_time`.
         self.process_projectiles(frame);
+        self.refresh_site_hits();
         self.frame += 1;
         events
+    }
+
+    /// Gives a unit a build order on a placed building — `Unit::add_build_order`.
+    pub fn order_build(&mut self, unit: usize, at: usize) {
+        self.units[unit].job = Some(Job::Build(at));
+    }
+
+    /// Gives a unit a repair order — `Unit::add_repair_order`.
+    pub fn order_repair(&mut self, unit: usize, at: usize) {
+        self.units[unit].job = Some(Job::Repair(at));
     }
 
     /// One unit's attrition for one frame — the refresh, the supply veto, and
@@ -1320,3 +1533,7 @@ pub struct Tick {
 #[cfg(test)]
 #[path = "harness_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "cities_tests.rs"]
+mod cities_tests;

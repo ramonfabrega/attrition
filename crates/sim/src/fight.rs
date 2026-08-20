@@ -35,14 +35,14 @@ impl Sim {
         }
     }
 
-    fn owner_of(&self, o: Obj) -> Player {
+    pub(crate) fn owner_of(&self, o: Obj) -> Player {
         match o {
             Obj::Unit(i) => self.units[i].owner,
             Obj::Building(b) => self.buildings[b].owner,
         }
     }
 
-    fn pos_of(&self, o: Obj) -> Pos {
+    pub(crate) fn pos_of(&self, o: Obj) -> Pos {
         match o {
             Obj::Unit(i) => self.units[i].pos,
             Obj::Building(b) => self.buildings[b].pos,
@@ -50,13 +50,13 @@ impl Sim {
     }
 
     /// `flags & 1` and, for a unit, `is_on_map`.
-    fn active(&self, o: Obj) -> bool {
+    pub(crate) fn active(&self, o: Obj) -> bool {
         match o {
             Obj::Unit(i) => self.units.get(i).is_some_and(|u| u.alive() && u.on_map),
             Obj::Building(b) => self
                 .buildings
                 .get(b)
-                .is_some_and(|b| b.combat.is_some() && b.health > 0),
+                .is_some_and(|b| b.alive && b.combat.is_some() && b.health > 0),
         }
     }
 
@@ -546,6 +546,28 @@ impl Sim {
         // Step 7: take.
         let taken = self.take_damage(target, dealt, attacker, frame);
         let killed = matches!(taken, Taken::Died { .. });
+        // Step 8 and 9 on a building: a kill by a non-air, non-splash,
+        // non-allied unit plunders it; a hit that did not kill a capturable
+        // building by another player's unit is a capture attempt
+        // (`docs/CITIES.md` §7.1, §8.3).
+        if let Obj::Building(b) = target {
+            let who = self.owner_of(attacker);
+            let bowner = self.buildings[b].owner;
+            if killed {
+                if matches!(attacker, Obj::Unit(_))
+                    && !splash
+                    && !matches!(ap.domain, Domain::Air)
+                    && !self.is_ally(who, bowner)
+                {
+                    self.plunder_kill(b, who);
+                }
+            } else if let Obj::Unit(u) = attacker
+                && who != bowner
+                && self.capture_eligible(b)
+            {
+                self.check_capture(b, u);
+            }
+        }
         self.hits.push(combat::Hit {
             frame,
             attacker,
@@ -585,28 +607,82 @@ impl Sim {
                 }
                 taken
             }
-            Obj::Building(b) => {
-                let bd = &self.buildings[b];
-                let share = bd.health;
-                let (taken, _, frac) = combat::take(0, bd.damage_frac, share, hit);
-                let lost = match taken {
-                    Taken::Alive { lost } | Taken::Died { lost, .. } => lost,
-                };
-                let bd = &mut self.buildings[b];
-                bd.damage_frac = frac;
-                bd.health -= lost;
-                if matches!(taken, Taken::Died { .. }) {
-                    bd.health = bd.health.min(0);
-                    self.forget(Obj::Building(b));
-                }
-                taken
-            }
+            Obj::Building(b) => self.damage_building(b, hit, Some(_by), _frame, false),
         }
+    }
+
+    /// `Object::take_damage` on a building (§7.2): the under-attack latch, a
+    /// site's lost progress and the building-on-site quadrupling, the city
+    /// clamp — a city never dies, it sits at zero — and death through
+    /// `Build::close`. `attrition` is the building-side attrition's call
+    /// (`docs/CITIES.md` §9.5), which latches nothing.
+    pub(crate) fn damage_building(
+        &mut self,
+        b: usize,
+        hit: Sixteenths,
+        by: Option<Obj>,
+        frame: i64,
+        attrition: bool,
+    ) -> Taken {
+        if !self.buildings[b].alive {
+            return Taken::Alive { lost: 0 };
+        }
+        let mut hit = hit;
+        let owner = self.buildings[b].owner;
+        if !attrition
+            && let Some(by) = by
+            && self.owner_of(by) != owner
+        {
+            let bd = &mut self.buildings[b];
+            bd.under_attack |= 0x3;
+            bd.hit_frame = Some(frame);
+        }
+        let site = !self.buildings[b].active && self.buildings[b].ty.is_some();
+        if site {
+            if matches!(by, Some(Obj::Building(_))) {
+                hit.whole *= 4;
+                hit.frac *= 4;
+            }
+            let bd = &mut self.buildings[b];
+            bd.job_counter = (bd.job_counter - combat_progress_lost(hit.whole)).max(0);
+        }
+        let bd = &self.buildings[b];
+        let share = bd.health;
+        let (taken, _, frac) = combat::take(0, bd.damage_frac, share, hit);
+        let lost = match taken {
+            Taken::Alive { lost } | Taken::Died { lost, .. } => lost,
+        };
+        let city = self.building_is_city(b);
+        let bd = &mut self.buildings[b];
+        bd.damage_frac = frac;
+        bd.damage += lost;
+        let hits = bd.hits_now();
+        if city && bd.active {
+            // The clamp: a city never dies from damage.
+            if bd.damage >= hits {
+                bd.damage = hits;
+                bd.damage_frac = 0;
+                if !bd.garrison.is_empty() {
+                    bd.eject_pending = true;
+                }
+            }
+            bd.sync_health();
+            return Taken::Alive { lost };
+        }
+        bd.sync_health();
+        if matches!(taken, Taken::Died { .. }) {
+            bd.damage = hits;
+            bd.sync_health();
+            self.die_building(b);
+        } else if site && bd.construct_hits <= bd.damage && !bd.garrison.is_empty() {
+            bd.eject_pending = true;
+        }
+        taken
     }
 
     /// A dead object is dropped from every target slot and from ammo in
     /// flight — what `close` does through `hold_frames` and `valid_target`.
-    fn forget(&mut self, dead: Obj) {
+    pub(crate) fn forget(&mut self, dead: Obj) {
         for u in &mut self.units {
             if u.combat.target == Some(dead) {
                 u.combat.target = None;
@@ -984,11 +1060,14 @@ impl Sim {
             return;
         }
         let p = self.profile(me);
+        // The garrison's arrows: the input the earlier mechanic took, plus
+        // what the squads actually inside contribute (`docs/CITIES.md` §6).
+        let garrison_attack = bd.garrison_attack + self.garrison_attack_sum(b);
         let arrows = combat::garrison_arrows(
             self.attack_of(me),
             p.base_arrows,
             p.most_shots,
-            bd.garrison_attack,
+            garrison_attack,
         );
         if arrows == 0 {
             return;
@@ -1218,4 +1297,9 @@ impl Sim {
         }
         None
     }
+}
+
+/// `Object::take_damage` on a site: `whole × 50` off the progress.
+const fn combat_progress_lost(whole: i32) -> i32 {
+    crate::build::progress_lost(whole)
 }

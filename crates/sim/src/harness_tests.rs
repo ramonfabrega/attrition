@@ -634,6 +634,7 @@ fn citizen_type() -> UnitType {
             job_extra_time: 10,
         },
         tree: None,
+        garrison: garrison::UnitTraits::default(),
     }
 }
 

@@ -1,0 +1,941 @@
+//! End-to-end tests for cities and buildings — `docs/CITIES.md` — run through
+//! the harness against the mechanics already there: territory, production,
+//! combat, the tech tree's availability.
+
+use super::*;
+use crate::build::{BuildType, Ident, flags};
+use crate::city::{PlaceFail, capture_value, health_level};
+use crate::garrison::{GarrisonRefused, UnitTraits};
+use crate::place::Blocked;
+use crate::world::{UNITS_PER_CELL, tile};
+
+const TILE: i32 = world::UNITS_PER_TILE;
+
+fn tile_pos(tx: i32, ty: i32) -> Pos {
+    Pos::new(tx * TILE + TILE / 2, ty * TILE + TILE / 2)
+}
+
+/// A 16×16-cell (64×64-tile) land world, two players at war, both rich.
+fn world_sim() -> Sim {
+    let mut w = World::new(16, 16);
+    w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
+    let mut sim = Sim::new(Tuning::RON, w, 2);
+    sim.declare_war(0, 1);
+    for l in &mut sim.ledgers {
+        l.bucket = [10_000; economy::RESOURCES];
+    }
+    sim
+}
+
+#[allow(clippy::too_many_arguments)]
+fn bt(
+    ident: Ident,
+    from: Option<usize>,
+    flag: &str,
+    xs: i32,
+    ys: i32,
+    job: i32,
+    hits: i32,
+    garrison: i32,
+) -> BuildType {
+    BuildType {
+        ident,
+        from,
+        x_size: xs,
+        y_size: ys,
+        flags: flags::parse(flag),
+        job_time: job,
+        hits,
+        garrison_max: garrison,
+        price: cost::Price {
+            kind: cost::Kind::Building,
+            // `BUILD_COST_FACTOR` is ten: a hundred timber.
+            ..cost::Price::free().with_base(economy::Resource::Timber, 10)
+        },
+        ..BuildType::default()
+    }
+}
+
+/// The shipped rows this mechanic's tests lean on, by index.
+struct Types {
+    village: usize,
+    town: usize,
+    metropolis: usize,
+    barracks: usize,
+    farm: usize,
+    library: usize,
+    market: usize,
+    temple: usize,
+    senate: usize,
+    granary: usize,
+    tower: usize,
+    fort: usize,
+}
+
+fn install_types(sim: &mut Sim) -> Types {
+    let village = sim.add_build_type(bt(Ident::Village, None, "ean", 7, 7, 600, 1200, 10));
+    let town = sim.add_build_type(bt(Ident::Town, Some(village), "ean", 7, 7, 600, 2500, 15));
+    let metropolis = sim.add_build_type(bt(
+        Ident::Metropolis,
+        Some(town),
+        "ean",
+        7,
+        7,
+        600,
+        5000,
+        20,
+    ));
+    let barracks = sim.add_build_type(bt(Ident::Barracks, None, "ean", 4, 4, 420, 1200, 10));
+    let mut farm = bt(Ident::Farm, None, "gda", 4, 4, 150, 400, 0);
+    farm.flags |= flags::FLAT;
+    let farm = sim.add_build_type(farm);
+    let library = sim.add_build_type(bt(Ident::Library, None, "jam", 5, 5, 420, 1200, 0));
+    let market = sim.add_build_type(bt(Ident::Market, None, "jam", 4, 4, 420, 1200, 10));
+    let temple = sim.add_build_type(bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0));
+    let senate = sim.add_build_type(bt(Ident::Senate, None, "jam", 4, 7, 500, 1200, 0));
+    let granary = sim.add_build_type(bt(Ident::Granary, None, "ja", 5, 5, 1000, 1000, 0));
+    let mut tower = bt(Ident::Tower, None, "ean", 2, 2, 1000, 750, 5);
+    tower.attack = 12;
+    tower.combat = Some(combat::Profile {
+        attack: 12,
+        max_range: 10,
+        recharge: 30,
+        base_arrows: 0,
+        most_shots: 2,
+        ..combat::Profile::default()
+    });
+    let tower = sim.add_build_type(tower);
+    let fort = sim.add_build_type(bt(Ident::Fort, None, "ean", 5, 5, 2000, 2000, 10));
+    Types {
+        village,
+        town,
+        metropolis,
+        barracks,
+        farm,
+        library,
+        market,
+        temple,
+        senate,
+        granary,
+        tower,
+        fort,
+    }
+}
+
+fn citizen_type(village: usize) -> UnitType {
+    UnitType {
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free().with_base(economy::Resource::Food, 20)
+        },
+        hits: 40,
+        garrison: UnitTraits {
+            trained_at: Some(village),
+            ..UnitTraits::default()
+        },
+        ..UnitType::default()
+    }
+}
+
+fn hoplite_type(barracks: usize) -> UnitType {
+    UnitType {
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free().with_base(economy::Resource::Food, 40)
+        },
+        hits: 100,
+        combat: combat::Profile {
+            attack: 15,
+            max_range: 0,
+            obj_masks: 0x20, // FOOT
+            uber_size: 1,
+            ..combat::Profile::default()
+        },
+        garrison: UnitTraits {
+            fortify: true,
+            trained_at: Some(barracks),
+            ..UnitTraits::default()
+        },
+        ..UnitType::default()
+    }
+}
+
+fn spawn(sim: &mut Sim, owner: Player, ty: usize, pos: Pos) -> usize {
+    let index = i16::try_from(sim.units.len()).unwrap();
+    let hits = sim.unit_types[ty].hits;
+    let mut u = Unit::new(owner, index, pos, hits);
+    u.ty = Some(ty);
+    u.kind = sim.unit_types[ty].kind;
+    sim.add_unit(u)
+}
+
+/// Builds a placed building to completion the way the original does: one
+/// builder's contribution a frame, until `activate`.
+fn finish(sim: &mut Sim, b: usize) {
+    let mut guard = 0;
+    while !sim.buildings[b].active && sim.buildings[b].alive {
+        sim.do_construct(b, 1_000_000);
+        guard += 1;
+        assert!(guard < 10, "a million a frame should finish anything");
+    }
+    sim.buildings[b].helpers = 0;
+}
+
+/// A city of player 0 at tile (32, 32), finished.
+fn city_at(sim: &mut Sim, t: &Types, who: Player, tx: i32, ty: i32) -> (usize, usize) {
+    let b = sim
+        .place_building(who, t.village, tile_pos(tx, ty))
+        .unwrap_or_else(|e| panic!("the city should place: {e:?}"));
+    finish(sim, b);
+    let c = sim.buildings[b].city.expect("a finished city has a record");
+    (b, c)
+}
+
+// ----------------------------------------------------------------------
+// Placement
+// ----------------------------------------------------------------------
+
+#[test]
+fn the_first_city_is_a_foothold_and_the_second_keeps_its_distance() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    // Unowned ground, no city anywhere: the foothold.
+    assert_eq!(
+        sim.blocked_site(Some(0), t.village, tile_pos(32, 32), None),
+        Blocked::Clear
+    );
+    let b = sim.place_building(0, t.village, tile_pos(32, 32)).unwrap();
+    assert!(!sim.buildings[b].started && !sim.buildings[b].active);
+    // The placed ghost already counts for spacing and for the foothold.
+    assert_eq!(
+        sim.blocked_site(Some(0), t.village, tile_pos(50, 32), None),
+        Blocked::CityDistance,
+        "18 tiles away is inside CITY_SPACING"
+    );
+    assert_eq!(
+        sim.blocked_site(Some(0), t.village, tile_pos(56, 32), None),
+        Blocked::CityDistance,
+        "exactly 24 tiles is still refused: the test is <="
+    );
+    assert_eq!(
+        sim.blocked_site(Some(0), t.village, tile_pos(57, 32), None),
+        Blocked::Territory,
+        "25 tiles is far enough, but a second city in the region needs friendly ground"
+    );
+    // The placement was paid for.
+    assert_eq!(sim.ledgers[0].bucket[1], 10_000 - 100);
+    // Another player's unstarted ghost does not count against us.
+    assert_eq!(
+        sim.blocked_site(Some(1), t.village, tile_pos(50, 32), None),
+        Blocked::Clear
+    );
+}
+
+#[test]
+fn a_finished_city_projects_territory_and_the_radius_mask() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    assert!(sim.buildings[b].active && sim.cities[c].alive);
+    assert_eq!(sim.cities[c].race, Some(0));
+    assert!(sim.cities[c].capital, "the first city is the capital");
+    assert_eq!(sim.city_num(0), 1);
+    // Territory: the cell under the city and its neighbours are player 0's.
+    assert_eq!(sim.world.owner_at(tile_pos(32, 32)), Owner::Player(0));
+    assert_eq!(sim.world.owner_at(tile_pos(20, 32)), Owner::Player(0));
+    // The radius mask: 20 tiles.
+    assert!(sim.world.tile_mask(tile_pos(32 + 20, 32).tile()) & tile::CITY_RADIUS != 0);
+    assert!(sim.world.tile_mask(tile_pos(32 + 21, 32).tile()) & tile::CITY_RADIUS == 0);
+    // The footprint is marked and blocked.
+    let m = sim.world.tile_mask(tile_pos(32, 32).tile());
+    assert_eq!(m & tile::OBJECT, tile::OBJECT_BUILDING);
+    assert!(m & tile::BLOCKED != 0);
+    // And a second city now wants friendly territory: 25 tiles out is owned
+    // by us, so it places; the same spot in someone else's name is refused.
+    assert_eq!(
+        sim.blocked_site(Some(0), t.village, tile_pos(57, 32), None),
+        Blocked::Clear
+    );
+}
+
+#[test]
+fn a_library_needs_a_city_and_there_is_one_per_city() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    // Before any city: the territory rule speaks first — unowned ground —
+    // and the tile-level "outside every radius" is what it would say next.
+    assert_eq!(
+        sim.blocked_site(Some(0), t.library, tile_pos(40, 32), None),
+        Blocked::NeutralTerritory
+    );
+    assert_eq!(
+        sim.blocked_tcoord(Some(0), t.library, tile_pos(40, 32).tile(), None),
+        Blocked::OutsideRadius
+    );
+    let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
+    assert_eq!(
+        sim.blocked_site(Some(0), t.library, tile_pos(40, 32), None),
+        Blocked::Clear
+    );
+    let l1 = sim.place_building(0, t.library, tile_pos(40, 32)).unwrap();
+    assert_eq!(
+        sim.buildings[l1].city,
+        Some(c),
+        "membership is decided at placement"
+    );
+    assert!(sim.cities[c].members.contains(&l1));
+    // A second library in the same city is refused even before the first is
+    // built — `count_buildings` counts placed ones.
+    assert_eq!(
+        sim.blocked_site(Some(0), t.library, tile_pos(24, 32), None),
+        Blocked::One
+    );
+    // A barracks needs no city but does need friendly territory.
+    assert_eq!(
+        sim.blocked_site(Some(0), t.barracks, tile_pos(40, 40), None),
+        Blocked::Clear
+    );
+    assert_eq!(
+        sim.blocked_site(Some(1), t.barracks, tile_pos(40, 40), None),
+        Blocked::EnemyTerritory,
+        "player 1 is at war with the owner of that ground"
+    );
+    // A second city's library may stand at the edge where only one city covers.
+    let _ = c;
+}
+
+#[test]
+fn the_farm_limit_and_the_one_per_city_redirect() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let mut placed = 0;
+    for i in 0..6 {
+        let pos = tile_pos(20 + 5 * i, 40);
+        match sim.place_building(0, t.farm, pos) {
+            Ok(_) => placed += 1,
+            Err(PlaceFail::Blocked(Blocked::Farm)) => break,
+            Err(e) => panic!("{e:?} at farm {i}"),
+        }
+    }
+    assert_eq!(placed, 5, "FARMS_PER_CITY_BASE");
+    assert_eq!(sim.count_buildings(c, Ident::Farm, false), 5);
+}
+
+#[test]
+fn the_city_limit_follows_the_civic_level() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    assert_eq!(sim.city_limit(0), 1);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    assert!(sim.at_city_limit(0));
+    assert_eq!(
+        sim.place_building(0, t.village, tile_pos(57, 32)),
+        Err(PlaceFail::CityLimit)
+    );
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
+    assert_eq!(sim.city_limit(0), 2);
+    assert!(sim.place_building(0, t.village, tile_pos(57, 32)).is_ok());
+    sim.nation[0].pyramids = true;
+    sim.nation[0].bantu = true;
+    assert_eq!(sim.city_limit(0), 4, "civic 1 + Bantu 1 + 1 + Pyramids 1");
+}
+
+// ----------------------------------------------------------------------
+// Construction
+// ----------------------------------------------------------------------
+
+#[test]
+fn one_builder_finishes_a_barracks_in_job_time_frames_and_the_site_grows() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    assert_eq!(sim.buildings[b].constr_time, 42_000);
+    assert_eq!(
+        sim.buildings[b].construct_hits, 1,
+        "a site starts at one hit point"
+    );
+    let u = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
+    sim.order_build(u, b);
+    let mut frames = 0;
+    while !sim.buildings[b].active {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 1000);
+    }
+    assert_eq!(frames, 420, "JOB_TIME frames at ACCEL_CONSTRUCT 1/1");
+    assert!(sim.buildings[b].started);
+    assert_eq!(sim.buildings[b].hits, 1200);
+    assert_eq!(sim.buildings[b].health, 1200);
+    assert_eq!(sim.units[u].job, None, "the order ends with the building");
+    // Midway the site was at about half health.
+    let b2 = sim.place_building(0, t.barracks, tile_pos(46, 40)).unwrap();
+    sim.order_build(u, b2);
+    sim.units[u].pos = tile_pos(46, 40);
+    for _ in 0..210 {
+        sim.tick();
+    }
+    assert_eq!(sim.buildings[b2].job_counter, 21_000);
+    assert!(
+        (595..=600).contains(&sim.buildings[b2].construct_hits),
+        "{}",
+        sim.buildings[b2].construct_hits
+    );
+}
+
+#[test]
+fn two_builders_are_one_and_a_half_builders() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    for _ in 0..2 {
+        let u = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
+        sim.order_build(u, b);
+    }
+    let mut frames = 0;
+    while !sim.buildings[b].active {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 1000);
+    }
+    assert_eq!(frames, 280, "42000 / (100 + 50) a frame");
+}
+
+#[test]
+fn a_nomads_first_city_takes_three_times_as_long_and_is_refunded_by_what_is_left() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let b = sim.place_building(0, t.village, tile_pos(32, 32)).unwrap();
+    assert_eq!(
+        sim.buildings[b].constr_time, 180_000,
+        "CAPITAL_BUILD_TIME 300 %"
+    );
+    // Build a sixth of it, then cancel: five sixths of the price come back.
+    let before = sim.ledgers[0].bucket[1];
+    for _ in 0..300 {
+        sim.do_construct(b, 100);
+        sim.buildings[b].helpers = 0;
+    }
+    assert_eq!(sim.buildings[b].job_counter, 30_000);
+    sim.disband_building(b, false);
+    assert!(!sim.buildings[b].alive);
+    assert_eq!(sim.ledgers[0].bucket[1], before + 83);
+    // Past the type's own `job_time × 100` — sixty thousand — the partial
+    // refund gate closes, tripled clock or not: the original tests
+    // `job_counter < type.time(who)`, the unmodified figure.
+    let b = sim.place_building(0, t.village, tile_pos(32, 32)).unwrap();
+    for _ in 0..700 {
+        sim.do_construct(b, 100);
+        sim.buildings[b].helpers = 0;
+    }
+    let before = sim.ledgers[0].bucket[1];
+    sim.disband_building(b, false);
+    assert_eq!(sim.ledgers[0].bucket[1], before);
+    // Its tiles are free again.
+    assert_eq!(
+        sim.world.tile_mask(tile_pos(32, 32).tile()) & tile::OBJECT,
+        0
+    );
+    assert_eq!(
+        sim.blocked_site(Some(0), t.village, tile_pos(32, 32), None),
+        Blocked::Clear
+    );
+}
+
+#[test]
+fn a_placed_ghost_is_free_to_cancel_and_blocks_nothing_but_placement() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let b = sim.place_building(0, t.village, tile_pos(32, 32)).unwrap();
+    let before = sim.ledgers[0].bucket[1];
+    // The site verdict (spacing) wins over the tile verdict, so ask the
+    // tile: a placed, unstarted building already blocks its tiles.
+    assert_eq!(
+        sim.blocked_tcoord(Some(0), t.village, tile_pos(32, 32).tile(), None),
+        Blocked::Building
+    );
+    assert_eq!(
+        sim.blocked_site(Some(0), t.village, tile_pos(32, 32), None),
+        Blocked::CityDistance
+    );
+    sim.disband_building(b, false);
+    assert_eq!(
+        sim.ledgers[0].bucket[1],
+        before + 100,
+        "the whole price: nothing was built"
+    );
+}
+
+#[test]
+fn a_building_bleeds_in_enemy_territory_and_a_ghost_is_removed() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    // Player 1 takes the ground under it.
+    sim.world
+        .set_owner(tile_pos(40, 40).cell(), Owner::Player(1), Owner::None);
+    let hits = sim.buildings[b].hits;
+    for _ in 0..64 {
+        sim.tick();
+    }
+    assert_eq!(
+        sim.buildings[b].damage,
+        8 * 4,
+        "eight hits every sixteen frames"
+    );
+    assert_eq!(sim.buildings[b].health, hits - 32);
+    // A ghost on enemy ground is simply removed, with its price back.
+    let g = sim.place_building(0, t.barracks, tile_pos(46, 46)).unwrap();
+    sim.world
+        .set_owner(tile_pos(46, 46).cell(), Owner::Player(1), Owner::None);
+    let before = sim.ledgers[0].bucket[1];
+    for _ in 0..16 {
+        sim.tick();
+    }
+    assert!(!sim.buildings[g].alive);
+    assert_eq!(sim.ledgers[0].bucket[1], before + 100);
+}
+
+#[test]
+fn a_repair_takes_twice_the_build_time_and_costs_the_price_again() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    sim.buildings[b].damage = 600;
+    sim.buildings[b].sync_health();
+    let u = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
+    sim.order_repair(u, b);
+    let before = sim.ledgers[0].bucket[1];
+    let mut frames = 0;
+    while sim.buildings[b].damage > 0 {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 2000);
+    }
+    // (42000 << 9) / (1200 × 100) = 179.2 → 179 per 256 frames: 0.7 hits a
+    // frame, 600 hits in 420 frames — the build time of the whole building
+    // for half its hits, i.e. twice the build time for all of them.
+    assert!((418..=422).contains(&frames), "{frames}");
+    assert_eq!(
+        before - sim.ledgers[0].bucket[1],
+        50,
+        "half the hits, half the price"
+    );
+}
+
+// ----------------------------------------------------------------------
+// Cities
+// ----------------------------------------------------------------------
+
+#[test]
+fn a_city_levels_up_on_five_kinds_and_grows_its_radius() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    assert_eq!(sim.city_level_of(c), 1);
+    assert_eq!(sim.radius_of(c), 20);
+    let sites = [
+        (t.barracks, tile_pos(40, 40)),
+        (t.library, tile_pos(24, 40)),
+        (t.market, tile_pos(40, 24)),
+        (t.temple, tile_pos(24, 24)),
+        (t.farm, tile_pos(44, 32)),
+    ];
+    let mut placed = Vec::new();
+    for (ty, pos) in sites {
+        let b = sim.place_building(0, ty, pos).unwrap();
+        placed.push(b);
+    }
+    // Four kinds finished: still a city. The fifth finishes it.
+    for &p in &placed[..4] {
+        finish(&mut sim, p);
+    }
+    assert_eq!(sim.num_kinds(c), 5, "the city itself plus four");
+    assert_eq!(sim.city_level_of(c), 1);
+    finish(&mut sim, placed[4]);
+    assert_eq!(sim.city_level_of(c), 2, "CITY_BUILDINGS + 1 distinct kinds");
+    assert_eq!(sim.buildings[b].ty, Some(t.town));
+    assert_eq!(sim.radius_of(c), 24);
+    assert!(sim.world.tile_mask(tile_pos(32 + 24, 32).tile()) & tile::CITY_RADIUS != 0);
+    // The city gained the new type's hits and kept its damage.
+    assert_eq!(sim.buildings[b].hits, 2500);
+    // Members got the senate bonus: a market in a Large City has 35 % more.
+    let market = placed[2];
+    assert_eq!(sim.buildings[market].hits, 1620);
+    // A second farm is a kind already counted; nine kinds need four more.
+    assert!(sim.ready_to_upgrade(c).is_none());
+    let more = [
+        (t.senate, tile_pos(20, 32)),
+        (t.granary, tile_pos(32, 44)),
+        (t.tower, tile_pos(32, 20)),
+        (t.fort, tile_pos(44, 44)),
+    ];
+    for (ty, pos) in more {
+        let b = sim
+            .place_building(0, ty, pos)
+            .unwrap_or_else(|e| panic!("{e:?}"));
+        finish(&mut sim, b);
+    }
+    assert_eq!(sim.city_level_of(c), 3, "METRO_BUILDINGS + 1");
+    assert_eq!(sim.buildings[b].ty, Some(t.metropolis));
+    assert_eq!(sim.radius_of(c), 28);
+    let _ = t.fort;
+}
+
+// ----------------------------------------------------------------------
+// Garrisons
+// ----------------------------------------------------------------------
+
+#[test]
+fn hoplites_fill_a_barracks_to_its_limit_and_leave_one_squad_a_frame() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let h = spawn(&mut sim, 0, hoplite, tile_pos(40, 40));
+    assert_eq!(sim.garrison(h, b), Err(GarrisonRefused::Inactive));
+    finish(&mut sim, b);
+    assert_eq!(sim.garrison_limit(b), 10);
+    let mut inside = vec![h];
+    assert_eq!(sim.garrison(h, b), Ok(()));
+    assert!(!sim.units[h].on_map && sim.units[h].inside == Some(b));
+    for _ in 1..10 {
+        let u = spawn(&mut sim, 0, hoplite, tile_pos(40, 40));
+        assert_eq!(sim.garrison(u, b), Ok(()));
+        inside.push(u);
+    }
+    assert_eq!(sim.num_inside(b), 10);
+    let extra = spawn(&mut sim, 0, hoplite, tile_pos(40, 40));
+    assert_eq!(sim.garrison(extra, b), Err(GarrisonRefused::Full));
+    // A citizen cannot enter a barracks; a hoplite cannot enter a farm.
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let c = spawn(&mut sim, 0, citizen, tile_pos(40, 40));
+    assert_eq!(sim.garrison(c, b), Err(GarrisonRefused::CantGarrison));
+    let f = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
+    finish(&mut sim, f);
+    assert_eq!(sim.garrison(extra, f), Err(GarrisonRefused::NoCapacity));
+    // Eject all: one squad a frame, FIFO.
+    sim.eject_contents(b, false);
+    sim.tick();
+    assert!(sim.units[inside[0]].on_map, "the first in is the first out");
+    assert!(!sim.units[inside[1]].on_map);
+    assert_eq!(sim.squads_inside(b), 9);
+    for _ in 0..9 {
+        sim.tick();
+    }
+    assert_eq!(sim.squads_inside(b), 0);
+    // The flag clears on the frame after the last squad is out.
+    assert!(sim.buildings[b].eject_pending);
+    sim.tick();
+    assert!(!sim.buildings[b].eject_pending);
+    // They stand on the exit ring: (4 + 4) × 0x30 + 288 from the centre.
+    assert_eq!(
+        sim.units[inside[0]].pos.x - sim.buildings[b].pos.x,
+        8 * 0x30 + 288
+    );
+}
+
+#[test]
+fn the_garrison_heal_runs_every_twenty_frames_where_the_unit_was_trained() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let h = spawn(&mut sim, 0, hoplite, tile_pos(40, 40));
+    sim.units[h].health = 50;
+    assert_eq!(sim.garrison(h, b), Ok(()));
+    for _ in 0..100 {
+        sim.tick();
+    }
+    assert_eq!(
+        sim.units[h].health, 55,
+        "UNIT_HEAL_RATE 20: five steps in a hundred frames"
+    );
+    // In a market — not its trainer, not a city, fort or tower — nothing.
+    let m = sim.place_building(0, t.market, tile_pos(40, 24)).unwrap();
+    finish(&mut sim, m);
+    sim.come_out(h);
+    sim.units[h].pos = tile_pos(40, 24);
+    sim.units[h].health = 50;
+    // A hoplite cannot garrison a market by order; put it in directly to
+    // ask the heal alone.
+    assert_eq!(sim.garrison(h, m), Err(GarrisonRefused::CantGarrison));
+    sim.go_inside(h, m);
+    for _ in 0..100 {
+        sim.tick();
+    }
+    assert_eq!(sim.units[h].health, 50);
+    // The Red Fort owner heals at 20 × 100 / 600 = 3.
+    sim.come_out(h);
+    sim.units[h].pos = tile_pos(40, 40);
+    sim.nation[0].red_fort = true;
+    assert_eq!(sim.garrison(h, b), Ok(()));
+    for _ in 0..30 {
+        sim.tick();
+    }
+    assert_eq!(sim.units[h].health, 60);
+}
+
+#[test]
+fn a_garrisoned_tower_reloads_faster() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let tw = sim.place_building(0, t.tower, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, tw);
+    assert_eq!(sim.garrison_attack_sum(tw), 0);
+    for _ in 0..3 {
+        let h = spawn(&mut sim, 0, hoplite, tile_pos(40, 40));
+        assert_eq!(sim.garrison(h, tw), Ok(()));
+    }
+    // Three melee hoplites: (15/10 + 1) / 2 = 1 each.
+    assert_eq!(sim.garrison_attack_sum(tw), 3);
+}
+
+// ----------------------------------------------------------------------
+// Capture
+// ----------------------------------------------------------------------
+
+#[test]
+fn capture_values_and_health_levels() {
+    assert_eq!(capture_value(false, 3, 1), 1);
+    assert_eq!(capture_value(true, 3, 1), 0);
+    assert_eq!(capture_value(false, 1, 0), 1);
+    assert_eq!(health_level(1200, 0), 0);
+    assert_eq!(health_level(1200, 120), 0);
+    assert_eq!(health_level(1200, 121), 1);
+    assert_eq!(health_level(1200, 1080), 4);
+    assert_eq!(health_level(1200, 1081), 5);
+    assert_eq!(health_level(1200, 1200), 6);
+}
+
+#[test]
+fn a_city_at_zero_falls_to_three_hoplites_but_not_two() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, c) = city_at(&mut sim, &t, 1, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    // Knock it to zero: the clamp holds it there.
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    assert!(sim.capture_eligible(b));
+    sim.frame = 1000;
+    let h1 = spawn(&mut sim, 0, hoplite, tile_pos(36, 32));
+    let h2 = spawn(&mut sim, 0, hoplite, tile_pos(36, 33));
+    // def_base is 2 for a city captured more than 900 frames ago — or never.
+    assert!(
+        !sim.check_capture(b, h1),
+        "one attacker against a base of two"
+    );
+    assert!(
+        !sim.check_capture(b, h2),
+        "two against two: the defender holds"
+    );
+    let h3 = spawn(&mut sim, 0, hoplite, tile_pos(36, 34));
+    assert!(sim.check_capture(b, h3), "three against two");
+    // The old record is closed, a new one owns the place.
+    assert!(!sim.cities[c].alive);
+    assert!(!sim.buildings[b].alive);
+    let nc = sim
+        .cities
+        .iter()
+        .position(|c| c.alive && c.owner == 0)
+        .expect("player 0 has the city now");
+    let nb = sim.cities[nc].building;
+    assert_eq!(sim.buildings[nb].owner, 0);
+    assert_eq!(
+        sim.buildings[nb].health, 10,
+        "handed over with ten hit points"
+    );
+    assert_eq!(
+        sim.cities[nc].race,
+        Some(1),
+        "still the old nation's: unassimilated"
+    );
+    assert!(sim.cities[nc].unassimilated);
+    assert_eq!(
+        sim.cities[nc].capture_strength, 1,
+        "the triggering hoplite's own value"
+    );
+    assert_eq!(sim.cities[nc].capture_stamp, 1000);
+    assert!(sim.city_unassimilated(nc));
+    // Territory changed hands.
+    assert_eq!(sim.world.owner_at(tile_pos(32, 32)), Owner::Player(0));
+    // Player 1 lost their last city: defeated.
+    assert!(sim.defeated[1]);
+    assert_eq!(sim.city_tally[0].captured, 1);
+    assert_eq!(sim.city_tally[1].lost, 1);
+}
+
+#[test]
+fn an_unassimilated_city_does_not_heal_or_make_anything_and_assimilates_at_two_thousand_frames() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    // Give player 1 a second city so the capture is not an elimination.
+    sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 1, 8, 8);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    sim.frame = 1000;
+    let hs: Vec<usize> = (0..3)
+        .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+        .collect();
+    assert!(sim.check_capture(b, hs[2]));
+    let nc = sim
+        .cities
+        .iter()
+        .position(|c| c.alive && c.owner == 0)
+        .unwrap();
+    let nb = sim.cities[nc].building;
+    assert_eq!(sim.buildings[nb].health, 10);
+    // Not assimilated: no heal, nothing queued, nobody garrisons.
+    for _ in 0..100 {
+        sim.tick();
+    }
+    assert_eq!(sim.buildings[nb].health, 10);
+    let h = spawn(&mut sim, 0, hoplite, tile_pos(32, 32));
+    assert_eq!(sim.garrison(h, nb), Err(GarrisonRefused::Unassimilated));
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    assert_eq!(
+        sim.queue_up(nb, citizen),
+        Err(production::QueueFail::CantTrain)
+    );
+    // 2000 frames after the capture it assimilates, and then heals its level
+    // every four frames.
+    while sim.frame < 1000 + 2000 {
+        sim.tick();
+    }
+    assert!(sim.city_unassimilated(nc), "1999 frames elapsed");
+    sim.tick();
+    assert!(!sim.city_unassimilated(nc));
+    assert_eq!(sim.cities[nc].race, Some(0));
+    let before = sim.buildings[nb].health;
+    for _ in 0..40 {
+        sim.tick();
+    }
+    assert_eq!(
+        sim.buildings[nb].health - before,
+        10,
+        "level 1 every CITY_HEAL_RATE frames"
+    );
+    // Now it admits the garrison — but not while under a tenth of its hits.
+    assert_eq!(sim.garrison(h, nb), Err(GarrisonRefused::CityTooHurt));
+    // And the 75-frame grace after a capture blocks the old owner's revenge.
+    assert!(!sim.defeated[1]);
+}
+
+#[test]
+fn a_garrisoned_city_is_emptied_rather_than_captured() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let g = spawn(&mut sim, 1, hoplite, tile_pos(32, 32));
+    assert_eq!(sim.garrison(g, b), Ok(()));
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    sim.frame = 1000;
+    let hs: Vec<usize> = (0..4)
+        .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+        .collect();
+    assert!(!sim.check_capture(b, hs[3]), "the garrison goes out first");
+    assert!(sim.buildings[b].eject_pending);
+    sim.tick();
+    assert!(sim.units[g].on_map);
+    // The tick also ran the city heal — an assimilated city at zero gets a
+    // point back every four frames — so a besieger has to hit it again.
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    // The defender stands by the city now and counts: 2 + 1 against 4.
+    assert!(sim.check_capture(b, hs[3]));
+}
+
+#[test]
+fn the_turks_assimilate_three_times_faster() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+    sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+    let _ = city_at(&mut sim, &t, 1, 8, 8);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    sim.nation[0].turks = true;
+    let bd = &mut sim.buildings[b];
+    bd.damage = bd.hits;
+    bd.sync_health();
+    sim.frame = 1000;
+    let hs: Vec<usize> = (0..3)
+        .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+        .collect();
+    assert!(sim.check_capture(b, hs[2]));
+    let nc = sim
+        .cities
+        .iter()
+        .position(|c| c.alive && c.owner == 0)
+        .unwrap();
+    while sim.frame < 1000 + 666 {
+        sim.tick();
+    }
+    assert!(sim.city_unassimilated(nc));
+    sim.tick();
+    sim.tick();
+    assert!(!sim.city_unassimilated(nc), "2000 × 100 / 300 = 667 frames");
+}
+
+#[test]
+fn killing_a_barracks_plunders_its_good() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 1, 32, 32);
+    let mut barracks = bt(Ident::Barracks, None, "ean", 4, 4, 420, 1200, 10);
+    barracks.plunder_value = 40;
+    barracks.plunder_good = Some(0);
+    let bty = sim.add_build_type(barracks);
+    let b = sim.place_building(1, bty, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let before = sim.ledgers[0].bucket[0];
+    sim.plunder_kill(b, 0);
+    assert_eq!(sim.ledgers[0].bucket[0] - before, 40, "PLUNDER 100 % of 40");
+    // An unfinished one plunders by its progress: a third built, a third.
+    let s = sim.place_building(1, bty, tile_pos(46, 40)).unwrap();
+    for _ in 0..140 {
+        sim.do_construct(s, 100);
+        sim.buildings[s].helpers = 0;
+    }
+    let before = sim.ledgers[0].bucket[0];
+    sim.plunder_kill(s, 0);
+    assert_eq!(sim.ledgers[0].bucket[0] - before, 13, "40 × 14000 / 42000");
+}
+
+#[test]
+fn the_bare_building_of_the_earlier_mechanics_is_untouched() {
+    // `add_building` still makes the typeless, active production object, and
+    // the new per-frame work leaves it alone.
+    let mut sim = world_sim();
+    let b = sim.add_building(0, tile_pos(32, 32), 20);
+    for _ in 0..100 {
+        sim.tick();
+    }
+    assert!(sim.buildings[b].alive && sim.buildings[b].active);
+    assert_eq!(sim.buildings[b].ty, None);
+    assert_eq!(sim.cities.len(), 0);
+    let _ = UNITS_PER_CELL;
+}

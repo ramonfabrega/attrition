@@ -607,6 +607,15 @@ resolves such a city's *bonuses* from the owner it records while taking its
 
 ---
 
+## The building half
+
+Units are not the only things that bleed. `Wall::process` — `docs/CITIES.md`
+§9.5 — checks every 16 frames (phased by `o`) whether the tile under a
+building is owned by an enemy and, if so, removes an unstarted site outright
+and puts eight hit points through `take_damage` with the attrition flag on a
+started one. It does not go through `process_attrition`, `calc_attrition` or
+supply; it is its own rule, and it lives with the buildings.
+
 ## Open questions
 
 - ~~**The second entry into `suffer_attrition`.**~~ Closed by the second

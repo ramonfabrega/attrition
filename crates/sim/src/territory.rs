@@ -85,6 +85,20 @@ pub struct PlayerBorders {
 }
 
 impl PlayerBorders {
+    /// The borders of a player with no civic, temple or fort tech, no wonders
+    /// and no nation bonus — what a city projects on the first frame.
+    pub fn plain(t: &Tuning) -> PlayerBorders {
+        PlayerBorders::new(
+            t,
+            0,
+            1,
+            1,
+            &Wonders::default(),
+            &NationBonuses::default(),
+            0,
+        )
+    }
+
     /// Builds the per-player half from tech levels and the handful of wonders
     /// and nation bonuses that matter.
     ///

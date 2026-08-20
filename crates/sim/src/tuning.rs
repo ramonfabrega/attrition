@@ -463,6 +463,124 @@ pub struct Tuning {
     pub unit_defensive_respond_range: i32,
     /// The same for a guard.
     pub unit_guard_respond_range: i32,
+    /// Percent of the base construction time for a player with no city yet — a nomad's first city. Ships as 300.
+    pub capital_build_time: i32,
+    /// Percent more hit points per `BUILDINGS_HP_n` tech held.
+    pub building_hp_upgrade: i32,
+    /// Percent more hit points for a non-defensive building per city level above the first.
+    pub senate_hp_bonus: i32,
+    /// Percent more hit points for a city with a temple, by temple level.
+    pub temple_upgrade_hp: [i32; 5],
+    /// Percent by which Tikal raises the temple hit-point bonus.
+    pub tikal_temple_hp: i32,
+    /// A city's radius in tiles at level one.
+    pub city_center_radius: i32,
+    /// Added to the radius per city level above one.
+    pub city_center_pop_radius: i32,
+    /// Added to the radius for the Indians.
+    pub indians_city_radius: i32,
+    /// Distinct completed building kinds a city needs, besides itself, to become a Large City.
+    pub city_buildings: i32,
+    /// The same for a Major City.
+    pub metro_buildings: i32,
+    /// Minimum distance between cities, in tiles; a city at exactly this distance is refused.
+    pub city_spacing: i32,
+    /// Taken off the spacing once the placer holds ninety percent of the region.
+    pub relax_city_spacing: i32,
+    /// Tiles (read in cells, divided by four) within which a colonising city or fort must find open sea; zero disables the rule.
+    pub first_city_near_coast: i32,
+    /// Minimum distance from a fort to a friendly fort or city, in tiles.
+    pub fort_spacing: i32,
+    /// Minimum distance from a fort to an enemy city, in tiles.
+    pub fort_to_enemy_city_spacing: i32,
+    /// Farms a city may hold.
+    pub farms_per_city_base: i32,
+    /// Added per city level above one. Ships as zero.
+    pub farms_per_city_level: i32,
+    /// The Egyptian base instead.
+    pub egyptian_farms_per_city_base: i32,
+    /// Added to the Bantu city limit when the Civic level is non-zero.
+    pub bantu_city_limit: i32,
+    /// Added to the city limit by the Pyramids.
+    pub pyramids_city_limit: i32,
+    /// Whether a Dutch fort may stand on unowned ground anywhere. Ships off.
+    pub dutch_fort_placement: i32,
+    /// Radius in tiles within which units and buildings are counted for a city capture.
+    pub city_capture_radius: i32,
+    /// Plunder on capture per city level above one.
+    pub city_plunder_per_level: i32,
+    /// Plunder floor for a first capital capture, paid in every usable good.
+    pub capital_plunder: i32,
+    /// Percent of a building's plunder value an enemy collects on its kill.
+    pub plunder: i32,
+    /// Percent bonus on plunder for an Aztec attacker.
+    pub aztec_plunder: i32,
+    /// Percent of plunder the Despot (or Spitamenes) adds as the hero cut.
+    pub thedespot_plunder: i32,
+    /// Whether a Russian victim receives the plunder of its own building.
+    pub russian_plunder_steal: i32,
+    /// Percent off a German mine's plunder value.
+    pub german_mine_cost: i32,
+    /// Percent off a Tikal owner's own temple's plunder value.
+    pub tikal_temple_cost: i32,
+    /// Frames a captured city takes to assimilate.
+    pub assimilation_timer: i32,
+    /// Percent bonus on a Turkish owner's elapsed assimilation time.
+    pub turk_assimilate: i32,
+    /// Percent bonus on the elapsed time when the founder retakes their own city.
+    pub reassimilation: i32,
+    /// How many frames of assimilation pass per frame with the Citizen in the city.
+    pub thecitizen_assimilation_speed: i32,
+    /// Frames between a city's self-repair steps.
+    pub city_heal_rate: i32,
+    /// Whether Chinese cities are founded as Large Cities.
+    pub chinese_large_cities: i32,
+    /// Percent faster Mayan construction.
+    pub maya_building_speed: i32,
+    /// Percent faster construction with Versailles. Ships as zero.
+    pub versailles_building_speed: i32,
+    /// Percent faster construction with the Tobacco rare.
+    pub tobacco_building_speed: i32,
+    /// Percent faster British air-defense construction.
+    pub british_aa_speed: i32,
+    /// Percent faster Dutch fort construction. Ships as zero.
+    pub dutch_fort_speed: i32,
+    /// Percent faster Roman fort construction.
+    pub roman_fort_speed: i32,
+    /// Percent off construction time in the Hanging Gardens' city. Ships as zero.
+    pub hanging_gardens_build_time: i32,
+    /// Percent faster construction with the President nearby.
+    pub thepresident_building_speed: i32,
+    /// Whether the Iroquois' first senate is instant.
+    pub iroquois_quick_senate: i32,
+    /// Whether Korean builders and repairers ignore the under-attack penalty.
+    pub korean_build_under_fire: i32,
+    /// Percent off the Korean repair period.
+    pub korean_repair: i32,
+    /// Percent more hit points on every Mayan building.
+    pub maya_building_hp: i32,
+    /// Percent more on Roman forts and towers. Ships as zero.
+    pub roman_fort_hp: i32,
+    /// Percent more on every building with the Taj Mahal.
+    pub taj_building_hp: i32,
+    /// Percent more on the other forts with the Red Fort.
+    pub red_fort_fort_hps: i32,
+    /// Percent more on a Nubian market.
+    pub nubian_hit_points: i32,
+    /// Garrison slots a tower gains per fort-garrison tech level.
+    pub tower_garrison_upgrade: i32,
+    /// The same for a fort.
+    pub fort_garrison_upgrade: i32,
+    /// Frames between garrison heal steps, by heal tech level.
+    pub unit_heal_rate: [i32; 4],
+    /// Percent faster the garrison heal runs in, or with, the Red Fort.
+    pub red_fort_heal: i32,
+    /// Position units: the near edge of the exit ring a unit leaving a building lands on, beyond the footprint. `3/2 tile`.
+    pub unit_train_distance: i32,
+    /// Position units: the far edge of that ring. `5/2 tile`.
+    pub unit_train_max_distance: i32,
+    /// Whether Lakota razing is charged — when non-zero, a Lakota disband refunds in full and a Lakota kill of its own building plunders nothing.
+    pub lakota_raze_price: i32,
 }
 
 impl Tuning {
@@ -657,6 +775,65 @@ impl Tuning {
         unit_respond_range: 12,
         unit_defensive_respond_range: 4,
         unit_guard_respond_range: 8,
+        capital_build_time: 300,
+        building_hp_upgrade: 10,
+        senate_hp_bonus: 35,
+        temple_upgrade_hp: [25, 50, 100, 150, 200],
+        tikal_temple_hp: 50,
+        city_center_radius: 20,
+        city_center_pop_radius: 4,
+        indians_city_radius: 4,
+        city_buildings: 5,
+        metro_buildings: 9,
+        city_spacing: 24,
+        relax_city_spacing: 6,
+        first_city_near_coast: 16,
+        fort_spacing: 12,
+        fort_to_enemy_city_spacing: 32,
+        farms_per_city_base: 5,
+        farms_per_city_level: 0,
+        egyptian_farms_per_city_base: 7,
+        bantu_city_limit: 1,
+        pyramids_city_limit: 1,
+        dutch_fort_placement: 0,
+        city_capture_radius: 10,
+        city_plunder_per_level: 100,
+        capital_plunder: 500,
+        plunder: 100,
+        aztec_plunder: 100,
+        thedespot_plunder: 100,
+        russian_plunder_steal: 1,
+        german_mine_cost: 0,
+        tikal_temple_cost: 0,
+        assimilation_timer: 2000,
+        turk_assimilate: 200,
+        reassimilation: 300,
+        thecitizen_assimilation_speed: 4,
+        city_heal_rate: 4,
+        chinese_large_cities: 1,
+        maya_building_speed: 20,
+        versailles_building_speed: 0,
+        tobacco_building_speed: 10,
+        british_aa_speed: 33,
+        dutch_fort_speed: 0,
+        roman_fort_speed: 50,
+        hanging_gardens_build_time: 0,
+        thepresident_building_speed: 33,
+        iroquois_quick_senate: 1,
+        korean_build_under_fire: 1,
+        korean_repair: 50,
+        maya_building_hp: 25,
+        roman_fort_hp: 0,
+        taj_building_hp: 100,
+        red_fort_fort_hps: 33,
+        nubian_hit_points: 50,
+        tower_garrison_upgrade: 2,
+        fort_garrison_upgrade: 5,
+        unit_heal_rate: [20, 15, 10, 5],
+        red_fort_heal: 500,
+        unit_train_distance: 288,
+        unit_train_max_distance: 480,
+        lakota_raze_price: 0,
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -665,7 +842,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 173] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 232] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1030,6 +1207,113 @@ impl Tuning {
                 "UNIT_GUARD_RESPOND_RANGE",
                 Slot::Value(T.unit_guard_respond_range),
             ),
+            ("CAPITAL_BUILD_TIME", Slot::Value(T.capital_build_time)),
+            ("BUILDING_HP_UPGRADE", Slot::Value(T.building_hp_upgrade)),
+            ("SENATE_HP_BONUS", Slot::Value(T.senate_hp_bonus)),
+            ("TEMPLE_UPGRADE_HP", Slot::Entries(&T.temple_upgrade_hp)),
+            ("TIKAL_TEMPLE_HP", Slot::Value(T.tikal_temple_hp)),
+            ("CITY_CENTER_RADIUS", Slot::Value(T.city_center_radius)),
+            (
+                "CITY_CENTER_POP_RADIUS",
+                Slot::Value(T.city_center_pop_radius),
+            ),
+            ("INDIANS_CITY_RADIUS", Slot::Value(T.indians_city_radius)),
+            ("CITY_BUILDINGS", Slot::Value(T.city_buildings)),
+            ("METRO_BUILDINGS", Slot::Value(T.metro_buildings)),
+            ("CITY_SPACING", Slot::Value(T.city_spacing)),
+            ("RELAX_CITY_SPACING", Slot::Value(T.relax_city_spacing)),
+            (
+                "FIRST_CITY_NEAR_COAST",
+                Slot::Value(T.first_city_near_coast),
+            ),
+            ("FORT_SPACING", Slot::Value(T.fort_spacing)),
+            (
+                "FORT_TO_ENEMY_CITY_SPACING",
+                Slot::Value(T.fort_to_enemy_city_spacing),
+            ),
+            ("FARMS_PER_CITY_BASE", Slot::Value(T.farms_per_city_base)),
+            ("FARMS_PER_CITY_LEVEL", Slot::Value(T.farms_per_city_level)),
+            (
+                "EGYPTIAN_FARMS_PER_CITY_BASE",
+                Slot::Value(T.egyptian_farms_per_city_base),
+            ),
+            ("BANTU_CITY_LIMIT", Slot::Value(T.bantu_city_limit)),
+            ("PYRAMIDS_CITY_LIMIT", Slot::Value(T.pyramids_city_limit)),
+            ("DUTCH_FORT_PLACEMENT", Slot::Value(T.dutch_fort_placement)),
+            ("CITY_CAPTURE_RADIUS", Slot::Value(T.city_capture_radius)),
+            (
+                "CITY_PLUNDER_PER_LEVEL",
+                Slot::Value(T.city_plunder_per_level),
+            ),
+            ("CAPITAL_PLUNDER", Slot::Value(T.capital_plunder)),
+            ("PLUNDER", Slot::Value(T.plunder)),
+            ("AZTEC_PLUNDER", Slot::Value(T.aztec_plunder)),
+            ("THEDESPOT_PLUNDER", Slot::Value(T.thedespot_plunder)),
+            (
+                "RUSSIAN_PLUNDER_STEAL",
+                Slot::Value(T.russian_plunder_steal),
+            ),
+            ("GERMAN_MINE_COST", Slot::Value(T.german_mine_cost)),
+            ("TIKAL_TEMPLE_COST", Slot::Value(T.tikal_temple_cost)),
+            ("ASSIMILATION_TIMER", Slot::Value(T.assimilation_timer)),
+            ("TURK_ASSIMILATE", Slot::Value(T.turk_assimilate)),
+            ("REASSIMILATION", Slot::Value(T.reassimilation)),
+            (
+                "THECITIZEN_ASSIMILATION_SPEED",
+                Slot::Value(T.thecitizen_assimilation_speed),
+            ),
+            ("CITY_HEAL_RATE", Slot::Value(T.city_heal_rate)),
+            ("CHINESE_LARGE_CITIES", Slot::Value(T.chinese_large_cities)),
+            ("MAYA_BUILDING_SPEED", Slot::Value(T.maya_building_speed)),
+            (
+                "VERSAILLES_BUILDING_SPEED",
+                Slot::Value(T.versailles_building_speed),
+            ),
+            (
+                "TOBACCO_BUILDING_SPEED",
+                Slot::Value(T.tobacco_building_speed),
+            ),
+            ("BRITISH_AA_SPEED", Slot::Value(T.british_aa_speed)),
+            ("DUTCH_FORT_SPEED", Slot::Value(T.dutch_fort_speed)),
+            ("ROMAN_FORT_SPEED", Slot::Value(T.roman_fort_speed)),
+            (
+                "HANGING_GARDENS_BUILD_TIME",
+                Slot::Value(T.hanging_gardens_build_time),
+            ),
+            (
+                "THEPRESIDENT_BUILDING_SPEED",
+                Slot::Value(T.thepresident_building_speed),
+            ),
+            (
+                "IROQUOIS_QUICK_SENATE",
+                Slot::Value(T.iroquois_quick_senate),
+            ),
+            (
+                "KOREAN_BUILD_UNDER_FIRE",
+                Slot::Value(T.korean_build_under_fire),
+            ),
+            ("KOREAN_REPAIR", Slot::Value(T.korean_repair)),
+            ("MAYA_BUILDING_HP", Slot::Value(T.maya_building_hp)),
+            ("ROMAN_FORT_HP", Slot::Value(T.roman_fort_hp)),
+            ("TAJ_BUILDING_HP", Slot::Value(T.taj_building_hp)),
+            ("RED_FORT_FORT_HPS", Slot::Value(T.red_fort_fort_hps)),
+            ("NUBIAN_HIT_POINTS", Slot::Value(T.nubian_hit_points)),
+            (
+                "TOWER_GARRISON_UPGRADE",
+                Slot::Value(T.tower_garrison_upgrade),
+            ),
+            (
+                "FORT_GARRISON_UPGRADE",
+                Slot::Value(T.fort_garrison_upgrade),
+            ),
+            ("UNIT_HEAL_RATE", Slot::Entries(&T.unit_heal_rate)),
+            ("RED_FORT_HEAL", Slot::Value(T.red_fort_heal)),
+            ("UNIT_TRAIN_DISTANCE", Slot::Ratio192(T.unit_train_distance)),
+            (
+                "UNIT_TRAIN_MAX_DISTANCE",
+                Slot::Ratio192(T.unit_train_max_distance),
+            ),
+            ("LAKOTA_RAZE_PRICE", Slot::Value(T.lakota_raze_price)),
         ]
     }
 }
