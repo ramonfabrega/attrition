@@ -99,9 +99,10 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
                 }
             }
         } else if let Some(t) = f.scalar_text()
-            && Scalar::parse(t).is_none() {
-                unparsed.push(format!("[{i}] {}={t:?}", rec.tag));
-            }
+            && Scalar::parse(t).is_none()
+        {
+            unparsed.push(format!("[{i}] {}={t:?}", rec.tag));
+        }
     }
     failures += check(
         "every constant starts with a number",
@@ -122,9 +123,10 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
     for (i, rec) in units.iter() {
         for tag in ["COST", "SUPPORT"] {
             if let Some(t) = rec.text(tag)
-                && rondata::Cost::parse(t).is_none() {
-                    bad_costs.push(format!("[{i}] {tag}={t:?}"));
-                }
+                && rondata::Cost::parse(t).is_none()
+            {
+                bad_costs.push(format!("[{i}] {tag}={t:?}"));
+            }
         }
     }
     failures += check(
@@ -161,16 +163,17 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
     let mut named = Vec::new();
     for probe in ["Samurai", "Cossack"] {
         if let Some(r) = units.records.iter().find(|r| r.text("NAME") == Some(probe))
-            && let Some(m) = r.text("TRIBE_MASK") {
-                let who: Vec<&str> = rondata::tribe_mask(m)
-                    .iter()
-                    .filter_map(|i| keys.get(*i).map(String::as_str))
-                    .collect();
-                named.push(format!(
-                    "{probe}→{}",
-                    join(who.iter().map(|s| (*s).to_string()))
-                ));
-            }
+            && let Some(m) = r.text("TRIBE_MASK")
+        {
+            let who: Vec<&str> = rondata::tribe_mask(m)
+                .iter()
+                .filter_map(|i| keys.get(*i).map(String::as_str))
+                .collect();
+            named.push(format!(
+                "{probe}→{}",
+                join(who.iter().map(|s| (*s).to_string()))
+            ));
+        }
     }
     let expected = named.iter().any(|s| s.contains("japanese"))
         && named.iter().any(|s| s.contains("russians"));
@@ -178,6 +181,27 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         "TRIBE_MASK decodes MSB-first",
         expected,
         &join(named.iter().cloned()),
+    );
+
+    // Every number the attrition simulation is built on, re-read from the
+    // user's own file. A drift here means the sim is running on values this
+    // install does not have.
+    let drift = rondata::drift(&rules);
+    failures += check(
+        "the simulation's tuning table matches this install",
+        drift.is_empty(),
+        &if drift.is_empty() {
+            format!("{} constants agree", sim::Tuning::ron_slots().len())
+        } else {
+            join(drift.iter().map(|d| {
+                format!(
+                    "{}: we say {}, install says {}",
+                    d.name,
+                    d.ours,
+                    d.theirs.as_deref().unwrap_or("(absent)")
+                )
+            }))
+        },
     );
 
     println!("\nnations ({n_tribes}, index is the TRIBE_MASK bit)");
@@ -191,21 +215,8 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         println!();
     }
 
-    println!("\nconstants that phase 1 needs");
-    for name in [
-        "ATTRITION",
-        "TERRITORY_BASE",
-        "TERRITORY_NUM",
-        "TERRITORY_DEN",
-        "TERRITORY_LIMIT_BASE",
-        "TERRITORY_LIMIT_CIVIC",
-        "TERRITORY_LIMIT_CITY",
-        "CITY_TERRITORY_MULTIPLIER",
-        "FORT_TERRITORY_MULTIPLIER",
-        "CAPITAL_TERRITORY_BONUS",
-        "UNIT_MOVE_SPEED",
-        "UNIT_COST_FACTOR",
-    ] {
+    println!("\nconstants that later phases will need");
+    for name in ["UNIT_MOVE_SPEED", "UNIT_COST_FACTOR", "OVERKILL_FRAMES"] {
         match rules.constant(name) {
             Some(s) => println!("  {name:<28} {}", describe(s)),
             None => println!("  {name:<28} (absent)"),

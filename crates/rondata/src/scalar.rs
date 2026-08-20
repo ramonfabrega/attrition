@@ -184,6 +184,24 @@ impl Scalar {
         }
     }
 
+    /// The number as the designer wrote it, before any interpretation.
+    ///
+    /// `50% reduction` gives 50, not 0. This is the reading the engine's own
+    /// code takes for the great majority of its constants: it stores a plain
+    /// `int` and the percent sign lives only in the annotation. Use this when
+    /// checking our transcription of a constant against the file; use
+    /// [`Scalar::to_int`] or [`Scalar::to_fx`] when the value's *meaning* is
+    /// what is wanted.
+    ///
+    /// A rational gives its numerator, which is the honest answer for a field
+    /// whose written form the caller has already decided is a plain count.
+    pub const fn written_int(self) -> i32 {
+        match self {
+            Scalar::Int(n) | Scalar::Multiplier(n) | Scalar::Percent(n) => n,
+            Scalar::Ratio { num, .. } => num,
+        }
+    }
+
     /// The integer value, for fields that are plainly counts — frames, hit
     /// points, population. Rationals and percentages truncate toward zero.
     pub const fn to_int(self) -> i32 {

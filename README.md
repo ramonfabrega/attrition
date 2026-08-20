@@ -6,10 +6,12 @@ Games, 2003) in Rust — simulation first, art last.
 Named for the mechanic no open-source RTS has ever implemented: units bleeding
 health inside hostile national borders.
 
-> **Status: Phase 0, extraction.** The only code here is the fixed-point math
-> the simulation will stand on. The install has been surveyed and the data
-> model is documented — see `docs/FORMATS.md`. Next is the tool that turns it
-> into open data.
+> **Status: Phase 1, attrition, implemented headless.** Borders produce
+> territory, territory produces damage, and the whole thing runs in a test with
+> no display attached. The specification it was written from is
+> `docs/ATTRITION.md`; the tuned numbers it uses are re-checked against your own
+> install on every run of `rondata`. Next is running the original, for a
+> behavioural oracle.
 
 ## What this is
 
@@ -68,6 +70,8 @@ Windows VM. That is its own phase; see `CLAUDE.md`.
 ```
 crates/fixed/     deterministic Q16.16 fixed-point math
 crates/rondata/   reads the game's data tables from an installed copy
+crates/sim/       the simulation: territory, attrition, headless
+docs/ATTRITION.md the attrition mechanic, written from the original
 docs/DECISIONS.md architectural decisions and their rationale
 docs/FORMATS.md   file-format reverse-engineering log
 ```
@@ -77,7 +81,7 @@ Crates appear here when they have real code, not in anticipation of it.
 ## Development
 
 ```sh
-cargo test          # 39 tests
+cargo test          # 88 tests
 cargo clippy --all-targets
 cargo fmt
 ```
@@ -89,9 +93,10 @@ about the format still holds:
 cargo run -p rondata -- /path/to/Rise\ of\ Nations
 ```
 
-It prints the table shapes and re-derives each structural claim in
-`docs/FORMATS.md` from your own files, exiting non-zero if one stops being
-true. Nothing is copied anywhere; it only reads.
+It prints the table shapes, re-derives each structural claim in
+`docs/FORMATS.md` from your own files, and re-reads all 36 tuned constants the
+simulation depends on — exiting non-zero if any of it stops being true. Nothing
+is copied anywhere; it only reads.
 
 The toolchain is pinned to stable in `rust-toolchain.toml`.
 

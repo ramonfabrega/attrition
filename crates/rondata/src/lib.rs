@@ -28,11 +28,13 @@
 
 pub mod scalar;
 pub mod table;
+pub mod tuning;
 
 use std::path::{Path, PathBuf};
 
 pub use scalar::{Cost, Range, Resource, Scalar};
 pub use table::{Error, Field, Record, Table};
+pub use tuning::{Drift, drift};
 
 /// A path to the user's installed copy of the game.
 #[derive(Clone, Debug)]

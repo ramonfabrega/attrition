@@ -198,3 +198,58 @@ data.
 The upside is large: a record's index *is* the engine's type id, which is
 almost certainly how orders encode unit and building types. Getting this right
 is what connects the content work to the replay work later.
+
+## 10. Exact rationals where the original used a float
+
+**Chosen:** carry `anti_att` as an exact `i64` numerator and denominator, and
+divide once at the point the original truncates.
+
+**Over:** `fixed::Fx`, and over truncating to an integer after each factor.
+
+`CLAUDE.md` says all gameplay arithmetic goes through `Fx`. That rule exists to
+keep floating point out of the simulation, and here the better way to satisfy
+it is not to reach for `Fx` at all.
+
+`anti_att` is the one value Rise of Nations keeps as an `f32` in the middle of
+its simulation. Its only inputs are `256` and a chain of `100 / (100 - pct)`
+factors with integer `pct`, and the original truncates it exactly once, at the
+`* 1/256` step, after every multiplication has compounded. So:
+
+- **Truncating per factor** would drift. This is the same lesson
+  `Scalar::scaled_fx` already encodes for movement speeds, arriving from a
+  different direction.
+- **`Fx`** would round at 1/65536 where the original does not round at all. It
+  would import error the original does not have, in exchange for nothing: the
+  value is a ratio of small integers and never needs a fractional
+  representation.
+- **An exact rational** reproduces the original bit for bit and is checkable by
+  hand. Of the factors in play only 4/3 is not dyadic, so the reachable values
+  form a family of eight, all pinned by tests.
+
+Nothing in attrition needs fixed point. `crates/sim` therefore depends on
+nothing at all, not even `fixed` — the dependency will be earned when movement
+arrives. See `docs/ATTRITION.md`, "Not open, and why".
+
+## 11. The simulation takes its tuning as an input, and a tool checks it
+
+**Chosen:** `sim::Tuning` is a plain struct the simulation is handed;
+`Tuning::RON` holds the shipped values, and `rondata` re-derives all 36 of them
+from the user's own `rules.xml` and fails if any has drifted.
+
+**Over:** reading the game's XML from inside the sim, and over hardcoding the
+numbers with no check on them.
+
+Two rules pull against each other here. Nothing from the user's install may
+enter the repository; and a formula whose inputs nobody can see is not a
+specification. Writing the numbers down resolves it — game mechanics are not
+copyrightable, and `docs/ATTRITION.md` already quotes them, because a document
+that says "substitute the shipped constants" and then does not is useless.
+
+Writing them down is also how they go stale, which is what the check is for. It
+is the same discipline `docs/FORMATS.md` gets from the structural checks,
+applied to values instead of structure: a patch that rebalances attrition shows
+up as a failed check rather than as a simulation that is quietly wrong.
+
+The consequence is that `rondata` depends on `sim`. That is the right
+direction: `rondata` is the tool that validates this repository's claims
+against a real install, and the tuning table is one of those claims.

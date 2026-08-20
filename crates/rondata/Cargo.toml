@@ -8,6 +8,10 @@ description = "Reads Rise of Nations' shipped data tables out of an installed co
 [dependencies]
 fixed = { path = "../fixed" }
 roxmltree = "0.21"
+# The simulation writes down the tuned numbers it depends on. This crate is
+# where they get re-checked against the user's own copy of the game, which is
+# the only thing that stops them going quietly stale.
+sim = { path = "../sim" }
 
 [lints]
 workspace = true
