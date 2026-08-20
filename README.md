@@ -11,8 +11,9 @@ health inside hostile national borders.
 > whole thing runs in a test with no display attached. The specifications they
 > were written from are `docs/ATTRITION.md` and `docs/SUPPLY.md`; the tuned
 > numbers they use are re-checked against your own install on every run of
-> `rondata`. Movement has begun: `docs/MOVEMENT.md` covers speed, facing and
-> the per-frame step, and says plainly which part of it is not yet established.
+> `rondata`. Movement is in: a unit walks from A to B on the original's own
+> geometry — its integer arctangent, its sine table, its Manhattan arrival test
+> — with the trajectory pinned in a test. See `docs/MOVEMENT.md`.
 
 ## What this is
 
@@ -84,7 +85,7 @@ Crates appear here when they have real code, not in anticipation of it.
 ## Development
 
 ```sh
-cargo test          # 120 tests
+cargo test          # 125 tests
 cargo clippy --all-targets
 cargo fmt
 ```

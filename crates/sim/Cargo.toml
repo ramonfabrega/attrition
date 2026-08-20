@@ -8,7 +8,9 @@ version = "0.1.0"
 # No graphics, no windowing, no async runtime, no clock. If it cannot run in a
 # `#[test]` with no display attached, it does not belong here.
 [dependencies]
-fixed = { path = "../fixed" }
+# Nothing yet. Three mechanics in, the simulation has needed no fraction: every
+# quantity the original computes is an integer with a defined truncation. `fixed`
+# will be earned when something genuinely needs one. See docs/DECISIONS.md 13.
 
 [lints]
 workspace = true

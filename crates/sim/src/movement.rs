@@ -15,18 +15,16 @@
 //! An angle is a **signed 32-bit binary angle**, so the full circle is 2^32 and
 //! wrapping is free. North is zero and y increases southward.
 //!
-//! # What is missing, and why
+//! # The one thing to be careful with
 //!
-//! The sine *lookup* is not here — only the table it reads. The original folds
-//! an angle into the first quarter before indexing, and that fold as read makes
-//! the northward component of a northward step come out as zero, which would
-//! freeze a unit walking north. So the reading is wrong somewhere and the error
-//! has not been found; everything depending on it is left out rather than
-//! guessed. The table itself and [`find_angle`] are established and are here.
-//!
-//! See `docs/MOVEMENT.md`, "Open questions".
+//! [`quarter_lookup`]'s interpolation multiply **overflows a 32-bit register,
+//! and the result depends on it.** At the axis angles the table's last entry
+//! interpolates toward its first, and only the wrap brings the answer back to
+//! exactly one. Widen that multiply and every unit ordered due north stops
+//! moving. It is commented where it happens.
 
 use crate::tuning::Tuning;
+use crate::world::Pos;
 
 /// A signed 32-bit binary angle: the full circle is 2^32.
 ///
@@ -137,6 +135,74 @@ pub const SIN_TABLE: [i32; 256] = [
     65523, 65530, 65533, 65535,
 ];
 
+/// The table value for an angle already folded into the first quarter.
+///
+/// Returns a 16.16-style scale where 65536 is one, **not** 65535 — see below.
+///
+/// The interpolation multiply is a 32-bit `imul` in the original and it
+/// **overflows on purpose**, or at least overflows and is relied upon. At the
+/// very top of the quarter the index reaches 255 and the byte-wide increment
+/// wraps the next entry round to `table[0]`, so the interpolation runs from
+/// 65535 toward 0 — which read naively would collapse the sine to nothing at
+/// exactly the axis angles, and freeze any unit ordered due north.
+///
+/// It does not, because `-65535 * 0x3fffff` does not fit in 32 bits. Truncated
+/// to 32, it comes back as `+4,259,839`, which shifts down to 1 and lands the
+/// result on 65536 — exactly one. The wrap cancels the wrap.
+///
+/// This is the single most delicate thing in the module, and it is why the
+/// multiply below is a `wrapping_mul` and not a widening one.
+fn quarter_lookup(folded: i32) -> i32 {
+    let idx = ((folded & 0x3fff_ffff) >> 22) as usize;
+    let frac = folded & 0x003f_ffff;
+    let cur = SIN_TABLE[idx];
+    let next = SIN_TABLE[(idx + 1) & 0xff];
+    cur + ((next - cur).wrapping_mul(frac) >> 22)
+}
+
+/// The component of a step of `distance` along `angle`, on the axis the
+/// original calls sine — which is **x**, because north is zero.
+///
+/// Folding: a negative angle is the far half of the circle, and is handled by
+/// negating the distance rather than by looking anything else up. The second
+/// quarter is mirrored onto the first. So only a quarter wave is ever stored.
+pub fn sin_component(angle: Angle, distance: i32) -> i32 {
+    if distance == 0 {
+        return 0;
+    }
+    let (mut a, mut d) = (angle.0, distance);
+    if a < 0 {
+        d = -d;
+        a &= 0x7fff_ffff;
+    }
+    let folded = if a & 0x4000_0000 != 0 {
+        0x7fff_ffff - a
+    } else {
+        a
+    };
+    let s = quarter_lookup(folded);
+    // The same product three ways, with the 16-bit shift split differently so
+    // that `s * distance` cannot overflow for a large distance. Which path runs
+    // changes where the truncation falls, so it is behaviour, not an
+    // optimisation. Movement only ever takes the first.
+    if d < 0xffff {
+        s.wrapping_mul(d) >> 16
+    } else if d < 0x00ff_ffff {
+        s.wrapping_mul(d >> 8) >> 8
+    } else {
+        s.wrapping_mul(d >> 16)
+    }
+}
+
+/// The component on the other axis — **y**, and positive means *northward*, so
+/// a caller subtracts it from a stored y.
+///
+/// Literally sine a quarter turn later; the original has two functions whose
+/// bodies are identical apart from that addition.
+pub fn cos_component(angle: Angle, distance: i32) -> i32 {
+    sin_component(angle.quarter_turn(), distance)
+}
+
 /// Scale factor from a speed to the distance actually covered in one frame.
 ///
 /// `Guy::move` multiplies by 11/8 — a literal, with no constant behind it. So
@@ -171,7 +237,7 @@ pub const fn turn_speed(t: &Tuning, type_turn_speed: u32, packed: bool) -> i32 {
 
 /// A heading below this much from its target counts as already facing.
 /// About 1/120 of a full circle.
-pub const FACING_TOLERANCE: i32 = 0x0222_2220;
+pub const FACING_TOLERANCE: u32 = 0x0222_2220;
 
 /// One frame of turning: the new heading, and how much turn is still owed.
 ///
@@ -180,25 +246,30 @@ pub const FACING_TOLERANCE: i32 = 0x0222_2220;
 /// the whole frame turning and covers no ground, which is why heavy units feel
 /// sticky when reversed.
 pub fn turn_towards(from: Angle, to: Angle, rate: i32) -> (Angle, i32) {
-    let delta = from.to(to);
-    let owed = delta.unsigned_abs();
-    if owed < FACING_TOLERANCE as u32 {
+    let delta = (to.0 as u32).wrapping_sub(from.0 as u32);
+    // The magnitude of an anticlockwise turn is taken with a bitwise NOT rather
+    // than a negation, so it comes out one short. Reproduced rather than
+    // corrected: it is free, and the value is one the interface can show.
+    let owed = if delta > 0x8000_0000 { !delta } else { delta };
+    if owed < FACING_TOLERANCE || rate as u32 >= owed {
+        // Close enough, or reachable in one frame: snap to the target.
         return (to, 0);
     }
-    if (rate as u32) >= owed {
-        return (to, 0);
-    }
-    let stepped = if delta > 0 {
-        from.0.wrapping_add(rate)
+    let stepped = if delta < 0x8000_0001 {
+        (from.0 as u32).wrapping_add(rate as u32)
     } else {
-        from.0.wrapping_sub(rate)
+        (from.0 as u32).wrapping_sub(rate as u32)
     };
-    (Angle(stepped), (owed - rate as u32) as i32)
+    (Angle(stepped as i32), (owed - rate as u32) as i32)
 }
 
 /// Whether a figure owing `owed` turn may also move this frame.
+///
+/// The doubling wraps and the comparison is unsigned, both as in the original —
+/// which matters only for a turn rate large enough to overflow, but a rule that
+/// panics on an input the original accepts is not the same rule.
 pub const fn may_move_while_turning(owed: i32, rate: i32) -> bool {
-    owed <= rate * 2
+    (rate as u32).wrapping_mul(2) >= owed as u32
 }
 
 /// The lowest speed `UnitData::get_speed` will report.
@@ -222,6 +293,89 @@ pub const fn group_capped(speed: i32, group_speed: i32) -> i32 {
         SPEED_FLOOR
     } else {
         capped
+    }
+}
+
+/// What one frame did to a figure.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Step {
+    /// Where it ended the frame. Unchanged if it spent the frame turning.
+    pub pos: Pos,
+    /// Which way it now faces.
+    pub facing: Angle,
+    /// Turn still owed after this frame.
+    pub owed: i32,
+    /// Whether it reached the destination exactly.
+    pub arrived: bool,
+}
+
+/// One frame of movement toward a destination — the original's `Guy::move`.
+///
+/// The order is the interesting part, and none of it is what a fresh
+/// implementation would write:
+///
+/// 1. Turn first. A figure owing more than **twice** its turn rate spends the
+///    whole frame turning and covers no ground, which is why heavy units feel
+///    sticky when told to reverse.
+/// 2. The step is `speed * 11/8` — a literal, so every speed in the game's data
+///    reads 27% low.
+/// 3. Arrival is a **Manhattan** test, so a diagonal approach snaps onto the
+///    destination from further out than an axis approach of the same true
+///    distance.
+/// 4. Otherwise take the trig components and **clamp each axis** so neither can
+///    overshoot. The clamps only ever reduce.
+///
+/// The original also subtracts a graphic pivot before adding the components and
+/// asks the world whether the result is passable. The pivot is presentation;
+/// the validity check belongs to the caller, which is why this returns the
+/// proposed position rather than committing it.
+pub fn advance(from: Pos, facing: Angle, dest: Pos, speed: i32, turn_rate: i32) -> Step {
+    let (dx, dy) = (dest.x - from.x, dest.y - from.y);
+    if dx == 0 && dy == 0 {
+        return Step {
+            pos: from,
+            facing,
+            owed: 0,
+            arrived: true,
+        };
+    }
+
+    let heading = find_angle(dx, dy);
+    let (facing, owed) = turn_towards(facing, heading, turn_rate);
+    if !may_move_while_turning(owed, turn_rate) {
+        return Step {
+            pos: from,
+            facing,
+            owed,
+            arrived: false,
+        };
+    }
+
+    let step = step_distance(speed);
+    if arrives(dx, dy, step) {
+        return Step {
+            pos: dest,
+            facing,
+            owed,
+            arrived: true,
+        };
+    }
+
+    let mut sx = sin_component(heading, step);
+    let mut cy = cos_component(heading, step);
+    if sx.abs() > dx.abs() {
+        sx = dx;
+    }
+    if cy.abs() > dy.abs() {
+        cy = -dy;
+    }
+    Step {
+        // y is subtracted: the cosine component points north and stored y runs
+        // south.
+        pos: Pos::new(from.x + sx, from.y - cy),
+        facing,
+        owed,
+        arrived: false,
     }
 }
 
@@ -345,6 +499,112 @@ mod tests {
         // not established. See docs/MOVEMENT.md.
         assert_eq!(turn_speed(&T, 16 << 8, false), 16);
         assert_eq!(turn_speed(&T, 16 << 8, true), 32);
+    }
+
+    #[test]
+    fn the_axis_components_are_whole_steps_and_the_overflow_is_why() {
+        // The four cardinals, which are exactly where the table's wrap-around
+        // lands. If the interpolation multiply were widened these would all
+        // come back as zero and every unit would stand still.
+        let d = 1000;
+        assert_eq!(sin_component(Angle::NORTH, d), 0);
+        assert_eq!(cos_component(Angle::NORTH, d), d);
+        assert_eq!(sin_component(Angle::EAST, d), d);
+        assert_eq!(cos_component(Angle::EAST, d), 0);
+        assert_eq!(sin_component(Angle::SOUTH, d), 0);
+        assert_eq!(cos_component(Angle::SOUTH, d), -d);
+        assert_eq!(sin_component(Angle::WEST, d), -d);
+        assert_eq!(cos_component(Angle::WEST, d), 0);
+        // And a zero step is zero regardless of heading.
+        assert_eq!(sin_component(Angle::EAST, 0), 0);
+    }
+
+    #[test]
+    fn the_components_stay_on_the_circle() {
+        // Not a proof, a bound: every heading should put the two components
+        // within a couple of percent of the step length. The metric here is a
+        // true hypotenuse on purpose — this is a test asking "is the trig
+        // sane", not simulation arithmetic.
+        let d = 10_000f64;
+        for k in 0i32..64 {
+            let a = Angle(k.wrapping_mul(0x0400_0000));
+            let (sx, cy) = (
+                f64::from(sin_component(a, 10_000)),
+                f64::from(cos_component(a, 10_000)),
+            );
+            let r = sx.hypot(cy);
+            assert!((r - d).abs() / d < 0.02, "heading {k}: radius {r}");
+        }
+    }
+
+    #[test]
+    fn a_unit_walks_east_and_lands_exactly_on_its_destination() {
+        // Twelve tiles east at a Citizen's speed. The step is 34 position units
+        // a frame, so this takes a while and must not drift off the axis or
+        // overshoot at the end.
+        let start = Pos::new(0, 0);
+        let dest = Pos::new(12 * 192, 0);
+        let mut pos = start;
+        let mut facing = Angle::EAST;
+        let mut frames = 0;
+        loop {
+            let step = advance(pos, facing, dest, 25, 0x0800_0000);
+            pos = step.pos;
+            facing = step.facing;
+            frames += 1;
+            if step.arrived {
+                break;
+            }
+            assert!(frames < 1000, "never arrived");
+        }
+        assert_eq!(pos, dest);
+        assert_eq!(pos.y, 0, "drifted off the axis");
+        // 2304 units at 34 a frame is 68 frames, and the last one is the short
+        // one that lands on the destination.
+        assert_eq!(frames, 68);
+    }
+
+    #[test]
+    fn a_unit_turns_before_it_walks() {
+        // Facing east, told to go north: the first frames are spent turning and
+        // cover no ground at all.
+        let start = Pos::new(0, 0);
+        let dest = Pos::new(0, -10_000);
+        let rate = 0x0400_0000;
+        let first = advance(start, Angle::EAST, dest, 25, rate);
+        assert_eq!(first.pos, start, "moved while still turned away");
+        assert!(first.owed > rate * 2);
+        // Keep turning until it is within the gate, then it starts moving.
+        let mut s = first;
+        let mut turning = 1;
+        while s.pos == start {
+            s = advance(s.pos, s.facing, dest, 25, rate);
+            turning += 1;
+            assert!(turning < 40, "never got moving");
+        }
+        // A quarter turn at 1/64 of a circle a frame is 16 frames of turning,
+        // and it may start moving once it is within two frames of facing — so
+        // 14 frames stood still.
+        assert_eq!(turning, 14);
+        assert!(s.pos.y < 0, "moved the wrong way");
+    }
+
+    #[test]
+    fn the_clamps_never_overshoot_the_destination() {
+        // A diagonal short hop: the true distance is 141 and the step is 149,
+        // so a component would carry the figure past the destination on both
+        // axes — but the Manhattan sum is 200, so arrival does not fire and the
+        // clamps are what has to stop it.
+        let dest = Pos::new(100, -100);
+        let step = step_distance(109);
+        assert!(step > 141 && !arrives(100, -100, step));
+        let s = advance(Pos::new(0, 0), Angle::NORTH, dest, 109, 0x4000_0000);
+        assert!(s.pos.x <= dest.x, "overshot x: {:?}", s.pos);
+        assert!(s.pos.y >= dest.y, "overshot y: {:?}", s.pos);
+        // Both clamps fire, so it lands exactly on the destination without the
+        // arrival test ever having said so.
+        assert_eq!(s.pos, dest);
+        assert!(!s.arrived);
     }
 
     #[test]

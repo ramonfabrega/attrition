@@ -11,18 +11,11 @@ decompiler dropped a register argument — which in movement is often, because
 this code passes almost everything in registers. Nothing is transcribed; see
 `docs/DECISIONS.md` entry 7.
 
-**Confidence.** Mixed, and deliberately so.
-
-- **High** for the unit of speed, the three-layer speed pipeline, the angle
-  representation, `find_angle`, the sine table's generator, the per-frame step
-  and the turn gate.
-- **Not established** for the quadrant fold inside `sinx`/`cosx`. As read, it
-  makes `cos(north)` come out as zero, which would freeze a unit walking north
-  — so the reading is wrong somewhere and the error has not been found. It is
-  written up in full at the end, with the evidence, because the next session
-  should start there rather than repeat the hunt.
-
-Nothing is implemented from the part that is not established.
+**Confidence.** High throughout. The unit of speed, the three-layer speed
+pipeline, the angle representation, `find_angle`, the sine table and its
+generator, the per-frame step and the turn gate are all read end to end, and the
+one thing that looked wrong turned out to be a misreading — see the note below,
+which is kept because the mistake is instructive.
 
 **Where the implementation is.** `crates/sim/src/movement.rs`.
 
@@ -149,6 +142,37 @@ The original builds them once from doubles; pinning the result is both
 closer to what the original actually runs on and free of any dependence on a
 platform's `sin`.
 
+### The multiply overflows, and the answer depends on it
+
+This is the one place in movement where reading the arithmetic carefully is not
+optional, and an earlier draft of this document got it wrong in a way worth
+recording.
+
+`sinx` and `cosx` fold an angle into the first quarter before the lookup: a
+negative angle — the far half of the circle — is handled by negating the
+*distance*, and the second quarter is mirrored with `0x7fffffff - angle`.
+Follow `cos(north)` through that. It becomes `0x40000000`, mirrors to
+`0x3fffffff`, and lands on index 255 with a nearly full fraction — exactly the
+wrapped step, interpolating from 65535 down toward `table[0]`. Read naively
+that gives 1 instead of 65535, and a unit ordered due north does not move.
+
+It does move, because the interpolation multiply is a 32-bit `imul` and
+`-65535 × 0x3fffff` does not fit in 32 bits. Truncated, it comes back as
+`+4,259,839`, which shifts down to **1**, and `1 + 65535` is **65536** —
+exactly one in the 16.16 scale that the final `>> 16` undoes. The wrap cancels
+the wrap.
+
+So the axis angles work by arithmetic overflow. Widen that multiply while
+"cleaning up" and every unit ordered along an axis stops dead.
+`crates/sim/src/movement.rs` uses a `wrapping_mul` and says why at the site.
+
+There are also **three precision paths** on the distance, differing only in
+where the 16-bit shift is split so that `s × distance` cannot overflow: below
+65535 the shift is all at the end, below 2²⁴ it is split eight and eight, above
+that the distance is pre-shifted by sixteen. Which path runs changes where
+truncation falls, so it is behaviour rather than optimisation — though a
+movement step only ever takes the first.
+
 ## The per-frame step
 
 `Guy::move` is the integration, per figure — RoN units are squads of one to
@@ -226,11 +250,25 @@ as an input.
 
 Runs when something changes, and writes a cached value on the unit. From the
 type's move value: transport and marine bonuses scaled by the player's age,
-then a multiply by `UNIT_MOVE_SPEED`, then a whales bonus, then one of four
-mutually exclusive class scalings (×9/8, ×17/16, ×32/27 or ×5/4 — which class
-is which is **not established**), then Bantu, French siege, Versailles,
+then a multiply by `UNIT_MOVE_SPEED`, then a whales bonus, then a correction for
+the gunpowder foot line (below), then Bantu, French siege, Versailles,
 aluminium, and finally `+ n/4` for each of the spy, general and supply upgrade
 counts. The result is propagated down a linked chain of units.
+
+**The gunpowder foot line carries a hardcoded speed correction**, tested most
+advanced first because each type also *is* its predecessor:
+
+| Type | Scale |
+| --- | --- |
+| Mechanized Infantry | ×9/8 |
+| Infantry | ×17/16 |
+| Rifleman | ×32/27 |
+| Arquebusiers | ×5/4 |
+
+No constant stands behind any of them. The correction shrinks as the line
+advances, which reads like the stored `MOVES` values for these four were chosen
+for something other than speed — animation cadence is the obvious candidate —
+and then corrected back here.
 
 ### 2. `UnitData::speed` — auras and nation bonuses
 
@@ -264,36 +302,18 @@ and it is what stops a damaged unit in mud from stopping altogether.
 
 ## Open questions
 
-**The quadrant fold in `sinx`/`cosx`, and it is the important one.** As read,
-both functions fold the angle before the table lookup like this:
+**Closed since the first draft, and kept because the mistake is the useful
+part.** The quadrant fold in `sinx`/`cosx` looked wrong and was not. It sends
+`cos(north)` through the table's wrapped last step, which read as plain
+arithmetic gives 1 instead of 65535 and would freeze a unit walking north. The
+32-bit multiply overflows, and the wrap cancels; see "The multiply overflows"
+above. The lesson is general: in this codebase an expression that looks broken
+should be checked for overflow before it is called broken. The first reading
+also came from disassembling `sin_table` in two halves, which is how the
+branch structure got mixed up.
 
-```
-if angle < 0:                  distance = -distance;  angle &= 0x7fffffff
-if angle & 0x40000000:         a = 0x7fffffff - angle
-else:                          a = angle
-```
+**Still open:**
 
-Follow `cosx(NORTH, step)` through it. `cosx` adds a quarter turn, giving
-`0x40000000`. That has the quarter bit set, so `a = 0x7fffffff - 0x40000000 =
-0x3fffffff`. That indexes entry 255 with a nearly-full fraction, and entry 255
-interpolates toward entry 0 — so the result is 1 rather than 65535, and the
-northward component of the step is zero. A unit ordered due north would not
-move.
-
-That is certainly not what the game does, so the reading is wrong. The
-candidates are the fold constant (`0x7fffffff` against `0x80000000`), the
-possibility that the second quarter is meant to index `255 - i`, and a
-misreading of which `cmov` branch is taken. Resolving it needs the full
-`sin_table` listing read carefully rather than in two halves, which is how it
-was read here.
-
-Everything else in this document is independent of the answer.
-
-**Also open:**
-
-- **Which four unit classes** get the ×9/8, ×17/16, ×32/27 and ×5/4 scalings in
-  `update_speed`. They are consecutive even type ids, which suggests a small
-  enumeration rather than four unrelated unit types.
 - **What world tile flag `0x800` is.** It halves speed, so it is terrain of
   some kind — forest, swamp or shallow water are the obvious candidates.
 - **Whether `ai_speed` belongs to the simulation.** It multiplies the step
