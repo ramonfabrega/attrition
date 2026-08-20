@@ -13,6 +13,14 @@
 //! owner's list when it is created and gives the slot back when it dies, and
 //! the query is a linear scan of that list.
 //!
+//! The flag is set at load by `UnitType::init_final_flags`, for the supply
+//! wagon line **and the three military patriots** — the Despot, the Monarch and
+//! the Comrade. A patriot therefore supplies at the wagon radius rather than at
+//! his general radius, and inherits everything else the bit carries: no supply
+//! heal, no war-time territorial attrition, and the wagon's HP and speed
+//! upgrades. This module calls a source a `Wagon` because that is what it
+//! almost always is; nothing here branches on which it is.
+//!
 //! Two consequences fall out of that and are easy to get wrong:
 //!
 //! - **The radius depends only on the player.** Every wagon a player owns has
@@ -25,20 +33,9 @@
 //! wrong hypotenuse the territory pass measures borders with. Supply radii are
 //! octagonal in exactly the way borders are.
 
+use crate::attrition::Domain;
 use crate::tuning::Tuning;
 use crate::world::{Owner, Player, Pos, UNITS_PER_TILE, vector_dist};
-
-/// A unit type's supply category — the original's three-way switch.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum Category {
-    /// Subject to the ordinary rules.
-    #[default]
-    Ordinary,
-    /// Counts as in supply wherever it stands, for [`in_supply`].
-    AlwaysSupplied,
-    /// Never repairs damage.
-    NeverHealed,
-}
 
 // ---------------------------------------------------------------------------
 // The radius
@@ -46,10 +43,13 @@ pub enum Category {
 
 /// A supply source's reach, in tiles.
 ///
-/// `upgrades` is how many steps of the supply chain the owner holds, 0 to 3.
-/// One of those steps is also granted outright by a nation bonus, so a player
-/// with it counts the step whether or not they researched it; that resolution
-/// happens before this is called.
+/// `upgrades` is how many steps of the supply chain the owner holds, 0 to 3 —
+/// `LeaderData::get_supply_upgrade` counting `has_preq` over the three
+/// `SUPPLY_WAGONS_*` steps, and nothing else. The original's loop carries an
+/// arm that would credit a nation bonus instead of the prerequisite for one
+/// particular step, but the step it names is outside the range the loop walks,
+/// so it never fires; the same arm appears in every one of these counters and
+/// is a shared loop macro rather than a rule.
 ///
 /// The Terra Cotta Army is wired in and contributes nothing: `TERRA_COTTA_RANGE`
 /// ships as 0. It is kept because leaving it out would silently change what a
@@ -82,7 +82,12 @@ pub struct General {
     /// Kutosov triples it — and Kutosov is also one of the three generals whose
     /// aura supplies, so this is the largest supply radius in the game.
     pub kutosov: bool,
+    /// The Terra Cotta Army, which the original asks the *owner* about and not
+    /// the hero: it applies to any general, the three supplying ones included.
+    /// It ships contributing nothing.
     pub terra_cotta: bool,
+    /// The patriot bonuses, unlike Terra Cotta, are strict type tests, so they
+    /// are the patriots' alone.
     pub patriot: Option<Patriot>,
 }
 
@@ -276,8 +281,8 @@ impl Network {
 /// Everything about a player that the supply network reads.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct PlayerSupply {
-    /// Steps of the supply upgrade chain held, 0 to 3, with the nation bonus
-    /// that grants one outright already folded in.
+    /// Steps of the supply upgrade chain held, 0 to 3. Research only — no
+    /// nation grants one, see [`supply_radius`].
     pub upgrades: i32,
     pub terra_cotta: bool,
     /// The nation bonus that makes supply heal.
@@ -296,6 +301,13 @@ impl PlayerSupply {
 }
 
 /// The first supplying general covering `at`, tried in the original's order.
+///
+/// The original's `ObjectData::has_general` matches the asking unit itself
+/// before it looks at the hero list: a hero of the type asked for returns its
+/// own index with no distance test. So the three supplying generals are always
+/// supplied — which matters, because heroes are not exempt from attrition.
+/// Scanning the list at distance 0 reaches the same answer for every general
+/// who is active and on the map, and one who is not would not be processed.
 pub fn find_general(generals: &[GeneralAura], at: Pos) -> Option<SupplyGeneral> {
     for kind in [
         SupplyGeneral::Darius,
@@ -331,6 +343,11 @@ pub fn find_general(generals: &[GeneralAura], at: Pos) -> Option<SupplyGeneral> 
 /// The fold is written as though these were rates and they are periods, so
 /// adding the nation bonus to a nonzero base would make healing *slower*. It
 /// is only correct because the base ships at zero.
+///
+/// This is the period alone. The heal it drives is gated on the unit being a
+/// captain, damaged, not garrisoned, land, and not itself a supply unit —
+/// `docs/SUPPLY.md`, consumer 2. Nothing here applies the heal yet, so those
+/// gates have nowhere to live.
 pub const fn heal_period(t: &Tuning, nation_bonus: bool, versailles: bool) -> i32 {
     let mut base = t.supply_heal_rate;
     if nation_bonus {
@@ -365,14 +382,18 @@ pub enum SiegeClass {
 
 /// The reload query, which is **not** the attrition query.
 ///
-/// Two clauses attrition has no equivalent of:
+/// Three clauses attrition has no equivalent of:
 ///
+/// - **Anything that is not a land unit is always in supply.** The original
+///   tests the type's `domain` field — the same `ObjectTypeData + 0x218` that
+///   decides which attrition period a unit can reach, which is why this takes
+///   [`Domain`] rather than a second name for the same three values.
 /// - **Your own territory supplies you**, with no wagon anywhere.
 /// - And only *your own*: the test is against the unit's own player, so
 ///   allied territory does not supply you either. A siege train fighting on an
 ///   ally's land reloads at the out-of-supply rate unless it brings a wagon.
-pub fn in_supply(category: Category, ground: Owner, owner: Player, found: bool) -> bool {
-    if !matches!(category, Category::Ordinary) {
+pub fn in_supply(domain: Domain, ground: Owner, owner: Player, found: bool) -> bool {
+    if !matches!(domain, Domain::Land) {
         return true;
     }
     if matches!(ground, Owner::Player(p) if p == owner) {
@@ -622,17 +643,13 @@ mod tests {
 
     #[test]
     fn your_own_ground_supplies_you_and_your_allys_does_not() {
-        let c = Category::Ordinary;
-        assert!(in_supply(c, Owner::Player(2), 2, false));
-        assert!(!in_supply(c, Owner::Player(3), 2, false));
-        assert!(!in_supply(c, Owner::None, 2, false));
-        assert!(in_supply(c, Owner::None, 2, true));
-        // And a type that is always supplied never asks.
-        assert!(in_supply(
-            Category::AlwaysSupplied,
-            Owner::Player(3),
-            2,
-            false
-        ));
+        let land = Domain::Land;
+        assert!(in_supply(land, Owner::Player(2), 2, false));
+        assert!(!in_supply(land, Owner::Player(3), 2, false));
+        assert!(!in_supply(land, Owner::None, 2, false));
+        assert!(in_supply(land, Owner::None, 2, true));
+        // Ships and aircraft never ask: the domain test comes first.
+        assert!(in_supply(Domain::Sea, Owner::Player(3), 2, false));
+        assert!(in_supply(Domain::Air, Owner::Player(3), 2, false));
     }
 }
