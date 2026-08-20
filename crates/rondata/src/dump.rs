@@ -57,7 +57,10 @@ pub struct Classified {
     pub loaded: Loaded,
 }
 
-const RULES: [(&str, fn(Scalar) -> i64); 6] = [
+/// A named rescaling rule.
+type Rule = (&'static str, fn(Scalar) -> i64);
+
+const RULES: [Rule; 6] = [
     ("plain", |s| i64::from(s.written_int())),
     ("x256", |s| i64::from(s.fraction(256))),
     ("x100", |s| i64::from(s.fraction(100))),

@@ -635,6 +635,7 @@ fn citizen_type() -> UnitType {
         },
         tree: None,
         garrison: garrison::UnitTraits::default(),
+        ..UnitType::default()
     }
 }
 

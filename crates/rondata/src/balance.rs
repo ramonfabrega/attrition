@@ -184,13 +184,15 @@ fn leading_int(s: &str) -> i32 {
 }
 
 /// What a unit record alone says about its [`Kind`]: the `OBJ_MASK` letters,
-/// the `FLAGS` letter `r` (`is_siege`), the domain from `TYPE`, its own row.
+/// the `FLAGS` letter `r` (`is_siege`), the domain from `DOMAIN`, its own row.
 /// The age and the named lineages are left at their defaults — see the module
 /// note.
 pub fn unit_kind(index: usize, r: &crate::Record) -> Kind {
     let masks = r.text("OBJ_MASK").map_or(0, mask::parse);
     let flags = r.text("FLAGS").unwrap_or("");
-    let domain = match r.text("TYPE").map(str::to_ascii_lowercase).as_deref() {
+    // `DOMAIN` is the column (`Land`/`Sea`/`Air`); an earlier draft read a
+    // `TYPE` column that does not exist and called every unit a land unit.
+    let domain = match r.text("DOMAIN").map(str::to_ascii_lowercase).as_deref() {
         Some("sea") | Some("naval") => sim::attrition::Domain::Sea,
         Some("air") => sim::attrition::Domain::Air,
         _ => sim::attrition::Domain::Land,

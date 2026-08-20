@@ -235,6 +235,14 @@ pub struct UnitType {
     pub tree: Option<tech::TypeId>,
     /// What the type needs in order to garrison — `docs/CITIES.md` §6.4.
     pub garrison: garrison::UnitTraits,
+    /// `MOVES`: the type's base speed in position units per frame — the
+    /// number `UnitData::get_speed` starts from, before the nation, tech and
+    /// terrain layers, and already in the unit movement uses
+    /// (`docs/MOVEMENT.md` §1: `UNIT_MOVE_SPEED` is the identity converter).
+    pub moves: i32,
+    /// `TURN_SPEED`, through `degrees_to_angle` as `UnitType::init` stores
+    /// it — the `type_turn_speed` of [`movement::Turning`].
+    pub turn_speed: i32,
 }
 
 /// What a player has built, as the price and the population cap see it.
