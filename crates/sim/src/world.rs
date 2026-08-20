@@ -98,6 +98,41 @@ impl Cell {
     }
 }
 
+/// The original's integer hypotenuse, and the only distance the simulation
+/// measures.
+///
+/// With `hi` the larger of `|dx|` and `|dy|` and `lo` the smaller, this is
+/// `hi + lo² / (2·hi)` — a first-order approximation that is exact on the
+/// axes, worst on the diagonal, and never a square root. It is what makes Rise
+/// of Nations' borders read as faintly octagonal rather than circular;
+/// substituting a true hypotenuse would visibly change every border.
+///
+/// The original has a second branch, `hi + lo / 2`, guarded by `lo < 60000`.
+/// That is an overflow guard on `lo * lo`, not a shape decision: no map is
+/// sixty thousand tiles across, so the branch is unreachable in play. It is
+/// kept because it costs nothing and because leaving it out would quietly
+/// change behaviour at a size the original defined.
+///
+/// It lives here, in world, rather than in the subsystem that needed it first,
+/// because it turned out to be shared: the territory pass inlines this
+/// arithmetic and `Supplies::find_supply` calls the engine's own `vector_dist`,
+/// which is the same thing. Supply radii are octagonal in exactly the way
+/// borders are, and one copy is what keeps them from drifting apart.
+///
+/// The name is the engine's.
+pub const fn vector_dist(dx: i32, dy: i32) -> i32 {
+    let (dx, dy) = (dx.abs(), dy.abs());
+    let (hi, lo) = if dx >= dy { (dx, dy) } else { (dy, dx) };
+    if hi == 0 {
+        return 0;
+    }
+    if lo < 60_000 {
+        hi + (lo * lo) / (hi * 2)
+    } else {
+        hi + lo / 2
+    }
+}
+
 /// Floor division. `i32::div_euclid` agrees for the positive divisors used
 /// here and is what the original's lookup table encodes.
 const fn floor_div(n: i32, d: i32) -> i32 {
@@ -300,6 +335,47 @@ mod tests {
     fn cell_centres_land_on_the_half_tile() {
         assert_eq!(Cell::new(0, 0).centre_tile(), Pos::new(2, 2));
         assert_eq!(Cell::new(3, 7).centre_tile(), Pos::new(14, 30));
+    }
+
+    #[test]
+    fn the_hypotenuse_is_exact_on_the_axes() {
+        for n in 0..200 {
+            assert_eq!(vector_dist(n, 0), n);
+            assert_eq!(vector_dist(0, -n), n);
+        }
+    }
+
+    #[test]
+    fn the_hypotenuse_overshoots_on_the_diagonal() {
+        // 3-4-5 comes out exact by luck: 4 + 9/8 = 5.
+        assert_eq!(vector_dist(3, 4), 5);
+        // The pure diagonal is where the approximation is worst: it returns
+        // 1.5x the leg where the true answer is 1.414x, so borders bulge
+        // *inward* at the corners and the outline reads as an octagon.
+        assert_eq!(vector_dist(40, 40), 60);
+        assert_eq!(vector_dist(100, 100), 150);
+    }
+
+    #[test]
+    fn the_hypotenuse_is_symmetric_and_off_by_at_most_a_truncation() {
+        for dx in -60..60 {
+            for dy in -60..60 {
+                let d = vector_dist(dx, dy);
+                assert_eq!(d, vector_dist(dy, dx), "{dx},{dy}");
+                assert_eq!(d, vector_dist(-dx, dy), "{dx},{dy}");
+                // Never shorter than the longer leg.
+                assert!(d >= dx.abs().max(dy.abs()), "{dx},{dy} gave {d}");
+                // The exact first-order form is an upper bound on the true
+                // distance, but the division truncates, so the result can land
+                // one below — 60,30 is the first case, giving 67 where the
+                // true distance is 67.08. It is never worse than that.
+                let (d, true_sq) = (
+                    i64::from(d),
+                    i64::from(dx) * i64::from(dx) + i64::from(dy) * i64::from(dy),
+                );
+                assert!((d + 1) * (d + 1) >= true_sq, "{dx},{dy} gave {d}");
+            }
+        }
     }
 
     #[test]

@@ -7,7 +7,7 @@
 //! what a fresh implementation would do and both are visible in the shape of
 //! the border on screen.
 //!
-//! **The distance is a deliberately wrong hypotenuse.** See [`raw_distance`].
+//! **The distance is a deliberately wrong hypotenuse.** See [`crate::world::vector_dist`].
 //!
 //! **The near field is contracted three times, compounding.** See
 //! [`contract`].
@@ -16,7 +16,7 @@
 //! without a rounding decision anywhere.
 
 use crate::tuning::Tuning;
-use crate::world::{Cell, Owner, Player, Pos, Terrain, World};
+use crate::world::{Cell, Owner, Player, Pos, Terrain, World, vector_dist};
 
 /// What kind of thing is projecting a border.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -261,33 +261,6 @@ const fn russian_steps(bonus: i32, russian: bool) -> i32 {
     if russian { 1 } else { (bonus + 1) / 2 }
 }
 
-/// The original's integer hypotenuse, in tiles, before the near field
-/// contraction.
-///
-/// With `hi` the larger of `|dx|` and `|dy|` and `lo` the smaller, this is
-/// `hi + lo² / (2·hi)` — a first-order approximation that is exact on the
-/// axes, worst on the diagonal, and never a square root. It is what makes Rise
-/// of Nations' borders read as faintly octagonal rather than circular;
-/// substituting a true hypotenuse would visibly change every border.
-///
-/// The original has a second branch, `hi + lo / 2`, guarded by `lo < 60000`.
-/// That is an overflow guard on `lo * lo`, not a shape decision: no map is
-/// sixty thousand tiles across, so the branch is unreachable in play. It is
-/// kept because it costs nothing and because leaving it out would quietly
-/// change behaviour at a size the original defined.
-pub const fn raw_distance(dx: i32, dy: i32) -> i32 {
-    let (dx, dy) = (dx.abs(), dy.abs());
-    let (hi, lo) = if dx >= dy { (dx, dy) } else { (dy, dx) };
-    if hi == 0 {
-        return 0;
-    }
-    if lo < 60_000 {
-        hi + (lo * lo) / (hi * 2)
-    } else {
-        hi + lo / 2
-    }
-}
-
 /// The near field contraction: three tests applied in order to the running
 /// distance.
 ///
@@ -391,7 +364,7 @@ pub fn compute_region_territory(
         for step in 0..players {
             let p = ((step as i32 + cell.x).rem_euclid(players as i32)) as Player;
             for s in sources.iter().filter(|s| s.owner == p) {
-                let d = raw_distance(here.x - s.pos.tile().x, here.y - s.pos.tile().y);
+                let d = vector_dist(here.x - s.pos.tile().x, here.y - s.pos.tile().y);
                 // The limit is tested against the raw distance, before the
                 // contraction. Testing the contracted one would let a source
                 // reach measurably further.
@@ -459,47 +432,6 @@ mod tests {
             capital: false,
             temple: false,
             owner_agrees: true,
-        }
-    }
-
-    #[test]
-    fn the_hypotenuse_is_exact_on_the_axes() {
-        for n in 0..200 {
-            assert_eq!(raw_distance(n, 0), n);
-            assert_eq!(raw_distance(0, -n), n);
-        }
-    }
-
-    #[test]
-    fn the_hypotenuse_overshoots_on_the_diagonal() {
-        // 3-4-5 comes out exact by luck: 4 + 9/8 = 5.
-        assert_eq!(raw_distance(3, 4), 5);
-        // The pure diagonal is where the approximation is worst: it returns
-        // 1.5x the leg where the true answer is 1.414x, so borders bulge
-        // *inward* at the corners and the outline reads as an octagon.
-        assert_eq!(raw_distance(40, 40), 60);
-        assert_eq!(raw_distance(100, 100), 150);
-    }
-
-    #[test]
-    fn the_hypotenuse_is_symmetric_and_off_by_at_most_a_truncation() {
-        for dx in -60..60 {
-            for dy in -60..60 {
-                let d = raw_distance(dx, dy);
-                assert_eq!(d, raw_distance(dy, dx), "{dx},{dy}");
-                assert_eq!(d, raw_distance(-dx, dy), "{dx},{dy}");
-                // Never shorter than the longer leg.
-                assert!(d >= dx.abs().max(dy.abs()), "{dx},{dy} gave {d}");
-                // The exact first-order form is an upper bound on the true
-                // distance, but the division truncates, so the result can land
-                // one below — 60,30 is the first case, giving 67 where the
-                // true distance is 67.08. It is never worse than that.
-                let (d, true_sq) = (
-                    i64::from(d),
-                    i64::from(dx) * i64::from(dx) + i64::from(dy) * i64::from(dy),
-                );
-                assert!((d + 1) * (d + 1) >= true_sq, "{dx},{dy} gave {d}");
-            }
         }
     }
 
@@ -614,8 +546,8 @@ mod tests {
         // The metric overshoots on the diagonal, so the corner of the world is
         // further away than the axis at the same Chebyshev distance. Measure
         // it directly rather than trusting the outline by eye.
-        let axis = raw_distance(40, 0);
-        let diagonal = raw_distance(40, 40);
+        let axis = vector_dist(40, 0);
+        let diagonal = vector_dist(40, 40);
         assert_eq!(axis, 40);
         assert_eq!(diagonal, 60);
         // A true hypotenuse would be 56, so the original's border is pulled in
