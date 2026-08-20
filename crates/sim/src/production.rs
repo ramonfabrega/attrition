@@ -112,7 +112,8 @@ pub enum QueueFail {
     Cost,
     /// This building cannot make this type at all.
     CantTrain,
-    /// No free slot, or a dock's six-boat rule.
+    /// No free slot — or the University's six-scholar rule, which is the
+    /// one special case `could_queue` carries and is not modelled here.
     Full,
 }
 
@@ -147,6 +148,19 @@ impl Queue {
     pub fn push(&mut self, ty: usize, charges: &[i32; RESOURCES]) -> usize {
         self.items.push(Item::queued(ty, charges));
         self.items.len() - 1
+    }
+
+    /// The first slot behind the head holding a research job, if any —
+    /// `BuildQueueData::get_next_non_unit`.
+    ///
+    /// This is what a stuck head lets through. When slot 0 is done and
+    /// `Build::finished` refuses it, `do_queue` walks from slot 1 looking for
+    /// the lowest entry that is not a unit type, or is a unit type whose
+    /// availability bit is clear, and advances that one instead. `research`
+    /// answers "is this type's entry a research job" — in a simulation with no
+    /// technology types, that is `!researched[ty]`.
+    pub fn next_research<F: Fn(usize) -> bool>(&self, research: F) -> Option<usize> {
+        (1..self.items.len()).find(|&i| research(self.items[i].ty))
     }
 
     /// Which slot a cancel of `i` actually removes.
@@ -389,6 +403,13 @@ pub fn advance(item: &mut Item, target: i32, accel: i32) -> bool {
 pub enum Handover {
     /// Positive. The unit exists; the entry is removed with no refund.
     Trained,
+    /// Positive, by the other route. The entry was a research job — a unit
+    /// type whose availability bit was clear — and it completed through
+    /// `Leader::gain_tech`, which sets the bit and places **nothing**. The
+    /// entry is removed with no refund, and the population cap, caravan and
+    /// aircraft checks below were never consulted: they sit inside the
+    /// bit-set branch. The player queues again for the first trained one.
+    Researched,
     /// Zero. The population cap. Nothing happens, the entry keeps its full
     /// progress, and the whole attempt repeats next frame — so a queue at the
     /// cap stalls at a hundred percent, paid for, until room appears.
@@ -403,7 +424,8 @@ pub enum Handover {
 ///
 /// The population comparison is `pop_cap < control + pop`, the same strict
 /// form as `check_population` in `docs/COSTS.md` — a unit that lands you
-/// exactly on the cap is allowed.
+/// exactly on the cap is allowed. This is the *train* half of
+/// `Build::finished`; [`finished`] puts the research half in front of it.
 pub const fn hand_over(cap: i32, control: i32, pop: i32, at_limit: bool) -> Handover {
     if cap < control + pop {
         return Handover::Population;
@@ -414,13 +436,40 @@ pub const fn hand_over(cap: i32, control: i32, pop: i32, at_limit: bool) -> Hand
     Handover::Trained
 }
 
-/// How many queue slots advance at once.
+/// `Build::finished` for a unit-type entry, whole.
 ///
-/// `Build::do_queue` recurses into slot `i + 1` while `i + 1` is below both
-/// the live count and `LeaderData::get_building_cities`, which counts cities
-/// holding a **library**. Since every research job in the game is forwarded to
-/// the player's first library, that count is the number of technologies that
-/// can progress simultaneously. One library, one tech. Four libraries, four.
+/// The availability bit is tested first. Clear, and the entry falls past the
+/// training branch to `Leader::gain_tech`: the bit is set, nothing is placed,
+/// the answer is positive. Set, and it is [`hand_over`]. (An earlier draft of
+/// the simulation spawned a unit from the research entry too; the original
+/// does not — see `docs/PRODUCTION.md`, "Completion".)
+pub const fn finished(
+    researched: bool,
+    cap: i32,
+    control: i32,
+    pop: i32,
+    at_limit: bool,
+) -> Handover {
+    if !researched {
+        return Handover::Researched;
+    }
+    hand_over(cap, control, pop, at_limit)
+}
+
+/// How many of the **first library's** queue slots advance at once.
+///
+/// Inside its library branch — and only there — `Build::do_queue` recurses
+/// into slot `i + 1` while `i + 1` is below both the live count and
+/// `LeaderData::get_building_cities`, which counts cities holding a library.
+/// Since every research job in the game is forwarded to the player's first
+/// library, that count is the number of technologies that can progress
+/// simultaneously. One library, one tech. Four libraries, four.
+///
+/// Every other building advances slot 0 only. (An earlier draft applied this
+/// to every building, so a barracks with four library cities behind it trained
+/// four at once; the recursion is under `is(LIBRARY)` in the decompile, and
+/// `docs/audit/2026-08-20-production.md` settled the dropped argument from the
+/// bytes.)
 pub const fn parallel_slots(library_cities: usize, queued: usize) -> usize {
     if library_cities < queued {
         library_cities
@@ -724,6 +773,29 @@ mod tests {
         for x in [0, 1, 99, 100, 250, 1000, 3200, 12345, 1_000_000] {
             assert_eq!(neg_hundredth(x), -(x / 100));
         }
+    }
+
+    #[test]
+    fn a_research_entry_completes_without_asking_the_cap() {
+        // The bit is clear, the player is over the cap — and the answer is
+        // still positive, because the cap check is inside the bit-set branch.
+        assert_eq!(finished(false, 0, 10, 1, true), Handover::Researched);
+        assert_eq!(finished(true, 0, 10, 1, true), Handover::Population);
+        assert_eq!(finished(true, 10, 0, 1, false), Handover::Trained);
+    }
+
+    #[test]
+    fn a_stuck_head_lets_the_first_research_entry_through() {
+        let mut q = Queue::new(8);
+        let c = charges(&[(Resource::Food, 1)]);
+        for ty in [1, 2, 3, 2, 4] {
+            q.push(ty, &c);
+        }
+        let researched = [false, true, true, false, false];
+        // Slot 0 is never a candidate, even if it is itself a research job.
+        assert_eq!(q.next_research(|ty| !researched[ty]), Some(2));
+        // Only train jobs behind the head: nothing gets through.
+        assert_eq!(q.next_research(|_| false), None);
     }
 
     #[test]

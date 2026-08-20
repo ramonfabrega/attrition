@@ -166,9 +166,10 @@ pub struct Muster {
     /// pace and research time, and every one after is a train job.
     pub researched: Vec<bool>,
     /// How many of the player's cities hold a library —
-    /// `LeaderData::get_building_cities`. This is how many queue slots advance
-    /// at once, and since every research job is forwarded to the first
-    /// library, it is how many technologies can progress simultaneously.
+    /// `LeaderData::get_building_cities`. This is how many slots of the
+    /// **first library's** queue advance at once — and of no other queue —
+    /// and since every research job is forwarded to that library, it is how
+    /// many technologies can progress simultaneously.
     pub library_cities: usize,
     /// The same, by production group.
     pub by_group: Vec<i32>,
@@ -292,6 +293,13 @@ pub struct Building {
     /// garrisoned and leaves by the ejection path — which this does not model.
     pub pos: Pos,
     pub queue: production::Queue,
+    /// Whether this is a library — the original's `is(LIBRARY, 0)`. Two rules
+    /// key on it and on nothing else: orders and cancels given to any library
+    /// are forwarded to the player's *first* one, and only that first
+    /// library's queue fans out across `Muster::library_cities` slots. There
+    /// is no building-type system here yet; this flag is the smallest honest
+    /// stand-in for the one test production needs.
+    pub is_library: bool,
 }
 
 /// A unit that came out of a queue this frame.
@@ -302,6 +310,21 @@ pub struct Produced {
     pub ty: usize,
     /// Index into [`Sim::buildings`].
     pub at: usize,
+}
+
+/// What one call of `do_queue` on one slot did — the sign `Build::finished`
+/// hands back, plus "not done yet".
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Advanced {
+    /// The counter moved and the entry is not done.
+    Pending,
+    /// A research entry completed: the bit is set, the entry is gone, no unit.
+    Researched,
+    /// A train entry completed and a unit was placed.
+    Trained(Produced),
+    /// Done, offered, refused — zero or negative from `finished`. The entry
+    /// stays at full progress. At slot 0 this is what triggers the redirect.
+    Blocked,
 }
 
 impl Sim {
@@ -445,8 +468,37 @@ impl Sim {
             owner,
             pos,
             queue: production::Queue::new(capacity),
+            is_library: false,
         });
         self.buildings.len() - 1
+    }
+
+    /// Adds a library and returns its index. See [`Building::is_library`].
+    pub fn add_library(&mut self, owner: Player, pos: Pos, capacity: usize) -> usize {
+        let at = self.add_building(owner, pos, capacity);
+        self.buildings[at].is_library = true;
+        at
+    }
+
+    /// The player's first library — `LeaderData::get_first_library`, which
+    /// walks the owner's buildings from the lowest index and returns the first
+    /// library. (The original also asks that it be active, in a city and not
+    /// unassimilated; none of those states exist here.)
+    pub fn first_library(&self, who: Player) -> Option<usize> {
+        self.buildings
+            .iter()
+            .position(|b| b.owner == who && b.is_library)
+    }
+
+    /// Where an order given at `at` actually lands. A library that is not the
+    /// player's first forwards to the first — `queue_up`, `unqueue` and
+    /// `do_queue` all perform this redirection, which is what puts every
+    /// research job in the game on one queue.
+    fn queue_home(&self, at: usize) -> usize {
+        if !self.buildings[at].is_library {
+            return at;
+        }
+        self.first_library(self.buildings[at].owner).unwrap_or(at)
     }
 
     /// Orders one unit of a type at a building — `Build::queue_up`.
@@ -459,6 +511,7 @@ impl Sim {
     /// The two gates are the original's and in its order — affordability
     /// first, then room in the queue.
     pub fn queue_up(&mut self, at: usize, ty: usize) -> Result<usize, production::QueueFail> {
+        let at = self.queue_home(at);
         let who = self.buildings[at].owner;
         let charges = self.price_of(who, ty);
         let available = self.holdings[who as usize].available;
@@ -481,6 +534,7 @@ impl Sim {
     /// forward past entries of the same type, so cancelling one of a run
     /// removes the last of it and the one in progress keeps its progress.
     pub fn cancel(&mut self, at: usize, slot: usize) -> Option<production::Item> {
+        let at = self.queue_home(at);
         let who = self.buildings[at].owner;
         let item = {
             let ledger = &mut self.ledgers[who as usize];
@@ -511,23 +565,66 @@ impl Sim {
 
     /// Advances every building's queue by one frame — `Build::do_queue`.
     ///
-    /// Two things about the cadence are worth stating because they would be
-    /// easy to get plausibly wrong. It runs on **every** frame, with no phase
-    /// offset by building index — unlike the per-unit upkeep in
-    /// `docs/ATTRITION.md`, which is phased. And it advances more than the
-    /// head of the queue: `LeaderData::get_building_cities` counts the
-    /// player's library-holding cities, and that many slots advance at once.
+    /// Three things about the cadence are worth stating because they would be
+    /// easy to get plausibly wrong, and one of them was. It runs on **every**
+    /// frame, with no phase offset by building index — unlike the per-unit
+    /// upkeep in `docs/ATTRITION.md`, which is phased. **Only the first
+    /// library fans out**: its queue advances `Muster::library_cities` slots at
+    /// once (`LeaderData::get_building_cities`, inside `do_queue`'s library
+    /// branch), a non-first library's queue never advances at all, and every
+    /// other building advances slot 0 and slot 0 only. (An earlier draft
+    /// applied the fan-out to every building.) And **a stuck head is not a
+    /// stuck queue**: when slot 0 is done and refused, the first research
+    /// entry behind it advances in its place — see [`Sim::advance_slot`].
     fn process_queues(&mut self) -> Vec<Produced> {
         let mut out = Vec::new();
         for at in 0..self.buildings.len() {
             let who = self.buildings[at].owner;
             let queued = self.buildings[at].queue.items.len();
-            let slots =
-                production::parallel_slots(self.muster[who as usize].library_cities, queued).max(1);
-            for slot in (0..slots.min(queued)).rev() {
-                if let Some(p) = self.advance_slot(at, slot) {
-                    out.push(p);
+            if queued == 0 {
+                continue;
+            }
+            if self.buildings[at].is_library {
+                if self.first_library(who) != Some(at) {
+                    // `do_queue`'s first gate: a non-first library returns.
+                    continue;
                 }
+                // The library branch recurses into `i + 1` before handling
+                // its own slot, so deeper slots complete first. Walking the
+                // slots in reverse is that order, and it also keeps the lower
+                // indices stable when a deeper entry is removed.
+                let slots =
+                    production::parallel_slots(self.muster[who as usize].library_cities, queued)
+                        .max(1);
+                for slot in (0..slots).rev() {
+                    if let Advanced::Trained(p) = self.advance_slot(at, slot) {
+                        out.push(p);
+                    }
+                }
+                continue;
+            }
+            match self.advance_slot(at, 0) {
+                Advanced::Trained(p) => out.push(p),
+                Advanced::Blocked => {
+                    // The head is done and refused. `do_queue` then asks
+                    // `get_next_non_unit` for the first research entry
+                    // behind it and advances that one this frame instead. A
+                    // train entry behind the head stays put: the cap blocks
+                    // every train job, and only train jobs.
+                    //
+                    // The original's second fallback — on a *negative*
+                    // answer only, a non-caravan or helicopter entry — is not
+                    // modelled, because nothing here can be refused with a
+                    // negative answer yet (no caravans, no aircraft).
+                    let researched = &self.muster[who as usize].researched;
+                    let next = self.buildings[at].queue.next_research(|ty| !researched[ty]);
+                    if let Some(slot) = next
+                        && let Advanced::Trained(p) = self.advance_slot(at, slot)
+                    {
+                        out.push(p);
+                    }
+                }
+                Advanced::Pending | Advanced::Researched => {}
             }
         }
         out
@@ -535,10 +632,14 @@ impl Sim {
 
     /// One queue slot, for one frame.
     ///
-    /// Returns the unit if one was handed over. A slot that is done but
-    /// refused keeps its full progress and is retried next frame, which is
-    /// where a population cap actually bites.
-    fn advance_slot(&mut self, at: usize, slot: usize) -> Option<Produced> {
+    /// A slot that is done is offered to [`production::finished`]. A research
+    /// entry — a unit type whose availability bit is clear — completes through
+    /// `Leader::gain_tech`: the bit is set, the entry is removed with no
+    /// refund, and **no unit is placed**; the player queues again for the
+    /// first trained one. (An earlier draft spawned a unit here too.) A train
+    /// entry that is refused keeps its full progress and is retried next
+    /// frame, which is where a population cap actually bites.
+    fn advance_slot(&mut self, at: usize, slot: usize) -> Advanced {
         let who = self.buildings[at].owner;
         let ty = self.buildings[at].queue.items[slot].ty;
         let researched = self.muster[who as usize].researched[ty];
@@ -547,13 +648,24 @@ impl Sim {
 
         let done = production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
         if !done {
-            return None;
+            return Advanced::Pending;
         }
 
         let muster = &self.muster[who as usize];
         let pop = self.unit_types[ty].price.pop;
-        match production::hand_over(muster.cap, muster.control, pop, false) {
-            production::Handover::Population | production::Handover::Limit => None,
+        match production::finished(researched, muster.cap, muster.control, pop, false) {
+            production::Handover::Population | production::Handover::Limit => Advanced::Blocked,
+            production::Handover::Researched => {
+                // `gain_tech`: the bit, and nothing else. No refund, no
+                // skip-forward, no unit, no population.
+                let mut ledger = economy::Ledger::default();
+                self.buildings[at].queue.unqueue(slot, false, &mut ledger);
+                let muster = &mut self.muster[who as usize];
+                muster.queued_by_type[ty] -= 1;
+                muster.researched[ty] = true;
+                self.economy_changed(who);
+                Advanced::Researched
+            }
             production::Handover::Trained => {
                 let pos = self.buildings[at].pos;
                 // No refund on completion, and no skip-forward: the original
@@ -565,8 +677,6 @@ impl Sim {
                 muster.queued_by_type[ty] -= 1;
                 muster.by_type[ty] += 1;
                 muster.control += pop;
-                // The first of a type researches it; the rest are trained.
-                muster.researched[ty] = true;
                 if let Some(g) = self.unit_types[ty].group {
                     muster.by_group[g] += 1;
                 }
@@ -576,7 +686,7 @@ impl Sim {
                 unit.kind = self.unit_types[ty].kind;
                 let unit = self.add_unit(unit);
                 self.economy_changed(who);
-                Some(Produced { unit, ty, at })
+                Advanced::Trained(Produced { unit, ty, at })
             }
         }
     }
