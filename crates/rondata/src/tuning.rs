@@ -43,6 +43,20 @@ pub fn drift(rules: &Rules) -> Vec<Drift> {
                     });
                 }
             }
+            Slot::Ratio256(ours) => {
+                // The file writes a rational and the engine loads it as 8.8
+                // fixed point, so the check has to rescale rather than compare
+                // digits. `Scalar::to_fx` is exact for these denominators, and
+                // Q16.16 divided down by 256 is Q8.8 with the same truncation.
+                let theirs = rules.constant(name).map(|s| s.to_fx().raw() / 256);
+                if theirs != Some(ours) {
+                    out.push(Drift {
+                        name,
+                        ours: ours.to_string(),
+                        theirs: theirs.map(|v| v.to_string()),
+                    });
+                }
+            }
             Slot::Entries(ours) => {
                 let theirs: Option<Vec<i32>> = rules
                     .constant_entries(name)

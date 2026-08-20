@@ -415,6 +415,42 @@ siblings. Per-language variants; ignorable wholesale.
 
 ---
 
+## Verified: the per-nation files are in `game/tribes/`
+
+An earlier open question asked where the 24 XML files `rules.xml`'s `<TRIBES>`
+block names had gone, since they are not in `Data/` and there are no BIG
+archives to hide in. They are in `game/tribes/`, alongside the `alex_*`
+campaign factions, each with the usual `.xml.4` / `.xml.7` / `.xml.9`
+localisation siblings.
+
+What they hold is **less than expected**: a display name, a list of leader
+names, a list of city names, and three art-style indices —
+`UNIT_CONTINENT`, `BUILD_CONTINENT`, `BACKUP_BUILD_CONTINENT`. No bonuses, no
+unit substitutions, no tech modifiers.
+
+So the file answers the "where" and sharpens the real question. A nation's
+mechanical identity is not in its own file. `LeaderData::has_tribe_bonus` reads
+one power id per nation from the loaded tribe record at +0x54, with tribe
+records at a stride of 0x5f0 — and `rules.xml`'s `<TRIBE>` entries carry only
+`<FILE>` and `<KEY>`. Where that id comes from is unlocated, and it is what
+gates the nation powers that `docs/SUPPLY.md` and `docs/ATTRITION.md` both
+have to name indirectly.
+
+### Some constants are loaded as 8.8 fixed point
+
+`PARMENIO_RADIUS_ADJUST` is written `3/2` in `rules.xml` and consumed by
+`HeroData::get_radius` as a multiply followed by an arithmetic shift right by
+eight. A `3/2` scale through a `>> 8` means the loader stored 384, so the
+rational was scaled by 256 on the way in rather than kept as a pair.
+
+That matters beyond one constant: it means `Scalar::Ratio` values do not all
+arrive in the same representation, and a checker that compares the written
+digits will disagree with a simulation that holds the scaled value.
+`sim::tuning::Slot::Ratio256` exists for exactly this, and `rondata`
+reconstructs the scale rather than comparing text.
+
+---
+
 ## Prior art
 
 The only serious public RoN format work is
@@ -472,8 +508,9 @@ played on. `game/scenario/` and `game/mapstyles/` are unexamined.
 
 ## Open questions
 
-- Where are the 24 per-nation XML files that `rules.xml`'s `<TRIBES>` block
-  references? Not in `Data/`, and there are no BIG archives to hide in.
+- Where is a nation's *bonus* loaded from? The per-nation files themselves are
+  found — see below — and they do not contain one, yet `LeaderData::has_tribe_bonus`
+  reads a single power id per nation from the loaded tribe record at +0x54.
 - Does the recorded-game container embed the checksums and the random log, or
   only the command stream? *(Determines whether the oracle is exact or
   inferred — still the highest-value unknown, but no longer unanswerable.)*

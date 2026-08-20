@@ -6,12 +6,12 @@ Games, 2003) in Rust — simulation first, art last.
 Named for the mechanic no open-source RTS has ever implemented: units bleeding
 health inside hostile national borders.
 
-> **Status: Phase 1, attrition, implemented headless.** Borders produce
-> territory, territory produces damage, and the whole thing runs in a test with
-> no display attached. The specification it was written from is
-> `docs/ATTRITION.md`; the tuned numbers it uses are re-checked against your own
-> install on every run of `rondata`. Next is running the original, for a
-> behavioural oracle.
+> **Status: Phase 1, attrition and supply, implemented headless.** Borders
+> produce territory, territory produces damage, supply cancels it — and the
+> whole thing runs in a test with no display attached. The specifications they
+> were written from are `docs/ATTRITION.md` and `docs/SUPPLY.md`; the tuned
+> numbers they use are re-checked against your own install on every run of
+> `rondata`. Next is running the original, for a behavioural oracle.
 
 ## What this is
 
@@ -70,8 +70,9 @@ Windows VM. That is its own phase; see `CLAUDE.md`.
 ```
 crates/fixed/     deterministic Q16.16 fixed-point math
 crates/rondata/   reads the game's data tables from an installed copy
-crates/sim/       the simulation: territory, attrition, headless
+crates/sim/       the simulation: territory, attrition, supply, headless
 docs/ATTRITION.md the attrition mechanic, written from the original
+docs/SUPPLY.md    supply: the counter to attrition, and its two other jobs
 docs/DECISIONS.md architectural decisions and their rationale
 docs/FORMATS.md   file-format reverse-engineering log
 ```
@@ -81,7 +82,7 @@ Crates appear here when they have real code, not in anticipation of it.
 ## Development
 
 ```sh
-cargo test          # 96 tests
+cargo test          # 110 tests
 cargo clippy --all-targets
 cargo fmt
 ```
@@ -94,7 +95,7 @@ cargo run -p rondata -- /path/to/Rise\ of\ Nations
 ```
 
 It prints the table shapes, re-derives each structural claim in
-`docs/FORMATS.md` from your own files, and re-reads all 36 tuned constants the
+`docs/FORMATS.md` from your own files, and re-reads all 49 tuned constants the
 simulation depends on — exiting non-zero if any of it stops being true. Nothing
 is copied anywhere; it only reads.
 

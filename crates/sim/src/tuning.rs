@@ -1,4 +1,4 @@
-//! The tuned numbers attrition depends on.
+//! The tuned numbers the simulation depends on.
 //!
 //! These are inputs, not constants of the universe. The simulation takes a
 //! [`Tuning`] and never reaches for a global, so a scenario, a mod, or a test
@@ -18,9 +18,16 @@ pub enum Slot {
     Value(i32),
     /// A `<NAME entry0="..." entry1="..."/>` array.
     Entries(&'static [i32]),
+    /// A constant the file writes as a rational and the engine loads as 8.8
+    /// fixed point, held here already scaled: `3/2` in the file is 384 here.
+    ///
+    /// The scale is not something the file states. It is fixed by how the
+    /// original consumes the value — a multiply followed by a shift right by
+    /// eight — so the check has to reconstruct it rather than compare digits.
+    Ratio256(i32),
 }
 
-/// Everything the attrition and territory passes read.
+/// Everything the attrition, territory and supply passes read.
 ///
 /// Field names match the shipped constant names, lowercased, so that a reader
 /// with `rules.xml` open can follow along. Where the original's own struct
@@ -107,6 +114,38 @@ pub struct Tuning {
     pub tikal_temple_borders: i32,
     /// Flat border bonus the Red Fort adds to the fort it stands in.
     pub red_fort_borders: i32,
+
+    // ---- supply ----
+    /// A supply source's reach, in tiles, before upgrades.
+    pub supply_radius: i32,
+    /// Added to that reach per step of the supply upgrade chain.
+    pub supply_radius_upgrade: i32,
+    /// Added to a supply or general radius by the Terra Cotta Army. Ships as
+    /// zero: the wonder is wired in and contributes nothing.
+    pub terra_cotta_range: i32,
+    /// Base of a general's aura radius, in tiles.
+    pub general_radius: i32,
+    /// Parmenio's scale on that radius, as 8.8 fixed point. The shipped file
+    /// writes `3/2`; the original multiplies and shifts right by eight, which
+    /// is what fixes the scale.
+    pub parmenio_radius_adjust: i32,
+    /// Wellington's percentage scale on it.
+    pub wellington_radius: i32,
+    /// Kutosov's percentage scale on it.
+    pub kutosov_radius: i32,
+    /// Added to it for a military patriot.
+    pub mil_patriot_radius_bonus: i32,
+    /// Added to it for an economic patriot.
+    pub econ_patriot_radius_bonus: i32,
+    /// Period, in frames, at which supply repairs damage. Zero means never,
+    /// which is what ships.
+    pub supply_heal_rate: i32,
+    /// Period granted instead by the supply-heal nation bonus.
+    pub french_supply_heal_rate: i32,
+    /// Period granted instead by Versailles.
+    pub versailles_supply_heal_rate: i32,
+    /// Non-zero if a siege unit under attack reloads as though out of supply.
+    pub artillery_under_attack_fires_slowly: i32,
 }
 
 impl Tuning {
@@ -157,6 +196,20 @@ impl Tuning {
         russian_borders_per_age: 1,
         tikal_temple_borders: 50,
         red_fort_borders: 4,
+
+        supply_radius: 14,
+        supply_radius_upgrade: 2,
+        terra_cotta_range: 0,
+        general_radius: 6,
+        parmenio_radius_adjust: 384,
+        wellington_radius: 200,
+        kutosov_radius: 300,
+        mil_patriot_radius_bonus: 3,
+        econ_patriot_radius_bonus: 1,
+        supply_heal_rate: 0,
+        french_supply_heal_rate: 20,
+        versailles_supply_heal_rate: 20,
+        artillery_under_attack_fires_slowly: 1,
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -165,7 +218,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 36] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 49] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -228,6 +281,40 @@ impl Tuning {
             ("FORT_UPGRADE_TERR", Slot::Entries(&T.fort_upgrade_terr)),
             ("TEMPLE_UPGRADE_TERR", Slot::Entries(&T.temple_upgrade_terr)),
             ("CIVIC_UPGRADE_TERR", Slot::Entries(&T.civic_upgrade_terr)),
+            ("SUPPLY_RADIUS", Slot::Value(T.supply_radius)),
+            (
+                "SUPPLY_RADIUS_UPGRADE",
+                Slot::Value(T.supply_radius_upgrade),
+            ),
+            ("TERRA_COTTA_RANGE", Slot::Value(T.terra_cotta_range)),
+            ("GENERAL_RADIUS", Slot::Value(T.general_radius)),
+            (
+                "PARMENIO_RADIUS_ADJUST",
+                Slot::Ratio256(T.parmenio_radius_adjust),
+            ),
+            ("WELLINGTON_RADIUS", Slot::Value(T.wellington_radius)),
+            ("KUTOSOV_RADIUS", Slot::Value(T.kutosov_radius)),
+            (
+                "MIL_PATRIOT_RADIUS_BONUS",
+                Slot::Value(T.mil_patriot_radius_bonus),
+            ),
+            (
+                "ECON_PATRIOT_RADIUS_BONUS",
+                Slot::Value(T.econ_patriot_radius_bonus),
+            ),
+            ("SUPPLY_HEAL_RATE", Slot::Value(T.supply_heal_rate)),
+            (
+                "FRENCH_SUPPLY_HEAL_RATE",
+                Slot::Value(T.french_supply_heal_rate),
+            ),
+            (
+                "VERSAILLES_SUPPLY_HEAL_RATE",
+                Slot::Value(T.versailles_supply_heal_rate),
+            ),
+            (
+                "ARTILLERY_UNDER_ATTACK_FIRES_SLOWLY",
+                Slot::Value(T.artillery_under_attack_fires_slowly),
+            ),
         ]
     }
 }

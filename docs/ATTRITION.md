@@ -309,8 +309,9 @@ when all of:
 - the unit is not flagged as a peace or assassin bleed (see below);
 - the unit is not itself a supply unit;
 - the unit is not militia;
-- and `Supplies::find_supply` finds a friendly supply radius at its position,
-  or the player has one of three general units with a supply aura nearby.
+- and `Supplies::find_supply` finds one of the player's own supply sources
+  within its radius, or one of Darius, Kutosov and Chandragupta is standing
+  within their own aura.
 
 So a supply wagon does not reduce attrition; it **cancels** it. That is the
 mechanic that lets an army campaign abroad at all, and it is implemented as a
@@ -323,6 +324,12 @@ defenders of your own ground, and the game declines to let them campaign behind
 a wagon. And the **peace and assassin paths set a flag that makes the supply
 check give up immediately**, so a supply wagon protects an army in a war zone
 but does nothing for a unit caught over a border in peacetime.
+
+The supply network itself — what registers as a source, how far it reaches, and
+the two other things it does that have nothing to do with attrition — is
+`docs/SUPPLY.md`. One fact from it belongs here, because it is the first thing
+a player gets wrong: **supply is per player and never shared.** An ally's
+wagon does nothing for your units.
 
 ## The damage
 
@@ -445,6 +452,12 @@ It is exact on the axes and worst on the diagonal, where it returns 1.5× the
 leg against a true 1.414×. So the border is pulled *inward* at 45 degrees
 relative to a circle, which is why RoN's borders read as faintly octagonal.
 Substituting a true `hypot` would visibly change every border on every map.
+
+This is a shared primitive rather than something the territory pass invented:
+the engine has it as a free function, `vector_dist`, which the territory pass
+inlines and `Supplies::find_supply` calls. Supply radii are octagonal in
+exactly the way borders are. `crates/sim` therefore keeps one copy, in `world`,
+under the engine's own name.
 
 The original has a second branch, `hi + lo / 2`, selected by `lo < 60000`. That
 is an overflow guard on `lo * lo`, not a shape decision — no map is sixty

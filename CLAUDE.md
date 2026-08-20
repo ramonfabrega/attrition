@@ -81,11 +81,13 @@ artifact is the next phase's tool.
    model and sim state. Weeks, not years; publishable alone; immediately useful
    to the RoN:EE modding community.
 1. **Attrition** — one mechanic, end to end, headless. Borders → territory →
-   damage. It is the namesake, it is self-contained, no open-source RTS has it,
-   and everything needed is in reach: `borders.cpp` in the symbols, and
-   `TERRITORY_BASE`/`_DEN`/`_NUM`/`_LIMIT_*`, `CITY_TERRITORY_MULTIPLIER`, the
-   `*_UPGRADE_TERR` arrays, and `ATTRITION = 48 frames` in the data. If this
-   comes out exactly right, the method is proven and the rest is repetition.
+   damage, and supply cancelling it. It is the namesake, it is self-contained,
+   no open-source RTS has it, and everything needed is in reach: `borders.cpp`
+   in the symbols, and `TERRITORY_BASE`/`_DEN`/`_NUM`/`_LIMIT_*`,
+   `CITY_TERRITORY_MULTIPLIER`, the `*_UPGRADE_TERR` arrays, and
+   `ATTRITION = 48 frames` in the data. If this comes out exactly right, the
+   method is proven and the rest is repetition. **Done**, specified in
+   `docs/ATTRITION.md` and `docs/SUPPLY.md`.
 2. **Run the original** — 32-bit x86 Windows on Apple Silicon, via Wine,
    CrossOver, or a VM. Unblocks recorded games, gives us a visual and
    behavioural oracle, and lets us check any claim instead of reasoning about
@@ -127,7 +129,15 @@ not worth building first.
 - Ghidra 12.1.3 (`brew install ghidra` — a formula now, not a cask; it wants
   `openjdk@21`). With the PDB loaded it gives named, typed decompilation.
   Scripted work goes through `analyzeHeadless`, under
-  `$(brew --prefix ghidra)/libexec/support/`.
+  `$(brew --prefix ghidra)/libexec/support/`. Two things the decompiler does
+  not do for you and a script must: name the field behind a `field_0xNN`, and
+  name the method behind an indirect call like `(*(code **)(*this + 0xcc))()`.
+  The second is a vtable slot; resolving it turns a wall of offsets into
+  ordinary code, and is what settled both the supply eligibility checks and
+  the shared siege predicate.
+- Constants are not all loaded in the representation the file writes. At least
+  one rational arrives scaled to 8.8 fixed point. Read the consumer before
+  believing the digits.
 - `cargo run -p rondata -- <install>` surveys the data layer and re-derives
   every structural claim in `docs/FORMATS.md` from the user's own files. If a
   claim stops being true it exits non-zero. Run it after touching anything

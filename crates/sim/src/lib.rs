@@ -18,6 +18,7 @@
 //! would only add rounding the original does not have.
 
 pub mod attrition;
+pub mod supply;
 pub mod territory;
 pub mod tuning;
 pub mod world;
@@ -60,9 +61,10 @@ pub struct Unit {
     /// Whether the unit is on the map, rather than garrisoned in a building or
     /// riding in a transport. Off the map, none of this runs.
     pub on_map: bool,
-    /// Whether the unit is inside a friendly supply radius. Supply is not
-    /// implemented yet; this stands in for `Supplies::find_supply`.
-    pub in_supply: bool,
+    /// Which slot of its owner's supply list this unit registered as, if its
+    /// type is a supply source. The original caches the same index in the
+    /// unit and gives it back when the unit dies.
+    pub supply_slot: Option<usize>,
     /// The period the last refresh wrote, in frames. Zero means not bleeding.
     /// Public because it is observable state, not a private counter — the
     /// original keeps it in `UnitData::attrition` and the interface shows it.
@@ -84,7 +86,7 @@ impl Unit {
             squad_size: 1,
             kind: attrition::UnitKind::default(),
             on_map: true,
-            in_supply: false,
+            supply_slot: None,
             attrition: 0,
             ignores_supply: false,
             sheltered: false,
@@ -114,6 +116,10 @@ pub struct Sim {
     pub players: Vec<attrition::PlayerState>,
     pub sources: Vec<territory::Source>,
     pub units: Vec<Unit>,
+    /// One supply network per player. Never shared: an ally's supply wagon
+    /// does nothing for your units, which is a rule of the original and not a
+    /// simplification here.
+    pub supply: Vec<supply::Network>,
     /// Diplomacy, as a full matrix. `at_war[a][b]` is symmetric in practice
     /// but stored both ways, because the original reads it both ways.
     pub at_war: Vec<Vec<bool>>,
@@ -128,9 +134,50 @@ impl Sim {
             players: vec![attrition::PlayerState::default(); players],
             sources: Vec::new(),
             units: Vec::new(),
+            supply: vec![supply::Network::default(); players],
             at_war: vec![vec![false; players]; players],
             frame: 0,
         }
+    }
+
+    /// Adds a unit, registering it as a supply source if its type is one.
+    ///
+    /// This is `Unit::init`'s half of the supply bookkeeping and the reason to
+    /// prefer it over pushing onto `units` directly: a supply wagon that never
+    /// registered supplies nobody, silently.
+    pub fn add_unit(&mut self, unit: Unit) -> usize {
+        let i = self.units.len();
+        let owner = unit.owner as usize;
+        let source = unit.kind.supply_unit;
+        self.units.push(unit);
+        if source {
+            self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
+        }
+        i
+    }
+
+    /// Gives a dead unit's supply slot back — `Unit::close`.
+    fn close_supply(&mut self, unit: usize) {
+        let owner = self.units[unit].owner as usize;
+        if let Some(slot) = self.units[unit].supply_slot.take() {
+            self.supply[owner].list.close(slot);
+        }
+    }
+
+    /// Whether anything of `owner`'s supplies a unit standing at `at`.
+    ///
+    /// A source's liveness is resolved here rather than stored, exactly as the
+    /// original resolves it: the supply record holds an index and nothing
+    /// else, so a wagon that dies or boards a transport stops supplying with
+    /// no bookkeeping anywhere.
+    pub fn supplied_at(&self, owner: Player, at: Pos) -> bool {
+        self.supply[owner as usize].supplies(&self.tuning, at, |u| {
+            self.units.get(u).map(|w| supply::Wagon {
+                pos: w.pos,
+                active: w.alive(),
+                on_map: w.on_map,
+            })
+        })
     }
 
     /// Sets two players at war with each other.
@@ -193,24 +240,36 @@ impl Sim {
                 }
             }
 
-            let unit = &mut self.units[i];
+            let unit = &self.units[i];
             if unit.attrition == 0 || phase % i64::from(unit.attrition) != 0 {
                 continue;
             }
-            // Supply gets first refusal. A unit inside a friendly supply
-            // radius takes no attrition at all — which is what supply is for,
-            // and the whole reason an army can campaign abroad.
-            if unit.in_supply && !unit.ignores_supply && unit.kind.shelterable() {
+            // Supply gets first refusal — `Unit::process_supply`. A unit
+            // inside a friendly supply radius takes no attrition at all, which
+            // is the whole reason an army can campaign abroad. The two
+            // refusals before the search are the interesting ones: a peace or
+            // assassin bleed gives up immediately, and militia and supply
+            // units are never sheltered.
+            let sheltered = !unit.ignores_supply
+                && unit.kind.shelterable()
+                && self.supplied_at(unit.owner, unit.pos);
+
+            let unit = &mut self.units[i];
+            if sheltered {
                 unit.sheltered = true;
-            } else {
-                let d = attrition::damage(unit.squad_size);
-                unit.health -= d;
-                events.push(Tick {
-                    unit: i,
-                    frame,
-                    damage: d,
-                    killed: !unit.alive(),
-                });
+                continue;
+            }
+            let d = attrition::damage(unit.squad_size);
+            unit.health -= d;
+            let killed = !unit.alive();
+            events.push(Tick {
+                unit: i,
+                frame,
+                damage: d,
+                killed,
+            });
+            if killed {
+                self.close_supply(i);
             }
         }
         self.frame += 1;

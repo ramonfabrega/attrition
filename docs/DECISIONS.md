@@ -233,7 +233,7 @@ arrives. See `docs/ATTRITION.md`, "Not open, and why".
 ## 11. The simulation takes its tuning as an input, and a tool checks it
 
 **Chosen:** `sim::Tuning` is a plain struct the simulation is handed;
-`Tuning::RON` holds the shipped values, and `rondata` re-derives all 36 of them
+`Tuning::RON` holds the shipped values, and `rondata` re-derives all 49 of them
 from the user's own `rules.xml` and fails if any has drifted.
 
 **Over:** reading the game's XML from inside the sim, and over hardcoding the
@@ -253,3 +253,38 @@ up as a failed check rather than as a simulation that is quietly wrong.
 The consequence is that `rondata` depends on `sim`. That is the right
 direction: `rondata` is the tool that validates this repository's claims
 against a real install, and the tuning table is one of those claims.
+
+
+## 12. A constant the original does not read is not tuning
+
+**Chosen:** `Tuning` carries only values that can change the simulation's
+answer. `SIEGE_OUT_OF_SUPPLY_RELOAD` and `ARTILLERY_OUT_OF_SUPPLY_RELOAD` are
+therefore absent, and `crates/sim` writes the same literals the original does.
+
+**Over:** carrying every named constant in `rules.xml` that touches a mechanic
+we implement, on the grounds that entry 11 says to write the numbers down.
+
+Both constants exist in the shipped file, annotated `"3/2 normal delay"` and
+`"2/1 normal delay"`. Both are parsed and stored in the engine's constants
+table. Neither is read: `UnitData::recharge` multiplies by literal `3 / 2` and
+literal `2`. The annotations describe the code rather than feeding it, and a
+mod that edited them would change nothing.
+
+Entry 11 exists so that a formula's inputs are visible and so that drift
+against a real install is caught. A tuning entry here would defeat both. It
+would be visible and *wrong* — a reader would take it for an input — and the
+drift check would faithfully compare a number that cannot affect anything. The
+simulation would also diverge from the original for exactly the modded data the
+check is meant to protect.
+
+So the rule is about behaviour, not about names: a value belongs in `Tuning`
+when changing it changes what the simulation does. Where a constant is inert,
+`docs/SUPPLY.md` records that it is inert and why, which is the part a reader
+actually needs.
+
+The same reading in the other direction added `Slot::Ratio256`.
+`PARMENIO_RADIUS_ADJUST` *is* read, but not in the form the file writes it —
+`3/2` on disk is 384 in memory, because the original consumes it with a shift
+right by eight. Comparing the written digits would have failed a correct table.
+The check reconstructs the scale instead. Reading the consumer is what
+distinguishes the two cases, and it is the only thing that could have.

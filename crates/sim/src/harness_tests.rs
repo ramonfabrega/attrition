@@ -52,6 +52,18 @@ fn skirmish(tech_steps: usize) -> Sim {
     sim
 }
 
+/// Parks a supply wagon on a cell, registered in its owner's supply list the
+/// way `Unit::init` registers one.
+///
+/// Wagons are exempt from attrition themselves and never sheltered by another
+/// wagon, so one standing in a war zone is inert apart from what it supplies.
+fn wagon_at(sim: &mut Sim, owner: Player, index: i16, c: Cell) -> usize {
+    let mut w = Unit::new(owner, index, centre_of(c), 100);
+    w.kind.supply_unit = true;
+    w.kind.exempt_kind = true;
+    sim.add_unit(w)
+}
+
 /// Runs `frames` frames and returns every attrition tick that happened.
 fn run(sim: &mut Sim, frames: i64) -> Vec<Tick> {
     let mut log = Vec::new();
@@ -180,9 +192,8 @@ fn entering_the_border_costs_nothing_until_the_next_refresh() {
 #[test]
 fn a_supply_radius_shelters_a_unit_from_a_war_zone() {
     let mut sim = skirmish(4);
-    let mut u = Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100);
-    u.in_supply = true;
-    sim.units.push(u);
+    sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100));
+    wagon_at(&mut sim, 0, 1, Cell::new(15, 0));
     assert!(run(&mut sim, 600).is_empty());
     assert_eq!(sim.units[0].health, 100);
     // The period is still set — the unit is in hostile territory and the
@@ -192,14 +203,75 @@ fn a_supply_radius_shelters_a_unit_from_a_war_zone() {
 }
 
 #[test]
+fn a_wagon_stops_supplying_at_the_edge_of_its_radius() {
+    // Fourteen tiles is three and a half cells, so a wagon three cells away
+    // reaches and one four cells away does not. Cell centres are half a tile
+    // off the grid in each axis, which cancels between two of them.
+    let mut sim = skirmish(4);
+    sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100));
+    let near = wagon_at(&mut sim, 0, 1, Cell::new(12, 0));
+    assert!(sim.supplied_at(0, sim.units[0].pos));
+    // Move it one cell further and the same wagon is out of reach: 16 tiles.
+    sim.units[near].pos = centre_of(Cell::new(11, 0));
+    assert!(!sim.supplied_at(0, sim.units[0].pos));
+    assert!(!run(&mut sim, 600).is_empty());
+}
+
+#[test]
+fn an_allys_wagon_supplies_nobody() {
+    // Player 0 and player 1 are at war in `skirmish`; make a third player who
+    // is nobody's enemy and give them the wagon. The list is per player and
+    // never consulted across players, so it does not matter that they are
+    // friendly — which is the point.
+    let mut sim = skirmish(4);
+    sim.players.push(sim.players[0]);
+    sim.supply.push(supply::Network::default());
+    for row in &mut sim.at_war {
+        row.push(false);
+    }
+    sim.at_war.push(vec![false; 3]);
+    sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100));
+    wagon_at(&mut sim, 2, 1, Cell::new(15, 0));
+    assert!(!sim.supplied_at(0, sim.units[0].pos));
+    assert!(!run(&mut sim, 600).is_empty());
+    assert!(sim.units[0].health < 100);
+}
+
+#[test]
+fn a_wagon_in_a_transport_supplies_nobody() {
+    let mut sim = skirmish(4);
+    sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100));
+    let w = wagon_at(&mut sim, 0, 1, Cell::new(15, 0));
+    sim.units[w].on_map = false;
+    assert!(!sim.supplied_at(0, sim.units[0].pos));
+    assert!(!run(&mut sim, 600).is_empty());
+}
+
+#[test]
 fn supply_does_not_shelter_militia() {
     let mut sim = skirmish(4);
     let mut u = Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100);
-    u.in_supply = true;
     u.kind.militia = true;
-    sim.units.push(u);
+    sim.add_unit(u);
+    wagon_at(&mut sim, 0, 1, Cell::new(15, 0));
     assert!(!run(&mut sim, 600).is_empty());
     assert!(sim.units[0].health < 100);
+}
+
+#[test]
+fn a_wagon_does_not_shelter_itself() {
+    // Two wagons standing on each other still bleed: the check is on the
+    // victim's own type, before any search happens. In the shipped game they
+    // are exempt from attrition outright, so make this one subject to it in
+    // order to see the supply refusal on its own.
+    let mut sim = skirmish(4);
+    let mut w = Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100);
+    w.kind.supply_unit = true;
+    sim.add_unit(w);
+    wagon_at(&mut sim, 0, 1, Cell::new(15, 0));
+    assert!(sim.supplied_at(0, sim.units[0].pos));
+    assert!(!run(&mut sim, 600).is_empty());
+    assert!(!sim.units[0].sheltered);
 }
 
 #[test]
@@ -208,9 +280,8 @@ fn supply_does_not_shelter_a_peacetime_border_violation() {
     sim.at_war = vec![vec![false; 2]; 2];
     // Health well above what the run can remove, so the cadence is what this
     // measures rather than how fast the unit dies.
-    let mut u = Unit::new(0, 0, centre_of(Cell::new(15, 0)), 1000);
-    u.in_supply = true;
-    sim.units.push(u);
+    sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 1000));
+    wagon_at(&mut sim, 0, 1, Cell::new(15, 0));
     let ticks = run(&mut sim, 96);
     // The 8-frame peace period, and supply is no help against it. Six times
     // the rate of the war zone next door, through a supply wagon that would
