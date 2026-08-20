@@ -315,6 +315,98 @@ pub struct Tuning {
     pub bantu_final_pop_cap: i32,
     /// Percentage the peacock rare resource adds, after the clamp.
     pub peacocks_pop: i32,
+
+    // ---- the tech tree ----
+    // The nation and wonder powers the prerequisite predicates and the free-tech
+    // cascades are gated on. Each is the `rules.xml` constant as loaded: non-zero
+    // is on, and 2 means "and start with one" where the file says so. See
+    // `docs/TECH.md`.
+    /// Greeks: Knowledge without the Classical age.
+    pub greek_knowledge_early: i32,
+    /// Greeks: the University without its age (2: and start with one).
+    pub greek_university_early: i32,
+    /// Romans: towers and forts without their age, and the fort line without its non-age prerequisites.
+    pub roman_fort_early: i32,
+    /// Egyptians: the Granary early (2: and start with one).
+    pub egyptian_granary_early: i32,
+    /// French: the Lumber Mill early (2: and start with one).
+    pub french_lumbermill_early: i32,
+    /// Germans: Metal, the Mine and the Smelter without the Classical age.
+    pub german_metal_early: i32,
+    /// Germans: the Granary, Lumber Mill and Smelter early.
+    pub german_buildings_early: i32,
+    /// Koreans: the Temple early, and its techs free (2: and start with one).
+    pub korean_temple_upgrades: i32,
+    /// Egyptians: a wonder one age before its prerequisite.
+    pub egyptian_wonders_early: i32,
+    /// Germans: the agriculture, carpentry and metal lines one Science level early.
+    pub german_industry_early: i32,
+    /// Iroquois: governments one age early. Ships off.
+    pub iroquois_govs_early: i32,
+    /// Greeks: the starting knowledge stock arrives with the Classical age.
+    pub greek_delay_knowledge: i32,
+    /// Chinese: Herbal Lore and Medicine free with their prerequisite.
+    pub chinese_herbal_lore: i32,
+    /// Red Fort: the Fortification line free.
+    pub red_fort_fortification: i32,
+    /// Red Fort: the Tactics line free.
+    pub red_fort_tactics: i32,
+    /// Lakota: cavalry and armoured-car upgrades free.
+    pub lakota_cav_upgrades: i32,
+    /// Iroquois: scout upgrades free.
+    pub iroquois_scout_upgrades: i32,
+    /// Indians: elephant upgrades free.
+    pub indians_elephant_upgrades: i32,
+    /// Koreans: militia upgrades free.
+    pub korean_militia_upgrades: i32,
+    /// Koreans: the Taxation line free. Ships off.
+    pub korean_temple_tax_upgrades: i32,
+    /// Persians: the Taxation line free.
+    pub persians_taxation: i32,
+    /// Mongols: the Forage line free.
+    pub mongol_free_forage: i32,
+    /// Russians: the Allegiance line free.
+    pub russian_attrition_upgrades: i32,
+    /// Egyptians: the Agriculture line free.
+    pub egyptian_granary_upgrades: i32,
+    /// Romans: every Fort tech free.
+    pub roman_fort_upgrades: i32,
+    /// Hanging Gardens: the enhancer lines free. Ships off.
+    pub hanging_gardens_upgrades: i32,
+    /// French: the Carpentry line free.
+    pub french_lumbermill_upgrades: i32,
+    /// Chinese: the Literacy line free. Ships off.
+    pub chinese_knowledge_upgrades: i32,
+    /// Germans: the Metal line free. Ships off.
+    pub german_metal_upgrades: i32,
+    /// Germans: the industry lines free. Ships off.
+    pub german_industry_upgrades: i32,
+    /// Germans: heavy infantry upgrades free. Ships off.
+    pub german_heavy_infantry: i32,
+    /// British: archer upgrades free.
+    pub british_archer_upgrades: i32,
+    /// Spanish: scout upgrades free.
+    pub spanish_scout_upgrades: i32,
+    /// Turks: siege upgrades free.
+    pub turk_free_siege_upgrades: i32,
+    /// Statue of Liberty: unit upgrades free.
+    pub liberty_free_upgrades: i32,
+    /// Colosseum: the Fortification line free. Ships off.
+    pub colosseum_fort_upgrades: i32,
+    /// Tikal: the Religion line free. Ships off.
+    pub tikal_temple_upgrades: i32,
+    /// Dutch: start one Commerce level up.
+    pub dutch_free_commerce: i32,
+    /// Russians: start one Civic level up.
+    pub russian_free_civic: i32,
+    /// Aztecs: start one Military level up.
+    pub aztec_free_military: i32,
+    /// Romans: start one Military level up.
+    pub roman_free_military: i32,
+    /// Americans: start one Science level up. Ships off.
+    pub americans_free_science: i32,
+    /// Persians: start with Despotism. Ships off.
+    pub persians_despotism: i32,
 }
 
 impl Tuning {
@@ -439,6 +531,50 @@ impl Tuning {
         bantu_pop_cap: 100,
         bantu_final_pop_cap: 25,
         peacocks_pop: 10,
+
+        greek_knowledge_early: 1,
+        greek_university_early: 2,
+        roman_fort_early: 1,
+        egyptian_granary_early: 2,
+        french_lumbermill_early: 2,
+        german_metal_early: 0,
+        german_buildings_early: 1,
+        korean_temple_upgrades: 2,
+        egyptian_wonders_early: 1,
+        german_industry_early: 1,
+        iroquois_govs_early: 0,
+        greek_delay_knowledge: 1,
+        chinese_herbal_lore: 1,
+        red_fort_fortification: 1,
+        red_fort_tactics: 1,
+        lakota_cav_upgrades: 1,
+        iroquois_scout_upgrades: 1,
+        indians_elephant_upgrades: 1,
+        korean_militia_upgrades: 1,
+        korean_temple_tax_upgrades: 0,
+        persians_taxation: 1,
+        mongol_free_forage: 1,
+        russian_attrition_upgrades: 1,
+        egyptian_granary_upgrades: 1,
+        roman_fort_upgrades: 1,
+        hanging_gardens_upgrades: 0,
+        french_lumbermill_upgrades: 1,
+        chinese_knowledge_upgrades: 0,
+        german_metal_upgrades: 0,
+        german_industry_upgrades: 0,
+        german_heavy_infantry: 0,
+        british_archer_upgrades: 1,
+        spanish_scout_upgrades: 1,
+        turk_free_siege_upgrades: 1,
+        liberty_free_upgrades: 1,
+        colosseum_fort_upgrades: 0,
+        tikal_temple_upgrades: 0,
+        dutch_free_commerce: 1,
+        russian_free_civic: 1,
+        aztec_free_military: 1,
+        roman_free_military: 1,
+        americans_free_science: 0,
+        persians_despotism: 0,
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -447,7 +583,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 104] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 147] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -635,6 +771,136 @@ impl Tuning {
             ("BANTU_POP_CAP", Slot::Value(T.bantu_pop_cap)),
             ("BANTU_FINAL_POP_CAP", Slot::Value(T.bantu_final_pop_cap)),
             ("PEACOCKS_POP", Slot::Value(T.peacocks_pop)),
+            (
+                "GREEK_KNOWLEDGE_EARLY",
+                Slot::Value(T.greek_knowledge_early),
+            ),
+            (
+                "GREEK_UNIVERSITY_EARLY",
+                Slot::Value(T.greek_university_early),
+            ),
+            ("ROMAN_FORT_EARLY", Slot::Value(T.roman_fort_early)),
+            (
+                "EGYPTIAN_GRANARY_EARLY",
+                Slot::Value(T.egyptian_granary_early),
+            ),
+            (
+                "FRENCH_LUMBERMILL_EARLY",
+                Slot::Value(T.french_lumbermill_early),
+            ),
+            ("GERMAN_METAL_EARLY", Slot::Value(T.german_metal_early)),
+            (
+                "GERMAN_BUILDINGS_EARLY",
+                Slot::Value(T.german_buildings_early),
+            ),
+            (
+                "KOREAN_TEMPLE_UPGRADES",
+                Slot::Value(T.korean_temple_upgrades),
+            ),
+            (
+                "EGYPTIAN_WONDERS_EARLY",
+                Slot::Value(T.egyptian_wonders_early),
+            ),
+            (
+                "GERMAN_INDUSTRY_EARLY",
+                Slot::Value(T.german_industry_early),
+            ),
+            ("IROQUOIS_GOVS_EARLY", Slot::Value(T.iroquois_govs_early)),
+            (
+                "GREEK_DELAY_KNOWLEDGE",
+                Slot::Value(T.greek_delay_knowledge),
+            ),
+            ("CHINESE_HERBAL_LORE", Slot::Value(T.chinese_herbal_lore)),
+            (
+                "RED_FORT_FORTIFICATION",
+                Slot::Value(T.red_fort_fortification),
+            ),
+            ("RED_FORT_TACTICS", Slot::Value(T.red_fort_tactics)),
+            ("LAKOTA_CAV_UPGRADES", Slot::Value(T.lakota_cav_upgrades)),
+            (
+                "IROQUOIS_SCOUT_UPGRADES",
+                Slot::Value(T.iroquois_scout_upgrades),
+            ),
+            (
+                "INDIANS_ELEPHANT_UPGRADES",
+                Slot::Value(T.indians_elephant_upgrades),
+            ),
+            (
+                "KOREAN_MILITIA_UPGRADES",
+                Slot::Value(T.korean_militia_upgrades),
+            ),
+            (
+                "KOREAN_TEMPLE_TAX_UPGRADES",
+                Slot::Value(T.korean_temple_tax_upgrades),
+            ),
+            ("PERSIANS_TAXATION", Slot::Value(T.persians_taxation)),
+            ("MONGOL_FREE_FORAGE", Slot::Value(T.mongol_free_forage)),
+            (
+                "RUSSIAN_ATTRITION_UPGRADES",
+                Slot::Value(T.russian_attrition_upgrades),
+            ),
+            (
+                "EGYPTIAN_GRANARY_UPGRADES",
+                Slot::Value(T.egyptian_granary_upgrades),
+            ),
+            ("ROMAN_FORT_UPGRADES", Slot::Value(T.roman_fort_upgrades)),
+            (
+                "HANGING_GARDENS_UPGRADES",
+                Slot::Value(T.hanging_gardens_upgrades),
+            ),
+            (
+                "FRENCH_LUMBERMILL_UPGRADES",
+                Slot::Value(T.french_lumbermill_upgrades),
+            ),
+            (
+                "CHINESE_KNOWLEDGE_UPGRADES",
+                Slot::Value(T.chinese_knowledge_upgrades),
+            ),
+            (
+                "GERMAN_METAL_UPGRADES",
+                Slot::Value(T.german_metal_upgrades),
+            ),
+            (
+                "GERMAN_INDUSTRY_UPGRADES",
+                Slot::Value(T.german_industry_upgrades),
+            ),
+            (
+                "GERMAN_HEAVY_INFANTRY",
+                Slot::Value(T.german_heavy_infantry),
+            ),
+            (
+                "BRITISH_ARCHER_UPGRADES",
+                Slot::Value(T.british_archer_upgrades),
+            ),
+            (
+                "SPANISH_SCOUT_UPGRADES",
+                Slot::Value(T.spanish_scout_upgrades),
+            ),
+            (
+                "TURK_FREE_SIEGE_UPGRADES",
+                Slot::Value(T.turk_free_siege_upgrades),
+            ),
+            (
+                "LIBERTY_FREE_UPGRADES",
+                Slot::Value(T.liberty_free_upgrades),
+            ),
+            (
+                "COLOSSEUM_FORT_UPGRADES",
+                Slot::Value(T.colosseum_fort_upgrades),
+            ),
+            (
+                "TIKAL_TEMPLE_UPGRADES",
+                Slot::Value(T.tikal_temple_upgrades),
+            ),
+            ("DUTCH_FREE_COMMERCE", Slot::Value(T.dutch_free_commerce)),
+            ("RUSSIAN_FREE_CIVIC", Slot::Value(T.russian_free_civic)),
+            ("AZTEC_FREE_MILITARY", Slot::Value(T.aztec_free_military)),
+            ("ROMAN_FREE_MILITARY", Slot::Value(T.roman_free_military)),
+            (
+                "AMERICANS_FREE_SCIENCE",
+                Slot::Value(T.americans_free_science),
+            ),
+            ("PERSIANS_DESPOTISM", Slot::Value(T.persians_despotism)),
         ]
     }
 }

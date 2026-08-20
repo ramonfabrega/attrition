@@ -691,10 +691,11 @@ production" would predict.
 - **What writes `escrow_rate`.**
 - **Whether the maximum in `can_pay_cost` is visible in play**, which needs
   phase 2.
-- **The tech tree.** `LeaderData::has_preq`, `type_avail` and `type_eligible`
-  decide whether a thing can be bought at all, and this document assumes their
-  answers rather than deriving them. The redirect above depends on `type_avail`
-  for goods, which `docs/ECONOMY.md` also leans on.
+- ~~**The tech tree.**~~ **Closed** by `docs/TECH.md`: `has_preq`,
+  `type_eligible` and `type_avail` are derived there. For a good, `type_avail`
+  is its first prerequisite — the age that unlocks it — and nothing else, so
+  Knowledge and Metal arrive with Classical and Oil with Industrial, which is
+  what the redirect above and `docs/ECONOMY.md` assumed.
 - **Building and wonder ramps.** The building branch of `get_cost` has its own
   count escalation and wonders ramp against how many wonders you and your team
   already hold. The second reading read the escalation out — military

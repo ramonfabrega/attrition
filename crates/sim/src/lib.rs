@@ -4,14 +4,15 @@
 //! threads. Everything in it runs in a `#[test]` with no display attached,
 //! which is the property that makes determinism testable at all.
 //!
-//! Seven mechanics run here, and they run together. Borders produce territory,
+//! Eight mechanics run here, and they run together. Borders produce territory,
 //! territory produces damage, supply cancels it, units walk in and out of it
 //! under orders, the ground they hold pays its owner, that income buys the next
-//! unit at a price that climbs with every one already built — and the unit
-//! takes time to arrive. Each has a specification written from the original —
-//! `docs/ATTRITION.md`, `docs/SUPPLY.md`, `docs/MOVEMENT.md`,
-//! `docs/ECONOMY.md`, `docs/COSTS.md`, `docs/PRODUCTION.md` — and each says how
-//! much of itself is established rather than guessed.
+//! unit at a price that climbs with every one already built, the unit takes
+//! time to arrive — and whether it may be bought at all, and what the first
+//! one owns, is the tech tree's to say. Each has a specification written from
+//! the original — `docs/ATTRITION.md`, `docs/SUPPLY.md`, `docs/MOVEMENT.md`,
+//! `docs/ECONOMY.md`, `docs/COSTS.md`, `docs/PRODUCTION.md`, `docs/TECH.md` —
+//! and each says how much of itself is established rather than guessed.
 //!
 //! [`Sim::tick`] is where they meet, and the order it does them in is the
 //! original's, three times over. `Game::do_frame` pays every player before it
@@ -38,6 +39,7 @@ pub mod economy;
 pub mod movement;
 pub mod production;
 pub mod supply;
+pub mod tech;
 pub mod territory;
 pub mod tuning;
 pub mod world;
@@ -185,6 +187,13 @@ pub struct UnitType {
     /// The time half of the same record — `JOB_TIME`, `JOB_EXTRA_TIME` and
     /// `RESEARCH_PREMIUM_TIME`. See `docs/PRODUCTION.md`.
     pub times: production::Times,
+    /// This type's entry in [`Sim::tech_tree`], if it has one. With it,
+    /// queueing is gated by `type_avail` and the first completion goes
+    /// through `gain_tech` — predecessors become owned and obsolete, free
+    /// units and buildings cascade — instead of only setting the bit. Without
+    /// it the type is outside the tree, as every type was before the tree
+    /// existed, and [`Muster::researched`] is the whole story.
+    pub tree: Option<tech::TypeId>,
 }
 
 /// What a player has built, as the price and the population cap see it.
@@ -320,6 +329,16 @@ pub struct Sim {
     pub redirects: cost::Redirects,
     /// The production buildings, each with its own queue.
     pub buildings: Vec<Building>,
+    /// The tech tree — what may be bought and what owning it changes; see
+    /// `docs/TECH.md`. Empty until [`Sim::set_tech_tree`], and a unit type
+    /// joins it through [`UnitType::tree`].
+    pub tech_tree: tech::TechTree,
+    /// The lobby settings the tree reads: starting and ending ages, the
+    /// game rules, the no-powers flags.
+    pub setup: tech::Setup,
+    /// One per player: the tech bits and counters — `LeaderData::tech`,
+    /// `ages`, `epochs`, `epoch[4]`.
+    pub tech: Vec<tech::PlayerTech>,
     pub frame: i64,
 }
 
@@ -372,7 +391,13 @@ enum Advanced {
 
 impl Sim {
     pub fn new(tuning: Tuning, world: World, players: usize) -> Sim {
+        let tech_tree = tech::TechTree::new().with_tuning(&tuning);
         Sim {
+            tech: (0..players)
+                .map(|_| tech::PlayerTech::new(&tech_tree))
+                .collect(),
+            tech_tree,
+            setup: tech::Setup::STANDARD,
             players: vec![attrition::PlayerState::default(); players],
             sources: Vec::new(),
             units: Vec::new(),
@@ -392,12 +417,13 @@ impl Sim {
 
     /// Adds a player and returns their index.
     ///
-    /// Six vectors are kept in step by this. Growing one of them by hand
+    /// Seven vectors are kept in step by this. Growing one of them by hand
     /// leaves the others short, and the failure shows up as an index panic in
     /// whichever pass reaches the longest one first.
     pub fn add_player(&mut self) -> Player {
         let who = self.players.len();
         self.players.push(attrition::PlayerState::default());
+        self.tech.push(tech::PlayerTech::new(&self.tech_tree));
         self.supply.push(supply::Network::default());
         self.holdings.push(economy::Holdings::new());
         self.ledgers.push(economy::Ledger::starting(&self.tuning));
@@ -444,11 +470,16 @@ impl Sim {
     pub fn add_unit_type(&mut self, ty: UnitType) -> usize {
         let id = self.unit_types.len();
         let groups = ty.group.map_or(0, |g| g + 1);
+        let tree = ty.tree;
         self.unit_types.push(ty);
-        for m in &mut self.muster {
+        for (who, m) in self.muster.iter_mut().enumerate() {
             m.by_type.push(0);
             m.queued_by_type.push(0);
-            m.researched.push(false);
+            // A type in the tree starts with the tree's bit — a free unit
+            // the starting position already owns is a train job from the
+            // first frame.
+            m.researched
+                .push(tree.is_some_and(|id| self.tech[who].tech[id]));
             if m.by_group.len() < groups {
                 m.by_group.resize(groups, 0);
             }
@@ -556,6 +587,17 @@ impl Sim {
     pub fn queue_up(&mut self, at: usize, ty: usize) -> Result<usize, production::QueueFail> {
         let at = self.queue_home(at);
         let who = self.buildings[at].owner;
+        // `BuildData::can_make` comes before the price: a type the tree says
+        // is not available is refused before anything is charged. Only a type
+        // that is in the tree can be refused by it.
+        if let Some(id) = self.unit_types[ty].tree
+            && self
+                .tech_tree
+                .type_avail(&self.setup, &self.tech[who as usize], id, true)
+                == tech::NOT_AVAILABLE
+        {
+            return Err(production::QueueFail::CantTrain);
+        }
         let charges = self.price_of(who, ty);
         let available = self.holdings[who as usize].available;
         if !cost::can_pay(&charges, &self.ledgers[who as usize], &available, 1) {
@@ -567,6 +609,7 @@ impl Sim {
         cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
         let slot = self.buildings[at].queue.push(ty, &charges);
         self.muster[who as usize].queued_by_type[ty] += 1;
+        self.track_tree_queued(who, ty, 1);
         self.economy_changed(who);
         Ok(slot)
     }
@@ -584,6 +627,7 @@ impl Sim {
             self.buildings[at].queue.unqueue(slot, true, ledger)?
         };
         self.muster[who as usize].queued_by_type[item.ty] -= 1;
+        self.track_tree_queued(who, item.ty, -1);
         self.economy_changed(who);
         Some(item)
     }
@@ -706,6 +750,10 @@ impl Sim {
                 let muster = &mut self.muster[who as usize];
                 muster.queued_by_type[ty] -= 1;
                 muster.researched[ty] = true;
+                self.track_tree_queued(who, ty, -1);
+                if let Some(id) = self.unit_types[ty].tree {
+                    self.gain_tech(who, id);
+                }
                 self.economy_changed(who);
                 Advanced::Researched
             }
@@ -723,6 +771,7 @@ impl Sim {
                 if let Some(g) = self.unit_types[ty].group {
                     muster.by_group[g] += 1;
                 }
+                self.track_tree_queued(who, ty, -1);
 
                 let index = i16::try_from(self.units.len()).unwrap_or(i16::MAX);
                 let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
@@ -731,6 +780,83 @@ impl Sim {
                 self.economy_changed(who);
                 Advanced::Trained(Produced { unit, ty, at })
             }
+        }
+    }
+
+    /// Installs a tech tree. Every player's tech state is reset to empty
+    /// against it; call [`Sim::start_techs`] for each to lay down the starting
+    /// position the way `Leader::init` does.
+    pub fn set_tech_tree(&mut self, tree: tech::TechTree) {
+        self.tech_tree = tree;
+        for t in &mut self.tech {
+            let (tribe, power, team) = (t.tribe, t.power, t.team);
+            *t = tech::PlayerTech::new(&self.tech_tree);
+            t.tribe = tribe;
+            t.power = power;
+            t.team = team;
+        }
+        self.sync_researched();
+    }
+
+    /// `Leader::init`'s tech block for one player: the ages below the
+    /// starting age, the building techs that need only ages, every building
+    /// and unit type whose prerequisites hold, and the nation's free starting
+    /// epoch — see `docs/TECH.md`, "The starting position".
+    pub fn start_techs(&mut self, who: Player) -> Vec<tech::Gained> {
+        let events = self
+            .tech_tree
+            .start(&self.setup, &self.tuning, &mut self.tech[who as usize]);
+        self.apply_gained(who);
+        events
+    }
+
+    /// `Leader::gain_tech`, as far as the simulation acts on it: the tree's
+    /// bits and counters with their cascades, then the researched bit of every
+    /// unit type the gain reached, and the population cap when a Military
+    /// epoch arrived. The events come back so a caller can see what cascaded;
+    /// `docs/TECH.md`, "`gain_tech`: owning it".
+    pub fn gain_tech(&mut self, who: Player, t: tech::TypeId) -> Vec<tech::Gained> {
+        let frame = self.frame;
+        let events = self
+            .tech_tree
+            .gain_tech(&self.setup, &mut self.tech[who as usize], t, frame);
+        self.apply_gained(who);
+        events
+    }
+
+    /// `LeaderData::type_avail(t, 1)` for a tree entry: 0, 2 or 4.
+    pub fn type_avail(&self, who: Player, t: tech::TypeId) -> i32 {
+        self.tech_tree
+            .type_avail(&self.setup, &self.tech[who as usize], t, true)
+    }
+
+    /// After the tree changed: the researched bits follow it, and so does the
+    /// Military level the population cap is indexed by.
+    fn apply_gained(&mut self, who: Player) {
+        self.sync_researched();
+        let level = self.tech[who as usize].military_level();
+        if self.muster[who as usize].military_level != level {
+            self.muster[who as usize].military_level = level;
+            self.recompute_pop_caps();
+        }
+    }
+
+    /// The tree owns the bit for every unit type that is in it; `Muster`
+    /// keeps a copy because production reads it per slot per frame.
+    fn sync_researched(&mut self) {
+        for (who, tech) in self.tech.iter().enumerate() {
+            for (ty, ut) in self.unit_types.iter().enumerate() {
+                if let Some(id) = ut.tree {
+                    self.muster[who].researched[ty] = tech.tech[id];
+                }
+            }
+        }
+    }
+
+    /// The tree's own queued count for the government-pairing rule.
+    fn track_tree_queued(&mut self, who: Player, ty: usize, delta: i32) {
+        if let Some(id) = self.unit_types[ty].tree {
+            self.tech[who as usize].queued[id] += delta;
         }
     }
 

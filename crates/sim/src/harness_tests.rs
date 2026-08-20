@@ -632,6 +632,7 @@ fn citizen_type() -> UnitType {
             // `1/10tsx` through the unit loader's own `(1 * 100) / 10`.
             job_extra_time: 10,
         },
+        tree: None,
     }
 }
 
@@ -1069,4 +1070,107 @@ fn a_trained_citizen_walks_and_bleeds_like_any_other() {
     }
     assert!(ticks > 0, "a trained unit should bleed like a bought one");
     assert!(sim.units[unit].health < 40);
+}
+
+#[test]
+fn the_tree_gates_the_queue_and_research_cascades_through_it() {
+    // `docs/TECH.md`, end to end: a tree with Classical (two library techs'
+    // quota away), a Barracks, and the Hoplites → Phalanx line; the unit
+    // types joined to it through `UnitType::tree`. The free Hoplites are a
+    // train job from frame 0; the Phalanx is refused before the price until
+    // Classical arrives, then researched, and its completion goes through
+    // `gain_tech` — which owns and obsoletes the Hoplites in one move — while
+    // the Military epoch on the way moved the population cap.
+    use crate::tech::{Gained, Kind, Line, TechTree, TypeDef, UnitTraits};
+
+    let free = UnitTraits {
+        free: true,
+        ..UnitTraits::default()
+    };
+    let jumpable = UnitTraits {
+        jumpable: true,
+        ..UnitTraits::default()
+    };
+    let mut tree = TechTree::new();
+    let classical = tree.add(TypeDef::age("Classical Age", 0));
+    let written_word = tree.add(TypeDef::epoch("Written Word", Line::Science, 0));
+    let art_of_war = tree.add(TypeDef::epoch("The Art of War", Line::Military, 0));
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let hoplites_t = tree.add(TypeDef::unit("Hoplites", free).at(barracks));
+    let phalanx_t = tree.add(
+        TypeDef::unit("Phalanx", jumpable)
+            .at(barracks)
+            .from(hoplites_t)
+            .needs(0, classical),
+    );
+    tree.types[hoplites_t].jump = Some(phalanx_t);
+    assert!(matches!(tree.kind(barracks), Kind::Building { .. }));
+
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let hoplites = sim.add_unit_type(UnitType {
+        tree: Some(hoplites_t),
+        ..citizen_type()
+    });
+    let phalanx = sim.add_unit_type(UnitType {
+        tree: Some(phalanx_t),
+        ..citizen_type()
+    });
+    let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
+
+    // The free unit is owned from the start; the upgrade is not for sale.
+    assert!(sim.muster[0].researched[hoplites]);
+    assert!(!sim.muster[0].researched[phalanx]);
+    assert_eq!(
+        sim.queue_up(hall, phalanx),
+        Err(production::QueueFail::CantTrain)
+    );
+    let cap_before = sim.muster[0].cap;
+
+    // Two library techs, then the age. The Military one moves the cap.
+    sim.gain_tech(0, written_word);
+    let events = sim.gain_tech(0, art_of_war);
+    assert!(events.contains(&Gained::MilitaryEpoch));
+    assert_eq!(sim.muster[0].military_level, 1);
+    assert!(sim.muster[0].cap > cap_before, "POP_CAP[1] > POP_CAP[0]");
+    assert_eq!(sim.type_avail(0, phalanx_t), tech::NOT_AVAILABLE);
+    let events = sim.gain_tech(0, classical);
+    assert_eq!(events, vec![Gained::Type(classical)]);
+    assert_eq!(sim.tech[0].ages, 1);
+    assert_eq!(sim.type_avail(0, phalanx_t), tech::RESEARCHABLE);
+
+    // Now it queues, and completes as research: no unit, the bit, and the
+    // Hoplites owned-and-obsolete behind it.
+    sim.queue_up(hall, phalanx).expect("researchable");
+    assert_eq!(sim.tech[0].queued[phalanx_t], 1);
+    let mut frames = 0;
+    while !sim.muster[0].researched[phalanx] {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 1000);
+    }
+    assert!(sim.units.is_empty());
+    assert_eq!(sim.tech[0].queued[phalanx_t], 0);
+    assert!(sim.tech[0].tech[phalanx_t]);
+    assert!(sim.tech[0].obs[hoplites_t]);
+    assert_eq!(sim.type_avail(0, phalanx_t), tech::AVAILABLE);
+    assert_eq!(
+        sim.type_avail(0, hoplites_t),
+        tech::NOT_AVAILABLE,
+        "obsolete"
+    );
+    assert_eq!(
+        sim.queue_up(hall, hoplites),
+        Err(production::QueueFail::CantTrain)
+    );
+    // The second Phalanx is a train job.
+    sim.queue_up(hall, phalanx).expect("owned");
+    let mut frames = 0;
+    while sim.units.is_empty() {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 1000);
+    }
+    assert_eq!(sim.muster[0].by_type[phalanx], 1);
 }

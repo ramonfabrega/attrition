@@ -521,3 +521,31 @@ grows by one struct per producing mechanic (the tech layer's flags and levels,
 alongside `Muster`, `Holdings`, `Ledger`), and `add_player` grows by one line.
 The harness is not yet an architecture, and this entry does not make it one;
 it decides the one thing that would otherwise have been decided by accident.
+
+## 18. The rules name types by role, and a tree without the role leaves the rule inert
+
+**Chosen:** where a rule in the original names a specific `TypeIndex` — the
+Market the Nubians get early, the Senate a capital may hold one of, the
+machine-gun line that needs a rifle-line unit, the Tower-to-Redoubt line whose
+prerequisites the Romans waive — `crates/sim` names it through a role
+(`tech::Roles`), each of which is optional. A tree built without that role
+simply never fires the rule. The tree's own indices are its own; the original's
+ranges are represented by `tech::Kind`, which is what its `is_unit_type` /
+`is_age_type` / … predicates test.
+
+**Over:** reproducing the original's 806-slot `TypeIndex` space, with every
+rule written against the literal index it has in the shipped tables.
+
+The literal space is what the decompile reads, and it would make the
+transcription mechanical. It would also make the simulation unable to hold a
+tree that is not the shipped one — a five-type test fixture, a mod, the game we
+intend to build past it — without every rule silently pointing at the wrong
+row. The roles are exactly the list of types the rules single out, twenty-odd
+of them, and naming them is how the document records *which* rules are about
+*which* things; the reader of `docs/TECH.md` sees "the Senate" rather than
+`0x1b6`. The cost is one `Option` test per rule, and a tree loader that fills
+the roles from the shipped names, which is the loader's job anyway.
+
+This is entry 9 one level up: the shipped tables are index-keyed and we keep
+them so; the *rules* about particular rows are keyed by what the row is for.
+

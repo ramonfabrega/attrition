@@ -120,7 +120,10 @@ public class ExportAll extends GhidraScript {
         try (PrintWriter out = new PrintWriter(new FileWriter(new File(root, "vtables.txt")))) {
             for (ghidra.program.model.symbol.Symbol sym :
                     currentProgram.getSymbolTable().getAllSymbols(true)) {
-                if (!sym.getName().equals("vftable")) continue;
+                // "vftable", and "vftable_for_<Base>_" where a class inherits
+                // from two bases — UnitTypeData::vftable_for_Type_ is the one
+                // every type_avail call goes through.
+                if (!sym.getName().startsWith("vftable")) continue;
                 ghidra.program.model.address.Address base = sym.getAddress();
                 out.println("vtable " + sym.getName(true) + "  @ " + base);
                 vtables++;

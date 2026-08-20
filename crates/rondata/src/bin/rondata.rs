@@ -10,7 +10,7 @@
 //! cargo run -p rondata -- /path/to/Rise\ of\ Nations
 //! ```
 
-use rondata::{Install, Resource, Scalar};
+use rondata::{Install, Resource, Scalar, Table};
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
@@ -297,6 +297,138 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
                 )
             }))
         },
+    );
+
+    // The tech tree's shape, re-derived from the tables the way `docs/TECH.md`
+    // reads it out of the engine: 85 technologies in blocks, the four library
+    // lines seven deep with `AGE` as the level, the governments in pairs, and a
+    // prerequisite vocabulary of tech names plus two words. The engine's
+    // `Types::tech_key` matches names case-insensitively, and the shipped file
+    // needs it to: it writes both `none` and `None`, and one `Information age`.
+    println!("\nthe tech tree");
+    let tech_names: Vec<String> = techs
+        .records
+        .iter()
+        .map(|r| r.text("NAME").unwrap_or("").to_lowercase())
+        .collect();
+    failures += check(
+        "85 technologies: 7 ages, 28 epochs, 4 finals, 40 building techs, 6 governments",
+        techs.len() == 85,
+        &format!("{} TECH records", techs.len()),
+    );
+    let age_of = |i: usize| -> Option<i32> {
+        techs
+            .get(i)
+            .and_then(|r| r.text("AGE"))
+            .and_then(Scalar::parse)
+            .map(Scalar::to_int)
+    };
+    let ages_in_order = (0..7).all(|i| age_of(i) == Some(i as i32));
+    failures += check(
+        "the seven ages come first, AGE 0 through 6",
+        ages_in_order,
+        &join((0..7).map(|i| {
+            format!(
+                "{}={:?}",
+                tech_names.get(i).cloned().unwrap_or_default(),
+                age_of(i)
+            )
+        })),
+    );
+    // Rows 7..35 are the epochs, four lines of seven; `AGE` is the level
+    // within the line, which is what `cat` and `epoch[cat]` are built from.
+    let epochs_by_level = (7..35).all(|i| age_of(i) == Some(((i - 7) % 7) as i32));
+    failures += check(
+        "the 28 epochs follow in four lines of seven, AGE equal to the level",
+        epochs_by_level,
+        &format!(
+            "lines start at {}, {}, {}, {}",
+            tech_names.get(7).cloned().unwrap_or_default(),
+            tech_names.get(14).cloned().unwrap_or_default(),
+            tech_names.get(21).cloned().unwrap_or_default(),
+            tech_names.get(28).cloned().unwrap_or_default()
+        ),
+    );
+    // The governments close the table, researched at the Senate, and each
+    // tier's pair shares its age prerequisite.
+    let senate_govs = (79..85).all(|i| {
+        techs
+            .get(i)
+            .and_then(|r| r.text("WHERE"))
+            .is_some_and(|w| w.eq_ignore_ascii_case("Senate"))
+    });
+    let paired = [(79, 80), (81, 82), (83, 84)].iter().all(|&(a, b)| {
+        let p = |i: usize| {
+            techs
+                .get(i)
+                .and_then(|r| r.text("PREQ1"))
+                .map(str::to_lowercase)
+        };
+        p(a) == p(b)
+    });
+    failures += check(
+        "the last six are the governments, at the Senate, in three pairs",
+        senate_govs && paired,
+        &join((79..85).map(|i| tech_names.get(i).cloned().unwrap_or_default())),
+    );
+    // Every prerequisite column across the four tables names a tech, `none`
+    // or `disable` — the three answers `tech_key` gives.
+    let mut bad_preqs = Vec::new();
+    let tables: [(&str, &Table, &[&str]); 4] = [
+        ("UNIT", &units, &["PREQ0", "PREQ1"]),
+        (
+            "BUILDING",
+            &buildings,
+            &["PREQ0", "PREQ1", "PREQ2", "OBSOLETE"],
+        ),
+        ("TECH", &techs, &["PREQ0", "PREQ1", "PREQ2"]),
+        ("RESOURCE", &resources, &["PREQ0", "PREQ1", "OBS"]),
+    ];
+    for (what, table, cols) in tables {
+        for (i, rec) in table.iter() {
+            for col in cols {
+                if let Some(v) = rec.text(col) {
+                    let v = v.trim().to_lowercase();
+                    if !(v == "none" || v == "disable" || tech_names.contains(&v)) {
+                        bad_preqs.push(format!("{what}[{i}] {col}={v:?}"));
+                    }
+                }
+            }
+        }
+    }
+    failures += check(
+        "every prerequisite is a tech name, `none` or `disable`",
+        bad_preqs.is_empty(),
+        &if bad_preqs.is_empty() {
+            "all four tables resolve".into()
+        } else {
+            join(bad_preqs.iter().take(6).cloned())
+        },
+    );
+    // The unit flag letters the cascades key on: `h` free with its
+    // prerequisite, `j` a jump-chain upgrade. The Citizen and the Hoplites
+    // are free; the Phalanx is not, and jumps.
+    let flags_of = |name: &str| -> String {
+        units
+            .records
+            .iter()
+            .find(|r| r.text("NAME") == Some(name))
+            .and_then(|r| r.text("FLAGS"))
+            .unwrap_or("")
+            .to_string()
+    };
+    let (citizen, hoplites, phalanx) = (
+        flags_of("Citizen"),
+        flags_of("Hoplites"),
+        flags_of("Phalanx"),
+    );
+    failures += check(
+        "the Citizen and Hoplites carry flag `h`, the Phalanx `j` and not `h`",
+        citizen.contains('h')
+            && hoplites.contains('h')
+            && phalanx.contains('j')
+            && !phalanx.contains('h'),
+        &format!("Citizen={citizen:?} Hoplites={hoplites:?} Phalanx={phalanx:?}"),
     );
 
     println!("\nnations ({n_tribes}, index is the TRIBE_MASK bit)");

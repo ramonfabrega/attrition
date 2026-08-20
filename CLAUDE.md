@@ -142,12 +142,13 @@ better, in which case say so and take that.
    unit-versus-body step. Done the way the next one should be: one worker per
    mechanic, each re-verifying every claim against the decompile before
    changing it, document first, then implementation and tests.
-1. **The tech tree** — `has_preq`, `type_avail`, `type_eligible`, ages, epochs,
-   research. Three documents already assume its answers, and
-   `docs/PRODUCTION.md` specifically needs whatever writes the availability bit
-   at `leader + 0x6c18`, which is the bit deciding research-versus-train.
-   `Leader::gain_tech` is the obvious entry point and is read only as far as
-   its call to `Build::refund_cost`.
+1. ~~**The tech tree**~~ — **done, 2026-08-20**, `docs/TECH.md` and
+   `crates/sim/src/tech.rs`: `has_tech`, `get_preq`, `has_preq`,
+   `type_eligible`, `type_avail`, `queue_here`, `gain_tech` with its cascades,
+   `lose_tech`, `set_age`, the starting position, the lobby's start/end ages.
+   The `TypeIndex` enum is now dumped whole by
+   `tools/ghidra/scripts/DumpEnumAll.java`. Second reading pending; see
+   `docs/audit/`.
 2. **Combat** — attack, damage, armour, target selection. Attrition is still
    the only thing in the simulation that can kill.
 3. **Cities and buildings** — placement, construction, city levels, the

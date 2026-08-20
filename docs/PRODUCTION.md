@@ -592,8 +592,9 @@ the first time it was asked a question with a five in the denominator.
   `BuildTypeData::queue_here(type)`; `type_avail(type, p) != 0`; a tech is
   refused if already held or already researching; a unit with the bit set and
   `build_flags & 0x10` clear returns `type_avail` itself. `queue_here` and
-  `type_eligible` are the tech tree's and stay with it; this document still
-  assumes their answer the way `docs/COSTS.md` assumes `type_avail`.
+  `type_eligible` are the tech tree's — **now read, in `docs/TECH.md`**: a
+  building queues what its lineage (`is(where, 0)`) makes, and eligibility is
+  the tribe mask, the ending age, obsolescence and the jump rule.
 - ~~**What sets the availability bit at `leader + 0x6c18`.**~~ It is the
   `tech` bitmask — `BitMask<806>` at `LeaderData + 0x6c0c`, whose pointer
   sits at `+0x6c18` — and `Leader::gain_tech` sets it, for a unit type exactly

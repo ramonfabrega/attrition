@@ -62,6 +62,7 @@ prints its output:
 | `DumpRefs.java <out.c> <dataSymbol>` | what *writes* a data symbol — for `.bss` tables filled at startup |
 | `DumpAddrRefs.java <hexAddr> [span]` | every function referencing an absolute address |
 | `DumpEnum.java <out.c> <Enum> <v1,v2,..>` | the names an enum gives to values — `0x212` → `COLOSSEUM` |
+| `DumpEnumAll.java <out.txt> <Enum> [...]` | a whole enum, sorted, to a file — `decomp/enums/TypeIndex.txt` is all 869 names of the type space, and is how a range test in a decompile (`0x227 < i && i < 0x243`) is read as "an epoch" |
 | `ExportAll.java <outdir>` | what `export.sh` runs |
 
 With the export in place these are mostly for things the export cannot hold
@@ -95,6 +96,17 @@ still: a data dump after a retype, a fresh vtable walk, an address sweep.
   versus `get_item`. Read that line; see `docs/DECISIONS.md` entry 14.
 - **Base-class fields are not listed on the derived struct.** `UnitData`
   inherits `SubObjectData`; dump both.
+- **A class with two bases has two vtables, and the one the decompile calls
+  through is not named `vftable`.** `UnitType` is a `Type` and a `SoundType`,
+  and every `(*(code **)(*types[t] + 0x60))()` goes through
+  ``UnitType::vftable{for `Type'}`` — which the decompiler prints as
+  `vftable_for_Type_`, and which `vtables.txt` did not contain until
+  `ExportAll` matched `startsWith("vftable")`. `DumpVtable` now matches names
+  on letters and digits only, so either spelling finds it. Re-run `export.sh`
+  to get them into `vtables.txt`.
+- **`run.sh` must be run with `zsh` or as an executable, and `status` is
+  read-only in zsh.** The script once did `status=$?` and died with
+  "read-only variable" on every run; it is `rc` now.
 
 ## Cheaper than Ghidra
 

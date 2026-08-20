@@ -29,10 +29,10 @@ LOG=$(mktemp -t ghidra-run)
   -process riseofnations.exe -noanalysis \
   -scriptPath "$HERE/scripts" \
   -postScript "$SCRIPT" "$@" > "$LOG" 2>&1
-status=$?
+rc=$?
 grep -E "$SCRIPT>" "$LOG" | sed "s/^INFO  $SCRIPT> //; s/ (GhidraScript)  *\$//"
-if [[ $status -ne 0 ]]; then
-  echo "analyzeHeadless exited $status; full log at $LOG" >&2
+if [[ $rc -ne 0 ]]; then
+  echo "analyzeHeadless exited $rc; full log at $LOG" >&2
   grep -E 'ERROR|Exception' "$LOG" | head -20 >&2
 fi
-exit $status
+exit $rc
