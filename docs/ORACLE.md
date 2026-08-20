@@ -30,10 +30,12 @@ out of `riseofnations.exe` at their own addresses. Nothing is transcribed; see
 **Confidence.** High for the container's shape and for the package record,
 which is a short function read end to end. High for the sync tracer's existence,
 its 37 categories, its configuration keys and its output shape, all of which are
-data in the binary rather than inference. **Untested throughout** — phase 2 has
-not happened, this install ships no recorded games, and not one byte of any of
-this has been read from a real file or produced by a running program. Every
-claim below is a claim about code, not about a file that exists.
+data in the binary rather than inference. ~~**Untested throughout**~~ — as of
+2026-08-20 the original runs on this machine (CrossOver, D3DMetal), and the
+tracer has been switched on and has written files; the last section records
+what it and a second, older logger actually produce. The recorded-game
+container claims in Part 1 remain unexercised: this install ships no recorded
+games and none has yet been made.
 
 **Where the implementation is.** Nowhere yet, deliberately. A reader written
 against no sample is a reader that cannot be wrong in any detectable way, which
@@ -351,38 +353,180 @@ so MoltenVK cannot advertise the feature, and DXVK requires it. That is an
 architectural gap rather than a missing package, and no amount of prefix
 configuration closes it.
 
-The remaining candidate is **D3DMetal**, Apple's Game Porting Toolkit
+The remaining candidate was **D3DMetal**, Apple's Game Porting Toolkit
 translation of D3D11 straight to Metal, which handles the gaps MoltenVK
 exposes because it targets Metal directly rather than going through Vulkan.
-It ships at <https://github.com/apple/game-porting-toolkit> and CrossOver
-bundles the same technology. Untried, and the obvious place to start when phase
-2 is picked up again.
+CrossOver bundles the same technology. The next section is what happened when
+it was tried.
 
 It is worth being clear about what GPTK is *not* for here: it translates a
 Windows binary's D3D calls, which is useful for running the original as an
 oracle and has nothing to do with this project's own renderer. Phase 4 is a
 Rust client and will not go near it.
 
-None of this touches the reading above; the tracer's configuration is derived
-from the binary and is now placed and waiting.
+---
+
+## Running it, second attempt: the original runs, and it writes (2026-08-20)
+
+**CrossOver with D3DMetal renders the game fully.** The whole path, so it can
+be repeated without rediscovery:
+
+```
+brew install --cask crossover
+cxbottle --bottle ron --create --template win10_64 \
+         --param 'EnvironmentVariables:CX_GRAPHICS_BACKEND=d3dmetal'
+wine --bottle ron --workdir <install> --wait-children <install>/riseofnations.exe
+```
+
+(`cxbottle` and `wine` are under
+`/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/`; the
+`--cx-app` form wants a bottle-internal path and fails on a native one.) The
+game's own configuration lands at
+`~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/`,
+the same `%APPDATA%` path as before. The first launch after creating the bottle
+page-faulted once in a system DLL; the second and every later one ran: player
+profile, main menu, Quick Battle setup, map generation, the in-game view with
+the economy ticking at its normal rate. Keyboard input reaches it from
+`osascript`; synthetic clicks from System Events do not, and `cliclick` (brew)
+does. The window is borderless at screen size, so screenshot coordinates are
+click coordinates. The in-game menu is the icon at the top-right corner of the
+screen; Escape does not open it.
+
+**What it wrote back settles most of the open questions below, and one of the
+answers is a second oracle nobody had derived.**
+
+### The SyncLogger's real configuration
+
+The game rewrites `synclogger.ini` on first read with its full key set. There
+is no mask. Every one of the 37 categories is its own key — `WorldSync=0`,
+`UnitsSync=0`, … — defaulting to **0**, so a file that sets only
+`DesyncTrackingEnabled=1` and `DesyncCategoryMask=-1` enables nothing. It also
+adds `SkipCountdown`, `NoteOnlySync`, `FinalSync` and, after a run, a
+`LogFile=` line naming the `Logs\` directory. The categories-to-track header it
+later writes lists `NoteOnlySync` and `FinalSync` as "cannot be turned off".
+
+With every category on and a Quick Battle played for two minutes and quit
+through the menu, four files appear in `Logs\`: `SyncLog Standard .txt`,
+`SyncLog TurnLog .txt`, `SyncLog SendLog .txt`, `SyncLog ReceiveLog .txt` —
+the `%s %s` of the pattern above are the session mode and an empty lobby
+string. Each holds the settings header and then the line
+`<snipped data frames>` under `Game completed without desync`. **In a solo game
+that does not desync, the frame data is dropped at write time.** That matches
+the code: `Game::run_solo` calls `setupWithConfigSettings`,
+`beginNewLogSession(SessionModeStandard)`, runs the whole game, and only then
+`writeToFileAndReset(null)`; the other writer is `CommandPackage::end_process`,
+on an actual desync, which also sets `mDesyncOnTurn`. Whether a flag makes the
+no-desync write keep its frames is the remaining question, named below. Killing
+the process writes nothing, which is why the first two runs produced no file.
+
+### The older logger, which is the one that works
+
+`rise.ini` carries `AllowLogs=0`. `Log::init` reads exactly that key through
+`Prefs` and returns before opening anything when it is 0; with `AllowLogs=1`
+the game writes `gamelog.ini` with its own full key set and then
+`Logs\gamelog.txt`, and adds `AllowLogs_ToConsole=1` to `rise.ini`.
+
+`gamelog.ini` is the 2003 engine's logging switchboard:
+
+```ini
+[Logging Options]
+Checksum Dump=-1
+Checksum Break=-1
+DUMP_ALL=0
+LogFile=...\Logs\gamelog.txt
+DumpFileName=Logs\dumplog.txt
+[Misc Logging]   [Start Game]   [End Game]   [Start Frame]   [End Frame]
+WORLD=0  CITIES=0  BUILDS=0  UNITS=0  ANIMALS=0  WALLS=0  AMMO=0  DEATHS=0
+GROUPS=0  LEADERS=0  GUYS=0  GOODS=0  ITEMS=0  MAPMAKE=0  TERRAIN=0
+PATHFINDER=0  CHECKSUM=0  RULES=0  SCRIPT=0  ...            (37 per section)
+```
+
+— the same 37 categories as `sSyncDefines`, under five phases. Each category
+under `[Start Game]` dumps that subsystem once when the game starts; under
+`[End Frame]`, **every frame**. The output is a nested text dump produced by the
+objects' own `log_data` virtuals — `UnitData::log_data` is slot 0 of
+`Unit::vftable` — in the shape:
+
+```
+BEGIN FRAME 100
+  BEGIN UNITDATA
+   BEGIN OBJECT
+    BEGIN SUBOBJECT
+     flags 73
+     o 0
+     who 0
+     x_internal 4248
+     y_internal 32664
+     z_internal 528
+   BEGIN GUY
+  BEGIN LEADERDATA
+   who 0
+   tribe 11
+   ...
+```
+
+The initial dump with everything enabled (`InitialDump=1` in `rise.ini` plus
+`[Start Game]` all on) is 337k lines and contains `BEGIN CONSTANTS` — **every
+field of the loaded `Constants` struct, by name, in its in-memory
+representation** (`unit_move_speed 1`, `river_modifier 512`,
+`fort_upgrade_terr[scan] 2 4 6 9`, `peasant_rate …`) — followed by `BEGIN
+WORLD` (`seed`, `xs ys`, `player_territory_limit 44`, …), every leader, every
+city, building and unit with positions. That is a direct check on every
+`Slot::Ratio256`/`Ratio100` claim `rondata` makes, and on `Tuning::RON` as a
+whole, read from the program rather than from our reading of its loader.
+
+Two practical facts about cost. With every category on under both `[Start
+Frame]` and `[End Frame]`, the simulation crawled to about one frame per five
+seconds and the file grew at ~25 MB a minute — unusable. With `[End Frame]`
+`UNITS`, `LEADERS`, `DEATHS`, `CHECKSUM` only, the game ran at full speed and
+logged 1,730 frames (1:55 of game time) in 20 MB: one `BEGIN FRAME n` per
+simulation frame, every unit's `flags o who x y z` per frame. Per-unit detail
+beyond the object base (`UnitData::log_data` goes on to `collide_frame`,
+`damage_frame`, `angle`, and some fifty more fields) is emitted with a
+detail-level argument of 1, which is presumably what `DUMP_ALL=1` unlocks;
+untried.
+
+**`Seed (0 for random)` in `rise.ini` fixes the game.** Two runs with
+`Seed=12345` produced the same nation, the same map and the same opening; two
+runs with `0` did not. So a logged run is reproducible from a config file,
+which is the property the SyncLogger section above wanted and now has, from the
+older system.
+
+### What this makes possible
+
+A replay diff no longer needs a recorded game at all. Fix the seed, enable
+`[End Frame]` for the categories a mechanic emits, play or script a short game,
+and `gamelog.txt` is a per-frame ground truth for exactly those subsystems —
+positions for movement, leader fields for economy and tech, deaths for
+attrition — against which `crates/sim` can be run from the same initial dump.
+The `BEGIN CONSTANTS` block is the cheapest win and should be wired into
+`rondata` first.
+
+Two more things the running game offers, both read from the binary before it
+ran: the **unit balance tool** (`game/balancerules.txt`, `UnitBalance` in
+`unitbalance.cpp`) runs scripted unit-versus-unit combats and writes results —
+its switch is `game.semaphore.ptr[1] & 2`, set somewhere unread — and the
+`[Start Game]` dump with `RULES=1` should print the loaded type tables.
 
 ---
 
 ## What is not established
 
-- **Everything, empirically.** None of this has been run. The strongest claims
-  here are about data in the image; the weakest are about what a file produced
-  by that code would contain.
-- **The format of a `SyncLog` line.** `writeToFileAndReset` builds it and has
-  not been read past its prologue. Whether entries carry values or only tags
-  and text decides how directly a diff can be automated.
-- **Whether `DesyncTrackingEnabled` alone is sufficient**, or whether a
-  multiplayer session, a lobby id, or `mIsMultiplayerRestore` is also required.
-  `mKeyInfoForFilenameGeneration` mentions a lobby id, which is a hint that the
-  tracer expects a networked game.
-- **`DesyncCategoryMask`'s encoding** — presumably a bitmask over the 37 tags,
-  but 37 exceeds 32, so it is either wider than an int or is parsed as a list.
-  Unread.
+- ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
+  container and `walk_data` claims remain unexercised; everything about the
+  loggers is now observed.
+- ~~**The format of a `SyncLog` line.**~~ Not observed in a no-desync solo
+  game, which snips the frames at write time. **Open:** whether anything
+  (`FinalSync`, `NoteOnlySync`, `DesyncUploadsWanted`, or a condition in
+  `writeToFileAndReset` around `mDesyncOnTurn`) keeps them. One read of that
+  function's middle answers it.
+- ~~**Whether `DesyncTrackingEnabled` alone is sufficient.**~~ It is sufficient
+  to set up and write the header in a solo game; the per-category keys are what
+  was missing.
+- ~~**`DesyncCategoryMask`'s encoding.**~~ There is none; 37 keys.
+- **`DUMP_ALL=1`, `Checksum Dump` and `Checksum Break`** in `gamelog.ini` —
+  the first presumably unlocks the detail-level-1 fields, the other two
+  presumably take a frame number; all three untried.
 - **The whole `walk_data` graph**, which is the actual header format. Read in
   outline only.
 - **The recorded game's file extension and naming.** `String::time_stamp` builds

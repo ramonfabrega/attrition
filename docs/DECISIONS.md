@@ -438,3 +438,86 @@ The limit is entry 8: fidelity is chosen per subsystem. When a subsystem is one
 we have decided to diverge from, this entry does not apply — but the divergence
 is then a decision with an entry of its own, not a quiet repair inside a
 translation.
+
+
+## 16. Integers at the original's scales; `Fx` is not the rule
+
+**Chosen:** restate the arithmetic constraint as *no floating point, integers at
+the scales the original keeps them*. `fixed::Fx` stays a crate in the
+workspace, unused by `crates/sim`, until a mechanic needs a fraction the
+original does not already store as an integer.
+
+**Over:** the founding phrasing — "all gameplay arithmetic goes through
+`fixed::Fx`" — which `CLAUDE.md` carried for seven mechanics while none of them
+used it.
+
+Entry 4 chose Q16.16 before any of the original had been read, on the
+reasonable guess that an RTS simulation needs fractions. It does; and it turned
+out the original supplies every one of them as an integer with a scale already
+chosen: 8.8 for rates (entry 14), hundredths for accelerators, sixteenths for
+income, a 65535-scaled sine table built once before the first frame (entry 13),
+and an exact rational for the single `f32` it keeps mid-simulation (entry 10).
+Three entries had each said "and so `Fx` is still unearned" from a different
+direction. This is the entry that says it once, as the rule.
+
+The rule matters because Q16.16 is *close* to those scales and not equal to
+them. `UNIT_RATE_BASE` is `6/5`; at 8.8 it is 307, at ×100 it is 120, and
+Q16.16 gives 78643 — which rounds the same way by luck on most inputs and
+differently on some, and entry 14's second amendment already caught one case of
+"merely close" (119 where the original computes 120). Reproducing the original
+bit for bit means reproducing its representation, not approximating it with a
+finer one.
+
+Entry 4's two sub-decisions — truncate toward zero, saturate on overflow — are
+unchanged, and are now statements about how `crates/sim` does integer
+arithmetic rather than about a type.
+
+If a mechanic ever needs a fraction the original computes in floating point
+*during* a frame, that is a new entry, because it is the first place the
+original itself is not deterministic across hardware.
+
+
+## 17. Derived per-player state is recomputed where the original recomputes it
+
+**Chosen:** when a value is *derived* — a unit's effective speed, a player's
+population cap, the research-versus-train bit, a price's discount tail, the
+anti-attrition factor — `crates/sim` computes it at the moment and with the
+cadence the original does: on read where the original reads through a function
+(`UnitData::get_speed`), on change where the original recomputes wholesale
+(`Leader::calc_pop_cap`), and on a fixed cadence where the original caches on
+one (`Unit::process_attrition`'s 32-frame refresh). The mechanic that *produces*
+the value is its only writer; the mechanics that *consume* it keep taking it as
+an input.
+
+**Over:** a single uniform pattern — everything on read, or everything
+recomputed on a dirty flag — chosen for tidiness.
+
+Seven mechanics in, `Sim` is still a harness: parallel `Vec`s kept in step by
+`add_player`, and every value one mechanic needs from another taken as a plain
+input (`Movement.speed`, `Muster.age`, `Muster.researched`, `cost::Modifiers`).
+That was the right shape while each mechanic was downstream of nothing we had
+built. The tech tree is the first mechanic *upstream* of several, and it is
+where the question of how derived state flows has to be answered rather than
+deferred.
+
+Uniformity is the tempting answer and it is wrong for the same reason entry 15
+is right: push versus pull is *observable*. A cached value refreshed every 32
+frames behaves differently from one computed on every read — a unit that walks
+out of hostile territory keeps bleeding for up to 31 frames, and the original's
+players have twenty years of intuition built on that. A pop cap recomputed on
+change behaves differently from one computed on read only if the recompute is
+ever skipped, which is exactly the kind of thing a faithful implementation has
+to be able to reproduce when it happens.
+
+So the rule is per value, and it is cheap to state per value because the
+reading already establishes it: the document for the producing mechanic says
+where the original computes each output and on what cadence, and the
+implementation follows. The consuming mechanic's signature does not change —
+`train_time` still takes `researched: bool` — which keeps each mechanic
+testable alone, as it has been.
+
+The structural consequence for `Sim` is small and deliberate: per-player state
+grows by one struct per producing mechanic (the tech layer's flags and levels,
+alongside `Muster`, `Holdings`, `Ledger`), and `add_player` grows by one line.
+The harness is not yet an architecture, and this entry does not make it one;
+it decides the one thing that would otherwise have been decided by accident.

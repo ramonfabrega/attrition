@@ -555,3 +555,32 @@ production" would predict.
 - **`MIN_POP_LIMIT` and `MAX_POP_LIMIT`.** Loaded into `Constants` and not
   consumed by anything read so far; the lobby is the likely reader and the
   lobby is cut from v1.
+
+---
+
+## Second reading (2026-08-20) — corrections owed
+
+Blind second derivation and adjudication: `docs/audit/2026-08-20-costs.md`.
+Nine disagreements, eight resolved against this document and one an
+implementation slip neither reading stated. Until they land here and in
+`crates/sim/src/cost.rs`, this document is wrong on:
+
+- **The redirect table.** `get_cost` reads `UNDISC_COST_GOOD` / `UNDISC_COST_RATE`
+  (`undiscovered_cost_good/rate`): Knowledge → Food ×3/2, Metal → Timber ×5/4,
+  Oil → Metal ×3/2, obsolete Timber → Oil ×1/2 — and it chains recursively
+  (Oil → Metal → Timber). This document transcribed the unread `*_SUPPORT_*`
+  columns (all 1/1), and `Redirects::RON` does a single pass.
+- **Pop cap indexes `POP_CAP` by `epoch[0]`** — the Military tech level — not
+  the age.
+- Caravans and merchant fleets ramp to 500% (`unit_flags2 & 8`), not 200%;
+  the citizen count adds militia/minuteman/partisan and subtracts
+  scholar-militia; group counting requires `attack != 0`.
+- Monarchy, Socialism, Salmon, `MILITARY_UNIT_DISCOUNT`, Indians and
+  Supercollider land **after** the ramp, not before; short-game scaling is
+  `ceil(ages × pct / 8)` against the Military tech level.
+- `can_pay_cost`'s early return is `== 0`; `cost.rs` uses `<= 0`.
+
+The second reading also settles the upgrade-loop cases (bump while queued,
+refit while researching, halving when the old cost is 0), `+0x260` as
+`special_upgrade`, the ignore-pop-cap flag `0x100000`, the hard-coded Salt
+9/10, Terra Cotta without a wonder check, and the exact `refund_cost` formula.

@@ -484,3 +484,38 @@ the first time it was asked a question with a five in the denominator.
 - **The AI counters** at `leader + 0xa10` through `+0xa24`, moved by both
   `queue_up` and `unqueue`. They are per-production-building tallies and
   nothing in the simulation reads them yet.
+
+---
+
+## Second reading (2026-08-20) — corrections owed
+
+Blind second derivation and adjudication:
+`docs/audit/2026-08-20-production.md`. The queue record, the 3-of-6 pair
+recording, charge-on-queue, every loader scale, the accelerator choice,
+done-before-increment, the base and research-time shifts, the ramp on
+`num_units` only, the age/epoch catch-up, `finished`'s sign semantics and the
+cancel walk with exact refund are **doubly confirmed**. Seven disagreements,
+six resolved against this document; until they land here and in
+`crates/sim/src/lib.rs` (`process_queues`, `advance_slot`), this document is
+wrong on:
+
+- **The parallel-slot fan-out is library-only** (`is(0x1b3, 0)`);
+  `process_queues` currently advances several slots at every building.
+- **A blocked head does not block the queue**: `do_queue` at slot 0 with
+  `finished() <= 0` advances the first research entry (`get_next_non_unit`),
+  then a non-caravan / helicopter entry.
+- **A unit-type research entry completes through `gain_tech` and spawns no
+  unit**; `advance_slot` spawns one.
+- The `could_queue` special case is University + Scholar, not dock + fishing
+  boat; `refund_cost` re-prices the first library's tech entries on a
+  category-3 epoch; `0x21d` is Supercollider, not Pyramids; the free-queue
+  semaphore is bit 11 (scenario editor).
+
+Open questions closed, all verified by the adjudicator: `queue_size` is
+20/10/2 from `Build::init`; the availability bit is the `LeaderData::tech`
+bitmask (`+0x6c0c`, pointer at `+0x6c18`), set by `Leader::gain_tech`;
+`can_make` read; semaphore bit 11 = scenario editor; exactly one ×3 ceiling;
+the full modifier tail order and its research-only/train-only partition; the
+ordinary-tech catch-up `(P−n+1)/(P+1)`; the unassimilated ×5/4 tail; the silo
+gate; the infinite-queue flag. Resolved for this document: frames-to-complete
+as written here (the second reader's `ceil(T/a)` is off by one).

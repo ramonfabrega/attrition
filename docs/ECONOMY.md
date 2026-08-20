@@ -465,3 +465,36 @@ for upkeep is the one that makes the eleventh hoplite cost double the first.
   `Leader::calc_pop_cap`. What remains open there is the *production* half:
   `Build::queue_up`, `JOB_TIME` and when in an item's life the price is
   actually charged.
+
+---
+
+## Second reading (2026-08-20) — corrections owed
+
+Blind second derivation and adjudication: `docs/audit/2026-08-20-economy.md`.
+The frame order, the gather order, the 8/512-frame cadence, sixteenths and the
+7200 denominator, the ×256 trio, the assembly order, city flat/taxes/literacy,
+the per-gatherer truncation, the cap pipeline and `do_gather`'s arithmetic are
+**doubly confirmed**; no number in `crates/sim/src/economy.rs` changes and the
+existing tests stand. Nine behaviour-relevant points went against this
+document, all about *where* something happens or *who* it applies to:
+
+- Caravans pay through `City::compute_trade` → `trade_val` inside
+  `calc_city_resources`, not `Unit::do_gather`; the `calc_rare` loop is
+  Conquer-the-World-only, and owned rares pay through idle merchants and
+  fishermen.
+- The difficulty handicap is AI-only (`get_gather_handicap` returns 0 for a
+  human); `bonus_cap` and `base_rate` are scenario-script writers only, and
+  `resource_cap_add` writes `resource_cap` directly.
+- The AI escrow guard is `(flags & 0xc) != 4` and rounds by frame modulus; it
+  is not an accumulator.
+- Forbidden City's base gather only replaces non-zero `CITY_GATHER` slots, and
+  its ×125% precedes flat/taxes/literacy.
+- The city `refinery` byte is always 0 — a smelter must be present — so
+  `City.refinery` in the implementation can double-scale oil and should go.
+- The flat per-gatherer rate is `(Σ num_make × PEASANT/OIL_RATE) >> 8` over
+  the footprint, river ×2, non-ally tcoords excluded; 160/560 is the
+  sum == 16 case. (The second reader was itself slightly off here: unowned
+  tcoords count.)
+
+Resolved for this document: enhancer arrays are `int[5]` with 1-based levels,
+so `fishermen_bonus[lvl+4]` is `GRANARY_BONUS[lvl-1]` as written here.

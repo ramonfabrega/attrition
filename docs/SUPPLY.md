@@ -324,3 +324,31 @@ at the out-of-supply rate unless it brings its own wagon.
 - **Whether `Supplies` is consulted anywhere the reading missed.**
   `find_supply` has five callers and all five are accounted for: attrition,
   healing, `in_supply`, and two interface draws.
+
+---
+
+## Second reading (2026-08-20) — corrections owed
+
+Blind second derivation and adjudication: `docs/audit/2026-08-20-supply.md`.
+The radius, the distance query, the hero-general radius, the heal fold, the
+reload multipliers and the registry are **doubly confirmed**. Eight
+behaviour-relevant points went against this document; until they land here and
+in `crates/sim/src/supply.rs` (doc comments and the `Category` name — no
+arithmetic changes), this document is wrong on:
+
+- Whether wagons bleed: a land supply unit takes no attrition unless in the
+  peace-violation/assassin state (`process_attrition`), and heroes are *not*
+  exempt — both corrections belong to `docs/ATTRITION.md` and are listed there.
+- The nation-bonus "free supply step" is dead code (`BUY_SELL = 0x2ad` is
+  outside the `0x2fb..0x2fd` loop); bonus 4 is Nubia, 10 is France, and
+  `FRENCH_FREE_SUPPLY` spawns a wagon.
+- The military patriots (Despot, Monarch, Comrade) are supply sources
+  (`UnitType::init_final_flags`).
+- `+0x218` is the unit's **domain** (land/sea/air), not a supply category; sea
+  units never reach the supply heal.
+- The heal has gates this document omits: captain present, damaged, not
+  garrisoned, land, not itself a supply unit.
+
+Closed open questions: `TRUCK_RADIUS` is unread; `SUPPLY_HP_UPGRADE` is
+applied in `update_hits`, and the wagon's `+level/4` speed in `update_speed`.
+Resolved for this document: Terra Cotta does apply to a supplying general.

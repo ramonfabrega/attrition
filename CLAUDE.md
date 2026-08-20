@@ -52,10 +52,14 @@ testable, and makes the eventual art swap free.
 ## Hard constraints
 
 - **No floating point in the sim. Ever.** Not `f32`, not `f64`, not "just for
-  this one distance check". All gameplay arithmetic goes through `fixed::Fx`.
-  Float results vary across compilers, architectures, and optimisation levels;
-  a lockstep sim that varies is not a sim. The original's own data is stored as
-  rationals (`1/192 tile`, `2/3`, `6/5`), so `Fx::ratio` takes it exactly.
+  this one distance check". Float results vary across compilers, architectures,
+  and optimisation levels; a lockstep sim that varies is not a sim. Gameplay
+  arithmetic is **integers at the original's own scales** — 8.8 where it keeps
+  8.8, hundredths where it keeps hundredths, an exact rational where it keeps
+  the one `f32` it has, and a pinned table where it builds one with doubles
+  before the first frame. `fixed::Fx` is not the rule; it is a crate that stays
+  unearned until a mechanic genuinely needs a fraction the original does not
+  already store as an integer. See `docs/DECISIONS.md` entry 16.
 - **The sim crate depends on no graphics, windowing, or async runtime.** If it
   cannot run in a `#[test]` with no display attached, it is wrong.
 - **Nothing from the user's install ever enters this repo.** Not models, not
@@ -88,19 +92,21 @@ artifact is the next phase's tool.
    `ATTRITION = 48 frames` in the data. If this comes out exactly right, the
    method is proven and the rest is repetition. **Done**, specified in
    `docs/ATTRITION.md` and `docs/SUPPLY.md`.
-2. **Run the original** — 32-bit x86 Windows on Apple Silicon, via Wine,
-   CrossOver, or a VM. Gives us a visual and behavioural oracle, and lets us
-   check any claim instead of reasoning about it. Not a prerequisite for 0 or 1;
-   a hard prerequisite for trusting 3.
+2. **Run the original** — 32-bit x86 Windows on Apple Silicon. **Done**, via
+   CrossOver's D3DMetal, after Wine, DXVK and wined3d/Vulkan all failed on the
+   renderer's D3D11 feature-level requirement; `docs/ORACLE.md` has the exact
+   path. It gives us a visual and behavioural oracle, and lets us check any
+   claim instead of reasoning about it.
 
    **What it unlocks is bigger than recorded games**, per `docs/ORACLE.md`. The
-   shipped executable contains `SyncLogger`: a per-frame, per-category state
-   tracer over 37 named subsystems, switched on by a `synclogger.ini` beside
-   the binary, with three forced RNG seeds and a plain-text log in which every
-   entry carries the source file and line that emitted it. A recorded game
-   turns out to hold only the command stream, an initial-state snapshot and the
-   seeds — no per-frame checksums — so the tracer, not the recording, is the
-   exact oracle. One configured run is worth more than a library of replays.
+   shipped executable contains two loggers. `SyncLogger` (the EE-era desync
+   tracer, `synclogger.ini`, 37 per-category keys) writes its frames only on an
+   actual desync. The older `Log` system (`AllowLogs=1` in `rise.ini`, then
+   `gamelog.ini`) dumps chosen subsystems' state **every frame** to
+   `Logs\gamelog.txt` in a nested text format — every unit's position, every
+   leader, the loaded `Constants` struct by name — and `Seed (0 for random)`
+   in `rise.ini` makes a run reproducible. That file, not a recording, is the
+   per-frame ground truth the sim is diffed against.
 3. **Sim skeleton** — economy, one unit type, movement. Replay a recorded game
    and diff. Score is ticks before divergence. This is the long middle.
 4. **Renderer** — thin client. Original assets first; they are the visual
@@ -127,6 +133,13 @@ re-deriving it.
 next unstarted one unless something has made a different order obviously
 better, in which case say so and take that.
 
+0. **Corrections from the second reading** — each mechanic document now ends
+   with a "Second reading — corrections owed" section pointing at
+   `docs/audit/`. Land them mechanic by mechanic, document first, then
+   implementation and tests, striking the note when done. Attrition's
+   sixteenths-damage and production's library-only fan-out are the two that
+   change observable behaviour most; movement's unit-versus-body step is the
+   largest rewrite. Do these before building on the mechanics they correct.
 1. **The tech tree** — `has_preq`, `type_avail`, `type_eligible`, ages, epochs,
    research. Three documents already assume its answers, and
    `docs/PRODUCTION.md` specifically needs whatever writes the availability bit
@@ -170,11 +183,26 @@ it, say where things stand and what you would do next — then it is a good
 moment to clear the context and start the next one fresh, because the document
 carries everything forward.
 
-**Anything needing phase 2 is written down, not waited on.** Nothing is blocked
-on running the original. A claim that needs a behavioural check goes in the
-document's open questions with the check named, and the work continues. See
-`docs/ORACLE.md` for what a running game will eventually be able to tell us,
-and for how far Wine currently gets.
+**A behavioural check is a logged run, and it is cheap.** The original runs
+here (`docs/ORACLE.md`, last section): fix the seed in `rise.ini`, enable the
+mechanic's categories under `[End Frame]` in `gamelog.ini`, play a minute, quit
+through the in-game menu, read `Logs\gamelog.txt`. A claim that needs a
+behavioural check is still written into the document's open questions with the
+check named — and then, when it is the cheapest way to settle it, the check is
+run rather than deferred. Do not enable everything per frame; it slows the
+simulation to a crawl.
+
+**Every mechanic gets a blind second reading before it is called done.** One
+reader writes the document from the decompile; a second, who has not seen the
+document or the implementation, re-derives the same mechanic from the same
+export and writes a report; a third adjudicates every disagreement back to the
+decompiled function and records the verdicts under `docs/audit/`. The first
+pass over the seven existing mechanics (2026-08-20) found the arithmetic
+doubly confirmed almost everywhere and the *predicates* wrong in several places
+— which unit kinds are exempt, which step the 11/8 belongs to, which array a
+level indexes — exactly the kind of error that tests written from the same
+reading cannot catch. The full decompile export under `tools/ghidra/` is what
+makes the second reading cost an hour rather than a session.
 
 **Emit traces under the original's own names.** `docs/ORACLE.md` lists the 37
 `SyncDefine` categories the engine considers sync-critical. Where a mechanic
@@ -202,13 +230,20 @@ and makes the eventual diff mechanical rather than a translation exercise.
   works; `pretty` needs the Windows DIA SDK and does not.
 - Ghidra 12.1.3 (`brew install ghidra` — a formula now, not a cask; it wants
   `openjdk@21`). With the PDB loaded it gives named, typed decompilation.
-  Scripted work goes through `analyzeHeadless`, under
-  `$(brew --prefix ghidra)/libexec/support/`. Two things the decompiler does
-  not do for you and a script must: name the field behind a `field_0xNN`, and
-  name the method behind an indirect call like `(*(code **)(*this + 0xcc))()`.
-  The second is a vtable slot; resolving it turns a wall of offsets into
-  ordinary code, and is what settled both the supply eligibility checks and
-  the shared siege predicate.
+  **`tools/ghidra/` holds everything**: `analyze.sh` builds the project once
+  (hours), `export.sh` decompiles all 48k functions plus every struct and
+  vtable to files (minutes), and after that reading is `grep` over
+  `decomp/` rather than a two-minute pass per question. `run.sh` runs the
+  remaining one-off scripts. Its README lists the traps that have each cost a
+  wrong conclusion once. The two things the decompiler does not do for you —
+  name the field behind a `field_0xNN`, name the method behind
+  `(*(code **)(*this + 0xcc))()` — are `types.txt` and `vtables.txt` in the
+  export.
+- **The original runs on this machine.** CrossOver (D3DMetal) in a bottle
+  named `ron`, launched with
+  `wine --bottle ron --workdir <install> <install>/riseofnations.exe`; see
+  `docs/ORACLE.md` for the two loggers it ships and how they are switched on.
+  `cliclick` drives it; System Events clicks do not reach it.
 - Constants are not all loaded in the representation the file writes. At least
   one rational arrives scaled to 8.8 fixed point. Read the consumer before
   believing the digits.

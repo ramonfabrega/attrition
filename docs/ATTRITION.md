@@ -557,3 +557,35 @@ every reachable value. `crates/sim/src/attrition.rs` pins all eight of them.
 
 Every other quantity is already integer arithmetic with defined truncation, so
 it ports directly.
+
+---
+
+## Second reading (2026-08-20) — corrections owed
+
+A blind second derivation and its adjudication are in
+`docs/audit/2026-08-20-attrition.md`. The strength chain, the resistance
+rational, `get_attrition`, the period/floor, the 32-frame cadence, the supply
+predicate and the whole territory formula (contraction, tie-break, the `-2`
+owner, the limits) are **doubly confirmed**. Twelve disagreements, nine
+resolved against this document; until they land here and in
+`crates/sim/src/attrition.rs` / `lib.rs`, this document is wrong on:
+
+- **Damage is in sixteenths of a hit point per figure** (`damage_frac`, via
+  `take_damage`), not whole points — the implementation currently hits 16×
+  too hard.
+- **Exemptions:** heroes and supply units are *not* exempt (supply units are
+  exempt only while `masks & 0x400000` is clear, i.e. outside the
+  peace-violation/assassin state); zero-attack types *are* exempt.
+- Check 5 compares `leaders[who].who` (the player's own index), not a team;
+  `PlayerState::team` defaulting to 0 currently exempts everyone on player 0's
+  ground.
+- `+0x308` is `uber_size`; `+0x218` is the domain (land/sea/air); the decoy
+  path is the second `suffer_attrition` entry; territory is recomputed
+  incrementally at 256 cells a frame, not wholesale; `0x63187` masks the
+  leader's `epoch[1]`; the runner-up (`who2`) bookkeeping differs between the
+  city and fort paths.
+- `ALLY_TO_WAR_*` is absent from `rules.xml`, so the grace window never fires
+  with shipped data.
+
+The one point resolved for this document: the assassin path sets `0x400080`,
+so it defeats supply as written here.

@@ -350,3 +350,37 @@ branch structure got mixed up.
   speed the cap above reads. Unread.
 - **The order layer.** `MoveOrder`, `PatrolOrder`, `AttackToOrder` and the rest
   sit above all of this and decide what the destination is.
+
+---
+
+## Second reading (2026-08-20) — corrections owed
+
+Blind second derivation and adjudication: `docs/audit/2026-08-20-movement.md`.
+Position units (192 per tile), the angle convention, `find_angle`, the sine
+table's generator and lookup, `sinx`/`cosx`, `turn_towards`, the Manhattan
+snap, the per-axis clamps, the speed floor of 3 and the order multipliers are
+**doubly confirmed**. Nine disagreements, all resolved against this document;
+until they land here and in `crates/sim/src/movement.rs` / `lib.rs`, this
+document is wrong on:
+
+- **Which step moves the unit.** `Unit::move_step` (reached through
+  `Unit::work` → `do_move`) moves the unit's position; `Guy::move` only walks
+  the *body* toward the point the unit already reached, at `speed·11/8`. The
+  implementation applies the body's rule and its 11/8 to the unit — the "27%
+  faster than quoted" claim is that mistake.
+- **The step uses the post-turn facing**, not the pre-turn heading.
+- **`UNIT_TURN_SPEED` loads as 256** (`get_fraction(…,0x100)`), and
+  `TURN_SPEED` goes through `degrees_to_angle`; `Tuning` carries 1.
+- `GuyData::turn_speed` is instant from a stop for foot and mounted units and,
+  while moving, divides by `avg_speed/4 + 1` with a ~1° floor — the "sticky
+  heavy units" behaviour pinned by a test is not the original's.
+- `unit_masks & 0x10` is a moving-target-in-contact flag cleared each `work`,
+  not "damaged"; the 0x800 tile halving needs `z_internal <= 0`; the group cap
+  applies only with flag 0 (never to the body); the transport/marine scale is
+  `epoch[0]`, not age.
+
+The second reading also derives what this document took as input or left
+open: the full `move_step` (turn-in-place limits of 45°/80°, half step while
+turning, the `manh < 2·step` clamp gate, tolerance arrival, collision), modern
+infantry ×5/4, Alexander's forced march, the hero multiplier scales,
+`ai_speed = 1`.
