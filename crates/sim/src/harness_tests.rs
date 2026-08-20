@@ -910,7 +910,7 @@ fn a_stuck_head_lets_a_research_entry_behind_it_advance() {
     assert_eq!(sim.buildings[hall].queue.items[1].job_counter, 0);
 
     // Room appears and the head is handed over at once.
-    sim.muster[0].age = 1;
+    sim.muster[0].military_level = 1;
     sim.recompute_pop_caps();
     sim.tick();
     assert_eq!(sim.units.len(), 1);
