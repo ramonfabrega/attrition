@@ -106,6 +106,64 @@ Supporting strings in `riseofnations.exe`: `CheckDesyncsEveryXFrames`,
 `checksum_window_size`, `checksum_deep`, `checksum_failure_threshold`,
 `Player: %d checksum: %d`, `%d/%d prior games have desynched`, `checksums.cpp`.
 
+### How a position is stored (2026-08-19)
+
+The single most reusable fact here, because every later subsystem needs it:
+movement, maps, recorded games, and anything that reads a save file.
+
+An object's coordinates live in `SubObjectData`, the 28-byte base of every
+object in the game:
+
+```c
+struct SubObjectData {   // sizeof 28
+  +8    u8          flags;
+  +9    u8          who;          // owning player
+  +10   i16         o;            // index in the owner's object list
+  +12   Coord       z_internal;
+  +16   Coord       x_internal;   // XOR-masked
+  +20   Coord       y_internal;   // XOR-masked
+  +24   ObjectType* ptype;
+};
+```
+
+**Coordinates are XOR-masked with `0x63637`.** A player's age is masked with
+`0x62766` and a city's stored age with `0x63187`. This is tamper resistance
+against a memory editor, not encryption; unmask before doing anything.
+
+**There are three units of length**, and the engine uses all three within a few
+lines of each other:
+
+| Unit | Size | Used for |
+| --- | --- | --- |
+| position unit | 1/768 cell | what `x_internal` holds |
+| tile | 192 position units | territory distances, movement speed |
+| world cell | 768 position units | ownership, one `WData` record each |
+
+The evidence is the conversion itself rather than any annotation. The engine
+converts a raw coordinate with `div_3_table[pos >> 8]` when it wants a cell and
+`div_3_table[pos >> 6]` when it wants a tile. `div_3_table` is `.bss` — all
+zeros in the image — and `init_coord_lookup_array` fills it at startup with
+`i / 3`, and for negative indices with `(i - 2) / 3`, which makes it a floor
+division rather than C's truncation. So a cell is `256 × 3` position units and
+a tile is `64 × 3`. The table exists only to make a divide-by-three cheap on
+2002 hardware.
+
+Two independent confirmations arrive from the data side, which is what takes
+this from a reading to a fact. `UNIT_MOVE_SPEED` is `1/192` of a tile per
+frame. And the territory constants are annotated in tiles by the designers —
+`TERRITORY_BASE` is `"24 tiles"`, `TERRITORY_LIMIT_BASE` is `"44 tiles"` — and
+are consumed as distances in exactly this unit.
+
+A cell's centre is the tile `4c + 2`. There is also a **half-cell** grid, at
+`div_3_table[pos >> 7]`, used for the visibility and fog planes.
+
+One inconsistency to watch for: the `City` record caches its own coordinates
+unmasked, while the object it belongs to stores them masked. The territory pass
+reads the city's copy directly and the fort's through the XOR.
+
+See `docs/ATTRITION.md` for how these are used and for the rest of the object
+and world layouts.
+
 ### RTTI is intact
 
 Independently of the PDB, the executable retains RTTI — 1,818 demangled class
