@@ -424,6 +424,11 @@ pub struct Sim {
     pub city_tally: Vec<city::Tally>,
     /// Buildings disbanded or died this frame, for tests.
     pub removed: Vec<usize>,
+    /// `leader_flags & 0x8000000` per player: the wall stats are stale.
+    /// `Leader::process` answers it with `calc_wall_stats` — every unfinished
+    /// building's clock re-baked and every building's hit points refreshed —
+    /// before any object is processed. `docs/CITIES.md` §3.2.
+    pub wall_stats_dirty: Vec<bool>,
     pub frame: i64,
 }
 
@@ -591,6 +596,7 @@ impl Sim {
             lost_city_stamp: vec![None; players],
             city_tally: vec![city::Tally::default(); players],
             removed: Vec::new(),
+            wall_stats_dirty: vec![false; players],
             tuning,
             world,
             frame: 0,
@@ -617,6 +623,7 @@ impl Sim {
         self.defeated.push(false);
         self.lost_city_stamp.push(None);
         self.city_tally.push(city::Tally::default());
+        self.wall_stats_dirty.push(false);
         for row in &mut self.at_war {
             row.push(false);
         }
@@ -1095,8 +1102,11 @@ impl Sim {
     }
 
     /// After the tree changed: the researched bits follow it, and so does the
-    /// Military level the population cap is indexed by.
+    /// Military level the population cap is indexed by — and the wall stats
+    /// are stale, since a tech can change a site's clock and a building's
+    /// hits.
     fn apply_gained(&mut self, who: Player) {
+        self.wall_stats_dirty[who as usize] = true;
         self.sync_researched();
         let level = self.tech[who as usize].military_level();
         if self.muster[who as usize].military_level != level {
@@ -1273,6 +1283,11 @@ impl Sim {
                 player,
                 frame,
             );
+            // `Leader::process` also answers the wall-stats dirty flag here,
+            // before any building is touched.
+            if self.wall_stats_dirty[who] {
+                self.calc_wall_stats(player);
+            }
         }
 
         // Then the buildings. `Build::process` and `Unit::process` are both

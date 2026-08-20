@@ -566,12 +566,12 @@ impl Sim {
                             return verdict;
                         }
                     }
+                    // Built forts are distance-checked without a region test
+                    // (the cities above have one).
                     if i == w || self.reg_forts(i, reg) != 0 {
                         for f in self.built_forts(i) {
                             let fp = self.buildings[f].pos.tile();
-                            if self.world.region_of(self.buildings[f].pos.cell()) == Some(reg)
-                                && vector_dist(fp.x - site.x, fp.y - site.y)
-                                    <= self.tuning.fort_spacing
+                            if vector_dist(fp.x - site.x, fp.y - site.y) <= self.tuning.fort_spacing
                             {
                                 return verdict;
                             }
@@ -863,14 +863,24 @@ impl Sim {
         self.city_limit(who) <= self.total_cities(who)
     }
 
-    /// The tiles a city's radius mask covers — `Wall::mask_city`: every tile
-    /// within `radius` (by `vector_dist`) of the city's tile.
+    /// The tiles a city's radius mask covers — `Wall::mask_city` over the
+    /// `even_circle_*` tables, which `even_circle_init` builds once with a
+    /// **rounded `sqrtf`** (the one gameplay table the original builds with a
+    /// float, pinned here as its integer equivalent). The "even" circle is
+    /// centred on the corner between the city's tile and the one before it:
+    /// offset `u = dx + 1` for `dx ≥ 0`, `u = dx` for `dx < 0` (no zero row or
+    /// column), a tile is in when `round(√(u² + v²)) ≤ radius`, i.e.
+    /// `4(u² + v²) ≤ (2·radius + 1)²`. So at radius 20 the disc spans `dx ∈
+    /// [−20, 19]` along the axis — one tile shy on the positive side.
     pub(crate) fn city_mask_tiles(&self, pos: Pos, radius: i32) -> Vec<Pos> {
         let c = pos.tile();
+        let lim = (2 * radius + 1) * (2 * radius + 1);
         let mut out = Vec::new();
-        for dy in -radius..=radius {
-            for dx in -radius..=radius {
-                if vector_dist(dx, dy) <= radius {
+        for dy in -(radius + 1)..=radius {
+            let v = if dy >= 0 { dy + 1 } else { dy };
+            for dx in -(radius + 1)..=radius {
+                let u = if dx >= 0 { dx + 1 } else { dx };
+                if 4 * (u * u + v * v) <= lim {
                     let t = Pos::new(c.x + dx, c.y + dy);
                     if self.world.tile_in_bounds(t) {
                         out.push(t);

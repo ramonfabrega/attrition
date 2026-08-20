@@ -266,7 +266,10 @@ pub struct BuildMods {
     pub speed_upgrade: i32,
 }
 
-/// `Wall::update_construct_time`: the stored base, `constr_time`.
+/// `Wall::update_construct_time`: the stored base, `constr_time`. Evaluated
+/// at placement and again whenever the owner's wall stats are recomputed
+/// (`Leader::calc_wall_stats`, on the `0x8000000` dirty flag), so a tech or a
+/// first city arriving mid-build does reach a site.
 pub fn construct_base(t: &Tuning, types: &[BuildType], ty: usize, m: &BuildMods) -> i32 {
     let b = &types[ty];
     let mut c = b.job_time * 100;
@@ -516,12 +519,13 @@ pub const fn repair_amount(frame: i64, period: i64, damage: i32) -> i32 {
     ((frame * 256) / period - (frame * 256 - 256) / period) as i32
 }
 
-/// The building-side attrition — `Wall::process`, every 16 frames phased by
-/// `o`: eight hit points through `take_damage` with the attrition flag for a
-/// started building on a tile an enemy owns; an unstarted one is simply
-/// removed. `docs/CITIES.md` §9.5.
+/// The building-side attrition — `Wall::process`, every 32 frames phased by
+/// `o` (16 only under rush rules before war is allowed, which is not
+/// modelled): eight hit points through `take_damage` with the attrition flag
+/// for a started building on a tile an enemy owns; an unstarted one is
+/// simply removed. `docs/CITIES.md` §9.5.
 pub const ENEMY_TERRITORY_DAMAGE: i32 = 8;
-pub const ENEMY_TERRITORY_PERIOD: i64 = 16;
+pub const ENEMY_TERRITORY_PERIOD: i64 = 32;
 
 #[cfg(test)]
 mod tests {

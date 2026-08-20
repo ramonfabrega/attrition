@@ -151,7 +151,9 @@ pub struct City {
     pub assimilation_timer: i64,
     pub attack_stamp: i64,
     pub capture_strength: i32,
-    /// `get_pop_value`, kept for the record.
+    /// `CityData::pop` (+0x5d): 1 at init, copied on capture, not the pop
+    /// value (`get_pop_value` is computed from the level) and not touched by
+    /// a level-up.
     pub pop: i32,
     /// The Citizen patriot is in this city.
     pub has_citizen: bool,
@@ -394,7 +396,7 @@ impl Sim {
                 self.cities.len() - 1
             }
         };
-        self.cities[c].pop = pop_value(self.city_level_of(c));
+        self.cities[c].pop = 1;
         self.buildings[b].city = Some(c);
         c
     }
@@ -576,7 +578,10 @@ impl Sim {
                 self.activate(n, false, false);
                 self.close_building(b, true);
             } else {
+                // A failed conversion kills the building and **ends the
+                // sweep** — the rest waits for the next trigger.
                 self.die_building(b);
+                return;
             }
         }
         self.check_upgrade(c);
@@ -645,11 +650,13 @@ impl Sim {
             return;
         };
         let b = self.cities[c].building;
+        let owner = self.cities[c].owner;
         self.set_type(b, next);
         self.mask_city(c, true);
-        self.update_all_hits();
+        // `leader_flags |= 0x8000000`: the Senate bonus and the new hits
+        // arrive through `calc_wall_stats` on the next frame.
+        self.wall_stats_dirty[owner as usize] = true;
         self.find_buildings(c);
-        self.cities[c].pop = pop_value(self.city_level_of(c));
         self.sync_pop_cities();
         self.sync_territory();
     }
@@ -870,19 +877,8 @@ impl Sim {
                 self.world.set_tile_bits(t, tile::PLACED);
             }
         }
-        // The clock, once.
-        let n = &self.nation[who as usize];
-        let mods = build::BuildMods {
-            maya: n.maya,
-            created_faster: n.created_faster,
-            versailles: n.versailles,
-            tobacco: n.tobacco,
-            british: n.british,
-            dutch: n.dutch,
-            romans: n.romans,
-            no_city: self.city_num(who) == 0,
-            speed_upgrade: n.speed_upgrade,
-        };
+        // The clock — baked now, and again on every `calc_wall_stats`.
+        let mods = self.build_mods(who);
         self.buildings[b].constr_time =
             build::construct_base(&self.tuning, &self.build_types, ty, &mods);
         self.update_hits(b);
@@ -954,13 +950,40 @@ impl Sim {
         }
     }
 
-    /// `update_hits` on every building — the `leader_flags |= 0x8000000`
-    /// dirty flag's consequence, after a level-up.
-    fn update_all_hits(&mut self) {
+    /// `Leader::calc_wall_stats`, the `leader_flags & 0x8000000` answer: every
+    /// unfinished building of the player has its clock re-baked
+    /// (`update_construct_time`) and every building its hit points refreshed.
+    pub(crate) fn calc_wall_stats(&mut self, who: Player) {
+        self.wall_stats_dirty[who as usize] = false;
         for b in 0..self.buildings.len() {
-            if self.buildings[b].alive {
-                self.update_hits(b);
+            if !self.buildings[b].alive || self.buildings[b].owner != who {
+                continue;
             }
+            if !self.buildings[b].active
+                && let Some(ty) = self.buildings[b].ty
+            {
+                let mods = self.build_mods(who);
+                self.buildings[b].constr_time =
+                    build::construct_base(&self.tuning, &self.build_types, ty, &mods);
+            }
+            self.update_hits(b);
+        }
+    }
+
+    /// The nation, wonder and tech layer of `update_construct_time`, read off
+    /// the player's inputs and their city count now.
+    fn build_mods(&self, who: Player) -> build::BuildMods {
+        let n = &self.nation[who as usize];
+        build::BuildMods {
+            maya: n.maya,
+            created_faster: n.created_faster,
+            versailles: n.versailles,
+            tobacco: n.tobacco,
+            british: n.british,
+            dutch: n.dutch,
+            romans: n.romans,
+            no_city: self.city_num(who) == 0,
+            speed_upgrade: n.speed_upgrade,
         }
     }
 
@@ -1144,6 +1167,10 @@ impl Sim {
             bd.job_counter = 0;
             bd.job_counter_2 = 0;
         }
+        // `leader_flags |= 0x2000000 | 0x8000000`: the wall stats go stale —
+        // which is how a nomad's other sites lose the ×3 once the first city
+        // stands.
+        self.wall_stats_dirty[who as usize] = true;
         if self.building_is_city(b) {
             let capital = !captured && self.city_num(who) == 0;
             let c = self.init_city(who, b, captured, capital);
@@ -1260,6 +1287,7 @@ impl Sim {
         self.buildings[b].alive = false;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();
+        self.wall_stats_dirty[who as usize] = true;
         self.removed.push(b);
         self.forget(Obj::Building(b));
         for u in &mut self.units {
@@ -1877,9 +1905,10 @@ impl Sim {
                 && let Some(town) = self.build_types.iter().position(|t| t.ident == Ident::Town)
                 && self.building_ident(self.cities[c].building) == Ident::Village
             {
+                // Without a `mask_me`: the original leaves the radius mask
+                // at the old size until the next remask.
                 let b = self.cities[c].building;
                 self.set_type(b, town);
-                self.mask_city(c, true);
             }
             self.sync_territory();
         }

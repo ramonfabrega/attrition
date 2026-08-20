@@ -55,3 +55,20 @@ first draft was wrong — a magic-number division read as `/96` instead of
 to its end, a block read and not written down. Five corrections, four
 additions, all landed the same day.
 
+Cities and buildings (`2026-08-20-cities.md`, the tenth mechanic, later the
+same day) was read by **five** readers in parallel for the first reading —
+one per sub-area: placement, construction, city levels, garrisons, capture —
+and then by five blind readers split the same way, all on Fable 5. Its
+headline differs again: the predicates were doubly confirmed almost
+everywhere, and what the second reading found was at the **edges of the first
+reading's scope** — a caller nobody grepped for (`Leader::calc_wall_stats`
+re-bakes every unfinished building's clock, so "frozen at placement" was
+wrong), a table taken on trust (`even_circle_init` builds the city radius
+mask with a rounded `sqrtf`, not the octagonal metric), a gate read with its
+sense inverted (the building's own attrition is every 32 frames, 16 only
+under rush rules before war), an early `return` ten lines into a long
+function. Seven corrections, all landed the same day. Two disagreements were
+settled neither way but in the listing or the PE: the `do_construct`
+argument, `capture_strength`, and the type-vtable slot `+0xfc`. The lesson:
+grep the writers of every field you call frozen, and the callers of every
+function you call once-only.

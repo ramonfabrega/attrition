@@ -243,9 +243,23 @@ fn a_finished_city_projects_territory_and_the_radius_mask() {
     // Territory: the cell under the city and its neighbours are player 0's.
     assert_eq!(sim.world.owner_at(tile_pos(32, 32)), Owner::Player(0));
     assert_eq!(sim.world.owner_at(tile_pos(20, 32)), Owner::Player(0));
-    // The radius mask: 20 tiles.
-    assert!(sim.world.tile_mask(tile_pos(32 + 20, 32).tile()) & tile::CITY_RADIUS != 0);
-    assert!(sim.world.tile_mask(tile_pos(32 + 21, 32).tile()) & tile::CITY_RADIUS == 0);
+    // The radius mask is the even circle: 20 tiles on the negative side,
+    // 19 on the positive — the disc is centred on a tile corner.
+    assert!(sim.world.tile_mask(tile_pos(32 - 20, 32).tile()) & tile::CITY_RADIUS != 0);
+    assert!(sim.world.tile_mask(tile_pos(32 - 21, 32).tile()) & tile::CITY_RADIUS == 0);
+    assert!(sim.world.tile_mask(tile_pos(32 + 19, 32).tile()) & tile::CITY_RADIUS != 0);
+    assert!(sim.world.tile_mask(tile_pos(32 + 20, 32).tile()) & tile::CITY_RADIUS == 0);
+    // And the count: every (u, v) with round(√(u²+v²)) ≤ 20, no zero row.
+    let n = sim.city_mask_tiles(tile_pos(32, 32), 20).len();
+    let expect = (-21..=20)
+        .flat_map(|dx| (-21..=20).map(move |dy| (dx, dy)))
+        .filter(|&(dx, dy)| {
+            let u = if dx >= 0 { dx + 1 } else { dx };
+            let v = if dy >= 0 { dy + 1 } else { dy };
+            4 * (u * u + v * v) <= 41 * 41
+        })
+        .count();
+    assert_eq!(n, expect);
     // The footprint is marked and blocked.
     let m = sim.world.tile_mask(tile_pos(32, 32).tile());
     assert_eq!(m & tile::OBJECT, tile::OBJECT_BUILDING);
@@ -486,20 +500,55 @@ fn a_building_bleeds_in_enemy_territory_and_a_ghost_is_removed() {
     }
     assert_eq!(
         sim.buildings[b].damage,
-        8 * 4,
-        "eight hits every sixteen frames"
+        8 * 2,
+        "eight hits every thirty-two frames"
     );
-    assert_eq!(sim.buildings[b].health, hits - 32);
+    assert_eq!(sim.buildings[b].health, hits - 16);
     // A ghost on enemy ground is simply removed, with its price back.
     let g = sim.place_building(0, t.barracks, tile_pos(46, 46)).unwrap();
     sim.world
         .set_owner(tile_pos(46, 46).cell(), Owner::Player(1), Owner::None);
     let before = sim.ledgers[0].bucket[1];
-    for _ in 0..16 {
+    for _ in 0..32 {
         sim.tick();
     }
     assert!(!sim.buildings[g].alive);
     assert_eq!(sim.ledgers[0].bucket[1], before + 100);
+}
+
+#[test]
+fn the_clock_is_rebaked_when_the_wall_stats_go_stale() {
+    // Two land regions, so a nomad may place a foothold city in each.
+    let mut w = World::new(16, 16);
+    w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 15));
+    w.fill_region(Terrain::Land, Cell::new(8, 0), Cell::new(15, 15));
+    let mut sim = Sim::new(Tuning::RON, w, 2);
+    for l in &mut sim.ledgers {
+        l.bucket = [10_000; economy::RESOURCES];
+    }
+    let t = install_types(&mut sim);
+    // A nomad places two cities: both clocks are tripled. When the first
+    // finishes, `calc_wall_stats` on the next frame re-bakes the second at
+    // the plain rate — the ×3 is not frozen at placement.
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
+    let a = sim.place_building(0, t.village, tile_pos(20, 32)).unwrap();
+    let b = sim.place_building(0, t.village, tile_pos(48, 32)).unwrap();
+    assert_eq!(sim.buildings[a].constr_time, 180_000);
+    assert_eq!(sim.buildings[b].constr_time, 180_000);
+    finish(&mut sim, a);
+    assert!(sim.wall_stats_dirty[0]);
+    assert_eq!(
+        sim.buildings[b].constr_time, 180_000,
+        "not until Leader::process runs"
+    );
+    sim.tick();
+    assert_eq!(sim.buildings[b].constr_time, 60_000);
+    assert!(!sim.wall_stats_dirty[0]);
+    // A speed tech arriving mid-build does the same.
+    sim.nation[0].speed_upgrade = 3;
+    sim.wall_stats_dirty[0] = true;
+    sim.tick();
+    assert_eq!(sim.buildings[b].constr_time, 42_000);
 }
 
 #[test]
@@ -565,7 +614,9 @@ fn a_city_levels_up_on_five_kinds_and_grows_its_radius() {
     assert_eq!(sim.city_level_of(c), 2, "CITY_BUILDINGS + 1 distinct kinds");
     assert_eq!(sim.buildings[b].ty, Some(t.town));
     assert_eq!(sim.radius_of(c), 24);
-    assert!(sim.world.tile_mask(tile_pos(32 + 24, 32).tile()) & tile::CITY_RADIUS != 0);
+    assert!(sim.world.tile_mask(tile_pos(32 + 23, 32).tile()) & tile::CITY_RADIUS != 0);
+    // The Senate bonus arrives with the wall stats, on the next frame.
+    sim.tick();
     // The city gained the new type's hits and kept its damage.
     assert_eq!(sim.buildings[b].hits, 2500);
     // Members got the senate bonus: a market in a Large City has 35 % more.

@@ -111,7 +111,7 @@ Fields this mechanic reads and writes, named from `types.txt`:
 | `+0x14 attack_stamp`, `+0x18 raid_stamp`, `+0x20 capture_stamp`, `+0x24 assimilation_timer` | 0 at founding; the current frame on a transfer |
 | `+0x28 capture_strength` | §7.2 |
 | `+0x52 trade_val`, `+0x56..+0x59 granary/lumber_mill/smelter/refinery` | `docs/ECONOMY.md` |
-| `+0x5d pop` | 1 at init |
+| `+0x5d pop` | 1 at init, copied on capture; **not** the pop value (`get_pop_value` is computed from the level) and not touched by a level-up |
 | `+0x5e who`, `+0x5f race`, `+0x60 founder` | owner; the nation it is **assimilated to** (−1 at init, `who` on founding); who founded it |
 | `+0x68 was_capital_flags` | bit per player: was once that player's capital |
 | `+0x74 vans`, `+0x90 name` | caravans; cosmetic |
@@ -400,8 +400,9 @@ FORT_SPACING` (12) for self/ally, `FORT_TO_ENEMY_CITY_SPACING` (32) otherwise;
 their started unbuilt cities and (if `reg_cities[reg]`) built cities in the
 region within `s` → `FORT_CITY_DISTANCE 0x16`. Then for every active leader
 including `who`: unbuilt forts (others' started; own all but `exclude_o`) and
-built forts within `FORT_SPACING` → `FORT_DISTANCE 0x15` (own) / `0x16`.
-**Own cities are not checked against a new fort.**
+built forts within `FORT_SPACING` → `FORT_DISTANCE 0x15` (own) / `0x16` — the built forts
+**without a region test** (the cities above have one). **Own cities are not
+checked against a new fort.**
 
 **2.6.4 Must belong to a city** (`build_flags & 0x10` clear):
 
@@ -514,9 +515,17 @@ t = (10 − n) × t / 10
 constr_time = t
 ```
 
-**This is evaluated once, at placement.** A tech gained while the site is up
-does not shorten it; the first-city factor is decided by `city_num` at
-placement. Nothing else writes `constr_time`.
+**This is evaluated at placement — and again on every `Leader::calc_wall_stats`.**
+*(Second reading. A first draft said "once, at placement; nothing else writes
+`constr_time`". `Leader::process` answers the `leader_flags & 0x8000000`
+dirty flag with `calc_wall_stats@006cf7c0`, which walks every alive building
+of the player and calls `update_construct_time` on each one that is **not
+yet active** — then `update_hits` on all. The flag is set by `Wall::activate`,
+`Build::close`, `check_upgrade`, `gain_tech` and more.)* So a speed tech, a
+wonder, or the nomad's first city finishing **does** reach every site still
+under construction, on the next frame; what is frozen is only the value
+between two dirty flags. `crates/sim` keeps the flag per player
+(`Sim::wall_stats_dirty`) and re-bakes in `tick` before any object runs.
 
 **The per-call modifiers — `BuildData::construct_time(flag)@0062d5c0`**,
 vtable `+0x18c`, what `job_counter` is compared against. `flag != 0` returns
@@ -640,7 +649,18 @@ clears `0x40|0x80` and sets `T |= 3`; tiles whose per-type collision mask
 `set_blocked_at(0)` and, for a city or a `connects_to_roads` type,
 `set_road_at(1)`; a dock's three-tile sea ring `set_bad_path(1)`; **a city:
 `Wall::mask_city(tile, on, radius)` sets `T |= 0x100` on every tile of the
-pre-tabulated even circle of `radius` tiles**; then `place_roads`. Nothing in
+pre-tabulated even circle of `radius` tiles** around the tile under the
+building's centre — the `even_circle_x/y` offsets up to
+`even_circle_radius[radius]`, which `even_circle_init@006816d0` builds once:
+for every `(u, v)` with neither zero, `round(√(u² + v²)) == r` (a `sqrtf`,
+rounded half-up — **the one gameplay table the original builds with a
+float**) is recorded as tile offset `(u − 1, v − 1)` for positive `u`, `v`
+and `(u, v)` otherwise. It is a circle centred on the **corner** between the
+centre tile and the one before it, so at radius 20 the mask spans `dx ∈
+[−20, 19]` along the axis: one tile shy on the positive side. `crates/sim`
+pins it as `4(u² + v²) ≤ (2r + 1)²` (`place.rs`, `city_mask_tiles`). *(Second
+reading; a first draft had the disc as `vector_dist ≤ radius`.)* Then
+`place_roads`. Nothing in
 `init`/`start` touches the border sources — **placement adds no territory**;
 `Build::activate` → `Cities::init_city` is where a city becomes a source
 (`docs/ATTRITION.md`).
@@ -807,7 +827,8 @@ for every active player p, every building B of p:
     alive; not a city; not already in a city; (p != who and B.build_flags & 0x10) → skip
     vector_dist(tile deltas) > r → skip
     p == who:  LIBRARY → new_library;  add_to_city(B)
-    else:      n = B.swap_team(who) (−1 → B dies); n.activate(0, 1); B.close(0); mask_me(n, 1, REGEN_SIMPLE)
+    else:      n = B.swap_team(who);  n < 0 → B dies and **the sweep returns here** (the rest waits for the next trigger)
+               n.activate(0, 1); B.close(0); mask_me(n, 1, REGEN_SIMPLE)
 check_upgrade()
 ```
 
@@ -1191,7 +1212,9 @@ So 2000 frames (133 s), 667 for the Turks, 500 for a founder retaking their
 own, 500 with the Citizen; the Turks and the founder compound. No other
 nation bonus exists. `City::assimilate`: `city_flags &= ~0x100`; `race = who`;
 **`Region::fix_borders`** (the territory changes hands); a Chinese owner with
-`CHINESE_LARGE_CITIES` → `set_type(TOWN)` — it becomes a Large City outright;
+`CHINESE_LARGE_CITIES` → `set_type(TOWN)` — it becomes a Large City outright,
+**without a `mask_me`**, so its radius mask stays at the old size until the
+next remask;
 a library's queue re-registered; a senate with no living patriot re-trains
 one.
 
@@ -1351,13 +1374,17 @@ tile with a full refund. A started one stops the sweep.
 
 ### 9.5 A building in enemy territory bleeds
 
-`Wall::process`, every 16 frames phased by `o`, owner's
-`disable_building_attrition == 0`: the territory owner `t` of the building's
+`Wall::process`, on the 16-frame phase by `o`, owner's
+`disable_building_attrition == 0`, and then — **unless the lobby's
+`rush_rules` are on and `Game::war_allowed` is still false — only on the
+32-frame phase** (the decompile reads `if (rush_rules == 0 || war_allowed)
+require (frame + o) & 0x1f == 0`; a first draft had the two cases inverted,
+the second reading caught it): the territory owner `t` of the building's
 tile (a dock: `check_enemy_adjacent`); `t ≥ 0`, `t != who`, not allied —
-on the 32-frame phase only while `rush_rules` holds war back, every 16 frames
-otherwise — **not started → `Object::disband(0)`** (a ghost in enemy land is
-removed, full refund); **started → `take_damage(8, 0, 1, …, attrition = 1)`**
-— eight hit points every sixteen frames, through `docs/COMBAT.md` §7.2 with
+**not started → `Object::disband(0)`** (a ghost in enemy land is removed,
+full refund); **started → `take_damage(8, 0, 1, …, attrition = 1)`** — eight
+hit points **every thirty-two frames** in a normal game (sixteen under rush
+rules before war is allowed), through `docs/COMBAT.md` §7.2 with
 the attrition flag (so `docs/ATTRITION.md`'s unit rules do not apply; the
 call is unconditional on supply). The building half of the mechanic
 `docs/ATTRITION.md` specifies for units.
@@ -1454,6 +1481,10 @@ heal, ejection), then the sites' `construct_hits` refresh.
   cadence and the FIFO order are kept.
 - **`valid_filter(8)`** in the capture count is taken as "alive and on the
   map" — what every other filter the combat document read reduces to.
+- **The capture attempt inside `Object::valid_target`** (§7.1's fourth caller)
+  is not modelled; the attempts on every hit and every 64 frames are. A unit
+  that would have captured through target validation captures on its next
+  hit instead.
 - **The AI branches** (the builder-wanting logic, the auto-repair, the
   calm-city auto-exit, the site values) are not modelled; `leader_flags & 4`
   is true for every player.
@@ -1504,7 +1535,11 @@ heal, ejection), then the sites' `construct_hits` refresh.
 12. **Whether the two floats ever differ from the pinned rationals** (§9.2,
     §8.3). Check: a logged run cancelling a half-built barracks and reading
     the refund.
-13. **Behavioural checks worth running**, all cheap under `BUILDS=1` /
+13. **`CAPITAL_PLUNDER_ASSASSIN` is loaded from the same string as
+    `CAPITAL_PLUNDER`** (the second reading's capture reader: a loader bug or a
+    shared key) — which is why the two ship equal. Not checked further; the
+    team-style branch that reads it is not modelled.
+14. **Behavioural checks worth running**, all cheap under `BUILDS=1` /
     `CITIES=1` per frame: two builders on one site (expect `accel +
     accel/2` a frame — settles the harmonic rule and the unit-before-building
     order together); a second city at exactly `CITY_SPACING` tiles (expect
@@ -1514,3 +1549,39 @@ heal, ejection), then the sites' `construct_hits` refresh.
     the Red Fort (3); a captured city's hit points (10) and its heal (level
     per 4 frames) once assimilated; the capture count with one citizen versus
     one tower (tower: 7 — the citizen loses).
+
+---
+
+## 13. Second reading (2026-08-20) — landed
+
+Five blind readers re-derived the five sub-areas from the same export without
+this document, the implementation or the first reports; the adjudication is
+`docs/audit/2026-08-20-cities.md`. **Doubly confirmed**, branch by branch: the
+`BlockIndex` verdicts and the site-over-tile rule, the foothold, the spacing
+lists and their `≤`, the must-belong-to-a-city and one-per-city rules, the
+city limit; the harmonic builders, the `do_construct` argument (both readers
+went to the disassembly), the site's `>> 5` hit-point growth and the wonder's
+half, the refund's float and its `job_counter_2` numerator, the repair period
+and its price; the member chain, membership by nearest covering city with the
+`+100` push, the automatic level-up on `CITY_BUILDINGS + 1` exact type ids
+with the city counting itself, the level's consumers; the garrison chain and
+its FIFO, `num_inside`'s two modes, the limit's two techs, the full
+`can_garrison` table, every `do_garrison` gate in order, the exit ring, one
+squad a frame, the heal's rate and eligibility; capture eligibility at zero,
+the radius count with buildings at `7 + garrison`, `capture_strength = mine`
+(both readers in the listing), the hand-over at ten hit points, the plunder
+formulas and the 4501-frame protection, the assimilation stamp and its three
+modifiers, the city heal, the elimination modes. **Overturned and landed
+above:** the construction clock is re-baked on `calc_wall_stats`, not frozen
+(§3.2); the building's own attrition runs every 32 frames, 16 only under rush
+rules before war (§9.5); the city radius mask is the even circle of a rounded
+`sqrtf`, not `vector_dist` (§3.6); `find_buildings` stops at a failed
+conversion (§5.4); built forts are spaced without a region test (§2.6.3); the
+Chinese assimilation `set_type` lays no mask (§8.1); `CityData::pop` is not
+the pop value (§1.1). **Settled for the first reading:** type-vtable slot
+`+0xfc` is `is_fort` (read out of the PE: `0x472ba0 BuildTypeData::is_fort`),
+so the Senate HP exemption is forts, towers and lookouts, not wonders;
+`town_hits` is read by nothing but the type's backup/restore. The
+implementation was corrected to match (`Sim::wall_stats_dirty`,
+`calc_wall_stats`, `ENEMY_TERRITORY_PERIOD = 32`, `city_mask_tiles`), and a
+test added for each.
