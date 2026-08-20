@@ -184,6 +184,38 @@ impl Scalar {
         }
     }
 
+    /// The value as `String::fraction(s, scale)` loads it: `num * scale / den`.
+    ///
+    /// This is the engine's own scaling routine and the only faithful way to
+    /// check a constant it loads that way, because the fixed-point route is
+    /// not exact for every denominator the file uses. `6/5` through Q16.16 is
+    /// 78643 raw, and `78643 * 100 / 65536` is 119 — one short of the 120 the
+    /// original computes as `6 * 100 / 5`. A fifth is not a dyadic rational,
+    /// so no binary fixed-point representation can carry it.
+    ///
+    /// ```
+    /// # use rondata::Scalar;
+    /// assert_eq!(Scalar::parse("6/5 base rate").unwrap().fraction(100), 120);
+    /// assert_eq!(Scalar::parse("3/2").unwrap().fraction(0x100), 384);
+    /// assert_eq!(Scalar::parse("10 resources").unwrap().fraction(0x100), 2560);
+    /// ```
+    ///
+    /// A value written without a slash has an implicit denominator of one,
+    /// which is why `PEASANT_RATE`'s plain `10` arrives scaled. See
+    /// `docs/DECISIONS.md` entry 14.
+    pub const fn fraction(self, scale: i32) -> i32 {
+        match self {
+            Scalar::Int(n) | Scalar::Multiplier(n) | Scalar::Percent(n) => n * scale,
+            Scalar::Ratio { num, den } => {
+                if den == 0 {
+                    0
+                } else {
+                    (num * scale) / den
+                }
+            }
+        }
+    }
+
     /// The number as the designer wrote it, before any interpretation.
     ///
     /// `50% reduction` gives 50, not 0. This is the reading the engine's own

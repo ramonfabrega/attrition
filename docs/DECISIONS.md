@@ -335,10 +335,10 @@ by reaching for a fractional type. See entry 14.
 
 ## 14. A constant's scale is a fact about the loader, one constant at a time
 
-**Chosen:** record per constant whether the engine scales it on load, by
-reading `Constants::init` at that constant's line. `Slot::Ratio256` and
-`Slot::Entries256` mark the scaled ones, and `rondata` rescales rather than
-compares digits.
+**Chosen:** record per constant whether the engine scales it on load, and *by
+what*, by reading `Constants::init` at that constant's line. `Slot::Ratio256`,
+`Slot::Entries256` and `Slot::Ratio100` mark the scaled ones, and `rondata`
+rescales rather than compares digits.
 
 **Over:** inferring the scale from how the value is written, and over assuming
 a whole file shares one convention.
@@ -369,6 +369,29 @@ a struct's layout. It is also cheap to enforce: the check re-derives the scaled
 value from the install and fails if it drifts, so a wrong guess about a scale
 shows up as a failed check rather than as an economy that is a hundred and
 fifty times too fast.
+
+**Amended by production, twice.** Neither amendment changes the rule; both
+sharpen what "the scale" means.
+
+First, **256 is not the only scale.** The production accelerators and the unit
+rate pair go through `get_fraction(name, 100)`, so `6/5` arrives as 120 and
+`1/1` as 100 — while `RESEARCH_TICK_PREMIUM`, three lines of the same file
+away, goes through `get_fraction(name, 0x100)` and arrives as 256. And
+`JOB_EXTRA_TIME` is scaled by a hundred by a hand-written parser in the
+*unit-type* loader, which is not `Constants::init` and does not call
+`String::fraction` at all. The entry said "one constant at a time" and meant
+it; the production mechanic uses four conventions at once. See
+`docs/PRODUCTION.md`.
+
+Second, and more practically: **the check must not rescale through `Fx`.** It
+used to, dividing Q16.16 by 256 to reach 8.8, which is exact for every
+denominator `Ratio256` happens to see and is not exact in general.
+`UNIT_RATE_BASE` is `6/5`; a fifth is not a dyadic rational; Q16.16 says 119
+where the original computes 120. `Scalar::fraction(scale)` now reproduces
+`String::fraction` itself — `num * scale / den` — and both slots use it. The
+lesson generalises past this entry: when checking what the original computes,
+compute it the way the original does, rather than through a representation
+that is merely close.
 
 
 ## 15. Reproduce the original's arithmetic, including where it is wrong

@@ -32,6 +32,17 @@ pub enum Slot {
     Ratio256(i32),
     /// An `entryN` array whose elements are each loaded as 8.8 fixed point.
     Entries256(&'static [i32]),
+    /// A constant the engine loads scaled by a *hundred*, held here already
+    /// scaled: `6/5` in the file is 120 here and `1/1` is 100.
+    ///
+    /// The same rule as [`Slot::Ratio256`] with a different denominator, and
+    /// the reason that rule is stated as "one constant at a time" rather than
+    /// "fixed point or not". `Constants::init` reads the production
+    /// accelerators and the unit rate pair with `get_fraction(name, 100)`
+    /// while reading `RESEARCH_TICK_PREMIUM`, three lines of the same file
+    /// away, with `get_fraction(name, 0x100)`. Nothing in the written value
+    /// distinguishes them; only the loader does. See `docs/PRODUCTION.md`.
+    Ratio100(i32),
 }
 
 /// Everything the attrition, territory and supply passes read.
@@ -258,6 +269,33 @@ pub struct Tuning {
     /// The same, when researching the upgrade rather than building the unit.
     pub military_upgrade_discount: i32,
 
+    // ---- production ----
+    /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
+    /// loads as 100, so one call is one frame. A debug knob, and the designers
+    /// say so in the file.
+    pub accel_train: i32,
+    /// The same, for putting a building up.
+    pub accel_construct: i32,
+    /// The same, for research — and for the first one of a unit type, which is
+    /// a research job.
+    pub accel_research: i32,
+    /// Percentage scale on every unit's base build time, before the ramp.
+    /// Ships as `6/5`, so units take twenty percent longer than `JOB_TIME`.
+    pub unit_rate_base: i32,
+    /// Percentage scale on the per-unit build-time ramp term. Ships as `3/4`.
+    pub unit_rate_progression: i32,
+    /// Global multiplier on research *time*, as 8.8 fixed point, and the twin
+    /// of `research_premium` on the cost side. Ships as `1/1` and is the
+    /// identity; the per-unit `RESEARCH_PREMIUM_TIME` is where the doubling
+    /// lives.
+    pub research_tick_premium: i32,
+    /// Percentage a queued item's price falls per science level, refunded in
+    /// place while it waits.
+    pub tech_science_discount: i32,
+    /// Percentage a research job's time falls per science level above the
+    /// tech's own.
+    pub tech_science_speedup: i32,
+
     // ---- population ----
     /// The population cap by age, before the lobby's ceiling.
     pub pop_cap: [i32; 8],
@@ -380,6 +418,15 @@ impl Tuning {
         military_unit_discount: 5,
         military_upgrade_discount: 10,
 
+        accel_train: 100,
+        accel_construct: 100,
+        accel_research: 100,
+        unit_rate_base: 120,
+        unit_rate_progression: 75,
+        research_tick_premium: 256,
+        tech_science_discount: 10,
+        tech_science_speedup: 10,
+
         pop_cap: [25, 50, 75, 100, 125, 150, 175, 200],
         village_pop: 0,
         colossus_pop_cap: 50,
@@ -394,7 +441,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 96] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 104] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -534,6 +581,23 @@ impl Tuning {
             ("MAIZE_RAMPING_BONUS", Slot::Value(T.maize_ramping_bonus)),
             ("UNIT_REFIT_MAX_COST", Slot::Value(T.unit_refit_max_cost)),
             ("RESEARCH_PREMIUM", Slot::Ratio256(T.research_premium)),
+            ("ACCEL_TRAIN", Slot::Ratio100(T.accel_train)),
+            ("ACCEL_CONSTRUCT", Slot::Ratio100(T.accel_construct)),
+            ("ACCEL_RESEARCH", Slot::Ratio100(T.accel_research)),
+            ("UNIT_RATE_BASE", Slot::Ratio100(T.unit_rate_base)),
+            (
+                "UNIT_RATE_PROGRESSION",
+                Slot::Ratio100(T.unit_rate_progression),
+            ),
+            (
+                "RESEARCH_TICK_PREMIUM",
+                Slot::Ratio256(T.research_tick_premium),
+            ),
+            (
+                "TECH_SCIENCE_DISCOUNT",
+                Slot::Value(T.tech_science_discount),
+            ),
+            ("TECH_SCIENCE_SPEEDUP", Slot::Value(T.tech_science_speedup)),
             ("RAMP_FINAL", Slot::Value(T.ramp_final)),
             (
                 "TECH_AGE_BEHIND_DISCOUNT",

@@ -503,6 +503,57 @@ it. It has to be established per constant, at the loader or at the consumer.
 See `docs/DECISIONS.md` entry 14, and `sim::tuning::Slot::Entries256` for the
 array form.
 
+### And 256 is not the only scale (2026-08-19)
+
+Production adds two more conventions. `ACCEL_TRAIN`, `ACCEL_CONSTRUCT`,
+`ACCEL_RESEARCH`, `UNIT_RATE_BASE` and `UNIT_RATE_PROGRESSION` go through
+`get_fraction(name, 100)`, so `6/5` arrives as 120 and `1/1` as 100 — while
+`RESEARCH_PREMIUM` and `RESEARCH_TICK_PREMIUM`, a few lines away in the same
+loader, go through `get_fraction(name, 0x100)` and arrive as 256.
+`sim::tuning::Slot::Ratio100` is the third variant.
+
+And one constant is scaled outside `Constants::init` entirely.
+`JOB_EXTRA_TIME`, a per-record column in `unitrules.xml`, is parsed inline by
+the unit-type loader: `_wtoi` up to the `/`, `_wtoi` after it, a denominator of
+1 when there is no slash, and `(numerator * 100) / denominator`. It never
+touches `String::fraction`. Two integers away in the same struct,
+`RESEARCH_PREMIUM_TIME` does go through `String::fraction(s, 0x100)`, so the
+written `2` that 356 of 364 records carry arrives as 512.
+
+**A rounding hazard this creates**, and one the checker walked into: rescaling
+through `Fx` is not a safe proxy for the engine's own arithmetic. Q16.16 is
+exact for `3/2` and for every denominator the 8.8 constants happen to use, and
+inexact for `6/5` — 78643 raw, which rescales to 119 where the original
+computes `6 * 100 / 5` as 120. `Scalar::fraction(scale)` reproduces
+`String::fraction` directly and both slots now use it. See
+`docs/PRODUCTION.md`.
+
+---
+
+## Verified: `QueueItem` is twenty bytes, and remembers three resources
+
+A production queue entry is `QueueItem` in the PDB, which names every field:
+
+```
++0x00  int       job_counter    progress, in hundredths of a frame
++0x04  short     type
++0x06  short[3]  good           resource indices, 0xffff for none
++0x0c  short[3]  cost           amounts actually paid
+                                two bytes of tail padding to 20
+```
+
+The evidence is the type record itself plus `BuildQueue::set_queue`, which
+writes it: a `short` at `+4`, a zeroed `int` at `+0`, then a walk over the
+price's **six** resource slots that skips zero amounts, writes at most
+**three** `(index, amount)` pairs at `+6` and `+0xc`, and pads the rest with
+`0xffff` and 0. `BuildQueue::un_queue` `memcpy`s by `0x14`, confirming the
+stride.
+
+The three-against-six is the load-bearing part: an entry cannot remember a
+price in four resources, and `Build::unpay_cost` refunds a cancellation from
+these pairs and nothing else. No shipped record spends four, so this is
+invisible in a stock game and would bite a mod.
+
 ---
 
 ## Prior art

@@ -6,14 +6,15 @@ Games, 2003) in Rust — simulation first, art last.
 Named for the mechanic no open-source RTS has ever implemented: units bleeding
 health inside hostile national borders.
 
-> **Status: Phase 1, attrition and supply, implemented headless.** Borders
-> produce territory, territory produces damage, supply cancels it — and the
-> whole thing runs in a test with no display attached. The specifications they
-> were written from are `docs/ATTRITION.md` and `docs/SUPPLY.md`; the tuned
-> numbers they use are re-checked against your own install on every run of
-> `rondata`. Movement is in and wired to the rest: a unit takes an order,
-> walks across a hostile border on the original's own geometry, bleeds for it,
-> and stops bleeding when a supply wagon covers the march.
+> **Status: Phase 1 done, and the sim skeleton started.** Seven mechanics run
+> headless and run against each other: borders produce territory, territory
+> produces damage, supply cancels it, units walk in and out of it under orders,
+> the ground a player holds pays them, that income buys the next unit at a
+> price that climbs with every one already built — and the unit takes time to
+> arrive. One document per mechanic, written from the original and implemented
+> from the document; the tuned numbers they use are re-checked against your own
+> install on every run of `rondata`. The whole thing runs in a test with no
+> display attached.
 
 ## What this is
 
@@ -70,14 +71,17 @@ Windows VM. That is its own phase; see `CLAUDE.md`.
 ## Layout
 
 ```
-crates/fixed/     deterministic Q16.16 fixed-point math
-crates/rondata/   reads the game's data tables from an installed copy
-crates/sim/       the simulation: territory, attrition, supply, movement
-docs/ATTRITION.md the attrition mechanic, written from the original
-docs/SUPPLY.md    supply: the counter to attrition, and its two other jobs
-docs/MOVEMENT.md  speed, facing, and one frame of movement
-docs/DECISIONS.md architectural decisions and their rationale
-docs/FORMATS.md   file-format reverse-engineering log
+crates/fixed/      deterministic Q16.16 fixed-point math
+crates/rondata/    reads the game's data tables from an installed copy
+crates/sim/        the simulation, headless and deterministic
+docs/ATTRITION.md  the attrition mechanic, written from the original
+docs/SUPPLY.md     supply: the counter to attrition, and its two other jobs
+docs/MOVEMENT.md   speed, facing, and one frame of movement
+docs/ECONOMY.md    income: rates, commerce caps, and the remainder accumulator
+docs/COSTS.md      what a thing is worth, and what stops you paying
+docs/PRODUCTION.md queues, build time, and spending a price over time
+docs/DECISIONS.md  architectural decisions and their rationale
+docs/FORMATS.md    file-format reverse-engineering log
 ```
 
 Crates appear here when they have real code, not in anticipation of it.
@@ -85,7 +89,7 @@ Crates appear here when they have real code, not in anticipation of it.
 ## Development
 
 ```sh
-cargo test          # 129 tests
+cargo test          # 195 tests
 cargo clippy --all-targets
 cargo fmt
 ```
@@ -98,7 +102,7 @@ cargo run -p rondata -- /path/to/Rise\ of\ Nations
 ```
 
 It prints the table shapes, re-derives each structural claim in
-`docs/FORMATS.md` from your own files, and re-reads all 51 tuned constants the
+`docs/FORMATS.md` from your own files, and re-reads all 104 tuned constants the
 simulation depends on — exiting non-zero if any of it stops being true. Nothing
 is copied anywhere; it only reads.
 

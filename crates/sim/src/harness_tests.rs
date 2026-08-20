@@ -535,7 +535,8 @@ fn a_city_pays_from_the_first_frame_of_the_game() {
 }
 
 /// The Citizen, as `unitrules.xml` writes it: `2f`, `1f support`,
-/// `PROGRESSION 0`, `POP 1`, forty hit points.
+/// `PROGRESSION 0`, `POP 1`, forty hit points, `JOB_TIME 50`,
+/// `JOB_EXTRA_TIME 1/10tsx`, `RESEARCH_PREMIUM_TIME 2`.
 fn citizen_type() -> UnitType {
     UnitType {
         price: cost::Price {
@@ -548,6 +549,13 @@ fn citizen_type() -> UnitType {
         kind: attrition::UnitKind::default(),
         group: None,
         hits: 40,
+        times: production::Times {
+            job_time: 50,
+            // `2` through `String::fraction(s, 0x100)`.
+            research_premium_time: 512,
+            // `1/10tsx` through the unit loader's own `(1 * 100) / 10`.
+            job_extra_time: 10,
+        },
     }
 }
 
@@ -653,5 +661,152 @@ fn a_bought_unit_walks_and_bleeds_like_any_other() {
         }
     }
     assert!(ticks > 0, "a unit that walked in should be bleeding");
+    assert!(sim.units[unit].health < 40);
+}
+
+#[test]
+fn a_queued_citizen_is_paid_for_up_front_and_arrives_on_time() {
+    // `docs/PRODUCTION.md` end to end. The price leaves the stockpile the
+    // moment the order is given, the counter climbs one frame's worth per
+    // frame, and the unit appears when it lands on the target.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let food = economy::Resource::Food.index();
+    let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
+
+    let purse = sim.ledgers[0].bucket[food];
+    sim.queue_up(hall, citizen).expect("affordable and room");
+    assert_eq!(
+        sim.ledgers[0].bucket[food],
+        purse - 20,
+        "charged on queue, not on delivery"
+    );
+    assert!(sim.units.is_empty());
+
+    // The first of a type is a research job, and a research job skips the
+    // ramp entirely — `UNIT_RATE_BASE` is applied *inside* the availability
+    // branch, so the `6/5` that stretches every trained unit does not touch
+    // this one. Fifty frames of `JOB_TIME`, doubled by
+    // `RESEARCH_PREMIUM_TIME`, is a hundred; the counter is read before it is
+    // advanced, so the delivery lands on the hundred and first.
+    let mut frames = 0;
+    while sim.units.is_empty() {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 1000, "the queue should have delivered by now");
+    }
+    assert_eq!(frames, 101);
+    assert_eq!(sim.muster[0].control, 1);
+    assert!(sim.muster[0].researched[citizen]);
+    assert!(sim.buildings[hall].queue.items.is_empty());
+
+    // The second is a train job at the ordinary time, plus one ramp step for
+    // the one already standing.
+    sim.queue_up(hall, citizen).unwrap();
+    let mut frames = 0;
+    while sim.units.len() < 2 {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 1000);
+    }
+    assert_eq!(frames, 69);
+}
+
+#[test]
+fn the_population_cap_stalls_a_queue_at_full_progress() {
+    // The finding of `docs/PRODUCTION.md`: the cap does not stop the clock,
+    // it stops the handover. The item sits at a hundred percent, paid for,
+    // until room appears — and then comes out on the next frame.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let food = economy::Resource::Food.index();
+    let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
+    sim.ledgers[0].bucket[food] = 100_000;
+
+    // Fill the Ancient cap of twenty-five, then order one more anyway.
+    sim.muster[0].control = 25;
+    sim.muster[0].researched[citizen] = true;
+    sim.queue_up(hall, citizen)
+        .expect("the cap does not gate a queue");
+
+    for _ in 0..500 {
+        sim.tick();
+    }
+    assert!(sim.units.is_empty(), "no room, so no unit");
+    let counter = sim.buildings[hall].queue.items[0].job_counter;
+    assert_eq!(counter, sim.queue_target(hall, 0), "but done");
+
+    // An age raises the cap and the stalled item is handed over at once.
+    sim.muster[0].age = 1;
+    sim.recompute_pop_caps();
+    sim.tick();
+    assert_eq!(sim.units.len(), 1);
+    assert!(sim.buildings[hall].queue.items.is_empty());
+}
+
+#[test]
+fn cancelling_gives_back_exactly_what_that_entry_was_charged() {
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let food = economy::Resource::Food.index();
+    let hall = sim.add_building(0, centre_of(Cell::new(2, 0)), 8);
+
+    let purse = sim.ledgers[0].bucket[food];
+    sim.queue_up(hall, citizen).unwrap();
+    // The second order pays a ramp step, because the price counts what is
+    // ordered and not only what exists.
+    sim.queue_up(hall, citizen).unwrap();
+    assert_eq!(sim.ledgers[0].bucket[food], purse - 41);
+
+    // Cancelling slot 0 removes the *last* of the run of two, so the one in
+    // progress keeps its progress — and the refund is the twenty-one that
+    // entry was charged, not the twenty the first one was.
+    //
+    // The comparison is a delta across the cancel rather than against the
+    // opening purse, because the ten frames in between are ten frames of
+    // income: `docs/ECONOMY.md` is running too.
+    for _ in 0..10 {
+        sim.tick();
+    }
+    let progress = sim.buildings[hall].queue.items[0].job_counter;
+    assert!(progress > 0);
+    let before = sim.ledgers[0].bucket[food];
+    let back = sim.cancel(hall, 0).expect("something to cancel");
+    assert_eq!(back.job_counter, 0, "the untouched one is the one removed");
+    assert_eq!(sim.ledgers[0].bucket[food] - before, 21);
+    assert_eq!(sim.buildings[hall].queue.items[0].job_counter, progress);
+}
+
+#[test]
+fn a_trained_citizen_walks_and_bleeds_like_any_other() {
+    // The same closing loop as the instant path, one mechanic longer: income
+    // pays for an order, the order takes time, and what comes out of it walks
+    // into a hostile border and starts dying there. Seven mechanics, one unit.
+    let mut sim = skirmish(4);
+    let citizen = sim.add_unit_type(citizen_type());
+    let start = Cell::new(2, 0);
+    let hall = sim.add_building(0, centre_of(start), 8);
+    sim.queue_up(hall, citizen).expect("affordable");
+
+    while sim.units.is_empty() {
+        sim.tick();
+    }
+    let unit = sim.units.len() - 1;
+    make_mobile(&mut sim, unit, movement::Angle::EAST);
+
+    let inside = (0..24)
+        .map(|x| Cell::new(x, 0))
+        .find(|&c| sim.world.owner(c).player() == Some(1))
+        .expect("player 1's border claims something");
+    sim.order_move(unit, centre_of(inside));
+
+    let mut ticks = 0;
+    for _ in 0..4000 {
+        ticks += sim.tick().len();
+        if ticks > 0 {
+            break;
+        }
+    }
+    assert!(ticks > 0, "a trained unit should bleed like a bought one");
     assert!(sim.units[unit].health < 40);
 }

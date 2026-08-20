@@ -4,19 +4,23 @@
 //! threads. Everything in it runs in a `#[test]` with no display attached,
 //! which is the property that makes determinism testable at all.
 //!
-//! Six mechanics run here, and they run together. Borders produce territory,
+//! Seven mechanics run here, and they run together. Borders produce territory,
 //! territory produces damage, supply cancels it, units walk in and out of it
-//! under orders, the ground they hold pays its owner, and that income buys the
-//! next unit at a price that climbs with every one already built. Each has a
-//! specification written from the original — `docs/ATTRITION.md`,
-//! `docs/SUPPLY.md`, `docs/MOVEMENT.md`, `docs/ECONOMY.md`, `docs/COSTS.md` —
-//! and each says how much of itself is established rather than guessed.
+//! under orders, the ground they hold pays its owner, that income buys the next
+//! unit at a price that climbs with every one already built — and the unit
+//! takes time to arrive. Each has a specification written from the original —
+//! `docs/ATTRITION.md`, `docs/SUPPLY.md`, `docs/MOVEMENT.md`,
+//! `docs/ECONOMY.md`, `docs/COSTS.md`, `docs/PRODUCTION.md` — and each says how
+//! much of itself is established rather than guessed.
 //!
 //! [`Sim::tick`] is where they meet, and the order it does them in is the
-//! original's, twice over. `Game::do_frame` pays every player before it
-//! processes any object, so income comes first. And inside a unit, attrition
-//! comes before movement, so a unit stepping over a border is not standing
-//! there when that frame's attrition looks.
+//! original's, three times over. `Game::do_frame` pays every player before it
+//! processes any object, so income comes first. Buildings and units are both
+//! objects and interleave by index in `Objects::process_all`; here the
+//! buildings go first, which is what the original does whenever the building
+//! predates the unit it just made. And inside a unit, attrition comes before
+//! movement, so a unit stepping over a border is not standing there when that
+//! frame's attrition looks.
 //!
 //! # Arithmetic
 //!
@@ -32,6 +36,7 @@ pub mod attrition;
 pub mod cost;
 pub mod economy;
 pub mod movement;
+pub mod production;
 pub mod supply;
 pub mod territory;
 pub mod tuning;
@@ -125,17 +130,35 @@ pub struct UnitType {
     pub group: Option<usize>,
     /// The `HITS` column: what a unit of this type is built with.
     pub hits: i32,
+    /// The time half of the same record — `JOB_TIME`, `JOB_EXTRA_TIME` and
+    /// `RESEARCH_PREMIUM_TIME`. See `docs/PRODUCTION.md`.
+    pub times: production::Times,
 }
 
 /// What a player has built, as the price and the population cap see it.
 ///
-/// Both counts are `built + queued` in the original. There is no queue here
-/// yet, so they are built, and the difference will matter the moment there is
-/// one: the original charges you for what is *ordered*, not for what exists.
+/// The original keeps three per-type arrays on the leader and this holds the
+/// two that production reads: `num_units` at `+0x5762`, which is what exists,
+/// and `num_queued` at `+0x5a22`, which is what has been ordered. The
+/// distinction is not cosmetic — **the price ramp counts both and the time
+/// ramp counts only the first**, so ordering five hoplites at once raises the
+/// price of each but not the time of any. See `docs/PRODUCTION.md`.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Muster {
-    /// Units of each type, indexed by [`Sim::unit_types`].
+    /// Units of each type, indexed by [`Sim::unit_types`]. `num_units`.
     pub by_type: Vec<i32>,
+    /// Units of each type ordered and not yet delivered. `num_queued`.
+    pub queued_by_type: Vec<i32>,
+    /// Whether each type has been researched — the availability bit at
+    /// `leader + 0x6c18`. It decides two things at once and must decide them
+    /// together: the *first* of a unit type is a research job, at research
+    /// pace and research time, and every one after is a train job.
+    pub researched: Vec<bool>,
+    /// How many of the player's cities hold a library —
+    /// `LeaderData::get_building_cities`. This is how many queue slots advance
+    /// at once, and since every research job is forwarded to the first
+    /// library, it is how many technologies can progress simultaneously.
+    pub library_cities: usize,
     /// The same, by production group.
     pub by_group: Vec<i32>,
     /// Population occupied — `LeaderData::control`.
@@ -239,7 +262,34 @@ pub struct Sim {
     pub muster: Vec<Muster>,
     /// Where an unavailable resource's price is charged instead.
     pub redirects: cost::Redirects,
+    /// The production buildings, each with its own queue.
+    pub buildings: Vec<Building>,
     pub frame: i64,
+}
+
+/// A building with a production queue.
+///
+/// The simulation does not model buildings as objects yet — they take no
+/// damage, hold no garrison and occupy no ground. This is the production half
+/// of one, which is what the queue needs and all it needs.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Building {
+    pub owner: Player,
+    /// Where a finished unit appears. `Build::train` places it at the
+    /// building's own position and then puts it inside, so every unit is born
+    /// garrisoned and leaves by the ejection path — which this does not model.
+    pub pos: Pos,
+    pub queue: production::Queue,
+}
+
+/// A unit that came out of a queue this frame.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Produced {
+    /// Index into [`Sim::units`].
+    pub unit: usize,
+    pub ty: usize,
+    /// Index into [`Sim::buildings`].
+    pub at: usize,
 }
 
 impl Sim {
@@ -255,6 +305,7 @@ impl Sim {
             unit_types: Vec::new(),
             muster: vec![Muster::new(&tuning); players],
             redirects: cost::Redirects::RON,
+            buildings: Vec::new(),
             tuning,
             world,
             frame: 0,
@@ -318,6 +369,8 @@ impl Sim {
         self.unit_types.push(ty);
         for m in &mut self.muster {
             m.by_type.push(0);
+            m.queued_by_type.push(0);
+            m.researched.push(false);
             if m.by_group.len() < groups {
                 m.by_group.resize(groups, 0);
             }
@@ -354,8 +407,13 @@ impl Sim {
         let muster = &self.muster[who as usize];
         let holdings = &self.holdings[who as usize];
         let unit = &self.unit_types[ty];
+        // Built *and* ordered. `LeaderData::get_support_count` sums
+        // `num_units` and `num_queued`, so five hoplites ordered at once each
+        // pay a ramp step for the ones ahead of them in the queue. The time
+        // ramp reads only the first of the two arrays; see
+        // `docs/PRODUCTION.md`.
         let counts = cost::Counts {
-            of_type: muster.by_type[ty],
+            of_type: muster.by_type[ty] + muster.queued_by_type[ty],
             of_group: unit.group.map_or(0, |g| muster.by_group[g]),
         };
         cost::charges(
@@ -369,7 +427,152 @@ impl Sim {
         )
     }
 
+    /// Adds a production building and returns its index.
+    pub fn add_building(&mut self, owner: Player, pos: Pos, capacity: usize) -> usize {
+        self.buildings.push(Building {
+            owner,
+            pos,
+            queue: production::Queue::new(capacity),
+        });
+        self.buildings.len() - 1
+    }
+
+    /// Orders one unit of a type at a building — `Build::queue_up`.
+    ///
+    /// **The price is charged here**, and what was charged is written into the
+    /// queue entry, which is what makes a later cancellation exact. Note what
+    /// is *not* checked: the population cap. A player at the cap may queue
+    /// freely, and finds out at the far end; see [`Sim::process_queues`].
+    ///
+    /// The two gates are the original's and in its order — affordability
+    /// first, then room in the queue.
+    pub fn queue_up(&mut self, at: usize, ty: usize) -> Result<usize, production::QueueFail> {
+        let who = self.buildings[at].owner;
+        let charges = self.price_of(who, ty);
+        let available = self.holdings[who as usize].available;
+        if !cost::can_pay(&charges, &self.ledgers[who as usize], &available, 1) {
+            return Err(production::QueueFail::Cost);
+        }
+        if !self.buildings[at].queue.has_room() {
+            return Err(production::QueueFail::Full);
+        }
+        cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+        let slot = self.buildings[at].queue.push(ty, &charges);
+        self.muster[who as usize].queued_by_type[ty] += 1;
+        self.economy_changed(who);
+        Ok(slot)
+    }
+
+    /// Cancels a queued order — `Build::unqueue` with a refund.
+    ///
+    /// The slot removed is not necessarily the one named: a cancel walks
+    /// forward past entries of the same type, so cancelling one of a run
+    /// removes the last of it and the one in progress keeps its progress.
+    pub fn cancel(&mut self, at: usize, slot: usize) -> Option<production::Item> {
+        let who = self.buildings[at].owner;
+        let item = {
+            let ledger = &mut self.ledgers[who as usize];
+            self.buildings[at].queue.unqueue(slot, true, ledger)?
+        };
+        self.muster[who as usize].queued_by_type[item.ty] -= 1;
+        self.economy_changed(who);
+        Some(item)
+    }
+
+    /// How long the item in `slot` at building `at` takes, right now.
+    ///
+    /// Recomputed every frame rather than stored, because the original
+    /// recomputes it every frame: a unit of the same type completing
+    /// elsewhere lengthens this one mid-build.
+    pub fn queue_target(&self, at: usize, slot: usize) -> i32 {
+        let b = &self.buildings[at];
+        let item = &b.queue.items[slot];
+        let muster = &self.muster[b.owner as usize];
+        production::train_time(
+            &self.tuning,
+            &self.unit_types[item.ty].times,
+            muster.researched[item.ty],
+            muster.by_type[item.ty],
+            &[],
+        )
+    }
+
+    /// Advances every building's queue by one frame — `Build::do_queue`.
+    ///
+    /// Two things about the cadence are worth stating because they would be
+    /// easy to get plausibly wrong. It runs on **every** frame, with no phase
+    /// offset by building index — unlike the per-unit upkeep in
+    /// `docs/ATTRITION.md`, which is phased. And it advances more than the
+    /// head of the queue: `LeaderData::get_building_cities` counts the
+    /// player's library-holding cities, and that many slots advance at once.
+    fn process_queues(&mut self) -> Vec<Produced> {
+        let mut out = Vec::new();
+        for at in 0..self.buildings.len() {
+            let who = self.buildings[at].owner;
+            let queued = self.buildings[at].queue.items.len();
+            let slots =
+                production::parallel_slots(self.muster[who as usize].library_cities, queued).max(1);
+            for slot in (0..slots.min(queued)).rev() {
+                if let Some(p) = self.advance_slot(at, slot) {
+                    out.push(p);
+                }
+            }
+        }
+        out
+    }
+
+    /// One queue slot, for one frame.
+    ///
+    /// Returns the unit if one was handed over. A slot that is done but
+    /// refused keeps its full progress and is retried next frame, which is
+    /// where a population cap actually bites.
+    fn advance_slot(&mut self, at: usize, slot: usize) -> Option<Produced> {
+        let who = self.buildings[at].owner;
+        let ty = self.buildings[at].queue.items[slot].ty;
+        let researched = self.muster[who as usize].researched[ty];
+        let target = self.queue_target(at, slot);
+        let accel = production::accel(&self.tuning, production::Job::for_unit(researched), 1);
+
+        let done = production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
+        if !done {
+            return None;
+        }
+
+        let muster = &self.muster[who as usize];
+        let pop = self.unit_types[ty].price.pop;
+        match production::hand_over(muster.cap, muster.control, pop, false) {
+            production::Handover::Population | production::Handover::Limit => None,
+            production::Handover::Trained => {
+                let pos = self.buildings[at].pos;
+                // No refund on completion, and no skip-forward: the original
+                // passes false for both, and they are the same argument.
+                let mut ledger = economy::Ledger::default();
+                self.buildings[at].queue.unqueue(slot, false, &mut ledger);
+
+                let muster = &mut self.muster[who as usize];
+                muster.queued_by_type[ty] -= 1;
+                muster.by_type[ty] += 1;
+                muster.control += pop;
+                // The first of a type researches it; the rest are trained.
+                muster.researched[ty] = true;
+                if let Some(g) = self.unit_types[ty].group {
+                    muster.by_group[g] += 1;
+                }
+
+                let index = i16::try_from(self.units.len()).unwrap_or(i16::MAX);
+                let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
+                unit.kind = self.unit_types[ty].kind;
+                let unit = self.add_unit(unit);
+                self.economy_changed(who);
+                Some(Produced { unit, ty, at })
+            }
+        }
+    }
+
     /// Builds one unit of a type, if the player can pay for it and has room.
+    ///
+    /// This is the *instant* path — the price and the unit in one call, with
+    /// no queue and no time. [`Sim::queue_up`] is the ordinary one.
     ///
     /// The order is the original's and it is observable: **the population is
     /// checked before the price**, so a player at the cap is refused without
@@ -510,6 +713,15 @@ impl Sim {
                 frame,
             );
         }
+
+        // Then the buildings. `Build::process` and `Unit::process` are both
+        // reached from `Objects::process_all`, so in the original they
+        // interleave by object index rather than running in two passes. Doing
+        // buildings first is the choice that keeps a unit handed over this
+        // frame visible to this frame's unit loop, which is what the original
+        // does whenever the building's index is the lower of the two — and it
+        // is, for a building that existed before the unit it just made.
+        self.process_queues();
 
         for i in 0..self.units.len() {
             if !self.units[i].alive() || !self.units[i].on_map {

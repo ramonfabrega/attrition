@@ -1,0 +1,747 @@
+//! Production: spending a price over time.
+//!
+//! `docs/PRODUCTION.md` is the specification. A queue is a fixed array of
+//! twenty-byte records hanging off a building. Queueing charges the price
+//! immediately and writes down what was charged; every frame a counter climbs
+//! by a constant; when it reaches the item's time the building tries to hand
+//! the item over, and if it cannot, the entry sits at full progress and tries
+//! again next frame.
+//!
+//! Three things here are worth knowing before reading any of it.
+//!
+//! **The counter is in hundredths of a frame.** `TypeData::time` returns
+//! `JOB_TIME * 100` and `ACCEL_TRAIN` ships as 100, so one call advances
+//! exactly one frame's worth. Neither number says so; both are facts about
+//! their loaders. See `docs/DECISIONS.md` entry 14.
+//!
+//! **An entry remembers three resources, not six.** The price has six slots
+//! and the record has three pairs, so a cost in four resources is partly
+//! forgotten — and the refund reads the record.
+//!
+//! **The population cap does not stop the clock.** It stops the handover, at
+//! full progress, indefinitely.
+//!
+//! Nothing here is fractional. Every step is an integer multiply followed by a
+//! divide by a hundred or a shift by eight, in the original's order.
+
+use crate::economy::{Ledger, RESOURCES, Resource};
+use crate::tuning::Tuning;
+
+/// How many `(resource, amount)` pairs a queue entry can remember.
+///
+/// Three, against a price with six slots. `BuildQueue::set_queue` walks the
+/// six, skips any whose amount is zero, and returns once it has written three.
+pub const PAIRS: usize = 3;
+
+/// The `good` value meaning "this pair is empty" — the original's `0xffff`
+/// read back as a signed short.
+pub const NO_GOOD: i16 = -1;
+
+/// One queue entry. The original's `QueueItem`, whose every field the PDB
+/// names:
+///
+/// ```text
+/// +0x00  int       job_counter
+/// +0x04  short     type
+/// +0x06  short[3]  good
+/// +0x0c  short[3]  cost
+/// ```
+///
+/// `cost` is a `short` in the original and a `short` here. A charge above
+/// 32767 in one resource would truncate on the way in and refund the truncated
+/// amount; nothing in the shipped data comes near it, and narrowing it here is
+/// how that stays true rather than becoming an assumption.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Item {
+    /// Progress, in hundredths of a frame.
+    pub job_counter: i32,
+    /// Which type is being made.
+    pub ty: usize,
+    /// Resource indices of what was paid, `NO_GOOD` for an empty pair.
+    pub good: [i16; PAIRS],
+    /// Amounts paid, aligned with `good`.
+    pub cost: [i16; PAIRS],
+}
+
+impl Item {
+    /// A fresh entry for `ty`, recording what `charges` actually took.
+    ///
+    /// This is `BuildQueue::set_queue` with its fourth argument zero: the
+    /// counter is reset, the type is written, and the price is folded into at
+    /// most three pairs.
+    pub fn queued(ty: usize, charges: &[i32; RESOURCES]) -> Item {
+        let mut item = Item {
+            job_counter: 0,
+            ty,
+            good: [NO_GOOD; PAIRS],
+            cost: [0; PAIRS],
+        };
+        let mut slot = 0;
+        for r in Resource::ALL {
+            if charges[r.index()] == 0 {
+                continue;
+            }
+            item.good[slot] = r.index() as i16;
+            item.cost[slot] = charges[r.index()] as i16;
+            slot += 1;
+            if slot >= PAIRS {
+                break;
+            }
+        }
+        item
+    }
+
+    /// The pairs that name a resource, in the order the original stored them.
+    pub fn paid(&self) -> impl Iterator<Item = (Resource, i32)> + '_ {
+        (0..PAIRS).filter_map(|i| {
+            let g = self.good[i];
+            if g < 0 {
+                return None;
+            }
+            Resource::ALL
+                .get(g as usize)
+                .map(|&r| (r, i32::from(self.cost[i])))
+        })
+    }
+}
+
+/// Why `Build::queue_up` refused — the original's `BuildData::queue_fail`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum QueueFail {
+    /// The price could not be paid.
+    Cost,
+    /// This building cannot make this type at all.
+    CantTrain,
+    /// No free slot, or a dock's six-boat rule.
+    Full,
+}
+
+/// A building's production queue.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Queue {
+    /// `BuildQueueData::queue_size`. Where the original's comes from is
+    /// unread — see `docs/PRODUCTION.md` — so it is an input.
+    pub capacity: usize,
+    /// The live entries, in order. Length is the original's `queued`.
+    pub items: Vec<Item>,
+}
+
+impl Queue {
+    pub fn new(capacity: usize) -> Queue {
+        Queue {
+            capacity,
+            items: Vec::new(),
+        }
+    }
+
+    /// Whether there is room — the capacity half of `BuildData::could_queue`.
+    pub fn has_room(&self) -> bool {
+        self.items.len() < self.capacity
+    }
+
+    /// Appends an entry for `ty` recording `charges`, and returns its slot.
+    ///
+    /// The caller has already charged the stockpile: `Type::pay_cost` both
+    /// debits and reports, and this takes the report. The price is charged on
+    /// queue, which is what makes the refund exact.
+    pub fn push(&mut self, ty: usize, charges: &[i32; RESOURCES]) -> usize {
+        self.items.push(Item::queued(ty, charges));
+        self.items.len() - 1
+    }
+
+    /// Which slot a cancel of `i` actually removes.
+    ///
+    /// With a refund — that is, a player cancelling rather than an item
+    /// completing — `Build::unqueue` walks forward while the next entry has
+    /// the same type. Cancelling one of a run of five identical items removes
+    /// the fifth, so the one in progress keeps its progress.
+    pub fn cancel_target(&self, i: usize) -> usize {
+        let mut i = i;
+        while i + 1 < self.items.len() && self.items[i].ty == self.items[i + 1].ty {
+            i += 1;
+        }
+        i
+    }
+
+    /// Removes slot `i`, refunding what it recorded if `refund`.
+    ///
+    /// `refund` is the original's second argument and does two things at once:
+    /// it selects the skip-forward above, and it decides whether the price
+    /// comes back. Completion passes false, so a finished item neither skips
+    /// nor refunds.
+    pub fn unqueue(&mut self, i: usize, refund: bool, ledger: &mut Ledger) -> Option<Item> {
+        if i >= self.items.len() {
+            return None;
+        }
+        let i = if refund { self.cancel_target(i) } else { i };
+        if refund {
+            unpay(&self.items[i], ledger);
+        }
+        Some(self.items.remove(i))
+    }
+}
+
+/// Puts a cancelled entry's recorded price back — `Build::unpay_cost`.
+///
+/// The recorded amount, not a recomputed one. A discount that arrived while
+/// the item sat in the queue cannot be harvested by cancelling.
+pub fn unpay(item: &Item, ledger: &mut Ledger) {
+    for (r, amount) in item.paid() {
+        ledger.bucket[r.index()] += amount;
+    }
+}
+
+/// Which accelerator a queue entry advances at.
+///
+/// The choice is `Build::do_queue`'s and it turns on one bit: a unit type
+/// whose availability bit is clear is a *research* job, and that same bit
+/// picks the research time in [`base_time`]. The first one of a unit type you
+/// build is researched; every one after is trained.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Job {
+    /// A building type, or a disband.
+    Construct,
+    /// A unit type already available.
+    Train,
+    /// A technology, or the first of a unit type.
+    Research,
+}
+
+impl Job {
+    /// The job a unit type is, given whether it has been researched.
+    pub const fn for_unit(researched: bool) -> Job {
+        if researched {
+            Job::Train
+        } else {
+            Job::Research
+        }
+    }
+}
+
+/// Hundredths of a frame added per call — `ACCEL_*`, times `ai_speed`.
+///
+/// All three constants ship as `1/1` and load as 100, so one call is one
+/// frame. They are debug knobs and the designers say so in the file.
+/// `ai_speed` above one multiplies; it is a game-speed control and a cheat,
+/// and `docs/MOVEMENT.md` flags the same global as a possible desync.
+pub const fn accel(t: &Tuning, job: Job, ai_speed: i32) -> i32 {
+    let base = match job {
+        Job::Construct => t.accel_construct,
+        Job::Train => t.accel_train,
+        Job::Research => t.accel_research,
+    };
+    if ai_speed > 1 { base * ai_speed } else { base }
+}
+
+/// The time inputs a single type carries.
+///
+/// `job_extra_time` arrives already scaled by a hundred, because the unit-type
+/// loader parses `1/10tsx` by hand into `(1 * 100) / 10`. It does not go
+/// through `String::fraction` and it is not in `Constants::init`.
+/// `research_premium_time` two integers away in the same struct *does* go
+/// through `String::fraction(s, 0x100)`, so it is 8.8 and a written `2` is
+/// 512. See `docs/PRODUCTION.md`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Times {
+    /// `JOB_TIME`, in frames.
+    pub job_time: i32,
+    /// `RESEARCH_PREMIUM_TIME`, as 8.8.
+    pub research_premium_time: i32,
+    /// `JOB_EXTRA_TIME`, already multiplied by a hundred.
+    pub job_extra_time: i32,
+}
+
+/// Hundredths of a frame per frame of `JOB_TIME`.
+pub const TIME_SCALE: i32 = 100;
+
+/// The base time before the ramp — `TypeData::time` or `::research_time`.
+///
+/// ```text
+/// time          = job_time * 100
+/// research_time = time * RESEARCH_TICK_PREMIUM >> 8 * research_premium_time >> 8
+/// ```
+///
+/// Two 8.8 multiplies inside a quantity already scaled by a hundred. Both
+/// premiums ship as `1/1` and `2` respectively, so researching a unit usually
+/// costs twice its build time.
+pub fn base_time(t: &Tuning, times: &Times, researched: bool) -> i32 {
+    let time = times.job_time * TIME_SCALE;
+    if researched {
+        return time;
+    }
+    let tick = (time * t.research_tick_premium) >> 8;
+    (tick * times.research_premium_time) >> 8
+}
+
+/// How much of the base a build time may reach. Three, for everything.
+///
+/// The price side has four ceilings picked by unit class; the time side has
+/// this one. Build time at most triples.
+pub const RAMP_CEILING: i32 = 3;
+
+/// The ramp: base scaled, then one term per unit of that type already owned.
+///
+/// ```text
+/// t   = UNIT_RATE_BASE * t / 100
+/// cap = t * 3
+/// t   = owned * job_extra_time * UNIT_RATE_PROGRESSION + t
+/// t   = min(t, cap)
+/// ```
+///
+/// `owned` is `LeaderData::num_units[type]`, the live count. The original
+/// reaches it as `leader + 0x56fe + type * 2`, which is not a separate array:
+/// `num_units` is at `+0x5762`, unit type ids start at `0x32`, and the
+/// compiler folded the subtraction into the base pointer. That identifies one
+/// of the two count arrays `docs/COSTS.md` listed as unknown.
+///
+/// The original guards both terms against being negative before comparing,
+/// which is an overflow guard rather than a clamp; the guard is kept.
+pub fn ramped(t: &Tuning, base: i32, owned: i32, job_extra_time: i32) -> i32 {
+    let scaled = t.unit_rate_base * base / 100;
+    let cap = scaled * RAMP_CEILING;
+    let ramped = owned * job_extra_time * t.unit_rate_progression + scaled;
+    if ramped < 0 || cap < 0 {
+        return 0;
+    }
+    ramped.min(cap)
+}
+
+/// One step of `train_time`'s modifier tail.
+///
+/// About thirty of these follow the ramp — nations, wonders, governments,
+/// technologies, rares, generals, the lobby's handicap. They are all one of
+/// three shapes. Which ones apply depends on the tech tree, the wonder list
+/// and the nation roster, none of which the simulation models yet, so the tail
+/// is an input here for the same reason `Movement::speed` is one:
+/// `docs/PRODUCTION.md` enumerates the predicates, and the arithmetic is
+/// complete without them.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Adjust {
+    /// `t = t * 100 / (pct + 100)` — faster by `pct` percent.
+    Faster(i32),
+    /// `t = pct * t / 100` — a direct scale.
+    Scale(i32),
+    /// `t = t * num / den`, truncating toward zero. The original writes the
+    /// three-quarters cases as a shift and they are non-negative throughout.
+    Ratio(i32, i32),
+}
+
+impl Adjust {
+    pub const fn apply(self, time: i32) -> i32 {
+        match self {
+            Adjust::Faster(pct) => time * 100 / (pct + 100),
+            Adjust::Scale(pct) => pct * time / 100,
+            Adjust::Ratio(num, den) => time * num / den,
+        }
+    }
+}
+
+/// Applies the tail in order. Order matters and the caller owns it.
+pub fn adjusted(time: i32, tail: &[Adjust]) -> i32 {
+    tail.iter().fold(time, |t, a| a.apply(t))
+}
+
+/// The floor `ObjectData::train_time` returns through. One hundredth of a
+/// frame — never zero, so an item always takes at least one call.
+pub const MIN_TIME: i32 = 1;
+
+/// A whole `ObjectData::train_time` for a unit type.
+///
+/// Base, then — only when the type is already researched — the ramp, then the
+/// tail, then the floor. The ramp sits inside the availability branch in the
+/// original, so the *first* of a type is priced in time with no ramp at all.
+pub fn train_time(t: &Tuning, times: &Times, researched: bool, owned: i32, tail: &[Adjust]) -> i32 {
+    let base = base_time(t, times, researched);
+    let time = if researched {
+        ramped(t, base, owned, times.job_extra_time)
+    } else {
+        base
+    };
+    adjusted(time, tail).max(MIN_TIME)
+}
+
+/// Advances one entry by one call, and says whether it was already done.
+///
+/// ```text
+/// done        = target <= job_counter      # the OLD counter
+/// job_counter = min(job_counter + accel, target)
+/// ```
+///
+/// The comparison reads the counter *before* the increment, so an item takes
+/// one extra call past the one on which it first reaches its target: the call
+/// that lands on the target sets it, and the next call observes it. A target
+/// of exactly one is special-cased — the original substitutes 1 for the
+/// counter — so such an item is done on its first call.
+pub fn advance(item: &mut Item, target: i32, accel: i32) -> bool {
+    let counter = if target == MIN_TIME {
+        MIN_TIME
+    } else {
+        item.job_counter
+    };
+    let done = target <= counter;
+    item.job_counter = (counter + accel).min(target);
+    done
+}
+
+/// What happened when a finished entry was handed over — `Build::finished`,
+/// whose caller reads the sign of the answer.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Handover {
+    /// Positive. The unit exists; the entry is removed with no refund.
+    Trained,
+    /// Zero. The population cap. Nothing happens, the entry keeps its full
+    /// progress, and the whole attempt repeats next frame — so a queue at the
+    /// cap stalls at a hundred percent, paid for, until room appears.
+    Population,
+    /// Negative. A caravan or aircraft limit. The entry also stays, but the
+    /// building goes looking for a *different* slot to advance instead, so
+    /// items behind it are not held up.
+    Limit,
+}
+
+/// The handover test, in the original's order: population first, then limits.
+///
+/// The population comparison is `pop_cap < control + pop`, the same strict
+/// form as `check_population` in `docs/COSTS.md` — a unit that lands you
+/// exactly on the cap is allowed.
+pub const fn hand_over(cap: i32, control: i32, pop: i32, at_limit: bool) -> Handover {
+    if cap < control + pop {
+        return Handover::Population;
+    }
+    if at_limit {
+        return Handover::Limit;
+    }
+    Handover::Trained
+}
+
+/// How many queue slots advance at once.
+///
+/// `Build::do_queue` recurses into slot `i + 1` while `i + 1` is below both
+/// the live count and `LeaderData::get_building_cities`, which counts cities
+/// holding a **library**. Since every research job in the game is forwarded to
+/// the player's first library, that count is the number of technologies that
+/// can progress simultaneously. One library, one tech. Four libraries, four.
+pub const fn parallel_slots(library_cities: usize, queued: usize) -> usize {
+    if library_cities < queued {
+        library_cities
+    } else {
+        queued
+    }
+}
+
+/// The original's `x / 100` written as a magic multiply, reproduced as the
+/// division it computes.
+///
+/// The compiler emits `mulhi(x, -0x51eb851f)`, an arithmetic shift by five and
+/// a sign correction, which works out to exactly `-(x / 100)` truncating
+/// toward zero. It is worth naming because the same sequence appears in
+/// `train_time`'s science speedup, and because reading it as anything else
+/// changes a refund.
+const fn neg_hundredth(x: i32) -> i32 {
+    -(x / 100)
+}
+
+/// Re-prices a queued entry after a science level, refunding the difference.
+///
+/// `Build::refund_cost`, whose sole caller is `Leader::gain_tech`. For each
+/// recorded pair, with `levels` the number of science levels the player was
+/// above the tech's own level *before* this one:
+///
+/// ```text
+/// base = cost * 100 / (100 - TECH_SCIENCE_DISCOUNT * levels)
+/// new  = base - (levels + 1) * TECH_SCIENCE_DISCOUNT * base / 100
+/// stockpile += cost - new
+/// cost = new
+/// ```
+///
+/// The first line undoes the discount already baked into the recorded price
+/// and the second applies one level more of it. The entry's stored amount is
+/// updated in place, so a later cancellation refunds the new price and a
+/// second science level re-prices from there.
+///
+/// This is the other half of the answer to `docs/COSTS.md`'s question about
+/// discounts arriving mid-queue: cancelling cannot profit from one, but
+/// sitting still does, automatically. Returns what was handed back.
+pub fn reprice(item: &mut Item, discount: i32, levels: i32, ledger: &mut Ledger) -> i32 {
+    let denominator = 100 - discount * levels;
+    if denominator == 0 {
+        return 0;
+    }
+    let mut refunded = 0;
+    for slot in 0..PAIRS {
+        let g = item.good[slot];
+        if g < 0 {
+            continue;
+        }
+        let Some(&r) = Resource::ALL.get(g as usize) else {
+            continue;
+        };
+        let paid = i32::from(item.cost[slot]);
+        let base = paid * 100 / denominator;
+        let new = base + neg_hundredth((levels + 1) * discount * base);
+        ledger.bucket[r.index()] += paid - new;
+        refunded += paid - new;
+        item.cost[slot] = new as i16;
+    }
+    refunded
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn tuning() -> Tuning {
+        Tuning::RON
+    }
+
+    fn charges(pairs: &[(Resource, i32)]) -> [i32; RESOURCES] {
+        let mut out = [0; RESOURCES];
+        for &(r, n) in pairs {
+            out[r.index()] = n;
+        }
+        out
+    }
+
+    #[test]
+    fn the_accelerators_all_ship_as_one_frame_per_call() {
+        let t = tuning();
+        for job in [Job::Construct, Job::Train, Job::Research] {
+            assert_eq!(accel(&t, job, 1), TIME_SCALE);
+        }
+    }
+
+    #[test]
+    fn ai_speed_multiplies_the_accelerator_only_above_one() {
+        let t = tuning();
+        assert_eq!(accel(&t, Job::Train, 0), TIME_SCALE);
+        assert_eq!(accel(&t, Job::Train, 1), TIME_SCALE);
+        assert_eq!(accel(&t, Job::Train, 4), TIME_SCALE * 4);
+    }
+
+    #[test]
+    fn a_citizen_takes_four_seconds_before_any_are_owned() {
+        let t = tuning();
+        // JOB_TIME 50 frames, UNIT_RATE_BASE 6/5 loaded as 120.
+        let times = Times {
+            job_time: 50,
+            research_premium_time: 512,
+            job_extra_time: 10,
+        };
+        let time = train_time(&t, &times, true, 0, &[]);
+        assert_eq!(time, 6000);
+        assert_eq!(time / TIME_SCALE, 60);
+        assert_eq!(time / TIME_SCALE / crate::FRAMES_PER_SECOND, 4);
+    }
+
+    #[test]
+    fn each_citizen_already_owned_adds_half_a_second() {
+        let t = tuning();
+        let times = Times {
+            job_time: 50,
+            research_premium_time: 512,
+            job_extra_time: 10,
+        };
+        // JOB_EXTRA_TIME 10 times UNIT_RATE_PROGRESSION 75 is 750 hundredths.
+        let none = train_time(&t, &times, true, 0, &[]);
+        let one = train_time(&t, &times, true, 1, &[]);
+        assert_eq!(one - none, 750);
+        // Seven and a half frames. The comparison is in hundredths because
+        // that is where the half is; dividing to frames first would lose it.
+        assert_eq!((one - none) * 2, crate::FRAMES_PER_SECOND * TIME_SCALE);
+    }
+
+    #[test]
+    fn the_time_ramp_triples_and_stops() {
+        let t = tuning();
+        let times = Times {
+            job_time: 50,
+            research_premium_time: 512,
+            job_extra_time: 10,
+        };
+        let base = train_time(&t, &times, true, 0, &[]);
+        assert_eq!(train_time(&t, &times, true, 16, &[]), base * RAMP_CEILING);
+        assert_eq!(train_time(&t, &times, true, 200, &[]), base * RAMP_CEILING);
+    }
+
+    #[test]
+    fn the_first_of_a_type_is_a_research_job_and_takes_twice_as_long() {
+        let t = tuning();
+        let times = Times {
+            job_time: 50,
+            research_premium_time: 512, // the `2` that 356 records carry
+            job_extra_time: 10,
+        };
+        // Research skips the ramp, so compare against the unscaled base.
+        assert_eq!(train_time(&t, &times, false, 0, &[]), 50 * TIME_SCALE * 2);
+        // And it advances at the research accelerator, by the same bit.
+        assert_eq!(Job::for_unit(false), Job::Research);
+        assert_eq!(Job::for_unit(true), Job::Train);
+    }
+
+    #[test]
+    fn an_entry_records_only_three_of_six_resources() {
+        let c = charges(&[
+            (Resource::Food, 10),
+            (Resource::Timber, 20),
+            (Resource::Wealth, 30),
+            (Resource::Knowledge, 40),
+        ]);
+        let item = Item::queued(7, &c);
+        let paid: Vec<_> = item.paid().collect();
+        assert_eq!(
+            paid,
+            vec![
+                (Resource::Food, 10),
+                (Resource::Timber, 20),
+                (Resource::Wealth, 30)
+            ]
+        );
+        assert_eq!(item.good[2], Resource::Wealth.index() as i16);
+    }
+
+    #[test]
+    fn zero_amounts_do_not_consume_a_pair() {
+        let c = charges(&[
+            (Resource::Food, 0),
+            (Resource::Metal, 5),
+            (Resource::Oil, 7),
+        ]);
+        let item = Item::queued(7, &c);
+        let paid: Vec<_> = item.paid().collect();
+        assert_eq!(paid, vec![(Resource::Metal, 5), (Resource::Oil, 7)]);
+        assert_eq!(item.good[2], NO_GOOD);
+    }
+
+    #[test]
+    fn done_is_read_before_the_increment() {
+        let mut item = Item::default();
+        // A target of two frames, one frame per call.
+        let target = 200;
+        assert!(!advance(&mut item, target, 100));
+        assert_eq!(item.job_counter, 100);
+        assert!(!advance(&mut item, target, 100));
+        assert_eq!(item.job_counter, 200);
+        // The counter is at the target, and only now does a call see it.
+        assert!(advance(&mut item, target, 100));
+    }
+
+    #[test]
+    fn the_counter_never_passes_the_target() {
+        let mut item = Item::default();
+        advance(&mut item, 150, 100);
+        advance(&mut item, 150, 100);
+        assert_eq!(item.job_counter, 150);
+    }
+
+    #[test]
+    fn a_target_of_one_completes_on_the_first_call() {
+        let mut item = Item::default();
+        assert!(advance(&mut item, MIN_TIME, 100));
+    }
+
+    #[test]
+    fn the_population_cap_stops_the_handover_not_the_clock() {
+        // Progress runs to completion at the train accelerator regardless.
+        let t = tuning();
+        let times = Times {
+            job_time: 1,
+            research_premium_time: 512,
+            job_extra_time: 10,
+        };
+        let target = train_time(&t, &times, true, 0, &[]);
+        let mut item = Item::default();
+        let accel = accel(&t, Job::Train, 1);
+        while !advance(&mut item, target, accel) {}
+        assert_eq!(item.job_counter, target);
+        // And then stalls, at full progress, forever.
+        assert_eq!(hand_over(10, 10, 1, false), Handover::Population);
+        assert_eq!(hand_over(10, 9, 1, false), Handover::Trained);
+    }
+
+    #[test]
+    fn a_limit_refuses_differently_from_the_cap() {
+        assert_eq!(hand_over(10, 0, 1, true), Handover::Limit);
+        // The cap is checked first, so it wins when both apply.
+        assert_eq!(hand_over(0, 0, 1, true), Handover::Population);
+    }
+
+    #[test]
+    fn cancelling_a_run_removes_the_last_of_it() {
+        let mut q = Queue::new(8);
+        let c = charges(&[(Resource::Food, 10)]);
+        for _ in 0..3 {
+            q.push(4, &c);
+        }
+        q.push(9, &c);
+        // The one in progress is slot 0 and keeps its progress.
+        q.items[0].job_counter = 4200;
+        let mut ledger = Ledger::default();
+        q.unqueue(0, true, &mut ledger);
+        assert_eq!(q.items.len(), 3);
+        assert_eq!(q.items[0].job_counter, 4200);
+        assert_eq!(q.items.iter().map(|i| i.ty).collect::<Vec<_>>(), [4, 4, 9]);
+    }
+
+    #[test]
+    fn cancelling_refunds_the_recorded_price_and_completing_does_not() {
+        let mut q = Queue::new(8);
+        let c = charges(&[(Resource::Food, 30), (Resource::Timber, 12)]);
+        q.push(4, &c);
+        q.push(4, &c);
+
+        let mut ledger = Ledger::default();
+        q.unqueue(0, true, &mut ledger);
+        assert_eq!(ledger.bucket[Resource::Food.index()], 30);
+        assert_eq!(ledger.bucket[Resource::Timber.index()], 12);
+
+        q.unqueue(0, false, &mut ledger);
+        assert_eq!(ledger.bucket[Resource::Food.index()], 30);
+        assert_eq!(ledger.bucket[Resource::Timber.index()], 12);
+        assert!(q.items.is_empty());
+    }
+
+    #[test]
+    fn science_reprices_a_queued_item_in_place() {
+        let t = tuning();
+        let mut ledger = Ledger::default();
+        let c = charges(&[(Resource::Knowledge, 100)]);
+        let mut item = Item::queued(4, &c);
+
+        // First level: nothing was discounted yet, so the base is the price.
+        let back = reprice(&mut item, t.tech_science_discount, 0, &mut ledger);
+        assert_eq!(back, 10);
+        assert_eq!(ledger.bucket[Resource::Knowledge.index()], 10);
+        assert_eq!(item.cost[0], 90);
+
+        // Second level re-prices from the new stored amount, not the old one.
+        let back = reprice(&mut item, t.tech_science_discount, 1, &mut ledger);
+        assert_eq!(item.cost[0], 80);
+        assert_eq!(back, 10);
+    }
+
+    #[test]
+    fn the_magic_multiply_is_a_division_by_a_hundred() {
+        for x in [0, 1, 99, 100, 250, 1000, 3200, 12345, 1_000_000] {
+            assert_eq!(neg_hundredth(x), -(x / 100));
+        }
+    }
+
+    #[test]
+    fn libraries_decide_how_many_slots_advance() {
+        assert_eq!(parallel_slots(1, 5), 1);
+        assert_eq!(parallel_slots(4, 5), 4);
+        assert_eq!(parallel_slots(4, 2), 2);
+        assert_eq!(parallel_slots(0, 3), 0);
+    }
+
+    #[test]
+    fn a_queue_refuses_when_it_is_full() {
+        let mut q = Queue::new(2);
+        let c = charges(&[(Resource::Food, 1)]);
+        assert!(q.has_room());
+        q.push(1, &c);
+        assert!(q.has_room());
+        q.push(1, &c);
+        assert!(!q.has_room());
+    }
+}

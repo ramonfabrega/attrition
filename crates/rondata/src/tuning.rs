@@ -46,9 +46,30 @@ pub fn drift(rules: &Rules) -> Vec<Drift> {
             Slot::Ratio256(ours) => {
                 // The file writes a rational and the engine loads it as 8.8
                 // fixed point, so the check has to rescale rather than compare
-                // digits. `Scalar::to_fx` is exact for these denominators, and
-                // Q16.16 divided down by 256 is Q8.8 with the same truncation.
-                let theirs = rules.constant(name).map(|s| s.to_fx().raw() / 256);
+                // digits. It rescales through the engine's own routine rather
+                // than through `Fx`, which would be exact for the denominators
+                // this slot happens to use and is not exact in general — see
+                // `Ratio100` below for the case that proves it.
+                let theirs = rules.constant(name).map(|s| s.fraction(256));
+                if theirs != Some(ours) {
+                    out.push(Drift {
+                        name,
+                        ours: ours.to_string(),
+                        theirs: theirs.map(|v| v.to_string()),
+                    });
+                }
+            }
+            Slot::Ratio100(ours) => {
+                // The same rescale against a different denominator.
+                // `get_fraction(name, 100)` is what fixes it, and it sits
+                // three lines from a `get_fraction(name, 0x100)` in the same
+                // loader; see `docs/PRODUCTION.md`.
+                //
+                // This is the slot that forced the check off `Fx`.
+                // `UNIT_RATE_BASE` is `6/5`, a fifth is not a dyadic rational,
+                // and the Q16.16 route reported 119 against the original's
+                // exact 120.
+                let theirs = rules.constant(name).map(|s| s.fraction(100));
                 if theirs != Some(ours) {
                     out.push(Drift {
                         name,
@@ -60,7 +81,7 @@ pub fn drift(rules: &Rules) -> Vec<Drift> {
             Slot::Entries256(ours) => {
                 let theirs: Option<Vec<i32>> = rules
                     .constant_entries(name)
-                    .map(|v| v.into_iter().map(|s| s.to_fx().raw() / 256).collect());
+                    .map(|v| v.into_iter().map(|s| s.fraction(256)).collect());
                 let same = theirs
                     .as_ref()
                     .is_some_and(|t| t.len() >= ours.len() && t[..ours.len()] == *ours);

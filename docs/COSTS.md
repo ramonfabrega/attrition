@@ -12,8 +12,7 @@ room in the population.
 
 Not in it: production queues and build times, the market, tribute, and the
 tech tree's prerequisites. `JOB_TIME` and `Build::queue_up` are the mechanic
-that spends this price over time; they are surveyed at the end and specified
-elsewhere.
+that spends this price over time, and they are `docs/PRODUCTION.md`.
 
 **How this was established.** Symbol names, struct layouts and field offsets
 come from `game/sbl/rise.pdb`. Behaviour comes from reading the original with
@@ -495,8 +494,16 @@ would_exceed = pop_cap < control + type.POP
 
 where `control` is the population currently occupied. Note the strictness: a
 unit that lands you exactly on the cap is allowed. Note also what it does *not*
-do — there is no queue-aware variant here, so what stops the queue rather than
-the spawn is a question for the production document.
+do — there is no queue-aware variant here.
+
+**And it turns out it does not need one.** `docs/PRODUCTION.md` answers the
+question this paragraph used to leave open: nothing stops the queue. A player
+at the cap may order freely and the counter runs to completion at the ordinary
+training pace; the same comparison, written out again inside `Build::finished`,
+refuses the *handover*. The item then sits at a hundred percent, already paid
+for, and retries every frame until room appears. Which is exactly what the
+original's interface shows a player, and not at all what "the cap stops
+production" would predict.
 
 ---
 
@@ -505,22 +512,34 @@ the spawn is a question for the production document.
 - **The upgrade path's cost.** Two loops in `get_cost` walk unit types looking
   for ones that upgrade or graft into the type being priced, one adding the
   positive price difference and one adding the refit surcharge. The surcharge's
-  arithmetic is read; which of the two loops runs when, and what the leader's
-  two per-type count arrays at `+0x56fe` and `+0x5a22` are counting, is not.
-  Everything in this document about *building* a unit is unaffected.
+  arithmetic is read; which of the two loops runs when is not. Everything in
+  this document about *building* a unit is unaffected.
+
+  **The two count arrays are settled**, by `docs/PRODUCTION.md`. `+0x5a22` is
+  `num_queued`, `ushort[806]`, indexed by type id and moved by `Build::queue_up`
+  and `Build::unqueue`. `+0x56fe` is not an array at all: it is `num_units`,
+  `ushort[352]` at `+0x5762`, addressed with the unit type id directly because
+  unit ids start at `0x32` and the compiler folded the `- 0x32` into the base
+  pointer. So the pair is "ordered" and "standing", which is what makes the
+  `built + queued` above literal.
 - **A third `(resource, amount)` pair on the type**, at `+0x260`/`+0x264`,
   which the research branch adds as a flat surcharge when it names the resource
   being priced. It sits immediately before the two `SUPPORT` slots and is
   filled by neither `ObjectType::load_support` nor `Type::load_cost`. Which
   column writes it is unread.
-- **`Build::queue_up` and when the price is actually charged.** Whether a
-  queued item pays on queue, on start, or on completion decides whether
-  cancelling can profit from a discount that arrived in between — which
-  `Build::refund_cost` suggests it can.
-- **`JOB_TIME`, `JOB_EXTRA_TIME` and `RESEARCH_PREMIUM_TIME`.** The time half
-  of the same record. `JOB_EXTRA_TIME` ships as `1/10tsx` for 360 of 364 units
-  and is described as a ramp on build time, so time almost certainly ramps the
-  way price does. Unread.
+- ~~**`Build::queue_up` and when the price is actually charged.**~~ **Closed**
+  by `docs/PRODUCTION.md`: on queue. `Type::pay_cost` both debits and reports,
+  and the report is written into the queue entry as up to three
+  `(resource, amount)` pairs, which is exactly what `Build::unpay_cost` gives
+  back on a cancel. So cancelling *cannot* profit from a discount that arrived
+  in between — the refund is the number that was paid. `Build::refund_cost` is
+  a different thing entirely: `Leader::gain_tech` is its only caller, and it
+  re-prices every queued item in place when your science rises, handing the
+  difference back where the item sits.
+- ~~**`JOB_TIME`, `JOB_EXTRA_TIME` and `RESEARCH_PREMIUM_TIME`.**~~ **Closed**
+  by `docs/PRODUCTION.md`. Time does ramp the way price does, with one ceiling
+  instead of four and against a different count: the price ramp reads
+  `num_units + num_queued` and the time ramp reads `num_units` alone.
 - **What writes `escrow_rate`.**
 - **Whether the maximum in `can_pay_cost` is visible in play**, which needs
   phase 2.
