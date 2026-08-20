@@ -288,3 +288,44 @@ The same reading in the other direction added `Slot::Ratio256`.
 right by eight. Comparing the written digits would have failed a correct table.
 The check reconstructs the scale instead. Reading the consumer is what
 distinguishes the two cases, and it is the only thing that could have.
+
+
+## 13. Pin a table the original computes with floating point
+
+**Chosen:** write the 256 integers of the engine's sine table down as
+constants, and reproduce the generator only in prose.
+
+**Over:** recomputing the table at startup from the same expression, and over
+treating it as install-derived data that may not be written down.
+
+`trig_init` fills the table once, before any simulation runs, with
+`sin(i * 1.570796327 / 255.0) * 65535.0` in doubles. Three consequences pull
+the same way.
+
+The values are a **specification, not a computation**. They are fixed for the
+lifetime of the process, and every later frame reads them as integers. Nothing
+downstream ever sees a float.
+
+Recomputing them would import the one hazard `CLAUDE.md` exists to prevent.
+`sin` is not correctly rounded and is not required to agree between platforms
+or libm versions, so a table regenerated at startup could differ by a unit in
+the last place between two clients — which is a desync, arriving through the
+back door of a rule meant to prevent exactly that.
+
+And they are not the user's data. The generator was read and understood, and
+the numbers follow from it and from pi; this is the same standing as
+`div_3_table`, which `docs/FORMATS.md` records as `i / 3` rather than as a
+dump. Writing down a table anybody can regenerate from a documented formula is
+the opposite of copying an asset.
+
+The general rule this sets: **where the original computes a constant with
+floating point before the simulation starts, we pin the result.** Where it
+computes with floating point *during* the simulation — `anti_att` — we carry an
+exact rational instead, which is decision 10. Both are the same principle
+applied at different times: no float ever reaches a frame.
+
+This is also why `Fx` is still unearned. Three mechanics in — attrition,
+supply, and the kinematic half of movement — nothing has needed a fraction.
+`crates/sim` depends on `fixed` in `Cargo.toml` and uses nothing from it; that
+dependency is unearned by the convention in `CLAUDE.md` and should go if the
+next mechanic does not want it.

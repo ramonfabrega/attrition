@@ -5,19 +5,24 @@
 //! which is the property that makes determinism testable at all.
 //!
 //! Phase 1 is one mechanic end to end: **attrition**. Borders produce
-//! territory, territory produces damage. See `docs/ATTRITION.md` for the
-//! specification this implements and how much of it is established rather than
-//! guessed.
+//! territory, territory produces damage, and supply cancels it. See
+//! `docs/ATTRITION.md` and `docs/SUPPLY.md` for the specifications this
+//! implements and how much of each is established rather than guessed.
+//! `movement` is the beginning of phase 3 and says in its own header how far
+//! it goes.
 //!
 //! # Arithmetic
 //!
-//! No floating point, ever. Attrition turns out to need no fixed point either:
-//! every quantity the original computes here is an integer with a defined
-//! truncation, and the one value it keeps in an `f32` is exactly a rational,
-//! carried as one. `Fx` will be earned when movement arrives; anticipating it
-//! would only add rounding the original does not have.
+//! No floating point, ever — and so far, no fixed point either. Every quantity
+//! the original computes in these mechanics is an integer with a defined
+//! truncation. The one value it keeps in an `f32` is exactly a rational and is
+//! carried as one; the one table it builds with doubles is built once at
+//! startup, so its integers are pinned rather than recomputed. `Fx` stays
+//! unearned until something genuinely needs a fraction; anticipating it would
+//! only add rounding the original does not have.
 
 pub mod attrition;
+pub mod movement;
 pub mod supply;
 pub mod territory;
 pub mod tuning;

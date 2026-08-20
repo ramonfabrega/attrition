@@ -146,6 +146,12 @@ pub struct Tuning {
     pub versailles_supply_heal_rate: i32,
     /// Non-zero if a siege unit under attack reloads as though out of supply.
     pub artillery_under_attack_fires_slowly: i32,
+
+    // ---- movement ----
+    /// Master scale on every unit's turn rate.
+    pub unit_turn_speed: i32,
+    /// Multiplier on the turn rate of a packed unit.
+    pub unit_pack_turn_bonus: i32,
 }
 
 impl Tuning {
@@ -210,6 +216,9 @@ impl Tuning {
         french_supply_heal_rate: 20,
         versailles_supply_heal_rate: 20,
         artillery_under_attack_fires_slowly: 1,
+
+        unit_turn_speed: 1,
+        unit_pack_turn_bonus: 2,
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -218,7 +227,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 49] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 51] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -315,6 +324,8 @@ impl Tuning {
                 "ARTILLERY_UNDER_ATTACK_FIRES_SLOWLY",
                 Slot::Value(T.artillery_under_attack_fires_slowly),
             ),
+            ("UNIT_TURN_SPEED", Slot::Value(T.unit_turn_speed)),
+            ("UNIT_PACK_TURN_BONUS", Slot::Value(T.unit_pack_turn_bonus)),
         ]
     }
 }
