@@ -117,6 +117,71 @@ meta, and the ~90 `iface*` windows. That is roughly half of the 796 files in
 the engine's `game/` module. CtW is genuinely good and worth building; it is
 not worth building first.
 
+## Working agreement
+
+Phase 3 is a long middle, and it is done one mechanic at a time. This is what
+has been working, written down so a fresh session can pick up without
+re-deriving it.
+
+**The queue, in dependency order.** A default rather than a contract — take the
+next unstarted one unless something has made a different order obviously
+better, in which case say so and take that.
+
+1. **The tech tree** — `has_preq`, `type_avail`, `type_eligible`, ages, epochs,
+   research. Three documents already assume its answers, and
+   `docs/PRODUCTION.md` specifically needs whatever writes the availability bit
+   at `leader + 0x6c18`, which is the bit deciding research-versus-train.
+   `Leader::gain_tech` is the obvious entry point and is read only as far as
+   its call to `Build::refund_cost`.
+2. **Combat** — attack, damage, armour, target selection. Attrition is still
+   the only thing in the simulation that can kill.
+3. **Cities and buildings** — placement, construction, city levels, the
+   `BuildData::construct_time` path `docs/PRODUCTION.md` read but did not
+   implement.
+4. **AI** — last, because it is the least oracled.
+
+**One mechanic per session.** The document is the handoff: a fresh session
+reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes
+`/clear` between mechanics free, and it is why the document is written before
+the implementation rather than after.
+
+**Definition of done**, all five:
+
+- `docs/<MECHANIC>.md`, stating how it was established, how confident it is,
+  and what it has *not* established.
+- The implementation, in its own module.
+- Tests, including the end-to-end kind that run the new mechanic against the
+  ones already there.
+- `cargo test`, `cargo clippy --all-targets` and `cargo fmt` clean, and
+  `cargo run -p rondata -- <install>` exiting zero.
+- Committed. Any open question this closes in another document is struck
+  through there and pointed at its answer, per the amend-in-place rule below.
+
+**Keep going while the path is clear; ask when it isn't.** That is the whole
+rule, and it is what the sessions so far have actually done. Uncertainty inside
+a mechanic is usually not a reason to stop — implement under a stated
+assumption, record it under "What is not established", carry on. Uncertainty
+about *direction*, a divergence worth making deliberately, anything
+irreversible or outward-facing, or a finding that changes what the project
+should do next: those are worth a conversation, and the conversation is cheap.
+
+In practice the natural boundary is the end of a mechanic. Finish it, commit
+it, say where things stand and what you would do next — then it is a good
+moment to clear the context and start the next one fresh, because the document
+carries everything forward.
+
+**Anything needing phase 2 is written down, not waited on.** Nothing is blocked
+on running the original. A claim that needs a behavioural check goes in the
+document's open questions with the check named, and the work continues. See
+`docs/ORACLE.md` for what a running game will eventually be able to tell us,
+and for how far Wine currently gets.
+
+**Emit traces under the original's own names.** `docs/ORACLE.md` lists the 37
+`SyncDefine` categories the engine considers sync-critical. Where a mechanic
+maps onto one — `LeadersSync`, `UnitsSync`, `BuildsSync`, `WorldSync`,
+`GoodsSync`, `DeathsSync`, `TerrainSync` — use that name. It costs nothing now
+and makes the eventual diff mechanical rather than a translation exercise.
+
 ## Conventions
 
 - **Earn every dependency.** Crates appear in this workspace when they have

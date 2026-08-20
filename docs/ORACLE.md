@@ -352,8 +352,16 @@ architectural gap rather than a missing package, and no amount of prefix
 configuration closes it.
 
 The remaining candidate is **D3DMetal**, Apple's Game Porting Toolkit
-translation of D3D11 straight to Metal, which CrossOver bundles and which
-handles the gaps that MoltenVK exposes. Untried.
+translation of D3D11 straight to Metal, which handles the gaps MoltenVK
+exposes because it targets Metal directly rather than going through Vulkan.
+It ships at <https://github.com/apple/game-porting-toolkit> and CrossOver
+bundles the same technology. Untried, and the obvious place to start when phase
+2 is picked up again.
+
+It is worth being clear about what GPTK is *not* for here: it translates a
+Windows binary's D3D calls, which is useful for running the original as an
+oracle and has nothing to do with this project's own renderer. Phase 4 is a
+Rust client and will not go near it.
 
 None of this touches the reading above; the tracer's configuration is derived
 from the binary and is now placed and waiting.
