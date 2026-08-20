@@ -215,6 +215,27 @@ units feel sticky when given a reversing order.
 **The per-axis clamps only ever reduce.** They stop the trig from overshooting
 the destination on either axis; they never extend a step.
 
+## Where movement sits in the frame
+
+`Guy::move` is reached from `Guy::process`, and `Guy::process` is called from
+the **bottom** of `Unit::process` — after `process_healing`, after
+`process_cloak`, after `process_attrition`, and after the supply check and the
+bleed. Movement is the last thing a unit does each frame.
+
+That ordering is observable, so it is part of the specification rather than an
+implementation detail. Attrition looks at the position the unit had at the
+*start* of the frame, which means:
+
+- a unit stepping over a border does not bleed for the crossing on the frame it
+  crosses;
+- and symmetrically, a unit leaving hostile ground is charged for the frame it
+  leaves on, if a tick was due.
+
+Combined with the 32-frame refresh in `docs/ATTRITION.md`, this is why a raid
+that is in and out quickly can cost nothing at all, and why a unit can take one
+last tick standing on safe ground. `crates/sim/src/lib.rs` runs the two in this
+order and `harness_tests.rs` pins both consequences.
+
 ## Turning
 
 Turn speed comes from the type's own value scaled by two constants:
