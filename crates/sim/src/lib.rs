@@ -4,15 +4,18 @@
 //! threads. Everything in it runs in a `#[test]` with no display attached,
 //! which is the property that makes determinism testable at all.
 //!
-//! Four mechanics run here, and they run together. Borders produce territory,
-//! territory produces damage, supply cancels it, and units walk in and out of
-//! it under orders. Each has a specification written from the original —
-//! `docs/ATTRITION.md`, `docs/SUPPLY.md`, `docs/MOVEMENT.md` — and each says
-//! how much of itself is established rather than guessed.
+//! Five mechanics run here, and they run together. Borders produce territory,
+//! territory produces damage, supply cancels it, units walk in and out of it
+//! under orders, and the ground they hold pays its owner. Each has a
+//! specification written from the original — `docs/ATTRITION.md`,
+//! `docs/SUPPLY.md`, `docs/MOVEMENT.md`, `docs/ECONOMY.md` — and each says how
+//! much of itself is established rather than guessed.
 //!
 //! [`Sim::tick`] is where they meet, and the order it does them in is the
-//! original's: attrition before movement, so a unit stepping over a border is
-//! not standing there when that frame's attrition looks.
+//! original's, twice over. `Game::do_frame` pays every player before it
+//! processes any object, so income comes first. And inside a unit, attrition
+//! comes before movement, so a unit stepping over a border is not standing
+//! there when that frame's attrition looks.
 //!
 //! # Arithmetic
 //!
@@ -25,6 +28,7 @@
 //! only add rounding the original does not have.
 
 pub mod attrition;
+pub mod economy;
 pub mod movement;
 pub mod supply;
 pub mod territory;
@@ -154,21 +158,58 @@ pub struct Sim {
     /// Diplomacy, as a full matrix. `at_war[a][b]` is symmetric in practice
     /// but stored both ways, because the original reads it both ways.
     pub at_war: Vec<Vec<bool>>,
+    /// One income ledger per player, and what feeds it. Split the way the
+    /// original splits them: `holdings` is what a player *has*, and changes
+    /// when they build something; `ledgers` is what that is worth and what has
+    /// accrued, and changes every frame.
+    pub holdings: Vec<economy::Holdings>,
+    pub ledgers: Vec<economy::Ledger>,
     pub frame: i64,
 }
 
 impl Sim {
     pub fn new(tuning: Tuning, world: World, players: usize) -> Sim {
         Sim {
-            tuning,
-            world,
             players: vec![attrition::PlayerState::default(); players],
             sources: Vec::new(),
             units: Vec::new(),
             supply: vec![supply::Network::default(); players],
             at_war: vec![vec![false; players]; players],
+            holdings: vec![economy::Holdings::new(); players],
+            ledgers: vec![economy::Ledger::starting(&tuning); players],
+            tuning,
+            world,
             frame: 0,
         }
+    }
+
+    /// Adds a player and returns their index.
+    ///
+    /// Five vectors are kept in step by this. Growing one of them by hand
+    /// leaves the others short, and the failure shows up as an index panic in
+    /// whichever pass reaches the longest one first.
+    pub fn add_player(&mut self) -> Player {
+        let who = self.players.len();
+        self.players.push(attrition::PlayerState::default());
+        self.supply.push(supply::Network::default());
+        self.holdings.push(economy::Holdings::new());
+        self.ledgers.push(economy::Ledger::starting(&self.tuning));
+        for row in &mut self.at_war {
+            row.push(false);
+        }
+        self.at_war.push(vec![false; who + 1]);
+        u8::try_from(who).expect("too many players")
+    }
+
+    /// Marks a player's economy as changed, so the next reassembly happens
+    /// within eight frames rather than at the lazy 512-frame cadence.
+    ///
+    /// The original sets this flag from wherever the change happened — a
+    /// building finished, a city captured. Anything that edits
+    /// [`Sim::holdings`] should say so here, or the change will not show up
+    /// for up to half a minute.
+    pub fn economy_changed(&mut self, who: Player) {
+        self.ledgers[who as usize].dirty = true;
     }
 
     /// Adds a unit, registering it as a supply source if its type is one.
@@ -217,6 +258,40 @@ impl Sim {
         self.at_war[b as usize][a as usize] = true;
     }
 
+    /// Copies the territory the border pass produced into the holdings the
+    /// territory tax reads, and tells the world how much land there is.
+    ///
+    /// The original keeps both numbers itself — `LeaderData::territory` and
+    /// `WorldData::land_size` — and the tax is their ratio. **The unit
+    /// cancels**, so counting cells here where the original counts tiles gives
+    /// the same wealth; what would not survive is counting one of them in one
+    /// unit and the other in the other.
+    ///
+    /// Marks every player's economy dirty, since this is exactly the kind of
+    /// change the original's flag exists for.
+    pub fn update_territory_holdings(&mut self) {
+        let mut land = 0;
+        let mut owned = vec![0; self.players.len()];
+        for (region, terrain) in self.world.regions().collect::<Vec<_>>() {
+            if terrain != Terrain::Land {
+                continue;
+            }
+            for cell in self.world.cells_in(region) {
+                land += 1;
+                if let Some(p) = self.world.owner(cell).player() {
+                    owned[p as usize] += 1;
+                }
+            }
+        }
+        for (who, holdings) in self.holdings.iter_mut().enumerate() {
+            holdings.territory = owned[who];
+            holdings.land_size = land;
+        }
+        for l in &mut self.ledgers {
+            l.dirty = true;
+        }
+    }
+
     /// Recomputes every border from scratch.
     ///
     /// Wholesale, like the original: one captured city can change ownership
@@ -244,6 +319,22 @@ impl Sim {
     pub fn tick(&mut self) -> Vec<Tick> {
         let frame = self.frame;
         let mut events = Vec::new();
+
+        // Income first. `Game::do_frame` runs `Leaders::process_all` before
+        // `Objects::process_all`, so every player is paid for the frame before
+        // any unit in it moves, fights or bleeds. That ordering is observable:
+        // a citizen that dies this frame was already paid for it.
+        for who in 0..self.players.len() {
+            let player = u8::try_from(who).expect("too many players");
+            economy::process(
+                &self.tuning,
+                &mut self.ledgers[who],
+                &self.holdings[who],
+                player,
+                frame,
+            );
+        }
+
         for i in 0..self.units.len() {
             if !self.units[i].alive() || !self.units[i].on_map {
                 continue;

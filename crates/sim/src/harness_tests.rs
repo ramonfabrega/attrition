@@ -232,12 +232,8 @@ fn an_allys_wagon_supplies_nobody() {
     // never consulted across players, so it does not matter that they are
     // friendly — which is the point.
     let mut sim = skirmish(4);
-    sim.players.push(sim.players[0]);
-    sim.supply.push(supply::Network::default());
-    for row in &mut sim.at_war {
-        row.push(false);
-    }
-    sim.at_war.push(vec![false; 3]);
+    let third = sim.add_player();
+    assert_eq!(third, 2);
     sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100));
     wagon_at(&mut sim, 2, 1, Cell::new(15, 0));
     assert!(!sim.supplied_at(0, sim.units[0].pos));
@@ -472,4 +468,68 @@ fn walking_out_does_not_stop_the_bleeding_until_the_next_refresh() {
     let after = run(&mut sim, 200);
     assert!(after.is_empty(), "still bleeding on safe ground: {after:?}");
     assert_eq!(sim.units[u].attrition, 0);
+}
+
+#[test]
+fn the_border_that_kills_also_pays() {
+    // Territory is the only thing in the game that both damages whoever stands
+    // in it and earns its owner money, and the two halves read the same
+    // ownership map. `skirmish` gives player 1 a city on a 24-cell strip; the
+    // cells its border claims are the cells the territory tax divides by.
+    let mut sim = skirmish(4);
+    sim.update_territory_holdings();
+
+    let owned = sim.holdings[1].territory;
+    assert!(owned > 0 && owned < 24, "border claims {owned} of 24");
+    assert_eq!(sim.holdings[1].land_size, 24);
+    assert_eq!(sim.holdings[0].territory, 0, "player 0 has no city");
+
+    // Full taxation, and nothing else at all: no cities in the economy sense,
+    // no citizens, no markets. Every coin below comes from holding ground.
+    sim.holdings[1].taxation = 2;
+    let wealth = economy::Resource::Wealth.index();
+    let period = Tuning::RON.gather_rate as i64;
+    let before = sim.ledgers[1].bucket[wealth];
+    run(&mut sim, period);
+    let earned = sim.ledgers[1].bucket[wealth] - before;
+
+    // A share f of the map at 100% taxation is f * 100 wealth per period.
+    assert_eq!(earned, owned * 100 / 24);
+    assert_eq!(
+        sim.ledgers[0].bucket[wealth],
+        Tuning::RON.starting_goods[wealth],
+        "player 0 holds no ground and earns nothing"
+    );
+}
+
+#[test]
+fn a_city_pays_from_the_first_frame_of_the_game() {
+    // Income runs before objects, and the reassembly is unconditional on frame
+    // zero, so a player who owns something is earning on the very first tick
+    // rather than waiting out the 512-frame cadence.
+    let mut sim = skirmish(4);
+    sim.holdings[0].cities.push(economy::City {
+        market: true,
+        university: true,
+        sites: vec![economy::Site::new(economy::Resource::Food, 3)],
+        ..economy::City::default()
+    });
+    sim.economy_changed(0);
+
+    sim.tick();
+    let shown = |r: economy::Resource| sim.ledgers[0].income[r.index()] / economy::RATE_SCALE;
+    // Three farmers at PEASANT_RATE, plus the ten food a city is worth on its
+    // own, plus the ten timber, the market's ten wealth and the university's
+    // ten knowledge.
+    assert_eq!(shown(economy::Resource::Food), 40);
+    assert_eq!(shown(economy::Resource::Timber), 10);
+    assert_eq!(shown(economy::Resource::Wealth), 10);
+    assert_eq!(shown(economy::Resource::Knowledge), 10);
+
+    // And the starting goods are there and untouched by the first frame.
+    let food = economy::Resource::Food.index();
+    assert_eq!(
+        sim.ledgers[0].bucket[food],
+        Tuning::RON.starting_goods[food]
+    );
 }

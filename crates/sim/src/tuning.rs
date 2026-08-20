@@ -18,13 +18,20 @@ pub enum Slot {
     Value(i32),
     /// A `<NAME entry0="..." entry1="..."/>` array.
     Entries(&'static [i32]),
-    /// A constant the file writes as a rational and the engine loads as 8.8
-    /// fixed point, held here already scaled: `3/2` in the file is 384 here.
+    /// A constant the engine loads as 8.8 fixed point, held here already
+    /// scaled: `3/2` in the file is 384 here, and a plain `10` is 2560.
     ///
     /// The scale is not something the file states. It is fixed by how the
     /// original consumes the value — a multiply followed by a shift right by
     /// eight — so the check has to reconstruct it rather than compare digits.
+    /// Nor is it a property of the *syntax*: `PEASANT_RATE` is written as the
+    /// plain integer `10 resources` and still arrives at 2560, because
+    /// `Constants::init` happens to read that one with `get_fraction(name,
+    /// 0x100)` while reading its neighbours plain. Which constants are scaled
+    /// is a fact about the loader, one constant at a time.
     Ratio256(i32),
+    /// An `entryN` array whose elements are each loaded as 8.8 fixed point.
+    Entries256(&'static [i32]),
 }
 
 /// Everything the attrition, territory and supply passes read.
@@ -152,6 +159,57 @@ pub struct Tuning {
     pub unit_turn_speed: i32,
     /// Multiplier on the turn rate of a packed unit.
     pub unit_pack_turn_bonus: i32,
+
+    // ---- economy ----
+    /// Frames a gather rate is quoted over. 450 is thirty seconds.
+    pub gather_rate: i32,
+    /// What each player starts with.
+    pub starting_goods: [i32; 6],
+    /// A free trickle per resource, before anything is built. Ships as zero.
+    pub basic_gather: [i32; 6],
+    /// What a city is worth per period before anybody works in it.
+    pub city_gather: [i32; 6],
+    /// One gatherer's rate, as 8.8 fixed point. The file writes `10 resources`
+    /// and the engine loads 2560; see [`Slot::Ratio256`].
+    pub peasant_rate: i32,
+    /// One oil well gatherer's rate, as 8.8 fixed point.
+    pub oil_rate: i32,
+    /// One scholar's rate by university level, as 8.8 fixed point.
+    pub scholar_rate: [i32; 6],
+    /// Percentage bonus to a city's food by granary level.
+    ///
+    /// The original reaches this array, and the two below it, by indexing
+    /// `level + 4` off the *preceding* array — `FISHERMEN_BONUS` for this one.
+    /// Written the way the designers meant it that is `[level - 1]`, and the
+    /// levels are one-based. Same shape as `ATTRITION_UPGRADE` reaching into
+    /// `ATTRITION_IMPROVED`; see the note on this struct.
+    pub granary_bonus: [i32; 5],
+    /// Percentage bonus to a city's timber by lumber mill level.
+    pub lumbermill_bonus: [i32; 5],
+    /// Percentage bonus to a city's metal by smelter level.
+    pub smelter_bonus: [i32; 5],
+    /// Percentage bonus to oil per refinery, applied at the player level
+    /// rather than per city — the only enhancer written that way.
+    pub refinery_bonus: i32,
+    /// Wealth per city per period, unconditionally. Ships as zero.
+    pub village_taxes: i32,
+    /// Wealth per building in a city. Ships as zero.
+    pub building_taxes: i32,
+    /// Wealth for a city with a market. The only non-zero term in the line.
+    pub market_taxes: i32,
+    /// Wealth for a city with a temple. Ships as zero.
+    pub temple_taxes: i32,
+    /// Knowledge per city, unconditionally. Ships as zero.
+    pub village_literacy: i32,
+    /// Knowledge for a city with a university.
+    pub university_literacy: i32,
+    /// Knowledge for a city with a library. Ships as zero.
+    pub library_literacy: i32,
+    /// Wealth per period for the whole map, shared out by territory, indexed
+    /// by taxation level.
+    pub territory_taxes: [i32; 5],
+    /// The ceiling on every capped resource's rate, by commerce level.
+    pub commerce_cap: [i32; 8],
 }
 
 impl Tuning {
@@ -219,6 +277,27 @@ impl Tuning {
 
         unit_turn_speed: 1,
         unit_pack_turn_bonus: 2,
+
+        gather_rate: 450,
+        starting_goods: [200, 200, 100, 100, 100, 100],
+        basic_gather: [0, 0, 0, 0, 0, 0],
+        city_gather: [10, 10, 0, 0, 0, 0],
+        peasant_rate: 2560,
+        oil_rate: 8960,
+        scholar_rate: [1280, 1792, 2560, 3840, 5120, 6400],
+        granary_bonus: [20, 50, 100, 200, 250],
+        lumbermill_bonus: [20, 50, 100, 200, 250],
+        smelter_bonus: [50, 100, 150, 200, 250],
+        refinery_bonus: 33,
+        village_taxes: 0,
+        building_taxes: 0,
+        market_taxes: 10,
+        temple_taxes: 0,
+        village_literacy: 0,
+        university_literacy: 10,
+        library_literacy: 0,
+        territory_taxes: [0, 50, 100, 200, 300],
+        commerce_cap: [70, 100, 150, 200, 260, 320, 400, 500],
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -227,7 +306,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 51] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 71] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -326,6 +405,26 @@ impl Tuning {
             ),
             ("UNIT_TURN_SPEED", Slot::Value(T.unit_turn_speed)),
             ("UNIT_PACK_TURN_BONUS", Slot::Value(T.unit_pack_turn_bonus)),
+            ("GATHER_RATE", Slot::Value(T.gather_rate)),
+            ("REFINERY_BONUS", Slot::Value(T.refinery_bonus)),
+            ("VILLAGE_TAXES", Slot::Value(T.village_taxes)),
+            ("BUILDING_TAXES", Slot::Value(T.building_taxes)),
+            ("MARKET_TAXES", Slot::Value(T.market_taxes)),
+            ("TEMPLE_TAXES", Slot::Value(T.temple_taxes)),
+            ("VILLAGE_LITERACY", Slot::Value(T.village_literacy)),
+            ("UNIVERSITY_LITERACY", Slot::Value(T.university_literacy)),
+            ("LIBRARY_LITERACY", Slot::Value(T.library_literacy)),
+            ("STARTING_GOODS", Slot::Entries(&T.starting_goods)),
+            ("BASIC_GATHER", Slot::Entries(&T.basic_gather)),
+            ("CITY_GATHER", Slot::Entries(&T.city_gather)),
+            ("GRANARY_BONUS", Slot::Entries(&T.granary_bonus)),
+            ("LUMBERMILL_BONUS", Slot::Entries(&T.lumbermill_bonus)),
+            ("SMELTER_BONUS", Slot::Entries(&T.smelter_bonus)),
+            ("TERRITORY_TAXES", Slot::Entries(&T.territory_taxes)),
+            ("COMMERCE_CAP", Slot::Entries(&T.commerce_cap)),
+            ("PEASANT_RATE", Slot::Ratio256(T.peasant_rate)),
+            ("OIL_RATE", Slot::Ratio256(T.oil_rate)),
+            ("SCHOLAR_RATE", Slot::Entries256(&T.scholar_rate)),
         ]
     }
 }

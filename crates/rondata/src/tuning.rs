@@ -57,6 +57,21 @@ pub fn drift(rules: &Rules) -> Vec<Drift> {
                     });
                 }
             }
+            Slot::Entries256(ours) => {
+                let theirs: Option<Vec<i32>> = rules
+                    .constant_entries(name)
+                    .map(|v| v.into_iter().map(|s| s.to_fx().raw() / 256).collect());
+                let same = theirs
+                    .as_ref()
+                    .is_some_and(|t| t.len() >= ours.len() && t[..ours.len()] == *ours);
+                if !same {
+                    out.push(Drift {
+                        name,
+                        ours: list(ours),
+                        theirs: theirs.map(|t| list(&t)),
+                    });
+                }
+            }
             Slot::Entries(ours) => {
                 let theirs: Option<Vec<i32>> = rules
                     .constant_entries(name)

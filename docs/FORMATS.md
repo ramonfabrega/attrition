@@ -449,6 +449,21 @@ digits will disagree with a simulation that holds the scaled value.
 `sim::tuning::Slot::Ratio256` exists for exactly this, and `rondata`
 reconstructs the scale rather than comparing text.
 
+**And it is not a rule about rationals.** `Constants::init` was later read
+directly, at the lines that load the economy's constants, and it settles the
+question: `PEASANT_RATE` is written `10 resources`, has no `/` in it, and is
+still read with `get_fraction(name, 0x100)` — so it arrives as 2560. Three
+lines away in the same file, `CITY_GATHER`'s `10food` goes through
+`convert_int` and arrives as 10. `OIL_RATE` and `SCHOLAR_RATE` are scaled;
+`GATHER_RATE`, `COMMERCE_CAP`, `TERRITORY_TAXES` and every tax constant are
+not.
+
+So the scale is a property of the one line of `Constants::init` that reads the
+constant, and nothing about the syntax, the file, or the trailing unit predicts
+it. It has to be established per constant, at the loader or at the consumer.
+See `docs/DECISIONS.md` entry 14, and `sim::tuning::Slot::Entries256` for the
+array form.
+
 ---
 
 ## Prior art

@@ -233,8 +233,9 @@ arrives. See `docs/ATTRITION.md`, "Not open, and why".
 ## 11. The simulation takes its tuning as an input, and a tool checks it
 
 **Chosen:** `sim::Tuning` is a plain struct the simulation is handed;
-`Tuning::RON` holds the shipped values, and `rondata` re-derives all 49 of them
-from the user's own `rules.xml` and fails if any has drifted.
+`Tuning::RON` holds the shipped values, and `rondata` re-derives all of them —
+71 as of the economy — from the user's own `rules.xml` and fails if any has
+drifted.
 
 **Over:** reading the game's XML from inside the sim, and over hardcoding the
 numbers with no check on them.
@@ -324,8 +325,47 @@ computes with floating point *during* the simulation — `anti_att` — we carry
 exact rational instead, which is decision 10. Both are the same principle
 applied at different times: no float ever reaches a frame.
 
-This is also why `Fx` is still unearned. Three mechanics in — attrition,
-supply, and the kinematic half of movement — nothing has needed a fraction.
-`crates/sim` depends on `fixed` in `Cargo.toml` and uses nothing from it; that
-dependency is unearned by the convention in `CLAUDE.md` and should go if the
-next mechanic does not want it.
+This is also why `Fx` is still unearned. Four mechanics in — attrition, supply,
+the kinematic half of movement, and income — nothing has needed a fraction, and
+`crates/sim` no longer depends on `fixed` at all. Income is the strongest case
+so far that this is not luck: the original had the same problem and solved it
+the same way, by carrying rates in sixteenths and constants in 8.8 rather than
+by reaching for a fractional type. See entry 14.
+
+
+## 14. A constant's scale is a fact about the loader, one constant at a time
+
+**Chosen:** record per constant whether the engine scales it on load, by
+reading `Constants::init` at that constant's line. `Slot::Ratio256` and
+`Slot::Entries256` mark the scaled ones, and `rondata` rescales rather than
+compares digits.
+
+**Over:** inferring the scale from how the value is written, and over assuming
+a whole file shares one convention.
+
+`CLAUDE.md` already warns that "constants are not all loaded in the
+representation the file writes", and until the economy the only example was
+`PARMENIO_RADIUS_ADJUST`, written `3/2` and loaded as 384. It was tempting to
+read that as a rule about rationals: a `/` means the engine wants a fraction,
+so it scales.
+
+It is not that. `PEASANT_RATE` is written `10 resources`, with no `/` anywhere,
+and arrives as 2560 — because `Constants::init` happens to read that one line
+with `get_fraction(name, 0x100)`. Three lines away in the same file
+`CITY_GATHER`'s `10food` goes through `convert_int` and arrives as 10. Nothing
+in the text distinguishes them. Only the loader does, and only the consumer
+proves it: `PEASANT_RATE` is read back with a `>> 8` that would otherwise turn
+a farmer's ten food into zero.
+
+So the scale is neither a property of the syntax nor of the file nor of the
+suffix. It is a property of the one line of `Constants::init` that reads that
+constant, and it has to be established there. `PEASANT_RATE`, `OIL_RATE` and
+`SCHOLAR_RATE` are the three in the economy; there is no reason to think they
+are the last three in the game.
+
+This is the same principle as `docs/FORMATS.md`'s evidence rule — no asserting
+a field without citing what proves it — applied to a value's units rather than
+a struct's layout. It is also cheap to enforce: the check re-derives the scaled
+value from the install and fails if it drifts, so a wrong guess about a scale
+shows up as a failed check rather than as an economy that is a hundred and
+fifty times too fast.
