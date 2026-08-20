@@ -179,7 +179,27 @@ better, in which case say so and take that.
    `build::BuildMods`/`ClockMods`/`HitsMods`), the per-wonder one-offs of
    `activate`, the AI branches, visibility, the capital-countdown elimination
    mode.
-4. **AI** — last, because it is the least oracled.
+4. **The behavioural-check batch** — half a session. Every document carries
+   "not established" items whose named check is a one-minute logged run
+   (`docs/ORACLE.md`, fixed seed, the mechanic's categories under
+   `[End Frame]`): two builders on one site, a site's clock after a speed
+   tech, the city mask's ±20 asymmetry, a second city at exactly 24 tiles,
+   a citizen against a tower in the capture count, combat's flank convention
+   and the `balance.xml` separator, the garrison heal periods. One session
+   that runs them all turns a page of open questions into facts and proves
+   the logging path the eventual diff depends on. The original runs here;
+   that is the asset not yet cashed.
+5. **The data layer into the sim, and the diff** — one or two sessions. The
+   ten mechanics run on hand-written fixtures; `rondata` already reads
+   `unitrules.xml`, `buildingrules.xml`, `techrules.xml`, `balance.xml`.
+   Write the loaders that turn those into `UnitType`/`BuildType`/the tech
+   tree, then a `gamelog.txt` harness — `InitialDump` → the initial state,
+   per-frame `UNITS`/`BUILDS` → the diff. That is Phase 3's actual score,
+   ticks before divergence, and it surfaces integration bugs across the ten
+   mechanics far more cheaply than the AI would — which cannot be exercised
+   without it anyway.
+6. **AI** — last, because it is the least oracled, and better oracled once
+   4 and 5 stand.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes
