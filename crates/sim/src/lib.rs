@@ -110,22 +110,63 @@ pub struct Unit {
 
 /// What a unit needs in order to move.
 ///
-/// `speed` and `turn_rate` are **inputs**, not computed here. They are the
+/// `speed` and `turning` are **inputs**, not computed here. The speed is the
 /// output of `UnitData::get_speed`'s three-layer pipeline, which reads tech,
-/// nation, hero and terrain state the simulation does not model yet. Taking
-/// them as inputs is the same choice supply made for a general's aura radius:
-/// the mechanic is complete, and the number feeding it arrives when the layer
-/// that produces it does. `docs/MOVEMENT.md` documents the pipeline in full.
+/// nation, hero and terrain state the simulation does not model yet, and the
+/// turning facts come from the unit type. Taking them as inputs is the same
+/// choice supply made for a general's aura radius: the mechanic is complete,
+/// and the number feeding it arrives when the layer that produces it does.
+/// `docs/MOVEMENT.md` documents the pipeline in full.
+///
+/// The rest is state the original keeps too: the unit's position is on
+/// [`Unit`], and the body — the figure that chases it, whose `last_speed` and
+/// `avg_speed` the unit's turn rate reads — is here.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Movement {
-    /// Which way the unit faces. North is zero.
+    /// Which way the unit faces — guy 0's angle, which the unit step turns and
+    /// the body shares. North is zero.
     pub facing: movement::Angle,
+    /// The heading the last unit step recorded as desired, `GuyData::des_angle`.
+    /// An idle body turns toward it.
+    pub des_angle: movement::Angle,
     /// Where it is headed. `None` means it is not going anywhere.
     pub dest: Option<Pos>,
-    /// Effective speed, in position units per frame.
+    /// Effective speed, in position units per frame. Used for both the unit
+    /// step and the body's chase; the body's own `+9` and ungrouped speed are
+    /// not modelled.
     pub speed: i32,
-    /// How far it can turn in one frame, in binary angle units.
-    pub turn_rate: i32,
+    /// The type-level facts behind the turn rate and turn limits.
+    pub turning: movement::Turning,
+    /// The body, standing on the unit until the unit moves.
+    pub body: movement::Body,
+}
+
+impl Movement {
+    /// A unit standing at `pos`, facing north, with its body on it and stopped
+    /// — which, for a foot or mounted type, is what lets the first order turn
+    /// it instantly.
+    pub const fn at(pos: Pos) -> Movement {
+        Movement {
+            facing: movement::Angle::NORTH,
+            des_angle: movement::Angle::NORTH,
+            dest: None,
+            speed: 0,
+            turning: movement::Turning {
+                type_turn_speed: 0,
+                packed: false,
+                instant_from_stop: false,
+                wide_limit: false,
+            },
+            body: movement::Body::at(pos),
+        }
+    }
+
+    /// Faces the unit and its body a given way at once — `Guy::set_angle` with
+    /// the snap flag, which writes both the facing and the desired angle.
+    pub const fn set_facing(&mut self, facing: movement::Angle) {
+        self.facing = facing;
+        self.des_angle = facing;
+    }
 }
 
 /// A unit type the simulation knows how to build.
@@ -229,7 +270,7 @@ impl Unit {
             attrition: 0,
             ignores_supply: false,
             sheltered: false,
-            movement: Movement::default(),
+            movement: Movement::at(pos),
         }
     }
 
@@ -936,34 +977,70 @@ impl Sim {
         })
     }
 
-    /// One unit's movement for one frame — the original's `Guy::move`, which
-    /// `Unit::process` reaches last.
+    /// One unit's movement for one frame, which `Unit::process` reaches last:
+    /// the unit step — the original's `Unit::move_step`, through `Unit::work`
+    /// — and then the body's chase, `Guy::move`, through `Guy::process`.
     ///
-    /// A step the world refuses is not an error and does not cancel the order:
-    /// the unit stays put and tries again next frame. It still turns, because
-    /// the original turns before it asks.
+    /// The unit moves first and the body follows it in the same frame, so the
+    /// body is chasing where the unit *now* is. A step the world refuses is not
+    /// an error and does not cancel the order: the unit stays put and tries
+    /// again next frame. It still turns, because the original turns before it
+    /// asks.
     fn process_movement(&mut self, i: usize) {
         let unit = &self.units[i];
-        let Some(dest) = unit.movement.dest else {
-            return;
-        };
         let m = unit.movement;
-        let step = movement::advance(unit.pos, m.facing, dest, m.speed, m.turn_rate);
-        let accepted = self.world.accepts(step.pos);
+        let mut facing = m.facing;
+        let mut des_angle = m.des_angle;
+        let mut pos = unit.pos;
+        let mut dest = m.dest;
+
+        if let Some(target) = dest {
+            // The unit's rate is mode 0: divided by the body's average speed,
+            // instant from a standstill for a foot or mounted type.
+            let rate = movement::turn_speed(
+                &self.tuning,
+                &m.turning,
+                m.body.last_speed,
+                m.body.avg_speed,
+                movement::TurnMode::Unit,
+            );
+            let step = movement::move_step(pos, facing, target, m.speed, &m.turning, rate);
+            facing = step.facing;
+            des_angle = step.heading;
+            if self.world.accepts(step.pos) {
+                pos = step.pos;
+                if step.arrived {
+                    dest = None;
+                }
+            }
+        }
+
+        // The body's rate is mode 1: the base, always. It reads `last_speed`
+        // as it stood before this frame, the way `Guy::move` does.
+        let turned = facing != m.facing;
+        let rate = movement::turn_speed(
+            &self.tuning,
+            &m.turning,
+            m.body.last_speed,
+            m.body.avg_speed,
+            movement::TurnMode::Body,
+        );
+        let mut follow =
+            movement::body_follow(m.body, facing, pos, des_angle, turned, m.speed, rate);
+        if !self.world.accepts(follow.body.pos) {
+            follow.body.pos = m.body.pos;
+        }
 
         let unit = &mut self.units[i];
-        unit.movement.facing = step.facing;
-        if !accepted {
-            return;
-        }
-        unit.pos = step.pos;
-        if step.arrived {
-            unit.movement.dest = None;
-        }
+        unit.pos = pos;
+        unit.movement.facing = follow.facing;
+        unit.movement.des_angle = des_angle;
+        unit.movement.dest = dest;
+        unit.movement.body = follow.body;
     }
 
     /// Sends a unit somewhere. It faces whatever way it already faces and turns
-    /// as it goes.
+    /// as it goes — instantly, if it is a foot or mounted type standing still.
     pub fn order_move(&mut self, unit: usize, dest: Pos) {
         self.units[unit].movement.dest = Some(dest);
     }

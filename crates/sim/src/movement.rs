@@ -5,6 +5,16 @@
 //! separate mechanics; `docs/MOVEMENT.md` surveys them and this module does not
 //! implement them.
 //!
+//! # Two positions
+//!
+//! The original keeps two positions per unit and moves them with different
+//! code. The **unit's** position is what every other mechanic reads, and
+//! [`move_step`] advances it at the unit's speed. The **body's** position is
+//! the figure drawn for the unit, and [`body_follow`] walks it toward the unit
+//! at eleven eighths of the speed so it is always on the unit's heels. They
+//! share one facing, and the body's `last_speed` / `avg_speed` bookkeeping is
+//! what the unit's turn rate reads — which is why the body is modelled at all.
+//!
 //! # Units
 //!
 //! A speed is **position units per frame** — 1/768 of a cell, 1/192 of a tile.
@@ -13,7 +23,9 @@
 //! of a tile *is* one position unit.
 //!
 //! An angle is a **signed 32-bit binary angle**, so the full circle is 2^32 and
-//! wrapping is free. North is zero and y increases southward.
+//! wrapping is free. North is zero and y increases southward. A type's
+//! `TURN_SPEED` is degrees in the data and goes through [`degrees_to_angle`]
+//! once, at load.
 //!
 //! # The one thing to be careful with
 //!
@@ -24,7 +36,7 @@
 //! moving. It is commented where it happens.
 
 use crate::tuning::Tuning;
-use crate::world::Pos;
+use crate::world::{Pos, UNITS_PER_TILE, vector_dist};
 
 /// A signed 32-bit binary angle: the full circle is 2^32.
 ///
@@ -49,6 +61,46 @@ impl Angle {
     pub const fn to(self, to: Angle) -> i32 {
         to.0.wrapping_sub(self.0)
     }
+}
+
+/// One degree, as the original's `degrees_to_angle` counts it: `0xb60b60`,
+/// which is 2^32/360 truncated.
+pub const ONE_DEGREE: i32 = 0x00b6_0b60;
+/// Forty-five degrees — exactly an eighth of a turn.
+const FORTY_FIVE: u32 = 0x2000_0000;
+/// Eighty degrees, as the step compares it.
+const EIGHTY: u32 = 0x38e3_8e3a;
+/// A type turning slower than this — twenty degrees, as `degrees_to_angle`
+/// makes it less one — gets the "slow" doubling of its turn-in-place ranges.
+const SLOW_TURN_BELOW: i32 = 0x0e38_e38c;
+
+/// Degrees to a binary angle, the way `UnitType::init` converts a type's
+/// `TURN_SPEED` at load.
+///
+/// Not a multiply by 2^32/360. The original decomposes the angle into exact
+/// pieces — quarter turns, then 45°, 30°, 15°, whole degrees — and adds
+/// **three units for every complete five degrees in the remainder** to make up
+/// what `0xb60b60` per degree loses to truncation. So `degrees_to_angle(45)`
+/// is exactly an eighth of a turn, `degrees_to_angle(20)` is one more than the
+/// constant the step compares it against, and the function is reproduced
+/// rather than replaced because the step's thresholds were tuned against its
+/// output.
+pub const fn degrees_to_angle(degrees: i32) -> Angle {
+    let (q90, r90) = (degrees / 90, degrees % 90);
+    let (q45, r45) = (r90 / 45, r90 % 45);
+    let (q30, r30) = (r45 / 30, r45 % 30);
+    let (q15, r15) = (r30 / 15, r30 % 15);
+    let q5 = r15 / 5;
+    // Quarter turns wrap: 180° is `i32::MIN` and 360° is zero.
+    let a = q90
+        .wrapping_mul(2)
+        .wrapping_add(q45)
+        .wrapping_mul(FORTY_FIVE as i32)
+        .wrapping_add(q30.wrapping_mul(0x1555_5555))
+        .wrapping_add(q15.wrapping_mul(0x0aaa_aaaa))
+        .wrapping_add(q5.wrapping_mul(3))
+        .wrapping_add(r15.wrapping_mul(ONE_DEGREE));
+    Angle(a)
 }
 
 /// The angle from the origin to `(dx, dy)`, with y increasing southward.
@@ -203,82 +255,147 @@ pub fn cos_component(angle: Angle, distance: i32) -> i32 {
     sin_component(angle.quarter_turn(), distance)
 }
 
-/// Scale factor from a speed to the distance actually covered in one frame.
+/// How far the **body** closes on the unit in one frame, from the speed.
 ///
-/// `Guy::move` multiplies by 11/8 — a literal, with no constant behind it. So
-/// every speed quoted in the game's data is 27% slower than what a unit covers.
-pub const fn step_distance(speed: i32) -> i32 {
+/// `Guy::move` multiplies by 11/8 — a literal, with no constant behind it. It
+/// is the body's catch-up rate and nothing else: the unit itself moves at its
+/// speed, plainly, and the body has to be faster than that to stay on the
+/// unit's heels across a diagonal, where the Manhattan distance the unit
+/// covers in a step is longer than the body's snap.
+pub const fn body_step_distance(speed: i32) -> i32 {
     speed * 11 / 8
 }
 
 /// Whether a step of `step` reaches the destination this frame.
 ///
 /// A **Manhattan** test, not the octagonal `vector_dist` that territory and
-/// supply measure with, and not a true distance. A unit approaching diagonally
-/// therefore snaps onto its destination from further out than one approaching
-/// along an axis.
+/// supply measure with, and not a true distance. Both the unit and the body
+/// snap onto their destinations by it, so a diagonal approach snaps from
+/// further out than an axis approach of the same true distance.
 pub const fn arrives(dx: i32, dy: i32, step: i32) -> bool {
     dx.abs() + dy.abs() <= step
 }
 
-/// How far a figure can turn in one frame, in binary angle units.
+/// The type-level facts a unit's turn rate and turn limits depend on.
 ///
-/// `type_turn_speed` is the type's stored value, which is 8.8 fixed point —
-/// hence the shift. `UNIT_TURN_SPEED` ships as 1 and `UNIT_PACK_TURN_BONUS` as
-/// 2, so packing doubles the rate.
-pub const fn turn_speed(t: &Tuning, type_turn_speed: u32, packed: bool) -> i32 {
-    let base = (type_turn_speed >> 8) as i32 * t.unit_turn_speed;
-    if packed {
-        base * t.unit_pack_turn_bonus
-    } else {
-        base
+/// Inputs, the same way `speed` is: they come from the unit type and the
+/// unit's packed state, which the simulation does not model yet.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Turning {
+    /// The type's `TURN_SPEED`, already through [`degrees_to_angle`] — a
+    /// binary angle, as `UnitType::init` stores it.
+    pub type_turn_speed: i32,
+    /// Whether the unit is packed (`unit_masks & 0x80000`), which doubles the
+    /// rate.
+    pub packed: bool,
+    /// Whether the type turns instantly from a standstill — `guy_flags & 0x10`,
+    /// which `Guy::init_real` sets for foot and mounted types.
+    pub instant_from_stop: bool,
+    /// Whether the type may keep moving while owing up to 80° at range rather
+    /// than 45°: a non-land domain, or a vehicle.
+    pub wide_limit: bool,
+}
+
+/// Which caller of `GuyData::turn_speed` is asking.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TurnMode {
+    /// Mode 0: the unit step. Divided by the body's average speed, floored at
+    /// a degree a frame.
+    Unit,
+    /// Mode 1: the body. The base rate, always.
+    Body,
+}
+
+/// The rate `GuyData::turn_speed` returns for a unit that turns instantly.
+///
+/// `0x80000000`, compared unsigned everywhere it is used, so it exceeds any
+/// turn that can be owed and [`turn_towards`] snaps.
+pub const INSTANT_TURN: u32 = 0x8000_0000;
+
+/// How far a unit can turn in one frame, in binary angle units — the
+/// original's `GuyData::turn_speed`, which both steps call.
+///
+/// The base is the type's angle with its low eight bits cleared (the `>> 8`
+/// and the `UNIT_TURN_SPEED` of 256 cancel to that), doubled when packed. Then
+/// three rules the data file's own comment on `TURN_SPEED` promises:
+///
+/// - a foot or mounted unit with `last_speed == 0` turns **instantly**;
+/// - the body gets the base;
+/// - the unit gets the base divided by `avg_speed / 4 + 1`, floored at one
+///   degree a frame — so a unit at full stride turns slowly and one that has
+///   just stopped turns at its full rate.
+///
+/// `last_speed` and `avg_speed` are the body's; see [`Body`].
+pub const fn turn_speed(
+    t: &Tuning,
+    turning: &Turning,
+    last_speed: i32,
+    avg_speed: i32,
+    mode: TurnMode,
+) -> u32 {
+    let mut base = ((turning.type_turn_speed as u32) >> 8).wrapping_mul(t.unit_turn_speed as u32);
+    if turning.packed {
+        base = base.wrapping_mul(t.unit_pack_turn_bonus as u32);
+    }
+    if last_speed == 0 && turning.instant_from_stop {
+        return INSTANT_TURN;
+    }
+    match mode {
+        TurnMode::Body => base,
+        TurnMode::Unit => {
+            // `UNIT_TURN_SPEED * 0xb60b` is `0xb60b00`: one degree, to the same
+            // eight-bit-cleared precision as the base.
+            let floor = (t.unit_turn_speed as u32).wrapping_mul(0xb60b);
+            let moving = base / ((avg_speed / 4 + 1) as u32);
+            if moving > floor { moving } else { floor }
+        }
     }
 }
 
-/// A heading below this much from its target counts as already facing.
-/// About 1/120 of a full circle.
+/// A heading below this much from its target counts as already facing, and
+/// snaps. Three degrees.
 pub const FACING_TOLERANCE: u32 = 0x0222_2220;
 
 /// One frame of turning: the new heading, and how much turn is still owed.
 ///
-/// Turning the short way round, by at most `rate`. The owed amount is what the
-/// movement gate tests — a figure owing more than twice its turn rate spends
-/// the whole frame turning and covers no ground, which is why heavy units feel
-/// sticky when reversed.
-pub fn turn_towards(from: Angle, to: Angle, rate: i32) -> (Angle, i32) {
+/// Turning the short way round, by at most `rate`; within the tolerance, or
+/// within one frame's turn, it snaps onto the target. The same arithmetic sits
+/// inline in `Unit::move_step` and in `Guy::turn_towards`.
+pub const fn turn_towards(from: Angle, to: Angle, rate: u32) -> (Angle, u32) {
     let delta = (to.0 as u32).wrapping_sub(from.0 as u32);
     // The magnitude of an anticlockwise turn is taken with a bitwise NOT rather
     // than a negation, so it comes out one short. Reproduced rather than
     // corrected: it is free, and the value is one the interface can show.
     let owed = if delta > 0x8000_0000 { !delta } else { delta };
-    if owed < FACING_TOLERANCE || rate as u32 >= owed {
-        // Close enough, or reachable in one frame: snap to the target.
+    if owed < FACING_TOLERANCE || rate >= owed {
         return (to, 0);
     }
     let stepped = if delta < 0x8000_0001 {
-        (from.0 as u32).wrapping_add(rate as u32)
+        (from.0 as u32).wrapping_add(rate)
     } else {
-        (from.0 as u32).wrapping_sub(rate as u32)
+        (from.0 as u32).wrapping_sub(rate)
     };
-    (Angle(stepped as i32), (owed - rate as u32) as i32)
+    (Angle(stepped as i32), owed - rate)
 }
 
-/// Whether a figure owing `owed` turn may also move this frame.
+/// Whether the **body**, owing `owed` turn after this frame's turning, may also
+/// move this frame — `Guy::move`'s gate.
 ///
-/// The doubling wraps and the comparison is unsigned, both as in the original —
-/// which matters only for a turn rate large enough to overflow, but a rule that
-/// panics on an input the original accepts is not the same rule.
-pub const fn may_move_while_turning(owed: i32, rate: i32) -> bool {
-    (rate as u32).wrapping_mul(2) >= owed as u32
+/// The doubling wraps and the comparison is unsigned, both as in the original.
+/// That matters for the instant rate, which doubles to zero: an instant turner
+/// never owes anything, so the gate is open.
+pub const fn may_move_while_turning(owed: u32, rate: u32) -> bool {
+    rate.wrapping_mul(2) >= owed
 }
 
 /// The lowest speed `UnitData::get_speed` will report.
 ///
-/// Not decorative: an ordinary unit that is damaged and standing on slow ground
-/// is halved twice, and this is what stops it from stopping altogether.
+/// Not decorative: a land unit in contact with its target and standing on slow
+/// ground is halved twice, and this is what stops it from stopping altogether.
 pub const SPEED_FLOOR: i32 = 3;
 
-/// The effective speed of a unit in a group.
+/// The effective speed of a unit in a group — the cap `UnitData::get_speed`
+/// applies with flag 0, which is the **unit** step's call and never the body's.
 ///
 /// A unit in a group with no overriding order is limited to the group's speed,
 /// which is how a mixed army moves at the pace of its slowest member. A group
@@ -296,87 +413,237 @@ pub const fn group_capped(speed: i32, group_speed: i32) -> i32 {
     }
 }
 
-/// What one frame did to a figure.
+/// What one frame did to the unit.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Step {
     /// Where it ended the frame. Unchanged if it spent the frame turning.
     pub pos: Pos,
-    /// Which way it now faces.
+    /// Which way it now faces — after this frame's turn, which is also the
+    /// direction it stepped in.
     pub facing: Angle,
+    /// The angle to the destination. `Unit::set_angle` records it as the
+    /// body's desired facing, which is what the body turns to when idle.
+    pub heading: Angle,
     /// Turn still owed after this frame.
-    pub owed: i32,
-    /// Whether it reached the destination exactly.
+    pub owed: u32,
+    /// Whether it is now exactly on the destination.
     pub arrived: bool,
 }
 
-/// One frame of movement toward a destination — the original's `Guy::move`.
+/// One frame of the unit's movement toward a destination — the original's
+/// `Unit::move_step`, reached from `Unit::work → do_job → do_move`.
 ///
-/// The order is the interesting part, and none of it is what a fresh
-/// implementation would write:
+/// `step` is what `do_move` hands in: `get_speed` for the unit's square, times
+/// the modern-infantry 5/4 where it applies. **No 11/8** — that belongs to the
+/// body. `turn_rate` is [`turn_speed`] in [`TurnMode::Unit`].
 ///
-/// 1. Turn first. A figure owing more than **twice** its turn rate spends the
-///    whole frame turning and covers no ground, which is why heavy units feel
-///    sticky when told to reverse.
-/// 2. The step is `speed * 11/8` — a literal, so every speed in the game's data
-///    reads 27% low.
-/// 3. Arrival is a **Manhattan** test, so a diagonal approach snaps onto the
-///    destination from further out than an axis approach of the same true
-///    distance.
-/// 4. Otherwise take the trig components and **clamp each axis** so neither can
-///    overshoot. The clamps only ever reduce.
+/// The shape, none of which a fresh implementation would write:
 ///
-/// The original also subtracts a graphic pivot before adding the components and
-/// asks the world whether the result is passable. The pivot is presentation;
-/// the validity check belongs to the caller, which is why this returns the
-/// proposed position rather than committing it.
-pub fn advance(from: Pos, facing: Angle, dest: Pos, speed: i32, turn_rate: i32) -> Step {
+/// 1. Turn first, by the rate, snapping within it.
+/// 2. **Turn in place** — cover no ground — if still owing *any* turn within a
+///    tile of the destination (two tiles for a type slower than 20°), or if
+///    owing 45° or more further out (80° for a ship, aircraft or vehicle two
+///    tiles out or more).
+/// 3. Otherwise **walk at half speed** while still owing 45° (22.5° for a slow
+///    type).
+/// 4. Snap onto the destination if the Manhattan distance is within the step.
+/// 5. Otherwise take the trig components **along the new facing**, clamp each
+///    axis to what remains — only when within two steps, which is also the
+///    only time a clamp could fire — and propose that position.
+///
+/// The original also refuses a step outside the world, checks collision, and
+/// pops its path stack on arrival. The bounds check is the caller's, through
+/// `World::accepts`, which is why this returns a proposal; the rest is not
+/// modelled. Arrival is exact — `UnitData::tolerance` is zero unless the unit
+/// is giving up on a collision.
+pub fn move_step(
+    from: Pos,
+    facing: Angle,
+    dest: Pos,
+    step: i32,
+    turning: &Turning,
+    turn_rate: u32,
+) -> Step {
     let (dx, dy) = (dest.x - from.x, dest.y - from.y);
-    if dx == 0 && dy == 0 {
-        return Step {
-            pos: from,
-            facing,
-            owed: 0,
-            arrived: true,
-        };
-    }
-
     let heading = find_angle(dx, dy);
     let (facing, owed) = turn_towards(facing, heading, turn_rate);
-    if !may_move_while_turning(owed, turn_rate) {
-        return Step {
-            pos: from,
-            facing,
-            owed,
-            arrived: false,
+    let manh = dx.abs() + dy.abs();
+    let slow: i32 = if turning.type_turn_speed < SLOW_TURN_BELOW {
+        2
+    } else {
+        1
+    };
+
+    let standing = Step {
+        pos: from,
+        facing,
+        heading,
+        owed,
+        arrived: false,
+    };
+    if manh < slow * UNITS_PER_TILE {
+        // Close in, any turn still owed costs the frame.
+        if owed != 0 {
+            return standing;
+        }
+    } else {
+        let limit = if turning.wide_limit && manh >= slow * 2 * UNITS_PER_TILE {
+            EIGHTY
+        } else {
+            FORTY_FIVE
         };
+        if owed >= limit {
+            return standing;
+        }
     }
 
-    let step = step_distance(speed);
+    // Half a step while still turning hard. (The original also has a one-shot
+    // half step here, `unit_masks & 0x100000`, which collision sets; not
+    // modelled.)
+    let step = if owed >= FORTY_FIVE / slow as u32 {
+        step / 2
+    } else {
+        step
+    };
+
     if arrives(dx, dy, step) {
         return Step {
             pos: dest,
             facing,
+            heading,
             owed,
             arrived: true,
         };
     }
 
-    let mut sx = sin_component(heading, step);
-    let mut cy = cos_component(heading, step);
-    if sx.abs() > dx.abs() {
-        sx = dx;
+    // Along the facing the unit actually has after turning, not the heading it
+    // wants — a unit mid-turn walks where it is pointing.
+    let mut sx = sin_component(facing, step);
+    let mut cy = cos_component(facing, step);
+    if manh < 2 * step {
+        if sx.abs() > dx.abs() {
+            sx = dx;
+        }
+        if cy.abs() > dy.abs() {
+            cy = -dy;
+        }
     }
-    if cy.abs() > dy.abs() {
-        cy = -dy;
-    }
+    // y is subtracted: the cosine component points north and stored y runs
+    // south.
+    let pos = Pos::new(from.x + sx, from.y - cy);
     Step {
-        // y is subtracted: the cosine component points north and stored y runs
-        // south.
-        pos: Pos::new(from.x + sx, from.y - cy),
+        pos,
         facing,
+        heading,
         owed,
-        arrived: false,
+        arrived: pos == dest,
     }
+}
+
+/// The body: the figure drawn for the unit, chasing the unit's position.
+///
+/// `GuyData::x / y`, `last_speed` and `avg_speed` for guy 0. The position is
+/// presentation in the original too — nothing in the simulation reads it yet —
+/// but the two counters are what the unit's turn rate divides by and what
+/// makes a stopped unit turn instantly, so the body is modelled far enough to
+/// keep them honest. A unit placed by hand leaves its body where it was; it
+/// catches up at eleven eighths of the speed once the unit moves.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Body {
+    /// Where the body is.
+    pub pos: Pos,
+    /// How far it moved last frame; zero once it has caught up and stopped.
+    pub last_speed: i32,
+    /// A running average, three quarters old and one quarter new, each frame.
+    pub avg_speed: i32,
+}
+
+impl Body {
+    /// A body standing on its unit, stopped.
+    pub const fn at(pos: Pos) -> Body {
+        Body {
+            pos,
+            last_speed: 0,
+            avg_speed: 0,
+        }
+    }
+}
+
+/// What one frame did to the body.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BodyStep {
+    /// The body after the frame. Its `pos` is a proposal the caller checks
+    /// against the world.
+    pub body: Body,
+    /// The shared facing after the body's own turn.
+    pub facing: Angle,
+}
+
+/// One frame of the body chasing the unit — the original's `Guy::move` for
+/// guy 0, reached from `Guy::process` after the unit has stepped.
+///
+/// `des` is the unit's position, which `Unit::set_new_location` wrote into
+/// `des_x / des_y`; `des_angle` is the heading the last unit step recorded;
+/// `turned_this_frame` is whether the unit step changed the facing, which
+/// `do_turn` flags and the idle body respects. `turn_rate` is [`turn_speed`]
+/// in [`TurnMode::Body`].
+///
+/// - Standing on the unit: `last_speed` is zero, and if nothing turned the
+///   facing this frame it turns toward `des_angle`.
+/// - Otherwise turn toward the unit; owing more than twice the rate costs the
+///   frame and skips the average. Then the step is
+///   [`body_step_distance`]; snap within it by the Manhattan test, recording
+///   `vector_dist` as the speed; else take the components along the facing
+///   and clamp each axis — ungated, unlike the unit's.
+/// - Last, fold `last_speed` into the average.
+///
+/// The body's turn is toward where the unit actually went, which is along the
+/// facing the unit just stepped on, so for a moving unit it never moves the
+/// shared facing by more than the snap tolerance. It is modelled anyway: it is
+/// cheap, and it is what turns an idle body to a new desired angle.
+pub fn body_follow(
+    body: Body,
+    facing: Angle,
+    des: Pos,
+    des_angle: Angle,
+    turned_this_frame: bool,
+    speed: i32,
+    turn_rate: u32,
+) -> BodyStep {
+    let (dx, dy) = (des.x - body.pos.x, des.y - body.pos.y);
+    let mut next = body;
+    let mut facing = facing;
+    if dx == 0 && dy == 0 {
+        next.last_speed = 0;
+        if facing != des_angle && !turned_this_frame {
+            facing = turn_towards(facing, des_angle, turn_rate).0;
+        }
+    } else {
+        let heading = find_angle(dx, dy);
+        let (turned, owed) = turn_towards(facing, heading, turn_rate);
+        facing = turned;
+        if !may_move_while_turning(owed, turn_rate) {
+            return BodyStep { body, facing };
+        }
+        let step = body_step_distance(speed);
+        next.last_speed = step;
+        if arrives(dx, dy, step) {
+            next.last_speed = vector_dist(dx, dy);
+            next.pos = des;
+        } else {
+            let mut sx = sin_component(facing, step);
+            let mut cy = cos_component(facing, step);
+            if sx.abs() > dx.abs() {
+                sx = dx;
+            }
+            if cy.abs() > dy.abs() {
+                cy = -dy;
+            }
+            next.pos = Pos::new(body.pos.x + sx, body.pos.y - cy);
+        }
+    }
+    next.avg_speed = (next.avg_speed * 3 + next.last_speed) / 4;
+    BodyStep { body: next, facing }
 }
 
 #[cfg(test)]
@@ -384,6 +651,22 @@ mod tests {
     use super::*;
 
     const T: Tuning = Tuning::RON;
+
+    /// A Citizen: 45°, on foot, so it turns instantly from a stop.
+    const CITIZEN: Turning = Turning {
+        type_turn_speed: degrees_to_angle(45).0,
+        packed: false,
+        instant_from_stop: true,
+        wide_limit: false,
+    };
+
+    /// A slow type that does not turn instantly — a 10° siege piece.
+    const SIEGE: Turning = Turning {
+        type_turn_speed: degrees_to_angle(10).0,
+        packed: false,
+        instant_from_stop: false,
+        wide_limit: false,
+    };
 
     #[test]
     fn the_axes_are_exact_and_name_the_convention() {
@@ -397,6 +680,26 @@ mod tests {
         assert_eq!(Angle::SOUTH.quarter_turn(), Angle::WEST);
         // And a quarter turn from west wraps back to north.
         assert_eq!(Angle::WEST.quarter_turn(), Angle::NORTH);
+    }
+
+    #[test]
+    fn degrees_decompose_into_exact_pieces() {
+        // The quarter and eighth turns are exact by construction.
+        assert_eq!(degrees_to_angle(90), Angle::EAST);
+        assert_eq!(degrees_to_angle(45), Angle(0x2000_0000));
+        assert_eq!(degrees_to_angle(180), Angle::SOUTH);
+        assert_eq!(degrees_to_angle(270), Angle::WEST);
+        assert_eq!(degrees_to_angle(360), Angle::NORTH);
+        // One degree is the truncated constant.
+        assert_eq!(degrees_to_angle(1), Angle(ONE_DEGREE));
+        // Five degrees is five of those plus the three-unit correction; twenty
+        // is fifteen plus five, and lands one above the step's "slow" line,
+        // which is why a 20° type is not slow and a 19° one is.
+        assert_eq!(degrees_to_angle(5), Angle(5 * ONE_DEGREE + 3));
+        assert_eq!(degrees_to_angle(20), Angle(SLOW_TURN_BELOW + 1));
+        assert!(degrees_to_angle(19).0 < SLOW_TURN_BELOW);
+        // Non-multiples of the pieces still decompose: 75 = 45 + 30.
+        assert_eq!(degrees_to_angle(75), Angle(0x2000_0000 + 0x1555_5555));
     }
 
     #[test]
@@ -444,32 +747,33 @@ mod tests {
     }
 
     #[test]
-    fn a_step_is_eleven_eighths_of_the_quoted_speed() {
-        // A Citizen's MOVES is 25, so it actually covers 34 position units a
-        // frame — every speed in the game's data reads 27% low.
-        assert_eq!(step_distance(25), 34);
-        assert_eq!(step_distance(8), 11);
+    fn the_body_closes_at_eleven_eighths_of_the_speed() {
+        // A Citizen's MOVES is 25: the unit covers 25 a frame and its body
+        // closes on it at 34. (An earlier draft of this test had the 34 as the
+        // unit's own step; it is the body's.)
+        assert_eq!(body_step_distance(25), 34);
+        assert_eq!(body_step_distance(8), 11);
         // Truncating, not rounding.
-        assert_eq!(step_distance(1), 1);
-        assert_eq!(step_distance(0), 0);
+        assert_eq!(body_step_distance(1), 1);
+        assert_eq!(body_step_distance(0), 0);
     }
 
     #[test]
     fn arrival_is_a_manhattan_test_not_a_distance() {
         // Along an axis the two agree.
-        assert!(arrives(34, 0, 34));
-        assert!(!arrives(35, 0, 34));
-        // Diagonally they do not: 24,24 is 34 away by any real measure and 48
+        assert!(arrives(25, 0, 25));
+        assert!(!arrives(26, 0, 25));
+        // Diagonally they do not: 18,18 is 25 away by any real measure and 36
         // by this one, so the unit does *not* snap — it is further out than an
         // axis approach of the same true distance.
-        assert!(!arrives(24, 24, 34));
-        assert!(arrives(17, 17, 34));
+        assert!(!arrives(18, 18, 25));
+        assert!(arrives(12, 12, 25));
     }
 
     #[test]
     fn turning_takes_the_short_way_and_reports_what_is_owed() {
         let rate = 0x0800_0000;
-        // A hair off counts as facing, without moving the heading.
+        // A hair off counts as facing, and snaps onto the target.
         let (a, owed) = turn_towards(Angle::NORTH, Angle(0x0100_0000), rate);
         assert_eq!((a, owed), (Angle(0x0100_0000), 0));
         // Within one frame's turn, snap to the target.
@@ -483,22 +787,80 @@ mod tests {
         // quarters clockwise.
         let (a, _) = turn_towards(Angle::NORTH, Angle::WEST, rate);
         assert_eq!(a, Angle(-0x0800_0000));
+        // The instant rate snaps from anywhere, including a full reverse.
+        let (a, owed) = turn_towards(Angle::NORTH, Angle::SOUTH, INSTANT_TURN);
+        assert_eq!((a, owed), (Angle::SOUTH, 0));
     }
 
     #[test]
-    fn a_unit_owing_more_than_two_turns_stands_still() {
+    fn a_body_owing_more_than_two_turns_stands_still() {
         let rate = 0x0800_0000;
         assert!(may_move_while_turning(rate, rate));
         assert!(may_move_while_turning(rate * 2, rate));
         assert!(!may_move_while_turning(rate * 2 + 1, rate));
+        // The instant rate doubles to zero, which is fine because an instant
+        // turner never owes anything.
+        assert!(may_move_while_turning(0, INSTANT_TURN));
     }
 
     #[test]
-    fn packing_doubles_the_turn_rate() {
-        // The type's stored value is taken as an input: what its scale means is
-        // not established. See docs/MOVEMENT.md.
-        assert_eq!(turn_speed(&T, 16 << 8, false), 16);
-        assert_eq!(turn_speed(&T, 16 << 8, true), 32);
+    fn the_turn_rate_is_the_types_angle_with_its_low_byte_cleared() {
+        // UNIT_TURN_SPEED is 256, so `(angle >> 8) * 256` is the angle with
+        // the low eight bits gone. 45° is already clean; 10° loses 198.
+        assert_eq!(T.unit_turn_speed, 256);
+        assert_eq!(turn_speed(&T, &CITIZEN, 25, 0, TurnMode::Body), 0x2000_0000);
+        assert_eq!(
+            turn_speed(&T, &SIEGE, 25, 0, TurnMode::Body),
+            (degrees_to_angle(10).0 as u32) & !0xff
+        );
+        // Packing doubles it.
+        let packed = Turning {
+            packed: true,
+            ..CITIZEN
+        };
+        assert_eq!(turn_speed(&T, &packed, 25, 0, TurnMode::Body), 0x4000_0000);
+    }
+
+    #[test]
+    fn a_foot_unit_turns_instantly_from_a_stop_and_a_siege_piece_does_not() {
+        // The data file's own comment: "Foot & Mounted units turn instantly
+        // from a stopped position". `last_speed == 0` is "stopped".
+        assert_eq!(turn_speed(&T, &CITIZEN, 0, 0, TurnMode::Unit), INSTANT_TURN);
+        assert_eq!(turn_speed(&T, &CITIZEN, 0, 0, TurnMode::Body), INSTANT_TURN);
+        // Moving, it is back on the rate.
+        assert_ne!(
+            turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Unit),
+            INSTANT_TURN
+        );
+        // A type without the flag gets its base from a standstill.
+        assert_eq!(
+            turn_speed(&T, &SIEGE, 0, 0, TurnMode::Unit),
+            (degrees_to_angle(10).0 as u32) & !0xff
+        );
+    }
+
+    #[test]
+    fn a_moving_unit_turns_slower_the_faster_it_goes_down_to_a_degree() {
+        // Mode 0 divides by `avg_speed / 4 + 1`: a Citizen at full stride
+        // turns at 45°/7, a little over six degrees a frame.
+        assert_eq!(
+            turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Unit),
+            0x2000_0000 / 7
+        );
+        // The body does not slow down.
+        assert_eq!(
+            turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Body),
+            0x2000_0000
+        );
+        // The floor is one degree a frame, to the same precision as the base:
+        // a 5° type at a Citizen's pace would be 5°/7 and is held at 1°.
+        let slow = Turning {
+            type_turn_speed: degrees_to_angle(5).0,
+            ..SIEGE
+        };
+        let floor = 256 * 0xb60b;
+        assert_eq!(floor, (ONE_DEGREE as u32) & !0xff);
+        assert_eq!(turn_speed(&T, &slow, 25, 25, TurnMode::Unit), floor);
     }
 
     #[test]
@@ -539,16 +901,18 @@ mod tests {
 
     #[test]
     fn a_unit_walks_east_and_lands_exactly_on_its_destination() {
-        // Twelve tiles east at a Citizen's speed. The step is 34 position units
-        // a frame, so this takes a while and must not drift off the axis or
-        // overshoot at the end.
+        // Twelve tiles east at a Citizen's speed. The unit's step is its speed,
+        // 25 position units a frame — not 34, which is the body's — so this
+        // takes a while and must not drift off the axis or overshoot at the
+        // end.
         let start = Pos::new(0, 0);
         let dest = Pos::new(12 * 192, 0);
         let mut pos = start;
         let mut facing = Angle::EAST;
         let mut frames = 0;
         loop {
-            let step = advance(pos, facing, dest, 25, 0x0800_0000);
+            let rate = turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Unit);
+            let step = move_step(pos, facing, dest, 25, &CITIZEN, rate);
             pos = step.pos;
             facing = step.facing;
             frames += 1;
@@ -559,52 +923,111 @@ mod tests {
         }
         assert_eq!(pos, dest);
         assert_eq!(pos.y, 0, "drifted off the axis");
-        // 2304 units at 34 a frame is 68 frames, and the last one is the short
-        // one that lands on the destination.
-        assert_eq!(frames, 68);
+        // 2304 units at 25 a frame is 92 full steps and a short one, and the
+        // short one is the Manhattan snap onto the destination. (An earlier
+        // draft of this test expected 68, at the body's 34.)
+        assert_eq!(frames, 93);
     }
 
     #[test]
-    fn a_unit_turns_before_it_walks() {
-        // Facing east, told to go north: the first frames are spent turning and
-        // cover no ground at all.
-        let start = Pos::new(0, 0);
+    fn a_foot_unit_reverses_and_walks_on_the_same_frame() {
+        // Facing east, told to go west, stopped: the rate is instant, so it
+        // faces west and takes a full step in one frame. (An earlier draft of
+        // this module had every unit stand still for the turn; the original
+        // reserves that for types without the flag, or already moving.)
+        let rate = turn_speed(&T, &CITIZEN, 0, 0, TurnMode::Unit);
+        let s = move_step(
+            Pos::new(0, 0),
+            Angle::EAST,
+            Pos::new(-10_000, 0),
+            25,
+            &CITIZEN,
+            rate,
+        );
+        assert_eq!(s.facing, Angle::WEST);
+        assert_eq!(s.owed, 0);
+        assert_eq!(s.pos, Pos::new(-25, 0));
+    }
+
+    #[test]
+    fn a_siege_piece_turns_in_place_and_then_walks_where_it_points() {
+        // A 10° type, stopped, facing east and told to go north, with the
+        // destination well over two tiles away. Its rate from a standstill is
+        // its base, 10° less the low byte; it owes a quarter turn less that
+        // each frame, and may not move while owing 45° or more. That is four
+        // frames stood still; on the fifth it owes under 45° and walks — at
+        // half speed, because it still owes more than 22.5°, and along the
+        // facing it actually has, which is some forty degrees east of north.
         let dest = Pos::new(0, -10_000);
-        let rate = 0x0400_0000;
-        let first = advance(start, Angle::EAST, dest, 25, rate);
-        assert_eq!(first.pos, start, "moved while still turned away");
-        assert!(first.owed > rate * 2);
-        // Keep turning until it is within the gate, then it starts moving.
-        let mut s = first;
-        let mut turning = 1;
-        while s.pos == start {
-            s = advance(s.pos, s.facing, dest, 25, rate);
-            turning += 1;
-            assert!(turning < 40, "never got moving");
-        }
-        // A quarter turn at 1/64 of a circle a frame is 16 frames of turning,
-        // and it may start moving once it is within two frames of facing — so
-        // 14 frames stood still.
-        assert_eq!(turning, 14);
+        let mut pos = Pos::new(0, 0);
+        let mut facing = Angle::EAST;
+        let mut stood = 0;
+        let s = loop {
+            let rate = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Unit);
+            let s = move_step(pos, facing, dest, 25, &SIEGE, rate);
+            facing = s.facing;
+            if s.pos != pos {
+                break s;
+            }
+            pos = s.pos;
+            stood += 1;
+            assert!(stood < 40, "never got moving");
+        };
+        assert_eq!(stood, 4);
+        assert!(s.owed < FORTY_FIVE && s.owed >= FORTY_FIVE / 2);
+        // Half of 25 is 12, split between the two axes along the facing: it
+        // walks north *and* east, because the trig uses the facing after the
+        // turn and not the heading it wants.
         assert!(s.pos.y < 0, "moved the wrong way");
+        assert!(s.pos.x > 0, "walked along the heading, not the facing");
+        assert_eq!(s.pos.x.abs() + s.pos.y.abs(), 16, "not a half step");
     }
 
     #[test]
-    fn the_clamps_never_overshoot_the_destination() {
+    fn close_to_the_destination_any_turn_owed_costs_the_frame() {
+        // Within a tile — two for a slow type — the unit will not move while it
+        // owes anything at all, even a turn it could otherwise walk through.
+        let rate = turn_speed(&T, &SIEGE, 25, 25, TurnMode::Unit);
+        // 300 away: inside two tiles for a 10° type, so owing a few degrees is
+        // enough to stand.
+        let near = move_step(
+            Pos::new(0, 0),
+            Angle(0x0400_0000),
+            Pos::new(0, -300),
+            25,
+            &SIEGE,
+            rate,
+        );
+        assert!(near.owed != 0 && near.owed < FORTY_FIVE);
+        assert_eq!(near.pos, Pos::new(0, 0));
+        // The same owed turn two tiles out is walked through.
+        let far = move_step(
+            Pos::new(0, 0),
+            Angle(0x0400_0000),
+            Pos::new(0, -1000),
+            25,
+            &SIEGE,
+            rate,
+        );
+        assert_eq!(far.owed, near.owed);
+        assert_ne!(far.pos, Pos::new(0, 0));
+    }
+
+    #[test]
+    fn the_clamps_land_the_unit_exactly_and_that_counts_as_arrival() {
         // A diagonal short hop: the true distance is 141 and the step is 149,
-        // so a component would carry the figure past the destination on both
-        // axes — but the Manhattan sum is 200, so arrival does not fire and the
-        // clamps are what has to stop it.
+        // so a component would carry the unit past the destination on both
+        // axes — but the Manhattan sum is 200, so the snap does not fire and
+        // the clamps are what has to stop it. They are active because 200 is
+        // within two steps.
         let dest = Pos::new(100, -100);
-        let step = step_distance(109);
-        assert!(step > 141 && !arrives(100, -100, step));
-        let s = advance(Pos::new(0, 0), Angle::NORTH, dest, 109, 0x4000_0000);
-        assert!(s.pos.x <= dest.x, "overshot x: {:?}", s.pos);
-        assert!(s.pos.y >= dest.y, "overshot y: {:?}", s.pos);
-        // Both clamps fire, so it lands exactly on the destination without the
-        // arrival test ever having said so.
+        assert!(!arrives(100, -100, 149));
+        let rate = turn_speed(&T, &CITIZEN, 0, 0, TurnMode::Unit);
+        let s = move_step(Pos::new(0, 0), Angle::NORTH, dest, 149, &CITIZEN, rate);
+        // Both clamps fire, so it lands exactly on the destination — and with
+        // a zero tolerance that is arrival, even though the snap never said so.
         assert_eq!(s.pos, dest);
-        assert!(!s.arrived);
+        assert!(s.arrived);
     }
 
     #[test]
@@ -616,5 +1039,99 @@ mod tests {
         // The floor bites after two halvings of an already slow unit.
         assert_eq!(group_capped(2, 0), SPEED_FLOOR);
         assert_eq!(group_capped(25, 1), SPEED_FLOOR);
+    }
+
+    #[test]
+    fn the_body_catches_the_unit_and_keeps_the_counters() {
+        // The unit stepped 25 east; the body, a step behind, closes at 34 and
+        // snaps, recording the distance it actually covered.
+        let rate = turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Body);
+        let b = body_follow(
+            Body::at(Pos::new(0, 0)),
+            Angle::EAST,
+            Pos::new(25, 0),
+            Angle::EAST,
+            false,
+            25,
+            rate,
+        );
+        assert_eq!(b.body.pos, Pos::new(25, 0));
+        assert_eq!(b.body.last_speed, 25);
+        assert_eq!(b.body.avg_speed, 6);
+        assert_eq!(b.facing, Angle::EAST);
+        // Standing on the unit, the speed is zero and the average decays.
+        let idle = body_follow(
+            Body {
+                pos: Pos::new(25, 0),
+                last_speed: 25,
+                avg_speed: 25,
+            },
+            Angle::EAST,
+            Pos::new(25, 0),
+            Angle::EAST,
+            false,
+            25,
+            rate,
+        );
+        assert_eq!(idle.body.last_speed, 0);
+        assert_eq!(idle.body.avg_speed, 18);
+    }
+
+    #[test]
+    fn a_body_far_behind_walks_at_eleven_eighths_and_clamps() {
+        // Forty east of the unit: 34 is not enough to snap, so it steps 34 along
+        // its facing.
+        let rate = turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Body);
+        let b = body_follow(
+            Body::at(Pos::new(0, 0)),
+            Angle::EAST,
+            Pos::new(40, 0),
+            Angle::EAST,
+            false,
+            25,
+            rate,
+        );
+        assert_eq!(b.body.pos, Pos::new(34, 0));
+        assert_eq!(b.body.last_speed, 34);
+        // Diagonally the per-axis clamps stop it short of overshooting either
+        // leg even when the Manhattan sum does not allow a snap.
+        let b = body_follow(
+            Body::at(Pos::new(0, 0)),
+            find_angle(20, -20),
+            Pos::new(20, -20),
+            Angle::NORTH,
+            false,
+            25,
+            rate,
+        );
+        assert_eq!(b.body.pos, Pos::new(20, -20));
+    }
+
+    #[test]
+    fn an_idle_body_turns_to_its_desired_angle_unless_the_unit_just_turned() {
+        let rate = turn_speed(&T, &SIEGE, 0, 25, TurnMode::Body);
+        let at = Body::at(Pos::new(0, 0));
+        let b = body_follow(
+            at,
+            Angle::NORTH,
+            Pos::new(0, 0),
+            Angle::EAST,
+            false,
+            25,
+            rate,
+        );
+        assert_eq!(b.facing, Angle(rate as i32));
+        // If the unit step already turned the shared facing this frame, the
+        // body leaves it alone.
+        let b = body_follow(
+            at,
+            Angle::NORTH,
+            Pos::new(0, 0),
+            Angle::EAST,
+            true,
+            25,
+            rate,
+        );
+        assert_eq!(b.facing, Angle::NORTH);
     }
 }

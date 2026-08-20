@@ -63,12 +63,21 @@ fn wagon_at(sim: &mut Sim, owner: Player, index: i16, c: Cell) -> usize {
     sim.add_unit(w)
 }
 
-/// Gives a unit a Citizen's speed and a turn rate quick enough that turning is
-/// not what the test is measuring.
+/// A Citizen's turning: 45° a frame, on foot, so it turns instantly from a
+/// standstill and turning is not what any test here is measuring.
+const CITIZEN_TURNING: movement::Turning = movement::Turning {
+    type_turn_speed: movement::degrees_to_angle(45).0,
+    packed: false,
+    instant_from_stop: true,
+    wide_limit: false,
+};
+
+/// Gives a unit a Citizen's speed and turning, facing a given way.
 fn make_mobile(sim: &mut Sim, unit: usize, facing: movement::Angle) {
-    sim.units[unit].movement.speed = 25;
-    sim.units[unit].movement.turn_rate = 0x0800_0000;
-    sim.units[unit].movement.facing = facing;
+    let m = &mut sim.units[unit].movement;
+    m.speed = 25;
+    m.turning = CITIZEN_TURNING;
+    m.set_facing(facing);
 }
 
 /// Runs `frames` frames and returns every attrition tick that happened.
@@ -410,9 +419,11 @@ fn a_unit_ordered_over_the_border_walks_in_and_starts_bleeding() {
     make_mobile(&mut sim, u, movement::Angle::EAST);
     sim.order_move(u, target);
 
-    // It crosses at about frame 23, but the period is only refreshed every 32
-    // frames and the first bleed then waits for the 48-frame grid — so nothing
-    // happens for the first 40 frames even though it is already inside.
+    // The border is 384 units east, and the unit covers 25 a frame — its
+    // quoted speed, not the body's 34 — so it crosses on its sixteenth step.
+    // But the period is only refreshed every 32 frames and the first bleed
+    // then waits for the 48-frame grid, so nothing happens for the first 40
+    // frames even though it is already inside.
     let early = run(&mut sim, 40);
     assert!(early.is_empty(), "bled sooner than the cadence allows");
     assert_eq!(
@@ -468,16 +479,19 @@ fn walking_out_does_not_stop_the_bleeding_until_the_next_refresh() {
     // the next refresh. With movement wired in that is finally testable end to
     // end rather than by teleporting a unit between frames.
     //
-    // From the middle of cell 10, walking west: it leaves hostile ground around
-    // frame 34, the refresh that would clear the period is not until 64, and
-    // the 48-frame bleed grid fires at 48 — in the gap.
+    // From the middle of cell 10, walking west at 25 a frame: the border is
+    // 1152 units away, so it leaves hostile ground on its 47th step, the
+    // refresh that would clear the period is not until 64, and the 48-frame
+    // bleed grid fires at 48 — in the gap. (At the body's 34 a frame, which an
+    // earlier draft used for the unit, it was out by 34.) It reaches the
+    // middle of cell 8, 1536 units, on its 62nd.
     let mut sim = skirmish(1);
     let safe = centre_of(Cell::new(8, 0));
     let u = sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(10, 0)), 200));
     make_mobile(&mut sim, u, movement::Angle::WEST);
     sim.order_move(u, safe);
 
-    let ticks = run(&mut sim, 56);
+    let ticks = run(&mut sim, 63);
     assert_eq!(sim.units[u].pos, safe, "never got clear");
     assert_eq!(
         sim.world.owner_at(sim.units[u].pos),
@@ -496,6 +510,40 @@ fn walking_out_does_not_stop_the_bleeding_until_the_next_refresh() {
     let after = run(&mut sim, 200);
     assert!(after.is_empty(), "still bleeding on safe ground: {after:?}");
     assert_eq!(sim.units[u].attrition, 0);
+}
+
+#[test]
+fn a_citizen_reverses_on_the_spot_and_its_body_keeps_up() {
+    // The two-position model end to end. A foot unit standing still turns
+    // instantly, so a unit facing east and sent west covers a full 25 on the
+    // first frame; its body, a step behind, closes at 34 and is back on the
+    // unit by the end of the same frame, every frame, so the unit never stops
+    // being "moving" until it arrives — and then its average speed decays
+    // until it is stopped again and can turn instantly once more.
+    let mut sim = skirmish(1);
+    let start = centre_of(Cell::new(4, 0));
+    let u = sim.add_unit(Unit::new(0, 0, start, 200));
+    make_mobile(&mut sim, u, movement::Angle::EAST);
+    sim.order_move(u, centre_of(Cell::new(3, 0)));
+
+    sim.tick();
+    let m = sim.units[u].movement;
+    assert_eq!(m.facing, movement::Angle::WEST);
+    assert_eq!(sim.units[u].pos, Pos::new(start.x - 25, start.y));
+    assert_eq!(m.body.pos, sim.units[u].pos, "body fell behind");
+    assert_eq!(m.body.last_speed, 25);
+
+    // Thirty more frames is well past the 768-unit walk (31 steps in all); the
+    // body is on the unit, last_speed has gone to zero and the average is
+    // draining.
+    run(&mut sim, 30);
+    assert_eq!(sim.units[u].pos, centre_of(Cell::new(3, 0)));
+    assert_eq!(sim.units[u].movement.dest, None);
+    run(&mut sim, 5);
+    let m = sim.units[u].movement;
+    assert_eq!(m.body.pos, sim.units[u].pos);
+    assert_eq!(m.body.last_speed, 0);
+    assert!(m.body.avg_speed < 25 && m.body.avg_speed > 0);
 }
 
 #[test]

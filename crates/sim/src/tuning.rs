@@ -166,7 +166,11 @@ pub struct Tuning {
     pub artillery_under_attack_fires_slowly: i32,
 
     // ---- movement ----
-    /// Master scale on every unit's turn rate.
+    /// Master scale on every unit's turn rate, as 8.8 fixed point. The file
+    /// writes `1/1 rate` and `Constants::init` reads it with
+    /// `get_fraction(name, 0x100)`, so it is 256 here — which is what makes
+    /// `(type.turn_speed >> 8) * UNIT_TURN_SPEED` the type's angle with its
+    /// low byte cleared, and `UNIT_TURN_SPEED * 0xb60b` one degree.
     pub unit_turn_speed: i32,
     /// Multiplier on the turn rate of a packed unit.
     pub unit_pack_turn_bonus: i32,
@@ -376,7 +380,7 @@ impl Tuning {
         versailles_supply_heal_rate: 20,
         artillery_under_attack_fires_slowly: 1,
 
-        unit_turn_speed: 1,
+        unit_turn_speed: 256,
         unit_pack_turn_bonus: 2,
 
         gather_rate: 450,
@@ -540,7 +544,7 @@ impl Tuning {
                 "ARTILLERY_UNDER_ATTACK_FIRES_SLOWLY",
                 Slot::Value(T.artillery_under_attack_fires_slowly),
             ),
-            ("UNIT_TURN_SPEED", Slot::Value(T.unit_turn_speed)),
+            ("UNIT_TURN_SPEED", Slot::Ratio256(T.unit_turn_speed)),
             ("UNIT_PACK_TURN_BONUS", Slot::Value(T.unit_pack_turn_bonus)),
             ("GATHER_RATE", Slot::Value(T.gather_rate)),
             ("REFINERY_BONUS", Slot::Value(T.refinery_bonus)),
