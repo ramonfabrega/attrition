@@ -43,6 +43,11 @@ pub enum Slot {
     /// away, with `get_fraction(name, 0x100)`. Nothing in the written value
     /// distinguishes them; only the loader does. See `docs/PRODUCTION.md`.
     Ratio100(i32),
+    /// A constant the engine loads through `get_fraction(name, 0xc0)` — a
+    /// length in position units, 192 to the tile — held here already scaled:
+    /// `1/2 tile` in the file is 96 here. Combat's `TARGET_RADIUS` is the one
+    /// so far; see `docs/COMBAT.md`.
+    Ratio192(i32),
 }
 
 /// Everything the attrition, territory and supply passes read.
@@ -407,6 +412,57 @@ pub struct Tuning {
     pub americans_free_science: i32,
     /// Persians: start with Despotism. Ships off.
     pub persians_despotism: i32,
+
+    // ---- combat (`docs/COMBAT.md`) ----
+    /// Percent per level of flank; the rear is one level, the sides two.
+    pub flank_bonus: i32,
+    /// A mounted attacker's flank bonus as a fraction of the base — consumed
+    /// `>> 8`, so the shipped `40` is 40/256 of it.
+    pub cavalry_flank_bonus: i32,
+    /// The same for a VEHICLE attacker.
+    pub vehicle_flank_bonus: i32,
+    /// 8.8: damage to light, modern and musket infantry on rocky ground.
+    pub rocky_modifier: i32,
+    /// The focus-fire window, in frames.
+    pub overkill_frames: i32,
+    /// 8.8: a second ranged squad's damage inside the window.
+    pub overkill_damage: i32,
+    /// 8.8: damage to an entrenched unit from its front, or from splash.
+    pub entrenchment_modifier: i32,
+    /// 8.8: damage to a unit standing in a river.
+    pub river_modifier: i32,
+    /// 8.8: damage to a city by its original owner.
+    pub recapture_city_modifier: i32,
+    /// Height units per increment of the height bonus.
+    pub height_increment: i32,
+    /// Percent per increment.
+    pub height_bonus: i32,
+    /// The combat table's age bonus, percent, by age difference.
+    pub one_age_down: i32,
+    pub two_ages_down: i32,
+    pub three_ages_down: i32,
+    pub four_ages_down: i32,
+    pub five_ages_down: i32,
+    /// The calibration of target sizes for projectile scatter, position units.
+    pub target_radius: i32,
+    /// Percent less damage to the Red Fort from aircraft.
+    pub red_fort_air_defense: i32,
+    /// The Japanese barracks bonus; negative means "per age".
+    pub japanese_damage: i32,
+    /// Percent bonus for stable units against siege and supply.
+    pub russian_cossack_damage: i32,
+    /// Added to the damage of units under Wellington against factory units.
+    pub wellington_siege_attack: i32,
+    /// 8.8: entrenchment under Antipater.
+    pub antipater_entrench_bonus: i32,
+    /// Whether the Supercollider is immune to aircraft.
+    pub super_immune: i32,
+    /// How far, in tiles, an idle unit looks for something to attack.
+    pub unit_respond_range: i32,
+    /// The same in the DEFENSIVE stance.
+    pub unit_defensive_respond_range: i32,
+    /// The same for a guard.
+    pub unit_guard_respond_range: i32,
 }
 
 impl Tuning {
@@ -575,6 +631,32 @@ impl Tuning {
         roman_free_military: 1,
         americans_free_science: 0,
         persians_despotism: 0,
+        flank_bonus: 50,
+        cavalry_flank_bonus: 40,
+        vehicle_flank_bonus: 33,
+        rocky_modifier: 170,
+        overkill_frames: 30,
+        overkill_damage: 85,
+        entrenchment_modifier: 170,
+        river_modifier: 512,
+        recapture_city_modifier: 512,
+        height_increment: 200,
+        height_bonus: 10,
+        one_age_down: 15,
+        two_ages_down: 20,
+        three_ages_down: 50,
+        four_ages_down: 60,
+        five_ages_down: 70,
+        target_radius: 96,
+        red_fort_air_defense: 33,
+        japanese_damage: -5,
+        russian_cossack_damage: 25,
+        wellington_siege_attack: 1,
+        antipater_entrench_bonus: 204,
+        super_immune: 0,
+        unit_respond_range: 12,
+        unit_defensive_respond_range: 4,
+        unit_guard_respond_range: 8,
     };
 
     /// Every value in [`Tuning::RON`] that comes from a named constant in
@@ -583,7 +665,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 147] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 173] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -901,6 +983,53 @@ impl Tuning {
                 Slot::Value(T.americans_free_science),
             ),
             ("PERSIANS_DESPOTISM", Slot::Value(T.persians_despotism)),
+            ("FLANK_BONUS", Slot::Value(T.flank_bonus)),
+            ("CAVALRY_FLANK_BONUS", Slot::Value(T.cavalry_flank_bonus)),
+            ("VEHICLE_FLANK_BONUS", Slot::Value(T.vehicle_flank_bonus)),
+            ("ROCKY_MODIFIER", Slot::Ratio256(T.rocky_modifier)),
+            ("OVERKILL_FRAMES", Slot::Value(T.overkill_frames)),
+            ("OVERKILL_DAMAGE", Slot::Ratio256(T.overkill_damage)),
+            (
+                "ENTRENCHMENT_MODIFIER",
+                Slot::Ratio256(T.entrenchment_modifier),
+            ),
+            ("RIVER_MODIFIER", Slot::Ratio256(T.river_modifier)),
+            (
+                "RECAPTURE_CITY_MODIFIER",
+                Slot::Ratio256(T.recapture_city_modifier),
+            ),
+            ("HEIGHT_INCREMENT", Slot::Value(T.height_increment)),
+            ("HEIGHT_BONUS", Slot::Value(T.height_bonus)),
+            ("ONE_AGE_DOWN", Slot::Value(T.one_age_down)),
+            ("TWO_AGES_DOWN", Slot::Value(T.two_ages_down)),
+            ("THREE_AGES_DOWN", Slot::Value(T.three_ages_down)),
+            ("FOUR_AGES_DOWN", Slot::Value(T.four_ages_down)),
+            ("FIVE_AGES_DOWN", Slot::Value(T.five_ages_down)),
+            ("TARGET_RADIUS", Slot::Ratio192(T.target_radius)),
+            ("RED_FORT_AIR_DEFENSE", Slot::Value(T.red_fort_air_defense)),
+            ("JAPANESE_DAMAGE", Slot::Value(T.japanese_damage)),
+            (
+                "RUSSIAN_COSSACK_DAMAGE",
+                Slot::Value(T.russian_cossack_damage),
+            ),
+            (
+                "WELLINGTON_SIEGE_ATTACK",
+                Slot::Value(T.wellington_siege_attack),
+            ),
+            (
+                "ANTIPATER_ENTRENCH_BONUS",
+                Slot::Ratio256(T.antipater_entrench_bonus),
+            ),
+            ("SUPER_IMMUNE", Slot::Value(T.super_immune)),
+            ("UNIT_RESPOND_RANGE", Slot::Value(T.unit_respond_range)),
+            (
+                "UNIT_DEFENSIVE_RESPOND_RANGE",
+                Slot::Value(T.unit_defensive_respond_range),
+            ),
+            (
+                "UNIT_GUARD_RESPOND_RANGE",
+                Slot::Value(T.unit_guard_respond_range),
+            ),
         ]
     }
 }

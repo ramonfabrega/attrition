@@ -34,8 +34,11 @@
 //! only add rounding the original does not have.
 
 pub mod attrition;
+pub mod balance;
+pub mod combat;
 pub mod cost;
 pub mod economy;
+pub mod fight;
 pub mod movement;
 pub mod production;
 pub mod supply;
@@ -108,6 +111,13 @@ pub struct Unit {
     pub sheltered: bool,
     /// Where it is going and how fast it gets there.
     pub movement: Movement,
+    /// Its type, as an index into [`Sim::unit_types`], if it has one. A unit
+    /// without a type has no combat profile and neither attacks nor is worth
+    /// anything to a target search; attrition and movement do not need it.
+    pub ty: Option<usize>,
+    /// What combat keeps on the unit: the reload counter, the target, the
+    /// overkill record. See `docs/COMBAT.md`.
+    pub combat: combat::State,
 }
 
 /// What a unit needs in order to move.
@@ -187,6 +197,9 @@ pub struct UnitType {
     /// The time half of the same record — `JOB_TIME`, `JOB_EXTRA_TIME` and
     /// `RESEARCH_PREMIUM_TIME`. See `docs/PRODUCTION.md`.
     pub times: production::Times,
+    /// The combat columns and derived bits — `docs/COMBAT.md` §2.1. A
+    /// default profile has zero attack and is neither target nor threat.
+    pub combat: combat::Profile,
     /// This type's entry in [`Sim::tech_tree`], if it has one. With it,
     /// queueing is gated by `type_avail` and the first completion goes
     /// through `gain_tech` — predecessors become owned and obsolete, free
@@ -280,6 +293,11 @@ impl Unit {
             ignores_supply: false,
             sheltered: false,
             movement: Movement::at(pos),
+            ty: None,
+            combat: combat::State {
+                captain: i32::from(index),
+                ..combat::State::default()
+            },
         }
     }
 
@@ -339,6 +357,20 @@ pub struct Sim {
     /// One per player: the tech bits and counters — `LeaderData::tech`,
     /// `ages`, `epochs`, `epoch[4]`.
     pub tech: Vec<tech::PlayerTech>,
+    /// The combat table — `docs/COMBAT.md` §5 — over [`Sim::unit_types`]
+    /// ids. [`combat::Table::uniform`] until something builds one.
+    pub table: combat::Table,
+    /// The game's random stream, `game_random`. Combat draws from it for
+    /// projectile scatter and the one-in-five retarget roll.
+    pub rng: combat::Rng,
+    /// Ammo in flight.
+    pub projectiles: Vec<combat::Projectile>,
+    /// One per player: the nation, wonder and patriot layer of the damage
+    /// formula, as inputs.
+    pub mods: Vec<combat::Modifiers>,
+    /// Every delivery of damage so far, newest last. Tests read it; nothing
+    /// in the simulation does.
+    pub hits: Vec<combat::Hit>,
     pub frame: i64,
 }
 
@@ -362,6 +394,28 @@ pub struct Building {
     /// is no building-type system here yet; this flag is the smallest honest
     /// stand-in for the one test production needs.
     pub is_library: bool,
+    /// Its combat columns — `None` for a building that neither shoots nor is
+    /// shot at. A building with a profile has hit points and can die.
+    pub combat: Option<combat::Profile>,
+    /// The hit points it was built with and what it has left, whole and in
+    /// sixteenths, the way a unit carries them.
+    pub hits: i32,
+    pub health: i32,
+    pub damage_frac: i32,
+    /// `WallData::is_active` — finished; an unfinished building takes
+    /// quadruple from other buildings and loses progress when hit.
+    pub active: bool,
+    /// The garrison's contribution to `get_garrison_arrows` — the sum of
+    /// `attack / 10` over the foot soldiers inside, an input until there is a
+    /// garrison.
+    pub garrison_attack: i32,
+    /// `BuildData::recharging`, `attack_ox/attack_whom`, the explicit-order
+    /// flag.
+    pub recharging: i32,
+    pub target: Option<combat::Obj>,
+    pub ordered: bool,
+    /// `ObjectData::targeted`.
+    pub targeted: i32,
 }
 
 /// A unit that came out of a queue this frame.
@@ -409,6 +463,11 @@ impl Sim {
             muster: vec![Muster::new(&tuning); players],
             redirects: cost::Redirects::RON,
             buildings: Vec::new(),
+            table: combat::Table::uniform(0),
+            rng: combat::Rng::new(0),
+            projectiles: Vec::new(),
+            mods: vec![combat::Modifiers::default(); players],
+            hits: Vec::new(),
             tuning,
             world,
             frame: 0,
@@ -428,6 +487,7 @@ impl Sim {
         self.holdings.push(economy::Holdings::new());
         self.ledgers.push(economy::Ledger::starting(&self.tuning));
         self.muster.push(Muster::new(&self.tuning));
+        self.mods.push(combat::Modifiers::default());
         for row in &mut self.at_war {
             row.push(false);
         }
@@ -472,6 +532,17 @@ impl Sim {
         let groups = ty.group.map_or(0, |g| g + 1);
         let tree = ty.tree;
         self.unit_types.push(ty);
+        // The combat table grows with the type space, at 100 until a
+        // builder fills the new row and column.
+        if self.table.width() < self.unit_types.len() {
+            let mut grown = combat::Table::uniform(self.unit_types.len());
+            for a in 0..self.table.width() {
+                for b in 0..self.table.width() {
+                    grown.set(a, b, self.table.pct(a, b));
+                }
+            }
+            self.table = grown;
+        }
         for (who, m) in self.muster.iter_mut().enumerate() {
             m.by_type.push(0);
             m.queued_by_type.push(0);
@@ -543,6 +614,16 @@ impl Sim {
             pos,
             queue: production::Queue::new(capacity),
             is_library: false,
+            combat: None,
+            hits: 0,
+            health: 0,
+            damage_frac: 0,
+            active: true,
+            garrison_attack: 0,
+            recharging: 0,
+            target: None,
+            ordered: false,
+            targeted: 0,
         });
         self.buildings.len() - 1
     }
@@ -893,6 +974,7 @@ impl Sim {
         let index = i16::try_from(self.units.len()).unwrap_or(i16::MAX);
         let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
         unit.kind = self.unit_types[ty].kind;
+        unit.ty = Some(ty);
         let at = self.add_unit(unit);
         self.economy_changed(who);
         Ok(at)
@@ -1018,10 +1100,21 @@ impl Sim {
         // does whenever the building's index is the lower of the two — and it
         // is, for a building that existed before the unit it just made.
         self.process_queues();
+        // A building that shoots does so from `Build::process`, which in the
+        // original interleaves with the units by index; here the buildings
+        // go first, as they do for the queues.
+        for b in 0..self.buildings.len() {
+            self.process_building_combat(b, frame);
+        }
 
         for i in 0..self.units.len() {
             if !self.units[i].alive() || !self.units[i].on_map {
                 continue;
+            }
+            // `Unit::process` begins by counting the reload down, before
+            // anything else the unit does this frame.
+            if self.units[i].combat.recharging > 0 {
+                self.units[i].combat.recharging -= 1;
             }
             // Attrition first, movement second. That is the order inside
             // `Unit::process`, and it is observable: a unit that steps over a
@@ -1032,8 +1125,20 @@ impl Sim {
             if let Some(tick) = self.process_attrition(i, frame) {
                 events.push(tick);
             }
+            if !self.units[i].alive() {
+                continue;
+            }
+            // Then the order: an attack order runs `Unit::fight`, an idle unit
+            // thinks about finding one. `docs/COMBAT.md` §8.
+            self.process_unit_combat(i, frame);
+            if !self.units[i].alive() {
+                continue;
+            }
             self.process_movement(i);
         }
+        // Ammo after every object — `Objects::inc_time` runs the ammo list
+        // after `process_all`.
+        self.process_projectiles(frame);
         self.frame += 1;
         events
     }

@@ -78,6 +78,17 @@ pub fn drift(rules: &Rules) -> Vec<Drift> {
                     });
                 }
             }
+            Slot::Ratio192(ours) => {
+                // `get_fraction(name, 0xc0)`: a length in position units.
+                let theirs = rules.constant(name).map(|s| s.fraction(192));
+                if theirs != Some(ours) {
+                    out.push(Drift {
+                        name,
+                        ours: ours.to_string(),
+                        theirs: theirs.map(|v| v.to_string()),
+                    });
+                }
+            }
             Slot::Entries256(ours) => {
                 let theirs: Option<Vec<i32>> = rules
                     .constant_entries(name)

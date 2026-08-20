@@ -390,6 +390,40 @@ separate records selected by mask.
 
 ---
 
+### The combat columns, and `balance.xml` (2026-08-20)
+
+`docs/COMBAT.md` §2.1 has the full table; the facts a reader of the data needs:
+
+- **`ATTACK` is stored ×10.** `UnitType::init` does `attack = number × 10`,
+  and every attack bonus in the engine is added as `N × 10`. The displayed
+  value is the file's; the arithmetic is in tenths, and the damage formula
+  divides by ten at the end (`(base + 5) / 10 − armour`).
+- **`OBJ_MASK` is a string of letters.** Upper-cased; each letter `A`–`Z` sets
+  bit `c − 'A'`, each digit `1`–`9` sets bit `c − 0x17` (so `1`–`6` are bits
+  26–31). The legend — which bit means what — is not in `unitrules.xml`; it is
+  in the row names of `balance.xml` (`Flag_A_OBJMASK_ARMORED` …
+  `Flag_6_OBJMASK_ANTI_AIR`), and `docs/COMBAT.md` §3 lists it. `FLAGS` uses
+  the same encoding lower-cased (`a`–`z`, bits 0–25); `r` is `is_siege`.
+- **`RANGE` is `min-max`**, split at the `-`; no `-` means `max = min`. A
+  cavalry-archer type (`FLAGS` `k`) has its maximum moved to
+  `second_max_range` and its `max_range` zeroed at load.
+- **`TARGET_SIZE` is multiplied by `UNIT_BLOCK_RADIUS`** at load;
+  `SPLASH_AREA`, `SPLASH_PERCENT`, `AMMO_PER_ATT`, `RECHARGE`, `ARMOR`,
+  `HITS`, `TO_HIT` (default −1), `ATTENUATE` (absolute value) are plain;
+  `PROJ_SPEED` defaults to 200 for a ranged type that lacks it.
+- **`data/balance.xml`** is `<ROOT><TABLE><ENTRY name="row" col="pct" …/>`:
+  291 rows in the shipped file, each with the same 291 attributes. The
+  engine's category space is 399 names — the 352 unit types by table index
+  (their `<NAME>` with spaces as underscores and apostrophes dropped), then
+  `SIEGE FORTS TOWERS CITIES OBSPOST BUILDINGS UNITS AGE_0…AGE_7` and the 32
+  `Flag_X_OBJMASK_…` rows — and a row or attribute the file lacks is 100. It
+  is read by *name* (`ENTRY[@name="…"]`), unlike the rules tables, so a row
+  whose name matches no category is silently dead — the shipped file has four
+  (`Pathfinder`, `Pioneer`, `Ranger`, `Marines`, units renamed since). `cargo
+  run -p rondata` checks the rows come in the generated order and lists the
+  dead ones. What the table is for, and how the engine multiplies it into the
+  combat table, is `docs/COMBAT.md` §5.
+
 ## BHS — the scripting language
 
 `game/ai/scripts/` holds three files: `aibestbuildlibrary.bhs`,

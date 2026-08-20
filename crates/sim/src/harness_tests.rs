@@ -625,6 +625,7 @@ fn citizen_type() -> UnitType {
         kind: attrition::UnitKind::default(),
         group: None,
         hits: 40,
+        combat: combat::Profile::default(),
         times: production::Times {
             job_time: 50,
             // `2` through `String::fraction(s, 0x100)`.
@@ -1173,4 +1174,538 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
         assert!(frames < 1000);
     }
     assert_eq!(sim.muster[0].by_type[phalanx], 1);
+}
+
+// ---------------------------------------------------------------------------
+// Combat — `docs/COMBAT.md`
+// ---------------------------------------------------------------------------
+
+use crate::combat::{self, Obj, Stance, mask};
+use crate::world::vector_dist;
+
+/// An arena: two players at war on open land, nobody's territory.
+fn arena() -> Sim {
+    let mut world = World::new(16, 16);
+    world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
+    let mut sim = Sim::new(Tuning::RON, world, 2);
+    sim.declare_war(0, 1);
+    sim
+}
+
+/// A melee type: 12 attack, 3 armour, 90 hits, reload 20 frames.
+fn hoplite_type() -> UnitType {
+    UnitType {
+        hits: 90,
+        combat: combat::Profile {
+            attack: 120,
+            armor: 3,
+            recharge: 20,
+            obj_masks: mask::FOOT | mask::HEAVY_INF | mask::MELEE,
+            uber_size: 1,
+            ammo_per_att: 1,
+            block_radius: 24,
+            big_radius: 48,
+            target_size: 48,
+            guy_radius: 24,
+            combat_role: true,
+            cost: 60,
+            to_hit: -1,
+            ..combat::Profile::default()
+        },
+        ..citizen_type()
+    }
+}
+
+/// A ranged type: 6 attack, 1 armour, 60 hits, range 5, reload 30, 80 % to
+/// hit less 1 % a tile, arrows at 200 a frame.
+fn archer_type() -> UnitType {
+    UnitType {
+        hits: 60,
+        combat: combat::Profile {
+            attack: 60,
+            armor: 1,
+            recharge: 30,
+            max_range: 5,
+            to_hit: 80,
+            attenuate: -1,
+            proj_speed: 200,
+            obj_masks: mask::FOOT | mask::FOOT_ARCHER | mask::ARCHERY,
+            uber_size: 1,
+            ammo_per_att: 1,
+            block_radius: 24,
+            big_radius: 48,
+            target_size: 48,
+            guy_radius: 24,
+            combat_role: true,
+            cost: 70,
+            ..combat::Profile::default()
+        },
+        ..citizen_type()
+    }
+}
+
+/// Places a unit of a type for a player at a position, facing a way.
+fn combatant(sim: &mut Sim, owner: Player, ty: usize, at: Pos, facing: movement::Angle) -> usize {
+    let index = i16::try_from(sim.units.len()).unwrap();
+    let hits = sim.unit_types[ty].hits;
+    let mut u = Unit::new(owner, index, at, hits);
+    u.ty = Some(ty);
+    let i = sim.add_unit(u);
+    make_mobile(sim, i, facing);
+    i
+}
+
+fn hits_on(sim: &Sim, target: usize) -> Vec<&combat::Hit> {
+    sim.hits
+        .iter()
+        .filter(|h| h.target == Obj::Unit(target))
+        .collect()
+}
+
+#[test]
+fn a_melee_duel_lands_on_the_attack_frame_and_every_recharge_after() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    // A stands just south of B, facing north; B faces south into it, so the
+    // attack is head-on and no flank applies.
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000, 900),
+        movement::Angle::SOUTH,
+    );
+    let a = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::NORTH,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    sim.order_attack(a, Obj::Unit(b));
+    run(&mut sim, 61);
+    let frames: Vec<i64> = hits_on(&sim, b).iter().map(|h| h.frame).collect();
+    assert_eq!(
+        frames,
+        vec![0, 20, 40, 60],
+        "one attack every RECHARGE frames"
+    );
+    // (120 × 100 / 100 + 5) / 10 − 3 = 9, delivered whole.
+    for h in hits_on(&sim, b) {
+        assert_eq!(h.damage, 9);
+        assert_eq!(h.dealt, combat::Sixteenths { whole: 9, frac: 0 });
+        assert!(!h.killed);
+    }
+    assert_eq!(sim.units[b].health, 90 - 4 * 9);
+    // Ten hits kill; the tenth is at frame 180.
+    run(&mut sim, 120);
+    assert!(!sim.units[b].alive());
+    let last = hits_on(&sim, b).last().copied().unwrap();
+    assert_eq!(last.frame, 180);
+    assert!(last.killed);
+    // The killer's order is dropped with the target.
+    assert_eq!(sim.units[a].combat.target, None);
+}
+
+#[test]
+fn attacking_from_behind_is_a_flank_and_from_the_side_a_bigger_one() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    // B faces north; A behind it (south), attacking northward: rear.
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000, 900),
+        movement::Angle::NORTH,
+    );
+    let a = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::NORTH,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    sim.order_attack(a, Obj::Unit(b));
+    run(&mut sim, 1);
+    // 120 × 1.5 = 180 → (180 + 5) / 10 − 3 = 15.
+    assert_eq!(hits_on(&sim, b)[0].damage, 15);
+    // From the side: ×2 → 24 − 3 = 21.
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let b = combatant(&mut sim, 1, hop, Pos::new(1000, 900), movement::Angle::EAST);
+    let a = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::NORTH,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    sim.order_attack(a, Obj::Unit(b));
+    run(&mut sim, 1);
+    assert_eq!(hits_on(&sim, b)[0].damage, 21);
+}
+
+#[test]
+fn the_combat_table_multiplies_the_attack_before_armour() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let arc = sim.add_unit_type(archer_type());
+    // Heavy infantry against foot archers: the shipped table says 86 %.
+    sim.table.set(hop, arc, 86);
+    let b = combatant(
+        &mut sim,
+        1,
+        arc,
+        Pos::new(1000, 900),
+        movement::Angle::SOUTH,
+    );
+    let a = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::NORTH,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    sim.order_attack(a, Obj::Unit(b));
+    run(&mut sim, 1);
+    // 120 × 86 / 100 = 103 → (103 + 5) / 10 − 1 = 9.
+    assert_eq!(hits_on(&sim, b)[0].damage, 9);
+}
+
+#[test]
+fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
+    let mut sim = arena();
+    let arc = sim.add_unit_type(archer_type());
+    let hop = sim.add_unit_type(hoplite_type());
+    // Three tiles apart on the x axis.
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::WEST,
+    );
+    let a = combatant(
+        &mut sim,
+        0,
+        arc,
+        Pos::new(1000 - 3 * 192, 1000),
+        movement::Angle::EAST,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    sim.rng = combat::Rng::new(7);
+    sim.order_attack(a, Obj::Unit(b));
+    sim.tick();
+    // One projectile, launched this frame.
+    assert_eq!(sim.projectiles.len(), 1);
+    let p = sim.projectiles[0];
+    assert_eq!(p.shooter, Obj::Unit(a));
+    assert_eq!(p.target, Some(Obj::Unit(b)));
+    // Accuracy: 80 − (attack_dist / 96). attack_dist: 576 − 48 − 48 = 480 →
+    // 80 − 5 = 75. Scatter: 96 × 100 / ((100 − 75) / 5 + 75) = 120.
+    assert_eq!(p.accuracy, 75);
+    assert!((p.landing.x - 1000).abs() <= 60 && (p.landing.y - 1000).abs() <= 60);
+    // Flight time: sqrt(dx² + dy²) / 200, truncated.
+    let dx = i64::from(p.landing.x - p.launch.x);
+    let dy = i64::from(p.landing.y - p.launch.y);
+    assert_eq!(p.total_time, combat::flight_time(dx * dx + dy * dy, 200));
+    assert!(
+        p.total_time == 2 || p.total_time == 3,
+        "about three tiles at 200 a frame"
+    );
+    // It lands on the frame its time is up and is gone: `cur_time` is
+    // counted up before the test, so a time of 2 lands on the second frame
+    // after the launch frame.
+    for _ in 1..(p.total_time - 1) {
+        sim.tick();
+        assert_eq!(sim.projectiles.len(), 1);
+    }
+    sim.tick();
+    assert_eq!(sim.projectiles.len(), 0);
+    // Whether it hit is whether the landing point was within target_size.
+    let d = vector_dist(p.landing.x - 1000, p.landing.y - 1000);
+    let hit = hits_on(&sim, b);
+    if d <= 48 {
+        assert_eq!(hit.len(), 1);
+        assert_eq!(hit[0].frame, i64::from(p.total_time) - 1);
+        // 60 → (65) / 10 − 3 = 3.
+        assert_eq!(hit[0].damage, 3);
+    } else {
+        assert!(hit.is_empty(), "a miss lands on nothing here");
+    }
+    // Two RNG draws were taken for the scatter, none else.
+    let mut r = combat::Rng::new(7);
+    r.roll();
+    r.roll();
+    assert_eq!(sim.rng, r);
+}
+
+#[test]
+fn the_same_seed_gives_the_same_fight() {
+    let fight = |seed: u32| {
+        let mut sim = arena();
+        let arc = sim.add_unit_type(archer_type());
+        let hop = sim.add_unit_type(hoplite_type());
+        sim.rng = combat::Rng::new(seed);
+        for k in 0..4 {
+            let at = Pos::new(800 + k * 60, 1000);
+            let i = combatant(&mut sim, 1, hop, at, movement::Angle::NORTH);
+            sim.set_stance(i, Stance::HoldFire);
+        }
+        for k in 0..4 {
+            let at = Pos::new(800 + k * 60, 1000 + 4 * 192);
+            let i = combatant(&mut sim, 0, arc, at, movement::Angle::NORTH);
+            sim.order_attack(i, Obj::Unit(k as usize));
+        }
+        run(&mut sim, 300);
+        (sim.hits.clone(), sim.rng)
+    };
+    assert_eq!(fight(11), fight(11));
+    let (h1, _) = fight(11);
+    let (h2, _) = fight(12);
+    assert!(!h1.is_empty());
+    assert_ne!(h1, h2, "a different seed scatters differently");
+}
+
+#[test]
+fn focus_fire_from_a_second_squad_is_overkill() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::SOUTH,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    // Two archers of different squads, two tiles away, both on B, with
+    // accuracy high enough that the scatter radius is under two and no draw
+    // is taken.
+    let mut exact = archer_type();
+    exact.combat.to_hit = 400;
+    exact.combat.attenuate = 0;
+    let arc2 = sim.add_unit_type(exact);
+    let a1 = combatant(
+        &mut sim,
+        0,
+        arc2,
+        Pos::new(1000, 1000 + 2 * 192),
+        movement::Angle::NORTH,
+    );
+    let a2 = combatant(
+        &mut sim,
+        0,
+        arc2,
+        Pos::new(1000 + 60, 1000 + 2 * 192),
+        movement::Angle::NORTH,
+    );
+    // Not on frame zero: a `damage_frame` of zero reads as "no record",
+    // in the original as here.
+    run(&mut sim, 1);
+    sim.order_attack(a1, Obj::Unit(b));
+    sim.order_attack(a2, Obj::Unit(b));
+    run(&mut sim, 6);
+    let h = hits_on(&sim, b);
+    assert_eq!(h.len(), 2, "both arrows landed the same frame");
+    // The first to land owns the window: full 3; the second, a different
+    // captain inside 30 frames: 3 × 85 >> 8 = 0 — and then at least one.
+    assert_eq!(h[0].damage, 3);
+    assert_eq!(h[1].damage, 1);
+    assert_eq!(h[0].attacker, Obj::Unit(a1));
+    assert_eq!(h[1].attacker, Obj::Unit(a2));
+}
+
+#[test]
+fn an_idle_unit_finds_a_target_on_its_cadence_and_a_hold_fire_one_never() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let a = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::NORTH,
+    );
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000 + 3 * 192, 1000),
+        movement::Angle::WEST,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    assert_eq!(sim.units[a].combat.target, None);
+    // `think` runs when `(index + frame) & 0x1f == 0`: for index 0, frame 0.
+    sim.tick();
+    assert_eq!(sim.units[a].combat.target, Some(Obj::Unit(b)));
+    assert!(!sim.units[a].combat.mandatory);
+    assert_eq!(sim.units[b].combat.targeted, 1);
+    // It walks over and fights; B holds fire throughout.
+    run(&mut sim, 200);
+    assert!(!hits_on(&sim, b).is_empty());
+    assert!(hits_on(&sim, a).is_empty());
+    assert!(
+        sim.units[a].movement.dest.is_none(),
+        "it stands still to fight"
+    );
+}
+
+#[test]
+fn being_hit_makes_an_idle_combat_unit_fight_back() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000, 900),
+        movement::Angle::SOUTH,
+    );
+    let a = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::NORTH,
+    );
+    sim.order_attack(a, Obj::Unit(b));
+    sim.units[b].combat.stance = Stance::Defensive;
+    run(&mut sim, 1);
+    assert_eq!(
+        sim.units[b].combat.target,
+        Some(Obj::Unit(a)),
+        "retaliation"
+    );
+    run(&mut sim, 25);
+    assert!(!hits_on(&sim, a).is_empty());
+}
+
+#[test]
+fn a_tower_picks_a_target_and_reloads_by_its_arrows() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let tower = sim.add_building(0, Pos::new(1000, 1000), 0);
+    sim.buildings[tower].combat = Some(combat::Profile {
+        attack: 80,
+        armor: 2,
+        recharge: 60,
+        max_range: 6,
+        to_hit: 400,
+        attenuate: 0,
+        proj_speed: 200,
+        ammo_per_att: 1,
+        base_arrows: 1,
+        most_shots: 4,
+        x_size: 1,
+        y_size: 1,
+        big_radius: 96,
+        ..combat::Profile::default()
+    });
+    sim.buildings[tower].hits = 400;
+    sim.buildings[tower].health = 400;
+    let b = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000 + 3 * 192, 1000),
+        movement::Angle::WEST,
+    );
+    sim.set_stance(b, Stance::HoldFire);
+    // The building thinks on `(frame + index) & 0x1f == 0`: frame 0.
+    run(&mut sim, 1);
+    assert_eq!(sim.buildings[tower].target, Some(Obj::Unit(b)));
+    assert_eq!(sim.projectiles.len(), 1);
+    assert_eq!(
+        sim.buildings[tower].recharging, 60,
+        "one arrow: the full reload"
+    );
+    // Two archers' worth of garrison (12 tenths each = 24 → 24 / 8 = 3
+    // arrows): base 1 + 3 = 4, reload 15.
+    sim.buildings[tower].garrison_attack = 24;
+    run(&mut sim, 61);
+    assert_eq!(sim.buildings[tower].recharging, 15);
+    // The arrows hurt: a hit is (80 + 5) / 10 − 3 = 5 whole.
+    run(&mut sim, 30);
+    let h = hits_on(&sim, b);
+    assert!(!h.is_empty());
+    assert!(
+        h.iter()
+            .all(|h| h.damage == 5 && h.attacker == Obj::Building(tower))
+    );
+}
+
+#[test]
+fn splash_hurts_the_neighbours_as_a_fringe_and_never_the_shooters_side() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let mut cat = archer_type();
+    cat.combat.attack = 300;
+    cat.combat.splash_area = 2;
+    cat.combat.splash_percent = 100;
+    cat.combat.to_hit = 400;
+    cat.combat.attenuate = 0;
+    cat.combat.obj_masks = mask::SIEGE | mask::BOMBARD;
+    cat.combat.siege = true;
+    cat.combat.max_range = 8;
+    let catapult = sim.add_unit_type(cat);
+    // A line of three enemy hoplites — the second inside the splash fringe
+    // (past the `0xc0 + guy_radius` the count starts falling at), the third
+    // beyond it — and a friendly one standing among them.
+    let t0 = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::SOUTH,
+    );
+    let t1 = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000 + 312, 1000),
+        movement::Angle::SOUTH,
+    );
+    let t2 = combatant(
+        &mut sim,
+        1,
+        hop,
+        Pos::new(1000 + 800, 1000),
+        movement::Angle::SOUTH,
+    );
+    let friend = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(1000 - 64, 1000),
+        movement::Angle::SOUTH,
+    );
+    for &t in &[t0, t1, t2, friend] {
+        sim.set_stance(t, Stance::HoldFire);
+    }
+    let c = combatant(
+        &mut sim,
+        0,
+        catapult,
+        Pos::new(1000, 1000 + 4 * 192),
+        movement::Angle::NORTH,
+    );
+    sim.order_attack(c, Obj::Unit(t0));
+    run(&mut sim, 12);
+    let on = |u: usize| hits_on(&sim, u);
+    assert_eq!(on(t0).len(), 1, "the target, at full count");
+    assert!(!on(t0)[0].splash);
+    assert_eq!(on(t1).len(), 1, "the neighbour, as a fringe");
+    assert!(on(t1)[0].splash);
+    // 96 units into the fringe of a two-tile splash: count 256 − 64 = 192,
+    // three quarters of the hit.
+    assert_eq!(on(t1)[0].damage, on(t0)[0].damage);
+    assert_eq!(on(t1)[0].dealt.whole, (on(t0)[0].damage * 192) >> 8);
+    assert!(on(t2).is_empty(), "four tiles off is beyond the splash");
+    assert!(on(friend).is_empty(), "splash skips the shooter's own side");
 }

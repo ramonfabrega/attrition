@@ -549,3 +549,38 @@ the roles from the shipped names, which is the loader's job anyway.
 This is entry 9 one level up: the shipped tables are index-keyed and we keep
 them so; the *rules* about particular rows are keyed by what the row is for.
 
+
+## 19. A float the original evaluates mid-frame is reproduced operation by operation, in integers
+
+**Chosen:** where the original computes a gameplay value with a floating-point
+expression *during* a frame — so far exactly one: a projectile's flight time,
+`(int)(sqrtf(dx² + dy²) / (float)(proj_speed × UNIT_MOVE_SPEED))` in
+`Ammo::init` — `crates/sim` evaluates each IEEE operation with the rounding
+it actually has (a correctly rounded 24-bit square root, a correctly rounded
+24-bit quotient, a truncation), using integer arithmetic only. See
+`combat::flight_time` and `docs/COMBAT.md` §9.1.
+
+**Over:** carrying an `f32` for that one expression, or replacing it with an
+integer square root and accepting a one-frame difference at the boundaries.
+
+Entry 16 said that if a mechanic ever needed a fraction the original computes
+in floating point during a frame, that would be a new entry because it is the
+first place the original is not itself deterministic across hardware. This is
+that place, and the answer is narrower than either alternative. Both
+operations in the expression are ones IEEE 754 requires to be correctly
+rounded, so on any conforming host the result is a pure function of two
+integers — the original *is* deterministic here, provided its `sqrtf` is the
+hardware one (x87 `fsqrt` and SSE `sqrtss` both are). Reproducing each
+rounding in integers gives the same function without admitting a float into
+the simulation; an integer square root would agree except when `√n / d` lies
+within a float ulp of an integer, which a recorded-game diff would eventually
+find. The exact emulation costs a few dozen lines and a test that compares it
+against the host's `f32` over a spread of inputs.
+
+The other thing combat added to the arithmetic rules is not a decision so much
+as a recognition: **the game's random number generator is a rule.** `Random`
+is a 32-bit LCG and `get(lo, hi)` a fixed mapping of its state; every
+projectile's scatter, the flock roll on a building's first wound and the
+one-in-five retarget roll draw from the same stream in a fixed order, so the
+stream is part of what "plays like the original" means. It is `combat::Rng`,
+and the document lists the draws in order (`docs/COMBAT.md` §9.5).

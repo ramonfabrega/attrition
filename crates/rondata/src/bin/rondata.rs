@@ -431,6 +431,130 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         &format!("Citizen={citizen:?} Hoplites={hoplites:?} Phalanx={phalanx:?}"),
     );
 
+    // ---- combat: the columns and the table's XML half (`docs/COMBAT.md`) ----
+    //
+    // `UnitType::init` reads `OBJ_MASK` as a string of letters, `RANGE` as a
+    // `min-max` pair, and `ATTACK` as a number it stores ×10; `balance.xml` is
+    // the category table the combat table is built from, and its rows are
+    // named in the order `Balance::lookup_absolute_name` generates. All of
+    // that is checked here against the install.
+    let obj_masks_parse = units.records.iter().all(|r| {
+        r.text("OBJ_MASK").is_none_or(|m| {
+            m.chars()
+                .all(|c| c.is_ascii_alphabetic() || c.is_ascii_digit() || c == ' ')
+        })
+    });
+    failures += check(
+        "every OBJ_MASK is letters and digits (the loader's letter encoding)",
+        obj_masks_parse,
+        "",
+    );
+    let ranges_ok = units.records.iter().all(|r| {
+        r.text("RANGE").is_none_or(|t| {
+            let t = t.trim();
+            let mut it = t.splitn(2, '-');
+            let a = it.next().unwrap_or("");
+            let lead = |s: &str| {
+                s.chars()
+                    .take_while(char::is_ascii_digit)
+                    .collect::<String>()
+            };
+            !lead(a).is_empty() && it.next().is_none_or(|b| !lead(b).is_empty())
+        })
+    });
+    failures += check(
+        "every RANGE is `min` or `min-max` with leading integers",
+        ranges_ok,
+        "",
+    );
+    let names = rondata::balance::category_names(&units);
+    failures += check(
+        "399 combat-table categories: 352 unit rows then the fixed tail",
+        names.len() == rondata::balance::CATEGORIES
+            && names[rondata::balance::FIRST_LINE] == "SIEGE"
+            && names[rondata::balance::FIRST_LINE + 0x0f] == "Flag_A_OBJMASK_ARMORED"
+            && names[398] == "Flag_6_OBJMASK_ANTI_AIR",
+        &format!("{} names", names.len()),
+    );
+    match install.balance() {
+        Ok(bx) => {
+            let rows = bx.row_names();
+            // Every row name is one of the 399, and the rows come in the
+            // generated order (a subsequence of it).
+            let mut cursor = 0usize;
+            let mut in_order = true;
+            let mut unknown = Vec::new();
+            for r in &rows {
+                match names.iter().skip(cursor).position(|n| n == r) {
+                    Some(k) => cursor += k + 1,
+                    None => {
+                        if names.iter().any(|n| n == r) {
+                            in_order = false;
+                        } else {
+                            unknown.push((*r).to_string());
+                        }
+                    }
+                }
+            }
+            failures += check(
+                "balance.xml rows come in the engine's category order",
+                in_order,
+                &format!("{} rows", rows.len()),
+            );
+            // Rows that name nothing in the unit table are dead data: the
+            // engine looks rows up by name and a row it cannot name is 100
+            // everywhere. The shipped file has four, from units renamed since
+            // it was written.
+            println!(
+                "       rows naming no unit in this install (dead): {}",
+                if unknown.is_empty() {
+                    "none".to_string()
+                } else {
+                    join(unknown.iter().cloned())
+                }
+            );
+            let non_default = bx
+                .rows
+                .iter()
+                .flat_map(|(_, a)| a.iter())
+                .filter(|(_, v)| *v != 100)
+                .count();
+            failures += check(
+                "balance.xml is not the identity (the table needs the file)",
+                non_default > 0,
+                &format!("{non_default} entries other than 100"),
+            );
+            // A worked pair: the hardcoded half from the masks alone, the file's
+            // half from the categories. The age and the named lineages are not
+            // loaded here, so this is the table less those rules — the lineage
+            // half waits on a tree loader, and the `RULES=1` log is the oracle.
+            let find = |name: &str| {
+                units
+                    .records
+                    .iter()
+                    .enumerate()
+                    .find(|(_, r)| r.text("NAME") == Some(name))
+                    .map(|(i, r)| rondata::balance::unit_kind(i, r))
+            };
+            if let (Some(a), Some(b)) = (find("Hoplites"), find("Bowmen")) {
+                let xml = bx.table(&names);
+                let t = sim::Tuning::RON;
+                println!(
+                    "  Hoplites vs Bowmen: type_damage {} %, with the file {} %; \
+                     Bowmen vs Hoplites: {} %, with the file {} %  (masks only; \
+                     no age, no lineages)",
+                    sim::balance::type_damage(&t, &a, &b),
+                    rondata::balance::entry(&t, &xml, &a, &b),
+                    sim::balance::type_damage(&t, &b, &a),
+                    rondata::balance::entry(&t, &xml, &b, &a),
+                );
+            }
+        }
+        Err(e) => {
+            failures += check("balance.xml reads", false, &format!("{e}"));
+        }
+    }
+
     println!("\nnations ({n_tribes}, index is the TRIBE_MASK bit)");
     for (i, k) in keys.iter().enumerate() {
         print!("{:>3}:{:<11}", i, k);

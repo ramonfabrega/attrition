@@ -26,6 +26,7 @@
 //! # Ok::<(), rondata::Error>(())
 //! ```
 
+pub mod balance;
 pub mod scalar;
 pub mod table;
 pub mod tuning;
@@ -89,7 +90,7 @@ impl Install {
         p.is_file().then_some(p)
     }
 
-    fn data(&self, file: &str) -> PathBuf {
+    pub(crate) fn data(&self, file: &str) -> PathBuf {
         self.root.join("Data").join(file)
     }
 
@@ -267,7 +268,7 @@ pub fn tribe_mask(mask: &str) -> Vec<usize> {
         .collect()
 }
 
-fn read(path: &Path) -> Result<String, Error> {
+pub(crate) fn read(path: &Path) -> Result<String, Error> {
     std::fs::read_to_string(path).or_else(|e| {
         // Some shipped files carry stray non-UTF-8 bytes in designer comments.
         // Losing a character of commentary is fine; failing to load is not.
@@ -280,7 +281,7 @@ fn read(path: &Path) -> Result<String, Error> {
     })
 }
 
-fn parse<'a>(path: &Path, text: &'a str) -> Result<roxmltree::Document<'a>, Error> {
+pub(crate) fn parse<'a>(path: &Path, text: &'a str) -> Result<roxmltree::Document<'a>, Error> {
     roxmltree::Document::parse(text).map_err(|source| Error::Xml {
         path: path.display().to_string(),
         source,

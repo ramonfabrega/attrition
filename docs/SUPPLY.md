@@ -488,8 +488,11 @@ Still open:
   (`docs/ORACLE.md`): park a unit inside enemy borders beside a Despot with no
   wagon anywhere near, log the frame, and see whether its attrition period is
   ever set.
-- **What `unit_flags2` bits `0x4` and `0x8` are.** `init_final_flags` sets them
-  from other type tests in the same function; nothing in supply reads them.
+- ~~**What `unit_flags2` bits `0x4` and `0x8` are.**~~ Closed by
+  `docs/COMBAT.md` §2.1: `0x4` is **packs** (the types that stand packed
+  between moves — catapult, flaming arrow, machine gun, merchants, fishermen,
+  Katyusha) and `0x8` is **caravan** (`CARA`, `MERCHANTFLEET`). Nothing in
+  supply reads them.
 - **The rest of `Unit::process_healing`.** Six other heals share the function
   and none is derived here.
 

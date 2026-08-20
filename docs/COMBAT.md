@@ -1,0 +1,1365 @@
+# Combat
+
+How one object hurts another: what an attack is worth against a given target,
+how often it lands, where a shot falls, how damage is carried on a figure, and
+when a figure dies. Attrition (`docs/ATTRITION.md`) was the only thing in the
+simulation that could kill before this document; now the units can.
+
+In scope: the combat columns of the unit and building tables and the derived
+stats the engine computes from them; the **combat table** — the 493×493
+percentage matrix that decides what every type is worth against every other
+type — and how the engine builds it at load; the damage formula, end to end;
+how damage is delivered in sixteenths and accumulated on a figure; the firing
+cadence; projectiles — accuracy, scatter, flight time, the hit test at landing,
+splash; buildings that shoot; squads and what the death of one figure does to
+the rest; and the automatic choice of target.
+
+Not in it: what makes a unit *want* to fight — orders, stances and the AI's
+posture are surveyed only where the firing path reads them; aircraft, missiles
+and nukes, which share the damage formula but have their own flight and a
+separate dispatch (`Nuke::do_damage`, `AirAttackGroundOrder`); capture and
+plunder of cities, which damage triggers and which belong to cities; spells
+and abilities; the garrison and ejection paths, except for the one number
+they feed the tower (arrows).
+
+**How this was established.** Symbol names, struct layouts and field offsets
+come from `game/sbl/rise.pdb`. Behaviour comes from reading the original with
+Ghidra, with those symbols applied, through the export under
+`~/ghidra-projects/decomp` (`tools/ghidra/`): `ObjectData::get_damage`,
+`Object::do_damage`, `Object::take_damage`, `Unit::fight`, `Unit::do_attack`,
+`Object::fire_ammo`, `Ammo::init`/`inc_time`/`do_damage`/`hit_target`/
+`check_hit`, `Build::process`/`do_attack`, `Balance::fill_tables`/
+`compute_modifier`/`type_damage`, `UnitType::init`, `Constants::init`, and the
+stat accessors, each read end to end. Two vtables the export did not contain —
+`UnitType`'s and `BuildType`'s `vftable{for Type}` — were read out of the PE
+bytes at the addresses `rise_z.map` gives them, which is how every
+`(**(type + 0x10c))()` below has a name. Where a virtual's slot is quoted it
+is because that is how the decompile reads, and the name follows. Nothing is
+transcribed; see `docs/DECISIONS.md` entry 7.
+
+The `obj_masks` bits are named from the legend the shipped `balance.xml`
+carries in its own row names (`Flag_A_OBJMASK_ARMORED` … `Flag_6_OBJMASK_ANTI_AIR`),
+so every flag test below is a word rather than a hex constant. That file is
+the user's install and is not reproduced here; the legend is one line of it
+per letter and is listed in §3.
+
+**Confidence.** High for the data layout and loaders, the damage formula's
+arithmetic and order, the sixteenths delivery, the per-figure hit share, the
+recharge cadence and its decrement, the melee and projectile paths,
+`Ammo::init`'s accuracy and scatter, the landing-time hit test, buildings'
+reload and arrows, the combat table's *structure* and the RNG. High for the
+hardcoded `type_damage` rules as a list (§5), medium for their completeness:
+there are around a hundred multiplicative steps and each was read once.
+Medium for the flank direction (§6 step 21 — the arithmetic is certain, which
+side counts as the rear is a convention the decompile does not settle) and
+for three virtual calls whose argument the decompiler dropped (noted inline).
+Medium for target selection (§12), read by a second reader and adjudicated.
+Everything open is listed at the end.
+
+**Where the implementation is.** `crates/sim/src/combat.rs` (the RNG, the
+profile, the table, the damage formula, the scaling and the take, recharge,
+accuracy, scatter, flight time, the hit tests, splash, arrows, `attack_dist`,
+`is_in_range`); `crates/sim/src/fight.rs` (the `Sim` glue: the attack step,
+orders, the target search and ranking, buildings, ammo in flight, death);
+`crates/sim/src/balance.rs` (the combat table's two halves and their
+composition); and `crates/rondata/src/balance.rs` (the shipped `balance.xml`,
+the 399 category names, the structural checks). What the implementation
+leaves out is said again at each point it applies: the nation, wonder and
+patriot layer arrives as `combat::Modifiers` (the choice `docs/COSTS.md`
+made); terrain, river, height and the unnamed `unit_masks` bits are `Side`
+inputs; aircraft and missiles are not modelled; the move-to-attack path is a
+straight line; a squad is figures sharing a captain index; and the
+regeneration of the combat table from an install has its XML half and its
+flag half but not yet the age and named-lineage rules, which need a tree
+loader `rondata` does not have — so `rondata` prints the masks-only entry
+and the `RULES=1` log remains the oracle.
+
+---
+
+## 1. The shape of it
+
+Every attack in Rise of Nations is one call to `Object::do_damage(target,
+angle, ammo, count)` on the attacker. It computes the damage with
+`ObjectData::get_damage`, scales it by `count` (an 8.8 fraction — a full hit
+is `0x100`, a splash fringe less), divides a unit's shot by its squad size and
+a building's by its ammo per volley, splits the result into **whole hits and
+sixteenths**, and hands both to the target's `take_damage`, which carries the
+sixteenths in the same `damage_frac` byte attrition uses, compares the
+figure's accumulated damage against *its share* of the squad's hit points,
+and kills it when the share is reached.
+
+What differs between unit kinds is only **how `do_damage` is reached**:
+
+- a **melee** unit (`max_range == 0`) calls it directly from `Unit::fight`,
+  once per figure, the frame its recharge counter reaches zero;
+- a **ranged** unit fires one `Ammo` per figure (`Object::fire_ammo`), and
+  each ammo calls it when it lands, `total_time` frames later, if the landing
+  point is still on its target — otherwise on whatever it hit instead;
+- a **building** fires `ammo_per_att` ammo per volley, every
+  `recharge / arrows` frames, at the target its own search picked.
+
+The recharge counter is a byte on the unit (`UnitData::recharging`) set to
+`UnitData::recharge()` after every attack and decremented once at the top of
+every `Unit::process`. Attack rate is therefore **one attack every `RECHARGE`
+frames exactly**, with no phase and no randomness; the only randomness in
+combat is where a projectile lands.
+
+---
+
+## 2. The data
+
+### 2.1 The combat columns
+
+`UnitType::init` reads these out of each unit's record (`unitrules.xml`;
+`BuildType::init` reads the same `ObjectTypeData` columns out of
+`buildingrules.xml`). Offsets are on `ObjectTypeData` unless marked `U`
+(`UnitTypeData`) or `B` (`BuildTypeData`).
+
+| column | field | how it is loaded |
+| --- | --- | --- |
+| `ATTACK` | `+0x1e8 attack` | **×10** — `attack = get_text_num(...) * 10`. Every attack figure in the engine is in tenths; the formula divides by ten at the end (§6 step 22). Bonuses that say "+N attack" are added as `N * 10`. |
+| `TO_HIT` | `+0x1ec to_hit` | plain; default −1 |
+| `ATTENUATE` | `+0x1f0 attenuate` | absolute value of the number read |
+| `RANGE` | `+0x1f8 min_range`, `+0x1fc max_range` | one string, `min-max`; the part before the `-` is `min_range`, the part after is `max_range`. No `-`: `max_range = min_range`. **A cavalry-archer type (`unit_flags & 0x400`, letter `k`) has its `max_range` moved to `U +0x2d0 second_max_range` and `max_range` set to 0**, so it is a melee unit whose ranged mode is switched on by stance (§8.5). |
+| `SPLASH_AREA` | `+0x200 splash_area` | plain, in tiles |
+| `SPLASH_PERCENT` | `+0x204 splash_percent` | plain |
+| `AMMO_PER_ATT` | `+0x208 ammo_per_att` | plain |
+| `RECHARGE` | `+0x1f4 recharge` | plain, frames |
+| `ARMOR` | `+0x214 armor` | plain |
+| `HITS` | `+0x210 hits` | plain |
+| `PROJ_SPEED` | `+0x20c proj_speed` | plain; a ranged type that has none gets `200` and a load-time error |
+| `OBJ_MASK` | `+0x1e4 obj_masks` | a string of letters, upper-cased: each letter `A`–`Z` sets bit `c − 'A'` (0–25), each digit `1`–`9` sets bit `c − 0x17` (26 up). See §3 for the names. |
+| `FLAGS` | `U +0x2b4 unit_flags` | the same encoding, lower-cased, `a`–`z` → bits 0–25 |
+| `TARGET_SIZE` | `U +0x300 target_size` | **× `UNIT_BLOCK_RADIUS`** (the shipped `1 UCoord`, see `docs/MOVEMENT.md`) |
+| `UBER_SIZE` | `U +0x308 uber_size` | plain — figures per squad |
+| — | `U +0x2cc fire_proj` | **derived**: `1` if `attack != 0` (or the type has `unit_flags & 0x200000`), else `0`. This is what `Unit::fight` tests to decide a melee unit actually strikes — so a melee type with zero attack swings and does nothing. |
+| `BASE_ARROWS` | `B +0x2cc base_arrows` | plain |
+| `MOST_SHOTS` | `B +0x2c4 most_shots` | plain |
+
+`UnitType::init_final_flags` derives the `unit_flags2` bits this mechanic
+reads, and this is the first document to name them all: `0x1` **machine-gun
+line** (`is(MACHINEGUN)` or `is(FLAMETHROWER)`); `0x4` **packs** (Catapult,
+Flaming Arrow, Merchant, Dutch Merchant, Fur Trapper, Machine Gun,
+Fishermen, Katyusha — every type that stands packed between moves); `0x8`
+caravan (`CARA`, `MERCHANTFLEET`); `0x10` special (Scout); `0x20` hero
+(General); `0x40` supply (Supply Wagon and the three patriots `THEDESPOT`,
+`THEMONARCH`, `THECITIZEN`). `docs/SUPPLY.md` left `0x4` and `0x8` open;
+they are closed here.
+
+### 2.2 The per-object state
+
+`ObjectData` (both units and buildings): `+0x20 myhits` (the squad's hit
+points, copied onto every figure by `update_hits`); `+0x24 damage` (whole
+hits taken); `+0x3b damage_frac` (sixteenths taken, 0–15); `+0x32
+hold_frames`; `+0x3d targeted`.
+
+`UnitData`: `+0x4c damage_frame`, `+0xa4 damage_o`, `+0xa9 damage_who` (the
+overkill record, §6 step 23); `+0x50 angle` (facing; `docs/MOVEMENT.md`);
+`+0x5c trench_angle`; `+0x68 unit_masks` — bits this mechanic reads: `0x1`
+**decoy** (set on a spy's decoy; read in `Unit::process` as "age out after
+`decoy_time`"), `0x10`, `0x80000` packed, `0x400000`, `0x1000000`
+entrenched, `0x4000` plunder-on-kill (Aztec); `+0x6c unit_masks2` — `0x1`
+under attack, `0x1000` Antipater-entrenched; `+0x9c myarmor` (the cached
+`update_armor`); `+0xae recharging`; `+0x8e o_up` (high bit: captain), `+0x90
+o_down` (next figure of the squad, −1 at the end); `+0xb5 guy_mark` (figures
+on this `UnitData`, normally 1); `+0xe4 guys`.
+
+`BuildData`: `+0x7a recharging` (a short), `+0x7c attack_ox`, `+0x81
+attack_whom`, `+0x60 build_masks` (`0x4`: has an explicit attack order;
+`0x8000`: jammed this frame), `WallData +0x54 construct_hits`.
+
+`AmmoData` (one projectile in flight): `+0x6 accuracy`, `+0xc/0x10/0x14
+sx,sy,sz` (launch), `+0x18/0x1c/0x20 ex,ey,ez` (landing), `+0x24 cur_time`,
+`+0x28 total_time`, `+0x2c angle`, `+0x30 splash_area`, `+0x3c who`/`+0x40 o`
+(shooter), `+0x44 num_guys`, `+0x48 whom`/`+0x4c ox` (target), `+0x4 flags`
+(`0x2` live, `0x4` rolling, `0x8` missed-and-rolling, `0x10` cosmetic — no
+damage).
+
+### 2.3 The constants
+
+All in `Constants`, loaded by `Constants::init` from `rules.xml`; the scale
+is a fact about the loader line, per `docs/DECISIONS.md` entry 14.
+
+| constant | field | loaded | shipped |
+| --- | --- | --- | --- |
+| `FLANK_BONUS` | `flank_bonus` | plain, percent | 50 |
+| `CAVALRY_FLANK_BONUS` | `cavalry_flank_bonus` | plain, percent of base — but consumed with `>> 8` (step 21), so the shipped `40` is `40/256` of the base, not 40 % | 40 |
+| `VEHICLE_FLANK_BONUS` | `vehicle_flank_bonus` | plain, consumed `>> 8` | 33 |
+| `ROCKY_MODIFIER` | `rocky_modifier` | `get_fraction(…, 0x100)` — 8.8 | `2/3` → 170 |
+| `OVERKILL_FRAMES` | `overkill_frames` | plain, frames | 30 |
+| `OVERKILL_DAMAGE` | `overkill_damage` | 8.8 | `1/3` → 85 |
+| `ENTRENCHMENT_MODIFIER` | `entrenchment_modifier` | 8.8 | `2/3` → 170 |
+| `RIVER_MODIFIER` | `river_modifier` | 8.8 | `2/1` → 512 |
+| `RECAPTURE_CITY_MODIFIER` | `recapture_city_modifier` | 8.8 | `2/1` → 512 |
+| `HEIGHT_INCREMENT` | `height_increment` | plain, z units | 200 |
+| `HEIGHT_BONUS` | `height_bonus` | plain, percent per increment | 10 |
+| `ONE_AGE_DOWN` … `FIVE_AGES_DOWN` | `one_age_down` … `five_ages_down` | plain, percent | 15, 20, 50, 60, 70 |
+| `RANGE_INACCURACY` | `range_inaccuracy` | 8.8 | `1/100` → 2; **not read by the firing path** (see §9.1) |
+| `TARGET_RADIUS` | `target_radius` | `get_fraction(…, 0xc0)` — position units | `1/2` tile → 96 |
+| `UNIT_MOVE_SPEED` | `unit_move_speed` | see `docs/MOVEMENT.md` | `1/192` tile |
+| `CITY_CAPTURE_RADIUS` | `city_capture_radius` | plain, tiles | 10 |
+| `UNIT_DEFENSIVE_RESPOND_RANGE` and the other `*_RESPOND_RANGE` | plain, tiles | 4, 12, 8, 12, 32, 10, 12, 8 |
+| `JAM_UNIT_RADAR_PROB` | `jam_unit_radar_prob` | plain, percent | 50 |
+| `SIEGE_OUT_OF_SUPPLY_RELOAD`, `ARTILLERY_OUT_OF_SUPPLY_RELOAD` | 8.8 | `3/2`, `2/1` — **not read by `recharge()`**, which hardcodes `×3/2` and `×2` (§8.3) |
+| `ARTILLERY_UNDER_ATTACK_FIRES_SLOWLY` | plain flag | 1 |
+| `SUPER_IMMUNE` | plain flag | 0 |
+| `RED_FORT_AIR_DEFENSE`, `JAPANESE_DAMAGE`, `RUSSIAN_COSSACK_DAMAGE`, `DUTCH_ATTACK_BONUS`, `CARAVAN_ATTACK_BONUS` (×10), `TERRA_COTTA_ATTACK`, `WELLINGTON_SIEGE_ATTACK`, `GENERAL_RALLY_ARMOR`, `ANTIPATER_ENTRENCH_BONUS` (8.8), the general/patriot attack and armour bonuses | plain unless noted | nation and wonder layers |
+
+---
+
+## 3. The `obj_masks` legend
+
+Bit `n` is letter `'A' + n`; the names are the row names of the shipped
+`balance.xml`, which is also how the engine's own designers referred to them.
+
+```
+0x1        A  ARMORED        0x2        B  BOMBARD       0x4        C  CIVILIAN
+0x8        D  MUSKET_INF     0x10       E  ELEPHANT      0x20       F  FOOT
+0x40       G  GUN            0x80       H  HEAVY_INF     0x100      I  MODERN_INF
+0x200      J  CARRY_AIR      0x400      K  FOOT_ARCHER   0x800      L  LARGE
+0x1000     M  MOUNTED        0x2000     N  NAVAL         0x4000     O  HORSE_ARCHER
+0x8000     P  SPARSE         0x10000    Q  LIGHT_INF     0x20000    R  ARCHERY
+0x40000    S  SIEGE          0x80000    T  WAR_MACHINE   0x100000   U  ARMORPIERCE
+0x200000   V  VEHICLE        0x400000   W  MELEE         0x800000   X  EXPLOSIVE
+0x1000000  Y  HEAVY_CAV      0x2000000  Z  DETECT        0x4000000  1  UNUSED
+0x8000000  2  MISSILE        0x10000000 3  AIR           0x20000000 4  LIGHT_CAV
+0x40000000 5  PIKE           0x80000000 6  ANTI_AIR
+```
+
+Earlier documents quoted these bits raw (`obj_masks & 0x40000` in
+`docs/ATTRITION.md`, `0x4` in `docs/COSTS.md`, `0x20`/`0x1000` in
+`docs/MOVEMENT.md`); they read as SIEGE, CIVILIAN, FOOT and MOUNTED.
+
+---
+
+## 4. The stats at runtime
+
+Every stat the formula reads is a virtual on the object, and every one starts
+from the type's column and adds the nation, wonder and patriot layers. The
+additions are listed because they are the rules; the simulation takes them as
+`combat::Modifiers` until those layers exist.
+
+### 4.1 `attack()`
+
+`ObjectData::attack` — the base: `type.attack` (×10). A **caravan** whose
+owner has the `CARAVAN_ATTACK_BONUS` tech has its attack **replaced** by
+`constants.caravan_attack_bonus` (itself loaded ×10). Then the Dutch: a
+unit that is a merchant, Dutch merchant, fur trapper, caravan or supply
+unit, and not a patriot, gets `+ ages × dutch_attack_bonus × 10`, where `ages`
+is the owner's age count.
+
+`UnitData::attack` — if the base is zero, zero, full stop (nothing below
+turns a non-combatant into one). Otherwise `+ terra_cotta_attack × 10` with
+the Terra Cotta Army; `+ thecitizen_attack_bonus × 10` under The Citizen's
+aura; `+ obsidian_archers_attack × 10` for a FOOT_ARCHER or HORSE_ARCHER type
+whose owner has the Obsidian bonus; `× (space_air_attack + 100) / 100` for an
+air unit with the Space Program; and the named generals' auras, each `× 10`
+and each gated on the owner *having* that general and the unit being under
+it: Alexander (all; extra for Hoplites), Napoleon (siege), Parmenio
+(Cataphracts), Ptolemy (Catapults), Spitamenes (Horse Archers), Blücher
+(stable units), Djezzar (all), Memnon (Greek Mercs), The Monarch (stable
+units).
+
+`BuildData::attack` — the base, then `+ general_building_attack × 10` for a
+general garrisoned (a tower, fort or city building only), `+
+obsidian_archers_attack × 10`, `+ antipater_garrison_attack_bonus × 10` with
+Antipater inside.
+
+### 4.2 `armor()`
+
+`ObjectData::armor` — `type.armor`, plus the Dutch `ages × dutch_attack_bonus`
+on the same unit kinds (the patriot exclusion only from patch version 9).
+
+`Unit::update_armor` caches `ObjectData::armor` (+ `cattle_citizen_armor` for
+citizens with the Cattle bonus) into `myarmor` on every figure of the squad;
+`UnitData::armor` returns `myarmor` plus `general_rally_armor × (general
+upgrade + 1)` when a general (or the unit *is* a hero) is in rally range,
+plus Ptolemy, Darius, Wellington, Blücher, Memnon, The Citizen and The
+Monarch's armour bonuses under the same gating as attack.
+
+### 4.3 `hits` — `Unit::update_hits`
+
+The squad's hit points: `type.hits` (for citizens, the age-variant type's),
+`+ americans_marine_hp_bonus` (entrenched marines), `× (copper_factory_hp +
+100) / 100` (ships and factory units with Copper), `× (bananas_hp_bonus +
+100) / 100`, `× (iroquois_extra_hits + 100) / 100` (Iroquois barracks
+units), `+ ages × dutch_hp_bonus` (the Dutch kinds), spies' `spy_upgrade_hp[
+level]`, heroes `+ lvl² × hits / 2`, `× (nubian_hit_points + 100) / 100` for
+caravans, `+ supply_hp_upgrade[level]` for supply. The result is written to
+`myhits` on the captain and **every figure down the chain**. What one figure
+can absorb is not this number; see §7.3.
+
+### 4.4 `max_range()`
+
+`UnitData::max_range` — zero stays zero. A siege type adds `turk_siege_range`,
+`liberty_siege_range`, `eiffel_siege_range`; a non-siege ranged type adds
+`theceo_unit_range` under The CEO. Then `+ ptolemy_range_bonus` (ranged, under
+Ptolemy), `+ napoleon_siege_range` (siege, under Napoleon), `+
+rum_naval_range` (domain sea, Rum), `+ obsidian_archers_range` (archers,
+Obsidian). `BuildData::max_range` is `BuildTypeData::get_building_range(who)`
+— the `FORT_UPGRADE_RANGE`/`TOWER_FORT_RANGE` arrays `docs/SUPPLY.md` lists —
+plus `general_building_range` for a garrisoned general and a city's temple
+range. `min_range()` is the type's.
+
+### 4.5 `recharge()` — see §8.3.
+
+---
+
+## 5. The combat table
+
+### 5.1 What it is
+
+`Balance::combat_table.final_balance_table` is a `short[493][493]`: for an
+attacker type `a` and a target type `b`, both `TypeIndex` values in
+`BASE_UNITTYPES (0x32)` … `END_BUILDTYPES (0x21e)`, entry `[a − 0x32][b −
+0x32]` is a **percentage** — what `a`'s attack is worth against `b`. It is the
+first thing `get_damage` multiplies by and the only place a type's matchups
+live; there is no per-unit bonus list. A unit type is an index into its
+family's table (`TypeIndex − 0x32` is the unit id, `− 0x19e` the building
+id), so this is a table over the union of the two families.
+
+It is **built at load**, not shipped. `Balance::fill_tables` (from
+`Balance::init`, once per type-table load) does, for each `(a, b)`:
+
+```
+entry(a, b) = compute_modifier(a, b)
+            = 100                                   if a or b is a gaia type
+            = type_damage(a, b) * xml_product(a, b) / 100   otherwise
+```
+
+and `xml_product` is a running product of percentages out of `balance.xml`,
+starting from 100, over every category `a` belongs to (rows) against every
+category `b` belongs to (columns): `p = (xml[row][col] * p) / 100`, truncating
+each step, outer loop rows, inner loop columns. `balance.xml` is one
+`<TABLE>` of `<ENTRY name="row" col="pct" .../>` rows; the 399 category
+names are: the 352 unit types by their unit-table index; five lines (`SIEGE`,
+`FORTS`, `TOWERS`, `CITIES`, `OBSPOST`); two objects (`BUILDINGS`, `UNITS`);
+eight ages (`AGE_0`–`AGE_7`); and the 32 `Flag_X_OBJMASK_*` rows, one per
+`obj_masks` bit. A type's categories (`Balance::return_pack`) are, in this
+order: its own row (units only — `TypeIndex − 0x32`); its **line** — for a
+unit, `SIEGE` if `UnitTypeData::is_siege` (`unit_flags & 0x20000`); for a
+building, `FORTS` if `is_fort` (the `FORTX` lineage), else `CITIES` if
+`is_city` (the `VILLAGE` lineage), else `OBSPOST` if `is(LOOKOUT)`, else
+`TOWERS` if `is(TOWER)`, else none; its object class (`UNITS`/`BUILDINGS`);
+its age (`ObjectTypeData::get_age` — `+0x278`, or `get_age_slow`'s
+first-tech-prerequisite age); and one row per `obj_masks` bit set, bits
+ascending. The 399 names are built from `internal_strings.xml` (the lines,
+objects, ages and flag comments) and the unit types' `<NAME>` with spaces
+turned to underscores — which is exactly the order the shipped file's rows
+are in. A row the file lacks, or an attribute it lacks, is 100 — and so is a row
+the file *has* under a name the unit table no longer carries: the shipped
+file's `Pathfinder`, `Pioneer`, `Ranger` and `Marines` rows (and columns)
+name units since renamed, and contribute nothing. The shipped file is far
+from identity — some five hundred entries are not 100 — so the table is not
+recoverable from the hardcoded rules alone.
+
+The table is built **once per type-table load** (`Balance::init` is the last
+call of `Types::init`, from `Game::init_non_rules_data` and a mod switch),
+walked into the rules checksum (`Balance::walk_rules_data`), and **dumped in
+full by `Game::log_rules_data`** under a `COMBATTABLE` heading as
+`final_balance_table[a][b]` lines — so a `RULES=1` logged start
+(`docs/ORACLE.md`) prints all 243,049 values and is the oracle a
+regenerating tool is checked against. One fact about the names is open:
+the separator between the flag letter and `OBJMASK_…` is internal string
+17, shipped as an *empty* element whose `hash` is that of a single space;
+if the engine loads it empty the 32 `Flag_` rows and columns never match
+and contribute 100. Open question 8; the `RULES=1` dump settles it.
+
+This is `docs/DECISIONS.md` entry 13's case exactly: a table the original
+computes once before the first frame. The simulation takes it as an input
+(`combat::Table`), `rondata` regenerates it from the user's install —
+`sim::balance::type_damage` for the hardcoded half, the install's
+`balance.xml` for the other — and the document records the rules rather than
+the numbers.
+
+### 5.2 `Balance::type_damage` — the hardcoded half
+
+A single ordered chain of integer percentage multiplications starting from
+100, each `p = (p * k) / 100` truncating, keyed on the attacker's and target's
+`obj_masks`, a few named types, whether the target is a building, and the age
+difference. The order matters only through truncation, and it is recorded in
+full in §5.3 exactly as executed.
+
+The first step is **the age bonus**: if both are unit types and the
+attacker's age exceeds the target's, `p = 100 + {one,two,three,four,five}_
+ages_down` for a difference of 1, 2, 3, 4, 5+ — the shipped 115, 120, 150,
+160, 170. (A unit type here is `0x32 ≤ TypeIndex < 0x19e`, or whatever the
+type's `is_unit_type` virtual says; `get_age` is the type's age, with the
+`−1` fallback resolved through `get_age_slow`.)
+
+### 5.3 The `type_damage` chain
+
+The chain below is the function in execution order, as read by the second
+reader of this mechanic and spot-checked block by block against the decompile
+by the first (blocks 2–9 line by line; the rest by their constants). Notation
+is the report's: `A`/`T` are the attacker's and target's `obj_masks` with §3's
+letters; `unit(x)`/`build(x)`/`wonder(x)` are the `TypeIndex` range tests
+(`0x32..0x19d`, `0x19e..0x21e`, `0x20e..0x21e`) behind the `is_*_type`
+virtuals; `siege(x)` is `UnitTypeData::is_siege` — which is **`unit_flags &
+0x20000`, letter `r` of the `FLAGS` column, not the SIEGE object mask** — and
+is the `return 0` stub on a building type; `missile(x)` is `has_objmask(
+MISSILE)`; `caravan(x)` is `unit_flags2 & 8`; `is(x, N)` is `ObjectTypeData::
+is` with the type name from the enum. `×n` is one truncating `v = (v * n) /
+100`; `×2`/`×4`/`×5`/`×8` are exact; `/2`, `/3` truncate. The early return at
+block 43 is the only one.
+
+Every step is independent (no `else` between steps unless shown); within a
+step the lines apply in the order listed.
+
+| # | attacker condition | target condition | multiplier |
+| --- | --- | --- | --- |
+| 0 | — | — | `v = 100` |
+| 1 | `unit(a)` | `unit(b)` and `tAge < aAge` | `v = ((c+100)*100)/100 = c+100`, `c` = `constants->one_age_down` (diff 1), `two_ages_down` (2), `three_ages_down` (3), `four_ages_down` (4), `five_ages_down` (≥5). `rules.xml`: `ONE_AGE_DOWN 15%, TWO 20%, THREE 50%, FOUR 60%, FIVE 70%`, read by `Constants::get_item` (`Constants/init@00569a90.c:129-138`, leading integer per `docs/ECONOMY.md:136`) → v = 115/120/150/160/170 |
+| 2 | `A&Q` | `T&K` | ×162 |
+| 2 | `A&Q` | `T&O` | ×152 |
+| 3a | `A&H` and `!(A&G)` | `T&M` | ×166 |
+| 3a | `A&H` and `!(A&G)` | `build(b)` | ×130 |
+| 3a | `A&H` and `!(A&G)` | `T&K` | ×86 |
+| 3a | `A&H` and `!(A&G)` | `T&D` | ×75 |
+| 3a | `A&H` and `!(A&G)` | `T&I` | ×75 (written `v*0x4b; goto /100` — one step) |
+| 3b | `A&H` and `A&G` | `T&M` | ×257 |
+| 3b | `A&H` and `A&G` | `T&O` | ×66 |
+| 3b | `A&H` and `A&G` | `T&4` | ×114 |
+| 3b | `A&H` and `A&G` | `is(b, ARMOREDCAR 0xd8, 0)` | ×225 |
+| 3b | `A&H` and `A&G` | `is(b, LIGHTTANK 0xef, 0)` | ×132 |
+| 3b | `A&H` and `A&G` | `T&I` | ×80 |
+| 4 | `A&K` | `T&Q` | ×65 |
+| 4 | `A&K` | `T&D` | ×90 |
+| 4 | `A&K` | `T&H` | ×253 |
+| 4 | `A&K` | `T&O` | ×138 |
+| 4 | `A&K` | `T&P` | ×80 |
+| 4 | `A&K` | `build(b)` | ×33 |
+| 4 | `A&K` | `siege(b)` | ×75 |
+| 5 | `A&4` | `T&K` | ×114 |
+| 5 | `A&4` | `T&Q` | ×158 |
+| 5 | `A&4` | `T&D` | ×149 |
+| 5 | `A&4` | `T&I` | ×159 |
+| 5 | `A&4` | `is(b, MACHINEGUN 0x7b, 0)` | ×130 |
+| 5 | `A&4` | `is(b, FLAMETHROWER 0x83, 0)` | ×125 |
+| 5 | `A&4` | `T&S` | ×122 |
+| 5 | `A&4` | `T&A` | ×98 |
+| 5 | `A&4` | `build(b)` | ×33 |
+| 5 | `A&4` | `caravan(b)` or `b ∈ {MERCHANT 0x3d, MERCHANTDUTCH 0x3e, FURTRAPPER 0x190}` | `/3` |
+| 5 | `A&4` | `b ∈ {PEASANTS 0x32, PEASANTSKOREAN 0x33, SCHOLARS 0x34, SCHOLARSKOREAN 0x35}` or `is(b, MILITIA 0x42, 0)` | `/2` |
+| 6 | `A&O` | `build(b)` | ×33 |
+| 6 | `A&O` | `siege(b)` | ×75 |
+| 6 | `A&O` | `T&4` | ×57 |
+| 6 | `A&O` | `T&K` | ×57 |
+| 6 | `A&O` | `T&Q` | ×66 |
+| 6 | `A&O` | `T&D` | ×66 |
+| 6 | `A&O` | `T&H` | ×160 |
+| 6 | `A&O` and `A&V` (nested in 6) | `T&4` | ×160 |
+| 6 | `A&O` and `A&V` | `T&K` | ×135 |
+| 6 | `A&O` and `A&V` | `T&Q` | ×2 |
+| 6 | `A&O` and `A&V` | `T&D` | ×2 |
+| 6 | `A&O` and `A&V` | `T&H` | ×50 |
+| 6 | `A&O` and `A&V` | `T&Y` | ×97 |
+| 6 | `A&O` and `A&G` (nested in 6) | `is(b, MACHINEGUN, 0)` | ×155 |
+| 6 | `A&O` and `A&G` | `T&A` | ×92 |
+| 7 | `A&Y` | `T&K` | ×170 |
+| 7 | `A&Y` | `T&Q` | ×179 |
+| 7 | `A&Y` | `T&D` | ×155 |
+| 7 | `A&Y` | `T&I` | ×170 |
+| 7 | `A&Y` | `is(b, MACHINEGUN, 0)` | ×155 |
+| 7 | `A&Y` | `is(b, FLAMETHROWER, 0)` | ×140 |
+| 7 | `A&Y` | `build(b)` | ×33 |
+| 8 | `A&D` | — | ×133 |
+| 8 | `A&D` | `T&K` | ×125 |
+| 8 | `A&D` | `T&H` | ×180 |
+| 8 | `A&D` | `T&O` | ×114 |
+| 8 | `A&D` | `build(b)` | ×66 |
+| 8 | `A&D` | `siege(b)` | ×75 |
+| 8 | `A&D` and `aAge == 4` | `T&H` | ×110 |
+| 9 | `A&A` and `is(a, LIGHTTANK 0xef, 0)` | `T&D` | ×155 |
+| 9 | `A&A` and `is(a, LIGHTTANK, 0)` | `T&I` | ×185 |
+| 9 | `A&A` and `is(a, LIGHTTANK, 0)` | `T&Y` | ×115 |
+| 9 | `A&A` and `is(a, LIGHTTANK, 0)` | `T&4` | ×120 |
+| 9 | `A&A` and `is(a, LIGHTTANK, 0)` | `T&O` | ×120 |
+| 9 | `A&A` and `is(a, LIGHTTANK, 0)` | `is(b, MACHINEGUN, 0)` | ×175 |
+| 9 | `A&A` and `is(a, ARMOREDCAR 0xd8, 0)` | `T&I` | ×175 |
+| 9 | `A&A` and `is(a, ARMOREDCAR, 0)` | `T&D` | ×175 |
+| 9 | `A&A` and `is(a, ARMOREDCAR, 0)` | `is(b, LIGHTTANK, 0)` | ×120 |
+| 9 | `A&A` | `build(b)` | ×66 |
+| 10 | `A&I` | `T&H` | ×260 |
+| 10 | `A&I` | `is(b, ARMOREDCAR, 0)` | ×170 |
+| 10 | `A&I` | `is(b, LIGHTTANK, 0)` | ×75 |
+| 10 | `A&I` | `is(b, MACHINEGUN, 0)` | ×66 |
+| 10 | `A&I` | `T&C` | ×120 |
+| 10 | `A&I` | `siege(b)` | ×75 |
+| 10 | `A&I` | `build(b)` | ×66 |
+| 11 | `is(a, MACHINEGUN 0x7b, 0)` | `T & (Q\|D)` (0x10008) | ×330 |
+| 11 | `is(a, MACHINEGUN, 0)` | `T&I` | ×330 |
+| 11 | `is(a, MACHINEGUN, 0)` | `T&H` | ×330 |
+| 11 | `is(a, MACHINEGUN, 0)` | `T&C` | ×5 (exact) |
+| 11 | `is(a, MACHINEGUN, 0)` | `T&A` | ×50 |
+| 11 | `is(a, MACHINEGUN, 0)` | `build(b)` | ×50 |
+| 11 | `is(a, MACHINEGUN, 0)` | `siege(b)` | ×75 |
+| 12 | `is(a, FLAMETHROWER 0x83, 1)` (strict) | `T&D` | ×88 |
+| 12 | `is(a, FLAMETHROWER, 1)` | `T&I` | ×80 |
+| 12 | `is(a, FLAMETHROWER, 1)` | `T&M` | ×125 |
+| 13 | `A&U` | `T&A` | ×180 |
+| 14 | `is(a, MILITIA 0x42, 0)` | `T & (M\|O)` (0x14000) | ×2 |
+| 15 | `a ∈ {PEASANTS, PEASANTSKOREAN, SCHOLARS, SCHOLARSKOREAN}` (0x32..0x35) | `T & (M\|O)` | ×2 |
+| 16 | `A&N` and `!(A&S)` | `build(b)` | ×33 |
+| 16 | `A&N` | `unit(b)` and `!(T & (N\|3))` (0x10002000) and `!siege(b)` | ×33 |
+| 16 | `A&N` | `unit(b)` and `!(T&N)` and `siege(b)` | ×66 |
+| 16 | `A&N` and `is(a, BOMBARDSHIP 0x15a, 0)` | `T&N` | ×33 |
+| 16 | `A&N` and (`is(a, BARK 0x143, 0)` or `is(a, SUB 0x152, 0)`) | `(T & (N\|C)) == (N\|C)` | ×2 |
+| 17 | `is(a, FIRERAFT 0x14e, 0)` | `is(b, TRIREME 0x154, 0)` | ×310 |
+| 18 | `is(a, FIRERAFT, 0)` | `is(b, BOMBARDSHIP 0x15a, 0)` | ×4 (`<<2`) |
+| 19 | `is(a, FIRERAFT, 0)` | `is(b, FIRERAFT, 0)` | ×4 |
+| 20 | `is(a, TRIREME 0x154, 0)` | `is(b, BARK 0x143, 0)` | ×160 |
+| 21 | `unit(a)` and `!(A&N)` and `!(A&S)` | `T&N` | ×33 |
+| 21 | `unit(a)` and `!(A&N)` and `siege(a)` | `T&N` | ×350 |
+| 22 | `is(a, BOMBER 0x130, 0)` or `is(a, FIGHTERBOMBER 0x134, 0)` | `build(b)` and `T&6` | ×25 |
+| 23 | `A&3` and `!missile(a)` and `A&6` | `build(b)` and `!(T&6)` | ×15 |
+| 23 | same | `build(b)` and `T&6` | ×85 |
+| 23 | same | `is(b, BOMBER 0x130, 0)` | ×2 |
+| 23 | same | `siege(b)` | ×125 |
+| 23 | same | `T&N` | ×350 |
+| 24 | `is(a, HELICOPTER 0x136, 0)` | `is(b, FIRERAFT, 0)` | ×8 (`<<3`) |
+| 24 | `is(a, HELICOPTER, 0)` | `is(b, LIGHTTANK, 0)` | ×450 |
+| 25 | `unit(a)` and `!(A&6)` | `is(b, HELICOPTER 0x136, 0)` | ×25 |
+| 26 | `is(a, V2ROCKET 0x139, 0)` | `build(b)` and `wonder(b)` | `/2` |
+| 27 | `A&W` | `is(b, SUPPLYWAGON 0x3f, 0)` | ×180 |
+| 27 | `build(a)` | `is(b, SUPPLYWAGON, 0)` | `v = (v*14)/5` (= ×280) |
+| 28 | `A&S` | `build(b)` | ×430 |
+| 29 | `A&B` | `build(b)` | ×250 |
+| 30 | `a.domain (+0x218) != 0` or `A&S` | `is(b, AIRBASE 0x1bf, 0)` | `/3` |
+| 31 | `is(a, BALAMOBSLINGERS 0x58, 0)` | `T&Q` | ×150 |
+| 32 | `is(a, KUSHITEARCHERS 0xae, 0)` | `T&K` | ×125 |
+| 32 | `is(a, KUSHITEARCHERS, 0)` | `T&O` | ×125 |
+| 33 | `is(a, INTICLUBMEN 0x5b, 0)` | `T&Y` | ×115 |
+| 33 | `is(a, INTICLUBMEN, 0)` | `T&4` | ×115 |
+| 33 | `is(a, INTICLUBMEN, 0)` | `T&O` | ×115 |
+| 34 | `A&O` and `is(a, CAMELRANGE2 0xbf, 0)` | `T&Q` | ×135 |
+| 34 | `A&O` and `is(a, CAMELRANGE2, 0)` | `T&D` | ×120 |
+| 34 | `A&O` and `is(a, CHARIOT 0xc3, 0)` | `T&O` | ×150 |
+| 34 | `A&O` and `is(a, NOMAD 0xc7, 0)` | `T&Q` | ×160 |
+| 34 | `A&O` and `is(a, NOMAD, 0)` | `T&D` | ×145 |
+| 35 | `A&4` and `is(a, RUSINYLANCER 0xe0, 0)` | — | ×105 |
+| 36 | `A&K` and `is(a, LONGBOWMEN 0xb1, 1)` | `T&H` | ×130 |
+| 36 | `A&K` and `is(a, ELONGBOWMEN 0xb2, 1)` | `T&H` | ×130 |
+| 36 | `A&K` and `is(a, KINGSYEOMANRY 0xb3, 1)` | `T&H` | ×130 |
+| 36 | `A&K` and `is(a, KUSHITEARCHERS 0xae, 1)` | `T&K` | ×135 |
+| 37 | `A&Y` and `is(a, ECOMPANION 0xe8, 0)` | — | ×105 |
+| 38 | `A&H` and `is(a, LEGIONS 0x92, 0)` | `T&H` | ×2 |
+| 38 | `A&H` and `is(a, SAMURAI 0xa0, 1)` | — | ×50 |
+| 38 | `A&H` and `is(a, HALBERDIERS 0x95, 0)` | `T&4` | ×180 |
+| 38 | `A&H` and `is(a, HALBERDIERS, 0)` | `T&Y` | ×180 |
+| 38 | `A&H` and `is(a, HALBERDIERS, 0)` | `T&O` | ×110 |
+| 38 | `A&H` and `is(a, TERCIOS 0x97, 0)` | — | ×130 |
+| 38 | `A&H` and `is(a, RECOILGUN 0x90, 0)` | `T&V` | ×135 |
+| 39 | `is(a, HIGHLANDERS 0x72, 0)` | `T&F` | ×130 |
+| 40 | `is(a, HVYMACHINEGUNMG42 0x82, 1)` | `T&F` | ×130 |
+| 41 | `is(a, TIGERTANK 0x102, 1)` | `T & (Q\|I\|D)` (0x10108) | ×115 |
+| 41 | `is(a, TIGERTANK, 1)` | `is(b, MACHINEGUN, 0)` | ×120 |
+| 42 | `is(a, LEOPARDTANK 0x103, 1)` | `T & (Q\|I\|D)` | ×115 |
+| 42 | `is(a, LEOPARDTANK, 1)` | `is(b, MACHINEGUN, 0)` | ×120 |
+| 43 | `!(A&S)` | — | **return v** |
+| 44 | `is(a, FLAMINGARROW 0x117, 0)` | `build(b)` | ×135 |
+| 45 | `is(a, BASILICABOMBARD 0x114, 0)` | `build(b)` | ×110 |
+| 46 | `is(a, MORTAR 0x112, 0)` | `build(b)` | ×110 |
+| — | — | — | return v |
+
+Notes on the table:
+- Step 1's "unit type" is `is_unit_type` = 0x32..0x19d, which includes the
+  gaia range — irrelevant here because `compute_modifier` never reaches
+  `type_damage` for gaia.
+- Steps 6's VEHICLE and GUN sub-blocks are nested inside the HORSE_ARCHER
+  block (4-space indent at `type_damage@0057fb50.c` filtered lines 278/298,
+  closed at 308).
+- Step 43 is the only early exit: everything from 44 on needs `A&S`.
+- The target-side `siege/missile/caravan` slots are real only on unit types;
+  for a building target the stubs make those lines dead, for a building
+  attacker likewise (`is(a, …)` on a BuildType still works — `ObjectTypeData::is`
+  is shared).
+- All `/100` are single truncating divisions on the running value; there is no
+  accumulation of a product before dividing anywhere except the `goto` in 3a,
+  which is still one `×75/100`.
+
+---
+
+## 6. The damage formula — `ObjectData::get_damage`
+
+`get_damage(this = attacker A, o, who = target T, angle, splash, check_overkill,
+*dtype) → int`. Every step below is in the order the function executes it;
+all divisions truncate toward zero except the `>> 8`s, which are the
+sign-fixed arithmetic shift the compiler emits for a signed `/ 256`. `A.is(X)`
+is `ObjectData::is(TypeIndex, strict)` — the type's `is_list`, i.e. "is X or
+an upgrade of X" unless `strict`. "Build-proper" is the `Object` virtual at
+`+0x20`, true for a `Build` and false for a `Wall`; "is a building" is `+0x1c`,
+true for both.
+
+```
+pct    = combat_table[A.type − 0x32][T.type − 0x32]        (§5)
+dtype  = 2
+armor  = T.armor()                                           (§4.2)
+attack = A.attack()                                          (§4.1)
+amask  = A.type.obj_masks
+tmask  = T.type.obj_masks
+```
+
+1. **Gunpowder arrows.** If A is a `CASTLE` or `FORTX`, or A's object flag
+   `0x20` is set (it is a city building), and A's owner has `GUNPOWDER_AGE`
+   (`has_tech`, inlined as `tech[0x44] >> 2 & 1`), clear **ARCHERY** from
+   `amask` for the rest of this call. The castle's arrows are bullets.
+2. `base = attack * pct / 100`.
+3. If `amask` has **MUSKET_INF**: `armor = armor * 133 / 100`.
+4. If A is Build-proper, `tmask` has **SIEGE**, T is a unit whose type packs
+   (`unit_flags2 & 4`) and is **not** packed (`unit_masks & 0x80000 == 0`):
+   `base /= 3`. A tower does a third to deployed siege.
+5. If A is Build-proper, T is a unit with non-zero `attack()` that `is_moving`:
+   if `tmask` lacks **FOOT** and (T's type `is_siege` or T `is_supply` or
+   `is_caravan`): `base /= 2`; if `tmask` has FOOT: `base = base * 3 / 4`
+   (as `(base*3 + sign) >> 2`). Buildings hit moving targets for less.
+6. If A is Build-proper and T is Build-proper and T's building is not active
+   (`WallData::is_active`, flag `0x4` — under construction): `base *= 4`.
+7. If T is Build-proper and A is a `PEASANTS`, `PEASANTSKOREAN`, `SCHOLARS`,
+   `SCHOLARSKOREAN`, or `A.is(MILITIA)`: if the tile under T is not owned by
+   A's player: `base /= 2`. Citizens and militia do half to buildings
+   outside their own borders.
+8. If `A.is(V2ROCKET)` and T is Build-proper and T's building is not active:
+   `base /= 2`.
+9. If A is a unit of domain **air** (2) and `amask` lacks MISSILE, and
+   `T.is(REDFORT, strict)`: `base = base * (100 − red_fort_air_defense) /
+   100`.
+10. If T is a unit: if T is packed: `base *= 2`; if T's type packs and T is
+    not packed: `armor += 1`.
+11. `dtype`: `3` if `amask` has **EXPLOSIVE**, `3` if it has **BOMBARD**; if A
+    is a building, `3` when `BuildData::get_shot() == 4` (the `REDOUBT`),
+    else `2`. (`dtype` is cosmetic downstream — it picks the death
+    animation's facing — and is carried but not modelled.)
+12. **Wellington**: A is a unit, A's owner has a Wellington, A is under him
+    (`has_general(0, WELLINGTON) ≥ 0`), and T's type is made `where ==
+    FACTORY` (`T.type.where ≥ 0 && objecttypes[where].is(FACTORY)`): `base +=
+    wellington_siege_attack` (not ×10; a raw addition to a tenths quantity).
+13. **Japanese**: A is a unit made at a `BARRACKS` and A's owner has tribe
+    bonus 0xf: `n = min(ages, epoch[0])`; `j = japanese_damage`; if `j < 0`,
+    `j = −(j * n)`; `base = (j + 100) * base / 100`.
+14. **Double damage**: if (A is Build-proper, or A's domain is land (0) and
+    T's is not) and T is a unit and (`T.unit_masks & 0x400000`, or T's domain
+    is sea (1) and the game's `team_style == 2` and the leader of T's owner's
+    `get_target()` is not A's owner): `base *= 2`.
+15. **Splash** (the `splash` argument): if T is a unit: `base /=
+    T.type.uber_size`. `base = A.type.splash_percent * base / 100`. If T is a
+    unit: if T's type `is_siege`, packs, and is not packed: `base *= 3`; if
+    `T.is(BARK)`: `base = base * 25 / 100`.
+16. **River**: T is a unit and T's `z < 0`: `base = (base * river_modifier) >>
+    8`.
+17. **Decoy**: T is a unit with `unit_masks & 1`: `armor = 0`; `base =
+    max(A.attack(), base) * 1000`. Anything kills a decoy.
+18. **Unfriendly territory**: T is a building and `WallData::in_unfriendly_
+    territory` and the game is not in balance-test mode: `armor = 0`; if T is
+    not Build-proper (a wall) or T's type has zero attack: `base *= 4`.
+19. (no step — the numbering follows the function; see 20)
+20. — reserved —
+21. **Flanking.** Only if A and T are both units; neither `amask` nor `tmask`
+    has **CIVILIAN**; neither has **AIR**; `amask & NAVAL == tmask & NAVAL` and
+    `tmask` lacks NAVAL. Let `d = T.angle − angle` (the `angle` argument is
+    the attacker's facing toward T at the moment of the attack, §8.4) and
+    `e = d + 0x80000000` (i.e. `d + 180°`) as a 32-bit unsigned angle. No
+    flank if `e < 0x2aaaaaaa` (60°) or `e > 0xd5555555` (300°) — the target is
+    facing the attacker to within 60°. Otherwise `level = 1 + (e + 0xa0000000
+    > 0x40000000)`, which is `1` for `e ∈ [135°, 225°]` (`d` within ±45° of
+    0: T faces the way the attack travels — **attacked from behind**) and `2`
+    for the remaining sectors on either side. Then `fb = flank_bonus`; if the
+    mask (see note) has **VEHICLE**: `fb = (fb * vehicle_flank_bonus) >> 8`,
+    else if it has **MOUNTED**: `fb = (fb * cavalry_flank_bonus) >> 8`; and
+    `base = (fb * level + 100) * base / 100`. With the shipped 50: rear
+    ×1.5, side ×2.0 — unless the facing convention is the other way round,
+    which is open question 1. *Note:* the mask the VEHICLE/MOUNTED test reads
+    is a register the decompiler lost (`extraout_EDX`); the natural candidate,
+    and the one taken, is `amask` — a vehicle or cavalry **attacker** takes a
+    reduced flank bonus. Open question 2.
+22. **Net damage:** `dmg = (base + 5) / 10 − armor`. Attack was in tenths;
+    this is the rounding back to whole hits, and armour is subtracted
+    *after* every multiplier above.
+23. **Overkill** (only when `check_overkill`, which `do_damage` always passes):
+    if `A.max_range() != 0` and A and T are both units, and T's
+    `damage_frame != 0` and `frame − T.damage_frame < overkill_frames` and
+    `A.get_captain() != T.damage_o`: `dmg = (dmg * overkill_damage) >> 8`; and
+    if `T.is(CATAPULT)` and A's type is not siege: `dmg /= 2`. §7.1 says how
+    the record is kept: the **first** ranged squad to hit a figure owns a
+    30-frame window; every other squad's hits in it are cut to a third.
+    Melee attackers neither suffer it nor open a window.
+24. **Rocky**: `tmask` has any of **LIGHT_INF**, **MODERN_INF**, **MUSKET_INF**
+    and the tile under T has terrain flag `0x8`: `dmg = (dmg *
+    rocky_modifier) >> 8`.
+25. **Height**: neither domain is air, A's type is not siege, and `T.z <
+    A.z`: `dmg += (A.z − T.z) * height_bonus * dmg / (height_increment *
+    100)`.
+26. **Entrenchment**: T is a unit with `unit_masks & 0x2000000` and
+    `!A.is(FLAMETHROWER)`: `d = T.trench_angle − angle`; `c = 0` if `|d| >
+    120°` (as `d + 0x55555556 ≥ 0xaaaaaaac`), else `1 + (d + 0x20000000 >
+    0x40000000)`. If `splash` or `c == 0`: `dmg = (dmg *
+    entrenchment_modifier) >> 8`, and if `T.unit_masks2 & 0x1000`: `dmg =
+    (dmg * antipater_entrench_bonus) >> 8`. The trench protects against fire
+    from within 60° of the direction it faces, and against all splash.
+27. **Cossacks**: `russian_cossack_damage != 0`, A's owner has tribe bonus
+    0xd, A is a unit made at a `STABLE`, and T `is_supply` or T's type
+    `is_siege`: `dmg = (russian_cossack_damage + 100) * dmg / 100`.
+28. **At least one**: if `dmg < 1`: if (A's domain is not land, or T's domain
+    is not sea) and `(tmask & AIR) == (amask & ANTI_AIR ? AIR : 0)` and not
+    `splash`: `dmg = 1`. So a land attacker never scratches a ship, an
+    anti-air unit never scratches a ground target, a non-anti-air unit never
+    scratches a plane, and splash can do nothing.
+29. `super_immune`: T's type is `SUPERCOLLIDER` and A is air and the flag is
+    on: `dmg = 0`.
+30. **Recapture**: T is Build-proper, active, a city building (flag `0x20`)
+    with a city index, and the city's original owner is A's owner: `dmg =
+    (dmg * recapture_city_modifier) >> 8`.
+
+Return `dmg` — whole hits, possibly zero or negative; `do_damage` clamps and
+scales next.
+
+**What the formula does not do**, and which earlier mechanics might lead one
+to expect: no randomness (hit or miss is decided before this is called, by
+where the projectile landed), no per-figure variation (every figure of a
+squad does the same), and no dependence on the *target's* attack, age or
+count except through the table.
+
+---
+
+## 7. Delivery — `Object::do_damage` and `Object::take_damage`
+
+### 7.1 `do_damage(A, o, who, angle, num_guys, ammo, count, splash, quiet)`
+
+Returns at once if `count < 1` or if A is a decoy. Then:
+
+1. `dmg = get_damage(o, who, angle, splash, 1, &dtype)` — §6.
+2. If the target is a unit and `!quiet`: the target's **captain** runs
+   `Unit::target_opportunity(A)` — it may turn and engage (§12) — and if the
+   target's `unit_masks & 0x10`: `dmg *= 2`. Then the **overkill record**:
+   if `T.damage_frame == 0` or `frame − T.damage_frame >= overkill_frames`:
+   `T.damage_frame = frame; T.damage_o = A.get_captain(); T.damage_who =
+   A.who`. (So the window belongs to whoever hit first; a later hit inside
+   it neither takes it over nor extends it.)
+3. If A is not a missile and is active: `Object::attempt_launch(T, A.pos)` —
+   the target, if it holds aircraft, may scramble them. Not modelled.
+4. Sound, unless `splash`.
+5. **Scale**, branching on what A is:
+   - A is **not a unit** (a building): `s = dmg * count / A.type.ammo_per_att`.
+   - A is a **unit**: `s = dmg * count`; if `s < 0x101`: `s = 0x100` (a unit's
+     volley is at least one whole hit before the next two divisions); if
+     `ammo ≥ 0`: `s /= A.type.ammo_per_att`; then `s /= A.type.uber_size`.
+   Then `sixteenths = s >> 4` (sign-fixed), `frac = sixteenths & 0xf`
+   (sign-fixed), `whole = sixteenths >> 4`. With `count = 0x100` and a unit of
+   `uber_size` 3 attacking for 30: `s = 30 * 256 / 3 = 2560`, `sixteenths =
+   160`, `whole = 10`, `frac = 0` — each figure's shot is a third of the
+   squad's attack, and three of them fire.
+6. Bookkeeping: which owner is attacking which (`attacked` bits both ways),
+   the under-attack messages and the city alarms — all interface or AI. And
+   `dtype`: `4` if the ammo's graphic piece has flag `0x10`; `1` if T is
+   Build-proper.
+7. `died = T.take_damage(whole, frac, dtype, ammo, 0, angle, A.o, A.who,
+   splash)` — §7.2.
+8. If `died` and T is a building: buildings-destroyed stat, the type's
+   `get_kill_value / 5` to score, `Build::plunder` for a non-air, non-splash,
+   non-allied kill. Return.
+9. If not died: emergency AI; a `FLAMETHROWER` hitting a building **ejects
+   its garrison** (and against a city, spawns citizens); entrenchment is
+   **broken** on a hit that did not kill (`unit_masks &= ~0x2000000`, the
+   two Antipater bits, `remove_entrench`); the Lakota coin trickle; planes
+   ejected from a hit carrier/airbase by anti-air or bombers; then the
+   **building's own splash**: every unit on the tiles within `circle_radius[1]`
+   of a hit building, filtered by `Search::valid_search`/`valid_filter` (on
+   the map, hostile to A, not Korean-building-under-fire), within
+   `max(x_size, y_size) × 0xc0` of the building, not air, not a ship hit by
+   siege, gets `do_damage(A, that unit, …, count / 8, splash = 0, quiet = 1)`
+   — or `count / 4` when A is siege with a land domain — if within A's `max(
+   max_range × 0xc0, 0x180)` of the building. Then the city-capture check
+   and text bubble.
+
+### 7.2 `take_damage(T, whole, frac, dtype, ammo, attrition, angle, o, who, splash)`
+
+`attrition` is non-zero when attrition is the caller (`docs/ATTRITION.md`);
+combat passes 0. Returns 0 (alive), 1 (died), 2 (died and the overflow was
+passed on).
+
+1. Not active → 0.
+2. If `whole < 1` and `frac < 1`: `frac = 1`. Every hit that reaches here
+   takes at least a sixteenth.
+3. Combat only (`attrition == 0`): the owner's last-attacked frame (AI, on
+   low difficulty); on the **first** damage to a building (`damage == 0`)
+   that is a `TEMPLE` or `TOWN` or not a dock, a 5 % roll of
+   `Random::get(0, 0xffff) % 100 < 5` spawns a flock of birds — cosmetic,
+   but it **consumes game random**, and a second roll decides the flock
+   size; a missile fired by a non-`NUCLEARMISSILE` at someone not yet at war
+   declares war.
+4. **Accumulate**: `t = T.damage_frac + frac; whole += t / 16 (sign-fixed);
+   T.damage_frac = t % 16 (sign-fixed); T.damage += whole`.
+5. A building under construction (not `WallData::is_active`), hit by
+   something other than an aircraft, in combat, with `whole > 0`: its
+   `WallData::job_counter` loses `whole * 50` (clamped at 0). Hits knock
+   progress off a building site.
+6. T **not** Build-proper (a unit, a wall): the AI's peasant-alarm (a
+   citizen hit inside a city with a finished city building: push an alarm
+   group). No change to the numbers.
+7. T **Build-proper**: city-under-attack flags; if `T.damage ≥ T.hits(0)` and
+   T cannot carry aircraft: `eject_contents`; if T is a city building
+   (`0x20`) that `is_active`: if `damage < hits` return 0, else set flag
+   `0x10`, **clamp `damage = hits`** and return 0 — **a city never dies from
+   damage**; it sits at zero and waits to be captured.
+8. `share = T.hits(0)`. If T is a unit: `Unit::set_in_danger`; if
+   `uber_size > 1`: if T is not the captain or `curr_uber_size() != 1`:
+   `share = hits / uber_size`; else `share = hits − (uber_size − 1) * hits /
+   uber_size`. **Each figure carries `hits / uber_size`, and the captain,
+   once it is the last one standing, carries the remainder as well**, so
+   the squad's total is exactly `hits`. An Aztec (tribe bonus 0) attacker
+   from a `BARRACKS`/`STABLE`/`DOCK` marks T's captain `unit_masks |=
+   0x4000` (plunder on kill).
+9. If `T.damage < share`: mark the captain's flag `0x10` (damaged); a
+   building that is not started, with `hits ≤ 2 × damage` and `build_masks
+   & 0x2000`: `disband`, return 1. Else return 0.
+10. **Death.** For a non-decoy unit hit by `dtype == 3` that is FOOT or
+    MOUNTED: the figures' angles are set for the death animation. Stats:
+    units-lost, and for the killer (`o ≥ 0`): units-killed, the dead type's
+    `get_kill_value / 5` to score (subtracted, floored at 0, for an allied
+    kill), `Unit::plunder` by the killer on a non-allied, non-splash kill
+    (the Despot's unit plunder or a General/Supply Wagon/Caravan kill),
+    the Inca refund. Then `T.die(dtype, gpiece, angle)` — `Object::die`
+    → `close` (§11). If T was a **decoy** and the overflow `damage − share >
+    0`: the captain takes it (`take_damage(overflow, 0, …)`), return 2.
+    Else return 1.
+
+### 7.3 What a figure can absorb, and why `hits` is the squad's
+
+`update_hits` writes one number, the squad's, onto every figure, and
+`take_damage` divides it on the way in; so a "Hoplites" squad with `HITS`
+90 and `UBER_SIZE` 3 is three figures of 30, and when the first two fall the
+captain's threshold becomes `90 − 2 × 30 = 30` — no change, because 90
+divides; with `HITS` 100 the remainders land on the captain: 33, 33, 34.
+`docs/ATTRITION.md` already treats the figure as the thing that bleeds; this
+is where the figure's size comes from. `ObjectData::hits_left` and
+`health_level` read `UnitData::total_damage`, which sums the chain and adds
+`(uber_size − curr_uber_size) × hits / uber_size` for the dead — the health
+bar shows the squad.
+
+---
+
+## 8. The firing cadence
+
+### 8.1 Where it sits in the frame
+
+`Unit::process` (every frame, every active unit; `docs/ATTRITION.md` has the
+order) begins by decrementing `recharging` if it is non-zero, and `full` (the
+"ready" counter) likewise. It then runs the unit's order: `Unit::work` →
+`Unit::do_job(order_type)` → `Unit::do_attack` for an `ATTACK` order →
+`Unit::fight`. An idle unit runs `Unit::do_idle` → `Unit::think` →
+`Unit::think_attack`, which is how it acquires a target without being told
+(§12). A `recharging` unit with no range and no cavalry-archer flag returns
+from `work` before doing anything else unless its order has flag `4`.
+
+### 8.2 `Unit::fight(o, who, flag, …, cavarch)` — the attack
+
+The function is long because it also manages the order (switching to a
+figure of the same squad when the targeted one died, re-targeting, moving
+to an attack position, unpacking, the cavalry-archer dual mode). The
+**attack itself** happens when: the order's target is a valid target
+(`Object::valid_target`, §12.1); `recharging == 0` (a non-zero counter
+returns 0 at the top, after a little animation housekeeping); and `T` is in
+range (`ObjectData::is_in_range`, §13). Then, in this order:
+
+1. A packed siege type in range **unpacks** (`add_cast_order(UNPACK)`) and
+   returns — it cannot fire packed — unless it can get a better position.
+2. `unit_masks |= 0x11000` (in combat, attacking). `set_attack(o, who)`:
+   every figure's `attack_o`/`attack_who` are set and, for a ranged type with
+   pivot restrictions, `Guy::set_all_pivots` — a return that means "wait for
+   the pivot", which makes the unit skip the attack this frame (the
+   `param_4 != 0` early-out below).
+3. **Facing**: `angle = find_angle(T − A)`; for a wall target, the angle is
+   snapped to the side of the wall the attacker is on; a `GUN`-flagged type
+   (`unit_flags & 0x40`) that is not a `PATROLBOAT` vs a sea target snaps to
+   whichever of `angle ± 90°` is nearer its current facing (broadside). If
+   the pivot said wait, `angle = A.angle`. `set_angle(angle)` if it changed;
+   each figure's desired angle is set (for a squad of `squad_size` guys each
+   gets the angle to the target from its own position — except single-figure
+   and sea types, which all take the unit's).
+4. **Animation**: `CHAR_ATTACK1`/`ATTACK2`/`ATTACKSPECIAL` by flags; an
+   `IMMORTALS` type within `0xc0` of its target strikes with the special and
+   does its damage *here* (per figure, `count 0x100`); a unit with `DETECT`
+   and a jammed radar rolls `rnd < jam_unit_radar_prob` (`GameAccess::rnd`,
+   the other RNG) to misfire.
+5. `set_attacking(who)`: the attacked-by bits, and the target owner sees the
+   attacker (`update_local_seen`) if it did not already.
+6. **The strike.** If `A.type.max_range == 0` (melee): if `A.type.fire_proj
+   != 0` (any type with non-zero attack) or this is the cavalry-archer melee
+   call: for each of the unit's `guy_mark` figures: `Object::do_damage(A, o,
+   who, angle, guy_mark, −1, 0x100, 0, 0)`. **Melee damage lands the frame of
+   the attack**, not at an animation event; there is no event path
+   (`Object::execute_events` is empty). Otherwise (ranged): if
+   `unit_flags & 0x10000` is clear: `Object::fire_ammo(o, who)` (§9) — a
+   `MERCHANTDUTCH` that is not packed temporarily swaps its projectile for
+   the eighth ammo piece (a flare) — and a type with `unit_flags & 0x2000`
+   **dies after firing** (`die(3)`). If `unit_flags & 0x10000` is set (the
+   sweep types): every enemy unit and building within `(3 × max_range + 6) ×
+   0x40` / `(3 × max_range + 3) × 0x40`, that is land-domain or the target
+   itself, within `max_range × 0xc0 + 6` by `attack_dist`, within ±90° of
+   `angle`, and whose perpendicular distance from the firing line is at most
+   the two big radii (units) or `(x_size + y_size) × 0x30` (buildings), takes
+   `do_damage(…, 0x100, splash = (not the target), 0)` per figure — a cone.
+7. `recharging = recharge()` (§8.3; the byte truncates anything over 255).
+   The army remembers a building target. Return 1.
+
+`Unit::do_attack` calls `fight` every frame the order is current; the
+cavalry archer calls it twice (§8.5). Building targets that are transport
+barges, and targets inside a transport, are special-cased before `fight`.
+
+### 8.3 `UnitData::recharge()`
+
+`r = type.recharge`. If the type is **not** siege: `r`. If it is siege and
+(`artillery_under_attack_fires_slowly == 0` or the unit is not under attack
+(`unit_masks2 & 1`)) and the unit is **in supply** (`in_supply`,
+`docs/SUPPLY.md`): `r`. Otherwise — siege out of supply, or under attack
+with the flag on — `r * 2` if the type `is(BOMBARD)`, else `r * 3 / 2`. The
+two `*_OUT_OF_SUPPLY_RELOAD` constants exist and are loaded (8.8, `3/2` and
+`2/1`) and **are not read here**; the ratios are literals.
+
+### 8.4 The angle that reaches `get_damage`
+
+The `angle` argument to `do_damage` — and so to the flank and entrenchment
+tests — is the attacker's facing toward the target as `fight` just set it
+(step 3), or the ammo's stored `angle` (set at launch from the unit's
+`+0x50 angle`) for a projectile. For splash from a projectile it is
+`find_angle(landing → victim)`.
+
+### 8.5 The cavalry archer
+
+A type with `unit_flags & 0x400` has `max_range = 0` and `second_max_range
+= RANGE`'s max (§2.1). `Unit::do_attack`: with the combat stance at 2 it
+sets `type.max_range = second_max_range` for the duration of one `fight`
+call and restores 0 — the ranged mode. Otherwise it calls `fight` as melee
+and then, if that attacked, `cavarch_fight` with `recharging` forced to 0
+and restored — a second, melee-range swing at the nearest melee target. The
+type's `max_range` is **mutated on the shared type object** for the call;
+two cavalry archers of the same type cannot interleave inside one call, so
+this is safe and deterministic, but it is a fact about the data model worth
+knowing.
+
+### 8.6 Buildings — `Build::process` and `Build::do_attack`
+
+A building with non-zero `type.attack` runs `do_attack` every frame it has a
+target, every 32nd frame (`(frame + o) & 0x1f == 0`) when it has none, and
+whenever the object adjacent to it (`near_o`) is in range. `do_attack`:
+
+- A `LOOKOUT`/`OBSERVATIONPOST` with ANTI_AIR, or any building whose
+  `recharging` is non-zero: decrement `recharging` and return.
+- Every 32 frames the seen-by mask is cleared; `hits_left() == 0` returns;
+  `is_jammed` (a radar-jammed building) sets the misfire flag and returns;
+  `get_garrison_arrows() == 0` returns.
+- Without an explicit attack order (`build_masks & 4`), `find_target` —
+  `Object::find_nearby_target(max(x_size, y_size) + 2 × max_range) × 0x60`
+  (§12) — whenever it has no target, and every 32 frames (`(frame + o + 14)
+  & 0x1f == 0`) when its current target is a unit that is **not moving** and
+  is not a `role & 0x10000` spellcaster: the tower prefers a moving target
+  and re-looks for one every two seconds. An invalid target → `find_target`.
+- In range → `fire_ammo(target)` (§9; `ammo_per_att` ammo at random points
+  in the footprint), the seen-by update, and **`recharging = type.recharge /
+  arrows`**, `arrows = get_garrison_arrows()`.
+
+`get_garrison_arrows`: `a = (attack() + 5) / 10`; zero → zero. `base =
+base_arrows (+ maya_garrison_arrows for a Mayan, except an unassimilated
+city)`. `g = count_inside(GARRISON_ARROWS)` — the sum over garrisoned
+**captain, non-decoy, FOOT, non-siege** units of `attack / 10`, halved
+(`(a+1)/2`) for a melee one, with a worker counting as the owner's militia
+type and a militia counting nothing. If `base == 0`: `g += a / 2`. `g /= a`;
+`arrows = base + min(g, most_shots)`. A tower with three archers inside
+reloads in a third of the time.
+
+---
+
+## 9. Projectiles — `Object::fire_ammo`, `Ammo::init`, `Ammo::inc_time`, `Ammo::do_damage`
+
+### 9.1 Launch — `fire_ammo(o, who)`
+
+A **unit** adds one `Ammo` **per figure** on this `UnitData` (`guy_mark`), at
+the figure's position, `z + 100`, with the unit's facing, `gpiece =
+type.fire_proj`'s graphic, `who/o = A`, `whom/ox = T`. A **building** adds
+`type.ammo_per_att` ammo, each at a `Random::get(0, 0xffff) % (x_size × 0x60)`
+by `% (y_size × 0x60)` offset from the building's centre (two draws per
+ammo; none on a zero-width axis), `z + 250`, angle 0, graphic by
+`get_shot()`. Nothing is launched at no target unless the order is
+`ATTACK_GROUND`/`AIR_ATTACK_GROUND`.
+
+`Ammo::init` then (for a normal shot at a unit or building target):
+
+**Accuracy.** `acc = A.type.to_hit + (attack_dist(A, T) / 96) * A.type.
+attenuate`, floored at 5, stored as `accuracy`. (`attack_dist` is §13; the
+`/ 96` is the `* 0x2aaaaaab >> 37` the compiler emits.) `RANGE_INACCURACY`
+is not read.
+
+**Scatter radius `s`.** If A is a unit with `unit_flags & 0x400000` ('w'):
+`s = 0`. Else for an **attack-ground** shot: `s = 0` unless the order says
+otherwise. Else if T is a unit of **land** domain: `s = target_radius * 100
+/ ((100 − acc) / 5 + acc)`, quartered when `acc > 100`, and the shot is
+marked **rolling** (`flags |= 4`, and its landing z is raised by 0x4b) if it
+is not a lofted piece (ammo flag 8). Else (T is a building, ship or
+aircraft): `s = 0xc0` — one tile, fixed. A **missile** (MISSILE flag)
+doubles `s`, a `NUCLEARMISSILE` zeroes it.
+
+**Landing point.** `angle = find_angle(T − launch)`; `(ex, ey) = T.pos`; for
+a building target, shot by a non-siege, non-tank unit, `ex, ey` are
+projected `x_size × 0x30` back along `angle + 180°` (it aims at the near
+face). Then `ex += Random::get(0, 0xffff) % s − s / 2`, `ey += Random::get(0,
+0xffff) % s − s / 2` — **two draws when `s > 1`, none otherwise**; `ez = T.z`
+(a plane's: its first guy's), floored at 0. A `CHAR_ATTACK2` foot archer
+firing `unit_flags & 0x400000` gets a small per-figure offset (float, so
+noted as the one cosmetic float on this path). Clamp to the map.
+
+**Flight time `total_time`.** For a unit shooter that is not a missile:
+
+- a non-siege: `total_time = (int)(sqrtf((ex − sx)² + (ey − sy)²) /
+  (float)(type.proj_speed * unit_move_speed))` — **the one float on the
+  combat path.** It is an IEEE single-precision square root of an integer,
+  divided by an integer, truncated. It is emulated exactly in integers in
+  the implementation (`combat::flight_time`): a correctly-rounded 24-bit
+  square root and a correctly-rounded 24-bit quotient are both computable
+  without a float, which is `docs/DECISIONS.md` entry 10's argument applied
+  to a different operation. Open question 4 records the residual.
+- a siege: `total_time = max_range() * 0xc0 / (type.proj_speed *
+  unit_move_speed)` — integer, and **independent of the actual distance**.
+- a building shooter: `sqrtf(dx² + dy²) / (proj_speed × unit_move_speed)`
+  likewise, or `/ (unit_move_speed × 90)` for `get_shot() == 0` (arrows).
+- a lofted piece (ammo flag 8) flies a spline; missiles fly a nuke spline
+  (`Spline::calc_nuke_spline`, float) — not modelled.
+
+`splash_area = A.type.splash_area`; `flags |= 2` (live); `cur_time = 0`;
+`num_guys = A.guy_mark` (unit) or 0.
+
+### 9.2 Flight — `Ammo::inc_time` (every frame, all ammo, after the objects)
+
+`cur_time += 1`; a target that is no longer active has its `hold_frames`
+bumped. A live ammo with `cur_time < total_time` returns (a rolling one
+recomputes its graphic position in floats — cosmetic). At `cur_time >=
+total_time`: a **rolling** shot (flag 4) that has not yet missed (flag 8)
+does `hit_target`, then `check_hit(GROUND)`, and if neither found anything
+sets flag 8 and keeps going along its line, up to `3 × total_time`, until the
+terrain is above it (float terrain heights; cosmetic to the outcome except
+that a rolling miss can land on something further along — open question 5);
+then `graphic_finish` and, unless cosmetic (flag 0x10), `Ammo::do_damage`.
+
+### 9.3 Impact — `Ammo::do_damage`
+
+If the target is no longer active it is forgotten (`whom = ox = −1`). Then:
+
+**No splash** (`splash_area == 0`): `hit_target()`, and if that fails
+`check_hit(domain of the original target, or GROUND)`. If there is now no
+target, or the target is the shooter itself: a landing point is picked
+`±20` around `(ex, ey)` with two more `Random::get` draws and the ground is
+punctured (cosmetic); return. Else if the target is active: `Object::
+do_damage(A, ox, whom, find_angle(launch → target), num_guys, index,
+0x100, 0, 0)`.
+
+**Splash**: (nuke and missile-shield branches aside) `hit_target()` /
+`check_hit()` as above — then, for every object on every tile within
+`radius[min(splash_area / 4, 10)]` of the landing point (`move_x/move_y`,
+walking each tile's object chain through `down/down_who`), skipping the
+shooter's own team and allies, **damaging the intended target with `splash
+= 0` and everything else with `splash = 1`**: a unit that is active, on the
+map, in the same air/ground class as the ammo's domain, not a missile:
+`d = max(0, vector_dist(landing, unit) − 0xc0 − unit.type.guy_radius)`;
+`count = 0x100 − (d << 8) / (splash_area × 0xc0)`; if `count > 0`:
+`do_damage(A, unit, …, count, splash, 0)`. A building, for a non-air ammo:
+`d = |landing − building| − x_size × 0xc0` (as written — the y term is
+dropped); `count` likewise; `do_damage` if `count ≥ 0`. The `splash`
+argument is what makes `get_damage` apply step 15 and lets the fringe do
+nothing (step 28).
+
+### 9.4 The hit test — `Ammo::hit_target` and `check_hit`
+
+`hit_target`: the target must be active and on the map. For a **unit**:
+`vector_dist(landing, T) ≤ T.type.target_size` — with the distance **halved
+when `accuracy > 100`**. For a **building**: the landing point must be inside
+the footprint, `|ex − T.x| ≤ x_size × 0x60` and `|ey − T.y| ≤ y_size × 0x60`.
+Hit → 1; miss → forget the target, 0.
+
+`check_hit(domain)`: `ObjectsData::find_unit` at the landing point, radius
+`0x180` (two tiles), non-friendly only if the shooter is an aircraft, and
+filtered to the ammo's domain class (AIR → only air; land/sea → not air);
+a found unit whose `target_size` is less than the search's own distance
+is rejected; failing a unit, `find_building_at` on the landing tile; failing
+that, a miss sound by terrain and no target. **So a shot that misses its
+mark can hit another unit within two tiles of where it lands, or the
+building it lands on, and does full damage to it.**
+
+### 9.5 What a shot costs in random draws
+
+Two draws for the landing scatter (when `s > 1`), two more when a building
+is the shooter (the launch offset), two more for a no-target landing, one
+or two in `take_damage`'s first-damage flock roll on a building. Every one
+is `Random::get(game_random, 0, 0xffff)` and the order above is the order
+they are taken, so a sim that reproduces the sequence reproduces the misses.
+
+---
+
+## 10. The game's random number generator — `Random`
+
+One `ulong random_seed`. `Random::get(lo, hi)`: if `lo == hi` return `lo`
+**without advancing**; if `lo > hi` swap; `seed = seed * 0x19660d +
+0x3c6ef35f` (32-bit wrap); return `((seed & 0xffff) * (hi − lo) >> 16) + lo`.
+`Random::reseed(x)` XOR-swaps the seed with `x` and returns the old one. The
+per-game stream `game_random` is what every `Random::get(GameAccess::
+game_random, …)` above reads; `GameAccess::rnd` is a second, unsynchronised
+stream used for effects (the radar jam roll above is the one place this
+mechanic reads it, and that roll is gated on a display flag). So `get(0,
+0xffff)` is `(seed >> 16 & 0xffff) * 0xffff >> 16` — a value in
+`0..=0xfffe` — and the `% 100`, `% s` that follow are ordinary truncations.
+`combat::Rng` is this, exactly.
+
+---
+
+## 11. Death
+
+`take_damage` calls the object's `die` virtual — `Unit::die` → `Object::die`.
+`Object::die(dtype, gpiece, angle)`: `close()` (the object's removal:
+unregistering from the world, the supply list, the army, the group), then,
+for a type with range, `hold_frames = max(1, for every live ammo this
+object fired: total_time − cur_time + nuke_effect[0x108] + 1)` — **the slot
+is held until its last shot has landed**, so that a dead archer's arrow
+still hits. A `UnitData` in the chain dies alone; `Unit::die_uber` (the
+whole squad) is a separate call from the scripting and disband paths, not
+from combat. Death of a non-captain figure does nothing to the others
+except through `curr_uber_size` (§7.3); death of the captain is handled by
+`close` (the next figure up becomes captain — `docs/ATTRITION.md` has the
+chain). The `hits` share of the survivors is unchanged except the last one's
+remainder.
+
+---
+
+## 12. Target selection
+
+Read by a second reader (`Object::valid_target`, `ObjectData::valid_target_const`,
+`Object::find_nearby_target`, `compare_target`, `check_target`, `poor_target`,
+`Unit::find_melee_target`, `find_new_target`, `change_target`,
+`target_opportunity`, `think_attack`, `Build::find_target`) and adjudicated
+here against the decompile on the predicates the implementation carries. The
+enum names come from the PDB's `OrderIndex` and `CombatStanceIndex`:
+combat stances are `AGGRESSIVE 0, DEFENSIVE 1, STAND_GROUND 2, RAID 3, RAZE 4,
+HOLD_FIRE 5`; `UnitData::get_combat_stance` is the unit's stance if its type's
+stance type is combat, else `STAND_GROUND`.
+
+### 12.1 Validity — `ObjectData::valid_target_const(o, who)`
+
+All of, in order: the target exists and is not mine; **the owners are at war**
+(`LeaderData::is_enemy`: my diplomacy toward them is war, or theirs toward
+me); the target is active; it is **seen** by my owner (`is_seen(who, 0)`); a
+unit target is on the map (not garrisoned); a submarine or a self-destructing
+attacker (`unit_flags & 0x102000`) only targets sea units; **a melee attacker
+(`max_range == 0`) cannot target into an unseen tile** (`TData.mask & 0x30 ==
+0x30`); a submarine attacker on land domain cannot target sea; **air targets**
+need a ranged attacker, and then a ladder of `fly_high`/`fly_low` against the
+attacker's own `fly_high`/`fly_low` and ANTI_AIR flag (helicopters are
+targetable by anything ranged but siege, tanks, missiles and bombers;
+missiles never target or are targeted by missiles); and finally **a land-
+domain or building attacker with ANTI_AIR never targets ground or sea**.
+`Object::valid_target` adds: a city that is capture-eligible is not attacked
+(the capture path takes it) unless the attacker is a `VEHICLE|WAR_MACHINE`
+unit under a mandatory attack order on it, or a missile. `GroupData::
+valid_target` is "any captain in the group passes". `LeaderData::get_target`
+is the diplomatic target (the next in-play leader in start order), not a
+combat one.
+
+### 12.2 The search — `Object::find_nearby_target(max_dist, &who, add_order, cavarch, flags)`
+
+Returns the best `o` or −1. An attacker with `ObjectData::attack() == 0`
+finds nothing. `rings = 32` when `max_dist == 0`, else `ceil(max_dist /
+0x300)` plus one for a building, one for ANTI_AIR, one in RAID, capped at 32.
+The centre is my cell (a guard's guard point). The rings are `circle_x/
+circle_y` — every `(dx, dy)` whose `max + min² / (2·max)` equals `r`, ring by
+ring, `dx` then `dy` ascending — and on each cell every object on it (the
+cell's `down/down_who` chain, **all players**). For each active object that
+passes `valid_target` and the `flags` filters (units only / buildings only /
+buildings with attack or wonders or military trainers), `check_target` must
+pass (below; it also yields `dist = attack_dist`); the nearest so far is
+cached in `near_o/near_who` (cleared afterwards if beyond `0xf00`); `dist >
+max_dist` skips; the **range gate**: a unit in STAND_GROUND, or entrenched
+without the Antipater bit, or an unpacked packer, considers anything
+(`anything`); otherwise a unit that is not guarding (or whose guard target
+has attack) is deemed `in_range` without testing, and everything else must be
+`is_in_range` or be a unit, have attack, or be a wonder (then `in_range =
+0` and it is still scored); **distance shaping** for units: a ranged type
+with no minimum range and `dist + 0x180 < max_range × 0xc0` halves `dist`;
+inside `min_range`: `dist = min_range×0xc0 + (max_range×0xc0 − dist)`; then
+**`dist += (target.targeted + 8) × 0x30`** — every attacker already on it adds
+a quarter tile; `value = compare_target(o, who, in_range, ai)`; **`score =
+value / (dist / 0xc0 + 1)`**; the previous mandatory target halves; the
+`flags` preferences halve the wrong class; a cavalry archer's second-weapon
+search weights by bearing (×4 within 30°, ×2 within 60°, /10 beyond 90°,
+skip beyond 135°); `score == 0 && value != 0 → 1`; strictly greater wins
+(ties to the earlier — nearer ring, lower `dx`); and **after ten unit
+candidates with a best in hand the scan stops**. The winner's `targeted`
+goes up by one (cap 100). With `add_order` the attack order is added:
+`QUEUE_FIRST` for a guard or a DEFENSIVE stance, `QUEUE_NEW` otherwise, and
+`mandatory` only for AI-controlled siege on a city.
+
+`Object::check_target(o, who, duty, &dist, guarding, use_poor, cavarch)`:
+`dist = attack_dist`; a unit not on duty in DEFENSIVE with an order, or a
+target in another region, must be `is_in_range`; a guarding unit rejects
+beyond `unit_guard_respond_range × respond × 0x60` (`respond` 2, or 3
+against a non-worker under AI control) of the guard point; a building target
+must be buildable outside a city (`build_flags & 0x10`) or stand on an owned
+cell; and, with `use_poor`, not `poor_target`. **`poor_target`** (unit vs
+unit): an airborne figure unless I am ANTI_AIR within range; else a target
+on a move order that is faster than me, heading away (the `flanking` test
+says its back is to me), and more than a tile off (a cavalry archer: more
+than `max_range` tiles).
+
+### 12.3 Ranking — `Object::compare_target(o, who, in_range, ai)`
+
+`v = 4 × Type::sum_rules_cost(T)` (a wonder: `/25`). An active building:
+`ai` → `×10`; not raiding and not human: a **city** `×5` (`ai`: 100), else
+a **defensive** building (the Tower/Fort/Airbase lines or `most_shots != 0`)
+not ANTI_AIR `×4` (`ai` `×40`), else a military trainer `×3` (a silo with
+something queued or inside `×15`), else a training building `×2`. A target
+with non-zero attack and `hits_left`, not ANTI_AIR: `v = v × T.attack × 100 /
+T.hits_left` (`×10` more for a building) — **wounded, hard-hitting targets
+first** — or `/20` when a raider looks at a building. A building attacker:
+its current target `×2` (with fewer than two arrows) or `/2`; a damaged
+target `×3/2`; a moving one `/4`; a supply wagon `×5000`. Then `dmg =
+get_damage(o, who, angle 0, …)`: `v ×= dmg` (AI: `v /= dmg`, or 0). Building
+targets (not raiding): armed and not human → `+1,000,000` with the SIEGE mask
+else `×5`; siege vs armed `+100,000`. Unit targets: combat-role `×20`;
+spellcasters casting at me `+10,000,000`, spies `+6,000,000`; a detected
+hidden unit `/4`; raid weights (citizens and caravans `+9,000,000`, else
+`/10`; the stealth-ship weights); not raiding: combat-role `+1,000,000`, a
+supply wagon `+4,000,000` for a building attacker, else `+100,000`; land siege
+vs a non-sea, non-siege unit `/10,000`; `v /= (T.full + 1)`. A city at zero
+hits `99,999`; negative `9,999,999`; out of range and not raiding `/5`;
+`v = ceil(v / 100)`, above 100,000 compressed to `100,000 + (v − 100,000) /
+5`, floor 15; a detected hidden unit 1; an air target for a non-ANTI_AIR
+attacker 2.
+
+The implementation carries the skeleton of this — cost, the building class
+multipliers, the `attack × 100 / hits_left` preference, `× dmg`, the combat-
+role and supply bonuses, `/(full+1)`, the ceil/compress/floor — over what the
+simulation has, and leaves the raid, spell, stealth and AI branches as
+inputs. See `combat::compare_target`.
+
+### 12.4 Switching and opportunity
+
+- **Idle**: `Unit::think` runs when `(o + frame) & 0xf == 0` once the unit has
+  been idle more than two frames; on frames where `(o + frame) & 0x1f != 0`
+  it only checks the **nearest cache** (`near_o` active, in range, stance
+  below HOLD_FIRE → `add_attack_order(QUEUE_NEW)`); every 32nd frame and the
+  first idle frame a combat unit (`attack != 0 && role & 0x10000`) runs
+  `think_attack` → `find_melee_target(−1)`: radius `(max_range + 1) × 0xc0`
+  (`+ 0x180` in AGGRESSIVE, `0x120` for melee), at least `unit_respond_range
+  × 0xc0` (`× 0x180` under AI control); DEFENSIVE: `max(max_range × 0xc0,
+  unit_defensive_respond_range × 0xc0)`; a packed packer with auto-stance
+  unpacks instead after 3 (machine guns) / 7 (human) / 21 (AI) idle frames;
+  HOLD_FIRE finds nothing.
+- **Walking to attack**: every 16 frames (`(o + frame) & 0xf == 0`) a
+  non-mandatory attack re-searches and switches to a nearer in-range unit
+  that is not a poor target.
+- **Fighting**: with probability 1/5 per frame (`Random::get % 5 == 0` — one
+  more draw from `game_random`, taken only when the target is a unit and
+  the order has flag `0x10` clear) or when the order asks, `find_new_target`;
+  a different answer rewrites the target. A DEFENSIVE unit beyond `max(
+  unit_defensive_respond_range, max_range) × 0xc0` of its post goes home.
+- **Hit** (`do_damage` step 2 → the victim's captain's `target_opportunity`):
+  ignored unless at war; a group member forwards to the group (which every
+  15 frames at most tells its idle combat captains to `find_melee_target`
+  within `min(dist + 0xc0, unit_respond_range × 0x240)`); forwards to the
+  captain; HOLD_FIRE ignores; a unit already attacking ignores it unless its
+  target is invalid, not mandatory, not combat-role, the attacker is a unit
+  in range and its own target is not, and it is not raiding/razing — then
+  it drops the order and retaliates; spies bribe, commandos sabotage;
+  **non-combatants flee** (`find_nearby_spot` at `0x600`, `0x180`/`0x300` for
+  heroes and supply); a combat unit off duty with an order ignores; else
+  `add_attack_order` — `QUEUE_NEW` if DEFENSIVE and idle, `QUEUE_FIRST`
+  otherwise.
+- **Stances**: AGGRESSIVE chases at respond range; DEFENSIVE ties the
+  attack to a return point; STAND_GROUND ignores range in the search and
+  never chases; RAID weights civilians and never retaliates; RAZE prefers
+  buildings and never retaliates; HOLD_FIRE does nothing.
+- **Buildings**: §8.6.
+
+
+---
+
+## 13. Range and distance
+
+### 13.1 `ObjectData::attack_dist(o, who, x, y)`
+
+The distance every range test uses, read from the disassembly at `0x6488f0`
+because the decompiler dropped its register operands:
+
+```
+snap(v) = div_3_table[v >> 4] * 0x30            (the quarter-tile grid)
+dx = |snap(x) − snap(T.x)|;  dy = |snap(y) − snap(T.y)|
+a plane that is not a missile:        vector_dist(dx, dy)
+target extent:  building → ex = T.x_size * 0x60, ey = T.y_size * 0x60
+                unit     → ex = ey = T.block_radius + 0x18
+dx = max(0, dx − ex);  dy = max(0, dy − ey)
+own extent:     building → sx = x_size * 0x60, sy = y_size * 0x60
+                unit     → sx = sy = block_radius + 0x18
+dx = max(0, dx − sx);  dy = max(0, dy − sy)
+return vector_dist(dx, dy)
+```
+
+— edge to edge, per axis, then the integer hypotenuse (`docs/MOVEMENT.md`'s
+`vector_dist`). `x_size` is in tiles, so `x_size × 0x60` is half the
+footprint; `block_radius` is the type's `BLOCK_RADIUS × UNIT_BLOCK_RADIUS`.
+
+### 13.2 `ObjectData::is_in_range(o, who, x, y, …, melee_bonus, &dist)`
+
+The target must be active, a unit target on the map, and its tile not
+unseen (`& 0x30 == 0x30`). `d = attack_dist(o, who, snap(x) + 0x18, snap(y) +
+0x18)`. **Melee** (`type.max_range == 0`): `d ≤ 0x66` (102 units — a little
+over half a tile), or `d ≤ 0xf6` for the `HOPLITES` line. **Ranged**: `d <
+min_range() × 0xc0 − 6` is out — unless adding both units' `big_radius`
+brings it in; `d > max_range() × 0xc0 + 6` is out (`+ 0x90` more with
+`melee_bonus`); `min_range()`/`max_range()` are the virtuals of §4.4. The
+position-only overloads (`(x, y)`) use `vector_dist` less one `big_radius`
+(unit) or `(x_size + y_size) × 0x30` (building), the same `0x66` and
+`[min×0xc0 − 6, max×0xc0 + 6]`, and call an ungarrisoned missile always in
+range. `GroupData::get_max_range` is the largest `max_range()` of the armed
+members, which `Unit::do_attack` uses to stand an unarmed group member off at
+`(group_range + 2) × 0xc0`.
+
+
+---
+
+## 14. Open questions
+
+1. **The flank direction.** §6 step 21 is arithmetic; whether level 1 (`d`
+   within ±45° of zero) is "attacked from behind" depends on whether a unit's
+   `angle` is the direction it faces and `find_angle(T − A)` is the direction
+   A→T, both as `docs/MOVEMENT.md` reads them. If so, rear ×1.5 and side ×2.0
+   at the shipped 50 — and `rules.xml`'s own gloss, "per level of flank (max
+   bonus is twice this number)", is silent on which level is which. A
+   behavioural check: one hoplite squad attacked by an identical squad from
+   directly behind and from the flank, damage per hit read from the `Log`
+   system (`docs/ORACLE.md`).
+2. **Whose mask the cavalry/vehicle flank reduction reads** — the attacker's
+   is taken; the register was lost.
+3. **`unit_masks & 0x10` and `0x400000`** (the ×2 in `do_damage` step 2 and
+   `get_damage` step 14) are read but not named here; neither is set by
+   anything this reading covered.
+4. **The flight-time float.** `(int)(sqrtf(n) / (float)d)` is emulated by
+   exact integer rounding of each IEEE operation. If the original's
+   `sqrtf` is not the correctly-rounded one (x87 `fsqrt` is; an SSE
+   `sqrtss` is), the emulation can differ by one frame when `√n / d` is
+   within one float ulp of an integer — a measure-zero event for a game,
+   and a recorded-game diff would show it. The implementation notes where.
+5. **A rolling miss.** A cannonball that misses keeps rolling and can land on
+   something further along. Where it stops depends on float terrain heights;
+   the implementation stops it at the scatter point. Cosmetic for the
+   intended target, not for whoever was standing behind it.
+6. **The building-splash filter.** `Search::valid_search`/`valid_filter` in
+   §7.1 step 9 were not read below the call; "hostile and on the map" is the
+   assumption.
+7. **Two sounds' worth of `Random::get`.** The `puncture_ground` landing
+   jitter and the flock roll are taken only on the paths described; if a
+   later reader finds another `Random::get` between launch and impact, the
+   draw order in §9.5 is what has to change.
+8. **The `Flag_` rows of `balance.xml`.** Whether internal string 17 loads as
+   a space (the rows match and the file's `Flag_Y_OBJMASK_HEAVY_CAV="95"`
+   and friends apply) or as empty (they never match). `rondata` generates
+   both and the `RULES=1` dump picks; until then the implementation takes
+   the space, because that is what the hash says was written.
+
+---
+
+*Second reading: pending — see `docs/audit/` once run.*

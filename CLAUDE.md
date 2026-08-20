@@ -151,11 +151,21 @@ better, in which case say so and take that.
    (`docs/audit/2026-08-20-tech.md`): it found the loaders' derived fields —
    every combat unit implicitly needs its age's Military epoch — which a
    reading of the predicates alone cannot see. Read the loader too.
-2. **Combat** — attack, damage, armour, target selection. Attrition is still
-   the only thing in the simulation that can kill.
+2. ~~**Combat**~~ — **done, 2026-08-20**, `docs/COMBAT.md`, `crates/sim/src/
+   combat.rs` (the arithmetic), `fight.rs` (the attack step, targeting,
+   projectiles, buildings) and `balance.rs` (the combat table's generation).
+   The damage formula end to end, sixteenths delivery, the recharge cadence,
+   accuracy/scatter/flight time/hit test/splash, the game's RNG, buildings'
+   arrows, the target search and ranking. Second reading done and adjudicated
+   (`docs/audit/2026-08-20-combat.md`). What it left as inputs: the nation,
+   wonder and patriot modifiers, terrain flags, the `type_damage` lineage
+   predicates that need a tree loader; what it left open: the flank direction
+   convention (a behavioural check) and the `balance.xml` flag-row separator
+   (the `RULES=1` log settles it).
 3. **Cities and buildings** — placement, construction, city levels, the
    `BuildData::construct_time` path `docs/PRODUCTION.md` read but did not
-   implement.
+   implement; garrisons, which combat's tower arrows and the ejection path
+   both wait on; capture, which `take_damage`'s city clamp hands off to.
 4. **AI** — last, because it is the least oracled.
 
 **One mechanic per session.** The document is the handoff: a fresh session
