@@ -209,7 +209,10 @@ better, in which case say so and take that.
    (`docs/CITIES.md` §15); the Nubian attrition step, which needs attrition to
    actually run (`docs/ATTRITION.md`); the flank damage ratio, for which
    `tools/gamelog/hits.py` is the instrument and one damage source on the
-   target is the setup (`docs/COMBAT.md` §14.1).
+   target is the setup (`docs/COMBAT.md` §14.1); and, new from the
+   `BUILDS=7` run, **`FARM_GROWS`** — the original re-targets a farmer at
+   frame 102 against the documented ~200, which the harness's order diff
+   measures for free on any `UNITS=3` dump (`docs/ORDERS.md` §6.5).
 5. ~~**The data layer into the sim, and the diff**~~ — **done, 2026-08-20**,
    `docs/DATALAYER.md`, `crates/rondata/src/{gamelog,dump,load,diff}.rs`:
    the gamelog reader, the loader (364 units, 129 buildings, 628-entry tree,
@@ -253,10 +256,15 @@ better, in which case say so and take that.
    `UNITS=3` order blocks read back and diffed **every frame**
    (`docs/DATALAYER.md` §3.1). The intent diff earned itself immediately —
    six farm citizens holding `THINK` where the original holds `GATHER`, from
-   frame 1, with both simulations agreeing on every position. **The
-   remaining blocker is a `BUILDS=7` dump** (§13, `docs/DATALAYER.md`): a
-   woodcutter's citizen cannot walk without `gather_from`, and that is what
-   pins player 0's score.
+   frame 1, with both simulations agreeing on every position. The
+   `BUILDS=7` dump that was blocking it **has been captured**
+   (`gamelog-run6`, `docs/ORACLE.md`), `gather_from` and `orig_type` are
+   read into the harness, and **a woodcutter's citizen now matches the
+   original's position and order list for all 432 logged frames**. What
+   still cannot move: the AI's units (they need the order stream) and the
+   farmers, which part at frame 102 — the run's own finding, that
+   `FARM_GROWS = 200` is wrong by about a factor of two (`docs/ORDERS.md`
+   §6.5).
 8. **AI** — last, because it is the least oracled, and better oracled once
    4 and 5 stand. **The pathfinder comes first** (`docs/ORDERS.md` §4.6):
    `find_wpath` is a stub, every path stack in the harness disagrees with

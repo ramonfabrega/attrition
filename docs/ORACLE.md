@@ -665,6 +665,14 @@ type tables (above).
 | `DUMP_ALL=1`, `[End Frame]` anything | ~70 MB/frame, ~1 frame per 30 s, unusable |
 | `DUMP_ALL=1`, `[Start Game]` only, `InitialDump=1` | ~150 MB once, ~4 min to load, has every type table |
 | `DUMP_ALL=0`, `[End Frame] UNITS=3 BUILDS=6 CITIES=5 DEATHS=1 LEADERS=1` | **560 frames in 55 MB, full speed** |
+| `DUMP_ALL=0`, `[End Frame] UNITS=3 BUILDS=7 CITIES=5 GUYS=2 DEATHS=1 LEADERS=1`, and the **same values under `[Start Game]`** | **432 frames in 60 MB, full speed** (2026-08-21, `gamelog-run6`) |
+
+**Raise `[Start Game]` as well as `[End Frame]`.** They are separate threshold
+tables and the harness needs both: the frames come from `[End Frame]`, but the
+*initial state* the simulation is stood up from comes from `[Start Game]`, and
+at its shipped `BUILDS=1` the start block carries no `orig_type` and no mining
+list — so the buildings arrive untyped and a woodcutter has no tiles. Setting
+both is what made `BUILDS=7` useful rather than merely present.
 
 The last row is the setting for a behavioural check: fix `Seed`, set
 `InitialDump=0`, play a minute, quit through the in-game menu. `~100 KB` a
@@ -688,11 +696,17 @@ dump instead of one per frame. (It does not rescue the leader problem above:
 `do_dump_all` is read once at init, so a run that wants a full end dump is
 also paying for full frame dumps throughout.)
 
-The three artifacts kept in the bottle's `Logs\` (they are large and outside
+The artifacts kept in the bottle's `Logs\` (they are large and outside
 the repo, per `CLAUDE.md`): `gamelog-run1-fulldump.txt` (114 MB, the first
 everything-per-frame run), `gamelog-run3-fulldump-types.txt` (152 MB, the
-start-of-game dump **with the type tables and `COMBATTABLE`**), and
-`gamelog-run2-units.txt` (21 MB, 1,730 frames at the old detail 0).
+start-of-game dump **with the type tables and `COMBATTABLE`**),
+`gamelog-run2-units.txt` (21 MB, 1,730 frames at the old detail 0),
+`gamelog-run4-gunpowder-nubian-leaders9.txt` (72 MB, 47 frames at `UNITS=3
+BUILDS=6` — the first dump with order lists) and
+**`gamelog-run6-ancient-nubian-builds7.txt`** (60 MB, 432 frames at `UNITS=3
+BUILDS=7` on both `[Start Game]` and `[End Frame]`, seed 12345, Nubians vs
+Nubian AI, Ancient Age, Small Town — **the harness's dump**: it is the only
+one carrying `gather_from`, and `docs/DATALAYER.md` §3 is measured on it).
 
 ### The lobby is a file: `-config` and `-automation` (2026-08-20)
 
@@ -1036,6 +1050,24 @@ tower probe has already proven.
 Two lists were kept in two places as the sessions found them; this is the one
 list, and `tools/gamelog/README.md` points here.
 
+- **`F10` opens the Game Menu; `Escape` does not.** `key code 53` reaches the
+  game and does nothing visible, which reads as "the window has lost the
+  keyboard" and invites a relaunch. `key code 109` opens it (Return to Game,
+  Options, Save, Load, Game Stats, Show Tips, Resign Game, **Quit Game**) and
+  pauses the simulation while it is up. Quit Game returns to the main menu —
+  which is where `Game::run_solo` has returned and the end-of-game `full_dump`
+  has been written, so the dump is safe from that point on. (Exiting the
+  *application* afterwards crashed Wine on 2026-08-21, after the dump; a
+  `Program Error` dialog with `winedbg` behind it is the expected sight, and
+  it costs nothing.)
+- **The end-of-game dump is a sibling of the frames, not of the start
+  state.** `GameLog::end_game`'s `full_dump` writes its `UNITDATA`/`BUILDDATA`
+  at the same indent as every `FRAME n`, i.e. as further children of `BEGIN
+  GAME`, *after* the last frame. A reader that takes "the object records among
+  `GAME`'s children" as the start-of-game state therefore silently merges the
+  first frame's world with the last one's — 27 buildings where the game began
+  with 13, and 400 "citizens" on a long fulldump. Cut at the first `FRAME`
+  child (`rondata::gamelog::records`).
 - **Cheats are orders, and orders need ticks.** Issued while the game is
   paused (the *menu* pause) they queue and do nothing, and a probe that
   "failed" while paused looks exactly like one that was refused — check the

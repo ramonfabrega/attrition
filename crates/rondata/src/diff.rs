@@ -261,13 +261,32 @@ fn start_of_game(
         let mut sites: Vec<(i64, usize)> = Vec::new();
         for b in init.builds.iter().filter(|b| b.who == w && b.o >= 2001) {
             let idx = (b.o - 2001) as usize;
-            let ty = if idx == 0 {
+            let derived = if idx == 0 {
                 Some(woodcutter)
             } else if idx <= farms {
                 Some(farm)
             } else {
                 None
             };
+            // **Derive, then read.** At `BUILDS=6` and above the dump carries
+            // `orig_type`, so the type no longer has to be inferred from
+            // `produce_building`'s order — but §9.2's rule is still a claim
+            // worth checking, so the derivation runs anyway and any
+            // disagreement is a note. The dump wins where it speaks.
+            let logged = b
+                .orig_type
+                .and_then(|t| loaded.build_of_type_index(t as i32));
+            if let (Some(d), Some(l)) = (derived, logged)
+                && d != l
+            {
+                notes.push(format!(
+                    "player {who} building {}: §9.2 derives {:?}, the dump's orig_type is {:?}",
+                    b.o,
+                    loaded.build_names.get(d),
+                    loaded.build_names.get(l)
+                ));
+            }
+            let ty = logged.or(derived);
             let pos = Pos::new(b.pos.x as i32, b.pos.y as i32);
             // Every pre-placed building is complete and active at frame 0:
             // `produce_building` at `frame == 0` skips `pay_cost` and the
@@ -291,6 +310,18 @@ fn start_of_game(
                     h
                 }
             };
+            // The mining list, straight from the dump — `BUILDS=7`. It is an
+            // input by construction: the original fills it from the terrain
+            // (`Build::find_gather_tiles`), which no dump carries, and
+            // without it §6.4's machine has nowhere to send a woodcutter's
+            // citizen and the citizen never leaves the camp.
+            if !b.gather_from.is_empty() {
+                sim.buildings[handle].gather_from = b
+                    .gather_from
+                    .iter()
+                    .map(|&(x, y)| Pos::new(x as i32, y as i32))
+                    .collect();
+            }
             all_builds.push((handle, b.o));
             if ty.is_some() {
                 sites.push((b.o, handle));

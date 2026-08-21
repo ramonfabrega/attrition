@@ -296,41 +296,60 @@ because the site was chosen already. So the harness calls `init_build` and
 `activate` too. `init_build` is also what runs `Wall::find_city`, which is
 how a farm gets the city membership its gather path needs.
 
-**The score, on both dumps: ticks before divergence 1**, and it is worth
+**The buildings' types and their mining lists come from the dump, not from a
+derivation.** At `BUILDS=6` a building carries `orig_type` and at `BUILDS=7`
+it carries `gather_from` (`docs/ORDERS.md` §11.2), so the harness reads both.
+§9.2's typing rule is still *derived* alongside and any disagreement is a
+note — the same derive-then-read discipline as the starting orders — but the
+dump wins where it speaks. `gather_from` is an input by construction: the
+original fills it from the terrain, which no dump carries.
+
+**The score, on `gamelog-run6`: ticks before divergence 1**, and it is worth
 being precise about why, because the single number hides the state of the
-port. `Report::first_divergence_by_unit` gives the breakdown; on
-`gamelog-run4` it is `0/1@4 0/2@4 1/0@2 1/1@2 1/2@4` — **five of the twelve
-units ever disagree, and the other seven track to the end of the run.** The
-score is a minimum over all of them, so it is pinned by whichever unit the
-simulation cannot yet drive at all:
+port. `Report::first_divergence_by_unit` gives the breakdown; over all 432
+frames it is `0/2@4 0/3@103 0/4@103 0/5@103 1/0@2 1/1@2 1/2@4 1/3@103
+1/4@103 1/5@103` — **and `0/1`, a woodcutter's citizen, never disagrees at
+all: 432 frames of matching positions and matching order lists.** The score
+is a minimum over every unit, so it is pinned by whichever unit the
+simulation cannot yet drive:
 
-- The **AI's scout** (`1/0`) moves on frame 2 because the AI orders it, and
-  there is no AI. Nothing but the order stream or phase 5 moves that.
-- The **woodcutter's citizens** (`0/1`, `0/2`, `1/1`, `1/2`) walk out to a
-  gather tile on frame 4. They cannot: the tile list `gather_from` needs
-  **`BUILDS=7`** and no dump so far carries it, so §6.4's machine has
-  nowhere to send them (`docs/ORDERS.md` §13).
-- The **farm citizens never diverge** — but that proves less than it looks.
-  A farm's citizen is placed inside the footprint by `come_out`, so
-  `covers_tile` already holds and it stands; §6.5 says a farmer does not
-  re-target for some two hundred frames, and these dumps are 47 and 1,730
-  frames of a game where it never does. Both simulations stand still, and
-  agreeing on standing still is not evidence.
+- The **AI's units** (`1/0` the scout, then the rest) move because the AI
+  orders them, and there is no AI. Nothing but the order stream or phase 5
+  moves those.
+- The **farm citizens** (`0/3`, `0/4`, `0/5` and player 1's) hold to frame
+  **102**, where the original inserts a move in front of their gather order
+  and ours does not — the farm re-target, and the measurement that says
+  `FARM_GROWS = 200` is wrong by about a factor of two (`docs/ORDERS.md`
+  §6.5). Before this run the farmers "agreed" only because both sides stood
+  still.
+- `0/2`, the second woodcutter's citizen, parts on frame 4 by a few position
+  units and rejoins the argument only at 428 — a path difference, not an
+  order one (`path-to`, below).
 
-That last point is why the harness also runs a **derive-then-read check**
-(`check_start_orders`): the starting orders it derived from §9.3 against the
-`GATHERORDER` blocks the original actually wrote in the first logged frame,
-matched by `(who, o)`. On `gamelog-run4` all ten citizens agree —
-`0/1→2001 0/2→2001 0/3→2002 0/4→2003 0/5→2004` and the same for player 1 —
-which is the real evidence that the rule is right, and none of it is visible
-in a position diff. **Two simulations can agree on every position for a
-whole dump and still have given every citizen the wrong job.**
+The harness also runs a **derive-then-read check** (`check_start_orders`):
+the starting orders it derived from §9.3 against the `GATHERORDER` blocks the
+original actually wrote in the first logged frame, matched by `(who, o)`. All
+ten citizens agree — `0/1→2001 0/2→2001 0/3→2002 0/4→2003 0/5→2004` and the
+same for player 1 — which is the real evidence that the rule is right, and
+none of it is visible in a position diff. **Two simulations can agree on
+every position for a whole dump and still have given every citizen the wrong
+job.**
 
-The run also proves the wiring: every `(who, o)` in 1,730 frames links to a
-simulation unit (25,943 unit-frames compared, none unlinked), every
-`GUY type` maps to a unit record, and the world scale, the ids and the step
-cadence agree. The leaders' logged `score` is reported and not matched; the
-simulation has no score.
+The runs also prove the wiring: every `(who, o)` links to a simulation unit
+(none unlinked, on either dump), every `GUY type` maps to a unit record, and
+the world scale, the ids and the step cadence agree. The leaders' logged
+`score` is reported and not matched; the simulation has no score.
+
+**One reader correction was worth the whole run.** `GameLog::end_game`'s
+`full_dump` writes its records as further children of `BEGIN GAME`, *after*
+the last `FRAME` — so "the object records among `GAME`'s children" is the
+first frame's world merged with the last one's. `Log::initial` now cuts at
+the first `FRAME` child. Before the cut, `run6` read back as 27 buildings and
+27 units where the game began with 13 and 12, `gamelog-run1-fulldump` as 400
+citizens a player, and the duplicate `(who, o)` links quietly took the
+start-of-game assignment away from the real ones. **A position diff cannot
+see this either** — the phantom units match nothing and are never compared;
+it surfaced as ten starting citizens whose derived order came out `None`.
 
 ### 3.1 The order diff — the intent, every frame
 
@@ -366,23 +385,32 @@ what it cannot see:
   either, for the same reason: counting it would be scoring the stub. Both
   are printed, because a surprise in either is worth seeing.
 
-**On `gamelog-run4`, 564 unit-frames compared: 0 disagreements of `flags`,
-`action` or `target`, and none at all on the six farm citizens over 47
-frames.** What is left is 111 `length` and 95 `kind` — one missing order on
-each of the five units the simulation cannot drive, and the slot shift that
-follows from it — plus 108 `path-length`, which is the stub. The order score
-(`order_ticks_before_divergence`) is a minimum over every unit the same way
-the position score is, so the AI's scout pins it at 0; the per-unit breakdown
-is the number to read.
+**On `gamelog-run6`, 5,184 unit-frames compared over 432 frames: not one
+disagreement of `flags`, `action` or `target`.** Every field the simulation
+models agrees wherever it is comparable. What is left is 768 `length` and 511
+`kind` — a missing order on a unit the simulation cannot drive, and the slot
+shift that follows from it — plus 750 `path-length` and 33 `path-to`, which
+are the pathfinder stub. On the shorter `gamelog-run4` (47 frames,
+`BUILDS=6`) the same check reports 111 `length`, 95 `kind`, 108
+`path-length`. The order score (`order_ticks_before_divergence`) is a minimum
+over every unit the same way the position score is, so the AI's scout pins it
+at 0; the per-unit breakdown is the number to read.
 
-It earned itself on the first run. The six farm citizens were holding
-**`THINK` where the original holds `GATHER`, from frame 1 of both dumps** —
-`do_gather`'s `Ident::Farm && city.is_none()` gate, firing because the
-region-less world had refused every `place_building` and left the farms
-outside any city. Not one frame of that is visible in a position: the citizen
-stands inside the farm's footprint either way, and both simulations agreed on
-its coordinates for all 47 frames while one of them had sent it to think
-about its life instead of working.
+**It has now earned itself three times, and each time on something a
+position diff could not show:**
+
+- The six farm citizens holding **`THINK` where the original holds
+  `GATHER`, from frame 1** — `do_gather`'s `Ident::Farm && city.is_none()`
+  gate, firing because the region-less world had refused every
+  `place_building` and left the farms outside any city. The citizen stands
+  inside the farm's footprint either way, so both simulations agreed on its
+  coordinates for all 47 frames while one of them had sent it to think about
+  its life instead of working.
+- The **duplicate start-of-game state** from the end-of-game dump (above),
+  which showed up as ten citizens deriving `None`.
+- The **farm re-target at frame 102**, against a documented assumption of
+  ~200 (`docs/ORDERS.md` §6.5). The two sides' positions part on 103, but
+  only after the order list had already said why.
 
 ---
 
@@ -391,23 +419,18 @@ about its life instead of working.
 - **`DUMP_ALL=1`.** Presumably the detail-level-1 fields — goods per leader,
   the fifty more per unit, types on buildings. One run settles it, and until
   it is run the diff sees positions and scores only.
-- **A `BUILDS=7` dump.** The single blocking item for the harness: without
-  `gather_from` a woodcutter's citizen cannot walk, which is what pins
-  player 0's divergence at frame 4. `BuildData::log_data@0062e810:269` puts
-  `gather_from`, the `GATHERPOINT` list and `BUILDQUEUE` behind
-  `set_detail(7)`; tier 6 stops at `orig_type`. Every dump captured so far
-  is `BUILDS=6`.
-- **What a `DUMP_ALL=1` dump's initial state actually contains.**
-  `gamelog-run1-fulldump` reads back as **400 citizens per player** where
-  `gamelog-run4` reads 5, while only twelve units ever appear in a frame and
-  all twelve link. There are 104 `UNITDATA` blocks and **three `BEGIN GAME`
-  blocks** before its first `FRAME`, so `Log::initial` is probably merging
-  states the logger wrote more than once — a reader question, not a
-  simulation one, but it stands up 800 phantom units and makes stepping that
-  dump about a second a frame. The fulldump also carries **no order lists**
-  (it is below `UNITS=3`), so nothing of §3.1 is measured on it; `run4` is
-  the order dump. Both are why the harness's figures above are quoted from
-  `run4`.
+- ~~**A `BUILDS=7` dump.** The single blocking item for the harness.~~
+  **Captured 2026-08-21**: `gamelog-run6-ancient-nubian-builds7.txt`, 432
+  frames, `UNITS=3 BUILDS=7 CITIES=5 GUYS=2` under **both** `[Start Game]`
+  and `[End Frame]` (`docs/ORACLE.md`). With `gather_from` read into the
+  harness, player 0's woodcutter citizen `0/1` matches the original for the
+  whole run.
+- ~~**What a `DUMP_ALL=1` dump's initial state actually contains** — 400
+  citizens a player where `run4` reads 5.~~ **Answered, and it was not
+  `DUMP_ALL`:** `Log::initial` was reading the end-of-game `full_dump`'s
+  records as part of the start state, because they are children of `GAME`
+  like the frames (above). The fulldump still carries **no order lists** (it
+  is below `UNITS=3`), so nothing of §3.1 is measured on it.
 - **The terrain.** Nothing of the map is in the dump at level 0, so
   `place_building` cannot be exercised and territory cannot be computed from
   a dump. `TERRAIN`/`MAPMAKE` under `[Start Game]` were enabled in the full

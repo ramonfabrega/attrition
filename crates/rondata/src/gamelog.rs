@@ -374,6 +374,17 @@ pub struct BuildDump {
     pub o: i64,
     pub who: i64,
     pub pos: Pos,
+    /// `orig_type` — the `TypeIndex` the building was created as. Written at
+    /// **`BUILDS=6`** and above, and the only type the dump ever carries.
+    pub orig_type: Option<i64>,
+    /// `BuildData::gather_from`, the `MiningList` — a woodcutter's or mine's
+    /// resource tiles, in tiles, in the order the original keeps them.
+    /// **`BUILDS=7`**, and written *flat*: `MiningList::log_data` opens no
+    /// `BEGIN` of its own, so after `mtn`/`cliff` come the array's
+    /// `length size increment flags` and then one `tx`/`ty` pair per entry,
+    /// all at `BUILDDATA`'s own field indent. Nothing else at that level
+    /// writes `tx`, so the pairs are unambiguous.
+    pub gather_from: Vec<(i64, i64)>,
 }
 
 /// One leader's level-0 fields.
@@ -553,7 +564,30 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
 
 fn build_of(b: &Block<'_>) -> Option<BuildDump> {
     let (flags, o, who, pos) = object_base(b)?;
-    Some(BuildDump { flags, o, who, pos })
+    // The mining list, pair by pair in file order. `Block` keeps fields in
+    // the order they were written, so a `ty` is the partner of the `tx`
+    // before it; anything else between them would mean the shape changed.
+    let mut gather_from = Vec::new();
+    let mut tx: Option<i64> = None;
+    for (k, v) in &b.fields {
+        match *k {
+            "tx" => tx = v.trim().parse().ok(),
+            "ty" => {
+                if let (Some(x), Ok(y)) = (tx.take(), v.trim().parse()) {
+                    gather_from.push((x, y));
+                }
+            }
+            _ => {}
+        }
+    }
+    Some(BuildDump {
+        flags,
+        o,
+        who,
+        pos,
+        orig_type: b.int("orig_type"),
+        gather_from,
+    })
 }
 
 fn leader_of(b: &Block<'_>) -> LeaderDump {
@@ -592,10 +626,43 @@ fn constants_of<'a>(b: &Block<'a>) -> Vec<ConstantDump<'a>> {
 }
 
 /// Gathers the per-subsystem records under one block — a `GAME` or a `FRAME`.
-fn records(b: &Block<'_>) -> (Vec<UnitDump>, Vec<BuildDump>, Vec<LeaderDump>) {
-    let units = b.kids("UNITDATA").filter_map(unit_of).collect();
-    let builds = b.kids("BUILDDATA").filter_map(build_of).collect();
-    let leaders = b.kids("LEADERDATA").map(leader_of).collect();
+/// The object records among a block's **direct** children.
+///
+/// `before_frames` stops at the first `FRAME` child, which is what the
+/// start-of-game state wants: every `FRAME n` is a *child* of `GAME`, and so
+/// is the end-of-game `full_dump` that `GameLog::end_game` writes after the
+/// last one. Reading all of `GAME`'s children therefore mixes the state at
+/// frame 0 with the state at the end — 27 buildings where the game began
+/// with 13, and on a long fulldump 400 "citizens" where there were 5. That
+/// mis-read is invisible in a position diff (the extra units are never
+/// matched to a logged one) and showed up only in the order diff, as ten
+/// starting citizens whose derived order was `None` because the duplicate
+/// links took the assignment.
+fn records(b: &Block<'_>, before_frames: bool) -> (Vec<UnitDump>, Vec<BuildDump>, Vec<LeaderDump>) {
+    let stop = if before_frames {
+        b.children
+            .iter()
+            .position(|c| c.name.starts_with("FRAME"))
+            .unwrap_or(b.children.len())
+    } else {
+        b.children.len()
+    };
+    let kids = &b.children[..stop];
+    let units = kids
+        .iter()
+        .filter(|c| c.name == "UNITDATA")
+        .filter_map(unit_of)
+        .collect();
+    let builds = kids
+        .iter()
+        .filter(|c| c.name == "BUILDDATA")
+        .filter_map(build_of)
+        .collect();
+    let leaders = kids
+        .iter()
+        .filter(|c| c.name == "LEADERDATA")
+        .map(leader_of)
+        .collect();
     (units, builds, leaders)
 }
 
@@ -626,7 +693,7 @@ impl<'a> Log<'a> {
         if let Some(k) = game.kid("CONSTANTS") {
             init.constants = constants_of(k);
         }
-        let (units, builds, leaders) = records(game);
+        let (units, builds, leaders) = records(game, true);
         init.units = units;
         init.builds = builds;
         init.leaders = leaders;
@@ -638,7 +705,7 @@ impl<'a> Log<'a> {
         self.frames()
             .into_iter()
             .map(|(n, b)| {
-                let (units, builds, leaders) = records(b);
+                let (units, builds, leaders) = records(b, false);
                 Frame {
                     n,
                     units,
@@ -707,6 +774,24 @@ BEGIN GAME
      x_internal 3168
      y_internal 30816
      z_internal 536
+  city 0
+  orig_type 418
+  BEGIN BUILDQUEUE
+   queue_size 2
+   queue[scan].type -1
+  mtn -1
+  cliff -1
+  length 3
+  size 160
+  increment -1
+  flags 0
+  tx 20
+  ty 146
+  tx 21
+  ty 147
+  tx 22
+  ty 148
+  length 0
  BEGIN CONSTANTS
   unit_move_speed 1
   rocky_modifier 170
@@ -792,6 +877,25 @@ BEGIN GAME
      z_internal 528
    BEGIN GUY
    BEGIN GUY
+ BEGIN BUILDDATA
+  BEGIN WALLDATA
+   BEGIN OBJECT
+    BEGIN SUBOBJECT
+     flags 39
+     o 2007
+     who 0
+     x_internal 100
+     y_internal 200
+     z_internal 0
+ BEGIN UNITDATA
+  BEGIN OBJECT
+   BEGIN SUBOBJECT
+    flags 65
+    o 9
+    who 0
+    x_internal 1
+    y_internal 2
+    z_internal 3
 ";
 
     #[test]
@@ -821,7 +925,11 @@ BEGIN GAME
                 "LEADERDATA",
                 "GUY",
                 "FRAME 1",
-                "FRAME 2"
+                "FRAME 2",
+                // The end-of-game `full_dump`, at the same depth as the
+                // frames and after them.
+                "BUILDDATA",
+                "UNITDATA"
             ]
         );
         // The building's SUBOBJECT is three levels down.
@@ -893,9 +1001,18 @@ BEGIN GAME
                 who: 0
             }]
         );
+        // One building, not two: the end-of-game dump's `2007` sits at the
+        // same depth as the frames, after them, and is not the start state.
         assert_eq!(init.builds.len(), 1);
         assert_eq!(init.builds[0].o, 2000);
         assert_eq!(init.builds[0].flags, 39);
+        assert!(init.units.iter().all(|u| u.o != 9));
+        // `BUILDS=6`'s `orig_type` and `BUILDS=7`'s flat mining list.
+        assert_eq!(init.builds[0].orig_type, Some(418));
+        assert_eq!(
+            init.builds[0].gather_from,
+            vec![(20, 146), (21, 147), (22, 148)]
+        );
         assert_eq!(
             init.builds[0].pos,
             Pos {

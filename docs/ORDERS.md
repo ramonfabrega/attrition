@@ -1560,8 +1560,20 @@ grow@008d91c0` sets `state = 1` and adds **`0.005f` to a `float[4][4]
 percent`** until it reaches `1.0f`, then `state = 2`; `snip` turns 2 into 3;
 what regrows 3 → 0 (`Farms::process`, presumably) was not read. So a float
 accumulator sits upstream of the sync RNG — a count-to-N for the simulation,
-with N (200 or 201) a behavioural check (§14). A farmer therefore stands on
-its first tile for some two hundred frames before its first re-target.
+with N (200 or 201) a behavioural check (§14). ~~A farmer therefore stands on
+its first tile for some two hundred frames before its first re-target.~~
+
+**The check has been run, and N is not 200.** In `gamelog-run6` — a fresh
+Ancient-Age start at `UNITS=3 BUILDS=7` — **all six farm citizens, on both
+players, take an inserted move in front of their gather order on frame 102**,
+and their positions part company on 103 (`docs/DATALAYER.md` §3.1). That is
+one shared, deterministic tick for every farmer, which is what a count-to-N
+started at frame 0 looks like — so the count is about **101**, not 200. Two
+readings fit and the decompile has not been re-read to choose between them:
+`grow` is called twice a frame, or the increment is `0.01f` and the `0.005f`
+the decompiler printed is half of it. Until one is settled the simulation
+keeps `FARM_GROWS`, and the constant is wrong by a factor of two; the
+harness's order diff is now the instrument that says so.
 
 ### 6.6 `Unit::find_gather_spot(range)@005f5170`
 
@@ -2348,7 +2360,32 @@ y 15816 … } }` — the explore-to is current, the build order behind it.
 `GATHERPOINT` list and `BUILDQUEUE`. One parser trap: the `GatherPoint`
 list's `type` key is a **hardcoded literal 0**, not the element's
 `get_type()`, so a reader that keys on `type` will read it as `ORDER_NONE`
-(R7 L14, L15). `UnitData::log_data` writes the unit's `GATHER_DOWN` link.
+(R7 L14, L15).
+
+**A `BUILDS=7` dump has now been captured** (`gamelog-run6-ancient-nubian-
+builds7.txt`, `docs/ORACLE.md`) and it corrects the shape above. `BUILDQUEUE`
+*is* a `BEGIN` block; **`MiningList` and the `GatherPoint` list are not** —
+like `PATROLORDER`'s `SimpleArray<Coord>` (§11.1) they write no `BEGIN` of
+their own, so what follows `mtn`/`cliff` on `BUILDDATA`'s own field indent is
+
+```text
+  length 82        <- the mining list's header, then size/increment/flags
+  size 160
+  increment -1
+  flags 0
+  tx 20            <- one tx/ty pair per tile, `length` of them
+  ty 146
+  …
+  length 0         <- the GatherPoint list, empty here
+```
+
+Nothing else at that indent writes `tx`, so the pairs are unambiguous;
+`rondata::gamelog::BuildDump::gather_from` reads them that way. The tile list
+is what §6.4's machine needs and could not have, and with it a woodcutter's
+citizen walks: `gamelog-run6`'s `0/1` matches the original's position **and
+its whole order list for all 432 logged frames**.
+
+`UnitData::log_data` writes the unit's `GATHER_DOWN` link.
 To diff "how many are gathering here" follow `BUILDDATA.GATHER_DOWN →
 UNITDATA.GATHER_DOWN` and read each unit's `GATHERORDER.BEEN_THERE`.
 `LeaderData::gatherers` and the per-region arrays, and `CityData::gatherers`,
@@ -2450,13 +2487,17 @@ what is listed as an input is stated as such in the code):
   for farms (walk to the centre, `covers_tile`) and the flat/other types (the
   §10 ring), `been_there` and the dirty flag, the oil-well stance, the
   university/platform `go_inside`, the §6.4 wood/ore machine with its three
-  draws **given the building's `gather_from` list** (an input: the harness
-  has none at level 0, so a woodcutter's citizen stays at the camp with
-  `been_there` set — stated), the §6.5 farm stand as a count-to-N
-  (`FARM_GROWS = 200`, an assumption; the two `GameAccess::rnd` re-target
-  draws and the animation-gated "new tile" branch are **not yet** taken —
-  the farmer stands), `find_gather_spot` by distance (the per-good rate term
-  is an input, taken as 1).
+  draws **given the building's `gather_from` list** (an input — the original
+  fills it from terrain the simulation does not model — but no longer an
+  *absent* one: ~~the harness has none at level 0, so a woodcutter's citizen
+  stays at the camp~~ a `BUILDS=7` dump carries it and the harness reads it
+  in, and with it a woodcutter's citizen walks the original's walk for 432
+  frames, §11.2), the §6.5 farm stand as a count-to-N (`FARM_GROWS = 200`,
+  an assumption **now contradicted** — the original re-targets at frame 102,
+  §6.5; the two `GameAccess::rnd` re-target draws and the animation-gated
+  "new tile" branch are still not taken, so the farmer stands),
+  `find_gather_spot` by distance (the per-good rate term is an input, taken
+  as 1).
 - **`do_attack`** — the order wraps `combat::State`'s target; `fight` is
   called once a frame with `mandatory`; **a recharging unit returns at once
   unless `new_ord`** (the reload gate — previously the stub chased while
@@ -2487,15 +2528,17 @@ what is listed as an input is stated as such in the code):
   citizen its `GATHER` on the building it stands beside by the §9.3 rule
   (`ordered = 2` on `2001`, the rest on successive farms), and
   `check_start_orders` compares every derived target against the
-  `GATHERORDER` the original logged — **all ten citizens agree on
-  `gamelog-run4`**. The score does *not* move: the farm citizens stand still
-  in both (placed inside the footprint, arrived, and §6.5 says a farmer does
-  not re-target for ~200 frames), and the woodcutter's need `gather_from` (which needs
-  **`BUILDS=7`** — `BuildData::log_data@0062e810:269` puts `gather_from`, the
-  `GATHERPOINT` list and `BUILDQUEUE` behind `set_detail(7)`; tier 4 is
-  `city`/`gather_down` and tier 6 stops at `orig_type`. The first reading said
-  `BUILDS=6`, which would have wasted a run — R7 L14) and the AI's units need the order stream —
-  `COMMANDMANAGER=1`, or the `UNITS=3` order blocks replayed as they appear.
+  `GATHERORDER` the original logged — **all ten citizens agree**, on
+  `gamelog-run4` and on `gamelog-run6`. ~~The score does *not* move~~ **it
+  moves now**: `BuildData::log_data@0062e810:269` puts `gather_from`, the
+  `GATHERPOINT` list and `BUILDQUEUE` behind `set_detail(7)` (tier 4 is
+  `city`/`gather_down`, tier 6 stops at `orig_type`; the first reading said
+  `BUILDS=6`, which would have wasted a run — R7 L14), that dump has been
+  captured, and with the tile list in hand **a woodcutter's citizen walks
+  the original's walk for all 432 frames**. What still cannot move: the AI's
+  units, which need the order stream — `COMMANDMANAGER=1`, or the `UNITS=3`
+  order blocks replayed as they appear — and the farmers, which part at
+  frame 102 on `FARM_GROWS` (§6.5).
 - **The log** — ~~the harness should read the `UNITS=3` order blocks (§11.1)
   and diff `type/ox/whom/uid/flags` and the path stack per frame; not yet
   written.~~ **Done 2026-08-21** (`docs/DATALAYER.md` §3.1):
