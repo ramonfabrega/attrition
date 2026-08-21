@@ -1517,3 +1517,50 @@ builds no building side of the table at all.
 **Not established.** Whether the 14,577 are three bugs or thirty. The count is
 a ceiling on the damage, not a diagnosis, and each lead above needs the same
 treatment as a mechanic: read the predicate, fix the document, then the code.
+
+### 15.1 How to pick this up
+
+Written down because this is the next mechanic and it wants a careful reader
+rather than a fast one — the arithmetic is settled and doubly confirmed, so
+every remaining error is a *predicate*, which is the class the audits kept
+finding and the class a hurried read produces confidently.
+
+What is already in hand, and needs no game and no clicking:
+
+- **The oracle.** `Logs\gamelog-run3-fulldump-types.txt` in the bottle (152 MB,
+  outside the repo per `CLAUDE.md`) contains `BEGIN COMBATTABLE` at line
+  190655 — 493 × 493 shorts, row-major, `[attacker][target]`, indexed by
+  `TypeIndex − 50`. Extract with `tools/gamelog/gl.py`. The 1,820 `UNITTYPE`
+  blocks from line 6067 give the index ↔ type mapping (`type` is each block's
+  first field, 50…413 repeated five times), which is `units.xml` order and so
+  is `rondata`'s unit id order.
+- **The comparison already done**: over the 364 × 364 unit block, the
+  flags-never-match variant leaves 14,577 mismatches, 82 % of them across an
+  age boundary.
+
+The order worth working in:
+
+1. **Land the `Flag_` correction first** (§14.9) — `rondata::balance::
+   tail_names()` still emits the matching names, and the dump says all 64 of
+   those lookups miss. That is a known-answer change and it shrinks the noise.
+2. **Companion (type 181), 352 columns wrong, `dump=100` vs `ours=105`.** One
+   factor is being applied that the original does not. Start at
+   `type_damage`'s lineage predicates and ask *which* test Companion passes in
+   our reading and fails in the original's — the cities and tech audits both
+   found errors of exactly this shape ("read the loader too", "grep the
+   writers of what you call frozen").
+3. **The elephants (211–214)** are a whole multiplication step low
+   (`115 → 100`, `80 → 70`), which is a different failure from Companion's:
+   a step that should not run at all, or runs against another mask.
+4. **The patriots (304, 306, 307)** have no `balance.xml` row, so their cells
+   are purely the hardcoded half — the cleanest isolate of `type_damage` in
+   the whole table, and probably the best place to *start* reading rather than
+   the last.
+
+The building half of the dump (indices 364–492) is unchecked and `rondata`
+builds no building side at all; that is additional scope, not a bug.
+
+The reason this is cheap despite being a reading job: **every hypothesis is
+falsifiable in one diff run.** That is not true of the mechanics documented
+from the decompile alone, and it is what makes this the highest-value item in
+the queue.

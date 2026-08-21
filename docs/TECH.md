@@ -699,9 +699,36 @@ allowed grants it at once and queues nothing.
 
 - **The lobby remaps in `get_preq`** — the Military-level rescaling for
   units, the same-line rescaling for everything else, and the University
-  clause — are read and not played. A logged run starting at Gunpowder with
+  clause — are read and not played. ~~A logged run starting at Gunpowder with
   `LeadersSync` on would settle every number; the check is named and not
-  yet run.
+  yet run.~~ **Run, 2026-08-20, and the mechanism is confirmed even though
+  the individual numbers are not.** A Quick Battle with Game Rules = Custom,
+  Start Age = Gunpowder (the lobby list is zero-based exactly as read here:
+  Ancient 0 … Gunpowder 3 … Information 7, then "All Technologies") and a
+  Nubian player, dumped whole (`docs/ORACLE.md`, `DUMP_ALL=1` +
+  `InitialDump=1`), gives for both human and computer leaders:
+
+  ```
+  ages_get()      3          epoch_get(scan) 0    pop_cap  25
+  epochs_get()    0          epoch_get(scan) 0
+  discovered_get() 0         epoch_get(scan) 0
+                             epoch_get(scan) 0
+  ```
+
+  — and the same values again in a later frame, so this is the settled state
+  and not a half-initialised one. **A later start age grants no epochs, no
+  techs and no pop cap.** It sets `LeaderData`'s age and nothing else;
+  everything a Gunpowder-start player can build or research therefore comes
+  from `get_preq` rescaling the prerequisite columns, which is precisely the
+  mechanism this document read out of the code. That is a real constraint on
+  the implementation: **`set_age` on the lobby path must not touch the four
+  epochs**, and a sim that grants epochs to match the age will diverge from
+  the original on the first frame.
+
+  What the run did **not** settle is the arithmetic — which Military level a
+  given unit's requirement is rescaled *to*, and the University clause. Those
+  need the per-type `preq` columns compared against what the interface offers
+  at each start age, which is a bigger check than one dump.
 - **What "Early Info Age" removes beyond the four finals.** Bit 31 of
   `info.flags` is tested in `type_eligible` for finals and in the library
   interface; nothing else read.

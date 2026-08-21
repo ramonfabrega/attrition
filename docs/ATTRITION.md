@@ -648,7 +648,22 @@ supply; it is its own rule, and it lives with the buildings.
   `Leader::calc_attrition` — the step whose `TypeIndex` Ghidra resolves as
   `BUY_SELL`. The code is there; which step that actually is stays unresolved,
   because the `TypeIndex` enum is not in the type stream. A logged run with a
-  Nubian player (`docs/ORACLE.md`) would settle it.
+  Nubian player (`docs/ORACLE.md`) would settle it. **Attempted 2026-08-20 and
+  still open, but the search is now narrower.** A Nubian game was run and
+  dumped whole; the leader carries `att` and **`anti_att` as a float**, and
+  both the Nubian (`tribe 4`) and the British computer (`tribe 11`) read
+  `att 0`, `anti_att 256.000000` at the start and in a later frame alike. So
+  the tribe bonus does **not** pre-bias the stored value: `anti_att` sits at
+  its base 256 (i.e. ×1) until `calc_attrition` actually runs, which needs
+  units taking attrition. The check therefore has to be a *running* one — a
+  Nubian unit and a non-Nubian unit inside hostile borders, `anti_att`
+  compared between the two leaders — and that needs a unit order, which the
+  cheat vocabulary does not provide (`docs/ORACLE.md`).
+  Two useful by-products: `anti_att` is logged as a float and prints as
+  `256.000000`, confirming the `f32` this document objects to on the
+  determinism ground; and `attrition_stamp3` **is** in the dump, next to its
+  two siblings, all zero at start — so the field this document lists as
+  "still unseen" is at least observable now.
 - In Conquer the World, the Tikal temple bonus is further scaled by
   `(100 + CTW_MISSIONARIES_BONUS) / 100` from a leader byte at `+0x6916`.
   Campaign-only; recorded, not implemented.

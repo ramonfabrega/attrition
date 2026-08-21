@@ -202,9 +202,28 @@ better, in which case say so and take that.
    (`cheat add`, `insert NEW`, `war`, `tech`, `age`, `die`, `damage`,
    `move`, `select`, `finish`), and the driving traps. All of it is
    `docs/ORACLE.md`, "The detail level is the knob" onward. The
-   `balance.xml` separator was settled a different way (see 6). **What
-   remains is the checks themselves** — each is now a handful of `cheat`
-   lines plus one `track.py` read, which is the cheap part.
+   `balance.xml` separator was settled a different way (see 6).
+
+   **Two checks are run and landed.** The construction clock, both halves
+   (`docs/CITIES.md` §3.2, §3.3): one builder is exactly +100 a frame, two
+   are exactly +150 — which settles the harmonic rule and the
+   units-before-buildings order together — and the clock re-bakes on a tech
+   change, for not-yet-active sites only. And the lobby start age
+   (`docs/TECH.md`): starting at Gunpowder sets the leader's age to 3 and
+   grants **no** epochs, techs or pop cap, so `set_age` on the lobby path
+   must not touch the epochs.
+
+   **What remains, and why it is not just "a few more cheat lines".** The
+   rest of the list needs a *unit order* — send this builder to that site,
+   put this unit inside those borders, have this squad attack that one from
+   behind — and the cheat vocabulary has no order verb. Synthetic clicks
+   select one unit but will not box-select several, so the practical shape
+   is: stage with cheats, then have a human issue the one order. The
+   city-spacing check additionally needs the builder trick, because
+   `cheat add` force-places without ever calling `blocked_site`
+   (`docs/CITIES.md` §15, `docs/ORACLE.md`). The Nubian attrition step needs
+   attrition to actually happen; `anti_att` sits at its base until
+   `calc_attrition` runs (`docs/ATTRITION.md`).
 5. ~~**The data layer into the sim, and the diff**~~ — **done, 2026-08-20**,
    `docs/DATALAYER.md`, `crates/rondata/src/{gamelog,dump,load,diff}.rs`:
    the gamelog reader, the loader (364 units, 129 buildings, 628-entry tree,
