@@ -213,17 +213,22 @@ better, in which case say so and take that.
    grants **no** epochs, techs or pop cap, so `set_age` on the lobby path
    must not touch the epochs.
 
-   **What remains, and why it is not just "a few more cheat lines".** The
-   rest of the list needs a *unit order* — send this builder to that site,
-   put this unit inside those borders, have this squad attack that one from
-   behind — and the cheat vocabulary has no order verb. Synthetic clicks
-   select one unit but will not box-select several, so the practical shape
-   is: stage with cheats, then have a human issue the one order. The
-   city-spacing check additionally needs the builder trick, because
-   `cheat add` force-places without ever calling `blocked_site`
-   (`docs/CITIES.md` §15, `docs/ORACLE.md`). The Nubian attrition step needs
-   attrition to actually happen; `anti_att` sits at its base until
-   `calc_attrition` runs (`docs/ATTRITION.md`).
+   **What remains is scriptable, and that was the last open question about
+   method.** The rest of the list needs a *unit order* — send this builder to
+   that site, put this unit inside those borders, have this squad attack that
+   one from behind — and the cheat vocabulary has no order verb. It does not
+   need one: **`cheat select <o>` plus a right-click issues the normal
+   order**, and because orders are per-unit, several units go on one job by
+   selecting and ordering them one at a time. No multi-selection, and so no
+   human. `docs/ORACLE.md`, "Issuing an order without a human", has the
+   timing and the screen↔world transform for aiming the click.
+
+   So the remaining checks are ordinary work rather than blocked work. Two
+   still carry a wrinkle worth knowing before starting: the city-spacing one
+   needs the site-plus-builder trick, because `cheat add` force-places
+   without ever calling `blocked_site` (`docs/CITIES.md` §15), and the Nubian
+   attrition step needs attrition to actually happen, since `anti_att` sits
+   at its base until `calc_attrition` runs (`docs/ATTRITION.md`).
 5. ~~**The data layer into the sim, and the diff**~~ — **done, 2026-08-20**,
    `docs/DATALAYER.md`, `crates/rondata/src/{gamelog,dump,load,diff}.rs`:
    the gamelog reader, the loader (364 units, 129 buildings, 628-entry tree,

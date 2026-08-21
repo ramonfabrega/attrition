@@ -711,6 +711,51 @@ refund. So the way to test a placement rule from a cheat-staged scenario is
 to `add NEW` the site at the distance under test, send one builder, and watch
 whether the site **starts** (`flags` 1 → 3) or **vanishes**.
 
+#### Issuing an order without a human: `select` then right-click
+
+The cheat vocabulary has no order verb, which looked for a while like a hard
+floor on what could be staged from a script. It is not. **`cheat select <o>`
+takes an object number, and a right-click afterwards issues the normal order
+to whatever is selected** — a build order onto a construction site, a move
+order onto ground. Both were verified against the log: after
+`cheat select 3` and a right-click on a tower site's tile, unit 3's
+`orders_x/y` became the tile beside the site; after a right-click on open
+ground, they became that ground.
+
+**Order units one at a time.** `select <o>` followed by `select <p> +` does
+sometimes append — two portraits appear in the panel — but it is not
+reliable, and a third `+` was seen to replace the selection instead of adding
+to it. There is no need for it: orders are per-unit and persist, so
+`select 3` → right-click, `select 4` → right-click, `select 5` → right-click
+puts three units on the same job with no multi-selection anywhere. That is
+the whole trick, and it means **every remaining behavioural check is
+scriptable**; nothing needs a human to drag a selection box.
+
+Two practical notes. Leave ~2 s between the `select` and the right-click —
+the cheat travels in the order stream and executes a tick later, and clicking
+too early orders whatever was selected before. And a right-click that lands
+on nothing orderable produces *no* order at all, which is distinguishable in
+the log from a move order onto terrain — a useful way to tell "I missed the
+target" from "the target refused".
+
+#### Aiming a right-click: the screen ↔ world transform
+
+A building's sprite is drawn well above the tile it stands on, so clicking
+the crates misses. Two anchors are enough to solve the projection, and it is
+exactly linear in `u = wx − wy` and `v = wx + wy`:
+
+```
+screen_x = a·u + c        screen_y = b·v + d
+```
+
+Take one anchor for free from any `cheat add … x,y` (the cursor tile is the
+object's tile) and a second from a right-click on open ground (the resulting
+`orders_x/y` is the world point under the cursor). On the run this was
+measured on, `a = 0.1605`, `b = 0.05167` — but they depend on the camera, so
+re-derive after any scroll rather than storing them. `cheat camera x,y`
+recentres the view, which is the cheap way to bring an off-screen site under
+a known screen point.
+
 #### Three traps that cost a run each
 
 - **Cheats are orders, and orders need ticks.** Issued while the game is
