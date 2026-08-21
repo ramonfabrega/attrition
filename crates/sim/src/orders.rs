@@ -1597,18 +1597,36 @@ impl Sim {
         self.buildings[b].gatherers.contains(&u)
     }
 
-    /// `UnitData::is_gathering_at(o, who, strict)`: a worker whose first
-    /// order is a GATHER on this building — and, strictly, arrived. A scholar
-    /// inside the building counts as gathering there.
+    /// `UnitData::is_gathering_at(o, who, strict)`: a worker whose **action**
+    /// is a GATHER on this building — and, strictly, arrived.
+    ///
+    /// The match is on [`Sim::action_of`], not the front of the list
+    /// (`is_gathering_at@00608880`: `pUVar3 = get_action(this)`, then
+    /// `get_type() == 7`). That is load-bearing, not pedantry: `do_gather`
+    /// and `do_non_flat_gather` insert their walks as `QUEUE_FIRST` moves
+    /// *without* the action bit, so on every walk-out and walk-back leg the
+    /// front order is a move and only the action walk still finds the
+    /// GATHER. Reading the front instead made a woodcutter stop counting as
+    /// a gatherer the moment it set off — and be pruned out of its own chain
+    /// by `check_gatherers`. (`docs/audit/2026-08-21-orders.md` R4 G16.)
+    ///
+    /// The inside-the-building arm is **scholar-only**: the original gates it
+    /// on `ptype[4] ∈ {SCHOLARS, SCHOLARSKOREAN}` (G17), so a garrisoned
+    /// citizen matches nothing. A platform's peasants are counted by
+    /// `num_gatherers` through `count_inside` instead.
     pub fn is_gathering_at(&self, u: usize, b: usize, strict: bool) -> bool {
         let unit = &self.units[u];
         if !unit.on_map {
-            return unit.inside == Some(b);
+            return self.worker_of(u) == Worker::Scholar && unit.inside == Some(b);
         }
         if self.worker_of(u) == Worker::None {
             return false;
         }
-        match unit.orders.front().map(|o| o.body) {
+        match self
+            .action_of(u)
+            .and_then(|i| unit.orders.get(i))
+            .map(|o| o.body)
+        {
             Some(Body::Gather(g)) if g.building == b => !strict || g.been_there,
             _ => false,
         }
@@ -1679,8 +1697,15 @@ impl Sim {
             }
         };
         if !g.been_there && !self.is_gathered_by(b, u) {
-            // The retry for a unit refused at issue.
-            if !self.gather_room(b) || !self.add_gatherer(b, u) {
+            // The retry for a unit refused at issue. An oil platform, and any
+            // non-land unit, skip the chain entirely and go straight on to
+            // the arrival path — `do_gather@005ef2a0:98`
+            // `if (build_type == 0x1a6 || ptype[0x218] != 0) goto ARRIVED`.
+            // Registering them gave the platform chain entries the original
+            // never creates. (`docs/audit/2026-08-21-orders.md` R4 G19.)
+            let skips_chain = ident == Ident::OilPlatform
+                || self.units[u].kind.domain != crate::attrition::Domain::Land;
+            if !skips_chain && (!self.gather_room(b) || !self.add_gatherer(b, u)) {
                 fail(self);
                 return;
             }
@@ -1986,6 +2011,11 @@ impl Sim {
         let who = self.units[u].owner;
         let here = self.units[u].pos;
         let scholar = self.worker_of(u) == Worker::Scholar;
+        // A scholar searches without a range limit: `find_gather_spot@
+        // 005f5170:44` keeps the caller's range only `if (!bVar2)`, where
+        // `bVar2` is the `SCHOLARS`/`SCHOLARSKOREAN` test — otherwise it
+        // stays −1. (`docs/audit/2026-08-21-orders.md` R4 G42.)
+        let range = if scholar { -1 } else { range };
         let mut best: Option<(i32, usize)> = None;
         for b in 0..self.buildings.len() {
             let bd = &self.buildings[b];
