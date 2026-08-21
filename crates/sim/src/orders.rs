@@ -346,6 +346,19 @@ impl Sim {
         self.update_action(u);
     }
 
+    /// Remove the order the cursor sits on, `i` places behind the current
+    /// one. Only `check_build_order` walks a cursor, and only onto a
+    /// `BUILD_AT`, which carries no per-kind teardown — so this is
+    /// [`Sim::kill_current_order`]'s generic tail applied at an index.
+    fn remove_order_at(&mut self, u: usize, i: usize) {
+        if self.units[u].orders.remove(i).is_none() {
+            return;
+        }
+        self.units[u].movement.dest = None;
+        self.clear_partial_path(u);
+        self.update_action(u);
+    }
+
     /// `kill_current_path`: pop the stack until an entry with the final flag
     /// is popped.
     fn kill_current_path(&mut self, u: usize) {
@@ -424,6 +437,22 @@ impl Sim {
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
             body: Body::Repair(b),
+        };
+        // The one adder that is **not** §3.1's common shape: `add_repair_
+        // order@005e4ff0` has no `QUEUE_FIRST` tail at all — after the list
+        // add at `0x5e51f0` come only `update_action` and `ret 0x10`, where
+        // `add_build_order` has an explicit `cmp [ebp+0x10],0` →
+        // `clear_partial_path; head = head->next`. No caller passes
+        // `QUEUE_FIRST`, so this is fidelity, not a live bug.
+        // (`docs/audit/2026-08-21-orders.md` R3 P1.)
+        debug_assert!(
+            pos != QueuePos::First,
+            "add_repair_order has no QUEUE_FIRST branch in the original"
+        );
+        let pos = if pos == QueuePos::First {
+            QueuePos::Last
+        } else {
+            pos
         };
         self.enqueue(u, order, pos);
     }
@@ -659,6 +688,15 @@ impl Sim {
     fn think(&mut self, u: usize, frame: i64) {
         let unit = &self.units[u];
         let phase = frame + i64::from(unit.index);
+        // The global cadence gate (`Unit::think@005f6e40:87`, found by the
+        // second reading — `docs/audit/2026-08-21-orders.md` R1): once a unit
+        // has been idle for more than two frames it thinks only one frame in
+        // sixteen, phased by `o`. The "could not reach" bit exempts it, so a
+        // unit that has just failed to reach something keeps searching every
+        // frame.
+        if !unit.cant_reach && unit.idle > 2 && phase % 16 != 0 {
+            return;
+        }
         let me = Obj::Unit(u);
         if self.attack_of(me) != 0
             && (unit.idle == 1 || phase & 0x1f == 0)
@@ -1249,24 +1287,48 @@ impl Sim {
     /// the surviving sites least-crowded first, all with the action bit.
     fn check_build_order(&mut self, u: usize) {
         let mut sites = Vec::new();
-        while let Some(o) = self.current_order(u).copied() {
+        // A **cursor** walk, not a run of kills (the second reading's R3 C2 —
+        // the first reading had this hedged as a stale decompile local; the
+        // listing at `0x6036fd` is a plain `current_node = current_node->prev`
+        // with no call between the flag test and the advance). Three
+        // consequences the earlier code got wrong:
+        //
+        //  * an intervening transit move is **stepped over, not removed**;
+        //  * only a `MOVE_TO` is stepped over — the loop's own gate is
+        //    `get_type() == BUILD_AT || get_type() == MOVE_TO`, so a swarm's
+        //    `EXPLORE_TO` ends the scan;
+        //  * the site the scan **stops** on keeps its order (R3 C5, a finding
+        //    neither reading made): the `break` jumps out before the
+        //    `repath; kill`, so that site ends the pass with a duplicate,
+        //    which the next `do_build` disposes of through its
+        //    "already finished" branch.
+        //
+        // After a kill the original re-tails the list and resumes from the
+        // front, which is what resetting the cursor to 0 reproduces.
+        let mut i = 0usize;
+        while let Some(o) = self.units[u].orders.get(i).copied() {
             match o.body {
                 Body::Build(b) => {
-                    self.repath(u);
-                    self.kill_current_order(u);
-                    if self
+                    let live = self
                         .buildings
                         .get(b)
-                        .is_some_and(|bd| bd.alive && !bd.active)
-                    {
+                        .is_some_and(|bd| bd.alive && !bd.active);
+                    if live && self.building_is_city(b) {
                         sites.push(b);
-                        if self.building_is_city(b) {
-                            break;
-                        }
+                        break;
                     }
+                    self.repath(u);
+                    self.remove_order_at(u, i);
+                    if live {
+                        sites.push(b);
+                    }
+                    i = 0;
                 }
-                Body::Move(_) if !o.has(flag::ACTION) && self.units[u].orders.len() > 1 => {
-                    self.kill_current_order(u);
+                Body::Move(m) if m.kind == MoveKind::MoveTo && !o.has(flag::ACTION) => {
+                    if i + 1 >= self.units[u].orders.len() {
+                        break;
+                    }
+                    i += 1;
                 }
                 _ => break,
             }
@@ -1276,10 +1338,15 @@ impl Sim {
         }
         if sites.len() > 1 {
             let who = self.units[u].owner;
+            // The count skips the unit doing the counting — `check_build_
+            // order@00603470:132` guards the whole body on
+            // `this_00->o != this->o`. (`find_build_spot`'s otherwise
+            // identical count does *not*; see the audit's R3 F2.)
+            let me = self.units[u].index;
             let crowd = |sim: &Sim, b: usize| {
                 sim.units
                     .iter()
-                    .filter(|x| x.owner == who && x.alive())
+                    .filter(|x| x.owner == who && x.alive() && x.index != me)
                     .filter(|x| {
                         x.orders
                             .iter()
@@ -1382,7 +1449,9 @@ impl Sim {
                     building: b,
                     search,
                 },
-            flags,
+            // The redirected order's action bit is a constant 0, so the
+            // original order's flags are not read here (R3 G6).
+            flags: _,
         }) = self.current_order(u).copied()
         else {
             return;
@@ -1411,7 +1480,14 @@ impl Sim {
                 let next = self.find_garrison_build(u, city, who);
                 self.kill_current_order(u);
                 if let Some(n) = next {
-                    self.add_garrison_order(u, n, true, QueuePos::First, flags & flag::ACTION != 0);
+                    // The action bit of the redirected order is **not** the
+                    // original's: `do_garrison@005e6b80:288` reads it through
+                    // vtable slot `+0x2c` on the order's `UnitOrder`
+                    // sub-object, and `GarrisonOrder`'s entry there
+                    // (`0xb48ee8+0x2c` → `0x41bff0`) is the folded
+                    // `xor eax,eax; ret`. So it is always 0.
+                    // (`docs/audit/2026-08-21-orders.md` R3 G6.)
+                    self.add_garrison_order(u, n, true, QueuePos::First, false);
                 }
             }
             Err(_) => self.kill_current_order(u),
