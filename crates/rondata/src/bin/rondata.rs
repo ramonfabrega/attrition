@@ -147,7 +147,14 @@ fn diff_report(
     );
     // Derive-then-read: the starting orders our §9.3 rule produced against the
     // ones the original actually issued. Positions cannot show this.
-    if let Some(built) = rondata::diff::build_for_check(&loaded, &log, sim::Tuning::RON) {
+    if !report.orders_seen() {
+        // Nothing to compare against: a dump below `UNITS=3` writes no order
+        // list at all, and calling the derivation wrong for that would be
+        // blaming the simulation for the logger's detail threshold.
+        println!(
+            "  the dump carries no order lists (below UNITS=3), so the start-of-game rule and the order diff are both unchecked here"
+        );
+    } else if let Some(built) = rondata::diff::build_for_check(&loaded, &log, sim::Tuning::RON) {
         let checks = rondata::diff::check_start_orders(&built, &log);
         let held: Vec<_> = checks
             .iter()
@@ -193,6 +200,38 @@ fn diff_report(
             "  units that diverge, as who/o@frame — everything else tracked to the end: {}",
             cells.join(" ")
         );
+    }
+    // The order lists, frame by frame — the intent diff, which sees what a
+    // position diff cannot. `UNITS=3` or nothing.
+    if report.orders_seen() {
+        let seen: usize = report.frames.iter().map(|f| f.order_compared).sum();
+        let orders: usize = report.frames.iter().map(|f| f.order_only().count()).sum();
+        let paths: usize = report.frames.iter().map(|f| f.path_only().count()).sum();
+        println!(
+            "  order lists: {seen} unit-frames compared, {orders} order disagreements, {paths} path-stack disagreements"
+        );
+        println!(
+            "  ticks before an order diverges: {}",
+            report.order_ticks_before_divergence()
+        );
+        let mut tally: std::collections::BTreeMap<&str, usize> = std::collections::BTreeMap::new();
+        for f in &report.frames {
+            for d in &f.order_diverged {
+                *tally.entry(d.what.name()).or_default() += 1;
+            }
+        }
+        if !tally.is_empty() {
+            let cells: Vec<String> = tally.iter().map(|(k, n)| format!("{k} {n}")).collect();
+            println!("  by kind: {}", cells.join(", "));
+        }
+        let by_order = report.order_divergence_by_unit();
+        if by_order.is_empty() {
+            println!("  every unit's order list matched on every frame");
+        } else {
+            for (w, o, f, what) in &by_order {
+                println!("  who {w} o {o}: first order disagreement at frame {f} — {what:?}");
+            }
+        }
     }
     for (who, first) in &report.first_divergence {
         match first {

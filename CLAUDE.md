@@ -240,21 +240,28 @@ better, in which case say so and take that.
    493 × 493 are equal** — the one finding on the way was a building's
    domain, `BuildType::set_domain` from `BUILD_FLAGS b`.
 
-7. **Orders** — **first reading and implementation landed 2026-08-21**,
-   `docs/ORDERS.md`, `crates/sim/src/orders.rs`: the order list and its
-   three enqueue modes, one order stepped per frame, the move order end to
-   end with the pathfinder as a named seam, build/repair/garrison through
-   the swarm ring, the gather registration and the wood/ore machine, the
-   attack order's reload gate and chase, the idle cadence, the start of a
-   game, the spot search, the log format. Taken before AI because AI issues
-   orders and the harness's score could not move without them. **Not yet
-   done by the definition**: the blind second reading and adjudication
-   (seven readers' worth — split the blind side the same way), then the
-   harness: the pre-placed buildings and the starting citizens' gather
-   orders in `build_sim`, and the `UNITS=3` order blocks read back. Three
-   first-reader disagreements are queued in the document's status note.
+7. ~~**Orders**~~ — **done, 2026-08-21**, `docs/ORDERS.md`,
+   `crates/sim/src/orders.rs`: the order list and its three enqueue modes,
+   one order stepped per frame, the move order end to end with the
+   pathfinder as a named seam, build/repair/garrison through the swarm ring,
+   the gather registration and the wood/ore machine, the attack order's
+   reload gate and chase, the idle cadence, the start of a game, the spot
+   search, the log format. Taken before AI because AI issues orders and the
+   harness's score could not move without them. The blind second reading and
+   all seven adjudications are landed (`docs/audit/2026-08-21-orders.md`),
+   and so is the harness work: the start of a game in `build_sim` and the
+   `UNITS=3` order blocks read back and diffed **every frame**
+   (`docs/DATALAYER.md` §3.1). The intent diff earned itself immediately —
+   six farm citizens holding `THINK` where the original holds `GATHER`, from
+   frame 1, with both simulations agreeing on every position. **The
+   remaining blocker is a `BUILDS=7` dump** (§13, `docs/DATALAYER.md`): a
+   woodcutter's citizen cannot walk without `gather_from`, and that is what
+   pins player 0's score.
 8. **AI** — last, because it is the least oracled, and better oracled once
-   4 and 5 stand.
+   4 and 5 stand. **The pathfinder comes first** (`docs/ORDERS.md` §4.6):
+   `find_wpath` is a stub, every path stack in the harness disagrees with
+   the original's beyond the first segment, and AI orders would be laid on
+   top of it.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes

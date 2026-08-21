@@ -1637,9 +1637,17 @@ mod tests {
         use sim::balance::line;
         let Some(i) = install() else { return };
         let l = load(&i).unwrap();
-        // `get_age_slow`: a unit needing Classical is age 1, not 0.
+        // `get_age_slow`: a unit needing the **Classical Age** tech is age 1,
+        // not 0 — the age tech's own `AGE` column plus one. The Phalanx needs
+        // it; the Hoplites it replaces is an Ancient-age unit with no tech
+        // prerequisite at all, which `get_age_slow` resolves to 0. (The
+        // example was the Hoplites and asserted 1, which the program's own
+        // `UNITTYPE` dump contradicts — `--types` has both at 0 and 1 and
+        // reports no difference.)
+        let pha = l.unit_named("Phalanx").unwrap();
+        assert_eq!(l.kinds[pha].age, 1);
         let hop = l.unit_named("Hoplites").unwrap();
-        assert_eq!(l.kinds[hop].age, 1);
+        assert_eq!(l.kinds[hop].age, 0);
         let cit = l.unit_named("Citizen").unwrap();
         assert_eq!(l.kinds[cit].age, 0);
         // `ECOMPANION` (0xe8) is Royal Companion: Companion is not in the

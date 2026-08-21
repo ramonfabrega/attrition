@@ -319,6 +319,22 @@ impl OrderDump {
     }
 }
 
+/// One entry of a unit's path stack — `Stack<PathData>::log_data` (§11.1).
+///
+/// The stack is written **bottom first**, and the bottom is the goal:
+/// `find_path` pushes the destination with the final flag and then the
+/// waypoints on top of it, so the *last* block logged is the waypoint the
+/// unit is walking to now. `sim::orders::PathData` is held in a `Vec` used
+/// the same way — pushed and popped at the end — so the two are in the same
+/// order without reversing either.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct PathDump {
+    pub to: (i64, i64),
+    pub tolerance: i64,
+    /// Bit `1` is the final segment (the goal).
+    pub flags: i64,
+}
+
 /// One unit: the `Object` base plus its members.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct UnitDump {
@@ -331,6 +347,10 @@ pub struct UnitDump {
     /// The order list, **newest first** as the log writes it — empty below
     /// `UNITS=3`. [`UnitDump::current_order`] is the one being executed.
     pub orders: Vec<OrderDump>,
+    /// The path stack, bottom (the goal) first — the `STACK<TYPE>` block that
+    /// precedes the order list, empty below `UNITS=3` and for a unit that is
+    /// not walking a path.
+    pub path: Vec<PathDump>,
 }
 
 impl UnitDump {
@@ -338,6 +358,12 @@ impl UnitDump {
     /// `OrderList::log_data` walks the ring from the tail (§11.1).
     pub fn current_order(&self) -> Option<&OrderDump> {
         self.orders.last()
+    }
+
+    /// The order list front-first — current order first, the way
+    /// `sim::Sim`'s `VecDeque` holds it. The log writes it the other way.
+    pub fn orders_front_first(&self) -> impl Iterator<Item = &OrderDump> {
+        self.orders.iter().rev()
     }
 }
 
@@ -477,9 +503,32 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
         .collect()
 }
 
+/// The path stack of a `UNITDATA` block: its one `STACK<TYPE>` direct child
+/// (§11.1).
+///
+/// `STACK<TYPE>` is the template's own name, shared by every `Stack<T>`, but
+/// a unit writes exactly one of them — the guys are a `PtrArray<Guy>`, whose
+/// `length/size/increment` are flat lines on `UNITDATA` itself. An empty
+/// stack writes its `BEGIN` and nothing under it, which reads back as no
+/// `PATHDATA` children.
+fn path_of(b: &Block<'_>) -> Vec<PathDump> {
+    let Some(stack) = b.kid("STACK<TYPE>") else {
+        return Vec::new();
+    };
+    stack
+        .kids("PATHDATA")
+        .map(|p| PathDump {
+            to: (p.int("to_x").unwrap_or(0), p.int("to_y").unwrap_or(0)),
+            tolerance: p.int("tolerance").unwrap_or(0),
+            flags: p.int("flags").unwrap_or(0),
+        })
+        .collect()
+}
+
 fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
     let (flags, o, who, pos) = object_base(b)?;
     let orders = orders_of(b);
+    let path = path_of(b);
     let guys = b
         .kids("GUY")
         .map(|g| Guy {
@@ -498,6 +547,7 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
         pos,
         guys,
         orders,
+        path,
     })
 }
 

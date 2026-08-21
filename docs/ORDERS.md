@@ -2496,9 +2496,18 @@ what is listed as an input is stated as such in the code):
   `city`/`gather_down` and tier 6 stops at `orig_type`. The first reading said
   `BUILDS=6`, which would have wasted a run — R7 L14) and the AI's units need the order stream —
   `COMMANDMANAGER=1`, or the `UNITS=3` order blocks replayed as they appear.
-- **The log** — the harness should read the `UNITS=3` order blocks (§11.1)
+- **The log** — ~~the harness should read the `UNITS=3` order blocks (§11.1)
   and diff `type/ox/whom/uid/flags` and the path stack per frame; not yet
-  written.
+  written.~~ **Done 2026-08-21** (`docs/DATALAYER.md` §3.1):
+  `rondata::diff::compare_orders` walks both lists front first — the log's
+  reversed, because §11.1 writes it newest first — and the path stacks bottom
+  first, and reports the kind, the action bit, the `flags` byte, the target's
+  `whom`/`ox`, the stack's depth and each segment's goal. `flags` and the
+  path stack are reported without scoring (`0x8`/`0x10` have no reader and
+  `PATHED` follows the stack, which the pathfinder stub does not reproduce).
+  It found the harness's farms outside any city on its first run — the
+  citizens held `THINK` where the original held `GATHER`, invisibly, from
+  frame 1.
 
 `Sim::tick` is unchanged in shape: income, buildings, then per unit attrition
 → **the order step** (`work`: the liveness check, `idle`, `do_job`) →

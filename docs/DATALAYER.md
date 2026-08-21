@@ -270,15 +270,31 @@ called every unit a land unit; the column is `DOMAIN`. Fixed.
 ys` cells from `WORLD`, one simulation unit per logged unit of a player slot
 (typed by its first `GUY`'s `TypeIndex`, squad size the number of `GUY`s,
 health the type's `HITS`, speed and turn rate from the type), each player's
-tribe from `LEADERDATA`, and the starting city by type at the `CITIES`
-position — through `place_building`, which **refuses it (`Blocked(Ruins)`)
-on a world with no terrain**, so the city is added untyped with a note.
+tribe from `LEADERDATA`, and the starting city at the `CITIES` position.
 It then places the **pre-placed buildings and the starting citizens' gather
 orders**, derived from `docs/ORDERS.md` §9.2 and §9.3 rather than read out of
 the log: `BUILDDATA` carries no type at any detail level, so `2001` is typed
 the woodcutter and the next few farms by `Leader::produce_building`'s order,
 and each citizen is assigned by §9.3's four-step rule. `run` then steps the
-simulation to each logged frame and compares every linked unit's position.
+simulation to each logged frame and compares every linked unit's position
+**and its order list**.
+
+**The map is one land region over every cell**, stated here because it is an
+assumption and not a reading: the dump carries no terrain (below), and a cell
+in no region at all is `Blocked::Ruins` to `blocked_tcoord`. Leaving the
+world region-less was not neutral — ~~the city is added untyped with a
+note~~ **every `place_building` was refused**, so the city and every
+pre-placed building came out untyped and city-less, and a farm outside a city
+sends its citizen away (`do_gather`'s second gate). The order diff below is
+what found it; the positions could not.
+
+**The buildings go in the way §9.2 says, not through `place_building`.**
+`build_cities@005ab910` is `Build::init` then `activate(0, 0, 0)`, and
+`produce_building` at frame 0 is `Objects::init_build` then
+`activate(0, 1, 0)` — neither pays a cost and neither re-runs `blocked_site`,
+because the site was chosen already. So the harness calls `init_build` and
+`activate` too. `init_build` is also what runs `Wall::find_city`, which is
+how a farm gets the city membership its gather path needs.
 
 **The score, on both dumps: ticks before divergence 1**, and it is worth
 being precise about why, because the single number hides the state of the
@@ -316,6 +332,58 @@ simulation unit (25,943 unit-frames compared, none unlinked), every
 cadence agree. The leaders' logged `score` is reported and not matched; the
 simulation has no score.
 
+### 3.1 The order diff — the intent, every frame
+
+`check_start_orders` makes that comparison once, at frame 0, for one order
+kind. **`compare_orders` makes it every frame, for the whole list** — the
+last of `docs/ORDERS.md` §13's harness bullets, and the reason the section
+above could say "agreeing on standing still is not evidence" and then do
+something about it.
+
+Both sides are walked **front first**, the order being executed at slot 0.
+That means reversing the log's: `OrderList::log_data` walks the ring from the
+tail, so the *last* block it writes is the current order (§11.1), and
+`UnitDump::orders_front_first` is the reversing iterator. The path stack
+needs no reversing — the log writes it bottom first (the goal, pushed first
+by `find_path`) and `Vec<PathData>` is pushed and popped at the end, so the
+two already line up. Getting either backwards is a silent, total
+disagreement, which is what the round-trip test asserts.
+
+Per slot it compares the `OrderIndex`, the action bit, the whole `flags`
+byte and `TargetOrder`'s `whom`/`ox`; then the path stack's depth and each
+segment's goal. Two rules keep it from manufacturing disagreements out of
+what it cannot see:
+
+- **A target is compared only when both sides name one.** A move order has
+  none; a simulation building the start-of-game rule did not create has no
+  logged object number. An attack order is the awkward one — the original's
+  `AttackOrder` *is* a `TargetOrder` and carries the target, while here the
+  order wraps `combat::State`'s (`docs/ORDERS.md` §13), so the comparison
+  reads the unit's combat target instead.
+- **The `flags` byte is reported but does not score.** `0x8` and `0x10` have
+  no established reader (§14) and `0x1` (`PATHED`) follows the path stack,
+  which the pathfinder stub does not reproduce. The path stack does not score
+  either, for the same reason: counting it would be scoring the stub. Both
+  are printed, because a surprise in either is worth seeing.
+
+**On `gamelog-run4`, 564 unit-frames compared: 0 disagreements of `flags`,
+`action` or `target`, and none at all on the six farm citizens over 47
+frames.** What is left is 111 `length` and 95 `kind` — one missing order on
+each of the five units the simulation cannot drive, and the slot shift that
+follows from it — plus 108 `path-length`, which is the stub. The order score
+(`order_ticks_before_divergence`) is a minimum over every unit the same way
+the position score is, so the AI's scout pins it at 0; the per-unit breakdown
+is the number to read.
+
+It earned itself on the first run. The six farm citizens were holding
+**`THINK` where the original holds `GATHER`, from frame 1 of both dumps** —
+`do_gather`'s `Ident::Farm && city.is_none()` gate, firing because the
+region-less world had refused every `place_building` and left the farms
+outside any city. Not one frame of that is visible in a position: the citizen
+stands inside the farm's footprint either way, and both simulations agreed on
+its coordinates for all 47 frames while one of them had sent it to think
+about its life instead of working.
+
 ---
 
 ## What is not established
@@ -329,6 +397,17 @@ simulation has no score.
   `gather_from`, the `GATHERPOINT` list and `BUILDQUEUE` behind
   `set_detail(7)`; tier 6 stops at `orig_type`. Every dump captured so far
   is `BUILDS=6`.
+- **What a `DUMP_ALL=1` dump's initial state actually contains.**
+  `gamelog-run1-fulldump` reads back as **400 citizens per player** where
+  `gamelog-run4` reads 5, while only twelve units ever appear in a frame and
+  all twelve link. There are 104 `UNITDATA` blocks and **three `BEGIN GAME`
+  blocks** before its first `FRAME`, so `Log::initial` is probably merging
+  states the logger wrote more than once — a reader question, not a
+  simulation one, but it stands up 800 phantom units and makes stepping that
+  dump about a second a frame. The fulldump also carries **no order lists**
+  (it is below `UNITS=3`), so nothing of §3.1 is measured on it; `run4` is
+  the order dump. Both are why the harness's figures above are quoted from
+  `run4`.
 - **The terrain.** Nothing of the map is in the dump at level 0, so
   `place_building` cannot be exercised and territory cannot be computed from
   a dump. `TERRAIN`/`MAPMAKE` under `[Start Game]` were enabled in the full
