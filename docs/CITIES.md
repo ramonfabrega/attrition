@@ -395,6 +395,35 @@ distance is `vector_dist` over **tile** differences (explicit in the fort loop;
 register-hidden in the city loop). Own unstarted cities count; others' only
 once started.
 
+**Confirmed in a logged run (2026-08-20)**, the check §15 named, and on two
+bearings. The reference was the capital, a built Small City on tile
+`(32, 156)`; the placer had `CITY_SPACING` at its base 24 (one city, nowhere
+near 90 % of the region). Each test tile was probed **twice**: first with a
+tower site, then — the tower removed — with a city site on the same tile, one
+builder ordered onto each (`docs/ORACLE.md`, "A scripted placement test").
+
+| tile | `vector_dist` | tower | city |
+| --- | --- | --- | --- |
+| `(56, 156)` | 24 | starts, `flags 1 → 3` | **disbanded** |
+| `(57, 156)` | 25 | — | starts, `flags 33 → 35` |
+| `(32, 180)` | 24 | starts, `flags 1 → 3` | **disbanded** |
+| `(32, 181)` | 25 | — | starts, `flags 33 → 35` |
+
+The tower is the control that makes this decisive. A tower is not a city, so
+it is subject to §2.6.1's *stricter* territory test — every land tile under it
+must be friendly — and to the same terrain verdicts. A tower that starts on a
+tile therefore proves that tile is the placer's own territory, is buildable
+ground, and is reachable by the builder, which removes every candidate reason
+for the city's refusal except the spacing rule. (It removes them in the right
+order, too: §2.4 returns `blocked_location`'s verdict *over* the tile-level
+one, so a city that is both outside friendly territory and too close reports
+`CITY_DISTANCE` — meaning the ladder's boundary is the spacing boundary and
+not a territory edge.)
+
+So the boundary sits exactly between 24 and 25: `CITY_SPACING` is 24 and the
+compare is `≤`. The reading is confirmed, including that the blocked distance
+is the constant itself rather than one less.
+
 **2.6.3 Fort spacing** (`is_fort`): for every other active leader `i`: `s =
 FORT_SPACING` (12) for self/ally, `FORT_TO_ENEMY_CITY_SPACING` (32) otherwise;
 their started unbuilt cities and (if `reg_cities[reg]`) built cities in the
@@ -1624,16 +1653,19 @@ heal, ejection), then the sites' `construct_hits` refresh.
 
     **Status, 2026-08-20.** The first is **run and confirmed** (§3.2, §3.3):
     two builders give `accel + accel/2` exactly, and the construction clock
-    re-bakes on a tech change. The **city-spacing one is still open, and the
-    obvious way to run it does not work** — `cheat add` force-places without
-    calling `blocked_site` (`docs/ORACLE.md`), so a placement cheat can never
-    test a placement rule: cities went down four tiles apart. The method that
-    *will* work, for this and for every other `blocked_site` verdict in the
-    list (the dock's ¾ water, the island, the unstarted enemy city): `add NEW`
-    the site at the distance under test, send one builder, and watch whether
-    the site starts (`flags` 1 → 3) or is disbanded when `do_construct` runs
-    the check (§3.3). That needs a unit order, which is the one thing the
-    cheat vocabulary does not provide.
+    re-bakes on a tech change. ~~The **city-spacing one is still open, and the
+    obvious way to run it does not work**~~ — **run and confirmed** (§2.6.2):
+    a city is refused at exactly 24 tiles and starts at 25, on two bearings.
+    `cheat add` force-places without calling `blocked_site`
+    (`docs/ORACLE.md`), so a placement cheat can never test a placement rule
+    on its own: cities went down four tiles apart. The method that works, for
+    this and for every other `blocked_site` verdict in the list (the dock's ¾
+    water, the island, the unstarted enemy city): `add NEW` the site at the
+    distance under test, send one builder, and watch whether the site starts
+    (`flags` 1 → 3) or is disbanded when `do_construct` runs the check (§3.3)
+    — with a **tower site on the same tile first** as the control that rules
+    out terrain and territory. `docs/ORACLE.md`, "A scripted placement test",
+    has the whole recipe including how to aim the click.
 
 ---
 

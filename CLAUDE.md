@@ -223,12 +223,24 @@ better, in which case say so and take that.
    human. `docs/ORACLE.md`, "Issuing an order without a human", has the
    timing and the screen↔world transform for aiming the click.
 
-   So the remaining checks are ordinary work rather than blocked work. Two
-   still carry a wrinkle worth knowing before starting: the city-spacing one
-   needs the site-plus-builder trick, because `cheat add` force-places
-   without ever calling `blocked_site` (`docs/CITIES.md` §15), and the Nubian
+   So the remaining checks are ordinary work rather than blocked work. One
+   still carries a wrinkle worth knowing before starting: the Nubian
    attrition step needs attrition to actually happen, since `anti_att` sits
    at its base until `calc_attrition` runs (`docs/ATTRITION.md`).
+
+   **The city-spacing check is run and landed** (2026-08-20, `docs/CITIES.md`
+   §2.6.2): a city is refused at exactly 24 tiles and starts at 25, on two
+   bearings. With it came the method for every remaining `blocked_site`
+   verdict, in `docs/ORACLE.md`, "A scripted placement test" — a **tower site
+   on the tile first** as the control, since a tower is subject to the
+   stricter territory test and the same terrain, so one that starts leaves
+   the rule under test as the only candidate reason a city on that tile is
+   refused. Also landed there: `-config <file>.ini` fills the lobby from a
+   file and `-automation` suppresses the modal furniture, so a run's
+   configuration is a file plus two clicks rather than a sequence of combo
+   boxes; and `cheat move <o> cursor`, `cheat die <o>,<who>` and a
+   tower-probe calibration of the screen↔world transform, which is what makes
+   a one-tile question answerable at all.
 5. ~~**The data layer into the sim, and the diff**~~ — **done, 2026-08-20**,
    `docs/DATALAYER.md`, `crates/rondata/src/{gamelog,dump,load,diff}.rs`:
    the gamelog reader, the loader (364 units, 129 buildings, 628-entry tree,

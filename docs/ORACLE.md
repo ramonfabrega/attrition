@@ -628,6 +628,52 @@ everything-per-frame run), `gamelog-run3-fulldump-types.txt` (152 MB, the
 start-of-game dump **with the type tables and `COMBATTABLE`**), and
 `gamelog-run2-units.txt` (21 MB, 1,730 frames at the old detail 0).
 
+### The lobby is a file: `-config` and `-automation` (2026-08-20)
+
+`System::init_cmdlineopts` splits the command line on `/` and `-` and matches
+six options by name. Two of them matter here.
+
+| option | effect |
+| --- | --- |
+| `-config <file>` | extension `rcx` → `sys.playback_file`; extension `ini` → `sys.autostart_file` |
+| `-automation` | `sys.automation = 1` |
+| `-inifile <file>` | replaces `prefs_file`, i.e. which `rise.ini` is read |
+| `-distribution <n>`, `-executable <n>`, `-touchpatch` | patcher plumbing |
+
+**`-config foo.ini` fills the lobby from the file.** `SetupWin::exec` reads
+`sys.autostart_file` and, when it is set, calls
+`GameInfo::load_from_config(info, file, 1)` in place of the recorded-game
+branch. The file's `[CONTROL] USESECTION` names the section to read; every
+lobby combo is then matched by name against its own option list —
+`String::ignore` exactly first, then a prefix of 8 characters down to 3 — and
+`PLAYERn_TRIBE` against the tribe list by exact name. `SEED` and `UNITBALANCE`
+are read as numbers, and **a non-zero `UNITBALANCE` skips the whole combo
+loop**, so leave it at 0. The shipped `autostart.ini` is a working template
+and its `[OPTIONS]` section is the authoritative list of legal values.
+
+It does **not** press Start: the flag it sets (`local_3c`) only reaches
+`ConnectionData::init`. So a run is two clicks — Solo Game, Quick Battle — and
+then Start, with every rule already correct.
+
+Observed 2026-08-20: the rules half of the file took (team style, map size,
+game speed, rules, difficulty, starting town, tech costs, population, rush
+rules, start and end age, elimination, victory), while `mapstyles`,
+`startingresources`, `revealmaps` and `PLAYERn_TRIBE` fell back to the player
+profile. Not chased; ticking **Save to Profile** once in the lobby makes those
+four stick across launches, which is enough. **Not established:** why those
+four differ.
+
+**`-automation` suppresses the modal furniture.** `Options::exec` skips the
+quit confirmation, `EndGameWin::exec` skips the end-game window, and
+`AchieveWin::exec` and two `CommandPackage`/`CommandManager` error paths skip
+their popups. It is the flag to pass for any unattended run.
+
+`StartConsole=1` in `rise2.ini` is read by `Game::solo_checks` and calls the
+console window's show slot at game start, which would open the `~` console and
+with it the console-only half of `run_cmd`'s command table (`ai off` among
+them). Set on this machine, no console appeared, and the key that toggles it
+was not found. **Not established.**
+
 ### Staging a scenario: the chat cheats
 
 A behavioural check needs a *situation* — two builders on one site, a citizen
@@ -755,6 +801,65 @@ measured on, `a = 0.1605`, `b = 0.05167` — but they depend on the camera, so
 re-derive after any scroll rather than storing them. `cheat camera x,y`
 recentres the view, which is the cheap way to bring an off-screen site under
 a known screen point.
+
+#### A scripted placement test, end to end (2026-08-20)
+
+The city-spacing check (`docs/CITIES.md` §2.6.2) was run this way, and the
+recipe generalises to every `blocked_site` verdict. Five pieces, none of which
+needs a human:
+
+**Calibrate the transform against the game's own answer.** The two-anchor fit
+above gets within a tile or two, which is not enough when the question is
+whether 24 blocks and 25 does not. `cheat add NEW tower` at the cursor reads
+the cursor's tile back exactly: a tower's footprint is **even**-sized, so
+`snap_center` puts its centre at `tile × 192` with no half-tile, and the
+logged `x_internal / 192` *is* the tile the mouse was over. Place one, read it,
+shift the offsets by the error, place another, confirm. One tile of error in
+both axes is a `v` error and no `u` error, so it moves `screen_y` alone by
+`b × 384`. A **city** placed the same way centres on `tile × 192 + 96` — odd
+footprint — and its `tile(x)` is still the cursor tile, which is what the
+spacing loop compares.
+
+**Put the builder where you want it.** `cheat move <o> cursor` teleports a unit
+to the mouse tile (`find_nearby_spot` + `set_new_location`), so one citizen can
+be reused for every trial instead of walking it across the map or adding a new
+one each time.
+
+**Remove what you placed.** `cheat die <o>,<who>` removes a building. The bare
+`cheat die <o>` worked on an unstarted site and did nothing to a started one;
+the `,who` form worked on both, so use it always.
+
+**Control every trial with a tower.** A cheat-placed site is force-placed, so
+the verdict only arrives when the builder does — and *every* refusal looks the
+same from outside: the site vanishes. The way to tell which rule fired is to
+run the same tile twice, once with a building that is subject to more rules
+than the one under test. A tower needs friendly territory (`docs/CITIES.md`
+§2.6.1) where a city does not, and needs the same terrain; a tower that starts
+proves the tile is yours, is buildable, and is reachable. Then a city refused
+on that same tile has one candidate cause left.
+
+**Trial shape**, about a minute each:
+
+```
+cheat.sh <sx> <sy> "add NEW tower"     # the control
+cheat.sh <sx'> <sy'> "move 7 cursor"   # the builder, a few tiles off
+rclick 7 <sx> <sy>                     # select, then right-click the site
+  ... BUILDDATA flags 1 → 3 and job_counter climbing  = the tile is fine
+cheat.sh - - "die <o>,0"
+cheat.sh <sx> <sy> "add NEW city"      # the test
+rclick 7 <sx> <sy>
+  ... the record disappears            = refused;  flags 33 → 35 = allowed
+```
+
+Two things that surprised the run. **The chat box pauses the simulation**: the
+clock reads `PAUSED` for as long as it is open and resumes when the line is
+submitted, so a cheat is always typed into a stopped game and always executes
+on the next tick — the trap above about pausing is about the *menu* pause, not
+this one. And **a city far from home is refused for reasons that have nothing
+to do with spacing**: a site 51 tiles out, on unowned ground in a region where
+the player had no city, was disbanded on arrival — the foothold and `COLONIZE`
+branches of §2.4/§2.6.1 — which is why the ladder has to be run on ground the
+tower probe has already proven.
 
 #### Three traps that cost a run each
 

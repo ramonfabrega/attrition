@@ -46,12 +46,37 @@ previous frame, which is usually what a check wants:
 The parser tracks indentation to know which `BEGIN` block a key belongs to and
 skips the repetitive array blocks (`BUILDQUEUE`, `STACK<TYPE>`).
 
+## One frame at a time
+
+`track.py` follows a field across a run. When the question is instead "what is
+on the map *now*", cut the last frame out of the growing log and look at it:
+
+    lastframe.py                     the last complete frame → $TMPDIR/ron-last.txt
+    objs.py                          one line per object: kind, o, who, tile, hits, type
+    one.py BUILDDATA 0 2008 flags job_counter
+
+`one.py` exits non-zero when the object is not in the frame, which is the
+answer to "was the site disbanded?". Object numbers are **per player** — units
+from 0, buildings from 2000 — so an object is (kind, who, o), never o alone.
+
 ## Driving the game
 
 `cheat.sh X Y "<rest of the cheat line>"` aims the mouse at `X,Y` (the tile
 `add`/`move` will use) and sends `cheat <rest>` through the chat box; pass
 `- -` to leave the mouse alone. `waitwin.sh [out.png]` blocks until the game
 window exists, focuses it, and writes a screenshot plus a downscaled copy.
+`shot.sh` takes a screenshot, whole-desktop or `-r X Y W H`, and downscales it.
+`click.sh X Y` left-clicks; `rclick.sh O X Y` selects object `O` and
+right-clicks, which is how a unit is given an order.
+
+`aim.py A B C D --from cx,cy tx,ty ...` turns a tile into the desktop point to
+click. The projection is linear in `u = wx − wy` and `v = wx + wy`; `A` and `B`
+come from the zoom, `C` and `D` from the camera. Calibrate once with two
+right-click anchors, then re-fit `C`/`D` after any camera move with a single
+`cheat add NEW tower` probe — a tower's even footprint makes its logged
+`x_internal / 192` the cursor's tile exactly. `docs/ORACLE.md`, "A scripted
+placement test", is the whole recipe, including the tower-before-city control
+that tells a terrain refusal from a rule refusal.
 
 Two things about input that cost a run each, both in `docs/ORACLE.md`:
 **keys go through `osascript … keystroke`, clicks through `cliclick`** (the
