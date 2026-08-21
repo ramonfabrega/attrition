@@ -265,11 +265,19 @@ better, in which case say so and take that.
    farmers, which part at frame 102 — the run's own finding, that
    `FARM_GROWS = 200` is wrong by about a factor of two (`docs/ORDERS.md`
    §6.5).
-8. **AI** — last, because it is the least oracled, and better oracled once
-   4 and 5 stand. **The pathfinder comes first** (`docs/ORDERS.md` §4.6):
-   `find_wpath` is a stub, every path stack in the harness disagrees with
-   the original's beyond the first segment, and AI orders would be laid on
-   top of it.
+8. **The pathfinder** — taken before AI, because `find_wpath` is a stub, every
+   path stack in the harness disagrees with the original's beyond the first
+   segment, and AI orders would be laid on top of it. **The brief is written
+   and the survey is done** — `docs/PATHFINDER.md`: scope, the 34 methods
+   with the two that are the mechanic (`astar_path` 977 lines, `calc_cost`
+   509), `PathFinderData` and `PathNode` from the PDB, what §4.6 already
+   establishes, and the traps. **The first reading itself is Fable's**, per
+   the model split. It is the first mechanic with a per-frame numeric oracle
+   *before* it is written: the harness already diffs the original's own path
+   stack segment by segment, and making those disagreements score is the
+   acceptance test.
+9. **AI** — last, because it is the least oracled, and better oracled once
+   4, 5 and the pathfinder stand.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes
