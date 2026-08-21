@@ -72,3 +72,40 @@ settled neither way but in the listing or the PE: the `do_construct`
 argument, `capture_strength`, and the type-vtable slot `+0xfc`. The lesson:
 grep the writers of every field you call frozen, and the callers of every
 function you call once-only.
+
+Orders (`2026-08-21-orders.md`, the eleventh mechanic) is the first audit in
+this directory that is **partial, and says so in its own first paragraph**.
+Seven readers took the blind side, one per sub-area, split as the first
+reading was — and, for the first time, on a **different model from the first
+reading**: Opus 5 blind against Fable 5's document, the trial the model-split
+note had left pending. That half worked: all seven finished, 355 numbered
+claims, 64–83 KB apiece. The adjudication did not. Six of the seven
+adjudicators, on Fable per the split, hit the account's Fable limit within
+about ten minutes of each other and died; five had read both readings and
+written no verdict. Only R5, the start of a game, survives — 37 verdicts,
+seven corrections, all landed.
+
+Three lessons, all cheap next time:
+
+- **A fan-out of adjudicators is a quota commitment, not just a token
+  cost.** Seven long Fable agents in flight is enough to exhaust a day's
+  limit, and when the wall arrives it takes every one of them at once. Land
+  them in two or three waves, and let each wave finish before the next
+  starts, so a wall costs one wave and not a run.
+- **A failed agent's notification carries no usage figures**, so the waste
+  can only be bounded by wall clock. The instruction to readers to write
+  their file *section by section* is what saved the blind side; the
+  adjudicators had the same instruction and five of them still died before
+  the first verdict, because a verdict costs a lot of reading before it
+  costs a line of output. Tell an adjudicator to append **each table row as
+  it is settled**, not each section.
+- **Keep the raw reports somewhere durable from the start.** They were in a
+  job scratch directory that is deleted with the job; 2.2 M subagent tokens
+  of reading survived only because they were copied out. They live at
+  `~/ghidra-projects/reading/<mechanic>-<date>/` now, which is where the
+  next mechanic's should be written directly.
+
+What the six missing adjudications owe is listed at the end of
+`2026-08-21-orders.md`, so the disagreements are not lost with the agents
+that were reading them; the reports and briefs to resume from are at
+`~/ghidra-projects/reading/orders-2026-08-21/`.

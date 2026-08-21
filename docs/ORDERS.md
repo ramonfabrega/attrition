@@ -80,17 +80,38 @@ frame and a 327-frame build trace. Nothing is transcribed; see
 `docs/DECISIONS.md` entry 7.
 
 **Status (2026-08-21).** The first reading and the implementation are
-landed; **the blind second reading and its adjudication are not yet run**,
-so by the working agreement this mechanic is not yet "done" — the next
-session takes that (`docs/audit/README.md`; the order-system readers were
-seven, so the blind side should be split the same way, on Opus per the
-current model split, with Fable adjudicators). Three disagreements among
-the first readers are already queued for it: the name of `UnitOrder::flags &
-4` (§1.3 — the mechanics agree); `do_gather`'s approach radius, `min(x_size,
-y_size)` (the gather reader) against `(flat ? x_size : y_size)` (the spot
-reader's asm note) — equal for every square building; and the `OrderIndex`
-values, which the dump pinned against one reader's guess. What the
-implementation leaves as inputs is §13.
+landed. **The blind second reading is complete for all seven sub-areas; only
+one of its seven adjudications has been run**, so by the working agreement
+this mechanic is **not yet "done"**.
+
+- **The blind side, done.** Seven readers on Opus 5, split the same way as
+  the first reading, each given only the entry points and the traps: 355
+  numbered claims across R1 the order system (38), R2 the move order (42),
+  R3 build/repair/garrison (57), R4 gather (48), R5 the start of a game
+  (56), R6 the combat and group orders (64), R7 the spatial queries and the
+  log (50). The reports are **not in the repo** (entry 7) — they are at
+  `~/ghidra-projects/reading/orders-2026-08-21/`, with a README there
+  giving the state and how to finish.
+- **The adjudication, one of seven.** R5 (the start of a game) is landed:
+  `docs/audit/2026-08-21-orders.md`, 37 verdicts, seven corrections, all
+  marked inline in §2.1, §9.2, §9.3 and §9.4 with a "second reading" note.
+  **R1, R2, R3, R4, R6 and R7 have not been adjudicated** — the six
+  adjudicators hit the account's Fable 5 limit and died, five of them
+  before writing a verdict. Their inputs are unchanged and on disk; the
+  briefs are preserved beside the reports.
+- **Queued for them.** The three first-reader disagreements: the name of
+  `UnitOrder::flags & 4` (§1.3 — the mechanics agree; R1); `do_gather`'s
+  approach radius, `min(x_size, y_size)` (the gather reader) against
+  `(flat ? x_size : y_size)` (the spot reader's asm note) — equal for every
+  square building (R4 and R7, independently); and the `OrderIndex` values,
+  which the dump pinned against one reader's guess (R1). Plus two the blind
+  reports raise against this document and nobody has adjudicated: B reads
+  `add_repair_order` as having **no `QUEUE_FIRST` branch**, against §3.1's
+  "one shape, 21 functions"; and B reads `do_attack` as owning **no range or
+  reload logic at all**, `fight` owning the lot, against §7.2. Treat both as
+  open until a third reader settles them.
+
+What the implementation leaves as inputs is §13.
 
 **Confidence.** High for the structures, the list's orientation and the three
 enqueue modes, the dispatch and its place in the frame, `do_move`'s planning
@@ -339,17 +360,27 @@ every `clear` was read beside its constructor.
 ### 2.1 `Game::do_frame@00591ef0`
 
 In order: `GameLog::begin_frame` (the `[Start Frame]` dump at the current
-`frame`); player speed; the scenario script; **`Leaders::process_all`**
-(income first — `docs/ECONOMY.md`); the rush-rule message; `NetDaemon::
-process_all` (the command stream is applied here, before any object moves);
-**`Leaders::strategy_all`** (the AI, unless `semaphore[1] & 8`);
-`GameDaemon::process_all` (halves `repaths`, §4.6); `Armies::process_all`;
-`NetDaemon::process_all` again; **`Objects::process_all`** (every unit's
-order step, `move_step`, `fight`, attrition, the building clocks);
-`Objects::inc_time`; `GraphicEvents::process`; `Leaders::end_process_all`;
-`Achieve::capture_data`; `Leader::process_event_frame`; **`frame = frame +
-1`**; `OrdersMemManager::cycle`; `Roads::scan_and_kill_stray_roads`; `frame %
-15 == 0 → tick++`; **`GameLog::end_frame`** (the `[End Frame]` dump).
+`frame`); player speed; the scenario script (the general-powers half only
+from frame 1); **`Leaders::process_all`** (income first —
+`docs/ECONOMY.md`); **`NetDaemon::process_all`** (the command stream is
+applied here, before any object moves); the rush-rule message;
+`NetDaemon::process_all` **twice**; **`Leaders::strategy_all`** (the AI,
+unless `semaphore[1] & 8`); `GameDaemon::process_all` (halves `repaths`,
+§4.6); `Armies::process_all`; `NetDaemon::process_all` again;
+**`Objects::process_all`** (every unit's order step, `move_step`, `fight`,
+attrition, the building clocks); `Objects::inc_time`;
+`GraphicEvents::process`; `NetDaemon::process_all` a fifth time;
+`Leaders::end_process_all`; `Achieve::capture_data`;
+`Leader::process_event_frame`; **`frame = frame + 1`**;
+`OrdersMemManager::cycle`; `Roads::scan_and_kill_stray_roads`; `frame %
+15 == 0 → tick++`; the auto-save (`frame != 0`); **`GameLog::end_frame`**
+(the `[End Frame]` dump).
+
+**Second reading (`docs/audit/2026-08-21-orders.md`, F1, F3).** The first
+`NetDaemon::process_all` is **before** the rush-rule message, not after, and
+there are **five** calls in the frame, not two — the points at which a click
+or an AI `Group::action_*` reaches a unit. The only `frame == 0` branches in
+`do_frame` itself are the general-powers script and the auto-save.
 
 `Objects::process_all@0065dce0` walks players in the order `(frame + i) % 10`
 for `i = 0..9` — **the player processed first rotates with the frame** — and
@@ -1781,6 +1812,15 @@ active player; then **`build_empire(who, slot)`** for each, `start_index[who]
 create_units`, scripts. (The scenario path runs `ScenarioRead::import`
 instead; CtW its own setup; out of scope.)
 
+**Second reading (`docs/audit/2026-08-21-orders.md`, S1, S5).** Two
+additions. `build_game` **re-seeds `game_random` from `info.seed`** at its
+head, so `init_starting_resources` and the tribe roll (inside
+`init_rules_and_teams`, §9.1) and the map, the permutation and every
+`place_unit` draw are **two separate walks of the same seed**, not one
+stream. And in a team game, unless `world +0x30 == 0x16`, **each player's
+teammates are placed immediately after it**, at consecutive start
+positions — which start cell a player gets is not `start_list` order alone.
+
 **`build_empire@005abb80(who, slot)`**: `city = build_cities(who, slot,
 starting_town)`, then `build_units(who, slot, city, starting_town)`; Spanish →
 `leader_flags |= 0x1000`. **`build_cities@005ab910`**: `home_reg` = the start
@@ -1796,13 +1836,20 @@ activate(0, 0, 0)`** (`captured = 0, announce = 0, counted = 0`, `docs/CITIES.md
 
 **The pre-placed buildings — `small_city_buildings@005aae10(who, city)`**,
 each a `Leader::produce_building(leader, type, city.o, 0)`, in this order:
-`WOODCUTTER`; then unless Lakota — Americans with `AMERICANS_STARTING_FARMS
-> 0` → that many `FARM`, else **three `FARM`**; then `LIBRARY`. So the default
-is **`2001` woodcutter, `2002–2004` farms, `2005` library**. `large_city_
-buildings`: `WOODCUTTER`, five `FARM`, four `TOWER`, `LIBRARY`. `build_civ_
+`WOODCUTTER`; then **Americans** with `AMERICANS_STARTING_FARMS > 0` → that
+many `FARM`, else **Lakota** → none, else **three `FARM`**; then `LIBRARY`.
+So the default is **`2001` woodcutter, `2002–2004` farms, `2005` library**.
+`large_city_buildings`: `WOODCUTTER`, five `FARM` — **none for Lakota**, and
+no American override on this list — four `TOWER`, `LIBRARY`. `build_civ_
 specific@005ab760` adds a `MARKET` for Nubians or Dutch, `UNIVERSITY` for
 Greeks (`GREEK_UNIVERSITY_EARLY > 1`), `TEMPLE` Koreans, `GRANARY` Egyptians,
 `LUMBERMILL` French, `SENATE` Iroquois, each behind its power constant.
+
+**Second reading (C2, C3).** The small list's tests nest Americans *outside*
+and Lakota *inside* — no tribe holds both powers, so the order is not
+observable, but the code's is as written above. The Large Town's five farms
+are inside the Lakota exemption, which the first reading omitted (its §9.3
+already subtracts the matching five citizens).
 
 **Who chooses the site: `Leader::produce_building@006e1400` — the AI's own
 placer, with `frame == 0` special cases.** Not the map-maker, not an offset
@@ -1835,32 +1882,65 @@ for a city only, `(5, 2)` for a Small Town, `(10, 5)` for a Large Town**;
 farms − 3`; Lakota `−3`/`−5`; Koreans `+ KOREAN_CITIZENS[0]`.
 
 **The scout first** (`starting_town != 0`): `SCOUT` (or the tribe's graft),
-`current_upgrade`, **`place_unit(who, city, type, centre)`**; Spanish: extra
-scouts; Dutch: two `MERCHANTDUTCH`; Greeks: `GREEK_START_SCHOLARS` scholars,
-each `go_inside` the nearest own `UNIVERSITY` if one exists. **`place_unit@
-005abca0`** — the scattered placement: up to 60 tries (500 for a Nomad): `idx
-= rand % circle_radius[2]` (a sync-stream draw per try); the cell = the city's
-tile + `(circle_x[idx], circle_y[idx])`; accept if in bounds, **same `region`
-as the anchor**, `wdata.flags & 0x30 == 0`, land, `flags & 0x100` clear,
-**`wdata.down < 0` (no object on the cell)**, the `tdata` word's bit 14 clear
-and low two bits not 3, `flags` bit 15 clear → `Objects::init_unit(who, type,
-cell centre, −1, −1, −1)`. After 60 failures: no city → `init_unit` at the
-point + `come_out(0)`; a city → `Build::train(city, type)`. **No order is
-given**: the scout, and every Nomad/City-only citizen, starts idle.
+`current_upgrade`, **`place_unit(who, city, type, centre)`**; Spanish:
+`SPANISH_EXTRA_SCOUT` more, **plus one further scout when `info.reveal_map >
+1`**; Dutch: two `MERCHANTDUTCH`; Greeks (and only with a city):
+`GREEK_START_SCHOLARS` scholars, each `go_inside` the nearest own
+`UNIVERSITY` if one exists. **`place_unit@005abca0`** — the scattered
+placement: up to 60 tries (500 for a Nomad): `idx = rand % circle_radius[r]`
+(a sync-stream draw per try) with **`r = 2` on a start with a city, and on a
+Nomad start `r = 8` for the first unit, `r = 0x18` (24) once
+`LeaderData::active != 0`**; the cell = the city's tile + `(circle_x[idx],
+circle_y[idx])`; accept if in bounds, **same `region` as the anchor**,
+`wdata.flags & 0x30 == 0`, land, `flags & 0x100` clear, **`wdata.down < 0`
+(no object on the cell)**, the `tdata` word's bit 14 clear and low two bits
+not 3, `flags` bit 15 clear → `Objects::init_unit(who, type, cell centre,
+−1, −1, −1)` — **and return, with no `come_out`**. After 60 failures: no
+city → `init_unit` at the point + `come_out(0)` (the only `come_out` path);
+a city → `Build::train(city, type)`. **No order is given**: the scout, and
+every Nomad/City-only citizen, starts idle.
+
+**Second reading (U4, U6, U8, U15).** The ring radius above is the
+correction: the first reading gave `circle_radius[2]` for every start, which
+is right with a city and wrong for a Nomad. `come_out` is the exhausted
+no-city path only. And under a Nomad start (`starting_town == 0` with no
+city) **`has_tribe_bonus` returns 0 for every power** — a Nomad Greek gets no
+scholars, a Nomad Spaniard no extra scouts, a Nomad Korean no extra citizens.
 
 **The citizens**, `n` of them, index `i`, farm cursor `k` from 0:
 
 - `starting_town < 2` → `place_unit` (scattered, idle).
-- `starting_town ≥ 2`: `i < ordered` → target `t = 2001` (**the woodcutter**)
-  if alive; else scan `t = 2002 + k, …` up to `build_mark` for the first alive
-  `FARM` that is active, `is_gather_type` and not a UNIVERSITY, advancing the
-  cursor past it; nothing → `2001` again if active, gatherable, not a
-  university and `num_gatherers < gather_max`; else `place_unit` (idle). **For
-  a target `t`: `o = Objects::init_unit(who, citizen, t.x, t.y, −1, −1, −1)` —
-  created at the building's centre; `Unit::come_out(u, 0)` — steps off the
-  footprint to the nearest free spot beside it (§5.8, §10); then, unless
-  `starting_resources == 8`, `Unit::add_gather_order(u, t, QUEUE_NEW, 0)`** —
-  which also `Build::add_gatherer`s it at once (§6.2).
+- `starting_town ≥ 2`, in four steps, the first match winning:
+  1. **`i < ordered` → `2001` unconditionally** — the woodcutter, with *no*
+     type or capacity test; the only gate is `2001 < build_mark` and the
+     object's alive bit at creation. **A dead `2001` sends the citizen to
+     `place_unit` (idle), not to the farm scan.**
+  2. `i ≥ ordered` → scan `t = 2002 + k, …`, stepping while the slot is
+     alive and not a `FARM`, and stopping at the first `FARM`, the first
+     dead slot, or `build_mark`; the cursor advances past it.
+  3. **The stopping object** — the farm, or, when the scan found none, the
+     last building it looked at — is accepted if it `is_active`,
+     `is_gather_type` and is **not** a `UNIVERSITY`. That last guard is
+     live, not vacuous: `UNIVERSITY` *is* a gather type, and the Greek one
+     is produced last, so a citizen beyond the farm count (Koreans,
+     `starting_resources == 7`) would otherwise be put to work in it.
+  4. Otherwise `2001` again, behind the full four-way guard (`is_active`,
+     `is_gather_type`, not a `UNIVERSITY`, `num_gatherers < gather_max`);
+     else `place_unit` (idle).
+
+  **For a target `t`: `o = Objects::init_unit(who, citizen, t.x, t.y, −1,
+  −1, −1)` — created at the building's centre; `Unit::come_out(u, 0)` —
+  steps off the footprint to the nearest free spot beside it (§5.8, §10);
+  then, unless `starting_resources == 8`, `Unit::add_gather_order(u, t,
+  QUEUE_NEW, 0)`** — which also `Build::add_gatherer`s it at once (§6.2).
+
+  **Second reading (U10, U11).** Steps 1 and 3 are the corrections. The
+  first reading read step 1 as "2001 if alive, else scan", which would send
+  a citizen to a farm when the woodcutter is dead; and it read step 3 as
+  applying only to a farm found, making the university guard look vacuous.
+  Both readings got the *default* Small/Large outcome right — the last
+  building on those lists is a `LIBRARY`/`SENATE`/`TEMPLE`, none a gather
+  type, so the fallback is what fires — and both misdescribed the rule.
 
 So for the default Small Town: citizens `1, 2` are created at the woodcutter
 `2001` with `GATHER 2001`; `3, 4, 5` at farms `2002, 2003, 2004` with a `GATHER`
@@ -1868,10 +1948,20 @@ on each; the library `2005` and the city `2000` get nobody; Large Town: `1..5`
 on the woodcutter, `6..10` on farms `2002..2006`. **That gather order is the
 only thing in each citizen's list at frame 0**, and its first step (§6.3,
 §6.4) is what moves the dump's citizens on frames 2–4 without anyone issuing
-anything. The AI's scout carries no order; it moves because `Leaders::
-strategy_all` runs on the very first `do_frame` (`Leader::plan_strategy` does
-not skip frame 0) and orders it — an AI order, not a scripted start; `ai off`
-in the console would pin it still.
+anything. The AI's scout carries no order; it moves because the AI orders it
+on an early frame — an AI order, not a scripted start; `ai off` in the
+console would pin it still.
+
+**Second reading (F4) — the mechanism, corrected.** The first reading
+attributed the scout's first move to `Leaders::strategy_all` on frame 0.
+`strategy_all` does run then, and `Leader::plan_strategy` does skip its
+cadence early-out at frame 0 and run the full sweep — but that sweep
+**issues no order** (it contains no `action_*` or `add_*_order` call; it ends
+in `check_orphaned_buildings`, `compute_sites(0)`, `production_step = 1`),
+and the decision half `production_ai` only begins at frame 1, behind its own
+human gate. The scout's first order comes from the **idle path**,
+`Unit::think → think_scout` (§2.4). The observation stands; the attribution
+does not.
 
 **The id scheme.** `Objects::clear@0065d740` sets per player `unit_mark = 0`,
 `build_mark = 2000`, `wall_mark = 3000`; `Objects::find_free@0065ad60(who,
@@ -1890,14 +1980,21 @@ fresh unit's order list is empty**. A citizen's `uber_size` is 1.
 
 For each of the six goods: `starting_resources == 12` → replaced by `rand %
 12` first; `base = Constants::starting_goods[i]` (`+0x234`), or
-`starting_goods[0]` for every good but wealth when the setting is 7; the lobby
+`starting_goods[0]` for every good but **knowledge** when the setting is 7;
+the lobby
 row `starting_resources.list[setting]` gives `lo` (`+0x3c`) and `hi` (`+0x40`):
 `lo == 0 → base / 2`; else `lo × base + (span × base > 1 ? rand % (span × base)
 : 0)` — **a sync-stream draw per good whenever the row has a spread**; setting
 8 → 99999. `Leader::init@006e3930:881–897` pays it: `bucket_add(t, starting[t])`
 for every `type_avail` good; Barbarians' defenders `× (starting_resources2 +
-1)`; a CtW nomad `× ctw_starting_res_x`. The lobby's start *age* is
-`docs/TECH.md`'s.
+1)`; a CtW nomad `× ctw_nomad_starting_res_x`; then **Persians** scale FOOD by
+`(PERSIANS_BONUS_FOOD + 100)/100` and **Greeks** with `GREEK_DELAY_KNOWLEDGE`
+have KNOWLEDGE zeroed. The lobby's start *age* is `docs/TECH.md`'s.
+
+**Second reading (R2, R3).** The exempt good under setting 7 is index **3,
+`KNOWLEDGE`** (`if (setting == 7 && i != 3)`), not wealth (index 2) — the
+first reading named the wrong good. The constant is
+`ctw_nomad_starting_res_x`, and the Persian and Greek terms were missing.
 
 ---
 
@@ -2260,9 +2357,15 @@ moves fall out of dispatching once on the front at the top of `work`.
   slot count (`docs/ECONOMY.md`'s open item, unchanged).
 - `Leader::produce_building`'s scoring line by line (read in shape; the
   harness takes the sites from the dump); `init_teams`/`init_handicaps`
-  (skimmed); the lobby labels for `starting_resources` rows 7 and 8; whether
-  `Build::activate(0, 1, 0)`'s `counted = 0` skips `gather_slots`; `uber_size`
-  for the scout (assumed 1).
+  (skimmed); the lobby labels for `starting_resources` rows 7 and 8;
+  ~~whether `Build::activate(0, 1, 0)`'s `counted = 0` skips
+  `gather_slots`~~ — **partly closed by the second reading**
+  (`docs/audit/2026-08-21-orders.md`, C6): `counted = 0` skips
+  `cities_built++` and the whole first-of-kind `do_bonus` block, which is
+  *also* gated on `frame != 0`, so no starting building yields a founding
+  bonus; `gather_slots` itself was not re-read and stays open. `uber_size`
+  for the scout (assumed 1) — data, answered by `rondata`'s loaded `SCOUT`
+  row (`UnitType +0x308`) or a `UNITS=3` start dump.
 - Whether `OrderList::log_data` reaches the file at `UNITS=3` — confirmed by
   the dumps cited here (it does).
 
