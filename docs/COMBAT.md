@@ -90,7 +90,10 @@ regeneration is whole for the unit block: `rondata::load` builds every
 unit's `Kind` with its age and named lineages from the tree, and
 `rondata --types <dump>` checks the 364 `Kind`s and the 364 × 364 table it
 builds against the program's own start-of-game dump, **cell for cell equal**
-(§15.2). The building half of the table is still not built.
+(§15.2) — and, the same day, the building half too: `combat::Table` is
+two-family (`TypeRef::Unit`/`Build`), `rondata` builds a `Kind` per building,
+and all four quadrants of the 493 × 493 are equal (§15.3). The fight path
+now applies the table to every pair, buildings included.
 
 ---
 
@@ -1561,8 +1564,8 @@ The three sharpest leads, in the order worth chasing:
 None of this was reachable before: the second reading confirmed the *formula*
 twice over, and the formula is right — what is wrong is which units it is
 applied to, which is precisely what a table dump can see and a reading cannot.
-The building half of the dump (indices 364–492) is still unchecked; `rondata`
-builds no building side of the table at all.
+~~The building half of the dump (indices 364–492) is still unchecked; `rondata`
+builds no building side of the table at all.~~ Checked and equal, §15.3.
 
 **Not established.** Whether the 14,577 are three bugs or thirty. The count is
 a ceiling on the damage, not a diagnosis, and each lead above needs the same
@@ -1607,8 +1610,9 @@ The order worth working in:
    the whole table, and probably the best place to *start* reading rather than
    the last.
 
-The building half of the dump (indices 364–492) is unchecked and `rondata`
-builds no building side at all; that is additional scope, not a bug.
+~~The building half of the dump (indices 364–492) is unchecked and `rondata`
+builds no building side at all; that is additional scope, not a bug.~~ Done,
+§15.3.
 
 The reason this is cheap despite being a reading job: **every hypothesis is
 falsifiable in one diff run.** That is not true of the mechanics documented
@@ -1639,12 +1643,46 @@ them. Two things learned about the dump on the way, recorded in
 bit 31 (`6`, anti-air) prints negative; and the `age` field is the stored
 `+0x278`, `−1` for the twelve gaia animals, which `get_age` resolves to 0.
 
-**What this does not establish.** The building half of the table (indices
+~~**What this does not establish.** The building half of the table (indices
 364–492, and every unit-versus-building cell) — `rondata` builds no building
-`Kind` and the check covers the unit block only. `is(b, AIRBASE)` therefore
-has no root yet. That is additional scope, not a known error, and the dump
-already holds the oracle for it.
+`Kind` and the check covers the unit block only.~~ Done the same day, §15.3.
 
 `rondata --types` is now the regression guard for §5: any later change to
 `type_damage`, the tree loader's ages, or the lineage roots that moves a
 cell fails the check.
+
+### 15.3 The building half, and the whole table (2026-08-20)
+
+The same session took the other three quadrants. `sim::combat::Table` is now
+over two families — `TypeRef::Unit(id)` then `TypeRef::Build(id)`, units
+first as `final_balance_table` lays `BASE_UNITTYPES..END_BUILDTYPES` out —
+with `pct_of` for any pair, `pct` the unit-versus-unit shorthand, and
+`grown` so the sim's type space can keep growing on either axis.
+`fight.rs` looks the table up for **every** pair now; before this a building
+on either side was a flat 100. `rondata::load` builds a `Kind` per building:
+the `return_pack` line ladder (FORTS, CITIES, OBSPOST, TOWERS — §5.1) from
+`is(x, 0)` rooted by `TypeIndex` (`VILLAGE 0x19e`, `TOWER 0x1b7`, `FORTX
+0x1bb`, `LOOKOUT 0x209`, and `AIRBASE 0x1bf` for step 30), the BUILDINGS
+object, `get_age`, `OBJ_MASKS`, the wonder range `0x20e..0x21e` (step 26),
+no siege and no caravan flag. `Loaded::build_kinds` exposes them and
+`rondata --types` checks them — `obj_masks`, `age`, `domain` per building
+against the dump's `BUILDTYPE` blocks — and then all four quadrants.
+
+The first run came to **4 of 243,049** cells: Oil Platform, Dock, Anchorage
+and Shipyard against the Airbase, `33`/`83` against ours `100`/`250` — step
+30's `a.domain != Land` third, on buildings the program loads with
+`domain 1`. `buildingrules.xml` has no `DOMAIN` column; the rule is
+`BuildType::set_domain@00633390`: **`BUILD_FLAGS b` ("can be built on sea
+squares", bit 1) makes a building Sea, or Air when `a` (bit 0) is also set,
+else Land.** Landed in the building `Kind` and in the building
+`combat::Profile`'s `domain`, which had been Land for every building.
+
+With it, **0 of 243,049 cells differ** — unit→unit, unit→building,
+building→unit and building→building alike — and every per-type input check
+passes for all 364 units and 129 buildings. The two type dumps and the table
+are one oracle for §5 entire; `rondata --types` guards all of it.
+
+**What this does not establish.** Nothing about §5 is open. What the table
+*feeds* — the nation, wonder and patriot modifiers, the terrain and height
+inputs, aircraft and missiles — is the same list as before (§14); this
+section settled the multiplier, not its consumers.

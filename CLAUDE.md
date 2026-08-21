@@ -234,8 +234,11 @@ better, in which case say so and take that.
    is *Royal* Companion), and `0x14000` misread as M|O where it is O|Q. With
    them landed **0 of 132,496 cells differ**, and the check is the
    regression guard from here. The `Flag_` rows are dead data (§14.9), landed
-   with it. Not done: the building half of the table — `rondata` builds no
-   building `Kind`; the dump holds the oracle for it.
+   with it. The building half followed the same day (§15.3): `combat::Table`
+   is two-family, `rondata` builds a `Kind` per building, the fight path
+   applies the table to every pair, and **all four quadrants of the
+   493 × 493 are equal** — the one finding on the way was a building's
+   domain, `BuildType::set_domain` from `BUILD_FLAGS b`.
 
 7. **AI** — last, because it is the least oracled, and better oracled once
    4 and 5 stand.

@@ -30,9 +30,11 @@ is not the point yet; the wiring is.
 reader), `dump.rs` (the constants check), `load.rs` (the loader), `diff.rs`
 (the harness); `cargo run -p rondata -- <install> --gamelog <Logs/gamelog.txt>
 [--diff [N]]` runs all of it, and `--types <dump>` checks the loader's
-per-unit `Kind`s and the combat table it builds against a `DUMP_ALL=1`
-start-of-game dump's `UNITTYPE` blocks and `COMBATTABLE`
-(`crates/rondata/src/typesdump.rs`, `docs/COMBAT.md` §15.2). The install-backed tests run when
+per-unit and per-building `Kind`s and the whole 493 × 493 combat table it
+builds against a `DUMP_ALL=1` start-of-game dump's `UNITTYPE`/`BUILDTYPE`
+blocks and `COMBATTABLE` (`crates/rondata/src/typesdump.rs`, `docs/COMBAT.md`
+§15.2–§15.3). A building's `domain` is `BuildType::set_domain` from
+`BUILD_FLAGS` (`b` → Sea, `a`+`b` → Air), not a column. The install-backed tests run when
 `RON_INSTALL` points at the game, or `../../game` from the crate exists;
 without either they pass vacuously, so the binary is the check with teeth.
 

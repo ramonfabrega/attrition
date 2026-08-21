@@ -662,6 +662,11 @@ impl Sim {
     /// Registers a building type and returns its id.
     pub fn add_build_type(&mut self, ty: build::BuildType) -> usize {
         self.build_types.push(ty);
+        if self.table.builds() < self.build_types.len() {
+            self.table = self
+                .table
+                .grown(self.unit_types.len(), self.build_types.len());
+        }
         self.build_types.len() - 1
     }
 
@@ -705,13 +710,9 @@ impl Sim {
         // The combat table grows with the type space, at 100 until a
         // builder fills the new row and column.
         if self.table.width() < self.unit_types.len() {
-            let mut grown = combat::Table::uniform(self.unit_types.len());
-            for a in 0..self.table.width() {
-                for b in 0..self.table.width() {
-                    grown.set(a, b, self.table.pct(a, b));
-                }
-            }
-            self.table = grown;
+            self.table = self
+                .table
+                .grown(self.unit_types.len(), self.build_types.len());
         }
         for (who, m) in self.muster.iter_mut().enumerate() {
             m.by_type.push(0);

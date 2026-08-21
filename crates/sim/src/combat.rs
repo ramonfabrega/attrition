@@ -404,57 +404,135 @@ impl Profile {
     }
 }
 
+/// A type in the combat table: the simulation's unit ids and building ids
+/// are two families, as the original's `TypeIndex` ranges are.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum TypeRef {
+    Unit(usize),
+    Build(usize),
+}
+
 /// The combat table (§5): percent of attack, by attacker type against target
-/// type, over the simulation's own type ids.
+/// type, over the simulation's own type ids — units first, then buildings,
+/// the way the original lays `final_balance_table` out over
+/// `BASE_UNITTYPES..END_BUILDTYPES`.
 ///
 /// An entry the table does not hold is 100, which is what the original holds
 /// for any pair it has no rule for and exactly what an empty table is. The
-/// ids are [`crate::Sim::unit_types`] indices — buildings that fight will
-/// need their own rows, which is why the lookup is by two ids and a width
-/// rather than by unit id alone.
+/// unit ids are [`crate::Sim::unit_types`] indices and the building ids
+/// [`crate::Sim::build_types`] indices; [`Table::pct`] is the unit-versus-unit
+/// lookup and [`Table::pct_of`] takes either family on either side.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Table {
-    width: usize,
+    units: usize,
+    builds: usize,
     cells: Vec<i16>,
 }
 
 impl Table {
-    /// A table of `n × n` entries, all 100.
+    /// A table over `n` unit types and no buildings, all 100.
     pub fn uniform(n: usize) -> Table {
+        Table::uniform_of(n, 0)
+    }
+
+    /// A table over `units` unit types and `builds` building types, all 100.
+    pub fn uniform_of(units: usize, builds: usize) -> Table {
+        let side = units + builds;
         Table {
-            width: n,
-            cells: vec![100; n * n],
+            units,
+            builds,
+            cells: vec![100; side * side],
         }
     }
 
-    /// Builds a table from a closure over `(attacker id, target id)`.
-    pub fn build(n: usize, mut f: impl FnMut(usize, usize) -> i32) -> Table {
-        let mut cells = Vec::with_capacity(n * n);
-        for a in 0..n {
-            for b in 0..n {
-                cells.push(f(a, b) as i16);
+    /// Builds a table from a closure over `(attacker, target)`, units first
+    /// then buildings on both axes.
+    pub fn build(units: usize, builds: usize, mut f: impl FnMut(TypeRef, TypeRef) -> i32) -> Table {
+        let side = units + builds;
+        let at = |i: usize| {
+            if i < units {
+                TypeRef::Unit(i)
+            } else {
+                TypeRef::Build(i - units)
+            }
+        };
+        let mut cells = Vec::with_capacity(side * side);
+        for a in 0..side {
+            for b in 0..side {
+                cells.push(f(at(a), at(b)) as i16);
             }
         }
-        Table { width: n, cells }
+        Table {
+            units,
+            builds,
+            cells,
+        }
     }
 
+    /// The number of unit types the table covers.
     pub fn width(&self) -> usize {
-        self.width
+        self.units
     }
 
-    /// `return_modifier(a, b)`.
+    /// The number of building types the table covers.
+    pub fn builds(&self) -> usize {
+        self.builds
+    }
+
+    fn index(&self, t: TypeRef) -> Option<usize> {
+        match t {
+            TypeRef::Unit(i) if i < self.units => Some(i),
+            TypeRef::Build(i) if i < self.builds => Some(self.units + i),
+            _ => None,
+        }
+    }
+
+    /// `return_modifier(a, b)` for two unit types.
     pub fn pct(&self, a: usize, b: usize) -> i32 {
-        if a < self.width && b < self.width {
-            i32::from(self.cells[a * self.width + b])
-        } else {
-            100
+        self.pct_of(TypeRef::Unit(a), TypeRef::Unit(b))
+    }
+
+    /// `return_modifier(a, b)` for any two types; 100 for a type the table
+    /// does not cover.
+    pub fn pct_of(&self, a: TypeRef, b: TypeRef) -> i32 {
+        match (self.index(a), self.index(b)) {
+            (Some(x), Some(y)) => i32::from(self.cells[x * (self.units + self.builds) + y]),
+            _ => 100,
         }
     }
 
     pub fn set(&mut self, a: usize, b: usize, pct: i32) {
-        if a < self.width && b < self.width {
-            self.cells[a * self.width + b] = pct as i16;
+        self.set_of(TypeRef::Unit(a), TypeRef::Unit(b), pct);
+    }
+
+    pub fn set_of(&mut self, a: TypeRef, b: TypeRef, pct: i32) {
+        if let (Some(x), Some(y)) = (self.index(a), self.index(b)) {
+            let side = self.units + self.builds;
+            self.cells[x * side + y] = pct as i16;
         }
+    }
+
+    /// The same table over a larger type space — new rows and columns at
+    /// 100, every existing entry kept.
+    pub fn grown(&self, units: usize, builds: usize) -> Table {
+        let units = units.max(self.units);
+        let builds = builds.max(self.builds);
+        let mut t = Table::uniform_of(units, builds);
+        let at = |i: usize, n: usize| {
+            if i < n {
+                TypeRef::Unit(i)
+            } else {
+                TypeRef::Build(i - n)
+            }
+        };
+        let side = self.units + self.builds;
+        for a in 0..side {
+            for b in 0..side {
+                let v = i32::from(self.cells[a * side + b]);
+                t.set_of(at(a, self.units), at(b, self.units), v);
+            }
+        }
+        t
     }
 }
 
@@ -1788,5 +1866,35 @@ mod tests {
         assert_eq!(super::garrison_arrows(80, 0, 4, 4), 1);
         // An attack under a whole hit fires nothing at all.
         assert_eq!(super::garrison_arrows(3, 1, 4, 100), 0);
+    }
+}
+
+#[cfg(test)]
+mod table_tests {
+    use super::{Table, TypeRef};
+
+    #[test]
+    fn two_families_and_growth_keep_every_cell() {
+        let t = Table::build(2, 2, |a, b| match (a, b) {
+            (TypeRef::Unit(x), TypeRef::Unit(y)) => 10 + (x * 2 + y) as i32,
+            (TypeRef::Unit(x), TypeRef::Build(y)) => 20 + (x * 2 + y) as i32,
+            (TypeRef::Build(x), TypeRef::Unit(y)) => 30 + (x * 2 + y) as i32,
+            (TypeRef::Build(x), TypeRef::Build(y)) => 40 + (x * 2 + y) as i32,
+        });
+        assert_eq!(t.pct(1, 0), 12);
+        assert_eq!(t.pct_of(TypeRef::Unit(0), TypeRef::Build(1)), 21);
+        assert_eq!(t.pct_of(TypeRef::Build(1), TypeRef::Unit(1)), 33);
+        assert_eq!(t.pct_of(TypeRef::Build(1), TypeRef::Build(1)), 43);
+        assert_eq!(t.pct_of(TypeRef::Build(2), TypeRef::Unit(0)), 100);
+        assert_eq!(t.pct(5, 0), 100);
+        let g = t.grown(3, 3);
+        assert_eq!(g.width(), 3);
+        assert_eq!(g.builds(), 3);
+        assert_eq!(g.pct(1, 0), 12);
+        assert_eq!(g.pct_of(TypeRef::Build(1), TypeRef::Build(1)), 43);
+        assert_eq!(g.pct_of(TypeRef::Unit(2), TypeRef::Build(2)), 100);
+        assert_eq!(g.pct_of(TypeRef::Build(2), TypeRef::Unit(0)), 100);
+        // Growing never shrinks.
+        assert_eq!(g.grown(1, 1), g);
     }
 }

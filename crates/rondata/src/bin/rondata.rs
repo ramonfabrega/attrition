@@ -420,40 +420,126 @@ fn types_report(install: &Install, path: &str) -> Result<usize, rondata::Error> 
         );
     }
 
-    // ---- the output: the unit block of the table ----
+    // ---- the building inputs ----
+    let builds: Vec<&typesdump::TypeRow> = {
+        let mut v: Vec<_> = dump.types.iter().filter(|t| !t.unit).collect();
+        v.sort_by_key(|t| t.type_index);
+        v
+    };
+    failures += check(
+        "the dump's building types are the loader's, in TypeIndex order",
+        builds.len() == loaded.build_kinds.len()
+            && builds
+                .iter()
+                .enumerate()
+                .all(|(i, t)| t.type_index == i as i32 + 0x19e),
+        &format!(
+            "{} in the dump, {} loaded",
+            builds.len(),
+            loaded.build_kinds.len()
+        ),
+    );
+    let bname = |i: usize| -> String {
+        loaded
+            .build_names
+            .get(i)
+            .cloned()
+            .unwrap_or_else(|| format!("#{i}"))
+    };
+    {
+        let mut masks = Vec::new();
+        let mut age = Vec::new();
+        let mut domain = Vec::new();
+        for (i, (d, k)) in builds.iter().zip(&loaded.build_kinds).enumerate() {
+            if d.obj_masks != k.masks {
+                masks.push(format!("{} {:#x}≠{:#x}", bname(i), d.obj_masks, k.masks));
+            }
+            if d.age.max(0) != k.age {
+                age.push(format!("{} {}≠{}", bname(i), d.age, k.age));
+            }
+            let dd = match d.domain {
+                0 => Domain::Land,
+                1 => Domain::Sea,
+                _ => Domain::Air,
+            };
+            if dd != k.domain {
+                domain.push(format!("{} {}≠{:?}", bname(i), d.domain, k.domain));
+            }
+        }
+        for (what, bad) in [("obj_masks", masks), ("age", age), ("domain", domain)] {
+            let shown: Vec<String> = bad
+                .iter()
+                .take(if verbose { usize::MAX } else { 8 })
+                .cloned()
+                .collect();
+            failures += check(
+                &format!("every building's {what} is the program's"),
+                bad.is_empty(),
+                &format!(
+                    "{} differ{}{}",
+                    bad.len(),
+                    if shown.is_empty() { "" } else { ": " },
+                    shown.join(", ")
+                ),
+            );
+        }
+    }
+
+    // ---- the output: the whole table, units then buildings ----
     let Some(_) = &dump.combat else {
         println!("  (no COMBATTABLE in this dump; the table is unchecked)");
         return Ok(failures);
     };
-    let side = n;
+    let nb = builds.len().min(loaded.build_kinds.len());
+    let side = n + nb;
+    let at = |i: usize| {
+        if i < n {
+            sim::combat::TypeRef::Unit(i)
+        } else {
+            sim::combat::TypeRef::Build(i - n)
+        }
+    };
+    let ti = |i: usize| -> i32 {
+        if i < n {
+            i as i32 + 0x32
+        } else {
+            (i - n) as i32 + 0x19e
+        }
+    };
+    let label = |i: usize| if i < n { name(i) } else { bname(i - n) };
     let mut mism = 0usize;
+    let mut quadrant = [0usize; 4];
     let mut by_attacker = vec![0usize; side];
     let mut by_target = vec![0usize; side];
-    let mut across_age = 0usize;
     let mut examples: Vec<String> = Vec::new();
     for a in 0..side {
         for b in 0..side {
-            let want = dump.entry(a as i32 + 0x32, b as i32 + 0x32).unwrap_or(100);
-            let ours = loaded.table.pct(a, b);
+            let want = dump.entry(ti(a), ti(b)).unwrap_or(100);
+            let ours = loaded.table.pct_of(at(a), at(b));
             if i32::from(want) != ours {
                 mism += 1;
+                quadrant[usize::from(a >= n) * 2 + usize::from(b >= n)] += 1;
                 by_attacker[a] += 1;
                 by_target[b] += 1;
-                if units[a].age != units[b].age {
-                    across_age += 1;
-                }
                 if examples.len() < if verbose { 400 } else { 10 } {
-                    examples.push(format!("{} → {}: {want} vs ours {ours}", name(a), name(b)));
+                    examples.push(format!(
+                        "{} → {}: {want} vs ours {ours}",
+                        label(a),
+                        label(b)
+                    ));
                 }
             }
         }
     }
     println!(
-        "  combat table, unit block {side}×{side}: {mism} of {} cells differ ({} across an age boundary)",
+        "  combat table {side}×{side}: {mism} of {} cells differ (unit→unit {}, unit→building {}, building→unit {}, building→building {})",
         side * side,
-        across_age
+        quadrant[0],
+        quadrant[1],
+        quadrant[2],
+        quadrant[3]
     );
-    let top = |counts: &[usize], label: &str| {
+    let top = |counts: &[usize], what: &str| {
         let mut v: Vec<(usize, usize)> = counts
             .iter()
             .copied()
@@ -463,10 +549,10 @@ fn types_report(install: &Install, path: &str) -> Result<usize, rondata::Error> 
         v.sort_by(|x, y| y.1.cmp(&x.1).then(x.0.cmp(&y.0)));
         if !v.is_empty() {
             println!(
-                "    worst {label}: {}",
+                "    worst {what}: {}",
                 v.iter()
                     .take(8)
-                    .map(|(i, c)| format!("{} ({c})", name(*i)))
+                    .map(|(i, c)| format!("{} ({c})", label(*i)))
                     .collect::<Vec<_>>()
                     .join(", ")
             );
@@ -478,7 +564,7 @@ fn types_report(install: &Install, path: &str) -> Result<usize, rondata::Error> 
         println!("    {e}");
     }
     failures += check(
-        "the combat table's unit block is the program's",
+        "the combat table is the program's, all four quadrants",
         mism == 0,
         &format!("{mism} cells differ"),
     );

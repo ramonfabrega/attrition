@@ -65,6 +65,9 @@ pub struct Loaded {
     /// the original's type dump can check the inputs as well as the output
     /// (`rondata --types`).
     pub kinds: Vec<sim::balance::Kind>,
+    /// The same for the building ids: the masks, `get_age`, the
+    /// `return_pack` lines, the wonder range.
+    pub build_kinds: Vec<sim::balance::Kind>,
     /// The `NAME` column of each record: what the interface shows.
     pub unit_names: Vec<String>,
     pub build_names: Vec<String>,
@@ -668,15 +671,35 @@ pub fn load_tables(
     let trains_any: Vec<bool> = (0..build_names.len())
         .map(|bi| unit_cols.iter().any(|c| c.where_ == Some(bi)))
         .collect();
-    let city_root = bname("Small City");
-    let fort_root = bname("Fort");
-    let tower_root = bname("Tower");
+    // The building lineages the mechanics test, rooted by `TypeIndex` as the
+    // calls name them (`is(VILLAGE 0x19e)`, `is(TOWER 0x1b7)`, `is(FORTX
+    // 0x1bb)`, `is(AIRBASE 0x1bf)`, `is(LOOKOUT 0x209)`); building-table
+    // order is `TypeIndex − 0x19e`.
+    let is_city = |i: usize| build_is(i, VILLAGE);
+    let is_tower = |i: usize| build_is(i, TOWER);
+    let is_fort = |i: usize| build_is(i, FORTX);
+    // `BuildType::set_domain`: `BUILD_FLAGS b` ("can be built on sea
+    // squares", bit 1) makes a building Sea — or Air with `a` (bit 0) as
+    // well — else Land. The four sea buildings are a third against the
+    // Airbase (`type_damage` step 30), which is how the rule was found.
+    let build_domain = |flags: u32| -> Domain {
+        if flags & 2 != 0 {
+            if flags & 1 != 0 {
+                Domain::Air
+            } else {
+                Domain::Sea
+            }
+        } else {
+            Domain::Land
+        }
+    };
     let mut build_types = Vec::with_capacity(buildings.len());
+    let mut build_ages = Vec::with_capacity(buildings.len());
     for (i, _r) in buildings.records.iter().enumerate() {
         let c = &build_cols[i];
-        let is_city = city_root.is_some_and(|r| build_is(i, r));
-        let is_fort = fort_root.is_some_and(|r| build_is(i, r));
-        let is_tower = tower_root.is_some_and(|r| build_is(i, r));
+        let is_city = is_city(i);
+        let is_fort = is_fort(i);
+        let is_tower = is_tower(i);
         let mut price = Price {
             kind: cost::Kind::Building,
             base: c.cost,
@@ -717,6 +740,7 @@ pub fn load_tables(
             BuildClass::Other
         };
         let age = age_of_tree(build_tree[i]).max(0);
+        build_ages.push(age);
         let combat = Profile {
             attack: c.attack,
             to_hit: c.to_hit,
@@ -735,7 +759,8 @@ pub fn load_tables(
             uber_size: 0,
             target_size: 0,
             guy_radius: 0,
-            domain: Domain::Land,
+            // `BuildType::set_domain`: `BUILD_FLAGS b` is a sea building.
+            domain: build_domain(c.flags),
             siege: false,
             packs: false,
             age,
@@ -819,12 +844,55 @@ pub fn load_tables(
             }
         })
         .collect();
+    // The building kinds: `return_pack`'s line ladder (FORTS, then CITIES,
+    // then OBSPOST, then TOWERS), the BUILDINGS object, `get_age`, the masks;
+    // and for `type_damage`, the building and wonder ranges, the AIRBASE
+    // lineage and the domain. A building has no siege/caravan flag.
+    let build_kinds: Vec<sim::balance::Kind> = (0..build_types.len())
+        .map(|i| {
+            use sim::balance::line;
+            let mut lines = 0u64;
+            if build_is(i, FORTX) {
+                lines |= line::FORT;
+            }
+            if build_is(i, VILLAGE) {
+                lines |= line::CITY;
+            }
+            if build_is(i, LOOKOUT) {
+                lines |= line::LOOKOUT;
+            }
+            if build_is(i, TOWER) {
+                lines |= line::TOWER;
+            }
+            if build_is(i, AIRBASE) {
+                lines |= line::AIRBASE;
+            }
+            sim::balance::Kind {
+                masks: build_cols[i].obj_masks,
+                age: build_ages[i],
+                unit: false,
+                build: true,
+                // `BASE_WONDERTYPES 0x20e .. END_BUILDTYPES 0x21e`.
+                wonder: i >= FIRST_WONDER,
+                gaia: false,
+                siege: false,
+                caravan: false,
+                domain: build_domain(build_cols[i].flags),
+                lines,
+                unit_index: None,
+            }
+        })
+        .collect();
     let xml: Vec<i16> = match balance {
         Some(bx) => bx.table(&crate::balance::category_names(units)),
         None => vec![100; crate::balance::CATEGORIES * crate::balance::CATEGORIES],
     };
-    let table = combat::Table::build(unit_types.len(), |a, b| {
-        crate::balance::entry(&t, &xml, &kinds[a], &kinds[b])
+    let kind_of = |r: combat::TypeRef| match r {
+        combat::TypeRef::Unit(i) => &kinds[i],
+        combat::TypeRef::Build(i) => &build_kinds[i],
+    };
+    let table = combat::Table::build(unit_types.len(), build_types.len(), |a, b| {
+        crate::balance::entry(&t, &xml, kind_of(a), kind_of(b))
     });
 
     Loaded {
@@ -833,6 +901,7 @@ pub fn load_tables(
         tree,
         table,
         kinds,
+        build_kinds,
         unit_names,
         build_names,
         tech_names,
@@ -850,6 +919,16 @@ pub fn load_tables(
 /// `unit_flags` letter `y`, "a non-standard or unique unit": `is_slow(x, 1)`
 /// refuses a graft match when the root carries it.
 const UNIQUE: u32 = 0x0100_0000;
+
+/// The building lineage roots `return_pack` and `type_damage` name, and the
+/// first wonder, as building-table ids (`TypeIndex − BASE_BUILDTYPES`).
+const BUILD0: usize = BASE_BUILDTYPES as usize;
+const FIRST_WONDER: usize = 0x20e - BUILD0;
+const VILLAGE: usize = 0x19e - BUILD0;
+const TOWER: usize = 0x1b7 - BUILD0;
+const FORTX: usize = 0x1bb - BUILD0;
+const AIRBASE: usize = 0x1bf - BUILD0;
+const LOOKOUT: usize = 0x209 - BUILD0;
 
 /// Where a named lineage is rooted.
 #[derive(Clone, Copy)]
@@ -1341,6 +1420,7 @@ mod tests {
             tree: TechTree::new(),
             table: combat::Table::uniform(3),
             kinds: vec![],
+            build_kinds: vec![],
             unit_names: vec![],
             build_names: vec![],
             tech_names: vec![],
@@ -1566,6 +1646,25 @@ mod tests {
         let general = l.unit_named("General").unwrap();
         assert_eq!(l.table.pct(cit, sling), 200);
         assert_eq!(l.table.pct(cit, general), 100);
+        // The building roots, by index, are the records their names say.
+        assert_eq!(l.build_names[VILLAGE], "Small City");
+        assert_eq!(l.build_names[TOWER], "Tower");
+        assert_eq!(l.build_names[FORTX], "Fort");
+        assert_eq!(l.build_names[AIRBASE], "Airbase");
+        assert_eq!(l.build_names[LOOKOUT], "Lookout");
+        let castle = l.build_named("Castle").unwrap();
+        assert_ne!(l.build_kinds[castle].lines & line::FORT, 0);
+        let major = l.build_named("Major City").unwrap();
+        assert_ne!(l.build_kinds[major].lines & line::CITY, 0);
+        assert!(l.build_kinds[l.build_named("Pyramids").unwrap()].wonder);
+        assert!(!l.build_kinds[castle].wonder);
+        // Siege against a building: ×430 and the rest is the file.
+        let cat = l.unit_named("Catapult").unwrap();
+        assert!(
+            l.table
+                .pct_of(combat::TypeRef::Unit(cat), combat::TypeRef::Build(castle))
+                > 100
+        );
     }
 
     #[test]

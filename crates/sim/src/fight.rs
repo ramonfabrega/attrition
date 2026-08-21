@@ -25,6 +25,20 @@ impl Sim {
     // Reading an object
     // ------------------------------------------------------------------
 
+    /// The combat table's entry for an attacker and a target of either
+    /// family — `return_modifier` over `TypeIndex`, here over unit ids and
+    /// building ids. 100 where an object has no type.
+    fn table_pct(&self, attacker: Obj, target: Obj) -> i32 {
+        let at = |o: Obj| match o {
+            Obj::Unit(u) => self.units[u].ty.map(combat::TypeRef::Unit),
+            Obj::Building(b) => self.buildings[b].ty.map(combat::TypeRef::Build),
+        };
+        match (at(attacker), at(target)) {
+            (Some(a), Some(b)) => self.table.pct_of(a, b),
+            _ => 100,
+        }
+    }
+
     /// The combat profile of an object.
     pub fn profile(&self, o: Obj) -> Profile {
         match o {
@@ -499,13 +513,7 @@ impl Sim {
         let at = self.attacker_side(attacker);
         let tt = self.target_side(target, attacker);
         let owner = self.owner_of(attacker) as usize;
-        let pct = match (attacker, target) {
-            (Obj::Unit(a), Obj::Unit(b)) => match (self.units[a].ty, self.units[b].ty) {
-                (Some(x), Some(y)) => self.table.pct(x, y),
-                _ => 100,
-            },
-            _ => 100,
-        };
+        let pct = self.table_pct(attacker, target);
         let mut dmg = combat::get_damage(
             &self.tuning,
             &ap,
@@ -956,13 +964,7 @@ impl Sim {
         let dmg = {
             let at = self.attacker_side(attacker);
             let tt = self.target_side(target, attacker);
-            let pct = match (attacker, target) {
-                (Obj::Unit(a), Obj::Unit(b)) => match (self.units[a].ty, self.units[b].ty) {
-                    (Some(x), Some(y)) => self.table.pct(x, y),
-                    _ => 100,
-                },
-                _ => 100,
-            };
+            let pct = self.table_pct(attacker, target);
             combat::get_damage(
                 &self.tuning,
                 &ap,

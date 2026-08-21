@@ -91,6 +91,10 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
     let mut out = TypesDump::default();
     let mut seen = std::collections::HashSet::new();
     let mut cur: Option<TypeRow> = None;
+    // The indent of the open type block's own `BEGIN` line; a `BEGIN` at
+    // that depth or shallower closes it, whatever its name, so the last
+    // building's record cannot absorb the fields of whatever table follows.
+    let mut cur_depth = 0usize;
     let mut in_combat = false;
     let mut combat: Vec<i16> = Vec::new();
     let mut raw = Vec::new();
@@ -101,6 +105,7 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
             break;
         }
         let line = String::from_utf8_lossy(&raw);
+        let depth = line.len() - line.trim_start().len();
         let t = line.trim();
         if let Some(name) = t.strip_prefix("BEGIN ") {
             let name = name.trim();
@@ -109,6 +114,12 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
                 in_combat = false;
                 out.combat = Some(std::mem::take(&mut combat));
             }
+            if depth <= cur_depth
+                && let Some(r) = cur.take()
+                && seen.insert(r.type_index)
+            {
+                out.types.push(r);
+            }
             match name {
                 "UNITTYPE" | "BUILDTYPE" => {
                     if let Some(r) = cur.take()
@@ -116,6 +127,7 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
                     {
                         out.types.push(r);
                     }
+                    cur_depth = depth;
                     cur = Some(TypeRow {
                         unit: name == "UNITTYPE",
                         type_index: -1,
@@ -134,17 +146,9 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
                     in_combat = true;
                     combat = Vec::with_capacity(SIDE * SIDE);
                 }
-                // Another top-level table (TECHTYPE, GOODTYPE, …) ends the
-                // current type's block; nested blocks inside a type
-                // (OBJECTTYPE, TYPE, the STACKs) do not carry the fields read
-                // here, so they are simply passed through.
-                "TECHTYPE" | "GOODTYPE" | "WORLD" | "CONSTANTS" => {
-                    if let Some(r) = cur.take()
-                        && seen.insert(r.type_index)
-                    {
-                        out.types.push(r);
-                    }
-                }
+                // Nested blocks inside a type (OBJECTTYPE, TYPE, the STACKs)
+                // do not carry the fields read here and pass through; any
+                // other block at the type's depth closed it above.
                 _ => {}
             }
             continue;
@@ -247,7 +251,7 @@ BEGIN GAME
         for i in 0..(SIDE * SIDE) {
             text.push_str(&format!("  final_balance_table[scan][scan2] {}\n", i % 7));
         }
-        text.push_str(" BEGIN WORLD\n  seed 1\n");
+        text.push_str(" BEGIN TRIBE\n  age -1\n  domain -1\n BEGIN WORLD\n  seed 1\n");
         let dir = std::env::temp_dir().join("rondata-typesdump-test");
         std::fs::create_dir_all(&dir).unwrap();
         let p = dir.join("dump.txt");
@@ -263,6 +267,7 @@ BEGIN GAME
         let b = d.by_index(414).unwrap();
         assert!(!b.unit);
         assert_eq!(b.age, 2);
+        assert_eq!(b.domain, 0);
         assert_eq!(d.entry(50, 50), Some(0));
         assert_eq!(d.entry(50, 51), Some(1));
         assert_eq!(d.entry(51, 50), Some((SIDE % 7) as i16));
