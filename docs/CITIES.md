@@ -1281,6 +1281,17 @@ every four frames, and an unassimilated city does not heal**. An AI owner
 also orders a nearby idle citizen to repair a city past half damage. There is
 no other passive building regeneration.
 
+**Confirmed in a logged run (2026-08-20), both terms.** `cheat damage`
+(`docs/ORACLE.md`) put 599 damage on a fresh Small City, and `BUILDS=6`
+logged the object's `damage` every frame: it fell by **one every four
+frames**, on frames 181, 185, 189, 193 … Five buildings of distinct types
+were then added with `cheat add` until the city levelled — `myhits` grew
+1200 → 3125 — and the same damage cheat gave **two every four frames**
+(1039, 1037, 1035, 1033 …). So the period is `CITY_HEAL_RATE` = 4 exactly and
+the amount is `get_level()` exactly, one hit point per level. The phase, and
+the claim that an unassimilated city does not heal at all, were not
+exercised.
+
 ### 8.3 Plunder
 
 **On capture** (`capture_city` step 5): `base == 0` and not a capital →

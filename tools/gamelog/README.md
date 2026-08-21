@@ -45,3 +45,29 @@ previous frame, which is usually what a check wants:
 
 The parser tracks indentation to know which `BEGIN` block a key belongs to and
 skips the repetitive array blocks (`BUILDQUEUE`, `STACK<TYPE>`).
+
+## Driving the game
+
+`cheat.sh X Y "<rest of the cheat line>"` aims the mouse at `X,Y` (the tile
+`add`/`move` will use) and sends `cheat <rest>` through the chat box; pass
+`- -` to leave the mouse alone. `waitwin.sh [out.png]` blocks until the game
+window exists, focuses it, and writes a screenshot plus a downscaled copy.
+
+Two things about input that cost a run each, both in `docs/ORACLE.md`:
+**keys go through `osascript … keystroke`, clicks through `cliclick`** (the
+other way round does not reach the game), and **a fast `cliclick c:` often
+does not register** — press and release with a hold instead:
+
+    cliclick dd:X,Y w:250 du:X,Y      # or:  cliclick m:X,Y w:400 c:X,Y
+
+`cliclick` will not box-select several units however it is driven, so any
+check needing more than one unit under one order needs a human to drag the
+box. Also: the window is 1920×1080 inside whatever the desktop is, and its
+position changes between launches — locate the buttons from a screenshot
+rather than trusting stored coordinates.
+
+## Reading the decompile
+
+`rd.sh <Class/method@addr> [from] [to]` prints a function from the Ghidra
+export at `~/ghidra-projects/decomp/funcs/` with the `String` constructor
+boilerplate stripped, which is most of the noise in this binary.
