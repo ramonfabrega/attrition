@@ -223,18 +223,19 @@ better, in which case say so and take that.
    landed on the way: XML *fields* are read by tag name from
    `internal_strings.xml` (records stay positional — `docs/FORMATS.md`), and
    `RULES=1` does not dump the type tables (`docs/ORACLE.md`).
-6. **The combat table's hardcoded half** — new, 2026-08-20, and it jumped
-   the queue on evidence. The start-of-game dump contains `COMBATTABLE`, the
-   engine's own composed `final_balance_table` (493×493, `TypeIndex − 50`),
-   which is a total oracle for `docs/COMBAT.md` §5. Diffed against ours:
-   the `Flag_` rows are dead data (§14.9 closed), and **14,577 of 132,496
-   unit cells still disagree** — 82% of them across an age boundary. Three
-   leads, in `docs/COMBAT.md` §15: Companion's spurious ×105 across 352
-   columns, the elephants' missing step, the patriots. The formula is right
-   and doubly confirmed; what is wrong is which units it runs on. This is a
-   reading job with a total oracle attached, which is the cheapest kind.
-   The building half of the table is unchecked and `rondata` does not build
-   one.
+6. ~~**The combat table's hardcoded half**~~ — **done, 2026-08-20**,
+   `docs/COMBAT.md` §15.2, `crates/rondata/src/typesdump.rs` and
+   `rondata --types <dump>`. The start-of-game dump's `COMBATTABLE` is the
+   engine's own composed table, and its `UNITTYPE` blocks are the inputs —
+   so the check compares both, the 364 `Kind`s field by field and then the
+   364 × 364 block. It found three predicate errors, not thirty: the age one
+   too low for 306 units (`get_age_slow` adds 1 to an age tech's `AGE`), four
+   lineage roots keyed by a display name that was the wrong unit (`ECOMPANION`
+   is *Royal* Companion), and `0x14000` misread as M|O where it is O|Q. With
+   them landed **0 of 132,496 cells differ**, and the check is the
+   regression guard from here. The `Flag_` rows are dead data (§14.9), landed
+   with it. Not done: the building half of the table — `rondata` builds no
+   building `Kind`; the dump holds the oracle for it.
 
 7. **AI** — last, because it is the least oracled, and better oracled once
    4 and 5 stand.

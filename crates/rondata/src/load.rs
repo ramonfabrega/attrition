@@ -60,6 +60,11 @@ pub struct Loaded {
     /// The combat table over unit ids, from `balance.xml` and the hardcoded
     /// chain — see [`crate::balance`].
     pub table: combat::Table,
+    /// What the table was built from, one per unit id: the masks, the age,
+    /// the siege and caravan flags, the domain, the named lineages. Exposed so
+    /// the original's type dump can check the inputs as well as the output
+    /// (`rondata --types`).
+    pub kinds: Vec<sim::balance::Kind>,
     /// The `NAME` column of each record: what the interface shows.
     pub unit_names: Vec<String>,
     pub build_names: Vec<String>,
@@ -447,14 +452,18 @@ pub fn load_tables(
 
     // ---- the unit types ----
     let age_of_tree = |id: TypeId| -> i32 {
-        // `get_age_slow`: the age of the first prerequisite that is a tech,
-        // through an age tech's own age. −1 means none named.
+        // `ObjectTypeData::get_age_slow`: the first prerequisite that is a
+        // tech decides — an age tech's own `AGE` column **plus one** (the
+        // column is 0 for Classical … 6 for Information, and a unit needing
+        // Classical is an age-1 unit), any other tech's `AGE` as written. No
+        // tech prerequisite is 0. An earlier draft returned the age tech's
+        // index without the +1 and put 306 of 364 units one age early.
         let d = &tree.types[id];
         for p in d.preq {
             if let Preq::Of(t) = p {
                 let td = &tree.types[t];
                 match td.kind {
-                    Kind::Age(n) => return i32::from(n),
+                    Kind::Age(_) => return td.age + 1,
                     _ if td.kind.is_tech() => return td.age,
                     _ => {}
                 }
@@ -776,17 +785,20 @@ pub fn load_tables(
         .map(|i| {
             let c = &unit_cols[i];
             let mut lines = 0u64;
-            for (bit, name, strict) in LINE_NAMES {
-                let on = match name {
-                    "%MERCHANT" => trader(i),
-                    "%CITIZEN" => citizen(i),
-                    _ => {
+            for (bit, root, strict) in LINE_ROOTS {
+                let on = match root {
+                    Root::Ids(ids) => ids.contains(&i),
+                    Root::Unit(ti) => {
+                        let r = ti - 0x32;
                         if strict {
-                            uname(name).is_some_and(|r| r == i || unit_graft[i] == Some(r))
+                            // `is_slow(x, 1)`: the type itself, or a direct
+                            // graft of it when `x` is not a unique (`y`) unit.
+                            i == r || (unit_graft[i] == Some(r) && unit_cols[r].flags & UNIQUE == 0)
                         } else {
-                            is_named_unit(i, name)
+                            unit_is(i, r)
                         }
                     }
+                    Root::Build => false,
                 };
                 if on {
                     lines |= bit;
@@ -820,6 +832,7 @@ pub fn load_tables(
         build_types,
         tree,
         table,
+        kinds,
         unit_names,
         build_names,
         tech_names,
@@ -834,54 +847,83 @@ pub fn load_tables(
     }
 }
 
-/// The named lineages `sim::balance::line` tests, by shipped unit name. A
-/// `%` entry is by id rather than by name; `strict` is the graft-only sense.
-const LINE_NAMES: [(u64, &str, bool); 43] = {
+/// `unit_flags` letter `y`, "a non-standard or unique unit": `is_slow(x, 1)`
+/// refuses a graft match when the root carries it.
+const UNIQUE: u32 = 0x0100_0000;
+
+/// Where a named lineage is rooted.
+#[derive(Clone, Copy)]
+enum Root {
+    /// A unit `TypeIndex`, as the `is(x, …)` call names it.
+    Unit(usize),
+    /// A building `TypeIndex` (`AIRBASE`, 0x1bf); a building root never
+    /// matches a unit type, and the table over buildings is not built yet.
+    Build,
+    /// A set of unit ids tested by equality, not lineage.
+    Ids(&'static [usize]),
+}
+
+/// The named lineages `sim::balance::line` tests, rooted by the `TypeIndex`
+/// constant each `ObjectTypeData::is(x, strict)` call in `Balance::type_damage`
+/// passes (`docs/COMBAT.md` §5.3). Unit-table order is `TypeIndex` order, so a
+/// root is `TypeIndex − 0x32` into the unit table — never a name: an earlier
+/// draft keyed these by display name and rooted `ECOMPANION` (0xe8, Royal
+/// Companion) at Companion, `BOMBARDSHIP` (0x15a, Bomb Vessel) at a name no
+/// record carries, `CAMELRANGE2` (0xbf, Camel Archer) likewise and
+/// `HALBERDIERS` (0x95, Scutari) at a different unit. `strict` is the
+/// graft-only sense.
+const LINE_ROOTS: [(u64, Root, bool); 43] = {
     use sim::balance::line::*;
     [
-        (ARMOREDCAR, "Armored Car", false),
-        (LIGHTTANK, "Light Tank", false),
-        (MACHINEGUN, "Machine Gun", false),
-        (FLAMETHROWER, "Flamethrower", false),
-        (FLAMETHROWER_STRICT, "Flamethrower", true),
-        (MILITIA, "Militia", false),
-        (MERCHANT, "%MERCHANT", false),
-        (CITIZEN, "%CITIZEN", false),
-        (BOMBARDSHIP, "Bombard Ship", false),
-        (BARK, "Bark", false),
-        (SUB, "Submarine", false),
-        (FIRERAFT, "Fire Raft", false),
-        (TRIREME, "Trireme", false),
-        (BOMBER, "Bomber", false),
-        (FIGHTERBOMBER, "Fighter Bomber", false),
-        (HELICOPTER, "Helicopter", false),
-        (V2ROCKET, "V2 Rocket", false),
-        (SUPPLYWAGON, "Supply Wagon", false),
-        (BALAMOBSLINGERS, "Balamob Slingers", false),
-        (KUSHITEARCHERS, "Kushite Archers", false),
-        (KUSHITEARCHERS_STRICT, "Kushite Archers", true),
-        (INTICLUBMEN, "Inti Clubmen", false),
-        (CAMELRANGE2, "Camel Raider", false),
-        (CHARIOT, "Chariot", false),
-        (NOMAD, "Nomad", false),
-        (RUSINYLANCER, "Rusiny Lancer", false),
-        (LONGBOWMEN_STRICT, "Longbowmen", true),
-        (ELONGBOWMEN_STRICT, "King's Longbowmen", true),
-        (KINGSYEOMANRY_STRICT, "King's Yeomanry", true),
-        (ECOMPANION, "Companion", false),
-        (LEGIONS, "Legions", false),
-        (SAMURAI_STRICT, "Samurai", true),
-        (HALBERDIERS, "Halberdiers", false),
-        (TERCIOS, "Tercios", false),
-        (RECOILGUN, "Recoilless Gun", false),
-        (HIGHLANDERS, "Highlanders", false),
-        (MG42_STRICT, "MG42", true),
-        (TIGERTANK_STRICT, "Tiger Tank", true),
-        (LEOPARDTANK_STRICT, "Leopard Tank", true),
-        (FLAMINGARROW, "Flaming Arrow", false),
-        (BASILICABOMBARD, "Basilica Bombard", false),
-        (MORTAR, "Mortar", false),
-        (AIRBASE, "%NONE", false),
+        (ARMOREDCAR, Root::Unit(0xd8), false),
+        (LIGHTTANK, Root::Unit(0xef), false),
+        (MACHINEGUN, Root::Unit(0x7b), false),
+        (FLAMETHROWER, Root::Unit(0x83), false),
+        (FLAMETHROWER_STRICT, Root::Unit(0x83), true),
+        (MILITIA, Root::Unit(0x42), false),
+        // MERCHANT, MERCHANTDUTCH, FURTRAPPER — by id.
+        (
+            MERCHANT,
+            Root::Ids(&[0x3d - 0x32, 0x3e - 0x32, 0x190 - 0x32]),
+            false,
+        ),
+        // PEASANTS, PEASANTSKOREAN, SCHOLARS, SCHOLARSKOREAN — by id.
+        (CITIZEN, Root::Ids(&[0, 1, 2, 3]), false),
+        (BOMBARDSHIP, Root::Unit(0x15a), false),
+        (BARK, Root::Unit(0x143), false),
+        (SUB, Root::Unit(0x152), false),
+        (FIRERAFT, Root::Unit(0x14e), false),
+        (TRIREME, Root::Unit(0x154), false),
+        (BOMBER, Root::Unit(0x130), false),
+        (FIGHTERBOMBER, Root::Unit(0x134), false),
+        (HELICOPTER, Root::Unit(0x136), false),
+        (V2ROCKET, Root::Unit(0x139), false),
+        (SUPPLYWAGON, Root::Unit(0x3f), false),
+        (BALAMOBSLINGERS, Root::Unit(0x58), false),
+        (KUSHITEARCHERS, Root::Unit(0xae), false),
+        (KUSHITEARCHERS_STRICT, Root::Unit(0xae), true),
+        (INTICLUBMEN, Root::Unit(0x5b), false),
+        (CAMELRANGE2, Root::Unit(0xbf), false),
+        (CHARIOT, Root::Unit(0xc3), false),
+        (NOMAD, Root::Unit(0xc7), false),
+        (RUSINYLANCER, Root::Unit(0xe0), false),
+        (LONGBOWMEN_STRICT, Root::Unit(0xb1), true),
+        (ELONGBOWMEN_STRICT, Root::Unit(0xb2), true),
+        (KINGSYEOMANRY_STRICT, Root::Unit(0xb3), true),
+        (ECOMPANION, Root::Unit(0xe8), false),
+        (LEGIONS, Root::Unit(0x92), false),
+        (SAMURAI_STRICT, Root::Unit(0xa0), true),
+        (HALBERDIERS, Root::Unit(0x95), false),
+        (TERCIOS, Root::Unit(0x97), false),
+        (RECOILGUN, Root::Unit(0x90), false),
+        (HIGHLANDERS, Root::Unit(0x72), false),
+        (MG42_STRICT, Root::Unit(0x82), true),
+        (TIGERTANK_STRICT, Root::Unit(0x102), true),
+        (LEOPARDTANK_STRICT, Root::Unit(0x103), true),
+        (FLAMINGARROW, Root::Unit(0x117), false),
+        (BASILICABOMBARD, Root::Unit(0x114), false),
+        (MORTAR, Root::Unit(0x112), false),
+        (AIRBASE, Root::Build, false),
     ]
 };
 
@@ -1298,6 +1340,7 @@ mod tests {
             build_types: vec![BuildType::default(); 2],
             tree: TechTree::new(),
             table: combat::Table::uniform(3),
+            kinds: vec![],
             unit_names: vec![],
             build_names: vec![],
             tech_names: vec![],
@@ -1494,6 +1537,35 @@ mod tests {
         // Bowmen at a percentage that is not 100.
         assert_ne!(l.table.pct(hop, bow), 100);
         assert_eq!(l.table.width(), 364);
+    }
+
+    #[test]
+    fn the_kinds_carry_the_program_s_ages_and_lineages() {
+        use sim::balance::line;
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        // `get_age_slow`: a unit needing Classical is age 1, not 0.
+        let hop = l.unit_named("Hoplites").unwrap();
+        assert_eq!(l.kinds[hop].age, 1);
+        let cit = l.unit_named("Citizen").unwrap();
+        assert_eq!(l.kinds[cit].age, 0);
+        // `ECOMPANION` (0xe8) is Royal Companion: Companion is not in the
+        // lineage, Royal Companion and its `from` descendants are.
+        let comp = l.unit_named("Companion").unwrap();
+        let royal = l.unit_named("Royal Companion").unwrap();
+        let strat = l.unit_named("Stratiotai").unwrap();
+        assert_eq!(l.kinds[comp].lines & line::ECOMPANION, 0);
+        assert_ne!(l.kinds[royal].lines & line::ECOMPANION, 0);
+        assert_ne!(l.kinds[strat].lines & line::ECOMPANION, 0);
+        // `BOMBARDSHIP` (0x15a) is the Bomb Vessel.
+        let bv = l.unit_named("Bomb Vessel").unwrap();
+        assert_ne!(l.kinds[bv].lines & line::BOMBARDSHIP, 0);
+        // And the table they build: Citizen doubles against light infantry
+        // (0x14000 is O|Q), not against the mounted General.
+        let sling = l.unit_named("Slingers").unwrap();
+        let general = l.unit_named("General").unwrap();
+        assert_eq!(l.table.pct(cit, sling), 200);
+        assert_eq!(l.table.pct(cit, general), 100);
     }
 
     #[test]

@@ -81,11 +81,16 @@ leaves out is said again at each point it applies: the nation, wonder and
 patriot layer arrives as `combat::Modifiers` (the choice `docs/COSTS.md`
 made); terrain, river, height and the unnamed `unit_masks` bits are `Side`
 inputs; aircraft and missiles are not modelled; the move-to-attack path is a
-straight line; a squad is figures sharing a captain index; and the
+straight line; a squad is figures sharing a captain index; and ~~the
 regeneration of the combat table from an install has its XML half and its
 flag half but not yet the age and named-lineage rules, which need a tree
 loader `rondata` does not have — so `rondata` prints the masks-only entry
-and the `RULES=1` log remains the oracle.
+and the `RULES=1` log remains the oracle~~ — as of 2026-08-20 the
+regeneration is whole for the unit block: `rondata::load` builds every
+unit's `Kind` with its age and named lineages from the tree, and
+`rondata --types <dump>` checks the 364 `Kind`s and the 364 × 364 table it
+builds against the program's own start-of-game dump, **cell for cell equal**
+(§15.2). The building half of the table is still not built.
 
 ---
 
@@ -372,11 +377,14 @@ walked into the rules checksum (`Balance::walk_rules_data`), and **dumped in
 full by `Game::log_rules_data`** under a `COMBATTABLE` heading as
 `final_balance_table[a][b]` lines — so a `RULES=1` logged start
 (`docs/ORACLE.md`) prints all 243,049 values and is the oracle a
-regenerating tool is checked against. One fact about the names is open:
+regenerating tool is checked against. ~~One fact about the names is open:
 the separator between the flag letter and `OBJMASK_…` is internal string
 17, shipped as an *empty* element whose `hash` is that of a single space;
 if the engine loads it empty the 32 `Flag_` rows and columns never match
-and contribute 100. Open question 8; the `RULES=1` dump settles it.
+and contribute 100. Open question 8; the `RULES=1` dump settles it.~~
+**Settled (§14.9, §15): the 32 `Flag_` rows and columns never match and
+contribute 100**; `rondata::balance::tail_names` composes them under a name
+that is not the file's, and the survey lists the file's 32 as dead.
 
 This is `docs/DECISIONS.md` entry 13's case exactly: a table the original
 computes once before the first frame. The simulation takes it as an input
@@ -398,7 +406,14 @@ attacker's age exceeds the target's, `p = 100 + {one,two,three,four,five}_
 ages_down` for a difference of 1, 2, 3, 4, 5+ — the shipped 115, 120, 150,
 160, 170. (A unit type here is `0x32 ≤ TypeIndex < 0x19e`, or whatever the
 type's `is_unit_type` virtual says; `get_age` is the type's age, with the
-`−1` fallback resolved through `get_age_slow`.)
+`−1` fallback resolved through `get_age_slow`.) **`get_age_slow`, read
+2026-08-20** (`ObjectTypeData/get_age_slow@00661a00`): the first
+prerequisite slot that names a tech decides — if that tech is an **age**
+tech the result is its `AGE` column **plus one** (the column is 0 for
+Classical … 6 for Information, so a unit needing Classical is an age-1
+unit), any other tech's `AGE` as written; no tech prerequisite is 0. The
+loader's first draft returned the age tech's index without the +1 and put
+306 of 364 units one age early; the dump's per-type `age` caught it (§15.2).
 
 ### 5.3 The `type_damage` chain
 
@@ -511,8 +526,8 @@ step the lines apply in the order listed.
 | 12 | `is(a, FLAMETHROWER, 1)` | `T&I` | ×80 |
 | 12 | `is(a, FLAMETHROWER, 1)` | `T&M` | ×125 |
 | 13 | `A&U` | `T&A` | ×180 |
-| 14 | `is(a, MILITIA 0x42, 0)` | `T & (M\|O)` (0x14000) | ×2 |
-| 15 | `a ∈ {PEASANTS, PEASANTSKOREAN, SCHOLARS, SCHOLARSKOREAN}` (0x32..0x35) | `T & (M\|O)` | ×2 |
+| 14 | `is(a, MILITIA 0x42, 0)` | `T & (O\|Q)` (0x14000 — bits 14 and 16, HORSE_ARCHER and LIGHT_INF; ~~M\|O~~ was a misread of the literal, M\|O being 0x5000; the dump's Citizen → Slingers 200 and Citizen → General 100 settle it) | ×2 |
+| 15 | `a ∈ {PEASANTS, PEASANTSKOREAN, SCHOLARS, SCHOLARSKOREAN}` (0x32..0x35) | `T & (O\|Q)` | ×2 |
 | 16 | `A&N` and `!(A&S)` | `build(b)` | ×33 |
 | 16 | `A&N` | `unit(b)` and `!(T & (N\|3))` (0x10002000) and `!siege(b)` | ×33 |
 | 16 | `A&N` | `unit(b)` and `!(T&N)` and `siege(b)` | ×66 |
@@ -1599,3 +1614,37 @@ The reason this is cheap despite being a reading job: **every hypothesis is
 falsifiable in one diff run.** That is not true of the mechanics documented
 from the decompile alone, and it is what makes this the highest-value item in
 the queue.
+
+### 15.2 Closed (2026-08-20): zero cells differ
+
+`rondata <install> --types <dump>` (`crates/rondata/src/typesdump.rs`,
+`types_report` in the binary) reads the dump's 1,820 `UNITTYPE` blocks and
+its `COMBATTABLE`, and checks two things: the **inputs** — every unit's
+`obj_masks`, `age`, `is_siege`, `is_caravan` and `domain` against the
+loader's `Kind` — and the **output**, the 364 × 364 unit block against the
+table the loader builds. Checking the inputs first is what made this an hour
+rather than a session: two of the three errors were visible there before a
+single cell was looked at.
+
+| cause | where | what the dump showed |
+| --- | --- | --- |
+| **The age was one too low** for 306 of 364 units | `load.rs` `age_of_tree` returned an age tech's index; `get_age_slow` returns its `AGE` column **+ 1** (§5.2) | `age` Militia 1 vs ours 0, Minuteman 4 vs 3 … — and 12,705 of the cell mismatches were across an age boundary |
+| **Four lineage roots were wrong**, keyed by display name | `ECOMPANION 0xe8` is *Royal* Companion, not Companion; `BOMBARDSHIP 0x15a` is the Bomb Vessel; `CAMELRANGE2 0xbf` is the Camel Archer; `HALBERDIERS 0x95` is Scutari. Now rooted by `TypeIndex − 0x32` (`LINE_ROOTS`), with `is_slow`'s strict rule — self, or a direct graft of a root that is not a unique (`y`) unit | Companion's 352 wrong columns (§15 lead 1), all `100` vs ours `105` |
+| **`0x14000` is O\|Q, not M\|O** (steps 14–15) | `sim::balance::type_damage` | Citizen → Slingers `200` vs ours `100`; Citizen → General `100` vs ours `200` |
+
+With the three landed, **0 of 132,496 cells differ**, and all five input
+checks pass for all 364 units. The `Flag_` correction (§14.9) landed with
+them. Two things learned about the dump on the way, recorded in
+`typesdump.rs`: the mask words are logged as signed `int`s, so a mask with
+bit 31 (`6`, anti-air) prints negative; and the `age` field is the stored
+`+0x278`, `−1` for the twelve gaia animals, which `get_age` resolves to 0.
+
+**What this does not establish.** The building half of the table (indices
+364–492, and every unit-versus-building cell) — `rondata` builds no building
+`Kind` and the check covers the unit block only. `is(b, AIRBASE)` therefore
+has no root yet. That is additional scope, not a known error, and the dump
+already holds the oracle for it.
+
+`rondata --types` is now the regression guard for §5: any later change to
+`type_damage`, the tree loader's ages, or the lineage roots that moves a
+cell fails the check.

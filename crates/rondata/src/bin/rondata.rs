@@ -16,7 +16,7 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(root) = args.next() else {
-        eprintln!("usage: rondata <install-root> [--gamelog <Logs/gamelog.txt>]");
+        eprintln!("usage: rondata <install-root> [--gamelog <Logs/gamelog.txt>] [--types <dump>]");
         eprintln!();
         eprintln!("The directory holding riseofnations.exe. No game data is");
         eprintln!("copied anywhere; this only reads.");
@@ -28,13 +28,18 @@ fn main() -> ExitCode {
         eprintln!("           it up from the dump's initial state, and step it");
         eprintln!("           against the logged frames (at most N), reporting");
         eprintln!("           ticks before divergence.");
+        eprintln!("--types    a DUMP_ALL=1 start-of-game dump (docs/ORACLE.md): its");
+        eprintln!("           UNITTYPE blocks and COMBATTABLE are checked against the");
+        eprintln!("           loader's Kinds and the combat table it builds.");
         return ExitCode::from(2);
     };
     let mut gamelog: Option<String> = None;
+    let mut types: Option<String> = None;
     let mut diff: Option<Option<usize>> = None;
     while let Some(a) = args.next() {
         match a.as_str() {
             "--gamelog" => gamelog = args.next(),
+            "--types" => types = args.next(),
             "--diff" => {
                 diff = Some(None);
                 if let Some(n) = args.next() {
@@ -60,16 +65,21 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     }
 
-    let result = survey(&install).and_then(|f| match &gamelog {
-        Some(path) => {
-            let mut f = f + gamelog_report(&install, path)?;
-            if let Some(limit) = diff {
-                f += diff_report(&install, path, limit)?;
+    let result = survey(&install)
+        .and_then(|f| match &gamelog {
+            Some(path) => {
+                let mut f = f + gamelog_report(&install, path)?;
+                if let Some(limit) = diff {
+                    f += diff_report(&install, path, limit)?;
+                }
+                Ok(f)
             }
-            Ok(f)
-        }
-        None => Ok(f),
-    });
+            None => Ok(f),
+        })
+        .and_then(|f| match &types {
+            Some(path) => Ok(f + types_report(&install, path)?),
+            None => Ok(f),
+        });
     match result {
         Ok(0) => ExitCode::SUCCESS,
         Ok(failures) => {
@@ -310,6 +320,167 @@ fn gamelog_report(install: &Install, path: &str) -> Result<usize, rondata::Error
                 )
             }))
         },
+    );
+    Ok(failures)
+}
+
+/// `--types`: the program's own loaded types and composed combat table,
+/// against the loader's `Kind`s and the table it builds from them.
+/// `docs/COMBAT.md` §15.
+fn types_report(install: &Install, path: &str) -> Result<usize, rondata::Error> {
+    use rondata::typesdump;
+    use sim::attrition::Domain;
+
+    let dump = typesdump::read(path)?;
+    let loaded = rondata::load::load(install)?;
+    let units = dump.units();
+    let mut failures = 0;
+
+    println!("\ntypes dump: {path}");
+    println!("  {:<24} {:>5}", "types", dump.types.len());
+    println!("  {:<24} {:>5}", "unit types", units.len());
+    println!(
+        "  {:<24} {:>5}",
+        "COMBATTABLE",
+        if dump.combat.is_some() { "yes" } else { "no" }
+    );
+    failures += check(
+        "the dump's unit types are the loader's, in TypeIndex order",
+        units.len() == loaded.kinds.len()
+            && units
+                .iter()
+                .enumerate()
+                .all(|(i, t)| t.type_index == i as i32 + 0x32),
+        &format!("{} in the dump, {} loaded", units.len(), loaded.kinds.len()),
+    );
+    let n = units.len().min(loaded.kinds.len());
+    let name = |i: usize| -> String {
+        loaded
+            .unit_names
+            .get(i)
+            .cloned()
+            .unwrap_or_else(|| format!("#{i}"))
+    };
+
+    // ---- the inputs: every field `Kind` is built from ----
+    let mut by_field: Vec<(&str, Vec<String>)> = Vec::new();
+    {
+        let mut masks = Vec::new();
+        let mut age = Vec::new();
+        let mut siege = Vec::new();
+        let mut caravan = Vec::new();
+        let mut domain = Vec::new();
+        for (i, (d, k)) in units.iter().zip(&loaded.kinds).enumerate().take(n) {
+            if d.obj_masks != k.masks {
+                masks.push(format!("{} {:#x}≠{:#x}", name(i), d.obj_masks, k.masks));
+            }
+            // The dump's `age` is the stored field; `−1` (the gaia animals)
+            // resolves through `get_age_slow` to 0.
+            if d.age.max(0) != k.age {
+                age.push(format!("{} {}≠{}", name(i), d.age, k.age));
+            }
+            if (d.unit_flags & 0x20000 != 0) != k.siege {
+                siege.push(name(i));
+            }
+            if (d.unit_flags2 & 8 != 0) != k.caravan {
+                caravan.push(name(i));
+            }
+            let dd = match d.domain {
+                0 => Domain::Land,
+                1 => Domain::Sea,
+                _ => Domain::Air,
+            };
+            if dd != k.domain {
+                domain.push(format!("{} {}≠{:?}", name(i), d.domain, k.domain));
+            }
+        }
+        by_field.push(("obj_masks", masks));
+        by_field.push(("age", age));
+        by_field.push(("is_siege (unit_flags & 0x20000)", siege));
+        by_field.push(("is_caravan (unit_flags2 & 8)", caravan));
+        by_field.push(("domain", domain));
+    }
+    // `RONDATA_VERBOSE=1` lists every offender instead of the first eight.
+    let verbose = std::env::var_os("RONDATA_VERBOSE").is_some();
+    for (what, bad) in &by_field {
+        let shown: Vec<String> = bad
+            .iter()
+            .take(if verbose { usize::MAX } else { 8 })
+            .cloned()
+            .collect();
+        failures += check(
+            &format!("every unit's {what} is the program's"),
+            bad.is_empty(),
+            &format!(
+                "{} differ{}{}",
+                bad.len(),
+                if shown.is_empty() { "" } else { ": " },
+                shown.join(", ")
+            ),
+        );
+    }
+
+    // ---- the output: the unit block of the table ----
+    let Some(_) = &dump.combat else {
+        println!("  (no COMBATTABLE in this dump; the table is unchecked)");
+        return Ok(failures);
+    };
+    let side = n;
+    let mut mism = 0usize;
+    let mut by_attacker = vec![0usize; side];
+    let mut by_target = vec![0usize; side];
+    let mut across_age = 0usize;
+    let mut examples: Vec<String> = Vec::new();
+    for a in 0..side {
+        for b in 0..side {
+            let want = dump.entry(a as i32 + 0x32, b as i32 + 0x32).unwrap_or(100);
+            let ours = loaded.table.pct(a, b);
+            if i32::from(want) != ours {
+                mism += 1;
+                by_attacker[a] += 1;
+                by_target[b] += 1;
+                if units[a].age != units[b].age {
+                    across_age += 1;
+                }
+                if examples.len() < if verbose { 400 } else { 10 } {
+                    examples.push(format!("{} → {}: {want} vs ours {ours}", name(a), name(b)));
+                }
+            }
+        }
+    }
+    println!(
+        "  combat table, unit block {side}×{side}: {mism} of {} cells differ ({} across an age boundary)",
+        side * side,
+        across_age
+    );
+    let top = |counts: &[usize], label: &str| {
+        let mut v: Vec<(usize, usize)> = counts
+            .iter()
+            .copied()
+            .enumerate()
+            .filter(|(_, c)| *c > 0)
+            .collect();
+        v.sort_by(|x, y| y.1.cmp(&x.1).then(x.0.cmp(&y.0)));
+        if !v.is_empty() {
+            println!(
+                "    worst {label}: {}",
+                v.iter()
+                    .take(8)
+                    .map(|(i, c)| format!("{} ({c})", name(*i)))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+        }
+    };
+    top(&by_attacker, "attackers");
+    top(&by_target, "targets");
+    for e in &examples {
+        println!("    {e}");
+    }
+    failures += check(
+        "the combat table's unit block is the program's",
+        mism == 0,
+        &format!("{mism} cells differ"),
     );
     Ok(failures)
 }
@@ -744,8 +915,8 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         "399 combat-table categories: 352 unit rows then the fixed tail",
         names.len() == rondata::balance::CATEGORIES
             && names[rondata::balance::FIRST_LINE] == "SIEGE"
-            && names[rondata::balance::FIRST_LINE + 0x0f] == "Flag_A_OBJMASK_ARMORED"
-            && names[398] == "Flag_6_OBJMASK_ANTI_AIR",
+            && names[rondata::balance::FIRST_LINE + 0x0f] == "Flag_AOBJMASK_ARMORED"
+            && names[398] == "Flag_6OBJMASK_ANTI_AIR",
         &format!("{} names", names.len()),
     );
     match install.balance() {
@@ -773,17 +944,23 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
                 in_order,
                 &format!("{} rows", rows.len()),
             );
-            // Rows that name nothing in the unit table are dead data: the
-            // engine looks rows up by name and a row it cannot name is 100
-            // everywhere. The shipped file has four, from units renamed since
-            // it was written.
+            // Rows the engine cannot name are dead data: it looks rows up by
+            // name and a row it cannot name is 100 everywhere. The shipped file
+            // has four from units renamed since it was written, and its 32
+            // `Flag_X_OBJMASK_*` rows, which the engine composes under another
+            // name and never matches (`rondata::balance::tail_names`).
+            let (flag_rows, other): (Vec<_>, Vec<_>) = unknown
+                .iter()
+                .cloned()
+                .partition(|n| n.starts_with("Flag_"));
             println!(
-                "       rows naming no unit in this install (dead): {}",
-                if unknown.is_empty() {
+                "       rows naming no unit in this install (dead): {}; plus {} Flag_ rows the engine never matches",
+                if other.is_empty() {
                     "none".to_string()
                 } else {
-                    join(unknown.iter().cloned())
-                }
+                    join(other.into_iter())
+                },
+                flag_rows.len(),
             );
             let non_default = bx
                 .rows

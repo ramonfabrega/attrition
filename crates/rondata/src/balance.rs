@@ -7,13 +7,14 @@
 //! `obj_masks` letters. The names are built from `internal_strings.xml` and the
 //! unit `<NAME>`s (spaces to underscores, apostrophes dropped), and that is the
 //! order the shipped file's rows are in. A row or an attribute the file lacks
-//! is 100.
+//! is 100 — and so are the file's 32 `Flag_X_OBJMASK_*` rows and columns,
+//! which the engine names differently and never matches (see [`tail_names`]).
 //!
-//! What this module does **not** do yet is the other half: the per-type
-//! `Kind` a regeneration needs carries the type's age and its named lineages,
-//! and both come from the tech tree's `from`/`graft`/prerequisite columns,
-//! which `rondata` does not load. [`unit_kind`] fills what the unit record
-//! alone gives — the masks, the siege flag, the domain — and says so.
+//! The other half — the per-type `Kind` with its age and named lineages,
+//! from the tree and the `from`/`graft` columns — is built by [`crate::load`],
+//! which exposes it as `Loaded::kinds`. [`unit_kind`] fills what the unit
+//! record alone gives — the masks, the siege flag, the domain — for the survey's
+//! worked pair, and says so.
 
 use crate::{Error, Install, Table, parse, read};
 use sim::balance::{self, Kind};
@@ -83,7 +84,14 @@ pub fn tail_names() -> Vec<String> {
         } else {
             (b'A' + i as u8 - 0x2a) as char
         };
-        v.push(format!("Flag_{c}_OBJMASK_{f}"));
+        // The separator between the letter and `OBJMASK_` is internal string
+        // 17, shipped as an empty element. The program's own composed table
+        // (`rondata --types`, `docs/COMBAT.md` §15) shows none of the file's
+        // `Flag_X_OBJMASK_*` rows or columns ever matching — every cell that
+        // would carry one keeps the 100 default — so the name the engine
+        // builds is not the file's. Written here as the empty separator
+        // would compose it; what is established is only that it differs.
+        v.push(format!("Flag_{c}OBJMASK_{f}"));
     }
     v
 }

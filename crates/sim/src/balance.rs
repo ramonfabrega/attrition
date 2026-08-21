@@ -433,11 +433,13 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
     if am & m::ARMORPIERCE != 0 && bm & m::ARMORED != 0 {
         v = pct(v, 180);
     }
-    // 14, 15. Militia and citizens double against mounted.
-    if a.is(l::MILITIA) && bm & (m::MOUNTED | m::HORSE_ARCHER) != 0 {
+    // 14, 15. Militia and citizens double against light infantry and horse
+    // archers — the literal is 0x14000, bits 14 (`O`) and 16 (`Q`); an
+    // earlier reading named it MOUNTED | HORSE_ARCHER, which is 0x5000.
+    if a.is(l::MILITIA) && bm & (m::HORSE_ARCHER | m::LIGHT_INF) != 0 {
         v *= 2;
     }
-    if a.is(l::CITIZEN) && bm & (m::MOUNTED | m::HORSE_ARCHER) != 0 {
+    if a.is(l::CITIZEN) && bm & (m::HORSE_ARCHER | m::LIGHT_INF) != 0 {
         v *= 2;
     }
     // 16. NAVAL.

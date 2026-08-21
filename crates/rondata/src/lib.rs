@@ -34,6 +34,7 @@ pub mod load;
 pub mod scalar;
 pub mod table;
 pub mod tuning;
+pub mod typesdump;
 
 use std::path::{Path, PathBuf};
 

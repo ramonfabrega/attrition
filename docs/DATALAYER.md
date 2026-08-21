@@ -29,7 +29,10 @@ is not the point yet; the wiring is.
 **Where the implementation is.** `crates/rondata/src/gamelog.rs` (the
 reader), `dump.rs` (the constants check), `load.rs` (the loader), `diff.rs`
 (the harness); `cargo run -p rondata -- <install> --gamelog <Logs/gamelog.txt>
-[--diff [N]]` runs all of it. The install-backed tests run when
+[--diff [N]]` runs all of it, and `--types <dump>` checks the loader's
+per-unit `Kind`s and the combat table it builds against a `DUMP_ALL=1`
+start-of-game dump's `UNITTYPE` blocks and `COMBATTABLE`
+(`crates/rondata/src/typesdump.rs`, `docs/COMBAT.md` §15.2). The install-backed tests run when
 `RON_INSTALL` points at the game, or `../../game` from the crate exists;
 without either they pass vacuously, so the binary is the check with teeth.
 
@@ -220,7 +223,10 @@ No reading names a column for these; each is recorded as an input:
 and not `OBJ_MASK C`); `Tribe::graft` (identity) and `Tribe::barbarian`
 (false); `TechTree::free_rules` (empty — the nation and wonder free-tech
 blocks); `TypeDef::is_list` and `leader_off`; `balance::Kind::age` is the
-`get_age_slow` reading (first tech prerequisite's age, −1 → 0). The
+`get_age_slow` reading (first tech prerequisite's age — ~~−1 → 0~~ **an age
+tech's `AGE` column plus one, any other tech's `AGE`, no tech 0**; the first
+draft omitted the +1 and the dump's per-type `age` caught it,
+`docs/COMBAT.md` §15.2 — checked equal for all 364 units). The
 production group's identity for "factory units" (whether the Auto Plant,
 Factory and Siege Factory share one count) is taken as the `WHERE` building
 itself.
