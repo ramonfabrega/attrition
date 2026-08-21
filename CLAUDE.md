@@ -179,103 +179,37 @@ better, in which case say so and take that.
    `build::BuildMods`/`ClockMods`/`HitsMods`), the per-wonder one-offs of
    `activate`, the AI branches, visibility, the capital-countdown elimination
    mode.
-4. **The behavioural-check batch** — half a session. Every document carries
-   "not established" items whose named check is a one-minute logged run
-   (`docs/ORACLE.md`, fixed seed, the mechanic's categories under
-   `[End Frame]`): two builders on one site, a site's clock after a speed
-   tech, the city mask's ±20 asymmetry, a second city at exactly 24 tiles,
-   a citizen against a tower in the capture count, combat's flank convention
-   and the `balance.xml` separator, the garrison heal periods. One session
-   that runs them all turns a page of open questions into facts and proves
-   the logging path the eventual diff depends on. The original runs here;
-   that is the asset not yet cashed.
+4. **The behavioural-check batch** — **run 2026-08-20, two sessions; the
+   method is proven and the list is mostly closed.** What it took was finding
+   the loggers' real switchboard (the ini values are per-category *detail
+   thresholds*, `UNITS=3 BUILDS=6 CITIES=5` is the setting, `DUMP_ALL=1` is a
+   different switch that hangs the game but is the only way to the type
+   tables and `COMBATTABLE`), the chat-cheat vocabulary, the `~` console and
+   its tile-coordinate mode, `-config`/`-automation` for the lobby, and the
+   fact that `cheat select <o>` plus a right-click issues a normal order —
+   which made every remaining check scriptable. All of it is one recipe in
+   `docs/ORACLE.md`, "Running a check: the recipe in one place", with the
+   scripts in `tools/gamelog/`.
 
-   **Started 2026-08-20; the tooling half is done, the checks are not.** What
-   landed: the logging mechanism, which was being read wrong — the ini's 37
-   keys are per-category *detail thresholds*, not booleans, so every earlier
-   run silently dropped every field above the object base. `UNITS=3
-   BUILDS=6 CITIES=5` gives the fields the checks need at 560 frames in
-   55 MB and full speed; `DUMP_ALL=1` is a different switch that dumps
-   everything every frame and hangs the game, but is the only way to get the
-   type tables and `COMBATTABLE` in the start-of-game dump. Also landed: the
-   chat-cheat vocabulary that stages a scenario in one line each
-   (`cheat add`, `insert NEW`, `war`, `tech`, `age`, `die`, `damage`,
-   `move`, `select`, `finish`), and the driving traps. All of it is
-   `docs/ORACLE.md`, "The detail level is the knob" onward. The
-   `balance.xml` separator was settled a different way (see 6).
+   **Landed:** the construction clock, both halves — one builder is +100 a
+   frame, two are +150, the clock re-bakes on a tech change for unstarted
+   sites only (`docs/CITIES.md` §3.2–§3.3); the lobby start age grants no
+   epochs, techs or pop cap (`docs/TECH.md`); a city is refused at exactly 24
+   tiles and starts at 25, on two bearings, with the tower-site-first control
+   that makes every other `blocked_site` verdict testable (`docs/CITIES.md`
+   §2.6.2); the city heal, period 4 and one point per level (`docs/CITIES.md`);
+   `UnitData.angle` is the facing, so the flank convention is settled at its
+   premise — level 1 is the rear (`docs/COMBAT.md` §14.1, `docs/MOVEMENT.md`);
+   the `balance.xml` separator, settled against the dumped table (see 6).
 
-   **Two checks are run and landed.** The construction clock, both halves
-   (`docs/CITIES.md` §3.2, §3.3): one builder is exactly +100 a frame, two
-   are exactly +150 — which settles the harmonic rule and the
-   units-before-buildings order together — and the clock re-bakes on a tech
-   change, for not-yet-active sites only. And the lobby start age
-   (`docs/TECH.md`): starting at Gunpowder sets the leader's age to 3 and
-   grants **no** epochs, techs or pop cap, so `set_age` on the lobby path
-   must not touch the epochs.
-
-   **What remains is scriptable, and that was the last open question about
-   method.** The rest of the list needs a *unit order* — send this builder to
-   that site, put this unit inside those borders, have this squad attack that
-   one from behind — and the cheat vocabulary has no order verb. It does not
-   need one: **`cheat select <o>` plus a right-click issues the normal
-   order**, and because orders are per-unit, several units go on one job by
-   selecting and ordering them one at a time. No multi-selection, and so no
-   human. `docs/ORACLE.md`, "Issuing an order without a human", has the
-   timing and the screen↔world transform for aiming the click.
-
-   So the remaining checks are ordinary work rather than blocked work. One
-   still carries a wrinkle worth knowing before starting: the Nubian
-   attrition step needs attrition to actually happen, since `anti_att` sits
-   at its base until `calc_attrition` runs (`docs/ATTRITION.md`).
-
-   **The `~` console is open after all, and it documents itself**
-   (2026-08-20, `docs/ORACLE.md`, "The `~` console, which documents itself").
-   `StartConsole=1` works; the console is simply invisible until it prints a
-   line, which is why an earlier session concluded it did not appear. It takes
-   commands with **no `cheat ` prefix**, echoes what it did, and `?` lists the
-   whole 102-entry table by category — including the half the chat box cannot
-   reach. Three entries change what a check costs: **`coord t`** (also
-   `Console Coord Mode=2` in `rise2.ini`) makes `add` read **tile**
-   coordinates, so placement needs no mouse, no screen transform and no
-   calibration probe; **`ai off`** and **`human <who>`** take the opponent out
-   of the experiment; and **`break #`**, `pause`, `ffwd` and `quit` are the
-   makings of an unattended run. The trap: in the run where the console was
-   open the game stopped tracking the mouse, and only a relaunch restored it,
-   so a run is console-on (tile coordinates, no mouse) or console-off (tile
-   coordinates from the ini, mouse available for orders) — not both.
-
-   **The city-mask check is part run** (`docs/CITIES.md` §3.6): a library is
-   refused 20 tiles north of the city tile where a tower on the same tile
-   starts, which is `OUTSIDE_RADIUS` and matches the even circle at radius 20.
-   The ±20/19 asymmetry needs three more rungs and the recipe is written down.
-
-   **The flank convention is settled** (2026-08-20, `docs/COMBAT.md` §14.1),
-   not by measuring damage but by measuring the premise the reading rested
-   on: `UnitData.angle` is the facing, confirmed frame by frame against a
-   walking squad's own position deltas (`docs/MOVEMENT.md`), so level 1 is the
-   rear and at the shipped `FLANK_BONUS` the rear is ×1.5 and the side ×2.0.
-   The damage-ratio confirmation is still worth having and the instrumentation
-   for it is in `tools/gamelog/hits.py`; what it needs is one damage source on
-   the target, since `damage_o` does not update per hit.
-
-   **The garrison-heal check is attempted and still open**: no way was found
-   to put a unit inside a building from a script — not the right-click, not
-   the panel button — and the remaining route is `Build::train` plus
-   `cheat finish` (`docs/CITIES.md` §15).
-
-   **The city-spacing check is run and landed** (2026-08-20, `docs/CITIES.md`
-   §2.6.2): a city is refused at exactly 24 tiles and starts at 25, on two
-   bearings. With it came the method for every remaining `blocked_site`
-   verdict, in `docs/ORACLE.md`, "A scripted placement test" — a **tower site
-   on the tile first** as the control, since a tower is subject to the
-   stricter territory test and the same terrain, so one that starts leaves
-   the rule under test as the only candidate reason a city on that tile is
-   refused. Also landed there: `-config <file>.ini` fills the lobby from a
-   file and `-automation` suppresses the modal furniture, so a run's
-   configuration is a file plus two clicks rather than a sequence of combo
-   boxes; and `cheat move <o> cursor`, `cheat die <o>,<who>` and a
-   tower-probe calibration of the screen↔world transform, which is what makes
-   a one-tile question answerable at all.
+   **Still open, none blocking, each a 20–60 minute drive when the game is up
+   for another reason:** the city mask's remaining three rungs (recipe in
+   `docs/CITIES.md` §3.6); the garrison heal — no script path into a building
+   found yet, the remaining route is `Build::train` + `cheat finish`
+   (`docs/CITIES.md` §15); the Nubian attrition step, which needs attrition to
+   actually run (`docs/ATTRITION.md`); the flank damage ratio, for which
+   `tools/gamelog/hits.py` is the instrument and one damage source on the
+   target is the setup (`docs/COMBAT.md` §14.1).
 5. ~~**The data layer into the sim, and the diff**~~ — **done, 2026-08-20**,
    `docs/DATALAYER.md`, `crates/rondata/src/{gamelog,dump,load,diff}.rs`:
    the gamelog reader, the loader (364 units, 129 buildings, 628-entry tree,

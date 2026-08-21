@@ -539,6 +539,72 @@ constants and checks against every `Tuning::RON` slot (231 of 232 equal;
 the game to the position unit: two runs with `Seed=12345` move the same
 units to the same coordinates on the same frames.
 
+### Running a check: the recipe in one place (2026-08-20, consolidated)
+
+The sections that follow were written as the method was discovered, each
+correcting the one before, and they are kept that way. This one is the
+reading order for someone about to *run* a check: the recipe, with the facts
+that are scattered below gathered into one table each. Everything here is
+established further down; nothing here is new.
+
+**The run, end to end.**
+
+1. **Configure from files, not menus.** `rise.ini`: `AllowLogs=1`,
+   `Seed=<fixed>`, `InitialDump=0`. `rise2.ini`: `Console Coord Mode=2`
+   (tile coordinates for `add`/`move`), `StartConsole=0` unless the run wants
+   the console (see the trap below). `gamelog.ini`: `DUMP_ALL=0` and, under
+   `[End Frame]`, `UNITS=3 BUILDS=6 CITIES=5 DEATHS=1 LEADERS=1` — the values
+   are **detail thresholds** (`tools/gamelog/setlog.py` writes the file). The
+   lobby comes from `-config check.ini`, `-automation` drops the modal
+   furniture; then Solo Game → Quick Battle → Start.
+2. **Stage the situation with cheats**, each typed into the chat box by
+   `tools/gamelog/cheat.sh` and **read back** before the next step: `add NEW
+   tower 56,156` places a site on a tile, `add 1 citizen 32,141` a builder,
+   `tech all on`, `war`, `damage select +N`, `die <o>,<who>`.
+3. **Give orders** with `cheat select <o>` then a right-click
+   (`tools/gamelog/rclick.sh`), one unit at a time, ~2 s apart. Aim by
+   `cheat camera X,Y`, which puts tile `(X, Y)` at the viewport centre —
+   desktop `(1719, 574)` on this machine's window — or by `aim.py` for any
+   other tile.
+4. **Read the answer** out of `Logs\gamelog.txt`: `lastframe.py` + `objs.py`
+   + `one.py` for "what is on the map now", `track.py … --changes` for a field
+   across frames. Object numbers are per player (units from 0, buildings from
+   2000), so an object is `(kind, who, o)`.
+5. **Quit through the in-game menu.** The `Log` system flushes per line so
+   `gamelog.txt` survives a kill, but the end-of-game full dump and the sync
+   log do not.
+
+**Two input paths, and they do not mix.**
+
+| path | opened by | prefix | reaches | notes |
+|---|---|---|---|---|
+| chat box | `Return` | `cheat ` | `run_cmd`'s second switch only | pauses the sim while open; executes on the next tick; the box sometimes does not open, so read state back |
+| `~` console | `StartConsole=1` at launch | none | the whole 102-entry table (`?` lists it): `ai off`, `human`, `coord`, `pause`, `break`, `ffwd`, `quit` | invisible until it prints; in the run where it was open the mouse tile stopped updating and only a relaunch restored it |
+
+A run is therefore **console-on** (tile coordinates, no mouse, no orders) or
+**console-off with `Console Coord Mode=2`** (tile coordinates *and* a working
+mouse, which an order needs). Keys reach the game through `osascript … keystroke`;
+the mouse through `cliclick`; System Events clicks do not arrive.
+
+**Coordinates, all four kinds.** One tile is 192 internal units; this map is
+180 × 180 tiles.
+
+| what | meaning |
+|---|---|
+| `add … x,y` in the default Coord mode | a **4-tile cell**: the object lands at internal `x × 768 + half its footprint`, i.e. near tile `4x + 2` |
+| `add … x,y` in TCoord mode (`coord t` once in the console, or `Console Coord Mode=2`) | the **tile** `(x, y)` exactly — a tower centres on `tile × 192` (even footprint), a city on `tile × 192 + 96` (odd) |
+| `add …` with no `x,y`, `move <o> cursor` | the tile under the mouse, per-tile |
+| `cheat camera a,b` | centres the viewport on tile `(4a + 3, 4b + 3)` in Coord mode, on tile `(a, b)` in TCoord |
+
+**The control that makes a placement verdict readable**: `add` force-places
+and never calls `blocked_site`, so a placement cheat cannot test a placement
+rule; the verdict arrives when the first builder does, and every refusal
+looks the same (the site vanishes). Run the tile twice — a **tower site
+first**, which is subject to the stricter territory test and the same
+terrain, then the building under test — and a tower that starts leaves the
+rule under test as the only candidate reason for a refusal. The full recipe
+is "A scripted placement test, end to end" below.
+
 ### The detail level is the knob (2026-08-20, third session)
 
 The two earlier sessions read `gamelog.ini`'s 37 per-category keys as
@@ -965,41 +1031,59 @@ the player had no city, was disbanded on arrival — the foothold and `COLONIZE`
 branches of §2.4/§2.6.1 — which is why the ladder has to be run on ground the
 tower probe has already proven.
 
-#### Three traps that cost a run each
+### Traps that cost a run each (merged 2026-08-20)
+
+Two lists were kept in two places as the sessions found them; this is the one
+list, and `tools/gamelog/README.md` points here.
 
 - **Cheats are orders, and orders need ticks.** Issued while the game is
-  paused they queue and do nothing. A probe that "failed" while paused looks
-  exactly like a probe that was refused — check the frame counter is still
-  advancing before believing any negative result.
+  paused (the *menu* pause) they queue and do nothing, and a probe that
+  "failed" while paused looks exactly like one that was refused — check the
+  frame counter is advancing before believing any negative result. The chat
+  box's own pause is different and harmless: the sim stops while the box is
+  open and the cheat executes on the tick after it is submitted.
+- **Verify that every cheat landed.** Three identical `add` lines did nothing
+  and a fourth worked a minute later; the chat box had not opened. Nothing
+  distinguishes "refused" from "never arrived" except reading the state back,
+  so read it back after every step the next step depends on.
 - **Creating a city opens a modal rename dialog**, which pauses the
   simulation and swallows every subsequent keystroke, including the Return
-  that would open the chat box. `add NEW city` (a site) does not, but a
-  completed one does.
-- **The game window is 1920 × 1080 inside whatever the desktop is** — on this
-  machine a 3440 × 1440 ultrawide, with the window in the top-left corner.
-  `screencapture` returns the whole desktop, so screenshot coordinates are
-  desktop coordinates and the game occupies only part of them. Re-locate
-  after any relaunch (§ "Driving it").
-
-### Driving it: the traps that cost a run each
-
-- **The window is not always real fullscreen.** Relaunched from a terminal it
-  came up borderless-windowed once and fullscreen the next time, and the menu
-  coordinates differ by ~70 px between the two. Screenshot and locate the
-  buttons before clicking; do not trust stored coordinates across launches.
+  that would open the chat box. `add NEW city` (a site) does not; a completed
+  one does.
+- **Keystrokes sent while the sim is busy land wherever focus is.** During a
+  `DUMP_ALL` frame the window stops servicing input for minutes; a `Return`
+  meant for the chat box and the cheat line after it went into the city
+  rename dialog instead, twice. Confirm the box is open before typing, and
+  never type while the log is growing by tens of MB.
+- **The window is 1920 × 1080 inside whatever the desktop is** — here a
+  3440 × 1440 ultrawide, window top-left — and it is not always real
+  fullscreen: relaunched from a terminal it came up borderless-windowed once
+  and fullscreen the next time, with the menu coordinates ~70 px apart.
+  Screenshot and locate before clicking; never trust stored coordinates
+  across launches. `tools/gamelog/waitwin.sh` does the locate.
 - **It does not take focus on launch.** `osascript -e 'tell application
   "System Events" to set frontmost of process "riseofnations.exe" to true'`
   before driving, and verify.
-- **Keystrokes sent while the sim is busy land wherever focus is.** During a
-  `DUMP_ALL` frame the window stops servicing input for minutes; a `Return`
-  meant to open the chat box and the cheat line after it went into the city
-  **rename** dialog instead, twice. Confirm the chat box is open (screenshot)
-  before typing, and never type while the log is growing by tens of MB.
-- **`cliclick t:` types; `cliclick kp:return` submits.** System Events
-  keystrokes reach the menus but clicks do not, per the earlier session.
-- Quit through the in-game menu, never `pkill` — the SyncLogger writes only
-  when `Game::run_solo` returns. (The `Log` system flushes per line, so
-  `gamelog.txt` survives a kill; only the sync log does not.)
+- **Keys go through `osascript … keystroke`; the mouse through `cliclick`.**
+  System Events clicks do not reach the game. ~~`cliclick t:` types~~ — it may,
+  but every script in `tools/gamelog/` types through System Events and that
+  is the path that is known to work. Two `cliclick` habits: a fast `c:` often
+  does not register, so press and release with a hold (`dd:X,Y w:250 du:X,Y`);
+  and `m:` to the point the pointer is already on emits no motion event, so
+  the game's cursor tile does not update — move somewhere else first
+  (`cheat.sh` jiggles).
+- **The console and the mouse did not coexist.** In the run with
+  `StartConsole=1` the cursor tile froze near the map corner and `exit` did
+  not restore it; only a relaunch did. Whether the console is the cause is not
+  established, but the rule held: one run is console-on or console-off.
+- **Screenshots: capture the game's rectangle, never the whole desktop.**
+  `screencapture` returns the full 3440 × 1440 by default, and other
+  applications' notifications land in the frame — which is what tripped a
+  safety stop mid-session on 2026-08-20. `tools/gamelog/shot.sh -r X Y W H`.
+- **Quit through the in-game menu, never `pkill`.** The SyncLogger writes only
+  when `Game::run_solo` returns, and the end-of-game full dump comes from the
+  same place. The `Log` system flushes per line, so `gamelog.txt` alone
+  survives a kill.
 
 ---
 

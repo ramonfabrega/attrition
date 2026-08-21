@@ -2,11 +2,11 @@
 
 Scaffolding for the behavioural checks, not architecture. The real reader is
 `crates/rondata/src/gamelog.rs`, which parses the same file into typed records
-and is what the diff harness uses; these three are for driving a check by hand
+and is what the diff harness uses; these are for driving a check by hand
 and reading the answer out in one line. See `docs/ORACLE.md`, "The detail level
 is the knob", for what the log contains and how to make it contain it.
 
-All three default to this machine's bottle path:
+The readers default to this machine's bottle path:
 `~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/`.
 
 ## `setlog.py` — write `gamelog.ini`
@@ -104,18 +104,17 @@ right-click anchors, then re-fit `C`/`D` after any camera move with a single
 placement test", is the whole recipe, including the tower-before-city control
 that tells a terrain refusal from a rule refusal.
 
-Two things about input that cost a run each, both in `docs/ORACLE.md`:
-**keys go through `osascript … keystroke`, clicks through `cliclick`** (the
-other way round does not reach the game), and **a fast `cliclick c:` often
-does not register** — press and release with a hold instead:
+Input, in one line: **keys go through `osascript … keystroke`, the mouse
+through `cliclick`** — System Events clicks do not reach the game — and a fast
+`cliclick c:` often does not register, so press and release with a hold:
 
     cliclick dd:X,Y w:250 du:X,Y      # or:  cliclick m:X,Y w:400 c:X,Y
 
-`cliclick` will not box-select several units however it is driven, so any
-check needing more than one unit under one order needs a human to drag the
-box. Also: the window is 1920×1080 inside whatever the desktop is, and its
-position changes between launches — locate the buttons from a screenshot
-rather than trusting stored coordinates.
+There is no multi-select and none is needed: orders are per unit and persist,
+so `rclick.sh` run once per unit puts several on one job. The rest of what
+bites — the window's size and position, the modal rename dialog, the
+console's effect on the mouse, screenshots of the whole desktop — is one list
+in `docs/ORACLE.md`, "Traps that cost a run each".
 
 ## Reading the decompile
 
