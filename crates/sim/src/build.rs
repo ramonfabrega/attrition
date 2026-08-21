@@ -202,6 +202,29 @@ pub fn is(types: &[BuildType], t: usize, ident: Ident) -> bool {
     false
 }
 
+/// `BuildType::init_final_flags@00632070` — the **derived** `FLAT` bit.
+///
+/// `FLAT` is not a `BUILD_FLAGS` letter on any shipped row: the Farm's string
+/// is `gda`, with no `3`. The loader ORs the bit in afterwards for three
+/// lineages — `is(FARM) || is(OILWELL) || is(OILPLATFORM)` — and every
+/// consumer reads it as `build_flags & 0x10000000` (the vtable's `is_flat`,
+/// slot `+0x94`, is exactly `mov eax,[ecx+0x2c0]; and eax,0x10000000`).
+///
+/// Reading only the flag string therefore makes **nothing** flat, which sends
+/// every farm through the non-flat wood/ore machine of `docs/ORDERS.md` §6.4
+/// instead of the farm path of §6.5. Call this once per type after `from` is
+/// linked. It is the tech audit's "read the loaders" lesson a third time.
+pub fn init_final_flags(types: &mut [BuildType]) {
+    for t in 0..types.len() {
+        if is(types, t, Ident::Farm)
+            || is(types, t, Ident::OilWell)
+            || is(types, t, Ident::OilPlatform)
+        {
+            types[t].flags |= flags::FLAT;
+        }
+    }
+}
+
 /// `BuildTypeData::is_city` = `is(VILLAGE, 0)`.
 pub fn is_city(types: &[BuildType], t: usize) -> bool {
     is(types, t, Ident::Village)

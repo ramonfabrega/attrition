@@ -812,6 +812,11 @@ pub fn load_tables(
         }
     }
 
+    // `BuildType::init_final_flags@00632070`: the `FLAT` bit is **derived**,
+    // not a `BUILD_FLAGS` letter — no shipped row carries `3`. It must run
+    // after `from` is linked, because the test is a lineage `is()`.
+    sim::build::init_final_flags(&mut build_types);
+
     // ---- the combat table over unit ids ----
     let t = Tuning::RON;
     let kinds: Vec<sim::balance::Kind> = (0..unit_types.len())

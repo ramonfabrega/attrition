@@ -145,6 +145,55 @@ fn diff_report(
         "  ticks before divergence: {}",
         report.ticks_before_divergence()
     );
+    // Derive-then-read: the starting orders our §9.3 rule produced against the
+    // ones the original actually issued. Positions cannot show this.
+    if let Some(built) = rondata::diff::build_for_check(&loaded, &log, sim::Tuning::RON) {
+        let checks = rondata::diff::check_start_orders(&built, &log);
+        let held: Vec<_> = checks
+            .iter()
+            .filter(|c| c.theirs.is_some() || c.ours.is_some())
+            .collect();
+        let bad: Vec<_> = held.iter().filter(|c| !c.agrees()).collect();
+        failures += check(
+            "every starting citizen's derived GATHER target matches the one the original issued",
+            bad.is_empty() && !held.is_empty(),
+            &if held.is_empty() {
+                "no unit in the first logged frame holds a gather order — is the dump below UNITS=3?".to_string()
+            } else if bad.is_empty() {
+                format!(
+                    "{} citizens, derived from §9.3 without reading the log: {}",
+                    held.len(),
+                    held.iter()
+                        .map(|c| format!("{}/{}→{}", c.who, c.o, c.ours.unwrap_or(-1)))
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                )
+            } else {
+                bad.iter()
+                    .map(|c| {
+                        format!(
+                            "who {} o {}: we derived {:?}, the log has {:?} (order kind {})",
+                            c.who, c.o, c.ours, c.theirs, c.their_kind
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join("; ")
+            },
+        );
+    }
+    let by_unit = report.first_divergence_by_unit();
+    if by_unit.is_empty() {
+        println!("  no unit ever diverged");
+    } else {
+        let cells: Vec<String> = by_unit
+            .iter()
+            .map(|(w, o, f)| format!("{w}/{o}@{f}"))
+            .collect();
+        println!(
+            "  units that diverge, as who/o@frame — everything else tracked to the end: {}",
+            cells.join(" ")
+        );
+    }
     for (who, first) in &report.first_divergence {
         match first {
             Some(f) => {

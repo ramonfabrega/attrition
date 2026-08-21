@@ -45,6 +45,8 @@ pub struct UnitLink {
 pub struct Built {
     pub sim: Sim,
     pub units: Vec<UnitLink>,
+    /// The pre-placed buildings: simulation handle → the log's object number.
+    pub builds: Vec<(usize, i64)>,
     /// Anything that could not be carried over, and why.
     pub notes: Vec<String>,
 }
@@ -155,7 +157,151 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         });
     }
 
-    Built { sim, units, notes }
+    let builds = start_of_game(&mut sim, loaded, init, players, &units, &mut notes);
+    Built {
+        sim,
+        units,
+        builds,
+        notes,
+    }
+}
+
+/// `TypeIndex` values the start-of-game rule names (`docs/ORDERS.md` §9.2).
+const FARM: i32 = 417;
+const WOODCUTTER: i32 = 418;
+
+/// The pre-placed buildings and the starting citizens' gather orders, derived
+/// from `docs/ORDERS.md` §9.2 and §9.3 — **not** read out of the dump.
+///
+/// The dump's `BUILDDATA` carries no type at any detail level, so the
+/// buildings are typed by `Leader::produce_building`'s order: `2001` is the
+/// woodcutter, then the farms, then the rest (a library, towers, a
+/// civ-specific building). Only the gather types matter to the simulation —
+/// a farm is flat and a woodcutter is not, which is the difference between
+/// "walk to the centre and stand" and the whole §6.4 walk-out machine — so
+/// everything after the farms is left untyped.
+///
+/// The citizens are then assigned by §9.3's four-step rule, as the second
+/// reading corrected it (`docs/audit/2026-08-21-orders.md` R5 U10, U11):
+/// the first `ordered` of them take `2001` **unconditionally**, and the rest
+/// scan from `2002` for successive farms.
+fn start_of_game(
+    sim: &mut Sim,
+    loaded: &Loaded,
+    init: &Initial,
+    players: usize,
+    units: &[UnitLink],
+    notes: &mut Vec<String>,
+) -> Vec<(usize, i64)> {
+    let Some(woodcutter) = loaded.build_of_type_index(WOODCUTTER) else {
+        notes.push("no WOODCUTTER build type; start-of-game not placed".into());
+        return Vec::new();
+    };
+    let Some(farm) = loaded.build_of_type_index(FARM) else {
+        notes.push("no FARM build type; start-of-game not placed".into());
+        return Vec::new();
+    };
+
+    let mut all_builds: Vec<(usize, i64)> = Vec::new();
+    for who in 0..players as sim::Player {
+        let w = who as i64;
+        // The citizens of this player, by object number — `Setup::build_units`
+        // creates them in index order after the scout.
+        let mut citizens: Vec<&UnitLink> = units
+            .iter()
+            .filter(|l| {
+                l.who == w
+                    && l.kind
+                        .is_some_and(|k| sim.unit_types[k].worker != sim::orders::Worker::None)
+            })
+            .collect();
+        citizens.sort_by_key(|l| l.o);
+        if citizens.is_empty() {
+            continue;
+        }
+
+        // `get_starting_citizens`: (n, ordered) is (5, 2) for a Small Town and
+        // (10, 5) for a Large Town, and the two lists carry three and five
+        // farms. `starting_resources` and the nation powers adjust n, so the
+        // match is on the plain counts and anything else falls back.
+        let (ordered, farms) = match citizens.len() {
+            5 => (2usize, 3usize),
+            10 => (5, 5),
+            n => {
+                notes.push(format!(
+                    "player {who}: {n} citizens is neither a Small ({}) nor a Large ({}) Town — \
+                     assuming the Small Town list; §9.3's count adjustments are not modelled",
+                    5, 10
+                ));
+                (2, 3)
+            }
+        };
+
+        // Place the buildings `2001..` in production order.
+        let mut sites: Vec<(i64, usize)> = Vec::new();
+        for b in init.builds.iter().filter(|b| b.who == w && b.o >= 2001) {
+            let idx = (b.o - 2001) as usize;
+            let ty = if idx == 0 {
+                Some(woodcutter)
+            } else if idx <= farms {
+                Some(farm)
+            } else {
+                None
+            };
+            let pos = Pos::new(b.pos.x as i32, b.pos.y as i32);
+            let placed = match ty {
+                Some(t) => sim
+                    .place_building(who, t, pos)
+                    .map_err(|e| format!("{e:?}"))
+                    .ok(),
+                None => None,
+            };
+            let handle = placed.unwrap_or_else(|| {
+                let h = sim.add_building(who, pos, 8);
+                sim.buildings[h].ty = ty;
+                h
+            });
+            // Every pre-placed building is complete and active at frame 0:
+            // `produce_building` at `frame == 0` skips `pay_cost` and the
+            // swarm and calls `activate(0, 1, 0)` (§9.2, R5 C5).
+            sim.buildings[handle].active = true;
+            sim.buildings[handle].activated = true;
+            sim.buildings[handle].started = true;
+            all_builds.push((handle, b.o));
+            if ty.is_some() {
+                sites.push((b.o, handle));
+            }
+        }
+        if sites.is_empty() {
+            continue;
+        }
+
+        // §9.3's assignment. `2001` for the first `ordered`; then successive
+        // farms from `2002`, the cursor advancing past each one taken.
+        let site_at = |o: i64| sites.iter().find(|(n, _)| *n == o).map(|(_, h)| *h);
+        let mut cursor = 0i64;
+        for (i, link) in citizens.iter().enumerate() {
+            let target = if i < ordered {
+                // Unconditional — a dead `2001` sends the citizen idle rather
+                // than to a farm (R5 U10).
+                site_at(2001)
+            } else {
+                let t = site_at(2002 + cursor);
+                if t.is_some() {
+                    cursor += 1;
+                }
+                t
+            };
+            let Some(b) = target else {
+                continue; // `place_unit`, idle — the fallback's last step.
+            };
+            if !sim.is_gather_type(b) {
+                continue;
+            }
+            sim.add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
+        }
+    }
+    all_builds
 }
 
 /// One unit whose position the two sides disagree on.
@@ -197,6 +343,25 @@ impl Report {
             .iter()
             .find(|f| !f.diverged.is_empty())
             .map_or(self.frames.len() as i64, |f| f.frame - 1)
+    }
+
+    /// The frame each `(who, o)` first disagreed on, for the units that ever
+    /// did — the breakdown the single score cannot show.
+    ///
+    /// The score is a minimum over every unit of both players, so one unit
+    /// the simulation cannot yet drive (an AI-ordered scout, a woodcutter
+    /// whose tile list needs `BUILDS=7`) pins it at the floor while every
+    /// other unit may be tracking perfectly. Reading which units diverge, and
+    /// when, is what says whether a mechanic landed.
+    pub fn first_divergence_by_unit(&self) -> Vec<(i64, i64, i64)> {
+        let mut seen: std::collections::BTreeMap<(i64, i64), i64> =
+            std::collections::BTreeMap::new();
+        for f in &self.frames {
+            for d in &f.diverged {
+                seen.entry((d.who, d.o)).or_insert(f.frame);
+            }
+        }
+        seen.into_iter().map(|((w, o), f)| (w, o, f)).collect()
     }
 }
 
@@ -307,6 +472,7 @@ mod tests {
                             ..Guy::default()
                         },
                     ],
+                    orders: Vec::new(),
                 },
                 UnitDump {
                     flags: 1,
@@ -321,6 +487,7 @@ mod tests {
                         kind: Some(0x32),
                         ..Guy::default()
                     }],
+                    orders: Vec::new(),
                 },
                 // An animal, which the harness ignores.
                 UnitDump {
@@ -329,6 +496,7 @@ mod tests {
                     who: 255,
                     pos: LogPos::default(),
                     guys: vec![],
+                    orders: Vec::new(),
                 },
             ],
             leaders: vec![
@@ -388,4 +556,91 @@ mod tests {
         assert_eq!(r.diverged.len(), 1);
         assert_eq!(r.diverged[0].o, 1);
     }
+}
+
+/// One starting citizen's derived order against the one the original issued.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct OrderCheck {
+    pub who: i64,
+    pub o: i64,
+    /// The building object number the simulation's derivation chose.
+    pub ours: Option<i64>,
+    /// The `ox` of the logged `GATHERORDER`, if the unit is holding one.
+    pub theirs: Option<i64>,
+    /// The logged current order's `OrderIndex` — `-1` for an empty list.
+    pub their_kind: i64,
+}
+
+impl OrderCheck {
+    pub const fn agrees(&self) -> bool {
+        match (self.ours, self.theirs) {
+            (Some(a), Some(b)) => a == b,
+            (None, None) => true,
+            _ => false,
+        }
+    }
+}
+
+/// **Derive, then read, then compare** — the check the position diff cannot
+/// make.
+///
+/// [`build_sim`] derives every starting citizen's gather order from
+/// `docs/ORDERS.md` §9.3's rule *without looking at the log*. This reads what
+/// the original actually issued, out of the first logged frame's `UNITS=3`
+/// order blocks, and lines the two up by `(who, o)`.
+///
+/// It is the honest test of that rule, because **positions cannot show it**: a
+/// farm's citizen is placed inside the footprint and has already arrived, so
+/// it stands still in both simulations for the whole of a short dump, and a
+/// woodcutter's cannot walk at all until `gather_from` arrives (which needs
+/// `BUILDS=7`, not the `BUILDS=6` the first reading claimed). Two simulations
+/// can agree on every position for 47 frames and still have given every
+/// citizen the wrong job.
+pub fn check_start_orders(built: &Built, log: &Log<'_>) -> Vec<OrderCheck> {
+    let states = log.frame_states();
+    let Some(first) = states.first() else {
+        return Vec::new();
+    };
+    let logged = &first.units;
+    let o_of = |handle: usize| -> Option<i64> {
+        built
+            .builds
+            .iter()
+            .find(|(h, _)| *h == handle)
+            .map(|(_, o)| *o)
+    };
+    built
+        .units
+        .iter()
+        .filter_map(|link| {
+            let them = logged.iter().find(|u| u.who == link.who && u.o == link.o)?;
+            let ours = built.sim.units[link.unit]
+                .orders
+                .iter()
+                .find_map(|o| match o.body {
+                    sim::orders::Body::Gather(g) => Some(g.building),
+                    _ => None,
+                })
+                .and_then(o_of);
+            let cur = them.current_order();
+            Some(OrderCheck {
+                who: link.who,
+                o: link.o,
+                ours,
+                theirs: cur.and_then(|c| {
+                    (c.index == i64::from(sim::orders::index::GATHER))
+                        .then_some(c.ox)
+                        .flatten()
+                }),
+                their_kind: cur.map_or(-1, |c| c.index),
+            })
+        })
+        .collect()
+}
+
+/// A freshly built simulation at frame 0, for [`check_start_orders`] — the
+/// same construction [`run`] does, before any frame is stepped.
+pub fn build_for_check(loaded: &Loaded, log: &Log<'_>, tuning: Tuning) -> Option<Built> {
+    let init = log.initial()?;
+    Some(build_sim(loaded, &init, tuning))
 }

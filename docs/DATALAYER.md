@@ -48,9 +48,33 @@ block closes when a later `BEGIN` appears at the same or a shallower indent,
 and any other line is a field — first token the key, the rest the value. Two
 rules the writers force on a reader:
 
-- **A field belongs to the innermost open block regardless of its own
-  indent.** `LeaderData::log_data` writes `leader_flags` one level shallower
-  than the `who`/`tribe` lines before it, inside the same `BEGIN LEADERDATA`.
+- **A field's home is decided by indent, and one shape is genuinely
+  ambiguous.** A block's fields are written one level deeper than its `BEGIN`,
+  and nothing writes `END` (`Log::end` emits only for a non-empty name, and
+  the order writers all pass the empty string), so indentation is the only
+  thing that closes a block. But a field at *exactly* an open block's own
+  indent occurs in two forms that indentation cannot tell apart:
+
+  ```text
+  BEGIN LEADERDATA   (1)      BEGIN TARGETORDER  (4)
+   who 0             (2)       BEGIN UNITORDER   (5)
+  leader_flags …     (1)        flags 0          (6)
+                               ox 2001           (5)
+  ```
+
+  `leader_flags` belongs to the `LEADERDATA` it follows; `ox` belongs to
+  `TARGETORDER`, the **parent** of the `UNITORDER` it follows. The reader
+  therefore records such a field on **both** candidates — the enclosing block
+  the indent gives, and the block it just closed — and a run of them stays
+  with the same block until the next `BEGIN`.
+
+  This was originally written as "a field belongs to the innermost open block
+  regardless of its own indent", which the second reading flagged
+  (`docs/audit/2026-08-21-orders.md` R7 L19) and which turned out to be
+  **load-bearing**: under it, a unit's `length`/`type`/`metric` order-list
+  lines are filed under the preceding empty `STACK<TYPE>` and every order's
+  `ox`/`whom`/`uid` under `UNITORDER`, so the whole order list reads as
+  absent. `docs/ORDERS.md` §11.1 has the order side.
 - **Keys repeat.** An array constant is one line per element under one key
   (`fort_upgrade_terr[scan] 2`, `… 4`, `… 6`, `… 9`), in index order.
 
@@ -249,16 +273,45 @@ health the type's `HITS`, speed and turn rate from the type), each player's
 tribe from `LEADERDATA`, and the starting city by type at the `CITIES`
 position — through `place_building`, which **refuses it (`Blocked(Ruins)`)
 on a world with no terrain**, so the city is added untyped with a note.
-`run` then steps the simulation to each logged frame and compares every
-linked unit's position.
+It then places the **pre-placed buildings and the starting citizens' gather
+orders**, derived from `docs/ORDERS.md` §9.2 and §9.3 rather than read out of
+the log: `BUILDDATA` carries no type at any detail level, so `2001` is typed
+the woodcutter and the next few farms by `Leader::produce_building`'s order,
+and each citizen is assigned by §9.3's four-step rule. `run` then steps the
+simulation to each logged frame and compares every linked unit's position.
 
-**The score, on both dumps: ticks before divergence 1.** The AI's scout
-moves on frame 2 and the human's citizen `o 1` on frame 4 (at 25 position
-units a frame — the starting citizens walk to the pre-placed sites, which is
-what objects `2001–2005` beside units `1–5` are), and the simulation, with no
-AI and no order stream, holds everyone still. That is the expected ceiling,
-and the run still proves the wiring: every `(who, o)` in 1,730 frames links
-to a simulation unit (25,943 unit-frames compared, none unlinked), every
+**The score, on both dumps: ticks before divergence 1**, and it is worth
+being precise about why, because the single number hides the state of the
+port. `Report::first_divergence_by_unit` gives the breakdown; on
+`gamelog-run4` it is `0/1@4 0/2@4 1/0@2 1/1@2 1/2@4` — **five of the twelve
+units ever disagree, and the other seven track to the end of the run.** The
+score is a minimum over all of them, so it is pinned by whichever unit the
+simulation cannot yet drive at all:
+
+- The **AI's scout** (`1/0`) moves on frame 2 because the AI orders it, and
+  there is no AI. Nothing but the order stream or phase 5 moves that.
+- The **woodcutter's citizens** (`0/1`, `0/2`, `1/1`, `1/2`) walk out to a
+  gather tile on frame 4. They cannot: the tile list `gather_from` needs
+  **`BUILDS=7`** and no dump so far carries it, so §6.4's machine has
+  nowhere to send them (`docs/ORDERS.md` §13).
+- The **farm citizens never diverge** — but that proves less than it looks.
+  A farm's citizen is placed inside the footprint by `come_out`, so
+  `covers_tile` already holds and it stands; §6.5 says a farmer does not
+  re-target for some two hundred frames, and these dumps are 47 and 1,730
+  frames of a game where it never does. Both simulations stand still, and
+  agreeing on standing still is not evidence.
+
+That last point is why the harness also runs a **derive-then-read check**
+(`check_start_orders`): the starting orders it derived from §9.3 against the
+`GATHERORDER` blocks the original actually wrote in the first logged frame,
+matched by `(who, o)`. On `gamelog-run4` all ten citizens agree —
+`0/1→2001 0/2→2001 0/3→2002 0/4→2003 0/5→2004` and the same for player 1 —
+which is the real evidence that the rule is right, and none of it is visible
+in a position diff. **Two simulations can agree on every position for a
+whole dump and still have given every citizen the wrong job.**
+
+The run also proves the wiring: every `(who, o)` in 1,730 frames links to a
+simulation unit (25,943 unit-frames compared, none unlinked), every
 `GUY type` maps to a unit record, and the world scale, the ids and the step
 cadence agree. The leaders' logged `score` is reported and not matched; the
 simulation has no score.
@@ -270,6 +323,12 @@ simulation has no score.
 - **`DUMP_ALL=1`.** Presumably the detail-level-1 fields — goods per leader,
   the fifty more per unit, types on buildings. One run settles it, and until
   it is run the diff sees positions and scores only.
+- **A `BUILDS=7` dump.** The single blocking item for the harness: without
+  `gather_from` a woodcutter's citizen cannot walk, which is what pins
+  player 0's divergence at frame 4. `BuildData::log_data@0062e810:269` puts
+  `gather_from`, the `GATHERPOINT` list and `BUILDQUEUE` behind
+  `set_detail(7)`; tier 6 stops at `orig_type`. Every dump captured so far
+  is `BUILDS=6`.
 - **The terrain.** Nothing of the map is in the dump at level 0, so
   `place_building` cannot be exercised and territory cannot be computed from
   a dump. `TERRAIN`/`MAPMAKE` under `[Start Game]` were enabled in the full

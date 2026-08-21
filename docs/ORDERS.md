@@ -2480,13 +2480,17 @@ what is listed as an input is stated as such in the code):
   entrench wait; `come_out`'s rally orders (the existing `come_out` keeps its
   placement); `Wall::process`'s AI recruiter; the gamelog emission of the
   list (the harness reads the dump's, it does not yet write its own).
-- **The start of a game** — **next**: `rondata::diff::build_sim` should add
+- **The start of a game** — **done 2026-08-21** (`docs/DATALAYER.md` §3):
+  `rondata::diff::build_sim` adds
   the pre-placed buildings `2001..` (complete and active, typed by the §9.2
   production order when the dump carries no type) and give each starting
   citizen its `GATHER` on the building it stands beside by the §9.3 rule
-  (`ordered = 2` on `2001`, the rest on successive farms); the harness's
-  score then moves off 1 for the farm citizens (a straight walk to the
-  centre, then a stand), while the woodcutter's need `gather_from` (which needs
+  (`ordered = 2` on `2001`, the rest on successive farms), and
+  `check_start_orders` compares every derived target against the
+  `GATHERORDER` the original logged — **all ten citizens agree on
+  `gamelog-run4`**. The score does *not* move: the farm citizens stand still
+  in both (placed inside the footprint, arrived, and §6.5 says a farmer does
+  not re-target for ~200 frames), and the woodcutter's need `gather_from` (which needs
   **`BUILDS=7`** — `BuildData::log_data@0062e810:269` puts `gather_from`, the
   `GATHERPOINT` list and `BUILDQUEUE` behind `set_detail(7)`; tier 4 is
   `city`/`gather_down` and tier 6 stops at `orig_type`. The first reading said

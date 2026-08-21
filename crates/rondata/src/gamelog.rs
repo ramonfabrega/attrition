@@ -135,6 +135,11 @@ impl<'a> Log<'a> {
         // The open-block stack, as paths of child indices from the roots, so
         // the tree can be built in place without parent pointers.
         let mut stack: Vec<(usize, usize)> = Vec::new(); // (indent, index in parent's children)
+        // The block most recently closed by a field at its own indent, and
+        // that indent: a *run* of such fields (`leader_flags`,
+        // `leader_flags2`) all belong to it, so it stays associated until the
+        // next `BEGIN`.
+        let mut trailing: Option<(usize, Vec<(usize, usize)>)> = None;
 
         fn open_mut<'b, 'a>(log: &'b mut Log<'a>, stack: &[(usize, usize)]) -> &'b mut Block<'a> {
             let (_, first) = stack[0];
@@ -156,6 +161,7 @@ impl<'a> Log<'a> {
                 while stack.last().is_some_and(|&(i, _)| i >= indent) {
                     stack.pop();
                 }
+                trailing = None;
                 let block = Block {
                     name: name.trim(),
                     indent,
@@ -176,6 +182,51 @@ impl<'a> Log<'a> {
                     Some(p) => (&trimmed[..p], trimmed[p + 1..].trim_start()),
                     None => (trimmed, ""),
                 };
+                // Nothing writes `END` — `Log::end` emits only for a non-empty
+                // name and the order writers all pass the empty string
+                // (`docs/ORDERS.md` §11.1, second reading R7 L5) — so
+                // indentation is the only thing that closes a block, and a
+                // field one level deeper than a `BEGIN` belongs to it.
+                //
+                // **The writers are not consistent, and one shape is
+                // genuinely ambiguous.** A field at *exactly* an open block's
+                // own indent occurs in two forms that indentation cannot tell
+                // apart:
+                //
+                //   BEGIN LEADERDATA   (1)      BEGIN TARGETORDER  (4)
+                //    who 0             (2)       BEGIN UNITORDER   (5)
+                //   leader_flags …     (1)        flags 0          (6)
+                //                                ox 2001           (5)
+                //
+                // `leader_flags` belongs to the `LEADERDATA` it follows; `ox`
+                // belongs to `TARGETORDER`, the *parent* of the `UNITORDER` it
+                // follows. Both are one line at the open block's own indent.
+                //
+                // So the ambiguous field is recorded on **both** candidates:
+                // the enclosing block the indent rule gives, and the block it
+                // just closed. Every reader then finds it where it expects,
+                // and the cost is one duplicated `(key, value)` on a block
+                // that will not be asked for it. A field *shallower* than the
+                // open block is not ambiguous and only closes.
+                let mut closed_same_indent = None;
+                while let Some(&(i, _)) = stack.last() {
+                    if i < indent {
+                        break;
+                    }
+                    if i == indent && closed_same_indent.is_none() {
+                        closed_same_indent = Some(stack.clone());
+                    }
+                    stack.pop();
+                }
+                if closed_same_indent.is_some() {
+                    trailing = closed_same_indent.map(|p| (indent, p));
+                }
+                if let Some((i, path)) = &trailing
+                    && *i == indent
+                {
+                    let path = path.clone();
+                    open_mut(&mut log, &path).fields.push((key, value));
+                }
                 if stack.is_empty() {
                     log.preamble.push((key, value));
                 } else {
@@ -228,6 +279,46 @@ pub struct Guy {
     pub angle: Option<i64>,
 }
 
+/// One entry of a unit's `OrderList`, as `UNITS=3` writes it
+/// (`docs/ORDERS.md` §11.1).
+///
+/// The list is logged **newest first**, so the last block in a unit's dump is
+/// the order being executed. The `type`/`metric` lines sit on the enclosing
+/// `UNITDATA` block rather than inside the order's own block, so they are
+/// paired with the order bodies by position.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct OrderDump {
+    /// `type` — the `OrderIndex` value (`sim::orders::index`).
+    pub index: i64,
+    /// The list node's `metric` byte: written 0, logged, never read.
+    pub metric: i64,
+    /// The block's own name, e.g. `GATHERORDER`, `EXPLORETOORDER`.
+    pub kind: String,
+    /// `UnitOrder::flags` — bit `4` is the action bit.
+    pub flags: i64,
+    /// `TargetOrder`'s three, for the kinds that have them.
+    pub ox: Option<i64>,
+    pub whom: Option<i64>,
+    pub uid: Option<i64>,
+    /// `GATHERORDER`.
+    pub build_type: Option<i64>,
+    pub been_there: Option<i64>,
+    pub goto_build: Option<i64>,
+    pub wait: Option<i64>,
+    /// `MOVEORDER` and its subclasses.
+    pub x: Option<i64>,
+    pub y: Option<i64>,
+    pub dest: Option<i64>,
+}
+
+impl OrderDump {
+    /// The action bit (`UnitOrder::flags & 4`, §1.3): this order is an intent
+    /// rather than a transit leg.
+    pub const fn is_action(&self) -> bool {
+        self.flags & 4 != 0
+    }
+}
+
 /// One unit: the `Object` base plus its members.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct UnitDump {
@@ -237,6 +328,17 @@ pub struct UnitDump {
     pub who: i64,
     pub pos: Pos,
     pub guys: Vec<Guy>,
+    /// The order list, **newest first** as the log writes it — empty below
+    /// `UNITS=3`. [`UnitDump::current_order`] is the one being executed.
+    pub orders: Vec<OrderDump>,
+}
+
+impl UnitDump {
+    /// The order the unit is executing: the **last** block logged, because
+    /// `OrderList::log_data` walks the ring from the tail (§11.1).
+    pub fn current_order(&self) -> Option<&OrderDump> {
+        self.orders.last()
+    }
 }
 
 /// One building: the `Object` base as written under `BUILDDATA`/`WALLDATA`.
@@ -322,8 +424,62 @@ fn object_base(b: &Block<'_>) -> Option<(i64, i64, i64, Pos)> {
     ))
 }
 
+/// The order list of a `UNITDATA` block (§11.1).
+///
+/// `OrderList::log_data` writes, on the *enclosing* block, one `type` and one
+/// `metric` line per order, each followed by the order's own `BEGIN <KIND>`
+/// child. `Block` keeps fields and children in separate vectors, so the
+/// pairing is by position: the k-th `type` belongs to the k-th `*ORDER`
+/// child. Nothing else writes a bare `type` at this level — a `GUY`'s is
+/// inside its own block.
+fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
+    let ints = |k: &str| -> Vec<i64> {
+        b.all(k)
+            .iter()
+            .filter_map(|v| v.trim().parse::<i64>().ok())
+            .collect()
+    };
+    let types = ints("type");
+    let metrics = ints("metric");
+    b.children
+        .iter()
+        .filter(|c| c.name.ends_with("ORDER"))
+        .enumerate()
+        .map(|(i, o)| {
+            // `ox/whom/uid` live on the `TARGETORDER` sub-block and `flags` on
+            // `UNITORDER`, both reached depth-first; the kind's own fields are
+            // on the outer block. A field shallower than the open block's
+            // indent closes it, which is what puts `ox` on `TARGETORDER`
+            // rather than on `UNITORDER` (§11.1's third trap).
+            let target = o.find("TARGETORDER");
+            let unit_order = o.find("UNITORDER");
+            OrderDump {
+                index: types.get(i).copied().unwrap_or(-1),
+                metric: metrics.get(i).copied().unwrap_or(0),
+                kind: o.name.to_string(),
+                flags: unit_order.and_then(|u| u.int("flags")).unwrap_or(0),
+                ox: target.and_then(|t| t.int("ox")),
+                whom: target.and_then(|t| t.int("whom")),
+                uid: target.and_then(|t| t.int("uid")),
+                build_type: o.int("build_type"),
+                been_there: o.int("been_there"),
+                goto_build: o.int("goto_build"),
+                wait: o.int("wait"),
+                x: o.find("MOVEORDER")
+                    .map_or_else(|| o.int("x"), |m| m.int("x")),
+                y: o.find("MOVEORDER")
+                    .map_or_else(|| o.int("y"), |m| m.int("y")),
+                dest: o
+                    .find("MOVEORDER")
+                    .map_or_else(|| o.int("dest"), |m| m.int("dest")),
+            }
+        })
+        .collect()
+}
+
 fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
     let (flags, o, who, pos) = object_base(b)?;
+    let orders = orders_of(b);
     let guys = b
         .kids("GUY")
         .map(|g| Guy {
@@ -341,6 +497,7 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
         who,
         pos,
         guys,
+        orders,
     })
 }
 
