@@ -59,6 +59,20 @@ on the map *now*", cut the last frame out of the growing log and look at it:
 answer to "was the site disbanded?". Object numbers are **per player** — units
 from 0, buildings from 2000 — so an object is (kind, who, o), never o alone.
 
+## Combat
+
+    hits.py frames.txt        every damage increment, with the flank geometry
+    trace.py frames.txt 1 48  one unit's damage/frac/hits/angle, changes only
+    heading.py frames.txt 0 8 is `angle` the direction of travel?
+
+`hits.py` prints the increment in **sixteenths** (`damage*16 + damage_frac`),
+the victim's `angle`, the attacker named by `damage_o`/`damage_who`, and
+`d = victim.angle − find_angle(victim − attacker)` in degrees, which is the
+quantity `docs/COMBAT.md` §6 step 19 branches on. The attribution is only as
+good as `damage_o`, and **`damage_o` does not update per hit** — a tower's
+arrows arrive labelled with whichever unit last set the field — so a
+measurement wants exactly one damage source on the target.
+
 ## Driving the game
 
 `cheat.sh X Y "<rest of the cheat line>"` aims the mouse at `X,Y` (the tile

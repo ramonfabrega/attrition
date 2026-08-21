@@ -23,8 +23,21 @@ A, B, C, D = (float(v) for v in sys.argv[1:5])
 rest = sys.argv[5:]
 
 origin = None
-if rest and rest[0] == "--from":
-    origin = tuple(int(v) for v in rest[1].split(","))
+while rest and rest[0].startswith("--"):
+    if rest[0] == "--from":
+        origin = tuple(int(v) for v in rest[1].split(","))
+    elif rest[0] == "--cam":
+        # `cheat camera a,b` centres the viewport on tile (4a+3, 4b+3), so C and
+        # D follow from the viewport centre and A/B alone — no re-probe after a
+        # camera move. CX/CY is the centre of the game's map viewport in desktop
+        # points; re-measure it if the window moves.
+        CX, CY = 1718.8, 633.4
+        ca, cb = (int(v) for v in rest[1].split(","))
+        cx, cy = (4 * ca + 3) * 192, (4 * cb + 3) * 192
+        C = CX - A * (cx - cy)
+        D = CY - B * (cx + cy)
+    else:
+        raise SystemExit("bad flag " + rest[0])
     rest = rest[2:]
 
 

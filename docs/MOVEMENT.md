@@ -86,6 +86,17 @@ Note that **y increases southward** — `find_angle` negates its `dy` before
 doing anything else, which is the screen convention showing through into the
 simulation.
 
+**Confirmed in a logged run (2026-08-20), and it settles a question in another
+document.** `UnitData +0x50 angle` is the direction the unit *faces*, and a
+walking unit faces where it is going: read frame by frame at `UNITS=3`, a
+squad stepping south-east logged `angle` 133.90° falling to 133.45° against a
+per-frame position delta whose `find_angle` is exactly 135.00°, and one
+stepping north-west logged −43.20° rising to −42.85° against −45.00°. The
+heading quantises to the diagonal because the step does; the facing sits about
+two degrees off it and drifts smoothly, which is a unit turning as it walks.
+`tools/gamelog/heading.py` is the reader. `docs/COMBAT.md` §14.1 rested its
+flank convention on exactly this, and it is what makes level 1 the rear.
+
 Degrees do appear in one place: the data. A type's `<TURN_SPEED>` is written
 in degrees and converted once at load by `degrees_to_angle`, which is not a
 multiply by 2³²/360 but a decomposition into exact pieces — quarter turns of

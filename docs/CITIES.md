@@ -1667,6 +1667,22 @@ heal, ejection), then the sites' `construct_hits` refresh.
     out terrain and territory. `docs/ORACLE.md`, "A scripted placement test",
     has the whole recipe including how to aim the click.
 
+    **The garrison-heal one was attempted the same day and is still open**,
+    for a reason worth writing down: *there is no way found yet to put a unit
+    inside a building from a script.* The cheat vocabulary has no garrison
+    verb; a right-click on one's own city with a citizen selected produced a
+    gather order and on a tower with an infantry squad a plain move order,
+    both confirmed by `orders_x/y` in the log; the panel's garrison button
+    (row 4, column 2) left `inside_up` at −1 whether clicked alone or followed
+    by a click on the target building. What the attempt did show, incidentally
+    and not from the garrison branch at all, is that **a damaged unit merely
+    standing near a friendly city heals** — a citizen at 20 damage lost a
+    point every few frames with `inside_up = −1` and `healing` set — which is
+    one of the six branches of `Unit::process_healing` that `docs/SUPPLY.md`
+    lists as underived. The remaining route to the garrison branch is
+    `Build::train`, which leaves a trained unit inside when the rally point is
+    the building itself (§6.8), reached by `cheat finish` on a queued unit.
+
 ---
 
 ## 13. Second reading (2026-08-20) — landed

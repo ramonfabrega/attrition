@@ -820,6 +820,15 @@ both axes is a `v` error and no `u` error, so it moves `screen_y` alone by
 footprint — and its `tile(x)` is still the cursor tile, which is what the
 spacing loop compares.
 
+**Then the camera is free.** `cheat camera a,b` centres the viewport on tile
+`(4a + 3, 4b + 3)` — the same `× 4 + 3` the `add` coordinates use, one further
+than the `+ 2` an *object* lands on, because the object is placed at a cell
+centre and the camera at a tile. So `C` and `D` follow from the viewport
+centre and `A`/`B` alone and there is no need to re-probe after moving:
+`C = cx − A(x_cam − y_cam)`, `D = cy − B(x_cam + y_cam)`, with the viewport
+centre measured once. `tools/gamelog/aim.py --cam a,b` does it, and it
+reproduces both probe-calibrated points exactly.
+
 **Put the builder where you want it.** `cheat move <o> cursor` teleports a unit
 to the mouse tile (`find_nearby_spot` + `set_new_location`), so one citizen can
 be reused for every trial instead of walking it across the map or adding a new
@@ -850,6 +859,20 @@ cheat.sh <sx> <sy> "add NEW city"      # the test
 rclick 7 <sx> <sy>
   ... the record disappears            = refused;  flags 33 → 35 = allowed
 ```
+
+**Verify that every cheat landed.** Three `add` lines in a row did nothing at
+all — no object, no camera move — and then the identical line worked a minute
+later, so the failure is the chat box not opening rather than anything about
+the command. Nothing distinguishes "the cheat was refused" from "the cheat
+never arrived" except reading the state back, so read it back after every step
+that the next step depends on. Two `cheat` syntaxes also matter: **`damage`
+wants `select`** (`cheat select <o>` then `cheat damage select +20`; the bare
+`cheat damage <o> +20` and `<o>,<who>` forms left `damage` at 0 on a unit),
+and **`die` wants the owner** (`cheat die <o>,<who>`; the bare form removed an
+unstarted site and did nothing to a started one). `add`'s type name is matched
+against the **displayed** name, not the `TYPENAME` — `citizen` reaches
+`PEASANTS`, `hoplite` reaches `HOPLITES` — and `add 1 hoplite` placed *three*
+squads, so the leading number is not the count it looks like.
 
 Two things that surprised the run. **The chat box pauses the simulation**: the
 clock reads `PAUSED` for as long as it is open and resumes when the line is

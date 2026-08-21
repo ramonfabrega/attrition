@@ -50,9 +50,11 @@ recharge cadence and its decrement, the melee and projectile paths,
 reload and arrows, the combat table's *structure* and the RNG. High for the
 hardcoded `type_damage` rules as a list (§5), medium for their completeness:
 there are around a hundred multiplicative steps and each was read once.
-Medium for the flank direction (§6 step 19 — the arithmetic is certain, which
-side counts as the rear is a convention the decompile does not settle) and
-for three virtual calls whose argument the decompiler dropped (noted inline).
+The flank direction (§6 step 19) was medium and is now **high**: the
+arithmetic was always certain and the convention it rested on — that a unit's
+`angle` is its facing — is measured in a logged run (§14.1), so level 1 is the
+rear. Medium for three virtual calls whose argument the decompiler dropped
+(noted inline).
 Medium for target selection (§12), read by a second reader and adjudicated.
 Everything open is listed at the end.
 
@@ -1390,15 +1392,48 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
 
 ## 14. Open questions
 
-1. **The flank direction.** §6 step 19 is arithmetic; whether level 1 (`d`
-   within ±45° of zero) is "attacked from behind" depends on whether a unit's
-   `angle` is the direction it faces and `find_angle(T − A)` is the direction
-   A→T, both as `docs/MOVEMENT.md` reads them. If so, rear ×1.5 and side ×2.0
-   at the shipped 50 — and `rules.xml`'s own gloss, "per level of flank (max
-   bonus is twice this number)", is silent on which level is which. A
-   behavioural check: one hoplite squad attacked by an identical squad from
-   directly behind and from the flank, damage per hit read from the `Log`
-   system (`docs/ORACLE.md`).
+1. ~~**The flank direction.**~~ **Settled at the premise, 2026-08-20.** The
+   arithmetic was never in doubt; what it rested on was whether a unit's
+   `angle` is the direction it *faces*. It is. A logged run
+   (`docs/ORACLE.md`; `UNITS=3` under `[End Frame]`) was read frame by frame
+   for a walking squad, comparing the logged `angle` against `find_angle` of
+   its own per-frame position delta (`tools/gamelog/heading.py`):
+
+   | frames | step | `angle` | heading | difference |
+   | --- | --- | --- | --- | --- |
+   | 11115–11129 | 25.5 | 133.90 → 133.45 | 135.00 | −1.1 … −1.6 |
+   | 11130–11135 | 28.3 | −43.20 → −42.85 | −45.00 | +1.8 … +2.2 |
+
+   The heading quantises to the diagonal because the step does; `angle` sits
+   within about two degrees of it and drifts smoothly, which is a unit walking
+   forwards and turning as it goes. So `angle` is the facing, and with §8.4's
+   `angle` argument — the attacker's facing toward the target — `d` near zero
+   means the target's facing points **along** the direction the attack
+   travels, i.e. away from the attacker. **Level 1 is the rear**, and at the
+   shipped `FLANK_BONUS` of 50 the rear is ×1.5 and the side ×2.0.
+
+   That the side bonus exceeds the rear one still reads oddly, so the
+   confirming measurement is worth having and is **not** done: the damage
+   ratio itself, one attacker on one target, from behind and from the front.
+   The instrumentation exists — `tools/gamelog/hits.py` prints every damage
+   increment in sixteenths with the victim's angle, the attacker, and the
+   computed `d` — and it was run, but on a melee with a tower and six squads
+   in it, where increments could not be attributed to a single attacker
+   (`damage_o`/`damage_who` name a last damager that does not update per hit,
+   so a tower's arrows arrive labelled with a hoplite). The setup that will
+   work: the target already engaged with an unarmed unit of the measurer's, so
+   it faces *that*, and exactly one attacker striking it from a chosen
+   bearing, moved between trials with `cheat move <o> cursor` — the target's
+   facing is then fixed by its own fight and `d` is set by where the attacker
+   stands.
+
+   *What the question was, before the check.* §6 step 19 is arithmetic;
+   whether level 1 (`d` within ±45° of zero) is "attacked from behind"
+   depended on whether a unit's `angle` is the direction it faces and
+   `find_angle(T − A)` is the direction A→T, both as `docs/MOVEMENT.md` reads
+   them — and `rules.xml`'s own gloss, "per level of flank (max bonus is twice
+   this number)", is silent on which level is which.
+
 2. **Whose mask the cavalry/vehicle flank reduction reads** — the attacker's
    is taken; the register was lost.
 3. **`unit_masks & 0x10` and `0x400000`** (the ×2 in `do_damage` step 2 and

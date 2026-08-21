@@ -228,6 +228,20 @@ better, in which case say so and take that.
    attrition step needs attrition to actually happen, since `anti_att` sits
    at its base until `calc_attrition` runs (`docs/ATTRITION.md`).
 
+   **The flank convention is settled** (2026-08-20, `docs/COMBAT.md` §14.1),
+   not by measuring damage but by measuring the premise the reading rested
+   on: `UnitData.angle` is the facing, confirmed frame by frame against a
+   walking squad's own position deltas (`docs/MOVEMENT.md`), so level 1 is the
+   rear and at the shipped `FLANK_BONUS` the rear is ×1.5 and the side ×2.0.
+   The damage-ratio confirmation is still worth having and the instrumentation
+   for it is in `tools/gamelog/hits.py`; what it needs is one damage source on
+   the target, since `damage_o` does not update per hit.
+
+   **The garrison-heal check is attempted and still open**: no way was found
+   to put a unit inside a building from a script — not the right-click, not
+   the panel button — and the remaining route is `Build::train` plus
+   `cheat finish` (`docs/CITIES.md` §15).
+
    **The city-spacing check is run and landed** (2026-08-20, `docs/CITIES.md`
    §2.6.2): a city is refused at exactly 24 tiles and starts at 25, on two
    bearings. With it came the method for every remaining `blocked_site`
