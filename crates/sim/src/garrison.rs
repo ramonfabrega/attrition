@@ -11,7 +11,7 @@ use crate::attrition::Domain;
 use crate::build::{self, Ident, flags};
 use crate::combat::Obj;
 use crate::world::{Pos, UNITS_PER_TILE};
-use crate::{Job, Player, Sim};
+use crate::{Player, Sim};
 
 /// What a unit type needs in order to garrison — the columns of
 /// `unitrules.xml` `UnitTypeData::can_garrison` reads.
@@ -244,27 +244,11 @@ impl Sim {
         Ok(())
     }
 
-    /// Gives a unit a garrison order: it walks to the building and tries to
-    /// enter each frame; the order dies on any refusal but adjacency.
+    /// Gives a unit a garrison order, as the player issues it: it walks to
+    /// the building and tries to enter each frame; the order dies on any
+    /// refusal but adjacency (`docs/ORDERS.md` §5.7).
     pub fn order_garrison(&mut self, unit: usize, b: usize) {
-        self.units[unit].job = Some(Job::Garrison(b));
-    }
-
-    /// The per-frame step of a garrison order. Returns whether the unit had
-    /// one.
-    pub(crate) fn process_garrison_job(&mut self, i: usize) -> bool {
-        let Some(Job::Garrison(b)) = self.units[i].job else {
-            return false;
-        };
-        match self.garrison(i, b) {
-            Ok(()) => self.units[i].job = None,
-            Err(GarrisonRefused::NotAdjacent) => {
-                let dest = self.buildings[b].pos;
-                self.units[i].movement.dest = Some(dest);
-            }
-            Err(_) => self.units[i].job = None,
-        }
-        true
+        self.add_garrison_order(unit, b, false, crate::orders::QueuePos::New, true);
     }
 
     /// `Unit::go_inside`: the whole squad goes in, appended at the bottom.
@@ -277,7 +261,6 @@ impl Sim {
             u.movement.dest = None;
             u.combat.target = None;
             u.combat.mandatory = false;
-            u.job = None;
         }
         if !self.buildings[b].garrison.contains(&captain) {
             self.buildings[b].garrison.push(captain);

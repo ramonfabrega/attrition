@@ -16,7 +16,7 @@ use crate::economy::RESOURCES;
 use crate::place::Blocked;
 use crate::territory;
 use crate::world::{Owner, Pos, UNITS_PER_TILE, tile, vector_dist};
-use crate::{Building, Job, Player, Sim};
+use crate::{Building, Player, Sim};
 
 /// The nation, wonder and tech inputs this mechanic reads per player — the
 /// `has_tribe_bonus`, `has_wonder` and `has_preq` answers, as inputs until
@@ -227,11 +227,6 @@ pub const fn pop_value(level: i32) -> i32 {
 /// How close a builder must stand: its tile within one tile of the
 /// footprint (on it counts too, since movement here does not path around
 /// buildings) — `docs/CITIES.md` §11.
-fn adjacent(corner: Pos, xs: i32, ys: i32, at: Pos) -> bool {
-    let t = at.tile();
-    t.x >= corner.x - 1 && t.x <= corner.x + xs && t.y >= corner.y - 1 && t.y <= corner.y + ys
-}
-
 impl Sim {
     // ------------------------------------------------------------------
     // Small accessors
@@ -494,11 +489,9 @@ impl Sim {
             }
             self.die_building(b);
         }
-        for u in &mut self.units {
-            if u.owner == who {
-                u.job = None;
-                u.combat.target = None;
-                u.movement.dest = None;
+        for u in 0..self.units.len() {
+            if self.units[u].owner == who {
+                self.clear_orders(u);
             }
         }
     }
@@ -867,6 +860,15 @@ impl Sim {
             clock: build::ClockMods::default(),
             hit_frame: None,
             fort_source: None,
+            gatherers: Vec::new(),
+            gather_max: if self.build_types[ty].has(build::flags::FLAT) {
+                Some(1)
+            } else {
+                None
+            },
+            gather_from: Vec::new(),
+            gather_bumped: false,
+            farm: crate::Farm::default(),
         });
         // `start_me(1)`: reserve the footprint.
         let corner = self.tile_corner(ty, pos);
@@ -1212,11 +1214,7 @@ impl Sim {
             return;
         }
         let who = self.buildings[b].owner;
-        for u in &mut self.units {
-            if matches!(u.job, Some(Job::Build(at)) if at == b) {
-                u.job = None;
-            }
-        }
+        // The builders' orders die in `Unit::work`'s liveness test, not here.
         let mut full = full;
         if self.nation[who as usize].lakota && self.tuning.lakota_raze_price != 0 {
             full = true;
@@ -1290,11 +1288,6 @@ impl Sim {
         self.wall_stats_dirty[who as usize] = true;
         self.removed.push(b);
         self.forget(Obj::Building(b));
-        for u in &mut self.units {
-            if matches!(u.job, Some(Job::Build(at) | Job::Repair(at)) if at == b) {
-                u.job = None;
-            }
-        }
         if self.building_is_city(b) {
             if let Some(c) = self.buildings[b].city
                 && self.cities[c].alive
@@ -1441,114 +1434,64 @@ impl Sim {
         }
     }
 
-    /// `Unit::do_build` / `Unit::do_repair`: one unit's job for one frame.
-    /// Returns whether the unit had a job (and so did not fight).
-    pub(crate) fn process_unit_job(&mut self, i: usize, frame: i64) -> bool {
-        let Some(job) = self.units[i].job else {
-            return false;
-        };
+    /// The repair arithmetic of `Unit::do_repair` once the repairer stands
+    /// adjacent — `docs/CITIES.md` §9.3: the period, the helper count, the
+    /// amount, the price, `Build::repair_damage`. The order side is
+    /// `orders::do_repair`.
+    pub(crate) fn repair_step(&mut self, i: usize, at: usize, frame: i64) {
         let who = self.units[i].owner;
-        let at = match job {
-            Job::Build(at) | Job::Repair(at) => at,
-            Job::Garrison(_) => return false,
+        let Some(ty) = self.buildings[at].ty else {
+            self.kill_current_order(i);
+            return;
         };
-        if at >= self.buildings.len() || !self.buildings[at].alive {
-            self.units[i].job = None;
-            return true;
-        }
-        let (bpos, ty) = (self.buildings[at].pos, self.buildings[at].ty);
-        let Some(ty) = ty else {
-            self.units[i].job = None;
-            return true;
-        };
-        let corner = self.tile_corner(ty, bpos);
-        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
-        match job {
-            Job::Build(_) => {
-                if self.buildings[at].active {
-                    self.units[i].job = None;
-                    return true;
-                }
-                if !adjacent(corner, xs, ys, self.units[i].pos) {
-                    self.units[i].movement.dest = Some(bpos);
-                    return true;
-                }
-                self.units[i].movement.dest = None;
-                let amount = build::builder_amount(
-                    &self.tuning,
-                    self.buildings[at].is_under_attack(),
-                    self.nation[who as usize].koreans,
-                );
-                if self.do_construct(at, amount) {
-                    self.units[i].job = None;
-                }
+        let bd = &self.buildings[at];
+        let (city, captured) = match bd.city {
+            Some(c) if self.building_is_city(at) && self.cities[c].alive => {
+                (true, self.cities[c].race != Some(bd.owner))
             }
-            Job::Garrison(_) => return false,
-            Job::Repair(_) => {
-                let bd = &self.buildings[at];
-                let owner_ok = bd.owner == who || self.is_ally(who, bd.owner);
-                let terr_ok =
-                    !matches!(self.world.owner_at(bpos), Owner::Player(p) if self.is_enemy(who, p));
-                if !owner_ok || !bd.active || bd.is_under_attack() || !terr_ok || bd.damage == 0 {
-                    self.units[i].job = None;
-                    return true;
-                }
-                if !adjacent(corner, xs, ys, self.units[i].pos) {
-                    self.units[i].movement.dest = Some(bpos);
-                    return true;
-                }
-                self.units[i].movement.dest = None;
-                let (city, captured) = match bd.city {
-                    Some(c) if self.building_is_city(at) && self.cities[c].alive => {
-                        (true, self.cities[c].race != Some(bd.owner))
-                    }
-                    _ => (false, false),
-                };
-                let target = build::RepairTarget {
-                    helpers: bd.helpers,
-                    construct_time: self.construct_time_of(at),
-                    hits: bd.hits_now(),
-                    city,
-                    captured,
-                    under_attack: bd.is_under_attack(),
-                    fresh_hit: bd.under_attack & 0x1 != 0,
-                };
-                let period =
-                    build::repair_period(&self.tuning, &target, self.nation[who as usize].koreans);
-                self.buildings[at].helpers += 1;
-                let amount = build::repair_amount(frame, period, self.buildings[at].damage);
-                if amount == 0 {
-                    return true;
-                }
-                // The price, again: one unit of a good whenever the repaired
-                // figure crosses a multiple of `hits / cost`. Pinned as the
-                // exact rational.
-                let hits = i64::from(self.buildings[at].hits_now());
-                let left = i64::from(hits as i32 - self.buildings[at].damage);
-                let price = self.building_price(who, ty);
-                let mut due = [0i32; RESOURCES];
-                for (g, p) in price.iter().enumerate() {
-                    if *p <= 0 || hits <= 0 {
-                        continue;
-                    }
-                    let before = left * i64::from(*p) / hits;
-                    let after = (left + i64::from(amount)) * i64::from(*p) / hits;
-                    if after > before {
-                        due[g] = 1;
-                    }
-                }
-                let ledger = &mut self.ledgers[who as usize];
-                if due.iter().enumerate().any(|(g, d)| *d > ledger.bucket[g]) {
-                    self.units[i].job = None;
-                    return true;
-                }
-                for (g, d) in due.iter().enumerate() {
-                    ledger.bucket[g] -= d;
-                }
-                self.repair_building(at, amount);
+            _ => (false, false),
+        };
+        let target = build::RepairTarget {
+            helpers: bd.helpers,
+            construct_time: self.construct_time_of(at),
+            hits: bd.hits_now(),
+            city,
+            captured,
+            under_attack: bd.is_under_attack(),
+            fresh_hit: bd.under_attack & 0x1 != 0,
+        };
+        let period = build::repair_period(&self.tuning, &target, self.nation[who as usize].koreans);
+        self.buildings[at].helpers += 1;
+        let amount = build::repair_amount(frame, period, self.buildings[at].damage);
+        if amount == 0 {
+            return;
+        }
+        // The price, again: one unit of a good whenever the repaired
+        // figure crosses a multiple of `hits / cost`. Pinned as the
+        // exact rational.
+        let hits = i64::from(self.buildings[at].hits_now());
+        let left = i64::from(hits as i32 - self.buildings[at].damage);
+        let price = self.building_price(who, ty);
+        let mut due = [0i32; RESOURCES];
+        for (g, p) in price.iter().enumerate() {
+            if *p <= 0 || hits <= 0 {
+                continue;
+            }
+            let before = left * i64::from(*p) / hits;
+            let after = (left + i64::from(amount)) * i64::from(*p) / hits;
+            if after > before {
+                due[g] = 1;
             }
         }
-        true
+        let ledger = &mut self.ledgers[who as usize];
+        if due.iter().enumerate().any(|(g, d)| *d > ledger.bucket[g]) {
+            self.kill_current_order(i);
+            return;
+        }
+        for (g, d) in due.iter().enumerate() {
+            ledger.bucket[g] -= d;
+        }
+        self.repair_building(at, amount);
     }
 
     // ------------------------------------------------------------------

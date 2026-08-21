@@ -166,6 +166,15 @@ fn spawn(sim: &mut Sim, owner: Player, ty: usize, pos: Pos) -> usize {
     let mut u = Unit::new(owner, index, pos, hits);
     u.ty = Some(ty);
     u.kind = sim.unit_types[ty].kind;
+    // A citizen's speed and turning, so the walk to a site is the
+    // original's 25 a frame.
+    u.movement.speed = 25;
+    u.movement.turning = movement::Turning {
+        type_turn_speed: movement::degrees_to_angle(45).0,
+        packed: false,
+        instant_from_stop: true,
+        wide_limit: false,
+    };
     sim.add_unit(u)
 }
 
@@ -379,21 +388,40 @@ fn one_builder_finishes_a_barracks_in_job_time_frames_and_the_site_grows() {
         frames += 1;
         assert!(frames < 1000);
     }
-    assert_eq!(frames, 420, "JOB_TIME frames at ACCEL_CONSTRUCT 1/1");
+    // A builder standing on the footprint walks off it first — `do_build`
+    // kills itself and `action_swarm_around` re-queues an approach to the
+    // ring `min(xs, ys) × 96 + 48`, nudged 48 further out (`docs/ORDERS.md`
+    // §5.2, §5.4): one frame for that, sixteen to walk the 384 units at 25 a
+    // frame, one for the build order to be current again — eighteen — and
+    // then `JOB_TIME` frames at `ACCEL_CONSTRUCT` 1/1.
+    assert_eq!(
+        frames,
+        420 + 18,
+        "the walk off the footprint, then JOB_TIME"
+    );
     assert!(sim.buildings[b].started);
     assert_eq!(sim.buildings[b].hits, 1200);
     assert_eq!(sim.buildings[b].health, 1200);
-    assert_eq!(sim.units[u].job, None, "the order ends with the building");
+    assert!(
+        sim.units[u].orders.is_empty()
+            || !matches!(sim.units[u].orders[0].body, crate::orders::Body::Build(_)),
+        "the order ends with the building"
+    );
     // Midway the site was at about half health.
     let b2 = sim.place_building(0, t.barracks, tile_pos(46, 40)).unwrap();
     sim.order_build(u, b2);
+    // Put the citizen — and its body, which would otherwise chase it across
+    // six tiles and slow its turn — on the new site.
     sim.units[u].pos = tile_pos(46, 40);
+    sim.units[u].movement.body.pos = tile_pos(46, 40);
     for _ in 0..210 {
         sim.tick();
     }
-    assert_eq!(sim.buildings[b2].job_counter, 21_000);
+    // Eighteen frames to walk off the footprint again, then 100 a frame;
+    // the site's hit points follow the progress (`docs/CITIES.md` §3.4).
+    assert_eq!(sim.buildings[b2].job_counter, (210 - 18) * 100);
     assert!(
-        (595..=600).contains(&sim.buildings[b2].construct_hits),
+        (545..=550).contains(&sim.buildings[b2].construct_hits),
         "{}",
         sim.buildings[b2].construct_hits
     );
@@ -416,7 +444,13 @@ fn two_builders_are_one_and_a_half_builders() {
         frames += 1;
         assert!(frames < 1000);
     }
-    assert_eq!(frames, 280, "42000 / (100 + 50) a frame");
+    // The same eighteen-frame walk off the footprint for both, then
+    // `42000 / (100 + 50)` a frame.
+    assert_eq!(
+        frames,
+        280 + 18,
+        "the walk, then 42000 / (100 + 50) a frame"
+    );
 }
 
 #[test]
@@ -989,4 +1023,209 @@ fn the_bare_building_of_the_earlier_mechanics_is_untouched() {
     assert_eq!(sim.buildings[b].ty, None);
     assert_eq!(sim.cities.len(), 0);
     let _ = UNITS_PER_CELL;
+}
+
+// ----------------------------------------------------------------------
+// Orders — `docs/ORDERS.md`
+// ----------------------------------------------------------------------
+
+use crate::orders::{Body, MoveKind, QueuePos, Worker};
+
+/// `QUEUE_LAST` appends, `QUEUE_FIRST` rotates the new order to the front,
+/// `QUEUE_NEW` replaces everything (§1.5).
+#[test]
+fn the_three_queue_modes_append_rotate_and_replace() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    // On a quarter-tile centre, so a move due east is exactly east.
+    let at = tile_pos(20, 20);
+    let u = spawn(&mut sim, 0, citizen, Pos::new(at.x + 24, at.y + 24));
+    sim.order_move(u, tile_pos(21, 20));
+    assert_eq!(sim.units[u].orders.len(), 1);
+    let first = sim.units[u].orders[0];
+    sim.add_move_order(u, tile_pos(22, 20), MoveKind::MoveTo, QueuePos::Last, true);
+    assert_eq!(sim.units[u].orders.len(), 2);
+    assert_eq!(
+        sim.units[u].orders[0], first,
+        "QUEUE_LAST leaves the current order"
+    );
+    sim.add_move_order(
+        u,
+        tile_pos(23, 20),
+        MoveKind::MoveTo,
+        QueuePos::First,
+        false,
+    );
+    assert_eq!(sim.units[u].orders.len(), 3);
+    assert!(
+        matches!(sim.units[u].orders[0].body, Body::Move(m) if m.dest.x == tile_pos(23, 20).x.div_euclid(48) * 48 + 24),
+        "QUEUE_FIRST runs now"
+    );
+    assert_eq!(
+        sim.units[u].orders[1], first,
+        "and the old current resumes after it"
+    );
+    sim.order_move(u, tile_pos(24, 20));
+    assert_eq!(
+        sim.units[u].orders.len(),
+        1,
+        "QUEUE_NEW replaces everything"
+    );
+    // Every destination is a quarter-tile centre, and the facing to apply
+    // on arrival is the direction at order time (§4.1).
+    let Body::Move(m) = sim.units[u].orders[0].body else {
+        panic!()
+    };
+    assert_eq!(m.dest.x.rem_euclid(48), 24);
+    assert_eq!(m.dest.y.rem_euclid(48), 24);
+    assert_eq!(m.angle, movement::Angle::EAST);
+}
+
+/// The dump's starting citizen (§4.8, §6.3): a gather order on a farm joins
+/// the chain at once, queues the walk inside its own step (so the unit
+/// stands that frame), steps the next, arrives at the farm's centre, and
+/// counts for the economy only from `been_there`.
+#[test]
+fn a_citizen_with_a_gather_order_walks_to_the_farm_and_then_counts() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let farm = sim.place_building(0, t.farm, tile_pos(40, 32)).unwrap();
+    finish(&mut sim, farm);
+    assert!(sim.buildings[farm].active);
+    assert_eq!(
+        sim.buildings[farm].gather_max,
+        Some(1),
+        "a flat type has one slot"
+    );
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    sim.unit_types[citizen].worker = Worker::Citizen;
+    // Beside the farm, off its footprint: four tiles east of the centre.
+    let u = spawn(&mut sim, 0, citizen, tile_pos(44, 32));
+    sim.add_gather_order(u, farm, QueuePos::New, false);
+    assert!(sim.is_gathered_by(farm, u), "the chain is joined at issue");
+    assert_eq!(sim.num_gatherers(farm, false, false), 1);
+    assert_eq!(
+        sim.num_gatherers(farm, true, true),
+        0,
+        "not arrived: the economy's count is 0"
+    );
+
+    let start = sim.units[u].pos;
+    sim.tick(); // the gather step queues the walk; nothing moves
+    assert_eq!(sim.units[u].pos, start);
+    assert_eq!(sim.units[u].orders.len(), 2);
+    assert!(matches!(sim.units[u].orders[0].body, Body::Move(_)));
+    assert!(matches!(sim.units[u].orders[1].body, Body::Gather(_)));
+    sim.tick(); // the move steps
+    assert_ne!(
+        sim.units[u].pos, start,
+        "the inserted move runs from the next frame"
+    );
+
+    let mut frames = 2;
+    while sim.units[u].orders.len() == 2 {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 100);
+    }
+    // Arrived at the farm's centre — the 48-snapped centre — with the gather
+    // order current again; it runs its own step the next frame.
+    let centre = sim.buildings[farm].pos;
+    let snapped = Pos::new(
+        centre.x.div_euclid(48) * 48 + 24,
+        centre.y.div_euclid(48) * 48 + 24,
+    );
+    assert_eq!(sim.units[u].pos, snapped);
+    assert!(matches!(sim.units[u].orders[0].body, Body::Gather(g) if !g.been_there));
+    sim.tick();
+    assert!(matches!(sim.units[u].orders[0].body, Body::Gather(g) if g.been_there));
+    assert_eq!(
+        sim.num_gatherers(farm, true, true),
+        1,
+        "now the economy counts it"
+    );
+    assert!(sim.ledgers[0].dirty, "and the rate is marked stale");
+    // A second citizen finds the farm full and gives the order up for a
+    // THINK.
+    let v = spawn(&mut sim, 0, citizen, tile_pos(44, 33));
+    sim.add_gather_order(v, farm, QueuePos::New, false);
+    assert!(!sim.is_gathered_by(farm, v), "no room: refused at issue");
+    sim.tick();
+    assert!(!matches!(
+        sim.units[v].orders.front().map(|o| o.body),
+        Some(Body::Gather(_))
+    ));
+}
+
+/// A move within four world cells on open ground never asks the pathfinder
+/// and draws nothing; one beyond draws the grid threshold from the sync
+/// stream exactly once, on its first step (§4.4).
+#[test]
+fn a_near_move_draws_no_rng_and_a_far_move_draws_once() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
+    let seed = sim.rng.seed;
+    sim.order_move(u, tile_pos(24, 20)); // one cell
+    for _ in 0..40 {
+        sim.tick();
+    }
+    assert!(sim.units[u].orders.is_empty(), "arrived");
+    assert_eq!(sim.rng.seed, seed, "a near move draws nothing");
+    let before = sim.units[u].pos;
+    sim.order_move(u, tile_pos(44, 20)); // five cells
+    sim.tick();
+    let mut probe = combat::Rng::new(seed);
+    probe.roll();
+    assert_eq!(
+        sim.rng.seed, probe.seed,
+        "a far move draws once, on its first step"
+    );
+    assert_ne!(sim.units[u].pos, before, "and steps that frame");
+    for _ in 0..200 {
+        sim.tick();
+    }
+    assert!(
+        sim.units[u].orders.is_empty(),
+        "the straight-line stand-in arrives"
+    );
+    assert_eq!(sim.rng.seed, probe.seed, "and draws nothing more");
+}
+
+/// `find_nearby_spot` starts its sweep on the unit's side of the target and
+/// refuses the target's own footprint (§10).
+#[test]
+fn the_spot_search_starts_on_the_units_side_and_keeps_off_the_footprint() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let east = spawn(&mut sim, 0, citizen, tile_pos(46, 40));
+    let site = sim.buildings[b].pos;
+    let here = sim.units[east].pos;
+    let angle = movement::find_angle(here.x - site.x, here.y - site.y);
+    let spot = sim
+        .find_nearby_spot(east, site, 3 * 0x60 + 0x30, 0, -1, angle, Some(b))
+        .expect("open ground has a spot");
+    assert!(spot.x > site.x, "east of the site: {spot:?}");
+    assert_eq!(
+        spot.y,
+        site.y.div_euclid(48) * 48 + 24,
+        "on the unit's bearing"
+    );
+    assert!(!sim.covers_tile(b, spot.tile()));
+    // From the centre itself, radius 0 is one candidate — the footprint — and
+    // is refused; the same point with no footprint to refuse is accepted.
+    assert_eq!(
+        sim.find_nearby_spot(east, site, 0, 0, 0, angle, Some(b)),
+        None
+    );
+    assert!(
+        sim.find_nearby_spot(east, site, 0, 0, 0, angle, None)
+            .is_some()
+    );
 }

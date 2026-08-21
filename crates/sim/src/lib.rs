@@ -45,6 +45,7 @@ pub mod economy;
 pub mod fight;
 pub mod garrison;
 pub mod movement;
+pub mod orders;
 pub mod place;
 pub mod production;
 pub mod supply;
@@ -131,19 +132,33 @@ pub struct Unit {
     /// The hit points a whole figure carries, what the garrison heal repairs
     /// up to.
     pub max_health: i32,
-    /// The construction or repair order the unit is working, if any.
-    pub job: Option<Job>,
-}
-
-/// A builder's order — `Unit::do_build` or `Unit::do_repair` on a building.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Job {
-    /// `BUILD_AT`: walk to the site and advance it.
-    Build(usize),
-    /// `REPAIR`: walk to the building and mend it, paying its price again.
-    Repair(usize),
-    /// `GARRISON`: walk to the building and go inside.
-    Garrison(usize),
+    /// The order list — front is the current order. `docs/ORDERS.md` §1.4.
+    pub orders: std::collections::VecDeque<orders::Order>,
+    /// The path stack; the top is the current waypoint (§4.2).
+    pub path: Vec<orders::PathData>,
+    /// `UnitData::tolerance`: the current waypoint's arrival radius.
+    pub tolerance: i32,
+    /// `unit_masks & 8`: a straight line to the waypoint has been verified.
+    pub line_ok: bool,
+    /// `UnitData::path_recursion`.
+    pub path_recursion: u8,
+    /// `UnitData::orders_x/orders_y`: the final destination of the leading
+    /// run of transit moves.
+    pub orders_pos: Pos,
+    /// `UnitData::idle` (§2.4).
+    pub idle: u8,
+    /// The per-player idle-citizen option, as the threshold `think_peasant`
+    /// compares `idle` against; 2 by default.
+    pub idle_threshold: u8,
+    /// `UnitData::stance`, the worker stance: 1 is the normal citizen (builds
+    /// and gathers), 0 gathers only, 2 builds only.
+    pub stance: u8,
+    /// `unit_masks & 0x400`: has been given a build or repair order.
+    pub was_builder: bool,
+    /// `SubObjectData::flags & 0x10`: could not reach its target.
+    pub cant_reach: bool,
+    /// `unit_masks & 1`: a decoy; not counted as a gatherer.
+    pub decoy: bool,
 }
 
 /// What a unit needs in order to move.
@@ -164,6 +179,9 @@ pub struct Movement {
     /// Which way the unit faces — guy 0's angle, which the unit step turns and
     /// the body shares. North is zero.
     pub facing: movement::Angle,
+    /// The facing as it stood at the start of this frame — what the body
+    /// follow compares against after the order step has turned the unit.
+    pub frame_facing: movement::Angle,
     /// The heading the last unit step recorded as desired, `GuyData::des_angle`.
     /// An idle body turns toward it.
     pub des_angle: movement::Angle,
@@ -186,6 +204,7 @@ impl Movement {
     pub const fn at(pos: Pos) -> Movement {
         Movement {
             facing: movement::Angle::NORTH,
+            frame_facing: movement::Angle::NORTH,
             des_angle: movement::Angle::NORTH,
             dest: None,
             speed: 0,
@@ -243,6 +262,9 @@ pub struct UnitType {
     /// `TURN_SPEED`, through `degrees_to_angle` as `UnitType::init` stores
     /// it — the `type_turn_speed` of [`movement::Turning`].
     pub turn_speed: i32,
+    /// Which worker kind this is — a citizen or scholar may gather and is
+    /// what `think_peasant` runs for (`docs/ORDERS.md` §6.1).
+    pub worker: orders::Worker,
 }
 
 /// What a player has built, as the price and the population cap see it.
@@ -336,7 +358,18 @@ impl Unit {
             },
             inside: None,
             max_health: health,
-            job: None,
+            orders: std::collections::VecDeque::new(),
+            path: Vec::new(),
+            tolerance: 0,
+            line_ok: false,
+            path_recursion: 0,
+            orders_pos: pos,
+            idle: 0,
+            idle_threshold: 2,
+            stance: 1,
+            was_builder: false,
+            cant_reach: false,
+            decoy: false,
         }
     }
 
@@ -521,6 +554,27 @@ pub struct Building {
     pub hit_frame: Option<i64>,
     /// A fort's entry in [`Sim::sources`], while it projects territory.
     pub fort_source: Option<usize>,
+    /// `BuildData::gather_down`'s chain: the units registered as gathering
+    /// here, newest first. `docs/ORDERS.md` §6.1.
+    pub gatherers: Vec<usize>,
+    /// `BuildData::gather_max`: the slot count; `None` is uncapped (the
+    /// non-flat count is `docs/ECONOMY.md`'s open item). A flat type gets 1.
+    pub gather_max: Option<i32>,
+    /// `BuildData::gather_from`: a woodcutter's or mine's resource tiles, in
+    /// tiles, in the shuffled order the original keeps. An input.
+    pub gather_from: Vec<Pos>,
+    /// `build_masks & 0x800`: a gatherer bumped `recharging` this frame.
+    pub gather_bumped: bool,
+    /// The farm's tile states and growth counts (§6.5).
+    pub farm: Farm,
+}
+
+/// `Farms`' per-farm record, as far as the farmer's stand reads it: a
+/// state byte and a growth count per tile of the footprint.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Farm {
+    pub state: [u8; 16],
+    pub percent: [i32; 16],
 }
 
 impl Building {
@@ -815,6 +869,11 @@ impl Sim {
             clock: build::ClockMods::default(),
             hit_frame: None,
             fort_source: None,
+            gatherers: Vec::new(),
+            gather_max: None,
+            gather_from: Vec::new(),
+            gather_bumped: false,
+            farm: Farm::default(),
         });
         self.buildings.len() - 1
     }
@@ -1312,6 +1371,7 @@ impl Sim {
         // assimilation tick and the city heal (`docs/CITIES.md`) — then the
         // queue, then the tower.
         for b in 0..self.buildings.len() {
+            self.buildings[b].gather_bumped = false;
             self.process_building(b, frame);
         }
         self.process_queues();
@@ -1326,6 +1386,7 @@ impl Sim {
             if !self.units[i].alive() {
                 continue;
             }
+            self.units[i].movement.frame_facing = self.units[i].movement.facing;
             // `process_healing` runs for every unit, inside or out; the
             // garrison branch is the only heal this mechanic owns.
             self.garrison_heal(i, frame);
@@ -1349,13 +1410,10 @@ impl Sim {
             if !self.units[i].alive() {
                 continue;
             }
-            // Then the order: a build, repair or garrison order runs its own
-            // step (`docs/CITIES.md` §3.3, §9.3, §6.4); otherwise an attack
-            // order runs `Unit::fight`, an idle unit thinks about finding one
-            // (`docs/COMBAT.md` §8).
-            if !self.process_unit_job(i, frame) && !self.process_garrison_job(i) {
-                self.process_unit_combat(i, frame);
-            }
+            // Then the order step — `Unit::work` → `do_job` on the front
+            // order (`docs/ORDERS.md` §2.3): a move steps the unit, a build
+            // runs the clock, an attack runs `fight`, an idle unit thinks.
+            self.work(i, frame);
             if !self.units[i].alive() || !self.units[i].on_map {
                 continue;
             }
@@ -1370,14 +1428,17 @@ impl Sim {
         events
     }
 
-    /// Gives a unit a build order on a placed building — `Unit::add_build_order`.
+    /// Gives a unit a build order on a placed building — a player's
+    /// `Group::action_swarm_around(BUILD_AT)` for one unit, replacing
+    /// whatever it was doing: the approach is the order's own first step.
     pub fn order_build(&mut self, unit: usize, at: usize) {
-        self.units[unit].job = Some(Job::Build(at));
+        self.add_build_order(unit, at, orders::QueuePos::New, true);
     }
 
-    /// Gives a unit a repair order — `Unit::add_repair_order`.
+    /// Gives a unit a repair order — `Unit::add_repair_order`, as the player
+    /// issues it.
     pub fn order_repair(&mut self, unit: usize, at: usize) {
-        self.units[unit].job = Some(Job::Repair(at));
+        self.add_repair_order(unit, at, orders::QueuePos::New, true);
     }
 
     /// One unit's attrition for one frame — the refresh, the supply veto, and
@@ -1445,47 +1506,19 @@ impl Sim {
         })
     }
 
-    /// One unit's movement for one frame, which `Unit::process` reaches last:
-    /// the unit step — the original's `Unit::move_step`, through `Unit::work`
-    /// — and then the body's chase, `Guy::move`, through `Guy::process`.
-    ///
-    /// The unit moves first and the body follows it in the same frame, so the
-    /// body is chasing where the unit *now* is. A step the world refuses is not
-    /// an error and does not cancel the order: the unit stays put and tries
-    /// again next frame. It still turns, because the original turns before it
-    /// asks.
+    /// The body's chase, `Guy::move` through `Guy::process`, which
+    /// `Unit::process` reaches after the order step: the body follows where
+    /// the unit *now* is. The unit step itself is the move order's
+    /// (`orders::do_move`), in the same frame and before this.
     fn process_movement(&mut self, i: usize) {
         let unit = &self.units[i];
         let m = unit.movement;
-        let mut facing = m.facing;
-        let mut des_angle = m.des_angle;
-        let mut pos = unit.pos;
-        let mut dest = m.dest;
-
-        if let Some(target) = dest {
-            // The unit's rate is mode 0: divided by the body's average speed,
-            // instant from a standstill for a foot or mounted type.
-            let rate = movement::turn_speed(
-                &self.tuning,
-                &m.turning,
-                m.body.last_speed,
-                m.body.avg_speed,
-                movement::TurnMode::Unit,
-            );
-            let step = movement::move_step(pos, facing, target, m.speed, &m.turning, rate);
-            facing = step.facing;
-            des_angle = step.heading;
-            if self.world.accepts(step.pos) {
-                pos = step.pos;
-                if step.arrived {
-                    dest = None;
-                }
-            }
-        }
-
+        let facing = m.facing;
+        let des_angle = m.des_angle;
+        let pos = unit.pos;
         // The body's rate is mode 1: the base, always. It reads `last_speed`
         // as it stood before this frame, the way `Guy::move` does.
-        let turned = facing != m.facing;
+        let turned = facing != m.frame_facing;
         let rate = movement::turn_speed(
             &self.tuning,
             &m.turning,
@@ -1498,19 +1531,21 @@ impl Sim {
         if !self.world.accepts(follow.body.pos) {
             follow.body.pos = m.body.pos;
         }
-
         let unit = &mut self.units[i];
-        unit.pos = pos;
         unit.movement.facing = follow.facing;
-        unit.movement.des_angle = des_angle;
-        unit.movement.dest = dest;
         unit.movement.body = follow.body;
     }
 
     /// Sends a unit somewhere. It faces whatever way it already faces and turns
     /// as it goes — instantly, if it is a foot or mounted type standing still.
     pub fn order_move(&mut self, unit: usize, dest: Pos) {
-        self.units[unit].movement.dest = Some(dest);
+        self.add_move_order(
+            unit,
+            dest,
+            orders::MoveKind::MoveTo,
+            orders::QueuePos::New,
+            true,
+        );
     }
 
     fn attrition_for(&self, i: usize) -> attrition::Outcome {

@@ -259,8 +259,18 @@ impl Sim {
 
     /// Gives a unit an attack order on a target — `add_attack_order` with
     /// `mandatory` set, which is what a player's click does.
+    /// A player's attack click: `add_attack_order(QUEUE_NEW, mandatory = 1,
+    /// action = 1)`.
     pub fn order_attack(&mut self, unit: usize, target: Obj) {
-        self.retarget(Obj::Unit(unit), Some(target), true);
+        self.add_attack_order(unit, target, crate::orders::QueuePos::New, true, true);
+    }
+
+    pub(crate) fn bump_targeted_pub(&mut self, o: Obj, by: i32) {
+        self.bump_targeted(o, by);
+    }
+
+    pub(crate) fn fight_pub(&mut self, i: usize, target: Obj, frame: i64) {
+        self.fight(i, target, frame);
     }
 
     /// Tells a building to attack something — `Build::add_attack_order`.
@@ -291,6 +301,18 @@ impl Sim {
     /// Sets a unit's target, keeping the `targeted` counts.
     fn retarget(&mut self, attacker: Obj, target: Option<Obj>, mandatory: bool) {
         let Obj::Unit(i) = attacker else { return };
+        let has_order = self.units[i]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, crate::orders::Body::Attack(_)));
+        if let Some(t) = target
+            && !has_order
+        {
+            // A target found by the unit itself becomes an attack order in
+            // front of whatever it was doing.
+            self.add_attack_order(i, t, crate::orders::QueuePos::First, mandatory, false);
+            return;
+        }
         if let Some(t) = target {
             self.bump_targeted(t, 1);
         }
@@ -302,61 +324,6 @@ impl Sim {
     // ------------------------------------------------------------------
     // The attack step
     // ------------------------------------------------------------------
-
-    /// One unit's combat for one frame: `Unit::do_attack` → `Unit::fight` for
-    /// a unit with a target, `Unit::think` for one without (§8.1, §8.2, §12.4).
-    pub(crate) fn process_unit_combat(&mut self, i: usize, frame: i64) {
-        let me = Obj::Unit(i);
-        if self.attack_of(me) == 0 {
-            return;
-        }
-        let state = self.units[i].combat;
-        let Some(target) = state.target else {
-            self.think_attack(i, frame);
-            return;
-        };
-        if !self.valid_target(me, target) {
-            // An invalid target: `find_new_target`, which is the idle search
-            // with the order dropped.
-            self.retarget(me, None, false);
-            self.think_attack(i, frame);
-            return;
-        }
-        if state.stance == Stance::HoldFire {
-            return;
-        }
-        // The one-in-five retarget roll (§8.2 step 0, §12.4): on every frame
-        // a captain with a non-mandatory order is not recharging and its
-        // target is a unit, one draw — and if that target is not a combat
-        // unit, four times in five it looks for a better one.
-        if !state.mandatory
-            && state.recharging == 0
-            && state.captain == i32::from(self.units[i].index)
-            && let Obj::Unit(t) = target
-        {
-            let roll = self.rng.roll();
-            if !self.profile(Obj::Unit(t)).combat_role && roll % 5 != 0 {
-                let found = self.find_melee_target(i, -1);
-                if let Some(f) = found
-                    && f != target
-                {
-                    self.retarget(me, Some(f), false);
-                    return;
-                }
-            }
-        }
-        if self.is_in_range(me, target) {
-            // Standing still to fight: the unit step is not taken.
-            self.units[i].movement.dest = None;
-            if self.units[i].combat.recharging == 0 {
-                self.fight(i, target, frame);
-            }
-        } else if state.stance != Stance::StandGround {
-            // Close the distance. `find_attack_pos` is a straight line here.
-            let dest = self.pos_of(target);
-            self.units[i].movement.dest = Some(dest);
-        }
-    }
 
     /// The strike itself — `Unit::fight` from step 2 on (§8.2).
     fn fight(&mut self, i: usize, target: Obj, frame: i64) {
@@ -742,21 +709,6 @@ impl Sim {
     // ------------------------------------------------------------------
     // The search
     // ------------------------------------------------------------------
-
-    /// `Unit::think` → `think_attack` → `find_melee_target(−1)` on the idle
-    /// cadence (§12.4): every 32nd frame by index.
-    fn think_attack(&mut self, i: usize, frame: i64) {
-        let u = &self.units[i];
-        if (i64::from(u.index) + frame) & 0x1f != 0 {
-            return;
-        }
-        if u.combat.stance == Stance::HoldFire {
-            return;
-        }
-        if let Some(t) = self.find_melee_target(i, -1) {
-            self.retarget(Obj::Unit(i), Some(t), false);
-        }
-    }
 
     /// `Unit::find_melee_target(range, …)` (§12.4): the idle radius for
     /// `range == −1`, then `find_nearby_target`.

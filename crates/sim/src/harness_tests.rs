@@ -12,6 +12,15 @@ fn centre_of(c: Cell) -> Pos {
     )
 }
 
+/// A cell's centre, on a quarter-tile centre: every move destination is
+/// snapped to one (`docs/ORDERS.md` §4.1), so a unit told to walk to
+/// `centre_of(c)` arrives at `quarter_of(c)`; a unit that starts on one and
+/// walks due east or west stays on the row.
+fn quarter_of(c: Cell) -> Pos {
+    let p = centre_of(c);
+    Pos::new(p.x.div_euclid(48) * 48 + 24, p.y.div_euclid(48) * 48 + 24)
+}
+
 /// Two players on a strip of land. Player 1 holds a city at one end and enough
 /// attrition tech to make its border bite; player 0 has the units.
 fn skirmish(tech_steps: usize) -> Sim {
@@ -413,8 +422,8 @@ fn the_border_starts_where_the_limit_puts_it() {
 #[test]
 fn a_unit_ordered_over_the_border_walks_in_and_starts_bleeding() {
     let mut sim = skirmish(1);
-    let home = centre_of(Cell::new(8, 0));
-    let target = centre_of(Cell::new(15, 0));
+    let home = quarter_of(Cell::new(8, 0));
+    let target = quarter_of(Cell::new(15, 0));
     let u = sim.add_unit(Unit::new(0, 0, home, 200));
     make_mobile(&mut sim, u, movement::Angle::EAST);
     sim.order_move(u, target);
@@ -453,8 +462,8 @@ fn a_wagon_covering_the_march_makes_it_free() {
     // one test that needs territory, movement, attrition and supply to agree at
     // the same time.
     let mut sim = skirmish(1);
-    let target = centre_of(Cell::new(15, 0));
-    let u = sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(8, 0)), 200));
+    let target = quarter_of(Cell::new(15, 0));
+    let u = sim.add_unit(Unit::new(0, 0, quarter_of(Cell::new(8, 0)), 200));
     make_mobile(&mut sim, u, movement::Angle::EAST);
     sim.order_move(u, target);
     wagon_at(&mut sim, 0, 1, Cell::new(12, 0));
@@ -486,8 +495,8 @@ fn walking_out_does_not_stop_the_bleeding_until_the_next_refresh() {
     // earlier draft used for the unit, it was out by 34.) It reaches the
     // middle of cell 8, 1536 units, on its 62nd.
     let mut sim = skirmish(1);
-    let safe = centre_of(Cell::new(8, 0));
-    let u = sim.add_unit(Unit::new(0, 0, centre_of(Cell::new(10, 0)), 200));
+    let safe = quarter_of(Cell::new(8, 0));
+    let u = sim.add_unit(Unit::new(0, 0, quarter_of(Cell::new(10, 0)), 200));
     make_mobile(&mut sim, u, movement::Angle::WEST);
     sim.order_move(u, safe);
 
@@ -521,10 +530,10 @@ fn a_citizen_reverses_on_the_spot_and_its_body_keeps_up() {
     // being "moving" until it arrives — and then its average speed decays
     // until it is stopped again and can turn instantly once more.
     let mut sim = skirmish(1);
-    let start = centre_of(Cell::new(4, 0));
+    let start = quarter_of(Cell::new(4, 0));
     let u = sim.add_unit(Unit::new(0, 0, start, 200));
     make_mobile(&mut sim, u, movement::Angle::EAST);
-    sim.order_move(u, centre_of(Cell::new(3, 0)));
+    sim.order_move(u, quarter_of(Cell::new(3, 0)));
 
     sim.tick();
     let m = sim.units[u].movement;
@@ -537,7 +546,7 @@ fn a_citizen_reverses_on_the_spot_and_its_body_keeps_up() {
     // body is on the unit, last_speed has gone to zero and the average is
     // draining.
     run(&mut sim, 30);
-    assert_eq!(sim.units[u].pos, centre_of(Cell::new(3, 0)));
+    assert_eq!(sim.units[u].pos, quarter_of(Cell::new(3, 0)));
     assert_eq!(sim.units[u].movement.dest, None);
     run(&mut sim, 5);
     let m = sim.units[u].movement;

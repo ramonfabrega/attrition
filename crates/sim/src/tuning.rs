@@ -463,6 +463,10 @@ pub struct Tuning {
     pub unit_defensive_respond_range: i32,
     /// The same for a guard.
     pub unit_guard_respond_range: i32,
+    /// How far, in tiles, an idle citizen looks for a site to build (`find_build_spot`).
+    pub unit_build_respond_range: i32,
+    /// How far, in tiles, an idle citizen looks for a building to gather at (`find_gather_spot`).
+    pub unit_gather_respond_range: i32,
     /// Percent of the base construction time for a player with no city yet — a nomad's first city. Ships as 300.
     pub capital_build_time: i32,
     /// Percent more hit points per `BUILDINGS_HP_n` tech held.
@@ -775,6 +779,8 @@ impl Tuning {
         unit_respond_range: 12,
         unit_defensive_respond_range: 4,
         unit_guard_respond_range: 8,
+        unit_build_respond_range: 12,
+        unit_gather_respond_range: 32,
         capital_build_time: 300,
         building_hp_upgrade: 10,
         senate_hp_bonus: 35,
@@ -842,7 +848,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 232] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 234] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1206,6 +1212,14 @@ impl Tuning {
             (
                 "UNIT_GUARD_RESPOND_RANGE",
                 Slot::Value(T.unit_guard_respond_range),
+            ),
+            (
+                "UNIT_BUILD_RESPOND_RANGE",
+                Slot::Value(T.unit_build_respond_range),
+            ),
+            (
+                "UNIT_GATHER_RESPOND_RANGE",
+                Slot::Value(T.unit_gather_respond_range),
             ),
             ("CAPITAL_BUILD_TIME", Slot::Value(T.capital_build_time)),
             ("BUILDING_HP_UPGRADE", Slot::Value(T.building_hp_upgrade)),

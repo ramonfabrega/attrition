@@ -618,6 +618,14 @@ pub fn load_tables(
             garrison,
             moves: c.moves,
             turn_speed: c.turn_speed,
+            // PEASANTS, PEASANTSKOREAN, SCHOLARS, SCHOLARSKOREAN — by id
+            // (`TypeIndex − 0x32`), the four kinds `Build::add_gatherer`
+            // admits (`docs/ORDERS.md` §6.1).
+            worker: match i {
+                0 | 1 => sim::orders::Worker::Citizen,
+                2 | 3 => sim::orders::Worker::Scholar,
+                _ => sim::orders::Worker::None,
+            },
         });
     }
 
