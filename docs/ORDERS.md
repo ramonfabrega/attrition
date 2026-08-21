@@ -79,10 +79,11 @@ confirmed the list orientation, the log format, the citizen's first moving
 frame and a 327-frame build trace. Nothing is transcribed; see
 `docs/DECISIONS.md` entry 7.
 
-**Status (2026-08-21).** The first reading and the implementation are
-landed. **The blind second reading is complete for all seven sub-areas; only
-one of its seven adjudications has been run**, so by the working agreement
-this mechanic is **not yet "done"**.
+**Status (2026-08-21).** First reading, implementation, blind second reading
+and **all seven adjudications** are landed —
+`docs/audit/2026-08-21-orders.md`. What is left of the queue item is the
+harness work §13's last two bullets name (the start-of-game in `build_sim`
+and reading the `UNITS=3` order blocks back), not the reading.
 
 - **The blind side, done.** Seven readers on Opus 5, split the same way as
   the first reading, each given only the entry points and the traps: 355
@@ -92,24 +93,28 @@ this mechanic is **not yet "done"**.
   log (50). The reports are **not in the repo** (entry 7) — they are at
   `~/ghidra-projects/reading/orders-2026-08-21/`, with a README there
   giving the state and how to finish.
-- **The adjudication, one of seven.** R5 (the start of a game) is landed:
-  `docs/audit/2026-08-21-orders.md`, 37 verdicts, seven corrections, all
-  marked inline in §2.1, §9.2, §9.3 and §9.4 with a "second reading" note.
-  **R1, R2, R3, R4, R6 and R7 have not been adjudicated** — the six
-  adjudicators hit the account's Fable 5 limit and died, five of them
-  before writing a verdict. Their inputs are unchanged and on disk; the
-  briefs are preserved beside the reports.
-- **Queued for them.** The three first-reader disagreements: the name of
-  `UnitOrder::flags & 4` (§1.3 — the mechanics agree; R1); `do_gather`'s
-  approach radius, `min(x_size, y_size)` (the gather reader) against
-  `(flat ? x_size : y_size)` (the spot reader's asm note) — equal for every
-  square building (R4 and R7, independently); and the `OrderIndex` values,
-  which the dump pinned against one reader's guess (R1). Plus two the blind
-  reports raise against this document and nobody has adjudicated: B reads
-  `add_repair_order` as having **no `QUEUE_FIRST` branch**, against §3.1's
-  "one shape, 21 functions"; and B reads `do_attack` as owning **no range or
-  reload logic at all**, `fight` owning the lot, against §7.2. Treat both as
-  open until a third reader settles them.
+- **The adjudication, all seven**, one per sub-area, each taking every
+  disagreement back to the decompiled function, the listing or the PE:
+  R1 (A 11 · B 11 · both 15 · neither 2), R2 (A 4 · B 8 · both 3 ·
+  neither 1 · open 2), R3 (**A 0 · B 21** · both 39 · neither 4 · open 2),
+  R4 (A 5 · B 13 · both 29 · neither 1), R5 (A 0 · B 9 · both 26 ·
+  neither 2), R6 (A 6 · B 14 · both 24 · neither 8 · open 1),
+  R7 (A 6 · B 13 · both 29 · neither 0 · open 2). Ten corrections landed in
+  `crates/sim`, every one re-verified in the listing before it was applied;
+  the document corrections are marked inline throughout, each naming the
+  sub-area that found it.
+- **The three first-reader disagreements are all closed, none needing a
+  behavioural check.** `UnitOrder::flags & 4` is the action bit, settled by
+  `Group::set_up_insert@0070e520:25` — a reader neither reading had cited
+  (R1). The `OrderIndex` values are in the PDB (R1). `do_gather`'s approach
+  radius is `min(x_size, y_size) × 0x60 + 0x30`, settled in the listing at
+  `0x5ef756` **twice over**, by R4 and R7 independently.
+- **What the second reading cost the first.** Two claims the blind side
+  raised against this document held: `add_repair_order` really has no
+  `QUEUE_FIRST` branch (R3), so §3.1's "one shape, 21 functions" has
+  exceptions. One did not: `do_attack` owning no reload logic is **not** a
+  disagreement — §7.2 already put the gate in `fight`, and the
+  implementation was right where the prose was wrong (R6).
 
 What the implementation leaves as inputs is §13.
 
@@ -120,15 +125,15 @@ tree and both arrival rules, `find_path`'s contract, `do_build`/`do_repair`/
 three terms, `do_gather`'s branches and the non-flat machine's timers,
 `do_attack`'s five branches and what `fight` writes to the order, the
 `CommandPackage` entry and the group-vs-plain predicate, the start-of-game
-sequence and the id scheme, and the log format. Medium for the collision
+sequence and the id scheme, and the log format — and, after the second
+reading, the `OrderIndex` values (the PDB enum), `check_build_order`'s cursor
+walk (the listing), and `flags & 4`'s meaning. Medium for the collision
 branches of `do_move` and `resolve_unit_collision` (read once, summarised),
-`go_around_building`'s geometry, `check_build_order`'s move-skip rule (a
-stale decompile local), `think`'s cadence table (several bodies lost), the
-group speed's effect on the leader, `Leader::produce_building`'s scoring
-(read in shape — take the starting sites from the dump, do not reimplement),
-the `OrderIndex` values no literal pins (`ATTACK_TO 2` vs `FLEE_TO 4`, from the
-`get_new_order` switch). Low for the semantics of `UnitOrder::flags` bits
-`0x8/0x10/0x20` beyond their writers, and the `0x28b` cast block in `work`
+`go_around_building`'s geometry, `think`'s cadence table (several bodies
+lost), the group speed's effect on the leader, `Leader::produce_building`'s
+scoring (read in shape — take the starting sites from the dump, do not
+reimplement). Low for the semantics of `UnitOrder::flags` bits
+`0x8/0x10` beyond their writers, and the `0x28b` cast block in `work`
 (not credible as decompiled).
 
 **What it changed elsewhere.** `docs/COMBAT.md` §10 calls `GameAccess::rnd` "a
@@ -207,8 +212,10 @@ Constructor defaults that matter: `TargetOrder` `ox = whom = −1`, `uid =
 `GatherOrder` `goto_build = 1`, the rest 0/−1; `GarrisonOrder` `search = 0`
 (its `clear` writes −1, but every adder writes the field). `clear()` (vslot
 `+0x4`) is the constructor's twin — `OrdersMemManager::get_obj` calls it on
-every recycled order — with one exception: `MoveOrder::clear` does **not**
-reset `orig_x/orig_y` (the adders overwrite them anyway).
+every recycled order. (An earlier draft claimed `MoveOrder::clear` was an
+exception that left `orig_x/orig_y` alone; the second reading found the
+constructor does not write them either — `clear` and
+`MoveOrder::MoveOrder@00488a10` write the identical 18 slots. R1.)
 
 **The vtable** (`UnitOrder::vftable @ 00b474f0`, 74 slots): `+0x4 clear`,
 `+0x8 walk_data`, `+0xc log_data`, **`+0x10 get_type() → OrderIndex`** (pure
@@ -227,12 +234,16 @@ slot that prints as `Window::get_button` is the COMDAT fold of `return 0`.
 
 ### 1.2 `OrderIndex` — the 27 live kinds
 
-No enum is exported; the table is rebuilt from three places that agree — the
-`switch` in `OrdersMemManager::get_new_order@00730550` (case number →
-constructor and `malloc` size), every class's `get_type` body, and the names
-Ghidra prints for the `OrderIndex` comparisons in `Unit::work`/`do_job` — and
-pinned by the dump (`type 1` precedes every `MOVEORDER`, `3` every
-`EXPLORETOORDER`, `6` every `BUILDORDER`, `7` every `GATHERORDER`). The pool
+**The enum is in the PDB** — `llvm-pdbutil dump --types
+--type-index=0x1E22 game/sbl/rise.pdb` enumerates all 28 values outright
+(`QueuePos` is `0x216F`). The table below was originally rebuilt from three
+places that agree — the `switch` in `OrdersMemManager::get_new_order@00730550`
+(case number → constructor and `malloc` size), every class's `get_type` body,
+and the names Ghidra prints for the `OrderIndex` comparisons in
+`Unit::work`/`do_job` — and pinned by the dump (`type 1` precedes every
+`MOVEORDER`, `3` every `EXPLORETOORDER`, `6` every `BUILDORDER`, `7` every
+`GATHERORDER`); **the second reading then found the enum itself and every
+value matched** (`docs/audit/2026-08-21-orders.md` R1). The pool
 `OrdersMemManager::order_lists` is `SafeRecycler<UnitOrder>[28]`, one per
 value.
 
@@ -269,9 +280,13 @@ value.
 
 The **move family** — what `kill_current_order`, `work`, `repath` and
 `resolve_unit_collision` treat together — is `{1, 2, 3, 4, 18, 19, 21}`: the
-classes with a `MoveOrder` base. `ATTACK_TO = 2` and `FLEE_TO = 4` come from
-the `get_new_order` switch alone (medium; a dump with an attack-move settles
-it).
+classes with a `MoveOrder` base. `NONE = 0`, `PATROL = 5` and
+`NUM_UNIT_ORDERS = 28` are the enum's own names; `ATTACK_TO = 2` and
+`FLEE_TO = 4` are pinned by it, and corroborated three further ways —
+`UnitData::is_fleeing@0046efa0` tests `get_type() == 4`,
+`add_move_facing_order@005e55c0:66` maps its kind argument 2 →
+`get_obj(ATTACK_TO)` and 3 → `get_obj(EXPLORE_TO)`, and the `get_new_order`
+jump table. **No behavioural check is needed** (second reading, R1).
 
 ### 1.3 `UnitOrder::flags`
 
@@ -280,11 +295,11 @@ One byte. From its writers and readers:
 | bit | meaning | evidence |
 |---|---|---|
 | `0x01` | **pathed** — "the top segment of the unit's path stack is this move's" | `MoveOrder::is_pathed`; set by `do_move` after planning, cleared on the final waypoint; `add_move_facing_order` takes it from its 5th argument (`Group::action_move_near` passes 1, `check_target_path` 0); `kill_current_order` pops the path segment only if `is_move && is_pathed` |
-| `0x02` | fleeing | `MoveOrder::is_fleeing`; `FleeToOrder` only |
+| `0x02` | **dead** — nothing writes it | `MoveOrder::is_fleeing@004889a0` really is `flags & 2`, but **no code in the image writes the bit** and nothing calls vslot `+0x28`. The live predicate is `UnitData::is_fleeing@0046efa0` = `order_type() == FLEE_TO`, read by `PathFinder::calc_cost` and `Unit::target_opportunity`. Two adjudicators reached this independently (R1, R2); R2 adds that the only `or byte ptr [reg+4], 0x2` sites in the image are in `Ammo::init*` |
 | `0x04` | **the action bit** — this order is an intent, not a transit leg | `UnitData::get_action@00608450` / `Unit::update_action@0060a870` walk past a move order *only if it lacks this bit* (§3.3); set from the last argument of every `add_*_order` — `CommandPackage::process_move_to` passes 1 for every player move, `Group::action_attack` 1 for every player attack, `add_think_order`/`add_spec_anim_order`/`add_guard_order`/`add_follow_order`/`add_patrol_order` set it unconditionally, while the engine's own inserted transit moves (`fight`'s chase, `do_gather`'s walk, `do_guard`, `do_follow`, `go_to`) pass 0; `Unit::work` lets a recharging melee unit step only an order carrying it, and clears `unit_masks & 0x100` on one; `do_repair` repairs a building under attack only under one. The dump: the AI's opening `BUILDORDER` has `flags 4`, the starting citizens' Setup `GATHERORDER` `flags 0`, the gather step's inserted `MOVEORDER` `0` then `1` |
 | `0x08` | a DEFENSIVE unit's "this move is my post" | set by `fight` on the move that sends a DEFENSIVE unit back; `UnitData::find_def_pos` reads it (§7.2) |
 | `0x10` | an attack order's "re-target requested" | toggled by `fight` when the chase cell it chose is not the unit's own; read on entry as "bad target" → `find_new_target` (§7.2) |
-| `0x20` | `MoveToCommand.disembark` → `add_move_facing_order`'s 11th argument | `move_step` on the final waypoint: a flyer carrying passengers with it set unloads them and kills the order. Not modelled |
+| `0x20` | `MoveToCommand.disembark` → `add_move_facing_order`'s 11th argument | **Two** readers, not one: `move_step@005faf30:333, :387` (the flyer branch — carrying passengers, it unloads them on the final waypoint and kills the order) **and** `PathFinder::astar_path@00683770:447`. Not modelled |
 | `0x80` | an attack-ground order has fired | cleared by `add_attack_order`/`add_attack_ground_order`, set by `do_attack_ground` |
 
 The three first readers named `0x04` three ways — "forced", "automatic/
@@ -293,6 +308,14 @@ The mechanics are one: the bit makes the order *the action* in
 `get_action`'s walk, and it is carried by orders issued as intents (a player's
 click, the AI's `Group::action_*`, a think) and absent from the transit legs
 the engine inserts in front of them.
+
+**Second reading (R1) — this reading confirmed, by a reader nobody had
+cited.** `Group::set_up_insert@0070e520:25` is the cleanest statement of the
+bit's meaning in the whole image: a group insert copies **only** the orders
+that carry it. `Unit::land_plane@005e9950:69` is a clearer. The blind reader
+arrived at "explicitly ordered" from `do_repair`'s under-attack abandon,
+which is the same claim from the other end. Bit `0x80`'s setter is
+`do_attack_ground@005f1410:204`; a **reader** for it is still missing.
 
 ### 1.4 The list — `OrderList` at `UnitData+0xc8`
 
@@ -312,7 +335,10 @@ order and whose current order is `head->prev`, the oldest.**
 `order_type`, `get_action`, `update_action`, `work`, `kill_current_order`,
 `close_orders`) first sets `current_node = head->prev`. `remove_current@
 0046d620` unlinks the cursor's node, advances the cursor to `next`, and if the
-removed node was `head`, `head = head->next`. `length` is what `do_move`/
+removed node was `head`, `head = head->next`. (One clause so a
+re-implementation does not have to re-derive it: the cursor is left on
+`head_node`, **not** on the successor, and every caller re-runs the tail
+positioning before reading again. R1.) `length` is what `do_move`/
 `move_step` test as "this move is the only order" (`== 1`).
 
 So in execution order the queue is `head->prev, head->prev->prev, …, head`;
@@ -435,10 +461,18 @@ frame.
    and a **recharging melee unit** (`recharging != 0`, `type.max_range == 0`,
    not `unit_flags & 0x400`) **returns here** unless the order has the action
    bit — it finishes a player's move but not an engine-inserted leg.
+   `unit_flags & 0x400` is the **melee-and-ranged** flag: `UnitType::init@
+   0061ab50:359` zeroes the range field `+0x1fc` when it is set and reports
+   "Improper use of melee-and-ranged unitflag", which also confirms `+0x1fc`
+   as the range (second reading, R1).
 4. Caravan bookkeeping (a caravan off its route → `end_trade_route`).
 5. Move-family pre-step: a `MOVE_TO` with `unit_masks & 0x4000000` is removed
    and re-added as `EXPLORE_TO` (the deferred conversion `add_move_facing_order`
-   set up for `role & 0x10` types); unless the unit is an unpacked merchant
+   set up for `role & 0x10` types) — and it is **stepped as an `EXPLORE_TO` in
+   the same frame**: the listing at `0x60d712` re-runs `update_order` and
+   `get_type` into the locals `do_job` is then called with (R1, which also
+   settles that `do_job`'s second argument is always the current order, never
+   the action); unless the unit is an unpacked merchant
    kind, **every 16 frames phased by `o`**: `action = update_action()`, and if
    it `is_targeted` and is not `AWAIT_BOARD`: a `GUARD` repaths every 64,
    any other targeted action → `check_target_path@005e22d0` (which re-paths
@@ -507,7 +541,21 @@ entrench`), cloak particles, and on the first idle frame `SubObjectData.flags
 the leader's `0x2000000` for fishermen/merchants/fur trappers.
 
 **`Unit::think@005f6e40`** (343 lines; the branch conditions are legible,
-several bodies are dropped by the decompiler), in order:
+several bodies are dropped by the decompiler).
+
+**The global cadence gate, found by the second reading (R1) and missing from
+the first.** Before everything below except the captain mirror and the
+citizen mask-clear, `think@005f6e40:87` returns when
+
+```
+(SubObjectData.flags & 0x10) == 0 && idle > 2 && ((o + frame) & 15) != 0
+```
+
+— so **from the third idle frame on a unit thinks once in sixteen**, phased
+by `o`, and only the "could not reach" bit (§6.3) restores every-frame
+searching. This changes when an idle citizen re-picks a job and when an idle
+soldier runs its target search, and it was a live divergence in
+`crates/sim/src/orders.rs` until it was landed. Then, in order:
 
 1. A non-captain whose captain's action is `ATTACK` with a valid target:
    `add_attack_order(target, QUEUE_NEW, …)` — squads follow the captain's
@@ -537,7 +585,11 @@ add_think_order()` — and `Unit::add_think_order@005e3df0` (argument ignored:
 `flags |= 4`, `add`, `head = head->next`) makes it current. `do_think_order@
 005e5bf0` kills it; if the list is now non-empty that order runs next frame;
 else a citizen or scholar runs **`think_peasant(1)`** — the forced job search,
-without waiting for the idle timer.
+without waiting for the idle timer. The fall-through set is the four type
+indices `0x32..0x35` (`PEASANTS, PEASANTSKOREAN, SCHOLARS, SCHOLARSKOREAN`);
+note that `think`'s own citizen branch above is `0x32`/`0x33` **only** (R1).
+`check_idle` has one more effect worth recording: at `idle == 4` it re-faces
+an entrenched unit.
 
 ---
 
@@ -546,7 +598,23 @@ without waiting for the idle timer.
 ### 3.1 `Unit::add_*_order` — one shape, 21 functions
 
 Read in full for `add_move_facing_order@005e55c0` and confirmed by grep on the
-rest:
+rest — **with two exceptions the second reading found (R1, R3), because the
+grep behind "21" matched the `QUEUE_NEW` prologue rather than the
+`QUEUE_FIRST` tail**:
+
+- **`add_repair_order@005e4ff0` has no `QUEUE_FIRST` branch at all.** After
+  the list add at `0x5e51f0` come only `update_action` and `ret 0x10`, where
+  `add_build_order` has an explicit `cmp [ebp+0x10],0` → `clear_partial_path;
+  head = head->next`. It also overwrites its own `where` slot at `0x5e50e7`,
+  so no later test is possible. No caller passes `QUEUE_FIRST`, so nothing
+  observable turns on it — but a re-implementation should not invent the
+  branch.
+- **Six sites bypass the `add_*` façade entirely** and call
+  `OrdersMemManager::get_obj` directly: `fight@005fd4d0:556`
+  (`ATTACK_GROUND`), `unpack_merchant@006038e0:26`, and
+  `check_meet_ship@00604550:239, :285, :324` (`MOVE_TO`).
+
+The common shape, then:
 
 1. If `queued == QUEUE_NEW`: `unit_masks &= ~0x4000000; path.length = 0;
    close_orders(0); clear_partial_path(); update_action()`.
@@ -565,10 +633,17 @@ player's transport level allows it.
 
 ### 3.2 `Unit::kill_current_order(silent)@005e2cb0`
 
-Tears down the current order. `unit_masks &= ~0x20000`; then per kind:
+Tears down the current order. `silent != 0` is reached from **exactly one
+call site** — `Unit::close@0060ee50:601`, under `SubObjectData.flags & 1` —
+i.e. only when the unit is being destroyed (R1). `unit_masks &= ~0x20000`;
+then per kind:
 
-- **move family**: `facing = mo->facing`; if `facing ≥ 0 && !silent &&
-  playing`: set or clear `unit_masks & 2` by it (`reversing()` flips it) and,
+- **move family**: `facing = mo->facing` — and `MoveOrder::facing` **does**
+  have a reader, here: `kill_current_order@005e2cb0` fetches it through the
+  order vtable slot `+0xb8` (`0x5e3018 mov eax,[eax+0x28]`), which is why a
+  grep for the field name finds nothing (R2). If `facing ≥ 0 && !silent &&
+  playing`: set or clear `unit_masks & 2` by it (`reversing()` is asked
+  `unit->angle − order->angle`) and,
   if the unit leads a group, write it to the group's `+0x48` — the "face the
   way you were told" carry-over (`docs/MOVEMENT.md`'s reversed bit).
 - **`GATHER`**: leader flags `|= 0x2000000` (the economy's re-plan hint); if
@@ -599,6 +674,12 @@ current order forward over every **plain move** — `is_move()` and without the
 action bit — and every `CHANGE_FORM`, copying each move's `x, y, angle` into
 `orders_x, orders_y, dest_angle` as it goes, and stops at the first order
 that is neither, returning it (or `NULL` when the queue is moves only).
+**The terminating order also writes** `orders_x/orders_y/dest_angle` when it
+`is_move()` and either it is the last node or it carries the action bit
+(`update_action@0060a870:47`) — without that clause the mechanism could not
+produce the `dest_angle` the gamelog shows for a player's move, which is how
+the second reading caught it (R1). `crates/sim/src/orders.rs` already does
+this.
 `UnitData::get_action@00608450` is the same walk without the writes.
 
 So `orders_x/y` is the final destination of the leading run of transit moves
@@ -631,7 +712,7 @@ All `Coord`s are position units (192 a tile, 768 a world cell); angles are
 | `facing` | the caller's (−1 from `add_move_order`; the formation's `reverse` from `action_move_near`); read by `kill_current_order` (§3.2). Not used by the step. |
 | `dest_x, dest_y` | **the current waypoint — what `move_step` walks toward.** Initialised to `x, y`; rewritten from the stack top each time `dest` goes 0 → 1; moved by `find_path`'s pull-back and by `resolve_unit_collision`'s side-step. |
 | `last_x, last_y` | the position at which the last straight-line plan was made (`find_path` after a successful detour); −1 when a fresh target is taken; a stack top equal to `last` (and not final) is popped before re-planning. |
-| `coll_x, coll_y` | where a suspended path search would resume; `do_move` probes `detect_unit_collision(coll)` every other frame while a search is pending. |
+| `coll_x, coll_y` | the blocker's position, **written by `detect_unit_collision@00617060`** — not by `astar_path`, as the first reading assumed (R2). `do_move` probes `detect_unit_collision(coll)` every other frame while a search is pending. |
 | `orig_x, orig_y` | the un-snapped point the caller asked for (`action_move_near` passes the click; `add_move_order` passes −1, −1). Not reset by `clear`. Informational. |
 | `off_x, off_y` | `x mod 0x300`, `y mod 0x300` — the destination's offset inside its world cell; `go_around_building` and `find_tpath` use `off % 0xc0` (inside the *tile*) to place detour waypoints off-centre. |
 
@@ -656,8 +737,11 @@ fields; their `log_data` opens their own block and delegates. `do_job` sends
 `PathData` (`types.txt:40517`): `{Coord to_x, to_y; int tolerance; int flags}`.
 Flags: `1` = **the final waypoint of an order's segment** (the goal); `2` = a
 collision side-step; `4` = **turn in place before walking to this one**
-(`move_step`, per `docs/MOVEMENT.md`; set on a waypoint in a different terrain
-region); `8` = a `go_around_building` mid-detour point; `0x10` = a block to
+(`move_step`, per `docs/MOVEMENT.md`; set on the goal when it lies in a
+different terrain region) — and it **also relaxes `invalid_loc`**, letting the
+leg cross terrain the unit would otherwise refuse; `8` = a
+`go_around_building` mid-detour point, which **suppresses the collision test
+entirely** (both R2); `0x10` = a block to
 `resolve_block` (a building's tile: own → mark, allied → a diplomacy bit,
 enemy → `add_attack_order`); `0x20` = a caravan road waypoint.
 
@@ -667,11 +751,14 @@ enemy → `add_attack_order`); `0x20` = a caravan road waypoint.
 path; `add_move_order@00616ed0` is a thin wrapper that snaps and computes the
 angle. It fills `x, y, angle, dest = 0, dest_x/y = x/y, last = −1, off_x/y,
 orig, facing, pause = retry = timer = 0`, the `flags` bits `1/4/0x20` from
-three arguments; two side rules: a `QUEUE_LAST` `MOVE_TO` for a `unit_flags2 &
-0x10` type becomes `EXPLORE_TO` and sets `unit_masks |= 0x4000000`; a
-`QUEUE_NEW` attack-move (`mode == 2`) while the current order is `ATTACK` on a
-live non-sea target re-adds that attack `QUEUE_FIRST` after the move, so an
-attack-move issued mid-fight keeps the fight.
+three arguments; two side rules: a `QUEUE_LAST` `MOVE_TO` for a **`role & 0x10`** type
+(`UnitTypeData +0x2c8` — *not* `unit_flags2`, as §2.3 step 5 already had it
+right; R1) becomes `EXPLORE_TO` and sets `unit_masks |= 0x4000000`; and a
+`QUEUE_NEW` attack-move (`mode == 2`) while the current order is `ATTACK`
+re-adds that attack `QUEUE_FIRST` after the move, so an attack-move issued
+mid-fight keeps the fight. The second reading corrects that last rule twice
+(R2): there is **no liveness test** on the target, and sea targets are
+**kept**, under `has_objmask(0x80000000)`.
 
 The player's right-click reaches it through `CommandPackage::process_move_to`
 → `Group::action_move_to@0070fba0` → `action_move_near@00704990`, which for a
@@ -745,7 +832,8 @@ two world cells it returns with the stack still `[goal]`.
 ```
 top = path[length−1]
 dest = 1; unit_masks &= ~8; dest_x/y = top; UnitData::tolerance = top.tolerance
-if !(top.flags & 1) and get_tregion(top tile) != get_tregion(unit tile): pop; push top with flags |= 4   // turn in place first
+if (top.flags & 1 or the action is TRADE_ROUTE) and get_tregion(top tile) != get_tregion(unit tile):
+        pop; push top with flags |= 4, tolerance = 0                  // turn in place first
 c = detect_unit_collision(top, …)
 if c: if (top.flags & 1) and the action is TRADE_ROUTE/GATHER/ATTACK/BUILD_AT → kill the order
       else if the collider's order is not a move: t = collider.type.big_radius * 3;
@@ -756,6 +844,12 @@ if vector_dist(dest − pos) <= UnitData::tolerance:                            
     flags &= ~1; kill_current_order(0); return 0
 if (top.flags & 0x10) and resolve_block(): return 1
 ```
+
+**Second reading (R2) — the region check's guard was inverted.** The first
+reading had it run for a *non*-final waypoint; it runs for the **goal**, or
+for a `TRADE_ROUTE` leg, and it also zeroes the tolerance. The turn-in-place
+is what a unit does before crossing into a different terrain region at the
+*end* of a leg, not in the middle of one.
 
 **The speed, and the straight-line check.** `speed = get_speed(pos, 0)`, `×
 ai_speed` if > 1, `× 5/4` truncating toward zero for modern infantry — exactly
@@ -835,7 +929,8 @@ as `docs/MOVEMENT.md` gives them, and then:
   `flags &= ~1`; (the air-unload case); **`kill_current_order(0); return 1`**.
 - **Full step** (`manh ≤ step`, the Manhattan snap): `detect_unit_collision
   (dest)`; if clear and the tile valid: `set_anim`, `set_new_location(dest)`;
-  `dest = 0; pop`. Not final → `return 1`. Final: `if orderlist.length == 1 or
+  `dest = 0; pop`. **The leg is popped even when the destination turns out to
+  be occupied** (R2) — the unit does not keep re-aiming at a taken cell. Not final → `return 1`. Final: `if orderlist.length == 1 or
   the action is GATHER: set_angle(mo->angle, 0)`; `flags &= ~1`;
   `kill_current_order(0); return 1`.
 - A step into a tile `invalid_loc` says is blocked: `unit_masks &= ~8; return
@@ -862,10 +957,15 @@ write it back; the citizen case cannot tell, since it turns instantly.)
 ### 4.6 `Unit::find_path@005fb910` — the straight-line verifier, and the pathfinder seam
 
 Called with a waypoint and returns **0 = walk straight (or a detour was
-pushed and verified)**, **1 = cannot/do not — plan**, **2 = abort this frame**:
+pushed and verified)** or **1 = cannot/do not — plan**. A third value, `2`
+("abort this frame"), is written in the body but **cannot be returned**: the
+sole `mov eax,2` at `0x5fc345` sits downstream of the `cmp eax,2` on the
+*recursive* call at `0x5fc127`, so nothing produces it at the base case and
+`do_move`'s two `r == 2` arms are **dead code** (second reading, R2; the
+first reading documented `2` as live).
 
 ```
-a flyer → 0
+the domain is not 2 (air) → 0        // the gate is `domain != 2`, not a flyer test (R2)
 if invalid_loc(my tile, 1,0,0,0,0): find_nearby_spot; set_new_location(there, 1, 0); return 1   // off a bad tile
 if (x,y) == pos: return 0
 if cell-Manhattan(pos, goal) > 4 and !invalid_loc(goal tile, 1,1,0,0,0): return 1          // far and reachable: the pathfinder's
@@ -1008,7 +1108,7 @@ either index is negative) — the liveness key `work` step 8 compares.
        add_gather_order(o, QUEUE_NEW, 0); deselect; group = −1; return
 3  not adjacent_to(o, who) (§10) or (my tile is inside T's footprint and T is not a FARM):
        f = order.flags & 4; kill
-       Group{me}.action_swarm_around(o, who, QUEUE_FIRST, BUILD_AT, f); return          // §5.4: the walk
+       Group{me}.action_swarm_around(o, MY OWN who, QUEUE_FIRST, BUILD_AT, f); return   // §5.4: the walk
 4  set_anim(FARM ? CHAR_SOW : CHAR_BUILD); face the site
    unit_masks & 1 → return
 5  amount = ACCEL_CONSTRUCT (100); T under attack and not (Koreans with KOREAN_BUILD_UNDER_FIRE): amount /= 4
@@ -1039,23 +1139,45 @@ again and re-tests adjacency. A move that falls short swarms again.
 
 ### 5.3 `Unit::check_build_order@00603470` — the queue of sites after one finishes
 
-Walks the queue while the order is `BUILD_AT` or `MOVE_TO` (a move is skipped
-unless it carries the action bit or is the last node — the decompile's loop
-variable is stale in one branch; medium). Every `BUILD_AT` reached is popped
-(`repath; kill`); if its target still exists and is not active its `o` is
-collected; collection stops after a site that is a city or answers two
-unresolved type slots. Then: one site → `add_build_order(site, QUEUE_FIRST,
+Walks the queue **with a cursor** while the order is `BUILD_AT` or `MOVE_TO`.
+A move is **stepped over, not removed** — `current_node = current_node->prev`
+— and the walk stops on a move that carries the action bit or is the newest
+node. (The first reading hedged this as "the decompile's loop variable is
+stale in one branch; medium"; the hedge is wrong and is withdrawn. The
+listing is unambiguous: `0x6036df test byte ptr [ecx+eax+4], 4; jne` then
+`0x6036e6 cmp eax,[esi+0xdc]; je`, then the advance at `0x6036fd`, with no
+call between. The two arms differ only in which node the advance starts
+from — the cursor for a move, the re-tailed head after a kill — which is what
+made the decompiler's locals look stale. R3 C2.) Because the loop's own gate
+is `BUILD_AT || MOVE_TO`, a swarm's **`EXPLORE_TO` ends the scan**. Every `BUILD_AT` reached is popped (`repath; kill`) — its liveness test is
+the **full** `target_exists`, `ox ≥ 0 && whom ≥ 0 && obj->flags & 1 &&
+obj->uid == order.uid`, the `uid` included, unlike `do_build`'s (R3 C3) — and
+if the target still exists and is not active its `o` is collected. Collection
+stops after a site that is a city or answers two unresolved type slots, and
+**the site it stops on does not get killed**: the `break` jumps out before
+the `repath; kill`, so that site ends the pass with its original order still
+queued *and* a fresh one re-added — a duplicate the next `do_build` disposes
+of through its "already finished" branch (R3 C5, a finding neither reading
+made). Then: one site → `add_build_order(site, QUEUE_FIRST,
 1)`; several → `Objects::find_units(SEARCH_FRIENDLY, UNIT_BUILD_RESPOND_RANGE ×
 192, FILTER_BUILDREPAIR)`, count per site the friendly units whose action is
-`BUILD_AT` on it, swap the least-crowded site to the front, re-add all with
+`BUILD_AT` on it — **excluding the counting unit itself** (`:132`
+`this_00->o != this->o`; `find_build_spot`'s otherwise identical count does
+*not* exclude self — R3 C6, F2) — swap the least-crowded site to the front, re-add all with
 `QUEUE_FIRST, 1` in reverse — least-crowded first, then original order, all
 with the action bit, all ahead of whatever else was queued.
 
 ### 5.4 `Group::action_swarm_around(o, who, pos, BUILD_AT|REPAIR|GATHER, action)@0070fbe0`
 
-Per member (land and sea in two passes; air gets a plain move): skip a busy
-member, a carrier of peasants, or — for a gather building under `BUILD_AT` —
-one already gathering; `R = min(x_size, y_size) × 0x60 + 0x30` (the footprint
+Per member (land and sea in two passes; **an air member gets nothing at
+all** — not a plain move, as the first reading had it): skip a busy member;
+**a carrier of peasants is kept, not skipped** (the first reading inverted
+this); and — for a gather building under `BUILD_AT` — one already gathering
+is skipped **only when `spare != 0`**. The legal `what` values are
+`BUILD_AT` and `REPAIR` **only**: a `GATHER` reaches
+`Error::report("ILLEGAL SWARM AROUND ORDER")`. All four are the second
+reading's (`docs/audit/2026-08-21-orders.md` R3 S3–S5, S8), and each was a
+clause the first reading had backwards. `R = min(x_size, y_size) × 0x60 + 0x30` (the footprint
 from `BuildType +0x234/+0x238`; a dead target uses the unit type's), **halved
 for a FARM** under `BUILD_AT`; `find_nearby_spot(site, R, …, FILTER_NOT_ME)`
 (§10) → a free spot around the site, and for `BUILD_AT` the spot is pushed
@@ -1066,6 +1188,20 @@ radius 0; `add_move_facing_order(spot, angle, mode = BUILD_AT ? 1 | (human ? 0
 action is `GATHER` with `action != 0`, the pos becomes `QUEUE_NEW` (the gather
 is pre-empted); then `add_build_order(o, who, QUEUE_LAST, action)` (or
 `add_repair_order`), and for `BUILD_AT` the site's `build_masks &= ~0x2000`.
+
+Four additions from the second reading (R3 S1, S6, S9, S10): a `QUEUE_FIRST`
+swarm is a **re-entry that halts the group first**; a barge or a carried unit
+has its footprint substituted; the scratch group closes with an
+`action_move_to`; and the members' spots deconflict **through
+`find_nearby_spot`'s own occupancy test**, not through any geometric
+spreading — which is why two builders never need a formation.
+
+Four additions from the second reading (R3 S1, S6, S9, S10): a `QUEUE_FIRST`
+swarm is a **re-entry that halts the group first**; a barge or a carried unit
+has its footprint substituted; the scratch group closes with an
+`action_move_to`; and the members' spots deconflict **through
+`find_nearby_spot`'s own occupancy test**, not through any geometric
+spreading — which is why two builders never need a formation.
 
 ### 5.5 `Unit::build_done(o, who, range)@00603bf0` — what a builder does next
 
@@ -1208,8 +1344,21 @@ chain — `BuildData::calc_gather@0062d360` calls **`num_gatherers(this, 1, 1)`*
 which is: `count_inside(PEASANTS)` for an OILPLATFORM and `count_inside(
 SCHOLARS)` for a UNIVERSITY (garrisoned gatherers), plus every chain member for
 which `is_gathering_at(this, arrived = 1)` holds — a citizen/scholar on the
-map whose **first order** is a `GATHER` on this building **with `been_there`
-set** — skipping decoys (`unit_masks & 1`). This is `Site::gatherers`' real
+map whose **action** is a `GATHER` on this building **with `been_there`
+set** — skipping decoys (`unit_masks & 1`).
+
+**Second reading (R4 G16), and it is load-bearing.** `is_gathering_at@
+00608880` matches on **`get_action()`** — §3.3's walk — not on the front of
+the list. `do_gather` and `do_non_flat_gather` insert their walks as
+`QUEUE_FIRST` moves *without* the action bit, so during every walk-out and
+walk-back leg the front order is a `MOVE` and only `get_action` still finds
+the `GATHER`. Under the "first order" shorthand a woodcutter would stop
+counting the moment it set off — and be **pruned out of its own chain by
+`check_gatherers`**. The shorthand contradicted §3.3, which was right; the
+implementation carried the bug until the audit. Two further details: the
+inside-the-building match is **scholar-only** (`ptype[4] ∈ {0x34, 0x35}`;
+G17), and `num_gatherers`' second argument is both the decoy filter **and** a
+`count_inside` mode selector, `COUNT_TYPE + 2` (G13). This is `Site::gatherers`' real
 source in `docs/ECONOMY.md`; the count is **`|{u in chain : u.first_order is
 GATHER(this) and u.been_there and not a decoy}| + inside(PEASANTS on a
 platform / SCHOLARS in a university)`**. Every UI/AI caller uses `num_gatherers
@@ -1218,9 +1367,17 @@ platform / SCHOLARS in a university)`**. Every UI/AI caller uses `num_gatherers
 The chain: `Build::add_gatherer@0062f640(o, who)` — same owner;
 `num_gatherers(0,0) < gather_max` (`BuildData+0x80`); the unit exists, is on
 the map, is one of `PEASANTS 0x32, PEASANTSKOREAN 0x33, SCHOLARS 0x34,
-SCHOLARSKOREAN 0x35`, not already in the chain → `check_gatherers()` then
-**push-front**. `remove_gatherer@0062f8d0(o)`: unlink (walking stops at the
-first dead unit). `check_gatherers@0062f710`: prune every member that is dead,
+SCHOLARSKOREAN 0x35` — four **literal** type-index comparisons, not a lineage
+`is`, so a modded citizen-alike outside those four indices can never join a
+chain (R4 G9) — not already in the chain → `check_gatherers()` then
+**push-front**. The capacity test runs **before** the prune, so a chain full
+of stale entries refuses a new gatherer until something else prunes it
+(R4 G10). `remove_gatherer@0062f8d0(o)`: unlink (walking stops at the
+first dead unit); its second parameter is unread, and unlike
+`check_gatherers` it clears the removed unit's `gather_down` in **both**
+arms — `check_gatherers` clears it only on a head drop, so
+`UnitData::gather_down` is not a reliable "am I registered" field; only the
+walk is (R4 G11, G12). `check_gatherers@0062f710`: prune every member that is dead,
 not `is_gathering_at(this)` or off the map. `is_gathered_by(o)`: membership.
 `all_gathering@0062f570`: every member's first order is a gather with
 `goto_build == 0` and `wait ≥ 0` (all out at their tiles); an empty chain is
@@ -1411,9 +1568,14 @@ its first tile for some two hundred frames before its first re-target.
 Walk the owner's buildings: keep those that exist, are active, `is_gather_
 type`, not neutralised, university-iff-scholar, with `num_gatherers(0,0) <
 gather_max` or already gathered by this unit, in the unit's `tregion`; a
-citizen standing in a city skips buildings of *another* city unless this
-city's `free + gatherers < 2` or the other has two more (`CityData +0x5a/+0x5c`,
-AI bookkeeping); within `range` if `> 0`; **score = `(Σ_goods rate_g) × 500 /
+citizen standing in a city skips a building of *another* city when its own
+city's population is `< 2`, **or** when `mypop <= otherpop + 2` — i.e. it
+crosses to the other city's building only when its own city is more than two
+more crowded than that one. (The first reading had **both clauses
+inverted**; R4 G43, `find_gather_spot@005f5170:108`. `CityData +0x5a/+0x5c`
+is AI bookkeeping and is an input to `crates/sim`.) within `range` if `> 0` — **a scholar ignores `range` entirely**, the
+caller's value being kept only `if (!bVar2)` where `bVar2` is the
+`SCHOLARS`/`SCHOLARSKOREAN` test (R4 G42) — **score = `(Σ_goods rate_g) × 500 /
 (dist / 0xc0 + 2)`**, `rate_g` the leader's per-good rate for the building's
 `best_gather_type`; pick the max; if not already gathering there →
 `add_gather_order(best, QUEUE_LAST, 0)`. Integer division throughout.
@@ -2005,13 +2167,20 @@ returns, and the function is **deterministic and RNG-free** (no `Random::get`
 on the path, nor in the collision helpers). Settled in the disassembly where
 the decompiler dropped the angle arithmetic and the `project` call.
 
-**`find_nearby_spot(T, x, y, &out_x, &out_y, min, max, step, angle, filter,
-o, who, nocoll, uber, bo, bwho, region)`** — `this` is the unit *type*;
-returns **0 = found** (`out` = the spot) or 1 (`out` = the input point).
+**`find_nearby_spot`** — `this` is the unit *type*; returns **0 = found**
+(`out` = the spot) or 1 (`out` = the input point). The parameter names are
+the original's, from `llvm-pdbutil dump --symbols` (R7 N2):
+`(x, y, to_x, to_y, min_radius, max_radius, radius_step, bias_angle, filter,
+not_o, not_who, ignore_units, uber_unit, ox, whom, reg)`. Note that
+**`Unit::find_nearby_spot` drops its `ox`/`whom`** — `come_out` passes a pair
+into those dead slots (R7 N13).
 
 - **Defaults**: `(min > 0 && max == 0) || max < 0` → `max = min + 4 ×
   big_radius` (`min + 0x240` when `big_radius == 0` and not `unit_flags &
-  0x10`; a squad placement widens it by half a formation); `max < min → max =
+  0x10`; a **squad** placement — `uber_unit != 0` — is instead
+  `min + 0xc0 + 4 × (((uber_size − 1) × guy_spacing) / 2 + big_radius)`,
+  which the first reading understated as "half a formation": it misses both
+  the `× 4` and the `+ 0xc0`. R7 N3); `max < min → max =
   min`; `step ≤ 0 → (max − min) / 8` (truncating), at least 1. `min == 0 &&
   max == 0` is *not* a default: one ring of radius 0, one candidate — "is
   this exact point free", how the swarm's `+0x30` nudge is re-validated.
@@ -2056,7 +2225,9 @@ returns **0 = found** (`out` = the spot) or 1 (`out` = the input point).
 | `do_non_flat_gather`: the camp; the tile | the camp; the tile centre | `d`; `0xc0` | −1; `0x100` | 0; `2` | — |
 | `come_out` | own position | `block_radius` | `block_radius + UNIT_DISEMBARK_DISTANCE` | 0 | — (then `nocoll 1`) |
 
-**`UnitData::invalid_loc(tx, ty, a, b, c, d, e)`** — a *tile* predicate,
+**`UnitData::invalid_loc(tx, ty, terrain_only, ignore_unseen,
+ignore_buildings, pathfinder, ignore_domain)`** — the PDB's own names
+(R7 V1) — a *tile* predicate,
 **0 = valid**, 1 off the map, 2 terrain, 3 a warship on a `0x2400` tile, 4 a
 `0x4000` structure tile (an enemy structure's tile counts as valid for an
 armed unit under `c`). The five flags, by effect: `a` skip the structure test
@@ -2070,9 +2241,12 @@ forest, mountains and buildings it is always 0.**
 
 **`Object::adjacent_to(o, who)`**: both active; `attack_dist(o, who, my x, y)
 < 0x60` — 96 units, half a tile, edge to edge on the quarter-tile grid
-(`docs/COMBAT.md` §13.1) — except a **sea-domain caller** without `unit_flags
-& 0x10`, which uses `BOAT_GARRISON_MAX_DISTANCE` (`+0x180` if its
-`new_block_radius < 4`). **`WallData::covers_tile(tx, ty)`**: `tile_corner`
+(`docs/COMBAT.md` §13.1) — except a caller that is sea-domain, **`is_unit()`** and without
+`unit_flags & 0x10`, which uses `BOAT_GARRISON_MAX_DISTANCE` (`+0x180` if
+its `new_block_radius < 4`). The `is_unit()` gate is what keeps a
+**sea-domain building** — a Dock is domain 1 — on the ordinary `< 0x60`
+rule; without it the first reading's "sea-domain caller" would have loosened
+it (R7 D2). **`WallData::covers_tile(tx, ty)`**: `tile_corner`
 and `cx ≤ tx < cx + x_size && cy ≤ ty < cy + y_size` — `docs/CITIES.md` §2.2.
 **`Unit::detect_unit_collision(x, y, …)`** returns 0/1 from
 `CollCheck::collide_here` at `new_block_radius` then an order-aware 9-cell
@@ -2125,8 +2299,15 @@ appears at `UNITS=3`** and nothing of it below.
 **The orders are listed newest first — the last block printed is the order
 being executed.** (`OrderList::log_data@00730070` positions the cursor on the
 tail and steps `next` before printing each; `walk_data` goes the other way.)
-Three reader traps: an empty stack writes only `BEGIN STACK<TYPE>` and the next
-`length` line is the order list's; `STACK<TYPE>` is a template name shared
+Six reader traps. **No block is ever closed by an `END` line** — `Log::end`
+emits only for a non-empty name and every order passes the empty string, so
+the nesting is *indentation only* (R7 L5). **The array templates disagree on
+key order**: `Stack<PathData>` writes `size, length, increment`, while
+`PtrArray<Guy>` and `SimpleArray<Coord>` write `length, size, increment`
+(R7 L7). **Six kinds emit `UNITORDER` twice** — the multiple-inheritance
+orders call both bases' `log_data` and both chains end at the shared virtual
+base (R7 L13). And, as before: an empty stack writes only
+`BEGIN STACK<TYPE>` and the next `length` line is the order list's; `STACK<TYPE>` is a template name shared
 with every `Stack<T>` (the guys' `size/length/increment` follow the orders);
 and each `log_data` closes its block before the parent writes its own fields,
 which the text shows only by indent — `ox/whom/uid` sit one level shallower
@@ -2150,7 +2331,7 @@ The blocks, by class (names upper-cased except `GroupMoveOrder`,
 | `ATTACKGROUNDORDER` | `UNITORDER`, then `att_x att_y accuracy attack_unit` |
 | `GROUPORDER` | `UNITORDER`, then `oxx whose group_angle id form_id` (spelling open) |
 | `GroupMoveOrder` | `MOVEORDER`, `GROUPORDER`, then `in_group` |
-| `PATROLORDER` | `UNITORDER`, `x_pos`/`y_pos` as `SimpleArray<Coord>` blocks, `waypoint` |
+| `PATROLORDER` | `UNITORDER`, then `x_pos`/`y_pos` as **flat key lines with no `BEGIN`** (`length, size, increment, flags`, then one `list[scan]` line per entry), then `waypoint`. `SimpleArray<Coord>::log_data` writes **nothing at all** for an empty array, so an unstarted patrol looks like one with no arrays (R7 L11) |
 | `FORMORDER` | `MOVEORDER`, then `newform delay` |
 | `CASTORDER` | `x y paid spell`; `TRADEORDER` `oxx whose started loaded uid2`; `AIRORDER` `oxx whose cruising_alt sharp_turn old returning`; `SPECIALANIMORDER` `type started frames data1..data4 ox whom`; `STRAFEORDER` `xx yy` |
 
@@ -2161,9 +2342,13 @@ y 15816 … } }` — the explore-to is current, the build order behind it.
 
 ### 11.2 The building side
 
-`BuildData::log_data@0062e810` writes `GATHER_DOWN` (the chain head), then
-`MiningList::log_data` (`gather_from` — the wood/ore tile list) and the
-`GATHERPOINT` list; `UnitData::log_data` writes the unit's `GATHER_DOWN` link.
+`BuildData::log_data@0062e810` writes, **by detail tier**: 4 `city` and
+`GATHER_DOWN` (the chain head); 6 up to `orig_type`; and **7**
+`MiningList::log_data` (`gather_from` — the wood/ore tile list), the
+`GATHERPOINT` list and `BUILDQUEUE`. One parser trap: the `GatherPoint`
+list's `type` key is a **hardcoded literal 0**, not the element's
+`get_type()`, so a reader that keys on `type` will read it as `ORDER_NONE`
+(R7 L14, L15). `UnitData::log_data` writes the unit's `GATHER_DOWN` link.
 To diff "how many are gathering here" follow `BUILDDATA.GATHER_DOWN →
 UNITDATA.GATHER_DOWN` and read each unit's `GATHERORDER.BEEN_THERE`.
 `LeaderData::gatherers` and the per-region arrays, and `CityData::gatherers`,
@@ -2301,8 +2486,11 @@ what is listed as an input is stated as such in the code):
   citizen its `GATHER` on the building it stands beside by the §9.3 rule
   (`ordered = 2` on `2001`, the rest on successive farms); the harness's
   score then moves off 1 for the farm citizens (a straight walk to the
-  centre, then a stand), while the woodcutter's need `gather_from` (a
-  `BUILDS=6` dump carries it) and the AI's units need the order stream —
+  centre, then a stand), while the woodcutter's need `gather_from` (which needs
+  **`BUILDS=7`** — `BuildData::log_data@0062e810:269` puts `gather_from`, the
+  `GATHERPOINT` list and `BUILDQUEUE` behind `set_detail(7)`; tier 4 is
+  `city`/`gather_down` and tier 6 stops at `orig_type`. The first reading said
+  `BUILDS=6`, which would have wasted a run — R7 L14) and the AI's units need the order stream —
   `COMMANDMANAGER=1`, or the `UNITS=3` order blocks replayed as they appear.
 - **The log** — the harness should read the `UNITS=3` order blocks (§11.1)
   and diff `type/ox/whom/uid/flags` and the path stack per frame; not yet
@@ -2319,25 +2507,38 @@ moves fall out of dispatching once on the front at the top of `work`.
 
 **Not established — the order system**
 
-- `UnitOrder::flags` bits `0x8/0x10/0x20/0x80` beyond their writers (§1.3).
+- `UnitOrder::flags` bits `0x8/0x10` beyond their writers (§1.3). `0x20`'s
+  two readers and `0x80`'s setter are now named (R1); a **reader** for `0x80`
+  is still missing, and `0x02` is settled as dead.
 - The `0x28b` cast block in `Unit::work` step 5 — not credible as decompiled
   (an unconditional cast on every frame of every action-bit solo move); the
   listing around `0x60d6e0–0x60d710` settles it. Only an action-bit move whose
   target is an object reaches it — not the harness's state.
 - `metric` — written 0, logged, never read. If a writer turns up the FIFO
   claim needs the priority re-checked.
-- `OrderIndex` 0 and 5's names; `ATTACK_TO 2` vs `FLEE_TO 4` (one dump with an
-  attack-move).
+- **From the second reading, still open** (`docs/audit/2026-08-21-orders.md`):
+  the order vtable's `+0x50 ↔ +0xcc` const-twin spacing (R1); `do_move`'s
+  attack-retarget block, and whether `find_upath` kills the current order on
+  failure — the one open item that could change sim behaviour (R2); two rows
+  in R3. Each is marked `FABLE:` in the audit with the question that would
+  settle it.
+- ~~`OrderIndex` 0 and 5's names; `ATTACK_TO 2` vs `FLEE_TO 4`~~ —
+  **closed** (`docs/audit/2026-08-21-orders.md` R1): the enum is in the PDB,
+  `--type-index=0x1E22`. `NONE = 0`, `PATROL = 5`, `NUM_UNIT_ORDERS = 28`,
+  and every value the table carries is confirmed. No dump needed.
 - `UnitData::order_type` on an empty list (a lost jump table; callers guard).
-- The `leaders & 4` flag that switches `find_wpath`/`invalid_loc` onto
-  `was_seen` (fog-respecting pathing) — human vs AI is the guess.
+- ~~The `leaders & 4` flag that switches `find_wpath`/`invalid_loc` onto
+  `was_seen`~~ — **closed** (R7): `leader_flags & 4` is
+  `LeaderData::is_human@006ec170`, so the fog-respecting path is the **human**
+  one, as the first reading guessed.
 
 **Not established — the move**
 
 - What `astar_path` pushes on open ground beyond two cells (the chain and its
   tolerances) — the next mechanic; §4.6 says what the stub gets wrong.
-- What sets a search to `saving` and fills `coll_x/coll_y` — inside
-  `astar_path`.
+- ~~What fills `coll_x/coll_y`~~ — **closed** (R2):
+  `detect_unit_collision@00617060` writes them, not `astar_path`. What sets a
+  search to `saving` is still inside `astar_path`.
 - `MoveOrder::tolerance` (+0x14) has no writer; `MoveOrder::timer` no writer
   for a plain move.
 - The group's packed top byte in `angle` on arrival for a single unit.
@@ -2374,10 +2575,14 @@ moves fall out of dispatching once on the front at the top of `work`.
 - `Form::compute`/`categorize`; `action_move_near`'s leader-path copy in
   detail; `do_form_change`; `find_attack_pos` (two overloads, called, not
   read); `GroupData::find_leader`; `is_attacking_near`; `pause = 15`'s effect.
-- The spelling of the `ATTACKORDER`/`GROUPORDER`/`GUARDORDER` log keys.
+- ~~The spelling of the `ATTACKORDER`/`GROUPORDER`/`GUARDORDER` log keys~~ —
+  **closed** (R7): read as UTF-16 out of the PE, exactly as §11.1 lists them.
 
 **Behavioural checks, each a logged run (`UNITS=3 BUILDS=6`, and
-`COMMANDMANAGER=1` where a click is involved; the recipe in `docs/ORACLE.md`)**
+`COMMANDMANAGER=1` where a click is involved; the recipe in
+`docs/ORACLE.md`).** `BUILDS=6` carries everything the eight checks below
+need; **`gather_from`, the `GATHERPOINT` list and `BUILDQUEUE` need
+`BUILDS=7`** (R7 L14), and the order list needs `UNITS=3`.
 
 1. **The rotation and the cadence.** Select a citizen, shift-click two moves,
    ctrl-click a third: `length 3`, the `type` sequence newest-first shows

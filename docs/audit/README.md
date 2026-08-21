@@ -73,8 +73,8 @@ argument, `capture_strength`, and the type-vtable slot `+0xfc`. The lesson:
 grep the writers of every field you call frozen, and the callers of every
 function you call once-only.
 
-Orders (`2026-08-21-orders.md`, the eleventh mechanic) is the first audit in
-this directory that is **partial, and says so in its own first paragraph**.
+Orders (`2026-08-21-orders.md`, the eleventh mechanic) was run twice, and the
+record keeps both attempts.
 Seven readers took the blind side, one per sub-area, split as the first
 reading was — and, for the first time, on a **different model from the first
 reading**: Opus 5 blind against Fable 5's document, the trial the model-split
@@ -85,7 +85,15 @@ about ten minutes of each other and died; five had read both readings and
 written no verdict. Only R5, the start of a game, survives — 37 verdicts,
 seven corrections, all landed.
 
-Three lessons, all cheap next time:
+The second attempt ran the adjudication on Opus instead, in waves, and it
+completed: **A 32 · B 89 · both 165 · neither 18 · open 8** across seven
+sub-areas, ten corrections to `crates/sim`, all three queued disagreements
+closed without a behavioural check. Its own lesson is in the file, and it is
+about hedges: every place the first reading wrote "medium" or "the
+decompiler's local is stale", the second found something — twice, the hedge
+was pointing straight at the mechanism it had missed.
+
+Three lessons from the failure, all cheap next time:
 
 - **A fan-out of adjudicators is a quota commitment, not just a token
   cost.** Seven long Fable agents in flight is enough to exhaust a day's
@@ -105,7 +113,9 @@ Three lessons, all cheap next time:
   `~/ghidra-projects/reading/<mechanic>-<date>/` now, which is where the
   next mechanic's should be written directly.
 
-What the six missing adjudications owe is listed at the end of
-`2026-08-21-orders.md`, so the disagreements are not lost with the agents
-that were reading them; the reports and briefs to resume from are at
-`~/ghidra-projects/reading/orders-2026-08-21/`.
+The reports, briefs and adjudications are all at
+`~/ghidra-projects/reading/orders-2026-08-21/`. One process change from the
+second attempt is worth keeping whatever the model: adjudicators were told to
+mark anything they could not settle **`FABLE:`** rather than produce a
+verdict they did not believe. Five rows across seven sub-areas carry it —
+five honest gaps instead of five plausible errors.

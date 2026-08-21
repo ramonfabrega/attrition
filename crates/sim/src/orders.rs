@@ -1085,6 +1085,16 @@ impl Sim {
         let p = self.profile(Obj::Unit(u));
         let mut max = max;
         if (min > 0 && max == 0) || max < 0 {
+            // `find_nearby_spot@0061de70:45`: the default is
+            // `min + 4 × big_radius`, overridden to `min + 0x240` only when
+            // `big_radius == 0` **and** `!(unit_flags & 0x10)` — the
+            // transport-capable flag, which this crate does not model, so the
+            // second condition is assumed false. It can only differ for a
+            // transport-capable type whose `big_radius` is 0, and no shipped
+            // row is both. Stated in §14. The squad branch
+            // (`min + 0xc0 + 4 × (((uber−1) × guy_spacing)/2 + big_radius)`)
+            // is not modelled either — nothing here places a squad.
+            // (`docs/audit/2026-08-21-orders.md` R7 N3.)
             max = if p.big_radius == 0 {
                 min + 0x240
             } else {
