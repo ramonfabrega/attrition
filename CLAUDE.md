@@ -228,6 +228,27 @@ better, in which case say so and take that.
    attrition step needs attrition to actually happen, since `anti_att` sits
    at its base until `calc_attrition` runs (`docs/ATTRITION.md`).
 
+   **The `~` console is open after all, and it documents itself**
+   (2026-08-20, `docs/ORACLE.md`, "The `~` console, which documents itself").
+   `StartConsole=1` works; the console is simply invisible until it prints a
+   line, which is why an earlier session concluded it did not appear. It takes
+   commands with **no `cheat ` prefix**, echoes what it did, and `?` lists the
+   whole 102-entry table by category — including the half the chat box cannot
+   reach. Three entries change what a check costs: **`coord t`** (also
+   `Console Coord Mode=2` in `rise2.ini`) makes `add` read **tile**
+   coordinates, so placement needs no mouse, no screen transform and no
+   calibration probe; **`ai off`** and **`human <who>`** take the opponent out
+   of the experiment; and **`break #`**, `pause`, `ffwd` and `quit` are the
+   makings of an unattended run. The trap: in the run where the console was
+   open the game stopped tracking the mouse, and only a relaunch restored it,
+   so a run is console-on (tile coordinates, no mouse) or console-off (tile
+   coordinates from the ini, mouse available for orders) — not both.
+
+   **The city-mask check is part run** (`docs/CITIES.md` §3.6): a library is
+   refused 20 tiles north of the city tile where a tower on the same tile
+   starts, which is `OUTSIDE_RADIUS` and matches the even circle at radius 20.
+   The ±20/19 asymmetry needs three more rungs and the recipe is written down.
+
    **The flank convention is settled** (2026-08-20, `docs/COMBAT.md` §14.1),
    not by measuring damage but by measuring the premise the reading rested
    on: `UnitData.angle` is the facing, confirmed frame by frame against a

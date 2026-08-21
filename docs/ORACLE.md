@@ -669,10 +669,91 @@ quit confirmation, `EndGameWin::exec` skips the end-game window, and
 their popups. It is the flag to pass for any unattended run.
 
 `StartConsole=1` in `rise2.ini` is read by `Game::solo_checks` and calls the
-console window's show slot at game start, which would open the `~` console and
-with it the console-only half of `run_cmd`'s command table (`ai off` among
-them). Set on this machine, no console appeared, and the key that toggles it
-was not found. **Not established.**
+console window's show slot at game start, which opens the `~` console and with
+it the console-only half of `run_cmd`'s command table (`ai off` among them).
+~~Set on this machine, no console appeared.~~ It does appear — it is simply
+**invisible until it has printed a line**, so the first look at it found
+nothing. See "The `~` console, which documents itself" below.
+
+### The `~` console, which documents itself (2026-08-20)
+
+`StartConsole=1` in `rise2.ini` does work — `Game::solo_checks` calls the
+console window's show slot at game start — and an earlier session's "no console
+appeared" was wrong in an instructive way: **the console is invisible until it
+has printed something**, so a game where the chat box seems not to open is
+usually a game where the console already has the keyboard. What gave it away
+was a screenshot full of
+
+> `>cheat camera 8,39`
+> `>Unknown Command: cheat camera 8,39`
+> `>Use '?' for list of commands, 'exit' to return to game.`
+
+**The console takes the command with no `cheat ` prefix**, and it reaches
+`run_cmd`'s *first* switch as well as the second — the half the chat box cannot
+see. It also echoes what it did, which turns a silent cheat into a checked one:
+`resource all +12345` prints the new totals, `camera 32,156` prints
+`Camera X = T32 / Camera Y = T156`, and `select 1` prints
+`Citizen, Red, (o=1)  HP=40/40  X = T1  Y = T8  Stance = …`.
+
+`?` lists eight categories, and they are the engine's own documentation of the
+command table. Transcribed from the running game:
+
+**`? 1` Control & Misc.** `?` list; `cls` clear; `close`/`exit` close the
+console; **`break #`** stop execution when the game frame reaches `#`; `go`
+close, unpause and turn off reveal; **`quit`** quit the game; **`coord
+(c|t|w|a)`** coordinate display **and read** mode — Coord, TCoord, WCoord, All;
+`name (n|c|#|a)` who display/read mode — Names, Colors, Numbers, All;
+**`pause 1|0`**; **`sandbox`** sets all players to human and the map to reveal
+all; `safe` machine guns around every human capital; **`ai on|off|debug`**;
+`diff 0-5`; `pointer text`; `netcmd` send a console command to all players;
+**`ffwd #`** fast-forward to a given minute; `keys 1|0` the Alt-key cheats.
+
+**`? 5` Player/Nation.** `be who`; `ally|peace|war who`; `meet|unmeet who`;
+**`human who`** turn *off* computer control; `computer who` turn it on;
+`defeat|victory who`; `tech who tech|all (on|off)`; `resource who
+goodtype|all ±amount`; `age age who`; `military|civic|commerce|science level
+who`; `library level who`.
+
+**`? 7` Unit/Building/Object.** `select ob#|type who +`; **`object ob# who`**
+show object info; `die o,who|select`; `damage (o,who|select) ±damage`; `craft
+(o,who|select) ±craft`; `move (o,who|select) (x,y|cursor)`; `insert|add #
+typename who=RED x,y`; `finish`; `next objtype`; `hurry`; `bird`; `nuke`;
+`pack`; `deploy`; `anim #`.
+
+The other four are `? 2` Tools & Script, `? 3` Audio, `? 4` Graphic System,
+`? 6` Camera/Display, and `? Objects` — "objects that parse themselves".
+
+**Three of these change what a behavioural check costs.**
+
+- **`coord t` removes the mouse from placement.** In TCoord mode `add` reads
+  its `x,y` as **tile** coordinates, so `add NEW tower 56,156` lands exactly on
+  tile `(56, 156)` — no screen transform, no calibration probe, no camera. The
+  mode persists after the console is closed, and it is also the `rise2.ini` key
+  **`Console Coord Mode`**, where `2` is TCoord; setting it there gets tile
+  coordinates in a run with the console switched off.
+- **`ai off` and `human <who>`** take the opponent out of the experiment
+  entirely, which the chat box could only approximate with `diff 0`.
+- **`break #`, `pause`, `ffwd` and `quit`** are the makings of an unattended
+  run: fast-forward to a frame, stop there, dump, quit.
+
+**The console and the mouse did not coexist**, which cost a game to learn.
+In the run where the console opened at start, the game stopped updating its
+cursor tile: `add` at the cursor and `move … cursor` both acted on a stale
+position near the map corner, and closing the console with `exit` did not bring
+the tracking back — only a relaunch did. **Whether the console is the cause is
+not established**; a focus interaction with the driving script is just as
+consistent with what was seen, and clicking inside the window did not restore
+it. Either way the practical rule held: a run is one or the other. **Console
+on** for the
+console-only commands and tile-coordinate placement with no mouse at all, or
+**console off** (with `Console Coord Mode=2` in the ini) for tile coordinates
+*and* a working mouse, which is what an order needs.
+
+With the console off and TCoord set, aiming needs one measurement rather than a
+fit: `cheat camera X,Y` centres the viewport on tile `(X, Y)`, and on this
+machine's window that tile sits at desktop **(1719, 574)** — checked by placing
+a tower at the cursor there and reading back `(40, 170)` for `camera 40,170`.
+Any tile can then be put under the cursor by centring on it.
 
 ### Staging a scenario: the chat cheats
 

@@ -83,8 +83,20 @@ window exists, focuses it, and writes a screenshot plus a downscaled copy.
 `click.sh X Y` left-clicks; `rclick.sh O X Y` selects object `O` and
 right-clicks, which is how a unit is given an order.
 
+`con.sh X Y "<command>"` sends a line to the `~` console instead of the chat
+box — no `cheat ` prefix, and it reaches the console-only commands (`ai off`,
+`human <who>`, `coord`, `pause`, `break`, `ffwd`, `quit`). `?` there lists the
+whole command table; `docs/ORACLE.md` transcribes it.
+
+**Prefer tile coordinates to aiming.** With `Console Coord Mode=2` in
+`rise2.ini` (or `coord t` once in the console) `add` reads its `x,y` as tiles,
+so `cheat add NEW tower 56,156` needs no mouse at all, and `cheat add 1 citizen
+32,141` puts a builder exactly where it is wanted. What still needs the mouse
+is the *order* — `cheat camera 32,137` then a right-click at the viewport
+centre, desktop `(1719, 574)` on this machine's window.
+
 `aim.py A B C D --from cx,cy tx,ty ...` turns a tile into the desktop point to
-click. The projection is linear in `u = wx − wy` and `v = wx + wy`; `A` and `B`
+click, for the cases tile coordinates cannot cover. The projection is linear in `u = wx − wy` and `v = wx + wy`; `A` and `B`
 come from the zoom, `C` and `D` from the camera. Calibrate once with two
 right-click anchors, then re-fit `C`/`D` after any camera move with a single
 `cheat add NEW tower` probe — a tower's even footprint makes its logged

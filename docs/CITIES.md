@@ -748,6 +748,26 @@ reading; a first draft had the disc as `vector_dist ≤ radius`.)* Then
 `Build::activate` → `Cities::init_city` is where a city becomes a source
 (`docs/ATTRITION.md`).
 
+**Partly checked (2026-08-20).** A **library** — a three-wide footprint, so
+`tile_corner` puts it on tiles `[t − 1, t + 1]` — was placed 20 tiles north of
+the capital's tile, at `(32, 136)` against a city on `(32, 156)`, and a builder
+ordered onto it: **disbanded**. A **tower** on the same tile, ordered by the
+same builder, **started**, which rules out terrain and territory (a tower is
+neither a city nor a fort, so it takes the strict friendly-territory test) and
+leaves `OUTSIDE_RADIUS` — the tile is outside the city's `0x100` mask. That is
+what the even circle predicts at radius 20: the library's northmost footprint
+tile would have to be `135`, and the mask reaches `136`.
+
+**The asymmetry itself is still open**, and it needs the other three rungs:
+the library should *start* at `(32, 137)`, and on the far side start at
+`(32, 174)` and be refused at `(32, 175)` — one tile shy on the positive side.
+Those were not run; the session ended on the aiming of the builder's order, not
+on anything about the rule. `docs/ORACLE.md`'s console section has the setup
+that makes the rest cheap: `Console Coord Mode=2` gives `add NEW library
+32,137` exact tile placement, `cheat add 1 citizen 32,141` puts a builder
+where it is wanted without the unreliable `move … cursor`, and `cheat camera
+32,137` plus a right-click at the viewport centre issues the order.
+
 ### 3.7 Every frame — `Wall::process`
 
 `Build::process` begins with `Wall::process` and **returns if not active**.
