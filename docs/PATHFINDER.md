@@ -156,6 +156,14 @@ reading:
 - `Unit::find_path@005fb910`, the straight-line verifier that decides whether
   the pathfinder is called at all — and its "far and reachable" rule
   (cell-Manhattan > 4), which is why a near move never touches `PathFinder`.
+  **One open question here is now urgent and is this reading's to answer**
+  (`docs/ORDERS.md` §4.6): the march as transcribed has a fixed point, and it
+  hung `crates/sim` on a plain move order, because `sinx(ang, spd)` truncates
+  a small cross-axis component to zero while that axis' remainder is still
+  bigger than one step. Either the original's trig does not truncate that way
+  or its exit test is not the one we transcribed. Settling it is a few
+  minutes in the listing at `0x5fb910`, and the answer changes the RNG
+  stream, so it is worth doing early rather than at the end.
 - The **calling convention of all three wrappers**: they take the unit's own
   `Stack<PathData>`, pop the goal off its top, push back what the unit should
   walk (top first), and return the stack length — `0` for no path

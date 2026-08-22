@@ -803,6 +803,26 @@ mod tests {
         i.looks_valid().then_some(i)
     }
 
+    /// One of the kept dumps, if this machine has it.
+    ///
+    /// `$RON_GAMELOG_DIR`, or the bottle's `Logs\` — the same default
+    /// `tools/gamelog/` uses. The dumps are tens of megabytes and live
+    /// outside the repo (`CLAUDE.md`), so a machine without them skips; the
+    /// test says so rather than passing quietly, because a check that can
+    /// evaporate is how a stale assertion stayed green for a day
+    /// (`docs/DATALAYER.md`).
+    fn dump(name: &str) -> Option<String> {
+        let dir = std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!(
+                "{home}/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/\
+                 crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
+            )
+        });
+        let path = format!("{dir}/{name}");
+        std::path::Path::new(&path).is_file().then_some(path)
+    }
+
     fn initial() -> Initial<'static> {
         Initial {
             world: vec![("xs", "60"), ("ys", "60"), ("seed", "7236")],
@@ -918,6 +938,110 @@ mod tests {
         let r = compare(&built, &moved, 1);
         assert_eq!(r.diverged.len(), 1);
         assert_eq!(r.diverged[0].o, 1);
+    }
+
+    /// The oracle, as a regression guard.
+    ///
+    /// Every other test in this crate checks the harness against something we
+    /// wrote. This one checks it against **the original's own 432 frames**,
+    /// and pins the state of the port on 2026-08-21 so that a change which
+    /// quietly un-does it fails here rather than in six weeks' reading of a
+    /// number nobody remembers.
+    ///
+    /// The assertions are chosen to be the *invariants*, not the readings: a
+    /// field the simulation models must never disagree where it is
+    /// comparable, and the one unit the harness can drive end to end must
+    /// keep doing so. Counts that are expected to move as mechanics land —
+    /// `length`, `kind`, the path-stack pair — are bounded rather than fixed,
+    /// so landing the pathfinder does not fail this test, it improves it.
+    #[test]
+    fn the_original_s_own_run_is_still_matched_frame_for_frame() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run6-ancient-nubian-builds7.txt") else {
+            // Not a silent skip: say which file is missing.
+            eprintln!(
+                "skipping: no gamelog-run6-ancient-nubian-builds7.txt \
+                 (set RON_GAMELOG_DIR; docs/ORACLE.md says how to capture one)"
+            );
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let report = run(&loaded, &log, Tuning::RON, None).unwrap();
+
+        assert_eq!(report.frames.len(), 432, "the dump's frame count");
+        assert!(report.orders_seen(), "run6 is a UNITS=3 dump");
+        // Every unit the game *started* with links. Later frames unlink a
+        // growing number, and that is not a fault: over 432 frames both
+        // players train units, and the harness stands its roster up from the
+        // initial dump and has no production. It is worth pinning as a
+        // ceiling, because the day production is wired in it should fall.
+        assert_eq!(
+            report.frames[0].unlinked, 0,
+            "a unit in the first logged frame has no simulation unit"
+        );
+        let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
+        assert!(
+            unlinked <= 673,
+            "unlinked unit-frames grew to {unlinked}: the original trains \
+             units the harness cannot, so this only ever shrinks"
+        );
+
+        // The start-of-game rule, derived without reading the log.
+        let checks = check_start_orders(
+            &build_sim(&loaded, &log.initial().unwrap(), Tuning::RON),
+            &log,
+        );
+        let held: Vec<_> = checks
+            .iter()
+            .filter(|c| c.ours.is_some() || c.theirs.is_some())
+            .collect();
+        assert_eq!(held.len(), 10, "ten starting citizens");
+        assert!(held.iter().all(|c| c.agrees()), "{held:?}");
+
+        // **The invariant**: every field the simulation actually models
+        // agrees wherever both sides name it. A regression in the order
+        // system shows up here first, and in nothing else.
+        let modelled: Vec<&OrderDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| {
+                matches!(
+                    d.what,
+                    OrderMismatch::Action { .. } | OrderMismatch::Target { .. }
+                ) || matches!(d.what, OrderMismatch::Flags { .. })
+            })
+            .collect();
+        assert!(
+            modelled.is_empty(),
+            "a modelled order field disagrees: {:?}",
+            &modelled[..modelled.len().min(4)]
+        );
+
+        // **The unit that tracks**: player 0's first woodcutter citizen
+        // matched the original's position and its whole order list for the
+        // entire run once `gather_from` arrived. If that stops being true,
+        // something took the harness backwards.
+        let by_unit = report.first_divergence_by_unit();
+        assert!(
+            !by_unit.iter().any(|&(w, o, _)| w == 0 && o == 1),
+            "0/1 diverged in position: {by_unit:?}"
+        );
+        assert!(
+            !report
+                .order_divergence_by_unit()
+                .iter()
+                .any(|&(w, o, _, _)| w == 0 && o == 1),
+            "0/1 diverged in its order list"
+        );
+
+        // The rest is expected to shrink, never grow. These are ceilings.
+        let orders: usize = report.frames.iter().map(|f| f.order_only().count()).sum();
+        let paths: usize = report.frames.iter().map(|f| f.path_only().count()).sum();
+        assert!(orders <= 1_279, "order disagreements grew to {orders}");
+        assert!(paths <= 783, "path disagreements grew to {paths}");
     }
 
     /// A unit holding a build order on the building the log calls `2001`,

@@ -950,6 +950,29 @@ impl Sim {
             let step_x = if sx.abs() > dx.abs() { dx } else { sx };
             let step_y = if cy.abs() > dy.abs() { -dy } else { cy };
             let next = Pos::new(at.x + step_x, at.y - step_y);
+            // **The march must advance, or it never ends.** Neither exit test
+            // above can fire on a step that goes nowhere: the remainder is
+            // not within one step on both axes (that is why we are still
+            // here) and it did not grow (it did not change). The state is
+            // reachable with an entirely ordinary order — `sin_component`
+            // truncates toward zero, so a near-axis-aligned goal a couple of
+            // cells away gives a zero cross-axis step while that axis'
+            // remainder is still larger than the unit's speed, and the loop
+            // spins on the spot. A randomised soak found it in a plain move
+            // order (`soak.rs`); before the guard, `sim` hung.
+            //
+            // Returning 1 says "I could not verify a straight line — plan",
+            // which is what the pathfinder is for and the honest answer for a
+            // line the march never walked. **It is a divergence from an
+            // unknown**: `docs/ORDERS.md` §4.6's march, as read from the
+            // original, has the same fixed point, so either its trig cannot
+            // produce a zero component here or its exit test differs. That is
+            // an open question against the pathfinder reading, which is in
+            // this code next (`docs/PATHFINDER.md`), and it has a sync
+            // consequence — a 1 costs a `find_wpath` draw and a 0 does not.
+            if next == at {
+                return 1;
+            }
             if next.tile() != at.tile() && !self.world.accepts(next) {
                 // Blocked, and `go_around_building` is not modelled: plan.
                 return 1;

@@ -987,7 +987,37 @@ return 0
 **On open, flat ground** (every tile the march crosses returns `invalid_loc ==
 0`), `find_path` returns 0 for any goal within 4 world cells (Manhattan, on
 the cell grid `div_3_table[v >> 8]`) and 1 beyond. That is the whole reason a
-near move never touches `PathFinder`. `go_around_building@005fc350` is a
+near move never touches `PathFinder`.
+
+**The march as written above has a fixed point, and it hung the simulation
+(2026-08-22).** Neither exit test can fire on a step that goes nowhere: the
+remainder is not within one step on both axes — that is why the loop is still
+running — and the Manhattan remainder did not *grow*, it did not change. A
+step goes nowhere whenever both components are zero, and one component is
+zero far more often than it looks, because `sinx`/`cosx` truncate toward
+zero. A citizen at `MOVES = 25` sent 60 east and 1,600 north is inside the
+four-cell range, and `25 × 60 / 1601` truncates to **0**: the march walks
+north, closes the y remainder exactly, and then stands on the spot with
+`dx = 60` — larger than one step — for ever. That is an ordinary order with
+ordinary geometry, not a contrived one; a randomised soak
+(`crates/sim/src/soak.rs`) found it in a plain `MOVE_TO`, and before the fix
+`cargo test` never returned.
+
+`crates/sim` now returns **1 ("plan")** on a step that makes no progress,
+which is the honest answer for a line the march never walked and hands the
+move to the pathfinder, as §4.6's whole design intends. **It is a divergence
+from an unknown**, and the two candidates are worth naming for the pathfinder
+reading, which is in this code next (`docs/PATHFINDER.md` §6):
+
+- the original's `sinx(ang, spd)` does not truncate to zero here — it may
+  round, or carry more fractional bits than the reading assumed; or
+- its exit test is not the one transcribed above (a `>=` where this has `>`,
+  or a remainder test on *either* axis rather than both).
+
+Until one of them is settled, the guard is a stated behavioural difference
+with a **sync consequence**: a 1 costs a `find_wpath` draw off the shared RNG
+and a 0 does not, so a run that takes this branch will drift from the
+original's stream even where its positions agree. `go_around_building@005fc350` is a
 tile-walk along the blocking tile's edge that pushes up to three `PathData`s
 (turn-in point, a `flags 8` midpoint, the target tile centre), each placed
 `off % 0xc0 / 2 − 0x30` from the tile centre; on failure `mo->dest = 0; masks

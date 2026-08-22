@@ -318,6 +318,26 @@ check named — and then, when it is the cheapest way to settle it, the check is
 run rather than deferred. Do not enable everything per frame; it slows the
 simulation to a crawl.
 
+**The checks with teeth are the ones that can fail.** Three guards now stand
+outside the per-mechanic tests, and each was written by first making it fail:
+
+- `crates/sim/src/no_float.rs` reads the simulation's own source and rejects
+  any float outside `#[cfg(test)]` — the one hard constraint that was
+  enforced by convention until 2026-08-22. It allows the software float
+  (`combat::F32`, integer mantissa) and the test oracles, and nothing else.
+- `crates/sim/src/soak.rs` generates games from a seed — a scenario, and a
+  stream of orders including unreasonable ones — plays each **twice**, and
+  compares a per-frame digest. It found a non-terminating loop in
+  `find_path`'s march within an hour of existing (`docs/ORDERS.md` §4.6).
+  The old determinism test ran one hand-built scenario; this runs a hundred
+  it did not think of.
+- `rondata::diff`'s `the_original_s_own_run_is_still_matched_frame_for_frame`
+  pins the harness against the original's own 432 frames, so the state of the
+  port is a test rather than a number in a commit message.
+
+A guard that has never failed has not been tested; make it fail on purpose
+once, then land it.
+
 **Every mechanic gets a blind second reading before it is called done.** One
 reader writes the document from the decompile; a second, who has not seen the
 document or the implementation, re-derives the same mechanic from the same
