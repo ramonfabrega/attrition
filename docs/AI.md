@@ -1312,173 +1312,333 @@ reports (diplomacy's 33 sites and `process_taunt`'s excluded):
 
 ## 12. The implementation so far
 
-- **`crates/sim/src/ai.rs`** — the driver's pure half: `Personality::roll`
-  (the draw order pinned by counting draws; run8's block is consistent with
-  it, §5), `Leader::choose_script` (`Leader::init` lines 782–826),
-  `MakeList::make_me`, the goods picture (`production_ai_setup` up to the
-  market, on the sim's `Ledger`), the cadence, the `Step` machine, and
-  `Lobby` — `GameInfo`'s option block, run7's values as the default.
-- **`crates/sim/src/bhs.rs`** — the language: lexer, parser, AST, a
-  tree-walking interpreter over a `Host` trait, and `State` (statics and
-  trigger bits) as sim-owned state. Sixteen tests, one per rule in §11.
-- **`crates/sim/src/ai_host.rs`** — the 55 host functions over `&mut Sim`
-  (`host-functions.md`, one arm each): the 1-based `who` and its guards, the
-  display-name scan over the tree in `TypeIndex` order, the per-player
-  object numbers as handles, `find_counters[]` and `ScriptTimers` on the
-  Sim (`ScriptEnv`), the counters by class, `can_pay_cost` with escrow
-  ignored, the trainers' line normalisation and round-robin producer
-  search, `research_tech_with_cost` into the tech queue, the two orders,
-  the lobby reads, `rand_int` on the sync stream. `Sim::load_scripts`
-  compiles the shipped files against the static signature table;
-  `Sim::run_script` is step 1's call. City names are synthetic (`"City n"`,
-  §13). `place_city_with_cost` lands on the seam `Sim::place_city_ai`.
-- **`crates/sim/src/ai_place.rs`** — `Leader::produce_building`
-  (`create-buildings.md` §4): `circle_init`'s spiral rebuilt in integers
-  (the original's tables are **absolute cell offsets** in rings of the
-  octagonal metric, `dx` outer, `dy` inner; the report's "cumulative
-  deltas" is a misreading of `anchor + table[i]`), `space_at_corner`/
-  `check_building_wcoord`, `find_friends`, the FARM/MINE score with its
-  draw per friendless candidate, the builder among the citizens, the
-  jitter's draw per unblocked sub-position, the payment, the site, the
-  swarm order. The layers a flat world lacks are named seams (§13).
-- **`crates/sim/src/ai_drive.rs`** — `strategy_all` in `Sim::tick` between
-  the income and the objects; `plan_strategy`'s cadence; `production_ai`
-  one step a frame, the script at step 1, the goods picture at step 2, the
-  producers as seams; `init_leader_ai` for `Leader::init`'s tail.
-- **The sim underneath**, landed for this: per-player object numbers
-  (`Objects::find_free`'s bands and marks, `Building.index`,
-  `Sim::unit_by_o`/`building_by_o`); a **technology in the production
-  queue** (`TypeDef.cost`/`job_time` from techrules.xml, `Item.tech`,
-  `Sim::queue_tech`, `tech_price` = `COST × TECH_COST_FACTOR` through the
-  redirect, `tech_time` = `JOB_TIME × 100 × RESEARCH_TICK_PREMIUM >> 8`,
-  completion through `gain_tech` — pinned: 40 frames complete on the 41st
-  tick); nations' display names on the tree; rules.xml's `mapstyles`
-  order naming `MAP_STYLE`.
-- **The harness** (`rondata`): loads the scripts, fills `Lobby` from
-  `GAMEINFO`, runs `init_leader_ai` for the computer leaders, tallies the
-  units it stands up into the muster (the ramp read zero citizens before),
-  links a trained unit by its `o`, and notes any pre-placed building whose
-  `find_free` number differs from the dump's (none does on run7).
-- **The score.** `run7_s_first_script_call_fills_the_queues_the_dump_shows`
-  pins §5's first row: at frame 2 the AI's city holds three citizens at
-  **25/26/27** food, its library **Written Word then City State**, and one
-  farm site numbered **2006** with a citizen ordered onto it — `defensive`
-  steps 6, 7, 9, 10 in one call and 11 blocking. On run6 the three
-  citizens train on the original's frames (100, 206, 320) and link:
-  unlinked unit-frames **673 → 0**, exact; on run7 **6,543 → 1,970**. The
-  run6 order/path ceilings were re-based (1,784/1,123) because those units
-  are now compared at all, and they idle where the original sends them to
-  gather — the census's job.
-- `docs/DECISIONS.md` entry 20 records the fork and its two conditions.
+**2026-08-24, third session — the census and the C++ producers landed.**
+Seven modules were written in parallel, one worker each (Opus, `lean`),
+from this document and the two producer reports, every value formula
+re-read against the decompile as it was implemented; the main thread wrote
+the shared surface first (`ai.rs`'s `Census`/`CityAi`/`Site`, `ai_types.rs`,
+the world's `CellData`, the driver's calls) and integrated. §14 lists every
+place a worker found the decompile disagreeing with §2 — **thirty-odd
+corrections**, which are the second reading's material and are not yet
+folded back into §2's prose.
+
+- **`crates/sim/src/ai.rs`** — the driver's pure half: `Personality::roll`,
+  `Leader::choose_script`, `MakeList::make_me`, the goods picture, the
+  cadence, the `Step` machine, `Lobby`; and now the records the sweep
+  writes — `Census` (every count under `LeaderData`'s names, the per-region
+  arrays one slot per sim region), `CityAi` (the per-city `free`/`busy`/
+  `gatherers`/`peasant_dist` and the circle picture), `Site` × 10,
+  `mil_trainers`, `tech_frame`/`tech_cat_frame`.
+- **`crates/sim/src/ai_types.rs`** — the shared type helpers: `Class`,
+  `unit_record`/`build_record`, `num_buildings_of`/`num_sites_of`/
+  `buildings_of_line`, `type_price`/`type_affordable`/`type_available`,
+  `cities_of`/`city_chain`, `count_gather_slots` (`City::count_gather_slots
+  @00737dc0`, knowledge excluded from the total), `village_num`, `sea_map`.
+- **`crates/sim/src/ai_census.rs`** — `plan_strategy`'s sixteen sweep steps
+  (§2.3) and `check_explore`; the seams tabulated in the module. **Pinned
+  against the original's own leader record**: run9's frame-1 `LEADERDATA
+  who 1` (`LEADERS=9`, §5) agrees with the harness's frame-0 sweep on the
+  same map — `active 6, peasants 5, gatherers 5, free_peasants 0`, the
+  per-region active/peasants/gatherers/cities, `reg_land 43`, `strategy 1`,
+  `escrow_rate`, `filled_gather_slots` — with one ceiling: the woodcutter
+  camp's five gather slots are `calc_gather`'s (§13).
+- **`crates/sim/src/ai_sites.rs`** — `compute_sites`, `compute_site_stats`,
+  `found_cities`, `produce_city`, `place_city_with_cost`'s body
+  (`place_city_ai_impl`); `move_x/move_y[0..25]`, the ring `[81..121]` and
+  `corner_x/y` read from the PE's `.rdata` (`rise_z.map` names them,
+  `compass.obj`); §13's distance loop settled in the listing.
+- **`crates/sim/src/ai_research.rs`** — `research_techs`, `produce_tech`;
+  the eleven `ai[]` weights traced to `TechType::compute_ai_values@0066cdc0`
+  (§14.4) and seamed to zero until the loader ports them.
+- **`crates/sim/src/ai_units.rs`** — `create_units` (every branch: air,
+  missiles, sea, land civilians, scout, land military, the shared tail),
+  `upgrade_units`, `produce_unit`, `queued_units`, `check_income`,
+  `unit_prod_value`; the type flags the sim does not carry are seams.
+- **`crates/sim/src/ai_build.rs`** — `create_buildings` (both passes, every
+  family), `produce_upgrade`, `produce_spell`; the gather multiplier's cap
+  settled (§14.6).
+- **`crates/sim/src/ai_make.rs`** — `make_stuff`, `make_this`, `use_market`,
+  `market_speculation` (the market's gates and draws' *positions*; it trades
+  nothing until `docs/ECONOMY.md`'s market lands), `check_orphaned_buildings`.
+- **`crates/sim/src/ai_place.rs`** — `produce_building`, now with §4.6's
+  census adjustments in place (run8 frame 2: `gatherers 5 → 4`).
+- **`crates/sim/src/ai_drive.rs`** — the sweep calls the census, the orphan
+  check and `compute_sites`; the cheap research tick; every step calls its
+  producer; `effective_pop` computed on entry.
+- **The world** (`world.rs`) carries the rest of each cell's `WData` —
+  `CellData` (`flags`, `land`, `region2`, `val`, `goods`, `blocked`,
+  `solid`…), `danger[who][region]`, `landmasses`, `tregion_alt` — and the
+  harness fills it from a `WORLD ≥ 5` dump (`gamelog::world_cells`,
+  `world_tiles`; `docs/ORACLE.md`, "The map is a dump too"). `home_reg` is
+  set where the capital is founded (`init_city`; the original's
+  `Setup::build_cities`).
+- **The oracles** (`docs/ORACLE.md`): `LEADERS=9` is the census
+  (`tools/gamelog/leader.py`), `WORLD=6` is the map — run9 has both for
+  this lobby; `Log::leader_block(frame, who)` reads the record.
+- **The score.** Run9 (36 frames, the map): the fourth farm lands on the
+  original's tile and its builder `1/1` tracks the run — the first
+  divergence on every earlier dump — order disagreements 60 → 43, path
+  stacks 84 → 68. Run7 (flat): unchanged at 1,970 unlinked unit-frames,
+  and now explained — with every cell's `val` 0 no site scores, the
+  script's `city_placement` never succeeds, and the citizens of step 12
+  are never trained. Run10 (this lobby, the map, run7's length, no input)
+  is the next capture (§12.1).
 
 ### 12.1 Where to pick up
 
-What the frame-2 pin does not reach, in the order it is met:
-
-1. **The farm's tile.** Site 2006 exists and is numbered right; whether it
-   stands where the original put it depends on the cell's `val` byte and
-   the map's forest/terrain layers, which the flat harness world does not
-   carry (§13). ~~The next world-data step — the map's tile layer into the
-   harness, already the pathfinder's next win (`CLAUDE.md` item 8) — moves
-   this and the woodcutters' paths at once.~~ **The tile layer is a dump**
-   (2026-08-24): `WORLD=6` under `[Start Game]` prints every cell's
-   `WData` — `land`, `flags`, `goods`, `who`, `region`, `region2`, `val`
-   (`docs/ORACLE.md`, "The map is a dump too"); `rondata` reads it
-   (`gamelog::world_cells`) and `build_sim` builds the regions and
-   `CellData` from it. What remains is the capture for this lobby (run9)
-   and the per-tile `TData` masks from the block's tail.
-2. **The census** (§2.3) into `ai::Leader` and per-city AI records
-   (`free`, `busy`, `gatherers`, `filled`, `space[]`, `peasant_dist`), then
-   `check_orphaned_buildings`, `compute_sites`/`compute_site_stats`,
-   `found_cities` (which fills `Sim::place_city_ai` — run7's second city
-   at frame 776, `docs/AI.md` §2.17), `research_techs` (with `TechType::
-   compute_ai_values` read first — §13), `upgrade_units`, `create_units`,
-   `create_buildings`, `produce_*`, `make_stuff`/`make_this`,
-   `use_market`/`market_speculation`. Each fills the make list the driver
-   already carries; the run6 ceilings are the score — the AI's citizens
-   idle after training because nothing sends them to gather.
-3. **The later script calls** on run7 — 176, 376, 576 re-blocking at 11;
-   776's `city_placement`; 976's `needed_citizens = 10` (`1/9`, `1/10` at
-   1297 and 1505) — as the census lands. The 1,970 unlinked unit-frames
-   are these.
-4. **The soak's AI leaders**: a computer player in the generated games,
-   so the interpreter, the finders' cursors and the placement draws sit
-   under the determinism guard. Not yet done; the scripts are read from
-   the install, so the soak needs either a synthetic script or the
-   install.
-5. **The blind second reading** of the whole mechanic.
+1. **Run10 into the harness**, and its numbers into this section: the
+   script's steps 11–13 on the map (site `2007` at 776, `2008` at 1177,
+   citizens `1/9`, `1/10`), the 1,970 unlinked unit-frames, and the C++
+   producers' first live make list, if the script ever returns 2.
+2. **The sync stream at frame 0.** `compute_sites`' stride is a
+   `game_random` draw, and the harness's stream at frame 0 is not the
+   original's — the map maker's draws precede `Leader::init`
+   (`docs/ORDERS.md` §9.2). On run9 the sweep scores a site at (55, 11)/425
+   where the record has (52, 14)/370: the same score function on different
+   samples. Modelling the map maker's draw count, or reading the RNG state
+   out of a dump, is what pins the sites, and every later AI draw.
+3. **The loader's half of the producers** — the seams that are `rondata`'s
+   to close: `UnitType.unit_flags/unit_flags2/role/carry/cat`
+   (`determine_roles@0061c320`, §14.5), `TypeDef.ai[11]`
+   (`compute_ai_values`, §14.4), the market (`docs/ECONOMY.md`), and
+   `gather_max` for non-flat buildings (`calc_gather`; a worker's report is
+   pending). Each retires a named seam in one module.
+4. **The producers' oracle.** No dump yet shows a non-empty make list: the
+   script blocks the C++ steps for the whole of the opening. A run past the
+   script's `SCRIPT_DONE` (Classical Age under `defensive`, ~step 29) with
+   `LEADERS=9` on a few frames around a sweep is what scores `create_*`,
+   `research_techs` and `make_stuff`.
+5. **Fold §14 into §2**, then **the blind second reading** of the whole
+   mechanic — thirty corrections from the implementation is exactly the
+   kind of first reading the audit rule exists for.
+6. The soak's AI leaders (a synthetic script, or the install), and
+   `docs/ARMY.md`.
 
 ## 13. What is not established
 
-- **`compute_site_stats`'s per-city distance loop** (§2.13 step 12): the
-  decompile shows `return` where `break` would make sense and loses
-  `vector_dist`'s operands; the listing settles it.
-- **The gather multiplier's cap** in `create_buildings` (`create-buildings.md`
-  §8.1): printed as a `min` at 0x100, which would make the multiplier's
-  ×2 terms dead; the listing's `cmp`/`jl` at line 1638 settles it.
-- **`build_flags & 0x8000000`** — no shipped `BUILD_FLAGS` string carries
-  it; if the loader sets it another way, the temple/library/senate arms of
-  `create_buildings` come alive. A `rondata` dump of every type's flags
-  settles it.
-- **`CityData.city_flags` bits `0x8` and `0x1000`** — read by the tower and
-  temple arms; no writer found.
-- `unit_flags & 4/8/0x8000` and `unit_flags2 & 0x60` — which shipped units
-  carry them (a `rondata` pass over `unitrules.xml`).
-- `WorldData::danger[who]` — the trainer-scoring divisor's writer.
-- Whether `LeaderData::is_ally(who, who)` is true (the nuke and warship
-  loops).
-- The implicit variable's declared type in the original (§11: taken as
-  the first assigned value's type, the only model the scripts run under).
-- `TechType::compute_ai_values` / `add_preq_ai` — the `ai[11]` weights
-  research reads are derived at load, not read from `techrules.xml`; not
-  yet read.
-- ~~The personality is loggable but not at `LEADERS=9`.~~ Settled by run8:
-  it is `LEADERS=9`'s tail (§5, `docs/ORACLE.md`).
-- ~~Which script run7's AI drew.~~ `defensive`, logged in run8's
-  `prod_script` and reproduced by the frame-2 pin (§12).
-- **The placement's missing map layers.** `produce_building` answers the
-  cell's `val` byte as 0 (so `+0xff` is a constant over candidates and
-  ties fall to the draw and the ring order), `buildings_allowed` (cell
-  flags `0x78`) as always allowed, the enemy-seen flag and `danger[]` as
-  none, `World::gather_at` amounts as zero (an oil platform is never
-  placed), and the oil patches as absent. `space_at_corner` is from the
-  report's skim of the function, not a reading: "the first four blocked →
-  0", "some 3×3 free → 3", "fewer than eight blocked → 2". The builder's
-  distance is taken in tiles with the radius penalties in tiles; the
-  report flags the scale for the listing. The woodcutter's re-scan
-  supports a one-tile margin (`radius[1] = 9`, the compass ring); a wider
-  margin needs the full `move_x/move_y` table. The dock's sub-position
-  retry and the wonder bookkeeping are not modelled.
-- **`space_at_corner`'s first-row early-out**, the enhancer's `get_town`
-  test, and `find_friends`' enhancer arm are approximated (the enhancer
-  table is not modelled).
-- **The census adjustments at the end of `produce_building`** (`free`,
-  `gatherers`, `filled`, `space[]`) are not kept — there is no census yet.
-- **City names are synthetic** (`"City n"`, the sim's city index). The
-  original's `CityData.name` comes from the nation's city list; the
-  scripts only pass the string back or test it `> -1`, so behaviour is
-  identical. A dump-facing name would come from `tribes/<nation>.xml`'s
-  `CITIES`.
-- **`find_build_at_city` with `bool_count_inactive != 0`** takes the
-  report literally — no liveness test at all — so a dead member still on a
-  city's chain would be returned; the sim's chains are believed to drop
-  the dead.
-- **A raid stamp** (`CityData.raid_stamp`) is not on the sim's city
-  record; `was_city_raided` answers "never".
-- **`get_starting_town_size`**'s `leader_flags2 & 0x80` (a scenario's
-  nomad flag) is not modelled; the version-gated branch is taken under
-  `Lobby.conquest`.
-- **The tick** is `frame / 15`; `Game::do_frame` advances `tick` every
-  fifteen frames, and whether the count starts at frame 0 or 15 is not
-  pinned (a timer's expiry could be off by one tick — 15 frames).
-- **The harness's sync stream at `Leader::init`** is not the original's:
-  the map maker's draws precede it. The personality roll and the script
-  coin therefore give values of the right shape on the wrong stream; the
-  acceptance test overrides them from run8. The dump's `WORLD seed` is
-  `rand % 0xffff + 1` from the first draw after `build_game`'s re-seed and
-  would pin that draw if the map maker were ever modelled.
-- **`leader_flags & 4` is `is_human`** (`LeaderData::is_human@006ec170`,
-  one line), and in the dump the `leader_flags` line precedes the
-  `BEGIN LEADERDATA who N` it belongs to. Run8's report attributed the
-  flag words to the wrong blocks; the harness's reading is right.
+- **The woodcutter camp's slot count** — `BuildData::gather_max`, written
+  by `BuildTypeData::max_gatherers@0063c430` → `calc_gather@00639e40`
+  (`docs/ECONOMY.md`'s open item): 5 for camp 2001 on run9's map, 0
+  (uncapped) in the sim. Pinned as a ceiling in the census test.
+- **The frame-0 sync stream** (§12.1 item 2): every AI draw before the
+  first `place_unit` — the personality, the script coin, `compute_sites`'
+  stride — is on the wrong stream in the harness.
+- **`compute_site_stats`' inputs the sim lacks**: `find_tcoord_z` (heights,
+  0), `was_seen` (true — the lobby reveals the map), `danger[]` (0), team
+  style 2's `target`, the ally-land arm; **the `Region.coords` order** —
+  the sampler walks the region's own list and the sim walks row-major.
+- **`unit_flags & 4/8/0x8000`, `unit_flags2 & 0x60`, `carry`, `cat`,
+  `role`** — not on `UnitType` (§12.1 item 3); every producer test that
+  needs them runs on a hand-built type.
+- **`TechType::ai[11]`** — derived at load, seamed to zero: `w = 1`.
+- **The market**: `use_market` computes its need and its gate and neither
+  trades nor draws (the one draw sits in the sell branch, and which branch
+  is taken is a price question), `market_speculation` clamps and tiers.
+- **`build_masks & 1`** (the "sell me" mark) has no writer and no field;
+  the orphan check's disband arm is unmodelled. **`city_flags 0x8/0x1000`**
+  — no writer. **`CityData.ocean_filled`/`bordering`** — on `CityAi`, never
+  written.
+- **Meeting** (§2.3 step 6) is skipped whole; every other active leader
+  counts as met, else steps 14–15 would be dead. A second opinion wanted.
+- **Step 16, the army seeding**, is skipped (`docs/ARMY.md`).
+- **`check_explore`'s extent** — the region grid at `(w/2)·(h/2)`, from the
+  two index expressions; never checked against a dump.
+- Two census verdicts sit on aliased decompiler locals and want the
+  listing: step 13's inner cutoff (`i + 1 < circle_radius[..]`) and step
+  15's operand order in the weaker test (§14.1).
+- **The original's 32-bit overflow** in the value pipelines (§14.6, an
+  Aztec barracks scores negative) is reproduced; whether it is load-bearing
+  for the shipped AI needs a `LEADERS=9` dump past the script.
+- **`leader_flags & 1`** — taken as "alive" by the sites; bit 2 is alive
+  elsewhere.
+- **`check_income`'s parameter order** — the stub's names are one off the
+  original's `(t, mult, o, escrow, city, num, out)`; both callers pass the
+  escrow flag in both slots until it is renamed.
+- ~~`compute_site_stats`'s per-city distance loop~~ — settled: `return`s
+  (§14.3). ~~The gather multiplier's cap~~ — settled: a `min` at ×1
+  (§14.6). ~~`build_flags & 0x8000000`~~ — settled negative (§14.6).
+  ~~`TechType::compute_ai_values`~~ — read (§14.4). ~~The personality is
+  loggable but not at `LEADERS=9`.~~ ~~Which script run7's AI drew.~~ Both
+  settled by run8 (§5). ~~The census adjustments at the end of
+  `produce_building` are not kept.~~ Kept. ~~City names are synthetic.~~
+  Still synthetic; behaviour identical.
+- The rest of the earlier list stands: `WorldData::danger[who]`'s writer;
+  `is_ally(who, who)`; the implicit variable's declared type; the
+  placement's missing map layers *other than* `val`/`goods`/`region2`
+  (which the map now supplies) — `buildings_allowed`, the enemy-seen flag,
+  `gather_at` amounts, the oil patches; `space_at_corner`'s first-row
+  early-out; `find_build_at_city` with `bool_count_inactive`; the raid
+  stamp; `get_starting_town_size`'s nomad flag; the tick's origin; the
+  `leader_flags` line's position in the dump.
 
+## 14. Corrections from the implementation, by module (2026-08-24)
+
+Each worker read its functions line by line against the decompile — and
+the listing where the decompile printed a local that could not be right —
+and these are the places §2 and the two reports were wrong or incomplete.
+They are implemented as the decompile reads; §2's prose is **not yet
+amended** and the second reading should treat this section as the first
+reading's errata.
+
+### 14.1 The census (`plan_strategy@006b9620`, `ai_census.rs`)
+
+1. **Step 13, the radius** (line 1239): `city_center_radius + (level − 1)
+   × city_center_pop_radius [+ indians_city_radius]`, capped `0x40` — the
+   city's ordinary radius. §2.3 omitted the base; without it a level-1 city
+   walks `circle_radius[1]` and `reg_land` is 0, against run8's 43.
+2. **Step 13, the inner cutoff** (1319/1382): `i + 1 < circle_radius[k]`,
+   so the last inner entry is excluded. On an aliased local; listing wanted.
+3. **Step 13, `filled` vs `gather_at`** (1414): an unoccupied cell with
+   `check_building_wcoord ≥ 4` runs `gather_at` and is *not* `filled`.
+4. **Step 11, the defence guard** (1054, 1100): `domain != 1 && region <
+   0x40 && attack != 0` — a water-domain building never counts.
+5. **Step 10, the dock scan** (420) is gated on the *unit's* `domain == 1`:
+   ships in docks, not citizens.
+6. **Step 10, `reg_active`** (998) is under the domain-matches-region guard.
+7. **Step 15, the default word** (1739): a non-thin region where I hold a
+   city starts at **8**, not 0.
+8. **Step 15, the weaker test** (1566): `my attack < theirs && (r ==
+   home_reg || their reg_cities < mine)` — the city comparison the other
+   way round from §2.3. Aliased local; listing wanted.
+9. `find_city`'s `0x200` is a *flag* ("same region as the point"), not a
+   radius — the search has no distance limit. `resources_controlled` is
+   `popcount` of the `rare` words from `+0x6da0` (`+0x6d9c` is the count).
+   `gather_slots[2]`/`gather_slots_high[2]` (wealth) are never written.
+   `count_gather_slots`' return excludes knowledge. The human's
+   `peasants`/`gatherers` come from `Leader::calc_gather@006ceee0`.
+
+### 14.2 The make list (`make_stuff@006c8af0`, `make_this@006c94f0`, `check_orphaned_buildings@006c9f20`, `ai_make.rs`)
+
+1. **§2.6 step 4 is inverted** (93–97, listing `0x6c8cbb–0x6c8ce2`): the
+   *unconditional* expiry is `is(UNIVERSITY, 1)` **or a unit type that is
+   not a peasant** — a military unit; the one-in-three draw is everything
+   else.
+2. **`make_this`' build arm has a missing predicate** (88; listing
+   `0x6c957a` = `is(TOWN, 0)`): a Large/Major City routes to
+   `produce_upgrade`, not `produce_city`.
+3. **`build_flags & 0x10` is `NO_CITY`**, not "a gather building" (121);
+   `GATHER` is `0x40`, which the slot-4 exception reads (194).
+4. **"My territory at the site" is the danger map**: `world+0x13c` is
+   `WorldData::danger[8]`, indexed `(y>>9)/3 × reg_xs + (x>>9)/3`
+   (196–199, 228–232). The same misreading is in §2.12, §2.13 step 8 and
+   §2.17's `produce_tech` (§14.3, §14.4).
+5. A started site (`job_counter != 0`) in danger skips the recruit scan and
+   only gets `build_masks |= 0x2000`. All four ranked slots are tested for
+   a `(t, city)` duplicate (not "three tolerated"). When `can_pay(0)`
+   holds, `site_mark` never advances. The good loop needs both the head's
+   and the slot's cost non-zero. The space clamp reaches `space[3]`, which
+   is `ter[0]` — a real overread, reproduced.
+
+### 14.3 The sites and the city AI (`compute_sites@006cc950`, `compute_site_stats@006cd040`, `found_cities@006c7a60`, `produce_city@006cb120`, `ai_sites.rs`)
+
+1. **The per-city distance loop's exits are `return`s** (listing
+   `006cd9e3`, `006cd9f1` → the epilogue at `006cdc68`, past the stores):
+   a dead city slot, or a city of mine outside the site's region, scores
+   the site `val = 0, dist = 0`. §13's first item, settled.
+2. **Step 13's filter** is every alive leader **not allied** (either
+   side's `diplos != 2`), not "at war" and not "computer"; the cities are
+   `city_flags & 0x11 == 0x11` — alive **capitals**, not "active cities".
+3. Step 6's `city_num == 2` arm is the same block as `== 1` with cap 4:
+   `(min(danger, cap) + 7) × v / 8`.
+4. `rank[i]` counts all ten including `i`, no `+1` (numerically §2.7's).
+5. **The insertion rule** (`006ccec8`): `min = 0, idx = −1`; per slot keep
+   the old pair only if `min < val[j] && (min > 0 || new ≤ val[j])`, else
+   take `(val[j], j)`. An empty slot is always taken; a beaten positive
+   slot displaces an already-chosen empty one; a site beating nothing with
+   no empty slot is dropped.
+6. Step 1's and the slide's `0x100` read the **centre tile's `TData`**
+   (`CITY_RADIUS`); step 3's danger/water `0x100` reads **`WData.flags`**
+   (the coastal flag) — different records.
+7. The 5×5 stays centred on the **original** cell after a slide; only the
+   coordinates used by steps 5, 7, 8, 10–13 move. An early return after
+   step 3 reports the slid coordinates with `val = 0`.
+8. Step 8's "my territory" is `danger` (§14.2.4).
+9. `produce_city`'s census decrement keys on the **last examined**
+   citizen's action (`−0xc(%ebp)`, written per candidate before the region
+   and distance tests), not the chosen one's. Its citizen test is the exact
+   pair `0x32/0x33`, not the lineage.
+10. `move_x/move_y[0..25]` is the 5×5 with the compass ring at 1..8 and
+    the ring-2 border at 9..24; `[81..121]` is the 11×11 border clockwise
+    from (−5, −5); `corner_x/y` = (0,0), (−1,−1), (1,−1), (1,1), (−1,1).
+
+### 14.4 Research (`research_techs@006c6ba0`, `produce_tech@006ca980`, `compute_ai_values@0066cdc0`, `ai_research.rs`)
+
+1. **Both knowledge gates read the stockpile** (`bucket[3]`, `+0xc ^
+   0x8221`), not `resource_cap[3]`.
+2. **The `k`-goods factor applies to epoch *and age* techs** (listing
+   `0x6c743e–0x6c748c`), not to "a non-epoch, non-age tech"; `k` counts
+   goods whose *income* is `≥ cap × 9/10`.
+3. **The government polarity is inverted**: the named column `{0x26f,
+   0x271, 0x273}` is the one *thrown away* under `raid < 0` or an odd coin;
+   the survivor gets the `% 100` draw, then `×20` with no government. The
+   coin is drawn **inside the per-tech loop**, once per government tech
+   reaching the Senate branch.
+4. **The Temple's `×400` is the window `0x24d..=0x250`** (Taxation,
+   Vassalage, Social Contract, Income Tax), not `t < 0x251`.
+5. `produce_tech`'s trainer score divides by `ObjectData::damage + 1`
+   (`Build+0x24`) and both branches by `danger + 1` — not territory.
+6. `cat` is `TechType+0x14` = `Line::index()` for epochs and **3 for every
+   non-epoch tech**, ages and governments included.
+7. **The eleven weights** (`TechType::ai[11]`, `+0x1cc`): zeroed by
+   `TechType::init`, then `Types::init@00669cc0:1239` runs
+   `compute_ai_values` over `0x220..0x274` ascending, and `add_preq_ai`
+   adds into the *prerequisites'* arrays (cumulative, order-dependent). By
+   index: `ai[0]` military (epoch cat 0; units with `role & 0x10000`;
+   towers/forts/attacking buildings; trainers; dependants +1 epoch/+2 age;
+   spells +4), `ai[1]` breadth (epoch cat 2; Village/Town; gather and
+   `0x8000000` buildings; goods +4/+1; spells +2; bonuses), `ai[2]` naval
+   (docks, sea units, with `add_preq_ai(2, 1, −1)` and `(2, 1, 2)` up the
+   chain), `ai[3]` transports, `ai[4]` research/commerce (epoch cat 3;
+   dependants), `ai[5]` cities (epoch cat 1; Temple +2, Fort +1, Town +1),
+   `ai[6]` sea/air units, **`ai[7]` never written**, `ai[8]` land military,
+   `ai[9]` resources (citizen-role units, gather buildings and sheds,
+   goods), `ai[10]` epoch cat 3 only; `s = (BuildType+0x3c < 0) ? 2 : 1`.
+   A loader port; seamed to zero meanwhile.
+
+### 14.5 Units (`create_units@006c40a0`, `ai_units.rs`)
+
+1. **The army-size ladder differs by branch**: rung 2 is `×3/2` in the air
+   branch (442) and `×2` in the land branch (1430).
+2. **The military gate is `role & 0x10000` for every domain** (292), so sea
+   and air military take the wonder/domain mod and the draw — more draws
+   than the report's table says.
+3. `city_flags & 2` is `no_heal` in the sim's naming, not `alarm`.
+4. `check_income`'s original order is `(t, mult, o, escrow, city, num,
+   out)`. The value arithmetic wraps (32-bit `imul`); the tail's `< 0 →
+   9,999,999` is its own guard.
+5. What is not on `UnitType`: `unit_flags` (`+0x2b4`), `unit_flags2`
+   (`+0x2b8`), `role` (`+0x2c8`, `determine_roles@0061c320`: `0x200` for
+   ids 0..=3; air `0x1000`, land `0x40000` (+`0x10` scout, +`0xc` cat 1),
+   sea `0x80000` (+`0x10` bark); `0x8000` if `carry`; military `0x10000`
+   when `attack != 0`, `cat ∉ {4, 5}` and not `0x200` — sea +`0x2000`, air
+   +`0x4000`, land cat 0 +`0x800`, hoplites `0x100000|2`, ranged +`0x400`
+   else +1; otherwise `0x100`), `carry` (`+0x2d4`), `cat` (`+0x14`).
+
+### 14.6 Buildings (`create_buildings@006c1be0`, `ai_build.rs`)
+
+1. **The gather multiplier's cap is a real `min` at `0x100`** (listing
+   `0x6c2762–0x6c276b`: `cmp; cmovl; mov` — the running cap ratchets
+   down). The `×2` terms decide whether it *reaches* ×1; the report's
+   "garbage `extraout_EDX`" is the decompiler's, the register is reloaded.
+2. The dock's value **is** multiplied by `world+0x34` (1241, listing
+   `0x6c331d`); a passing dock runs §3.6–§3.10; a dock failing `sea_map >
+   2 || city_num > 1` is dropped without `make_me`.
+3. `get_queued(t)` recurses only for a unit type; for a building it is
+   `num_queued[t]` exactly.
+4. §3.7's `reg_wars` is the byte array at `+0x6836`, not `+0x9b4`
+   (`active_wars`). `get_enhancing_good` is an exact-type switch.
+5. **`build_flags & 0x8000000` is never set**: no `BUILD_FLAGS` string
+   carries a digit, `init_final_flags` sets only `FLAT`; the Temple/
+   Library/Senate arms of the civic block are dead and only the Market arm
+   runs (kept behind `flags::DEEP_QUEUE` for a loader that sets it).
+6. **The original's value product overflows in play**: `9,999,999 × 0x100
+   > 2³¹`, so an Aztec's first Barracks (`1000 × 3 × 400 × 100 × 4`) comes
+   out negative and loses its category slot; a Market overflows inside its
+   own `×10000`. Reproduced with wrapping arithmetic.
+
+### 14.7 `produce_building` (`ai_place.rs`)
+
+The census adjustments of report §4.6 (1114–1151) are kept: `filled += 1`,
+`space[n − 2] = max(0, · − 1)` for `n = 2..best_sp`, then the builder off
+the gatherers (`gatherers`, `reg_gatherers`, `city.gatherers`) or the free
+peasants — run8's frame 2 shows `gatherers 5 → 4`.
