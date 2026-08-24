@@ -733,7 +733,12 @@ BUILDS=6` — the first dump with order lists) and
 **`gamelog-run6-ancient-nubian-builds7.txt`** (60 MB, 432 frames at `UNITS=3
 BUILDS=7` on both `[Start Game]` and `[End Frame]`, seed 12345, Nubians vs
 Nubian AI, Ancient Age, Small Town — **the harness's dump**: it is the only
-one carrying `gather_from`, and `docs/DATALAYER.md` §3 is measured on it).
+one carrying `gather_from`, and `docs/DATALAYER.md` §3 is measured on it),
+`gamelog-run7-ancient-nubian-orders.txt` (260 MB, 1,732 frames, the paired
+run with a recording — `docs/INPUT.md`), `gamelog-run8-personality.txt`
+(93 MB, 60 frames at `LEADERS=9` — the personality and the census oracle)
+and **`gamelog-run9-world6.txt`** (62 MB, 36 frames, `WORLD=6` — the map,
+see "The map is a dump too").
 
 ### The lobby is a file: `-config` and `-automation` (2026-08-20)
 
@@ -1179,8 +1184,28 @@ owners — which is every map input the production AI's census and sites
 read (`docs/AI.md` §2.3, §2.7, §2.13) and the forest layer the pathfinder
 diff has been missing (`docs/PATHFINDER.md` §10). `TERRAIN=2` adds
 `TerrainData`'s height table and waterline. It is a start-of-game cost
-only; leave `[End Frame] WORLD=0`. The capture for the harness's lobby is
-run9 (below, once made).
+only; leave `[End Frame] WORLD=0`.
+
+**Run9 (`gamelog-run9-world6.txt`, 2026-08-24, 62 MB, 36 frames)** is that
+capture for the harness's lobby — run7/run8's settings and seed, `[Start
+Game] WORLD=6 TERRAIN=2 GOODS=3` on top of run8's `UNITS=3 BUILDS=7
+CITIES=5 GUYS=2 LEADERS=9`, quit through the menu after two seconds of game
+time (the level-9 leader records make the sim crawl, ~0.3 frames a
+second). What the `WORLD` block holds, in order: the scalars, then
+**3,600 cells** at 17 lines each (`BASELAND`/`SANDY`/`OCEAN`, `flags`,
+`goods`, the feature words — `NO FEATURE`, `NEARBLOCK`, `HALFLAND,COAST,`,
+`NEARBLOCKFOREST,`, `RIVER,` … — `who`, `who2`, `region`, `region2`, `val`,
+`land_sub`, `light`, `blocked`, `bad`, `solid`, `down`, `down_who`,
+`was_seen`), then the six `SimpleArray<WCoord>` blocks (`start_x/y` =
+(55, 21) and (4, 40), the city starts, the oil patches), then **57,600
+`tdata[scan].mask` lines** — the per-tile `TData` masks, row-major
+240 × 240 (10,749 ocean, ~1,800 forest as `0x30` under the blocked bits,
+1,871 mountain, 810 river, 1,321 in a city radius) — then the fog run and
+`danger[8][reg_size]`. `rondata` reads the cells and the tile masks
+(`gamelog::world_cells`, `world_tiles`) and `build_sim` builds the world
+from them; the flat world is the fallback. First effect: the AI's fourth
+farm lands on the original's tile and its builder tracks the whole run
+(`docs/DATALAYER.md` §3).
 
 ### `LEADERS=9` is the census oracle (2026-08-24)
 

@@ -1064,8 +1064,26 @@ AI), `1/3..5@102` (`FARM_GROWS`), and **6,543 unit-frames belong to units
 the sim never trains**. Every one of those numbers is a target this
 mechanic moves; none of them can move without it.
 
-What the dump does **not** carry: `production_step`, `script_step`, the
-`MakeList`. ~~Or the personality.~~ **Run8 (2026-08-24,
+~~What the dump does **not** carry: `production_step`, `script_step`, the
+`MakeList`.~~ **All three are in a `LEADERS=9` record**, with the whole
+census — `active`, `peasants`, `gatherers`, `free_peasants`, the
+`gather_slots`, the `reg_*` arrays, `strategy[]`, `site_mark`, the ten
+`sites`, the eleven `MAKEOBJECT`s, `effective_pop` — under `LeaderData`'s
+own names (`docs/ORACLE.md`, "`LEADERS=9` is the census oracle";
+`tools/gamelog/leader.py FRAME WHO`). Run8's frame 1 is the AI after its
+frame-0 sweep: `active 6 control 6 peasants 5 scouts 1 gatherers 5
+free_peasants 0 home_reg 1 explored 22 territory 261 site_mark 16`,
+`gather_slots {food 3, wood 5}`, `filled {3, 2}`, `reg_land[home] 43`,
+`reg_gather_slots[home] 8`, `strategy[home] 1`, and two sites — `(52, 14)
+val 370 dist 27 rank 10`, `(45, 59) val 0 rank 9`; frame 2, after the
+script's first call: `production_step 0 script_step 11 gatherers 4
+effective_pop 7` (the builder pulled off its camp by `produce_building`'s
+census adjustment; `effective_pop` computed before the script ran). And
+**the map is a dump too**: run9 (`gamelog-run9-world6.txt`, `WORLD=6`
+under `[Start Game]`) carries every cell's `val`, `goods`, `region`,
+`region2` and owner and every tile's mask — with them loaded the fourth
+farm lands on the original's tile (`docs/ORACLE.md`). ~~Or the
+personality.~~ **Run8 (2026-08-24,
 `gamelog-run8-personality.txt`, same lobby and seed, `LEADERS=9`, 60
 frames, quit cleanly) settled it**: the personality is `LEADERS=9`'s tail
 (`docs/ORACLE.md`, corrected), and the AI leader rolled
