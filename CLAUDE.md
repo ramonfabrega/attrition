@@ -380,8 +380,21 @@ better, in which case say so and take that.
     "scripted in the open" was righter than the queue knew, and "escape
     the 2002 VM" is answered by an interpreter of our own reading the
     scripts from the install. The oracle is unusually good: run7's first
-    115 seconds are the script's decisions, frame by frame (§5). Next:
-    §12.1's tranche, then the blind second reading.
+    115 seconds are the script's decisions, frame by frame (§5).
+
+    **The opening runs end to end, 2026-08-24 (second session).** Object
+    numbers (`find_free`'s bands), a technology in the production queue,
+    the `Lobby`, the 55 host functions (`ai_host.rs`), `produce_building`
+    (`ai_place.rs`, `circle_init` rebuilt in integers), and the driver in
+    `Sim::tick` (`ai_drive.rs`). **Pinned on run7**: at frame 2 the AI's
+    city holds three citizens at 25/26/27 food, its library Written Word
+    then City State, and one farm site numbered 2006 with a citizen
+    ordered onto it — `defensive` steps 6, 7, 9, 10 in one call. Run6's
+    unlinked unit-frames went 673 → **0**; run7's 6,543 → 1,970. A
+    `LEADERS=9` run (run8) settled the personality and the script
+    (`docs/ORACLE.md` corrected: `LEADERS` obeys the threshold). Next:
+    the census and the C++ producers (§12.1), the map's tile layer for
+    the farm's exact tile, then the blind second reading.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes

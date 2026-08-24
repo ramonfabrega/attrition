@@ -697,16 +697,24 @@ The last row is the setting for a behavioural check: fix `Seed`, set
 `InitialDump=0`, play a minute, quit through the in-game menu. `~100 KB` a
 frame buys every field the mechanics documents ask about.
 
-**`LEADERS` is the exception, and it does not obey the threshold.**
-`LeaderData::log_data` contains no `set_detail` call at all, and raising the
-key does nothing: at `LEADERS=1` and at `LEADERS=9` alike the leader record
-is the same seven fields (`who tribe defeated_by gov score leader_flags
-leader_flags2`). The rest of it — `ages_get()`, `epochs_get()`,
-`epoch_get(scan)` ×4, the resource buckets with their caps and rates, `att`
-and `anti_att`, `attrition_stamp` 1–3, `territory`, `pop_cap`, `misery`, the
-unit-census counters — appears **only under `detail_override`**, i.e. only
-under `DUMP_ALL=1`. So anything that needs a leader's internals needs a full
-dump, and there is no cheap per-frame way to watch them.
+~~**`LEADERS` is the exception, and it does not obey the threshold.**~~
+**Corrected 2026-08-24 (run8, `gamelog-run8-personality.txt`):** it obeys
+it like every other key. `LeaderData::log_data@006e5110` calls
+`set_detail` ten times, levels 0–9 in source order, and
+`GameLog::check_accept@009309a0`'s only filter is the ini threshold against
+the current detail. The seven base fields are level 0; the leader's
+internals sit at the levels between; and the **level-9 tail** is
+`Personality::log_data` (the `PERSONALITY` block, 24 ints in `docs/AI.md`
+§6's order), the tech bitmasks, `sites`, `make_list`, `mil_trainers`,
+`new_rares`, `oil_patches` and **`prod_script`** — the script's name, the
+last line of the record. So `LEADERS=9` under `[End Frame]` is the cheap
+per-frame way to watch a leader, and `gamelog-run4-…-leaders9.txt` had 186
+`PERSONALITY` blocks in it all along; the earlier claim was a misreading.
+Two layout traps in that record, each of which has cost a wrong reading:
+**`leader_flags`/`leader_flags2` are printed *before* `BEGIN LEADERDATA who
+N`** and belong to the block that follows (the gamelog parser was corrected
+for this in the pathfinder audit; a human reading the file trips on it
+just the same), and `PERSONALITY` sits *inside* the block after `who`.
 
 **`GameLog::end_game` calls `full_dump` too**, with the same `do_dump_all`
 argument. Quitting through the in-game menu therefore writes a complete
