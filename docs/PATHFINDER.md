@@ -525,3 +525,8 @@ uncalled until `resolve_unit_collision` is modelled.
   `astar_river`: named, out of scope, unread beyond signatures.
 - The Nubian/attrition and garrison items in `docs/CITIES.md`/`ATTRITION.md`
   are untouched by this reading.
+- `0/2`'s **position** still parts from the original at frame 4 by `(2, 8)`
+  units even though its path stack now matches — the waypoint is the same
+  and the step toward it differs, which points at the movement layer
+  (`docs/MOVEMENT.md`'s step/turn interplay), not the planner. Pre-existing,
+  unchanged by this landing.
