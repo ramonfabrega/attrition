@@ -12,8 +12,8 @@
 //! `Constants`, the composed 493×493 combat table and the 24 tribes, so it
 //! doubles as a rules ground-truth source), and every command package with
 //! its frame, issuer, stamp and payload. The payload's own encoding is
-//! `CommandManager`'s command format and is not decoded here — that is the
-//! next reading.
+//! `CommandManager`'s command format, decoded by [`crate::commands`]
+//! (`docs/COMMANDS.md`).
 
 use crate::Error;
 use std::io::Read;

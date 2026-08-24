@@ -220,11 +220,10 @@ record's `frame` and, if it is in the future, seeks back 4 bytes and returns
 semaphore. There is no count field; the stream runs to end of file
 (ORACLE.md's "where read_package stops" is hereby confirmed: EOF).
 
-The `data` payload's encoding is the **command format**, `CommandManager`'s
+~~The `data` payload's encoding is the **command format**, `CommandManager`'s
 territory, and is deliberately out of this document's scope — it is the next
-reading. What the reader surfaces without it: every package's frame, issuer,
-stamp and size, which is already enough to segment the order stream per
-player and frame.
+reading.~~ Read the same day: `docs/COMMANDS.md`, decoded by
+`crate::commands` — every payload in the sample parses, 25,779 commands.
 
 ## 5. What is not established
 
@@ -250,9 +249,11 @@ player and frame.
   (§3.1's last row), so the 1-byte row could be 3 bytes.~~ **Settled by the
   sample**: with 1 byte the eight player records align exactly (one marker
   byte, eight times, `0x50`); with 3 they cannot.
-- **The command payload encoding** (`CommandPackage.data`) — the next
+- ~~**The command payload encoding** (`CommandPackage.data`) — the next
   mechanic, not this one. Until it is read, the packages give frame, issuer,
-  stamp and an opaque payload.
+  stamp and an opaque payload.~~ **Done, 2026-08-24**: `docs/COMMANDS.md`,
+  the full 0x00–0x51 dispatch table with every payload in the sample
+  decoding to exact size.
 - **2017↔2024 drift, narrowly**: §6's table equality pins the balance and
   tribes spans for the sample, so the one span still resting on a 2024-only
   size is the **start** of the `Constants` block (0xd40) — if the 2017 block

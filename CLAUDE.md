@@ -311,12 +311,28 @@ better, in which case say so and take that.
    file is written raw and gzipped only in `finalize` (sniff `1f 8b`), the
    marker is the insensitive hash's low byte, and the Types stretch is
    readable in principle but provably needs the loader's `types.list`
-   order. What it leaves open: the command payload encoding
-   (`CommandManager`'s format — the piece that turns packages into `diff`
-   inputs), the 806 per-type rules walkers (skipped by a package-validated
+   order. What it leaves open: ~~the command payload encoding~~ (done, see
+   10), the 806 per-type rules walkers (skipped by a package-validated
    landmark), and recording a fixed-seed game on *this* install so order
    stream and gamelog describe the same run.
-10. **AI** — last, because it is the least oracled, and better oracled once
+10. ~~**The command payload encoding**~~ — **done, 2026-08-24**,
+    `docs/COMMANDS.md` and `crates/rondata/src/commands.rs`. The full
+    dispatch table (`CommandPackage::process`, 0x00–0x51, 82 commands),
+    every wire layout from the PDB's `*Command` structs (packed from +0x1,
+    doubly derived — decode-side `process_*` returns and encode-side
+    `issue_*` sizes agree everywhere), the four variable-length encodings,
+    the selection model (a `group` command sets the package's selection,
+    `num = 0` meaning "same as last"), and the MP-only obfuscation
+    (seed-keyed u16 XOR in `CommandPackage::send` plus seeded
+    `Random::get(0,2)` padding gaps) — single-player recordings are plain,
+    and the turn pump shows recordings store packages *pre-decode*.
+    Verified in one shot: all 21,884 payloads of the heavengames sample
+    decode with zero errors to exact size (25,779 commands — a camera
+    command per frame, the rest a 23-minute game's real input), pinned as
+    an install-gated test and a histogram in `rondata --recgame`. What it
+    leaves open: an MP sample to exercise `decode_mp`, and the semantics of
+    `marwan`/`begin`.
+11. **AI** — last, because it is the least oracled, and better oracled once
     4, 5 and the pathfinder stand.
 
 **One mechanic per session.** The document is the handoff: a fresh session

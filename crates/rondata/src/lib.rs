@@ -27,6 +27,7 @@
 //! ```
 
 pub mod balance;
+pub mod commands;
 pub mod diff;
 pub mod dump;
 pub mod gamelog;

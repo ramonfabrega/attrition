@@ -1328,6 +1328,46 @@ fn recgame_report(install: &Install, path: &str) -> Result<usize, rondata::Error
             },
         );
     }
+
+    // The command payloads (docs/COMMANDS.md). A single-player recording is
+    // plain; MP payloads would need the seed-keyed XOR (§5), which no sample
+    // exercises yet — a decode failure here on an MP file is the expected
+    // signal to route through commands::decode_mp.
+    let mut histogram: std::collections::BTreeMap<&'static str, usize> = Default::default();
+    let mut bad = 0usize;
+    let mut example = String::new();
+    for p in &rec.packages {
+        match rondata::commands::decode(&p.data) {
+            Ok(cmds) => {
+                for cmd in &cmds {
+                    *histogram.entry(cmd.name()).or_default() += 1;
+                }
+            }
+            Err(e) => {
+                bad += 1;
+                if example.is_empty() {
+                    example = format!("first: stamp {} frame {}: {e}", p.stamp, p.frame);
+                }
+            }
+        }
+    }
+    failures += check(
+        "every command payload decodes to exact size",
+        bad == 0,
+        &if bad == 0 {
+            let total: usize = histogram.values().sum();
+            format!("{total} commands across {} packages", rec.packages.len())
+        } else {
+            format!("{bad} of {} packages failed; {example}", rec.packages.len())
+        },
+    );
+    if bad == 0 {
+        let mut by_count: Vec<_> = histogram.into_iter().collect();
+        by_count.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(b.0)));
+        for (name, n) in by_count {
+            println!("    {n:7} {name}");
+        }
+    }
     Ok(failures)
 }
 
