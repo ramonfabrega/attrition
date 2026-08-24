@@ -1360,9 +1360,15 @@ What the frame-2 pin does not reach, in the order it is met:
 1. **The farm's tile.** Site 2006 exists and is numbered right; whether it
    stands where the original put it depends on the cell's `val` byte and
    the map's forest/terrain layers, which the flat harness world does not
-   carry (§13). The next world-data step — the map's tile layer into the
+   carry (§13). ~~The next world-data step — the map's tile layer into the
    harness, already the pathfinder's next win (`CLAUDE.md` item 8) — moves
-   this and the woodcutters' paths at once.
+   this and the woodcutters' paths at once.~~ **The tile layer is a dump**
+   (2026-08-24): `WORLD=6` under `[Start Game]` prints every cell's
+   `WData` — `land`, `flags`, `goods`, `who`, `region`, `region2`, `val`
+   (`docs/ORACLE.md`, "The map is a dump too"); `rondata` reads it
+   (`gamelog::world_cells`) and `build_sim` builds the regions and
+   `CellData` from it. What remains is the capture for this lobby (run9)
+   and the per-tile `TData` masks from the block's tail.
 2. **The census** (§2.3) into `ai::Leader` and per-city AI records
    (`free`, `busy`, `gatherers`, `filled`, `space[]`, `peasant_dist`), then
    `check_orphaned_buildings`, `compute_sites`/`compute_site_stats`,

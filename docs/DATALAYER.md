@@ -279,8 +279,15 @@ and each citizen is assigned by §9.3's four-step rule. `run` then steps the
 simulation to each logged frame and compares every linked unit's position
 **and its order list**.
 
-**The map is one land region over every cell**, stated here because it is an
-assumption and not a reading: the dump carries no terrain (below), and a cell
+**The map is one land region over every cell** ~~, stated here because it is
+an assumption and not a reading: the dump carries no terrain (below)~~ —
+**unless the start dump carries the cells**. Corrected 2026-08-24: a dump
+at `WORLD ≥ 5` under `[Start Game]` prints every cell's `WData` record
+(`docs/ORACLE.md`, "The map is a dump too"), and `build_sim` then builds
+the regions, the coastal `region2`, the owners, the site values and the
+goods bits from it (`gamelog::world_cells`, `Built.region_map`); the flat
+world is the fallback for the dumps made before that was known. The flat
+fallback matters because a cell
 in no region at all is `Blocked::Ruins` to `blocked_tcoord`. Leaving the
 world region-less was not neutral — ~~the city is added untyped with a
 note~~ **every `place_building` was refused**, so the city and every
