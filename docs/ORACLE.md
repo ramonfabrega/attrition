@@ -756,7 +756,11 @@ checksum trace**, 146 records with the sync stream's state, see "The setup
 path's checksum trace is the RNG state") and **`gamelog-run12-dumpall-
 seeds.txt`** (`DUMP_ALL=1` on top of run11's settings, killed after a few
 frames — the per-frame state, `game_random seed` at every `begin_frame`
-and `end_frame`). On run11's stream run10 scores **744** — the script's
+and `end_frame`). A third: **`gamelog-run13-window-95-105.txt`** (642 MB,
+25.95M lines, run12's settings plus `LogStartFrame=95` / `LogEndFrame=105`
+in `rise2.ini` — **the frame window**, ten `DUMP_ALL` frame blocks at 95–104
+and nothing at all for frames 0–94; see "The frame window is real, and it is
+not the keys we guessed"). On run11's stream run10 scores **744** — the script's
 `rand_int`s at frame 1 land on a stream displaced by the ~120 per-frame
 draws the simulation does not model, and pick the rush order; the 268 was
 the boom order reached by the sim's own stream's luck.
@@ -1340,11 +1344,91 @@ market's flux values, the animals' animation variants, the herd's step,
 the farm sprout), the steady six being `Farms::inc_time`. `rondata` reads
 the per-frame words (`Log::frame_seeds`), borrows them from run12 for its
 siblings, and installs them frame by frame with the count on both sides.
-What run12 also shows: **`Checksum Dump` / `Checksum Break`** in
+~~What run12 also shows: **`Checksum Dump` / `Checksum Break`** in
 `gamelog.ini` are read by `GameLog::init` right after `DUMP_ALL`, default
 −1, into the `log_start_frame`/`log_end_frame` that `begin_frame` and
 `end_frame` gate the dump on — very likely the frame window that makes a
-`DUMP_ALL` trace of frame 100 a 130 MB file instead of a 6 GB one. Untried.
+`DUMP_ALL` trace of frame 100 a 130 MB file instead of a 6 GB one.
+Untried.~~
+
+### The frame window is real, and it is not the keys we guessed (run13, 2026-08-24)
+
+**The window exists and works. It is `LogStartFrame` / `LogEndFrame` in
+`rise2.ini`, not `Checksum Dump` / `Checksum Break` in `gamelog.ini`** — the
+two pairs are read a hundred lines apart in `GameLog::init@00933190` and land
+in different fields:
+
+| ini | key | field | consumer |
+| --- | --- | --- | --- |
+| `gamelog.ini` `[Logging Options]` | `Checksum Dump` (int_str 2857) | `game_log.checksum_dump` | `say_checksum@00930b30`: when `checksum_count == checksum_dump`, set `detail_override=1` and `dump_all` **once** |
+| `gamelog.ini` `[Logging Options]` | `Checksum Break` (2858) | `game_log.checksum_break` | `say_checksum`: when `checksum_count == checksum_break`, execute `int 3` |
+| `rise2.ini` `[RISE OF NATIONS]` | **`LogStartFrame`** (2866) | `game_log.log_start_frame` | `begin_frame`/`end_frame`'s gate |
+| `rise2.ini` `[RISE OF NATIONS]` | **`LogEndFrame`** (2867) | `game_log.log_end_frame` | same |
+
+Both `rise2.ini` keys are read through `Prefs::Prefs(&prefs2_file,
+&prefs2_key, …)` with the write-back argument **0**, which is why the game has
+never written them into the file and why three sessions of reading
+`gamelog.ini` never found them. Default −1 → no window.
+
+`checksum_count` is the running index of `say_checksum` calls (the record
+number `rngtrace.py` prints in its first column), **not** a frame. So
+`Checksum Dump=N` is "one full dump at checksum record N" and `Checksum
+Break=N` is a debugger trap at record N — under CrossOver with no debugger
+attached that is a crash. Neither was run; both are read out of
+`say_checksum`'s tail, which is four lines long and unambiguous.
+
+**The recipe.** `gamelog.ini` `DUMP_ALL=1`; `rise2.ini`
+
+```ini
+LogStartFrame=95
+LogEndFrame=105
+```
+
+Semantics as observed: the gate is `log_start_frame < 0 || (log_start_frame
+<= gamec->frame && gamec->frame < log_end_frame)` — **inclusive start,
+exclusive end** — and it wraps the *whole* per-frame `full_dump`, so outside
+the window nothing at all is logged per frame, not even the `[End Frame]`
+categories. `begin_game`'s dump is **not** gated and still costs its ~30 MB.
+
+**Run13** (`gamelog-run13-window-95-105.txt`, 642,100,524 bytes, 25,954,510
+lines) is the capture: run11/run12's lobby and settings with the window
+above. Frames 0–94 ran at full speed and wrote **nothing**; the file then
+holds exactly ten blocks, `BEGIN FRAME 95` … `BEGIN FRAME 104`, each
+2,473,481 lines / ~61 MB / two `dump_all` passes, at ~70 s of wall clock per
+block. The setup trace is byte-identical to run11/run12 down to `game_random
+seed 0x3bd39ae9` at `begin_game`, so it is the same game.
+
+**The frame label, settled.** `Game::do_frame@00591ef0` calls `end_frame` at
+line 105 and `begin_frame` at 108, runs the frame, increments `this->frame`
+at 293, and calls `end_frame` again at 315 — *after* the increment. So a log
+block `FRAME n` holds **the end of simulation frame n−1 followed by the
+beginning of frame n**, which is why run12's first block is `FRAME 1` and why
+a window `[95, 105)` yields blocks 95…104. The consequence for the trace:
+each block's first checksum record is the end of sim-frame n−1 (it carries
+that frame's draws) and its second is the start of sim-frame n (always +0).
+A window `[a, b)` therefore measures the per-frame draw counts of sim-frames
+**a … b−2**, plus one cumulative figure for everything before `a`.
+
+Run13's numbers, from `rngtrace.py`:
+
+| sim-frame | draws | word at its end |
+| --- | --- | --- |
+| 0–94 (cumulative) | 1268 | `0x5f8f3d9d` |
+| 95 | 23 | `0x14313bee` |
+| 96 | 28 | `0xcf825dba` |
+| 97 | 7 | `0xe5bc808f` |
+| 98 | 6 | `0x259a53dd` |
+| 99 | 8 | `0x60032f25` |
+| 100 | 18 | `0xa45fecaf` |
+| 101 | 21 | `0x08670a66` |
+| 102 | 6 | `0xafa2e63c` |
+| 103 | 6 | `0xd359bfe2` |
+
+(Sim-frame 104's end falls at `gamec->frame == 105`, outside the window, so
+its count is not in this capture — ask for `LogEndFrame=106` to get it.)
+Against run12's 120 / 54 / 6 / 6 for frames 0–3 this is the same shape with
+a bigger economy: a floor of six from `Farms::inc_time` and spikes where the
+AI, a new farm or a herd steps.
 
 ## What is not established
 
@@ -1365,7 +1449,11 @@ What run12 also shows: **`Checksum Dump` / `Checksum Break`** in
   presumably take a frame number; all three untried.~~ `DUMP_ALL` is now run
   and read ("The detail level is the knob" above): it is not a detail flag at
   all, it is the argument to `GameLog::full_dump` and it dumps *everything*
-  every frame. `Checksum Dump` / `Checksum Break` are still untried.
+  every frame. ~~`Checksum Dump` / `Checksum Break` are still untried.~~
+  **Read 2026-08-24** ("The frame window is real" above): they are a
+  one-shot dump and an `int 3`, both keyed on the *checksum record index*,
+  and neither is the frame window. The frame window is `LogStartFrame` /
+  `LogEndFrame` in `rise2.ini`, and run13 is its capture.
 - **The whole `walk_data` graph**, which is the actual header format. ~~Read
   in outline only.~~ The *recording* path — `Game::walk_data`,
   `GameInfo::walk_data`, `Game::walk_rules_data` and the wire primitives —

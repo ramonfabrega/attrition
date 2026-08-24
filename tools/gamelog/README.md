@@ -69,6 +69,17 @@ The setup path's `say_checksum` records (`check_all_level=14` in `rise.ini`,
 the draw count is a forward walk of the 32-bit LCG. `docs/ORACLE.md`, "The
 setup path's checksum trace is the RNG state".
 
+**A `DUMP_ALL` window.** `LogStartFrame` / `LogEndFrame` under
+`[RISE OF NATIONS]` in **`rise2.ini`** (not `gamelog.ini`'s `Checksum
+Dump`/`Checksum Break`, which are a one-shot dump and an `int 3` keyed on the
+checksum record index) gate the whole per-frame `full_dump`: inclusive start,
+exclusive end, default −1 for "every frame", and the keys are never written
+back so you add them by hand. `LogStartFrame=95 LogEndFrame=105` with
+`DUMP_ALL=1` gives ten frame blocks at ~61 MB each and nothing for frames
+0–94 — `gamelog-run13-window-95-105.txt`. A block `FRAME n` holds the end of
+sim-frame n−1 then the start of sim-frame n, so `[a, b)` measures the draws
+of sim-frames a … b−2. `docs/ORACLE.md`, "The frame window is real".
+
 ## Combat
 
     hits.py frames.txt        every damage increment, with the flank geometry

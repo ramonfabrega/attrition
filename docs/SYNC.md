@@ -299,8 +299,41 @@ unit-frames with `1/9` now linking — only `1/10` at 1505 is missing.
 - **Birds after creation** (`think_bird`, `do_air_physics`), and
   `Farms::add`/`add_animals` at a farm's creation — event-driven, unread
   past their draw sites.
-- **`Checksum Dump` / `Checksum Break`** (`gamelog.ini`; internal strings
+- ~~**`Checksum Dump` / `Checksum Break`** (`gamelog.ini`; internal strings
   2849/2850, read by `GameLog::init` right after `DUMP_ALL` with default
   −1 into `log_start_frame`/`log_end_frame`, which `begin_frame`/`end_frame`
   gate the dump on) are very likely a **frame window** for `DUMP_ALL` — the
-  way to a per-frame trace of frame 100 without a 6 GB file. Untried.
+  way to a per-frame trace of frame 100 without a 6 GB file. Untried.~~
+  **Settled 2026-08-24, run13** (`docs/ORACLE.md`, "The frame window is
+  real, and it is not the keys we guessed"). The window exists but those are
+  the wrong keys: `Checksum Dump`/`Checksum Break` land in
+  `game_log.checksum_dump`/`checksum_break`, which `say_checksum` compares
+  against the **checksum record index** — one extra `dump_all` at record N,
+  and an `int 3` at record N (a crash here, no debugger). The window is
+  **`LogStartFrame` / `LogEndFrame` in `rise2.ini`** (internal strings
+  2866/2867), read through `prefs2_file` with write-back off, default −1,
+  inclusive start and exclusive end, gating the whole per-frame `full_dump`.
+  **`gamelog-run13-window-95-105.txt`** is the capture: `DUMP_ALL=1` with
+  `[95, 105)` gives ten frame blocks at 61 MB each and nothing for frames
+  0–94. Because `Game::do_frame` increments `frame` before its second
+  `end_frame`, a window `[a, b)` yields the per-frame draw counts of
+  sim-frames `a … b−2` plus one cumulative number for everything before `a`.
+  Run13's: 1268 draws over sim-frames 0–94, then 23, 28, 7, 6, 8, 18, 21, 6,
+  6 for 95–103 — the same floor of six from `Farms::inc_time` as run12, with
+  spikes on top.
+- **Run13's 100 and 101 — the animals' cycle, or the farmers' re-target?**
+  Twelve of run12's forty animals (type 411, every third `o`) carry
+  `end_time 101`, and `cur_time` is the frame during the unit phase. So
+  §3.2's `do_idle` predicts exactly run13's spikes: on sim-frame 100
+  `cur_time == end_time − 1` for all twelve → twelve wander checks, plus
+  the six farms = **18**; on 101 the anim ends → twelve idle-anim redraws,
+  the six farms, and three more from a wanderer near its herd's centre =
+  **21**. That leaves **no room for the six farmers' twelve re-target
+  draws** on sim-frame 101 (the log's 102), where §3.3 and `docs/ORDERS.md`
+  §6.5 put them from run6 — unless they fall on a frame the window did not
+  count (94 or earlier is inside the cumulative 1268; 104 is uncounted).
+  Run13's `FRAME 102` block holds the farmers' order lists and every
+  animal's `cur_anim`/`cur_time`: the first thing to read next session,
+  since it either confirms the re-target's frame and finds the animals'
+  draws elsewhere, or moves the re-target — and `farms.rs`'s clock — by a
+  frame.

@@ -454,8 +454,14 @@ better, in which case say so and take that.
     table from the dumps' `GUY` blocks), animals as gaia units with the
     wander, the scouts' `think_scout` scan (needs the seen map), the
     4-draw tail, frame 3's one extra `do_move` draw (`docs/SYNC.md` §6);
-    a `Checksum Dump`/`Break` frame-window capture; **the draw-site
-    trace** — a log-and-continue breakpoint on `Random::get` recording
+    ~~a `Checksum Dump`/`Break` frame-window capture~~ — **done the same
+    day (run13, an Opus drive)**: the window is `LogStartFrame`/
+    `LogEndFrame` in `rise2.ini`, and `gamelog-run13-window-95-105.txt`
+    has sim-frames 95–103 at 23, 28, 7, 6, 8, 18, 21, 6, 6 draws; read
+    its `FRAME 102` block first — the 100/101 spikes fit the twelve
+    animals whose anim ends at 101 and leave no room for the farmers'
+    re-target draws where §6.5 puts them (`docs/SYNC.md` §6); **the
+    draw-site trace** — a log-and-continue breakpoint on `Random::get` recording
     the caller's EIP under winedbg in the bottle (Wine's dbghelp reads
     `rise.pdb`, so the callers come out named), one run for frames 0–3,
     which is the only way to place the draws that leave no outcome in a
