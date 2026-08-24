@@ -72,14 +72,14 @@ pub fn circle() -> &'static Circle {
 }
 
 /// The compass, `move_x`/`move_y` indices 1–8: NW, N, NE, E, SE, S, SW, W.
-const MOVE_X: [i32; 9] = [0, -1, 0, 1, 1, 1, 0, -1, -1];
-const MOVE_Y: [i32; 9] = [0, -1, -1, -1, 0, 1, 1, 1, 0];
+pub(crate) const MOVE_X: [i32; 9] = [0, -1, 0, 1, 1, 1, 0, -1, -1];
+pub(crate) const MOVE_Y: [i32; 9] = [0, -1, -1, -1, 0, 1, 1, 1, 0];
 
 /// A cell in world units — four tiles, `0x300`.
 const UNITS_PER_CELL: i32 = 4 * UNITS_PER_TILE;
 
 /// The good a gather building takes — `BuildTypeData::get_good`, by identity.
-fn gather_good(ident: Ident) -> Option<usize> {
+pub(crate) fn gather_good(ident: Ident) -> Option<usize> {
     use crate::economy::Resource as R;
     Some(match ident {
         Ident::Farm => R::Food.index(),
@@ -91,14 +91,14 @@ fn gather_good(ident: Ident) -> Option<usize> {
     })
 }
 
-fn is_enhancer(ident: Ident) -> bool {
+pub(crate) fn is_enhancer(ident: Ident) -> bool {
     matches!(
         ident,
         Ident::Granary | Ident::Lumbermill | Ident::Smelter | Ident::Refinery
     )
 }
 
-fn is_military_trainer(ident: Ident) -> bool {
+pub(crate) fn is_military_trainer(ident: Ident) -> bool {
     matches!(
         ident,
         Ident::Barracks | Ident::Stable | Ident::SiegeFactory | Ident::Factory | Ident::AutoPlant
@@ -108,14 +108,14 @@ fn is_military_trainer(ident: Ident) -> bool {
 impl Sim {
     /// Whether some live building of anyone has its centre in this cell —
     /// the cell flag `0x4000` the spiral skips.
-    fn cell_has_centre(&self, cell: Cell) -> bool {
+    pub(crate) fn cell_has_centre(&self, cell: Cell) -> bool {
         self.buildings
             .iter()
             .any(|b| b.alive && b.pos.cell() == cell)
     }
 
     /// `WorldData::is_ocean`: the cell's region is water.
-    fn cell_is_ocean(&self, cell: Cell) -> bool {
+    pub(crate) fn cell_is_ocean(&self, cell: Cell) -> bool {
         self.world
             .region_of(cell)
             .is_some_and(|r| self.world.terrain(r) == Terrain::Sea)
@@ -128,7 +128,7 @@ impl Sim {
     /// is blocked. A tile is blocked off the map, outside every city radius
     /// when a city is needed, under a footprint, placed on, `BLOCKED`, or in
     /// a cell another leader owns.
-    fn space_at_corner(&self, who: Player, tx: i32, ty: i32, need_city: bool) -> i32 {
+    pub(crate) fn space_at_corner(&self, who: Player, tx: i32, ty: i32, need_city: bool) -> i32 {
         let mut free = [[false; 4]; 4];
         let mut blocked = 0;
         for j in 0..4 {
@@ -170,7 +170,7 @@ impl Sim {
     /// corner offsets `dx ∈ [−w, w]`, `dy ∈ [−h, h]` (those on an axis or
     /// with `|dx| + |dy| ≤ max`), returning 4 at once when found; 0 when the
     /// cell is another leader's.
-    fn check_building_wcoord(
+    pub(crate) fn check_building_wcoord(
         &self,
         who: Player,
         cell: Cell,
@@ -200,7 +200,7 @@ impl Sim {
 
     /// A live building of `who` whose centre is in `cell` —
     /// `ObjectsData::find_building_placed_at(tile·4 + 2, who)`.
-    fn building_placed_at(&self, who: Player, cell: Cell) -> Option<usize> {
+    pub(crate) fn building_placed_at(&self, who: Player, cell: Cell) -> Option<usize> {
         self.buildings
             .iter()
             .position(|b| b.alive && b.owner == who && b.pos.cell() == cell)
@@ -209,7 +209,7 @@ impl Sim {
     /// `BuildTypeData::find_friends(x, y, city, who)`: neighbours of the
     /// candidate cell that count for this type, `+1` on a diagonal and `+2`
     /// on a cardinal.
-    fn find_friends(&self, rec: usize, cell: Cell, city: Option<usize>, who: Player) -> i32 {
+    pub(crate) fn find_friends(&self, rec: usize, cell: Cell, city: Option<usize>, who: Player) -> i32 {
         let bt = &self.build_types[rec];
         let ident = bt.ident;
         let tower_like = matches!(ident, Ident::Tower | Ident::Lookout);
