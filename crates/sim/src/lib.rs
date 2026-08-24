@@ -57,6 +57,7 @@ pub mod economy;
 pub mod fight;
 pub mod garrison;
 pub mod gather;
+pub mod holdings;
 pub mod movement;
 pub mod orders;
 pub mod path;
@@ -1608,6 +1609,14 @@ impl Sim {
         // a citizen that dies this frame was already paid for it.
         for who in 0..self.players.len() {
             let player = u8::try_from(who).expect("too many players");
+            // `Leader::calc_gather` assembles its inputs from the live state
+            // inside the same gate it recomputes under, so the holdings are
+            // rebuilt only on the frames the rate is actually reassembled —
+            // which makes income appear on exactly the frame it does there
+            // (`crates/sim/src/holdings.rs`).
+            if self.holdings_due(player, frame) {
+                self.assemble_holdings(player);
+            }
             economy::process(
                 &self.tuning,
                 &mut self.ledgers[who],

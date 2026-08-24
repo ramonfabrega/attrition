@@ -255,6 +255,11 @@ pub struct Holdings {
     /// available: it chooses which of the two redirect tables in
     /// `crates/sim/src/cost.rs` charges the price somewhere else.
     pub discovered: [bool; RESOURCES],
+    /// Gather buildings that pay outside any city — every oil well and
+    /// platform, and every camp or mine with no city link.
+    /// `Leader::calc_gather` steps 4 and 5, which take no city enhancer
+    /// and no `CITY_GATHER` (`crates/sim/src/holdings.rs`).
+    pub outside: Vec<Site>,
 }
 
 impl Holdings {
@@ -434,6 +439,11 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
         for r in Resource::ALL {
             out[r.index()] += c[r.index()];
         }
+    }
+    // Steps 4 and 5: the sites outside every city, at the bare rate.
+    for site in &h.outside {
+        let i = site.resource.index();
+        out[i] += per_gatherer(t, site.resource, site.level) * site.gatherers;
     }
 
     // Refineries scale oil at the player level rather than per city.

@@ -1168,6 +1168,9 @@ impl Sim {
             self.start_building(b);
         }
         let who = self.buildings[b].owner;
+        // `Build::activate@00623e20` lines 398/402/443: the economy's dirty
+        // flag, so a finished farm pays within eight frames, not 512.
+        self.economy_changed(who);
         let Some(ty) = self.buildings[b].ty else {
             self.buildings[b].active = true;
             self.buildings[b].activated = true;
@@ -1280,6 +1283,8 @@ impl Sim {
             return;
         }
         let who = self.buildings[b].owner;
+        // `Build::close@00628980` line 95: the economy's dirty flag.
+        self.economy_changed(who);
         // `clean_queue(refund)`.
         {
             let mut ledger = std::mem::take(&mut self.ledgers[who as usize]);

@@ -591,25 +591,41 @@ fn the_border_that_kills_also_pays() {
 fn a_city_pays_from_the_first_frame_of_the_game() {
     // Income runs before objects, and the reassembly is unconditional on frame
     // zero, so a player who owns something is earning on the very first tick
-    // rather than waiting out the 512-frame cadence.
-    let mut sim = skirmish(4);
-    sim.holdings[0].cities.push(economy::City {
-        market: true,
-        university: true,
-        sites: vec![economy::Site::new(economy::Resource::Food, 3)],
-        ..economy::City::default()
+    // rather than waiting out the 512-frame cadence. The holdings are
+    // assembled from the live state (`crates/sim/src/holdings.rs`), so the
+    // "something" is a real city: a finished Small City is worth
+    // `CITY_GATHER` of food and timber on its own.
+    let mut world = World::new(16, 16);
+    world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 15));
+    let mut sim = Sim::new(Tuning::RON, world, 2);
+    sim.nation[0].human = true;
+    let village = sim.add_build_type(crate::build::BuildType {
+        ident: crate::build::Ident::Village,
+        x_size: 7,
+        y_size: 7,
+        flags: crate::build::flags::parse("ean"),
+        job_time: 150,
+        hits: 400,
+        price: crate::cost::Price {
+            kind: crate::cost::Kind::Building,
+            ..crate::cost::Price::free()
+        },
+        ..crate::build::BuildType::default()
     });
-    sim.economy_changed(0);
+    let b = sim.init_build(0, village, Pos::new(32 * 192, 32 * 192), false);
+    sim.activate(b, false, false);
+    assert!(
+        sim.buildings[b].city.is_some(),
+        "a finished city has a record"
+    );
 
     sim.tick();
     let shown = |r: economy::Resource| sim.ledgers[0].income[r.index()] / economy::RATE_SCALE;
-    // Three farmers at PEASANT_RATE, plus the ten food a city is worth on its
-    // own, plus the ten timber, the market's ten wealth and the university's
-    // ten knowledge.
-    assert_eq!(shown(economy::Resource::Food), 40);
-    assert_eq!(shown(economy::Resource::Timber), 10);
-    assert_eq!(shown(economy::Resource::Wealth), 10);
-    assert_eq!(shown(economy::Resource::Knowledge), 10);
+    let city_gather = Tuning::RON.city_gather;
+    assert_eq!(shown(economy::Resource::Food), city_gather[0]);
+    assert_eq!(shown(economy::Resource::Timber), city_gather[1]);
+    assert_eq!(shown(economy::Resource::Wealth), 0, "no market");
+    assert_eq!(shown(economy::Resource::Knowledge), 0, "no university");
 
     // And the starting goods are there and untouched by the first frame.
     let food = economy::Resource::Food.index();

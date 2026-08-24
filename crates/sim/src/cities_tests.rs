@@ -521,6 +521,9 @@ fn a_placed_ghost_is_free_to_cancel_and_blocks_nothing_but_placement() {
 #[test]
 fn a_building_bleeds_in_enemy_territory_and_a_ghost_is_removed() {
     let mut sim = world_sim();
+    // This measures a refund; the city's own trickle is switched off so
+    // the ledger moves for no other reason.
+    sim.tuning.city_gather = [0; 6];
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
@@ -588,6 +591,9 @@ fn the_clock_is_rebaked_when_the_wall_stats_go_stale() {
 #[test]
 fn a_repair_takes_twice_the_build_time_and_costs_the_price_again() {
     let mut sim = world_sim();
+    // This measures a price; the city's own trickle is switched off so the
+    // ledger moves for no other reason.
+    sim.tuning.city_gather = [0; 6];
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let citizen = sim.add_unit_type(citizen_type(t.village));

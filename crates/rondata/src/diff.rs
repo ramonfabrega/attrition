@@ -1536,6 +1536,49 @@ mod tests {
         );
     }
 
+    /// Income against the original's own ledger: run8's `FRAME 2`
+    /// `LEADERDATA who 1` (`LEADERS=9`) prints the encrypted goods block —
+    /// `resources` is the assembled rate, in sixteenths — and it reads
+    /// `[160, 160, 0, 0, 0, 0]`: `CITY_GATHER × 16` for food and timber and
+    /// nothing from the five citizens, all on their chains and none yet
+    /// arrived (`Unit::do_gather` sets the dirty flag on the same statement
+    /// as `been_there`). By frame 60 it is `[640, 320, …]` — three farmers
+    /// and one camp citizen arrived. The rate, not the cap: the AI is
+    /// British and its cap carries `BRITISH_COMMERCE`.
+    #[test]
+    fn run8_s_frame_2_income_is_the_city_and_nothing_the_citizens_have_reached() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run8-personality.txt") else {
+            eprintln!("skipping: no gamelog-run8-personality.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let mut built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        for _ in 0..3 {
+            built.sim.tick();
+        }
+        let theirs = log.leader_block(2, 1).expect("FRAME 2 LEADERDATA who 1");
+        let rate: Vec<i64> = theirs
+            .all("resources")
+            .iter()
+            .map(|v| v.trim().parse().unwrap_or(0))
+            .collect();
+        assert_eq!(&rate[..6], &[160, 160, 0, 0, 0, 0], "the dump's own rate");
+        let ours: Vec<i64> = built.sim.ledgers[1]
+            .rate
+            .iter()
+            .map(|&v| i64::from(v))
+            .collect();
+        assert_eq!(
+            ours,
+            rate[..6].to_vec(),
+            "the AI's five citizens are on their chains and none has arrived: \
+             CITY_GATHER x 16 and nothing else"
+        );
+    }
+
     /// The slot count against the original's own survey: run9's frame-1
     /// `BUILDDATA` gives each camp its `gather_from` list — 82 tiles for
     /// player 0's, 61 for player 1's — and the `LEADERS=9` record gives the
