@@ -93,6 +93,9 @@ pub struct Loaded {
     /// original's `tech_key`/`unit_key`/`build_key` would have logged an
     /// error. Empty for the shipped files.
     pub warnings: Vec<String>,
+    /// rules.xml's `mapstyles` category keys in file order — `map_styles`,
+    /// which `GameInfo.map_style` indexes and `get_mapstyle()` names.
+    pub map_styles: Vec<String>,
 }
 
 impl Loaded {
@@ -928,6 +931,23 @@ pub fn load_tables(
         tech_tree,
         good_tree,
         warnings,
+        map_styles: rules
+            .categories
+            .iter()
+            .find(|(id, _)| id == "mapstyles")
+            .map(|(_, t)| {
+                t.records
+                    .iter()
+                    .map(|r| {
+                        r.attrs
+                            .iter()
+                            .find(|(k, _)| k == "key")
+                            .map(|(_, v)| v.clone())
+                            .unwrap_or_default()
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
     }
 }
 
@@ -1447,6 +1467,7 @@ mod tests {
             tech_tree: vec![11, 12],
             good_tree: (0..6).collect(),
             warnings: vec![],
+            map_styles: vec![],
         };
         assert_eq!(l.type_index(0), 0);
         assert_eq!(l.type_index(6), BASE_UNITTYPES);

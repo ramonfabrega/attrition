@@ -481,6 +481,8 @@ pub struct Sim {
     /// One per player: the object-number marks [`Sim::find_free`] allocates
     /// against.
     pub marks: Vec<Marks>,
+    /// The lobby's option block, as the AI reads it — `docs/AI.md` §12.1.
+    pub lobby: ai::Lobby,
     pub frame: i64,
 }
 
@@ -702,6 +704,7 @@ impl Sim {
             removed: Vec::new(),
             wall_stats_dirty: vec![false; players],
             marks: vec![Marks::default(); players],
+            lobby: ai::Lobby::default(),
             tuning,
             world,
             frame: 0,
@@ -1114,7 +1117,11 @@ impl Sim {
     /// `BuildQueue` holds units and techs in one list, and the library's
     /// fan-out and the stuck-head redirect treat a tech entry as the research
     /// job it is.
-    pub fn queue_tech(&mut self, at: usize, t: tech::TypeId) -> Result<usize, production::QueueFail> {
+    pub fn queue_tech(
+        &mut self,
+        at: usize,
+        t: tech::TypeId,
+    ) -> Result<usize, production::QueueFail> {
         let at = self.queue_home(at);
         let who = self.buildings[at].owner;
         if !self.buildings[at].active

@@ -565,6 +565,84 @@ pub mod cadence {
     }
 }
 
+/// The lobby — `GameInfo`'s option block (`docs/RECGAME.md` §"the lobby
+/// options", the dump's `GAMEINFO` fields) as the AI and its host functions
+/// read it. The values are the file's own encodings; the accessors give the
+/// meanings the readers need. Defaults are run6/run7's lobby
+/// (`docs/INPUT.md` §2): Easiest, Small Town, Ancient, a Great Lakes map, no
+/// rush rules, standard victory, capital-countdown elimination.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Lobby {
+    pub team_style: i32,
+    /// `MAP_STYLE`: the index into `map_styles` — `world+0x30`, the map
+    /// type `compute_site_stats` tests for `0xc` and `0x11`.
+    pub map_style: i32,
+    /// The style's name, as `get_mapstyle()` returns it and the scripts
+    /// compare it: rules.xml's `mapstyles` category in file order (0
+    /// "Random" … 14 "Great Lakes" … 22 "British Isles").
+    pub map_style_name: String,
+    /// `DIFFICULTY`: 0 Easiest … 5 Toughest. `get_diff()` in a solo game.
+    pub difficulty: i32,
+    /// `STARTING_TOWN`: 0 nomad, 1 Small, 2 Small Town, 3 Large Town …
+    pub starting_town: i32,
+    /// `STARTING_RESOURCES`: the row; 8 is the unlimited-style lobby that
+    /// skips the script and buys after every step.
+    pub starting_resources: i32,
+    /// `STARTING_RESOURCES2`: team 0's under `GAME_RULES == 8`.
+    pub starting_resources2: i32,
+    pub game_rules: i32,
+    pub tech_cost: i32,
+    /// `RUSH_RULES`: 0 off; 8 forces `pers.raid = −1`.
+    pub rush_rules: i32,
+    /// `ELIMINATION`: 1 is the capital countdown.
+    pub elimination: i32,
+    /// `VICTORY`: 0 standard, 3 score, 5 musical chairs, 6 wonder, 7
+    /// territory, 8 economic, 9 tech race (`host-functions.md` §5).
+    pub victory: i32,
+    /// `GameInfo.flags & 4`, "No Nation Powers".
+    pub no_nation_powers: bool,
+    /// `semaphore[2] & 2`: a Conquer-the-World or scenario game.
+    pub conquest: bool,
+}
+
+impl Default for Lobby {
+    fn default() -> Lobby {
+        Lobby {
+            team_style: 1,
+            map_style: 14,
+            map_style_name: "Great Lakes".to_string(),
+            difficulty: 0,
+            starting_town: 2,
+            starting_resources: 1,
+            starting_resources2: 1,
+            game_rules: 1,
+            tech_cost: 3,
+            rush_rules: 0,
+            elimination: 1,
+            victory: 0,
+            no_nation_powers: false,
+            conquest: false,
+        }
+    }
+}
+
+impl Lobby {
+    /// `starting_resources == 8`.
+    pub fn resources_unlimited(&self) -> bool {
+        self.starting_resources == 8
+    }
+
+    /// `get_starting_resources(who)`: the asymmetric-teams row for team 0
+    /// under `GAME_RULES == 8`, else the ordinary one.
+    pub fn starting_resources_for(&self, team: i32) -> i32 {
+        if self.game_rules == 8 && team == 0 {
+            self.starting_resources2
+        } else {
+            self.starting_resources
+        }
+    }
+}
+
 /// The inputs `production_ai_setup` reads besides the ledger.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct GoodsSetup {

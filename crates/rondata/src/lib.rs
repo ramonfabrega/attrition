@@ -132,6 +132,7 @@ impl Install {
                             .map(|c| Record {
                                 tag: c.tag_name().name().to_string(),
                                 fields: vec![table::field_from(c)],
+                                attrs: Vec::new(),
                             })
                             .collect(),
                     }

@@ -76,6 +76,59 @@ fn pos_of(p: LogPos) -> Pos {
 /// Each player's tribe comes from `LEADERDATA`. The city each player starts
 /// with is placed by type at the `CITIES` position when the placement rules
 /// allow it, and as an untyped building otherwise — with a note.
+/// The lobby, from the dump's `GAMEINFO` block — every `GameInfo` option
+/// field is logged under its own upper-case name (`docs/AI.md` §12.1). A
+/// field the block lacks keeps the run7 default.
+pub fn lobby_of(game_info: &[(&str, &str)], map_styles: &[String]) -> sim::ai::Lobby {
+    let mut l = sim::ai::Lobby::default();
+    let int = |key: &str| -> Option<i32> {
+        game_info
+            .iter()
+            .find(|(k, _)| *k == key)
+            .and_then(|(_, v)| v.trim().parse().ok())
+    };
+    if let Some(v) = int("TEAM_STYLE") {
+        l.team_style = v;
+    }
+    if let Some(v) = int("MAP_STYLE") {
+        l.map_style = v;
+        if let Some(name) = usize::try_from(v).ok().and_then(|i| map_styles.get(i)) {
+            l.map_style_name = name.clone();
+        }
+    }
+    if let Some(v) = int("DIFFICULTY") {
+        l.difficulty = v;
+    }
+    if let Some(v) = int("STARTING_TOWN") {
+        l.starting_town = v;
+    }
+    if let Some(v) = int("STARTING_RESOURCES") {
+        l.starting_resources = v;
+    }
+    if let Some(v) = int("STARTING_RESOURCES2") {
+        l.starting_resources2 = v;
+    }
+    if let Some(v) = int("GAME_RULES") {
+        l.game_rules = v;
+    }
+    if let Some(v) = int("TECH_COST") {
+        l.tech_cost = v;
+    }
+    if let Some(v) = int("RUSH_RULES") {
+        l.rush_rules = v;
+    }
+    if let Some(v) = int("ELIMINATION") {
+        l.elimination = v;
+    }
+    if let Some(v) = int("VICTORY") {
+        l.victory = v;
+    }
+    if let Some(v) = int("flags") {
+        l.no_nation_powers = v & 4 != 0;
+    }
+    l
+}
+
 pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     let mut notes = Vec::new();
     let get = |k: &str| -> Option<i64> {
@@ -101,6 +154,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         }
     }
     let mut sim = loaded.sim(tuning, world, players);
+    sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
 
     for l in &init.leaders {
         if (0..players as i64).contains(&l.who) {
@@ -1036,6 +1090,19 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = std::fs::read_to_string(&path).unwrap();
         let log = Log::parse(&text);
+
+        // The lobby, read from `GAMEINFO`: `docs/INPUT.md` §2's settings,
+        // and MAP_STYLE 14 named through rules.xml's `mapstyles` order.
+        let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        assert_eq!(built.sim.lobby.difficulty, 0, "Easiest");
+        assert_eq!(built.sim.lobby.starting_town, 2, "Small Town");
+        assert_eq!(built.sim.lobby.starting_resources, 1);
+        assert_eq!(built.sim.lobby.map_style, 14);
+        assert_eq!(built.sim.lobby.map_style_name, "Great Lakes");
+        assert_eq!(built.sim.lobby.rush_rules, 0);
+        assert_eq!(built.sim.lobby.victory, 0);
+        assert!(!built.sim.lobby.no_nation_powers);
+
         let report = run(&loaded, &log, Tuning::RON, None).unwrap();
 
         assert_eq!(report.frames.len(), 432, "the dump's frame count");

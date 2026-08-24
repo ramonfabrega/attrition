@@ -174,8 +174,7 @@ impl Queue {
     /// answers "is this type's entry a research job" — in a simulation with no
     /// technology types, that is `!researched[ty]`.
     pub fn next_research<F: Fn(usize) -> bool>(&self, research: F) -> Option<usize> {
-        (1..self.items.len())
-            .find(|&i| self.items[i].tech.is_some() || research(self.items[i].ty))
+        (1..self.items.len()).find(|&i| self.items[i].tech.is_some() || research(self.items[i].ty))
     }
 
     /// Appends a technology entry for tree id `t` and returns its slot.

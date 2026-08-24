@@ -80,6 +80,9 @@ pub struct Record {
     pub tag: String,
     /// Fields in file order.
     pub fields: Vec<Field>,
+    /// The record element's own attributes — a `<CATEGORY name key/>` in
+    /// rules.xml's setup enumerations carries its whole content there.
+    pub attrs: Vec<(String, String)>,
 }
 
 impl Record {
@@ -204,6 +207,10 @@ pub(crate) fn record_from(node: roxmltree::Node<'_, '_>) -> Record {
             .children()
             .filter(|n| n.is_element())
             .map(field_from)
+            .collect(),
+        attrs: node
+            .attributes()
+            .map(|a| (a.name().to_string(), a.value().to_string()))
             .collect(),
     }
 }
