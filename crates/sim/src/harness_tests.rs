@@ -1426,8 +1426,13 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
     );
     sim.set_stance(b, Stance::HoldFire);
     sim.rng = combat::Rng::new(7);
+    // The frame's own draws (the market on frame 0, the birds' sampling)
+    // come from a control that fires nothing; the shot's are on top.
+    let mut control = arena();
+    control.rng = combat::Rng::new(7);
     sim.order_attack(a, Obj::Unit(b));
     sim.tick();
+    control.tick();
     // One projectile, launched this frame.
     assert_eq!(sim.projectiles.len(), 1);
     let p = sim.projectiles[0];
@@ -1451,9 +1456,11 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
     // after the launch frame.
     for _ in 1..(p.total_time - 1) {
         sim.tick();
+        control.tick();
         assert_eq!(sim.projectiles.len(), 1);
     }
     sim.tick();
+    control.tick();
     assert_eq!(sim.projectiles.len(), 0);
     // Whether it hit is whether the landing point was within target_size.
     let d = vector_dist(p.landing.x - 1000, p.landing.y - 1000);
@@ -1467,8 +1474,8 @@ fn a_shot_flies_for_its_distance_and_lands_where_the_rng_put_it() {
         assert!(hit.is_empty(), "a miss lands on nothing here");
     }
     // Two RNG draws were taken for the scatter — and two more for where a
-    // miss punctured the ground, none else.
-    let mut r = combat::Rng::new(7);
+    // miss punctured the ground, none else beyond the frames' own.
+    let mut r = control.rng;
     r.roll();
     r.roll();
     if d > 48 {

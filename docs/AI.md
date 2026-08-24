@@ -1424,18 +1424,31 @@ folded back into §2's prose.
    5×5 slide), **run9's best site is the original's `(52, 14)/370`** —
    pinned in `diff.rs`. What it exposed is the item that replaces it:
 
-   **2′. The per-frame draws.** Run12's `DUMP_ALL` states show frame 0
+   ~~**2′. The per-frame draws.** Run12's `DUMP_ALL` states show frame 0
    drawing **120** times where the sweep draws 2 (then 54, 6, 6 on frames
    1–3 — a steady six a frame that is not the AI's), so by the script's first
    `rand_int(1, 10)`s at frame 1 the stream is displaced and the script
    takes the *rush* order (two farms at step 3, no city) instead of the
    boom order the original took — run10 scores 744 on the true stream
-   against 268 on the sim's own (a lucky branch). The draw sites are the 39
-   classes that touch `GameAccess::game_random`: `Unit` (16 functions),
-   `Animal`/`Herd`, `Farms`, `Guy`, `Object`, `Ammo`, `PathFinder` — each a
-   reading of when it draws and how often; run12's per-frame records are
-   the oracle for the count, and the script's branch at frame 1 (run7/run8:
-   boom) the check with teeth.
+   against 268 on the sim's own (a lucky branch).~~ **Read and landed,
+   2026-08-24 (fifth session) — `docs/SYNC.md`.** Run12's four frames are
+   attributed draw by draw with the LCG replayed against the dump's
+   outcomes: the market at draws 2–19 (pinned by its flux values), the 40
+   animals' idle anims at 48–87 (pinned by their variants), the herd at
+   108–109, the farms at 110–115, frame 1's woodcutters and sprout at
+   44–49 — and the steady six is `Farms::inc_time`, one draw per complete
+   farm a frame, which is also the missing half of the farm clock
+   (`FARM_GROWS` retired: the 201st `0.005f` add ripens, at frame 100, the
+   re-target on the log's 102). Landed: `market.rs`, `farms.rs`,
+   `gaia.rs` (birds' sampling, the herd walk, herds loaded from a
+   `DUMP_ALL` sibling), and the harness's per-frame install (`Built::tick`)
+   with the count on both sides: **frame 0 ours 48 / theirs 120; frame 1
+   54 / 54; 6 / 6; 7 / 6**. The script's frame-1 branch is now the
+   original's on run7 and run6 (pinned), and run10 holds 268 with `1/9`
+   linking. What the 72 of frame 0 still are — the idle-anim draw per unit
+   with the art's animation lengths (a table from the dumps' `GUY` blocks),
+   the animals' wander, the scouts' `think_scout` scan, four unattributed
+   — is `docs/SYNC.md` §6, and it is the next item here.
 3. **The loader's half of the producers** — the seams that are `rondata`'s
    to close: `UnitType.unit_flags/unit_flags2/role/carry/cat`
    (`determine_roles@0061c320`, §14.5), `TypeDef.ai[11]`

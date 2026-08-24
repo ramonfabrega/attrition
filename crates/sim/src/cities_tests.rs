@@ -1176,16 +1176,24 @@ fn moves_on_open_ground_draw_nothing_and_a_far_move_walks_the_chain() {
     let t = install_types(&mut sim);
     let citizen = sim.add_unit_type(citizen_type(t.village));
     let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
-    let seed = sim.rng.seed;
+    // The frame's own draws — the market, the birds' sampling — are the
+    // same with or without the move: a control that stands still says what
+    // they are.
+    let mut control = world_sim();
+    let ct = install_types(&mut control);
+    let cc = control.add_unit_type(citizen_type(ct.village));
+    spawn(&mut control, 0, cc, tile_pos(20, 20));
     sim.order_move(u, tile_pos(24, 20)); // one cell
     for _ in 0..40 {
         sim.tick();
+        control.tick();
     }
     assert!(sim.units[u].orders.is_empty(), "arrived");
-    assert_eq!(sim.rng.seed, seed, "a near move draws nothing");
+    assert_eq!(sim.rng.seed, control.rng.seed, "a near move draws nothing");
     let before = sim.units[u].pos;
     sim.order_move(u, tile_pos(44, 20)); // five cells
     sim.tick();
+    control.tick();
     assert!(
         sim.units[u].path.len() > 1,
         "a far move is planned as a chain at order time"
@@ -1193,9 +1201,13 @@ fn moves_on_open_ground_draw_nothing_and_a_far_move_walks_the_chain() {
     assert_ne!(sim.units[u].pos, before, "and steps that frame");
     for _ in 0..400 {
         sim.tick();
+        control.tick();
     }
     assert!(sim.units[u].orders.is_empty(), "the chain arrives");
-    assert_eq!(sim.rng.seed, seed, "and no move on open ground drew");
+    assert_eq!(
+        sim.rng.seed, control.rng.seed,
+        "and no move on open ground drew"
+    );
 }
 
 /// `find_nearby_spot` starts its sweep on the unit's side of the target and

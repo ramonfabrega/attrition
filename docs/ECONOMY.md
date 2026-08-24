@@ -765,8 +765,14 @@ far as anything read goes they are as dead as `calc_support`.
   its own constant in `rules.xml`. *Where* they pay is settled (above); what
   each one pays is not.
 - **The market.** `MARKET_BASEMENT`, `MARKET_EQUILIBRIUM`, `MARKET_CYCLE_RATE`
-  and the rest describe a price simulation with supply and demand. Entirely
-  unread, and the only part of the economy that is not a sum of rates.
+  and the rest describe a price simulation with supply and demand. ~~Entirely
+  unread, and the only part of the economy that is not a sum of rates.~~
+  **The price cycle is read and landed, 2026-08-24** (`docs/SYNC.md` §3.1,
+  `crates/sim/src/market.rs`): `GameDaemon::calc_markets` — the drift toward
+  the equilibrium, the eight-tick rota, and the three sync-stream draws a
+  good takes when its trend runs out, pinned on run12's frame-0 values.
+  What a *trade* does with the price and the flux (`Leader::buy/sell`,
+  `MARKET_SUPPLY_DEMAND`) is still unread.
 - ~~**Costs.**~~ and ~~**Population.**~~ Closed by `docs/COSTS.md`, which
   specifies `UNIT_COST_FACTOR` and its siblings, the ramp, the
   unavailable-resource redirect, the discount tail, `Leader::can_pay` and

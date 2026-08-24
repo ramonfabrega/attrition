@@ -428,9 +428,34 @@ better, in which case say so and take that.
     original draws **~120 times a frame** (units, herds, farms, ammo —
     run12's per-frame states), the sim's sweep twice, so the script's
     `rand_int`s at frame 1 land elsewhere and run10 scores 744 on the
-    true stream (the 268 was a lucky branch on the sim's own). Next: the
-    per-frame draws (`docs/AI.md` §12.1 item 2′); the loader's half of
-    the producers' seams (unit `role`/flags, `TechType.ai[]`,
+    true stream (the 268 was a lucky branch on the sim's own). ~~Next: the
+    per-frame draws (`docs/AI.md` §12.1 item 2′);~~
+
+    **The per-frame draws are read, 2026-08-24 (fifth session)** —
+    `docs/SYNC.md`: `Game::do_frame`'s order, every `game_random` site by
+    phase, and run12's four frames attributed draw by draw by replaying
+    the LCG against the dump's own outcomes — the market's flux values
+    place its 18 draws at 2–19 and nowhere else, the 40 animals' idle-anim
+    variants match at 48–87 with zero mismatches, the herd's step and the
+    farms' sprout pin the tail. The steady six a frame is
+    **`Farms::inc_time`**, one draw per complete farm — and it is the
+    missing half of the farm clock, which retires `FARM_GROWS`: a farmed
+    cell gets two `0.005f` adds a frame and single precision reaches
+    `1.0f` on the 201st, so the farmer re-targets on the log's frame 102
+    exactly as run6 measured. Landed: `market.rs` (the price cycle),
+    `farms.rs` (the crop cells, integer adds with the two pinned
+    crossings), `gaia.rs` (the birds' sampling, the herd walk, herds from
+    a `DUMP_ALL` sibling), and the harness's `Built::tick`, which reads
+    the per-frame words, installs them, and prints the count on both
+    sides: **frame 0 ours 48 / theirs 120, frame 1 54 / 54, 6 / 6, 7 / 6**.
+    Run7's first script call and run6's AI now take the original's branch
+    (pinned); run10 holds 268 with `1/9` linking. Next: the 72 of frame 0
+    — the idle-anim draw per unit with the art's animation lengths (a
+    table from the dumps' `GUY` blocks), animals as gaia units with the
+    wander, the scouts' `think_scout` scan (needs the seen map), the
+    4-draw tail, frame 3's one extra `do_move` draw (`docs/SYNC.md` §6);
+    a `Checksum Dump`/`Break` frame-window capture; then the loader's
+    half of the producers' seams (unit `role`/flags, `TechType.ai[]`,
     `gather_max`); fold §14 into §2; then the blind second reading.
 
 **One mechanic per session.** The document is the handoff: a fresh session

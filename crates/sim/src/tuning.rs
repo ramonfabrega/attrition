@@ -217,6 +217,17 @@ pub struct Tuning {
     pub building_taxes: i32,
     /// Wealth for a city with a market. The only non-zero term in the line.
     pub market_taxes: i32,
+    /// The market's price cycle (`GameDaemon::calc_markets`, `docs/SYNC.md`
+    /// §3.1): the floor a price steps up past two at a time, the price
+    /// every good drifts toward, the least half-variance of a flux, the
+    /// least and the spread of a trend's length in ticks, and how many
+    /// frames make a tick.
+    pub market_basement: i32,
+    pub market_equilibrium: i32,
+    pub market_min_variance: i32,
+    pub market_min_trend: i32,
+    pub market_trend_range: i32,
+    pub market_cycle_rate: i32,
     /// Wealth for a city with a temple. Ships as zero.
     pub temple_taxes: i32,
     /// Knowledge per city, unconditionally. Ships as zero.
@@ -667,6 +678,12 @@ impl Tuning {
         village_taxes: 0,
         building_taxes: 0,
         market_taxes: 10,
+        market_basement: 10,
+        market_equilibrium: 65,
+        market_min_variance: 2,
+        market_min_trend: 8,
+        market_trend_range: 16,
+        market_cycle_rate: 1,
         temple_taxes: 0,
         village_literacy: 0,
         university_literacy: 10,
@@ -848,7 +865,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 234] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 240] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -952,6 +969,12 @@ impl Tuning {
             ("VILLAGE_TAXES", Slot::Value(T.village_taxes)),
             ("BUILDING_TAXES", Slot::Value(T.building_taxes)),
             ("MARKET_TAXES", Slot::Value(T.market_taxes)),
+            ("MARKET_BASEMENT", Slot::Value(T.market_basement)),
+            ("MARKET_EQUILIBRIUM", Slot::Value(T.market_equilibrium)),
+            ("MARKET_MIN_VARIANCE", Slot::Value(T.market_min_variance)),
+            ("MARKET_MIN_TREND", Slot::Value(T.market_min_trend)),
+            ("MARKET_TREND_RANGE", Slot::Value(T.market_trend_range)),
+            ("MARKET_CYCLE_RATE", Slot::Value(T.market_cycle_rate)),
             ("TEMPLE_TAXES", Slot::Value(T.temple_taxes)),
             ("VILLAGE_LITERACY", Slot::Value(T.village_literacy)),
             ("UNIVERSITY_LITERACY", Slot::Value(T.university_literacy)),

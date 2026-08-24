@@ -274,9 +274,35 @@ impl<'a> Log<'a> {
     /// subsystem checksums, then `game_random seed s`. A record without the
     /// seed line (`check_all_level < 14`) is dropped — it pins nothing.
     pub fn checksums(&self) -> Vec<Checksum<'a>> {
+        checksums_in(&self.preamble)
+    }
+
+    /// The sync stream's word at the **end of each frame**, from a
+    /// `DUMP_ALL` dump whose `full_dump` runs at `begin_frame` and
+    /// `end_frame` (`docs/SYNC.md` §1): `(engine frame, seed)`. The log's
+    /// `FRAME n` block opens just before the `end_frame` dump of its frame
+    /// — a `FULL DUMP` child whose first fields are the `say_checksum`
+    /// record — so that record is the frame's last word: engine frame
+    /// `n − 1`'s, the state frame `n` begins on. Empty for any other dump.
+    pub fn frame_seeds(&self) -> Vec<(i64, u32)> {
+        self.frames()
+            .into_iter()
+            .filter_map(|(n, b)| {
+                let dump = b.kid("FULL DUMP")?;
+                let c = checksums_in(&dump.fields);
+                c.first().map(|c| (n - 1, c.seed))
+            })
+            .collect()
+    }
+}
+
+/// The `CHECKSUM n / FILE / LINE / … / game_random seed` records among a
+/// run of fields, in order.
+fn checksums_in<'a>(fields: &[(&'a str, &'a str)]) -> Vec<Checksum<'a>> {
+    {
         let mut out = Vec::new();
         let mut cur: Option<Checksum<'a>> = None;
-        for &(key, value) in &self.preamble {
+        for &(key, value) in fields {
             match key {
                 "CHECKSUM" => {
                     cur = value.trim().parse().ok().map(|n| Checksum {
@@ -309,7 +335,9 @@ impl<'a> Log<'a> {
         }
         out
     }
+}
 
+impl<'a> Log<'a> {
     /// The terrain's height grid from a `DUMP_ALL` dump, in millionths
     /// (see [`Initial::heights`]). `GameLog::dump_all@0092f2d0` prints
     /// `SimpleArray<float>::log_data(terrain->master_land_heights)` with no
@@ -694,6 +722,25 @@ pub struct Initial<'a> {
     /// multiples of ⅛, so the text is exact). Only a `DUMP_ALL` dump
     /// carries it (`docs/ORACLE.md`); empty otherwise.
     pub heights: Vec<i64>,
+    /// The `HERDS` block's `HERD` records — only a `DUMP_ALL` dump prints
+    /// them (`docs/SYNC.md` §3.2); empty otherwise.
+    pub herds: Vec<HerdDump>,
+    /// The sync stream's word at the end of each engine frame, from the
+    /// per-frame `say_checksum` records of a `DUMP_ALL` dump
+    /// ([`Log::frame_seeds`]); empty otherwise.
+    pub frame_seeds: Vec<(i64, u32)>,
+}
+
+/// One `HERD` record: the home cell, the wander centre, the animal type
+/// and the flags.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct HerdDump {
+    pub cx: i64,
+    pub cy: i64,
+    pub wx: i64,
+    pub wy: i64,
+    pub t: i64,
+    pub herd_flags: i64,
 }
 
 /// One frame's worth of state.
@@ -985,6 +1032,20 @@ impl<'a> Log<'a> {
         init.leaders = leaders;
         init.checksums = self.checksums();
         init.heights = self.terrain_heights();
+        if let Some(h) = game.find("HERDS") {
+            init.herds = h
+                .kids("HERD")
+                .map(|b| HerdDump {
+                    cx: b.int("cx").unwrap_or(0),
+                    cy: b.int("cy").unwrap_or(0),
+                    wx: b.int("wx").unwrap_or(0),
+                    wy: b.int("wy").unwrap_or(0),
+                    t: b.int("t").unwrap_or(0),
+                    herd_flags: b.int("herd_flags").unwrap_or(0),
+                })
+                .collect();
+        }
+        init.frame_seeds = self.frame_seeds();
         Some(init)
     }
 

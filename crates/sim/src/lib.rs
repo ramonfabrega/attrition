@@ -54,10 +54,13 @@ pub mod city;
 pub mod combat;
 pub mod cost;
 pub mod economy;
+pub mod farms;
 pub mod fight;
+pub mod gaia;
 pub mod garrison;
 pub mod gather;
 pub mod holdings;
+pub mod market;
 pub mod movement;
 pub mod orders;
 pub mod path;
@@ -178,6 +181,19 @@ pub struct Unit {
     /// unreachable, which `valid_wcoord` refuses. Cleared before each step
     /// (`docs/ORDERS.md` §4.5).
     pub avoid: Option<Pos>,
+    /// The farmer's animation, as far as the farm stand reads it
+    /// (`Guy::cur_anim`, `'#'` sowing or `'$'` reaping; `docs/ORDERS.md`
+    /// §6.5). Walking clears it.
+    pub farm_anim: FarmAnim,
+}
+
+/// The two animations `Unit::do_gather`'s farm branch tests for.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum FarmAnim {
+    #[default]
+    Other,
+    Sow,
+    Reap,
 }
 
 /// What a unit needs in order to move.
@@ -390,6 +406,7 @@ impl Unit {
             cant_reach: false,
             decoy: false,
             avoid: None,
+            farm_anim: FarmAnim::Other,
         }
     }
 
@@ -507,6 +524,10 @@ pub struct Sim {
     pub ai: Vec<ai::Leader>,
     /// `ai_speed`: 1, plus one per `ai speed increase` cheat.
     pub ai_speed: i32,
+    /// The market's price cycle (`market.rs`).
+    pub market: market::Market,
+    /// The herds and the birds' sampling (`gaia.rs`).
+    pub gaia: gaia::Gaia,
     pub frame: i64,
 }
 
@@ -637,13 +658,7 @@ pub struct Building {
     pub farm: Farm,
 }
 
-/// `Farms`' per-farm record, as far as the farmer's stand reads it: a
-/// state byte and a growth count per tile of the footprint.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Farm {
-    pub state: [u8; 16],
-    pub percent: [i32; 16],
-}
+pub use farms::Farm;
 
 impl Building {
     /// `hits(0)`: the site's growing figure while not active, the full one
@@ -715,6 +730,8 @@ impl Sim {
             table: combat::Table::uniform(0),
             rng: combat::Rng::new(0),
             projectiles: Vec::new(),
+            market: market::Market::default(),
+            gaia: gaia::Gaia::default(),
             mods: vec![combat::Modifiers::default(); players],
             hits: Vec::new(),
             build_types: Vec::new(),
@@ -1635,6 +1652,11 @@ impl Sim {
         // and the objects (`Game::do_frame` line 267; `docs/AI.md` §2.1).
         self.strategy_all();
 
+        // `GameDaemon::process_all` → `calc_markets`: the market's price
+        // cycle, between the AI and the objects (`docs/SYNC.md` §3.1). On
+        // frame 0 it is eighteen draws, the frame's 2nd to 19th.
+        self.calc_markets(frame);
+
         // Then the buildings. `Build::process` and `Unit::process` are both
         // reached from `Objects::process_all`, so in the original they
         // interleave by object index rather than running in two passes. Doing
@@ -1696,10 +1718,15 @@ impl Sim {
             }
             self.process_movement(i);
         }
+        // The tail of `Objects::process_all`: the birds' sampling every 32
+        // frames and one herd's walk every 64 (`gaia.rs`).
+        self.process_gaia(frame);
         // Ammo after every object — `Objects::inc_time` runs the ammo list
-        // after `process_all` — and the sites' hit points refreshed from the
-        // progress the builders just made, `Wall::inc_time`.
+        // after `process_all` — then the farms' crop cells (`farms.rs`),
+        // and the sites' hit points refreshed from the progress the
+        // builders just made, `Wall::inc_time`.
         self.process_projectiles(frame);
+        self.farms_inc_time();
         self.refresh_site_hits();
         self.frame += 1;
         events
@@ -1811,6 +1838,11 @@ impl Sim {
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
         unit.movement.body = follow.body;
+        // A step is a walk animation: the farm stand's sow/reap byte is
+        // whatever the guy last played, and a walk replaces it.
+        if unit.movement.body.pos != m.body.pos {
+            unit.farm_anim = FarmAnim::Other;
+        }
     }
 
     /// Sends a unit somewhere. It faces whatever way it already faces and turns

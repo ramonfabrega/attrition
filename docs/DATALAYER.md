@@ -341,10 +341,13 @@ simulation cannot yet drive:
   moves those.
 - The **farm citizens** (`0/3`, `0/4`, `0/5` and player 1's) hold to frame
   **102**, where the original inserts a move in front of their gather order
-  and ours does not — the farm re-target, and the measurement that says
+  ~~and ours does not — the farm re-target, and the measurement that says
   `FARM_GROWS = 200` is wrong by about a factor of two (`docs/ORDERS.md`
-  §6.5). Before this run the farmers "agreed" only because both sides stood
-  still.
+  §6.5)~~ — and, since 2026-08-24, so does ours: the clock's other half was
+  `Farms::inc_time` (`docs/SYNC.md` §3.3, `farms.rs`). The re-target's
+  *tile* is two sync-stream draws, so past the traced frames the farmers
+  part on the tile, not the frame. Before this run the farmers "agreed"
+  only because both sides stood still.
 - `0/2`, the second woodcutter's citizen, parts on frame 4 by a few position
   units and rejoins the argument only at 428 — a path difference, not an
   order one (`path-to`, below).

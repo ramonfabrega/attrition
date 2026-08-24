@@ -1607,12 +1607,25 @@ Ancient-Age start at `UNITS=3 BUILDS=7` — **all six farm citizens, on both
 players, take an inserted move in front of their gather order on frame 102**,
 and their positions part company on 103 (`docs/DATALAYER.md` §3.1). That is
 one shared, deterministic tick for every farmer, which is what a count-to-N
-started at frame 0 looks like — so the count is about **101**, not 200. Two
+started at frame 0 looks like — so the count is about **101**, not 200. ~~Two
 readings fit and the decompile has not been re-read to choose between them:
 `grow` is called twice a frame, or the increment is `0.01f` and the `0.005f`
 the decompiler printed is half of it. Until one is settled the simulation
 keeps `FARM_GROWS`, and the constant is wrong by a factor of two; the
-harness's order diff is now the instrument that says so.
+harness's order diff is now the instrument that says so.~~ **Settled
+2026-08-24 (`docs/SYNC.md` §3.3): neither.** `Farms::inc_time@008d8600`,
+run every frame from `Objects::inc_time`, adds a *second* `0.005f` to every
+growing cell (and takes `0.01f` from every cut one, and rolls the farm's
+sync-stream draw), so a farmed cell gets two adds a frame — and `0.005f`
+summed in single precision first reaches `1.0f` on the **201st** add, not
+the 200th. `grow`'s add on frame 100 is the 201st: state 2, still under a
+sowing farmer, and the next frame is the "new tile" above with its two
+draws — the log's frame 102. Two corrections to the pseudo-code above fell
+out of the same reading: `'#'` is the **sow** animation (index 35, the one
+every farmer shows) and `'$'` the reap, so case 2's "not `'#'`" is *not
+sowing* and the farmer that just ripened its own cell goes straight to a
+new tile; and the regrowth from 3 is `inc_time`'s `−0.01f` a frame, 101
+frames to empty. `FARM_GROWS` is retired; the clock is `farms.rs`.
 
 ### 6.6 `Unit::find_gather_spot(range)@005f5170`
 
@@ -2542,10 +2555,13 @@ what is listed as an input is stated as such in the code):
   *absent* one: ~~the harness has none at level 0, so a woodcutter's citizen
   stays at the camp~~ a `BUILDS=7` dump carries it and the harness reads it
   in, and with it a woodcutter's citizen walks the original's walk for 432
-  frames, §11.2), the §6.5 farm stand as a count-to-N (`FARM_GROWS = 200`,
+  frames, §11.2), ~~the §6.5 farm stand as a count-to-N (`FARM_GROWS = 200`,
   an assumption **now contradicted** — the original re-targets at frame 102,
   §6.5; the two `GameAccess::rnd` re-target draws and the animation-gated
-  "new tile" branch are still not taken, so the farmer stands),
+  "new tile" branch are still not taken, so the farmer stands)~~ the §6.5
+  farm stand on the full clock (`farms.rs`, 2026-08-24: the farmer
+  re-targets on the log's frame 102 as the original does; the tile is two
+  sync-stream draws, right only on the traced stream),
   `find_gather_spot` by distance (the per-good rate term is an input, taken
   as 1).
 - **`do_attack`** — the order wraps `combat::State`'s target; `fight` is
@@ -2587,8 +2603,11 @@ what is listed as an input is stated as such in the code):
   captured, and with the tile list in hand **a woodcutter's citizen walks
   the original's walk for all 432 frames**. What still cannot move: the AI's
   units, which need the order stream — `COMMANDMANAGER=1`, or the `UNITS=3`
-  order blocks replayed as they appear — and the farmers, which part at
-  frame 102 on `FARM_GROWS` (§6.5).
+  order blocks replayed as they appear — and ~~the farmers, which part at
+  frame 102 on `FARM_GROWS` (§6.5)~~ the farmers, which now re-target on
+  102 as the original does and part on the *tile* — two sync-stream draws
+  on the sim's own stream past the four frames run12 traced
+  (`docs/SYNC.md` §5).
 - **The log** — ~~the harness should read the `UNITS=3` order blocks (§11.1)
   and diff `type/ox/whom/uid/flags` and the path stack per frame; not yet
   written.~~ **Done 2026-08-21** (`docs/DATALAYER.md` §3.1):

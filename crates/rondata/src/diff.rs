@@ -52,6 +52,12 @@ pub struct Built {
     pub region_map: Vec<(i64, u16)>,
     /// Anything that could not be carried over, and why.
     pub notes: Vec<String>,
+    /// The sync stream's word at the end of each engine frame the dump (or
+    /// a sibling) traced — [`Built::tick`] installs them.
+    pub frame_seeds: Vec<(i64, u32)>,
+    /// Per traced frame ticked so far: the sim's draw count and the
+    /// original's.
+    pub rng_frames: Vec<(i64, Option<u32>, Option<u32>)>,
 }
 
 /// How many player slots the log's leaders occupy: the `who`s below eight.
@@ -451,6 +457,21 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             }
         }
     }
+    // The herds, as the dump's `HERDS` block prints them — their walk every
+    // 64 frames is on the sync stream (`docs/SYNC.md` §3.2).
+    for h in &init.herds {
+        sim.gaia.herds.push(sim::gaia::Herd {
+            cx: h.cx as i32,
+            cy: h.cy as i32,
+            wx: h.wx as i32,
+            wy: h.wy as i32,
+            kind: h.t as i32,
+            alive: h.herd_flags & 1 != 0,
+        });
+    }
+    if !init.herds.is_empty() {
+        notes.push(format!("herds: {} from the dump", init.herds.len()));
+    }
     // The sync stream entering frame 0: the trace's last record is the end
     // of `Game::init` (`game.cpp` 5024 on this build), after the empires,
     // the herds and the scripts — every draw between `Leader::init` and the
@@ -475,6 +496,8 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         builds,
         region_map,
         notes,
+        frame_seeds: init.frame_seeds.clone(),
+        rng_frames: Vec::new(),
     }
 }
 
@@ -813,6 +836,25 @@ pub struct Report {
     /// What the recorded order stream did, when one was fed in — orders
     /// enqueued, and every command that was carried but not acted on.
     pub applied: crate::input::Applied,
+    /// Per traced frame: the sim's draw count and the original's, each
+    /// `None` when the words are more than [`DRAW_CAP`] apart.
+    pub rng_frames: Vec<(i64, Option<u32>, Option<u32>)>,
+}
+
+/// The furthest `draws_between` walks.
+pub const DRAW_CAP: u32 = 200_000;
+
+/// How many `Random::get` steps take the sync stream from `from` to `to`,
+/// if fewer than [`DRAW_CAP`].
+pub fn draws_between(from: u32, to: u32) -> Option<u32> {
+    let mut r = sim::combat::Rng::new(from);
+    for n in 0..=DRAW_CAP {
+        if r.seed == to {
+            return Some(n);
+        }
+        r.roll();
+    }
+    None
 }
 
 impl Report {
@@ -886,6 +928,29 @@ impl Report {
 }
 
 impl Built {
+    /// One engine frame, the harness's way: `Sim::tick`, then — when the
+    /// dump or a sibling traced this frame's end (`docs/SYNC.md` §5) — the
+    /// frame's draw count on both sides is recorded and **the original's
+    /// word is installed**, so the next frame starts on the true stream.
+    /// That is a correction, and it is noted as one; the counts are the
+    /// number each modelled draw site moves.
+    pub fn tick(&mut self) {
+        let frame = self.sim.frame;
+        let word_before = self.sim.rng.seed;
+        self.sim.tick();
+        if let Some(&(_, theirs)) = self.frame_seeds.iter().find(|(n, _)| *n == frame) {
+            let ours = draws_between(word_before, self.sim.rng.seed);
+            let orig = draws_between(word_before, theirs);
+            self.rng_frames.push((frame, ours, orig));
+            self.notes.push(format!(
+                "rng: frame {frame}: ours {} draws, the original's {} — installed {theirs:#010x}",
+                ours.map_or("?".to_string(), |n| n.to_string()),
+                orig.map_or("?".to_string(), |n| n.to_string()),
+            ));
+            self.sim.rng.seed = theirs;
+        }
+    }
+
     /// `(whom, ox)` — the log's ids for a simulation building handle, for the
     /// pre-placed buildings the start-of-game rule created. A building the
     /// simulation made itself has no logged id and reads back `None`.
@@ -1153,6 +1218,24 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
     {
         init.heights = s.heights.clone();
     }
+    if init.herds.is_empty()
+        && let Some(s) = siblings.iter().find(|s| !s.herds.is_empty())
+    {
+        init.herds = s.herds.clone();
+    }
+    // The per-frame words are only the same run's if the setup stream is:
+    // a sibling's count from the trace's last word, so its own trace must
+    // end where ours does (run3 is the map's `DUMP_ALL` but a different
+    // start; run12 is run11's stream continued).
+    if init.frame_seeds.is_empty() {
+        let ours = init.checksums.last().map(|c| c.seed);
+        if let Some(s) = siblings
+            .iter()
+            .find(|s| !s.frame_seeds.is_empty() && s.checksums.last().map(|c| c.seed) == ours)
+        {
+            init.frame_seeds = s.frame_seeds.clone();
+        }
+    }
 }
 
 /// [`run_with`], with what this dump lacks borrowed from **siblings** —
@@ -1191,11 +1274,13 @@ pub fn run_traced<'a, 'b: 'a>(
                 let did = s.apply(last as i32, &mut built);
                 report.applied.merge(&did);
             }
-            built.sim.tick();
+            built.tick();
             last += 1;
         }
         report.frames.push(compare(&built, f, players));
     }
+    report.notes.append(&mut built.notes);
+    report.rng_frames = built.rng_frames.clone();
     report.first_divergence = (0..players as i64)
         .map(|who| {
             let first = report
@@ -1378,7 +1463,17 @@ mod tests {
         assert_eq!(loaded.scripts.len(), 3, "the three shipped scripts");
         let text = std::fs::read_to_string(&path).unwrap();
         let log = Log::parse(&text);
-        let mut built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        // The script's frame-1 coin is thrown on whatever stream frame 0
+        // leaves: the siblings supply the true one (run11's setup trace,
+        // run12's end-of-frame words), which is the boom order the original
+        // took (`docs/SYNC.md` §5).
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
         assert!(built.sim.scripts.is_some(), "the scripts compiled");
         assert!(!built.sim.nation[1].human, "player 1 is the AI");
         let ai = &mut built.sim.ai[1];
@@ -1413,8 +1508,8 @@ mod tests {
         ai.script_step = 1;
 
         // Frame 0 arms the machine; frame 1 is the script's first call.
-        built.sim.tick();
-        built.sim.tick();
+        built.tick();
+        built.tick();
         assert_eq!(built.sim.frame, 2);
         assert!(built.sim.ai[1].script_live, "the script is not done");
         assert_eq!(built.sim.ai[1].script_step, 11, "6 → 7 → 9 → 10 → 11");
@@ -1567,9 +1662,24 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         // A sibling on disk that yields nothing is a reader bug, not a
         // reason to skip: the assertion below must not evaporate.
-        if texts.len() == 2 {
+        if texts.len() == 3 {
             assert!(!init.checksums.is_empty(), "run11's trace was not read");
             assert!(!init.heights.is_empty(), "run3's height table was not read");
+            assert_eq!(init.herds.len(), 13, "run12's herds were not read");
+            assert_eq!(
+                (init.herds[0].wx, init.herds[0].wy, init.herds[0].t),
+                (22, 34, 408)
+            );
+            assert_eq!(
+                init.frame_seeds,
+                vec![
+                    (0, 0xb619_4ba1),
+                    (1, 0x4554_ec0f),
+                    (2, 0xab3b_035d),
+                    (3, 0xc242_06bb)
+                ],
+                "run12's end-of-frame words"
+            );
         }
         let traced = !init.checksums.is_empty() && !init.heights.is_empty();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -1708,14 +1818,48 @@ mod tests {
         }
     }
 
+    /// Run12's per-frame words, read straight from the dump (`docs/SYNC.md`
+    /// §1): the `end_frame` record inside each `FRAME n` block's `FULL
+    /// DUMP`, keyed by the engine frame.
+    #[test]
+    fn run12_s_end_of_frame_words_are_read() {
+        let Some(path) = dump("gamelog-run12-dumpall-seeds.txt") else {
+            eprintln!("skipping: no gamelog-run12-dumpall-seeds.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        assert_eq!(
+            log.frame_seeds(),
+            vec![
+                (0, 0xb619_4ba1),
+                (1, 0x4554_ec0f),
+                (2, 0xab3b_035d),
+                (3, 0xc242_06bb)
+            ]
+        );
+        let init = log.initial().unwrap();
+        assert_eq!(init.checksums.last().map(|c| c.seed), Some(0x3bd3_9ae9));
+        assert_eq!(
+            draws_between(0x3bd3_9ae9, 0xb619_4ba1),
+            Some(120),
+            "frame 0's draws"
+        );
+        assert_eq!(draws_between(0xb619_4ba1, 0x4554_ec0f), Some(54));
+        assert_eq!(draws_between(0x4554_ec0f, 0xab3b_035d), Some(6));
+        assert_eq!(draws_between(0xab3b_035d, 0xc242_06bb), Some(6));
+    }
+
     /// The sibling dumps of the run9/run10/run11 map that carry what the
-    /// others lack (`run_traced`): run11 (the setup path's checksum trace)
-    /// and run3 (`DUMP_ALL` — the terrain heights, the regions' coordinate
-    /// lists). Whichever the machine has.
+    /// others lack (`run_traced`): run11 (the setup path's checksum trace),
+    /// run3 (`DUMP_ALL` — the terrain heights, the regions' coordinate
+    /// lists) and run12 (`DUMP_ALL` with the per-frame sync words and the
+    /// herds, `docs/SYNC.md`). Whichever the machine has.
     fn sibling_texts() -> Vec<String> {
         [
             "gamelog-run11-checksum.txt",
             "gamelog-run3-fulldump-types.txt",
+            "gamelog-run12-dumpall-seeds.txt",
         ]
         .iter()
         .filter_map(|n| dump(n))
@@ -1939,15 +2083,15 @@ mod tests {
             .collect();
         missing.sort_unstable();
         missing.dedup();
-        assert_eq!(
-            missing,
-            vec![(1, 9), (1, 10)],
-            "the two food-bound citizens"
-        );
+        // 2026-08-24, on the true stream through frame 3 (run12's words)
+        // and with the market, the farms, the birds and the herds drawing:
+        // 1/9 now trains on the original's frame, and only the last citizen
+        // is missing.
+        assert_eq!(missing, vec![(1, 10)], "the last food-bound citizen, 1/10");
         let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
         assert!(
-            unlinked <= 744,
-            "unlinked unit-frames: {unlinked} — 2026-08-24 was 744: 1/9 from 1297, 1/10 from 1505"
+            unlinked <= 268,
+            "unlinked unit-frames: {unlinked} — 2026-08-24 was 268: 1/10 from 1505"
         );
     }
 
@@ -2023,7 +2167,15 @@ mod tests {
         assert_eq!(built.sim.lobby.victory, 0);
         assert!(!built.sim.lobby.no_nation_powers);
 
-        let report = run(&loaded, &log, Tuning::RON, None).unwrap();
+        // Run6 is the run7/run9/run10 lobby and seed: the siblings' setup
+        // trace and end-of-frame words put the AI's frame-1 coin on the
+        // original's stream (`docs/SYNC.md` §5); without them the branch is
+        // the sim's own stream's luck.
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs).unwrap();
 
         assert_eq!(report.frames.len(), 432, "the dump's frame count");
         assert!(report.orders_seen(), "run6 is a UNITS=3 dump");
@@ -2061,6 +2213,15 @@ mod tests {
         // **The invariant**: every field the simulation actually models
         // agrees wherever both sides name it. A regression in the order
         // system shows up here first, and in nothing else.
+        //
+        // With one named exception, 2026-08-24: the farmers' re-target
+        // (`docs/ORDERS.md` §6.5) picks its tile with two sync-stream
+        // draws, and the stream is the original's only for the four frames
+        // run12 traced — so the *second* re-target, some hundred frames
+        // after the first one's walk, lands a frame or two apart on the two
+        // sides (the first, on the log's frame 102, agrees). Those are the
+        // three farmers per player, `o` 3–5, after frame 200, and they go
+        // away with a longer trace (`docs/SYNC.md` §6).
         let modelled: Vec<&OrderDivergence> = report
             .frames
             .iter()
@@ -2072,10 +2233,17 @@ mod tests {
                 ) || matches!(d.what, OrderMismatch::Flags { .. })
             })
             .collect();
+        let (farmers_late, rest): (Vec<&OrderDivergence>, Vec<&OrderDivergence>) = modelled
+            .iter()
+            .partition(|d| d.frame > 200 && (3..=5).contains(&d.o));
         assert!(
-            modelled.is_empty(),
+            rest.is_empty(),
             "a modelled order field disagrees: {:?}",
-            &modelled[..modelled.len().min(4)]
+            &rest[..rest.len().min(4)]
+        );
+        assert!(
+            !farmers_late.is_empty(),
+            "the farmers' second re-target now happens on both sides"
         );
 
         // **The unit that tracks**: player 0's first woodcutter citizen
@@ -2119,10 +2287,33 @@ mod tests {
         // never seen before — and they idle where
         // the original sends them to gather, which is the census's job
         // (`docs/AI.md` §12.1).
+        let farmer = |d: &&OrderDivergence| (3..=5).contains(&d.o);
         let orders: usize = report.frames.iter().map(|f| f.order_only().count()).sum();
         let paths: usize = report.frames.iter().map(|f| f.path_only().count()).sum();
-        assert!(orders <= 1_784, "order disagreements grew to {orders}");
-        assert!(paths <= 1_123, "path disagreements grew to {paths}");
+        let farmer_orders: usize = report
+            .frames
+            .iter()
+            .map(|f| f.order_only().filter(farmer).count())
+            .sum();
+        let farmer_paths: usize = report
+            .frames
+            .iter()
+            .map(|f| f.path_only().filter(farmer).count())
+            .sum();
+        // Re-based again 2026-08-24, split: the farmers now re-target
+        // (`docs/ORDERS.md` §6.5), and on the sim's own stream past run12's
+        // four traced frames their tiles, walks and second re-targets are
+        // their own — 527 order and 357 path disagreements that a longer
+        // trace removes (`docs/SYNC.md` §6). Everyone else's fell, from
+        // 1,784/1,123 to 1,238/875.
+        assert!(
+            orders - farmer_orders <= 1_238 && paths - farmer_paths <= 875,
+            "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
+        );
+        assert!(
+            farmer_orders <= 527 && farmer_paths <= 357,
+            "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
+        );
     }
 
     /// One of the kept recordings, if this machine has it.

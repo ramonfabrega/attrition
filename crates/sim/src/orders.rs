@@ -21,7 +21,7 @@ use crate::combat::{self, Obj};
 use crate::garrison::GarrisonRefused;
 use crate::movement::{self, Angle, find_angle};
 use crate::world::vector_dist;
-use crate::{Player, Pos, Sim};
+use crate::{FarmAnim, Player, Pos, Sim, farms};
 
 /// `OrderIndex` — the value the gamelog's `type` line carries.
 pub mod index {
@@ -217,9 +217,9 @@ const AT_TILE: i32 = 0x140;
 const OILWELL_OFFSET: i32 = 0x120;
 /// Adjacency: `attack_dist < 0x60`.
 const ADJACENT: i32 = 0x60;
-/// How many `Farms::grow` calls flip a wheat tile — the float accumulator's
-/// `0.005f` to `1.0f`, pinned as a count. 200 or 201 is a behavioural check.
-pub const FARM_GROWS: i32 = 200;
+/// The farm's tile extent, `GameAccess::rnd`'s modulus on a re-target
+/// (§6.5; the decompiler lost the register, geometry says 3).
+const FARM_SPAN: i32 = 3;
 
 /// The 31 bearings of one ring of `find_nearby_spot`, as multiples of a
 /// sixteenth of a turn from the base angle; `|k| >= 8` adds a thirty-second.
@@ -2087,9 +2087,24 @@ impl Sim {
         self.store_gather(u, g);
     }
 
-    /// The farm stand (§6.5): the tile under the farmer grows for
-    /// [`FARM_GROWS`] frames, is reaped, and then the farmer re-targets a
-    /// tile with two sync-stream draws.
+    /// The farm stand (§6.5), `Unit::do_gather@005ef2a0`'s wheat branch on
+    /// the cell under the farmer, by the cell's state and the guy's
+    /// animation (`'#'` is the sow anim — index 35, the one every farmer
+    /// shows — and `'$'` the reap):
+    ///
+    /// ```text
+    /// 0: not reaping → as 1;                    else → new tile
+    /// 1: set_anim(SOW); Farms::grow
+    /// 2: not sowing  → set_anim(REAP); snip;    else → new tile
+    /// 3: set_anim(REAP)
+    /// ```
+    ///
+    /// The clock is `farms.rs`'s: the farmer's `grow` and `inc_time`'s add
+    /// each frame ripen the cell on frame 100's `grow` — the farmer is still
+    /// sowing, so the next frame is the "new tile": two draws
+    /// (`GameAccess::rnd(3)` for x, then y) and a move to that tile's
+    /// centre, in front of the gather order. That is the original's
+    /// re-target on the log's frame 102.
     fn do_farm(&mut self, u: usize, b: usize, _g: GatherOrder, _frame: i64) {
         let Some(ty) = self.buildings[b].ty else {
             return;
@@ -2103,24 +2118,33 @@ impl Sim {
             dy = 1;
         }
         let idx = (dy * 4 + dx) as usize;
-        let farm = &mut self.buildings[b].farm;
-        let state = farm.state[idx];
+        let anim = self.units[u].farm_anim;
+        let state = self.buildings[b].farm.state[idx];
         match state {
-            // 0: sowing anim not yet on → sow and grow (as 1); the "new tile"
-            // branch needs the animation byte, which is not modelled.
-            0 | 1 => {
-                farm.state[idx] = 1;
-                farm.percent[idx] += 1;
-                if farm.percent[idx] >= FARM_GROWS {
-                    farm.state[idx] = 2;
-                }
+            s if s == farms::GROWING || (s == farms::EMPTY && anim != FarmAnim::Reap) => {
+                self.units[u].farm_anim = FarmAnim::Sow;
+                self.buildings[b].farm.grow(idx);
+                return;
             }
-            2 => {
-                // Reap: snip, 2 → 3.
-                farm.state[idx] = 3;
+            farms::RIPE if anim != FarmAnim::Sow => {
+                self.units[u].farm_anim = FarmAnim::Reap;
+                self.buildings[b].farm.snip(idx);
+                return;
             }
+            farms::CUT => {
+                self.units[u].farm_anim = FarmAnim::Reap;
+                return;
+            }
+            // Empty under a reaper, or ripe under a sower: a new tile.
             _ => {}
         }
+        let rx = self.rng.roll() % FARM_SPAN;
+        let ry = self.rng.roll() % FARM_SPAN;
+        let dest = Pos::new(
+            (corner.x + rx) * TILE + HALF_TILE,
+            (corner.y + ry) * TILE + HALF_TILE,
+        );
+        self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
     }
 
     /// `Unit::find_gather_spot` (§6.6): the nearest-best gather building of

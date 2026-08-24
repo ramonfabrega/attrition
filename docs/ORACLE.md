@@ -1330,10 +1330,21 @@ and `end_frame` — **frame 0 draws 120** times from `game_random` where the
 simulation's sweep draws 2, **frame 1 draws 54** (the script's eight
 `rand_int`s and the farm's placement are the simulation's share), and
 **frames 2 and 3 draw 6 each** — a steady six a frame from something that
-is not the AI. The 39 classes that draw from `game_random` include `Unit` (16
-functions), `Animal`/`Herd`, `Farms`, `Guy`, `Object`, `Ammo` and
+is not the AI. ~~The 39 classes that draw from `game_random` include `Unit`
+(16 functions), `Animal`/`Herd`, `Farms`, `Guy`, `Object`, `Ammo` and
 `PathFinder`; modelling them is the next item (`docs/AI.md` §12.1) and it
-is what the script's first `rand_int`s at frame 1 need.
+is what the script's first `rand_int`s at frame 1 need.~~ **Read,
+2026-08-24: `docs/SYNC.md`** — the frame's draw sites by phase, run12's
+four frames attributed draw by draw against the dump's own outcomes (the
+market's flux values, the animals' animation variants, the herd's step,
+the farm sprout), the steady six being `Farms::inc_time`. `rondata` reads
+the per-frame words (`Log::frame_seeds`), borrows them from run12 for its
+siblings, and installs them frame by frame with the count on both sides.
+What run12 also shows: **`Checksum Dump` / `Checksum Break`** in
+`gamelog.ini` are read by `GameLog::init` right after `DUMP_ALL`, default
+−1, into the `log_start_frame`/`log_end_frame` that `begin_frame` and
+`end_frame` gate the dump on — very likely the frame window that makes a
+`DUMP_ALL` trace of frame 100 a 130 MB file instead of a 6 GB one. Untried.
 
 ## What is not established
 
