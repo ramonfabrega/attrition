@@ -1,0 +1,932 @@
+//! The production AI's driver — `docs/AI.md` §2.
+//!
+//! What the original calls the "production AI" is one `Leader` per computer
+//! player taking stock of everything it owns (`plan_strategy`, the census),
+//! filling an eleven-slot shopping list (`MakeList`) from a handful of
+//! producers, and spending from it (`make_stuff`). This module holds the
+//! parts that are pure state and arithmetic — the personality roll, the
+//! make list, the goods picture, the cadence and the step machine — so each
+//! can be pinned on its own before the producers that read them land.
+//!
+//! Everything here is integer arithmetic at the original's own scales and
+//! draws, where it draws, from the sync stream (`combat::Rng`), in the
+//! original's order. A draw out of order is a desync, so the order is the
+//! specification and the tests count draws.
+
+use crate::combat::Rng;
+use crate::economy::{Ledger, RESOURCES};
+
+/// The nation roster's indices — `rules.xml`'s `TRIBES` order, which is
+/// what `LeaderData::tribe` holds and what `has_tribe_bonus(n)` compares
+/// against (`docs/TECH.md` §"`has_preq`"). The AI hardcodes several.
+pub mod tribe {
+    pub const AZTECS: usize = 0;
+    pub const MAYA: usize = 1;
+    pub const INCA: usize = 2;
+    pub const BANTU: usize = 3;
+    pub const NUBIANS: usize = 4;
+    pub const GREEKS: usize = 5;
+    pub const ROMANS: usize = 6;
+    pub const EGYPTIANS: usize = 7;
+    pub const TURKS: usize = 8;
+    pub const SPANISH: usize = 9;
+    pub const FRENCH: usize = 10;
+    pub const BRITISH: usize = 11;
+    pub const GERMANS: usize = 12;
+    pub const RUSSIANS: usize = 13;
+    pub const CHINESE: usize = 14;
+    pub const JAPANESE: usize = 15;
+    pub const KOREANS: usize = 16;
+    pub const MONGOLS: usize = 17;
+    pub const IROQUOIS: usize = 18;
+    pub const LAKOTA: usize = 19;
+    pub const AMERICANS: usize = 20;
+    pub const INDIANS: usize = 21;
+    pub const DUTCH: usize = 22;
+    pub const PERSIANS: usize = 23;
+}
+
+/// `Personality` — `LeaderData+0x6dd4`, 24 ints, each −1/0/1 unless a
+/// nation pins it. Rolled once per computer leader by
+/// [`Personality::roll`] inside `Leader::init` (`docs/AI.md` §6); the
+/// producers read them as biases.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Personality {
+    pub rush: i32,
+    pub cities: i32,
+    pub upgrades: i32,
+    pub arms: i32,
+    pub army: i32,
+    pub army_size: i32,
+    pub raid: i32,
+    pub invade: i32,
+    pub target: i32,
+    pub strategy: i32,
+    pub raze: i32,
+    pub spells: i32,
+    pub forts: i32,
+    pub nukes: i32,
+    pub air: i32,
+    pub naval: i32,
+    pub market: i32,
+    pub scouts: i32,
+    pub civilians: i32,
+    /// Set by `Leader::init` when the leader gets the `defensive` script.
+    pub early_army: i32,
+    pub friendly_human: i32,
+    pub alliance_human: i32,
+    pub friendly_ai: i32,
+    pub alliance_ai: i32,
+}
+
+/// What [`Personality::roll`] reads about the other leaders: each other
+/// **computer** leader that is active, not allied with the roller and not
+/// flagged `leader_flags & 0x10`, by tribe. Order is leader order.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Rival {
+    pub tribe: usize,
+}
+
+/// The lobby facts the roll reads.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RollSetup {
+    /// `world+0x34` — the map's landmass count, as the sweep reads it.
+    pub landmasses: i32,
+    /// `info.rush_rules == 8`.
+    pub rush_rules_off: bool,
+}
+
+/// A three-way roll: `Random::get(0, 0xffff) % 3 − 1`.
+fn tri(rng: &mut Rng) -> i32 {
+    rng.roll() % 3 - 1
+}
+
+impl Personality {
+    /// `Leader::random_personality@006cfd00`, read whole (`docs/AI.md` §6).
+    /// The draw order is the specification.
+    pub fn roll(rng: &mut Rng, tribe: usize, rivals: &[Rival], setup: &RollSetup) -> Personality {
+        use tribe::*;
+        // `early_army` starts at 0; `Leader::init` sets it for `defensive`.
+        let mut p = Personality {
+            rush: tri(rng),
+            ..Personality::default()
+        };
+        // The rush roll, bent by the nation. Each guard's draw happens
+        // only when the pattern and the first test hold, as in the original.
+        match tribe {
+            // Boomers: a rush roll reverts four times in five.
+            CHINESE | INCA | EGYPTIANS | NUBIANS | GREEKS if p.rush == 1 && rng.roll() % 5 != 0 => {
+                p.rush = -1;
+            }
+            GERMANS | TURKS if p.rush == 1 && rng.roll() % 3 != 0 => {
+                p.rush = 0;
+            }
+            // Rushers: a boom roll becomes a rush on a small map, two times
+            // in three.
+            AZTECS | BANTU | MONGOLS | ROMANS | JAPANESE if p.rush < 0 && rng.roll() % 3 != 0 => {
+                p.rush = i32::from(setup.landmasses < 3);
+            }
+            _ => {}
+        }
+        // Then bent again by who is across the map.
+        for r in rivals {
+            match r.tribe {
+                CHINESE | RUSSIANS | MAYA if p.rush == 1 && rng.roll() & 3 != 0 => {
+                    p.rush = 0;
+                }
+                AZTECS | JAPANESE if p.rush == -1 && rng.roll() & 1 != 0 => {
+                    p.rush = 0;
+                }
+                _ => {}
+            }
+        }
+        if p.rush == 1 && setup.landmasses > 2 && rng.roll() % 3 != 0 {
+            p.rush = 0;
+        }
+        p.cities = tri(rng);
+        // `arms` has a two-stage roll: a coin picks a five-way or a
+        // three-way. `upgrades` is not rolled here.
+        p.arms = if rng.roll() & 1 == 0 {
+            rng.roll() % 5 - 2
+        } else {
+            tri(rng)
+        };
+        p.army = tri(rng);
+        p.army_size = tri(rng);
+        p.raid = tri(rng);
+        if (tribe == MONGOLS || tribe == AZTECS) && rng.roll() % 3 != 0 {
+            p.raid = 1;
+        }
+        if setup.rush_rules_off {
+            p.raid = -1;
+        }
+        p.invade = tri(rng);
+        p.target = tri(rng);
+        p.raze = 0;
+        p.strategy = tri(rng);
+        p.spells = tri(rng);
+        p.forts = tri(rng);
+        if tribe == ROMANS {
+            p.forts = 1;
+        }
+        p.nukes = tri(rng);
+        p.air = tri(rng);
+        if tribe == GERMANS {
+            p.air = 1;
+        }
+        let naval_roll = rng.roll();
+        p.naval = naval_roll % 3 - 1;
+        if (tribe == JAPANESE || tribe == BRITISH || tribe == SPANISH) && p.naval < 1 {
+            p.naval = naval_roll % 3;
+        }
+        p.market = tri(rng);
+        p.scouts = tri(rng);
+        if tribe == SPANISH {
+            p.scouts = 1;
+        }
+        p.civilians = tri(rng);
+        p.friendly_human = tri(rng);
+        let alliance = tri(rng);
+        p.friendly_ai = p.friendly_human;
+        p.alliance_human = alliance;
+        p.alliance_ai = alliance;
+        p
+    }
+}
+
+/// One entry of the make list — `MakeObject`, 0x28 bytes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MakeObject {
+    /// The type to make; `-1` is an empty slot.
+    pub t: i32,
+    pub val: i32,
+    pub escrow: i32,
+    pub city: i32,
+    pub up: i32,
+    pub o: i32,
+    pub num: i32,
+    pub cat: i32,
+    pub wx: i32,
+    pub wy: i32,
+}
+
+impl MakeObject {
+    pub const EMPTY: MakeObject = MakeObject {
+        t: -1,
+        val: 0,
+        escrow: 0,
+        city: -1,
+        up: 0,
+        o: -1,
+        num: 0,
+        cat: 0,
+        wx: 0,
+        wy: 0,
+    };
+}
+
+/// The number of slots — `MakeList::init` allocates eleven, and
+/// `make_stuff` walks `0x1b8 / 0x28`.
+pub const MAKE_SLOTS: usize = 11;
+
+/// The leader's shopping list: slot 0 the best, slots 1–3 a ranked list of
+/// runners-up, slots 4–10 one per category. `docs/AI.md` §2.11.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MakeList {
+    pub list: [MakeObject; MAKE_SLOTS],
+}
+
+impl Default for MakeList {
+    fn default() -> MakeList {
+        MakeList::new()
+    }
+}
+
+impl MakeList {
+    pub const fn new() -> MakeList {
+        MakeList {
+            list: [MakeObject::EMPTY; MAKE_SLOTS],
+        }
+    }
+
+    /// `MakeList::clear` — every slot's type to −1.
+    pub fn clear(&mut self) {
+        for m in &mut self.list {
+            m.t = -1;
+        }
+    }
+
+    pub const fn head(&self) -> &MakeObject {
+        &self.list[0]
+    }
+
+    /// `MakeList::make_me@006c9be0`, read whole. `cat` is the entry's
+    /// category *and* the slot index it competes for (4..=10; a producer
+    /// passing 0..=3 double-writes the ranked list, which none does).
+    #[allow(clippy::too_many_arguments)]
+    pub fn make_me(
+        &mut self,
+        t: i32,
+        val: i32,
+        escrow: i32,
+        cat: i32,
+        city: i32,
+        up: i32,
+        num: i32,
+        wx: i32,
+        wy: i32,
+    ) {
+        let entry = MakeObject {
+            t,
+            val,
+            escrow,
+            city,
+            up,
+            o: -1,
+            num,
+            cat,
+            wx,
+            wy,
+        };
+        if self.list[0].val < val {
+            // A new best overwrites the head outright; the old head is not
+            // shifted down. Duplicates of the type below it are cleared.
+            self.list[0] = entry;
+            for k in 1..4 {
+                if self.list[k].t == t {
+                    self.list[k].t = -1;
+                }
+            }
+        } else {
+            let mut k = 1;
+            while k < 4 {
+                if self.list[k].val <= val {
+                    // Shift k..=2 down to k+1..=3; slot 3 falls off.
+                    let mut j = 3;
+                    while j > k {
+                        self.list[j] = self.list[j - 1];
+                        j -= 1;
+                    }
+                    for j in k..4 {
+                        if self.list[j].t == t {
+                            self.list[j].t = -1;
+                        }
+                    }
+                    self.list[k] = entry;
+                    break;
+                }
+                if self.list[k].t == t {
+                    // The same type already ranks higher: not inserted.
+                    break;
+                }
+                k += 1;
+            }
+        }
+        let c = usize::try_from(cat).unwrap_or(0).min(MAKE_SLOTS - 1);
+        if self.list[c].val < val {
+            self.list[c] = entry;
+        }
+    }
+}
+
+/// The step machine's position — `LeaderData::production_step`. `Idle` is
+/// the original's 0; the rest are its 1..=11 in order.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Step {
+    #[default]
+    Idle,
+    Script,
+    Setup,
+    Cities,
+    Research,
+    Upgrades,
+    Units,
+    Buildings,
+    Make,
+    Units2,
+    Buildings2,
+    Make2,
+}
+
+impl Step {
+    /// The original's integer, for logs and tests.
+    pub const fn number(self) -> i32 {
+        match self {
+            Step::Idle => 0,
+            Step::Script => 1,
+            Step::Setup => 2,
+            Step::Cities => 3,
+            Step::Research => 4,
+            Step::Upgrades => 5,
+            Step::Units => 6,
+            Step::Buildings => 7,
+            Step::Make => 8,
+            Step::Units2 => 9,
+            Step::Buildings2 => 10,
+            Step::Make2 => 11,
+        }
+    }
+
+    const fn next(self) -> Step {
+        match self {
+            Step::Idle => Step::Idle,
+            Step::Script => Step::Setup,
+            Step::Setup => Step::Cities,
+            Step::Cities => Step::Research,
+            Step::Research => Step::Upgrades,
+            Step::Upgrades => Step::Units,
+            Step::Units => Step::Buildings,
+            Step::Buildings => Step::Make,
+            Step::Make => Step::Units2,
+            Step::Units2 => Step::Buildings2,
+            Step::Buildings2 => Step::Make2,
+            Step::Make2 => Step::Idle,
+        }
+    }
+}
+
+/// What the script's run reported back to `production_ai` — the return
+/// value of the `ai economic`/`defensive` function, or that it could not
+/// run at all.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScriptResult {
+    /// The function returned this integer. `1` is `BLOCK_ON_THIS`, `3` is
+    /// `SCRIPT_DONE`; anything else falls through to the next step.
+    Returned(i32),
+    /// `run_script` failed — not found, parameter mismatch, runtime error.
+    /// The original drops the script for the rest of the game.
+    Failed,
+}
+
+/// The per-leader AI state the driver owns — the `LeaderData` fields
+/// `production_step`, `prod_script_run`, `script_step`, `pers`,
+/// `make_list`, the goods picture, and the cadence's `ai_speed`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Leader {
+    pub step: Step,
+    /// `prod_script_run`: the opening script is live.
+    pub script_live: bool,
+    /// `script_step`: the `ref step` the script advances. `Leader::init`
+    /// sets 1.
+    pub script_step: i32,
+    pub pers: Personality,
+    pub make_list: MakeList,
+    /// `econ[6]`: bit 1 rate under 30, 2 under `lo`, 4 under `hi`, 8
+    /// comfortable — `docs/AI.md` §2.5.
+    pub econ: [i32; RESOURCES],
+    pub worst_good: usize,
+    pub best_good: usize,
+    pub shortages: i32,
+    /// `LeaderDataEncrypt::rate` — the AI's own per-good rate figure.
+    pub rate: [i32; RESOURCES],
+    /// `site_mark`, the sites sampler's rolling offset.
+    pub site_mark: u32,
+    /// `effective_pop = queued_units + control + 1`.
+    pub effective_pop: i32,
+    /// `wonder_mod` and the five `*_mod` biases, 0x100 = ×1.
+    pub wonder_mod: i32,
+    pub ground_mod: i32,
+    pub air_mod: i32,
+    pub sea_mod: i32,
+    pub infra_mod: i32,
+    pub defense_mod: i32,
+}
+
+impl Default for Leader {
+    fn default() -> Leader {
+        Leader::new()
+    }
+}
+
+impl Leader {
+    /// `Leader::init`'s values for these fields.
+    pub const fn new() -> Leader {
+        Leader {
+            step: Step::Idle,
+            script_live: false,
+            script_step: 1,
+            pers: Personality {
+                rush: 0,
+                cities: 0,
+                upgrades: 0,
+                arms: 0,
+                army: 0,
+                army_size: 0,
+                raid: 0,
+                invade: 0,
+                target: 0,
+                strategy: 0,
+                raze: 0,
+                spells: 0,
+                forts: 0,
+                nukes: 0,
+                air: 0,
+                naval: 0,
+                market: 0,
+                scouts: 0,
+                civilians: 0,
+                early_army: 0,
+                friendly_human: 0,
+                alliance_human: 0,
+                friendly_ai: 0,
+                alliance_ai: 0,
+            },
+            make_list: MakeList::new(),
+            econ: [0; RESOURCES],
+            worst_good: 0,
+            best_good: 0,
+            shortages: 0,
+            rate: [0; RESOURCES],
+            site_mark: 0,
+            effective_pop: 0,
+            wonder_mod: 0,
+            ground_mod: 0x100,
+            air_mod: 0x100,
+            sea_mod: 0x100,
+            infra_mod: 0x100,
+            defense_mod: 0x100,
+        }
+    }
+
+    /// The step the machine takes on entering `production_ai`, before the
+    /// switch: a live script is skipped straight to `Setup` when there is
+    /// none, or under the `starting_resources == 8` lobby.
+    pub fn enter(&mut self, resources_unlimited: bool) {
+        if self.step == Step::Script && (!self.script_live || resources_unlimited) {
+            self.step = Step::Setup;
+        }
+    }
+
+    /// The `Script` step's outcome — `docs/AI.md` §2.4, step 1. Returns
+    /// whether the machine disarmed (`BLOCK_ON_THIS`).
+    pub fn after_script(&mut self, r: ScriptResult) -> bool {
+        match r {
+            ScriptResult::Returned(1) => {
+                self.step = Step::Idle;
+                return true;
+            }
+            ScriptResult::Returned(3) | ScriptResult::Failed => {
+                self.script_live = false;
+            }
+            ScriptResult::Returned(_) => {}
+        }
+        self.step = self.step.next();
+        false
+    }
+
+    /// A producer step (`Cities`, `Research`, `Upgrades`, `Units`,
+    /// `Buildings`, `Units2`) done: advance.
+    pub fn after_producer(&mut self) {
+        self.step = self.step.next();
+    }
+
+    /// The `Make` step's outcome: `make_stuff` bought the head → stay armed
+    /// for the second pass; otherwise disarm, unless the unlimited lobby.
+    pub fn after_make(&mut self, bought: bool, resources_unlimited: bool) {
+        self.step = Step::Units2;
+        if bought || resources_unlimited {
+            return;
+        }
+        self.step = Step::Idle;
+    }
+
+    /// `Buildings2` done → `Make2`; `Make2` done → idle.
+    pub fn after_second_pass(&mut self) {
+        self.step = match self.step {
+            Step::Buildings2 => Step::Make2,
+            _ => Step::Idle,
+        };
+    }
+}
+
+/// The cadence — `plan_strategy`'s head, `docs/AI.md` §2.2.
+pub mod cadence {
+    /// `(who × 25 + frame) % (200 / ai_speed)`.
+    pub fn phase(who: usize, frame: i64, ai_speed: i32) -> i64 {
+        let period = i64::from(200 / ai_speed.max(1));
+        (who as i64 * 25 + frame) % period
+    }
+
+    /// Whether this frame is a full sweep: frame 0, or the leader's phase.
+    pub fn sweep_due(who: usize, frame: i64, ai_speed: i32) -> bool {
+        frame == 0 || phase(who, frame, ai_speed) == 0
+    }
+
+    /// Whether this frame is the cheap research tick — every 30 phase
+    /// frames between sweeps.
+    pub fn research_tick_due(who: usize, frame: i64, ai_speed: i32) -> bool {
+        !sweep_due(who, frame, ai_speed) && phase(who, frame, ai_speed) % 30 == 0
+    }
+
+    /// `check_explore`'s cadence: frame 0, or `(who × 25 + frame + 12)`
+    /// on the period.
+    pub fn explore_due(who: usize, frame: i64, ai_speed: i32) -> bool {
+        frame == 0 || phase(who, frame + 12, ai_speed) == 0
+    }
+}
+
+/// The inputs `production_ai_setup` reads besides the ledger.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GoodsSetup {
+    pub city_num: i32,
+    /// `get_diff()`.
+    pub difficulty: i32,
+    /// `starting_resources == 8`.
+    pub resources_unlimited: bool,
+    /// `has_tribe_bonus(0x13)` — the Lakota.
+    pub lakota: bool,
+    /// The next age's price per good, `get_cost(age_type, g, …)`, when the
+    /// current age is an age type; `None` otherwise.
+    pub next_age_cost: Option<[i32; RESOURCES]>,
+    /// `type_avail(g, 1) != 0` per good.
+    pub available: [bool; RESOURCES],
+    /// `get_mod_resource_cap(g)` per good, in sixteenths.
+    pub cap: [i32; RESOURCES],
+}
+
+/// `production_ai_setup@006c83e0`, read whole — `docs/AI.md` §2.5 — up to
+/// and excluding `market_speculation`. Writes the leader's `econ`, `rate`,
+/// `worst_good`, `best_good`, `shortages`, and on difficulties below 3
+/// clamps the ledger's stockpile.
+pub fn goods_picture(leader: &mut Leader, ledger: &mut Ledger, s: &GoodsSetup) {
+    leader.shortages = 0;
+    leader.worst_good = 0;
+    leader.best_good = 0;
+    if s.resources_unlimited {
+        for e in &mut leader.econ {
+            *e |= 8;
+        }
+        return;
+    }
+    // 2. The easy-difficulty stockpile clamp.
+    if s.difficulty < 3 {
+        let mut m = match s.next_age_cost {
+            Some(cost) => {
+                let mut m = 0;
+                for (&avail, &c) in s.available.iter().zip(cost.iter()) {
+                    if avail && c > m {
+                        m = c;
+                    }
+                }
+                let m = m.max(300);
+                match s.difficulty {
+                    0 => m * 3 / 2,
+                    1 => m * 2,
+                    _ => m * 5 / 2,
+                }
+            }
+            None => 11000,
+        };
+        if m < 0 {
+            m = 0;
+        }
+        if m != 0 {
+            for g in 0..RESOURCES {
+                let bucket = ledger.bucket[g];
+                if m < bucket {
+                    ledger.escrow[g] = ledger.escrow[g] * m / bucket;
+                    ledger.bucket[g] = m;
+                }
+            }
+        }
+    }
+    // 3. The rate pass.
+    let mut lowest = 99_999_999;
+    let mut highest = -99_999_999;
+    for g in 0..RESOURCES {
+        leader.econ[g] = 0;
+        let r = s.cap[g].min(ledger.income[g]);
+        leader.rate[g] = r / 16;
+        if s.available[g] {
+            let rate = leader.rate[g];
+            if rate < lowest {
+                leader.worst_good = g;
+                lowest = rate;
+            }
+            if rate > highest {
+                leader.best_good = g;
+                highest = rate;
+            }
+            if rate < 30 {
+                leader.econ[g] |= 1;
+                leader.shortages += 1;
+            }
+        }
+    }
+    // 4. The threshold pass.
+    for g in 0..RESOURCES {
+        if !s.available[g] {
+            leader.econ[g] = 0;
+            continue;
+        }
+        let cap = s.cap[g];
+        let mut lo = (s.city_num * 15).min(cap / 32);
+        let mut hi = (s.city_num * 30).min(cap / 16 * 4 / 5);
+        if s.city_num > 4 {
+            lo = cap / 32;
+            hi = (cap / 16 * 3 / 4).min(175);
+        }
+        lo = lo.min(250);
+        hi = hi.min(350);
+        if g >= 2 && s.city_num < 3 {
+            lo = 20;
+            hi = s.city_num * 20;
+            if leader.econ[g] & 1 != 0 {
+                leader.econ[g] &= !1;
+                leader.shortages -= 1;
+            }
+        }
+        if ledger.income[g] < cap {
+            if leader.rate[g] < lo {
+                leader.econ[g] |= 2;
+            }
+            if leader.rate[g] < hi {
+                leader.econ[g] |= 4;
+                continue;
+            }
+        }
+        leader.econ[g] |= 8;
+    }
+    // 5. The two-city food/wood balance.
+    if s.city_num > 2 {
+        return;
+    }
+    let clear_rest = |econ: &mut [i32; RESOURCES], bit: i32| {
+        for e in econ.iter_mut().skip(2) {
+            *e &= !bit;
+        }
+    };
+    if leader.econ[0] & 4 == 0 || s.lakota {
+        if leader.econ[1] & 4 != 0 {
+            leader.econ[0] &= !4;
+            clear_rest(&mut leader.econ, 4);
+        }
+    } else {
+        leader.econ[1] &= !4;
+        clear_rest(&mut leader.econ, 4);
+    }
+    if leader.econ[0] & 2 == 0 || s.lakota {
+        if leader.econ[1] & 2 == 0 {
+            return;
+        }
+        if leader.econ[0] & 2 != 0 {
+            leader.econ[0] = (leader.econ[0] & !2) | 4;
+        }
+    } else if leader.econ[1] & 2 != 0 {
+        leader.econ[1] = (leader.econ[1] & !2) | 4;
+    }
+    for e in leader.econ.iter_mut().skip(2) {
+        if *e & 2 != 0 {
+            *e = (*e & !2) | 4;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn draws(seed: u32, f: impl FnOnce(&mut Rng)) -> usize {
+        let mut a = Rng::new(seed);
+        let mut n = 0;
+        let mut probe = a;
+        f(&mut a);
+        while probe != a {
+            probe.roll();
+            n += 1;
+            assert!(n < 100, "diverged");
+        }
+        n
+    }
+
+    #[test]
+    fn a_nubian_alone_takes_twenty_or_twenty_one_draws() {
+        // Twenty fixed draws — rush, cities, the arms coin and its roll,
+        // army, army_size, raid, invade, target, strategy, spells, forts,
+        // nukes, air, naval, market, scouts, civilians, friendly, alliance —
+        // and a rush roll of 1 costs a Nubian one more.
+        let setup = RollSetup {
+            landmasses: 1,
+            rush_rules_off: false,
+        };
+        let mut seen = [false; 2];
+        for seed in 0..40u32 {
+            let n = draws(seed, |r| {
+                Personality::roll(r, tribe::NUBIANS, &[], &setup);
+            });
+            assert!(n == 20 || n == 21, "seed {seed}: {n} draws");
+            seen[n - 20] = true;
+        }
+        assert_eq!(seen, [true, true]);
+    }
+
+    #[test]
+    fn the_romans_always_want_forts_and_the_germans_air() {
+        let setup = RollSetup {
+            landmasses: 1,
+            rush_rules_off: false,
+        };
+        for seed in 0..20u32 {
+            let p = Personality::roll(&mut Rng::new(seed), tribe::ROMANS, &[], &setup);
+            assert_eq!(p.forts, 1);
+            let p = Personality::roll(&mut Rng::new(seed), tribe::GERMANS, &[], &setup);
+            assert_eq!(p.air, 1);
+            assert_eq!(p.friendly_ai, p.friendly_human);
+            assert_eq!(p.alliance_ai, p.alliance_human);
+            assert_eq!(p.raze, 0);
+        }
+    }
+
+    #[test]
+    fn rush_rules_off_pins_raid() {
+        let setup = RollSetup {
+            landmasses: 1,
+            rush_rules_off: true,
+        };
+        let p = Personality::roll(&mut Rng::new(3), tribe::AZTECS, &[], &setup);
+        assert_eq!(p.raid, -1);
+    }
+
+    #[test]
+    fn make_me_head_overwrites_and_does_not_shift() {
+        let mut m = MakeList::new();
+        m.make_me(10, 100, 1, 9, -1, 0, 1, 0, 0);
+        m.make_me(11, 200, 1, 8, -1, 0, 1, 0, 0);
+        assert_eq!(m.list[0].t, 11);
+        assert_eq!(m.list[1].t, -1, "the old head is gone, not demoted");
+        assert_eq!(m.list[9].t, 10, "the category slot keeps it");
+        assert_eq!(m.list[8].t, 11);
+    }
+
+    #[test]
+    fn make_me_ranks_runners_up_and_deduplicates() {
+        let mut m = MakeList::new();
+        m.make_me(1, 500, 1, 4, -1, 0, 1, 0, 0);
+        m.make_me(2, 300, 1, 5, -1, 0, 1, 0, 0);
+        m.make_me(3, 400, 1, 6, -1, 0, 1, 0, 0);
+        m.make_me(4, 100, 1, 7, -1, 0, 1, 0, 0);
+        assert_eq!(
+            [m.list[0].t, m.list[1].t, m.list[2].t, m.list[3].t],
+            [1, 3, 2, 4]
+        );
+        // A better offer of type 2 displaces its own lower entry.
+        m.make_me(2, 450, 1, 5, -1, 0, 1, 0, 0);
+        assert_eq!(
+            [m.list[0].t, m.list[1].t, m.list[2].t, m.list[3].t],
+            [1, 2, 3, -1]
+        );
+        assert_eq!(m.list[5].val, 450);
+        // A worse offer of a type already ranked is dropped.
+        m.make_me(3, 350, 1, 6, -1, 0, 1, 0, 0);
+        assert_eq!(
+            [m.list[0].t, m.list[1].t, m.list[2].t, m.list[3].t],
+            [1, 2, 3, -1]
+        );
+    }
+
+    #[test]
+    fn the_sweep_is_frame_zero_then_every_two_hundred_on_the_phase() {
+        let due: Vec<i64> = (0..800).filter(|&f| cadence::sweep_due(1, f, 1)).collect();
+        assert_eq!(due, vec![0, 175, 375, 575, 775]);
+        let due: Vec<i64> = (0..300).filter(|&f| cadence::sweep_due(0, f, 1)).collect();
+        assert_eq!(due, vec![0, 200]);
+        assert!(cadence::research_tick_due(1, 205, 1));
+        assert!(!cadence::research_tick_due(1, 206, 1));
+        assert!(cadence::explore_due(1, 163, 1));
+    }
+
+    #[test]
+    fn the_step_machine_follows_the_script_s_answer() {
+        let mut l = Leader::new();
+        l.script_live = true;
+        l.step = Step::Script;
+        l.enter(false);
+        assert_eq!(l.step, Step::Script);
+        assert!(l.after_script(ScriptResult::Returned(1)));
+        assert_eq!(l.step, Step::Idle);
+        assert!(l.script_live);
+
+        l.step = Step::Script;
+        assert!(!l.after_script(ScriptResult::Returned(3)));
+        assert_eq!(l.step, Step::Setup);
+        assert!(!l.script_live, "SCRIPT_DONE drops the script");
+
+        l.step = Step::Script;
+        l.enter(false);
+        assert_eq!(l.step, Step::Setup, "a dead script is skipped");
+
+        l.step = Step::Script;
+        l.script_live = true;
+        assert!(!l.after_script(ScriptResult::Failed));
+        assert!(!l.script_live);
+        assert_eq!(l.step, Step::Setup);
+
+        l.step = Step::Make;
+        l.after_make(false, false);
+        assert_eq!(l.step, Step::Idle);
+        l.step = Step::Make;
+        l.after_make(true, false);
+        assert_eq!(l.step, Step::Units2);
+        l.after_producer();
+        assert_eq!(l.step, Step::Buildings2);
+        l.after_second_pass();
+        assert_eq!(l.step, Step::Make2);
+        l.after_second_pass();
+        assert_eq!(l.step, Step::Idle);
+    }
+
+    #[test]
+    fn the_goods_picture_is_about_the_rate() {
+        let mut l = Leader::new();
+        let mut ledger = Ledger {
+            income: [40 * 16, 10 * 16, 0, 0, 0, 0],
+            bucket: [5000, 100, 0, 0, 0, 0],
+            ..Ledger::default()
+        };
+        let s = GoodsSetup {
+            city_num: 1,
+            difficulty: 3,
+            resources_unlimited: false,
+            lakota: false,
+            next_age_cost: None,
+            available: [true, true, false, false, false, false],
+            cap: [1000 * 16; RESOURCES],
+        };
+        goods_picture(&mut l, &mut ledger, &s);
+        assert_eq!(l.rate[0], 40);
+        assert_eq!(l.rate[1], 10);
+        assert_eq!(l.shortages, 1, "wood under 30");
+        assert_eq!(l.worst_good, 1);
+        assert_eq!(l.best_good, 0);
+        // lo = min(15, 500, 250) = 15, hi = min(30, 800, 350) = 30: food is
+        // at 40 → comfortable; wood at 10 → under both.
+        assert_eq!(l.econ[0], 8);
+        assert_eq!(l.econ[1], 1 | 2 | 4);
+        assert_eq!(l.econ[2], 0, "unavailable");
+        assert_eq!(ledger.bucket[0], 5000, "no clamp at difficulty 3");
+    }
+
+    #[test]
+    fn an_easy_ai_throws_its_stockpile_away() {
+        let mut l = Leader::new();
+        let mut ledger = Ledger {
+            bucket: [5000, 5000, 0, 0, 0, 0],
+            escrow: [1000, 0, 0, 0, 0, 0],
+            ..Ledger::default()
+        };
+        let s = GoodsSetup {
+            city_num: 1,
+            difficulty: 0,
+            resources_unlimited: false,
+            lakota: false,
+            next_age_cost: Some([200, 100, 0, 0, 0, 0]),
+            available: [true; RESOURCES],
+            cap: [1000 * 16; RESOURCES],
+        };
+        goods_picture(&mut l, &mut ledger, &s);
+        // m = max(200, 300) × 3/2 = 450.
+        assert_eq!(ledger.bucket[0], 450);
+        assert_eq!(ledger.escrow[0], 1000 * 450 / 5000);
+        assert_eq!(ledger.bucket[1], 450);
+    }
+}
