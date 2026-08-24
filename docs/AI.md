@@ -1,14 +1,19 @@
 # The AI
 
-**Status: brief, not read — 2026-08-24.** This is the survey half of the
-mechanic, written by the main thread from the full decompile export
-(`~/ghidra-projects/decomp/`, `tools/ghidra/`) before any function was read
-end to end. It scopes the work, names every function with its decompiled
-line count so the cost is visible in advance, states what the shipped dumps
-already show the AI doing, and records the one finding that changes the
-project's framing. Whoever runs the first reading replaces this document;
-until then every claim below is a survey claim — from grep, a function's
-head and tail, and the PDB layouts — not a derived one.
+**Status: first reading in progress — 2026-08-24.** §2 (the driver: the
+frame hook, the cadence, `plan_strategy`'s sweep, the step machine, the
+goods picture, the make list, the sites, the orphan check) is **read**, by
+the main thread from the full decompile export
+(`~/ghidra-projects/decomp/`, `tools/ghidra/`), every function named there
+read end to end. §3–§10 are still the survey of the same day (grep, heads
+and tails, PDB layouts) and say so; two Opus readers are deriving the
+script language (`~/ghidra-projects/reports/ai/bhs-language.md`) and the
+host functions (`…/host-functions.md`) in parallel, to be ratified here
+before anything is built on them. Confidence on §2: **high** on the
+cadence, the step machine and the make list's mechanics; **medium** on the
+census's per-unit classification, which reads eight virtual slots the
+vtable export mislabels (§2.10) — named by use, to be settled in the
+listing where implementation needs them.
 
 Read with `docs/ORDERS.md` (§2.4 `think_scout`, §5.9 `think_peasant`, §9 the
 start of a game) and `docs/INPUT.md` §1 (why the AI is not in a recording).
@@ -42,68 +47,436 @@ bit 4 = human (`docs/audit/2026-08-23-pathfinder.md`).
 scoped out of the first pass: a two-player skirmish against one AI at war
 from frame 0 does not exercise it before the armies do.
 
-## 2. The frame hook and the cadence
+## 2. The driver — read
 
-`Game::do_frame@00591ef0`, in order (line numbers of the decompile):
+### 2.1 The frame hook
+
+`Game::do_frame@00591ef0`, in order (decompile line numbers):
 
 ```
-199  Leaders::process_all        income, stats, elimination, taunts (Leader::process — no AI)
-267  Leaders::strategy_all       gated: (semaphore[1] & 8) == 0          ← production AI
+199  Leaders::process_all        income, stats, elimination, taunts (Leader::process — no AI in it)
+267  Leaders::strategy_all       gated: (semaphore[1] & 8) == 0   ← the production AI
 270  GameDaemon::process_all
-272  Armies::process_all         gated the same way                       ← combat AI
-275  Objects::process_all        units step their orders (ORDERS.md §2.1)  ← unit AI inside
+272  Armies::process_all         gated the same way               ← the combat AI
+275  Objects::process_all        every unit steps its orders (ORDERS.md §2.1) — the unit AI is inside
 279  Leaders::end_process_all
 288  Leader::process_event_frame  per active leader
 ```
 
-`Leaders::strategy_all@006ed430`: for every leader with `leader_flags & 3 ==
-3`, **every frame**: `check_explore`, `plan_strategy`, `compute_score(0)`,
-`diplomacy`; then `Game::check_victory` if `semaphore[1] & 2`.
+`Leaders::strategy_all@006ed430` (read): for every leader whose
+`leader_flags & 3 == 3` (active **and computer**), **every frame**, in this
+order: `check_explore`, `plan_strategy`, `compute_score(0)`, `diplomacy`.
+Then `Game::check_victory` if `semaphore[1] & 2`. A human leader never
+enters `plan_strategy`; the "human gate" inside `production_ai` is for the
+`human <who>` console switch that flips a leader mid-game.
 
-`Leader::plan_strategy@006b9620`, head (read):
+`Leader::check_explore@006bc860` (read, 47 lines): at frame 0 and whenever
+`(who·25 + frame + 12) % (200 / ai_speed) == 0`, recount `explored`
+(`+0x9d4`): the whole map's cell count (`world+0x2c`) with
+`EXPLORE_MAP_BONUS`, else the number of cells whose visibility byte
+(`world+0x160` row stride `world+0xc`, byte 3 of each 4-byte cell) has bit
+`who` set. Pure recount, no decision.
+
+### 2.2 `plan_strategy`'s cadence
+
+`Leader::plan_strategy@006b9620` (read, 1,754 lines), head:
 
 ```
-phase = (who * 25 + frame) % (200 / ai_speed)          // ai_speed = 1 (Game::init_data), cheat-raised
-if production_step != 0:  production_ai();  return     // the step machine runs first, every frame
-if frame != 0 && phase != 0:
-    if phase % 30 != 0: return                          // nothing
-    // the cheap tick: if the next age type is known, affordable, not had, not researching: make_this(0)
-    return
-... the full sweep (1,600 lines): per-city stats, army founding via Armies::init_army, sites ...
-tail: check_orphaned_buildings(); compute_sites(0); production_step = 1     // unless semaphore[1] & 2
+phase = (who * 25 + frame) % (200 / ai_speed)      # ai_speed: 1 from Game::init_data, +1 per `ai speed increase` cheat
+if production_step != 0:  production_ai(); return   # the step machine pre-empts everything, every frame
+if frame != 0 and phase != 0:
+    if phase % 30 != 0: return
+    t = make_list[0].t                              # the top of last sweep's shopping list
+    if t - BASE_AGETYPES > 0x54: return              # only an age or a tech (0x220 ≤ t ≤ 0x274)
+    if !can_pay(0) or has_tech(t) or researching(t, -1, 0, 0): return
+    make_this(0); return                            # the cheap tick: buy the top research when it becomes affordable
+… the full sweep (§2.3) …
 ```
 
-So each AI leader takes its **full sweep at frame 0 and then every 200
-frames on its own phase** (`who = 1` → frames 175, 375, …), and the sweep's
-last act is to arm the step machine. `Leader::production_ai@006c1960` (read,
-114 lines) then runs **one step per frame** on `production_step`
-(`LeaderData+0x788`):
+So a computer leader takes the **full sweep at frame 0** (every leader,
+regardless of phase) **and then once every `200/ai_speed` frames on its
+own phase** — `who = 1` at 175, 375, 575 … — and in between, every 30
+phase-frames, a research-only tick off the top of the make list. The sweep
+ends by arming `production_step = 1`, and the step machine then runs one
+step per frame (§2.4) until it disarms itself. For `who = 1`: sweep at 0,
+steps on 1, 2, 3 …; sweep at 175, steps on 176 …. Because `production_ai`
+is checked *before* the phase test, a step machine still running when the
+next sweep frame arrives delays that sweep to the next frame on which it
+has finished — the phase is a floor, not a schedule.
 
-| step | what | notes |
-|---|---|---|
-| — | bail to 0 if `leader_flags & 4 && !(& 8)`, `ai_off`, or `leader_flags2 & 4` | the human gate, the console's `ai off`, the switch |
-| 1 | **run the script** `prod_script` with `(who+1, ref script_step, pers.rush+2, 5)` | skipped straight to 2 if `prod_script_run == 0` or `starting_resources == 8`. Return 1 (`BLOCK_ON_THIS`) → `production_step = 0`, done for this sweep; 3 (`SCRIPT_DONE`) → `prod_script_run = 0` and advance; anything else → advance |
-| 2 | `production_ai_setup` (316, read); `make_list.clear()` | the goods picture: `econ[6]` flag words, `worst_good`/`best_good`, `shortages`; then `market_speculation` |
-| 3 | `found_cities` (281) | the city layer |
-| 4 | `research_techs` (689) | |
-| 5 | `upgrade_units` (344) | |
-| 6, 9 | `create_units` (1,674) | |
-| 7, 10 | `create_buildings` (1,728) | |
-| 8 | `make_stuff` (305) → `use_market` (147) | returns non-zero → stay armed; else `production_step = 0` (unless `starting_resources == 8`) |
-| 11 | `make_stuff`, then 0 | |
+### 2.3 The sweep: `plan_strategy` is the census
 
-`effective_pop = queued_units() + control + 1` is recomputed at every step.
-`MakeList` (`+0x6ec8`, 0x1c bytes) is the sweep's shopping list —
-`make_this`, `produce_*` (`produce_building` 1,173, `produce_unit` 437,
-`produce_tech` 273, `produce_city` 178, `produce_upgrade` 152,
-`produce_spell` 93) and `check_income` (the affordability oracle, called
-from `research_techs`, `create_units`, `create_buildings`) are the
-consumers.
+Everything after the cadence check is one long recount into `LeaderData`,
+in this order. Field names are the PDB's (`struct /rise.pdb/LeaderData`);
+`Leader` is an unpopulated shell over it, so the decompile prints
+`field_0xNNN` for all of them. "Region" is the tile's `tregion`
+(`world+0x134` tile record, short at `+4`; `docs/CITIES.md` §2.3); land
+regions are `0..0x3e`, sea regions `0x3f..0x7e` and are stored `% 0x3f` in
+the 63-entry arrays.
 
-`Leader::check_explore@006bc860` (47, read): at frame 0 and on `(who*25 +
-frame + 12) % (200/ai_speed) == 0`, counts the explored cells of the world's
-per-player bit (`world+0x160`, byte 3 of each cell, bit `who`) into `+0x9d4`,
-or takes the whole map with `EXPLORE_MAP_BONUS`.
+1. **Escrow rate.** If `city_num + village_num > 2`: `escrow_rate[0..5] =
+   40`.
+2. **Per city** (active): `free = busy = gatherers = 0`, `peasant_dist =
+   100`. Later, `in_port = 0`.
+3. **Zero the census**: `active, combat, non_siege, sea_combat, siege,
+   defense, attack, naval, air, missile, transports, fishermen,
+   idle_fishermen, peasants, scholars, caras, merchants, fighters, bombers,
+   cruise, nuke, free_peasants, xport_peasants, gatherers, attacked,
+   full_cities`. **Not** zeroed here: `control`, `pop`, `scouts` (kept by
+   the unit lifecycle), the `*_high` maxima, `reg_pop`, `reg_forts`,
+   `reg_docks`, `reg_terr`, `reg_buildings` (kept by `gain_/lose_building`).
+4. **Territory.** `my_team_terr = get_team_terr()`; over every other
+   computer leader not allied both ways (`diplos[i] != 2` on either side):
+   `other_team_terr = max`, `min_other_team_terr = min` (0 means unset).
+5. `filled_gather_slots[0..5] = 0`; `ally_mask = 1 << who`, or'd with
+   `ScenarioData::ally_mask[who]` in a scenario/CtW game.
+6. **Meeting** (only with `ALLY_LOS` or `reveal_map`): for every other
+   computer leader, `ally_mask |= bit` if allied both ways; and if not yet
+   met (`treaties[i] & 1 == 0`), scan their units then buildings for one
+   `is_seen(who)` (vslot `+0x48`) — the first hit sets `treaties` bit 1 on
+   both sides and `LeaderOut::say_meet` for the console player. Diplomacy's
+   edge; noted, not this mechanic.
+7. `invaders[who] = 0` on every active leader (the count of *my* units in
+   *their* land; refilled in step 10).
+8. **Zero the per-region arrays**: `reg_active, reg_combat, reg_attack`
+   (127), `reg_naval, reg_transports` (63), `reg_defense, reg_attacked,
+   reg_land, reg_peasants, reg_free_peasants, reg_xport_peasants,
+   reg_gatherers, reg_gather_slots, reg_known_rares, reg_unpack_merch`
+   (64); and **`reg_cities[r] = reg_buildings[r][0] + [1] + [2] + [0x75]`**
+   — the four city types relative to `BASE_BUILDTYPES` (Small, Large,
+   Major, and `0x213`).
+9. **Rares** (`new_rares`, the leader's list of rare-resource objects):
+   each rare I can see (its tile's `explored` byte has my `ally_mask` bit,
+   or the game reveals all, or `leader_flags & 0x800`, or `+0x59e4`) is
+   marked seen for me (`good+0x20 |= 1 << who`) and, unless its tile's
+   owner is an enemy, `reg_known_rares[tregion]++`.
+10. **The unit census** — every captain of mine (`is_captain`, vslot
+    `+0xe8`) that is alive and whose type has `control_cost != 0`:
+    - its region: the unit's tile, or when garrisoned, the containing
+      building's region — the first land tile scanned across the
+      building's footprint (`x_size`/`y_size`, centred by parity) for a
+      non-water tile (`world+0x138` terrain `& 0x30 == 0x20` selects the
+      tile record's alternate region short at `+6`);
+    - `active++`, `reg_active[r]++`; strength `s = attack() / 10`
+      (vslot `+0x120`), or `10` for a sea/air domain;
+    - `role & 0x10000` (military): `attack += s`, `combat++`, then
+      `siege++` or `non_siege++` by vslot `+0x10c`; `reg_attack[r] += s`,
+      `reg_combat[r]++` (the two `reg_*` only when the unit's domain
+      matches the region's kind, or it is air);
+    - domain 1 (sea): `naval += s`, `sea_combat++` if `s`, `transports++`
+      if `carry`, `fishermen++` if `unit_flags2 & 4` (+ `idle_fishermen`
+      if `unit_masks & 0x80000`); sea regions: `reg_naval`, `reg_transports`;
+    - domain 2 (air): `obj_masks & 0x8000000` → `missile++` and
+      `cruise`/`nuke` by type `0x139`/`0x13b`; else `air++` and
+      `fighters`/`bombers` by type `0x11f`/`0x130`;
+    - a non-siege military unit standing on a tile owned by another
+      active leader: `leaders[owner].invaders[who]++`;
+    - by base type: `0x34/0x35` (scholar) → `scholars++`, and if inside a
+      university (`0x1a4`) `filled_gather_slots[3]++`; `0x3d/0x3e/0x190`
+      (merchant) → `merchants++`, `reg_unpack_merch[r]++` unless
+      `unit_masks & 0x80000`; `is(0x3b)` (caravan) → `caras++`;
+    - **citizens** (`0x32/0x33`): `peasants++`; nearest friendly city
+      within `0x200` (`ObjectsData::find_city`, its distance in
+      `objects+0x1fc`). Garrisoned: inside a `0x1a6` → `filled_gather_slots
+      [5]++`; inside a sea-domain building with a building-targeting order
+      → `reg_xport_peasants[r]++`, `xport_peasants++`. On the map:
+      `reg_peasants[r]++`; if `reg_cities[r] == 0` and the action is not
+      BUILD → `reg_xport_peasants[r]++`, `xport_peasants++`; then by the
+      **action kind** (`get_action`, vslot `+0x10`; kinds per
+      `docs/ORDERS.md` §3): none or `3` → `free_peasants++`,
+      `reg_free_peasants[r]++`, `city.free++`, `city.peasant_dist =
+      min(city.peasant_dist, dist / 0x300)`; otherwise `city.busy++`, and
+      `GATHER (7)` → `filled_gather_slots[good]++` by the target
+      building's type (`0x1a1` food, `0x1a2` wood, `0x1a3` metal,
+      `0x1a5/0x1a6` oil; knowledge is the university above), `city.busy--`
+      and the *target building's* city `busy++`, `gatherers++`,
+      `city.gatherers++`, `peasant_dist` as above, `reg_gatherers[r]++`;
+      `8` or `0xe` (build/repair through a boarded transport) →
+      `reg_xport_peasants`, `xport_peasants++`.
+11. **The building census** — every active building of mine (the build
+    and wall lists): a finished gather building (vslot `+0x90` on its
+    type) adds its `gather_max` (`Build+0x80`) to `gather_slots[good]`;
+    every active building with `type+0x1e8` set counts `defense += 1` for
+    a tower (`is(0x1b7)`) or `2` for one that has arrows (vslot `+0xfc`),
+    and `reg_defense[r]` the same.
+12. **Maxima**: `gather_slots_high[g]`, `peasant_high`, `scholar_high`,
+    `caravan_high`, `merchant_high`, `army_high (= max combat)`,
+    `city_high`, `village_high`, `population_high` — each `max(old, new)`.
+    `resources_controlled = bit_count(the rares bitmask at +0x6d9c)`.
+13. **Per-city site picture** (`compute_site_stats` proper is §2.7's; this
+    is the sweep's own): `city_pop_high = max(city.pop)`; radius = `(level
+    − 1) × city_center_pop_radius` with level 1/2/3 for a Small/Large/Major
+    or `0x213` city, `+ indians_city_radius` with tribe bonus `0x15`, capped
+    at `0x40`, then `circle_radius[(radius + 2) / 4]` picks the even circle
+    (`docs/CITIES.md` §3.6); zero `ocean, land, filled, dock_tile, space[3],
+    ter[6]`; `reg_gather_slots[r] += City::count_gather_slots(city)`; a city
+    with flag `2` (attacked) → `attacked++`, `reg_attacked[r]++`. Then over
+    the circle's tiles that are mine or unowned: a water tile → `ocean++`
+    and, if its region has `> 1` coasts or is ≥ a tenth of the map,
+    `dock_tile++` for the first `is_dock_tile`; a land tile inside the
+    inner radius and in the city's own region: unoccupied (`flags & 0x70 ==
+    0`) → `land++`, `check_building_wcoord` gives the largest square that
+    fits there → `space[n − 2]++` for `n = 2..4`, and `filled++` if `< 4`;
+    occupied → `World::gather_at` and `ter[g] = max(ter[g], amount)`. After:
+    `land − filled < 2` → `full_cities++`; `reg_land[r] += land − filled`.
+14. **Wars/allies**: over every other met computer leader: `diplos` 0 on
+    either side → `wars++`; 2 on both → `allies++`.
+15. **Per-region strategy** (`strategy[r]`, a bit word per land region;
+    `reg_wars/reg_allies/reg_neutrals[r]` zeroed and recounted): bit 1 =
+    the region is *thin* (all leaders' `reg_cities[r] × 50 < region.size`).
+    If I have a city there: for every other met leader with a city there —
+    at war: `active_wars++`, `active_wars_with |= 1 << i`, `reg_wars[r]++`,
+    and **bit 4 if I am weaker** (`my attack < theirs` and (`r == home_reg`
+    or `reg_cities[r] < theirs`)) else **bit 2**; then difficulty `< 2`
+    forces bit 4, and `starting_resources == 8` forces bit 2; allied both
+    ways → `reg_allies[r]++`; else `reg_neutrals[r]++`. Then by
+    `world+0x34`: `< 1` clears bit 8; `== 2` and no war/ally bits → bit 8
+    if some *other* region with region flag 8 has no city of anyone; `≥ 3`
+    and no war/ally bits → bit 8.
+16. **Army seeding** (computer leaders only): count my armies (16 slots per
+    leader) that are active (`Army+0x4 & 1`) or flag `0x20` in this region;
+    if fewer than two, score every city of mine in the region that has no
+    active army assigned: `level × 20 × ((barracks + siegeworks + stables)
+    × 4 + 1 + docks)`, `/ 3` if the city is flagged attacked, `× 12` if no
+    army of mine is near (`Armies::find_army < 0`) else `× (find_dist / 4 +
+    6)`; the best → **`Armies::init_army(who, city)`** — the lowest-numbered
+    free slot, or the one with the smallest `+0x10`, re-`init`ed. This is
+    where armies come from; `docs/ARMY.md` will own `Army::init`.
+17. **Tail**, unless `semaphore[1] & 2`: `check_orphaned_buildings()`
+    (§2.8), `compute_sites(0)` (§2.7), **`production_step = 1`**.
+
+Two sync-stream facts: the sweep itself draws no `game_random`; `compute_
+sites` in its tail does (§2.7). And `check_orphaned_buildings` can issue
+orders, so `docs/ORDERS.md`'s "the frame-0 sweep issues no order" (audit
+F4) is true only because a fresh game has no orphan sites.
+
+### 2.4 The step machine — `production_ai@006c1960`
+
+Read whole (114 lines). Bail to `production_step = 0` when `leader_flags &
+4 && !(leader_flags & 8)` (a human that is not being AI-driven), `ai_off`
+(the console's `ai off`), or `leader_flags2 & 4` (the scenario switch).
+Otherwise `effective_pop = queued_units() + control + 1`, then:
+
+```
+if step == 1 and (prod_script_run == 0 or starting_resources == 8): step = 2
+switch step:
+  1:  push script_step (by ref), 5, pers.rush + 2, who + 1        # (who, ref step, boom_vs_rush, num_loops)
+      r = run_script(script_run_time, prod_script)
+      if r == 0 (ran):  ret = get_ret_int(); script_step = <the ref read back>
+                        ret == 1 (BLOCK_ON_THIS) → step = 0; return
+                        ret == 3 (SCRIPT_DONE)   → prod_script_run = 0     # never again
+                        (anything else, incl. 2) → fall through
+      else (compile/run error, r ≠ 0): prod_script_run = 0                  # the script is dropped, silently
+      step += 1; return
+  2:  step = 3; production_ai_setup(); make_list.clear(); return
+  3:  step = 4; found_cities();     → tail
+  4:  step = 5; research_techs();   → tail
+  5:  step = 6; upgrade_units();    → tail
+  6:  step = 7; create_units();     → tail
+  7:  step = 8; create_buildings(); → tail
+  8:  step = 9; if make_stuff() != 0: return           # bought something: stay armed, run 9–11
+               if starting_resources == 8: return
+               step = 0; return
+  9:  step = 10; create_units();    → tail
+  10: step = 11; create_buildings(); return
+  11: make_stuff(); step = 0; return
+tail (steps 3–7, 9): if starting_resources == 8: make_stuff(); make_list.clear()
+```
+
+So the ordinary lobby runs 1–8 and stops unless step 8 bought something,
+in which case a second pass 9–11 (units, buildings, make) follows; the
+`starting_resources == 8` lobby (the "unlimited"-style row) skips the
+script and buys after every producer step. Steps 3–7 only *fill* the make
+list; step 8 (`make_stuff`) is the only place in the ordinary path that
+spends. `found_cities` is the "city AI" — it returns at once when
+`leader_flags2 & 0x10`.
+
+The script call, precisely: four `ScriptInt`s popped from the recycler and
+pushed as `(script_step, tag 3 = ref)`, `(5, tag 1)`, `(pers.rush + 2, tag
+1)`, `(who + 1, tag 1)`; `run_script` is `RunTimeEnv::run_script@009c4460`
+(reads §3); on success the first `ScriptInt`'s value (`script_step`) is read
+back through its vtable and the four are released. `run_script`'s return
+`0` is success; it returns `3` when the function is not found, `4` on a
+parameter mismatch (`check_params`), `6` on a runtime error — any of which
+**disables the script for the rest of the game** (`prod_script_run = 0`)
+and advances to step 2 as though the script had returned 2.
+
+`Leader::init` sets `script_step = 1`, `production_step = 0`,
+`prod_script_run = 0` (then `1` for a computer leader, §3), the five
+`*_mod` fields to `0x100` (`wonder_mod` 0), `pop_cap`, `misery`, `att`
+etc. to 0.
+
+### 2.5 The goods picture — `production_ai_setup@006c83e0`
+
+Read whole (316 lines). Writes `econ[6]` (a flag word per good),
+`worst_good`, `best_good`, `shortages`, and on easy difficulties lowers the
+resource caps. The encrypted block is `LeaderDataEncrypt` (`data_encrypted`,
+`+0x6eb8`; fields XOR'd with per-field keys — `resources ^ 0x90236`, `rate ^
+0x73862`, `resource_cap ^ 0x8221`, `ages ^ 0x62766`; `docs/ECONOMY.md`):
+
+1. `shortages = worst_good = best_good = 0`. **`starting_resources == 8`**:
+   every `econ[g] |= 8` and return.
+2. **Difficulty** `d` = `multi_diff` when `semaphore[0] & 4`, else the
+   lobby's `difficulty` unless a multiplayer-AI semaphore pair says
+   `multi_diff ≥ 0` (three identical reads; `get_diff` is the same
+   choice). If `d < 3` and my current age (`ages ^ 0x62766`, as a type
+   `0x220 + age`) is an age type: `m = max over available goods of
+   get_cost(age_type, g, who, −1, −1, 0, 1, −1)`, at least `300`; `d == 0`
+   → `m × 3/2`, `d == 1` → `m × 2`, `get_diff() == 2` → `m × 5/2`; then for
+   each good with `resource_cap > m`: `escrow[g] = escrow[g] × m / cap`,
+   `cap = m`. (The age type's per-good cost is the next age's price, so an
+   easy AI cannot bank more than ~1.5–2.5 ages' worth.)
+3. **Rate pass**: for each good, `econ[g] = 0`; `r = min(get_mod_
+   resource_cap(g), resources[g]) / 16` is stored into `rate[g]` (XOR'd);
+   for available goods, `rate[g]` (the *stored* one, i.e. the income
+   figure `do_gather` maintains) picks `worst_good` (min) and `best_good`
+   (max), and `rate < 30` → `econ[g] |= 1`, `shortages++`.
+4. **Stock pass**: thresholds `lo = min(city_num × 15, cap/32, 250)`, `hi
+   = min(city_num × 30, cap/16 × 4/5, 350)`; with more than four cities `lo
+   = cap/32`, `hi = min(cap/16 × 3/4, 175)`; for goods other than food and
+   wood while `city_num < 3`: `lo = 20`, `hi = city_num × 20`, and the
+   shortage bit is cleared (`shortages--`). Unavailable good → `econ = 0`.
+   Otherwise, with `resources < cap`: `< lo` → `|= 2`; `< hi` → `|= 4` and
+   done; else (or at cap) `|= 8`.
+5. **Food/wood balance** while `city_num ≤ 2`: if food is not "low" (bit
+   4) or the tribe has bonus `0x13`: when wood is low, clear food's bit 4
+   and metal/knowledge/wealth/oil's; else (food low, no bonus): clear
+   wood's bit 4 and the other four's. Same shape for bit 2 → promoted to 4.
+   Net effect: with two cities the AI only ever calls *one* of food/wood
+   short at a time, and never the later goods.
+6. `market_speculation()` (109 lines, not yet read — `docs/ECONOMY.md`'s
+   market).
+
+### 2.6 The make list — `MakeList`, `make_stuff`, `make_this`
+
+`make_list` (`+0x6ec8`, `Array<MakeObject>`; `list` at `+0x10` is what the
+decompile prints as `field_0x6ed8`) holds **eleven** `MakeObject`s (`0x28`
+bytes: `t, val, escrow, city, up, o, num, cat, wx, wy`) — a ranked
+shopping list the producer steps fill (`docs`: §4's reading) and
+`make_stuff` spends from. `t = −1` is an empty slot.
+
+**`make_stuff@006c8af0`** (read, 305 lines), returns 1 when it bought the
+head:
+
+1. `head = list[0]`; `head.t == −1` or `head.val == 0` → return 0.
+2. `use_market()`; `paid = can_pay(0)`; `cost[g] = get_cost(head.t, g,
+   who, head.o, head.city, 0, 1, −1)` for the six goods.
+3. If `paid`: `make_this(0)` (§ below) and remember whether it succeeded;
+   else if `resources[3] < cost[3]` — knowledge short — treat as `paid`
+   for the rest (do not save up for it).
+4. **Expiry of the head** (and every duplicate of its type in the list):
+   each slot whose `t == head.t` is cleared with probability **1/3** —
+   `Random::get(game_random, 0, 0xffff) % 3 == 0` — **or unconditionally**
+   when the head is a tower/`0x1bb`/an upgrade-kind type (vslot `+0x64`) or
+   a wonder, or is *not* a military unit type (`is(0x1a4)` or not a unit
+   type or a peasant type). One sync draw per matching slot, every
+   `make_stuff`, whether or not anything was bought.
+5. **Saving**: if not `paid`, `need = average over available goods with
+   `cost[g] > 0` of `(cost[g] − resources[g])`, floored at 0` — the mean
+   shortfall.
+6. **The rest of the list**, slots 1..10: skip empties and `val == 0`;
+   from slot 4 on, skip a slot whose `(t, city)` duplicates slot 0, 1, 2 or
+   3 (three duplicates are tolerated); then for each available good with
+   `cost > 0`: if `resources[g] < cost_of_slot[g] + cost[g] + need` the slot
+   is unaffordable-while-saving → skip, **except** slot 5 when I have no
+   free peasants and no gatherers (buy anyway), and slot 4 when it is a
+   gather building (`build_flags & 0x40`) for a good whose `econ` has bit 4
+   — buy anyway; slots that pass: `can_pay_cost(who, city, o, escrow)`
+   (vslot `+0x84`) `≥ num` → `make_this(slot)`, then the same 1/3 expiry
+   over duplicates of *its* type (unconditional for tower/`0x1bb`/upgrade/
+   wonder), only while `slot < 11`.
+7. Return: `site_mark++` if nothing in the pass was an upgrade-kind;
+   return "bought the head".
+
+**`make_this@006c94f0`** (read, 187 lines) dispatches one slot by its
+type's kind: a **build type** in `0x19e..0x21e` → `type_avail == 4`
+required (else `produce_tech(t, escrow)` — i.e. the tech that unlocks it
+is what gets bought); `up != 0` → `produce_upgrade(t, city, escrow)`; a
+city type (`is(0x60)` vslot) → `produce_city(t, wx, wy, escrow)` unless the
+site's region has no free peasants and no gatherers of mine; a wonder or
+ordinary building → `produce_building(t, city.o, escrow)` unless the
+city's region has no free peasants/gatherers, or the building is a land
+building that is not a gather building and the city has `< 2` open tiles
+(`land − filled`) with a footprint that fits (`space[max(x, y) − 2]`
+clamped to `0..3` `< 2`); a **tech** in `0x220..0x274` →
+`produce_tech(t, escrow)`; a **unit** in `0x32..0x19d` → `type_avail == 4`
+→ `produce_unit(t, city, num, escrow)`, else `produce_tech`; a **spell**
+`0x275..0x2ab` → `produce_spell(t, city, escrow)`. A `produce_*` returning
+0 (bought) → `slot.val /= 100` (demoted a hundredfold, not cleared).
+`sys.ai_logging` bit `who` gates on-screen messages only.
+
+### 2.7 The sites — `compute_sites@006cc950`
+
+Read whole (308 lines). `sites` (`+0x6e34`, `Array<Site>`, list at
+`+0x6e44`) holds **ten** `Site`s (`wx, wy, val, reg, dist, rank`). At frame
+0 all ten are zeroed. Otherwise each site with `rank ≥ 6` and `val ≥ 1` is
+re-scored in place (`compute_site_stats` with `keep = 0`, which may move
+`wx, wy`) and the rest are cleared. Then, for a computer leader (or when
+called with `1`, as `ScenarioFuncSet::place_city_with_cost` does): for
+every region where I have peasants (`reg_peasants[r] != 0`): the reference
+city is the nearest friendly city within `0x200` of the region's first
+listed tile (or, with no city of mine there, the nearest citizen); the
+region's tile list (`Region+0x7c`, `size` at `+0x14`) is sampled with
+**stride 2**, or for a region of 200+ tiles: **`stride = max(10, size /
+(world_w − rand % world_w / 2))`** and **start offset `site_mark % stride`,
+then `site_mark += rand % (stride / 4) + 3`** — two `game_random` draws
+per large region, the first skipped when `world_w ≤ 1`, the second when
+`stride / 4 ≤ 1`. Each sampled tile is scored by `compute_site_stats(…,
+keep = 1)` and inserted: a tile already present with `val > 0` is skipped;
+otherwise it takes the slot with the smallest `val` among those it beats
+(the loop keeps the running minimum and its index; an empty slot's `val` 0
+is always beaten). Finally `rank[i] = 1 + count of sites with val ≤ val[i]`
+over the ten. `compute_site_stats` (506 lines) — the site score itself —
+is §4's reading. **`compute_sites(0)` runs at the end of every sweep,
+including frame 0, so the sync stream takes these draws at frame 0 for
+every computer leader** with a 200-tile region.
+
+### 2.8 The orphan check — `check_orphaned_buildings@006c9f20`
+
+Read whole (294 lines). Computer leaders only. For every building of mine
+(build and wall lists, in id order):
+
+- A building whose `build_masks & 1` (`+0x60`) is set gets it cleared, and
+  if it is not a city (`+8 & 0x20`) and is a tower/`0x1bb`/`0x1bf`, or its
+  type has `+0x1e8`, or I own more than one of its type (`num_buildings[t]
+  > 1`): **disband it** (`Group::action_disband`). The bit is the "sell
+  me" mark some other path sets (`Leader::lose_building`? — not traced).
+- An **unfinished site** (not `is_active`): find a citizen of mine whose
+  action is `BUILD (6)` on this site; if its region differs from the site's
+  and the site is a land building, `Unit::clear_orders` on that citizen and
+  skip. If no builder: `job_counter == 0` (never started) and my territory
+  at the site `> 0` → **disband the site**; territory `≤ 0` → the first
+  idle (`action == 0`) or gathering (`7`) citizen in the site's region is
+  sent with `Group::action_swarm_around(site, QUEUE_NEW, BUILD_AT, 1)`; if
+  none, `build_masks |= 0x2000`.
+
+### 2.9 What the driver leaves to §4
+
+`compute_site_stats` (506), `found_cities` (281), `research_techs` (689),
+`upgrade_units` (344), `create_units` (1,674), `create_buildings` (1,728),
+the `produce_*` family, `check_income`, `use_market` (147),
+`market_speculation` (109), `queued_units`, `unit_prod_value` (114),
+`check_transport` (124). And `Leader::init`'s AI-relevant fields beyond
+the ones named in §2.4.
+
+### 2.10 Slots named by use, to settle in the listing
+
+The vtable export prints a colliding name for these; the decompile's own
+direct calls (`is_captain`, `is_on_map`, `ObjectData::is`, `WallData::
+is_active`, `TypeData::is_*`, `get_cost`, `can_pay_cost`) are trusted.
+
+| slot | on | used as | evidence |
+|---|---|---|---|
+| `+0xc` | Object | `is_active` | Build's slot is `SubObjectData::is_active`; Object's is purecall |
+| `+0x10` | UnitOrder | `get_kind` | `docs/ORDERS.md` §3 |
+| `+0x48` | Object | `is_seen(who)` | `UnitData::is_seen` on Unit |
+| `+0xac`, `+0xb0` | Object | the object's `Build` view (`+0x18` type, `+0x72` city, `+0x80` gather_max follow) | use only |
+| `+0x10c` | UnitType | `is_siege`-like split of military units | use only |
+| `+0x120` | Object | `attack()` (`UnitData::attack`, `BuildData::attack`) | export |
+| `+0x60` | Type | `is(TypeIndex, flag)` — `TypeData::is` | export |
+| `+0x64` | Type | an "upgrade-kind" predicate (`make_this` routes it to `produce_upgrade`) | use only |
+| `+0x90` | BuildType | "is a gather building" (adds `gather_max` to `gather_slots`) | use only |
+| `+0xfc` | BuildType | "has arrows" (defence 2 vs a tower's 1) | use only |
 
 ## 3. The finding: the skirmish opening is the shipped script
 
