@@ -414,6 +414,94 @@ pub struct CityDump {
     pub who: i64,
 }
 
+/// One cell of the `WORLD` block at `WORLD ≥ 3` — the `WData` record
+/// `WData::log_data@006af7e0` prints (`docs/ORACLE.md`, "The map is a dump
+/// too"). Absent fields (a lower threshold) stay at their defaults.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct CellDump<'a> {
+    /// The level-2 line: the terrain kind's `land_key[]` name.
+    pub land: &'a str,
+    pub flags: i64,
+    pub goods: i64,
+    /// The level-4 line: the flag words, or the "none" string.
+    pub flag_words: &'a str,
+    pub who: i64,
+    pub who2: i64,
+    pub region: i64,
+    pub region2: i64,
+    pub val: i64,
+    pub land_sub: i64,
+    pub light: i64,
+    pub blocked: i64,
+    pub bad: i64,
+    pub solid: i64,
+    pub down: i64,
+    pub down_who: i64,
+    pub was_seen: i64,
+}
+
+/// The cells of a `WORLD` block's field run, in the writer's order
+/// (`wdata[0..size]`, row-major). The record has no `BEGIN` of its own —
+/// `WData::log_data` writes flat lines — so a cell starts at each `flags`
+/// key, the bare line before it is the terrain name, and the bare line
+/// between `goods` and `who` is the flag words. The block's own scalars
+/// (`xs`, `seed`, …) precede the first cell and are skipped; the per-tile
+/// and per-fog runs after the last cell are not read here.
+pub fn world_cells<'a>(fields: &[(&'a str, &'a str)]) -> Vec<CellDump<'a>> {
+    let mut cells: Vec<CellDump<'a>> = Vec::new();
+    let mut pending_land: &'a str = "";
+    let mut after_goods = false;
+    let int = |v: &str| v.trim().parse::<i64>().unwrap_or(0);
+    for &(k, v) in fields {
+        if k == "flags" {
+            cells.push(CellDump {
+                land: pending_land,
+                flags: int(v),
+                ..CellDump::default()
+            });
+            pending_land = "";
+            after_goods = false;
+            continue;
+        }
+        let Some(cell) = cells.last_mut() else {
+            // The block's scalars, before the first cell.
+            if v.trim().is_empty() {
+                pending_land = k;
+            }
+            continue;
+        };
+        if v.trim().is_empty() {
+            if after_goods && cell.who == 0 && cell.flag_words.is_empty() && cell.region == 0 {
+                cell.flag_words = k;
+            } else {
+                pending_land = k;
+            }
+            continue;
+        }
+        match k {
+            "goods" => {
+                cell.goods = int(v);
+                after_goods = true;
+            }
+            "who" => cell.who = int(v),
+            "who2" => cell.who2 = int(v),
+            "region" => cell.region = int(v),
+            "region2" => cell.region2 = int(v),
+            "val" => cell.val = int(v),
+            "land_sub" => cell.land_sub = int(v),
+            "light" => cell.light = int(v),
+            "blocked" => cell.blocked = int(v),
+            "bad" => cell.bad = int(v),
+            "solid" => cell.solid = int(v),
+            "down" => cell.down = int(v),
+            "down_who" => cell.down_who = int(v),
+            "was_seen" => cell.was_seen = int(v),
+            _ => {}
+        }
+    }
+    cells
+}
+
 /// A named constant from the `CONSTANTS` block: scalar or array.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ConstantDump<'a> {
@@ -1095,6 +1183,27 @@ BEGIN GAME
         assert_eq!(frames[0].leaders[0].score, 181);
         assert_eq!(frames[0].leaders[0].leader_flags, 33554451);
         assert_eq!(frames[1].units[0].pos.x, 4250);
+    }
+
+    #[test]
+    fn world_cells_split_the_flat_run_at_each_flags_line() {
+        let text = "BEGIN GAME\n BEGIN WORLD\n  xs 2\n  ys 1\n  seed 5\n  GRASS\n  flags 256\n  goods 3\n  COAST\n  who -1\n  who2 -1\n  region 1\n  region2 63\n  val 40\n  land_sub 2\n  light 0\n  blocked 0\n  bad 0\n  solid 0\n  down -1\n  down_who -1\n  was_seen 0\n  WATER\n  flags 0\n  goods 0\n  none\n  who -1\n  who2 -1\n  region 63\n  region2 -1\n  val 0\n  land_sub 0\n";
+        let log = Log::parse(text);
+        let init = log.initial().unwrap();
+        let cells = world_cells(&init.world);
+        assert_eq!(cells.len(), 2);
+        assert_eq!(cells[0].land, "GRASS");
+        assert_eq!(cells[0].flags, 256);
+        assert_eq!(cells[0].goods, 3);
+        assert_eq!(cells[0].flag_words, "COAST");
+        assert_eq!(cells[0].region, 1);
+        assert_eq!(cells[0].region2, 63);
+        assert_eq!(cells[0].val, 40);
+        assert_eq!(cells[0].down, -1);
+        assert_eq!(cells[1].land, "WATER");
+        assert_eq!(cells[1].flag_words, "none");
+        assert_eq!(cells[1].region, 63);
+        assert_eq!(cells[1].region2, -1);
     }
 
     #[test]

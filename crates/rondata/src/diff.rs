@@ -47,6 +47,9 @@ pub struct Built {
     pub units: Vec<UnitLink>,
     /// The pre-placed buildings: simulation handle → the log's object number.
     pub builds: Vec<(usize, i64)>,
+    /// The dump's region numbers → the sim's region ids, when the dump
+    /// carried the map (`WORLD ≥ 5`); empty on the flat world.
+    pub region_map: Vec<(i64, u16)>,
     /// Anything that could not be carried over, and why.
     pub notes: Vec<String>,
 }
@@ -147,10 +150,89 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // `blocked_tcoord`, so every `place_building` was refused and every
     // building came out untyped and city-less.
     let mut world = World::new(xs, ys);
-    let land = world.add_region(sim::world::Terrain::Land);
-    for y in 0..ys {
-        for x in 0..xs {
-            world.set_region(sim::world::Cell::new(x, y), land);
+    let cells = crate::gamelog::world_cells(&init.world);
+    let mut region_map: Vec<(i64, u16)> = Vec::new();
+    if cells.len() == (xs as usize) * (ys as usize) {
+        // A `WORLD ≥ 5` start dump: the map's own cells — region, the
+        // coastal `region2`, the site value, the goods bits, the owners
+        // (`docs/ORACLE.md`, "The map is a dump too"). The dump's region
+        // numbers are the original's (`0..0x3e` land, `0x3f..0x7e` sea,
+        // `docs/AI.md` §2.3); each distinct one becomes a sim region.
+        let mut region_of = |n: i64, world: &mut World| -> Option<u16> {
+            if n < 0 {
+                return None;
+            }
+            if let Some((_, r)) = region_map.iter().find(|(d, _)| *d == n) {
+                return Some(*r);
+            }
+            let terrain = if n < 0x3f {
+                sim::world::Terrain::Land
+            } else {
+                sim::world::Terrain::Sea
+            };
+            let r = world.add_region(terrain);
+            region_map.push((n, r));
+            Some(r)
+        };
+        // `CellData.land` is the original's `land_key[]` index; the dump
+        // prints the name, so until that table is read the harness numbers
+        // the names in order of first appearance and keeps the list.
+        let mut land_names: Vec<&str> = Vec::new();
+        for (i, c) in cells.iter().enumerate() {
+            let cell = sim::world::Cell::new((i % xs as usize) as i32, (i / xs as usize) as i32);
+            if let Some(r) = region_of(c.region, &mut world) {
+                world.set_region(cell, r);
+            }
+            let region2 = region_of(c.region2, &mut world);
+            let land = match land_names.iter().position(|n| *n == c.land) {
+                Some(i) => i,
+                None => {
+                    land_names.push(c.land);
+                    land_names.len() - 1
+                }
+            } as i8;
+            let owner = |w: i64| -> sim::world::Owner {
+                match w {
+                    -2 => sim::world::Owner::Ambiguous,
+                    w if (0..=255).contains(&w) => sim::world::Owner::Player(w as sim::Player),
+                    _ => sim::world::Owner::None,
+                }
+            };
+            world.set_owner(cell, owner(c.who), owner(c.who2));
+            world.set_cell_data(
+                cell,
+                sim::world::CellData {
+                    flags: c.flags as u16,
+                    land,
+                    land_sub: c.land_sub as u8,
+                    region2,
+                    val: c.val as u8,
+                    goods: c.goods as u8,
+                    blocked: c.blocked as u8,
+                    solid: c.solid as i8,
+                    down: c.down as i16,
+                    down_who: c.down_who as i8,
+                },
+            );
+        }
+        notes.push(format!(
+            "world: {} cells from the WORLD dump, {} regions, land kinds {:?}",
+            cells.len(),
+            region_map.len(),
+            land_names
+        ));
+    } else {
+        // The dump carries no cells (`WORLD < 3`), so the harness's map is
+        // **one land region covering every cell** — flat, unblocked, no
+        // water. That assumption was implicit before and cost something: a
+        // cell in no region is `Blocked::Ruins` to `blocked_tcoord`, so
+        // every `place_building` was refused and every building came out
+        // untyped and city-less.
+        let land = world.add_region(sim::world::Terrain::Land);
+        for y in 0..ys {
+            for x in 0..xs {
+                world.set_region(sim::world::Cell::new(x, y), land);
+            }
         }
     }
     let mut sim = loaded.sim(tuning, world, players);
@@ -288,6 +370,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         sim,
         units,
         builds,
+        region_map,
         notes,
     }
 }

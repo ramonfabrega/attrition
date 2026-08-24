@@ -209,7 +209,13 @@ impl Sim {
     /// `BuildTypeData::find_friends(x, y, city, who)`: neighbours of the
     /// candidate cell that count for this type, `+1` on a diagonal and `+2`
     /// on a cardinal.
-    pub(crate) fn find_friends(&self, rec: usize, cell: Cell, city: Option<usize>, who: Player) -> i32 {
+    pub(crate) fn find_friends(
+        &self,
+        rec: usize,
+        cell: Cell,
+        city: Option<usize>,
+        who: Player,
+    ) -> i32 {
         let bt = &self.build_types[rec];
         let ident = bt.ident;
         let tower_like = matches!(ident, Ident::Tower | Ident::Lookout);

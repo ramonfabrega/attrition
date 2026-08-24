@@ -1153,6 +1153,53 @@ list, and `tools/gamelog/README.md` points here.
 
 ---
 
+### The map is a dump too: `WORLD` under `[Start Game]` (2026-08-24)
+
+Every run so far had `WORLD=0`, and "the dump carries no terrain"
+(`docs/DATALAYER.md`) was true of those runs, not of the logger.
+`WorldData::log_data@006b6080` prints the world's scalars (`forest_size`,
+`mountain_size`, `total_metal`, `total_oil`, `goodies`, `land_size`, `seed`,
+the start positions) at levels 0–1, then **loops over every cell** —
+`for i in 0..size: WData::log_data(wdata[i])` — and after that per-tile
+and per-fog loops and `danger[8][reg_size]`. `WData::log_data@006af7e0` is
+the per-cell record (`struct /rise.pdb/WData`, `docs/FORMATS.md`), by
+detail level:
+
+| level | fields |
+|---|---|
+| 2 | `land` — the terrain kind, printed as its `land_key[]` name |
+| 3 | `flags`, `goods` (the nearby-goods bits `compute_site_stats` reads) |
+| 4 | the flag words, spelled out |
+| 5 | `who`, `who2`, `region`, `region2`, `val` (the city-site value byte), `land_sub` |
+| 6 | `light`, `blocked`, `bad`, `solid`, `down`, `down_who`, the `block` bitmask, `was_seen` |
+
+So **`WORLD=6` under `[Start Game]`** dumps the whole tile layer once —
+regions, the coastal `region2`, the site values, the goods bits, the
+owners — which is every map input the production AI's census and sites
+read (`docs/AI.md` §2.3, §2.7, §2.13) and the forest layer the pathfinder
+diff has been missing (`docs/PATHFINDER.md` §10). `TERRAIN=2` adds
+`TerrainData`'s height table and waterline. It is a start-of-game cost
+only; leave `[End Frame] WORLD=0`. The capture for the harness's lobby is
+run9 (below, once made).
+
+### `LEADERS=9` is the census oracle (2026-08-24)
+
+The `LEADERDATA` record at level 9 is the whole of `LeaderData` — about
+10k lines a leader a frame, most of it the `reg_buildings[64][129]` array —
+and between the level-0 base and the level-9 tail sit **every count
+`plan_strategy`'s sweep writes**, under the PDB's names: `active`,
+`peasants`, `gatherers`, `free_peasants`, `home_reg`, `explored`,
+`gather_slots[]`, `filled_gather_slots[]`, `escrow_rate[]`, `econ[]`,
+`site_mark`, `production_step`, `script_step`, `effective_pop`, the
+`reg_*[64]` arrays, `strategy[]`, `num_buildings[129]`, `num_units[352]`,
+`num_queued[806]`, then `sites` (ten `SITE`s) and `make_list` (eleven
+`MAKEOBJECT`s). `tools/gamelog/leader.py FRAME WHO [file]` prints one
+leader's record flattened, arrays summarised to their non-zero entries.
+Run8's frame 1 is the AI leader after its frame-0 sweep and is the
+acceptance oracle for `crates/sim/src/ai_census.rs`; the human's block
+carries `peasants`/`gatherers` too, from `Leader::calc_gather@006ceee0`
+(the goods display's pass), not the sweep.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
