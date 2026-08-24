@@ -33,9 +33,22 @@ its 37 categories, its configuration keys and its output shape, all of which are
 data in the binary rather than inference. ~~**Untested throughout**~~ — as of
 2026-08-20 the original runs on this machine (CrossOver, D3DMetal), and the
 tracer has been switched on and has written files; the last section records
-what it and a second, older logger actually produce. The recorded-game
+what it and a second, older logger actually produce. ~~The recorded-game
 container claims in Part 1 remain unexercised: this install ships no recorded
-games and none has yet been made.
+games and none has yet been made.~~ **As of 2026-08-24 a real recording is on
+disk**: `ron.heavengames.com`'s downloads section holds ~245 recorded games,
+and the one explicitly EE-era file (fileid 2170, "Seifer008 vs 4 Toughest AI",
+2018, recorded on EE 1.2 build `00.2017.08.2100`) is saved at
+`game/external-recgames/seifer008 - Toughest AI 4 v 1.rcx` (gitignored with
+the rest of `/game`). It settles the extension (`.rcx`), the container (gzip
+end to end — `write_package`'s gzip arm is the shipped path), and the header's
+opening (a length-prefixed UTF-16 version string). **Version caveat:** this
+install's executable carries the build string `00.2024.06.20` (the PE
+VERSIONINFO resource is stale, `00.2009.09.1500`), so in-game *playback* of
+2017-era recordings may be refused or desync — the author's own note says as
+much — but a reader does not need playback, and ground-truth recordings for
+the diff should be made by this install anyway (any game it records is
+same-version by construction).
 
 **Where the implementation is.** ~~Nowhere yet, deliberately.~~ The
 recorded-game reader still waits for a file to read — a reader written
@@ -1141,9 +1154,13 @@ list, and `tools/gamelog/README.md` points here.
   every frame. `Checksum Dump` / `Checksum Break` are still untried.
 - **The whole `walk_data` graph**, which is the actual header format. Read in
   outline only.
-- **The recorded game's file extension and naming.** `String::time_stamp` builds
+- ~~**The recorded game's file extension and naming.** `String::time_stamp` builds
   it from two strings in the runtime string table rather than from literals, so
-  it was not recoverable the way the INI keys were.
+  it was not recoverable the way the INI keys were.~~ **Settled 2026-08-24 by a
+  real file** (below): the extension is **`.rcx`**, and the shipped write path
+  is the **gzip stream** — the file is gzip end to end, decompressing to the
+  walked stream, which opens with a length-prefixed UTF-16 version string
+  (`Version: 00.2017.08.2100` in the sample).
 - **Whether `SimulationFps` moves the 15 frames per second** that
   `crates/sim/src/lib.rs` holds as `FRAMES_PER_SECOND`, or something else.
 - **Where `read_package` stops** — the stream has no count that has been seen,
