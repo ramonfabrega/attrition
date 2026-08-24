@@ -37,13 +37,21 @@ is *not derived* — it is skipped by landmark (§4.2).
 
 - **Extension `.rcx`**, filename from `String::time_stamp` in the profile's
   recorded-games directory (`PlayerProfile::get_record_game_directory`;
-  `init_record` mkdirs it, `finalize` discards a recording whose `empty` flag
-  never cleared).
-- **gzip end to end.** Every read in the walk goes through
-  `LoadGame::walk_function`, which reads from a plain `FILE*` when one is
-  open and otherwise `gzread`s; the shipped recording path opens the gzip
-  arm. The sample is a bare gzip stream (NTFS OS byte), 199,968 bytes
-  compressed, 1,676,994 decompressed.
+  `init_record` mkdirs it). The extension's literal text lives in the
+  runtime string table, so it is known from the sample, not the symbols.
+- **A finished `.rcx` is a bare gzip stream — but it is not written that
+  way.** ~~The shipped recording path opens the gzip arm.~~ Corrected by the
+  second reading: `File::open`'s mode word is a bitmask (bit 0 set → zlib
+  via `gz_open_unicode`, clear → stdio via `_wfsopen`), and
+  `write_header` opens mode **2** — plain stdio — so the game records
+  **uncompressed** for the whole match. `finalize` (0x952b40) then opens
+  `recordgame.tmp` in mode **3** (zlib write), streams the raw file through
+  it via `Filemap` + `File::write` (which routes to `gzwrite`), removes the
+  raw file and renames the tmp over it — or just deletes everything if
+  `empty` never cleared. `read_header` opens mode **1** (zlib read).
+  **Consequence:** a recording whose game crashed before finalize is the
+  same record, raw — a reader should sniff `1f 8b` rather than assume gzip.
+  The sample is finalized: 199,968 bytes compressed, 1,676,994 decompressed.
 - Everything below describes the **decompressed** stream. All integers are
   little-endian. There is no framing beyond the walk itself: the format is
   the flattened object graph, so the struct layouts *are* the format.
@@ -55,7 +63,7 @@ Everything in the header and rules is written by exactly three operations:
 | primitive | bytes | meaning |
 | --- | --- | --- |
 | `walk_function(begin, end)` | `end - begin` | raw memcpy of a struct range, as laid out in memory |
-| `walk_test(name)` | 1 | section marker: the low byte of the section-name `String`'s hash; the reader (`LoadGame::walk_test`) errors with "Error loading section, probably in *last section*" on mismatch |
+| `walk_test(name)` | 1 | section marker: the low byte of the section-name `String`'s **case-insensitive** hash (`hash_value_insensitive` at both use sites; the second reading settled the field the generate-side garble left open). On mismatch the reader (`LoadGame::walk_test`) reports "Error loading section, probably in *last section*" at severity 3 — **a warning; it keeps reading** |
 | `String::walk_data` | 4 + 2·n | `u32` character count, then n UTF-16LE code units, no terminator; count 0 = empty string, nothing follows |
 
 The section names live in the runtime string table (`int_str_array`), so the
@@ -78,8 +86,8 @@ Written by `write_header` = `Game::walk_data(SaveGame)` then
 | 4 | `GameInfo.version` (+0x00) | |
 | 16 | +0x04..+0x14: `seed`, `checksum_deep`, `checksum_window_size`, `checksum_failure_threshold` | seed `0x144bd480` |
 | 4 | +0x14 `flags` | |
-| 29 | +0x18..+0x35, walked one byte at a time (the lobby options union `GameInfo_u_24`) | |
-| 1 | +0x35..+0x36 | |
+| 29 | +0x18..+0x35, walked one byte at a time — the lobby options, named by `GameInfo_u_24_s_0`: `team_style, map_style, map_size, players, max_observers, game_speed, game_rules, difficulty, starting_town, starting_resources, starting_resources2, tech_cost, reveal_map, pop_limit, rush_rules, cannon_times, starting_technology, starting_technology2, ending_technology, elimination, victory, wonderwin, score_goal, popwin, time_limit, chairs, econwin, scenario_type, script_type` | sample: `difficulty = 5` — the Toughest the uploader promised; the per-player `diff` byte below stays 2 |
+| 1 | +0x35..+0x36: `mods` | |
 
 ### 3.2 The eight player records
 
@@ -93,6 +101,9 @@ For each of the 8 lobby slots (`GameInfo.player[n]`, stride 0x8c):
 | 4 + 2n | only if active: `Player.name` (+0x40) |
 
 `platform`/`platformID`/`net_player`/the `accum_*` bytes are not walked.
+`Player::walk_data` (0x6ee2d0) is the same code un-inlined and is the cleaner
+authority; note `flags` rides the wire **twice** per active slot — once alone,
+once inside the 0x39-byte block.
 
 ### 3.3 The GameInfo tail — version-forked
 
@@ -104,7 +115,7 @@ same layout (or one byte-compatible with it for an empty-mod game).
 | `sGameSaveVersion` | layout |
 | --- | --- |
 | < 0x10 | four Strings: `scenario_script` (+0x4f4), `scenario_path` (+0x508), `scenario_dir` (+0x51c), mod path |
-| ≥ 0x10 | 8 raw bytes (workshop id + download count), `scenario_script`, `scenario_path`, mod-install-dir String, 8 raw bytes (second workshop id), mod-name String |
+| ≥ 0x10 | `u64` workshop-mod id, `scenario_script`, `scenario_path`, the resolved scenario/mod dir String, `u64` dropdown-mod id, dropdown-mod dir String |
 
 On read, the two workshop ids drive Steam-Workshop mod resolution
 (subscribe-now, error popups); the strings land in the fields named.
@@ -121,15 +132,25 @@ On read, the two workshop ids drive Steam-Workshop mod resolution
 
 ## 4. After the header
 
-Sequencing is in `Game::run`'s setup: **random-game info, then rules, then
-packages**.
+Sequencing is in `Game::run`'s setup: **[CtW header] → [embedded save] →
+random-game info → rules → packages**. The two bracketed sections, absent
+from the sample and from any standard random-map recording (second reading):
+
+- **CtW** (`semaphore.ptr[2] & 2`): `write_ctw_header` runs
+  `ConquestGame::walk_data` under a fresh walker. Unread further, with the
+  rest of CtW.
+- **Embedded save** (`save_name` non-empty): `write_save_game` is not a walk
+  at all — it opens the named save file and copies it into the stream **one
+  byte at a time to EOF, with no length prefix**, so a scenario recording
+  cannot be skipped past without knowing the save format's own structure.
 
 ### 4.1 The random-game info blob
 
 `write_random_game_info`: for each lobby slot with `flags & 1` and `who < 8`,
 1 byte (`Player.team`) + 4 bytes (a leader-table field at
-`leaders[who * 0x6eec] + 0x39c`); then 4 bytes once (`World` +0x30, the world
-seed). Total `5 × active + 4`. **The playback side reads this blob into a
+`leaders[who * 0x6eec] + 0x39c` — **the leader's rolled nation**: in the
+sample the five values are exactly the five slots' `tribe`s, in `who` order);
+then 4 bytes once (`World` +0x30). Total `5 × active + 4`. **The playback side reads this blob into a
 malloc'd buffer and frees it unused** (`read_random_game_info`) — everything
 it duplicates already arrived inside GameInfo, so a reader can treat it as
 skip-only. The sample: 5 active players → 29 bytes.
@@ -141,8 +162,19 @@ rules tables**, so playback does not trust the install's XML:
 
 1. 1 byte: rules section marker.
 2. `Types::walk_rules_data`: 806 type objects (`types.list`, 0xc98/4), each
-   dispatching its own virtual `walk_rules_data` (vtable +0xc4). **Not
-   derived** — this is the variable-size middle, per-class walkers unread.
+   dispatching its own virtual `walk_rules_data` (vtable +0xc4). The second
+   reading derived the **per-class grammar**: every record opens with 90 raw
+   bytes (`Type` +0x04..+0x5e) then the type's name String; the tails are 48
+   raw bytes (`SpellType`), 27 + eight Strings (`TechType`), 152 + two
+   `SimpleArray<u16>` (`ObjectType`; an array is `u32 len`, then if nonzero
+   7 more header bytes and `len` u16s), +792 (`UnitType`), +49
+   (`BuildType`), +68 (`GoodType`). A walk of exactly 806 records spans the
+   sample's stretch precisely — but the stream carries **no class
+   discriminator** (dispatch is positional through `types.list`), several
+   tails admit the same continuation, and a dynamic program shows the parse
+   is ambiguous without the loader's construction order. So the section is
+   readable in principle but only against the type-table loader, and the
+   reader still ends it by landmark.
 3. `Constants` +0x00..+0xd40 raw (the whole loaded `Tuning` block, ending at
    `curr_element`), then +0x804..+0x808 again (`mongol_three_mil_cavalry` —
    4 redundant bytes).
@@ -172,12 +204,15 @@ package:
 
 | bytes | field |
 | --- | --- |
-| 4 | `frame` |
-| 4 | `play` (issuing player slot) |
-| 4 | `valid` |
-| 4 | `stamp` (`CommandPackage` +0x00) |
-| 2 | `size` |
+| 4 | `frame` — **`Game.frame` at write time**, not a `CommandPackage` field |
+| 4 | `play` (issuing player slot, `CommandPackage` +0x04) |
+| 4 | `valid` — 1 on the sample's first record, 0 on the other 21,883 |
+| 4 | `stamp` (`CommandPackage` +0x00 — wire order is not struct order) — contiguous 1..N in the sample, one per record |
+| 2 | `size` (≤ 512, the buffer's size; 10 bytes for 83% of the sample's records) |
 | size | `data` — the command payload |
+
+`CommandPackage.group` (+0x0c) and the embedded `Random` are never
+serialized, as the first reading had it.
 
 `read_package`'s contract: called with the current frame, it reads the next
 record's `frame` and, if it is in the future, seeks back 4 bytes and returns
@@ -193,14 +228,24 @@ player and frame.
 
 ## 5. What is not established
 
-- **The per-class type walkers** (§4.2 step 2): 806 objects, virtual
-  dispatch, unread. Until they are, the reader locates the tribes train by
-  the landmark of §4.2 step 5 rather than by walking Types.
-- **The marker-byte hash.** `String::generate_hash`'s low byte, but the
-  decompiles of both `walk_test`s garble which of the two hash fields
-  (`hash_value` vs `hash_value_insensitive`) supplies it, and the section
-  names live in the runtime string table. Observed values instead: Game
-  `0x16`, GameInfo `0x42`, player `0x50`, rules `0x92`, tribe `0x8f`.
+- **The Types section's class sequence** (§4.2 step 2): the per-class
+  grammar is now derived (second reading), but which of the 806 indices is
+  which class is the loader's knowledge, not the file's — provably, the
+  bytes alone are ambiguous. Until the `types.list` construction order is
+  read, the reader locates the tribes train by the landmark of §4.2 step 5.
+- **`GameInfo.version`'s packing.** The sample holds `0x06740124`, which
+  does not decode under the `Version` struct's milestone/month/day/build
+  bytes (day 116). `get_patch_version` compares it lexicographically and the
+  sample takes the `> 3` arm (its random-info section exists), so the gate
+  works; what the bytes mean is open. The banner *string* is written and
+  never parsed back — playback checks no version at all, which is why old
+  recordings are silently misread rather than refused.
+- ~~**The marker-byte hash** — which of the two hash fields supplies it.~~
+  The second reading settled it: `hash_value_insensitive`'s low byte, the
+  field named at both the write and the compare. The section names still
+  live in the runtime string table, so the observed values remain the
+  practical anchor: Game `0x16`, GameInfo `0x42`, player `0x50`, rules
+  `0x92`, tribe `0x8f`.
 - ~~**The +0x36..+0x38 gap**: the decompiler lost one call's arguments
   (§3.1's last row), so the 1-byte row could be 3 bytes.~~ **Settled by the
   sample**: with 1 byte the eight player records align exactly (one marker
@@ -237,3 +282,10 @@ install's own XML (`docs/COMBAT.md` §15.2–15.3). On the heavengames sample:
 - The order stream is real: 21,884 packages over frames 0..21044 (~23
   minutes at 15 fps), **every one issued by play 0** — in a 1-human-vs-4-AI
   lockstep game only real input travels; the AIs are recomputed on playback.
+  Stamps run 1..21,884 contiguously; `valid` is 1 on the first record only;
+  20,285 frames carry exactly one package.
+- **The blind second reading confirmed the whole structure independently**
+  (`docs/audit/2026-08-24-recgame.md`): its byte map of the 943-byte header
+  is identical, and its backward dynamic program over the full 1.68 MB
+  proved the package stream can start at exactly one offset — the same byte
+  the landmark finds.

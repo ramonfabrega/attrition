@@ -39,7 +39,10 @@ pub struct Slot {
     /// The play slot the engine addresses this player by (+0x36) — the value
     /// command packages carry in their `play` field.
     pub play: u8,
-    /// AI difficulty (+0x38); the sample's Toughest AIs hold 2.
+    /// The per-player `diff` byte (+0x38); 2 in every active sample slot.
+    /// The lobby's AI-difficulty knob is a different field —
+    /// `GameInfo_u_24_s_0.difficulty` in [`RecGame::options`] (index 7),
+    /// 5 = Toughest in the sample.
     pub diff: u8,
     /// `Player.name` (+0x40). Empty for AI slots.
     pub name: String,
@@ -199,16 +202,23 @@ pub fn read(path: &str) -> Result<RecGame, Error> {
     parse(&decompress(path)?, path)
 }
 
-/// Gunzips a `.rcx` to the raw walked stream, for callers that want to slice
+/// Reads a `.rcx` to the raw walked stream, for callers that want to slice
 /// the [`Spans`] a parse hands back — the embedded rules tables live there.
+///
+/// The game records uncompressed and gzips once in `RecordGame::finalize`
+/// (`docs/RECGAME.md` §1), so a recording whose game died before finalize is
+/// the same record with no gzip header — sniffed rather than assumed.
 pub fn decompress(path: &str) -> Result<Vec<u8>, Error> {
     let io = |source| Error::Io {
         path: path.to_string(),
         source,
     };
-    let compressed = std::fs::read(path).map_err(io)?;
+    let raw = std::fs::read(path).map_err(io)?;
+    if !raw.starts_with(&[0x1f, 0x8b]) {
+        return Ok(raw);
+    }
     let mut data = Vec::new();
-    flate2::read::GzDecoder::new(&compressed[..])
+    flate2::read::GzDecoder::new(&raw[..])
         .read_to_end(&mut data)
         .map_err(io)?;
     Ok(data)
@@ -431,6 +441,23 @@ mod tests {
         assert!(rec.packages.iter().all(|p| p.play == 0));
         assert_eq!(rec.packages.first().unwrap().frame, 0);
         assert_eq!(rec.packages.last().unwrap().frame, 21044);
+        // Stamps are a contiguous 1..N sequence and only the first record
+        // carries valid = 1 (the blind second reading's observation).
+        assert!(
+            rec.packages
+                .iter()
+                .enumerate()
+                .all(|(i, p)| p.stamp as usize == i + 1)
+        );
+        assert!(
+            rec.packages
+                .iter()
+                .enumerate()
+                .all(|(i, p)| (p.valid == 1) == (i == 0))
+        );
+        // The lobby options decode: difficulty (index 7) is 5 = Toughest,
+        // exactly what the uploader promised.
+        assert_eq!(rec.options[7], 5);
 
         // The landmark put the embedded rules where the walkers say they
         // are: tribes end where packages begin, balance is the 493x493

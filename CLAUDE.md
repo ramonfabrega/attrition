@@ -304,7 +304,14 @@ better, in which case say so and take that.
    rules tables**, and the sample's composed 493×493 combat table equals
    ours **cell for cell across a seven-year build gap** — so any recording
    is now the combat-table ground truth, replacing the `DUMP_ALL` run that
-   hangs the game. What it leaves open: the command payload encoding
+   hangs the game. The blind second reading ran the same day and is landed
+   (`docs/audit/2026-08-24-recgame.md`): the 943-byte header map identical
+   in both readings, the package-stream start proven unique by a backward
+   DP at the landmark's exact byte, and three corrections adopted — the
+   file is written raw and gzipped only in `finalize` (sniff `1f 8b`), the
+   marker is the insensitive hash's low byte, and the Types stretch is
+   readable in principle but provably needs the loader's `types.list`
+   order. What it leaves open: the command payload encoding
    (`CommandManager`'s format — the piece that turns packages into `diff`
    inputs), the 806 per-type rules walkers (skipped by a package-validated
    landmark), and recording a fixed-seed game on *this* install so order
