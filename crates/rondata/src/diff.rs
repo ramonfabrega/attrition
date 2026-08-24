@@ -707,6 +707,18 @@ fn start_of_game(
             sim.add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
         }
     }
+    // `Setup::build_game@005ac190` builds the starting positions in the
+    // order of `info.player[k]`'s start-slot field (unread), and every
+    // `DUMP_ALL` dump on hand — run3, run5 (a different lobby) and run13 —
+    // shows the result: the `Farms` list is player 1's three farms, then
+    // player 0's, while `BUILDDATA` runs player 0 first. The farm draws are
+    // spent in `Farms` order (`docs/SYNC.md` §4.1: run13's frame-101 sprout
+    // is the AI's `2003`, the list's second), so the starting farms are
+    // ordered here as the original activated them: the higher slot first,
+    // stable within a player.
+    let owners: Vec<sim::Player> = sim.buildings.iter().map(|b| b.owner).collect();
+    sim.farm_order
+        .sort_by_key(|&h| std::cmp::Reverse(owners[h]));
     all_builds
 }
 
@@ -1227,15 +1239,21 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
     // a sibling's count from the trace's last word, so its own trace must
     // end where ours does (run3 is the map's `DUMP_ALL` but a different
     // start; run12 is run11's stream continued).
-    if init.frame_seeds.is_empty() {
-        let ours = init.checksums.last().map(|c| c.seed);
-        if let Some(s) = siblings
-            .iter()
-            .find(|s| !s.frame_seeds.is_empty() && s.checksums.last().map(|c| c.seed) == ours)
-        {
-            init.frame_seeds = s.frame_seeds.clone();
+    // Every qualifying sibling contributes the frames it traced — run12's
+    // 0–3 and run13's 94–103 together (`docs/SYNC.md` §5); the dump's own
+    // word wins where two name the same frame.
+    let ours = init.checksums.last().map(|c| c.seed);
+    for s in siblings
+        .iter()
+        .filter(|s| !s.frame_seeds.is_empty() && s.checksums.last().map(|c| c.seed) == ours)
+    {
+        for &(frame, word) in &s.frame_seeds {
+            if !init.frame_seeds.iter().any(|(f, _)| *f == frame) {
+                init.frame_seeds.push((frame, word));
+            }
         }
     }
+    init.frame_seeds.sort_unstable();
 }
 
 /// [`run_with`], with what this dump lacks borrowed from **siblings** —
@@ -1662,7 +1680,7 @@ mod tests {
         borrow_from_siblings(&mut init, &refs);
         // A sibling on disk that yields nothing is a reader bug, not a
         // reason to skip: the assertion below must not evaporate.
-        if texts.len() == 3 {
+        if texts.len() == 4 {
             assert!(!init.checksums.is_empty(), "run11's trace was not read");
             assert!(!init.heights.is_empty(), "run3's height table was not read");
             assert_eq!(init.herds.len(), 13, "run12's herds were not read");
@@ -1671,8 +1689,8 @@ mod tests {
                 (22, 34, 408)
             );
             assert_eq!(
-                init.frame_seeds,
-                vec![
+                &init.frame_seeds[..4],
+                &[
                     (0, 0xb619_4ba1),
                     (1, 0x4554_ec0f),
                     (2, 0xab3b_035d),
@@ -1680,6 +1698,8 @@ mod tests {
                 ],
                 "run12's end-of-frame words"
             );
+            assert_eq!(init.frame_seeds.len(), 14, "plus run13's ten, 94–103");
+            assert_eq!(init.frame_seeds[4], (94, 0x5f8f_3d9d));
         }
         let traced = !init.checksums.is_empty() && !init.heights.is_empty();
         let mut built = build_sim(&loaded, &init, Tuning::RON);
@@ -1937,6 +1957,7 @@ mod tests {
             "gamelog-run11-checksum.txt",
             "gamelog-run3-fulldump-types.txt",
             "gamelog-run12-dumpall-seeds.txt",
+            "gamelog-run13-window-95-105.txt",
         ]
         .iter()
         .filter_map(|n| dump(n))
@@ -2387,20 +2408,27 @@ mod tests {
         // their own — 527 order and 357 path disagreements that a longer
         // trace removes (`docs/SYNC.md` §6). Everyone else's fell, from
         // 1,784/1,123 to 1,238/875.
+        // 1,238/875 → 1,220/866 with run13's words installed at frame 94
+        // (the siblings' traced frames are pooled, `borrow_from_siblings`).
         assert!(
-            orders - farmer_orders <= 1_238 && paths - farmer_paths <= 875,
+            orders - farmer_orders <= 1_220 && paths - farmer_paths <= 866,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
+        );
+        // Printed so a re-base reads the numbers off `--nocapture`.
+        eprintln!(
+            "run6: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Re-based a third time, 2026-08-24 (run13): the re-target's modulus
         // is 4, not 3 — sixteen cells to be sent to, not nine — and the
         // unit loop now rotates by owner, so the AI's farmers draw first at
         // frame 101. On run6's own stream past frame 3 both change which
         // tiles the six farmers are sent to, and the counts moved from
-        // 527/357 to 662/432. The farmers' pin with teeth is run13's, where
-        // the frame-101 words are the original's
-        // (`run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched`).
+        // 527/357 to 662/432 — then to **588/372** once run13's words were
+        // pooled in and the first re-target ran on the original's stream.
+        // The farmers' pin with teeth is run13's, where the AI's goals are
+        // compared (`run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched`).
         assert!(
-            farmer_orders <= 662 && farmer_paths <= 432,
+            farmer_orders <= 588 && farmer_paths <= 372,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }

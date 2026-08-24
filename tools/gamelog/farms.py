@@ -5,7 +5,7 @@ non-empty cell as (print-index, status, percent)."""
 import sys
 
 path = sys.argv[1]
-blocks = [int(b) for b in sys.argv[2:]]
+blocks = [None if b == "init" else int(b) for b in sys.argv[2:]]
 
 
 def farms_at(block):
@@ -59,7 +59,7 @@ def farms_at(block):
 
 
 for b in blocks:
-    print(f"=== block {b} (end of sim-frame {b - 1})")
+    print(f"=== block {b} (end of sim-frame {b - 1 if b is not None else 'setup'})")
     for i, fm in enumerate(farms_at(b)):
         cells = fm["cells"]
         empty = sum(1 for p, st in cells if st == 0)

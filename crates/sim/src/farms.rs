@@ -121,7 +121,11 @@ impl Sim {
     /// `Farms::inc_time`, from `Objects::inc_time` after the ammo — every
     /// complete, enabled farm, in building order.
     pub fn farms_inc_time(&mut self) {
-        for b in 0..self.buildings.len() {
+        // The `Farms` list, in activation order (`Sim::farm_order`) — not
+        // the buildings' — because the sprout's `% empty` draw is spent by
+        // whichever farm the walk reaches first (`docs/SYNC.md` §4.1).
+        let order = self.farm_order.clone();
+        for b in order {
             let bd = &self.buildings[b];
             if !bd.alive || !bd.active || bd.farm.disabled {
                 continue;

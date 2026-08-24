@@ -266,7 +266,12 @@ The farmers' modulus is settled by the `% 4` match alone: under `% 3` the
 same twelve draws read `0,2,1,1,2,2 / …`, and a `+312` offset (r = 3)
 appears twice among the six goals. The `Farms` list order that the sprout
 pins is the **AI's three farms first, then the human's, then the AI's
-seventh** — the setup's creation order, not `BUILDDATA`'s.
+seventh** — the setup's creation order, not `BUILDDATA`'s. Three
+`DUMP_ALL` dumps agree — run3, run13 and run5, a different lobby — and the
+loop is `Setup::build_game@005ac190`'s walk over `info.player[k]`'s
+start-slot field (unread beyond that). The sim keeps `Sim::farm_order`,
+filled at `activate` and walked by `farms_inc_time`; `build_sim` orders
+the starting farms higher slot first.
 
 ## 5. The harness
 
@@ -316,6 +321,13 @@ So the sim's `do_move` gate agrees with the original's on all seven walks
 the window starts (§6's frame-3 draw is specific to those three), and the
 next gaps are the ones §6 names: the animation clock and the scout.
 
+The siblings' traced frames are **pooled** (`borrow_from_siblings`): with
+run12 and run13 both on the list, a run of this lobby gets the true word at
+the ends of frames 0–3 and 94–103, and the dump's own word wins where two
+name a frame. Run6 now takes run13's correction at 94, so its farmers'
+first re-target runs on the original's stream — their disagreement count
+over 432 frames fell from 662/432 to 588/372 (the run6 pin's ceilings).
+
 ## 6. What is not established
 
 - **The 4 draws at 116–119 of frame 0.** Nothing after `Farms::inc_time` in
@@ -332,8 +344,15 @@ next gaps are the ones §6 names: the animation clock and the scout.
   are 1, 0, 0, 0. But neither slot fits: draws 110–113 read variants
   `2,0,0,0` and 116–119 `0,1,0,0`, while 36, 37, 46, 47 read `1,0,0,0` as
   §4 has them. So the tail is not a wrap, and why those four guys end frame
-  0 un-stepped (`inside_up` and `unit_masks` are clean) is unread —
-  `Unit::inc_time`'s gate is `+0x82 < 0` or the type's `+4 ∈ {0x34, 0x35}`.
+  0 un-stepped is unread. The gates, named from `types.txt`:
+  `Unit::inc_time` steps the guys when **`inside_up < 0`** (`UnitData+0x82`
+  — a garrisoned unit's clock stops) or the type's `+4` category is
+  `0x34`/`0x35`; `Guy::inc_time`'s step is 0 while **`unit_masks2 & 0x10`**
+  (`+0x6c`). Both are clean for the four at the end of frame 0, so the
+  remaining candidate is the `execute_events` call that follows each
+  unit's `inc_time` in `Objects::inc_time` — an event that sets an
+  animation there would leave `cur_time 0`. A `GUYS=4` frame-0 capture
+  settles it.
 - **The human scout's 15 and the AI scout's 8** are placed by elimination,
   not by outcome: `think_scout`'s scan draws once per unseen candidate cell,
   which needs the seen map the sim does not keep, and the AI scout's first

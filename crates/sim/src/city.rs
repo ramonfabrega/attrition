@@ -1187,6 +1187,11 @@ impl Sim {
             self.buildings[b].ty = Some(town);
             self.buildings[b].combat = Some(self.build_types[town].combat.unwrap_or_default());
         }
+        // `Farms::add`: the farm joins the `Farms` list in activation
+        // order, which is the order its per-frame draw is taken in.
+        if self.build_types[ty].ident == Ident::Farm && !self.farm_order.contains(&b) {
+            self.farm_order.push(b);
+        }
         {
             let bd = &mut self.buildings[b];
             bd.active = true;

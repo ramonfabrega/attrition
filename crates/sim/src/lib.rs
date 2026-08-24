@@ -456,6 +456,13 @@ pub struct Sim {
     pub redirects: cost::Redirects,
     /// The production buildings, each with its own queue.
     pub buildings: Vec<Building>,
+    /// `Farms`' list: every farm in the order it was activated
+    /// (`Farms::add` runs from `Build::activate`), which is the order
+    /// `Farms::inc_time` walks and so the order the farm draws are spent in
+    /// (`docs/SYNC.md` §3.3, §4.1). It is not the buildings' order: the
+    /// starting positions are built from the higher start slot down, so
+    /// the AI's farms come before the human's in every `DUMP_ALL` dump.
+    pub farm_order: Vec<usize>,
     /// The tech tree — what may be bought and what owning it changes; see
     /// `docs/TECH.md`. Empty until [`Sim::set_tech_tree`], and a unit type
     /// joins it through [`UnitType::tree`].
@@ -727,6 +734,7 @@ impl Sim {
             muster: vec![Muster::new(&tuning); players],
             redirects: cost::Redirects::RON,
             buildings: Vec::new(),
+            farm_order: Vec::new(),
             table: combat::Table::uniform(0),
             rng: combat::Rng::new(0),
             projectiles: Vec::new(),
