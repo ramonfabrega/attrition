@@ -36,9 +36,16 @@
 //! only add rounding the original does not have.
 
 pub mod ai;
+pub mod ai_build;
+pub mod ai_census;
 pub mod ai_drive;
 pub mod ai_host;
+pub mod ai_make;
 pub mod ai_place;
+pub mod ai_research;
+pub mod ai_sites;
+pub mod ai_types;
+pub mod ai_units;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;

@@ -178,6 +178,39 @@ pub enum Terrain {
     Sea,
 }
 
+/// The rest of a cell's record — the original's `WData` (`World+0x134`,
+/// `0x1c` bytes a cell; `struct /rise.pdb/WData`) beyond the owner and the
+/// region the [`World`] already keeps. The map maker writes these once; the
+/// production AI reads them (`docs/AI.md` §2.3, §2.7, §2.13) and so does the
+/// pathfinder's cost function. A headless world that never sets them
+/// answers every field with zero — the flat map the harness has always
+/// assumed — and the `WORLD=6` start-of-game dump is what fills them
+/// (`docs/ORACLE.md`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct CellData {
+    /// `WData.flags`: `0x8000` … `0x2` as `WData::log_data` names them;
+    /// `0x100` marks a coastal cell whose `region2` is the sea region,
+    /// `0x4000` a cell holding a building's centre, `0x78` the
+    /// `buildings_allowed` field.
+    pub flags: u16,
+    /// `WData.land`: the terrain kind (`land_key[land]` in the dump).
+    pub land: i8,
+    pub land_sub: u8,
+    /// `WData.region2`: the alternate region — a coastal land cell's sea
+    /// region — or `None` for `-1`.
+    pub region2: Option<u16>,
+    /// `WData.val`: the city-site value byte the site score starts from.
+    pub val: u8,
+    /// `WData.goods`: a bit per good gatherable near this cell.
+    pub goods: u8,
+    /// `WData.blocked`, `WData.solid`.
+    pub blocked: u8,
+    pub solid: i8,
+    /// `WData.down`, `WData.down_who`: the object chained at this cell.
+    pub down: i16,
+    pub down_who: i8,
+}
+
 /// The world: a grid of cells, each in at most one region, each with a primary
 /// and a runner-up claimant.
 #[derive(Clone, Debug)]
@@ -195,6 +228,13 @@ pub struct World {
     /// it; see `docs/CITIES.md` §2.3 for the bit legend, and [`tile`] for the
     /// names.
     tiles: Vec<u16>,
+    /// The rest of each cell's `WData` record — [`CellData`]; all zero until
+    /// a map is loaded.
+    cells: Vec<CellData>,
+    /// `WorldData::danger[who][region]` — the per-player danger figure the
+    /// AI's trainers and placement read. Empty until something writes it;
+    /// [`World::danger`] answers 0 then.
+    danger: Vec<Vec<i32>>,
 }
 
 /// The bits of a tile mask, as the placement code names them — `TData.mask`
@@ -240,7 +280,85 @@ impl World {
             region: vec![None; n],
             regions: Vec::new(),
             tiles: vec![0; n * (TILES_PER_CELL as usize) * (TILES_PER_CELL as usize)],
+            cells: vec![CellData::default(); n],
+            danger: Vec::new(),
         }
+    }
+
+    /// The rest of a cell's record — zero off the map and on a flat world.
+    pub fn cell_data(&self, c: Cell) -> CellData {
+        self.index(c)
+            .map_or_else(CellData::default, |i| self.cells[i])
+    }
+
+    /// Writes a cell's record (the map loader's, and a test's).
+    pub fn set_cell_data(&mut self, c: Cell, d: CellData) {
+        if let Some(i) = self.index(c) {
+            self.cells[i] = d;
+        }
+    }
+
+    /// `WData.val` of the cell under a tile — the site value.
+    pub fn site_value(&self, t: Pos) -> i32 {
+        i32::from(self.cell_data(Self::cell_of_tile(t)).val)
+    }
+
+    /// `WData.goods` of the cell under a tile — the nearby-goods bits.
+    pub fn goods_near(&self, t: Pos) -> u8 {
+        self.cell_data(Self::cell_of_tile(t)).goods
+    }
+
+    /// `WorldData::get_tregion` with the coastal refinement: a cell flagged
+    /// `0x100` answers its `region2` (the sea region) when the tile's own
+    /// surface is ocean. `docs/AI.md` §2.3 step 10.
+    pub fn tregion_alt(&self, t: Pos) -> Option<u16> {
+        let c = Self::cell_of_tile(t);
+        let d = self.cell_data(c);
+        let coastal_water =
+            d.flags & 0x100 != 0 && self.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN;
+        match d.region2 {
+            Some(r) if coastal_water => Some(r),
+            _ => self.region_of(c),
+        }
+    }
+
+    /// `WorldData::danger[who][region]`; 0 when never written.
+    pub fn danger(&self, who: Player, region: u16) -> i32 {
+        self.danger
+            .get(who as usize)
+            .and_then(|d| d.get(region as usize))
+            .copied()
+            .unwrap_or(0)
+    }
+
+    /// Writes a danger figure, growing the table as needed.
+    pub fn set_danger(&mut self, who: Player, region: u16, value: i32) {
+        let w = who as usize;
+        if self.danger.len() <= w {
+            self.danger.resize_with(w + 1, Vec::new);
+        }
+        let r = region as usize;
+        if self.danger[w].len() <= r {
+            self.danger[w].resize(r + 1, 0);
+        }
+        self.danger[w][r] = value;
+    }
+
+    /// How many regions the world has, land and sea — the length every
+    /// per-region census array takes.
+    pub fn region_count(&self) -> usize {
+        self.regions.len()
+    }
+
+    /// `world+0x34`, `sea_map`: how many land regions there are, which is
+    /// what the AI reads as the landmass count.
+    pub fn landmasses(&self) -> i32 {
+        self.regions.iter().filter(|t| **t == Terrain::Land).count() as i32
+    }
+
+    /// `world+0x8`, `size`: the cell count.
+    pub const fn cell_count(&self) -> i32 {
+        self.width * self.height
     }
 
     pub const fn width(&self) -> i32 {

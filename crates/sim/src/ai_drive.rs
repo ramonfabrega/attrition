@@ -11,16 +11,12 @@
 //! `check_explore`, `compute_score` and `diplomacy` are not stepped yet.
 
 use crate::ai::{self, GoodsSetup, ScriptResult, Step, cadence};
-use crate::world::Terrain;
 use crate::{Player, Sim};
 
 impl Sim {
     /// `world+0x34` as the AI reads it: the land regions.
     fn landmasses(&self) -> i32 {
-        self.world
-            .regions()
-            .filter(|(_, t)| *t == Terrain::Land)
-            .count() as i32
+        self.world.landmasses()
     }
 
     /// `Leader::init`'s AI tail for a computer leader (`docs/AI.md` §3
@@ -67,15 +63,20 @@ impl Sim {
             if self.nation[w].human || self.defeated[w] {
                 continue;
             }
-            self.plan_strategy(w as Player);
+            let who = w as Player;
+            if cadence::explore_due(w, self.frame, self.ai_speed) {
+                self.check_explore(who);
+            }
+            self.plan_strategy(who);
+            // `compute_score(0)` and `diplomacy` — not modelled.
         }
     }
 
     /// `Leader::plan_strategy@006b9620`'s head (`docs/AI.md` §2.2): a
     /// running step machine pre-empts everything; otherwise the sweep at
-    /// frame 0 and on the leader's phase, which ends by arming the machine.
-    /// The cheap research tick between sweeps reads the make list's head;
-    /// nothing fills the list yet, so it has nothing to buy.
+    /// frame 0 and on the leader's phase, which ends by arming the machine;
+    /// and between sweeps, every 30 phase-frames, the cheap research tick
+    /// off the make list's head.
     fn plan_strategy(&mut self, who: Player) {
         let w = who as usize;
         if self.ai[w].step != Step::Idle {
@@ -83,11 +84,37 @@ impl Sim {
             return;
         }
         if !cadence::sweep_due(w, self.frame, self.ai_speed) {
+            if cadence::research_tick_due(w, self.frame, self.ai_speed) {
+                self.research_tick(who);
+            }
             return;
         }
-        // The sweep: the census, the orphan check and `compute_sites` are
-        // the next tranche's; its one act modelled today is the tail.
+        // The sweep (§2.3), then its tail (§2.3 step 17).
+        self.census(who);
+        self.check_orphaned_buildings(who);
+        self.compute_sites(who, false);
         self.ai[w].step = Step::Script;
+    }
+
+    /// The cheap tick: buy the top research when it becomes affordable —
+    /// the head must be an age or a tech, affordable, not had, not queued.
+    fn research_tick(&mut self, who: Player) {
+        let w = who as usize;
+        let head = *self.ai[w].make_list.head();
+        if head.t < 0 {
+            return;
+        }
+        let t = head.t as usize;
+        if t >= self.tech_tree.types.len() || !self.tech_tree.kind(t).is_tech() {
+            return;
+        }
+        if self.type_affordable(who, t, false) == 0
+            || self.tech_tree.has_tech(&self.setup, &self.tech[w], t)
+            || self.researching(who, t)
+        {
+            return;
+        }
+        self.make_this(who, 0);
     }
 
     /// `Leader::production_ai@006c1960` — one step a frame (`docs/AI.md`
@@ -95,6 +122,7 @@ impl Sim {
     fn production_ai(&mut self, who: Player) {
         let w = who as usize;
         let unlimited = self.lobby.resources_unlimited();
+        self.ai[w].effective_pop = self.queued_units(who) + self.muster[w].control + 1;
         self.ai[w].enter(unlimited);
         match self.ai[w].step {
             Step::Idle => {}
@@ -119,9 +147,11 @@ impl Sim {
                 let setup = self.goods_setup(who);
                 let leader = &mut self.ai[w];
                 ai::goods_picture(leader, &mut self.ledgers[w], &setup);
-                // `market_speculation`: the market is not modelled.
-                leader.make_list.clear();
-                leader.after_producer();
+                if !unlimited {
+                    self.market_speculation(who);
+                }
+                self.ai[w].make_list.clear();
+                self.ai[w].after_producer();
             }
             Step::Cities
             | Step::Research
@@ -129,19 +159,32 @@ impl Sim {
             | Step::Units
             | Step::Buildings
             | Step::Units2 => {
-                // `found_cities`, `research_techs`, `upgrade_units`,
-                // `create_units`, `create_buildings`: the producers fill the
-                // make list; none is built yet (§12.1 item 5).
+                match self.ai[w].step {
+                    Step::Cities => self.found_cities(who),
+                    Step::Research => self.research_techs(who),
+                    Step::Upgrades => self.upgrade_units(who),
+                    Step::Units | Step::Units2 => self.create_units(who),
+                    _ => self.create_buildings(who),
+                }
                 self.ai[w].after_producer();
+                // The tail: the unlimited lobby buys after every producer.
                 if unlimited {
+                    self.make_stuff(who);
                     self.ai[w].make_list.clear();
                 }
             }
             Step::Make => {
-                // `make_stuff` over an empty list buys nothing.
-                self.ai[w].after_make(false, unlimited);
+                let bought = self.make_stuff(who);
+                self.ai[w].after_make(bought, unlimited);
             }
-            Step::Buildings2 | Step::Make2 => self.ai[w].after_second_pass(),
+            Step::Buildings2 => {
+                self.create_buildings(who);
+                self.ai[w].after_second_pass();
+            }
+            Step::Make2 => {
+                self.make_stuff(who);
+                self.ai[w].after_second_pass();
+            }
         }
     }
 

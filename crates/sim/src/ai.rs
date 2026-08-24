@@ -398,6 +398,185 @@ pub enum ScriptResult {
     Failed,
 }
 
+/// One site of the leader's ten — `Site` (`wx, wy, val, reg, dist, rank`),
+/// `docs/AI.md` §2.7. `wx, wy` are in cells; `reg` is the sim's region id.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Site {
+    pub wx: i32,
+    pub wy: i32,
+    pub val: i32,
+    pub reg: i32,
+    pub dist: i32,
+    pub rank: i32,
+}
+
+/// `Sites` holds ten.
+pub const SITES: usize = 10;
+
+/// The per-city AI record — the `CityData` fields the census writes and
+/// the producers read (`docs/AI.md` §2.3 steps 2 and 13; `create-buildings.md`
+/// §4). Indexed like [`crate::Sim::cities`].
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct CityAi {
+    /// Citizens of this city with no action, and with one.
+    pub free: i32,
+    pub busy: i32,
+    pub gatherers: i32,
+    /// The nearest free or gathering citizen, in `dist / 0x300`; 100 when
+    /// none.
+    pub peasant_dist: i32,
+    pub in_port: i32,
+    /// The site picture over the city's circle: water tiles, open land
+    /// tiles, those too small for a 4×4, dock candidates, the footprint
+    /// classes that fit (`space[n − 2]` for `n = 2..4`), and the best
+    /// gather amount per good on the occupied tiles.
+    pub ocean: i32,
+    pub land: i32,
+    pub filled: i32,
+    pub dock_tile: i32,
+    pub space: [i32; 3],
+    pub ter: [i32; RESOURCES],
+}
+
+/// The census — every `LeaderData` count `plan_strategy`'s sweep writes
+/// (`docs/AI.md` §2.3), under the PDB's names, so a `LEADERS=9` dump can be
+/// diffed against it field by field. The per-region arrays are indexed by
+/// the sim's region id (the original folds sea regions `% 0x3f` into
+/// 63-entry arrays; ours are one slot per region, land or sea) and are
+/// sized by [`Census::resize`].
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Census {
+    // Zeroed every sweep (step 3).
+    pub active: i32,
+    pub combat: i32,
+    pub non_siege: i32,
+    pub sea_combat: i32,
+    pub siege: i32,
+    pub defense: i32,
+    pub attack: i32,
+    pub naval: i32,
+    pub air: i32,
+    pub missile: i32,
+    pub transports: i32,
+    pub fishermen: i32,
+    pub idle_fishermen: i32,
+    pub peasants: i32,
+    pub scholars: i32,
+    pub caras: i32,
+    pub merchants: i32,
+    pub fighters: i32,
+    pub bombers: i32,
+    pub cruise: i32,
+    pub nuke: i32,
+    pub free_peasants: i32,
+    pub xport_peasants: i32,
+    pub gatherers: i32,
+    pub attacked: i32,
+    pub full_cities: i32,
+    // Kept by the unit lifecycle, read here.
+    pub pop: i32,
+    pub scouts: i32,
+    // Territory (step 4).
+    pub my_team_terr: i32,
+    pub other_team_terr: i32,
+    pub min_other_team_terr: i32,
+    // Step 5–7.
+    pub filled_gather_slots: [i32; RESOURCES],
+    pub gather_slots: [i32; RESOURCES],
+    pub ally_mask: u32,
+    /// `invaders[i]`: how many of *leader i's* non-siege military units
+    /// stand on my land — written into every leader by every sweep.
+    pub invaders: Vec<i32>,
+    // Maxima (step 12).
+    pub gather_slots_high: [i32; RESOURCES],
+    pub peasant_high: i32,
+    pub scholar_high: i32,
+    pub caravan_high: i32,
+    pub merchant_high: i32,
+    pub army_high: i32,
+    pub city_high: i32,
+    pub village_high: i32,
+    pub population_high: i32,
+    pub city_pop_high: i32,
+    pub resources_controlled: i32,
+    // Wars (steps 14–15).
+    pub wars: i32,
+    pub allies: i32,
+    pub active_wars: i32,
+    pub active_wars_with: u32,
+    /// `home_reg`: the capital's region.
+    pub home_reg: i32,
+    /// `explored`, `check_explore`'s recount.
+    pub explored: i32,
+    /// `escrow_rate[6]` — 40 each once the leader holds more than two
+    /// cities and villages.
+    pub escrow_rate: [i32; RESOURCES],
+    // Per region, one slot per sim region.
+    pub reg_active: Vec<i32>,
+    pub reg_combat: Vec<i32>,
+    pub reg_attack: Vec<i32>,
+    pub reg_naval: Vec<i32>,
+    pub reg_transports: Vec<i32>,
+    pub reg_defense: Vec<i32>,
+    pub reg_attacked: Vec<i32>,
+    pub reg_land: Vec<i32>,
+    pub reg_peasants: Vec<i32>,
+    pub reg_free_peasants: Vec<i32>,
+    pub reg_xport_peasants: Vec<i32>,
+    pub reg_gatherers: Vec<i32>,
+    pub reg_gather_slots: Vec<i32>,
+    pub reg_known_rares: Vec<i32>,
+    pub reg_unpack_merch: Vec<i32>,
+    /// `reg_cities[r]`: the sum of `reg_buildings[r]` over the four city
+    /// types, recounted each sweep.
+    pub reg_cities: Vec<i32>,
+    /// `reg_pop[r]`: kept by the building lifecycle (`gain_/lose_building`).
+    pub reg_pop: Vec<i32>,
+    /// `strategy[r]`: bit 1 thin, 2 stronger, 4 weaker, 8 expand.
+    pub strategy: Vec<i32>,
+    pub reg_wars: Vec<i32>,
+    pub reg_allies: Vec<i32>,
+    pub reg_neutrals: Vec<i32>,
+}
+
+impl Census {
+    /// Sizes every per-region array to `regions` slots and `invaders` to
+    /// `players`, keeping what is already there.
+    pub fn resize(&mut self, regions: usize, players: usize) {
+        for v in [
+            &mut self.reg_active,
+            &mut self.reg_combat,
+            &mut self.reg_attack,
+            &mut self.reg_naval,
+            &mut self.reg_transports,
+            &mut self.reg_defense,
+            &mut self.reg_attacked,
+            &mut self.reg_land,
+            &mut self.reg_peasants,
+            &mut self.reg_free_peasants,
+            &mut self.reg_xport_peasants,
+            &mut self.reg_gatherers,
+            &mut self.reg_gather_slots,
+            &mut self.reg_known_rares,
+            &mut self.reg_unpack_merch,
+            &mut self.reg_cities,
+            &mut self.reg_pop,
+            &mut self.strategy,
+            &mut self.reg_wars,
+            &mut self.reg_allies,
+            &mut self.reg_neutrals,
+        ] {
+            v.resize(regions, 0);
+        }
+        self.invaders.resize(players, 0);
+    }
+
+    /// A per-region slot, 0 off the table.
+    pub fn reg(v: &[i32], r: u16) -> i32 {
+        v.get(r as usize).copied().unwrap_or(0)
+    }
+}
+
 /// The per-leader AI state the driver owns — the `LeaderData` fields
 /// `production_step`, `prod_script_run`, `script_step`, `pers`,
 /// `make_list`, the goods picture, and the cadence's `ai_speed`.
@@ -434,6 +613,18 @@ pub struct Leader {
     pub sea_mod: i32,
     pub infra_mod: i32,
     pub defense_mod: i32,
+    /// The census — `docs/AI.md` §2.3.
+    pub census: Census,
+    /// The per-city AI records, indexed like `Sim::cities`; grown by the
+    /// census.
+    pub city_ai: Vec<CityAi>,
+    /// The ten city sites — `docs/AI.md` §2.7.
+    pub sites: [Site; SITES],
+    /// `mil_trainers`: the leader's military trainers, by building index.
+    pub mil_trainers: Vec<usize>,
+    /// `tech_frame`, `tech_cat_frame[4]`: written only by `Leader::init`.
+    pub tech_frame: i64,
+    pub tech_cat_frame: [i64; 4],
 }
 
 impl Default for Leader {
@@ -490,6 +681,94 @@ impl Leader {
             sea_mod: 0x100,
             infra_mod: 0x100,
             defense_mod: 0x100,
+            census: Census {
+                active: 0,
+                combat: 0,
+                non_siege: 0,
+                sea_combat: 0,
+                siege: 0,
+                defense: 0,
+                attack: 0,
+                naval: 0,
+                air: 0,
+                missile: 0,
+                transports: 0,
+                fishermen: 0,
+                idle_fishermen: 0,
+                peasants: 0,
+                scholars: 0,
+                caras: 0,
+                merchants: 0,
+                fighters: 0,
+                bombers: 0,
+                cruise: 0,
+                nuke: 0,
+                free_peasants: 0,
+                xport_peasants: 0,
+                gatherers: 0,
+                attacked: 0,
+                full_cities: 0,
+                pop: 0,
+                scouts: 0,
+                my_team_terr: 0,
+                other_team_terr: 0,
+                min_other_team_terr: 0,
+                filled_gather_slots: [0; RESOURCES],
+                gather_slots: [0; RESOURCES],
+                ally_mask: 0,
+                invaders: Vec::new(),
+                gather_slots_high: [0; RESOURCES],
+                peasant_high: 0,
+                scholar_high: 0,
+                caravan_high: 0,
+                merchant_high: 0,
+                army_high: 0,
+                city_high: 0,
+                village_high: 0,
+                population_high: 0,
+                city_pop_high: 0,
+                resources_controlled: 0,
+                wars: 0,
+                allies: 0,
+                active_wars: 0,
+                active_wars_with: 0,
+                home_reg: -1,
+                explored: 0,
+                escrow_rate: [0; RESOURCES],
+                reg_active: Vec::new(),
+                reg_combat: Vec::new(),
+                reg_attack: Vec::new(),
+                reg_naval: Vec::new(),
+                reg_transports: Vec::new(),
+                reg_defense: Vec::new(),
+                reg_attacked: Vec::new(),
+                reg_land: Vec::new(),
+                reg_peasants: Vec::new(),
+                reg_free_peasants: Vec::new(),
+                reg_xport_peasants: Vec::new(),
+                reg_gatherers: Vec::new(),
+                reg_gather_slots: Vec::new(),
+                reg_known_rares: Vec::new(),
+                reg_unpack_merch: Vec::new(),
+                reg_cities: Vec::new(),
+                reg_pop: Vec::new(),
+                strategy: Vec::new(),
+                reg_wars: Vec::new(),
+                reg_allies: Vec::new(),
+                reg_neutrals: Vec::new(),
+            },
+            city_ai: Vec::new(),
+            sites: [Site {
+                wx: 0,
+                wy: 0,
+                val: 0,
+                reg: 0,
+                dist: 0,
+                rank: 0,
+            }; SITES],
+            mil_trainers: Vec::new(),
+            tech_frame: 0,
+            tech_cat_frame: [0; 4],
         }
     }
 
