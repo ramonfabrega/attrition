@@ -125,7 +125,7 @@ impl Sim {
             || self.units[u]
                 .path
                 .last()
-                .is_some_and(|p| p.flags & path_flag::TURN_FIRST != 0);
+                .is_some_and(|p| p.flags & path_flag::TRANSPORT != 0);
         if !self.world.tile_in_bounds(t) {
             return loc::OFF_MAP;
         }
@@ -330,9 +330,11 @@ impl Sim {
                 } else {
                     2000
                 };
-                if step == STEP_UNIT {
-                    extra *= 4;
-                }
+            }
+            // The unit-grid ×4 sits outside the embark guard: a disembark
+            // skips the 500/2000 and still takes the shift (audit V21).
+            if step == STEP_UNIT {
+                extra *= 4;
             }
             embarks = true;
         } else if depth == 1 {
@@ -716,7 +718,7 @@ impl Sim {
                 flags |= 0x10;
             }
             if n.transport {
-                flags |= path_flag::TURN_FIRST;
+                flags |= path_flag::TRANSPORT;
                 tolerance = 0;
             }
             let entry = PathData {
@@ -762,6 +764,14 @@ impl Sim {
             let (dx, dy) = (here.x - goal.x, here.y - goal.y);
             let far = dx.abs() + dy.abs() >= 0x300;
             let mut s = if far { 0x180 } else { 0x30 };
+            // The give-up exit: a remainder smaller than the step on both
+            // axes takes the goal where it stands **without running A\***
+            // (audit V17) — the same push-and-return as reaching the
+            // start's cell. Only a region match continues to the search.
+            if dx.abs() < s && dy.abs() < s {
+                self.units[u].path.push(goal_e);
+                return self.units[u].path.len() as i32;
+            }
             let ang = movement::find_angle(dx, dy);
             if ang.0 < 0 {
                 s = -s;
@@ -774,9 +784,6 @@ impl Sim {
                 self.units[u].path.push(goal_e);
                 return self.units[u].path.len() as i32;
             }
-            if sx == 0 && cy == 0 {
-                break; // no progress; take the goal where it stands
-            }
         }
         self.units[u].path.push(goal_e);
         // The near test and the centre push use the (possibly pulled-back)
@@ -787,14 +794,19 @@ impl Sim {
             return self.units[u].path.len() as i32;
         }
 
+        // `army`/`worker` are **AI-only**: `leaders.flags & 4` is
+        // `is_human`, and a human's `find_wpath` jumps straight to the
+        // search past the whole mode block (audit V14).
+        let human = self.nation[self.units[u].owner as usize].human;
         let modes = Modes {
             scouting: self.current_order(u).is_some_and(
                 |o| matches!(o.body, Body::Move(mo) if mo.kind == MoveKind::ExploreTo),
             ),
-            army: self.army_mode(u),
-            worker: self.units[u]
-                .ty
-                .is_some_and(|t| self.unit_types[t].worker != Worker::None),
+            army: !human && self.army_mode(u),
+            worker: !human
+                && self.units[u]
+                    .ty
+                    .is_some_and(|t| self.unit_types[t].worker != Worker::None),
             no_danger: self.no_danger_mode(u),
             iroquois: false, // SEAM: `unit_masks2 & 0x4000`.
             ..Modes::default()
@@ -1038,7 +1050,7 @@ impl Sim {
                 let collinear =
                     ax - mid.to.x == mid.to.x - next.to.x && ay - mid.to.y == mid.to.y - next.to.y;
                 let one_step = (ax - next.to.x).abs() == 0x30 && (ay - next.to.y).abs() == 0x30;
-                if mid.flags & path_flag::TURN_FIRST != 0 || (!collinear && !one_step) {
+                if mid.flags & path_flag::TRANSPORT != 0 || (!collinear && !one_step) {
                     keep.push(mid);
                     ax = mid.to.x;
                     ay = mid.to.y;

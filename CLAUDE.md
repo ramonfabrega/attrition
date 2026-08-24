@@ -282,9 +282,15 @@ better, in which case say so and take that.
    on the way: flat gatherers' footprints were wrongly `BLOCKED`
    (`mask_me`'s template only blocks marked tiles), and the cost function
    clamps its additive term at zero, so the own-territory −4 only ever
-   offsets danger. The blind second reading has not run yet. Still open:
-   the corner-cutting probe offsets (listing pass), `go_around_building`,
-   collision recovery (`find_upath`'s caller), suspend/restore stashing.
+   offsets danger. The blind second reading ran the same day and is landed
+   (`docs/audit/2026-08-23-pathfinder.md`): 32 verdicts, the structure
+   doubly confirmed, five behavioural corrections applied — among them
+   `leaders.flags & 4` = `is_human` gating `army`/`worker` (which exposed
+   the gamelog parser handing every leader its successor's flags — fixed),
+   the pull-back walk's give-up exit, and the corner-cutting probe table,
+   settled in the listing. Still open: `go_around_building`, collision
+   recovery (`find_upath`'s caller), suspend/restore stashing, and the
+   forest tile layer for the harness world (the remaining run6 path gap).
 9. **AI** — last, because it is the least oracled, and better oracled once
    4, 5 and the pathfinder stand.
 

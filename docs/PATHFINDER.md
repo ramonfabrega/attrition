@@ -14,8 +14,17 @@ dumped from the PE at the linker map's addresses. Confidence: **high** on the
 search, the cost function's structure, the wrappers, and the march
 correction; each stated exception is under §12.
 
-This document replaces the brief of 2026-08-22 (git has it). The blind second
-reading has not run yet.
+This document replaces the brief of 2026-08-22 (git has it). **The blind
+second reading ran the same day**: two Opus readers re-derived the search
+and the cost/wrappers halves from the export alone, an adjudicator took all
+32 points of tension back to the decompile and the PE listing, and the
+verdicts were ratified and folded in — `docs/audit/2026-08-23-pathfinder.md`
+records them, and every claim below marked "audit V*n*" carries its verdict
+number. The blind derivation agreed with the first reading on every
+load-bearing structural fact (the LIFO tie-break, the wheel, the budgets,
+`anti_unit`'s meaning, the arrival radius); its corrections were at the
+edges — branch reachability, guard clauses, and the corner-probe table the
+first reading had declined to trust.
 
 ---
 
@@ -65,7 +74,7 @@ group's shared path — belongs with group orders).
 | +0x38 | 0x78 | `worker` | `find_wpath` | `ObjectData::is_worker` |
 | +0x3c | 0x7c | `no_danger` | `astar_path` entry | 1 when the action is an attack (vfunc `+0x10` == 10), the order is `ATTACK_TO`/`GROUP_ATTACK_TO`, or `who >= 8` |
 | +0x40 | 0x80 | `limit` | `find_upath` wrappers | `500 / repaths[who]²` (halved with `anti`); restore: `300 / repaths²`. Expansion cap, applied only when `anti_unit` |
-| +0x44 | 0x84 | `saving` | restore wrapper / `astar_path` | 1 = resume the search stashed on the unit |
+| +0x44 | 0x84 | `saving` | restore wrapper / `astar_path` | 1 = resume the search stashed on the unit. **Cross-call global state**: `find_tpath` and `find_upath` both skip their whole pre-A\* block when it is set, and `limit` persists across wrappers that never write it — a determinism hazard to respect when collision recovery lands (audit V29) |
 | +0x48 | 0x88 | `avoid_land` | `astar_path` entry | §5's terrain-mode derivation |
 | +0x4c | 0x8c | `avoid_sea` | `astar_path` entry | 0/1/2; 2 = refuse water outright |
 | +0x50 | 0x90 | `valid_hit` | `valid_ucoord` | memo-cache hit counter (saved/restored across suspend) |
@@ -137,21 +146,31 @@ sets `saving = 1` and `limit = 300 / repaths²`; both zero `saving` after.
 - Goal off the map → empty the stack, return −1. Same cell as the start, or
   a flying type (`unit_flags & 0x20`) → push the goal back untouched, return
   length.
-- The pull-back walk (non-flag-4 leaders, domain < 2, and the unit cannot
-  transport): step the goal toward the start by `0x180` per iteration while
-  the remaining Manhattan ≥ `0x300`, else `0x30`, until the goal tile's
-  `get_tregion` equals the start tile's (and, for sea worlds, an
-  `invalid_loc(goal,0,1,1,1,0)` clears); if the walk reaches the start's
-  cell, push and return without A\*. Flag-4 leaders (`leaders.list[who] &
-  4`) instead pop entries until one's **half-cell** (`cell*2+1`) `was_seen`
-  — the fog walk.
+- The pull-back walk (**AI leaders** — see below; domain < 2, and vfunc
+  `+0x8` says no **or** the unit cannot transport): step the goal toward
+  the start by `0x180` per iteration while the remaining Manhattan ≥
+  `0x300`, else `0x30`. Three exits (audit V15/V17): the goal tile's
+  `get_tregion` equals the start tile's (and, for a **sea-domain unit**, an
+  `invalid_loc(goal,0,1,1,1,0)` clears) → on to the near test and A\*;
+  the remainder is smaller than the current step on **both axes** → give
+  up: push the goal where it stands and **return without A\***; the walk
+  reaches the start's cell → the same push-and-return. **Human** leaders
+  (`leaders.list[who] & 4` is literally `LeaderData::is_human` — audit
+  V14) take the other variant, itself under the same guard: pop entries
+  until one's world cell's centre region matches and its **half-cell**
+  (`cell*2+1`) `was_seen`, also breaking on a final-flagged entry or an
+  empty stack, re-validating each popped entry's cell (off the map →
+  empty, −1); afterwards a gate — goal half-cell seen, or a sea-domain
+  unit — rejoins the AI walk (audit V16).
 - Push the (possibly pulled-back) goal; **cell-Manhattan < 3 → return
   length** (the near case the stub was exact for).
 - Modes: `scouting = 1` iff the type has `+0x2c8 & 0x10`, the order is
   `EXPLORE_TO` with vfunc `+0x10` == 3, and (order `flags & 4` clear or
-  `unit_masks & 0x40100`). For non-flag-4 leaders: `army = 1` iff the type
-  is military (`+0x1e8` attack ≠ 0, or its `is_supply` virtual — for the
-  base class, `unit_flags2 & 0x40`), **and** not `is_worker`, **and** not
+  `unit_masks & 0x40100`). **`army` and `worker` are AI-only** — a human's
+  `find_wpath` jumps straight to the search past the whole block (audit
+  V14): for AI leaders, `army = 1` iff the type is military (`+0x1e8`
+  attack ≠ 0, or its `is_supply` virtual — for the base class,
+  `unit_flags2 & 0x40`), **and** not `is_worker`, **and** not
   `is_attacking`, **and** the start cell's flags lack `0x100` (river);
   `worker = 1` iff `is_worker`.
 - Push `{goal-cell centre (cell*0x300+0x180), tol 0x180, flags 0}`, then
@@ -175,9 +194,12 @@ order's target is a unit and the order's `+0x1c` (the pause astar's failure
 path just rolled, §4.4) is non-zero. On success with more than three
 entries: drop a popped top equal to the unit's exact position (not final);
 then, while the top run has `flags & 2`, drop middle waypoints that are
-collinear with their neighbours (`to − mid == mid − next` on both axes) or
-within a `0x30` step of the outer pair on either axis, keeping any with
-`flags & 4`; re-push what survives in order. `kill_lists` always.
+collinear with their neighbours (`ref − mid == mid − next` on both axes)
+or whose surrounding pair sit exactly `0x30` apart on **both** axes (a
+diagonal corner — audit V22), keeping any with `flags & 4`. The reference
+point advances to the examined waypoint on a keep and on a collinear
+drop, and stays put on a corner drop. Re-push what survives in order.
+`kill_lists` always.
 
 ## 4. `astar_path(stack, step, anti)` — the search
 
@@ -248,10 +270,13 @@ While the open list is non-empty:
    1`, which restores all of it and jumps straight into this loop.
 4. Otherwise, if stopping: reconstruction (§7) — but first, if the budget
    (not arrival) ended a `0xc0` search with `anti_unit` set, or any `0x30`
-   search, **fail instead**: return 0, after (unit grid, target is a unit)
-   rolling `pause = Random::get(0, 0xffff) % 3 + 6` into the order and
-   adding 30 to the unit's `+0xb2` cooldown — **an RNG draw on the shared
-   stream**. A budget-ended `0x300` search instead **drains the open list
+   search, **fail instead**: return 0; on the unit grid, when the order's
+   target is a unit, roll `pause = Random::get(0, 0xffff) % 3 + 6` into the
+   order — **an RNG draw on the shared stream** — and, gated only on the
+   grid, add 30 to `UnitData::safe` (`+0xb2`; the PDB's name — audit
+   V1/V13). A search called with `anti ≠ 0` never takes this failure path
+   at all — it always reconstructs whatever it reached (audit V27). A
+   budget-ended `0x300` search instead **drains the open list
    keeping the node nearest the goal** (`vector_dist`), reconstructs the
    partial path from it, and — if the nearest node still needs a transport
    to reach the goal and the unit can take one (`unit_masks & 0x800000 &&
@@ -279,10 +304,12 @@ While the open list is non-empty:
      place).
 6. Insert `n` into closed by metric; loop.
 
-Open list exhausted → return 0, with the same unit-grid pause/cooldown side
-effects as step 4 — except the pause roll needs the order's `+0x20 < 13`
-(the vfunc `+0x40` order-data read; unverified which field, see §12), and
-the `+0xb2 += 30` cooldown is unconditional on the unit grid.
+Open list exhausted → return 0, with the same unit-grid side effects as
+step 4 — except the pause roll additionally needs the order data's
+`+0x20 < 13` (the vfunc `+0x40` read; the gate is byte-verified, the
+field's meaning is still open — §12). On both failure exits the
+`safe += 30` cooldown is gated only on the grid being `0x30`, not on the
+target.
 
 ### 4.4 Failure, and who consumes it
 
@@ -315,19 +342,19 @@ read** — fog hides them.
 |---|---|---|
 | base | `0x100`; **`0x400` if `scouting`** | seen ground is 32× dearer than unseen to a scout |
 | danger | `+ danger[who][to >> 9 block] / 8` (arithmetic, rounded toward 0) | unless `no_danger` |
-| own territory | `− 4` | cell owner == who. **The whole additive column is clamped at zero after the terrain term**, so on clean ground the discount only ever offsets danger — it never undercuts the base |
-| enemy territory | `+ 4` | owner ≥ 0 and `is_enemy` |
+| own territory | `− 4` | cell owner == who; **non-ocean cells only** (audit V18). **The whole additive column is clamped at zero after the army terms** (audit V19 — the conclusion is unchanged since those terms are positive): on clean ground the discount only ever offsets danger, never the base |
+| enemy territory | `+ 4` | owner ≥ 0 and `is_enemy`; non-ocean cells only |
 | ocean cell | `+ 200` | `is_ocean(to)` and `avoid_sea ≠ 0` |
 | land cell | `+ 200` | not ocean and `avoid_land` |
-| terrain | `+ 20 × tcost` | `tcost` = cell byte `+0x11`, or `+0x13` if `iroquois` |
+| terrain | `+ 20 × tcost` | `tcost` = cell byte `+0x11` (the PDB's `WData.blocked`), or `+0x13` (`WData.solid`, signed) if `iroquois` — audit V13 |
 | impassable terrain | `+ 100000` | `tcost ≥ 13` |
 | army, rough | `+ 10000` | `army` and `tcost ≥ 5` |
 | army, flagged cell | `base <<= 5` | `army` and cell flags `& 0x200` |
 | corner-cutting | `0x7fffffff` | §5.1 |
-| fleeing | `extra ×= 3` | `UnitData::is_fleeing` |
-| no-rush timer | `+ 500` | rush rules active, current age below the rules', within the timer, cell owner not an ally (decompiler-garbled guard; §12) |
-| diplomacy | `+ 5000` | (`army` or `worker`) and team-style rules: peace with the owner (styles 0/8/11), or style 2 and the owner is neither `who` nor `get_target(who)` |
-| river cell | `base ×= 3` | `0x300` only, cell flags `& 0x100`, skipped when the step embarks |
+| fleeing | `extra ×= 3` | `UnitData::is_fleeing`; reachable from the world-seen and tile branches only — never the fog branch or the unit grid (audit V5) |
+| no-rush timer | `+ 500` | `rr = rush_rules age ≠ 0`, current age < `rr`, (`rr < 9` **or** `frame < rush_rules[rr].+0x3c × 900` — the once-garbled clause, settled in the listing, audit V6), owner ≥ 0, not an ally; same two branches as fleeing |
+| diplomacy | `+ 5000` | (`army` or `worker`) and team-style rules: peace with the owner (styles 0/8/11), or style 2 and the owner is neither `who` nor `get_target(who)`; `0x300` only, and reachable from the **fog branch too** (audit V5) |
+| river cell | `base ×= 3` | `0x300` only, cell flags `& 0x100`, **skipped whenever `needs_transport > 0`** — a shoreline crossed in either direction, transporter or not (audit V20) |
 
 **Tiles (`0xc0`)** read the tile mask instead: `base = 0x100`, `0x400` if
 the tile has `0x2000` (rough); danger and the ±4 owner terms as above (the
@@ -340,26 +367,59 @@ returns 0 (no shoreline crossed), 1 (water → land), 2 (land → water). If
 crossing and the unit can transport (`unit_masks & 0x800000 && !(unit_masks2
 & 0x2000)`, or `unit_flags & 0x10`) and `depth ≥ 2`: `avoid_sea == 2` →
 refuse (`0x7fffffff`); embarking (2): `extra += 500` if both avoids are 0
-else `+= 2000`, and on the unit grid `extra ×= 4`; set the node's
-`transport` flag. At `depth == 1` the same test runs **from the unit's own
-tile** (`sx/sy`) with `+250`/`+1000`. A unit that cannot transport pays
-nothing here — the water itself was already priced.
+else `+= 2000`; **the unit-grid `extra ×= 4` sits outside that guard** — a
+disembark skips the 500/2000 and still takes the shift (audit V21); set
+the node's `transport` flag. At `depth == 1` the same test runs **from the
+unit's own tile** (`sx/sy`) with `+250`/`+1000` and no shift. A unit that
+cannot transport pays nothing here — the water itself was already priced.
 
-### 5.1 Corner-cutting (`0x300` and `0xc0`, `depth < 10`, and only when
-`tcost ≠ 0` or `iroquois`)
+### 5.1 Corner-cutting (**`0x300` only** — the tile branch jumps clean over
+it (audit V4); `depth < 10`, and only when `tcost ≠ 0` or `iroquois`)
 
-The step's cell-delta is matched to its wheel direction, and 2–4
-`is_blocked_at` probes run on tiles between the two centres;
-`is_blocked_at(t, mode)` = tile mask bit `0x4000` (building), except
-`mode ≠ 0` (iroquois) exempts full forest tiles (`mask & 0x30 == 0x30`).
-Blocked combinations return `0x7fffffff` — you cannot cut a diagonal
-through a building, with cascading second-chance probes on the cardinal
-cases. The **exact probe offsets are transcribed but not trusted** — the
-decompiler reuses locals heavily here; the offsets need the listing before
-implementation (§12). On zero-cost terrain (all of `gamelog-run6`) the
-block never runs.
+The step's **world-cell** delta (`div3[(to−from)>>8]`, on every grid) is
+matched to its wheel direction, and 2–4 `is_blocked_at` probes run on
+tiles around the *from* tile; `is_blocked_at(t, mode)` = tile mask bit
+`0x4000` (building), except `mode ≠ 0` (iroquois) exempts full forest
+tiles (`mask & 0x30 == 0x30`). **The probe table is settled** — byte-
+verified in the listing during the audit (V3; the jump table at
+`0x6858dc`, all eight arms), superseding the first reading's distrust.
+With `cx, cy` the from tile:
+
+| dir | probes | refuses when |
+|---|---|---|
+| 1 NW | `(cx−2,cy−2)  (cx−3,cy−3)` | **either** blocked |
+| 2 N | `(cx−2,cy−3)  (cx−1,cy−3)  (cx,cy−3)  (cx+1,cy−3)` | **all four** blocked |
+| 3 NE | `(cx+1,cy−2)  (cx+2,cy−3)` | either |
+| 4 E | `(cx+2,cy−2)  (cx+2,cy−1)  (cx+2,cy)  (cx+2,cy+1)` | all four |
+| 5 SE | `(cx+1,cy+1)  (cx+2,cy+2)` | either |
+| 6 S | `(cx−2,cy+2)  (cx−1,cy+2)  (cx,cy+2)  (cx+1,cy+2)` | all four |
+| 7 SW | `(cx−2,cy+1)  (cx−3,cy+2)` | either |
+| 8 W | `(cx−3,cy−2)  (cx−3,cy−1)  (cx−3,cy)  (cx−3,cy+1)` | all four |
+
+A refusal is `0x7fffffff` — you cannot cut a diagonal past a building
+corner, and a cardinal step is refused only when the whole destination-
+side tile edge is built over. On zero-cost terrain (all of
+`gamelog-run6`) the block never runs, so the implementation keeps it as a
+seam behind the terrain-cost layer, with this table ready.
 
 ## 6. Validity, the memo, and the heuristic
+
+**`UnitData::invalid_loc(tx, ty, p3..p7)`** (`@00607c30`; audit V11
+verified every clause): the returns are `0` valid, `1` off the map, `2`
+terrain/domain refusal, `3` a sea unit over shallows/river (`tile &
+0x2400`) — the code `valid_wcoord` forgives in the goal cell — and `4`
+blocked by a building. The flags: `p3` skips the building check; `p4`
+enables the fog shortcut — a flag-4 (**human**) leader's probe returns
+valid when **all four** fog half-cells of the tile's cell are unseen; `p5`
+lets an armed unit pass its own side's buildings (`find_any_building_at`
+owner test); `p6`/`p7` relax the water refusal for a transport-forced unit
+(`unit_masks & 0x800000`), and `p6` is also forced on when the unit's path
+top carries flag 4. Dispatch is on the type's domain (`+0x218`: 0 land, 1
+sea, 2 air — air is always valid); the land arm refuses forest (except
+forest-walkers, `unit_masks2 & 0x4000`), mountains, cliffs and water; the
+shared tail refuses a `0x4000`-blocked tile unless the unit itself stands
+on one. An eighth argument exists at every call site and is never read —
+a stale register.
 
 - **`valid_wcoord(p, timeout, goal)`**: refuse the unit's own
   `avoid_x/avoid_y` (the point `find_path` recorded as unreachable —
@@ -390,7 +450,9 @@ itself, **except** a `0x300` arrival without transport flags uses
 `n.parent` — the last cell centre before the goal is redundant since the
 final goal is already on the stack below. On `0xc0` first: every chain node
 whose tile is a gate (`mask & 3 == 3` and bit 14) gets `building = 1`, and
-the root moves to the **deepest** such node. Then up the parent chain, for
+the root moves to the **deepest** such node — which means the emitted path
+is **truncated** there: the unit is routed only as far as the gate nearest
+it (audit V24). Then up the parent chain, for
 each node push one `PathData`:
 
 - position: the node's, plus — when the order's target is a unit —
@@ -398,8 +460,9 @@ each node push one `PathData`:
 - tolerance: `0x180` (world) / `0` (unit grid) / tile: `0` if the unit can
   transport and `anti_unit == 0`, else `0x60`; forced 0 on a
   transport-flagged node;
-- flags: `2` if `anti_unit` or unit grid; `| 0x10` if the root carried
-  `building`; `| 4` if the node carried `transport`;
+- flags: `2` if `anti_unit` or unit grid; `| 0x10` if **this node**
+  carries `building`; `| 4` if **this node** carries `transport` — both
+  per emitted node, not from the walk-back root (audit V23);
 - skip a push equal to the stack's current top; the start node itself is
   pushed **only on the unit grid**.
 
@@ -501,28 +564,31 @@ uncalled until `resolve_unit_collision` is modelled.
 
 ## 12. What is not established
 
-- **The corner-cutting probe offsets** (§5.1): the per-direction
-  `is_blocked_at` tile offsets are decompiler-garbled; the structure and
-  the trigger are certain, the exact tiles need `llvm-objdump` at
-  `0x685200..0x685560`. Dormant on zero-cost terrain.
-- **The no-rush guard's third clause** (§5): one operand prints as a stale
-  register (`extraout_DL < 9`); the +500 and its age/frame/ally gates are
-  certain, that clause is not. Dormant unless rush rules are on.
-- The exhausted-open-list pause needs `order data +0x20 < 13`; which field
-  that is (order age? range band?) is unread.
-- `get_estimate`'s and the drain-loop's `vector_dist` operands print as
-  garbage registers; node→goal is forced by context (the values feed `h`
-  and "nearest to goal") but was not byte-verified.
-- The `avoid_land = 1` write on a region-crossing search whose order has
-  `flags & 0x20` (§4.1) lost its base register in the decompile (writers
-  survey, `astar_path:446-448`); the field and value are near-certain from
-  the surrounding stores, the address is not byte-verified.
+Four of the first reading's open items were **settled by the audit**
+(`docs/audit/2026-08-23-pathfinder.md`): the corner-cutting probe offsets
+(§5.1's table, byte-verified, V3), the no-rush guard's third clause
+(`rr < 9 ||`, V6), the region-crossing `avoid_land` store (V25) and the
+`vector_dist` operands (V26). Still open:
+
+- The exhausted-open-list pause gate `order data +0x20 < 13` is
+  byte-verified (V30); **which field that is** (order age? range band?)
+  remains unread and unnamed in the PDB.
+- The large-unit diagonal sub-probes memoise `validlist` under keys in
+  **world units** — a different key space from the lattice metrics the
+  rest of the search uses, so they can collide (V8; listing-confirmed,
+  and almost certainly an original bug). Dormant at stride 1; whichever
+  way it is replicated must be a deliberate decision when big-unit
+  strides go live.
+- What the gate bits (`mask & 3 == 3` + bit 14) mean on the ground — a
+  behavioural check with a wall-and-gate scenario would settle §5.1's and
+  §7's interpretation (blind-a's request, V24).
 - `PFD.can_transport` (+0x58) and the three `dbg_*` fields have no writer
   or no reader in scope; treated as dead.
 - Region identity (`get_tregion`) is taken as `docs/ORDERS.md` §4.6 had
   it; the region map's own construction (`WorldData`) has not been read.
-- `find_wpath_army`, `find_road`/`calc_road_cost`/`valid_roadcoord`,
-  `astar_river`: named, out of scope, unread beyond signatures.
+- `find_wpath_army` (zero callers — `Group::action_move_near` inlines its
+  body), `find_road`/`calc_road_cost`/`valid_roadcoord`, `astar_river`:
+  named, out of scope, unread beyond signatures.
 - The Nubian/attrition and garrison items in `docs/CITIES.md`/`ATTRITION.md`
   are untouched by this reading.
 - `0/2`'s **position** still parts from the original at frame 4 by `(2, 8)`

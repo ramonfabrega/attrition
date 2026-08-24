@@ -105,6 +105,9 @@ pub mod path_flag {
     pub const SIDESTEP: u8 = 0x2;
     /// Turn in place before walking to this one.
     pub const TURN_FIRST: u8 = 0x4;
+    /// The same bit, as the pathfinder writes it: this waypoint boards a
+    /// transport (`docs/PATHFINDER.md` §7). One bit, two producers.
+    pub const TRANSPORT: u8 = 0x4;
 }
 
 /// The fields of `GatherOrder` (§1.1, §6).

@@ -107,6 +107,10 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             let who = l.who as usize;
             sim.tech[who].tribe = l.tribe.max(0) as usize;
             sim.tech[who].power = Some(l.tribe.max(0) as usize);
+            // `leader_flags & 4` is `LeaderData::is_human` — the bit that
+            // picks `find_wpath`'s pull-back variant and withholds the
+            // `army`/`worker` cost modes (`docs/PATHFINDER.md` §3).
+            sim.nation[who].human = l.leader_flags & 4 != 0;
         }
     }
 

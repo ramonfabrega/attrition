@@ -30,10 +30,14 @@
 //! when a later `BEGIN` appears at the same or a shallower indent. Any other
 //! line is a field: the first token is the key, the rest is the value, and it
 //! belongs to the **innermost open block regardless of its own indent** —
-//! because the writers are not consistent about it. `LeaderData::log_data`
-//! writes `leader_flags` one level shallower than the `who`/`tribe` lines
-//! that precede it inside the same `BEGIN LEADERDATA`, and the block is still
-//! the right home for it. Keys repeat: an array constant is written as one
+//! because the writers are not consistent about it. The leaders writer emits
+//! each leader's `leader_flags`/`leader_flags2` one level shallower than the
+//! `who`/`tribe` lines and **before** the `BEGIN LEADERDATA` they describe
+//! (the first pair in a dump precedes the first block; the last block has
+//! none after it), so indentation alone hands each block its *successor's*
+//! flags — `records` re-zips them by position from the parent's ordered run
+//! (2026-08-23, found when `leader_flags & 4` = `is_human` started to
+//! matter). Keys repeat: an array constant is written as one
 //! line per element, all under the same key (`fort_upgrade_terr[scan] 2`,
 //! `… 4`, `… 6`, `… 9`), in index order. Lines before the first `BEGIN` — the
 //! `init_teams:` chatter and the splash-screen timing — are preamble and are
@@ -198,9 +202,11 @@ impl<'a> Log<'a> {
                 //   leader_flags …     (1)        flags 0          (6)
                 //                                ox 2001           (5)
                 //
-                // `leader_flags` belongs to the `LEADERDATA` it follows; `ox`
-                // belongs to `TARGETORDER`, the *parent* of the `UNITORDER` it
-                // follows. Both are one line at the open block's own indent.
+                // `leader_flags` is written *before* the `LEADERDATA` it
+                // describes (so the block it just closed is the wrong home —
+                // `records` re-zips those by position); `ox` belongs to
+                // `TARGETORDER`, the *parent* of the `UNITORDER` it follows.
+                // Both are one line at the open block's own indent.
                 //
                 // So the ambiguous field is recorded on **both** candidates:
                 // the enclosing block the indent rule gives, and the block it
@@ -658,11 +664,34 @@ fn records(b: &Block<'_>, before_frames: bool) -> (Vec<UnitDump>, Vec<BuildDump>
         .filter(|c| c.name == "BUILDDATA")
         .filter_map(build_of)
         .collect();
-    let leaders = kids
+    let mut leaders: Vec<LeaderDump> = kids
         .iter()
         .filter(|c| c.name == "LEADERDATA")
         .map(leader_of)
         .collect();
+    // `Leaders::log_data` writes each leader's `leader_flags` pair **before**
+    // its `BEGIN LEADERDATA` — the first pair in a dump precedes the first
+    // block, and the last block has none after it. The trailing-run rule
+    // therefore hands each block the *next* leader's flags (off by one), and
+    // the parse comment's LEADERDATA example had the direction backwards.
+    // The parent block accumulates every pair in document order (the
+    // both-candidates rule), so the correct assignment is a zip by index.
+    let run = |key: &str| -> Vec<i64> {
+        b.fields
+            .iter()
+            .filter(|(k, _)| *k == key)
+            .filter_map(|(_, v)| v.trim().parse().ok())
+            .collect()
+    };
+    let (flags, flags2) = (run("leader_flags"), run("leader_flags2"));
+    for (i, l) in leaders.iter_mut().enumerate() {
+        if let Some(&f) = flags.get(i) {
+            l.leader_flags = f;
+        }
+        if let Some(&f) = flags2.get(i) {
+            l.leader_flags2 = f;
+        }
+    }
     (units, builds, leaders)
 }
 
@@ -823,6 +852,8 @@ BEGIN GAME
    y 32555
    z 548
    angle 1431655765
+ leader_flags 176160775
+ leader_flags2 0
  BEGIN LEADERDATA
   who 0
   tribe 11
@@ -837,8 +868,6 @@ BEGIN GAME
   defeated_by -1
   gov -1
   score 0
- leader_flags 33554439
- leader_flags2 0
  BEGIN GUY
   type 69
   x 4248
@@ -857,14 +886,14 @@ BEGIN GAME
      z_internal 528
    BEGIN GUY
    BEGIN GUY
+  leader_flags 33554451
+  leader_flags2 0
   BEGIN LEADERDATA
    who 0
    tribe 11
    defeated_by -1
    gov -1
    score 181
-  leader_flags 33554451
-  leader_flags2 0
  BEGIN FRAME 2
   BEGIN UNITDATA
    BEGIN OBJECT
@@ -940,14 +969,24 @@ BEGIN GAME
 
     #[test]
     fn fields_attach_to_the_innermost_open_block_whatever_their_indent() {
-        // LeaderData writes leader_flags one level shallower than who/tribe.
+        // The leaders writer puts each `leader_flags` pair *before* its
+        // block, so at the raw block layer the trailing-run rule hands who-0
+        // its successor's value and who-1 (last, no pair after) nothing —
+        // while the parent accumulates the true ordered run. `records`' zip
+        // (asserted in `the_initial_state_is_extracted`) is what un-skews it.
         let log = Log::parse(SAMPLE);
         let game = log.game().unwrap();
         let leaders: Vec<_> = game.kids("LEADERDATA").collect();
         assert_eq!(leaders.len(), 2);
         assert_eq!(leaders[0].int("leader_flags"), Some(176160787));
-        assert_eq!(leaders[1].int("leader_flags"), Some(33554439));
-        assert_eq!(leaders[1].int("leader_flags2"), Some(0));
+        assert_eq!(leaders[1].int("leader_flags"), None);
+        let run: Vec<_> = game
+            .fields
+            .iter()
+            .filter(|(k, _)| *k == "leader_flags")
+            .map(|(_, v)| *v)
+            .collect();
+        assert_eq!(run, ["176160775", "176160787"]);
     }
 
     #[test]
@@ -1036,7 +1075,10 @@ BEGIN GAME
         );
         assert_eq!(init.leaders.len(), 2);
         assert_eq!(init.leaders[0].tribe, 11);
-        assert_eq!(init.leaders[0].leader_flags, 176160787);
+        // The pair written *before* who-0's block, via `records`' zip — not
+        // the 176160787 the raw block carries. Bit 2 is `is_human`.
+        assert_eq!(init.leaders[0].leader_flags, 176160775);
+        assert_eq!(init.leaders[1].leader_flags, 176160787);
     }
 
     #[test]
