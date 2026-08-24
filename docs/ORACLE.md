@@ -745,9 +745,10 @@ BUILDS=7 CITIES=5 GUYS=2 LEADERS=9 DEATHS=1`, `[End Frame] UNITS=3
 BUILDS=7 CITIES=5 GUYS=2 DEATHS=1 LEADERS=1`, no input, quit through the
 menu at 1:58; its recording is `Playback - 2026.08.24 14'03'12`). Run10 is
 the harness's long run with the map: 744 unlinked unit-frames against
-run7's 1,970, and it exposed that the harness's players earn no income —
-`Holdings` was never assembled from the live gather chains
-(`docs/ECONOMY.md`).
+run7's 1,970 on the day it was captured, and it exposed that the
+harness's players earned no income — `Holdings` was never assembled from
+the live gather chains (`docs/ECONOMY.md`); with that landed, **268**, all
+of them the last citizen `1/10`, and `1/9` trains on the original's frame.
 
 ### The lobby is a file: `-config` and `-automation` (2026-08-20)
 

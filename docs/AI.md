@@ -1390,17 +1390,22 @@ folded back into §2's prose.
   `economy::Holdings` was a hand-filled model that nothing assembled from
   the live cities and gather chains (`Leader::calc_gather`'s job,
   `docs/ECONOMY.md`). With no food the script cannot pay for the city at
-  step 11 and the food-bound citizens of 1297/1505 never train. The
-  holdings assembly is in hand (§12.1 item 1).
+  step 11 and the food-bound citizens of 1297/1505 never train. **The
+  holdings assembly landed the same session** (`crates/sim/src/holdings.rs`,
+  pinned against run8's frame-2 rate): run10 now scores **268 unlinked
+  unit-frames** — the script gets through `city_placement` and step 12 on
+  our map, `1/9` trains at **1297**, the original's own frame, and every
+  unit the original has before 1505 exists here too. The 268 are `1/10`
+  (1505), pinned as a ceiling.
 
 ### 12.1 Where to pick up
 
-1. **Income in the harness** — `Sim::assemble_holdings` from the live
-   state (`crates/sim/src/holdings.rs`, a worker's report pending), then
-   run10 again: the script's steps 11–13 on the map (site `2007` at 776,
-   `2008` at 1177, citizens `1/9`, `1/10`), the 744 unlinked unit-frames,
-   and the C++ producers' first live make list, if the script ever
-   returns 2.
+1. **The last citizen, `1/10` at 1505**, and the rest of the economy's
+   terms that decide its frame: idle merchants and fishermen, the nation
+   flat terms (`GERMAN_CITY_GATHER` is visible on run8's human), the
+   bonus-tech levels (`GRANARY2..`, `TAX_1..` — the BONUS band the tree
+   does not load), `calc_resource_bonuses`; and the sites' frames — `2007`
+   at 776, `2008` at 1177 — against the dump's `BUILDDATA`.
 2. **The sync stream at frame 0.** `compute_sites`' stride is a
    `game_random` draw, and the harness's stream at frame 0 is not the
    original's — the map maker's draws precede `Leader::init`

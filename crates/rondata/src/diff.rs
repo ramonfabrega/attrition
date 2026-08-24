@@ -1579,6 +1579,45 @@ mod tests {
         );
     }
 
+    /// The long run with the map: run10 (`gamelog-run10-world6-long.txt`,
+    /// 1,772 frames, run7's lobby and length, no input, `WORLD=6` at start).
+    /// With the map, the census, the sites and the income in place, the
+    /// opening script gets through `city_placement` and step 12 on our side
+    /// too: the three citizens of frame 1 train on the original's frames
+    /// (100, 206, 320) and so does the food-bound `1/9` at **1297**. What
+    /// is still not trained is `1/10` (1505), whose 267 unit-frames are
+    /// the ceiling here — the economy's remaining terms and the sync
+    /// stream's frame-0 draws are what move it (`docs/AI.md` §12.1).
+    #[test]
+    fn run10_s_opening_trains_the_original_s_citizens_on_its_frames() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run10-world6-long.txt") else {
+            eprintln!("skipping: no gamelog-run10-world6-long.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let report = run(&loaded, &log, Tuning::RON, None).unwrap();
+        assert_eq!(report.frames.len(), 1772);
+        // Every unit the original has before frame 1505 exists here too.
+        let early_unlinked: usize = report
+            .frames
+            .iter()
+            .filter(|f| f.frame < 1505)
+            .map(|f| f.unlinked)
+            .sum();
+        assert_eq!(
+            early_unlinked, 0,
+            "a unit the original trained before 1/10 that the simulation did not"
+        );
+        let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
+        assert!(
+            unlinked <= 268,
+            "unlinked unit-frames: {unlinked} — 2026-08-24 was 268, all of them 1/10"
+        );
+    }
+
     /// The slot count against the original's own survey: run9's frame-1
     /// `BUILDDATA` gives each camp its `gather_from` list — 82 tiles for
     /// player 0's, 61 for player 1's — and the `LEADERS=9` record gives the
