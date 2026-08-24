@@ -19,10 +19,11 @@ Ghidra, with those symbols applied. Nothing is transcribed; see
 rate representation, the cap, and the accrual are all read end to end, and the
 PDB's own field names for the encrypted resource block confirm every inference
 that was made before they were dumped. High for what a city contributes and for
-the per-gatherer rates, which are read at their consumers. **Lower for the
+the per-gatherer rates, which are read at their consumers. ~~**Lower for the
 gatherer *count*:** `BuildTypeData::calc_gather` is a thousand lines of inlined
-tile walking and only its arithmetic tail has been read. What remains open is
-listed at the end.
+tile walking and only its arithmetic tail has been read.~~ The count is read
+and verified as of 2026-08-24 (`crates/sim/src/gather.rs`; the last item
+below). What remains open is listed at the end.
 
 A blind second reading (`docs/audit/2026-08-20-economy.md`) doubly confirmed
 every formula in that spine and overturned several of the *predicates* around
@@ -722,14 +723,27 @@ far as anything read goes they are as dead as `calc_support`.
 
 ## What is not established
 
-- **How many gatherers a building has, and how many it may have.** Still the
-  big one, but smaller than it was. The *shape* is now read — four branches,
-  their slot counts and their per-gatherer rates, above — and what remains
-  unread is the surveys those branches call: the circle tables behind the
-  woodcutter's tile walk, `MountainRangeData::gather_size`,
-  `total_gather_access`, and the `MiningList`. Everything downstream of a
-  gatherer count is specified here; the count is not, and `Site::gatherers`
-  stays an input.
+- ~~**How many gatherers a building has, and how many it may have.**~~ **The
+  slot count is read and implemented, 2026-08-24** — `crates/sim/src/gather.rs`,
+  from `BuildTypeData::max_gatherers@0063c430` → `calc_gather@00639e40`'s
+  count out-parameter: a flat type (farm, **and the oil well and platform**,
+  which `init_final_flags` marks flat) is 1, a university 7, a mine the
+  mountain range's `MTN_*_SIZE`→`MTN_*_GATHER` rung scaled by its usable
+  cells, and a camp the circle walk — every cell within `WOODCUTTER_RADIUS`
+  (octagonal, `vector_dist`) of the footprint centre whose centre tile is a
+  tree, or is on the building's own `gather_from` list, adds `16 ×
+  LandData::num_make[good]` (the 16-tile inner loop has no test in it — a
+  cell with nine forest tiles pays as one with sixteen), rivers under the
+  footprint add a sixteenth, `(accum + 8) >> 4`, capped at twice the tiles
+  with gather access. Verified against the original's own survey: run9's
+  camps get 7 (from 82 listed tiles) and 5 (from 61), the counts the
+  `LEADERS=9` record carries (`docs/ORACLE.md`). Still open there:
+  `LandData::num_make` (seamed to 1; every run9 cell answers 1), the mountain
+  range's grouping (reconstructed as 8-connected cells; no mine on run9 to
+  check), `find_gather_tiles` (the list still comes from the dump), and
+  `WOODCUTTER_RADIUS`/`MINE_RADIUS`/`MTN_*` not yet on `Tuning`. *How many a
+  building has* — the assembly of `Holdings` from the live chains — is the
+  remaining half, in hand.
 - ~~**`base_rate`.**~~ `ScenarioFuncSet::set_base_rate` is its only writer, and
   it stores `value << 4`. Scenario-script only; zero in a skirmish.
 - **`escrow_rate`.** What sets it. `escrow` itself is no longer open:
