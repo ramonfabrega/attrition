@@ -1037,7 +1037,8 @@ AI, and its first 115 seconds are legible in the dump today:
 | 1 | scout `1/0` takes an `EXPLORETO` (path of 3) | `think_scout` — the idle path, `docs/ORDERS.md` §2.4 |
 | 2 | **site `2006` (type 417, Farm)** placed; citizen `1/1` pulled off woodcutter `2001` onto `BUILDORDER 2006` with a move inserted ahead | game frame 1 = step 1: **the script's `place_farm`** → `place_building_with_cost` (`FRAME n` is the end of game frame `n − 1`, `docs/INPUT.md` §3) |
 | 17 | `2006` starts building (`frame_started 17`) | |
-| 100, 206, 320 | citizens `1/6`, `1/7`, `1/8` | three queued at the city, `train_unit_with_need` |
+| 2 | the city's queue holds **three citizens** (costs 25, 26, 27 — the ramp) and the library's **two techs, `551` and `565`** (Science I, Civic I) | `defensive` steps 6, 7, 9, 10 in one call (§3.1); `economic` would show the same techs and up to four citizens |
+| 100, 206, 320 | citizens `1/6`, `1/7`, `1/8` | the three queued at game frame 1, one queue |
 | 777 / 1121 | site `2007` (type 414, city) placed / started | game frame 776 = step 1 of the sweep at 775: **the script's `city_placement`** → `place_city_with_cost` → `found_cities` buying on the spot (§2.17) |
 | 1177 / 1212 | site `2008` (Farm) placed / started | |
 | 1297, 1505 | citizens `1/9`, `1/10` | |
