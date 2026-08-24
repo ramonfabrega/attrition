@@ -295,28 +295,7 @@ impl Sim {
     /// capacity and how much of it is unfilled, and the total capacity
     /// **excluding universities** (good 3).
     fn city_gather_slots(&self, c: usize) -> ([i32; RESOURCES], [i32; RESOURCES], i32) {
-        let mut slots = [0; RESOURCES];
-        let mut open = [0; RESOURCES];
-        let mut total = 0;
-        for b in self.city_chain(c) {
-            let bd = &self.buildings[b];
-            if !bd.alive {
-                continue;
-            }
-            let Some(rec) = bd.ty else { continue };
-            if !self.build_types[rec].has(flags::GATHER) {
-                continue;
-            }
-            let Some(g) = gather_good(self.build_types[rec].ident) else {
-                continue;
-            };
-            let max = bd.gather_max.unwrap_or(0);
-            slots[g] += max;
-            open[g] += max - bd.gatherers.len() as i32;
-            if g != 3 {
-                total += max;
-            }
-        }
+        let (total, slots, open) = self.count_gather_slots(c);
         (slots, open, total)
     }
 
@@ -700,12 +679,12 @@ impl Sim {
             let mut d = base;
             if self.buildings_of_line(who, rec) == 0 && rawq == 0 {
                 d = base.wrapping_mul(4);
-                if Self::SEA_MAP > 2 {
+                if self.sea_map() > 2 {
                     escrow = 1;
                     d = base.wrapping_mul(0x50);
                 }
             }
-            if !(Self::SEA_MAP > 2 || self.city_num(who) > 1) {
+            if !(self.sea_map() > 2 || self.city_num(who) > 1) {
                 return None;
             }
             if self.reg_buildings_of_line(who, f.reg, rec) == 0 {
@@ -724,7 +703,7 @@ impl Sim {
             // The landmass count multiplies the dock's value — settled in
             // the listing (`imull %eax, %edi` at 0x6c331d), which the first
             // reading's §3.5 does not have.
-            v = Self::SEA_MAP.wrapping_mul(d);
+            v = self.sea_map().wrapping_mul(d);
         }
 
         // ---- §3.6 the civic block onward. A dock reaches it too: its own
@@ -973,10 +952,6 @@ impl Sim {
         })
     }
 
-    /// `world+0x34`, the landmass count the dock family reads. A seam: one
-    /// landmass, so `sea_map > 2` never holds and the multiply is identity.
-    const SEA_MAP: i32 = 1;
-
     /// `Leader::can_pay(0)`: the head entry's type, at its own escrow
     /// permission, is affordable `num` times over.
     fn head_affordable(&self, who: Player, head: &MakeObject) -> bool {
@@ -1012,7 +987,7 @@ impl Sim {
         if cen.filled_gather_slots[good] < cen.gather_slots[good] * 3 / 4 {
             return None;
         }
-        let cv = (self.city_num(who) + Self::VILLAGE_NUM).max(1);
+        let cv = (self.city_num(who) + self.village_num(who)).max(1);
         let mut base = (cen.pop.wrapping_mul(7000) / cv
             + f.level.wrapping_mul(3000)
             + f.open.wrapping_mul(4000))
@@ -1098,7 +1073,7 @@ impl Sim {
                 if !(ter != 0 || oil_ok) {
                     continue;
                 }
-                if (g == 0 || g == 1 || g == 2) && self.city_num(who) + Self::VILLAGE_NUM < 5 {
+                if (g == 0 || g == 1 || g == 2) && self.city_num(who) + self.village_num(who) < 5 {
                     m0 = 0x200;
                 }
                 let n = (self.build_types[rec]
@@ -1173,7 +1148,7 @@ impl Sim {
             }
             if econ & 8 == 0
                 && (ter > 1 || g == 5)
-                && self.city_num(who) + Self::VILLAGE_NUM > 1
+                && self.city_num(who) + self.village_num(who) > 1
                 && self.city_count_line(f.c, rec, true) == 0
             {
                 m = m.wrapping_mul(3) / 2;
@@ -1197,9 +1172,6 @@ impl Sim {
         *escrow_in = escrow;
         Some((v, cat, 2))
     }
-
-    /// `LeaderData::village_num` — no census field.
-    const VILLAGE_NUM: i32 = 0;
 
     /// `oil_patches.count` — the leader's known oil patches; none are
     /// modelled, so an oil well is never the reason a good is wanted.
@@ -1558,6 +1530,7 @@ mod tests {
             dock_tile: 0,
             space: [8, 8, 8],
             ter: [2; RESOURCES],
+            ..Default::default()
         };
         sim.ai[w].census.pop = 10;
         if let Some(r) = sim.cities[c].reg {

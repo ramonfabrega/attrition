@@ -130,4 +130,48 @@ impl Sim {
     pub fn ai_difficulty(&self) -> i32 {
         self.lobby.difficulty
     }
+
+    /// `City::count_gather_slots@00737dc0`: over the city's chain, each
+    /// finished gather building's `gather_max` per good, how much of it is
+    /// unfilled, and the total **excluding knowledge** (good 3 — the
+    /// original skips it when accumulating its return while still writing
+    /// it into the per-good array). Returns `(total, slots, open)`.
+    pub fn count_gather_slots(
+        &self,
+        c: usize,
+    ) -> (i32, [i32; economy::RESOURCES], [i32; economy::RESOURCES]) {
+        let mut slots = [0; economy::RESOURCES];
+        let mut open = [0; economy::RESOURCES];
+        let mut total = 0;
+        for b in self.city_chain(c) {
+            let bd = &self.buildings[b];
+            if !bd.alive || !bd.active {
+                continue;
+            }
+            let Some(rec) = bd.ty else { continue };
+            if !self.build_types[rec].has(crate::build::flags::GATHER) {
+                continue;
+            }
+            let Some(g) = crate::ai_place::gather_good(self.build_types[rec].ident) else {
+                continue;
+            };
+            let max = bd.gather_max.unwrap_or(0);
+            slots[g] += max;
+            open[g] += (max - bd.gatherers.len() as i32).max(0);
+            if g != 3 {
+                total += max;
+            }
+        }
+        (total, slots, open)
+    }
+
+    /// `LeaderData::village_num` — [`crate::ai::Census::village_num`].
+    pub fn village_num(&self, who: Player) -> i32 {
+        self.ai[who as usize].census.village_num
+    }
+
+    /// `world+0x34`, `sea_map`: the landmass count every producer reads.
+    pub fn sea_map(&self) -> i32 {
+        self.world.landmasses()
+    }
 }

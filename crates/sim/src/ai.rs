@@ -436,6 +436,11 @@ pub struct CityAi {
     pub dock_tile: i32,
     pub space: [i32; 3],
     pub ter: [i32; RESOURCES],
+    /// `CityData::ocean_filled` (+0x66) and `bordering` (+0x65): zeroed
+    /// by the sweep, read by the site score and the dock family; no
+    /// writer is modelled yet.
+    pub ocean_filled: i32,
+    pub bordering: i32,
 }
 
 /// The census — every `LeaderData` count `plan_strategy`'s sweep writes
@@ -511,6 +516,13 @@ pub struct Census {
     /// `escrow_rate[6]` — 40 each once the leader holds more than two
     /// cities and villages.
     pub escrow_rate: [i32; RESOURCES],
+    /// `LeaderData::village_num` (+0x3fc): villages are not a settlement
+    /// kind the simulation founds, so this stays 0 (run8 shows it 0 with a
+    /// Small City standing).
+    pub village_num: i32,
+    /// `LeaderData::wonder_mark` (+0x424): the wonder bookkeeping's
+    /// cursor; no writer is modelled.
+    pub wonder_mark: i32,
     // Per region, one slot per sim region.
     pub reg_active: Vec<i32>,
     pub reg_combat: Vec<i32>,
@@ -735,6 +747,8 @@ impl Leader {
                 home_reg: -1,
                 explored: 0,
                 escrow_rate: [0; RESOURCES],
+                village_num: 0,
+                wonder_mark: 0,
                 reg_active: Vec::new(),
                 reg_combat: Vec::new(),
                 reg_attack: Vec::new(),

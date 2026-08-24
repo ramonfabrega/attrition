@@ -139,9 +139,12 @@ impl Sim {
     /// they do, the lineage test runs against the tree entry whose `NAME`
     /// matches — which is how `rondata`'s loader resolves the same names.
     fn named_is(&self, t: TypeId, name: &str) -> bool {
-        let Some(root) = self.tech_tree.types.iter().position(|d| {
-            d.kind.is_unit() && d.name.eq_ignore_ascii_case(name)
-        }) else {
+        let Some(root) = self
+            .tech_tree
+            .types
+            .iter()
+            .position(|d| d.kind.is_unit() && d.name.eq_ignore_ascii_case(name))
+        else {
             return false;
         };
         self.tech_tree.is(t, root, false)
@@ -156,7 +159,10 @@ impl Sim {
         {
             return true;
         }
-        for r in [self.tech_tree.roles.nuclearmissile, self.tech_tree.roles.icbm] {
+        for r in [
+            self.tech_tree.roles.nuclearmissile,
+            self.tech_tree.roles.icbm,
+        ] {
             if let Some(x) = r
                 && self.tech_tree.is(t, x, false)
             {
@@ -194,9 +200,7 @@ impl Sim {
     /// (`docs/audit/2026-08-23-pathfinder.md`). Stands in as "has no
     /// production script", which `Leader::init` gives every computer leader.
     fn seam_is_human(&self, who: Player) -> bool {
-        self.ai
-            .get(who as usize)
-            .is_none_or(|l| l.script.is_none())
+        self.ai.get(who as usize).is_none_or(|l| l.script.is_none())
     }
 
     /// **Seam** — `Armies::find_army`/`init_navy`. Armies are not modelled,
@@ -265,9 +269,11 @@ impl Sim {
                     hit = true;
                     break;
                 }
-                p = self
-                    .tech_tree
-                    .get_graft(&self.setup, &self.tech[w], self.tech_tree.types[x].from);
+                p = self.tech_tree.get_graft(
+                    &self.setup,
+                    &self.tech[w],
+                    self.tech_tree.types[x].from,
+                );
             }
             if !hit {
                 continue;
@@ -294,34 +300,8 @@ impl Sim {
     /// gather buildings' slots per good, and how many are free. The
     /// University's slots land in `[KNOWLEDGE]` but are **excluded** from the
     /// returned total, as the original excludes them.
-    fn count_gather_slots(&self, c: usize) -> (i32, [i32; RESOURCES], [i32; RESOURCES]) {
-        let mut total = 0;
-        let mut max = [0; RESOURCES];
-        let mut free = [0; RESOURCES];
-        for b in self.city_chain(c) {
-            let bd = &self.buildings[b];
-            if !bd.alive || !bd.active {
-                continue;
-            }
-            let Some(rec) = bd.ty else { continue };
-            let good = match self.build_types[self.build_root(rec)].ident {
-                Ident::Farm => Some(0),
-                Ident::Woodcutter => Some(1),
-                Ident::University => Some(KNOWLEDGE),
-                Ident::Mine => Some(4),
-                Ident::OilWell | Ident::OilPlatform => Some(5),
-                _ => None,
-            };
-            let Some(g) = good else { continue };
-            let slots = bd.gather_max.unwrap_or(0);
-            let taken = bd.gatherers.len() as i32;
-            max[g] += slots;
-            free[g] += (slots - taken).max(0);
-            if g != KNOWLEDGE {
-                total += slots;
-            }
-        }
-        (total, max, free)
+    fn gather_slot_picture(&self, c: usize) -> (i32, [i32; RESOURCES], [i32; RESOURCES]) {
+        self.count_gather_slots(c)
     }
 
     /// `City::could_queue(city, t)`: any member of the city chain can make
@@ -369,6 +349,14 @@ impl Sim {
 
 // ---- the value passes ----
 
+/// The original's value arithmetic is a 32-bit `imul` and wraps; the tail's
+/// `val < 0 → 9999999` is the guard it puts on the result, so an overflowed
+/// product is a value the original goes on to use. Every product in a value
+/// chain therefore wraps rather than panicking.
+const fn wm(a: i32, b: i32) -> i32 {
+    a.wrapping_mul(b)
+}
+
 /// The war multiplier the air and land-military branches put on a base `b`
 /// (`create_units` 1385–1422). `attacked_here` is the land branch's extra:
 /// a city-trained type in a city under attack takes `b·4` rather than `b·2`.
@@ -387,21 +375,21 @@ fn war_multiplier(
     // back into `local_10`, which the batch size and nothing else reads.
     let mut base = b;
     let v = if reg_wars != 0 && active_wars != 0 {
-        base = b * 2;
+        base = wm(b, 2);
         base
     } else if reg_wars != 0 || reg_neutrals != 0 || active_wars != 0 {
-        b * 3 / 2
+        wm(b, 3) / 2
     } else if wars != 0 {
-        b * 11 / 10
+        wm(b, 11) / 10
     } else {
         b
     };
     let v = if strategy & 4 == 0 && reg_attacked == 0 {
-        if strategy & 2 != 0 { v * 3 / 2 } else { v }
+        if strategy & 2 != 0 { wm(v, 3) / 2 } else { v }
     } else if attacked_here {
-        v * 4
+        wm(v, 4)
     } else {
-        v * 2
+        wm(v, 2)
     };
     (v, base)
 }
@@ -413,13 +401,13 @@ fn war_multiplier(
 fn army_ladder(v: i32, combat: i32, target: i32, land: bool, reg_over: bool) -> i32 {
     let mut v = v;
     if combat < target / 2 {
-        v *= if land { 6 } else { 2 };
+        v = wm(v, if land { 6 } else { 2 });
     }
     if combat < (target << 2) / 5 {
-        v = if land { v * 2 } else { v * 3 / 2 };
+        v = if land { wm(v, 2) } else { wm(v, 3) / 2 };
     }
     if combat > target * 5 / 4 {
-        v = v * 2 / 3;
+        v = wm(v, 2) / 3;
     }
     if combat > target * 3 / 2 {
         v /= 2;
@@ -462,7 +450,11 @@ impl Sim {
         let pop_cap = self.muster[w].cap;
         let army_target = (pop_cap - 40).max(pop_cap / 2);
         let mut mil_level = self.tech[w].epoch[tech::Line::Military.index()];
-        let siege_cap_d = if d < 2 { 2 * d + 1 } else { (2 * d + 2).min(10) };
+        let siege_cap_d = if d < 2 {
+            2 * d + 1
+        } else {
+            (2 * d + 2).min(10)
+        };
         let civilians = {
             let cn = &self.ai[w].census;
             cn.merchants + cn.caras + cn.scholars + cn.peasants
@@ -487,8 +479,11 @@ impl Sim {
             let city_o = self.cities[c].building;
             let r = self.city_region(c);
             let army_here = self.seam_army_at(c);
-            let (slots, _gmax, gfree) = self.count_gather_slots(c);
-            let city_attacked = self.cities[c].alarm;
+            let (slots, _gmax, gfree) = self.gather_slot_picture(c);
+            // `city_flags & 2`, which `docs/CITIES.md` §1.4 records as
+            // "do not heal / auto-repair" with no setter found and the
+            // report reads as "attacked". The bit is `no_heal`.
+            let city_attacked = self.cities[c].no_heal;
 
             for &t in &units {
                 // 1. The population and the availability.
@@ -512,8 +507,9 @@ impl Sim {
                 }
                 // 4. City-trained or globally trained.
                 let fort = self.build_is_ident(wrec, Ident::Fort);
-                let per_city =
-                    !fort && (!self.is_military_trainer(wrec) || self.build_is_ident(wrec, Ident::Village));
+                let per_city = !fort
+                    && (!self.is_military_trainer(wrec)
+                        || self.build_is_ident(wrec, Ident::Village));
                 if per_city {
                     if !self.city_could_queue(c, t) {
                         continue;
@@ -577,7 +573,11 @@ impl Sim {
                     }
                     let land_army = non_siege - sea_combat;
                     let pass = match d {
-                        0 => land_army <= 3 * city_num && land_army < 2 * mil_level + 3 && land_army < 10,
+                        0 => {
+                            land_army <= 3 * city_num
+                                && land_army < 2 * mil_level + 3
+                                && land_army < 10
+                        }
                         1 => {
                             land_army <= 5 * city_num
                                 && land_army < (mil_level + 1) * 7 / 2 + 1
@@ -599,7 +599,7 @@ impl Sim {
                     } else {
                         self.ai[w].ground_mod
                     };
-                    base = base * dmod / 256;
+                    base = wm(base, dmod) / 256;
                     if d != 2 {
                         let mut pv = self.unit_prod_value(who, t);
                         if d == 0 || d > 2 {
@@ -611,7 +611,7 @@ impl Sim {
                             pv = -pv;
                         }
                         pv = pv.clamp(-256, 256);
-                        base = base * (pv + 256) / 256;
+                        base = wm(base, pv + 256) / 256;
                     }
                 }
 
@@ -682,16 +682,9 @@ impl Sim {
                     };
                     v = pass;
                 } else if f.sea {
-                    let Some((sv, sc)) = self.sea_value(
-                        who,
-                        t,
-                        &f,
-                        c,
-                        base,
-                        r,
-                        army_here,
-                        &mut escrow,
-                    ) else {
+                    let Some((sv, sc)) =
+                        self.sea_value(who, t, &f, c, base, r, army_here, &mut escrow)
+                    else {
                         continue;
                     };
                     v = sv;
@@ -710,9 +703,6 @@ impl Sim {
                         escrow = i32::from(n == 0);
                         v = 10000 / (self.frame / 1000).max(1) as i32;
                     } else {
-                        if !per_city && false {
-                            continue;
-                        }
                         if per_city && city_attacked && city_num >= 2 {
                             continue;
                         }
@@ -749,7 +739,7 @@ impl Sim {
                     }
                     let land_army = non_siege - sea_combat;
                     if land_army < mil_level * 3 && !f.siege {
-                        base *= 100;
+                        base = wm(base, 100);
                         escrow = 1;
                     }
                     if per_city && !city_attacked {
@@ -775,8 +765,10 @@ impl Sim {
                         Census::reg(&cn.reg_attacked, r),
                         per_city && city_attacked,
                     );
+                    // The original writes the doubled base back over
+                    // `local_10`; nothing reads it again this iteration.
                     let _ = wbase;
-                    let mut x = (f.age + 8) * wv / 8;
+                    let mut x = wm(f.age + 8, wv) / 8;
                     let reg_over = Census::reg(&cn.reg_combat, r)
                         > Census::reg(&cn.reg_pop, r) * (Census::reg(&cn.reg_wars, r) + 1) * 2;
                     x = army_ladder(x, cn.combat, army_target, true, reg_over);
@@ -784,28 +776,23 @@ impl Sim {
                     let non_siege = cn.non_siege;
                     if f.siege {
                         if non_siege > 2 {
-                            x *= 2;
+                            x = wm(x, 2);
                         }
                         if siege < non_siege / 8 {
-                            x *= 2;
+                            x = wm(x, 2);
                         }
                     } else if siege < siege_cap_d {
                         if siege < non_siege / 20 {
                             x /= 2;
                         } else if siege < non_siege / 10 {
-                            x = x * 2 / 3;
+                            x = wm(x, 2) / 3;
                         }
                     }
                     if per_city && army_here < 0 && !city_attacked && f.land {
-                        x = x * 3 / 4;
+                        x = wm(x, 3) / 4;
                     }
                     v = x;
-                    num = batch_size(
-                        f.control_cost,
-                        remaining,
-                        self.ai[w].effective_pop,
-                        pop_cap,
-                    );
+                    num = batch_size(f.control_cost, remaining, self.ai[w].effective_pop, pop_cap);
                 }
 
                 // 10. The tail.
@@ -817,10 +804,10 @@ impl Sim {
                         .machinegun
                         .is_some_and(|m| self.tech_tree.is(t, m, false))
                 {
-                    let x = val * remaining;
-                    val = x * 10;
+                    let x = wm(val, remaining);
+                    val = wm(x, 10);
                     if units_now == 0 && city_num > 2 {
-                        val = x * 1000;
+                        val = wm(x, 1000);
                     }
                 }
                 if num > remaining {
@@ -830,7 +817,7 @@ impl Sim {
                     if civilians > 49 && civilians > pop_cap / 2 {
                         val /= 100;
                     }
-                    if self.civilian_ceiling() * 3 / 5 <= civilians {
+                    if self.civilian_ceiling(who) * 3 / 5 <= civilians {
                         continue;
                     }
                 }
@@ -854,7 +841,7 @@ impl Sim {
                 if divisor == 0 {
                     continue;
                 }
-                let mut out = fac * (want * val / divisor) / 256;
+                let mut out = wm(fac, wm(want, val) / divisor) / 256;
                 if out < 0 {
                     out = 9_999_999;
                 }
@@ -880,13 +867,12 @@ impl Sim {
         base: i32,
         r: u16,
         army_target: i32,
-        remaining_out: i32,
+        _remaining: i32,
         escrow: &mut i32,
         num: &mut i32,
         pop_cap: i32,
     ) -> Option<i32> {
         let w = who as usize;
-        let _ = remaining_out;
         if f.missile {
             return self.missile_value(who, t, f, escrow);
         }
@@ -922,21 +908,21 @@ impl Sim {
             Census::reg(&cn.reg_attacked, r),
             false,
         );
-        v = f.attack * v / 10;
+        v = wm(f.attack, v) / 10;
         if self.named_is(t, "Bomber") {
             let cn = &self.ai[w].census;
             let fighters = cn.fighters;
             let bombers = cn.bombers;
             if fighters != 0 {
                 if bombers < fighters / 4 {
-                    v *= 2;
+                    v = wm(v, 2);
                 }
                 if bombers < fighters / 8 {
-                    v *= 2;
+                    v = wm(v, 2);
                 }
             }
             if fighters > 7 && bombers < 3 {
-                v *= 2;
+                v = wm(v, 2);
             }
         }
         let cn = &self.ai[w].census;
@@ -965,9 +951,7 @@ impl Sim {
         if !nuke {
             // Conventional: never again once the nuke is reachable.
             if let Some(x) = self.tech_tree.roles.nuclearmissile
-                && self
-                    .tech_tree
-                    .has_preq(&self.setup, &self.tech[w], x)
+                && self.tech_tree.has_preq(&self.setup, &self.tech[w], x)
             {
                 return None;
             }
@@ -981,7 +965,7 @@ impl Sim {
                 v = 600_000 / (n + 1);
             }
             if pers.nukes < 0 {
-                v *= 2;
+                v = wm(v, 2);
             }
             return Some(v);
         }
@@ -1011,9 +995,7 @@ impl Sim {
         if !vulnerable {
             return None;
         }
-        let silos = self
-            .tech_tree
-            .types[t]
+        let silos = self.tech_tree.types[t]
             .where_
             .and_then(|wt| self.build_record(wt))
             .map_or(0, |rec| self.num_buildings_of(who, rec));
@@ -1023,21 +1005,21 @@ impl Sim {
         let mut v = b;
         if mine < max_enemy {
             *escrow = 1;
-            v = (max_enemy - mine) * b;
+            v = wm(max_enemy - mine, b);
         }
         if self.type_affordable(who, t, true) != 0 {
             *escrow = 1;
         }
         if mine == 0 {
-            v *= 5;
+            v = wm(v, 5);
         }
         let pers = self.ai[w].pers;
-        v *= pers.nukes + 2;
+        v = wm(v, pers.nukes + 2);
         if pers.nukes > 0 {
-            v *= 2;
+            v = wm(v, 2);
         }
         if pers.rush < 0 && pers.army_size > 0 {
-            v *= 2;
+            v = wm(v, 2);
         }
         let _ = f;
         Some(v)
@@ -1068,7 +1050,9 @@ impl Sim {
             let bd = &self.buildings[b];
             bd.alive
                 && bd.active
-                && bd.ty.is_some_and(|rec| self.build_is_ident(rec, Ident::Dock))
+                && bd
+                    .ty
+                    .is_some_and(|rec| self.build_is_ident(rec, Ident::Dock))
         })?;
         let sea_reg = self.dock_sea_region(dock)?;
         if self.world.cells_in(sea_reg).count() <= 19 {
@@ -1102,11 +1086,11 @@ impl Sim {
             }
             // The `econ[FOOD]` multipliers here are dead in the listing —
             // they scale a local nothing reads (report §9.1).
-            let mut b = base * 100 / (n + 1);
+            let mut b = wm(base, 100) / (n + 1);
             if reg_combat < 10 {
                 b /= 10 - reg_combat;
             }
-            return Some((sea_map * b, 4));
+            return Some((wm(sea_map, b), 4));
         }
         // Warships.
         let mil_level = self.tech[w].epoch[tech::Line::Military.index()];
@@ -1140,7 +1124,7 @@ impl Sim {
         let carrier = self.named_is(t, "Aircraft Carrier");
         let attacked = self.buildings[dock].under_attack != 0;
         if sea_map > 2 {
-            let mut b = base * 500 / (n + 1);
+            let mut b = wm(base, 500) / (n + 1);
             if carrier {
                 if n > 1 || reg_combat < 8 || reg_combat < avg_e {
                     return None;
@@ -1149,23 +1133,23 @@ impl Sim {
             } else {
                 *escrow = i32::from(n < mil_level + 3);
                 if reg_combat < avg_e {
-                    b = if bark { b / 10 } else { b * 10 };
+                    b = if bark { b / 10 } else { wm(b, 10) };
                 }
             }
             if attacked {
                 *escrow = 1;
                 if self.named_is(t, "Fireship") {
-                    return Some((sea_map * (avg_e + 1) * b * 100, 6));
+                    return Some((wm(wm(wm(sea_map, avg_e + 1), b), 100), 6));
                 }
                 b /= 1000;
             }
-            return Some((sea_map * (avg_e + 1) * b, 6));
+            return Some((wm(wm(sea_map, avg_e + 1), b), 6));
         }
         let city_reg_size = self.world.cells_in(r).count() as i32;
         if !(reg_combat <= city_reg_size / 20 || avg_e != 0) || reg_combat >= 2 {
             return None;
         }
-        Some((sea_map * (avg_e + 1) * (base * 10 / (n + 1)), 6))
+        Some((wm(wm(sea_map, avg_e + 1), wm(base, 10) / (n + 1)), 6))
     }
 
     /// The dock's sea region — the original walks the footprint for the first
@@ -1173,9 +1157,9 @@ impl Sim {
     /// footprint over the region grid.
     fn dock_sea_region(&self, dock: usize) -> Option<u16> {
         let bd = &self.buildings[dock];
-        let (xs, ys) = bd
-            .ty
-            .map_or((1, 1), |rec| (self.build_types[rec].x_size, self.build_types[rec].y_size));
+        let (xs, ys) = bd.ty.map_or((1, 1), |rec| {
+            (self.build_types[rec].x_size, self.build_types[rec].y_size)
+        });
         let base = bd.pos.cell();
         for dy in 0..ys.max(1) {
             for dx in 0..xs.max(1) {
@@ -1222,11 +1206,11 @@ impl Sim {
             if combat <= 19 {
                 return None;
             }
-            let mut v = remaining * 2000;
+            let mut v = wm(remaining, 2000);
             let n = self.line_count(who, t, false) + queued_now;
             if n == 0 {
                 *escrow = 1;
-                v = remaining * 200_000;
+                v = wm(remaining, 200_000);
             }
             if combat < 15 * n {
                 return None;
@@ -1241,12 +1225,12 @@ impl Sim {
             if combat <= 7 {
                 return None;
             }
-            let mut v = combat * remaining * 2000;
+            let mut v = wm(wm(combat, remaining), 2000);
             let n = self.line_count(who, t, false) + queued_now;
             if n == 0 {
                 *escrow = 1;
                 if f.special_forces_elite {
-                    v = combat * remaining * 20000;
+                    v = wm(wm(combat, remaining), 20000);
                 }
             }
             if combat < 8 * n {
@@ -1259,16 +1243,17 @@ impl Sim {
                 let bd = &self.buildings[b];
                 bd.alive
                     && bd.active
-                    && bd.ty.is_some_and(|rec| self.build_is_ident(rec, Ident::Market))
+                    && bd
+                        .ty
+                        .is_some_and(|rec| self.build_is_ident(rec, Ident::Market))
             });
             if !market {
                 return None;
             }
-            if self.ai[w].census.reg_known_rares.iter().sum::<i32>()
-                - queued_now
-                - units_now
-                <= 0
-            {
+            // **Seam** — `LeaderData::known_rares` (`+0x6d4`). The census
+            // keeps the per-region counts; the leader-level total is their
+            // sum until the sweep writes one.
+            if self.ai[w].census.reg_known_rares.iter().sum::<i32>() - queued_now - units_now <= 0 {
                 return None;
             }
             if self.ai[w].effective_pop >= self.muster[w].cap - 1 {
@@ -1281,17 +1266,17 @@ impl Sim {
             if unlimited || self.named_is(t, "Merchant Fleet") || !per_city {
                 return None;
             }
-            let mut v = self.ai[w].infra_mod * 1_000_000 / 256;
+            let mut v = wm(self.ai[w].infra_mod, 1_000_000) / 256;
             let econ = self.ai[w].econ[2];
             let mut num = 1;
             if econ & 1 != 0 {
                 num = 3;
-                v *= 120;
+                v = wm(v, 120);
             } else if econ & 2 != 0 {
                 num = 2;
-                v *= 60;
+                v = wm(v, 60);
             } else if econ & 4 != 0 {
-                v *= 30;
+                v = wm(v, 30);
             }
             let limit = self.caravan_limit(who);
             num = num.min(limit - queued_now - units_now);
@@ -1321,23 +1306,25 @@ impl Sim {
                 let bd = &self.buildings[b];
                 bd.alive
                     && bd.active
-                    && bd.ty.is_some_and(|rec| self.build_is_ident(rec, Ident::University))
+                    && bd
+                        .ty
+                        .is_some_and(|rec| self.build_is_ident(rec, Ident::University))
             })?;
             let k = gfree[KNOWLEDGE] - self.count_queue(uni, Some(t));
             if k <= 0 {
                 return None;
             }
-            let mut v = self.ai[w].infra_mod * k * 10000 / 256;
+            let mut v = wm(wm(self.ai[w].infra_mod, k), 10000) / 256;
             let filled = self.ai[w].census.filled_gather_slots[KNOWLEDGE];
             let total = self.ai[w].census.gather_slots[KNOWLEDGE];
             if filled < total {
-                v *= 60;
+                v = wm(v, 60);
             }
             if filled < total * 2 / 3 {
                 *escrow = 1;
-                v *= 10;
+                v = wm(v, 10);
             } else if filled < total {
-                v *= 5;
+                v = wm(v, 5);
             }
             return Some((v, 4, want_civ));
         }
@@ -1363,7 +1350,7 @@ impl Sim {
     ) -> Option<(i32, i32, i32)> {
         let w = who as usize;
         let (units_now, queued_now) = self.raw_counts(who, f.rec);
-        let mut b = self.ai[w].infra_mod * base / 256;
+        let mut b = wm(self.ai[w].infra_mod, base) / 256;
         let q = self.count_queue(city_o, None);
         let cn = &self.ai[w].census;
         if Census::reg(&cn.reg_free_peasants, r) >= Census::reg(&cn.reg_cities, r) {
@@ -1372,28 +1359,28 @@ impl Sim {
         let ca = self.ai[w].city_ai.get(c).copied().unwrap_or_default();
         let (free, busy, gatherers) = (ca.free, ca.busy, ca.gatherers);
         if busy == 0 && free == 0 && q == 0 {
-            b *= 30;
+            b = wm(b, 30);
         }
         let assigned = free + busy + q;
         let mut v;
         if assigned < slots - 1 {
             let mut deficit = slots - assigned;
             let mut room = 0;
-            for g in 0..RESOURCES {
+            for (g, &gf) in gfree.iter().enumerate() {
                 if g == KNOWLEDGE || !self.holdings[w].available[g] {
                     continue;
                 }
                 let inc = self.ledgers[w].income[g];
                 let cap = self.ledgers[w].cap[g];
                 if inc < cap {
-                    room += ((cap - inc) / 160).min(gfree[g]);
+                    room += ((cap - inc) / 160).min(gf);
                 } else {
-                    deficit -= gfree[g];
+                    deficit -= gf;
                 }
             }
             *escrow = 1;
             let k = deficit.min(room).max(0);
-            v = k * k * b * 80;
+            v = wm(wm(wm(k, k), b), 80);
             if k == 0 && !(gatherers == 0 && busy == 0 && free == 0 && q == 0) {
                 return None;
             }
@@ -1408,25 +1395,25 @@ impl Sim {
             return None;
         }
         if self.lobby.victory == 8 {
-            v *= 10;
+            v = wm(v, 10);
         }
         let cn = &self.ai[w].census;
         let gath = Census::reg(&cn.reg_gatherers, r);
         let gslots = Census::reg(&cn.reg_gather_slots, r);
         if gath < gslots {
-            v = v * 3 / 2;
+            v = wm(v, 3) / 2;
         }
         if gath * 2 < gslots {
-            v *= 2;
+            v = wm(v, 2);
         }
         if gatherers == 0 {
-            v *= 2;
+            v = wm(v, 2);
         }
         if free + busy <= slots / 2 {
-            v = v * 3 / 2;
+            v = wm(v, 3) / 2;
         }
         if Census::reg(&cn.reg_peasants, r) == 0 {
-            v *= 5;
+            v = wm(v, 5);
         }
         if Census::reg(&cn.reg_free_peasants, r) == 0 {
             let town = self
@@ -1435,11 +1422,14 @@ impl Sim {
                 .town
                 .is_some_and(|x| self.type_avail(who, x) == tech::AVAILABLE);
             let cn = &self.ai[w].census;
-            v *= if town && Census::reg(&cn.reg_land, r) < 2 {
-                4
-            } else {
-                2
-            };
+            v = wm(
+                v,
+                if town && Census::reg(&cn.reg_land, r) < 2 {
+                    4
+                } else {
+                    2
+                },
+            );
         }
         let n = queued_now + units_now;
         if n > self.muster[w].cap / 2 {
@@ -1476,15 +1466,16 @@ impl Sim {
     fn owns_capital(&self, who: Player) -> bool {
         self.cities
             .iter()
-            .find(|c| c.alive && c.capital && c.owner == who)
-            .is_some()
+            .any(|c| c.alive && c.capital && c.owner == who)
     }
 
     /// `pop_limits[info.pop_limit].data[0]` — the lobby's population row, the
-    /// bound three fifths of which caps civilians.
-    fn civilian_ceiling(&self) -> i32 {
+    /// bound three fifths of which caps civilians. It is the *row's* value,
+    /// not the leader's modified cap, and [`crate::Muster::limit`] is the
+    /// same number.
+    fn civilian_ceiling(&self, who: Player) -> i32 {
         self.muster
-            .first()
+            .get(who as usize)
             .map_or(crate::DEFAULT_POP_LIMIT, |m| m.limit)
     }
 
@@ -1550,9 +1541,9 @@ impl Sim {
             let mut age_p = age_t;
             let mut owned = 0;
             let mut avail = false;
-            let mut p = self
-                .tech_tree
-                .get_graft(&self.setup, &self.tech[w], self.tech_tree.types[t].from);
+            let mut p =
+                self.tech_tree
+                    .get_graft(&self.setup, &self.tech[w], self.tech_tree.types[t].from);
             for _ in 0..64 {
                 let Some(x) = p else { break };
                 if let Some(rec) = self.unit_record(x) {
@@ -1560,11 +1551,15 @@ impl Sim {
                 }
                 if self.type_avail(who, x) == tech::AVAILABLE && !avail {
                     avail = true;
-                    age_p = self.unit_record(x).map_or(age_t, |r| self.unit_types[r].combat.age);
+                    age_p = self
+                        .unit_record(x)
+                        .map_or(age_t, |r| self.unit_types[r].combat.age);
                 }
-                p = self
-                    .tech_tree
-                    .get_graft(&self.setup, &self.tech[w], self.tech_tree.types[x].from);
+                p = self.tech_tree.get_graft(
+                    &self.setup,
+                    &self.tech[w],
+                    self.tech_tree.types[x].from,
+                );
             }
             if !(owned != 0 || !avail || f.siege) || self.named_is(t, "Merchant Fleet") {
                 continue;
@@ -1575,16 +1570,16 @@ impl Sim {
             let k = 4;
             let gap = age_t - age_p;
             let m = (5 * gap + 2).max(1);
-            let mut v = m * ((k * base / 2) * (owned + 2) / 2);
+            let mut v = wm(m, wm(wm(k, base) / 2, owned + 2) / 2);
             if self.ai[w].wonder_mod != 0 {
                 v /= 100;
             }
             v = if f.sea {
-                self.ai[w].sea_mod * v / 256
+                wm(self.ai[w].sea_mod, v) / 256
             } else if f.air {
-                self.ai[w].air_mod * v / 256
+                wm(self.ai[w].air_mod, v) / 256
             } else {
-                self.ai[w].ground_mod * v / 256
+                wm(self.ai[w].ground_mod, v) / 256
             };
             if self
                 .tech_tree
@@ -1593,33 +1588,37 @@ impl Sim {
                 .is_some_and(|x| self.tech_tree.is(t, x, false))
             {
                 let pers = self.ai[w].pers;
-                v *= (sea_map / 2 + 1) * (pers.nukes + 2);
+                v = wm(v, wm(sea_map / 2 + 1, pers.nukes + 2));
                 if pers.nukes > 0 {
-                    v *= 2;
+                    v = wm(v, 2);
                 }
                 if pers.rush < 0 && pers.army_size > 0 {
-                    v *= 2;
+                    v = wm(v, 2);
                 }
                 if d > 2 && self.max_enemy_age(who) < self.tech[w].ages {
-                    v *= 100;
+                    v = wm(v, 100);
                 }
             }
             let combat = self.ai[w].census.combat;
             if combat >= 2 * enemy {
-                v *= 4;
+                v = wm(v, 4);
             } else if combat >= 3 * enemy / 2 {
-                v *= 3;
+                v = wm(v, 3);
             } else if combat > enemy {
-                v *= 2;
+                v = wm(v, 2);
             }
             if combat < 16 {
                 if combat > 7 && !f.siege && owned == 0 {
-                    v = v * 5 / 4;
+                    v = wm(v, 5) / 4;
                 }
             } else if combat < 24 {
-                v = if !f.siege && owned == 0 { v * 3 / 2 } else { v * 3 };
+                v = if !f.siege && owned == 0 {
+                    wm(v, 3) / 2
+                } else {
+                    wm(v, 3)
+                };
             } else {
-                v *= if f.siege || owned != 0 { 4 } else { 2 };
+                v = wm(v, if f.siege || owned != 0 { 4 } else { 2 });
             }
             v = v.clamp(0, 9_000_000);
             if d != 2 {
@@ -1633,7 +1632,7 @@ impl Sim {
                     pv = -pv;
                 }
                 pv = pv.clamp(-256, 256);
-                v = (v / 256) * (pv + 256);
+                v = wm(v / 256, pv + 256);
             }
             let cat;
             if f.military {
@@ -1643,29 +1642,29 @@ impl Sim {
                 cat = 7;
                 let cn = &self.ai[w].census;
                 if cn.active_wars != 0 {
-                    v *= owned / 3 + 1;
+                    v = wm(v, owned / 3 + 1);
                 } else if cn.wars != 0 {
-                    v *= owned / 6 + 6;
+                    v = wm(v, owned / 6 + 6);
                 }
                 v = if f.siege {
-                    v * (gap + 1)
+                    wm(v, gap + 1)
                 } else {
-                    (gap + 2) * v / 2
+                    wm(gap + 2, v) / 2
                 };
             } else {
                 cat = 8;
                 if self.ai[w].census.active_wars == 0 {
-                    v = v * 5 / 4;
+                    v = wm(v, 5) / 4;
                 }
             }
             if self.ai[w].shortages == 0 {
-                v *= 2;
+                v = wm(v, 2);
             }
             if f.sea {
-                v *= sea_map * sea_map;
+                v = wm(v, wm(sea_map, sea_map));
             }
             if self.ai[w].effective_pop > self.muster[w].cap - 4 {
-                v *= 2;
+                v = wm(v, 2);
             }
             let aff = if self.type_affordable(who, t, true) >= 1 {
                 0x100
@@ -1674,7 +1673,7 @@ impl Sim {
             };
             self.ai[w]
                 .make_list
-                .make_me(t as i32, aff * (v / 256), 1, cat, -1, 0, 1, 0, 0);
+                .make_me(t as i32, wm(aff, v / 256), 1, cat, -1, 0, 1, 0, 0);
         }
     }
 
@@ -1731,7 +1730,7 @@ impl Sim {
                 }
                 let ok = self.building_of_type(b, wt)
                     || (self.tech_tree.roles.town == Some(wt) && self.building_is_city(b));
-                if !ok || self.building_unassimilated(b) && false {
+                if !ok {
                     continue;
                 }
                 let score = self.trainer_score(b, level * 1_000_000, true);
@@ -1796,12 +1795,14 @@ impl Sim {
                 }
             }
             let Some(b) = best else {
+                // No candidate at all on the first round is the original's
+                // "nothing could be queued"; later rounds keep the first
+                // round's answer.
                 return round != 0 && first == Some(true);
             };
             let ok = self.queue_up(b, rec).is_ok();
             if round == 0 {
-                first = Some(true);
-                let _ = ok;
+                first = Some(ok);
             }
         }
         first == Some(true)
@@ -1828,6 +1829,10 @@ impl Sim {
 
     /// `num` orders at the one building the walk chose; the first order's
     /// success is the result.
+    ///
+    /// **Seam** — `Build::queue_up(b, t, escrow)` spends from the escrow
+    /// reservation when `escrow != 0`; [`Sim::queue_up`] takes no such
+    /// argument and always spends from the ordinary purse.
     fn queue_batch(&mut self, at: Option<usize>, rec: usize, num: i32, escrow: i32) -> bool {
         let _ = escrow;
         let Some(b) = at else { return false };
@@ -1908,15 +1913,15 @@ impl Sim {
         let Some(price) = self.type_price(who, t) else {
             return f;
         };
-        for g in 0..RESOURCES {
-            if !self.holdings[w].available[g] || price[g] == 0 {
+        for (g, &p) in price.iter().enumerate() {
+            if !self.holdings[w].available[g] || p == 0 {
                 continue;
             }
             let inc = self.ledgers[w].income[g] / 16;
             if inc < 1 {
                 f /= 4;
             } else {
-                let q = (price[g] / inc).clamp(0, 20);
+                let q = (p / inc).clamp(0, 20);
                 f = (100 - (q * scale / 256)) * f / 100;
             }
         }
@@ -1936,7 +1941,7 @@ impl Sim {
         }
         let d = self.ai_difficulty();
         let anti_air = self.unit_types[f.rec].combat.obj_masks & 0x8000_0000 != 0;
-        let mut sum = 0;
+        let mut sum: i32 = 0;
         let mut total = 0;
         for j in 0..self.players.len() {
             let jw = j as Player;
@@ -1972,7 +1977,10 @@ impl Sim {
                     continue;
                 }
                 let weight = n.min(10);
-                sum += (self.table.pct(f.rec, k) - self.table.pct(k, f.rec)) * weight;
+                sum = sum.wrapping_add(wm(
+                    self.table.pct(f.rec, k) - self.table.pct(k, f.rec),
+                    weight,
+                ));
                 total += weight;
             }
         }
@@ -2137,25 +2145,179 @@ mod tests {
     }
 
     #[test]
-    fn the_matchup_bias_draws_once_per_eligible_type_and_never_on_moderate() {
-        // `upgrade_units` draws once per type that reaches step 8. With no
-        // tree there is nothing eligible and nothing draws; the shape of the
-        // guard is what this pins.
-        let mut sim = bare();
-        for d in [0, 1, 2, 3, 4] {
-            sim.lobby.difficulty = d;
-            let before = sim.rng;
-            sim.upgrade_units(0);
-            assert_eq!(draws(&mut sim, before), 0, "difficulty {d}");
-        }
-    }
-
-    #[test]
     fn create_units_offers_nothing_without_a_tree() {
         let mut sim = bare();
         let before = sim.rng;
         sim.create_units(0);
         assert_eq!(draws(&mut sim, before), 0);
         assert_eq!(sim.ai[0].make_list.head().t, -1);
+    }
+
+    /// The ids a [`barracks_sim`] hands back: the unit's tree entry, its
+    /// record, the barracks' record, and the barracks building.
+    struct Barracks {
+        unit: TypeId,
+        rec: usize,
+        brec: usize,
+        b: usize,
+    }
+
+    /// One leader with one city whose building is a Barracks — a military
+    /// trainer — and one available land military type made there. Enough for
+    /// a type to walk the whole of `create_units` and reach `make_me`.
+    fn barracks_sim(upgradeable: bool) -> (Sim, Barracks) {
+        let mut sim = bare();
+        // The tree: six goods, one unit, one building.
+        let mut tree = tech::TechTree::new();
+        for n in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
+            tree.add(tech::TypeDef::good(n));
+        }
+        let unit = tree.add(tech::TypeDef::unit(
+            "Hoplites",
+            tech::UnitTraits {
+                combat: true,
+                ..tech::UnitTraits::default()
+            },
+        ));
+        let build = tree.add(tech::TypeDef::building("Barracks"));
+        tree.types[unit].where_ = Some(build);
+        tree.finalize();
+        sim.set_tech_tree(tree);
+        sim.tech[0].tech[unit] = !upgradeable;
+        sim.tech[0].tech[build] = true;
+
+        // The unit type: land, military, one population.
+        let mut ty = crate::UnitType {
+            tree: Some(unit),
+            ..crate::UnitType::default()
+        };
+        ty.price.pop = 1;
+        ty.combat.combat_role = true;
+        ty.combat.attack = 100;
+        ty.combat.domain = crate::attrition::Domain::Land;
+        let rec = sim.add_unit_type(ty);
+
+        // The building type: a military trainer (`BUILD_FLAGS 5`).
+        let brec = sim.build_types.len();
+        sim.build_types.push(crate::build::BuildType {
+            ident: Ident::Barracks,
+            tree: Some(build),
+            flags: MILITARY_TRAINER,
+            x_size: 2,
+            y_size: 2,
+            hits: 100,
+            ..crate::build::BuildType::default()
+        });
+
+        let b = sim.add_building(0, crate::Pos::new(4 * 256, 4 * 256), 8);
+        sim.buildings[b].ty = Some(brec);
+        sim.cities.push(crate::city::City {
+            alive: true,
+            owner: 0,
+            race: Some(0),
+            founder: 0,
+            building: b,
+            members: Vec::new(),
+            reg: sim.world.region_of(sim.buildings[b].pos.cell()),
+            pos: sim.buildings[b].pos,
+            capital: true,
+            founding_capital: true,
+            was_founding_capital: false,
+            unassimilated: false,
+            no_heal: false,
+            alarm: false,
+            was_capital: 0,
+            capture_stamp: 0,
+            assimilation_timer: 0,
+            attack_stamp: 0,
+            capture_strength: 0,
+            pop: 1,
+            has_citizen: false,
+            source: None,
+        });
+        sim.buildings[b].city = Some(sim.cities.len() - 1);
+        sim.ai[0]
+            .city_ai
+            .resize(sim.cities.len(), crate::ai::CityAi::default());
+        sim.ai[0].mil_trainers = vec![b];
+        sim.muster[0].cap = 100;
+        sim.ai[0].census.pop = 10;
+        for l in &mut sim.ledgers {
+            l.bucket = [10_000; RESOURCES];
+        }
+        sim.holdings[0].available = [true; RESOURCES];
+        (sim, Barracks { unit, rec, brec, b })
+    }
+
+    #[test]
+    fn the_army_size_gate_draws_once_per_military_type_and_never_on_moderate() {
+        for d in [0, 1, 2, 3, 4] {
+            let (mut sim, ids) = barracks_sim(false);
+            sim.lobby.difficulty = d;
+            let before = sim.rng;
+            sim.create_units(0);
+            let n = draws(&mut sim, before);
+            assert_eq!(n, usize::from(d != 2), "difficulty {d}");
+            // And the type reached the make list, in the military category.
+            assert_eq!(sim.ai[0].make_list.head().t, ids.unit as i32);
+            assert_eq!(sim.ai[0].make_list.list[6].t, ids.unit as i32);
+            assert_eq!(sim.ai[0].make_list.head().city, 0);
+        }
+    }
+
+    #[test]
+    fn upgrade_units_draws_once_per_eligible_type_and_never_on_moderate() {
+        for d in [0, 1, 2, 3, 4] {
+            // `type_avail == 2`: eligible, bit clear — an upgrade is bought
+            // as research.
+            let (mut sim, ids) = barracks_sim(true);
+            assert_eq!(sim.type_avail(0, ids.unit), tech::RESEARCHABLE);
+            sim.lobby.difficulty = d;
+            let before = sim.rng;
+            sim.upgrade_units(0);
+            assert_eq!(
+                draws(&mut sim, before),
+                usize::from(d != 2),
+                "difficulty {d}"
+            );
+            // A military upgrade lands in category 7.
+            assert_eq!(sim.ai[0].make_list.list[7].t, ids.unit as i32);
+            assert_eq!(sim.ai[0].make_list.list[7].escrow, 1);
+        }
+        // A type that is already available is not an upgrade at all.
+        let (mut sim, _) = barracks_sim(false);
+        let before = sim.rng;
+        sim.upgrade_units(0);
+        assert_eq!(draws(&mut sim, before), 0);
+        assert_eq!(sim.ai[0].make_list.list[7].t, -1);
+    }
+
+    #[test]
+    fn queued_units_ignores_a_type_the_tree_has_taken_away() {
+        let (mut sim, ids) = barracks_sim(false);
+        sim.queue_up(ids.b, ids.rec).expect("queued");
+        assert_eq!(sim.queued_units(0), 1);
+        sim.tech[0].tech[ids.unit] = false;
+        assert_eq!(sim.queued_units(0), 0, "type_avail below 4 does not count");
+    }
+
+    #[test]
+    fn produce_unit_queues_at_the_military_trainer_with_the_shallowest_queue() {
+        let (mut sim, ids) = barracks_sim(false);
+        // A second trainer, three deep; the first is empty.
+        let b2 = sim.add_building(0, crate::Pos::new(8 * 256, 8 * 256), 8);
+        sim.buildings[b2].ty = Some(ids.brec);
+        sim.ai[0].mil_trainers = vec![b2, ids.b];
+        for _ in 0..3 {
+            sim.queue_up(b2, ids.rec).expect("queued");
+        }
+        assert!(sim.produce_unit(0, ids.unit, None, 1, 0));
+        assert_eq!(sim.buildings[ids.b].queue.items.len(), 1, "the empty one");
+        assert_eq!(sim.buildings[b2].queue.items.len(), 3);
+        // A trainer already four deep is not a candidate at all.
+        sim.ai[0].mil_trainers = vec![b2];
+        sim.queue_up(b2, ids.rec).expect("queued");
+        assert!(!sim.produce_unit(0, ids.unit, None, 1, 0));
+        assert_eq!(sim.buildings[b2].queue.items.len(), 4);
     }
 }

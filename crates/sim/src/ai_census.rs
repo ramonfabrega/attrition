@@ -100,11 +100,6 @@ impl Sim {
     // Seams
     // ------------------------------------------------------------------
 
-    /// Seam: `LeaderData::village_num`. Nothing here counts villages.
-    fn village_num(&self, _who: Player) -> i32 {
-        0
-    }
-
     /// Seam: `treaties[i] & 1`, "I have met leader `i`". No visibility model
     /// means step 6 never sets it, so it answers `true` for every other
     /// active leader — otherwise steps 14 and 15 could never count anything.
@@ -275,24 +270,7 @@ impl Sim {
     /// the original's name; it is private to that module, so this is the
     /// total on its own until one of them is made `pub(crate)`.
     fn city_gather_slot_total(&self, c: usize) -> i32 {
-        let mut n = 0;
-        for b in self.city_chain(c) {
-            let bd = &self.buildings[b];
-            if !bd
-                .ty
-                .is_some_and(|t| self.build_types[t].has(build::flags::GATHER))
-            {
-                continue;
-            }
-            let Some(good) = crate::ai_place::gather_good(self.building_ident(b)) else {
-                continue;
-            };
-            if good == 3 {
-                continue;
-            }
-            n += bd.gather_max.unwrap_or(0);
-        }
-        n
+        self.count_gather_slots(c).0
     }
 
     // ------------------------------------------------------------------
