@@ -703,11 +703,11 @@ type_avail`):
   and a **`game_random` coin** → prefer `{0x26f, 0x271, 0x273}`, else
   `{0x270, 0x272, 0x274}`; the non-preferred of a pair gets `× (rand %
   100)` — **a second draw** — and `×20` if I have no government yet.
-- **Recency**: `f1 = min(4, (frame − tech_frame) × ai_speed / 14400 + 12)`
-  (so 4 unless `tech_frame` is far in the future — it is initialised
-  that way? unverified), `f2 = min(3, (frame − tech_cat_frame[cat]) ×
-  ai_speed / 25600 + 16)` — `val = f2 × (f1 × val / 2) / 2`. `shortages ==
-  0` → `×2`.
+- **Recency**: `f1 = min(4, (frame − tech_frame) × ai_speed / 14400 + 12)`,
+  `f2 = min(3, (frame − tech_cat_frame[cat]) × ai_speed / 25600 + 16)` —
+  `val = f2 × (f1 × val / 2) / 2`. Both stamps are only ever written by
+  `Leader::init` (to 0; §2.17), so `f1 = 4` and `f2 = 3` always: `val ×=
+  3`. `shortages == 0` → `×2`.
 - **Coverage**: `total = Σ costs[0..5]`; `missing = 2 × Σ costs of goods
   neither available nor prerequisite-reachable`; `val = (2·total −
   missing) × val / (2·total)`; negative → 9,999,999; `wonder_mod != 0` →
@@ -762,6 +762,57 @@ components (`score_units` on the `0x1800000` flags, `compute_build_score`,
 `score_territory = territory × 1000 / world+0x78`), summed into `score`,
 zeroed after Armageddon. No decision reads it in the production AI; it is
 the score screen's, and the `LEADERDATA` dump carries `score`.
+
+### 2.17 Two producers — `produce_tech@006ca980`, `produce_city@006cb120`
+
+Both read whole; `produce_unit`, `produce_building`, `produce_upgrade`,
+`produce_spell` are the two readers' (§4 reports). A producer returns
+**0 when it queued or placed** (`make_this` then demotes the slot's `val`
+a hundredfold) and 1 when it could not.
+
+**`produce_tech(t, escrow)`**: 0 if `has_tech(t)` or `researching(t)`.
+The research building is `t.where`. If it is not a military trainer
+(`BuildTypeData::is_military_trainer`): over every active city of mine
+that `count_buildings(where)` finds one in, walk the city's building
+chain (`city+8` first, `Build+0x74` next) for a building that is
+complete (vslot `+0x20`), `is(where)`, active (`Build+0x8 & 4`), not
+upgrading (vslot `+0x60` clear), and whose queue accepts `(1, t)` (vslot
+`+0x190` returns 0); score `= city.level × 10⁶ / (queue.length + 1)`,
+halved if `is_unassimilated`, divided by `(my territory at the building
++ 1)`; the best wins. A military trainer is searched in `mil_trainers`
+(`+0x6e50`, the leader's own list) with score `10⁶ / (queue.length + 1) /
+(Build+0x24 + 1)` and the same halving and division. None → 1. Else
+`Build::queue_up(building, t, escrow)`'s result (`docs/PRODUCTION.md`).
+`tech_frame`/`tech_cat_frame` are **not** written here — nor anywhere:
+the only writer in `Leader`, `LeaderData` and `Leaders` is `Leader::init`'s
+zero, so research's recency factors (§2.14) are the constants `f1 = 4`,
+`f2 = 3` for the whole game. Dead terms, kept in the formula for fidelity.
+
+**`produce_city(t, wx, wy, escrow)`**: the site's region `r`; the best
+citizen of mine — on the map, base type `0x32/0x33`, action none,
+`GATHER (7)` or `EXPLORE_TO (3)`, in region `r` — by `vector_dist(site,
+citizen)`, **+24 for a gatherer**; none → 1. Then the type's pay slot
+(`BuildType` vslot `+0xd4(who, −1, −1, escrow, 0)` — the charge; named by
+use), `blocked_site(t, site × 0x300, who, −1, 0)` again, `Objects::
+init_build(who, t, wx × 0x300, wy × 0x300, 0, −1)` → the site object;
+failure → 1 (**after** paying — the found_cities check makes this
+unreachable in practice, but a mod's script can reach it through
+`place_city_with_cost`). Then a `Group` of the chosen citizen — or, for
+a **nomad** (`city_num == 0`), **every alive citizen of mine** —
+`action_swarm_around(site, who, QUEUE_NEW, BUILD_AT, 1)` (`docs/
+ORDERS.md` §5), and the census is adjusted in place: a non-gatherer →
+`free_peasants--`, `reg_free_peasants[r]--`, the nearest city's
+`free--`; a gatherer → `gatherers--`, `reg_gatherers[r]--`, the city's
+`gatherers--`. Return 0.
+
+Run7's city site `2007` appears in gamelog `FRAME 777`, which is the end
+of **game frame 776** (`docs/INPUT.md` §3: the dump numbers from 1, the
+game from 0). `who = 1`'s sweep is at 775 (`175 + 200·3`), so 776 is
+**step 1 — the script**: `city_placement`'s `place_city_with_cost`, which
+is `compute_sites(0)` + `found_cities()` under the hood, and
+`found_cities` bought on the spot. The C++ `found_cities` step proper
+would have been 778. By the same convention the farm in `FRAME 2` is game
+frame 1, step 1 again: the script's `place_farm`.
 
 ## 3. The finding: the skirmish opening is the shipped script
 
@@ -874,10 +925,10 @@ AI, and its first 115 seconds are legible in the dump today:
 | frame | what appears | source |
 |---|---|---|
 | 1 | scout `1/0` takes an `EXPLORETO` (path of 3) | `think_scout` — the idle path, `docs/ORDERS.md` §2.4 |
-| 2 | **site `2006` (type 417, Farm)** placed; citizen `1/1` pulled off woodcutter `2001` onto `BUILDORDER 2006` with a move inserted ahead | the script's `place_farm` → `place_building_with_cost`, or `create_buildings` — the reading settles which, and why frame 2 rather than 1 |
+| 2 | **site `2006` (type 417, Farm)** placed; citizen `1/1` pulled off woodcutter `2001` onto `BUILDORDER 2006` with a move inserted ahead | game frame 1 = step 1: **the script's `place_farm`** → `place_building_with_cost` (`FRAME n` is the end of game frame `n − 1`, `docs/INPUT.md` §3) |
 | 17 | `2006` starts building (`frame_started 17`) | |
 | 100, 206, 320 | citizens `1/6`, `1/7`, `1/8` | three queued at the city, `train_unit_with_need` |
-| 777 / 1121 | site `2007` (type 414, city) placed / started | `city_placement` or `found_cities` |
+| 777 / 1121 | site `2007` (type 414, city) placed / started | game frame 776 = step 1 of the sweep at 775: **the script's `city_placement`** → `place_city_with_cost` → `found_cities` buying on the spot (§2.17) |
 | 1177 / 1212 | site `2008` (Farm) placed / started | |
 | 1297, 1505 | citizens `1/9`, `1/10` | |
 
