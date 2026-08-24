@@ -1308,7 +1308,7 @@ impl Sim {
 
     /// `Group::action_swarm_around` for one unit: the approach move in
     /// front, then the order re-queued with the same action bit.
-    fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
+    pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
         let building = matches!(body, Body::Build(_));
         if let Some(spot) = self.swarm_spot(u, b, building) {
             self.add_move_order(u, spot, MoveKind::ExploreTo, QueuePos::First, false);

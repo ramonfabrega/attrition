@@ -159,6 +159,29 @@ impl Install {
         Ok(rules)
     }
 
+    /// The nations' display names, in `rules.tribes` order: each `TRIBE`
+    /// record's `FILE` under `tribes/`, whose root is `<TRIBE name="…">`.
+    /// A file that cannot be read gives an empty name rather than an error —
+    /// the roster's *order* is what the tree needs, and the name is only for
+    /// the scripts' `find_nation`.
+    pub fn tribe_names(&self, rules: &Rules) -> Result<Vec<String>, Error> {
+        let mut out = Vec::with_capacity(rules.tribes.len());
+        for r in &rules.tribes.records {
+            let file = r.text("FILE").unwrap_or("").trim();
+            let path = self.root.join("tribes").join(file.to_ascii_lowercase());
+            let name = read(&path)
+                .ok()
+                .and_then(|text| {
+                    parse(&path, &text)
+                        .ok()
+                        .and_then(|doc| doc.root_element().attribute("name").map(String::from))
+                })
+                .unwrap_or_default();
+            out.push(name);
+        }
+        Ok(out)
+    }
+
     /// Reads `unitrules.xml`. 364 records in the shipped file, of which many
     /// are per-nation art variants of the same unit selected by `TRIBE_MASK`.
     pub fn units(&self) -> Result<Table, Error> {

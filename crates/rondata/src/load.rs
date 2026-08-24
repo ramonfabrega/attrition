@@ -190,14 +190,13 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     let techs = install.techs()?;
     let goods = install.resources()?;
     let balance = install.balance()?;
-    Ok(load_tables(
-        &rules,
-        &units,
-        &buildings,
-        &techs,
-        &goods,
-        Some(&balance),
-    ))
+    let mut loaded = load_tables(&rules, &units, &buildings, &techs, &goods, Some(&balance));
+    // The nations' names, from the per-nation files rules.xml points at.
+    let names = install.tribe_names(&rules)?;
+    for (tribe, name) in loaded.tree.tribes.iter_mut().zip(names) {
+        tribe.name = name;
+    }
+    Ok(loaded)
 }
 
 /// Loads already-read tables. `balance` may be absent, in which case the
@@ -390,6 +389,7 @@ pub fn load_tables(
         tree.add_tribe(tech::Tribe {
             graft: vec![None; unit_names.len()],
             barbarian: false,
+            name: String::new(),
         });
     }
     // The roles, by the shipped names. A name that does not resolve leaves

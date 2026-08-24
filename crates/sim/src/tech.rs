@@ -265,6 +265,10 @@ pub struct Tribe {
     /// trains instead. `None` is identity.
     pub graft: Vec<Option<TypeId>>,
     pub barbarian: bool,
+    /// The nation's display name — the tribe file's `<TRIBE name>`, what
+    /// `ScenarioFuncSet::find_nation` returns and the scripts compare
+    /// (`"Egyptians"`, `"Lakota"`, …). Empty when unloaded.
+    pub name: String,
 }
 
 /// The types the rules name by role. Each is optional: a tree without the

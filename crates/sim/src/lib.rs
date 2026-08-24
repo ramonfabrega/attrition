@@ -36,6 +36,7 @@
 //! only add rounding the original does not have.
 
 pub mod ai;
+pub mod ai_host;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;
@@ -483,6 +484,12 @@ pub struct Sim {
     pub marks: Vec<Marks>,
     /// The lobby's option block, as the AI reads it — `docs/AI.md` §12.1.
     pub lobby: ai::Lobby,
+    /// `ScenarioData::find_counters[]` and `ScriptTimers` — the global
+    /// state the script host functions keep between calls.
+    pub script_env: ai_host::ScriptEnv,
+    /// The loaded opening scripts and their statics, once
+    /// [`Sim::load_scripts`] has run; `None` is a game with no script.
+    pub scripts: Option<ai_host::Scripts>,
     pub frame: i64,
 }
 
@@ -705,6 +712,8 @@ impl Sim {
             wall_stats_dirty: vec![false; players],
             marks: vec![Marks::default(); players],
             lobby: ai::Lobby::default(),
+            script_env: ai_host::ScriptEnv::default(),
+            scripts: None,
             tuning,
             world,
             frame: 0,
