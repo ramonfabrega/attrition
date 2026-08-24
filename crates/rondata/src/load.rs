@@ -96,6 +96,10 @@ pub struct Loaded {
     /// rules.xml's `mapstyles` category keys in file order — `map_styles`,
     /// which `GameInfo.map_style` indexes and `get_mapstyle()` names.
     pub map_styles: Vec<String>,
+    /// The opening scripts under `ai/scripts/`, `(file name, text)`:
+    /// `economic.bhs`, `defensive.bhs` and the library they include
+    /// (`docs/AI.md` §3). Empty when loaded from tables alone.
+    pub scripts: Vec<(String, String)>,
 }
 
 impl Loaded {
@@ -195,6 +199,16 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     let names = install.tribe_names(&rules)?;
     for (tribe, name) in loaded.tree.tribes.iter_mut().zip(names) {
         tribe.name = name;
+    }
+    // The opening scripts — `Leaders::prod_script_path` is `.\ai\scripts\`.
+    // A missing file is not an error: a game without scripts is a game whose
+    // AI skips to step 2, which is what the original does when
+    // `Compiler::compile` fails.
+    for name in ["economic.bhs", "defensive.bhs", "aibestbuildlibrary.bhs"] {
+        let path = install.root().join("ai").join("scripts").join(name);
+        if let Ok(text) = std::fs::read_to_string(&path) {
+            loaded.scripts.push((name.to_string(), text));
+        }
     }
     Ok(loaded)
 }
@@ -948,6 +962,7 @@ pub fn load_tables(
                     .collect()
             })
             .unwrap_or_default(),
+        scripts: Vec::new(),
     }
 }
 
@@ -1468,6 +1483,7 @@ mod tests {
             good_tree: (0..6).collect(),
             warnings: vec![],
             map_styles: vec![],
+            scripts: vec![],
         };
         assert_eq!(l.type_index(0), 0);
         assert_eq!(l.type_index(6), BASE_UNITTYPES);

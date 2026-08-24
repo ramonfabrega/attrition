@@ -168,6 +168,40 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         }
     }
 
+    // The opening scripts, compiled against the host's table
+    // (`Leaders::init_production_script`), then `Leader::init`'s AI tail for
+    // every computer leader: the personality roll and the script choice.
+    // The roll draws from the sim's own stream, which is not the original's
+    // at this point — the map maker's draws sit before it (`docs/ORDERS.md`
+    // §9.2) — so a test that needs the original's personality sets it from
+    // a `LEADERS=9` dump's `PERSONALITY` block (`docs/AI.md` §5).
+    if !loaded.scripts.is_empty() {
+        let sources: Vec<sim::bhs::Source> = loaded
+            .scripts
+            .iter()
+            .map(|(name, text)| sim::bhs::Source { name, text })
+            .collect();
+        if let Err(e) = sim.load_scripts(&["economic.bhs", "defensive.bhs"], &sources) {
+            notes.push(format!("the opening scripts did not compile: {e}"));
+        }
+    }
+    for who in 0..players {
+        if sim.nation[who].human {
+            continue;
+        }
+        let flags = init
+            .players
+            .iter()
+            .find(|p| {
+                p.iter()
+                    .any(|(k, v)| *k == "who" && v.trim() == who.to_string())
+            })
+            .and_then(|p| p.iter().find(|(k, _)| *k == "flags"))
+            .and_then(|(_, v)| v.trim().parse::<u32>().ok())
+            .unwrap_or(0);
+        sim.init_leader_ai(who as sim::Player, flags);
+    }
+
     // The starting city, by type at the logged position.
     let city_ty = loaded.build_named("Small City");
     for c in &init.cities {
@@ -227,6 +261,20 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             unit.movement.turning.type_turn_speed = t.turn_speed;
         }
         let idx = sim.add_unit(unit);
+        // `Unit::init`'s tally — `num_units`, the group count, `control` —
+        // which the price ramp and `population()` read. A unit stood up
+        // from the dump counts exactly as a trained one does.
+        if let Some(ty) = kind {
+            let who = u.who as usize;
+            let group = sim.unit_types[ty].group;
+            let pop = sim.unit_types[ty].price.pop;
+            let m = &mut sim.muster[who];
+            m.by_type[ty] += 1;
+            if let Some(g) = group {
+                m.by_group[g] += 1;
+            }
+            m.control += pop;
+        }
         units.push(UnitLink {
             who: u.who,
             o: u.o,
@@ -1062,6 +1110,128 @@ mod tests {
         assert_eq!(r.diverged[0].o, 1);
     }
 
+    /// `docs/AI.md` §5's table, first row: the opening script's first call
+    /// at game frame 1 — `defensive` steps 6, 7, 9, 10 in one call (Written
+    /// Word researched, the fourth farm placed, City State researched, three
+    /// citizens queued) and 11 blocking. The dump's `FRAME 2` is the state
+    /// after that frame. The AI's personality and script are run8's
+    /// `PERSONALITY` block (`LEADERS=9`), since the harness's stream is not
+    /// the original's at `Leader::init`.
+    #[test]
+    fn run7_s_first_script_call_fills_the_queues_the_dump_shows() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run7-ancient-nubian-orders.txt") else {
+            eprintln!("skipping: no gamelog-run7-ancient-nubian-orders.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        assert_eq!(loaded.scripts.len(), 3, "the three shipped scripts");
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let mut built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        assert!(built.sim.scripts.is_some(), "the scripts compiled");
+        assert!(!built.sim.nation[1].human, "player 1 is the AI");
+        let ai = &mut built.sim.ai[1];
+        ai.pers = sim::ai::Personality {
+            rush: 1,
+            cities: 1,
+            upgrades: 0,
+            arms: -1,
+            army: -1,
+            army_size: 1,
+            raid: 1,
+            invade: 1,
+            target: 0,
+            strategy: 1,
+            raze: 0,
+            spells: 0,
+            forts: -1,
+            nukes: 1,
+            air: 1,
+            naval: 0,
+            market: -1,
+            scouts: 1,
+            civilians: -1,
+            early_army: 1,
+            friendly_human: 1,
+            alliance_human: -1,
+            friendly_ai: 1,
+            alliance_ai: -1,
+        };
+        ai.script = Some("defensive".to_string());
+        ai.script_live = true;
+        ai.script_step = 1;
+
+        // Frame 0 arms the machine; frame 1 is the script's first call.
+        built.sim.tick();
+        built.sim.tick();
+        assert_eq!(built.sim.frame, 2);
+        assert!(built.sim.ai[1].script_live, "the script is not done");
+        assert_eq!(built.sim.ai[1].script_step, 11, "6 → 7 → 9 → 10 → 11");
+
+        // The city's queue: three citizens, on the ramp the dump shows.
+        let city_b = built
+            .sim
+            .cities
+            .iter()
+            .find(|c| c.alive && c.owner == 1)
+            .map(|c| c.building)
+            .expect("the AI's city");
+        let citizen = loaded.unit_named("Citizen").expect("a Citizen record");
+        let q = &built.sim.buildings[city_b].queue;
+        assert_eq!(
+            q.items.iter().map(|i| (i.ty, i.tech)).collect::<Vec<_>>(),
+            vec![(citizen, None); 3]
+        );
+        assert_eq!(
+            q.items
+                .iter()
+                .map(|i| i32::from(i.cost[0]))
+                .collect::<Vec<_>>(),
+            [25, 26, 27],
+            "the citizens' food ramp in the dump's FRAME 2"
+        );
+
+        // The library's queue: Written Word, then City State.
+        let lib = built.sim.first_library(1).expect("the AI's library");
+        let tech = |n: &str| loaded.tech_tree[loaded.tech_named(n).unwrap()];
+        assert_eq!(
+            built.sim.buildings[lib]
+                .queue
+                .items
+                .iter()
+                .map(|i| i.tech)
+                .collect::<Vec<_>>(),
+            [Some(tech("Written Word")), Some(tech("City State"))]
+        );
+
+        // The fourth farm: a site placed for the AI this frame, with a
+        // citizen ordered onto it. Its tile is the map's to decide
+        // (`docs/AI.md` §13); that it exists is the script's.
+        let farm = loaded.build_named("Farm").unwrap();
+        let sites: Vec<usize> = built
+            .sim
+            .buildings
+            .iter()
+            .enumerate()
+            .filter(|(_, b)| b.owner == 1 && b.alive && !b.active && b.ty == Some(farm))
+            .map(|(i, _)| i)
+            .collect();
+        assert_eq!(sites.len(), 1, "one farm site");
+        assert_eq!(
+            i32::from(built.sim.buildings[sites[0]].index),
+            2006,
+            "the dump's site number"
+        );
+        let builder = built.sim.units.iter().any(|u| {
+            u.owner == 1
+                && u.orders
+                    .iter()
+                    .any(|o| matches!(o.body, sim::orders::Body::Build(b) if b == sites[0]))
+        });
+        assert!(builder, "a citizen holds the build order");
+    }
+
     /// The oracle, as a regression guard.
     ///
     /// Every other test in this crate checks the harness against something we
@@ -1117,10 +1287,13 @@ mod tests {
             "a unit in the first logged frame has no simulation unit"
         );
         let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
-        assert!(
-            unlinked <= 673,
-            "unlinked unit-frames grew to {unlinked}: the original trains \
-             units the harness cannot, so this only ever shrinks"
+        // 2026-08-24: zero. The AI trains the three citizens the original
+        // does, on the same frames, and `find_free` numbers them so they
+        // link. This is now exact, not a ceiling.
+        assert_eq!(
+            unlinked, 0,
+            "unlinked unit-frames: {unlinked} — a unit the original has that \
+             the simulation never trained"
         );
 
         // The start-of-game rule, derived without reading the log.
@@ -1191,10 +1364,15 @@ mod tests {
         );
 
         // The rest is expected to shrink, never grow. These are ceilings.
+        // Re-based 2026-08-24 from 1,279/783: the AI's three trained
+        // citizens now link and are compared — unit-frames the harness had
+        // never seen before — and they idle where
+        // the original sends them to gather, which is the census's job
+        // (`docs/AI.md` §12.1).
         let orders: usize = report.frames.iter().map(|f| f.order_only().count()).sum();
         let paths: usize = report.frames.iter().map(|f| f.path_only().count()).sum();
-        assert!(orders <= 1_279, "order disagreements grew to {orders}");
-        assert!(paths <= 783, "path disagreements grew to {paths}");
+        assert!(orders <= 1_784, "order disagreements grew to {orders}");
+        assert!(paths <= 1_123, "path disagreements grew to {paths}");
     }
 
     /// One of the kept recordings, if this machine has it.

@@ -406,6 +406,10 @@ pub struct Leader {
     pub step: Step,
     /// `prod_script_run`: the opening script is live.
     pub script_live: bool,
+    /// `prod_script`: the script function's name — `"economic"` or
+    /// `"defensive"` — chosen by [`Leader::choose_script`]; `None` for a
+    /// leader that runs none (a human, or before `Leader::init`).
+    pub script: Option<String>,
     /// `script_step`: the `ref step` the script advances. `Leader::init`
     /// sets 1.
     pub script_step: i32,
@@ -444,6 +448,7 @@ impl Leader {
         Leader {
             step: Step::Idle,
             script_live: false,
+            script: None,
             script_step: 1,
             pers: Personality {
                 rush: 0,
@@ -536,6 +541,45 @@ impl Leader {
             Step::Buildings2 => Step::Make2,
             _ => Step::Idle,
         };
+    }
+
+    /// `Leader::init@006e3930` lines 782–826, the computer-leader tail
+    /// after `random_personality`: the lobby's per-player flags force the
+    /// roll (`+0x6dd4 rush`, `+0x6dec raid`, `+0x6e1c civilians`: `0x1000`
+    /// → `rush = raid = 1`; `0x2000` → `rush = raid = −1`, `civilians = 1`;
+    /// team style 3's team 1 → `rush = raid = 1`), then the script —
+    /// `economic` when `rush < 0`, or `rush == 0` and a
+    /// `Random::get(0, 0xffff)` coin comes up odd, and the nation lacks
+    /// bonus `0x13` (the Lakota); `defensive` otherwise, with
+    /// `early_army = 1`. `prod_script_run = 1` either way.
+    pub fn choose_script(
+        &mut self,
+        rng: &mut Rng,
+        player_flags: u32,
+        team_style: i32,
+        team: i32,
+        lakota: bool,
+    ) {
+        if player_flags & 0x1000 != 0 {
+            self.pers.rush = 1;
+            self.pers.raid = 1;
+        } else if player_flags & 0x2000 != 0 {
+            self.pers.rush = -1;
+            self.pers.raid = -1;
+            self.pers.civilians = 1;
+        } else if team_style == 3 && team == 1 {
+            self.pers.rush = 1;
+            self.pers.raid = 1;
+        }
+        self.script_live = true;
+        let rush = self.pers.rush;
+        let economic = (rush < 0 || (rush == 0 && rng.roll() & 1 != 0)) && !lakota;
+        if economic {
+            self.script = Some("economic".to_string());
+        } else {
+            self.script = Some("defensive".to_string());
+            self.pers.early_army = 1;
+        }
     }
 }
 

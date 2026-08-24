@@ -1,0 +1,693 @@
+//! `Leader::produce_building` — where the AI puts a building.
+//!
+//! The specification is `~/ghidra-projects/reports/ai/create-buildings.md`
+//! §4 (ratified in `docs/AI.md` §11): the anchor building and the city
+//! permission, the spiral of cells around the anchor scored one by one, the
+//! builder chosen among the citizens, the 2×2 jitter with its draws, the
+//! payment, the site and the swarm order. Every sync-stream draw the
+//! original takes on this path is taken here at the same point: one
+//! `Random::get(0, 0xffff)` per friendless FARM/MINE candidate that passes
+//! every site test, one per unblocked sub-position of the jitter.
+//!
+//! The spiral's table is `circle_init@006817f0`, rebuilt here in integers
+//! exactly as the original builds it: for each ring `r` in `0..=64`, every
+//! `(dx, dy)` of the `[−r, r]` square whose octagonal distance is `r`, `dx`
+//! outer and `dy` inner ascending, `circle_radius[r]` the running count —
+//! absolute cell offsets from the anchor, not deltas.
+//!
+//! What the flat harness world cannot supply is a named seam, each
+//! answering as an empty map would: the cell's `val` byte (0 — every
+//! non-gather candidate gets the same `+0xff`), `buildings_allowed` (the
+//! cell flags `0x78`, always allowed), the enemy-seen flag, `danger[]`, the
+//! gather amounts a `World::gather_at` would give an oil platform, and the
+//! oil patches (an oil well is never placed). The census adjustments at the
+//! end (`free`, `gatherers`, `filled`, `space[]`) belong to the census
+//! (`docs/AI.md` §12.1 item 5) and are not kept yet.
+
+use std::sync::OnceLock;
+
+use crate::build::{Ident, flags};
+use crate::orders::{Body, QueuePos, index};
+use crate::world::{Cell, Terrain, UNITS_PER_TILE, tile, vector_dist};
+use crate::{Player, Pos, Sim, cost};
+
+/// `circle_x`/`circle_y`/`circle_radius`, as `circle_init` fills them.
+pub struct Circle {
+    pub x: Vec<i32>,
+    pub y: Vec<i32>,
+    /// `circle_radius[r]`: how many entries lie within ring `r`.
+    pub radius: [usize; 0x41],
+}
+
+/// `circle_init@006817f0`'s cap on the point count.
+const MAX_POINTS: usize = 0x3249;
+
+pub fn circle() -> &'static Circle {
+    static CIRCLE: OnceLock<Circle> = OnceLock::new();
+    CIRCLE.get_or_init(|| {
+        let mut c = Circle {
+            x: Vec::new(),
+            y: Vec::new(),
+            radius: [0; 0x41],
+        };
+        'rings: for r in 0..=0x40i32 {
+            for x in -r..=r {
+                for y in -r..=r {
+                    if vector_dist(x, y) == r {
+                        c.x.push(x);
+                        c.y.push(y);
+                        if c.x.len() >= MAX_POINTS {
+                            for k in r as usize..=0x40 {
+                                c.radius[k] = c.x.len();
+                            }
+                            break 'rings;
+                        }
+                    }
+                }
+            }
+            c.radius[r as usize] = c.x.len();
+        }
+        c
+    })
+}
+
+/// The compass, `move_x`/`move_y` indices 1–8: NW, N, NE, E, SE, S, SW, W.
+const MOVE_X: [i32; 9] = [0, -1, 0, 1, 1, 1, 0, -1, -1];
+const MOVE_Y: [i32; 9] = [0, -1, -1, -1, 0, 1, 1, 1, 0];
+
+/// A cell in world units — four tiles, `0x300`.
+const UNITS_PER_CELL: i32 = 4 * UNITS_PER_TILE;
+
+/// The good a gather building takes — `BuildTypeData::get_good`, by identity.
+fn gather_good(ident: Ident) -> Option<usize> {
+    use crate::economy::Resource as R;
+    Some(match ident {
+        Ident::Farm => R::Food.index(),
+        Ident::Woodcutter => R::Timber.index(),
+        Ident::Mine => R::Metal.index(),
+        Ident::University => R::Knowledge.index(),
+        Ident::OilWell | Ident::OilPlatform => R::Oil.index(),
+        _ => return None,
+    })
+}
+
+fn is_enhancer(ident: Ident) -> bool {
+    matches!(
+        ident,
+        Ident::Granary | Ident::Lumbermill | Ident::Smelter | Ident::Refinery
+    )
+}
+
+fn is_military_trainer(ident: Ident) -> bool {
+    matches!(
+        ident,
+        Ident::Barracks | Ident::Stable | Ident::SiegeFactory | Ident::Factory | Ident::AutoPlant
+    )
+}
+
+impl Sim {
+    /// Whether some live building of anyone has its centre in this cell —
+    /// the cell flag `0x4000` the spiral skips.
+    fn cell_has_centre(&self, cell: Cell) -> bool {
+        self.buildings
+            .iter()
+            .any(|b| b.alive && b.pos.cell() == cell)
+    }
+
+    /// `WorldData::is_ocean`: the cell's region is water.
+    fn cell_is_ocean(&self, cell: Cell) -> bool {
+        self.world
+            .region_of(cell)
+            .is_some_and(|r| self.world.terrain(r) == Terrain::Sea)
+    }
+
+    /// `space_at_corner(tx, ty, who, need_city)`: the footprint class that
+    /// fits with its corner at tile `(tx, ty)` — 4 when all sixteen tiles
+    /// of the 4×4 are free, 3 when some 3×3 of them is, 2 when fewer than
+    /// eight are blocked, else 0; and 0 at once when one of the first four
+    /// is blocked. A tile is blocked off the map, outside every city radius
+    /// when a city is needed, under a footprint, placed on, `BLOCKED`, or in
+    /// a cell another leader owns.
+    fn space_at_corner(&self, who: Player, tx: i32, ty: i32, need_city: bool) -> i32 {
+        let mut free = [[false; 4]; 4];
+        let mut blocked = 0;
+        for j in 0..4 {
+            for i in 0..4 {
+                let t = Pos::new(tx + i, ty + j);
+                let ok = self.world.tile_in_bounds(t) && {
+                    let m = self.world.tile_mask(t);
+                    let owner = self.world.owner(crate::World::cell_of_tile(t)).player();
+                    !(need_city && m & tile::CITY_RADIUS == 0)
+                        && m & tile::OBJECT != tile::OBJECT_BUILDING
+                        && m & tile::PLACED == 0
+                        && m & tile::BLOCKED == 0
+                        && !owner.is_some_and(|o| o != who)
+                };
+                free[j as usize][i as usize] = ok;
+                if !ok {
+                    blocked += 1;
+                    if j == 0 {
+                        return 0;
+                    }
+                }
+            }
+        }
+        if blocked == 0 {
+            return 4;
+        }
+        for oj in 0..2 {
+            for oi in 0..2 {
+                let all = (0..3).all(|j| (0..3).all(|i| free[oj + j][oi + i]));
+                if all {
+                    return 3;
+                }
+            }
+        }
+        if blocked < 8 { 2 } else { 0 }
+    }
+
+    /// `WorldData::check_building_wcoord`: the best footprint class over the
+    /// corner offsets `dx ∈ [−w, w]`, `dy ∈ [−h, h]` (those on an axis or
+    /// with `|dx| + |dy| ≤ max`), returning 4 at once when found; 0 when the
+    /// cell is another leader's.
+    fn check_building_wcoord(
+        &self,
+        who: Player,
+        cell: Cell,
+        w: i32,
+        h: i32,
+        max: i32,
+        need_city: bool,
+    ) -> i32 {
+        if self.world.owner(cell).player().is_some_and(|o| o != who) {
+            return 0;
+        }
+        let mut best = 0;
+        for dx in -w..=w {
+            for dy in -h..=h {
+                if !(dx == 0 || dy == 0 || dx.abs() + dy.abs() <= max) {
+                    continue;
+                }
+                let sp = self.space_at_corner(who, cell.x * 4 + dx, cell.y * 4 + dy, need_city);
+                if sp == 4 {
+                    return 4;
+                }
+                best = best.max(sp);
+            }
+        }
+        best
+    }
+
+    /// A live building of `who` whose centre is in `cell` —
+    /// `ObjectsData::find_building_placed_at(tile·4 + 2, who)`.
+    fn building_placed_at(&self, who: Player, cell: Cell) -> Option<usize> {
+        self.buildings
+            .iter()
+            .position(|b| b.alive && b.owner == who && b.pos.cell() == cell)
+    }
+
+    /// `BuildTypeData::find_friends(x, y, city, who)`: neighbours of the
+    /// candidate cell that count for this type, `+1` on a diagonal and `+2`
+    /// on a cardinal.
+    fn find_friends(&self, rec: usize, cell: Cell, city: Option<usize>, who: Player) -> i32 {
+        let bt = &self.build_types[rec];
+        let ident = bt.ident;
+        let tower_like = matches!(ident, Ident::Tower | Ident::Lookout);
+        if (bt.attack != 0 && !tower_like) || ident == Ident::Woodcutter {
+            return 0;
+        }
+        let needs_city = !bt.has(flags::NO_CITY);
+        let mut n = 0;
+        for d in 1..=8usize {
+            let nc = Cell::new(cell.x + MOVE_X[d], cell.y + MOVE_Y[d]);
+            let Some(nb) = self.building_placed_at(who, nc) else {
+                continue;
+            };
+            if needs_city && self.buildings[nb].city != city {
+                continue;
+            }
+            let ni = self.building_ident(nb);
+            let nt = self.buildings[nb].ty.map(|t| &self.build_types[t]);
+            let nb_gather = nt.is_some_and(|t| t.has(flags::GATHER));
+            let nb_wonder = ni == Ident::Wonder;
+            let add = if d % 2 == 1 { 1 } else { 2 };
+            if is_enhancer(ident) {
+                // The enhanced good against the neighbour's — the enhancer
+                // table is not modelled; no friend counted.
+            } else if is_military_trainer(ident) {
+                if is_military_trainer(ni) && !self.building_is_city(nb) {
+                    n += add;
+                }
+            } else if tower_like {
+                if nb_gather && ni != Ident::University {
+                    n += 2;
+                } else if nb_wonder {
+                    n += if ident == Ident::Lookout { 8 } else { 4 };
+                }
+            } else if ident == Ident::Farm {
+                if matches!(ni, Ident::Farm | Ident::Granary) {
+                    n += add;
+                }
+            } else {
+                // Anything else: a gather building (not a university), an
+                // enhancer or a non-city military trainer adds nothing; any
+                // other non-wonder neighbour counts.
+                let nothing = (nb_gather && ni != Ident::University)
+                    || is_enhancer(ni)
+                    || (is_military_trainer(ni) && !self.building_is_city(nb));
+                if !nothing && !nb_wonder {
+                    n += add;
+                }
+            }
+        }
+        n
+    }
+
+    /// Forest tiles in the ring of width one around a footprint at `corner`
+    /// — what `blocked_site`'s out-parameter counts for a woodcutter.
+    fn forest_around(&self, rec: usize, corner: Pos) -> i32 {
+        let b = &self.build_types[rec];
+        let mut n = 0;
+        for v in -1..=b.y_size {
+            for u in -1..=b.x_size {
+                let inside = (0..b.x_size).contains(&u) && (0..b.y_size).contains(&v);
+                if inside {
+                    continue;
+                }
+                let t = Pos::new(corner.x + u, corner.y + v);
+                if self.world.tile_in_bounds(t)
+                    && self.world.tile_mask(t) & tile::SURFACE == tile::SURFACE_FOREST
+                {
+                    n += 1;
+                }
+            }
+        }
+        n
+    }
+
+    /// `Leader::produce_building(t, near, escrow)`: `true` when a site was
+    /// placed (the original's 0). `near` is the reference building — a city
+    /// centre for `place_building_with_cost`, any building for the orphan
+    /// form — and `city` the hint the host derived from it.
+    pub fn produce_building(
+        &mut self,
+        who: Player,
+        rec: usize,
+        near: usize,
+        city: Option<usize>,
+    ) -> bool {
+        let bt = self.build_types[rec].clone();
+        let ident = bt.ident;
+        let frame = self.frame;
+        // 4.1 The anchor and the permission: an active city building lends
+        // its city; anything else only to a type that needs none.
+        let city = city.filter(|&c| self.cities[c].alive);
+        if city.is_none() && !bt.has(flags::NO_CITY) {
+            return false;
+        }
+        let anchor = self.buildings[near].pos.cell();
+        let areg = self.world.region_of(anchor);
+        let mut rings = ((self.city_radius(who, self.buildings[near].ty) + 2) / 4).max(0) as usize;
+        let nocity = frame != 0 && bt.has(flags::NO_CITY);
+        let gather = bt.has(flags::GATHER);
+        let tower = ident == Ident::Tower;
+        let is_fort = ident == Ident::Fort;
+        let circle = circle();
+        let mut start = 0usize;
+        let mut fortlike = false;
+        if nocity {
+            rings += 1;
+            if !gather && ident != Ident::Dock && !tower {
+                start = if is_fort { 1 } else { circle.radius[3] };
+            }
+            fortlike = is_fort;
+        }
+        let scored_by_gather =
+            gather && !matches!(ident, Ident::Farm | Ident::University | Ident::Mine);
+        // 4.2 Oil wells walk the leader's oil patches, which the simulation
+        // does not carry.
+        if ident == Ident::OilWell {
+            return false;
+        }
+
+        // 4.3 The spiral.
+        let (w, h, max) = if ident != Ident::Dock {
+            let w = if bt.x_size < 4 { 5 - bt.x_size } else { 1 };
+            let h = if bt.y_size < 4 { 5 - bt.y_size } else { 1 };
+            let max = if bt.x_size < 4 || bt.y_size < 4 {
+                w + h
+            } else {
+                2
+            };
+            (w, h, max)
+        } else {
+            (4, 4, 8)
+        };
+        let end = circle.radius[rings.min(0x40)];
+        if start >= end {
+            return false;
+        }
+        let (xs, ys) = (self.world.width(), self.world.height());
+        let big = bt.x_size.max(bt.y_size);
+        let unlimited = self.lobby.resources_unlimited();
+        let mut step = 1;
+        let mut best = 0i32;
+        let mut best_sp = 0;
+        let mut best_cand: Option<Pos> = None;
+        let mut i = start;
+        while i < end {
+            let idx = i;
+            i += step;
+            let cell = Cell::new(anchor.x + circle.x[idx], anchor.y + circle.y[idx]);
+            if !(0..xs).contains(&cell.x)
+                || !(0..ys).contains(&cell.y)
+                || self.cell_has_centre(cell)
+            {
+                continue;
+            }
+            let sp = self.check_building_wcoord(who, cell, w, h, max, !nocity);
+            if sp <= 1 {
+                continue;
+            }
+            if big < 5 {
+                if sp < big || cell.x == 0 || cell.x == xs - 1 || cell.y == 0 || cell.y == ys - 1 {
+                    continue;
+                }
+            } else if !(frame < 1
+                || (1 < cell.x && cell.x < xs - 2 && 1 < cell.y && cell.y < ys - 2))
+            {
+                continue;
+            }
+            // `buildings_allowed` (cell flags `0x78`): the flat world allows.
+            if self.cell_is_ocean(cell) != (bt.has(flags::WATER)) {
+                continue;
+            }
+            let pad = |size: i32| {
+                if size < 4 {
+                    (4 - size) * (UNITS_PER_TILE / 2)
+                } else {
+                    0
+                }
+            };
+            let cand = Pos::new(
+                cell.x * UNITS_PER_CELL + bt.x_size * (UNITS_PER_TILE / 2) + pad(bt.x_size),
+                cell.y * UNITS_PER_CELL + bt.y_size * (UNITS_PER_TILE / 2) + pad(bt.y_size),
+            );
+            if self.blocked_site(Some(who), rec, cand, None) != crate::place::Blocked::Clear {
+                // A dock would try the sub-positions around it; docks are
+                // not placed by this path yet.
+                continue;
+            }
+            if self.world.owner(cell).player().is_some_and(|o| o != who) {
+                continue;
+            }
+            let d = vector_dist(cell.x - anchor.x, cell.y - anchor.y);
+            let mut score = 1000;
+            if !nocity || unlimited || !fortlike {
+                let f = self.find_friends(rec, cell, city, who);
+                if f == 0 {
+                    match ident {
+                        Ident::Farm | Ident::Mine => {
+                            let d = d.max(1);
+                            let r = self.rng.roll();
+                            score = 4000 / d + r % 500;
+                        }
+                        Ident::Woodcutter if frame == 0 => {
+                            score = if d > 3 { 500 } else { 1000 };
+                            if d > 4 {
+                                score /= 2;
+                            }
+                        }
+                        _ => {
+                            if d > 4 {
+                                score = 333;
+                            }
+                        }
+                    }
+                } else {
+                    score = (f + 2) * 1000;
+                    if tower {
+                        score *= f + 2;
+                    }
+                }
+                if is_enhancer(ident) && city.is_none() {
+                    // `get_town(cand) == city_o`: an enhancer stays in the
+                    // city it is placed for; with no city there is none.
+                    continue;
+                }
+            } else {
+                score = d * 1000;
+                if self.world.tile_mask(cand.tile()) & tile::CITY_RADIUS != 0 {
+                    score /= 2;
+                }
+            }
+            if !is_fort {
+                if tower {
+                    let near_tower = self.buildings.iter().any(|b| {
+                        b.alive
+                            && b.ty
+                                .is_some_and(|t| self.build_types[t].ident == Ident::Tower)
+                            && vector_dist(b.pos.x - cand.x, b.pos.y - cand.y) <= 0x600
+                    });
+                    if near_tower {
+                        score /= 8;
+                    }
+                }
+            } else {
+                // `danger[]` is not kept: nothing added.
+                let o2 = self.world.second(cell).player();
+                match o2 {
+                    Some(p) if p != who && !self.is_ally(who, p) => {
+                        score *= if self.lobby.team_style == 2 { 4 } else { 8 };
+                    }
+                    _ => score /= 2,
+                }
+            }
+            // `w1` and `plenty` are the gather-amount weights; with no
+            // `gather_at` amounts they stay at their initial values.
+            let (w1, plenty) = (1, 0);
+            if !scored_by_gather {
+                // `0xff − val`: the cell's value byte, 0 on this world.
+                score += 0xff;
+            } else if ident == Ident::Woodcutter {
+                let forest = self.forest_around(rec, self.tile_corner(rec, cand));
+                score *= forest * forest * forest;
+                if !(forest > 2 || frame == 0) {
+                    continue;
+                }
+                score = (score + plenty) * w1;
+            } else {
+                // `World::gather_at` for an oil platform: no amounts here.
+                let found = false;
+                if !found {
+                    continue;
+                }
+                score = (score + plenty) * w1;
+            }
+            if score < best {
+                continue;
+            }
+            if !scored_by_gather && best != 0 && !tower && start > circle.radius[3] {
+                step = 3;
+            }
+            best = score;
+            best_sp = sp;
+            best_cand = Some(cand);
+        }
+        let Some(mut cand) = best_cand else {
+            return false;
+        };
+        let _ = best_sp;
+
+        // 4.5 The corner tile, the builder, the jitter.
+        let corner = self.tile_corner(rec, cand);
+        let radius = match city {
+            Some(c) => self
+                .city_radius(who, self.buildings[self.cities[c].building].ty)
+                .min(0x40),
+            None => 0x1200,
+        };
+        let mut builder: Option<(usize, u8)> = None;
+        if frame != 0 {
+            let citizen = self.tech_tree.types.iter().position(|d| d.kind.is_unit());
+            let mut best_d = i32::MAX;
+            for u in 0..self.units.len() {
+                let unit = &self.units[u];
+                if unit.owner != who || !unit.alive() || !unit.on_map {
+                    continue;
+                }
+                let is_citizen = citizen.is_some_and(|c| {
+                    unit.ty
+                        .and_then(|r| self.unit_types[r].tree)
+                        .is_some_and(|t| self.tech_tree.is(t, c, false))
+                });
+                if !is_citizen {
+                    continue;
+                }
+                let kind = self
+                    .action_of(u)
+                    .map_or(index::NONE, |i| unit.orders[i].index());
+                if !matches!(kind, index::NONE | index::GATHER | index::BUILD_AT) {
+                    continue;
+                }
+                if self.world.region_of(unit.pos.cell()) != areg {
+                    continue;
+                }
+                // The distance in tiles, with the penalties in tiles of
+                // radius (`docs/AI.md` §13 — the listing settles the scale).
+                let mut d = vector_dist(
+                    (unit.pos.x - cand.x) / UNITS_PER_TILE,
+                    (unit.pos.y - cand.y) / UNITS_PER_TILE,
+                );
+                match kind {
+                    index::GATHER => {
+                        let target = self.action_of(u).and_then(|i| match unit.orders[i].body {
+                            Body::Gather(g) => Some(g.building),
+                            _ => None,
+                        });
+                        let good = target
+                            .and_then(|b| self.buildings.get(b))
+                            .map(|_| self.building_ident(target.unwrap()))
+                            .and_then(gather_good);
+                        d += match good {
+                            Some(0) => radius * 3 / 2,
+                            Some(1) => radius / 2,
+                            _ => radius / 3,
+                        };
+                    }
+                    index::BUILD_AT => {
+                        let wonder = self
+                            .action_of(u)
+                            .is_some_and(|i| match unit.orders[i].body {
+                                Body::Build(b) => self.building_ident(b) == Ident::Wonder,
+                                _ => false,
+                            });
+                        if wonder {
+                            continue;
+                        }
+                        d += radius * 2;
+                    }
+                    _ => {}
+                }
+                if d < best_d {
+                    best_d = d;
+                    builder = Some((u, kind));
+                }
+            }
+            if builder.is_none() {
+                return false;
+            }
+        }
+        let (ex, ey) = if ident != Ident::Woodcutter {
+            (1, 1)
+        } else {
+            ((4 - bt.x_size).max(0), (4 - bt.y_size).max(0))
+        };
+        if ident != Ident::Dock && (ex > 0 && ey > 0) {
+            if ident != Ident::Woodcutter {
+                let mut best_r = -1;
+                for dx in 0..ex {
+                    for dy in 0..ey {
+                        let c = Pos::new(
+                            ((corner.x + dx) * 2 + bt.x_size) * (UNITS_PER_TILE / 2),
+                            ((corner.y + dy) * 2 + bt.y_size) * (UNITS_PER_TILE / 2),
+                        );
+                        if self.blocked_site(Some(who), rec, c, None)
+                            == crate::place::Blocked::Clear
+                        {
+                            let r = self.rng.roll() % 100;
+                            if r >= best_r {
+                                best_r = r;
+                                cand = c;
+                            }
+                        }
+                    }
+                }
+                if best_r < 0 {
+                    return false;
+                }
+            } else {
+                // The compass ring `radius[ex]` around the corner: nine
+                // entries for a one-tile margin (`ex == 1`); wider margins
+                // need the full `move_x/move_y` table (`docs/AI.md` §13).
+                let mut best_f = -1;
+                let n = if ex >= 1 { 9 } else { 1 };
+                for k in 0..n {
+                    let c = Pos::new(
+                        (bt.x_size + (MOVE_X[k] + corner.x) * 2) * (UNITS_PER_TILE / 2),
+                        (bt.y_size + (MOVE_Y[k] + corner.y) * 2) * (UNITS_PER_TILE / 2),
+                    );
+                    if self.blocked_site(Some(who), rec, c, None) == crate::place::Blocked::Clear {
+                        let f = self.forest_around(rec, self.tile_corner(rec, c));
+                        if f > best_f {
+                            best_f = f;
+                            cand = c;
+                        }
+                    }
+                }
+                if best_f < 0 {
+                    return false;
+                }
+            }
+        }
+
+        // 4.6 Creation: paid after frame 0, the site, the builder's order.
+        if frame != 0 {
+            let charges = self.building_price(who, rec);
+            let available = self.holdings[who as usize].available;
+            cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+            self.economy_changed(who);
+        }
+        let o = self.init_build(who, rec, cand, false);
+        if frame != 0 {
+            if let Some((u, kind)) = builder {
+                if kind == index::BUILD_AT {
+                    // `QUEUE_LAST`: behind the build in hand.
+                    self.add_build_order(u, o, QueuePos::Last, true);
+                } else {
+                    // `QUEUE_NEW`: the swarm ring's approach, then the order.
+                    self.clear_orders(u);
+                    self.swarm_around(u, o, Body::Build(o), true);
+                }
+            }
+        } else {
+            self.activate(o, false, true);
+        }
+        true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_circle_is_rings_of_the_octagonal_metric_in_the_original_s_order() {
+        let c = circle();
+        assert_eq!(c.radius[0], 1, "ring 0 is the centre");
+        assert_eq!((c.x[0], c.y[0]), (0, 0));
+        // Ring 1: the eight neighbours, x outer then y inner.
+        assert_eq!(c.radius[1], 9);
+        assert_eq!(
+            (1..9).map(|i| (c.x[i], c.y[i])).collect::<Vec<_>>(),
+            [
+                (-1, -1),
+                (-1, 0),
+                (-1, 1),
+                (0, -1),
+                (0, 1),
+                (1, -1),
+                (1, 0),
+                (1, 1)
+            ]
+        );
+        // Every entry of ring r is at octagonal distance r, and the rings
+        // are contiguous.
+        for r in 1..=0x40usize {
+            for i in c.radius[r - 1]..c.radius[r] {
+                assert_eq!(vector_dist(c.x[i], c.y[i]), r as i32, "entry {i}");
+            }
+        }
+        assert!(c.x.len() <= MAX_POINTS);
+    }
+}

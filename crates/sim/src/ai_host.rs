@@ -1253,21 +1253,6 @@ impl Sim {
         result.map(|r| (r.as_int(), args[1].as_int()))
     }
 
-    /// `Leader::produce_building(t, near, escrow)` — **a seam until
-    /// `ai_place.rs` lands** (`docs/AI.md` §12.1 item 4): the citizen
-    /// choice, the three site sweeps and their draws, the payment, the site
-    /// and the swarm order. Until then nothing is placed and the host
-    /// answers "could not".
-    pub fn produce_building(
-        &mut self,
-        _who: Player,
-        _rec: usize,
-        _near: usize,
-        _city: Option<usize>,
-    ) -> bool {
-        false
-    }
-
     /// `place_city_with_cost`'s body — `compute_sites(0)`, `found_cities`,
     /// the make list cleared around them — **a seam until the census lands**
     /// (`docs/AI.md` §12.1 item 5).

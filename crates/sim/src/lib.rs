@@ -36,7 +36,9 @@
 //! only add rounding the original does not have.
 
 pub mod ai;
+pub mod ai_drive;
 pub mod ai_host;
+pub mod ai_place;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;
@@ -490,6 +492,12 @@ pub struct Sim {
     /// The loaded opening scripts and their statics, once
     /// [`Sim::load_scripts`] has run; `None` is a game with no script.
     pub scripts: Option<ai_host::Scripts>,
+    /// One per player: the production AI's state — the step machine, the
+    /// personality, the make list, the goods picture (`docs/AI.md` §2).
+    /// A human's is never stepped.
+    pub ai: Vec<ai::Leader>,
+    /// `ai_speed`: 1, plus one per `ai speed increase` cheat.
+    pub ai_speed: i32,
     pub frame: i64,
 }
 
@@ -714,6 +722,8 @@ impl Sim {
             lobby: ai::Lobby::default(),
             script_env: ai_host::ScriptEnv::default(),
             scripts: None,
+            ai: vec![ai::Leader::new(); players],
+            ai_speed: 1,
             tuning,
             world,
             frame: 0,
@@ -742,6 +752,7 @@ impl Sim {
         self.city_tally.push(city::Tally::default());
         self.wall_stats_dirty.push(false);
         self.marks.push(Marks::default());
+        self.ai.push(ai::Leader::new());
         for row in &mut self.at_war {
             row.push(false);
         }
@@ -1602,6 +1613,10 @@ impl Sim {
                 self.calc_wall_stats(player);
             }
         }
+
+        // `Leaders::strategy_all` — the production AI, between the income
+        // and the objects (`Game::do_frame` line 267; `docs/AI.md` §2.1).
+        self.strategy_all();
 
         // Then the buildings. `Build::process` and `Unit::process` are both
         // reached from `Objects::process_all`, so in the original they
