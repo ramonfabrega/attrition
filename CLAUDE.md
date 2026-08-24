@@ -392,9 +392,27 @@ better, in which case say so and take that.
     ordered onto it — `defensive` steps 6, 7, 9, 10 in one call. Run6's
     unlinked unit-frames went 673 → **0**; run7's 6,543 → 1,970. A
     `LEADERS=9` run (run8) settled the personality and the script
-    (`docs/ORACLE.md` corrected: `LEADERS` obeys the threshold). Next:
+    (`docs/ORACLE.md` corrected: `LEADERS` obeys the threshold). ~~Next:
     the census and the C++ producers (§12.1), the map's tile layer for
-    the farm's exact tile, then the blind second reading.
+    the farm's exact tile, then the blind second reading.~~
+
+    **The census and the C++ producers landed, 2026-08-24 (third
+    session)** — seven modules by seven parallel Opus workers over a
+    shared surface (`ai_census`, `ai_sites`, `ai_research`, `ai_units`,
+    `ai_build`, `ai_make`, `ai_types`), every formula re-read against the
+    decompile as it was written, **thirty-odd corrections to §2 recorded
+    in `docs/AI.md` §14** for the second reading. Two oracles found on
+    the way, each one ini line: **`WORLD=6` under `[Start Game]` dumps
+    the map** (every cell's `val`/`goods`/`region`/owner and every
+    tile's mask — run9; `rondata` loads it, and the AI's farm lands on
+    the original's tile), and **`LEADERS=9` is the census** (run8/run9's
+    frame 1 agrees with the sweep field for field, one ceiling: the
+    woodcutter camp's `calc_gather` slots). Next: run10 (this lobby, the
+    map, run7's length) into the harness; the frame-0 sync stream (the
+    map maker's draws — `compute_sites`' stride is on the wrong stream);
+    the loader's half of the producers' seams (unit `role`/flags,
+    `TechType.ai[]`, `gather_max`); fold §14 into §2; then the blind
+    second reading.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes

@@ -528,6 +528,14 @@ way. (`docs/ORDERS.md` §4.6 amended in place, pointing here.)
   **world-data item** — get the map's forest tiles into the harness — not a
   search item. Both facts are pinned in
   `the_original_s_own_run_is_still_matched_frame_for_frame`.
+  **The forest tiles are in the harness as of 2026-08-24** — a `WORLD=6`
+  start dump carries every tile's `TData` mask (`docs/ORACLE.md`, "The map
+  is a dump too"; run9 for this lobby), and `build_sim` loads them. On
+  run9's 36 frames the path-stack disagreements fell 84 → 68 and the order
+  disagreements 60 → 43, but `0/2`'s frame-4 divergence stands with the
+  real forest under it — so what remains there is the pathfinder's (the
+  open items in §11), not the map's. Run10 (run7's length, the map) is the
+  next measurement.
 - **There is no numeric per-search oracle to switch on** (Opus survey,
   verified conclusions): the `PATHFINDER` gamelog category (index 29,
   threshold ≥ 10) emits exactly one line — `astar_river`'s seed at map
