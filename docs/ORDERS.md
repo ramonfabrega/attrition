@@ -223,14 +223,23 @@ in the base — there is *no per-frame virtual*; the step is `Unit::do_job`'s
 switch, §2.3), `+0x14 is_move`, `+0x18 is_attack`, `+0x1c is_move_attack` (=
 the previous two or-ed), `+0x20 is_targeted`, `+0x24 is_pathed` (`flags & 1`),
 `+0x28 is_fleeing` (`flags & 2`), `+0x2c is_group`, `+0x30 is_air`, `+0x34
-is_patrol`, `+0x38 print_details`, then the down-casts: `+0x3c
-get_target_order`, `+0x40 get_move_order`, `+0x44/+0x48/+0x4c`
-attack-to/explore-to/flee-to, `+0x50 get_attack_order`, … `+0x60 build`,
-`+0x6c gather`, `+0x70 repair`, `+0xac garrison`, `+0xb0 think`, and a second
-set `+0x78` higher for the `const` twins (`+0xb8 move`, `+0xe4 gather`,
-`+0xcc attack`). Every `get_*_order` returns the order's own address, which is
+is_patrol`, `+0x38 print_details`, then the down-casts in two banks. The
+first bank is the **`update_*_order`** set (non-`const`): `+0x3c
+update_target_order`, `+0x40 update_move_order`, `+0x44/+0x48/+0x4c`
+attack-to/explore-to/flee-to, `+0x50 update_attack_order`, … `+0x60 build`,
+`+0x6c gather`, `+0x70 repair`, `+0xac garrison`, `+0xb0 think`. The second
+bank, `+0xb4`–`+0x124`, is the **`get_*_order`** `const` twins (`+0xb8 move`,
+`+0xe4 gather`, `+0xcc attack`). The twins are *not* uniformly `+0x78` apart:
+the `get_*` bank declares `patrol` (`+0xc8`) before `attack` (`+0xcc`) where
+the `update_*` bank has `attack` (`+0x50`) before `patrol` (`+0x5c`), so
+attack's twin is `+0x7c` higher and patrol's `+0x6c` — settled from the PDB's
+own `UnitOrder` field list (`LF_FIELDLIST 0x1A0D7`, each `LF_ONEMETHOD`
+carrying its `vftable offset`; audit R1-14, third pass 2026-08-23). Every
+`get_*_order`/`update_*_order` returns the order's own address, which is
 why consumers read `ox/whom/uid` at `+8/+0xc/+0x10` of whatever came back. A
-slot that prints as `Window::get_button` is the COMDAT fold of `return 0`.
+slot that prints as `Window::get_button` is the COMDAT fold of `return 0`,
+and a slot that prints another class's method (`StrafeOrder::is_air` at a
+`MoveOrder` `+0x14`) is the fold of `return 1`.
 
 ### 1.2 `OrderIndex` — the 27 live kinds
 
@@ -1250,8 +1259,14 @@ for stance 1 or 2); `Objects::find_builds(SEARCH_FRIENDLY, range,
 FILTER_CONSTRUCT)`; keep own sites whose `build_masks & 0x20` is clear; if
 any: count builders per site (friendly units whose action is `BUILD_AT` on
 it), pick the fewest (ties → first), `swarm_around(site, QUEUE_LAST, BUILD_AT,
-0)`; return 1. **`find_repair_spot@00604320`**: AI players at difficulty ≥ 2
-only; `find_any_building(SEARCH_FRIENDLY, range, FILTER_DAMAGED,
+0)`; return 1. **`find_repair_spot@00604320`**: a human
+(`leader_flags & 4` set — `LeaderData::is_human@006ec170` is literally
+`return leader_flags & 4`, which also settles §14's flag question) always
+searches, at `UNIT_BUILD_RESPOND_RANGE × 192`, doubled to `× 384` on worker
+stance 1 or 2; an AI searches at `× 192` flat and **only when its effective
+difficulty ≥ 2** (per-leader in network mode, the lobby's otherwise), else
+return 0 — the gate and the branch shape per audit R3 F3, third pass
+2026-08-23. Then `find_any_building(SEARCH_FRIENDLY, range, FILTER_DAMAGED,
 FILTER_NOT_UNDER_ATTACK)` whose tile's territory owner is nobody, me or a
 mutual ally; `swarm_around(b, QUEUE_LAST, REPAIR, 0)`. `find_gather_spot` is
 §6.6.
@@ -2602,12 +2617,21 @@ moves fall out of dispatching once on the front at the top of `work`.
   target is an object reaches it — not the harness's state.
 - `metric` — written 0, logged, never read. If a writer turns up the FIFO
   claim needs the priority re-checked.
-- **From the second reading, still open** (`docs/audit/2026-08-21-orders.md`):
-  the order vtable's `+0x50 ↔ +0xcc` const-twin spacing (R1); `do_move`'s
-  attack-retarget block, and whether `find_upath` kills the current order on
-  failure — the one open item that could change sim behaviour (R2); two rows
-  in R3. Each is marked `FABLE:` in the audit with the question that would
-  settle it.
+- **From the second reading, still open** (`docs/audit/2026-08-21-orders.md`;
+  the third pass of 2026-08-23 settled four of the six `FABLE:` rows — see
+  that audit's closing section): ~~the order vtable's `+0x50 ↔ +0xcc`
+  const-twin spacing (R1)~~ — **closed**, the PDB's own `vftable offset`s,
+  §1.1; ~~whether `find_upath` kills the current order on failure (R2 O2)~~ —
+  **closed, confirmed as §4.6 states it**: `is_move` (`+0x14`) and the
+  `MoveOrder`'s `retry` (`+0x1c`) guard the `kill_current_order`;
+  ~~`LeaderData::flags & 4` (R3 F3)~~ — **closed**, `is_human`, §5.5;
+  ~~`process_all`'s network padding (R6 48)~~ — **closed, confirmed**:
+  `Random::get(0,2)` padding and the seed-derived XOR only under the network
+  semaphore bit, from a local `Random`, not the sim stream. Still open:
+  `do_move`'s attack-retarget block (R2 O1, nothing in `crates/sim` depends
+  on it) and `BuildTypeData::find_gather_tcoords@0063bdc0` (R4, matters only
+  when the harness builds a camp itself) — each still marked `FABLE:` in the
+  adjudication with the check that would settle it.
 - ~~`OrderIndex` 0 and 5's names; `ATTACK_TO 2` vs `FLEE_TO 4`~~ —
   **closed** (`docs/audit/2026-08-21-orders.md` R1): the enum is in the PDB,
   `--type-index=0x1E22`. `NONE = 0`, `PATROL = 5`, `NUM_UNIT_ORDERS = 28`,
