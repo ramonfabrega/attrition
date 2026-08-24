@@ -115,6 +115,7 @@ fn digest(sim: &Sim) -> u64 {
     h.eat(sim.buildings.len() as i64);
     for b in &sim.buildings {
         h.eat(i64::from(b.owner));
+        h.eat(i64::from(b.index));
         h.eat(i64::from(b.pos.x));
         h.eat(i64::from(b.pos.y));
         h.eat(i64::from(b.health));

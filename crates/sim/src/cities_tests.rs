@@ -1226,3 +1226,52 @@ fn the_spot_search_starts_on_the_units_side_and_keeps_off_the_footprint() {
             .is_some()
     );
 }
+
+// ----------------------------------------------------------------------
+// Object numbers — `Objects::find_free`, `docs/AI.md` §12.1
+// ----------------------------------------------------------------------
+
+#[test]
+fn object_numbers_are_per_player_and_a_dead_slot_is_reused() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+
+    // Buildings: each player's band starts at 2000.
+    let (b0, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let (b1, _) = city_at(&mut sim, &t, 1, 8, 8);
+    assert_eq!(sim.buildings[b0].index, 2000);
+    assert_eq!(sim.buildings[b1].index, 2000);
+    let farm = sim.init_build(0, t.farm, tile_pos(36, 32), false);
+    assert_eq!(sim.buildings[farm].index, 2001);
+
+    // A dead building's number is the first reused; the mark is untouched.
+    sim.buildings[farm].alive = false;
+    let farm2 = sim.init_build(0, t.farm, tile_pos(36, 36), false);
+    assert_eq!(sim.buildings[farm2].index, 2001);
+    let farm3 = sim.init_build(0, t.farm, tile_pos(28, 36), false);
+    assert_eq!(sim.buildings[farm3].index, 2002);
+    assert_eq!(sim.marks[0].build, 2003);
+    assert_eq!(sim.building_by_o(0, 2001), Some(farm2));
+    assert_eq!(sim.building_by_o(1, 2001), None);
+
+    // Units: the band starts at 0, per player, and a dead unit's is reused.
+    let u0 = sim.produce(0, citizen, tile_pos(32, 30)).unwrap();
+    let u1 = sim.produce(1, citizen, tile_pos(8, 6)).unwrap();
+    assert_eq!(sim.units[u0].index, 0);
+    assert_eq!(sim.units[u1].index, 0);
+    sim.units[u0].health = 0;
+    let u2 = sim.produce(0, citizen, tile_pos(32, 30)).unwrap();
+    assert_eq!(sim.units[u2].index, 0);
+    assert_eq!(sim.unit_by_o(0, 0), Some(u2));
+
+    // A unit handed in already numbered (the harness, from a dump) moves the
+    // mark past itself, and the numbers it skipped are free — a dump omits
+    // exactly the dead.
+    let mut u = Unit::new(0, 7, tile_pos(30, 30), 40);
+    u.ty = Some(citizen);
+    sim.add_unit(u);
+    assert_eq!(sim.marks[0].unit, 8);
+    let u3 = sim.produce(0, citizen, tile_pos(32, 30)).unwrap();
+    assert_eq!(sim.units[u3].index, 1);
+}

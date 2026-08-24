@@ -825,8 +825,12 @@ impl Sim {
         let bt = self.build_types[ty].clone();
         let capacity = if bt.has(flags::DEEP_QUEUE) { 10 } else { 20 };
         let b = self.buildings.len();
+        let index = self
+            .find_free(who, crate::BUILD_BASE, crate::WALL_BASE)
+            .expect("a player's building band is full");
         self.buildings.push(Building {
             owner: who,
+            index,
             pos,
             queue: crate::production::Queue::new(capacity),
             is_library: bt.ident == Ident::Library,

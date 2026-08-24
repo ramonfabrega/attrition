@@ -326,6 +326,16 @@ fn start_of_game(
                     .map(|&(x, y)| Pos::new(x as i32, y as i32))
                     .collect();
             }
+            // `find_free` numbers the building as it is placed; the dump's
+            // `o` is the original's own numbering of the same placement
+            // order, so the two agree unless the order here is wrong.
+            if i64::from(sim.buildings[handle].index) != b.o {
+                notes.push(format!(
+                    "player {who} building {}: find_free numbered it {} — \
+                     the buildings were not placed in the original's order",
+                    b.o, sim.buildings[handle].index
+                ));
+            }
             all_builds.push((handle, b.o));
             if ty.is_some() {
                 sites.push((b.o, handle));
@@ -738,9 +748,33 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         if !(0..players as i64).contains(&u.who) {
             continue;
         }
-        let Some(link) = built.units.iter().find(|l| l.who == u.who && l.o == u.o) else {
-            r.unlinked += 1;
-            continue;
+        // A unit the dump started with is in the link table; one trained
+        // since is found by its number — `find_free` hands out the same
+        // per-player `o` the original did, which is what makes a trained
+        // unit comparable at all.
+        let trained;
+        let link = match built.units.iter().find(|l| l.who == u.who && l.o == u.o) {
+            Some(l) => l,
+            None => {
+                let found = i16::try_from(u.o)
+                    .ok()
+                    .and_then(|o| built.sim.unit_by_o(u.who as sim::Player, o));
+                match found {
+                    Some(unit) => {
+                        trained = UnitLink {
+                            who: u.who,
+                            o: u.o,
+                            unit,
+                            kind: built.sim.units[unit].ty,
+                        };
+                        &trained
+                    }
+                    None => {
+                        r.unlinked += 1;
+                        continue;
+                    }
+                }
+            }
         };
         let ours = built.sim.units[link.unit].pos;
         let theirs = pos_of(u.pos);

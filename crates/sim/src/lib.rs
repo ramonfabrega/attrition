@@ -478,8 +478,38 @@ pub struct Sim {
     /// building's clock re-baked and every building's hit points refreshed —
     /// before any object is processed. `docs/CITIES.md` §3.2.
     pub wall_stats_dirty: Vec<bool>,
+    /// One per player: the object-number marks [`Sim::find_free`] allocates
+    /// against.
+    pub marks: Vec<Marks>,
     pub frame: i64,
 }
+
+/// The high-water marks of a player's object array — `Objects::mark[who]`
+/// for each of the three bands `find_free` allocates from. Object numbers
+/// (`SubObjectData::o`) are per player: units from 0, buildings from 2000,
+/// walls from 3000 (`docs/CITIES.md` §1, `docs/INPUT.md` §2). A mark only
+/// ever grows; a freed slot below it is reused by [`Sim::find_free`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Marks {
+    pub unit: i16,
+    pub build: i16,
+}
+
+impl Default for Marks {
+    fn default() -> Marks {
+        Marks {
+            unit: UNIT_BASE,
+            build: BUILD_BASE,
+        }
+    }
+}
+
+/// `find_free(who, 0, 2000, …)`: the unit band.
+pub const UNIT_BASE: i16 = 0;
+/// `find_free(who, 2000, 3000, …)`: the building band.
+pub const BUILD_BASE: i16 = 2000;
+/// Where the building band ends and the wall band begins.
+pub const WALL_BASE: i16 = 3000;
 
 /// A building: a production queue, a combat profile, and — when it has a
 /// type — a footprint, a construction clock, a city and a garrison.
@@ -487,6 +517,10 @@ pub struct Sim {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Building {
     pub owner: Player,
+    /// Its number in its owner's object array — `SubObjectData::o`, in
+    /// `[2000, 3000)`. The scripts and the AI's producers hold buildings by
+    /// this number, and a dump's `b.o` is the same figure.
+    pub index: i16,
     /// Its snapped centre. Where a finished unit appears: `Build::train`
     /// places it at the building's own position and then puts it inside, so
     /// every unit is born garrisoned and leaves by the ejection path.
@@ -667,6 +701,7 @@ impl Sim {
             city_tally: vec![city::Tally::default(); players],
             removed: Vec::new(),
             wall_stats_dirty: vec![false; players],
+            marks: vec![Marks::default(); players],
             tuning,
             world,
             frame: 0,
@@ -694,6 +729,7 @@ impl Sim {
         self.lost_city_stamp.push(None);
         self.city_tally.push(city::Tally::default());
         self.wall_stats_dirty.push(false);
+        self.marks.push(Marks::default());
         for row in &mut self.at_war {
             row.push(false);
         }
@@ -752,11 +788,76 @@ impl Sim {
         let i = self.units.len();
         let owner = unit.owner as usize;
         let source = unit.kind.supply_unit;
+        // A unit handed in with its number already chosen (the harness reads
+        // `o` from the dump) moves the mark past it, so a unit allocated next
+        // does not collide with one the original numbered higher.
+        let mark = &mut self.marks[owner].unit;
+        *mark = (*mark).max(unit.index.saturating_add(1));
         self.units.push(unit);
         if source {
             self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
         }
         i
+    }
+
+    /// `Objects::find_free(who, base, limit, &mark, −1)`: the object number a
+    /// new object of `who` takes. The band `[base, mark)` is scanned first for
+    /// a number whose object is dead (`flags & 1` clear) and holds nothing
+    /// (`+0x32 == 0`) — the first such is reused; failing that the mark
+    /// itself, unless it has reached `limit`, in which case there is no room
+    /// and the original's callers give up. A number below the mark that no
+    /// object of ours carries at all counts as free too: the only way the sim
+    /// gets one is a dump that omitted it, and a dump omits the dead.
+    pub fn find_free(&mut self, who: Player, base: i16, limit: i16) -> Option<i16> {
+        let w = who as usize;
+        let mark = if base == BUILD_BASE {
+            self.marks[w].build
+        } else {
+            self.marks[w].unit
+        };
+        let mut taken = vec![false; (mark - base).max(0) as usize];
+        if base == BUILD_BASE {
+            for b in &self.buildings {
+                let i = b.index - base;
+                if b.owner == who && (base..mark).contains(&b.index) {
+                    taken[i as usize] |= b.alive || !b.garrison.is_empty();
+                }
+            }
+        } else {
+            for u in &self.units {
+                let i = u.index - base;
+                if u.owner == who && (base..mark).contains(&u.index) {
+                    taken[i as usize] |= u.alive();
+                }
+            }
+        }
+        if let Some(i) = taken.iter().position(|&t| !t) {
+            return Some(base + i as i16);
+        }
+        if mark >= limit {
+            return None;
+        }
+        if base == BUILD_BASE {
+            self.marks[w].build += 1;
+        } else {
+            self.marks[w].unit += 1;
+        }
+        Some(mark)
+    }
+
+    /// The live unit of `who` numbered `o`, if any — the object a script or
+    /// a producer holds by handle.
+    pub fn unit_by_o(&self, who: Player, o: i16) -> Option<usize> {
+        self.units
+            .iter()
+            .position(|u| u.owner == who && u.index == o && u.alive())
+    }
+
+    /// The live building of `who` numbered `o`, if any.
+    pub fn building_by_o(&self, who: Player, o: i16) -> Option<usize> {
+        self.buildings
+            .iter()
+            .position(|b| b.owner == who && b.index == o && b.alive)
     }
 
     /// Registers a unit type and returns its id.
@@ -842,8 +943,12 @@ impl Sim {
 
     /// Adds a production building and returns its index.
     pub fn add_building(&mut self, owner: Player, pos: Pos, capacity: usize) -> usize {
+        let index = self
+            .find_free(owner, BUILD_BASE, WALL_BASE)
+            .expect("a player's building band is full");
         self.buildings.push(Building {
             owner,
+            index,
             pos,
             queue: production::Queue::new(capacity),
             is_library: false,
@@ -1120,7 +1225,12 @@ impl Sim {
                 }
                 self.track_tree_queued(who, ty, -1);
 
-                let index = i16::try_from(self.units.len()).unwrap_or(i16::MAX);
+                // `Objects::init_unit` → `find_free(who, 0, 2000, …)`; a full
+                // band (2,000 live units of one player) is not modelled as a
+                // refusal here, so the number saturates instead.
+                let index = self
+                    .find_free(who, UNIT_BASE, BUILD_BASE)
+                    .unwrap_or(i16::MAX);
                 let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
                 unit.kind = self.unit_types[ty].kind;
                 let unit = self.add_unit(unit);
@@ -1240,7 +1350,9 @@ impl Sim {
         }
         muster.control += pop;
 
-        let index = i16::try_from(self.units.len()).unwrap_or(i16::MAX);
+        let index = self
+            .find_free(who, UNIT_BASE, BUILD_BASE)
+            .unwrap_or(i16::MAX);
         let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
         unit.kind = self.unit_types[ty].kind;
         unit.ty = Some(ty);
