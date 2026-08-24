@@ -1284,14 +1284,57 @@ reports (diplomacy's 33 sites and `process_taunt`'s excluded):
   `economic` and `defensive` through a first call.
 - `docs/DECISIONS.md` entry 20 records the fork and its two conditions.
 
-Not yet built, in the order §9 proposed: the host functions
-(`ai_script.rs`: the 55 over sim state, `find_counters`, the timers, the
-object-handle space — units `[0, 2000)`, buildings `[2000, 3000)` per
-player — and the display-name lookup), the census and the sweep, the
-sites, `research_techs`, `found_cities`, the two `create_*` producers and
-`produce_*`, `make_stuff`/`make_this`, the wiring into `Sim::tick` between
-income and the buildings, the soak's AI leaders, and the harness scoring
-player 1.
+### 12.1 Where to pick up
+
+The next tranche, in order, with the facts about the sim as it stands that
+a fresh session would otherwise re-derive:
+
+1. **Object handles for buildings.** `Unit.index` is the per-player `o`
+   already; `Building` has none, and the harness keeps its own map from the
+   dump's `b.o`. The scripts' handles are `[0, 2000)` units, `[2000, 3000)`
+   buildings per player, allocated by `Objects::find_free@0065ad60` (read):
+   with `want < 0` it scans `[base, mark)` for a slot that is dead (`flags
+   & 1` clear), not garrisoned (`+0x32 == 0`) and not a captain's follower,
+   and reuses the first; else allocates at `*mark` and increments. Add
+   `Building.index` and a per-player `build_mark` (2000) to `init_build`/
+   `add_building`, mirroring `docs/ORDERS.md` §9.3. `ScenarioData::
+   find_counters[]` (the report's eight indices) and the timers become sim
+   state next to `bhs::State`.
+2. **`ai_host.rs`** — `bhs::Host` over `&mut Sim` + the leader. Signatures
+   are a static table (the report §0.1: every function returns `int` but
+   `find_nation`, `find_city_with_num`, `get_mapstyle`, which return
+   `String`); a zero-sized `Signatures` implements `Host` for `Program::
+   load`. Type names resolve by display `NAME` in type-index order — goods,
+   units, buildings, techs — first match; `rondata::Loaded` already holds
+   both `NAME` and `TYPENAME` (`find_name` is case-insensitive). City names:
+   the original returns `CityData.name`; the sim's `City` has none, and the
+   scripts only pass the string back or test it `> -1` (a string compare,
+   §11), so any letter-led synthetic name ("City 1") behaves identically —
+   note it in §13. Order kinds are `orders::index::{NONE 0, EXPLORE_TO 3,
+   BUILD_AT 6, GATHER 7, REPAIR 13}` and `Sim::order_type(u)`; the API the
+   host lands on: `Sim::queue_up(at, ty)` (affordability then room),
+   `place_building`/`init_build` (`city.rs`), `add_move_order`/
+   `add_build_order`/`add_repair_order` with `QueuePos`, `clear_orders`,
+   `num_gatherers`, `city::num_buildings`, `tech::{has_tech, type_avail,
+   current_upgrade, get_graft, techs_per_age}`, `Muster.by_type`/
+   `queued_by_type` (`num_units`/`num_queued`), `place.rs`'s
+   `blocked_site`/`city_limit`/`total_cities`.
+3. **A `Lobby` struct** the host and the producers read — `difficulty`,
+   `starting_resources`, `starting_town`, `rush_rules`, `victory`,
+   `elimination`, `team_style`, `map_style: String`, `conquest: bool` —
+   with run6/run7's values (`docs/INPUT.md` §2: **Easiest = 0**, Small Town
+   = 2, Ancient, `check.ini`) so the harness can set them.
+4. **`ai_place.rs`** — `produce_building` from `create-buildings.md` §4,
+   with `circle_x/y`, `circle_radius` (`docs/CITIES.md` §3.6) and `move_x/y`
+   (`docs/PATHFINDER.md`); its draws are the sync stream's hot spot.
+5. **The census** (§2.3) into `ai::Leader`, then `compute_sites`/
+   `compute_site_stats`, `found_cities`, `research_techs` (with `TechType::
+   compute_ai_values` read first — §13), `upgrade_units`, `create_units`,
+   `create_buildings`, `produce_*`, `make_stuff`/`make_this`, `use_market`.
+6. **The wiring**: `Leader::init`'s roll and script choice at game start;
+   `strategy_all` in `Sim::tick` between income and the buildings; the
+   soak's AI leaders; the harness scoring player 1 against run7 (§5's
+   table is the acceptance test, frame by frame).
 
 ## 13. What is not established
 

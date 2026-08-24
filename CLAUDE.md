@@ -368,6 +368,21 @@ better, in which case say so and take that.
     score cannot pass player 0 on any match with an AI in it, no matter how
     good the order stream is. The queue used to imply otherwise.
 
+    **In progress, 2026-08-24** — `docs/AI.md` is the handoff. The first
+    reading is complete (the driver, the census, the step machine, the
+    make list, the sites, the city AI, research, the market, the scripts;
+    four readers' reports for the language, the 55 host functions and the
+    two `create_*` producers, ratified in §11), `crates/sim/src/ai.rs`
+    holds the driver's pure half and `crates/sim/src/bhs.rs` the script
+    interpreter (`docs/DECISIONS.md` entry 20). The finding that reframes
+    this item: **the skirmish AI's opening is the shipped `economic.bhs` /
+    `defensive.bhs`**, run through the scripting VM at production step 1 —
+    "scripted in the open" was righter than the queue knew, and "escape
+    the 2002 VM" is answered by an interpreter of our own reading the
+    scripts from the install. The oracle is unusually good: run7's first
+    115 seconds are the script's decisions, frame by frame (§5). Next:
+    §12.1's tranche, then the blind second reading.
+
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes
 `/clear` between mechanics free, and it is why the document is written before
