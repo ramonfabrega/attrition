@@ -47,7 +47,7 @@ bit 4 = human (`docs/audit/2026-08-23-pathfinder.md`).
 scoped out of the first pass: a two-player skirmish against one AI at war
 from frame 0 does not exercise it before the armies do.
 
-## 2. The driver — read
+## 2. The production AI — read
 
 ### 2.1 The frame hook
 
@@ -478,6 +478,239 @@ is_active`, `TypeData::is_*`, `get_cost`, `can_pay_cost`) are trusted.
 | `+0x90` | BuildType | "is a gather building" (adds `gather_max` to `gather_slots`) | use only |
 | `+0xfc` | BuildType | "has arrows" (defence 2 vs a tower's 1) | use only |
 
+### 2.11 The make list's insertion — `MakeList::make_me@006c9be0`
+
+Read whole. `make_me(t, val, escrow, cat, city, up, o, num, wx, wy)` —
+`cat` is **the slot index** of the entry's category (4..10), and the first
+four slots are a ranked overall list:
+
+```
+if val > list[0].val:                       # a new best
+    list[0] = entry (o = -1)                #   overwrites — the old head is NOT shifted down
+    for k in 1..3: if list[k].t == t: list[k].t = -1
+else:
+    for k in 1..3:
+        if list[k].val <= val:
+            list[k+1..3] = list[k..2]       #   shift down, slot 3 falls off
+            for j in k..3: if list[j].t == t: list[j].t = -1
+            list[k] = entry (o = -1); break
+        if list[k].t == t: break            #   the same type already ranks higher: not inserted
+if list[cat].val < val: list[cat] = entry   # the category slot, best val wins
+```
+
+So `make_stuff`'s slots 1–3 are runners-up that never beat the head at
+the time they were offered, and slots 4–10 are one-per-category. Categories
+seen so far: **9** — a city site (`found_cities`) *and* a category-1 tech
+(`research_techs`, §2.13) share it; **10, 4, 8** — techs of `cat` 0, 2,
+other; **6** — a tower tech. The two `make_stuff` exceptions (§2.6 step 6)
+are therefore "the cat-2 slot when it holds a gather building for a low
+good" and "slot 5 when I have no free peasants and no gatherers" — slot
+5's category is the unit readers' to name. `MakeList::clear` sets every
+`t = -1`; `MakeList::init` allocates the eleven.
+
+### 2.12 The city AI — `found_cities@006c7a60`
+
+Read whole (281 lines). Returns at once when `leader_flags2 & 0x10`.
+The type loop runs over `BASE_BUILDTYPES .. 0x19e` — i.e. **only `0x19e
+VILLAGE`, the Small City** (`TOWN` and `METROPOLIS` are upgrades, never
+founded; `FORBIDDENCITY 0x213` has a special-case branch the loop never
+reaches). Gate: `get_total_cities() < get_city_limit()` (`city_mine +
+queued Small Cities across every type whose `from` chain ends in a Small
+City, −1 with the Forbidden City`; the limit is `epoch[1] ^ 0x63187`
+(Civic) `+ bantu_city_limit` with tribe bonus 3, `+ 1`, `+
+pyramids_city_limit` with the Pyramids).
+
+Then: `type_avail(VILLAGE) == 4` and `free_peasants || gatherers`. **The
+human cap** (unless `leader_flags & 8`): `max_human_cities()` = the most
+cities-plus-queued any human holds (−1 with the Forbidden City); on
+difficulty 0/1 the AI stops at `max(that, 2)` total cities, on 2 at
+`max(that + 1, 2)`; ≥ 3 uncapped.
+
+For each of the ten sites with `val > 0`, region `r = site.reg`:
+
+- require `reg_free_peasants[r] || reg_gatherers[r]`;
+- require `world+0x34 < 4` or `map_style == 0x14` or `city_num > 3` or
+  `city_num < 2` or `r != home_reg` — with two or three cities on a
+  many-landmass map, expand only off the home region;
+- `blocked_site(VILLAGE, site × 0x300, who, −1, 0) == 0`
+  (`docs/CITIES.md` §2.6);
+- `v = site.val`; `reg_cities[r] == 0` → `v ×= 4`; else `v = (reg_pop[r] +
+  1) × v / (2 × reg_cities[r])`, halved if the region is not thin
+  (`strategy[r] & 1 == 0`);
+- with **no Small City queued** (`num_queued[VILLAGE] == 0`): `reg_pop[r] ≤
+  reg_peasants[r]` → `×2`; `reg_cities[r] ≤ reg_free_peasants[r]` → `×2`;
+- **drop the site** if any active city of mine, or of any leader with
+  cities in `r`, lies within **5 tiles** (the octagonal metric `max +
+  min² / (2·max)`, ids from 2000); also if `v == 0`;
+- `reg_land[r] < reg_cities[r]` → `×2`; `reg_land[r] < 2 × reg_cities[r]`
+  → `×3/2`;
+- under the city limit → `want = VILLAGE`, `v ×= 30`;
+- `pop_cap < 200`: `effective_pop > pop_cap × 3/4` → `v = (n + 2) × v /
+  (n + 1)` with `n = (cities + villages) / 5`; `effective_pop > pop_cap −
+  4` → `×3/2`;
+- thin region without a weaker-side flag (`strategy[r] & 5 == 1`): `c =
+  cities + villages`; `peasants ≥ 5c` → `×2` else `≥ 3c` → `×3/2`; `≥ 2c`
+  → `×2` if `c < 4`, `×3/2` if `c < 8`;
+- `v ×= 10` (a negative product clamps to 999,999); my territory at the
+  site's cell `> 0` → `/3`; the tile's owner not me → `/3`;
+- `val = (v / 256 × f) / 256 / (num_queued[VILLAGE] + 1)` with `f = 0x100`
+  if `can_pay_cost(VILLAGE, who, −1, −1, 1) > 0`, else `0x40` — so an
+  unaffordable site is quartered;
+- `make_me(VILLAGE, val, 1, 9, −1, 0, ·, 1, wx, wy)`.
+
+After the loop: if `want` was set, the list's head is non-empty and
+`make_stuff()` returns non-zero → `make_list.clear()`. **The city AI
+buys on the spot** when it is under the limit, and clears the list so
+the rest of the sweep starts fresh. No `game_random` draw of its own; the
+draws on this path are `compute_sites`' (§2.7) and `make_stuff`'s expiry
+(§2.6).
+
+### 2.13 The site score — `compute_site_stats@006cd040`
+
+Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
+&dist, keep, &out_wx, &out_wy)`; `val = dist = 0` on every early return:
+
+1. The site's fine cell flagged `0x100`; not `was_seen(2wx+1, 2wy+1, who)`;
+   the tile owned by another leader (unless CtW with no cities of mine
+   and an ally's — then `ally_land = 1`); `is_ocean` → 0.
+2. `base = tile.value` (the tile record's byte at `+0xc`), or 0 if
+   `blocked_site(TOWN, …)` — **the Town's footprint**, not the Village's.
+3. Over the **25 offsets** of `move_x/move_y` (the 5×5 around the site),
+   each seen, in-bounds tile: land and unflagged: owner unowned → `danger
+   += 1` (`+2` when I have more than two cities); owned by my `target`
+   (team style 2) → `target_adj++`, `danger += 2`; owned by a non-ally →
+   `danger += 2`. Water or flagged: `water++`, `danger = max(danger − 1,
+   0)`. Then, if the tile is mine (or the ally's) and **`keep`**: a fort
+   there → `forts++`; its own score `q = (value(x,y) + value(x+1,y) +
+   value(x,y+1) + value(x+1,y+1)) / 4 + z(x,y) / 25` (heights from
+   `find_tcoord_z`); `q > base` and `blocked_town(TOWN, x, y, who) == 0` →
+   the site **moves** there (`out_wx/out_wy`, `base = q`). So a sampled
+   site slides to the best-valued open tile in its 5×5; a re-scored one
+   (`keep = 0`) stays.
+4. `base < 1` → 0. `parity = base & 3`.
+5. Many landmasses (`world+0x34 > 2`) and I own no dock (`num_buildings[
+   DOCK] + get_buildings(its upgrade)` = 0): any of the **40 offsets**
+   `move_x[81..120]` (the outer ring) on ocean → `base ×= 30`.
+6. `v = base × 250 / (water + 1)`; `city_num == 1` → `v = v × (min(danger,
+   9) + 7) / 8` if `danger`; `== 2` → `min(danger, 4)`; else `forts` →
+   `×3/2`. `v = (target_adj + 1) × v / 2`.
+7. Map-edge penalty unless map type `world+0x30` is `0xc`/`0x11`: with `<
+   3` cities, `wx` outside `[w/5, 4w/5]` → `/4`, `wy` outside `[h/5,
+   4h/5]` → `/4`; with `≥ 3`, the bands are `1/10 .. 9/10`.
+8. `v /= max(1, my territory at the site's cell)`; the tile's *territory*
+   owner (`+0x10`): unowned → `×2`, a non-ally → `×4`, an ally → `/2`.
+9. Unless `map_style == 0x14`: `reg_cities[reg] == 0` → `×2`; `== 1` →
+   `×2`; `reg_land[reg] == 0` → `×4`; `< 3` → `×4` (so a region with no
+   open tiles gets ×16); `reg_land < reg_cities` → `×2`; `< 2 ×
+   reg_cities` → `×2`.
+10. **Goods**: `bits = tile+0xd` (which goods are gatherable near the
+    tile); for each available good `g`: if bit `g` set → `have |= econ[g]
+    & 6` and `×3/2` per set bit 2 / bit 4; else `lack |= econ[g] & 6`.
+    `have == 0` → `v = 2v/3`; `lack & ~have` → `/2` when `parity == 0`,
+    else `×3/4`.
+11. **A nomad** (`city_num == 0`): the nearest citizen's distance
+    (`find_unit`, base type `0x32`) → `v /= (dist / 0xc00 + 1)`; and unless
+    `starting_resources == 8`, one of the five `corner_x/y` offsets must
+    have bit 2 in its `+0xd` (wood nearby) or the site scores 0.
+12. **Distance term**: no citizen given → `k = 3`, `dist = 9`; else `k =
+    1`, and with a city given, for each of my cities `d = vector_dist(site,
+    city)`: `d < 5` → `/2`; `d < 8` → `/2`; `k += d` (capped at 10 with
+    more than two cities); `dist = 2k²`. `v ×= k`. **Unresolved**: the
+    decompile shows this loop returning (`val = 0`) on the first inactive
+    city slot or a city in another region, and prints `vector_dist`
+    without its arguments; the listing settles whether those are `break`s
+    — flagged for the implementation.
+13. Enemy proximity (not maps `0xc`/`0x11`, and `city_num == 1` or team
+    style 2): over every computer leader at war (or, team style 2 with ≥ 2
+    cities, only my `target`): for each of their active cities, `sum +=
+    vector_dist(site, city) / num_nations`; `×100` in team style 2; `v /=
+    sum` if non-zero — **closer to the enemy scores higher** when I have
+    one city.
+14. `ally_land` → `/10`. `val = v`, `dist` as above.
+
+The tile record (`world+0x134`, `0x1c` bytes a tile): `+0x4` region,
+`+0xc` site value, `+0xd` nearby-goods bits, `+0xf` owner, `+0x10`
+territory owner, `+0x28` = the next tile's `+0xc` (used by the 2×2 sum).
+
+### 2.14 Research — `research_techs@006c6ba0`
+
+Read whole (689 lines). Capital-countdown elimination (`elimination ==
+1`): only while I hold my capital. `low = get_lowest_epoch()` (the least of
+`epoch[0..3] ^ 0x63187`, capped 99); `over = number of available goods
+whose `over_cap` marker is not the clean value 0x8932` (§ECONOMY — goods
+over their cap). Then for every `t` in `0x220..0x274` with
+**`Leader::tech_avail(t) ≥ 4`** (a tech type; not `leader_off`-masked for
+me; not had; not researching; a government tech whose pair `(t −
+BASE_GOVTYPES) ^ 1` is neither had nor researching; then `LeaderData::
+type_avail`):
+
+- `where = t.where` — the building it is researched at; require
+  `num_buildings[where] + get_buildings(where's upgrade) > 0`.
+- `base = (pop × 200 / max(1, cities + villages)) × infra_mod / 256`.
+- *(The `starting_resources == 7 && starting_technology == 8` lobby has a
+  hard-coded branch that buys tech `0x243` when affordable; skipped here.)*
+- **Ages** (`0x220..0x226`): knowledge cost `> resource_cap[3] × 4/3` →
+  skip. **Human pacing** unless `leader_flags & 8`: `h =
+  max_human_age()` (the highest age of any human, −1 if none) `≥ 0` —
+  difficulty 0/1: only ages `a = t − 0x220 ≤ h − 1`, and only once
+  `frame − best_human_age_stamp(t) ≥ (who + 16 | 8) × 225` (the earliest
+  frame any human reached that age, `age_stamp[a]`; 16 on 0, 8 on 1;
+  unstamped passes); difficulty 2: `a ≤ h`, delay `(who + 20) × 225`;
+  otherwise unpaced. Then `base ×= 10`, or `×= 600` when `a < low`
+  (catching my lowest line up).
+- **Epoch techs** (`0x227..0x242`, the four library lines): knowledge cost
+  as above; while `ages < ending_technology`, `t != 0x23c`, and not
+  (`cat == 3 && tribe == 9`): `n = techs_per_age(my age)` (`docs/TECH.md`
+  §"The age quota"), `+4` for `cat 0` when `effective_pop ≥ pop_cap ×
+  7/8`, `+4` for `cat 2` when `over ≥ 2`; **difficulty 0/1: only while
+  `epochs < n + 2` and `epoch[cat] < n`; difficulty 2: `epochs < n + 6`
+  and `epoch[cat] < n + 1`**; ≥ 3 uncapped. Then `epoch[cat] == low` →
+  `base ×= 10`; `epoch[cat] > low + 1` → skip (keep the four lines within
+  one of each other); `cat` 1 or 2 under victory 8/9 → `×30`; more than one
+  landmass and `types[0x2ae]`'s predicate `+0xdc(t)` → `×30`; `t` in
+  `{0x22f, 0x236}` with `has_tech(CLASSICAL_AGE)` → `×20`.
+- Everything: knowledge cost `< resource_cap[3] − 100` → `base ×= 10`.
+- **Weights** (`TechType.ai[0..10]`): `w = 1 + ai[0]/10 + Σ ai[1..10]`;
+  `± ai[10]` by team style (+ for 0/8/0xb); `full_cities > (cities +
+  villages)/2` → `+ 2·ai[5]`, else `full_cities` → `+ ai[5]`;
+  `my_team_terr < other_team_terr` → `+ ai[5]` (×2 if `< min_other`);
+  `active_wars == 0` → `+ ai[5] + ai[1]`, else `+ ai[0]/3`; landmasses
+  `m = world+0x34`: `m == 0` → `− ai[2]`, else `+ ai[2] × m³`. `val = w ×
+  base`.
+- **Category** (`t.cat`): `0` → `/10`, then with `pop_cap < 200`:
+  `effective_pop > pop_cap × 5/6` → `×20`, else `epoch[0] > 1` → `/10`.
+  `2` → `×3` if `epoch[2] == 0`; and for a non-epoch, non-age tech, `k =`
+  the number of non-knowledge goods at `≥ 90 %` of cap → `val = k ? val ×
+  k² : val / 10`. Otherwise, **difficulty ≥ 4 and `cat == 3`** only: the
+  gather-rate lines `0x264–0x266` (food), `0x261–0x263` (wood),
+  `0x26c–0x26e` (metal), `0x267–0x26a` (knowledge) → `×2` for `econ[g] &
+  4`, `×4` for `& 2`, `×8` for `& 1`; then `d = epoch[3] − t.age > 0` →
+  `×(d + 1) × d`.
+- Victory 9 → `×3` (`×9` for an age).
+- **Slot** by `cat`: `0 → 10`, `1 → 9`, `2 → 4`, else `8`.
+- **By building**: `where == TOWER` → skip below difficulty 2, else
+  `×100`, slot `6`; `0x1b5` → `×4`, `×400` while `t < 0x251`; `0x1b3` →
+  `val = (max(epoch[0..3], 0) × val + 1) / (epoch[cat] + 1)`;
+  `UNIVERSITY` → `×1000`; `0x1b6` (governments): `pers.raid < 0`, or `== 0`
+  and a **`game_random` coin** → prefer `{0x26f, 0x271, 0x273}`, else
+  `{0x270, 0x272, 0x274}`; the non-preferred of a pair gets `× (rand %
+  100)` — **a second draw** — and `×20` if I have no government yet.
+- **Recency**: `f1 = min(4, (frame − tech_frame) × ai_speed / 14400 + 12)`
+  (so 4 unless `tech_frame` is far in the future — it is initialised
+  that way? unverified), `f2 = min(3, (frame − tech_cat_frame[cat]) ×
+  ai_speed / 25600 + 16)` — `val = f2 × (f1 × val / 2) / 2`. `shortages ==
+  0` → `×2`.
+- **Coverage**: `total = Σ costs[0..5]`; `missing = 2 × Σ costs of goods
+  neither available nor prerequisite-reachable`; `val = (2·total −
+  missing) × val / (2·total)`; negative → 9,999,999; `wonder_mod != 0` →
+  `/2`; `val = check_income(t, 0x400, −1, wonder_mod == 0, −1, 1, 0) ×
+  val / 256`; negative → 9,999,999.
+- `make_me(t, val, 1, slot, −1, 0, ·, 1, 0, 0)`.
+
+Sync draws in this function: the government coin (only when `pers.raid ==
+0`) and the `rand % 100` for a non-preferred government — both only for
+techs researched at building `0x1b6`.
+
 ## 3. The finding: the skirmish opening is the shipped script
 
 `CLAUDE.md` says the build order is "scripted in the open under
@@ -546,9 +779,15 @@ initialisation timing, `ref`, how `String` compares — versus 35k for the
 whole `ScenarioFuncSet` (872 methods, `init_funcs` 4,080 lines of
 registration), of which 55 are needed.
 
-## 4. The fork this opens
+## 4. The fork this opens — decided: (a), 2026-08-24
 
-Three ways to have the opening, in the order of the project's own rules:
+Three ways to have the opening, in the order of the project's own rules.
+**(a) was chosen the same day**, with the two conditions stated at the
+time: the interpreter's `float` (unused by the shipped scripts, present in
+the language) is implemented on `combat::F32`, the integer-mantissa
+software float, so a mod's script stays under `no_float.rs`; and script
+statics and timers are sim state, digested by the soak from the first
+commit. `docs/DECISIONS.md` gets the entry when the interpreter lands.
 
 - **(a) A BHS interpreter of our own, reading the `.bhs` files from the
   install.** The scripts are shipped data like the XML tables — "nothing
