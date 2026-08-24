@@ -748,7 +748,18 @@ the harness's long run with the map: 744 unlinked unit-frames against
 run7's 1,970 on the day it was captured, and it exposed that the
 harness's players earned no income — `Holdings` was never assembled from
 the live gather chains (`docs/ECONOMY.md`); with that landed, **268**, all
-of them the last citizen `1/10`, and `1/9` trains on the original's frame.
+of them the last citizen `1/10`, and `1/9` trains on the original's frame
+— on the simulation's *own* sync stream. Two more of this lobby:
+**`gamelog-run11-checksum.txt`** (30 MB, 144 frames, run10's settings plus
+`check_all_level=14` and `[Misc Logging] CHECKSUM=2` — **the setup path's
+checksum trace**, 146 records with the sync stream's state, see "The setup
+path's checksum trace is the RNG state") and **`gamelog-run12-dumpall-
+seeds.txt`** (`DUMP_ALL=1` on top of run11's settings, killed after a few
+frames — the per-frame state, `game_random seed` at every `begin_frame`
+and `end_frame`). On run11's stream run10 scores **744** — the script's
+`rand_int`s at frame 1 land on a stream displaced by the ~120 per-frame
+draws the simulation does not model, and pick the rush order; the 268 was
+the boom order reached by the sim's own stream's luck.
 
 ### The lobby is a file: `-config` and `-automation` (2026-08-20)
 
@@ -1192,9 +1203,12 @@ So **`WORLD=6` under `[Start Game]`** dumps the whole tile layer once —
 regions, the coastal `region2`, the site values, the goods bits, the
 owners — which is every map input the production AI's census and sites
 read (`docs/AI.md` §2.3, §2.7, §2.13) and the forest layer the pathfinder
-diff has been missing (`docs/PATHFINDER.md` §10). `TERRAIN=2` adds
-`TerrainData`'s height table and waterline. It is a start-of-game cost
-only; leave `[End Frame] WORLD=0`.
+diff has been missing (`docs/PATHFINDER.md` §10). ~~`TERRAIN=2` adds
+`TerrainData`'s height table and waterline.~~ **It does not** — `TERRAIN`
+is not among the categories `full_dump` dispatches (run9 has no such
+block); the heights are a `DUMP_ALL` item, see "The setup path's checksum
+trace is the RNG state". It is a start-of-game cost only; leave `[End
+Frame] WORLD=0`.
 
 **Run9 (`gamelog-run9-world6.txt`, 2026-08-24, 62 MB, 36 frames)** is that
 capture for the harness's lobby — run7/run8's settings and seed, `[Start
@@ -1234,6 +1248,92 @@ Run8's frame 1 is the AI leader after its frame-0 sweep and is the
 acceptance oracle for `crates/sim/src/ai_census.rs`; the human's block
 carries `peasants`/`gatherers` too, from `Leader::calc_gather@006ceee0`
 (the goods display's pass), not the sweep.
+
+### The setup path's checksum trace is the RNG state (2026-08-24, run11)
+
+The `CHECKSUM` category was never wired into `full_dump`'s per-category
+dispatch, which is why every run with `CHECKSUM=1` printed nothing of it.
+It is something better: **`GameLog::say_checksum@00930b30` is the map
+maker's own sync trace**, and it prints the sync stream.
+
+`say_checksum(detail, file, line)` is called at ~130 sites, all on the
+**setup path** — `Game::init` (detail 1), `init_rules_and_teams` (1),
+`init_teams` (1–6), `init_tribes` (5), `Setup::build_game` (1), `Map::make`
+(1), `make_rivers` (1), `Terrain::init` (2), `mark_halfwater` (10),
+`check_and_set_halfland_wcoord` (5), `TerrainGroups::place_all` (5),
+`place_player_group` (10, 20), `place_oil_deposits` (20), `Leader::init`
+(2) — and once more from `full_dump` at detail 100 under `DUMP_ALL`. Each
+call passes `check_accept` against `[Misc Logging] CHECKSUM` (setup runs
+under `GAMELOGMODE_NONE`, which is that section), then consults a static
+`level`, read once through `prefs_get` from **`rise.ini`'s
+`check_all_level`** (internal string 494; the game writes the key itself
+with its default, 0). `level ≥ 1` prints `CHECKSUM n`, `FILE`, `LINE` and
+an ammo checksum; each further level adds a walked subsystem's checksum
+(deaths, groups, leaders, cities, items, goods, the world ×16, walls, guys,
+units, builds, the rules); **`level ≥ 14` prints `game_random seed`** —
+`GameAccess::game_random->random_seed`, the sync stream's state at that
+call. `DUMP_ALL` sets `detail_override`, which forces `level = 0xff`.
+
+So the recipe is two lines: `check_all_level=14` in `rise.ini` and
+`[Misc Logging] CHECKSUM=2` in `gamelog.ini` (2 takes everything except
+the per-cell loops at 5/10/20, which would walk the world sixteen times a
+cell). **Run11** (`gamelog-run11-checksum.txt`, 30 MB, 144 frames, the
+run9/run10 lobby) is that capture: 146 records, each `CHECKSUM n / FILE /
+LINE / … / game_random seed`, in the preamble before `GAME INFO`.
+`tools/gamelog/rngtrace.py` prints them with the number of `Random::get`
+draws between consecutive records (a forward walk of the LCG — every draw
+is one step, `docs/COMBAT.md` §9.5), and the whole setup stream reads off:
+
+| between | draws | what |
+|---|---|---|
+| the lobby seed → `game.cpp` 6467 | 1 | the AI's random nation, `rand % 24` |
+| `build_game` re-seeds; `setup.cpp` 716 | 1 | `world->seed = rand % 0xffff + 1` (one draw from 12345 either way) |
+| `Map::make` 7805 → 7945 | 3, 5568, 1016, 3, 1824, 231, 2920 | the map maker |
+| `make_rivers` 5076 | 173 | rivers; `Terrain::init` draws nothing |
+| `setup.cpp` 884 → 955 | 8 | the start permutation |
+| `leaders.cpp` 13383 → 13457, the AI | **20** | `random_personality` (the human's visit draws 0) |
+| `setup.cpp` 1032 → 1148 | 1293 | the two `build_empire`s |
+| `setup.cpp` 1169 → 1240 | 44 | `Herd::create_units` |
+| → `game.cpp` 5024 | 0 | the rest of `Game::init` |
+
+The last record — **`0x3bd39ae9` on this lobby** — is the state the
+simulation enters frame 0 with, and run12's `DUMP_ALL` start dump prints
+the same word at `begin_game`. `rondata` reads the trace
+(`gamelog::Checksum`, `Initial.checksums`); `build_sim` seeds each computer
+leader's personality roll from its `Leader::init` bracket and checks the far
+end (`Personality::roll` from `0x9991b076` reproduces run8/run11's
+`PERSONALITY` block field for field **and** lands on `0xf2299eda` — twenty
+draws, the original's count), then installs the last record for frame 0.
+With that stream the frame-0 sweep's site sampler takes the original's
+stride (`site_mark` 16 in both, which needs the second draw exact), and with
+the terrain heights (below) its best site is the original's `(52, 14)/370`
+(`docs/AI.md` §12.1). Run9 and run10 predate the trace; `rondata --diff
+--sibling` and `diff::run_traced` borrow it from run11, the same lobby.
+
+**Two corrections that fell out.** `TERRAIN` under `[Start Game]` does
+*not* dump the height table — `full_dump` never dispatches it (nor
+`MAPMAKE`, `PATHFINDER`, `CHECKSUM`); the earlier claim above is wrong. The
+heights come out only under `DUMP_ALL`, where `dump_all` prints
+`terrain->master_land_heights` — `(4·xs+1)²` floats, `list[scan] 369.375000`
+… with no block of their own, riding on the `UnbuiltForts` block that
+precedes them — and then **`BEGIN REGIONS`**, every region's coordinate
+list in the order `compute_sites` samples it (row-major, as
+`Regions::rebuild_coords` writes it; `docs/AI.md` §13's open item, closed).
+Run3 is this map's `DUMP_ALL` capture and supplies both.
+
+**What the trace does not cover: the per-frame draws.** Under `DUMP_ALL`
+`full_dump` runs `say_checksum` at `begin_frame` and `end_frame` too, so
+**run12** (`gamelog-run12-dumpall-seeds.txt`, this lobby, `DUMP_ALL=1` with
+`check_all_level=14`, killed after four frames, 262 MB) is the per-frame
+oracle: `gamelog.cpp` 135 at `begin_game` and then at each `begin_frame`
+and `end_frame` — **frame 0 draws 120** times from `game_random` where the
+simulation's sweep draws 2, **frame 1 draws 54** (the script's eight
+`rand_int`s and the farm's placement are the simulation's share), and
+**frames 2 and 3 draw 6 each** — a steady six a frame from something that
+is not the AI. The 39 classes that draw from `game_random` include `Unit` (16
+functions), `Animal`/`Herd`, `Farms`, `Guy`, `Object`, `Ammo` and
+`PathFinder`; modelling them is the next item (`docs/AI.md` §12.1) and it
+is what the script's first `rand_int`s at frame 1 need.
 
 ## What is not established
 

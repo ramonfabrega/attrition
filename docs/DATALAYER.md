@@ -295,6 +295,22 @@ pre-placed building came out untyped and city-less, and a farm outside a city
 sends its citizen away (`do_gather`'s second gate). The order diff below is
 what found it; the positions could not.
 
+**The sync stream and the heights come from the dump too, when it has
+them — or from a sibling** (2026-08-24). A dump made with
+`check_all_level=14` and `[Misc Logging] CHECKSUM=2` carries the setup
+path's checksum trace (`gamelog::Checksum`, `Initial.checksums`;
+`docs/ORACLE.md`, "The setup path's checksum trace is the RNG state"), and
+`build_sim` seeds each computer leader's personality roll from its
+`Leader::init` bracket — noting whether the roll lands on the far end —
+then installs the last record as the state entering frame 0. A `DUMP_ALL`
+dump carries `master_land_heights` (`Initial.heights`, exact millionths),
+which `build_sim` pins per tile as `find_tcoord_z` would answer it
+(`World::tile_z`). Neither is in the runs made before they were known, so
+`diff::run_traced` and `rondata --diff --sibling <dump>` borrow what a dump
+lacks from **siblings** — other dumps of the same lobby and seed, hence the
+same setup stream and the same map: run11 for the trace, run3 for the
+heights. Without either the notes say so, and the stream is the sim's own.
+
 **The buildings go in the way §9.2 says, not through `place_building`.**
 `build_cities@005ab910` is `Build::init` then `activate(0, 0, 0)`, and
 `produce_building` at frame 0 is `Objects::init_build` then

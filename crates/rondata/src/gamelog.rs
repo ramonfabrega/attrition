@@ -267,6 +267,93 @@ impl<'a> Log<'a> {
             .collect()
     }
 
+    /// The setup path's checksum trace ([`Checksum`]), in call order. The
+    /// records are written before `GameLog::begin_game`, at indent 0 with
+    /// their `FILE`/`LINE` indented under nothing, so they land in the
+    /// preamble as flat fields: `CHECKSUM n`, `FILE f`, `LINE l`, the
+    /// subsystem checksums, then `game_random seed s`. A record without the
+    /// seed line (`check_all_level < 14`) is dropped — it pins nothing.
+    pub fn checksums(&self) -> Vec<Checksum<'a>> {
+        let mut out = Vec::new();
+        let mut cur: Option<Checksum<'a>> = None;
+        for &(key, value) in &self.preamble {
+            match key {
+                "CHECKSUM" => {
+                    cur = value.trim().parse().ok().map(|n| Checksum {
+                        n,
+                        file: "",
+                        line: 0,
+                        seed: 0,
+                    });
+                }
+                "FILE" => {
+                    if let Some(c) = &mut cur {
+                        c.file = value.trim();
+                    }
+                }
+                "LINE" => {
+                    if let Some(c) = &mut cur {
+                        c.line = value.trim().parse().unwrap_or(0);
+                    }
+                }
+                "game_random" => {
+                    if let (Some(mut c), Some(s)) = (cur.take(), value.trim().strip_prefix("seed "))
+                        && let Ok(seed) = s.trim().parse::<i64>()
+                    {
+                        c.seed = seed as u32;
+                        out.push(c);
+                    }
+                }
+                _ => {}
+            }
+        }
+        out
+    }
+
+    /// The terrain's height grid from a `DUMP_ALL` dump, in millionths
+    /// (see [`Initial::heights`]). `GameLog::dump_all@0092f2d0` prints
+    /// `SimpleArray<float>::log_data(terrain->master_land_heights)` with no
+    /// block of its own, right after `UnbuiltForts::log_data`, so the
+    /// `length N` and the `list[scan]` values land on the `UnbuiltForts`
+    /// block at the same indent — the one whose `length` is over 1,000
+    /// (the forts list itself is `length 0`). Empty when no dump has it.
+    pub fn terrain_heights(&self) -> Vec<i64> {
+        fn walk<'b, 'a>(b: &'b Block<'a>, out: &mut Vec<&'b Block<'a>>) {
+            if b.name == "UnbuiltForts" {
+                out.push(b);
+            }
+            for k in &b.children {
+                walk(k, out);
+            }
+        }
+        let mut found = Vec::new();
+        for r in &self.roots {
+            walk(r, &mut found);
+        }
+        for b in found {
+            // The `length N` over 1,000 and the `list[scan]` run right after
+            // it — the waterline arrays that follow at the same indent land
+            // on this block too, so the values are taken in field order,
+            // not by key.
+            let Some(at) = b.fields.iter().position(|(k, v)| {
+                *k == "length" && v.trim().parse::<usize>().is_ok_and(|n| n > 1000)
+            }) else {
+                continue;
+            };
+            let n: usize = b.fields[at].1.trim().parse().unwrap_or(0);
+            let values: Vec<i64> = b.fields[at + 1..]
+                .iter()
+                .filter(|(k, _)| *k == "list[scan]")
+                .take(n)
+                .filter_map(|(_, v)| micro(v.trim()))
+                .collect();
+            if values.len() == n {
+                return values;
+            }
+        }
+        Vec::new()
+    }
+
     /// One leader's whole `LEADERDATA` block at one frame — every field a
     /// `LEADERS=9` run prints (`docs/ORACLE.md`, "`LEADERS=9` is the census
     /// oracle"): the census counts by name, the `[scan]` arrays under their
@@ -541,6 +628,51 @@ pub struct ConstantDump<'a> {
     pub array: bool,
 }
 
+/// One `GameLog::say_checksum@00930b30` record — the setup path's own sync
+/// trace (`docs/ORACLE.md`, "The setup path's checksum trace is the RNG
+/// state"). Every call site in `Game::init`, `init_rules_and_teams`,
+/// `Setup::build_game`, `Map::make`, `Terrain::init` and `Leader::init`
+/// prints `CHECKSUM n`, the source `FILE` and `LINE`, one checksum per
+/// walked subsystem and, at `check_all_level ≥ 14` in `rise.ini`,
+/// **`game_random seed`** — the sync stream's state at that point. `seed`
+/// is the raw 32-bit word (the log prints it signed).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Checksum<'a> {
+    pub n: i64,
+    pub file: &'a str,
+    pub line: i64,
+    pub seed: u32,
+}
+
+/// A `%f`-printed number as exact millionths: `369.375000` → `369375000`,
+/// `-2.5` → `-2500000`. Decimals beyond the sixth are dropped; anything
+/// that is not a decimal number is `None`.
+pub fn micro(s: &str) -> Option<i64> {
+    let (neg, s) = match s.strip_prefix('-') {
+        Some(r) => (true, r),
+        None => (false, s),
+    };
+    let (whole, frac) = s.split_once('.').unwrap_or((s, ""));
+    if whole.is_empty() && frac.is_empty() {
+        return None;
+    }
+    let whole: i64 = if whole.is_empty() {
+        0
+    } else {
+        whole.parse().ok()?
+    };
+    let mut f: i64 = 0;
+    for (i, c) in frac.chars().take(6).enumerate() {
+        let d = c.to_digit(10)? as i64;
+        f += d * 10i64.pow(5 - i as u32);
+    }
+    if frac.chars().any(|c| !c.is_ascii_digit()) {
+        return None;
+    }
+    let v = whole * 1_000_000 + f;
+    Some(if neg { -v } else { v })
+}
+
 /// The state written once, before frame 1.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Initial<'a> {
@@ -553,6 +685,15 @@ pub struct Initial<'a> {
     pub units: Vec<UnitDump>,
     pub builds: Vec<BuildDump>,
     pub leaders: Vec<LeaderDump>,
+    /// The setup path's checksum trace, in call order — empty unless the
+    /// run had `[Misc Logging] CHECKSUM ≥ 1` and `check_all_level ≥ 14`.
+    pub checksums: Vec<Checksum<'a>>,
+    /// The terrain's `master_land_heights` — `(4·xs + 1) × (4·ys + 1)`
+    /// corner heights, row-major, each in **millionths** (the log prints
+    /// the floats with six decimals; the shipped maps' heights are
+    /// multiples of ⅛, so the text is exact). Only a `DUMP_ALL` dump
+    /// carries it (`docs/ORACLE.md`); empty otherwise.
+    pub heights: Vec<i64>,
 }
 
 /// One frame's worth of state.
@@ -842,6 +983,8 @@ impl<'a> Log<'a> {
         init.units = units;
         init.builds = builds;
         init.leaders = leaders;
+        init.checksums = self.checksums();
+        init.heights = self.terrain_heights();
         Some(init)
     }
 
@@ -1240,5 +1383,77 @@ BEGIN GAME
         assert!(log.roots.is_empty());
         assert!(log.initial().is_none());
         assert!(log.frame_states().is_empty());
+    }
+
+    #[test]
+    fn micro_reads_printed_floats_exactly() {
+        assert_eq!(micro("369.375000"), Some(369_375_000));
+        assert_eq!(micro("0.000000"), Some(0));
+        assert_eq!(micro("-2.5"), Some(-2_500_000));
+        assert_eq!(micro("12"), Some(12_000_000));
+        assert_eq!(micro("1.2345678"), Some(1_234_567));
+        assert_eq!(micro("x"), None);
+        assert_eq!(micro(""), None);
+    }
+
+    /// The height grid as `dump_all` prints it: no block of its own, so it
+    /// rides on the `UnbuiltForts` block that precedes it (whose own list
+    /// is `length 0`).
+    #[test]
+    fn terrain_heights_ride_on_the_unbuilt_forts_block() {
+        let text = "BEGIN DUMP\n BEGIN UnbuiltForts\n  length 0\n  size 4\n  increment -1\n  flags 0\n\
+                    \n  length 1001\n  size 1001\n  increment -1\n  flags 0\n";
+        let mut t = text.to_string();
+        for i in 0..1001 {
+            t.push_str(&format!("  list[scan] {}.375000\n", i));
+        }
+        // The waterline arrays follow at the same indent — more `list[scan]`
+        // on the same block, which must not be taken for heights.
+        t.push_str("  length 3\n  size 4\n  increment -1\n  flags 0\n");
+        t.push_str("  list[scan] 36795\n  list[scan] 36554\n  list[scan] 36314\n");
+        t.push_str(" BEGIN REGIONS\n  sea 70\n");
+        let log = Log::parse(&t);
+        let h = log.terrain_heights();
+        assert_eq!(h.len(), 1001);
+        assert_eq!(h[0], 375_000);
+        assert_eq!(h[1000], 1_000_375_000);
+        assert!(
+            Log::parse("BEGIN GAME\n x 1\n")
+                .terrain_heights()
+                .is_empty()
+        );
+    }
+
+    /// The trace's shape as run11 writes it (CRLF, the subsystem checksums
+    /// between `LINE` and the seed, the seed printed signed) and the two
+    /// ways a record can be incomplete.
+    #[test]
+    fn checksum_records_are_read_from_the_preamble() {
+        let text = "CHECKSUM 0\r\n    FILE game.cpp\r\n    LINE 6136\r\nAmmo 1\r\nWorld 1\r\n\
+                    Rules 2650943563\r\ngame_random seed 12345\r\n\
+                    CHECKSUM 1\r\n    FILE leaders.cpp\r\n    LINE 13457\r\n\
+                    game_random seed -232153382\r\n\
+                    CHECKSUM 2\r\n    FILE setup.cpp\r\n    LINE 1244\r\nAmmo 1\r\n\
+                    BEGIN GAME INFO\r\n WHO = 0\r\n";
+        let log = Log::parse(text);
+        let c = log.checksums();
+        assert_eq!(
+            c,
+            vec![
+                Checksum {
+                    n: 0,
+                    file: "game.cpp",
+                    line: 6136,
+                    seed: 12345
+                },
+                Checksum {
+                    n: 1,
+                    file: "leaders.cpp",
+                    line: 13457,
+                    seed: 0xf2299eda
+                },
+            ],
+            "the third record has no seed line and is dropped"
+        );
     }
 }

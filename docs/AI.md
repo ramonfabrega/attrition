@@ -1114,17 +1114,25 @@ stream every other mechanic reads:
 - **`Leader::random_personality@006cfd00`** (156, read): ~25 draws per
   computer leader — `rush`, then per-tribe adjustments (tribe indices 0,
   2, 3, 4, 5, 6, 7, 8, 0xc, 0xe, 0xf, 0x11 each bend the roll), a pass
-  over every other computer leader's tribe, then one draw each for
+  over every other ~~computer~~ leader's tribe (**corrected 2026-08-24**:
+  the loop's guard is `leader_flags & 3 == 3`, not-ally, not `& 0x10` —
+  the human is in it), then one draw each for
   `cities`, `upgrades` (two-stage), `arms`, `army`, `army_size`, `raid`,
   `invade`, `target`, `strategy`, `raze`, `spells`, `forts`, `nukes`,
   `air`, `naval`, `market`, `scouts`, `civilians`, `early_army`, with
   tribe overrides (`rush_rules == 8` forces `raid = -1`). Called from
   `Leader::init`, which `Setup::build_game` runs **after its re-seed and
   before `build_empire`** (`docs/ORDERS.md` §9.2) — so the AI's draws sit
-  between the start permutation and every `place_unit` draw. The harness's
-  `build_sim` reads positions from the dump and has not needed to model
-  them; the first mechanic that consumes the sync stream during play
-  (combat's accuracy roll) will.
+  between the start permutation and every `place_unit` draw. ~~The
+  harness's `build_sim` reads positions from the dump and has not needed
+  to model them.~~ **Settled 2026-08-24 by the setup path's checksum
+  trace** (`docs/ORACLE.md`, "The setup path's checksum trace is the RNG
+  state"): `Leader::init`'s checkpoints bracket the roll, and on this lobby
+  it is **exactly twenty draws**, `0x9991b076` → `0xf2299eda` —
+  `Personality::roll` from the near end reproduces the dump's
+  `PERSONALITY` block field for field and lands on the far end.
+  `build_sim` seeds the roll from the bracket and the frame-0 state from
+  the trace's last record (`0x3bd39ae9`).
 - **The script's `rand_int`** — the sync stream, at whatever frame the
   script runs.
 - **`Leader::init`'s coin** for `economic` vs `defensive` — one draw, only
@@ -1406,13 +1414,28 @@ folded back into §2's prose.
    bonus-tech levels (`GRANARY2..`, `TAX_1..` — the BONUS band the tree
    does not load), `calc_resource_bonuses`; and the sites' frames — `2007`
    at 776, `2008` at 1177 — against the dump's `BUILDDATA`.
-2. **The sync stream at frame 0.** `compute_sites`' stride is a
-   `game_random` draw, and the harness's stream at frame 0 is not the
-   original's — the map maker's draws precede `Leader::init`
-   (`docs/ORDERS.md` §9.2). On run9 the sweep scores a site at (55, 11)/425
-   where the record has (52, 14)/370: the same score function on different
-   samples. Modelling the map maker's draw count, or reading the RNG state
-   out of a dump, is what pins the sites, and every later AI draw.
+2. ~~**The sync stream at frame 0.**~~ **Done, 2026-08-24** — read out of
+   a dump: the setup path's `say_checksum` records print `game_random seed`
+   at `check_all_level=14` (`docs/ORACLE.md`, "The setup path's checksum
+   trace is the RNG state"; run11). `build_sim` installs the frame-0 state
+   and seeds the personality from its bracket; the sampler's stride is the
+   original's (`site_mark` 16 in both) and, with the terrain heights from
+   run3's `DUMP_ALL` (`World::tile_z`, the `find_tcoord_z / 25` term of the
+   5×5 slide), **run9's best site is the original's `(52, 14)/370`** —
+   pinned in `diff.rs`. What it exposed is the item that replaces it:
+
+   **2′. The per-frame draws.** Run12's `DUMP_ALL` states show frame 0
+   drawing **120** times where the sweep draws 2 (then 54, 6, 6 on frames
+   1–3 — a steady six a frame that is not the AI's), so by the script's first
+   `rand_int(1, 10)`s at frame 1 the stream is displaced and the script
+   takes the *rush* order (two farms at step 3, no city) instead of the
+   boom order the original took — run10 scores 744 on the true stream
+   against 268 on the sim's own (a lucky branch). The draw sites are the 39
+   classes that touch `GameAccess::game_random`: `Unit` (16 functions),
+   `Animal`/`Herd`, `Farms`, `Guy`, `Object`, `Ammo`, `PathFinder` — each a
+   reading of when it draws and how often; run12's per-frame records are
+   the oracle for the count, and the script's branch at frame 1 (run7/run8:
+   boom) the check with teeth.
 3. **The loader's half of the producers** — the seams that are `rondata`'s
    to close: `UnitType.unit_flags/unit_flags2/role/carry/cat`
    (`determine_roles@0061c320`, §14.5), `TypeDef.ai[11]`
@@ -1436,13 +1459,21 @@ folded back into §2's prose.
   by `BuildTypeData::max_gatherers@0063c430` → `calc_gather@00639e40`
   (`docs/ECONOMY.md`'s open item): 5 for camp 2001 on run9's map, 0
   (uncapped) in the sim. Pinned as a ceiling in the census test.
-- **The frame-0 sync stream** (§12.1 item 2): every AI draw before the
+- ~~**The frame-0 sync stream** (§12.1 item 2): every AI draw before the
   first `place_unit` — the personality, the script coin, `compute_sites`'
-  stride — is on the wrong stream in the harness.
-- **`compute_site_stats`' inputs the sim lacks**: `find_tcoord_z` (heights,
-  0), `was_seen` (true — the lobby reveals the map), `danger[]` (0), team
-  style 2's `target`, the ally-land arm; **the `Region.coords` order** —
-  the sampler walks the region's own list and the sim walks row-major.
+  stride — is on the wrong stream in the harness.~~ Read out of run11's
+  trace and installed (§12.1). **What is on the wrong stream now is
+  everything after frame 0's first draw** — the ~120 per-frame draws of
+  units, herds, farms and ammo the sim does not model (§12.1 item 2′).
+- **`compute_site_stats`' inputs the sim lacks**: ~~`find_tcoord_z`
+  (heights, 0)~~ — pinned per tile from a `DUMP_ALL` dump's
+  `master_land_heights` (`World::tile_z`; `(int)((h[ty+1][tx] +
+  h[ty][tx+1]) × 0.5)`, 0 on ocean), `was_seen` (true — the lobby reveals
+  the map), `danger[]` (0), team style 2's `target`, the ally-land arm;
+  ~~**the `Region.coords` order** — the sampler walks the region's own list
+  and the sim walks row-major~~ — the same: run3's `BEGIN REGIONS` prints
+  every region's list and region 1's 3,053 coordinates are row-major
+  exactly, as `Regions::rebuild_coords` writes them.
 - **`unit_flags & 4/8/0x8000`, `unit_flags2 & 0x60`, `carry`, `cat`,
   `role`** — not on `UnitType` (§12.1 item 3); every producer test that
   needs them runs on a hand-built type.

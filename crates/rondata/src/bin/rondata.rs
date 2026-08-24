@@ -30,6 +30,9 @@ fn main() -> ExitCode {
         eprintln!("           it up from the dump's initial state, and step it");
         eprintln!("           against the logged frames (at most N), reporting");
         eprintln!("           ticks before divergence.");
+        eprintln!("--sibling  with --diff: another dump of the same lobby and seed");
+        eprintln!("           whose setup checksum trace (check_all_level=14) or");
+        eprintln!("           DUMP_ALL height table this one lacks; repeatable.");
         eprintln!("--types    a DUMP_ALL=1 start-of-game dump (docs/ORACLE.md): its");
         eprintln!("           UNITTYPE blocks and COMBATTABLE are checked against the");
         eprintln!("           loader's Kinds and the combat table it builds.");
@@ -39,12 +42,14 @@ fn main() -> ExitCode {
         return ExitCode::from(2);
     };
     let mut gamelog: Option<String> = None;
+    let mut siblings: Vec<String> = Vec::new();
     let mut types: Option<String> = None;
     let mut recgame: Option<String> = None;
     let mut diff: Option<Option<usize>> = None;
     while let Some(a) = args.next() {
         match a.as_str() {
             "--gamelog" => gamelog = args.next(),
+            "--sibling" => siblings.extend(args.next()),
             "--types" => types = args.next(),
             "--recgame" => recgame = args.next(),
             "--diff" => {
@@ -77,7 +82,7 @@ fn main() -> ExitCode {
             Some(path) => {
                 let mut f = f + gamelog_report(&install, path)?;
                 if let Some(limit) = diff {
-                    f += diff_report(&install, path, limit, recgame.as_deref())?;
+                    f += diff_report(&install, path, limit, recgame.as_deref(), &siblings)?;
                 }
                 Ok(f)
             }
@@ -111,14 +116,30 @@ fn diff_report(
     path: &str,
     limit: Option<usize>,
     recgame: Option<&str>,
+    siblings: &[String],
 ) -> Result<usize, rondata::Error> {
-    use rondata::gamelog::Log;
+    use rondata::gamelog::{Initial, Log};
 
-    let text = std::fs::read_to_string(path).map_err(|source| rondata::Error::Io {
-        path: path.to_string(),
-        source,
-    })?;
+    let read = |p: &str| {
+        std::fs::read_to_string(p).map_err(|source| rondata::Error::Io {
+            path: p.to_string(),
+            source,
+        })
+    };
+    // The siblings' texts must outlive the initial state borrowed from them.
+    let sibling_texts: Vec<String> = siblings.iter().map(|p| read(p)).collect::<Result<_, _>>()?;
+    let text = read(path)?;
     let log = Log::parse(&text);
+    let sibling_logs: Vec<Log> = sibling_texts.iter().map(|t| Log::parse(t)).collect();
+    let sibling_inits: Vec<Initial> = sibling_logs.iter().filter_map(|l| l.initial()).collect();
+    let sibling_refs: Vec<&Initial> = sibling_inits.iter().collect();
+    for (p, i) in siblings.iter().zip(&sibling_inits) {
+        println!(
+            "  sibling {p}: {} checksum records, {} heights",
+            i.checksums.len(),
+            i.heights.len()
+        );
+    }
     let loaded = rondata::load::load(install)?;
     let mut failures = 0;
     println!("\ndiff");
@@ -163,12 +184,31 @@ fn diff_report(
         }
         None => None,
     };
-    let Some(report) =
-        rondata::diff::run_with(&loaded, &log, sim::Tuning::RON, limit, stream.as_mut())
-    else {
+    let Some(report) = rondata::diff::run_traced(
+        &loaded,
+        &log,
+        sim::Tuning::RON,
+        limit,
+        stream.as_mut(),
+        &sibling_refs,
+    ) else {
         println!("  no BEGIN GAME in the log; nothing to diff");
         return Ok(failures);
     };
+    // The units the original has that the simulation never stood up or
+    // trained, by name, with the first frame each appears on.
+    let mut missing: Vec<((i64, i64), i64, usize)> = Vec::new();
+    for f in &report.frames {
+        for u in &f.unlinked_units {
+            match missing.iter_mut().find(|(k, _, _)| k == u) {
+                Some((_, _, n)) => *n += 1,
+                None => missing.push((*u, f.frame, 1)),
+            }
+        }
+    }
+    for ((who, o), first, n) in &missing {
+        println!("  unlinked: unit {who}/{o} from frame {first}, {n} frame(s)");
+    }
     if recgame.is_some() {
         println!(
             "  the stream drove {} order(s); {} command(s) carried but not acted on",

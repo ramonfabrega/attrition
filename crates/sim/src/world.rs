@@ -235,6 +235,13 @@ pub struct World {
     /// AI's trainers and placement read. Empty until something writes it;
     /// [`World::danger`] answers 0 then.
     danger: Vec<Vec<i32>>,
+    /// One height per **tile** — what `TerrainOut::find_tcoord_z@008544a0`
+    /// answers for it: the truncated mean of two corners of the terrain's
+    /// float height grid, `(int)((h[ty+1][tx] + h[ty][tx+1]) × 0.5)`, and 0
+    /// on an ocean tile. A pinned table the loader builds from the dump's
+    /// `master_land_heights` before the first frame (`docs/DECISIONS.md`
+    /// entry 16's clause); empty on a flat world, where every tile is 0.
+    tile_z: Vec<i32>,
 }
 
 /// The bits of a tile mask, as the placement code names them — `TData.mask`
@@ -282,6 +289,26 @@ impl World {
             tiles: vec![0; n * (TILES_PER_CELL as usize) * (TILES_PER_CELL as usize)],
             cells: vec![CellData::default(); n],
             danger: Vec::new(),
+            tile_z: Vec::new(),
+        }
+    }
+
+    /// A tile's height as `find_tcoord_z` answers it; 0 off the map and on
+    /// a world without a height table.
+    pub fn tile_z(&self, t: Pos) -> i32 {
+        self.tile_index(t)
+            .and_then(|i| self.tile_z.get(i))
+            .copied()
+            .unwrap_or(0)
+    }
+
+    /// Writes a tile's height (the map loader's).
+    pub fn set_tile_z(&mut self, t: Pos, z: i32) {
+        if let Some(i) = self.tile_index(t) {
+            if self.tile_z.is_empty() {
+                self.tile_z = vec![0; self.tiles.len()];
+            }
+            self.tile_z[i] = z;
         }
     }
 

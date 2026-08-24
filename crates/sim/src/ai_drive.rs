@@ -27,13 +27,12 @@ impl Sim {
     pub fn init_leader_ai(&mut self, who: Player, player_flags: u32) {
         let w = who as usize;
         let tribe = self.tech[w].tribe;
+        // `random_personality`'s pass is over every other leader with
+        // `leader_flags & 3 == 3` that is not an ally and not `& 0x10` — the
+        // human included (corrected 2026-08-24 against the decompile; the
+        // first reading said "computer leader").
         let rivals: Vec<ai::Rival> = (0..self.players.len())
-            .filter(|&i| {
-                i != w
-                    && !self.nation[i].human
-                    && !self.defeated[i]
-                    && !(self.allied[w][i] && self.allied[i][w])
-            })
+            .filter(|&i| i != w && !self.defeated[i] && !(self.allied[w][i] && self.allied[i][w]))
             .map(|i| ai::Rival {
                 tribe: self.tech[i].tribe,
             })

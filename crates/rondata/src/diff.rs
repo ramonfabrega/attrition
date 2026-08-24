@@ -227,8 +227,31 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 world.set_tile_mask(t, *m);
             }
         }
+        // The heights — `TerrainOut::find_tcoord_z@008544a0` per tile:
+        // `(int)((h[ty+1][tx] + h[ty][tx+1]) × 0.5)` on the corner grid of
+        // `4·xs + 1` columns, 0 where the tile's surface bits are ocean
+        // (`mask & 0x30 == 0x20`). The mean of two exact millionths,
+        // truncated toward zero, is the float's truncation exactly.
+        let hw = tw + 1;
+        let heights_loaded = tiles_loaded && init.heights.len() == hw * (th + 1);
+        if heights_loaded {
+            let h = &init.heights;
+            for ty in 0..th {
+                for tx in 0..tw {
+                    let t = Pos::new(tx as i32, ty as i32);
+                    let ocean = world.tile_mask(t) & sim::world::tile::SURFACE
+                        == sim::world::tile::SURFACE_OCEAN;
+                    let z = if ocean {
+                        0
+                    } else {
+                        ((h[(ty + 1) * hw + tx] + h[ty * hw + tx + 1]) / 2_000_000) as i32
+                    };
+                    world.set_tile_z(t, z);
+                }
+            }
+        }
         notes.push(format!(
-            "world: {} cells from the WORLD dump, {} regions, land kinds {:?}, {} tile masks{}",
+            "world: {} cells from the WORLD dump, {} regions, land kinds {:?}, {} tile masks{}, {}",
             cells.len(),
             region_map.len(),
             land_names,
@@ -237,6 +260,13 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 ""
             } else {
                 " (not applied: count differs)"
+            },
+            if heights_loaded {
+                "heights pinned per tile"
+            } else if init.heights.is_empty() {
+                "no height table (flat)"
+            } else {
+                "height table not applied: size differs"
             }
         ));
     } else {
@@ -271,10 +301,18 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // The opening scripts, compiled against the host's table
     // (`Leaders::init_production_script`), then `Leader::init`'s AI tail for
     // every computer leader: the personality roll and the script choice.
-    // The roll draws from the sim's own stream, which is not the original's
-    // at this point — the map maker's draws sit before it (`docs/ORDERS.md`
-    // §9.2) — so a test that needs the original's personality sets it from
-    // a `LEADERS=9` dump's `PERSONALITY` block (`docs/AI.md` §5).
+    // The roll draws from the sync stream at the point `Setup::build_game`
+    // calls `Leader::init` — after the map maker's and the start
+    // permutation's draws (`docs/ORDERS.md` §9.2), which the harness does
+    // not model. A dump with the setup path's checksum trace
+    // (`docs/ORACLE.md`, "The setup path's checksum trace is the RNG
+    // state") carries that state exactly: `leaders.cpp` line 13383 is the
+    // checkpoint just before `random_personality` and 13457 the one after
+    // the script choice, so each computer leader's roll is seeded from its
+    // bracket and checked against the far end. Without the trace the roll
+    // draws from the sim's own stream and a test that needs the original's
+    // personality sets it from a `LEADERS=9` dump's `PERSONALITY` block
+    // (`docs/AI.md` §5).
     if !loaded.scripts.is_empty() {
         let sources: Vec<sim::bhs::Source> = loaded
             .scripts
@@ -285,6 +323,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             notes.push(format!("the opening scripts did not compile: {e}"));
         }
     }
+    let mut brackets = personality_brackets(&init.checksums).into_iter();
     for who in 0..players {
         if sim.nation[who].human {
             continue;
@@ -299,7 +338,23 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             .and_then(|p| p.iter().find(|(k, _)| *k == "flags"))
             .and_then(|(_, v)| v.trim().parse::<u32>().ok())
             .unwrap_or(0);
+        let bracket = brackets.next();
+        if let Some((before, _)) = bracket {
+            sim.rng.seed = before;
+        }
         sim.init_leader_ai(who as sim::Player, flags);
+        if let Some((before, after)) = bracket {
+            if sim.rng.seed == after {
+                notes.push(format!(
+                    "player {who}: personality rolled from the trace's Leader::init state {before:#010x}, landing on {after:#010x} as the original did"
+                ));
+            } else {
+                notes.push(format!(
+                    "player {who}: personality rolled from {before:#010x} lands on {:#010x}, the original on {after:#010x} — the draw count differs",
+                    sim.rng.seed
+                ));
+            }
+        }
     }
 
     // The starting city, by type at the logged position.
@@ -396,6 +451,24 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             }
         }
     }
+    // The sync stream entering frame 0: the trace's last record is the end
+    // of `Game::init` (`game.cpp` 5024 on this build), after the empires,
+    // the herds and the scripts — every draw between `Leader::init` and the
+    // first `do_frame` the harness does not model (`build_empire`'s 1,293
+    // on run11, `Herd::create_units`' 44). Nothing draws between there and
+    // `GameLog::begin_game`, so this is the state the first frame reads.
+    if let Some(last) = init.checksums.last() {
+        sim.rng.seed = last.seed;
+        notes.push(format!(
+            "rng: seeded {:#010x} from the trace's last checkpoint ({} {}, CHECKSUM {})",
+            last.seed, last.file, last.line, last.n
+        ));
+    } else {
+        notes.push(
+            "rng: no checksum trace in the dump; the stream is the sim's own (frame-0 AI draws will not match)"
+                .to_string(),
+        );
+    }
     Built {
         sim,
         units,
@@ -403,6 +476,29 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         region_map,
         notes,
     }
+}
+
+/// `Leader::init`'s source lines around `random_personality` on this build
+/// (`leaders.cpp` in the EE-era `rise.pdb`): 13383 (`0x3447`) is the
+/// checkpoint just before the roll, 13457 (`0x3491`) the one after the
+/// script choice. A human's visit passes both with no draw; a computer
+/// leader's moves the seed.
+const PERSONALITY_BEFORE: (&str, i64) = ("leaders.cpp", 13383);
+const PERSONALITY_AFTER: (&str, i64) = ("leaders.cpp", 13457);
+
+/// Each computer leader's `(before, after)` sync-stream states around its
+/// personality roll, in `Setup::build_game`'s visiting order — the
+/// consecutive checkpoint pairs at the two lines whose seed changed.
+pub fn personality_brackets(checksums: &[crate::gamelog::Checksum<'_>]) -> Vec<(u32, u32)> {
+    checksums
+        .windows(2)
+        .filter(|w| {
+            (w[0].file, w[0].line) == PERSONALITY_BEFORE
+                && (w[1].file, w[1].line) == PERSONALITY_AFTER
+                && w[0].seed != w[1].seed
+        })
+        .map(|w| (w[0].seed, w[1].seed))
+        .collect()
 }
 
 /// `TypeIndex` values the start-of-game rule names (`docs/ORDERS.md` §9.2).
@@ -681,6 +777,9 @@ pub struct FrameResult {
     pub frame: i64,
     /// Units the log has for a player and the simulation does not.
     pub unlinked: usize,
+    /// The `(who, o)` of each unlinked unit-frame — the units the original
+    /// has on this frame that the simulation does not.
+    pub unlinked_units: Vec<(i64, i64)>,
     pub compared: usize,
     pub diverged: Vec<Divergence>,
     /// The leaders' scores as logged, by `who`.
@@ -989,6 +1088,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     }
                     None => {
                         r.unlinked += 1;
+                        r.unlinked_units.push((u.who, u.o));
                         continue;
                     }
                 }
@@ -1037,7 +1137,41 @@ pub fn run_with(
     limit: Option<usize>,
     stream: Option<&mut crate::input::Stream>,
 ) -> Option<Report> {
-    let init = log.initial()?;
+    run_traced(loaded, log, tuning, limit, stream, &[])
+}
+
+/// Fills `init`'s checksum trace and height grid from the first sibling
+/// dump that has each, when `init` itself has none (see [`run_traced`]).
+pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Initial<'b>]) {
+    if init.checksums.is_empty()
+        && let Some(s) = siblings.iter().find(|s| !s.checksums.is_empty())
+    {
+        init.checksums = s.checksums.clone();
+    }
+    if init.heights.is_empty()
+        && let Some(s) = siblings.iter().find(|s| !s.heights.is_empty())
+    {
+        init.heights = s.heights.clone();
+    }
+}
+
+/// [`run_with`], with what this dump lacks borrowed from **siblings** —
+/// other dumps of the same lobby and seed, hence the same map and the same
+/// setup stream: the setup path's checksum trace (run11 has it; run9 and
+/// run10 were captured before it was found — `docs/ORACLE.md`, "The setup
+/// path's checksum trace is the RNG state") and the terrain's height grid
+/// (only a `DUMP_ALL` dump prints it; run3 is this map's). The dump's own
+/// data wins; the first sibling that has each thing supplies it.
+pub fn run_traced<'a, 'b: 'a>(
+    loaded: &Loaded,
+    log: &Log<'a>,
+    tuning: Tuning,
+    limit: Option<usize>,
+    stream: Option<&mut crate::input::Stream>,
+    siblings: &[&Initial<'b>],
+) -> Option<Report> {
+    let mut init = log.initial()?;
+    borrow_from_siblings(&mut init, siblings);
     let players = player_count(&init);
     let mut built = build_sim(loaded, &init, tuning);
     let mut report = Report {
@@ -1421,9 +1555,24 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
+        // Run9 predates the trace and never had the heights; run11 (the
+        // trace) and run3 (`DUMP_ALL`, the heights) are the same map.
+        let texts = sibling_texts();
         let text = std::fs::read_to_string(&path).unwrap();
         let log = Log::parse(&text);
-        let mut built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        let mut init = log.initial().unwrap();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        borrow_from_siblings(&mut init, &refs);
+        // A sibling on disk that yields nothing is a reader bug, not a
+        // reason to skip: the assertion below must not evaporate.
+        if texts.len() == 2 {
+            assert!(!init.checksums.is_empty(), "run11's trace was not read");
+            assert!(!init.heights.is_empty(), "run3's height table was not read");
+        }
+        let traced = !init.checksums.is_empty() && !init.heights.is_empty();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
         let theirs = log.leader_block(1, 1).expect("FRAME 1 LEADERDATA who 1");
         assert_eq!(theirs.int("peasants"), Some(5), "the record is level 9");
 
@@ -1509,10 +1658,14 @@ mod tests {
             wrong.join("\n  ")
         );
 
-        // The sites the sweep's tail scored (`compute_sites`, `docs/AI.md`
-        // §2.7): the record holds ten `SITE`s. Reported, not yet asserted —
-        // the sampler's stride is a sync-stream draw and the harness's
-        // stream is not the original's at frame 0 (`docs/ORDERS.md` §9.2).
+        // The sites (`compute_sites`, `docs/AI.md` §2.7): the record holds
+        // ten `SITE`s, and the frame-1 record is after **two** passes — the
+        // frame-0 sweep's, and the one the script's `city_placement` forces
+        // through `place_city_with_cost` at frame 1. The sampler's stride
+        // is a sync-stream draw; with run11's trace the harness's stream is
+        // the original's, so after frame 1 the record's best site is
+        // asserted when the trace is on hand and reported otherwise.
+        built.sim.tick();
         let theirs_sites: Vec<(i64, i64, i64, i64)> = theirs
             .kids("SITE")
             .map(|s| {
@@ -1534,6 +1687,152 @@ mod tests {
             theirs.int("site_mark"),
             built.sim.ai[1].site_mark
         );
+        if traced {
+            let best_theirs = theirs_sites
+                .iter()
+                .max_by_key(|s| s.2)
+                .map(|s| (s.0 as i32, s.1 as i32, s.2 as i32))
+                .unwrap();
+            let best_ours = ours_sites
+                .iter()
+                .max_by_key(|s| s.2)
+                .map(|s| (s.0, s.1, s.2))
+                .unwrap();
+            assert_eq!(
+                best_ours, best_theirs,
+                "the best site (wx, wy, val), sampled on the original's stream"
+            );
+        }
+    }
+
+    /// The sibling dumps of the run9/run10/run11 map that carry what the
+    /// others lack (`run_traced`): run11 (the setup path's checksum trace)
+    /// and run3 (`DUMP_ALL` — the terrain heights, the regions' coordinate
+    /// lists). Whichever the machine has.
+    fn sibling_texts() -> Vec<String> {
+        [
+            "gamelog-run11-checksum.txt",
+            "gamelog-run3-fulldump-types.txt",
+        ]
+        .iter()
+        .filter_map(|n| dump(n))
+        .filter_map(|p| std::fs::read_to_string(p).ok())
+        .collect()
+    }
+
+    /// The personality block of one leader's start-of-game `LEADERDATA`
+    /// (`LEADERS=9` under `[Start Game]`), by field name.
+    fn personality_of<'a>(log: &Log<'a>, who: i64) -> Vec<(&'a str, i64)> {
+        log.game()
+            .expect("GAME")
+            .kids("LEADERDATA")
+            .find(|l| l.int("who") == Some(who))
+            .and_then(|l| l.kid("PERSONALITY"))
+            .expect("a PERSONALITY block")
+            .fields
+            .iter()
+            .filter_map(|(k, v)| Some((*k, v.trim().parse().ok()?)))
+            // The 24 ints; what follows is the next sibling's fields at the
+            // same indent, which the parser records on both candidates.
+            .take(24)
+            .collect()
+    }
+
+    fn personality_fields(p: &sim::ai::Personality) -> Vec<(&'static str, i64)> {
+        vec![
+            ("rush", p.rush.into()),
+            ("cities", p.cities.into()),
+            ("upgrades", p.upgrades.into()),
+            ("arms", p.arms.into()),
+            ("army", p.army.into()),
+            ("army_size", p.army_size.into()),
+            ("raid", p.raid.into()),
+            ("invade", p.invade.into()),
+            ("target", p.target.into()),
+            ("strategy", p.strategy.into()),
+            ("raze", p.raze.into()),
+            ("spells", p.spells.into()),
+            ("forts", p.forts.into()),
+            ("nukes", p.nukes.into()),
+            ("air", p.air.into()),
+            ("naval", p.naval.into()),
+            ("market", p.market.into()),
+            ("scouts", p.scouts.into()),
+            ("civilians", p.civilians.into()),
+            ("early_army", p.early_army.into()),
+            ("friendly_human", p.friendly_human.into()),
+            ("alliance_human", p.alliance_human.into()),
+            ("friendly_ai", p.friendly_ai.into()),
+            ("alliance_ai", p.alliance_ai.into()),
+        ]
+    }
+
+    /// Run11 (`gamelog-run11-checksum.txt`, 2026-08-24, the run9/run10
+    /// lobby with `check_all_level=14` and `[Misc Logging] CHECKSUM=2`): the
+    /// setup path's own sync trace — 146 `say_checksum` records from
+    /// `init_rules_and_teams` to the end of `Game::init`, each with the
+    /// sync stream's state (`docs/ORACLE.md`, "The setup path's checksum
+    /// trace is the RNG state"). Three pins. The trace starts at the lobby
+    /// seed. The AI's `Leader::init` bracket is exactly the personality
+    /// roll: `Personality::roll` from its near end reproduces the record's
+    /// own `PERSONALITY` block field for field **and** lands on the far
+    /// end — twenty draws, the original's count. And the last record is the
+    /// state entering frame 0, which `build_sim` now installs.
+    #[test]
+    fn run11_s_checksum_trace_pins_the_setup_stream() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run11-checksum.txt") else {
+            eprintln!("skipping: no gamelog-run11-checksum.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let c = log.checksums();
+        assert_eq!(c.len(), 146, "every accepted call site printed its seed");
+        assert_eq!(
+            (c[0].file, c[0].line, c[0].seed),
+            ("game.cpp", 6136, 12345),
+            "the trace opens at the lobby seed"
+        );
+        let brackets = personality_brackets(&c);
+        assert_eq!(
+            brackets,
+            vec![(0x9991b076, 0xf2299eda)],
+            "one computer leader, one roll"
+        );
+        // Twenty draws between the two checkpoints, counted on the LCG.
+        let mut r = sim::combat::Rng::new(0x9991b076);
+        let mut n = 0;
+        while r.seed != 0xf2299eda && n < 1000 {
+            r.roll();
+            n += 1;
+        }
+        assert_eq!(
+            n, 20,
+            "the original's personality roll draws twenty times here"
+        );
+        assert_eq!(
+            c.last().map(|l| (l.file, l.line, l.seed)),
+            Some(("game.cpp", 5024, 0x3bd39ae9)),
+            "the state entering frame 0"
+        );
+
+        let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        assert!(
+            built
+                .notes
+                .iter()
+                .any(|n| n.contains("landing on 0xf2299eda as the original did")),
+            "the roll's draw count matches the trace: {:?}",
+            built.notes
+        );
+        assert_eq!(
+            personality_fields(&built.sim.ai[1].pers),
+            personality_of(&log, 1),
+            "the personality, rolled from the original's own state, is the original's"
+        );
+        assert_eq!(built.sim.rng.seed, 0x3bd39ae9, "seeded for frame 0");
     }
 
     /// Income against the original's own ledger: run8's `FRAME 2`
@@ -1580,14 +1879,19 @@ mod tests {
     }
 
     /// The long run with the map: run10 (`gamelog-run10-world6-long.txt`,
-    /// 1,772 frames, run7's lobby and length, no input, `WORLD=6` at start).
-    /// With the map, the census, the sites and the income in place, the
-    /// opening script gets through `city_placement` and step 12 on our side
-    /// too: the three citizens of frame 1 train on the original's frames
-    /// (100, 206, 320) and so does the food-bound `1/9` at **1297**. What
-    /// is still not trained is `1/10` (1505), whose 267 unit-frames are
-    /// the ceiling here — the economy's remaining terms and the sync
-    /// stream's frame-0 draws are what move it (`docs/AI.md` §12.1).
+    /// 1,772 frames, run7's lobby and length, no input, `WORLD=6` at start),
+    /// on the original's own sync stream (run11's trace) with the terrain
+    /// heights (run3). The three citizens of frame 1 train on the original's
+    /// frames (100, 206, 320) and every unit tracks as before; what no
+    /// longer matches is the **script's branch**: on the sim's own stream
+    /// its eight `rand_int(1, 10)` at frame 1 happened to pick the boom
+    /// order (and `1/9` trained at 1297, the original's frame); on the
+    /// original's stream, displaced by the ~130 per-frame draws the sim does
+    /// not model (units, herds, farms, ammo — `docs/AI.md` §12.1), they pick
+    /// the rush order, two farms go down at step 3 and the city is never
+    /// placed. So `1/9` (1297) and `1/10` (1505) are the ceiling, 744
+    /// unit-frames, and the per-frame draws are what move it. The earlier
+    /// 268 was on a stream that was not the original's.
     #[test]
     fn run10_s_opening_trains_the_original_s_citizens_on_its_frames() {
         let Some(inst) = install() else { return };
@@ -1596,25 +1900,51 @@ mod tests {
             return;
         };
         let loaded = crate::load::load(&inst).unwrap();
+        // The sync stream from run11's trace and the heights from run3 —
+        // the same map, seed and lobby.
+        let texts = sibling_texts();
         let text = std::fs::read_to_string(&path).unwrap();
         let log = Log::parse(&text);
-        let report = run(&loaded, &log, Tuning::RON, None).unwrap();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs).unwrap();
         assert_eq!(report.frames.len(), 1772);
-        // Every unit the original has before frame 1505 exists here too.
+        assert!(
+            report
+                .notes
+                .iter()
+                .any(|n| n.starts_with("rng: seeded 0x3bd39ae9")),
+            "the stream is the original's at frame 0: {:?}",
+            report.notes
+        );
+        // Every unit the original has before frame 1297 exists here too.
         let early_unlinked: usize = report
             .frames
             .iter()
-            .filter(|f| f.frame < 1505)
+            .filter(|f| f.frame < 1297)
             .map(|f| f.unlinked)
             .sum();
         assert_eq!(
             early_unlinked, 0,
-            "a unit the original trained before 1/10 that the simulation did not"
+            "a unit the original trained before 1/9 that the simulation did not"
+        );
+        let mut missing: Vec<(i64, i64)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.unlinked_units.iter().copied())
+            .collect();
+        missing.sort_unstable();
+        missing.dedup();
+        assert_eq!(
+            missing,
+            vec![(1, 9), (1, 10)],
+            "the two food-bound citizens"
         );
         let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
         assert!(
-            unlinked <= 268,
-            "unlinked unit-frames: {unlinked} — 2026-08-24 was 268, all of them 1/10"
+            unlinked <= 744,
+            "unlinked unit-frames: {unlinked} — 2026-08-24 was 744: 1/9 from 1297, 1/10 from 1505"
         );
     }
 

@@ -2034,6 +2034,16 @@ stream. And in a team game, unless `world +0x30 == 0x16`, **each player's
 teammates are placed immediately after it**, at consecutive start
 positions — which start cell a player gets is not `start_list` order alone.
 
+**Counted (2026-08-24, run11's checksum trace — `docs/ORACLE.md`, "The
+setup path's checksum trace is the RNG state").** On the harness's lobby
+(seed 12345, Great Lakes, Small, two players): the random nation 1 draw;
+the world seed 1; the map maker 3 + 5,568 + 1,016 + 3 + 1,824 + 231 +
+2,920 inside `Map::make` and 173 in `make_rivers`, none in `Terrain::init`;
+**the start permutation 8**; the AI's `Leader::init` 20 (the personality)
+and the human's 0; **the two `build_empire`s 1,293**; `Herd::create_units`
+44; nothing after. The state entering frame 0 is the trace's last record,
+and `build_sim` installs it rather than modelling the walk.
+
 **`build_empire@005abb80(who, slot)`**: `city = build_cities(who, slot,
 starting_town)`, then `build_units(who, slot, city, starting_town)`; Spanish →
 `leader_flags |= 0x1000`. **`build_cities@005ab910`**: `home_reg` = the start

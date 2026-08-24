@@ -407,12 +407,31 @@ better, in which case say so and take that.
     tile's mask — run9; `rondata` loads it, and the AI's farm lands on
     the original's tile), and **`LEADERS=9` is the census** (run8/run9's
     frame 1 agrees with the sweep field for field, one ceiling: the
-    woodcutter camp's `calc_gather` slots). Next: run10 (this lobby, the
-    map, run7's length) into the harness; the frame-0 sync stream (the
-    map maker's draws — `compute_sites`' stride is on the wrong stream);
-    the loader's half of the producers' seams (unit `role`/flags,
-    `TechType.ai[]`, `gather_max`); fold §14 into §2; then the blind
-    second reading.
+    woodcutter camp's `calc_gather` slots). ~~Next: run10 (this lobby,
+    the map, run7's length) into the harness; the frame-0 sync stream
+    (the map maker's draws — `compute_sites`' stride is on the wrong
+    stream);~~
+
+    **The sync stream is read out of a dump, 2026-08-24 (fourth
+    session)** — `GameLog::say_checksum` is the setup path's own trace
+    and prints `game_random seed` at `check_all_level=14` (`rise.ini`)
+    with `[Misc Logging] CHECKSUM=2`; run11 is the capture
+    (`docs/ORACLE.md`, "The setup path's checksum trace is the RNG
+    state"). Every draw from the lobby seed to frame 0 is counted
+    (`docs/ORDERS.md` §9.2), the AI's personality is exactly the twenty
+    draws between `Leader::init`'s checkpoints and reproduces the
+    original's block from its own state, and `build_sim` installs the
+    frame-0 word. With it — and the terrain heights, which only a
+    `DUMP_ALL` dump prints (run3; `World::tile_z`, the `find_tcoord_z`
+    seam retired) — **run9's best city site is the original's
+    `(52,14)/370`**, pinned. The same stream shows the next gap: the
+    original draws **~120 times a frame** (units, herds, farms, ammo —
+    run12's per-frame states), the sim's sweep twice, so the script's
+    `rand_int`s at frame 1 land elsewhere and run10 scores 744 on the
+    true stream (the 268 was a lucky branch on the sim's own). Next: the
+    per-frame draws (`docs/AI.md` §12.1 item 2′); the loader's half of
+    the producers' seams (unit `role`/flags, `TechType.ai[]`,
+    `gather_max`); fold §14 into §2; then the blind second reading.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes

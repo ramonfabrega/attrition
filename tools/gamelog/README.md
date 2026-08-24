@@ -59,6 +59,16 @@ on the map *now*", cut the last frame out of the growing log and look at it:
 answer to "was the site disbanded?". Object numbers are **per player** — units
 from 0, buildings from 2000 — so an object is (kind, who, o), never o alone.
 
+## The sync stream
+
+    rngtrace.py [gamelog] [cap]   every `game_random seed` the log carries,
+                                  with the draws between consecutive records
+
+The setup path's `say_checksum` records (`check_all_level=14` in `rise.ini`,
+`[Misc Logging] CHECKSUM=2`) and, under `DUMP_ALL`, the per-frame ones;
+the draw count is a forward walk of the 32-bit LCG. `docs/ORACLE.md`, "The
+setup path's checksum trace is the RNG state".
+
 ## Combat
 
     hits.py frames.txt        every damage increment, with the flank geometry

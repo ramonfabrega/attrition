@@ -80,8 +80,11 @@ pub struct Personality {
 }
 
 /// What [`Personality::roll`] reads about the other leaders: each other
-/// **computer** leader that is active, not allied with the roller and not
-/// flagged `leader_flags & 0x10`, by tribe. Order is leader order.
+/// leader with `leader_flags & 3 == 3` (active and alive — **the human
+/// too**; the first reading's "computer leader" was wrong, corrected
+/// 2026-08-24 against `random_personality`'s loop), not allied with the
+/// roller and not flagged `leader_flags & 0x10`, by tribe. Order is leader
+/// order.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Rival {
     pub tribe: usize,

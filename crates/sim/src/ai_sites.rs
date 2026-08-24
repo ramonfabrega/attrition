@@ -19,8 +19,11 @@
 //! the module's report:
 //!
 //! * `WorldData::was_seen` — always true (the lobby is `REVEAL_MAP`).
-//! * `GameAccessConst::find_tcoord_z` — heights are 0, so the `z / 25` term
-//!   of a candidate tile's score vanishes.
+//! * `GameAccessConst::find_tcoord_z` — [`World::tile_z`], a table the map
+//!   loader pins from a `DUMP_ALL` dump's `master_land_heights`; 0 on a
+//!   flat world, where the `z / 25` term of a candidate tile's score
+//!   vanishes. (Seam retired 2026-08-24: on run9 it is the whole difference
+//!   between the sampler's `(51,16)/291` and the original's `(52,14)/370`.)
 //! * `WorldData::danger[who]` (`world+0x13c`, a half-cell-resolution `int`
 //!   grid — **not** territory; `docs/AI.md` §2.13 step 8 and §2.12 name it
 //!   "my territory at the site's cell", which the PDB contradicts) —
@@ -330,8 +333,10 @@ impl Sim {
                     + i32::from(self.world.cell_data(Cell::new(x + 1, y + 1)).val)
                     + i32::from(self.world.cell_data(Cell::new(x, y + 1)).val);
             }
-            // `find_tcoord_z(…) / 25` — the seam; heights are 0.
-            let q = q >> 2;
+            // `find_tcoord_z(wx × 0x300 + 0x180, …) / 25` — the height of
+            // the cell's centre tile, from the pinned table (`World::tile_z`;
+            // 0 on a flat world).
+            let q = (q >> 2) + self.world.tile_z(cc.centre_tile()) / 25;
             if base < q && town.is_some_and(|t| self.site_clear(who, t, x, y)) {
                 sx = x;
                 sy = y;
