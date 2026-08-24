@@ -1494,7 +1494,37 @@ mod tests {
                 ));
             }
         }
-        assert!(wrong.is_empty(), "the census disagrees:\n  {}", wrong.join("\n  "));
+        assert!(
+            wrong.is_empty(),
+            "the census disagrees:\n  {}",
+            wrong.join("\n  ")
+        );
+
+        // The sites the sweep's tail scored (`compute_sites`, `docs/AI.md`
+        // §2.7): the record holds ten `SITE`s. Reported, not yet asserted —
+        // the sampler's stride is a sync-stream draw and the harness's
+        // stream is not the original's at frame 0 (`docs/ORDERS.md` §9.2).
+        let theirs_sites: Vec<(i64, i64, i64, i64)> = theirs
+            .kids("SITE")
+            .map(|s| {
+                (
+                    s.int("wx").unwrap_or(0),
+                    s.int("wy").unwrap_or(0),
+                    s.int("val").unwrap_or(0),
+                    s.int("rank").unwrap_or(0),
+                )
+            })
+            .collect();
+        let ours_sites: Vec<(i32, i32, i32, i32)> = built.sim.ai[1]
+            .sites
+            .iter()
+            .map(|s| (s.wx, s.wy, s.val, s.rank))
+            .collect();
+        eprintln!(
+            "sites — theirs: {theirs_sites:?}\n        ours:   {ours_sites:?}\n  site_mark theirs {:?} ours {}",
+            theirs.int("site_mark"),
+            built.sim.ai[1].site_mark
+        );
     }
 
     /// The oracle, as a regression guard.

@@ -1253,10 +1253,11 @@ impl Sim {
         result.map(|r| (r.as_int(), args[1].as_int()))
     }
 
-    /// `place_city_with_cost`'s body — `compute_sites(0)`, `found_cities`,
-    /// the make list cleared around them — **a seam until the census lands**
-    /// (`docs/AI.md` §12.1 item 5).
-    pub fn place_city_ai(&mut self, _who: Player) {}
+    /// `place_city_with_cost`'s body — `compute_sites(1)` then
+    /// `found_cities` ([`crate::ai_sites`]).
+    pub fn place_city_ai(&mut self, who: Player) {
+        self.place_city_ai_impl(who);
+    }
 }
 
 #[cfg(test)]
