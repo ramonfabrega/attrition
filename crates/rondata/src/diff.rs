@@ -1389,6 +1389,114 @@ mod tests {
         );
     }
 
+    /// The census against the original's own leader record: run9's `FRAME 1`
+    /// `LEADERDATA who 1` is the AI after its frame-0 sweep (`LEADERS=9`,
+    /// `docs/ORACLE.md`), and the harness's frame 0 runs the same sweep on
+    /// the same map (run9 carries the tiles). Every count the sweep writes
+    /// is compared under its own name; the per-region arrays through
+    /// `Built.region_map`. What is left out is named: `explored`
+    /// (`check_explore`'s visibility recount is a seam), `reg_known_rares`
+    /// (rares are not in the simulation), `territory`/`reg_terr` (the
+    /// territory pass is `docs/ATTRITION.md`'s and compared elsewhere).
+    #[test]
+    fn run9_s_frame_1_leader_record_is_the_census_after_the_sweep() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run9-world6.txt") else {
+            eprintln!("skipping: no gamelog-run9-world6.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let mut built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        let theirs = log.leader_block(1, 1).expect("FRAME 1 LEADERDATA who 1");
+        assert_eq!(theirs.int("peasants"), Some(5), "the record is level 9");
+
+        // Frame 0: the sweep, which arms the step machine.
+        built.sim.tick();
+        let c = &built.sim.ai[1].census;
+        let scalars: [(&str, i32); 14] = [
+            ("active", c.active),
+            ("combat", c.combat),
+            ("siege", c.siege),
+            ("non_siege", c.non_siege),
+            ("defense", c.defense),
+            ("attack", c.attack),
+            ("naval", c.naval),
+            ("peasants", c.peasants),
+            ("scholars", c.scholars),
+            ("caras", c.caras),
+            ("merchants", c.merchants),
+            ("free_peasants", c.free_peasants),
+            ("gatherers", c.gatherers),
+            ("full_cities", c.full_cities),
+        ];
+        let mut wrong = Vec::new();
+        for (name, ours) in scalars {
+            let t = theirs.int(name).unwrap_or(i64::MIN);
+            if i64::from(ours) != t {
+                wrong.push(format!("{name}: ours {ours} theirs {t}"));
+            }
+        }
+        let arr = |key: &str| -> Vec<i64> {
+            theirs
+                .all(key)
+                .iter()
+                .map(|v| v.trim().parse().unwrap_or(0))
+                .collect()
+        };
+        for (key, ours) in [
+            ("filled_gather_slots[scan]", c.filled_gather_slots),
+            ("escrow_rate[scan]", c.escrow_rate),
+        ] {
+            let t = arr(key);
+            let o: Vec<i64> = ours.iter().map(|&v| i64::from(v)).collect();
+            if t.len() >= 6 && o != t[..6] {
+                wrong.push(format!("{key}: ours {o:?} theirs {:?}", &t[..6]));
+            }
+        }
+        // `gather_slots` sums each finished gather building's `gather_max`.
+        // The farms (flat, 1 each) agree; the woodcutter camp's count is
+        // `BuildTypeData::calc_gather`'s — `docs/ECONOMY.md`'s open item —
+        // and is 5 in the record where the sim still says 0 (uncapped). A
+        // ceiling until `gather.rs` lands: never more than the original.
+        let t = arr("gather_slots[scan]");
+        assert_eq!(i64::from(c.gather_slots[0]), t[0], "food slots");
+        assert!(
+            i64::from(c.gather_slots[1]) <= t[1],
+            "wood slots: ours {} theirs {}",
+            c.gather_slots[1],
+            t[1]
+        );
+        // The home region: the dump's region 1 is the sim's region_map entry.
+        let home_dump = theirs.int("home_reg").unwrap();
+        let (_, home) = built
+            .region_map
+            .iter()
+            .find(|(d, _)| *d == home_dump)
+            .copied()
+            .expect("the home region is in the map");
+        for (key, ours) in [
+            ("reg_active", &c.reg_active),
+            ("reg_peasants", &c.reg_peasants),
+            ("reg_free_peasants", &c.reg_free_peasants),
+            ("reg_gatherers", &c.reg_gatherers),
+            ("reg_cities", &c.reg_cities),
+            ("reg_land", &c.reg_land),
+            ("strategy", &c.strategy),
+        ] {
+            let t = arr(&format!("{key}[scan]"));
+            let o = i64::from(sim::ai::Census::reg(ours, home));
+            if t.get(home_dump as usize).copied() != Some(o) {
+                wrong.push(format!(
+                    "{key}[home]: ours {o} theirs {:?}",
+                    t.get(home_dump as usize)
+                ));
+            }
+        }
+        assert!(wrong.is_empty(), "the census disagrees:\n  {}", wrong.join("\n  "));
+    }
+
     /// The oracle, as a regression guard.
     ///
     /// Every other test in this crate checks the harness against something we
