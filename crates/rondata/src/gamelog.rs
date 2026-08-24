@@ -266,6 +266,17 @@ impl<'a> Log<'a> {
             })
             .collect()
     }
+
+    /// One leader's whole `LEADERDATA` block at one frame — every field a
+    /// `LEADERS=9` run prints (`docs/ORACLE.md`, "`LEADERS=9` is the census
+    /// oracle"): the census counts by name, the `[scan]` arrays under their
+    /// key (`Block::all("reg_land[scan]")`), and the `SITES`/`MAKELIST`
+    /// children. The block's own `who` field identifies it; the
+    /// `leader_flags` pair that precedes it in the file is not in it.
+    pub fn leader_block(&self, frame: i64, who: i64) -> Option<&Block<'a>> {
+        let (_, b) = self.frames().into_iter().find(|(n, _)| *n == frame)?;
+        b.kids("LEADERDATA").find(|l| l.int("who") == Some(who))
+    }
 }
 
 /// A position in the engine's internal units, as the log writes it.
