@@ -882,6 +882,116 @@ initialisation timing, `ref`, how `String` compares — versus 35k for the
 whole `ScenarioFuncSet` (872 methods, `init_funcs` 4,080 lines of
 registration), of which 55 are needed.
 
+### 3.1 The two scripts, read
+
+Both `economic.bhs` (934 lines, "boom script") and `defensive.bhs` (816,
+"rush script") have the same skeleton, and `aibestbuildlibrary.bhs` (650)
+is included by both:
+
+1. **Bail-outs.** No city and no citizen queued → `SCRIPT_DONE`. A city
+   attacked or raided (`was_city_attacked/raided(who, "", −1)`) → with
+   Military 1 and no barracks, `place_building_with_cost(Barracks,
+   capital)` and `SCRIPT_DONE` (or `BLOCK_ON_THIS` if it could not);
+   otherwise `SCRIPT_DONE`. **The opening ends the moment the AI is hit.**
+2. **The statics.** `prev_step`, `needed_citizens`, `timer_started`,
+   `fishermen_total` × 8, indexed by hand through `switch (who − 1)`
+   ("ghetto array") because a `static` is one slot for every leader
+   (§3); `static int needed_techs = get_techs_per_age(who)` (initialised
+   from a host call — *whose* `who`, on first execution, is the language
+   report's question 4); and in `defensive` **`static int rush_build0..7
+   = rand_int(1, 10)` — eight sync-stream draws at static
+   initialisation**, one roll per leader slot, `< 4` (a third of the time)
+   selecting the Ancient-Age rush.
+3. **The first call** (`step == 1`): `get_starting_resources(who) > 4` or
+   more than one city → `SCRIPT_DONE` (the opening is for a fresh, poor
+   start only); `get_starting_town_size(who)`: 0 → nomad (`step = 1`), 1
+   → `2`, ≥ 2 → `6` (`economic`: `7` for Greeks/Bantu with powers). A
+   Conquer-the-World start of size > 2 takes a separate four-step
+   military opening.
+4. **Every call**, before the step loop: `train_unit_with_need(who,
+   needed_citizens, "Citizen")` (`economic` always; `defensive` only when
+   `needed_citizens > 0`); caravans up to `cities(cities − 1)/2` and up to
+   three merchants with a market; `population ≥ 23` → Military 1;
+   scholars on spare wealth; fishermen after a dock; `economic` adds a
+   tower after Military 1 and Allegiance after Mathematics; `defensive`
+   adds the German granary/lumber mill, docks and farms from step 17 on,
+   and **the rush branch** at step 6 when `rush_build < 4` (not a
+   conquest, not a sea map, town size > 1): five farms, Military 1, nine
+   citizens, a barracks, four Hoplites and a Slinger, then `rush_build =
+   25`. **The hang guard**: `set_timer(who, 300 | 240)` when the step has
+   not moved since the last call, `stop_timer` when it has, `timer_expired`
+   → `SCRIPT_DONE`.
+5. **The step loop**: `for (i = 0; i < num_loops; i++) switch (step) { … }`
+   with `num_loops = 5` from the engine (§2.4). Each case ends in
+   `return_value = BLOCK_ON_THIS; break;` — **`break` leaves the `switch`,
+   not the `for`**, so one call advances through up to five steps as long
+   as each succeeds, and a step that fails is retried on every remaining
+   iteration. A `return` inside a case ends the call at once.
+6. **The end**: the statics are written back through the second `switch
+   (who − 1)`, and the return value is 1/2/3 by the `labels`.
+
+**`economic`'s steps** (Small Town enters at 6): 6 Science I (skipped if
+under 75 wealth), 7 Civic I (done if a second city exists), 8 citizens to
+9, 9 `place_farm`, 10 `city_placement` once City State is in (Bantu: a
+third), 11 citizens to 11, 12 farm, 13 second woodcutter, 14 Commerce I,
+15 market, 16 citizens to 14, 17 farms to 7 (British: 10, then 28), 18
+**Classical Age** (only when `needed_techs ≤ 3`; `SCRIPT_DONE` otherwise
+or once in it), 19 second market, 20 two universities, 21 mine (Inca:
+three), 22 citizens to 23, 23 Commerce II, 24 Military I, 25 farms to 9
+(Egyptians 11), 26 granary, 27 citizens to 28, 28 Science II, 29 Civic II,
+30 third city, 31 barracks, 32 third university, 33 third market, 34
+third woodcutter → `SCRIPT_DONE`, 35 dock (sea maps), 36 Mongol stables.
+Nation branches (Greeks, Bantu, British, Egyptians, Inca, Koreans,
+Lakota, Mongols) re-route between them; sea maps take 35/18/23/30/…
+
+**`defensive`'s steps**: 6 Science I, 7 a fourth farm, 8 university
+(Classical or Greeks only), 9 Civic I, 10 `train_unit_with_cost(3,
+Citizen)`, 11 `city_placement`, 12 citizens to 10, 13 a fifth farm, 14
+second woodcutter, 15 Commerce I, 16 a scholar, 17 citizens to 16, 18
+Commerce II (needs a second city), 19 citizens to 20 (Bantu third city),
+20 market, 21 two scholars, 22 citizen 21, 23 third woodcutter if the
+camps hold fewer than 12, 24 citizen 22, 25 Military I, 26 citizens to 25,
+27 barracks, 28 tower, 29 Classical Age → `SCRIPT_DONE`.
+
+**The library**: `city_placement` (City State → `place_city_with_cost`;
+two `trigger` blocks re-armed by `enable_trigger`, returns 1 once the
+site has started, else −1); `place_woodcutter` (capital, or the unfinished
+second city, or the second city; a camp with fewer than `min_size = 5`
+slots is **destroyed** and `min_size` lowered — a `static`); `train_unit_
+with_need(who, high, what)` (per city, open farm/camp/mine slots minus the
+queue and the idle, then `train_unit_at_with_cost` at the neediest city
+up to `high`, then `assign_idle`); `assign_idle` (idle citizens moved to a
+camp with room, or a new camp placed); `woodcutter_check`, `place_dock`,
+`place_mine` (each tries the cities in order, then orphan sites next to
+camps, farms and the library), `place_farm` (five a city, seven for
+Egyptians).
+
+**Run7's opening, traced.** A Small Town, Ancient, no input on player 1.
+Under `defensive`: game frame 1 runs steps 6 (Science I — `research_tech_
+with_cost` or the 75-wealth skip), 7 (**the fourth farm — site `2006` in
+`FRAME 2`**), 9 (City State), 10 (**three citizens — `1/6`, `1/7`, `1/8`
+at 100/206/320**), 11 (blocks until City State); 176, 376, 576 re-block
+at 11; **776: `city_placement` → site `2007`**, step 12; 976: `needed_
+citizens = 10` → citizens `1/9`, `1/10` (1297, 1505 — food-bound), 13 a
+fifth farm (site `2008` at 1177 fits here or under `place_farm`'s
+every-call branch at `step > 16`? — no: 13, since `step > 16` is not yet
+reached). Under `economic`: 6, 7, 8 (`train_unit_with_need(9,
+"Citizens")` — note the **plural type name**, which the host function's
+name lookup either resolves or returns 0 for), 9 (`place_farm` — the same
+farm), 10. The dump's exact counts decide which script the rush roll
+gave this game; the interpreter over either reproduces the table, and
+`rush_build`'s eight draws sit at the first `defensive` call in the game.
+
+**Language facts to ratify from the scripts themselves**: `String`
+compared to an `int` (`my_capital > −1`, `find_inactive_build(...)` used
+as a truth value and as an id); `!` on a host return; `step += 2` on a
+`ref`; `return` inside `for`/`switch`; a `while` (`defensive`'s rush
+farms); nested function calls as arguments; `static` initialised from a
+call; implicit globals (`my_capital`, `wood_camp_2`, `xpos`, `i`, `wc`,
+`f`, `m`, `size` — never declared in the caller); `//` comments;
+`labels`; `include`; string literals with an apostrophe (`"Woodcutter's
+Camp"`); the double `;;` after `return −1` in `assign_idle`.
+
 ## 4. The fork this opens — decided: (a), 2026-08-24
 
 Three ways to have the opening, in the order of the project's own rules.
