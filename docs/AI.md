@@ -309,43 +309,51 @@ etc. to 0.
 ### 2.5 The goods picture — `production_ai_setup@006c83e0`
 
 Read whole (316 lines). Writes `econ[6]` (a flag word per good),
-`worst_good`, `best_good`, `shortages`, and on easy difficulties lowers the
-resource caps. The encrypted block is `LeaderDataEncrypt` (`data_encrypted`,
-`+0x6eb8`; fields XOR'd with per-field keys — `resources ^ 0x90236`, `rate ^
-0x73862`, `resource_cap ^ 0x8221`, `ages ^ 0x62766`; `docs/ECONOMY.md`):
+`worst_good`, `best_good`, `shortages`, the AI's own `rate[6]`, and on easy
+difficulties clamps the stockpile. The encrypted block is
+`LeaderDataEncrypt` (`data_encrypted`, `+0x6eb8`), field names and keys as
+`docs/ECONOMY.md` §"The ledger" has them: `bucket` (+0, the stockpile, `^
+0x8221`), `resource_cap` (+0x30, `^ 0x1281`, sixteenths), `over_cap`
+(+0x4c, `^ 0x8932`), `resources` (+0x64, the gather rate, `^ 0x872`),
+`income` (+0x94, the net rate, `^ 0x90236`), **`rate` (+0xac, `^ 0x73862`)
+— written only here**, `ages`/`epochs`/`epoch[4]` (`docs/TECH.md`).
+Every figure below is in the ledger's own units (rates in sixteenths,
+`rate` in whole units).
 
 1. `shortages = worst_good = best_good = 0`. **`starting_resources == 8`**:
    every `econ[g] |= 8` and return.
 2. **Difficulty** `d` = `multi_diff` when `semaphore[0] & 4`, else the
    lobby's `difficulty` unless a multiplayer-AI semaphore pair says
    `multi_diff ≥ 0` (three identical reads; `get_diff` is the same
-   choice). If `d < 3` and my current age (`ages ^ 0x62766`, as a type
-   `0x220 + age`) is an age type: `m = max over available goods of
-   get_cost(age_type, g, who, −1, −1, 0, 1, −1)`, at least `300`; `d == 0`
-   → `m × 3/2`, `d == 1` → `m × 2`, `get_diff() == 2` → `m × 5/2`; then for
-   each good with `resource_cap > m`: `escrow[g] = escrow[g] × m / cap`,
-   `cap = m`. (The age type's per-good cost is the next age's price, so an
-   easy AI cannot bank more than ~1.5–2.5 ages' worth.)
-3. **Rate pass**: for each good, `econ[g] = 0`; `r = min(get_mod_
-   resource_cap(g), resources[g]) / 16` is stored into `rate[g]` (XOR'd);
-   for available goods, `rate[g]` (the *stored* one, i.e. the income
-   figure `do_gather` maintains) picks `worst_good` (min) and `best_good`
-   (max), and `rate < 30` → `econ[g] |= 1`, `shortages++`.
-4. **Stock pass**: thresholds `lo = min(city_num × 15, cap/32, 250)`, `hi
-   = min(city_num × 30, cap/16 × 4/5, 350)`; with more than four cities `lo
-   = cap/32`, `hi = min(cap/16 × 3/4, 175)`; for goods other than food and
-   wood while `city_num < 3`: `lo = 20`, `hi = city_num × 20`, and the
-   shortage bit is cleared (`shortages--`). Unavailable good → `econ = 0`.
-   Otherwise, with `resources < cap`: `< lo` → `|= 2`; `< hi` → `|= 4` and
-   done; else (or at cap) `|= 8`.
-5. **Food/wood balance** while `city_num ≤ 2`: if food is not "low" (bit
-   4) or the tribe has bonus `0x13`: when wood is low, clear food's bit 4
-   and metal/knowledge/wealth/oil's; else (food low, no bonus): clear
-   wood's bit 4 and the other four's. Same shape for bit 2 → promoted to 4.
+   choice). **If `d < 3`**: `m` = the current age's type (`ages + 0x220`)
+   is an age type → `max over available goods of get_cost(age_type, g,
+   who, −1, −1, 0, 1, −1)`, at least `300`, then `d == 0` → `m × 3/2`, `d
+   == 1` → `m × 2`, `get_diff() == 2` → `m × 5/2`; otherwise `m = 11000`.
+   Then for each good with **`bucket[g] > m`: `escrow[g] = escrow[g] × m /
+   bucket[g]`, `bucket[g] = m`** — an easy AI's stockpile is thrown away
+   above ~1.5–2.5 times the next age's price, every step 2. (`m == 0`
+   skips the clamp.)
+3. **Rate pass**: for each good, `econ[g] = 0`; `rate[g] = min(get_mod_
+   resource_cap(g), income[g]) / 16` (truncating toward zero); for
+   available goods, `rate[g]` picks `worst_good` (min) and `best_good`
+   (max), and `rate[g] < 30` → `econ[g] |= 1`, `shortages++`.
+4. **Threshold pass**, per available good (an unavailable one gets `econ
+   = 0`): `cap = get_mod_resource_cap(g)`; `lo = min(city_num × 15,
+   cap/32, 250)`, `hi = min(city_num × 30, (cap/16) × 4/5, 350)`; with more
+   than four cities `lo = cap/32`, `hi = min((cap/16) × 3/4, 175)`; for
+   goods other than food and wood while `city_num < 3`: `lo = 20`, `hi =
+   city_num × 20`, and bit 1 is cleared (`shortages--`). Then, with
+   `income[g] < cap`: `rate[g] < lo` → `|= 2`; `rate[g] < hi` → `|= 4` and
+   done; otherwise (rate at or above `hi`, or income at the cap) `|= 8`.
+   So the bits are all about the **rate**: 1 = under 30, 2 = under `lo`,
+   4 = under `hi`, 8 = comfortable.
+5. **Food/wood balance** while `city_num ≤ 2`: if food is not "under hi"
+   (bit 4) or the tribe has bonus `0x13`: when wood is, clear food's bit 4
+   and the other four goods'; else (food under, no bonus): clear wood's
+   bit 4 and the other four's. The same shape for bit 2, promoted to 4.
    Net effect: with two cities the AI only ever calls *one* of food/wood
    short at a time, and never the later goods.
-6. `market_speculation()` (109 lines, not yet read — `docs/ECONOMY.md`'s
-   market).
+6. `market_speculation()` — §2.15.
 
 ### 2.6 The make list — `MakeList`, `make_stuff`, `make_this`
 
@@ -710,6 +718,50 @@ type_avail`):
 Sync draws in this function: the government coin (only when `pers.raid ==
 0`) and the `rand % 100` for a non-preferred government — both only for
 techs researched at building `0x1b6`.
+
+### 2.15 The market — `use_market@006c91c0`, `market_speculation@006c8110`
+
+Both read whole. Both require the market ability — tribe bonus 4 or
+`has_preq(BUY_SELL)` — a market building (`has_market`) and no nuclear
+embargo (`get_nuke_embargo`, else `tell_embargo` and nothing); `do_buy` /
+`do_sell` are `docs/ECONOMY.md`'s, called once each (the decompile's
+`do … while (i < 1)` is a single try).
+
+**`use_market`** (from `make_stuff`, first thing): `need[g] = Σ` over the
+first `max(1, epoch[2])` (Commerce) make-list slots with `t > 0` and `val >
+0` of `get_cost(t, g, who, o, city, 0, 1, −1)`. For each available
+non-knowledge good `g` with `bucket[g] < need[g]`, once: if `g` is wealth,
+or `calc_market_prices(g)`'s buy price would leave `bucket[wealth] −
+price < need[wealth]` → **sell** instead: starting from **`rand % 6` —
+one `game_random` draw** — go round the six goods and sell the first
+that is available, not knowledge/wealth/oil, not `g`, has `bucket − 100 ≥
+need`, and either `income ≥ cap / 2` or `bucket > 199`; else **buy** `g`.
+The outer `while bucket[g] < need[g]` loop is bounded by the once-flag,
+so at most one buy or one sell per good per call.
+
+**`market_speculation`** (from `production_ai_setup`, last thing; skipped
+under `starting_resources == 8`): `escrow[g] > 4000` → `2000`; `tier` = 2
+if any available good's stock `< 100`, else 1 if any `< 200`, else 0.
+**Sell** each available non-wealth, non-knowledge good with `bucket −
+escrow ≥ 2000 >> tier` and sell price `≥ 75 / (tier + 1)`. **Buy** each
+such good when wealth minus its escrow covers the buy price, `bucket <
+2000`, price `< 201`, and (`bucket < 500` or price `< 26`) and (`< 200`
+or `< 51`) and (`< 100` or `< 101`). No draws.
+
+### 2.16 `queued_units`, `compute_score`
+
+`queued_units@006ce000` (read): over my buildings from id 2000 that are
+active and complete (vslots `+0xc`, `+0x4c`), Σ `control_cost` of every
+queued item that is a unit type with `type_avail ≥ 4` — the population the
+queues will add. `effective_pop = queued_units + control + 1` (§2.4).
+
+`compute_score@006ec560` (read): at frame 0, or when forced, or when
+`semaphore[0] & 0x40`, or on `(who + frame) % 10 == 0`: the score
+components (`score_units` on the `0x1800000` flags, `compute_build_score`,
+`compute_economy_score`, the upgrade and research scores on `0x1000000`,
+`score_territory = territory × 1000 / world+0x78`), summed into `score`,
+zeroed after Armageddon. No decision reads it in the production AI; it is
+the score screen's, and the `LEADERDATA` dump carries `score`.
 
 ## 3. The finding: the skirmish opening is the shipped script
 
