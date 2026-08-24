@@ -503,7 +503,6 @@ impl Sim {
         let Some(mut cand) = best_cand else {
             return false;
         };
-        let _ = best_sp;
 
         // 4.5 The corner tile, the builder, the jitter.
         let corner = self.tile_corner(rec, cand);
@@ -658,6 +657,50 @@ impl Sim {
             }
         } else {
             self.activate(o, false, true);
+        }
+        // The census, adjusted in place (report §4.6 lines 1114–1151), so
+        // a second producer in the same step machine sees the tile and the
+        // citizen as spent: the city's `filled` and `space[]`, then the
+        // builder taken from the gatherers or the free peasants — run8's
+        // frame 2 shows `gatherers 5 → 4` for exactly this farm.
+        let w = who as usize;
+        if let Some(c) = city {
+            let leader = &mut self.ai[w];
+            if leader.city_ai.len() <= c {
+                leader.city_ai.resize(c + 1, crate::ai::CityAi::default());
+            }
+            let ca = &mut leader.city_ai[c];
+            ca.filled += 1;
+            for n in 2..=best_sp.min(4) {
+                let i = (n - 2) as usize;
+                ca.space[i] = (ca.space[i] - 1).max(0);
+            }
+        }
+        if frame != 0 {
+            let leader = &mut self.ai[w];
+            let reg = areg.map(|r| r as usize);
+            let gatherer = builder.is_some_and(|(_, k)| k == index::GATHER);
+            if gatherer {
+                leader.census.gatherers -= 1;
+                if let Some(c) = city {
+                    leader.city_ai[c].gatherers -= 1;
+                }
+                if let Some(r) = reg
+                    && let Some(v) = leader.census.reg_gatherers.get_mut(r)
+                {
+                    *v -= 1;
+                }
+            } else {
+                leader.census.free_peasants -= 1;
+                if let Some(c) = city {
+                    leader.city_ai[c].free -= 1;
+                }
+                if let Some(r) = reg
+                    && let Some(v) = leader.census.reg_free_peasants.get_mut(r)
+                {
+                    *v -= 1;
+                }
+            }
         }
         true
     }
