@@ -137,11 +137,7 @@ pub const fn vector_dist(dx: i32, dy: i32) -> i32 {
 /// here and is what the original's lookup table encodes.
 const fn floor_div(n: i32, d: i32) -> i32 {
     let q = n / d;
-    if n % d < 0 {
-        q - 1
-    } else {
-        q
-    }
+    if n % d < 0 { q - 1 } else { q }
 }
 
 /// Who owns a cell.

@@ -233,7 +233,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             region_map.len(),
             land_names,
             tiles.len(),
-            if tiles_loaded { "" } else { " (not applied: count differs)" }
+            if tiles_loaded {
+                ""
+            } else {
+                " (not applied: count differs)"
+            }
         ));
     } else {
         // The dump carries no cells (`WORLD < 3`), so the harness's map is
