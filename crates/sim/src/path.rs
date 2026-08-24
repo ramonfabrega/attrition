@@ -19,7 +19,7 @@
 //! so on the flat worlds the harness builds the search is exact; the seams
 //! are where the remaining layers plug in.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 use crate::orders::{self, Body, MoveKind, PathData, Worker, path_flag};
 use crate::world::{Owner, Pos, TILES_PER_CELL, Terrain, UNITS_PER_CELL, tile, vector_dist};
@@ -183,7 +183,7 @@ impl Sim {
     /// search in the original's `validlist`. SEAM: `detect_unit_collision`
     /// — the half that sees other units — reports clear; the 48-grid is
     /// where collision avoidance would live.
-    fn valid_ucoord(&self, u: usize, p: Pos, metric: i64, memo: &mut HashMap<i64, bool>) -> bool {
+    fn valid_ucoord(&self, u: usize, p: Pos, metric: i64, memo: &mut BTreeMap<i64, bool>) -> bool {
         let w = &self.world;
         if p.x < 0
             || p.y < 0
@@ -451,9 +451,9 @@ impl Sim {
         // Min `value` first; equal values newest-first (LIFO), as the
         // original's BST leans (§2.1).
         let mut open: BTreeMap<(i32, std::cmp::Reverse<u64>), u32> = BTreeMap::new();
-        let mut open_by_metric: HashMap<i64, (u64, i32, u32)> = HashMap::new();
-        let mut closed: HashMap<i64, u32> = HashMap::new();
-        let mut valid_memo: HashMap<i64, bool> = HashMap::new();
+        let mut open_by_metric: BTreeMap<i64, (u64, i32, u32)> = BTreeMap::new();
+        let mut closed: BTreeMap<i64, u32> = BTreeMap::new();
+        let mut valid_memo: BTreeMap<i64, bool> = BTreeMap::new();
         let mut seq: u64 = 0;
 
         let root = Node {
@@ -946,7 +946,7 @@ impl Sim {
             return self.units[u].path.len() as i32;
         }
         let mut goal = goal_e.to;
-        let mut memo = HashMap::new();
+        let mut memo = BTreeMap::new();
         loop {
             let gg = g48(goal);
             let metric = i64::from(gg.x) + i64::from(gg.y) * i64::from(self.world.width()) * 16;

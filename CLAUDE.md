@@ -454,9 +454,17 @@ better, in which case say so and take that.
     table from the dumps' `GUY` blocks), animals as gaia units with the
     wander, the scouts' `think_scout` scan (needs the seen map), the
     4-draw tail, frame 3's one extra `do_move` draw (`docs/SYNC.md` §6);
-    a `Checksum Dump`/`Break` frame-window capture; then the loader's
-    half of the producers' seams (unit `role`/flags, `TechType.ai[]`,
-    `gather_max`); fold §14 into §2; then the blind second reading.
+    a `Checksum Dump`/`Break` frame-window capture; **the draw-site
+    trace** — a log-and-continue breakpoint on `Random::get` recording
+    the caller's EIP under winedbg in the bottle (Wine's dbghelp reads
+    `rise.pdb`, so the callers come out named), one run for frames 0–3,
+    which is the only way to place the draws that leave no outcome in a
+    dump (the scouts' 23, the tail's 4) and de-risks the whole of §6 —
+    proposed by the `lore` session, 2026-08-24; then the loader's half of
+    the producers' seams (unit `role`/flags, `TechType.ai[]`,
+    `gather_max`); fold §14 into §2; then the blind second reading, at
+    which point `docs/audit/README.md` also owes a paragraph each to the
+    pathfinder, commands and recgame audits it never got.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes

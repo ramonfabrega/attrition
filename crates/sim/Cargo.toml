@@ -12,5 +12,17 @@ version = "0.1.0"
 # quantity the original computes is an integer with a defined truncation. `fixed`
 # will be earned when something genuinely needs one. See docs/DECISIONS.md 13.
 
-[lints]
-workspace = true
+# Cargo will not combine `workspace = true` with a crate's own lint table,
+# so the workspace's one rule is restated here beside the sim's own two.
+[lints.rust]
+unsafe_code = "forbid"
+
+# The no-float rule, at build time as well as in `no_float.rs`'s source
+# read: no float arithmetic in the simulation. Clippy leaves `#[cfg(test)]`
+# code alone, which is where the single-precision oracles that pin the
+# integer clocks live (`farms.rs`), so they need no `#[expect]`.
+# And no hash-keyed collections (`clippy.toml`): an iteration over one is a
+# desync that only shows in a long diff — the ordered maps cost nothing.
+[lints.clippy]
+float_arithmetic = "deny"
+disallowed_types = "deny"

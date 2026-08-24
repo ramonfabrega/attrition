@@ -1,0 +1,8 @@
+# The simulation's collections must iterate in a defined order: a hash-keyed
+# map iterates in the hasher's order, which differs between processes, and
+# the first `.iter()` over one is a lockstep desync that only a long replay
+# diff would show. `BTreeMap`/`BTreeSet` cost nothing here.
+disallowed-types = [
+  { path = "std::collections::HashMap", reason = "iteration order is the hasher's; use BTreeMap" },
+  { path = "std::collections::HashSet", reason = "iteration order is the hasher's; use BTreeSet" },
+]
