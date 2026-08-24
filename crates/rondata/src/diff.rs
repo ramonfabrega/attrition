@@ -1659,12 +1659,15 @@ mod tests {
         );
 
         // The sites (`compute_sites`, `docs/AI.md` §2.7): the record holds
-        // ten `SITE`s, and the frame-1 record is after **two** passes — the
-        // frame-0 sweep's, and the one the script's `city_placement` forces
-        // through `place_city_with_cost` at frame 1. The sampler's stride
-        // is a sync-stream draw; with run11's trace the harness's stream is
-        // the original's, so after frame 1 the record's best site is
-        // asserted when the trace is on hand and reported otherwise.
+        // ten `SITE`s, taken from the frame-1 record — the state after
+        // frame 1, which is when the script first runs (its `city_placement`
+        // would force a second pass through `place_city_with_cost`, but
+        // only once City State is in, so at frame 1 both sides have the
+        // frame-0 sweep's single pass). The sampler's stride is a
+        // sync-stream draw; with run11's trace the harness's stream is the
+        // original's, and with run3's heights the slide is the original's,
+        // so the record's best site is asserted when both are on hand and
+        // reported otherwise.
         built.sim.tick();
         let theirs_sites: Vec<(i64, i64, i64, i64)> = theirs
             .kids("SITE")
