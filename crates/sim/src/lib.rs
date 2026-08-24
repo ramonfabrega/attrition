@@ -38,6 +38,7 @@
 pub mod ai;
 pub mod attrition;
 pub mod balance;
+pub mod bhs;
 pub mod build;
 pub mod city;
 pub mod combat;

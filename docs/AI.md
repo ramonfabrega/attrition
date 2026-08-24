@@ -1,19 +1,22 @@
 # The AI
 
-**Status: first reading in progress — 2026-08-24.** §2 (the driver: the
-frame hook, the cadence, `plan_strategy`'s sweep, the step machine, the
-goods picture, the make list, the sites, the orphan check) is **read**, by
-the main thread from the full decompile export
-(`~/ghidra-projects/decomp/`, `tools/ghidra/`), every function named there
-read end to end. §3–§10 are still the survey of the same day (grep, heads
-and tails, PDB layouts) and say so; two Opus readers are deriving the
-script language (`~/ghidra-projects/reports/ai/bhs-language.md`) and the
-host functions (`…/host-functions.md`) in parallel, to be ratified here
-before anything is built on them. Confidence on §2: **high** on the
-cadence, the step machine and the make list's mechanics; **medium** on the
-census's per-unit classification, which reads eight virtual slots the
-vtable export mislabels (§2.10) — named by use, to be settled in the
-listing where implementation needs them.
+**Status: first reading complete, implementation begun — 2026-08-24.** §2
+(the production AI: the frame hook, the cadence, `plan_strategy`'s sweep,
+the step machine, the goods picture, the make list, the sites, the orphan
+check, the city AI, the site score, research, the market, two producers)
+and §3.1 (the scripts) are **read** by the main thread from the full
+decompile export (`~/ghidra-projects/decomp/`, `tools/ghidra/`), every
+function named there end to end. The four halves the main thread did not
+read — the script language, the 55 host functions, `create_units`,
+`create_buildings`/`produce_building` — are four readers' reports under
+`~/ghidra-projects/reports/ai/`, ratified in §11, and are the
+specification for what they cover. §4–§10 keep the survey's framing where
+it still holds and say where it changed. §12 is what is built; §13 what is
+not established. Confidence: **high** on the cadence, the step machine,
+the make list, the language and the host functions' contracts; **medium**
+on the census's per-unit classification, where two virtual slots are still
+named by use (§2.10), and on the parts of the producers the reports flag
+for the listing (§13).
 
 Read with `docs/ORDERS.md` (§2.4 `think_scout`, §5.9 `think_peasant`, §9 the
 start of a game) and `docs/INPUT.md` §1 (why the AI is not in a recording).
@@ -153,10 +156,14 @@ the 63-entry arrays.
 10. **The unit census** — every captain of mine (`is_captain`, vslot
     `+0xe8`) that is alive and whose type has `control_cost != 0`:
     - its region: the unit's tile, or when garrisoned, the containing
-      building's region — the first land tile scanned across the
-      building's footprint (`x_size`/`y_size`, centred by parity) for a
-      non-water tile (`world+0x138` terrain `& 0x30 == 0x20` selects the
-      tile record's alternate region short at `+6`);
+      building's — the building's footprint (`x_size`/`y_size`, centred
+      by parity) is scanned column by column for the first cell whose
+      terrain byte (`world+0x138`) has `& 0x30 == 0x20`, **water**, and
+      that tile's *alternate* region (the record's short at `+6`, the sea
+      region of a coastal tile flagged `0x100`) is taken; no such cell →
+      the building's own tile region. So a unit inside a dock counts in
+      the sea region. (The `create_units` reader's dock scan uses the same
+      test and requires the result `≥ 0x3f`, which settles the sense.)
     - `active++`, `reg_active[r]++`; strength `s = attack() / 10`
       (vslot `+0x120`), or `10` for a sea/air domain;
     - `role & 0x10000` (military): `attack += s`, `combat++`, then
@@ -196,9 +203,10 @@ the 63-entry arrays.
 11. **The building census** — every active building of mine (the build
     and wall lists): a finished gather building (vslot `+0x90` on its
     type) adds its `gather_max` (`Build+0x80`) to `gather_slots[good]`;
-    every active building with `type+0x1e8` set counts `defense += 1` for
-    a tower (`is(0x1b7)`) or `2` for one that has arrows (vslot `+0xfc`),
-    and `reg_defense[r]` the same.
+    every active building with `type+0x1e8` (`attack`) set counts `defense
+    += 1` for a tower (`is(0x1b7)`) or `2` for a fort (vslot `+0xfc` =
+    `is_fort`, `docs/CITIES.md` §1.5 — corrected from "has arrows" by the
+    `create_buildings` reading), and `reg_defense[r]` the same.
 12. **Maxima**: `gather_slots_high[g]`, `peasant_high`, `scholar_high`,
     `caravan_high`, `merchant_high`, `army_high (= max combat)`,
     `city_high`, `village_high`, `population_high` — each `max(old, new)`.
@@ -484,7 +492,8 @@ is_active`, `TypeData::is_*`, `get_cost`, `can_pay_cost`) are trusted.
 | `+0x60` | Type | `is(TypeIndex, flag)` — `TypeData::is` | export |
 | `+0x64` | Type | an "upgrade-kind" predicate (`make_this` routes it to `produce_upgrade`) | use only |
 | `+0x90` | BuildType | "is a gather building" (adds `gather_max` to `gather_slots`) | use only |
-| `+0xfc` | BuildType | "has arrows" (defence 2 vs a tower's 1) | use only |
+| `+0xfc` | BuildType | `is_fort` — `is(FORTX, 0)` at every devirtualised site (settled by the `create_buildings` reading; `docs/CITIES.md` §1.5) | settled |
+| `+0x64` on `Type` | Type | the `create_units` reading resolved `UnitType`'s table from the PE: `+0x60 is`, `+0x78 get_cost`, `+0x84 can_pay_cost`, `+0xe8 get_age_slow`, `+0xec get_age`, `+0x10c is_siege`, `+0x114 is_missile`, `+0x130 is_caravan`; `+0x64` is an ICF-folded trivial there — on a *build* type it is `is_city` (`docs/CITIES.md` §1.5), and `make_this`'s use of it routes a city-kind slot to `produce_city` | settled |
 
 ### 2.11 The make list's insertion — `MakeList::make_me@006c9be0`
 
@@ -1186,3 +1195,132 @@ from its first commit.
 - The `_global` hits for `CommandManager::issue_*` were all unwind
   funclets (`docs/INPUT.md` §1 re-verified today); expect the same noise
   for any `grep -rl` over `funcs/_global`.
+
+## 11. The four reports, and their ratification
+
+Four readers worked the halves the main thread did not, each writing to
+`~/ghidra-projects/reports/ai/` incrementally; the main thread then took
+each report's load-bearing claims back to the decompile before building
+on them. The reports are the specification for what they cover and are
+cited here rather than restated.
+
+**`bhs-language.md`** (Opus, 1,376 lines — the language, from
+`Compiler`/`VirtualMachine`/`RunTimeEnv`, 73 opcodes tabulated, the
+constructs the scripts use mapped to their emitted shapes). Ratified
+directly: `ScriptInt::is_false` is `value < 1` (truth is `> 0`);
+`ScriptFunc::make_params` prepends argument 0 first, so the stream runs
+right to left, **and auto-casts every argument to its declared parameter
+type** (the `set_timer(who, 300)` int→String); `SyntaxNode::eval_binary_op`
+casts the right operand to the left's type first, else the left to the
+right's — so `my_capital > -1` is a case-insensitive string compare, true
+whenever a capital exists. Taken on the report's listing checks: `OP_BIT_SET`
+is a `btrl` (a trigger disarms on firing), `OP_JUMP_IF_INITED` guards a
+static's initialiser once ever, `String::==` is `_wcsicmp` after a length
+check. **One correction**: the report calls a timer's unit "game ticks
+(frames)"; `Game::do_frame` advances `tick` every 15 frames, so **a
+`set_timer(who, 300)` fires 300 seconds — 4,500 frames — later**, which is
+what a five-minute hang guard should be, and what `was_city_attacked`'s
+`/15` already implied.
+
+**`host-functions.md`** (Opus, 1,257 lines — the 55 host functions plus
+`rand_int`, each with what it reads, decides, mutates, draws and returns).
+Ratified directly: `get_type_index` matches `TypeData+0x60 name` under
+flag 0 (`+0xb0 type_name` under 1), so the scripts' type names are the
+display names, not `TYPENAME` — `rondata` must carry both; the internal
+`find_unit` clamps its cursor and laps once from `cursor + 1`, wrapping to
+0, and `find_counters[]` is global rotating state the interpreter's host
+must model; `population` returns `control`; `get_starting_town_size` is
+version-gated; `ScriptTimers::check` removes the timer it reports
+expired; `research_tech_with_cost` returns 1 for an owned tech and seeds
+`find_counters[0x1e]` at 2000. `rand_int`'s exclusive upper bound is
+`combat::Rng::get`'s already. Its open items — `produce_building`'s draw
+count, `can_pay_cost`'s two context arguments — the building reader and
+`docs/COSTS.md` answer.
+
+**`create-units.md`** (Fable, 679 lines, two listing checks) and
+**`create-buildings.md`** (Fable, ~760 lines). The two producers read
+end to end, every `val` formula and every gate; the `role` bits from
+`UnitType::determine_roles`; the make list's categories (**4** economy —
+merchants, caravans, scholars, fishermen, gather buildings and enhancers;
+**5** citizens; **6** military units, spies, scouts; **7** military
+trainers and military upgrades; **8** other buildings and other upgrades;
+**9** cities and cat-1 techs; **10** cat-0 techs; **6** also tower techs);
+`produce_unit`, `produce_upgrade`, `produce_spell`; `check_income`;
+`unit_prod_value`; `upgrade_units`; and `produce_building` whole — the
+spiral, `find_friends`, the frame-0 free placement, the paid site with its
+citizen ordered on at once. Their corrections to this document are
+applied inline (§2.3 step 11's fort, §2.5's keys, §2.10's slots). What
+they leave open is under §13.
+
+**The complete inventory of `game_random` draws in the production AI**,
+from a grep of every `Leader`/`Leaders`/`MakeList` function and the two
+reports (diplomacy's 33 sites and `process_taunt`'s excluded):
+
+| where | when |
+|---|---|
+| `random_personality` | 20 fixed + the nation and rival bends, once per computer leader at `Leader::init` |
+| `Leader::init` 810/820 | the `economic`/`defensive` coin, when `pers.rush == 0` |
+| `compute_sites` 198/212 | two per large region with my peasants, every sweep (frame 0 included) |
+| `make_stuff` 110/252 | one per duplicate of the head's type / of a bought slot's type, every `make_stuff` |
+| `research_techs` 588/603 | governments only: the `pers.raid == 0` coin and the `% 100` on the non-preferred pair |
+| `create_units` 1621 | one per (city, land-military type) reaching the army-size gate, on every difficulty but 2 |
+| `upgrade_units` 267 | one per eligible type, on every difficulty but 2 |
+| `create_buildings` 1403/1404 | two per (city, wonder) on the no-shortcut path |
+| `produce_building` 443/960 | one per friendless FARM/MINE spiral candidate; one per unblocked sub-position of the 2×2 jitter |
+| `use_market` 72 | one when a good is short and wealth cannot cover a buy |
+| the script's `rand_int` | eight at `defensive`'s first call in the game, then as written |
+
+## 12. The implementation so far
+
+- **`crates/sim/src/ai.rs`** — the driver's pure half: `Personality::roll`
+  (the draw order pinned by counting draws), `MakeList::make_me`, the goods
+  picture (`production_ai_setup` up to the market, on the sim's `Ledger`),
+  the cadence, and the `Step` machine with the script's three outcomes and
+  the second pass. Nine tests.
+- **`crates/sim/src/bhs.rs`** — the language: lexer, parser, AST, a
+  tree-walking interpreter over a `Host` trait, and `State` (statics and
+  trigger bits) as sim-owned state. Sixteen tests, one per rule in §11 and
+  one, install-gated, that loads the three shipped scripts and runs
+  `economic` and `defensive` through a first call.
+- `docs/DECISIONS.md` entry 20 records the fork and its two conditions.
+
+Not yet built, in the order §9 proposed: the host functions
+(`ai_script.rs`: the 55 over sim state, `find_counters`, the timers, the
+object-handle space — units `[0, 2000)`, buildings `[2000, 3000)` per
+player — and the display-name lookup), the census and the sweep, the
+sites, `research_techs`, `found_cities`, the two `create_*` producers and
+`produce_*`, `make_stuff`/`make_this`, the wiring into `Sim::tick` between
+income and the buildings, the soak's AI leaders, and the harness scoring
+player 1.
+
+## 13. What is not established
+
+- **`compute_site_stats`'s per-city distance loop** (§2.13 step 12): the
+  decompile shows `return` where `break` would make sense and loses
+  `vector_dist`'s operands; the listing settles it.
+- **The gather multiplier's cap** in `create_buildings` (`create-buildings.md`
+  §8.1): printed as a `min` at 0x100, which would make the multiplier's
+  ×2 terms dead; the listing's `cmp`/`jl` at line 1638 settles it.
+- **`build_flags & 0x8000000`** — no shipped `BUILD_FLAGS` string carries
+  it; if the loader sets it another way, the temple/library/senate arms of
+  `create_buildings` come alive. A `rondata` dump of every type's flags
+  settles it.
+- **`CityData.city_flags` bits `0x8` and `0x1000`** — read by the tower and
+  temple arms; no writer found.
+- `unit_flags & 4/8/0x8000` and `unit_flags2 & 0x60` — which shipped units
+  carry them (a `rondata` pass over `unitrules.xml`).
+- `WorldData::danger[who]` — the trainer-scoring divisor's writer.
+- Whether `LeaderData::is_ally(who, who)` is true (the nuke and warship
+  loops).
+- The implicit variable's declared type in the original (§11: taken as
+  the first assigned value's type, the only model the scripts run under).
+- `TechType::compute_ai_values` / `add_preq_ai` — the `ai[11]` weights
+  research reads are derived at load, not read from `techrules.xml`; not
+  yet read.
+- The personality is loggable (`LeaderData::log_data` → `Personality::
+  log_data`) but not at `LEADERS=9`; the level, or `DUMP_ALL`, is a
+  one-run check.
+- Which script run7's AI drew: §3.1's trace fits `defensive` (three
+  citizens at once, `needed_citizens = 10` later); the interpreter over
+  the harness decides.
+

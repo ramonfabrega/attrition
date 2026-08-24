@@ -590,3 +590,39 @@ projectile's scatter, the flock roll on a building's first wound and the
 one-in-five retarget roll draw from the same stream in a fixed order, so the
 stream is part of what "plays like the original" means. It is `combat::Rng`,
 and the document lists the draws in order (`docs/COMBAT.md` §9.5).
+
+
+## 20. The AI's scripts are data, and the interpreter is ours
+
+**Chosen:** the shipped `ai/scripts/*.bhs` are read from the user's install at
+load time, like the XML tables, and executed by an interpreter of our own —
+`crates/sim/src/bhs.rs`, a tree-walker written from the language's observed
+semantics (`docs/AI.md` §3, §11) over a `Host` trait the simulation
+implements. The engine's bytecode compiler and VM were read for what the
+language *means* — that truth is `> 0`, that arguments evaluate right to left,
+that a `static` initialises once ever, that a trigger disarms when it fires —
+and nothing of their design was carried across.
+
+**Over:** transcribing `economic.bhs` and `defensive.bhs` into Rust, or
+skipping the script and starting the step machine at its second step.
+
+The finding that forced the choice is `docs/AI.md` §3: every skirmish AI's
+opening is one of those two scripts, run by `production_ai` at step 1, so the
+oracle's first hundred seconds are the script's decisions and nothing else's.
+Transcription would have copied shipped content into the repository (the
+line the XML tables respect) and frozen the one part of the AI the original
+left open to modders; skipping it would have reproduced nothing the oracle
+shows. An interpreter costs the language (~1,500 lines, sixteen tests) and
+the 55 host functions the scripts call, each a thin predicate or action over
+state the simulation already keeps.
+
+Two conditions were set when the choice was made, so that the interpreter
+does not loosen the rules the rest of the simulation runs under. Script
+statics, trigger bits and timers are simulation state — they live in
+`bhs::State` and the host, and the soak digests them — because the original
+keeps them on the `Script` object shared by all eight leaders, which is
+observable (the scripts index their own eight-way arrays by hand). And the
+language's `float`, which no shipped script uses, is not implemented on
+`f32`: a program declaring one fails to load today, and when a mod earns it
+the type is built on `combat::F32`, the integer-mantissa software float, so
+`no_float.rs` keeps its jurisdiction over the whole simulation crate.
