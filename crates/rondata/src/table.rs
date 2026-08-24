@@ -166,6 +166,13 @@ pub enum Error {
     },
     /// The file parsed but did not contain the element we needed.
     Missing { path: String, what: String },
+    /// A binary file whose bytes stopped matching the documented format at a
+    /// known offset (`docs/RECGAME.md`).
+    Format {
+        path: String,
+        at: usize,
+        what: String,
+    },
 }
 
 impl fmt::Display for Error {
@@ -174,6 +181,7 @@ impl fmt::Display for Error {
             Error::Io { path, source } => write!(f, "reading {path}: {source}"),
             Error::Xml { path, source } => write!(f, "parsing {path}: {source}"),
             Error::Missing { path, what } => write!(f, "{path} has no {what}"),
+            Error::Format { path, at, what } => write!(f, "{path} at byte {at:#x}: {what}"),
         }
     }
 }
@@ -183,7 +191,7 @@ impl std::error::Error for Error {
         match self {
             Error::Io { source, .. } => Some(source),
             Error::Xml { source, .. } => Some(source),
-            Error::Missing { .. } => None,
+            Error::Missing { .. } | Error::Format { .. } => None,
         }
     }
 }

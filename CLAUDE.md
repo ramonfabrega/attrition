@@ -291,8 +291,26 @@ better, in which case say so and take that.
    settled in the listing. Still open: `go_around_building`, collision
    recovery (`find_upath`'s caller), suspend/restore stashing, and the
    forest tile layer for the harness world (the remaining run6 path gap).
-9. **AI** — last, because it is the least oracled, and better oracled once
-   4, 5 and the pathfinder stand.
+9. ~~**The recorded-game container**~~ — **done, 2026-08-24**,
+   `docs/RECGAME.md` and `crates/rondata/src/recgame.rs`
+   (`rondata --recgame <file.rcx>`). Taken out of order because the missing
+   piece arrived from outside: the container was derived in ORACLE.md Part 1
+   but deliberately left unimplemented until a file existed, and
+   heavengames' downloads section (user link, ~245 recorded games) supplied
+   the one explicitly EE-era sample. The full header walk (`Game::walk_data`
+   → `GameInfo::walk_data`, three wire primitives), the random-game blob
+   (playback reads it and frees it unused), the embedded rules, and the
+   package stream to EOF. Found on the way: **a recording embeds the loaded
+   rules tables**, and the sample's composed 493×493 combat table equals
+   ours **cell for cell across a seven-year build gap** — so any recording
+   is now the combat-table ground truth, replacing the `DUMP_ALL` run that
+   hangs the game. What it leaves open: the command payload encoding
+   (`CommandManager`'s format — the piece that turns packages into `diff`
+   inputs), the 806 per-type rules walkers (skipped by a package-validated
+   landmark), and recording a fixed-seed game on *this* install so order
+   stream and gamelog describe the same run.
+10. **AI** — last, because it is the least oracled, and better oracled once
+    4, 5 and the pathfinder stand.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes

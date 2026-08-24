@@ -444,14 +444,16 @@ position diff could not show:**
   run and wrote nothing recognisable; whether they write at level 1 is open.
 - **An order stream.** The diff's score cannot move until the simulation is
   fed what the players did. The recorded-game container (`docs/ORACLE.md`
-  Part 1) is the source; ~~it remains unread against a file~~ **a file now
-  exists** (2026-08-24): a real EE recording sits at
-  `game/external-recgames/*.rcx` — gzip, walked header opening with a UTF-16
-  version string — so the reader has a sample to be wrong against. It is a
-  2017-build recording against a 2024-build install, so the version-stable
-  package records at the tail (frame/play/valid/stamp/size/data) are the
-  first target; the authoritative order stream for the diff should still be
-  a recording this install makes itself of a fixed-seed gamelog run.
+  Part 1) is the source; ~~it remains unread against a file~~ **the reader
+  exists** (2026-08-24, `docs/RECGAME.md`, `crates/rondata/src/recgame.rs`,
+  `rondata --recgame`): the heavengames sample under
+  `game/external-recgames/` parses end to end — lobby, seed, embedded rules
+  (its combat table equals ours cell for cell), and 21,884 command packages
+  with frame/play/stamp and an opaque payload. What still stands between the
+  packages and the diff: the **command payload encoding**
+  (`CommandManager`'s format — the next reading), and a recording made by
+  *this* install of a fixed-seed gamelog run, so the order stream and the
+  per-frame ground truth describe the same game.
 - **The `role & 0x10000` word, `guy_radius`, `big_radius`**, the graft tables
   and barbarian flags, the free-tech rules, `is_list` — the defaults above.
 - **Which duplicate a duplicated `CONSTANTS` tag resolves to** under by-name

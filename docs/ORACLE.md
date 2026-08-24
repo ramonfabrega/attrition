@@ -51,12 +51,16 @@ the diff should be made by this install anyway (any game it records is
 same-version by construction).
 
 **Where the implementation is.** ~~Nowhere yet, deliberately.~~ The
-recorded-game reader still waits for a file to read — a reader written
-against no sample is a reader that cannot be wrong in any detectable way,
-which is the opposite of what `docs/FORMATS.md`'s evidence rule is for. The
 **gamelog** reader exists as of 2026-08-20: `crates/rondata/src/gamelog.rs`,
 written against two dumps from this install, with the constants check in
-`dump.rs` and the diff harness in `diff.rs` (`docs/DATALAYER.md`).
+`dump.rs` and the diff harness in `diff.rs` (`docs/DATALAYER.md`). ~~The
+recorded-game reader still waits for a file to read~~ — as of **2026-08-24**
+it exists too: `crates/rondata/src/recgame.rs` (`rondata --recgame`), written
+against the heavengames sample, and **`docs/RECGAME.md` supersedes Part 1 as
+the container's document** — the full header walk, the embedded rules tables
+(including the composed combat table, which the sample matches cell for
+cell), and the package stream to EOF, which settles this document's
+"where does read_package stop" question: end of file.
 
 ---
 
@@ -1152,8 +1156,12 @@ list, and `tools/gamelog/README.md` points here.
   and read ("The detail level is the knob" above): it is not a detail flag at
   all, it is the argument to `GameLog::full_dump` and it dumps *everything*
   every frame. `Checksum Dump` / `Checksum Break` are still untried.
-- **The whole `walk_data` graph**, which is the actual header format. Read in
-  outline only.
+- **The whole `walk_data` graph**, which is the actual header format. ~~Read
+  in outline only.~~ The *recording* path — `Game::walk_data`,
+  `GameInfo::walk_data`, `Game::walk_rules_data` and the wire primitives —
+  is read in full as of 2026-08-24 (`docs/RECGAME.md`). The save-game graph
+  (`write_save_game`, `World`/`Player::walk_data` and the other ~250
+  walkers) remains outline only.
 - ~~**The recorded game's file extension and naming.** `String::time_stamp` builds
   it from two strings in the runtime string table rather than from literals, so
   it was not recoverable the way the INI keys were.~~ **Settled 2026-08-24 by a
@@ -1163,5 +1171,7 @@ list, and `tools/gamelog/README.md` points here.
   (`Version: 00.2017.08.2100` in the sample).
 - **Whether `SimulationFps` moves the 15 frames per second** that
   `crates/sim/src/lib.rs` holds as `FRAMES_PER_SECOND`, or something else.
-- **Where `read_package` stops** — the stream has no count that has been seen,
-  so the reader presumably runs to end of file. Unconfirmed.
+- ~~**Where `read_package` stops** — the stream has no count that has been
+  seen, so the reader presumably runs to end of file. Unconfirmed.~~ End of
+  file, confirmed by the sample: the package stream parses to exactly EOF
+  (`docs/RECGAME.md` §4.3).

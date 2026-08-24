@@ -1682,6 +1682,13 @@ building→unit and building→building alike — and every per-type input check
 passes for all 364 units and 129 buildings. The two type dumps and the table
 are one oracle for §5 entire; `rondata --types` guards all of it.
 
+**A second, cheaper source for the same oracle (2026-08-24):** every
+recorded game embeds the loaded rules, including this composed 493 × 493
+(`docs/RECGAME.md` §4.2). `rondata --recgame` runs the same comparison, and
+on a 2017-build recording against this 2024-build install **every cell is
+equal** — the table survived seven years of EE patches unchanged, and the
+check no longer needs the `DUMP_ALL=1` run that hangs the game.
+
 **What this does not establish.** Nothing about §5 is open. What the table
 *feeds* — the nation, wonder and patriot modifiers, the terrain and height
 inputs, aircraft and missiles — is the same list as before (§14); this

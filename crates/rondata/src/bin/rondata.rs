@@ -16,7 +16,9 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(root) = args.next() else {
-        eprintln!("usage: rondata <install-root> [--gamelog <Logs/gamelog.txt>] [--types <dump>]");
+        eprintln!(
+            "usage: rondata <install-root> [--gamelog <Logs/gamelog.txt>] [--types <dump>] [--recgame <file.rcx>]"
+        );
         eprintln!();
         eprintln!("The directory holding riseofnations.exe. No game data is");
         eprintln!("copied anywhere; this only reads.");
@@ -31,15 +33,20 @@ fn main() -> ExitCode {
         eprintln!("--types    a DUMP_ALL=1 start-of-game dump (docs/ORACLE.md): its");
         eprintln!("           UNITTYPE blocks and COMBATTABLE are checked against the");
         eprintln!("           loader's Kinds and the combat table it builds.");
+        eprintln!("--recgame  a .rcx recorded game (docs/RECGAME.md): the header,");
+        eprintln!("           lobby and command-package stream are parsed and");
+        eprintln!("           summarised.");
         return ExitCode::from(2);
     };
     let mut gamelog: Option<String> = None;
     let mut types: Option<String> = None;
+    let mut recgame: Option<String> = None;
     let mut diff: Option<Option<usize>> = None;
     while let Some(a) = args.next() {
         match a.as_str() {
             "--gamelog" => gamelog = args.next(),
             "--types" => types = args.next(),
+            "--recgame" => recgame = args.next(),
             "--diff" => {
                 diff = Some(None);
                 if let Some(n) = args.next() {
@@ -78,6 +85,10 @@ fn main() -> ExitCode {
         })
         .and_then(|f| match &types {
             Some(path) => Ok(f + types_report(&install, path)?),
+            None => Ok(f),
+        })
+        .and_then(|f| match &recgame {
+            Some(path) => Ok(f + recgame_report(&install, path)?),
             None => Ok(f),
         });
     match result {
@@ -1223,6 +1234,100 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         }
     }
 
+    Ok(failures)
+}
+
+/// Parses a `.rcx` recorded game and summarises what it carries
+/// (`docs/RECGAME.md`). The parse itself is the check: every byte between
+/// the gzip header and end of file is accounted for or the reader errors.
+/// The embedded combat table is then compared against the one the loader
+/// composes from this install. A recording carries the *recording* build's
+/// table, so in principle a difference could be patch drift rather than a
+/// bug — but the 2017 sample's 493×493 equals ours cell for cell, so drift
+/// has never been observed and a difference should be treated as a finding.
+fn recgame_report(install: &Install, path: &str) -> Result<usize, rondata::Error> {
+    let data = rondata::recgame::decompress(path)?;
+    let rec = rondata::recgame::parse(&data, path)?;
+    println!("\nrecgame {path}");
+    println!("  {}", rec.version);
+    println!(
+        "  seed {} flags {:#x} save_name {:?} start frame {}",
+        rec.seed, rec.flags, rec.save_name, rec.start_frame
+    );
+    for (n, s) in rec.slots.iter().enumerate() {
+        if s.active() {
+            println!(
+                "  slot {n}: {:?} tribe {} who {} team {} play {} diff {}",
+                s.name, s.tribe, s.who, s.team, s.play, s.diff
+            );
+        }
+    }
+    let sp = rec.spans;
+    println!(
+        "  spans: types {:#x}..{:#x} constants {:#x}..{:#x} balance {:#x}..{:#x} tribes {:#x}..{:#x}",
+        sp.types.0,
+        sp.types.1,
+        sp.constants.0,
+        sp.constants.1,
+        sp.balance.0,
+        sp.balance.1,
+        sp.tribes.0,
+        sp.tribes.1
+    );
+    let (first, last) = match (rec.packages.first(), rec.packages.last()) {
+        (Some(a), Some(b)) => (a.frame, b.frame),
+        _ => (0, 0),
+    };
+    let bytes: usize = rec.packages.iter().map(|p| p.data.len()).sum();
+    println!(
+        "  {} packages, frames {first}..{last}, {bytes} payload bytes",
+        rec.packages.len()
+    );
+    let mut failures = check(
+        "the whole stream parsed, packages to exact end of file",
+        !rec.packages.is_empty(),
+        "",
+    );
+
+    // The embedded combat table against ours, row-major units-then-buildings
+    // on both sides (docs/RECGAME.md §4.2, docs/COMBAT.md §15.2).
+    if sp.balance.1 > sp.balance.0 {
+        let loaded = rondata::load::load(install)?;
+        let n = loaded.kinds.len();
+        let side = n + loaded.build_kinds.len();
+        let table = &data[sp.balance.0..sp.balance.1];
+        let at = |i: usize| {
+            if i < n {
+                sim::combat::TypeRef::Unit(i)
+            } else {
+                sim::combat::TypeRef::Build(i - n)
+            }
+        };
+        let mut mism = 0usize;
+        let mut example = String::new();
+        for a in 0..side {
+            for b in 0..side {
+                let cell = 2 * (a * side + b);
+                let want = i32::from(i16::from_le_bytes([table[cell], table[cell + 1]]));
+                let ours = loaded.table.pct_of(at(a), at(b));
+                if want != ours {
+                    mism += 1;
+                    if example.is_empty() {
+                        example = format!("first: [{a}][{b}] {want} vs ours {ours}");
+                    }
+                }
+            }
+        }
+        failures += check(
+            "the embedded combat table matches the one composed from this install",
+            mism == 0,
+            &if mism == 0 {
+                format!("{side}×{side}, every cell equal")
+            } else {
+                format!("{mism} of {} cells differ; {example}", side * side)
+            },
+        );
+    }
     Ok(failures)
 }
 
