@@ -393,6 +393,11 @@ impl Sim {
         };
         self.cities[c].pop = 1;
         self.buildings[b].city = Some(c);
+        // `LeaderData::home_reg`: the capital's region, which the AI's
+        // sweep reads (`docs/AI.md` §2.3 step 15) and nothing else wrote.
+        if capital && let Some(r) = reg {
+            self.ai[who as usize].census.home_reg = i32::from(r);
+        }
         c
     }
 
