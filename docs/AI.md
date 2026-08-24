@@ -1381,15 +1381,26 @@ folded back into §2's prose.
   stacks 84 → 68. Run7 (flat): unchanged at 1,970 unlinked unit-frames,
   and now explained — with every cell's `val` 0 no site scores, the
   script's `city_placement` never succeeds, and the citizens of step 12
-  are never trained. Run10 (this lobby, the map, run7's length, no input)
-  is the next capture (§12.1).
+  are never trained. **Run10** (this lobby, the map, 1,772 frames, no
+  input — `docs/ORACLE.md`): **744 unlinked unit-frames**, the three
+  citizens on the original's frames and `1/1` tracking to frame 171; the
+  744 are `1/9` and `1/10`, and the probe that explains them is the
+  session's last finding — **the harness's players earn nothing**
+  (`income [0; 6]`, food 2 for the whole run on the AI, 200 on the human):
+  `economy::Holdings` was a hand-filled model that nothing assembled from
+  the live cities and gather chains (`Leader::calc_gather`'s job,
+  `docs/ECONOMY.md`). With no food the script cannot pay for the city at
+  step 11 and the food-bound citizens of 1297/1505 never train. The
+  holdings assembly is in hand (§12.1 item 1).
 
 ### 12.1 Where to pick up
 
-1. **Run10 into the harness**, and its numbers into this section: the
-   script's steps 11–13 on the map (site `2007` at 776, `2008` at 1177,
-   citizens `1/9`, `1/10`), the 1,970 unlinked unit-frames, and the C++
-   producers' first live make list, if the script ever returns 2.
+1. **Income in the harness** — `Sim::assemble_holdings` from the live
+   state (`crates/sim/src/holdings.rs`, a worker's report pending), then
+   run10 again: the script's steps 11–13 on the map (site `2007` at 776,
+   `2008` at 1177, citizens `1/9`, `1/10`), the 744 unlinked unit-frames,
+   and the C++ producers' first live make list, if the script ever
+   returns 2.
 2. **The sync stream at frame 0.** `compute_sites`' stride is a
    `game_random` draw, and the harness's stream at frame 0 is not the
    original's — the map maker's draws precede `Leader::init`

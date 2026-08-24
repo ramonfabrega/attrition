@@ -737,8 +737,17 @@ one carrying `gather_from`, and `docs/DATALAYER.md` §3 is measured on it),
 `gamelog-run7-ancient-nubian-orders.txt` (260 MB, 1,732 frames, the paired
 run with a recording — `docs/INPUT.md`), `gamelog-run8-personality.txt`
 (93 MB, 60 frames at `LEADERS=9` — the personality and the census oracle)
-and **`gamelog-run9-world6.txt`** (62 MB, 36 frames, `WORLD=6` — the map,
-see "The map is a dump too").
+**`gamelog-run9-world6.txt`** (62 MB, 36 frames, `WORLD=6` — the map,
+see "The map is a dump too") and **`gamelog-run10-world6-long.txt`**
+(272 MB, 1,772 frames, the same lobby with the map at start and run7's
+per-frame detail — `[Start Game] WORLD=6 TERRAIN=2 GOODS=3 UNITS=3
+BUILDS=7 CITIES=5 GUYS=2 LEADERS=9 DEATHS=1`, `[End Frame] UNITS=3
+BUILDS=7 CITIES=5 GUYS=2 DEATHS=1 LEADERS=1`, no input, quit through the
+menu at 1:58; its recording is `Playback - 2026.08.24 14'03'12`). Run10 is
+the harness's long run with the map: 744 unlinked unit-frames against
+run7's 1,970, and it exposed that the harness's players earn no income —
+`Holdings` was never assembled from the live gather chains
+(`docs/ECONOMY.md`).
 
 ### The lobby is a file: `-config` and `-automation` (2026-08-20)
 
