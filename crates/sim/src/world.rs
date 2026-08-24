@@ -137,7 +137,11 @@ pub const fn vector_dist(dx: i32, dy: i32) -> i32 {
 /// here and is what the original's lookup table encodes.
 const fn floor_div(n: i32, d: i32) -> i32 {
     let q = n / d;
-    if n % d < 0 { q - 1 } else { q }
+    if n % d < 0 {
+        q - 1
+    } else {
+        q
+    }
 }
 
 /// Who owns a cell.
@@ -496,6 +500,13 @@ impl World {
     pub fn clear_tile_bits(&mut self, t: Pos, bits: u16) {
         if let Some(i) = self.tile_index(t) {
             self.tiles[i] &= !bits;
+        }
+    }
+
+    /// Replaces a tile's whole mask (the map loader's).
+    pub fn set_tile_mask(&mut self, t: Pos, mask: u16) {
+        if let Some(i) = self.tile_index(t) {
+            self.tiles[i] = mask;
         }
     }
 

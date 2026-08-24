@@ -453,7 +453,9 @@ pub fn world_cells<'a>(fields: &[(&'a str, &'a str)]) -> Vec<CellDump<'a>> {
     let mut after_goods = false;
     let int = |v: &str| v.trim().parse::<i64>().unwrap_or(0);
     for &(k, v) in fields {
-        if k == "flags" {
+        // A cell's `flags` follows its bare land line; the `flags` of the
+        // `SimpleArray` blocks after the cells follow `increment -1`.
+        if k == "flags" && !pending_land.is_empty() {
             cells.push(CellDump {
                 land: pending_land,
                 flags: int(v),
@@ -483,6 +485,9 @@ pub fn world_cells<'a>(fields: &[(&'a str, &'a str)]) -> Vec<CellDump<'a>> {
                 cell.goods = int(v);
                 after_goods = true;
             }
+            // The level-4 line is `NO FEATURE` on a plain cell — two tokens,
+            // so it parses as a key with a value.
+            "NO" if after_goods && cell.flag_words.is_empty() => cell.flag_words = k,
             "who" => cell.who = int(v),
             "who2" => cell.who2 = int(v),
             "region" => cell.region = int(v),
@@ -500,6 +505,18 @@ pub fn world_cells<'a>(fields: &[(&'a str, &'a str)]) -> Vec<CellDump<'a>> {
         }
     }
     cells
+}
+
+/// The per-tile masks of a `WORLD` block — the `tdata[scan].mask` run after
+/// the cells (`TData.mask`, one `ushort` a tile, `tile_xs × tile_ys` of
+/// them row-major; `docs/CITIES.md` §2.3 for the bits). Empty below
+/// `WORLD=5`.
+pub fn world_tiles(fields: &[(&str, &str)]) -> Vec<u16> {
+    fields
+        .iter()
+        .filter(|(k, _)| *k == "tdata[scan].mask")
+        .map(|(_, v)| v.trim().parse::<u32>().unwrap_or(0) as u16)
+        .collect()
 }
 
 /// A named constant from the `CONSTANTS` block: scalar or array.

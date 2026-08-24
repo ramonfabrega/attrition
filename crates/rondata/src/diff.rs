@@ -215,11 +215,25 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 },
             );
         }
+        // The per-tile masks — forest, mountain, river, ocean, the city
+        // radii and the footprints — `tile_xs × tile_ys` row-major.
+        let tiles = crate::gamelog::world_tiles(&init.world);
+        let tw = (xs * sim::world::TILES_PER_CELL) as usize;
+        let th = (ys * sim::world::TILES_PER_CELL) as usize;
+        let tiles_loaded = tiles.len() == tw * th;
+        if tiles_loaded {
+            for (i, m) in tiles.iter().enumerate() {
+                let t = Pos::new((i % tw) as i32, (i / tw) as i32);
+                world.set_tile_mask(t, *m);
+            }
+        }
         notes.push(format!(
-            "world: {} cells from the WORLD dump, {} regions, land kinds {:?}",
+            "world: {} cells from the WORLD dump, {} regions, land kinds {:?}, {} tile masks{}",
             cells.len(),
             region_map.len(),
-            land_names
+            land_names,
+            tiles.len(),
+            if tiles_loaded { "" } else { " (not applied: count differs)" }
         ));
     } else {
         // The dump carries no cells (`WORLD < 3`), so the harness's map is
@@ -1313,6 +1327,62 @@ mod tests {
                     .any(|o| matches!(o.body, sim::orders::Body::Build(b) if b == sites[0]))
         });
         assert!(builder, "a citizen holds the build order");
+    }
+
+    /// The map, from the dump: run9 (`gamelog-run9-world6.txt`, 2026-08-24)
+    /// is run7's lobby and seed logged with `WORLD=6` under `[Start Game]`,
+    /// so its start block carries every cell's `WData` and every tile's
+    /// mask (`docs/ORACLE.md`, "The map is a dump too"). With the cells'
+    /// `val` bytes real, the AI's fourth farm (site 2006) lands on the
+    /// original's tile and its builder `1/1` — the first divergence on
+    /// every earlier dump — tracks the whole run.
+    #[test]
+    fn run9_s_world_dump_puts_the_ai_s_farm_on_the_original_s_tile() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run9-world6.txt") else {
+            eprintln!("skipping: no gamelog-run9-world6.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        assert_eq!(built.sim.world.width(), 60);
+        assert_eq!(built.region_map.len(), 8, "the dump's eight regions");
+        assert_eq!(built.sim.world.region_count(), 8);
+        assert!(
+            built.notes.iter().any(|n| n.contains("57600 tile masks")),
+            "{:?}",
+            built.notes
+        );
+        // A forest tile and an ocean tile exist, so the layers are there.
+        let masks = |bits: u16| {
+            (0..240)
+                .flat_map(|y| (0..240).map(move |x| Pos::new(x, y)))
+                .filter(|&t| built.sim.world.tile_mask(t) & sim::world::tile::SURFACE == bits)
+                .count()
+        };
+        // Counted from the dump's `tdata[scan].mask` histogram: 10,749
+        // tiles with the ocean surface, ~1,800 with forest.
+        assert_eq!(masks(sim::world::tile::SURFACE_OCEAN), 10749);
+        assert!(masks(sim::world::tile::SURFACE_FOREST) > 1500);
+
+        let report = run(&loaded, &log, Tuning::RON, None).unwrap();
+        assert_eq!(report.frames.len(), 36);
+        let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
+        assert_eq!(unlinked, 0);
+        let by_unit = report.first_divergence_by_unit();
+        assert!(
+            !by_unit.iter().any(|&(w, o, _)| w == 1 && o == 1),
+            "the farm's builder diverged in position: {by_unit:?}"
+        );
+        assert!(
+            !report
+                .order_divergence_by_unit()
+                .iter()
+                .any(|(w, o, _, _)| *w == 1 && *o == 1),
+            "the farm's builder diverged in its orders"
+        );
     }
 
     /// The oracle, as a regression guard.
