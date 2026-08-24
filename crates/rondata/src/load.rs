@@ -354,6 +354,8 @@ pub fn load_tables(
     for (i, r) in techs.records.iter().enumerate() {
         let kind = tech_kind(i);
         let mut d = TypeDef::new(&tech_names[i], kind);
+        d.cost = cost_slots(r.text("COST"));
+        d.job_time = int(r, "JOB_TIME").unwrap_or(0);
         d.preq[0] = tech_key(r.text("PREQ0"), &mut warnings);
         d.preq[1] = tech_key(r.text("PREQ1"), &mut warnings);
         d.preq[2] = tech_key(r.text("PREQ2"), &mut warnings);

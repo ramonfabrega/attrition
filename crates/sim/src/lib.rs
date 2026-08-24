@@ -1066,6 +1066,90 @@ impl Sim {
         Ok(slot)
     }
 
+    /// A technology's price for `who` — `TypeData::get_cost` over a tech
+    /// record: `COST × TECH_COST_FACTOR`, no ramp, the redirect for a good
+    /// the player does not have (`docs/COSTS.md` §"The redirect"). The
+    /// discount tail — science, being behind, the lobby's tech-cost setting,
+    /// the final-tech ramp — is [`cost::Modifiers`]'s and arrives as the
+    /// undiscounted price until the layers that produce it exist, as
+    /// [`Sim::price_of`] does for a unit.
+    pub fn tech_price(&self, who: Player, t: tech::TypeId) -> [i32; economy::RESOURCES] {
+        let holdings = &self.holdings[who as usize];
+        let price = cost::Price {
+            kind: cost::Kind::Tech,
+            base: self.tech_tree.types[t].cost,
+            ..cost::Price::free()
+        };
+        cost::charges(
+            &self.tuning,
+            &price,
+            cost::Counts::default(),
+            &cost::Modifiers::default(),
+            &holdings.available,
+            &holdings.discovered,
+            &self.redirects,
+        )
+    }
+
+    /// `TypeData::research_time` for a tech, in hundredths of a frame:
+    /// `JOB_TIME × 100 × RESEARCH_TICK_PREMIUM >> 8`, floored at one. The
+    /// unit-only `RESEARCH_PREMIUM_TIME` does not apply
+    /// (`docs/PRODUCTION.md` §"The base, and the research step").
+    pub fn tech_time(&self, t: tech::TypeId) -> i32 {
+        let time = self.tech_tree.types[t].job_time * production::TIME_SCALE;
+        ((time * self.tuning.research_tick_premium) >> 8).max(production::MIN_TIME)
+    }
+
+    /// `LeaderData::researching(t)` as the scripts' `researching_tech` reads
+    /// it: queued anywhere by this player.
+    pub fn researching(&self, who: Player, t: tech::TypeId) -> bool {
+        self.tech[who as usize].queued[t] > 0
+    }
+
+    /// Orders a technology at a building — `Build::queue_up` for a tech type.
+    ///
+    /// The same gates as [`Sim::queue_up`], in the same order: the building
+    /// must make it (`can_make` → `queue_here` on the building's tree entry,
+    /// and the tree must call it researchable), then the price, then room.
+    /// `BuildQueue` holds units and techs in one list, and the library's
+    /// fan-out and the stuck-head redirect treat a tech entry as the research
+    /// job it is.
+    pub fn queue_tech(&mut self, at: usize, t: tech::TypeId) -> Result<usize, production::QueueFail> {
+        let at = self.queue_home(at);
+        let who = self.buildings[at].owner;
+        if !self.buildings[at].active
+            || !self.buildings[at].alive
+            || self.building_unassimilated(at)
+        {
+            return Err(production::QueueFail::CantTrain);
+        }
+        let here = self.buildings[at]
+            .ty
+            .and_then(|b| self.build_types[b].tree)
+            .is_some_and(|b| self.tech_tree.queue_here(b, t));
+        if !here
+            || self
+                .tech_tree
+                .type_avail(&self.setup, &self.tech[who as usize], t, true)
+                != tech::AVAILABLE
+        {
+            return Err(production::QueueFail::CantTrain);
+        }
+        let charges = self.tech_price(who, t);
+        let available = self.holdings[who as usize].available;
+        if !cost::can_pay(&charges, &self.ledgers[who as usize], &available, 1) {
+            return Err(production::QueueFail::Cost);
+        }
+        if !self.buildings[at].queue.has_room() {
+            return Err(production::QueueFail::Full);
+        }
+        cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+        let slot = self.buildings[at].queue.push_tech(t, &charges);
+        self.tech[who as usize].queued[t] += 1;
+        self.economy_changed(who);
+        Ok(slot)
+    }
+
     /// Cancels a queued order — `Build::unqueue` with a refund.
     ///
     /// The slot removed is not necessarily the one named: a cancel walks
@@ -1078,8 +1162,12 @@ impl Sim {
             let ledger = &mut self.ledgers[who as usize];
             self.buildings[at].queue.unqueue(slot, true, ledger)?
         };
-        self.muster[who as usize].queued_by_type[item.ty] -= 1;
-        self.track_tree_queued(who, item.ty, -1);
+        if let Some(t) = item.tech {
+            self.tech[who as usize].queued[t] -= 1;
+        } else {
+            self.muster[who as usize].queued_by_type[item.ty] -= 1;
+            self.track_tree_queued(who, item.ty, -1);
+        }
         self.economy_changed(who);
         Some(item)
     }
@@ -1092,6 +1180,9 @@ impl Sim {
     pub fn queue_target(&self, at: usize, slot: usize) -> i32 {
         let b = &self.buildings[at];
         let item = &b.queue.items[slot];
+        if let Some(t) = item.tech {
+            return self.tech_time(t);
+        }
         let muster = &self.muster[b.owner as usize];
         production::train_time(
             &self.tuning,
@@ -1180,6 +1271,24 @@ impl Sim {
     /// frame, which is where a population cap actually bites.
     fn advance_slot(&mut self, at: usize, slot: usize) -> Advanced {
         let who = self.buildings[at].owner;
+        if let Some(t) = self.buildings[at].queue.items[slot].tech {
+            // A technology entry: research pace, and on completion
+            // `Leader::gain_tech` and nothing else — no unit, no refund, no
+            // population test.
+            let target = self.tech_time(t);
+            let accel = production::accel(&self.tuning, production::Job::Research, 1);
+            let done =
+                production::advance(&mut self.buildings[at].queue.items[slot], target, accel);
+            if !done {
+                return Advanced::Pending;
+            }
+            let mut ledger = economy::Ledger::default();
+            self.buildings[at].queue.unqueue(slot, false, &mut ledger);
+            self.tech[who as usize].queued[t] -= 1;
+            self.gain_tech(who, t);
+            self.economy_changed(who);
+            return Advanced::Researched;
+        }
         let ty = self.buildings[at].queue.items[slot].ty;
         let researched = self.muster[who as usize].researched[ty];
         let target = self.queue_target(at, slot);

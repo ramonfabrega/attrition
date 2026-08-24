@@ -55,8 +55,14 @@ pub const NO_GOOD: i16 = -1;
 pub struct Item {
     /// Progress, in hundredths of a frame.
     pub job_counter: i32,
-    /// Which type is being made.
+    /// Which unit type is being made — unused when `tech` is set.
     pub ty: usize,
+    /// A technology entry: the tree id being researched. The original's
+    /// `type` is one `TypeIndex` space over units and techs alike; the
+    /// simulation keys unit types and the tree separately, so an entry says
+    /// which it holds. A tech entry is a research job in every sense
+    /// `docs/PRODUCTION.md` gives the word.
+    pub tech: Option<usize>,
     /// Resource indices of what was paid, `NO_GOOD` for an empty pair.
     pub good: [i16; PAIRS],
     /// Amounts paid, aligned with `good`.
@@ -73,6 +79,7 @@ impl Item {
         let mut item = Item {
             job_counter: 0,
             ty,
+            tech: None,
             good: [NO_GOOD; PAIRS],
             cost: [0; PAIRS],
         };
@@ -88,6 +95,13 @@ impl Item {
                 break;
             }
         }
+        item
+    }
+
+    /// A fresh entry researching tree id `t`, recording what `charges` took.
+    pub fn tech_queued(t: usize, charges: &[i32; RESOURCES]) -> Item {
+        let mut item = Item::queued(0, charges);
+        item.tech = Some(t);
         item
     }
 
@@ -160,7 +174,20 @@ impl Queue {
     /// answers "is this type's entry a research job" — in a simulation with no
     /// technology types, that is `!researched[ty]`.
     pub fn next_research<F: Fn(usize) -> bool>(&self, research: F) -> Option<usize> {
-        (1..self.items.len()).find(|&i| research(self.items[i].ty))
+        (1..self.items.len())
+            .find(|&i| self.items[i].tech.is_some() || research(self.items[i].ty))
+    }
+
+    /// Appends a technology entry for tree id `t` and returns its slot.
+    pub fn push_tech(&mut self, t: usize, charges: &[i32; RESOURCES]) -> usize {
+        self.items.push(Item::tech_queued(t, charges));
+        self.items.len() - 1
+    }
+
+    /// How many entries research tree id `t` — `num_type_queued`'s line
+    /// match, for a tech, is exact.
+    pub fn count_tech(&self, t: usize) -> i32 {
+        self.items.iter().filter(|i| i.tech == Some(t)).count() as i32
     }
 
     /// Which slot a cancel of `i` actually removes.
@@ -171,7 +198,10 @@ impl Queue {
     /// the fifth, so the one in progress keeps its progress.
     pub fn cancel_target(&self, i: usize) -> usize {
         let mut i = i;
-        while i + 1 < self.items.len() && self.items[i].ty == self.items[i + 1].ty {
+        while i + 1 < self.items.len()
+            && self.items[i].ty == self.items[i + 1].ty
+            && self.items[i].tech == self.items[i + 1].tech
+        {
             i += 1;
         }
         i

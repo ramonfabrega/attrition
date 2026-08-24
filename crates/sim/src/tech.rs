@@ -162,6 +162,13 @@ pub struct TypeDef {
     pub is_list: Vec<TypeId>,
     /// `leader_off`: players a scenario has disabled this tech for.
     pub leader_off: u8,
+    /// A tech's `COST` column, in the file's units (`docs/COSTS.md`: times
+    /// `TECH_COST_FACTOR` when charged). Units and buildings carry theirs on
+    /// their own records; this is only read for a tech.
+    pub cost: [i32; crate::economy::RESOURCES],
+    /// A tech's `JOB_TIME`, in frames — `TypeData::research_time` is this
+    /// times a hundred, times `RESEARCH_TICK_PREMIUM` (`docs/PRODUCTION.md`).
+    pub job_time: i32,
 }
 
 impl TypeDef {
@@ -181,6 +188,8 @@ impl TypeDef {
             graft: None,
             is_list: Vec::new(),
             leader_off: 0,
+            cost: [0; crate::economy::RESOURCES],
+            job_time: 0,
         }
     }
 

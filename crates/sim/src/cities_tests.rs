@@ -1275,3 +1275,54 @@ fn object_numbers_are_per_player_and_a_dead_slot_is_reused() {
     let u3 = sim.produce(0, citizen, tile_pos(32, 30)).unwrap();
     assert_eq!(sim.units[u3].index, 1);
 }
+
+// ----------------------------------------------------------------------
+// A technology in the queue — `docs/PRODUCTION.md`, the research step
+// ----------------------------------------------------------------------
+
+#[test]
+fn a_technology_queues_at_the_library_and_completes_as_research() {
+    use crate::tech::{Line, TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let library_t = tree.add(TypeDef::building("Library"));
+    let mut ww = TypeDef::epoch("Written Word", Line::Science, 0).at(library_t);
+    ww.cost[economy::Resource::Food.index()] = 4;
+    ww.job_time = 40;
+    let written_word = tree.add(ww);
+    sim.set_tech_tree(tree);
+    sim.build_types[t.library].tree = Some(library_t);
+    let (city_b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
+    finish(&mut sim, lib);
+
+    // Only a building whose type makes it takes the order.
+    assert_eq!(
+        sim.queue_tech(city_b, written_word),
+        Err(production::QueueFail::CantTrain)
+    );
+    let food = sim.ledgers[0].bucket[0];
+    assert_eq!(sim.queue_tech(lib, written_word), Ok(0));
+    assert_eq!(
+        sim.ledgers[0].bucket[0],
+        food - 4 * sim.tuning.tech_cost_factor,
+        "COST times TECH_COST_FACTOR, charged on queue"
+    );
+    assert!(sim.researching(0, written_word));
+    assert_eq!(sim.queue_target(lib, 0), 40 * 100, "JOB_TIME × 100 × 1/1");
+
+    // Forty calls reach the target, the forty-first observes it: the bit is
+    // set, the entry is gone, nothing was placed.
+    let mut frames = 0;
+    while !sim.tech[0].tech[written_word] {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 100);
+    }
+    assert_eq!(frames, 41);
+    assert!(!sim.researching(0, written_word));
+    assert!(sim.buildings[lib].queue.items.is_empty());
+    assert_eq!(sim.tech[0].epochs, 1);
+    assert!(sim.units.is_empty());
+}
