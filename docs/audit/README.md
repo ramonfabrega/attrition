@@ -119,3 +119,16 @@ second attempt is worth keeping whatever the model: adjudicators were told to
 mark anything they could not settle **`FABLE:`** rather than produce a
 verdict they did not believe. Five rows across seven sub-areas carry it —
 five honest gaps instead of five plausible errors.
+
+**The pattern's third step, proven on orders (2026-08-23): a ratification
+pass.** When an adjudication has run on Opus, the loop is closed by Fable
+before the next mechanic builds on it: every `FABLE:` row taken back to the
+binary, and every verdict that changed Rust re-verified from its own
+citation — the listing re-read where the verdict cites the listing, the
+decompile where it cites the decompile. On orders the pass cost about an
+hour, retracted nothing, and settled four of the six flagged rows (two of
+them from the PDB's own type records, the strongest evidence in the
+project). That result is what makes the arrangement safe to repeat: Opus
+blind readers, Opus adjudication under the marker-and-append-per-row
+discipline, Fable ratification of the markers and the code-changing
+verdicts, recorded as a "third pass" section in the audit file.
