@@ -1159,11 +1159,13 @@ fn a_citizen_with_a_gather_order_walks_to_the_farm_and_then_counts() {
     ));
 }
 
-/// A move within four world cells on open ground never asks the pathfinder
-/// and draws nothing; one beyond draws the grid threshold from the sync
-/// stream exactly once, on its first step (§4.4).
+/// On open ground no move draws from the sync stream: a near one never
+/// asks the pathfinder, and a far one is planned by `find_wpath` at order
+/// time — before the RNG-thresholded re-plan branch, which only runs when
+/// `find_path` refuses a line (§4.4). The far move walks the planned chain
+/// of cell centres and arrives.
 #[test]
-fn a_near_move_draws_no_rng_and_a_far_move_draws_once() {
+fn moves_on_open_ground_draw_nothing_and_a_far_move_walks_the_chain() {
     let mut sim = world_sim();
     let t = install_types(&mut sim);
     let citizen = sim.add_unit_type(citizen_type(t.village));
@@ -1178,21 +1180,16 @@ fn a_near_move_draws_no_rng_and_a_far_move_draws_once() {
     let before = sim.units[u].pos;
     sim.order_move(u, tile_pos(44, 20)); // five cells
     sim.tick();
-    let mut probe = combat::Rng::new(seed);
-    probe.roll();
-    assert_eq!(
-        sim.rng.seed, probe.seed,
-        "a far move draws once, on its first step"
+    assert!(
+        sim.units[u].path.len() > 1,
+        "a far move is planned as a chain at order time"
     );
     assert_ne!(sim.units[u].pos, before, "and steps that frame");
-    for _ in 0..200 {
+    for _ in 0..400 {
         sim.tick();
     }
-    assert!(
-        sim.units[u].orders.is_empty(),
-        "the straight-line stand-in arrives"
-    );
-    assert_eq!(sim.rng.seed, probe.seed, "and draws nothing more");
+    assert!(sim.units[u].orders.is_empty(), "the chain arrives");
+    assert_eq!(sim.rng.seed, seed, "and no move on open ground drew");
 }
 
 /// `find_nearby_spot` starts its sweep on the unit's side of the target and

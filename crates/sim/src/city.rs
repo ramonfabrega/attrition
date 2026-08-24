@@ -1040,13 +1040,24 @@ impl Sim {
             return;
         };
         let corner = self.tile_corner(ty, self.buildings[b].pos);
+        // `set_blocked_at` runs only where the type's per-tile mask
+        // template byte is 1 (`mask_me@006312a0`); a flat gatherer's
+        // template is walkable — units stand and farm on the footprint —
+        // so flat types mark the object field without the blocked bit.
+        // SEAM: the template itself is not loaded; flat/non-flat is the
+        // behavioural line it draws.
+        let blocked = !self.buildings[b]
+            .ty
+            .is_some_and(|t| self.build_types[t].has(crate::build::flags::FLAT));
         for t in self.footprint(ty, corner) {
             if on {
                 self.world
                     .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
                 self.world
                     .set_tile_field(t, tile::OBJECT, tile::OBJECT_BUILDING);
-                self.world.set_tile_bits(t, tile::BLOCKED);
+                if blocked {
+                    self.world.set_tile_bits(t, tile::BLOCKED);
+                }
             } else {
                 self.world.set_tile_field(t, tile::OBJECT, 0);
                 self.world

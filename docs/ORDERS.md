@@ -982,14 +982,20 @@ ang = find_angle(goal − pos); spd = max(get_speed(pos,0), 3); sx = sinx(ang, s
 path_recursion++
 while invalid_loc(goal tile, 0,0,0,0,0): pull the goal back toward us by (sx, cy), rewriting mo->dest_x/y and the stack top if they are it
 air → 0;  goal == pos → avoid_x/y = goal; return 1
-march from pos toward goal in steps of spd; each time the march enters a new tile:
-    if invalid_loc(tile, 0,0,0,0,0):
+if manh(goal − pos) <= spd: return 0                                       // the loop is never entered
+march, while spd < manh(goal − pos):                                        // (third reading, 2026-08-23)
+    if manh grew since the previous iteration: return 0
+    ang = find_angle(goal − pos)                    // RECOMPUTED EVERY STEP from the current remainder
+    sx = sinx(ang, spd); if |dx| < |sx|: sx = dx    // each axis CLAMPED to its remainder — no overshoot
+    cy = cosx(ang, spd); if |dy| < |cy|: cy = −dy
+    pos += (sx, −cy)
+    if the step enters a new tile and invalid_loc(tile, 0,0,0,0,0):
         if path_recursion < 10: go_around_building(last good point, ang, spd)       // pushes 1–3 detour waypoints
             if it did not give up: w = the first detour point; if w is not pos/last/the goal: r = find_path(w)
                 if r == 0: re-push the detour, last = pos, masks |= 8; return 0
                 if r == 2: return 2
         return 1                                                                     // blocked, no detour: plan
-    if the remainder is within one step on both axes, or the Manhattan remainder grew: return 0
+    recompute dx, dy; if |dx| <= |sx| and |dy| <= |cy|: return 0   // within one ACTUAL step, both axes (<=)
 return 0
 ```
 
@@ -998,35 +1004,23 @@ return 0
 the cell grid `div_3_table[v >> 8]`) and 1 beyond. That is the whole reason a
 near move never touches `PathFinder`.
 
-**The march as written above has a fixed point, and it hung the simulation
-(2026-08-22).** Neither exit test can fire on a step that goes nowhere: the
-remainder is not within one step on both axes — that is why the loop is still
-running — and the Manhattan remainder did not *grow*, it did not change. A
-step goes nowhere whenever both components are zero, and one component is
-zero far more often than it looks, because `sinx`/`cosx` truncate toward
-zero. A citizen at `MOVES = 25` sent 60 east and 1,600 north is inside the
-four-cell range, and `25 × 60 / 1601` truncates to **0**: the march walks
-north, closes the y remainder exactly, and then stands on the spot with
-`dx = 60` — larger than one step — for ever. That is an ordinary order with
-ordinary geometry, not a contrived one; a randomised soak
-(`crates/sim/src/soak.rs`) found it in a plain `MOVE_TO`, and before the fix
-`cargo test` never returned.
-
-`crates/sim` now returns **1 ("plan")** on a step that makes no progress,
-which is the honest answer for a line the march never walked and hands the
-move to the pathfinder, as §4.6's whole design intends. **It is a divergence
-from an unknown**, and the two candidates are worth naming for the pathfinder
-reading, which is in this code next (`docs/PATHFINDER.md` §6):
-
-- the original's `sinx(ang, spd)` does not truncate to zero here — it may
-  round, or carry more fractional bits than the reading assumed; or
-- its exit test is not the one transcribed above (a `>=` where this has `>`,
-  or a remainder test on *either* axis rather than both).
-
-Until one of them is settled, the guard is a stated behavioural difference
-with a **sync consequence**: a 1 costs a `find_wpath` draw off the shared RNG
-and a 0 does not, so a run that takes this branch will drift from the
-original's stream even where its positions agree. `go_around_building@005fc350` is a
+~~**The march as written above has a fixed point, and it hung the simulation
+(2026-08-22).**~~ **Settled, 2026-08-23, by the pathfinder reading**
+(`docs/PATHFINDER.md` §9): the fixed point was a mistranscription, twice
+over. The original recomputes `find_angle` from the *current* remainder on
+every iteration (the transcription hoisted it out of the loop), and clamps
+each component to its axis' remainder (`|sinx| > |dx| → step_x = dx`), so an
+axis that closes stays closed and the next angle points wholly along the
+other axis. The exit tests are: loop only while `spd < manh`; return 0 when
+`manh` grew; return 0 when the remainder is within one **actual clamped
+step** on both axes (`<=`). With `spd >= 3` the dominant `sinx/cosx`
+component is ≥ 2 after truncation, so a no-progress step is unreachable and
+the original needs no guard. The citizen case that hung us — `(60, 1600)` at
+`spd 25` — walks: y closes exactly, the angle re-aims due east, x closes,
+return 0, no `find_wpath` draw. The sim's interim "return 1 on no progress"
+guard (and its stated sync divergence) is retired; the march is now
+transcribed as above, and the soak that found the hang stands guard over the
+rewrite. `go_around_building@005fc350` is a
 tile-walk along the blocking tile's edge that pushes up to three `PathData`s
 (turn-in point, a `flags 8` midpoint, the target tile centre), each placed
 `off % 0xc0 / 2 − 0x30` from the tile centre; on failure `mo->dest = 0; masks
@@ -2505,13 +2499,14 @@ what is listed as an input is stated as such in the code):
   front until empty; `update_action` walks the plain moves and writes
   `orders_x/y`, `dest_angle`, returning the action's position in the deque.
 - **The path stack** — `Vec<PathData>` on the unit; `find_path` is the
-  straight-line verifier of §4.6 with `invalid_loc` = "the world refuses the
-  tile" (always false on the harness's flat map, so the march always returns
-  0 within 4 cells and 1 beyond); `find_wpath` is the **stub**: for a goal
-  within two cells it leaves `[goal]` and returns 1 (exact); beyond, it leaves
-  `[goal]` too (§4.6 says what that gets wrong), and `do_move` still takes the
-  **sync-RNG draw** (`Rng::roll`, `docs/COMBAT.md` §10's generator) so the
-  stream stays in step up to the first far move.
+  straight-line verifier of §4.6, with the march as the settled third
+  reading has it and `invalid_loc` implemented over the tile masks
+  (`crates/sim/src/path.rs`). ~~`find_wpath` is the **stub**~~ **The three
+  grid planners are real as of 2026-08-23** (`docs/PATHFINDER.md`): a far
+  move is planned into the chain of cell centres at order time, a near one
+  still leaves `[goal]`, and the RNG-thresholded re-plan branch only draws
+  when `find_path` refuses a line — so on open ground no move draws, which
+  is the original's behaviour, not a divergence.
 - **`do_move`** — §4.4's planning half on open ground (the fresh-move push,
   the waypoint take with both arrival tests, the 48-snap of the destination
   and `angle = find_angle` at order time in `order_move`), the step through
@@ -2590,9 +2585,10 @@ what is listed as an input is stated as such in the code):
   `rondata::diff::compare_orders` walks both lists front first — the log's
   reversed, because §11.1 writes it newest first — and the path stacks bottom
   first, and reports the kind, the action bit, the `flags` byte, the target's
-  `whom`/`ox`, the stack's depth and each segment's goal. `flags` and the
-  path stack are reported without scoring (`0x8`/`0x10` have no reader and
-  `PATHED` follows the stack, which the pathfinder stub does not reproduce).
+  `whom`/`ox`, the stack's depth and each segment's goal. `flags` is
+  reported without scoring (`0x8`/`0x10` have no reader); ~~the path stack
+  too~~ **the path stack scores since the pathfinder landed** (2026-08-23,
+  `docs/PATHFINDER.md` §10).
   It found the harness's farms outside any city on its first run — the
   citizens held `THINK` where the original held `GATHER`, invisibly, from
   frame 1.

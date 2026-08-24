@@ -12,9 +12,9 @@
 //! frame; an order applied from outside the step runs in the same frame.
 //!
 //! What is modelled and what is an input is §13 of the document. The
-//! pathfinder is a named seam: [`Sim::find_path`] is the straight-line
-//! verifier, and `find_wpath` is the stub that leaves `[goal]` on the stack —
-//! exact within two world cells on open ground, and stated wrong beyond.
+//! pathfinder is no longer a stub: [`Sim::find_path`] is the straight-line
+//! verifier, and the three grid planners live in `path.rs`
+//! (`docs/PATHFINDER.md`).
 
 use crate::build::{self, Ident, flags as bflags};
 use crate::combat::{self, Obj};
@@ -795,14 +795,26 @@ impl Sim {
             }
         }
 
-        // Planning: the first time, or with an empty stack.
+        // Planning: the first time, or with an empty stack. Every fresh
+        // move calls `find_wpath` exactly once; a refusal re-pushes the
+        // goal and falls back to the tile grid (§4.4).
         if flags & flag::PATHED == 0 || self.units[u].path.is_empty() {
-            self.units[u].path.push(PathData {
+            let goal = PathData {
                 to: mo.dest,
                 tolerance: 0,
                 flags: path_flag::FINAL,
-            });
-            self.find_wpath(u);
+            };
+            self.units[u].path.push(goal);
+            let r = self.find_wpath(u);
+            if r < 1 {
+                if self.units[u].path.is_empty() {
+                    self.units[u].path.push(goal);
+                }
+                let r2 = self.find_tpath(u);
+                if r2 < 1 && self.units[u].path.is_empty() {
+                    self.units[u].path.push(goal);
+                }
+            }
             flags |= flag::PATHED;
             self.store_move(u, mo, flags);
             if self.units[u].path.len() > 10 {
@@ -857,24 +869,91 @@ impl Sim {
                 }
             }
             if !self.units[u].line_ok {
-                // The straight line is not enough: the pathfinder's job —
-                // and the draw that chooses the grid happens whether or not
-                // a pathfinder answers.
+                // The straight line is not enough: the pathfinder's job
+                // (§4.4). An unreachable goal with more orders queued kills
+                // this one and the next.
                 let here = self.units[u].pos;
+                if self.invalid_loc(u, mo.dest.tile(), true, false, false, false, true) != 0
+                    && self.units[u].orders.len() > 1
+                {
+                    self.kill_current_order(u);
+                    self.kill_current_order(u);
+                    return Did::Something;
+                }
+                // The draw that chooses the grid — one `Random::get` off
+                // the sync stream on the first `do_move` of any move
+                // `find_path` refuses.
                 let n = self.rng.roll();
-                let _thr = match n % 5 {
+                let thr = match n % 5 {
                     2 => 2 * CELL,
                     0 => 8 * CELL,
                     _ => 5 * CELL,
                 };
-                let _far = (mo.waypoint.x - here.x).abs() + (mo.waypoint.y - here.y).abs() > _thr;
-                // The stub: every grid leaves `[goal]` (§4.6 — exact within
-                // two cells, stated wrong beyond). The original then takes
-                // the top — a near cell centre — and verifies the line to it
-                // the same frame; with no chain to take, the straight line to
-                // the goal is walked as the stand-in, and the step is on this
-                // frame as it would be.
-                self.find_wpath(u);
+                let far = (mo.waypoint.x - here.x).abs() + (mo.waypoint.y - here.y).abs() > thr;
+                let len_before = self.units[u].path.len();
+                // `wflag` (which grid planned) only matters to the
+                // resolve-block branch below, which is a seam; kept for the
+                // shape.
+                let (r, _wflag) = if far {
+                    (self.find_wpath(u), true)
+                } else {
+                    // A non-final top equal to `last` is stale: pop it.
+                    if let Some(t) = self.units[u].path.last().copied()
+                        && t.flags & path_flag::FINAL == 0
+                        && Some(t.to) == mo.last
+                    {
+                        self.units[u].path.pop();
+                    }
+                    // Not colliding (SEAM: `collide` is not modelled, so
+                    // the 48-grid branch never runs from here): drop loose
+                    // near waypoints, then plan on tiles.
+                    while let Some(t) = self.units[u].path.last().copied() {
+                        if t.flags & (path_flag::FINAL | 0x20) == 0 && t.tolerance < 0x60 {
+                            self.units[u].path.pop();
+                        } else {
+                            break;
+                        }
+                    }
+                    (self.find_tpath(u), false)
+                };
+                // A positive return with the stack length unchanged counts
+                // as a refusal.
+                let r = if r > 0 && self.units[u].path.len() == len_before {
+                    0
+                } else {
+                    r
+                };
+                if r == 0 && !self.units[u].path.is_empty() {
+                    let top = self.units[u].path.last().copied().expect("non-empty");
+                    if top.flags & path_flag::FINAL == 0 {
+                        self.units[u].path.pop();
+                        mo.has_waypoint = false;
+                        self.store_move(u, mo, flags);
+                        return Did::Something;
+                    }
+                    self.units[u].path.pop();
+                    flags &= !flag::PATHED;
+                    self.store_move(u, mo, flags);
+                    self.kill_current_order(u);
+                    if self
+                        .current_order(u)
+                        .is_some_and(|o| matches!(o.body, Body::Attack(_) | Body::Build(_)))
+                    {
+                        self.kill_current_order(u);
+                    }
+                    return Did::Something;
+                } else if r == -1 {
+                    self.kill_current_order(u);
+                    if self
+                        .current_order(u)
+                        .is_some_and(|o| matches!(o.body, Body::Attack(_) | Body::Build(_)))
+                    {
+                        self.kill_current_order(u);
+                    }
+                    return Did::Something;
+                }
+                // TAKE: the new top is the target, and the straight line to
+                // it is verified the same frame.
                 let Some(top) = self.units[u].path.last().copied() else {
                     self.kill_current_order(u);
                     return Did::Something;
@@ -884,8 +963,17 @@ impl Sim {
                 mo.waypoint = top.to;
                 self.units[u].tolerance = top.tolerance;
                 self.units[u].path_recursion = 0;
-                let _ = self.find_path(u, top.to);
-                self.units[u].line_ok = true;
+                let r2 = self.find_path(u, top.to);
+                if r2 == 0 {
+                    self.units[u].line_ok = true;
+                }
+                if !self.units[u].line_ok {
+                    // The line to the new top failed too: with a world-grid
+                    // plan, wait for the next frame; the tile-grid case
+                    // falls into collision resolution (SEAM: not modelled).
+                    self.store_move(u, mo, flags);
+                    return Did::Something;
+                }
                 self.store_move(u, mo, flags);
             }
         }
@@ -909,82 +997,76 @@ impl Sim {
         }
     }
 
-    /// The stub for `PathFinder::find_wpath`: the goal stays on the stack and
-    /// the length is returned — exact for a goal within two world cells on
-    /// open ground, and the stated stand-in beyond.
-    fn find_wpath(&mut self, u: usize) -> i32 {
-        self.units[u].path.len() as i32
-    }
-
-    /// `Unit::find_path` (§4.6): 0 = walk straight, 1 = plan, 2 = abort.
-    /// On open ground the march never meets an invalid tile, so the answer
-    /// is the four-cell rule.
+    /// `Unit::find_path` (§4.6): 0 = walk straight, 1 = plan. The written
+    /// `2` ("abort") is dead code in the original — nothing produces it at
+    /// the base case — so it is not modelled.
+    ///
+    /// The march, per the settled third reading (`docs/PATHFINDER.md` §9):
+    /// the angle is recomputed from the current remainder every iteration,
+    /// each component is clamped to its axis' remainder, and the exits are
+    /// `manh <= speed` (the loop condition), a grown remainder, and a
+    /// remainder within one *actual clamped step* on both axes (`<=`). A
+    /// no-progress step is unreachable with `speed >= 3`, so the interim
+    /// guard of 2026-08-22 is retired; the soak that found the hang stands
+    /// guard over this rewrite.
     fn find_path(&mut self, u: usize, goal: Pos) -> u8 {
         let here = self.units[u].pos;
         if goal == here {
             return 0;
         }
         let cells = (goal.cell().x - here.cell().x).abs() + (goal.cell().y - here.cell().y).abs();
-        if cells > STRAIGHT_LINE_CELLS && self.world.accepts(goal) {
+        if cells > STRAIGHT_LINE_CELLS
+            && self.invalid_loc(u, goal.tile(), true, true, false, false, false) == 0
+        {
             return 1;
         }
-        let unit = &mut self.units[u];
-        unit.path_recursion = unit.path_recursion.saturating_add(1);
-        // The march: every tile the straight line crosses must be valid.
-        let speed = unit.movement.speed.max(3);
-        let ang = find_angle(goal.x - here.x, goal.y - here.y);
-        let sx = movement::sin_component(ang, speed);
-        let cy = movement::cos_component(ang, speed);
+        self.units[u].path_recursion = self.units[u].path_recursion.saturating_add(1);
+        let speed = self.units[u].movement.speed.max(3);
         let mut at = here;
-        let mut last_manh = i32::MAX;
-        loop {
-            let (dx, dy) = (goal.x - at.x, goal.y - at.y);
-            if dx.abs() <= speed && dy.abs() <= speed {
+        let (mut dx, mut dy) = (goal.x - at.x, goal.y - at.y);
+        let mut manh = dx.abs() + dy.abs();
+        let mut prev = manh;
+        while speed < manh {
+            if prev < manh {
                 return 0;
             }
-            let manh = dx.abs() + dy.abs();
-            if manh > last_manh {
-                return 0;
+            prev = manh;
+            let ang = find_angle(dx, dy);
+            let mut sx = movement::sin_component(ang, speed);
+            let mut cy = movement::cos_component(ang, speed);
+            if dx.abs() < sx.abs() {
+                sx = dx;
             }
-            last_manh = manh;
-            let step_x = if sx.abs() > dx.abs() { dx } else { sx };
-            let step_y = if cy.abs() > dy.abs() { -dy } else { cy };
-            let next = Pos::new(at.x + step_x, at.y - step_y);
-            // **The march must advance, or it never ends.** Neither exit test
-            // above can fire on a step that goes nowhere: the remainder is
-            // not within one step on both axes (that is why we are still
-            // here) and it did not grow (it did not change). The state is
-            // reachable with an entirely ordinary order — `sin_component`
-            // truncates toward zero, so a near-axis-aligned goal a couple of
-            // cells away gives a zero cross-axis step while that axis'
-            // remainder is still larger than the unit's speed, and the loop
-            // spins on the spot. A randomised soak found it in a plain move
-            // order (`soak.rs`); before the guard, `sim` hung.
-            //
-            // Returning 1 says "I could not verify a straight line — plan",
-            // which is what the pathfinder is for and the honest answer for a
-            // line the march never walked. **It is a divergence from an
-            // unknown**: `docs/ORDERS.md` §4.6's march, as read from the
-            // original, has the same fixed point, so either its trig cannot
-            // produce a zero component here or its exit test differs. That is
-            // an open question against the pathfinder reading, which is in
-            // this code next (`docs/PATHFINDER.md`), and it has a sync
-            // consequence — a 1 costs a `find_wpath` draw and a 0 does not.
-            if next == at {
-                return 1;
+            if dy.abs() < cy.abs() {
+                cy = -dy;
             }
-            if next.tile() != at.tile() && !self.world.accepts(next) {
-                // Blocked, and `go_around_building` is not modelled: plan.
+            let next = Pos::new(at.x + sx, at.y - cy);
+            if next.tile() != at.tile()
+                && self.invalid_loc(u, next.tile(), false, false, false, false, false) != 0
+            {
+                // Blocked. SEAM: `go_around_building`'s edge-walk detour is
+                // not modelled; "plan" is the answer, which costs a
+                // `find_wpath` draw the original's successful detour would
+                // not.
                 return 1;
             }
             at = next;
+            dx = goal.x - at.x;
+            dy = goal.y - at.y;
+            if dx.abs() <= sx.abs() && dy.abs() <= cy.abs() {
+                return 0;
+            }
+            manh = dx.abs() + dy.abs();
         }
+        0
     }
 
     /// The unit step and its arrival (§4.5): `move_step` through
     /// `docs/MOVEMENT.md`, then the Manhattan test against the waypoint's
     /// tolerance, the pop, the facing on the final waypoint, the kill.
     fn unit_step(&mut self, u: usize, mut mo: MoveOrder, speed: i32) -> Did {
+        // STEP (§4.4): `avoid_x/y = −1,−1` before every step.
+        self.units[u].avoid = None;
         let unit = &self.units[u];
         let m = unit.movement;
         let from = unit.pos;

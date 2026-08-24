@@ -506,18 +506,19 @@ impl Report {
     }
 
     /// The order score: the last frame on which every compared unit's order
-    /// list agreed, path stack excluded.
+    /// list **and path stack** agreed.
     ///
     /// It is a second score beside [`Self::ticks_before_divergence`], not a
     /// replacement, and it is the stricter of the two — two simulations can
     /// agree on every position for a whole dump and still have given every
-    /// unit the wrong job. Path-stack disagreements are left out of it
-    /// because the pathfinder is still a named seam (`docs/ORDERS.md` §4.6):
-    /// counting them would be scoring the stub, not the orders.
+    /// unit the wrong job. Path-stack disagreements **score** since the
+    /// pathfinder landed (`docs/PATHFINDER.md` §10): the stack is now a
+    /// modelled output, and how many frames it survives is the mechanic's
+    /// grade — exactly the acceptance test the brief named in advance.
     pub fn order_ticks_before_divergence(&self) -> i64 {
         self.frames
             .iter()
-            .find(|f| f.order_only().any(|d| d.what.scores()))
+            .find(|f| f.order_diverged.iter().any(|d| d.what.scores()))
             .map_or(self.frames.len() as i64, |f| f.frame - 1)
     }
 
@@ -1035,6 +1036,24 @@ mod tests {
                 .iter()
                 .any(|&(w, o, _, _)| w == 0 && o == 1),
             "0/1 diverged in its order list"
+        );
+
+        // **The pathfinder's pin** (2026-08-23): the second woodcutter's
+        // citizen, whose stack was the stub's visible gap, now agrees with
+        // the original's path stack for 427 straight frames — its first
+        // disagreement of any kind is an order-list Length at frame 428,
+        // and only after that fork do its stacks differ. The mismatches
+        // that remain are player 1's mirror units, whose straight lines
+        // cross forest the harness's flat world does not carry
+        // (`docs/PATHFINDER.md` §10) — a world-data gap, not a search gap.
+        assert!(
+            !report
+                .frames
+                .iter()
+                .filter(|f| f.frame < 428)
+                .flat_map(|f| f.order_diverged.iter())
+                .any(|d| d.who == 0 && d.o == 2),
+            "0/2 disagreed before frame 428"
         );
 
         // The rest is expected to shrink, never grow. These are ceilings.

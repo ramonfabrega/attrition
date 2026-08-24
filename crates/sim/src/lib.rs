@@ -46,6 +46,7 @@ pub mod fight;
 pub mod garrison;
 pub mod movement;
 pub mod orders;
+pub mod path;
 pub mod place;
 pub mod production;
 pub mod supply;
@@ -159,6 +160,10 @@ pub struct Unit {
     pub cant_reach: bool,
     /// `unit_masks & 1`: a decoy; not counted as a gatherer.
     pub decoy: bool,
+    /// `UnitData::avoid_x/avoid_y`: the point `find_path` recorded as
+    /// unreachable, which `valid_wcoord` refuses. Cleared before each step
+    /// (`docs/ORDERS.md` §4.5).
+    pub avoid: Option<Pos>,
 }
 
 /// What a unit needs in order to move.
@@ -370,6 +375,7 @@ impl Unit {
             was_builder: false,
             cant_reach: false,
             decoy: false,
+            avoid: None,
         }
     }
 

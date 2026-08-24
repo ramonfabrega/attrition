@@ -380,21 +380,28 @@ what it cannot see:
   order wraps `combat::State`'s (`docs/ORDERS.md` §13), so the comparison
   reads the unit's combat target instead.
 - **The `flags` byte is reported but does not score.** `0x8` and `0x10` have
-  no established reader (§14) and `0x1` (`PATHED`) follows the path stack,
-  which the pathfinder stub does not reproduce. The path stack does not score
-  either, for the same reason: counting it would be scoring the stub. Both
-  are printed, because a surprise in either is worth seeing.
+  no established reader (§14) and `0x1` (`PATHED`) follows the path stack.
+  ~~The path stack does not score either: counting it would be scoring the
+  stub.~~ **The path stack scores since 2026-08-23** — the pathfinder landed
+  (`docs/PATHFINDER.md`), the stack is a modelled output, and
+  `order_ticks_before_divergence` counts its disagreements.
 
 **On `gamelog-run6`, 5,184 unit-frames compared over 432 frames: not one
 disagreement of `flags`, `action` or `target`.** Every field the simulation
 models agrees wherever it is comparable. What is left is 768 `length` and 511
 `kind` — a missing order on a unit the simulation cannot drive, and the slot
-shift that follows from it — plus 750 `path-length` and 33 `path-to`, which
-are the pathfinder stub. On the shorter `gamelog-run4` (47 frames,
-`BUILDS=6`) the same check reports 111 `length`, 95 `kind`, 108
-`path-length`. The order score (`order_ticks_before_divergence`) is a minimum
-over every unit the same way the position score is, so the AI's scout pins it
-at 0; the per-unit breakdown is the number to read.
+shift that follows from it — plus 750 `path-length` and 33 `path-to`, ~~which
+are the pathfinder stub~~ **which the pathfinder's landing (2026-08-23)
+re-attributed rather than removed**: player 0's second woodcutter, the stub's
+visible gap, now matches the original's stack for 427 straight frames, and
+every remaining path disagreement is on player 1's mirror units, whose
+straight lines cross forest the harness's flat world does not carry
+(`docs/PATHFINDER.md` §10) — a world-data gap, not a search gap. On the
+shorter `gamelog-run4` (47 frames, `BUILDS=6`) the same check reports 111
+`length`, 95 `kind`, 108 `path-length`. The order score
+(`order_ticks_before_divergence`) is a minimum over every unit the same way
+the position score is, so the AI's scout pins it at 0; the per-unit breakdown
+is the number to read.
 
 **It has now earned itself three times, and each time on something a
 position diff could not show:**

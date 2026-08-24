@@ -265,17 +265,26 @@ better, in which case say so and take that.
    farmers, which part at frame 102 — the run's own finding, that
    `FARM_GROWS = 200` is wrong by about a factor of two (`docs/ORDERS.md`
    §6.5).
-8. **The pathfinder** — taken before AI, because `find_wpath` is a stub, every
-   path stack in the harness disagrees with the original's beyond the first
-   segment, and AI orders would be laid on top of it. **The brief is written
-   and the survey is done** — `docs/PATHFINDER.md`: scope, the 34 methods
-   with the two that are the mechanic (`astar_path` 977 lines, `calc_cost`
-   509), `PathFinderData` and `PathNode` from the PDB, what §4.6 already
-   establishes, and the traps. **The first reading itself is Fable's**, per
-   the model split. It is the first mechanic with a per-frame numeric oracle
-   *before* it is written: the harness already diffs the original's own path
-   stack segment by segment, and making those disagreements score is the
-   acceptance test.
+8. ~~**The pathfinder**~~ — **done, 2026-08-23**, `docs/PATHFINDER.md` and
+   `crates/sim/src/path.rs`: `astar_path` on all three grids (greedy
+   heuristic, LIFO tie-break, metric-keyed dedup, budgets, suspend,
+   reconstruction), `calc_cost` with every term modelled or a named seam,
+   the three wrappers with their pre-walks and post-processing,
+   `invalid_loc` with the original's five flags, `do_move`'s planner wiring,
+   and §4.6's march fixed point **settled** — the original recomputes the
+   angle every step and clamps each axis, so the 2026-08-22 guard and its
+   sync divergence are retired. `PathLength`/`PathTo` **score** now; on
+   `gamelog-run6` the first woodcutter matches all 432 frames and the
+   second's path stack matches for 427 (both pinned as tests). Every
+   remaining path disagreement is player 1's units crossing **forest the
+   flat harness world does not carry** — so the next path-diff win is
+   world data (the map's tile layer into the harness), not search. Found
+   on the way: flat gatherers' footprints were wrongly `BLOCKED`
+   (`mask_me`'s template only blocks marked tiles), and the cost function
+   clamps its additive term at zero, so the own-territory −4 only ever
+   offsets danger. The blind second reading has not run yet. Still open:
+   the corner-cutting probe offsets (listing pass), `go_around_building`,
+   collision recovery (`find_upath`'s caller), suspend/restore stashing.
 9. **AI** — last, because it is the least oracled, and better oracled once
    4, 5 and the pathfinder stand.
 
