@@ -218,8 +218,12 @@ const OILWELL_OFFSET: i32 = 0x120;
 /// Adjacency: `attack_dist < 0x60`.
 const ADJACENT: i32 = 0x60;
 /// The farm's tile extent, `GameAccess::rnd`'s modulus on a re-target
-/// (§6.5; the decompiler lost the register, geometry says 3).
-const FARM_SPAN: i32 = 3;
+/// (§6.5). The decompiler lost the register; the first reading guessed 3
+/// from the geometry, and run13 measured **4**: all six farmers' twelve
+/// draws on sim-frame 101 land on the dump's new tiles under `% 4` and
+/// under no other modulus (`docs/SYNC.md` §4) — a 4 × 4 farm has sixteen
+/// cells, and the farmer may be sent to any of them.
+const FARM_SPAN: i32 = 4;
 
 /// The 31 bearings of one ring of `find_nearby_spot`, as multiples of a
 /// sixteenth of a turn from the base angle; `|k| >= 8` adds a thirty-second.
@@ -2102,9 +2106,11 @@ impl Sim {
     /// The clock is `farms.rs`'s: the farmer's `grow` and `inc_time`'s add
     /// each frame ripen the cell on frame 100's `grow` — the farmer is still
     /// sowing, so the next frame is the "new tile": two draws
-    /// (`GameAccess::rnd(3)` for x, then y) and a move to that tile's
+    /// (`GameAccess::rnd(4)` for x, then y) and a move to that tile's
     /// centre, in front of the gather order. That is the original's
-    /// re-target on the log's frame 102.
+    /// re-target on the log's frame 102 — sim-frame 101, where run13 shows
+    /// all six farmers' `orders_x/y` change and the walk start on 102
+    /// (`docs/SYNC.md` §4).
     fn do_farm(&mut self, u: usize, b: usize, _g: GatherOrder, _frame: i64) {
         let Some(ty) = self.buildings[b].ty else {
             return;

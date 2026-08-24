@@ -1850,6 +1850,83 @@ mod tests {
         assert_eq!(draws_between(0xab3b_035d, 0xc242_06bb), Some(6));
     }
 
+    /// Run13's window (`docs/SYNC.md` §4.1, §5): run10 stepped with run11,
+    /// run3 and **run13** as the siblings, so run13's end-of-frame words for
+    /// sim-frames 94–103 are installed and the per-frame counts compared.
+    /// Pinned: the frames the sim matches outright (98, 102, 103 — six
+    /// farm draws and no `do_move` draw for the seven walks that start on
+    /// 102 and 103), the two the animation clock owes (100: twelve fish
+    /// wraps; 101: the sheep's arrival and the scout's wrap on top of the
+    /// farmers' twelve and the farms' seven), and — with the unit loop
+    /// rotated so the AI's units go first at frame 101 — the AI's three
+    /// farmers' re-target goals, which the dump shows at frame 103.
+    #[test]
+    fn run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run10-world6-long.txt") else {
+            eprintln!("skipping: no gamelog-run10-world6-long.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let texts: Vec<String> = [
+            "gamelog-run11-checksum.txt",
+            "gamelog-run3-fulldump-types.txt",
+            "gamelog-run13-window-95-105.txt",
+        ]
+        .iter()
+        .filter_map(|n| dump(n))
+        .filter_map(|p| std::fs::read_to_string(p).ok())
+        .collect();
+        if texts.len() != 3 {
+            eprintln!("skipping: run11, run3 and run13 are all needed");
+            return;
+        }
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        assert_eq!(
+            inits[2].frame_seeds.first(),
+            Some(&(94, 0x5f8f_3d9d)),
+            "run13's first word is the end of sim-frame 94"
+        );
+        assert_eq!(inits[2].frame_seeds.len(), 10);
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, Some(105), None, &refs).unwrap();
+        let count = |f: i64| -> (Option<u32>, Option<u32>) {
+            let &(_, ours, theirs) = report
+                .rng_frames
+                .iter()
+                .find(|(n, _, _)| *n == f)
+                .unwrap_or_else(|| panic!("frame {f} was not traced"));
+            (ours, theirs)
+        };
+        assert_eq!(count(98), (Some(6), Some(6)));
+        assert_eq!(count(99), (Some(6), Some(8)), "the new citizen's two");
+        assert_eq!(count(100), (Some(6), Some(18)), "the twelve fish wraps");
+        assert_eq!(count(101), (Some(19), Some(21)), "the sheep and the scout");
+        assert_eq!(count(102), (Some(6), Some(6)));
+        assert_eq!(count(103), (Some(6), Some(6)));
+        // The AI's farmers re-target on sim-frame 101 and walk from 102;
+        // their path goals are compared on the log's frame 103 (the end of
+        // sim-frame 102, the walk's first step). The human's three draw one
+        // place late (the sheep's arrival is not modelled) and are not
+        // pinned.
+        let at_103 = report
+            .frames
+            .iter()
+            .find(|f| f.frame == 103)
+            .expect("the log's frame 103");
+        for o in 3..=5 {
+            let bad: Vec<_> = at_103
+                .order_diverged
+                .iter()
+                .filter(|d| d.who == 1 && d.o == o)
+                .collect();
+            assert!(bad.is_empty(), "AI farmer 1/{o} at frame 103: {bad:?}");
+        }
+    }
+
     /// The sibling dumps of the run9/run10/run11 map that carry what the
     /// others lack (`run_traced`): run11 (the setup path's checksum trace),
     /// run3 (`DUMP_ALL` — the terrain heights, the regions' coordinate
@@ -2221,7 +2298,11 @@ mod tests {
         // after the first one's walk, lands a frame or two apart on the two
         // sides (the first, on the log's frame 102, agrees). Those are the
         // three farmers per player, `o` 3–5, after frame 200, and they go
-        // away with a longer trace (`docs/SYNC.md` §6).
+        // away with a longer trace (`docs/SYNC.md` §6). The second cycle
+        // begins once the re-sown cell ripens, a hundred-odd frames after
+        // the walk — anything past 150 is it; with the unit loop rotated
+        // (`docs/SYNC.md` §3.2) the sim's own-stream luck once put a
+        // farmer's flags mismatch on frame 200 exactly.
         let modelled: Vec<&OrderDivergence> = report
             .frames
             .iter()
@@ -2235,7 +2316,7 @@ mod tests {
             .collect();
         let (farmers_late, rest): (Vec<&OrderDivergence>, Vec<&OrderDivergence>) = modelled
             .iter()
-            .partition(|d| d.frame > 200 && (3..=5).contains(&d.o));
+            .partition(|d| d.frame > 150 && (3..=5).contains(&d.o));
         assert!(
             rest.is_empty(),
             "a modelled order field disagrees: {:?}",
@@ -2310,8 +2391,16 @@ mod tests {
             orders - farmer_orders <= 1_238 && paths - farmer_paths <= 875,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
+        // Re-based a third time, 2026-08-24 (run13): the re-target's modulus
+        // is 4, not 3 — sixteen cells to be sent to, not nine — and the
+        // unit loop now rotates by owner, so the AI's farmers draw first at
+        // frame 101. On run6's own stream past frame 3 both change which
+        // tiles the six farmers are sent to, and the counts moved from
+        // 527/357 to 662/432. The farmers' pin with teeth is run13's, where
+        // the frame-101 words are the original's
+        // (`run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched`).
         assert!(
-            farmer_orders <= 527 && farmer_paths <= 357,
+            farmer_orders <= 662 && farmer_paths <= 432,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }

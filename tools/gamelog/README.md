@@ -80,6 +80,25 @@ back so you add them by hand. `LogStartFrame=95 LogEndFrame=105` with
 sim-frame n−1 then the start of sim-frame n, so `[a, b)` measures the draws
 of sim-frames a … b−2. `docs/ORACLE.md`, "The frame window is real".
 
+**Reading a window.** The dump nests by indentation (no `END` lines), and
+the `STACK<TYPE>` block does not indent its contents; these four read it:
+
+    passes.py window.txt out.json     every DUMP_ALL pass: frame, seed, each
+                                      unit's position/orders/guys, the buildings
+    framediff.py out.json [frame ...] per sim-frame: the draw count and every
+                                      unit whose state changed (cur_time ticks
+                                      filtered out)
+    draws.py <seed-hex> N [a-b ...]   the LCG from a word, each draw with its
+                                      %100 (idle variant), %1000, %5, %4, %3
+    farms.py window.txt block ...     the `Farms` list at a block: owner, empties,
+                                      every non-empty cell (print index is the
+                                      column-major position)
+
+The method is `docs/SYNC.md` §4.1: `framediff` says what changed on a
+frame, `draws` says what every draw would have read, and a state change
+that only one offset reproduces places the draw. Run13's frames 99–103
+were attributed this way in an afternoon.
+
 ## Combat
 
     hits.py frames.txt        every damage increment, with the flank geometry

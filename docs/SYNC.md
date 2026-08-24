@@ -1,9 +1,10 @@
 # The sync stream, frame by frame
 
 *Established 2026-08-24 from the decompile (`tools/ghidra/`, the export under
-`decomp/`) and one oracle: **run12**, the `DUMP_ALL` capture whose
+`decomp/`) and two oracles: **run12**, the `DUMP_ALL` capture whose
 `begin_frame`/`end_frame` dumps print `game_random seed`
-(`docs/ORACLE.md`, "What the trace does not cover"). The method is the one
+(`docs/ORACLE.md`, "What the trace does not cover"), and **run13**, the
+same game's `DUMP_ALL` window over sim-frames 95–103 (§4.1). The method is the one
 that settled the setup path: walk the 32-bit LCG forward from a known word
 and match each consumer's visible outcome to the draw that produced it. Every
 claim below says which of the two it rests on.*
@@ -56,9 +57,22 @@ In order, keeping only what can reach the stream:
 6. **`Objects::process_all@0065dce0`** — §3.2: every object's virtual
    `process`, then the birds and the herds.
 7. **`Objects::inc_time@0065db70`** — per-object `inc_time` and
-   `execute_events` (0), the goods, `Ammo::inc_time`, `DeathObj::inc_time`,
-   then **`Farms::inc_time@008d8600`** (§3.3), `Doober::inc_time` (0),
-   `Surf::inc_time` (draws — from **`internal_random`**, not the stream).
+   `execute_events`, **in leader order 0–9 with no rotation** (units, then
+   that leader's buildings), then the goods, `Ammo::inc_time`,
+   `DeathObj::inc_time`, then **`Farms::inc_time@008d8600`** (§3.3),
+   `Doober::inc_time` (0), `Surf::inc_time` (draws — from
+   **`internal_random`**, not the stream). ~~(0 draws)~~ **This is the
+   animation clock, and it draws** (run13, 2026-08-24): `Unit::inc_time@
+   00610b40` → `Guy::inc_time@005d9e10` adds the step (1; 2 in an
+   `ATTACK2`; 0 while `Unit+0x6c & 0x10`) to every guy's `cur_time`, and
+   when it reaches `end_time` restarts the animation — a looping one with
+   `set_anim(same, 0, 1)`, anything else with **`set_anim(CHAR_DEFAULT, 0,
+   1)`**, which is the idle-anim draw of §3.2. So a standing unit or animal
+   costs **one draw each time its idle animation runs out**, at the
+   frame where `cur_time == end_time − 1` was read at the previous
+   `end_frame`, *after* every object's `process` and *before* the farms.
+   Run13's sim-frame 100 is exactly this: twelve fish schools with
+   `end_time 101` redraw at draws 0–11, the six farms follow (§4).
 8. `GraphicEvents::process`, `Leaders::end_process_all`,
    `Achieve::capture_data`, `Leader::process_event_frame`,
    `OrdersMemManager::cycle`, `Roads::scan_and_kill_stray_roads`: none of
@@ -127,15 +141,15 @@ Per unit, the sites that run on an ordinary frame:
 
 | site | when | draws |
 |---|---|---|
-| `Guy::set_anim@005da300` (idle) | `set_anim(CHAR_DEFAULT)` from `do_idle`, `do_gather`'s stand, any order's rest — **but only when a new default animation starts**: a `CHAR_DEFAULT` request while the current default anim still runs (`cur_time < end_time`) returns first (`set_anim:155–224`) | 1 per guy when `UnitData+0x104 == 0`: `p = rand % 100` → variant **0** for `p ≤ 69`, **1** for `70–82`, **2** for `83–95`, **3** for `96–99` (a peasant standing on a tile with `mask & 3` takes 1 for `p ≥ 83`; `+0x9a & 0x20` collapses it to 0/1 at 69) |
+| `Guy::set_anim@005da300` (idle) | `set_anim(CHAR_DEFAULT)` from `do_idle`, `do_gather`'s stand, any order's rest, an arrival — **but only when a new default animation starts**: a `CHAR_DEFAULT` request while the current default anim still runs (`cur_time < end_time`) returns first (`set_anim:155–224`); **and again from `Guy::inc_time` in phase 7 each time the running animation ends** (§2 step 7 — run13: the fish at sim-frame 100, the human scout's `60/61 → 0/61` at 101) | 1 per guy when `UnitData+0x104 == 0`: `p = rand % 100` → variant **0** for `p ≤ 69`, **1** for `70–82`, **2** for `83–95`, **3** for `96–99` (a peasant standing on a tile with `mask & 3` takes 1 for `p ≥ 83`; `+0x9a & 0x20` collapses it to 0/1 at 69) |
 | `Guy::set_anim` (`param_2 == 0xc`, the sow) | only with `param_3 != 0` — the farmer's `set_anim(CHAR_SOW)` passes 0 (all six farmers show anim 35) | 0 |
 | `Guy::set_anim` (walk, a bird) | who 9, types `0x192–0x194` | 1 |
 | `Guy::init_real@005db6b0` | a guy's creation | 1 (`% 100` → a 4-way variant) |
 | `Unit::do_move@005f7b30:599` | the first `do_move` of a move whose path is planned, after `find_path` | 1 (`% 5` → the `far` threshold; `orders.rs`) |
 | `do_non_flat_gather@005f0170` | the woodcutter/miner machine | `% 200 + 400` on choosing a tile, `% 50 + 100` and `% 100 + 300` on the waits (`docs/ORDERS.md` §6.4; `orders.rs`) |
-| `do_gather` at a farm | a **new tile** (`docs/ORDERS.md` §6.5) | 2 (`GameAccess::rnd(3)` twice) |
+| `do_gather` at a farm | a **new tile** (`docs/ORDERS.md` §6.5) | 2 (`GameAccess::rnd(4)` twice, x then y — **4, measured on run13**: the six farmers' twelve draws on sim-frame 101 give the dump's new tiles under `% 4` and no other modulus, §4; the target is `(corner + r) · 0xc0 + 0x60`, then `add_move_order`'s 48-cell snap puts it at `corner·192 + 120 + 192r`) |
 | `Unit::think_scout@005f6010` | a scout with no orders (`think`, the bottom branch: not supply, not hero, `is(0x3a)` or `type+0xb2 & 0x10`, `get_army < 0`) — the human's too | 1 for the scan start (`% (ceil(count/100) + frame&7)`) + **1 per candidate cell** that is unseen, `invalid_loc`-clean and of the right domain (`& 7`, a score jitter); the `param_1 != 0` entry draws `% count` for a region pick and re-draws while the cell has `& 0x70` |
-| `Animal::do_idle@005d7460` | an idle herd animal, every frame | the idle anim above; then, when `guy.cur_time == guy.end_time − 1`, 1 (`% 10 < 3` → wander) and, near its herd's centre (`< 0x181`), 3 more (`& 7`, `& 3`, `& 3` → a step along `move_x/y`); else `find_nearby_spot` (0) |
+| `Animal::do_idle@005d7460` | an idle animal, every frame: `Unit::set_anim(CHAR_DEFAULT, 0, 1)` first (a draw only on an arrival — run13: sheep 0 at sim-frame 101), then, for a type with `+0x218 == 0`, **a herd member** (`+0x86 ≥ 0`) rolls, a herdless one goes to `think_farm_animal` | when `guy.cur_time == guy.end_time − 1`, 1 (`% 10 < 3` → wander) and, near its herd's centre (`< 0x181`), 3 more (`& 7`, `& 3`, `& 3` → a step along `move_x/y`); else `find_nearby_spot` (0). **This lobby's forty animals are four `HERDSHEEP` (408, herd 0) and thirty-six `HERDFISH` (411) in twelve schools of three at one spot each**; the fish never reach the roll — run13's twelve `end_time 101` fish drew exactly their twelve wraps at sim-frame 100 and nothing else |
 | `Animal::think_farm_animal@005d7700` | a farm animal, every 128 frames phased by `o · (scale+1)` | 1 (`& 7`) when its farm covers the tile |
 | `Animal::think_bird@005d79e0` | who 9, every 8 frames | 2 (`% 0x51`/`% 0xf` offsets), then a landing roll `% n` and a 30-round `% count`, `% 50 + 1` search |
 | `resolve_unit_collision@005f9d30:499` | a mutual collision | 1 (`pause = % 9 + 1`) |
@@ -232,6 +246,28 @@ Frames 2 and 3: the six farms, and nothing else — the animals are mid-anim
 (their `end_time`s are 90–250 frames), the scouts are past `idle 1`, no
 bird or herd tick falls there.
 
+### 4.1 Run13 attributed (the window, sim-frames 95–103)
+
+Run13 is the same game with `LogStartFrame=95 LogEndFrame=105`
+(`docs/ORACLE.md`); each `FRAME n` block's first pass is the end of
+sim-frame `n − 1`, and the per-unit state between two passes says what
+each draw did. The three frames that mattered, from the words `0x259a53dd`
+(end of 98), `0x60032f25` (end of 99) and `0xa45fecaf` (end of 100):
+
+| sim-frame | draws | what |
+|---|---|---|
+| 99 | 8 | 0–1: the AI's new citizen `1/6` — `Guy::init_real`'s `% 100` and its first idle anim (`% 100 = 74` → variant 1, the dump's `cur_anim 1`); 2–7: the six farms, no sprout |
+| 100 | **18** | **0–11: the twelve `end_time 101` fish, `o` 4, 7, …, 37, each `% 100` → variant** — the replay gives `2,0,0,1,0,0,0,0,0,0,0,0` and the dump's new `cur_anim`s are exactly those, in that order, with `cur_time` reset to 0 (the phase-7 wrap, §2 step 7); 12–17: the six farms |
+| 101 | **21** | the rotation puts the AI first: **0–5: the AI's farmers `1/3`, `1/4`, `1/5`, two `% 4` each** — `1,0 / 3,2 / 1,0`, and their new `MoveOrder` goals are the farm's centre `− 264 + 192·r` on each axis; **6: sheep 0 arrives** (its walk cut at `12/16`, `set_anim(CHAR_DEFAULT)` from `do_idle`, `% 100 = 27` → variant 0); **7–12: the human's farmers `0/3`, `0/4`, `0/5`** — `2,1 / 0,3 / 2,1`, likewise; **13: the human scout's wrap** (`60/61 → 0/61`, phase 7, leader 0 before anything else); **14–20: the seven farm draws** — farm 1 of the list (the AI's `2003`, twelve empties) sprouts at draw 15 (`% 1000 = 6`) and draw 16 picks `65297 % 12 = 5`, the sixth empty cell in print order, which is the one cell that appears in the next pass |
+| 102, 103 | 6, 6 | the farms; the six farmers' walks start on 102 and `1/6`'s on 103 **with no draw** — `find_path` takes them |
+| 95–98 | 23, 28, 7, 6 | the AI scout's `think_scout` re-target at 95 (17 beyond the farms), the birds' twenty at 96 (`frame & 0x1f == 0`) plus two, one at 97, the farms alone at 98 |
+
+The farmers' modulus is settled by the `% 4` match alone: under `% 3` the
+same twelve draws read `0,2,1,1,2,2 / …`, and a `+312` offset (r = 3)
+appears twice among the six goals. The `Farms` list order that the sprout
+pins is the **AI's three farms first, then the human's, then the AI's
+seventh** — the setup's creation order, not `BUILDDATA`'s.
+
 ## 5. The harness
 
 `rondata --diff` now reads the per-frame records out of a `DUMP_ALL` dump
@@ -259,6 +295,27 @@ branch (steps 6 → 7 → 9 → 10 → 11, pinned), run6's AI trains its three
 citizens on the original's frames, and run10 holds at 268 unlinked
 unit-frames with `1/9` now linking — only `1/10` at 1505 is missing.
 
+**The window, 2026-08-24**: run10 with run11, run3 and **run13** as the
+siblings (`--sibling` takes any dump whose setup trace ends on the same
+word; run13's `frame_seeds` are sim-frames 94–103). The harness installs
+run13's word at the end of 94 and then counts:
+
+| sim-frame | ours | the original's | the gap |
+|---|---|---|---|
+| 95 | 6 | 23 | the AI scout's `think_scout` re-target — the sim has no seen map |
+| 96 | 26 | 28 | the birds' twenty on both sides; the scout's two |
+| 97 | 6 | 7 | the scout's one |
+| 98 | **6** | **6** | none |
+| 99 | 6 | 8 | the new citizen's two creation draws — the sim creates it without them |
+| 100 | 6 | 18 | the twelve fish wraps — the sim has no animation clock |
+| 101 | 19 | 21 | the sheep's arrival and the scout's wrap; the twelve farmer draws and the seven farm draws are on both sides |
+| 102 | **6** | **6** | none — the six walks start without a draw on both sides |
+| 103 | **6** | **6** | none |
+
+So the sim's `do_move` gate agrees with the original's on all seven walks
+the window starts (§6's frame-3 draw is specific to those three), and the
+next gaps are the ones §6 names: the animation clock and the scout.
+
 ## 6. What is not established
 
 - **The 4 draws at 116–119 of frame 0.** Nothing after `Farms::inc_time` in
@@ -268,7 +325,15 @@ unit-frames with `1/9` now linking — only `1/10` at 1505 is missing.
   every pin too; run12's `BUILDDATA` shows no site or disband at frame 0.
   A frame-0 `GUYS=4` capture (every `set_anim` logs its index at detail 4)
   or a second `DUMP_ALL` on a lobby with a different farm count separates
-  them.
+  them. **Tried and refused, run12 (2026-08-24):** phase 7's wrap draws
+  (§2 step 7) were the obvious candidate — and the end-of-frame-0 dump
+  does show exactly four guys at `cur_time 0` where everything else stands
+  at 1, the four woodcutters `0/1`, `0/2`, `1/1`, `1/2`, whose idle anims
+  are 1, 0, 0, 0. But neither slot fits: draws 110–113 read variants
+  `2,0,0,0` and 116–119 `0,1,0,0`, while 36, 37, 46, 47 read `1,0,0,0` as
+  §4 has them. So the tail is not a wrap, and why those four guys end frame
+  0 un-stepped (`inside_up` and `unit_masks` are clean) is unread —
+  `Unit::inc_time`'s gate is `+0x82 < 0` or the type's `+4 ∈ {0x34, 0x35}`.
 - **The human scout's 15 and the AI scout's 8** are placed by elimination,
   not by outcome: `think_scout`'s scan draws once per unseen candidate cell,
   which needs the seen map the sim does not keep, and the AI scout's first
@@ -285,17 +350,28 @@ unit-frames with `1/9` now linking — only `1/10` at 1505 is missing.
   nothing else. The gate before that draw — `invalid_loc` on the order's
   cell, `path_recursion > 1`, and `find_path`'s return — is read
   differently for at least one of the three walks. The same three units
-  are run6's earliest position divergences (`0/2` at frame 4).
+  are run6's earliest position divergences (`0/2` at frame 4). **Narrowed
+  by run13 (§5):** the seven walks the window starts — six farmers at 102,
+  the new citizen at 103 — draw nothing on either side, so the gate agrees
+  on short walks onto a farm and to a camp; what is different about frame
+  3's three is still to find (forest, most likely — the flat harness
+  world's `invalid_loc` is the SEAM `find_path` names).
 - **Diplomacy's cadence** (`Leader::diplomacy`, nine sites; 0 draws on
   frames 0–3).
-- **Animals.** The 40 idle-anim draws are pinned, but the sim has no gaia
-  units: an animal's next draw falls when its animation ends, and the
-  animation lengths are **art data** (the packet's frame counts; run12's
-  `end_time`s cycle 101/116/170 with the guy's scale variant, `o % 3`).
-  The plan: `rondata` reads the lengths from a dump's `GUY` blocks (each
-  `(type, scale, anim) → end_time`) until a BHA reader exists, and the sim
-  takes them as an input like the map. Then `animal.rs`: `do_idle`'s wander
-  and `think_farm_animal`, with the herds already in `gaia.rs`.
+- **Animals, and the animation clock.** The 40 idle-anim draws are pinned,
+  but the sim has no gaia units and no `cur_time`/`end_time`: a guy's next
+  draw falls when its animation ends (§2 step 7), and the animation lengths
+  are **art data** (the packet's frame counts; run12's `end_time`s cycle
+  101/116/170 for the fish and 90/109/250 for the sheep with the guy's
+  scale variant, `o % 3`; the scout's idle is 41 or 61, the citizen's 33,
+  the sow 47). The plan: `rondata` reads the lengths from a dump's `GUY`
+  blocks (each `(type, scale, anim) → end_time`) until a BHA reader exists,
+  and the sim takes them as an input like the map. Then the clock itself —
+  every guy's `cur_time` stepped in phase 7, the wrap's draw — and
+  `animal.rs`: the sheep's `do_idle` wander and `think_fish`'s cadence
+  (unread; the fish drew nothing but wraps on frames 0–3 and 95–103), with
+  the herds already in `gaia.rs`. Run13 says the clock is worth 12 of the
+  18 at sim-frame 100 and 2 of the 21 at 101 (§5).
 - **Birds after creation** (`think_bird`, `do_air_physics`), and
   `Farms::add`/`add_animals` at a farm's creation — event-driven, unread
   past their draw sites.
@@ -321,7 +397,7 @@ unit-frames with `1/9` now linking — only `1/10` at 1505 is missing.
   Run13's: 1268 draws over sim-frames 0–94, then 23, 28, 7, 6, 8, 18, 21, 6,
   6 for 95–103 — the same floor of six from `Farms::inc_time` as run12, with
   spikes on top.
-- **Run13's 100 and 101 — the animals' cycle, or the farmers' re-target?**
+- ~~**Run13's 100 and 101 — the animals' cycle, or the farmers' re-target?**
   Twelve of run12's forty animals (type 411, every third `o`) carry
   `end_time 101`, and `cur_time` is the frame during the unit phase. So
   §3.2's `do_idle` predicts exactly run13's spikes: on sim-frame 100
@@ -331,9 +407,14 @@ unit-frames with `1/9` now linking — only `1/10` at 1505 is missing.
   **21**. That leaves **no room for the six farmers' twelve re-target
   draws** on sim-frame 101 (the log's 102), where §3.3 and `docs/ORDERS.md`
   §6.5 put them from run6 — unless they fall on a frame the window did not
-  count (94 or earlier is inside the cumulative 1268; 104 is uncounted).
-  Run13's `FRAME 102` block holds the farmers' order lists and every
-  animal's `cur_anim`/`cur_time`: the first thing to read next session,
-  since it either confirms the re-target's frame and finds the animals'
-  draws elsewhere, or moves the re-target — and `farms.rs`'s clock — by a
-  frame.
+  count.~~ **Read, 2026-08-24 (§4.1): both, and the farm clock stands.**
+  The twelve type-411 animals are fish, not herd members, so they never
+  reach the wander roll; their twelve draws at sim-frame 100 are the
+  **animation wrap** in phase 7, one `% 100` each, matching the dump's new
+  variants in `o` order. Sim-frame 101 is the six farmers' twelve `% 4`
+  draws exactly where §3.3 put them, with the sheep's arrival, the human
+  scout's wrap and a sprouting farm making up the 21. The corrections that
+  fell out: the wrap draw lives in `Objects::inc_time`, not `do_idle`; the
+  farm's modulus is 4, not 3; and `Guy::inc_time`'s step is gated
+  (`Unit+0x6c & 0x10`, `+0x82`, the type's `+4`) in ways the four
+  woodcutters' frame 0 shows but this reading has not named.

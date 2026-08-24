@@ -1594,7 +1594,12 @@ new tile: move((cx + GameAccess::rnd(n)) * 0xc0 + 0x60, (cy + GameAccess::rnd(n)
 **`GameAccess::rnd@0043cca0(n)` is `Random::get(game_random, 0, 0xffff) % n`** —
 the sync stream (`n ≤ 1 → 0` without a draw). `docs/COMBAT.md` §10 calls it
 a second, unsynchronised stream; it is not. The modulus `n` is passed in ECX
-and the decompiler lost it; geometry says the farm's tile extent (3). `Farms::
+and the decompiler lost it; ~~geometry says the farm's tile extent (3)~~
+**run13 measured 4** (`docs/SYNC.md` §4.1, 2026-08-24): the six farmers'
+twelve re-target draws on sim-frame 101 give the dump's new `MoveOrder`
+goals under `% 4` — `(corner + r)·0xc0 + 0x60`, snapped to the 48-cell
+centre by `add_move_order` (§4) — and under no other modulus, and `r = 3`
+occurs twice among them. `Farms::
 grow@008d91c0` sets `state = 1` and adds **`0.005f` to a `float[4][4]
 percent`** until it reaches `1.0f`, then `state = 2`; `snip` turns 2 into 3;
 what regrows 3 → 0 (`Farms::process`, presumably) was not read. So a float

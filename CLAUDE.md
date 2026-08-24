@@ -457,11 +457,32 @@ better, in which case say so and take that.
     ~~a `Checksum Dump`/`Break` frame-window capture~~ — **done the same
     day (run13, an Opus drive)**: the window is `LogStartFrame`/
     `LogEndFrame` in `rise2.ini`, and `gamelog-run13-window-95-105.txt`
-    has sim-frames 95–103 at 23, 28, 7, 6, 8, 18, 21, 6, 6 draws; read
+    has sim-frames 95–103 at 23, 28, 7, 6, 8, 18, 21, 6, 6 draws; ~~read
     its `FRAME 102` block first — the 100/101 spikes fit the twelve
     animals whose anim ends at 101 and leave no room for the farmers'
-    re-target draws where §6.5 puts them (`docs/SYNC.md` §6); **the
-    draw-site trace** — a log-and-continue breakpoint on `Random::get` recording
+    re-target draws where §6.5 puts them (`docs/SYNC.md` §6)~~ — **read,
+    2026-08-24 (sixth session), and every one of the window's draws on
+    99–103 is placed by outcome** (`docs/SYNC.md` §4.1): the twelve at 100
+    are **animation wraps**, one `% 100` per guy whose idle animation ran
+    out, and they live in `Objects::inc_time` → `Guy::inc_time` →
+    `set_anim(CHAR_DEFAULT, 0, 1)` — phase 7, after every `process` and
+    before the farms — not in `do_idle`; the twelve type-411 animals are
+    `HERDFISH` in twelve schools, never herd members, so they never reach
+    the wander roll; the farmers' re-target *is* on sim-frame 101 as §6.5
+    said, and its modulus is **4**, not 3 (all six farmers' twelve draws
+    match `% 4` and nothing else; `FARM_SPAN` landed with run13's pins in
+    `farms.rs` and `diff.rs`); the unit loop's owner rotation
+    (`(frame + i) % 10`) is now in `Sim::tick`, and the AI's three farmers'
+    re-target goals match the dump. The harness takes run13 as a
+    `--sibling` and prints the window: 98, 102, 103 match at 6/6; the gaps
+    are the scout's scan (95–97), the trained citizen's two creation draws
+    (99), the fish wraps (100) and the sheep's arrival plus the scout's
+    wrap (101) — so the next mechanic is **the animation clock** (every
+    guy's `cur_time`/`end_time`, the wrap's draw, the lengths read from a
+    dump's `GUY` blocks as an input), which is worth 14 of the window's 16
+    missing draws; frame 0's 4-draw tail is *not* a wrap (`docs/SYNC.md`
+    §6); `tools/gamelog/{passes,framediff,farms,draws}.py` are the window's
+    instruments; **the draw-site trace** — a log-and-continue breakpoint on `Random::get` recording
     the caller's EIP under winedbg in the bottle (Wine's dbghelp reads
     `rise.pdb`, so the callers come out named), one run for frames 0–3,
     which is the only way to place the draws that leave no outcome in a

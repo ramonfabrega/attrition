@@ -313,6 +313,62 @@ mod tests {
         assert!(s.buildings.iter().all(|b| b.farm.state == [EMPTY; 16]));
     }
 
+    /// Run13, sim-frame 101 (`docs/SYNC.md` §4.1): from the frame's 14th
+    /// draw off the end-of-100 word `0xa45fecaf`, the six complete farms in
+    /// the original's `Farms` order — the AI's three, then the human's —
+    /// with the cells the end-of-100 pass shows (print index `p` is the
+    /// column-major position, so cell `(p % 4) * 4 + p / 4`; every farmer's
+    /// cell 10 is ripe, the rest are sprouts). Farm 1, the AI's `2003` with
+    /// twelve empties, sprouts at draw 15 (`% 1000 = 6`) and draw 16 picks
+    /// `65297 % 12 = 5`, the sixth empty column-major — the one cell that
+    /// appears in the next pass. Seven draws, and the stream lands on the
+    /// original's end-of-101 word `0x08670a66`.
+    #[test]
+    fn run13_s_frame_101_sprout_lands_on_the_ai_s_second_farm() {
+        let (mut s, b0) = farm_sim();
+        let t = s.buildings[b0].ty.unwrap();
+        for i in 1..6 {
+            add_farm(&mut s, t, 5 + 4 * (i % 3), 5 + 4 * (i / 3));
+        }
+        // Print-index → sim cell.
+        let cell = |p: usize| (p % 4) * 4 + p / 4;
+        let busy: [&[usize]; 6] = [
+            &[7, 10, 11],
+            &[7, 10, 14, 15],
+            &[9, 10, 12, 13],
+            &[2, 7, 10],
+            &[9, 10, 12],
+            &[10, 15],
+        ];
+        for (f, ps) in busy.iter().enumerate() {
+            for &p in ps.iter() {
+                let c = cell(p);
+                if p == 10 {
+                    s.buildings[f].farm.state[c] = RIPE;
+                    s.buildings[f].farm.adds[c] = FULL;
+                } else {
+                    s.buildings[f].farm.state[c] = GROWING;
+                    s.buildings[f].farm.adds[c] = 40;
+                }
+            }
+        }
+        let before: Vec<[u8; 16]> = s.buildings.iter().map(|b| b.farm.state).collect();
+        let mut r = Rng::new(0xa45f_ecaf);
+        for _ in 0..14 {
+            r.roll();
+        }
+        s.rng = r;
+        s.farms_inc_time();
+        assert_eq!(s.rng.seed, 0x0867_0a66, "the original's end-of-101 word");
+        for (f, b) in s.buildings.iter().enumerate() {
+            let mut want = before[f];
+            if f == 1 {
+                want[cell(5)] = GROWING;
+            }
+            assert_eq!(b.farm.state, want, "farm {f}");
+        }
+    }
+
     /// A site (not yet active) and a disabled farm draw nothing; a farm
     /// with four or fewer empty cells draws nothing.
     #[test]

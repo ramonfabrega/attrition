@@ -1681,7 +1681,28 @@ impl Sim {
             self.process_building_combat(b, frame);
         }
 
-        for i in 0..self.units.len() {
+        // `Objects::process_all` rotates the owners: slot `(frame + i) % 10`
+        // goes `i`-th, so player `frame % 10`'s units run first this frame
+        // and, within an owner, in object order (`docs/SYNC.md` §3.2). The
+        // sync stream sees the rotation — at frame 101 the AI's farmers
+        // draw their re-targets before the human's (§4.1) — so the order of
+        // the visits is the order of the draws. The list is fixed before
+        // the loop, as the index range was: a unit created inside it waits
+        // for the next frame. An owner outside the ten slots (none today)
+        // would go last, in index order.
+        let mut visit: Vec<usize> = Vec::with_capacity(self.units.len());
+        for slot in 0..10 {
+            let who = u8::try_from((frame + slot).rem_euclid(10)).expect("a slot");
+            visit.extend(
+                self.units
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, u)| u.owner == who)
+                    .map(|(i, _)| i),
+            );
+        }
+        visit.extend((0..self.units.len()).filter(|&i| self.units[i].owner >= 10));
+        for i in visit {
             if !self.units[i].alive() {
                 continue;
             }
