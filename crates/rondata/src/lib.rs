@@ -31,6 +31,7 @@ pub mod commands;
 pub mod diff;
 pub mod dump;
 pub mod gamelog;
+pub mod input;
 pub mod load;
 pub mod recgame;
 pub mod scalar;

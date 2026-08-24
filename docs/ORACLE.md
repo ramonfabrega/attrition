@@ -581,7 +581,9 @@ established further down; nothing here is new.
 3. **Give orders** with `cheat select <o>` then a right-click
    (`tools/gamelog/rclick.sh`), one unit at a time, ~2 s apart. Aim by
    `cheat camera X,Y`, which puts tile `(X, Y)` at the viewport centre —
-   desktop `(1719, 574)` on this machine's window — or by `aim.py` for any
+   desktop `(1719, 574)` on this machine's window — **re-measured 2026-08-24
+   as `(1720, 620)`; the window moves between launches, so re-probe rather
+   than trust either number** (`docs/INPUT.md` §10) — or by `aim.py` for any
    other tile.
 4. **Read the answer** out of `Logs\gamelog.txt`: `lastframe.py` + `objs.py`
    + `one.py` for "what is on the map now", `track.py … --changes` for a field
@@ -851,6 +853,13 @@ fit: `cheat camera X,Y` centres the viewport on tile `(X, Y)`, and on this
 machine's window that tile sits at desktop **(1719, 574)** — checked by placing
 a tower at the cursor there and reading back `(40, 170)` for `camera 40,170`.
 Any tile can then be put under the cursor by centring on it.
+
+**The anchor is per-launch, not per-machine.** Re-measured 2026-08-24 with
+the same probe — `cheat camera 16,160`, then `cheat add NEW tower` at the
+cursor, then the site's tile out of the dump — it was **(1720, 620)**: the x
+identical, the y 46 out, because the window came up at a different position
+(the trap is already in "Traps that cost a run each"). One cheat line
+re-probes it, so probe rather than trust a stored number.
 
 ### Staging a scenario: the chat cheats
 

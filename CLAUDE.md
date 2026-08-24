@@ -313,8 +313,8 @@ better, in which case say so and take that.
    readable in principle but provably needs the loader's `types.list`
    order. What it leaves open: ~~the command payload encoding~~ (done, see
    10), the 806 per-type rules walkers (skipped by a package-validated
-   landmark), and recording a fixed-seed game on *this* install so order
-   stream and gamelog describe the same run.
+   landmark), and ~~recording a fixed-seed game on *this* install so order
+   stream and gamelog describe the same run~~ — **done, see 12**.
 10. ~~**The command payload encoding**~~ — **done, 2026-08-24**,
     `docs/COMMANDS.md` and `crates/rondata/src/commands.rs`. The full
     dispatch table (`CommandPackage::process`, 0x00–0x51, 82 commands),
@@ -338,8 +338,35 @@ better, in which case say so and take that.
     are dispatched but provably never emitted, and the `valid` flag is a
     free SP/MP fingerprint. What it leaves open: an MP sample to exercise
     `decode_mp`, and `marwan`'s semantics.
-11. **AI** — last, because it is the least oracled, and better oracled once
-    4, 5 and the pathfinder stand.
+11. ~~**The recorded order stream into the harness**~~ — **done,
+    2026-08-24**, `docs/INPUT.md`, `crates/rondata/src/input.rs`, and
+    `rondata --recgame <file> --gamelog <dump> --diff`. Taken out of order
+    because it was the one item on the queue that needed the game running
+    and a person at the keyboard. **The paired run exists**:
+    `gamelog-run7-ancient-nubian-orders.txt` and `Playback - 2026.08.24
+    10'15'53 (Mon).rcx` — 1,732 frames and 1,732 packages of the same game,
+    same lobby as run6 so the only variable is that this one has input in
+    it. Feeding it turns `Length { ours: 0 }` and `Kind { ours: 7 }` into
+    path-level disagreements on the three units the stream names, i.e. the
+    orders now exist and match in kind. Found on the way: **recording was
+    already switched on** (`prefs & 0x1000000`, the Options → Game
+    checkbox), so fourteen `.rcx` files of earlier sessions were already on
+    disk; **gzip is the clean-quit fingerprint** (`finalize` is the only
+    repack, and the two gzipped files are exactly the two runs quit through
+    the menu, thirteen raw ones exactly the killed runs — the second
+    reading's correction confirmed against fifteen files at once); and
+    **the path stack's goal is the un-snapped click, not the snapped
+    destination** (§7, evidence in the dump, deliberately not implemented —
+    it is a pathfinder change and belongs with the pathfinder's pins).
+12. **AI** — last, because it is the largest and the least oracled.
+    ~~and better oracled once 4, 5 and the pathfinder stand~~ — still true,
+    but **the reason it is last has changed and it is now blocking**. No AI
+    class issues a command (`docs/INPUT.md` §1: every `issue_*` caller is a
+    UI class or the turn pump, and `issue_cheat_ai_toggle` being a
+    replicated command proves the AI is re-derived per client). So **a
+    recording replays the AI by re-simulating it**, and the replay diff's
+    score cannot pass player 0 on any match with an AI in it, no matter how
+    good the order stream is. The queue used to imply otherwise.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes

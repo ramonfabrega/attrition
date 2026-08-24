@@ -483,6 +483,9 @@ pub struct Report {
     /// Per player slot: the first frame a unit of theirs diverged, if any.
     pub first_divergence: Vec<(i64, Option<i64>)>,
     pub notes: Vec<String>,
+    /// What the recorded order stream did, when one was fed in — orders
+    /// enqueued, and every command that was carried but not acted on.
+    pub applied: crate::input::Applied,
 }
 
 impl Report {
@@ -764,6 +767,24 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
 /// Builds the simulation from the log's initial state and steps it through
 /// every logged frame, comparing as it goes. `limit` caps the frames.
 pub fn run(loaded: &Loaded, log: &Log, tuning: Tuning, limit: Option<usize>) -> Option<Report> {
+    run_with(loaded, log, tuning, limit, None)
+}
+
+/// The diff, optionally fed the recorded order stream.
+///
+/// Without a stream this is exactly [`run`]: the simulation stands its
+/// roster up from the initial dump and then runs on the engine's own
+/// start-of-game logic. With one, each frame's commands are applied
+/// immediately before the tick that produces the gamelog's next frame —
+/// see [`crate::input`] for the frame convention and for why the AI's units
+/// can never be driven this way.
+pub fn run_with(
+    loaded: &Loaded,
+    log: &Log,
+    tuning: Tuning,
+    limit: Option<usize>,
+    stream: Option<&mut crate::input::Stream>,
+) -> Option<Report> {
     let init = log.initial()?;
     let players = player_count(&init);
     let mut built = build_sim(loaded, &init, tuning);
@@ -771,11 +792,19 @@ pub fn run(loaded: &Loaded, log: &Log, tuning: Tuning, limit: Option<usize>) -> 
         notes: std::mem::take(&mut built.notes),
         ..Report::default()
     };
+    let mut stream = stream;
     let frames = log.frame_states();
     let mut last = 0i64;
     for f in frames.iter().take(limit.unwrap_or(usize::MAX)) {
         // `FRAME n` is the state at the end of frame n; step up to it.
         while last < f.n {
+            // The package for recording frame `last` is processed by the
+            // game frame the log then reports as `FRAME last + 1`, which is
+            // the tick about to run.
+            if let Some(s) = stream.as_deref_mut() {
+                let did = s.apply(last as i32, &mut built);
+                report.applied.merge(&did);
+            }
             built.sim.tick();
             last += 1;
         }
@@ -1065,6 +1094,100 @@ mod tests {
         let paths: usize = report.frames.iter().map(|f| f.path_only().count()).sum();
         assert!(orders <= 1_279, "order disagreements grew to {orders}");
         assert!(paths <= 783, "path disagreements grew to {paths}");
+    }
+
+    /// One of the kept recordings, if this machine has it.
+    ///
+    /// `$RON_RECGAME_DIR`, or the profile's own `Recorded Games` directory —
+    /// `PlayerProfile::get_record_game_directory` builds it under
+    /// `CSIDL_PERSONAL`, which CrossOver maps to the Mac's `~/Documents`.
+    fn recording(name: &str) -> Option<String> {
+        let dir = std::env::var("RON_RECGAME_DIR").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!("{home}/Documents/My Games/Rise of Nations/Recorded Games")
+        });
+        let path = format!("{dir}/{name}");
+        std::path::Path::new(&path).is_file().then_some(path)
+    }
+
+    /// **The paired run** (2026-08-24): one game described by both ground
+    /// truths at once — the gamelog's per-frame state and the recording's
+    /// command stream — which is what `docs/RECGAME.md` §5 left open and
+    /// what `docs/DATALAYER.md` called the diff's missing input.
+    ///
+    /// This is written to fail if the wiring breaks in either direction: if
+    /// the pairing is wrong the frame counts stop matching, and if the
+    /// stream stops reaching the simulation the scout goes back to holding
+    /// no order at all on the frame the original moved it.
+    #[test]
+    fn the_recorded_order_stream_drives_the_units_it_names() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run7-ancient-nubian-orders.txt") else {
+            eprintln!(
+                "skipping: no gamelog-run7-ancient-nubian-orders.txt \
+                 (set RON_GAMELOG_DIR; docs/ORACLE.md says how to capture one)"
+            );
+            return;
+        };
+        let Some(rc) = recording("Playback - 2026.08.24 10'15'53 (Mon).rcx") else {
+            eprintln!(
+                "skipping: no run7 recording (set RON_RECGAME_DIR; \
+                 docs/RECGAME.md says where the game writes them)"
+            );
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let data = crate::recgame::decompress(&rc).unwrap();
+        let rec = crate::recgame::parse(&data, &rc).unwrap();
+
+        // The pairing itself. A recording holds one package a frame, so a
+        // recording and a dump of the *same* run have equal counts; this is
+        // the cheapest possible guard against diffing two different games.
+        assert_eq!(
+            rec.packages.len(),
+            log.frame_states().len(),
+            "the recording and the dump are not the same run"
+        );
+        assert_eq!(rec.packages.len(), 1732, "run7's frame count");
+        assert_eq!(rec.seed, 12345, "run7's fixed seed");
+
+        // The input, and what of it the harness can act on today. Both are
+        // ceilings in opposite directions: the stream never carries fewer
+        // commands, and the number it cannot act on only ever falls as
+        // mechanics land.
+        let mut stream = crate::input::Stream::new(&rec);
+        assert_eq!(stream.len(), 46, "run7's input commands");
+        let report = run_with(&loaded, &log, Tuning::RON, None, Some(&mut stream)).unwrap();
+        assert_eq!(
+            report.applied.orders, 9,
+            "the nine move orders the stream names"
+        );
+        assert!(
+            report.applied.skipped_total() <= 22,
+            "commands the harness ignores grew to {}: this only ever shrinks",
+            report.applied.skipped_total()
+        );
+
+        // **The check with teeth.** Unit 0/0 is the scout, and the original
+        // moves it on frame 477. Un-fed, the harness has no order there at
+        // all and the disagreement is `Length { ours: 0, theirs: 1 }`; fed,
+        // the order exists and matches in kind, so whatever remains is
+        // path-level. If the stream stops arriving, this reverts.
+        let scout: Vec<_> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| d.who == 0 && d.o == 0)
+            .collect();
+        assert!(
+            !scout
+                .iter()
+                .any(|d| matches!(d.what, OrderMismatch::Length { ours: 0, .. })),
+            "the scout holds no order where the original moved it: the \
+             stream is not reaching the simulation"
+        );
     }
 
     /// A unit holding a build order on the building the log calls `2001`,

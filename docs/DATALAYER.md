@@ -449,11 +449,20 @@ position diff could not show:**
   `rondata --recgame`): the heavengames sample under
   `game/external-recgames/` parses end to end — lobby, seed, embedded rules
   (its combat table equals ours cell for cell), and 21,884 command packages
-  with frame/play/stamp and an opaque payload. What still stands between the
-  packages and the diff: the **command payload encoding**
+  with frame/play/stamp and an opaque payload. ~~What still stands between
+  the packages and the diff: the **command payload encoding**
   (`CommandManager`'s format — the next reading), and a recording made by
   *this* install of a fixed-seed gamelog run, so the order stream and the
-  per-frame ground truth describe the same game.
+  per-frame ground truth describe the same game.~~ **Both done, 2026-08-24**:
+  the payload encoding is `docs/COMMANDS.md`, and the paired run is
+  `docs/INPUT.md` — `gamelog-run7-ancient-nubian-orders.txt` and
+  `Playback - 2026.08.24 10'15'53 (Mon).rcx`, 1,732 frames and 1,732
+  packages of the same game, wired in through `crate::input` and run by
+  `rondata --recgame <file> --gamelog <dump> --diff`. **What the stream
+  cannot ever supply is the AI's half** — no AI class issues a command, so a
+  recording replays the AI by re-simulating it (`docs/INPUT.md` §1), and
+  this entry's opening claim needs that qualification: the score cannot move
+  past player 0 until the AI is implemented.
 - **The `role & 0x10000` word, `guy_radius`, `big_radius`**, the graft tables
   and barbarian flags, the free-tech rules, `is_list` — the defaults above.
 - **Which duplicate a duplicated `CONSTANTS` tag resolves to** under by-name

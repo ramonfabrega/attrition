@@ -77,7 +77,7 @@ fn main() -> ExitCode {
             Some(path) => {
                 let mut f = f + gamelog_report(&install, path)?;
                 if let Some(limit) = diff {
-                    f += diff_report(&install, path, limit)?;
+                    f += diff_report(&install, path, limit, recgame.as_deref())?;
                 }
                 Ok(f)
             }
@@ -110,6 +110,7 @@ fn diff_report(
     install: &Install,
     path: &str,
     limit: Option<usize>,
+    recgame: Option<&str>,
 ) -> Result<usize, rondata::Error> {
     use rondata::gamelog::Log;
 
@@ -137,10 +138,47 @@ fn diff_report(
             join(loaded.warnings.iter().cloned())
         },
     );
-    let Some(report) = rondata::diff::run(&loaded, &log, sim::Tuning::RON, limit) else {
+    // The order stream, when a recording of the *same run* is given. Pairing
+    // is the caller's claim and a wrong pairing is worth catching loudly, so
+    // the frame counts are checked against each other before anything is fed
+    // in (`docs/DATALAYER.md`).
+    let mut stream = match recgame {
+        Some(rc) => {
+            let data = rondata::recgame::decompress(rc)?;
+            let rec = rondata::recgame::parse(&data, rc)?;
+            let s = rondata::input::Stream::new(&rec);
+            println!(
+                "  order stream: {} packages, {} input commands, last on frame {}",
+                rec.packages.len(),
+                s.len(),
+                s.last_frame()
+            );
+            let logged = log.frame_states().len();
+            failures += check(
+                "the recording and the dump describe the same run",
+                rec.packages.len() == logged,
+                &format!("{} packages, {logged} logged frames", rec.packages.len()),
+            );
+            Some(s)
+        }
+        None => None,
+    };
+    let Some(report) =
+        rondata::diff::run_with(&loaded, &log, sim::Tuning::RON, limit, stream.as_mut())
+    else {
         println!("  no BEGIN GAME in the log; nothing to diff");
         return Ok(failures);
     };
+    if recgame.is_some() {
+        println!(
+            "  the stream drove {} order(s); {} command(s) carried but not acted on",
+            report.applied.orders,
+            report.applied.skipped_total()
+        );
+        for ((name, why), n) in &report.applied.skipped {
+            println!("    {n:5} {name}: {why}");
+        }
+    }
     for n in &report.notes {
         println!("  note: {n}");
     }
@@ -1366,6 +1404,34 @@ fn recgame_report(install: &Install, path: &str) -> Result<usize, rondata::Error
         by_count.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(b.0)));
         for (name, n) in by_count {
             println!("    {n:7} {name}");
+        }
+    }
+
+    // The input itself, minus the two per-frame housekeeping commands. A
+    // recording's whole point for the diff harness is this list: what the
+    // players did, and on which frame. `Camera` is one a frame and
+    // `PlayerSpeed` is the turn pump's, so neither is input
+    // (`docs/COMMANDS.md` §4); everything else is.
+    if bad == 0 {
+        let mut input = Vec::new();
+        for p in &rec.packages {
+            for cmd in rondata::commands::decode(&p.data).into_iter().flatten() {
+                if !matches!(
+                    cmd,
+                    rondata::commands::Command::Camera { .. }
+                        | rondata::commands::Command::PlayerSpeed { .. }
+                ) {
+                    input.push((p.frame, p.play, cmd));
+                }
+            }
+        }
+        println!("  the input, {} commands over {} frames", input.len(), {
+            let mut fs: Vec<i32> = input.iter().map(|(f, _, _)| *f).collect();
+            fs.dedup();
+            fs.len()
+        });
+        for (frame, play, cmd) in &input {
+            println!("    frame {frame:5} play {play}  {cmd:?}");
         }
     }
     Ok(failures)
