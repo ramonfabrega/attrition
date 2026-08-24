@@ -329,9 +329,15 @@ better, in which case say so and take that.
     Verified in one shot: all 21,884 payloads of the heavengames sample
     decode with zero errors to exact size (25,779 commands — a camera
     command per frame, the rest a 23-minute game's real input), pinned as
-    an install-gated test and a histogram in `rondata --recgame`. What it
-    leaves open: an MP sample to exercise `decode_mp`, and the semantics of
-    `marwan`/`begin`.
+    an install-gated test and a histogram in `rondata --recgame`. The
+    blind second reading ran the same day and is landed
+    (`docs/audit/2026-08-24-commands.md`): the table re-derived
+    identically, four corrections adopted — `console_cmd` physically
+    cannot be sent (0x209 > the 512-byte cap), the save-game walker
+    serialises `group` where the recording head does not, five commands
+    are dispatched but provably never emitted, and the `valid` flag is a
+    free SP/MP fingerprint. What it leaves open: an MP sample to exercise
+    `decode_mp`, and `marwan`'s semantics.
 11. **AI** — last, because it is the least oracled, and better oracled once
     4, 5 and the pathfinder stand.
 

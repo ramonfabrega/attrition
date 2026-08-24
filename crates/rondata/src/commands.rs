@@ -379,7 +379,9 @@ pub enum Command {
     CannonTime {
         state: u8,
     },
-    /// 0x4e — the `~` console travels in lockstep; fixed 256 wchars.
+    /// 0x4e — fixed 256 wchars. Dispatched but unsendable: its 0x209 wire
+    /// size exceeds the 512-byte package cap, so nothing ever emits it
+    /// (`docs/COMMANDS.md` §4).
     ConsoleCmd {
         mouse_x: i32,
         mouse_y: i32,

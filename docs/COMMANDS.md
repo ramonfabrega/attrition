@@ -72,19 +72,33 @@ alignment padding (`LeaderOptionsCommand`, 0x24 in memory) travels packed as
 - **Playback** (`semaphore.ptr[0] & 0x10` set): `read_package` into the
   local package while records match the current frame, `process_all` each.
 
+A fourth writer to the recording, outside the pump: `DropControl::
+process_drops` synthesises a lone `ungraceful_player_drop` package locally
+and writes it plain (it never passes through `send`) — the reason for §5's
+exemption. And a fifth, textual only: the pump's invalid-package error path
+writes the offending package before halting.
+
 Consequences for a reader:
 
 - A **single-player recording stores plain payloads** — the XOR/padding of
   §5 exists only on the network path. Verified: the sample decodes raw.
 - A **multiplayer recording stores network-encoded payloads** (each remote
-  package is written as it arrived), and playback decodes them because the
-  restored semaphore has bit 4 set. A reader must apply §5's XOR when the
-  recording's header says the game was MP.
+  package is written as it arrived; `process_command_package_data` copies
+  wire bytes verbatim into the FIFO), and playback decodes them because
+  the header's Game stretch carries both the seed and the whole semaphore —
+  bit 4 restored, `run_playback` ORs in 0x10, so **a recording is
+  self-decrypting** and a reader must apply §5's XOR exactly when the
+  restored semaphore has bit 4.
+- Bit 4's only writer in the export is `Game::run_gamespy` (0x587060) —
+  the gate is precisely "network game" (second reading).
 - `valid` is 1 only where `CommandManager::init` or the net handler
   (`process_command_package_data`) set it and `process_all` has not yet
   cleared it. In an SP recording that is **exactly the first record**
-  (init sets it once; process_all runs after write_package and clears it for
-  every later turn). It carries no information a reader needs.
+  (init sets it once; process_all runs after write_package and clears it
+  for every later turn); in an MP recording it is **every wire package**
+  (the net handler arms each), with the synthesised drop packages at 0 —
+  a mode fingerprint a reader gets without parsing a single payload
+  (second reading).
 - The camera stream (one command per frame in the sample) is recorded
   input with playback-only effect: `process_camera` moves the camera only
   when a recording is playing (`record_game.flags.ptr[0] & 1`) or for MP
@@ -250,14 +264,21 @@ are the PDB's: `int` i32, `Coord` i32 (world coordinates, `docs/ORDERS.md`),
   `[play i32][replay u8][system_quit u8]`.
 - **camera** `[zoom u8][x_loc i32][y_loc i32]`.
 - **leader_options** `[who i32][peasants i32][peasants_wait i32]
-  [buildings i32][BitMask<8> raw, 0x10 bytes]` — the auto-manage settings;
-  the BitMask travels as its full in-memory struct (bits/size/flags/ptr).
+  [buildings i32][BitMask<32> raw, 0x10 bytes]` — the auto-manage
+  settings; the BitMask travels as its full in-memory struct
+  (bits/size/flags/ptr, the PDB's `LeaderOptionData` +0x10 field type —
+  the decompiler's `BitMask<8>` stack local is the same 16 bytes).
 - **turn_data** `[ping_time u16][frame_average u16][wait_time u16]
   [game_lag u16][forced_loads u16]` — MP turn telemetry.
 - **rename_city** `[who i32][o i32][name wchar × 22]` — fixed 0x35, the
   name field always fully present.
 - **console_cmd** `[mouse_x Coord][mouse_y Coord][cmd wchar × 256]` — fixed
-  0x209; the `~` console travels in lockstep too.
+  0x209. ~~The `~` console travels in lockstep too.~~ Corrected by the
+  second reading: 0x209 > `add_command`'s 0x200 cap, so
+  `issue_console_cmd`'s append **always fails** — the dispatcher handles a
+  command nothing can send, and typed console commands act locally only
+  (`Console::on_key_down` emits `hotkey` commands, nothing else emits
+  0x4e).
 - **player_speed** — 8 × u8, the `accum_*` input-telemetry counters in
   `PlayerSpeedCommand`'s field order.
 - **ungraceful_player_drop** `[play u8][state u8]` — injected by the net
@@ -283,8 +304,10 @@ mechanisms, both keyed to `GameInfo.seed` — which every peer already shares:
   payload with `(seed >> 8) & 0xffff`; a trailing odd byte is copied
   **unencrypted**. `process_all` undoes it in place before walking.
   Exempt: a package that is exactly one `ungraceful_player_drop`
-  (`data[0] == 'P'`, size ≤ 4) when both bits 4 and 0x10 are set — the drop
-  notice is injected server-side after the encode.
+  (`data[0] == 'P'`, size ≤ 4) when both bits 4 and 0x10 are set —
+  `DropControl::process_drops` synthesises that package locally and writes
+  it to the recording without ever passing `send`, so it is stored plain
+  (§2).
 
 Because MP recordings store packages as received (§2), both layers are
 present in an MP `.rcx` and a reader must reverse them: XOR first (whole
@@ -307,17 +330,40 @@ draws. An SP recording has neither.
   byte (`process_marwan`, 0x943660) — an EE-era addition (Twitch/Marwan
   integration?); unread beyond its size.
 - **`begin` (0x01)** is processed as a no-op frame marker
-  (`process_begin`); no issue site was found in `CommandManager`. Where the
-  engine emits it, if ever, is unread.
-- Three unit commands (`move_near`, `board_ship`, `repair`) have no
+  (`process_begin`); per the no-issuer sweep above it is provably never
+  emitted — a vestige.
+- ~~Three unit commands (`move_near`, `board_ship`, `repair`) have no
   `CommandManager::issue_*` wrapper — they are built and appended directly
-  by their UI/AI call sites. The wire formats are pinned by their
-  `process_*` sizes regardless.
-- `CommandPackage.group` and the embedded `Random` are per-process state,
-  never serialized (`walk_data` confirms: only `stamp`, `play`, `valid`,
-  `size`, `data` ride in a save/recording — `docs/RECGAME.md` §4.3).
+  by their UI/AI call sites.~~ Corrected by the second reading, and
+  confirmed by a sweep of all 36 `add_command` callers outside
+  `CommandManager`: **nothing emits them at all.** `move_near`, `repair`,
+  `board_ship`, `begin` and `cheat_init_unit` are dispatched-but-never-
+  issued — legacy or cut paths. Their wire formats stay pinned by their
+  `process_*` sizes.
+- `CommandPackage.group` and the embedded `Random` are per-process state a
+  *recording* never stores (`write_package`'s 18-byte head puts `frame`
+  where `group` sits — `docs/RECGAME.md` §4.3). A **save game** is
+  different: `CommandPackage::walk_data` walks the 0x12-byte head
+  `stamp, play, valid, group, size` — group included (second reading;
+  confirmed against `CommandManager::walk_data`'s literal addresses).
 
-## 7. What the sample established
+## 7. Second reading — landed
+
+The blind second reading ran the same day (Opus, isolated from this
+document and the implementation; `docs/audit/2026-08-24-commands.md` holds
+the adjudication). The dispatch table, sizes, layouts, selection model,
+obfuscation layer and recording placement were all re-derived identically —
+the table doubly derived on each side, four ways total. Four corrections
+are amended inline above, each marked "second reading": `console_cmd` can
+never be sent (§4), the save-game walker serialises `group` (§6), five
+commands have no issuer at all (§6), and the `leader_options` tail is
+`BitMask<32>` (§4). Adopted additions: bit 4's writer pinned to
+`run_gamespy`, the self-decrypting-recording chain, and the `valid` mode
+fingerprint (§2). One count went the first reading's way: `write_package`
+has four textual call sites, not three — the extra one is the pump's
+invalid-package error path, and nothing downstream changes.
+
+## 8. What the sample established
 
 The decoder over the heavengames sample (§ "How this was established"):
 21,884 packages, 257,889 bytes of payload, 25,779 commands, zero errors,
