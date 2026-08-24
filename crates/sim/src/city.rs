@@ -870,11 +870,7 @@ impl Sim {
             hit_frame: None,
             fort_source: None,
             gatherers: Vec::new(),
-            gather_max: if self.build_types[ty].has(build::flags::FLAT) {
-                Some(1)
-            } else {
-                None
-            },
+            gather_max: None,
             gather_from: Vec::new(),
             gather_bumped: false,
             farm: crate::Farm::default(),
@@ -897,6 +893,12 @@ impl Sim {
         if !build::is_city(&self.build_types, ty) {
             self.find_city(b);
         }
+        // `Build::init@00629740` line 275: `gather_max = max_gatherers(type,
+        // o, who, corner)` — a flat type answers 1 without looking at the
+        // map; a camp or a mine surveys it (`crates/sim/src/gather.rs`)
+        // against its own, still empty, `gather_from`, and
+        // `Build::find_gather_tiles` recomputes once the list is filled.
+        self.buildings[b].gather_max = Some(self.max_gatherers(b));
         b
     }
 

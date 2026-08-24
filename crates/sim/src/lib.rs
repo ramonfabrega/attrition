@@ -56,6 +56,7 @@ pub mod cost;
 pub mod economy;
 pub mod fight;
 pub mod garrison;
+pub mod gather;
 pub mod movement;
 pub mod orders;
 pub mod path;

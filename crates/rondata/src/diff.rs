@@ -384,6 +384,18 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     }
 
     let builds = start_of_game(&mut sim, loaded, init, players, &units, &mut notes);
+    // On the flat fallback world a camp's survey (`gather.rs`) finds no
+    // forest and would cap it at zero slots; the map-less dumps (run6, run7)
+    // keep the old uncapped stand-in so their pins measure what they did.
+    if region_map.is_empty() {
+        for b in &mut sim.buildings {
+            let flat =
+                b.ty.is_some_and(|t| sim.build_types[t].has(sim::build::flags::FLAT));
+            if !flat {
+                b.gather_max = None;
+            }
+        }
+    }
     Built {
         sim,
         units,
@@ -528,6 +540,9 @@ fn start_of_game(
                     .iter()
                     .map(|&(x, y)| Pos::new(x as i32, y as i32))
                     .collect();
+                // `Build::find_gather_tiles` line 88: the list is what the
+                // slot count is surveyed from (`crates/sim/src/gather.rs`).
+                sim.buildings[handle].gather_max = Some(sim.max_gatherers(handle));
             }
             // `find_free` numbers the building as it is placed; the dump's
             // `o` is the original's own numbering of the same placement
@@ -1455,19 +1470,12 @@ mod tests {
                 wrong.push(format!("{key}: ours {o:?} theirs {:?}", &t[..6]));
             }
         }
-        // `gather_slots` sums each finished gather building's `gather_max`.
-        // The farms (flat, 1 each) agree; the woodcutter camp's count is
-        // `BuildTypeData::calc_gather`'s — `docs/ECONOMY.md`'s open item —
-        // and is 5 in the record where the sim still says 0 (uncapped). A
-        // ceiling until `gather.rs` lands: never more than the original.
+        // `gather_slots` sums each finished gather building's `gather_max`:
+        // the farms (flat, 1 each) and the woodcutter camp's five, surveyed
+        // from its `gather_from` list by `crates/sim/src/gather.rs`.
         let t = arr("gather_slots[scan]");
         assert_eq!(i64::from(c.gather_slots[0]), t[0], "food slots");
-        assert!(
-            i64::from(c.gather_slots[1]) <= t[1],
-            "wood slots: ours {} theirs {}",
-            c.gather_slots[1],
-            t[1]
-        );
+        assert_eq!(i64::from(c.gather_slots[1]), t[1], "wood slots");
         // The home region: the dump's region 1 is the sim's region_map entry.
         let home_dump = theirs.int("home_reg").unwrap();
         let (_, home) = built
@@ -1481,6 +1489,7 @@ mod tests {
             ("reg_peasants", &c.reg_peasants),
             ("reg_free_peasants", &c.reg_free_peasants),
             ("reg_gatherers", &c.reg_gatherers),
+            ("reg_gather_slots", &c.reg_gather_slots),
             ("reg_cities", &c.reg_cities),
             ("reg_land", &c.reg_land),
             ("strategy", &c.strategy),
@@ -1525,6 +1534,37 @@ mod tests {
             theirs.int("site_mark"),
             built.sim.ai[1].site_mark
         );
+    }
+
+    /// The slot count against the original's own survey: run9's frame-1
+    /// `BUILDDATA` gives each camp its `gather_from` list — 82 tiles for
+    /// player 0's, 61 for player 1's — and the `LEADERS=9` record gives the
+    /// counts those lists produced, `gather_slots[1]` of 7 and 5
+    /// (`crates/sim/src/gather.rs`).
+    #[test]
+    fn run9_s_camps_get_the_original_s_gatherer_counts() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run9-world6.txt") else {
+            eprintln!("skipping: no gamelog-run9-world6.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let built = build_sim(&loaded, &log.initial().unwrap(), Tuning::RON);
+        let sim = &built.sim;
+        let mut got: Vec<(sim::Player, usize, i32)> = Vec::new();
+        for b in 0..sim.buildings.len() {
+            if sim.building_ident(b) == sim::build::Ident::Woodcutter {
+                got.push((
+                    sim.buildings[b].owner,
+                    sim.buildings[b].gather_from.len(),
+                    sim.max_gatherers(b),
+                ));
+            }
+        }
+        got.sort_unstable();
+        assert_eq!(got, vec![(0, 82, 7), (1, 61, 5)], "the camps' slot counts");
     }
 
     /// The oracle, as a regression guard.
