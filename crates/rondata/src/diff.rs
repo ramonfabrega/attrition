@@ -1999,6 +1999,53 @@ mod tests {
                 best_ours, best_theirs,
                 "the best site (wx, wy, val), sampled on the original's stream"
             );
+
+            // All ten, not just the best. The second reading
+            // (`docs/audit/2026-08-25-ai.md`) found two site-layer claims
+            // wrong that a best-site-only assertion cannot see — the ring's
+            // centre (B4-k) and `Site::dist`'s clobber (B4-f) — so the
+            // record is compared slot for slot. `dist` is included
+            // deliberately: it carries the last enemy capital's
+            // `distance / num_nations` whenever the enemy-capital loop runs,
+            // which is a real output of the original and a real thing to
+            // reproduce.
+            let theirs_full: Vec<(i64, i64, i64, i64, i64)> = theirs
+                .kids("SITE")
+                .map(|s| {
+                    (
+                        s.int("wx").unwrap_or(0),
+                        s.int("wy").unwrap_or(0),
+                        s.int("val").unwrap_or(0),
+                        s.int("rank").unwrap_or(0),
+                        s.int("dist").unwrap_or(0),
+                    )
+                })
+                .collect();
+            let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai[1]
+                .sites
+                .iter()
+                .map(|s| {
+                    (
+                        i64::from(s.wx),
+                        i64::from(s.wy),
+                        i64::from(s.val),
+                        i64::from(s.rank),
+                        i64::from(s.dist),
+                    )
+                })
+                .collect();
+            let differing: Vec<String> = theirs_full
+                .iter()
+                .zip(ours_full.iter())
+                .enumerate()
+                .filter(|(_, (t, o))| t != o)
+                .map(|(i, (t, o))| format!("slot {i}: theirs {t:?} ours {o:?}"))
+                .collect();
+            assert!(
+                differing.is_empty(),
+                "the ten site records differ (wx, wy, val, rank, dist):\n  {}",
+                differing.join("\n  ")
+            );
         }
     }
 

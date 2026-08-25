@@ -610,7 +610,20 @@ impl Sim {
                         continue;
                     }
                     let cp = c.pos.cell();
-                    sum = sum.wrapping_add(vector_dist(sx - cp.x, sy - cp.y) / nations.max(1));
+                    let per = vector_dist(sx - cp.x, sy - cp.y) / nations.max(1);
+                    // The original computes this quotient into `local_34`,
+                    // the **same stack slot** that holds the out-distance
+                    // (set to 9 or `2k²` at step 12, and stored to
+                    // `*out_dist` at the epilogue, line 502). So every
+                    // capital examined overwrites the distance figure, and
+                    // `Site::dist` ends up as the *last* enemy capital's
+                    // `distance / num_nations` whenever this loop runs and
+                    // finds one. Confirmed against run9's own record: slot
+                    // 9's `dist` is 27 there and would be `2k² = 128`
+                    // without the clobber.
+                    // (`docs/audit/2026-08-25-ai.md`, B4-f.)
+                    stats.dist = per;
+                    sum = sum.wrapping_add(per);
                 }
             }
             if self.lobby.team_style == 2 {
