@@ -46,23 +46,17 @@ audited and owes the items below.
 
 **Owed, cheapest first.**
 
-1. ~~Widen the make-list diff the way `SITES` was widened (audit B7-f)~~ —
-   done 2026-08-25, `docs/AI.md` §15.7. What it left: the producers'
-   *values* (§15.5's second item: `create_units`' `num 5` batch, the
-   temple's `391136`) and the purchases — the replay takes the bought
-   slots from the dump. The natural next widening is `make_stuff` whole
-   with the block's own goods, once the encrypted goods block is read.
-2. `rondata --types` checks four derived words and the combat table against
+1. `rondata --types` checks four derived words and the combat table against
    run3's dump and exits non-zero on a difference — but only when invoked
    with `--types`; the definition of done's `cargo run -p rondata --
    <install>` never reaches it. Make it an install-gated `cargo test` like
    the `SITES` pin, so it cannot be skipped by omission.
-3. `docs/audit/README.md` owes a paragraph each to the pathfinder, commands
+2. `docs/audit/README.md` owes a paragraph each to the pathfinder, commands
    and recgame audits.
-4. The coastal-ring guard (audit B4-k) — no capture on disk reaches the
+3. The coastal-ring guard (audit B4-k) — no capture on disk reaches the
    branch; it needs a run on a many-islands map, which also lights up the
    sea half of the AI on the trace's never-executed list.
-5. Left over from the behavioural batch (item 4), each a 20–60 minute drive
+4. Left over from the behavioural batch (item 4), each a 20–60 minute drive
    when the game is up for another reason: the city mask's remaining rungs
    (`docs/CITIES.md` §3.6) and the garrison heal (`docs/CITIES.md` §15).
 
@@ -73,10 +67,13 @@ traced game, and each run is a scenario file through the cheat channel.
 Named already: run7's order stream replayed under the trace (the command
 processors), a mounted attacker (the cavalry flank reduction), a caravan
 (the trade economy), a window at frame 576 (`found_cities`' purchases), the
-islands map above. Item 13 would make those automatic. Then the deferred
-readings: `Leader::diplomacy` and the `Army`/`Armies` family
-(`docs/AI.md` §9), and `BuildTypeData::calc_gather` for non-flat buildings,
-which belongs with `docs/ECONOMY.md`.
+islands map above. Item 13 would make those automatic. The next widening
+of a record already on disk: `make_stuff` whole with the block's own
+goods, which reaches the producers' values and the purchases
+(`docs/AI.md` §15.7's last paragraph) and needs the encrypted goods block
+read first. Then the deferred readings: `Leader::diplomacy` and the
+`Army`/`Armies` family (`docs/AI.md` §9), and `BuildTypeData::calc_gather`
+for non-flat buildings, which belongs with `docs/ECONOMY.md`.
 
 **Agreed with the user, 2026-08-25.** How the verification budget splits:
 diff first wherever a dump exists; a blind reading scoped to what no run
@@ -84,7 +81,7 @@ reaches, its readers briefed to output assertions; the soak kept as the
 determinism guard it is. The rules are in `CLAUDE.md` ("Prefer a diff to a
 reading"); the one build that changes the ratio is item 13 below.
 
-**Opener:** `proceed @docs/QUEUE.md — take owed item 2, the --types check as a cargo test`
+**Opener:** `proceed @docs/QUEUE.md — take owed item 1, the --types check as a cargo test`
 
 ## The queue
 
@@ -106,7 +103,7 @@ in which case say so and take that. The story of each struck item is in
    `docs/audit/2026-08-20-cities.md`.
 4. ~~**The behavioural-check batch**~~ — run 2026-08-20 and 2026-08-24. The
    recipe is `docs/ORACLE.md`, "Running a check: the recipe in one place";
-   what is still open is owed item 5 above.
+   what is still open is owed item 4 above.
 5. ~~**The data layer into the sim, and the diff**~~ — done 2026-08-20.
    `docs/DATALAYER.md`, `crates/rondata/src/{gamelog,dump,load,diff}.rs`.
 6. ~~**The combat table's hardcoded half**~~ — done 2026-08-20.
