@@ -626,3 +626,73 @@ language's `float`, which no shipped script uses, is not implemented on
 `f32`: a program declaring one fails to load today, and when a mod earns it
 the type is built on `combat::F32`, the integer-mantissa software float, so
 `no_float.rs` keeps its jurisdiction over the whole simulation crate.
+
+## 21. `CLAUDE.md` carries the rules; the queue and its history live in `docs/`
+
+**Decided 2026-08-25, to be executed as the next session's first task.**
+
+`CLAUDE.md` is 787 lines and 51 KB, of which the working agreement's running
+commentary — the queue, mechanic by mechanic, session by session — is lines
+126–734, **78% of the file**. Every session loads it. So does **every
+subagent spawn**, because a subagent inherits the project's instructions.
+
+Two costs, and the second is the one that forced the decision.
+
+**The standing cost.** ~13 k tokens injected into every spawn. This project
+fans out constantly — the AI's second reading alone spawned seven readers,
+so about 90 k tokens of narrative rode along, none of it useful to a reader
+whose brief is one function.
+
+**The correctness cost.** `docs/audit/2026-08-25-ai.md` records it: the
+blind second reading of the AI **leaked**, because `CLAUDE.md`'s queue names
+that mechanic's findings outright — `TechType::set_research` writing
+`build_flags & 0x8000000`, `research_techs` reaching the 9,999,999 guard, the
+step ladders, the make list's occupied slots, `expire_all`'s `% 3` residue.
+Readers had those in context before they read the brief, so two headline
+"independent confirmations" were nothing of the kind. A brief cannot fix
+this: the system prompt arrives first. **Every future blind reading of a
+mechanic `CLAUDE.md` narrates is degraded the same way**, and the project's
+own definition of done requires one per mechanic.
+
+### The split
+
+- **`CLAUDE.md`** keeps what a subagent should inherit and nothing else:
+  thesis, architecture, hard constraints, phases, conventions, tooling, prior
+  art, and the working agreement's *rules* — one mechanic per session, the
+  five-part definition of done, the three guards, "keep going while the path
+  is clear", "emit traces under the original's own names", the blind-reading
+  method. No findings, no per-mechanic narrative, no queue. Target: under 200
+  lines.
+- **`docs/QUEUE.md`** takes the queue and its history — what is done, what is
+  next, what is owed. The main session reads it; subagents do not. This is
+  the "continuity" file the project had early on and lost.
+
+### The hazard, which decides the method
+
+**The documents are an API.** `crates/` carries **453 section references**
+and 73 mentions of `AI.md` alone, in module docstrings that cite claims by
+number (`docs/AI.md §2.7`). Renumbering or merging sections inside a mechanic
+document silently invalidates hundreds of them, and nothing tests it.
+
+So the restructure is done in two tiers, and only the first is safe:
+
+- **Tier 1 — pure moves, no deletion.** Split `CLAUDE.md`; lift the queue
+  into `docs/QUEUE.md` verbatim. Nothing is rewritten, so nothing can be lost
+  and the diff is reviewable. This alone fixes the leak and the per-spawn
+  cost. Do this first and commit it on its own.
+- **Tier 2 — pruning inside the mechanic documents, selectively.** Each one
+  mixes three things: the **specification** (the derived rules — the
+  treasure), the **provenance** (how it was established, confidence, what is
+  *not* established — required by the working agreement, and how a reader
+  tells a derived formula from a guess), and the **chronicle** (which session
+  landed what, which run showed it). Only the third is git history restated,
+  and only the third should go.
+
+  Do **not** sweep all 22 documents. Apply the rule when a mechanic is next
+  touched, plus one pass over the two or three worst offenders — `ORDERS.md`
+  (178 KB), `AI.md` (127 KB), `ORACLE.md` (114 KB). **Preserve section
+  numbers**, or fix every citation in the same commit.
+
+The amend-in-place rule (`Conventions`) is unchanged and stays: a claim that
+was corrected keeps its correction inline, with the successor named. That is
+provenance, not chronicle.
