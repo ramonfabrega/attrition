@@ -122,8 +122,9 @@ in this order. Field names are the PDB's (`struct /rise.pdb/LeaderData`);
 `Leader` is an unpopulated shell over it, so the decompile prints
 `field_0xNNN` for all of them. "Region" is the tile's `tregion`
 (`world+0x134` tile record, short at `+4`; `docs/CITIES.md` §2.3); land
-regions are `0..0x3e`, sea regions `0x3f..0x7e` and are stored `% 0x3f` in
-the 63-entry arrays.
+regions are `< 0x40`, sea regions `≥ 0x40` (~~`0x3f..0x7e`~~ — the
+boundary is `Region::is_coast`'s, `docs/TRANSPORT.md` §9; run20's one
+ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
 
 1. **Escrow rate.** If `city_num + village_num > 2`: `escrow_rate[0..5] =
    40`.
@@ -135,7 +136,10 @@ the 63-entry arrays.
    cruise, nuke, free_peasants, xport_peasants, gatherers, attacked,
    full_cities`. **Not** zeroed here: `control`, `pop`, `scouts` (kept by
    the unit lifecycle), the `*_high` maxima, `reg_pop`, `reg_forts`,
-   `reg_docks`, `reg_terr`, `reg_buildings` (kept by `gain_/lose_building`).
+   `reg_terr`, `reg_buildings` (kept by `gain_/lose_building`), and
+   `reg_docks` (~~`gain_/lose_building`~~ — kept by `Dock::init` /
+   `Dock::close`, `docs/TRANSPORT.md` §5.2–§5.3; those two only call
+   `check_transport`).
 4. **Territory.** `my_team_terr = get_team_terr()`; over every other
    computer leader not allied both ways (`diplos[i] != 2` on either side):
    `other_team_terr = max`, `min_other_team_terr = min` (0 means unset).
@@ -286,7 +290,12 @@ orders, so `docs/ORDERS.md`'s "the frame-0 sweep issues no order" (audit
 F4) is true only because a fresh game has no orphan sites.
 
 One field this sweep does **not** produce: a human leader's `peasants` and
-`gatherers` come from `Leader::calc_gather@006ceee0`, not from here.
+`gatherers` come from `Leader::calc_gather@006ceee0`, not from here. Two it
+zeroes and does not own between sweeps: `xport_peasants` and
+`reg_xport_peasants` are also incremented by
+`Unit::think_civilian_transport` each time it dispatches a colonist
+(`docs/TRANSPORT.md` §7), so a mid-cycle record can read higher than step
+10 alone would give.
 
 ### 2.4 The step machine — `production_ai@006c1960`
 
@@ -1507,7 +1516,10 @@ The script side: §3.
    `produce_*`. Pin: run7's table in §5, all of it.
 4. **Armies**, as its own document (`docs/ARMY.md`): the state machine and
    `find_target`. Its oracle is a longer run with a war in it, which does
-   not exist yet.
+   not exist yet. **The sea half of it is read** (2026-08-25,
+   `docs/TRANSPORT.md`): `check_transport`, the docks registry,
+   `think_civilian_transport`, `do_mustering`'s transporting arm,
+   `do_transporting`, `init_navy` / `send_navy`.
 5. **Diplomacy**: deferred, named.
 
 Each of 1–3 ends in the harness: `rondata --recgame … --gamelog … --diff`
@@ -2325,7 +2337,8 @@ frame 201, `Unit::think_civilian_transport` 275, `Dock::init` and
 14586 — and the list never showed them because §9's table cites that family
 by name without an address. **A citation without `@address` is invisible to
 the coverage report**; the family is now on the record here by address, and
-the reading of it (§9) is the next one the queue names.
+~~the reading of it (§9) is the next one the queue names~~ — read the same
+day, `docs/TRANSPORT.md`, with run22 as its capture.
 
 **Also observed:** the lobby's `Reveal Map`, `Map Style`, `Resources` and
 `PLAYERn_TRIBE` are the profile's, not `check.ini`'s, on every run — and

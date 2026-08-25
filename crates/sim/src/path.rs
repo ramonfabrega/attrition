@@ -107,8 +107,11 @@ impl Sim {
     /// ships or aircraft yet — and the cliff and per-cell hazard layers do
     /// not exist, so those refusals never fire. SEAM: fog_relax's
     /// flag-4-leader branch (stand in the unseen) is a no-op with no fog
-    /// model; `transport_forced` (`unit_masks & 0x800000`) is never set, so
-    /// water refuses every unit.
+    /// model; `transport_forced` (`unit_masks & 0x800000`) is left clear
+    /// here — the bit itself exists now (`Unit::auto_transport`,
+    /// `docs/TRANSPORT.md` §3) but the shore conversion (§6) is not
+    /// modelled, so a unit let onto water would walk on it; water refuses
+    /// every unit until boarding lands.
     #[allow(clippy::too_many_arguments)] // the original's five flags, kept by name
     pub(crate) fn invalid_loc(
         &self,
@@ -132,7 +135,9 @@ impl Sim {
         let mask = self.world.tile_mask(t);
         let surface = mask & tile::SURFACE;
         let forest_walker = false; // SEAM: `unit_masks2 & 0x4000` (Iroquois).
-        let transport_forced = false; // SEAM: `unit_masks & 0x800000`.
+        // SEAM, deliberate: `self.units[u].auto_transport` is the bit, kept
+        // out of the water test until the boarding path exists.
+        let transport_forced = false;
         // Land domain: forest, mountain, cliff, then water.
         if (surface == tile::SURFACE_FOREST && !forest_walker)
             || mask & tile::OBJECT == tile::OBJECT_MOUNTAIN
@@ -200,22 +205,8 @@ impl Sim {
         v
     }
 
-    /// `UnitData::needs_transport`: 0 = no shoreline crossed, 1 = water to
-    /// land, 2 = land to water. Tile coordinates.
-    fn needs_transport(&self, from: Pos, to: Pos) -> i32 {
-        if from == to {
-            return 0;
-        }
-        let water = |t: Pos| self.world.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN;
-        let (a, b) = (water(from), water(to));
-        if a == b {
-            0
-        } else if a {
-            1
-        } else {
-            2
-        }
-    }
+    // `UnitData::needs_transport` is `Sim::needs_transport` in `transport.rs`
+    // (`docs/TRANSPORT.md` §6).
 
     /// Whether a cell is ocean — `WorldData::is_ocean`, through the region
     /// layer.
@@ -315,9 +306,10 @@ impl Sim {
             }
         }
 
-        // The transport tail. SEAM: no unit can transport, so the embark
-        // penalties and refusals are dormant; the water itself was priced
-        // above.
+        // The transport tail. SEAM, deliberate: `Sim::unit_can_transport(u)`
+        // is the predicate (`docs/TRANSPORT.md` §3.2), held at false here
+        // until the boarding path exists, so the embark penalties and
+        // refusals stay dormant; the water itself was priced above.
         let crossing = self.needs_transport(from.tile(), to.tile());
         let can_transport = false;
         if crossing > 0 && can_transport && depth >= 2 {

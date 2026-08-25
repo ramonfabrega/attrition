@@ -212,6 +212,18 @@ tile" branch with its two draws on **102**. The regrowth is `1.0f − 0.01f`
 per frame, `≤ 0` on the **101st** subtraction. Landed:
 `crates/sim/src/farms.rs`, `FARM_GROWS` retired.
 
+### 3.4 The docks — `Dock::init@00740a80` (2026-08-25)
+
+Not per frame: per dock finished. `Build::activate` → `Docks::init_dock` →
+`Dock::init` spawns the dock's gull (`Objects::init_unit(9, GULLBIRD, x −
+0xc0, y − 0xc0)` — one creation draw, `Guy::init_real`) and then draws
+`Random::get(game_random, 0, 0xffff)` for its heading (`% 7 × 0x0aaaaaaa −
+0x40000000`). **Two draws, creation first**, inside the building's own
+`process` in the objects phase (§3.2). Run21, frame 3579: draws 0 and 1
+are `Guy::init_real+0x52 < Unit::init < Animal::init` and `Dock::init+0x125
+< Docks::init_dock+0x128 < Build::activate+0xcbf`. `docs/TRANSPORT.md`
+§5.2; landed in `crates/sim/src/transport.rs` (`dock_open`).
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):

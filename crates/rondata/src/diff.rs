@@ -189,8 +189,10 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         // A `WORLD ≥ 5` start dump: the map's own cells — region, the
         // coastal `region2`, the site value, the goods bits, the owners
         // (`docs/ORACLE.md`, "The map is a dump too"). The dump's region
-        // numbers are the original's (`0..0x3e` land, `0x3f..0x7e` sea,
-        // `docs/AI.md` §2.3); each distinct one becomes a sim region.
+        // numbers are the original's — land `< 0x40`, sea `≥ 0x40`, the
+        // boundary `Region::is_coast` and `Regions::set_coastals` test
+        // (`docs/TRANSPORT.md` §9; run20's one ocean is 65) — and each
+        // distinct one becomes a sim region.
         let mut region_of = |n: i64, world: &mut World| -> Option<u16> {
             if n < 0 {
                 return None;
@@ -198,7 +200,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             if let Some((_, r)) = region_map.iter().find(|(d, _)| *d == n) {
                 return Some(*r);
             }
-            let terrain = if n < 0x3f {
+            let terrain = if n < 0x40 {
                 sim::world::Terrain::Land
             } else {
                 sim::world::Terrain::Sea
@@ -1502,7 +1504,7 @@ pub fn run_traced<'a, 'b: 'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gamelog::{CityDump, Guy, LeaderDump, OrderDump, UnitDump};
+    use crate::gamelog::{Block, CityDump, Guy, LeaderDump, OrderDump, UnitDump};
     use sim::ai::{MAKE_SLOTS, MakeObject};
 
     use crate::testenv::{dump, install};
@@ -2198,6 +2200,83 @@ mod tests {
             "the per-region census disagrees:\n  {}",
             wrong.join("\n  ")
         );
+        // The `CITY` record, whole: step 13's picture — `ocean`, `land`,
+        // `filled`, `dock_tile` (`Sim::is_dock_tile`, `docs/TRANSPORT.md`
+        // §5.6; 1 for the AI's city, 0 for the human's), `space[3]` — and
+        // steps 2/10's `free`, `busy`, `gatherers`, `peasant_dist`,
+        // `in_port`. `ter[6]` is the `gather_at` seam and is not compared.
+        let mut wrong = Vec::new();
+        let mut matched = 0;
+        let frame1 = log
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == 1)
+            .map(|(_, b)| b)
+            .expect("FRAME 1");
+        let cities = frame1.find("CITIES").expect("FRAME 1 CITIES");
+        for rec in cities.kids("CITY").filter(|c| c.int("who") == Some(1)) {
+            let (x, y) = (rec.int("x").unwrap_or(-1), rec.int("y").unwrap_or(-1));
+            let Some(c) = built
+                .sim
+                .cities
+                .iter()
+                .position(|c| c.alive && i64::from(c.pos.x) == x && i64::from(c.pos.y) == y)
+            else {
+                wrong.push(format!("no city of ours at {x},{y}"));
+                continue;
+            };
+            matched += 1;
+            let ours = built.sim.ai[1].city_ai[c];
+            let space: Vec<i64> = rec
+                .all("space[scan]")
+                .iter()
+                .map(|v| v.trim().parse().unwrap_or(0))
+                .collect();
+            let fields = [
+                ("ocean", ours.ocean),
+                ("land", ours.land),
+                ("filled", ours.filled),
+                ("dock_tile", ours.dock_tile),
+                ("free", ours.free),
+                ("busy", ours.busy),
+                ("gatherers", ours.gatherers),
+                ("peasant_dist", ours.peasant_dist),
+                ("in_port", ours.in_port),
+            ];
+            for (key, o) in fields {
+                let t = rec.int(key);
+                if t != Some(i64::from(o)) {
+                    wrong.push(format!("{key}: ours {o} theirs {t:?}"));
+                }
+            }
+            // `space[2]` (cells taking a 4-square) matches; `space[0]` and
+            // `space[1]` do not — the original scores ten more cells at
+            // exactly 3 than the harness does. That is `WorldData::
+            // check_building_wcoord`'s `space_at_corner`, whose fifth
+            // argument (the corner's `|dx| + |dy|`, or the running best
+            // when the corner is on an axis) the simulation's four-argument
+            // form does not pass. A placement finding, queued
+            // (`docs/QUEUE.md`); pinned here so the day it moves is seen.
+            let known = [(0usize, 48, 58), (1, 48, 58)];
+            for (i, o) in ours.space.iter().enumerate() {
+                let t = space.get(i).copied();
+                if let Some(&(_, ko, kt)) = known.iter().find(|k| k.0 == i) {
+                    if *o != ko || t != Some(kt) {
+                        wrong.push(format!(
+                            "space[{i}] moved off the known divergence: ours {o} (was {ko}) theirs {t:?} (was {kt})"
+                        ));
+                    }
+                } else if t != Some(i64::from(*o)) {
+                    wrong.push(format!("space[{i}]: ours {o} theirs {t:?}"));
+                }
+            }
+        }
+        assert_eq!(matched, 1, "the AI's one city");
+        assert!(
+            wrong.is_empty(),
+            "the CITY record disagrees:\n  {}",
+            wrong.join("\n  ")
+        );
         built.sim.tick();
         let theirs_full: Vec<(i64, i64, i64, i64, i64)> = theirs
             .kids("SITE")
@@ -2806,6 +2885,171 @@ mod tests {
     }
 
     /// Income against the original's own ledger: run8's `FRAME 2`
+    /// The first dock, under run22's window (`gamelog-run22-islands-dock-
+    /// window.txt`, 2026-08-25: the run21 lobby, `DUMP_ALL` for `[3579,
+    /// 3582)`). `docs/TRANSPORT.md` §5, §10, §12 — the docks registry and
+    /// the transport level, checked against the original's own records:
+    ///
+    /// - block 3579 has no active `DOCK` and none of the AI's units carry
+    ///   `unit_masks & 0x800000`; block 3580 has one dock and every AI unit
+    ///   carries the bit, the human's none (`Leader::check_transport`);
+    /// - the `DOCK` record's `reg` is the region of the building's cell in
+    ///   the run's own `WORLD` block — the **sea**, so `Dock::init`'s
+    ///   `reg < 0x40` guard leaves `reg_docks` untouched;
+    /// - a dock placed and activated in the harness at that position takes
+    ///   slot 0, records the same region, leaves `reg_docks` at 0, and — the
+    ///   AI holding the bonus's prerequisite — grants the civilian level to
+    ///   every land unit of its owner and to nobody else's.
+    #[test]
+    fn run22_s_first_dock_registers_in_the_sea_and_grants_the_level() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run22-islands-dock-window.txt") else {
+            eprintln!("skipping: no gamelog-run22-islands-dock-window.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        assert_eq!(built.sim.lobby.map_style, 18, "East Indies");
+
+        let frames = log.frames();
+        let block = |n: i64| -> &Block<'_> {
+            let (_, b) = frames
+                .iter()
+                .find(|(f, _)| *f == n)
+                .expect("the frame block");
+            b.kid("FULL DUMP").unwrap_or(b)
+        };
+        let sub = |b: &Block<'_>, key: &str| -> Option<i64> { b.find("SUBOBJECT")?.int(key) };
+        // The unit bits, by owner: (with the bit, without).
+        let bits = |b: &Block<'_>, who: i64| -> (usize, usize) {
+            let mut on = 0;
+            let mut off = 0;
+            for u in b.kids("UNITDATA") {
+                if sub(u, "who") != Some(who) {
+                    continue;
+                }
+                if u.int("unit_masks").unwrap_or(0) & 0x80_0000 != 0 {
+                    on += 1;
+                } else {
+                    off += 1;
+                }
+            }
+            (on, off)
+        };
+        fn active_docks<'a, 'b>(b: &'a Block<'b>) -> Vec<&'a Block<'b>> {
+            b.kid("DOCKS")
+                .map(|d| {
+                    d.kids("DOCK")
+                        .filter(|r| r.int("dock_flags").unwrap_or(0) & 1 != 0)
+                        .collect()
+                })
+                .unwrap_or_default()
+        }
+
+        let before = block(3579);
+        assert!(active_docks(before).is_empty(), "no dock before 3579");
+        let (on, off) = bits(before, 1);
+        assert_eq!((on, off), (0, 14), "the AI's 14 units before the dock");
+
+        let after = block(3580);
+        let docks = active_docks(after);
+        assert_eq!(docks.len(), 1, "one dock at 3580");
+        let d = docks[0];
+        assert_eq!(d.int("dock"), Some(0), "slot 0");
+        assert_eq!(d.int("who"), Some(1), "the AI's");
+        let o = d.int("o").expect("o");
+        let dump_reg = d.int("reg").expect("reg");
+        let (on, off) = bits(after, 1);
+        assert_eq!((on, off), (14, 0), "every AI unit has the bit at 3580");
+        assert_eq!(bits(after, 0).0, 0, "no human unit has it");
+
+        // The building, and its cell in the harness's world.
+        let bd = after
+            .kids("BUILDDATA")
+            .find(|b| sub(b, "o") == Some(o) && sub(b, "who") == Some(1))
+            .expect("the dock's BUILDDATA");
+        assert_eq!(bd.int("orig_type"), Some(432), "DOCK");
+        let pos = Pos::new(
+            sub(bd, "x_internal").unwrap() as i32,
+            sub(bd, "y_internal").unwrap() as i32,
+        );
+        let sim_reg = built
+            .sim
+            .world
+            .region_of(pos.cell())
+            .expect("the dock's cell has a region");
+        let mapped = built
+            .region_map
+            .iter()
+            .find(|(_, r)| *r == sim_reg)
+            .map(|(d, _)| *d);
+        assert_eq!(mapped, Some(dump_reg), "the DOCK's reg is the cell's");
+        assert_eq!(
+            built.sim.world.terrain(sim_reg),
+            sim::world::Terrain::Sea,
+            "a dock's centre cell is water — the guard skips reg_docks"
+        );
+
+        // The same dock in the harness: the AI holds the bonus's
+        // prerequisite by frame 201 (run21's `check_transport`), so grant
+        // it, then place and finish the dock.
+        let preq = built
+            .sim
+            .tech_tree
+            .roles
+            .transport_preq
+            .expect("Written Word, from rules.xml's third TECHBONUS");
+        built.sim.gain_tech(1, preq);
+        assert_eq!(
+            built.sim.transport_level(1),
+            sim::transport::TransportType::None,
+            "the prerequisite alone grants nothing"
+        );
+        let ty = loaded.build_of_type_index(432).expect("the dock type");
+        let b = built.sim.add_building(1, pos, 1);
+        built.sim.buildings[b].ty = Some(ty);
+        built.sim.buildings[b].orig_ty = Some(ty);
+        built.sim.buildings[b].started = true;
+        built.sim.activate(b, false, true);
+        assert_eq!(built.sim.buildings[b].dock_slot, Some(0));
+        assert_eq!(built.sim.docks[1].slots[0].reg, Some(sim_reg));
+        assert!(
+            built.sim.ai[1].census.reg_docks.iter().all(|n| *n == 0),
+            "reg_docks stays 0 for a dock in the sea"
+        );
+        assert_eq!(
+            built.sim.transport_level(1),
+            sim::transport::TransportType::Civilian
+        );
+        let ai_units: Vec<usize> = (0..built.sim.units.len())
+            .filter(|&u| built.sim.units[u].owner == 1 && built.sim.units[u].alive())
+            .collect();
+        assert!(!ai_units.is_empty());
+        for &u in &ai_units {
+            assert!(
+                built.sim.units[u].auto_transport,
+                "unit {} of the AI has the bit",
+                built.sim.units[u].index
+            );
+        }
+        assert!(
+            built
+                .sim
+                .units
+                .iter()
+                .filter(|u| u.owner == 0)
+                .all(|u| !u.auto_transport),
+            "the human's units do not"
+        );
+        assert_eq!(
+            built.sim.transport_level(0),
+            sim::transport::TransportType::None
+        );
+    }
+
     /// `LEADERDATA who 1` (`LEADERS=9`) prints the encrypted goods block —
     /// `resources` is the assembled rate, in sixteenths — and it reads
     /// `[160, 160, 0, 0, 0, 0]`: `CITY_GATHER × 16` for food and timber and

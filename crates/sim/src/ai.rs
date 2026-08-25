@@ -562,6 +562,9 @@ pub struct Census {
     pub reg_cities: Vec<i32>,
     /// `reg_pop[r]`: kept by the building lifecycle (`gain_/lose_building`).
     pub reg_pop: Vec<i32>,
+    /// `reg_docks[r]`: kept by `Dock::init` / `Dock::close`
+    /// (`docs/TRANSPORT.md` §5.2–§5.3), never zeroed by the sweep.
+    pub reg_docks: Vec<i32>,
     /// `strategy[r]`: bit 1 thin, 2 stronger, 4 weaker, 8 expand.
     pub strategy: Vec<i32>,
     pub reg_wars: Vec<i32>,
@@ -591,6 +594,7 @@ impl Census {
             &mut self.reg_unpack_merch,
             &mut self.reg_cities,
             &mut self.reg_pop,
+            &mut self.reg_docks,
             &mut self.strategy,
             &mut self.reg_wars,
             &mut self.reg_allies,
@@ -784,6 +788,7 @@ impl Leader {
                 reg_unpack_merch: Vec::new(),
                 reg_cities: Vec::new(),
                 reg_pop: Vec::new(),
+                reg_docks: Vec::new(),
                 strategy: Vec::new(),
                 reg_wars: Vec::new(),
                 reg_allies: Vec::new(),

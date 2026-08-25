@@ -27,57 +27,61 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `b49ac36`.* The commit this
+*Last verified 2026-08-25, the session after `ced7bc8`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** The last owed item, on Fable: the islands map. Two runs
-(run20, East Indies under `DUMP_ALL` for frames 0–3; run21, the same
-lobby fast-forwarded to 24,000 with the dump off), the coastal-ring
-guard as a ten-record `SITES` diff that passes and fails on demand, and
-**four corrections to `crates/sim`** the diff found on the way — the
-world's `sea_map` is the map style's class and not a landmass count,
-`land_key[]` is a static table, `is_ocean` is by cell kind, and
-`was_seen` is a territory arm plus the fog grid, not a seam. `docs/AI.md`
-§15.8, the audit's fourth pass, `docs/ORACLE.md` "run20 and run21", and
-today's journal entry. Item 12 is struck below.
+**Last landed.** The AI's sea half, as its own mechanic: `docs/TRANSPORT.md`
+(the transport level, the unit bit, the docks registry, `is_dock_tile`,
+`think_civilian_transport`, the army's transporting step, the navy hooks),
+`crates/sim/src/transport.rs` with the census's two seams closed
+(`num_coasts`, `is_dock_tile`) and `carry`/fishermen wired, the blind second
+reading (`docs/audit/2026-08-25-transport.md`, 114 claims, two Rust
+changes), and **run22** — the run21 lobby under a `DUMP_ALL` window at the
+frame the trace gave for the first dock, eight minutes end to end, staged by
+`tools/gamelog/window.py`. Two assertions on disk: run20's `CITY` record
+widened to all of step 13 (`dock_tile` 1 matches), and run22's `DOCK`
+record and the 14-unit `0x800000` flip, both passing and both made to fail
+once. Item 14 is struck below.
 
-**In progress.** Nothing mid-mechanic. **Owed:** nothing.
+**In progress.** Nothing mid-mechanic. **Owed:** one finding the run20
+widening produced, pinned as a known divergence rather than fixed —
+`space[0]`/`space[1]` of the AI's `CITY` record (ours 48, theirs 58):
+`WorldData::check_building_wcoord` passes its `space_at_corner` a fifth
+argument (the corner's `|dx| + |dy|`, or the running best on an axis) that
+`ai_place.rs`'s four-argument form does not. A placement item
+(`docs/CITIES.md`), a morning's work, and `diff.rs`'s run20 test is the
+guard that flips when it lands.
 
-**Next.** What follows the twelve items is the **blind list of runs**
-(`tools/trace/report.py … blind docs/`: 438 cited by address, 87 never
-run over ten traces) — each run a scenario file through the cheat
-channel: run7's order stream replayed under the trace (the command
-processors), a mounted attacker (the cavalry flank reduction), a caravan
-(the trade economy), a window at frame 576 (`found_cities`' purchases).
-Item 13 would make those automatic. Two things run20/21 left on the
-table, cheapest first: **a reading of the AI's sea half** — run21's trace
-has `check_transport`, the docks and `Army::do_transporting` executing
-for the first time, so a reader can be briefed with frames rather than
-blind (`docs/AI.md` §9, §15.8); and **a `DUMP_ALL` window on an islands
-game past the docks** (run21's frame 3579 onward), which would make
-`reg_naval`, `reg_docks` and the transport census a diff. Smaller and
-open: `reg_forts` and `was_seen`'s leader-flag exits; the left-overs from the
-behavioural batch — the city mask's remaining rungs (`docs/CITIES.md`
-§3.6) and the garrison heal (§15). The next widening of a record already
-on disk is still `make_stuff` whole with the block's own goods
-(`docs/AI.md` §15.7's last paragraph), which needs the encrypted goods
-block read first. Then the deferred readings: `Leader::diplomacy` and the
-`Army`/`Armies` family, and `BuildTypeData::calc_gather` for non-flat
-buildings, which belongs with `docs/ECONOMY.md`.
+**Next.** The blind list is now 471 cited by address, 375 entered over
+eleven traces, **96 never** — the rise is `TRANSPORT.md`'s 33 new
+citations, of which `Dock::close`, `close_dock`, `remask_docks`,
+`find_dock`, `send_navy`, `coast_here`, `action_set_transport` have never
+run. Each is one cheat-channel scenario: a dock destroyed (`cheat die` on
+the dock's `o`), a land army with a cross-sea target (needs run21's game
+past 14586 under a window), a citizen dispatched off-island (`think_
+civilian_transport` succeeding — a window past 3608 with `UNITS=3`,
+`docs/TRANSPORT.md` §12 item 3). The one reading this closes points at:
+`docs/ARMY.md` — the `Army`/`Armies` family now has its transporting arm,
+its cadence (audit B.45), its merge path (B.67) and its eviction rule
+(B.59) written down by the second reading and nowhere else. Then, as
+before: run7's order stream replayed under the trace, a mounted attacker,
+a caravan, the `found_cities` window at 576; `make_stuff` whole with the
+goods block; `Leader::diplomacy`; `calc_gather` for non-flat buildings.
 
 **Agreed with the user, 2026-08-25.** How the verification budget splits:
 diff first wherever a dump exists; a blind reading scoped to what no run
 reaches, its readers briefed to output assertions; the soak kept as the
 determinism guard it is. The rules are in `CLAUDE.md` ("Prefer a diff to a
-reading"); the one build that changes the ratio is item 13 below.
+reading"); the one build that changes the ratio is item 13 below. Today's
+shape — read, stage the capture from the trace's frame numbers, spawn the
+readers while it runs, adjudicate against both — is the one to repeat.
 
-**Needs the user.** Every behavioural run needs the lobby's three clicks
-and, off the profile's Great Lakes, the Map Style combo; the profile does
-not keep a choice across a killed process. Two minutes at the machine per
-run, or item 13's driver.
+**Needs the user.** Nothing this session: the lobby's clicks were driven
+(`docs/ORACLE.md`, run22's driving notes). A window run is now `window.py
+stage LO HI`, launch, five `cliclick`s, wait, `restore`.
 
-**Opener:** `proceed @docs/QUEUE.md — take the AI's sea half: brief a reading of check_transport, the docks and Army::do_transporting from run21's trace (docs/AI.md §9, §15.8), or a DUMP_ALL window on the islands game past frame 3579 to make the naval census a diff`
+**Opener:** `proceed @docs/QUEUE.md — take the check_building_wcoord / space_at_corner finding (the run20 CITY record's space[0..1], docs/CITIES.md), or open docs/ARMY.md from the second reading's army rows and run21's frames`
 
 ## The queue
 
@@ -161,6 +165,9 @@ in which case say so and take that. The story of each struck item is in
       channel cannot stage — diplomacy, the sea half until transports can
       be ordered, CtW, multiplayer. For those the reading stays the only
       evidence, and that list is the reading's brief.
+14. ~~**The sea half — transports and docks**~~ — done 2026-08-25.
+    `docs/TRANSPORT.md`, `crates/sim/src/transport.rs`,
+    `docs/audit/2026-08-25-transport.md`; run22 and `tools/gamelog/window.py`.
 
 ## How to maintain this file
 

@@ -109,6 +109,14 @@ names frame 0's 120 draws in order; `report.py <log> blind docs/` lists
 the functions the documents cite that no traced run has entered.
 `docs/ORACLE.md`, "The draw-site trace and function coverage".
 
+**Staging a window run in one call.** `window.py stage LO HI` writes every
+setting a `DUMP_ALL` window needs — `gamelog.ini` (`DUMP_ALL=1`, `[Start
+Game] WORLD=6`), `rise.ini` (`InitialDump=1`), `rise2.ini` (the two frame
+keys), `rontrace.cfg` and a `rontrace.cmd` that fast-forwards to the window
+and quits after it — and `window.py restore` undoes them. Run22
+(`docs/ORACLE.md`) is its first use: eight minutes for a three-block window
+at frame 3579.
+
 **A `DUMP_ALL` window.** `LogStartFrame` / `LogEndFrame` under
 `[RISE OF NATIONS]` in **`rise2.ini`** (not `gamelog.ini`'s `Checksum
 Dump`/`Checksum Break`, which are a one-shot dump and an `int 3` keyed on the

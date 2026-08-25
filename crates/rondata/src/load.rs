@@ -1082,6 +1082,12 @@ pub fn load_tables(
             ]
         })
         .collect();
+    // `TRANSPORT_BONUS` is the third bonus (`0x2ae − 0x2ac`) and its `preq0`
+    // is what `has_preq` on it tests (`docs/TRANSPORT.md` §4, §13).
+    tree.roles.transport_preq = match bonus_preqs.get(2) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,

@@ -285,6 +285,11 @@ pub struct Roles {
     pub village: Option<TypeId>,
     /// `DOCK`, the root of Anchorage and Shipyard.
     pub dock: Option<TypeId>,
+    /// `TRANSPORT_BONUS`'s one prerequisite — the technology whose
+    /// ownership is `has_preq(TRANSPORT_BONUS)` (`docs/TRANSPORT.md` §4;
+    /// Written Word in the shipped `rules.xml`). `None` leaves the bonus
+    /// granted, the tree's rule for a role it does not know.
+    pub transport_preq: Option<TypeId>,
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,

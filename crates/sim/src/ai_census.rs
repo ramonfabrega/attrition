@@ -79,12 +79,13 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// | `is_seen` | — | step 6 skipped whole; no leader ever *becomes* met here. |
 /// | `ScenarioData::ally_mask` | 0 | scenarios are cut from v1. |
 /// | `unit_masks & 1` | clear | the flag that excludes an object from the census is unmodelled. |
-/// | `UnitTypeData::carry` | 0 | no transports, so `transports` stays 0. |
-/// | `unit_flags2 & 4` | clear | no fishermen, so `fishermen`/`idle_fishermen` stay 0. |
-/// | `unit_masks & 0x80000` | clear | "packed/idle" is unmodelled; every merchant counts in `reg_unpack_merch`. |
+/// | `unit_masks & 0x80000` | clear | "packed/idle" is unmodelled; every merchant counts in `reg_unpack_merch`, no fisherman is idle. |
 /// | order kinds 8 / 0xe | never | build-and-repair-through-a-transport is unmodelled. |
-/// | `Region::num_coasts` | 0 | the coast masks are map data we do not load. |
-/// | `BuildTypeData::is_dock_tile` | false | so `dock_tile` stays 0. |
+///
+/// Two seams closed 2026-08-25 with `docs/TRANSPORT.md`: `Region::num_coasts`
+/// is computed from the cells (`World::rebuild_coasts`) and
+/// `BuildTypeData::is_dock_tile` is `Sim::is_dock_tile`; `carry` and
+/// `unit_flags2 & 4` come from the type's columns.
 /// | `World::gather_at` | zeroes | so `CityAi::ter` stays 0. |
 /// | region flags `& 8` | clear | step 15's two-landmass expand probe never fires. |
 /// | `Armies` | — | step 16 is skipped whole; `Armies::init_army` is unmodelled. |
@@ -105,16 +106,6 @@ impl Sim {
     /// active leader — otherwise steps 14 and 15 could never count anything.
     fn met(&self, who: Player, other: usize) -> bool {
         other != who as usize && !self.defeated[other]
-    }
-
-    /// Seam: `BuildTypeData::is_dock_tile`.
-    fn is_dock_tile(&self, _c: Cell) -> bool {
-        false
-    }
-
-    /// Seam: `Region::num_coasts`.
-    fn num_coasts(&self, _r: u16) -> i32 {
-        0
     }
 
     /// Seam: `World::gather_at` — what a citizen would take off this cell,
@@ -440,6 +431,12 @@ impl Sim {
             let obj_masks = profile.map_or(0, |p| p.obj_masks);
             let siege = profile.is_some_and(|p| p.siege);
             let military = roles & ROLE_MILITARY != 0;
+            // `UnitTypeData::carry` and `unit_flags2 & 4` — a transport and
+            // a fisherman.
+            let carry = unit.ty.is_some_and(|t| self.unit_types[t].cols.carry != 0);
+            let fisherman = unit
+                .ty
+                .is_some_and(|t| self.unit_types[t].cols.unit_flags2 & 4 != 0);
             // `attack() / 10`, or a flat 10 off the ground.
             let strength = if domain == Domain::Land {
                 self.attack_of(Obj::Unit(u)) / 10
@@ -460,8 +457,6 @@ impl Sim {
             }
             match domain {
                 Domain::Sea => {
-                    let carry = false; // seam: `UnitTypeData::carry`
-                    let fisherman = false; // seam: `unit_flags2 & 4`
                     let cs = &mut self.ai[w].census;
                     cs.naval += strength;
                     if strength != 0 {
@@ -534,7 +529,9 @@ impl Sim {
             }
             if domain == Domain::Sea && !land_reg {
                 cs.reg_naval[r] += strength;
-                // seam: `carry` is never set, so `reg_transports` stays 0.
+                if carry {
+                    cs.reg_transports[r] += 1;
+                }
             }
         }
     }
@@ -822,7 +819,8 @@ impl Sim {
         if d.flags & 0x100 == 0 && (d.land == 1 || d.land == 2) {
             self.ai[w].city_ai[c].ocean += 1;
             if let Some(r) = self.world.region_of(cell) {
-                let big = self.num_coasts(r) > 1 || self.world.region_size(r) >= world_cells / 10;
+                let big =
+                    self.world.num_coasts(r) > 1 || self.world.region_size(r) >= world_cells / 10;
                 if big && self.ai[w].city_ai[c].dock_tile == 0 && self.is_dock_tile(cell) {
                     self.ai[w].city_ai[c].dock_tile += 1;
                 }

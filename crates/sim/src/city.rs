@@ -873,6 +873,7 @@ impl Sim {
             gather_max: None,
             gather_from: Vec::new(),
             gather_bumped: false,
+            dock_slot: None,
             farm: crate::Farm::default(),
         });
         // `start_me(1)`: reserve the footprint.
@@ -1203,6 +1204,13 @@ impl Sim {
         // which is how a nomad's other sites lose the ×3 once the first city
         // stands.
         self.wall_stats_dirty[who as usize] = true;
+        // `Build::activate` line 560: a dock (not a fort) joins the docks
+        // registry — `reg_docks`, the gull's two draws (`docs/TRANSPORT.md`
+        // §5.1–§5.2).
+        let dock = build::is_dock(&self.build_types, ty);
+        if dock && !build::is_fort(&self.build_types, ty) {
+            self.dock_open(b);
+        }
         if self.building_is_city(b) {
             let capital = !captured && self.city_num(who) == 0;
             let c = self.init_city(who, b, captured, capital);
@@ -1234,6 +1242,11 @@ impl Sim {
             && self.cities[c].alive
         {
             self.check_upgrade(c);
+        }
+        // `Build::activate` line 1978: a finished dock may grant the
+        // transport level (`docs/TRANSPORT.md` §4).
+        if dock {
+            self.check_transport(who);
         }
     }
 
@@ -1314,6 +1327,9 @@ impl Sim {
         if !self.buildings[b].garrison.is_empty() {
             self.buildings[b].eject_pending = true;
         }
+        // `Build::close` line 227: a dock leaves the registry while the
+        // object is still flagged in use (`docs/TRANSPORT.md` §5.3).
+        self.dock_close(b);
         self.buildings[b].alive = false;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();
@@ -1337,6 +1353,14 @@ impl Sim {
             self.sync_territory();
         }
         self.economy_changed(who);
+        // `Build::close` line 562: the last dock lost revokes the level
+        // (`docs/TRANSPORT.md` §4).
+        if self.buildings[b]
+            .ty
+            .is_some_and(|t| build::is_dock(&self.build_types, t))
+        {
+            self.check_transport(who);
+        }
     }
 
     // ------------------------------------------------------------------

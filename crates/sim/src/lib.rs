@@ -71,6 +71,7 @@ pub mod production;
 pub mod supply;
 pub mod tech;
 pub mod territory;
+pub mod transport;
 pub mod tuning;
 pub mod world;
 
@@ -197,6 +198,12 @@ pub struct Unit {
     /// `UnitData::is_captain` — `o_up < 0`, a unit that heads its own
     /// squad; every standalone unit is one.
     pub captain: bool,
+    /// `unit_masks & 0x800000`: may auto-transport (`docs/TRANSPORT.md`
+    /// §3). Granted at birth under the leader's level and by
+    /// `check_transport`; the player's toggle writes it too.
+    pub auto_transport: bool,
+    /// `unit_masks2 & 0x2000`: a scenario's per-unit veto (§3.2).
+    pub never_transport: bool,
     /// `guy_flags & 0x20`, which collapses the idle roll to two variants;
     /// unread — off.
     pub guy_flag_0x20: bool,
@@ -441,6 +448,8 @@ impl Unit {
             guys: Vec::new(),
             born: -1,
             captain: true,
+            auto_transport: false,
+            never_transport: false,
             guy_flag_0x20: false,
             herd: None,
             type_index: -1,
@@ -568,6 +577,11 @@ pub struct Sim {
     pub ai: Vec<ai::Leader>,
     /// `ai_speed`: 1, plus one per `ai speed increase` cheat.
     pub ai_speed: i32,
+    /// One per player: the transport level bits, the lock and the scouts
+    /// option (`docs/TRANSPORT.md` §2).
+    pub transport: Vec<transport::LeaderTransport>,
+    /// One per player: the docks registry (`docs/TRANSPORT.md` §5).
+    pub docks: Vec<transport::Docks>,
     /// The market's price cycle (`market.rs`).
     pub market: market::Market,
     /// The herds and the birds' sampling (`gaia.rs`).
@@ -706,6 +720,9 @@ pub struct Building {
     pub gather_bumped: bool,
     /// The farm's tile states and growth counts (§6.5).
     pub farm: Farm,
+    /// `BuildData +0x78`: this dock's slot in its owner's registry
+    /// (`docs/TRANSPORT.md` §5.1), while it is active.
+    pub dock_slot: Option<usize>,
 }
 
 pub use farms::Farm;
@@ -760,7 +777,12 @@ enum Advanced {
 impl Sim {
     pub fn new(tuning: Tuning, world: World, players: usize) -> Sim {
         let tech_tree = tech::TechTree::new().with_tuning(&tuning);
+        // `Regions::set_coastals`: the coast masks follow from the cells.
+        let mut world = world;
+        world.rebuild_coasts();
         Sim {
+            transport: vec![transport::LeaderTransport::default(); players],
+            docks: vec![transport::Docks::default(); players],
             tech: (0..players)
                 .map(|_| tech::PlayerTech::new(&tech_tree))
                 .collect(),
@@ -844,6 +866,8 @@ impl Sim {
         self.wall_stats_dirty.push(false);
         self.marks.push(Marks::default());
         self.ai.push(ai::Leader::new());
+        self.transport.push(transport::LeaderTransport::default());
+        self.docks.push(transport::Docks::default());
         for row in &mut self.at_war {
             row.push(false);
         }
@@ -908,6 +932,8 @@ impl Sim {
         let mark = &mut self.marks[owner].unit;
         *mark = (*mark).max(unit.index.saturating_add(1));
         self.units.push(unit);
+        // `Unit::init`'s transport clause (`docs/TRANSPORT.md` §3.4).
+        self.transport_init_unit(i);
         if source {
             self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
         }
@@ -1100,6 +1126,7 @@ impl Sim {
             gather_max: None,
             gather_from: Vec::new(),
             gather_bumped: false,
+            dock_slot: None,
             farm: Farm::default(),
         });
         self.buildings.len() - 1
@@ -1509,6 +1536,9 @@ impl Sim {
             .tech_tree
             .gain_tech(&self.setup, &mut self.tech[who as usize], t, frame);
         self.apply_gained(who);
+        // `Leader::gain_tech`'s tail: `check_transport` (`docs/TRANSPORT.md`
+        // §4).
+        self.check_transport(who);
         events
     }
 

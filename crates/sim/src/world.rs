@@ -250,7 +250,26 @@ pub struct World {
     /// does not yet advance (nothing here models sight); see
     /// [`World::seen2`].
     fog: Vec<u8>,
+    /// `Region::coast` per region: for a land region, the sea regions any
+    /// of its cells touches in the eight-neighbourhood — `Regions::
+    /// set_coastals`' first mask (`docs/TRANSPORT.md` §9.1). Sorted,
+    /// deduplicated, empty for a sea region; rebuilt by
+    /// [`World::rebuild_coasts`].
+    coast: Vec<Vec<u16>>,
 }
+
+/// `move_x[1..=8]`, `move_y[1..=8]` — the original's compass ring
+/// (`.rdata 0x00adcaf0` / `0x00adc400`), the eight neighbours in its order.
+pub const MOVE_8: [(i32, i32); 8] = [
+    (-1, -1),
+    (0, -1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+    (0, 1),
+    (-1, 1),
+    (-1, 0),
+];
 
 /// The bits of a tile mask, as the placement code names them — `TData.mask`
 /// in the original. Two-bit fields are tested as `(mask & field) == value`.
@@ -300,6 +319,73 @@ impl World {
             tile_z: Vec::new(),
             sea_map: 0,
             fog: Vec::new(),
+            coast: Vec::new(),
+        }
+    }
+
+    /// `Regions::set_coastals@0067fd70`'s `coast` masks: for every cell of
+    /// a land region, each of the eight neighbouring cells that lies in a
+    /// sea region marks that sea on the land region. Run once the regions
+    /// are laid out; [`Sim::new`](crate::Sim::new) runs it.
+    pub fn rebuild_coasts(&mut self) {
+        let n = self.regions.len();
+        let mut coast: Vec<Vec<u16>> = vec![Vec::new(); n];
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let c = Cell::new(x, y);
+                let Some(r) = self.region_of(c) else {
+                    continue;
+                };
+                if self.regions[r as usize] != Terrain::Land {
+                    continue;
+                }
+                for (dx, dy) in MOVE_8 {
+                    let nc = Cell::new(x + dx, y + dy);
+                    if let Some(s) = self.region_of(nc)
+                        && self.regions[s as usize] == Terrain::Sea
+                        && !coast[r as usize].contains(&s)
+                    {
+                        coast[r as usize].push(s);
+                    }
+                }
+            }
+        }
+        for v in &mut coast {
+            v.sort_unstable();
+        }
+        self.coast = coast;
+    }
+
+    /// The sea regions a land region coasts — `Region::coast`, as a list.
+    pub fn coasts(&self, region: u16) -> &[u16] {
+        self.coast.get(region as usize).map_or(&[], Vec::as_slice)
+    }
+
+    /// `Region::is_coast@00680f90`: the same region, or a land region and
+    /// a sea region that touch.
+    pub fn is_coast(&self, a: u16, b: u16) -> bool {
+        if a == b {
+            return true;
+        }
+        match (self.terrain(a), self.terrain(b)) {
+            (Terrain::Land, Terrain::Sea) => self.coasts(a).contains(&b),
+            (Terrain::Sea, Terrain::Land) => self.coasts(b).contains(&a),
+            _ => false,
+        }
+    }
+
+    /// `Region::num_coasts@00680760`: how many sea regions a land region
+    /// coasts. The original counts sea indices `0x41..=0x7d` — no region
+    /// is ever numbered `0x40` (`Regions::find_all` pre-increments the sea
+    /// counter from it), so the count is exact — and **a sea region
+    /// answers 1**, itself: the loop's `region == i` arm is the only one
+    /// it can take. The census asks it of the water cell's own region
+    /// (`docs/AI.md` §2.3 step 13), so its "more than one coast" clause
+    /// never holds there and the size test decides (audit B.41).
+    pub fn num_coasts(&self, region: u16) -> i32 {
+        match self.terrain(region) {
+            Terrain::Sea => 1,
+            Terrain::Land => self.coasts(region).len() as i32,
         }
     }
 

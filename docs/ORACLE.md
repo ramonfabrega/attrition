@@ -1994,6 +1994,48 @@ diff on run20 — passes and fails on demand.
 - **Save to Profile does not survive a killed process** — see "The lobby
   is a file" above. The combo is read from a screenshot every launch.
 
+### run22 — the first dock, under the window (2026-08-25)
+
+The run21 lobby (East Indies from the combo, seed 12345, the profile's
+Nubians) with the per-frame dump **gated to the frames that matter**: run21's
+trace put `Dock::init` at sim-frame 3579, so `rise2.ini` `LogStartFrame=3579
+LogEndFrame=3582`, `DUMP_ALL=1`, `InitialDump=1`, `[Start Game] WORLD=6`,
+`rontrace.cfg` `cover=1 window=3579-3581`, `rontrace.cmd` `5 !ffwd 30` /
+`3583 !quit`. **Eight minutes wall clock** end to end
+(`gamelog-run22-islands-dock-window.txt`, 249 MB; `rontrace-run22.log`):
+the start dump, the fast-forward to 3579 in seconds, three blocks of ~80 MB
+at about two minutes each, and the quit's own two (3583, 3584). The staging
+is one script, **`tools/gamelog/window.py stage 3579 3582`** / `restore`:
+every ini edit, the cfg and the cmd in one call, and the reverse.
+
+**What it holds.** Block 3579 (the end of sim-frame 3578): no active
+`DOCK`, none of the AI's 14 units with `unit_masks & 0x800000`. Block 3580:
+`DOCK dock 0, o 2010, reg 65, gull_o 15, who 1, dock_flags 1`; the building
+`o 2010` of leader 1 at `(44160, 41856)`, `orig_type 432`; all 14 AI units
+with the bit, the human's 6 without. (A `FRAME n` block under `DUMP_ALL`
+carries two `FULL DUMP`s — the end of `n − 1` and the start of `n` — so a
+count over the whole block doubles; the harness reads the first.) The
+trace's frame 3579 repeats
+run21's to the seed — draws 0 and 1 the gull's creation and
+`Dock::init+0x125`. `docs/TRANSPORT.md` §10, §12; the assertion is
+`rondata::diff::tests::run22_s_first_dock…`.
+
+**Two things it settled that the reading had wrong or missing.** The dock's
+`reg` is the **sea** (65): a dock's centre cell is water, so `Dock::init`'s
+`reg < 0x40` guard never counts it into `reg_docks`. And **owner 9 is not
+in a `DUMP_ALL` frame block**: the 208 `ANIMALDATA` records of block 3580
+are all leader 8's; the gull (`gull_o 15`, who 9) is nowhere in the dump,
+so its position and heading are the trace's to attest, not the log's.
+
+**Driving notes.** `cliclick m:X,Y w:400 c:X,Y` fired every button this
+run; the press-and-hold form (`dd`/`du`) registered as a hover on the
+first Solo Game click. The window sat at `(760, 152)` again; the lobby
+came up on the profile's Great Lakes and the combo pick was read back as
+`MAP_STYLE 18` in the log's first lines. `!quit` from the cmd file left
+the process at the Game Over screen writing blocks 3583–3584 for a minute;
+a size poll on `gamelog.txt` (90 s unchanged) is the "done" signal, then
+`pkill -f riseofnations_trace.exe`.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The

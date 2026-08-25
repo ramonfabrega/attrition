@@ -295,4 +295,24 @@ understanding rather than transcribed. The single place it was wrong is the
 place it followed the document's own coordinate bookkeeping.
 
 Still owed, and named here so it is not lost: a guard for the coastal-ring
-fix. The existing suite passes either way, so nothing covered it.
+fix. The existing suite passes either way, so nothing covered it. *Landed
+2026-08-25 with run20 (`docs/AI.md` §15.8).*
+
+**Transports and docks (`2026-08-25-transport.md`, the same day as the
+mechanic).** The first reading in the main thread on Fable from the
+decompile and run21's trace; two blind readers on Opus 5 in one wave,
+briefed while the mechanic's own capture (run22, a `DUMP_ALL` window at the
+frame the trace gave for the first dock) was running; adjudicated on Fable
+against both the same hour. 114 claims, six verdicts against the document,
+two of them changing Rust — a stale `gull_o` and a `num_coasts` that answers
+1 for a sea region — and the rest names and scope: `num_captains` for
+`num_units`, an air unit that skips a gate rather than failing it, a caller
+list that turned out to be the census alone. The day's two largest facts
+came from the capture and from neither reading: a dock registers in the
+*sea* region, so the `reg_docks` counter both readings described is never
+incremented for it, and owner 9's gull is not in the dump at all. The
+lesson is `CLAUDE.md`'s "prefer a diff to a reading" with an edge: which
+side of a shore a building's centre falls on is a map fact, and a reading
+cannot settle a map fact. The sequence — read, stage the capture from the
+trace's frame numbers, spawn the blind readers while it runs, adjudicate
+against both — cost under two hours end to end and is the shape to repeat.

@@ -755,3 +755,52 @@ ring.
 - **Open, honestly**: `reg_forts` and `was_seen`'s leader-flag exits
   unmodelled; the sea half read by no one yet.
 - The queue's owed list is empty. Item 12 is done.
+
+## 2026-08-25 — the sea half: transports and docks, in one session
+
+On Fable, unattended: the opener offered the reading or the capture and
+the session took both, in the order that turned out to matter — read
+first, stage the capture from the trace's own frame numbers, spawn the
+blind readers while it runs, adjudicate against both. Under two hours
+from `/clear` to commit.
+
+- **The reading** (`docs/TRANSPORT.md`): a leader's transport permission
+  is three bits of `leader_flags` that `check_transport` sets as a block
+  once the leader holds the bonus's prerequisite (Written Word —
+  `rules.xml`'s third `TECHBONUS`, found in the data) *and* a dock; the
+  unit's `0x800000` bit follows at birth and on every change; the docks
+  registry is twenty slots a leader with a `dock_mark`, and a finished dock
+  spawns a gull with **two draws** — run21's trace had both, in order, at
+  frame 3579. `think_civilian_transport` is the citizen's island choice,
+  `do_mustering`'s expand arm hands an army to `do_transporting`, which is
+  a one-shot region retarget; `init_navy`/`send_navy` are the navy's two
+  hooks.
+- **The implementation** (`crates/sim/src/transport.rs`): the level, the
+  predicates, the registry with its draws, `needs_transport`,
+  `is_dock_tile`, and the coast masks from the cells. Two census seams
+  closed, `carry` and fishermen wired. The unit AI's island choice and the
+  army's step are documented and deliberately not built — they need the
+  `think` and the `Army` family.
+- **The widening that paid** — run20's `CITY` record, whole: every step-13
+  field matches the harness, `dock_tile` included, except `space[0..1]`
+  (48 against 58), which is `space_at_corner`'s fifth argument on ten
+  cells — a placement finding, pinned as a known divergence in the test
+  and owed in the queue.
+- **Run22**: `tools/gamelog/window.py stage 3579 3582`, five `cliclick`s,
+  eight minutes: the `DOCK` record, the 14-unit `0x800000` flip from block
+  3579 to 3580, the human's six without. And the day's largest fact came
+  from the record, not the readings: the dock's `reg` is **65, the sea** —
+  a dock's centre is on water, so the `reg_docks` counter both the first
+  reading and the blind reader described is never incremented for it.
+  Owner 9's gull is not in a `DUMP_ALL` block at all.
+- **The second reading** (`docs/audit/2026-08-25-transport.md`): two Opus
+  readers, 114 claims, six verdicts against the document — an air unit
+  skips a gate rather than failing it, `+0x14` is `num_captains`,
+  `Dock::close` leaves `gull_o`, `num_coasts` on a sea region is 1 (so the
+  census's "more than one coast" clause is dead), the apron's eraser, the
+  tile rule's only caller. Two changed Rust. A.41's own sentence inverted
+  its own formula; the formula won.
+- **Blind list**: 471 cited, 96 never — up from 87 because 33 addresses
+  were added; the seven never-run ones are named in the queue with the
+  scenario that would light each.
+- Item 14 is done; the queue owes the `space_at_corner` finding.
