@@ -1876,10 +1876,31 @@ step fields, the goods picture, the queue, the eleven `MAKEOBJECT`s by slot
 and the ten sites, `--terse` comparing only the step machine's own fields so
 the ledger's per-frame tick does not print every block.
 
-**Open:** `make_stuff` was reached twice and bought once; `produce_tech`
+~~**Open:** `make_stuff` was reached twice and bought once; `produce_tech`
 first runs at 8182 and `found_cities`' own purchases at 576, both outside
 the window, so `research_techs`' and `found_cities`' *outputs* are still
-unscored. A window around 8182 is the next one, and it is now cheap.
+unscored. A window around 8182 is the next one, and it is now cheap.~~
+
+**run19 is that window, the same day** (`gamelog-run19-window-8174-8192.txt`,
+`rontrace-run19.log`; `docs/AI.md` §15.6). One stage, `!ffwd 9` to frame
+8100 and `[8174, 8192)` — **twenty minutes**, which is the recipe above
+paying for itself. By 8182 the AI is in the Classical Age with a full make
+list, and it shows what run18b structurally could not: the **second pass**
+(steps 9, 10, 11, with `make_stuff` at step 8 called from
+`production_ai+0x1fa` and at step 11 from **`+0x236`**), two purchases in
+one `make_stuff` (`produce_tech` for the head and `produce_unit` for slot
+1, both demoted 9,999,999 → 99,999), `research_techs` reaching the
+**`9,999,999` overflow guard** in play and taking **no draw at all**, the
+runners-up shifting through slots 1–3 with one falling off the end, and —
+the best of them — a **scholar kept at a non-head slot and cleared at the
+head on the same `% 3` residue**, which isolates the unconditional arm from
+the probabilistic one on a single type. Nine expiry observations across the
+two runs, nine agreeing.
+
+**Open:** `found_cities`' own purchases are still unscored — they happen at
+frame 576, inside the script's era, so the window that catches them also
+catches the script calling `place_city_with_cost`, and the two callers have
+to be told apart by the step in the dump.
 
 ## What is not established
 

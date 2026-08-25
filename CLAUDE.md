@@ -579,11 +579,21 @@ better, in which case say so and take that.
     if the prose is restored). The lever that made it cheap: **`ffwd` is a
     presentation switch the sim never reads**, so with the per-frame dump
     gated off (`LogStartFrame=0 LogEndFrame=0`) a 24,000-frame run costs
-    fifteen minutes. Blind list **95 → 89**. Still to run,
-    each a file: run7's order stream replayed under the trace (the command
-    processors), a mounted attacker for the cavalry flank reduction, a
-    caravan, and a window around frame 8182 for `produce_tech`'s output.
-    Then the AI queue below.
+    fifteen minutes. Blind list **95 → 89**. **run19 followed the same
+    day** in twenty minutes (`docs/AI.md` §15.6) — the window around frame
+    8182, where the AI is in the Classical Age with a full make list: the
+    **second pass** (steps 9–11, never seen before; `make_stuff` is
+    `production_ai+0x1fa` at step 8 and `+0x236` at step 11), two purchases
+    in one call, `research_techs` reaching the 9,999,999 overflow guard and
+    drawing nothing, the runners-up shifting through slots 1–3, and a
+    scholar **kept at a non-head slot and cleared at the head on the same
+    `% 3` residue** — which isolates `expire_all`'s head clause from the
+    probabilistic one on a single type. Nine expiry observations, nine
+    agreeing. Still to run, each a file: run7's order stream replayed under
+    the trace (the command processors), a mounted attacker for the cavalry
+    flank reduction, a caravan, and a window at frame 576 for
+    `found_cities`' purchases (which needs the script's caller told apart
+    from the producer's by the dump's step). Then the AI queue below.
     Next for the AI: the loader's half of
     the producers' seams (unit `role`/flags, `TechType.ai[]`,
     `gather_max`); fold §14 into §2; then the blind second reading, at

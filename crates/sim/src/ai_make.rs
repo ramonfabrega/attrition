@@ -919,6 +919,65 @@ mod tests {
         );
     }
 
+    /// **Run19's four, which separate the head clause from the rest**
+    /// (`docs/AI.md` §15.6). Run18b only ever had an ordinary building at
+    /// the head, so it could confirm the probabilistic arm and no more. Run19
+    /// puts a **scholar** — a unit type that is not a peasant, `0x34` — at
+    /// slot 0 on one frame and at slot 1 on another, and the same residue
+    /// decides opposite outcomes:
+    ///
+    /// - sim-frame 8182, slot 1, *not* the head: roll 22883, `% 3 == 2`,
+    ///   **kept** — the non-head walk is probabilistic for every type.
+    /// - sim-frame 8185, slot 0, the head: roll 45911, `% 3 == 2`, and the
+    ///   dump shows it **gone** — the roll is taken and then ignored, which
+    ///   is the unconditional arm and the exact clause `docs/AI.md` §2.6
+    ///   inverts.
+    ///
+    /// A same-type, same-residue, opposite-outcome pair is the strongest
+    /// evidence either run produced, and it fails under either inversion.
+    #[test]
+    fn run19_s_head_clause_clears_a_scholar_a_non_head_slot_would_keep() {
+        let mut f = fx();
+        let s = &mut f.sim;
+        // `f.soldier` stands for the scholar: a unit type, not a peasant.
+        let scholar = f.soldier;
+        assert!(s.expire_all(scholar, true), "at the head: unconditional");
+        assert!(!s.expire_all(scholar, false), "elsewhere: probabilistic");
+
+        // 8182: the head is a tech (Coinage — an ordinary, probabilistic
+        // type), bought and demoted; its duplicate at slot 4 clears; then the
+        // slot loop's own walk keeps the scholar it just bought at slot 1.
+        let coinage = f.tech;
+        s.rng = crate::combat::Rng::new(0xa6d1_84cf);
+        s.ai[1].make_list.list[0] = slot(coinage, 9_999_999);
+        s.ai[1].make_list.list[1] = slot(scholar, 9_999_999);
+        s.ai[1].make_list.list[4] = slot(coinage, 9_999_999);
+        s.expire(1, coinage as i32, 0, s.expire_all(coinage, true));
+        assert_eq!(
+            s.ai[1].make_list.list[0].t, coinage as i32,
+            "11233 % 3 == 1: the bought head is demoted, not cleared"
+        );
+        assert_eq!(s.ai[1].make_list.list[4].t, -1, "14808 % 3 == 0: cleared");
+        s.expire(1, scholar as i32, 1, s.expire_all(scholar, false));
+        assert_eq!(
+            s.ai[1].make_list.list[1].t, scholar as i32,
+            "22883 % 3 == 2: a scholar at a non-head slot survives"
+        );
+        assert_eq!(s.rng.seed, 0x78f6_5964, "three draws");
+
+        // 8185: the same scholar type, now the head, on a residue that would
+        // have kept it anywhere else.
+        s.rng = crate::combat::Rng::new(0x3f5a_529d);
+        s.ai[1].make_list.list = [MakeObject::EMPTY; MAKE_SLOTS];
+        s.ai[1].make_list.list[0] = slot(scholar, 9_999_999);
+        s.expire(1, scholar as i32, 0, s.expire_all(scholar, true));
+        assert_eq!(
+            s.ai[1].make_list.list[0].t, -1,
+            "45911 % 3 == 2 and it goes anyway: the head clause is unconditional"
+        );
+        assert_eq!(s.rng.seed, 0x8244_b358, "the roll is still taken");
+    }
+
     /// `need` is the mean shortfall over the goods the head costs, floored
     /// at zero, and only when the leader is saving up.
     ///

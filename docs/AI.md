@@ -1877,10 +1877,13 @@ which fails if the predicate is put back the way the prose had it.
 
 ### 15.5 What it does not establish
 
-- **`research_techs`' and `found_cities`' outputs.** Both ran, neither
+- ~~**`research_techs`' and `found_cities`' outputs.** Both ran, neither
   bought inside the window: `produce_tech` first runs at **8182** and
   `found_cities`' own purchases at 576. A window around 8182 scores the
-  first, and it is now a fifteen-minute run.
+  first, and it is now a fifteen-minute run.~~ — **`research_techs` scored
+  the same day by run19 (§15.6)**, which also caught the second pass and
+  the head clause. `found_cities`' purchases are still unscored; they sit
+  at frame 576, inside the script's era.
 - **`create_units`' and `create_buildings`' values.** The run shows *what*
   they listed (a citizen at 714, a temple at 2,499,999) but the arithmetic
   behind those two numbers is unchecked against §2.13/§14.5/§14.6 — that
@@ -1891,3 +1894,74 @@ which fails if the predicate is put back the way the prose had it.
   two points and inferred everywhere else.
 - **One nation, one personality, one difficulty.** Everything above is the
   British `defensive` leader of run8's roll on Easiest.
+
+### 15.6 run19 — the second pass, and the head clause (2026-08-25)
+
+run18's §15.5 left `produce_tech`'s output unscored: it first runs at frame
+**8182**, outside that window. run19 is the bracket, and it cost twenty
+minutes — one stage, `!ffwd 9` to frame 8100 and the window `[8174, 8192)`,
+on the same seed. 8182 is `sweep(8175) + 7`, the `make_stuff` frame of that
+sweep's ladder, and not one of the cheap tick's frames (8145, 8205), so the
+`produce_tech` there is `make_stuff` → `make_this` → `produce_tech`.
+
+By 8182 the leader is a different animal from run18b's: **Classical Age**
+(`ages_get() 1`), five combat units, four goods flowing, and a **full** make
+list. Everything run18b could not show, this shows.
+
+**The second pass runs.** `make_stuff` at 8182 buys the head, so step 8
+returns 1 and the machine stays armed: **`1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0`
+over 8175…8186** — steps 9, 10 and 11 observed for the first time. The two
+`make_stuff` calls are distinguishable in the trace by their call site,
+which is `production_ai`'s own structure showing through: step 8 is
+**`production_ai+0x1fa`** (`if make_stuff() != 0: return`) and step 11 is
+**`+0x236`** (`make_stuff(); step = 0`).
+
+**Two purchases in one `make_stuff`.** The head (`COINAGE`, a tech, through
+`produce_tech`) *and* slot 1 (`SCHOLARS`, through `produce_unit`); both
+appear in `num_queued` in the next block and both are demoted
+**9,999,999 → 99,999**, which is `val /= 100` twice over on the overflow
+guard's own value. Wood 92 → 32, wealth 40 → 10, metal 159 → 19 pays for
+them.
+
+**The value guard is reached in play.** `research_techs` lists `COINAGE` at
+**`val 9999999`** — §14.6's "the original's value product overflows and the
+tail's `< 0 → 9,999,999` catches it", now observed rather than inferred.
+`research_techs` itself **draws nothing** (frame 8178 has no `game_random`
+record outside the farms and the animation clock).
+
+**The head clause, isolated.** This is the run's best observation, and it
+needs both frames to see:
+
+| frame | slot | type | roll | `% 3` | probabilistic would | dump |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8182 | 0 (head) | COINAGE | 11233 | 1 | keep | kept (demoted) |
+| 8182 | 4 | COINAGE | 14808 | 0 | clear | cleared |
+| 8182 | 1 | SCHOLARS | 22883 | 2 | keep | **kept** |
+| 8185 | 0 (head) | SCHOLARS | 45911 | 2 | keep | **cleared** |
+
+The same type on the same residue, kept at a non-head slot and cleared at
+the head. A scholar is `0x34` — a unit type that is not a peasant — so the
+head takes the **unconditional** arm and the roll is taken and then
+thrown away, while every non-head slot is probabilistic whatever the type.
+That is `expire_all`'s `if !head { return false; }` and its
+`is_unit && !is_peasant` clause, both confirmed in one pair, and it is the
+clause §2.6's prose inverts: read the prose literally and 8185's scholar
+survives.
+
+With run18b's five that is **nine expiry observations, nine agreeing**
+(`ai_make::tests::run19_s_head_clause_clears_a_scholar_a_non_head_slot_would_keep`).
+
+**The runners-up shift, observed.** run18b never had enough entries to
+exercise slots 1–3. Here they fill and move: at 8180 the ranked four are
+`COINAGE, EMPIRE, MERCENARIES, PHALANX`; `create_units` at 8181 inserts
+`SCHOLARS` and `MERCHANT` and the four become `COINAGE, SCHOLARS, EMPIRE,
+MERCHANT` — `MERCENARIES` has fallen off the end, which is §2.11's "shift
+down, slot 3 falls off". The categories in use across the window are 4, 7,
+8, 9 and 10, against run18b's two.
+
+**What it does not establish.** The dump is one snapshot a frame and a
+producer makes many `make_me` calls inside one, so the *net* movement of
+slots 1–3 across a producer frame is attributable only in outline — the
+insertions above are read off end states, not traced call by call. Slot 5
+and slot 6 were never occupied in either run. And `found_cities`' purchases
+still sit at frame 576, in the script's era, unscored.
