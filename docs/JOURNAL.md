@@ -1072,6 +1072,20 @@ document says so.
   which picks a mixed group's leader; and the *positions* of a traced
   army's units, because the harness cannot yet stage a frame-15100 unit
   list — run29's `UNITS=3` half is on disk for whoever extends
-  `scene_at` to read it. And no
-  second reading: §6.5 and §9 are exactly the kind of predicates the
-  audit README says a first reading gets wrong.
+  `scene_at` to read it.
+- **The second reading was launched at the end, not alongside — and that
+  was a plain miss.** The previous session's own handoff had recorded the
+  shape to repeat: *"read, stage the captures from the trace's frame
+  numbers, spawn the readers while they run, adjudicate against both."*
+  The readers need only the Ghidra export and a function list, both of
+  which existed twenty minutes in, so nothing prevented it. Two blind
+  readers on Opus 5 went out once the commit landed — A over
+  `action_move_near`/`compute_form`/`Form::*`/`action_halt`/
+  `action_stance`, B over the pool, membership, `action_siege_attack_to`
+  and `action_attack` — briefed with the run28 coverage frames and told
+  to name the capture that would falsify each claim.
+  **The adjudication was deliberately left to a cleared session**: the
+  first reader adjudicating their own document is exactly the conflict
+  the three-role split exists to prevent. §6.5 and §9 are the rows that
+  matter; both are predicates, which is where four mechanics running have
+  put the errors.

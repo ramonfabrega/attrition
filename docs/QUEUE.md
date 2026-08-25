@@ -49,11 +49,29 @@ to the muster cell's centre, and the sim's own `do_mustering` reproduces
 all of it — including the absence of the `FORMING` bit, which is the gate
 (`docs/ARMY.md` §16.6, §17 item 6). Journal entry of the same date.
 
-**In progress.** Nothing mid-mechanic. **Owed:** `docs/GROUPS.md` has had
-**no second reading** — §6.5 and §9 are exactly the predicate-shaped
-claims the audit README says a first reading gets wrong, and this one was
-written, implemented and adjudicated by one model. That is the first debt
-to pay when Fable is back.
+**In progress.** `docs/GROUPS.md`'s **blind second reading is in
+flight** — two readers on Opus 5, launched at the end of the session that
+wrote it, split A (`action_move_near`/`compute_form`/`Form::*`,
+`action_halt`, `action_stance`) against B (the pool, membership,
+`action_siege_attack_to`, `action_attack`). Reports land at
+`~/ghidra-projects/reading/groups-2026-08-25/{A-move-form-halt-stance,
+B-pool-membership-attack}.md`, written incrementally, so a dropped agent
+still leaves what it settled. Both were briefed with the run28 coverage
+frames and told to name, per claim, the capture that would falsify it.
+
+**Owed, and it is the next session's first act:** *adjudicate them*.
+Deliberately not done in the session that wrote the document — the first
+reader adjudicating their own document is the conflict the three-role
+split exists to prevent, so it wants a cleared context that reads
+`docs/GROUPS.md` cold and goes back to the decompiled function for every
+disagreement. Verdicts to `docs/audit/2026-08-25-groups.md`, appended as
+each is settled; anything that cannot be settled marked `FABLE:` rather
+than guessed. An Opus adjudication is acceptable under that marker
+discipline (`docs/DECISIONS.md` entry 22) and books one debt: **a Fable
+pass over every marker and every verdict that changes Rust**, before the
+next mechanic builds on this one. §6.5 and §9 are the rows to read
+hardest — both are predicates, which is where four mechanics running have
+put the errors.
 
 **Next**, in the order the captures suggest:
 
@@ -102,7 +120,7 @@ ten-minute window is only for the records.
 being saved, so first readings and adjudications are running on Opus for
 now, and each document says which model wrote it.
 
-**Opener:** `proceed @docs/QUEUE.md — extend rondata::diff::army_tests::scene_at to load a block's UNITDATA order lists (run29's window at [15100, 15103) is on disk, and its ARMY half is already asserted), then pin engagement's choice of unit against the records and docs/GROUPS.md §6.4's slot table from the MOVEORDER destinations of an early frame`
+**Opener:** `proceed @docs/QUEUE.md — adjudicate the two blind readings of docs/GROUPS.md at ~/ghidra-projects/reading/groups-2026-08-25/ against the decompile and the listing, verdicts appended to docs/audit/2026-08-25-groups.md as each is settled, FABLE: on anything you cannot settle; then the queue's next item`
 
 ## The queue
 
@@ -192,8 +210,8 @@ in which case say so and take that. The story of each struck item is in
 15. ~~**Armies**~~ — done 2026-08-25. `docs/ARMY.md`,
     `crates/sim/src/army.rs`, `docs/audit/2026-08-25-army.md`; runs 23–27,
     `tools/gamelog/runwin.sh`, `rngcmp.py`, `armyrecs.py`.
-16. ~~**The group orders**~~ — done 2026-08-25, **less its second
-    reading** (see "Owed" above). `docs/GROUPS.md`,
+16. ~~**The group orders**~~ — done 2026-08-25, **less the adjudication
+    of its second reading** (see "Owed" above). `docs/GROUPS.md`,
     `crates/sim/src/group.rs`; runs 28 and 29.
 
 ## How to maintain this file
