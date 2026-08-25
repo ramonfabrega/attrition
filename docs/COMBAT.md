@@ -1655,7 +1655,9 @@ bit 31 (`6`, anti-air) prints negative; and the `age` field is the stored
 
 `rondata --types` is now the regression guard for §5: any later change to
 `type_damage`, the tree loader's ages, or the lineage roots that moves a
-cell fails the check.
+cell fails the check. Since 2026-08-25 the same comparison
+(`rondata::typesdump::compare`) also runs as an install-gated `cargo test`
+against run3's dump, so the guard cannot be skipped by omitting the flag.
 
 ### 15.3 The building half, and the whole table (2026-08-20)
 

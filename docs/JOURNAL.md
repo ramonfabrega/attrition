@@ -650,3 +650,34 @@ one guard, two document corrections.
   clippy and fmt clean; `rondata` survey exits 0. One `ai_make`
   fixture had leaned on `num 0` making `can_pay` vacuous and was given a
   purse.
+
+## 2026-08-25 — the `--types` check as a test (owed item 1, the second)
+
+Session on Fable 5, the queue's opener taken as written. No simulation
+change; one guard moved from a flag to a test.
+
+- **What was wrong.** `rondata --types <dump>` compared twenty things —
+  the loader's 364 unit and 129 building `Kind`s field by field, the four
+  derived words, the 85 techs' eleven weights, the whole 493 × 493 table —
+  and only ran when someone passed the flag. The definition of done's
+  `cargo run -p rondata -- <install>` never reached it, so the guard for
+  `docs/COMBAT.md` §5 and `docs/DATALAYER.md`'s derived words could lapse
+  by omission and had no way of saying so.
+- **The move.** The comparison left the binary for the library
+  (`rondata::typesdump::compare`, returning a report of notes and checks
+  rather than printing); the CLI prints that report, unchanged to the
+  character (39 `[ok]`, the same 20 under `--types`). The test
+  `typesdump::tests::run3_s_type_dump_is_the_program_s_on_every_check`
+  reads run3's 152 MB dump with the streaming reader in ~5 s, asserts the
+  dump's shape first (364, 129, 85, the table present — so a dump with
+  nothing to check cannot pass), then that all twenty checks hold. The
+  install and dump helpers the `SITES` pin and the `load.rs` tests each
+  carried are now one `testenv` module in `lib.rs`.
+- **Made to fail once.** The loader's siege predicate flipped from
+  `0x20000` to `0x10000`: the test named the 16 siege units and 3,664
+  table cells, then was restored. The first run also failed on its own
+  pin — the check count was written as 24 and is 20 — which is the pin
+  doing its job on the author.
+- `cargo test --workspace` with the install 492 + 84 + 13 + 3, 0 ignored;
+  clippy and fmt clean; `rondata` survey exits 0; `--types` against run3
+  39 checks, 0 differences.

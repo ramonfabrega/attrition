@@ -330,6 +330,40 @@ pub(crate) fn parse<'a>(path: &Path, text: &'a str) -> Result<roxmltree::Documen
     })
 }
 
+/// What an install-gated test needs to find: the game, and the kept dumps.
+///
+/// Both live outside the repo (`CLAUDE.md`: nothing from the install enters
+/// it), so a machine without them **skips, and says so** — a test that can
+/// evaporate is how a stale assertion stayed green for a day
+/// (`docs/DATALAYER.md`). From a worktree `../../game` does not exist; set
+/// `RON_INSTALL`, or the data layer is untested.
+#[cfg(test)]
+pub(crate) mod testenv {
+    /// The install: `$RON_INSTALL`, or the checkout's `game/`.
+    pub(crate) fn install() -> Option<crate::Install> {
+        let root = std::env::var("RON_INSTALL").ok().or_else(|| {
+            let here = env!("CARGO_MANIFEST_DIR");
+            Some(format!("{here}/../../game"))
+        })?;
+        let i = crate::Install::new(root);
+        i.looks_valid().then_some(i)
+    }
+
+    /// One of the kept dumps, if this machine has it: `$RON_GAMELOG_DIR`, or
+    /// the bottle's `Logs\` — the same default `tools/gamelog/` uses.
+    pub(crate) fn dump(name: &str) -> Option<String> {
+        let dir = std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_default();
+            format!(
+                "{home}/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/\
+                 crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
+            )
+        });
+        let path = format!("{dir}/{name}");
+        std::path::Path::new(&path).is_file().then_some(path)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

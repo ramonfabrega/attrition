@@ -27,36 +27,32 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `7efd2eb`.* The commit this
+*Last verified 2026-08-25, the session after `15cd148`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** Owed item 1, the make-list diff, on Fable: every
-consecutive pair of `LEADERS=9` blocks in run18b and run19, all eleven
-slots and all ten fields, each ladder step replayed with the sim's own
-operation (`docs/AI.md` §15.7; `docs/audit/2026-08-25-ai.md`, "B7-f,
-met"). It corrected one thing in `crates/sim` — `MakeList::clear` and the
-empty slot's record — and found it behavioural on the first sweep's
-citizen. Before it, the same day: the AI's second reading and its
-ratification, and the meta-docs (queue out of `CLAUDE.md`, the journal,
-decision 22). Today's journal entries have both.
+**Last landed.** Owed item 1, the `--types` check as a test, on Fable: the
+comparison `rondata --types` ran only on request — twenty checks over the
+loader's `Kind`s, the derived words, the techs' weights and the whole
+combat table — now lives in the library (`rondata::typesdump::compare`)
+and runs as an install-gated `cargo test` against run3's dump on every
+`cargo test`, asserting the dump's shape before its content so it cannot
+pass vacuously; made to fail once on a flipped siege predicate. The CLI's
+output is unchanged. Before it, the same day: the make-list diff (`docs/
+AI.md` §15.7), the AI's second reading and its ratification, and the
+meta-docs. Today's journal entries have all of it.
 
 **In progress.** Nothing mid-mechanic. Item 12 (the AI) is implemented and
 audited and owes the items below.
 
 **Owed, cheapest first.**
 
-1. `rondata --types` checks four derived words and the combat table against
-   run3's dump and exits non-zero on a difference — but only when invoked
-   with `--types`; the definition of done's `cargo run -p rondata --
-   <install>` never reaches it. Make it an install-gated `cargo test` like
-   the `SITES` pin, so it cannot be skipped by omission.
-2. `docs/audit/README.md` owes a paragraph each to the pathfinder, commands
+1. `docs/audit/README.md` owes a paragraph each to the pathfinder, commands
    and recgame audits.
-3. The coastal-ring guard (audit B4-k) — no capture on disk reaches the
+2. The coastal-ring guard (audit B4-k) — no capture on disk reaches the
    branch; it needs a run on a many-islands map, which also lights up the
    sea half of the AI on the trace's never-executed list.
-4. Left over from the behavioural batch (item 4), each a 20–60 minute drive
+3. Left over from the behavioural batch (item 4), each a 20–60 minute drive
    when the game is up for another reason: the city mask's remaining rungs
    (`docs/CITIES.md` §3.6) and the garrison heal (`docs/CITIES.md` §15).
 
@@ -81,7 +77,7 @@ reaches, its readers briefed to output assertions; the soak kept as the
 determinism guard it is. The rules are in `CLAUDE.md` ("Prefer a diff to a
 reading"); the one build that changes the ratio is item 13 below.
 
-**Opener:** `proceed @docs/QUEUE.md — take owed item 1, the --types check as a cargo test`
+**Opener:** `proceed @docs/QUEUE.md — take owed item 1, the audit README's three missing paragraphs`
 
 ## The queue
 
@@ -123,7 +119,7 @@ in which case say so and take that. The story of each struck item is in
 11. ~~**The recorded order stream into the harness**~~ — done 2026-08-24.
     `docs/INPUT.md`, `crates/rondata/src/input.rs`.
 12. **AI** — implemented and audited, 2026-08-24/25, over eight sessions;
-    not struck while it owes items 1–4 above. `docs/AI.md` (§12–§16 the
+    not struck while it owes items 1–3 above. `docs/AI.md` (§12–§16 the
     handoff and the audit), `crates/sim/src/ai*.rs` and `bhs.rs`,
     `docs/audit/2026-08-25-ai.md` with its third pass. Landed under it on
     the way: `docs/SYNC.md`, `docs/ANIM.md`, `tools/trace/` and the cheat

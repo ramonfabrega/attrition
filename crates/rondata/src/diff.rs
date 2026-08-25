@@ -1482,34 +1482,7 @@ mod tests {
     use crate::gamelog::{CityDump, Guy, LeaderDump, OrderDump, UnitDump};
     use sim::ai::{MAKE_SLOTS, MakeObject};
 
-    fn install() -> Option<crate::Install> {
-        let root = std::env::var("RON_INSTALL").ok().or_else(|| {
-            let here = env!("CARGO_MANIFEST_DIR");
-            Some(format!("{here}/../../game"))
-        })?;
-        let i = crate::Install::new(root);
-        i.looks_valid().then_some(i)
-    }
-
-    /// One of the kept dumps, if this machine has it.
-    ///
-    /// `$RON_GAMELOG_DIR`, or the bottle's `Logs\` — the same default
-    /// `tools/gamelog/` uses. The dumps are tens of megabytes and live
-    /// outside the repo (`CLAUDE.md`), so a machine without them skips; the
-    /// test says so rather than passing quietly, because a check that can
-    /// evaporate is how a stale assertion stayed green for a day
-    /// (`docs/DATALAYER.md`).
-    fn dump(name: &str) -> Option<String> {
-        let dir = std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
-            let home = std::env::var("HOME").unwrap_or_default();
-            format!(
-                "{home}/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/\
-                 crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
-            )
-        });
-        let path = format!("{dir}/{name}");
-        std::path::Path::new(&path).is_file().then_some(path)
-    }
+    use crate::testenv::{dump, install};
 
     fn initial() -> Initial<'static> {
         Initial {

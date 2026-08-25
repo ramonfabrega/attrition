@@ -1795,14 +1795,7 @@ mod tests {
     /// The install, when it is where the tools expect it. Tests that need it
     /// return early otherwise, so `cargo test` passes on a machine without
     /// the game; `cargo run -p rondata -- <install>` is the check with teeth.
-    fn install() -> Option<Install> {
-        let root = std::env::var("RON_INSTALL").ok().or_else(|| {
-            let here = env!("CARGO_MANIFEST_DIR");
-            Some(format!("{here}/../../game"))
-        })?;
-        let i = Install::new(root);
-        i.looks_valid().then_some(i)
-    }
+    use crate::testenv::install;
 
     #[test]
     fn the_shipped_tables_load_without_a_warning() {
