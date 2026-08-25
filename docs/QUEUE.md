@@ -27,78 +27,82 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `b282eb1`.* The commit this
+*Last verified 2026-08-25, the session after `576fce2`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** `find_target` replayed whole on run26's block 12024
-(`docs/ARMY.md` §16.5, §17 item 5): the scene loader now carries a
-block's frame, its sync word, the diplomacy table, the `LEADERDATA`
-words §12 reads and each city building's damage; the trace named the
-tick's three draws and their seed before anything was built, and the
-test asserts the target, the written fields and the stream's word three
-draws on. It failed first — on the draw count — and the failure was a
-predicate: the sim's diff-≤-1 gate had an enemy's city inverted. Two
-more §12 predicates were corrected from the same re-reading (`+0x8` is
-`who`, not an "ally slot"; the `diff == 1` clause is live at difficulty
-1), neither observable on any block yet (§18). Journal entry of the same
-date.
+**Last landed.** The **group orders** — `docs/GROUPS.md`,
+`crates/sim/src/group.rs`, and the army's other half wired to them
+(`docs/ARMY.md` §17): `do_forming`, `march_to_target`, `engagement`,
+`send_here`, `charge`, `set_stance` and `Army::close`'s halt now issue
+real orders, so an AI army's units walk to their muster spot and fight.
+The find is `action_move_near`'s **AI branch** (`docs/GROUPS.md` §6.5),
+which neither `docs/ORDERS.md` §8.2 nor the army's reading had: a
+hurrying army stables its siege, wagons and heroes in the nearest
+friendly city, and a non-hurrying one never interrupts a siege unit that
+is already shooting. Both are tested and both were made to fail first.
+**run28** made `Army::engagement` execute on a predicted frame (15100)
+with the whole chain named; **run29**, a `DUMP_ALL` window at
+[15100, 15103) of the same scenario, turned that into an **assertion**:
+its two blocks show `status 1 → 32`, `city 1 → −1` and the point moving
+to the muster cell's centre, and the sim's own `do_mustering` reproduces
+all of it — including the absence of the `FORMING` bit, which is the gate
+(`docs/ARMY.md` §16.6, §17 item 6). Journal entry of the same date.
 
-**In progress.** Nothing mid-mechanic. **Owed:** nothing.
+**In progress.** Nothing mid-mechanic. **Owed:** `docs/GROUPS.md` has had
+**no second reading** — §6.5 and §9 are exactly the predicate-shaped
+claims the audit README says a first reading gets wrong, and this one was
+written, implemented and adjudicated by one model. That is the first debt
+to pay when Fable is back.
 
 **Next**, in the order the captures suggest:
 
-- **The group orders** — `Group::action_move_to` / `action_attack` /
-  `action_siege_attack_to` / `action_stance` / `action_halt`,
-  `Groups::push_group` — the half of the army the sim cannot issue
-  (`docs/ARMY.md` §17). With them, `do_forming`, `march_to_target`,
-  `engagement`, `send_here` and `charge` become behaviour, and `engagement`
-  — never executed in any traced game — gets its first capture: a run
-  where the attackers meet the army at its muster spot, not the city.
-- **The dumped-record widenings the readers named** (audit §"What changed",
-  B's §9): `LEADERDATA` with `defense_mod`, `combat`, `sea_combat`,
-  `strong[]`, `weak[]`, `pop_issues`, the two win timers, `frame_attacked`,
-  `attacked_by`, `fort_mark`, `city_mark` and the personality; `CITY` with
-  `bordering`, `was_capital_flags`, `founder`, `ocean`, and now
-  `city_flags` whole (the `0x2000` mark is read by the scene loader, not
-  yet diffed). The `GROUPDATA` records (512 a block) are unread and would
-  carry §3's group bookkeeping.
-- **A capture for §12's score, not just its choice** (`docs/ARMY.md`
-  §18): run26 settles the target by two hundred to one, so a block where
-  two candidates sit within a multiplier of each other — an ally's city
-  against an enemy's at `defense_mod == 0x100`, or a difficulty-1 lobby
-  with a Large City of the AI's own — is what would test the arithmetic
-  and the two predicates corrected blind. The draw count and the choice
-  are the observables; `runwin.sh` stages it.
-- Then, as before: run7's order stream replayed under the trace, a mounted
-  attacker, a caravan, the `found_cities` window at 576; `make_stuff` whole
-  with the goods block; `Leader::diplomacy`; `calc_gather` for non-flat
-  buildings; `think_civilian_transport` (`docs/TRANSPORT.md` §12).
+- **run29's window, the half not yet read: the units.** The `ARMY`
+  records are asserted (§17 item 6); the block also carries, at
+  `UNITS=3`, every unit's order list, and two things fall out of that.
+  First, §11's *choice* of unit — the sim picks the first engaged member
+  whose target is a map unit, and no dump has shown which the original
+  picks. Second, the **slot table**: `Form::compute_dests` runs on frame
+  0, so the `MOVEORDER` destinations of any early group pin
+  `docs/GROUPS.md` §6.4's seam. Both need `scene_at` to load the block's
+  `UNITDATA` order lists — the next afternoon's extension of it, and
+  `scenes()` already parses a 250 MB window once for several blocks.
+- **The dumped-record widenings the army's readers named** (unchanged
+  from last session): `LEADERDATA` with `defense_mod`, `combat`,
+  `sea_combat`, `strong[]`, `weak[]`, `pop_issues`, the two win timers,
+  `frame_attacked`, `attacked_by`, `fort_mark`, `city_mark` and the
+  personality; `CITY` with `bordering`, `was_capital_flags`, `founder`,
+  `ocean`, and `city_flags` whole. **`GROUPDATA` is now worth more than
+  it was**: 512 records a block, and `crates/sim/src/army.rs` carries a
+  `group::GroupState` to diff them against.
+- **A capture for `find_target`'s score, not just its choice**
+  (`docs/ARMY.md` §18): a block where two candidates sit within a
+  multiplier of each other — an ally's city against an enemy's at
+  `defense_mod == 0x100`, or a difficulty-1 lobby with a Large City of
+  the AI's own. The draw count and the choice are the observables;
+  `runwin.sh` stages it.
+- Then, as before: run7's order stream replayed under the trace, a
+  mounted attacker, a caravan, the `found_cities` window at 576;
+  `make_stuff` whole with the goods block; `Leader::diplomacy`;
+  `calc_gather` for non-flat buildings; `think_civilian_transport`
+  (`docs/TRANSPORT.md` §12).
 
-**A caution the build earned.** Before taking a queue item that says
-"needs X loaded", grep for X: this one had been loaded for a week. And
-the "harness that can stage a frame-12000 state" item 13 imagines is not
-what a single function needs — a block's records are its state, and the
-scene loader was an afternoon's work to extend, twice now. One more from
-run26: **read the trace's `draws` for the frame before building the
-replay** — it hands over the draw count, the call chain and the seed,
-which is the whole assertion, and the call chain is what said
-`do_mustering`'s tail had run first.
+**Three things this session earned.** (1) **Ask the blind list against
+*every* log.** `docs/ARMY.md` had said `engagement` never executed; it had,
+in run16, since 2026-08-24 — the claim was true of the four islands runs
+and had never been checked against the corpus. `report.py <log> blind docs
+<every log>` answers it in ten seconds. (2) **Predict the frame from the
+state machine before staging the run.** run28 was three minutes because
+the reading said which path reaches `engagement` and run27's record said
+where the army stood. (3) A `cover=1` trace with **no** `DUMP_ALL` is a
+three-minute run and answers "did this function ever execute"; the
+ten-minute window is only for the records.
 
-**Agreed with the user, 2026-08-25.** How the verification budget splits:
-diff first wherever a dump exists; a blind reading scoped to what no run
-reaches, its readers briefed to output assertions and handed the captures;
-the soak kept as the determinism guard it is. The rules are in `CLAUDE.md`
-("Prefer a diff to a reading"); the one build that changes the ratio is
-item 13 below. Today's shape — read, stage the captures from the trace's
-frame numbers with `tools/gamelog/runwin.sh`, spawn the readers while they
-run, adjudicate against both — is the one to repeat.
+**Needs the user.** Nothing this session. One standing note: Fable is
+being saved, so first readings and adjudications are running on Opus for
+now, and each document says which model wrote it.
 
-**Needs the user.** Nothing this session. One caution for the next: a
-`war` cheat is a no-op in a Quick Battle (it starts at war); `tools/gamelog/
-rngcmp.py` shows in ten seconds whether a staged scenario took.
-
-**Opener:** `proceed @docs/QUEUE.md — the group orders (docs/ARMY.md §17, docs/ORDERS.md's Group::action_*): model push_group / action_move_to / action_attack / action_stance / action_halt in the sim so do_forming, march_to_target and engagement become behaviour, then stage the run that makes engagement execute — attackers meeting the army at its muster spot`
+**Opener:** `proceed @docs/QUEUE.md — extend rondata::diff::army_tests::scene_at to load a block's UNITDATA order lists (run29's window at [15100, 15103) is on disk, and its ARMY half is already asserted), then pin engagement's choice of unit against the records and docs/GROUPS.md §6.4's slot table from the MOVEORDER destinations of an early frame`
 
 ## The queue
 
@@ -188,6 +192,9 @@ in which case say so and take that. The story of each struck item is in
 15. ~~**Armies**~~ — done 2026-08-25. `docs/ARMY.md`,
     `crates/sim/src/army.rs`, `docs/audit/2026-08-25-army.md`; runs 23–27,
     `tools/gamelog/runwin.sh`, `rngcmp.py`, `armyrecs.py`.
+16. ~~**The group orders**~~ — done 2026-08-25, **less its second
+    reading** (see "Owed" above). `docs/GROUPS.md`,
+    `crates/sim/src/group.rs`; runs 28 and 29.
 
 ## How to maintain this file
 

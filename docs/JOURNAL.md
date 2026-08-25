@@ -980,3 +980,98 @@ The obvious next use, taken: the navy's first live target choice
 - **What it does not establish.** The score itself: London wins by two
   hundred to one, so every multiplier but its three could be off by a
   factor and the block would not say. §18 names the capture that would.
+
+## 2026-08-25 — the group orders: the army's other half, and the run that made `engagement` fire
+
+The queue's next item, taken whole: `docs/GROUPS.md`,
+`crates/sim/src/group.rs`, and run28. On Opus 5 in the main thread —
+Fable is being saved for the next architecture, so this session's
+reading, implementation and adjudication are all one model's, and the
+document says so.
+
+- **The layer, not the mechanic.** Nothing in the original gives an order
+  to a unit: a click, an army tick and `Unit::go_to` all build a `Group`
+  and call a `Group::action_*`, which walks the members and calls
+  `Unit::add_*_order`. `docs/ORDERS.md` §8 had read the entry from the
+  command stream; this reads the layer — the record (the PDB names every
+  field of `GroupData`), the pool of 64 groups a leader, membership, and
+  the five actions `docs/ARMY.md` cites. 3,500 lines of decompile.
+- **The find is §6.5, and it is a predicate.** `action_move_near` has an
+  **AI branch** neither `docs/ORDERS.md` §8.2 nor the army's own reading
+  had: `!human && group.army >= 0` turns it on, and then `army.hurry`
+  splits it. Hurrying, with a friendly city within `0x200` of the
+  destination, a **supply wagon, siege unit or hero is sent into that
+  city** — `add_garrison_order`, or a move to a spot around it — while
+  the line marches. Not hurrying, a **siege unit whose order is already
+  `ATTACK` is left entirely alone**: orders not cleared, no move, no
+  path. Two predicates, three times over in the function (the clear, the
+  order, the path), and both now tested — each made to fail first by
+  `&&`-ing `false` into it.
+- **`action_siege_attack_to` is a nicer mechanic than its name.** The
+  siege units become a sub-group; with none, the first supply wagon
+  joins it, and with none of those the first hero. Then the sub-group's
+  member with the smallest total Manhattan distance to the whole group is
+  the **anchor**, the sub-group attack-moves, and everyone else
+  `action_guard`s the anchor. With no siege, no wagon and no hero — every
+  traced army — it degrades to a whole-group attack-move, which is what
+  the trace shows at 10232.
+- **`Form::compute`'s slot table is a declared seam.** 1,200 lines across
+  four functions, floats in the middle, and no capture pins its output;
+  it decides *where within the formation* each member stands and nothing
+  the army's behaviour turns on. Every member is given the group's own
+  destination, `docs/GROUPS.md` §6.4 and §12 say so, and §13 names the
+  `UNITS=3` capture that would settle it — `Form::compute_dests` runs on
+  **frame 0**, so it is a seam of arithmetic, not of reachability.
+- **The run was predicted, then staged, then fired.** The path to
+  `Army::engagement` is narrower than `docs/ARMY.md` §6 reads: the
+  dispatch is `do_forming` **or** `engagement`, and `march_to_target`'s
+  engaged arm does not clear `0x10`, so an army that arrives and fights
+  never reaches it. The one path is `do_mustering`'s release, whose tail
+  overwrites `status` whole. So: run24's game with six hoplites dropped
+  on **army 0's own point** — run27's block gives it as tile (180, 192),
+  seven units, mustering — at 15020–15030. `Army::engagement@006f5160`
+  entered at **15100**, army 0's own tick frame, and the frame's coverage
+  names the chain down to `Group::action_attack` →
+  `Unit::find_melee_target` → `Unit::add_attack_order`. Three minutes,
+  trace only, no dump.
+- **A correction the same check produced.** `docs/ARMY.md` §16.4 and §18
+  said `engagement` had never executed in any traced game. It had —
+  **run16, frame 6652, since 2026-08-24**. The claim was true of the four
+  islands runs and had never been asked of the corpus, which
+  `report.py … blind docs <every log>` answers in ten seconds. The blind
+  list is only honest when every log is passed to it; the one after run28
+  leaves `docs/ARMY.md` three functions and `docs/GROUPS.md` **none**.
+- **And three more `docs/ARMY.md` predicates, corrected while wiring the
+  callers.** Writing `march_to_target` against the decompile rather than
+  against §9 caught: the move-or-siege choice is **not** "`hurry` alone"
+  but §8.3–8.4's whole test, `is_ally` clause included; the 90 %-damage
+  test's sense was **inverted** (`damage >= hits × 9/10` — a building
+  nearly dead, not nearly whole); and it applies only to a **city
+  centre**, not any building. §8.4's own friendly test is `is_ally`, so a
+  leader merely at peace does not qualify — the first reading had written
+  "mine or an ally's" and the sim had implemented `!is_enemy`. The audit
+  README's recurring lesson, for the fourth mechanic running: the
+  arithmetic survives, the predicates do not, and it is *writing the
+  caller* that finds them.
+- **run29 turned the coverage into an assertion.** The same scenario
+  under a `DUMP_ALL` window at [15100, 15103). Army 0's two blocks are the
+  tick, field for field: `status 1 → 32`, `city 1 → −1`, and the point
+  from the city's `(34656, 36960)` to the muster cell's centre
+  `(34944, 37248)`, `muster` untouched — `do_mustering`'s common tail
+  whole. The sim's own `do_mustering` now reproduces all four, and asserts
+  what the whole run was for: **no `FORMING` bit survives the release**.
+  Made to fail by ORing `0x10` into the tail. `scenes()` parses a 250 MB
+  window once for both blocks.
+- **Landed.** `docs/GROUPS.md` (13 sections), `crates/sim/src/group.rs`
+  (9 tests), `army.rs`'s `do_forming` / `march_to_target` / `engagement` /
+  `send_here` / `charge` / `set_stance` / `close`'s halt (7 tests, one
+  end-to-end: the order the group issues is stepped and the unit is nearer
+  the muster spot 64 frames on), `docs/ARMY.md` §16.6, §17, §18. 532 sim
+  tests and 93 diff tests green, clippy and fmt clean, `rondata` exits 0.
+- **What it does not establish.** The slot table; `FormData::type_cat`,
+  which picks a mixed group's leader; and the *positions* of a traced
+  army's units, because the harness cannot yet stage a frame-15100 unit
+  list — run29's `UNITS=3` half is on disk for whoever extends
+  `scene_at` to read it. And no
+  second reading: §6.5 and §9 are exactly the kind of predicates the
+  audit README says a first reading gets wrong.

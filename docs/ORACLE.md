@@ -2072,6 +2072,35 @@ quiet, archive, restore), chained three at a time.
   dump written then — a free capture of a later frame, labelled by the
   frame it was written at.
 
+### run28 and run29 — the army engaged while mustering (2026-08-25)
+
+Staged from a reading rather than a guess (`docs/ARMY.md` §16.6): the one
+path in `Army::process` that reaches `Army::engagement` is
+`do_mustering`'s release, so the army has to be **engaged at its own
+mustering tick**. run24's game plus six `add hoplite who=0` on army 0's
+own point — run27's block gives it as tile (180, 192) — at 15020–15030,
+and quit at 15400.
+
+- **run28** (`gamelog-run28-islands-engagement.txt`,
+  `rontrace-run28.log`; dump off, `cover=1`, `window=15095-15105`):
+  **three minutes**, and `Army::engagement@006f5160` is entered at
+  **15100** with the frame's coverage naming the chain down to
+  `Group::action_attack` → `Unit::find_melee_target` →
+  `Unit::add_attack_order`. A `cover=1` trace with no dump is the cheapest
+  behavioural check there is, and it answers "did this function ever
+  execute" outright.
+- **run29** (`gamelog-run29-islands-engagement-window.txt`): the same
+  scenario under a `DUMP_ALL` window at [15100, 15103), for the records
+  on either side of that frame. Ten minutes, ~250 MB, and its `ARMY`
+  half is a test the same day (`docs/ARMY.md` §17 item 6) — `status 1 →
+  32`, `city 1 → −1`, the point to the muster cell's centre.
+
+A trap the same session found: `rontrace.cmd` clamps a frame lower than
+the previous line's **to it**, so a `!quit` written after a later-frame
+`add` runs at the later frame. run27's `15104 !quit` sat after lines at
+16000–16006 and so quit at 16006, which is where its free 16007 block
+came from. Write the file in ascending frame order.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The

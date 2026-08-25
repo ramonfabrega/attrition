@@ -62,6 +62,7 @@ pub mod fight;
 pub mod gaia;
 pub mod garrison;
 pub mod gather;
+pub mod group;
 pub mod holdings;
 pub mod market;
 pub mod movement;
@@ -215,6 +216,10 @@ pub struct Unit {
     /// The type's `TypeIndex`, when the loader named it; −1 otherwise. The
     /// birds' walk coin reads it.
     pub type_index: i32,
+    /// `UnitData +0xaa`: the formation index the last group move applied,
+    /// −1 none. `GroupData::get_form` reads it back (`docs/GROUPS.md`
+    /// §4.4, §6.6).
+    pub form: i8,
 }
 
 /// The two animations `Unit::do_gather`'s farm branch tests for.
@@ -454,6 +459,7 @@ impl Unit {
             guy_flag_0x20: false,
             herd: None,
             type_index: -1,
+            form: -1,
         }
     }
 

@@ -23,8 +23,9 @@
 use crate::ai_load::{role, uflags2};
 use crate::attrition::Domain;
 use crate::build::{self, Ident};
-use crate::combat::Obj;
-use crate::movement::{Angle, find_angle};
+use crate::combat::{Obj, Stance};
+use crate::movement::{self, Angle, find_angle};
+use crate::orders::{MoveKind, QueuePos};
 use crate::world::{Cell, MOVE_49, Owner, Pos, Terrain, UNITS_PER_CELL, cell, vector_dist};
 use crate::{Player, Sim};
 
@@ -86,10 +87,13 @@ pub struct Army {
     /// The one group's members, in join order (§3.2). `num_groups` is 1
     /// while this is non-empty.
     pub units: Vec<usize>,
+    /// The persistent half of that group's `GroupData` (`docs/GROUPS.md`
+    /// §1). The army's `list[16]` of group ids collapses to this one.
+    pub group: crate::group::GroupState,
 }
 
 impl Army {
-    const fn empty(slot: usize, who: Player) -> Army {
+    fn empty(slot: usize, who: Player) -> Army {
         Army {
             valid: false,
             army: slot as i16,
@@ -112,6 +116,7 @@ impl Army {
             muster: Cell { x: -1, y: -1 },
             muster_angle: Angle(0),
             units: Vec::new(),
+            group: crate::group::GroupState::default(),
         }
     }
 
@@ -155,6 +160,15 @@ pub const fn cell_centre(c: Cell) -> Pos {
     Pos::new(
         c.x * UNITS_PER_CELL + UNITS_PER_CELL / 2,
         c.y * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+    )
+}
+
+/// `project(p, angle, d)` (§8): a polar step along `angle` —
+/// `x + sin(angle)·d`, `y − cos(angle)·d` (`docs/MOVEMENT.md`).
+pub fn step_along(p: Pos, angle: Angle, d: i32) -> Pos {
+    Pos::new(
+        p.x + movement::sin_component(angle, d),
+        p.y - movement::cos_component(angle, d),
     )
 }
 
@@ -235,14 +249,16 @@ impl Sim {
         self.armies[who as usize].list[slot] = a;
     }
 
-    /// `Army::close`: the slot freed, the units left where they are. The
-    /// original halts every group here; the sim's units carry no army
-    /// orders to halt (seam).
+    /// `Army::close`: `Group::action_halt(g, 0)` on the one group — the
+    /// units stop where they are (`docs/GROUPS.md` §7) — then the slot is
+    /// freed.
     pub fn close_army(&mut self, who: Player, slot: usize) {
-        let a = &mut self.armies[who as usize].list[slot];
-        if !a.valid {
+        if !self.armies[who as usize].list[slot].valid {
             return;
         }
+        let g = self.army_group(who, slot);
+        self.group_action_halt(&g, 0);
+        let a = &mut self.armies[who as usize].list[slot];
         a.valid = false;
         a.status = 0;
         a.human_frame = 0;
@@ -505,17 +521,27 @@ impl Sim {
     fn army_tick(&mut self, who: Player, slot: usize) {
         let w = who as usize;
         self.army_normalize(who, slot);
-        // 1. Disband: the survivors are sent home (`send_here`, an order
-        //    the sim does not issue); the slot is freed either way.
+        // 1. Disband: the survivors walk home, then the slot is freed
+        //    either way.
         {
             let a = &self.armies[w].list[slot];
             if a.num_standard < 1 && a.status & status::MUSTERING == 0 {
+                if let Some(c) = self
+                    .cities_of(who)
+                    .into_iter()
+                    .find(|&c| self.cities[c].alive)
+                {
+                    let p = self.cities[c].pos;
+                    self.send_here(who, slot, p, MoveKind::MoveTo);
+                }
                 self.close_army(who, slot);
                 return;
             }
         }
         // 2. A human's ping: the AI stands aside while the countdown runs.
         if self.armies[w].list[slot].human_frame != 0 {
+            let p = self.armies[w].list[slot].pos;
+            self.send_here(who, slot, p, MoveKind::AttackTo);
             return;
         }
         // 3. Merge into a stronger army of the same region.
@@ -576,21 +602,37 @@ impl Sim {
                 a.status = status::MARCHING;
             }
         }
-        // 6. Dispatch. `do_forming` and `engagement` issue group orders
-        //    only (seam), so they are not called.
+        // 6. Dispatch, each `if` independent (§6).
         if self.armies[w].list[slot].status & status::MUSTERING != 0 {
+            self.army_set_stance(who, slot, Stance::Defensive);
             self.do_mustering(who, slot);
         }
-        if self.armies[w].list[slot].status & status::DEFENDING != 0 {
+        if self.armies[w].list[slot].valid
+            && self.armies[w].list[slot].status & status::DEFENDING != 0
+        {
+            self.army_set_stance(who, slot, Stance::Defensive);
             self.do_defending(who, slot);
         }
-        if self.armies[w].list[slot].status & status::MARCHING != 0 {
+        if self.armies[w].list[slot].valid
+            && self.armies[w].list[slot].status & status::MARCHING != 0
+        {
+            self.army_set_stance(who, slot, Stance::Aggressive);
             self.do_marching(who, slot);
+        }
+        if self.armies[w].list[slot].valid {
+            if self.armies[w].list[slot].status & status::FORMING != 0 {
+                self.do_forming(who, slot);
+            } else if self.army_is_engaged(who, slot) {
+                self.engagement(who, slot);
+            }
         }
         if self.armies[w].list[slot].valid
             && self.armies[w].list[slot].status & status::TRANSPORTING != 0
         {
             self.do_transporting(who, slot);
+        }
+        if self.armies[w].list[slot].valid && self.armies[w].list[slot].navy {
+            self.army_set_stance(who, slot, Stance::Raid);
         }
     }
 
@@ -608,8 +650,10 @@ impl Sim {
         .unwrap_or(0)
     }
 
-    /// `Army::do_mustering` — `docs/TRANSPORT.md` §8.1's table.
-    fn do_mustering(&mut self, who: Player, slot: usize) {
+    /// `Army::do_mustering` — `docs/TRANSPORT.md` §8.1's table. Public
+    /// because `rondata::diff` replays it on a dumped block
+    /// (`docs/ARMY.md` §17).
+    pub fn do_mustering(&mut self, who: Player, slot: usize) {
         let w = who as usize;
         let released = self.release_mustering(who, slot);
         let (city, reg, navy, captains) = {
@@ -782,8 +826,8 @@ impl Sim {
         }
     }
 
-    /// `Army::march_to_target`: not engaged → forming and marching; engaged
-    /// → the attack orders (seam), so `MARCHED` is never set here.
+    /// `Army::march_to_target` (§9): not engaged → forming and marching;
+    /// engaged, and only on the first tick of the fight, the orders.
     fn march_to_target(&mut self, who: Player, slot: usize) {
         let w = who as usize;
         if self.armies[w].list[slot].target.is_none() {
@@ -792,7 +836,192 @@ impl Sim {
         if !self.army_is_engaged(who, slot) {
             let a = &mut self.armies[w].list[slot];
             a.status = (a.status & !status::MARCHED) | status::FORMING | status::MARCHING;
+            return;
         }
+        if self.armies[w].list[slot].status & status::MARCHED != 0 {
+            return;
+        }
+        // The formation origin: the army's point stepped one cell along the
+        // muster angle, and the facing from the target back to it.
+        let (pos, ang, target, hurry) = {
+            let a = &self.armies[w].list[slot];
+            (a.pos, a.muster_angle, a.target, a.hurry)
+        };
+        let origin = step_along(pos, ang, UNITS_PER_CELL);
+        let Some(t) = target else { return };
+        let tp = self.pos_of(t);
+        let angle = find_angle(origin.x - tp.x, origin.y - tp.y);
+        self.armies[w].list[slot].angle = angle;
+        self.army_stance_rule(who, slot);
+        let siege = self.army_siege_here(who, slot, origin);
+        let g = self.army_group(who, slot);
+        // A **city-centre** target that has lost nine tenths of its hits is
+        // walked to directly (`damage < hits × 9/10` false, `6f5007`);
+        // anything else takes the move-or-siege choice at the origin.
+        let nearly_dead = match t {
+            Obj::Building(b) => {
+                let bd = &self.buildings[b];
+                let centre = bd.city.is_some_and(|c| self.cities[c].building == b);
+                centre && bd.hits - bd.health >= bd.hits * 9 / 10
+            }
+            Obj::Unit(_) => false,
+        };
+        if nearly_dead {
+            self.group_action_move_to(&g, tp, QueuePos::New, true, angle, MoveKind::AttackTo, true);
+        } else if !siege && (hurry != 0 || self.army_target_is_a_friend_under_attack(who, slot)) {
+            self.army_set_stance(who, slot, Stance::Aggressive);
+            self.group_action_move_to(
+                &g,
+                origin,
+                QueuePos::New,
+                true,
+                angle,
+                MoveKind::AttackTo,
+                true,
+            );
+        } else {
+            self.group_action_siege_attack_to(&g, origin, angle);
+        }
+        self.armies[w].list[slot].status |= status::MARCHED;
+    }
+
+    // ---- forming (§8) ----
+
+    /// `Army::do_forming`: the muster cell's centre, projected a tile per
+    /// group, and one order per group.
+    fn do_forming(&mut self, who: Player, slot: usize) {
+        if self.army_is_engaged(who, slot) {
+            return;
+        }
+        let w = who as usize;
+        let (muster, ang, hurry) = {
+            let a = &self.armies[w].list[slot];
+            (a.muster, a.muster_angle, a.hurry)
+        };
+        let groups = self.armies[w].list[slot].num_groups();
+        let origin = step_along(cell_centre(muster), ang, groups * 0xc0);
+        self.army_stance_rule(who, slot);
+        let siege = self.army_siege_here(who, slot, origin);
+        let friendly_attacked = self.army_target_is_a_friend_under_attack(who, slot);
+        let g = self.army_group(who, slot);
+        if !siege && (hurry != 0 || friendly_attacked) {
+            self.army_set_stance(who, slot, Stance::Aggressive);
+            self.group_action_move_to(
+                &g,
+                origin,
+                QueuePos::New,
+                true,
+                ang,
+                MoveKind::AttackTo,
+                true,
+            );
+        } else {
+            self.group_action_siege_attack_to(&g, origin, ang);
+        }
+    }
+
+    /// §8.4's second half of the move-or-siege choice, shared with
+    /// `march_to_target` (`6f4559`, `6f4f55`): the target is **mine or an
+    /// ally's** — `is_ally`, so a leader merely at peace does not count —
+    /// and the building's city is active and attacked.
+    fn army_target_is_a_friend_under_attack(&self, who: Player, slot: usize) -> bool {
+        let Some(t) = self.armies[who as usize].list[slot].target else {
+            return false;
+        };
+        let tw = self.owner_of(t);
+        if tw != who && !self.is_ally(who, tw) {
+            return false;
+        }
+        matches!(t, Obj::Building(b) if self.buildings[b]
+            .city
+            .is_some_and(|c| self.cities[c].alive && self.cities[c].no_heal))
+    }
+
+    /// §8.2's stance rule, shared by `do_forming`, `march_to_target` and
+    /// `engagement`: an army marching on an enemy before the Gunpowder age
+    /// with no siege of its own raids.
+    fn army_stance_rule(&mut self, who: Player, slot: usize) {
+        let w = who as usize;
+        let (target, hurry) = {
+            let a = &self.armies[w].list[slot];
+            (a.target, a.hurry)
+        };
+        let Some(t) = target else { return };
+        let tw = self.owner_of(t);
+        if tw != who
+            && self.is_enemy(who, tw)
+            && hurry == 0
+            && self.tech[w].ages < 4
+            && self.army_count_siege(who, slot) == 0
+        {
+            self.army_set_stance(who, slot, Stance::Raid);
+        }
+    }
+
+    /// §8.3's siege test: an enemy combat building within a cell of the
+    /// formation's origin, and I have siege.
+    fn army_siege_here(&self, who: Player, slot: usize, origin: Pos) -> bool {
+        if self.army_count_siege(who, slot) == 0 {
+            return false;
+        }
+        self.buildings.iter().any(|b| {
+            b.alive
+                && b.active
+                && self.is_enemy(who, b.owner)
+                && b.ty.is_some_and(|t| self.build_types[t].attack != 0)
+                && dist(b.pos, origin) <= UNITS_PER_CELL
+        })
+    }
+
+    /// `Army::set_stance(s)` (§6): `Group::action_stance` on the one group,
+    /// and only when its stance panel is the combat one.
+    fn army_set_stance(&mut self, who: Player, slot: usize, s: Stance) {
+        let g = self.army_group(who, slot);
+        if self.group_stance_type(&g) != crate::group::StanceType::Combat {
+            return;
+        }
+        self.group_action_stance(&g, crate::group::stance_option(s));
+    }
+
+    // ---- the helpers (§14) ----
+
+    /// `Army::send_here(x, y, order)`: the point and the muster cell move,
+    /// and every group walks there.
+    pub fn send_here(&mut self, who: Player, slot: usize, p: Pos, kind: MoveKind) {
+        let w = who as usize;
+        let p = self.restrict(p);
+        let here = self.armies[w].list[slot].pos;
+        if p.x != here.x && p.y != here.y {
+            self.armies[w].list[slot].muster_angle = find_angle(p.x - here.x, p.y - here.y);
+        }
+        {
+            let a = &mut self.armies[w].list[slot];
+            a.pos = p;
+            a.muster = p.cell();
+        }
+        let ang = self.armies[w].list[slot].muster_angle;
+        let g = self.army_group(who, slot);
+        self.group_action_move_to(&g, p, QueuePos::New, true, ang, kind, true);
+    }
+
+    /// `Army::charge(o, who)`: a siege unit under attack drags its army
+    /// onto the attacker.
+    pub fn army_charge(&mut self, who: Player, slot: usize, target: Obj) {
+        if !self.armies[who as usize].list[slot].valid {
+            return;
+        }
+        let p = self.pos_of(target);
+        let g = self.army_group(who, slot);
+        self.group_action_move_to(
+            &g,
+            p,
+            QueuePos::First,
+            false,
+            Angle(0),
+            MoveKind::AttackTo,
+            true,
+        );
+        self.armies[who as usize].list[slot].target = Some(target);
     }
 
     // ---- defending (§10) ----
@@ -1012,6 +1241,51 @@ impl Sim {
             }
         }
         count > a.num_units / 6
+    }
+
+    /// `Army::engagement` (§11): the first engaged unit whose attack order
+    /// names a map unit becomes the army's target of the moment, and every
+    /// group with a valid member is pointed at it.
+    fn engagement(&mut self, who: Player, slot: usize) {
+        let w = who as usize;
+        let (units, pos) = {
+            let a = &self.armies[w].list[slot];
+            (a.units.clone(), a.pos)
+        };
+        let cog = cell_centre(self.army_centre_of_gravity(who, slot));
+        let mut found = None;
+        for u in units {
+            let unit = &self.units[u];
+            if !unit.alive() || !unit.on_map {
+                continue;
+            }
+            if !unit
+                .orders
+                .front()
+                .is_some_and(|o| matches!(o.body, crate::orders::Body::Attack(_)))
+            {
+                continue;
+            }
+            if dist(unit.pos, pos) >= 0xc00 || dist(unit.pos, cog) > 0xc00 {
+                continue;
+            }
+            // `get_target_order()`'s target must be a **map unit**: a
+            // building target is not what the army re-points at.
+            if let Some(Obj::Unit(t)) = unit.combat.target
+                && self.units[t].alive()
+                && self.units[t].on_map
+            {
+                found = Some(Obj::Unit(t));
+                break;
+            }
+        }
+        let Some(t) = found else { return };
+        self.army_stance_rule(who, slot);
+        let g = self.army_group(who, slot);
+        if self.group_num_valid(&g) == 0 {
+            return;
+        }
+        self.group_action_attack(&g, t, false, QueuePos::New, 0);
     }
 
     // ---- the target (§12) ----
@@ -1944,21 +2218,17 @@ impl Sim {
         }
     }
 
-    /// `Armies::leader_defeated(who)`: `Army::stop` on every army — the
-    /// units' orders are cleared; the slots stay valid.
+    /// `Armies::leader_defeated(who)`: `Army::stop` on every army — which
+    /// is `Group::action_halt(g, 0)` on each of its groups (§14,
+    /// `docs/GROUPS.md` §7); the slots stay valid.
     pub fn armies_leader_defeated(&mut self, who: Player) {
         let w = who as usize;
         for s in 0..SLOTS {
             if !self.armies[w].list[s].valid {
                 continue;
             }
-            let units = self.armies[w].list[s].units.clone();
-            for u in units {
-                if u < self.units.len() {
-                    self.units[u].orders.clear();
-                    self.units[u].path.clear();
-                }
-            }
+            let g = self.army_group(who, s);
+            self.group_action_halt(&g, 0);
         }
     }
 
@@ -2094,6 +2364,199 @@ mod tests {
             source: None,
         });
         (sim, c)
+    }
+
+    // ---- the order-issuing half (§8, §9, §11, §14; docs/GROUPS.md) ----
+
+    fn soldier_type(sim: &mut Sim) -> usize {
+        sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: crate::combat::Profile {
+                attack: 15,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        })
+    }
+
+    fn put(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
+        let index = i16::try_from(sim.units.len()).unwrap();
+        let hits = sim.unit_types[ty].hits;
+        let mut u = crate::Unit::new(who, index, p, hits);
+        u.ty = Some(ty);
+        u.on_map = true;
+        u.kind = sim.unit_types[ty].kind;
+        u.movement.speed = 25;
+        u.movement.turning = crate::movement::Turning {
+            type_turn_speed: crate::movement::degrees_to_angle(45).0,
+            packed: false,
+            instant_from_stop: true,
+            wide_limit: false,
+        };
+        sim.add_unit(u)
+    }
+
+    #[test]
+    fn do_forming_walks_the_army_to_the_projected_muster_origin() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let a = put(&mut sim, 1, t, Pos::new(0x1000, 0x1000));
+        let b = put(&mut sim, 1, t, Pos::new(0x1200, 0x1000));
+        sim.army_add_unit(1, slot, a);
+        sim.army_add_unit(1, slot, b);
+        sim.armies[1].list[slot].muster = Cell { x: 20, y: 20 };
+        sim.armies[1].list[slot].muster_angle = Angle(0);
+        sim.do_forming(1, slot);
+        // One group, so the origin is the muster cell's centre projected
+        // one tile north (§8: `num_groups × 0xc0` along the muster angle,
+        // which is 0 — due north, `y − 0xc0`).
+        let want = step_along(cell_centre(Cell { x: 20, y: 20 }), Angle(0), 0xc0);
+        for u in [a, b] {
+            let o = *sim.current_order(u).expect("an order from do_forming");
+            assert_eq!(o.index(), crate::orders::index::ATTACK_TO);
+            let crate::orders::Body::Move(m) = o.body else {
+                panic!("a move");
+            };
+            // The destination is the origin snapped to its 48-unit centre
+            // (`docs/ORDERS.md` §4.3).
+            assert_eq!(m.dest.x.div_euclid(0x30), want.x.div_euclid(0x30));
+            assert_eq!(m.dest.y.div_euclid(0x30), want.y.div_euclid(0x30));
+        }
+    }
+
+    #[test]
+    fn a_forming_army_actually_moves_its_units_over_the_ticks() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let a = put(&mut sim, 1, t, Pos::new(0x1000, 0x1000));
+        sim.army_add_unit(1, slot, a);
+        sim.armies[1].list[slot].muster = Cell { x: 30, y: 30 };
+        let before = sim.units[a].pos;
+        sim.do_forming(1, slot);
+        // The order step and the body follow, as `Objects::process_all`
+        // runs them; the rest of the tick needs a tech tree this fixture
+        // has no use for.
+        for f in 0..64 {
+            sim.work(a, f);
+            sim.process_movement(a);
+        }
+        assert_ne!(
+            sim.units[a].pos, before,
+            "the order the group issued is stepped by the order system"
+        );
+        let d = |p: Pos| {
+            vector_dist(
+                (p.x - cell_centre(Cell { x: 30, y: 30 }).x).abs(),
+                (p.y - cell_centre(Cell { x: 30, y: 30 }).y).abs(),
+            )
+        };
+        assert!(
+            d(sim.units[a].pos) < d(before),
+            "and it walks toward the muster spot"
+        );
+    }
+
+    #[test]
+    fn engagement_points_the_whole_army_at_the_first_fighter_s_target() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let p = Pos::new(0x5000, 0x5000);
+        sim.armies[1].list[slot].pos = p;
+        // Three of mine at the army's point; one is already fighting, and
+        // `is_engaged` wants more than a quarter (§11).
+        let mine: Vec<usize> = (0..3)
+            .map(|k| put(&mut sim, 1, t, Pos::new(p.x + k * 0x40, p.y)))
+            .collect();
+        for &u in &mine {
+            sim.army_add_unit(1, slot, u);
+        }
+        let foe = put(&mut sim, 0, t, Pos::new(p.x + 0x100, p.y));
+        sim.add_attack_order(mine[0], Obj::Unit(foe), QueuePos::New, true, true);
+        assert!(
+            sim.army_is_engaged(1, slot),
+            "one of three is over the quarter"
+        );
+        sim.engagement(1, slot);
+        for &u in &mine {
+            assert_eq!(
+                sim.units[u].combat.target,
+                Some(Obj::Unit(foe)),
+                "every member takes the engaged unit's target"
+            );
+        }
+    }
+
+    #[test]
+    fn engagement_ignores_a_building_target() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let p = Pos::new(0x5000, 0x5000);
+        sim.armies[1].list[slot].pos = p;
+        let a = put(&mut sim, 1, t, p);
+        let b = put(&mut sim, 1, t, Pos::new(p.x + 0x40, p.y));
+        sim.army_add_unit(1, slot, a);
+        sim.army_add_unit(1, slot, b);
+        let wall = sim.add_building(0, Pos::new(p.x + 0x100, p.y), 1);
+        sim.add_attack_order(a, Obj::Building(wall), QueuePos::New, true, true);
+        sim.engagement(1, slot);
+        assert_eq!(
+            sim.units[b].combat.target, None,
+            "`is_map_unit` gates it: a building target is not the army's"
+        );
+    }
+
+    #[test]
+    fn close_halts_the_units_it_held() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let a = put(&mut sim, 1, t, Pos::new(0x1000, 0x1000));
+        sim.army_add_unit(1, slot, a);
+        sim.add_move_order(
+            a,
+            Pos::new(0x4000, 0x4000),
+            MoveKind::MoveTo,
+            QueuePos::New,
+            true,
+        );
+        sim.close_army(1, slot);
+        assert!(
+            sim.current_order(a).is_none(),
+            "`Army::close` is `Group::action_halt(g, 0)` per group"
+        );
+    }
+
+    #[test]
+    fn send_here_moves_the_point_the_muster_cell_and_the_units() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let a = put(&mut sim, 1, t, Pos::new(0x1000, 0x1000));
+        sim.army_add_unit(1, slot, a);
+        let to = Pos::new(0x6000, 0x7000);
+        sim.send_here(1, slot, to, MoveKind::MoveTo);
+        let army = &sim.armies[1].list[slot];
+        assert_eq!(army.pos, to);
+        assert_eq!(army.muster, to.cell());
+        assert_eq!(sim.order_type(a), crate::orders::index::MOVE_TO);
+    }
+
+    #[test]
+    fn charge_drags_the_army_onto_the_attacker() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let a = put(&mut sim, 1, t, Pos::new(0x1000, 0x1000));
+        sim.army_add_unit(1, slot, a);
+        let foe = put(&mut sim, 0, t, Pos::new(0x2000, 0x2000));
+        sim.army_charge(1, slot, Obj::Unit(foe));
+        assert_eq!(sim.armies[1].list[slot].target, Some(Obj::Unit(foe)));
+        assert_eq!(sim.order_type(a), crate::orders::index::ATTACK_TO);
     }
 
     #[test]

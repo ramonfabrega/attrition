@@ -449,7 +449,8 @@ sin_table(angle, d)`, `y' = y − sin_table(angle + 0x40000000, d)`,
    `set_stance(0)`, `Group::action_move_to(group, x', y', QUEUE_NEW, 1,
    muster_angle, ATTACK_TO, 1, −1, −1, 0)`. Else (an enemy target, or no
    attacked city): `action_siege_attack_to` as above — the same call,
-   siege or not.
+   siege or not. The friendly test is **`is_ally`** (`6f4559`), so a leader
+   merely at peace does not qualify; `target_who == me` skips it.
 5. **Step** for the next group: `x' += 0x180 · sin(muster_angle)`, `y' −=
    0x180 · cos(muster_angle)` — half a cell **along** the muster angle.
    The listing's leading `sub eax, 0x80000000` is the first step of
@@ -497,13 +498,21 @@ of the fight — the formation origin is `(x, y)` stepped **one cell along
 `muster_angle`** (`0x300 · sin`, `−0x300 · cos`; listing `6f4daa`–`6f4e2b`,
 the same fold as §8.5), `angle = find_angle(x' − target.x, y' −
 target.y)` (`6f4e70`) — the direction from the target to the origin
-(A.62), the stance rule (§8.2), the same
-siege / move choice as §8.3–8.4 with **`hurry` alone** selecting the move
-(`bVar12`), and then per group: a **building target at 90 % or more of
-its hits** (`damage < hits × 9 / 10` is false) gets `action_move_to` to
-the **building's own position**, `ATTACK_TO`; anything else gets the
-§8.4 order at `(x', y')` with `angle`; then the half-cell step back
-(§8.5). `status |= 4` so it is not repeated while the fight lasts.
+(A.62), the stance rule (§8.2 — here without the `!= me` clause
+`do_forming` carries, which `is_enemy`'s diagonal makes redundant),
+~~the same siege / move choice as §8.3–8.4 with **`hurry` alone**
+selecting the move (`bVar12`)~~ — **the choice is §8.3–8.4's whole**:
+`hurry != 0`, *or* the target is mine or an ally's (`is_ally`, `6f4f55`)
+and its building's city is active and attacked, exactly the two clauses
+`do_forming` tests (corrected 2026-08-25, from the decompile while
+`group.rs` was built) — and then per group: a **city-centre target**
+(`flags & OBJECT_CITY`, `6f4fd9`) that has lost **nine tenths of its
+hits** (`damage < hits × 9 / 10` is **false**, `6f5007`) gets
+`action_move_to` to the **building's own position**, `ATTACK_TO`;
+anything else gets the §8.4 order at `(x', y')` with `angle`; then the
+half-cell step back (§8.5). `status |= 4` so it is not repeated while
+the fight lasts. (The first reading had the 90 % test's sense inverted
+and applied it to any building, not only a city centre.)
 
 ## 10. Defending
 
@@ -1111,6 +1120,55 @@ the sim having run on past the `!quit`. The records
   block: my own untroubled city takes the size factor (the `diplos`
   diagonal), and the `diff == 1` clause is live at difficulty 1.
 
+### 16.6 run28 — the army engaged while mustering
+
+*2026-08-25, with the group orders (`docs/GROUPS.md`).* The path to
+`engagement` is narrower than §6 reads at a glance: step 6 dispatches
+`do_forming` **or** `engagement`, never both, so an army carrying `0x10`
+can never reach `engagement` — and `march_to_target`'s engaged arm does
+not clear `0x10`, so an army that arrives at a target and fights does not
+reach it either. The one path is **`do_mustering`'s release**: its tail
+overwrites `status` whole, so an army that is engaged when its mustering
+tick runs comes out of `do_mustering` with `0x20` or `2` and no `0x10`,
+`do_defending`/`do_marching` return early on `is_engaged`, and the
+dispatch's `else` arrives.
+
+Staged from that reading: run24's game with six more hoplites dropped on
+**army 0's own point** — run27's block gives it as `x 34656 y 36960`,
+tile (180, 192), seven units, `status 1`, mustering at city 1 — at frames
+15020–15030, and the trace on with no dump (three minutes,
+`~/.claude/jobs/…/run28.sh`). `Army::engagement@006f5160` is entered at
+**15100**, army 0's own tick frame, and frame 15100's coverage names the
+whole chain: `process` → `do_mustering` → `release_mustering` (released:
+`diff == 0 && n > 6`, seven standard) → `do_defending` → `is_engaged` →
+return → **`engagement`** → `GroupData::num_valid` → `Group::action_attack`
+→ `Unit::find_melee_target` → `Unit::add_attack_order`. So §11 and
+`docs/GROUPS.md` §10's `mandatory == 0` retarget are both executed, and
+the frame was predicted from the state machine before the run.
+
+**run29 — the records, and the assertion they carry.** The same scenario
+under a `DUMP_ALL` window at [15100, 15103). Army 0's two blocks are the
+tick, field for field: `status 1 → 32` (`DEFENDING`), `city 1 → −1`, and
+the point from the city's `(34656, 36960)` to **`(34944, 37248)`** — the
+muster cell's centre, `45 × 0x300 + 0x180` and `48 × 0x300 + 0x180` —
+with `muster (45, 48)` untouched. That is `do_mustering`'s common tail
+(§7) whole, and it is what clears `0x10`. Replayed
+(`run29_s_mustering_army_is_released_with_no_forming_bit_and_the_tail_s_
+point`, §17 item 6): the harness's `release_mustering` agrees, its
+`do_mustering` produces the record's `status`, `city`, point and angle,
+and **no `FORMING` bit survives** — the gate the dispatch's `else` needs.
+Made to fail first by ORing `0x10` into the tail. The one input the dump
+does not carry is `strategy[reg]`, the census word that picks defending
+over marching; it is set from the record's outcome and said so.
+
+**A correction the same check produced.** §16.4 and §18 said `engagement`
+had never executed in any traced game. It had: **run16** (the attrition
+run, 2026-08-24) entered it at frame 6652. The claim was true of the
+islands runs and was never checked against the corpus —
+`tools/trace/report.py … blind docs` answers it in ten seconds and was
+not asked. The lesson is the tool's own: a blind claim is only blind
+against *every* trace on disk.
+
 ## 17. What the simulation carries, and what checks it
 
 `crates/sim/src/army.rs`: the record and the pool (§2 — `init_army`'s
@@ -1127,12 +1185,18 @@ RNG and the `0x2000` mark's division, and `find_muster_spot` whole (§13)
 — the chase, the ring search over the loaded map's cells (`World`'s
 `CellData`, `world::cell`, `world::MOVE_49`, `World::is_ocean`) and the
 mark (`City::no_muster`). The census's step 16 (`ai_census.rs`) and
-`create_units`' `seam_army_at` (`ai_units.rs`) are wired to it. **Not
-implemented**: the order-issuing half — `do_forming`, `march_to_target`,
-`engagement`, `send_here`, `charge` and `find_besieged_city` — which
-needs the sim's group orders (`docs/ORDERS.md`'s `Group::action_*`), not
-yet modelled; they are documented above and the state machine stops at
-"the orders this tick would issue".
+`create_units`' `seam_army_at` (`ai_units.rs`) are wired to it.
+
+**The order-issuing half landed 2026-08-25** with `docs/GROUPS.md` and
+`crates/sim/src/group.rs`: `do_forming` (§8, with §8.2's stance rule,
+§8.3's siege test and the projected formation origin), `march_to_target`
+(§9, the engaged arm and `MARCHED`), `engagement` (§11), `send_here` and
+`charge` (§14), `set_stance` (§6) and `Army::close`'s halt. The army's one
+group carries the live half of its `GroupData` as `army::Army::group`
+(`group::GroupState`). What still writes the record and moves nothing is
+`find_besieged_city`'s **navy** arm alone. The formation's slot table is
+`docs/GROUPS.md` §6.4's seam: every member is sent to the group's own
+destination.
 
 The seams — every place the module stands in for the original — are one
 table at the top of `army.rs` (`army::seams`). The ring search was the
@@ -1177,6 +1241,13 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
    stamps and the stream's word three draws on are the record's and the
    trace's. Passes; failed on the draw count before the diff-≤-1 gate was
    corrected.
+6. **`do_mustering`'s release on run29's blocks 15100/15101** —
+   `run29_s_mustering_army_is_released_with_no_forming_bit_and_the_tail_s_point`
+   (§16.6): the two blocks either side of the tick that put army 0 on the
+   path to `engagement`; the sim's `do_mustering` reproduces the record's
+   `status 32`, `city −1`, point and angle, and asserts the absence of
+   `FORMING`. Passes; failed first when the tail ORed `0x10` in.
+   `scenes()` parses one 250 MB window once for both blocks.
 
 ## 18. What is not established
 
@@ -1252,13 +1323,21 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   `Lands::init` with no other writer in the export. The class encoding's
   flag bits are named from run20's words (`world::cell`); `0x40`, `0x400`
   and `0x800` are not.
-- **`engagement` has never executed** in any traced game (§16.4); §11 is
-  the reading alone. *Capture:* a run where the AI's army meets an attacker
-  *at its muster spot* — the hoplites at (203, 207) reached the capital,
-  not the army mustering one cell south.
-- The blind list after run24: `engagement`, `send_here`, `charge`,
-  `use_scouts`, `use_spies`, `find_waiting_unit`, `find_useful_army`,
-  `find_city`, `diplo_change`, `Armies::send_navy`.
+- ~~**`engagement` has never executed** in any traced game (§16.4); §11 is
+  the reading alone.~~ **It has, twice**: run16 at 6652 (unnoticed since
+  2026-08-24) and run28 at 15100, staged for it (§16.6). What §11 still
+  rests on the reading for is the *choice* of unit — the first engaged
+  member whose target is a map unit — which no dump shows; run29's window
+  carries the records around the frame.
+- **The blind list after run28**, from `tools/trace/report.py … blind
+  docs` over **every** trace on disk (18 logs; 524 addresses cited under
+  `docs/`, 428 entered, 96 never) — this document's share is just three:
+  `Army::use_scouts`, `Army::use_spies` and `SpellType::cast_create_decoy`,
+  plus `Leader::action_ping`, which is the human's ping and not the AI's.
+  `Army::stop`, `use_generals`, `find_besieged_city`, `find_waiting_unit`,
+  `find_useful_army`, `find_city`, `diplo_change` and `Armies::send_navy`
+  are all covered by earlier runs. The list is the queue of runs, and it is
+  only honest when it is asked against every log (§16.6).
 
 ## 19. Second reading — landed, 2026-08-25
 

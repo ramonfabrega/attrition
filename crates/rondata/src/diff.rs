@@ -4209,6 +4209,12 @@ mod army_tests {
     }
 
     fn scene(name: &str, frame: i64) -> Option<Scene> {
+        Some(scenes(name, &[frame])?.pop().expect("one frame"))
+    }
+
+    /// Several blocks of one dump, parsed once — a 250 MB window is not
+    /// worth reading twice.
+    fn scenes(name: &str, frames: &[i64]) -> Option<Vec<Scene>> {
         let inst = install()?;
         let Some(path) = dump(name) else {
             eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
@@ -4217,7 +4223,7 @@ mod army_tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = std::fs::read_to_string(&path).unwrap();
         let log = Log::parse(&text);
-        Some(scene_at(&loaded, &log, frame))
+        Some(frames.iter().map(|&f| scene_at(&loaded, &log, f)).collect())
     }
 
     /// Run22's block 3579 again, this time with the harness's own ring
@@ -4421,5 +4427,87 @@ mod army_tests {
         assert_eq!(sc.sim.ai[1].frame_attacked, 12005, "my own city: no stamp");
         assert_eq!(sc.sim.ai[1].attacked_by, -1);
         assert_eq!(sc.sim.ai[0].frame_attacked, 0);
+    }
+
+    /// Run29's blocks 15100 and 15101 — the tick that put the AI's army on
+    /// the one path that reaches `Army::engagement` (`docs/ARMY.md` §16.6).
+    ///
+    /// Six human hoplites were dropped on army 0's own point at
+    /// 15020–15030, so that its 15100 tick found `is_engaged()` true while
+    /// it was still mustering. The dispatch (§6 step 6) runs `do_forming`
+    /// **or** `engagement`, never both, and `march_to_target`'s engaged arm
+    /// leaves `0x10` set — so the only way to `engagement` is
+    /// `do_mustering`'s release, whose common tail (§7) overwrites `status`
+    /// whole. The two blocks show exactly that: `status 1 → 32`, `city 1 →
+    /// −1`, and the point moved from the city's `(34656, 36960)` to the
+    /// **muster cell's centre** `(34944, 37248)` — `45 × 0x300 + 0x180`,
+    /// `48 × 0x300 + 0x180` — with `muster` itself untouched.
+    ///
+    /// What is asserted from the sim's own `do_mustering` is the tail and,
+    /// crucially, that **no `FORMING` bit survives it** — the gate the
+    /// dispatch's `else` needs. Which released branch it takes is *not*
+    /// asserted from the harness alone: `strategy[reg]`, the census word
+    /// that picks defending over marching, is not in the dump, so it is
+    /// set here from the record's own outcome and said to be an input.
+    #[test]
+    fn run29_s_mustering_army_is_released_with_no_forming_bit_and_the_tail_s_point() {
+        use sim::army::status;
+        let Some(scs) = scenes(
+            "gamelog-run29-islands-engagement-window.txt",
+            &[15100, 15101],
+        ) else {
+            return;
+        };
+        let (mut before, after) = {
+            let mut it = scs.into_iter();
+            (it.next().unwrap(), it.next().unwrap())
+        };
+
+        // The block before the tick, field for field.
+        let a = &before.sim.armies[1].list[0];
+        assert!(a.valid && !a.navy);
+        assert_eq!(a.status, status::MUSTERING);
+        assert_eq!(a.num_units, 7);
+        assert_eq!(a.num_standard, 7);
+        assert_eq!(a.pos, Pos::new(34656, 36960));
+        assert_eq!(a.muster, Cell::new(45, 48));
+        assert_eq!(a.muster_angle.0, 0);
+        assert!(a.city.is_some(), "mustering at city 1");
+        let reg = a.reg.expect("the army's region");
+
+        // The record itself proves the original released it — a mustering
+        // army that comes out `0x20` cannot have taken the not-released
+        // arm, which only ever ORs `0x10` in. The harness agrees.
+        assert!(
+            before.sim.release_mustering(1, 0),
+            "seven standard at difficulty 0"
+        );
+
+        // The one input the dump does not carry: the census's
+        // `strategy[reg]`, whose weak bit picks defending over marching.
+        before.sim.ai[1].census.strategy.resize(reg as usize + 1, 0);
+        before.sim.ai[1].census.strategy[reg as usize] |= 4;
+
+        before.sim.do_mustering(1, 0);
+
+        let got = &before.sim.armies[1].list[0];
+        let want = &after.sim.armies[1].list[0];
+        assert_eq!(
+            got.status & status::FORMING,
+            0,
+            "the release leaves no FORMING bit — this is the gate `engagement` needs"
+        );
+        assert_eq!(got.status, want.status, "the record's 32 (DEFENDING)");
+        assert_eq!(got.city, None);
+        assert_eq!(got.city, want.city);
+        assert_eq!(
+            got.pos,
+            sim::army::cell_centre(Cell::new(45, 48)),
+            "the muster cell's centre"
+        );
+        assert_eq!(got.pos, want.pos, "the record's (34944, 37248)");
+        assert_eq!(got.muster, want.muster, "the muster cell is untouched");
+        assert_eq!(got.angle, got.muster_angle, "the tail copies it");
+        assert_eq!(got.num_standard, want.num_standard);
     }
 }

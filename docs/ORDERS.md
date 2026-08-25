@@ -2583,10 +2583,20 @@ what is listed as an input is stated as such in the code):
   the existing `find_melee_target`, `think_peasant`'s gate and
   `find_gather_spot` (`find_build_spot`/`find_repair_spot` need the object
   searches: not yet).
-- **Not implemented** (documented above, stated here): `ATTACK_TO`, `GUARD`,
-  `FOLLOW`, `PATROL`, `ATTACK_GROUND`, the group orders (a multi-unit order is
-  N independent ones, §8.4), board/await-board, cast, trade, strafe, air,
-  special-anim; `check_target_path`'s 16-frame re-path; the collision half of
+- **The group orders** — **landed 2026-08-25** as `crates/sim/src/group.rs`
+  (`docs/GROUPS.md`), which reads the layer §8 only entered: the record and
+  the pool, membership, and `action_move_to`/`action_move_near`,
+  `action_siege_attack_to`, `action_attack`, `action_stance`,
+  `action_halt`, `Groups::push_group`. §8.4's verdict stands unchanged — a
+  multi-unit order is N independent ones — and `Form::compute`'s slot table
+  is the declared seam, so every member takes the group's own destination.
+  §8.2 was **incomplete**: `action_move_near` has an AI branch keyed on
+  `!human && group.army >= 0` and then on the army's `hurry`, read in
+  `docs/GROUPS.md` §6.5.
+- **Not implemented** (documented above, stated here): `ATTACK_TO` as an
+  order kind of its own, `GUARD`, `FOLLOW`, `PATROL`, `ATTACK_GROUND`,
+  `GroupMoveOrder` (§8.3, §8.4), board/await-board, cast, trade, strafe,
+  air, special-anim; `check_target_path`'s 16-frame re-path; the collision half of
   `find_nearby_spot` (§10 — the first candidate is free on open ground);
   `go_around_building`, `resolve_unit_collision`, suspended searches, the
   entrench wait; `come_out`'s rally orders (the existing `come_out` keeps its
@@ -2712,9 +2722,13 @@ moves fall out of dispatching once on the front at the top of `work`.
 
 **Not established — combat and group**
 
-- `Form::compute`/`categorize`; `action_move_near`'s leader-path copy in
-  detail; `do_form_change`; `find_attack_pos` (two overloads, called, not
-  read); `GroupData::find_leader`; `is_attacking_near`; `pause = 15`'s effect.
+- ~~`Form::compute`/`categorize`~~ — read in shape and a **declared seam**
+  (`docs/GROUPS.md` §6.4, §13); ~~`action_move_near`'s leader-path copy in
+  detail~~ — read (`docs/GROUPS.md` §6.7: the offset, the area-id guard and
+  the follower's `0x600` rule); `do_form_change`; `find_attack_pos` (two
+  overloads, called, not read); ~~`GroupData::find_leader`~~ — read
+  (`docs/GROUPS.md` §4.4), less `FormData::type_cat`, which is what it
+  sorts by; `is_attacking_near`; `pause = 15`'s effect.
 - ~~The spelling of the `ATTACKORDER`/`GROUPORDER`/`GUARDORDER` log keys~~ —
   **closed** (R7): read as UTF-16 out of the PE, exactly as §11.1 lists them.
 
