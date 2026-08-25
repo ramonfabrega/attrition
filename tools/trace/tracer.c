@@ -21,6 +21,16 @@
  *      frame inside the window in `rontrace.cfg`, which gives per-frame sets
  *      for those frames.
  *
+ *   3. The cheat channel. `rontrace.cmd` beside the exe lists `<frame> <line>`
+ *      entries; at the entry of `Game::do_frame` for that sim-frame each line
+ *      is handed to `ConsoleWin::parse_cmd` — the function the chat box calls
+ *      with the `cheat ` prefix stripped — so a scenario is staged from a
+ *      file, inside the tick, reproducibly, with no keyboard or mouse. A line
+ *      starting with `!` goes in as a console command instead (the
+ *      console-only half of the table: `quit`, `ai off`, `pause`). Each
+ *      executed line is an INFO record. The line does NOT travel the order
+ *      stream, so a recording of the run does not carry it.
+ *
  * Freestanding: no CRT, kernel32 only, no floating point (the hooked
  * functions' callers may have live x87/SSE state; the stubs save only the
  * integer registers and flags). Built by `build.sh` with clang, llvm-dlltool
@@ -102,6 +112,22 @@ typedef struct {
 #define RVA_GAME_RANDOM 0xA37A8Cu
 #define GAME_FRAME_OFF 0x550u /* Game::frame */
 
+/* The cheat channel's three addresses, all PDB-named:
+ *   `MiscAccess::console_win` (ConsoleWin *) — PDB 0003:2595460, .data RVA
+ *     0x806000 + 0x279A84 = RVA 0xA7FA84 (VA 0xE7FA84);
+ *   `ConsoleWin::parse_cmd@007d6470(this, String *line, int from_chat, int no_mouse)`
+ *     — the chat box calls it (line, 1, 0) after stripping `cheat `; 0 for
+ *     from_chat reaches the console-only commands; no_mouse = 1 skips
+ *     `TerrainOut::get_mouse_coords`;
+ *   `String::String(wchar_t *)@00a1edd0` — the const-string constructor
+ *     (flags = 1, no heap; the object is 0x14 bytes) and
+ *   `String::~String@00a1ee20`.
+ * All three are __thiscall. */
+#define RVA_CONSOLE_WIN 0xA7FA84u
+#define RVA_PARSE_CMD 0x3D6470u
+#define RVA_STRING_CTOR 0x61EDD0u
+#define RVA_STRING_DTOR 0x61EE20u
+
 enum {
     K_HIT = 0,
     K_GETF = 1, /* Random::get()          float, this = ecx */
@@ -121,6 +147,9 @@ enum {
     I_ARMED = 6, /* a = frame, b = count */
     I_DETACH = 7,
     I_DECLINED = 8, /* a breakpoint that was not ours: a = address, b = Eip, c = armed, d = saved, e = orig */
+    I_CMD = 9, /* a cheat line ran: a = frame, b = line index, c = from_chat, d = parse_cmd's return */
+    I_CMD_NOCONSOLE = 10, /* a line was due but MiscAccess::console_win is null: a = frame, b = index */
+    I_CMDS = 11, /* attach: a = lines parsed from rontrace.cmd */
 };
 
 typedef struct {
@@ -166,6 +195,47 @@ static u32 g_buf[BUF_RECS * 8];
 static u32 g_nbuf;
 
 static char g_dir[300]; /* the exe's directory, with the trailing backslash */
+
+/* ---- the cheat channel ------------------------------------------------- */
+
+static void emit(u32 k, u32 a, u32 b, u32 c, u32 d, u32 e, u32 f);
+static void flush(void);
+
+#define MAX_CMDS 512
+#define CMD_CHARS 160
+typedef struct {
+    i32 frame;
+    i32 from_chat; /* 1 = chat half (a `cheat` line), 0 = console half (`!` lines) */
+    u16 text[CMD_CHARS]; /* UTF-16, NUL-terminated */
+} Cmd;
+static Cmd g_cmds[MAX_CMDS];
+static u32 g_ncmds;
+static u32 g_next_cmd; /* lines run in file order; frames must not decrease */
+
+typedef int(__thiscall *parse_cmd_fn)(void *self, void *line, int from_chat, int no_mouse);
+typedef void *(__thiscall *string_ctor_fn)(void *self, const u16 *text);
+typedef void(__thiscall *string_dtor_fn)(void *self);
+
+/* Run every line due at `frame`. Called at the top of Game::do_frame, before
+ * the frame's phases — so a line sees the state at the end of the previous
+ * frame, and its effects are in this frame's dump. */
+static void run_cmds(i32 frame) {
+    while (g_next_cmd < g_ncmds && g_cmds[g_next_cmd].frame <= frame) {
+        Cmd *c = &g_cmds[g_next_cmd];
+        u32 idx = g_next_cmd++;
+        void *console = *(void **)(g_base + RVA_CONSOLE_WIN);
+        if (!console) {
+            emit(K_INFO, I_CMD_NOCONSOLE, (u32)frame, idx, 0, 0, 0);
+            continue;
+        }
+        u32 str[6]; /* String is 0x14 bytes; one spare */
+        ((string_ctor_fn)(g_base + RVA_STRING_CTOR))(str, c->text);
+        int r = ((parse_cmd_fn)(g_base + RVA_PARSE_CMD))(console, str, c->from_chat, 1);
+        ((string_dtor_fn)(g_base + RVA_STRING_DTOR))(str);
+        emit(K_INFO, I_CMD, (u32)frame, idx, (u32)c->from_chat, (u32)r, 0);
+        flush();
+    }
+}
 
 /* ---- freestanding helpers --------------------------------------------- */
 
@@ -314,6 +384,7 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         if (g_cover && frame >= g_win_lo && frame <= g_win_hi) armed = arm_all();
         emit(K_FRAME, (u32)frame, seed, armed, caller, 0, 0);
         flush();
+        run_cmds(frame);
         return;
     }
     u32 self = (kind == K_REAL) ? g_base + RVA_GAME_RANDOM : ecx;
@@ -453,6 +524,49 @@ static void read_cfg(void) {
     }
 }
 
+/* rontrace.cmd: one entry per line, `<frame> <text>`; `<text>` is what would
+ * follow `cheat ` in the chat box (`add hoplite who=0 206,78`), or `!` plus a
+ * console command (`!quit`). Lines are run in file order at the top of the
+ * named sim-frame; a frame lower than the previous line's is clamped to it.
+ * `#` starts a comment; blank lines are skipped. ASCII only (the text is
+ * widened byte by byte). */
+static void read_cmds(void) {
+    static char buf[65536];
+    u32 n = read_file("rontrace.cmd", buf, sizeof buf - 1);
+    buf[n] = 0;
+    const char *p = buf;
+    i32 last = -1;
+    while (*p && g_ncmds < MAX_CMDS) {
+        while (*p == ' ' || *p == '\t') p++;
+        if (*p == '#' || *p == '\n' || *p == '\r' || !*p) {
+            while (*p && *p != '\n') p++;
+            while (*p == '\n' || *p == '\r') p++;
+            continue;
+        }
+        if (!(*p >= '0' && *p <= '9')) { /* not a frame: skip the line */
+            while (*p && *p != '\n') p++;
+            continue;
+        }
+        Cmd *c = &g_cmds[g_ncmds];
+        c->frame = parse_int(&p);
+        if (c->frame < last) c->frame = last;
+        last = c->frame;
+        while (*p == ' ' || *p == '\t') p++;
+        c->from_chat = 1;
+        if (*p == '!') {
+            c->from_chat = 0;
+            p++;
+        }
+        u32 i = 0;
+        while (*p && *p != '\n' && *p != '\r' && i < CMD_CHARS - 1) c->text[i++] = (u8)*p++;
+        while (i > 0 && (c->text[i - 1] == ' ' || c->text[i - 1] == '\t')) i--;
+        c->text[i] = 0;
+        if (i) g_ncmds++;
+        while (*p && *p != '\n') p++;
+        while (*p == '\n' || *p == '\r') p++;
+    }
+}
+
 /* ---- entry ------------------------------------------------------------- */
 
 /* cdecl, so the export table names it `Hook` — what patch_exe.py imports */
@@ -477,6 +591,7 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
         g_log = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS,
                             FILE_ATTRIBUTE_NORMAL, 0);
         read_cfg();
+        read_cmds();
         g_nfuncs = read_file("rontrace.funcs", g_funcs, sizeof g_funcs) / 4;
 
         /* header: magic, version, base, .text, nfuncs, window */
@@ -497,6 +612,7 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
             emit(K_INFO, I_ARMED, (u32)-1, armed, 0, 0, 0);
         }
         emit(K_INFO, I_ATTACH, g_base, g_nfuncs, (u32)g_win_lo, (u32)g_win_hi, g_cover);
+        emit(K_INFO, I_CMDS, g_ncmds, 0, 0, 0, 0);
         flush();
         OutputDebugStringA("rontrace: attached\n");
     } else if (reason == 0) { /* DLL_PROCESS_DETACH */

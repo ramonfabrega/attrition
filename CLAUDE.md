@@ -543,13 +543,18 @@ better, in which case say so and take that.
     flag in `unit_masks2`, the Nubian clause dead (`docs/ATTRITION.md` and
     `docs/SUPPLY.md`, last sections; `tools/gamelog/attr.py`). The blind
     list is 99. What the run cost is the loop — an hour of typing into a
-    chat box that drops four lines in ten — so **the next build is the
-    scripted cheat channel in `rontrace.dll`** (`docs/ORACLE.md`, "The
-    attrition run": every address resolved), validated by replaying run16's
-    lines from a file and diffing the two logs, then **run17, combat** (a
-    brief exists: the flank ratio on a wagon target from three bearings,
-    hoplite vs hoplite, an archer and a tower for the projectile draws
-    under the trace).
+    chat box that drops four lines in ten — so ~~the next build is the
+    scripted cheat channel in `rontrace.dll`~~ **built the same night:
+    `rontrace.cmd`** (`docs/ORACLE.md`, "The cheat channel"; `tools/trace/
+    README.md`) — run16 replayed from twelve lines in twelve minutes,
+    unattended, every line on its frame, `!quit` closing the game by the
+    menu's path, and the sheltered-from-the-start case run16 never reached
+    seen (run16b). A scenario is now a file; the speed floor is the dump
+    (~3 frames a second at `UNITS=3`), so window it. Next: **run17,
+    combat** through the channel (a brief exists: `!ai off`, the flank
+    ratio on a wagon target from three bearings — a cheat-placed unit
+    faces 120° until ordered — hoplite vs hoplite, an archer and a tower
+    for the projectile draws under the trace).
     Next for the AI: the loader's half of
     the producers' seams (unit `role`/flags, `TechType.ai[]`,
     `gather_max`); fold §14 into §2; then the blind second reading, at

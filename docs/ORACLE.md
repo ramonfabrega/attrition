@@ -1701,7 +1701,62 @@ heap. A `rontrace.cmd` of `frame: line` entries run at the top of the frame
 — inside the tick, not through the order stream, and while paused — makes
 a run reproducible to the frame and unattended; a scheduled `quit`
 (console-only half, `from_chat = 0`) closes it through the menu's path.
-That is the next thing built.
+~~That is the next thing built.~~ **Built and validated the same night —
+next section.**
+
+### The cheat channel: a scenario from a file (run16b, 2026-08-24)
+
+`rontrace.cmd` beside the exe, one entry per line — `<sim-frame> <text>`,
+where `<text>` is what would follow `cheat ` in the chat box, or `!` plus a
+console-only command (`!quit`, `!ai off`); `#` comments. `rontrace.dll`
+reads it at attach, and at the entry of `Game::do_frame` for that frame
+hands each line to `ConsoleWin::parse_cmd(console_win, &line, from_chat,
+no_mouse = 1)` — `from_chat` 1 for a cheat line, 0 for a `!` line — as a
+const `String` built by `String::String(wchar_t *)@00a1edd0` and closed by
+`~String@00a1ee20`. Every executed line is an `INFO cmd` record (frame,
+index, half, `parse_cmd`'s return); `INFO cmds` at attach says how many
+parsed. Lines run in file order; a frame lower than the previous line's is
+clamped. `tools/trace/README.md` has the format.
+
+**Run16b is run16 replayed from twelve lines** (`gamelog-run16b-cmd.txt`,
+`rontrace-run16b.log`; the file is in the README), the same lobby and seed
+(`0x3bd39ae9`), quit by `!quit` at sim-frame 2400. Every line ran on its
+frame and shows in that frame's dump: `peace who=1` at 300 → `diplos[1]`
+1 in the block labelled 301; `add hoplite who=0 206,78` at 330 → three
+records in 331, period 8 at each figure's first refresh, 22 of 22 ticks on
+the grid; `war` at 900 → 0 at each refresh; **`tech who=1 allegiance on`
+at 1000 with the wagon already standing → `attrition 48` and no damage
+for 290 frames, `unit_masks2` = 0x40000 on 1051, 1099, 1147, 1195, 1243,
+1291 (the 48-grid) and cleared on the 32-grid — the sheltered-from-the-
+start case run16 never reached**; `die 9,0` at 1300 → the bleed resumes;
+`oath` at 1500 → 24; the AI's squad on Nubian ground at 1700 → 0, then 48
+at 1910 after the human's `allegiance` at 1900, one tick, 0 as it walks
+out; `!quit` at 2400 → the main menu, the log closed. What the typed run
+took an hour of driving and ~19 chat lines with four in ten dropped, the
+file took **twelve minutes unattended** and dropped nothing — and it can
+be re-run to the frame.
+
+What it changes in the recipe: a scenario is now a file; the keyboard is
+gone from the loop; the remaining human-shaped steps are the three lobby
+clicks (Solo Game, Quick Battle, Start twice — fixed coordinates while the
+window stays at (760, 152), which it has for four launches) and reading
+the window once. A driver is needed only for a right-click on a sprite.
+The differences from the chat path, for anyone comparing: a line runs at
+the top of the frame before phase 1, not in the command-processing phase;
+it is not in the order stream (a recording of the run does not carry it);
+it runs while paused; `no_mouse = 1`, so `add`/`move` without coordinates
+have no cursor tile to fall back on — always give `x,y`.
+
+**Open:** `move 6 190,60` from the channel ran (`parse_cmd` returned 1)
+and did not move the unit, where the typed `move 10,0 190,60` in run16
+moved one to tile (0, 190). Whether `move`'s coordinate arm reads the
+mouse tile the channel does not supply, or the unit's engagement at the
+time refused it, is a reading of `run_cmd`'s `move` case. **The speed
+floor is now the dump, not the input**: run16b ran at ~3.3 sim-frames a
+second with `UNITS=3` (137 KB a frame), so a 2,400-frame scenario is
+twelve minutes whatever drives it; `ffwd` cannot help while every frame
+is logged, and a `LogStartFrame`/`LogEndFrame` window around the frames
+that matter is the lever.
 
 ## What is not established
 

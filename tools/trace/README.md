@@ -22,7 +22,7 @@ the how-to.
 
 | file | role |
 | --- | --- |
-| `tracer.c` | `rontrace.dll`: freestanding 32-bit, kernel32 only, no CRT, no floats. Trampolines `Random::get` (both), `MathUtilFuncSet::rand_real`, `Random::reseed` and `Game::do_frame`; plants `int 3` on every function entry and catches them in a vectored exception handler. |
+| `tracer.c` | `rontrace.dll`: freestanding 32-bit, kernel32 only, no CRT, no floats. Trampolines `Random::get` (both), `MathUtilFuncSet::rand_real`, `Random::reseed` and `Game::do_frame`; plants `int 3` on every function entry and catches them in a vectored exception handler; runs `rontrace.cmd`'s cheat lines at the top of their frames through `ConsoleWin::parse_cmd`. |
 | `kernel32.def` | the fourteen imports, stdcall-decorated for `llvm-dlltool -k` |
 | `build.sh <install>` | clang (Homebrew LLVM) → `llvm-dlltool` → the pinned toolchain's `rust-lld -flavor link`; then `funcs.py` and `patch_exe.py`. Nothing to install. |
 | `funcs.py` | `INDEX.tsv` → `rontrace.funcs`, the function entries as u32 RVAs |
@@ -56,6 +56,41 @@ loses at most the current frame.
   each function's record carries the frame it was first entered on.
 - `cover=0` — draws only, no `int 3`s. Fast; use it when the question is only
   the stream.
+
+## Staging a scenario from a file: `rontrace.cmd`
+
+The third instrument (`docs/ORACLE.md`, "The cheat channel"). One entry per
+line, `<sim-frame> <text>`; at the entry of `Game::do_frame` for that frame
+the text goes to `ConsoleWin::parse_cmd` exactly as the chat box would send
+it with `cheat ` stripped — or, with a leading `!`, as a console command
+(the console-only half of the table: `quit`, `ai off`, `pause`, `ffwd`).
+`#` starts a comment. Lines run in file order; a frame lower than the
+previous line's is clamped to it. ASCII only. Run16's scenario, which is
+also the validation run (run16b):
+
+```
+300 peace who=1
+330 add hoplite who=0 206,78
+332 add supply who=0 208,80
+334 add scout who=0 204,76
+900 war who=1
+1000 tech who=1 allegiance on
+1300 die 9,0
+1500 tech who=1 oath on
+1700 add hoplite who=1 42,146
+1900 tech who=0 allegiance on
+2100 move 6 190,60
+2400 !quit
+```
+
+A line runs before the frame's phases, so its effect is in the dump block
+labelled `frame + 1` (the label is one ahead of the sim-frame). Each
+executed line is an `INFO cmd` record — frame, line index, chat/console,
+`parse_cmd`'s return — and `INFO cmds` at attach is the count parsed.
+`no_mouse` is passed, so there is no cursor tile: always give `add`/`move`
+their `x,y`. The line does not travel the order stream; a recording of the
+run does not contain it. Nothing here is faster than the dump: at
+`UNITS=3` the sim runs ~3 frames a second, so budget the frames.
 
 Cost: an `int 3` is one exception per function per arming — a few thousand
 per re-armed frame — which under Rosetta and Wine's WoW64 is a fraction of a

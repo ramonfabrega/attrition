@@ -30,7 +30,7 @@ from collections import Counter, OrderedDict, defaultdict
 BASE = 0x400000
 KINDS = {0: "HIT", 1: "get()", 2: "FRAME", 3: "get(a,b)", 4: "rand_real", 5: "INFO", 6: "reseed"}
 INFO = {1: "attach", 2: "hook-mismatch", 3: "hooked", 4: "no-funcs", 5: "protect-fail",
-        6: "armed", 7: "detach"}
+        6: "armed", 7: "detach", 8: "declined", 9: "cmd", 10: "cmd-noconsole", 11: "cmds"}
 RVA_GAME_RANDOM = 0xA37A8C  # VA 0xE37A8C
 # the trampolined functions (tracer.c HOOKS): rva -> the record kind they emit
 HOOKS = {0x191ef0: 2, 0x639cf0: 1, 0x639d70: 3, 0x5e18b0: 4, 0x639d30: 6}
