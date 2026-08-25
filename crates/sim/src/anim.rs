@@ -348,11 +348,13 @@ impl Sim {
         // at 0; the same one keeps what ran past its end.
         let guy = &mut self.units[u].guys[g];
         if target_cat == 8 && cur_cat == 8 && guy.anim != target {
-            // A walk variant change mid-walk rescales the time between the
-            // two lengths (`set_anim:691`), integer division.
-            let old = self.art.length(guy.gpiece, guy.anim).unwrap_or(1).max(1);
-            let new = self.art.length(guy.gpiece, target).unwrap_or(1).max(1);
-            guy.cur_time = (guy.cur_time * new) / old;
+            // A walk-to-walk slot change keeps `cur_time` as it is: the
+            // original's rescale (`set_anim:691`, `cur_time · len_new /
+            // len_old`) passes the *old* slot to both `get_anim_time` calls
+            // — the listing at `0x5db43c`/`0x5db450`, the second reading's
+            // finding (`docs/audit/2026-08-24-anim.md`) — so it is
+            // `cur_time · t / t`, and the time may stand past the new
+            // slot's end until the next step wraps it.
             guy.anim = target;
         } else if guy.anim != target {
             guy.anim = target;
@@ -412,8 +414,10 @@ impl Sim {
     /// leader 0–9 in order, no rotation, each of its live units in object
     /// order — `Unit::inc_time@00610b40` → `Guy::inc_time@005d9e10` for
     /// every guy, then the buildings (no clock here). A garrisoned unit's
-    /// clock stops (`inside_up ≥ 0`), and so does a unit's on the frame it
-    /// was created, which the original spends inside its building.
+    /// clock stops (`inside_up ≥ 0`) unless it is a scholar (`TypeIndex`
+    /// 52/53 — a scholar inside a university plays its teach/student
+    /// slots), and so does a unit's on the frame it was created, which the
+    /// original spends inside its building.
     pub(crate) fn guys_inc_time(&mut self, frame: i64) {
         let mut visit: Vec<usize> = Vec::with_capacity(self.units.len());
         for who in 0..10u8 {
@@ -425,7 +429,9 @@ impl Sim {
         }
         for u in visit {
             let unit = &self.units[u];
-            if !unit.alive() || unit.inside.is_some() || unit.born == frame || unit.guys.is_empty()
+            let inside_and_not_scholar =
+                unit.inside.is_some() && self.worker_of(u) != crate::orders::Worker::Scholar;
+            if !unit.alive() || inside_and_not_scholar || unit.born == frame || unit.guys.is_empty()
             {
                 continue;
             }

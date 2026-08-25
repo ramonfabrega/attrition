@@ -221,9 +221,10 @@ Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):
 | 0–1 | the AI's sweep, `compute_sites`' stride | `site_mark 16` (`docs/AI.md` §12.1) |
 | 2–19 | the market, six goods × 3 | **pinned**: the flux values match at offset 2 and nowhere else |
 | 20 | scout `0/0`'s idle anim | `p = 91` → variant 2; the dump shows both its guys go `0 → 2` |
-| 21–35 | 15 draws — the human scout's `think_scout(0)` scan, on the reading in §3.2 | by elimination: the next `(variant 1, variant 0)` pair that the two woodcutters need is unique in the segment |
+| 21 | the scout's second guy, the dog, rolling its own (`p = 2`) — overwritten by the mirror in phase 7 | **its `end_time 61` at the frame's end**, which only `set_anim`'s tail writes (`docs/ANIM.md` §5; the second reading) |
+| 22–35 | ~~15~~ **14** draws — the human scout's `think_scout(0)` scan, on the reading in §3.2 | by elimination: the next `(variant 1, variant 0)` pair that the two woodcutters need is unique in the segment |
 | 36, 37 | `0/1` (variant 1: `p = 79`), `0/2` (variant 0: `p = 18`) | the dump's `0 → 1`, `1 → 0` |
-| 38–45 | 8 draws — the AI scout `1/0`'s explore: `do_move`'s `% 5` and, on the reading, the rest of its first path | by elimination (see §6) |
+| 38–45 | 8 draws — the AI scout `1/0`'s two guys' idle rolls (`docs/ANIM.md` §5) and its explore: `do_move`'s `% 5` and, on the reading, the rest of its first path (**6**, not 8) | by elimination (see §6) |
 | 46, 47 | `1/1`, `1/2` (variant 0, `p = 25`, `p = 8`) | the dump's `1 → 0`, `1 → 0`; the six farmers draw nothing |
 | **48–87** | **the 40 animals' idle anims, one each in `o` order** | **pinned**: forty `rand % 100 → variant` outcomes match the dump's `cur_anim` at offset 48 and nowhere else (0 mismatches; the next-best offset has 15) |
 | 88–107 | the ten bird attempts | all ten cells miss `0x20` on run9's map |
@@ -366,7 +367,8 @@ over 432 frames fell from 662/432 to 588/372 (the run6 pin's ceilings).
   (0) and the object flags (1) at every pass — so the skipped step is
   neither gate `Unit::inc_time` tests. Still open; it moves those four
   wraps by one frame.
-- **The human scout's 15 and the AI scout's 8** are placed by elimination,
+- **The human scout's ~~15~~ 14 and the AI scout's ~~8~~ 6** (the dogs' rolls
+  are the other three, `docs/ANIM.md` §5) are placed by elimination,
   not by outcome: `think_scout`'s scan draws once per unseen candidate cell,
   which needs the seen map the sim does not keep, and the AI scout's first
   path is planned by a pathfinder wired to `do_move`'s one draw. A `GUYS=4`

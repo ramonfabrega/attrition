@@ -132,3 +132,22 @@ project). That result is what makes the arrangement safe to repeat: Opus
 blind readers, Opus adjudication under the marker-and-append-per-row
 discipline, Fable ratification of the markers and the code-changing
 verdicts, recorded as a "third pass" section in the audit file.
+
+**The animation clock (`2026-08-24-anim.md`, the same day as the mechanic).**
+One Opus blind reader, ~20 minutes, adjudicated by the first reader on
+Fable the same hour, while the context that wrote the mechanic was still
+loaded — the cheapest adjudication yet, and the argument for running the
+second reading before `/clear` rather than in a later session. The
+structure was doubly confirmed to the line, and the oracle matched 52/52
+both ways. Three verdicts went to the second reading, two of them changing
+Rust: a rescale the decompiler prints as a formula and the listing shows to
+be an identity (both calls take the old slot), and a flag bit the first
+reading had named a boat's crew that the `TypeIndex` enum names a scholar.
+The third closed an open question from the dump's own state — a figure's
+non-zero `end_time` proves its `set_anim` ran, and `set_anim` there draws —
+which the first reading had deferred to a debugger run. One verdict went
+against it: a field named from its offset rather than from `types.txt`
+(`o_up` for `inside_up`), refuted by the PDB and by the dump in one line
+each. The lesson is the cities audit's, again: the readings agree on the
+arithmetic and disagree on names, and a name is settled by the type
+record, never by the surrounding code.

@@ -27,7 +27,7 @@ mechanism behind those counts.
 | `+0x7c` | `last_time` (int) | `cur_time` before this frame's step; **−1** right after any `set_anim` |
 | `+0x88` | `gpiece` | the graphic piece — the model whose animation packet the lengths come from |
 | `+0x8c` | `o` | the unit's object number |
-| `+0x9a` | `guy_flags` | bit 4 an attack-2 double step, bit 0x20 the two-variant idle, 0x40 a plane, 0x80 a boat's crew |
+| `+0x9a` | `guy_flags` | bit 4 an attack-2 double step, bit 0x20 the two-variant idle, 0x40 a plane, 0x80 **a scholar** (`init_real:230–234`: `TypeIndex` 52/53, `SCHOLARS`/`SCHOLARSKOREAN` — the second reading's correction; the first reading called it a boat's crew) |
 | `+0x9c` | `cur_anim` (char) | the `UnitAnim` slot (§2) |
 | `+0x9d` | `stopped` | the body stood on its destination at the last `Guy::move` |
 | `+0x9e` | `hold_attack`, `+0xa0` `queued_attack` | combat's deferred animations (§6) |
@@ -144,9 +144,13 @@ unit on open ground reaches, in the order the function tests them:
    `1.1f` jogs — a float in the original, cross-multiplied here; the
    lengths are equal on every piece observed so the boundary is
    unobservable); a bird's walk is a coin (`% 100 > 49 → JOG`); the carrying
-   walks come from `unit_masks & 0x78000000`. A walk-to-walk change mid-walk
-   rescales `cur_time · len_new / len_old` (integer), a walk already
-   playing keeps its time.
+   walks come from `unit_masks & 0x78000000`. A walk already playing keeps
+   its time, and so does a walk-to-walk slot change: ~~rescales `cur_time
+   · len_new / len_old`~~ the rescale at `:691` passes the **old** slot to
+   both `get_anim_time` calls (`ecx` is loaded at `0x5db404` and the new
+   slot is only written at `0x5db46a`, after both calls — the second
+   reading's finding, verified in the listing), so it is `cur_time · t /
+   t`; a time past the new slot's end stands until the next step wraps it.
 5. **The apply** (`:559–573`, `:707–717`): a new slot starts at `cur_time =
    0`; the same slot keeps what ran past its end, `cur_time −= min(cur_time,
    end_time)`. Then `last_time = −1` (set at `:253`) and `end_time` from the
@@ -175,8 +179,11 @@ Phase 7 of the frame (`docs/SYNC.md` §2): `Objects::inc_time` walks leaders
 0–9 **in order, no rotation**, each leader's live units in object order (then
 its buildings), calling `Unit::inc_time@00610b40` → `Guy::inc_time` for guys
 `0..guy_mark` and `squad_size..num_guys`. `Unit::inc_time` runs only while
-`inside_up < 0` (a garrisoned unit's clocks stop) or for the two boat
-categories. Per guy:
+`inside_up < 0` (a garrisoned unit's clocks stop — `UnitData+0x82` in the
+PDB; the second reading read `o_up`, which is `+0x8e`, and the dump refutes
+it: the sheep step with `up 1`, woodcutter `0/2` stands with `up −1`) or
+for a **scholar** (`TypeIndex` 52/53), whose teach/student slots play
+inside the university. Per guy:
 
 ```
 step = 1  (2 under guy_flags & 4 with an ATTACK2 playing; 0 while unit_masks2 & 0x10)
@@ -211,9 +218,18 @@ Three things follow.
   guy 0's slot and time and never steps or draws itself: the scout's dog.
   Run13's sim-frame 101: the human scout's two guys go `60/61 → 0/61` on
   **one** draw, the dog's `last_time` stays −1 throughout. Pinned:
-  `anim::tests::the_mirror`. (The dog's `end_time` is its own, from its own
-  `set_anim`s; it only matters if it is shorter than guy 0's running
-  animation, which §9 leaves open.)
+  `anim::tests::the_mirror`. The dog's `end_time` is its own, from its own
+  `set_anim`s — **and that settles that the dog rolls on the unit's idle
+  request** (the second reading's inference): run12's `0/0#1` ends frame 0
+  at `end_time 61` and `1/0#1` at 41, not the 0 `init_real` left, and only
+  `set_anim`'s tail writes `end_time`, past a roll that nothing gated at
+  frame 0. So `Unit::set_anim` costs one draw per figure, the dog's result
+  is overwritten by the mirror the same frame, and frame 0's draw 21 is the
+  human scout's dog (`docs/SYNC.md` §4). The consequence by the code: a
+  dog whose own `end_time` is shorter than guy 0's running idle finds its
+  mirrored `cur_time` past it and re-rolls on every idle frame — unobserved
+  so far, because both scouts' dogs ended frame 0 with the longer length
+  or walked.
 
 The four woodcutters' frame 0 on run12 — their draws at 36, 37, 46, 47 are
 unit-phase stands (§4's camp stand; a same-slot `set_anim` leaves `cur_time
@@ -328,15 +344,18 @@ two passes.
   `Guy::inc_time` on run12's frame 0 and not the farmers'. `inside_up`,
   `unit_masks2 & 0x10` and the object flags are ruled out by the dump. The
   sim steps them; their first wrap (232 frames) lands one frame early.
-- **Whether a scout's dog draws on the unit's idle request.** `Unit::set_anim`
-  loops every member and `Guy::set_anim:268` enters the roll for any
-  `guy_num != 0`, so by the code it does; run12's frame 0 cannot tell (the
-  scan's 15 and the explore's 8 were placed by elimination, and a dog draw
-  at 21 or 38 just shortens one of them). The sim draws for it. If it does
-  not, frame 0's 96 is 94, and the dog whose `end_time` is shorter than guy
-  0's running animation — which would draw every idle frame in the sim's
-  reading — never does. The draw-site trace (`docs/SYNC.md` §6) settles it
-  in one run.
+- ~~**Whether a scout's dog draws on the unit's idle request.**~~ Settled by
+  the second reading from the dump's own `end_time` (§5); the sim's reading
+  stands. What is unobserved is the drawn *value* for a dog (the mirror
+  hides it) and the every-frame re-roll of a dog under a shorter idle.
+- **`guy_flags` bits 0x2, 0x4 and 0x20** have no writer found (the second
+  reading's list): 0x4 doubles the attack step, 0x20 collapses the idle
+  roll, 0x2 skips `turn_towards`. Every guy in both dumps carries
+  `guy_flags 16`; none of the three is exercised, and the sim leaves all
+  three off.
+- **`Guy::move:52` tests `des_x == x` without the formation offset** while
+  `set_anim:163` tests `des_x == x − off_x`; the same for guy 0 (`off` 0)
+  and for every unit in the dumps. Unsettled for a formation with offsets.
 - **Lengths the dumps have not shown**: `DUMP_WOOD`, `REAP`, `FARM`, the
   scout's `IDLE1/3`, most citizen variants on most pieces. A missing entry
   never wraps here; the original's is 3 for a slot the packet lacks. A
@@ -361,3 +380,20 @@ two passes.
 - **`think_farm_animal`**, and the birds after creation (`think_bird`,
   `do_air_physics`) — unread past their draw sites (`docs/SYNC.md` §3.2).
 - **The 4-draw tail of frame 0** is still not a wrap (`docs/SYNC.md` §6).
+
+## 10. Second reading — landed
+
+The blind reader's report is `docs/audit/2026-08-24-anim-reading.md`
+(Opus, 2026-08-24, from the decompile, the PDB, the executable's `.rdata`,
+the XML and both dumps, without this document or `anim.rs`); the
+adjudication, every claim taken back to the decompile or the listing, is
+`docs/audit/2026-08-24-anim.md`. It re-derived the structure identically
+— the categories, the early returns, the `openlist` gate, the thresholds,
+the wrap loop, the mirror, the gaia piece, the XML — and matched the
+oracle 52/52 the same way. Three things changed here because of it, each
+marked inline above: the walk-to-walk rescale is an identity (§4.4;
+`anim.rs` no longer rescales), `guy_flags & 0x80` and the `0x34/0x35`
+classes are scholars, not boats (§1, §5; the garrison gate spares them),
+and the dog's own roll is settled from `end_time` rather than left to the
+trace (§5, §9). One of its claims was refuted: `Unit::inc_time`'s gate is
+`inside_up` (`+0x82`), not `o_up` (`+0x8e`), by the PDB and by the dump.
