@@ -597,9 +597,22 @@ better, in which case say so and take that.
     flank reduction, a caravan, and a window at frame 576 for
     `found_cities`' purchases (which needs the script's caller told apart
     from the producer's by the dump's step). Then the AI queue below.
-    Next for the AI: the loader's half of
+    Next for the AI: ~~fold §14 into §2~~ — **done, 2026-08-25**: the
+    thirty-odd corrections the seven implementation workers found are now
+    *in* §2 (the census's radius base and its two aliased locals, the
+    make list's danger map — the same misreading in four places — the
+    site insertion rule, the distance loop's `return`s, research's
+    stockpile gates and inverted government polarity), and
+    `create_units`/`create_buildings`/`produce_building` were **promoted
+    to §2.18–§2.20** rather than folded, because §2 had never covered them
+    at all; §14 is now a map of where each went. §2.9 lists what is still
+    unread at document level (`upgrade_units`, `produce_unit`,
+    `produce_upgrade`, `produce_spell`, `check_income`, `unit_prod_value`,
+    `check_transport`). Then: the loader's half of
     the producers' seams (unit `role`/flags, `TechType.ai[]`,
-    `gather_max`); fold §14 into §2; then the blind second reading, at
+    `gather_max`); then the blind second reading — which can run from any
+    session, since the readers are subagents and only the *brief* must
+    avoid leaking claims — at
     which point `docs/audit/README.md` also owes a paragraph each to the
     pathfinder, commands and recgame audits it never got.
 
