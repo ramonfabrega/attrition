@@ -63,12 +63,11 @@ islands map above. Then the deferred readings: `Leader::diplomacy` and the
 `Army`/`Armies` family (`docs/AI.md` §9), and `BuildTypeData::calc_gather`
 for non-flat buildings, which belongs with `docs/ECONOMY.md`.
 
-**Open with the user (2026-08-25).** How the verification budget splits
-between blind readings and differential checks, now that both have a track
-record — and whether the soak's scenario generator, the cheat channel and the
-harness should be wired into one differential fuzzer against the original.
-Proposed, not agreed; recorded in the session report rather than here until
-it is.
+**Agreed with the user, 2026-08-25.** How the verification budget splits:
+diff first wherever a dump exists; a blind reading scoped to what no run
+reaches, its readers briefed to output assertions; the soak kept as the
+determinism guard it is. The rules are in `CLAUDE.md` ("Prefer a diff to a
+reading"); the one build that changes the ratio is item 13 below.
 
 ## The queue
 
@@ -621,6 +620,45 @@ better, in which case say so and take that.
     `BuildTypeData::calc_gather` is a thousand-line terrain scan with mining
     lists and cliff tests, so it is a mechanic of its own and belongs with
     `docs/ECONOMY.md`'s gathering.
+13. **Differential fuzzing against the original** — proposed and agreed
+    2026-08-25, not started. The three pieces exist and have each been run:
+    `crates/sim/src/soak.rs` generates a scenario and an order stream from a
+    seed; `rontrace.cmd` stages a scenario into the original from a file,
+    inside the tick, unattended, and `!quit`s it cleanly (`docs/ORACLE.md`,
+    "The cheat channel"); `rondata --gamelog <dump> --diff` scores a dump
+    frame for frame. Wired together, every seed is a behavioural run, and
+    the trace's blind list shrinks without anyone writing a scenario by
+    hand. That is the whole argument, and it is why this is worth a queue
+    entry rather than a remark. What is not yet true, in the order it has
+    to become true:
+
+    - **A map both sides carry.** The soak's world is flat and hand-built;
+      the original needs a lobby and a map. Stage on run9's map, which the
+      harness already loads from its `WORLD=6` dump, with the lobby seed
+      fixed — a scenario is then "these types at these tiles, these orders
+      at these frames" on ground both simulations agree about.
+    - **A vocabulary bounded by the channel.** A scenario can contain only
+      what the cheat channel can stage: a spawn by type at a tile, a
+      selection, an order (move, gather, build, attack, garrison). Start
+      with move, gather and attrition — the mechanics that already match
+      frame for frame — and widen by the blind list, one family a time.
+    - **An AI-free lobby, or the AI scored apart.** The original's AI runs
+      unless the lobby has none (`-config`); run6's lobby is the template.
+      With an AI in, its units are noise the diff must be told to skip.
+    - **The dump is the whole cost.** ~3 frames a second at `UNITS=3`,
+      ~500 with the per-frame dump gated off. A scenario is a window:
+      fast-forward to it, dump one to three hundred frames, quit. Budget one
+      to two minutes a seed, and run seeds in a batch overnight.
+    - **Definition of done:** a tool (`tools/fuzz/`, or beside
+      `tools/gamelog/`) takes a seed, writes the `.cmd` and the ini, drives
+      the game, runs the diff, and appends one line to a ledger — seed,
+      first divergent frame, the functions the trace saw execute. The ledger
+      is what `report.py … blind` reads next, and the first divergent frame
+      is the score to move.
+    - **What it cannot do**, said now so nobody expects it: reach what the
+      channel cannot stage — diplomacy, the sea half until transports can
+      be ordered, CtW, multiplayer. For those the reading stays the only
+      evidence, and that list is the reading's brief.
 
 ## How to maintain this file
 

@@ -196,6 +196,13 @@ rules follow:
   is closed.** A second reading's budget is best spent on *what to assert*,
   not on more prose; the twenty-minute widening has out-produced the
   million-token reading.
+- **Diff first, then read what no run reaches.** Before a blind reading,
+  widen every dumped record the mechanic touches; then brief the readers
+  with the mechanic's *never-executed* functions, not the whole mechanic,
+  and ask each claim to name the capture that would falsify it — the ini
+  category, the frame, the field. A claim a run has already confirmed does
+  not need a second reader. The soak tests the simulation against itself —
+  determinism and termination, never fidelity — and stays for that.
 
 The reason reading does not go away is coverage, and it is measurable: the
 trace's report (`tools/trace/report.py … blind docs/`) lists the functions
