@@ -162,5 +162,6 @@ public work on the model and archive formats.
 
 ## License
 
-MIT OR Apache-2.0. Rise of Nations is a trademark of Microsoft; this project is
-unaffiliated and contains none of its assets.
+Licensed under either of the MIT license (`LICENSE-MIT`) or the Apache License,
+Version 2.0 (`LICENSE-APACHE`), at your option. Rise of Nations is a trademark
+of Microsoft; this project is unaffiliated and contains none of its assets.
