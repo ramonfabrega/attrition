@@ -27,31 +27,27 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `d4f9b20`.* The commit this
+*Last verified 2026-08-25, the session after `b282eb1`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** The muster-spot ring search (`docs/ARMY.md` §13, the
-first seam a capture reached): `find_muster_spot` whole in `army.rs`, the
-`0x2000` mark on `City`, the flag legend and the 7 × 7 walk in
-`world.rs`, and — the part that matters for what comes next — a loader
-(`rondata::diff::army_tests::scene_at`) that builds one `DUMP_ALL`
-block's world, cities and armies so a single function can be run where
-the original ran it. Six searches replayed on run22/25/27's own maps,
-cells and angles equal; the two closes at 12129 and 15100 reproduce and
-are explained (`docs/ARMY.md` §16.5). Journal entry of the same date.
+**Last landed.** `find_target` replayed whole on run26's block 12024
+(`docs/ARMY.md` §16.5, §17 item 5): the scene loader now carries a
+block's frame, its sync word, the diplomacy table, the `LEADERDATA`
+words §12 reads and each city building's damage; the trace named the
+tick's three draws and their seed before anything was built, and the
+test asserts the target, the written fields and the stream's word three
+draws on. It failed first — on the draw count — and the failure was a
+predicate: the sim's diff-≤-1 gate had an enemy's city inverted. Two
+more §12 predicates were corrected from the same re-reading (`+0x8` is
+`who`, not an "ally slot"; the `diff == 1` clause is live at difficulty
+1), neither observable on any block yet (§18). Journal entry of the same
+date.
 
 **In progress.** Nothing mid-mechanic. **Owed:** nothing.
 
 **Next**, in the order the captures suggest:
 
-- **`find_target` on run26's block 12024** with the scene loader: the
-  navy's first live target choice (`docs/ARMY.md` §16.5) is one function
-  of one block, and the loader already builds the world and the cities;
-  it needs the leader fields §12 reads (`defense_mod`, `sea_combat`,
-  `frame_attacked`, `attacked_by`) which the `LEADERDATA` record carries
-  at level 9. The RNG draw per candidate is the one thing to seed — the
-  block's `say_checksum` word is in the dump.
 - **The group orders** — `Group::action_move_to` / `action_attack` /
   `action_siege_attack_to` / `action_stance` / `action_halt`,
   `Groups::push_group` — the half of the army the sim cannot issue
@@ -67,6 +63,13 @@ are explained (`docs/ARMY.md` §16.5). Journal entry of the same date.
   `city_flags` whole (the `0x2000` mark is read by the scene loader, not
   yet diffed). The `GROUPDATA` records (512 a block) are unread and would
   carry §3's group bookkeeping.
+- **A capture for §12's score, not just its choice** (`docs/ARMY.md`
+  §18): run26 settles the target by two hundred to one, so a block where
+  two candidates sit within a multiplier of each other — an ally's city
+  against an enemy's at `defense_mod == 0x100`, or a difficulty-1 lobby
+  with a Large City of the AI's own — is what would test the arithmetic
+  and the two predicates corrected blind. The draw count and the choice
+  are the observables; `runwin.sh` stages it.
 - Then, as before: run7's order stream replayed under the trace, a mounted
   attacker, a caravan, the `found_cities` window at 576; `make_stuff` whole
   with the goods block; `Leader::diplomacy`; `calc_gather` for non-flat
@@ -76,7 +79,11 @@ are explained (`docs/ARMY.md` §16.5). Journal entry of the same date.
 "needs X loaded", grep for X: this one had been loaded for a week. And
 the "harness that can stage a frame-12000 state" item 13 imagines is not
 what a single function needs — a block's records are its state, and the
-scene loader is an afternoon's work to extend.
+scene loader was an afternoon's work to extend, twice now. One more from
+run26: **read the trace's `draws` for the frame before building the
+replay** — it hands over the draw count, the call chain and the seed,
+which is the whole assertion, and the call chain is what said
+`do_mustering`'s tail had run first.
 
 **Agreed with the user, 2026-08-25.** How the verification budget splits:
 diff first wherever a dump exists; a blind reading scoped to what no run
@@ -91,7 +98,7 @@ run, adjudicate against both — is the one to repeat.
 `war` cheat is a no-op in a Quick Battle (it starts at war); `tools/gamelog/
 rngcmp.py` shows in ten seconds whether a staged scenario took.
 
-**Opener:** `proceed @docs/QUEUE.md — replay find_target on run26's block 12024 with the scene loader (rondata::diff::army_tests::scene_at; docs/ARMY.md §12, §16.5): load the LEADERDATA fields §12 reads, seed the draw from the block's word, and make the navy's target and muster an assertion`
+**Opener:** `proceed @docs/QUEUE.md — the group orders (docs/ARMY.md §17, docs/ORDERS.md's Group::action_*): model push_group / action_move_to / action_attack / action_stance / action_halt in the sim so do_forming, march_to_target and engagement become behaviour, then stage the run that makes engagement execute — attackers meeting the army at its muster spot`
 
 ## The queue
 

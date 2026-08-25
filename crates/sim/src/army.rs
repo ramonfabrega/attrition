@@ -1081,6 +1081,13 @@ impl Sim {
                     if enemy && dm > 0x100 {
                         continue;
                     }
+                    // The difficulty gate (listing `6f6ce1`–`6f6fb4`): at
+                    // `diff < 2` the stamp, the aggressive-army test and
+                    // the coin come first, and a leader that passes them
+                    // **goes on** to the tests every difficulty applies —
+                    // the `diff == 1` clause is reached only that way
+                    // (run26: the decompiler's `else` had hidden the
+                    // `goto` and left it dead).
                     if diff < 2 {
                         if !(diff != 0 || self.nation[i].human) {
                             continue;
@@ -1095,29 +1102,29 @@ impl Sim {
                         if !go {
                             continue;
                         }
-                    } else {
-                        if diff == 1
-                            && (num_captains >= my_combat / 2
-                                || self.find_aggressive_army(who).is_some_and(|k| k != slot))
+                    }
+                    if diff == 1
+                        && (num_captains >= my_combat / 2
+                            || self.find_aggressive_army(who).is_some_and(|k| k != slot))
+                    {
+                        continue;
+                    }
+                    if !(diff < 2
+                        || allied
+                        || (age < 3 && pers.early_army != 0 && diff != 2)
+                        || num_standard >= 7 - 2 * pers.raid)
+                    {
+                        continue;
+                    }
+                    if diff == 2 {
+                        let fa = self.ai[i].frame_attacked;
+                        if !(fa + 0x708 <= frame
+                            && (team_style == 3
+                                || fa + 0xe10 <= frame
+                                || self.ai[i].attacked_by == i32::from(who)
+                                || self.ai[w].attacked_by == i32::from(ip)))
                         {
                             continue;
-                        }
-                        if !(diff < 2
-                            || (age < 3 && pers.early_army != 0 && diff != 2)
-                            || num_standard >= 7 - 2 * pers.raid)
-                        {
-                            continue;
-                        }
-                        if diff == 2 {
-                            let fa = self.ai[i].frame_attacked;
-                            if !(fa + 0x708 <= frame
-                                && (team_style == 3
-                                    || fa + 0xe10 <= frame
-                                    || self.ai[i].attacked_by == i32::from(who)
-                                    || self.ai[w].attacked_by == i32::from(ip)))
-                            {
-                                continue;
-                            }
                         }
                     }
                 }
@@ -1132,7 +1139,12 @@ impl Sim {
                             continue;
                         }
                     }
-                    if !(diff > 1 || i == w || allied || cd.founder == who) {
+                    // The test before the draw (B.25): on the two easiest
+                    // difficulties a city of mine or an ally's is scored
+                    // only if I founded it; an enemy's always is. (Run26
+                    // caught the inverse — the human's capital dropped and
+                    // one draw short.)
+                    if diff <= 1 && allied && cd.founder != who {
                         continue;
                     }
                     let mut v = self.rng.get(0, 0xffff) % 200 + 900;
@@ -1148,21 +1160,30 @@ impl Sim {
                     }
                     let attacked = cd.no_heal;
                     let lvl = self.city_level_of(c);
-                    if i == w || allied {
-                        if allied && i != w && !attacked {
-                            if num_captains < 20 || siege < 2 {
-                                if num_captains < 10 || siege == 0 {
-                                    v *= size_factor(lvl);
+                    if !enemy {
+                        // Not at war: me, or an ally — a neutral never
+                        // reaches the scoring. `diplos` is 2 on its
+                        // diagonal, so `me` passes the allied test the
+                        // same way an ally does (`LeaderData +0x8` is
+                        // `who`, not an ally slot — `types.txt`): my own
+                        // untroubled city takes the size factor and the
+                        // mark's division.
+                        if allied {
+                            if !attacked {
+                                if num_captains < 20 || siege < 2 {
+                                    if num_captains < 10 || siege == 0 {
+                                        v *= size_factor(lvl);
+                                    }
+                                } else {
+                                    v = v * (4 - lvl) / 4;
                                 }
-                            } else {
-                                v = v * (4 - lvl) / 4;
+                                // §13's "no muster spot" mark.
+                                if cd.no_muster {
+                                    v /= 20;
+                                }
+                            } else if team_style == 2 {
+                                v *= 5;
                             }
-                            // §13's "no muster spot" mark.
-                            if cd.no_muster {
-                                v /= 20;
-                            }
-                        } else if i != w && team_style == 2 {
-                            v *= 5;
                         }
                     } else {
                         if team_style == 2 || team_style == 3 {

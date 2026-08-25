@@ -4004,11 +4004,14 @@ mod army_tests {
     use sim::combat::Obj;
     use sim::world::Cell;
 
-    /// A frame block's state, as far as `find_muster_spot` reads it — the
-    /// block's own `WORLD` cells (owners and regions as they stood), its
-    /// cities typed from their `BUILDDATA` record, its leaders' transport
-    /// bits, and its `ARMY` records — so the search can be re-run on the
-    /// map of that frame. Not a replay: nothing else of the frame is built.
+    /// A frame block's state, as far as `find_muster_spot` and
+    /// `find_target` read it — the block's own `WORLD` cells (owners and
+    /// regions as they stood), its cities typed from their `BUILDDATA`
+    /// record and carrying that record's damage, its leaders' transport
+    /// bits, diplomacy table and the `LEADERDATA` words §12 reads, its
+    /// `ARMY` records, the frame number and the sync stream's word the
+    /// block opens with — so one function can be run on the state of that
+    /// frame. Not a replay: nothing else of the frame is built.
     struct Scene {
         sim: Sim,
         /// `(who, o, handle)` of every city building.
@@ -4037,6 +4040,14 @@ mod army_tests {
         let players = player_count(&init).max(1);
         let mut sim = loaded.sim(Tuning::RON, world, players);
         sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
+        // Block `n` is the state sim-frame `n` begins on (`docs/SYNC.md`
+        // §1): the frame the stamps are compared against, and the sync
+        // stream's word its `say_checksum` record carries — what the
+        // frame's first draw advances from.
+        sim.frame = frame;
+        if let Some((_, seed)) = log.frame_seeds().into_iter().find(|(n, _)| *n == frame - 1) {
+            sim.rng = sim::combat::Rng::new(seed);
+        }
         let (_, builds, leaders) = crate::gamelog::records(block, false);
         for l in &leaders {
             if (0..players as i64).contains(&l.who) {
@@ -4049,6 +4060,62 @@ mod army_tests {
                 t.military = l.leader_flags & 0x200 != 0;
                 t.scout = l.leader_flags & 0x400 != 0;
             }
+        }
+        // The `LEADERDATA` words `find_target` reads (`docs/ARMY.md` §12):
+        // the diplomacy table (0 war, 1 peace, 2 allied; the diagonal is
+        // 2), `defense_mod`, the two census counts the averages and the
+        // difficulty gate use, the attack stamp, and the personality's two
+        // knobs. Read from the block itself: `LeaderDump` carries the
+        // level-0 fields only.
+        for l in body.kids("LEADERDATA") {
+            let Some(who) = l.int("who") else { continue };
+            if !(0..players as i64).contains(&who) {
+                continue;
+            }
+            let w = who as usize;
+            let diplos: Vec<i64> = l
+                .all("diplos[scan]")
+                .iter()
+                .filter_map(|v| v.trim().parse().ok())
+                .collect();
+            for (other, &d) in diplos.iter().enumerate().take(players) {
+                if other != w {
+                    sim.at_war[w][other] = d == 0;
+                    sim.allied[w][other] = d == 2;
+                }
+            }
+            let a = &mut sim.ai[w];
+            if let Some(v) = l.int("defense_mod") {
+                a.defense_mod = v as i32;
+            }
+            if let Some(v) = l.int("combat") {
+                a.census.combat = v as i32;
+            }
+            if let Some(v) = l.int("sea_combat") {
+                a.census.sea_combat = v as i32;
+            }
+            if let Some(v) = l.int("frame_attacked") {
+                a.frame_attacked = v;
+            }
+            if let Some(v) = l.int("attacked_by") {
+                a.attacked_by = v as i32;
+            }
+            if let Some(p) = l.kid("PERSONALITY") {
+                if let Some(v) = p.int("raid") {
+                    a.pers.raid = v as i32;
+                }
+                if let Some(v) = p.int("early_army") {
+                    a.pers.early_army = v as i32;
+                }
+            }
+        }
+        /// The first value under `key` in the block or, depth-first, its
+        /// children — a `BUILDDATA` record nests its class chain
+        /// (`WALLDATA` → `OBJECT` → `SUBOBJECT`) and `who`, `o` and `damage`
+        /// sit at the inner levels.
+        fn deep_int(b: &Block<'_>, key: &str) -> Option<i64> {
+            b.int(key)
+                .or_else(|| b.children.iter().find_map(|c| deep_int(c, key)))
         }
         let mut cities = Vec::new();
         let mut slots = Vec::new();
@@ -4073,9 +4140,21 @@ mod army_tests {
             let city = &mut sim.cities[ci];
             city.alive = flags & 1 != 0;
             city.no_heal = flags & 2 != 0;
+            city.capital = flags & 0x10 != 0;
             city.unassimilated = flags & 0x100 != 0;
             city.no_muster = flags & 0x2000 != 0;
             city.race = c.int("race").map(|r| r as sim::Player);
+            city.was_capital = c.int("was_capital_flags").unwrap_or(0) as u64;
+            city.attack_stamp = c.int("attack_stamp").unwrap_or(0);
+            // The building's `damage`, from its own record: §12 doubles a
+            // damaged city of one's own.
+            let damage = body
+                .kids("BUILDDATA")
+                .find(|bd| deep_int(bd, "who") == Some(who) && deep_int(bd, "o") == Some(o))
+                .and_then(|bd| deep_int(bd, "damage"))
+                .unwrap_or(0) as i32;
+            let bd = &mut sim.buildings[b];
+            bd.health = bd.hits - damage;
             cities.push((who, o, b));
             slots.push((who, slot, ci));
         }
@@ -4258,5 +4337,89 @@ mod army_tests {
         let a2 = &sc.sim.armies[1].list[2];
         assert_eq!(a2.muster, Cell::new(46, 58));
         assert_eq!(a2.muster_angle.0, -1_605_566_464);
+    }
+
+    /// Run26's block 12024, before the navy's tick — the first live
+    /// `find_target` (`docs/ARMY.md` §16.5) — replayed whole. The trace
+    /// (`rontrace-run26.log`, `report.py … draws 12024`) says what the
+    /// tick drew: sim-frame 12024's first three `game_random` draws are
+    /// all `Army::find_target+0x7df`, the per-candidate `% 200 + 900`,
+    /// from `0x63ffe763` — the block's own `game_random seed` — and no
+    /// coin, so the difficulty gate's `find_aggressive_army` answered
+    /// this army. Three candidates on a three-city map: the human's
+    /// Napata (an enemy's, at difficulty 0, which the gate admits
+    /// unconditionally — the check that failed before the gate was
+    /// corrected), then London and Norwich, the AI's own. London — the
+    /// capital, attacked (`city_flags & 2`), damaged (`damage 12`) —
+    /// scores `×10 ×10 ×2` over its draw and wins; the record at 12025
+    /// carries it as `target_o 2000, target_who 1` with `rally_dist
+    /// 0x1200`, the army's point one cell south of it, the ring search's
+    /// (46, 58) and the turned-about angle. The stamps are the AI's own
+    /// city's, so no `frame_attacked` is written.
+    #[test]
+    fn run26_s_navy_targets_its_own_attacked_capital_with_three_draws() {
+        use sim::army::status;
+        let Some(mut sc) = scene("gamelog-run26-islands-findtarget-window.txt", 12024) else {
+            return;
+        };
+        assert_eq!(sc.sim.frame, 12024);
+        assert_eq!(sc.sim.rng.seed, 0x63ff_e763, "the block's word");
+        assert_eq!(sc.sim.ai_difficulty(), 0);
+        assert!(sc.sim.is_enemy(0, 1) && !sc.sim.is_ally(0, 1));
+        assert_eq!(sc.cities.len(), 3);
+        let london = sc
+            .cities
+            .iter()
+            .find(|(w, o, _)| *w == 1 && *o == 2000)
+            .map(|(_, _, b)| *b)
+            .expect("London");
+        let lc = sc.sim.buildings[london].city.unwrap();
+        assert!(sc.sim.cities[lc].capital && sc.sim.cities[lc].no_heal);
+        let bd = &sc.sim.buildings[london];
+        assert_eq!(bd.hits - bd.health, 12, "London's damage");
+        assert_eq!(sc.sim.ai[1].frame_attacked, 12005);
+        assert_eq!(sc.sim.ai[1].attacked_by, -1);
+        assert_eq!(sc.sim.ai[1].pers.raid, -1);
+        assert_eq!(sc.sim.ai[1].census.sea_combat, 8);
+
+        let a2 = &sc.sim.armies[1].list[2];
+        assert!(a2.valid && a2.navy && a2.status == 0x11 && a2.target.is_none());
+        assert_eq!(a2.muster, Cell::new(56, 42));
+        assert_eq!(a2.num_captains, 4);
+        // `do_mustering` released it this tick — the attacked capital is
+        // `release_mustering`'s first arm — and its common tail (§7) ran
+        // before `do_marching` reached `find_target` (`Army::process+0x42c
+        // < do_marching+0x248` in the trace): `status = 2`, `city = −1`,
+        // the point to the muster cell's centre, `angle = muster_angle`
+        // (the 292028416 the 12025 record keeps as `angle`). That move is
+        // what the gate turns on: the record's point, one cell south of
+        // London, is the AI's own cell (51, 53), where the navy would not
+        // be aggressive and the gate would draw a coin; the muster cell
+        // (56, 42) is ocean nobody owns, and it is.
+        assert!(sc.sim.release_mustering(1, 2), "London is attacked");
+        {
+            let a = &mut sc.sim.armies[1].list[2];
+            a.status = status::MARCHING;
+            a.city = None;
+            a.pos = sim::army::cell_centre(a.muster);
+            a.angle = a.muster_angle;
+        }
+        assert_eq!(sc.sim.find_aggressive_army(1), Some(2));
+
+        sc.sim.find_target(1, 2);
+
+        assert_eq!(sc.sim.rng.seed, 0xad03_8188, "three draws, the trace's");
+        let a2 = &sc.sim.armies[1].list[2];
+        assert_eq!(a2.target, Some(Obj::Building(london)));
+        assert_eq!(a2.rally_dist, 0x1200);
+        assert_eq!(a2.hurry, 0);
+        assert_eq!(a2.pos, Pos::new(39264, 40800));
+        assert_eq!(a2.muster, Cell::new(46, 58));
+        assert_eq!(a2.muster_angle.0, 541_917_184);
+        assert_eq!(a2.angle.0, 292_028_416, "do_mustering's, untouched");
+        assert!(a2.valid);
+        assert_eq!(sc.sim.ai[1].frame_attacked, 12005, "my own city: no stamp");
+        assert_eq!(sc.sim.ai[1].attacked_by, -1);
+        assert_eq!(sc.sim.ai[0].frame_attacked, 0);
     }
 }

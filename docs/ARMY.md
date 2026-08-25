@@ -610,54 +610,69 @@ Otherwise **my** `defense_mod` (`+0x7a8`, `0x100` = ×1) is the switch
 (audit B.22, from the listing — the decompiler inverts the sense):
 
 - **not at war** (`diplos` both non-zero): qualifies only if allied both
-  ways (or my ally-slot), **my** `weak[L] == 0`, `strong[L] != 0`, not a
-  tribute period, and `defense_mod >= 0x100` — an ally's cities are scored
-  as places to defend, the `attacked` multipliers below making them worth
-  anything;
+  ways, **my** `weak[L] == 0`, `strong[L] != 0`, not a tribute period,
+  and `defense_mod >= 0x100` — an ally's cities are scored as places to
+  defend, the `attacked` multipliers below making them worth anything;
 - **at war**: only if `defense_mod <= 0x100`; and if my `wonderwin_timer
   != 0 || popwin_timer != 0` set **`about_to_win = 1`** (a ×100 below).
 
-So above `0x100` the AI considers allies only, below it enemies only, at
-`0x100` both. A leader that passes goes through the **difficulty gate**:
-at `diff < 2`, qualify only if `diff != 0 || L is human` and
-`L.frame_attacked + 0x1c20 <= frame` (7,200 frames since I last took a
-target against `L`) and either `find_aggressive_army(me)` is this army
-or, with none, a coin — **`Random::get(game_random, 0, 0xffff) & 1 ==
-0`**; at `diff >= 2`: skip if `diff == 1` and (`num_captains >= combat /
-2` or `find_aggressive_army(me)` is another army); then proceed if `diff
-< 2`, or `L` is my ally-slot, or allied, or (`age < 3` and
-`pers.early_army != 0` and `diff != 2`), or `num_standard >= 7 − 2 ×
-pers.raid`; then `diff != 2`, or `L.frame_attacked + 0x708 <= frame` and
-(`team_style == 3` or `+ 0xe10 <= frame` or `L.attacked_by == me` or
-`my.attacked_by == L`). A leader that fails any of these is skipped this
-pass.
+(The decompiler's `leaders.list[me].+0x8`, which the first reading called
+"my ally-slot" wherever it appears beside the allied test, is
+`LeaderData::who` — the test is `L == me`, written twice. So "me or
+allied both ways" throughout this section, and note that **`diplos` is 2
+on its diagonal**, so `me` passes "allied both ways" wherever that test
+is read on its own.)
 
-*Team play* (`team_style == 2`): `L` must be the next leader after my
-ally-slot in the start list that is alive and in use, or me, or my
-ally-slot, or allied — otherwise skipped.
+So above `0x100` the AI considers allies only, below it enemies only, at
+`0x100` both. A leader that passes goes through the **difficulty gate**,
+whose shape the run26 replay corrected (§16.5): at `diff < 2`, first
+`diff != 0 || L is human` and `L.frame_attacked + 0x1c20 <= frame` (7,200
+frames since I last took a target against `L`) and either
+`find_aggressive_army(me)` is this army or, with none, a coin —
+**`Random::get(game_random, 0, 0xffff) & 1 == 0`** — and a leader that
+passes **goes on** (`goto LAB_006f6dd1`) to the tests every difficulty
+applies: skip if `diff == 1` and (`num_captains >= combat / 2` or
+`find_aggressive_army(me)` is another army) — reachable, then, only at
+difficulty 1; then proceed if `diff < 2`, or `L` is me or allied, or
+(`age < 3` and `pers.early_army != 0` and `diff != 2`), or `num_standard
+>= 7 − 2 × pers.raid`; then `diff != 2`, or `L.frame_attacked + 0x708 <=
+frame` and (`team_style == 3` or `+ 0xe10 <= frame` or `L.attacked_by ==
+me` or `my.attacked_by == L`). A leader that fails any of these is
+skipped this pass. (The first reading had the `diff == 1` clause under
+the `diff >= 2` arm, where it is dead: the decompiler's `else` hides the
+`goto`.)
+
+*Team play* (`team_style == 2`): `L` must be the next leader after me in
+the start list that is alive and in use, or me, or allied — otherwise
+skipped.
 
 *Every city of `L`* below `L.city_mark`, `city_flags & 1`, and for a navy
 in a region `is_coast` of mine with `ocean != 0`; then at `diff <= 1`,
-for me or an ally, skip unless the city's `founder` is me (B.25: on the
-two easiest difficulties the AI defends only cities it founded). The
+**for me or an ally** (allied both ways — `me` included by the diagonal),
+skip unless the city's `founder` is me (B.25: on the two easiest
+difficulties the AI defends only cities it founded); **an enemy's city
+always qualifies**. (The sim had this inverted — an enemy's city skipped
+unless I founded it — until run26's replay drew one short, §16.5.) The
 score:
 
 ```
 v = Random::get(game_random, 0, 0xffff) % 200 + 900                  # one draw per candidate
-if have_capital and L is an enemy (not my ally-slot, at war either way):
+if have_capital and L is an enemy (not me, at war either way):
     if weak_army:                                                     # a weak army only retakes
         skip unless city.founder == me and its building is_unassimilated   # B.27: founder
     v −= 50 × vector_dist(|cell(c.x) − cap_x|, |cell(c.y) − cap_y|) / world.xs   # listing 6f7281
 if my pop_issues != 0 and L is an enemy: v ×= 4
 if L.wonderwin_timer != 0 and the city has a wonder (num_wonders(c, 0)) and Game::wonder_winning() == L: v ×= 10
-if L is me or allied both ways:
-    if allied and !(city_flags & 2):                                  # an ally's untroubled city
-        if num_captains < 20 or count(SIEGE) < 2:
-            if num_captains < 10 or count(SIEGE) == 0:
-                v ×= (TOWN → 2 | METROPOLIS, FORBIDDENCITY → 3 | else 1)
-        else: v = v × (4 − city_level) / 4
-        if city_flags & 0x2000: v /= 20                                # §13's "no muster spot" mark
-    elif team_style == 2: v ×= 5
+if L is not an enemy (diplos both non-zero; me included):
+    if L is me or allied both ways:                                   # `me` passes: the diagonal is 2
+        if !(city_flags & 2):                                          # an untroubled city, mine or an ally's
+            if num_captains < 20 or count(SIEGE) < 2:
+                if num_captains < 10 or count(SIEGE) == 0:
+                    v ×= (TOWN → 2 | METROPOLIS, FORBIDDENCITY → 3 | else 1)
+            else: v = v × (4 − city_level) / 4
+            if city_flags & 0x2000: v /= 20                            # §13's "no muster spot" mark
+        elif team_style == 2: v ×= 5
+    # a neutral gets nothing — and never reaches the scoring
 else:                                                                  # an enemy's city
     if team_style ∈ {2, 3}: v ×= 5
     if navy: v ×= 10
@@ -686,7 +701,7 @@ if city.bordering & (1 << me):                                        # CityData
     if L is an enemy and diff > 2:
         if L.frame_attacked + 9000 < frame: v ×= 3
         if c.attack_stamp + 9000 < frame: v ×= 3
-if L is not me but my ally-slot or allied: v = v × 3 / 4; and if !(city_flags & 2): v /= 2
+if L is not me but allied both ways: v = v × 3 / 4; and if !(city_flags & 2): v /= 2
 if about_to_win: v ×= 100
 if L == me and the city building is damaged: v ×= 2
 elif damaged: v ×= (c.bordering & (1 << me)) ? 3/2 : 5/4
@@ -750,7 +765,9 @@ the retarget); `do_marching` sets `status = 8` (§9).
 
 **The draws.** One `Random::get(game_random, 0, 0xffff)` per candidate
 city that reaches the score, one per candidate fort, and one in the
-difficulty gate's coin — all in the sync stream (`docs/SYNC.md` §3).
+difficulty gate's coin — all in the sync stream (`docs/SYNC.md` §3). The
+city draw is `find_target+0x7df` in the trace; run26's frame 12024 opens
+with three of them and no coin (§16.5).
 
 ## 13. The muster spot — `Army::find_muster_spot(o, who, flag)@006f5cc0`
 
@@ -1063,6 +1080,36 @@ the sim having run on past the `!quit`. The records
   Norwich again, and this time (49, 54) is out at its own cell — the
   human owns it, the capital having fallen; the navy's search against
   the captured capital lands on (46, 58) again, the record's angle plain.
+- **Run26, block 12024, `find_target` whole (2026-08-25, later the same
+  day).** The trace names the tick's draws: sim-frame 12024's first three
+  `game_random` draws are all `Army::find_target+0x7df` — the
+  per-candidate `% 200 + 900` — from `0x63ffe763`, which is block 12024's
+  own `game_random seed 1677715299`, and there is no coin, so the gate's
+  `find_aggressive_army` answered this army. Three candidates on a
+  three-city map: the human's Napata (`who 0`, the capital, region 1),
+  then the AI's London (`0x481f`: attacked, capital, `damage 12`) and
+  Norwich (`0x0001`); the draws fall 1073, 1040, 1059 in that order.
+  London's `1040 × 10 × 10 × 2 = 208,000` — attacked and mine, the
+  capital, damaged — against Napata's `(1073 − 50 × 64 / 60) × 10 × 3/2`
+  and Norwich's `1059 / 3`; the 12025 record has it: `target_o 2000,
+  target_who 1`, `rally_dist 0x1200`, `x 39264, y 40800`, muster (46, 58),
+  `muster_angle 541917184`, and `angle 292028416` — the block-12024
+  `muster_angle`, which `do_mustering`'s tail (§7) had copied into
+  `angle` before `do_marching` ran. That tail is the key to the gate:
+  the record's point is one cell south of London, **the AI's own cell
+  (51, 53)**, where the navy would not be aggressive and a coin would be
+  drawn; `do_mustering` had moved the point to the muster cell's centre,
+  (56, 42), ocean nobody owns. The replay
+  (`run26_s_navy_targets_its_own_attacked_capital_with_three_draws`)
+  applies that tail, seeds the sim's stream from the block's word, runs
+  `find_target(1, 2)`, and asserts the target, the four written fields,
+  the two stamps untouched (my own city: no `frame_attacked`), and **the
+  stream three draws on, at the trace's `0xad038188`**. It failed first:
+  the sim's diff-≤-1 gate skipped the human's city unless the AI had
+  founded it — the inverse of the listing — and drew twice. Two more
+  predicates came out of the same reading, neither observable on this
+  block: my own untroubled city takes the size factor (the `diplos`
+  diagonal), and the `diff == 1` clause is live at difficulty 1.
 
 ## 17. What the simulation carries, and what checks it
 
@@ -1104,9 +1151,11 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
    — moved from the init's, four cells apart. Asserted from the dump
    alone; the harness cannot reach 3579.
 3. **Run25–27**: the `ARMY` records across `emergency`, `find_target` and
-   `do_defending` — read into §16.5; the assertions they can carry
+   `do_defending` — read into §16.5; ~~the assertions they can carry
    (`status`, `target_o/who`, `x/y`, `hurry`) wait on a harness that can
-   stage a frame-12000 state, which is item 13 of the queue.
+   stage a frame-12000 state, which is item 13 of the queue~~ — the
+   scene loader (item 4) is that harness for one function of one block,
+   and run26's `find_target` (item 5) is the first of them asserted.
 4. **The ring search on the blocks' own maps** —
    `run22_s_muster_cells_are_the_ring_search_s_on_block_3579_s_own_map`,
    `run25_s_emergency_search_finds_no_cell_at_norwich_and_the_navy_re_finds_46_58`,
@@ -1118,6 +1167,16 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
    in `army.rs` pin what no block reaches: the walk order, each class
    exclusion, the `flag`'s widening, the spacing, the return quirk, the
    mark's set and clear, the fallback, and a navy's 5 × 5.
+5. **`find_target` on run26's block 12024** —
+   `run26_s_navy_targets_its_own_attacked_capital_with_three_draws`
+   (§16.5): the loader now carries the block's frame, its sync word
+   (`sim.rng`), the diplomacy table, the `LEADERDATA` words §12 reads and
+   each city building's damage; `do_mustering`'s tail is applied by hand
+   (the trace's call chain), `find_target(1, 2)` runs, and the target,
+   `rally_dist`, the point, the muster cell and angle, the untouched
+   stamps and the stream's word three draws on are the record's and the
+   trace's. Passes; failed on the draw count before the diff-≤-1 gate was
+   corrected.
 
 ## 18. What is not established
 
@@ -1170,6 +1229,19 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   product is order-independent unless a division truncates between them.
   *Capture:* run26's `ARMY` records give the chosen target, not the score;
   a `LEADERS=9` window would need a score line the dump does not have.
+  The run26 replay (§16.5) is subject to the same limit: London wins by
+  two hundred to one, so the **choice** is asserted and the draw count
+  is, and the score arithmetic between them is not — every multiplier
+  but the three London took (`×10 ×10 ×2`) could be off by a factor and
+  the block would not say. *Capture:* a block where two candidates are
+  within a multiplier of each other — an ally's city against an enemy's
+  at `defense_mod == 0x100`.
+- **Two §12 predicates corrected from the decompile on 2026-08-25 and
+  observed by no block**: my own untroubled city taking the size factor
+  and the `0x2000` division (every city in the windows is a small city,
+  factor 1), and the `diff == 1` clause being live at difficulty 1 (every
+  lobby so far is difficulty 0). *Capture:* a difficulty-1 lobby with a
+  Large City of the AI's own; the draw count is the observable.
 - ~~**`circle_x/y/radius`** (§13) are `circle_init@006817f0`'s tables, cited
   by name.~~ `ai_place::circle` rebuilds them and the replays of §16.5
   walk them; `move_x/y` are `world::MOVE_49`, read from the executable's
@@ -1200,3 +1272,13 @@ document and six changed `army.rs`; the corrections above carry their
 audit row (`A.13`, `A.57`, `A.62`, `B.15`, `B.20`, `B.22`, `B.24`, `B.27`,
 `B.49`, `B.50`) where they stand, and the largest — `sea_combat` — was a
 claim the first reading had called settled.
+
+**After the audit, from a diff (2026-08-25, later the same day).** The
+run26 replay (§16.5, §17 item 5) changed three §12 predicates both
+readings had passed — the diff-≤-1 founder gate's polarity for an
+enemy's city (B.25 named the filter and did not read its sense), the
+`diff == 1` clause's reachability, and `me` in the allied test — the
+first of them on a failing draw count, the other two from the same
+re-reading of the listing's structure. Three predicates, no arithmetic:
+the audit README's recurring lesson again, and the reason the diff came
+first.

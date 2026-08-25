@@ -932,3 +932,51 @@ the original's own fallback. One session, on Fable.
   "harness that can stage a frame-12000 state" item 13 imagines — for
   a *single function*, a block's records are the state. `find_target`
   at run26's 12024 is the obvious next use.
+
+## 2026-08-25 — `find_target` replayed on run26's block, and the gate it failed
+
+The obvious next use, taken: the navy's first live target choice
+(`docs/ARMY.md` §16.5), one function of one block, on Fable.
+
+- **The trace named the draws before anything was built.** `report.py
+  … draws 12024` on run26's trace: sim-frame 12024 opens with three
+  `game_random` draws, all `Army::find_target+0x7df` — the per-candidate
+  `% 200 + 900` — from `0x63ffe763`, the block's own `game_random seed`,
+  and no coin. So the candidate count (three, on a three-city map), the
+  order, and the stream's word after the function were known before the
+  loader was extended, and the test was written to them.
+- **The loader grew by what §12 reads.** The block's frame and sync word
+  (`sim.frame`, `sim.rng`), the diplomacy table from `diplos[scan]`
+  (0 war, 1 peace, 2 allied, **2 on the diagonal**), `defense_mod`, the
+  two census counts, `frame_attacked`/`attacked_by`, the personality's
+  `raid` and `early_army`, and each city building's `damage` from its
+  `BUILDDATA` — read from the block itself, since `LeaderDump` carries
+  the level-0 fields only. An afternoon's extension, as predicted.
+- **It failed on the draw count, and the failure was a predicate.** Two
+  draws, not three: the sim's diff-≤-1 gate skipped an enemy's city
+  unless the AI had founded it — the inverse of the listing, which
+  admits an enemy's city unconditionally and applies the founder test to
+  mine and my allies'. B.25 had named the filter without reading its
+  sense. The same re-reading, with `types.txt` in hand, retired the
+  first reading's "my ally-slot": `LeaderData +0x8` is `who`, the
+  decompiler writes `L == me` twice, and the `diplos` diagonal makes `me`
+  pass "allied both ways" — so my own untroubled city takes the size
+  factor, which the sim had excluded. And the `diff == 1` clause sits
+  behind a `goto` the decompiler's `else` hides: it is reachable only at
+  difficulty 1, where the sim had it dead. Three predicates, no
+  arithmetic.
+- **The gate's other half was `do_mustering`'s tail.** The record's point
+  is one cell south of London, the AI's own cell, where the navy would
+  not be aggressive and the gate would draw a coin; the original drew
+  none because `do_mustering` had already moved the point to the muster
+  cell's centre — ocean nobody owns — before `do_marching` ran. The
+  12025 record's `angle 292028416` is that tail's copy of the old
+  `muster_angle`. The test applies the tail by hand and says why.
+- **Landed.** `army.rs`: the three predicates; `rondata::diff`: the
+  loader and the replay, which asserts the target, `rally_dist`, the
+  point, the muster cell and angle, the untouched stamps, and the word
+  three draws on. `docs/ARMY.md` §12 amended in place, §16.5, §17, §18,
+  §19. All checks green; the guard was made to fail first.
+- **What it does not establish.** The score itself: London wins by two
+  hundred to one, so every multiplier but its three could be off by a
+  factor and the block would not say. §18 names the capture that would.
