@@ -804,3 +804,30 @@ from `/clear` to commit.
   were added; the seven never-run ones are named in the queue with the
   scenario that would light each.
 - Item 14 is done; the queue owes the `space_at_corner` finding.
+
+## 2026-08-25 — `space_at_corner`'s walk order (the owed finding)
+
+On Fable, one sitting, from `/clear` to commit. The queue offered the owed
+finding or `docs/ARMY.md`; the owed one had a guard that would flip, so it
+went first.
+
+- **The diagnosis was wrong before the fix started.** The queue said
+  `check_building_wcoord`'s fifth argument; `space_at_corner@006b27f0`'s
+  body never reads it. The function walks its sixteen tiles through
+  `grid_index_x/y`, and the early-out is on "the first four" of *that*
+  order. The PE settled it in the two-minute recipe (`S_LDATA32`, the
+  section table, `xxd`): centre 2×2 first. Every 3×3 of a 4×4 contains the
+  centre four, which is why `grid_threes` is four rows of five and why the
+  early-out is safe. And the ≥ 8-blocked branch returns 2, not 0.
+- **The guard flipped before the pin came out** — `space[0]/[1]` ours 58
+  (was 48), theirs 58 — on the first run after the walk order landed; then
+  the pin was retired and the `CITY` record is compared whole. Three unit
+  tests, the walk-order one failing on the old code at a blocked corner
+  tile; `check_building_wcoord`'s occupied/`blocked == 0x10` gates added
+  from the same listing. `docs/AI.md` §15.9.
+- **The method note.** A known divergence pinned in a test with its
+  suspected cause named is the right shape even when the cause is wrong:
+  the pin flipping is what proved the real one. And the lesson the audit
+  README already carries — read the body before the caller — was the one
+  the queue's diagnosis skipped.
+- The owed list is empty. Next is `docs/ARMY.md`.

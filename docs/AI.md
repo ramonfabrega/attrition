@@ -1895,8 +1895,10 @@ folded back into §2's prose.
   `is_ally(who, who)`; the implicit variable's declared type; the
   placement's missing map layers *other than* `val`/`goods`/`region2`
   (which the map now supplies) — `buildings_allowed`, the enemy-seen flag,
-  `gather_at` amounts, the oil patches; `space_at_corner`'s first-row
-  early-out; `find_build_at_city` with `bool_count_inactive`; the raid
+  `gather_at` amounts, the oil patches; ~~`space_at_corner`'s first-row
+  early-out~~ — it is the centre's, not the first row's, and the tables
+  are read from the PE (§15.9); `find_build_at_city` with
+  `bool_count_inactive`; the raid
   stamp; `get_starting_town_size`'s nomad flag; the tick's origin; the
   `leader_flags` line's position in the dump.
 
@@ -2343,6 +2345,67 @@ day, `docs/TRANSPORT.md`, with run22 as its capture.
 **Also observed:** the lobby's `Reveal Map`, `Map Style`, `Resources` and
 `PLAYERn_TRIBE` are the profile's, not `check.ini`'s, on every run — and
 Save to Profile does not survive a killed process (`docs/ORACLE.md`).
+
+### 15.9 `space_at_corner`'s walk order — run20's `space[0..1]` (2026-08-25)
+
+The one field of run20's `CITY` record the widening (§15.7, `docs/
+TRANSPORT.md`'s session) left unmatched: `space[0]` and `space[1]` ours 48,
+theirs 58, `space[2]` 45 both — ten cells the original scores **3** and the
+harness scored **0**. The queue's diagnosis was `check_building_wcoord`'s
+fifth argument to `space_at_corner`; it was wrong, and the function's own
+body says so: `space_at_corner@006b27f0(tx, ty, who, param_4, need_city)`
+never reads `param_4`. What differs is inside.
+
+**The walk.** The sixteen tiles under a corner are not visited row by row
+but through two tables, `grid_index_x`/`grid_index_y` (`.rdata`, VA
+`0xADECF0`/`0xADED30`, read from the PE by the S_LDATA32 recipe):
+
+```
+x: 1 2 1 2   0 1 2 3   0 1 2 3   0 3 0 3
+y: 1 1 2 2   0 0 0 0   3 3 3 3   1 1 2 2
+```
+
+— the **centre 2×2 first**, then the top row, the bottom row, then the two
+side columns. The early-out `if (i < 0x10) return 0` on a blocked tile is
+therefore on the centre four, and the 3×3 test that follows reads
+`grid_threes` (`0xADECA0`, four rows of five): for each 3×3 of the 4×4, the
+five of its tiles outside the centre — every 3×3 of a 4×4 contains all four
+centre tiles, so with those known free, five checks are the whole test. The
+rows decode to the corners `(1,1)`, `(0,1)`, `(0,0)`, `(1,0)`.
+
+**The classes**, from the body: none blocked → 4; fewer than eight blocked
+and some `grid_threes` row all free → 3; otherwise **2**. There is no path
+to 0 once the centre is free — `if (blocked < 8) { …; return 2; } return
+2;`. The harness returned 0 at eight or more blocked, and 0 on any blocked
+tile of the *top row*; a cell whose corner tile is under a neighbour's
+footprint but whose centre and one 3×3 are clear is exactly the cell the
+original counts at 3 and the harness dropped to 0. Ten of them on run20's
+island, and `space[0] == space[1]` on both sides because no cell scores
+exactly 2 there.
+
+**`check_building_wcoord@006b26e0`'s own gate**, also missing: it returns 0
+without looking at any corner when the cell is another leader's (`who ≥ 0
+&& who ≠ me`) **or** occupied (`flags & 0x70`) **or** `WData.blocked ==
+0x10` (`+0x11`, `uchar`, the type record). The census reaches it only past
+its own `flags & 0x70` test, so the first two are redundant there; the
+placement spiral (§2.20) reaches it directly, and there they are new.
+
+**Landed**: `crates/sim/src/ai_place.rs` — `GRID_ORDER`, `GRID_THREES`, the
+rewritten `space_at_corner`, the three-way gate; three unit tests, one of
+which fails on the old code at `space(&[(0,0)]) == 3` and at every-non-
+centre-tile-blocked `== 2`; and the run20 guard's pin retired — the record
+is now compared whole, `space[0..3]` included, and the pin flipped
+(`ours 58 (was 48)`) on the first run after the walk order landed, before
+the pin was removed. Confidence: high on the walk and the classes (the
+tables are the PE's bytes, the body is short, the guard agrees); the
+`blocked == 0x10` gate is from the listing alone.
+
+**Not established**: what writes `WData.blocked = 0x10` (no writer greps by
+name or by `+0x11` in the export; `gaia.rs` reads the same byte as `< 8`);
+whether the return-2 branch at ≥ 8 blocked is ever reached on a real map —
+run20 has no cell at exactly 2 on either side, so that clause is the
+listing's, not a run's. The check that would settle both: a `DUMP_ALL`
+window on a crowded city whose `CITY` record has `space[0] > space[1]`.
 
 ## 16. Second reading — landed, 2026-08-25
 

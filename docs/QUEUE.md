@@ -27,47 +27,39 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `ced7bc8`.* The commit this
+*Last verified 2026-08-25, the session after `302148b`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** The AI's sea half, as its own mechanic: `docs/TRANSPORT.md`
-(the transport level, the unit bit, the docks registry, `is_dock_tile`,
-`think_civilian_transport`, the army's transporting step, the navy hooks),
-`crates/sim/src/transport.rs` with the census's two seams closed
-(`num_coasts`, `is_dock_tile`) and `carry`/fishermen wired, the blind second
-reading (`docs/audit/2026-08-25-transport.md`, 114 claims, two Rust
-changes), and **run22** — the run21 lobby under a `DUMP_ALL` window at the
-frame the trace gave for the first dock, eight minutes end to end, staged by
-`tools/gamelog/window.py`. Two assertions on disk: run20's `CITY` record
-widened to all of step 13 (`dock_tile` 1 matches), and run22's `DOCK`
-record and the 14-unit `0x800000` flip, both passing and both made to fail
-once. Item 14 is struck below.
+**Last landed.** The owed finding, settled and struck: run20's `CITY`
+record `space[0..1]` (ours 48, theirs 58). The suspected cause was wrong —
+`space_at_corner` never reads the fifth argument — and the real one was the
+function's own walk order, read from the PE's `grid_index_x/y` and
+`grid_threes` tables: the centre 2×2 first, so the early-out is the
+centre's, and ≥ 8 blocked with the centre free is 2, not 0.
+`check_building_wcoord`'s occupied and `blocked == 0x10` gates came from
+the same listing. `docs/AI.md` §15.9; `ai_place.rs` with three unit tests;
+the run20 guard now compares the `CITY` record whole with no pin, having
+flipped (`ours 58 (was 48)`) before the pin was removed. Before that, the
+sea half — `docs/TRANSPORT.md`, `transport.rs`, its audit, run22 and
+`tools/gamelog/window.py` (item 14).
 
-**In progress.** Nothing mid-mechanic. **Owed:** one finding the run20
-widening produced, pinned as a known divergence rather than fixed —
-`space[0]`/`space[1]` of the AI's `CITY` record (ours 48, theirs 58):
-`WorldData::check_building_wcoord` passes its `space_at_corner` a fifth
-argument (the corner's `|dx| + |dy|`, or the running best on an axis) that
-`ai_place.rs`'s four-argument form does not. A placement item
-(`docs/CITIES.md`), a morning's work, and `diff.rs`'s run20 test is the
-guard that flips when it lands.
+**In progress.** Nothing mid-mechanic. **Owed:** nothing.
 
-**Next.** The blind list is now 471 cited by address, 375 entered over
-eleven traces, **96 never** — the rise is `TRANSPORT.md`'s 33 new
-citations, of which `Dock::close`, `close_dock`, `remask_docks`,
-`find_dock`, `send_navy`, `coast_here`, `action_set_transport` have never
-run. Each is one cheat-channel scenario: a dock destroyed (`cheat die` on
-the dock's `o`), a land army with a cross-sea target (needs run21's game
-past 14586 under a window), a citizen dispatched off-island (`think_
-civilian_transport` succeeding — a window past 3608 with `UNITS=3`,
-`docs/TRANSPORT.md` §12 item 3). The one reading this closes points at:
-`docs/ARMY.md` — the `Army`/`Armies` family now has its transporting arm,
-its cadence (audit B.45), its merge path (B.67) and its eviction rule
-(B.59) written down by the second reading and nowhere else. Then, as
-before: run7's order stream replayed under the trace, a mounted attacker,
-a caravan, the `found_cities` window at 576; `make_stuff` whole with the
-goods block; `Leader::diplomacy`; `calc_gather` for non-flat buildings.
+**Next.** `docs/ARMY.md` — the `Army`/`Armies` family has its transporting
+arm (`docs/TRANSPORT.md`), its cadence (audit B.45), its merge path (B.67)
+and its eviction rule (B.59) written down by the second reading and nowhere
+else; run21's frames past 14586 (`Army::do_transporting`) are the capture
+to stage. The blind list is 471 cited by address, **96 never** — of
+`TRANSPORT.md`'s 33 citations, `Dock::close`, `close_dock`,
+`remask_docks`, `find_dock`, `send_navy`, `coast_here`,
+`action_set_transport` have never run, each one cheat-channel scenario
+(`docs/TRANSPORT.md` §12). Then, as before: run7's order stream replayed
+under the trace, a mounted attacker, a caravan, the `found_cities` window
+at 576; `make_stuff` whole with the goods block; `Leader::diplomacy`;
+`calc_gather` for non-flat buildings. One behavioural check §15.9 names: a
+`DUMP_ALL` window on a crowded city whose `CITY` record has `space[0] >
+space[1]`, which would be the first run to reach the return-2 branch.
 
 **Agreed with the user, 2026-08-25.** How the verification budget splits:
 diff first wherever a dump exists; a blind reading scoped to what no run
@@ -81,7 +73,7 @@ readers while it runs, adjudicate against both — is the one to repeat.
 (`docs/ORACLE.md`, run22's driving notes). A window run is now `window.py
 stage LO HI`, launch, five `cliclick`s, wait, `restore`.
 
-**Opener:** `proceed @docs/QUEUE.md — take the check_building_wcoord / space_at_corner finding (the run20 CITY record's space[0..1], docs/CITIES.md), or open docs/ARMY.md from the second reading's army rows and run21's frames`
+**Opener:** `proceed @docs/QUEUE.md — open docs/ARMY.md from the second reading's army rows (audit B.45, B.59, B.67, docs/TRANSPORT.md's transporting step) and run21's frames past 14586`
 
 ## The queue
 

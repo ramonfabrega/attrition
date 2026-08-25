@@ -2249,24 +2249,15 @@ mod tests {
                     wrong.push(format!("{key}: ours {o} theirs {t:?}"));
                 }
             }
-            // `space[2]` (cells taking a 4-square) matches; `space[0]` and
-            // `space[1]` do not — the original scores ten more cells at
-            // exactly 3 than the harness does. That is `WorldData::
-            // check_building_wcoord`'s `space_at_corner`, whose fifth
-            // argument (the corner's `|dx| + |dy|`, or the running best
-            // when the corner is on an axis) the simulation's four-argument
-            // form does not pass. A placement finding, queued
-            // (`docs/QUEUE.md`); pinned here so the day it moves is seen.
-            let known = [(0usize, 48, 58), (1, 48, 58)];
+            // `space[0..3]`, whole. `space[0]` and `space[1]` were pinned
+            // at ours 48 / theirs 58 for a day: `space_at_corner` walks its
+            // sixteen tiles centre-2×2-first (`grid_index_x/y`), so its
+            // early-out is on the centre, not the top row, and ≥ 8 blocked
+            // with the centre free is 2, not 0 (`docs/AI.md` §15.9). The
+            // pin flipped the moment the walk order landed.
             for (i, o) in ours.space.iter().enumerate() {
                 let t = space.get(i).copied();
-                if let Some(&(_, ko, kt)) = known.iter().find(|k| k.0 == i) {
-                    if *o != ko || t != Some(kt) {
-                        wrong.push(format!(
-                            "space[{i}] moved off the known divergence: ours {o} (was {ko}) theirs {t:?} (was {kt})"
-                        ));
-                    }
-                } else if t != Some(i64::from(*o)) {
+                if t != Some(i64::from(*o)) {
                     wrong.push(format!("space[{i}]: ours {o} theirs {t:?}"));
                 }
             }

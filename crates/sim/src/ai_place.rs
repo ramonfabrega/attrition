@@ -105,6 +105,42 @@ pub(crate) fn is_military_trainer(ident: Ident) -> bool {
     )
 }
 
+/// `grid_index_x`/`grid_index_y` (`.rdata`, VA `0xADECF0`/`0xADED30`): the
+/// order `space_at_corner` walks the sixteen tiles under a corner, as
+/// `(dx, dy)`. The centre 2×2 comes first, then the top row, the bottom
+/// row, then the two side columns — so the early-out on "one of the first
+/// four is blocked" is on the centre, and every 3×3 of the 4×4 contains
+/// all four of them.
+pub(crate) const GRID_ORDER: [(i32, i32); 16] = [
+    (1, 1),
+    (2, 1),
+    (1, 2),
+    (2, 2),
+    (0, 0),
+    (1, 0),
+    (2, 0),
+    (3, 0),
+    (0, 3),
+    (1, 3),
+    (2, 3),
+    (3, 3),
+    (0, 1),
+    (3, 1),
+    (0, 2),
+    (3, 2),
+];
+
+/// `grid_threes` (`.rdata`, VA `0xADECA0`, four rows of five): for each
+/// 3×3 of the 4×4, the five of its tiles outside the centre 2×2, as indices
+/// into [`GRID_ORDER`] — the corners `(1,1)`, `(0,1)`, `(0,0)`, `(1,0)` in
+/// that order. With the centre known free, these five are the whole test.
+pub(crate) const GRID_THREES: [[usize; 5]; 4] = [
+    [9, 10, 11, 13, 15],
+    [12, 14, 8, 9, 10],
+    [14, 12, 4, 5, 6],
+    [5, 6, 7, 13, 15],
+];
+
 impl Sim {
     /// Whether some live building of anyone has its centre in this cell —
     /// the cell flag `0x4000` the spiral skips.
@@ -121,55 +157,53 @@ impl Sim {
             .is_some_and(|r| self.world.terrain(r) == Terrain::Sea)
     }
 
-    /// `space_at_corner(tx, ty, who, need_city)`: the footprint class that
-    /// fits with its corner at tile `(tx, ty)` — 4 when all sixteen tiles
-    /// of the 4×4 are free, 3 when some 3×3 of them is, 2 when fewer than
-    /// eight are blocked, else 0; and 0 at once when one of the first four
-    /// is blocked. A tile is blocked off the map, outside every city radius
-    /// when a city is needed, under a footprint, placed on, `BLOCKED`, or in
-    /// a cell another leader owns.
+    /// `WorldData::space_at_corner@006b27f0(tx, ty, who, _, need_city)`:
+    /// the footprint class that fits with its corner at tile `(tx, ty)`.
+    /// The sixteen tiles of the 4×4 are walked in [`GRID_ORDER`] — the
+    /// centre 2×2 first — and a blocked tile among those **first four**
+    /// returns 0 at once. Then: none blocked → 4; fewer than eight blocked
+    /// and some 3×3 free ([`GRID_THREES`]) → 3; otherwise **2** — never 0
+    /// once the centre is free, however many of the rest are blocked. A
+    /// tile is blocked off the map, outside every city radius when a city
+    /// is needed, under a footprint, placed on, `BLOCKED`, or in a cell
+    /// another leader owns. The fourth argument is not read
+    /// (`docs/AI.md` §15.9).
     pub(crate) fn space_at_corner(&self, who: Player, tx: i32, ty: i32, need_city: bool) -> i32 {
-        let mut free = [[false; 4]; 4];
+        let mut free = [false; 16];
         let mut blocked = 0;
-        for j in 0..4 {
-            for i in 0..4 {
-                let t = Pos::new(tx + i, ty + j);
-                let ok = self.world.tile_in_bounds(t) && {
-                    let m = self.world.tile_mask(t);
-                    let owner = self.world.owner(crate::World::cell_of_tile(t)).player();
-                    !(need_city && m & tile::CITY_RADIUS == 0)
-                        && m & tile::OBJECT != tile::OBJECT_BUILDING
-                        && m & tile::PLACED == 0
-                        && m & tile::BLOCKED == 0
-                        && !owner.is_some_and(|o| o != who)
-                };
-                free[j as usize][i as usize] = ok;
-                if !ok {
-                    blocked += 1;
-                    if j == 0 {
-                        return 0;
-                    }
+        for (k, &(i, j)) in GRID_ORDER.iter().enumerate() {
+            let t = Pos::new(tx + i, ty + j);
+            let ok = self.world.tile_in_bounds(t) && {
+                let m = self.world.tile_mask(t);
+                let owner = self.world.owner(crate::World::cell_of_tile(t)).player();
+                !(need_city && m & tile::CITY_RADIUS == 0)
+                    && m & tile::OBJECT != tile::OBJECT_BUILDING
+                    && m & tile::PLACED == 0
+                    && m & tile::BLOCKED == 0
+                    && !owner.is_some_and(|o| o != who)
+            };
+            free[k] = ok;
+            if !ok {
+                if k < 4 {
+                    return 0;
                 }
+                blocked += 1;
             }
         }
         if blocked == 0 {
             return 4;
         }
-        for oj in 0..2 {
-            for oi in 0..2 {
-                let all = (0..3).all(|j| (0..3).all(|i| free[oj + j][oi + i]));
-                if all {
-                    return 3;
-                }
-            }
+        if blocked < 8 && GRID_THREES.iter().any(|sq| sq.iter().all(|&k| free[k])) {
+            return 3;
         }
-        if blocked < 8 { 2 } else { 0 }
+        2
     }
 
-    /// `WorldData::check_building_wcoord`: the best footprint class over the
-    /// corner offsets `dx ∈ [−w, w]`, `dy ∈ [−h, h]` (those on an axis or
-    /// with `|dx| + |dy| ≤ max`), returning 4 at once when found; 0 when the
-    /// cell is another leader's.
+    /// `WorldData::check_building_wcoord@006b26e0`: the best footprint
+    /// class over the corner offsets `dx ∈ [−w, w]`, `dy ∈ [−h, h]` (those
+    /// on an axis or with `|dx| + |dy| ≤ max`), returning 4 at once when
+    /// found; 0 without looking when the cell is another leader's, occupied
+    /// (`flags & 0x70`), or has `blocked == 0x10`.
     pub(crate) fn check_building_wcoord(
         &self,
         who: Player,
@@ -179,7 +213,11 @@ impl Sim {
         max: i32,
         need_city: bool,
     ) -> i32 {
-        if self.world.owner(cell).player().is_some_and(|o| o != who) {
+        let d = self.world.cell_data(cell);
+        if self.world.owner(cell).player().is_some_and(|o| o != who)
+            || d.flags & 0x70 != 0
+            || d.blocked == 0x10
+        {
             return 0;
         }
         let mut best = 0;
@@ -738,5 +776,96 @@ mod tests {
             }
         }
         assert!(c.x.len() <= MAX_POINTS);
+    }
+
+    /// The two tables agree with each other: each `GRID_THREES` row is
+    /// exactly the tiles of one 3×3 of the 4×4 that are not in the centre
+    /// 2×2, and the centre 2×2 is `GRID_ORDER[0..4]`.
+    #[test]
+    fn grid_threes_are_the_non_centre_tiles_of_each_three_square() {
+        let centre: Vec<(i32, i32)> = GRID_ORDER[..4].to_vec();
+        assert_eq!(centre, [(1, 1), (2, 1), (1, 2), (2, 2)]);
+        let corners = [(1, 1), (0, 1), (0, 0), (1, 0)];
+        for (row, (cx, cy)) in GRID_THREES.iter().zip(corners) {
+            let mut got: Vec<(i32, i32)> = row.iter().map(|&k| GRID_ORDER[k]).collect();
+            got.sort_unstable();
+            let mut want: Vec<(i32, i32)> = (0..3)
+                .flat_map(|j| (0..3).map(move |i| (cx + i, cy + j)))
+                .filter(|t| !centre.contains(t))
+                .collect();
+            want.sort_unstable();
+            assert_eq!(got, want, "3×3 at ({cx},{cy})");
+        }
+    }
+
+    /// A 4×4-cell world (16×16 tiles), two players, and a corner well
+    /// inside it; `block` marks tiles `BLOCKED` by their `(dx, dy)` from
+    /// the corner.
+    fn space(block: &[(i32, i32)]) -> i32 {
+        let mut w = crate::World::new(4, 4);
+        for &(i, j) in block {
+            w.set_tile_bits(Pos::new(4 + i, 4 + j), tile::BLOCKED);
+        }
+        let sim = Sim::new(crate::Tuning::RON, w, 2);
+        sim.space_at_corner(1, 4, 4, false)
+    }
+
+    /// The early-out is on the centre 2×2, not the top row: a blocked
+    /// corner tile leaves three 3×3s free and scores 3 (the harness scored
+    /// 0 until run20's `CITY` record put `space[0..1]` ten cells short —
+    /// `docs/AI.md` §15.9), and a blocked centre tile is 0 outright.
+    #[test]
+    fn a_blocked_edge_tile_leaves_a_three_square_but_a_blocked_centre_is_nothing() {
+        assert_eq!(space(&[]), 4);
+        assert_eq!(space(&[(0, 0)]), 3);
+        assert_eq!(space(&[(3, 0)]), 3);
+        assert_eq!(space(&[(0, 3), (3, 3)]), 3);
+        assert_eq!(space(&[(1, 1)]), 0);
+        assert_eq!(space(&[(2, 2)]), 0);
+        // Both rows out: no 3×3, seven blocked or eight — 2 either way.
+        assert_eq!(
+            space(&[(0, 0), (1, 0), (2, 0), (3, 0), (0, 3), (1, 3), (2, 3)]),
+            2
+        );
+        assert_eq!(
+            space(&[
+                (0, 0),
+                (1, 0),
+                (2, 0),
+                (3, 0),
+                (0, 3),
+                (1, 3),
+                (2, 3),
+                (3, 3)
+            ]),
+            2
+        );
+        // Every non-centre tile blocked: still 2, never 0.
+        let ring: Vec<(i32, i32)> = GRID_ORDER[4..].to_vec();
+        assert_eq!(space(&ring), 2);
+    }
+
+    /// `check_building_wcoord`'s three gates on the cell itself, before any
+    /// corner is looked at: another leader's, occupied (`flags & 0x70`),
+    /// or `blocked == 0x10`.
+    #[test]
+    fn check_building_wcoord_gates_on_the_cell_before_the_corners() {
+        let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(4, 4), 2);
+        let cell = Cell::new(1, 1);
+        assert_eq!(sim.check_building_wcoord(1, cell, 0, 0, 1, false), 4);
+        let mut d = sim.world.cell_data(cell);
+        d.flags |= 0x10;
+        sim.world.set_cell_data(cell, d);
+        assert_eq!(sim.check_building_wcoord(1, cell, 0, 0, 1, false), 0);
+        d.flags &= !0x70;
+        d.blocked = 0x10;
+        sim.world.set_cell_data(cell, d);
+        assert_eq!(sim.check_building_wcoord(1, cell, 0, 0, 1, false), 0);
+        d.blocked = 0;
+        sim.world.set_cell_data(cell, d);
+        assert_eq!(sim.check_building_wcoord(1, cell, 0, 0, 1, false), 4);
+        sim.world
+            .set_owner(cell, crate::Owner::Player(0), crate::Owner::None);
+        assert_eq!(sim.check_building_wcoord(1, cell, 0, 0, 1, false), 0);
     }
 }
