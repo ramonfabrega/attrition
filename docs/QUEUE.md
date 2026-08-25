@@ -57,8 +57,7 @@ for the first time, so a reader can be briefed with frames rather than
 blind (`docs/AI.md` §9, §15.8); and **a `DUMP_ALL` window on an islands
 game past the docks** (run21's frame 3579 onward), which would make
 `reg_naval`, `reg_docks` and the transport census a diff. Smaller and
-open: why East Indies' world says `sea_map 4` against its file's 3;
-`reg_forts` and `was_seen`'s leader-flag exits; the left-overs from the
+open: `reg_forts` and `was_seen`'s leader-flag exits; the left-overs from the
 behavioural batch — the city mask's remaining rungs (`docs/CITIES.md`
 §3.6) and the garrison heal (§15). The next widening of a record already
 on disk is still `make_stuff` whole with the block's own goods

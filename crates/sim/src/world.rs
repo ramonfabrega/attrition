@@ -418,12 +418,17 @@ impl World {
     /// Lakes / Mediterranean / Outback, 2 Warring States, 3 the two-shore
     /// and island maps, 4 Colonial Powers), `Map::init_map_data` reads it
     /// with −1 for absent, `Map::make` copies it into the world when it is
-    /// not −1, and the conquest maker's `check_sea_map` computes 0/2/3
-    /// (no sea / every start on one landmass / starts apart) for the
-    /// styles that leave it out. The AI reads it as "how much sea": `> 2`
-    /// is the coastal-ring and dock-value predicate. It was read as "the
-    /// number of land regions" until run20 (2026-08-25) reported 4 on a
-    /// map with twelve of them; 0 on a world with no map loaded.
+    /// not −1, and `World::analyze_map@006b58b0` finishes it: a value
+    /// outside `0..4` is computed from the regions — starts on more than
+    /// one landmass → 3, or 4 when the free regions of at least
+    /// `size × 60 / dim²` cells hold twice the players' land; else 2 with
+    /// any such free region; else 1 when `land_size < 4·size/5`, else 0 —
+    /// and a file's 3 is promoted to 4 by the same test (East Indies on
+    /// run20: 1097 ≥ 2 × 529). The AI reads it as "how much sea": `> 2`
+    /// is the coastal-ring and dock-value predicate, `< 4` the expansion
+    /// gate. It was read as "the number of land regions" until run20
+    /// (2026-08-25) reported 4 on a map with twelve of them; 0 on a world
+    /// with no map loaded (`docs/AI.md` §15.8).
     pub fn sea_map(&self) -> i32 {
         self.sea_map
     }

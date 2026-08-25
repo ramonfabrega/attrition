@@ -2261,13 +2261,29 @@ to `crates/sim` that no Great Lakes capture could have found:
    every `world+0x34` predicate in this document — §2.13 step 5's `> 2`,
    §2.10's `< 4`, §2.14's cubed term, §2.19's dock gate, §6's `< 3` rush
    arm, §2.3 step 15's strategy bits — reads that class. `World::sea_map`
-   now carries the dump's value; `landmasses()` is gone. **Not
+   now carries the dump's value; `landmasses()` is gone. ~~**Not
    established:** why the world reports 4 on East Indies when
-   `eastindies.xml` says 3 — the class factory (`Map::new_map` case
-   `0x12`) and the file table (`Map::init_map_file_names`, index 18 →
-   `EASTINDIES`) both point at that file, `default.xml` carries no
-   `SEA_MAP`, and no other writer of `Map+0x48` was found. The harness
-   takes the dump's value, so nothing downstream depends on the answer.
+   `eastindies.xml` says 3.~~ **Settled the same day, from
+   `World::analyze_map@006b58b0`** (entered in setup, run21's trace),
+   which the first writer search missed because it stores through a
+   different pointer name. Its region walk: a land region where any
+   active leader has a presence is a *player region* (`player_reg`,
+   `world+0x50`; `Region.flags |= 4`; its `size` into a running sum
+   *P*); any other region of at least `max(1, size × 60 / dim²)` cells —
+   60 on a 60×60 map — is a *resource region* (`resource_reg`,
+   `world+0x54`; `flags |= 8`; `size` into *R*). Then, at the tail: a
+   `sea_map` outside `0..4` (the file's −1) is **computed** — `player_reg
+   > 1` → `3 + (2P ≤ R)`; else `resource_reg != 0` → 2; else `land_size <
+   4·size/5` → 1, else 0 — and **a file value of 3 is promoted to 4 by the
+   same `player_reg > 1 && 2P ≤ R` test.** Run20 to the cell: the two
+   player islands hold 269 + 260 = 529 cells, 2P = 1058; the eight islands
+   of ≥ 60 cells (`resource_reg 8`, as the dump prints) hold 1097 ≥ 1058 →
+   4. So class 4 reads "starts apart, and the free islands hold at least
+   twice the players' land", which is why §2.10's `< 4` gate sends a
+   two-or-three-city AI off its home island. Every class is therefore
+   either the file's (0, 1, 2 and a 3 that fails the test) or this
+   function's; the harness still takes the dump's value, and a sim
+   without a dump would run `analyze_map`'s rule over its own regions.
 2. **`land_key[]` is a static** — `BASELAND, SANDY, OCEAN, NONE`
    (`dynamic_initializer_for_'land_key'@004058a0`) — and the harness had
    numbered the dump's names by first appearance, which agreed only

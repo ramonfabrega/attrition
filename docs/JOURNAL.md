@@ -743,7 +743,15 @@ ring.
   the sea half run21 lit up (`check_transport`, the docks,
   `Army::do_transporting`) was invisible to it, because §9 cites those
   functions without an address. Named by address now.
-- **Open, honestly**: the world reports `sea_map 4` on a style whose file
-  says 3, writer not found; `reg_forts` and `was_seen`'s leader-flag exits
+- **The one loose end, pulled the same evening** at the user's prompt
+  ("file it or fix it?"): the world's `sea_map 4` on a style whose file
+  says 3. The first writer search had grepped for one pointer name;
+  `World::analyze_map` stores through another, and its rule — starts on
+  separate landmasses and the free islands holding twice the players'
+  land promote a 3 to 4 — reproduces run20's 4 from the dump's own region
+  sizes (1097 ≥ 1058). Twenty minutes, and the reason to do it before
+  `/clear`: the decompile paths, the string-table decoder and run21's
+  setup trace were all still in hand.
+- **Open, honestly**: `reg_forts` and `was_seen`'s leader-flag exits
   unmodelled; the sea half read by no one yet.
 - The queue's owed list is empty. Item 12 is done.
