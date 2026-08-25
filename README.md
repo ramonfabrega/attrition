@@ -6,15 +6,17 @@ Games, 2003) in Rust — simulation first, art last.
 Named for the mechanic no open-source RTS has ever implemented: units bleeding
 health inside hostile national borders.
 
-> **Status: Phase 1 done, and the sim skeleton started.** Seven mechanics run
-> headless and run against each other: borders produce territory, territory
-> produces damage, supply cancels it, units walk in and out of it under orders,
-> the ground a player holds pays them, that income buys the next unit at a
-> price that climbs with every one already built — and the unit takes time to
-> arrive. One document per mechanic, written from the original and implemented
-> from the document; the tuned numbers they use are re-checked against your own
-> install on every run of `rondata`. The whole thing runs in a test with no
-> display attached.
+> **Status: the sim skeleton, twelve mechanics in.** Attrition and supply,
+> movement, the economy, costs and production, the tech tree, combat, cities
+> and buildings, orders, the pathfinder, the animation clock, the per-frame
+> random stream, and the AI — its scripted opening through an interpreter of
+> our own, and its C++ producers behind it. All of it headless, integer-only,
+> and diffed frame for frame against the original's own per-frame log: a
+> citizen walks the original's walk for every logged frame, the AI's first
+> city lands on the original's tile, the composed 493 × 493 combat table
+> matches cell for cell, and every draw of the game's RNG in the traced
+> windows is placed by site. No renderer yet. `docs/QUEUE.md` says exactly
+> where things stand.
 
 ## What this is
 
@@ -41,15 +43,39 @@ Three things make Rise of Nations an unusually good target:
   The original is a readable specification rather than a black box, which is
   the difference between years of archaeology and months of translation.
 
+And a fourth, found on the way: **the original will tell you what it did.**
+The shipped executable carries a per-frame state logger, switched on by an
+ini file, and a fixed seed makes a run reproducible. That log — every unit's
+position and order list, every leader's census, the loaded constants by name —
+is the ground truth this simulation is diffed against, and it turns every
+claim in `docs/` from a reading into a check.
+
+## How it is built
+
+One mechanic at a time, and each one the same way:
+
+1. **Read** the original — the decompiled executable with its own symbols —
+   and write `docs/<MECHANIC>.md`: the rules, how they were established, how
+   confident the reading is, and what it has *not* established.
+2. **Implement** from the document, in integers at the original's own scales.
+   Decompiled code is read, never transcribed; the sim contains no floating
+   point, enforced by a lint that reads its own source.
+3. **Second-read it blind**: an independent reader re-derives the mechanic
+   from the same export without seeing the document, and every disagreement
+   is adjudicated back to the decompiled function (`docs/audit/`).
+4. **Diff it** against the original's own log, and pin the match as a test.
+
+Where a run of the original can reach a mechanic, the diff is the evidence;
+where none can yet, the reading is — and the trace tool reports which
+functions the documents cite that no run has ever executed, which is the
+queue of runs.
+
 ## Requirements
 
 You need your own copy of **Rise of Nations: Extended Edition** (Steam app
-`287450`). No game assets are distributed here and none ever will be — the
-tools read from your installed copy.
-
-The original 2004 Mac port (Gold Edition, MacSoft) is PowerPC-era and will not
-run on any current Mac. Extended Edition is Windows-only, but you do not need
-Windows to *extract* its data — see below.
+`287450`). No game assets are distributed here and none ever will be — not
+models, not textures, not the XML, and not symbol dumps or decompiler output.
+The tools read from your installed copy and generate what they need on demand.
 
 ## Getting the game files on macOS
 
@@ -63,53 +89,76 @@ scripts/fetch-depot.sh
 This uses SteamCMD with a forced Windows platform type to download the depot
 without running it. Extraction needs the files, not a running game.
 
-Actually *playing* it on a Mac — to generate controlled recorded games and to
-have a behavioural oracle — is a separate problem. The executable is 32-bit
-x86, so on Apple Silicon it means CrossOver, Wine with the new WoW64, or a
-Windows VM. That is its own phase; see `CLAUDE.md`.
+**Running** it on a Mac — to log a controlled game and have a behavioural
+oracle — works under CrossOver's D3DMetal; `docs/ORACLE.md` has the exact
+path, the loggers, and the recipe for a logged run.
 
 ## Layout
 
 ```
-crates/fixed/      deterministic Q16.16 fixed-point math
-crates/rondata/    reads the game's data tables from an installed copy
-crates/sim/        the simulation, headless and deterministic
-docs/ATTRITION.md  the attrition mechanic, written from the original
-docs/SUPPLY.md     supply: the counter to attrition, and its two other jobs
-docs/MOVEMENT.md   speed, facing, and one frame of movement
-docs/ECONOMY.md    income: rates, commerce caps, and the remainder accumulator
-docs/COSTS.md      what a thing is worth, and what stops you paying
-docs/PRODUCTION.md queues, build time, and spending a price over time
-docs/ORACLE.md     how the original can be made to tell us what it did
-docs/DECISIONS.md  architectural decisions and their rationale
-docs/FORMATS.md    file-format reverse-engineering log
+crates/sim/         the simulation: headless, deterministic, integer-only
+crates/rondata/     reads an install's tables into the sim's types, reads the
+                    original's logs and recordings, and diffs the two
+crates/fixed/       fixed-point arithmetic — used by rondata's constant
+                    classification, deliberately not by the sim (decision 16)
+tools/ghidra/       builds and exports the decompile once; reading is grep after
+tools/gamelog/      one-line readers for a logged run
+tools/trace/        in-process draw-site trace and function coverage of the original
+scripts/            fetch-depot.sh
 ```
 
-Crates appear here when they have real code, not in anticipation of it.
+`docs/`:
+
+| | |
+|---|---|
+| `QUEUE.md` | where things stand, and what is next — read this first |
+| `JOURNAL.md` | the chronicle, session by session |
+| `DECISIONS.md` | architectural decisions and their rationale, amended in place |
+| `FORMATS.md` | file formats, every claim evidence-backed |
+| `ORACLE.md` | running the original, its loggers, and every logged run |
+| `DATALAYER.md`, `SYNC.md` | the install into the sim; the per-frame random stream |
+| `RECGAME.md`, `COMMANDS.md`, `INPUT.md` | recorded games: the container, the command payloads, the order stream |
+| `ATTRITION.md`, `SUPPLY.md`, `MOVEMENT.md`, `ECONOMY.md`, `COSTS.md`, `PRODUCTION.md`, `TECH.md`, `COMBAT.md`, `CITIES.md`, `ORDERS.md`, `PATHFINDER.md`, `ANIM.md`, `AI.md` | one document per mechanic |
+| `audit/` | the blind second readings and their verdicts |
+
+`CLAUDE.md` is the working agreement: thesis, hard constraints, phases, and
+the rules the sessions run by.
 
 ## Development
 
 ```sh
-cargo test          # 195 tests
+cargo test --workspace     # ~580 tests
 cargo clippy --all-targets
 cargo fmt
 ```
 
-To point the extractor at your install and check that everything we believe
-about the format still holds:
+The data-layer tests need an install: set `RON_INSTALL=/path/to/Rise of
+Nations` (and `RON_GAMELOG_DIR` for the logged runs, which live outside the
+repo). Without one those tests say so and skip rather than pass quietly.
+
+To check that everything the documents believe about the format still holds
+against your own files:
 
 ```sh
 cargo run -p rondata -- /path/to/Rise\ of\ Nations
 ```
 
-It prints the table shapes, re-derives each structural claim in
-`docs/FORMATS.md` from your own files, and re-reads all 104 tuned constants the
-simulation depends on — exiting non-zero if any of it stops being true. Nothing
-is copied anywhere; it only reads.
+It re-derives each structural claim in `docs/FORMATS.md`, re-reads every
+tuned constant the simulation depends on, and exits non-zero if any of it
+stops being true. Nothing is copied anywhere; it only reads. With
+`--gamelog <dump> --diff` it replays a logged run of the original and reports
+the first frame that differs; `--types <dump>` checks the loaded type tables
+and the combat table against the program's own; `--recgame <file.rcx>`
+decodes a recording.
 
-The toolchain is pinned to stable in `rust-toolchain.toml`.
+The toolchain is pinned in `rust-toolchain.toml`.
 
-See `CLAUDE.md` for the full thesis, hard constraints, and phase plan.
+## Prior art
+
+OpenRA for lockstep order serialisation and a data-driven mod layer; OpenTTD
+and OpenGFX for the whole inside-out arc; Beyond All Reason for a lineage that
+freed itself of proprietary assets; ptasev/Rise-of-Nations for the only
+public work on the model and archive formats.
 
 ## License
 
