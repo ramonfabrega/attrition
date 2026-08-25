@@ -1519,6 +1519,89 @@ mod tests {
         assert_eq!(l.tree.types.len(), 50 + 364 + 129 + 85);
     }
 
+    /// One figure's hit, in sixteenths, from the loaded profiles — `get_damage`
+    /// then `scale` as `Object::do_damage` runs them (`docs/COMBAT.md` §6–§7),
+    /// with the target facing `facing` and the attack arriving along `angle`.
+    fn hit_sixteenths(l: &Loaded, a: usize, t: usize, facing: i32, angle: i32) -> i32 {
+        use sim::combat::{Modifiers, Side, TypeRef, scale};
+        use sim::movement::Angle;
+        let ap = &l.unit_types[a].combat;
+        let tp = &l.unit_types[t].combat;
+        let at = Side {
+            unit: true,
+            attacks: true,
+            ..Side::default()
+        };
+        let tt = Side {
+            unit: true,
+            attacks: tp.attack != 0,
+            facing: Angle(facing),
+            ..Side::default()
+        };
+        let pct = l.table.pct_of(TypeRef::Unit(a), TypeRef::Unit(t));
+        let dmg = combat::get_damage(
+            &Tuning::RON,
+            ap,
+            at,
+            tp,
+            tt,
+            ap.attack,
+            tp.armor,
+            pct,
+            Angle(angle),
+            false,
+            0,
+            &Modifiers::default(),
+        );
+        let s = scale(dmg, 0x100, true, false, ap.ammo_per_att, ap.uber_size);
+        s.whole * 16 + s.frac
+    }
+
+    /// The combat run's numbers, predicted before the log was read and then
+    /// observed hit for hit (run17, 2026-08-24; `docs/COMBAT.md`, "Behavioural
+    /// check"): a hoplite figure on a Supply Wagon is 122 sixteenths from
+    /// every bearing (the wagon is CIVILIAN, so step 19 never runs); on a
+    /// hoplite it is 48 from the front, 85 from the rear (level 1, ×1.5) and
+    /// 117 from the side (level 2, ×2.0); a slinger's stone is 32/58/85 on
+    /// a hoplite and 53 on a scout or a wagon. `hits.py` on
+    /// `gamelog-run17-combat.txt` shows exactly these values and no others
+    /// among the unit-on-unit rises (a frame with two strikes shows their sum).
+    #[test]
+    fn run17_s_hits_are_the_formula_s() {
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        let hop = l.unit_named("Hoplites").unwrap();
+        let wag = l.unit_named("Supply Wagon").unwrap();
+        let sl = l.unit_named("Slingers").unwrap();
+        let sc = l.unit_named("Scout").unwrap();
+        const FACING: i32 = 0x5555_5555; // a cheat-placed unit's 120°
+        let rear = FACING;
+        let side = FACING.wrapping_add(0x4000_0000);
+        let front = FACING.wrapping_add(i32::MIN);
+        let hit = |a, t, angle| hit_sixteenths(&l, a, t, FACING, angle);
+        assert_eq!(
+            (
+                hit(hop, wag, rear),
+                hit(hop, wag, side),
+                hit(hop, wag, front)
+            ),
+            (122, 122, 122)
+        );
+        assert_eq!(
+            (
+                hit(hop, hop, front),
+                hit(hop, hop, rear),
+                hit(hop, hop, side)
+            ),
+            (48, 85, 117)
+        );
+        assert_eq!(
+            (hit(sl, hop, front), hit(sl, hop, rear), hit(sl, hop, side)),
+            (32, 58, 85)
+        );
+        assert_eq!((hit(sl, sc, front), hit(sl, wag, rear)), (53, 53));
+    }
+
     #[test]
     fn the_citizen_loads_as_the_harness_transcribed_it() {
         let Some(i) = install() else { return };

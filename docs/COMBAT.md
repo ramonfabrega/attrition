@@ -1430,9 +1430,15 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
    travels, i.e. away from the attacker. **Level 1 is the rear**, and at the
    shipped `FLANK_BONUS` of 50 the rear is ×1.5 and the side ×2.0.
 
-   That the side bonus exceeds the rear one still reads oddly, so the
+   ~~That the side bonus exceeds the rear one still reads oddly, so the
    confirming measurement is worth having and is **not** done: the damage
-   ratio itself, one attacker on one target, from behind and from the front.
+   ratio itself, one attacker on one target, from behind and from the front.~~
+   **Done, run17 (2026-08-24), by the damage itself** — the last section of
+   this document: hoplite on hoplite is 48 sixteenths from the front, **85
+   from the rear (`d` near 0°) and 117 from the side (`d` near ±90°)**, the
+   three values the formula gives for levels 0, 1 and 2 and no other value
+   in the run; the side *is* the larger bonus. The original text of the
+   plan follows.
    The instrumentation exists — `tools/gamelog/hits.py` prints every damage
    increment in sixteenths with the victim's angle, the attacker, and the
    computed `d` — and it was run, but on a melee with a tower and six squads
@@ -1693,3 +1699,61 @@ check no longer needs the `DUMP_ALL=1` run that hangs the game.
 *feeds* — the nation, wonder and patriot modifiers, the terrain and height
 inputs, aircraft and missiles — is the same list as before (§14); this
 section settled the multiplier, not its consumers.
+
+---
+
+## 16. Behavioural check (run17, 2026-08-24) — the formula's numbers, hit for hit
+
+Until this run no traced game had entered `Unit::fight`, `Object::take_damage`,
+`find_new_target` or `Object::fire_ammo` (`docs/ORACLE.md`, the blind list).
+Run17 is the combat run, staged from a file through the cheat channel
+(`docs/ORACLE.md`, "The cheat channel"; the file is in "The combat run"
+there): `!ai off`, then in an unowned mid-map arena a who-1 Supply Wagon
+with a who-0 hoplite squad placed four tiles off at three bearings, a
+hoplite squad against a hoplite squad, slingers against a wagon, and a
+tower against a wagon — 2,600 frames at `UNITS=3 AMMO=3`, same lobby and
+seed as run12–16. **The numbers were computed before the log was read**
+(`rondata`'s `run17_s_hits_are_the_formula_s`: §6 `get_damage` then §7.1's
+`scale` on the loaded profiles) and `tools/gamelog/hits.py` read every
+damage rise with the victim's facing and the attacker's bearing.
+
+| attacker → target | predicted sixteenths per figure-strike | observed |
+| --- | --- | --- |
+| Hoplites → Supply Wagon, any bearing | **122** — the wagon's `OBJ_MASK` is `VC`, CIVILIAN, so step 19 never runs | 122 at `d` = +5°, −156°, −90°, −45°, −79°, −41°, +45°; 244 on the frames two figures struck |
+| Hoplites → Hoplites, front / rear / side | **48 / 85 / 117** (levels 0, 1, 2: ×1, ×1.5, ×2 before the `/10` and armour) | exactly 48, 85 and 117 and nothing else, 85 at `d` −3°…−39° and 117 at `d` −61°…−114° |
+| Slingers → Hoplites, front / rear / side | **32 / 58 / 85** | 32 at `d` ≈ 170°, 58 at `d` 24°…66°, 85 |
+| Slingers → Scout; → Supply Wagon | **53; 53** | 53 (f2022, `d` −6°); 53 and 106 |
+| the Tower → Supply Wagon | not computed (a building's `do_attack`, §8.6) | **544** per arrow, `damage_o` = the tower's 2007 |
+
+Three things the run adds to the reading:
+
+- **The sector assignment is confirmed by damage, not only by the facing
+  premise** (§14.1): level 1 is the rear and level 2 the side. The handful
+  of hits whose `d` sits in the wrong sector for their size (a 48 at
+  `d` −8°, a 58 at `d` 66°) are attribution noise: `hits.py` takes the
+  attacker's position from `damage_o`, the squad's captain, while the
+  striking figure may be a tile away; the *sizes* are exact.
+- **A shot's draws, by site.** A unit's attack rolls once at
+  `Unit::fight+0x9b0` (75 over the ranged window; 14 more at `+0x824`), and
+  its projectile draws twice at launch — `Ammo::init+0xcd9` and `+0xd0b`
+  under `Objects::add_ammo` < `GraphicEvents::execute_game_events`, i.e. the
+  launch is an *event* executed after the unit's own step — and nothing at
+  impact. A **building's** arrow draws twice in `Object::fire_ammo` itself
+  (`+0x3d5`, `+0x406` under `Build::do_attack` < `Build::process`) and then
+  the same two `Ammo::init` draws directly from `fire_ammo+0x429`, not
+  through the event. §9.5's accounting should be re-read against these
+  sites; the order within a frame is in `rontrace-run17.log`.
+- **A Supply Wagon flees at first sight of an enemy** — the three-bearing
+  trial got one hit (the hoplite spawned 3.5 tiles away and struck within
+  eleven frames) and then a chase the wagon won at equal speed, turning to
+  face east as it ran; the second and third wagons ran before contact. The
+  wagon's own `think` does this with the AI off, and it is **not**
+  `MoveOrder::is_fleeing` (still blind after the run). Hoplites do not
+  flee; they retaliate.
+
+What it does not establish: the tower's 544 (the building arrow chain),
+the cavalry/vehicle flank reduction (no mounted unit was placed — the run
+had no `Cataphract`-class name in Ancient), splash, the overkill window
+(no two squads shared a target long enough to read it), the projectile's
+scatter and flight-time arithmetic against the logged `AMMO` records, and
+the height and rocky terms (flat arena). Each is a line in the next file.

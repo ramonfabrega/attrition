@@ -210,7 +210,9 @@ better, in which case say so and take that.
    actually run (`docs/ATTRITION.md`)~~ — **done, run16, 2026-08-24: the
    clause is dead, by reading and by observation** (`docs/ATTRITION.md`,
    last section; the whole attrition/supply mechanic was observed in that
-   run, every prediction holding); the flank damage ratio, for which
+   run, every prediction holding); ~~the flank damage ratio~~ — **done,
+   run17, 2026-08-24: 48/85/117 by damage, level 1 the rear
+   (`docs/COMBAT.md` §16)** — for which
    `tools/gamelog/hits.py` is the instrument and one damage source on the
    target is the setup (`docs/COMBAT.md` §14.1); and, new from the
    `BUILDS=7` run, **`FARM_GROWS`** — the original re-targets a farmer at
@@ -550,11 +552,20 @@ better, in which case say so and take that.
     unattended, every line on its frame, `!quit` closing the game by the
     menu's path, and the sheltered-from-the-start case run16 never reached
     seen (run16b). A scenario is now a file; the speed floor is the dump
-    (~3 frames a second at `UNITS=3`), so window it. Next: **run17,
-    combat** through the channel (a brief exists: `!ai off`, the flank
-    ratio on a wagon target from three bearings — a cheat-placed unit
-    faces 120° until ordered — hoplite vs hoplite, an archer and a tower
-    for the projectile draws under the trace).
+    (~3 frames a second at `UNITS=3`), so window it. ~~Next: run17,
+    combat~~ — **run17 done the same night through the channel**
+    (`docs/COMBAT.md` §16, `docs/ORACLE.md` "The combat run"): every
+    unit-on-unit hit in 2,600 frames is a size the formula predicted
+    before the log was read — 122 on a wagon from any bearing (CIVILIAN,
+    no flank), 48/85/117 hoplite on hoplite, 32/58/85 slinger on hoplite,
+    53 on a scout — the flank sectors settled by damage, the projectile
+    draw sites named. The blind list is 95: the order commands other than
+    move/gather/build, air, patrol/follow/guard, the group actions, and
+    `is_fleeing` (a wagon's flight is something else). **Next blind runs,
+    each a file:** run7's order stream replayed under the trace (the
+    command processors), a long game past the script (the AI's C++
+    producers at `LEADERS=9` around a sweep), a mounted attacker for the
+    cavalry flank reduction, a caravan. Then the AI queue below.
     Next for the AI: the loader's half of
     the producers' seams (unit `role`/flags, `TechType.ai[]`,
     `gather_max`); fold §14 into §2; then the blind second reading, at

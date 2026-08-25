@@ -1747,6 +1747,39 @@ it is not in the order stream (a recording of the run does not carry it);
 it runs while paused; `no_mouse = 1`, so `add`/`move` without coordinates
 have no cursor tile to fall back on — always give `x,y`.
 
+### The combat run (run17, 2026-08-24) — the channel's first real run
+
+Fourteen lines, no driver, 2,600 frames in fourteen minutes; the arena is
+unowned mid-map land (cells x 27–44, y 27–35 of run9's owner map — tiles
+110–170, 110–150), `!ai off` at frame 100 so the AI's wagons stand where
+they are placed. A cheat-placed unit faces `0x55555555` = 120° (clockwise
+from north, y south) until ordered, so the bearings are precomputed:
+`dx = 4 sin b`, `dy = −4 cos b`. No `die` lines — an object number cannot
+be predicted from a file, so each trial has its own spot thirty tiles
+from the last.
+
+```
+100  !ai off
+200  add supply who=1 110,110     230  add hoplite who=0 107,108    # rear, b 300°
+600  add supply who=1 140,110     630  add hoplite who=0 138,113    # side, b 210°
+1000 add supply who=1 110,140     1030 add hoplite who=0 113,142    # front, b 120°
+1400 add hoplite who=1 140,140    1430 add hoplite who=0 144,140
+1800 add supply who=1 170,120     1830 add slinger who=0 176,120
+2200 add tower who=0 170,150      2230 add supply who=1 170,154
+2600 !quit
+```
+
+What it found is `docs/COMBAT.md` §16: every unit-on-unit hit in the run
+is one of the sizes the formula predicts (122; 48/85/117; 32/58/85; 53),
+the flank sectors confirmed by damage, the projectile draw sites. What it
+taught about staging: **a Supply Wagon flees on sight**, so a wagon is a
+one-hit target unless the attacker spawns within striking distance;
+`add`'s `find_nearby_spot` moved one hoplite eight tiles from the asked
+tile; the AI's own units kept training after `!ai off` (o 8, 9 citizens
+at its city), so **`!ai off` stops the leader's strategy, not the
+buildings' queues**; and the `[End Frame]` dump grew to 155 KB a frame
+with twenty extra units — 2,600 frames in 403 MB.
+
 **Open:** `move 6 190,60` from the channel ran (`parse_cmd` returned 1)
 and did not move the unit, where the typed `move 10,0 190,60` in run16
 moved one to tile (0, 190). Whether `move`'s coordinate arm reads the
