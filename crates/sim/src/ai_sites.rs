@@ -352,14 +352,20 @@ impl Sim {
         let mut v = base;
 
         // 5. Many landmasses and no dock: an ocean cell on the radius-5
-        //    ring is worth thirty times as much.
+        //    ring is worth thirty times as much. The ring is centred on the
+        //    **original** cell, not the slid one — the original reloads the
+        //    saved `local_14`/`local_18` immediately before this loop
+        //    (`compute_site_stats` 233–234) and only refreshes its working
+        //    pair from the moved `param_1`/`param_2` afterwards (253–254).
+        //    Steps 7, 8 and 10–13 below do use the moved cell.
+        //    (`docs/audit/2026-08-25-ai.md`, B4-k.)
         if self.world.landmasses() > 2
             && self
                 .city_record(Ident::Dock)
                 .is_none_or(|d| self.buildings_of_line(who, d) == 0)
         {
             for k in 0..40 {
-                let (x, y) = (sx + RING5_X[k], sy + RING5_Y[k]);
+                let (x, y) = (wx + RING5_X[k], wy + RING5_Y[k]);
                 if x < 0 || y < 0 || x >= world_w || y >= world_h {
                     continue;
                 }

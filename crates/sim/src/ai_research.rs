@@ -469,7 +469,23 @@ impl Sim {
                         match age_pace(diff, a, h, who as i32) {
                             AgePace::Skip => return None,
                             AgePace::Delay(delay) => {
-                                let stamp = self.best_human_age_stamp(n as usize);
+                                // Difficulty 0 and 1 pass `t`; difficulty 2
+                                // passes `t − 1` (`0x6c6e94`, `leal
+                                // −0x1(%esi)`, called at `0x6c6eac`), so the
+                                // harder setting waits on the **previous**
+                                // age's stamp. For the first age `t − 1` is
+                                // not an age type and the original's call
+                                // returns −1, which passes the gate.
+                                // (`docs/audit/2026-08-25-ai.md`, B3-d.)
+                                let stamp = if diff == 2 {
+                                    if a >= 1 {
+                                        self.best_human_age_stamp((a - 1) as usize)
+                                    } else {
+                                        -1
+                                    }
+                                } else {
+                                    self.best_human_age_stamp(n as usize)
+                                };
                                 if stamp >= 0 && i64::from(delay) > self.frame - stamp {
                                     return None;
                                 }
@@ -1383,6 +1399,34 @@ mod tests {
         assert_eq!(value(&mut sim, 1, t.classical), None);
         sim.frame = 3825;
         assert!(value(&mut sim, 1, t.classical).is_some());
+    }
+
+    /// Difficulty 2 waits on the **previous** age's stamp — the original
+    /// passes `t − 1` where 0 and 1 pass `t` (`0x6c6e94`, called at
+    /// `0x6c6eac`). The first age has no predecessor, so it is never
+    /// delayed however early the human reached it, even though the stamp
+    /// difficulty 0 would read is set and recent.
+    /// (`docs/audit/2026-08-25-ai.md`, B3-d.)
+    #[test]
+    fn difficulty_two_waits_on_the_previous_ages_stamp() {
+        let (mut sim, t) = sim();
+        city(&mut sim, &t, 1, 5, 5);
+        building(&mut sim, 1, t.library, 12, 5);
+        sim.tech[0].ages = 1;
+        sim.tech[0].age_stamp[0] = Some(0);
+        sim.frame = 0;
+
+        // Difficulty 0 reads `age_stamp[0]` and holds for `(1 + 16) × 225`.
+        sim.lobby.difficulty = 0;
+        assert_eq!(value(&mut sim, 1, t.classical), None);
+
+        // Difficulty 2 reads the age before it — there is none, so the
+        // original's call returns −1 and the gate opens at once.
+        sim.lobby.difficulty = 2;
+        assert!(
+            value(&mut sim, 1, t.classical).is_some(),
+            "the first age has no previous stamp to wait on"
+        );
     }
 
     #[test]
