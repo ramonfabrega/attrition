@@ -1806,11 +1806,28 @@ driven entirely from `rontrace.cmd` with three lobby clicks:
 - **run18a** — `5 !ffwd 30`, `24000 !quit`; `cover=1`, no trace window, and
   **`LogStartFrame=0 LogEndFrame=0` in `rise2.ini`**, whose gate `0 <= f < 0`
   is never true, so the per-frame dump is off entirely while the
-  start-of-game dump still lands. 24,000 sim-frames in ~15 minutes.
+  start-of-game dump still lands. 24,000 sim-frames, 1.6 MB of gamelog,
+  26 MB of trace, **~45 seconds of game time**.
 - **run18b** — the same game with `[End Frame] LEADERS=9 UNITS=3 BUILDS=7
   CITIES=5 GUYS=1 DEATHS=1 MISC=1` and the window `[6374, 6590)`, i.e. the
   sweep the script dies on *and* the next one; `cover=1 window=6374-6590`.
-  216 blocks, 327 MB, ~35 minutes.
+  217 blocks, 360 MB, ~9 minutes.
+
+**What a run costs, measured** (and the reason the earlier estimates in
+this section were wrong by an order of magnitude — they were the author's
+wall clock, not the game's). Fast-forwarding with the dump off runs at
+**~500 sim-frames a second**, about 35× real time: run18a's 24,000 frames
+are 26.7 minutes of gameplay and took three quarters of a minute. A dump
+block at `LEADERS=9 UNITS=3 BUILDS=7 CITIES=5 GUYS=1` costs **~2.4 seconds
+and ~1.7 MB**, stable across runs (217 blocks in ~9 min, 19 in ~45 s). So
+**a run's cost is `blocks × 2.4 s` and everything else rounds to zero** —
+budget the window, not the frames, and put the frames you do not need
+behind `!ffwd`.
+
+The window's own semantics are run13's exactly — inclusive start, exclusive
+end (run19 asked `[8174, 8192)` and got 8174…8191) — but **`!quit` emits one
+or two ungated blocks of its own**, which is why run18a's "dump off" log is
+not empty but holds frames 24000 and 24001.
 
 **`ffwd` is the lever the combat run wanted.** `ConsoleWin::run_cmd`'s
 `ffwd` case sets `game->fast_forward_frame = minute × 900` (bare `ffwd`
@@ -1818,9 +1835,9 @@ toggles 9,999,999); `TurnControl::check_new_frame_solo` skips the
 wall-clock wait while it is non-zero and `Game::loop_render` draws one frame
 in sixteen, clearing it once `fast_forward_frame <= frame`. It is a
 *presentation* switch — nothing in the sim reads it — and with the per-frame
-dump gated off it turns "3 frames a second" into 24,000 frames in a quarter
-of an hour. **The speed floor was never the input or the renderer; it is the
-dump.** Window the dump and fast-forward the rest.
+dump gated off it turns "3 frames a second" into **~500**. **The speed floor
+was never the input or the renderer; it is the dump.** Window the dump and
+fast-forward the rest.
 
 **What the run establishes**, all of it in `docs/AI.md` §15:
 
@@ -1883,8 +1900,8 @@ unscored. A window around 8182 is the next one, and it is now cheap.~~
 
 **run19 is that window, the same day** (`gamelog-run19-window-8174-8192.txt`,
 `rontrace-run19.log`; `docs/AI.md` §15.6). One stage, `!ffwd 9` to frame
-8100 and `[8174, 8192)` — **twenty minutes**, which is the recipe above
-paying for itself. By 8182 the AI is in the Classical Age with a full make
+8100 and `[8174, 8192)` — 19 blocks, 32 MB, **a minute and a half of game
+time**, which is the recipe above paying for itself. By 8182 the AI is in the Classical Age with a full make
 list, and it shows what run18b structurally could not: the **second pass**
 (steps 9, 10, 11, with `make_stuff` at step 8 called from
 `production_ai+0x1fa` and at step 11 from **`+0x236`**), two purchases in

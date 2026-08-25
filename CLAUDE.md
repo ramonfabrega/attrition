@@ -578,9 +578,12 @@ better, in which case say so and take that.
     §2.6's prose had backwards (`ai_make.rs` had it right — the pin fails
     if the prose is restored). The lever that made it cheap: **`ffwd` is a
     presentation switch the sim never reads**, so with the per-frame dump
-    gated off (`LogStartFrame=0 LogEndFrame=0`) a 24,000-frame run costs
-    fifteen minutes. Blind list **95 → 89**. **run19 followed the same
-    day** in twenty minutes (`docs/AI.md` §15.6) — the window around frame
+    gated off (`LogStartFrame=0 LogEndFrame=0`) the sim runs at **~500
+    frames a second, 35× real time** — 24,000 frames in 45 seconds. A run's
+    whole cost is `dump blocks × ~2.4 s` (~1.7 MB each at `LEADERS=9`), so
+    budget the window and fast-forward the rest. Blind list **95 → 89**.
+    **run19 followed the same day**, 19 blocks and 90 seconds
+    (`docs/AI.md` §15.6) — the window around frame
     8182, where the AI is in the Classical Age with a full make list: the
     **second pass** (steps 9–11, never seen before; `make_stuff` is
     `production_ai+0x1fa` at step 8 and `+0x236` at step 11), two purchases

@@ -1738,8 +1738,14 @@ finding that made it cheap.
 | frames | 0–24,000 | 0–6,600 |
 | per-frame dump | **off** (`LogStartFrame=0 LogEndFrame=0`) | `[6374, 6590)` at `LEADERS=9` |
 | trace | `cover=1`, no window | `cover=1 window=6374-6590` |
-| wall clock | ~15 min | ~35 min |
+| blocks / gamelog | 2 (the quit's) / 1.6 MB | 217 / 360 MB |
+| game time | **~45 s** | ~9 min |
 | what it gives | every producer's first-entry frame | the state, frame by frame |
+
+A run costs `blocks × ~2.4 s` and nothing else: fast-forwarding with the
+dump off runs at ~500 sim-frames a second (24,000 frames — 26.7 minutes of
+gameplay — in three quarters of a minute), and a `LEADERS=9` block is
+~2.4 s and ~1.7 MB. `docs/ORACLE.md` has the measurements.
 
 Nine predictions were written before either log was read — the script's
 exit and its frame, the two ladders frame by frame, the cheap tick's
@@ -1898,9 +1904,9 @@ which fails if the predicate is put back the way the prose had it.
 ### 15.6 run19 — the second pass, and the head clause (2026-08-25)
 
 run18's §15.5 left `produce_tech`'s output unscored: it first runs at frame
-**8182**, outside that window. run19 is the bracket, and it cost twenty
-minutes — one stage, `!ffwd 9` to frame 8100 and the window `[8174, 8192)`,
-on the same seed. 8182 is `sweep(8175) + 7`, the `make_stuff` frame of that
+**8182**, outside that window. run19 is the bracket, and it cost **a minute and a
+half of game time** (19 blocks, 32 MB) — one stage, `!ffwd 9` to frame 8100
+and the window `[8174, 8192)`, on the same seed. 8182 is `sweep(8175) + 7`, the `make_stuff` frame of that
 sweep's ladder, and not one of the cheap tick's frames (8145, 8205), so the
 `produce_tech` there is `make_stuff` → `make_this` → `produce_tech`.
 
