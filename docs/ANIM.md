@@ -344,6 +344,17 @@ two passes.
   `Guy::inc_time` on run12's frame 0 and not the farmers'. `inside_up`,
   `unit_masks2 & 0x10` and the object flags are ruled out by the dump. The
   sim steps them; their first wrap (232 frames) lands one frame early.
+  **Reframed by the draw-site trace (run14, `docs/ORACLE.md`):** frame 0's
+  draws 110–113 are four `Guy::set_anim` calls from **`Guy::inc_time+0x271`**
+  — the wrap path — before the six farm draws that end the frame. A wrap
+  resets `cur_time` to 0, which is what "un-stepped" looks like in the dump;
+  so the likeliest reading is that no gate skipped anything and the four
+  guys *wrapped* at frame 0. What has to be reconciled is the variants
+  those four draws read (`2,0,0,0` under §6's threshold mapping) against
+  the woodcutters' idle slots at the end of the frame (`1,0,0,0`) — either
+  the four are not all woodcutters, or the roll-to-slot mapping is not what
+  §3 says for a `set_anim(CHAR_DEFAULT, 0, 1)` from `inc_time`. A `GUYS=4`
+  frame-0 capture names the four; the trace has fixed where to look.
 - ~~**Whether a scout's dog draws on the unit's idle request.**~~ Settled by
   the second reading from the dump's own `end_time` (§5); the sim's reading
   stands. What is unobserved is the drawn *value* for a dog (the mirror
@@ -379,7 +390,9 @@ two passes.
   carry as many as it prints.
 - **`think_farm_animal`**, and the birds after creation (`think_bird`,
   `do_air_physics`) — unread past their draw sites (`docs/SYNC.md` §3.2).
-- **The 4-draw tail of frame 0** is still not a wrap (`docs/SYNC.md` §6).
+- ~~**The 4-draw tail of frame 0** is still not a wrap (`docs/SYNC.md` §6).~~
+  It is a wrap, at 110–113 rather than at the end (the trace, above); the
+  farms are the tail.
 
 ## 10. Second reading — landed
 

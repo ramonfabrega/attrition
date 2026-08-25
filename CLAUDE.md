@@ -508,12 +508,31 @@ better, in which case say so and take that.
     pathfinder, then the draw-site trace below; frame 0's 4-draw tail is
     *not* a wrap (`docs/SYNC.md` §6);
     `tools/gamelog/{passes,framediff,farms,draws,anims}.py` are the
-    window's instruments; **the draw-site trace** — a log-and-continue breakpoint on `Random::get` recording
+    window's instruments; ~~**the draw-site trace** — a log-and-continue breakpoint on `Random::get` recording
     the caller's EIP under winedbg in the bottle (Wine's dbghelp reads
     `rise.pdb`, so the callers come out named), one run for frames 0–3,
     which is the only way to place the draws that leave no outcome in a
     dump (the scouts' 23, the tail's 4) and de-risks the whole of §6 —
-    proposed by the `lore` session, 2026-08-24; then the loader's half of
+    proposed by the `lore` session, 2026-08-24~~ — **done, 2026-08-24
+    (eighth session), and not with winedbg: `tools/trace/`** is an
+    in-process DLL loaded by a patched copy of the exe (no debugger, no
+    install), which trampolines the four LCG-stepping sites (the fourth is
+    `MathUtilFuncSet::rand_real`, the script VM's, inlined on
+    `game_random`) and plants an `int 3` on all 48,233 function entries for
+    **function coverage** — cumulative over a run and per frame in a
+    window. Run14 reproduced run12/13's counts exactly and **placed every
+    draw of frames 0–3 and 95–103 by site** (`docs/ORACLE.md`, "The
+    draw-site trace and function coverage"): the scouts are 24 at three
+    `think_scout` offsets, the tail's 4 are phase-7 wraps at 110–113 with
+    the farms last, frame 3 is farms only. The coverage side answers the
+    question the anim audit raised — which claims rest on the reading
+    alone: **of the 423 functions `docs/` cites by address, 156 have never
+    run in any traced game** (`report.py … blind docs/`) — attrition and
+    supply, all of combat, the AI's C++ producers, every order but
+    move/gather/build, the trade economy. That list is the queue of
+    behavioural runs, each one a trace: a border crossing, a fight, a long
+    game past the script, run7's order stream replayed under the trace.
+    Next for the AI: the loader's half of
     the producers' seams (unit `role`/flags, `TechType.ai[]`,
     `gather_max`); fold §14 into §2; then the blind second reading, at
     which point `docs/audit/README.md` also owes a paragraph each to the

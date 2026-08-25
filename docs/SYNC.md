@@ -338,7 +338,26 @@ over 432 frames fell from 662/432 to 588/372 (the run6 pin's ceilings).
 
 ## 6. What is not established
 
-- **The 4 draws at 116–119 of frame 0.** Nothing after `Farms::inc_time` in
+**The draw-site trace exists (run14, 2026-08-24; `docs/ORACLE.md`, "The
+draw-site trace and function coverage", `tools/trace/`).** Every draw of
+frames 0–3 and 95–103 is now placed by its *site* — the return address
+into the function that called `Random::get` — on the same game as
+run12/run13 (the frame-0 word `0x3bd39ae9`, the counts 120/54/6/6 and
+23/28/7/6/8/18/21/6/6 reproduced). The items below that it settles are
+struck through and point there.
+
+- ~~**The 4 draws at 116–119 of frame 0.**~~ **Settled by the trace: they
+  are at 110–113, not 116–119, and they are phase-7 wraps** —
+  `Guy::set_anim+0x97a` < `Guy::inc_time+0x271` < `Unit::inc_time+0x3e`,
+  followed by the six farms at 114–119 (the farms are the frame's *last*
+  draws). The "not a wrap" verdict below read the variants at the wrong
+  slot; which four guys wrap and why the variants read as they do is the
+  remaining reconciliation (`docs/ANIM.md` §9). The rest of frame 0, in
+  order: 2 `compute_sites`, 18 market, **4 stands from `Unit::do_idle+0x7d`
+  through `Unit::set_anim+0x56`/`+0xb6`** (20–23), **24 `think_scout`**
+  (`+0x436` ×6, `+0x458` ×2, `+0x64c` ×16; 24–47), 40 `Animal::do_idle`
+  (48–87), 20 `Objects::process_all+0x2df`/`+0x30b` (88–107), 2
+  `Herd::process` (108–109). Original text: Nothing after `Farms::inc_time` in
   `do_frame` names `game_random`. The alternative reading — five draws in
   the buildings' `process` before the birds (`Wall::process` reaches
   `Object::disband`, which draws) and only five farms — is consistent with
@@ -367,12 +386,20 @@ over 432 frames fell from 662/432 to 588/372 (the run6 pin's ceilings).
   (0) and the object flags (1) at every pass — so the skipped step is
   neither gate `Unit::inc_time` tests. Still open; it moves those four
   wraps by one frame.
-- **The human scout's ~~15~~ 14 and the AI scout's ~~8~~ 6** (the dogs' rolls
+- ~~**The human scout's ~~15~~ 14 and the AI scout's ~~8~~ 6** (the dogs' rolls
   are the other three, `docs/ANIM.md` §5) are placed by elimination,
-  not by outcome: `think_scout`'s scan draws once per unseen candidate cell,
+  not by outcome~~ — **placed by site (run14): `Unit::think_scout` draws
+  24 times at frame 0**, at three sites — `+0x436` (6), `+0x458` (2) and
+  `+0x64c` (16) — all under `Unit::think+0x7da` < `Unit::do_idle+0x94`, in
+  the order 436 436 436 458 64c 436 458 436 64c 64c 64c 64c 64c 436 64c ×9;
+  and 15 at sim-frame 95 (`+0x436` ×6, `+0x458` ×6, `+0x64c` ×3), none on
+  96–103. No pathfinder draw and no `do_move` draw appears anywhere on
+  frames 0–3, so the AI scout's first path costs nothing on the stream.
+  Which of the three sites is the scan and which the re-target is the next
+  reading of `think_scout@…` with the offsets in hand: `think_scout`'s scan draws once per unseen candidate cell,
   which needs the seen map the sim does not keep, and the AI scout's first
-  path is planned by a pathfinder wired to `do_move`'s one draw. A `GUYS=4`
-  or `PATHFINDER=…` frame-0 capture would settle both.
+  path is planned by a pathfinder wired to `do_move`'s one draw. ~~A `GUYS=4`
+  or `PATHFINDER=…` frame-0 capture would settle both.~~
 - ~~**Frame 1's split** between the script + placement and the two AI
   moves: measured by running the sim on the true stream (§5), not by
   reading.~~ Measured: the sim draws 54 of 54, so the split is whatever the
@@ -381,7 +408,9 @@ over 432 frames fell from 662/432 to 588/372 (the run6 pin's ceilings).
   threshold for one of the three woodcutters' walks (`orders.rs`, the
   "first `do_move` of a move `find_path` refuses" reading of
   `do_move@005f7b30:599`); the original's frame 3 is the six farms and
-  nothing else. The gate before that draw — `invalid_loc` on the order's
+  nothing else — **confirmed by site (run14): frames 2 and 3 carry six
+  `Farms::inc_time+0x1ae` draws each and no other `game_random` call**, so
+  the divergence is entirely the sim's gate. The gate before that draw — `invalid_loc` on the order's
   cell, `path_recursion > 1`, and `find_path`'s return — is read
   differently for at least one of the three walks. The same three units
   are run6's earliest position divergences (`0/2` at frame 4). **Narrowed

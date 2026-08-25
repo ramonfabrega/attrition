@@ -69,6 +69,13 @@ The setup path's `say_checksum` records (`check_all_level=14` in `rise.ini`,
 the draw count is a forward walk of the 32-bit LCG. `docs/ORACLE.md`, "The
 setup path's checksum trace is the RNG state".
 
+**The draw's site, not its outcome.** `tools/trace/` (its own README) is
+the in-process trace: every `Random::get` with its caller and the frame,
+and function coverage of the whole executable. `report.py <log> draws 0`
+names frame 0's 120 draws in order; `report.py <log> blind docs/` lists
+the functions the documents cite that no traced run has entered.
+`docs/ORACLE.md`, "The draw-site trace and function coverage".
+
 **A `DUMP_ALL` window.** `LogStartFrame` / `LogEndFrame` under
 `[RISE OF NATIONS]` in **`rise2.ini`** (not `gamelog.ini`'s `Checksum
 Dump`/`Checksum Break`, which are a one-shot dump and an `int 3` keyed on the

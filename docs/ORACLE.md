@@ -1430,6 +1430,200 @@ Against run12's 120 / 54 / 6 / 6 for frames 0–3 this is the same shape with
 a bigger economy: a floor of six from `Farms::inc_time` and spikes where the
 AI, a new farm or a herd steps.
 
+### The draw-site trace and function coverage (run14, 2026-08-24)
+
+The dumps show a draw's *outcome*; the draws that leave none — the scouts'
+scan, frame 0's four-draw tail — were placed by elimination
+(`docs/SYNC.md` §6). The instrument that shows a draw's *site* is
+**`tools/trace/`**: an in-process DLL, `rontrace.dll`, loaded into a
+**copy** of the executable (`riseofnations_trace.exe`, the original plus one
+import descriptor in a new section — `patch_exe.py`; the install's own exe is
+never touched), built freestanding with the tools already here (Homebrew
+clang → `llvm-dlltool` → the pinned toolchain's `rust-lld -flavor link`; no
+CRT, kernel32 only, no floats). It does two things:
+
+- **Every step of the LCG, with its caller.** Four sites in `.text` carry
+  the multiplier `0x19660d`: `Random::get()@00a39cf0`,
+  `Random::get(int,int)@00a39d70`, **`MathUtilFuncSet::rand_real@009e18b0`**
+  (the script VM's, which inlines the step on `game_random` and never calls
+  `Random::get`) and `NukeOut::init_shroom_fire` (a local seed, graphics).
+  The first three and `Random::reseed` are trampolined at entry (each has
+  8–10 relocatable prologue bytes, checked against the expected bytes before
+  patching); each call is logged with the RNG it hit, the seed before, the
+  return address, two more frames of the `ebp` chain, and the sim-frame.
+  `Game::do_frame` is trampolined too: the frame comes from `Game+0x550` and
+  every FRAME record carries `game_random`'s word at that moment.
+- **Function coverage.** An `int 3` on every one of the 48,233 function
+  entries in the Ghidra export, caught by a vectored exception handler that
+  logs the first hit, restores the byte and resumes — armed once at attach,
+  and re-armed at the start of every frame in `rontrace.cfg`'s window. So a
+  run yields the set of functions it ever entered (with the frame each was
+  first entered on) and a per-frame set for the windowed frames.
+
+`tools/trace/README.md` is the how-to and the log format; `report.py`
+reads it (`summary`, `draws`, `sites`, `coverage`, `functions`, `blind`).
+
+**Verified.** Run14 is this lobby, launched exactly as run11–13 were
+(`-config check.ini -automation`), window `0-3`, 285 frames, quit through
+the menu: the word at frame 0's `do_frame` entry is **`0x3bd39ae9`**, the
+last checksum record of run11/12/13; the per-frame `game_random` counts are
+**120, 54, 6, 6** for frames 0–3 and **23, 28, 7, 6, 8, 18, 21, 6, 6** for
+95–103 — run12's and run13's numbers exactly. Run15, a different game
+(launched without the arguments — see the traps), has its frame-0 word equal
+to its own gamelog's `begin_game` record and to the seed its first draw read.
+The traces are `Logs\rontrace-run14.log` and `rontrace-run15.log` beside the
+gamelogs, with `gamelog-run14-trace.txt` as run14's sibling.
+
+**Frame 0's 120, by site, in order** (`report.py … draws 0`; the
+`Class::method+0xNN` is the return address inside the function that called
+`Random::get`, then its framed ancestors):
+
+| draws | n | site |
+| --- | --- | --- |
+| 0–1 | 2 | `Leader::compute_sites+0x4ac`, `+0x50a` < `plan_strategy` < `Leaders::strategy_all` |
+| 2–19 | 18 | `GameDaemon::calc_market+0x54`, `+0x7e`, `+0xbe` × six goods < `calc_markets` |
+| 20–23 | 4 | `Guy::set_anim+0x97a` < `Unit::set_anim+0x56` / `+0xb6` (two each) < **`Unit::do_idle+0x7d`** — unit-phase stands |
+| 24–47 | 24 | **`Unit::think_scout`** — `+0x436` ×6, `+0x458` ×2, `+0x64c` ×16 < `Unit::think` < `Unit::do_idle` |
+| 48–87 | 40 | `Guy::set_anim+0x97a` < `Unit::set_anim+0x56` < `Animal::do_idle+0x19` — the animals' idles |
+| 88–107 | 20 | `Objects::process_all+0x2df`, `+0x30b`, alternating — the birds' sampling |
+| 108–109 | 2 | `Herd::process+0x17`, `+0x36` |
+| 110–113 | 4 | `Guy::set_anim+0x97a` < **`Guy::inc_time+0x271`** < `Unit::inc_time+0x3e` — phase-7 wraps |
+| 114–119 | 6 | `Farms::inc_time+0x1ae` < `Objects::inc_time+0x147` |
+
+So the scouts are **24**, not 23, at three sites of `think_scout`; the
+four-draw tail is **not at the end** — the farms are last — but at 110–113,
+and it *is* the phase-7 wrap (`Guy::inc_time` → `set_anim`), which is also
+what leaves four guys at `cur_time 0` at the end of frame 0 (a wrap resets
+the clock; `docs/ANIM.md` §9). The 4 at 20–23 are stands issued from
+`Unit::do_idle` in the unit phase.
+
+**Frame 1's 54:** 0–7 eight `MathUtilFuncSet::rand_int+0x18` <
+`ScriptFuncSet::call_func` < `VirtualMachine::call_func` (the script);
+8–43 thirty-six `Leader::produce_building` (35 at `+0xc99`, one at
+`+0x1805`) < `ScenarioFuncSet::place_orphan_building_with_cost` <
+`place_building_with_cost`; 44–46 three `Unit::do_non_flat_gather+0x54b` <
+`Unit::do_gather` < `Unit::do_job`; 47–53 the farms — six at `+0x1ae` and
+**one at `Farms::inc_time+0x1de`**, the sprout. **Frames 2 and 3** are six
+farm draws each and nothing else, which settles frame 3: the sim's extra
+`do_move` draw there is the sim's own (`docs/SYNC.md` §6).
+
+**Run13's window, by site:** 95 — fifteen `think_scout` (`+0x436` ×6,
+`+0x458` ×6, `+0x64c` ×3), two `Unit::do_idle` stands, six farms; 96 —
+the twenty bird draws, **one `Guy::init_real+0x52` < `Unit::init` <
+`Animal::init`** (an animal created that frame), one wrap, six farms; 97 —
+six farms and one `Guy::set_anim+0x104b` < `Unit::set_anim` <
+**`Unit::do_air_physics+0x683`** (a bird's animation change); 98 — farms;
+99 — farms, one `Guy::init_real` < `Objects::init_unit` (the trained
+citizen — one creation draw, plus one wrap, not two creation draws); 100 —
+twelve wraps (the fish) and the farms; 101 — twelve **`GameAccess::rnd+0x20`
+< `Unit::do_job` < `Unit::work`** (the farmers' `rnd(4)`; the chain skips
+the frameless `do_gather`), one `Animal::do_idle` (the sheep's arrival), one
+wrap (the scout), one `Farms::inc_time+0x1de` (a sprout), six farms; 102,
+103 — farms.
+
+**The setup path** is 13,105 `game_random` draws (`report.py … sites
+setup`): `World::compute_val+0x343` 2,920, `Map::grow_valid+0x2b0` under
+`grow_region`/`point`/`stamp` ~3,900 over nine call chains,
+`grow_region+0x3d0`/`+0x404` 894, `Build::find_gather_tiles+0x10a` 572,
+`PathFinder::calc_road_cost+0x46` 438 (the caravan roads),
+`TerrainGroups::change_forest_base`/`coast`/`mountain` 1,116,
+`nubify_transitions` 687, `make_continents` 438,
+`Leader::produce_building+0xc99` under `Setup::small_city_buildings` 235,
+`place_region_resource` 185, `astar_river` 172, `randomize_orthogs` 250,
+`add_doobers` 410, `treeify_mountains` 92, forty `Guy::init_real` under
+`Animal::init`, and a tail of smaller ones — the per-phase counts of
+`docs/ORDERS.md` §9.2 can now be cross-checked site by site. Beside them
+**254,806 draws on other generators** in setup and ~60 a frame after: the
+UI's `IFaceRenderManager::tile_random` (its own `Random`), `place_tree`'s
+(a heap object under `ObjectsOut::sort_trees`), `internal_random`
+(`Surf::inc_time`, `update_wake_polys`, `modify_ocean_floor_texture`),
+the particle system's, `JukeBox::shuffle`'s — the whole set the sim never
+has to model, now enumerated rather than assumed.
+
+**Coverage.** Run14 entered **6,585** of the 48,233 functions: 5,288 first
+in setup (menu, lobby, map maker), 629 first at frame 0, 131 at frame 1,
+the rest over 285 frames; per frame, 1,595 / 1,329 / 993 / 986 functions
+ran on frames 0–3. Against the documents (`report.py … blind docs/`): of
+the **423** functions `docs/` cites by `name@address`, run14 entered 267
+and **156 never ran** — with run15 added, 155. Those are the claims with
+no behavioural check behind them, and they group cleanly:
+
+- **Attrition and supply never ran** — `Unit::process_supply`,
+  `suffer_attrition`, `UnitData::get_attrition`, `in_supply`, `recharge`,
+  `Supplies::find_supply`, `SupplyData::get_radius`, `HeroesData::find_hero`,
+  `LeaderData::get_supply_upgrade`/`get_general_upgrade`. No unit has left
+  its borders in any traced run. (The Nubian step check needs exactly
+  this.)
+- **Combat never ran** — `Unit::fight`, `find_new_target`,
+  `target_opportunity`, `find_attack_pos`, `Object::take_damage`, every
+  `do_attack*`, `do_strafe`, `land_plane`, `Group::action_attack`,
+  `distribute_attack`.
+- **The AI's C++ producers never ran** — `Leader::make_stuff`,
+  `make_this`, `MakeList::make_me`, `create_units`, `create_buildings`,
+  `research_techs`, `found_cities`, `produce_tech`, `produce_city`,
+  `use_market`, `market_speculation`, `production_ai_setup`,
+  `enable_production_ai`/`disable_*`. The third AI session implemented
+  these from the reading alone; run14's 285 frames are all script.
+- **Orders other than move/gather/build** — `add_`/`do_` for garrison,
+  board, await_board, repair, guard, follow, patrol, group move/attack,
+  form change, `go_to`, `go_to_unit`, `resolve_block`, `repath`,
+  `find_nearby_spot`, the `Group::action_*` for them, and the command
+  processors `process_attack`/`move_to`/`move_near`/`group`/`form`/
+  `halt`/`patrol`/`siege_attack`/`attack_ground` — run14 had no input.
+- **Economy** — `City::compute_trade`, `CityData::get_trade_value`,
+  `lumber_level`, `Caravan::distance`/`trade_value`,
+  `LeaderData::calc_rare`/`get_granary`/`get_smelter`/`resource_cap_add`,
+  `Type::unpay_cost`, `Build::unpay_cost`, `Leader::can_pay`.
+- **Tech** — `Leader::lose_tech`. **Cities** — `Build::finished`. **Path** —
+  `find_tpath`, `find_wpath_army`, `get_estimate`. **Setup** —
+  `init_wild_life`, `large_city_buildings`, `build_leader`,
+  `place_start_in_region`. **Sync** — `Army::find_target`,
+  `Animal::think_farm_animal`.
+
+The list is a queue, not a verdict: each group names the run that would
+exercise it (a border crossing with `cheat war`; a fight; a long run past
+the script's steps; the recorded order stream of run7 replayed under the
+trace; a caravan). Regenerate it after any run with
+`report.py <log> blind docs/ <other logs…>` — it accepts several traces and
+counts a function as entered if any of them entered it.
+
+**Traps, each of which cost a run:**
+
+- **Two threads on one `int 3`.** The first launch died with an unhandled
+  `0x80000003` at `_Task_impl::scalar_deleting_destructor` — a PPL pool
+  thread. Two threads had trapped on the same freshly armed entry; the
+  first handler restored the byte, the second found it "not armed" and
+  declined. The handler now claims every breakpoint at an address it ever
+  planted on, armed or not.
+- **The PDB's `section:offset` is an RVA, not a VA.** `game_random` at
+  `0003:2300556` is `.data` (RVA `0x806000`) + `0x231A8C` = RVA `0xA37A8C`,
+  **VA `0xE37A8C`**; the first build read `0x637A8C` and logged a constant
+  word. `GameAccess::game_random` is the pointer to it at VA `0xC06184`
+  (`0003:0388` — decimal 388 = `0x184`). The draw records carry the real
+  `Random*`, which is how the mistake showed.
+- **The lobby is not the launch line's.** `-config check.ini -automation`
+  left the profile's lobby on screen (Nubians, Great Lakes, Small Town —
+  run6's), and that run *was* run12's game; the plain launch that followed
+  was a different game. Check the frame-0 word before reading anything.
+- **The process is `riseofnations_trace.exe`**, so `waitwin.sh`'s
+  `pgrep -f riseofnations.exe` and the `osascript` focus by process name
+  miss it; the job's `win.sh`/`drive.sh` variants used the trace name.
+- **The `ebp` chain lists framed ancestors, not callers.** `GameAccess::rnd`
+  reports `Unit::do_job` above it because `do_gather` keeps no frame; the
+  first entry (the return address at the hook) is always exact.
+- The hooked functions carry no `int 3`, so a coverage report has to count
+  them as entered from their own records (`report.py` does).
+
+**What it does not establish:** which unit a draw belongs to — a record has
+the site and the seed, not the object; the dump pairs it (`framediff.py`,
+`anims.py`). The identities behind frame 0's four wraps and the variants
+they read are the one open reconciliation (`docs/ANIM.md` §9). The setup
+path's per-phase counts have not been cross-checked against
+`docs/ORDERS.md` §9.2. Basic-block coverage (which *branches* ran, not which
+functions) would need a different instrument — DynamoRIO's `drcov` does not
+run under Wine; a `winedbg --gdb` single-step is too slow for a frame — and
+is not needed for the question the blind list answers.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
