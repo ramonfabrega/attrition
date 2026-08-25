@@ -1,4 +1,5 @@
 /target
+__pycache__/
 
 # The user's own copy of the game. No original assets ever enter this repo.
 /game

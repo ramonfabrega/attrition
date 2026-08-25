@@ -46,6 +46,18 @@ previous frame, which is usually what a check wants:
 The parser tracks indentation to know which `BEGIN` block a key belongs to and
 skips the repetitive array blocks (`BUILDQUEUE`, `STACK<TYPE>`).
 
+## `attr.py` — attrition and supply, checked against the cadence
+
+    attr.py [gamelog] [--who N] [--o N] [--from F] [--to F]
+
+For every unit whose `attrition`/`supply`/`damage` moves: the period
+timeline, every attrition tick (a rise of `damage*16 + damage_frac` by a
+squad-size delta with no new `damage_frame`) and the phase-lock fit —
+`(sim + o) % period == 0` with `sim = label − 1`, the offset-0 fit printed
+as the control — and the combat rises separately. A drop in the total is an
+object number recycled and restarts the history. Run16: 489/489
+(`docs/ATTRITION.md`, last section).
+
 ## One frame at a time
 
 `track.py` follows a field across a run. When the question is instead "what is

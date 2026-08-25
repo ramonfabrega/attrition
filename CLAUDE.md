@@ -206,8 +206,11 @@ better, in which case say so and take that.
    for another reason:** the city mask's remaining three rungs (recipe in
    `docs/CITIES.md` §3.6); the garrison heal — no script path into a building
    found yet, the remaining route is `Build::train` + `cheat finish`
-   (`docs/CITIES.md` §15); the Nubian attrition step, which needs attrition to
-   actually run (`docs/ATTRITION.md`); the flank damage ratio, for which
+   (`docs/CITIES.md` §15); ~~the Nubian attrition step, which needs attrition to
+   actually run (`docs/ATTRITION.md`)~~ — **done, run16, 2026-08-24: the
+   clause is dead, by reading and by observation** (`docs/ATTRITION.md`,
+   last section; the whole attrition/supply mechanic was observed in that
+   run, every prediction holding); the flank damage ratio, for which
    `tools/gamelog/hits.py` is the instrument and one damage source on the
    target is the setup (`docs/COMBAT.md` §14.1); and, new from the
    `BUILDS=7` run, **`FARM_GROWS`** — the original re-targets a farmer at
@@ -532,6 +535,21 @@ better, in which case say so and take that.
     move/gather/build, the trade economy. That list is the queue of
     behavioural runs, each one a trace: a border crossing, a fight, a long
     game past the script, run7's order stream replayed under the trace.
+    **The border crossing is run (run16, 2026-08-24, an Opus drive from a
+    written brief):** the whole of attrition and supply observed, twelve
+    predictions written before the log was read and all twelve seen — the
+    periods 8/48/24/0, the sixteenths, **489 of 489 ticks on the
+    `(frame + o) % period` grid**, the wagon's shelter with its `0x40000`
+    flag in `unit_masks2`, the Nubian clause dead (`docs/ATTRITION.md` and
+    `docs/SUPPLY.md`, last sections; `tools/gamelog/attr.py`). The blind
+    list is 99. What the run cost is the loop — an hour of typing into a
+    chat box that drops four lines in ten — so **the next build is the
+    scripted cheat channel in `rontrace.dll`** (`docs/ORACLE.md`, "The
+    attrition run": every address resolved), validated by replaying run16's
+    lines from a file and diffing the two logs, then **run17, combat** (a
+    brief exists: the flank ratio on a wagon target from three bearings,
+    hoplite vs hoplite, an archer and a tower for the projectile draws
+    under the trace).
     Next for the AI: the loader's half of
     the producers' seams (unit `role`/flags, `TechType.ai[]`,
     `gather_max`); fold §14 into §2; then the blind second reading, at

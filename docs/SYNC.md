@@ -421,6 +421,14 @@ struck through and point there.
   world's `invalid_loc` is the SEAM `find_path` names).
 - **Diplomacy's cadence** (`Leader::diplomacy`, nine sites; 0 draws on
   frames 0–3).
+- **The caravan road, frames 10–11** (run16, `docs/ORACLE.md` "The
+  attrition run"): 220 and 248 `game_random` draws at
+  `PathFinder::calc_road_cost+0x46` < `PathFinder::astar_caravan_road` <
+  `PathFinder::find_road` — the game planning a road on the sim's stream,
+  two frames after the start, with no caravan in the game. Who calls
+  `find_road` at frame 10, and whether the sim's draw count for those
+  frames (currently 6) can be made to match, is unread. Run14's 285 frames
+  carry the same two spikes; they were outside its reported frames.
 - ~~**Animals, and the animation clock.** The 40 idle-anim draws are pinned,
   but the sim has no gaia units and no `cur_time`/`end_time`: a guy's next
   draw falls when its animation ends (§2 step 7), and the animation lengths

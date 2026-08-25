@@ -931,7 +931,7 @@ The ones that stage a scenario:
 | `resource` | `[who] [goodtype\|all] [+\|-]amount` | `bucket_set` |
 | `die` | `[o[,who] \| select]` | kills |
 | `damage` | `(o[,who]\|select) [+\|-]n` | writes the damage field, clamped to max hits |
-| `move` | `(o[,who]\|select) (x,y\|cursor)` | `find_nearby_spot` + `set_new_location` |
+| `move` | `(o\|select) (x,y\|cursor)` — **no `,who`**: `move 10,0 190,60` read `0` as the x and `190` as the y and put the unit at tile (0, 190) (run16) | `find_nearby_spot` + `set_new_location` |
 | `finish` / `hurry` | — | completes the selected building, queue item or research |
 | `select` | `[[ob#\|type] [who] [+]]` | selects by object number or type; `+` appends |
 | `reveal` / `explore` | `[1\|0]` / `normal\|explored\|all` | vision |
@@ -1623,6 +1623,85 @@ path's per-phase counts have not been cross-checked against
 functions) would need a different instrument — DynamoRIO's `drcov` does not
 run under Wine; a `winedbg --gdb` single-step is too slow for a frame — and
 is not needed for the question the blind list answers.
+
+### The attrition run (run16, 2026-08-24) — the first of the blind runs
+
+The first run taken off the blind list. Same lobby and seed as run12–14
+(frame-0 word `0x3bd39ae9`), the traced exe with `cover=1` and no window,
+`[End Frame] UNITS=3 GUYS=1 DEATHS=1 LEADERS=3 BUILDS=1 CITIES=1 MISC=1`,
+`[Start Game] WORLD=0`. Driven by an Opus agent from a written brief, one
+hour of wall clock for 6,872 frames; the predictions were written before
+the log was read and every one of them was observed (`docs/ATTRITION.md`
+and `docs/SUPPLY.md`, their last sections; `tools/gamelog/attr.py` is the
+reader). The archive is `gamelog-run16-attrition.txt` (1.0 GB) and
+`rontrace-run16.log` (93 MB). The scenario, in cheat lines:
+
+```
+peace who=1                    diplos[1] 0 → 1 at label 341
+add hoplite who=0 206,78       three records o 6–8, hits 120, on the AI's ground
+add supply who=0 208,80        o 9, hits 90 — bleeds at 8 too
+add scout who=0 204,76         takes nothing
+war who=1                      diplos[1] → 0 at 2417; periods → 0 at each refresh
+tech who=1 allegiance on       (landed on the fourth try — see below)
+add hoplite who=1 42,146       the AI's squad on Nubian ground: attrition 0
+tech who=0 allegiance on       → 48 within four frames
+add hoplite who=0 206,78       → 24 (Allegiance + Oath of Fealty on who 1)
+move 10 190,60                 → 0 at the next refresh
+add supply who=0 209,91        the shelter: last tick 6278, wagon at 6289
+```
+
+**What the run corrected in this document and the recipe:**
+
+- **`move` takes no `,who`** (the table above is fixed); `die` does.
+- **`LEADERS=3` is the minimum that prints `diplos[]`** — `LeaderData::log_data`
+  sets detail 3 just before the array — so a diplomacy read-back needs it;
+  `LEADERS=1` stops after `score`. `att`/`anti_att` sit at detail 7 and
+  the census at 9, which crawls; the tech grants have **no read-back at any
+  level** (`tech … show` prints into the closed console window), so a
+  tech's landing is verified through its effect on a unit's `attrition`.
+- **`[End Frame] MISC=1` is what emits `BEGIN FRAME n`**; zero it and
+  `gl.py frames`/`lastframe.py` have nothing to count. Keep it.
+- **The chat box drops about four lines in ten.** Eleven of ~19 landed
+  first time; one line needed four tries and one never arrived in three.
+  Two modal stalls (the city rename dialog from a stray `Return`, and an
+  empty chat box left open) each froze the sim for a minute — Cancel and
+  Escape respectively. This is the case for the scripted cheat channel
+  below.
+- **A squad left inside the enemy's borders at war walks off to fight**
+  (no order given) and is dead within ~2,000 frames; two squads were lost
+  that way. A long observation wants peace, or the far corner of the
+  enemy's territory.
+- **Object numbers are recycled** from the lowest free slot: a dead
+  squad's 6–8 went to the next scout (6) and the next squad (7, 8, 10 —
+  9 being the wagon's until it died). Read a unit's history as
+  (kind, who, o) *and* its `myhits`/damage continuity.
+- The route out is the top-right HUD icon → Game Menu → Quit Game;
+  Escape closes the chat box and clears the selection but does not open
+  the menu here.
+- Frames 10 and 11 draw 226 and 254 times on `game_random`: 220 + 248 of
+  them are `PathFinder::calc_road_cost` under `astar_caravan_road` <
+  `find_road` — the game planning a caravan road on the sim's stream, a
+  per-frame source `docs/SYNC.md` had not seen (its §6).
+
+**The blind list after run16:** 424 cited, **99 never run** (from 156),
+with the whole of attrition and supply, combat's arithmetic, target
+selection and the AI's C++ producers now entered by at least one trace.
+Still blind as groups: the order commands other than move/gather/build and
+their `Group::action_*`, the scenario host functions, ships and aircraft,
+the hero-generals.
+
+**The next improvement is the loop itself, not the mechanic.** An hour of
+an agent typing into a chat box that drops lines is the cost of every
+blind run, and it is avoidable: `rontrace.dll` already trampolines
+`Game::do_frame`, `ConsoleWin::parse_cmd@007d6470(this, String *, int
+from_chat, int no_mouse)` is what the chat box calls, `MiscAccess::console_win`
+is the pointer at VA `0xE7FA84` (PDB `0003:2595460`), and
+`String::String(wchar_t *)@00a1edd0` builds a const string without the
+heap. A `rontrace.cmd` of `frame: line` entries run at the top of the frame
+— inside the tick, not through the order stream, and while paused — makes
+a run reproducible to the frame and unattended; a scheduled `quit`
+(console-only half, `from_chat = 0`) closes it through the menu's path.
+That is the next thing built.
 
 ## What is not established
 

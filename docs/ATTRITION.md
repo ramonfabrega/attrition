@@ -18,7 +18,12 @@ distance unit is settled from the original's own coordinate conversion and
 confirmed from a second direction by the designers' `"24 tiles"` and
 `"44 tiles"` annotations. The cadence — when a period actually fires — is read
 from `Unit::process`, the sole caller of both halves. What remains open is
-listed at the end and none of it changes the numbers.
+listed at the end and none of it changes the numbers. **Observed, 2026-08-24:**
+the periods 8, 48, 24 and 0, the sixteenths, the phase lock (489 of 489
+ticks), the wagon's shelter and its own peacetime bleed, the scout's
+exemption and the Nubian clause's deadness were all seen in a logged,
+traced run of the original that was predicted before it was read — the
+last section of this document.
 
 A blind second reading (`docs/audit/2026-08-20-attrition.md`) doubly confirmed
 every formula above and overturned several of the *predicates* around them —
@@ -644,11 +649,20 @@ supply; it is its own rule, and it lives with the buildings.
   `TIKAL_TEMPLE_BORDERS`, which is what its use implies and what its position
   in the shipped file suggests. Both are 50, so the shipped behaviour is
   identical either way and only a mod could tell them apart.
-- **Tribe bonus 4 counts one attrition tech step as held** in
+- ~~**Tribe bonus 4 counts one attrition tech step as held** in
   `Leader::calc_attrition` — the step whose `TypeIndex` Ghidra resolves as
   `BUY_SELL`. The code is there; which step that actually is stays unresolved,
   because the `TypeIndex` enum is not in the type stream. A logged run with a
-  Nubian player (`docs/ORACLE.md`) would settle it. **Attempted 2026-08-20 and
+  Nubian player (`docs/ORACLE.md`) would settle it.~~ **Settled 2026-08-24,
+  twice.** By reading: with the enum dumped whole, the loop runs
+  `ATTRITION1..ATTRITION4` = 733–736 and `BUY_SELL` is 685, so the
+  `has_tribe_bonus(4)` arm can never be reached — the same dead macro arm
+  `docs/SUPPLY.md` found in `get_supply_upgrade` and its siblings. By
+  observation: in run16 a British squad stood on the Nubian human's ground
+  at war for 98 frames and three refreshes with `attrition 0`, and read 48
+  within four frames of the human being granted `Allegiance` ("Behavioural
+  check" below). The tribe bonus contributes nothing. The earlier attempt:
+  **Attempted 2026-08-20 and
   still open, but the search is now narrower.** A Nubian game was run and
   dumped whole; the leader carries `att` and **`anti_att` as a float**, and
   both the Nubian (`tribe 4`) and the British computer (`tribe 11`) read
@@ -713,3 +727,56 @@ place that changed says so inline. The two that changed observable behaviour:
 damage is sixteenths of a hit point per figure, and supply units and heroes
 bleed. The one point resolved for the earlier draft: the assassin path sets
 `0x400080`, so it defeats supply as written here.
+
+---
+
+## Behavioural check (run16, 2026-08-24) — every prediction observed
+
+Until this run **no traced game had ever entered `process_attrition`'s
+bleeding half**: `suffer_attrition`, `process_supply`, `get_attrition`,
+`find_supply` and `calc_attrition` were on the blind list the draw-site
+trace produces (`docs/ORACLE.md`, "The draw-site trace and function
+coverage"). Run16 is the run that exercised them — the same lobby and seed
+as run12–14, a hoplite squad and a supply wagon placed by cheat inside the
+other player's borders, diplomacy and techs switched by cheat, 6,872 frames
+at `UNITS=3`, under the trace. The recipe and its traps are in
+`docs/ORACLE.md`, "The attrition run"; the predictions were written down
+before the log was read, and `tools/gamelog/attr.py` is the reader (every
+unit's period timeline, every tick in sixteenths, and the phase-lock fit).
+
+| claim above | predicted | observed |
+| --- | --- | --- |
+| The cadence: refresh at `(f + o) % 32 == 0`, tick at `(f + o) % period == 0`, `f` the sim-frame (log label − 1) | every tick on the grid | **489 of 489 attrition ticks** across seven units fit at label offset −1, **0 of 489** at offset 0; the three figures of a squad refresh one frame apart, highest `o` first |
+| Peace: `PEACE_ATTRITION` = 8, assigned regardless of the owner's tech | period 8, owner at zero strength | `attrition 8` on the first refresh after placement; the owner held no attrition tech |
+| Sixteenths by squad size — 6 per figure for three, 16 for one | +6/16 per hoplite figure, +16/16 (whole point, `frac` untouched) per wagon | exactly that, every tick |
+| A wagon bleeds over a peaceful border (check 13's flag set) | period 8, one point a tick | `attrition 8`, `damage` +1 every 8 frames, 90 points in 720 frames |
+| The scout is exempt (`is_special`, check 8) | never bleeds | 290 frames inside the same border at peace, `attrition 0`, `damage 0` |
+| War with no attrition tech: strength 0 is the sentinel | period → 0 at the next refresh; the stale 8 survives until then | `attrition` 8 → 0 six to nine frames after the diplo change, on each figure's own 32-grid; `damage` frozen from there |
+| `Allegiance` = one step → strength 1 → `48 × 256 / 256` | 48 | `attrition 48`, +6/16 every 48 frames (the AI's hoplites on the human's ground, after the human's grant) |
+| `Allegiance` + `Oath of Fealty` = two steps → strength 2 | 24 | `attrition 24`, +6/16 every 24 frames (the human's hoplites on the AI's ground, after both grants) |
+| **The Nubian clause is dead** — `calc_attrition` compares the loop's 733–736 against `BUY_SELL` = 685 (re-read 2026-08-24, `docs/SUPPLY.md` "The radius" found the same in three siblings) | an AI squad on Nubian ground at war with no tech: 0 | `attrition 0` for 98 frames (three refreshes), then 48 within four frames of `tech who=0 allegiance on` |
+| Supply cancels the tick and sets a display flag (`Unit::process` `field_0x6c \|= 0x40000`) | damage stops the moment a wagon is within 14 tiles; the flag on each tick frame, cleared at each refresh | the last tick at label 6278, the wagon placed at 6289 two tiles away, `damage` frozen at 9 + 6/16 for 280 frames until combat; **`unit_masks2` reads 262144 = 0x40000** on the 24-grid frames and 0 again on the 32-grid ones |
+| Leaving the ground: check 2 on unowned cells | one stale tick at most, then 0 | `attrition 0` at the next refresh after the teleport; `damage` frozen |
+| The figure dies at its share of the squad's hits (`docs/COMBAT.md` §7.3) | a hoplite figure at 40 of `myhits 120` | every record vanished with `damage` 39–40 and a `DEATH_OBJS` block; the wagon (one figure, 90) at 90 |
+
+Two things the run showed that the reading had not. **A refresh and a tick
+on the same frame take the new period**: the AI's squad, granted a period at
+a frame where `(f + o)` was a multiple of both 32 and 48, ticked 6/16 on the
+refresh frame itself — `Unit::process` runs `process_attrition` before the
+tick test, as the pseudo-code in "The cadence" has it, and the run is the
+first time that order was observable. And **object numbers are recycled**:
+a dead squad's `o` 6–8 went to the next scout and the next squad, which is
+`find_free`'s bands (`docs/AI.md`) seen from the unit side, and is why a
+unit's history in a dump has to be cut where its `damage` drops.
+
+Coverage: with run16 in the set the blind list falls from 156 to **99**, and
+of attrition and supply only `UnitData::in_supply` (the interface's query),
+`ObjectData::in_a_ship`, `num_aircraft_here`, `HeroData::get_radius` and
+`LeaderData::get_general_upgrade` have not run — no ship, aircraft, or
+hero-general was in the game.
+
+What this does **not** establish: the Statue of Liberty, Mongol, titanium
+and Foraging resistances (the rational's other values), the age scaling,
+militia's ×4 and their refusal of shelter, siege's ×½, the merchants'
+halving, the assassin path, and `ATTRITION_IMPROVED`'s upper steps. Each is
+one `cheat tech`/`cheat add` line on the same recipe.

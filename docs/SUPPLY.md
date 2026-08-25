@@ -528,3 +528,41 @@ Terra Cotta does apply to a supplying general.
 reload query now takes `attrition::Domain`, so the crate has one name for the
 field. No arithmetic changed, and the tests that covered it still pass
 unaltered apart from the type.
+
+---
+
+## Behavioural check (run16, 2026-08-24) — the shelter observed
+
+The attrition run (`docs/ATTRITION.md`, last section; `docs/ORACLE.md`,
+"The attrition run") is the first traced game in which `process_supply`,
+`Supplies::find_supply`, `SupplyData::get_radius` and
+`LeaderData::get_supply_upgrade` ever executed. What it showed of this
+document:
+
+- **Consumer 1 works as written.** Two hoplite figures bleeding at period 24
+  on the enemy's ground; a wagon of their own placed two tiles away at log
+  frame 6289; their last tick is at 6278 and their `damage` does not move
+  again for 280 frames, until archers arrive. The period stays 24 and stays
+  displayed — the veto is on the damage, not the rate.
+- **The display flag is `0x40000` in the unit's second mask word**, and the
+  log prints it: `unit_masks2` reads 262144 on exactly the frames where the
+  tick was due (the 24-grid) and 0 on the frames where the period was
+  refreshed (the 32-grid), which is `Unit::process` setting it on a
+  sheltered tick and clearing it on entry to the upkeep block.
+- **The wagon at war took nothing** (check 13), standing on the same enemy
+  ground beside the bleeding squad: `attrition 0` throughout.
+- **The wagon at peace bled at 8**, one whole point a tick, for 90 points —
+  the peace flag defeats its own exemption, as the second reading found.
+- **The wagon's own `supply` field is its slot** in the player's list —
+  `0` for the first wagon, `-1` on every other unit — the cached
+  `init_supply` return this document describes; it is *not* a "sheltered"
+  mark on the units it protects, which show it in `unit_masks2` instead.
+- The trace's first-entry frames say what the reading could not:
+  `init_supply` ran the frame the wagon was placed (1127), `close_supply`
+  the frame it died (1855), `find_supply` first at 4877 (a squad with no
+  wagon on its list — the loop over `supply_mark` is empty and `get_radius`
+  is not reached) and `get_radius` first at 6300, the first sheltered tick.
+
+What it does not establish: the radius's edge (the wagon was two tiles
+away, not fourteen), the upgrade steps, the patriots as sources, the
+hero-generals, militia's refusal, and the healing and reload consumers.
