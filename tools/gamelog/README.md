@@ -93,6 +93,18 @@ the `STACK<TYPE>` block does not indent its contents; these four read it:
     farms.py window.txt block ...     the `Farms` list at a block: owner, empties,
                                       every non-empty cell (print index is the
                                       column-major position)
+    anims.py dump.txt [who/o ...]     the animation clock (`docs/ANIM.md`): per
+                                      pass, each named unit's guys — piece, slot,
+                                      cur/end time, last_time, flags — and the
+                                      pass's seed
+    anims.py dump.txt --lengths       every (gpiece, slot) → end_time the dump shows
+    anims.py dump.txt --wraps         every clock reset between two passes: the
+                                      same slot again (a silent restart or an idle
+                                      re-roll) or a new one
+
+A pass is one `full_dump` — the start-of-game one, then the end of
+sim-frame n−1 nested under `FRAME n` and the start of sim-frame n after it
+(the same state, printed twice); `anims.py` labels each `F<frame>p<pass>`.
 
 The method is `docs/SYNC.md` §4.1: `framediff` says what changed on a
 frame, `draws` says what every draw would have read, and a state change

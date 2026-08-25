@@ -670,10 +670,38 @@ impl Sim {
     // Idle — `do_idle`, `check_idle`, `think`
     // ------------------------------------------------------------------
 
-    /// `Unit::do_idle`: `collide = 0`, `check_idle`, `think`.
+    /// `Unit::do_idle`: `set_anim(CHAR_DEFAULT, 0, 1)`, `collide = 0`,
+    /// `check_idle`, `think`. An animal's is `Animal::do_idle`, which
+    /// replaces the whole of it (`anim.rs`).
     fn do_idle(&mut self, u: usize, frame: i64) {
+        if self.units[u].is_gaia() {
+            self.animal_idle(u);
+            return;
+        }
+        self.set_default_anim(u);
         self.check_idle(u, frame);
         self.think(u, frame);
+    }
+
+    /// The carrying walk a gatherer plays, if its action is a wood or ore
+    /// gather — `unit_masks & 0x78000000` as `Guy::move:118–137` reads it:
+    /// `WALK_TO_*` on the way to a tile, `WALK_WITH_*` on the way back.
+    pub(crate) fn gather_walk(&self, u: usize) -> Option<i8> {
+        let a = self.action_of(u)?;
+        let Body::Gather(g) = self.units[u].orders[a].body else {
+            return None;
+        };
+        let wood = match self.building_ident(g.building) {
+            Ident::Woodcutter => true,
+            Ident::Mine => false,
+            _ => return None,
+        };
+        Some(match (wood, g.goto_build) {
+            (true, false) => crate::anim::WALK_TO_WOOD,
+            (true, true) => crate::anim::WALK_WITH_WOOD,
+            (false, false) => crate::anim::WALK_TO_ORE,
+            (false, true) => crate::anim::WALK_WITH_ORE,
+        })
     }
 
     /// `Unit::check_idle`: 0 → 1 → 2 on consecutive frames, then +1 every
@@ -1963,9 +1991,17 @@ impl Sim {
                 let angle = find_angle(here.x - bpos.x, here.y - bpos.y);
                 match self.find_nearby_spot(u, bpos, d, -1, 0, angle, None) {
                     None => {
+                        // No spot: keep chopping (`do_non_flat_gather:130`).
+                        let work = if wood {
+                            crate::anim::CHOP_WOOD
+                        } else {
+                            crate::anim::MINE_ORE
+                        };
+                        self.set_anim(u, work, false, true);
                         g.wait = 20;
                     }
                     Some(spot) => {
+                        self.set_default_anim(u);
                         self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::First, false);
                         g.goto_build = true;
                         g.wait = 32;
@@ -1981,6 +2017,14 @@ impl Sim {
             };
             let centre = Pos::new(t.x * TILE + HALF_TILE, t.y * TILE + HALF_TILE);
             if vector_dist(centre.x - here.x, centre.y - here.y) < AT_TILE {
+                // At the tile: the work animation (`do_non_flat_gather:267`
+                // and `:271`), looping and silent.
+                let work = if wood {
+                    crate::anim::CHOP_WOOD
+                } else {
+                    crate::anim::MINE_ORE
+                };
+                self.set_anim(u, work, false, true);
                 g.wait -= 1;
                 if g.wait == 0 {
                     g.wait = if self.all_gathering(b) {
@@ -2020,6 +2064,21 @@ impl Sim {
         // Heading to, or at, the camp.
         if g.wait >= 0 {
             if self.adjacent_to(u, b) {
+                // At the camp. A first arrival stands idle — the
+                // woodcutters' four draws on run12's frame 0 (`docs/ANIM.md`
+                // §4) — and a return with a load unloads
+                // (`do_non_flat_gather:412`, `:416`: a non-looping animation
+                // whose length no dump has shown).
+                if g.been_there {
+                    let dump = if wood {
+                        crate::anim::DUMP_WOOD
+                    } else {
+                        crate::anim::DUMP_ORE
+                    };
+                    self.set_anim(u, dump, false, true);
+                } else {
+                    self.set_default_anim(u);
+                }
                 g.wait -= 1;
                 if !g.been_there {
                     g.been_there = true;
@@ -2057,11 +2116,14 @@ impl Sim {
             self.store_gather(u, g);
             return;
         }
-        // Choose a tile.
+        // Choose a tile. The stand first (`do_non_flat_gather:512`) — the
+        // woodcutters' frame-0 draws on run12 are this call (`docs/ANIM.md`
+        // §4).
         if !g.been_there {
             g.been_there = true;
             self.ledgers[who as usize].dirty = true;
         }
+        self.set_default_anim(u);
         if g.tile.is_none() {
             let from = &self.buildings[b].gather_from;
             if from.is_empty() {
@@ -2129,16 +2191,19 @@ impl Sim {
         match state {
             s if s == farms::GROWING || (s == farms::EMPTY && anim != FarmAnim::Reap) => {
                 self.units[u].farm_anim = FarmAnim::Sow;
+                self.set_anim(u, crate::anim::SOW, false, true);
                 self.buildings[b].farm.grow(idx);
                 return;
             }
             farms::RIPE if anim != FarmAnim::Sow => {
                 self.units[u].farm_anim = FarmAnim::Reap;
+                self.set_anim(u, crate::anim::REAP, false, true);
                 self.buildings[b].farm.snip(idx);
                 return;
             }
             farms::CUT => {
                 self.units[u].farm_anim = FarmAnim::Reap;
+                self.set_anim(u, crate::anim::REAP, false, true);
                 return;
             }
             // Empty under a reaper, or ripe under a sower: a new tile.

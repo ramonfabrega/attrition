@@ -142,7 +142,7 @@ Per unit, the sites that run on an ordinary frame:
 | site | when | draws |
 |---|---|---|
 | `Guy::set_anim@005da300` (idle) | `set_anim(CHAR_DEFAULT)` from `do_idle`, `do_gather`'s stand, any order's rest, an arrival — **but only when a new default animation starts**: a `CHAR_DEFAULT` request while the current default anim still runs (`cur_time < end_time`) returns first (`set_anim:155–224`); **and again from `Guy::inc_time` in phase 7 each time the running animation ends** (§2 step 7 — run13: the fish at sim-frame 100, the human scout's `60/61 → 0/61` at 101) | 1 per guy when `UnitData+0x104 == 0`: `p = rand % 100` → variant **0** for `p ≤ 69`, **1** for `70–82`, **2** for `83–95`, **3** for `96–99` (a peasant standing on a tile with `mask & 3` takes 1 for `p ≥ 83`; `+0x9a & 0x20` collapses it to 0/1 at 69) |
-| `Guy::set_anim` (`param_2 == 0xc`, the sow) | only with `param_3 != 0` — the farmer's `set_anim(CHAR_SOW)` passes 0 (all six farmers show anim 35) | 0 |
+| `Guy::set_anim` (`param_2 == 0xc`) | ~~the sow~~ **the attack category** (`UnitAnimCat[11..=14] = 12`, `docs/ANIM.md` §2): with `param_3 != 0`, one draw picks `ATTACK1`/`ATTACK2`/`ATTACK3` at 30/40/30 %. The sow (35) is its own category and never draws; `do_gather:407` passes `(CHAR_SOW, 0, 1)` | 1 per attack start |
 | `Guy::set_anim` (walk, a bird) | who 9, types `0x192–0x194` | 1 |
 | `Guy::init_real@005db6b0` | a guy's creation | 1 (`% 100` → a 4-way variant) |
 | `Unit::do_move@005f7b30:599` | the first `do_move` of a move whose path is planned, after `find_path` | 1 (`% 5` → the `far` threshold; `orders.rs`) |
@@ -321,6 +321,13 @@ So the sim's `do_move` gate agrees with the original's on all seven walks
 the window starts (§6's frame-3 draw is specific to those three), and the
 next gaps are the ones §6 names: the animation clock and the scout.
 
+**With the animation clock, 2026-08-24 (`docs/ANIM.md` §6)**, the same
+run: 98 **6/6**, 99 **8/8**, 100 **18/18**, 101 20/21 (the scout's wrap
+in, the sheep's arrival out), 102 **6/6**, 103 **6/6**; 97 6/7, 96 26/28,
+95 6/23 are the AI scout's. With run12 as a sibling too, frame 0 is **96
+of 120** — the forty animals' first idles, the two scouts' four and the
+four woodcutters' stands — and frames 1 and 2 hold at 54/54 and 6/6.
+
 The siblings' traced frames are **pooled** (`borrow_from_siblings`): with
 run12 and run13 both on the list, a run of this lobby gets the true word at
 the ends of frames 0–3 and 94–103, and the dump's own word wins where two
@@ -352,7 +359,13 @@ over 432 frames fell from 662/432 to 588/372 (the run6 pin's ceilings).
   remaining candidate is the `execute_events` call that follows each
   unit's `inc_time` in `Objects::inc_time` — an event that sets an
   animation there would leave `cur_time 0`. A `GUYS=4` frame-0 capture
-  settles it.
+  settles it. **Narrowed, 2026-08-24 (`docs/ANIM.md` §5):** the four
+  woodcutters' draws are unit-phase stands (the camp stand of
+  `do_non_flat_gather`; a same-slot `set_anim` leaves `cur_time 0`, a
+  wrap could not), and the dump rules out `inside_up` (−1), `unit_masks2`
+  (0) and the object flags (1) at every pass — so the skipped step is
+  neither gate `Unit::inc_time` tests. Still open; it moves those four
+  wraps by one frame.
 - **The human scout's 15 and the AI scout's 8** are placed by elimination,
   not by outcome: `think_scout`'s scan draws once per unseen candidate cell,
   which needs the seen map the sim does not keep, and the AI scout's first
@@ -377,7 +390,7 @@ over 432 frames fell from 662/432 to 588/372 (the run6 pin's ceilings).
   world's `invalid_loc` is the SEAM `find_path` names).
 - **Diplomacy's cadence** (`Leader::diplomacy`, nine sites; 0 draws on
   frames 0–3).
-- **Animals, and the animation clock.** The 40 idle-anim draws are pinned,
+- ~~**Animals, and the animation clock.** The 40 idle-anim draws are pinned,
   but the sim has no gaia units and no `cur_time`/`end_time`: a guy's next
   draw falls when its animation ends (§2 step 7), and the animation lengths
   are **art data** (the packet's frame counts; run12's `end_time`s cycle
@@ -390,7 +403,14 @@ over 432 frames fell from 662/432 to 588/372 (the run6 pin's ceilings).
   `animal.rs`: the sheep's `do_idle` wander and `think_fish`'s cadence
   (unread; the fish drew nothing but wraps on frames 0–3 and 95–103), with
   the herds already in `gaia.rs`. Run13 says the clock is worth 12 of the
-  18 at sim-frame 100 and 2 of the 21 at 101 (§5).
+  18 at sim-frame 100 and 2 of the 21 at 101 (§5).~~ **Done, 2026-08-24 —
+  `docs/ANIM.md`, `crates/sim/src/anim.rs`.** The clock, the wrap's roll,
+  `init_real`'s, the arrival, the mirror, the animals as units of owner 8
+  with the wander; the lengths and pieces as the `Art` input read out of
+  the dumps (the variant is `(seed + o) % 3` for gaia, the gender bit `o &
+  1` for a citizen); the harness installs the clocks beside the words. What
+  it left open is its §9: the woodcutters' un-stepped frame 0, the dog's
+  own roll, the unobserved lengths, `think_farm_animal`.
 - **Birds after creation** (`think_bird`, `do_air_physics`), and
   `Farms::add`/`add_animals` at a farm's creation — event-driven, unread
   past their draw sites.

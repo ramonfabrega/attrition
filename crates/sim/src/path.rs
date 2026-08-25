@@ -269,7 +269,7 @@ impl Sim {
                 }
                 match self.world.owner(to_cell) {
                     Owner::Player(p) if p == who => e -= 4,
-                    Owner::Player(p) if self.at_war[who as usize][p as usize] => e += 4,
+                    Owner::Player(p) if self.at_war_with(who, p) => e += 4,
                     _ => {}
                 }
                 extra = e.max(0);
@@ -283,7 +283,7 @@ impl Sim {
                 } else {
                     match self.world.owner(to_cell) {
                         Owner::Player(p) if p == who => e -= 4,
-                        Owner::Player(p) if self.at_war[who as usize][p as usize] => e += 4,
+                        Owner::Player(p) if self.at_war_with(who, p) => e += 4,
                         _ => {}
                     }
                     if avoid_land != 0 {

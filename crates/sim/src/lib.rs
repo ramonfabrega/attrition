@@ -46,6 +46,7 @@ pub mod ai_research;
 pub mod ai_sites;
 pub mod ai_types;
 pub mod ai_units;
+pub mod anim;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;
@@ -185,6 +186,26 @@ pub struct Unit {
     /// (`Guy::cur_anim`, `'#'` sowing or `'$'` reaping; `docs/ORDERS.md`
     /// §6.5). Walking clears it.
     pub farm_anim: FarmAnim,
+    /// The figures' animation clocks — `UnitData::guys`, one `Guy` per
+    /// member (`docs/ANIM.md`). Empty for a unit stood up without art,
+    /// which then plays nothing and draws nothing for it.
+    pub guys: Vec<anim::Guy>,
+    /// The frame this unit was created on: its clocks do not step that
+    /// frame (the original spends it inside the building that made it).
+    pub born: i64,
+    /// `UnitData::is_captain` — `o_up < 0`, a unit that heads its own
+    /// squad; every standalone unit is one.
+    pub captain: bool,
+    /// `guy_flags & 0x20`, which collapses the idle roll to two variants;
+    /// unread — off.
+    pub guy_flag_0x20: bool,
+    /// An animal's herd, an index into [`gaia::Gaia::herds`] — the
+    /// `UnitData+0x86` union for an `Animal`. `None` for everything else
+    /// and for a herdless animal.
+    pub herd: Option<usize>,
+    /// The type's `TypeIndex`, when the loader named it; −1 otherwise. The
+    /// birds' walk coin reads it.
+    pub type_index: i32,
 }
 
 /// The two animations `Unit::do_gather`'s farm branch tests for.
@@ -407,6 +428,12 @@ impl Unit {
             decoy: false,
             avoid: None,
             farm_anim: FarmAnim::Other,
+            guys: Vec::new(),
+            born: -1,
+            captain: true,
+            guy_flag_0x20: false,
+            herd: None,
+            type_index: -1,
         }
     }
 
@@ -535,6 +562,12 @@ pub struct Sim {
     pub market: market::Market,
     /// The herds and the birds' sampling (`gaia.rs`).
     pub gaia: gaia::Gaia,
+    /// The animation art the clocks read — lengths and pieces, an input
+    /// (`docs/ANIM.md` §3).
+    pub art: anim::Art,
+    /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
+    /// piece by `(seed + o) % 3`.
+    pub game_seed: i32,
     pub frame: i64,
 }
 
@@ -740,6 +773,8 @@ impl Sim {
             projectiles: Vec::new(),
             market: market::Market::default(),
             gaia: gaia::Gaia::default(),
+            art: anim::Art::default(),
+            game_seed: 0,
             mods: vec![combat::Modifiers::default(); players],
             hits: Vec::new(),
             build_types: Vec::new(),
@@ -752,7 +787,9 @@ impl Sim {
             city_tally: vec![city::Tally::default(); players],
             removed: Vec::new(),
             wall_stats_dirty: vec![false; players],
-            marks: vec![Marks::default(); players],
+            // Ten slots, not `players`: gaia's animals and birds are units
+            // of owners 8 and 9 and take numbers from their own bands.
+            marks: vec![Marks::default(); players.max(10)],
             lobby: ai::Lobby::default(),
             script_env: ai_host::ScriptEnv::default(),
             scripts: None,
@@ -762,6 +799,16 @@ impl Sim {
             world,
             frame: 0,
         }
+    }
+
+    /// Whether `who` is at war with `p` — false for an owner outside the
+    /// player table (gaia's units path through territory too).
+    pub fn at_war_with(&self, who: Player, p: Player) -> bool {
+        self.at_war
+            .get(who as usize)
+            .and_then(|row| row.get(p as usize))
+            .copied()
+            .unwrap_or(false)
     }
 
     /// Adds a player and returns their index.
@@ -1404,6 +1451,10 @@ impl Sim {
                 let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
                 unit.kind = self.unit_types[ty].kind;
                 let unit = self.add_unit(unit);
+                // `Unit::init` → `Guy::init_real`: the figure's one draw.
+                // (The unit's `ty` stays unset here, as it always has; the
+                // piece lookup takes the type directly.)
+                self.init_guys(unit, Some(ty));
                 self.economy_changed(who);
                 Advanced::Trained(Produced { unit, ty, at })
             }
@@ -1527,6 +1578,7 @@ impl Sim {
         unit.kind = self.unit_types[ty].kind;
         unit.ty = Some(ty);
         let at = self.add_unit(unit);
+        self.init_guys(at, Some(ty));
         self.economy_changed(who);
         Ok(at)
     }
@@ -1715,6 +1767,18 @@ impl Sim {
                 continue;
             }
             self.units[i].movement.frame_facing = self.units[i].movement.facing;
+            // Gaia's animals: `Animal::process` is `Unit::process` without
+            // a player behind it — no heal, no attrition, no reload; the
+            // order step (`Animal::do_idle` when idle) and the body follow.
+            if self.units[i].is_gaia() {
+                if self.units[i].on_map {
+                    self.work(i, frame);
+                    if self.units[i].alive() && self.units[i].on_map {
+                        self.process_movement(i);
+                    }
+                }
+                continue;
+            }
             // `process_healing` runs for every unit, inside or out; the
             // garrison branch is the only heal this mechanic owns.
             self.garrison_heal(i, frame);
@@ -1750,10 +1814,12 @@ impl Sim {
         // The tail of `Objects::process_all`: the birds' sampling every 32
         // frames and one herd's walk every 64 (`gaia.rs`).
         self.process_gaia(frame);
-        // Ammo after every object — `Objects::inc_time` runs the ammo list
-        // after `process_all` — then the farms' crop cells (`farms.rs`),
-        // and the sites' hit points refreshed from the progress the
-        // builders just made, `Wall::inc_time`.
+        // `Objects::inc_time`: every guy's animation clock first — leader
+        // order, no rotation (`anim.rs`) — then the ammo list, then the
+        // farms' crop cells (`farms.rs`), and the sites' hit points
+        // refreshed from the progress the builders just made,
+        // `Wall::inc_time`.
+        self.guys_inc_time(frame);
         self.process_projectiles(frame);
         self.farms_inc_time();
         self.refresh_site_hits();
@@ -1864,6 +1930,11 @@ impl Sim {
         if !self.world.accepts(follow.body.pos) {
             follow.body.pos = m.body.pos;
         }
+        // `Guy::move`'s animation half runs on the body as it stood before
+        // the follow: a body away from its destination starts the walk, one
+        // standing on it a frame after arriving goes idle (`anim.rs`).
+        let was_at_des = m.body.pos == pos;
+        self.guys_follow(i, was_at_des);
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
         unit.movement.body = follow.body;

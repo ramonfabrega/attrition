@@ -477,12 +477,38 @@ better, in which case say so and take that.
     `--sibling` and prints the window: 98, 102, 103 match at 6/6; the gaps
     are the scout's scan (95–97), the trained citizen's two creation draws
     (99), the fish wraps (100) and the sheep's arrival plus the scout's
-    wrap (101) — so the next mechanic is **the animation clock** (every
+    wrap (101) — ~~so the next mechanic is **the animation clock** (every
     guy's `cur_time`/`end_time`, the wrap's draw, the lengths read from a
     dump's `GUY` blocks as an input), which is worth 14 of the window's 16
-    missing draws; frame 0's 4-draw tail is *not* a wrap (`docs/SYNC.md`
-    §6); `tools/gamelog/{passes,framediff,farms,draws}.py` are the window's
-    instruments; **the draw-site trace** — a log-and-continue breakpoint on `Random::get` recording
+    missing draws~~ — **the animation clock landed, 2026-08-24 (seventh
+    session)**, `docs/ANIM.md` and `crates/sim/src/anim.rs`: `UnitAnimCat`
+    read out of the executable's `.rdata` (the idles are one category,
+    the seven walks one, the attacks one — the category decides every
+    branch), `Guy::set_anim`'s idle roll with its thresholds and its
+    arrival test, `init_real`'s roll, `Guy::inc_time`'s step, wrap and
+    mirror (a scout's dog copies guy 0 and never draws itself), the
+    animals as units of owner 8 with `Animal::do_idle`'s wander, and the
+    lengths and pieces as an `Art` input read out of the dumps (gaia's
+    piece is `(seed + o) % 3`, a citizen's takes the gender bit `o & 1`;
+    the loop flags in `anim_graphics.xml` turn out not to matter for an
+    idle, since both restarts roll). The harness installs the clocks
+    beside the words and skips a unit walking on one side only. **Window:
+    98, 99, 100, 102, 103 exact** (99 the trained citizen's two, 100 the
+    twelve fish), 101 20/21 (the sheep's walk), 95–97 the AI scout; with
+    run12, **frame 0 is 96 of 120** (the forty animals, the scouts' four,
+    the woodcutters' four — the 24 left are the scan, the explore path and
+    the tail). `tools/gamelog/anims.py` reads the clocks. Open in its §9:
+    the woodcutters' un-stepped frame 0 (neither `inside_up` nor
+    `unit_masks2` — a `GUYS=4` capture), whether the dog rolls on the
+    unit's request, the unobserved lengths (a `DUMP_ALL` window at
+    108–125 shows the chop, sow and walk wraps; a BHA reader settles all),
+    `think_farm_animal`. Next: **`think_scout`** (the scan and the
+    re-target are now the whole of 95–97 and of frame 0's gap but the
+    tail — it needs the seen map), the sheep's walk through the
+    pathfinder, then the draw-site trace below; frame 0's 4-draw tail is
+    *not* a wrap (`docs/SYNC.md` §6);
+    `tools/gamelog/{passes,framediff,farms,draws,anims}.py` are the
+    window's instruments; **the draw-site trace** — a log-and-continue breakpoint on `Random::get` recording
     the caller's EIP under winedbg in the bottle (Wine's dbghelp reads
     `rise.pdb`, so the callers come out named), one run for frames 0–3,
     which is the only way to place the draws that leave no outcome in a

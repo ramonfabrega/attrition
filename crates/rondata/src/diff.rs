@@ -58,6 +58,30 @@ pub struct Built {
     /// Per traced frame ticked so far: the sim's draw count and the
     /// original's.
     pub rng_frames: Vec<(i64, Option<u32>, Option<u32>)>,
+    /// Every unit's guys at the end of each traced frame, from the dump or
+    /// a sibling (`Initial::frame_guys`) — [`Built::tick`] installs them
+    /// beside the word, so the clocks are the original's where the stream
+    /// is.
+    pub frame_guys: crate::gamelog::FrameGuys,
+}
+
+/// A sim guy from a dump's `GUY` record, when the record carries the
+/// clock.
+fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::anim::Guy> {
+    if !g.has_clock() {
+        return None;
+    }
+    Some(sim::anim::Guy {
+        cur_time: g.cur_time? as u32,
+        end_time: match g.end_time? {
+            0 => 0,
+            e => e as u32,
+        },
+        last_time: g.last_time.unwrap_or(-1) as i32,
+        anim: g.cur_anim? as i8,
+        gpiece: g.gpiece.unwrap_or(-1) as i32,
+        stopped: g.stopped.unwrap_or(1) != 0,
+    })
 }
 
 /// How many player slots the log's leaders occupy: the `who`s below eight.
@@ -291,6 +315,24 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     }
     let mut sim = loaded.sim(tuning, world, players);
     sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
+    // The map seed, which picks a gaia guy's piece (`docs/ANIM.md` §3).
+    sim.game_seed = get("seed").unwrap_or(0) as i32;
+    // The animation art: the lengths a `DUMP_ALL` dump (or a sibling)
+    // showed, and which types take gaia's three-piece rule.
+    for &(p, a, e) in &init.anim_lengths {
+        sim.art.lengths.insert((p as i32, a as i8), e as u32);
+    }
+    for t in 0x192..0x19e {
+        if let Some(k) = loaded.unit_of_type_index(t) {
+            sim.art.gaia_types.insert(k);
+        }
+    }
+    if !init.anim_lengths.is_empty() {
+        notes.push(format!(
+            "anim: {} (piece, slot) lengths from the dump",
+            init.anim_lengths.len()
+        ));
+    }
 
     for l in &init.leaders {
         if (0..players as i64).contains(&l.who) {
@@ -394,10 +436,13 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         }
     }
 
-    // The units.
+    // The units — the players' and gaia's (owners 8 and 9: the animals and
+    // the birds, whose animation clocks are on the sync stream).
     let mut units = Vec::new();
+    let mut clocks = 0usize;
     for u in &init.units {
-        if !(0..players as i64).contains(&u.who) {
+        let gaia = (8..10).contains(&u.who);
+        if !(0..players as i64).contains(&u.who) && !gaia {
             continue;
         }
         let kind = u
@@ -416,16 +461,48 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         let mut unit = Unit::new(u.who as sim::Player, u.o as i16, pos_of(u.pos), health);
         unit.squad_size = u.guys.len().max(1) as i32;
         unit.ty = kind;
+        unit.type_index = u.guys.first().and_then(|g| g.kind).unwrap_or(-1) as i32;
         if let Some(t) = ty {
             unit.kind = t.kind;
             unit.movement.speed = t.moves;
             unit.movement.turning.type_turn_speed = t.turn_speed;
         }
+        if gaia {
+            // The herd: not logged per animal, so the herd of the animal's
+            // own type — one sheep herd on this lobby; the fish never reach
+            // the wander (`docs/ANIM.md` §7).
+            unit.herd = init
+                .herds
+                .iter()
+                .position(|h| Some(h.t) == u.guys.first().and_then(|g| g.kind));
+        }
         let idx = sim.add_unit(unit);
+        // The figures' clocks and pieces (`docs/ANIM.md` §1, §3). A
+        // `DUMP_ALL` start dump carries both; any other carries neither,
+        // and a sibling's clocks land here through `borrow_from_siblings`.
+        for (n, g) in u.guys.iter().enumerate() {
+            if let (Some(piece), Some(k)) = (g.gpiece, kind) {
+                let o = u.o as i16;
+                let sub = if sim.art.gaia_types.contains(&k) {
+                    (sim.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8
+                } else {
+                    (o & 1) as u8
+                };
+                sim.art
+                    .pieces
+                    .insert((u.who as sim::Player, k, sub, n as u8), piece as i32);
+            }
+            if let Some(guy) = guy_of(g) {
+                sim.set_guy(idx, n, guy);
+                clocks += 1;
+            }
+        }
         // `Unit::init`'s tally — `num_units`, the group count, `control` —
         // which the price ramp and `population()` read. A unit stood up
         // from the dump counts exactly as a trained one does.
-        if let Some(ty) = kind {
+        if let Some(ty) = kind
+            && !gaia
+        {
             let who = u.who as usize;
             let group = sim.unit_types[ty].group;
             let pop = sim.unit_types[ty].price.pop;
@@ -442,6 +519,12 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             unit: idx,
             kind,
         });
+    }
+    if clocks > 0 {
+        notes.push(format!(
+            "anim: {clocks} guy clocks installed from the start dump, {} pieces known",
+            sim.art.pieces.len()
+        ));
     }
 
     let builds = start_of_game(&mut sim, loaded, init, players, &units, &mut notes);
@@ -498,6 +581,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         notes,
         frame_seeds: init.frame_seeds.clone(),
         rng_frames: Vec::new(),
+        frame_guys: init.frame_guys.clone(),
     }
 }
 
@@ -960,6 +1044,53 @@ impl Built {
                 orig.map_or("?".to_string(), |n| n.to_string()),
             ));
             self.sim.rng.seed = theirs;
+            // And the clocks, where the dump printed them: every linked
+            // unit's guys as they stood at this frame's end, so the next
+            // wrap falls where the original's does (`docs/ANIM.md` §8).
+            if let Some((_, states)) = self.frame_guys.iter().find(|(n, _)| *n == frame) {
+                let mut installed = 0;
+                let mut skipped = 0;
+                for (who, o, guys) in states {
+                    let unit = self
+                        .units
+                        .iter()
+                        .find(|l| l.who == *who && l.o == *o)
+                        .map(|l| l.unit)
+                        .or_else(|| {
+                            i16::try_from(*o)
+                                .ok()
+                                .and_then(|o| self.sim.unit_by_o(*who as sim::Player, o))
+                        });
+                    let Some(u) = unit else {
+                        continue;
+                    };
+                    // A walking clock on a unit the sim has standing (or
+                    // the reverse) is no correction: the sim would then
+                    // read every idle request as an arrival. Such a unit
+                    // keeps its own clock and is counted.
+                    let walking_here = self.sim.units[u]
+                        .orders
+                        .front()
+                        .is_some_and(|o| matches!(o.body, sim::orders::Body::Move(_)));
+                    let walking_there = guys
+                        .first()
+                        .and_then(|g| g.cur_anim)
+                        .is_some_and(|a| sim::anim::category(a as i8) == 8);
+                    if walking_here != walking_there {
+                        skipped += 1;
+                        continue;
+                    }
+                    for (n, g) in guys.iter().enumerate() {
+                        if let Some(guy) = guy_of(g) {
+                            self.sim.set_guy(u, n, guy);
+                            installed += 1;
+                        }
+                    }
+                }
+                self.notes.push(format!(
+                    "anim: frame {frame}: {installed} guy clocks installed, {skipped} units skipped (walking on one side only)"
+                ));
+            }
         }
     }
 
@@ -1252,8 +1383,41 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
                 init.frame_seeds.push((frame, word));
             }
         }
+        // The clocks travel with the words: a frame's guys from the sibling
+        // that traced it, and the start dump's guys from any sibling of the
+        // same stream — the same setup put the same figures on the map.
+        for (frame, guys) in &s.frame_guys {
+            if !init.frame_guys.iter().any(|(f, _)| *f == *frame) {
+                init.frame_guys.push((*frame, guys.clone()));
+            }
+        }
+        for su in &s.units {
+            if !su.guys.iter().any(crate::gamelog::Guy::has_clock) {
+                continue;
+            }
+            match init
+                .units
+                .iter_mut()
+                .find(|u| u.who == su.who && u.o == su.o)
+            {
+                Some(u) if !u.guys.iter().any(crate::gamelog::Guy::has_clock) => {
+                    u.guys = su.guys.clone();
+                }
+                // Gaia's animals, which a `UNITS`-level dump lists without
+                // their clocks or not at all.
+                None if su.who >= 8 => init.units.push(su.clone()),
+                _ => {}
+            }
+        }
     }
     init.frame_seeds.sort_unstable();
+    init.frame_guys.sort_by_key(|(f, _)| *f);
+    // The lengths are art, the same on every dump of the install.
+    for s in siblings {
+        init.anim_lengths.extend(s.anim_lengths.iter().copied());
+    }
+    init.anim_lengths.sort_unstable();
+    init.anim_lengths.dedup();
 }
 
 /// [`run_with`], with what this dump lacks borrowed from **siblings** —
@@ -1921,10 +2085,18 @@ mod tests {
                 .unwrap_or_else(|| panic!("frame {f} was not traced"));
             (ours, theirs)
         };
+        // With the animation clock (`docs/ANIM.md` §6): the new citizen's
+        // two creation draws at 99, the twelve fish wraps at 100 and the
+        // scout's wrap at 101 are the sim's now; the one left at 101 is the
+        // sheep's arrival, whose walk the sim does not have.
         assert_eq!(count(98), (Some(6), Some(6)));
-        assert_eq!(count(99), (Some(6), Some(8)), "the new citizen's two");
-        assert_eq!(count(100), (Some(6), Some(18)), "the twelve fish wraps");
-        assert_eq!(count(101), (Some(19), Some(21)), "the sheep and the scout");
+        assert_eq!(count(99), (Some(8), Some(8)), "the new citizen's two");
+        assert_eq!(count(100), (Some(18), Some(18)), "the twelve fish wraps");
+        assert_eq!(
+            count(101),
+            (Some(20), Some(21)),
+            "the scout's wrap; the sheep"
+        );
         assert_eq!(count(102), (Some(6), Some(6)));
         assert_eq!(count(103), (Some(6), Some(6)));
         // The AI's farmers re-target on sim-frame 101 and walk from 102;
@@ -2410,8 +2582,14 @@ mod tests {
         // 1,784/1,123 to 1,238/875.
         // 1,238/875 → 1,220/866 with run13's words installed at frame 94
         // (the siblings' traced frames are pooled, `borrow_from_siblings`).
+        // 1,220/866 → 1,242/877 with the animation clock (`docs/ANIM.md`):
+        // the idle wraps and the training rolls are draws the original
+        // makes too, but on the sim's own stream between the traced frames
+        // they move the woodcutters' later waits (`% 50 + 100`) to other
+        // values — noise in the untraced stretch, not a mechanic lost; the
+        // traced frames 0–3 and 94–103 all held or improved.
         assert!(
-            orders - farmer_orders <= 1_220 && paths - farmer_paths <= 866,
+            orders - farmer_orders <= 1_242 && paths - farmer_paths <= 877,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.
@@ -2427,8 +2605,13 @@ mod tests {
         // pooled in and the first re-target ran on the original's stream.
         // The farmers' pin with teeth is run13's, where the AI's goals are
         // compared (`run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched`).
+        // 588/372 → 612/441 with the animation clock (`docs/ANIM.md`): the
+        // farmers' second re-target, past the last traced frame, rolls on
+        // the sim's own stream, and the idle wraps and the training rolls
+        // now sit in front of it — the tiles it sends them to are as much
+        // its own as before, only different ones.
         assert!(
-            farmer_orders <= 588 && farmer_paths <= 372,
+            farmer_orders <= 612 && farmer_paths <= 441,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }

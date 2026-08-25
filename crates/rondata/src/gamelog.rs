@@ -403,12 +403,42 @@ pub struct Pos {
 }
 
 /// One member of a unit, from a `GUY` block.
+///
+/// Below `DUMP_ALL` the per-frame `GUY` blocks are empty and the start dump
+/// writes only `type`, the position and `angle`. A `DUMP_ALL` dump writes
+/// `GuyData::log_data@005de6c0` whole — and the four fields after the
+/// position are the animation clock (`docs/ANIM.md`): `cur_time`,
+/// `end_time`, `cur_anim`, `gpiece`, with `last_time`, `guy_flags` and
+/// `stopped` beside them.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Guy {
     /// The unit type id. Written only in the start-of-game dump.
     pub kind: Option<i64>,
     pub pos: Option<Pos>,
     pub angle: Option<i64>,
+    /// `GuyData::cur_time`: frames into the current animation.
+    pub cur_time: Option<i64>,
+    /// `GuyData::end_time`: the current animation's length in frames.
+    pub end_time: Option<i64>,
+    /// `GuyData::last_time`: `cur_time` before this frame's step, `−1`
+    /// right after a `set_anim`.
+    pub last_time: Option<i64>,
+    /// `GuyData::cur_anim`: the `UnitAnim` index.
+    pub cur_anim: Option<i64>,
+    /// `GuyData::gpiece`: the graphic piece — the model whose animation
+    /// packet the lengths come from.
+    pub gpiece: Option<i64>,
+    pub guy_flags: Option<i64>,
+    pub stopped: Option<i64>,
+    /// `GuyData::guy_num`: the member's index in its unit.
+    pub guy_num: Option<i64>,
+}
+
+impl Guy {
+    /// Whether this record carries the clock — a `DUMP_ALL` block.
+    pub fn has_clock(&self) -> bool {
+        self.cur_time.is_some() && self.end_time.is_some() && self.cur_anim.is_some()
+    }
 }
 
 /// One entry of a unit's `OrderList`, as `UNITS=3` writes it
@@ -729,7 +759,19 @@ pub struct Initial<'a> {
     /// per-frame `say_checksum` records of a `DUMP_ALL` dump
     /// ([`Log::frame_seeds`]); empty otherwise.
     pub frame_seeds: Vec<(i64, u32)>,
+    /// Every `(gpiece, cur_anim) → end_time` a `DUMP_ALL` dump's `GUY`
+    /// blocks show, over every state it printed ([`Log::anim_lengths`]) —
+    /// the animation lengths, which are art data the sim takes as an input
+    /// (`docs/ANIM.md`). Empty for any other dump.
+    pub anim_lengths: Vec<(i64, i64, i64)>,
+    /// Per engine frame a `DUMP_ALL` dump traced, every unit's `(who, o,
+    /// guys)` at the end of that frame — the clocks the harness installs
+    /// beside the frame's word. Empty for any other dump.
+    pub frame_guys: FrameGuys,
 }
+
+/// Every unit's `(who, o, guys)` at the end of each traced engine frame.
+pub type FrameGuys = Vec<(i64, Vec<(i64, i64, Vec<Guy>)>)>;
 
 /// One `HERD` record: the home cell, the wander centre, the animal type
 /// and the flags.
@@ -859,6 +901,14 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
                 _ => None,
             },
             angle: g.int("angle"),
+            cur_time: g.int("cur_time"),
+            end_time: g.int("end_time"),
+            last_time: g.int("last_time"),
+            cur_anim: g.int("cur_anim"),
+            gpiece: g.int("gpiece"),
+            guy_flags: g.int("guy_flags"),
+            stopped: g.int("stopped"),
+            guy_num: g.int("guy_num"),
         })
         .collect();
     Some(UnitDump {
@@ -957,10 +1007,29 @@ fn records(b: &Block<'_>, before_frames: bool) -> (Vec<UnitDump>, Vec<BuildDump>
     } else {
         b.children.len()
     };
-    let kids = &b.children[..stop];
+    // A `DUMP_ALL` dump nests each state under a `FULL DUMP` block — the
+    // start-of-game state under the first of `GAME`'s two (the second is
+    // `begin_frame(0)`'s, the same state), and engine frame `n − 1`'s end
+    // under `FRAME n`'s one (`docs/SYNC.md` §1; `frame_seeds` reads the
+    // same block) — so the object lists are that block's children and the
+    // `leader_flags` run is on its fields. Any other dump writes them on
+    // `GAME` and `FRAME` directly.
+    let (b, kids): (&Block<'_>, &[Block<'_>]) =
+        match b.children[..stop].iter().find(|c| c.name == "FULL DUMP") {
+            Some(dump) => (dump, &dump.children[..]),
+            None => (b, &b.children[..stop]),
+        };
+    // Gaia's animals are written as `ANIMALDATA` → `UNITDATA` (the
+    // `AnimalData::log_data` wrapper adds `ox`, `whom`, `aid` after the
+    // unit), in the leader-8 run after every player's units.
     let units = kids
         .iter()
         .filter(|c| c.name == "UNITDATA")
+        .chain(
+            kids.iter()
+                .filter(|c| c.name == "ANIMALDATA")
+                .filter_map(|a| a.kid("UNITDATA")),
+        )
         .filter_map(unit_of)
         .collect();
     let builds = kids
@@ -1046,7 +1115,49 @@ impl<'a> Log<'a> {
                 .collect();
         }
         init.frame_seeds = self.frame_seeds();
+        init.anim_lengths = self.anim_lengths();
+        init.frame_guys = self
+            .frames()
+            .into_iter()
+            .filter_map(|(n, b)| {
+                let (units, _, _) = records(b, false);
+                let guys: Vec<(i64, i64, Vec<Guy>)> = units
+                    .into_iter()
+                    .filter(|u| u.guys.iter().any(Guy::has_clock))
+                    .map(|u| (u.who, u.o, u.guys))
+                    .collect();
+                (!guys.is_empty()).then_some((n - 1, guys))
+            })
+            .collect();
         Some(init)
+    }
+
+    /// Every `(gpiece, cur_anim, end_time)` the dump's `GUY` blocks show,
+    /// with `end_time > 0`, deduplicated and sorted — every state the dump
+    /// printed, the frames included. A `DUMP_ALL` dump only; the lengths
+    /// are the animation packets' frame counts (`docs/ANIM.md` §3).
+    pub fn anim_lengths(&self) -> Vec<(i64, i64, i64)> {
+        fn walk(b: &Block<'_>, out: &mut Vec<(i64, i64, i64)>) {
+            if b.name == "GUY" {
+                if let (Some(p), Some(a), Some(e)) =
+                    (b.int("gpiece"), b.int("cur_anim"), b.int("end_time"))
+                    && e > 0
+                {
+                    out.push((p, a, e));
+                }
+                return;
+            }
+            for c in &b.children {
+                walk(c, out);
+            }
+        }
+        let mut out = Vec::new();
+        for r in &self.roots {
+            walk(r, &mut out);
+        }
+        out.sort_unstable();
+        out.dedup();
+        out
     }
 
     /// Every frame's typed state, in order.
