@@ -322,3 +322,22 @@ side of a shore a building's centre falls on is a map fact, and a reading
 cannot settle a map fact. The sequence — read, stage the capture from the
 trace's frame numbers, spawn the blind readers while it runs, adjudicate
 against both — cost under two hours end to end and is the shape to repeat.
+
+**Armies (`2026-08-25-army.md`, the same day as the mechanic).** The first
+reading in the main thread on Fable from 5,500 lines of decompile and the
+listing; two blind readers on Opus 5 in one wave, launched while three
+`DUMP_ALL` windows of a raid on the AI's capital were being captured and
+briefed with them; adjudicated on Fable against both the same hour. 142
+claims, eleven verdicts against the document, six of them changing Rust —
+a direction, a base register, a field twice over, a predicate's shape, a
+switch's polarity, and a fold read as a reversal. The day's two lessons:
+the readers went to `rise.pdb` itself for the enums the export does not
+carry (`ArmyStatus`, `CITY_*`, `OBJECT_*`, the leader flags) and that
+settled five inferred names at once — the export should ship them; and
+the largest correction was to a claim the first reading had marked
+"settled in the listing", read without its base register. The blind
+reader re-derives every claim, the settled ones included. The captures
+did what the readings could not: two of the three windows end an army
+through the one search the sim stands in for, and only the dump could
+say so.
+

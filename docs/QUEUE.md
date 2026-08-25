@@ -27,53 +27,65 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `302148b`.* The commit this
+*Last verified 2026-08-25, the session after `7e93e9a`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** The owed finding, settled and struck: run20's `CITY`
-record `space[0..1]` (ours 48, theirs 58). The suspected cause was wrong —
-`space_at_corner` never reads the fifth argument — and the real one was the
-function's own walk order, read from the PE's `grid_index_x/y` and
-`grid_threes` tables: the centre 2×2 first, so the early-out is the
-centre's, and ≥ 8 blocked with the centre free is 2, not 0.
-`check_building_wcoord`'s occupied and `blocked == 0x10` gates came from
-the same listing. `docs/AI.md` §15.9; `ai_place.rs` with three unit tests;
-the run20 guard now compares the `CITY` record whole with no pin, having
-flipped (`ours 58 (was 48)`) before the pin was removed. Before that, the
-sea half — `docs/TRANSPORT.md`, `transport.rs`, its audit, run22 and
-`tools/gamelog/window.py` (item 14).
+**Last landed.** Armies (item 15): `docs/ARMY.md`, `crates/sim/src/army.rs`,
+`docs/audit/2026-08-25-army.md`, runs 23–27 (`docs/ORACLE.md`), the `ARMY`
+record diffed whole against run20 (frames 1–3, field for field) and read
+against run22/25/26/27. The state machine's decisions are modelled; the
+group orders, the muster-spot ring search and the fort pass are named
+seams (`army::seams`). Two of the three windows end an army through the
+ring search's failure at its own city (`docs/ARMY.md` §16.5, §18) — the
+first seam a capture has reached, and the first thing to build once the
+cell classes are loaded.
 
-**In progress.** Nothing mid-mechanic. **Owed:** nothing.
+**In progress.** Nothing mid-mechanic. **Owed:** nothing — the audit's six
+Rust changes landed with it.
 
-**Next.** `docs/ARMY.md` — the `Army`/`Armies` family has its transporting
-arm (`docs/TRANSPORT.md`), its cadence (audit B.45), its merge path (B.67)
-and its eviction rule (B.59) written down by the second reading and nowhere
-else; run21's frames past 14586 (`Army::do_transporting`) are the capture
-to stage. The blind list is 471 cited by address, **96 never** — of
-`TRANSPORT.md`'s 33 citations, `Dock::close`, `close_dock`,
-`remask_docks`, `find_dock`, `send_navy`, `coast_here`,
-`action_set_transport` have never run, each one cheat-channel scenario
-(`docs/TRANSPORT.md` §12). Then, as before: run7's order stream replayed
-under the trace, a mounted attacker, a caravan, the `found_cities` window
-at 576; `make_stuff` whole with the goods block; `Leader::diplomacy`;
-`calc_gather` for non-flat buildings. One behavioural check §15.9 names: a
-`DUMP_ALL` window on a crowded city whose `CITY` record has `space[0] >
-space[1]`, which would be the first run to reach the return-2 branch.
+**Next**, in the order the reading and the captures suggest:
+
+- **The muster-spot ring search** (`docs/ARMY.md` §13, §18; audit B.44,
+  B.56): `circle_init@006817f0`'s tables, the cell flag bits `0x4/0x8/0x20/
+  0x40/0x100/0x800/0x4000` and the `lands[class].+0x100` score. Needs the
+  per-cell land classes in the sim's `World`, which the `WORLD ≥ 5` dump
+  carries. Closes the closes at 12129 and 15100, and makes run22's muster
+  cells an assertion instead of a reading.
+- **The group orders** — `Group::action_move_to` / `action_attack` /
+  `action_siege_attack_to` / `action_stance` / `action_halt`,
+  `Groups::push_group` — the half of the army the sim cannot issue
+  (`docs/ARMY.md` §17). With them, `do_forming`, `march_to_target`,
+  `engagement`, `send_here` and `charge` become behaviour, and `engagement`
+  — never executed in any traced game — gets its first capture: a run
+  where the attackers meet the army at its muster spot, not the city.
+- **The dumped-record widenings the readers named** (audit §"What changed",
+  B's §9): `LEADERDATA` with `defense_mod`, `combat`, `sea_combat`,
+  `strong[]`, `weak[]`, `pop_issues`, the two win timers, `frame_attacked`,
+  `attacked_by`, `fort_mark`, `city_mark` and the personality; `CITY` with
+  `bordering`, `was_capital_flags`, `founder`, `ocean`. Nine tenths of what
+  `find_target` reads is per-leader state the dump does not print. The
+  `GROUPDATA` records (512 a block) are unread and would carry §3's group
+  bookkeeping.
+- Then, as before: run7's order stream replayed under the trace, a mounted
+  attacker, a caravan, the `found_cities` window at 576; `make_stuff` whole
+  with the goods block; `Leader::diplomacy`; `calc_gather` for non-flat
+  buildings; `think_civilian_transport` (`docs/TRANSPORT.md` §12).
 
 **Agreed with the user, 2026-08-25.** How the verification budget splits:
 diff first wherever a dump exists; a blind reading scoped to what no run
-reaches, its readers briefed to output assertions; the soak kept as the
-determinism guard it is. The rules are in `CLAUDE.md` ("Prefer a diff to a
-reading"); the one build that changes the ratio is item 13 below. Today's
-shape — read, stage the capture from the trace's frame numbers, spawn the
-readers while it runs, adjudicate against both — is the one to repeat.
+reaches, its readers briefed to output assertions and handed the captures;
+the soak kept as the determinism guard it is. The rules are in `CLAUDE.md`
+("Prefer a diff to a reading"); the one build that changes the ratio is
+item 13 below. Today's shape — read, stage the captures from the trace's
+frame numbers with `tools/gamelog/runwin.sh`, spawn the readers while they
+run, adjudicate against both — is the one to repeat.
 
-**Needs the user.** Nothing this session: the lobby's clicks were driven
-(`docs/ORACLE.md`, run22's driving notes). A window run is now `window.py
-stage LO HI`, launch, five `cliclick`s, wait, `restore`.
+**Needs the user.** Nothing this session. One caution for the next: a
+`war` cheat is a no-op in a Quick Battle (it starts at war); `tools/gamelog/
+rngcmp.py` shows in ten seconds whether a staged scenario took.
 
-**Opener:** `proceed @docs/QUEUE.md — open docs/ARMY.md from the second reading's army rows (audit B.45, B.59, B.67, docs/TRANSPORT.md's transporting step) and run21's frames past 14586`
+**Opener:** `proceed @docs/QUEUE.md — build find_muster_spot's ring search (docs/ARMY.md §13, §18; audit B.44/B.56): circle_init's tables and the cell classes into World, then make run22's muster cells and run25/27's closes assertions`
 
 ## The queue
 
@@ -94,8 +106,7 @@ in which case say so and take that. The story of each struck item is in
    `build.rs` / `place.rs` / `city.rs` / `garrison.rs`,
    `docs/audit/2026-08-20-cities.md`.
 4. ~~**The behavioural-check batch**~~ — run 2026-08-20 and 2026-08-24. The
-   recipe is `docs/ORACLE.md`, "Running a check: the recipe in one place";
-   what is still open is owed item 4 above.
+   recipe is `docs/ORACLE.md`, "Running a check: the recipe in one place".
 5. ~~**The data layer into the sim, and the diff**~~ — done 2026-08-20.
    `docs/DATALAYER.md`, `crates/rondata/src/{gamelog,dump,load,diff}.rs`.
 6. ~~**The combat table's hardcoded half**~~ — done 2026-08-20.
@@ -147,6 +158,7 @@ in which case say so and take that. The story of each struck item is in
       ~500 with the per-frame dump gated off. A scenario is a window:
       fast-forward to it, dump one to three hundred frames, quit. Budget one
       to two minutes a seed, and run seeds in a batch overnight.
+      `tools/gamelog/runwin.sh` is that window run, unattended, today.
     - **Definition of done:** a tool (`tools/fuzz/`, or beside
       `tools/gamelog/`) takes a seed, writes the `.cmd` and the ini, drives
       the game, runs the diff, and appends one line to a ledger — seed,
@@ -160,6 +172,9 @@ in which case say so and take that. The story of each struck item is in
 14. ~~**The sea half — transports and docks**~~ — done 2026-08-25.
     `docs/TRANSPORT.md`, `crates/sim/src/transport.rs`,
     `docs/audit/2026-08-25-transport.md`; run22 and `tools/gamelog/window.py`.
+15. ~~**Armies**~~ — done 2026-08-25. `docs/ARMY.md`,
+    `crates/sim/src/army.rs`, `docs/audit/2026-08-25-army.md`; runs 23–27,
+    `tools/gamelog/runwin.sh`, `rngcmp.py`, `armyrecs.py`.
 
 ## How to maintain this file
 

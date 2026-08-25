@@ -1040,7 +1040,8 @@ impl Sim {
         let pers = self.ai[w].pers;
         let my_combat = self.ai[w].census.combat;
 
-        // The two averages of `combat`.
+        // The two averages of `sea_combat` (audit B.20: the listing's base
+        // is the leader plus 8, so `+0x944` there is `+0x94c`).
         let (mut ours, mut theirs) = ((0, 0), (0, 0));
         for i in 0..self.players.len() {
             if self.defeated[i] {
@@ -1048,9 +1049,9 @@ impl Sim {
             }
             let ip = i as Player;
             if self.is_ally(who, ip) {
-                ours = (ours.0 + self.ai[i].census.combat, ours.1 + 1);
+                ours = (ours.0 + self.ai[i].census.sea_combat, ours.1 + 1);
             } else if self.is_enemy(who, ip) {
-                theirs = (theirs.0 + self.ai[i].census.combat, theirs.1 + 1);
+                theirs = (theirs.0 + self.ai[i].census.sea_combat, theirs.1 + 1);
             }
         }
         let ours = if ours.1 != 0 { ours.0 / ours.1 } else { 0 };
@@ -1069,10 +1070,15 @@ impl Sim {
                 let ip = i as Player;
                 let enemy = self.is_enemy(who, ip);
                 let allied = self.is_ally(who, ip);
-                if i != w && !allied {
-                    if !enemy {
-                        // At peace: `weak`/`strong`/tribute are seams; a
-                        // leader at peace is never a target.
+                if i != w {
+                    // `defense_mod` is the switch (audit B.22): above 0x100
+                    // only allies are considered, below it only enemies.
+                    // `weak`/`strong`/the tribute period are seams.
+                    let dm = self.ai[w].defense_mod;
+                    if !enemy && (!allied || dm < 0x100) {
+                        continue;
+                    }
+                    if enemy && dm > 0x100 {
                         continue;
                     }
                     if diff < 2 {
@@ -1091,8 +1097,8 @@ impl Sim {
                         }
                     } else {
                         if diff == 1
-                            && num_captains >= my_combat / 2
-                            && self.find_aggressive_army(who).is_some_and(|k| k != slot)
+                            && (num_captains >= my_combat / 2
+                                || self.find_aggressive_army(who).is_some_and(|k| k != slot))
                         {
                             continue;
                         }
@@ -1133,7 +1139,7 @@ impl Sim {
                     if let Some(cap) = capital
                         && enemy
                     {
-                        if weak_army && !(cd.owner == who && cd.unassimilated) {
+                        if weak_army && !(cd.founder == who && cd.unassimilated) {
                             continue;
                         }
                         let cc = cd.pos.cell();
@@ -1346,6 +1352,7 @@ impl Sim {
             (a.pos, a.navy)
         };
         let ac = apos.cell();
+        let tc = self.pos_of(target).cell();
         let height = self.world.height();
         if self.is_ally(who, tw) && !navy {
             let mut muster: Option<Cell> = None;
@@ -1381,7 +1388,7 @@ impl Sim {
                         let mc = self.units[e].pos.cell();
                         let a = &mut self.armies[w].list[slot];
                         a.muster = mc;
-                        a.muster_angle = find_angle(mc.x - ac.x, mc.y - ac.y);
+                        a.muster_angle = find_angle(mc.x - tc.x, mc.y - tc.y);
                         a.hurry = 1;
                         return true;
                     }
@@ -1390,16 +1397,19 @@ impl Sim {
                     }
                 }
             }
-            let m = below(muster.unwrap_or_else(|| self.pos_of(target).cell()), height);
+            let m = below(muster.unwrap_or(tc), height);
             let a = &mut self.armies[w].list[slot];
             a.muster = m;
-            a.muster_angle = find_angle(m.x - ac.x, m.y - ac.y);
+            a.muster_angle = find_angle(m.x - tc.x, m.y - tc.y);
             return true;
         }
-        let m = below(self.pos_of(target).cell(), height);
+        // The ring search's own angle is from the army's point (`ac`); the
+        // fallback's, like the chase's, from the target (audit B.46).
+        let _ = ac;
+        let m = below(tc, height);
         let a = &mut self.armies[w].list[slot];
         a.muster = m;
-        a.muster_angle = find_angle(m.x - ac.x, m.y - ac.y);
+        a.muster_angle = find_angle(m.x - tc.x, m.y - tc.y);
         true
     }
 
@@ -1616,7 +1626,7 @@ impl Sim {
             if best.is_some_and(|(_, bd)| d > bd) {
                 continue;
             }
-            if !self.army_admits(who, s, unit, 2, 1) {
+            if !self.army_admits(who, s, unit, 3, 2) {
                 continue;
             }
             best = Some((s, d));
@@ -1624,21 +1634,21 @@ impl Sim {
         best
     }
 
-    /// `Armies::find_useful_army`: the ping's finder.
+    /// `Armies::find_useful_army`: the ping's finder — distance per captain.
     pub fn find_useful_army(&self, who: Player, p: Pos) -> Option<usize> {
         let w = who as usize;
         let reg = self.world.tregion(p.tile());
         let level = self.transport_level(who) as i32 != 0;
         let mut best: Option<(usize, i32)> = None;
         for (s, a) in self.armies[w].valid() {
-            if a.num_units == 0 || !((!a.navy && level) || a.reg == reg) {
+            if a.num_captains == 0 || !((!a.navy && level) || a.reg == reg) {
                 continue;
             }
             let mut d = dist(p, a.pos);
             if a.reg != reg {
                 d *= 3;
             }
-            let score = d / a.num_units;
+            let score = d / a.num_captains;
             if best.is_none_or(|(_, bs)| score <= bs) {
                 best = Some((s, score));
             }
@@ -1646,13 +1656,13 @@ impl Sim {
         best.map(|(s, _)| s)
     }
 
-    /// `Armies::find_aggressive_army`: the first army of two or more units,
-    /// not mustering, standing outside its owner's territory.
+    /// `Armies::find_aggressive_army`: the first army of two or more
+    /// captains, not mustering, standing outside its owner's territory.
     pub fn find_aggressive_army(&self, who: Player) -> Option<usize> {
         self.armies[who as usize]
             .valid()
             .find(|(_, a)| {
-                a.num_units >= 2
+                a.num_captains >= 2
                     && a.status & status::MUSTERING == 0
                     && self.world.owner(a.pos.cell()) != Owner::Player(who)
             })

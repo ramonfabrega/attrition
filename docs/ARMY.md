@@ -79,19 +79,31 @@ ArmyData  (types.txt, 0x98)
   +0x96 num_groups     short
 ```
 
-`status` bits, from every writer in the family (§5–§10, `docs/TRANSPORT.md`
-§8.1):
+`status` bits — the PDB's `ArmyStatus` enum (audit A.14: `ARMY_MUSTERING 1,
+ARMY_MARCHING 2, ARMY_OFFENSE 4, ARMY_IDLE 8, ARMY_FORMUP 16, ARMY_DEFENDING
+32, ARMY_NEED_TRANSPORT 64, ARMY_FORCE_PROCESS 128`), from every writer in the
+family (§5–§10, `docs/TRANSPORT.md` §8.1):
 
-| bit | state | entered by |
-| --- | --- | --- |
-| `0x01` | **mustering** | `Army::init` |
-| `0x02` | **marching** | `do_mustering`'s release; `process` when nothing else is set; `do_defending` on a besieged city; the muster-spot retarget |
-| `0x04` | *marched* — `march_to_target` has issued its orders once | `march_to_target`; cleared whenever the army is not engaged |
-| `0x08` | *no target* — one tick's rest after `find_target` failed | `do_marching` |
-| `0x10` | **forming** | a muster spot found; the midpoint step; a target taken |
-| `0x20` | **defending** | `do_mustering` on a region the census marks weak, at difficulty < 3 |
-| `0x40` | **transporting** | `do_mustering` (`docs/TRANSPORT.md` §8.1) |
-| `0x80` | *hurry* — consumed by `process_all` into `process`'s argument | `Armies::update_city` (§15) |
+| bit | name | state | entered by |
+| --- | --- | --- | --- |
+| `0x01` | `MUSTERING` | **mustering** | `Army::init` |
+| `0x02` | `MARCHING` | **marching** | `do_mustering`'s release; `process` when nothing else is set; `do_defending` on a besieged city; the muster-spot retarget |
+| `0x04` | `OFFENSE` | `march_to_target` has issued its orders once | `march_to_target`; cleared whenever the army is not engaged |
+| `0x08` | `IDLE` | one tick's rest after `find_target` failed | `do_marching` |
+| `0x10` | `FORMUP` | **forming** | a muster spot found; the midpoint step; a target taken |
+| `0x20` | `DEFENDING` | **defending** | `do_mustering` on a region the census marks weak, at difficulty < 3 |
+| `0x40` | `NEED_TRANSPORT` | **transporting** | `do_mustering` (`docs/TRANSPORT.md` §8.1) |
+| `0x80` | `FORCE_PROCESS` | consumed by `process_all` into `process`'s argument | `Armies::update_city` (§15) |
+
+The other enums the family reads are the PDB's too (audit A.15, A.56,
+A.57): `strategy[]`'s `STRATEGY_EXPAND 1, ATTACK 2, DEFEND 4, TRANSPORT 8`;
+`city_flags`' `CITY_VALID 1, CITY_UNDER_ATTACK 2, CITY_ATTACKING 4,
+CITY_EVER_ATTACKED 8, CITY_CAPITAL 16, CITY_ALARM 64`; the object flag
+byte's `OBJECT_VALID 1, OBJECT_ACTIVE 4, OBJECT_CITY 32` — so every `flags &
+0x20` on an object below asks "is this a city centre", not "a building";
+`leader_flags`' `LEADER_VALID 1, ACTIVE 2, HUMAN 4, COOP_SOLO 8, DEFEATED 64,
+CAN_TRANSPORT_CIV 256, _MIL 512, _SCT 1024`; `leader_flags2`'s
+`LEADER_UNIT_AI_OFF 2, PROD_AI_OFF 4, COMBAT_AI_OFF 8`.
 
 The states are **not exclusive** — `process` (§6) dispatches each set bit's
 handler in turn, so an army can be mustering and forming in the same tick
@@ -225,9 +237,10 @@ wagons, decoys and anti-air. `GroupData::count@00711720` is the
 Then the sort: groups are ordered by the **category of their leader
 unit's type** (`GroupData::find_leader`, or `list[0]` for a building
 group; `UnitTypeData +0x14`, the same field `COUNT_CATEGORY` compares),
-**descending**, by an insertion pass that swaps adjacent list entries —
-so `list[0]` is the group whose leader has the highest category, and
-§3.2 adds every new unit to it.
+**ascending** — the pass swaps a pair when the earlier key is the greater
+(audit A.13; the first reading had it descending) — so `list[0]` is the
+group whose leader has the **lowest** category, and §3.2 adds every new
+unit to it.
 
 ## 4. Who joins — `Unit::add_to_army@005f7740`
 
@@ -437,10 +450,13 @@ sin_table(angle, d)`, `y' = y − sin_table(angle + 0x40000000, d)`,
    muster_angle, ATTACK_TO, 1, −1, −1, 0)`. Else (an enemy target, or no
    attacked city): `action_siege_attack_to` as above — the same call,
    siege or not.
-5. **Step back** for the next group: `x' += sin_table(muster_angle +
-   0x80000000, 0x180)`, `y' −= sin_table(muster_angle + 0xc0000000,
-   0x180)` — half a cell along the **reversed** muster angle, so the
-   groups line up behind the origin, biggest first (§3.3).
+5. **Step** for the next group: `x' += 0x180 · sin(muster_angle)`, `y' −=
+   0x180 · cos(muster_angle)` — half a cell **along** the muster angle.
+   The listing's leading `sub eax, 0x80000000` is the first step of
+   `docs/MOVEMENT.md`'s sine fold (the far half of the circle negates the
+   distance), not a reversal; the first reading read it as one, and both
+   second readers (A.36, A.62, A.67) as the fold. So the groups stand in a
+   column from the origin onward, lowest category first (§3.3).
 
 Returns 1. Note what it does not do: it never checks the army has
 arrived; `process` step 4 moves the muster cell and this issues the
@@ -454,12 +470,13 @@ is **validated**, and any failure goes to the retarget below. With
 `target_o >= 0`, `t = objects[target_who][target_o].data()` (vslot
 `+0xac`):
 
-- `t.flags & 1` (active), else *keep marching* (a dead target is left to
-  `find_muster_spot`); and
-- `t.flags & 0x20` clear (not a building): if the owner is not an enemy,
-  the object must answer its "is a target" slot (`Build::vftable` →
-  `build_masks & 0x20`; else vslot `0x188`), or → **retarget**;
-- a building with a city (`+0x72 >= 0`): the city must be active; a
+- `t.flags & OBJECT_VALID`, else *keep marching* (a dead target is left
+  to `find_muster_spot`); and
+- `OBJECT_CITY` clear (not a city centre — a fort, or a unit): if the
+  owner is not an enemy, the object must answer its "under attack" slot
+  (`Build::vftable` → `build_masks & 0x20`; else vslot `0x188`), or →
+  **retarget**;
+- a city centre with a city (`+0x72 >= 0`): the city must be active; a
   **navy** targeting a non-enemy's city needs it attacked (`flags & 2`);
   and a non-enemy, non-attacked, assimilated city whose building is
   damaged less than three quarters (`damage < hits() × 3 / 4`) is kept
@@ -477,9 +494,10 @@ return (§6 step 5 turns it back into 2 next tick). Then, if still `status
 `!is_engaged()`: `status = (status & ~4) | 0x12` and return — the walk is
 §6 step 4 plus §8. If engaged and **`status & 4` clear** — the first tick
 of the fight — the formation origin is `(x, y)` stepped **one cell along
-the reversed `muster_angle`** (`sin_table(muster_angle + 0x80000000,
-0x300)`, listing `6f4daa`–`6f4e2b`), `angle = find_angle(x' −
-target.x, y' − target.y)` (`6f4e70`), the stance rule (§8.2), the same
+`muster_angle`** (`0x300 · sin`, `−0x300 · cos`; listing `6f4daa`–`6f4e2b`,
+the same fold as §8.5), `angle = find_angle(x' − target.x, y' −
+target.y)` (`6f4e70`) — the direction from the target to the origin
+(A.62), the stance rule (§8.2), the same
 siege / move choice as §8.3–8.4 with **`hurry` alone** selecting the move
 (`bVar12`), and then per group: a **building target at 90 % or more of
 its hits** (`damage < hits × 9 / 10` is false) gets `action_move_to` to
@@ -574,53 +592,61 @@ weak. `supply = count(NON_DECOY_TYPE, SUPPLYWAGON)` is kept for later.
 **The capital.** `LeaderData::find_capital(&city, &who, −1, −1)`; mine
 (`who == me`) → `(cap_x, cap_y)` its cell and `have_capital = 1`.
 
-**The two averages.** Over active leaders: mine and my allies' `combat`
-(`LeaderData +0x944`) summed and divided by their count → `ours`; every
-leader at war with me → `theirs`. The decompiler prints `puVar16[0x251]`,
-which would be `+0x94c sea_combat`; the listing at `6f6c5d` is `add esi,
-[edx + 0x944]` — `combat`.
+**The two averages.** Over active leaders: mine and my allies'
+**`sea_combat`** (`LeaderData +0x94c`) summed and divided by their count →
+`ours`; every leader at war with me → `theirs`. The decompiler's
+`puVar16[0x251]` is `+0x94c` from a base the loop keeps at the leader
+**plus 8** (`cmp edx, 0xe71af8`, listing `6f6b5d`), so the `[edx + 0x944]`
+at `6f6c5d` is `sea_combat` — the field that fits its one use, the
+out-of-region discount below (audit B.20; the first reading's "settled:
+`combat`" had missed the base).
 
 **Two passes** (`local_5c` 0 then 1); the second only runs when the first
 found nothing, and relaxes one multiplier (below). In each pass, over
 every leader `L` in 0..8 with `leader_flags & 2` (alive):
 
-*Which leaders qualify.* `L == me` always. Otherwise, with `t =
-diplos[me][L]`, `u = diplos[L][me]`:
+*Which leaders qualify.* `L == me` always, straight to the scoring.
+Otherwise **my** `defense_mod` (`+0x7a8`, `0x100` = ×1) is the switch
+(audit B.22, from the listing — the decompiler inverts the sense):
 
-- **allied** (`t == 2 && u == 2`), or **at peace** with `weak[L] == 0`,
-  `strong[L] != 0`, not a tribute period and `L.defense_mod > 0xff`:
-  qualifies (my ally's cities are scored as places to defend — the
-  `attacked` multiplier below is what makes them worth anything);
-- otherwise, at peace and `defense_mod <= 0x100`: if `L.wonderwin_timer
-  != 0 || L.popwin_timer != 0` set **`about_to_win = 1`** (a ×100 below);
-  then the **difficulty gate**: at `diff < 2`, qualify only if `diff != 0
-  || leader_flags & 4` (human) and `L.frame_attacked + 0x1c20 <= frame`
-  (7,200 frames since I last took a target against `L`) and either
-  `find_aggressive_army(me)` is this army or, with none, a coin —
-  **`Random::get(game_random, 0, 0xffff) & 1 == 0`**; at `diff >= 2`
-  straight through to the *strength gate*: `diff != 1 || num_captains <
-  combat / 2 || find_aggressive_army(me) ∈ {none, this}`; then `diff <
-  2`, or `L` is me, or allied, or (`age < 3` and `pers.early_army != 0`
-  and `diff != 2`), or `num_standard >= 7 − 2 × pers.raid`; then `diff !=
-  2`, or `L.frame_attacked + 0x708 <= frame` and (`team_style == 3` or
-  `+ 0xe10 <= frame` or `L.attacked_by == me` or `my.attacked_by == L`).
-  A leader that fails any of these is skipped this pass.
+- **not at war** (`diplos` both non-zero): qualifies only if allied both
+  ways (or my ally-slot), **my** `weak[L] == 0`, `strong[L] != 0`, not a
+  tribute period, and `defense_mod >= 0x100` — an ally's cities are scored
+  as places to defend, the `attacked` multipliers below making them worth
+  anything;
+- **at war**: only if `defense_mod <= 0x100`; and if my `wonderwin_timer
+  != 0 || popwin_timer != 0` set **`about_to_win = 1`** (a ×100 below).
+
+So above `0x100` the AI considers allies only, below it enemies only, at
+`0x100` both. A leader that passes goes through the **difficulty gate**:
+at `diff < 2`, qualify only if `diff != 0 || L is human` and
+`L.frame_attacked + 0x1c20 <= frame` (7,200 frames since I last took a
+target against `L`) and either `find_aggressive_army(me)` is this army
+or, with none, a coin — **`Random::get(game_random, 0, 0xffff) & 1 ==
+0`**; at `diff >= 2`: skip if `diff == 1` and (`num_captains >= combat /
+2` or `find_aggressive_army(me)` is another army); then proceed if `diff
+< 2`, or `L` is my ally-slot, or allied, or (`age < 3` and
+`pers.early_army != 0` and `diff != 2`), or `num_standard >= 7 − 2 ×
+pers.raid`; then `diff != 2`, or `L.frame_attacked + 0x708 <= frame` and
+(`team_style == 3` or `+ 0xe10 <= frame` or `L.attacked_by == me` or
+`my.attacked_by == L`). A leader that fails any of these is skipped this
+pass.
 
 *Team play* (`team_style == 2`): `L` must be the next leader after my
 ally-slot in the start list that is alive and in use, or me, or my
 ally-slot, or allied — otherwise skipped.
 
 *Every city of `L`* below `L.city_mark`, `city_flags & 1`, and for a navy
-in a region `is_coast` of mine with `ocean != 0`; then unless `diff > 1`
-or `L` is not my ally-slot and not allied, or the city's `founder` is me
-— i.e. at easy difficulty a leader only attacks cities it founded or
-holds through an ally — skip. The score:
+in a region `is_coast` of mine with `ocean != 0`; then at `diff <= 1`,
+for me or an ally, skip unless the city's `founder` is me (B.25: on the
+two easiest difficulties the AI defends only cities it founded). The
+score:
 
 ```
 v = Random::get(game_random, 0, 0xffff) % 200 + 900                  # one draw per candidate
 if have_capital and L is an enemy (not my ally-slot, at war either way):
-    if weak_army:                                                     # a weak army only raids
-        skip unless city.who == me and its building is_unassimilated
+    if weak_army:                                                     # a weak army only retakes
+        skip unless city.founder == me and its building is_unassimilated   # B.27: founder
     v −= 50 × vector_dist(|cell(c.x) − cap_x|, |cell(c.y) − cap_y|) / world.xs   # listing 6f7281
 if my pop_issues != 0 and L is an enemy: v ×= 4
 if L.wonderwin_timer != 0 and the city has a wonder (num_wonders(c, 0)) and Game::wonder_winning() == L: v ×= 10
@@ -739,16 +765,18 @@ city) — for each that is **damaged** (`+0x24`) and has `build_masks &
 FILTER_DOMAIN)`), else an enemy unit within `0x1200` **targeting it**
 (`FILTER_TARGET o, who`), else with siege an enemy combat building within
 `0x1200`; **found** → `muster = its cell`, `muster_angle = find_angle(muster
-− cell(x, y))`, **`hurry = 1`**, return 1. Not found: `muster` = the
+− cell(target))` — from the **target**, not the army (listing `6f602d`,
+audit B.15) — **`hurry = 1`**, return 1. Not found: `muster` = the
 damaged building's cell if unset. After the chain, `muster` unset → the
 target's own cell; then `muster_y += 1`, or `−= 1` on the map's last row;
-`muster_angle = find_angle(muster − cell(x, y))` and fall through to the
+`muster_angle = find_angle(muster − cell(target))` and fall through to the
 ring search with that as the starting cell.
 
 **The ring search.** Centre `(ax, ay) = cell(x, y)`, the army's point.
-`inner`: for a non-building target or a navy, 5; for a building whose
-city is unassimilated, 4; else `city.get_radius() / 4 + 1`, halved when I
-have no siege and the target is not mine. `outer = min(0x40, inner + (3 ×
+`inner`: for a target that is not a city centre (`OBJECT_CITY` clear) or
+a navy, 5; for a city centre whose city is unassimilated, 4; else
+`city.get_radius() / 4 + 1`, halved when I have no siege and the target
+is not mine. `outer = min(0x40, inner + (3 ×
 navy + 1) × 2)`. Walk the ring cells `circle_x/y[circle_radius[inner] ..
 circle_radius[outer])` (`circle_init@006817f0`'s tables, the ordered
 cells by radius `docs/CITIES.md` uses) around `(ax, ay)`, in bounds. For
@@ -776,12 +804,14 @@ each candidate cell `(cx, cy)`:
   index is more than `0x28` past the best's.
 
 With a best: `muster = it`, `muster_angle = find_angle(muster − (ax,
-ay))`; a **building target of my own** with a city: clear the city's
-`0x2000` bit. Return 1. No cell: for a building target that is not
-mine/allied, or that is damaged: `muster = the city's cell, y ± 1`,
-`muster_angle`, return 1; a building of my own with a city that is active
+ay))` — here from the **army's** point (listing `6f67aa`); a **city centre
+of my own** with a city: clear the city's `0x2000` bit. Return 1. No cell:
+for a land army whose target is a city centre that is not mine/allied, or
+that is damaged: `muster = the city's cell, y ± 1`, `muster_angle` from
+the target, return 1; a city centre of my own with a city that is active
 and not attacked: **set `city_flags |= 0x2000`** — the mark §12 divides
-by 20 — and return 0.
+by 20 — and return 0. That 0 is what closed army 1 at 12129 and army 0 at
+15100 (§16.5): an undamaged city of one's own with no ring cell.
 
 ## 14. The helpers
 
@@ -841,14 +871,16 @@ of the point's tile.
    above but **`90,000,000` for an army with no units** (an empty one
    sorts last), `<=` so the later equal wins; the same supply/hero caps.
    The `diff` here is the leader's, inlined.
-3. **`find_useful_army(who, x, y, ·, ·)@006f2fe0`**: valid, `num_units !=
-   0`, and either in the point's region or a land army of a leader with a
-   transport level; score `dist × (3 if another region) / num_units`,
-   `<=`. The ping's finder (§14).
+3. **`find_useful_army(who, x, y, ·, ·)@006f2fe0`**: valid,
+   `num_captains != 0`, and either in the point's region or a land army
+   of a leader with a transport level; score `dist × (3 if another
+   region) / num_captains` — distance per captain, so a bigger army beats
+   a nearer one — `<=`. The ping's finder (§14). (`+0x14`, audit B.49;
+   the first reading had `num_units`.)
 4. **`find_aggressive_army(who)@006f2e10`**: the first valid army with
-   `num_units >= 2`, not mustering, whose `(x, y)` cell is **not** in the
-   leader's own territory (`WData +0xf who != who`). §12's "is this army
-   the one already on the offensive".
+   `num_captains >= 2` (`+0x14`, B.50), not mustering, whose `(x, y)` cell
+   is **not** in the leader's own territory (`WData +0xf who != who`).
+   §12's "is this army the one already on the offensive".
 5. **`find_city(who, city, ·)@006f3160`**: the first valid army mustering
    at `city`. No caller in the game.
 6. **`num_armies(who, mask, reg)@006f3200`**: §7.
@@ -964,7 +996,18 @@ the sim having run on past the `!quit`. The records
   `status 1`; a new army 1 at a new city 0 in region 5; army 2 still the
   navy, now `target_o 2007, target_who 0` — the human's building that is
   the captured capital — `status 18`.
-- **Run27** (`[15100, 15103)`): §17's third check, once read.
+- **Run27, block 15100** (before army 0's tick at 15100, the capital
+  already lost): army 0 at city 1 — **seven units, `status 1`**, mustering
+  with no muster spot, muster `(45,48)` (the init's), `muster_angle 0`;
+  army 2 the navy, `status 18`, `target_o 2007, target_who 0`. **Block
+  15101**: **army 0 is gone.** The window's coverage for 15100 names the
+  path — `do_mustering` → `release_mustering` (with `num_armies`, so the
+  population-share test was reached) → released into **defending**
+  (`strategy[11] & 4`, difficulty < 3) → `do_defending` →
+  `find_besieged_city` (none) → the nearest friendly city →
+  `find_muster_spot` **failed** → `close`. No `find_target`, no
+  `do_marching`. Block 16007: a new army 1 at a new city 0 in region 5,
+  seeded by the census; army 0 back at city 1 with seven units.
 
 ## 17. What the simulation carries, and what checks it
 
@@ -1010,13 +1053,20 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
 
 ## 18. What is not established
 
-- **`leader_flags & 8`**, the bit that stops `release_mustering` and
-  `find_target` outright and `Unit::think`'s military branch with them.
-  `docs/ORDERS.md` §8 does not name it; no writer read. *Capture:* a
-  `LEADERS=1` record's `leader_flags` on a leader whose armies never
-  leave muster.
-- ~~**The `combat` average's field.**~~ Settled in the listing (`6f6c5d`,
-  §12): `combat`.
+- ~~**`leader_flags & 8`**~~ — the PDB names it `LEADER_COOP_SOLO` (audit
+  A.56): a human seat the AI plays for; `production_ai` runs for such a
+  leader and the armies do not (B.16). Never set in a skirmish.
+- ~~**The `combat` average's field.**~~ `sea_combat`, from the listing's
+  base register (B.20, §12) — the first reading's own "settlement" was the
+  error.
+- **`find_city`'s index in `do_defending`** (A.73): the search returns a
+  per-leader city index and `do_defending` resolves it against the army
+  owner's list; whether `SEARCH_FRIENDLY` can hand back an ally's index is
+  `Search::valid_search`'s, unread. The sim searches the owner's cities.
+- **`use_generals` / `use_scouts` gate on `is(GENERAL)` / `is(SCOUT)` and
+  test `is_hero` / `is_special`** (A.80). Vacuous by the loader:
+  `docs/DATALAYER.md`'s `unit_flags2 & 0x20` is `is(GENERAL)` and `& 0x10`
+  `is(SCOUT)`.
 - **The ring search is what decides whether an army survives its first
   tick under attack.** Run25's block 12130 (§16.5) shows army 1 **closed**
   in the `emergency` tick of 12129, and the window's coverage names the
@@ -1026,6 +1076,10 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   a map-and-neighbour fact (§13's "not too near another army", the land
   classes, the `0x2000` mark) that the reading cannot settle and the seam
   in `army.rs` cannot reproduce: the harness keeps army 1 alive there.
+  Run27 repeats it at 15100 — a seven-unit army released into defending
+  and closed because `find_muster_spot` failed at its own city — so **two
+  of the three windows end an army through this one search**, and it is
+  the first thing to build once the cell classes are loaded.
   *To close:* the ring search itself — `circle_init`'s tables and the
   `lands` scores — which needs the cell classes the sim does not yet load.
 - **`find_besieged_city`'s loop bound** is the **calling** leader's
@@ -1058,6 +1112,15 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   `use_scouts`, `use_spies`, `find_waiting_unit`, `find_useful_army`,
   `find_city`, `diplo_change`, `Armies::send_navy`.
 
-## 19. Second reading
+## 19. Second reading — landed, 2026-08-25
 
-*Pending.*
+Two blind readers on Opus 5, split §5–§11 and §14 (A) against §2, §12,
+§13 and §15 (B), the same day as the first reading and briefed with the
+captures; adjudicated in the main thread on Fable against the decompile,
+the listing and the three windows. `docs/audit/2026-08-25-army.md` is the
+record, verdict by verdict; the reports are at
+`~/ghidra-projects/reading/army-2026-08-25/`. Eleven verdicts changed this
+document and six changed `army.rs`; the corrections above carry their
+audit row (`A.13`, `A.57`, `A.62`, `B.15`, `B.20`, `B.22`, `B.24`, `B.27`,
+`B.49`, `B.50`) where they stand, and the largest — `sea_combat` — was a
+claim the first reading had called settled.

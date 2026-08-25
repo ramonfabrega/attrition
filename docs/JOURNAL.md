@@ -831,3 +831,53 @@ went first.
   README already carries — read the body before the caller — was the one
   the queue's diagnosis skipped.
 - The owed list is empty. Next is `docs/ARMY.md`.
+
+## 2026-08-25 — armies: the state machine, four runs, and the family's audit
+
+On Fable, one sitting, `/clear` to commit. The queue's opener: open
+`docs/ARMY.md` from the transport audit's army rows and run21's frames
+past 14586.
+
+- **Read whole in the main thread** — 5,500 lines of decompile, the
+  listing for every dropped register argument (`find_angle(dx, dy)` is
+  `ecx, edx`; the engaged radii are 0xc00 from the army's point and from
+  the centre of gravity), the type records for every name. The shape that
+  came out: sixteen slots a leader, a 256-frame tick phased by slot and
+  owner, one implicit group, counts from the units, a muster point that
+  halves its distance to the target each tick, and `find_target` as a
+  scored search over every city with a `Random::get` per candidate.
+- **The capture came before the reading finished, and it was cheap in the
+  end and expensive in the middle.** Run23 declared war at frame 6000 and
+  changed **nothing** — every per-frame RNG word identical to run21's,
+  because a Quick Battle starts at war. Ten seconds with `rngcmp.py`
+  would have said so; it is in `tools/gamelog/` now. Run24 dropped seven
+  human hoplites beside the AI's capital instead: the capital fell at
+  13125, the AI was defeated at 16488, and nine of the family's
+  never-executed functions ran. Three `DUMP_ALL` windows on run24's
+  frames followed, chained by one script, thirty minutes unattended.
+- **What the records said.** The AI's third army is a **navy** that, on its
+  first tick after the raid, targets the AI's **own attacked capital** —
+  §12's `L == me && attacked → ×10`, `capital → ×10`, visible in the
+  record as `target_o 2000, target_who 1`. And `emergency` at 12129 closed
+  army 1 through the one path the sim's seam cannot take: the muster-spot
+  ring search failed at a city where it had succeeded for 9,000 frames,
+  `do_mustering` set marching, `do_marching` found no attacker, `close`.
+  The ring search is the seam the first capture reaches; `docs/ARMY.md`
+  §18 says so and what would close it.
+- **Landed.** `docs/ARMY.md` (19 sections), `crates/sim/src/army.rs` (the
+  record and the decisions; the group orders, the ring search and the
+  fort pass as named seams), wired into the census's step 16,
+  `create_units`, the unit think, city close and capture, defeat, damage
+  and war. `rondata`: run20's frame-1..3 `ARMY` record equals the
+  harness's step 16 **field for field**; run22's two records are `init`'s
+  with the ring search's muster cells. `SYNC.md` §3.5 has the new draw
+  sites; `AI.md` and `TRANSPORT.md` point here. Commit `2240e6d`.
+- **The second reading**: two blind readers on Opus 5, one wave, briefed
+  with the captures. 142 claims; eleven verdicts changed the document and
+  six changed `army.rs`, and the largest went against a claim the first
+  reading had marked **settled** — the two averages in `find_target` are
+  over `sea_combat`, because the listing's loop register sits at the
+  leader plus 8 and its `+0x944` is `+0x94c`. Both readers went to
+  `rise.pdb` for the enums the export does not ship, and that was worth
+  five verdicts; a "settled in the listing" is a claim like any other.
+  `docs/audit/2026-08-25-army.md`.
