@@ -58,6 +58,27 @@ as the control — and the combat rises separately. A drop in the total is an
 object number recycled and restarts the history. Run16: 489/489
 (`docs/ATTRITION.md`, last section).
 
+## `steps.py` — the production AI's step machine
+
+    steps.py [gamelog] [--who N] [--from F] [--to F] [--terse] [--all]
+             [--names types.tsv]
+
+One block per frame out of a `LEADERS=9` dump: `production_step`,
+`script_step`, `prod_script_run`, the goods picture `production_ai_setup`
+writes (`econ`, `rate`, `shortages`, `worst_good`/`best_good`, the six
+buckets, incomes and caps), the census headline, `num_queued`, the eleven
+`MAKEOBJECT`s **by slot number** and the ten sites. `--terse` compares only
+the step machine's own fields, which is what you want — the ledger's
+buckets tick every frame and would otherwise print every block. `--names`
+takes an `index<TAB>name` table so `t` reads `50=PEASANTS`; build one from
+the Ghidra export's `enums/TypeIndex.txt`.
+
+The slot numbers are the point: the make list is a ranked four (0–3) over
+one-per-category slots (`list[cat]`), so entries at 0, 5 and 8 with nothing
+between them is `MakeList::make_me` behaving exactly as read. `docs/AI.md`
+§15 and `docs/ORACLE.md`, "The producers' run", are what this was written
+for.
+
 ## One frame at a time
 
 `track.py` follows a field across a run. When the question is instead "what is

@@ -388,9 +388,14 @@ head:
    each slot whose `t == head.t` is cleared with probability **1/3** —
    `Random::get(game_random, 0, 0xffff) % 3 == 0` — **or unconditionally**
    when the head is a tower/`0x1bb`/an upgrade-kind type (vslot `+0x64`) or
-   a wonder, or is *not* a military unit type (`is(0x1a4)` or not a unit
-   type or a peasant type). One sync draw per matching slot, every
-   `make_stuff`, whether or not anything was bought.
+   a wonder, or ~~is *not* a military unit type~~ — **corrected: or *is* a
+   university (`is(0x1a4)`) or a unit type that is not a peasant, i.e.
+   exactly a military unit** (`make_stuff:93–97` reads `if (!is(UNIVERSITY,1)
+   && (!is_unit_type() || is_peasant())) goto <probabilistic>`; §14.2, and
+   **observed** — an ordinary building takes the probabilistic arm in
+   run18b, five rolls out of five, §15). One sync draw per matching slot,
+   every `make_stuff`, whether or not anything was bought. The walk is
+   `make_stuff+0x221`; the slot loop's own is `+0x63d` (§15).
 5. **Saving**: if not `paid`, `need = average over available goods with
    `cost[g] > 0` of `(cost[g] − resources[g])`, floored at 0` — the mean
    shortfall.
@@ -525,9 +530,18 @@ seen so far: **9** — a city site (`found_cities`) *and* a category-1 tech
 (`research_techs`, §2.13) share it; **10, 4, 8** — techs of `cat` 0, 2,
 other; **6** — a tower tech. The two `make_stuff` exceptions (§2.6 step 6)
 are therefore "the cat-2 slot when it holds a gather building for a low
-good" and "slot 5 when I have no free peasants and no gatherers" — slot
-5's category is the unit readers' to name. `MakeList::clear` sets every
-`t = -1`; `MakeList::init` allocates the eleven.
+good" and "slot 5 when I have no free peasants and no gatherers" — ~~slot
+5's category is the unit readers' to name~~ — **named by run18b (§15):
+slot 5 is the citizen's**, `create_units` passing `cat 5` for a peasant,
+and **slot 8 an ordinary civic building's** (`create_buildings`, the
+Temple). `MakeList::clear` sets every `t = -1`; `MakeList::init` allocates
+the eleven.
+
+**The whole shape is observed** (§15): a dump with entries at slots 0, 5
+and 8 and nowhere else is this insertion exactly — the citizen at its
+category slot 5 and, until the temple outbid it, at rank 0; the temple at
+rank 0 and category slot 8; and the citizen's rank-0 copy simply gone,
+because a new best overwrites the head instead of shifting it down.
 
 ### 2.12 The city AI — `found_cities@006c7a60`
 
@@ -1455,11 +1469,17 @@ folded back into §2's prose.
    (`compute_ai_values`, §14.4), the market (`docs/ECONOMY.md`), and
    `gather_max` for non-flat buildings (`calc_gather`; a worker's report is
    pending). Each retires a named seam in one module.
-4. **The producers' oracle.** No dump yet shows a non-empty make list: the
+4. ~~**The producers' oracle.** No dump yet shows a non-empty make list: the
    script blocks the C++ steps for the whole of the opening. A run past the
    script's `SCRIPT_DONE` (Classical Age under `defensive`, ~step 29) with
    `LEADERS=9` on a few frames around a sweep is what scores `create_*`,
-   `research_techs` and `make_stuff`.
+   `research_techs` and `make_stuff`.~~ — **done, 2026-08-25, run18 (§15)**,
+   and the guess was right to the step: `defensive` `case 29`, Classical Age,
+   at sim-frame 6376. The window `[6374, 6590)` holds the sweep the script
+   dies on and the next one, with both ladders, a non-empty make list,
+   `make_stuff`'s expiry rolls against the trace's own seeds, and one
+   purchase. Still unscored: `research_techs`' and `found_cities`' outputs
+   (`produce_tech` first runs at 8182, outside the window).
 5. **Fold §14 into §2**, then **the blind second reading** of the whole
    mechanic — thirty corrections from the implementation is exactly the
    kind of first reading the audit rule exists for.
@@ -1702,3 +1722,172 @@ The census adjustments of report §4.6 (1114–1151) are kept: `filled += 1`,
 `space[n − 2] = max(0, · − 1)` for `n = 2..best_sp`, then the builder off
 the gatherers (`gatherers`, `reg_gatherers`, `city.gatherers`) or the free
 peasants — run8's frame 2 shows `gatherers 5 → 4`.
+
+## 15. The behavioural run — run18, 2026-08-25
+
+The first dump that has ever shown this mechanic running. Until it, every
+claim in §2.4–§2.11 rested on the reading alone: the shipped script blocks
+the C++ steps for the whole opening, so no `LEADERS=9` capture had a
+non-empty make list in it (§12.1 item 4). Two stages, both on run12–17's
+lobby and seed, both driven from `rontrace.cmd` with no keyboard —
+`docs/ORACLE.md`, "The producers' run", has the recipe and the `ffwd`
+finding that made it cheap.
+
+| | run18a | run18b |
+| --- | --- | --- |
+| frames | 0–24,000 | 0–6,600 |
+| per-frame dump | **off** (`LogStartFrame=0 LogEndFrame=0`) | `[6374, 6590)` at `LEADERS=9` |
+| trace | `cover=1`, no window | `cover=1 window=6374-6590` |
+| wall clock | ~15 min | ~35 min |
+| what it gives | every producer's first-entry frame | the state, frame by frame |
+
+Nine predictions were written before either log was read — the script's
+exit and its frame, the two ladders frame by frame, the cheap tick's
+silence, the empty list before step 6, the expiry's draw count, the sweep's
+own draws, the difficulty clamp, and `ffwd`'s invisibility to the sim.
+**Every one of them held**, and two of them discriminated between this
+document's prose and the implementation — in the implementation's favour
+both times, which is what §14 existing at all had implied.
+
+Two were checked by *absence*, which is worth saying because the trace is
+what makes absence readable: `make_this` never runs on any of the six
+cheap-tick frames (6385, 6415, 6445, 6475, 6505, 6535) though
+`plan_strategy` runs on all six — the head is empty or a building, never
+the tech the tick requires (§2.2); and run18a's per-frame draw counts for
+frames 0–11 are `120, 54, 6, 6, 6, 6, 6, 6, 6, 6, 226, 254`, **identical
+to run14's**, so `ffwd` moves no draw and the sim never reads the clock.
+
+### 15.1 The script's end, and the two ladders
+
+`defensive` reaches **`case 29`** and returns `SCRIPT_DONE` on **sim-frame
+6376**, the step-1 call of the sweep at 6375 (`(25 + 6375) % 200 == 0`).
+Steps 28 and 29 both run in that one call — the `for (i = 0; i < num_loops;
+i++)` with `num_loops = 5` — so the block at 6377 shows `script_step 29`,
+`prod_script_run 0`, and `num_queued` carrying **`439 TOWER`** (step 28's
+`place_building_with_cost`) and **`544 CLASSICAL_AGE`** (step 29's
+`research_tech_with_cost`) while `ages_get()` is still **0**: the age is
+*bought*, not entered. Not the hang guard (`script_step` moved), not the
+attacked-city bail-out.
+
+The `production_step` the dump prints at the end of each sim-frame:
+
+```
+6375  6376  6377  6378  6379  6380  6381  6382  6383      the script's last sweep
+   1     2     3     4     5     6     7     8     0
+6575  6576  6577  6578  6579  6580  6581  6582            every sweep after it
+   1     3     4     5     6     7     8     0
+```
+
+They differ by one frame, and the reason is §2.4's first line: `if step ==
+1 and (prod_script_run == 0 or starting_resources == 8): step = 2`. On the
+transition sweep the script is still live, so step 1 *runs it* and
+`SCRIPT_DONE`'s fall-through only advances to 2; on every later sweep step 1
+is promoted to 2 **and 2 runs in the same call**. Both are pinned
+(`ai_drive::tests::run18_s_two_ladders_differ_by_the_script_s_last_call`),
+and the trace's first-entry frames agree with the dump's steps:
+
+| function | first frame | step |
+| --- | --- | --- |
+| `production_ai_setup`, `market_speculation` | 6377 | 2 |
+| `found_cities` (as a producer) | 6378 | 3 |
+| `research_techs` | 6379 | 4 |
+| `upgrade_units` | 6380 | 5 |
+| `create_units` | 6381 | 6 |
+| `create_buildings` | 6382 | 7 |
+| `make_stuff` (as a producer) | 6383 | 8 |
+| `produce_unit` | 6582 | 8 |
+
+`found_cities`, `make_stuff`, `use_market` and `MakeList::make_me` had all
+run far earlier — **frame 576** — and `make_this`/`produce_city` at 776:
+that is the *script* calling `place_city_with_cost`, which reaches
+`found_cities` and lets it buy on the spot (§2.17, and `docs/ORACLE.md`
+§5's table). So a function's first-entry frame is not the step machine's;
+only the step in the dump settles which caller it was.
+
+### 15.2 The make list, observed
+
+Eleven slots, and the dump fills **0, 5 and 8 and nothing else** — which is
+`make_me` exactly (§2.11): a top-four insertion at 0–3 over a
+one-per-category write at `list[cat]`.
+
+```
+6381  create_units       list[0] PEASANTS val 714 cat 5   list[5] PEASANTS val 714
+6382  create_buildings   list[0] TEMPLE  val 2499999 cat 8  list[5] PEASANTS  list[8] TEMPLE
+6583  after make_stuff   list[0] TEMPLE                     list[5] PEASANTS val 7
+```
+
+Three things fall out, all of them predicted:
+
+- **The head is overwritten, not shifted.** The citizen ranks 0 at 6381;
+  the temple outbids it at 6382 and takes slot 0; the citizen's rank-0 copy
+  is simply gone, surviving only in its category slot 5. Nothing lands in
+  slots 1–3.
+- **Slot 5 is the citizen's category and slot 8 an ordinary civic
+  building's**, which §2.11 had left for "the unit readers to name".
+- **`MakeList::clear()` at step 2 empties all eleven** — the block at 6577
+  has no entries at all, one frame after 6576's two.
+
+### 15.3 The expiry, settled against the original's own seeds
+
+`make_stuff` step 4 draws once per slot holding the head's type. The trace
+records the seed *before* each `Random::get` and the dump records which
+slots survived, so the two together decide the arm §2.6's prose had
+backwards. Five draws over the two `make_stuff` frames:
+
+| frame | site | slot | type | roll | `% 3` | verdict | dump |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 6383 | `+0x221` | 0 (head) | TEMPLE | 61545 | 0 | clear | cleared |
+| 6383 | `+0x221` | 8 | TEMPLE | 25792 | 1 | keep | kept |
+| 6582 | `+0x221` | 0 (head) | TEMPLE | 17105 | 2 | keep | kept |
+| 6582 | `+0x221` | 8 | TEMPLE | 1032 | 0 | clear | cleared |
+| 6582 | `+0x63d` | 5 | PEASANTS | 48595 | 1 | keep | kept |
+
+**Five of five**, with the seeds chaining draw to draw and on into the
+frame's next record. An unconditional arm would have emptied four of those
+five slots, so the Temple — an ordinary building, neither a unit type nor a
+university — is **probabilistic**, exactly as `ai_make.rs::expire_all` has
+it and not as §2.6 read (amended in place there). The two sites are new to
+the documents: **`make_stuff+0x221` is the head's walk, `+0x63d` the bought
+slot's** (§2.6 step 6's "the same 1/3 expiry over duplicates of *its*
+type"). Pinned as
+`ai_make::tests::run18_s_expiry_rolls_decide_exactly_the_slots_the_dump_kept`,
+which fails if the predicate is put back the way the prose had it.
+
+### 15.4 The rest, in one list
+
+- **`val /= 100` on a buy, not a clear** (§2.6, `make_this`): the citizen
+  bought out of slot 5 at 6582 reads **`val 7`** in the next block, from
+  714, and stays in the list.
+- **A bought *slot* is not a bought *head*.** 6582 buys the citizen and
+  still disarms to step 0 — `make_stuff`'s return is the *head's* purchase
+  alone, so the second pass (steps 9–11) does not run. §2.4 exactly.
+- **`production_ai_setup`'s easy-difficulty clamp fires** (§2.5 step 2).
+  This lobby is Easiest, so `d = 0` and `m = max(next age's cost, 300) ×
+  3/2`: `bucket` goes **261/104/107 → 37/43/77** across 6376→6377, and
+  `econ`/`rate`/`worst_good`/`best_good` are written at 6377 for the first
+  time in the game (`econ 8/8/4`, `rate 62/62/20`, `worst_good 2`).
+- **`site_mark` increments on a `make_stuff` with no upgrade in the pass**
+  (§2.6 step 7): 445 → 446 at 6383, 462 → 463 at 6583.
+- **The sites are re-scored every sweep** (§2.7): the same seven sites carry
+  different values at 6387 and 6576, and one moves — `(54,11)` → `(59,11)`.
+- **The census is stable across the window** at `active 27 control 27
+  peasants 22 gatherers 19 free_peasants 1 caras 1 merchants 3 scouts 1`,
+  two cities, `pop_cap 50`, `territory 488` — the state every producer in
+  §2.13–§2.17 reads, now available as a fixture for the second reading.
+
+### 15.5 What it does not establish
+
+- **`research_techs`' and `found_cities`' outputs.** Both ran, neither
+  bought inside the window: `produce_tech` first runs at **8182** and
+  `found_cities`' own purchases at 576. A window around 8182 scores the
+  first, and it is now a fifteen-minute run.
+- **`create_units`' and `create_buildings`' values.** The run shows *what*
+  they listed (a citizen at 714, a temple at 2,499,999) but the arithmetic
+  behind those two numbers is unchecked against §2.13/§14.5/§14.6 — that
+  wants the census above loaded into a test, which is the natural first
+  move of the blind second reading.
+- **Only two categories were ever exercised.** Slots 4, 6, 7, 9 and 10 stay
+  empty for the whole window, so the category map of §2.11 is confirmed at
+  two points and inferred everywhere else.
+- **One nation, one personality, one difficulty.** Everything above is the
+  British `defensive` leader of run8's roll on Easiest.

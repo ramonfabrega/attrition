@@ -1787,9 +1787,99 @@ mouse tile the channel does not supply, or the unit's engagement at the
 time refused it, is a reading of `run_cmd`'s `move` case. **The speed
 floor is now the dump, not the input**: run16b ran at ~3.3 sim-frames a
 second with `UNITS=3` (137 KB a frame), so a 2,400-frame scenario is
-twelve minutes whatever drives it; `ffwd` cannot help while every frame
-is logged, and a `LogStartFrame`/`LogEndFrame` window around the frames
-that matter is the lever.
+twelve minutes whatever drives it; ~~`ffwd` cannot help while every frame
+is logged~~ — **and that is exactly why it helps: gate the dump off and
+`ffwd` runs 24,000 frames in a quarter of an hour** (run18a, below) — a
+`LogStartFrame`/`LogEndFrame` window around the frames that matter is the
+lever.
+
+### The producers' run (run18, 2026-08-25) — the script ends, the C++ takes over
+
+The blind list's third entry: *a long game past the script, at `LEADERS=9`
+around a sweep*, which `docs/AI.md` §12.1 item 4 had been asking for since
+the producers were implemented — **no dump had ever shown a non-empty make
+list**, because the script blocks the C++ steps for the whole opening.
+
+Two stages, both this lobby and seed (frame-0 word `0x3bd39ae9`), both
+driven entirely from `rontrace.cmd` with three lobby clicks:
+
+- **run18a** — `5 !ffwd 30`, `24000 !quit`; `cover=1`, no trace window, and
+  **`LogStartFrame=0 LogEndFrame=0` in `rise2.ini`**, whose gate `0 <= f < 0`
+  is never true, so the per-frame dump is off entirely while the
+  start-of-game dump still lands. 24,000 sim-frames in ~15 minutes.
+- **run18b** — the same game with `[End Frame] LEADERS=9 UNITS=3 BUILDS=7
+  CITIES=5 GUYS=1 DEATHS=1 MISC=1` and the window `[6374, 6590)`, i.e. the
+  sweep the script dies on *and* the next one; `cover=1 window=6374-6590`.
+  216 blocks, 327 MB, ~35 minutes.
+
+**`ffwd` is the lever the combat run wanted.** `ConsoleWin::run_cmd`'s
+`ffwd` case sets `game->fast_forward_frame = minute × 900` (bare `ffwd`
+toggles 9,999,999); `TurnControl::check_new_frame_solo` skips the
+wall-clock wait while it is non-zero and `Game::loop_render` draws one frame
+in sixteen, clearing it once `fast_forward_frame <= frame`. It is a
+*presentation* switch — nothing in the sim reads it — and with the per-frame
+dump gated off it turns "3 frames a second" into 24,000 frames in a quarter
+of an hour. **The speed floor was never the input or the renderer; it is the
+dump.** Window the dump and fast-forward the rest.
+
+**What the run establishes**, all of it in `docs/AI.md` §15:
+
+- **The script ends at sim-frame 6376**, from `defensive`'s `case 29`:
+  steps 28 (tower) and 29 both run in the one call, `research_tech_with_cost
+  (who, "Classical Age")` queues the age — `num_queued` gains 544 while
+  `ages_get()` is still 0 — and the call returns `SCRIPT_DONE`. Not the hang
+  guard, and not the attacked-city bail-out.
+- **The two ladders**, frame for frame in the dump's `production_step`:
+  `1, 2, 3, 4, 5, 6, 7, 8, 0` over 6375…6383 on the sweep the script dies
+  on, and `1, 3, 4, 5, 6, 7, 8, 0` over 6575…6582 on the next — one frame
+  shorter, because step 1 entered with `prod_script_run` already 0 is
+  promoted to 2 *and runs it* in the same call. Both are pinned
+  (`ai_drive.rs`), and the first-entry frames in the trace agree:
+  `production_ai_setup`/`market_speculation` 6377, `research_techs` 6379,
+  `upgrade_units` 6380, `create_units` 6381, `create_buildings` 6382,
+  `make_stuff` 6383, `produce_unit` 6582.
+- **The make list is a ranked four plus seven category slots.** The dump
+  shows entries at slots 0, 5 and 8 and nowhere else — `PEASANTS cat 5`,
+  `TEMPLE cat 8` — which is `MakeList::make_me`'s tail writing each object
+  into `list[cat]`, over a top-four insertion at slots 0–3. A new best
+  **overwrites** slot 0 without shifting the old head down, so the citizen's
+  rank-0 copy is simply lost when the temple outbids it and survives only in
+  slot 5. `MakeList::clear()` at step 2 empties all eleven — visible at 6577.
+- **Five expiry draws, and every one of them decides by `% 3 == 0`.** The
+  trace records the seed before each `Random::get`, the dump records which
+  slots survived, and the two together settle the arm `docs/AI.md` §2.6's
+  prose had backwards: an ordinary building takes the **probabilistic**
+  arm, not the unconditional one. Two sites, both new to the documents —
+  `make_stuff+0x221` is the head's walk, `make_stuff+0x63d` the bought
+  slot's.
+- **`val /= 100` on a buy, observed**: the citizen bought at 6582 goes
+  `714 → 7` in the same block and stays in the list.
+- **The easy-difficulty stockpile clamp fires**: `bucket` 261/104/107 →
+  37/43/77 across the setup step, on this Easiest lobby (`d = 0`,
+  `m × 3/2`), with `econ`/`rate`/`worst_good` written there for the first
+  time in the game.
+- **A bought *slot* is not a bought *head*.** 6582 buys the citizen out of
+  slot 5 and still disarms to step 0 — the second pass 9–11 is the head's
+  alone.
+
+**The blind list after run18: 424 cited, 89 never run** (from 95). The six
+retired are the long game's own — `Army::find_target`, `Unit::unpack_merchant`,
+`LeaderData::calc_rare`, `get_general_upgrade`, `HeroData::get_radius`,
+`BuildTypeData::max_knowledge_gatherers`. What stays blind as groups: the
+order commands other than move/gather/build and their `Group::action_*`,
+the command processors, ships and aircraft, the scenario host functions
+(`enable_production_ai` and the `disable_*` trio are scenario-only and
+cannot be reached from a skirmish at all).
+
+`tools/gamelog/steps.py` is the instrument — one block per frame with the
+step fields, the goods picture, the queue, the eleven `MAKEOBJECT`s by slot
+and the ten sites, `--terse` comparing only the step machine's own fields so
+the ledger's per-frame tick does not print every block.
+
+**Open:** `make_stuff` was reached twice and bought once; `produce_tech`
+first runs at 8182 and `found_cities`' own purchases at 576, both outside
+the window, so `research_techs`' and `found_cities`' *outputs* are still
+unscored. A window around 8182 is the next one, and it is now cheap.
 
 ## What is not established
 

@@ -561,11 +561,29 @@ better, in which case say so and take that.
     53 on a scout — the flank sectors settled by damage, the projectile
     draw sites named. The blind list is 95: the order commands other than
     move/gather/build, air, patrol/follow/guard, the group actions, and
-    `is_fleeing` (a wagon's flight is something else). **Next blind runs,
+    `is_fleeing` (a wagon's flight is something else). ~~**Next blind runs,
     each a file:** run7's order stream replayed under the trace (the
     command processors), a long game past the script (the AI's C++
-    producers at `LEADERS=9` around a sweep), a mounted attacker for the
-    cavalry flank reduction, a caravan. Then the AI queue below.
+    producers at `LEADERS=9` around a sweep)~~ — **the long game is run
+    (run18, 2026-08-25)**, and it is the first dump that has ever shown
+    this mechanic run: `docs/AI.md` §15, `docs/ORACLE.md` "The producers'
+    run", `tools/gamelog/steps.py`. Nine predictions written first and all
+    nine held — the script exits at sim-frame 6376 from `defensive`'s
+    `case 29` (Classical Age *bought*, `ages_get()` still 0); the two step
+    ladders are `1,2,3,4,5,6,7,8,0` on the sweep the script dies on and
+    `1,3,4,5,6,7,8,0` on every later one, frame for frame; the make list
+    fills slots 0, 5 and 8 and nowhere else, which is `make_me`'s ranked
+    four over `list[cat]` exactly; and **five expiry draws decide five
+    slots by `% 3 == 0`** against the trace's own seeds, settling an arm
+    §2.6's prose had backwards (`ai_make.rs` had it right — the pin fails
+    if the prose is restored). The lever that made it cheap: **`ffwd` is a
+    presentation switch the sim never reads**, so with the per-frame dump
+    gated off (`LogStartFrame=0 LogEndFrame=0`) a 24,000-frame run costs
+    fifteen minutes. Blind list **95 → 89**. Still to run,
+    each a file: run7's order stream replayed under the trace (the command
+    processors), a mounted attacker for the cavalry flank reduction, a
+    caravan, and a window around frame 8182 for `produce_tech`'s output.
+    Then the AI queue below.
     Next for the AI: the loader's half of
     the producers' seams (unit `role`/flags, `TechType.ai[]`,
     `gather_max`); fold §14 into §2; then the blind second reading, at

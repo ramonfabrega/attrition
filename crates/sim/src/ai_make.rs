@@ -854,6 +854,71 @@ mod tests {
         assert!(s.expire_all(f.wonder, false));
     }
 
+    /// **Run18b's five expiry draws, against the original's own seeds**
+    /// (`docs/ORACLE.md`, "The producers' run"; `docs/AI.md` §15). The trace
+    /// records the seed before every `Random::get`, and the dump records
+    /// which slots survived — so the two together settle the arm that
+    /// `docs/AI.md` §2.6's prose gets backwards. An ordinary building (the
+    /// original's Temple; a Barracks here) takes the **probabilistic** arm,
+    /// and all five rolls decide the observed slot by `% 3 == 0`. Were the
+    /// arm unconditional, four of these five slots would be empty.
+    ///
+    /// The seeds chain: each draw's successor is the next record's seed, and
+    /// the last is the frame's following draw at another site.
+    #[test]
+    fn run18_s_expiry_rolls_decide_exactly_the_slots_the_dump_kept() {
+        let mut f = fx();
+        let s = &mut f.sim;
+        let temple = f.barracks; // an ordinary building — the Temple's class
+        assert!(
+            !s.expire_all(temple, true),
+            "an ordinary building is probabilistic, head or not"
+        );
+
+        // sim-frame 6383: slots 0 (the head) and 8 hold it. Rolls 61545 and
+        // 25792 — the head clears, slot 8 keeps.
+        s.rng = crate::combat::Rng::new(0xc593_8177);
+        s.ai[1].make_list.list[0] = slot(temple, 2_499_999);
+        s.ai[1].make_list.list[8] = slot(temple, 2_499_999);
+        s.expire(1, temple as i32, 0, false);
+        assert_eq!(s.ai[1].make_list.list[0].t, -1, "61545 % 3 == 0: cleared");
+        assert_eq!(
+            s.ai[1].make_list.list[8].t, temple as i32,
+            "25792 % 3 == 1: kept"
+        );
+        assert_eq!(s.rng.seed, 0xbb3f_64c1, "two draws, the trace's next seed");
+
+        // sim-frame 6582: the same two slots, the other way round — 17105
+        // keeps the head, 1032 clears slot 8. Then the slot loop's own walk
+        // (`make_stuff+0x63d`) from slot 5, over the citizen it just bought:
+        // 48595 keeps it, and the demoted `val` stays in the list.
+        s.rng = crate::combat::Rng::new(0x833a_ab7f);
+        s.ai[1].make_list.list[0] = slot(temple, 2_499_999);
+        s.ai[1].make_list.list[8] = slot(temple, 2_499_999);
+        s.ai[1].make_list.list[5] = slot(f.citizen, 714);
+        s.expire(1, temple as i32, 0, false);
+        assert_eq!(
+            s.ai[1].make_list.list[0].t, temple as i32,
+            "17105 % 3 == 2: the head survived its own expiry"
+        );
+        assert_eq!(s.ai[1].make_list.list[8].t, -1, "1032 % 3 == 0: cleared");
+        assert_eq!(s.rng.seed, 0xeb75_0409, "two draws");
+
+        assert!(
+            !s.expire_all(f.citizen, false),
+            "a peasant slot is probabilistic"
+        );
+        s.expire(1, f.citizen as i32, 5, false);
+        assert_eq!(
+            s.ai[1].make_list.list[5].t, f.citizen as i32,
+            "48595 % 3 == 1: the bought slot is demoted, not cleared"
+        );
+        assert_eq!(
+            s.rng.seed, 0x35dc_bdd4,
+            "one draw, and the frame's next record's seed"
+        );
+    }
+
     /// `need` is the mean shortfall over the goods the head costs, floored
     /// at zero, and only when the leader is saving up.
     ///
