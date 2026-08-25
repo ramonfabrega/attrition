@@ -27,31 +27,31 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `7e93e9a`.* The commit this
+*Last verified 2026-08-25, the session after `d4f9b20`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** Armies (item 15): `docs/ARMY.md`, `crates/sim/src/army.rs`,
-`docs/audit/2026-08-25-army.md`, runs 23–27 (`docs/ORACLE.md`), the `ARMY`
-record diffed whole against run20 (frames 1–3, field for field) and read
-against run22/25/26/27. The state machine's decisions are modelled; the
-group orders, the muster-spot ring search and the fort pass are named
-seams (`army::seams`). Two of the three windows end an army through the
-ring search's failure at its own city (`docs/ARMY.md` §16.5, §18) — the
-first seam a capture has reached, and the first thing to build once the
-cell classes are loaded.
+**Last landed.** The muster-spot ring search (`docs/ARMY.md` §13, the
+first seam a capture reached): `find_muster_spot` whole in `army.rs`, the
+`0x2000` mark on `City`, the flag legend and the 7 × 7 walk in
+`world.rs`, and — the part that matters for what comes next — a loader
+(`rondata::diff::army_tests::scene_at`) that builds one `DUMP_ALL`
+block's world, cities and armies so a single function can be run where
+the original ran it. Six searches replayed on run22/25/27's own maps,
+cells and angles equal; the two closes at 12129 and 15100 reproduce and
+are explained (`docs/ARMY.md` §16.5). Journal entry of the same date.
 
-**In progress.** Nothing mid-mechanic. **Owed:** nothing — the audit's six
-Rust changes landed with it.
+**In progress.** Nothing mid-mechanic. **Owed:** nothing.
 
-**Next**, in the order the reading and the captures suggest:
+**Next**, in the order the captures suggest:
 
-- **The muster-spot ring search** (`docs/ARMY.md` §13, §18; audit B.44,
-  B.56): `circle_init@006817f0`'s tables, the cell flag bits `0x4/0x8/0x20/
-  0x40/0x100/0x800/0x4000` and the `lands[class].+0x100` score. Needs the
-  per-cell land classes in the sim's `World`, which the `WORLD ≥ 5` dump
-  carries. Closes the closes at 12129 and 15100, and makes run22's muster
-  cells an assertion instead of a reading.
+- **`find_target` on run26's block 12024** with the scene loader: the
+  navy's first live target choice (`docs/ARMY.md` §16.5) is one function
+  of one block, and the loader already builds the world and the cities;
+  it needs the leader fields §12 reads (`defense_mod`, `sea_combat`,
+  `frame_attacked`, `attacked_by`) which the `LEADERDATA` record carries
+  at level 9. The RNG draw per candidate is the one thing to seed — the
+  block's `say_checksum` word is in the dump.
 - **The group orders** — `Group::action_move_to` / `action_attack` /
   `action_siege_attack_to` / `action_stance` / `action_halt`,
   `Groups::push_group` — the half of the army the sim cannot issue
@@ -63,14 +63,20 @@ Rust changes landed with it.
   B's §9): `LEADERDATA` with `defense_mod`, `combat`, `sea_combat`,
   `strong[]`, `weak[]`, `pop_issues`, the two win timers, `frame_attacked`,
   `attacked_by`, `fort_mark`, `city_mark` and the personality; `CITY` with
-  `bordering`, `was_capital_flags`, `founder`, `ocean`. Nine tenths of what
-  `find_target` reads is per-leader state the dump does not print. The
-  `GROUPDATA` records (512 a block) are unread and would carry §3's group
-  bookkeeping.
+  `bordering`, `was_capital_flags`, `founder`, `ocean`, and now
+  `city_flags` whole (the `0x2000` mark is read by the scene loader, not
+  yet diffed). The `GROUPDATA` records (512 a block) are unread and would
+  carry §3's group bookkeeping.
 - Then, as before: run7's order stream replayed under the trace, a mounted
   attacker, a caravan, the `found_cities` window at 576; `make_stuff` whole
   with the goods block; `Leader::diplomacy`; `calc_gather` for non-flat
   buildings; `think_civilian_transport` (`docs/TRANSPORT.md` §12).
+
+**A caution the build earned.** Before taking a queue item that says
+"needs X loaded", grep for X: this one had been loaded for a week. And
+the "harness that can stage a frame-12000 state" item 13 imagines is not
+what a single function needs — a block's records are its state, and the
+scene loader is an afternoon's work to extend.
 
 **Agreed with the user, 2026-08-25.** How the verification budget splits:
 diff first wherever a dump exists; a blind reading scoped to what no run
@@ -85,7 +91,7 @@ run, adjudicate against both — is the one to repeat.
 `war` cheat is a no-op in a Quick Battle (it starts at war); `tools/gamelog/
 rngcmp.py` shows in ten seconds whether a staged scenario took.
 
-**Opener:** `proceed @docs/QUEUE.md — build find_muster_spot's ring search (docs/ARMY.md §13, §18; audit B.44/B.56): circle_init's tables and the cell classes into World, then make run22's muster cells and run25/27's closes assertions`
+**Opener:** `proceed @docs/QUEUE.md — replay find_target on run26's block 12024 with the scene loader (rondata::diff::army_tests::scene_at; docs/ARMY.md §12, §16.5): load the LEADERDATA fields §12 reads, seed the draw from the block's word, and make the navy's target and muster an assertion`
 
 ## The queue
 

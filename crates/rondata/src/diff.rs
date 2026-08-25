@@ -165,17 +165,24 @@ pub fn lobby_of(game_info: &[(&str, &str)], map_styles: &[String]) -> sim::ai::L
     l
 }
 
-pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
-    let mut notes = Vec::new();
+/// The sim's world from a dump's `WORLD` block — the fields of the block,
+/// and the `master_land_heights` table when the dump carries one. Returns
+/// the world and the dump-region → sim-region map. A start-of-game block
+/// or any `DUMP_ALL` frame block will do: what it holds is the map as it
+/// stood at that block.
+pub fn world_from(
+    fields: &[(&str, &str)],
+    heights: &[i64],
+    notes: &mut Vec<String>,
+) -> (World, Vec<(i64, u16)>) {
     let get = |k: &str| -> Option<i64> {
-        init.world
+        fields
             .iter()
             .find(|(key, _)| *key == k)
             .and_then(|(_, v)| v.trim().parse().ok())
     };
     let xs = get("xs").unwrap_or(60).max(1) as i32;
     let ys = get("ys").unwrap_or(60).max(1) as i32;
-    let players = player_count(init).max(1);
     // The dump carries no terrain at level 0 (`docs/DATALAYER.md`, "what is
     // not established"), so the harness's map is **one land region covering
     // every cell** — flat, unblocked, no water. That assumption was implicit
@@ -183,7 +190,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // `blocked_tcoord`, so every `place_building` was refused and every
     // building came out untyped and city-less.
     let mut world = World::new(xs, ys);
-    let cells = crate::gamelog::world_cells(&init.world);
+    let cells = crate::gamelog::world_cells(fields);
     let mut region_map: Vec<(i64, u16)> = Vec::new();
     if cells.len() == (xs as usize) * (ys as usize) {
         // A `WORLD ≥ 5` start dump: the map's own cells — region, the
@@ -260,7 +267,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         }
         // The per-tile masks — forest, mountain, river, ocean, the city
         // radii and the footprints — `tile_xs × tile_ys` row-major.
-        let tiles = crate::gamelog::world_tiles(&init.world);
+        let tiles = crate::gamelog::world_tiles(fields);
         let tw = (xs * sim::world::TILES_PER_CELL) as usize;
         let th = (ys * sim::world::TILES_PER_CELL) as usize;
         let tiles_loaded = tiles.len() == tw * th;
@@ -278,15 +285,15 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         // The fog grid — `seen2`, what `was_seen` reads — when the block
         // carries it (`WORLD ≥ 6`, or any `DUMP_ALL`). A start-of-game
         // snapshot: the simulation does not advance it.
-        let fog = crate::gamelog::world_fog(&init.world);
+        let fog = crate::gamelog::world_fog(fields);
         let fog_loaded = !fog.is_empty() && world.set_fog(fog);
         if fog_loaded {
             notes.push("fog: seen2 loaded from the WORLD dump".to_string());
         }
         let hw = tw + 1;
-        let heights_loaded = tiles_loaded && init.heights.len() == hw * (th + 1);
+        let heights_loaded = tiles_loaded && heights.len() == hw * (th + 1);
         if heights_loaded {
-            let h = &init.heights;
+            let h = &heights;
             for ty in 0..th {
                 for tx in 0..tw {
                     let t = Pos::new(tx as i32, ty as i32);
@@ -314,7 +321,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             },
             if heights_loaded {
                 "heights pinned per tile"
-            } else if init.heights.is_empty() {
+            } else if heights.is_empty() {
                 "no height table (flat)"
             } else {
                 "height table not applied: size differs"
@@ -338,6 +345,19 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // at every level (`sea_map 1` on run9's Great Lakes, 4 on run20's
     // islands). Not derivable from the cells: `World::sea_map`.
     world.set_sea_map(get("sea_map").unwrap_or(0) as i32);
+    (world, region_map)
+}
+
+pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
+    let mut notes = Vec::new();
+    let get = |k: &str| -> Option<i64> {
+        init.world
+            .iter()
+            .find(|(key, _)| *key == k)
+            .and_then(|(_, v)| v.trim().parse().ok())
+    };
+    let players = player_count(init).max(1);
+    let (world, region_map) = world_from(&init.world, &init.heights, &mut notes);
     let mut sim = loaded.sim(tuning, world, players);
     sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
     // The map seed, which picks a gaia guy's piece (`docs/ANIM.md` §3).
@@ -3977,5 +3997,266 @@ mod army_tests {
             d >= 4,
             "muster cells {musters:?} are {d} apart; the same-owner rule wants four"
         );
+    }
+
+    // ---- the ring search on a frame block's own map (§13) ----
+
+    use sim::combat::Obj;
+    use sim::world::Cell;
+
+    /// A frame block's state, as far as `find_muster_spot` reads it — the
+    /// block's own `WORLD` cells (owners and regions as they stood), its
+    /// cities typed from their `BUILDDATA` record, its leaders' transport
+    /// bits, and its `ARMY` records — so the search can be re-run on the
+    /// map of that frame. Not a replay: nothing else of the frame is built.
+    struct Scene {
+        sim: Sim,
+        /// `(who, o, handle)` of every city building.
+        cities: Vec<(i64, i64, usize)>,
+        /// `(who, slot, city)`: the dump's per-leader city slot — the
+        /// `city` an `ARMY` record names, which keeps its number when an
+        /// earlier slot empties — to the sim's city index.
+        slots: Vec<(i64, i64, usize)>,
+    }
+
+    fn scene_at(loaded: &Loaded, log: &Log<'_>, frame: i64) -> Scene {
+        let frames = log.frames();
+        let (_, block) = frames
+            .iter()
+            .find(|(f, _)| *f == frame)
+            .expect("the frame block");
+        let body = block.kid("FULL DUMP").unwrap_or(block);
+        let mut notes = Vec::new();
+        let world_fields = body.kid("WORLD").expect("a WORLD block").fields.clone();
+        let (world, region_map) = world_from(&world_fields, &[], &mut notes);
+        assert!(
+            !region_map.is_empty(),
+            "{frame}: the WORLD block carries no cells"
+        );
+        let init = log.initial().expect("the start-of-game block");
+        let players = player_count(&init).max(1);
+        let mut sim = loaded.sim(Tuning::RON, world, players);
+        sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
+        let (_, builds, leaders) = crate::gamelog::records(block, false);
+        for l in &leaders {
+            if (0..players as i64).contains(&l.who) {
+                let who = l.who as usize;
+                sim.tech[who].tribe = l.tribe.max(0) as usize;
+                sim.tech[who].power = Some(l.tribe.max(0) as usize);
+                sim.nation[who].human = l.leader_flags & 4 != 0;
+                let t = &mut sim.transport[who];
+                t.civilian = l.leader_flags & 0x100 != 0;
+                t.military = l.leader_flags & 0x200 != 0;
+                t.scout = l.leader_flags & 0x400 != 0;
+            }
+        }
+        let mut cities = Vec::new();
+        let mut slots = Vec::new();
+        for c in body.find("CITIES").expect("CITIES").kids("CITY") {
+            let who = c.int("who").unwrap_or(-1);
+            if !(0..players as i64).contains(&who) {
+                continue;
+            }
+            let o = c.int("o").expect("the city's building");
+            let slot = c.int("city").expect("the city's slot");
+            let flags = c.int("city_flags").unwrap_or(0);
+            let ty = builds
+                .iter()
+                .find(|b| b.who == who && b.o == o)
+                .and_then(|b| b.orig_type)
+                .and_then(|t| loaded.build_of_type_index(t as i32))
+                .expect("the city building's type");
+            let pos = Pos::new(c.int("x").unwrap() as i32, c.int("y").unwrap() as i32);
+            let b = sim.init_build(who as sim::Player, ty, pos, false);
+            sim.activate(b, false, false);
+            let ci = sim.buildings[b].city.expect("activate founded the city");
+            let city = &mut sim.cities[ci];
+            city.alive = flags & 1 != 0;
+            city.no_heal = flags & 2 != 0;
+            city.unassimilated = flags & 0x100 != 0;
+            city.no_muster = flags & 0x2000 != 0;
+            city.race = c.int("race").map(|r| r as sim::Player);
+            cities.push((who, o, b));
+            slots.push((who, slot, ci));
+        }
+        for a in army_records(block) {
+            let who = a.int("who").unwrap();
+            if !(0..players as i64).contains(&who) {
+                continue;
+            }
+            let slot = a.int("army").unwrap() as usize;
+            let reg = a.int("reg").filter(|r| *r >= 0).map(|r| {
+                region_map
+                    .iter()
+                    .find(|(d, _)| *d == r)
+                    .map(|(_, s)| *s)
+                    .expect("the army's region is on the map")
+            });
+            let city = a.int("city").filter(|c| *c >= 0).map(|c| {
+                slots
+                    .iter()
+                    .find(|(w, s, _)| *w == who && *s == c)
+                    .map(|(_, _, ci)| *ci)
+                    .expect("the army's city slot")
+            });
+            let target = match (a.int("target_who"), a.int("target_o")) {
+                (Some(tw), Some(o)) if o >= 0 => Some(Obj::Building(
+                    cities
+                        .iter()
+                        .find(|(w, x, _)| *w == tw && *x == o)
+                        .map(|(_, _, b)| *b)
+                        .expect("an army target that is a city building"),
+                )),
+                _ => None,
+            };
+            let int = |k: &str| a.int(k).unwrap_or(0) as i32;
+            let rec = &mut sim.armies[who as usize].list[slot];
+            rec.valid = true;
+            rec.status = int("status");
+            rec.reg = reg;
+            rec.navy = a.int("navy") == Some(1);
+            rec.city = city;
+            rec.hurry = int("hurry");
+            rec.num_units = int("num_units");
+            rec.num_captains = int("num_captains");
+            rec.num_standard = int("num_standard");
+            rec.num_decoys = int("num_decoys");
+            rec.target = target;
+            rec.pos = Pos::new(int("x"), int("y"));
+            rec.muster = Cell::new(int("muster_x"), int("muster_y"));
+            rec.muster_angle = sim::movement::Angle(int("muster_angle"));
+        }
+        Scene { sim, cities, slots }
+    }
+
+    fn scene(name: &str, frame: i64) -> Option<Scene> {
+        let inst = install()?;
+        let Some(path) = dump(name) else {
+            eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
+            return None;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        Some(scene_at(&loaded, &log, frame))
+    }
+
+    /// Run22's block 3579 again, this time with the harness's own ring
+    /// search on the block's map: both records' muster cells re-derived
+    /// from the cities they muster at — `do_mustering`'s search, flag 1 —
+    /// in the order the game ran them: army 0's at the capital while it
+    /// was the only army (its (44, 50) is two cells from army 1's init
+    /// cell, so with army 1 standing it would be dropped as too near),
+    /// then army 1's at Norwich with army 0 where it had settled. Army 1's
+    /// (49, 54) scores eight — a building's cell in its 3 × 3 — and is the
+    /// first admissible entry of ring 7; the first nine-neighbour cell of
+    /// ring 8 lies 43 entries later, past the `0x28` early stop. The
+    /// angle is the search's too, from the army's point.
+    #[test]
+    fn run22_s_muster_cells_are_the_ring_search_s_on_block_3579_s_own_map() {
+        let Some(mut sc) = scene("gamelog-run22-islands-dock-window.txt", 3579) else {
+            return;
+        };
+        let theirs: Vec<(Cell, i32)> = (0..2)
+            .map(|s| {
+                let a = &sc.sim.armies[1].list[s];
+                assert!(a.valid, "army {s}");
+                (a.muster, a.muster_angle.0)
+            })
+            .collect();
+        assert_eq!(theirs[0].0, Cell::new(44, 50));
+        assert_eq!(theirs[1].0, Cell::new(49, 54));
+        for s in 0..2 {
+            let a = &mut sc.sim.armies[1].list[s];
+            a.muster = a.pos.cell();
+        }
+        sc.sim.armies[1].list[1].valid = false;
+        for s in [0, 1] {
+            sc.sim.armies[1].list[s].valid = true;
+            let c = sc.sim.armies[1].list[s].city.expect("mustering at a city");
+            let b = sc.sim.cities[c].building;
+            assert!(
+                sc.sim.find_muster_spot(1, s, Obj::Building(b), true),
+                "army {s}: a spot"
+            );
+            let a = &sc.sim.armies[1].list[s];
+            assert_eq!(a.muster, theirs[s].0, "army {s}'s muster cell");
+            assert_eq!(a.muster_angle.0, theirs[s].1, "army {s}'s muster angle");
+            assert!(!sc.sim.cities[c].no_muster);
+        }
+    }
+
+    /// Run25's block 12129, before the `emergency` tick that closed army 1
+    /// (`docs/ARMY.md` §16.5): on the block's own map the ring search at
+    /// Norwich finds no cell — so `do_mustering` sees the failure and the
+    /// city takes the `0x2000` mark the next block shows (`city_flags
+    /// 0x0001 → 0x2001`) — while the navy, whose target `find_target`
+    /// re-finds the same tick, lands on (46, 58) from (51, 53), the cell
+    /// and the angle the record carries.
+    #[test]
+    fn run25_s_emergency_search_finds_no_cell_at_norwich_and_the_navy_re_finds_46_58() {
+        let Some(mut sc) = scene("gamelog-run25-islands-emergency-window.txt", 12129) else {
+            return;
+        };
+        let a1 = &sc.sim.armies[1].list[1];
+        assert!(a1.valid && a1.status == 0x11 && !a1.navy);
+        assert_eq!(a1.muster, Cell::new(49, 54), "the spot it had held");
+        let c = a1.city.expect("at its city");
+        assert_eq!(sc.sim.cities[c].pos, Pos::new(34656, 36192), "Norwich");
+        let b = sc.sim.cities[c].building;
+        assert!(!sc.sim.cities[c].no_muster, "0x0001 before");
+        assert!(
+            !sc.sim.find_muster_spot(1, 1, Obj::Building(b), true),
+            "no cell at Norwich"
+        );
+        assert!(sc.sim.cities[c].no_muster, "0x2001 after");
+
+        let a2 = &sc.sim.armies[1].list[2];
+        assert!(a2.valid && a2.navy);
+        let t = a2.target.expect("the navy's target");
+        assert_eq!(a2.pos.cell(), Cell::new(51, 53));
+        assert!(sc.sim.find_muster_spot(1, 2, t, false), "a sea cell");
+        let a2 = &sc.sim.armies[1].list[2];
+        assert_eq!(a2.muster, Cell::new(46, 58));
+        // `find_target`'s tail turns the search's angle about (§12).
+        assert_eq!(a2.muster_angle.0.wrapping_add(i32::MIN), 541_917_184);
+        assert_eq!(sc.cities.len(), 3);
+        assert_eq!(sc.slots.len(), 3);
+    }
+
+    /// Run27's block 15100, before army 0's `do_defending` tick: the
+    /// nearest friendly city is Norwich again, still marked from 12129,
+    /// and the search — flag 1 — finds no cell, which is the `close` the
+    /// next block shows. The navy's search, now against the captured
+    /// capital (an enemy's: the spacing is two cells), still lands on
+    /// (46, 58).
+    #[test]
+    fn run27_s_defending_search_finds_no_cell_at_norwich_again() {
+        let Some(mut sc) = scene("gamelog-run27-islands-defending-window.txt", 15100) else {
+            return;
+        };
+        let a0 = &sc.sim.armies[1].list[0];
+        assert!(a0.valid && a0.status == 1 && !a0.navy);
+        assert_eq!(
+            a0.muster,
+            Cell::new(45, 48),
+            "init's cell, one south of Norwich"
+        );
+        let c = a0.city.expect("at its city");
+        assert!(sc.sim.cities[c].no_muster, "marked since 12129");
+        let b = sc.sim.cities[c].building;
+        assert!(!sc.sim.find_muster_spot(1, 0, Obj::Building(b), true));
+        assert!(sc.sim.cities[c].no_muster);
+
+        let a2 = &sc.sim.armies[1].list[2];
+        let t = a2.target.expect("the navy's target");
+        let Obj::Building(tb) = t else {
+            panic!("a building target")
+        };
+        assert_eq!(sc.sim.buildings[tb].owner, 0, "the captured capital");
+        assert!(sc.sim.find_muster_spot(1, 2, t, false));
+        let a2 = &sc.sim.armies[1].list[2];
+        assert_eq!(a2.muster, Cell::new(46, 58));
+        assert_eq!(a2.muster_angle.0, -1_605_566_464);
     }
 }

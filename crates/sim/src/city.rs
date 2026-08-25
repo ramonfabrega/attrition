@@ -143,6 +143,12 @@ pub struct City {
     pub unassimilated: bool,
     pub no_heal: bool,
     pub alarm: bool,
+    /// `city_flags & 0x2000`: the army's "no muster spot here" mark —
+    /// set when `find_muster_spot`'s ring search finds no cell at an
+    /// active, untroubled city of the owner's own, cleared when it does
+    /// (`docs/ARMY.md` §13); `find_target` divides the city's score by 20
+    /// while it stands (§12).
+    pub no_muster: bool,
     /// `was_capital_flags`, a bit per player.
     pub was_capital: u64,
     /// `capture_stamp`, `assimilation_timer`, `attack_stamp` — frames; zero
@@ -372,6 +378,7 @@ impl Sim {
             unassimilated: false,
             no_heal: false,
             alarm: false,
+            no_muster: false,
             was_capital: 0,
             capture_stamp: stamp,
             assimilation_timer: stamp,

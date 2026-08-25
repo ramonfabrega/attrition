@@ -1225,6 +1225,12 @@ detail level:
 | 5 | `who`, `who2`, `region`, `region2`, `val` (the city-site value byte), `land_sub` |
 | 6 | `light`, `blocked`, `bad`, `solid`, `down`, `down_who`, the `block` bitmask, `was_seen` |
 
+The level-4 words are one per bit — `BUILDING 0x4000`, `NEARBLOCK
+0x200`, `HALFLAND 0x100`, `ROAD 0x80`, `FOREST 0x20`, `MOUNTAIN 0x10`,
+`ROCK 0x8`, `COAST 0x4`, `GOODY 0x8000` — solved from run20's 3,600 cells
+on 2026-08-25 and kept as `crates/sim/src/world.rs`'s `cell` module;
+`0x1`, `0x40`, `0x400`, `0x800`, `0x1000` and `0x2000` print no word.
+
 And after the cells, the start positions and the 57,600 tile masks, **the
 fog grids** — `seen[scan]`, `seen2[scan]`, `seen3[scan]` as triplets, one
 per fog cell (`fog_xs × fog_ys`, two per cell each way: 14,400 on a 60×60

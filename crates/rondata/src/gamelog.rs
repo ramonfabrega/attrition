@@ -1060,7 +1060,10 @@ fn constants_of<'a>(b: &Block<'a>) -> Vec<ConstantDump<'a>> {
 /// matched to a logged one) and showed up only in the order diff, as ten
 /// starting citizens whose derived order was `None` because the duplicate
 /// links took the assignment.
-fn records(b: &Block<'_>, before_frames: bool) -> (Vec<UnitDump>, Vec<BuildDump>, Vec<LeaderDump>) {
+pub(crate) fn records(
+    b: &Block<'_>,
+    before_frames: bool,
+) -> (Vec<UnitDump>, Vec<BuildDump>, Vec<LeaderDump>) {
     let stop = if before_frames {
         b.children
             .iter()

@@ -188,10 +188,8 @@ pub enum Terrain {
 /// (`docs/ORACLE.md`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct CellData {
-    /// `WData.flags`: `0x8000` … `0x2` as `WData::log_data` names them;
-    /// `0x100` marks a coastal cell whose `region2` is the sea region,
-    /// `0x4000` a cell holding a building's centre, `0x78` the
-    /// `buildings_allowed` field.
+    /// `WData.flags` — the bits [`cell`] names; `0x78` is also read whole as
+    /// the `buildings_allowed` field.
     pub flags: u16,
     /// `WData.land`: the terrain kind (`land_key[land]` in the dump).
     pub land: i8,
@@ -258,6 +256,35 @@ pub struct World {
     coast: Vec<Vec<u16>>,
 }
 
+/// The bits of `WData.flags`, as `WData::log_data@006af7e0` spells them —
+/// each word below is printed exactly when its bit is set, solved from
+/// run20's 3,600 cells (`docs/ORACLE.md`, "The map is a dump too";
+/// 2026-08-25). `0x1`, `0x400`, `0x800`, `0x1000` and `0x2000` have no word
+/// in that dump: the writer tests `0x1000` and `0x2000` and run20 never
+/// sets them; `0x400` and `0x800` are set on the islands map and not
+/// tested, so their names are not established here.
+pub mod cell {
+    /// `COAST` — a land cell of the shore; the muster search's class 3.
+    pub const COAST: u16 = 0x4;
+    /// `ROCK` — the muster search's class 6, or 7 with `0x800`.
+    pub const ROCK: u16 = 0x8;
+    /// `MOUNTAIN` — with the unnamed `0x40`, the muster search's class 5.
+    pub const MOUNTAIN: u16 = 0x10;
+    /// `FOREST` — the muster search's class 4.
+    pub const FOREST: u16 = 0x20;
+    /// `ROAD`.
+    pub const ROAD: u16 = 0x80;
+    /// `HALFLAND` — a coastal cell whose `region2` is the sea region; what
+    /// `WorldData::is_ocean` tests first.
+    pub const HALFLAND: u16 = 0x100;
+    /// `NEARBLOCK`.
+    pub const NEARBLOCK: u16 = 0x200;
+    /// `BUILDING` — a cell holding a building's centre.
+    pub const BUILDING: u16 = 0x4000;
+    /// `GOODY`.
+    pub const GOODY: u16 = 0x8000;
+}
+
 /// `move_x[1..=8]`, `move_y[1..=8]` — the original's compass ring
 /// (`.rdata 0x00adcaf0` / `0x00adc400`), the eight neighbours in its order.
 pub const MOVE_8: [(i32, i32); 8] = [
@@ -269,6 +296,67 @@ pub const MOVE_8: [(i32, i32); 8] = [
     (0, 1),
     (-1, 1),
     (-1, 0),
+];
+
+/// `move_x[0..0x31]`, `move_y[0..0x31]` — the original's walk of the 7 × 7
+/// neighbourhood: the cell itself, the eight neighbours as [`MOVE_8`], the
+/// sixteen cells of the 5 × 5 ring (the twelve edge cells clockwise from
+/// north-north-west, then the four corners), then the twenty-four of the
+/// 7 × 7 ring clockwise from its north-west corner. Read from
+/// `riseofnations.exe` on 2026-08-25: `rise.pdb` places `move_x` at
+/// `0002:97008` (VA `0xADCAF0`) and `move_y` at `0002:95232` (VA
+/// `0xADC400`), each an `int[441]` — the whole 21 × 21 — of which the muster
+/// search (`docs/ARMY.md` §13) walks the first 49.
+pub const MOVE_49: [(i32, i32); 49] = [
+    (0, 0),
+    (-1, -1),
+    (0, -1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+    (0, 1),
+    (-1, 1),
+    (-1, 0),
+    (-1, -2),
+    (0, -2),
+    (1, -2),
+    (2, -1),
+    (2, 0),
+    (2, 1),
+    (1, 2),
+    (0, 2),
+    (-1, 2),
+    (-2, 1),
+    (-2, 0),
+    (-2, -1),
+    (-2, -2),
+    (2, -2),
+    (2, 2),
+    (-2, 2),
+    (-3, -3),
+    (-2, -3),
+    (-1, -3),
+    (0, -3),
+    (1, -3),
+    (2, -3),
+    (3, -3),
+    (3, -2),
+    (3, -1),
+    (3, 0),
+    (3, 1),
+    (3, 2),
+    (3, 3),
+    (2, 3),
+    (1, 3),
+    (0, 3),
+    (-1, 3),
+    (-2, 3),
+    (-3, 3),
+    (-3, 2),
+    (-3, 1),
+    (-3, 0),
+    (-3, -1),
+    (-3, -2),
 ];
 
 /// The bits of a tile mask, as the placement code names them — `TData.mask`
@@ -444,6 +532,14 @@ impl World {
         if let Some(i) = self.index(c) {
             self.cells[i] = d;
         }
+    }
+
+    /// `WorldData::is_ocean@006b4830`: not a `HALFLAND` cell, and its
+    /// `land` is 1 or 2 — the kinds the census calls water. Off the map a
+    /// zero record answers false.
+    pub fn is_ocean(&self, c: Cell) -> bool {
+        let d = self.cell_data(c);
+        d.flags & cell::HALFLAND == 0 && (d.land == 1 || d.land == 2)
     }
 
     /// `WData.val` of the cell under a tile — the site value.

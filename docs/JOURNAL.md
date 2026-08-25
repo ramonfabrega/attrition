@@ -881,3 +881,54 @@ past 14586.
   `rise.pdb` for the enums the export does not ship, and that was worth
   five verdicts; a "settled in the listing" is a claim like any other.
   `docs/audit/2026-08-25-army.md`.
+
+## 2026-08-25 — the muster-spot ring search, and why two armies died
+
+The seam the army's captures had reached (`docs/ARMY.md` §18): the ring
+search of `find_muster_spot`, which the harness had stood in for with
+the original's own fallback. One session, on Fable.
+
+- **The premise was stale.** The queue said the search waited on "the
+  cell classes the sim does not yet load"; `World` had carried every
+  cell's `flags`, `land`, region and owner since run20. What was missing
+  was the score table and the search itself, and the score table turned
+  out to be a constant: `lands[class].+0x100` is `LandData::move_rate`,
+  which `Lands::init` writes as `0x100` to all nine lands and nothing
+  else in the export writes. So a candidate scores 256 per admissible
+  neighbour and the walk order decides — which made the search a
+  question about the map, and the map is in every `DUMP_ALL` block.
+- **Three things the readings shared and the decompile does not.** A
+  land army is out on a coastal neighbour, not merely unscored; the
+  chase falls through into the ring search rather than returning; and
+  the return value is the last candidate's verdict, not "found" — the
+  listing's `mov eax, [ebp-8]` at `6f6824`, settled in a minute. The
+  first two would have kept every own-city search out of the ring; the
+  third is a quirk no block shows, pinned by a unit test from the
+  listing. The flag bits behind the classes were solved from run20's
+  3,600 cells — each level-4 word appears exactly when its bit is set —
+  and the 7 × 7 walk table was read out of the executable at the PDB's
+  address (`world::MOVE_49`).
+- **The blocks explained themselves.** The window dumps carry the world
+  per frame, so a loader (`army_tests::scene_at`) that builds one
+  block's map, cities and armies was enough to run the search where the
+  original ran it. Run22's two muster cells come out in the order the
+  game found them; at 12129 Norwich has exactly one admissible cell in
+  its two rings and army 0's chase muster sits three cells from it — the
+  same-owner spacing rule is what closed army 1, and the `CITY` records
+  show the `0x2000` mark going on between the blocks; at 15100 the same
+  cell is the human's territory. The navy's (46, 58) comes out of both
+  blocks, the angle differing by `find_target`'s turn-about. Six
+  searches, cells and angles equal.
+- **Landed.** `army.rs`: `find_muster_spot(o, who, flag)` whole, the
+  `no_muster` mark on `City` and its division in `find_target`;
+  `world.rs`: `cell` (the flag legend), `MOVE_49`, `World::is_ocean`;
+  `rondata`: `world_from` factored out of `build_sim` so a frame block's
+  `WORLD` can build a world, and the three replays beside the unit
+  tests. `docs/ARMY.md` §13 rewritten, §16.5, §17, §18; the audit's
+  B.56 closed with a note on the three amendments; `ORACLE.md` carries
+  the flag legend.
+- **A method note.** The scene loader is the first time a mid-game
+  block has fed the harness at all, and it cost an afternoon, not the
+  "harness that can stage a frame-12000 state" item 13 imagines — for
+  a *single function*, a block's records are the state. `find_target`
+  at run26's 12024 is the obvious next use.

@@ -11,7 +11,8 @@
 //! tick (§6), mustering and its release (§7), the target validation and
 //! retarget (§9), defending and the besieged-city search (§10), the
 //! engagement predicates over the units' orders (§11), `find_target`'s
-//! scoring over cities (§12), the muster-spot chase (§13), transporting
+//! scoring over cities (§12), the muster spot — the chase, the ring
+//! search over the loaded map's cells, and the mark (§13) — transporting
 //! (`docs/TRANSPORT.md` §8.2) and the `Armies` queries (§15). What is
 //! **not** is every `Group::action_*` the original issues — the sim has
 //! no group orders yet — so `do_forming`, `march_to_target`,
@@ -24,7 +25,7 @@ use crate::attrition::Domain;
 use crate::build::{self, Ident};
 use crate::combat::Obj;
 use crate::movement::{Angle, find_angle};
-use crate::world::{Cell, Owner, Pos, Terrain, UNITS_PER_CELL, vector_dist};
+use crate::world::{Cell, MOVE_49, Owner, Pos, Terrain, UNITS_PER_CELL, cell, vector_dist};
 use crate::{Player, Sim};
 
 /// Where this module knowingly stands in for the original, in one list.
@@ -32,7 +33,6 @@ use crate::{Player, Sim};
 /// | seam | stands in for | what it costs |
 /// | --- | --- | --- |
 /// | no group orders | every `Group::action_*` in §8, §9, §11, §14 | armies decide but never move units; `status & 4` is never set; `add_to_army`'s walk to the army is not issued |
-/// | `find_muster_spot`'s ring | §13's `circle_*` walk over the land classes | the muster cell is the target's cell, `y ± 1` — the original's own fallback |
 /// | `find_target`'s forts | §12's second scan | never a fort target |
 /// | `pop_issues`, `wonderwin_timer`, `popwin_timer`, `score`, `num_wonders`, `GLOBAL_GOVERNMENT_BONUS`, `weak[]`/`strong[]`, the tribute period | leader and city fields the sim does not keep | the multipliers they gate are ×1; a leader at peace is never a target |
 /// | `type_avail(SUPPLYWAGON)`, `is(CATAPHRACT)` | two of §12's strength-gate terms | a wagon-less army is not weak for it; cataphracts count 0 |
@@ -556,7 +556,7 @@ impl Sim {
             if let Some(t) = target {
                 let tw = self.owner_of(t);
                 if !self.is_enemy(who, tw) || navy {
-                    self.find_muster_spot(who, slot, t);
+                    self.find_muster_spot(who, slot, t, false);
                 } else {
                     let tc = self.pos_of(t).cell();
                     let a = &mut self.armies[w].list[slot];
@@ -625,7 +625,7 @@ impl Sim {
                 && self.cities[c].alive
             {
                 let b = self.cities[c].building;
-                if self.find_muster_spot(who, slot, Obj::Building(b)) {
+                if self.find_muster_spot(who, slot, Obj::Building(b), true) {
                     self.armies[w].list[slot].status |= status::FORMING;
                     return;
                 }
@@ -845,7 +845,7 @@ impl Sim {
             let p = self.restrict(Pos::new(cpos.x, cpos.y + UNITS_PER_CELL));
             self.armies[w].list[slot].pos = p;
             let b = self.cities[c].building;
-            if self.find_muster_spot(who, slot, Obj::Building(b)) {
+            if self.find_muster_spot(who, slot, Obj::Building(b), true) {
                 self.armies[w].list[slot].status |= status::FORMING;
             } else {
                 self.close_army(who, slot);
@@ -911,7 +911,7 @@ impl Sim {
         let target = Obj::Building(self.cities[c].building);
         let cpos = self.cities[c].pos;
         if navy {
-            self.find_muster_spot(who, slot, target);
+            self.find_muster_spot(who, slot, target, false);
             let a = &mut self.armies[w].list[slot];
             a.pos = cell_centre(a.muster);
             return true;
@@ -1157,6 +1157,10 @@ impl Sim {
                             } else {
                                 v = v * (4 - lvl) / 4;
                             }
+                            // §13's "no muster spot" mark.
+                            if cd.no_muster {
+                                v /= 20;
+                            }
                         } else if i != w && team_style == 2 {
                             v *= 5;
                         }
@@ -1329,7 +1333,7 @@ impl Sim {
         let cpos = self.cities[c].pos;
         let p = self.restrict(Pos::new(cpos.x, cpos.y + UNITS_PER_CELL));
         self.armies[w].list[slot].pos = p;
-        if self.find_muster_spot(who, slot, target) {
+        if self.find_muster_spot(who, slot, target, false) {
             let a = &mut self.armies[w].list[slot];
             a.muster_angle = Angle(a.muster_angle.0.wrapping_add(i32::MIN));
         } else {
@@ -1339,11 +1343,36 @@ impl Sim {
 
     // ---- the muster spot (§13) ----
 
-    /// `Army::find_muster_spot(o, who, ·)`: the chase over the target
-    /// city's damaged buildings, then the original's own fallback — the
-    /// target's cell, one row down (up on the last row). The ring search
-    /// is a seam, so this always finds a spot.
-    pub fn find_muster_spot(&mut self, who: Player, slot: usize, target: Obj) -> bool {
+    /// `LandData::move_rate` — `lands[class].+0x100`, what a neighbour
+    /// cell adds to a candidate's score. `Lands::init@0067e730` writes
+    /// `0x100` to every one of the nine lands' `move_rate` (and
+    /// `combat_bonus`), and nothing else in the export writes either, so
+    /// the score is a constant: 256 per admissible neighbour, and the
+    /// ring's walk order breaks the ties.
+    const LAND_MOVE_RATE: i32 = 0x100;
+
+    /// `Army::find_muster_spot(o, who, flag)` (§13): the chase over the
+    /// target city's damaged buildings; then the ring search — the cells
+    /// `circle_x/y[circle_radius[inner]..circle_radius[outer])` around the
+    /// army's point, each admitted by its neighbourhood's regions, land
+    /// classes and owners and scored by [`Self::LAND_MOVE_RATE`], the best
+    /// by strict `>` in walk order; then the original's fallback — the
+    /// target city's cell one row down (up on the last row) — for a land
+    /// army at an enemy's or a damaged city centre, and the `no_muster`
+    /// mark at an untroubled city centre of one's own.
+    ///
+    /// `flag` widens the neighbourhood the search walks for bounds and
+    /// foreign owners from the 3 × 3 to the 7 × 7; `do_mustering`,
+    /// `do_defending` and `do_transporting` pass it, `process`,
+    /// `find_target` and `find_besieged_city` do not.
+    ///
+    /// The return is the original's `local_c` — **the last in-bounds
+    /// candidate's validity**, or 1 after the early stop — not whether a
+    /// spot was found (listing `6f6824`: `mov eax, [ebp-8]`); a found
+    /// best whose ring ends on an inadmissible cell returns 0 with the
+    /// muster set. Kept as it is, because `do_mustering` and
+    /// `do_defending` act on that 0.
+    pub fn find_muster_spot(&mut self, who: Player, slot: usize, target: Obj, flag: bool) -> bool {
         let w = who as usize;
         self.armies[w].list[slot].hurry = 0;
         let tw = self.owner_of(target);
@@ -1397,20 +1426,189 @@ impl Sim {
                     }
                 }
             }
+            // No enemy at the chain: a provisional muster — the damaged
+            // building's cell, else the target's, one row down — and on
+            // into the ring search, which overrides it with a best.
             let m = below(muster.unwrap_or(tc), height);
             let a = &mut self.armies[w].list[slot];
             a.muster = m;
             a.muster_angle = find_angle(m.x - tc.x, m.y - tc.y);
-            return true;
         }
-        // The ring search's own angle is from the army's point (`ac`); the
-        // fallback's, like the chase's, from the target (audit B.46).
-        let _ = ac;
-        let m = below(tc, height);
-        let a = &mut self.armies[w].list[slot];
-        a.muster = m;
-        a.muster_angle = find_angle(m.x - tc.x, m.y - tc.y);
-        true
+        // The ring search. `OBJECT_CITY` is the city centre itself, not a
+        // member.
+        let city = match target {
+            Obj::Building(b) => self.buildings[b]
+                .city
+                .filter(|&c| self.cities[c].building == b)
+                .map(|c| (b, c)),
+            Obj::Unit(_) => None,
+        };
+        let siege = self.army_count_siege(who, slot);
+        let inner = match city {
+            Some((b, c)) if !navy => {
+                if self.building_unassimilated(b) {
+                    4
+                } else {
+                    let mut r = self.radius_of(c) / 4 + 1;
+                    if siege == 0 && who != tw {
+                        r /= 2;
+                    }
+                    r
+                }
+            }
+            _ => 5,
+        };
+        let outer = (inner + (3 * i32::from(navy) + 1) * 2).min(0x40);
+        let walk = if flag { 0x31 } else { 9 };
+        let scored = if navy { 0x19 } else { 9 };
+        let ally = self.is_ally(who, tw);
+        let near = if ally { 4 } else { 2 };
+        // A land army with any transport level may muster in any land
+        // region (`leader_flags & 0x700`, `region < 0x41`).
+        let any_land = !navy && self.transport_level(who) as i32 != 0;
+        let reg = self.armies[w].list[slot].reg;
+        let others: Vec<Cell> = self.armies[w]
+            .list
+            .iter()
+            .enumerate()
+            .filter(|(j, a)| *j != slot && a.valid)
+            .map(|(_, a)| a.muster)
+            .collect();
+        let circle = crate::ai_place::circle();
+        let mut best: Option<(i32, usize, Cell)> = None;
+        // The original's `local_c`: the last in-bounds candidate's verdict.
+        let mut last_valid = false;
+        for i in circle.radius[inner as usize]..circle.radius[outer as usize] {
+            let cand = Cell::new(ac.x + circle.x[i], ac.y + circle.y[i]);
+            if !self.world.contains(cand) {
+                continue;
+            }
+            // Not too near another army of mine — the first that is ends
+            // the candidate's walk before it scores, so it cannot win.
+            let too_near = others
+                .iter()
+                .any(|m| vector_dist((cand.x - m.x).abs(), (cand.y - m.y).abs()) < near);
+            if !too_near {
+                let mut score = 0;
+                let mut out = false;
+                for (j, &(dx, dy)) in MOVE_49[..walk].iter().enumerate() {
+                    let n = Cell::new(cand.x + dx, cand.y + dy);
+                    if !self.world.contains(n) {
+                        out = true;
+                        break;
+                    }
+                    if !navy {
+                        // The neighbour's own neighbour in the same
+                        // direction: another leader's cell — not mine,
+                        // not an ally's, not the target owner's — is out.
+                        // A `−2` owner is "another leader" to the test.
+                        let nn = Cell::new(n.x + dx, n.y + dy);
+                        if self.world.contains(nn) {
+                            let foreign = match self.world.owner(nn) {
+                                Owner::None => false,
+                                Owner::Ambiguous => true,
+                                Owner::Player(p) => p != who && !self.is_ally(who, p) && p != tw,
+                            };
+                            if foreign {
+                                out = true;
+                                break;
+                            }
+                        }
+                    }
+                    if j >= scored {
+                        continue;
+                    }
+                    let nreg = self.world.region_of(n);
+                    let in_region = nreg == reg
+                        || (any_land
+                            && nreg.is_some_and(|r| self.world.terrain(r) == Terrain::Land));
+                    if !in_region {
+                        out = true;
+                        break;
+                    }
+                    let d = self.world.cell_data(n);
+                    let f = d.flags;
+                    let water = self.world.is_ocean(n);
+                    let class = if f & cell::COAST != 0 {
+                        3
+                    } else if f & cell::FOREST != 0 {
+                        4
+                    } else if f & (cell::MOUNTAIN | 0x40) != 0 {
+                        5
+                    } else if f & cell::ROCK != 0 {
+                        i32::from((f & 0x800) | 0x3000) >> 11
+                    } else if water && f & 0x800 != 0 {
+                        7
+                    } else {
+                        i32::from(d.land)
+                    };
+                    let admissible = if navy {
+                        water
+                    } else {
+                        !water && class != 5 && class != 4 && class != 3
+                    };
+                    if !admissible {
+                        out = true;
+                        break;
+                    }
+                    if f & cell::BUILDING == 0 {
+                        score += Self::LAND_MOVE_RATE;
+                    } else if navy && j > 8 {
+                        score += 10;
+                    }
+                }
+                last_valid = !out;
+                if !out && score > best.map_or(0, |(s, _, _)| s) {
+                    best = Some((score, i, cand));
+                }
+            }
+            // The early stop: more than 0x28 entries past the best.
+            if let Some((_, bi, _)) = best
+                && i - bi > 0x28
+            {
+                last_valid = true;
+                break;
+            }
+        }
+        if let Some((_, _, m)) = best {
+            let a = &mut self.armies[w].list[slot];
+            a.muster = m;
+            // From the army's point here, not the target's (listing
+            // `6f67aa`; audit B.46).
+            a.muster_angle = find_angle(m.x - ac.x, m.y - ac.y);
+            if let Some((_, c)) = city
+                && who == tw
+                && self.cities[c].alive
+            {
+                self.cities[c].no_muster = false;
+            }
+            return last_valid;
+        }
+        // No cell. A land army at a city centre that is not mine or an
+        // ally's, or that is damaged: the city's cell, one row down.
+        if let Some((b, c)) = city
+            && !navy
+        {
+            let bd = &self.buildings[b];
+            let damaged = bd.health < bd.hits;
+            if !ally || damaged {
+                let m = below(self.cities[c].pos.cell(), height);
+                let a = &mut self.armies[w].list[slot];
+                a.muster = m;
+                a.muster_angle = find_angle(m.x - tc.x, m.y - tc.y);
+                return true;
+            }
+        }
+        // An active, untroubled city centre of my own: the mark §12
+        // divides by 20, and the caller sees the failure.
+        if let Some((_, c)) = city
+            && who == tw
+            && self.cities[c].alive
+            && !self.cities[c].no_heal
+        {
+            self.cities[c].no_muster = true;
+        }
+        last_valid
     }
 
     /// `find_unit(SEARCH_ENEMY, FILTER_COMBAT)`: the nearest enemy unit of
@@ -1538,7 +1736,7 @@ impl Sim {
             Some(c) => {
                 let target = Obj::Building(self.cities[c].building);
                 self.armies[w].list[slot].target = Some(target);
-                self.find_muster_spot(who, slot, target);
+                self.find_muster_spot(who, slot, target, true);
             }
         }
         self.armies[w].list[slot].status = status::MARCHING;
@@ -1864,6 +2062,7 @@ mod tests {
             unassimilated: false,
             no_heal: false,
             alarm: false,
+            no_muster: false,
             was_capital: 0,
             capture_stamp: 0,
             assimilation_timer: 0,
@@ -1959,5 +2158,257 @@ mod tests {
         sim.armies[1].list[s].num_standard = 2;
         sim.cities[c].no_heal = true;
         assert!(sim.release_mustering(1, s));
+    }
+
+    // ---- the ring search (§13) ----
+
+    use crate::world::CellData;
+
+    /// [`sim_with_city`] with the city building wired to its city, as
+    /// `activate` leaves it, and one army mustering at the city: its
+    /// point is one cell south of the city's, cell (16, 17). A level-1
+    /// city's radius is 20 tiles, so `inner = 6` and `outer = 8`: the
+    /// search walks rings 7 and 8 — 40 and 52 entries — around (16, 17),
+    /// and the first entry of ring 7 is (−7, −3), the cell (9, 14).
+    fn sim_with_army() -> (Sim, usize, usize, usize) {
+        let (mut sim, c) = sim_with_city();
+        let b = sim.cities[c].building;
+        sim.buildings[b].city = Some(c);
+        let s = sim.init_army(1, Some(c));
+        assert_eq!(sim.armies[1].list[s].pos.cell(), Cell::new(16, 17));
+        assert_eq!(sim.radius_of(c) / 4 + 1, 6);
+        (sim, c, b, s)
+    }
+
+    fn flag_cell(sim: &mut Sim, x: i32, y: i32, flags: u16) {
+        let c = Cell::new(x, y);
+        let mut d = sim.world.cell_data(c);
+        d.flags = flags;
+        sim.world.set_cell_data(c, d);
+    }
+
+    fn flag_all(sim: &mut Sim, flags: u16) {
+        for y in 0..sim.world.height() {
+            for x in 0..sim.world.width() {
+                flag_cell(sim, x, y, flags);
+            }
+        }
+    }
+
+    #[test]
+    fn the_ring_search_takes_the_first_cell_of_the_ring_past_inner_in_walk_order() {
+        let (mut sim, c, b, s) = sim_with_army();
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        let a = &sim.armies[1].list[s];
+        assert_eq!(a.muster, Cell::new(9, 14), "ring 7's first entry, (−7, −3)");
+        assert_eq!(
+            a.muster_angle,
+            find_angle(-7, -3),
+            "the angle is from the army's point"
+        );
+        assert!(!sim.cities[c].no_muster);
+        // The same cell whichever neighbourhood the flag walks: nothing is
+        // out of bounds or foreign.
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 14));
+    }
+
+    #[test]
+    fn a_forest_coast_or_mountain_cell_in_the_3x3_puts_a_candidate_out() {
+        let (mut sim, _, b, s) = sim_with_army();
+        // Ring 7 opens (−7, −3), (−7, −2), (−7, −1) … (−7, 3), then (−6,
+        // −4), (−6, 4), … — cells (9, 14) to (9, 20), then (10, 13), (10, 21).
+        // A forest on (9, 14) is in the 3 × 3 of (9, 15) too.
+        flag_cell(&mut sim, 9, 14, cell::FOREST);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 16));
+        flag_cell(&mut sim, 10, 16, cell::COAST);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 18));
+        flag_cell(&mut sim, 8, 17, cell::MOUNTAIN);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 19));
+        // A cell two away is walked for bounds and owners only, not class:
+        // the 7 × 7 walk does not read it.
+        flag_cell(&mut sim, 11, 19, cell::FOREST);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 19));
+        // Rock and road are admissible.
+        flag_cell(&mut sim, 9, 19, cell::ROCK | cell::ROAD);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 19));
+        // A building's cell in the 3 × 3 scores nothing: (9, 19) and (9,
+        // 20) score eight neighbours, (10, 13) is out on the forest, and
+        // (10, 21) is the first to score nine.
+        flag_cell(&mut sim, 9, 19, cell::BUILDING);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 21));
+    }
+
+    #[test]
+    fn another_leader_s_cell_two_steps_out_puts_a_candidate_out_and_the_flag_widens_the_walk() {
+        let (mut sim, _, b, s) = sim_with_army();
+        // The double of (9, 14)'s north-west neighbour.
+        sim.world
+            .set_owner(Cell::new(7, 12), Owner::Player(0), Owner::None);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 15));
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 15));
+        sim.world
+            .set_owner(Cell::new(7, 12), Owner::None, Owner::None);
+        // The double of (9, 14)'s (3, 0) entry — six cells east — is walked
+        // only with the flag.
+        sim.world
+            .set_owner(Cell::new(15, 14), Owner::Player(0), Owner::None);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 14));
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 15));
+        // My own cell, or an ally's, is not foreign.
+        sim.world
+            .set_owner(Cell::new(15, 14), Owner::Player(1), Owner::None);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 14));
+    }
+
+    #[test]
+    fn a_candidate_within_four_cells_of_another_army_of_mine_is_dropped() {
+        let (mut sim, c, b, s) = sim_with_army();
+        let s2 = sim.init_army(1, Some(c));
+        sim.armies[1].list[s2].muster = Cell::new(9, 14);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(
+            sim.armies[1].list[s].muster,
+            Cell::new(9, 18),
+            "(9, 15), (9, 16) and (9, 17) are within four; (9, 18) is at four"
+        );
+        // An invalid slot does not count.
+        sim.close_army(1, s2);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(9, 14));
+    }
+
+    /// The return is the last in-bounds candidate's verdict, not whether a
+    /// best was found (listing `6f6824`). Ring 7 and ring 8 hold 92 entries
+    /// and the early stop fires 0x28 past the best, so the best has to sit
+    /// near the end of ring 8 for the two to differ: with everything forest
+    /// but one 3 × 3 patch, the patch is the best, and the return says
+    /// whether the *last* entry, (8, 3), was admissible.
+    #[test]
+    fn the_return_is_the_last_candidate_s_verdict_not_the_best_s() {
+        let (mut sim, c, b, s) = sim_with_army();
+        flag_all(&mut sim, cell::FOREST);
+        for y in 19..=21 {
+            for x in 23..=25 {
+                flag_cell(&mut sim, x, y, 0);
+            }
+        }
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(
+            sim.armies[1].list[s].muster,
+            Cell::new(24, 20),
+            "(8, 3), the last entry"
+        );
+        assert!(!sim.cities[c].no_muster);
+
+        let (mut sim, c, b, s) = sim_with_army();
+        flag_all(&mut sim, cell::FOREST);
+        for y in 18..=20 {
+            for x in 23..=25 {
+                flag_cell(&mut sim, x, y, 0);
+            }
+        }
+        assert!(
+            !sim.find_muster_spot(1, s, Obj::Building(b), true),
+            "the last entry is out, so the search reports failure"
+        );
+        assert_eq!(
+            sim.armies[1].list[s].muster,
+            Cell::new(24, 19),
+            "with the best, (8, 2), set as the muster all the same"
+        );
+        assert!(!sim.cities[c].no_muster, "the mark is the no-best path's");
+    }
+
+    #[test]
+    fn no_cell_at_an_untroubled_city_of_my_own_sets_the_mark_and_a_find_clears_it() {
+        let (mut sim, c, b, s) = sim_with_army();
+        flag_all(&mut sim, cell::FOREST);
+        let before = sim.armies[1].list[s].muster;
+        assert!(!sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert!(sim.cities[c].no_muster);
+        assert_eq!(
+            sim.armies[1].list[s].muster, before,
+            "the muster is left alone"
+        );
+        // Under attack, no mark.
+        sim.cities[c].no_muster = false;
+        sim.cities[c].no_heal = true;
+        assert!(!sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert!(!sim.cities[c].no_muster);
+        sim.cities[c].no_heal = false;
+        sim.cities[c].no_muster = true;
+        flag_all(&mut sim, 0);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert!(!sim.cities[c].no_muster);
+    }
+
+    #[test]
+    fn no_cell_at_an_enemy_city_falls_back_to_the_city_s_cell_one_row_down() {
+        let (mut sim, c, b, s) = sim_with_army();
+        sim.cities[c].owner = 0;
+        sim.buildings[b].owner = 0;
+        flag_all(&mut sim, cell::FOREST);
+        // Not mine: `inner` halves to 3 without siege, and the rings are
+        // 4 and 5 — all forest.
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(16, 17));
+        assert_eq!(sim.armies[1].list[s].muster_angle, find_angle(0, 1));
+        assert!(!sim.cities[c].no_muster);
+    }
+
+    #[test]
+    fn a_navy_musters_on_water_of_its_region_scoring_the_5x5() {
+        let (mut sim, c, b, s) = sim_with_army();
+        sim.cities[c].owner = 0;
+        sim.buildings[b].owner = 0;
+        let sea = sim.world.add_region(Terrain::Sea);
+        for y in 0..60 {
+            for x in 0..60 {
+                let k = Cell::new(x, y);
+                sim.world.set_region(k, sea);
+                sim.world.set_cell_data(
+                    k,
+                    CellData {
+                        land: 2,
+                        ..CellData::default()
+                    },
+                );
+            }
+        }
+        {
+            let a = &mut sim.armies[1].list[s];
+            a.navy = true;
+            a.reg = Some(sea);
+        }
+        // `inner = 5`, `outer = 13`: ring 6 opens (−6, −3) … (−6, 3), the
+        // cells (10, 14) to (10, 20).
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 14));
+        // A land cell puts the candidate out — a coastal cell (`HALFLAND`)
+        // is land to `is_ocean`. Without the flag only the 3 × 3 is
+        // walked, so (11, 15) puts out (10, 14) to (10, 16).
+        flag_cell(&mut sim, 11, 15, cell::HALFLAND);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 17));
+        // With it the 5 × 5 is, and (10, 17) is out as well.
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), true));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 18));
+        // Another army's spacing is two cells for an enemy target.
+        let s2 = sim.init_army(1, Some(c));
+        sim.armies[1].list[s2].muster = Cell::new(10, 17);
+        assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
+        assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 19));
     }
 }

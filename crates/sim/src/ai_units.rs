@@ -2257,6 +2257,7 @@ mod tests {
             unassimilated: false,
             no_heal: false,
             alarm: false,
+            no_muster: false,
             was_capital: 0,
             capture_stamp: 0,
             assimilation_timer: 0,

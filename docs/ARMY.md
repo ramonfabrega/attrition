@@ -754,7 +754,11 @@ difficulty gate's coin — all in the sync stream (`docs/SYNC.md` §3).
 
 ## 13. The muster spot — `Army::find_muster_spot(o, who, flag)@006f5cc0`
 
-`hurry = 0` first. Two halves.
+`hurry = 0` first. Three parts: the chase, the ring search, the fallback.
+The callers and their `flag`: `do_mustering`, `do_defending` and
+`do_transporting` pass 1; `process`, `find_target` and
+`find_besieged_city` pass 0. *Built and replayed 2026-08-25* — the
+paragraphs below are what the build settled, and §16.5 has the replays.
 
 **The chase**, when the target's owner `who` is **mine or my ally** and I
 am not a navy: `muster = (−1, −1)`; walk the target building and the
@@ -769,49 +773,83 @@ FILTER_DOMAIN)`), else an enemy unit within `0x1200` **targeting it**
 audit B.15) — **`hurry = 1`**, return 1. Not found: `muster` = the
 damaged building's cell if unset. After the chain, `muster` unset → the
 target's own cell; then `muster_y += 1`, or `−= 1` on the map's last row;
-`muster_angle = find_angle(muster − cell(target))` and fall through to the
-ring search with that as the starting cell.
+`muster_angle = find_angle(muster − cell(target))`. That muster is
+**provisional**: the function goes on into the ring search whatever the
+chase left, and a best there overrides it. (The first implementation
+returned here, and every own-city search skipped the ring.)
 
 **The ring search.** Centre `(ax, ay) = cell(x, y)`, the army's point.
-`inner`: for a target that is not a city centre (`OBJECT_CITY` clear) or
-a navy, 5; for a city centre whose city is unassimilated, 4; else
-`city.get_radius() / 4 + 1`, halved when I have no siege and the target
-is not mine. `outer = min(0x40, inner + (3 ×
-navy + 1) × 2)`. Walk the ring cells `circle_x/y[circle_radius[inner] ..
-circle_radius[outer])` (`circle_init@006817f0`'s tables, the ordered
-cells by radius `docs/CITIES.md` uses) around `(ax, ay)`, in bounds. For
-each candidate cell `(cx, cy)`:
+`inner`: 5 for a navy, or for a target that is not a city centre
+(`OBJECT_CITY` clear); 4 for a city centre whose building
+`is_unassimilated`; else `city.get_radius() / 4 + 1`, halved when I have
+no siege and the target is not mine — 6 at a level-1 city of my own.
+`outer = min(0x40, inner + (3 × navy + 1) × 2)`: two rings past `inner`
+for a land army, eight for a navy. Walk the entries
+`circle_x/y[circle_radius[inner] .. circle_radius[outer])` —
+`circle_init@006817f0`'s tables, `ai_place::circle`: the rings `inner + 1
+..= outer`, each in the table's order, `x` ascending and `y` ascending
+within it — around `(ax, ay)`; an entry off the map is skipped outright.
+For each candidate `(cx, cy)` on the map:
 
-- **not too near another army of mine**: for each of my other valid
-  armies, `vector_dist(|cx − A.muster_x|, |cy − A.muster_y|)` must be `>=
-  4` cells if `who` is me or my ally, `>= 2` otherwise — the first that is
-  nearer ends the *search* (the candidate is scored as it stands);
-- **the neighbourhood**: the cell itself and its `move_x/y[0..k)`
-  neighbours, `k = 9` for a land army (the 3 × 3), `0x19` for a navy (the
-  5 × 5), `flag == 0` limits the walk to 9 either way; every neighbour in
-  bounds, else the candidate is out. For a land army, a neighbour's
-  neighbour (`move_x/y[j]` again) whose cell `who` (`WData +0xf`) is
-  another leader that is not me, my ally-slot, allied, or `who` → out. The
-  neighbour must be in my region, or (a land army with a transport level,
-  `leader_flags & 0x700`) in any land region (`< 0x41`); its land class:
-  cell flag `0x04` → 3, `0x20` → 4, `0x50` → 5, `0x08` → `(flag & 0x800 |
-  0x3000) >> 11`, else the cell's own `land` unless `is_ocean` and flag
-  `0x800`, then 7; `water` = not flagged `0x100` and `land ∈ {1, 2}`. A land
-  army is out on water, class 5 or 4, and scores nothing on 3; a navy is
-  out on land. Score `+= lands[class].+0x100` unless the cell is flagged
-  `0x4000`, in which case a navy's outer ring (`j > 8`) scores 10;
-- the best score wins (strict `>`); the search stops early once the ring
-  index is more than `0x28` past the best's.
+- **not too near another army of mine**: for each other valid slot,
+  `vector_dist(|cx − A.muster_x|, |cy − A.muster_y|) < 4` if `who` is me
+  or my ally, `< 2` otherwise, ends the candidate's walk before it scores;
+  it scores 0 and cannot become the best;
+- **the neighbourhood walk**, `move_x/y[0 .. k)` from the cell itself
+  outward — `k = 0x31` (the 7 × 7, `world::MOVE_49`, read from the
+  executable) with `flag`, 9 (the 3 × 3) without. Every neighbour must be
+  on the map, else the candidate is **out**. For a land army, the
+  neighbour's own neighbour in the same direction (`n + move[j]` again)
+  whose `who` (`WData +0xf`) is not −1, not me, not mutually allied and
+  not `who` → out — a third leader's cell (or a `−2`) two, four or six
+  cells off, the reach growing with `flag`. Then, for `j < 9` (land) or
+  `j < 0x19` (navy) only — the 3 × 3 or the 5 × 5 — the neighbour must be
+  in my region (`WData +0x4 == reg`), or, for a land army whose leader
+  has any transport level (`leader_flags & 0x700`), in any land region
+  (`< 0x41`); its **class**: flag `COAST 0x04` → 3, `FOREST 0x20` → 4,
+  `MOUNTAIN 0x10` or `0x40` → 5, `ROCK 0x08` → `((flags & 0x800) |
+  0x3000) >> 11` (6, or 7 with `0x800`), else 7 if `is_ocean` and
+  `0x800`, else the cell's own `land` byte; and **water** = `is_ocean` —
+  not `HALFLAND 0x100`, and `land ∈ {1, 2}`
+  (`WorldData::is_ocean@006b4830`; on the islands map the shallows print
+  as `SANDY`, 1). A land army is **out** on water and on classes 3, 4 and
+  5 — coast, forest and mountain, all three; not "scores nothing on 3",
+  which the first reading had — and a navy is out on anything but water.
+  The neighbour scores `lands[class].move_rate` (`LandData +0x100`)
+  unless its cell is flagged `BUILDING 0x4000`, when it scores 0 — or 10
+  for a navy's outer ring (`j > 8`). **`move_rate` is `0x100` for every
+  land**: `Lands::init@0067e730` writes it, and `combat_bonus` at
+  `+0x104`, as a constant to all nine, and no other function in the
+  export writes either — so a candidate scores 256 per non-building
+  neighbour, 2304 at most, and the walk order breaks every tie;
+- the best is by strict `>` against a running best that starts at 0 (a
+  candidate whose 3 × 3 is all building cells never wins), and the walk
+  stops at the first on-map candidate more than `0x28` entries past the
+  best's.
+
+The flag names are `WData::log_data`'s own words, solved from run20's
+3,600 cells (`world::cell`); `0x40`, `0x400` and `0x800` have no word in
+that dump and are cited by value.
 
 With a best: `muster = it`, `muster_angle = find_angle(muster − (ax,
-ay))` — here from the **army's** point (listing `6f67aa`); a **city centre
-of my own** with a city: clear the city's `0x2000` bit. Return 1. No cell:
-for a land army whose target is a city centre that is not mine/allied, or
-that is damaged: `muster = the city's cell, y ± 1`, `muster_angle` from
-the target, return 1; a city centre of my own with a city that is active
-and not attacked: **set `city_flags |= 0x2000`** — the mark §12 divides
-by 20 — and return 0. That 0 is what closed army 1 at 12129 and army 0 at
-15100 (§16.5): an undamaged city of one's own with no ring cell.
+ay))` — from the **army's** point (listing `6f67aa`); a **city centre of
+my own** with a live city: clear the city's `0x2000` bit. **The return is
+`local_c`** — the last on-map candidate's verdict, 1 if it completed its
+walk and 0 if it went out (a too-near drop leaves it as it was), or 1
+after the early stop — **not whether a best was found**: `mov eax,
+[ebp-8]` at `6f6824`, on this path and the marking one. A best whose ring
+ends on an inadmissible cell returns 0 with the muster set, and
+`do_mustering` marches on that 0. No cell: for a land army whose target
+is a city centre that is not mine/allied, or that is damaged: `muster =
+the city's cell, y ± 1`, `muster_angle` from the target, return 1; a city
+centre of my own with a city that is active and not attacked (`city_flags
+& 3 == 1`): **set `city_flags |= 0x2000`** — the mark §12 divides by 20 —
+and return `local_c`. That is what closed army 1 at 12129 and army 0 at
+15100 (§16.5), and the replays name the cell: around Norwich's (45, 48)
+every entry of rings 7 and 8 but **(49, 54)** is coastal, water or
+forest; at 12129 that one cell is three off army 0's chase muster (51,
+52) and dropped as too near, and at 15100 the human, holding the captured
+capital, owns it.
 
 ## 14. The helpers
 
@@ -1008,6 +1046,23 @@ the sim having run on past the `!quit`. The records
   `find_muster_spot` **failed** → `close`. No `find_target`, no
   `do_marching`. Block 16007: a new army 1 at a new city 0 in region 5,
   seeded by the census; army 0 back at city 1 with seven units.
+- **Replayed, 2026-08-25** (`rondata::diff::army_tests::scene_at`: a
+  block's own `WORLD` cells, its cities typed from their `BUILDDATA`, its
+  leaders' transport bits and its `ARMY` records, and the search run on
+  that). **Run22, 3579**: (44, 50) and (49, 54) come out of §13's search
+  in the order the game ran it — the capital's army while it was the only
+  one (its cell is two from Norwich's init cell, so with army 1 standing
+  it would be dropped as too near), then Norwich's with army 0 settled.
+  **Run25, 12129**: Norwich's search finds nothing — (49, 54), the only
+  admissible entry of rings 7 and 8, is three cells from army 0's chase
+  muster (51, 52) — and the `CITY` records show the mark going on,
+  `city_flags 0x0001 → 0x2001` between blocks 12129 and 12130 (still
+  `0x2001` at 15100, `0x3001` at 16007). The navy's search against its
+  own capital lands on (46, 58) with the record's angle once
+  `find_target`'s turn-about (§12's tail) is applied. **Run27, 15100**:
+  Norwich again, and this time (49, 54) is out at its own cell — the
+  human owns it, the capital having fallen; the navy's search against
+  the captured capital lands on (46, 58) again, the record's angle plain.
 
 ## 17. What the simulation carries, and what checks it
 
@@ -1020,19 +1075,21 @@ cadence (§5), the tick's disband / merge / muster-midpoint / status
 normalisation (§6), `release_mustering` and `do_mustering`'s table (§7),
 `do_transporting` (`docs/TRANSPORT.md` §8.2, now that the army exists),
 `emergency` / `update_city` / `leader_defeated` / `diplo_change` (§15),
-and `find_target`'s scoring over cities (§12) with its draws on the sync
-RNG. The census's step 16 (`ai_census.rs`) and `create_units`'
-`seam_army_at` (`ai_units.rs`) are wired to it. **Not implemented**: the
-order-issuing half — `do_forming`, `march_to_target`, `engagement`,
-`send_here`, `charge`, `find_muster_spot`'s ring search and
-`find_besieged_city` — which needs the sim's group orders
-(`docs/ORDERS.md`'s `Group::action_*`), not yet modelled; they are
-documented above and the state machine stops at "the orders this tick
-would issue".
+`find_target`'s scoring over cities (§12) with its draws on the sync
+RNG and the `0x2000` mark's division, and `find_muster_spot` whole (§13)
+— the chase, the ring search over the loaded map's cells (`World`'s
+`CellData`, `world::cell`, `world::MOVE_49`, `World::is_ocean`) and the
+mark (`City::no_muster`). The census's step 16 (`ai_census.rs`) and
+`create_units`' `seam_army_at` (`ai_units.rs`) are wired to it. **Not
+implemented**: the order-issuing half — `do_forming`, `march_to_target`,
+`engagement`, `send_here`, `charge` and `find_besieged_city` — which
+needs the sim's group orders (`docs/ORDERS.md`'s `Group::action_*`), not
+yet modelled; they are documented above and the state machine stops at
+"the orders this tick would issue".
 
 The seams — every place the module stands in for the original — are one
-table at the top of `army.rs` (`army::seams`); the first capture to reach
-one is §18's ring search.
+table at the top of `army.rs` (`army::seams`). The ring search was the
+first a capture reached (§16.5), and is a seam no longer.
 
 Checks, cheapest first (`rondata::diff`, `army_tests`):
 
@@ -1050,6 +1107,17 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
    `do_defending` — read into §16.5; the assertions they can carry
    (`status`, `target_o/who`, `x/y`, `hurry`) wait on a harness that can
    stage a frame-12000 state, which is item 13 of the queue.
+4. **The ring search on the blocks' own maps** —
+   `run22_s_muster_cells_are_the_ring_search_s_on_block_3579_s_own_map`,
+   `run25_s_emergency_search_finds_no_cell_at_norwich_and_the_navy_re_finds_46_58`,
+   `run27_s_defending_search_finds_no_cell_at_norwich_again`: §16.5's
+   replays, four searches that find and two that fail, cells and angles
+   equal to the records. `scene_at` is the loader: one function of one
+   frame, not a replay of the frame — the first time a `DUMP_ALL` window
+   block has fed the harness at all. Passes. Beside them the unit tests
+   in `army.rs` pin what no block reaches: the walk order, each class
+   exclusion, the `flag`'s widening, the spacing, the return quirk, the
+   mark's set and clear, the fallback, and a navy's 5 × 5.
 
 ## 18. What is not established
 
@@ -1067,21 +1135,26 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   test `is_hero` / `is_special`** (A.80). Vacuous by the loader:
   `docs/DATALAYER.md`'s `unit_flags2 & 0x20` is `is(GENERAL)` and `& 0x10`
   `is(SCOUT)`.
-- **The ring search is what decides whether an army survives its first
-  tick under attack.** Run25's block 12130 (§16.5) shows army 1 **closed**
-  in the `emergency` tick of 12129, and the window's coverage names the
-  path: `do_mustering` → `release_mustering` → `find_muster_spot` failed →
-  `status = 2` → `do_marching` → `count(COUNT_ATTACK) < 1` → `close`. The
-  ring search failing at a city where it had succeeded for 9,000 frames is
-  a map-and-neighbour fact (§13's "not too near another army", the land
-  classes, the `0x2000` mark) that the reading cannot settle and the seam
-  in `army.rs` cannot reproduce: the harness keeps army 1 alive there.
-  Run27 repeats it at 15100 — a seven-unit army released into defending
-  and closed because `find_muster_spot` failed at its own city — so **two
-  of the three windows end an army through this one search**, and it is
-  the first thing to build once the cell classes are loaded.
-  *To close:* the ring search itself — `circle_init`'s tables and the
-  `lands` scores — which needs the cell classes the sim does not yet load.
+- ~~**The ring search is what decides whether an army survives its first
+  tick under attack.**~~ Built and replayed 2026-08-25 (§13, §16.5): the
+  failing search at 12129 is the same-owner spacing rule against army
+  0's chase muster, and at 15100 the human's territory on the one
+  admissible cell; the harness now fails exactly where the original did.
+  Left from the build, none observable in the four blocks:
+  - the **return quirk** (§13, listing `6f6824`) — a best found with the
+    ring's last on-map entry inadmissible returns 0. *Capture:* a
+    `do_mustering` tick whose army keeps a moved muster and yet leaves
+    mustering with `status 2`; none of the windows has one, and the unit
+    test is the only evidence past the listing;
+  - the region test's `< 0x41` admits the first sea region's number for
+    a transport-level land army; the sim tests the terrain. A sea-region
+    cell is water and out for a land army anyway, so nothing can differ
+    unless a sea region carries `HALFLAND`;
+  - a cell whose `who` is `−2` is "another leader" to the walk (the
+    diplomacy read lands before the table); the sim treats
+    `Owner::Ambiguous` so. No dump has shown a `−2`;
+  - the class of a cell with none of the four flags is its `land` byte,
+    0–3 on every map so far, and the score is the same for any class.
 - **`find_besieged_city`'s loop bound** is the **calling** leader's
   `city_mark` for every ally's list (§10). Read twice, from
   `leaders.list[who].+0x408` with `who` the army's; either a bug in the
@@ -1097,13 +1170,16 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   product is order-independent unless a division truncates between them.
   *Capture:* run26's `ARMY` records give the chosen target, not the score;
   a `LEADERS=9` window would need a score line the dump does not have.
-- **`circle_x/y/radius`** (§13) are `circle_init@006817f0`'s tables, cited
-  by name; their contents are `docs/CITIES.md`'s even-circle family, not
-  re-read here.
-- **`lands[class].+0x100`** (§13), the per-land-class muster score, is a
-  `LandTypeData` field whose name `types.txt` does not give at that
-  offset; the class encoding (3, 4, 5, 7 and the `>> 11` form) is read
-  from the expressions only.
+- ~~**`circle_x/y/radius`** (§13) are `circle_init@006817f0`'s tables, cited
+  by name.~~ `ai_place::circle` rebuilds them and the replays of §16.5
+  walk them; `move_x/y` are `world::MOVE_49`, read from the executable's
+  `.rdata` (`rise.pdb` `0002:97008` / `0002:95232`, `int[441]` each).
+- ~~**`lands[class].+0x100`** (§13), the per-land-class muster score, is
+  a field `types.txt` does not name.~~ It does: `LandData::move_rate`
+  (`+0x100`, beside `combat_bonus` at `+0x104`), a constant `0x100` from
+  `Lands::init` with no other writer in the export. The class encoding's
+  flag bits are named from run20's words (`world::cell`); `0x40`, `0x400`
+  and `0x800` are not.
 - **`engagement` has never executed** in any traced game (§16.4); §11 is
   the reading alone. *Capture:* a run where the AI's army meets an attacker
   *at its muster spot* — the hoplites at (203, 207) reached the capital,
