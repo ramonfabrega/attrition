@@ -38,7 +38,13 @@ the operating checklist, every line of it paid for once in the record below.
    docs/`).
 3. Ask each reader to disclose any repository content it was handed, and to
    name, for each claim, the capture that would falsify it — the ini
-   category, the frame, the field.
+   category, the frame, the field. **Hand the readers the captures** —
+   the trace logs with `tools/trace/report.py`, and the dumps under
+   `Logs/` — as evidence, with the frames the mechanic's functions were
+   first entered on. They are the original's output, not the document,
+   so a blind reader may read them; a reader who can run its own
+   falsifier catches the map fact that two readings of the code agree on
+   and both get wrong (transports, B.9: a dock registers in the *sea*).
 4. Readers write to `~/ghidra-projects/reading/<mechanic>-<date>/` from the
    first finding, section by section. Launch in waves of two or three and
    let each finish; a wall then costs a wave, not a run.
