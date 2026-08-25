@@ -539,6 +539,18 @@ non-zero argument, and the only thing that passes one is `do_dump_all`. With
 it the type tables are all there: 1,820 `UNITTYPE` blocks, 387 `BUILDTYPE`,
 255 `TECHTYPE`, and a `COMBATTABLE` of 493×493 shorts. See below.
 
+**And the type blocks carry the loader's derived words, which is what makes
+them an oracle for more than the combat table** (2026-08-25). Each type's
+`log_data` prints the fields the rules files never say: `UnitType::log_data`
+writes `unit_flags`, `unit_flags2` and **`role`** per unit type,
+`BuildType::log_data` writes `build_flags`, and `TechType::log_data` writes
+**eleven `ai[scan]` shorts** — `TechType::ai[11]`, the production AI's
+per-technology weights. So one `DUMP_ALL` start dump settles every derivation
+in `docs/DATALAYER.md`'s "The derived words no column carries", and
+`rondata --types <dump>` checks all of them: 364 roles, 364 `unit_flags2`,
+129 `build_flags`, 85 × 11 weights, plus `armor` and `splash_percent` for the
+name-group rule. Run3 is the dump.
+
 ### Read back (2026-08-20, later)
 
 The dump is now read by `crates/rondata/src/gamelog.rs`, and what it holds

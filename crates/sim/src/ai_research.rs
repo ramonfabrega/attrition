@@ -40,11 +40,13 @@ use crate::{Player, Sim};
 const KNOWLEDGE: usize = 3;
 
 /// How many `ai[]` weights a `TechType` carries.
-pub(crate) const AI_WEIGHTS: usize = 11;
+pub(crate) const AI_WEIGHTS: usize = crate::ai_load::AI_WEIGHTS;
 
-/// `BUILD_FLAGS` digit `5` — `BuildTypeData::is_military_trainer`,
-/// `+0x2c0 & 0x40000000`.
-const MILITARY_TRAINER: u32 = 0x4000_0000;
+/// `BuildTypeData::is_military_trainer` — the flag is *derived*, not a
+/// `BUILD_FLAGS` letter (`docs/DATALAYER.md`), and it is read on the root of
+/// the `FROM` chain, which is what [`crate::build::is_military_trainer`] does.
+#[cfg(test)]
+const MILITARY_TRAINER: u32 = crate::build::flags::MILITARY_TRAINER;
 
 /// `imul`: the original's scores overflow 32 bits in the deep multiplier
 /// chains and wrap, so every product here wraps too.
@@ -224,14 +226,13 @@ const TAXATION: [&str; 4] = ["Taxation", "Vassalage", "Social Contract", "Income
 impl Sim {
     // ---- the seams ----
 
-    /// **Seam** — `TechType::ai[11]`, derived at load by
-    /// `TechType::compute_ai_values` + `add_preq_ai` from what each tech
-    /// unlocks (see the module header). `tech::TypeDef` does not carry the
-    /// array yet, so every weight is zero: `w` collapses to 1 and the
-    /// census terms drop out, leaving `val = base`.
+    /// `TechType::ai[11]`, derived at load by
+    /// [`crate::ai_load::compute_ai_values`] from what each tech unlocks and
+    /// checked against the program's own dump — `docs/DATALAYER.md`, "The
+    /// derived words no column carries". A tree built by hand leaves them
+    /// zero, which is the old seam's answer: `w` collapses to 1.
     fn tech_ai_weights(&self, t: TypeId) -> [i32; AI_WEIGHTS] {
-        let _ = t;
-        [0; AI_WEIGHTS]
+        self.tech_tree.types[t].ai.map(i32::from)
     }
 
     /// **Seam** — `leader_flags & 8`, a human leader the AI is driving.
@@ -747,7 +748,9 @@ impl Sim {
         let Some(rec) = self.build_record(where_) else {
             return false;
         };
-        let trainer = self.build_types[rec].flags & MILITARY_TRAINER != 0;
+        // `BuildTypeData::is_military_trainer` (`produce_tech`:33) reads the
+        // flag on the **root** of the `FROM` chain, not on the type itself.
+        let trainer = crate::build::is_military_trainer(&self.build_types, rec);
 
         let mut best: Option<(i32, usize)> = None;
         if trainer {

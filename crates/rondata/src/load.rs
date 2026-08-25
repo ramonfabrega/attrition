@@ -29,6 +29,7 @@
 //! which is what the eventual gamelog diff will key on.
 
 use crate::{Cost, Install, Range, Record, Rules, Scalar, Table, tribe_mask};
+use sim::ai_load;
 use sim::attrition::{self, Domain, KindFacts, UnitKind};
 use sim::build::{self, BuildType, Ident};
 use sim::combat::{self, BuildClass, Profile, mask, role};
@@ -186,6 +187,40 @@ fn find_name(names: &[String], name: &str) -> Option<usize> {
     names.iter().position(|n| n.eq_ignore_ascii_case(want))
 }
 
+/// **The name group.** `Types::init@00669cc0` loads the unit table in *five*
+/// passes and does not always hand a record its own XML element: it keeps the
+/// index of the last record whose `NAME` differed from the running one, and on
+/// passes 2, 3 and 4 a record whose `NAME` equals that one's is initialised
+/// **from the leader's element**. Passes 0 and 1 — `NAME`, `GRAPH`,
+/// `TYPENAME`; `WHERE`, `FROM`, `JUMP`, `TRIBE_MASK`, `GRAFT` — always use the
+/// record's own.
+///
+/// So a run of consecutive records sharing a `NAME` — the nation art variants
+/// — shares every other column with the first of the run, and four shipped
+/// rows differ from what their own element says: the German General's `FLAGS`
+/// (`lmhc`, loaded as `lmhcb`), Riflemen's `ARMOR` (1, loaded as 3), the
+/// Anti-tank Rifle's and the Bazooka's `LOS` (12/14, loaded as 11/13) and the
+/// Howitzer's `SPLASH_PERCENT` (33, loaded as 25). All four are confirmed
+/// against the program's own type dump — reading each record's own column
+/// gives 1, 1, 2 and 1 disagreements, and reading the leader's gives none
+/// (`docs/DATALAYER.md`).
+///
+/// Returns each record's leader index. The building and technology tables get
+/// two passes with no such comparison, so this applies to units alone.
+fn name_group_leaders(names: &[String]) -> Vec<usize> {
+    let mut leader: Vec<usize> = (0..names.len()).collect();
+    let mut cur = 0;
+    for i in 1..names.len() {
+        if names[i] == names[cur] {
+            leader[i] = leader[cur];
+        } else {
+            leader[i] = i;
+            cur = i;
+        }
+    }
+    leader
+}
+
 /// Reads every table of an install and loads them.
 pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     let rules = install.rules()?;
@@ -194,7 +229,16 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     let techs = install.techs()?;
     let goods = install.resources()?;
     let balance = install.balance()?;
-    let mut loaded = load_tables(&rules, &units, &buildings, &techs, &goods, Some(&balance));
+    let crafts = install.crafts().ok();
+    let mut loaded = load_tables(
+        &rules,
+        &units,
+        &buildings,
+        &techs,
+        &goods,
+        Some(&balance),
+        crafts.as_ref(),
+    );
     // The nations' names, from the per-nation files rules.xml points at.
     let names = install.tribe_names(&rules)?;
     for (tribe, name) in loaded.tree.tribes.iter_mut().zip(names) {
@@ -214,7 +258,9 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
 }
 
 /// Loads already-read tables. `balance` may be absent, in which case the
-/// combat table is the hardcoded chain alone.
+/// combat table is the hardcoded chain alone; `crafts` may be absent, in
+/// which case no type is a caster and no building is a craft's home (the two
+/// bits `craftrules.xml` seeds — `docs/DATALAYER.md`).
 pub fn load_tables(
     rules: &Rules,
     units: &Table,
@@ -222,6 +268,7 @@ pub fn load_tables(
     techs: &Table,
     goods: &Table,
     balance: Option<&crate::balance::BalanceXml>,
+    crafts: Option<&Table>,
 ) -> Loaded {
     let mut warnings = Vec::new();
     let name_of = |r: &Record| r.text("NAME").unwrap_or("").trim().to_string();
@@ -250,11 +297,43 @@ pub fn load_tables(
     let tech_tree: Vec<TypeId> = (0..tech_names.len()).map(|i| b + i).collect();
 
     // ---- the columns every record shares, read once ----
+    // `rules.xml`'s `<CATEGORIES id="unit_cats">`, by `key`: the nine unit
+    // categories `UnitType::init` resolves `CAT` against.
+    let unit_cats: Vec<String> = rules
+        .categories
+        .iter()
+        .find(|(id, _)| id == "unit_cats")
+        .map(|(_, t)| {
+            t.records
+                .iter()
+                .map(|r| {
+                    r.attrs
+                        .iter()
+                        .find(|(k, _)| k == "key")
+                        .map(|(_, v)| v.trim().to_string())
+                        .unwrap_or_default()
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    // The name groups: a unit record whose `NAME` repeats the previous one's
+    // takes every pass-2 column from the first of the run.
+    let unit_leader = name_group_leaders(&unit_names);
     let unit_cols: Vec<UnitCols> = units
         .records
         .iter()
         .enumerate()
-        .map(|(i, r)| UnitCols::read(i, r, &unit_type_names, &build_type_names, &mut warnings))
+        .map(|(i, r)| {
+            UnitCols::read(
+                i,
+                r,
+                &units.records[unit_leader[i]],
+                &unit_type_names,
+                &build_type_names,
+                &unit_cats,
+                &mut warnings,
+            )
+        })
         .collect();
     let build_cols: Vec<BuildCols> = buildings
         .records
@@ -282,23 +361,99 @@ pub fn load_tables(
     let spy = |t: usize| is_named_unit(t, "Spy");
     let supply = |t: usize| is_named_unit(t, "Supply Wagon") || t == 302 || t == 304 || t == 306;
     let hero = |t: usize| unit_cols[t].obj_masks & 0x0400_0000 != 0;
-    let packs = |t: usize| {
-        [
-            "Catapult",
-            "Flaming Arrow",
-            "Merchant",
-            "Armed Merchant",
-            "Fur Trapper",
-            "Machine Gun",
-            "Fishermen",
-            "Katyusha Rocket",
-        ]
-        .iter()
-        .any(|n| is_named_unit(t, n))
-    };
     let barracks = bname("Barracks");
     let stable = bname("Stable");
     let factory = bname("Factory");
+
+    // ---- the derived type words: `role`, `unit_flags2` ----
+    //
+    // `docs/DATALAYER.md`, "The derived words no column carries". The roots
+    // are `TypeIndex − 0x32` **by id**, as the original writes them: a display
+    // name is not a reliable key here (`THECITIZEN` is *The Comrade*, the same
+    // trap `docs/COMBAT.md` §15.2 caught four times).
+    const SCOUT: usize = 0x45 - 0x32;
+    const HOPLITES: usize = 0x84 - 0x32;
+    const BARK: usize = 0x143 - 0x32;
+    const CATAPULT: usize = 0x109 - 0x32;
+    const FLAMINGARROW: usize = 0x117 - 0x32;
+    const KATYUSHA: usize = 0x116 - 0x32;
+    const MACHINEGUN: usize = 0x7b - 0x32;
+    const FLAMETHROWER: usize = 0x83 - 0x32;
+    const FISHERMEN: usize = 0x13d - 0x32;
+    const MERCHANT: usize = 0x3d - 0x32;
+    const MERCHANTDUTCH: usize = 0x3e - 0x32;
+    const FURTRAPPER: usize = 0x190 - 0x32;
+    const SUPPLYWAGON: usize = 0x3f - 0x32;
+    const GOV_HEROES: usize = 0x160 - 0x32;
+    const THEMONARCH: usize = 0x162 - 0x32;
+    const THECITIZEN: usize = 0x164 - 0x32;
+    const GENERAL: usize = 0x36 - 0x32;
+    const CARA: usize = 0x3b - 0x32;
+    const MERCHANTFLEET: usize = 0x13e - 0x32;
+    const TRANSPORTBARGE: usize = 0x140 - 0x32;
+    /// `BASE_GAIATYPES − BASE_UNITTYPES`: the first of the twelve animals.
+    const GAIA: usize = 0x192 - 0x32;
+
+    let mut cols: Vec<ai_load::UnitCols> = Vec::with_capacity(unit_cols.len());
+    for (i, c) in unit_cols.iter().enumerate() {
+        let (f2, uf_extra) = ai_load::flags2(&ai_load::Flags2Facts {
+            machinegun: unit_is(i, MACHINEGUN),
+            flamethrower: unit_is(i, FLAMETHROWER),
+            packs_lineage: unit_is(i, CATAPULT)
+                || unit_is(i, FLAMINGARROW)
+                || unit_is(i, FISHERMEN)
+                || unit_is(i, KATYUSHA),
+            trader_id: i == MERCHANT || i == MERCHANTDUTCH || i == FURTRAPPER,
+            supply_or_hero: unit_is(i, SUPPLYWAGON)
+                || unit_is(i, GOV_HEROES)
+                || unit_is(i, THEMONARCH)
+                || unit_is(i, THECITIZEN),
+            general: unit_is(i, GENERAL),
+            caravan: unit_is(i, CARA) || unit_is(i, MERCHANTFLEET),
+            scout: unit_is(i, SCOUT),
+            transport: unit_is(i, TRANSPORTBARGE) || unit_is(i, MERCHANTFLEET),
+        });
+        let unit_flags = c.flags | uf_extra;
+        cols.push(ai_load::UnitCols {
+            unit_flags,
+            unit_flags2: f2,
+            cat: c.cat,
+            carry: c.carry,
+            role: ai_load::determine_roles(&ai_load::RoleFacts {
+                citizen_id: i < 4,
+                domain: c.domain,
+                cat: c.cat,
+                attack: c.attack,
+                max_range: c.max_range,
+                carry: c.carry,
+                scout: unit_is(i, SCOUT),
+                bark: unit_is(i, BARK),
+                hoplite: unit_is(i, HOPLITES),
+            }),
+        });
+    }
+    // `SpellType::init` seeds the caster bit on each craft's `FROM`/`FROM2`,
+    // and `init_spellcasters` walks it down the graft/from chains.
+    let craft_records = crafts.map(|t| t.records.as_slice()).unwrap_or_default();
+    let mut caster_seed = vec![false; unit_cols.len()];
+    let mut craft_at: Vec<usize> = Vec::new();
+    for r in craft_records {
+        for col in ["FROM", "FROM2"] {
+            let Some(text) = r.text(col) else { continue };
+            let t = text.trim();
+            if t.is_empty() || t.eq_ignore_ascii_case("none") || t.eq_ignore_ascii_case("disable") {
+                continue;
+            }
+            if let Some(u) = uname(t) {
+                caster_seed[u] = true;
+            } else if let Some(b) = bname(t) {
+                craft_at.push(b);
+            } else {
+                warnings.push(format!("craft_key {col}: no type named {t:?}"));
+            }
+        }
+    }
+    ai_load::spread_casters(&mut cols, &caster_seed, &unit_graft, &unit_from);
 
     // ---- the tech tree ----
     let mut tree = TechTree::new();
@@ -337,8 +492,12 @@ pub fn load_tables(
             combat: c.attack != 0,
         };
         let mut d = TypeDef::unit(&unit_names[i], traits);
-        d.preq[0] = tech_key(r.text("PREQ0"), &mut warnings);
-        d.preq[1] = tech_key(r.text("PREQ1"), &mut warnings);
+        // `PREQ0`/`PREQ1` are pass-2 columns, so they come from the name
+        // group's leader like the rest ([`name_group_leaders`]); no shipped
+        // group disagrees, but the rule is the rule.
+        let l = &units.records[unit_leader[i]];
+        d.preq[0] = tech_key(l.text("PREQ0"), &mut warnings);
+        d.preq[1] = tech_key(l.text("PREQ1"), &mut warnings);
         d.from = c.from.map(|f| unit_tree[f]);
         d.jump = c.jump.map(|j| unit_tree[j]);
         d.graft = c.graft.map(|g| unit_tree[g]);
@@ -367,6 +526,9 @@ pub fn load_tables(
         let id = tree.add(d);
         debug_assert_eq!(id, build_tree[i]);
     }
+    // Each tech's `WHERE` as a *building record*, which is what
+    // `TechType::set_research` marks the lineage of.
+    let mut tech_cols_where: Vec<Option<usize>> = Vec::with_capacity(techs.records.len());
     for (i, r) in techs.records.iter().enumerate() {
         let kind = tech_kind(i);
         let mut d = TypeDef::new(&tech_names[i], kind);
@@ -379,17 +541,19 @@ pub fn load_tables(
             .text("AGE")
             .and_then(Scalar::parse)
             .map_or(-1, Scalar::written_int);
-        d.where_ = r.text("WHERE").and_then(|w| {
+        let where_rec = r.text("WHERE").and_then(|w| {
             let w = w.trim();
             if w.eq_ignore_ascii_case("none") || w.eq_ignore_ascii_case("disable") {
                 return None;
             }
-            let found = bname(w).map(|b| build_tree[b]);
+            let found = bname(w);
             if found.is_none() {
                 warnings.push(format!("build_key: no building named {w:?}"));
             }
             found
         });
+        tech_cols_where.push(where_rec);
+        d.where_ = where_rec.map(|b| build_tree[b]);
         d.tribe_mask = mask_bits(r.text("TRIBE_MASK"));
         let id = tree.add(d);
         debug_assert_eq!(id, tech_tree[i]);
@@ -414,6 +578,9 @@ pub fn load_tables(
         let gt = |n: &str| find_name(&good_names, n).map(|i| good_tree[i]);
         let tt = |n: &str| find_name(&tech_names, n).map(|i| tech_tree[i]);
         let r = &mut tree.roles;
+        r.village = bt("Small City");
+        r.dock = bt("Dock");
+        r.airbase = bt("Airbase");
         r.market = bt("Market");
         r.knowledge = gt("Knowledge");
         r.university = bt("University");
@@ -607,7 +774,10 @@ pub fn load_tables(
             guy_radius: 0,
             domain: c.domain,
             siege: c.siege,
-            packs: packs(i),
+            // `needs_packing` is `unit_flags2 & 4`, which is now derived
+            // exactly — the three trader ids by identity, everything else by
+            // lineage (`docs/DATALAYER.md`).
+            packs: cols[i].flag2(ai_load::uflags2::PACKS),
             age,
             x_size: 0,
             y_size: 0,
@@ -615,7 +785,11 @@ pub fn load_tables(
             most_shots: 0,
             block_radius: c.block_radius,
             big_radius: 0,
-            combat_role: c.attack != 0 && c.obj_masks & mask::CIVILIAN == 0,
+            // `role & 0x10000`, exactly — the `CIVILIAN` mask was the first
+            // reading's stand-in and disagrees on two of the 364 (the Armed
+            // Supply Wagon, which the `Civilian` *category* refuses, and
+            // Boadicea, which carries the mask but is `Foot`).
+            combat_role: cols[i].is(ai_load::role::MILITARY),
             cost: c.cost.iter().sum::<i32>() * 10,
             build_class: BuildClass::Other,
         };
@@ -623,7 +797,9 @@ pub fn load_tables(
             fortify: c.flags & 0x1800 != 0,
             trained_at: c.where_,
             gov_hero: PATRIOTS.contains(&i),
-            transport: c.flags & 0x10 != 0 && c.domain == Domain::Sea,
+            // `unit_flags & 0x10` on the **final** word: `init_final_flags`
+            // adds the bit to the Transport Barge and Merchant Fleet lines.
+            transport: cols[i].flag(ai_load::uflags::TRANSPORT) && c.domain == Domain::Sea,
         };
         let _ = r;
         unit_types.push(UnitType {
@@ -645,6 +821,8 @@ pub fn load_tables(
                 2 | 3 => sim::orders::Worker::Scholar,
                 _ => sim::orders::Worker::None,
             },
+            cols: cols[i],
+            gaia: i >= GAIA,
         });
     }
 
@@ -831,10 +1009,87 @@ pub fn load_tables(
         }
     }
 
-    // `BuildType::init_final_flags@00632070`: the `FLAT` bit is **derived**,
-    // not a `BUILD_FLAGS` letter — no shipped row carries `3`. It must run
-    // after `from` is linked, because the test is a lineage `is()`.
-    sim::build::init_final_flags(&mut build_types);
+    // The derived half of `build_flags` — `docs/DATALAYER.md`, "The derived
+    // words no column carries". **No shipped `BUILD_FLAGS` string contains a
+    // digit**, so every bit above 25 is one of these six, and reading the
+    // column alone leaves the Library's queue two deep and the Barracks no
+    // trainer. It must run after `from` is linked: three of the six are
+    // lineage tests.
+    let derived = sim::build::Derived {
+        trains: unit_cols
+            .iter()
+            .enumerate()
+            .filter(|(i, c)| c.where_.is_some() && !cols[*i].flag(ai_load::uflags::NO_PRODUCE))
+            .filter_map(|(_, c)| c.where_)
+            .collect(),
+        military_trains: unit_cols
+            .iter()
+            .enumerate()
+            .filter(|(i, c)| {
+                let w = match c.where_ {
+                    Some(w) => w,
+                    None => return false,
+                };
+                !cols[*i].flag(ai_load::uflags::NO_PRODUCE)
+                    && c.attack != 0
+                    && !cols[*i].is(ai_load::role::CIVILIAN)
+                    && !build_is(w, VILLAGE)
+            })
+            .filter_map(|(_, c)| c.where_)
+            .collect(),
+        research_at: tech_cols_where.iter().copied().flatten().collect(),
+        craft_at,
+    };
+    sim::build::init_derived_flags(&mut build_types, &derived);
+
+    // `TechType::compute_ai_values` — the eleven weights per tech, from what
+    // each tech unlocks. It runs last of all the loader's passes because it
+    // reads every one of them: the `role` words, the derived `build_flags`,
+    // the finalised tree. The two classes the tree does not carry come in as
+    // prerequisites alone: the 55 crafts and `rules.xml`'s 122 `TECHBONUSES`,
+    // in file order (the first bonus scores twice).
+    let extra_preq = |p: Option<&str>| -> Preq {
+        match p.map(str::trim) {
+            None | Some("") => Preq::None,
+            Some(t) if t.eq_ignore_ascii_case("none") => Preq::None,
+            Some(t) if t.eq_ignore_ascii_case("disable") => Preq::Disabled,
+            Some(t) => match find_name(&tech_names, t) {
+                Some(i) => Preq::Of(tech_tree[i]),
+                None => Preq::Disabled,
+            },
+        }
+    };
+    let spell_preqs: Vec<ai_load::ExtraPreq> = craft_records
+        .iter()
+        .map(|r| {
+            [
+                extra_preq(r.text("PREQ0")),
+                extra_preq(r.text("PREQ1")),
+                extra_preq(r.text("PREQ2")),
+            ]
+        })
+        .collect();
+    let bonus_preqs: Vec<ai_load::ExtraPreq> = rules
+        .tech_bonuses
+        .records
+        .iter()
+        .map(|r| {
+            let f = r.field("PREQ");
+            [
+                extra_preq(f.and_then(|f| f.attr("preq0"))),
+                extra_preq(f.and_then(|f| f.attr("preq1"))),
+                extra_preq(f.and_then(|f| f.attr("preq2"))),
+            ]
+        })
+        .collect();
+    ai_load::compute_ai_values(
+        &mut tree,
+        &tech::Setup::STANDARD,
+        &unit_types,
+        &build_types,
+        &spell_preqs,
+        &bonus_preqs,
+    );
 
     // ---- the combat table over unit ids ----
     let t = Tuning::RON;
@@ -1124,7 +1379,15 @@ fn mask_bits(text: Option<&str>) -> u32 {
 pub fn unit_flags(s: &str) -> u32 {
     s.trim().chars().fold(0u32, |acc, c| match c {
         'a'..='z' => acc | (1 << (c as u32 - 'a' as u32)),
-        '0'..='9' => acc | (1 << (c as u32 - '0' as u32 + 26)),
+        // `1`..`9` only, and the shift is `+25` — the original's digit branch
+        // is `c − 0x17`, so `1` is bit 26 and not bit 27. Corrected
+        // 2026-08-25 against the six patriots, the only shipped rows with a
+        // digit: `lmhcbp1` is `0x4009886`, not `0x8009886`.
+        '1'..='9' => acc | (1 << (c as u32 - '0' as u32 + 25)),
+        // `0` is below the digit branch's `< 0x31` test and falls into the
+        // *letter* one, where `(0x30 − 0x61) & 0x1f` is 15 — the `p` bit. No
+        // shipped row has one; reproduced rather than corrected.
+        '0' => acc | (1 << 15),
         _ => acc,
     })
 }
@@ -1240,29 +1503,40 @@ struct UnitCols {
     jump: Option<usize>,
     graft: Option<usize>,
     where_: Option<usize>,
+    /// `CAT`, as an index into `rules.xml`'s `unit_cats` — the column
+    /// `determine_roles` branches on (`docs/DATALAYER.md`).
+    cat: i32,
+    /// `CARRY`.
+    carry: i32,
 }
 
 impl UnitCols {
+    /// `r` is the record's own element and `l` its **name group's leader** —
+    /// see [`name_group_leaders`]. Only `FROM`, `JUMP`, `GRAFT` and `WHERE`
+    /// are read from `r`; every other column here is a pass-2 read and comes
+    /// from `l`.
     fn read(
         _i: usize,
         r: &Record,
+        l: &Record,
         unit_names: &[String],
         build_names: &[String],
+        unit_cats: &[String],
         warnings: &mut Vec<String>,
     ) -> UnitCols {
-        let flags = unit_flags(r.text("FLAGS").unwrap_or(""));
-        let attack = int(r, "ATTACK").unwrap_or(0) * 10;
-        let (min_range, mut max_range) = range_of(r.text("RANGE"));
+        let flags = unit_flags(l.text("FLAGS").unwrap_or(""));
+        let attack = int(l, "ATTACK").unwrap_or(0) * 10;
+        let (min_range, mut max_range) = range_of(l.text("RANGE"));
         let mut second_max_range = 0;
         if flags & 0x400 != 0 {
             second_max_range = max_range;
             max_range = 0;
         }
-        let mut proj_speed = int(r, "PROJ_SPEED").unwrap_or(0);
+        let mut proj_speed = int(l, "PROJ_SPEED").unwrap_or(0);
         if proj_speed == 0 && (max_range > 0 || second_max_range > 0) {
             proj_speed = 200;
         }
-        let support = r
+        let support = l
             .text("SUPPORT")
             .and_then(Cost::parse)
             .map(|c| {
@@ -1271,50 +1545,55 @@ impl UnitCols {
                     .collect()
             })
             .unwrap_or_default();
-        let job_extra_time = r
+        let job_extra_time = l
             .text("JOB_EXTRA_TIME")
             .and_then(Scalar::parse)
             .map_or(0, |s| s.fraction(100));
-        let research_premium_time = r
+        let research_premium_time = l
             .text("RESEARCH_PREMIUM_TIME")
             .and_then(Scalar::parse)
             .map_or(0, |s| s.fraction(256));
         UnitCols {
             flags,
-            obj_masks: r.text("OBJ_MASK").map_or(0, mask::parse),
+            obj_masks: l.text("OBJ_MASK").map_or(0, mask::parse),
             attack,
-            hits: int(r, "HITS").unwrap_or(0),
-            moves: int(r, "MOVES").unwrap_or(0),
-            turn_speed: degrees_to_angle(int(r, "TURN_SPEED").unwrap_or(0)).0,
-            cost: cost_slots(r.text("COST")),
+            hits: int(l, "HITS").unwrap_or(0),
+            moves: int(l, "MOVES").unwrap_or(0),
+            turn_speed: degrees_to_angle(int(l, "TURN_SPEED").unwrap_or(0)).0,
+            cost: cost_slots(l.text("COST")),
             support,
-            progression: int(r, "PROGRESSION").unwrap_or(0),
-            pop: int(r, "POP").unwrap_or(0),
+            progression: int(l, "PROGRESSION").unwrap_or(0),
+            pop: int(l, "POP").unwrap_or(0),
             times: Times {
-                job_time: int(r, "JOB_TIME").unwrap_or(0),
+                job_time: int(l, "JOB_TIME").unwrap_or(0),
                 research_premium_time,
                 job_extra_time,
             },
-            to_hit: int(r, "TO_HIT").unwrap_or(-1),
-            attenuate: int(r, "ATTENUATE").unwrap_or(0).abs(),
+            to_hit: int(l, "TO_HIT").unwrap_or(-1),
+            attenuate: int(l, "ATTENUATE").unwrap_or(0).abs(),
             min_range,
             max_range,
             second_max_range,
-            splash_area: int(r, "SPLASH").unwrap_or(0),
-            splash_percent: int(r, "SPLASH_PERCENT").unwrap_or(100),
-            ammo_per_att: int(r, "AMMO_PER_ATT").unwrap_or(0),
-            recharge: int(r, "RECHARGE").unwrap_or(0),
-            armor: int(r, "ARMOR").unwrap_or(0),
+            splash_area: int(l, "SPLASH").unwrap_or(0),
+            splash_percent: int(l, "SPLASH_PERCENT").unwrap_or(100),
+            ammo_per_att: int(l, "AMMO_PER_ATT").unwrap_or(0),
+            recharge: int(l, "RECHARGE").unwrap_or(0),
+            armor: int(l, "ARMOR").unwrap_or(0),
             proj_speed,
-            uber_size: int(r, "UBER_SIZE").unwrap_or(1),
-            target_size: int(r, "TARGET_SIZE").unwrap_or(0) * UNIT_BLOCK_RADIUS,
-            block_radius: int(r, "BLOCK_RADIUS").unwrap_or(0) * UNIT_BLOCK_RADIUS,
-            domain: domain_of(r.text("DOMAIN")),
+            uber_size: int(l, "UBER_SIZE").unwrap_or(1),
+            target_size: int(l, "TARGET_SIZE").unwrap_or(0) * UNIT_BLOCK_RADIUS,
+            block_radius: int(l, "BLOCK_RADIUS").unwrap_or(0) * UNIT_BLOCK_RADIUS,
+            domain: domain_of(l.text("DOMAIN")),
             siege: flags & 0x20000 != 0,
+            // Pass 1, and therefore the record's own.
             from: key(r.text("FROM"), unit_names, "unit_key FROM", warnings),
             jump: key(r.text("JUMP"), unit_names, "unit_key JUMP", warnings),
             graft: key(r.text("GRAFT"), unit_names, "unit_key GRAFT", warnings),
             where_: key(r.text("WHERE"), build_names, "build_key WHERE", warnings),
+            // `Categories::find_key(unit_cats, …)`: the `key` attribute of
+            // `rules.xml`'s `<CATEGORIES id="unit_cats">`, −1 when unmatched.
+            cat: find_name(unit_cats, l.text("CAT").unwrap_or("")).map_or(-1, |i| i as i32),
+            carry: int(l, "CARRY").unwrap_or(0),
         }
     }
 }
@@ -1407,8 +1686,26 @@ mod tests {
         assert_eq!(unit_flags("r") & 0x20000, 0x20000);
         assert_eq!(unit_flags("k"), 0x400);
         assert_eq!(unit_flags("y"), 0x0100_0000);
-        assert_eq!(unit_flags("0"), 1 << 26);
+        // The patriots' `1` is bit 26, not 27 — the original's digit branch
+        // shifts by 25 — and `0` is not a digit to it at all: it falls into
+        // the letter branch and lands on bit 15.
+        assert_eq!(unit_flags("1"), 1 << 26);
+        assert_eq!(unit_flags("lmhcbp1"), 0x0400_9886);
+        assert_eq!(unit_flags("0"), 1 << 15);
         assert_eq!(unit_flags(""), 0);
+    }
+
+    #[test]
+    fn a_name_group_takes_the_first_record_s_columns() {
+        let names: Vec<String> = ["Citizen", "Citizen", "Scholar", "General", "General", "Spy"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        assert_eq!(name_group_leaders(&names), vec![0, 0, 2, 3, 3, 5]);
+        // A repeat that is not adjacent starts its own group: the original
+        // compares against the *running* leader, not a table of names.
+        let names: Vec<String> = ["A", "B", "A"].iter().map(|s| s.to_string()).collect();
+        assert_eq!(name_group_leaders(&names), vec![0, 1, 2]);
     }
 
     #[test]

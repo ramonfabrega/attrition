@@ -219,6 +219,187 @@ building when `PROGRESSION` bit 0 is set and `ATTACK ≠ 0`), the building
 defensive; a `WHERE` of an attacking unit as military trainer; of any unit as
 training), and `balance::Kind`'s named lineages for the combat table.
 
+### The derived words no column carries
+
+**Established 2026-08-25, and every claim below is checked against the
+program's own loaded values.** `UnitType::log_data@0061c490` prints
+`unit_flags`, `unit_flags2` and `role` for each of the 364 unit types,
+`BuildType::log_data` prints `build_flags` for each of the 129, and
+`TechType::log_data@0066d630` prints **eleven `ai[scan]` shorts** for each of
+the 85 techs — so run3's `DUMP_ALL` type dump (`docs/ORACLE.md`) is a
+field-by-field oracle for the whole of this section, the same way its
+`COMBATTABLE` is for `docs/COMBAT.md` §15.2. `rondata --types <dump>` checks
+all four: **364/364 roles, 364/364 `unit_flags2`, 129/129 `build_flags`,
+85 × 11 weights, zero differences.**
+
+These are the loader's half of the production AI's seams (`docs/AI.md` §12.1
+item 3): every one of them is read by `create_units`, `create_buildings` or
+`research_techs` and none of them is a column in any file.
+
+**1. `role` (`UnitTypeData+0x2c8`), `UnitType::determine_roles@0061c320`.**
+One word from five columns, computed at the end of `UnitType::init`:
+
+- `0x200` — citizen/scholar: the four ids `0x32..0x35` **by identity**, not by
+  lineage.
+- by `DOMAIN`: air (`2`) `0x1000`; land (`0`) `0x40000`, `+0x10` if
+  `is(SCOUT)`, `+0xc` if `CAT` is `Mounted`; sea (`1`) `0x80000`, `+0x10` if
+  `is(BARK)`.
+- `0x8000` if `CARRY ≠ 0`.
+- **military** — `ATTACK ≠ 0`, `CAT` neither `Command` (4) nor `Civilian` (5),
+  and not already `0x200`: `0x10000`, `+0x2000` sea, `+0x4000` air; land
+  `Foot` also takes `0x800` and then **either** `2` (`is(HOPLITES)`) **or**
+  `0x100000` (everything else — the two are exclusive, not a pair); and
+  finally `0x400` when `max_range ≠ 0`, else `1`.
+- everything that fails the military test takes `0x100` instead.
+
+The `CAT` column is `Categories::find_key(unit_cats, …)` over `rules.xml`'s
+`<CATEGORIES id="unit_cats">`: 0 Foot, 1 Mounted, 2 Mech, 3 Artillery, 4
+Command, 5 Civilian, 6 Sail, 7 Naval, 8 Air. `max_range` is the *stored*
+`+0x1fc`, i.e. after `FLAGS k` has moved it to `second_max_range` and zeroed
+it. The Citizen's `0x40300` — land, citizen, non-military — is the whole
+derivation in one row.
+
+**2. `unit_flags2` (`+0x2b8`).** Zeroed in `init`; six bits by lineage in
+`UnitType::init_final_flags@0061dc70`, run from
+`ObjectType::finalize_init_all@0065f4a0`:
+
+| bit | set when |
+| --- | --- |
+| `1` | `is(MACHINEGUN)` or `is(FLAMETHROWER)` |
+| `4` | `is(CATAPULT)`, `is(FLAMINGARROW)`, `is(MACHINEGUN)`, `is(FISHERMEN)`, `is(KATYUSHA)`, **or the exact ids** `MERCHANT`/`MERCHANTDUTCH`/`FURTRAPPER` — `needs_packing`, the sim's `Profile::packs` |
+| `8` | `is(CARA)` or `is(MERCHANTFLEET)` — `is_caravan` |
+| `0x10` | `is(SCOUT)` |
+| `0x20` | `is(GENERAL)` |
+| `0x40` | `is(SUPPLYWAGON)`, `is(BASE_GOV_HEROTYPES)`, `is(THEMONARCH)`, `is(THECITIZEN)` |
+
+and the same function ORs `0x10` into **`unit_flags`** for `is(TRANSPORTBARGE)`
+or `is(MERCHANTFLEET)`. Bit `2` — `is_spellcaster`, and the `& 6 == 2` test
+of `get_stance_type` — has a different provenance and cost this reading an
+hour: **`SpellType::init@00674a80` marks its own owner.** Each of
+`craftrules.xml`'s 55 `CRAFT` records names a `FROM` and a `FROM2`; when
+either resolves to a unit type that type gets `unit_flags2 |= 2` (when it
+resolves to a *building* the building gets `build_flags |= 0x20000000`, which
+is the Small City's), and then `UnitType::init_spellcasters@0061aae0` walks
+self → `graft` → `from` and marks anything with a marked ancestor. 14 seeds
+become exactly the 77 marked types.
+
+**3. The five derived `build_flags` bits.** No shipped `BUILD_FLAGS` string
+contains a digit — the alphabet is `abcdeg ijmn` — so **every bit above 25 is
+derived**, and the first reading's conclusion that they are therefore dead
+(`docs/AI.md` §2.19 item 5) is wrong in both directions:
+
+| bit | set by | meaning |
+| --- | --- | --- |
+| `0x0400_0000` | `Types::init@00669cc0` — for every building with a `FROM`, on **both** the child and the parent | in an upgrade line |
+| `0x0800_0000` | `TechType::set_research@0066cba0` — for every building in the lineage of any tech's `WHERE` | a tech is researched here |
+| `0x1000_0000` | `finalize_init_all` — `is(FARM)`, `is(OILWELL)`, `is(OILPLATFORM)` | `is_flat` |
+| `0x2000_0000` | `SpellType::init` — a craft's `FROM`/`FROM2` | a craft is cast here |
+| `0x8000_0000` | `UnitType::init`'s tail — any unit with `WHERE = b` and **not** `unit_flags & 0x8000` | trains something |
+| `0x4000_0000` | the same line, when that unit also has `ATTACK ≠ 0`, `!(role & 0x100)` and `!b.is(VILLAGE)` | `is_military_trainer` |
+
+So `build_flags & 0x8000000` is **live** — Granary, Lumber Mill, Smelter,
+University, Library, Temple, Senate and the whole Tower and Fort lines carry
+it — which makes `create_buildings`' civic block real code rather than the
+dead branch §2.19 called it; and `is_military_trainer` (`0x40000000`) is live
+too, on the Barracks, Stable, Siege Factory, Dock, Airbase and Missile Silo
+but **not** on the Small City, which trains militia but is excluded by the
+`is(VILLAGE)` clause. `0x2000_0000` was previously unnamed.
+
+**4. `TechType::ai[11]` (`+0x1cc`), `compute_ai_values@0066cdc0`.** Zeroed by
+`TechType::init`, then one pass over `0x220..0x274` **ascending** from
+`Types::init:1239`. Each tech scores itself and then counts **its
+dependants** — every type whose `Type::find_preq` (vslot `+0xdc`: "is `t` one
+of my `get_preq(i)`?") answers yes:
+
+- *itself*: an epoch tech scores by `cat` — 3 → `ai[4]+1, ai[10]+1`; 1 →
+  `ai[5]+1`; 2 → `ai[1]+1`; 0 → `ai[0]+1`. A non-epoch tech scores by the
+  building it is researched at: Temple → `ai[5]+2`; **Fort → `ai[5]+1` *and*
+  `ai[0]+1`**, the second through a fall-through the first reading missed.
+- *units* (`0x32..0x191` — the twelve **gaia types are outside the loop**,
+  which is what makes the twelve animals' `WHERE = Large City` harmless):
+  military `ai[0]+1`; citizen `ai[1]+1, ai[9]+1`; land military `ai[8]+1`;
+  otherwise `carry` → `ai[3]+1` and sea → `ai[2]+1` / **air → `ai[6]+1`**
+  (`ai[6]` is air alone, not "sea and air").
+- *buildings*: `s = 2` when the building has no `FROM`, else 1. `is(VILLAGE)`
+  → `ai[1]+1`, and the Large City exactly → `ai[5]+1, ai[1]+1` and
+  `add_preq_ai(1, 1, 0)`. Rootless only: gather → `ai[1]+2s, ai[9]+2s`;
+  `0x8000000` → `ai[1]+2s, ai[4]+2s` (+`ai[9]+2s` for the four enhancers);
+  `is(DOCK)` → `ai[2]+1` and `add_preq_ai(2, 1, −1)`. Every dock, rootless or
+  not → `ai[2]+1` and `add_preq_ai(2, 1, 2)`. Then the **fundamental** type
+  (`from` walked to the root) decides one of four arms: gather → `ai[1]+s,
+  ai[9]+s`; `0x8000000` → `ai[1]+s, ai[4]+s`; Tower/Fort/Airbase or
+  `ATTACK ≠ 0` → `ai[0]+s`; one of the four enhancers → `ai[1]+8, ai[9]+8`.
+  Finally, when the fundamental trains anything (`0x80000000`), every unit
+  whose `WHERE` is **this** building scores `ai[1]+1` if
+  `role & 0x180c0 == 0`, else `ai[0]+s`.
+- *techs*: `ai[4]+1`, and `+1`/`+1` to `ai[4]`/`ai[0]` for an epoch dependant,
+  `+2`/`+2` for an age.
+- *goods*: `s = 4` for the first six, else 1 — `ai[9]+s, ai[1]+s`.
+- *spells* (`0x275..0x2ab`, `craftrules.xml`): `ai[0]+4, ai[1]+2`.
+- *bonuses* (`0x2ac..0x325`, `rules.xml`'s 122 `TECHBONUSES`, one `preq0`
+  each): `ai[1]+1` (twice for the first), `ai[4]+2`.
+
+`add_preq_ai(i, n, d)` adds `n` to `ai[i]` of **the computed tech's own
+prerequisites** and recurses `d` levels — `0` none, `2` three levels, `−1`
+until the chain ends. `ai[7]` is never written by anything.
+
+**What this has not established.** Three things, none of them observable in
+the shipped data:
+
+- **The lobby the weights are computed under.** `find_preq` goes through
+  `get_preq`, which remaps an epoch prerequisite when the game does not run
+  Ancient-to-Information; the loader computes the array under
+  `Setup::STANDARD`, which is what run3's lobby was. A short game would give
+  a different array, and nothing here checks that.
+- **`unit_flags2 & 2`, the caster bit, in a *modded* install.** The seed is
+  `craftrules.xml`'s `FROM`/`FROM2` resolved by name, and a craft naming a
+  type that resolves to neither a unit nor a building is only a warning.
+- **Whether the name-group rule reaches the building and technology
+  tables.** Their loops in `Types::init` run two passes with no `NAME`
+  comparison, so it should not — but the *only* evidence is the loop's
+  shape, since no shipped building or tech group disagrees with itself.
+
+### The name group: a unit record does not always get its own columns
+
+**Found 2026-08-25, chasing the one unit whose `unit_flags` would not
+reproduce.** `Types::init@00669cc0` loads the *unit* table in **five passes**,
+and the element it hands a record is not always that record's:
+
+```
+for pass in 0..5:
+    for i in 0x32..0x192:
+        if pass == 0 or pass == 1 or name[i] != name[leader]:
+            leader, element = i, own_element(i)
+        types[i].init(element, i, pass)
+```
+
+So a **run of consecutive records with the same `NAME`** — which is how the
+file spells a nation's art variant — shares one element from pass 2 on, and
+pass 2 is where all but eight columns are read. Passes 0 and 1 are the
+record's own: `NAME`, `GRAPH`, `TYPENAME`; `WHERE`, `FROM`, `JUMP`,
+`TRIBE_MASK`, `GRAFT`.
+
+Four shipped rows say something their program never reads:
+
+| record | column | file | loaded |
+| --- | --- | --- | --- |
+| 7, the German General | `FLAGS` | `lmhc` | `lmhcb` |
+| 51, Riflemen | `ARMOR` | 1 | **3** |
+| 88, Anti-tank Rifle | `LOS` | 12 | 11 |
+| 90, Bazooka | `LOS` | 14 | 13 |
+| 222, Howitzer | `SPLASH_PERCENT` | 33 | **25** |
+
+and the dump settles it three ways over: reading each record's own `ARMOR`,
+`LOS` and `SPLASH_PERCENT` disagrees with the program on 1, 2 and 1 units,
+and reading the group leader's disagrees on none. `rondata --types` now
+checks `armor` and `splash_percent` (the two the simulation carries)
+alongside the derived words, so the rule has a guard that fails the moment it
+is dropped.
+
+Sixty-four of the 364 unit records take a leader other than themselves. The
+building and technology tables get two passes with no such comparison, so
+this is the unit table's rule alone.
+
 ### Three things the loaded result settled in the decompile
 
 1. **The keys match `TYPENAME`, not `NAME`.** `Types::unit_key` compares the
@@ -244,9 +425,13 @@ training), and `balance::Kind`'s named lineages for the combat table.
 ### Fields the loader leaves at their defaults
 
 No reading names a column for these; each is recorded as an input:
-`Profile::guy_radius` and `big_radius`; `Profile::combat_role` (`role &
+`Profile::guy_radius` and `big_radius`; ~~`Profile::combat_role` (`role &
 0x10000` — the `role` word's source is unread; the loader uses `ATTACK ≠ 0`
-and not `OBJ_MASK C`); `Tribe::graft` (identity) and `Tribe::barbarian`
+and not `OBJ_MASK C`)~~ — **closed 2026-08-25**: the word is derived above and
+`combat_role` is `role & 0x10000` exactly, which moves two of the 364 (the
+Armed Supply Wagon, whose `Civilian` *category* refuses it the bit its
+`ATTACK` would earn, and Boadicea, which carries the `CIVILIAN` mask and is
+military anyway); `Tribe::graft` (identity) and `Tribe::barbarian`
 (false); `TechTree::free_rules` (empty — the nation and wonder free-tech
 blocks); `TypeDef::is_list` and `leader_off`; `balance::Kind::age` is the
 `get_age_slow` reading (first tech prerequisite's age — ~~−1 → 0~~ **an age

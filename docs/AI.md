@@ -831,20 +831,36 @@ techs researched at building `0x1b6`, and both once **per such tech**.
 `+0x1cc` — are derived at load, not in this function: `TechType::init`
 zeroes them, then `Types::init@00669cc0:1239` runs
 `compute_ai_values@0066cdc0` over `0x220..0x274` **ascending**, and
-`add_preq_ai` adds into the *prerequisites'* arrays, so the pass is
-cumulative and order-dependent. By index: `ai[0]` military (epoch cat 0;
-units with `role & 0x10000`; towers, forts and attacking buildings;
-trainers; dependants +1 for an epoch and +2 for an age; spells +4),
-`ai[1]` breadth (epoch cat 2; Village/Town; gather and `0x8000000`
-buildings; goods +4/+1; spells +2; bonuses), `ai[2]` naval (docks and sea
-units, with `add_preq_ai(2, 1, −1)` and `(2, 1, 2)` up the chain),
+`add_preq_ai` adds into the *prerequisites'* arrays. By index: `ai[0]`
+military (epoch cat 0; units with `role & 0x10000`; towers, forts and
+attacking buildings; trainers; dependants +1 for an epoch and +2 for an age;
+spells +4), `ai[1]` breadth (epoch cat 2; Village/Town; gather and
+`0x8000000` buildings; goods +4/+1; spells +2; bonuses), `ai[2]` naval (docks
+and sea units, with `add_preq_ai(2, 1, −1)` and `(2, 1, 2)` up the chain),
 `ai[3]` transports, `ai[4]` research/commerce (epoch cat 3; dependants),
 `ai[5]` cities (epoch cat 1; Temple +2, Fort +1, Town +1), `ai[6]` sea and
 air units, **`ai[7]` never written**, `ai[8]` land military, `ai[9]`
 resources (citizen-role units, gather buildings and sheds, goods),
-`ai[10]` epoch cat 3 only; with `s = (BuildType+0x3c < 0) ? 2 : 1`. This
-is a **loader port** and is seamed to zero until `rondata` builds it, so
-every weight reads `w = 1` today (§13).
+`ai[10]` epoch cat 3 only; with `s = (BuildType+0x3c < 0) ? 2 : 1`.
+
+~~This is a **loader port** and is seamed to zero until `rondata` builds
+it, so every weight reads `w = 1` today (§13).~~ **Built and checked,
+2026-08-25** — `sim::ai_load::compute_ai_values`, and **all 85 techs' eleven
+weights equal the program's own** (`docs/DATALAYER.md` has the derivation in
+full; the oracle is `TechType::log_data`'s `ai[scan]` lines in a `DUMP_ALL`
+type dump). Four things in the sketch above needed correcting to get there,
+and they are the kind a reading alone does not catch:
+
+- **`ai[6]` is air alone**, not "sea and air": the non-land arm sends sea to
+  `ai[2]` and everything else to `ai[6]`.
+- **A non-epoch tech researched at the Fort takes `ai[0] + 1` as well as
+  `ai[5] + 1`** — the `+1` falls through into the military weight, where the
+  Temple's `+2` returns.
+- **The bonus types add `ai[4] + 2`** as well as the `ai[1]` the sketch has,
+  and the *first* bonus scores `ai[1]` twice.
+- **The unit loops stop at `BASE_GAIATYPES`.** The twelve animals name the
+  Large City as their `WHERE`, so a loop that includes them adds twelve to
+  the Medieval Age's `ai[1]` that the original never adds.
 
 ### 2.15 The market — `use_market@006c91c0`, `market_speculation@006c8110`
 
@@ -968,15 +984,18 @@ has a claim to compare against. The full derivation is
    out)`. The value arithmetic **wraps** (32-bit `imul`), and the tail's
    `< 0 → 9,999,999` is its own guard — observed reaching that clamp in
    run19 (§15.6).
-5. **What is not on `UnitType`** and is therefore seamed (§13):
-   `unit_flags` (`+0x2b4`), `unit_flags2` (`+0x2b8`), `carry` (`+0x2d4`),
-   `cat` (`+0x14`), and `role` (`+0x2c8`), which
+5. ~~**What is not on `UnitType`** and is therefore seamed (§13):~~
+   **All five are on it now, 2026-08-25** (`UnitType::cols`,
+   `docs/DATALAYER.md`): `unit_flags` (`+0x2b4`), `unit_flags2` (`+0x2b8`),
+   `carry` (`+0x2d4`), `cat` (`+0x14`), and `role` (`+0x2c8`), which
    `determine_roles@0061c320` builds: `0x200` for ids 0..=3; air `0x1000`,
    land `0x40000` (+`0x10` scout, +`0xc` cat 1), sea `0x80000` (+`0x10`
    bark); `0x8000` if `carry`; military `0x10000` when `attack != 0`,
    `cat ∉ {4, 5}` and not `0x200` — sea +`0x2000`, air +`0x4000`, land
    cat 0 +`0x800`, hoplites `0x100000|2`, ranged +`0x400` else +1;
-   otherwise `0x100`.
+   otherwise `0x100`. One correction from building it: the hoplite `2` and
+   the infantry `0x100000` are **exclusive arms**, not a pair, and the whole
+   word reproduces for 364 of 364 types.
 
 ### 2.19 Buildings — `create_buildings@006c1be0`
 
@@ -996,11 +1015,23 @@ Same provenance as §2.18 (was §14.6; `crates/sim/src/ai_build.rs`).
 4. The `reg_wars` this function reads is the **byte array at `+0x6836`**,
    not `+0x9b4` (`active_wars`). `get_enhancing_good` is an exact-type
    switch, not a lineage test.
-5. **`build_flags & 0x8000000` is never set**: no `BUILD_FLAGS` string in
+5. ~~**`build_flags & 0x8000000` is never set**: no `BUILD_FLAGS` string in
    the shipped data carries a digit and `init_final_flags` sets only
    `FLAT`. So the Temple, Library and Senate arms of the civic block are
    **dead code** and only the Market arm ever runs. Kept behind
-   `flags::DEEP_QUEUE` in case a loader ever sets it.
+   `flags::DEEP_QUEUE` in case a loader ever sets it.~~ **Wrong in its
+   conclusion, corrected 2026-08-25** (`docs/DATALAYER.md`, "The derived
+   words no column carries"). The premise holds — no shipped string carries
+   a digit — and that is exactly *why* every bit above 25 is **derived**.
+   `0x8000000` is set by `TechType::set_research@0066cba0` on every building
+   in the lineage of a technology's `WHERE`: the Granary, Lumber Mill,
+   Smelter, University, Library, Temple, Senate and the whole Tower and Fort
+   lines. **The civic block runs.** So do `is_military_trainer`
+   (`0x40000000`, set by `UnitType::init`'s tail on the Barracks, Stable,
+   Siege Factory, Dock, Airbase and Missile Silo) and `is_training_building`
+   (`0x80000000`), both of which read the flag on the **root** of the `FROM`
+   chain. The flag is `flags::RESEARCH_HERE` now, and 129 of 129 buildings'
+   `build_flags` equal the program's.
 6. **The value product overflows in the shipped game.** `9,999,999 × 0x100
    > 2³¹`, so an Aztec's first Barracks (`1000 × 3 × 400 × 100 × 4`) comes
    out *negative* and loses its category slot, and a Market overflows
@@ -1642,12 +1673,24 @@ folded back into §2's prose.
    with the art's animation lengths (a table from the dumps' `GUY` blocks),
    the animals' wander, the scouts' `think_scout` scan, four unattributed
    — is `docs/SYNC.md` §6, and it is the next item here.
-3. **The loader's half of the producers** — the seams that are `rondata`'s
-   to close: `UnitType.unit_flags/unit_flags2/role/carry/cat`
-   (`determine_roles@0061c320`, §2.18), `TypeDef.ai[11]`
-   (`compute_ai_values`, §2.14), the market (`docs/ECONOMY.md`), and
-   `gather_max` for non-flat buildings (`calc_gather`; a worker's report is
-   pending). Each retires a named seam in one module.
+3. ~~**The loader's half of the producers**~~ — **done, 2026-08-25**,
+   `docs/DATALAYER.md`, "The derived words no column carries", and
+   `crates/sim/src/ai_load.rs`: `UnitType::cols` (`unit_flags`,
+   `unit_flags2`, `cat`, `carry`, `role`), the six derived `build_flags`
+   bits, and `TypeDef::ai[11]`. Every one of them is checked against the
+   program's own loaded values — a `DUMP_ALL` type dump prints `role`,
+   both flag words and the eleven `ai[scan]` shorts — and
+   `rondata --types <dump>` reports **0 differences on all four**: 364
+   roles, 364 `unit_flags2`, 129 `build_flags`, 85 × 11 weights. The two
+   findings that changed behaviour beyond the seams: `build_flags &
+   0x8000000` is **live**, so `create_buildings`' civic block is not dead
+   code (§2.19), and the unit table has a **name group** rule that gives
+   sixty-four records another record's columns (`docs/FORMATS.md`).
+   Still open from this item: the market (`docs/ECONOMY.md`) and
+   `gather_max` for non-flat buildings — `BuildTypeData::calc_gather` is a
+   thousand-line terrain scan with its own mining lists and cliff tests, so
+   it is a mechanic of its own rather than a seam, and it belongs with
+   `docs/ECONOMY.md`'s gathering.
 4. ~~**The producers' oracle.** No dump yet shows a non-empty make list: the
    script blocks the C++ steps for the whole of the opening. A run past the
    script's `SCRIPT_DONE` (Classical Age under `defensive`, ~step 29) with
@@ -1675,6 +1718,10 @@ folded back into §2's prose.
   by `BuildTypeData::max_gatherers@0063c430` → `calc_gather@00639e40`
   (`docs/ECONOMY.md`'s open item): 5 for camp 2001 on run9's map, 0
   (uncapped) in the sim. Pinned as a ceiling in the census test.
+  **Not a loader seam** (2026-08-25): `max_gatherers` is one line — 1 for a
+  flat building, else `calc_gather`'s second output — and `calc_gather` is a
+  thousand-line terrain scan with mining lists and cliff tests. It is a
+  mechanic of its own, and it belongs with `docs/ECONOMY.md`'s gathering.
 - ~~**The frame-0 sync stream** (§12.1 item 2): every AI draw before the
   first `place_unit` — the personality, the script coin, `compute_sites`'
   stride — is on the wrong stream in the harness.~~ Read out of run11's
@@ -1690,10 +1737,15 @@ folded back into §2's prose.
   and the sim walks row-major~~ — the same: run3's `BEGIN REGIONS` prints
   every region's list and region 1's 3,053 coordinates are row-major
   exactly, as `Regions::rebuild_coords` writes them.
-- **`unit_flags & 4/8/0x8000`, `unit_flags2 & 0x60`, `carry`, `cat`,
+- ~~**`unit_flags & 4/8/0x8000`, `unit_flags2 & 0x60`, `carry`, `cat`,
   `role`** — not on `UnitType` (§12.1 item 3); every producer test that
-  needs them runs on a hand-built type.
-- **`TechType::ai[11]`** — derived at load, seamed to zero: `w = 1`.
+  needs them runs on a hand-built type.~~ **Closed, 2026-08-25**: all five
+  are on `UnitType::cols`, derived by `sim::ai_load` and checked against the
+  original's own type dump — 364 of 364 `role`s and `unit_flags2` equal
+  (`docs/DATALAYER.md`, "The derived words no column carries").
+- ~~**`TechType::ai[11]`** — derived at load, seamed to zero: `w = 1`.~~
+  **Closed the same day**: `ai_load::compute_ai_values`, and all 85 × 11
+  weights equal the program's.
 - **The market**: `use_market` computes its need and its gate and neither
   trades nor draws (the one draw sits in the sell branch, and which branch
   is taken is a price question), `market_speculation` clamps and tiers.

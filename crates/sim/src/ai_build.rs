@@ -41,11 +41,14 @@
 //! - `TERRACOTTA` / `STATUEOFLIBERTY` / `SPACEPROGRAM` have no [`Ident`], so
 //!   the tech-race lobby's ÷1000 never fires.
 //! - `WorldData::danger` is per region here, not per half-cell.
-//! - `build_flags & 0x8000000` is [`flags::DEEP_QUEUE`] and **no shipped
-//!   row carries it** — verified against `buildingrules.xml`'s 129
-//!   `BUILD_FLAGS` strings and against every writer in the export. It is
-//!   implemented literally anyway, so the day a loader sets it the civic
-//!   block comes alive on its own.
+//! - ~~`build_flags & 0x8000000` is `DEEP_QUEUE` and no shipped row carries
+//!   it, so the civic block is dead code.~~ **Wrong, corrected 2026-08-25**
+//!   (`docs/DATALAYER.md`, "The derived words no column carries"): the bit is
+//!   [`flags::RESEARCH_HERE`] and it is *derived*, not written —
+//!   `TechType::set_research` marks every building in the lineage of a tech's
+//!   `WHERE`, which is the Granary, Lumber Mill, Smelter, University,
+//!   Library, Temple, Senate and the whole Tower and Fort lines. The civic
+//!   block runs.
 //! - `produce_upgrade` of a *building* type: the production queue holds
 //!   units and technologies, so a building upgrade has nowhere to go.
 //! - spells: the simulation has none, so `produce_spell` never casts.
@@ -613,7 +616,7 @@ impl Sim {
         }
 
         // ---- §3.5 military trainers, then the dock family ----
-        let deep = bt.has(flags::DEEP_QUEUE);
+        let deep = bt.has(flags::RESEARCH_HERE);
         if !deep && !dock && is_military_trainer(ident) {
             if self.lobby.rush_rules == 8 || !(have == 0 || up != 0) {
                 return None;

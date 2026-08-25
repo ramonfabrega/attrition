@@ -128,9 +128,14 @@ freely. What the cap stops is further down, at completion.
 `queue_size` is decided in `Build::init`: **20** for a building whose
 `build_flags` say military trainer or training building, **10** for one with
 `build_flags & 0x08000000`, **2** for everything else, and `BuildQueue::init`
-accepts only those three. `crates/sim/src/production.rs` still takes the
+accepts only those three. ~~`crates/sim/src/production.rs` still takes the
 capacity as an input, because the flags that choose it are a building-type
-system the simulation does not have.
+system the simulation does not have.~~ **The flags exist now**
+(`docs/DATALAYER.md`, "The derived words no column carries"): all three are
+derived at load and checked against the program's own values, so
+[`sim::build::queue_capacity`] answers this exactly and `City::init_build`
+calls it. `production.rs` still takes the number as an argument, which is now
+only a parameter rather than a seam.
 
 Past the gates:
 

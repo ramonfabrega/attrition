@@ -39,20 +39,44 @@ pub mod flags {
     pub const NEEDS_TOWN: u32 = 0x800;
     /// `n`: not civilian — exempt from conversion on capture.
     pub const NOT_CIVILIAN: u32 = 0x2000;
-    /// `2`: queue depth 10.
-    pub const DEEP_QUEUE: u32 = 0x800_0000;
-    /// `3`: a flat gatherer (farm, oil).
+    /// `1` — **derived**: in an upgrade line. `Types::init` marks both the
+    /// child and its `FROM` parent. Nothing reads it yet.
+    pub const UPGRADE_LINE: u32 = 0x400_0000;
+    /// `2` — **derived**, and the previous name for it, `DEEP_QUEUE`, was
+    /// only half right: `TechType::set_research` marks every building in the
+    /// lineage of a tech's `WHERE`, so this is "a technology is researched
+    /// here" and the queue depth of 10 is one of its consequences
+    /// (`docs/DATALAYER.md`, "The derived words no column carries").
+    pub const RESEARCH_HERE: u32 = 0x800_0000;
+    /// `3`: a flat gatherer (farm, oil) — derived, see [`init_final_flags`].
     pub const FLAT: u32 = 0x1000_0000;
+    /// `4` — **derived**: `SpellType::init` marks a craft's `FROM`/`FROM2`
+    /// when it is a building. Only the Small City carries it.
+    pub const CRAFT_HERE: u32 = 0x2000_0000;
+    /// `5` — **derived**: `UnitType::init` marks a producible unit's `WHERE`
+    /// when the unit also has an `ATTACK`, is military, and the building is
+    /// not in the city line. `BuildTypeData::is_military_trainer` reads it on
+    /// the **root** of the `FROM` chain — [`is_military_trainer`].
+    pub const MILITARY_TRAINER: u32 = 0x4000_0000;
+    /// `6` — **derived**: `UnitType::init` marks the `WHERE` of every unit
+    /// that is not `FLAGS p`. `is_training_building` reads it on the root —
+    /// [`is_training_building`].
+    pub const TRAINS: u32 = 0x8000_0000;
 
-    /// Parses a `BUILD_FLAGS` string the way `BuildType::init` does.
+    /// Parses a `BUILD_FLAGS` string the way `BuildType::init` does: a letter
+    /// `c` is bit `c − 'a'` and a digit **`1`..`9`** is bit `d + 25`. `0` is
+    /// below the digit branch's own `< '1'` test and falls into the letter
+    /// one, where `(0x30 − 0x61) & 0x1f` is 15; no shipped row has one.
     pub fn parse(s: &str) -> u32 {
         let mut f = 0;
         for c in s.chars() {
             let c = c.to_ascii_lowercase();
             if c.is_ascii_lowercase() {
                 f |= 1 << (c as u32 - 'a' as u32);
-            } else if c.is_ascii_digit() {
+            } else if ('1'..='9').contains(&c) {
                 f |= 1 << (c as u32 - '0' as u32 + 25);
+            } else if c == '0' {
+                f |= 1 << 15;
             }
         }
         f
@@ -222,6 +246,112 @@ pub fn init_final_flags(types: &mut [BuildType]) {
         {
             types[t].flags |= flags::FLAT;
         }
+    }
+}
+
+/// The four building-index lists the derived `build_flags` bits are built
+/// from — `docs/DATALAYER.md`, "The derived words no column carries".
+///
+/// Each is what the original's loader has in hand when it sets the bit: the
+/// `WHERE` of every producible unit, the subset of those whose unit is a
+/// military type outside the city line, the `WHERE` of every technology, and
+/// the `FROM`/`FROM2` of every craft that names a building. Duplicates are
+/// fine; the marks are idempotent.
+#[derive(Clone, Debug, Default)]
+pub struct Derived {
+    pub trains: Vec<usize>,
+    pub military_trains: Vec<usize>,
+    pub research_at: Vec<usize>,
+    pub craft_at: Vec<usize>,
+}
+
+/// The derived half of `build_flags`, in the order the original derives it:
+/// [`flags::TRAINS`] and [`flags::MILITARY_TRAINER`] from `UnitType::init`'s
+/// tail, [`flags::RESEARCH_HERE`] from `TechType::set_research` (which marks
+/// the whole lineage of the `WHERE`, not just the named type),
+/// [`flags::CRAFT_HERE`] from `SpellType::init`, [`flags::UPGRADE_LINE`] from
+/// `Types::init` (both ends of every `FROM` link) and [`flags::FLAT`] from
+/// `ObjectType::finalize_init_all`.
+///
+/// Reading only the flag string leaves **every** one of these clear, which
+/// makes the Library's queue two deep, the Barracks no trainer, and half of
+/// `create_buildings` unreachable. Call it once, after `from` is linked.
+pub fn init_derived_flags(types: &mut [BuildType], d: &Derived) {
+    for &b in &d.trains {
+        types[b].flags |= flags::TRAINS;
+    }
+    for &b in &d.military_trains {
+        types[b].flags |= flags::MILITARY_TRAINER;
+    }
+    for &root in &d.research_at {
+        for t in 0..types.len() {
+            if is_of(types, t, root) {
+                types[t].flags |= flags::RESEARCH_HERE;
+            }
+        }
+    }
+    for &b in &d.craft_at {
+        types[b].flags |= flags::CRAFT_HERE;
+    }
+    for t in 0..types.len() {
+        if let Some(f) = types[t].from {
+            types[t].flags |= flags::UPGRADE_LINE;
+            types[f].flags |= flags::UPGRADE_LINE;
+        }
+    }
+    init_final_flags(types);
+}
+
+/// `ObjectTypeData::is(root, 0)` over the `FROM` chain, by record index.
+pub fn is_of(types: &[BuildType], t: usize, root: usize) -> bool {
+    let mut cur = Some(t);
+    let mut guard = 0;
+    while let Some(c) = cur {
+        if c == root {
+            return true;
+        }
+        cur = types[c].from;
+        guard += 1;
+        if guard > types.len() {
+            break;
+        }
+    }
+    false
+}
+
+/// The root of a type's `FROM` chain — `BuildTypeData::fundamental_type`,
+/// which is also what `basic_type` returns.
+pub fn fundamental(types: &[BuildType], t: usize) -> usize {
+    let mut cur = t;
+    for _ in 0..types.len() {
+        match types[cur].from {
+            Some(f) => cur = f,
+            None => break,
+        }
+    }
+    cur
+}
+
+/// `BuildTypeData::is_military_trainer@0063bcf0` — the flag on the **root**.
+pub fn is_military_trainer(types: &[BuildType], t: usize) -> bool {
+    types[fundamental(types, t)].has(flags::MILITARY_TRAINER)
+}
+
+/// `BuildTypeData::is_training_building@00639de0` — likewise.
+pub fn is_training_building(types: &[BuildType], t: usize) -> bool {
+    types[fundamental(types, t)].has(flags::TRAINS)
+}
+
+/// `Build::init@00629740`: the build queue's capacity. A trainer of any kind
+/// holds twenty, a research building ten, and everything else **two** — the
+/// last of which the first reading had as twenty.
+pub fn queue_capacity(types: &[BuildType], t: usize) -> usize {
+    if is_military_trainer(types, t) || is_training_building(types, t) {
+        20
+    } else if types[t].has(flags::RESEARCH_HERE) {
+        10
+    } else {
+        2
     }
 }
 
@@ -586,6 +716,39 @@ mod tests {
     }
 
     #[test]
+    fn the_derived_flags_are_marked_where_the_loader_marks_them() {
+        let mut ty = types();
+        // The Fort is a military trainer and a research building; a tech is
+        // researched at the Tower line's root; the Village trains and holds a
+        // craft.
+        let d = Derived {
+            trains: vec![0, 3],
+            military_trains: vec![3],
+            research_at: vec![6, 9],
+            craft_at: vec![0],
+        };
+        init_derived_flags(&mut ty, &d);
+        assert!(ty[0].has(flags::TRAINS) && ty[0].has(flags::CRAFT_HERE));
+        assert!(!ty[0].has(flags::MILITARY_TRAINER));
+        assert!(ty[3].has(flags::MILITARY_TRAINER) && ty[3].has(flags::TRAINS));
+        // `RESEARCH_HERE` walks the lineage: the Keep gets it from the Tower.
+        assert!(ty[6].has(flags::RESEARCH_HERE) && ty[7].has(flags::RESEARCH_HERE));
+        assert!(!ty[8].has(flags::RESEARCH_HERE));
+        // The upgrade mark lands on both ends of every `FROM`.
+        assert!(ty[0].has(flags::UPGRADE_LINE) && ty[1].has(flags::UPGRADE_LINE));
+        assert!(!ty[9].has(flags::UPGRADE_LINE));
+        // And the three predicates read the root, not the type.
+        assert!(is_military_trainer(&ty, 4), "the Castle's root is the Fort");
+        assert!(
+            is_training_building(&ty, 2),
+            "the Major City's is the Village"
+        );
+        assert_eq!(queue_capacity(&ty, 2), 20);
+        assert_eq!(queue_capacity(&ty, 7), 10, "a research building holds ten");
+        assert_eq!(queue_capacity(&ty, 8), 2, "everything else holds two");
+    }
+
+    #[test]
     fn flags_parse_letters_and_digits_the_loaders_way() {
         assert_eq!(
             flags::parse("ean"),
@@ -598,7 +761,7 @@ mod tests {
             flags::WATER | flags::NO_CITY
         );
         assert_eq!(flags::parse("3"), flags::FLAT);
-        assert_eq!(flags::parse("2"), flags::DEEP_QUEUE);
+        assert_eq!(flags::parse("2"), flags::RESEARCH_HERE);
     }
 
     #[test]

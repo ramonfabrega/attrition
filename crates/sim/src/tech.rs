@@ -169,6 +169,11 @@ pub struct TypeDef {
     /// A tech's `JOB_TIME`, in frames — `TypeData::research_time` is this
     /// times a hundred, times `RESEARCH_TICK_PREMIUM` (`docs/PRODUCTION.md`).
     pub job_time: i32,
+    /// `TechType::ai[11]` (`+0x1cc`): the eleven weights the production AI
+    /// multiplies a technology's base score by, derived at load from what the
+    /// tech unlocks — [`crate::ai_load::compute_ai_values`]. Zero on
+    /// everything that is not a tech, and `ai[7]` is never written at all.
+    pub ai: [i16; crate::ai_load::AI_WEIGHTS],
 }
 
 impl TypeDef {
@@ -190,6 +195,7 @@ impl TypeDef {
             leader_off: 0,
             cost: [0; crate::economy::RESOURCES],
             job_time: 0,
+            ai: [0; crate::ai_load::AI_WEIGHTS],
         }
     }
 
@@ -275,6 +281,11 @@ pub struct Tribe {
 /// role leaves the rule inert.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Roles {
+    /// `VILLAGE`, the Small City — the root of the city line.
+    pub village: Option<TypeId>,
+    /// `DOCK`, the root of Anchorage and Shipyard.
+    pub dock: Option<TypeId>,
+    pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,
     pub university: Option<TypeId>,

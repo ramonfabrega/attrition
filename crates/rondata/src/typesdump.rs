@@ -37,6 +37,34 @@ pub struct TypeRow {
     pub unit_flags2: u32,
     pub domain: i32,
     pub cat: i32,
+    /// `UnitTypeData::role` (`+0x2c8`) — `determine_roles`' word, and
+    /// `BuildTypeData::build_flags` (`+0x2c0`) for a building row. Both are
+    /// derived at load and neither is a column: `docs/DATALAYER.md`, "The
+    /// derived words no column carries".
+    pub role: u32,
+    pub build_flags: u32,
+    /// `CARRY`, and `ATTACK` — the two other columns `determine_roles` reads
+    /// that the row did not previously carry.
+    pub carry: i32,
+    pub attack: i32,
+    /// The stored `max_range` (`+0x1fc`), after `FLAGS k`.
+    pub max_range: i32,
+    /// Two columns the **name group** decides (`rondata::load`'s
+    /// `name_group_leaders`): a variant record takes its leader's, and these
+    /// two are where the shipped table disagrees with itself.
+    pub armor: i32,
+    pub splash_percent: i32,
+}
+
+/// One `BEGIN TECHTYPE` block: the eleven `ai[scan]` weights
+/// `TechType::compute_ai_values` derives, and the tech's `WHERE`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct TechRow {
+    /// `TypeIndex`, `0x220..0x275`.
+    pub type_index: i32,
+    pub ai: [i16; 11],
+    pub cat: i32,
+    pub where_: i32,
 }
 
 /// What the dump holds that this crate checks against.
@@ -45,6 +73,8 @@ pub struct TypesDump {
     /// One row per `TypeIndex`, first occurrence kept (the five copies of a
     /// unit type agree on every field read here).
     pub types: Vec<TypeRow>,
+    /// One row per tech `TypeIndex`, likewise.
+    pub techs: Vec<TechRow>,
     /// `final_balance_table`, row-major `[attacker][target]` over `TypeIndex −
     /// 0x32`, when the dump has a `COMBATTABLE` block. 493 × 493.
     pub combat: Option<Vec<i16>>,
@@ -90,7 +120,12 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
     let mut reader = BufReader::with_capacity(1 << 20, file);
     let mut out = TypesDump::default();
     let mut seen = std::collections::HashSet::new();
+    let mut tseen = std::collections::HashSet::new();
     let mut cur: Option<TypeRow> = None;
+    // A `TECHTYPE` block, which carries the eleven `ai[scan]` weights. Only
+    // one of `cur` and `cur_tech` is ever open.
+    let mut cur_tech: Option<TechRow> = None;
+    let mut tech_ai_n = 0usize;
     // The indent of the open type block's own `BEGIN` line; a `BEGIN` at
     // that depth or shallower closes it, whatever its name, so the last
     // building's record cannot absorb the fields of whatever table follows.
@@ -114,11 +149,17 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
                 in_combat = false;
                 out.combat = Some(std::mem::take(&mut combat));
             }
-            if depth <= cur_depth
-                && let Some(r) = cur.take()
-                && seen.insert(r.type_index)
-            {
-                out.types.push(r);
+            if depth <= cur_depth {
+                if let Some(r) = cur.take()
+                    && seen.insert(r.type_index)
+                {
+                    out.types.push(r);
+                }
+                if let Some(r) = cur_tech.take()
+                    && tseen.insert(r.type_index)
+                {
+                    out.techs.push(r);
+                }
             }
             match name {
                 "UNITTYPE" | "BUILDTYPE" => {
@@ -135,6 +176,20 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
                         graft: -1,
                         upgrade: -1,
                         ..TypeRow::default()
+                    });
+                }
+                "TECHTYPE" => {
+                    if let Some(r) = cur_tech.take()
+                        && tseen.insert(r.type_index)
+                    {
+                        out.techs.push(r);
+                    }
+                    cur_depth = depth;
+                    tech_ai_n = 0;
+                    cur_tech = Some(TechRow {
+                        type_index: -1,
+                        where_: -1,
+                        ..TechRow::default()
                     });
                 }
                 "COMBATTABLE" => {
@@ -161,10 +216,27 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
             }
             continue;
         }
-        let Some(r) = cur.as_mut() else { continue };
         let mut it = t.splitn(2, char::is_whitespace);
         let key = it.next().unwrap_or("");
         let val = it.next().unwrap_or("").trim();
+        if let Some(r) = cur_tech.as_mut() {
+            match key {
+                // `type`, `cat` and `where` are in the nested `TYPE` block and
+                // are written once; the eleven `ai[scan]` follow in order.
+                "type" if r.type_index < 0 => r.type_index = val.parse().unwrap_or(-1),
+                "cat" => r.cat = val.parse().unwrap_or(0),
+                "where" if r.where_ < 0 => r.where_ = val.parse().unwrap_or(-1),
+                "ai[scan]" => {
+                    if let Some(slot) = r.ai.get_mut(tech_ai_n) {
+                        *slot = val.parse().unwrap_or(0);
+                        tech_ai_n += 1;
+                    }
+                }
+                _ => {}
+            }
+            continue;
+        }
+        let Some(r) = cur.as_mut() else { continue };
         // Each of these keys is written once per type block; the repeated
         // keys in a block (`flags`, `length`, `size`, `increment`, `list`)
         // belong to the nested STACKs and are not read.
@@ -193,11 +265,23 @@ pub fn read(path: &str) -> Result<TypesDump, Error> {
         field!(from, i32);
         field!(graft, i32);
         field!(upgrade, i32);
+        field!(role, u32);
+        field!(build_flags, u32);
+        field!(carry, i32);
+        field!(attack, i32);
+        field!(max_range, i32);
+        field!(armor, i32);
+        field!(splash_percent, i32);
     }
     if let Some(r) = cur.take()
         && seen.insert(r.type_index)
     {
         out.types.push(r);
+    }
+    if let Some(r) = cur_tech.take()
+        && tseen.insert(r.type_index)
+    {
+        out.techs.push(r);
     }
     if in_combat {
         out.combat = Some(combat);

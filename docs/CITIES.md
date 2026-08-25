@@ -210,8 +210,24 @@ on `FARM`, `OILWELL`, `OILPLATFORM`.
 | `0x400` | `k` | `blocked_tcoord` | always `BLOCKED_NEED_WALL` (unused) |
 | `0x800` | `l` | `get_town`, `blocked_location` | with `e` clear: must be inside a `TOWN`-or-better (unused in the shipped data) |
 | `0x2000` | `n` | `is_civilian`, `validate_build`, `capture_city` | not civilian — military, city, dock; **exempt from conversion on capture** |
-| `0x8000000` | `2` | `Build::init` | queue depth 10 (`docs/PRODUCTION.md`) |
-| `0x10000000` | `3` | `is_flat` (type slot `+0x94`) | flat gatherer |
+| `0x4000000` | `1` | — | **derived**: in an upgrade line, both ends (`Types::init`) |
+| `0x8000000` | `2` | `Build::init` | **derived**: a technology is researched here (`TechType::set_research`, the whole `WHERE` lineage) — and one of its consequences is the queue depth below |
+| `0x10000000` | `3` | `is_flat` (type slot `+0x94`) | flat gatherer — **derived** (`finalize_init_all`) |
+| `0x20000000` | `4` | — | **derived**: a craft is cast here (`SpellType::init`); only the Small City |
+| `0x40000000` | `5` | `is_military_trainer` | **derived**: `UnitType::init`'s tail, read on the `FROM` root |
+| `0x80000000` | `6` | `is_training_building` | **derived**: trains anything, read on the root |
+
+**The last six are derived, not written** — no shipped `BUILD_FLAGS` string
+contains a digit at all, so reading the column alone leaves every one of them
+clear. The derivations and their oracle are in `docs/DATALAYER.md`, "The
+derived words no column carries" (129 of 129 buildings' `build_flags` equal
+the program's own).
+
+**The build queue's capacity is three-way, not two** (`Build::init@00629740`,
+corrected 2026-08-25): a **military trainer or any training building holds
+20**, a **research building 10**, and **everything else 2** — the first
+reading had the last as twenty. Both trainer predicates read their flag on
+the root of the `FROM` chain, so a Castle is a trainer because the Fort is.
 
 Lineage: `is(t, 0)` is `ObjectTypeData::is`, equality-or-`from`-chain
 (`docs/TECH.md`). So `BuildTypeData::is_city` = `is(VILLAGE, 0)` admits

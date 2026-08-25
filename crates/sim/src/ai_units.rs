@@ -24,6 +24,7 @@
 //! would. They are listed in the worker's report.
 
 use crate::ai::Census;
+use crate::ai_load::{role, uflags, uflags2};
 use crate::build::Ident;
 use crate::economy::RESOURCES;
 use crate::orders::Worker;
@@ -103,18 +104,23 @@ impl Sim {
             crate::attrition::Domain::Sea => (false, true, false),
             crate::attrition::Domain::Air => (false, false, true),
         };
+        // The derived words the producers read are on the type now —
+        // `docs/DATALAYER.md`, "The derived words no column carries" — so
+        // every one of these is the original's own bit rather than a
+        // stand-in, whenever the loader filled them.
+        let c = u.cols;
+        let role = self.role_word(t, rec);
         Some(Facts {
             rec,
-            citizen,
-            military: p.combat_role,
+            citizen: role & role::CITIZEN != 0,
+            military: role & role::MILITARY != 0,
             land,
             sea,
             air,
-            scout: (land && self.named_is(t, "Scout"))
-                || (sea && p.roles & combat::role::BARK != 0),
-            carry: self.seam_carry(rec),
+            scout: role & role::SCOUT != 0,
+            carry: role & role::CARRY != 0,
             siege: p.siege,
-            caravan: p.roles & combat::role::CARAVAN != 0,
+            caravan: c.flag2(uflags2::CARAVAN) || p.roles & combat::role::CARAVAN != 0,
             merchant: p.roles & combat::role::MERCHANT != 0,
             worker: citizen,
             peasant: u.worker == Worker::Citizen,
@@ -123,12 +129,53 @@ impl Sim {
             control_cost: u.price.pop,
             age: p.age,
             missile: self.seam_missile(t),
-            flag_c: self.seam_unit_flag(rec, 4),
-            flag_d: self.seam_unit_flag(rec, 8),
-            flag_p: self.seam_unit_flag(rec, 0x8000),
-            special_forces: self.seam_unit_flag2(rec, 0x60),
-            special_forces_elite: self.seam_unit_flag2(rec, 0x40),
+            flag_c: c.flag(0x4),
+            flag_d: c.flag(0x8),
+            flag_p: c.flag(uflags::NO_PRODUCE),
+            special_forces: c.flag2(uflags2::SPECIAL_FORCES),
+            special_forces_elite: c.flag2(0x40),
         })
+    }
+
+    /// The type's `role` word (`UnitTypeData+0x2c8`).
+    ///
+    /// The loader derives it — [`crate::ai_load::determine_roles`], checked
+    /// against the original's own dump for all 364 types — and a type that
+    /// carries one is authoritative. A type built by hand in a test carries
+    /// zero, and this rebuilds a word from what such a type *does* have:
+    /// `worker` for the citizen bit, `combat_role` for the military one, the
+    /// combat profile's `BARK` role and the `Scout` lineage for the scout bit,
+    /// the garrison layer's `transport` for `carry`. That is exactly what the
+    /// five `seam_*` helpers used to answer one at a time.
+    fn role_word(&self, t: TypeId, rec: usize) -> u32 {
+        let u = &self.unit_types[rec];
+        if u.cols.role != 0 {
+            return u.cols.role;
+        }
+        let p = &u.combat;
+        let land = p.domain == crate::attrition::Domain::Land;
+        let sea = p.domain == crate::attrition::Domain::Sea;
+        let mut r = crate::ai_load::determine_roles(&crate::ai_load::RoleFacts {
+            citizen_id: u.worker != Worker::None,
+            domain: p.domain,
+            cat: if u.worker == Worker::None {
+                crate::ai_load::cat::FOOT
+            } else {
+                crate::ai_load::cat::CIVILIAN
+            },
+            attack: if p.combat_role { p.attack.max(1) } else { 0 },
+            max_range: p.max_range,
+            carry: i32::from(u.garrison.transport),
+            scout: land && self.named_is(t, "Scout"),
+            bark: sea && p.roles & combat::role::BARK != 0,
+            hoplite: false,
+        });
+        // `determine_roles` reads `CARRY`, which a hand-built type has no
+        // column for; the garrison layer's `transport` stands in.
+        if u.garrison.transport {
+            r |= role::CARRY;
+        }
+        r
     }
 
     /// **Seam** — `ObjectTypeData::is(t, <named root>)`. The original tests a
@@ -172,30 +219,12 @@ impl Sim {
         self.named_is(t, "Cruise Missile")
     }
 
-    /// **Seam** — `UnitTypeData::carry` (`+0x2d4`), which `determine_roles`
-    /// turns into `role & 0x8000`. The nearest thing the simulation carries
-    /// is the garrison layer's `transport`, a sea type with `FLAGS e`.
-    fn seam_carry(&self, rec: usize) -> bool {
-        self.unit_types[rec].garrison.transport
-    }
-
-    /// **Seam** — `UnitTypeData::unit_flags` (`+0x2b4`). Bit 2 (`c`) and bit
-    /// 3 (`d`) are the classes capped by city count, bit 15 (`p`) excludes a
-    /// type from production altogether. The column is read by
-    /// `rondata::load::unit_flags` but never reaches [`crate::UnitType`], so
-    /// this answers "no flag" — every type is producible and uncapped.
-    fn seam_unit_flag(&self, rec: usize, _bit: u32) -> bool {
-        let _ = rec;
-        false
-    }
-
-    /// **Seam** — `UnitTypeData::unit_flags2` (`+0x2b8`); `& 0x60` is the
-    /// special-forces class. Not carried; answers "no flag".
-    fn seam_unit_flag2(&self, rec: usize, _bit: u32) -> bool {
-        let _ = rec;
-        false
-    }
-
+    /// ~~**Seams** — `carry`, `unit_flags`, `unit_flags2`.~~ **Closed,
+    /// 2026-08-25**: all three are on [`crate::UnitType::cols`], derived by
+    /// the loader and checked against the original's own type dump
+    /// (`docs/DATALAYER.md`). What replaced them is [`Sim::role_word`] and
+    /// [`crate::ai_load::UnitCols::flag`]/`flag2`.
+    ///
     /// **Seam** — `leaders[j].leader_flags & 4`, "is a human player"
     /// (`docs/audit/2026-08-23-pathfinder.md`). Stands in as "has no
     /// production script", which `Leader::init` gives every computer leader.

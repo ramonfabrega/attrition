@@ -198,6 +198,16 @@ impl Install {
         self.records("techrules.xml", "TECH")
     }
 
+    /// Reads `craftrules.xml` — the 55 spell types, `TypeIndex`
+    /// `0x275..0x2ab`. The simulation has no spells; the table is read for
+    /// two things its `FROM`/`FROM2` columns decide at load, both in
+    /// `docs/DATALAYER.md`: which unit types are casters (`unit_flags2 & 2`)
+    /// and which building is a craft's home (`build_flags & 0x20000000`),
+    /// plus each craft's `PREQ0`, which `compute_ai_values` counts.
+    pub fn crafts(&self) -> Result<Table, Error> {
+        self.records("craftrules.xml", "CRAFT")
+    }
+
     /// Reads `resourcerules.xml`. The first six records are the basic goods in
     /// the engine's own order; the other forty-four are the rare resources.
     ///

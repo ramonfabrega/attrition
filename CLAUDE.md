@@ -608,13 +608,44 @@ better, in which case say so and take that.
     at all; §14 is now a map of where each went. §2.9 lists what is still
     unread at document level (`upgrade_units`, `produce_unit`,
     `produce_upgrade`, `produce_spell`, `check_income`, `unit_prod_value`,
-    `check_transport`). Then: the loader's half of
-    the producers' seams (unit `role`/flags, `TechType.ai[]`,
-    `gather_max`); then the blind second reading — which can run from any
+    `check_transport`).
+
+    **The loader's half of the producers' seams landed, 2026-08-25** —
+    `docs/DATALAYER.md`, "The derived words no column carries", and
+    `crates/sim/src/ai_load.rs`. What made it cheap: **the type dump carries
+    the derived words too.** `UnitType::log_data` prints `role`,
+    `unit_flags` and `unit_flags2`; `BuildType::log_data` prints
+    `build_flags`; `TechType::log_data` prints the **eleven `ai[scan]`
+    weights**. So run3's `DUMP_ALL` dump is a field-by-field oracle for the
+    whole item and `rondata --types <dump>` now reports **0 differences on
+    all four** — 364 roles, 364 `unit_flags2`, 129 `build_flags`, 85 × 11
+    weights, with the 493 × 493 combat table still 0 beside them. Landed:
+    `UnitType::cols` (`determine_roles`, `init_final_flags`, and the caster
+    bit `craftrules.xml` seeds and `init_spellcasters` walks down the graft
+    chains), the six derived `build_flags` bits, `TypeDef::ai[11]`
+    (`compute_ai_values` + `add_preq_ai`), and the seams in `ai_units.rs`
+    and `ai_research.rs` closed behind them. Three corrections came with it,
+    each one a claim the reading alone had wrong: **`build_flags &
+    0x8000000` is live** — it is `TechType::set_research`'s mark, not a
+    `BUILD_FLAGS` digit, so `create_buildings`' civic block is not dead code
+    and `is_military_trainer` is not dead either (`docs/AI.md` §2.19); the
+    build queue's capacity is **three-way, 20/10/2** (`docs/CITIES.md`); and
+    the unit table has a **name group** — `Types::init` loads it in five
+    passes and, from the third, gives a record whose `NAME` repeats the
+    previous one's the *first* record of that run, so sixty-four records
+    take another row's columns and four shipped rows (a General's `FLAGS`,
+    Riflemen's `ARMOR`, two `LOS`, the Howitzer's `SPLASH_PERCENT`) are read
+    past (`docs/FORMATS.md`).
+
+    Then: the blind second reading — which can run from any
     session, since the readers are subagents and only the *brief* must
     avoid leaking claims — at
     which point `docs/audit/README.md` also owes a paragraph each to the
-    pathfinder, commands and recgame audits it never got.
+    pathfinder, commands and recgame audits it never got. And
+    `gather_max` for non-flat buildings is **not** a seam after all:
+    `BuildTypeData::calc_gather` is a thousand-line terrain scan with mining
+    lists and cliff tests, so it is a mechanic of its own and belongs with
+    `docs/ECONOMY.md`'s gathering.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes

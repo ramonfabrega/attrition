@@ -577,6 +577,68 @@ fn types_report(install: &Install, path: &str) -> Result<usize, rondata::Error> 
         by_field.push(("is_caravan (unit_flags2 & 8)", caravan));
         by_field.push(("domain", domain));
     }
+
+    // ---- the derived words: `docs/DATALAYER.md` ----
+    {
+        let mut role = Vec::new();
+        let mut uf = Vec::new();
+        let mut uf2 = Vec::new();
+        let mut cat = Vec::new();
+        let mut carry = Vec::new();
+        for (i, d) in units.iter().enumerate().take(n) {
+            let c = loaded.unit_types[i].cols;
+            if d.role != c.role {
+                role.push(format!("{} {:#x}≠{:#x}", name(i), d.role, c.role));
+            }
+            if d.unit_flags != c.unit_flags {
+                uf.push(format!(
+                    "{} {:#x}≠{:#x}",
+                    name(i),
+                    d.unit_flags,
+                    c.unit_flags
+                ));
+            }
+            if d.unit_flags2 != c.unit_flags2 {
+                uf2.push(format!(
+                    "{} {:#x}≠{:#x}",
+                    name(i),
+                    d.unit_flags2,
+                    c.unit_flags2
+                ));
+            }
+            if d.cat != c.cat {
+                cat.push(format!("{} {}≠{}", name(i), d.cat, c.cat));
+            }
+            if d.carry != c.carry {
+                carry.push(format!("{} {}≠{}", name(i), d.carry, c.carry));
+            }
+        }
+        // The name group's four disagreements: the two of them the simulation
+        // carries (`docs/DATALAYER.md`).
+        let mut armor = Vec::new();
+        let mut splash = Vec::new();
+        for (i, d) in units.iter().enumerate().take(n) {
+            let p = &loaded.unit_types[i].combat;
+            if d.armor != p.armor {
+                armor.push(format!("{} {}≠{}", name(i), d.armor, p.armor));
+            }
+            if d.splash_percent != p.splash_percent {
+                splash.push(format!(
+                    "{} {}≠{}",
+                    name(i),
+                    d.splash_percent,
+                    p.splash_percent
+                ));
+            }
+        }
+        by_field.push(("armor (the name group)", armor));
+        by_field.push(("splash_percent (the name group)", splash));
+        by_field.push(("role (determine_roles)", role));
+        by_field.push(("unit_flags", uf));
+        by_field.push(("unit_flags2 (init_final_flags + the casters)", uf2));
+        by_field.push(("cat", cat));
+        by_field.push(("carry", carry));
+    }
     // `RONDATA_VERBOSE=1` lists every offender instead of the first eight.
     let verbose = std::env::var_os("RONDATA_VERBOSE").is_some();
     for (what, bad) in &by_field {
@@ -643,7 +705,21 @@ fn types_report(install: &Install, path: &str) -> Result<usize, rondata::Error> 
                 domain.push(format!("{} {}≠{:?}", bname(i), d.domain, k.domain));
             }
         }
-        for (what, bad) in [("obj_masks", masks), ("age", age), ("domain", domain)] {
+        let mut bflags = Vec::new();
+        for (i, d) in builds.iter().enumerate() {
+            let Some(bt) = loaded.build_types.get(i) else {
+                continue;
+            };
+            if d.build_flags != bt.flags {
+                bflags.push(format!("{} {:#x}≠{:#x}", bname(i), d.build_flags, bt.flags));
+            }
+        }
+        for (what, bad) in [
+            ("obj_masks", masks),
+            ("age", age),
+            ("domain", domain),
+            ("build_flags (the six derived bits)", bflags),
+        ] {
             let shown: Vec<String> = bad
                 .iter()
                 .take(if verbose { usize::MAX } else { 8 })
@@ -660,6 +736,48 @@ fn types_report(install: &Install, path: &str) -> Result<usize, rondata::Error> 
                 ),
             );
         }
+    }
+
+    // ---- the eleven per-tech weights, `compute_ai_values` ----
+    if dump.techs.is_empty() {
+        println!("  (no TECHTYPE blocks in this dump; the AI weights are unchecked)");
+    } else {
+        let mut techs: Vec<&typesdump::TechRow> = dump.techs.iter().collect();
+        techs.sort_by_key(|t| t.type_index);
+        let mut bad: Vec<String> = Vec::new();
+        for t in &techs {
+            let rec = usize::try_from(t.type_index - 0x220).unwrap_or(usize::MAX);
+            let Some(&id) = loaded.tech_tree.get(rec) else {
+                continue;
+            };
+            let ours = loaded.tree.types[id].ai;
+            if ours != t.ai {
+                bad.push(format!(
+                    "{} {:?}≠{:?}",
+                    loaded.tech_names.get(rec).cloned().unwrap_or_default(),
+                    t.ai,
+                    ours
+                ));
+            }
+        }
+        let shown: Vec<String> = bad
+            .iter()
+            .take(if verbose { usize::MAX } else { 4 })
+            .cloned()
+            .collect();
+        failures += check(
+            &format!(
+                "every one of the {} techs' ai[11] is the program's",
+                techs.len()
+            ),
+            bad.is_empty(),
+            &format!(
+                "{} differ{}{}",
+                bad.len(),
+                if shown.is_empty() { "" } else { ": " },
+                shown.join("; ")
+            ),
+        );
     }
 
     // ---- the output: the whole table, units then buildings ----

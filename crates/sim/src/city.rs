@@ -828,7 +828,7 @@ impl Sim {
     pub fn init_build(&mut self, who: Player, ty: usize, pos: Pos, _restore: bool) -> usize {
         let pos = self.snap_center(ty, pos);
         let bt = self.build_types[ty].clone();
-        let capacity = if bt.has(flags::DEEP_QUEUE) { 10 } else { 20 };
+        let capacity = crate::build::queue_capacity(&self.build_types, ty);
         let b = self.buildings.len();
         let index = self
             .find_free(who, crate::BUILD_BASE, crate::WALL_BASE)

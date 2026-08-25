@@ -40,6 +40,7 @@ pub mod ai_build;
 pub mod ai_census;
 pub mod ai_drive;
 pub mod ai_host;
+pub mod ai_load;
 pub mod ai_make;
 pub mod ai_place;
 pub mod ai_research;
@@ -321,6 +322,15 @@ pub struct UnitType {
     /// Which worker kind this is — a citizen or scholar may gather and is
     /// what `think_peasant` runs for (`docs/ORDERS.md` §6.1).
     pub worker: orders::Worker,
+    /// The words no column carries — `unit_flags`, `unit_flags2`, `CAT`,
+    /// `CARRY` and the `role` the loader derives from them. Every producer
+    /// reads them; `docs/DATALAYER.md`, "The derived words no column
+    /// carries", is the derivation and [`ai_load`] the code.
+    pub cols: ai_load::UnitCols,
+    /// One of the twelve gaia types (`BASE_GAIATYPES..END_GAIATYPES`, record
+    /// `352..`). The animals are unit types with a `WHERE` of Large City, and
+    /// several of the original's loops stop before them.
+    pub gaia: bool,
 }
 
 /// What a player has built, as the price and the population cap see it.
