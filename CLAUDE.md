@@ -637,10 +637,42 @@ better, in which case say so and take that.
     Riflemen's `ARMOR`, two `LOS`, the Howitzer's `SPLASH_PERCENT`) are read
     past (`docs/FORMATS.md`).
 
-    Then: the blind second reading — which can run from any
+    ~~Then: the blind second reading — which can run from any
     session, since the readers are subagents and only the *brief* must
-    avoid leaking claims — at
-    which point `docs/audit/README.md` also owes a paragraph each to the
+    avoid leaking claims~~ — **done, 2026-08-25**, `docs/audit/
+    2026-08-25-ai.md` and `docs/AI.md` §16. Seven blind readers on Opus 5 in
+    two waves, adjudicated in the main thread; 590 claims, 42 doubly
+    confirmed, 31 corrections, five of §13's open questions closed, **three
+    corrections to `crates/sim`**: the coastal ring is centred on the
+    original cell and not the slid one (which **neither** reading had — the
+    document and the implementation were both wrong), difficulty 2 reads the
+    *previous* age's stamp, and `Site::dist` carries the last enemy capital's
+    quotient because the original clobbers the slot. The last of those was
+    found by **widening the harness's `SITES` check from the best site to all
+    ten records** — it failed on run9 the first time it ran, which is the
+    cheapest correction the audit produced and the model for the rest.
+
+    **Two things are owed and are not done:**
+
+    1. **A guard for the ring fix (audit B4-k).** No capture on disk can
+       meet it: the branch needs `world.sea_map > 2` and run9's map reports
+       `sea_map 1`, so it is dead in every dump we have. It needs **a run on
+       a many-islands map** — worth doing for its own sake, since the whole
+       sea half of the AI (docks, transports, `check_transport`,
+       `reg_naval` and B5-b's `% 63` aliasing) is on the trace's
+       never-executed list.
+    2. **Widen the make-list diff the way `SITES` was widened.** Audit B7-f:
+       `LeaderData::log_data` dumps all eleven slots at `LEADERS=9` under
+       `t val escrow city up o num cat wx wy`, so every §2.6/§2.11 claim is
+       falsifiable from a capture we already have.
+
+    **And the leak, which is the next session's first task**
+    (`docs/DECISIONS.md` entry 21): a subagent inherits this file, and this
+    file names the findings a blind reader is meant to re-derive — so the AI
+    audit's protocol leaked, and every future one will unless the queue moves
+    out of `CLAUDE.md` and into `docs/QUEUE.md`.
+
+    `docs/audit/README.md` also owes a paragraph each to the
     pathfinder, commands and recgame audits it never got. And
     `gather_max` for non-flat buildings is **not** a seam after all:
     `BuildTypeData::calc_gather` is a thousand-line terrain scan with mining
@@ -705,6 +737,34 @@ outside the per-mechanic tests, and each was written by first making it fail:
 
 A guard that has never failed has not been tested; make it fail on purpose
 once, then land it.
+
+**Prefer a diff to a reading, and convert readings into diffs.** Reading is
+how we find out what to check; a differential check against the original's
+own dump is how we *know*, and it keeps knowing on every later commit. Two
+rules follow, both earned on 2026-08-25:
+
+- **When the original dumps a record, diff the whole record** — not the field
+  the mechanic happens to care about. The harness asserted one of the ten
+  `SITE` records and only three of its five fields; widening it to all ten,
+  all five, failed on the first run and confirmed a defect the AI audit had
+  found by reading and could not test (`docs/audit/2026-08-25-ai.md`, B4-f).
+  Nine tenths of a dumped record had gone uncompared for a month. The make
+  list is dumped whole at `LEADERS=9` and is still not diffed.
+- **A finding that can become an assertion must become one before its audit
+  is closed.** The AI audit cost about 2.5 M subagent tokens and produced
+  three corrections to the simulation; the twenty-minute widening produced a
+  fourth. That ratio is the argument for spending the reading budget on
+  *what to assert* rather than on more prose.
+
+The reason reading does not go away is coverage, and it is measurable: the
+trace's own report says **89 of the functions `docs/` cites have never
+executed in any traced game** (`tools/trace/report.py … blind docs/`). A diff
+can only check what a run reaches, so for those 89 the reading is the only
+evidence there is. **Every behavioural run shrinks that number, and shrinking
+it is what would eventually make the second reading unnecessary** — so the
+blind list is the queue of runs, and a run that lights up a whole family (the
+sea half, a war, the trade economy) is worth more than one that lights up a
+function.
 
 **Every mechanic gets a blind second reading before it is called done.** One
 reader writes the document from the decompile; a second, who has not seen the
