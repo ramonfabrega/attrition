@@ -214,14 +214,23 @@ pub struct MakeObject {
 }
 
 impl MakeObject {
+    /// The record `MakeList::clear@006c9db0` writes into every slot — all
+    /// ten fields, not `t` alone: `t −1, val −1, escrow 0, city −1, up 0,
+    /// o −1, num 1, cat 0, wx 0, wy 0`. It is also what a `LEADERS=9` dump
+    /// prints for a slot nothing has touched (run9's frame 1) and for every
+    /// slot after step 2's clear (run18b's dump-frame 6577, run19's 8177).
+    ///
+    /// `val −1` is load-bearing: `make_me` inserts on `list[k].val < val`,
+    /// so an entry offered at `val 0` lands in a cleared slot (run18b's
+    /// citizen at dump-frame 6382) and would not in one left at `val 0`.
     pub const EMPTY: MakeObject = MakeObject {
         t: -1,
-        val: 0,
+        val: -1,
         escrow: 0,
         city: -1,
         up: 0,
         o: -1,
-        num: 0,
+        num: 1,
         cat: 0,
         wx: 0,
         wy: 0,
@@ -252,10 +261,14 @@ impl MakeList {
         }
     }
 
-    /// `MakeList::clear` — every slot's type to −1.
+    /// `MakeList::clear@006c9db0` — every slot to [`MakeObject::EMPTY`],
+    /// whole. Only the *expiry* in `make_stuff` (`ai_make.rs`) clears `t`
+    /// alone and leaves the other nine fields standing; the two are told
+    /// apart in a dump by whether a `t −1` slot still carries its old
+    /// `val`.
     pub fn clear(&mut self) {
         for m in &mut self.list {
-            m.t = -1;
+            *m = MakeObject::EMPTY;
         }
     }
 

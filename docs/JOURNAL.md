@@ -615,3 +615,38 @@ simulation change; everything below is observed or is a decision.
   is inherited, hooks and all**, and is a second leak surface the
   `CLAUDE.md` cut had not closed. Its hooks are now finding-free, and the
   two memory files that duplicated `docs/ORACLE.md` are deleted.
+
+## 2026-08-25 — the make list diffed whole (owed item 1)
+
+Session on Fable 5, the queue's opener taken as written. One sim change,
+one guard, two document corrections.
+
+- **The widening.** Not the best slot but the window: every consecutive
+  pair of `LEADERS=9` blocks in run18b (216) and run19 (18), all eleven
+  `MAKEOBJECT`s × ten fields, each step of the production ladder replayed
+  with the sim's own `clear` / `make_me` / `expire` on the previous record
+  and compared to the next; the frames each class covers asserted so the
+  test cannot pass by calling everything unchanged. Run9's frame 1 pinned
+  to the init record beside the census. `docs/AI.md` §15.7.
+- **What it found.** `MakeList::clear@006c9db0` rewrites the whole record
+  (`val −1`, `num 1`, the rest cleared) and `Array<MakeObject>::init`
+  fills the same; the sim cleared `t` alone with `val 0, num 0` behind it.
+  Behavioural, not cosmetic: the first sweep's citizen is offered at
+  **`val 0`** — §15.2 had copied the second sweep's 714 onto it — and
+  lands only because `−1 < 0`. Corrected in `ai.rs`; the guard was run
+  against the old `clear` first and failed at dump-frame 6577 naming the
+  three stale `val`s. Also read off the replay: `research_techs` must
+  offer its cat-8 line first (two of 24 orders reproduce 8179); step 9's
+  `create_units` offered a merchant the end state hides, overwritten at
+  the head by a scholar at `num 5`; the expiry writes `t` alone and its
+  ghost records travel intact through `make_me`'s shift.
+- **The method note.** Second time running that a whole-record diff found
+  in twenty minutes what a reading had passed twice (`SITES` was the
+  first). Both were *predicates on the empty case* — what a cleared slot
+  holds, what an unscored site's `dist` holds — which a fixture built from
+  the same reading cannot see because the fixture's empty is the
+  reading's empty.
+- `cargo test --workspace` with the install 492 + 83 + 13 + 3, 0 ignored;
+  clippy and fmt clean; `rondata` survey exits 0. One `ai_make`
+  fixture had leaned on `num 0` making `can_pay` vacuous and was given a
+  purse.

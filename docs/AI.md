@@ -399,7 +399,13 @@ Every figure below is in the ledger's own units (rates in sixteenths,
 decompile prints as `field_0x6ed8`) holds **eleven** `MakeObject`s (`0x28`
 bytes: `t, val, escrow, city, up, o, num, cat, wx, wy`) — a ranked
 shopping list the producer steps fill (`docs`: §4's reading) and
-`make_stuff` spends from. `t = −1` is an empty slot.
+`make_stuff` spends from. `t = −1` is an empty slot — and a *fresh* one
+is the whole record `t −1, val −1, escrow 0, city −1, up 0, o −1, num 1,
+cat 0, wx 0, wy 0`, which `Array<MakeObject>::init@0047d300` fills at
+allocation and `MakeList::clear@006c9db0` rewrites, word for word, into
+all eleven (§15.7). The `val −1` matters: `make_me` inserts on `val <
+offered`, so a fresh slot takes an entry offered at `val 0` and a merely
+expired one does not.
 
 **`make_stuff@006c8af0`** (read, 305 lines), returns 1 when it bought the
 head:
@@ -587,8 +593,13 @@ good" and "slot 5 when I have no free peasants and no gatherers" — ~~slot
 5's category is the unit readers' to name~~ — **named by run18b (§15):
 slot 5 is the citizen's**, `create_units` passing `cat 5` for a peasant,
 and **slot 8 an ordinary civic building's** (`create_buildings`, the
-Temple). `MakeList::clear` sets every `t = -1`; `MakeList::init` allocates
-the eleven.
+Temple). ~~`MakeList::clear` sets every `t = -1`~~ — **corrected
+2026-08-25 (§15.7): `MakeList::clear@006c9db0` rewrites every slot whole,
+to the init record of §2.6 (`val −1`, `num 1`, the rest cleared); only the
+*expiry* in `make_stuff` (§2.6 step 4, `make_stuff@006c8af0:112` and
+`:254`) writes `t = −1` alone and leaves the other nine fields standing.**
+`MakeList::init` allocates the eleven, already filled with the same
+record.
 
 **The whole shape is observed** (§15): a dump with entries at slots 0, 5
 and 8 and nowhere else is this insertion exactly — the citizen at its
@@ -1986,10 +1997,16 @@ Eleven slots, and the dump fills **0, 5 and 8 and nothing else** — which is
 one-per-category write at `list[cat]`.
 
 ```
-6381  create_units       list[0] PEASANTS val 714 cat 5   list[5] PEASANTS val 714
+6381  create_units       list[0] PEASANTS val 0 cat 5     list[5] PEASANTS val 0
 6382  create_buildings   list[0] TEMPLE  val 2499999 cat 8  list[5] PEASANTS  list[8] TEMPLE
-6583  after make_stuff   list[0] TEMPLE                     list[5] PEASANTS val 7
+6580  create_units       list[0] PEASANTS val 714 cat 5   list[5] PEASANTS val 714
+6582  after make_stuff   list[0] TEMPLE                     list[5] PEASANTS val 7
 ```
+
+(Sim-frames; the dump's `FRAME n` label is one higher. ~~The first
+sweep's citizen at `val 714`~~ — **corrected 2026-08-25, §15.7: the first
+sweep lists it at `val 0`**, and it lands only because a cleared slot's
+`val` is −1; the 714 is the second sweep's.)
 
 Three things fall out, all of them predicted:
 
@@ -2000,7 +2017,9 @@ Three things fall out, all of them predicted:
 - **Slot 5 is the citizen's category and slot 8 an ordinary civic
   building's**, which §2.11 had left for "the unit readers to name".
 - **`MakeList::clear()` at step 2 empties all eleven** — the block at 6577
-  has no entries at all, one frame after 6576's two.
+  has no entries at all, one frame after 6576's two — and empties them
+  *whole*: the three slots that held a `val` at 6576 read `val −1` at 6577
+  (§15.7).
 
 ### 15.3 The expiry, settled against the original's own seeds
 
@@ -2140,6 +2159,54 @@ slots 1–3 across a producer frame is attributable only in outline — the
 insertions above are read off end states, not traced call by call. Slot 5
 and slot 6 were never occupied in either run. And `found_cities`' purchases
 still sit at frame 576, in the script's era, unscored.
+
+### 15.7 The whole record, diffed — 2026-08-25
+
+Audit B7-f asked for it and the `SITES` widening (audit, "B4-f, confirmed
+behaviourally") showed the shape: **every consecutive pair of `LEADERS=9`
+blocks in run18b (216 of them) and run19 (18), all eleven slots, all ten
+fields**, each step of the ladder replayed with the simulation's own
+operation on the previous block's record and compared to the next —
+`MakeList::clear` for step 2, `MakeList::make_me` over the offers that
+landed for a producer step, `expire` with the trace's seeds and the bought
+slots' `val /= 100` for `make_stuff`. Frames that do not change the list
+are counted; the frames each class covers are asserted so the test cannot
+pass by calling everything unchanged
+(`rondata::diff::tests::run18b_and_run19_s_make_list_windows_replay_slot_
+for_slot`; run9's frame 1 is pinned to the init record in the census test
+beside it). Everything reproduces. What the widening found, in order of
+consequence:
+
+- **`MakeList::clear` resets the whole record, not `t`.** The sim cleared
+  `t` alone and its empty slot carried `val 0, num 1`; the original's is
+  `val −1, num 1` (§2.6), and the difference is behavioural — the first
+  sweep's citizen is offered at **`val 0`** (dump-frame 6382) and lands at
+  the head and slot 5 only because `−1 < 0`. Written from
+  `MakeList::clear@006c9db0`, which stores all ten words; confirmed by the
+  guard failing on the old `clear` at dump-frame 6577 with the three
+  stale `val`s named. The expiry is the one that writes `t` alone: run19's
+  8183 has slot 4 at `t −1 val 9999999`, and the 8184→8185 shift moves that
+  ghost record intact into slot 2, where the dump shows it.
+- **`research_techs` offers the cat-8 line first.** Dump-frame 8179's
+  record (`COINAGE` 559 at 0 and 4, `EMPIRE` 566 at 1 and 9, `MERCENARIES`
+  573 at 2 and 10, `552` at 8 and *not* in the ranked four) is reproduced by
+  exactly two of the 24 orders — `552` first, then `559`, then `566`/`573`
+  either way — because `552`'s rank-0 copy has to be overwritten by
+  `COINAGE` for slot 3 to stay empty. §2.13's loop order is what it says.
+- **Step 9's `create_units` offered a merchant the end state hides.**
+  8183→8184 cannot be reproduced from its visible new entry (the scholar at
+  `num 5`): slot 3's merchant is cleared with its `val` standing, which is
+  `make_me`'s duplicate-clear, so a merchant offer came *first* and took
+  the head, and the scholar then overwrote it. The replay uses the same
+  producer's merchant record from 8181 and finds that order alone.
+- **The scholar batch is `num 5`** at 8184 against `num 1` on the first
+  pass, which is `create_units`' arithmetic (§2.13) and not yet checked.
+- **The temple's second-pass value is `391136`** (8182, over `552`'s
+  `63000` at slot 8) — a `create_buildings` output, likewise unchecked.
+
+Still not established here: every *value* a producer computes (§15.5's
+second item stands), and the purchases themselves — the replay takes the
+bought slots from the dump and checks only what follows from them.
 
 ## 16. Second reading — landed, 2026-08-25
 

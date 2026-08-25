@@ -27,25 +27,31 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25 at `746bb26`.* The commit this section was written
-against; if `git log` has moved well past it, trust the queue below and the
-journal before trusting this.
+*Last verified 2026-08-25, the session after `7efd2eb`.* The commit this
+section was written against; if `git log` has moved well past it, trust the
+queue below and the journal before trusting this.
 
-**Last landed.** The AI's blind second reading — `docs/audit/2026-08-25-ai.md`,
-`docs/AI.md` §16 — and its ratification on Fable the same day (the audit's
-"Third pass"): the three verdicts that changed `crates/sim` re-verified from
-their own citations, every install-gated check green, nothing retracted. And
-the meta-docs: the queue out of `CLAUDE.md`, the chronicle into
-`docs/JOURNAL.md`, the model split into git (decision 22), the file map in
-`CLAUDE.md`. Today's journal entry has the whole of it.
+**Last landed.** Owed item 1, the make-list diff, on Fable: every
+consecutive pair of `LEADERS=9` blocks in run18b and run19, all eleven
+slots and all ten fields, each ladder step replayed with the sim's own
+operation (`docs/AI.md` §15.7; `docs/audit/2026-08-25-ai.md`, "B7-f,
+met"). It corrected one thing in `crates/sim` — `MakeList::clear` and the
+empty slot's record — and found it behavioural on the first sweep's
+citizen. Before it, the same day: the AI's second reading and its
+ratification, and the meta-docs (queue out of `CLAUDE.md`, the journal,
+decision 22). Today's journal entries have both.
 
 **In progress.** Nothing mid-mechanic. Item 12 (the AI) is implemented and
 audited and owes the items below.
 
 **Owed, cheapest first.**
 
-1. Widen the make-list diff the way `SITES` was widened (audit B7-f): all
-   eleven slots at `LEADERS=9`, from a capture already on disk.
+1. ~~Widen the make-list diff the way `SITES` was widened (audit B7-f)~~ —
+   done 2026-08-25, `docs/AI.md` §15.7. What it left: the producers'
+   *values* (§15.5's second item: `create_units`' `num 5` batch, the
+   temple's `391136`) and the purchases — the replay takes the bought
+   slots from the dump. The natural next widening is `make_stuff` whole
+   with the block's own goods, once the encrypted goods block is read.
 2. `rondata --types` checks four derived words and the combat table against
    run3's dump and exits non-zero on a difference — but only when invoked
    with `--types`; the definition of done's `cargo run -p rondata --
@@ -78,7 +84,7 @@ reaches, its readers briefed to output assertions; the soak kept as the
 determinism guard it is. The rules are in `CLAUDE.md` ("Prefer a diff to a
 reading"); the one build that changes the ratio is item 13 below.
 
-**Opener:** `proceed @docs/QUEUE.md — take owed item 1, the make-list diff`
+**Opener:** `proceed @docs/QUEUE.md — take owed item 2, the --types check as a cargo test`
 
 ## The queue
 

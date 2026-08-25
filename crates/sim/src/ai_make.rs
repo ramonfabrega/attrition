@@ -71,7 +71,10 @@ impl Sim {
     /// <probabilistic>` — so the *unconditional* case is `is(UNIVERSITY, 1)`
     /// **or a unit type that is not a peasant**, i.e. exactly a military
     /// unit, not "not a military unit type".
-    fn expire_all(&self, t: TypeId, head: bool) -> bool {
+    ///
+    /// Public so the harness can replay a dumped `make_stuff` frame slot
+    /// for slot (`rondata::diff`'s make-list window test).
+    pub fn expire_all(&self, t: TypeId, head: bool) -> bool {
         let r = &self.tech_tree.roles;
         if self.type_is_role(t, r.tower, false)
             || self.type_is_role(t, r.fortx, false)
@@ -257,7 +260,13 @@ impl Sim {
     /// `Random::get(0, 0xffff)` per slot holding `t`, cleared on `% 3 == 0`
     /// or when `unconditional`. The draw is taken before the flag is
     /// consulted, so the flag never saves a draw.
-    fn expire(&mut self, who: Player, t: i32, from: usize, unconditional: bool) {
+    ///
+    /// A cleared slot is `t = −1` and nothing else (`make_stuff@006c8af0:112`
+    /// and `:254` write one word): its `val`, `city`, `cat` and the rest
+    /// stay, and a `LEADERS=9` dump shows them standing — run19's dump-frame
+    /// 8183 has slot 4 at `t −1 val 9999999`. `MakeList::clear` is the one
+    /// that resets the whole record.
+    pub fn expire(&mut self, who: Player, t: i32, from: usize, unconditional: bool) {
         let w = who as usize;
         for k in from..MAKE_SLOTS {
             if self.ai[w].make_list.list[k].t != t {
@@ -1017,16 +1026,19 @@ mod tests {
     /// all; slot 4 buys a gather building for a good `econ` calls short.
     #[test]
     fn slots_four_and_five_have_their_exceptions() {
-        // Every case: a barracks head with an empty purse, so the slot under
-        // test is unaffordable-while-saving and only its exception can buy
-        // it. One draw is the head alone; two means the slot ran.
+        // Every case: a barracks head (1000 food, 1000 timber) over a purse
+        // of 600 food — the farm's own price and nothing else — so the head
+        // cannot be paid, the slot under test is unaffordable-while-saving,
+        // and only its exception can buy it; `can_pay` (`num 1` against the
+        // affordable count) then lets the one farm through. One draw is the
+        // head alone; two means the slot ran.
         fn case(slot_no: usize, t: TypeId, set: impl FnOnce(&mut Sim)) -> usize {
             let mut f = fx();
             let s = &mut f.sim;
-            let mut head = slot(f.barracks, 100);
-            head.num = 1;
+            let head = slot(f.barracks, 100);
             s.ai[1].make_list.list[0] = head;
             s.ai[1].make_list.list[slot_no] = slot(t, 50);
+            s.ledgers[1].bucket[Resource::Food as usize] = 600;
             set(s);
             let before = s.rng.seed;
             s.make_stuff(1);

@@ -561,6 +561,49 @@ pub struct LeaderDump {
     pub leader_flags2: i64,
 }
 
+/// One slot of a leader's make list — the `MAKEOBJECT` block
+/// `MakeObject::log_data@006d8aa0` prints under a `LEADERS=9` `LEADERDATA`
+/// record, all ten fields in the struct's own order (`docs/AI.md` §2.6).
+/// Eleven per leader; `t −1` is an empty slot.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct MakeObjectDump {
+    pub t: i64,
+    pub val: i64,
+    pub escrow: i64,
+    pub city: i64,
+    pub up: i64,
+    pub o: i64,
+    pub num: i64,
+    pub cat: i64,
+    pub wx: i64,
+    pub wy: i64,
+}
+
+impl<'a> Block<'a> {
+    /// The `MAKEOBJECT` children of a `LEADERDATA` block, in slot order —
+    /// eleven at `LEADERS=9`, none below it. A field the block lacks reads
+    /// as zero, so a caller that needs the record whole checks the count.
+    pub fn make_list(&self) -> Vec<MakeObjectDump> {
+        self.kids("MAKEOBJECT")
+            .map(|m| {
+                let i = |k| m.int(k).unwrap_or(0);
+                MakeObjectDump {
+                    t: i("t"),
+                    val: i("val"),
+                    escrow: i("escrow"),
+                    city: i("city"),
+                    up: i("up"),
+                    o: i("o"),
+                    num: i("num"),
+                    cat: i("cat"),
+                    wx: i("wx"),
+                    wy: i("wy"),
+                }
+            })
+            .collect()
+    }
+}
+
 /// One city from the `CITIES` list.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CityDump {

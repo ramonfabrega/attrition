@@ -1480,6 +1480,7 @@ pub fn run_traced<'a, 'b: 'a>(
 mod tests {
     use super::*;
     use crate::gamelog::{CityDump, Guy, LeaderDump, OrderDump, UnitDump};
+    use sim::ai::{MAKE_SLOTS, MakeObject};
 
     fn install() -> Option<crate::Install> {
         let root = std::env::var("RON_INSTALL").ok().or_else(|| {
@@ -2045,6 +2046,338 @@ mod tests {
                 differing.is_empty(),
                 "the ten site records differ (wx, wy, val, rank, dist):\n  {}",
                 differing.join("\n  ")
+            );
+        }
+
+        // The make list, all eleven slots and all ten fields (audit B7-f).
+        // Nothing has written it yet at frame 1 — the script blocks the
+        // producers for the whole opening — so this is the record
+        // `Array<MakeObject>::init@0047d300` fills and `MakeList::clear`
+        // rewrites, and the harness must start from the same one.
+        let theirs_list = make_list_of(theirs);
+        let ours_list = built.sim.ai[1].make_list.list;
+        assert_eq!(
+            theirs_list
+                .iter()
+                .filter(|m| **m != MakeObject::EMPTY)
+                .count(),
+            0,
+            "frame 1's list is untouched"
+        );
+        assert_list_eq("run9 frame 1", &theirs_list, &ours_list);
+    }
+
+    /// The sim's record of a dumped `MAKEOBJECT`, or the whole eleven.
+    fn make_object(m: &crate::gamelog::MakeObjectDump) -> MakeObject {
+        let i = |v: i64| i32::try_from(v).expect("a make-list field fits i32");
+        MakeObject {
+            t: i(m.t),
+            val: i(m.val),
+            escrow: i(m.escrow),
+            city: i(m.city),
+            up: i(m.up),
+            o: i(m.o),
+            num: i(m.num),
+            cat: i(m.cat),
+            wx: i(m.wx),
+            wy: i(m.wy),
+        }
+    }
+
+    fn make_list_of(leader: &crate::gamelog::Block<'_>) -> [MakeObject; MAKE_SLOTS] {
+        let v: Vec<MakeObject> = leader.make_list().iter().map(make_object).collect();
+        v.try_into()
+            .unwrap_or_else(|v: Vec<MakeObject>| panic!("{} MAKEOBJECTs, not eleven", v.len()))
+    }
+
+    /// Every slot, every field; the message names each slot that differs.
+    fn assert_list_eq(
+        what: &str,
+        theirs: &[MakeObject; MAKE_SLOTS],
+        ours: &[MakeObject; MAKE_SLOTS],
+    ) {
+        let differing: Vec<String> = theirs
+            .iter()
+            .zip(ours.iter())
+            .enumerate()
+            .filter(|(_, (t, o))| t != o)
+            .map(|(i, (t, o))| format!("slot {i}:\n    theirs {t:?}\n    ours   {o:?}"))
+            .collect();
+        assert!(
+            differing.is_empty(),
+            "{what}: the eleven make-list records differ:\n  {}",
+            differing.join("\n  ")
+        );
+    }
+
+    /// The orderings of `n` items, by index.
+    fn permutations(n: usize) -> Vec<Vec<usize>> {
+        fn go(rest: Vec<usize>, head: Vec<usize>, out: &mut Vec<Vec<usize>>) {
+            if rest.is_empty() {
+                out.push(head);
+                return;
+            }
+            for (i, &x) in rest.iter().enumerate() {
+                let mut r = rest.clone();
+                r.remove(i);
+                let mut h = head.clone();
+                h.push(x);
+                go(r, h, out);
+            }
+        }
+        let mut out = Vec::new();
+        go((0..n).collect(), Vec::new(), &mut out);
+        out
+    }
+
+    /// **The make list across a whole window, slot for slot** — every
+    /// consecutive pair of `LEADERS=9` blocks in run18b (dump-frames
+    /// 6374–6590) and run19 (8174–8191), all eleven slots and all ten fields
+    /// (audit B7-f, the widening `SITES` got). The dump prints the list at
+    /// the end of each frame, so a pair `(prev, next)` is one step of the
+    /// production ladder (`docs/AI.md` §2.4), and each step is replayed with
+    /// the simulation's own operation on `prev`'s record and compared to
+    /// `next`'s:
+    ///
+    /// - **unchanged** — most frames; nothing to replay, counted.
+    /// - **step 2's `clear`** — `next` is the init record throughout;
+    ///   `MakeList::clear` on `prev` must produce it, which pins that the
+    ///   clear rewrites all ten fields (`MakeList::clear@006c9db0`), not
+    ///   `t` alone.
+    /// - **a producer** (steps 3–7, 9, 10) — the entries `next` has that
+    ///   `prev` lacks are the offers that landed; some ordering of them
+    ///   through `MakeList::make_me` must reproduce `next` exactly. One
+    ///   frame needs an offer the end state does not show: at dump-frame
+    ///   8184 the second pass's `create_units` offered a merchant before
+    ///   the scholar, and the scholar overwrote it at the head — the only
+    ///   trace it leaves is the duplicate-clear of the merchant already at
+    ///   slot 3. The offer is taken from the same producer's entry three
+    ///   frames earlier.
+    /// - **`make_stuff`** (steps 8 and 11) — the head's expiry walk and the
+    ///   bought slots' own, with the seeds the trace recorded before each
+    ///   `Random::get` (`docs/AI.md` §15.3, §15.6) and the bought slots'
+    ///   `val /= 100`. The expiry writes `t` alone, so a cleared slot keeps
+    ///   its `val`, and the compare sees it.
+    ///
+    /// The frames each class covers are asserted, so the test cannot pass
+    /// by classifying everything as unchanged.
+    #[test]
+    fn run18b_and_run19_s_make_list_windows_replay_slot_for_slot() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+
+        /// A `make_stuff` frame: the dump-frame that shows its result, the
+        /// sync stream before its first draw, the slots whose `make_this`
+        /// bought (the head first when it did), and the stream after.
+        struct Expiry {
+            frame: i64,
+            seed: u32,
+            bought: &'static [usize],
+            after: u32,
+        }
+        let expiries = [
+            // run18b, sim-frame 6383: the temple at the head and slot 8,
+            // nothing bought; 61545 clears the head, 25792 keeps slot 8.
+            Expiry {
+                frame: 6384,
+                seed: 0xc593_8177,
+                bought: &[],
+                after: 0xbb3f_64c1,
+            },
+            // sim-frame 6582: 17105 keeps the head, 1032 clears slot 8; the
+            // citizen bought out of slot 5 (714 → 7) and 48595 keeps it.
+            Expiry {
+                frame: 6583,
+                seed: 0x833a_ab7f,
+                bought: &[5],
+                after: 0x35dc_bdd4,
+            },
+            // run19, sim-frame 8182: the head (Coinage) bought and kept on
+            // 11233, its duplicate at slot 4 cleared on 14808; the scholar
+            // bought out of slot 1 and kept on 22883.
+            Expiry {
+                frame: 8183,
+                seed: 0xa6d1_84cf,
+                bought: &[0, 1],
+                after: 0x78f6_5964,
+            },
+            // sim-frame 8185: a scholar at the head, cleared outright on a
+            // roll (45911) that would have kept it anywhere else.
+            Expiry {
+                frame: 8186,
+                seed: 0x3f5a_529d,
+                bought: &[],
+                after: 0x8244_b358,
+            },
+        ];
+        // The offer the end state hides (dump-frame 8184): the merchant
+        // `create_units` listed at slot 3 three frames earlier, re-offered
+        // and overwritten at the head by the scholar that followed.
+        let hidden: &[(i64, MakeObject)] = &[(
+            8184,
+            MakeObject {
+                t: 61,
+                val: 869_565,
+                escrow: 1,
+                city: 0,
+                up: 0,
+                o: -1,
+                num: 1,
+                cat: 4,
+                wx: 0,
+                wy: 0,
+            },
+        )];
+
+        struct Window {
+            file: &'static str,
+            who: i64,
+            clears: &'static [i64],
+            producers: &'static [i64],
+            make_stuffs: &'static [i64],
+        }
+        let windows = [
+            Window {
+                file: "gamelog-run18b-window-6374-6590.txt",
+                who: 1,
+                clears: &[6577],
+                producers: &[6382, 6383, 6581, 6582],
+                make_stuffs: &[6384, 6583],
+            },
+            Window {
+                file: "gamelog-run19-window-8174-8192.txt",
+                who: 1,
+                clears: &[8177],
+                producers: &[8179, 8180, 8181, 8182, 8184, 8185],
+                make_stuffs: &[8183, 8186],
+            },
+        ];
+
+        for w in &windows {
+            let Some(path) = dump(w.file) else {
+                eprintln!("skipping: no {} (set RON_GAMELOG_DIR)", w.file);
+                return;
+            };
+            let text = std::fs::read_to_string(&path).unwrap();
+            let log = Log::parse(&text);
+            // The AI's list at the end of every frame that dumps it whole;
+            // a block below level 9 (the quit's) has no MAKEOBJECTs and is
+            // left out.
+            let lists: Vec<(i64, [MakeObject; MAKE_SLOTS])> = log
+                .frames()
+                .into_iter()
+                .filter_map(|(n, b)| {
+                    let l = b.kids("LEADERDATA").find(|l| l.int("who") == Some(w.who))?;
+                    let m = l.make_list();
+                    assert!(
+                        m.is_empty() || m.len() == MAKE_SLOTS,
+                        "{n}: {} slots",
+                        m.len()
+                    );
+                    (m.len() == MAKE_SLOTS).then(|| (n, make_list_of(l)))
+                })
+                .collect();
+            assert!(
+                lists.len() > 10,
+                "{}: {} level-9 blocks",
+                w.file,
+                lists.len()
+            );
+
+            let (mut unchanged, mut clears, mut producers, mut make_stuffs) =
+                (0usize, Vec::new(), Vec::new(), Vec::new());
+            for pair in lists.windows(2) {
+                let (_, prev) = pair[0];
+                let (frame, next) = pair[1];
+                let what = format!("{} dump-frame {frame}", w.file);
+                if prev == next {
+                    unchanged += 1;
+                    continue;
+                }
+                if next.iter().all(|m| *m == MakeObject::EMPTY) {
+                    let mut l = sim::ai::MakeList { list: prev };
+                    l.clear();
+                    assert_list_eq(&what, &next, &l.list);
+                    clears.push(frame);
+                    continue;
+                }
+                if let Some(e) = expiries.iter().find(|e| e.frame == frame) {
+                    let mut s = loaded.sim(Tuning::RON, World::new(4, 4), 2);
+                    let who = w.who as sim::Player;
+                    s.ai[w.who as usize].make_list.list = prev;
+                    s.rng = sim::combat::Rng::new(e.seed);
+                    // Step 3: the head's `make_this` demotes it before step
+                    // 4's walk; step 6: each bought slot's `make_this`, then
+                    // its own walk from that slot.
+                    let head = prev[0];
+                    let wi = w.who as usize;
+                    if e.bought.contains(&0) {
+                        s.ai[wi].make_list.list[0].val /= 100;
+                    }
+                    let unc = s.expire_all(head.t as usize, true);
+                    s.expire(who, head.t, 0, unc);
+                    for &slot in e.bought.iter().filter(|&&k| k != 0) {
+                        s.ai[wi].make_list.list[slot].val /= 100;
+                        let t = s.ai[wi].make_list.list[slot].t;
+                        let unc = s.expire_all(t as usize, false);
+                        s.expire(who, t, slot, unc);
+                    }
+                    assert_eq!(
+                        s.rng.seed, e.after,
+                        "{what}: the walk's draw count, by the trace's seeds"
+                    );
+                    assert_list_eq(&what, &next, &s.ai[wi].make_list.list);
+                    make_stuffs.push(frame);
+                    continue;
+                }
+                // A producer: the offers that landed, each once, in some
+                // order — plus the one the end state hides.
+                let mut offers: Vec<MakeObject> = Vec::new();
+                for m in next.iter().filter(|m| m.t != -1 && !prev.contains(m)) {
+                    if !offers.contains(m) {
+                        offers.push(*m);
+                    }
+                }
+                for (_, m) in hidden.iter().filter(|(f, _)| *f == frame) {
+                    offers.push(*m);
+                }
+                assert!(!offers.is_empty(), "{what}: changed, and no new entry");
+                let mut reproduced = Vec::new();
+                for order in permutations(offers.len()) {
+                    let mut l = sim::ai::MakeList { list: prev };
+                    for &k in &order {
+                        let m = offers[k];
+                        l.make_me(m.t, m.val, m.escrow, m.cat, m.city, m.up, m.num, m.wx, m.wy);
+                    }
+                    if l.list == next {
+                        reproduced.push(order.iter().map(|&k| offers[k].t).collect::<Vec<_>>());
+                    }
+                }
+                eprintln!(
+                    "{what}: {} offers {:?}; orders that reproduce it: {reproduced:?}",
+                    offers.len(),
+                    offers
+                        .iter()
+                        .map(|m| (m.t, m.val, m.cat))
+                        .collect::<Vec<_>>()
+                );
+                assert!(
+                    !reproduced.is_empty(),
+                    "{what}: no ordering of the offers reproduces the record through make_me\n  prev {prev:?}\n  next {next:?}"
+                );
+                producers.push(frame);
+            }
+            eprintln!(
+                "{}: {} blocks — {unchanged} unchanged, clears {clears:?}, producers {producers:?}, make_stuff {make_stuffs:?}",
+                w.file,
+                lists.len()
+            );
+            assert_eq!(clears, w.clears, "{}: the clear frames", w.file);
+            assert_eq!(producers, w.producers, "{}: the producer frames", w.file);
+            assert_eq!(
+                make_stuffs, w.make_stuffs,
+                "{}: the make_stuff frames",
+                w.file
             );
         }
     }
