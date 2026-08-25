@@ -94,7 +94,11 @@ if production_step != 0:  production_ai(); return   # the step machine pre-empts
 if frame != 0 and phase != 0:
     if phase % 30 != 0: return
     t = make_list[0].t                              # the top of last sweep's shopping list
-    if t - BASE_AGETYPES > 0x54: return              # only an age or a tech (0x220 ≤ t ≤ 0x274)
+    if (unsigned)(t - BASE_AGETYPES) > 0x54: return  # only an age or a tech (0x220 ≤ t ≤ 0x274)
+                                                     # UNSIGNED — `cmpl $0x54; ja`. Ghidra prints it
+                                                     # signed, where every unit and building type
+                                                     # (t < 0x220 → negative) falls through into the
+                                                     # buy path. Second reading, B6-a.
     if !can_pay(0) or has_tech(t) or researching(t, -1, 0, 0): return
     make_this(0); return                            # the cheap tick: buy the top research when it becomes affordable
 … the full sweep (§2.3) …
@@ -655,10 +659,13 @@ draws on this path are `compute_sites`' (§2.7) and `make_stuff`'s expiry
 Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
 &dist, keep, &out_wx, &out_wy)`; `val = dist = 0` on every early return:
 
-1. The site's fine cell flagged `0x100` — **this one reads the centre
-   tile's `TData` (`CITY_RADIUS`)**, where step 3's danger/water `0x100`
-   reads **`WData.flags`** (the coastal flag): different records, same
-   constant; not `was_seen(2wx+1, 2wy+1, who)`;
+1. **Two separate early returns, not one** (second reading, B4-b/B4-c). First
+   the centre tile's `TData` mask at `(4wx+2, 4wy+2)` — four tiles per cell —
+   against `0x100`, which the PDB's own field list `0x5802` names
+   **`MASK_CITY`**, not `CITY_RADIUS`; step 3's danger/water `0x100` reads
+   **`WData.flags`** (the coastal flag): different records, same constant.
+   Then, separately, `was_seen(2wx+1, 2wy+1, who)` on the fog grid — which
+   the first reading denied and which is really there;
    the tile owned by another leader (unless CtW with no cities of mine
    and an ally's — then `ally_land = 1`); `is_ocean` → 0.
 2. `base = tile.value` (the tile record's byte at `+0xc`), or 0 if
@@ -677,7 +684,16 @@ Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
    (`keep = 0`) stays. **The 5×5 itself stays centred on the *original*
    cell after a slide** — only the coordinates steps 5, 7, 8 and 10–13 use
    move — and an early return after this step reports the *slid*
-   coordinates with `val = 0`.
+   coordinates with `val = 0`. **Correction (second reading, B4-k): step 5
+   is *not* in that list.** The relocation writes `param_1`/`param_2`, but
+   the ring block reloads the saved originals (`iVar8 = local_14; iVar3 =
+   local_18`, lines 233–234) immediately before walking, and `WVar6`/
+   `WVar13` are only refreshed from the moved pair *afterwards* (253–254).
+   So **the coastal ring is centred on the original cell**; steps 7, 8 and
+   10–13 do use the moved one. `ai_sites.rs` had this wrong and is fixed.
+   Also: `q`'s 2×2 sum degenerates at the map's right or bottom edge, where
+   `valid(nx+1, ny+1)` fails and a single cell's `val` is still `>>2` — a
+   quarter, not an average (B4-e).
 4. `base < 1` → 0. `parity = base & 3`.
 5. Many landmasses (`world+0x34 > 2`) and I own no dock (`num_buildings[
    DOCK] + get_buildings(its upgrade)` = 0): any of the **40 offsets**
@@ -685,13 +701,24 @@ Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
 6. `v = base × 250 / (water + 1)`; `city_num == 1` → `v = v × (min(danger,
    9) + 7) / 8` if `danger`; **`== 2` is the same block with the cap at 4**
    — `(min(danger, 4) + 7) × v / 8`, not a bare `min`; else `forts` →
-   `×3/2`. `v = (target_adj + 1) × v / 2`.
+   `×3/2` — the `else if` chain makes the fort bonus **mutually exclusive**
+   with the danger caps. `v = (target_adj + 1) × v / 2`, and **`target_adj`
+   starts at 1, not 0** (line 89; incremented only in the assassination-target
+   arm), so a site with no target-owned neighbour takes ×1 rather than ÷2
+   (second reading, B4-a; `ai_sites.rs` already had it right).
 7. Map-edge penalty unless map type `world+0x30` is `0xc`/`0x11`: with `<
    3` cities, `wx` outside `[w/5, 4w/5]` → `/4`, `wy` outside `[h/5,
    4h/5]` → `/4`; with `≥ 3`, the bands are `1/10 .. 9/10`.
 8. `v /= max(1, d)` where **`d` is the danger at the site's cell**
-   (`WorldData::danger`, §2.8 — not territory); the tile's *territory*
-   owner (`+0x10`): unowned → `×2`, a non-ally → `×4`, an ally → `/2`.
+   (`WorldData::danger`, §2.8 — not territory; its writer is
+   `GameDaemon::calc_danger`, from enemy military units — second reading,
+   B7-a); then `WData+0x10`, which is **`who2`, the *second-strongest*
+   territorial claimant** — written beside `who` in
+   `World::compute_reg_territory@006b0bb0`, not "the territory owner" as the
+   first reading had it (B4-d): unowned → `×2`, a non-ally → `×4`, an ally →
+   `/2`. Since step 1 has already required the *primary* owner to be me or
+   nobody, the ×4 arm means "an enemy has secondary border pressure here" —
+   the scorer rewards **forward-settling**.
 9. Unless `map_style == 0x14`: `reg_cities[reg] == 0` → `×2`; `== 1` →
    `×2`; `reg_land[reg] == 0` → `×4`; `< 3` → `×4` (so a region with no
    open tiles gets ×16); `reg_land < reg_cities` → `×2`; `< 2 ×
@@ -736,8 +763,15 @@ ring-2 border at 9..24; `[81..121]` is the 11×11 border, clockwise from
 
 ### 2.14 Research — `research_techs@006c6ba0`
 
-Read whole (689 lines). Capital-countdown elimination (`elimination ==
-1`): only while I hold my capital. `low = get_lowest_epoch()` (the least of
+Read whole (689 lines). Capital-countdown elimination (`elimination == 1`):
+the gate is `find_capital(&city, &owner, −1, −1); if (owner != who) return`,
+which is on the **owner**, not the city index — so the layer is skipped
+**iff another leader currently holds my capital**, and a leader with **no
+capital at all is not skipped**. `LeaderData::find_capital@006eb930` writes
+`*param_2 = this->who` both when I hold my own capital and on the
+no-capital fall-through (`*param_1 = −1`, then `LAB_006eba39`). The first
+reading's "only while I hold my capital" is inverted for the no-capital case
+(second reading, B3-a). `low = get_lowest_epoch()` (the least of
 `epoch[0..3] ^ 0x63187`, capped 99); `over = number of available goods
 whose `over_cap` marker is not the clean value 0x8932` (§ECONOMY — goods
 over their cap). Then for every `t` in `0x220..0x274` with
@@ -929,10 +963,17 @@ best wins. A military trainer is searched in `mil_trainers`
 damage and not a territory term** — and the same halving and danger
 division. None → 1. Else
 `Build::queue_up(building, t, escrow)`'s result (`docs/PRODUCTION.md`).
-`tech_frame`/`tech_cat_frame` are **not** written here — nor anywhere:
-the only writer in `Leader`, `LeaderData` and `Leaders` is `Leader::init`'s
-zero, so research's recency factors (§2.14) are the constants `f1 = 4`,
-`f2 = 3` for the whole game. Dead terms, kept in the formula for fidelity.
+`tech_frame`/`tech_cat_frame` are **not** written here. ~~Nor anywhere: the
+only writer in `Leader`, `LeaderData` and `Leaders` is `Leader::init`'s
+zero.~~ **Corrected by the second reading (B3-b): `Build::queue_up@00620f40`
+writes both, to `game->frame`.** The first reading's grep was scoped to three
+classes and the writer is in a fourth — the cities audit's "grep the writers"
+lesson, which this audit hit three times over (B3-b, B5-f, B7-b).
+The *conclusion* survives the correction, for a different reason than the one
+given: `f1 = min(4, X + 12)` and `f2 = min(3, X + 16)` saturate for every
+non-negative `X`, so research's recency factors (§2.14) are the constants
+`f1 = 4`, `f2 = 3` whether the stamps are live or not. Dead terms, kept in the
+formula for fidelity — but not unwritten state.
 
 **`produce_city(t, wx, wy, escrow)`**: the site's region `r`; the best
 citizen of mine — on the map, **the exact base-type pair `0x32/0x33`**
@@ -1749,26 +1790,52 @@ folded back into §2's prose.
 - **The market**: `use_market` computes its need and its gate and neither
   trades nor draws (the one draw sits in the sell branch, and which branch
   is taken is a price question), `market_speculation` clamps and tiers.
-- **`build_masks & 1`** (the "sell me" mark) has no writer and no field;
-  the orphan check's disband arm is unmodelled. **`city_flags 0x8/0x1000`**
-  — no writer. **`CityData.ocean_filled`/`bordering`** — on `CityAi`, never
-  written.
+- ~~**`build_masks & 1`** (the "sell me" mark) has no writer and no field.~~
+  **Closed by the second reading (B7-b): the only writer is
+  `Unit::resolve_block@005fccc0`**, and it is not a sell mark — it means "one
+  of my units was blocked by this building of mine, and it isn't a gatherer".
+  Read-and-clear, one-shot. The orphan check's disband arm is still
+  unmodelled. **`city_flags 0x8/0x1000`** — no writer.
+  **`CityData.ocean_filled`/`bordering`** — on `CityAi`, never written.
 - **Meeting** (§2.3 step 6) is skipped whole; every other active leader
   counts as met, else steps 14–15 would be dead. A second opinion wanted.
 - **Step 16, the army seeding**, is skipped (`docs/ARMY.md`).
 - **`check_explore`'s extent** — the region grid at `(w/2)·(h/2)`, from the
   two index expressions; never checked against a dump.
-- Two census verdicts sit on aliased decompiler locals and want the
+- ~~Two census verdicts sit on aliased decompiler locals and want the
   listing: step 13's inner cutoff (`i + 1 < circle_radius[..]`) and step
-  15's operand order in the weaker test (§2.3).
+  15's operand order in the weaker test (§2.3).~~ **Closed by the second
+  reading (B5-a), which settled those two in the listing and found two more:
+  the dock-footprint scan keeps the *last* water column's region
+  (`6ba12b–6ba16a`); pass N's `local_30` is an `int` typed `Region*` and then
+  a `CityData*` typed `Region*`, so `(local_30->coast).ptr[3]` is
+  `CityData::dock_tile` at `+0x67`; the per-region admission test compares
+  `(domain == SEA)` against `(reg < 64)` (`6baea3`); and `WData` read through
+  Ghidra's `Region` names maps `climate→val`, `goody_factor→region`,
+  `common_factor→flags`.**
 - **The original's 32-bit overflow** in the value pipelines (§2.19, an
   Aztec barracks scores negative) is reproduced; whether it is load-bearing
   for the shipped AI needs a `LEADERS=9` dump past the script.
-- **`leader_flags & 1`** — taken as "alive" by the sites; bit 2 is alive
-  elsewhere.
-- **`check_income`'s parameter order** — the stub's names are one off the
+- ~~**`leader_flags & 1`** — taken as "alive" by the sites; bit 2 is alive
+  elsewhere.~~ **Closed by the second reading (B4-h): both are right, in
+  different places, deliberately.** `LEADER_VALID (1)` in `found_cities`'
+  spacing loop, `LEADER_ACTIVE (2)` in `compute_site_stats`' enemy-capital
+  loop, `ACTIVE|HUMAN (6)` in `max_human_cities`, `COOP_SOLO (8)` in the coop
+  gate, `& 0xc == 4` for the survey skip. A defeated leader stays VALID, so
+  city spacing keeps respecting his cities while the capital-distance term
+  stops counting him. `best_human_age_stamp` uses a fifth variant,
+  `& 7 == 7`, one line from `max_human_age`'s `& 6 == 6` (B3-f).
+- ~~**`check_income`'s parameter order** — the stub's names are one off the
   original's `(t, mult, o, escrow, city, num, out)`; both callers pass the
-  escrow flag in both slots until it is renamed.
+  escrow flag in both slots until it is renamed.~~ **Closed by the second
+  reading (B1-b): the callers do not disagree.** The order is
+  `(type, weight, obj, no_escrow, city, min_count, out)`; `create_units`
+  passes the city's **object number** in `obj` and −1 in `city`,
+  `create_buildings` the reverse, `research_techs` −1 in both. Triply settled
+  — through `can_pay_cost` → `get_cost`'s use of the two slots, and
+  independently by `Leader::can_pay`'s own argument order. The stub's names
+  are still one place off and it discards both contexts, so nothing changes
+  behaviourally.
 - ~~`compute_site_stats`'s per-city distance loop~~ — settled: `return`s
   (§2.13). ~~The gather multiplier's cap~~ — settled: a `min` at ×1
   (§2.19). ~~`build_flags & 0x8000000`~~ — settled negative (§2.19).
@@ -1777,7 +1844,9 @@ folded back into §2's prose.
   settled by run8 (§5). ~~The census adjustments at the end of
   `produce_building` are not kept.~~ Kept. ~~City names are synthetic.~~
   Still synthetic; behaviour identical.
-- The rest of the earlier list stands: `WorldData::danger[who]`'s writer;
+- The rest of the earlier list stands, less ~~`WorldData::danger[who]`'s
+  writer~~ — **closed by the second reading (B7-a): `GameDaemon::calc_danger`,
+  filling from enemy military units**:
   `is_ally(who, who)`; the implicit variable's declared type; the
   placement's missing map layers *other than* `val`/`goods`/`region2`
   (which the map now supplies) — `buildings_allowed`, the enemy-seen flag,
@@ -2071,3 +2140,67 @@ slots 1–3 across a producer frame is attributable only in outline — the
 insertions above are read off end states, not traced call by call. Slot 5
 and slot 6 were never occupied in either run. And `found_cities`' purchases
 still sit at frame 576, in the script's era, unscored.
+
+## 16. Second reading — landed, 2026-08-25
+
+Seven blind readers, one per sub-area, all on Opus 5; adjudicated in the main
+thread against the decompile and the listing. The full record, with every
+verdict and its citation, is `docs/audit/2026-08-25-ai.md`; the reports are at
+`~/ghidra-projects/reading/ai-2026-08-25/`. 590 numbered claims, 42 rows
+doubly confirmed, 31 corrections or additions, one verdict that went against
+**both** readings, one refutation of a reader's own flagged guess.
+
+**Read the audit's first section before trusting a "doubly confirmed" row.**
+The blind protocol leaked: a subagent inherits this repository's `CLAUDE.md`,
+which narrates this mechanic in its working-agreement section — naming
+`set_research`'s `0x8000000` mark, `research_techs`' 9,999,999 guard, the step
+ladders, the make list's occupied slots and `expire_all`'s `% 3` residue. Two
+rows are marked leak-affected and not counted. The fix is written down there
+and it is a change to where this project keeps its handoff prose, not to the
+brief.
+
+**What changed in the simulation — two things, both landed with this section:**
+
+- `compute_site_stats`' **coastal ring is centred on the original cell**, not
+  the slid one (§2.13 step 3's correction). Neither reading had this;
+  `ai_sites.rs` was wrong because it had followed §2.13's coordinate
+  bookkeeping instead of re-deriving it. A guard is still owed — nothing in
+  the suite reaches that branch.
+- `research_techs` reads the **previous** age's stamp on difficulty 2
+  (§2.14). Guarded by `difficulty_two_waits_on_the_previous_ages_stamp`,
+  which was made to fail against the old form first.
+
+**What the readers confirmed the simulation already had right**, in each case
+where a document sentence would have led it astray: the unsigned head gate
+(§2.2 — `ai_drive.rs` asks `kind(t).is_tech()` rather than transcribing the
+arithmetic), `target_adj` starting at 1, `pers.arms`' two-stage roll, the
+`% 0x3f` naval-array aliasing, the `>=` tie on the placement sub-position, and
+all four building/placement draw moduli. That pattern is the section's real
+lesson: **the places the implementation was right are the places it was
+written from understanding, and the one place it was wrong is the place it
+transcribed the document.**
+
+**Five open questions closed** (struck in §13): `check_income`'s callers,
+the `leader_flags` bit-1-versus-2 question, the census's aliased locals,
+`WorldData::danger`'s writer, and `build_masks & 1`'s writer — the last of
+which also turned out not to mean what §2.8 guessed.
+
+**New facts of consequence, all cited in the audit and not yet everywhere in
+§2's prose:** `unit_prod_value` is **negated on difficulty 0 and 1**, so the
+easiest AI deliberately picks poor counters (B1-a); `TypeData::can_pay_cost`
+reduces with **`max`**, not `min`, across resources, so it can report three
+affordable when one is (B2-a, and B7 found it independently); `*out_dist` is
+clobbered by the enemy-capital loop, so `Site::dist` carries the last enemy
+capital's quotient (B4-f); `pers.raid` has a second writer in `process_taunt`
+that sets values outside the roll's range, which moves the government choice
+(B6-d); leaders are initialised in `game->start_list` order, not `who` order,
+which will matter the first time a two-AI RNG stream is reproduced without a
+trace (B6-c); and the whole make list is dumped at `LEADERS=9` under
+`t val escrow city up o num cat wx wy`, which makes every §2.6/§2.11 claim
+falsifiable from one capture (B7-f).
+
+**Still deliberately unread**, and the audit says so rather than leaving it as
+silence: `Leader::diplomacy`, the `Army`/`Armies` family, and the BHS language
+and its 55 host functions — the last because they already have two dedicated
+reports and run7's opening reproduces frame for frame, so the reading is not
+their only evidence.
