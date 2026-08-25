@@ -59,7 +59,31 @@ B-pool-membership-attack}.md`, written incrementally, so a dropped agent
 still leaves what it settled. Both were briefed with the run28 coverage
 frames and told to name, per claim, the capture that would falsify it.
 
-**Owed, and it is the next session's first act:** *adjudicate them*.
+**Owed — and it is wider than the reading.** The whole of commit
+`c53e4c6` was written, implemented and self-checked by **one model in one
+session (Opus 5)**, with no independent pass over any of it. Treat the
+tranche as unaudited, not just the document. What specifically wants a
+second pair of eyes, hardest first:
+
+1. **Three `docs/ARMY.md` predicates I changed mid-session** and that
+   **changed Rust**, from my own re-reading of the decompile with no
+   adjudicator: §8.4/§9's friendly test is `is_ally`, not `!is_enemy`;
+   §9's 90 %-damage test's sense was inverted; and it applies only to a
+   city centre. Under `docs/DECISIONS.md` entry 22 a verdict that changes
+   Rust is exactly what a ratifying pass is for, and these never got one.
+   `crates/sim/src/army.rs`, `army_target_is_a_friend_under_attack` and
+   `march_to_target`'s `nearly_dead`.
+2. **`docs/GROUPS.md` §6.5 and §9** — the AI branch and the siege
+   sub-group. Both are predicates; both are new; both are implemented.
+3. **The rest of `docs/GROUPS.md` and `crates/sim/src/group.rs`.**
+4. **`docs/ARMY.md` §16.6's blind-list correction** — the claim that
+   `engagement` had never executed was wrong, and the replacement list was
+   derived by me from `report.py … blind docs`. Re-run it rather than
+   trust the prose.
+5. **The run29 test** (`§17` item 6) and the `strategy[reg]` input it
+   declares.
+
+**The second reading in flight covers 2 and 3 only.** Its adjudication:
 Deliberately not done in the session that wrote the document — the first
 reader adjudicating their own document is the conflict the three-role
 split exists to prevent, so it wants a cleared context that reads
