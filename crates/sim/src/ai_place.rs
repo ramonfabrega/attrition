@@ -21,8 +21,10 @@
 //! cell flags `0x78`, always allowed), the enemy-seen flag, `danger[]`, the
 //! gather amounts a `World::gather_at` would give an oil platform, and the
 //! oil patches (an oil well is never placed). The census adjustments at the
-//! end (`free`, `gatherers`, `filled`, `space[]`) belong to the census
-//! (`docs/AI.md` §12.1 item 5) and are not kept yet.
+//! end — `filled += 1`, `space[n − 2]` decremented for `n = 2..best_sp`,
+//! and the builder taken off the gatherers or the free peasants, city and
+//! region included — are kept, as the original keeps them (`docs/AI.md`
+//! §2.20; run8's frame 2 shows `gatherers 5 → 4` on the farm's frame).
 
 use std::sync::OnceLock;
 
