@@ -54,7 +54,9 @@ use crate::economy::RESOURCES;
 use crate::orders::{Body, index};
 use crate::place::Blocked;
 use crate::tech::{Kind, TypeId};
-use crate::world::{Cell, Owner, Pos, Terrain, UNITS_PER_CELL, tile, vector_dist};
+#[cfg(test)]
+use crate::world::Terrain;
+use crate::world::{Cell, Owner, Pos, UNITS_PER_CELL, tile, vector_dist};
 use crate::{Player, Sim, cost};
 
 /// `move_x[0..25]` / `move_y[0..25]` — read from `.rdata` at `0x00adcaf0`
@@ -123,11 +125,52 @@ impl Sim {
         0
     }
 
-    /// `WorldData::is_ocean` — the region's terrain.
+    /// `WorldData::was_seen@006b53f0(2wx + 1, 2wy + 1, who)`, read whole:
+    /// true outright when `reveal_map > 1` or `who > 7`; then, unless the
+    /// leader has flag `0x1000` or `0x800` or owns a `types[0x141]`, **a
+    /// cell owned by an ally (oneself included — `is_ally` is reflexive)
+    /// is seen whenever that owner's `reg_cities` or `reg_forts` for the
+    /// cell's region is non-zero** (`LeaderData +0x125e`/`+0x12de`); else
+    /// `seen2[fy × fog_xs + fx] & ally_mask` on the fog grid. Run20 is
+    /// where the territory arm shows: the AI's ten sites sit on its own
+    /// land with `seen2 == 0` at every one of them, and the original
+    /// scores them because `reg_cities[home] == 1`. The fog grid is the
+    /// dump's start-of-game snapshot (`World::seen2`); with none loaded
+    /// the last arm answers true, which is the reading the flat world
+    /// always had. Not modelled: the three leader exits (no flags, no
+    /// `0x141` in any run) and `reg_forts` (the census does not keep it;
+    /// no fort stands in any capture at the sweep).
+    fn site_was_seen(&self, wx: i32, wy: i32, who: Player) -> bool {
+        if self.lobby.reveal_map > 1 || who > 7 {
+            return true;
+        }
+        let cell = Cell::new(wx, wy);
+        if let Owner::Player(o) = self.world.owner(cell)
+            && self.is_ally(who, o)
+            && let Some(r) = self.world.region_of(cell)
+            && self
+                .ai
+                .get(o as usize)
+                .is_some_and(|a| Census::reg(&a.census.reg_cities, r) != 0)
+        {
+            return true;
+        }
+        let Some(bits) = self.world.seen2(2 * wx + 1, 2 * wy + 1) else {
+            return true;
+        };
+        let mask = self.ai[who as usize].census.ally_mask | (1 << who);
+        u32::from(bits) & mask != 0
+    }
+
+    /// `WorldData::is_ocean@006b4830`: **the cell's own kind**, not its
+    /// region — `land == 1` (SANDY, the shallows) or `2` (OCEAN), and never
+    /// when the coastal flag `0x100` is set. Read by region terrain until
+    /// run20 (2026-08-25), where the beaches of an islands map — SANDY
+    /// cells inside a land region — made three of the ten sites' `water`
+    /// counts differ from the original's.
     fn site_is_ocean(&self, c: Cell) -> bool {
-        self.world
-            .region_of(c)
-            .is_some_and(|r| self.world.terrain(r) == Terrain::Sea)
+        let d = self.world.cell_data(c);
+        d.flags & 0x100 == 0 && (d.land == 1 || d.land == 2)
     }
 
     /// `Forts::find_fort(wx, wy, who)`: a live fort of `who` standing on
@@ -253,7 +296,11 @@ impl Sim {
         if self.world.tile_mask(here.centre_tile()) & tile::CITY_RADIUS != 0 {
             return zero(wx, wy);
         }
-        // `was_seen(2wx + 1, 2wy + 1, who)` — the seam, always true.
+        // `was_seen(2wx + 1, 2wy + 1, who)` — from the fog grid when the
+        // world has one (run20 is the first capture where it matters).
+        if !self.site_was_seen(wx, wy, who) {
+            return zero(wx, wy);
+        }
         let mut ally_land = false;
         if let Owner::Player(o) = self.world.owner(here)
             && o != who
@@ -289,7 +336,11 @@ impl Sim {
             if x < 0 || y < 0 || x >= world_w || y >= world_h {
                 continue;
             }
-            // `was_seen` again — the seam.
+            // `was_seen` again: an unseen cell is neither land nor water
+            // — it adds nothing and cannot be slid to.
+            if !self.site_was_seen(x, y, who) {
+                continue;
+            }
             let cc = Cell::new(x, y);
             let owner = self.world.owner(cc);
             let coastal = self.world.cell_data(cc).flags & 0x100 != 0;
@@ -351,15 +402,18 @@ impl Sim {
         let parity = base & 3;
         let mut v = base;
 
-        // 5. Many landmasses and no dock: an ocean cell on the radius-5
-        //    ring is worth thirty times as much. The ring is centred on the
+        // 5. A sea map (`world+0x34 > 2` — the style's sea class, not a
+        //    landmass count; `World::sea_map`) and no dock: an ocean cell
+        //    on the radius-5 ring is worth thirty times as much. Live for
+        //    the first time in run20 (East Indies, `sea_map 4`); dead in
+        //    every capture before it. The ring is centred on the
         //    **original** cell, not the slid one — the original reloads the
         //    saved `local_14`/`local_18` immediately before this loop
         //    (`compute_site_stats` 233–234) and only refreshes its working
         //    pair from the moved `param_1`/`param_2` afterwards (253–254).
         //    Steps 7, 8 and 10–13 below do use the moved cell.
         //    (`docs/audit/2026-08-25-ai.md`, B4-k.)
-        if self.world.landmasses() > 2
+        if self.world.sea_map() > 2
             && self
                 .city_record(Ident::Dock)
                 .is_none_or(|d| self.buildings_of_line(who, d) == 0)
@@ -843,7 +897,7 @@ impl Sim {
         // With two or three cities on a many-landmass map, expand only off
         // the home region.
         let cities = self.city_num(who);
-        if !(self.world.landmasses() < 4
+        if !(self.world.sea_map() < 4
             || self.lobby.map_style == 0x14
             || !(2..=3).contains(&cities)
             || s.reg != self.ai[w].census.home_reg)

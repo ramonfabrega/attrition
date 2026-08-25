@@ -706,3 +706,44 @@ Session on Fable 5, the queue's opener taken as written. Documents only.
   at `~/ghidra-projects/reports/pathfinder/`, one directory over from
   `reading/`.
 - The placeholder removed; the queue's owed list down to two.
+
+## 2026-08-25 — the islands map: B4-k's guard, and four things it was hiding (owed item 1, the last)
+
+On Fable, with the user at the machine (the lobby's three clicks and a
+combo were driven by `cliclick`; nothing else needed a hand). The owed
+item said "a many-islands run through the cheat channel, then the B4-k
+assertion", and that is what happened, but the assertion took four
+corrections to `crates/sim` to pass, and only one of them was about the
+ring.
+
+- **Run20** — East Indies under `DUMP_ALL` for frames 0–3, its own setup
+  trace, heights, herds and fog; seven minutes. **Run21** — the same lobby,
+  dump off, `!ffwd` to 24,000; two minutes. `docs/ORACLE.md`, "run20 and
+  run21". The map style could not be set from `check.ini` (never could —
+  every earlier run was Great Lakes, not the Sahara the file named) and
+  Save to Profile did not outlive a killed process; the combo was clicked
+  both times.
+- **The guard**: `run20_s_islands_sites_walk_the_coastal_ring_from_the_
+  original_cell`, the ten-record `SITES` diff plus the per-region census
+  for *every* region. It passes; with the ring re-centred on the slid cell
+  it moves the record by a slot. `docs/AI.md` §15.8, the audit's fourth
+  pass.
+- **What it was hiding**, each found by the diff failing and settled at
+  its own citation: `world+0x34` is the map style's `SEA_MAP` class (0–4),
+  not a landmass count — every reader in `crates/sim` renamed, and the
+  document's five "landmasses" glosses corrected; `land_key[]` is the
+  static `BASELAND, SANDY, OCEAN, NONE`, and the harness's first-appearance
+  numbering had been right on run9 by luck; `is_ocean` is by cell kind;
+  and `was_seen` is not a seam — it has a territory arm (an ally's cell in
+  a region with cities or forts is seen unfogged) that the dump's fog grid
+  alone cannot reproduce, and without which the sim scored no site at all.
+  The fog grid is now loaded from the WORLD dump and the arm is in
+  `ai_sites.rs`.
+- **The blind list, 92 → 87** over ten traces — and the discovery that
+  the sea half run21 lit up (`check_transport`, the docks,
+  `Army::do_transporting`) was invisible to it, because §9 cites those
+  functions without an address. Named by address now.
+- **Open, honestly**: the world reports `sea_map 4` on a style whose file
+  says 3, writer not found; `reg_forts` and `was_seen`'s leader-flag exits
+  unmodelled; the sea half read by no one yet.
+- The queue's owed list is empty. Item 12 is done.

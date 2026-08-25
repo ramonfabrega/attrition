@@ -27,47 +27,45 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `8655b02`.* The commit this
+*Last verified 2026-08-25, the session after `b49ac36`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** Owed item 1, the audit README's three missing paragraphs,
-on Fable: the pathfinder, recgame and commands audits each have their
-entry in `docs/audit/README.md`'s record now — how each was run, what was
-doubly confirmed, what the corrections had in common, and the lesson —
-written from the audit files, the journal and the commit trailers, with
-one honest note that two of the three blind reports were lost with the
-job's tmp. Documents only; no code moved. Before it, the same day: the
-`--types` check as a test, the make-list diff (`docs/AI.md` §15.7), the
-AI's second reading and its ratification, and the meta-docs. Today's
-journal entries have all of it.
+**Last landed.** The last owed item, on Fable: the islands map. Two runs
+(run20, East Indies under `DUMP_ALL` for frames 0–3; run21, the same
+lobby fast-forwarded to 24,000 with the dump off), the coastal-ring
+guard as a ten-record `SITES` diff that passes and fails on demand, and
+**four corrections to `crates/sim`** the diff found on the way — the
+world's `sea_map` is the map style's class and not a landmass count,
+`land_key[]` is a static table, `is_ocean` is by cell kind, and
+`was_seen` is a territory arm plus the fog grid, not a seam. `docs/AI.md`
+§15.8, the audit's fourth pass, `docs/ORACLE.md` "run20 and run21", and
+today's journal entry. Item 12 is struck below.
 
-**In progress.** Nothing mid-mechanic. Item 12 (the AI) is implemented and
-audited and owes the items below.
+**In progress.** Nothing mid-mechanic. **Owed:** nothing.
 
-**Owed, cheapest first.**
-
-1. The coastal-ring guard (audit B4-k) — no capture on disk reaches the
-   branch; it needs a run on a many-islands map, which also lights up the
-   sea half of the AI on the trace's never-executed list.
-2. Left over from the behavioural batch (item 4), each a 20–60 minute drive
-   when the game is up for another reason: the city mask's remaining rungs
-   (`docs/CITIES.md` §3.6) and the garrison heal (`docs/CITIES.md` §15).
-
-**Next.** The queue's twelve numbered items are done or in their owed
-state; what follows them is the **blind list of runs** — `tools/trace/
-report.py … blind docs/` says 89 cited functions have never executed in a
-traced game, and each run is a scenario file through the cheat channel.
-Named already: run7's order stream replayed under the trace (the command
+**Next.** What follows the twelve items is the **blind list of runs**
+(`tools/trace/report.py … blind docs/`: 438 cited by address, 87 never
+run over ten traces) — each run a scenario file through the cheat
+channel: run7's order stream replayed under the trace (the command
 processors), a mounted attacker (the cavalry flank reduction), a caravan
-(the trade economy), a window at frame 576 (`found_cities`' purchases), the
-islands map above. Item 13 would make those automatic. The next widening
-of a record already on disk: `make_stuff` whole with the block's own
-goods, which reaches the producers' values and the purchases
-(`docs/AI.md` §15.7's last paragraph) and needs the encrypted goods block
-read first. Then the deferred readings: `Leader::diplomacy` and the
-`Army`/`Armies` family (`docs/AI.md` §9), and `BuildTypeData::calc_gather`
-for non-flat buildings, which belongs with `docs/ECONOMY.md`.
+(the trade economy), a window at frame 576 (`found_cities`' purchases).
+Item 13 would make those automatic. Two things run20/21 left on the
+table, cheapest first: **a reading of the AI's sea half** — run21's trace
+has `check_transport`, the docks and `Army::do_transporting` executing
+for the first time, so a reader can be briefed with frames rather than
+blind (`docs/AI.md` §9, §15.8); and **a `DUMP_ALL` window on an islands
+game past the docks** (run21's frame 3579 onward), which would make
+`reg_naval`, `reg_docks` and the transport census a diff. Smaller and
+open: why East Indies' world says `sea_map 4` against its file's 3;
+`reg_forts` and `was_seen`'s leader-flag exits; the left-overs from the
+behavioural batch — the city mask's remaining rungs (`docs/CITIES.md`
+§3.6) and the garrison heal (§15). The next widening of a record already
+on disk is still `make_stuff` whole with the block's own goods
+(`docs/AI.md` §15.7's last paragraph), which needs the encrypted goods
+block read first. Then the deferred readings: `Leader::diplomacy` and the
+`Army`/`Armies` family, and `BuildTypeData::calc_gather` for non-flat
+buildings, which belongs with `docs/ECONOMY.md`.
 
 **Agreed with the user, 2026-08-25.** How the verification budget splits:
 diff first wherever a dump exists; a blind reading scoped to what no run
@@ -75,7 +73,12 @@ reaches, its readers briefed to output assertions; the soak kept as the
 determinism guard it is. The rules are in `CLAUDE.md` ("Prefer a diff to a
 reading"); the one build that changes the ratio is item 13 below.
 
-**Opener:** `proceed @docs/QUEUE.md — take owed item 1, the coastal-ring guard: a many-islands run through the cheat channel, then the B4-k assertion`
+**Needs the user.** Every behavioural run needs the lobby's three clicks
+and, off the profile's Great Lakes, the Map Style combo; the profile does
+not keep a choice across a killed process. Two minutes at the machine per
+run, or item 13's driver.
+
+**Opener:** `proceed @docs/QUEUE.md — take the AI's sea half: brief a reading of check_transport, the docks and Army::do_transporting from run21's trace (docs/AI.md §9, §15.8), or a DUMP_ALL window on the islands game past frame 3579 to make the naval census a diff`
 
 ## The queue
 
@@ -116,12 +119,10 @@ in which case say so and take that. The story of each struck item is in
     `docs/audit/2026-08-24-commands.md`.
 11. ~~**The recorded order stream into the harness**~~ — done 2026-08-24.
     `docs/INPUT.md`, `crates/rondata/src/input.rs`.
-12. **AI** — implemented and audited, 2026-08-24/25, over eight sessions;
-    not struck while it owes items 1–2 above. `docs/AI.md` (§12–§16 the
-    handoff and the audit), `crates/sim/src/ai*.rs` and `bhs.rs`,
-    `docs/audit/2026-08-25-ai.md` with its third pass. Landed under it on
-    the way: `docs/SYNC.md`, `docs/ANIM.md`, `tools/trace/` and the cheat
-    channel, runs 7–19.
+12. ~~**AI**~~ — done 2026-08-25, over nine sessions. `docs/AI.md`,
+    `crates/sim/src/ai*.rs` and `bhs.rs`, `docs/audit/2026-08-25-ai.md`
+    (four passes); landed under it: `docs/SYNC.md`, `docs/ANIM.md`,
+    `tools/trace/`, the cheat channel, runs 7–21.
 13. **Differential fuzzing against the original** — proposed and agreed
     2026-08-25, not started. The three pieces exist and have each been run:
     `crates/sim/src/soak.rs` generates a scenario and an order stream from a

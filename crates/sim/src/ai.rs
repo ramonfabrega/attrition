@@ -93,8 +93,10 @@ pub struct Rival {
 /// The lobby facts the roll reads.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RollSetup {
-    /// `world+0x34` — the map's landmass count, as the sweep reads it.
-    pub landmasses: i32,
+    /// `world+0x34` — the map style's sea class (`World::sea_map`; 0 land
+    /// maps … 4 Colonial Powers), which the roll reads as "small map" when
+    /// `< 3` and "sea map" when `> 2`.
+    pub sea_map: i32,
     /// `info.rush_rules == 8`.
     pub rush_rules_off: bool,
 }
@@ -127,7 +129,7 @@ impl Personality {
             // Rushers: a boom roll becomes a rush on a small map, two times
             // in three.
             AZTECS | BANTU | MONGOLS | ROMANS | JAPANESE if p.rush < 0 && rng.roll() % 3 != 0 => {
-                p.rush = i32::from(setup.landmasses < 3);
+                p.rush = i32::from(setup.sea_map < 3);
             }
             _ => {}
         }
@@ -143,7 +145,7 @@ impl Personality {
                 _ => {}
             }
         }
-        if p.rush == 1 && setup.landmasses > 2 && rng.roll() % 3 != 0 {
+        if p.rush == 1 && setup.sea_map > 2 && rng.roll() % 3 != 0 {
             p.rush = 0;
         }
         p.cities = tri(rng);
@@ -956,6 +958,10 @@ pub struct Lobby {
     pub no_nation_powers: bool,
     /// `semaphore[2] & 2`: a Conquer-the-World or scenario game.
     pub conquest: bool,
+    /// `REVEAL_MAP`: 1 is the lobby's "Normal" (every run so far — the
+    /// profile's value, whatever `check.ini` said); `> 1` makes
+    /// `WorldData::was_seen` answer true everywhere.
+    pub reveal_map: i32,
 }
 
 impl Default for Lobby {
@@ -975,6 +981,7 @@ impl Default for Lobby {
             victory: 0,
             no_nation_powers: false,
             conquest: false,
+            reveal_map: 1,
         }
     }
 }
@@ -1177,7 +1184,7 @@ mod tests {
         // nukes, air, naval, market, scouts, civilians, friendly, alliance —
         // and a rush roll of 1 costs a Nubian one more.
         let setup = RollSetup {
-            landmasses: 1,
+            sea_map: 1,
             rush_rules_off: false,
         };
         let mut seen = [false; 2];
@@ -1194,7 +1201,7 @@ mod tests {
     #[test]
     fn the_romans_always_want_forts_and_the_germans_air() {
         let setup = RollSetup {
-            landmasses: 1,
+            sea_map: 1,
             rush_rules_off: false,
         };
         for seed in 0..20u32 {
@@ -1211,7 +1218,7 @@ mod tests {
     #[test]
     fn rush_rules_off_pins_raid() {
         let setup = RollSetup {
-            landmasses: 1,
+            sea_map: 1,
             rush_rules_off: true,
         };
         let p = Personality::roll(&mut Rng::new(3), tribe::AZTECS, &[], &setup);

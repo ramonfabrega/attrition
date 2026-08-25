@@ -170,8 +170,9 @@ impl Sim {
         self.ai[who as usize].census.village_num
     }
 
-    /// `world+0x34`, `sea_map`: the landmass count every producer reads.
+    /// `world+0x34`, `sea_map`: the map style's sea class every producer
+    /// reads ([`crate::world::World::sea_map`] — not a landmass count).
     pub fn sea_map(&self) -> i32 {
-        self.world.landmasses()
+        self.world.sea_map()
     }
 }

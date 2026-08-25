@@ -1088,7 +1088,7 @@ impl Sim {
             return None;
         }
         let n = self.line_count(who, t, false) + self.line_count(who, t, true);
-        let sea_map = self.world.landmasses();
+        let sea_map = self.world.sea_map();
         let bark = self.unit_types[f.rec].combat.roles & combat::role::BARK != 0;
         let reg_combat = Census::reg(&self.ai[w].census.reg_combat, sea_reg);
         if !(sea_map > 2 || !bark || reg_combat < sea_map * 2) {
@@ -1515,7 +1515,7 @@ impl Sim {
             return;
         }
         let d = self.ai_difficulty();
-        let sea_map = self.world.landmasses();
+        let sea_map = self.world.sea_map();
         // `enemy_combat`: the strongest of those I am actively at war with,
         // else the strongest of the rest I am at war with at all.
         let mut active = 0;

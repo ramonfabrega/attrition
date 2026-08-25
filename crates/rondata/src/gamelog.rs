@@ -390,6 +390,10 @@ impl<'a> Log<'a> {
     /// `leader_flags` pair that precedes it in the file is not in it.
     pub fn leader_block(&self, frame: i64, who: i64) -> Option<&Block<'a>> {
         let (_, b) = self.frames().into_iter().find(|(n, _)| *n == frame)?;
+        // A `DUMP_ALL` frame nests its state under `FULL DUMP` (see
+        // `records`); run20 is the first such capture whose leader record
+        // is read this way.
+        let b = b.kid("FULL DUMP").unwrap_or(b);
         b.kids("LEADERDATA").find(|l| l.int("who") == Some(who))
     }
 }
@@ -715,6 +719,21 @@ pub fn world_tiles(fields: &[(&str, &str)]) -> Vec<u16> {
         .iter()
         .filter(|(k, _)| *k == "tdata[scan].mask")
         .map(|(_, v)| v.trim().parse::<u32>().unwrap_or(0) as u16)
+        .collect()
+}
+
+/// The fog grid's `seen2` bytes — `WorldData +0x160`, `fog_xs × fog_ys`
+/// (two per cell each way), one bit per player — which
+/// `WorldData::was_seen@006b53f0` answers from (`seen2[fy × fog_xs + fx] &
+/// ally_mask`). The WORLD block prints them after the tile masks as
+/// `seen[scan]`/`seen2[scan]`/`seen3[scan]` triplets, one per fog cell
+/// (run20, 2026-08-25: 14,400 each on a 60×60 map, 357 with each player's
+/// bit at the start of the game — the initial vision).
+pub fn world_fog(fields: &[(&str, &str)]) -> Vec<u8> {
+    fields
+        .iter()
+        .filter(|(k, _)| *k == "seen2[scan]")
+        .map(|(_, v)| v.trim().parse::<u32>().unwrap_or(0) as u8)
         .collect()
 }
 
@@ -1121,10 +1140,16 @@ impl<'a> Log<'a> {
             init.game_info = gi.fields.clone();
             init.players = gi.kids("PLAYER").map(|p| p.fields.clone()).collect();
         }
-        if let Some(w) = game.kid("WORLD") {
+        // A `DUMP_ALL` dump writes the start-of-game state under `GAME`'s
+        // first `FULL DUMP` rather than on `GAME` itself (`records` takes the
+        // object lists from the same place). Its `WorldData::log_data` runs
+        // at the override detail, so the cells and tiles are there whatever
+        // `[Start Game] WORLD` said — run20 is read this way.
+        let body = game.kid("FULL DUMP").unwrap_or(game);
+        if let Some(w) = body.kid("WORLD") {
             init.world = w.fields.clone();
         }
-        if let Some(c) = game.kid("CITIES") {
+        if let Some(c) = body.kid("CITIES") {
             init.cities = c
                 .kids("CITY")
                 .map(|c| CityDump {
@@ -1135,7 +1160,7 @@ impl<'a> Log<'a> {
                 })
                 .collect();
         }
-        if let Some(k) = game.kid("CONSTANTS") {
+        if let Some(k) = body.kid("CONSTANTS") {
             init.constants = constants_of(k);
         }
         let (units, builds, leaders) = records(game, true);

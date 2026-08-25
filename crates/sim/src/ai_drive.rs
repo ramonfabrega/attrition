@@ -14,11 +14,6 @@ use crate::ai::{self, GoodsSetup, ScriptResult, Step, cadence};
 use crate::{Player, Sim};
 
 impl Sim {
-    /// `world+0x34` as the AI reads it: the land regions.
-    fn landmasses(&self) -> i32 {
-        self.world.landmasses()
-    }
-
     /// `Leader::init`'s AI tail for a computer leader (`docs/AI.md` §3
     /// item 1, §6): `prod_script_run = 1`, `random_personality`, then the
     /// script choice — [`ai::Leader::choose_script`]. `player_flags` is the
@@ -38,7 +33,7 @@ impl Sim {
             })
             .collect();
         let setup = ai::RollSetup {
-            landmasses: self.landmasses(),
+            sea_map: self.sea_map(),
             rush_rules_off: self.lobby.rush_rules == 8,
         };
         let pers = ai::Personality::roll(&mut self.rng, tribe, &rivals, &setup);

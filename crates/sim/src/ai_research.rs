@@ -73,8 +73,9 @@ pub(crate) struct WeightFacts {
     pub other_team_terr: i32,
     pub min_other_team_terr: i32,
     pub active_wars: i32,
-    /// `world+0x34`, `sea_map`.
-    pub landmasses: i32,
+    /// `world+0x34`, `sea_map` — the style's sea class (`World::sea_map`),
+    /// which the weight cubes.
+    pub sea_map: i32,
 }
 
 /// The weight multiplier `val = w × base` uses, from `research_techs`
@@ -115,8 +116,8 @@ pub(crate) fn weight_total(ai: &[i32; AI_WEIGHTS], f: &WeightFacts) -> i32 {
     } else {
         ai[0] / 3
     };
-    // The landmass term: no sea at all subtracts the naval weight.
-    let m = f.landmasses;
+    // The sea term: no sea at all subtracts the naval weight.
+    let m = f.sea_map;
     let sea = if m == 0 {
         -ai[2]
     } else {
@@ -535,7 +536,7 @@ impl Sim {
                 if matches!(cat, 1 | 2) && matches!(self.lobby.victory, 8 | 9) {
                     base = mul(base, 30);
                 }
-                if self.world.landmasses() > 1 && self.transport_bonus_needs(t) {
+                if self.world.sea_map() > 1 && self.transport_bonus_needs(t) {
                     base = mul(base, 30);
                 }
                 let second_of_line = level == 1 && matches!(line, Line::Commerce | Line::Civic);
@@ -561,7 +562,7 @@ impl Sim {
             other_team_terr: self.ai[w].census.other_team_terr,
             min_other_team_terr: self.ai[w].census.min_other_team_terr,
             active_wars: self.ai[w].census.active_wars,
-            landmasses: self.world.landmasses(),
+            sea_map: self.world.sea_map(),
         };
         let mut val = mul(weight_total(&ai, &facts), base);
 
@@ -1134,17 +1135,17 @@ mod tests {
     }
 
     #[test]
-    fn the_landmass_term_is_cubed_and_negated_on_a_dry_map() {
+    fn the_sea_term_is_cubed_and_negated_on_a_dry_map() {
         let mut ai = [0; AI_WEIGHTS];
         ai[2] = 2;
         let f = WeightFacts {
             team_style: 1,
             active_wars: 1,
-            landmasses: 3,
+            sea_map: 3,
             ..WeightFacts::default()
         };
         assert_eq!(weight_total(&ai, &f), 1 + 2 + 2 * 27);
-        let f = WeightFacts { landmasses: 0, ..f };
+        let f = WeightFacts { sea_map: 0, ..f };
         assert_eq!(weight_total(&ai, &f), 1 + 2 - 2);
     }
 

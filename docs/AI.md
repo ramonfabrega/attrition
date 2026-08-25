@@ -630,7 +630,9 @@ For each of the ten sites with `val > 0`, region `r = site.reg`:
 - require `reg_free_peasants[r] || reg_gatherers[r]`;
 - require `world+0x34 < 4` or `map_style == 0x14` or `city_num > 3` or
   `city_num < 2` or `r != home_reg` — with two or three cities on a
-  many-landmass map, expand only off the home region;
+  ~~many-landmass map~~ **class-4 sea map** (`world+0x34` is the style's
+  `SEA_MAP` class, not a landmass count — §15.8), expand only off the
+  home region;
 - `blocked_site(VILLAGE, site × 0x300, who, −1, 0) == 0`
   (`docs/CITIES.md` §2.6);
 - `v = site.val`; `reg_cities[r] == 0` → `v ×= 4`; else `v = (reg_pop[r] +
@@ -676,9 +678,22 @@ Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
    **`MASK_CITY`**, not `CITY_RADIUS`; step 3's danger/water `0x100` reads
    **`WData.flags`** (the coastal flag): different records, same constant.
    Then, separately, `was_seen(2wx+1, 2wy+1, who)` on the fog grid — which
-   the first reading denied and which is really there;
+   the first reading denied and which is really there — **and which is not
+   "always true" on any lobby run so far** (`REVEAL_MAP 1`, "Normal"):
+   `WorldData::was_seen@006b53f0` is true for `reveal_map > 1` or `who >
+   7`; else, unless the leader has flag `0x1000`/`0x800` or a
+   `types[0x141]`, **a cell owned by an ally — `is_ally` is reflexive, so
+   one's own land — is seen whenever that owner's `reg_cities[region]` or
+   `reg_forts[region]` is non-zero** (`LeaderData +0x125e`/`+0x12de`);
+   else `seen2[(2wy+1) × fog_xs + 2wx+1] & ally_mask`, the fog grid the
+   WORLD dump prints as `seen2[scan]` (§15.8, run20: all ten of the AI's
+   sites have `seen2 == 0` and are scored through the territory arm);
    the tile owned by another leader (unless CtW with no cities of mine
-   and an ally's — then `ally_land = 1`); `is_ocean` → 0.
+   and an ally's — then `ally_land = 1`); `is_ocean` → 0 —
+   **`WorldData::is_ocean@006b4830` is the cell's own kind**, `land == 1`
+   (SANDY, the shallows) or `2` (OCEAN) and not flagged `0x100`, not its
+   region's terrain (§15.8: the beaches of an island are SANDY cells inside
+   a land region).
 2. `base = tile.value` (the tile record's byte at `+0xc`), or 0 if
    `blocked_site(TOWN, …)` — **the Town's footprint**, not the Village's.
 3. Over the **25 offsets** of `move_x/move_y` (the 5×5 around the site),
@@ -706,9 +721,13 @@ Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
    `valid(nx+1, ny+1)` fails and a single cell's `val` is still `>>2` — a
    quarter, not an average (B4-e).
 4. `base < 1` → 0. `parity = base & 3`.
-5. Many landmasses (`world+0x34 > 2`) and I own no dock (`num_buildings[
+5. ~~Many landmasses~~ **A sea map** (`world+0x34 > 2` — the style's
+   `SEA_MAP` class, §15.8) and I own no dock (`num_buildings[
    DOCK] + get_buildings(its upgrade)` = 0): any of the **40 offsets**
-   `move_x[81..120]` (the outer ring) on ocean → `base ×= 30`.
+   `move_x[81..120]` (the outer ring) on ocean → `base ×= 30`. **Observed
+   on run20** (East Indies, `sea_map 4`): the ten-record `SITES` diff
+   matches slot for slot with the ring centred on the original cell and
+   moves a whole slot when it is centred on the slid one (§15.8).
 6. `v = base × 250 / (water + 1)`; `city_num == 1` → `v = v × (min(danger,
    9) + 7) / 8` if `danger`; **`== 2` is the same block with the cap at 4**
    — `(min(danger, 4) + 7) × v / 8`, not a bare `min`; else `forts` →
@@ -824,9 +843,9 @@ type_avail`):
   `± ai[10]` by team style (+ for 0/8/0xb); `full_cities > (cities +
   villages)/2` → `+ 2·ai[5]`, else `full_cities` → `+ ai[5]`;
   `my_team_terr < other_team_terr` → `+ ai[5]` (×2 if `< min_other`);
-  `active_wars == 0` → `+ ai[5] + ai[1]`, else `+ ai[0]/3`; landmasses
-  `m = world+0x34`: `m == 0` → `− ai[2]`, else `+ ai[2] × m³`. `val = w ×
-  base`.
+  `active_wars == 0` → `+ ai[5] + ai[1]`, else `+ ai[0]/3`; ~~landmasses~~
+  the sea class `m = world+0x34` (§15.8): `m == 0` → `− ai[2]`, else
+  `+ ai[2] × m³`. `val = w × base`.
 - **Category** (`t.cat` = `TechType+0x14` — `Line::index()` for an epoch
   tech and **`3` for every non-epoch tech**, ages and governments
   included): `0` → `/10`, then with `pop_cap < 200`:
@@ -1783,8 +1802,11 @@ folded back into §2's prose.
 - **`compute_site_stats`' inputs the sim lacks**: ~~`find_tcoord_z`
   (heights, 0)~~ — pinned per tile from a `DUMP_ALL` dump's
   `master_land_heights` (`World::tile_z`; `(int)((h[ty+1][tx] +
-  h[ty][tx+1]) × 0.5)`, 0 on ocean), `was_seen` (true — the lobby reveals
-  the map), `danger[]` (0), team style 2's `target`, the ally-land arm;
+  h[ty][tx+1]) × 0.5)`, 0 on ocean), ~~`was_seen` (true — the lobby reveals
+  the map)~~ — it does not (`REVEAL_MAP 1`); read whole and modelled from
+  the dump's fog grid and the territory arm, §2.13 step 1 and §15.8, with
+  `reg_forts` and the leader-flag exits still open — `danger[]` (0), team
+  style 2's `target`, the ally-land arm;
   ~~**the `Region.coords` order** — the sampler walks the region's own list
   and the sim walks row-major~~ — the same: run3's `BEGIN REGIONS` prints
   every region's list and region 1's 3,053 coordinates are row-major
@@ -2207,6 +2229,91 @@ consequence:
 Still not established here: every *value* a producer computes (§15.5's
 second item stands), and the purchases themselves — the replay takes the
 bought slots from the dump and checks only what follows from them.
+
+### 15.8 run20 and run21 — the islands map, and the coastal ring's guard (2026-08-25)
+
+Audit B4-k's guard needed a capture whose `compute_site_stats` reaches
+step 5, and none on disk did: every run through run19 was on the
+profile's Great Lakes (`MAP_STYLE 14`, `sea_map 1`), whatever `check.ini`
+said. **Run20** is the East Indies lobby (`MAP_STYLE 18`), picked in the
+lobby's combo, under `DUMP_ALL` with `InitialDump=1`, `[Start Game]
+WORLD=6`, the checksum trace, a `[0, 4)` window and `!quit` at 4 — a
+self-sufficient capture (its own setup trace, heights, herds and frame
+words; 278 MB, seven minutes) that the harness reads without a sibling
+(`rondata::diff::tests::run20_s_islands_sites_walk_the_coastal_ring_from_
+the_original_cell`). **Run21** is the same lobby with the dump off and
+`!ffwd 30` to frame 24,000 (`docs/ORACLE.md`, "run20 and run21").
+
+**The guard, and what it took to make it pass.** The assertion is the
+ten-record `SITES` diff of §15.7's kind on run20's frame-1 leader record.
+It failed four times before it passed, and each failure was a correction
+to `crates/sim` that no Great Lakes capture could have found:
+
+1. **`world+0x34` is not a landmass count.** The harness counted land
+   regions (13, with the artefact region 0) where the original said
+   `sea_map 4`. Read whole: `Map::init_map_data` reads it as the map
+   style's `<SEA_MAP value="n"/>` (`mapstyles/*.xml`: 0 the land maps, 1
+   Great Lakes / Mediterranean / Outback, 2 Warring States, 3 the two-shore
+   and island files, 4 Colonial Powers; −1 when absent), `Map::make`
+   copies it to the world when it is not −1, and the conquest maker's
+   `MapConquest::check_sea_map` computes 0 / 2 / 3 (no sea / every start
+   on one landmass / starts apart). **It is the style's sea class**, and
+   every `world+0x34` predicate in this document — §2.13 step 5's `> 2`,
+   §2.10's `< 4`, §2.14's cubed term, §2.19's dock gate, §6's `< 3` rush
+   arm, §2.3 step 15's strategy bits — reads that class. `World::sea_map`
+   now carries the dump's value; `landmasses()` is gone. **Not
+   established:** why the world reports 4 on East Indies when
+   `eastindies.xml` says 3 — the class factory (`Map::new_map` case
+   `0x12`) and the file table (`Map::init_map_file_names`, index 18 →
+   `EASTINDIES`) both point at that file, `default.xml` carries no
+   `SEA_MAP`, and no other writer of `Map+0x48` was found. The harness
+   takes the dump's value, so nothing downstream depends on the answer.
+2. **`land_key[]` is a static** — `BASELAND, SANDY, OCEAN, NONE`
+   (`dynamic_initializer_for_'land_key'@004058a0`) — and the harness had
+   numbered the dump's names by first appearance, which agreed only
+   because run9's first cell is BASELAND. On the islands map the first
+   cell is OCEAN, every land cell was "water" to the sweep's `land == 1 ||
+   2`, and the home region's `reg_land` came out 0 against 45. Found by
+   widening the census check to **every region** (run9's compares the home
+   region alone, which on one landmass is every land region); the
+   original's own `CITY` record at `DUMP_ALL` carries the step-13 picture
+   (`ocean 11, land 96, filled 51, dock_tile 1, space 58/58/45` for the AI's
+   city) and is the direct oracle.
+3. **`WorldData::is_ocean@006b4830` is by cell kind**, `land == 1 || 2`
+   and not `flags & 0x100`, not by region terrain — an island's beaches are
+   SANDY cells inside a land region. (This one changed no site on run20 by
+   itself; it was landed from the listing.)
+4. **`was_seen` is not a seam**, §2.13 step 1 above. `REVEAL_MAP 1` on
+   every run; the fog grid `seen2` is in the WORLD dump (`seen[scan]`,
+   `seen2[scan]`, `seen3[scan]` triplets, 14,400 each) and is loaded
+   (`World::seen2`), and the AI's ten sites are unseen on it — they are
+   scored through the **territory arm**, an ally's (one's own) cell in a
+   region with `reg_cities` or `reg_forts`. With the fog alone the harness
+   scored nothing; with the arm, all ten records match, `val` included.
+   `reg_forts` and the three leader exits are not modelled and are named
+   in `ai_sites.rs`.
+
+**The guard has teeth.** With the ring re-centred on the slid cell — the
+reading both the document and the implementation had before B4-k — one
+site's ×30 verdict changes, the ranking shifts, and the record moves by a
+whole slot; the test names all nine. Restored, it passes; run9's three
+tests pass unchanged with the new table and the fog loaded.
+
+**The blind list: 438 cited, 92 → 87 never run** over ten traces. Retired:
+`Unit::do_strafe`, `Type::unpay_cost`, `UnitType::log_data`,
+`TechType::log_data`, `GameLog::dump_all`. The sea half is a different
+story: run21 **did** enter it — `Leader::check_transport@006bc5f0` at
+frame 201, `Unit::think_civilian_transport` 275, `Dock::init` and
+`Docks::init_dock` 3579, `UnitData::can_ever_transport` 3579,
+`LeaderData::get_ships_speed_upgrade` 4376, `Army::do_transporting@006f4690`
+14586 — and the list never showed them because §9's table cites that family
+by name without an address. **A citation without `@address` is invisible to
+the coverage report**; the family is now on the record here by address, and
+the reading of it (§9) is the next one the queue names.
+
+**Also observed:** the lobby's `Reveal Map`, `Map Style`, `Resources` and
+`PLAYERn_TRIBE` are the profile's, not `check.ini`'s, on every run — and
+Save to Profile does not survive a killed process (`docs/ORACLE.md`).
 
 ## 16. Second reading — landed, 2026-08-25
 

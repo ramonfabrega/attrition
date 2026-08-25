@@ -156,6 +156,9 @@ pub fn lobby_of(game_info: &[(&str, &str)], map_styles: &[String]) -> sim::ai::L
     if let Some(v) = int("VICTORY") {
         l.victory = v;
     }
+    if let Some(v) = int("REVEAL_MAP") {
+        l.reveal_map = v;
+    }
     if let Some(v) = int("flags") {
         l.no_nation_powers = v & 4 != 0;
     }
@@ -204,10 +207,18 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             region_map.push((n, r));
             Some(r)
         };
-        // `CellData.land` is the original's `land_key[]` index; the dump
-        // prints the name, so until that table is read the harness numbers
-        // the names in order of first appearance and keeps the list.
-        let mut land_names: Vec<&str> = Vec::new();
+        // `CellData.land` is the original's `land_key[]` index and the dump
+        // prints the name. The table is a static in the executable —
+        // `dynamic_initializer_for_'land_key'@004058a0`: `BASELAND`,
+        // `SANDY`, `OCEAN`, `NONE`, in that order — and the census's water
+        // test is `land == 1 || land == 2` (shallows or ocean). Until run20
+        // the harness numbered the names in order of first appearance,
+        // which agreed with the table only because run9's first cell is
+        // BASELAND; on the islands map the first cell is OCEAN, every land
+        // cell became "water" to the sweep, and the home region's
+        // `reg_land` came out 0 against the original's 45.
+        const LAND_KEY: [&str; 4] = ["BASELAND", "SANDY", "OCEAN", "NONE"];
+        let mut land_names: Vec<&str> = LAND_KEY.to_vec();
         for (i, c) in cells.iter().enumerate() {
             let cell = sim::world::Cell::new((i % xs as usize) as i32, (i / xs as usize) as i32);
             if let Some(r) = region_of(c.region, &mut world) {
@@ -262,6 +273,14 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         // `4·xs + 1` columns, 0 where the tile's surface bits are ocean
         // (`mask & 0x30 == 0x20`). The mean of two exact millionths,
         // truncated toward zero, is the float's truncation exactly.
+        // The fog grid — `seen2`, what `was_seen` reads — when the block
+        // carries it (`WORLD ≥ 6`, or any `DUMP_ALL`). A start-of-game
+        // snapshot: the simulation does not advance it.
+        let fog = crate::gamelog::world_fog(&init.world);
+        let fog_loaded = !fog.is_empty() && world.set_fog(fog);
+        if fog_loaded {
+            notes.push("fog: seen2 loaded from the WORLD dump".to_string());
+        }
         let hw = tw + 1;
         let heights_loaded = tiles_loaded && init.heights.len() == hw * (th + 1);
         if heights_loaded {
@@ -313,6 +332,10 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             }
         }
     }
+    // `world+0x34`, the style's sea class, printed with the WORLD scalars
+    // at every level (`sea_map 1` on run9's Great Lakes, 4 on run20's
+    // islands). Not derivable from the cells: `World::sea_map`.
+    world.set_sea_map(get("sea_map").unwrap_or(0) as i32);
     let mut sim = loaded.sim(tuning, world, players);
     sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
     // The map seed, which picks a gaia guy's piece (`docs/ANIM.md` §3).
@@ -2038,6 +2061,183 @@ mod tests {
             "frame 1's list is untouched"
         );
         assert_list_eq("run9 frame 1", &theirs_list, &ours_list);
+    }
+
+    /// The coastal ring's guard (audit B4-k): run20 (`gamelog-run20-islands-
+    /// dumpall.txt`, 2026-08-25) is the East Indies lobby — `MAP_STYLE 18`,
+    /// **`sea_map 4`** — under `DUMP_ALL` for frames 0–3, so it carries its
+    /// own setup trace, heights and per-frame words and needs no sibling.
+    /// It is the first capture in which `compute_site_stats`' step 5
+    /// (`docs/AI.md` §2.13: many landmasses, no dock, an ocean cell on the
+    /// radius-5 ring → `base × 30`) is reachable at all; every dump before
+    /// it reported `sea_map 1`. The ring is walked from the *original*
+    /// sampled cell, not the one the 5×5 slide moved it to — the correction
+    /// neither reading had — and this test is the assertion that was owed:
+    /// all ten `SITE` records of the AI's frame-1 leader record, slot for
+    /// slot, on the original's own stream and heights. Made to fail once by
+    /// re-centring the ring on the slid cell before it was landed.
+    #[test]
+    fn run20_s_islands_sites_walk_the_coastal_ring_from_the_original_cell() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run20-islands-dumpall.txt") else {
+            eprintln!("skipping: no gamelog-run20-islands-dumpall.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        // Self-sufficient: the setup trace, the heights and the frame words
+        // are the run's own, or the assertion below would be on the sim's
+        // own luck rather than the original's.
+        assert!(
+            !init.checksums.is_empty(),
+            "run20's setup trace was not read"
+        );
+        assert!(
+            !init.heights.is_empty(),
+            "run20's height table was not read"
+        );
+        assert!(
+            !init.frame_seeds.is_empty(),
+            "run20's frame words were not read"
+        );
+        let sea_map = init
+            .world
+            .iter()
+            .find(|(k, _)| *k == "sea_map")
+            .and_then(|(_, v)| v.trim().parse::<i32>().ok())
+            .expect("the WORLD block's sea_map");
+        assert!(sea_map > 2, "an islands map: sea_map {sea_map}");
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        assert_eq!(built.sim.lobby.map_style, 18, "East Indies");
+        assert_eq!(
+            built.sim.world.sea_map(),
+            sea_map,
+            "the harness carries the original's `sea_map`"
+        );
+        // What the first run of this test found: `sea_map` is not a
+        // landmass count. The dump's cells fall into twelve land regions
+        // and one sea region here, and the original still says 4 — the
+        // style's own class (`World::sea_map`).
+        let land_regions = (0..built.sim.world.region_count())
+            .filter(|&r| built.sim.world.terrain(r as u16) == sim::world::Terrain::Land)
+            .count();
+        assert!(
+            land_regions > 10,
+            "twelve islands in the cells, not {land_regions}"
+        );
+        assert!(
+            built
+                .notes
+                .iter()
+                .any(|n| n.contains("heights pinned per tile")),
+            "{:?}",
+            built.notes
+        );
+
+        let theirs = log.leader_block(1, 1).expect("FRAME 1 LEADERDATA who 1");
+        assert_eq!(theirs.int("peasants"), Some(5), "the record is the AI's");
+        // The fog grid is loaded and is what the original's `was_seen`
+        // reads: the AI's city cell carries its bit, and the ten sites
+        // below do not — they are seen through the territory arm.
+        assert!(
+            built.notes.iter().any(|n| n.contains("fog: seen2 loaded")),
+            "{:?}",
+            built.notes
+        );
+        assert_eq!(
+            built.sim.world.seen2(103, 105),
+            Some(2),
+            "the AI's city, fog (103,105)"
+        );
+        assert_eq!(
+            built.sim.world.seen2(89, 105),
+            Some(0),
+            "site (44,52), fog (89,105)"
+        );
+        built.sim.tick();
+        // The per-region census, **every region** — run9's check compares
+        // the home region alone, which on one landmass is every land
+        // region there is. The site scorer's step 9 multiplies by what
+        // `reg_cities`/`reg_land` say about the *site's* region, so an
+        // island the AI does not live on is exactly where a census error
+        // would hide.
+        let c = &built.sim.ai[1].census;
+        let arr = |key: &str| -> Vec<i64> {
+            theirs
+                .all(key)
+                .iter()
+                .map(|v| v.trim().parse().unwrap_or(0))
+                .collect()
+        };
+        let mut wrong = Vec::new();
+        for (key, ours) in [
+            ("reg_active", &c.reg_active),
+            ("reg_peasants", &c.reg_peasants),
+            ("reg_free_peasants", &c.reg_free_peasants),
+            ("reg_gatherers", &c.reg_gatherers),
+            ("reg_gather_slots", &c.reg_gather_slots),
+            ("reg_cities", &c.reg_cities),
+            ("reg_land", &c.reg_land),
+            ("strategy", &c.strategy),
+        ] {
+            let t = arr(&format!("{key}[scan]"));
+            // The land arrays are `[64]`, indexed by the land region
+            // numbers `0..0x3e`; the sea regions have their own.
+            for &(dump_r, sim_r) in built.region_map.iter().filter(|(d, _)| *d < 0x3f) {
+                let o = i64::from(sim::ai::Census::reg(ours, sim_r));
+                let tv = t.get(dump_r as usize).copied();
+                if tv != Some(o) {
+                    wrong.push(format!("{key}[{dump_r}]: ours {o} theirs {tv:?}"));
+                }
+            }
+        }
+        assert!(
+            wrong.is_empty(),
+            "the per-region census disagrees:\n  {}",
+            wrong.join("\n  ")
+        );
+        built.sim.tick();
+        let theirs_full: Vec<(i64, i64, i64, i64, i64)> = theirs
+            .kids("SITE")
+            .map(|s| {
+                (
+                    s.int("wx").unwrap_or(0),
+                    s.int("wy").unwrap_or(0),
+                    s.int("val").unwrap_or(0),
+                    s.int("rank").unwrap_or(0),
+                    s.int("dist").unwrap_or(0),
+                )
+            })
+            .collect();
+        assert_eq!(theirs_full.len(), 10, "ten SITE records");
+        let ours_full: Vec<(i64, i64, i64, i64, i64)> = built.sim.ai[1]
+            .sites
+            .iter()
+            .map(|s| {
+                (
+                    i64::from(s.wx),
+                    i64::from(s.wy),
+                    i64::from(s.val),
+                    i64::from(s.rank),
+                    i64::from(s.dist),
+                )
+            })
+            .collect();
+        eprintln!("run20 sites — theirs: {theirs_full:?}\n              ours:   {ours_full:?}");
+        let differing: Vec<String> = theirs_full
+            .iter()
+            .zip(ours_full.iter())
+            .enumerate()
+            .filter(|(_, (t, o))| t != o)
+            .map(|(i, (t, o))| format!("slot {i}: theirs {t:?} ours {o:?}"))
+            .collect();
+        assert!(
+            differing.is_empty(),
+            "the ten site records differ (wx, wy, val, rank, dist):\n  {}",
+            differing.join("\n  ")
+        );
     }
 
     /// The sim's record of a dumped `MAKEOBJECT`, or the whole eleven.

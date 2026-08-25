@@ -810,7 +810,17 @@ rules, start and end age, elimination, victory), while `mapstyles`,
 `startingresources`, `revealmaps` and `PLAYERn_TRIBE` fell back to the player
 profile. Not chased; ticking **Save to Profile** once in the lobby makes those
 four stick across launches, which is enough. **Not established:** why those
-four differ.
+four differ. Confirmed the hard way on 2026-08-25: every run through run19
+was on `map 14` / `MAP_STYLE 14` — **Great Lakes, the profile's default** —
+while `check.ini` said Great Sahara the whole time; the WORLD block's `map`
+and `GAME INFO`'s `MAP_STYLE` are the read-back, and `docs/AI.md`'s
+`map_style` predicates were exercised on 14, not on 7. Run20 needed an
+islands map and got it by picking East Indies in the lobby's combo — and
+ticking Save to Profile **did not make it stick**: the next launch (run21,
+the process having been killed at the Game Over screen rather than quit
+through the menu) offered Great Lakes again, so the profile is written on
+a clean quit or not at all. Read the combo from a screenshot every launch;
+the file's `MAP_STYLE` is the read-back.
 
 **`-automation` suppresses the modal furniture.** `Options::exec` skips the
 quit confirmation, `EndGameWin::exec` skips the end-game window, and
@@ -1214,6 +1224,13 @@ detail level:
 | 4 | the flag words, spelled out |
 | 5 | `who`, `who2`, `region`, `region2`, `val` (the city-site value byte), `land_sub` |
 | 6 | `light`, `blocked`, `bad`, `solid`, `down`, `down_who`, the `block` bitmask, `was_seen` |
+
+And after the cells, the start positions and the 57,600 tile masks, **the
+fog grids** — `seen[scan]`, `seen2[scan]`, `seen3[scan]` as triplets, one
+per fog cell (`fog_xs × fog_ys`, two per cell each way: 14,400 on a 60×60
+map), one bit per player — of which `seen2` is what
+`WorldData::was_seen@006b53f0` reads (run20, 2026-08-25; `rondata` loads
+it, `docs/AI.md` §15.8). Then `danger[8][reg_size]`.
 
 So **`WORLD=6` under `[Start Game]`** dumps the whole tile layer once —
 regions, the coastal `region2`, the site values, the goods bits, the
@@ -1930,6 +1947,52 @@ two runs, nine agreeing.
 frame 576, inside the script's era, so the window that catches them also
 catches the script calling `place_city_with_cost`, and the two callers have
 to be told apart by the step in the dump.
+
+### run20 and run21 — the islands map (2026-08-25)
+
+The first runs off the profile's Great Lakes, and the first `DUMP_ALL`
+capture read as the harness's own oracle rather than as a sibling.
+
+**run20** (`gamelog-run20-islands-dumpall.txt`, 278 MB, `rontrace-run20.
+log`): East Indies picked in the lobby's combo (`MAP_STYLE 18`, the WORLD
+block's `map 18`, `sea_map 4`), run7's seed, and every logger at once —
+`DUMP_ALL=1` with `InitialDump=1` (the start-of-game full dump: cells at
+every level, the tile masks, the fog grids, `master_land_heights`, the
+regions, the herds, the type tables), `check_all_level=14` with `[Misc
+Logging] CHECKSUM=2` (the setup trace), `LogStartFrame=0 LogEndFrame=4`
+(four `DUMP_ALL` frame blocks, `FRAME 1`–`4`), `rontrace.cfg` `cover=1
+window=0-3`, and `rontrace.cmd` a single `4 !quit`. About seven minutes
+wall clock: four for the start dump, ~110 s a frame block, and the quit's
+own block. What that buys: a capture whose `Initial` carries its own
+`checksums`, `heights`, `herds` and `frame_seeds`, so `build_sim` seeds
+the personality, the stride and the slide from the run itself and the
+`SITES` diff runs with no sibling at all — the shape every future
+behavioural capture should take when the frames wanted are few.
+
+**run21** (`gamelog-run21-islands-long.txt`, 1.7 MB, `rontrace-run21.log`,
+29 MB): the same lobby, `DUMP_ALL=0`, `LogStartFrame=LogEndFrame=0`
+(dump off), `cover=1`, `5 !ffwd 30` and `24000 !quit` — run18a's recipe on
+the islands. Two minutes including the load. It is the trace that reaches
+the AI's sea half (`docs/AI.md` §15.8: `check_transport` at 201, the docks
+at 3579, `Army::do_transporting` at 14586).
+
+**What the two runs settled** is in `docs/AI.md` §15.8 and the audit's
+fourth pass: `world+0x34` is the style's `SEA_MAP` class and not a
+landmass count; `land_key[]` is the static `BASELAND, SANDY, OCEAN, NONE`;
+`is_ocean` is by cell kind; `was_seen` has a territory arm that the fog
+grid alone does not explain; and B4-k's guard — the ten-record `SITES`
+diff on run20 — passes and fails on demand.
+
+**Three driving facts, each of which cost a relaunch or a wrong note:**
+
+- **The traced process is `riseofnations_trace.exe`**, and
+  `tools/gamelog/waitwin.sh` waited for `riseofnations.exe` forever; it
+  matches both now.
+- **`!quit` returns to the Game Over screen and the process stays up**;
+  under `DUMP_ALL` the end-of-game dump keeps writing for a minute after
+  it. Wait for `gamelog.txt` to stop growing, then kill.
+- **Save to Profile does not survive a killed process** — see "The lobby
+  is a file" above. The combo is read from a screenshot every launch.
 
 ## What is not established
 

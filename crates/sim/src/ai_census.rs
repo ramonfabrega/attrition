@@ -895,7 +895,8 @@ impl Sim {
     fn census_strategy(&mut self, who: Player) {
         let w = who as usize;
         let players = self.players.len();
-        let landmasses = self.world.landmasses();
+        // `world+0x34`, the style's sea class (`World::sea_map`).
+        let sea_map = self.world.sea_map();
         let difficulty = self.ai_difficulty();
         let start_res_eight = self.lobby.starting_resources == 8;
         for r in 0..self.world.region_count() {
@@ -970,12 +971,12 @@ impl Sim {
             }
 
             let cs = &mut self.ai[w].census;
-            if landmasses < 1 {
+            if sea_map < 1 {
                 cs.strategy[r] &= 0xfff7;
-            } else if landmasses == 2 {
-                // The two-landmass probe wants a region flagged `8` with
+            } else if sea_map == 2 {
+                // The class-2 probe wants a region flagged `8` with
                 // nobody's city in it — a seam, so it never fires.
-            } else if landmasses >= 3 && cs.strategy[r] & 6 == 0 {
+            } else if sea_map >= 3 && cs.strategy[r] & 6 == 0 {
                 cs.strategy[r] |= 8;
             }
         }
@@ -1384,6 +1385,11 @@ mod tests {
     #[test]
     fn the_thin_bit_and_the_eight_that_replaces_it() {
         let mut f = fix();
+        // The eight survives step 15's tail only on a map whose sea class
+        // is 1 (Great Lakes' — `world+0x34`, `World::sea_map`): class 0,
+        // the land maps, clears it; 3 and up set it again for a region
+        // with neither `2` nor `4`. Run9's lobby is class 1.
+        f.sim.world.set_sea_map(1);
         build(&mut f.sim, 1, f.village, 20, 20);
         f.sim.census(1);
         let r = f.sim.world.region_of(Cell::new(5, 5)).unwrap() as usize;

@@ -242,6 +242,14 @@ pub struct World {
     /// `master_land_heights` before the first frame (`docs/DECISIONS.md`
     /// entry 16's clause); empty on a flat world, where every tile is 0.
     tile_z: Vec<i32>,
+    /// `world+0x34` — see [`World::sea_map`].
+    sea_map: i32,
+    /// `WorldData::seen2` — the fog grid, two entries per cell each way
+    /// (`fog_xs = 2 × xs`), one bit per player: what `was_seen` answers.
+    /// Empty until a dump supplies it, and then a snapshot the simulation
+    /// does not yet advance (nothing here models sight); see
+    /// [`World::seen2`].
+    fog: Vec<u8>,
 }
 
 /// The bits of a tile mask, as the placement code names them — `TData.mask`
@@ -290,7 +298,34 @@ impl World {
             cells: vec![CellData::default(); n],
             danger: Vec::new(),
             tile_z: Vec::new(),
+            sea_map: 0,
+            fog: Vec::new(),
         }
+    }
+
+    /// Install the fog grid's `seen2` bytes, `(2 × width) × (2 × height)`
+    /// row-major; any other length is refused and the world stays fogless.
+    pub fn set_fog(&mut self, seen2: Vec<u8>) -> bool {
+        let n = (self.width as usize) * (self.height as usize) * 4;
+        if seen2.len() != n {
+            return false;
+        }
+        self.fog = seen2;
+        true
+    }
+
+    /// `WorldData::seen2[fy × fog_xs + fx]` — the fog cell's seen bits, one
+    /// per player; `None` when no fog grid has been installed (the caller
+    /// keeps its "always seen" reading then) or off the grid.
+    pub fn seen2(&self, fx: i32, fy: i32) -> Option<u8> {
+        if self.fog.is_empty() {
+            return None;
+        }
+        let (fw, fh) = (self.width * 2, self.height * 2);
+        if fx < 0 || fy < 0 || fx >= fw || fy >= fh {
+            return None;
+        }
+        self.fog.get((fy * fw + fx) as usize).copied()
     }
 
     /// A tile's height as `find_tcoord_z` answers it; 0 off the map and on
@@ -377,10 +412,24 @@ impl World {
         self.regions.len()
     }
 
-    /// `world+0x34`, `sea_map`: how many land regions there are, which is
-    /// what the AI reads as the landmass count.
-    pub fn landmasses(&self) -> i32 {
-        self.regions.iter().filter(|t| **t == Terrain::Land).count() as i32
+    /// `world+0x34`, `sea_map`: the map's **sea class**, a property of the
+    /// map style and not a count of anything on the map. Every `mapstyles/
+    /// *.xml` carries `<SEA_MAP value="n"/>` (0 the land maps, 1 Great
+    /// Lakes / Mediterranean / Outback, 2 Warring States, 3 the two-shore
+    /// and island maps, 4 Colonial Powers), `Map::init_map_data` reads it
+    /// with −1 for absent, `Map::make` copies it into the world when it is
+    /// not −1, and the conquest maker's `check_sea_map` computes 0/2/3
+    /// (no sea / every start on one landmass / starts apart) for the
+    /// styles that leave it out. The AI reads it as "how much sea": `> 2`
+    /// is the coastal-ring and dock-value predicate. It was read as "the
+    /// number of land regions" until run20 (2026-08-25) reported 4 on a
+    /// map with twelve of them; 0 on a world with no map loaded.
+    pub fn sea_map(&self) -> i32 {
+        self.sea_map
+    }
+
+    pub fn set_sea_map(&mut self, v: i32) {
+        self.sea_map = v;
     }
 
     /// `world+0x8`, `size`: the cell count.
