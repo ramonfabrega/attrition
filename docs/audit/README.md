@@ -151,3 +151,57 @@ against it: a field named from its offset rather than from `types.txt`
 each. The lesson is the cities audit's, again: the readings agree on the
 arithmetic and disagree on names, and a name is settled by the type
 record, never by the surrounding code.
+
+**The AI (`2026-08-25-ai.md`, the twelfth mechanic, and the largest).** Seven
+blind readers on Opus 5, one per sub-area, run in **two waves** — the orders
+audit's quota lesson applied deliberately for the first time, and it cost
+nothing. Adjudication ran in the **main thread** rather than as a fan-out:
+one standard across seven reports, and no repeat of the wall that killed six
+of seven adjudicators on orders. 590 numbered claims, 42 rows doubly
+confirmed, 31 corrections, two changes to `crates/sim`.
+
+The readers were spent **unevenly on purpose**, which is new. §2.18–§2.20
+rested on a single reading (the implementation's) and the trace's coverage
+report had all three functions on the never-executed list, so they went in the
+first wave; the census, driver and make list had been confirmed behaviourally
+by run18 and run19, so they went in the second. That triage is worth repeating
+wherever a document's sections have visibly different provenance.
+
+Its headline is a methodological one, and it is uncomfortable: **the blind
+protocol leaked, and the project's own habits caused it.** A subagent inherits
+the repository's `CLAUDE.md`, and ours narrates each mechanic in the working
+agreement — so every reader had this mechanic's headline findings in context
+before it read the brief. B1 disclosed it unprompted and precisely; the
+affected rows are marked rather than counted. The fix is not to the brief,
+which cannot reach the system prompt, but to where the handoff prose lives.
+Until that moves, a blind reading of any mechanic `CLAUDE.md` describes is
+weaker than it looks.
+
+Three findings show what the pattern is now good for. The one verdict that
+went against **both** readings — `compute_site_stats`' coastal ring is centred
+on the original cell, not the slid one — was not something the second reader
+found; it was something the second reader stated *confidently and wrongly in
+passing*, which made it worth checking, and the check found the document and
+the implementation both wrong. The one **refutation** went the other way: B7
+flagged that `create_units` might feed a type index where a count belongs,
+marked it medium, and handed it to whoever owned that function rather than
+asserting it — and it was wrong, settled in twenty lines of listing. And
+`TypeData::can_pay_cost` reducing with `max` instead of `min` was found by
+**two readers independently, in different scopes**, which is the strongest
+evidence this method produces.
+
+The recurring lesson recurred three times in one audit: **grep the writers
+outside the class you are reading** (B3-b, B5-f, B7-b). In B3-b it had led the
+first reading to a confident negative — "nor anywhere" — that was false. The
+new lesson is about **transcription**: three of the sharpest findings are
+places where the decompiler's C is a faithful-looking lie (an unsigned compare
+printed signed, a `% 63` aliasing, a reloaded base register), and in two of
+them the implementation was right *because* it had been written from
+understanding rather than transcribed. The single place it was wrong is the
+place it followed the document's own coordinate bookkeeping.
+
+Still owed, and named here so it is not lost: a guard for the coastal-ring
+fix. The existing suite passes either way, so nothing covered it.
+
+*(The pathfinder, commands and recgame audits are still owed a paragraph each
+here.)*
