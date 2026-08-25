@@ -86,27 +86,16 @@ artifact is the next phase's tool.
    to the RoN:EE modding community.
 1. **Attrition** — one mechanic, end to end, headless. Borders → territory →
    damage, and supply cancelling it. It is the namesake, it is self-contained,
-   no open-source RTS has it, and everything needed is in reach: `borders.cpp`
-   in the symbols, and `TERRITORY_BASE`/`_DEN`/`_NUM`/`_LIMIT_*`,
-   `CITY_TERRITORY_MULTIPLIER`, the `*_UPGRADE_TERR` arrays, and
-   `ATTRITION = 48 frames` in the data. If this comes out exactly right, the
-   method is proven and the rest is repetition. **Done**, specified in
-   `docs/ATTRITION.md` and `docs/SUPPLY.md`.
+   and no open-source RTS has it. If this comes out exactly right, the method
+   is proven and the rest is repetition. **Done**: `docs/ATTRITION.md` and
+   `docs/SUPPLY.md`.
 2. **Run the original** — 32-bit x86 Windows on Apple Silicon. **Done**, via
-   CrossOver's D3DMetal, after Wine, DXVK and wined3d/Vulkan all failed on the
-   renderer's D3D11 feature-level requirement; `docs/ORACLE.md` has the exact
-   path. It gives us a visual and behavioural oracle, and lets us check any
-   claim instead of reasoning about it.
-
-   **What it unlocks is bigger than recorded games**, per `docs/ORACLE.md`. The
-   shipped executable contains two loggers. `SyncLogger` (the EE-era desync
-   tracer, `synclogger.ini`, 37 per-category keys) writes its frames only on an
-   actual desync. The older `Log` system (`AllowLogs=1` in `rise.ini`, then
-   `gamelog.ini`) dumps chosen subsystems' state **every frame** to
-   `Logs\gamelog.txt` in a nested text format — every unit's position, every
-   leader, the loaded `Constants` struct by name — and `Seed (0 for random)`
-   in `rise.ini` makes a run reproducible. That file, not a recording, is the
-   per-frame ground truth the sim is diffed against.
+   CrossOver's D3DMetal; `docs/ORACLE.md` has the exact path, the loggers the
+   executable ships, and every run captured so far. What it unlocks is bigger
+   than recorded games: the engine's own logger dumps chosen subsystems' state
+   **every frame** to a text file, and a fixed seed makes a run reproducible.
+   That file, not a recording, is the per-frame ground truth the sim is diffed
+   against.
 3. **Sim skeleton** — economy, one unit type, movement. Replay a recorded game
    and diff. Score is ticks before divergence. This is the long middle.
 4. **Renderer** — thin client. Original assets first; they are the visual
@@ -179,18 +168,17 @@ simulation to a crawl.
 outside the per-mechanic tests, and each was written by first making it fail:
 
 - `crates/sim/src/no_float.rs` reads the simulation's own source and rejects
-  any float outside `#[cfg(test)]` — the one hard constraint that was
-  enforced by convention until 2026-08-22. It allows the software float
-  (`combat::F32`, integer mantissa) and the test oracles, and nothing else.
+  any float outside `#[cfg(test)]`. It allows the software float (an integer
+  mantissa) and the test oracles, and nothing else.
 - `crates/sim/src/soak.rs` generates games from a seed — a scenario, and a
   stream of orders including unreasonable ones — plays each **twice**, and
-  compares a per-frame digest. It found a non-terminating loop in
-  `find_path`'s march within an hour of existing (`docs/ORDERS.md` §4.6).
-  The old determinism test ran one hand-built scenario; this runs a hundred
-  it did not think of.
-- `rondata::diff`'s `the_original_s_own_run_is_still_matched_frame_for_frame`
-  pins the harness against the original's own 432 frames, so the state of the
-  port is a test rather than a number in a commit message.
+  compares a per-frame digest. It found a non-terminating loop within an hour
+  of existing. The old determinism test ran one hand-built scenario; this
+  runs a hundred it did not think of.
+- `rondata::diff` pins the harness against the original's own logged runs,
+  frame for frame, so the state of the port is a test rather than a number in
+  a commit message. The dumps live outside the repo; a machine without them
+  says so rather than passing quietly.
 
 A guard that has never failed has not been tested; make it fail on purpose
 once, then land it.
@@ -198,50 +186,46 @@ once, then land it.
 **Prefer a diff to a reading, and convert readings into diffs.** Reading is
 how we find out what to check; a differential check against the original's
 own dump is how we *know*, and it keeps knowing on every later commit. Two
-rules follow, both earned on 2026-08-25:
+rules follow:
 
-- **When the original dumps a record, diff the whole record** — not the field
-  the mechanic happens to care about. The harness asserted one of the ten
-  `SITE` records and only three of its five fields; widening it to all ten,
-  all five, failed on the first run and confirmed a defect the AI audit had
-  found by reading and could not test (`docs/audit/2026-08-25-ai.md`, B4-f).
-  Nine tenths of a dumped record had gone uncompared for a month. The make
-  list is dumped whole at `LEADERS=9` and is still not diffed.
+- **When the original dumps a record, diff the whole record** — every slot,
+  every field — not the field the mechanic happens to care about. Nine tenths
+  of a dumped record once went uncompared for a month, and the first widening
+  failed on its first run.
 - **A finding that can become an assertion must become one before its audit
-  is closed.** The AI audit cost about 2.5 M subagent tokens and produced
-  three corrections to the simulation; the twenty-minute widening produced a
-  fourth. That ratio is the argument for spending the reading budget on
-  *what to assert* rather than on more prose.
+  is closed.** A second reading's budget is best spent on *what to assert*,
+  not on more prose; the twenty-minute widening has out-produced the
+  million-token reading.
 
 The reason reading does not go away is coverage, and it is measurable: the
-trace's own report says **89 of the functions `docs/` cites have never
-executed in any traced game** (`tools/trace/report.py … blind docs/`). A diff
-can only check what a run reaches, so for those 89 the reading is the only
-evidence there is. **Every behavioural run shrinks that number, and shrinking
-it is what would eventually make the second reading unnecessary** — so the
-blind list is the queue of runs, and a run that lights up a whole family (the
-sea half, a war, the trade economy) is worth more than one that lights up a
-function.
+trace's report (`tools/trace/report.py … blind docs/`) lists the functions
+`docs/` cites that have never executed in any traced game. A diff can only
+check what a run reaches, so for those the reading is the only evidence there
+is. **Every behavioural run shrinks that list, and shrinking it is what would
+eventually make the second reading unnecessary** — so the list is the queue
+of runs, and a run that lights up a whole family is worth more than one that
+lights up a function.
 
 **Every mechanic gets a blind second reading before it is called done.** One
 reader writes the document from the decompile; a second, who has not seen the
 document or the implementation, re-derives the same mechanic from the same
 export and writes a report; a third adjudicates every disagreement back to the
-decompiled function and records the verdicts under `docs/audit/`. The first
-pass over the seven existing mechanics (2026-08-20) found the arithmetic
-doubly confirmed almost everywhere and the *predicates* wrong in several places
-— which unit kinds are exempt, which step the 11/8 belongs to, which array a
-level indexes — exactly the kind of error that tests written from the same
-reading cannot catch. The full decompile export under `tools/ghidra/` is what
-makes the second reading cost an hour rather than a session. The cities audit (the tenth
-mechanic, same day, five readers each way) added a sibling to the tech audit's
-"read the loaders": **grep the writers of every field you call frozen, and
-the callers of every function you call once-only** — its corrections were a
-caller nobody looked for (`calc_wall_stats`), a table taken on trust
-(`even_circle_init`) and a gate read with its sense inverted, all at the edges
-of the first reading's scope rather than inside it. And when the decompiler
-prints a local that cannot be right, the listing (`llvm-objdump`) or the PE
-bytes settle it in a minute.
+decompiled function and records the verdicts under `docs/audit/`. When the
+adjudication ran on Opus, a Fable pass ratifies every verdict that changed
+Rust from its own citation before the next mechanic builds on it. The full
+decompile export under `tools/ghidra/` is what makes the second reading cost
+an hour rather than a session. Its record and its lessons are in
+`docs/audit/README.md`; the ones that have recurred most: the arithmetic is
+doubly confirmed almost everywhere and the *predicates* are where the errors
+are — which kinds are exempt, which step a multiplier belongs to, which array
+a level indexes — exactly what tests written from the same reading cannot
+catch; read the loaders, not only the consumers; **grep the writers of every
+field you call frozen, and the callers of every function you call
+once-only**; a name is settled by the type record, never by the surrounding
+code; and when the decompiler prints a local that cannot be right, the
+listing (`llvm-objdump`) or the PE bytes settle it in a minute. A blind
+reader inherits this file — so **this file must never name what a reader is
+meant to re-derive**; findings go in the mechanic's document and the queue.
 
 **Emit traces under the original's own names.** `docs/ORACLE.md` lists the 37
 `SyncDefine` categories the engine considers sync-critical. Where a mechanic

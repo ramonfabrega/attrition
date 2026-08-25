@@ -629,7 +629,7 @@ the type is built on `combat::F32`, the integer-mantissa software float, so
 
 ## 21. `CLAUDE.md` carries the rules; the queue and its history live in `docs/`
 
-**Decided 2026-08-25, to be executed as the next session's first task.**
+**Decided 2026-08-25; tier 1 executed the same day** (see "Executed" below).
 
 `CLAUDE.md` is 787 lines and 51 KB, of which the working agreement's running
 commentary — the queue, mechanic by mechanic, session by session — is lines
@@ -696,3 +696,27 @@ So the restructure is done in two tiers, and only the first is safe:
 The amend-in-place rule (`Conventions`) is unchanged and stays: a claim that
 was corrected keeps its correction inline, with the successor named. That is
 provenance, not chronicle.
+
+### Executed, 2026-08-25
+
+Tier 1 landed as two commits. The first is the pure move: lines 132–680
+lifted into `docs/QUEUE.md` verbatim, a six-line pointer in their place,
+every other line of `CLAUDE.md` byte-identical (847 → 304 lines). The second
+trimmed the remaining rules of the findings they cited as examples — the
+attrition constants in the phases, the loggers' ini keys, `calc_wall_stats`
+and `even_circle_init`, the AI audit's figures — to the rule and a pointer
+at `docs/audit/README.md`, which already carried every example. One rule was
+added in their place: this file must never name what a blind reader is meant
+to re-derive.
+
+Two refinements to the split as decided:
+
+- **The queue and the continuity file are one file.** `docs/QUEUE.md` opens
+  with "Where things stand" — the handoff a session rewrites on its way out
+  (in progress, owed, next, needs the user) — and the backlog follows in
+  dependency order. They were considered as two files and rejected: the
+  handoff *is* "where in the queue are we", and two files that state the
+  same fact drift.
+- **`docs/ORACLE.md` is the next chronicle** (114 KB, nineteen runs). The
+  tier-2 candidate there is a split into the recipe and a run ledger, on the
+  same preserve-the-citations terms as the mechanic documents. Not done.
