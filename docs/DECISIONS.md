@@ -720,3 +720,55 @@ Two refinements to the split as decided:
 - **`docs/ORACLE.md` is the next chronicle** (114 KB, nineteen runs). The
   tier-2 candidate there is a split into the recipe and a run ledger, on the
   same preserve-the-citations terms as the mechanic documents. Not done.
+
+Later the same day, after a review by the `lore` session against its corpus
+of other repositories' continuity files, two more moves: the chronicle —
+the 545 lines of per-item narrative the verbatim lift had carried into the
+queue — went to a dated, append-only **`docs/JOURNAL.md`**, and the queue's
+struck entries were cut to one line and a pointer each, which is the
+condition under which a single queue file stays a queue. And a probe
+settled a question this entry had left as an assumption: **a subagent
+inherits the memory index as well as `CLAUDE.md`**, so the index's hooks
+are held to the same rule as this file. The file map in `CLAUDE.md`'s
+working agreement records all of it, with an inherited-by-subagents column.
+
+## 22. Opus by default; Fable by choice; an Opus adjudication is ratified on Fable
+
+**Agreed 2026-08-20 (cities), trialled 2026-08-21 (orders), ratified
+2026-08-23, written down here 2026-08-25** — until then it lived only in a
+session memory file, which no other machine or contributor could see.
+
+The question was which model runs which kind of subagent, given that Fable
+is the only model metered tightly enough to need care, and that a wrong
+specification is the expensive failure in this project — a decompiler local
+that cannot be right, a folded vtable slot, a predicate read with its sense
+inverted, all of which a less careful reading produces confidently.
+
+**The arrangement.** Opus is the default for every subagent whose output is
+a list or a survey — dumps, greps, extractions, patches, implementation
+workers over a shared surface. Fable is chosen explicitly for the delicate
+core: a first decompile reading, an adjudication. Blind second readers may
+run on Opus. An Opus adjudication is acceptable under a discipline — append
+each verdict as it is settled; mark what cannot be settled `FABLE:` rather
+than produce a verdict not believed — and is closed by a Fable ratification
+pass over the markers and the code-changing verdicts before the next
+mechanic builds on them. Never Sonnet. Which model actually ran is verified
+from the transcript, not from the spawn parameter.
+
+**The evidence.** The orders audit (`docs/audit/2026-08-21-orders.md`,
+`docs/audit/README.md`): seven Opus blind readers, 355 claims, all seven
+finished. The Fable adjudicator fan-out hit the account's limit and six of
+seven died before a verdict — a fan-out is a quota commitment, not a token
+cost. The Opus re-run in waves completed all seven — A 32 · B 89 · both 165
+· neither 18 · open 8, ten corrections to `crates/sim`, five `FABLE:` rows.
+The Fable third pass re-verified all ten corrections and every marker:
+**zero wrong verdicts, five honest gaps, four of them settled in under an
+hour.** The AI audit (`docs/audit/2026-08-25-ai.md`) repeated the
+arrangement — Opus readers in two waves, adjudication in the main thread, a
+Fable third pass — and retracted nothing.
+
+**What it says.** The quality of an adjudication is a property of the
+discipline — append per row, mark rather than guess, ratify — more than of
+the model; and the quota wall is a property of fan-out size, which waving
+fixes. What stays in memory is nothing of this: account limits, bottle
+names and paths are machine facts and stay there.

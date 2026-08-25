@@ -118,12 +118,24 @@ Phase 3 is a long middle, and it is done one mechanic at a time. This is what
 has been working, written down so a fresh session can pick up without
 re-deriving it.
 
-**The queue lives in `docs/QUEUE.md`** — what is done, what is in progress,
-what is owed and what to take next. Read it at the start of a session and
-rewrite its handoff at the end; do not quote it here. It moved out of this
-file on 2026-08-25 (`docs/DECISIONS.md` entry 21) because every subagent
-inherits this file, and a blind second reader must not arrive with the
-mechanic's findings already in context.
+**Which file holds what.** The column that matters is the last one: a
+subagent inherits this file and the memory index, and nothing else
+(`docs/DECISIONS.md` entry 21).
+
+| file | holds | how it grows | inherited by a subagent |
+|---|---|---|---|
+| `CLAUDE.md` | the rules | rarely changes | **yes** |
+| `docs/QUEUE.md` | where things stand, and the backlog | rewritten every session; subtracts | no |
+| `docs/JOURNAL.md` | the chronicle, dated | append-only | no |
+| `docs/<MECHANIC>.md` | the specification and its provenance | amended in place; its § numbers are an API the code cites | no |
+| `docs/DECISIONS.md` | decisions and their rationale | append; amend in place, never delete | no |
+| `docs/audit/` | the second readings' verdicts, and the method's record | one file per audit | no |
+| memory (`~/.claude/projects/…/memory/`) | machine and account facts only | per user, outside git | **the index is** — keep its hooks free of findings |
+
+Read `docs/QUEUE.md` first — its opening section is the handoff and its last
+line is the next session's opener — then the document of the item you take.
+A finding never goes in this file: it goes in the mechanic's document, the
+journal, or the queue.
 
 **One mechanic per session.** The document is the handoff: a fresh session
 reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes
@@ -233,6 +245,18 @@ code; and when the decompiler prints a local that cannot be right, the
 listing (`llvm-objdump`) or the PE bytes settle it in a minute. A blind
 reader inherits this file — so **this file must never name what a reader is
 meant to re-derive**; findings go in the mechanic's document and the queue.
+
+**Fan-out rules.** Opus is the default for a subagent. Fable is chosen, not
+inherited — for a first decompile reading and for an adjudication — and the
+choice is said in user-visible text each time; never Sonnet. Blind readers
+may run on Opus. An Opus adjudication is acceptable under the marker
+discipline — append each verdict as it is settled, and mark what cannot be
+settled `FABLE:` rather than guess — and is closed by a Fable pass over every
+marker and every verdict that changed Rust. Launch a fan-out in waves, not
+whole; readers write to durable storage from their first finding; verify
+which model actually ran from the transcript, never from the spawn
+parameter. Rationale in `docs/DECISIONS.md` entry 22; the operating checklist
+in `docs/audit/README.md`.
 
 **Emit traces under the original's own names.** `docs/ORACLE.md` lists the 37
 `SyncDefine` categories the engine considers sync-critical. Where a mechanic

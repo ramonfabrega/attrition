@@ -21,6 +21,40 @@ here is a source to implement from. What they are for:
 - **Closed open questions**, where the second reader settled something the
   first had listed as not established.
 
+## How a second reading is run
+
+The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",
+"Fan-out rules") and the rationale is `docs/DECISIONS.md` entry 22; this is
+the operating checklist, every line of it paid for once in the record below.
+
+1. `grep -n <mechanic> CLAUDE.md`, and read the memory index. A reader
+   inherits both. If either names a finding the readers are meant to
+   re-derive, move it to `docs/QUEUE.md` or `docs/JOURNAL.md` first — the
+   brief cannot undo what the system prompt already delivered.
+2. Brief with entry points and the export's structural traps only — facts
+   about the export, never claims about the mechanic. Where a run has
+   already confirmed a claim, do not spend a reader on it: brief the
+   mechanic's never-executed functions (`tools/trace/report.py … blind
+   docs/`).
+3. Ask each reader to disclose any repository content it was handed, and to
+   name, for each claim, the capture that would falsify it — the ini
+   category, the frame, the field.
+4. Readers write to `~/ghidra-projects/reading/<mechanic>-<date>/` from the
+   first finding, section by section. Launch in waves of two or three and
+   let each finish; a wall then costs a wave, not a run.
+5. Adjudicate in the main thread, or on Opus under the marker discipline:
+   append each table row as it is settled; mark anything unsettled
+   `FABLE:` rather than guess. A verdict is a function and an expression,
+   never a paraphrase.
+6. A Fable pass over every marker and every verdict that changed Rust, each
+   re-read from its own citation, recorded as "Third pass" in the audit
+   file — before the next mechanic builds on it.
+7. Every finding that can become an assertion becomes one before the audit
+   is closed; the widening of a dumped record is the cheapest and has
+   out-produced the reading.
+
+## The record
+
 The first pass (2026-08-20) covered the seven mechanics then implemented. Its
 headline: arithmetic doubly confirmed almost everywhere; predicates, scopes and
 wiring wrong in several places — which unit kinds are exempt, which step a
