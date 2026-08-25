@@ -27,32 +27,30 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `15cd148`.* The commit this
+*Last verified 2026-08-25, the session after `8655b02`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** Owed item 1, the `--types` check as a test, on Fable: the
-comparison `rondata --types` ran only on request — twenty checks over the
-loader's `Kind`s, the derived words, the techs' weights and the whole
-combat table — now lives in the library (`rondata::typesdump::compare`)
-and runs as an install-gated `cargo test` against run3's dump on every
-`cargo test`, asserting the dump's shape before its content so it cannot
-pass vacuously; made to fail once on a flipped siege predicate. The CLI's
-output is unchanged. Before it, the same day: the make-list diff (`docs/
-AI.md` §15.7), the AI's second reading and its ratification, and the
-meta-docs. Today's journal entries have all of it.
+**Last landed.** Owed item 1, the audit README's three missing paragraphs,
+on Fable: the pathfinder, recgame and commands audits each have their
+entry in `docs/audit/README.md`'s record now — how each was run, what was
+doubly confirmed, what the corrections had in common, and the lesson —
+written from the audit files, the journal and the commit trailers, with
+one honest note that two of the three blind reports were lost with the
+job's tmp. Documents only; no code moved. Before it, the same day: the
+`--types` check as a test, the make-list diff (`docs/AI.md` §15.7), the
+AI's second reading and its ratification, and the meta-docs. Today's
+journal entries have all of it.
 
 **In progress.** Nothing mid-mechanic. Item 12 (the AI) is implemented and
 audited and owes the items below.
 
 **Owed, cheapest first.**
 
-1. `docs/audit/README.md` owes a paragraph each to the pathfinder, commands
-   and recgame audits.
-2. The coastal-ring guard (audit B4-k) — no capture on disk reaches the
+1. The coastal-ring guard (audit B4-k) — no capture on disk reaches the
    branch; it needs a run on a many-islands map, which also lights up the
    sea half of the AI on the trace's never-executed list.
-3. Left over from the behavioural batch (item 4), each a 20–60 minute drive
+2. Left over from the behavioural batch (item 4), each a 20–60 minute drive
    when the game is up for another reason: the city mask's remaining rungs
    (`docs/CITIES.md` §3.6) and the garrison heal (`docs/CITIES.md` §15).
 
@@ -77,7 +75,7 @@ reaches, its readers briefed to output assertions; the soak kept as the
 determinism guard it is. The rules are in `CLAUDE.md` ("Prefer a diff to a
 reading"); the one build that changes the ratio is item 13 below.
 
-**Opener:** `proceed @docs/QUEUE.md — take owed item 1, the audit README's three missing paragraphs`
+**Opener:** `proceed @docs/QUEUE.md — take owed item 1, the coastal-ring guard: a many-islands run through the cheat channel, then the B4-k assertion`
 
 ## The queue
 
@@ -119,7 +117,7 @@ in which case say so and take that. The story of each struck item is in
 11. ~~**The recorded order stream into the harness**~~ — done 2026-08-24.
     `docs/INPUT.md`, `crates/rondata/src/input.rs`.
 12. **AI** — implemented and audited, 2026-08-24/25, over eight sessions;
-    not struck while it owes items 1–3 above. `docs/AI.md` (§12–§16 the
+    not struck while it owes items 1–2 above. `docs/AI.md` (§12–§16 the
     handoff and the audit), `crates/sim/src/ai*.rs` and `bhs.rs`,
     `docs/audit/2026-08-25-ai.md` with its third pass. Landed under it on
     the way: `docs/SYNC.md`, `docs/ANIM.md`, `tools/trace/` and the cheat

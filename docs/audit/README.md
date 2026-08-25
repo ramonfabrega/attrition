@@ -167,6 +167,66 @@ blind readers, Opus adjudication under the marker-and-append-per-row
 discipline, Fable ratification of the markers and the code-changing
 verdicts, recorded as a "third pass" section in the audit file.
 
+**The pathfinder (`2026-08-23-pathfinder.md`, the same day as the
+mechanic).** Two blind readers on Opus 5, split by function — `astar_path`
+and its machinery, `calc_cost` and the three wrappers — with the PE listing
+allowed for garbled locals; an Opus adjudicator under the marker discipline,
+32 verdicts; then the main thread, on Fable, ratified every verdict and
+re-read the five behavioural ones from the decompile itself. The structure
+was doubly confirmed — the LIFO tie-break, the expansion wheel, the budgets,
+the arrival radius, the reconstruction roots — and the corrections were at
+the edges again: which branch each cost term is reachable from, a flag both
+readings had left uninterpreted (`leaders.flags & 4`), a give-up exit nobody
+had transcribed, and the 24 corner-cutting probe offsets, which the
+decompiler had mangled and the first reading had refused to trust, settled
+byte by byte in the listing. Five behavioural corrections landed in
+`path.rs` the same day, and one of them found a bug outside the mechanic:
+the gamelog parser had been handing every leader its successor's flags. The
+new lesson: **check the project's own established facts before leaving a
+flag uninterpreted** — `is_human` had been in `docs/ORDERS.md` §8 the whole
+time, and both readings re-derived around it. The working papers are at
+`~/ghidra-projects/reports/pathfinder/`, one directory over from where the
+later mechanics' live.
+
+**The recorded-game container (`2026-08-24-recgame.md`).** The first audit
+of a file format rather than a mechanic, so the blind reader had a second
+oracle — the heavengames sample as well as the export. One Opus 5 reader,
+adjudicated by the first reader on Fable the same day. The 943-byte header
+map came back identical field for field, and the strongest agreement in
+the record so far is the package-stream start: the first reading's landmark
+and the second's backward dynamic program over all 1.68 MB — two algorithms
+with no shared code — arrived at the same byte. The corrections were in the
+**writers**, once more: the first reading had the recording path writing
+gzip, and the mode bits in `File::open` show it writes raw and gzips only in
+`finalize`, so an unfinalized recording is a raw file and the reader now
+sniffs for both. Two more: a marker field settled from its use sites, and a
+Types stretch the second reader walked to exactly 806 records and then
+proved unparseable without the loader's own class order. The blind report
+was not kept — it lived in the job's tmp, against the orders audit's third
+lesson — and survives only as absorbed into the audit file and the
+document.
+
+**The command payload encoding (`2026-08-24-commands.md`, the same day).**
+One Opus 5 blind reader in an isolated worktree branched from `main`, which
+carried neither the document nor the queue entry — the isolation structural
+rather than an instruction — 886 lines, every claim cited and graded;
+adjudicated by the first reader on Fable. The 82-entry dispatch table and
+every size were derived four times over, each reading from the decode side
+and the encode side, and all four coincide entry for entry; the obfuscation
+layer — the seed-keyed XOR, the seeded gap bytes, the gate on the network
+bit — was proven from the call ordering by each reader independently.
+Three of the four corrections were of one kind, **what can actually be
+emitted**: the console command's wire size exceeds the package cap, so the
+dispatcher handles a command nothing can send; five more commands have no
+issuer anywhere in the export; and the walker the first reading had cited
+to prove `group` is never serialised was the recording head, while the
+save-game walker does write it. Each was settled by a sweep of every
+`add_command` caller — the cities lesson with a different verb: grep the
+callers of every function you call once-only, and the **emitters of every
+command you call sendable**. Its report was also lost with the job's tmp;
+from the AI audit on, readers write to `~/ghidra-projects/reading/` from
+the first finding.
+
 **The animation clock (`2026-08-24-anim.md`, the same day as the mechanic).**
 One Opus blind reader, ~20 minutes, adjudicated by the first reader on
 Fable the same hour, while the context that wrote the mechanic was still
@@ -236,6 +296,3 @@ place it followed the document's own coordinate bookkeeping.
 
 Still owed, and named here so it is not lost: a guard for the coastal-ring
 fix. The existing suite passes either way, so nothing covered it.
-
-*(The pathfinder, commands and recgame audits are still owed a paragraph each
-here.)*

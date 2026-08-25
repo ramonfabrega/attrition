@@ -681,3 +681,28 @@ change; one guard moved from a flag to a test.
 - `cargo test --workspace` with the install 492 + 84 + 13 + 3, 0 ignored;
   clippy and fmt clean; `rondata` survey exits 0; `--types` against run3
   39 checks, 0 differences.
+
+## 2026-08-25 — the audit README's three missing paragraphs (owed item 1, the third)
+
+Session on Fable 5, the queue's opener taken as written. Documents only.
+
+- **What was owed.** `docs/audit/README.md`'s record narrated every second
+  reading from the first pass through the AI, except three it named in a
+  placeholder at the end: the pathfinder (2026-08-23), the recorded-game
+  container and the command payload encoding (both 2026-08-24). Each had
+  its audit file; none had its paragraph in the method's record.
+- **Written**, from the audit files, the journal's struck entries 8–10 and
+  the commit trailers (all three adjudications on Fable in the main
+  thread; the blind readers Opus 5). In date order between the orders
+  ratification and the animation clock. What each paragraph keeps: the
+  pathfinder's lesson that a flag left uninterpreted by both readings was
+  already settled in `docs/ORDERS.md` §8; the container's package-stream
+  start reached by two algorithms with no shared code, and its correction
+  in the writers (raw, gzipped only in `finalize`); the commands audit's
+  three corrections of one kind — what can actually be emitted — settled
+  by sweeping every `add_command` caller. And one thing the record had not
+  said: the recgame and commands blind reports were lost with the job's
+  tmp, against the orders audit's own third lesson; the pathfinder's are
+  at `~/ghidra-projects/reports/pathfinder/`, one directory over from
+  `reading/`.
+- The placeholder removed; the queue's owed list down to two.
