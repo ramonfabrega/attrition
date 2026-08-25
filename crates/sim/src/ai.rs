@@ -659,6 +659,10 @@ pub struct Leader {
     /// `tech_frame`, `tech_cat_frame[4]`: written only by `Leader::init`.
     pub tech_frame: i64,
     pub tech_cat_frame: [i64; 4],
+    /// `frame_attacked`, `attacked_by`: the frame an enemy army last took
+    /// a target of this leader's, and whose (`docs/ARMY.md` §12).
+    pub frame_attacked: i64,
+    pub attacked_by: i32,
 }
 
 impl Default for Leader {
@@ -805,6 +809,8 @@ impl Leader {
             }; SITES],
             mil_trainers: Vec::new(),
             tech_frame: 0,
+            frame_attacked: 0,
+            attacked_by: -1,
             tech_cat_frame: [0; 4],
         }
     }

@@ -521,6 +521,14 @@ impl Sim {
         // Step 7: take.
         let taken = self.take_damage(target, dealt, attacker, frame);
         let killed = matches!(taken, Taken::Died { .. });
+        // `Armies::emergency`: an AI leader's object hit by another
+        // player's (`docs/ARMY.md` §15.8).
+        {
+            let tw = self.owner_of(target);
+            if !quiet && self.owner_of(attacker) != tw && (tw as usize) < self.armies.len() {
+                self.armies_emergency(tw);
+            }
+        }
         // Step 8 and 9 on a building: a kill by a non-air, non-splash,
         // non-allied unit plunders it; a hit that did not kill a capturable
         // building by another player's unit is a capture attempt

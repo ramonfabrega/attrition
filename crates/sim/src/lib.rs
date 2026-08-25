@@ -48,6 +48,7 @@ pub mod ai_sites;
 pub mod ai_types;
 pub mod ai_units;
 pub mod anim;
+pub mod army;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;
@@ -582,6 +583,8 @@ pub struct Sim {
     pub transport: Vec<transport::LeaderTransport>,
     /// One per player: the docks registry (`docs/TRANSPORT.md` §5).
     pub docks: Vec<transport::Docks>,
+    /// One per player: the sixteen army slots (`docs/ARMY.md`).
+    pub armies: Vec<army::Armies>,
     /// The market's price cycle (`market.rs`).
     pub market: market::Market,
     /// The herds and the birds' sampling (`gaia.rs`).
@@ -783,6 +786,9 @@ impl Sim {
         Sim {
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
+            armies: (0..players)
+                .map(|w| army::Armies::new(w as Player))
+                .collect(),
             tech: (0..players)
                 .map(|_| tech::PlayerTech::new(&tech_tree))
                 .collect(),
@@ -868,6 +874,9 @@ impl Sim {
         self.ai.push(ai::Leader::new());
         self.transport.push(transport::LeaderTransport::default());
         self.docks.push(transport::Docks::default());
+        self.armies.push(army::Armies::new(
+            u8::try_from(who).expect("too many players"),
+        ));
         for row in &mut self.at_war {
             row.push(false);
         }
@@ -1649,8 +1658,14 @@ impl Sim {
 
     /// Sets two players at war with each other.
     pub fn declare_war(&mut self, a: Player, b: Player) {
+        let changed = !self.at_war[a as usize][b as usize];
         self.at_war[a as usize][b as usize] = true;
         self.at_war[b as usize][a as usize] = true;
+        // `Leader::set_diplo` → `Armies::diplo_change` on the declarer
+        // (`docs/ARMY.md` §15.9).
+        if changed && (a as usize) < self.armies.len() {
+            self.armies_diplo_change(a);
+        }
     }
 
     /// Copies the territory the border pass produced into the holdings the
@@ -1756,6 +1771,10 @@ impl Sim {
         // cycle, between the AI and the objects (`docs/SYNC.md` §3.1). On
         // frame 0 it is eighteen draws, the frame's 2nd to 19th.
         self.calc_markets(frame);
+
+        // `Armies::process_all` — after the daemon, before the objects
+        // (`Game::do_frame` line 272; `docs/ARMY.md` §5).
+        self.armies_process_all();
 
         // Then the buildings. `Build::process` and `Unit::process` are both
         // reached from `Objects::process_all`, so in the original they

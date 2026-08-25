@@ -232,10 +232,12 @@ impl Sim {
         self.ai.get(who as usize).is_none_or(|l| l.script.is_none())
     }
 
-    /// **Seam** — `Armies::find_army`/`init_navy`. Armies are not modelled,
-    /// so no city ever has one and the navy is never seeded.
-    const fn seam_army_at(&self, _city: usize) -> i32 {
-        -1
+    /// `Armies::find_army(who, city.x, city.y, −1, ·, −1)` — the slot of
+    /// the nearest army in the city's region, or −1 (`docs/ARMY.md` §15).
+    /// `init_navy` on the sea branch is still a seam.
+    fn army_at(&self, who: Player, city: usize) -> i32 {
+        self.find_army(who, self.cities[city].pos, -1, None)
+            .map_or(-1, |(s, _)| s as i32)
     }
 
     // ---- small helpers over the tree and the buildings ----
@@ -507,7 +509,7 @@ impl Sim {
         for c in cities {
             let city_o = self.cities[c].building;
             let r = self.city_region(c);
-            let army_here = self.seam_army_at(c);
+            let army_here = self.army_at(who, c);
             let (slots, _gmax, gfree) = self.gather_slot_picture(c);
             // `city_flags & 2`, which `docs/CITIES.md` §1.4 records as
             // "do not heal / auto-repair" with no setter found and the

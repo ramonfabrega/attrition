@@ -745,6 +745,8 @@ impl Sim {
         if self.worker_of(u) != Worker::None {
             self.think_peasant(u, false);
         }
+        // `think_attack`'s and `think`'s `add_to_army` (`docs/ARMY.md` §4).
+        self.think_join_army(u);
     }
 
     /// `Unit::think_peasant(forced)` (§5.9): the idle gate, then the job

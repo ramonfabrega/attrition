@@ -3759,3 +3759,223 @@ pub fn build_for_check(loaded: &Loaded, log: &Log<'_>, tuning: Tuning) -> Option
     let init = log.initial()?;
     Some(build_sim(loaded, &init, tuning))
 }
+
+/// The `ARMY` records against `docs/ARMY.md`'s implementation
+/// (`crates/sim/src/army.rs`): the whole record, every valid slot, per
+/// the working agreement's "diff the whole record".
+#[cfg(test)]
+mod army_tests {
+    use super::*;
+    use crate::gamelog::Block;
+    use crate::testenv::{dump, install};
+    use sim::army::Army;
+
+    /// Every `BEGIN ARMY` block under a frame block's first `FULL DUMP`, in
+    /// order — `ArmyData::log_data` prints only the valid slots.
+    fn army_records<'a, 'b>(frame: &'a Block<'b>) -> Vec<&'a Block<'b>> {
+        let b = frame.kid("FULL DUMP").unwrap_or(frame);
+        b.kids("ARMY").collect()
+    }
+
+    /// The dump's named fields of an `ARMY` record, from the harness's
+    /// record. `reg` and `city` are mapped back to the dump's numbering.
+    fn ours(built: &Built, a: &Army) -> Vec<(&'static str, i64)> {
+        let reg = a.reg.map_or(-1, |r| {
+            built
+                .region_map
+                .iter()
+                .find(|(_, s)| *s == r)
+                .map_or(-1, |(d, _)| *d)
+        });
+        let city = a.city.map_or(-1, |c| {
+            built
+                .sim
+                .cities_of(a.who)
+                .iter()
+                .position(|&x| x == c)
+                .map_or(-1, |p| p as i64)
+        });
+        let (target_o, target_who) = match a.target {
+            None => (-1, -1),
+            Some(sim::combat::Obj::Unit(u)) => (
+                i64::from(built.sim.units[u].index),
+                i64::from(built.sim.units[u].owner),
+            ),
+            Some(sim::combat::Obj::Building(b)) => (
+                i64::from(built.sim.buildings[b].index),
+                i64::from(built.sim.buildings[b].owner),
+            ),
+        };
+        vec![
+            ("army", i64::from(a.army)),
+            ("who", i64::from(a.who)),
+            ("num_groups", i64::from(a.num_groups())),
+            ("status", i64::from(a.status)),
+            ("reg", reg),
+            ("role", i64::from(a.role)),
+            ("num_units", i64::from(a.num_units)),
+            ("num_captains", i64::from(a.num_captains)),
+            ("num_standard", i64::from(a.num_standard)),
+            ("num_decoys", i64::from(a.num_decoys)),
+            ("city", city),
+            ("navy", i64::from(a.navy)),
+            ("human_frame", i64::from(a.human_frame)),
+            ("hurry", i64::from(a.hurry)),
+            ("target_o", target_o),
+            ("target_who", target_who),
+            ("x", i64::from(a.pos.x)),
+            ("y", i64::from(a.pos.y)),
+            ("angle", i64::from(a.angle.0)),
+            ("rally_dist", i64::from(a.rally_dist)),
+            ("muster_x", i64::from(a.muster.x)),
+            ("muster_y", i64::from(a.muster.y)),
+            ("muster_angle", i64::from(a.muster_angle.0)),
+        ]
+    }
+
+    /// Every field of every record, in one list of disagreements.
+    fn compare(built: &Built, theirs: &[&Block<'_>], skip: &[&str]) -> Vec<String> {
+        let mut wrong = Vec::new();
+        let mut mine: Vec<&Army> = Vec::new();
+        for who in 0..built.sim.armies.len() {
+            for (_, a) in built.sim.armies[who].valid() {
+                mine.push(a);
+            }
+        }
+        if mine.len() != theirs.len() {
+            wrong.push(format!(
+                "{} valid armies, the dump has {}",
+                mine.len(),
+                theirs.len()
+            ));
+        }
+        for (a, t) in mine.iter().zip(theirs) {
+            for (key, o) in ours(built, a) {
+                if skip.contains(&key) {
+                    continue;
+                }
+                let tv = t.int(key);
+                if tv != Some(o) {
+                    wrong.push(format!(
+                        "army {} who {} {key}: ours {o} theirs {tv:?}",
+                        a.army, a.who
+                    ));
+                }
+            }
+        }
+        wrong
+    }
+
+    /// Run20's frame blocks 1–4 carry the AI's first army —
+    /// `Armies::init_army` from the census's step 16 at frame 0, before a
+    /// unit has joined — and the harness's census seeds the same slot at
+    /// the same city with the same record, field for field, and nothing
+    /// for the human.
+    #[test]
+    fn run20_s_first_army_is_the_census_s_init_army_whole() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run20-islands-dumpall.txt") else {
+            eprintln!("skipping: no gamelog-run20-islands-dumpall.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let frames = log.frames();
+        // Block 4 is the quit's own: a `FRAME 4` header with no dump.
+        for n in 1..=3 {
+            built.sim.tick();
+            let (_, block) = frames
+                .iter()
+                .find(|(f, _)| *f == n)
+                .expect("the frame block");
+            let theirs = army_records(block);
+            assert_eq!(theirs.len(), 1, "one army at frame {n}");
+            assert_eq!(theirs[0].int("who"), Some(1), "the AI's");
+            let wrong = compare(&built, &theirs, &[]);
+            assert!(wrong.is_empty(), "frame {n}:\n  {}", wrong.join("\n  "));
+        }
+    }
+
+    /// Run22's block 3579: two armies of the AI, one per city, both
+    /// mustering **and** forming (`status 17`) — `do_mustering`'s first
+    /// arm, a muster spot found at an active city — with `x, y` the city's
+    /// point one cell south (`Army::init`), every count still zero, and
+    /// muster cells that are **not** the init's: the ring search of
+    /// `find_muster_spot` (§13) moved them, and kept them at least four
+    /// cells apart (the same-owner spacing rule). The ring search is the
+    /// one seam of `army.rs` this capture reaches; the record is asserted
+    /// from the dump alone.
+    #[test]
+    fn run22_s_two_armies_are_init_s_records_with_the_ring_search_s_muster_cells() {
+        let Some(path) = dump("gamelog-run22-islands-dock-window.txt") else {
+            eprintln!("skipping: no gamelog-run22-islands-dock-window.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let frames = log.frames();
+        let (_, block) = frames.iter().find(|(f, _)| *f == 3579).expect("block 3579");
+        let dumpb = block.kid("FULL DUMP").unwrap_or(block);
+        let theirs = army_records(block);
+        assert_eq!(theirs.len(), 2, "two armies at 3579");
+        let cities: Vec<&Block<'_>> = dumpb
+            .find("CITIES")
+            .expect("CITIES")
+            .kids("CITY")
+            .filter(|c| c.int("who") == Some(1))
+            .collect();
+        assert!(
+            cities.len() >= 2,
+            "the AI's two cities, got {}",
+            cities.len()
+        );
+        let mut musters = Vec::new();
+        for (i, a) in theirs.iter().enumerate() {
+            assert_eq!(a.int("army"), Some(i as i64));
+            assert_eq!(a.int("who"), Some(1));
+            assert_eq!(a.int("status"), Some(0x11), "mustering and forming");
+            assert_eq!(a.int("city"), Some(i as i64));
+            assert_eq!(a.int("reg"), Some(11));
+            for k in [
+                "num_groups",
+                "num_units",
+                "num_captains",
+                "num_standard",
+                "num_decoys",
+                "navy",
+                "human_frame",
+                "hurry",
+                "angle",
+                "rally_dist",
+                "role",
+            ] {
+                assert_eq!(a.int(k), Some(0), "{k}");
+            }
+            assert_eq!(a.int("target_o"), Some(-1));
+            assert_eq!(a.int("target_who"), Some(-1));
+            let c = cities[i];
+            let (cx, cy) = (c.int("x").unwrap(), c.int("y").unwrap());
+            assert_eq!(a.int("x"), Some(cx), "x is the city's");
+            assert_eq!(
+                a.int("y"),
+                Some(cy + 0x300),
+                "y is one cell south of the city's"
+            );
+            let init_cell = (cx / 0x300, (cy + 0x300) / 0x300);
+            let m = (a.int("muster_x").unwrap(), a.int("muster_y").unwrap());
+            assert_ne!(m, init_cell, "the ring search moved army {i}'s muster cell");
+            musters.push(m);
+        }
+        let d = sim::world::vector_dist(
+            (musters[0].0 - musters[1].0).unsigned_abs() as i32,
+            (musters[0].1 - musters[1].1).unsigned_abs() as i32,
+        );
+        assert!(
+            d >= 4,
+            "muster cells {musters:?} are {d} apart; the same-owner rule wants four"
+        );
+    }
+}

@@ -2036,6 +2036,36 @@ the process at the Game Over screen writing blocks 3583–3584 for a minute;
 a size poll on `gamelog.txt` (90 s unchanged) is the "done" signal, then
 `pkill -f riseofnations_trace.exe`.
 
+### run23–run27 — the army's captures (2026-08-25)
+
+Five runs of the run21 lobby for `docs/ARMY.md`, all driven unattended by
+one script (`tools/gamelog/runwin.sh N LO HI TAG`: stage with `window.py`,
+re-add the scenario lines, launch, the five clicks, poll until the dump is
+quiet, archive, restore), chained three at a time.
+
+- **run23** (`gamelog-run23-islands-war.txt`, `rontrace-run23.log`; dump
+  off, trace on, `6000 war who=1`): **a null result worth keeping.** The
+  line ran (`INFO cmd`, `Leader::set_diplo` entered at 6000) and every one
+  of the 24,001 per-frame `game_random` words is identical to run21's — a
+  Quick Battle **already starts at war**, so the command changed nothing.
+  `tools/gamelog/rngcmp.py A B` is the ten-second check that a scenario
+  took; run it before reading anything else.
+- **run24** (`gamelog-run24-islands-raid.txt`, `rontrace-run24.log`; seven
+  `add hoplite who=0` beside the AI's capital at 12000–12006 and
+  16000–16006): the words diverge at 12001, the capital falls at 13125
+  (`Cities::capture_city`), the AI is defeated at 16488 and the game ends
+  — the first traced game with the army's combat half in it
+  (`docs/ARMY.md` §16.4). Two minutes.
+- **run25–27**: `DUMP_ALL` windows of run24's game at `[12129, 12132)`
+  (`Armies::emergency`), `[12024, 12027)` (`find_target` with a live
+  enemy) and `[15100, 15103)` (`do_defending`). About ten minutes each: at
+  frame 12000 a block is ~130 MB and takes two to three minutes. Each has
+  **five** blocks, not three: the `!quit` at `HI + 1` returns the game to
+  the Game Over screen and the simulation runs on at fast-forward until
+  the process is killed; the last block (16007 in run25 and run26) is the
+  dump written then — a free capture of a later frame, labelled by the
+  frame it was written at.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The

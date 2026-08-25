@@ -88,7 +88,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// `unit_flags2 & 4` come from the type's columns.
 /// | `World::gather_at` | zeroes | so `CityAi::ter` stays 0. |
 /// | region flags `& 8` | clear | step 15's two-landmass expand probe never fires. |
-/// | `Armies` | — | step 16 is skipped whole; `Armies::init_army` is unmodelled. |
+/// | `Armies::init_navy` | never seeded | step 16 is `Sim::census_seed_army` (`docs/ARMY.md`); the sea branch of `create_units` still seeds nothing. |
 /// | `check_explore`'s visibility | every region cell counts | no fog: the leader has seen the map. |
 ///
 /// `home_reg`, `pop`, `control` and `scouts` are *not* seams: the sweep
@@ -292,7 +292,8 @@ impl Sim {
         self.census_city_sites(who);
         self.census_wars(who);
         self.census_strategy(who);
-        // Step 16, the army seeding, is a seam: `Armies` is unmodelled.
+        // Step 16, the army seeding (`docs/ARMY.md` §15).
+        self.census_seed_army(who);
     }
 
     /// Step 1. Once the leader holds more than two cities and villages,

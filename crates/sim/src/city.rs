@@ -404,6 +404,8 @@ impl Sim {
     /// `City::close`: the record dies; members re-home.
     fn close_city(&mut self, c: usize, captor: Option<Player>) {
         let owner = self.cities[c].owner;
+        let building = self.cities[c].building;
+        self.armies_city_closed(c, building);
         let was_capital = self.cities[c].capital;
         self.cities[c].alive = false;
         self.lost_city_stamp[owner as usize] = Some(self.frame);
@@ -437,6 +439,7 @@ impl Sim {
             return;
         }
         self.defeated[who as usize] = true;
+        self.armies_leader_defeated(who);
         if let Some(by) = by {
             for c in 0..self.cities.len() {
                 if !self.cities[c].alive || self.cities[c].owner != who {
@@ -1729,6 +1732,7 @@ impl Sim {
                     .expect("a city building activates with a record");
                 base = self.tuning.city_plunder_per_level * (self.city_level_of(newcity) - 1);
                 self.city_capture_record(newcity, c, a, n);
+                self.armies_update_city(Obj::Building(old_building), Obj::Building(n), a);
                 for m in self.cities[c].members.clone() {
                     let Some(t) = self.buildings[m].ty else {
                         continue;

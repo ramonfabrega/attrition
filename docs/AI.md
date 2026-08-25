@@ -280,7 +280,8 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
     army of mine is near (`Armies::find_army < 0`) else `× (find_dist / 4 +
     6)`; the best → **`Armies::init_army(who, city)`** — the lowest-numbered
     free slot, or the one with the smallest `+0x10`, re-`init`ed. This is
-    where armies come from; `docs/ARMY.md` will own `Army::init`.
+    where armies come from; `docs/ARMY.md` owns `Army::init` and the rest
+    of the family (2026-08-25); `army.rs::census_seed_army` is this step.
 17. **Tail**, unless `semaphore[1] & 2`: `check_orphaned_buildings()`
     (§2.8), `compute_sites(0)` (§2.7), **`production_step = 1`**.
 
@@ -1514,7 +1515,10 @@ The script side: §3.
    `research_techs`, `upgrade_units`, `create_units`, `create_buildings`,
    `make_stuff`/`use_market`/`market_speculation` — with `MakeList` and
    `produce_*`. Pin: run7's table in §5, all of it.
-4. **Armies**, as its own document (`docs/ARMY.md`): the state machine and
+4. ~~**Armies**, as its own document (`docs/ARMY.md`)~~ — **done
+   2026-08-25**: `docs/ARMY.md`, `crates/sim/src/army.rs`,
+   `docs/audit/2026-08-25-army.md`; the sea half's part stays in
+   `docs/TRANSPORT.md` §8. ~~The state machine and
    `find_target`. Its oracle is a longer run with a war in it, which does
    not exist yet. **The sea half of it is read** (2026-08-25,
    `docs/TRANSPORT.md`): `check_transport`, the docks registry,

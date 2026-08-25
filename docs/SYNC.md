@@ -224,6 +224,19 @@ are `Guy::init_real+0x52 < Unit::init < Animal::init` and `Dock::init+0x125
 < Docks::init_dock+0x128 < Build::activate+0xcbf`. `docs/TRANSPORT.md`
 §5.2; landed in `crates/sim/src/transport.rs` (`dock_open`).
 
+### 3.5 The armies — `Army::find_target@006f69b0`, `Unit::come_out@00617c10` (2026-08-25)
+
+`Army::find_target` draws `Random::get(game_random, 0, 0xffff)` **once per
+candidate city** that reaches its score (`% 200 + 900`, the base), once
+per candidate fort, and once more in the low-difficulty gate's coin
+(`& 1`) — so an army's retarget tick spends as many draws as there are
+scoreable cities, on the army's own 256-frame phase (`docs/ARMY.md` §5,
+§12). `Unit::come_out` draws once per unit leaving a building, to decide
+whether it joins an army (`docs/ARMY.md` §4). Neither is reached in
+run12/run13's windows; run24–26 are the captures with them
+(`docs/ARMY.md` §16). The harness's `find_target` draws on the same
+stream in the same order.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):

@@ -639,10 +639,11 @@ predicates (§3), `needs_transport` (§6), the dock registry as `reg_docks`
 plus the two draws at activation and the decrement at close (§5),
 `is_dock_tile` replacing the census's seam (§5.6), and the region coast
 masks with `is_coast` / `num_coasts` computed from the cells (§9.1–§9.2).
-`think_civilian_transport`, `do_transporting` and the navy are documented
-here and **not implemented**: the first needs the unit AI's `think` and the
-danger grid's writers, the second the `Army` family (`docs/AI.md` §9 item
-4), neither of which the simulation has yet.
+`think_civilian_transport` is documented here and **not implemented**: it
+needs the unit AI's `think` and the danger grid's writers.
+`do_transporting` (§8.2) is `army.rs::do_transporting` since `docs/ARMY.md`
+(2026-08-25), with the region-first-cell distance of B.55a; `init_navy`
+on `create_units`' sea branch and `send_navy` are still seams there.
 
 Checks, cheapest first:
 
