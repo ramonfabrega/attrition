@@ -27,78 +27,73 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 25's last half —
-`Leader::produce_building`'s two draw sites and the three defects they
-found.* The commit this section was written against is the one that lands
-it; if `git log` has moved well past it, trust the queue below and the
-journal before trusting this.
+*Last verified 2026-08-26, after item 29 — `go_around_building` and the
+detour `find_path` accepts.* The commit this section was written against is
+the one that lands it; if `git log` has moved well past it, trust the queue
+below and the journal before trusting this.
 
-**Last landed: `produce_building` draw for draw, and the farm on the
-original's own tile.** The queue asked only for the marks. They cost
-twenty minutes and turned one number into three bugs
-(`docs/AI.md` §2.20, `docs/JOURNAL.md`):
+**Last landed: the last `Unit::do_move+0xe84` on any capture.**
+`Unit::go_around_building@005fc350` is a mechanic now, not a seam
+(`docs/ORDERS.md` §4.6.1, `crates/sim/src/orders.rs`,
+`docs/JOURNAL.md`): the tile-edge walk in both directions, the pick, the
+one-or-three pushes with their `off % 0xc0 / 2` skew, the give-up, and
+`find_path`'s half — lift the pushes off, drop one that lands on the unit,
+refuse six degenerate cases, recurse on what is left, and on a verified
+line put them back with each entry's shore bit recomputed.
 
-- **The jitter walks a 2×2.** Both loops at `006e2a78` are inclusive, so
-  an ordinary building tries four sub-positions and draws for each one
-  `blocked_site` clears — four on run20, three on the fuzzed map where one
-  is blocked. The code had one.
-- **The stride-by-three tested the loop's start index** instead of the
-  current one, so it could never engage. Fixing it moved no measured
-  number; it is in because the next early-accepting call walks 105 cells
-  instead of 40.
-- **`WorldData::buildings_allowed` was not modelled.** It is a predicate,
-  `(flags & 0x78) == 0` — rock, mountain, forest and the unnamed `0x40`
-  take no building — and the world dump has carried those flags all along.
-  The sim was scoring forest cells and drawing for them.
+**The numbers now.** run20 frame 0 **175/175**, frame 1 **53/53 draw for
+draw over the whole sequence**, frame 2 **5/5** — three frames exact on
+that map. Its path-stack disagreements over five frames fell **21 → 17**.
+The Great Lakes (120/54/6, 7/6 at frame 3) and the fuzzed map (195/195,
+43/45) did not move by a draw or a position; run6's long pin held at
+**1,552 / 1,160**. `ticks before divergence` is still 1 everywhere.
 
-**The numbers now.** run20 frame 0 **175/175 draw for draw**, frame 1
-**54/53** — and the residue is now a single named thing, the AI scout's
-`Unit::do_move+0xe84`; `produce_building` is 39 + 4 on both sides and its
-farm lands at `(41856, 39552)`, the run's own `BUILDDATA` to the unit.
-Frame 2 **5/5**. The Great Lakes: 120/120, 54/54, 6/6, 7/6, unchanged byte
-for byte. The fuzzed map: frame 0 **195/195**, frame 1 **43/45** (was
-48/45). `ticks before divergence` is still 1 everywhere. Run6's long pin
-was re-based: totals **fell** 1,679/1,199 → 1,552/1,160, the asserted
-non-farmer half rose 1,246/879 → 1,267/892 because the farmers' share fell
-further.
+**The check that matters is the original's own stack, not the count.**
+Run20's unit `1/1` ends frame 1 with `[{(41640, 39384), tol 0, flags 1},
+{(40644, 39036), tol 0, flags 0}]` and the log's frame-2 record is those
+same two entries. Pinning the skew at `0x30` moves the second to
+`(40608, 39072)` and the assertion fails — that is how it was made to fail
+on purpose.
 
 **Then, in order:**
 
-- **`go_around_building@005fc350`** — item 29, and a mechanic rather than
-  a fix. Run20's frame 1, unit `1/0`: the AI scout's line clips a
-  *building* three tiles short of a clear goal, so the pull-back has
-  nothing to pull. `docs/ORDERS.md` §4.6 has the shape (up to three
-  `PathData`s, a recursive `find_path` on the first, `return 0` when it
-  verifies). It is the **only** residue left in run20's frame 1 and the
-  last `+0xe84` on any capture. Re-measured 2026-08-26 and still one draw:
-  the building it clips stands beside the city, not where the farm moved.
-- **The fuzzed map's frame 1**, now two rows rather than a lump: one
+- **`toff`, item 30** — the sharpest thing this session found, and it needs
+  no run. `docs/PATHFINDER.md` §7 pushes each reconstructed world node at
+  `node + toff − 0x180`; `path.rs` carries `toff = 0` as a stated seam for
+  point goals; run20's dump has unit `1/0`'s whole chain at
+  `cell*0x300 + 504` where the sim emits the cell centre. `504 − 0x180 =
+  120` and the order's own `off_x` is `504`, so `toff` is the move order's
+  `off_x/off_y` whether or not the target is a unit. Most of run20's
+  remaining path-to disagreements, and all of `1/0`'s position drift.
+- **`find_wpath`'s pre-walk**, item 31 and the same comparison: the goal at
+  the bottom of that stack is `(41952, 36576)` where the order is at
+  `(41976, 36600)` — `0x18` short on both axes, which the sim does not
+  move at all.
+- **The fuzzed map's frame 1**, two rows: one
   `Leader::produce_building+0xc99` **short** (29 against 30 — a spiral
-  candidate the original scores and the sim does not, the mirror image of
-  the gap just closed) and one `Unit::do_non_flat_gather+0x54b` short.
+  candidate the original scores and the sim does not) and one
+  `Unit::do_non_flat_gather+0x54b` short.
   `diff::tests::the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well`
   asserts both as they stand, so closing either fails the test.
 - **§9.3's sixth citizen** and **the frame-1 order two of player 1's units
-  hold and the sim does not** — the rest of item 25; re-read it, both the
-  scout half and the `produce_building` half have moved under it.
+  hold and the sim does not** — the rest of item 25.
 - **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked.
 - **Re-run run13's window** (sim-frames 95–103): §5's largest single gap
   was `6 / 23` at frame 95, and nothing has re-measured it since the
-  scout, the stands or the pull-back.
+  scout, the stands, the pull-back or the detour.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *Mark the phase before believing the
-total — and mark it even when the total already agrees.* Run20's frame 1
-read 53/53 for two days while carrying three independent errors that
-cancelled, and one of them was a map layer the harness had been loading
-and never reading. Two corollaries for this file: **a residue that
-vanishes when an unrelated object moves has not been closed** (the
-`do_move` row read zero on an intermediate build and came back), and
-**a queue item that says "one draw short" is a question, not a
-measurement** — the answer is rarely one draw.
+**The thing this session earned.** *A residue's owner is a measurement too,
+and naming it costs one print.* `docs/SYNC.md` §6 had the last `+0xe84`
+down to the unit, the position and the clipped tile — and it was the wrong
+unit. One `eprintln!` in the blocked branch said so in a second, and the
+same print, widened to the two stacks side by side, produced items 30 and
+31 for free. The sibling rule from last session: *mark the phase before
+believing the total*; this one: **print the actor before believing the
+attribution**.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -106,7 +101,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — go_around_building@005fc350, item 29 and the only residue left in run20's frame 1: unit 1/0's straight line clips a building at tile (201, 207) three tiles short of a clear goal, and the sim pays a Unit::do_move+0xe84 grid draw the original never spends. docs/ORDERS.md §4.6 has the shape; docs/SYNC.md §6 has the measurement and §5.1 the instrument. Then the fuzzed map's frame 1 — one produce_building+0xc99 short and one do_non_flat_gather+0x54b short, both asserted where they stand.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 30, toff. docs/PATHFINDER.md §7 pushes every reconstructed world node at node + toff - 0x180 and crates/sim/src/path.rs carries toff = 0 as a stated seam for point goals; run20's dump has unit 1/0's whole find_wpath chain at cell*0x300 + 504 where the sim emits the cell centre 0x180. 504 - 0x180 = 120 and the order's own off_x is 504, so toff is the MoveOrder's +0x4c/+0x4e whether or not the target is a unit — re-read the toff store in astar_path's prologue (PATHFINDER §2) and widen the diff. Item 31, find_wpath's pre-walk, is the same comparison: the goal at the bottom of that stack is 0x18 short of the order's own on both axes. Both are on disk; no capture needed.`
 
 ## The queue
 
@@ -307,21 +302,31 @@ in which case say so and take that. The story of each struck item is in
 28. ~~**The `do_move` grid draw the sim spends and the original does
     not.**~~ — done 2026-08-26 for the gather's transit, which was
     `find_path`'s missing pull-back; run10's frame-3 draw was never this.
-    `docs/ORDERS.md` §4.6, `docs/SYNC.md` §5 and §6. The scout's remains,
-    as item 29.
+    `docs/ORDERS.md` §4.6, `docs/SYNC.md` §5 and §6. The other half was
+    item 29 — and it was another unit's, not the scout's.
 
-29. **`go_around_building@005fc350`** — item 28's remainder, and a
-    mechanic rather than a fix. The last `Unit::do_move+0xe84` on any
-    capture is run20's frame 1, unit `1/0`: the AI scout's straight line
-    clips a *building* at tile `(201, 207)`, three tiles short of a
-    waypoint whose own tile is clear, so the pull-back has nothing to pull
-    and the march has nowhere to go. `docs/ORDERS.md` §4.6 has the shape —
-    a tile-edge walk pushing up to three `PathData`s (turn-in point, a
-    `flags 8` midpoint, the target tile centre, each `off % 0xc0 / 2 −
-    0x30` from the centre), a recursive `find_path` on the first, `return
-    0` when it verifies, and on failure `mo->dest = 0; masks &= ~8;
-    path_recursion = 10`. No run needed: run20 is on disk and both sides
-    are marked.
+29. ~~**`go_around_building@005fc350`**~~ — done 2026-08-26, and the last
+    `Unit::do_move+0xe84` on any capture with it. `docs/ORDERS.md` §4.6.1,
+    `docs/SYNC.md` §4.2 and §6, `crates/sim/src/orders.rs`. Run20's frame 1
+    is 53/53 draw for draw and unit `1/1`'s path stack is the original's
+    entry for entry. The residue's owner in the old text (`1/0`) was
+    wrong; the count was not.
+
+30. **`toff`, and the world grid's waypoints** — the sim emits
+    reconstructed world nodes at the cell centre and the original emits
+    them at `cell*0x300 + off`. `docs/PATHFINDER.md` §7 and §12 have the
+    arithmetic and the evidence; `crates/sim/src/path.rs` has the seam
+    comment to delete. Run20's dump has both sides, so this is a widening,
+    not a reading — but §2's `toff` store ("if the current order's target
+    is a transport-relevant unit") is what to re-read first, because the
+    evidence says a plain move fills it too.
+
+31. **`find_wpath`'s pre-walk moves the goal** — `(41952, 36576)` against
+    the order's own `(41976, 36600)`, `0x18` short on both axes, on the
+    same unit and the same dump. `docs/PATHFINDER.md` §3 has the walk
+    (`0x180`/`0x30` steps until `get_tregion` matches); the sim does not
+    move the goal at all. Take it with item 30 — one comparison found
+    both.
 
 ## How to maintain this file
 

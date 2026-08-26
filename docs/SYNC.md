@@ -548,9 +548,18 @@ site rather than a block — `--diff`'s `by phase` note prints the labels
 
 | frame | theirs | ours | what is left |
 |---|---|---|---|
-| 1 (run20) | 53 | **54** | one `Unit::do_move+0xe84`, and only that: the AI scout's straight line clips a *building* short of its waypoint, which is `go_around_building@005fc350` (`docs/ORDERS.md` §4.6). `Leader::produce_building` is **39 + 4 on both sides** since 2026-08-26 (`docs/AI.md` §2.20) and the farm it places lands on the original's own tile; `Farms::add`'s pair, the three `do_non_flat_gather+0x54b` and the five farms were already matched |
+| 1 (run20) | 53 | **53** | none — **draw for draw, the whole frame, since `go_around_building` landed 2026-08-26** (`docs/ORDERS.md` §4.6.1). The last `Unit::do_move+0xe84` was a unit whose straight line clips a *building* short of its waypoint; the sim now finds the same detour and spends nothing on it. `Leader::produce_building` is 39 + 4 on both sides (`docs/AI.md` §2.20) and the farm it places lands on the original's own tile; `Farms::add`'s pair, the three `do_non_flat_gather+0x54b` and the five farms were already matched |
 | 2 (run20) | 5 | **5** | none — the five crop farms and nothing else, on either side |
 | 1 (fuzzed) | 45 | **43** | ours is two *short*: one `Leader::produce_building+0xc99` (29 against 30 — a spiral candidate the original scores and the sim does not) and one `do_non_flat_gather+0x54b`. The jitter is **3 on both sides** here, one of the 2×2's four sub-positions being blocked — the second map that makes the inclusive reading a rule |
+
+**And the unit paying that last `+0xe84` was not the one this document
+named.** §6 had it as the AI scout, `1/0`, on a waypoint of `(38784,
+39552)`; when the mechanic landed, the only unit whose march reaches the
+blocked branch on run20's frame 1 is **`1/1`**, and `1/0` never enters it —
+its `find_wpath` chain has moved since that reading, most likely when
+`produce_building`'s three fixes moved the AI's farm. The count was right
+twice and the owner was wrong. *A residue's owner is a measurement too, and
+naming it costs one print.*
 
 **Run20's frame 1 read 53 against 53 for two days and was wrong in three
 places at once** — the jitter drew once where the original draws four
@@ -884,22 +893,28 @@ struck through and point there.
   three captures on disk. Run20's path-stack disagreements over four frames
   fell 25 → 21.
 
-  **What remains is the AI scout's, and it is `go_around_building` proper.**
-  Run20's frame 1: unit `1/0` at `(38040, 40344)` walking to the wpath
-  waypoint `(38784, 39552)` clips a **building** at tile `(201, 207)` (mask
-  `0x6103`, `BLOCKED`) three tiles short of a goal whose own tile is clear —
-  so the pull-back has nothing to pull and the march has nowhere to go.
-  `go_around_building@005fc350` is the tile-edge walk that answers it
-  (`docs/ORDERS.md` §4.6: up to three `PathData`s, a recursive `find_path`
-  on the first, `return 0` when it verifies), and it is a mechanic of its
-  own rather than a fix. **Re-measured 2026-08-26** after
-  `produce_building`'s three fixes moved the AI's new farm two tiles: the
-  clipped building is not that farm — it stands beside the city, at cells
-  the placement never touched — and the residue is still exactly one draw.
-  (It briefly read *zero* on the intermediate build where the jitter was
-  fixed and `buildings_allowed` was not, because the farm was then sitting
-  clear of the scout's line by accident. A residue that vanishes when an
-  unrelated object moves has not been closed.)
+  ~~**What remains is the AI scout's, and it is `go_around_building`
+  proper.**~~ **Closed 2026-08-26** — `docs/ORDERS.md` §4.6.1,
+  `crates/sim/src/orders.rs`. The last `Unit::do_move+0xe84` on any capture
+  is gone: run20's frame 1 is **53 against 53, draw for draw over the whole
+  sequence**, and frames 0, 1 and 2 all match on that map now. Its
+  path-stack disagreements over five frames fell **21 → 17** (path-length
+  5 → 3, path-to 16 → 14); the Great Lakes and the fuzzed map did not move
+  by a draw or a position, and run6's long pin held at 1,552/1,160.
+
+  **The check is the original's own stack, not the count.** Unit `1/1`'s
+  path at frame 2 is `[{(41640, 39384), tol 0, flags 1}, {(40644, 39036),
+  tol 0, flags 0}]`, and the sim produces exactly those two entries — the
+  second being what the edge walk pushed, with the `off % 0xc0 / 2` skew
+  that puts it `36` off the tile centre rather than on it.
+
+  **And the residue was never the unit this document named.** It said `1/0`
+  at `(38040, 40344)` on a waypoint of `(38784, 39552)`, clipping the
+  building at tile `(201, 207)`. On the commit that landed the mechanic the
+  only unit whose march reaches the blocked branch on run20's frame 1 is
+  `1/1`; `1/0` never enters it, because its `find_wpath` chain has moved
+  since that reading. The count was one both times and the owner was wrong
+  — see §4.2.
 
   **And the Great Lakes' frame-3 extra draw is no longer this one at all**
   — it is a `Unit::do_non_flat_gather+0x54b`, a citizen picking a tile a
@@ -927,6 +942,33 @@ struck through and point there.
   three defects behind the one-draw gap were an exclusive 2×2 jitter, a
   stride test on the wrong index, and an unmodelled
   `WorldData::buildings_allowed`.
+- **The world grid's waypoints sit at `cell + off`, not at the cell
+  centre** (2026-08-26, found while closing the item above and unread).
+  Run20's unit `1/0` walks a `find_wpath` chain the original logs at
+  `(42744, 37368)`, `(41976, 38136)`, `(41976, 38904)`, `(41208, 39672)`,
+  … — every one of them `cell*0x300 + 504` on both axes, where the
+  simulation's `astar_path` emits the cell **centre**, `cell*0x300 + 0x180`.
+  It is `toff`, and `docs/PATHFINDER.md` §7 already had it: a reconstructed
+  world node is pushed at `node + toff − 0x180`, and the simulation carries
+  that as a **stated seam** (`path.rs`: "the target-is-a-unit offsets
+  (`toff`) are zero — move orders here have point goals"). The arithmetic
+  closes: `504 − 0x180 = 120`, and the order's own `off_x` is `504` —
+  `41976 mod 0x300`, from a destination the simulation computes the same
+  way the original does. So the seam is wrong for a *plain* move, not only
+  for a unit target: `toff` is the order's `+0x4c/+0x4e`, which on a
+  `MoveOrder` is `off_x/off_y` (`docs/ORDERS.md` §4.1). That one number is
+  most of run20's remaining path-to disagreements and all of `1/0`'s
+  position drift, and it needs no capture: the dump on disk has both
+  sides.
+- **And the goal at the bottom of that stack is `0x18` short of the
+  order's own** (2026-08-26, the same comparison). The original logs
+  `(41952, 36576)`, both exact multiples of `0x30`, where the order itself
+  is at `(41976, 36600)` — `add_move_order`'s `u*0x30 + 0x18`, which the
+  `off_x = 504` above confirms for the original too. So the snap is not the
+  difference: `find_wpath`'s pre-walk moved the goal before the dump saw it
+  (`docs/ORDERS.md` §4.6's table has that walk stepping in `0x180`/`0x30`
+  until `get_tregion` matches). `docs/PATHFINDER.md`, and it costs a `grep`
+  of the same dump.
 - **The pasture's twenty creation draws, and its animals' art** — §3.6's
   own open list: the offsets, the chicken/pig coin and the animation
   lengths all live in streams or dumps that no capture carries.

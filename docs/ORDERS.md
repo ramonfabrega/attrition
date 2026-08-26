@@ -129,7 +129,9 @@ sequence and the id scheme, and the log format — and, after the second
 reading, the `OrderIndex` values (the PDB enum), `check_build_order`'s cursor
 walk (the listing), and `flags & 4`'s meaning. Medium for the collision
 branches of `do_move` and `resolve_unit_collision` (read once, summarised),
-`go_around_building`'s geometry, `think`'s cadence table (several bodies
+`go_around_building`'s geometry (**raised to high 2026-08-26**: §4.6.1 was
+re-derived and pinned against the original's own path stack),
+`think`'s cadence table (several bodies
 lost), the group speed's effect on the leader, `Leader::produce_building`'s
 scoring (read in shape — take the starting sites from the dump, do not
 reimplement). Low for the semantics of `UnitOrder::flags` bits
@@ -1045,10 +1047,10 @@ walking all the way back onto the unit sets `avoid = goal` and returns 1, and
 the loop breaks when both components have been clamped to zero.
 
 `crates/sim/src/orders.rs`, `Sim::find_path` — which now takes the move order
-by `&mut` for exactly this reason. What is still a seam is
-`go_around_building@005fc350` itself: a straight line that clips a *building*
-several tiles short of a clear goal has nothing for the pull-back to pull, and
-that is the one remaining `Unit::do_move+0xe84` on run20's frame 1.
+by `&mut` for exactly this reason, and the goal by value, because the
+detour's recursive call passes a waypoint of its own rather than
+`mo->dest_x/dest_y`. `go_around_building@005fc350`, which the pull-back
+cannot stand in for, is §4.6.1 and landed 2026-08-26.
 
 ~~**The march as written above has a fixed point, and it hung the simulation
 (2026-08-22).**~~ **Settled, 2026-08-23, by the pathfinder reading**
@@ -1066,12 +1068,113 @@ the original needs no guard. The citizen case that hung us — `(60, 1600)` at
 return 0, no `find_wpath` draw. The sim's interim "return 1 on no progress"
 guard (and its stated sync divergence) is retired; the march is now
 transcribed as above, and the soak that found the hang stands guard over the
-rewrite. `go_around_building@005fc350` is a
-tile-walk along the blocking tile's edge that pushes up to three `PathData`s
-(turn-in point, a `flags 8` midpoint, the target tile centre), each placed
-`off % 0xc0 / 2 − 0x30` from the tile centre; on failure `mo->dest = 0; masks
-&= ~8; path_recursion = 10`. Its trigger — an invalid tile on the straight
-line — open ground never has.
+rewrite. `go_around_building@005fc350` is §4.6.1; its trigger — an invalid
+tile on the straight line — open ground never has.
+
+### 4.6.1 `Unit::go_around_building@005fc350` — the detour, and how `find_path` accepts it
+
+**Established 2026-08-26 from the decompile, and confirmed against the
+original's own path stack**: run20's unit `1/1` at frame 1 ends with
+`[{(41640, 39384), tol 0, flags 1}, {(40644, 39036), tol 0, flags 0}]`, and
+the simulation now produces those two entries exactly — coordinates,
+tolerances and flags. The second is this function's output, and the `36`
+that separates `40644` from the tile centre `40608` is the `off % 0xc0 / 2`
+skew below, so a detour placed at the tile centre fails that check.
+Confidence: **high** for the geometry and the pushes, which the dump pins;
+**medium** for the diagonal case and the give-up exits, which no capture on
+disk reaches. It supersedes the first reading's "medium — geometry" (§0).
+
+`go_around_building(last good point, ang, spd)` is called from the march
+(§4.6) when the next step would enter an invalid tile and
+`path_recursion < 10`. It returns nothing: **`path_recursion == 10` on
+return is the refusal**, and the caller reads it.
+
+It **recomputes the blocked point itself** as `last + (sinx(ang, spd),
+−cosx(ang, spd))` — *unclamped*, where the march clamps each component to
+its remainder, so the two need not be the same point. That is the
+original's, not a slip.
+
+The step that failed crossed a tile edge, so the unit has a **lane** (the
+row or column it is still standing in, from `last`'s tile) and a **blocked
+lane** (the one the blocked point is in). Which axis the walk runs along:
+
+- `ltx == btx` and `lty != bty` (a vertical crossing) → walk **horizontally**,
+  `step = (sign(sx), 0)`.
+- `ltx != btx` and `lty == bty` (a horizontal crossing) → walk **vertically**,
+  `step = (0, sign(sy))`.
+- Both differ (a diagonal). `|Δtx| + |Δty| > 2` gives up. Otherwise, if the
+  corner `(ltx, bty)` is clear the walk is vertical; if it refuses but
+  `(btx, lty)` is clear the walk is horizontal; if both refuse and
+  `spd > 1`, **recurse with `spd − 1`** — a shorter step may land
+  orthogonally instead — and at `spd == 1` fall back on the dominant
+  component, `|sx| < |sy|` choosing the vertical walk.
+
+Then the same walk runs **both ways** from the blocked point, one tile
+(`0xc0`) at a time. At each offset it asks two tiles: `A`, the unit's own
+lane at that offset, and `B`, the blocked lane at it. Off the map is that
+direction's failure. `A` refusing stops the walk, and the direction
+succeeds only if `B` is clear there; otherwise the walk continues while `B`
+refuses and stops successfully the moment it does not.
+
+Of the two results: the one that succeeded, or, if both did, the one whose
+Manhattan distance to `mo->dest_x/dest_y` is smaller — forward on a tie.
+Either is discarded in favour of the other if it resolves to the **unit's
+own tile centre**. Neither succeeding gives up, and so does a winner more
+than `0x300` from `last` in either axis.
+
+The pushes, bottom first, are one or three:
+
+- Only when the unit's own lane **refuses at the found offset**: the
+  **turn-in point**, the found tile in the blocked lane; then a
+  **`flags 8` midpoint**, the mean of the turn-in centre and the centre of
+  the tile one step *back* along the walk in the unit's own lane, biased
+  one unit down on each axis where the turn-in centre is the larger.
+- Always: **the target**, in the unit's own lane — at the found offset when
+  the lane was clear there, one tile back along the walk when the turn-in
+  pair was pushed.
+
+Every one of them is placed at `tile*0xc0 + 0x30 + (off % 0xc0) / 2` rather
+than the tile centre `tile*0xc0 + 0x60`, from the order's own `off_x/off_y`
+(§4.1) — so a formation's units do not all aim at the same point.
+
+Giving up is `mo->dest = 0; unit_masks &= ~8; path_recursion = 10`.
+
+**What `find_path` does with what was pushed**, and it is half the mechanic.
+The stack length is taken before the call. On return with
+`path_recursion != 10` the pushed entries are lifted off one at a time into
+a scratch stack; an entry that lands exactly on the unit is **dropped** and
+the next one down becomes the candidate. Six degenerate cases then refuse
+without recursing: the candidate or the entry below it being the unit's
+position or `mo->last_x/last_y`, the unit already standing where it last
+planned, and a candidate equal to the (pulled-back) goal.
+
+Otherwise **`find_path` recurses on the candidate**. A non-zero return
+refuses — and the lifted entries are simply discarded, so the stack is back
+where it started and `do_move` pays the grid draw. A zero return, with
+`unit_masks & 8` still clear (an inner detour may already have set it),
+puts them back in their original order, each entry's **`flags & 4`
+recomputed against the one that will sit above it**: set when exactly one
+of the two tiles is ocean (`(mask & 0x30) == 0x20`), cleared otherwise, so
+a leg crossing the shore turns in place before it walks. Then
+`mo->last = the unit's position`, the new top gets the same treatment
+against the unit's own tile, and `unit_masks |= 8`.
+
+`crates/sim/src/orders.rs`: `Sim::go_around_building`, `edge_walk`,
+`detour_mid`, `detour_gave_up`, `detour_verified`, `shore_flagged`. The
+checks are `diff::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair`
+(the original's own stack, entry for entry) and, without the install,
+`cities_tests::a_line_that_clips_a_building_detours_instead_of_re_planning`
+and `a_wall_with_no_way_round_gives_up_and_pays_the_grid_draw`. Both were
+made to fail on purpose before landing — the first by neutering the
+function to give up, the second by pinning the skew at `0x30`, which moves
+the run20 waypoint from `(40644, 39036)` to `(40608, 39072)`.
+
+**What it does not establish.** No capture on disk reaches the diagonal
+case, the `spd − 1` recursion, the turn-in pair (run20's walk finds its own
+lane clear), the `0x300` cut-off, or the shore's `flags & 4` — those are
+read, not diffed. The check that would settle the first three is a
+`UNITS=3` window on a game with a unit ordered diagonally into a building
+corner; the shore one wants a walk along a coast.
 
 **The pathfinder's interface** (the internals are the next mechanic). All
 entries share the global `pathfinder` (`PathFinderData`: `pathing_unit,
@@ -2645,9 +2748,11 @@ what is listed as an input is stated as such in the code):
   the waypoint take with both arrival tests, the 48-snap of the destination
   and `angle = find_angle` at order time in `order_move`), the step through
   `movement::move_step`, the arrival facing (`length == 1` or the action is
-  a gather), the kill. Collision, suspended searches, `resolve_block`,
-  `go_around_building`, the entrench wait are not modelled (no terrain, no
-  crowds; stated).
+  a gather), the kill, and **`go_around_building` whole** (§4.6.1, 2026-08-26:
+  the edge walk, the pick, the one-or-three pushes with their `off % 0xc0 / 2`
+  skew, the give-up, and `find_path`'s acceptance with the recursive verify
+  and the shore's `flags & 4`). Collision, suspended searches, `resolve_block`,
+  the entrench wait are not modelled (no crowds; stated).
 - **`do_build`/`do_repair`/`do_garrison`** — §5.2, §5.6, §5.7 on the existing
   `do_construct`/`repair_*`/`garrison` seams, with adjacency = `attack_dist <
   96` (replacing the tile-based stand-in), the swarm ring (`ExploreTo` to the
@@ -2704,7 +2809,7 @@ what is listed as an input is stated as such in the code):
   `GroupMoveOrder` (§8.3, §8.4), board/await-board, cast, trade, strafe,
   air, special-anim; `check_target_path`'s 16-frame re-path; the collision half of
   `find_nearby_spot` (§10 — the first candidate is free on open ground);
-  `go_around_building`, `resolve_unit_collision`, suspended searches, the
+  `resolve_unit_collision`, suspended searches, the
   entrench wait; `come_out`'s rally orders (the existing `come_out` keeps its
   placement); `Wall::process`'s AI recruiter; the gamelog emission of the
   list (the harness reads the dump's, it does not yet write its own).

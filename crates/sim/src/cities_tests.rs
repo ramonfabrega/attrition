@@ -1344,3 +1344,103 @@ fn a_technology_queues_at_the_library_and_completes_as_research() {
     assert_eq!(sim.tech[0].epochs, 1);
     assert!(sim.units.is_empty());
 }
+
+/// `Unit::go_around_building` (`docs/ORDERS.md` §4.6): a straight line that
+/// clips a **building** is answered with a detour, not with a re-plan — and
+/// the re-plan is what costs a sync draw.
+///
+/// The pull-back cannot help here. It walks the *goal* back until its own
+/// tile is clear, and the goal's tile is clear already; the obstacle is in
+/// the middle of the march. So the sim used to march into the barracks,
+/// find the tile invalid, give up, and pay `Unit::do_move+0xe84` for a
+/// pathfinder call the original never makes.
+#[test]
+fn a_line_that_clips_a_building_detours_instead_of_re_planning() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    // A city well clear of the walk, only so that the barracks has
+    // territory to stand in.
+    let _ = city_at(&mut sim, &t, 0, 24, 30);
+    // Two cells east, so `find_wpath` leaves the goal alone and the
+    // straight-line verifier is what plans the walk — with a 4×4 barracks
+    // squarely across the middle of it.
+    let b = sim
+        .place_building(0, t.barracks, tile_pos(24, 20))
+        .expect("open ground");
+    finish(&mut sim, b);
+    assert!(
+        sim.world.tile_mask(Pos::new(24, 20)) & tile::BLOCKED != 0,
+        "the barracks blocks its own tiles"
+    );
+    let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
+    sim.trace_phases = true;
+    sim.order_move(u, tile_pos(28, 20));
+    sim.tick();
+    let grid = |s: &Sim| {
+        s.phase_marks
+            .iter()
+            .any(|(l, _)| l == orders::SITE_MOVE_GRID)
+    };
+    assert!(!grid(&sim), "the detour is free; a re-plan would not be");
+    // The stack is the goal plus what the edge walk pushed, and the detour
+    // is off the line: the goal's row is 20, the waypoint's is not.
+    assert!(
+        sim.units[u].path.len() > 1,
+        "a detour was pushed: {:?}",
+        sim.units[u].path
+    );
+    let top = *sim.units[u].path.last().expect("a waypoint");
+    assert_eq!(top.tolerance, 0, "a detour point has no tolerance");
+    assert_ne!(top.to.tile().y, 20, "and it leaves the line: {top:?}");
+    for _ in 0..600 {
+        sim.tick();
+        assert!(!grid(&sim), "and never re-plans on the way");
+        if sim.units[u].orders.is_empty() {
+            break;
+        }
+    }
+    assert!(sim.units[u].orders.is_empty(), "it arrives");
+    assert!(
+        !sim.covers_tile(b, sim.units[u].pos.tile()),
+        "and not through the barracks"
+    );
+}
+
+/// The other half of the same mechanic: an obstacle the edge walk cannot
+/// get past **gives up**, and giving up is what spends the draw.
+///
+/// A wall of barracks from the top of the map to the bottom leaves the walk
+/// nothing to find in either direction; it runs off the map both ways,
+/// `path_recursion` is pinned at ten, and `do_move` rolls its `% 5` grid
+/// threshold exactly as it did before any of this existed.
+#[test]
+fn a_wall_with_no_way_round_gives_up_and_pays_the_grid_draw() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    // A mountain ridge from the top of the map to the bottom. The trigger
+    // is `invalid_loc`, not a building, so terrain exercises the same
+    // branch and needs no territory to stand in.
+    for ty in 0..sim.world.height() * world::TILES_PER_CELL {
+        sim.world
+            .set_tile_bits(Pos::new(24, ty), tile::OBJECT_MOUNTAIN);
+    }
+    let u = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
+    sim.trace_phases = true;
+    sim.order_move(u, tile_pos(28, 20));
+    sim.tick();
+    assert!(
+        sim.phase_marks
+            .iter()
+            .any(|(l, _)| l == orders::SITE_MOVE_GRID),
+        "no way round: the grid draw is the original's answer too"
+    );
+    // And the ridge holds: nothing walks through it, and the walk that
+    // cannot get round it never reaches the goal.
+    for _ in 0..300 {
+        sim.tick();
+        assert!(sim.units[u].pos.tile().x < 24, "through the ridge");
+    }
+    assert!(!sim.units[u].orders.is_empty(), "still trying");
+}

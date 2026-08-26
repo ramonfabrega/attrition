@@ -583,6 +583,25 @@ Four of the first reading's open items were **settled by the audit**
 (`rr < 9 ||`, V6), the region-crossing `avoid_land` store (V25) and the
 `vector_dist` operands (V26). Still open:
 
+- **`toff` is not only a unit target's, and the simulation's zero is
+  wrong** (2026-08-26, `docs/SYNC.md` §6). §7 pushes each reconstructed
+  world node at `node + toff − 0x180`, and `crates/sim/src/path.rs` carries
+  `toff = 0` as a stated seam because "move orders here have point goals".
+  Run20's dump says otherwise: unit `1/0`'s logged world chain is
+  `(42744, 37368)`, `(41976, 38136)`, `(41208, 39672)`, … — every node at
+  `cell*0x300 + 504`, where the simulation emits the cell centre
+  `+ 0x180`. `504 − 0x180 = 120`, and the order's own `off_x` is `504`, so
+  the offset is the **move order's** `+0x4c/+0x4e` (`off_x/off_y`,
+  `docs/ORDERS.md` §4.1) whether or not the target is a unit. §2's reading
+  of the `toff` store — "if the current order's target is a
+  transport-relevant unit" — is what to re-read, and the check is free:
+  the dump has both sides, and it is most of run20's remaining path-to
+  disagreements.
+- Related, from the same comparison: the goal at the **bottom** of that
+  stack is `(41952, 36576)` where the order is at `(41976, 36600)` —
+  `0x18` short on both axes. `find_wpath`'s pre-walk (§3) moves the goal
+  toward the start until `get_tregion` matches, and the simulation's does
+  not move it here. Same dump, same grep.
 - The exhausted-open-list pause gate `order data +0x20 < 13` is
   byte-verified (V30); **which field that is** (order age? range band?)
   remains unread and unnamed in the PDB.

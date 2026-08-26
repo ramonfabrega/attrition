@@ -2589,3 +2589,116 @@ loading and never reading. Item 27's instrument has now paid twice
 (§5.1's stand/wrap swap was the first); the queue item that says "one draw
 short" is the shape of question it answers, and the answer is rarely one
 draw.
+
+## 2026-08-26 — item 29: `go_around_building`, and the residue that belonged to another unit
+
+The last `Unit::do_move+0xe84` on any capture is gone, and run20's frame 1
+is **53 against 53 draw for draw over the whole sequence** — frames 0, 1
+and 2 all match on that map now. What closed it was a mechanic rather than
+a fix: `Unit::go_around_building@005fc350`, the tile-edge walk that answers
+a straight line clipping a *building*, plus the half of `find_path` that
+decides whether the detour it pushed counts.
+
+### The shape
+
+The pull-back (item 28) cannot help here. It walks the *goal* back until
+its own tile is clear, and this goal's tile is clear already; the obstacle
+is in the middle of the march. So the original does something else
+entirely. The step that failed crossed a tile edge, which gives the unit a
+**lane** — the row or column it is still standing in — and a **blocked
+lane**, the one it tried to enter. The walk runs perpendicular to the
+crossing, one tile at a time in *both* directions, asking two tiles at each
+offset: the unit's own lane, and the blocked one. It stops when the blocked
+lane opens (success) or when the unit's own lane closes (success only if
+the blocked lane happens to be open there). Off the map is that direction's
+failure; both failing gives up.
+
+Of the two winners, the closer to `mo->dest_x/dest_y` — forward on a tie —
+and then one or three `PathData`s go on the stack. Three when the unit's
+own lane is blocked at the found offset: a turn-in point in the blocked
+lane, a `flags 8` midpoint between the lanes, and the target one tile back.
+One otherwise. Every one of them is placed at `tile*0xc0 + 0x30 + (off %
+0xc0)/2` rather than the tile centre, from the order's own `off_x/off_y`,
+so a formation's units do not all aim at the same point.
+
+Then `find_path` lifts them all off again, drops any that lands on the
+unit, refuses six degenerate cases, and **recurses on what is left**. A
+verified line puts them back with each entry's `flags & 4` recomputed
+against the one above it — set when exactly one of the two tiles is ocean,
+so a leg crossing the shore turns before it walks. A refusal discards them
+and pays the grid draw, exactly as before. `docs/ORDERS.md` §4.6.1.
+
+### The check is the original's own stack
+
+Not the count — the count is what misled this document twice. Run20's unit
+`1/1` ends frame 1 with
+
+```
+[{(41640, 39384), tol 0, flags 1}, {(40644, 39036), tol 0, flags 0}]
+```
+
+and the log's frame-2 record for `1/1` is those same two entries,
+coordinates, tolerances and flags. The second is the edge walk's output,
+and the `36` separating `40644` from the tile centre `40608` is the `off %
+0xc0 / 2` skew — pinning the skew at `0x30` moves it to `(40608, 39072)`
+and the assertion fails, which is how it was made to fail on purpose.
+
+### The residue was never the unit `docs/SYNC.md` named
+
+§6 had it as the AI scout, `1/0`, at `(38040, 40344)` on a waypoint of
+`(38784, 39552)`, clipping the building at tile `(201, 207)`. When the
+mechanic landed and the blocked branch was printed, the only unit that
+reaches it on run20's frame 1 is **`1/1`**; `1/0` never enters it, because
+its `find_wpath` chain has moved — most likely when `produce_building`'s
+three fixes moved the AI's farm the session before. The count was one both
+times.
+
+*A residue's owner is a measurement too, and naming it costs one print.*
+This is the sibling of last session's rule about phases: the fold names the
+site, and the site is not the same thing as the unit paying for it.
+
+### What the same print found on the way
+
+Printing `1/0`'s stack beside the original's paid for itself twice over,
+because the two are the same length and made of different numbers:
+
+| | ours | theirs |
+|---|---|---|
+| the goal, at the bottom | `(41976, 36600)` | `(41952, 36576)` |
+| the world chain | `cell*0x300 + 0x180` (the cell centre) | `cell*0x300 + 504` |
+
+The second row is **`toff`**, and `docs/PATHFINDER.md` §7 had it written
+down all along: a reconstructed world node is pushed at
+`node + toff − 0x180`, and `crates/sim/src/path.rs` carries `toff = 0` as a
+stated seam because "move orders here have point goals". The arithmetic
+closes — `504 − 0x180 = 120`, and the order's own `off_x` is `504` — so the
+seam is wrong for a *plain* move too: `toff` is the move order's
+`+0x4c/+0x4e`, which is `off_x/off_y`. That single number is most of
+run20's remaining path-to disagreements and all of `1/0`'s position drift.
+The first row then follows: the order is at `41976` on both sides, so the
+`0x18` is `find_wpath`'s pre-walk moving the goal before the dump sees it.
+Both are on disk, both cost a grep, and neither needed a run.
+
+### What the captures say now
+
+| capture | before | after |
+|---|---|---|
+| run20 (islands) | frame 1 **54/53**, one `+0xe84` | **53/53, the whole sequence** |
+| run20 path stacks, five frames | 21 (path-length 5, path-to 16) | **17** (3, 14) |
+| fuzzed 424242 | 195/195, 43/45 | unchanged |
+| Great Lakes | 120/54/6/7 vs 120/54/6/6 | unchanged |
+| run6, 432 frames | 1,552 / 1,160 | unchanged |
+
+The three unmoved rows are the point: no capture on disk except run20
+reaches the blocked branch at all, so this is one mechanic landing without
+disturbing anything else.
+
+### What it did not establish
+
+No capture reaches the diagonal entry, the `spd − 1` recursion, the
+turn-in pair, the `0x300` cut-off, or the shore's `flags & 4`. Those are
+read, not diffed, and `docs/ORDERS.md` §4.6.1 names the window that would
+settle them. Two tests stand in for now without the install — a citizen
+whose line clips a barracks detours and never re-plans, and a mountain
+ridge with no way round gives up and pays the grid draw — and both were
+made to fail on purpose before landing.

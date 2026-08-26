@@ -3144,13 +3144,66 @@ mod tests {
             "the original spends them right after `produce_building`'s 43"
         );
 
-        // The grid draw: never the original's, once ours.
+        // The grid draw: neither side's now. The AI scout's line clips a
+        // building three tiles short of a clear goal, and since
+        // `go_around_building` landed (item 29) the sim finds the same
+        // detour the original does and spends nothing on it.
         assert_eq!(count(&theirs, sim::orders::SITE_MOVE_GRID), 0);
+        assert_eq!(count(&ours, sim::orders::SITE_MOVE_GRID), 0);
+        // And with that, the whole frame is one sequence.
+        if let Some((_, shown)) = first_parting(&ours, &theirs) {
+            panic!("run20 frame 1: {shown}");
+        }
+        assert_eq!(ours, theirs, "run20: frame 1, draw for draw");
+
+        // **The detour itself, against the original's own stack.** The unit
+        // whose line clips a building on this frame is `1/1` — not `1/0`,
+        // which is what `docs/SYNC.md` §6 named while the count was the
+        // only measurement; the AI's farm moved and with it which unit
+        // pays. Its stack at the end of frame 1 is the goal plus exactly
+        // one `go_around_building` waypoint, and the log's frame-2 record
+        // carries the same two entries, tolerance and flags included. The
+        // skew — `off % 0xc0 / 2` off the tile's low corner rather than the
+        // centre — is in that number, so a detour placed at the centre
+        // fails here.
+        let v = built
+            .sim
+            .units
+            .iter()
+            .position(|x| x.alive() && x.owner == 1 && x.index == 1)
+            .expect("the AI's unit 1");
+        let theirs_path = log
+            .frame_states()
+            .into_iter()
+            .find(|f| f.n == 2)
+            .expect("frame 2")
+            .units
+            .into_iter()
+            .find(|ud| ud.who == 1 && ud.o == 1)
+            .expect("1/1 at frame 2")
+            .path;
+        let ours_path: Vec<(i64, i64, i64, i64)> = built.sim.units[v]
+            .path
+            .iter()
+            .map(|p| {
+                (
+                    i64::from(p.to.x),
+                    i64::from(p.to.y),
+                    i64::from(p.tolerance),
+                    i64::from(p.flags),
+                )
+            })
+            .collect();
+        let theirs_path: Vec<(i64, i64, i64, i64)> = theirs_path
+            .iter()
+            .map(|p| (p.to.0, p.to.1, p.tolerance, p.flags))
+            .collect();
         assert_eq!(
-            count(&ours, sim::orders::SITE_MOVE_GRID),
-            1,
-            "the scout's building clip — `go_around_building` is the seam"
+            theirs_path,
+            vec![(41640, 39384, 0, 1), (40644, 39036, 0, 0)],
+            "the original's 1/1: the goal and one detour waypoint"
         );
+        assert_eq!(ours_path, theirs_path, "1/1's stack, entry for entry");
 
         // `produce_building`, site for site: the spiral's friendless
         // FARM/MINE candidates and the 2×2 jitter's unblocked
