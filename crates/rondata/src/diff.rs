@@ -4429,6 +4429,332 @@ mod army_tests {
         assert_eq!(sc.sim.ai[0].frame_attacked, 0);
     }
 
+    // ---- the whole `GROUPDATA` record (`docs/GROUPS.md` §1, §6.4, §10) ----
+
+    /// One frame's group pool: the frame number, its 512 `GROUPDATA`
+    /// records and its `last_group[8]`.
+    type Pool = (i64, Vec<crate::gamelog::GroupDump>, Vec<i64>);
+
+    /// The three windowed frames' group pools, parsed once.
+    fn run29_pools() -> Option<Vec<Pool>> {
+        let name = "gamelog-run29-islands-engagement-window.txt";
+        let Some(path) = dump(name) else {
+            eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
+            return None;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let out = log
+            .frames()
+            .into_iter()
+            .filter(|(f, _)| (15100..=15102).contains(f))
+            .map(|(f, b)| (f, crate::gamelog::groups(b), crate::gamelog::last_group(b)))
+            .collect::<Vec<_>>();
+        assert_eq!(out.len(), 3, "the window's three frames");
+        Some(out)
+    }
+
+    /// The record, **whole** — every scalar, every array, every slot — for
+    /// all three windowed frames.
+    ///
+    /// This is the widening `docs/audit/2026-08-25-groups.md` puts first,
+    /// and it is the project's own rule applied: when the original dumps a
+    /// record, diff the whole record. `GroupData::log_data@0045e1d0` writes
+    /// twenty scalars and six parallel per-member arrays, and until now
+    /// nothing in `crates/rondata` had opened one.
+    ///
+    /// What is asserted here is the record's **shape and its own
+    /// invariants** — the parts the simulation cannot yet produce, because
+    /// it has no group pool (`docs/GROUPS.md` §12's second seam). The parts
+    /// it can are the two tests below.
+    #[test]
+    fn run29_s_group_pool_is_five_hundred_and_twelve_whole_groupdata_records() {
+        use crate::gamelog::GROUP_FIELDS;
+        let Some(frames) = run29_pools() else { return };
+        for (f, pool, last) in &frames {
+            // 8 leaders × 64 slots, in `id` order, every frame. The hotkey
+            // groups are a separate array and are not in here.
+            assert_eq!(pool.len(), 512, "{f}: 8 leaders × 64 slots");
+            for (i, g) in pool.iter().enumerate() {
+                assert_eq!(g.id, i as i64, "{f}: the pool is dumped in id order");
+                // Every pool record is a unit group, never disbanding, and
+                // never a control group — `priority` is the hotkey array's
+                // bit and it is 0 on all 512.
+                assert_eq!(g.buildings, 0, "{f}/{}: buildings", g.id);
+                assert_eq!(g.disband, 0, "{f}/{}: action_begin clears it", g.id);
+                assert_eq!(g.priority, 0, "{f}/{}: not a control group", g.id);
+                // The six arrays are parallel and exactly `num` long.
+                assert_eq!(g.members.len(), g.num as usize, "{f}/{}: arrays", g.id);
+                if g.num > 0 {
+                    // A live slot belongs to the leader its index names:
+                    // `get_open_slot` indexes `who * 0x40`.
+                    assert_eq!(g.who, g.id / 64, "{f}/{}: who = id / 64", g.id);
+                    assert!(g.num <= 128, "{f}/{}: the 128-member cap", g.id);
+                }
+            }
+            // `last_group[8]`, re-attached by position (see `last_group`).
+            assert_eq!(last.len(), 8, "{f}: one per leader");
+            for (p, &l) in last.iter().enumerate() {
+                let base = p as i64 * 64;
+                assert!(
+                    (base..base + 46).contains(&l),
+                    "{f}: last_group[{p}] = {l} is outside the allocatable 46"
+                );
+            }
+            // Only the AI has ever had a group installed: the other seven
+            // still hold `Groups::clear`'s `p × 0x40`, and player 1's has
+            // moved to the slot `push_group` last took.
+            assert_eq!(last[1], 70, "{f}: player 1's last group is slot 70");
+            for p in [0usize, 2, 3, 4, 5, 6, 7] {
+                assert_eq!(last[p], p as i64 * 64, "{f}: player {p} never allocated");
+            }
+        }
+
+        // The writer's own field order, and the one field it never writes.
+        // Read from the block rather than the parsed struct, because the
+        // order *is* the assertion (`docs/GROUPS.md` §1).
+        let name = "gamelog-run29-islands-engagement-window.txt";
+        let text = std::fs::read_to_string(dump(name).unwrap()).unwrap();
+        let log = Log::parse(&text);
+        let mut seen = 0usize;
+        for (f, b) in log.frames() {
+            if !(15100..=15102).contains(&f) {
+                continue;
+            }
+            let body = b.kid("FULL DUMP").unwrap_or(b);
+            for g in body.kids("GROUPDATA") {
+                let keys: Vec<&str> = g.fields.iter().take(20).map(|(k, _)| *k).collect();
+                assert_eq!(keys, GROUP_FIELDS, "{f}: log_data's own order");
+                assert!(
+                    !g.fields.iter().any(|(k, _)| *k == "march"),
+                    "{f}: march is the one GroupData field the engine never logs"
+                );
+                seen += 1;
+            }
+        }
+        assert_eq!(seen, 512 * 3);
+    }
+
+    /// `order_num` and `form` across the `Army::engagement` frame — the
+    /// audit's assertions 2 and 3, and the one place the record and the
+    /// harness meet on this mechanic today.
+    ///
+    /// Army 0's group (`id 69`, seven members) is the group
+    /// `Group::action_attack` fires on at 15100 (`docs/GROUPS.md` §11: the
+    /// frame `GroupData::num_valid` first executes). The record shows
+    /// `order_num 0 → 1 → 1` and `form −1` throughout — `action_attack`
+    /// issues orders, so it bumps the counter, and it writes no `form`.
+    /// The simulation is made to reproduce **both deltas**, which is what
+    /// `group_action_attack` and `group_action_halt` were corrected to do.
+    #[test]
+    fn run29_s_engagement_bumps_order_num_by_one_and_writes_no_form() {
+        let Some(frames) = run29_pools() else { return };
+        let army0 = |pool: &Vec<crate::gamelog::GroupDump>| {
+            pool.iter().find(|g| g.id == 69).cloned().expect("slot 69")
+        };
+        let (a, b, c) = (
+            army0(&frames[0].1),
+            army0(&frames[1].1),
+            army0(&frames[2].1),
+        );
+        for g in [&a, &b, &c] {
+            assert_eq!(g.who, 1, "the AI's");
+            assert_eq!(g.army, 0, "army 0's one group");
+            assert_eq!(g.num, 7);
+            assert_eq!(g.form, -1, "never moved: no formation index");
+            assert_eq!(g.form_num, 0, "and Form::compute never laid it out");
+            assert_eq!(g.think_frame, 15020, "the hoplites' arrival");
+            assert!(
+                g.members.iter().all(|m| (m.off_x, m.off_y) == (0, 0)),
+                "and every slot offset is still zero"
+            );
+        }
+        assert_eq!(a.order_num, 0, "15100 is the state the frame begins on");
+        assert_eq!(b.order_num, 1, "action_attack issued orders");
+        assert_eq!(c.order_num, 1, "and nothing issued more");
+
+        // The harness, on a group of the same size. `action_attack` bumps
+        // `order_num` by exactly one and leaves `form` alone; `action_halt`
+        // clears the group's `form` and bumps nothing.
+        let mut s = sim::Sim::new(Tuning::RON, World::new(60, 60), 2);
+        s.nation[0].human = true;
+        s.nation[1].human = false;
+        s.at_war[0][1] = true;
+        s.at_war[1][0] = true;
+        let ty = s.add_unit_type(sim::UnitType {
+            hits: 100,
+            combat: sim::combat::Profile {
+                attack: 15,
+                uber_size: 1,
+                ..sim::combat::Profile::default()
+            },
+            ..sim::UnitType::default()
+        });
+        let slot = s.init_army(1, None);
+        for k in 0..7 {
+            let idx = i16::try_from(s.units.len()).unwrap();
+            let mut u = Unit::new(1, idx, Pos::new(0x1000 + k * 0x80, 0x1000), 100);
+            u.ty = Some(ty);
+            u.on_map = true;
+            let u = s.add_unit(u);
+            s.army_add_unit(1, slot, u);
+        }
+        let idx = i16::try_from(s.units.len()).unwrap();
+        let mut foe = Unit::new(0, idx, Pos::new(0x1400, 0x1000), 100);
+        foe.ty = Some(ty);
+        foe.on_map = true;
+        let foe = s.add_unit(foe);
+
+        let g = s.army_group(1, slot);
+        assert_eq!(s.armies[1].list[slot].group.order_num, 0);
+        assert_eq!(s.armies[1].list[slot].group.form, -1);
+        s.group_action_attack(
+            &g,
+            sim::combat::Obj::Unit(foe),
+            false,
+            sim::orders::QueuePos::New,
+            0,
+        );
+        assert_eq!(
+            s.armies[1].list[slot].group.order_num, 1,
+            "the record's 0 → 1"
+        );
+        assert_eq!(
+            s.armies[1].list[slot].group.form, -1,
+            "action_attack writes no form — the record's −1 across all three frames"
+        );
+    }
+
+    /// The slot table's own output, for the one live formation in the
+    /// window — the audit's assertions 4 and 5, and the fixture that turns
+    /// `docs/GROUPS.md` §6.4 from a seam into a checked table the day
+    /// `Form::compute_dests` is written.
+    ///
+    /// Group `id 66` is the AI's navy (`army 2`, `role & 0x80000`), four
+    /// members in **formation 0** (Line). Its `off_x` are `[0, −14, 13,
+    /// −28]` in 48-unit steps with every `off_y` zero — a line along the
+    /// formation's own x axis — and its `curr` are those offsets after
+    /// `update_positions` has rotated them by the leader's heading, in
+    /// position units. Two things fall out and both are asserted:
+    /// `|curr[i]| = 48 · |off_x[i]|` (the `leal (%ecx,%ecx,2)` + `shll $4`
+    /// of `7139e8`), and every `curr` is the **same** rotation of its own
+    /// `off_x`, so the members stay collinear.
+    #[test]
+    fn run29_s_navy_group_is_a_line_of_four_rotated_at_forty_eight_units_a_step() {
+        let Some(frames) = run29_pools() else { return };
+        for (f, pool, _) in &frames {
+            let g = pool.iter().find(|g| g.id == 66).expect("slot 66");
+            assert_eq!(g.who, 1);
+            assert_eq!(g.army, 2, "the AI's navy");
+            assert_eq!(g.num, 4);
+            assert_eq!(g.form, 0, "formation 0 — Line");
+            assert_eq!(g.form_num, g.num, "Form::compute laid out all four");
+            assert_eq!(g.o_dist, 351);
+            assert_eq!(g.o_angle, -1_605_566_464);
+            assert_eq!(g.facing, 0, "not mirrored");
+
+            let off_x: Vec<i64> = g.members.iter().map(|m| m.off_x).collect();
+            assert_eq!(off_x, [0, -14, 13, -28], "{f}: the slot table's own row");
+            assert!(
+                g.members.iter().all(|m| m.off_y == 0),
+                "{f}: a line has no depth"
+            );
+            assert!(
+                g.members.iter().all(|m| m.angle == 0),
+                "{f}: and no per-slot facing"
+            );
+            assert_eq!(
+                g.members.iter().map(|m| m.o).collect::<Vec<_>>(),
+                [32, 34, 35, 38],
+                "{f}: the member ids, in join order"
+            );
+
+            for m in &g.members {
+                // |curr| = 48 · |off_x|, to the sine table's granularity.
+                let want = m.off_x * 48;
+                let got2 = m.curr_x * m.curr_x + m.curr_y * m.curr_y;
+                let want2 = want * want;
+                assert!(
+                    (got2 - want2).abs() * 100 <= want2 + 100,
+                    "{f}: |curr| {got2} is not 48 × |off_x| {want2}"
+                );
+                // The same rotation for every member: `curr` is collinear
+                // with the first non-zero member's, scaled by `off_x`.
+                let r = &g.members[1];
+                assert!(
+                    (m.curr_x * r.off_x - r.curr_x * m.off_x).abs() <= 48 * 2,
+                    "{f}: curr_x is not the shared rotation of off_x"
+                );
+                assert!(
+                    (m.curr_y * r.off_x - r.curr_y * m.off_x).abs() <= 48 * 2,
+                    "{f}: curr_y is not the shared rotation of off_x"
+                );
+            }
+        }
+    }
+
+    /// `priority` says **allocated**, not "in the hotkey array" — which is
+    /// not what the audit's assertion 6 predicted, and the widening found
+    /// it on its first run.
+    ///
+    /// The dump keeps the two arrays apart structurally: the pool is 512
+    /// flat `GROUPDATA` under `FULL DUMP`, while a hotkey group is a
+    /// `HOTKEYGROUPDATA` wrapper with its `GROUPDATA` **nested inside it**.
+    /// Every record in the first has `priority 0` and 161 of the 162 in the
+    /// second have `priority 1` — but **slot 28 has 0**, with a `stamp` of
+    /// 13125. It held a group and lost its last member: `Group::kill`'s
+    /// `num == 0 → clear(−1)` runs `Group::clear@00713e80`, which writes
+    /// **0** over the bit, and only `HotKeyGroups::find_group@00714d00`
+    /// puts it back, the next time that slot is allocated. So the bit is
+    /// "this slot is a live control group", and an emptied hotkey slot is
+    /// indistinguishable from a pool slot by `priority` alone.
+    #[test]
+    fn run29_s_priority_bit_says_allocated_rather_than_hotkey() {
+        let name = "gamelog-run29-islands-engagement-window.txt";
+        let Some(path) = dump(name) else {
+            eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let mut pool = 0usize;
+        let mut hotkey = 0usize;
+        for (f, b) in log.frames() {
+            if !(15100..=15102).contains(&f) {
+                continue;
+            }
+            let body = b.kid("FULL DUMP").unwrap_or(b);
+            for g in body.kids("GROUPDATA") {
+                assert_eq!(g.int("priority"), Some(0), "{f}: a pool slot");
+                pool += 1;
+            }
+            let hk = body.kid("HOTKEYGROUPS").expect("the hotkey array");
+            assert_eq!(hk.int("length"), Some(162), "{f}: the array's own length");
+            let mut cleared = 0usize;
+            for w in hk.kids("HOTKEYGROUPDATA") {
+                let g = w.kid("GROUPDATA").expect("the nested record");
+                match g.int("priority") {
+                    Some(1) => {}
+                    Some(0) => {
+                        cleared += 1;
+                        assert_eq!(g.int("id"), Some(28), "{f}: the one emptied slot");
+                        assert_eq!(g.int("num"), Some(0), "{f}: emptied");
+                        assert_eq!(
+                            g.int("stamp"),
+                            Some(13125),
+                            "{f}: and it held a group until then — Group::clear zeroed the bit"
+                        );
+                    }
+                    p => panic!("{f}: priority {p:?} on a hotkey slot"),
+                }
+                hotkey += 1;
+            }
+            assert_eq!(cleared, 1, "{f}: exactly one slot has been emptied");
+        }
+        assert_eq!(pool, 512 * 3);
+        assert_eq!(hotkey, 162 * 3, "the hotkey array's own length");
+    }
+
     /// Run29's blocks 15100 and 15101 — the tick that put the AI's army on
     /// the one path that reaches `Army::engagement` (`docs/ARMY.md` §16.6).
     ///

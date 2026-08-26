@@ -617,6 +617,87 @@ pub struct CityDump {
     pub who: i64,
 }
 
+/// One member's row of a `GROUPDATA` record — the six parallel arrays
+/// `GroupData::log_data` writes per member, in the order it writes them.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct GroupMemberDump {
+    /// `list[i]`, the member object's number.
+    pub o: i64,
+    /// `off_x[i]`/`off_y[i]` — `Form::compute_dests`' slot offset,
+    /// **before** the leader's heading is applied.
+    pub off_x: i64,
+    pub off_y: i64,
+    /// `curr_x[i]`/`curr_y[i]` — the same offset after
+    /// `Group::update_positions` rotates it (`docs/GROUPS.md` §6.6).
+    pub curr_x: i64,
+    pub curr_y: i64,
+    /// `angles[i]`, the per-slot facing byte a move order packs into its
+    /// top byte. Written as a **signed** char.
+    pub angle: i64,
+}
+
+/// One `GROUPDATA` record, whole — the twenty scalars
+/// `GroupData::log_data@0045e1d0` writes in the order it writes them, and
+/// the six parallel per-member arrays after them (`docs/GROUPS.md` §1).
+///
+/// **`march` (`+0x4b`) is the only field of the struct the engine never
+/// logs**, which is why there is no field for it here.
+///
+/// The pool is dumped as 512 of these — 8 leaders × 64 slots, in `id`
+/// order — directly under `FULL DUMP`, and the hotkey groups separately
+/// under `HOTKEYGROUPS`, where each `HOTKEYGROUPDATA` wrapper **nests** its
+/// own `GROUPDATA`. [`groups`] returns the pool only.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct GroupDump {
+    pub id: i64,
+    pub who: i64,
+    pub num: i64,
+    pub army: i64,
+    pub ox: i64,
+    pub oy: i64,
+    pub o_dist: i64,
+    pub o_angle: i64,
+    pub buildings: i64,
+    pub disband: i64,
+    pub order_num: i64,
+    pub priority: i64,
+    pub stamp: i64,
+    pub role: i64,
+    pub form: i64,
+    pub think_frame: i64,
+    pub facing: i64,
+    pub new_speed: i64,
+    pub speed: i64,
+    pub form_num: i64,
+    pub members: Vec<GroupMemberDump>,
+}
+
+/// The twenty scalars in the order `GroupData::log_data` writes them. The
+/// order is an assertion, not a convenience: a dump whose prefix differs
+/// means the writer changed.
+pub const GROUP_FIELDS: [&str; 20] = [
+    "id",
+    "who",
+    "num",
+    "army",
+    "ox",
+    "oy",
+    "o_dist",
+    "o_angle",
+    "buildings",
+    "disband",
+    "order_num",
+    "priority",
+    "stamp",
+    "role",
+    "form",
+    "think_frame",
+    "facing",
+    "new_speed",
+    "speed",
+    "form_num",
+];
+
 /// One cell of the `WORLD` block at `WORLD ≥ 3` — the `WData` record
 /// `WData::log_data@006af7e0` prints (`docs/ORACLE.md`, "The map is a dump
 /// too"). Absent fields (a lower threshold) stay at their defaults.
@@ -1010,6 +1091,86 @@ fn build_of(b: &Block<'_>) -> Option<BuildDump> {
         orig_type: b.int("orig_type"),
         gather_from,
     })
+}
+
+/// The group pool of one `GAME` or `FRAME` block: the 512 `GROUPDATA`
+/// records **directly under `FULL DUMP`**, in file order.
+///
+/// The hotkey groups are deliberately excluded. They live under
+/// `HOTKEYGROUPS`, one `HOTKEYGROUPDATA` wrapper each with a `GROUPDATA`
+/// nested inside it, and mixing them in is what makes `priority` look like
+/// it takes both values in the same array.
+pub fn groups(block: &Block<'_>) -> Vec<GroupDump> {
+    let body = block.kid("FULL DUMP").unwrap_or(block);
+    body.kids("GROUPDATA").map(group_of).collect()
+}
+
+/// `GroupsData::last_group[8]` — the one slot per player `get_open_slot`
+/// never returns, and the slot `push_group` last installed into.
+///
+/// It is written **after** the 512 records, at `FULL DUMP`'s own field
+/// indent and with no `BEGIN` of its own, so the parser's "a field belongs
+/// to the innermost open block" rule hands it to the **last** `GROUPDATA`.
+/// Same shape as the leaders' `leader_flags` (see this module's header);
+/// re-attached here by position rather than by indentation.
+pub fn last_group(block: &Block<'_>) -> Vec<i64> {
+    let body = block.kid("FULL DUMP").unwrap_or(block);
+    let Some(last) = body.kids("GROUPDATA").last() else {
+        return Vec::new();
+    };
+    last.all("last_group")
+        .iter()
+        .filter_map(|v| v.trim().parse().ok())
+        .collect()
+}
+
+fn group_of(b: &Block<'_>) -> GroupDump {
+    let i = |k| b.int(k).unwrap_or(0);
+    let col = |k: &str| -> Vec<i64> {
+        b.all(k)
+            .iter()
+            .filter_map(|v| v.trim().parse().ok())
+            .collect()
+    };
+    let (o, off_x, off_y) = (col("list[scan]"), col("off_x[scan]"), col("off_y[scan]"));
+    let (cx, cy, ang) = (
+        col("curr_x[scan]"),
+        col("curr_y[scan]"),
+        col("angles[scan]"),
+    );
+    let members = (0..o.len())
+        .map(|k| GroupMemberDump {
+            o: o[k],
+            off_x: off_x.get(k).copied().unwrap_or_default(),
+            off_y: off_y.get(k).copied().unwrap_or_default(),
+            curr_x: cx.get(k).copied().unwrap_or_default(),
+            curr_y: cy.get(k).copied().unwrap_or_default(),
+            angle: ang.get(k).copied().unwrap_or_default(),
+        })
+        .collect();
+    GroupDump {
+        id: i("id"),
+        who: i("who"),
+        num: i("num"),
+        army: i("army"),
+        ox: i("ox"),
+        oy: i("oy"),
+        o_dist: i("o_dist"),
+        o_angle: i("o_angle"),
+        buildings: i("buildings"),
+        disband: i("disband"),
+        order_num: i("order_num"),
+        priority: i("priority"),
+        stamp: i("stamp"),
+        role: i("role"),
+        form: i("form"),
+        think_frame: i("think_frame"),
+        facing: i("facing"),
+        new_speed: i("new_speed"),
+        speed: i("speed"),
+        form_num: i("form_num"),
+        members,
+    }
 }
 
 fn leader_of(b: &Block<'_>) -> LeaderDump {

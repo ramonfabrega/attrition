@@ -62,11 +62,15 @@ GroupData (types.txt, 0x9cc — every field below is the PDB's own name)
   +0x28  disband     int     cleared by action_begin at the top of every action
   +0x2c  order_num   int     bumped by every action that issues orders; part of a
                              GroupMoveOrder's id
-  +0x30  priority    int     read by normalize's prune. A one-bit "I am a control
-                             group": 1 from HotKeyGroups::clear@00715230,
+  +0x30  priority    int     read by normalize's prune. A one-bit "this slot is a
+                             live control group": 1 from
+                             HotKeyGroups::clear@00715230,
                              HotKeyGroups::find_group@00714d00 and
                              Object::replace_hotunit@00643b70; 0 from
-                             Group::clear@00713e80 and Groups::clear@00713f20
+                             Group::clear@00713e80 and Groups::clear@00713f20 —
+                             and Group::kill's `num == 0 -> clear(-1)` therefore
+                             *loses* the bit, so an emptied hotkey slot reads
+                             0 until it is allocated again (run29's slot 28)
   +0x34  role        int     OR of the members' type roles (find_role)
   +0x38  think_frame int
   +0x3c  new_speed   int     \ the group's march speed, reset every frame by
@@ -880,17 +884,46 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
    `send_here_moves_the_point_the_muster_cell_and_the_units`, and
    `charge_drags_the_army_onto_the_attacker`.
 
-9. In `rondata::diff`:
-   `run29_s_mustering_army_is_released_with_no_forming_bit_and_the_tail_s_point`
-   — not this document's mechanic, but the one that makes it reachable:
-   the two blocks either side of run28's frame, and the release that
-   leaves no `FORMING` bit so `Army::engagement` can call §10
-   (`docs/ARMY.md` §16.6, §17 item 6).
+9. **In `rondata::diff`, the `GROUPDATA` record itself** — the widening the
+   audit puts first, and the project's own rule applied: when the original
+   dumps a record, diff the whole record. `crate::gamelog::groups` parses
+   all twenty scalars and the six parallel per-member arrays; four tests
+   read them over run29's three windowed frames, and three of the four were
+   made to fail on purpose before landing.
 
-What no test pins is the arithmetic of §6.4, because the simulation does
-not carry it, and the *positions* of an army's units in a traced game,
-because `scene_at` does not yet read a block's `UNITDATA` order lists
-(§13).
+   - `run29_s_group_pool_is_five_hundred_and_twelve_whole_groupdata_records`
+     — the pool is 512 records a frame in `id` order, `buildings`,
+     `disband` and `priority` all 0, the six arrays exactly `num` long, a
+     live slot's `who` equal to `id / 64`, and `last_group[8]` inside each
+     leader's allocatable 46 with player 1's at slot **70**. It also asserts
+     the writer's own **field order** and that **`march` never appears**.
+   - `run29_s_engagement_bumps_order_num_by_one_and_writes_no_form` — the
+     record's `order_num 0 → 1 → 1` and `form −1` across the
+     `Army::engagement` frame, and the harness reproducing both deltas.
+   - `run29_s_navy_group_is_a_line_of_four_rotated_at_forty_eight_units_a_step`
+     — §6.4's fixture: `off_x = [0, −14, 13, −28]` with `off_y` and
+     `angles` zero, `form 0`, `form_num == num`, and the `curr` pair that
+     pins **× 48** and the shared rotation.
+   - `run29_s_priority_bit_says_allocated_rather_than_hotkey` — see §1.
+     This one **failed on its first run and was right to**: the audit
+     predicted `priority 1` on every `HOTKEYGROUPDATA`, and hotkey slot 28
+     carries 0 with a `stamp` of 13125. It held a group and lost its last
+     member; `Group::kill`'s `num == 0 → clear(−1)` runs `Group::clear`,
+     which writes 0 over the bit, and only
+     `HotKeyGroups::find_group@00714d00` puts it back. The bit means
+     **"this slot is a live control group"**, not "this slot is in the
+     hotkey array".
+10. In `rondata::diff`:
+    `run29_s_mustering_army_is_released_with_no_forming_bit_and_the_tail_s_point`
+    — not this document's mechanic, but the one that makes it reachable:
+    the two blocks either side of run28's frame, and the release that
+    leaves no `FORMING` bit so `Army::engagement` can call §10
+    (`docs/ARMY.md` §16.6, §17 item 6).
+
+What no test pins is the arithmetic of §6.4 — the record now carries the
+*answers*, and what is missing is the implementation to compare against —
+and the *positions* of an army's units in a traced game, because `scene_at`
+does not yet read a block's `UNITDATA` order lists (§13).
 
 ## 13. What is not established
 
