@@ -15,14 +15,34 @@
 # instead, needs no re-entrancy, and still varies the generated map, which is
 # the whole point -- every capture before this one used the same lobby.
 #
+# **Why the window is the cheap one, not `DUMP_ALL`.** The first version staged
+# with `window.py stage`, which sets `DUMP_ALL=1` because `scene_at` wants a
+# `WORLD` block with its 3600 cells. It does -- but `[Start Game] WORLD=6`
+# writes those cells on its own with `DUMP_ALL=0` (run31's start dump has all
+# 3600), and `run_traced` stands the sim up from the **start** dump and ticks
+# forward, so no frame inside the window needs a `WORLD` block at all. Measured
+# on the two captures: `DUMP_ALL` cost 49.9 MB a frame and bought 5 frames;
+# the cheap window costs 0.73 MB a frame and bought 219. Two orders of
+# magnitude, for an ini setting. `docs/ORACLE.md`, "The 300-frame window".
+#
+# The `[End Frame]` set is run31's, `DEATHS=0` included: `dump_deaths` ends by
+# calling `WorldData::log_data` twice, and `GroupData::log_data` never sets its
+# own type, so with `DEATHS` on the group pool is silently dropped.
+#
 # The lobby clicks are fixed coordinates for the 3440x1440 display the window
 # opens on at (760, 152); they are the same six `runwin.sh` uses. If the window
 # moves, this is what breaks first, and the screenshots under $T are how you
 # see that rather than guess it.
+#
+# `FUZZ_STAGE=0` runs the control shape: an early window and no cheats at all,
+# which is the only way `survived` measures fidelity rather than where the
+# window was put. See `scenario.py --no-stage`.
 set -e
 SEED=${1:?usage: run.sh SEED [LO HI]}
-LO=${2:-3000}
-HI=${3:-3020}
+LO=${2:-1000}
+HI=${3:-1300}
+STAGE=${FUZZ_STAGE:-1}
+[ "$STAGE" = 0 ] && NOSTAGE=--no-stage || NOSTAGE=
 T=${RON_TMP:-/tmp/ron-runs}; mkdir -p "$T"
 G=/Users/rf-studio/code/fun/attrition/game
 W=$(cd "$(dirname "$0")/../.." && pwd)
@@ -31,9 +51,13 @@ L="$R/Logs"
 P=riseofnations_trace.exe
 
 python3 "$W/tools/fuzz/seedini.py" "$SEED"
-python3 "$W/tools/gamelog/window.py" stage "$LO" "$HI"
+python3 "$W/tools/gamelog/setlog.py" 0 \
+  'end:UNITS=9,GROUPS=9,GUYS=9,LEADERS=1,MISC=9' \
+  'start:UNITS=3,GROUPS=1,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1,GOODS=3,TERRAIN=2,WORLD=6,MISC=1'
+python3 "$W/tools/gamelog/window.py" frames "$LO" "$HI"
 printf 'cover=1\nwindow=%d-%d\n' "$LO" "$((HI - 1))" > "$G/rontrace.cfg"
-RON_INSTALL=$G python3 "$W/tools/fuzz/scenario.py" "$SEED" --lo "$LO" --hi "$HI" > "$G/rontrace.cmd"
+RON_INSTALL=$G python3 "$W/tools/fuzz/scenario.py" "$SEED" --lo "$LO" --hi "$HI" \
+  ${NOSTAGE:+$NOSTAGE} > "$G/rontrace.cmd"
 echo "=== seed $SEED, window [$LO, $HI) ==="; cat "$G/rontrace.cmd"
 
 rm -f "$G/rontrace.log" "$L/gamelog.txt"
@@ -65,7 +89,7 @@ click 1061 1176 start2 20
 # after it has grown -- rather than for an exit that never comes. Waiting on
 # the process cost seed 424242 a quarter of an hour of spinning.
 last=0; still=0
-for i in $(seq 1 90); do
+for i in $(seq 1 120); do
   sleep 10
   sz=$(stat -f %z "$L/gamelog.txt" 2>/dev/null || echo 0)
   if [ "$sz" = "$last" ]; then still=$((still + 1)); else still=0; fi
@@ -88,5 +112,5 @@ cargo run --quiet --manifest-path "$W/Cargo.toml" -p rondata -- "$G" \
 tail -20 "$T/diff-$SEED.txt"
 python3 "$W/tools/fuzz/ledger.py" append "$SEED" --lo "$LO" \
   --diff "$T/diff-$SEED.txt" --trace "$L/rontrace-fuzz-$SEED.log" \
-  --note "window $LO-$HI"
+  --note "cheap window $LO-$HI$([ "$STAGE" = 0 ] && echo ', no staging')"
 echo "seed $SEED done"

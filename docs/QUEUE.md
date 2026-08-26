@@ -27,81 +27,81 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 13's first tier.* The commit this
-section was written against is the one that lands it; if `git log` has moved
-well past it, trust the queue below and the journal before trusting this.
+*Last verified 2026-08-26, after the who-8 panic and the cheap window.* The
+commit this section was written against is the one that lands it; if
+`git log` has moved well past it, trust the queue below and the journal
+before trusting this.
 
-**Last landed.** **Differential fuzzing, Tier 1** (item 13) — built, run end
-to end, and it changed its own plan twice on the way. `tools/fuzz/` holds
-`scenario.py`, `seedini.py`, `run.sh` and `ledger.py`;
-`tools/gamelog/console.py` re-derives the console vocabulary from the
-install. `docs/ORACLE.md` has three new sections.
+**Last landed.** Two things, and both were smaller than billed while hiding
+something larger.
 
-- **The channel cannot issue an order.** `run_cmd` jumps past its first
-  switch when `from_chat` is set, and the two switches are disjoint: 56
-  console-only, 45 chat-reachable. `move` is in the chat half and is a
-  **teleport** (`Unit::set_new_location`). So every `add_*_order`, `do_*`,
-  `action_*` and `process_*` on the blind list needs the UI, and Tier 1
-  cannot touch them. Closes run17's open `move` question.
-- **`restart` from the channel wedges the game.** It fires inside
-  `Game::do_frame`, so `Game::close`/`Game::init` tear down the game whose
-  tick it is in: `parse_cmd` never returns, the screen goes black, no
-  further frame. The seed goes in `rise.ini` instead — one launch per seed.
-- **The fuzzer's first seed found a panic.** Seed 424242 drove
-  `Sim::is_enemy` with the nature player (`who 8`, 7,329 records in its
-  dump) against diplomacy tables sized by the lobby's two players:
-  `index out of bounds: the len is 2 but the index is 8`,
-  `crates/sim/src/lib.rs:930`. run29's dump carries `who 8` too and does
-  **not** panic, so this is a path 31 hand-built runs never reached, not a
-  new input. **Unfixed, and it is the next session's first job.**
+- **The who-8 panic is fixed, and the fix is a bound, not a guard.**
+  `Leaders::list` is `Leader[10]`; two independent places stop every object
+  search at leader eight, so the original never asks a diplomacy question
+  about gaia — it could not answer one, since `diplos` is `int[8]`. Nothing
+  in RoN can attack an animal. `world::PLAYER_SLOTS`, `docs/ANIM.md` §6.1,
+  five tests and five red breakages. Commit `d1f5be4`.
+- **The window experiment was answered by a file already on disk, and the
+  premise was wrong twice.** `[Start Game] WORLD=6` writes the 3600 cells
+  with `DUMP_ALL=0` (run31's start dump has them), and no frame *inside* a
+  window needs a `WORLD` block at all — `run_traced` stands the sim up from
+  the start dump. So `[End Frame] WORLD=6` was never needed. Same seed,
+  back to back: `DUMP_ALL` bought **5 frames for 249 MB**; the cheap window
+  bought **301 for 207 MB** in less wall clock. `docs/ORACLE.md`, "The
+  300-frame window". `tools/fuzz/run.sh` uses it now.
 
-**The dump's cost, measured — and half of it is ours to stop paying.**
-A `FULL DUMP` block is ~25–30 MB and about a minute. With indentation
-normalised, **12.9 MB of 25.1 MB (51%) is byte-identical across all six
-blocks compared** — `COMBATTABLE` 36%, `UNITTYPE` 14%, and the small type
-tables. That is the rulebook, and we already have it from the XML.
-`DUMP_ALL=1` is what forces it, and `window.py stage` sets `DUMP_ALL` for
-one reason: `scene_at` asserts on a `WORLD` block at the stand-up frame.
-**`WORLD` is 31% and genuinely changes**, so it cannot simply be taken from
-the start block — that was claimed here first and disproved by checking.
-The cheap experiment nobody has run: `DUMP_ALL=0` with `[End Frame] WORLD=6`
-plus the state categories, which should be ~9 MB rather than ~25 with no
-code change. And gzip on a real dump is **57×** (60 MB → 1.06 MB).
+**The number that came out of it.** A control run — `scenario.py
+--no-stage`, no cheats at all, window at **[1, 301)** — is the first time
+sim-frame 1 has ever been compared against the original **on any map**.
+It scores **`survived = 1`**: player 1's `o 0` is 24 position units off on
+both axes at frame 2, player 0's `o 1` by 10 at frame 4, and at frame 1
+two of player 1's units already hold an order the sim never issued. A
+heights sibling for the same seed (`window.py stage 1 3`, six minutes)
+returns **identical** coordinates, so this is the port and not the flat
+map that a cheap window leaves behind.
+
+Two leads came with it, both impossible on the one lobby everything else
+was captured on:
+
+- **`rng: frame 0: ours 180 draws, the original's 195`** — 15 short on a
+  map we did not tune against, then 4 *over* at frame 1. On run7's lobby
+  the setup draws have matched for weeks.
+- **`check_start_orders` fails on one citizen** — *`who 1 o 6`: we derived
+  None, the log has 2001*. `docs/AI.md` §9.3 does not generalise off run7's
+  map.
 
 **Then, in order:**
 
-- **The `who 8` panic**, above. Small, and it blocks every further seed.
-- **The cheap-window experiment**, above — it decides whether a fuzzed
-  seed can score over hundreds of frames instead of three, which is what
-  decides whether item 13 is worth keeping at all.
-- **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked.
+- **The frame-0 draw gap** (15 short, above). It is the cheapest lead on
+  the board, it is upstream of everything, and the trace names every draw
+  site. Start there.
+- **The frame-1 order two of player 1's units hold and the sim does not**,
+  and §9.3's sixth citizen. Same run, same dump
+  (`gamelog-fuzz-424242-early.txt`, with `-heights` as its sibling).
+- **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked,
+  and now affordable to capture over hundreds of frames rather than three.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings; `think_civilian_transport`.
 
-**The thing this session earned.** **Measure the oracle before building a
-better one.** A whole afternoon's plan — an in-process binary dumper to
-replace the game's logger — was retired by one twenty-minute measurement
-showing the logger is expensive for a reason we control. And the corollary,
-which cost a wrong claim in this very file: **"static" is a claim about what
-changes between frames, so check it between frames.** The first pass called
-85% of a block static by reading section names; the honest figure is 51%,
-and the difference was found by hashing the sections rather than arguing
-about them.
+**The thing this session earned.** Yesterday's note was *measure the oracle
+before building a better one*. Today's is the same rule one step earlier:
+**check whether the expensive setting is doing anything before pricing
+it.** This file had budgeted a 300-frame window against 25 MB a frame and
+concluded it was probably unaffordable. It costs 0.69, and the evidence was
+a `grep -c who2` on a file that had been on disk for eleven hours. The
+corollary for the port: **every window until today opened late** — 95,
+149, 3000 — so the first frames were never checked, and that is where the
+divergence turns out to be.
 
-**Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`) is
-unchanged; its widest marker is still **`sin_table@00a46a00`'s
-second-quadrant branch**, and this session found a better settlement than
-another reading: the DLL runs **in-process**, so the original's own
-`sin_table` can be *called* over its whole 2^30 input domain and compared
-with `quarter_lookup` exhaustively — total, not symbolic, and minutes of
-brute force. That rig would then serve every ported leaf formula. When to
-spend a Fable batch is still open; this session's judgement is **not yet**,
-because the design question that fit Fable's mandate was the binary dumper
-and the measurement shelved it.
+**Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
+is unchanged; its widest marker is still **`sin_table@00a46a00`'s
+second-quadrant branch**, with the in-process exhaustive comparison as the
+settlement. When to spend a Fable batch is still open; this session's
+judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — fix the who-8 panic in Sim::is_enemy (crates/sim/src/lib.rs:930, seed 424242), then run the cheap-window experiment: DUMP_ALL=0 with [End Frame] WORLD=6, and see what a 300-frame window costs`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — the frame-0 draw gap: the sim makes 180 draws where the original makes 195, on the fuzzed map in gamelog-fuzz-424242-early.txt (sibling -heights). Find the missing 15.`
 
 ## The queue
 
@@ -145,45 +145,31 @@ in which case say so and take that. The story of each struck item is in
     `crates/sim/src/ai*.rs` and `bhs.rs`, `docs/audit/2026-08-25-ai.md`
     (four passes); landed under it: `docs/SYNC.md`, `docs/ANIM.md`,
     `tools/trace/`, the cheat channel, runs 7–21.
-13. **Differential fuzzing against the original** — **Tier 1 built and run
-    2026-08-26**; whether it is kept is an open question with a named
-    experiment, below. `tools/fuzz/{scenario,seedini,ledger}.py` and
+13. ~~**Differential fuzzing against the original**~~ — **Tier 1 kept**,
+    decided 2026-08-26. `tools/fuzz/{scenario,seedini,ledger}.py` and
     `run.sh`; `tools/gamelog/console.py`; `docs/ORACLE.md`, "The channel's
-    vocabulary, and what it cannot do" and "`restart` from the channel
-    wedges the game".
+    vocabulary, and what it cannot do", "`restart` from the channel wedges
+    the game" and "The 300-frame window". The journal has the story.
 
-    Three of the entry's own assumptions were wrong, and each was settled by
-    a run or a measurement rather than an argument:
+    **The verdict, and it is not the one it was being judged on.** The
+    ledger's `survived` column is 1, not hundreds. But **one seed, run
+    three ways**, produced a panic (`Sim::is_enemy` with the nature
+    player), a frame-0 draw-count gap (180 against 195) and a broken
+    generalisation (§9.3's start-of-game gather rule, one citizen) — all on
+    a map nobody chose. That is what it is for, and no hand-built capture
+    on the one tuned lobby could have produced any of the three.
 
-    - **A scenario cannot contain an order.** The entry said it could
-      ("move, gather, build, attack, garrison"). The chat half of the
-      console is 45 state pokes and `move` is a teleport. So Tier 1 varies
-      the map and the staging, and reaches **none** of the blind list's
-      `add_*_order` / `do_*` / `action_*` / `process_*` family. That is
-      Tier 2's job and it needs the UI.
-    - **`restart` cannot drive it.** In-tick re-entrancy wedges the game.
-      One launch per seed, the seed in `rise.ini`.
-    - **A seed costs ~6 min and ~50 MB, not "one to two minutes".** And
-      the score is over three frames, not hundreds, because the window has
-      to be narrow.
-
-    **What it has already earned:** its first seed found a panic 31
-    hand-built runs and the soak never reached — `Sim::is_enemy` with the
-    nature player against a two-player table. That is the argument for
-    keeping it, and it is one data point.
-
-    **The experiment that decides it:** `DUMP_ALL=0` with `[End Frame]
-    WORLD=6` and the state categories. 51% of a `FULL DUMP` is the rulebook,
-    byte-identical across frames and already ours from the XML, and
-    `DUMP_ALL` is what forces it. If a block drops from ~25 MB to ~9 MB, a
-    seed can score over hundreds of frames and the ledger means something.
-    If it cannot, Tier 1 is a harness waiting for an oracle it does not
-    have, and the honest move is to keep `scenario.py` and the ledger and
-    stop there.
+    **The shape it settled into.** `FUZZ_STAGE=0` — no cheats, window at
+    [1, 301) — is the measuring shape; the staged shape is the coverage
+    shape. Its cost is 195 MB and ten minutes, plus six more for a heights
+    sibling when a seed is worth one (`master_land_heights` is the only
+    thing `DUMP_ALL` is still for, and a fuzzed map has no sibling to
+    borrow it from).
 
     **What it still cannot do**, unchanged: reach what the channel cannot
-    stage — diplomacy beyond the verbs, the sea half until transports can be
-    ordered, CtW, multiplayer. For those the reading stays the only
+    stage — no console command issues an order, so diplomacy beyond the
+    verbs, the sea half until transports can be ordered, CtW and
+    multiplayer stay out of reach. For those the reading is still the only
     evidence.
 14. ~~**The sea half — transports and docks**~~ — done 2026-08-25.
     `docs/TRANSPORT.md`, `crates/sim/src/transport.rs`,
@@ -243,6 +229,25 @@ in which case say so and take that. The story of each struck item is in
     `angles` is all zero in every run on disk, so nothing has separated
     `compute_form`'s subtraction from the order adder's addition.
     `docs/GROUPS.md` §13.
+24. **The first frames, on a map we did not tune against** — the two
+    leads the fuzzer's control run left, and the first entry that comes
+    from a capture opened at sim-frame 1. Both live in the same pair of
+    dumps: `gamelog-fuzz-424242-early.txt` with
+    `gamelog-fuzz-424242-heights.txt` as its `--sibling`.
+
+    - **The frame-0 draw gap.** `note: rng: frame 0: ours 180 draws, the
+      original's 195` — fifteen short — then frame 1 four *over*, 49
+      against 45. On run7's lobby the setup draws have matched for weeks,
+      so this is something the map generation or the start-of-game path
+      does on some maps and not that one. `tools/trace/` names every draw
+      site; `tools/gamelog/rngcmp.py` and `draws.py` are the instruments.
+      Upstream of everything else, and the cheapest lead on the board.
+    - **§9.3's sixth citizen.** `check_start_orders` fails on exactly one:
+      *`who 1 o 6`: we derived None, the log has 2001*. The rule was built
+      and confirmed on one map. `docs/AI.md` §9.3.
+
+    Neither needs a new run. Both are `rondata --diff` on a dump that
+    exists.
 
 ## How to maintain this file
 

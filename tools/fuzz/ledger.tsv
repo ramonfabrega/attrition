@@ -1,2 +1,5 @@
 when	seed	lo	survived	ticks	frames	compared	unlinked	funcs	note
 2026-08-26T10:15:44	run29-baseline	15100	0	15099	5	36	207		existing dump, not a fuzzed seed
+2026-08-26T11:16:17	424242	1000	0	999	301	3913	3610	6872	cheap window 1000-1300
+2026-08-26T11:29:35	424242	1	1	1	301	3913	20	6684	cheap window 1-301, no staging
+2026-08-26T11:40:07	424242	1	1	1	301	3913	20	6684	same run, re-diffed with a heights sibling: identical

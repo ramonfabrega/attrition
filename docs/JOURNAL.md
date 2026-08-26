@@ -1827,3 +1827,122 @@ blocks is, and the first attempt at that got the answer wrong twice — once
 by trusting names, once by trusting bytes that differed only in whitespace.
 The rule the project already had — grep the writers of every field you call
 frozen — turns out to apply to whole sections of a dump too.
+
+
+## 2026-08-26 — the who-8 panic, and the window that was cheap all along
+
+Two jobs from the opener, and each one turned out to be smaller than it
+looked and to be hiding something larger.
+
+### The panic: the original never asks
+
+`Sim::is_enemy(who, 8)` indexing a two-player diplomacy table was the
+symptom. The fix could have been one `.get`, and that would have been
+wrong, because the interesting question is not *what does 8 mean* but
+*why does the original never ask*.
+
+It never asks because it cannot. `LeaderData::diplos` is `int[8]` with
+`treaties` at the next offset, so `is_enemy(8)` would read `treaties[0]`.
+And it does not need to, because two independent bounds stop every search
+at leader eight, and `Leaders::list` is `Leader[10]` — eight players, then
+gaia's animals and gaia's birds:
+
+- `ObjectsData::find_unit@0065ca80` walks the per-leader object lists with
+  a stride of `0x6eec` (one `Leader`) while the cursor is `< 0x37760`,
+  which is exactly eight of them; and its by-cell branch, which reads the
+  leader out of a cell's object chain, guards `(int)leader < 8` outright.
+- `ObjectData::valid_target_const@006472c0` returns 0 on `7 < who` in its
+  **first line**, before `LeaderData::is_enemy` is reached at all.
+
+So: **in Rise of Nations nothing can attack an animal**, no search returns
+one, and an arrow that comes down on a sheep passes through it
+(`Ammo::check_hit` is a `find_unit`). The second bound is the load-bearing
+one for the port, because `Object::find_nearby_target@00648da0` walks the
+cell chains with *no* leader bound of its own — `valid_target` is the only
+thing keeping gaia out of the ring search.
+
+There is an asymmetry worth keeping: the bound is on the **target**, and
+`valid_target_const` dispatches through the *attacker's* vtable, so
+`AnimalData::valid_target_const@005d8120` — two lines, `flags & 1`, no
+diplomacy — means an animal may target anything while nothing may target
+it. It does not arise; `Sim::animal_idle` only wanders.
+
+`world::PLAYER_SLOTS` is the bound now, and `docs/ANIM.md` §6.1 is where
+it lives, because §6 already owned gaia's units. Five tests, five
+deliberate breakages, all red — and two of them reproduce the original
+panic verbatim, which is the point of writing them.
+
+**What is honestly not settled**, and it is in `docs/CITIES.md` §7.2:
+`Build::check_capture`'s tally walks the cell chains with no leader bound
+and writes `local_8c[leader]`, a **local `int` array**. An animal reaching
+it would overrun the stack. Either its filter — index 8 in
+`Search::valid_filter`'s jump table, the block at `0067de47`, which turns
+on an unnamed type field `+0x1e8` — excludes animals for another reason,
+or the overrun is real. The sim skips gaia there on the leader bound,
+which cannot change an outcome but is not derived.
+
+**The method note**: the reading that mattered took ten minutes and was
+one line of one function. The temptation was to make `is_enemy` total and
+move on; the totality is in, but as a *guard*, labelled as one, and the
+model is the bound. Two very different things had to both be written down.
+
+### The window: the queue asked the wrong question, and the answer was on disk
+
+The opener named an experiment — `DUMP_ALL=0` with `[End Frame] WORLD=6`,
+and what does a 300-frame window cost. **Both halves of its premise were
+wrong.**
+
+`window.py stage` sets `DUMP_ALL=1` because `scene_at` wants a `WORLD`
+block with its 3600 cells. But `[Start Game] WORLD=6` writes those cells
+on its own with `DUMP_ALL=0` — run31's start dump has all 3600 of them and
+has since the small hours of the same day — because
+`WorldData::log_data@006b6080` calls `set_detail(2)` before its per-cell
+loop. And no frame *inside* the window needs a `WORLD` block at all:
+`run_traced` stands the sim up from the **start** dump and ticks forward.
+So `[End Frame] WORLD=6` was never needed, and the thing to measure was
+not its cost.
+
+Same seed, back to back: the `DUMP_ALL` window bought **5** frames for 249
+MB; the cheap one bought **301** for 207 MB. 72× cheaper a frame, 60× more
+frames, less wall clock. The one thing it gives up is `master_land_heights`,
+which is genuinely `DUMP_ALL`-only — and for a fuzzed seed there is no
+sibling to borrow it from, because the whole point is a map nothing else
+has captured.
+
+### And then the thing the cheap window actually unlocked
+
+Every capture on disk opened its window late: run13 at 95, run31 at 149,
+the fuzzer's first at 3000. **Nobody had ever compared sim-frame 1 against
+the original, on any map.** At 50 MB a frame nobody could.
+
+So the third run was the control: `scenario.py --no-stage`, which issues
+no cheat at all — not even `ai off`, whose whole effect is to stop a leader
+the sim would keep playing — and a window at [1, 301). 195 MB, ten minutes,
+301 frames, and **20** unlinked units instead of 3,610.
+
+**It scores `survived = 1`.** Player 1's `o 0` is 24 position units off on
+both axes at sim-frame 2; player 0's `o 1` by 10 at frame 4; and at frame 1
+two of player 1's units already hold an order the sim never issued. Then
+the heights sibling — six more minutes, `window.py stage 1 3` on the same
+seed — came back **identical**, so that is the port and not the flat map.
+
+That is the first honest fidelity number this project has on a map it was
+not tuned against, and it came with two leads attached: the frame-0 draw
+count is **15 short** (180 against 195) where run7's lobby has matched for
+weeks, and `check_start_orders` fails on one citizen (*`who 1 o 6`: we
+derived None, the log has 2001*).
+
+### What the day cost, and the note
+
+Three runs, twenty-six minutes of wall clock, about 590 MB. The panic fix
+was an hour. Item 13's verdict is **keep**, and not for the reason it was
+being judged on: the ledger's `survived` column is still nearly zero, but
+the fuzzer has now produced a panic, a draw-count gap and a broken
+generalisation, all on maps nobody chose.
+
+**The note, and it is the same one as yesterday's from the other end.**
+Yesterday: *measure the oracle before building a better one*. Today:
+**check whether the expensive setting is doing anything before pricing
+it.** The queue had budgeted a 300-frame window against 25 MB a frame and
+concluded it was probably unaffordable. It costs 0.69. The evidence was a
+`grep -c who2` on a file that had been on disk for eleven hours.

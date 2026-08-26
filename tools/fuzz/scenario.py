@@ -2,6 +2,7 @@
 """scenario.py — a seed becomes a scenario the original can be told to play.
 
     scenario.py SEED [--install DIR] [--lo N] [--hi N] [--extent LO HI]
+    scenario.py SEED --no-stage      map variation only -- the control run
     scenario.py SEED --json          the same scenario as metadata, for the ledger
 
 Writes a `rontrace.cmd` body on stdout: `<sim-frame> <text>` lines, `!` for a
@@ -82,7 +83,7 @@ def unit_types(install):
 GOODS = ["food", "timber", "metal", "wealth", "knowledge", "oil"]
 
 
-def scenario(seed, install, lo, hi, extent):
+def scenario(seed, install, lo, hi, extent, stage=True):
     rng = Rng(seed)
     types = unit_types(install)
     lines = []
@@ -94,6 +95,19 @@ def scenario(seed, install, lo, hi, extent):
     # second), so the window can sit anywhere without paying for the frames
     # before it. `docs/ORACLE.md`, run18.
     at(5, "!ffwd 30")
+
+    # `--no-stage`: the control run, and the only shape that measures
+    # *fidelity* rather than window placement. An early window leaves no room
+    # before it for staging, and every cheat the scenario would issue is a
+    # state change the harness cannot model -- `ai off` most of all, since the
+    # sim has its own `docs/AI.md` leader and would keep playing while the
+    # original's stopped. So the control issues nothing at all: the seed still
+    # varies the whole generated map, which is the point.
+    # `docs/ORACLE.md`, "The 300-frame window".
+    if not stage:
+        at(hi + 1, "!quit")
+        return lines
+
     # The AI's units are noise the diff would have to be told to skip, and
     # `!ai off` stops the leader's strategy (though not, per run17, the
     # buildings' queues).
@@ -138,12 +152,15 @@ def main():
     ap.add_argument("--lo", type=int, default=3000)
     ap.add_argument("--hi", type=int, default=3100)
     ap.add_argument("--extent", type=int, nargs=2, default=(100, 200))
+    ap.add_argument("--no-stage", action="store_true",
+                    help="map variation only: no spawns, no state pokes")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
     if not args.install:
         sys.exit("no install: pass --install or set RON_INSTALL")
 
-    lines = scenario(args.seed, args.install, args.lo, args.hi, tuple(args.extent))
+    lines = scenario(args.seed, args.install, args.lo, args.hi,
+                     tuple(args.extent), stage=not args.no_stage)
     if args.json:
         json.dump({"seed": args.seed, "lo": args.lo, "hi": args.hi,
                    "extent": list(args.extent),

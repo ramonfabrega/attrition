@@ -2404,6 +2404,103 @@ hand. `Log` flushes per line, so the kill costs at most the frame in
 progress — run31's last block is half-written, which any reader of it has
 to tolerate.
 
+### The 300-frame window, and the `DUMP_ALL` the fuzzer did not need (2026-08-26)
+
+`docs/QUEUE.md` item 13's Tier 1 windowed with `window.py stage`, which
+sets `DUMP_ALL=1`. The stated reason was that `rondata`'s `scene_at` wants
+a `WORLD` block with its 3600 cells, and only `DUMP_ALL` was thought to
+write them. **Both halves of that are wrong**, and the second was already
+disproved by a capture sitting on disk:
+
+- **`[Start Game] WORLD=6` writes the cells with `DUMP_ALL=0`.** run31's
+  start dump has all 3600 of them (`grep -c who2` → 10800 over its three
+  `WORLD` blocks). `WorldData::log_data@006b6080` calls `set_detail(2)`
+  before its per-cell `WData::log_data` loop, so `WORLD=6` clears it
+  comfortably. It is not a `DUMP_ALL` feature.
+- **No frame inside the window needs a `WORLD` block at all.**
+  `rondata::diff::run_traced` builds the sim from `log.initial()` — the
+  **start** dump — and ticks forward to each logged frame. The per-frame
+  blocks are compared against, not stood up from.
+
+So the whole question "what does `[End Frame] WORLD=6` cost per frame"
+never had to be asked. The cheap window (`window.py frames`, plus
+`setlog.py`'s `[End Frame]` set) is what a fuzzed seed should have been
+using from the start.
+
+**Measured, on the same seed, back to back:**
+
+| | `DUMP_ALL` window | cheap window |
+|---|---|---|
+| staging | `window.py stage 3000 3020` | `setlog.py 0 …` + `window.py frames 1000 1300` |
+| dump | 249 MB | 207 MB |
+| frames the harness stepped | **5** | **301** |
+| per frame | 49.9 MB | **0.69 MB** |
+| unit-frames compared | 39 | 3,913 |
+| game start → dump settled | ~15 min | **9 min 22 s** (1.87 s a frame) |
+
+**72× cheaper a frame and 60× more frames for less wall clock**, from ini
+settings alone. `tools/fuzz/run.sh` uses the cheap window now.
+
+**What the cheap window does give up: the height table.** `master_land_
+heights` is a `DUMP_ALL`-only record, so a cheap-window capture stands the
+world up **flat** — the diff says so in a note (`no height table (flat)`),
+and `borrow_from_siblings` fills it in from a `DUMP_ALL` dump of the *same*
+map when one exists. For run30/31 that was run3's. **For a fuzzed seed
+there is no sibling**, because the whole point is a map no other capture
+has, so every fuzzed seed is flat and everything the height feeds — the
+pathfinder's cost, `calc_gather`'s non-flat term — is untested by it. A
+seed worth keeping can be re-run once with `window.py stage` at three
+frames to get its heights; that is the only thing `DUMP_ALL` is still for.
+
+**And what it unlocked, which is bigger: a window at frame 1.** The
+`ticks before divergence` a run reports is an absolute sim-frame, so it is
+mostly a statement about where the window was put — `ledger.py` already
+says so and keeps `survived = ticks + 1 − lo` instead. But `survived` only
+discriminates if the window opens **before** the simulation has drifted,
+and every capture on disk opened late: run13 at 95, run31 at 149, the
+fuzzer's first at 3000. **Nobody had ever compared sim-frame 1 against the
+original, on any map.** At 50 MB a frame nobody could.
+
+So the third run of the day was the control: `scenario.py --no-stage`
+(`FUZZ_STAGE=0`), which issues no cheat at all — not even `ai off`, whose
+whole effect is to stop a leader the sim would keep playing — and a window
+at **[1, 301)**. Seed 424242, 195 MB, ten minutes, 301 frames stepped,
+3,913 unit-frames compared, and **20** unlinked instead of 3,610, because
+nothing was spawned by cheat.
+
+**It scores `survived = 1`.** Player 1's unit `o 0` is 24 position units
+off on both axes at sim-frame **2** — an eighth of a tile — and player 0's
+`o 1` by 10 units at frame 4. Before that, at frame **1**, `who 1 o 0` and
+`o 6` already hold an order the sim has not issued (`Length { ours: 0,
+theirs: 1 }`). That is a floor, it is comparable between seeds, and it is
+the first honest fidelity number this project has on a map it was not
+tuned against.
+
+**The height caveat was checked, not assumed.** The control's world is
+flat, so a 24-unit drift at frame 2 could have been terrain the sim cannot
+see. So the seed got a heights sibling of its own — `window.py stage 1 3`
+on the same `rise.ini` `Seed`, six minutes, 186 MB, then `rondata --diff
+… --sibling <heights dump>`. With **58,081 heights pinned per tile** the
+result is *identical*: player 1 at frame 2, `(7320, 41880)` against
+`(7344, 41904)`; player 0 at frame 4, `(37840, 6385)` against `(37850,
+6384)`. **`survived = 1` is the port, not the flat map.**
+
+**Two leads came out of the same run**, and both are things 31 hand-built
+captures on one lobby could not have shown:
+
+- **The frame-0 draw count is 15 short on a map we did not tune against**
+  — `note: rng: frame 0: ours 180 draws, the original's 195`, then frame 1
+  four *over* (49 against 45). On run7's lobby the setup draws have been
+  matched for weeks.
+- **The start-of-game gather rule does not generalise.**
+  `check_start_orders` (`docs/AI.md` §9.3) fails on one citizen: *`who 1 o
+  6: we derived None, the log has Some(2001)`*. That is the check working
+  as designed on a map it has never seen.
+
+**What a control run costs, for the record:** 195 MB, ten minutes, plus
+six more and 186 MB if the seed is worth its heights. Two runs, and the
+second is optional.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
