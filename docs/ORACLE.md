@@ -1799,7 +1799,91 @@ The differences from the chat path, for anyone comparing: a line runs at
 the top of the frame before phase 1, not in the command-processing phase;
 it is not in the order stream (a recording of the run does not carry it);
 it runs while paused; `no_mouse = 1`, so `add`/`move` without coordinates
-have no cursor tile to fall back on — always give `x,y`.
+have ~~no cursor tile to fall back on~~ **a stale one** — `parse_cmd`
+refreshes `mouse_coord_x/y` only when `no_mouse == 0`, so an omitted
+coordinate silently uses whatever the last real cursor read left. Always
+give `x,y`.
+
+### The channel's vocabulary, and what it cannot do (2026-08-26)
+
+The whole console vocabulary is readable without running anything, and
+`tools/gamelog/console.py` re-derives it from the user's own install on
+demand. `ConsoleWin::init_cmds@007e1340` fills `ConsoleWin::commands` — an
+array of `ConsCmd`, 0x28 bytes, name at +0 and help at +0x14, both `String`
+— by copying entries out of `int_str_array`, the positional table the game
+loads from `Data/internal_strings.xml` at stride 0x14. Parse the 204
+assignments, divide by the strides, index the XML: **102 commands, each with
+the help text the game itself prints.** One trap, and it cost an hour: eight
+entries in that file are self-closing `<STRING/>`, and a reader that matches
+only `<STRING>…</STRING>` silently shifts every index after each one — the
+symptom is a table that looks almost right, with `BASE_ARMIES` and
+`in_game_chat_box` sitting in command-name slots. The table is correct when
+command 0 is `?`, which is `parse_cmd`'s own special case.
+
+**The two switches are the reachability rule.** `parse_cmd` calls
+`run_cmd(this, index, args, from_chat, no_mouse)`, and `run_cmd` opens
+
+```c
+if (param_3 /* from_chat */ != 0) goto switchD_007d6c52_caseD_9;
+switch (param_1) { ... }          /* console only        */
+switchD_007d6c52_caseD_9:
+switch (param_1) { ... }          /* chat-reachable too  */
+```
+
+The two `case` sets are **disjoint** — 56 console-only, 45 chat-reachable, 101
+of the 102 labelled (`pointer` has no label of its own). So a `.cmd` line's
+`!` prefix is not a convenience: it selects which half of the vocabulary the
+line can reach. `loglevel`, `restart`, `seed`, `mapgen`, `mapsize`,
+`numplayers`, `break`, `go`, `pause`'s console twin and `quit` are all
+console-only; `add`, `select`, `move`, `die`, `damage`, `tech`, `resource`,
+the diplomacy verbs, `finish`, `hurry`, `pack`, `deploy` and `anim` are the
+chat half.
+
+**`move` is a teleport, not an order — and that is the ceiling on the whole
+channel.** Case `0x4c` reads `mouse_coord_x/y` as the default destination,
+lets a `x,y` token override it through `parse_coord`, and then calls
+`Unit::find_nearby_spot` followed by `Unit::set_new_location@005f8d20` —
+which is `Object::remove_from_world` and `Object::add_to_world` at the new
+coordinate, with `Guy::set_new_location` for each figure. Nothing touches an
+order list. **No console command issues an order at all**: the chat half is
+a set of state pokes. This closes the open question from run17 ("whether
+`move`'s coordinate arm reads the mouse tile the channel does not supply")
+in the other direction than it was asked — the command ran and did what it
+does, which is not what an order does. Two details from the same case worth
+keeping: `no_mouse` makes the channel *more* permitted, not less
+(`if ((game->semaphore.ptr[0] & 4) != 0 && no_mouse == 0) break;` — a guard
+the channel skips), and the destination defaults to the stale
+`mouse_coord_x/y`, because `parse_cmd` refreshes them only when
+`no_mouse == 0`.
+
+The consequence for coverage is the one that matters: every
+`Unit::add_*_order`, `Unit::do_*`, `Group::action_*` and
+`CommandPackage::process_*` on the blind list is **unreachable from the
+channel by construction**. Those need the real order stream, which is the
+UI — run31's three right-clicks are the only thing that has ever entered
+`CommandPackage::process_move_to`. A scenario file stages the world; only a
+click or a hotkey orders it.
+
+**`break` is an assert dialog, not a breakpoint.** Case 4 sets
+`Game::frame_to_break`, and `Game::do_frame@00591ef0` reacts to it by calling
+`Error::report` with `game.cpp` — a modal, which in an unattended run is a
+hang rather than a pause. It clears `frame_to_break` afterwards and honours
+`ignore_always`. For a frame-exact halt use `cheat pause 1` from the channel
+instead, which reaches `TurnControl::issue_toggle_pause`; note that a paused
+game stops calling `do_frame`, so the channel cannot unpause itself and the
+driver has to.
+
+**`loglevel` moves the dump cost off the ini.** Case `0x1b` is
+`loglevel <label> <level>` → `GameLog::set_level`, which matches the label
+case-insensitively against the global `game_log_strings[]` (stride 0x14) and
+writes `game_log.details[3][index] = level` for index < 0x24 — 36 category
+slots. `loglevel reset` → `GameLog::reset_levels`. So per-category verbosity
+is settable **at a frame, from a `.cmd` line**, and a window no longer has to
+be an ini edit and a relaunch: run with everything at 0, `!loglevel UNITS 3`
+the frame before the window, `!loglevel UNITS 0` after it. Open, and cheap to
+check: the help text says it changes "[start frame]" logging while the code
+writes row 3 of `details`, so which ini section row 3 is has not been
+established.
 
 ### The combat run (run17, 2026-08-24) — the channel's first real run
 
@@ -1834,11 +1918,15 @@ at its city), so **`!ai off` stops the leader's strategy, not the
 buildings' queues**; and the `[End Frame]` dump grew to 155 KB a frame
 with twenty extra units — 2,600 frames in 403 MB.
 
-**Open:** `move 6 190,60` from the channel ran (`parse_cmd` returned 1)
+~~**Open:** `move 6 190,60` from the channel ran (`parse_cmd` returned 1)
 and did not move the unit, where the typed `move 10,0 190,60` in run16
 moved one to tile (0, 190). Whether `move`'s coordinate arm reads the
 mouse tile the channel does not supply, or the unit's engagement at the
-time refused it, is a reading of `run_cmd`'s `move` case. **The speed
+time refused it, is a reading of `run_cmd`'s `move` case.~~ **Read
+2026-08-26**, and the question was the wrong shape: `move` is a
+**teleport** (`Unit::set_new_location`), not an order, and `no_mouse`
+widens rather than narrows what the case will do — "The channel's
+vocabulary, and what it cannot do", above. **The speed
 floor is now the dump, not the input**: run16b ran at ~3.3 sim-frames a
 second with `UNITS=3` (137 KB a frame), so a 2,400-frame scenario is
 twelve minutes whatever drives it; ~~`ffwd` cannot help while every frame
