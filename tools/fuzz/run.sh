@@ -102,15 +102,23 @@ screencapture -x -R760,152,1920,1108 "$T/s$SEED-end.png" 2>/dev/null
 pkill -f $P 2>/dev/null || true
 sleep 3
 
-DUMP="$L/gamelog-fuzz-$SEED.txt"
+# The archive name carries the *shape*, not just the seed. Two runs of one
+# seed -- staged and control -- are two different captures, and the first
+# version of this named both `-fuzz-$SEED` and silently clobbered the staged
+# run's trace with the control's. That cost the one measurement that would
+# have said whether the cheat staging buys any function coverage at all
+# (`ledger.tsv` has 6872 funcs against 6684, and whether any of the 188 are
+# on the blind list is now unanswerable without a re-run).
+TAG="$SEED-$LO"; [ "$STAGE" = 0 ] && TAG="$TAG-nostage"
+DUMP="$L/gamelog-fuzz-$TAG.txt"
 mv "$L/gamelog.txt" "$DUMP"
-cp "$G/rontrace.log" "$L/rontrace-fuzz-$SEED.log"
+cp "$G/rontrace.log" "$L/rontrace-fuzz-$TAG.log"
 python3 "$W/tools/gamelog/window.py" restore
 
 cargo run --quiet --manifest-path "$W/Cargo.toml" -p rondata -- "$G" \
-  --gamelog "$DUMP" --diff > "$T/diff-$SEED.txt" 2>&1 || true
-tail -20 "$T/diff-$SEED.txt"
+  --gamelog "$DUMP" --diff > "$T/diff-$TAG.txt" 2>&1 || true
+tail -20 "$T/diff-$TAG.txt"
 python3 "$W/tools/fuzz/ledger.py" append "$SEED" --lo "$LO" \
-  --diff "$T/diff-$SEED.txt" --trace "$L/rontrace-fuzz-$SEED.log" \
+  --diff "$T/diff-$TAG.txt" --trace "$L/rontrace-fuzz-$TAG.log" \
   --note "cheap window $LO-$HI$([ "$STAGE" = 0 ] && echo ', no staging')"
 echo "seed $SEED done"

@@ -187,6 +187,17 @@ in which case say so and take that. The story of each struck item is in
     that looks most like fuzzing — has produced nothing yet, and the next
     session should either point it at something it can reach or drop it.
 
+    **The one measurement that could still redeem it, and it needs a
+    re-run.** The staged shape entered **6,872** functions against the
+    control's **6,684** (`ledger.tsv`). Whether any of those 188 are on
+    the blind list — `tools/trace/report.py … blind docs/`, the queue of
+    runs — is the whole question, and it is unanswerable right now
+    because `run.sh` named both traces `rontrace-fuzz-424242.log` and the
+    control clobbered the staged one. **Fixed** (the archive name carries
+    the shape now), but the answer costs one ten-minute staged run:
+    `zsh tools/fuzz/run.sh 424242 1000 1300`, then the blind report
+    against both traces. Do that before deciding the generator's fate.
+
     **The shape it settled into.** `FUZZ_STAGE=0` — no cheats, window at
     [1, 301) — is the measuring shape; the staged shape is the coverage
     shape. Its cost is 195 MB and ten minutes, plus six more for a heights
