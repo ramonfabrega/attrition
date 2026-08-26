@@ -514,6 +514,17 @@ half-cell step back (§8.5). `status |= 4` so it is not repeated while
 the fight lasts. (The first reading had the 90 % test's sense inverted
 and applied it to any building, not only a city centre.)
 
+All three of those 2026-08-25 corrections — `is_ally` rather than
+`!is_enemy`, the `>=` sense of the 90 % test, and its restriction to
+`OBJECT_CITY` — were **ratified** by the group orders' adjudicator, who
+re-derived each from the decompile, the listing and the PDB's own
+`LF_FIELDLIST` (`docs/audit/2026-08-25-groups.md`, "The `docs/ARMY.md`
+carry-over"). One substitution to say out loud rather than leave implicit:
+`army.rs`'s `nearly_dead` models "city centre" as
+`bd.city.is_some_and(|c| self.cities[c].building == b)`, where the original
+reads the object's own `OBJECT_CITY` flag byte. They coincide for
+everything the simulation builds; the flag is the original's answer.
+
 ## 10. Defending
 
 **`Army::do_defending@006f4070`**: `count(COUNT_ATTACK) < 5` → `close()`.

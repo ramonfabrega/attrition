@@ -4,8 +4,15 @@
 export (`~/ghidra-projects/decomp`), the PDB type records (`types.txt`,
 `vtables.txt`) and the four traced runs of `docs/ARMY.md` §16. Written to
 close the one seam `docs/ARMY.md` §17 names: the AI's armies decide but
-never move a unit, because the simulation had no `Group::action_*`. Second
-reading: not yet run (§13).*
+never move a unit, because the simulation had no `Group::action_*`.*
+
+***Second reading run, adjudicated and applied, 2026-08-26** —
+`docs/audit/2026-08-25-groups.md`, 124 verdict rows. Two blind readers and
+an adjudicator, all on Opus 5. Every correction it names has landed in this
+document and in `crates/sim/src/group.rs`; §14 is the record of what was
+wrong and where each fix went. The first reading gave this document **low**
+standing and was right to: it never opened `rise_z.map`, and §13 guessed at
+five vtable slots the PE names outright.*
 
 **What this is.** Nothing in Rise of Nations gives an order to a unit
 directly. A player's click, an AI army's tick and a unit's own `go_to` all
@@ -24,11 +31,12 @@ which is how a group made on the stack becomes one the units point at.
 read line by line: high. `action_attack` (§10) is `docs/ORDERS.md` §8.5's
 reading, re-walked here for the two branches the AI takes and otherwise
 cited rather than repeated. **`Form::compute`'s slot table is read in shape
-only and is a declared seam** (§6.4, §13): it is what decides *where within
-the formation* each member stands, it is 1,200 lines across four functions,
-and it is the one piece of this mechanic whose output no capture has yet
-pinned. Everything the army's behaviour turns on — which unit gets which
-*kind* of order, and when — is below it and is read.
+only and is a declared seam** (§6.4): it is what decides *where within the
+formation* each member stands, and it is 1,200 lines across four functions.
+That is the whole of the reason now — the second reading killed the other
+two the first gave (no float barrier, and the output *is* captured; §6.4).
+Everything the army's behaviour turns on — which unit gets which *kind* of
+order, and when — is below it and is read.
 
 **Naming.** Offsets are the PDB's: `struct /rise.pdb/GroupData` (0x9cc
 bytes; a `Group` is 0x9d4 with its vptr and virtual base), `GroupsData`,
@@ -54,13 +62,23 @@ GroupData (types.txt, 0x9cc — every field below is the PDB's own name)
   +0x28  disband     int     cleared by action_begin at the top of every action
   +0x2c  order_num   int     bumped by every action that issues orders; part of a
                              GroupMoveOrder's id
-  +0x30  priority    int     read by normalize's prune; never written in the export
+  +0x30  priority    int     read by normalize's prune. A one-bit "I am a control
+                             group": 1 from HotKeyGroups::clear@00715230,
+                             HotKeyGroups::find_group@00714d00 and
+                             Object::replace_hotunit@00643b70; 0 from
+                             Group::clear@00713e80 and Groups::clear@00713f20
   +0x34  role        int     OR of the members' type roles (find_role)
   +0x38  think_frame int
   +0x3c  new_speed   int     \ the group's march speed, reset every frame by
   +0x40  speed       int     / Groups::process to the leader's own
   +0x44  form_num    int     the member count Form::compute_dests laid out
-  +0x48  facing      uchar   the formation's mirror flag (§6.3)
+  +0x48  facing      uchar   the formation's mirror flag (§6.3). Three writers:
+                             Group::clear (0), compute_form's toggle/restore
+                             pair (§6.3), and — outside this family, and the
+                             one no reading found — Unit::kill_current_order
+                             @005e2cb0, which writes the dying move order's own
+                             reverse flag onto the group when the unit is the
+                             group's leader
   +0x49  buildings   uchar   this is a group of buildings, not units
   +0x4a  who         uchar
   +0x4b  march       uchar
@@ -76,9 +94,22 @@ GroupData (types.txt, 0x9cc — every field below is the PDB's own name)
 `GroupsData` (0x44) is the pool: `Array<Group> list`, `int last_group[8]`,
 `int *const_last_group`, `int proc_group`. **Sixty-four groups a leader**
 (`Groups::get_open_slot@006fa460` indexes `who * 0x40`), of which the
-first **46** are the recycling pool (the loop bound is `base + 0x2e`); the
-rest belong to the hotkey and selection groups (`HotKeyGroups`,
-`SelectGroups`, whose own vtables share `Group::add`/`kill`/`action_begin`).
+first **46** are the recycling pool (the loop bound is `base + 0x2e`).
+`last_group[8]` is initialised to `{p × 0x40}` by `Groups::clear@00713f20`
+— run29 prints `last_group 0 / 64 / 128 / 192 / 256 / 320 / 384 / 448` —
+and that one slot per player is the one `get_open_slot` never returns.
+
+**What the other 18 slots are for is open.** They are *not* "the hotkey and
+selection groups": `HotKeyGroups` is a **separate array**
+(`HotKeyGroups::clear@00715230` writes `hotkey_groups._16_4_`, not
+`groups._16_4_`), and it is dumped separately — run29's `HOTKEYGROUPS` block
+holds a `HOTKEYGROUPDATA` wrapper per hotkey group with the `GROUPDATA`
+record nested inside it, while the pool is 512 flat `GROUPDATA` records
+(8 leaders × 64) directly under `FULL DUMP`. Slots `who*64+46 … +63` of the
+pool are allocated by nothing and searched by nothing; only
+`Groups::process` still cycles them. `HotKeyGroups` and `SelectGroups` do
+share `Group`'s `add`/`kill`/`action_begin` vtable slots, which is what the
+first reading was seeing.
 
 `Group`'s vtable is six slots (`vtables.txt`, `HotKeyGroup::vftable` and
 its siblings): `+0x0 get_button`, `+0x4 get_num`, `+0x8 get_num_cap`,
@@ -126,10 +157,13 @@ Walk slots `who × 64 + 0 .. +45`, `local_18 = frame`, best `−1`:
 
 - a slot that is **empty** (`get_num() == 0`) **or a building group**, and
   is not `last_group[who]` → taken at once, the walk ends;
-- otherwise a slot whose `stamp <= local_18` and whose `get_num() == 1` — a
-  **singleton** — and which is not `last_group[who]`, becomes the running
-  best and `local_18 = its stamp`. So the fallback is the *oldest
-  single-unit group*.
+- otherwise a slot whose `stamp <= local_18` and whose **`get_num_cap() == 1`**
+  — vslot `+0x8`, so **exactly one captain**, which is not the same number
+  as one member — and which is not `last_group[who]`, becomes the running
+  best and `local_18 = its stamp`. So the fallback is the *oldest group with
+  a single captain*, and because `local_18` is lowered on each hit while the
+  comparison stays `<=`, among slots of **equal** stamp the **last** one
+  wins.
 
 None found: the engine logs "UH OH, NEED MORE GROUPS! No non-singular
 groups found!" at `GLOG_MISC` detail 1 — a line worth grepping a dump for
@@ -147,9 +181,15 @@ evicted before the new group moves in.
   function returns **−1**. A single-unit selection is not worth a slot.
 - Otherwise: if `g` **equals** the leader's `last_group` slot
   (`Group::equals_group@00708000`: same `who`, same `get_num()`, same
-  `buildings`, and the same ids in the same order, both sides normalised
-  first) the existing slot is reused; else `get_open_slot`, `copy_group`
-  into it, and `last_group[who] = it`.
+  `buildings`, and the same ids in the same order) the existing slot is
+  reused; else `get_open_slot`, `copy_group` into it, and
+  `last_group[who] = it`. `equals_group` normalises **only a side whose
+  `id != −1`** — so a group built on the **stack** is never normalised,
+  which is exactly every `Army::add_unit` and `find_target` probe call.
+  `Groups::copy_group@006fa690` copies nine things and leaves `id`, `army`,
+  `form`, `disband`, `order_num`, `priority`, `role`, `think_frame`,
+  `new_speed`, `form_num`, `facing` and `march` behind — a reused slot keeps
+  the previous occupant's.
 - Then every active member: if its current `+0x80` is a **different** live
   slot, that group's `kill(unit, who, 0, 0)` removes it there first; then
   `+0x80 = the new slot`.
@@ -172,8 +212,10 @@ speed from drifting; `docs/ORDERS.md` §8.3 reads the consumer.
 ### 4.1 `Group::add(o, who, keep_captain, const)@00714350`
 
 The argument named `keep_captain` above is `param_3` and `const` is
-`param_4`; `param_4` chooses `get_num_const` over the virtual `get_num`,
-and is 1 only on the recursive call that pulls in a squad's subordinate.
+`param_4`; `param_4` chooses `get_num_const` over the virtual `get_num`.
+Both recursions **forward `param_4` unchanged**; the only site that
+originates `param_4 = 1` is `Group::sort@00708090`'s fix-up
+`add(o, who, 0, 1)`.
 
 - An empty group takes `who` as its own.
 - Refused unless the group is empty or `who` matches.
@@ -207,9 +249,14 @@ leader's speed`, or 0.
 
 `normalize` walks the members **from the last to the first** and drops a
 member that is `list[i] < 0`, or whose object is not valid, or — when
-`priority == 0` and `id >= 0` — is a unit whose `+0x80` no longer names
-this group and which is not a building. Then `find_role` (the OR of the
-members' `type.role`) and `speed = new_speed = the leader's speed`.
+`priority == 0` and `id >= 0` — satisfies
+`(!is_unit() || unit->group != id) && !is_build()`. Two halves matter and
+the first reading had neither: an object that **is not a unit at all** is
+culled outright unless it is a `is_build`, and the exemption is `is_build`
+(vslot `+0x20`), which is **0 for a Wall** — so a *wall* member is subject
+to the back-pointer cull and a plain building is not. Then `find_role` (the
+OR of the members' `type.role`) and `speed = new_speed = the leader's
+speed`.
 
 `get_num_cap` is the same backwards walk, dropping only invalid objects,
 and counts the members for which `is_captain` holds — `docs/ARMY.md` §3.3's
@@ -235,10 +282,21 @@ and for a unit group with at least one active on-map captain.
 active on-map member, and **−1 as soon as two differ** — a mixed group has
 no formation. `get_form_mod_option` is its width twin at `+0xab`.
 
-`GroupData::get_stance_type@0070d370` is the leader's `vslot 0x108`; if
-that is `STANCE_NONE` or `STANCE_CASTER` it walks the members and takes the
-first non-`NONE` that is not `CASTER`, falling back to `CASTER` if one was
-seen. `docs/ARMY.md` §6's `set_stance` acts only on `STANCE_COMBAT` groups.
+`GroupData::get_stance_type@0070d370` seeds from **`find_leader`** for a
+unit group and from **`list[0]`** for a buildings group, and reads its
+`vslot 0x108` (`get_stance_type`); if that is `STANCE_NONE` or
+`STANCE_CASTER` it walks the members and takes the first non-`NONE` that is
+not `CASTER`, falling back to `CASTER` if one was seen. `docs/ARMY.md` §6's
+`set_stance` acts only on `STANCE_COMBAT` groups.
+
+`GroupData::get_stance_option@0070bab0` is the one §8's cycle actually
+steps from, and the first reading never read it. It is the **modal**
+option: a `count`-entry histogram (6 / 4 / 2 by stance type) over the
+members that are valid and answer `has_stance_type(type)` (vslot `+0x104`),
+counting each member's `unit +0xb1` — or `Build +0x7e` for a buildings
+group — and returning the **argmax on a strict `<`**, so a tie goes to the
+lowest index and an empty histogram gives 0. Its out-parameter is
+`(distinct options seen < 2)`, i.e. "the group agrees".
 
 ## 5. `action_begin` and the scenario filter
 
@@ -272,9 +330,13 @@ cleared and the call returns. **An army's group never splits**: the test is
 `*(int *)&this->field_0x8 < 0` at `70497e`/`704c5e`.
 
 If the destination cell is **not water** (`terrain & 0x30 != 0x20`) the
-split is re-done with a different rule — an `is_special` unit and a
-*carried* unit go to the first group, everything else to the second — and
-the same recursion applies under the same `army < 0` guard.
+split is re-done with a different rule — a **sea transport** and a *carried*
+unit go to the first group, everything else to the second — and the same
+recursion applies under the same `army < 0` guard. The test at `704cf4` is
+`(ptype->+0x2b4 & 0x10) == 0`, `unit_flags` bit `e`, which this project has
+named `uflags::TRANSPORT` since the AI mechanic
+(`crates/sim/src/ai_load.rs`); it is **not** `is_special`, which is
+`unit_flags2 +0x2b8 & 0x10`.
 
 ### 6.2 `QUEUE_FIRST`
 
@@ -307,11 +369,27 @@ position translated by its current move's origin when that origin is within
   its packed slot byte when the group has moved since (`(ox, oy) !=
   (group.ox, group.oy)`), else `group.o_angle`; a non-zero delta takes
   `find_angle(dx, dy)`. With `set_angle != 0` — **every army call** — the
-  caller's angle stands, and `reverse = |find_angle(dx, dy) − angle| > 90°`;
-- if the leader's facing minus the given angle is past 90°, `group.facing`
-  is **toggled** around the `Form::compute` call and toggled back; under the
-  network semaphore bit (`semaphore[1] & 8`) `facing` is forced 0 and
-  `reverse` false, so a networked game never mirrors;
+  caller's angle stands, and `reverse = |find_angle(dx, dy) − angle| ≥ 90°`.
+  The idiom is `0x3fffffff < d && d < 0xc0000001` at `707e09`–`707e1a`, so
+  **both bounds are inclusive**;
+- if the leader's facing minus the given angle is `≥ 90°` by the same
+  idiom, `group.facing` is **toggled** around the `Form::compute` call and
+  toggled back afterwards — and the two toggles are **exactly symmetric**.
+  The listing settles it: both are guarded by the same compare against
+  `%esi`, computed at `707ea8` and never rewritten (`Form::compute@0072e8e0`
+  pushes `ebx`/`esi`/`edi` on entry). So in an ordinary game
+  `compute_form` leaves `group.facing` **as it found it**;
+- **unless `game->semaphore.ptr[1] & 8` is set**, in which case `facing` is
+  forced 0 and `reverse` false *before* the call, and the restore — still
+  reading the pre-override `%esi` — flips `facing` to **1** on the way out.
+  That bit is **bit 11 of `GameData +0x814 BitMask<256> semaphore`**, and it
+  is not a network flag: `ConsoleWin::run_cmd@007d6a70` **sets** it right
+  after `ScenarioEditor::init` and **resets** it right after
+  `ScenarioEditor::close`, and `Options::do_formation@007215b0` calls
+  `Group::dbg_jump_to_action` under it. It means **the scenario editor is
+  open**. So the first reading's "a networked game never mirrors" is wrong
+  twice: wrong about the flag, and wrong that the flag pins `facing` at 0;
+
 - `Form::compute(form, group, x, y, angle, width, group.facing)`;
 - and when `reverse` holds, every member's `off_x/off_y` in both the `Form`
   and the group are **negated**.
@@ -333,22 +411,48 @@ one reading:
   spacings (`+0x84`, `+0xcc`) and a per-member category (`+0x314`) and
   index-within-category (`+0x114`);
 - `compute_rows_and_columns` turns the counts into rows and columns per
-  category, with three special forms — 6 (a square: `ceil(sqrt(n))`), 7
-  (a single line), 8 (three columns) — and otherwise a width driven by the
-  `width` argument (`(max_area × width / 50) / spacing`, at least 1);
+  category. `game/Data/rules.xml` lines 1446–1487 give **ten** formations
+  in document order — 0 Line, 1 Refused, 2 Envelop, 3 Echelon Right,
+  4 Echelon Left, 5 Sparse, **6 Square**, **7 Wedge**, **8 Column**,
+  9 Mob — and `Forms::init@0072e9a0` errors unless the count is 10.
+  `compute_rows_and_columns@0072d910` branches on **6** (a square,
+  `ceil(sqrt(n))`, line 21) and **7** (a Wedge: rows of 1, 2, 3, …,
+  line 136); **8** is handled inside the general arm (line 158), where it
+  sets `rows[c] = ceil(count[c]/3)` and leaves `cols[]` uninitialised.
+  Otherwise the general arm is
+  `span = max over c of (count[c] < 6 ? count[c]·width[c] :
+  count[c]·width[c]/2)`, then `cols[c] = clamp(1, count[c],
+  ((span · form_mod)/50)/width[c])` and `rows[c] = ceil(count[c]/cols[c])`;
 - `compute_dests` walks the members and lays each category's block out
   around the destination, rotating every offset by the formation angle
   through `sin_table`; a **non-captain** is placed relative to its captain
   rather than the block; `is_modern_infantry` scatters by a
-  position-derived `% 3`; and the whole block is finally shifted so the
-  leader's category sits on the destination.
+  position-derived `% 3`; and the categories are **stacked in rank** rather
+  than shifted as one block — walking `0 ..= cat`, subtracting `depth[c]/2`
+  between adjacent non-empty categories and `trunc((rows[c] − 0.5)·depth[c]·k)`
+  for every category strictly before the member's.
 
-**It is not implemented.** Two reasons, both stated so the next session can
-weigh them: the arithmetic involves the export's only floats in this family
-(`(float)cols[i] − 0.5f` at `0072cd8f`, exactly `(2·cols[i] − 1)/2`, so
-representable — but the whole 1,200 lines would have to be read to know
-where else), and **no capture pins its output**. The check that would is
-named in §13.
+**It is not implemented, and the only reason left is cost.** Both of the
+reasons the first reading gave are void:
+
+- **There is no float barrier.** Over the whole `Group` family
+  (`00704990`–`00708000`, `00708000`–`0070b9f0`, `0070b9f0`–`0070ea70`,
+  `0070f8f0`–`00710000`, `00711540`–`00715400`) there are **zero** float
+  instructions. Over `0072cba0`–`0072ed30` there are **fourteen**, and they
+  are two identical seven-instruction copies at `0072d00a`–`0072d036` and
+  `0072d846`–`0072d872`, both computing `trunc((rows[c] − 0.5f) · depth[c] ·
+  k)` with `k = 2 − (x != 0) ∈ {1, 2}`. The constant at `0xb694c0` reads
+  `00 00 00 3f` out of the PE — exactly `0.5f`. The whole expression is
+  `((2·rows − 1) · depth · k) / 2` truncated toward zero, **integer-exact**
+  for anything a 128-member group can reach.
+- **A capture pins its output, and it is already on disk.**
+  `GroupData::log_data@0045e1d0` writes `off_x`, `off_y`, `curr_x`,
+  `curr_y` and `angles` **per member**, plus `form`, `form_num`, `o_dist`
+  and `o_angle`, every frame the `GROUPDATA` category is on. run29's window
+  carries a four-member army group in formation 0 — `id 66`, frame 15100,
+  `off_x = [0, −14, 13, −28]`, `off_y` all zero, `curr = [(0,0), (473,480),
+  (−440,−446), (946,960)]` — and `unit_formation_spacing 12` is printed in
+  the same dump. §12's ninth check is the diff that reads it.
 
 ### 6.5 The AI branch
 
@@ -385,10 +489,27 @@ interrupts a siege unit that is already shooting. `hurry` is
 `find_muster_spot`'s "there is an enemy at the target" flag
 (`docs/ARMY.md` §13), so both branches are reachable from the army tick.
 
+**The three loops do not gate on the same thing, and the gap has a
+consequence.** The `QUEUE_NEW` clear at `70524f` exempts a shooting siege
+unit only when `local_44 == 0` — i.e. only when the army is **not**
+hurrying — while the order loop at `7054c7` takes the "leave it alone" arm
+when `local_44 == 0 **or** local_48 < 0`, i.e. also when the army *is*
+hurrying but `find_city` returned −1. So a **hurrying AI army with no
+friendly city near its destination clears its shooting siege unit's orders
+and then issues it nothing**: the unit is left standing with an empty
+queue. Not obviously intended, and reproduced deliberately in
+`crates/sim/src/group.rs` rather than smoothed over
+(`a_hurrying_army_with_no_city_strands_its_shooting_siege`).
+
 ### 6.6 The ordinary path, per member
 
-1. `unit +0xaa = form` unless the type's `TypeIndex` is one of 0x32..0x35
-   (four types the decompile does not name), `unit +0xab = width`.
+1. `unit +0xaa = form` unless the type's `TypeIndex` is one of 0x32..0x35 —
+   `PEASANTS`, `PEASANTSKOREAN`, `SCHOLARS`, `SCHOLARSKOREAN`, the PDB's own
+   `TypeIndex` enum — and `unit +0xab = width`. Those are exactly the four
+   ids `UnitType::determine_roles@0061c320` opens by giving `role = 0x200`,
+   which is this project's `role::CITIZEN`, so "a citizen or scholar keeps
+   whatever formation it had" is right and is now an identification **by
+   type record**.
 2. `QUEUE_LAST` inverts the unit's path stack.
 3. The slot destination is clamped into the world.
 4. For `i > 0`, the slot's `tregion` is compared with slot 0's.
@@ -412,14 +533,37 @@ interrupts a siege unit that is already shooting. `hurry` is
    is a `role & 0x10` type that is not `unit_masks & 0x40000`, or
    `group.num < 2`, or `unit_masks & 4`, or the type is sea, or `form ==
    9`. Otherwise a plain **`add_move_facing_order`**. Both take
-   the destination as a `UCoord` (`/0x30`), the angle as `group.angles[i]
-   << 24 | angle`, `pathed = 1`, the action bit from `param_8`, the
-   formation's reverse flag, and the original click for the order's `orig`.
+   the destination as a `UCoord` (`/0x30`), the angle as
+   **`(signed char)group.angles[i] × 0x1000000 + angle`** — a *signed* byte,
+   and an **addition**, not `<< 24 |`; `compute_form` subtracts the same
+   product — `pathed = 1`, the action bit from `param_8`, the formation's
+   reverse flag, and the original click for the order's `orig`.
+
+   `role & 0x10` is settled by the type record:
+   `UnitType::determine_roles@0061c320` sets it in exactly two places —
+   `is(0x45)` for a **land** type and `is(0x143)` for a **sea** one — and
+   the PDB's `TypeIndex` names those `SCOUT` and `BARK`. (Vslot `+0x60` is
+   `ObjectTypeData::is@0065f7d0`, the lineage test;
+   `UnitType::init_final_flags@0061dc70` calls it with the constants that
+   reproduce five of `ai_load::uflags2`'s names, which this project derived
+   independently.) So the gate reads **"a scout on land or a bark at sea,
+   unless `unit_masks & 0x40000`, marches alone rather than in the
+   formation"** — and `docs/ORDERS.md` §8.2's gloss "workers, caravans" is
+   wrong.
 7. `unit_masks &= ~0x400`.
 
-Then `update_positions(leader)` rotates every slot offset into
-`curr_x/curr_y` by the leader's heading — what `do_group_move` adds to the
-leader's position each frame (`docs/ORDERS.md` §8.3).
+Then `update_positions(leader)` turns every slot offset into
+`curr_x/curr_y`. The listing at `7139e8`–`713a41` is sharper than
+"rotates … by the leader's heading": the sine-table row is reached by
+`leal (%ecx,%ecx,2)` + `shll $4`, i.e. **× 48**; `curr_y = sin·x − cos·x`
+is a **subtraction**, so the matrix is a rotation composed with a **y-flip**
+(determinant −1, and a naive port mirrors); and the loop bound at `713a38`
+is `cmpl 0x44(%eax)` — **`form_num`, not `num`**. run29's group `id 66`
+confirms it: `off_x = [0, −14, 13, −28]` becomes
+`curr = [(0,0), (473,480), (−440,−446), (946,960)]`, magnitudes 674, 626,
+1348 — `|off_x| × 48` to the sine table's granularity. This is what
+`do_group_move` adds to the leader's position each frame
+(`docs/ORDERS.md` §8.3).
 
 ### 6.7 The path
 
@@ -452,8 +596,18 @@ Finally every member's stack is inverted, `group.order_num += 1`, and the
 ## 7. `Group::action_halt(mask)@0070d0c0`
 
 The scenario filter, `action_begin`, and then — **only for a unit group** —
-`group.form = −1` and, per active on-map member that is not an airborne
-plane and is not `is_entering_or_exiting`:
+`GroupData.form = −1`. That write is on the **group**, unconditional, and
+the *first* statement inside the `buildings == 0` arm, before any member is
+examined (`0070d0c0:29`). No member's `+0xaa` is touched by a halt, which
+matters because `get_form` (§4.4) reads those bytes: the group forgets its
+formation index and the members do not.
+
+Then, per active on-map member that is not a **plane** and is not
+`is_entering_or_exiting`. `UnitData::is_plane@0046ce40` is
+`domain == 2 && !(unit_flags & 0x20)` — there is **no altitude test**, so a
+halt skips every plane whether it is flying or parked, and bit `f` is
+`unitrules.xml`'s "flies like a helicopter", so a **helicopter is not a
+plane and is halted normally**:
 
 ```
 if (mask & 4) and the type is_siege:    skip
@@ -480,23 +634,36 @@ picks the number of options: `STANCE_COMBAT` **6**, `STANCE_WORKER` **4**,
 `STANCE_CASTER` and `STANCE_PACKER` **2**; anything else returns.
 
 `s < 0` cycles: `−1` steps forward `(cur + 1) % n`, `−2` back with a wrap
-to `n − 1`. Then a `COUNT_PEASANTS` count is taken and, if non-zero, a
-`COUNT_MILITARY` count — both discarded, a leftover.
+to `n − 1`. **`cur` is `GroupData::get_stance_option(this, NULL)`** — the
+**modal** option over the members (§4.4), not the leader's own stance. Then
+a `COUNT_PEASANTS` count is taken and, if non-zero, a `COUNT_MILITARY`
+count — both discarded, a leftover.
 
 Per member, twice over:
 
-- if the object is **valid** and can attack (`vslot 0x20`), its
-  **`ObjectData +0x7e`** takes `s` — but only when the object's own stance
-  type matches the group's, and a mismatch **ends that member's turn**;
-- if the object is a **unit** (`vslot 0x18`) whose stance type matches and
-  which is not carrying something (`vslot 0xc0` is 0), then `unit +0xb1 =
-  s`, `unit +0x8 |= 0x10`, and for a **combat** stance:
+- if the object is **valid** and `is_build` (vslot `+0x20` — 1 for a Build,
+  **0 for a Wall**), its **`Build +0x7e`**, reached through `+0xac`, takes
+  `s` — but only when the object's own stance type matches the group's, and
+  a mismatch `goto`s past the unit branch too, ending that member's turn.
+  So a **wall never receives a stance**;
+- if the object is a **unit** (vslot `+0x18`) whose stance type matches and
+  which is **not a plane** (vslot `+0xc0` is `is_plane`, devirtualised by
+  name in this same family at `action_halt@0070d0c0:41` and
+  `action_move_near@00704990:330`), then `unit +0xb1 = s`,
+  `unit +0x8 |= 0x10`, and for a **combat** stance:
 
 | `s` | what happens |
 | --- | --- |
 | 0, 3, 4 | `Unit::clear_mandatory` — the unit's current order stops being the player's |
 | 1, 2, 5 | for a **human** leader only, and only when the current order lacks the action bit and there is no action order carrying it: `Unit::repath` then `kill_current_order(0)` |
-| else | `Unit::clear_orders` — unreachable for a combat stance, which has six options |
+| else | `Unit::clear_orders` |
+
+That last row is **reachable**, and the first reading called it dead: there
+is no clamp on a non-negative `s`, and
+`CommandPackage::process_stance@00949ed0` forwards `StanceCommand::stance`
+from the wire with **no validation** (three `ScenarioFuncSet` entries do the
+same). A stance index of 6 or more on a combat group clears every matching
+member's orders.
 
 With `docs/COMBAT.md`'s stance order (0 aggressive, 1 defensive, 2 stand
 ground, 3 raid, 4 raze, 5 hold fire), `docs/ARMY.md` §6's three calls read:
@@ -504,21 +671,28 @@ a **mustering or defending** army goes **defensive**, a **marching** one
 **aggressive**, a **navy** and the pre-age-4 no-siege army **raid**. Every
 one of those is an AI leader, so the middle row is dead for an army and
 `set_stance` never kills an order — it only clears `mandatory` on 0 and 3.
+Note that `kill_current_order` is also the third writer of
+`GroupData::facing` (§1), so a *human*'s stance change can rewrite the
+group's mirror flag.
 
 ## 9. `Group::action_siege_attack_to(x, y, ·, ·, angle)@0070d830`
 
-A building group returns. Then a **sub-group** is built on the stack,
-carrying the parent's `id` and `army`: every member whose type
-`is_siege`. For an AI leader (`!(leader_flags & 4)`) that sub-group is
-widened and then narrowed:
+A building group returns; then the scenario purge; then `num < 1` returns.
+A **sub-group** is built on the stack, carrying the parent's `id` and
+`army` — which is what keeps its members alive through `normalize`'s
+back-pointer cull (§4.3) — holding every member that is
+`is_valid_unit() && **is_on_map()** && ptype->is_siege()`. For an AI leader
+(`!(leader_flags & 4)`) that sub-group is widened and then narrowed:
 
 - empty → the **first supply wagon** of the parent joins it;
 - still empty → the **first hero**;
 - then, over the sub-group's members, each is scored by the **sum over
-  every member of the parent group** of `(|dx| + |dy|) >> 10` — its total
-  Manhattan distance to the group in 1024-unit steps — and the **smallest**
-  wins (strict `<`, so a tie goes to the first). That unit is the
-  **anchor**.
+  every member of the parent group that is `is_valid_unit() && is_on_map()`**
+  of `(|dx| + |dy|) >> 10` — its total Manhattan distance to the group in
+  1024-unit steps — and the **smallest** wins (strict `<`, so a tie goes to
+  the first). That unit is the **anchor**. The scoring loop runs *after* a
+  `find_leader` pick and **overwrites** it, so the `find_leader` copy is
+  dead for an AI.
 
 A human's group skips the widening and the scoring and takes the
 sub-group's own `find_leader` as the anchor (`0070dabd`), so a player's
@@ -533,7 +707,11 @@ Then:
   taken**: runs 21–27 have no siege in any army;
 - for an AI, the anchor's **area id** (§6.7's `world +0x134` record, with
   the halfland rule) is compared with the destination cell's **land** area,
-  and a mismatch falls back to the same whole-group attack-move;
+  and a mismatch falls back to the same whole-group attack-move. The two
+  sides are not read the same way: the **source** resolves through
+  `flags & 0x100` to `region` or `region2`, going `>> 6` then `>> 2`, while
+  the **destination** is always read at `+0x4` and reaches its cell through
+  `div_3_table[v >> 8]` directly;
 - otherwise the **sub-group** attack-moves to `(x, y)`, its slot offsets and
   angle bytes are copied back onto the matching members of the parent
   (`Unit::replace_form_id` re-indexes each), and the parent gets
@@ -556,10 +734,16 @@ for `engagement` (`docs/ARMY.md` §11), which calls it with `mandatory = 0`,
   rather than attacking;
 - otherwise **three passes over the members, one per domain** (`type
   +0x218 == 0, 1, 2`), skipping the `ignore` mask's kinds exactly as
-  `action_halt` does (`4` siege, `2` special, `1` spy). A plane retargets
-  its strafe; a unit already carrying a **mandatory** `ATTACK` on this
-  target, with fewer than three orders queued and out of range, keeps it; a
-  packer packs or unpacks first; and the main path is
+  `action_halt` does (`4` siege, `2` special, `1` spy). A **plane** has its
+  `STRAFE` order re-pointed if it has mana and then `goto`s the next member
+  **unconditionally** — it never receives an attack or a move here. A packer
+  packs or unpacks first. A unit whose **`get_action`** is a `ATTACK` on
+  this target (`ox`, `whom`), **mandatory**, with fewer than three orders
+  queued and out of range, is skipped — but **only** on one of two
+  sub-arms: `orderlist.count == 1`, **or** its current *order* `is_move()`
+  (vslot `+0x14`) and the target is in range **of that move order's
+  destination**. Otherwise it falls through and is re-ordered. And the main
+  path is
   `add_attack_order(unit, o', whom', queue, mandatory, action 1)` where,
   **when `mandatory == 0`**, `o'` is `Unit::find_melee_target` within
   `min(dist + 0xc0, unit_respond_range × 0x240)` of the unit and the given
@@ -605,7 +789,15 @@ executed.
 
 `Form::compute_dests` runs on frame 0 — the starting units' own group
 orders — so the seam of §6.4 is a seam of *arithmetic*, not of
-reachability. A `UNITS=3` dump of any early frame carries its output.
+reachability. ~~A `UNITS=3` dump of any early frame carries its output.~~
+Better than that: **`GROUPDATA` carries its output directly**, per member,
+every frame the category is on, and run29's window already has it (§6.4).
+No `UNITS=3` order list is needed for the slot table.
+
+run29's own window is the second capture this document leans on. Its three
+frames (15100–15102) hold **5,392 `GROUPDATA` records, 44 of them live** —
+512 pool slots a frame, 8 leaders × 64, plus the `HOTKEYGROUPS` block's
+nested records. `rondata::diff` reads the whole record (§12).
 
 ## 12. What the simulation carries, and what checks it
 
@@ -637,7 +829,7 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 
 | seam | stands in for | what it costs |
 | --- | --- | --- |
-| `Form::compute`'s slot table (§6.4) | where in the formation each member stands | every member is given the **same** destination; the group arrives as a heap, not a line |
+| `Form::compute`'s slot table (§6.4) | where in the formation each member stands | every member is given the **same** destination; the group arrives as a heap, not a line. **Diffable**: `GROUPDATA` logs `off_x`/`off_y`/`curr_x`/`curr_y`/`angles` per member and `form`/`form_num`/`o_dist`/`o_angle` on the group, so closing this seam is checkable against run29 the day it is written — which changes what several rows below cost too |
 | the group pool (§3) | 64 slots a leader, `get_open_slot`'s recycling | one group per army, never recycled; `push_group`'s `force == 0` rule and `equals_group` are modelled, the slot allocation is not |
 | `GroupMoveOrder` | §6.6's per-frame formation | every member gets a plain `MoveOrder` — `docs/ORDERS.md` §8.4's verdict, unchanged |
 | `action_guard` (§9) | the escort half of a siege attack | with siege *and* a matching area the non-siege members keep their orders instead of guarding; no traced army has siege |
@@ -666,6 +858,18 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
    two arms; the second pins the `action_guard` seam where it stands.
 7. `action_attack_without_mandatory_lets_each_member_take_what_is_nearest`
    — §10's melee retarget, against the same call with `mandatory = 1`.
+
+   Then the second reading's seven, each written to fail first and each of
+   which did (`docs/audit/2026-08-25-groups.md`, items 26–34):
+   `halt_clears_the_group_s_form_and_leaves_every_member_s_own` (§7),
+   `stance_cycles_from_the_modal_option_not_the_leader_s` (§8),
+   `stance_skips_a_plane_but_not_a_helicopter` and
+   `a_helicopter_takes_a_group_move_where_a_plane_does_not` (§7, §8, §6.6),
+   `attack_keeps_a_lone_shot_and_a_march_into_range_and_re_orders_the_rest`
+   (§10's two sub-arms),
+   `the_siege_anchor_scores_only_members_that_are_on_the_map` (§9), and
+   `a_hurrying_army_with_no_city_strands_its_shooting_siege` (§6.5's
+   clear/order asymmetry).
 8. In `army.rs`: `do_forming_walks_the_army_to_the_projected_muster_origin`
    (the origin is §8's projection, and the destination the 48-snap),
    `a_forming_army_actually_moves_its_units_over_the_ticks` (the end-to-end
@@ -690,88 +894,131 @@ because `scene_at` does not yet read a block's `UNITDATA` order lists
 
 ## 13. What is not established
 
-- **`Form::compute`'s slot table** (§6.4), the largest gap. *Capture:* a
-  `UNITS=3 COMMANDMANAGER=1` dump of a `do_forming` frame — one of run21's
-  army-0 ticks at `252 + 256k` — reading the `MOVEORDER` destinations of
-  every member of one army against the muster point. Each member's `dest`
-  is the slot table's output directly, and eight units in one group would
-  pin the row-and-column arithmetic for one form index. The same run gives
-  `group.angles[i]` in the order's packed top byte.
-- **Which form index an AI group carries.** `action_move_to` passes −1, so
-  `get_form()` decides, and that is the members' `unit +0xaa` — written by
-  the previous `action_move_near` and by nothing else the export shows for
-  an AI unit. The first move of a group therefore runs on whatever
-  `Setup::build_units` or `come_out` left, which is not read. *Same
-  capture:* `UNITS=3` prints the unit record.
-- **`FormData::type_cat`** (§4.4) decides which member leads a mixed group
-  and is unread; the simulation takes the group's first on-map captain,
-  which is right for a one-type army and wrong for a mixed one. *Capture:*
-  the same dump, with a wagon and a hoplite in one army — the leader is the
-  unit whose `MOVEORDER` destination is the group's own point.
-- **The four `TypeIndex` values 0x32..0x35** exempted from the `+0xaa`
-  write in §6.6 step 1 have no names in the export. They are the four ids
-  `determine_roles` calls `citizen_id` (`docs/DATALAYER.md`'s
-  `role::CITIZEN`), so the exemption reads as "a citizen or scholar keeps
-  whatever formation it had" — but that is an identification by index, not
-  by a type record, and it is not settled.
-- **`role & 0x10` in §6.6 step 6.** `docs/ORDERS.md` §8.2 glosses it
-  "workers, caravans"; `UnitType::determine_roles` gives `0x10` as
-  `is(SCOUT)` on land and `is(BARK)` at sea. One of the two readings is
-  wrong. It matters only for the `GroupMoveOrder`-vs-plain choice, which
-  is a seam either way (§12, the seam table). *Check:* the same `UNITS=3` capture — a
-  scout in a group of two shows which order kind it took.
-- **`ObjectData` vslots `+0x1c`, `+0x20`, `+0x48`, `+0x108`, `+0x10c`** are
-  read from their uses, not from a type record: "is a building", "can
-  attack", the one `action_attack` reads to decide a member must walk
-  rather than shoot, "stance type" and "is siege". `+0x10c` is confirmed by
-  `docs/ARMY.md` §3.3's `COUNT_SIEGE`, which reads the same slot; the other
-  four are inferred. *Check:* `vtables.txt` for the concrete classes.
+Still open:
+
+- **`Form::compute`'s slot table** (§6.4), the largest gap, and now a gap
+  of *work* rather than of evidence. ~~*Capture:* a `UNITS=3
+  COMMANDMANAGER=1` dump of a `do_forming` frame.~~ **Closed by the second
+  reading:** the output is in `GROUPDATA`, per member, and run29 already
+  has a four-member group in formation 0 (§6.4). What remains is writing
+  `categorize` / `compute_rows_and_columns` / `compute_dests` and diffing
+  them against it.
+- **`FormData::type_cat`** (§4.4) decides which member leads a mixed group;
+  the simulation takes the group's first on-map captain, which is right for
+  a one-type army and wrong for a mixed one. The blind reading read the
+  field whole — `FormCatIndex` has 18 values of which `type_cat` returns
+  eight, from the PDB's own `LF_FIELDLIST` — so `find_leader`'s key is
+  named; what is not established is *which* category each shipped type
+  falls in. *Capture:* a `GROUPDATA` frame for an army holding a wagon and
+  a hoplite; the leader is the member at slot offset `(0, 0)`.
+- **The 18 pool slots above `who*64 + 45`** (§1). Nothing allocates them
+  and nothing searches them; `Groups::process` still cycles them. What they
+  are for is open.
 - **`pathfinder +0x70`** (§6.7) is set to 1 around an army group's
   `find_wpath` and cleared after; what reads it is inside `astar_path`,
   which `docs/PATHFINDER.md` did not reach.
-- **`Group::priority`** gates `normalize`'s prune and has no writer in the
-  export — the same shape as `docs/ARMY.md` §18's `rally_dist`.
 - **`action_guard`** (§9) is 300 lines and unread; `GUARD` is not
   implemented in the simulation either (`docs/ORDERS.md` §14).
+- **The formal name of object vslot `+0x1c`.** Its four values are settled
+  (Unit 0, Animal 0, Build 1, Wall 1) and nothing here depends on the name,
+  but `?is_wallbuild@BuildData@@UBEHXZ` does not appear in `rise_z.map` at
+  all, which a value of 1 for `BuildData` would need. Left as the audit's
+  one surviving `FABLE:` marker.
 - **The blind list this document adds:** `Groups::get_open_slot`'s
   "UH OH, NEED MORE GROUPS" path, `Group::sort`, `refresh_group_order`,
   `distribute_attack`, `kill_group_move` — none of which any traced game
   has executed. `tools/trace/report.py … blind docs/` will list them.
-- ~~**No second reading yet.**~~ Run and adjudicated the same day: §14.
+  `distribute_attack` and `kill_group_move` were read blind (§14) and the
+  reading is still the only evidence for both.
 
-## 14. Second reading — landed, **corrections not yet applied**
+Closed by the second reading, struck here and answered where they belong:
+
+- ~~**Which form index an AI group carries.**~~ run29 answers it directly:
+  an army group in formation **0** (`id 66`, `army 2`, `form_num 4`),
+  single-unit groups at **9** (`id 65`, `67`), and a never-moved army group
+  at **−1** (`id 69`). §6.4.
+- ~~**The four `TypeIndex` values 0x32..0x35** … an identification by
+  index, not by a type record.~~ `PEASANTS`, `PEASANTSKOREAN`, `SCHOLARS`,
+  `SCHOLARSKOREAN`, from the PDB's own `TypeIndex` enum. §6.6 step 1.
+- ~~**`role & 0x10` in §6.6 step 6** … one of the two readings is wrong.~~
+  `is(SCOUT)` on land, `is(BARK)` at sea, from `determine_roles`' two
+  writers and the type record. `docs/ORDERS.md` §8.2's gloss is the wrong
+  one. §6.6 step 6.
+- ~~**`ObjectData` vslots `+0x1c`, `+0x20`, `+0x48`, `+0x108`, `+0x10c`**
+  are read from their uses, not from a type record.~~ All five are in the
+  PE's own vtable arrays and four are in `vtables.txt`; three of the
+  guesses were **wrong**. `+0x1c` any building, walls included; `+0x20`
+  **`is_build`**, 1 for a Build and **0 for a Wall**; `+0x48` **`is_seen`**;
+  `+0x108` `get_stance_type`; and the **type** vtable's `+0x10c` `is_siege`,
+  settled outright by `ObjectData::is_siege@0046ef90` rather than by the
+  weaker `COUNT_SIEGE` argument. §4.3, §8, §10.
+- ~~**`Group::priority`** … has no writer in the export.~~ Five writers,
+  and it is a one-bit "I am a control group". §1.
+- ~~**No second reading yet.**~~ Run, adjudicated and applied: §14.
+
+## 14. Second reading — landed, and applied
 
 Two blind readers on Opus 5 (A over §6–§8, B over §3, §4, §9, §10), and a
 third adjudicator on Opus 5 against the decompile, the listing,
 `rise_z.map` and the PE. `docs/audit/2026-08-25-groups.md` is the record —
-124 verdict rows, five `FABLE:` markers, eight named assertions.
+124 verdict rows, five `FABLE:` markers, eight named assertions. **All 25
+document corrections and all 9 Rust-changing verdicts are applied**
+(2026-08-26); the sections above are the corrected text and this section is
+the ledger of what was wrong.
 
-**Until those corrections land, this document is the one that is wrong**
-(`docs/audit/README.md`). What is already known to be wrong here, so that
-nobody implements from it in the meantime:
+The four largest errors, and where each answer now lives:
 
-- **§6.4 and §13's account of the slot-table seam is void on both legs.**
+- **§6.4 and §13's account of the slot-table seam was void on both legs.**
   There is no float barrier — zero float instructions across the `Group`
   family, fourteen in `Form::compute_dests` alone, all integer-exact as
   `((2·rows − 1)·depth·k)/2`, the `0.5f` read from the PE at `0xb694c0`.
-  And "no capture pins its output" is **false**:
+  And "no capture pins its output" was **false**:
   `GroupData::log_data@0045e1d0` dumps `off_x`, `off_y`, `curr_x`,
   `curr_y`, `angles`, `form`, `form_num`, `o_dist` and `o_angle` per
-  member, and run29 already carries a four-member group in formation 0.
-  §13 asked for a capture that was on disk.
-- **§13's five guessed `ObjectData` vtable slots: three are wrong.**
+  member, and run29 already carried a four-member group in formation 0.
+  §13 asked for a capture that was on disk. → **§6.4**, and the diff in
+  §12's check 9.
+- **§13's five guessed `ObjectData` vtable slots: three were wrong.**
   `+0x48` is `is_seen`; `+0x20` is `is_build`, and **0 for a Wall**;
-  `+0x10c` is settled by `ObjectData::is_siege@0046ef90`. §8 and §10 build
-  rules on the guesses.
-- **§13's "`Group::priority` has no writer in the export" is wrong** —
-  there are five. The field is a one-bit "I am a control group".
-- **Two live bugs in `crates/sim/src/group.rs`**: `group_action_halt`
-  writes each *unit's* `form` where `0070d0c0:29` writes the *group's* —
-  and `group_get_form` reads the unit bytes, so it is not cosmetic — and
-  `group_action_attack`'s "already attacking" skip is unconditional where
-  the original's has two sub-arms.
+  `+0x10c` is settled by `ObjectData::is_siege@0046ef90`. §8 and §10 had
+  built rules on the guesses. → **§4.3, §8, §10, §13**.
+- **§13's "`Group::priority` has no writer in the export" was wrong** —
+  there are five. → **§1**.
+- **Two live bugs in `crates/sim/src/group.rs`**: `group_action_halt` wrote
+  each *unit's* `form` where `0070d0c0:29` writes the *group's* — and
+  `group_get_form` reads the unit bytes, so it was not cosmetic — and
+  `group_action_attack`'s "already attacking" skip was unconditional where
+  the original's has two sub-arms. → both fixed, with tests written to fail
+  first (§12).
 
-What survived: **§9's Manhattan anchor**, which reader B missed entirely
+**What survived:** §9's Manhattan anchor, which reader B missed entirely
 and which the adjudicator confirms per-term `>> 10` and strict `<`; the
-sim's `siege_anchor` is right. The full list of what is doubly confirmed
+sim's `siege_anchor` was right. The full list of what is doubly confirmed
 is in the audit.
+
+**Four of the audit's five `FABLE:` markers were settled while applying it**
+(2026-08-26, on Opus 5 — recorded in the audit's own "Markers settled"
+section, and still owed a Fable ratification per `docs/DECISIONS.md`
+entry 22):
+
+1. `unit_flags` bit `f` is `unitrules.xml`'s **"flies like a helicopter"**;
+   exactly three types carry it and all three are `<DOMAIN>Air`. Not
+   vacuous: a helicopter is not a plane and is ordered normally. → §7.
+2. `game->semaphore.ptr[1] & 8` is **bit 11 = "the scenario editor is
+   open"**, set and reset by `ConsoleWin::run_cmd` around
+   `ScenarioEditor::init`/`close`. Not a network flag. → §6.3.
+3. A.23's asymmetric `facing` restore is **confirmed by the listing**, and
+   its consequence is narrower than A thought: the toggle and the restore
+   read the same unrewritten `%esi`, so `facing` is *invariant* across
+   `compute_form` unless the editor bit is set. → §6.3.
+4. `role & 0x10` is `is(SCOUT)` on land and `is(BARK)` at sea, by the type
+   record. → §6.6 step 6.
+
+Only the formal name of vslot `+0x1c` is still marked, and nothing depends
+on it.
+
+**And one finding that came out of settling marker 3, which no reading
+had:** run29 shows live groups with `facing = 1`, which `compute_form`
+alone cannot produce in a game with the editor closed. The third writer is
+**`Unit::kill_current_order@005e2cb0`** — outside the `Group` family
+entirely, which is why the brief never reached it. → §1, §8.

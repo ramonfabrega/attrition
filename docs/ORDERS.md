@@ -762,7 +762,9 @@ angle. It fills `x, y, angle, dest = 0, dest_x/y = x/y, last = −1, off_x/y,
 orig, facing, pause = retry = timer = 0`, the `flags` bits `1/4/0x20` from
 three arguments; two side rules: a `QUEUE_LAST` `MOVE_TO` for a **`role & 0x10`** type
 (`UnitTypeData +0x2c8` — *not* `unit_flags2`, as §2.3 step 5 already had it
-right; R1) becomes `EXPLORE_TO` and sets `unit_masks |= 0x4000000`; and a
+right; R1 — and the bit is `is(SCOUT)` on land, `is(BARK)` at sea:
+`docs/GROUPS.md` §6.6 step 6) becomes `EXPLORE_TO` and sets
+`unit_masks |= 0x4000000`; and a
 `QUEUE_NEW` attack-move (`mode == 2`) while the current order is `ATTACK`
 re-adds that attack `QUEUE_FIRST` after the move, so an attack-move issued
 mid-fight keeps the fight. The second reading corrects that last rule twice
@@ -1905,11 +1907,13 @@ else add_move_facing_order(u, tile(to_x[i]), tile(to_y[i]), angle | …, kind = 
 ```
 
 So **a group of two or more land units that are not modern infantry, not
-`role & 0x10` types (workers, caravans) and not in form 9 each receive a
-`GroupMoveOrder`** (`GROUP_MOVE`, or `GROUP_ATTACK_TO` for an attack-move) —
-one per unit, a shared `id`, the same leader, each its own slot and
-destination. A lone unit, a boat, modern infantry, a worker, or a "no
-formation" group get plain `MoveOrder`s to their own slots. Then `update_
+`role & 0x10` types (~~workers, caravans~~ — **a `SCOUT` on land or a
+`BARK` at sea**, settled by the type record in `docs/GROUPS.md` §6.6
+step 6) and not in form 9 each receive a `GroupMoveOrder`** (`GROUP_MOVE`,
+or `GROUP_ATTACK_TO` for an attack-move) — one per unit, a shared `id`, the
+same leader, each its own slot and destination. A lone unit, a boat, modern
+infantry, a scout, or a "no formation" group get plain `MoveOrder`s to their
+own slots. Then `update_
 positions(leader)` fills `GroupData::curr_x[i]/curr_y[i]` — the slot offsets
 rotated by the leader's move angle — and (in outline) **the leader's path is
 computed once** (`find_wpath` from the leader's cell to slot 0) **and copied
