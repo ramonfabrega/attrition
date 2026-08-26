@@ -550,10 +550,24 @@ impl Sim {
         // arm reloads the unwritten slot), so it sticks at the first
         // non-empty category and never advances to the last.
         let (mut anchor_x, mut anchor_y) = (0, 0);
+        // `local_1c` and `bVar4`: the last captain the walk passed, and which
+        // side the next follower takes. Both are set at the *top* of the
+        // captain arm (`72cf4b`, `72cf58`), before any placement branch, and
+        // both start at "member 0, right" so a follower ahead of every
+        // captain hangs off slot 0.
+        let mut last_cap = 0usize;
+        let mut right_side = true;
         for (i, &u) in g.list.iter().enumerate() {
-            if !self.form_member_counts(u) {
+            if !self.form_member_active(u) {
                 continue;
             }
+            if !self.units[u].captain {
+                self.form_follower_slot(f, u, i, last_cap, right_side, angle);
+                right_side = false;
+                continue;
+            }
+            last_cap = i;
+            right_side = true;
             let c = f.category[i];
             let slot = f.cat_id[i];
             let w = f.x_spacing[c];
@@ -685,6 +699,73 @@ impl Sim {
                 }
             }
         }
+    }
+
+    /// `Form::compute_dests`' **follower arm** (`0072d3a0`–`0072d4f0`) — the
+    /// branch a member takes when `is_captain` says no.
+    ///
+    /// A follower is never categorised (`Form::categorize` opens on a captain
+    /// too), so it has no slot of its own: it hangs off the **last captain
+    /// the walk passed**, one `guy_spacing` to the side, alternating, and its
+    /// destination is that captain's destination plus the same step rotated.
+    /// Both are *additions to the previous member's values*, so a run of
+    /// followers walks outwards rather than all landing on one spot.
+    ///
+    /// The lean, `dy`, is the same formation-by-formation rule the captain
+    /// arm applies to its own `x`, read off the **last captain's raw
+    /// `off_x`** — which is why it is computed here rather than shared: the
+    /// follower has no `x` of its own to lean on. For Line, and for every
+    /// formation but the four that tilt, it is zero.
+    ///
+    /// Unreached: the `is_modern_infantry` scatter at `72d456`, three
+    /// `guy_spacing`-sized jitters keyed on the destination, the object
+    /// number and the member index. No traced game has put modern infantry in
+    /// a formation, and the object number is not a quantity the simulation
+    /// can reproduce.
+    fn form_follower_slot(
+        &self,
+        f: &mut Form,
+        u: usize,
+        i: usize,
+        last_cap: usize,
+        right_side: bool,
+        angle: Angle,
+    ) {
+        let gs = self.units[u]
+            .ty
+            .map_or(0, |t| self.unit_types[t].combat.guy_spacing);
+        let base = if right_side { gs } else { -gs };
+        let dx = if f.reverse { -base } else { base };
+        // The last captain's own `x`, before the anchor slide.
+        let lean = f.off[last_cap].0;
+        let dy = match f.form {
+            formation::REFUSED => match lean.cmp(&0) {
+                std::cmp::Ordering::Greater => -dx,
+                std::cmp::Ordering::Equal => -dx.abs(),
+                std::cmp::Ordering::Less => dx,
+            },
+            formation::ENVELOP => match lean.cmp(&0) {
+                std::cmp::Ordering::Less => -dx,
+                std::cmp::Ordering::Equal => dx.abs(),
+                std::cmp::Ordering::Greater => dx,
+            },
+            formation::ECHELON_RIGHT => -dx,
+            formation::ECHELON_LEFT => dx,
+            _ => 0,
+        };
+        // The same sign table as a captain's, minus the echelons' `x == 0`
+        // arm: a follower's step is never zero unless the type's own
+        // `guy_spacing` is.
+        f.angles[i] = match (dx.cmp(&0), dy.cmp(&0)) {
+            (std::cmp::Ordering::Less, std::cmp::Ordering::Less)
+            | (std::cmp::Ordering::Greater, std::cmp::Ordering::Greater) => -0x20,
+            (std::cmp::Ordering::Less, std::cmp::Ordering::Greater)
+            | (std::cmp::Ordering::Greater, std::cmp::Ordering::Less) => 0x20,
+            _ => 0,
+        };
+        let step = Self::form_rotate(Pos::new(0, 0), angle, (dx, dy));
+        f.to[i] = Pos::new(f.to[last_cap].x + step.x, f.to[last_cap].y + step.y);
+        f.off[i] = (f.off[last_cap].0 + dx, f.off[last_cap].1 + dy);
     }
 
     /// The wedge's priority category: rows of 1, 2, 3, … around the centre.
@@ -1188,6 +1269,70 @@ mod tests {
     /// and the one arm the player flag gates: a mounted ranged type is
     /// `MOUNTED_RANGED` for a human and plain `MOUNTED` for the AI, so the
     /// same army forms up differently under the two.
+    /// **`compute_dests`' follower arm**, which only a human's selection
+    /// group reaches: `Group::add` keeps a non-captain only when the group
+    /// is built with `keep_captain`, and nothing an army does is.
+    ///
+    /// A follower has no slot of its own — `categorize` opens on a captain
+    /// too — so it hangs off the last captain the walk passed, one
+    /// `guy_spacing` to the side, **alternating**, each step added to the
+    /// previous member rather than to the captain. run31's record is the
+    /// fixture: twelve squads of three, `GUY_SPACING 12` through
+    /// `UNIT_GUY_SPACING 12` giving 144, and every squad reading
+    /// `(c, c + 3, c - 3)` once the floor divide by 48 has been applied.
+    #[test]
+    fn a_follower_hangs_off_the_last_captain_alternating_sides() {
+        let mut s = sim();
+        let t = ty(&mut s, mask::FOOT, 12 * 12, 12 * 12);
+        s.unit_types[t].combat.uber_size = 3;
+        s.unit_types[t].combat.guy_spacing = 12 * 12;
+        // Two squads of three, laid out as the selection walks them.
+        let mut list = Vec::new();
+        for squad in 0..2 {
+            for figure in 0..3 {
+                let u = spawn(
+                    &mut s,
+                    t,
+                    Pos::new(0x8000 + squad * 0x300, 0x8000 + figure * 0x60),
+                );
+                s.units[u].captain = figure == 0;
+                list.push(u);
+            }
+        }
+        let g = group(&list);
+        let f = s.form_compute(
+            &g,
+            Pos::new(0x9000, 0x9000),
+            Angle(0),
+            formation::LINE,
+            50,
+            false,
+            false,
+            &[],
+        );
+        // Only the captains are categorised; the followers keep the memset
+        // zero there and are placed by the arm under test.
+        assert_eq!(f.num_category[cat::FOOT], 2, "two captains, six figures");
+        let off = quantised(&f);
+        for squad in 0..2usize {
+            let (c, a, b) = (off[squad * 3], off[squad * 3 + 1], off[squad * 3 + 2]);
+            assert_eq!(
+                a,
+                (c.0 + 3, c.1),
+                "squad {squad}: the first follower is right"
+            );
+            assert_eq!(b, (c.0 - 3, c.1), "squad {squad}: and the second is left");
+        }
+        // And the destination takes the same step, rotated: on a zero angle
+        // `[cos, sin; sin, -cos]` is `[1, 0; 0, -1]`, so a step of `+w` in x
+        // is `+w` in the destination's x and nothing in its y.
+        for squad in 0..2usize {
+            let (c, a) = (f.to[squad * 3], f.to[squad * 3 + 1]);
+            assert_eq!(a.x - c.x, 144, "squad {squad}: to follows off");
+            assert_eq!(a.y - c.y, 0);
+        }
+    }
+
     #[test]
     fn type_cat_returns_eight_of_its_eighteen_and_the_player_flag_moves_one() {
         use crate::ai_load::uflags2;

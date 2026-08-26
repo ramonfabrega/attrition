@@ -4,6 +4,12 @@
                             rise.ini InitialDump=1; rise2.ini LogStartFrame=LO
                             LogEndFrame=HI; rontrace.cfg cover=1 window=LO-(HI-1);
                             rontrace.cmd `5 !ffwd 30` and `HI+1 !quit`
+    window.py frames LO HI  the frame window alone — rise2.ini and the start
+                            dump, leaving gamelog.ini's own detail levels
+                            (setlog.py's job) and rontrace.cmd untouched. This
+                            is the cheap window: a per-frame dump at the
+                            `[End Frame]` thresholds runs at full speed, so it
+                            can be hundreds of frames wide rather than three.
     window.py restore       DUMP_ALL=0, WORLD=0, InitialDump=0, the window off
 
 A `FRAME n` block is the end of sim-frame n-1, so a window [LO, HI) shows
@@ -45,6 +51,11 @@ if mode == "stage":
         "# window.py: DUMP_ALL window [%d, %d); dump off until then.\n"
         "5 !ffwd 30\n%d !quit\n" % (lo, hi, hi + 1))
     print("staged", lo, hi)
+elif mode == "frames":
+    lo, hi = int(sys.argv[2]), int(sys.argv[3])
+    edit(B + "/rise.ini", lambda t: set_key(t, "InitialDump", "1"))
+    edit(B + "/rise2.ini", lambda t: set_key(set_key(t, "LogStartFrame", str(lo)), "LogEndFrame", str(hi)))
+    print("frame window", lo, hi)
 else:
     edit(B + "/gamelog.ini", lambda t: set_key(set_key(t, "DUMP_ALL", "0"), "WORLD", "0", "[Start Game]"))
     edit(B + "/rise.ini", lambda t: set_key(t, "InitialDump", "0"))

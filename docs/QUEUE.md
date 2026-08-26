@@ -27,62 +27,54 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 18.* The commit this section was
+*Last verified 2026-08-26, after item 20.* The commit this section was
 written against is the one that lands it; if `git log` has moved well past
 it, trust the queue below and the journal before trusting this.
 
-**Last landed.** **run29's `UNITS=3` half** (item 18). `scene_at` now
-stands every unit of a block up — typed from its first guy's `TypeIndex`,
-facing the record's own `angle`, carrying its formation bytes, its order
-list front-first and its path stack — and gives each army the membership
-of its `GROUPDATA` slot **in the record's own `list` order**. The parser
-carries the whole `MOVEORDER` and `ATTACKORDER` rows and the order
-layer's `UNITDATA` fields. Four new checks, in `rondata::diff` and
-`sim::group`.
+**Last landed.** **The human group move** (item 20), and it came in
+cheaper and richer than the queue had budgeted. `GameLog::full_dump`'s
+non-`DUMP_ALL` half gates `dump_groups` on `gamelog.ini`'s own `GROUPS`
+key, so the 512-slot group pool is an ordinary per-frame record at full
+speed — hundreds of frames instead of a two-frame `DUMP_ALL` window,
+which is what made a *human-timed* right-click affordable at all. The
+selection turned out to be scriptable too (`select <type> who=0 [+]` from
+the cheat channel), so the only human-shaped step left is the click.
+`tools/gamelog/live.sh`, `archive.sh` and `groups.py` are new;
+`setlog.py` takes `CAT=N`.
 
-What it settled, and what it did not:
+run31 (`gamelog-run31-humangroup.txt`) closes all three items it was
+booked for and opens two better ones:
 
-- **`engagement`'s choice of unit** (`docs/ARMY.md` §11, §18's item
-  struck): the seed is `o 54`'s target, object 15, and the next block
-  carries it. It also found **two bugs** — `is_engaged`/`engagement`
-  tested the *front* order where `6f51fa` calls `get_action`, so the
-  mechanic was dead on the one frame that reaches it; and the listing
-  says `is_map_unit` gates only the loop's break, so an army with no
-  map-unit target adopts the **last** qualifying unit's. The second is
-  unobserved and on the ledger.
-- **`find_leader`'s key** is implemented (`Sim::group_find_leader`,
-  `type_cat`, `docs/GROUPS.md` §4.4) and unit-tested. Unobserved: every
-  group in every dump has one category. The capture the old queue named
-  would not have worked; §13 has the one that would.
-- **§6.4's `to`/`off` asymmetry: run29 is not its capture.** The one
-  group with offsets holds no orders; the one with orders has `form −1`.
-  It wants a **human** group move — four units of one type,
-  right-clicked, two frames of `DUMP_ALL`. Written into §6.4 and §13.
-- **`update_positions`' y-flip: still unpinned, and run29 cannot pin
-  it.** No group in the window has a non-zero `off_y`; the same human
-  capture, in a formation with depth, is what would.
-- Two things nobody was looking for: `action_halt`'s §7 write is
-  **observed** (group `form −1`, every member `form 0`), and
-  `get_form_mod_option` is a **mean over the members that have a byte**,
-  not `get_form`'s all-agree twin — §4.4 said twin and was wrong.
-- **A frame nobody could reach.** `full_dump` runs at `begin_frame` and
-  `end_frame`, so a `DUMP_ALL` frame writes its dump twice (identical bar
-  the checksum index, `turn_control`, the stamps and the timing). At the
-  end of a run the second lands as a **sibling** of the `FRAME` block, so
-  run29's free 15105 state was unreadable. `Log::dumps` finds it; the
-  window is four states.
+- **`find_leader`'s key** — `GroupOrder::oxx` names the leader outright,
+  and it is a hoplite where `list[0]` is a slinger. `docs/GROUPS.md`
+  §4.4, §12.1.
+- **§6.4's `to`/`off` asymmetry — observed.** The anchor's own order does
+  not point at the click. Its *size* is not measured yet.
+- **`update_positions`' y-flip — pinned**, with the unflipped matrix as a
+  control. The eleventh deliberate breakage of the slot-table session,
+  which had not been able to turn a test red, now does.
+- Two bugs found on the way: the parser dropped `GroupMoveOrder` because
+  it is the one block in the family the binary keeps in **mixed case**
+  (and the positional `type` pairing slid with it), and
+  `compute_dests`' **follower arm** had never executed — a player's
+  selection group keeps every figure, so 36 members and not 12.
+  `Sim::form_follower_slot` implements it.
+- And one correction to carry: **`curr` is a mid-frame quantity.** The
+  end-frame `angle` is the heading a hair past the one the rotation used;
+  nine frames of forty are exact and the rest match at a heading within
+  0.05° of it.
 
 **Then, in order:**
 
-- **The human group move** (new item 20). One run, two frames, and it
-  closes three things at once: §6.4's `to`/`off` asymmetry,
-  `update_positions`' y-flip, and — with two unit types in the selection
-  and their headings apart — `find_leader`'s key. It is the cheapest
-  capture on the list by a wide margin and it needs `cliclick` on the
-  live game rather than the cheat channel.
-- **The order's angle** (item 19, unchanged): `docs/GROUPS.md` §6.6 step
-  6's `angle + (group.angles[i] << 24)` as a signed byte and an addition;
-  the byte is computed and carried, the `add_move_facing_order` is not.
+- **The 36-member table** (new item 21). Reproduce run31's whole slot
+  table — which turns §6.4's *observed* asymmetry into a *measured* one,
+  and answers §4.4's new question of why the leader is object 9 on one
+  frame and object 6 on the next when both are hoplite captains and 6 is
+  first in `list`. It needs `Group::add`'s `keep_captain` on the sim
+  side. The record is on disk; no run is owed.
+- **The order's angle** (item 19, unchanged), and now with a record:
+  `docs/GROUPS.md` §6.6 step 6's `angle + (group.angles[i] << 24)`
+  against `GroupMoveOrder`'s own `MOVEORDER` `angle`.
 - **Item 13, differential fuzzing** — unchanged, and still the entry with
   the largest leverage per hour.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings the
@@ -91,22 +83,20 @@ What it settled, and what it did not:
   a mounted attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings; `think_civilian_transport`.
 
-**The thing this session earned.** Three of its five findings are the
-same shape: *the record was already there and nobody had opened it*. The
-order lists had been parsed since the orders mechanic and never loaded;
-§4.1's field table had been read off the PE and compared with nothing;
-the 15105 state had been on disk since the day run29 was captured. The
-audit README's "diff the whole record" is about fields inside a record —
-this session says the same thing one level up, about **records inside a
-dump**. Worth a look before booking anything: what else does a dump on
-disk already carry that no reader has opened?
+**The thing this session earned.** Item 18's lesson was *the record was
+already there and nobody had opened it*. This one is a level up: **the
+record was never written, because a key nobody had questioned was zero** —
+and it stayed zero because turning it on did nothing, which reads as "not
+a per-frame category" rather than "inherits its acceptance from whatever
+dumper ran last". Worth asking before booking any window: which of the
+thirty-seven `gamelog.ini` categories has never been on, and what happened
+the one time it was?
 
 **Needs the user.** Nothing outstanding. The ledger
-(`docs/audit/README.md`) has two new rows from this session, both Opus
-adjudications of live code: `engagement`'s last-qualifying fallback and
-`find_leader`'s key. When to spend a Fable batch is still open.
+(`docs/audit/README.md`) still has the two rows from item 18; this session
+added no `FABLE:` markers. When to spend a Fable batch is still open.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 20, the human group move: one DUMP_ALL run of two frames with four units of one type right-clicked to a far point, which closes docs/GROUPS.md §6.4's to/off asymmetry, update_positions' y-flip, and find_leader's key at once`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 21, the 36-member table: reproduce run31's whole slot table from the install's own columns, which measures docs/GROUPS.md §6.4's to/off asymmetry and answers §4.4's leader question; the record is on disk and no run is owed`
 
 ## The queue
 
@@ -214,22 +204,23 @@ in which case say so and take that. The story of each struck item is in
 19. **The move order's formation angle** — `docs/GROUPS.md` §6.6 step 6
     and §12's `GroupMoveOrder` row, together with `docs/ORDERS.md` §8.4's
     verdict. The angle byte is computed and carried; the adder is not.
-20. **The human group move** — one `DUMP_ALL` window of two frames in
-    which a *player* right-clicks a selection to a far point, which is
-    the capture three open items are now waiting on and which the AI's
-    lobbies cannot produce. Four units of one type is the minimum: an
-    **even** column count is what displaces the formation block, which is
-    what makes `docs/GROUPS.md` §6.4's `to`/`off` asymmetry visible —
-    the members' `MOVEORDER` `x`/`y` against their `GROUPDATA` `off_x`.
-    With a formation that has **depth** (more than one rank, or a second
-    category) it also pins `update_positions`' y-flip, every `off_y` in
-    every dump so far being zero. And with **two type categories** whose
-    members face different ways, `curr` names the heading
-    `update_positions` rotated by, which is the only observable that can
-    pin `find_leader`'s key (§4.4). Driven with `cliclick` on the live
-    game rather than the cheat channel, which cannot select or click;
-    `tools/gamelog/window.py stage LO HI` is the rest of the setup and
-    `docs/ORACLE.md`'s recipe is the run.
+20. ~~**The human group move**~~ — done 2026-08-26. run30 and run31
+    (`docs/ORACLE.md`), `docs/GROUPS.md` §4.4, §6.4, §6.6, §11, §12.1 and
+    §13, `docs/ORDERS.md` §8.4 and §11.1; `tools/gamelog/live.sh`,
+    `archive.sh`, `groups.py`. Four checks in `rondata::diff`, one in
+    `sim::form`, one in `crate::gamelog`.
+21. **The 36-member table** — reproduce run31's group whole, from the
+    install's own columns through `categorize`, `compute_rows_and_columns`,
+    `compute_dests` and its follower arm, and compare with `GROUPDATA`'s
+    `off` and the members' `GroupMoveOrder` destinations. Two things fall
+    out of it and nothing else reaches them: **the size** of §6.4's
+    `to`/`off` displacement, which the record shows but does not measure,
+    and **why the leader is object 9 on frame 204 and object 6 from 328
+    on** when both are `FORM_CAT_FOOT` captains and 6 is first in `list`
+    (§4.4). It needs `Group::add`'s `keep_captain` on the simulation side,
+    so that a group can hold a follower at all. No run is owed — the
+    record is `gamelog-run31-humangroup.txt` and the fixture is
+    `rondata::diff`'s `run31_moves()`.
 
 ## How to maintain this file
 

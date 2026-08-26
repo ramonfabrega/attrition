@@ -543,6 +543,21 @@ pub struct OrderDump {
     /// world cell**, `x mod 0x300` (§11.2's table), not a formation slot.
     pub off_x: Option<i64>,
     pub off_y: Option<i64>,
+    /// `GroupOrder::log_data@00485640`'s row, on the `GROUPORDER` base of a
+    /// `GroupMoveOrder` — the order `Group::action_move_near` gives a member
+    /// (`docs/GROUPS.md` §6.6 step 6), first seen in run31.
+    ///
+    /// `oxx` is the **leader's object**, so the record names outright what
+    /// `GroupData::find_leader` chose; `form_id` is the member's own index
+    /// into the group's parallel arrays, which is what pairs an order with a
+    /// `GROUPDATA` slot.
+    pub oxx: Option<i64>,
+    pub whose: Option<i64>,
+    pub group_angle: Option<i64>,
+    pub group_id: Option<i64>,
+    pub form_id: Option<i64>,
+    /// `GroupMoveOrder`'s own last field, past both bases.
+    pub in_group: Option<i64>,
     /// `ATTACKORDER`'s own fields, past the `TARGETORDER` base.
     pub mandatory: Option<i64>,
     pub defensive: Option<i64>,
@@ -1097,9 +1112,14 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
     };
     let types = ints("type");
     let metrics = ints("metric");
+    // Every order block's name ends in "order" — but **not always in caps**:
+    // `GroupMoveOrder::log_data@00485910` opens `"GroupMoveOrder"` where its
+    // two bases open `"MOVEORDER"` and `"GROUPORDER"`. A case-sensitive test
+    // dropped it silently, which also slid every later `type`/`metric` onto
+    // the wrong body, since the pairing is positional (§11.1).
     b.children
         .iter()
-        .filter(|c| c.name.ends_with("ORDER"))
+        .filter(|c| c.name.to_ascii_uppercase().ends_with("ORDER"))
         .enumerate()
         .map(|(i, o)| {
             // `ox/whom/uid` live on the `TARGETORDER` sub-block and `flags` on
@@ -1123,8 +1143,10 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
             };
             let mv = base("MOVEORDER");
             let atk = base("ATTACKORDER");
+            let grp = base("GROUPORDER");
             let mv_int = |k: &str| mv.and_then(|m| m.int(k));
             let atk_int = |k: &str| atk.and_then(|a| a.int(k));
+            let grp_int = |k: &str| grp.and_then(|g| g.int(k));
             OrderDump {
                 index: types.get(i).copied().unwrap_or(-1),
                 metric: metrics.get(i).copied().unwrap_or(0),
@@ -1161,6 +1183,12 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
                 orig_y: mv_int("orig_y"),
                 off_x: mv_int("off_x"),
                 off_y: mv_int("off_y"),
+                oxx: grp_int("oxx"),
+                whose: grp_int("whose"),
+                group_angle: grp_int("group_angle"),
+                group_id: grp_int("id"),
+                form_id: grp_int("form_id"),
+                in_group: o.int("in_group"),
                 mandatory: atk_int("mandatory"),
                 defensive: atk_int("defensive"),
                 in_range: atk_int("in_range"),
@@ -2263,5 +2291,110 @@ BEGIN GAME
         assert_eq!(u.path[0].to, (35592, 33480));
         assert_eq!(u.path[0].flags, 1, "the goal");
         assert_eq!(u.path[1].flags, 8);
+    }
+
+    /// `GroupMoveOrder`, the order a **human's** group move gives each
+    /// member — run31's own text, and the record no dump had held.
+    ///
+    /// Two things about it are traps. Its block name is the only one in the
+    /// family that is **not** upper case, so the order walk's
+    /// `ends_with("ORDER")` dropped it *and* slid every later `type` onto
+    /// the wrong body. And it carries **two** bases: `MOVEORDER` holds the
+    /// member's own slot destination in `x`/`y` with the click in
+    /// `orig_x`/`orig_y`, while `GROUPORDER` holds `oxx` — the object
+    /// `GroupData::find_leader` chose — and `form_id`, the member's index
+    /// into the group's parallel arrays.
+    #[test]
+    fn a_group_move_order_carries_both_bases_and_names_its_leader() {
+        let text = "\
+BEGIN GAME
+ BEGIN FRAME 204
+  BEGIN UNITDATA
+   BEGIN OBJECT
+    BEGIN SUBOBJECT
+     flags 9
+     o 9
+     who 0
+     x_internal 5928
+     y_internal 6072
+   group 1
+   BEGIN STACK<TYPE>
+    size 10
+    length 1
+    increment 10
+    BEGIN PATHDATA
+     to_x 9077
+     to_y 5629
+     tolerance 0
+     flags 1
+   length 1
+   type 19
+   metric 0
+   BEGIN GroupMoveOrder
+    BEGIN MOVEORDER
+     BEGIN UNITORDER
+      flags 5
+     x 9096
+     y 5640
+     angle 927662080
+     dest 0
+     tolerance 0
+     pause 0
+     retry 0
+     attempts 0
+     timer 0
+     facing 0
+     dest_x 9096
+     dest_y 5640
+     last_x -1
+     last_y -1
+     coll_x 0
+     coll_y 0
+     orig_x 9123
+     orig_y 5841
+     off_x 648
+     off_y 264
+    BEGIN GROUPORDER
+     BEGIN UNITORDER
+      flags 5
+     oxx 9
+     whose 0
+     group_angle 927662080
+     id 203100
+     form_id 15
+    in_group 0
+   length 1
+   size 1
+   increment 1
+   BEGIN GUY
+    type 132
+";
+        let log = Log::parse(text);
+        let frames = log.frame_states();
+        let u = &frames[0].units[0];
+        assert_eq!((u.who, u.o, u.group), (0, 9, Some(1)));
+        assert_eq!(u.orders.len(), 1, "the mixed-case block is not dropped");
+        let o = &u.orders[0];
+        assert_eq!(o.kind, "GroupMoveOrder");
+        assert_eq!(o.index, 19, "and the positional type still pairs with it");
+        // The `MoveOrder` base: this member's slot, and the click it came from.
+        assert_eq!((o.x, o.y), (Some(9096), Some(5640)));
+        assert_eq!((o.orig_x, o.orig_y), (Some(9123), Some(5841)));
+        assert_eq!(o.angle, Some(927_662_080));
+        assert_eq!(
+            (o.off_x, o.off_y),
+            (Some(648), Some(264)),
+            "the cell offset"
+        );
+        assert_eq!(o.flags, 5);
+        // The `GroupOrder` base, and `GroupMoveOrder`'s own last field.
+        assert_eq!(o.oxx, Some(9), "the leader find_leader chose");
+        assert_eq!(o.whose, Some(0));
+        assert_eq!(o.group_angle, Some(927_662_080));
+        assert_eq!(o.group_id, Some(203_100));
+        assert_eq!(o.form_id, Some(15), "this member's slot in the group");
+        assert_eq!(o.in_group, Some(0));
+        // And nothing from the attack row leaks onto it.
+        assert_eq!((o.mandatory, o.ox, o.whom), (None, None, None));
     }
 }

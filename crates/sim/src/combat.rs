@@ -208,6 +208,13 @@ pub struct Profile {
     /// `Form::categorize` and nothing else — `docs/GROUPS.md` §6.4.
     pub x_spacing: i32,
     pub y_spacing: i32,
+    /// `+0x224 guy_spacing`: how far apart two **figures of one unit** stand,
+    /// the `GUY_SPACING` column times `UNIT_GUY_SPACING` (also 12). Read only
+    /// by `Form::compute_dests`' follower arm, which places a non-captain
+    /// beside the last captain at `± guy_spacing` alternating
+    /// (`docs/GROUPS.md` §6.4) — a branch no dump reached until run31, when a
+    /// human's selection put every figure in the group.
+    pub guy_spacing: i32,
     /// A building type's `BASE_ARROWS` and `MOST_SHOTS`.
     pub base_arrows: i32,
     pub most_shots: i32,

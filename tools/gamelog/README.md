@@ -14,14 +14,21 @@ The readers default to this machine's bottle path:
     setlog.py <DUMP_ALL> end:CAT=..,.. [start:..] [misc:..] [endgame:..]
 
 Every category in a named section that is not listed is set to 0. The values
-are **detail thresholds**, so the useful line for a check is
+are **detail thresholds**, so a bare name means 1 and the level goes in the
+argument:
 
-    setlog.py 0 end:UNITS,BUILDS,CITIES,DEATHS,LEADERS
+    setlog.py 0 end:UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=9
 
-followed by raising the ones that matter (`UNITS=3`, `BUILDS=6`, `CITIES=5` —
-the script writes 1, edit up). `DUMP_ALL=1` dumps everything every frame and
-hangs the game; use it only with `[Start Game]` and `InitialDump=1`, which is
-how the type tables and `COMBATTABLE` were captured.
+`DUMP_ALL=1` dumps everything every frame and hangs the game; use it only with
+`[Start Game]` and `InitialDump=1`, which is how the type tables and
+`COMBATTABLE` were captured.
+
+**`GROUPS` is a per-frame record and it does not need `DUMP_ALL`** — but it
+will come out empty unless `DEATHS` is **off**. `GroupData::log_data` sets no
+type of its own, and `dump_deaths` ends by calling `WorldData::log_data`
+twice, so the pool is accepted against `WORLD`'s threshold instead of its own.
+`docs/ORACLE.md`, "The group pool is a per-frame record", has the whole trap
+and the line that works.
 
 ## `gl.py` — look at the raw file
 
@@ -86,6 +93,7 @@ on the map *now*", cut the last frame out of the growing log and look at it:
 
     lastframe.py                     the last complete frame → $TMPDIR/ron-last.txt
     objs.py                          one line per object: kind, o, who, tile, hits, type
+    groups.py                        the live GROUPDATA records: members, off, curr, angles
     one.py BUILDDATA 0 2008 flags job_counter
 
 `one.py` exits non-zero when the object is not in the frame, which is the
@@ -109,13 +117,27 @@ names frame 0's 120 draws in order; `report.py <log> blind docs/` lists
 the functions the documents cite that no traced run has entered.
 `docs/ORACLE.md`, "The draw-site trace and function coverage".
 
+**A run a person has to touch.** `live.sh N` launches the traced exe with
+whatever the inis and `rontrace.cmd` already say, drives the five lobby
+clicks, and **returns with the game running** — where `runwin.sh` waits for a
+`!quit` and archives. It exists for the one capture the cheat channel cannot
+make on its own: a right-click on a multi-unit selection, which has to come
+from `cliclick` (`docs/GROUPS.md` §6.4). `archive.sh N TAG` is the other end —
+kill, name the log, restore the window, print the map style and the frame
+count. The selection itself *is* scriptable: `select <type> who=0` from the
+channel, and `select <type> who=0 +` to append.
+
 **Staging a window run in one call.** `window.py stage LO HI` writes every
 setting a `DUMP_ALL` window needs — `gamelog.ini` (`DUMP_ALL=1`, `[Start
 Game] WORLD=6`), `rise.ini` (`InitialDump=1`), `rise2.ini` (the two frame
 keys), `rontrace.cfg` and a `rontrace.cmd` that fast-forwards to the window
 and quits after it — and `window.py restore` undoes them. Run22
 (`docs/ORACLE.md`) is its first use: eight minutes for a three-block window
-at frame 3579.
+at frame 3579. `window.py frames LO HI` is the **cheap** window: the two
+`rise2.ini` keys and the start dump alone, leaving the detail levels to
+`setlog.py`. A per-frame dump at the `[End Frame]` thresholds runs at full
+speed, so that window can be hundreds of frames wide rather than three, and
+run31 used it.
 
 **A `DUMP_ALL` window.** `LogStartFrame` / `LogEndFrame` under
 `[RISE OF NATIONS]` in **`rise2.ini`** (not `gamelog.ini`'s `Checksum

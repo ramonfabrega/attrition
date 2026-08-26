@@ -2125,6 +2125,109 @@ the previous line's **to it**, so a `!quit` written after a later-frame
 16000–16006 and so quit at 16006, which is where its free 16007 block
 came from. Write the file in ascending frame order.
 
+### The group pool is a per-frame record (2026-08-26)
+
+`GameLog::full_dump@00930380` has two halves. `do_dump_all != 0` takes the
+early branch — `detail_override = 1`, then `dump_all`, which is the 70 MB
+a frame that makes `DUMP_ALL` unusable per frame. **The other half is a
+list of `if (details[current_mode][k]) dump_<something>(this)`**, one per
+`gamelog.ini` key, and `GameLog::end_frame@009329d0` calls it every frame
+inside the `LogStartFrame`/`LogEndFrame` window. `details[mode][0x12]` is
+`GROUPS`, and it gates `dump_groups` — the whole 512-slot pool, ~260
+bytes a slot, ~130 KB a frame.
+
+So **the group pool does not need `DUMP_ALL` at all**. `[End Frame]
+GROUPS=1` puts it in every frame at full speed, which turns a ten-minute
+250 MB window of three frames into a run that dumps hundreds. `docs/QUEUE.md`
+item 20 was written expecting the expensive form; run31 used the cheap one.
+
+**But it will not come out that way on its own, and the reason is a trap
+worth carrying.** `GroupData::log_data@0045e1d0` never calls the `Log`
+vtable's `set_type`/`set_detail` (`+0x24`/`+0x28`), so its lines are
+accepted against whatever the **previous** dumper left in
+`current_type`/`current_detail`. And `dump_deaths@0092fd80` ends by
+calling `WorldData::log_data` **twice** — which is why a frame shows two
+small `WORLD` blocks with `WORLD=0` — leaving `current_type` at `WORLD`
+and `current_detail` high. With `WORLD=0` the pool is then dropped
+silently: `GROUPS=1` is on, `dump_groups` runs, and not one line survives
+`check_accept`. The start-of-game dump escaped it only because that
+section had `WORLD=6`.
+
+The fix that works, and the settings run31 used:
+
+```
+tools/gamelog/setlog.py 0 'end:UNITS=9,GROUPS=9,GUYS=9,LEADERS=1,MISC=9' \
+                          'start:UNITS=3,GROUPS=1,BUILDS=7,CITIES=5,GUYS=2,\
+LEADERS=9,DEATHS=1,GOODS=3,TERRAIN=2,WORLD=6,MISC=1'
+```
+
+**`DEATHS=0`** under `[End Frame]`, so `dump_deaths` and its two
+`WorldData` calls never run and the type `dump_groups` inherits is `UNITS`
+— which is then set high enough to accept anything. `setlog.py` takes
+`CAT=N` now rather than only a bare name; the value is a threshold, not a
+flag, and `GROUPS` is a category whose own record has no levels at all.
+
+A second-order lesson: `LEADERS=9` is the expensive key. run30 ran at
+1.6 MB a frame with `UNITS=3 LEADERS=9 GUYS=2`; run31 at ~370 KB with
+`LEADERS=1` and `GROUPS` added.
+
+### run30 and run31 — the human group move (2026-08-26)
+
+`docs/QUEUE.md` item 20: the capture three of `docs/GROUPS.md`'s open
+items were waiting on, and the first that needed a **human-shaped**
+action in the middle of the run. The cheat table has no order verb, so the
+right-click has to come from `cliclick` on the live game — which is why
+`tools/gamelog/live.sh` exists: it stages nothing, launches, drives the
+five lobby clicks and **returns with the game running**, where
+`runwin.sh` would have waited for a `!quit`. `archive.sh N TAG` is the
+other end.
+
+**The selection is scriptable after all**, and that was the finding that
+made the run cheap. `ConsoleWin::run_cmd`'s `select` case takes
+`[[ob#|type] [who] [+]]`: with a type it walks every object of that player
+and adds each match to the player's `SelectGroup`, and the trailing `+`
+suppresses the clear that otherwise opens the case. So
+
+```
+160 select slinger who=0
+170 select hoplite who=0 +
+```
+
+selects twelve units from the channel, and the only thing left for a
+person is one right-click. The earlier note that `+` "is not reliable"
+was the **chat box's** dropped lines, not the command: through
+`rontrace.cmd` it appended cleanly on both runs, twelve portraits in the
+tray.
+
+- **run30** (`gamelog-run30-humangroup-nogroups.txt`, 378 MB, 215
+  frames): the same scenario with `[End Frame] GROUPS=1` and `DEATHS=1`,
+  so **no `GROUPDATA` came out** — the trap above. Kept anyway, because it
+  is the first dump on disk that holds `GroupMoveOrder` blocks, and
+  because it proved the select-then-cliclick chain end to end before the
+  ini was spent on it.
+- **run31** (`gamelog-run31-humangroup.txt`, 160 MB, 219 frames;
+  `rontrace-run31.log`, `cover=1`, no trace window): three right-clicks at
+  three bearings on the human's own island, eight hoplites and four
+  slingers added at frames 60–96 and selected at 160/170. Forty frames
+  carry a `GroupMoveOrder` and a live group. `docs/GROUPS.md` §11 and
+  §12.1 are what it holds.
+
+**Driving notes.** The window sat at `(760, 152)` again and the five
+lobby clicks of `runwin.sh` were unchanged. `cheat camera 29,31` with
+`Console Coord Mode=2` centres tile (29, 31), which is enough aiming: the
+right-click's own world point is recorded in the order's
+`orig_x`/`orig_y`, so the click does not have to be *precise*, only on
+land. Reading the screenshot before each click is what keeps it on land.
+The human's start on this lobby (East Indies, seed 12345, `MAP_STYLE 18`)
+is tiles 26–30 × 25–42; the AI's is 198–214 × 201–214.
+
+At ~370 KB a frame the game runs at about one frame every two seconds,
+which is *convenient*: it leaves a driver plenty of wall clock between
+frames, and it means a run can be killed the moment the capture is in
+hand. `Log` flushes per line, so the kill costs at most the frame in
+progress — run31's last block is half-written, which any reader of it has
+to tolerate.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The

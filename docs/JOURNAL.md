@@ -1504,3 +1504,113 @@ the PE read exactly.
 Both new behavioural claims were made to fail on purpose before landing:
 testing the front order instead of `get_action` loses the seed entirely,
 and walking the member list backwards seeds from `o 25` and object 26.
+
+## 2026-08-26 — item 20: the human group move, and the cheap group pool
+
+The capture three of `docs/GROUPS.md`'s open items were waiting on, and
+the first that needed a **person** in the middle of a run: a player's
+right-click on a multi-unit selection, which the AI's armies in these
+lobbies never produce and the cheat table has no verb for. Two runs, four
+new diffs, and a per-frame record nobody knew was free.
+
+**The run got ten times cheaper before it started.** The queue had item 20
+budgeted as a `DUMP_ALL` window of two frames — ten minutes, 250 MB, and
+the click had to land inside a two-frame window a human cannot aim at.
+`GameLog::full_dump@00930380` says otherwise: past the `do_dump_all`
+branch it is a list of per-category gates, `GameLog::end_frame` calls it
+every frame, and `details[mode][0x12]` is `GROUPS`. So the 512-slot group
+pool is an ordinary `[End Frame]` record, ~130 KB a frame at full speed.
+The window becomes hundreds of frames wide and the timing problem
+disappears.
+
+It does not come out that way on the first try, and the reason is the
+better half of the finding. `GroupData::log_data` never sets its own type
+or detail, so its lines are accepted against whatever the previous dumper
+left — and `dump_deaths` ends by calling `WorldData::log_data` **twice**,
+leaving `current_type` at `WORLD`. With `WORLD=0` the pool is dropped
+silently: the key is on, the dumper runs, and not one line survives
+`check_accept`. That is what run30 is: 378 MB, 215 frames, and no
+`GROUPDATA` at all. `DEATHS=0` fixes it. `docs/ORACLE.md`, "The group pool
+is a per-frame record", has the working settings; `setlog.py` takes
+`CAT=N` now, because a bare name meant 1 and `UNITS=3` was unreachable
+through it.
+
+**The selection turned out to be scriptable.** `run_cmd`'s `select` case
+takes `[type] [who] [+]`, walks every object of that player and adds each
+match; the trailing `+` suppresses the clear. Two channel lines select
+twelve units, and the only thing left for a person is one right-click with
+`cliclick`. The earlier "`+` is not reliable" was the chat box dropping
+lines, not the command. `tools/gamelog/live.sh` is `runwin.sh` stopped at
+the point a driver takes over, `archive.sh` is the other end, and
+`groups.py` reads the pool.
+
+**run31**: three right-clicks at three bearings, eight hoplites and four
+slingers, selected slingers-first on purpose so the group's `list[0]` is
+not its lowest category. Forty frames carry both a live group and a
+`GroupMoveOrder`. What it settled:
+
+- **`find_leader`'s key, from a record — and by a better field than the
+  one asked for.** `GroupOrder::oxx` names the leader's object outright on
+  every member's order, and the slot table's anchor is that object's slot.
+  No need for `curr` to infer it. The record's leader is a hoplite where
+  `list[0]` is a slinger, which the first-on-map-captain rule the sim used
+  until 2026-08-26 cannot produce.
+- **§6.4's `to`/`off` asymmetry, observed.** The one member whose slid
+  offset is exactly `(0, 0)` holds an order whose destination is *not* the
+  click its own `orig_x`/`orig_y` records — on all three moves, every
+  frame. Slid by the whole anchor, it would be the click exactly.
+- **`update_positions`' y-flip, pinned.** run29 reproduced `curr` too, but
+  every `off_y` in its window was zero, so the flipped column multiplied
+  nothing and the eleventh deliberate breakage of the slot-table session —
+  flipping the sign of `cos θ · y` — **did not turn a test red**. run31
+  stands in three ranks; the flip is now a check with a control.
+- **`GroupMoveOrder`, the record.** The order §6.6 step 6 adds, which no
+  dump had held. Two bases and a field: the member's slot destination and
+  the click on `MOVEORDER`, the leader and the member's slot index on
+  `GROUPORDER`, `in_group` of its own.
+
+**Two bugs the capture found, one in the parser and one in the reading.**
+The parser's order walk matched `ends_with("ORDER")`, and
+`GroupMoveOrder` is the one block in the family the binary keeps in mixed
+case — so it was dropped, *and* every later `type` slid onto the wrong
+body, because the pairing is positional. And `Form::compute_dests`'
+follower arm had never executed: `Group::add` keeps a non-captain only
+with `keep_captain`, which nothing an army does sets, but a **player's**
+selection group keeps every figure. Thirty-six members, not twelve.
+`Sim::form_follower_slot` implements it from the listing — one
+`guy_spacing` to the side of the last captain, alternating, each step
+added to the previous member — and the record's `(c, c+3, c−3)` per squad
+is what it was written against.
+
+**One thing chased and dropped, worth writing down.** `curr` came out one
+or two units off on 31 of the 40 frames, and the first suspect was
+`sin_component`'s second-quadrant fold: the sim mirrors the angle where
+`sin_table@00a46a00` appears to keep the index and compute
+`0xffff − base + delta`. Implementing the decompiler's rendering made the
+error *hundreds* rather than one, so the mirror is right and that branch's
+decompilation is not. The real answer was smaller and more useful: a
+heading within a twentieth of a degree of the dumped one reproduces all
+seventy-two numbers **exactly**, on every frame. `curr` is a **mid-frame**
+quantity — `do_group_move` computes it and the unit turns afterwards — so
+the end-frame `angle` is the heading a hair past the one that was used.
+Nine frames of forty, where the leader was not turning, are exact. Any
+later `curr` diff needs to know that.
+
+**What it did not settle**, and it is now the sharpest open question the
+document has: run31's leader is object 9 on one frame and object 6 on the
+next, both hoplite captains of the same category, with 6 first in `list`.
+A first-wins tie names 6 both times. Reproducing the whole 36-member
+table is what would answer it, and that is also what would turn §6.4's
+*observed* asymmetry into a *measured* one. The record is on disk for
+both.
+
+**The thing this session earned.** Item 18's lesson was "the record was
+already there and nobody had opened it". This one is a level up again:
+**the record was never written, because a key nobody had questioned was
+zero**. `GROUPS` had sat at 0 in every `[End Frame]` since the loggers
+were first configured, and the reason it stayed 0 was that turning it on
+did nothing — which read as "this category is not per-frame" rather than
+"this category inherits its acceptance from the last one that ran". Worth
+asking of the other keys before booking a window: not only *what does a
+dump on disk already carry*, but *which of the thirty-seven categories has
+never been turned on, and what happened the one time it was*.

@@ -2026,6 +2026,15 @@ move ends on a target: members whose head order `is_attack` and in range of
 range → every attacking member gets kill + `add_attack_order(o, who,
 QUEUE_FIRST, first member's mandatory, first member's action bit)`.
 
+**The verdict stands, and it now has a record to be diffed against**
+(2026-08-26). run31 is the first dump holding `GroupMoveOrder`s
+(`docs/GROUPS.md` §12.1): the order the simulation stands in for with a
+plain `MoveOrder` is on disk, with its slot destination, the click it came
+from, the leader it was laid out around and the member's slot index. What
+the seam costs is therefore measurable now rather than argued, and the
+thing to measure first is step 6's `angle + (angles[i] << 24)` against the
+`MOVEORDER` base's own `angle`.
+
 ---
 
 ## 9. The start of a game
@@ -2414,7 +2423,17 @@ it**; `docs/DATALAYER.md`'s "a field belongs to the innermost open block
 regardless of indent" mis-files them under `UNITORDER`.
 
 The blocks, by class (names upper-cased except `GroupMoveOrder`,
-`GroupAttackOrder`, `GroupPatrolOrder`, which the binary keeps mixed):
+`GroupAttackOrder`, `GroupPatrolOrder`, which the binary keeps mixed).
+
+**A seventh reader trap, and this one had teeth.** The mixed-case three
+are the only order blocks whose names do not end in `ORDER` in caps, so a
+case-sensitive `ends_with("ORDER")` walk drops them — and because the
+`type`/`metric` pair before each body is matched to it **by position**,
+dropping one body slides every later `type` onto the wrong order. Nothing
+caught it for five months because no dump had a `GroupMoveOrder` in it;
+run31 does. `crate::gamelog`'s walk upper-cases the name now, and
+`a_group_move_order_carries_both_bases_and_names_its_leader` fails on the
+old form.
 
 | block | fields (after its bases' blocks) |
 |---|---|
@@ -2427,8 +2446,8 @@ The blocks, by class (names upper-cased except `GroupMoveOrder`,
 | `GARRISONORDER` | `TARGETORDER`, then `search` |
 | `GUARDORDER` | `TARGETORDER`, then `dx dy guard_x guard_y idle retry` |
 | `ATTACKGROUNDORDER` | `UNITORDER`, then `att_x att_y accuracy attack_unit` |
-| `GROUPORDER` | `UNITORDER`, then `oxx whose group_angle id form_id` (spelling open) |
-| `GroupMoveOrder` | `MOVEORDER`, `GROUPORDER`, then `in_group` |
+| `GROUPORDER` | `UNITORDER`, then `oxx whose group_angle id form_id` (~~spelling open~~ **confirmed by run31**, 2026-08-26: the row is exactly this. `oxx` is the **leader's object**, `id` is shared by every member's order, and `form_id` is the member's index into the group's own parallel arrays — `docs/GROUPS.md` §12.1) |
+| `GroupMoveOrder` | `MOVEORDER`, `GROUPORDER`, then `in_group`. **Observed in run31** — the order §6.6 step 6 adds, which no earlier dump held. Its `MOVEORDER` base carries the member's **slot destination** in `x`/`y` and the **click** in `orig_x`/`orig_y`, which is what makes `docs/GROUPS.md` §6.4's `to`/`off` asymmetry readable |
 | `PATROLORDER` | `UNITORDER`, then `x_pos`/`y_pos` as **flat key lines with no `BEGIN`** (`length, size, increment, flags`, then one `list[scan]` line per entry), then `waypoint`. `SimpleArray<Coord>::log_data` writes **nothing at all** for an empty array, so an unstarted patrol looks like one with no arrays (R7 L11) |
 | `FORMORDER` | `MOVEORDER`, then `newform delay` |
 | `CASTORDER` | `x y paid spell`; `TRADEORDER` `oxx whose started loaded uid2`; `AIRORDER` `oxx whose cruising_alt sharp_turn old returning`; `SPECIALANIMORDER` `type started frames data1..data4 ox whom`; `STRAFEORDER` `xx yy` |

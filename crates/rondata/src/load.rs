@@ -57,6 +57,11 @@ const UNIT_BLOCK_RADIUS: i32 = 48;
 /// dumped group, which is the confirmation. `UnitType::init` multiplies the
 /// `X_SPACING`/`Y_SPACING` columns by it (`docs/GROUPS.md` §6.4).
 const UNIT_FORMATION_SPACING: i32 = 12;
+/// `UNIT_GUY_SPACING` as loaded: `rules.xml` gives it the same `1/16 tile`
+/// as `UNIT_FORMATION_SPACING`, so **12** position units.
+/// `UnitType::init@0061ab50` multiplies the `GUY_SPACING` column by it, and
+/// `Form::compute_dests`' follower arm is its only reader.
+const UNIT_GUY_SPACING: i32 = 12;
 
 /// Everything the tables load into, plus the maps between the index spaces.
 #[derive(Clone, Debug)]
@@ -789,6 +794,7 @@ pub fn load_tables(
             y_size: 0,
             x_spacing: c.x_spacing,
             y_spacing: c.y_spacing,
+            guy_spacing: c.guy_spacing,
             base_arrows: 0,
             most_shots: 0,
             block_radius: c.block_radius,
@@ -984,6 +990,7 @@ pub fn load_tables(
             // writes them.
             x_spacing: -1,
             y_spacing: -1,
+            guy_spacing: -1,
             base_arrows: c.base_arrows,
             most_shots: c.most_shots,
             block_radius: 0,
@@ -1518,6 +1525,7 @@ struct UnitCols {
     block_radius: i32,
     x_spacing: i32,
     y_spacing: i32,
+    guy_spacing: i32,
     domain: Domain,
     siege: bool,
     from: Option<usize>,
@@ -1606,6 +1614,7 @@ impl UnitCols {
             block_radius: int(l, "BLOCK_RADIUS").unwrap_or(0) * UNIT_BLOCK_RADIUS,
             x_spacing: int(l, "X_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,
             y_spacing: int(l, "Y_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,
+            guy_spacing: int(l, "GUY_SPACING").unwrap_or(0) * UNIT_GUY_SPACING,
             domain: domain_of(l.text("DOMAIN")),
             siege: flags & 0x20000 != 0,
             // Pass 1, and therefore the record's own.

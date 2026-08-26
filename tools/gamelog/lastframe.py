@@ -20,15 +20,21 @@ out = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUT
 n = int(sys.argv[2]) if len(sys.argv) > 2 else 1
 
 size = os.path.getsize(src)
+# A frame block is 137 KB at `UNITS=3` and about 400 KB with `GROUPS=1` on top
+# (the 512-slot pool is ~260 bytes a slot), so the read-back is doubled until
+# the frames are found rather than fixed — a fixed one silently fails on the
+# richer settings.
 back = min(size, 400000 * (n + 1))
-with open(src, "rb") as f:
-    f.seek(size - back)
-    data = f.read().decode("utf-8", "replace")
-
-idx = [i for i in range(len(data)) if data.startswith("BEGIN FRAME", i)]
+while True:
+    with open(src, "rb") as f:
+        f.seek(size - back)
+        data = f.read().decode("utf-8", "replace")
+    idx = [i for i in range(len(data)) if data.startswith("BEGIN FRAME", i)]
+    if len(idx) >= n + 1 or back >= size:
+        break
+    back = min(size, back * 4)
 if len(idx) < n + 1:
-    print("not enough frames in the tail (%d found); raise the read-back size"
-          % len(idx))
+    print("not enough frames in the whole file (%d found)" % len(idx))
     sys.exit(1)
 
 chunk = data[idx[-(n + 1)]:idx[-1]]

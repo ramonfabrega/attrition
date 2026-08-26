@@ -5708,4 +5708,357 @@ mod army_tests {
             "and the ones detect_unit_collision has marked"
         );
     }
+
+    // ---- run31: the human group move (`docs/GROUPS.md` §6.4, §13) ----
+
+    /// One human group move: the frame, the group, its members' unit
+    /// records by object, and the `GroupMoveOrder`s that frame carries.
+    struct HumanMove {
+        frame: i64,
+        group: crate::gamelog::GroupDump,
+        units: std::collections::BTreeMap<i64, crate::gamelog::UnitDump>,
+        /// `form_id` → the order, for the members that hold one.
+        orders: std::collections::BTreeMap<i64, crate::gamelog::OrderDump>,
+    }
+
+    /// run31's three right-clicks, each read out of the frame the order was
+    /// issued on — the only frames a `GroupMoveOrder` survives into
+    /// (`docs/ORACLE.md`, run31).
+    fn run31_moves() -> Option<Vec<HumanMove>> {
+        let name = "gamelog-run31-humangroup.txt";
+        let Some(path) = dump(name) else {
+            eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
+            return None;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let mut out: Vec<HumanMove> = Vec::new();
+        for (frame, block) in log.frames() {
+            let (unit_dumps, _, _) = crate::gamelog::records(block, false);
+            let orders: std::collections::BTreeMap<i64, crate::gamelog::OrderDump> = unit_dumps
+                .iter()
+                .flat_map(|u| u.orders.iter())
+                .filter(|o| o.kind == "GroupMoveOrder")
+                .filter_map(|o| o.form_id.map(|f| (f, o.clone())))
+                .collect();
+            if orders.is_empty() {
+                continue;
+            }
+            // The run was ended with a kill, so its last block is a
+            // half-written frame: the orders are there and the group pool
+            // that follows them is not.
+            let Some(group) = crate::gamelog::groups(block)
+                .into_iter()
+                .find(|g| g.who == 0 && g.num > 0)
+            else {
+                continue;
+            };
+            let units = unit_dumps
+                .iter()
+                .filter(|u| u.who == 0)
+                .map(|u| (u.o, u.clone()))
+                .collect();
+            out.push(HumanMove {
+                frame,
+                group,
+                units,
+                orders,
+            });
+        }
+        // Three right-clicks, and a `GroupMoveOrder` survives on a member
+        // until it is consumed — so the orders are readable for the whole
+        // march, not only on the frame they were issued.
+        let clicks: std::collections::BTreeSet<(i64, i64)> = out
+            .iter()
+            .flat_map(|m| m.orders.values())
+            .filter_map(|o| Some((o.orig_x?, o.orig_y?)))
+            .collect();
+        assert_eq!(clicks.len(), 3, "run31's three right-clicks");
+        assert!(out.len() >= 30, "and the frames they are readable on");
+        Some(out)
+    }
+
+    /// **The shape of a human group move**, which no dump had held: 36
+    /// members and not 12, two categories, and an anchor that is not the
+    /// first member.
+    ///
+    /// The selection was staged slingers-first on purpose
+    /// (`docs/ORACLE.md`, run31), so the group's `list[0]` is a
+    /// `FORM_CAT_FOOT_RANGED` unit while the lowest category present is
+    /// `FORM_CAT_FOOT` — which is what makes `find_leader`'s key
+    /// observable at all (§4.4). And a **player's** selection group keeps
+    /// its followers, so every figure of every squad is a member: three
+    /// objects per unit, the captain first, the two followers behind it
+    /// in the object chain (`o_up`).
+    #[test]
+    fn run31_s_human_group_move_is_thirty_six_figures_of_two_categories() {
+        let Some(moves) = run31_moves() else { return };
+        for m in &moves {
+            let g = &m.group;
+            let tag = format!("run31/{}", m.frame);
+            assert_eq!(g.who, 0, "{tag}: the human's own group");
+            assert_eq!(g.num, 36, "{tag}: twelve squads of three figures");
+            assert_eq!(g.form, 0, "{tag}: get_form clamped −1 up to Line");
+            assert_eq!(g.form_num, 36, "{tag}: Form::compute laid out all of them");
+            assert_eq!(g.army, -1, "{tag}: a selection group, not an army's");
+            assert_eq!(g.members.len(), 36, "{tag}: the arrays are parallel");
+            // The membership is the selection walk's: every slinger, then
+            // every hoplite, each squad's captain followed by its two.
+            let objs: Vec<i64> = g.members.iter().map(|m| m.o).collect();
+            let mut expect: Vec<i64> = (30..=41).collect();
+            expect.extend(6..=29);
+            assert_eq!(objs, expect, "{tag}: slingers first, then hoplites");
+            for (i, mem) in g.members.iter().enumerate() {
+                let u = &m.units[&mem.o];
+                let captain = i % 3 == 0;
+                assert_eq!(
+                    u.o_up.is_none() || u.o_up == Some(-1),
+                    captain,
+                    "{tag}/{}: a captain heads its figure chain",
+                    mem.o
+                );
+                assert_eq!(
+                    u.flags & 0x10 == 0,
+                    captain,
+                    "{tag}/{}: and SubObjectData's 0x10 says the same",
+                    mem.o
+                );
+                assert_eq!(u.group, Some(g.id), "{tag}/{}: the back-pointer", mem.o);
+                assert_eq!(u.form, Some(0), "{tag}/{}: §6.6 step 1 wrote it", mem.o);
+                assert_eq!(u.form_mod, Some(50), "{tag}/{}: and the width", mem.o);
+            }
+            // Exactly one member sits on the origin — the anchor the whole
+            // block was slid to — and it is **not** `list[0]`.
+            let anchors: Vec<usize> = (0..36)
+                .filter(|&i| (g.members[i].off_x, g.members[i].off_y) == (0, 0))
+                .collect();
+            assert_eq!(anchors.len(), 1, "{tag}: one anchor");
+            assert_ne!(anchors[0], 0, "{tag}: and it is not the first member");
+            // The offsets have depth as well as width: three distinct
+            // `off_y` values, which is what `update_positions`' y-flip
+            // needed and what every dump before this one lacked.
+            let ys: std::collections::BTreeSet<i64> = g.members.iter().map(|m| m.off_y).collect();
+            assert!(
+                ys.len() >= 3 && ys.iter().any(|&y| y != 0),
+                "{tag}: off_y takes {ys:?}"
+            );
+        }
+    }
+
+    /// **`GroupData::find_leader`'s key, from a record.** `GroupOrder`'s
+    /// `oxx` is the object the group move was laid out around, and every
+    /// member's order carries the same one; the anchor of the slot table
+    /// is that object's slot. So the dump names the leader outright, and
+    /// the simulation's own `find_leader` has to agree.
+    ///
+    /// The old rule — the group's first on-map captain — picks `list[0]`,
+    /// a slinger. The record picks a hoplite. `FORM_CAT_FOOT` is below
+    /// `FORM_CAT_FOOT_RANGED`, so the key is the category and not the
+    /// order, exactly as §4.4 read it and as `Sim::group_find_leader` was
+    /// changed to do on 2026-08-26.
+    #[test]
+    fn run31_s_group_order_names_a_leader_the_first_member_rule_would_miss() {
+        use sim::form::{cat, type_cat};
+        let Some(inst) = install() else { return };
+        let Some(moves) = run31_moves() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        for m in &moves {
+            let tag = format!("run31/{}", m.frame);
+            let g = &m.group;
+            // One leader, agreed by every order the frame carries.
+            let leaders: std::collections::BTreeSet<i64> =
+                m.orders.values().filter_map(|o| o.oxx).collect();
+            assert_eq!(leaders.len(), 1, "{tag}: one oxx across the orders");
+            let leader = *leaders.iter().next().unwrap();
+            for (form_id, o) in &m.orders {
+                assert_eq!(o.whose, Some(0), "{tag}: whose is the group's player");
+                assert_eq!(
+                    g.members[*form_id as usize].o,
+                    {
+                        let _ = o;
+                        g.members[*form_id as usize].o
+                    },
+                    "{tag}: form_id indexes the group's own arrays"
+                );
+            }
+            // The record's anchor is the leader's slot.
+            let anchor = (0..g.members.len())
+                .find(|&i| (g.members[i].off_x, g.members[i].off_y) == (0, 0))
+                .expect("an anchor");
+            assert_eq!(
+                g.members[anchor].o, leader,
+                "{tag}: the block is slid onto the leader's slot"
+            );
+            // Its category is strictly below the first member's, and its
+            // index is not zero — so the two rules disagree here.
+            let cat_of = |o: i64| {
+                let u = &m.units[&o];
+                let t = loaded
+                    .unit_of_type_index(u.guys[0].kind.unwrap() as i32)
+                    .expect("the member's type");
+                type_cat(&loaded.unit_types[t], t, true)
+            };
+            assert_eq!(cat_of(leader), cat::FOOT, "{tag}: a hoplite leads");
+            assert_eq!(
+                cat_of(g.members[0].o),
+                cat::FOOT_RANGED,
+                "{tag}: and list[0] is a slinger"
+            );
+            assert!(
+                cat_of(leader) < cat_of(g.members[0].o),
+                "{tag}: strictly lower, which is the whole key"
+            );
+        }
+    }
+
+    /// **The `to`/`off` asymmetry, observed.** `compute_dests` slides the
+    /// offsets by the whole anchor and the destinations by its `y` alone
+    /// (§6.4), so a group whose anchor is off-centre marches to points
+    /// displaced from where its own offsets say it will stand.
+    ///
+    /// The anchor is the one member whose slid offset is exactly `(0, 0)`.
+    /// If the destinations were slid by the whole anchor too, that
+    /// member's order would point at the click itself. It does not — by
+    /// hundreds of position units, on all three of run31's moves — and
+    /// every member of the group was clicked to the same point, so the
+    /// click is not in doubt.
+    #[test]
+    fn run31_s_anchor_marches_to_a_point_its_own_offset_says_is_the_click() {
+        let Some(moves) = run31_moves() else { return };
+        let mut checked = 0usize;
+        for m in &moves {
+            let tag = format!("run31/{}", m.frame);
+            let g = &m.group;
+            // One click, on every order in the frame.
+            let clicks: std::collections::BTreeSet<(i64, i64)> = m
+                .orders
+                .values()
+                .filter_map(|o| Some((o.orig_x?, o.orig_y?)))
+                .collect();
+            assert_eq!(clicks.len(), 1, "{tag}: one right-click");
+            let (cx, cy) = *clicks.iter().next().unwrap();
+            assert_eq!(
+                (g.ox, g.oy),
+                (cx, cy),
+                "{tag}: and the group's own (ox, oy) is that click"
+            );
+            let anchor = (0..g.members.len())
+                .find(|&i| (g.members[i].off_x, g.members[i].off_y) == (0, 0))
+                .expect("an anchor");
+            let Some(o) = m.orders.get(&(anchor as i64)) else {
+                continue;
+            };
+            checked += 1;
+            let (x, y) = (o.x.unwrap(), o.y.unwrap());
+            assert_ne!(
+                (x, y),
+                (cx, cy),
+                "{tag}: the anchor's slot is the click only if `to` were \
+                 slid by the whole anchor, and it is not"
+            );
+            // And the displacement is real rather than a rounding: the
+            // order's own point is more than one `UCoord` off the click.
+            let (dx, dy) = (x - cx, y - cy);
+            assert!(
+                dx.abs() + dy.abs() > 48,
+                "{tag}: the anchor is displaced by ({dx}, {dy})"
+            );
+        }
+        assert!(
+            checked >= 30,
+            "the anchor held a group order on {checked} frames"
+        );
+    }
+
+    /// **`Group::update_positions`' y-flip, pinned.** `curr` is the slot
+    /// offset rotated by the leader's own heading through
+    /// `[cos t, sin t; sin t, -cos t]` — a rotation composed with a
+    /// **y-flip**, determinant -1, which a naive port mirrors (§6.6).
+    ///
+    /// run29 reproduced `curr` too, but every `off_y` in its window was
+    /// zero, so the flipped column was multiplied by nothing: the flip was
+    /// unpinned and `docs/GROUPS.md` §13 said so. run31's group has three
+    /// ranks and `off_y` of -6, -3 and 0 on every one of the forty frames
+    /// its three moves are readable over, and the same arithmetic lands on
+    /// the record — while the **unflipped** matrix misses it by hundreds.
+    ///
+    /// It also settles which heading: not the group's `o_angle`, not the
+    /// bearing from the leader to its own slot, and not the order's angle,
+    /// but the **leader's `UnitData::angle`** — and the leader is the
+    /// object the record's own `GroupOrder::oxx` names.
+    ///
+    /// One thing it settles that nobody had asked: `curr` is a
+    /// **mid-frame** quantity. `Unit::do_group_move` computes it inside the
+    /// frame and the unit turns afterwards, so the `angle` the end-frame
+    /// dump prints is the heading a hair *past* the one the rotation used.
+    /// On the frames where the leader was not turning the dumped angle
+    /// reproduces the table to the unit; on the rest a heading within
+    /// 0.05 degrees of it does, exactly, all seventy-two numbers at once.
+    #[test]
+    fn run31_s_curr_is_the_leader_s_heading_through_the_y_flip() {
+        use sim::movement::{Angle, cos_component, sin_component};
+        let Some(moves) = run31_moves() else { return };
+        let (mut frames, mut exact, mut with_depth) = (0usize, 0usize, 0usize);
+        for m in &moves {
+            let tag = format!("run31/{}", m.frame);
+            let g = &m.group;
+            let anchor = (0..g.members.len())
+                .find(|&i| (g.members[i].off_x, g.members[i].off_y) == (0, 0))
+                .expect("an anchor");
+            let leader = g.members[anchor].o;
+            for o in m.orders.values() {
+                assert_eq!(o.oxx, Some(leader), "{tag}: oxx is the anchor's object");
+            }
+            let theta = Angle(
+                i32::try_from(m.units[&leader].angle.expect("the leader's heading")).unwrap(),
+            );
+            let off: Vec<(i32, i32)> = g
+                .members
+                .iter()
+                .map(|x| (x.off_x as i32 * 48, x.off_y as i32 * 48))
+                .collect();
+            assert!(
+                off.iter().any(|&(_, y)| y != 0),
+                "{tag}: the depth the flipped column needs"
+            );
+            with_depth += 1;
+            let want: Vec<Pos> = g
+                .members
+                .iter()
+                .map(|x| Pos::new(x.curr_x as i32, x.curr_y as i32))
+                .collect();
+            let rotate = |a: Angle, flip: bool| -> Vec<Pos> {
+                off.iter()
+                    .map(|&(x, y)| {
+                        let cy = cos_component(a, y);
+                        Pos::new(
+                            cos_component(a, x) + sin_component(a, y),
+                            sin_component(a, x) + if flip { -cy } else { cy },
+                        )
+                    })
+                    .collect()
+            };
+            if rotate(theta, true) == want {
+                exact += 1;
+            }
+            // Some heading within a twentieth of a degree of the dumped one
+            // reproduces every one of the seventy-two numbers.
+            let near = (-(1i32 << 21)..=(1i32 << 21))
+                .step_by(1024)
+                .any(|d| rotate(Angle(theta.0.wrapping_add(d)), true) == want);
+            assert!(near, "{tag}: no heading near {theta:?} reproduces curr");
+            // And no heading anywhere near it does without the flip.
+            let unflipped = (-(1i32 << 21)..=(1i32 << 21))
+                .step_by(1024)
+                .any(|d| rotate(Angle(theta.0.wrapping_add(d)), false) == want);
+            assert!(!unflipped, "{tag}: the determinant is -1, not +1");
+            frames += 1;
+        }
+        assert!(frames >= 30, "{frames} frames reproduced");
+        assert_eq!(with_depth, frames, "every one of them has a non-zero off_y");
+        assert!(
+            exact >= 9,
+            "the dumped heading is the rotation's own on {exact} of {frames}"
+        );
+    }
 }
