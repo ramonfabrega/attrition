@@ -1084,8 +1084,29 @@ document says so.
   `action_stance`, B over the pool, membership, `action_siege_attack_to`
   and `action_attack` — briefed with the run28 coverage frames and told
   to name the capture that would falsify each claim.
-  **The adjudication was deliberately left to a cleared session**: the
+  **The adjudication went to a third subagent, not to this session**: the
   first reader adjudicating their own document is exactly the conflict
-  the three-role split exists to prevent. §6.5 and §9 are the rows that
-  matter; both are predicates, which is where four mechanics running have
-  put the errors.
+  the three-role split exists to prevent, and a subagent has no
+  authorship stake where a cleared session still reads the document as
+  the project's own.
+- **The audit landed the same night** — `docs/audit/2026-08-25-groups.md`,
+  124 verdict rows, five `FABLE:` markers, eight named assertions. It is
+  the harshest of the four so far, and the two worst findings are both
+  about *the first reading's method rather than its arithmetic*.
+  `docs/GROUPS.md` §6.4 declared the slot table a seam on two grounds and
+  **both were false**: there is no float barrier (fourteen instructions in
+  the whole family, all inside `compute_dests`, all integer-exact as
+  `((2·rows − 1)·depth·k)/2`, the `0.5f` read out of the PE), and "no
+  capture pins its output" was wrong because
+  `GroupData::log_data@0045e1d0` had been dumping `off_x`, `off_y`,
+  `curr_x`, `curr_y` and `angles` per member all along — run29 already
+  held a four-member group in formation 0. §13 asked for a capture that
+  was on disk. Three of §13's five guessed vtable slots are wrong for the
+  same reason: `rise_z.map`, which `CLAUDE.md`'s own thesis paragraph
+  names, was never opened. Two live bugs in `group.rs` fell out of it.
+  What survived: **§9's Manhattan anchor**, which the blind reader missed
+  entirely, and all three `docs/ARMY.md` predicates the session had
+  corrected without an adjudicator — ratified against the listing, no Rust
+  changed. The pattern across four audits now: the arithmetic holds, the
+  predicates wobble, and the *method shortcuts* — the file not opened, the
+  grep not run, the capture not looked for — are what actually cost.

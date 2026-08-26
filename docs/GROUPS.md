@@ -737,7 +737,41 @@ because `scene_at` does not yet read a block's `UNITDATA` order lists
   "UH OH, NEED MORE GROUPS" path, `Group::sort`, `refresh_group_order`,
   `distribute_attack`, `kill_group_move` — none of which any traced game
   has executed. `tools/trace/report.py … blind docs/` will list them.
-- **No second reading yet.** This document is one reading, in the main
-  thread, on Opus 5. `docs/ARMY.md` §19's lesson — the arithmetic is
-  doubly confirmed and the *predicates* are where the errors are — applies
-  in full to §6.5 and §9, which are exactly predicates.
+- ~~**No second reading yet.**~~ Run and adjudicated the same day: §14.
+
+## 14. Second reading — landed, **corrections not yet applied**
+
+Two blind readers on Opus 5 (A over §6–§8, B over §3, §4, §9, §10), and a
+third adjudicator on Opus 5 against the decompile, the listing,
+`rise_z.map` and the PE. `docs/audit/2026-08-25-groups.md` is the record —
+124 verdict rows, five `FABLE:` markers, eight named assertions.
+
+**Until those corrections land, this document is the one that is wrong**
+(`docs/audit/README.md`). What is already known to be wrong here, so that
+nobody implements from it in the meantime:
+
+- **§6.4 and §13's account of the slot-table seam is void on both legs.**
+  There is no float barrier — zero float instructions across the `Group`
+  family, fourteen in `Form::compute_dests` alone, all integer-exact as
+  `((2·rows − 1)·depth·k)/2`, the `0.5f` read from the PE at `0xb694c0`.
+  And "no capture pins its output" is **false**:
+  `GroupData::log_data@0045e1d0` dumps `off_x`, `off_y`, `curr_x`,
+  `curr_y`, `angles`, `form`, `form_num`, `o_dist` and `o_angle` per
+  member, and run29 already carries a four-member group in formation 0.
+  §13 asked for a capture that was on disk.
+- **§13's five guessed `ObjectData` vtable slots: three are wrong.**
+  `+0x48` is `is_seen`; `+0x20` is `is_build`, and **0 for a Wall**;
+  `+0x10c` is settled by `ObjectData::is_siege@0046ef90`. §8 and §10 build
+  rules on the guesses.
+- **§13's "`Group::priority` has no writer in the export" is wrong** —
+  there are five. The field is a one-bit "I am a control group".
+- **Two live bugs in `crates/sim/src/group.rs`**: `group_action_halt`
+  writes each *unit's* `form` where `0070d0c0:29` writes the *group's* —
+  and `group_get_form` reads the unit bytes, so it is not cosmetic — and
+  `group_action_attack`'s "already attacking" skip is unconditional where
+  the original's has two sub-arms.
+
+What survived: **§9's Manhattan anchor**, which reader B missed entirely
+and which the adjudicator confirms per-term `>> 10` and strict `<`; the
+sim's `siege_anchor` is right. The full list of what is doubly confirmed
+is in the audit.

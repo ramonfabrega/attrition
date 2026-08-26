@@ -27,124 +27,85 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-25, the session after `576fce2`.* The commit this
+*Last verified 2026-08-26, the session after `e8b2c71`.* The commit this
 section was written against; if `git log` has moved well past it, trust the
 queue below and the journal before trusting this.
 
-**Last landed.** The **group orders** — `docs/GROUPS.md`,
-`crates/sim/src/group.rs`, and the army's other half wired to them
-(`docs/ARMY.md` §17): `do_forming`, `march_to_target`, `engagement`,
-`send_here`, `charge`, `set_stance` and `Army::close`'s halt now issue
-real orders, so an AI army's units walk to their muster spot and fight.
-The find is `action_move_near`'s **AI branch** (`docs/GROUPS.md` §6.5),
-which neither `docs/ORDERS.md` §8.2 nor the army's reading had: a
-hurrying army stables its siege, wagons and heroes in the nearest
-friendly city, and a non-hurrying one never interrupts a siege unit that
-is already shooting. Both are tested and both were made to fail first.
-**run28** made `Army::engagement` execute on a predicted frame (15100)
-with the whole chain named; **run29**, a `DUMP_ALL` window at
-[15100, 15103) of the same scenario, turned that into an **assertion**:
-its two blocks show `status 1 → 32`, `city 1 → −1` and the point moving
-to the muster cell's centre, and the sim's own `do_mustering` reproduces
-all of it — including the absence of the `FORMING` bit, which is the gate
-(`docs/ARMY.md` §16.6, §17 item 6). Journal entry of the same date.
+**Last landed.** The **group orders** (`docs/GROUPS.md`,
+`crates/sim/src/group.rs`, commit `c53e4c6`) and their **full second
+reading, adjudicated** — `docs/audit/2026-08-25-groups.md`, 124 verdict
+rows. Two blind readers and one adjudicator, all three verified
+`claude-opus-5` from their transcripts. With them the army's order-issuing
+half moves units for the first time: `do_forming`, `march_to_target`,
+`engagement`, `send_here`, `charge`, `set_stance`, `Army::close`'s halt.
+run28 made `Army::engagement` execute on a frame predicted from the state
+machine; run29 turned that into an assertion (`docs/ARMY.md` §16.6, §17
+item 6).
 
-**In progress.** `docs/GROUPS.md`'s **blind second reading is in
-flight** — two readers on Opus 5, launched at the end of the session that
-wrote it, split A (`action_move_near`/`compute_form`/`Form::*`,
-`action_halt`, `action_stance`) against B (the pool, membership,
-`action_siege_attack_to`, `action_attack`). Reports land at
-`~/ghidra-projects/reading/groups-2026-08-25/{A-move-form-halt-stance,
-B-pool-membership-attack}.md`, written incrementally, so a dropped agent
-still leaves what it settled. Both were briefed with the run28 coverage
-frames and told to name, per claim, the capture that would falsify it.
+**Owed, and it is the next session's first act: apply the audit.**
+`docs/audit/2026-08-25-groups.md`'s "What must change" is written to be
+applied mechanically — do not re-derive it. In order:
 
-**Owed — and it is wider than the reading.** The whole of commit
-`c53e4c6` was written, implemented and self-checked by **one model in one
-session (Opus 5)**, with no independent pass over any of it. Treat the
-tranche as unaudited, not just the document. What specifically wants a
-second pair of eyes, hardest first:
+1. **Nine verdicts change Rust**, listed in the audit's last section. Two
+   are outright bugs, not imprecision: `group_action_halt` writes each
+   *unit's* `form` where `0070d0c0:29` writes the *group's* — and
+   `group_get_form` reads the unit bytes, so it is live — and
+   `group_action_attack`'s "already attacking" skip is unconditional
+   where the original's has two sub-arms.
+2. **`docs/GROUPS.md` §14 already says the document is wrong** and names
+   the four worst: the dead seam justification, three misread vtable
+   slots, `Group::priority`'s five writers. Strike them as each
+   correction lands, per the amend-in-place rule.
+3. **Five `FABLE:` markers**, each with its check. Those plus the nine
+   Rust-changing verdicts are the scope of the Fable ratification pass
+   owed before the next mechanic builds on this one
+   (`docs/DECISIONS.md` entry 22, `docs/audit/README.md` step 6).
 
-1. **Three `docs/ARMY.md` predicates I changed mid-session** and that
-   **changed Rust**, from my own re-reading of the decompile with no
-   adjudicator: §8.4/§9's friendly test is `is_ally`, not `!is_enemy`;
-   §9's 90 %-damage test's sense was inverted; and it applies only to a
-   city centre. Under `docs/DECISIONS.md` entry 22 a verdict that changes
-   Rust is exactly what a ratifying pass is for, and these never got one.
-   `crates/sim/src/army.rs`, `army_target_is_a_friend_under_attack` and
-   `march_to_target`'s `nearly_dead`.
-2. **`docs/GROUPS.md` §6.5 and §9** — the AI branch and the siege
-   sub-group. Both are predicates; both are new; both are implemented.
-3. **The rest of `docs/GROUPS.md` and `crates/sim/src/group.rs`.**
-4. **`docs/ARMY.md` §16.6's blind-list correction** — the claim that
-   `engagement` had never executed was wrong, and the replacement list was
-   derived by me from `report.py … blind docs`. Re-run it rather than
-   trust the prose.
-5. **The run29 test** (`§17` item 6) and the `strategy[reg]` input it
-   declares.
+**Then, and the order matters — it changed when the audit landed:**
 
-**The second reading in flight covers 2 and 3 only.** Its adjudication:
-Deliberately not done in the session that wrote the document — the first
-reader adjudicating their own document is the conflict the three-role
-split exists to prevent, so it wants a cleared context that reads
-`docs/GROUPS.md` cold and goes back to the decompiled function for every
-disagreement. Verdicts to `docs/audit/2026-08-25-groups.md`, appended as
-each is settled; anything that cannot be settled marked `FABLE:` rather
-than guessed. An Opus adjudication is acceptable under that marker
-discipline (`docs/DECISIONS.md` entry 22) and books one debt: **a Fable
-pass over every marker and every verdict that changes Rust**, before the
-next mechanic builds on this one. §6.5 and §9 are the rows to read
-hardest — both are predicates, which is where four mechanics running have
-put the errors.
+- **Diff the whole `GROUPDATA` record**, the audit's first named
+  assertion and the cheapest thing on this list.
+  `GroupData::log_data@0045e1d0` dumps `off_x`, `off_y`, `curr_x`,
+  `curr_y`, `angles`, `form`, `form_num`, `o_dist`, `o_angle` per member;
+  run29's window has **5,392 records, 44 live**, already on disk. The
+  project's own rule — when the original dumps a record, diff the whole
+  record — and nobody has read one.
+- **Then implement `Form::compute`'s slot table**, against that diff
+  rather than ahead of it. The seam `docs/GROUPS.md` §6.4 declared has no
+  justification left: there is no float barrier (fourteen instructions,
+  all in `compute_dests`, all integer-exact) and the capture exists.
+  `compute_dests`, `compute_rows_and_columns`, `categorize`, and
+  `update_positions`' rotation-composed-with-a-y-flip (determinant −1 — a
+  naive port mirrors). Reader A's report at
+  `~/ghidra-projects/reading/groups-2026-08-25/` is the working notes.
+- **run29's `UNITS=3` half** — the per-unit order lists nobody has
+  opened. `scene_at` would need to load them; that is what pins
+  `engagement`'s *choice* of unit (`docs/ARMY.md` §18).
+- Then the older backlog: the `LEADERDATA` and `CITY` widenings the army's
+  readers named; a `find_target` block where two candidates sit within a
+  multiplier of each other; run7's order stream under the trace; a
+  mounted attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
+  `calc_gather` for non-flat buildings; `think_civilian_transport`.
 
-**Next**, in the order the captures suggest:
+**Four things the group-orders session earned, all of them the hard way.**
+(1) **Read the queue's own handoff before working** — it had said "spawn
+the readers while they run" and the session read past it, so the fan-out
+went out at the end instead of alongside. (2) **Open `rise_z.map`.** The
+13 MB linker map `CLAUDE.md`'s thesis names recovers vtable slot names
+that three COMDAT folds hide; guessing at five of them put wrong rules in
+two sections. (3) **Ask the blind list against *every* trace on disk** —
+`docs/ARMY.md` had claimed `engagement` never executed; run16 had it since
+2026-08-24. (4) **Before declaring a seam, grep `log_data` for the fields
+it covers.** The slot table was called uncapturable while
+`GroupData::log_data` was dumping it every frame.
 
-- **run29's window, the half not yet read: the units.** The `ARMY`
-  records are asserted (§17 item 6); the block also carries, at
-  `UNITS=3`, every unit's order list, and two things fall out of that.
-  First, §11's *choice* of unit — the sim picks the first engaged member
-  whose target is a map unit, and no dump has shown which the original
-  picks. Second, the **slot table**: `Form::compute_dests` runs on frame
-  0, so the `MOVEORDER` destinations of any early group pin
-  `docs/GROUPS.md` §6.4's seam. Both need `scene_at` to load the block's
-  `UNITDATA` order lists — the next afternoon's extension of it, and
-  `scenes()` already parses a 250 MB window once for several blocks.
-- **The dumped-record widenings the army's readers named** (unchanged
-  from last session): `LEADERDATA` with `defense_mod`, `combat`,
-  `sea_combat`, `strong[]`, `weak[]`, `pop_issues`, the two win timers,
-  `frame_attacked`, `attacked_by`, `fort_mark`, `city_mark` and the
-  personality; `CITY` with `bordering`, `was_capital_flags`, `founder`,
-  `ocean`, and `city_flags` whole. **`GROUPDATA` is now worth more than
-  it was**: 512 records a block, and `crates/sim/src/army.rs` carries a
-  `group::GroupState` to diff them against.
-- **A capture for `find_target`'s score, not just its choice**
-  (`docs/ARMY.md` §18): a block where two candidates sit within a
-  multiplier of each other — an ally's city against an enemy's at
-  `defense_mod == 0x100`, or a difficulty-1 lobby with a Large City of
-  the AI's own. The draw count and the choice are the observables;
-  `runwin.sh` stages it.
-- Then, as before: run7's order stream replayed under the trace, a
-  mounted attacker, a caravan, the `found_cities` window at 576;
-  `make_stuff` whole with the goods block; `Leader::diplomacy`;
-  `calc_gather` for non-flat buildings; `think_civilian_transport`
-  (`docs/TRANSPORT.md` §12).
+**Needs the user.** Nothing outstanding. Standing note: Fable is being
+conserved, so first readings, blind readings and adjudications are all
+running on Opus 5 — which the marker discipline permits and which books
+the ratification debt named above. Verify the model from the transcript
+(`lore spawns`), never from the spawn parameter.
 
-**Three things this session earned.** (1) **Ask the blind list against
-*every* log.** `docs/ARMY.md` had said `engagement` never executed; it had,
-in run16, since 2026-08-24 — the claim was true of the four islands runs
-and had never been checked against the corpus. `report.py <log> blind docs
-<every log>` answers it in ten seconds. (2) **Predict the frame from the
-state machine before staging the run.** run28 was three minutes because
-the reading said which path reaches `engagement` and run27's record said
-where the army stood. (3) A `cover=1` trace with **no** `DUMP_ALL` is a
-three-minute run and answers "did this function ever execute"; the
-ten-minute window is only for the records.
-
-**Needs the user.** Nothing this session. One standing note: Fable is
-being saved, so first readings and adjudications are running on Opus for
-now, and each document says which model wrote it.
-
-**Opener:** `proceed @docs/QUEUE.md — adjudicate the two blind readings of docs/GROUPS.md at ~/ghidra-projects/reading/groups-2026-08-25/ against the decompile and the listing, verdicts appended to docs/audit/2026-08-25-groups.md as each is settled, FABLE: on anything you cannot settle; then the queue's next item`
+**Opener:** `proceed @docs/QUEUE.md — apply docs/audit/2026-08-25-groups.md's "What must change" to docs/GROUPS.md and crates/sim/src/group.rs (nine verdicts change Rust; two are live bugs), striking each item in GROUPS.md §14 as it lands; then diff the whole GROUPDATA record from run29's window`
 
 ## The queue
 

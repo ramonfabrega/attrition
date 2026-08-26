@@ -1361,3 +1361,14 @@ first of them on a failing draw count, the other two from the same
 re-reading of the listing's structure. Three predicates, no arithmetic:
 the audit README's recurring lesson again, and the reason the diff came
 first.
+
+**Ratified, 2026-08-25 (later still).** Those three §12 predicates, and
+the three §8.4/§9 predicates the group-orders session changed from the
+same listing — the friendly test being `is_ally` (`6f4559`, `6f4f55`),
+the 90 %-damage test's sense (`damage >= hits × 9/10`, `6f5007`) and its
+restriction to a city centre (`OBJECT_CITY = 32`, from the PDB's own
+`LF_FIELDLIST`) — were adjudicated as a carry-over inside
+`docs/audit/2026-08-25-groups.md`. **All three stand; no Rust changed.**
+They had been written without an adjudicator, which
+`docs/DECISIONS.md` entry 22 makes exactly the case a ratifying pass is
+for.
