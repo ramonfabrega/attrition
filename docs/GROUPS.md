@@ -424,80 +424,272 @@ position translated by its current move's origin when that origin is within
 and finally `group.o_angle = find_angle(…)`, `group.o_dist =
 vector_dist(…)`.
 
-### 6.4 The slot table — a seam
+### 6.4 The slot table
+
+**Implemented and diffed** — `crates/sim/src/form.rs`, and
+`run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing` in
+`rondata::diff` reproduces run29's own row from the install's own columns.
+This section is the table itself; what it still does not reproduce is at
+the end, and every one of those is the original's doing rather than the
+port's.
 
 `Form::compute_rows_and_columns@0072d910` and
 `Form::compute_dests@0072cba0` fill, for each member `i`, a destination
 `to_x[i]/to_y[i]` (Form `+0x514`/`+0x714`), an offset `off_x[i]/off_y[i]`
-(`+0x914`/`+0xb14`) and a facing byte `group.angles[i]`. The shape, from
-one reading:
+(`+0x914`/`+0xb14`) and a facing byte `group.angles[i]`.
 
-- `Form::categorize` sorts the members into **18 `FormCatIndex`
-  categories** by type, filling per-category counts (`+0x3c..0x84`),
-  spacings (`+0x84`, `+0xcc`) and a per-member category (`+0x314`) and
-  index-within-category (`+0x114`);
-- `compute_rows_and_columns` turns the counts into rows and columns per
-  category. `game/Data/rules.xml` lines 1446–1487 give **ten** formations
-  in document order — 0 Line, 1 Refused, 2 Envelop, 3 Echelon Right,
-  4 Echelon Left, 5 Sparse, **6 Square**, **7 Wedge**, **8 Column**,
-  9 Mob — and `Forms::init@0072e9a0` errors unless the count is 10.
-  `compute_rows_and_columns@0072d910` branches on **6** (a square,
-  `ceil(sqrt(n))`, line 21) and **7** (a Wedge: rows of 1, 2, 3, …,
-  line 136); **8** is handled inside the general arm (line 158), where it
-  sets `rows[c] = ceil(count[c]/3)` and leaves `cols[]` uninitialised.
-  Otherwise the general arm is
-  `span = max over c of (count[c] < 6 ? count[c]·width[c] :
-  count[c]·width[c]/2)`, then `cols[c] = clamp(1, count[c],
-  ((span · form_mod)/50)/width[c])` and `rows[c] = ceil(count[c]/cols[c])`;
-- `compute_dests` walks the members and lays each category's block out
-  around the destination, rotating every offset by the formation angle
-  through `sin_table`; a **non-captain** is placed relative to its captain
-  rather than the block; `is_modern_infantry` scatters by a
-  position-derived `% 3`; and the categories are **stacked in rank** rather
-  than shifted as one block — walking `0 ..= cat`, subtracting `depth[c]/2`
-  between adjacent non-empty categories and `trunc((rows[c] − 0.5)·depth[c]·k)`
-  for every category strictly before the member's.
+#### The record `Form` writes into
 
-**It is not implemented, and the only reason left is cost.** Both of the
-reasons the first reading gave are void:
+`FormData` is named field for field in the PDB, and the ten `Form` objects
+are **both** `Forms::init`'s formation definitions **and** the scratch
+buffer: `compute_form` takes `&forms.list[form]` (each `0xe98` bytes) and
+`memset`s it from `+0x30` for `0xe60`, so only `form` (`+0x28`) and
+`density` (`+0x2c`) survive between calls. `Form::init@0072dda0` sets
+`density` to **2** for formations 0–4, **0** for Sparse, **1** for 6–9.
 
-- **There is no float barrier.** Over the whole `Group` family
-  (`00704990`–`00708000`, `00708000`–`0070b9f0`, `0070b9f0`–`0070ea70`,
-  `0070f8f0`–`00710000`, `00711540`–`00715400`) there are **zero** float
-  instructions. Over `0072cba0`–`0072ed30` there are **fourteen**, and they
-  are two identical seven-instruction copies at `0072d00a`–`0072d036` and
-  `0072d846`–`0072d872`, both computing `trunc((rows[c] − 0.5f) · depth[c] ·
-  k)` with `k = 2 − (x != 0) ∈ {1, 2}`. The constant at `0xb694c0` reads
-  `00 00 00 3f` out of the PE — exactly `0.5f`. The whole expression is
-  `((2·rows − 1) · depth · k) / 2` truncated toward zero, **integer-exact**
-  for anything a 128-member group can reach.
-- **A capture pins its output, and it is already on disk.**
-  `GroupData::log_data@0045e1d0` writes `off_x`, `off_y`, `curr_x`,
-  `curr_y` and `angles` **per member**, plus `form`, `form_num`, `o_dist`
-  and `o_angle`, every frame the `GROUPDATA` category is on. run29's window
-  carries a four-member army group in formation 0 — `id 66`, frame 15100,
-  `off_x = [0, −14, 13, −28]`, `off_y` all zero, `curr = [(0,0), (473,480),
-  (−440,−446), (946,960)]` — and `unit_formation_spacing 12` is printed in
-  the same dump. §12's ninth check is the diff that reads it.
+The type columns the table reads, named from the engine's own dumps rather
+than inferred: `+0x1e8 attack` (`ObjectType::backup` assigns it to a field
+called `attack`), `+0x224 guy_spacing`, `+0x228 x_spacing`,
+`+0x22c y_spacing` (`ObjectType::log_data`'s own UTF-16 labels at
+`0xadb0bc`/`0xadb0f4`) and `+0x308 uber_size` (`UnitType::log_data`, string
+at `0xada018`). `UnitType::init@0061ab50:646`–`654` stores `x_spacing` and
+`y_spacing` as the `X_SPACING`/`Y_SPACING` columns **times**
+`UNIT_FORMATION_SPACING`, and `guy_spacing` as its column times
+`UNIT_GUY_SPACING`. `unit_formation_spacing` is **12**, printed beside
+every dumped group.
 
-**The rounding is settled: the `/48` is a floor.** The slot table's last
-step is `off = div_3_table[raw >> 4]` (`0072cba0:428`–`429`), and
-`init_coord_lookup_array@00681db0` builds that table as `j / 3` for
-`j ≥ 0` and `(j − 2) / 3` for `j < 0` — `floor(j / 3)` on both sides,
-with `div_3_table` pointed into the middle of `orig_div_3_table` so a
-negative index is legal — while `>> 4` is an arithmetic shift. run29's
-`[0, −14, 13, −28]` is therefore `floor(0)`, `floor(−w/48)`,
-`floor(+w/48)`, `floor(−2w/48)` for one width `w ∈ (648, 672)`; a
-truncation could not have produced both `−14` and `+13`. The fourteen
-float instructions round a *different* term (the rank stack, a C cast:
-truncation toward zero). Three more facts the implementation of item 17
-needs, from the same reading (the third pass): in the captain arm `k` is
-always 1, because `+0x2c` is overwritten by 2 for any valid category
-(`0072cba0:166`–`169`); `x += w/2` when the category's `cols` is even and
-the call is a move (`+0xd1c == 0`; `action_guard` passes 1), and again on
-odd rows for categories `< 3`, `6` or `> 11`; and the whole block is
-translated so that the **first member of the last non-empty category**
-sits at `(0, 0)` (`local_44`/`local_3c`, `:389`–`:394` and `:426`–`:427`).
+#### `Form::categorize@0072e250`
+
+Two passes over the member list, each opening on active (`+0x8`), on the
+map (`+0xbc`) and **a captain**:
+
+1. everything whose `FormData::type_cat` is not `FORM_CAT_COMMAND`;
+2. the commanders, each folded into the first non-empty category **above**
+   the biggest of pass 1 — `biggest + 1` when there is none, and
+   `FORM_CAT_COMMAND` outright when the formation is Square. A group of
+   nothing but commanders leaves `biggest` at 8 and folds every one into
+   `FORM_CAT_COMMAND_RANGED`, which `type_cat` itself can never return.
+   `biggest` moves on a strict `<`, so ties go to whichever category
+   reached the count first.
+
+Each member gets `category[i]` and `cat_id[i]` (its index within the
+category), and its category's `num_category`, `x_spacing` and `y_spacing`
+are widened: for `uber_size == 1` by the type's own two, otherwise by
+`min(uber_size, 3)` (**2** in a Column) times the width across and
+`(⌈uber_size / figures⌉) × y_spacing` back, plus `0x30` more for modern
+infantry — and *only in pass 1*, because the commander fold does not ask.
+`action_guard`'s flag (`+0xd1c`) injects a **phantom** member into
+`FORM_CAT_ARTILLERY` with spacings `0xc0`/`0x180` before either pass.
+
+The leader is the member with the **lowest** category index, first one
+wins; `+0x34 idx` is its slot and `+0x30 o` its object.
+
+`FormCatIndex`'s eighteen values are the PDB's own `LF_ENUM` record, and
+`FormData::type_cat@0072dfc0` returns only eight of them —
+`MECH`, `MOUNTED`, `FOOT`, `FOOT_RANGED`, `MOUNTED_RANGED`, `ARTILLERY`,
+`COMMAND`, `CIVILIAN`. In this project's own names for the same words:
+
+```
+armed = attack != 0 && !(unit_flags2 & SUPPLY_OR_HERO) && !is_caravan
+        && type ∉ {MERCHANT, MERCHANTDUTCH, FURTRAPPER}
+if armed:
+    obj_masks & CIVILIAN                 → CIVILIAN
+    obj_masks & FOOT                     → FOOT + (max_range != 0)
+    unit_flags2 & PACKS
+      or obj_masks & ANTI_AIR            → ARTILLERY
+    obj_masks & MOUNTED                  → (max_range != 0 && human)
+                                             ? MOUNTED_RANGED : MOUNTED
+    obj_masks & VEHICLE                  → MECH
+    otherwise                            → ARTILLERY
+otherwise:
+    unit_flags2 & 0x60 (SPECIAL_FORCES)  → ARTILLERY
+    obj_masks & CIVILIAN                 → CIVILIAN
+    otherwise                            → COMMAND
+```
+
+Two consequences worth stating. **A warship falls off the end of the tree
+into `FORM_CAT_ARTILLERY`** — its `OBJ_MASK` is `N`/`NRL`, none of which
+the tree tests — which is why run29's navy is in category 6, the one
+category that also staggers its odd rows. And the `human` gate is a real
+per-player divergence: **the same horse-archer army forms up as
+`MOUNTED_RANGED` for a person and plain `MOUNTED` for the AI.**
+
+#### `Form::compute_rows_and_columns@0072d910`
+
+`game/Data/rules.xml` lines 1446–1487 give **ten** formations in document
+order — 0 Line, 1 Refused, 2 Envelop, 3 Echelon Right, 4 Echelon Left,
+5 Sparse, **6 Square**, **7 Wedge**, **8 Column**, 9 Mob — and
+`Forms::init@0072e9a0` errors unless the count is 10. The general arm is
+
+```
+span   = max over c of (count[c] < 6 ? count[c]·width[c]
+                                     : count[c]·width[c]/2)
+cols[c] = clamp(1, count[c], ((span · form_mod)/50)/width[c])
+rows[c] = ceil(count[c]/cols[c])
+```
+
+with **Column** short-circuiting to `rows[c] = ⌈count[c]/3⌉` and leaving
+`cols[]` uninitialised — safe only because Column's own placement arm
+never reads it. `form_mod` is the call's `width`;
+`GroupData::get_form_mod_option@0070bd00` supplies it when the caller
+passes −1, which every army call does, and it is **50**: the mean of the
+members' `unit +0xab` bytes over the non-plane on-map ones, with `0x32` as
+the fallback for a building group, an empty group, and — the live case —
+a group whose bytes are all still −1. Because §6.6 step 1 then writes that
+same 50 into every member, it stays 50 for ever. run29's `UNITDATA` prints
+`form_mod 50` on each member of the navy, so this is a **record**, not a
+reading.
+
+**Wedge** picks a priority category `+0xd14` by a fixed preference —
+foot, foot ranged, mounted, mounted ranged, mech, mech ranged, artillery,
+artillery ranged, then the first non-empty — gives every *other* category
+`cols[c] = max(count[c]/2, 10)`, and counts its own rows 1, 2, 3, … until
+the members run out.
+
+#### `Form::compute_dests@0072cba0`, the captain arm
+
+With `cat = category[i]`, `slot = cat_id[i]`, `w = x_spacing[cat]`,
+`d = y_spacing[cat]`, `cols = cols[cat]`, and `k = 1` always — `+0x2c` is
+overwritten by 2 for any member with a category, which is every member
+(`0072cba0:166`–`169`):
+
+```
+q    = slot % cols ;  row = slot / cols
+X    = (q even ?  ((q+1)>>1)·w  :  −((q+1)>>1)·w)
+if cols is even and not guarding:                    X += w/2
+if (cat < 3 or cat == 6 or cat > 11) and row is odd: X += w/2
+Y0   = −k · row · d
+   1 Refused       : Y = Y0 − |X|
+   2 Envelop       : Y = Y0 + |X|
+   4 Echelon Left  : Y = reverse ? Y0 − X : Y0 + X
+   3 Echelon Right : Y = reverse ? Y0 + X : Y0 − X
+   otherwise       : Y = Y0
+X    = reverse ? −X : X                       # the group's own `facing`
+angles[i] from the signs of (X, Y − Y0); with X == 0 exactly,
+   formation 4 → 0xe0, formation 3 → 0x20, else 0
+```
+
+then the rank stack, which puts each category behind the ones ahead of it:
+
+```
+if wedge >= 0:  Y −= x_spacing[wedge] · rows[wedge] · k
+prev = −1
+for c in 0 ..= cat:
+    if c != wedge and count[c] != 0:
+        if prev >= 0:  Y −= (k · d[c]) / 2
+        else:          prev = c
+        if c < cat:    Y −= trunc((rows[c] − 0.5f) · d[c] · k)
+```
+
+**Column** is `X = ((slot+1) % 3 − 1)·w`, `Y = −(slot/3)·d`, and **Mob**
+puts slot 0 on the anchor and the rest on concentric rings of 5, 10, 15, …
+Both then take the rank stack above. **Square has no placement arm at
+all** — see the four limits below.
+
+`to[i]` is the destination rotated by the formation angle:
+`to_x = dest_x + cos·X + sin·Y`, `to_y = dest_y + sin·X − cos·Y`, the same
+matrix `update_positions` uses (§6.6), with the calls inlined so the
+listing shows `sin_table` rather than `sinx`/`cosx`.
+
+#### The anchor, and the one place `to` and `off` disagree
+
+The last loop slides the whole block so that one member sits at the
+origin, and quantises: `group.off[i] = div_3_table[form.off[i] >> 4]`.
+Two things about it were wrong or missing in every earlier pass.
+
+**The anchor is the first member of the *lowest-indexed* non-empty
+category, not the last.** The rank-stack walk's `prev` is written **only
+while it is still negative** — `72cfe2 movl %ecx, %esi` sits on the
+`prev < 0` arm, and the `prev >= 0` arm reloads the stack slot it never
+wrote (`72d837`, and the same shape at `72d81a`/`72d878` in the guarding
+copy). So `prev` sticks at the first non-empty category it meets and never
+advances, and `prev == cat` — the test that arms the anchor at
+`:389`–`:394` — can only hold for a member of the lowest non-empty
+category. Reader A's `prev = c` (A.28) is wrong and this document repeated
+it; the listing settles it.
+
+**The destinations keep the anchor's x that the offsets lose.**
+`off[i]` is slid by the whole anchor, but `to[i]` is slid by
+`cosx(angle, 0) + sinx(angle, −anchor_y)` — and `%edx` is **explicitly
+zeroed** at `72d737` before the `cosx` call, which returns 0 for a zero
+distance (`0092d0c7`). So a group whose anchor is off-centre marches to
+destinations displaced from where its own offsets say it will stand, by
+exactly the rotated `anchor_x`; and an **even** column count is precisely
+what puts the anchor off-centre, so this fires on the commonest case
+there is. It is invisible in `GROUPDATA`, which logs `off` and `curr` and
+not `to`. *Capture:* a `UNITS=3` dump of a group move — the members' order
+destinations against their `off_x`.
+
+The quantisation is a **floor**: `init_coord_lookup_array@00681db0` builds
+`div_3_table` as `j / 3` for `j ≥ 0` and `(j − 2) / 3` for `j < 0`, which
+is `floor(j / 3)` on both sides, with the pointer aimed into the middle of
+`orig_div_3_table` so a negative index is legal, and `>> 4` is an
+arithmetic shift.
+
+#### run29, end to end
+
+Everything above closes on one row of one record, with no free parameter:
+
+| step | value |
+| --- | --- |
+| `X_SPACING 55 × UNIT_FORMATION_SPACING 12` | `w = 660` |
+| four warships, all `FORM_CAT_ARTILLERY` | `count[6] = 4` |
+| `span = 4 × 660` (four is under six) | `2640` |
+| `cols = ((2640 × 50)/50)/660`, `form_mod 50` | `4`, so `rows = 1` |
+| slots `0, −w, +w, −2w` | `0, −660, 660, −1320` |
+| `cols` even, not guarding: `+ w/2` | `330, −330, 990, −990` |
+| anchor is slot 0 of category 6, slid out | `0, −660, 660, −1320` |
+| `floor(· / 48)` | **`0, −14, 13, −28`** |
+
+which is `GROUPDATA` `id 66`'s own `off_x`, with `off_y` and `angles` all
+zero and `form_num 4`. `curr = [(0,0), (473,480), (−440,−446),
+(946,960)]` follows exactly from §6.6's `update_positions` under the
+leader's logged `angle` of `−1_605_566_464`. A **truncation** instead of
+the floor gives `[0, −13, 13, −27]`, which is why the rounding had to be
+settled first.
+
+#### The four things this does not reproduce
+
+Each is the original's, not the port's:
+
+1. **Formation 6, Square, is dead code in the shipped executable.**
+   `compute_rows_and_columns`' whole `== 6` arm fills
+   `FormData::space[18][4]`, `across` (`+0xe8c`) and `per[7]` (`+0xd3c`) —
+   and **nothing in the 48k-function export reads any of the three**
+   (`grep field_0xd68 field_0xe8c field_0xd3c` finds the constructor and
+   that arm, and nothing else). `compute_dests` has no Square branch at
+   all — `if (form != 6) { … }` with no `else` — and the same arm sets
+   `wedge = −1`, so the wedge arm cannot stand in for it either. Every
+   member's `to` and `off` stay at the `memset` zero, except member 0's
+   `to`, which `compute_form` seeds with the order's own point.
+   *Capture:* a `GROUPDATA` frame for a player's group set to Square —
+   every `off` should read 0.
+2. **A wedge's own row count is seeded from uninitialised stack.**
+   `Form::compute` declares `int rows[18]` and never initialises it, and
+   `compute_rows_and_columns`' wedge arm **reads `rows[wedge]` before
+   writing it** (`72dc90`, `movl (%ebx,%esi), %eax`). The placement inside
+   the wedge does not depend on it — `compute_dests` re-accumulates from
+   `FormData::total`, which *is* zeroed — but the rank stacking of every
+   *other* category subtracts `x_spacing[wedge] · rows[wedge]`, so **a
+   wedge with a second category is not reproducible by anyone**, us
+   included. The simulation seeds it 0.
+3. **Mob past its first member.** Slot 0 on the anchor is exact; the rings
+   need `cosx`/`sinx` arguments the decompiler drops and no pass has
+   recovered from the listing (`72ce96`–`72cec5`, magic-number divides and
+   a wrapping counter that grows its period by 5).
+4. **`categorize`'s two type substitutions.** A loaded sea transport is
+   sized by its **cargo's** type; a land unit ordered onto **water** — the
+   test is `compute_form`'s own `(terrain & 0x30) == 0x20` at the
+   destination — is sized as the leader's current Transport Barge, or
+   Merchant Fleet if it is a caravan. The simulation keeps no cargo list,
+   so each member is sized by its own type.
+
+And two smaller facts the listing gives for free: `compute_dests` takes an
+**eighth stack argument that is pushed uninitialised** (`pushl %ecx` at
+`72e914`, `%ecx` clobbered by the `compute_rows_and_columns` call) and
+never read; and `compute_form`'s reverse negation at the tail applies to
+`off_x`/`off_y` on **both** the `Form` and the group and **not** to `to`,
+and only when `param_10 == 0` — so a guarding call never mirrors.
 
 ### 6.5 The AI branch
 
@@ -883,6 +1075,12 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
   `QUEUE_FIRST` rotation, `get_form`/`get_loc`, `compute_form`'s angle and
   reverse rules, **the AI branch of §6.5 whole**, the ordinary path's order
   choice, and the leader-path-plus-offset of §6.7;
+- **`Form::compute`'s slot table** (§6.4) whole, in `crates/sim/src/form.rs`
+  — `type_cat`, `categorize`, `compute_rows_and_columns`, `compute_dests`,
+  `get_form_mod_option` and `update_positions` — so each member now takes
+  **its own slot destination** and the group carries `form_num`, `off`,
+  `curr` and `angles`. Its four remaining limits are §6.4's last part, and
+  all four are the original's;
 - **`action_siege_attack_to`** (§9): the sub-group, the wagon and hero
   fallbacks, the anchor's Manhattan score, and the whole-group attack-move;
 - **`action_attack`** (§10): the three domain passes, the `ignore` mask, the
@@ -895,16 +1093,17 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 
 | seam | stands in for | what it costs |
 | --- | --- | --- |
-| `Form::compute`'s slot table (§6.4) | where in the formation each member stands | every member is given the **same** destination; the group arrives as a heap, not a line. **Diffable**: `GROUPDATA` logs `off_x`/`off_y`/`curr_x`/`curr_y`/`angles` per member and `form`/`form_num`/`o_dist`/`o_angle` on the group, so closing this seam is checkable against run29 the day it is written — which changes what several rows below cost too |
+| ~~`Form::compute`'s slot table (§6.4)~~ | — | **Closed 2026-08-26**: `crates/sim/src/form.rs`, diffed against run29's `GROUPDATA` from the install's own columns. What is left is the four limits at the end of §6.4 — Square, the wedge's uninitialised seed, Mob's rings, and `categorize`'s two type substitutions — and every one of them is the original's |
 | the group pool (§3) | 64 slots a leader, `get_open_slot`'s recycling | one group per army, never recycled; `push_group`'s `force == 0` rule and `equals_group` are modelled, the slot allocation is not |
-| `GroupMoveOrder` | §6.6's per-frame formation | every member gets a plain `MoveOrder` — `docs/ORDERS.md` §8.4's verdict, unchanged |
+| `GroupMoveOrder`, and the order's angle | §6.6's per-frame formation, and step 6's `angle + (angles[i] << 24)` | every member gets a plain `MoveOrder` whose angle is `add_move_order`'s own bearing to the slot rather than the formation's — `docs/ORDERS.md` §8.4's verdict, unchanged. The angle **byte** is now computed and carried on the group (§6.4), so what is left is the order adder, not the table |
+| the follower arm of `compute_dests` (§6.4) | a non-captain placed beside the last captain in the walk, alternating sides | `Group::add`'s own rule (§4.1) puts only captains in a group unless it is built with `keep_captain != 0`, which nothing in the simulation does |
 | `action_guard` (§9) | the escort half of a siege attack | with siege *and* a matching area the non-siege members keep their orders instead of guarding; no traced army has siege |
 | `find_nearby_spot`'s collision (§6.6 step 4) | re-slotting an invalid slot | the sim has no unit collision, so no slot is ever invalid |
 | `invalid_loc` on a slot, the `tregion` re-slot | §6.6 step 4 | same |
 | `QUEUE_FIRST`'s insert dance (§6.2, §10) | `set_up_insert` / `action_halt` / recurse / `finish_insert` | `charge`'s `QUEUE_FIRST` is a plain push-to-front on each member |
 | the scenario filter (§5) | `ignore_orders` | never set outside a scenario |
 | `unit_masks` `0x100` / `0x400` / `0x4000000` | three bits `action_halt` and §6.6 clear | unmodelled bits; no reader in the sim |
-| `is_entering_or_exiting` (§7), `OBJECT_NEW_THINK` (§8), `unit +0xab = width` (§6.6) | a halt skips a unit in a doorway; a stance write flags the unit for a re-think; the width twin of `+0xaa` | three writes the third pass recorded and the sim does not model; no reader in the sim for any of them |
+| `is_entering_or_exiting` (§7), `OBJECT_NEW_THINK` (§8) | a halt skips a unit in a doorway; a stance write flags the unit for a re-think | two writes the third pass recorded and the sim does not model; no reader in the sim for either. `unit +0xab = width` **has left this row**: it is written now, and `get_form_mod_option` reads it (§6.4) |
 
 **The checks**, cheapest first, in `group.rs` and `army.rs`'s test modules:
 
@@ -996,34 +1195,68 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
     leaves no `FORMING` bit so `Army::engagement` can call §10
     (`docs/ARMY.md` §16.6, §17 item 6).
 
-What no test pins is the arithmetic of §6.4 — the record now carries the
-*answers*, and what is missing is the implementation to compare against —
-and the *positions* of an army's units in a traced game, because `scene_at`
-does not yet read a block's `UNITDATA` order lists (§13).
+11. **The slot table** (§6.4), eight in `form.rs` and one in
+    `rondata::diff`. The one that matters is the last:
+    `run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing`
+    goes `unitrules.xml` → `x_spacing 660` → `FORM_CAT_ARTILLERY` →
+    `form_mod 50` → `cols 4` → the slot arithmetic → the floor divide, and
+    compares the result with `GROUPDATA` `id 66`'s own `off_x`, `off_y`,
+    `angles`, `form_num` and `curr` across all three windowed frames. It
+    also asserts that **fifteen** of the install's types carry
+    `x_spacing 660` and that every one of them lands in
+    `FORM_CAT_ARTILLERY`, so a change to the loader or to `type_cat`
+    breaks it rather than passing quietly.
+
+    In `form.rs`, seven more, and **eleven deliberate breakages were run
+    red before any of them landed** — a truncating quantiser, a missing
+    even-column shift, a missing anchor slide, either half of the rank
+    stack removed, a placing Square, a `form_mod` off by one, the `human`
+    gate ignored, a Column two to a rank, and the left-right alternation
+    dropped. Ten of the eleven turned a test red on the first try; the
+    eleventh, **flipping the sign of `update_positions`' `cos θ · y`
+    term, did not** — because every `off_y` in run29's window is zero, so
+    no capture on disk can tell a rotation from a rotation-with-a-flip.
+    `run29_s_navy_curr_is_the_slot_table_under_the_leader_s_logged_heading`
+    now says so in place and pins the flip from the listing instead, which
+    is the honest label.
+
+What no test pins is the **positions** of an army's units in a traced
+game, because `scene_at` does not yet read a block's `UNITDATA` order
+lists (§13) — which is also the capture §6.4's `to`/`off` asymmetry needs.
 
 ## 13. What is not established
 
 Still open:
 
-- **`Form::compute`'s slot table** (§6.4), the largest gap, and now a gap
-  of *work* rather than of evidence. ~~*Capture:* a `UNITS=3
-  COMMANDMANAGER=1` dump of a `do_forming` frame.~~ **Closed by the second
-  reading:** the output is in `GROUPDATA`, per member, and run29 already
-  has a four-member group in formation 0 (§6.4). ~~The rounding behind
-  `−14` versus `+13`.~~ **Closed by the third pass:** a floor, by the
-  table that does it (§6.4). What remains is writing `categorize` /
-  `compute_rows_and_columns` / `compute_dests` and diffing them against
-  it — and, on the way, reading `get_form_mod_option`'s value for an AI
-  army, the type widths `+0x228`/`+0x22c` and which `FormCatIndex` each
-  shipped type falls in, none of which any pass has read.
-- **`FormData::type_cat`** (§4.4) decides which member leads a mixed group;
-  the simulation takes the group's first on-map captain, which is right for
-  a one-type army and wrong for a mixed one. The blind reading read the
-  field whole — `FormCatIndex` has 18 values of which `type_cat` returns
-  eight, from the PDB's own `LF_FIELDLIST` — so `find_leader`'s key is
-  named; what is not established is *which* category each shipped type
-  falls in. *Capture:* a `GROUPDATA` frame for an army holding a wagon and
-  a hoplite; the leader is the member at slot offset `(0, 0)`.
+- ~~**`Form::compute`'s slot table** (§6.4), the largest gap.~~
+  **Closed 2026-08-26**, and the four things left in it are the
+  original's, not ours: Square is dead code, a wedge's row count is seeded
+  from uninitialised stack, Mob's rings are unrecovered, and
+  `categorize`'s two type substitutions have no cargo list to read. Each
+  is stated with its own falsifying capture at the end of §6.4. On the way
+  the three sub-questions this entry named were all answered:
+  `get_form_mod_option` is **50** for an army — and run29's `UNITDATA`
+  prints `form_mod 50`, so it is a record — the type widths are
+  `x_spacing`/`y_spacing`, the `X_SPACING`/`Y_SPACING` columns times 12 by
+  the engine's own dump labels, and a warship lands in
+  `FORM_CAT_ARTILLERY`.
+- ~~**`FormData::type_cat`** (§4.4) … what is not established is *which*
+  category each shipped type falls in.~~ **Read and implemented**
+  (`sim::form::type_cat`, §6.4): the tree is eight reachable values off
+  `attack`, five `obj_masks` bits, two `unit_flags2` bits, `max_range` and
+  the three trader ids, and `rondata::diff` asserts the fifteen light
+  warships all land in `FORM_CAT_ARTILLERY`. What is **still** open is the
+  consequence for `find_leader`: the simulation takes the group's first
+  on-map captain rather than the lowest-category one, so a mixed army can
+  pick the wrong leader even though the key is now computable.
+  *Capture:* a `GROUPDATA` frame for an army holding a wagon and a
+  hoplite; the leader is the member at slot offset `(0, 0)`.
+- **§6.4's `to`/`off` asymmetry has no capture yet.** `compute_dests`
+  slides the offsets by the whole anchor and the destinations by its `y`
+  alone, which `GROUPDATA` cannot see. *Capture:* a `UNITS=3` dump of a
+  group move — the members' order destinations against their `off_x`.
+  This is the same capture `scene_at`'s missing order lists need, and it
+  is run29's `UNITS=3` half.
 - **The 18 pool slots above `who*64 + 45`** (§1). Nothing allocates them
   and nothing searches them; `Groups::process` still cycles them. What they
   are for is open.
@@ -1152,3 +1385,55 @@ exact form of `update_positions` and a bit-for-bit reproduction of run29's
 (`Groups::clear` zeroes `stamp` and `priority` after `Group::clear`;
 `Group::clear` zeroes `who`). Two Rust changes, both run red first; one
 new widening.
+
+## 15. The slot table's implementation, and what it corrected
+
+Written 2026-08-26 on Opus 5, from the decompile and the listing, against
+the two run29 fixtures the third pass had already landed. It is the last
+of this mechanic's seams that cost work rather than a grep, and closing it
+turned up **five things no pass had**, three of which correct text the
+audit had accepted.
+
+**Corrections to what was written:**
+
+1. **The block's anchor is the first member of the *lowest-indexed*
+   non-empty category, not the last.** §6.4 said "last" and reader A's
+   A.28 wrote the loop as `prev = c`; the machine code writes `prev`
+   **only on the `prev < 0` arm** and the other arm reloads a slot it
+   never wrote (`72cfe2`/`72d837`, and the same shape at
+   `72d81a`/`72d878`). Ghidra had it right and the reading did not. The
+   difference is visible: it decides which member ends at `(0, 0)` in
+   every mixed-category group. → §6.4.
+2. **`compute_dests`' last loop drops the anchor's x from the
+   destinations.** `off` is slid by the whole anchor; `to` is slid by
+   `cosx(angle, 0) + sinx(angle, −anchor_y)`, with `%edx` explicitly
+   zeroed at `72d737`. So a group with an off-centre anchor — which an
+   **even** column count always produces — marches to points displaced
+   from where its own offsets put it. No pass had looked at that loop's
+   arguments, because the decompiler drops them. → §6.4, and a capture in
+   §13.
+3. **Formation 6, Square, is dead code in the shipped executable.**
+   A.28 said "I did not derive Square" and stopped there. It cannot be
+   derived: `compute_rows_and_columns`' `== 6` arm writes `space[18][4]`,
+   `across` and `per[7]`, and **no function in the export reads any of the
+   three**; `compute_dests` has no Square branch, and the same arm sets
+   `wedge = −1` so the wedge branch cannot cover for it. A Square group's
+   slots stay at the `memset` zero. → §6.4.
+
+**And two the readings could not have had, because they needed the
+implementation or the record:**
+
+4. **A wedge's own row count is read before it is written** — `int
+   rows[18]` in `Form::compute` is never initialised and `72dc90` reads
+   `rows[wedge]` into the accumulator. A pure wedge is deterministic; a
+   wedge with a second category is not reproducible by anyone. → §6.4.
+5. **`get_form_mod_option` is 50, and the record says so.** The reading
+   gives 50 as the fallback and shows the mean can never move off it once
+   §6.6 step 1 has written 50 to every member. run29's `UNITDATA` prints
+   `form_mod 50` on each member of the navy — the open question in §13
+   asked for a reading and the dump had the answer. → §6.4.
+
+The type field names the table turns on came from the engine's own
+`log_data` strings rather than from use: `attack`, `guy_spacing`,
+`x_spacing`, `y_spacing`, `uber_size`. `FormCatIndex`'s eighteen values
+are the PDB's `LF_ENUM` record, checked here rather than taken from A.16.

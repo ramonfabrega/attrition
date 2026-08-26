@@ -51,6 +51,12 @@ pub const PATRIOTS: std::ops::RangeInclusive<usize> = 302..=307;
 pub const WONDERS: std::ops::RangeInclusive<usize> = 112..=128;
 /// `UNIT_BLOCK_RADIUS` as loaded: one `UCoord`, 48 position units.
 const UNIT_BLOCK_RADIUS: i32 = 48;
+/// `UNIT_FORMATION_SPACING` as loaded: `rules.xml`'s `1/16 tile` through
+/// `Constants::init`'s `get_fraction(s, 0xc0)`, so **12** position units —
+/// and `GroupData::log_data` prints `unit_formation_spacing 12` beside every
+/// dumped group, which is the confirmation. `UnitType::init` multiplies the
+/// `X_SPACING`/`Y_SPACING` columns by it (`docs/GROUPS.md` §6.4).
+const UNIT_FORMATION_SPACING: i32 = 12;
 
 /// Everything the tables load into, plus the maps between the index spaces.
 #[derive(Clone, Debug)]
@@ -781,6 +787,8 @@ pub fn load_tables(
             age,
             x_size: 0,
             y_size: 0,
+            x_spacing: c.x_spacing,
+            y_spacing: c.y_spacing,
             base_arrows: 0,
             most_shots: 0,
             block_radius: c.block_radius,
@@ -971,6 +979,11 @@ pub fn load_tables(
             age,
             x_size: c.x_size,
             y_size: c.y_size,
+            // A building never stands in a formation: `ObjectType`'s
+            // constructor leaves both at −1 and only `UnitType::init`
+            // writes them.
+            x_spacing: -1,
+            y_spacing: -1,
             base_arrows: c.base_arrows,
             most_shots: c.most_shots,
             block_radius: 0,
@@ -1503,6 +1516,8 @@ struct UnitCols {
     uber_size: i32,
     target_size: i32,
     block_radius: i32,
+    x_spacing: i32,
+    y_spacing: i32,
     domain: Domain,
     siege: bool,
     from: Option<usize>,
@@ -1589,6 +1604,8 @@ impl UnitCols {
             uber_size: int(l, "UBER_SIZE").unwrap_or(1),
             target_size: int(l, "TARGET_SIZE").unwrap_or(0) * UNIT_BLOCK_RADIUS,
             block_radius: int(l, "BLOCK_RADIUS").unwrap_or(0) * UNIT_BLOCK_RADIUS,
+            x_spacing: int(l, "X_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,
+            y_spacing: int(l, "Y_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,
             domain: domain_of(l.text("DOMAIN")),
             siege: flags & 0x20000 != 0,
             // Pass 1, and therefore the record's own.

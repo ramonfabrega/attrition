@@ -27,73 +27,80 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after the third pass.* The commit this section
-was written against is the one that lands it; if `git log` has moved well
-past it, trust the queue below and the journal before trusting this.
+*Last verified 2026-08-26, after item 17.* The commit this section was
+written against is the one that lands it; if `git log` has moved well past
+it, trust the queue below and the journal before trusting this.
 
-**Last landed.** The **group orders' third pass** — the Fable ratification
-run as the session itself, under the charter, on 2026-08-26
-(`docs/audit/2026-08-25-groups.md`, "Third pass — verdicts"). The floor
-held eight of nine: **one Rust-changing verdict was overturned in its
-consequence** (a hurrying army with no city *marches* its cleared siege
-unit; the order loop re-reads an `order_type` the clear loop has emptied),
-and the last `FABLE:` marker is closed from the PDB's method records
-(`+0x1c` is `is_wallbuild`). Outside the floor: the predicate behind every
-stance decision (`UnitTypeData::get_stance_type` — the sim had its tests
-in the wrong order), the slot table's rounding (a **floor**, by the table
-that does it), `update_positions` reproduced to the bit from the leader's
-logged heading, a fourth writer of `facing` (`Unit::set_angle`), and the
-loaders' two overwrites. Two Rust changes, both run red first; one new
-`GROUPDATA` widening. The group orders are **done**, third pass included.
+**Last landed.** **`Form::compute`'s slot table** (item 17), whole, in
+`crates/sim/src/form.rs` — `type_cat`, `categorize`,
+`compute_rows_and_columns`, `compute_dests`, `get_form_mod_option`,
+`update_positions` — with each member now taking **its own slot
+destination** and `GroupState` carrying `form_num`, `off`, `curr` and
+`angles`. The diff runs `unitrules.xml` → `x_spacing 660` →
+`FORM_CAT_ARTILLERY` → `form_mod 50` → `cols 4` → the floor divide, and
+lands on run29's own `[0, −14, 13, −28]` with `curr` matching across all
+three frames. Eleven deliberate breakages, ten red on the first try; the
+eleventh (the `update_positions` y-flip) stayed green for the known
+reason and the test now says so in place. **The group orders are done,
+slot table included.**
+
+It also overturned **three verdicts this project's own audit had
+accepted** (`docs/audit/2026-08-25-groups.md`, "Fourth pass"): the
+formation block anchors on the **lowest**-indexed non-empty category, not
+the last; `compute_dests` **drops the anchor's x from the destinations**
+while keeping it in the offsets, so an even column count displaces a whole
+group; and **formation 6, Square, is dead code** — three fields written
+and no reader anywhere in the export. Plus two nobody could reach by
+reading: a wedge's row count is seeded from **uninitialised stack**, and
+`get_form_mod_option`'s value was printed in the dump (`form_mod 50`) all
+along.
 
 **Then, in order:**
 
-- **Implement `Form::compute`'s slot table** (`docs/GROUPS.md` §6.4). The
-  seam stands on cost alone, and the questions the record could not settle
-  are now settled by reading: the `/48` is `floor` (`div_3_table` is a
-  floor table, `>> 4` arithmetic); `k = 1` in the captain arm; the `w/2`
-  shift on even `cols` for a move; the block translated so the first member
-  of the last non-empty category sits at `(0, 0)`. The fixture is
-  `run29_s_navy_group_is_a_line_of_four_rotated_at_forty_eight_units_a_step`
-  (`off_x = [0, −14, 13, −28]`, one width `w ∈ (648, 672)`), and
-  `run29_s_navy_group_s_curr_is_the_leader_s_heading_applied_to_the_slot_table`
-  pins `update_positions` exactly. Four functions — `categorize`,
-  `compute_rows_and_columns`, `compute_dests`, `update_positions`. Still to
-  read on the way: `get_form_mod_option`'s value for an AI army, the type
-  widths `+0x228`/`+0x22c`, and `FormData::type_cat`'s assignment of the
-  shipped types (`docs/GROUPS.md` §13). Reader A's report at
-  `~/ghidra-projects/reading/groups-2026-08-25/` is the working notes.
-- **run29's `UNITS=3` half** — the per-unit order lists nobody has opened.
-  `scene_at` would need to load them; that is what pins `engagement`'s
-  *choice* of unit (`docs/ARMY.md` §18), and it is also what would put a
-  formation *with depth* in reach, which is the one thing the `GROUPDATA`
-  rotation checks still cannot pin (every `off_y` in the window is zero).
+- **run29's `UNITS=3` half** — the per-unit order lists nobody has opened,
+  and now owed twice over. `scene_at` would need to load them; that pins
+  `engagement`'s *choice* of unit (`docs/ARMY.md` §18); it puts a
+  formation *with depth* in reach, which is the only thing that can pin
+  `update_positions`' y-flip (every `off_y` in the window is zero); and it
+  is the **only** capture that can see §6.4's `to`/`off` asymmetry, since
+  `GROUPDATA` logs the offsets and not the destinations.
+- **The order's angle** (`docs/GROUPS.md` §12, the `GroupMoveOrder` row).
+  §6.6 step 6 gives a member's move `angle + (group.angles[i] << 24)` as a
+  *signed* byte and an addition; the sim still uses `add_move_order`'s own
+  bearing to the slot. The byte is computed and carried now, so what is
+  left is an `add_move_facing_order` and `docs/ORDERS.md` §8.4's verdict
+  on `GroupMoveOrder` — one entry, not two.
 - **Item 13, differential fuzzing** (below) — unchanged, and still the
   entry with the largest leverage per hour.
-- Then the older backlog: the `LEADERDATA` and `CITY` widenings the army's
-  readers named; a `find_target` block where two candidates sit within a
-  multiplier of each other; run7's order stream under the trace; a
-  mounted attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
-  `calc_gather` for non-flat buildings; `think_civilian_transport`.
+- Then the older backlog: `find_leader`'s key is now computable
+  (`sim::form::type_cat`) but the sim still takes the first on-map captain
+  — a mixed army picks the wrong leader; the `LEADERDATA` and `CITY`
+  widenings the army's readers named; a `find_target` block where two
+  candidates sit within a multiplier of each other; run7's order stream
+  under the trace; a mounted attacker; a caravan; `make_stuff` whole;
+  `Leader::diplomacy`; `calc_gather` for non-flat buildings;
+  `think_civilian_transport`.
 
-**Three things this session earned.** (1) **A verdict's *consequence* is a
-separate claim from its *gate*, and it needs its own reading** — item 34's
-two gates were read right and its consequence wrong, because nobody
-followed what the first loop had done to the state the second loop reads.
-(2) **The PDB's `LF_ONEMETHOD` records name a vtable slot the map cannot**
-— a COMDAT-folded slot has one name per address in `rise_z.map` and its
-own name in the type stream (`llvm-pdbutil dump --types`, ~10 s). (3) **A
-mechanical scan is worth delegating and a judgment is not**: two Opus
-scanners over the whole export found the writers and callers in a quarter
-hour; every claim built on a hit was re-read here.
+**The thing this session earned, and it is about the method.** **Where a
+mechanic's reading produces a *formula*, the implementation is the third
+pass.** All three overturned verdicts sat under one adjudicated row —
+"additions … as cited in A" — where the citations were real and nobody
+re-derived the arithmetic; an adjudicator cannot check that row without
+doing the work, and the Fable ratification spent budget confirming a loop
+the compiler had already contradicted. Running the implementation *before*
+the ratification would have been cheaper than after. (Corollary, cheap and
+recurring: **grep the dump before booking a reading.**
+`get_form_mod_option` was an open question in §13 and `form_mod 50` was in
+the file.)
 
 **Needs the user.** Nothing outstanding. The older Fable debt from the AI,
-transport and army audits is still booked and was **not** in this pass's
-scope; whether to clear that ledger is a later conversation, and the
-cheapest way to clear most of it is item 13's captures rather than a
-reading.
+transport and army audits is still booked; whether to clear that ledger is
+a later conversation, and the cheapest way to clear most of it is item
+13's captures rather than a reading. Worth a decision at some point:
+whether to reorder the working agreement so a formula-producing mechanic
+is implemented before its ratification pass, per the lesson above.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — implement Form::compute's slot table (docs/GROUPS.md §6.4) against the two run29 fixtures already in rondata::diff: categorize, compute_rows_and_columns, compute_dests (the /48 is a floor; k = 1; the even-cols w/2 shift; translate to the first member of the last non-empty category), and update_positions as §6.6 now states it`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — run29's UNITS=3 half: teach rondata's scene_at to load a block's UNITDATA order lists, which pins engagement's choice of unit (docs/ARMY.md §18), puts a formation with depth in reach for update_positions' y-flip, and is the only capture that can see docs/GROUPS.md §6.4's to/off asymmetry`
 
 ## The queue
 
@@ -188,10 +195,18 @@ in which case say so and take that. The story of each struck item is in
     `docs/GROUPS.md`, `crates/sim/src/group.rs`,
     `docs/audit/2026-08-25-groups.md`; runs 28 and 29, and the whole
     `GROUPDATA` record in `rondata::diff`.
-17. **`Form::compute`'s slot table** — the one seam `docs/GROUPS.md` §6.4
-    still declares, and the only one of this mechanic's that costs work
-    rather than a grep. Its fixtures are two passing tests and its rounding
-    is settled; the brief is "Then, in order" above.
+17. ~~**`Form::compute`'s slot table**~~ — done 2026-08-26.
+    `docs/GROUPS.md` §6.4 and §15, `crates/sim/src/form.rs`,
+    `docs/audit/2026-08-25-groups.md` ("Fourth pass"); the diff is
+    `run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing`.
+18. **run29's `UNITS=3` half** — `scene_at` does not read a block's
+    `UNITDATA` order lists, and four open items all wait on the same
+    capture: `engagement`'s choice of unit (`docs/ARMY.md` §18), a
+    formation with depth for `update_positions`' y-flip, `docs/GROUPS.md`
+    §6.4's `to`/`off` asymmetry, and `find_leader`'s key on a mixed army.
+19. **The move order's formation angle** — `docs/GROUPS.md` §6.6 step 6
+    and §12's `GroupMoveOrder` row, together with `docs/ORDERS.md` §8.4's
+    verdict. The angle byte is computed and carried; the adder is not.
 
 ## How to maintain this file
 

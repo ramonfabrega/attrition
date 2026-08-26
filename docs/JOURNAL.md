@@ -1286,3 +1286,87 @@ item 17 (`Form::compute`) starts from settled rounding and two exact
 fixtures rather than a question; and the older Fable debt from the AI,
 transport and army audits is still booked, with item 13's captures the
 cheapest way to clear most of it.
+
+## 2026-08-26 — item 17: the slot table, and three accepted verdicts overturned
+
+**Landed.** `Form::compute`'s slot table, whole, in
+`crates/sim/src/form.rs` — `type_cat`, `categorize`,
+`compute_rows_and_columns`, `compute_dests`, `get_form_mod_option` and
+`update_positions` — with `crates/sim/src/group.rs` giving each member
+**its own slot destination** instead of the group's, and `GroupState`
+carrying `form_num`, `off`, `curr` and `angles` so the record has
+something to compare. Two type columns joined the loader
+(`x_spacing`/`y_spacing`, the `X_SPACING`/`Y_SPACING` columns times
+`UNIT_FORMATION_SPACING`) and one byte joined the unit (`+0xab`, the
+formation width twin of `+0xaa`). Eight tests in `form.rs`, one in
+`rondata::diff`, and `docs/GROUPS.md` §6.4 rewritten from a four-line
+sketch into the table. This was the last of the group orders' seams that
+cost work rather than a grep.
+
+**The diff.** The one that matters runs
+`unitrules.xml` → `x_spacing 660` → `FORM_CAT_ARTILLERY` →
+`form_mod 50` → `cols 4` → the slot arithmetic → the floor divide by 48,
+and lands on `[0, −14, 13, −28]` — run29 `GROUPDATA` `id 66`'s own
+`off_x`, with `off_y`, `angles`, `form_num` and all four `curr` pairs
+matching across the window's three frames. Nothing in it is a fixture
+written from the answer: the numbers come out of the install's own columns
+and the simulation's arithmetic, and the test also asserts that fifteen of
+the install's types carry `x_spacing 660` and that every one lands in the
+same category, so the loader and `type_cat` break it rather than passing
+quietly.
+
+**Eleven deliberate breakages, ten of them red.** A truncating quantiser,
+a missing even-column shift, a missing anchor slide, either half of the
+rank stack removed, a placing Square, a `form_mod` off by one, the `human`
+gate ignored, a Column two to a rank, the left-right alternation dropped —
+each turned a named test red on the first try. The eleventh, **flipping
+the sign of `update_positions`' `cos θ · y` term, stayed green**, because
+every `off_y` in run29's window is zero and no capture on disk can tell a
+rotation from a rotation-with-a-flip. That is the same limit the day
+before recorded; the test now says so in place and pins the flip from the
+listing instead, which is the honest label rather than a silent pass.
+
+**Three of the audit's accepted verdicts were wrong**
+(`docs/audit/2026-08-25-groups.md`, "Fourth pass"), all three under the
+one row adjudicated as "additions … as cited in A":
+
+- the block's anchor is the **lowest**-indexed non-empty category, not the
+  last — the machine code writes the loop's `prev` only while it is
+  negative (`72cfe2`, and the `prev >= 0` arm reloads a slot it never
+  wrote at `72d837`), so Ghidra's decompilation was right and reader A's
+  rewrite of it was not;
+- `compute_dests`' final loop **drops the anchor's x from the
+  destinations** — `%edx` is explicitly zeroed at `72d737` before the
+  `cosx` call — so an even column count, the commonest case there is,
+  sends a group to points displaced from where its own offsets put it.
+  `GROUPDATA` cannot see it; a `UNITS=3` order list can;
+- **formation 6, Square, is dead code in the shipped executable.** A.28
+  said "Square not established at all"; it cannot be established.
+  `compute_rows_and_columns`' `== 6` arm fills three fields
+  (`space[18][4]`, `across`, `per[7]`) that **no function in the export
+  reads**, `compute_dests` has no Square branch, and the same arm sets
+  `wedge = −1` so the wedge branch cannot cover for it.
+
+**And two nobody could have reached by reading.** `Form::compute` declares
+`int rows[18]`, never initialises it, and the wedge arm reads
+`rows[wedge]` before writing it (`72dc90`) — so a wedge with a second
+category is not reproducible by anyone, us included. And
+`get_form_mod_option`'s value, which §13 had booked as a reading, was
+printed in the dump all along: `form_mod 50`, on every member of the navy.
+The audit README's own lesson, again — diff first, then read what no run
+reaches.
+
+**What this says about the method.** An adjudicator's "as cited in A" is
+only as strong as the arithmetic nobody re-derived, and where a reading's
+product is a *formula* the citations can all be real while the conclusion
+is wrong. Three rows here were exactly that, and all three fell out of
+writing the code rather than reading it again. **Where a mechanic's
+reading produces a formula, the implementation is the third pass** — and
+running it before the ratification would have been cheaper than after,
+because the Fable pass spent its budget confirming a rank-stack loop that
+a compiler had already contradicted.
+
+Where it leaves things: the group orders are done, slot table included,
+and the queue's next item is run29's `UNITS=3` half — which is now owed
+twice over, since it is both `scene_at`'s missing order lists and the only
+capture that can see §6.4's `to`/`off` asymmetry.

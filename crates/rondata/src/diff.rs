@@ -4696,6 +4696,151 @@ mod army_tests {
         }
     }
 
+    /// **The slot table, closed** — `docs/GROUPS.md` §6.4's seam turned
+    /// into a diff, from the install's own columns to the record's own row.
+    ///
+    /// The chain this asserts end to end, with nothing guessed in the
+    /// middle:
+    ///
+    /// 1. `unitrules.xml` gives the fifteen light warships `X_SPACING 55`,
+    ///    and `UnitType::init` multiplies it by `UNIT_FORMATION_SPACING`
+    ///    (12) — so `x_spacing = 660`, which the loader must reproduce.
+    /// 2. A warship's `OBJ_MASK` is `N`/`NRL`: not civilian, not foot, not
+    ///    mounted, not a vehicle, not anti-air — so it falls off the end of
+    ///    `FormData::type_cat`'s tree into `FORM_CAT_ARTILLERY`.
+    /// 3. `GroupData::get_form_mod_option` is **50**, and run29's own
+    ///    `UNITDATA` prints `form_mod 50` on each member, so the column
+    ///    count is `((4 × 660 × 50)/50)/660 = 4` and there is one rank.
+    /// 4. `Form::compute_dests` lays four slots as `0, −w, +w, −2w`, shifts
+    ///    the block by `w/2` because the count is even, and slides it back
+    ///    by the anchor.
+    /// 5. The floor divide by 48 turns `[330, −330, 990, −990]` into
+    ///    `[0, −14, 13, −28]` — **the record's own `off_x`**.
+    ///
+    /// And then the record's `curr`, exactly, through `update_positions`
+    /// under the leader's logged heading. Nothing here is a fixture written
+    /// from the answer: the four numbers come out of the install's columns
+    /// and the simulation's arithmetic.
+    #[test]
+    fn run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing() {
+        use sim::form::{cat, formation, type_cat};
+        use sim::movement::Angle;
+        let Some(inst) = install() else { return };
+        let Some(frames) = run29_pools() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+
+        // The install's light warships, by the column the reading named.
+        let ships: Vec<usize> = (0..loaded.unit_types.len())
+            .filter(|&t| loaded.unit_types[t].combat.x_spacing == 660)
+            .collect();
+        assert_eq!(
+            ships.len(),
+            15,
+            "the fifteen types with X_SPACING 55 — {:?}",
+            ships
+                .iter()
+                .map(|&t| &loaded.unit_names[t])
+                .collect::<Vec<_>>()
+        );
+        for &t in &ships {
+            let ty = &loaded.unit_types[t];
+            assert_eq!(ty.combat.y_spacing, 660, "{}", loaded.unit_names[t]);
+            assert_eq!(ty.combat.uber_size, 1, "{}", loaded.unit_names[t]);
+            assert_eq!(
+                type_cat(ty, t, false),
+                cat::ARTILLERY,
+                "{} falls off the end of type_cat's tree",
+                loaded.unit_names[t]
+            );
+        }
+        let galley = *ships
+            .iter()
+            .find(|&&t| loaded.unit_names[t] == "Galley")
+            .expect("a Galley in the install");
+
+        // Four of them in one army's group, on the harness's own world.
+        let mut s = sim::Sim::new(
+            sim::tuning::Tuning::RON,
+            sim::world::World::new(200, 200),
+            2,
+        );
+        s.nation[1].human = false;
+        let mut proto = loaded.unit_types[galley].clone();
+        // The harness here carries no tech tree; the columns are the point.
+        proto.tree = None;
+        let ty = s.add_unit_type(proto);
+        let slot = s.init_army(1, None);
+        for i in 0..4 {
+            let idx = i16::try_from(s.units.len()).unwrap();
+            let mut u = Unit::new(1, idx, Pos::new(0x8000 + i * 0x300, 0x8000), 210);
+            u.ty = Some(ty);
+            u.on_map = true;
+            let u = s.add_unit(u);
+            s.army_add_unit(1, slot, u);
+        }
+        let g = s.army_group(1, slot);
+        let f = s.form_compute(
+            &g,
+            Pos::new(0x9000, 0x9000),
+            Angle(0),
+            formation::LINE,
+            s.group_form_mod_option(&g),
+            false,
+            false,
+            &[],
+        );
+        assert_eq!(s.group_form_mod_option(&g), 50, "the record's form_mod");
+        assert_eq!(f.num_category[cat::ARTILLERY], 4);
+        assert_eq!(f.x_spacing[cat::ARTILLERY], 660);
+        let ours: Vec<(i32, i32)> = f
+            .off
+            .iter()
+            .map(|&(x, y)| (sim::form::Form::quantise(x), sim::form::Form::quantise(y)))
+            .collect();
+
+        for (fr, pool, _) in &frames {
+            let navy = pool.iter().find(|g| g.id == 66).expect("slot 66");
+            let theirs: Vec<(i32, i32)> = navy
+                .members
+                .iter()
+                .map(|m| {
+                    (
+                        i32::try_from(m.off_x).unwrap(),
+                        i32::try_from(m.off_y).unwrap(),
+                    )
+                })
+                .collect();
+            assert_eq!(ours, theirs, "{fr}: the record's own slot table");
+            assert_eq!(
+                f.angles,
+                navy.members
+                    .iter()
+                    .map(|m| m.angle as i8)
+                    .collect::<Vec<_>>(),
+                "{fr}: and its per-slot facings"
+            );
+            assert_eq!(
+                i64::from(f.off.len() as i32),
+                navy.form_num,
+                "{fr}: form_num is the membership Form::compute laid out"
+            );
+            // And `curr`, through the leader's own logged heading.
+            let theta = Angle(-1_605_566_464);
+            let curr = sim::Sim::form_update_positions(&ours, theta);
+            assert_eq!(
+                curr,
+                navy.members
+                    .iter()
+                    .map(|m| Pos::new(
+                        i32::try_from(m.curr_x).unwrap(),
+                        i32::try_from(m.curr_y).unwrap()
+                    ))
+                    .collect::<Vec<_>>(),
+                "{fr}: the record's own curr"
+            );
+        }
+    }
+
     /// `priority` says **allocated**, not "in the hotkey array" — which is
     /// not what the audit's assertion 6 predicted, and the widening found
     /// it on its first run.

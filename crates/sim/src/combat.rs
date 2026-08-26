@@ -200,6 +200,14 @@ pub struct Profile {
     /// A building type's footprint, in tiles.
     pub x_size: i32,
     pub y_size: i32,
+    /// `+0x228 x_spacing` and `+0x22c y_spacing`: how far apart two of this
+    /// type stand in a formation, across and back, in position units.
+    /// `UnitType::init@0061ab50:646`–`654` stores each as the `X_SPACING` /
+    /// `Y_SPACING` column **times `UNIT_FORMATION_SPACING`** (12), and
+    /// `ObjectType::log_data` dumps them under exactly those names. Read by
+    /// `Form::categorize` and nothing else — `docs/GROUPS.md` §6.4.
+    pub x_spacing: i32,
+    pub y_spacing: i32,
     /// A building type's `BASE_ARROWS` and `MOST_SHOTS`.
     pub base_arrows: i32,
     pub most_shots: i32,

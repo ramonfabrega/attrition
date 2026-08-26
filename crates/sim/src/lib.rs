@@ -59,6 +59,7 @@ pub mod cost;
 pub mod economy;
 pub mod farms;
 pub mod fight;
+pub mod form;
 pub mod gaia;
 pub mod garrison;
 pub mod gather;
@@ -220,6 +221,13 @@ pub struct Unit {
     /// −1 none. `GroupData::get_form` reads it back (`docs/GROUPS.md`
     /// §4.4, §6.6).
     pub form: i8,
+    /// `UnitData +0xab`: the twin of [`Self::form`] — the formation
+    /// *width* the last group move applied, −1 none.
+    /// `GroupData::get_form_mod_option` averages it over the members and
+    /// `Form::compute` scales the column count by the average, so the two
+    /// bytes together are how a formation remembers its own shape
+    /// (`docs/GROUPS.md` §6.4, §6.6).
+    pub form_width: i8,
 }
 
 /// The two animations `Unit::do_gather`'s farm branch tests for.
@@ -460,6 +468,7 @@ impl Unit {
             herd: None,
             type_index: -1,
             form: -1,
+            form_width: -1,
         }
     }
 

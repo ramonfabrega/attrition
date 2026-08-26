@@ -87,6 +87,21 @@ pub struct GroupState {
     pub facing: bool,
     /// `+0x14`: the frame membership last changed.
     pub stamp: i64,
+    /// `+0x44`: how many slots `Form::compute` last laid out —
+    /// `compute_dests` opens by writing the group's `num` here, so it is
+    /// the membership *at the time of the last move* and `update_positions`
+    /// walks this many, not `num`.
+    pub form_num: i32,
+    /// `+0x4c`, `+0x24c`: per member, its formation offset **quantised by
+    /// the floor divide by 48** (`docs/GROUPS.md` §6.4).
+    pub off: Vec<(i32, i32)>,
+    /// `+0x44c`, `+0x64c`: `Group::update_positions`' rotation of them by
+    /// the leader's heading — what `do_group_move` adds to the leader's
+    /// position each frame.
+    pub curr: Vec<Pos>,
+    /// `+0x84c`: per member, the eighth-turn its slot faces off the
+    /// formation's own bearing.
+    pub angles: Vec<i8>,
 }
 
 impl Default for GroupState {
@@ -99,6 +114,10 @@ impl Default for GroupState {
             o_dist: 0,
             facing: false,
             stamp: 0,
+            form_num: 0,
+            off: Vec::new(),
+            curr: Vec::new(),
+            angles: Vec::new(),
         }
     }
 }
@@ -424,7 +443,7 @@ impl Sim {
     /// helicopter", carried by exactly three types — `Helicopter` and the
     /// two `Attack Helicopter`s, all of them `<DOMAIN>Air` — so a
     /// **helicopter is not a plane** and is ordered like a ground unit.
-    fn is_plane(&self, u: usize) -> bool {
+    pub(crate) fn is_plane(&self, u: usize) -> bool {
         self.group_domain(u) == Domain::Air
             && !self.units[u]
                 .ty
@@ -544,6 +563,26 @@ impl Sim {
         // an army's first move settles on form 0 and writes it to every
         // member, which is what `get_form` reads back next time.
         let form = self.group_get_form(g).max(0);
+        // …and the same for the width: `param_10 == −1` takes
+        // `get_form_mod_option`, which is 50 for an army and stays 50.
+        let width = self.group_form_mod_option(g);
+
+        // §6.4: the slot table. `facing` is the group's own mirror flag —
+        // `compute_form` toggles it around the call when the leader points
+        // more than 90° from the formation's bearing, and toggles it back,
+        // so the value the layout sees can differ from the one the record
+        // keeps. Nothing in this simulation ever sets it, so both are 0.
+        let facing = self.group_facing(g);
+        let slots = self.form_compute(
+            g,
+            to,
+            angle,
+            form,
+            width,
+            facing,
+            false,
+            &self.group_angles(g),
+        );
 
         // §6.5: the AI branch. `hurry` is the army's, so a group with no
         // army never takes it — and "hurrying" and "found a city" are two
@@ -557,7 +596,7 @@ impl Sim {
             None
         };
 
-        for &u in &g.list {
+        for (i, &u) in g.list.iter().enumerate() {
             if !self.group_member_orderable(u) {
                 continue;
             }
@@ -593,18 +632,23 @@ impl Sim {
                     _ => {}
                 }
             }
-            // §6.6 step 1: the formation index, on every member but the
-            // four citizen/scholar ids.
+            // §6.6 step 1: the formation index and its width twin, on
+            // every member but the four citizen/scholar ids.
             if !self.units[u]
                 .ty
                 .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::CITIZEN))
             {
                 self.units[u].form = form as i8;
+                self.units[u].form_width = width as i8;
             }
-            self.add_move_order(u, to, kind, queue, action);
+            // §6.6 step 3: the member's **own** slot, clamped into the
+            // world — not the group's destination.
+            let slot = self.restrict_pos(slots.to[i]);
+            self.add_move_order(u, slot, kind, queue, action);
         }
         self.bump_order_num(g);
         self.record_move(g, to, angle, form, queue);
+        self.record_form(g, &slots);
     }
 
     /// `Group::action_siege_attack_to(x, y, ·, ·, angle)` (§9).
@@ -838,6 +882,54 @@ impl Sim {
             a.group.o = to;
             a.group.o_angle = angle;
         }
+    }
+
+    /// `GroupData::facing` — the mirror flag the layout reads.
+    fn group_facing(&self, g: &Group) -> bool {
+        g.army
+            .is_some_and(|s| self.armies[g.who as usize].list[s].group.facing)
+    }
+
+    /// `GroupData::angles` — carried in because `Form::compute` does not
+    /// clear it and Column and Mob never write it (`form::Form::new`).
+    fn group_angles(&self, g: &Group) -> Vec<i8> {
+        g.army
+            .map(|s| self.armies[g.who as usize].list[s].group.angles.clone())
+            .unwrap_or_default()
+    }
+
+    /// `Form::compute`'s writes to the record: `form_num`, the per-member
+    /// offsets quantised by the floor divide by 48 (§6.4), the group's
+    /// `o_angle`/`o_dist` from the **leader's** slot rather than the
+    /// order's point, and `update_positions`' `curr`.
+    ///
+    /// The last of those is really `Unit::do_group_move`'s, once a frame
+    /// off the leader's own heading; it is written here from the same
+    /// heading so the record has a value the moment the move is issued,
+    /// which is what run29's window compares against.
+    fn record_form(&mut self, g: &Group, f: &crate::form::Form) {
+        let Some(s) = g.army else { return };
+        let off: Vec<(i32, i32)> = f
+            .off
+            .iter()
+            .map(|&(x, y)| {
+                (
+                    crate::form::Form::quantise(x),
+                    crate::form::Form::quantise(y),
+                )
+            })
+            .collect();
+        let theta = f.o.map_or(Angle(0), |u| self.units[u].movement.facing);
+        let curr = Sim::form_update_positions(&off, theta);
+        let (o_angle, o_dist) =
+            Sim::form_leader_offset(f, self.armies[g.who as usize].list[s].group.o);
+        let a = &mut self.armies[g.who as usize].list[s];
+        a.group.form_num = g.num();
+        a.group.off = off;
+        a.group.curr = curr;
+        a.group.angles = f.angles.clone();
+        a.group.o_angle = o_angle;
+        a.group.o_dist = o_dist;
     }
 
     /// `WorldData::restrict` on a destination (§6.1).
