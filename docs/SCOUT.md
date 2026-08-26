@@ -32,7 +32,7 @@ separates yet — the danger term is zero in every run on disk and the goods
 term needs a leader with exactly one city; medium. The target's rejection
 test (§9, `find_unit_ordered`) is read only as far as this mechanic reaches
 into it. The two branches this document does **not** establish are the
-region fallback's cell walk and the naval/goody-box heads (§12).
+region fallback's cell walk and the naval/goody-box heads (§11, §13).
 
 **Naming.** Offsets are the PDB's: `struct /rise.pdb/UnitData`,
 `LeaderData`, `WorldData`, `WData`, `Region`, `CityData`. A cell is 4 × 4
@@ -523,7 +523,7 @@ site is its all-flags-zero case. **One seam of it closed with this
 mechanic** — `WorldData::is_cliff_at@0046f8c0` is exactly
 `(TData.mask & 3) == 1`, so `crate::world::tile::OBJECT_CLIFF` is named and
 the land arm refuses a cliff as the original does (`docs/PATHFINDER.md`
-§6).
+§11).
 
 §5's `CityData +0x4c` is **not** carried, and it is a deliberate omission:
 the only writer is the mark at the end of §5, which an AI scout can never
