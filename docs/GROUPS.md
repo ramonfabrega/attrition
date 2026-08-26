@@ -282,12 +282,34 @@ lowest** category wins — so a tie goes to the **first**. The second pass
 drops the on-map test; after it, −1. Writes the winner's *slot index*
 through the out-parameter and returns its *unit id*.
 
+**Implemented 2026-08-26** (`Sim::group_find_leader`), which is what the
+key had been waiting for: `sim::form::type_cat` was built for
+`Form::compute` and this is its second reader. The listing's winner test
+is `local_8 < 0 || cat < best`, so the *first* qualifying member takes the
+lead unconditionally and only a strictly lower category displaces it. The
+simulation took the first on-map captain outright until then — right for a
+group of one category, wrong for any other, and **no dump has ever held
+another**: run29's five live groups are four warships (all
+`FORM_CAT_ARTILLERY`), seven mounted units (all `FORM_CAT_MOUNTED`) and
+three singletons. *Capture:* a group of **two** categories whose members
+have **different headings**, moving in a formation with non-zero `off` —
+`GROUPDATA`'s `curr` is then the only field that says whose heading
+`update_positions` rotated by (§6.6), and so the only field that can name
+the leader.
+
 `GroupData::is_on_map@0070c450` is true for a building group with members,
 and for a unit group with at least one active on-map captain.
 
 `GroupData::get_form@0070b9f0` returns the `unit +0xaa` shared by every
 active on-map member, and **−1 as soon as two differ** — a mixed group has
-no formation. `get_form_mod_option` is its width twin at `+0xab`.
+no formation. ~~`get_form_mod_option` is its width twin at `+0xab`.~~
+**It is not a twin**: `get_form_mod_option@0070bd00` is the **mean** of
+the members' `+0xab` bytes over those that are not −1, falling back to
+`0x32` when none qualifies, which is what `crates/sim/src/form.rs`
+implemented from the function itself. Run29 separates the two outright:
+army 0's seven members carry `form_mod` `[−1, 50, 50, −1, 50, 50, 50]` and
+the option is **50**, where a `get_form`-shaped rule would give −1
+(`run29_s_halted_group_kept_its_members_formation_bytes`).
 
 `GroupData::get_stance_type@0070d370` seeds from **`find_leader`** for a
 unit group and from **`list[0]`** for a buildings group, and reads its
@@ -620,6 +642,17 @@ there is. It is invisible in `GROUPDATA`, which logs `off` and `curr` and
 not `to`. *Capture:* a `UNITS=3` dump of a group move — the members' order
 destinations against their `off_x`.
 
+run29's `UNITS=3` half was opened on 2026-08-26 and **is not that
+capture**. Every order block in its four states was read: the one group
+with non-zero offsets — the navy, `id 66` — holds **no orders at all**,
+and the one group whose members hold move orders — army 0's, `id 69` —
+carries `form −1`, `form_num 0` and every offset zero. The window has no
+group that both stands in a formation and is walking to one. What is
+wanted is a **human** group move: four units of one type right-clicked to
+a far point with `UNITS=3` and `DUMP_ALL` on. Four, because an even column
+count is exactly what puts the anchor off-centre; human, because the AI's
+armies in these lobbies do not issue a formation move.
+
 The quantisation is a **floor**: `init_coord_lookup_array@00681db0` builds
 `div_3_table` as `j / 3` for `j ≥ 0` and `(j − 2) / 3` for `j < 0`, which
 is `floor(j / 3)` on both sides, with the pointer aimed into the middle of
@@ -859,6 +892,14 @@ the *first* statement inside the `buildings == 0` arm, before any member is
 examined (`0070d0c0:29`). No member's `+0xaa` is touched by a halt, which
 matters because `get_form` (§4.4) reads those bytes: the group forgets its
 formation index and the members do not.
+
+**Observed 2026-08-26**, and it took the `UNITS=3` half of a dump to see
+it: army 0's group in run29 carries `form −1` with `form_num 0` at every
+frame of the window while **all seven of its members carry `form 0`**, so
+`get_form` gives back the 0 the group's own field has lost. The navy's
+group, which has moved and not halted, carries `form 0` and so do its
+four. `run29_s_halted_group_kept_its_members_formation_bytes` is the
+check.
 
 Then, per active on-map member that is not a **plane** and is not
 `is_entering_or_exiting`. `UnitData::is_plane@0046ce40` is
@@ -1245,18 +1286,29 @@ Still open:
   (`sim::form::type_cat`, §6.4): the tree is eight reachable values off
   `attack`, five `obj_masks` bits, two `unit_flags2` bits, `max_range` and
   the three trader ids, and `rondata::diff` asserts the fifteen light
-  warships all land in `FORM_CAT_ARTILLERY`. What is **still** open is the
-  consequence for `find_leader`: the simulation takes the group's first
-  on-map captain rather than the lowest-category one, so a mixed army can
-  pick the wrong leader even though the key is now computable.
-  *Capture:* a `GROUPDATA` frame for an army holding a wagon and a
-  hoplite; the leader is the member at slot offset `(0, 0)`.
-- **§6.4's `to`/`off` asymmetry has no capture yet.** `compute_dests`
+  warships all land in `FORM_CAT_ARTILLERY`. ~~What is **still** open is
+  the consequence for `find_leader`: the simulation takes the group's
+  first on-map captain rather than the lowest-category one.~~ **Fixed
+  2026-08-26** — `Sim::group_find_leader` keys on `type_cat` (§4.4). The
+  *capture* is still owed, and it is not the one this entry named: an
+  army holding a wagon and a hoplite would settle the key only if the
+  record could say which member led, and the member at slot `(0, 0)` is
+  the anchor of the **lowest-indexed non-empty category** (§6.4), which
+  is the same thing `find_leader` computes — so it cannot disagree.
+  *Capture:* a two-category group in a formation with non-zero `off`
+  whose members' **headings differ**, so that `curr` names the heading
+  `update_positions` used.
+- **§6.4's `to`/`off` asymmetry still has no capture.** `compute_dests`
   slides the offsets by the whole anchor and the destinations by its `y`
-  alone, which `GROUPDATA` cannot see. *Capture:* a `UNITS=3` dump of a
-  group move — the members' order destinations against their `off_x`.
-  This is the same capture `scene_at`'s missing order lists need, and it
-  is run29's `UNITS=3` half.
+  alone, which `GROUPDATA` cannot see. run29's `UNITS=3` half was opened
+  on 2026-08-26 and is **not** it, for the reason under §6.4: the one
+  group with offsets holds no orders and the one group with orders has no
+  formation. *Capture:* a **human** group move — right-click four units
+  of one type to a far point under `UNITS=3` and `DUMP_ALL`, and read the
+  members' `MOVEORDER` `x`/`y` against their `GROUPDATA` `off_x`. Four is
+  enough because an even column count is what displaces the block, and it
+  has to be a human's because the AI's armies in these lobbies never
+  issue a formation move.
 - **The 18 pool slots above `who*64 + 45`** (§1). Nothing allocates them
   and nothing searches them; `Groups::process` still cycles them. What they
   are for is open.

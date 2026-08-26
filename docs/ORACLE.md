@@ -735,6 +735,25 @@ dump instead of one per frame. (It does not rescue the leader problem above:
 `do_dump_all` is read once at init, so a run that wants a full end dump is
 also paying for full frame dumps throughout.)
 
+**A `DUMP_ALL` frame writes its dump twice, and half of one window's
+states were unreachable because of it** (2026-08-26). `full_dump` runs at
+`begin_frame` and at `end_frame` (`docs/SYNC.md` §1). The `begin_frame`
+one is written *inside* the `FRAME n` block; the `end_frame` one is
+written at **`FRAME`'s own indent**, so the parser makes it a sibling
+rather than a child. The two are the same state: for run29 all 2,583,636
+lines of frame 15100's pair match except the `CHECKSUM` index,
+`turn_control`, the two command stamps and the timing counters — so a
+window costs twice what its frames do, and `Log::frames`, which takes the
+nested one, is right to ignore the twin.
+
+Where it is **not** a twin is the end of a run: `!quit` leaves a `FRAME n`
+block with nothing under it and the final `full_dump` lands after it, as a
+sibling with no following `FRAME` to duplicate it. run29's free 15105
+state — the one run25–27 taught us to expect — was invisible to every
+reader for exactly that reason. `Log::dumps` is the walk that finds it: a
+frame's nested dump when it has one, the sibling that follows when it does
+not.
+
 The artifacts kept in the bottle's `Logs\` (they are large and outside
 the repo, per `CLAUDE.md`): `gamelog-run1-fulldump.txt` (114 MB, the first
 everything-per-frame run), `gamelog-run3-fulldump-types.txt` (152 MB, the
@@ -2093,7 +2112,12 @@ and quit at 15400.
   scenario under a `DUMP_ALL` window at [15100, 15103), for the records
   on either side of that frame. Ten minutes, ~250 MB, and its `ARMY`
   half is a test the same day (`docs/ARMY.md` §17 item 6) — `status 1 →
-  32`, `city 1 → −1`, the point to the muster cell's centre.
+  32`, `city 1 → −1`, the point to the muster cell's centre. Its
+  **`UNITS=3` half** was opened 2026-08-26: 465 order blocks, 79 move
+  orders, and `Army::engagement`'s choice of unit (`docs/ARMY.md` §11).
+  It carries **four** states, not three — 15100, 15101, 15102 and the
+  free 15105 — and the fourth needed `Log::dumps` to reach ("A `DUMP_ALL`
+  frame writes its dump twice", above).
 
 A trap the same session found: `rontrace.cmd` clamps a frame lower than
 the previous line's **to it**, so a `!quit` written after a later-frame

@@ -709,6 +709,21 @@ at several points inside `do_move`.
 All `Coord`s are position units (192 a tile, 768 a world cell); angles are
 `docs/MOVEMENT.md`'s binary angle.
 
+**Diffed, 2026-08-26.** This table was read off the PE and compared with
+nothing for two days. `run29_s_move_orders_match_the_field_table_row_for_row`
+in `rondata::diff` now walks **every move order of run29's four states** —
+79 of them — and asserts the rows that claim a shape: the destination is
+snapped to its 48-unit cell centre; `off_x`/`off_y` are `x mod 0x300`,
+`y mod 0x300` (the offset *inside the world cell*, and **not** a formation
+slot — the name collision with `GroupData::off_x` has misled a reader
+before); `tolerance`, `pause`, `retry`, `attempts` and `timer` are 0
+throughout; `dest_x/dest_y` is the path stack's **top** whenever `dest` is
+1; the bottom of the stack carries the goal flag; the `pathed` bit is set
+exactly when the unit has a stack at all; and `orders_x/orders_y` is the
+current move's own `x, y`. `coll_x/coll_y` is the one row with no
+invariant — 17 of the 79 carry a blocker's position, which is
+`detect_unit_collision` working.
+
 | field | what it is |
 |---|---|
 | `x, y` | the destination, **snapped to the centre of its 48-unit cell**: `add_move_facing_order` takes `UCoord`s and stores `u*0x30 + 0x18`; `add_move_order@00616ed0` converts a `Coord` with `div_3_table[v >> 4]` (`= v/48`). The log confirms: a scout's `x 45048 = 938*48+24`, a citizen's `x 4008 = 83*48+24`. |
@@ -2407,7 +2422,7 @@ The blocks, by class (names upper-cased except `GroupMoveOrder`,
 | `TARGETORDER` | `UNITORDER`, then `ox whom uid` |
 | `THINKORDER`, `BUILDORDER`, `REPAIRORDER`, `BOARDORDER`, `AWAITBOARDORDER`, `FOLLOWORDER`, `ATTACKTOORDER`, `EXPLORETOORDER`, `FLEETOORDER`, `GROUPATTACKTOORDER`, `AIRPATROLORDER` | label only, then the bases |
 | `MOVEORDER` | `UNITORDER`, then `x y angle dest tolerance pause retry attempts timer facing dest_x dest_y last_x last_y coll_x coll_y orig_x orig_y off_x off_y` (read back from the PE at the cited addresses; the dump's order) |
-| `ATTACKORDER` | `TARGETORDER`, then `mandatory defensive in_range ever_in_range new_ord def_x def_y` (no dump has one yet) |
+| `ATTACKORDER` | `TARGETORDER`, then `mandatory defensive in_range ever_in_range new_ord def_x def_y` (~~no dump has one yet~~ **181 of them in run29**, 2026-08-26, and the row is exactly as read back from the PE — the parser reads all seven and `a_units_3_record_is_read_whole_orders_included` pins them) |
 | `GATHERORDER` | `TARGETORDER`, then `tx ty build_type wait goto_build non_flat_gather dist_mod been_there` |
 | `GARRISONORDER` | `TARGETORDER`, then `search` |
 | `GUARDORDER` | `TARGETORDER`, then `dx dy guard_x guard_y idle retry` |

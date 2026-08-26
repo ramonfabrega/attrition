@@ -98,10 +98,24 @@ that needs them is being built.
 - `2026-08-23-pathfinder.md`, `2026-08-24-anim.md`,
   `2026-08-24-commands.md`, `2026-08-24-recgame.md`;
 - `2026-08-25-transport.md`, `2026-08-25-army.md`;
-- **`2026-08-25-groups.md`'s "Fourth pass"** — the newest row and the one
-  that matters most, because it *overturns* three verdicts an earlier
-  Fable pass confirmed. A ratifier should start there and should be told
-  that a previous ratification agreed with the rows now being retracted.
+- **`2026-08-25-groups.md`'s "Fourth pass"** — the row that matters most,
+  because it *overturns* three verdicts an earlier Fable pass confirmed.
+  A ratifier should start there and should be told that a previous
+  ratification agreed with the rows now being retracted.
+- **`docs/ARMY.md` §11's two corrections and §18's new `FABLE:` marker**
+  (2026-08-26, Opus, from the listing at `6f5160`): that `is_engaged` and
+  `engagement` test `get_action()` rather than the front order — which a
+  run29 diff then confirmed, so it needs no ratification — and that
+  `is_map_unit` gates only the loop's **break**, so an army with no
+  map-unit target adopts the **last** qualifying unit's target. The
+  second is the marked one: it rests on a register spill
+  (`6f5324`/`6f5342`) and a fall-through (`6f536b`) and **no run has
+  exercised it**. It is implemented in `Sim::army_engagement_seed`, so a
+  ratifier is checking live code.
+- **`docs/GROUPS.md` §4.4's `find_leader` key** (2026-08-26, Opus,
+  listing `0070ccb0`). Implemented and unit-tested; unobserved, because
+  every group in every dump so far has one `type_cat` category. The
+  capture is named in §13.
 
 **The cheapest way to shorten this list is not a pass.** Most of what is
 owed is arithmetic and predicates a capture can settle outright, so

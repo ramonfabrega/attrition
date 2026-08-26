@@ -27,101 +27,86 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 17.* The commit this section was
+*Last verified 2026-08-26, after item 18.* The commit this section was
 written against is the one that lands it; if `git log` has moved well past
 it, trust the queue below and the journal before trusting this.
 
-**Last landed.** **`Form::compute`'s slot table** (item 17), whole, in
-`crates/sim/src/form.rs` — `type_cat`, `categorize`,
-`compute_rows_and_columns`, `compute_dests`, `get_form_mod_option`,
-`update_positions` — with each member now taking **its own slot
-destination** and `GroupState` carrying `form_num`, `off`, `curr` and
-`angles`. The diff runs `unitrules.xml` → `x_spacing 660` →
-`FORM_CAT_ARTILLERY` → `form_mod 50` → `cols 4` → the floor divide, and
-lands on run29's own `[0, −14, 13, −28]` with `curr` matching across all
-three frames. Eleven deliberate breakages, ten red on the first try; the
-eleventh (the `update_positions` y-flip) stayed green for the known
-reason and the test now says so in place. **The group orders are done,
-slot table included.**
+**Last landed.** **run29's `UNITS=3` half** (item 18). `scene_at` now
+stands every unit of a block up — typed from its first guy's `TypeIndex`,
+facing the record's own `angle`, carrying its formation bytes, its order
+list front-first and its path stack — and gives each army the membership
+of its `GROUPDATA` slot **in the record's own `list` order**. The parser
+carries the whole `MOVEORDER` and `ATTACKORDER` rows and the order
+layer's `UNITDATA` fields. Four new checks, in `rondata::diff` and
+`sim::group`.
 
-It also overturned **three verdicts this project's own audit had
-accepted** (`docs/audit/2026-08-25-groups.md`, "Fourth pass"): the
-formation block anchors on the **lowest**-indexed non-empty category, not
-the last; `compute_dests` **drops the anchor's x from the destinations**
-while keeping it in the offsets, so an even column count displaces a whole
-group; and **formation 6, Square, is dead code** — three fields written
-and no reader anywhere in the export. Plus two nobody could reach by
-reading: a wedge's row count is seeded from **uninitialised stack**, and
-`get_form_mod_option`'s value was printed in the dump (`form_mod 50`) all
-along.
+What it settled, and what it did not:
+
+- **`engagement`'s choice of unit** (`docs/ARMY.md` §11, §18's item
+  struck): the seed is `o 54`'s target, object 15, and the next block
+  carries it. It also found **two bugs** — `is_engaged`/`engagement`
+  tested the *front* order where `6f51fa` calls `get_action`, so the
+  mechanic was dead on the one frame that reaches it; and the listing
+  says `is_map_unit` gates only the loop's break, so an army with no
+  map-unit target adopts the **last** qualifying unit's. The second is
+  unobserved and on the ledger.
+- **`find_leader`'s key** is implemented (`Sim::group_find_leader`,
+  `type_cat`, `docs/GROUPS.md` §4.4) and unit-tested. Unobserved: every
+  group in every dump has one category. The capture the old queue named
+  would not have worked; §13 has the one that would.
+- **§6.4's `to`/`off` asymmetry: run29 is not its capture.** The one
+  group with offsets holds no orders; the one with orders has `form −1`.
+  It wants a **human** group move — four units of one type,
+  right-clicked, two frames of `DUMP_ALL`. Written into §6.4 and §13.
+- **`update_positions`' y-flip: still unpinned, and run29 cannot pin
+  it.** No group in the window has a non-zero `off_y`; the same human
+  capture, in a formation with depth, is what would.
+- Two things nobody was looking for: `action_halt`'s §7 write is
+  **observed** (group `form −1`, every member `form 0`), and
+  `get_form_mod_option` is a **mean over the members that have a byte**,
+  not `get_form`'s all-agree twin — §4.4 said twin and was wrong.
+- **A frame nobody could reach.** `full_dump` runs at `begin_frame` and
+  `end_frame`, so a `DUMP_ALL` frame writes its dump twice (identical bar
+  the checksum index, `turn_control`, the stamps and the timing). At the
+  end of a run the second lands as a **sibling** of the `FRAME` block, so
+  run29's free 15105 state was unreadable. `Log::dumps` finds it; the
+  window is four states.
 
 **Then, in order:**
 
-- **run29's `UNITS=3` half** — the per-unit order lists nobody has opened,
-  and now owed twice over. `scene_at` would need to load them; that pins
-  `engagement`'s *choice* of unit (`docs/ARMY.md` §18); it puts a
-  formation *with depth* in reach, which is the only thing that can pin
-  `update_positions`' y-flip (every `off_y` in the window is zero); and it
-  is the **only** capture that can see §6.4's `to`/`off` asymmetry, since
-  `GROUPDATA` logs the offsets and not the destinations.
-- **The order's angle** (`docs/GROUPS.md` §12, the `GroupMoveOrder` row).
-  §6.6 step 6 gives a member's move `angle + (group.angles[i] << 24)` as a
-  *signed* byte and an addition; the sim still uses `add_move_order`'s own
-  bearing to the slot. The byte is computed and carried now, so what is
-  left is an `add_move_facing_order` and `docs/ORDERS.md` §8.4's verdict
-  on `GroupMoveOrder` — one entry, not two.
-- **Item 13, differential fuzzing** (below) — unchanged, and still the
-  entry with the largest leverage per hour.
-- Then the older backlog: `find_leader`'s key is now computable
-  (`sim::form::type_cat`) but the sim still takes the first on-map captain
-  — a mixed army picks the wrong leader; the `LEADERDATA` and `CITY`
-  widenings the army's readers named; a `find_target` block where two
-  candidates sit within a multiplier of each other; run7's order stream
-  under the trace; a mounted attacker; a caravan; `make_stuff` whole;
-  `Leader::diplomacy`; `calc_gather` for non-flat buildings;
-  `think_civilian_transport`.
+- **The human group move** (new item 20). One run, two frames, and it
+  closes three things at once: §6.4's `to`/`off` asymmetry,
+  `update_positions`' y-flip, and — with two unit types in the selection
+  and their headings apart — `find_leader`'s key. It is the cheapest
+  capture on the list by a wide margin and it needs `cliclick` on the
+  live game rather than the cheat channel.
+- **The order's angle** (item 19, unchanged): `docs/GROUPS.md` §6.6 step
+  6's `angle + (group.angles[i] << 24)` as a signed byte and an addition;
+  the byte is computed and carried, the `add_move_facing_order` is not.
+- **Item 13, differential fuzzing** — unchanged, and still the entry with
+  the largest leverage per hour.
+- Then the older backlog: the `LEADERDATA` and `CITY` widenings the
+  army's readers named; a `find_target` block where two candidates sit
+  within a multiplier of each other; run7's order stream under the trace;
+  a mounted attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
+  `calc_gather` for non-flat buildings; `think_civilian_transport`.
 
-**The thing this session earned, and it is about the method.** **Where a
-mechanic's reading produces a *formula*, the implementation is the third
-pass.** All three overturned verdicts sat under one adjudicated row —
-"additions … as cited in A" — where the citations were real and nobody
-re-derived the arithmetic; an adjudicator cannot check that row without
-doing the work, and the Fable ratification spent budget confirming a loop
-the compiler had already contradicted. Running the implementation *before*
-the ratification would have been cheaper than after. (Corollary, cheap and
-recurring: **grep the dump before booking a reading.**
-`get_form_mod_option` was an open question in §13 and `form_mod 50` was in
-the file.)
+**The thing this session earned.** Three of its five findings are the
+same shape: *the record was already there and nobody had opened it*. The
+order lists had been parsed since the orders mechanic and never loaded;
+§4.1's field table had been read off the PE and compared with nothing;
+the 15105 state had been on disk since the day run29 was captured. The
+audit README's "diff the whole record" is about fields inside a record —
+this session says the same thing one level up, about **records inside a
+dump**. Worth a look before booking anything: what else does a dump on
+disk already carry that no reader has opened?
 
-**The working agreement changed, 2026-08-26.** Decided with the user at
-the end of this session, on the strength of the three overturned verdicts:
+**Needs the user.** Nothing outstanding. The ledger
+(`docs/audit/README.md`) has two new rows from this session, both Opus
+adjudications of live code: `engagement`'s last-qualifying fallback and
+`find_leader`'s key. When to spend a Fable batch is still open.
 
-- **Opus drives.** It carries implementation, diffs, widenings,
-  adjudication and the ordinary reading. Fable is chosen for a **first**
-  decompile reading, for overarching or genuinely new design, and for
-  ratification. Never Sonnet.
-- **Ratification batches over what is marked**, on a ledger
-  (`docs/audit/README.md`, "The ratification ledger"), instead of gating
-  every mechanic on a pass of its own. Batch size and cadence are
-  deliberately **not** fixed yet — the user's call was "I don't want to
-  proscribe yet", and that is recorded as the reason rather than as an
-  omission.
-- **Where a reading's product is a formula, the implementation is a pass
-  of the audit** — build before ratifying, or in parallel. A default, not
-  a gate.
-
-`CLAUDE.md` ("Prefer a diff to a reading", "Fan-out rules", "Every
-mechanic gets a blind second reading"), `docs/DECISIONS.md` entry 22
-amended and entry 23 new, `docs/audit/README.md` steps 6–8 and the ledger.
-
-**Needs the user.** Nothing outstanding. The ledger now names what is
-owed — fifteen audits and, at the top of it, the group orders' own fourth
-pass, which retracts three rows an earlier Fable pass had confirmed. The
-cheapest way to shorten that list is item 13's captures rather than a
-reading; when to spend a Fable batch on it is still open, and is the next
-thing worth a conversation.
-
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — run29's UNITS=3 half: teach rondata's scene_at to load a block's UNITDATA order lists, which pins engagement's choice of unit (docs/ARMY.md §18), puts a formation with depth in reach for update_positions' y-flip, and is the only capture that can see docs/GROUPS.md §6.4's to/off asymmetry`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 20, the human group move: one DUMP_ALL run of two frames with four units of one type right-clicked to a far point, which closes docs/GROUPS.md §6.4's to/off asymmetry, update_positions' y-flip, and find_leader's key at once`
 
 ## The queue
 
@@ -220,14 +205,31 @@ in which case say so and take that. The story of each struck item is in
     `docs/GROUPS.md` §6.4 and §15, `crates/sim/src/form.rs`,
     `docs/audit/2026-08-25-groups.md` ("Fourth pass"); the diff is
     `run29_s_navy_slot_table_is_reproduced_from_the_install_s_own_spacing`.
-18. **run29's `UNITS=3` half** — `scene_at` does not read a block's
-    `UNITDATA` order lists, and four open items all wait on the same
-    capture: `engagement`'s choice of unit (`docs/ARMY.md` §18), a
-    formation with depth for `update_positions`' y-flip, `docs/GROUPS.md`
-    §6.4's `to`/`off` asymmetry, and `find_leader`'s key on a mixed army.
+18. ~~**run29's `UNITS=3` half**~~ — done 2026-08-26. `scene_at`'s unit
+    loader and `Log::dumps` in `crates/rondata`, `docs/ARMY.md` §11 and
+    §18, `docs/GROUPS.md` §4.4, §6.4, §7 and §13, `docs/ORDERS.md` §4.1
+    and §11.1, `docs/ORACLE.md`. Two of its four open items closed, one
+    reassigned to item 20, one bug found in `engagement` and one in
+    `find_leader`.
 19. **The move order's formation angle** — `docs/GROUPS.md` §6.6 step 6
     and §12's `GroupMoveOrder` row, together with `docs/ORDERS.md` §8.4's
     verdict. The angle byte is computed and carried; the adder is not.
+20. **The human group move** — one `DUMP_ALL` window of two frames in
+    which a *player* right-clicks a selection to a far point, which is
+    the capture three open items are now waiting on and which the AI's
+    lobbies cannot produce. Four units of one type is the minimum: an
+    **even** column count is what displaces the formation block, which is
+    what makes `docs/GROUPS.md` §6.4's `to`/`off` asymmetry visible —
+    the members' `MOVEORDER` `x`/`y` against their `GROUPDATA` `off_x`.
+    With a formation that has **depth** (more than one rank, or a second
+    category) it also pins `update_positions`' y-flip, every `off_y` in
+    every dump so far being zero. And with **two type categories** whose
+    members face different ways, `curr` names the heading
+    `update_positions` rotated by, which is the only observable that can
+    pin `find_leader`'s key (§4.4). Driven with `cliclick` on the live
+    game rather than the cheat channel, which cannot select or click;
+    `tools/gamelog/window.py stage LO HI` is the rest of the setup and
+    `docs/ORACLE.md`'s recipe is the run.
 
 ## How to maintain this file
 

@@ -591,9 +591,41 @@ tests **and whose attack order's target is a map unit**
 §2 — its `ox`/`whom` both `>= 0`, `ObjectData::is_map_unit`) becomes the
 army's target of the moment: the stance rule (§8.2), then
 `Group::action_attack(group, ox, whom, 0, QUEUE_NEW, 0)` on every group
-with `num_valid() != 0`. No target → nothing. Run24 never entered it
+with `num_valid() != 0`. ~~No target → nothing.~~ Run24 never entered it
 (§16.4): the AI's armies were forming at their muster spots when the
 hoplites arrived and `is_engaged` never held.
+
+**The `is_map_unit` test gates the break, not the use** — read from the
+listing on 2026-08-26 because the decompiler's locals cannot show it.
+`%edi` (`ox`) and `%ebx` (`whom`) are written at `6f531a` and `6f533f` by
+**every** unit that reaches the two distance tests and are spilled to
+`-0x4(%ebp)`/`-0x10(%ebp)` there; `6f5362`'s `is_map_unit` call decides
+only whether `6f5369` jumps out of the loop, and the arm that falls
+through to the next iteration (`6f536b jmp 6f5373`) does **not** restore
+them. So the tail at `6f5383` accepts whatever the *last* qualifying unit
+wrote, on `ox >= 0 && whom >= 0` alone. The rule is: the **first**
+qualifying unit whose target is a map unit; failing that, the **last**
+qualifying unit's target, map unit or not; and only "no unit qualified at
+all" gives nothing.
+
+**And the test is on `get_action()`, not the front order** — `6f51fa`
+calls `UnitData::get_action` and `6f520e` compares its `get_type()` with
+10, so a unit walking a transit leg *in front of* its attack still counts.
+That is the ordinary shape: run29's block 15100 has every member of army 0
+holding `[MOVEORDER(pathed), ATTACKORDER]`, and a simulation that tested
+the front order found nobody engaged on the one frame that reaches this
+function at all.
+
+**Diffed 2026-08-26** (`run29_s_engagement_seeds_its_attack_from_the_first_member_of_the_group_s_list`).
+At 15100 the seven members' attack targets are a scatter — who 0's objects
+15, 16 and 17 — and the group's `list` order is `[54, 53, 52, 51, 49, 48,
+25]`, which is the order `ArmyData::get_unit` walks. The harness's seed is
+`o 54`'s target, **object 15**; at 15101 six of the seven members hold 15,
+every one has gained the action bit (`flags 0x10 → 0x14`) and `order_num`
+has gone `0 → 1`. The seventh, `o 25`, holds 26 — `action_attack` gives
+each member `Unit::find_melee_target`'s own nearest and the army's target
+is only the fallback (`docs/GROUPS.md` §10), so what the record shares is
+the **seed** and not the outcome.
 
 ## 12. The target — `Army::find_target@006f69b0`
 
@@ -1336,10 +1368,22 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   and `0x800` are not.
 - ~~**`engagement` has never executed** in any traced game (§16.4); §11 is
   the reading alone.~~ **It has, twice**: run16 at 6652 (unnoticed since
-  2026-08-24) and run28 at 15100, staged for it (§16.6). What §11 still
+  2026-08-24) and run28 at 15100, staged for it (§16.6). ~~What §11 still
   rests on the reading for is the *choice* of unit — the first engaged
   member whose target is a map unit — which no dump shows; run29's window
-  carries the records around the frame.
+  carries the records around the frame.~~ **Settled 2026-08-26** by
+  opening that window's `UNITS=3` half: the seed is `o 54`'s target and
+  the next block carries it (§11). Two things the same capture corrected
+  in the simulation — the test is on `get_action()` rather than the front
+  order, and the walk is the **group's** `list` order.
+- **`engagement`'s fallback**, new in §11 and observed by nothing: when no
+  qualifying unit's target is a map unit the army adopts the **last**
+  qualifying unit's target anyway. run29 breaks on the first, so the arm
+  is unexercised. *Capture:* an army whose only attackers are pointed at
+  **buildings** — every `TARGETORDER` in reach then fails `is_map_unit`
+  and the army should still take the last one. `FABLE:` the listing is the
+  only evidence; the register spill at `6f5324`/`6f5342` and the
+  fall-through at `6f536b` are the whole argument.
 - **The blind list after run28**, from `tools/trace/report.py … blind
   docs` over **every** trace on disk (18 logs; 524 addresses cited under
   `docs/`, 428 entered, 96 never) — this document's share is just three:

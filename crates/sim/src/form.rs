@@ -88,6 +88,9 @@ pub mod cat {
     pub const NAVAL_RANGED: usize = 15;
     pub const AIR: usize = 16;
     pub const AIR_RANGED: usize = 17;
+    /// `NUM_FORM_CAT` — the PDB's own end marker, and `find_leader`'s
+    /// starting key (`docs/GROUPS.md` §4.4).
+    pub const NUM: usize = 18;
 }
 
 /// The ten formations `rules.xml` lists, in document order — the index is

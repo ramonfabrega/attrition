@@ -267,6 +267,51 @@ impl<'a> Log<'a> {
             .collect()
     }
 
+    /// Every frame's `FULL DUMP` body, by frame number.
+    ///
+    /// A `DUMP_ALL` run writes the dump **twice** per frame — `full_dump`
+    /// runs at `begin_frame` and at `end_frame` (`docs/SYNC.md` §1) — and
+    /// the two carry the *same* state: the trailing one differs from the
+    /// `FRAME` block's own by the checksum index, `turn_control`, the two
+    /// command stamps and the timing counters, and by nothing else (run29,
+    /// 2,583,636 lines compared line for line). So the second is a
+    /// duplicate, and [`Self::frames`] is right to take the first.
+    ///
+    /// Where it is *not* a duplicate is the **end of a run**: `!quit`
+    /// leaves a `FRAME n` block with no dump under it and the final
+    /// `full_dump` lands after it, at `FRAME`'s own indent, which makes it
+    /// a sibling the frame walk cannot reach. run29's free 15105 state was
+    /// invisible for that reason alone. This walk takes a frame's nested
+    /// dump when it has one and the sibling that follows it when it does
+    /// not.
+    pub fn dumps(&self) -> Vec<(i64, &Block<'a>)> {
+        let Some(game) = self.game() else {
+            return Vec::new();
+        };
+        let mut out: Vec<(i64, &Block<'a>)> = Vec::new();
+        let mut open: Option<i64> = None;
+        for b in &game.children {
+            if let Some(n) = b
+                .name
+                .strip_prefix("FRAME ")
+                .and_then(|s| s.trim().parse().ok())
+            {
+                match b.kid("FULL DUMP") {
+                    Some(d) => {
+                        out.push((n, d));
+                        open = None;
+                    }
+                    None => open = Some(n),
+                }
+            } else if b.name == "FULL DUMP"
+                && let Some(n) = open.take()
+            {
+                out.push((n, b));
+            }
+        }
+        out
+    }
+
     /// The setup path's checksum trace ([`Checksum`]), in call order. The
     /// records are written before `GameLog::begin_game`, at indent 0 with
     /// their `FILE`/`LINE` indented under nothing, so they land in the
@@ -475,6 +520,37 @@ pub struct OrderDump {
     pub x: Option<i64>,
     pub y: Option<i64>,
     pub dest: Option<i64>,
+    /// The rest of the `MOVEORDER` row, in the order the block writes it
+    /// (`docs/ORDERS.md` §11.1's table): the whole record, so a widening
+    /// has something to compare rather than the three fields the first
+    /// pass happened to need.
+    pub angle: Option<i64>,
+    pub tolerance: Option<i64>,
+    pub pause: Option<i64>,
+    pub retry: Option<i64>,
+    pub attempts: Option<i64>,
+    pub timer: Option<i64>,
+    pub facing: Option<i64>,
+    pub dest_x: Option<i64>,
+    pub dest_y: Option<i64>,
+    pub last_x: Option<i64>,
+    pub last_y: Option<i64>,
+    pub coll_x: Option<i64>,
+    pub coll_y: Option<i64>,
+    pub orig_x: Option<i64>,
+    pub orig_y: Option<i64>,
+    /// `MoveOrder::off_x`/`off_y` — the destination's offset **inside its
+    /// world cell**, `x mod 0x300` (§11.2's table), not a formation slot.
+    pub off_x: Option<i64>,
+    pub off_y: Option<i64>,
+    /// `ATTACKORDER`'s own fields, past the `TARGETORDER` base.
+    pub mandatory: Option<i64>,
+    pub defensive: Option<i64>,
+    pub in_range: Option<i64>,
+    pub ever_in_range: Option<i64>,
+    pub new_ord: Option<i64>,
+    pub def_x: Option<i64>,
+    pub def_y: Option<i64>,
 }
 
 impl OrderDump {
@@ -522,6 +598,49 @@ pub struct UnitDump {
     /// precedes the order list, empty below `UNITS=3` and for a unit that is
     /// not walking a path.
     pub path: Vec<PathDump>,
+    /// The order layer's own `UNITDATA` fields — the ones `docs/ORDERS.md`
+    /// and `docs/GROUPS.md` cite by name, so a scene built from a block can
+    /// stand a group up as the original had it.
+    ///
+    /// `UnitData::group` (`+0x80`): the group slot this unit belongs to, −1
+    /// none. It is the back-pointer `Group::normalize` culls on.
+    pub group: Option<i64>,
+    /// `UnitData +0xaa` / `+0xab`: the formation index and width the last
+    /// group move wrote (`docs/GROUPS.md` §4.4, §6.6 step 1). `get_form`
+    /// and `get_form_mod_option` read them back off the members, which is
+    /// why a halted group can carry `form −1` while every member still
+    /// carries the formation it was last laid out in.
+    pub form: Option<i64>,
+    pub form_mod: Option<i64>,
+    /// `UnitData::stance` (§8): the worker or combat stance option.
+    pub stance: Option<i64>,
+    /// `UnitData::orders_x`/`orders_y`: the final destination of the
+    /// leading run of transit moves (`docs/ORDERS.md` §2).
+    pub orders_x: Option<i64>,
+    pub orders_y: Option<i64>,
+    /// `UnitData::dest_angle` and `UnitData::tolerance`.
+    pub dest_angle: Option<i64>,
+    pub tolerance: Option<i64>,
+    /// `UnitData::path_recursion` and `UnitData::idle` (§2.4, §4.5).
+    pub path_recursion: Option<i64>,
+    pub idle: Option<i64>,
+    /// `UnitData::unit_masks` / `unit_masks2` — the bit fields §6.6's
+    /// predicates read.
+    pub unit_masks: Option<i64>,
+    pub unit_masks2: Option<i64>,
+    /// `UnitData::myspeed`, the output of `get_speed`'s pipeline
+    /// (`docs/MOVEMENT.md`).
+    pub myspeed: Option<i64>,
+    /// `UnitData::o_up`: the captain this unit reports to, −1 when it is
+    /// one itself — `is_captain`, which `find_leader` and `get_num_cap`
+    /// both open on.
+    pub o_up: Option<i64>,
+    /// `UnitData::inside_up`: the building this unit is garrisoned in.
+    pub inside_up: Option<i64>,
+    /// `ObjectData::myhits` and `ObjectData::damage` — whole hit points the
+    /// type carries and points taken off them.
+    pub myhits: Option<i64>,
+    pub damage: Option<i64>,
 }
 
 impl UnitDump {
@@ -990,6 +1109,22 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
             // rather than on `UNITORDER` (§11.1's third trap).
             let target = o.find("TARGETORDER");
             let unit_order = o.find("UNITORDER");
+            // The class chain is the block nesting, exactly as
+            // `BUILDDATA` → `OBJECT` → `SUBOBJECT` is: an
+            // `ATTACKTOORDER` writes its `MOVEORDER` base as a child, and
+            // a plain `MOVEORDER` *is* the block. `find` looks at
+            // children only, so the block itself has to be offered first.
+            let base = |name: &str| {
+                if o.name == name {
+                    Some(o)
+                } else {
+                    o.find(name)
+                }
+            };
+            let mv = base("MOVEORDER");
+            let atk = base("ATTACKORDER");
+            let mv_int = |k: &str| mv.and_then(|m| m.int(k));
+            let atk_int = |k: &str| atk.and_then(|a| a.int(k));
             OrderDump {
                 index: types.get(i).copied().unwrap_or(-1),
                 metric: metrics.get(i).copied().unwrap_or(0),
@@ -1009,6 +1144,30 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
                 dest: o
                     .find("MOVEORDER")
                     .map_or_else(|| o.int("dest"), |m| m.int("dest")),
+                angle: mv_int("angle"),
+                tolerance: mv_int("tolerance"),
+                pause: mv_int("pause"),
+                retry: mv_int("retry"),
+                attempts: mv_int("attempts"),
+                timer: mv_int("timer"),
+                facing: mv_int("facing"),
+                dest_x: mv_int("dest_x"),
+                dest_y: mv_int("dest_y"),
+                last_x: mv_int("last_x"),
+                last_y: mv_int("last_y"),
+                coll_x: mv_int("coll_x"),
+                coll_y: mv_int("coll_y"),
+                orig_x: mv_int("orig_x"),
+                orig_y: mv_int("orig_y"),
+                off_x: mv_int("off_x"),
+                off_y: mv_int("off_y"),
+                mandatory: atk_int("mandatory"),
+                defensive: atk_int("defensive"),
+                in_range: atk_int("in_range"),
+                ever_in_range: atk_int("ever_in_range"),
+                new_ord: atk_int("new_ord"),
+                def_x: atk_int("def_x"),
+                def_y: atk_int("def_y"),
             }
         })
         .collect()
@@ -1059,6 +1218,9 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
             guy_num: g.int("guy_num"),
         })
         .collect();
+    // `myhits` and `damage` sit on the `OBJECT` level, one in from
+    // `UNITDATA`'s own fields and one out from `SUBOBJECT`'s.
+    let obj = b.find("OBJECT");
     Some(UnitDump {
         flags,
         o,
@@ -1068,6 +1230,23 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
         guys,
         orders,
         path,
+        group: b.int("group"),
+        form: b.int("form"),
+        form_mod: b.int("form_mod"),
+        stance: b.int("stance"),
+        orders_x: b.int("orders_x"),
+        orders_y: b.int("orders_y"),
+        dest_angle: b.int("dest_angle"),
+        tolerance: b.int("tolerance"),
+        path_recursion: b.int("path_recursion"),
+        idle: b.int("idle"),
+        unit_masks: b.int("unit_masks"),
+        unit_masks2: b.int("unit_masks2"),
+        myspeed: b.int("myspeed"),
+        o_up: b.int("o_up"),
+        inside_up: b.int("inside_up"),
+        myhits: obj.and_then(|o| o.int("myhits")),
+        damage: obj.and_then(|o| o.int("damage")),
     })
 }
 
@@ -1865,5 +2044,224 @@ BEGIN GAME
             ],
             "the third record has no seed line and is dropped"
         );
+    }
+
+    /// A whole `UNITS=3` unit, copied from run29's block 15100 — the AI's
+    /// Cataphract `who 1 o 25`, three orders deep with a six-entry path
+    /// stack. Trimmed only of the guy's animation fields.
+    ///
+    /// Everything the widening added is asserted here, and three traps of
+    /// `docs/ORDERS.md` §11.1 with it: the class chain is the block
+    /// *nesting*, so `ATTACKTOORDER`'s geometry sits on its `MOVEORDER`
+    /// child and a bare `MOVEORDER` carries its own; the list is written
+    /// **newest first**; and `ox/whom/uid` sit one level shallower than
+    /// `flags`, which is what keeps them on `TARGETORDER`.
+    #[test]
+    fn a_units_3_record_is_read_whole_orders_included() {
+        let text = "\
+BEGIN GAME
+ BEGIN FRAME 15100
+  BEGIN UNITDATA
+   BEGIN OBJECT
+    BEGIN SUBOBJECT
+     flags 1
+     o 25
+     who 1
+     x_internal 36156
+     y_internal 35196
+     z_internal 102
+    damage 7
+    uid 86
+    myhits 85
+   angle -2147483648
+   dest_angle -2147483648
+   tolerance 0
+   orders_x 34968
+   orders_y 36696
+   group 69
+   myspeed 30
+   unit_masks 0
+   unit_masks2 0
+   inside_up -1
+   form 0
+   form_mod 50
+   path_recursion 0
+   idle 0
+   stance 0
+   o_up -1
+   BEGIN STACK<TYPE>
+    size 20
+    length 6
+    increment 10
+    BEGIN PATHDATA
+     to_x 35592
+     to_y 33480
+     tolerance 0
+     flags 1
+    BEGIN PATHDATA
+     to_x 36287
+     to_y 35327
+     tolerance 0
+     flags 8
+   length 3
+   type 2
+   metric 0
+   BEGIN ATTACKTOORDER
+    BEGIN MOVEORDER
+     BEGIN UNITORDER
+      flags 1
+     x 35592
+     y 33480
+     angle 974716928
+     dest 1
+     tolerance 0
+     pause 0
+     retry 0
+     attempts 0
+     timer 0
+     facing 1
+     dest_x 35592
+     dest_y 33288
+     last_x -1
+     last_y -1
+     coll_x 0
+     coll_y 0
+     orig_x 35592
+     orig_y 33480
+     off_x 264
+     off_y 456
+   type 10
+   metric 0
+   BEGIN ATTACKORDER
+    BEGIN TARGETORDER
+     BEGIN UNITORDER
+      flags 16
+     ox 16
+     whom 0
+     uid 33
+    mandatory 0
+    defensive 0
+    in_range 0
+    ever_in_range 0
+    new_ord 1
+    def_x -1
+    def_y -1
+   type 1
+   metric 0
+   BEGIN MOVEORDER
+    BEGIN UNITORDER
+     flags 1
+    x 34968
+    y 36696
+    angle -1966669824
+    dest 0
+    tolerance 0
+    pause 0
+    retry 0
+    attempts 0
+    timer 0
+    facing -1
+    dest_x 36156
+    dest_y 35196
+    last_x 36156
+    last_y 34812
+    coll_x 0
+    coll_y 0
+    orig_x -1
+    orig_y -1
+    off_x 408
+    off_y 600
+   BEGIN GUY
+    type 227
+    x 36156
+    y 35196
+    z 99
+    angle -2147483648
+";
+        let log = Log::parse(text);
+        let frames = log.frame_states();
+        let u = &frames[0].units[0];
+        assert_eq!((u.who, u.o, u.flags), (1, 25, 1));
+        assert_eq!(u.guys[0].kind, Some(227), "the TypeIndex of a Cataphract");
+
+        // The order layer's own `UNITDATA` fields.
+        assert_eq!(u.group, Some(69));
+        assert_eq!((u.form, u.form_mod), (Some(0), Some(50)));
+        assert_eq!((u.orders_x, u.orders_y), (Some(34968), Some(36696)));
+        assert_eq!(u.angle, Some(-2147483648));
+        assert_eq!(u.dest_angle, Some(-2147483648));
+        assert_eq!(u.stance, Some(0));
+        assert_eq!(u.myspeed, Some(30));
+        assert_eq!(u.o_up, Some(-1), "a captain");
+        assert_eq!(u.inside_up, Some(-1));
+        assert_eq!((u.myhits, u.damage), (Some(85), Some(7)));
+        assert_eq!(
+            (u.tolerance, u.path_recursion, u.idle),
+            (Some(0), Some(0), Some(0))
+        );
+
+        // Three orders, newest first as the log writes them.
+        let kinds: Vec<&str> = u.orders.iter().map(|o| o.kind.as_str()).collect();
+        assert_eq!(kinds, ["ATTACKTOORDER", "ATTACKORDER", "MOVEORDER"]);
+        assert_eq!(
+            u.orders.iter().map(|o| o.index).collect::<Vec<_>>(),
+            [2, 10, 1],
+            "the `type` lines pair with the blocks by position"
+        );
+        let cur = u.current_order().expect("the order being executed");
+        assert_eq!(cur.kind, "MOVEORDER");
+        assert_eq!(
+            u.orders_front_first().next().unwrap().kind,
+            "MOVEORDER",
+            "front-first is the log's list reversed"
+        );
+
+        // The whole `MOVEORDER` row of the order being executed.
+        assert_eq!((cur.x, cur.y), (Some(34968), Some(36696)));
+        assert_eq!(cur.angle, Some(-1966669824));
+        assert_eq!(cur.dest, Some(0));
+        assert_eq!(cur.facing, Some(-1));
+        assert_eq!((cur.dest_x, cur.dest_y), (Some(36156), Some(35196)));
+        assert_eq!((cur.last_x, cur.last_y), (Some(36156), Some(34812)));
+        assert_eq!((cur.coll_x, cur.coll_y), (Some(0), Some(0)));
+        assert_eq!((cur.orig_x, cur.orig_y), (Some(-1), Some(-1)));
+        assert_eq!((cur.off_x, cur.off_y), (Some(408), Some(600)));
+        assert_eq!(
+            (cur.tolerance, cur.pause, cur.retry, cur.attempts, cur.timer),
+            (Some(0), Some(0), Some(0), Some(0), Some(0))
+        );
+
+        // The `ATTACKTOORDER`'s geometry is on its `MOVEORDER` child, and
+        // it is a different row from the bare move's.
+        let to = &u.orders[0];
+        assert_eq!((to.x, to.y), (Some(35592), Some(33480)));
+        assert_eq!(to.facing, Some(1));
+        assert_eq!((to.off_x, to.off_y), (Some(264), Some(456)));
+        assert_eq!(to.flags, 1);
+
+        // `ATTACKORDER`, which no dump had shown before run29: the
+        // `TARGETORDER` base and the seven fields read back from the PE.
+        let atk = &u.orders[1];
+        assert_eq!((atk.ox, atk.whom, atk.uid), (Some(16), Some(0), Some(33)));
+        assert_eq!(
+            atk.flags, 0x10,
+            "§1.3's bit 0x10 — `fight`'s re-target request — and not the \
+             action bit"
+        );
+        assert!(!atk.is_action());
+        assert_eq!(atk.mandatory, Some(0));
+        assert_eq!(atk.defensive, Some(0));
+        assert_eq!(atk.in_range, Some(0));
+        assert_eq!(atk.ever_in_range, Some(0));
+        assert_eq!(atk.new_ord, Some(1));
+        assert_eq!((atk.def_x, atk.def_y), (Some(-1), Some(-1)));
+        // And no move geometry leaks onto it from the neighbours.
+        assert_eq!((atk.x, atk.y, atk.off_x), (None, None, None));
+
+        // The path stack, bottom (the goal) first.
+        assert_eq!(u.path.len(), 2);
+        assert_eq!(u.path[0].to, (35592, 33480));
+        assert_eq!(u.path[0].flags, 1, "the goal");
+        assert_eq!(u.path[1].flags, 8);
     }
 }

@@ -1559,8 +1559,7 @@ mod tests {
                             ..Guy::default()
                         },
                     ],
-                    orders: Vec::new(),
-                    path: Vec::new(),
+                    ..UnitDump::default()
                 },
                 UnitDump {
                     flags: 1,
@@ -1576,8 +1575,7 @@ mod tests {
                         kind: Some(0x32),
                         ..Guy::default()
                     }],
-                    orders: Vec::new(),
-                    path: Vec::new(),
+                    ..UnitDump::default()
                 },
                 // An animal, which the harness ignores.
                 UnitDump {
@@ -1587,8 +1585,7 @@ mod tests {
                     pos: LogPos::default(),
                     angle: None,
                     guys: vec![],
-                    orders: Vec::new(),
-                    path: Vec::new(),
+                    ..UnitDump::default()
                 },
             ],
             leaders: vec![
@@ -4015,6 +4012,17 @@ mod army_tests {
     /// `ARMY` records, the frame number and the sync stream's word the
     /// block opens with — so one function can be run on the state of that
     /// frame. Not a replay: nothing else of the frame is built.
+    ///
+    /// **Its `UNITS=3` half**, added 2026-08-26: every `UNITDATA` record of
+    /// the block becomes a `sim::Unit` — typed from its first guy's
+    /// `TypeIndex`, standing where the record stands, facing the record's
+    /// own `angle`, carrying its `+0xaa`/`+0xab` formation bytes, its
+    /// stance, its **order list** and its **path stack** — and every
+    /// `GROUPDATA` slot that an army owns becomes that army's membership,
+    /// in the record's own `list` order. That is what lets a function
+    /// which reads a unit's *orders* (`Army::engagement`, `is_moving`,
+    /// `GroupData::get_form`) be run on the state of a logged frame at
+    /// all; without it a scene had armies with no units in them.
     struct Scene {
         sim: Sim,
         /// `(who, o, handle)` of every city building.
@@ -4023,14 +4031,97 @@ mod army_tests {
         /// `city` an `ARMY` record names, which keeps its number when an
         /// earlier slot empties — to the sim's city index.
         slots: Vec<(i64, i64, usize)>,
+        /// `(who, o, handle)` of every unit the block carried.
+        units: Vec<(i64, i64, usize)>,
+        /// The block's whole `GROUPDATA` pool, as parsed — the record the
+        /// membership was read out of, kept so a test can compare against
+        /// the slots the scene did *not* stand up (a player's selection, a
+        /// hotkey group) as well as the ones it did.
+        groups: Vec<crate::gamelog::GroupDump>,
+        /// Order kinds the block carried that a scene cannot translate —
+        /// empty for every window read so far, and the thing to look at
+        /// first when a unit's order list comes back shorter than the
+        /// record's.
+        untranslated: Vec<String>,
+    }
+
+    impl Scene {
+        /// The handle of the unit the block wrote as `(who, o)`.
+        fn unit(&self, who: i64, o: i64) -> Option<usize> {
+            self.units
+                .iter()
+                .find(|(w, n, _)| *w == who && *n == o)
+                .map(|(_, _, u)| *u)
+        }
+    }
+
+    /// One `UNITDATA` order block as the simulation's own order, or `None`
+    /// for a kind this scene does not model.
+    ///
+    /// The geometry is `docs/ORDERS.md` §4.1's table, field for field:
+    /// `x/y` is the destination, `dest` is "I have a current waypoint" and
+    /// `dest_x/dest_y` is that waypoint, `last` is −1,−1 when no
+    /// straight-line plan stands. The target of an attack rides on the
+    /// unit here rather than on the order (`sim::group`'s module note), so
+    /// it is passed in resolved.
+    fn order_of(od: &crate::gamelog::OrderDump) -> Option<sim::orders::Order> {
+        use sim::orders::{AttackOrder, Body, MoveKind, MoveOrder, index};
+        let i = |v: Option<i64>| v.unwrap_or(0) as i32;
+        let kind = match u8::try_from(od.index).ok()? {
+            index::MOVE_TO => MoveKind::MoveTo,
+            index::ATTACK_TO => MoveKind::AttackTo,
+            index::EXPLORE_TO => MoveKind::ExploreTo,
+            index::FLEE_TO => MoveKind::FleeTo,
+            index::ATTACK => {
+                return Some(sim::orders::Order {
+                    flags: u8::try_from(od.flags & 0xff).ok()?,
+                    body: Body::Attack(AttackOrder {
+                        defensive: od.defensive == Some(1),
+                        def: match (od.def_x, od.def_y) {
+                            (Some(x), Some(y)) if x >= 0 && y >= 0 => {
+                                Some(Pos::new(x as i32, y as i32))
+                            }
+                            _ => None,
+                        },
+                        in_range: od.in_range == Some(1),
+                        ever_in_range: od.ever_in_range == Some(1),
+                        new_ord: od.new_ord == Some(1),
+                    }),
+                });
+            }
+            _ => return None,
+        };
+        let dest = Pos::new(i(od.x), i(od.y));
+        Some(sim::orders::Order {
+            flags: u8::try_from(od.flags & 0xff).ok()?,
+            body: Body::Move(MoveOrder {
+                kind,
+                dest,
+                angle: sim::movement::Angle(i(od.angle)),
+                has_waypoint: od.dest == Some(1),
+                waypoint: Pos::new(i(od.dest_x), i(od.dest_y)),
+                last: match (od.last_x, od.last_y) {
+                    (Some(x), Some(y)) if x >= 0 && y >= 0 => Some(Pos::new(x as i32, y as i32)),
+                    _ => None,
+                },
+                pause: i(od.pause),
+                timer: i(od.timer),
+            }),
+        })
     }
 
     fn scene_at(loaded: &Loaded, log: &Log<'_>, frame: i64) -> Scene {
-        let frames = log.frames();
-        let (_, block) = frames
+        // `Log::dumps` rather than `Log::frames`: an `end_frame` dump is a
+        // *sibling* of the `FRAME` block, so the frame walk misses the two
+        // states at the ends of a window (run29's 15103 and 15105). The
+        // block handed on is the `FULL DUMP` itself, which every reader
+        // below already tolerates — each opens with
+        // `kid("FULL DUMP").unwrap_or(b)`.
+        let dumps = log.dumps();
+        let (_, block) = dumps
             .iter()
             .find(|(f, _)| *f == frame)
-            .expect("the frame block");
+            .expect("a FULL DUMP stamped with this frame");
         let body = block.kid("FULL DUMP").unwrap_or(block);
         let mut notes = Vec::new();
         let world_fields = body.kid("WORLD").expect("a WORLD block").fields.clone();
@@ -4051,7 +4142,7 @@ mod army_tests {
         if let Some((_, seed)) = log.frame_seeds().into_iter().find(|(n, _)| *n == frame - 1) {
             sim.rng = sim::combat::Rng::new(seed);
         }
-        let (_, builds, leaders) = crate::gamelog::records(block, false);
+        let (unit_dumps, builds, leaders) = crate::gamelog::records(block, false);
         for l in &leaders {
             if (0..players as i64).contains(&l.who) {
                 let who = l.who as usize;
@@ -4161,6 +4252,179 @@ mod army_tests {
             cities.push((who, o, b));
             slots.push((who, slot, ci));
         }
+
+        // ---- the `UNITS=3` half ----
+        //
+        // Every unit of the block, typed from its first guy's `TypeIndex`
+        // — `GuyData::type` is the *unit's* type, which is what makes a
+        // logged unit typeable at all (the `UNITDATA` level carries no
+        // type of its own) — and carrying its order list, its path stack
+        // and the two formation bytes `get_form` reads back off it.
+        let mut units = Vec::new();
+        let mut untranslated = Vec::new();
+        for u in &unit_dumps {
+            if !(0..players as i64).contains(&u.who) {
+                continue;
+            }
+            let ty = u
+                .guys
+                .first()
+                .and_then(|g| g.kind)
+                .and_then(|t| loaded.unit_of_type_index(t as i32));
+            let t = ty.map(|k| &loaded.unit_types[k]);
+            // `ObjectData::myhits` is the whole hit points the type
+            // carries *after* tech, and `damage` what has been taken off
+            // them — the same pair the city loop above reads.
+            let hits = u.myhits.unwrap_or_else(|| t.map_or(1, |t| t.hits).into()) as i32;
+            let health = if u.flags & 1 == 0 {
+                0
+            } else {
+                (hits - u.damage.unwrap_or(0) as i32).max(1)
+            };
+            let mut unit = Unit::new(
+                u.who as sim::Player,
+                i16::try_from(u.o).expect("a unit's object number"),
+                pos_of(u.pos),
+                health,
+            );
+            unit.max_health = hits;
+            unit.squad_size = u.guys.len().max(1) as i32;
+            unit.ty = ty;
+            unit.type_index = u.guys.first().and_then(|g| g.kind).unwrap_or(-1) as i32;
+            if let Some(t) = t {
+                unit.kind = t.kind;
+                unit.movement.turning.type_turn_speed = t.turn_speed;
+            }
+            unit.movement.speed = u.myspeed.unwrap_or(0) as i32;
+            // `+0x50`, the heading `update_positions` rotates the slot
+            // table by, and `+0x58` its desired twin.
+            if let Some(a) = u.angle {
+                unit.movement.facing = sim::movement::Angle(a as i32);
+                unit.movement.frame_facing = unit.movement.facing;
+            }
+            if let Some(a) = u.dest_angle {
+                unit.movement.des_angle = sim::movement::Angle(a as i32);
+            }
+            unit.on_map = u.inside_up.unwrap_or(-1) < 0;
+            unit.captain = u.o_up.unwrap_or(-1) < 0;
+            unit.form = i8::try_from(u.form.unwrap_or(-1)).unwrap_or(-1);
+            unit.form_width = i8::try_from(u.form_mod.unwrap_or(-1)).unwrap_or(-1);
+            unit.stance = u8::try_from(u.stance.unwrap_or(0)).unwrap_or(0);
+            unit.tolerance = u.tolerance.unwrap_or(0) as i32;
+            unit.path_recursion = u8::try_from(u.path_recursion.unwrap_or(0)).unwrap_or(0);
+            unit.idle = u8::try_from(u.idle.unwrap_or(0)).unwrap_or(0);
+            unit.orders_pos = Pos::new(
+                u.orders_x.unwrap_or(0) as i32,
+                u.orders_y.unwrap_or(0) as i32,
+            );
+            unit.line_ok = u.unit_masks.unwrap_or(0) & 8 != 0;
+            unit.was_builder = u.unit_masks.unwrap_or(0) & 0x400 != 0;
+            unit.decoy = u.unit_masks.unwrap_or(0) & 1 != 0;
+            // The order list front-first (the log writes it newest first)
+            // and the path stack as it stands — both `Vec`-shaped the same
+            // way the original's are.
+            for od in u.orders_front_first() {
+                match order_of(od) {
+                    Some(o) => unit.orders.push_back(o),
+                    None => untranslated.push(od.kind.clone()),
+                }
+            }
+            unit.path = u
+                .path
+                .iter()
+                .map(|p| sim::orders::PathData {
+                    to: Pos::new(p.to.0 as i32, p.to.1 as i32),
+                    tolerance: p.tolerance as i32,
+                    flags: u8::try_from(p.flags & 0xff).unwrap_or(0),
+                })
+                .collect();
+            let h = sim.add_unit(unit);
+            units.push((u.who, u.o, h));
+        }
+        // The attack targets, once every unit has a handle. The target is
+        // `update_action().get_target_order()`'s — the **action**'s, not
+        // the front order's: a unit chasing its target holds
+        // `[MOVEORDER(transit), ATTACKORDER]` and only the second names
+        // anyone. The simulation keeps the target on the unit rather than
+        // on the order (`sim::group`'s module note).
+        for u in &unit_dumps {
+            let Some(h) = units
+                .iter()
+                .find(|(w, o, _)| *w == u.who && *o == u.o)
+                .map(|(_, _, h)| *h)
+            else {
+                continue;
+            };
+            let Some(cur) = u.orders_front_first().find(|o| {
+                // `get_action`'s walk: past a move that lacks the action
+                // bit, stop on anything else.
+                !((1..=4).contains(&o.index) && !o.is_action())
+            }) else {
+                continue;
+            };
+            let (Some(whom), Some(ox)) = (cur.whom, cur.ox) else {
+                continue;
+            };
+            if whom < 0 || ox < 0 {
+                continue;
+            }
+            let target = units
+                .iter()
+                .find(|(w, o, _)| *w == whom && *o == ox)
+                .map(|(_, _, t)| Obj::Unit(*t))
+                .or_else(|| {
+                    cities
+                        .iter()
+                        .find(|(w, o, _)| *w == whom && *o == ox)
+                        .map(|(_, _, b)| Obj::Building(*b))
+                });
+            sim.units[h].combat.target = target;
+        }
+
+        // The one group per army, in the record's own `list` order — which
+        // is the order `ArmyData::get_unit` walks and therefore the order
+        // `engagement` picks its seed in.
+        let pool = crate::gamelog::groups(block);
+        for g in &pool {
+            if g.buildings != 0 || g.army < 0 || !(0..players as i64).contains(&g.who) {
+                continue;
+            }
+            let slot = g.army as usize;
+            let members: Vec<usize> = g
+                .members
+                .iter()
+                .filter_map(|m| {
+                    units
+                        .iter()
+                        .find(|(w, o, _)| *w == g.who && *o == m.o)
+                        .map(|(_, _, h)| *h)
+                })
+                .collect();
+            let a = &mut sim.armies[g.who as usize].list[slot];
+            a.units = members;
+            a.group = sim::group::GroupState {
+                form: g.form as i32,
+                order_num: g.order_num as i32,
+                o: Pos::new(g.ox as i32, g.oy as i32),
+                o_angle: sim::movement::Angle(g.o_angle as i32),
+                o_dist: g.o_dist as i32,
+                facing: g.facing != 0,
+                stamp: g.stamp,
+                form_num: g.form_num as i32,
+                off: g
+                    .members
+                    .iter()
+                    .map(|m| (m.off_x as i32, m.off_y as i32))
+                    .collect(),
+                curr: g
+                    .members
+                    .iter()
+                    .map(|m| Pos::new(m.curr_x as i32, m.curr_y as i32))
+                    .collect(),
+                angles: g.members.iter().map(|m| m.angle as i8).collect(),
+            };
+        }
+
         for a in army_records(block) {
             let who = a.int("who").unwrap();
             if !(0..players as i64).contains(&who) {
@@ -4208,7 +4472,14 @@ mod army_tests {
             rec.muster = Cell::new(int("muster_x"), int("muster_y"));
             rec.muster_angle = sim::movement::Angle(int("muster_angle"));
         }
-        Scene { sim, cities, slots }
+        Scene {
+            sim,
+            cities,
+            slots,
+            units,
+            groups: pool,
+            untranslated,
+        }
     }
 
     fn scene(name: &str, frame: i64) -> Option<Scene> {
@@ -5114,5 +5385,327 @@ mod army_tests {
         assert_eq!(got.muster, want.muster, "the muster cell is untouched");
         assert_eq!(got.angle, got.muster_angle, "the tail copies it");
         assert_eq!(got.num_standard, want.num_standard);
+    }
+
+    // ---- the `UNITS=3` half of run29 (`docs/ARMY.md` §11, §18) ----
+
+    /// **`engagement`'s choice of unit, from the record.** `docs/ARMY.md`
+    /// §18 said §11 rested on the reading alone for this, "which no dump
+    /// shows"; this is the dump showing it.
+    ///
+    /// At 15100 army 0's seven members each hold `[MOVEORDER(pathed),
+    /// ATTACKORDER]` and their attack targets are a **scatter** — who 0's
+    /// objects 15, 16 and 17. At 15101 six of the seven hold `15`, every
+    /// one of the seven has gained the **action bit** (`flags 0x10 →
+    /// 0x14`), and `order_num` has gone `0 → 1`. That is
+    /// `Army::engagement` → `Group::action_attack(·, ox, whom, 0,
+    /// QUEUE_NEW, 0)` firing on the tick, and the seed it adopted is
+    /// object **15** — the target of `o 54`, the **first** member of the
+    /// group's own `list`, which is the order `ArmyData::get_unit` walks.
+    ///
+    /// Two things the capture falsified in the simulation, both found by
+    /// running this:
+    ///
+    /// 1. `is_engaged` and `engagement` tested the **front** order rather
+    ///    than `get_action()`'s. Every member here is walking a transit
+    ///    leg in front of its attack, so with the front order tested no
+    ///    unit qualified and the whole mechanic was dead on the one frame
+    ///    that reaches it.
+    /// 2. The seed is not "the first with a map-unit target" alone — see
+    ///    `Sim::army_engagement_seed`. This block breaks on the first, so
+    ///    the fallback stays unobserved; the capture for it is an army
+    ///    whose only attackers are pointed at **buildings**.
+    ///
+    /// The one member that does not end on 15 is `o 25`, which lands on
+    /// 26: `action_attack` gives each member `Unit::find_melee_target`'s
+    /// nearest within the respond range and the seed is only the fallback
+    /// (`docs/GROUPS.md` §10), so the shared value is what the *seed*
+    /// says and not what every member ends up with.
+    #[test]
+    fn run29_s_engagement_seeds_its_attack_from_the_first_member_of_the_group_s_list() {
+        let Some(scs) = scenes(
+            "gamelog-run29-islands-engagement-window.txt",
+            &[15100, 15101],
+        ) else {
+            return;
+        };
+        let (mut before, after) = {
+            let mut it = scs.into_iter();
+            (it.next().unwrap(), it.next().unwrap())
+        };
+        // The only kind a scene cannot stand up is `GATHERORDER`, whose
+        // `building` is not optional in the simulation and whose target is
+        // a woodcutter's camp or a mine — the scene builds cities and
+        // nothing else. No member of an army holds one.
+        assert!(
+            before.untranslated.iter().all(|k| k == "GATHERORDER"),
+            "an order kind beyond the gather seam: {:?}",
+            before.untranslated
+        );
+
+        // The record's own membership, in `list` order — the order
+        // `get_unit` walks and therefore the order the seed is chosen in.
+        let listed: Vec<i64> = before
+            .groups
+            .iter()
+            .find(|g| g.id == 69)
+            .expect("army 0's group")
+            .members
+            .iter()
+            .map(|m| m.o)
+            .collect();
+        assert_eq!(listed, [54, 53, 52, 51, 49, 48, 25]);
+        assert_eq!(
+            before.sim.armies[1].list[0].units,
+            listed
+                .iter()
+                .map(|&o| before.unit(1, o).expect("the member's unit"))
+                .collect::<Vec<_>>(),
+            "the scene stands the army up in the record's own order"
+        );
+
+        // Every member's action is its attack, under a pathed transit leg.
+        for &o in &listed {
+            let u = before.unit(1, o).unwrap();
+            let orders = &before.sim.units[u].orders;
+            assert_eq!(orders.len(), if o == 25 { 3 } else { 2 }, "member {o}");
+            assert!(
+                orders[0].is_move() && orders[0].is_transit(),
+                "{o}: the leg"
+            );
+            let a = before.sim.action_of(u).expect("an action under the leg");
+            assert!(
+                matches!(orders[a].body, sim::orders::Body::Attack(_)),
+                "{o}: the action is the attack"
+            );
+        }
+
+        // The scatter the frame begins on.
+        let target_o = |sc: &Scene, o: i64| -> Option<i64> {
+            let u = sc.unit(1, o)?;
+            match sc.sim.units[u].combat.target? {
+                Obj::Unit(t) => sc
+                    .units
+                    .iter()
+                    .find(|(_, _, h)| *h == t)
+                    .map(|(_, n, _)| *n),
+                Obj::Building(_) => None,
+            }
+        };
+        assert_eq!(
+            listed
+                .iter()
+                .map(|&o| target_o(&before, o))
+                .collect::<Vec<_>>(),
+            [
+                Some(15),
+                Some(16),
+                Some(16),
+                Some(15),
+                Some(17),
+                Some(16),
+                Some(16)
+            ],
+            "15100's scatter"
+        );
+
+        assert!(
+            before.sim.army_is_engaged(1, 0),
+            "the tick that reaches engagement at all"
+        );
+        let (seed, target) = before
+            .sim
+            .army_engagement_seed(1, 0)
+            .expect("a seed on this frame");
+        assert_eq!(
+            seed,
+            before.unit(1, 54).unwrap(),
+            "the first member of the list, not the first of the army's own array"
+        );
+        assert_eq!(
+            target,
+            Obj::Unit(before.unit(0, 15).unwrap()),
+            "who 0's object 15 — the target the six other members end on"
+        );
+
+        // And that is what the next block holds.
+        let six: Vec<Option<i64>> = listed
+            .iter()
+            .filter(|&&o| o != 25)
+            .map(|&o| target_o(&after, o))
+            .collect();
+        assert_eq!(six, vec![Some(15); 6], "15101's shared target");
+        assert_eq!(
+            target_o(&after, 25),
+            Some(26),
+            "find_melee_target's own nearest, not the seed (docs/GROUPS.md §10)"
+        );
+        for &o in &listed {
+            let u = after.unit(1, o).unwrap();
+            let a = after.sim.action_of(u).expect("still an attack");
+            assert!(
+                after.sim.units[u].orders[a].has(sim::orders::flag::ACTION),
+                "{o}: action_attack sets the action bit — the record's 0x10 → 0x14"
+            );
+        }
+    }
+
+    /// **A halted group forgets its formation; its members do not.**
+    /// `docs/GROUPS.md` §7's one write, seen in a record for the first
+    /// time — `action_halt` sets `GroupData.form = −1` unconditionally and
+    /// touches no member's `+0xaa`, so `get_form` reads the members and
+    /// gives back the formation the group's own field has lost.
+    ///
+    /// Army 0's group carries `form −1` and `form_num 0` at every frame of
+    /// the window while all seven members carry `form 0`; the navy's
+    /// carries `form 0` and so do its four. And `get_form_mod_option` is
+    /// the **mean over the members whose byte is not −1**, not `get_form`'s
+    /// all-agree-or-−1 twin: two of army 0's seven are −1 and the option
+    /// is still 50.
+    #[test]
+    fn run29_s_halted_group_kept_its_members_formation_bytes() {
+        let Some(scs) = scenes(
+            "gamelog-run29-islands-engagement-window.txt",
+            &[15100, 15101, 15102],
+        ) else {
+            return;
+        };
+        for (n, sc) in scs.iter().enumerate() {
+            let f = 15100 + n;
+            let rec = |id: i64| sc.groups.iter().find(|g| g.id == id).expect("the slot");
+            let (army0, navy) = (rec(69), rec(66));
+            assert_eq!(army0.form, -1, "{f}: the group's own byte, cleared");
+            assert_eq!(army0.form_num, 0);
+            assert_eq!(navy.form, 0, "{f}: and a group that did move");
+
+            let members = |g: &crate::gamelog::GroupDump| -> Vec<usize> {
+                g.members
+                    .iter()
+                    .map(|m| sc.unit(g.who, m.o).expect("the member"))
+                    .collect()
+            };
+            let group = |g: &crate::gamelog::GroupDump| sim::group::Group {
+                who: g.who as sim::Player,
+                army: Some(g.army.max(0) as usize),
+                list: members(g),
+            };
+            let bytes: Vec<i8> = members(army0)
+                .iter()
+                .map(|&u| sc.sim.units[u].form)
+                .collect();
+            assert_eq!(bytes, vec![0; 7], "{f}: every member kept formation 0");
+            assert_eq!(
+                sc.sim.group_get_form(&group(army0)),
+                0,
+                "{f}: so get_form gives back what the group's own field lost"
+            );
+            let widths: Vec<i8> = members(army0)
+                .iter()
+                .map(|&u| sc.sim.units[u].form_width)
+                .collect();
+            assert_eq!(
+                widths,
+                [-1, 50, 50, -1, 50, 50, 50],
+                "{f}: o 54 and o 51 have never been laid out"
+            );
+            assert_eq!(
+                sc.sim.group_form_mod_option(&group(army0)),
+                50,
+                "{f}: the mean skips the −1s rather than refusing"
+            );
+            assert_eq!(sc.sim.group_form_mod_option(&group(navy)), 50);
+            assert_eq!(sc.sim.group_get_form(&group(navy)), 0);
+        }
+    }
+
+    /// **The whole `MOVEORDER` row, over every move order in the
+    /// window** — `docs/ORDERS.md` §4.1's table turned from a reading into
+    /// a diff. Every one of these was read off the PE and none had ever
+    /// been compared with a record.
+    ///
+    /// 146 move orders across the window's four blocks, and each of them:
+    /// the destination is **snapped to its 48-unit cell centre**
+    /// (`u × 0x30 + 0x18`); `off_x`/`off_y` are the destination's offset
+    /// **inside its world cell**, `x mod 0x300` — not a formation slot;
+    /// `tolerance`, `pause`, `retry`, `attempts` and `timer` are 0
+    /// throughout, as the table says of a plain move; the `dest` flag and
+    /// the path stack agree — `dest_x/dest_y` is the stack **top** when
+    /// `dest` is 1; the bottom of the stack is the goal; and the `pathed`
+    /// bit is set exactly when the unit has a stack at all.
+    ///
+    /// `coll_x/coll_y` is deliberately not in that list: 34 of the 146
+    /// carry a blocker's position, which is `detect_unit_collision`
+    /// working rather than a violated invariant.
+    #[test]
+    fn run29_s_move_orders_match_the_field_table_row_for_row() {
+        let name = "gamelog-run29-islands-engagement-window.txt";
+        let Some(path) = dump(name) else {
+            eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let (mut moves, mut collided, mut frames) = (0usize, 0usize, 0usize);
+        for (f, b) in log.dumps() {
+            frames += 1;
+            let (units, _, _) = crate::gamelog::records(b, false);
+            for u in &units {
+                let tag = format!("{f}: who {} o {}", u.who, u.o);
+                for (i, od) in u.orders.iter().enumerate() {
+                    let (Some(x), Some(y)) = (od.x, od.y) else {
+                        continue;
+                    };
+                    moves += 1;
+                    assert_eq!((x % 0x30, y % 0x30), (0x18, 0x18), "{tag}: cell centre");
+                    assert_eq!(od.off_x, Some(x.rem_euclid(0x300)), "{tag}: off_x");
+                    assert_eq!(od.off_y, Some(y.rem_euclid(0x300)), "{tag}: off_y");
+                    for (k, v) in [
+                        ("tolerance", od.tolerance),
+                        ("pause", od.pause),
+                        ("retry", od.retry),
+                        ("attempts", od.attempts),
+                        ("timer", od.timer),
+                    ] {
+                        assert_eq!(v, Some(0), "{tag}: {k}");
+                    }
+                    if od.coll_x != Some(0) || od.coll_y != Some(0) {
+                        collided += 1;
+                    }
+                    // The current order is the last block logged.
+                    if i + 1 != u.orders.len() {
+                        continue;
+                    }
+                    assert_eq!(
+                        od.flags & 1 != 0,
+                        !u.path.is_empty(),
+                        "{tag}: the pathed bit is the stack"
+                    );
+                    assert_eq!(
+                        (u.orders_x, u.orders_y),
+                        (Some(x), Some(y)),
+                        "{tag}: update_action's orders_x/y"
+                    );
+                    if let Some(top) = u.path.last() {
+                        assert_eq!(u.path[0].flags & 1, 1, "{tag}: the bottom is the goal");
+                        if od.dest == Some(1) {
+                            assert_eq!(
+                                (od.dest_x, od.dest_y),
+                                (Some(top.to.0), Some(top.to.1)),
+                                "{tag}: the waypoint is the stack top"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        // Four states, not three: the window's [15100, 15103) and the
+        // free 15105 of the end-of-run dump, which only `Log::dumps`
+        // reaches. 15104's block is the `!quit`'s and carries no state.
+        assert_eq!(frames, 4, "the window's three and the free one");
+        assert_eq!(moves, 79, "every move order in the four states");
+        assert_eq!(
+            collided, 17,
+            "and the ones detect_unit_collision has marked"
+        );
     }
 }

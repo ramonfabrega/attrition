@@ -1199,10 +1199,18 @@ impl Sim {
             if !unit.alive() || !unit.on_map {
                 continue;
             }
-            let attacking = unit
-                .orders
-                .front()
+            // `get_action()`, not the front order: the test at `6f5207`
+            // is on `UnitData::get_action`'s result, so a unit walking a
+            // transit leg **in front of** its attack still counts as
+            // attacking. run29's block 15100 is exactly that shape —
+            // every member of army 0's group holds `[MOVEORDER(pathed),
+            // ATTACKORDER]` — and with the front order tested no unit
+            // qualified and `engagement` did nothing.
+            let attacking = self
+                .action_of(u)
+                .and_then(|i| self.units[u].orders.get(i))
                 .is_some_and(|o| matches!(o.body, crate::orders::Body::Attack(_)));
+            let unit = &self.units[u];
             if !attacking || dist(unit.pos, pos) >= 0xc00 {
                 continue;
             }
@@ -1243,43 +1251,70 @@ impl Sim {
         count > a.num_units / 6
     }
 
-    /// `Army::engagement` (§11): the first engaged unit whose attack order
-    /// names a map unit becomes the army's target of the moment, and every
-    /// group with a valid member is pointed at it.
-    fn engagement(&mut self, who: Player, slot: usize) {
+    /// `Army::engagement`'s seed (§11): which member's attack the army
+    /// adopts as its target of the moment.
+    ///
+    /// Read from the listing at `6f5160`, because the decompiler's locals
+    /// do not show the shape: `%edi` (`ox`) and `%ebx` (`whom`) are
+    /// rewritten by **every** unit that gets as far as the two distance
+    /// tests, and the `is_map_unit` call at `6f5362` gates only the
+    /// **break** (`6f5369 jne 6f5383`). So the seed is the *first*
+    /// qualifying unit whose target is a map unit — and, when there is
+    /// none, the *last* qualifying unit's target whatever it is, which
+    /// the tail at `6f5383` accepts on `ox >= 0 && whom >= 0` alone. The
+    /// walk is `ArmyData::get_unit`'s: the groups' member lists in order.
+    ///
+    /// Returns the member that seeded it and the target it named.
+    pub fn army_engagement_seed(&mut self, who: Player, slot: usize) -> Option<(usize, Obj)> {
         let w = who as usize;
         let (units, pos) = {
             let a = &self.armies[w].list[slot];
             (a.units.clone(), a.pos)
         };
         let cog = cell_centre(self.army_centre_of_gravity(who, slot));
-        let mut found = None;
+        let mut last = None;
         for u in units {
-            let unit = &self.units[u];
-            if !unit.alive() || !unit.on_map {
+            if !self.units[u].alive() || !self.units[u].on_map {
                 continue;
             }
-            if !unit
-                .orders
-                .front()
+            // `get_action()`, the intent under the transit legs (`6f51fa`).
+            if !self
+                .action_of(u)
+                .and_then(|i| self.units[u].orders.get(i))
                 .is_some_and(|o| matches!(o.body, crate::orders::Body::Attack(_)))
             {
                 continue;
             }
-            if dist(unit.pos, pos) >= 0xc00 || dist(unit.pos, cog) > 0xc00 {
+            if dist(self.units[u].pos, pos) >= 0xc00 || dist(self.units[u].pos, cog) > 0xc00 {
                 continue;
             }
-            // `get_target_order()`'s target must be a **map unit**: a
-            // building target is not what the army re-points at.
-            if let Some(Obj::Unit(t)) = unit.combat.target
+            // `update_action().get_target_order()` — called for its
+            // side effects too, as the original does (twice, once per
+            // half of the pair).
+            self.update_action(u);
+            let Some(t) = self.units[u].combat.target else {
+                continue;
+            };
+            last = Some((u, t));
+            // `ObjectData::is_map_unit`: a building target does not stop
+            // the walk, it is only kept in case nothing better turns up.
+            if let Obj::Unit(t) = t
                 && self.units[t].alive()
                 && self.units[t].on_map
             {
-                found = Some(Obj::Unit(t));
                 break;
             }
         }
-        let Some(t) = found else { return };
+        last
+    }
+
+    /// `Army::engagement` (§11): the seed's target becomes the army's
+    /// target of the moment, and every group with a valid member is
+    /// pointed at it.
+    pub fn engagement(&mut self, who: Player, slot: usize) {
+        let Some((_, t)) = self.army_engagement_seed(who, slot) else {
+            return;
+        };
         self.army_stance_rule(who, slot);
         let g = self.army_group(who, slot);
         if self.group_num_valid(&g) == 0 {

@@ -237,20 +237,36 @@ impl Sim {
 
     /// `GroupData::find_leader` (§4.4): the active captain with the lowest
     /// `FormData::type_cat`, on the map if any is, ties to the first.
-    /// `type_cat` is unread (`docs/GROUPS.md` §13), so the simulation takes
-    /// the first that qualifies.
+    ///
+    /// The key is live as of 2026-08-26 — `sim::form::type_cat` was built
+    /// for `Form::compute` and this is its second reader. The listing at
+    /// `0070ccb0` gives the winner test as `local_8 < 0 || cat < best`, so
+    /// the **first** qualifying member always takes the lead and only a
+    /// **strictly** lower category displaces it; a tie goes to the first.
+    /// Two passes, and only the first tests `is_on_map`.
+    ///
+    /// A typeless unit — a harness fixture, never an install's — keys at
+    /// `NUM_FORM_CAT`, so it leads only when it is the first candidate and
+    /// loses to any typed one that follows.
     pub fn group_find_leader(&self, g: &Group) -> Option<usize> {
+        let human = self.nation[g.who as usize].human;
         for on_map_only in [true, false] {
+            let mut best: Option<(usize, usize)> = None;
             for &u in &g.list {
-                if !self.units[u].alive() {
-                    continue;
-                }
-                if !self.units[u].captain {
+                if !self.units[u].alive() || !self.units[u].captain {
                     continue;
                 }
                 if on_map_only && !self.units[u].on_map {
                     continue;
                 }
+                let key = self.units[u].ty.map_or(crate::form::cat::NUM, |t| {
+                    crate::form::type_cat(&self.unit_types[t], t, human)
+                });
+                if best.is_none_or(|(k, _)| key < k) {
+                    best = Some((key, u));
+                }
+            }
+            if let Some((_, u)) = best {
                 return Some(u);
             }
         }
@@ -1030,6 +1046,96 @@ mod tests {
             army: None,
             list: list.to_vec(),
         }
+    }
+
+    /// An armed type in one `type_cat` category, by the mask that puts it
+    /// there (`docs/GROUPS.md` §6.4, `sim::form::type_cat`).
+    fn typed(sim: &mut Sim, obj_masks: u32, max_range: i32) -> usize {
+        let mut t = UnitType {
+            hits: 100,
+            combat: combat::Profile {
+                attack: 15,
+                uber_size: 1,
+                obj_masks,
+                max_range,
+                ..combat::Profile::default()
+            },
+            ..UnitType::default()
+        };
+        t.cols.role |= role::MILITARY;
+        sim.add_unit_type(t)
+    }
+
+    /// `find_leader`'s key is `FormData::type_cat` and nothing else
+    /// (`docs/GROUPS.md` §4.4, listing `0070ccb0`): the **strictly**
+    /// lowest category wins, so a tie goes to the first, and the first
+    /// qualifying member leads until something lower turns up.
+    ///
+    /// The old simulation took the first on-map captain outright, which is
+    /// only right for a group of one category — and every group in every
+    /// dump so far is exactly that, which is why no diff caught it. The
+    /// capture that would: a group of **two** categories whose members
+    /// have **different headings**, moving in a formation with non-zero
+    /// `off`, so that `GROUPDATA`'s `curr` says whose heading
+    /// `update_positions` rotated by (§6.6).
+    #[test]
+    fn find_leader_takes_the_lowest_type_cat_and_ties_to_the_first() {
+        use crate::combat::mask;
+        use crate::form::{cat, type_cat};
+        let mut s = sim();
+        let foot = typed(&mut s, mask::FOOT, 0);
+        let archer = typed(&mut s, mask::FOOT, 0x600);
+        let mounted = typed(&mut s, mask::MOUNTED, 0);
+        let mech = typed(&mut s, mask::VEHICLE, 0);
+        let human = s.nation[1].human;
+        assert_eq!(type_cat(&s.unit_types[mech], mech, human), cat::MECH);
+        assert_eq!(
+            type_cat(&s.unit_types[mounted], mounted, human),
+            cat::MOUNTED
+        );
+        assert_eq!(type_cat(&s.unit_types[foot], foot, human), cat::FOOT);
+        assert_eq!(
+            type_cat(&s.unit_types[archer], archer, human),
+            cat::FOOT_RANGED
+        );
+
+        let at =
+            |s: &mut Sim, t: usize, n: i32| spawn(s, 1, t, Pos::new(0x1000 + n * 0x80, 0x1000));
+        let (a, b, c) = (
+            at(&mut s, archer, 0),
+            at(&mut s, foot, 1),
+            at(&mut s, mounted, 2),
+        );
+        let d = at(&mut s, mech, 3);
+        // Join order is archer, foot, mounted, mech — increasingly early
+        // in the category order, so each addition displaces the last.
+        assert_eq!(s.group_find_leader(&group_of(1, &[a])), Some(a));
+        assert_eq!(s.group_find_leader(&group_of(1, &[a, b])), Some(b));
+        assert_eq!(s.group_find_leader(&group_of(1, &[a, b, c])), Some(c));
+        assert_eq!(s.group_find_leader(&group_of(1, &[a, b, c, d])), Some(d));
+        // And the other way round nothing displaces the first.
+        assert_eq!(s.group_find_leader(&group_of(1, &[d, c, b, a])), Some(d));
+
+        // A tie goes to the first: `cat < best` is strict.
+        let e = at(&mut s, foot, 4);
+        assert_eq!(s.group_find_leader(&group_of(1, &[b, e])), Some(b));
+        assert_eq!(s.group_find_leader(&group_of(1, &[e, b])), Some(e));
+
+        // Two passes, and only the first tests `is_on_map`: the mech is
+        // the lowest category but garrisoned, so the on-map pass takes the
+        // mounted unit and the second pass never runs.
+        s.units[d].on_map = false;
+        assert_eq!(s.group_find_leader(&group_of(1, &[a, b, c, d])), Some(c));
+        // With nobody on the map at all the second pass finds it.
+        for u in [a, b, c] {
+            s.units[u].on_map = false;
+        }
+        assert_eq!(s.group_find_leader(&group_of(1, &[a, b, c, d])), Some(d));
+        // A dead member is never a leader, in either pass.
+        for u in [a, b, c, d] {
+            s.units[u].health = 0;
+        }
+        assert_eq!(s.group_find_leader(&group_of(1, &[a, b, c, d])), None);
     }
 
     #[test]

@@ -1397,3 +1397,110 @@ ledger sits the newest row and the awkward one: the
 group orders' **fourth pass**, which retracts three verdicts an earlier
 Fable ratification had confirmed, so a ratifier taking it must be told
 that a previous pass agreed with the rows now being pulled.
+
+## 2026-08-26 — item 18: run29's `UNITS=3` half, and the frame nobody could reach
+
+The queue's opener asked for one thing — teach `scene_at` to load a
+block's `UNITDATA` order lists — and named four open items it would pin.
+It pinned two, killed one outright, and found two bugs and a missing
+frame on the way. All five are worth writing down, because three of them
+are the same lesson in different clothes: **the record was already there
+and nobody had opened it**.
+
+**The loader.** `OrderDump` carried three fields of the `MOVEORDER` row
+and `UnitDump` carried none of the order layer's `UNITDATA` fields; both
+now carry the whole record — the twenty `MOVEORDER` fields
+`docs/ORDERS.md` §4.1 read back from the PE, `ATTACKORDER`'s seven, and
+`group`, `form`, `form_mod`, `stance`, `orders_x/y`, `dest_angle`,
+`myspeed`, `o_up`, `inside_up`, `myhits`, `damage`. `scene_at` stands
+every unit of a block up as a `sim::Unit` — typed from its first guy's
+`TypeIndex`, facing the record's own `angle`, carrying its formation
+bytes, its order list front-first and its path stack — and gives each
+army the membership of its `GROUPDATA` slot **in the record's own `list`
+order**, which turns out to be the load-bearing detail.
+
+**`engagement`'s choice of unit, settled** (`docs/ARMY.md` §11, and §18's
+open item struck). At 15100 army 0's seven members hold attack orders
+pointed at a *scatter* — who 0's objects 15, 16 and 17. At 15101 six of
+the seven hold **15**, every one has gained the action bit (`flags 0x10 →
+0x14`) and the group's `order_num` has gone `0 → 1`. That is
+`Group::action_attack` firing on the tick, and the seed it adopted is the
+target of `o 54` — the **first entry of the group's `list`**, which is
+what `ArmyData::get_unit` walks. The harness picks the same unit and the
+same object. The seventh member ends on 26 because `action_attack` gives
+each member `find_melee_target`'s own nearest and the army's target is
+only the fallback (`docs/GROUPS.md` §10) — so what the record shares is
+the *seed*, not the outcome.
+
+**Two bugs, both found by running the capture rather than reading.**
+`is_engaged` and `engagement` tested the unit's **front** order for
+`ATTACK`, where `6f51fa` calls `UnitData::get_action`. Every member here
+is walking a pathed transit leg in front of its attack, which is the
+ordinary shape — so on the one frame in five runs that reaches
+`Army::engagement`, the simulation found nobody engaged and did nothing.
+And the listing gave a second correction the decompiler cannot show:
+`%edi`/`%ebx` hold `ox`/`whom`, **every** qualifying unit overwrites them
+(`6f531a`, `6f533f`), and `is_map_unit` at `6f5362` gates only the
+*break*. So the rule is "the first qualifying unit whose target is a map
+unit; failing that, the **last** qualifying unit's target, whatever it
+is". That arm is unobserved — run29 breaks on the first — so it goes on
+the ratification ledger with the capture named.
+
+**`find_leader`'s key, implemented** (`docs/GROUPS.md` §4.4). The
+simulation had taken the first on-map captain since the module was
+written; the listing's test is `local_8 < 0 || cat < best`, so the first
+qualifying member leads and only a **strictly** lower `type_cat`
+displaces it. `sim::form::type_cat` existed for `Form::compute` and this
+is its second reader. The capture the queue had named for it — an army
+with a wagon and a hoplite — would not have worked: the member at slot
+`(0, 0)` is the anchor of the lowest-indexed non-empty category, which is
+the same quantity, so it cannot disagree. The capture that *would* is a
+two-category group whose members' headings differ, in a formation with
+non-zero `off`, where `curr` names the heading `update_positions` used.
+
+**And one item killed.** §6.4's `to`/`off` asymmetry — the offsets slid
+by the whole anchor, the destinations by its `y` alone — was booked
+against this very capture, and run29 cannot see it. The one group with
+non-zero offsets, the navy, holds **no orders at all**; the one group
+whose members hold move orders has `form −1` and every offset zero. The
+window has no group that both stands in a formation and walks to one, and
+the AI in these lobbies never issues a formation move. It wants a human's
+right-click on four units of one type, two frames of `DUMP_ALL`, and
+that is now written into both §6.4 and §13 in place of "run29's `UNITS=3`
+half".
+
+**§7's halt, seen for the first time.** Army 0's group carries `form −1`
+while all seven members carry `form 0` — `action_halt` clears the
+group's byte and touches no member's, so `get_form` gives back what the
+group's own field lost. The same record separates `get_form_mod_option`
+from `get_form` outright: two of the seven carry `form_mod −1` and the
+option is still **50**, which is a *mean over the members that have one*
+and not the all-agree-or-−1 twin §4.4 called it. `form.rs` had it right
+from the function; the document had it wrong from the family.
+
+**The frame nobody could reach.** Counting move orders disagreed with the
+`grep` by a factor of two, which turned out to be `full_dump` running at
+both `begin_frame` and `end_frame`: two dumps a frame, and for run29's
+frame 15100 all 2,583,636 lines of the pair match bar the checksum index,
+`turn_control`, the two command stamps and the timing counters. Harmless
+— except at the end of a run, where `!quit` leaves a `FRAME` block with
+nothing under it and the final dump lands **at `FRAME`'s own indent**, a
+sibling with no following frame to duplicate it. run29's free 15105
+state had been sitting in the file, unreadable, since the day it was
+captured. `Log::dumps` finds it, and the window is four states rather
+than three.
+
+**The whole `MOVEORDER` row, diffed.** `docs/ORDERS.md` §4.1's table was
+read off the PE and compared with nothing; it is now walked over all 79
+move orders of the four states — the cell-centre snap, `off = x mod
+0x300` (the offset *inside the world cell*, not a formation slot),
+`tolerance`/`pause`/`retry`/`attempts`/`timer` at zero, `dest_x/dest_y`
+as the path stack's top whenever `dest` is 1, the goal flag on the
+bottom of the stack, the pathed bit as "has a stack", and `orders_x/y` as
+the current move's own point. `ATTACKORDER`'s seven fields, which the
+table said "no dump has one yet" of, are in this one 181 times and match
+the PE read exactly.
+
+Both new behavioural claims were made to fail on purpose before landing:
+testing the front order instead of `get_action` loses the seed entirely,
+and walking the member list backwards seeds from `o 25` and object 26.
