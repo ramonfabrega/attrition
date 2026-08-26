@@ -1213,3 +1213,76 @@ clippy and fmt clean, `rondata` exits 0.
   `f` in English. Four audits in, the arithmetic keeps holding and the
   shortcuts keep costing — and the cheapest correction available is always
   the one where the evidence is already on disk.
+
+## 2026-08-26 — the group orders' third pass: the session as the ratifier
+
+The Fable ratification pass, run the way the day before had agreed: the
+session itself, on Fable 5 after a `/clear`, briefed by the charter and not
+by the list. The record is `docs/audit/2026-08-25-groups.md`, "Third pass —
+verdicts"; this is the story.
+
+- **The floor held eight of nine, and the ninth was wrong in the way a
+  checklist cannot catch.** Every one of the nine Rust-changing verdicts
+  was re-read from its own citation. Item 34's two *gates* were exactly as
+  the second reading had them — the `QUEUE_NEW` clear tests `hurry` alone,
+  the order loop tests `hurry && a city was found`. Its *consequence* —
+  "clears the shooting siege unit's orders and then issues it nothing" —
+  was wrong, because the order loop re-reads `UnitData::order_type` after
+  `clear_orders` has emptied the list, `order_type` answers `NONE` on an
+  empty list, and the unit falls through into the move like everyone else.
+  The sim had faithfully reproduced the wrong conclusion, with a test that
+  proved it. The test was rewritten to the right one, ran red (`left: 0,
+  right: 2`), and the fix is three lines. A verdict's consequence is a
+  separate claim from its gate, and it needs its own reading.
+- **The last marker closed from the PDB's method records.** `rise_z.map`
+  could never name vslot `+0x1c` for `BuildData` because that slot is the
+  COMDAT-folded `return 1` at `0041e0e0` that twenty symbols share, and the
+  linker keeps one name per address. `llvm-pdbutil dump --types` names it
+  in ten seconds: `SubObjectData` introduces `is_unit` at vftable offset
+  24, **`is_wallbuild`** at 28, `is_build` at 32, `is_seen` at 72 — and the
+  same records confirm every other slot the audit had inferred from uses
+  (`is_on_map` 188, `is_plane` 192, `has_stance_type` 260,
+  `get_stance_type` 264, `hits` 284). The type stream is the strongest
+  evidence in the project and it had not been asked.
+- **What four passes missed, in order of consequence.** The predicate
+  behind every stance decision, `UnitTypeData::get_stance_type` — military
+  first (packer or combat), then the citizen ids, then a caster that does
+  not pack, else none — where the sim tested caster, packer, "has an
+  attack", citizen; three of seven cases differed, and the fix ran red
+  first. The slot table's rounding: `div_3_table` is built as a floor on
+  both sides of zero and `>> 4` is arithmetic, so the `/48` is a floor,
+  which is what run29's `[0, −14, 13, −28]` had been saying. `update
+  positions` read whole from the listing and reproduced **bit for bit**
+  from the leader's logged `UNITDATA` `angle` through the sim's own sine
+  table — the first exact pin on the formation machinery. A fourth writer
+  of `facing`, `Unit::set_angle`, which toggles it whenever the leader
+  turns by 90° or more — the ordinary reason a live group reads `facing 1`.
+  And the loaders: `Groups::clear` writes `stamp = 0` and `priority = 0`
+  *over* `Group::clear`'s values, and `Group::clear` zeroes `who`, which is
+  why the widening's `who == id/64` can only hold for a live slot.
+- **Two mechanical scans were delegated and everything else was not.**
+  Two Opus `lean` subagents swept the whole export — every reader and
+  writer of a `GroupData` field outside the family (561 candidate files,
+  13 writers), every caller of the family's 58 functions (441 call sites)
+  — and wrote to `~/ghidra-projects/reading/` from the first hit. Every
+  claim built on a hit was re-read here. The scans cost a quarter of an
+  hour and found the `set_angle` writer, `Army::stop`'s `form = −1`, the
+  `0x8ca` list base in the save-game loader (real: the listing says
+  `[ecx + 2*eax + 0x8ca]`), and that `UnitData::get_speed` caps a grouped
+  unit at the group's speed — which the sim already had. One correction
+  to a scanner's brief mid-flight, when `action_halt`'s `this->field_0x49`
+  showed a `Group *` carries `GroupData`'s offsets unshifted.
+- **The widening was made to fail and then taught something.** The
+  `o_angle` control — "the group's move angle does *not* reproduce
+  `curr`" — did not fail: in this window the leader's heading is the
+  move's bearing, so the record cannot separate the two, and the listing
+  (`mov ebx, [ecx + 0x50]`) is what says `update_positions` reads the
+  heading. The control was dropped and the reason recorded; the
+  quarter-turn control stays. The y-flip is still unpinned, for the
+  reason the day before gave: every `off_y` in the window is zero.
+
+Where it leaves things: the group orders are done, third pass included;
+item 17 (`Form::compute`) starts from settled rounding and two exact
+fixtures rather than a question; and the older Fable debt from the AI,
+transport and army audits is still booked, with item 13's captures the
+cheapest way to clear most of it.

@@ -27,58 +27,47 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, at `f74a743`.* The commit this section was
-written against; if `git log` has moved well past it, trust the queue below
-and the journal before trusting this.
+*Last verified 2026-08-26, after the third pass.* The commit this section
+was written against is the one that lands it; if `git log` has moved well
+past it, trust the queue below and the journal before trusting this.
 
-**Last landed.** The **group orders' audit, applied whole** — three
-commits: `a7c043e` the nine Rust-changing verdicts, `bdf8bc3` the
-twenty-five document corrections, `f74a743` the whole `GROUPDATA` record in
-`rondata::diff`. Every item of
-`docs/audit/2026-08-25-groups.md`'s "What must change" is in;
-`docs/GROUPS.md` §14 is now the ledger of what was wrong rather than a
-warning. 648 tests green.
-
-**Four of the audit's five `FABLE:` markers were settled on the way**, each
-by the check the audit itself named and each in minutes (the audit's
-"Markers settled" section carries the citations, `docs/GROUPS.md` §14 the
-summary). Two changed conclusions: `unit_flags` bit `f` is "flies like a
-helicopter", so item 33 was **not** vacuous; and the "network semaphore
-bit" is bit 11 = *the scenario editor is open*. Settling the third turned up
-a writer of `GroupData::facing` that no reading had —
-`Unit::kill_current_order@005e2cb0`, outside the `Group` family. Only the
-name of object vslot `+0x1c` is still marked, and nothing depends on it.
-
-**Owed, and it is the next session's whole job: the Fable ratification
-pass.** Agreed 2026-08-26 that it runs in the **main thread**, not as a
-subagent — bank, `/clear`, switch the session to Fable — and that its brief
-is a **charter, not a checklist**, because a list of nine verdicts caps the
-stronger model at the framing of the pass that wrote the list
-(`docs/DECISIONS.md` entry 22, as amended). The charter is written and
-waiting: `docs/audit/2026-08-25-groups.md`, "Third pass — the charter". Its
-floor is the nine Rust-changing verdicts, the four markers settled on Opus
-and the one still open; its mandate is to find what four passes missed, and
-it names six places they demonstrably did not look. **Do not narrow it to
-the floor.**
+**Last landed.** The **group orders' third pass** — the Fable ratification
+run as the session itself, under the charter, on 2026-08-26
+(`docs/audit/2026-08-25-groups.md`, "Third pass — verdicts"). The floor
+held eight of nine: **one Rust-changing verdict was overturned in its
+consequence** (a hurrying army with no city *marches* its cleared siege
+unit; the order loop re-reads an `order_type` the clear loop has emptied),
+and the last `FABLE:` marker is closed from the PDB's method records
+(`+0x1c` is `is_wallbuild`). Outside the floor: the predicate behind every
+stance decision (`UnitTypeData::get_stance_type` — the sim had its tests
+in the wrong order), the slot table's rounding (a **floor**, by the table
+that does it), `update_positions` reproduced to the bit from the leader's
+logged heading, a fourth writer of `facing` (`Unit::set_angle`), and the
+loaders' two overwrites. Two Rust changes, both run red first; one new
+`GROUPDATA` widening. The group orders are **done**, third pass included.
 
 **Then, in order:**
 
 - **Implement `Form::compute`'s slot table** (`docs/GROUPS.md` §6.4). The
-  seam now stands on cost alone, and the fixture it will be checked against
-  is landed:
+  seam stands on cost alone, and the questions the record could not settle
+  are now settled by reading: the `/48` is `floor` (`div_3_table` is a
+  floor table, `>> 4` arithmetic); `k = 1` in the captain arm; the `w/2`
+  shift on even `cols` for a move; the block translated so the first member
+  of the last non-empty category sits at `(0, 0)`. The fixture is
   `run29_s_navy_group_is_a_line_of_four_rotated_at_forty_eight_units_a_step`
-  holds `off_x = [0, −14, 13, −28]` for a four-member group in formation 0.
-  Four functions — `categorize`, `compute_rows_and_columns`,
-  `compute_dests`, and `update_positions`' rotation composed with a y-flip
-  (determinant −1; a naive port mirrors). Reader A's report at
-  `~/ghidra-projects/reading/groups-2026-08-25/` is the working notes; the
-  audit's assertion 5 names the one thing the record cannot settle (the
-  rounding behind `−14` versus `+13`).
+  (`off_x = [0, −14, 13, −28]`, one width `w ∈ (648, 672)`), and
+  `run29_s_navy_group_s_curr_is_the_leader_s_heading_applied_to_the_slot_table`
+  pins `update_positions` exactly. Four functions — `categorize`,
+  `compute_rows_and_columns`, `compute_dests`, `update_positions`. Still to
+  read on the way: `get_form_mod_option`'s value for an AI army, the type
+  widths `+0x228`/`+0x22c`, and `FormData::type_cat`'s assignment of the
+  shipped types (`docs/GROUPS.md` §13). Reader A's report at
+  `~/ghidra-projects/reading/groups-2026-08-25/` is the working notes.
 - **run29's `UNITS=3` half** — the per-unit order lists nobody has opened.
   `scene_at` would need to load them; that is what pins `engagement`'s
   *choice* of unit (`docs/ARMY.md` §18), and it is also what would put a
   formation *with depth* in reach, which is the one thing the `GROUPDATA`
-  rotation check cannot pin today.
+  rotation checks still cannot pin (every `off_y` in the window is zero).
 - **Item 13, differential fuzzing** (below) — unchanged, and still the
   entry with the largest leverage per hour.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings the army's
@@ -87,25 +76,24 @@ the floor.**
   mounted attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings; `think_civilian_transport`.
 
-**Three things this session earned.** (1) **A `FABLE:` marker is a question
-with a costed answer, and the cost is usually smaller than the estimate
-written beside it** — run the named check before booking the debt. (2)
-**The cheapest correction is always the one whose evidence is already on
-disk**: `rise_z.map`, `GroupData::log_data`, and `unitrules.xml`'s own
-comment header each settled something a reading had guessed at. (3) **The
-first `GROUPDATA` assertion failed on its first run** — `priority` is 0 on
-an emptied hotkey slot — which is two for two on `CLAUDE.md`'s rule about
-widenings.
+**Three things this session earned.** (1) **A verdict's *consequence* is a
+separate claim from its *gate*, and it needs its own reading** — item 34's
+two gates were read right and its consequence wrong, because nobody
+followed what the first loop had done to the state the second loop reads.
+(2) **The PDB's `LF_ONEMETHOD` records name a vtable slot the map cannot**
+— a COMDAT-folded slot has one name per address in `rise_z.map` and its
+own name in the type stream (`llvm-pdbutil dump --types`, ~10 s). (3) **A
+mechanical scan is worth delegating and a judgment is not**: two Opus
+scanners over the whole export found the writers and callers in a quarter
+hour; every claim built on a hit was re-read here.
 
-**Needs the user.** Nothing outstanding — the one open decision was taken
-on 2026-08-26: run the ratification now, in the main thread, on Fable, and
-do not fence it. The older Fable debt from the AI, transport and army
-audits is still booked and is **not** in this pass's scope; whether to
-clear that ledger too is a later conversation.
+**Needs the user.** Nothing outstanding. The older Fable debt from the AI,
+transport and army audits is still booked and was **not** in this pass's
+scope; whether to clear that ledger is a later conversation, and the
+cheapest way to clear most of it is item 13's captures rather than a
+reading.
 
-**Opener (for a Fable main thread):** `proceed @docs/audit/2026-08-25-groups.md — run the third pass under "Third pass — the charter". The nine Rust-changing verdicts, the four markers settled on Opus and the one still open are the floor; the job is what four passes missed. Do not narrow it to the floor.`
-
-**Opener (for the Opus session after it):** `proceed @docs/QUEUE.md — implement Form::compute's slot table (docs/GROUPS.md §6.4) against the run29 fixture that is already in rondata::diff: categorize, compute_rows_and_columns, compute_dests, and update_positions' rotation-with-a-y-flip`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — implement Form::compute's slot table (docs/GROUPS.md §6.4) against the two run29 fixtures already in rondata::diff: categorize, compute_rows_and_columns, compute_dests (the /48 is a floor; k = 1; the even-cols w/2 shift; translate to the first member of the last non-empty category), and update_positions as §6.6 now states it`
 
 ## The queue
 
@@ -195,15 +183,15 @@ in which case say so and take that. The story of each struck item is in
 15. ~~**Armies**~~ — done 2026-08-25. `docs/ARMY.md`,
     `crates/sim/src/army.rs`, `docs/audit/2026-08-25-army.md`; runs 23–27,
     `tools/gamelog/runwin.sh`, `rngcmp.py`, `armyrecs.py`.
-16. ~~**The group orders**~~ — done 2026-08-25, audited and **applied**
-    2026-08-26, less the Fable ratification pass (see "Owed" above).
+16. ~~**The group orders**~~ — done 2026-08-25, audited and applied
+    2026-08-26, third pass (Fable, main thread) the same day.
     `docs/GROUPS.md`, `crates/sim/src/group.rs`,
     `docs/audit/2026-08-25-groups.md`; runs 28 and 29, and the whole
     `GROUPDATA` record in `rondata::diff`.
 17. **`Form::compute`'s slot table** — the one seam `docs/GROUPS.md` §6.4
     still declares, and the only one of this mechanic's that costs work
-    rather than a grep. Its fixture is already a passing test; the brief is
-    "Then, in order" above.
+    rather than a grep. Its fixtures are two passing tests and its rounding
+    is settled; the brief is "Then, in order" above.
 
 ## How to maintain this file
 

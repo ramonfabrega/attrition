@@ -385,3 +385,25 @@ are about **where the evidence already was**.
   hotkey slot, because `Group::kill`'s `num == 0 → clear(−1)` writes over
   the bit. Two for two on `CLAUDE.md`'s "the first widening failed on its
   first run".
+
+**The group orders' third pass (2026-08-26, the same file).** The first
+ratification run **as the session** rather than as a subagent — bank,
+`/clear`, Fable in the main thread — and briefed by a **charter** rather
+than the list of nine, which is what let it find what it found. The floor
+held eight of nine; the ninth verdict's two gates were right and its
+*consequence* wrong, because nobody had followed what the first loop did to
+the state the second loop reads (`order_type` after `clear_orders`). Its
+sharpest finding was outside the floor and inside a function no pass had
+opened: `UnitTypeData::get_stance_type`, the predicate every stance
+decision resolves to, with its tests in an order the sim had wrong. Two
+methods worth keeping: **the PDB's `LF_ONEMETHOD` records name a vtable
+slot when `rise_z.map` cannot** (a COMDAT-folded slot has one name per
+address in the map and its own in the type stream — `llvm-pdbutil dump
+--types`, ten seconds), which closed the last marker and confirmed nine
+inferred slots at once; and **delegate the mechanical sweeps, not the
+judgment** — two Opus `lean` scanners over the whole export (writers and
+readers of every field, callers of every function) cost a quarter hour and
+surfaced a fourth `facing` writer, with every hit re-read in the main
+thread before it became a claim. The one control the widening dropped is
+recorded with its reason: a capture where the leader's heading equals the
+move's bearing cannot separate the two, and only the listing can.
