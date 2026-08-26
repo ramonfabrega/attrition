@@ -27,85 +27,80 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, the session after `e8b2c71`.* The commit this
-section was written against; if `git log` has moved well past it, trust the
-queue below and the journal before trusting this.
+*Last verified 2026-08-26, at `f74a743`.* The commit this section was
+written against; if `git log` has moved well past it, trust the queue below
+and the journal before trusting this.
 
-**Last landed.** The **group orders** (`docs/GROUPS.md`,
-`crates/sim/src/group.rs`, commit `c53e4c6`) and their **full second
-reading, adjudicated** — `docs/audit/2026-08-25-groups.md`, 124 verdict
-rows. Two blind readers and one adjudicator, all three verified
-`claude-opus-5` from their transcripts. With them the army's order-issuing
-half moves units for the first time: `do_forming`, `march_to_target`,
-`engagement`, `send_here`, `charge`, `set_stance`, `Army::close`'s halt.
-run28 made `Army::engagement` execute on a frame predicted from the state
-machine; run29 turned that into an assertion (`docs/ARMY.md` §16.6, §17
-item 6).
+**Last landed.** The **group orders' audit, applied whole** — three
+commits: `a7c043e` the nine Rust-changing verdicts, `bdf8bc3` the
+twenty-five document corrections, `f74a743` the whole `GROUPDATA` record in
+`rondata::diff`. Every item of
+`docs/audit/2026-08-25-groups.md`'s "What must change" is in;
+`docs/GROUPS.md` §14 is now the ledger of what was wrong rather than a
+warning. 648 tests green.
 
-**Owed, and it is the next session's first act: apply the audit.**
-`docs/audit/2026-08-25-groups.md`'s "What must change" is written to be
-applied mechanically — do not re-derive it. In order:
+**Four of the audit's five `FABLE:` markers were settled on the way**, each
+by the check the audit itself named and each in minutes (the audit's
+"Markers settled" section carries the citations, `docs/GROUPS.md` §14 the
+summary). Two changed conclusions: `unit_flags` bit `f` is "flies like a
+helicopter", so item 33 was **not** vacuous; and the "network semaphore
+bit" is bit 11 = *the scenario editor is open*. Settling the third turned up
+a writer of `GroupData::facing` that no reading had —
+`Unit::kill_current_order@005e2cb0`, outside the `Group` family. Only the
+name of object vslot `+0x1c` is still marked, and nothing depends on it.
 
-1. **Nine verdicts change Rust**, listed in the audit's last section. Two
-   are outright bugs, not imprecision: `group_action_halt` writes each
-   *unit's* `form` where `0070d0c0:29` writes the *group's* — and
-   `group_get_form` reads the unit bytes, so it is live — and
-   `group_action_attack`'s "already attacking" skip is unconditional
-   where the original's has two sub-arms.
-2. **`docs/GROUPS.md` §14 already says the document is wrong** and names
-   the four worst: the dead seam justification, three misread vtable
-   slots, `Group::priority`'s five writers. Strike them as each
-   correction lands, per the amend-in-place rule.
-3. **Five `FABLE:` markers**, each with its check. Those plus the nine
-   Rust-changing verdicts are the scope of the Fable ratification pass
-   owed before the next mechanic builds on this one
-   (`docs/DECISIONS.md` entry 22, `docs/audit/README.md` step 6).
+**Owed, and it needs the user's word before it is spent:** the **Fable
+ratification pass**. Its scope is now just the nine Rust-changing verdicts
+(the audit's last section) plus the one surviving marker — the four settled
+ones narrowed it but did not discharge it, because they were settled on
+Opus. `docs/DECISIONS.md` entry 22, `docs/audit/README.md` step 6. This has
+been booked since the AI mechanic and is the only thing standing between
+this mechanic and "done".
 
-**Then, and the order matters — it changed when the audit landed:**
+**Then, in order:**
 
-- **Diff the whole `GROUPDATA` record**, the audit's first named
-  assertion and the cheapest thing on this list.
-  `GroupData::log_data@0045e1d0` dumps `off_x`, `off_y`, `curr_x`,
-  `curr_y`, `angles`, `form`, `form_num`, `o_dist`, `o_angle` per member;
-  run29's window has **5,392 records, 44 live**, already on disk. The
-  project's own rule — when the original dumps a record, diff the whole
-  record — and nobody has read one.
-- **Then implement `Form::compute`'s slot table**, against that diff
-  rather than ahead of it. The seam `docs/GROUPS.md` §6.4 declared has no
-  justification left: there is no float barrier (fourteen instructions,
-  all in `compute_dests`, all integer-exact) and the capture exists.
-  `compute_dests`, `compute_rows_and_columns`, `categorize`, and
-  `update_positions`' rotation-composed-with-a-y-flip (determinant −1 — a
-  naive port mirrors). Reader A's report at
-  `~/ghidra-projects/reading/groups-2026-08-25/` is the working notes.
-- **run29's `UNITS=3` half** — the per-unit order lists nobody has
-  opened. `scene_at` would need to load them; that is what pins
-  `engagement`'s *choice* of unit (`docs/ARMY.md` §18).
+- **Implement `Form::compute`'s slot table** (`docs/GROUPS.md` §6.4). The
+  seam now stands on cost alone, and the fixture it will be checked against
+  is landed:
+  `run29_s_navy_group_is_a_line_of_four_rotated_at_forty_eight_units_a_step`
+  holds `off_x = [0, −14, 13, −28]` for a four-member group in formation 0.
+  Four functions — `categorize`, `compute_rows_and_columns`,
+  `compute_dests`, and `update_positions`' rotation composed with a y-flip
+  (determinant −1; a naive port mirrors). Reader A's report at
+  `~/ghidra-projects/reading/groups-2026-08-25/` is the working notes; the
+  audit's assertion 5 names the one thing the record cannot settle (the
+  rounding behind `−14` versus `+13`).
+- **run29's `UNITS=3` half** — the per-unit order lists nobody has opened.
+  `scene_at` would need to load them; that is what pins `engagement`'s
+  *choice* of unit (`docs/ARMY.md` §18), and it is also what would put a
+  formation *with depth* in reach, which is the one thing the `GROUPDATA`
+  rotation check cannot pin today.
+- **Item 13, differential fuzzing** (below) — unchanged, and still the
+  entry with the largest leverage per hour.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings the army's
   readers named; a `find_target` block where two candidates sit within a
   multiplier of each other; run7's order stream under the trace; a
   mounted attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings; `think_civilian_transport`.
 
-**Four things the group-orders session earned, all of them the hard way.**
-(1) **Read the queue's own handoff before working** — it had said "spawn
-the readers while they run" and the session read past it, so the fan-out
-went out at the end instead of alongside. (2) **Open `rise_z.map`.** The
-13 MB linker map `CLAUDE.md`'s thesis names recovers vtable slot names
-that three COMDAT folds hide; guessing at five of them put wrong rules in
-two sections. (3) **Ask the blind list against *every* trace on disk** —
-`docs/ARMY.md` had claimed `engagement` never executed; run16 had it since
-2026-08-24. (4) **Before declaring a seam, grep `log_data` for the fields
-it covers.** The slot table was called uncapturable while
-`GroupData::log_data` was dumping it every frame.
+**Three things this session earned.** (1) **A `FABLE:` marker is a question
+with a costed answer, and the cost is usually smaller than the estimate
+written beside it** — run the named check before booking the debt. (2)
+**The cheapest correction is always the one whose evidence is already on
+disk**: `rise_z.map`, `GroupData::log_data`, and `unitrules.xml`'s own
+comment header each settled something a reading had guessed at. (3) **The
+first `GROUPDATA` assertion failed on its first run** — `priority` is 0 on
+an emptied hotkey slot — which is two for two on `CLAUDE.md`'s rule about
+widenings.
 
-**Needs the user.** Nothing outstanding. Standing note: Fable is being
-conserved, so first readings, blind readings and adjudications are all
-running on Opus 5 — which the marker discipline permits and which books
-the ratification debt named above. Verify the model from the transcript
+**Needs the user.** One decision: **spend Fable on the ratification pass
+now, or keep booking it?** Fable has been conserved since the AI mechanic,
+so the debt now covers four mechanics' worth of Opus-adjudicated verdicts.
+The scope for *this* mechanic is small (nine verdicts, one marker) and
+would cost one subagent. Verify the model from the transcript
 (`lore spawns`), never from the spawn parameter.
 
-**Opener:** `proceed @docs/QUEUE.md — apply docs/audit/2026-08-25-groups.md's "What must change" to docs/GROUPS.md and crates/sim/src/group.rs (nine verdicts change Rust; two are live bugs), striking each item in GROUPS.md §14 as it lands; then diff the whole GROUPDATA record from run29's window`
+**Opener:** `proceed @docs/QUEUE.md — implement Form::compute's slot table (docs/GROUPS.md §6.4) against the run29 fixture that is already in rondata::diff: categorize, compute_rows_and_columns, compute_dests, and update_positions' rotation-with-a-y-flip`
 
 ## The queue
 
@@ -195,9 +190,15 @@ in which case say so and take that. The story of each struck item is in
 15. ~~**Armies**~~ — done 2026-08-25. `docs/ARMY.md`,
     `crates/sim/src/army.rs`, `docs/audit/2026-08-25-army.md`; runs 23–27,
     `tools/gamelog/runwin.sh`, `rngcmp.py`, `armyrecs.py`.
-16. ~~**The group orders**~~ — done 2026-08-25, **less the adjudication
-    of its second reading** (see "Owed" above). `docs/GROUPS.md`,
-    `crates/sim/src/group.rs`; runs 28 and 29.
+16. ~~**The group orders**~~ — done 2026-08-25, audited and **applied**
+    2026-08-26, less the Fable ratification pass (see "Owed" above).
+    `docs/GROUPS.md`, `crates/sim/src/group.rs`,
+    `docs/audit/2026-08-25-groups.md`; runs 28 and 29, and the whole
+    `GROUPDATA` record in `rondata::diff`.
+17. **`Form::compute`'s slot table** — the one seam `docs/GROUPS.md` §6.4
+    still declares, and the only one of this mechanic's that costs work
+    rather than a grep. Its fixture is already a passing test; the brief is
+    "Then, in order" above.
 
 ## How to maintain this file
 

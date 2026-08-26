@@ -341,3 +341,47 @@ did what the readings could not: two of the three windows end an army
 through the one search the sim stands in for, and only the dump could
 say so.
 
+
+**The group orders (`2026-08-25-groups.md`, the same day as the mechanic;
+applied 2026-08-26).** The first reading in the main thread on Opus 5; two
+blind readers on Opus 5 in one wave; adjudicated in the main thread on
+**Opus 5** under the marker discipline, appending each verdict as it was
+settled and marking `FABLE:` what could not be. 124 verdict rows, nine
+verdicts changing Rust, five markers. The first reading was given **low**
+standing by the brief and deserved it, for a reason that has now cost two
+sessions: it never opened `rise_z.map`, and it guessed at five vtable slots
+the PE names outright — three of the guesses were wrong, and two sections
+had built rules on them.
+
+Applying it a day later produced three lessons of its own, and all three
+are about **where the evidence already was**.
+
+- **The seam that was never a seam.** The document declared
+  `Form::compute`'s slot table unimplementable partly because "no capture
+  pins its output". `GroupData::log_data` had been dumping the whole of that
+  output — five arrays per member — every frame the category was on, and a
+  run with it on was already on disk. `CLAUDE.md`'s rule is "before
+  declaring a seam, grep `log_data` for the fields it covers", and it was
+  written *because of* this mechanic; the correction is that the rule also
+  applies to a seam you are only declaring provisionally.
+- **Four of the five `FABLE:` markers were settled in minutes, by the checks
+  the audit itself had named.** A semaphore bit that the document called the
+  network flag turned out to be "the scenario editor is open"
+  (`ConsoleWin::run_cmd` sets it around `ScenarioEditor::init`); a claim
+  about an asymmetric restore was confirmed by twelve instructions of
+  `llvm-objdump`; a flag the audit thought might be vacuous was
+  `unitrules.xml`'s own "flies like a helicopter", and is not; and a role
+  bit was named by the type record. **A marker is a question with a costed
+  answer, and the cost is usually smaller than the estimate written beside
+  it.** Settling one on Opus narrows the Fable pass rather than discharging
+  it.
+- **The widening found something all three readings had missed, and it was
+  outside the class.** `GroupData::facing` reads 1 on live groups in the
+  capture, which `compute_form` cannot produce with that semaphore bit
+  clear. The third writer is `Unit::kill_current_order@005e2cb0` — a
+  different subsystem, which is exactly why a brief scoped to the `Group`
+  family could not reach it. And the first `GROUPDATA` assertion written
+  from the audit **failed on its first run**: `priority` is 0 on an emptied
+  hotkey slot, because `Group::kill`'s `num == 0 → clear(−1)` writes over
+  the bit. Two for two on `CLAUDE.md`'s "the first widening failed on its
+  first run".

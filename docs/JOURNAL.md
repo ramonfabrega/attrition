@@ -1110,3 +1110,106 @@ document says so.
   changed. The pattern across four audits now: the arithmetic holds, the
   predicates wobble, and the *method shortcuts* — the file not opened, the
   grep not run, the capture not looked for — are what actually cost.
+
+## 2026-08-26 — applying the group orders' audit, and four markers that cost minutes
+
+One session, no new reading commissioned, and the largest yield of the four
+audit-application sessions so far. Three commits: `a7c043e` the nine
+Rust-changing verdicts, `bdf8bc3` the twenty-five document corrections,
+`f74a743` the whole `GROUPDATA` record in `rondata::diff`. 648 tests green,
+clippy and fmt clean, `rondata` exits 0.
+
+- **The nine verdicts, each landed against a test written to fail first —
+  and seven of them did.** The two live bugs were the ones the audit named:
+  `group_action_halt` wrote each *unit's* `form` where `0070d0c0:29` writes
+  the *group's*, once, before the member loop (and `group_get_form` reads
+  the unit bytes, so a halt was costing the group the formation its members
+  still carried); and `group_action_attack`'s "already attacking" skip was
+  unconditional where the original's has two sub-arms. Reaching the second
+  arm turned out to **require** a change the audit had not spelled out: the
+  outer test has to be on `get_action`, the intent under the transit legs,
+  not on the current order's own type, because otherwise the "a current
+  *move* that carries me into range" arm is unreachable by construction.
+  That needed a new `is_in_range_at` — the eight-argument overload, asking
+  the question from a point rather than from the attacker.
+- **The rest:** the stance cycle steps from `get_stance_option@0070bab0`,
+  the modal option over the members with ties to the lowest index, not from
+  the leader; a plane never receives a stance or a group order;
+  `siege_anchor`'s sum gates on `is_on_map`; `FORM_NONE = 9` was misnamed
+  and is now `FORM_MOB`, because 9 is a real formation and −1 is the
+  sentinel; and §6.5's clear/order asymmetry — a hurrying AI army that
+  finds no friendly city clears its shooting siege unit's orders at
+  `70524f` and then issues it nothing at `7054c7`. That last one is
+  reproduced deliberately rather than smoothed over.
+- **Four of the five `FABLE:` markers were settled before the corrections
+  landed, each by the check the audit itself had named, and each in
+  minutes.** This is the session's lesson and it belongs at the top: *a
+  marker is a question with a costed answer, and the cost is usually
+  smaller than the estimate written beside it.*
+  - `unit_flags` bit `f` is `unitrules.xml`'s own legend line — "Unit flies
+    like a helicopter" — and exactly three of the 364 records carry it,
+    `Helicopter` and the two `Attack Helicopter`s, all `<DOMAIN>Air`. The
+    audit had guessed the item might be **vacuous**; it is the opposite. A
+    helicopter is not a plane, so it is halted, stanced and group-ordered
+    like a ground unit while a fighter is skipped everywhere.
+  - `game->semaphore.ptr[1] & 8` is bit 11 of `GameData +0x814`'s
+    `BitMask<256>`, and `ConsoleWin::run_cmd@007d6a70` **sets** it right
+    after `ScenarioEditor::init` and **resets** it right after
+    `ScenarioEditor::close`. `Options::do_formation` calls
+    `Group::dbg_jump_to_action` under it. It means *the scenario editor is
+    open*. The document's "the network semaphore bit, so a networked game
+    never mirrors" was wrong about the flag and therefore about the
+    conclusion.
+  - A.23's asymmetric `facing` restore is confirmed by twelve instructions
+    of `llvm-objdump`, and its consequence is narrower than A thought: the
+    toggle at `707eba` and the restore at `707f01` are guarded by the
+    **same** compares against `%esi`, computed at `707ea8` and never
+    rewritten (`Form::compute` pushes `ebx`/`esi`/`edi`). So `facing` is
+    *invariant* across `compute_form` unless that editor bit is set. The
+    same listing re-confirms `reverse = |Δ| ≥ 90°`, both bounds inclusive.
+  - `role & 0x10` is `is(SCOUT)` on land and `is(BARK)` at sea, from
+    `determine_roles`' two writers and the PDB's own `TypeIndex`. Vslot
+    `+0x60` is `ObjectTypeData::is`, confirmed independently by
+    `init_final_flags` reproducing five `uflags2` names this project had
+    derived from the data layer. `docs/ORDERS.md` §8.2's "workers,
+    caravans" gloss is struck.
+- **Settling the third marker turned up a writer no reading had.** run29
+  prints `facing 1` on three live groups, which `compute_form` cannot
+  produce with the editor bit clear. The third writer of
+  `GroupData::facing` is **`Unit::kill_current_order@005e2cb0`**: when the
+  order being killed is a move-family kind and this unit is its group's
+  leader, the dying order's own reverse flag is written onto the group. It
+  is outside the `Group` family entirely, which is why neither blind
+  brief could reach it — and why a `set_stance` from a *human* can rewrite
+  a group's mirror flag.
+- **The `GROUPDATA` widening, and it failed on its first run.** Nothing in
+  `crates/rondata` had ever opened one; the record has twenty scalars and
+  six parallel per-member arrays and the original had been dumping all of
+  it every frame. Four tests over run29's frames 15100–15102, three made to
+  fail on purpose. The fourth failed by itself: the audit predicted
+  `priority 1` on every `HOTKEYGROUPDATA`, and hotkey slot 28 carries **0**
+  with a `stamp` of 13125 — it held a group and lost its last member, and
+  `Group::kill`'s `num == 0 → clear(−1)` runs `Group::clear`, which writes
+  over the bit. So the bit means "this slot is a live control group", and
+  an emptied hotkey slot is indistinguishable from a pool slot by
+  `priority` alone. `last_group[8]` was wrong in the audit for a related
+  reason: it is `{p × 0x40}` only in the *initial* dump, and by 15100
+  player 1's has moved to slot **70** — a better assertion, because it is
+  live.
+- **And one of the audit's own assertions was walked back.** `off_x =
+  [0, −14, 13, −28]` cannot recover A.28's `X0 = 0, −w, +w, −2w` without
+  knowing the rounding: `trunc` makes −14 and +13 contradictory, and a
+  floor gives `w ∈ (648, 672)`, not the audit's `(656, 672]`.
+  `div_3_table[v >> 4]` is an arithmetic shift, which argues for the
+  floor — left to whoever writes `compute_dests`. The rotation check is
+  landed but pins less than claimed: every `off_y` in the window is zero,
+  so the y-flip's `−cos·off_y` term never fires and a formation with depth
+  is what would pin it.
+- **What the whole day says about method.** The first reading's failures
+  here were not arithmetic; they were *files not opened*. `rise_z.map`,
+  named in `CLAUDE.md`'s own thesis paragraph, would have settled five
+  vtable slots. `GroupData::log_data`, one grep away, would have killed the
+  seam before it was declared. `unitrules.xml`'s comment header names bit
+  `f` in English. Four audits in, the arithmetic keeps holding and the
+  shortcuts keep costing — and the cheapest correction available is always
+  the one where the evidence is already on disk.
