@@ -772,3 +772,32 @@ discipline — append per row, mark rather than guess, ratify — more than of
 the model; and the quota wall is a property of fan-out size, which waving
 fixes. What stays in memory is nothing of this: account limits, bottle
 names and paths are machine facts and stay there.
+
+**Amended 2026-08-26 — the ratification pass runs in the main thread, and
+its brief is a charter rather than a checklist.**
+
+Two corrections to the arrangement above, both from applying the group
+orders' audit.
+
+*Where it runs.* A Fable ratification is **not** a subagent. It is the
+session: bank the work, `/clear`, switch the main thread to Fable, and let
+the pass run there. A subagent inherits `CLAUDE.md` and the memory index
+and nothing else, which is the right envelope for a *blind* reader and the
+wrong one for a ratifier, who needs the document, the implementation, the
+audit and the captures at once. It also means the pass is paced by a
+context window rather than by a spawn budget, so it can follow a thread it
+did not expect to follow.
+
+*What it is asked.* A brief that says "verify these nine verdicts" caps the
+stronger model at the framing of the weaker one that wrote the list. The
+best available outcome is then agreement, and agreement teaches nothing.
+So the code-changing verdicts and the `FABLE:` markers are the **floor** —
+they must be re-read from their own citations — and the **mandate** is to
+find what the passes before it missed. The evidence that this is the real
+yield: every one of the four audits so far produced its sharpest finding
+*outside* the brief it was given — a caller nobody grepped for, a dock that
+registers in the sea region, a writer in another class entirely — and in
+each case the finding arrived by following a contradiction in a capture
+rather than by working down a list. A ratifier that reports "the brief was
+the limit, and here is what lies past it" has done the job; one that
+reports nine confirmations has been fenced in.

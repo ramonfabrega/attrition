@@ -49,13 +49,17 @@ a writer of `GroupData::facing` that no reading had —
 `Unit::kill_current_order@005e2cb0`, outside the `Group` family. Only the
 name of object vslot `+0x1c` is still marked, and nothing depends on it.
 
-**Owed, and it needs the user's word before it is spent:** the **Fable
-ratification pass**. Its scope is now just the nine Rust-changing verdicts
-(the audit's last section) plus the one surviving marker — the four settled
-ones narrowed it but did not discharge it, because they were settled on
-Opus. `docs/DECISIONS.md` entry 22, `docs/audit/README.md` step 6. This has
-been booked since the AI mechanic and is the only thing standing between
-this mechanic and "done".
+**Owed, and it is the next session's whole job: the Fable ratification
+pass.** Agreed 2026-08-26 that it runs in the **main thread**, not as a
+subagent — bank, `/clear`, switch the session to Fable — and that its brief
+is a **charter, not a checklist**, because a list of nine verdicts caps the
+stronger model at the framing of the pass that wrote the list
+(`docs/DECISIONS.md` entry 22, as amended). The charter is written and
+waiting: `docs/audit/2026-08-25-groups.md`, "Third pass — the charter". Its
+floor is the nine Rust-changing verdicts, the four markers settled on Opus
+and the one still open; its mandate is to find what four passes missed, and
+it names six places they demonstrably did not look. **Do not narrow it to
+the floor.**
 
 **Then, in order:**
 
@@ -93,14 +97,15 @@ first `GROUPDATA` assertion failed on its first run** — `priority` is 0 on
 an emptied hotkey slot — which is two for two on `CLAUDE.md`'s rule about
 widenings.
 
-**Needs the user.** One decision: **spend Fable on the ratification pass
-now, or keep booking it?** Fable has been conserved since the AI mechanic,
-so the debt now covers four mechanics' worth of Opus-adjudicated verdicts.
-The scope for *this* mechanic is small (nine verdicts, one marker) and
-would cost one subagent. Verify the model from the transcript
-(`lore spawns`), never from the spawn parameter.
+**Needs the user.** Nothing outstanding — the one open decision was taken
+on 2026-08-26: run the ratification now, in the main thread, on Fable, and
+do not fence it. The older Fable debt from the AI, transport and army
+audits is still booked and is **not** in this pass's scope; whether to
+clear that ledger too is a later conversation.
 
-**Opener:** `proceed @docs/QUEUE.md — implement Form::compute's slot table (docs/GROUPS.md §6.4) against the run29 fixture that is already in rondata::diff: categorize, compute_rows_and_columns, compute_dests, and update_positions' rotation-with-a-y-flip`
+**Opener (for a Fable main thread):** `proceed @docs/audit/2026-08-25-groups.md — run the third pass under "Third pass — the charter". The nine Rust-changing verdicts, the four markers settled on Opus and the one still open are the floor; the job is what four passes missed. Do not narrow it to the floor.`
+
+**Opener (for the Opus session after it):** `proceed @docs/QUEUE.md — implement Form::compute's slot table (docs/GROUPS.md §6.4) against the run29 fixture that is already in rondata::diff: categorize, compute_rows_and_columns, compute_dests, and update_positions' rotation-with-a-y-flip`
 
 ## The queue
 
