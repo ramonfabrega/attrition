@@ -27,76 +27,77 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after items 27 and 26.* The commit this section
-was written against is the one that lands it; if `git log` has moved well
-past it, trust the queue below and the journal before trusting this.
+*Last verified 2026-08-26, after items 25 (the `Farms::add` half) and 28
+(the woodcutter half).* The commit this section was written against is the
+one that lands it; if `git log` has moved well past it, trust the queue
+below and the journal before trusting this.
 
-**Last landed: frame 0 matches the original draw for draw, on two maps.**
-Item 27 was tooling — mark every mechanic's draw sites so the frame is a
-sequence rather than a count — and it settled item 26 on its first run.
+**Last landed: the farm's ambience emitter, and the goal that walks
+backwards.** Both from the export and the dumps on disk; no capture was
+booked, and both were checked by re-running the two maps they were *not*
+meant to move.
 
-- **`trace::SITES` names the original's addresses with the simulation's
-  own labels.** Each row is `(address, an optional caller, the label)`,
-  and the label is a `pub const` in the mechanic's module, so the name
-  lives beside the code that spends the draw. The optional caller is
-  load-bearing: `Guy::set_anim+0x97a` is *four* sites — an animal's idle,
-  a unit's idle, a gathering unit's stand, the phase-7 wrap — separated
-  only by the record's `ebp` chain. `docs/SYNC.md` §5.1.
-- **Marked:** `compute_sites`' two, `calc_market`'s three, the four
-  `set_anim` callers, `init_real`, `think_farm_animal`, the birds' two,
-  `Herd::process`' two, `Farms::inc_time`'s chance and sprout,
-  `do_non_flat_gather`'s three stands and two waits, `do_move+0xe84`.
-  Run20's frame 0 has no unattributed draw left.
-- **Item 26 was one line of our own code.** At draw 22 the check read
-  *ours `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0x10f`, theirs
-  `… < Unit::do_idle+0x7d`*. `do_non_flat_gather`'s camp-arrival branch is
-  a two-way `CHAR_DUMP_WOOD` / `CHAR_DUMP_ORE` and nothing else
-  (`5f0b5e`–`5f0b89`); the sim's idle stand for a first arrival was
-  invented. Removing it moved **four** draws, not two — the stand had been
-  resetting the citizens' clocks, so the phase-7 wraps never fell due.
-  Both halves of the swap were the same line. `docs/SYNC.md` §6.
-- **A second drift from the same document.** `docs/ORDERS.md` §6.4's
-  pseudocode had the camp arrival right all along, and also carries a
-  `set_anim(CHAR_DEFAULT)` before the tile approach (`+0xfd4`) the code
-  never had. Two lines, correct in the prose and wrong in the code, for
-  four days — invisible to every test written from that prose.
+- **`Farms::add` is modelled** — `docs/SYNC.md` §3.8, `Sim::farms_add`.
+  The two draws are an ambience emitter's `x` and `y` thirds of a tile,
+  spent **once per city** by the first crop farm placed while the city
+  already holds more than one crop and no emitter; the `4` it leaves in
+  `farm_type` is what stops the second. The `farm_type` decision is a
+  six-row table, and its coin (`+0x128`) fires on none of the three
+  captures. The record and its `Farms` slot are created **with the site**,
+  not at activation.
+- **`find_path`'s pull-back is modelled** — `docs/ORDERS.md` §4.6. The
+  goal is walked back out of a refusing tile before the march, which is
+  what puts a woodcutter at the *edge* of the forest. One of run20's two
+  spurious `Unit::do_move+0xe84` went with it; path-stack disagreements
+  over four frames fell 25 → 21.
+- **A stale attribution, caught by reverting.** The Great Lakes' frame-3
+  extra draw has not been `do_move` for some time — it is a
+  `Unit::do_non_flat_gather+0x54b`. Established by building the same
+  commit with the pull-back out and diffing the fold: byte-identical on
+  that map and on the fuzzed one. `docs/SYNC.md` §5's table and §6 say so
+  now.
 
 **The numbers now.** run20 frame 0 **175/175 draw for draw**, frame 1
-52/53, frame 2 **5/5**. The Great Lakes (run10/run12, traced as run14):
-frame 0 **120/120 draw for draw** (was 128/120), frames 1 and 2 at 54/54
-and 6/6, frame 3 7/6. The fuzzed map: frame 0 **195/195** (was 196/195),
-frame 1 48/45. `ticks before divergence` is still 1 everywhere; the
-position divergence at frame 2 is untouched and is the next thing.
+**53/53** — *and still wrong*: one `Leader::produce_building` draw short,
+one `do_move+0xe84` over, and the two cancel. Frame 2 **5/5**. The Great
+Lakes: 120/120, 54/54, 6/6, 7/6. The fuzzed map: frame 0 **195/195**,
+frame 1 51/45. `ticks before divergence` is still 1 everywhere.
 
 **Then, in order:**
 
-- **`Farms::add`'s two draws** at run20's frame 1 (`+0x23f`, `+0x25b`
-  under `Build::init`) — item 25. Cheap, the trace names both offsets.
-- **The two spurious `Unit::do_move+0xe84`** at run20's frame 1 — item 28,
-  new. It is §6's frame-3 item seen a frame earlier and on another map,
-  and it is now narrowed: run21's 23,000 frames reach the original's
-  `+0xe84` five times in total and **never under a gather's transit**.
-- **The frame-1 order two of player 1's units hold and the sim does not**,
-  and §9.3's sixth citizen — the rest of item 25. One of the two was the
-  scout's `EXPLORE_TO` and is now issued; re-read the item before taking
-  it. Its "start by ruling out item 26" no longer applies — 26 is closed.
+- **Mark `Leader::produce_building`'s two draw sites** (`+0xc99`,
+  `+0x1805`) — item 27's instrument, applied to the one phase of frame 1
+  that still has no marks. run20 is one draw short of the original's 43
+  and the fuzzed map is six *over* its 33, and both sit inside one
+  unmarked `strategy_all`, so neither is a row yet. Cheapest first step,
+  and it splits two open items at once. The rest of item 25.
+- **`go_around_building@005fc350`** — item 29, and a mechanic rather than
+  a fix. Run20's frame 1, unit `1/0`: the AI scout's line clips a
+  *building* three tiles short of a clear goal, so the pull-back has
+  nothing to pull. `docs/ORDERS.md` §4.6 has the shape (up to three
+  `PathData`s, a recursive `find_path` on the first, `return 0` when it
+  verifies). It is the last `+0xe84` on any capture.
+- **The fuzzed map's frame 1**, once those marks exist: 51 against 45,
+  with a `do_non_flat_gather+0x54b` short and a `Farms::inc_time+0x1de`
+  sprout the original does not spend, beside the `produce_building` gap.
+- **§9.3's sixth citizen** and **the frame-1 order two of player 1's units
+  hold and the sim does not** — the rest of item 25; re-read it, the scout
+  half has moved.
 - **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked.
-- **Re-run run13's window** (sim-frames 95–103) now that the scout thinks
-  *and* the stands are gone: §5's largest single gap was `6 / 23` at frame
-  95. Nothing has re-measured it since either change.
+- **Re-run run13's window** (sim-frames 95–103): §5's largest single gap
+  was `6 / 23` at frame 95, and nothing has re-measured it since the
+  scout, the stands or the pull-back.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *A count is not a check, and a
-per-block table is barely one.* Frame 0 had read 175/175 for a day with
-two errors cancelling inside it, and §4.2's block table could see blocks
-disagree but not which *call* made a draw. Naming the caller turned it
-into a diagnosis in one run. The corollary for this file: **a capture
-booked to settle a question is worth re-examining whenever the instrument
-improves.** The `GUYS=4` window had been held for four days and was never
-needed.
+**The thing this session earned.** *When a change is meant to move one
+number, run the captures it is not meant to move — on both sides of the
+change.* Two extra builds turned "probably no regression" into "identical
+on two maps", and threw in the fact that one of those maps' open items had
+been stale for two days. The corollary for this file: **an item that names
+a cause is a claim, and claims go stale**; re-measure before taking one.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -104,7 +105,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 25: Farms::add's two draws at run20's frame 1 (+0x23f, +0x25b under Build::init+0x4ea < Objects::init_build+0x82), which are two of that frame's three-way gap. No run needed — run20 is on disk and rondata --trace names both offsets. Then item 28, the two spurious Unit::do_move+0xe84 on the same frame. docs/SYNC.md §4.2 and §6 have both.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — mark Leader::produce_building's two draw sites (+0xc99 and +0x1805) the way item 27 marked the others, so run20's frame-1 "one draw short" and the fuzzed map's "six over" become rows instead of subtractions. crates/sim/src/ai_place.rs is where they are spent; docs/SYNC.md §5.1 is the instrument and §3.8 the last mechanic to use it. Then go_around_building@005fc350 — the last Unit::do_move+0xe84 on any capture, docs/ORDERS.md §4.6.`
 
 ## The queue
 
@@ -276,15 +277,14 @@ in which case say so and take that. The story of each struck item is in
       `survived = 1` on both maps. One of the two is the scout, and it is
       **half fixed**: on run20 its `EXPLORE_TO` now matches, on the fuzzed
       map the sim issues one at frame 0 and has none by frame 1, so
-      something kills it during that frame. Its target used to differ
-      there because of item 26; **item 26 is closed**, that map's frame 0
-      is 195/195, and the scout's target is now the original's — so this
-      is a clean question again.
-    - **`Farms::add`'s two draws** (`+0x23f`, `+0x25b` under
-      `Build::init+0x4ea` < `Objects::init_build+0x82`) at run20's frame
-      1, when the AI's new farm is created — two of that frame's **52
-      against 53**; the rest is one `Leader::produce_building` draw short
-      and the two spurious `do_move` draws of item 28. `docs/SYNC.md` §6.
+      something kills it during that frame.
+    - **`Leader::produce_building`'s draws.** Run20's frame 1 is one
+      short of the original's 43 (39 at `+0xc99`, 4 at `+0x1805`); the
+      fuzzed map's is **six over** its 33. Both sit inside one unmarked
+      `strategy_all` phase, so neither is a row yet — **mark the two
+      sites first**, per item 27.
+    - ~~**`Farms::add`'s two draws**~~ — done 2026-08-26, `docs/SYNC.md`
+      §3.8, `crates/sim/src/farms.rs`.
 
     None needs a new run. All are `rondata --diff` on a dump that exists.
 
@@ -300,20 +300,24 @@ in which case say so and take that. The story of each struck item is in
     market, anim, orders, farms, gaia}`; `docs/SYNC.md` §5.1. The check is
     `diff::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps`.
 
-28. **The `do_move` grid draw the sim spends and the original does not.**
-    Two at run20's frame 1 and one at run10's frame 3, all at
-    `Unit::do_move+0xe84` (`do_move@005f7b30:599`, the call at `005f89af`)
-    — the sim's gate before that draw opens where the original's does not.
-    The gate is `invalid_loc` on the order's cell, `path_recursion > 1`,
-    and `find_path`'s return (`docs/ORDERS.md` §4.4, `docs/SYNC.md` §6).
-    **Narrowed by the trace:** run21's 23,000 frames reach the original's
-    `+0xe84` exactly five times, under `do_attack_to`, `do_explore_to`,
-    `do_group_move`, `do_guard` and one `do_job` — and **never under a
-    gather's transit**, which is every case the sim gets wrong. So the
-    question is what a woodcutter's walk to a tile has that closes it.
-    Cheap and no run needed: the site is marked on both sides now, and
-    run20's frame 1 and run10's frame 3 are both on disk. The same three
-    units are run6's earliest position divergences (`0/2` at frame 4).
+28. ~~**The `do_move` grid draw the sim spends and the original does
+    not.**~~ — done 2026-08-26 for the gather's transit, which was
+    `find_path`'s missing pull-back; run10's frame-3 draw was never this.
+    `docs/ORDERS.md` §4.6, `docs/SYNC.md` §5 and §6. The scout's remains,
+    as item 29.
+
+29. **`go_around_building@005fc350`** — item 28's remainder, and a
+    mechanic rather than a fix. The last `Unit::do_move+0xe84` on any
+    capture is run20's frame 1, unit `1/0`: the AI scout's straight line
+    clips a *building* at tile `(201, 207)`, three tiles short of a
+    waypoint whose own tile is clear, so the pull-back has nothing to pull
+    and the march has nowhere to go. `docs/ORDERS.md` §4.6 has the shape —
+    a tile-edge walk pushing up to three `PathData`s (turn-in point, a
+    `flags 8` midpoint, the target tile centre, each `off % 0xc0 / 2 −
+    0x30` from the centre), a recursive `find_path` on the first, `return
+    0` when it verifies, and on failure `mo->dest = 0; masks &= ~8;
+    path_recursion = 10`. No run needed: run20 is on disk and both sides
+    are marked.
 
 ## How to maintain this file
 

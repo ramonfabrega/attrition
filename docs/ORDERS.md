@@ -1028,6 +1028,28 @@ return 0
 the cell grid `div_3_table[v >> 8]`) and 1 beyond. That is the whole reason a
 near move never touches `PathFinder`.
 
+**The pull-back is not a detail, and it was the simulation's last unimplemented
+line here (2026-08-26).** `while invalid_loc(goal tile, 0,0,0,0,0)` walks the
+*goal* back toward the unit one `(sinx, cosx)` step at a time — each component
+only ever clamped down to its own remainder, never re-aimed — and rewrites
+`mo->waypoint` and the path stack's top wherever they are the goal, so the
+pulled-back point is what the unit is really walking to from then on. It is
+what puts a **woodcutter at the edge of the forest** rather than inside it:
+forest refuses `invalid_loc`, so a citizen ordered at a forest tile is
+silently re-aimed at the last open point short of it, and the march that
+follows never enters a tile that would ask `go_around_building` for a detour.
+Without it the sim marched into the forest, gave up, and paid `do_move`'s grid
+draw (`docs/SYNC.md` §6, item 28) on a walk the original planned for free.
+Two further exits belong to the same block and are now modelled: the goal
+walking all the way back onto the unit sets `avoid = goal` and returns 1, and
+the loop breaks when both components have been clamped to zero.
+
+`crates/sim/src/orders.rs`, `Sim::find_path` — which now takes the move order
+by `&mut` for exactly this reason. What is still a seam is
+`go_around_building@005fc350` itself: a straight line that clips a *building*
+several tiles short of a clear goal has nothing for the pull-back to pull, and
+that is the one remaining `Unit::do_move+0xe84` on run20's frame 1.
+
 ~~**The march as written above has a fixed point, and it hung the simulation
 (2026-08-22).**~~ **Settled, 2026-08-23, by the pathfinder reading**
 (`docs/PATHFINDER.md` §9): the fixed point was a mistranscription, twice

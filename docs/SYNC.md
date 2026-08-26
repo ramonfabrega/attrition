@@ -256,8 +256,13 @@ is this:
   `FARMPIG` 0x195), one for the `y` offset and one for the `x`
   (`% 0x180 − 0xc0` from the building, so within a tile either way), then
   `Objects::init_unit(objects, **9**, type, x, y)` — whose `Guy::init_real`
-  draws once more. **Four draws an animal, twenty a pasture**, spent where
-  the farm is built: inside `Setup::build_empire` for a starting one.
+  draws once more. **Four draws an animal, twenty a pasture.** ~~Spent
+  where the farm is built~~ — **corrected 2026-08-26 (§3.8): the caller is
+  `Build::activate@00623e20` line 1209, not `Farms::add`**, so they are
+  spent where the farm *finishes*. For a starting pasture that is the same
+  breath inside `Setup::build_empire`, which is why the difference never
+  showed; for one a player builds it is the completion frame, and the
+  simulation models neither the draws nor the animals there.
 
 Each animal is stamped with the farm's `o` (`Animal+0x150`), the farm's
 `who` (`+0x152`) and **its own place in the five** (`+0x154`), and that
@@ -325,6 +330,90 @@ depends on `frame % 8` (so this site's cost changes every eight frames),
 and the cell count depends on the **fog grid**, which only a `DUMP_ALL`
 capture's `WORLD` block supplies — a harness world without one sees
 everything and spends the ring draws alone.
+
+### 3.8 The new farm — `Farms::add@008d8a40` (2026-08-26)
+
+Not a per-frame site: it fires **once, where a farm is placed**, and it is
+what run20's frame 1 spends two draws on that no other capture's frame 0–3
+does. `Build::init` calls it at `+0x4ea` — line 249 of the decompile,
+after `find_city` (line 116) and before the gather survey — gated on
+`is(FARM)` and on `Build::init`'s **`restore` argument being zero**, so a
+farm changing hands keeps the record it had.
+
+**The record is created with the site, not with the finished farm.** Its
+slot in the `Farms` array is chosen here (the first whose `valid` byte is
+clear, else an append), and that slot is the order `Farms::inc_time` walks
+in (§3.3). The building's own `BuildData+0x78` is written by `Build::init`
+**after** `Farms::add` returns, which is load-bearing: the farm being
+placed is invisible to the `count_farms` its own `Farms::add` runs.
+
+**The type.** `FarmType` is `-1` none, `0` wheat, `1` pasture, and the
+`+0xbd` byte also carries `4` for the ambience bit below. With `others`
+the city's other farm *buildings* (sites included,
+`CityData::count_buildings(FARM, exact, all)`) and `crops` the ones among
+them carrying a record whose type is not the pasture
+(`CityData::count_farms@007368c0`, `farm_type & 1 == 0`):
+
+| condition | type | draws |
+|---|---|---|
+| no city (`BuildData+0x72 < 0`) | `o & 1` — **an odd object number is a pasture** | none |
+| `others != crops` (the city already holds a pasture) | wheat, and on to the ambience | none |
+| `others == crops == 4` | pasture | none |
+| `get_nearest_farm_type` finds a farm within `0x480` | its `farm_type & 1`; wheat goes on to the ambience | none |
+| `others == crops == 3` | pasture | none |
+| otherwise | `rand & 3 == 3` → pasture, else wheat | **one**, `+0x128` |
+
+`FarmsData::get_nearest_farm_type@008d73a0` is
+`ObjectsData::find_any_building` over **every** owner, `FILTER_TYPE 0x1a1`,
+`FILTER_NOT_ME`, radius `0x480` (six tiles) — so farms cluster by type
+across a border as readily as inside one, and only the *nearest* answers.
+
+**The ambience, and the two draws.** A wheat farm whose city holds **more
+than one** crop farm, and none of whose city's farms already carries the
+bit, spends `+0x23f` and then `+0x25b` — `rand % 3` for `x`, then for `y`
+— places a `GraphicEvents::add_ambience(1, (corner + 1 + x) · 0xc0,
+(corner + 1 + y) · 0xc0, 135.0f, who, o)` and ors **`4`** into its own
+`farm_type`. The emitter is art; the bit is not, because it is what stops
+every later farm of that city taking another, and it is why run20's sixth
+farm reads `4`. The walk that looks for it is the city's building chain and
+any hit ends it, so its order cannot matter.
+
+Everything after that is the 5×5 corner-height sample, which is floats and
+takes no draw.
+
+**Confirmed on two maps, no capture needed** (run20 and the fuzzed map both
+had the pair on disk since 2026-08-25): run20's frame 1 draws 43 and 44 are
+`Farms::add+0x23f` and `+0x25b` under `Build::init+0x4ea <
+Objects::init_build+0x82`, the fuzzed map's are its 33rd and 34th, and the
+sim now spends both on both. The Great Lakes' frame 1 places a *woodcutter*
+and spends neither, on both sides. No coin appears on any capture: run20's
+new farm joins the city that holds the map's pasture, so `others != crops`
+settles the type without one.
+
+`crates/sim/src/farms.rs` (`Sim::farms_add`, `Sim::city_count_farms`,
+`Sim::nearest_farm_type`, `Farm::valid`, `farms::AMBIENCE`), called from
+`Sim::init_build`. The check is
+`diff::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair` and
+`farms::tests::farms_add_picks_the_type_and_hands_out_one_ambience_a_city`.
+
+**What this leaves open.**
+
+- **`Farms::remove`'s freed slot.** The original refills the first record
+  whose `valid` is clear; `Sim::farms_add` appends. Nothing on any capture
+  has demolished a farm, so nothing separates the two yet.
+- **A tie in `get_nearest_farm_type`.** `find_any_building` walks the
+  cell-circle table and keeps its running minimum with `<=`, so the *last*
+  candidate at the winning distance wins; `Sim::nearest_farm_type` walks
+  the building list and keeps the first. It parts from the original only
+  where two farms of **different types** sit at exactly the same distance.
+- **`Farms::add_animals` is called from `Build::activate@00623e20` (line
+  1209), not from `Farms::add`** — corrected here, and §3.6's "spent where
+  the farm is built" holds only because a *starting* pasture is placed and
+  activated in the same breath inside `Setup::build_empire`. A pasture a
+  player builds mid-game owes its twenty draws at the frame it **finishes**,
+  and the simulation stands its animals up only for a farm read off a dump
+  (`Sim::farm_add_animals` has no caller in `Sim::activate`). No capture
+  contains one.
 
 ## 4. Run12 attributed
 
@@ -589,7 +678,7 @@ Guy::inc_time+0x271` at draw 166.
 | 0 | **48** | 120 | the 52 idle anims, the two scouts' 23, the 4-draw tail — 48 is exactly sweep 2 + market 18 + birds 20 + herd 2 + farms 6 |
 | 1 | **54** | **54** | none: the script's eight, the placement, the AI scout's re-plan and the builder's walk, the three woodcutters, the seven farm draws — all of frame 1 is modelled |
 | 2 | 6 | 6 | none |
-| 3 | 7 | 6 | one: the sim's `do_move` draws its `% 5` for one of the three woodcutters' walks queued that frame and the original's does not — a gate in `do_move`'s planning path read differently (`docs/ORDERS.md` §4.4), and a lead for the run6 `0/2` divergence at frame 4 |
+| 3 | 7 | 6 | one — ~~the sim's `do_move` draws its `% 5` for one of the three woodcutters' walks queued that frame~~ **stale: re-measured 2026-08-26 and it is a `Unit::do_non_flat_gather+0x54b`, a citizen picking a tile a frame the original does not.** The `do_move` reading was right for run20 and is fixed there (§6); on this map it had already stopped being the cause. Still a lead for the run6 `0/2` divergence at frame 4 |
 
 With the words installed, run7's first script call takes the original's
 branch (steps 6 → 7 → 9 → 10 → 11, pinned), run6's AI trains its three
@@ -761,16 +850,52 @@ struck through and point there.
   under `do_attack_to` / `do_explore_to` / `do_group_move` / `do_guard`,
   and never under a gather's transit — so whatever opens the gate, a
   woodcutter's walk to a tile does not.
-- **`Farms::add`'s two draws.** Run20's frame 1 has
-  `Farms::add+0x23f` and `+0x25b` under `Build::init+0x4ea` <
-  `Objects::init_build+0x82` — the AI's new farm being created — and the
-  sim draws neither, which is two of that frame's three-way gap — the
-  other is one `Leader::produce_building` draw short and two spurious
-  `Unit::do_move+0xe84` (§4.2). `Farms::add@008d8a40` has at least one more draw than the
-  `farm_type` coin the reading for §3.6 found (`rand % 4 > 2` → the
-  pasture, taken only when the city's farm count leaves the choice open);
-  which two sites fire at a plain crop farm is unread. Cheap: run20 is on
-  disk and the trace names both offsets.
+
+  **Half closed, 2026-08-26, and the answer was upstream of the gate:
+  `find_path`'s pull-back.** `docs/ORDERS.md` §4.6 has carried it since the
+  first reading — *while `invalid_loc(goal tile, 0,0,0,0,0)`, pull the goal
+  back toward us by `(sx, cy)`, rewriting `mo->waypoint` and the stack top
+  where they are the goal* (`005fbaa6`–`005fbb56`) — and the simulation had
+  never implemented it. A woodcutter is sent at a **forest tile**, forest
+  refuses, and the original therefore sends it at the last open point short
+  of the forest and marches a line that never enters a bad tile. The sim
+  marched into the forest, found the tile invalid, had no
+  `go_around_building` to ask, and paid the grid draw for a detour the
+  original never needed. Landed in `Sim::find_path`; **run20's frame 1 went
+  from two of these to one, and neither the Great Lakes nor the fuzzed map
+  moved by a single draw or a single position** — the one change on the
+  three captures on disk. Run20's path-stack disagreements over four frames
+  fell 25 → 21.
+
+  **What remains is the AI scout's, and it is `go_around_building` proper.**
+  Run20's frame 1: unit `1/0` at `(38040, 40344)` walking to the wpath
+  waypoint `(38784, 39552)` clips a **building** at tile `(201, 207)` (mask
+  `0x6103`, `BLOCKED`) three tiles short of a goal whose own tile is clear —
+  so the pull-back has nothing to pull and the march has nowhere to go.
+  `go_around_building@005fc350` is the tile-edge walk that answers it
+  (`docs/ORDERS.md` §4.6: up to three `PathData`s, a recursive `find_path`
+  on the first, `return 0` when it verifies), and it is a mechanic of its
+  own rather than a fix.
+
+  **And the Great Lakes' frame-3 extra draw is no longer this one at all**
+  — it is a `Unit::do_non_flat_gather+0x54b`, a citizen picking a tile a
+  frame the original does not. Measured on the same commit with the
+  pull-back reverted, so it was already so before this session; the
+  attribution above ("the sim's `do_move` rolls its `% 5` for one of the
+  three woodcutters' walks") is stale for run10 and was only ever right for
+  run20.
+- ~~**`Farms::add`'s two draws.**~~ **Settled 2026-08-26 and modelled,
+  §3.8**, with no capture: they are the **ambience emitter's** `x` and `y`
+  offsets, spent once per *city* by the first wheat farm placed while the
+  city already holds more than one crop farm and no emitter. The
+  `farm_type` coin at `+0x128` is a third site and fires on none of the
+  three captures — run20's new farm joins the city that holds the map's
+  pasture, so `others != crops` settles its type without one. Original
+  text: Run20's frame 1 has `Farms::add+0x23f` and `+0x25b` under
+  `Build::init+0x4ea` < `Objects::init_build+0x82` — the AI's new farm
+  being created — and the sim draws neither, which is two of that frame's
+  three-way gap — the other is one `Leader::produce_building` draw short
+  and two spurious `Unit::do_move+0xe84` (§4.2).
 - **The pasture's twenty creation draws, and its animals' art** — §3.6's
   own open list: the offsets, the chicken/pig coin and the animation
   lengths all live in streams or dumps that no capture carries.

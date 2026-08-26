@@ -973,7 +973,7 @@ impl Sim {
         let speed = self.units[u].movement.speed;
         if !self.units[u].line_ok {
             self.units[u].path_recursion = 0;
-            let r = self.find_path(u, mo.waypoint);
+            let r = self.find_path(u, &mut mo);
             if r == 0 {
                 let top = self.units[u].path.last().copied();
                 match top {
@@ -1083,7 +1083,7 @@ impl Sim {
                 mo.waypoint = top.to;
                 self.units[u].tolerance = top.tolerance;
                 self.units[u].path_recursion = 0;
-                let r2 = self.find_path(u, top.to);
+                let r2 = self.find_path(u, &mut mo);
                 if r2 == 0 {
                     self.units[u].line_ok = true;
                 }
@@ -1129,8 +1129,9 @@ impl Sim {
     /// no-progress step is unreachable with `speed >= 3`, so the interim
     /// guard of 2026-08-22 is retired; the soak that found the hang stands
     /// guard over this rewrite.
-    fn find_path(&mut self, u: usize, goal: Pos) -> u8 {
+    fn find_path(&mut self, u: usize, mo: &mut MoveOrder) -> u8 {
         let here = self.units[u].pos;
+        let mut goal = mo.waypoint;
         if goal == here {
             return 0;
         }
@@ -1142,6 +1143,51 @@ impl Sim {
         }
         self.units[u].path_recursion = self.units[u].path_recursion.saturating_add(1);
         let speed = self.units[u].movement.speed.max(3);
+        // THE PULL-BACK (§4.6, `005fbaa6`-`005fbb56`), and it is what item 28
+        // was: a goal whose own tile refuses is walked *back toward us* one
+        // step at a time until it does not, and the waypoint and the path's
+        // top follow it wherever they are the goal. So a woodcutter sent at
+        // a forest tile is really sent at the last open point short of it,
+        // and the march that follows never enters the tile that would have
+        // asked `go_around_building` for a detour. The sim had no pull-back,
+        // marched into the forest, and paid `do_move`'s grid draw for a
+        // detour the original never needed.
+        //
+        // The step is `sinx/cosx` of the bearing to the goal, taken once and
+        // then only ever clamped down — never re-aimed, unlike the march's.
+        let ang = find_angle(goal.x - here.x, goal.y - here.y);
+        let mut back_x = movement::sin_component(ang, speed);
+        let mut back_y = movement::cos_component(ang, speed);
+        while self.invalid_loc(u, goal.tile(), false, false, false, false, false) != 0 {
+            let (dx, dy) = (goal.x - here.x, goal.y - here.y);
+            if dx.abs() < back_x.abs() {
+                back_x = dx;
+            }
+            if dy.abs() < back_y.abs() {
+                back_y = -dy;
+            }
+            if mo.waypoint == goal {
+                mo.waypoint = Pos::new(mo.waypoint.x - back_x, mo.waypoint.y + back_y);
+            }
+            if let Some(top) = self.units[u].path.last_mut()
+                && top.to == goal
+            {
+                top.to = Pos::new(top.to.x - back_x, top.to.y + back_y);
+            }
+            goal = Pos::new(goal.x - back_x, goal.y + back_y);
+            // `sinx` and `cosx` of a bearing are never both zero at speed
+            // >= 3, so this only fires once both have been clamped to a
+            // remainder of zero — the goal has arrived at us.
+            if back_x == 0 && back_y == 0 {
+                break;
+            }
+        }
+        // The goal walked all the way back onto us: there is nowhere to go,
+        // and the cell is marked so the pathfinder does not offer it again.
+        if goal == here {
+            self.units[u].avoid = Some(goal);
+            return 1;
+        }
         let mut at = here;
         let (mut dx, mut dy) = (goal.x - at.x, goal.y - at.y);
         let mut manh = dx.abs() + dy.abs();

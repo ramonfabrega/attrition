@@ -42,11 +42,27 @@ pub struct Farm {
     /// crop's art and change nothing here: run20's six farms read
     /// `1, 0, 0, 0, 0, 4`. `docs/SYNC.md` §3.6.
     pub farm_type: u8,
+    /// Whether this building has a record at all — `BuildData+0x78 >= 0`,
+    /// the slot [`Sim::farms_add`] returns, which `Build::init` writes back
+    /// only **after** `Farms::add` returns. So the farm being placed is
+    /// invisible to the `count_farms` its own `Farms::add` runs, and that
+    /// off-by-one is what decides the type: a city's first farm reaches the
+    /// coin because `others` and `crops` are both zero.
+    pub valid: bool,
 }
 
 /// `FarmType`'s pasture: no crop cells, and five animals of owner 9
 /// ([`Sim::farm_add_animals`]).
 pub const ANIMAL_FARM: u8 = 1;
+
+/// The bit `Farms::add` ors into `farm_type` when it hands the farm the
+/// city's one ambience emitter (`docs/SYNC.md` §3.8). It is the only thing
+/// the two draws leave behind, it is what stops a second farm of the same
+/// city taking another, and it is what run20's sixth farm reads `4` for.
+pub const AMBIENCE: u8 = 4;
+
+/// `FarmsData::get_nearest_farm_type`'s radius: six tiles, in world units.
+pub const NEAREST_FARM_RANGE: i32 = 0x480;
 
 /// What `Farms::add_animals@008d8f30` stamps on each of a pasture's five
 /// animals: the farm it belongs to (`Animal+0x150` its `o`, `+0x152` its
@@ -75,6 +91,11 @@ pub const THINK_PERIOD: i64 = 128;
 pub const SITE_CHANCE: &str = "Farms::inc_time+0x1ae";
 pub const SITE_SPROUT: &str = "Farms::inc_time+0x1de";
 pub const SITE_ANIMAL_DIR: &str = "Animal::think_farm_animal+0x142";
+/// `Farms::add`'s pasture coin, and the ambience emitter's two offsets —
+/// the `x` first, then the `y` (`docs/SYNC.md` §3.8).
+pub const SITE_TYPE_COIN: &str = "Farms::add+0x128";
+pub const SITE_AMBIENCE_X: &str = "Farms::add+0x23f";
+pub const SITE_AMBIENCE_Y: &str = "Farms::add+0x25b";
 
 impl Farm {
     /// `Farms::grow(farm, dx, dy)`: the farmer's add. The cell is growing;
@@ -153,9 +174,166 @@ impl Farm {
 }
 
 impl Sim {
-    /// `Farms::add_animals@008d8f30`, from `Farms::add` when the new farm's
-    /// `farm_type` is [`ANIMAL_FARM`]: **five animals of owner 9**, each
-    /// stamped with the farm and its slot in it. Returns the units.
+    /// `Farms::add@008d8a40`, from `Build::init+0x4ea` — the farm's record
+    /// is created the moment the *site* is placed, not when it finishes,
+    /// and `Build::init`'s gate is `is(FARM) && !restore`
+    /// (`docs/SYNC.md` §3.8).
+    ///
+    /// Two things happen here and nothing else the simulation can see: the
+    /// `farm_type` is chosen, and the city's one ambience emitter is
+    /// handed out. Both can draw.
+    ///
+    /// **The type** (`FarmType`: `-1` none, `0` wheat, `1` pasture). Let
+    /// `others` be the city's other farm *buildings*, sites included, and
+    /// `crops` the ones among them that already carry a record whose type
+    /// is not the pasture:
+    ///
+    /// - **No city** — a pasture when the object index is odd, a crop when
+    ///   it is even, and no ambience either way (`crops` is zero).
+    /// - **`others != crops`** — the city already holds a pasture, so this
+    ///   one is a crop, and it goes on to the ambience.
+    /// - **`others == crops == 4`** — the fifth is a pasture.
+    /// - Otherwise the **nearest farm within six tiles**, of any owner,
+    ///   decides ([`Sim::nearest_farm_type`]); a pasture there ends it.
+    /// - **`others == crops == 3`** — the fourth is a pasture.
+    /// - Otherwise **one draw**, and `rand & 3 == 3` makes it a pasture.
+    ///
+    /// **The ambience.** A crop farm in a city with more than one crop
+    /// farm, and no farm of that city already carrying [`AMBIENCE`],
+    /// spends **two draws** — an `x` third of a tile and then a `y` one —
+    /// on `GraphicEvents::add_ambience`, and takes the bit. The emitter
+    /// itself is art; the two draws and the bit are the whole of what
+    /// reaches the sync stream, and they are what run20's frame 1 spends
+    /// at `+0x23f` and `+0x25b` when the AI's fourth farm is placed.
+    ///
+    /// The 5x5 corner heights `add` samples afterwards are floats, are the
+    /// renderer's, and take no draw.
+    pub(crate) fn farms_add(&mut self, b: usize) {
+        // The slot. `Farms::add` returns the first record whose `valid` byte
+        // is clear and appends when there is none, and that slot is the
+        // order `Farms::inc_time` walks the farms in — so it is fixed here,
+        // at *placement*, not at activation. A slot freed by `Farms::remove`
+        // is refilled by the original and appended to here; nothing on any
+        // capture has demolished a farm (`docs/SYNC.md` §3.8).
+        if !self.farm_order.contains(&b) {
+            self.farm_order.push(b);
+        }
+        let (o, city) = {
+            let bd = &self.buildings[b];
+            (i32::from(bd.index), bd.city)
+        };
+        // `Build::init` line 250: `BuildData+0x78 = Farms::add(...)`, *after*
+        // the call. Everything below therefore counts the city's **other**
+        // farms, never this one.
+        debug_assert!(!self.buildings[b].farm.valid, "a farm gets one record");
+        let Some(c) = city else {
+            // `+0x72 < 0`: `Build::init` ran `find_city` and it found none.
+            // The odd/even coin on the object's own index is the original's,
+            // and it is not a draw.
+            self.buildings[b].farm.farm_type = u8::from(o & 1 != 0);
+            self.buildings[b].farm.valid = true;
+            return;
+        };
+        let others = self.count_buildings(c, crate::build::Ident::Farm, false) - 1;
+        let crops = self.city_count_farms(c);
+        let farm_type = if others != crops {
+            0
+        } else if others == 4 {
+            ANIMAL_FARM
+        } else if let Some(t) = self.nearest_farm_type(b) {
+            t
+        } else if others == 3 {
+            ANIMAL_FARM
+        } else {
+            self.mark(SITE_TYPE_COIN);
+            u8::from(self.rng.roll() & 3 > 2)
+        };
+        self.buildings[b].farm.farm_type = farm_type;
+        self.buildings[b].farm.valid = true;
+        if farm_type != 0 {
+            return;
+        }
+        // `1 < count_farms`, and no farm of this city holding the bit
+        // already. The walk is the city's building chain and any hit ends
+        // it, so the order it is walked in cannot matter.
+        if crops <= 1 {
+            return;
+        }
+        let taken = self
+            .city_members(c)
+            .any(|m| self.is_farm_record(m) && self.buildings[m].farm.farm_type & AMBIENCE != 0);
+        if taken {
+            return;
+        }
+        self.mark(SITE_AMBIENCE_X);
+        let _x = self.rng.roll() % 3;
+        self.mark(SITE_AMBIENCE_Y);
+        let _y = self.rng.roll() % 3;
+        self.buildings[b].farm.farm_type |= AMBIENCE;
+    }
+
+    /// A building `count_farms` and the ambience walk both count: alive, a
+    /// farm, and carrying a farm record. The original's third test is
+    /// `BuildData+0x78 >= 0` — the slot `Farms::add` returned — which every
+    /// farm has from `Build::init` onwards and nothing else ever has.
+    fn is_farm_record(&self, b: usize) -> bool {
+        self.buildings[b].alive
+            && self.building_ident(b) == crate::build::Ident::Farm
+            && self.buildings[b].farm.valid
+    }
+
+    /// The city's building chain — the head and its members, which is the
+    /// order `CityData`'s walks take.
+    fn city_members(&self, c: usize) -> impl Iterator<Item = usize> + '_ {
+        let city = &self.cities[c];
+        std::iter::once(city.building).chain(city.members.iter().copied())
+    }
+
+    /// `CityData::count_farms@007368c0`: the city's farms that are **not**
+    /// pastures — `farm_type & 1 == 0`, so an ambience-carrying crop (`4`)
+    /// counts and the pasture does not. A farm whose slot is out of range
+    /// counts too; here every farm has a record, so that arm is dead.
+    ///
+    /// It is deliberately not `count_buildings`: that one compares the type
+    /// index exactly, this one asks the record.
+    pub fn city_count_farms(&self, c: usize) -> i32 {
+        self.city_members(c)
+            .filter(|&m| self.is_farm_record(m) && self.buildings[m].farm.farm_type & 1 == 0)
+            .count() as i32
+    }
+
+    /// `FarmsData::get_nearest_farm_type@008d73a0`: the nearest farm within
+    /// [`NEAREST_FARM_RANGE`] of this one, **of any owner** and not itself,
+    /// answers `farm_type & 1`; `None` where there is none.
+    ///
+    /// The original reaches it through `ObjectsData::find_any_building`,
+    /// which walks the cell-circle table and keeps the running minimum with
+    /// `<=`, so the *last* candidate at the winning distance wins. This
+    /// walks the building list in index order and keeps the first, which
+    /// parts from the original only when two farms of different types sit
+    /// at exactly the same distance — `docs/SYNC.md` §3.8's open list.
+    pub fn nearest_farm_type(&self, b: usize) -> Option<u8> {
+        let at = self.buildings[b].pos;
+        let mut best: Option<(i32, u8)> = None;
+        for (m, bd) in self.buildings.iter().enumerate() {
+            if m == b || !self.is_farm_record(m) {
+                continue;
+            }
+            let d = crate::world::vector_dist(bd.pos.x - at.x, bd.pos.y - at.y);
+            if d > NEAREST_FARM_RANGE {
+                continue;
+            }
+            if best.is_none_or(|(seen, _)| d < seen) {
+                best = Some((d, bd.farm.farm_type & ANIMAL_FARM));
+            }
+        }
+        best.map(|(_, t)| t)
+    }
+
+    /// `Farms::add_animals@008d8f30`, from `Build::activate@00623e20` (line
+    /// 1209) once the farm's `farm_type` is [`ANIMAL_FARM`] and its building
+    /// is complete: **five animals of owner 9**, each stamped with the farm
+    /// and its slot in it. Returns the units.
     ///
     /// The original spends **four draws each** — a coin (`& 1`: even the
     /// chicken, odd the pig), the `y` and then the `x` offset
@@ -385,13 +563,21 @@ mod tests {
         });
         let b = s.init_build(0, t, Pos::new(5 * 192 + 96, 5 * 192 + 96), false);
         s.activate(b, false, true);
+        s.buildings[b].farm.farm_type = 0;
         (s, b)
     }
 
     /// Another complete farm of the same type at a tile.
+    ///
+    /// There is no city on this world, so [`Sim::farms_add`] falls to the
+    /// cityless coin — a pasture on an odd object index — and the farms the
+    /// capture pins are the original's, which are crops in a city. The type
+    /// is set back here rather than founding a city, so these pins keep
+    /// measuring `Farms::inc_time` and nothing else.
     fn add_farm(s: &mut Sim, t: usize, tx: i32, ty: i32) {
         let b = s.init_build(0, t, Pos::new(tx * 192 + 96, ty * 192 + 96), false);
         s.activate(b, false, true);
+        s.buildings[b].farm.farm_type = 0;
     }
 
     /// A pasture — `farm_type == 1` — and its five animals of owner 9:
@@ -588,6 +774,125 @@ mod tests {
             }
             assert_eq!(b.farm.state, want, "farm {f}");
         }
+    }
+
+    /// A city on the flat world, so [`Sim::farms_add`] has one to count.
+    fn city_sim() -> (Sim, usize, usize) {
+        let (mut s, first) = farm_sim();
+        let t = s.buildings[first].ty.unwrap();
+        let village = s.add_build_type(build::BuildType {
+            ident: Ident::Village,
+            x_size: 7,
+            y_size: 7,
+            job_time: 100,
+            hits: 1000,
+            ..build::BuildType::default()
+        });
+        // The world is 16 cells square; the farm of `farm_sim` sits at tile
+        // (5, 5) and would join this city, which is not what the table below
+        // counts, so it goes.
+        s.buildings[first].alive = false;
+        s.farm_order.clear();
+        let c = s.init_build(0, village, Pos::new(20 * 192 + 96, 20 * 192 + 96), false);
+        s.activate(c, false, true);
+        let city = s.buildings[c].city.expect("a finished city has a record");
+        (s, t, city)
+    }
+
+    /// `Farms::add`'s branch table and its two draw sites (`docs/SYNC.md`
+    /// §3.8) — the two draws run20's frame 1 spends and the sim did not.
+    ///
+    /// Five placements, each naming what it costs:
+    ///
+    /// 1. **No city** — the coin is the object index's own parity, and it
+    ///    takes no draw either way.
+    /// 2. **The city's first farm** — nothing to copy and nothing near, so
+    ///    `Farms::add` rolls: one draw at `+0x128`.
+    /// 3. **The second, beside the first** — `get_nearest_farm_type` answers
+    ///    and there is no roll; one crop is not "more than one", so no
+    ///    ambience. **No draw at all.**
+    /// 4. **The third** — the nearest still answers, and now the city has
+    ///    two crops: the emitter's **two draws**, and the farm keeps
+    ///    [`AMBIENCE`].
+    /// 5. **The fourth** — the city's emitter is taken, so the walk ends on
+    ///    the third farm and nothing is spent.
+    #[test]
+    fn farms_add_picks_the_type_and_hands_out_one_ambience_a_city() {
+        let (mut s, t, city) = city_sim();
+
+        // 1. Cityless: far outside the city radius, so `find_city` finds
+        //    none and the parity of `o` decides. Neither draws.
+        let before = s.rng.seed;
+        let lone = s.init_build(0, t, Pos::new(2 * 192 + 96, 2 * 192 + 96), false);
+        let lone2 = s.init_build(0, t, Pos::new(2 * 192 + 96, 6 * 192 + 96), false);
+        assert_eq!(s.buildings[lone].city, None, "outside every city radius");
+        assert_eq!(
+            s.buildings[lone].farm.farm_type,
+            u8::from(s.buildings[lone].index & 1 != 0)
+        );
+        assert_eq!(
+            s.buildings[lone2].farm.farm_type,
+            u8::from(s.buildings[lone2].index & 1 != 0)
+        );
+        assert_ne!(
+            s.buildings[lone].farm.farm_type, s.buildings[lone2].farm.farm_type,
+            "consecutive object numbers, so one of the two is the pasture"
+        );
+        assert_eq!(s.rng.seed, before, "the cityless coin is not a draw");
+        s.buildings[lone].alive = false;
+        s.buildings[lone2].alive = false;
+
+        // 2. The city's first farm: the roll.
+        s.trace_phases = true;
+        let f1 = s.init_build(0, t, Pos::new(18 * 192 + 96, 20 * 192 + 96), false);
+        assert_eq!(s.buildings[f1].city, Some(city), "inside the city");
+        assert_eq!(
+            s.phase_marks
+                .iter()
+                .map(|m| m.0.as_str())
+                .collect::<Vec<_>>(),
+            vec![SITE_TYPE_COIN],
+            "the first farm of a city rolls for its type"
+        );
+        // The seed is the harness's own, so which side the coin lands on is
+        // not the assertion; that it is a legal `FarmType` is.
+        assert!(s.buildings[f1].farm.farm_type <= ANIMAL_FARM);
+        s.buildings[f1].farm.farm_type = 0;
+
+        // 3. The second, four tiles off: copied from the first, no draw.
+        s.phase_marks.clear();
+        let f2 = s.init_build(0, t, Pos::new(22 * 192 + 96, 20 * 192 + 96), false);
+        assert_eq!(s.buildings[f2].city, Some(city));
+        assert_eq!(s.buildings[f2].farm.farm_type, 0, "the neighbour's type");
+        assert!(s.phase_marks.is_empty(), "one crop is not more than one");
+
+        // 4. The third: the ambience pair, and the bit.
+        s.phase_marks.clear();
+        let f3 = s.init_build(0, t, Pos::new(20 * 192 + 96, 22 * 192 + 96), false);
+        assert_eq!(
+            s.phase_marks
+                .iter()
+                .map(|m| m.0.as_str())
+                .collect::<Vec<_>>(),
+            vec![SITE_AMBIENCE_X, SITE_AMBIENCE_Y],
+            "x then y, and no coin"
+        );
+        assert_eq!(s.buildings[f3].farm.farm_type, AMBIENCE);
+        assert_eq!(
+            s.city_count_farms(city),
+            3,
+            "an emitter's crop still counts"
+        );
+
+        // 5. The fourth: the emitter is taken.
+        s.phase_marks.clear();
+        let f4 = s.init_build(0, t, Pos::new(20 * 192 + 96, 18 * 192 + 96), false);
+        assert_eq!(s.buildings[f4].farm.farm_type, 0);
+        assert!(s.phase_marks.is_empty(), "one emitter a city");
+
+        // And the list is joined at placement, in placement order — these
+        // four have never been activated.
+        assert_eq!(s.farm_order, vec![lone, lone2, f1, f2, f3, f4]);
     }
 
     /// A site (not yet active) and a pasture draw nothing; a farm with

@@ -3060,6 +3060,89 @@ mod tests {
         }
     }
 
+    /// **Run20's frame 1** — the AI's fourth farm, and the walk that stopped
+    /// asking for a detour (items 25 and 28; `docs/SYNC.md` §3.8, §6).
+    ///
+    /// Frame 1 is not draw-for-draw yet, so this is a **ratchet on the two
+    /// sites the session moved** rather than a whole-frame `assert_eq!`:
+    ///
+    /// - `Farms::add`'s **ambience pair**, one `+0x23f` and one `+0x25b`,
+    ///   and **no** `+0x128` — the AI's new farm lands in the city that
+    ///   already holds the map's pasture, so `others != crops` decides the
+    ///   type with no coin, and the city has two crops and no emitter yet.
+    ///   The sim spent neither of these until `Sim::farms_add` existed.
+    /// - `Unit::do_move+0xe84` **once**, where it used to be twice and the
+    ///   original spends it not at all. The one that went was the
+    ///   woodcutter's, closed by `find_path`'s pull-back (`docs/ORDERS.md`
+    ///   §4.6): its goal is a forest tile, and the original walks the goal
+    ///   back out of the forest before marching. **The one that remains is
+    ///   the AI scout's**, whose straight line clips a *building* several
+    ///   tiles short of its waypoint — `go_around_building@005fc350`, still
+    ///   a seam. When that lands this row is `0` and the assertion below
+    ///   must be edited to say so.
+    ///
+    /// The residue in the total is one `Leader::produce_building` draw the
+    /// sim is short (39 + 4 against our 42), which happens to cancel the
+    /// stray `do_move` — so the frame reads 53 against 53 and a count would
+    /// call it done. That is exactly what §5.1 was built for.
+    #[test]
+    fn run20_s_frame_1_spends_the_farm_s_ambience_pair() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace)) = (
+            dump("gamelog-run20-islands-dumpall.txt"),
+            trace("rontrace-run20.log"),
+        ) else {
+            eprintln!("skipping: set RON_GAMELOG_DIR");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+
+        // Frame 0 through the harness, so frame 1 starts on the original's
+        // own word and its clocks; then frame 1 raw, so the marks survive.
+        built.tick();
+        built.sim.tick();
+        let ours = mark_sites(&built.sim.phase_marks, built.sim.rng.seed).expect("our sites");
+        let theirs = trace.labels(1);
+        assert_eq!(theirs.len(), 53, "the original's frame 1");
+
+        let count = |v: &[String], site: &str| v.iter().filter(|l| *l == site).count();
+        for (site, n) in [
+            (sim::farms::SITE_AMBIENCE_X, 1),
+            (sim::farms::SITE_AMBIENCE_Y, 1),
+            (sim::farms::SITE_TYPE_COIN, 0),
+        ] {
+            assert_eq!(count(&theirs, site), n, "the original's {site}");
+            assert_eq!(count(&ours, site), n, "ours: {site}");
+        }
+        // And they are adjacent, x before y, which a count cannot say.
+        let at = ours
+            .iter()
+            .position(|l| l == sim::farms::SITE_AMBIENCE_X)
+            .expect("the x offset");
+        assert_eq!(
+            ours.get(at + 1).map(String::as_str),
+            Some(sim::farms::SITE_AMBIENCE_Y)
+        );
+        assert_eq!(
+            theirs.iter().position(|l| l == sim::farms::SITE_AMBIENCE_X),
+            Some(43),
+            "the original spends them right after `produce_building`'s 43"
+        );
+
+        // The grid draw: never the original's, once ours.
+        assert_eq!(count(&theirs, sim::orders::SITE_MOVE_GRID), 0);
+        assert_eq!(
+            count(&ours, sim::orders::SITE_MOVE_GRID),
+            1,
+            "the scout's building clip — `go_around_building` is the seam"
+        );
+    }
+
     /// Run20's AI scout at frame 0 — `Unit::think_scout`'s ten draws, on
     /// the original's own stream (`docs/SCOUT.md` §10).
     ///

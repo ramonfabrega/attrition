@@ -2411,3 +2411,94 @@ diagnosis, and the diagnosis was a line of our own code rather than
 anything unread in the original. The corollary for the queue: a capture
 booked to settle a question is worth re-examining once the instrument
 improves, because the instrument may already be able to answer it.
+
+
+## 2026-08-26 — items 25 and 28: the farm's emitter, and the goal that walks backwards
+
+Two of run20's frame-1 draws were `Farms::add`'s, two were `do_move`'s that
+the original never spends, and both were settled from the export and the
+dumps already on disk. No capture was booked. Frame 1 went 52/53 → 53/53 on
+run20; the Great Lakes and the fuzzed map did not move by a single draw or a
+single position, which is how the second change was checked.
+
+### `Farms::add`'s two draws are an ambience emitter, one to a city
+
+`docs/SYNC.md` §3.8 is the new section. The offsets the trace named —
+`+0x23f` and `+0x25b` under `Build::init+0x4ea` — are `rand % 3` for `x` and
+then for `y`, a third of a tile each, feeding
+`GraphicEvents::add_ambience(1, …, 135.0f, who, o)`. The emitter is art. What
+is **not** art is the `4` it ors into `farm_type`, because the walk that
+precedes the pair looks for exactly that bit on any farm of the same city and
+gives up if it finds one: **one emitter a city, ever**, and it is why run20's
+sixth farm reads `4` in the dump.
+
+The rest of `Farms::add` is the `farm_type` decision, and it is a six-row
+table (§3.8) rather than the coin §3.6 had found. The coin at `+0x128` is the
+*last* row, and it fires on none of the three captures: run20's new farm joins
+the city that already holds the map's pasture, so `others != crops` settles it
+with no draw. Two rows are worth naming for how odd they are — a farm with no
+city takes its type from **the parity of its own object number**, and a city
+whose farms are all crops turns the fourth or fifth into a pasture outright.
+
+**The off-by-one that decides everything.** `Build::init` writes the
+building's `BuildData+0x78` — the record's slot — *after* `Farms::add`
+returns, so the farm being placed is invisible to the `count_farms` its own
+`Farms::add` runs. The first implementation missed that, counted the new farm
+among the city's crops, and took the `others != crops` row for a city's very
+first farm instead of the coin. `Farm::valid` is that field now, and the test
+that caught it is the one written for the table.
+
+Two attributions were wrong in the documents and are corrected in place.
+`Farms::add` runs from `Build::init`, so a farm's record and its `Farms` slot
+are created **with the site**, not at activation — the simulation now joins
+the list there, which is the order `Farms::inc_time` walks. And
+`Farms::add_animals` is called from `Build::activate` line 1209, not from
+`Farms::add`: §3.6's "spent where the farm is built" survives only because a
+starting pasture is placed and activated in the same breath.
+
+### Item 28 was a line `docs/ORDERS.md` had carried since the first reading
+
+`find_path`'s pull-back: *while the goal's own tile refuses `invalid_loc`,
+walk the goal back toward the unit one step at a time, rewriting `mo->waypoint`
+and the path stack's top wherever they are the goal.* §4.6 had it. The
+simulation had never implemented it.
+
+What it does is put a **woodcutter at the edge of the forest**. Forest refuses
+`invalid_loc`, so a citizen ordered at a forest tile is silently re-aimed at
+the last open point short of it, and the march that follows never enters a bad
+tile. Without the pull-back the sim marched into the forest, found the tile
+invalid, had no `go_around_building` to ask, and paid `do_move`'s grid draw for
+a detour the original never needed. That is the whole of one of run20's two
+spurious `+0xe84` draws, and run20's path-stack disagreements over four frames
+fell 25 → 21 with it.
+
+The **other** one is the AI scout's, and it is not the same bug: unit `1/0`'s
+straight line clips a *building* at tile `(201, 207)` three tiles short of a
+waypoint whose own tile is clear, so the pull-back has nothing to pull.
+`go_around_building@005fc350` is what answers that, and it is a mechanic of its
+own rather than a fix.
+
+### A stale attribution, caught by reverting rather than by reading
+
+The Great Lakes' frame-3 extra draw has been written down as this same
+`do_move` gate since 2026-08-24. It is not: it is a
+`Unit::do_non_flat_gather+0x54b`, a citizen picking a tile a frame early.
+That was established by building the *same* commit with the pull-back
+reverted and diffing the fold — which showed byte-identical output on that
+map — so it had already stopped being `do_move` before this session began.
+`docs/SYNC.md` §5's table and §6's frame-3 entry both say so now.
+
+The general point is small and worth keeping: **when a change is meant to
+move one number, run the captures it is *not* meant to move, on both sides of
+the change.** It cost two builds and it converted "probably no regression"
+into "identical on two maps, and by the way the third's item was stale".
+
+### What is left of frame 1
+
+Run20 reads 53 against 53 and **is still wrong**: one `Leader::produce_building`
+draw short (39 + 4 against our 42), one `do_move+0xe84` over. The two cancel.
+A count would call the frame done; §5.1's sequence is what does not, and
+`diff::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair` pins each of
+the two residues as a row that has to be edited when it goes. The fuzzed map
+is blunter about it — 51 against 45, with `produce_building` six over, one
+gather draw short and a farm sprout the original does not spend.

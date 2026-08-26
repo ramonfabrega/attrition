@@ -832,10 +832,11 @@ impl Sim {
     /// exists, placed and unstarted; its footprint is reserved, its
     /// construction time frozen, its hit points at the site's first frame,
     /// and — if it is not a city — its city chosen. `restore` is the
-    /// "re-creating, not building" flag `Wall::swap_team` passes; nothing this
-    /// mechanic models reads it (the original skips a build particle and the
-    /// `buildings_built` tally), so it is accepted and ignored.
-    pub fn init_build(&mut self, who: Player, ty: usize, pos: Pos, _restore: bool) -> usize {
+    /// "re-creating, not building" flag `Wall::swap_team` passes; besides the
+    /// build particle and the `buildings_built` tally the original skips, it
+    /// is the gate on [`Sim::farms_add`] (`Build::init` line 247), so a farm
+    /// changing hands keeps the record it already had.
+    pub fn init_build(&mut self, who: Player, ty: usize, pos: Pos, restore: bool) -> usize {
         let pos = self.snap_center(ty, pos);
         let bt = self.build_types[ty].clone();
         let capacity = crate::build::queue_capacity(&self.build_types, ty);
@@ -903,6 +904,12 @@ impl Sim {
         // Membership is decided at placement, restoring or not.
         if !build::is_city(&self.build_types, ty) {
             self.find_city(b);
+        }
+        // `Build::init` line 249, after `find_city` and before the gather
+        // survey: a farm's record is created with the *site*, and the city
+        // it just joined is what `Farms::add` counts.
+        if !restore && self.build_types[ty].ident == Ident::Farm {
+            self.farms_add(b);
         }
         // `Build::init@00629740` line 275: `gather_max = max_gatherers(type,
         // o, who, corner)` — a flat type answers 1 without looking at the
@@ -1198,8 +1205,9 @@ impl Sim {
             self.buildings[b].ty = Some(town);
             self.buildings[b].combat = Some(self.build_types[town].combat.unwrap_or_default());
         }
-        // `Farms::add`: the farm joins the `Farms` list in activation
-        // order, which is the order its per-frame draw is taken in.
+        // The `Farms` list is joined at *placement* (`Sim::farms_add`), not
+        // here — `Farms::add` runs from `Build::init`. This catches a farm
+        // the harness stood up from a dump without going through it.
         if self.build_types[ty].ident == Ident::Farm && !self.farm_order.contains(&b) {
             self.farm_order.push(b);
         }

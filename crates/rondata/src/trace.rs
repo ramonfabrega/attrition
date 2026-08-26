@@ -130,6 +130,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Farms::inc_time@008d8600` — the crop clock.
     (0x008d_87ae, None, sim::farms::SITE_CHANCE),
     (0x008d_87de, None, sim::farms::SITE_SPROUT),
+    // `Farms::add@008d8a40` — the pasture coin and the ambience emitter.
+    (0x008d_8b68, None, sim::farms::SITE_TYPE_COIN),
+    (0x008d_8c7f, None, sim::farms::SITE_AMBIENCE_X),
+    (0x008d_8c9b, None, sim::farms::SITE_AMBIENCE_Y),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.
