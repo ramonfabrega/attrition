@@ -801,3 +801,74 @@ each case the finding arrived by following a contradiction in a capture
 rather than by working down a list. A ratifier that reports "the brief was
 the limit, and here is what lies past it" has done the job; one that
 reports nine confirmations has been fenced in.
+
+**Amended 2026-08-26 — Opus drives; Fable is for the first read, the
+overarching, and a *batched* ratification.**
+
+Two further corrections, agreed after the group orders' slot table found
+three of its own audit's accepted verdicts wrong (entry 23).
+
+*Who drives.* The arrangement above reads as though Fable is the careful
+half and Opus the bulk half. That is no longer how the work has gone: Opus
+carries implementation, diffs, widenings, adjudication and the ordinary
+reading end to end, and has produced the sharpest corrections of the last
+three sessions — including three overturned verdicts that a Fable
+ratification had confirmed. So the split is stated the other way round.
+**Opus drives.** Fable is chosen for a **first** decompile reading of an
+unread mechanic, for overarching or genuinely new design, and for the
+ratification. Never Sonnet, and the choice is still said in user-visible
+text and verified from the transcript.
+
+*When ratification runs.* "Before the next mechanic builds on them" made
+every mechanic wait on a pass of its own, and paid a whole context to
+confirm a handful of rows. Markers and code-changing verdicts now
+**accumulate on a ledger and are ratified in batches**, over what is
+marked. A mechanic is not blocked waiting for one; nothing marked is
+quietly dropped. **How large a batch, and how often, is deliberately left
+open** — the cadence has not been trialled enough to fix, and writing a
+number down now would be prescribing rather than recording. What the
+ledger already holds is the older Fable debt from the AI, transport and
+army audits.
+
+## 23. Where a reading's product is a formula, the implementation is a pass of the audit
+
+**Agreed 2026-08-26**, from `docs/QUEUE.md` item 17 — the group orders'
+slot table.
+
+The audit method assumes a reading can be checked by another reading. For
+*predicates* that holds, and the record shows it: which kinds are exempt,
+which array a level indexes, which step a multiplier belongs to. For
+**arithmetic** it does not, and the slot table is the case that proves it.
+
+Three of that audit's verdicts were wrong, and all three sat under a
+single adjudicated row that read "additions — the document has a four-line
+sketch and nothing else, **as cited in A**". Every citation in it was
+real. Nobody re-derived what the citations computed, because re-deriving a
+formula *is* implementing it, and an adjudicator working down a list of
+rows has no reason to stop and do that. A Fable ratification then spent
+its budget confirming a loop the compiler had already contradicted — the
+listing showed a local written only on one arm, and the reading had
+rewritten it as written on both.
+
+**So: a mechanic whose reading yields arithmetic gets its implementation
+before the ratification pass, or in parallel with the reading.** The
+implementation is not the audit's output, it is one of its passes — the
+one that cannot accept a citation in place of a result. A mechanic whose
+reading yields predicates and call graphs does not have to wait; the
+existing order is fine there.
+
+**This is a default, not a gate.** The general shape it belongs to is the
+one already written down as "prefer a diff to a reading": tools,
+captures and implementations earn their place *ahead* of reads wherever
+they can, because each of them can fail and prose cannot. The corollary is
+smaller and recurs more often — **grep the dump before booking a
+reading**: the same session found an open question booked as a reading
+whose answer the original had been printing beside the record all along.
+
+**The evidence.** Eleven deliberate breakages of the implemented table,
+ten red on the first try; the three overturned verdicts
+(`docs/audit/2026-08-25-groups.md`, "Fourth pass"); two further findings
+no reading could have reached, one of which is a genuine
+non-reproducibility in the original — a wedge's row count is seeded from
+uninitialised stack. None of that came from reading the functions again.
+It came from writing them out and running the diff.

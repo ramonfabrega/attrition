@@ -1370,3 +1370,30 @@ Where it leaves things: the group orders are done, slot table included,
 and the queue's next item is run29's `UNITS=3` half — which is now owed
 twice over, since it is both `scene_at`'s missing order lists and the only
 capture that can see §6.4's `to`/`off` asymmetry.
+
+**The same day, the working agreement changed.** Decided with the user
+after the above, and recorded rather than inferred: `Opus drives` — it
+carries implementation, diffs, widenings, adjudication and the ordinary
+reading, and Fable is chosen for a *first* decompile reading, for
+overarching or genuinely new design, and for ratification. Ratification
+**batches over what is marked**, on a ledger in `docs/audit/README.md`,
+instead of gating each mechanic on a pass of its own; the batch size and
+cadence are deliberately left open — "I don't want to proscribe yet" — and
+that is written down as the reason, not left as a gap. And the lesson this
+session paid for becomes a default: **where a reading's product is a
+formula, the implementation is a pass of the audit**, so build before
+ratifying or in parallel. `CLAUDE.md`, `docs/DECISIONS.md` entry 22
+amended and 23 new, `docs/audit/README.md` steps 6–8.
+
+Building the ledger corrected the queue's own bookkeeping. "The older
+Fable debt from the AI, transport and army audits" was wrong in both
+directions: the AI audit **has** a Fable third pass, and the real list is
+fifteen audits — the nine of 2026-08-20, the pathfinder, anim, commands
+and recgame, plus transport and army. Two `FABLE:` markers are still open
+and both deliberately so — the orders audit's R2 O1 and
+`find_gather_tcoords`, each kept as a pointer to a check nothing yet needs
+— which I first wrote down as "none", and checked. At the top of the
+ledger sits the newest row and the awkward one: the
+group orders' **fourth pass**, which retracts three verdicts an earlier
+Fable ratification had confirmed, so a ratifier taking it must be told
+that a previous pass agreed with the rows now being pulled.

@@ -24,8 +24,9 @@ here is a source to implement from. What they are for:
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",
-"Fan-out rules") and the rationale is `docs/DECISIONS.md` entry 22; this is
-the operating checklist, every line of it paid for once in the record below.
+"Fan-out rules") and the rationale is `docs/DECISIONS.md` entries 22 and
+23; this is the operating checklist, every line of it paid for once in the
+record below.
 
 1. `grep -n <mechanic> CLAUDE.md`, and read the memory index. A reader
    inherits both. If either names a finding the readers are meant to
@@ -52,12 +53,61 @@ the operating checklist, every line of it paid for once in the record below.
    append each table row as it is settled; mark anything unsettled
    `FABLE:` rather than guess. A verdict is a function and an expression,
    never a paraphrase.
-6. A Fable pass over every marker and every verdict that changed Rust, each
-   re-read from its own citation, recorded as "Third pass" in the audit
-   file — before the next mechanic builds on it.
-7. Every finding that can become an assertion becomes one before the audit
+6. **If the mechanic's product is arithmetic, implement it now** — before
+   the ratification, or in parallel with step 4. A formula cannot be
+   checked by reading it again: every citation in a row can be right and
+   the result still wrong, and the pass that catches it is the one that
+   writes the code and runs the diff. Predicates and call graphs do not
+   need this; formulas do. `docs/DECISIONS.md` entry 23, and the group
+   orders' "Fourth pass" is where it was paid for.
+7. Markers and code-changing verdicts go on the **ratification ledger**;
+   the next mechanic does not wait on a pass. Fable ratifies in batches
+   over what is marked, in the main thread, each row re-read from its own
+   citation, recorded as a numbered pass in the audit file. The batch size
+   and cadence are not fixed.
+8. Every finding that can become an assertion becomes one before the audit
    is closed; the widening of a dumped record is the cheapest and has
-   out-produced the reading.
+   out-produced the reading. **Grep the dump before booking a reading** —
+   more than one open question has been answered by a field the original
+   was already printing.
+
+## The ratification ledger
+
+What is owed a Fable pass, as of 2026-08-26. Ratification runs in batches
+over this list rather than gating each mechanic on a pass of its own
+(`CLAUDE.md`, "Fan-out rules"; `docs/DECISIONS.md` entry 22 as amended),
+so this section is the thing that keeps a batch from losing a row. Update
+it when a pass lands, not when one is planned.
+
+**Ratified.** `2026-08-21-orders.md`, `2026-08-25-ai.md` and
+`2026-08-25-groups.md` each carry a Fable pass recorded in the file. Every
+`FABLE:` marker in the groups file is struck through with its answer.
+
+**Two markers are still open, deliberately**, both in the orders audit and
+both kept as the pointer to a check rather than as an unsettled verdict:
+R2 O1, `do_move`'s attack-retarget block — nothing in `crates/sim` depends
+on it, and the `objdump` recipe is in the R2 adjudication — and R4's
+`find_gather_tcoords@0063bdc0`, which matters only once the harness builds
+a camp itself. Neither blocks a batch; both go into one when the thing
+that needs them is being built.
+
+**Owed, oldest first.** Adjudicated on Opus and never ratified:
+
+- the nine of 2026-08-20 — attrition, cities, combat, costs, economy,
+  movement, production, supply, tech;
+- `2026-08-23-pathfinder.md`, `2026-08-24-anim.md`,
+  `2026-08-24-commands.md`, `2026-08-24-recgame.md`;
+- `2026-08-25-transport.md`, `2026-08-25-army.md`;
+- **`2026-08-25-groups.md`'s "Fourth pass"** — the newest row and the one
+  that matters most, because it *overturns* three verdicts an earlier
+  Fable pass confirmed. A ratifier should start there and should be told
+  that a previous ratification agreed with the rows now being retracted.
+
+**The cheapest way to shorten this list is not a pass.** Most of what is
+owed is arithmetic and predicates a capture can settle outright, so
+`docs/QUEUE.md` item 13's differential fuzzing retires more of it per hour
+than a reading does — and per entry 23, anything on it whose product is a
+formula wants its implementation before its ratification anyway.
 
 ## The record
 

@@ -93,12 +93,33 @@ recurring: **grep the dump before booking a reading.**
 `get_form_mod_option` was an open question in §13 and `form_mod 50` was in
 the file.)
 
-**Needs the user.** Nothing outstanding. The older Fable debt from the AI,
-transport and army audits is still booked; whether to clear that ledger is
-a later conversation, and the cheapest way to clear most of it is item
-13's captures rather than a reading. Worth a decision at some point:
-whether to reorder the working agreement so a formula-producing mechanic
-is implemented before its ratification pass, per the lesson above.
+**The working agreement changed, 2026-08-26.** Decided with the user at
+the end of this session, on the strength of the three overturned verdicts:
+
+- **Opus drives.** It carries implementation, diffs, widenings,
+  adjudication and the ordinary reading. Fable is chosen for a **first**
+  decompile reading, for overarching or genuinely new design, and for
+  ratification. Never Sonnet.
+- **Ratification batches over what is marked**, on a ledger
+  (`docs/audit/README.md`, "The ratification ledger"), instead of gating
+  every mechanic on a pass of its own. Batch size and cadence are
+  deliberately **not** fixed yet — the user's call was "I don't want to
+  proscribe yet", and that is recorded as the reason rather than as an
+  omission.
+- **Where a reading's product is a formula, the implementation is a pass
+  of the audit** — build before ratifying, or in parallel. A default, not
+  a gate.
+
+`CLAUDE.md` ("Prefer a diff to a reading", "Fan-out rules", "Every
+mechanic gets a blind second reading"), `docs/DECISIONS.md` entry 22
+amended and entry 23 new, `docs/audit/README.md` steps 6–8 and the ledger.
+
+**Needs the user.** Nothing outstanding. The ledger now names what is
+owed — fifteen audits and, at the top of it, the group orders' own fourth
+pass, which retracts three rows an earlier Fable pass had confirmed. The
+cheapest way to shorten that list is item 13's captures rather than a
+reading; when to spend a Fable batch on it is still open, and is the next
+thing worth a conversation.
 
 **Opener (for an Opus session):** `proceed @docs/QUEUE.md — run29's UNITS=3 half: teach rondata's scene_at to load a block's UNITDATA order lists, which pins engagement's choice of unit (docs/ARMY.md §18), puts a formation with depth in reach for update_positions' y-flip, and is the only capture that can see docs/GROUPS.md §6.4's to/off asymmetry`
 

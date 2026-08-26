@@ -215,6 +215,22 @@ rules follow:
   category, the frame, the field. A claim a run has already confirmed does
   not need a second reader. The soak tests the simulation against itself —
   determinism and termination, never fidelity — and stays for that.
+- **Grep the dump before booking a reading.** An open question whose
+  answer is a field the original already prints costs a `grep` and has
+  more than once cost a reading instead.
+- **Where a reading's product is a formula, the implementation is a pass
+  of the audit — so build before ratifying, or alongside.** Prose can cite
+  every address correctly and still have the arithmetic wrong, and an
+  adjudicator cannot tell without doing the work: a row read as
+  "additions, as cited" is exactly the row nobody re-derived. Writing the
+  code, and running the diff, is what finds that. So a mechanic whose
+  reading yields arithmetic gets its implementation *before* the
+  ratification pass, or in parallel with the reading; a mechanic whose
+  reading yields predicates and call graphs does not have to wait.
+
+The last one is a **default, not a gate** — the point is that tools and
+implementations earn their place ahead of reads wherever they can, not
+that a fixed order is owed.
 
 The reason reading does not go away is coverage, and it is measurable: the
 trace's report (`tools/trace/report.py … blind docs/`) lists the functions
@@ -230,10 +246,11 @@ reader writes the document from the decompile; a second, who has not seen the
 document or the implementation, re-derives the same mechanic from the same
 export and writes a report; a third adjudicates every disagreement back to the
 decompiled function and records the verdicts under `docs/audit/`. When the
-adjudication ran on Opus, a Fable pass ratifies every verdict that changed
-Rust from its own citation before the next mechanic builds on it. The full
-decompile export under `tools/ghidra/` is what makes the second reading cost
-an hour rather than a session. Its record and its lessons are in
+adjudication ran on Opus, its `FABLE:` markers and its code-changing verdicts
+go on the ledger for the next **batched** ratification (see the fan-out rules
+below); the next mechanic does not wait on one. The full decompile export
+under `tools/ghidra/` is what makes the second reading cost an hour rather
+than a session. Its record and its lessons are in
 `docs/audit/README.md`; the ones that have recurred most: the arithmetic is
 doubly confirmed almost everywhere and the *predicates* are where the errors
 are — which kinds are exempt, which step a multiplier belongs to, which array
@@ -246,22 +263,32 @@ listing (`llvm-objdump`) or the PE bytes settle it in a minute. A blind
 reader inherits this file — so **this file must never name what a reader is
 meant to re-derive**; findings go in the mechanic's document and the queue.
 
-**Fan-out rules.** Opus is the default for a subagent. Fable is chosen, not
-inherited — for a first decompile reading and for an adjudication — and the
-choice is said in user-visible text each time; never Sonnet. Blind readers
-may run on Opus. An Opus adjudication is acceptable under the marker
-discipline — append each verdict as it is settled, and mark what cannot be
-settled `FABLE:` rather than guess — and is closed by a Fable pass over every
-marker and every verdict that changed Rust. **That closing pass is not a
-subagent: it is the session.** Bank, `/clear`, switch the main thread to
-Fable. And its brief is a **charter, not a checklist** — the verdicts and
-markers are the floor, the mandate is what the earlier passes missed, and a
-pass fenced to the floor can only ever agree with the framing that fenced
-it. Launch a fan-out in waves, not
-whole; readers write to durable storage from their first finding; verify
-which model actually ran from the transcript, never from the spawn
-parameter. Rationale in `docs/DECISIONS.md` entry 22; the operating checklist
-in `docs/audit/README.md`.
+**Fan-out rules.** **Opus drives.** It is the default for a subagent and for
+the session, and it carries most of this work end to end — implementation,
+diffs, widenings, adjudication, the ordinary reading. Fable is chosen, not
+inherited, and the choice is said in user-visible text each time; never
+Sonnet. What Fable is for: a **first** decompile reading, an overarching or
+genuinely new piece of design, and the **ratification** — the final pass
+over what the earlier ones settled. Blind readers may run on Opus.
+
+An Opus adjudication is acceptable under the marker discipline — append each
+verdict as it is settled, and mark what cannot be settled `FABLE:` rather
+than guess. **Ratification runs in batches, over what is marked**, rather
+than gating every mechanic on its own pass: markers and code-changing
+verdicts accumulate, and a pass takes the accrued set. How large a batch and
+how often is deliberately not fixed yet; what is fixed is that a mechanic is
+not blocked waiting for one, and that nothing marked is quietly dropped.
+
+**A ratification pass is not a subagent: it is the session.** Bank, `/clear`,
+switch the main thread to Fable. And its brief is a **charter, not a
+checklist** — the verdicts and markers are the floor, the mandate is what the
+earlier passes missed, and a pass fenced to the floor can only ever agree
+with the framing that fenced it.
+
+Launch a fan-out in waves, not whole; readers write to durable storage from
+their first finding; verify which model actually ran from the transcript,
+never from the spawn parameter. Rationale in `docs/DECISIONS.md` entries 22
+and 23; the operating checklist in `docs/audit/README.md`.
 
 **Emit traces under the original's own names.** `docs/ORACLE.md` lists the 37
 `SyncDefine` categories the engine considers sync-critical. Where a mechanic
