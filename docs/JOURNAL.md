@@ -2295,3 +2295,119 @@ mechanic itself is exactly assertable from a pinned seed. That is a
 general shape, not a scout-specific one — item 27 is the list of mechanics
 that should get the same treatment, and the trace fold is already printing
 their targets.
+
+## 2026-08-26 — items 27 and 26: the frame as one sequence, and the line that was two bugs
+
+Item 27 was "mark the other mechanics' draw sites", filed as cheap tooling
+with no run needed, and the queue's opener said to take it before item 26
+because it would be the instrument for it. It settled item 26 on its first
+run, and the settlement was one line of our own code.
+
+### The table, and why it needs a caller
+
+The scout's check (the previous entry) compared one function's draw
+*sequence* against the trace's. Widening that to a whole frame needed the
+trace's raw addresses and the harness's marks to be the same strings.
+
+`trace::SITES` is that table: `(address, an optional caller, the label)`,
+where the label is a `pub const` in the mechanic's own module —
+`sim::market::SITE_A`, `sim::gaia::SITE_HERD_X`, `sim::anim::SITE_WRAP`.
+The name lives beside the code that spends the draw; only the address
+lives in `rondata`. It is deliberately not a symbol table: naming a trace
+in general is still `report.py`'s job with the Ghidra export, and nothing
+from that export enters the repo.
+
+The optional caller is the part that had to be there, because **one
+address is several sites**. `Guy::set_anim+0x97a` is the idle roll for an
+animal, for an idle unit, for a gathering one's stand, and for the phase-7
+wrap; the four are told apart only by the record's `ebp` chain. So a row
+matches on the site plus, optionally, a frame anywhere in that chain, and
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` is a name rather than a
+footnote.
+
+Marked this session: `Leader::compute_sites`' two, `calc_market`'s three,
+the four `Guy::set_anim` callers, `Guy::init_real`, `think_farm_animal`,
+the birds' two, `Herd::process`' two, `Farms::inc_time`'s chance and
+sprout, `do_non_flat_gather`'s three stands and two waits, and
+`do_move+0xe84`. With those, run20's frame 0 has no unattributed draw
+left, and the whole frame is one `Vec<String>` on each side.
+
+### What it found, at draw 22
+
+```
+  ≠   22  ours Guy::set_anim+0x97a < Unit::do_non_flat_gather+0x10f
+          theirs Guy::set_anim+0x97a < Unit::do_idle+0x7d
+```
+
+The sim was spending a `set_anim` roll for each gathering citizen at a
+call the original does not make. `do_non_flat_gather`'s camp-arrival
+branch is a two-way `CHAR_DUMP_WOOD` / `CHAR_DUMP_ORE`: the decompile
+decrements `wait`, sets `been_there`, returns if `wait < 0`, then faces
+and dumps, and the listing at `5f0b5e`–`5f0b89` shows those two `set_anim`
+calls and no third. `been_there` is written there and never read. Our
+`else { set_default_anim(u) }` for a first arrival was invented — in 2026,
+by us, to explain four draws on run12's frame 0 that turned out to be
+something else entirely.
+
+**Removing it moved four draws, not two.** The stand had been resetting
+the citizens' clocks, so the four phase-7 wraps the original spends
+between the herd walk and the farms never fell due here. Both halves of
+the stand/wrap swap were the same line, and both traced maps' frame 0 now
+matches the original **draw for draw**: run20 175/175, the Great Lakes
+120/120 (from 128), the fuzzed map 195/195 (from 196). `ticks before
+divergence` has not moved — the position divergence at frame 2 is
+untouched — but the stream underneath it is now exact for a whole frame on
+two maps.
+
+The `GUYS=4` capture the queue had been holding for four days was never
+booked.
+
+### The evidence that had made it look half explained
+
+`docs/SYNC.md` §6 recorded that run20's end-of-frame-0 dump only accounts
+for two of the four wraps: `1/1` and `1/2` end at `cur_anim 1, cur_time 0`
+— a wrap — while `0/1` and `0/2` end at `cur_anim 0, cur_time 1`, read as
+"a `set_anim` that took no draw". That reading was the trap. A wrap whose
+roll returns **the slot already running** takes `set_anim`'s
+same-animation apply, which leaves `cur_time` stepping rather than
+resetting it, so it prints as an ordinary step. Two wraps were invisible
+in the dump and perfectly visible in the stream. `docs/ANIM.md` §5's "the
+four woodcutters' draws are unit-phase stands" and §9's "which gate
+skipped their `Guy::inc_time`" are both struck: no gate skipped anything.
+
+### And a second drift, from the same document
+
+`docs/ORDERS.md` §6.4's pseudocode had the camp arrival **right** — it
+reads `wait--; been_there; wait < 0 → return; face; CHAR_DUMP_*` — and it
+also carries a `set_anim(CHAR_DEFAULT)` before the tile approach's
+`find_nearby_spot` that the implementation had simply never had (the
+original's site is `+0xfd4`, reached at run21's frame 23,299). Two lines
+of one block, both correct in the prose and wrong in the code, for four
+days, invisible to every test written from that same prose.
+
+That is `CLAUDE.md`'s own default arriving with a bill attached: *prose
+can cite every address correctly and still leave the arithmetic wrong, and
+an adjudicator cannot tell without doing the work.* Here the prose was
+right and the code was wrong, which is the mirror image and just as
+undetectable by reading. The five draw sites of that function are marked
+now, so the next drift is an `assert_eq!`.
+
+### What is left, and it is sharper than it was
+
+Run20's frame 1 is 52 against 53, and the fold now names every part of it:
+one `Leader::produce_building` draw short, two `Farms::add` draws
+unmodelled (item 25), and **two spurious `Unit::do_move+0xe84`** — the
+same gate as §6's frame-3 item, now visible a frame earlier and on another
+map. Run21's 23,000 frames reach the original's `+0xe84` five times in
+total and never under a gather's transit, which is a real narrowing of
+that item.
+
+**The thing this session earned.** *A count is not a check, and a
+per-block table is barely one.* Frame 0 had read 175/175 for a day with
+two errors cancelling inside it; the block table in §4.2 could see the
+blocks disagree but not which call made a draw. Naming the **caller** —
+four different meanings of one address — is what turned it into a
+diagnosis, and the diagnosis was a line of our own code rather than
+anything unread in the original. The corollary for the queue: a capture
+booked to settle a question is worth re-examining once the instrument
+improves, because the instrument may already be able to answer it.

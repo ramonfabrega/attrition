@@ -67,6 +67,15 @@ pub const FARM_ANIMALS: u8 = 5;
 /// `think_farm_animal`'s period.
 pub const THINK_PERIOD: i64 = 128;
 
+/// The draw sites this module spends, under the original's own offsets.
+/// [`Sim::mark`] writes them into [`Sim::phase_marks`], so a frame's farm
+/// block is compared against `rondata::trace`'s site by site rather than
+/// by a count (`docs/SYNC.md` §5). The sprout's second draw is the one a
+/// count cannot separate from the chance roll before it.
+pub const SITE_CHANCE: &str = "Farms::inc_time+0x1ae";
+pub const SITE_SPROUT: &str = "Farms::inc_time+0x1de";
+pub const SITE_ANIMAL_DIR: &str = "Animal::think_farm_animal+0x142";
+
 impl Farm {
     /// `Farms::grow(farm, dx, dy)`: the farmer's add. The cell is growing;
     /// `1.0f < percent` after the add ripens it and clamps.
@@ -217,6 +226,7 @@ impl Sim {
         if !self.build_covers_tile(fa.build, at.tile()) {
             return;
         }
+        self.mark(SITE_ANIMAL_DIR);
         let _dir = self.rng.roll() & 7;
     }
 
@@ -246,10 +256,12 @@ impl Sim {
             if chance < 1 {
                 continue;
             }
+            self.mark(SITE_CHANCE);
             if self.rng.roll() % 1000 < chance {
                 let k = if empty <= 1 {
                     0
                 } else {
+                    self.mark(SITE_SPROUT);
                     self.rng.roll() % empty
                 };
                 if let Some(c) = self.buildings[b].farm.nth_empty(k) {

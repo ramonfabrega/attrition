@@ -59,6 +59,13 @@ use crate::world::Terrain;
 use crate::world::{Cell, Owner, Pos, UNITS_PER_CELL, tile, vector_dist};
 use crate::{Player, Sim, cost};
 
+/// The sweep's two draw sites, under the original's own offsets from
+/// `Leader::compute_sites@006cc950`. [`Sim::mark`] writes them into
+/// [`Sim::phase_marks`], so the frame's first two draws are compared
+/// against `rondata::trace`'s by name (`docs/SYNC.md` §5).
+pub const SITE_STRIDE: &str = "Leader::compute_sites+0x4ac";
+pub const SITE_MARK: &str = "Leader::compute_sites+0x50a";
+
 /// `move_x[0..25]` / `move_y[0..25]` — read from `.rdata` at `0x00adcaf0`
 /// and `0x00adc400` (`?move_x@@3QBHB` / `?move_y@@3QBHB` in `rise_z.map`,
 /// `compass.obj`). Entry 0 is the centre, 1..8 the compass ring, 9..24 the
@@ -758,13 +765,19 @@ impl Sim {
                 let r0 = if world_w <= 1 {
                     0
                 } else {
+                    self.mark(SITE_STRIDE);
                     self.rng.roll() % world_w
                 };
                 let den = world_w - r0 / 2;
                 stride = (size / den).max(10);
                 start = (self.ai[w].site_mark % stride as u32) as i32;
                 let q = stride / 4;
-                let r1 = if q <= 1 { 0 } else { self.rng.roll() % q };
+                let r1 = if q <= 1 {
+                    0
+                } else {
+                    self.mark(SITE_MARK);
+                    self.rng.roll() % q
+                };
                 self.ai[w].site_mark = self.ai[w].site_mark.wrapping_add((r1 + 3) as u32);
             }
 

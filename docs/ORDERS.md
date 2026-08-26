@@ -1594,6 +1594,29 @@ stream to line up has to take them in order. `WorldData::has_gather_access@
 is −1/`who`/an ally, and at least one orthogonal neighbour is neither terrain
 class `(mask & 0x30) == 0x20` nor itself a resource tile (`& 0x4000`).
 
+**Two lines of this block were right here and wrong in the code, for four
+days (2026-08-26).** The pseudocode above is what the decompile says; the
+implementation had drifted from it in two places, and only a *sequence*
+comparison against the original's own trace could see either:
+
+- **The camp arrival is `wait--`, `been_there`, `wait < 0 → return`, face,
+  `CHAR_DUMP_*`** — as the `goto_build == 1` line has it. `orders.rs` had a
+  `CHAR_DEFAULT` for a first arrival instead, which is an animation the
+  branch does not contain (the listing at `5f0b5e`–`5f0b89` is the two
+  dumps and nothing else) and, being an idle request, a **draw**. It cost
+  frame 0 four draws, not two: the stand reset the citizens' clocks, so the
+  phase-7 wraps the original spends never fell due (`docs/SYNC.md` §6).
+- **`set_anim(CHAR_DEFAULT)` before the tile approach's `find_nearby_spot`**
+  — the `goto_build == 0` line — was simply missing. The original's site is
+  `Unit::do_non_flat_gather+0xfd4`, reached at run21's frame 23,299.
+
+The lesson is the one `CLAUDE.md` states as a default: prose that cites
+every address correctly is not a check. The three `CHAR_DEFAULT` sites of
+this function are now marked (`anim::SITE_STAND_GATHER` `+0x10f`,
+`SITE_STAND_TILE` `+0xfd4`, `SITE_STAND_RETURN` `+0xb99`) and so are its
+two direct draws (`SITE_TILE_WAIT` `+0x54b`, `SITE_WORK_WAIT` `+0xcc3`), so
+the next drift is an `assert_eq!` rather than a re-reading.
+
 For the dump's woodcutter citizen (§4.8): frame 1 — `goto_build 1, wait 0`,
 adjacent (it was placed beside the camp), `wait → −1`, `been_there = 1`; frame
 2 — choose a tile (`wait = 400 + rnd % 200`, `goto_build = 0`); frame 3 — out

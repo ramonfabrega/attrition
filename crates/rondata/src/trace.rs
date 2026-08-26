@@ -48,6 +48,90 @@ pub const IMAGE_BASE: u32 = 0x0040_0000;
 /// state. `tools/trace/report.py` carries the same constant.
 pub const RVA_GAME_RANDOM: u32 = 0x00a3_7a8c;
 
+/// The sites the simulation models, and the names it marks them with.
+///
+/// This is **not** a symbol table: naming the trace in general needs the
+/// Ghidra export's `INDEX.tsv`, which never enters this repo, and
+/// `tools/trace/report.py` stays where a name comes from. This is the far
+/// smaller thing a differential check needs — the handful of addresses a
+/// mechanic in `crate::sim` has claimed, each paired with the string that
+/// mechanic's own `Sim::mark` writes. The label lives in `sim`, beside the
+/// code that spends the draw; only the address lives here.
+///
+/// `via` is the disambiguator, and it is why the table is not a flat map.
+/// One address can be several sites: `Guy::set_anim+0x97a` is the idle
+/// roll for an animal, for an idle unit, for a gathering one's stand and
+/// for the phase-7 wrap, and the trace tells them apart only by the `ebp`
+/// chain ([`Draw::up`]). An entry with `via` matches when that address is
+/// somewhere in the chain; the first matching entry wins, so a
+/// chain-qualified entry must precede a bare one for the same site.
+///
+/// Every offset here is a return address into the named function, taken
+/// from a run's own trace and checked against the Ghidra export
+/// (`docs/SYNC.md` §3, §5).
+pub const SITES: &[(u32, Option<u32>, &str)] = &[
+    // `Leader::compute_sites@006cc950` — the AI's region sweep.
+    (0x006c_cdfc, None, sim::ai_sites::SITE_STRIDE),
+    (0x006c_ce5a, None, sim::ai_sites::SITE_MARK),
+    // `GameDaemon::calc_market@00732270` — three a good.
+    (0x0073_22c4, None, sim::market::SITE_A),
+    (0x0073_22ee, None, sim::market::SITE_B),
+    (0x0073_232e, None, sim::market::SITE_LENGTH),
+    // `Guy::set_anim@005da300+0x97a` — one address, four callers.
+    (
+        0x005d_ac7a,
+        Some(0x005d_7479), // `Animal::do_idle+0x19`
+        sim::anim::SITE_IDLE_ANIMAL,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x0060_dd4d), // `Unit::do_idle+0x7d`
+        sim::anim::SITE_IDLE_UNIT,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x005d_a081), // `Guy::inc_time+0x271`
+        sim::anim::SITE_WRAP,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x005f_027f), // `Unit::do_non_flat_gather+0x10f`
+        sim::anim::SITE_STAND_GATHER,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x005f_1144), // `Unit::do_non_flat_gather+0xfd4`
+        sim::anim::SITE_STAND_TILE,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x005f_0d09), // `Unit::do_non_flat_gather+0xb99`
+        sim::anim::SITE_STAND_RETURN,
+    ),
+    // `Guy::init_real@005db6b0` — the creation roll.
+    (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
+    // `Unit::do_non_flat_gather@005f0170` — the wood machine's own two.
+    (0x005f_06bb, None, sim::orders::SITE_TILE_WAIT),
+    (0x005f_0e33, None, sim::orders::SITE_WORK_WAIT),
+    // `Unit::do_move@005f7b30` — the grid draw.
+    (0x005f_89b4, None, sim::orders::SITE_MOVE_GRID),
+    // `Unit::think_scout@005f6010` — the ring walk (`docs/SCOUT.md` §10).
+    (0x005f_6446, None, sim::scout::SITE_ROTATION),
+    (0x005f_6468, None, sim::scout::SITE_PHASE),
+    (0x005f_665c, None, sim::scout::SITE_CELL),
+    // `Animal::think_farm_animal@005d7700` — a pasture animal's step.
+    (0x005d_7842, None, sim::farms::SITE_ANIMAL_DIR),
+    // `Objects::process_all@0065dce0` — the birds' sampling.
+    (0x0065_dfbf, None, sim::gaia::SITE_BIRD_X),
+    (0x0065_dfeb, None, sim::gaia::SITE_BIRD_Y),
+    // `Herd::process@00741760` — one herd's walk.
+    (0x0074_1777, None, sim::gaia::SITE_HERD_X),
+    (0x0074_1796, None, sim::gaia::SITE_HERD_Y),
+    // `Farms::inc_time@008d8600` — the crop clock.
+    (0x008d_87ae, None, sim::farms::SITE_CHANCE),
+    (0x008d_87de, None, sim::farms::SITE_SPROUT),
+];
+
 /// The header's `kind`: `RONT`, little-endian.
 const MAGIC: u32 = 0x544e_4f52;
 
@@ -169,6 +253,36 @@ impl Trace {
         self.frame_draws(frame)
             .into_iter()
             .filter(|d| (lo..hi).contains(&d.site))
+            .collect()
+    }
+
+    /// One draw's name, from [`SITES`]: the string the simulation's own
+    /// `Sim::mark` writes at the same site, or the bare address when
+    /// nothing models it. An unmodelled draw therefore reads as a hex
+    /// number in the comparison, which is what makes a hole in the
+    /// simulation legible rather than silent.
+    pub fn label(&self, d: &Draw) -> String {
+        SITES
+            .iter()
+            .find(|(site, via, _)| *site == d.site && via.is_none_or(|v| d.up.contains(&v)))
+            .map_or_else(
+                || format!("{:x}", d.site),
+                |(_, _, name)| (*name).to_string(),
+            )
+    }
+
+    /// A frame's sync draws as a **sequence of names** — the original's
+    /// side of the comparison [`crate::diff::mark_sites`] builds for ours.
+    ///
+    /// This is the whole point of the naming table. `--diff` prints a
+    /// per-phase count and `--trace` a per-site one, and lining the two up
+    /// has been an eye exercise; two `Vec<String>`s of the same vocabulary
+    /// are an `assert_eq!`, and where they part is where the simulation's
+    /// frame parts from the original's.
+    pub fn labels(&self, frame: i64) -> Vec<String> {
+        self.frame_draws(frame)
+            .iter()
+            .map(|d| self.label(d))
             .collect()
     }
 

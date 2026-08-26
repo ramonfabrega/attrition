@@ -166,8 +166,8 @@ variant on the unit's idle request (§5 says why that never shows).
 |---|---|---|
 | `Unit::do_idle@0060dcd0` (no order) | `(DEFAULT, 0, 1)` | the guy's idle ran out (never — phase 7 caught it first), or the body just arrived from a walk |
 | `Animal::do_idle@005d7460`, every idle frame | `(DEFAULT, 0, 1)` | as above — the sheep's arrival |
-| `Unit::do_non_flat_gather@005f0170:512`, the tile choice; `:135`, the return to camp; the camp stand | `(DEFAULT, 0, 1)` | the woodcutters' four draws at frame 0 (§8) |
-| `do_non_flat_gather:130`, `:267`, `:271`, `:412`, `:416` | `CHOP_WOOD`, `MINE_ORE`, `DUMP_WOOD`, `DUMP_ORE` | never — their own categories |
+| `Unit::do_non_flat_gather@005f0170:512` (`+0x10f`), the tile choice; `:135` (`+0xb99`), the return to camp; `:275` (`+0xfd4`), the tile approach | `(DEFAULT, 0, 1)` | ~~the woodcutters' four draws at frame 0 (§8)~~ **not at frame 0 on any traced map** — run14 and run20 have no `do_non_flat_gather` draw there at all, and the four are wraps (§5). Run21 reaches `+0x10f` at frame 381, `+0xb99` at 526 and `+0xfd4` at 23,299 |
+| `do_non_flat_gather:130`, `:267`, `:271`, `:412`, `:416` | `CHOP_WOOD`, `MINE_ORE`, `DUMP_WOOD`, `DUMP_ORE` | never — their own categories. **There is no `CHAR_DEFAULT` beside `:412`/`:416`**: the camp-arrival branch is those two and nothing else (`5f0b5e`–`5f0b89`), which is what the sim had wrong until 2026-08-26 (`docs/SYNC.md` §6) |
 | `do_gather:407`, `:473`, `:479`, `:486` | `SOW`, `REAP` | never |
 | `Guy::move@005d9240:86`, `Unit::move_step@005faf30:304` | the walk | never (a bird's coin aside) |
 | `Guy::move:59`, the frame after a walking guy stops with the plain `WALK` slot and nothing else changed it | `(DEFAULT, 0, 1)` | the arrival, when no order made the request first |
@@ -231,13 +231,25 @@ Three things follow.
   so far, because both scouts' dogs ended frame 0 with the longer length
   or walked.
 
-The four woodcutters' frame 0 on run12 — their draws at 36, 37, 46, 47 are
+~~The four woodcutters' frame 0 on run12 — their draws at 36, 37, 46, 47 are
 unit-phase stands (§4's camp stand; a same-slot `set_anim` leaves `cur_time
 0`, which a phase-7 wrap could not), yet their clocks show `0/232, last −1`
 at the frame's end while the farmers beside them show `1/47, last 0`: phase
 7 skipped them that one frame. Neither gate fits: their `inside_up` is −1
 and `unit_masks2` 0 at every pass, their object flags 1. Open (§9); it
-moves those four wraps by one frame.
+moves those four wraps by one frame.~~
+
+**Wrong, and closed 2026-08-26 (`docs/SYNC.md` §6).** They are **wraps**,
+and nothing skipped phase 7. The camp stand this attributed them to does
+not exist in the original — `do_non_flat_gather`'s camp-arrival branch is
+a two-way `CHAR_DUMP_WOOD` / `CHAR_DUMP_ORE` and no third `set_anim` — so
+run12's frame 0 has no `do_non_flat_gather` draw at all, and neither does
+run20's. The reasoning that ruled a wrap out was the mistake: a wrap
+whose roll returns the slot already running takes the "same animation"
+apply, which leaves `cur_time` where it was rather than at 0, so
+`0/232, last −1` is a wrap that *changed* slot and `1/47, last 0` an
+ordinary step. `rondata::diff`'s whole-frame check reproduces all four in
+place on both traced maps.
 
 ## 6. What the sim does with it
 
@@ -294,7 +306,8 @@ AI scout's re-target draws, `think_scout`), 95 6/23 (its scan). With run12
 as a sibling too, **frame 0 goes 48 → 96 of 120** (the forty animals, the
 two scouts' four and the four woodcutters; the 24 left are the human scout's
 scan, the AI scout's explore path and the 4-draw tail — none of them
-clocks), frame 1 holds at 54/54, frame 2 at 6/6 — and every window frame
+clocks), and then to **120 of 120** with `think_scout` and the camp-stand
+removal (`docs/SYNC.md` §4.2, §6), draw for draw; frame 1 holds at 54/54, frame 2 at 6/6 — and every window frame
 reads one higher than above, because run12's frame-1 clocks put the AI
 scout's dog under a shorter idle than guy 0's, which the sim's standing
 scout then re-rolls every frame (§9, the dog). The forty first idles of
@@ -406,7 +419,7 @@ two passes.
 
 ## 9. What is not established
 
-- **The woodcutters' un-stepped frame 0** (§5): which gate skipped their
+- ~~**The woodcutters' un-stepped frame 0** (§5): which gate skipped their
   `Guy::inc_time` on run12's frame 0 and not the farmers'. `inside_up`,
   `unit_masks2 & 0x10` and the object flags are ruled out by the dump. The
   sim steps them; their first wrap (232 frames) lands one frame early.
@@ -420,7 +433,12 @@ two passes.
   the woodcutters' idle slots at the end of the frame (`1,0,0,0`) — either
   the four are not all woodcutters, or the roll-to-slot mapping is not what
   §3 says for a `set_anim(CHAR_DEFAULT, 0, 1)` from `inc_time`. A `GUYS=4`
-  frame-0 capture names the four; the trace has fixed where to look.
+  frame-0 capture names the four; the trace has fixed where to look.~~
+  **Settled 2026-08-26 without the capture** (§5, `docs/SYNC.md` §6): no
+  gate skipped anything, the four are wraps, and the reason the sim did
+  not make them was a stand of its own invention resetting their clocks.
+  Both traced maps' frame 0 now matches the trace draw for draw, wraps in
+  place.
 - ~~**Whether a scout's dog draws on the unit's idle request.**~~ Settled by
   the second reading from the dump's own `end_time` (§5); the sim's reading
   stands. What is unobserved is the drawn *value* for a dog (the mirror

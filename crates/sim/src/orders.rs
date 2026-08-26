@@ -246,6 +246,20 @@ const ADJACENT: i32 = 0x60;
 /// cells, and the farmer may be sent to any of them.
 const FARM_SPAN: i32 = 4;
 
+/// The wood machine's two direct draw sites, under the original's own
+/// offsets from `Unit::do_non_flat_gather@005f0170` — the tile-choice wait
+/// (`% 200 + 400`) and the at-work wait (`% 50 + 100`), §6.4. [`Sim::mark`]
+/// writes them into [`Sim::phase_marks`], which is what keeps them from
+/// being read as the stand that precedes them (`docs/SYNC.md` §5).
+pub const SITE_TILE_WAIT: &str = "Unit::do_non_flat_gather+0x54b";
+pub const SITE_WORK_WAIT: &str = "Unit::do_non_flat_gather+0xcc3";
+
+/// `Unit::do_move@005f7b30:599`'s grid draw — the call is at `005f89af`,
+/// so the site is `+0xe84` (§4.4, `docs/SYNC.md` §6's frame-3 item). The
+/// sim reaches it where the original does not, and naming it is what turns
+/// that from an unattributed unit-loop draw into a row.
+pub const SITE_MOVE_GRID: &str = "Unit::do_move+0xe84";
+
 /// The 31 bearings of one ring of `find_nearby_spot`, as multiples of a
 /// sixteenth of a turn from the base angle; `|k| >= 8` adds a thirty-second.
 const BEARINGS: [i32; 31] = [
@@ -738,6 +752,7 @@ impl Sim {
             self.animal_idle(u);
             return;
         }
+        self.mark(crate::anim::SITE_IDLE_UNIT);
         self.set_default_anim(u);
         self.check_idle(u, frame);
         self.think(u, frame);
@@ -987,6 +1002,7 @@ impl Sim {
                 // The draw that chooses the grid — one `Random::get` off
                 // the sync stream on the first `do_move` of any move
                 // `find_path` refuses.
+                self.mark(SITE_MOVE_GRID);
                 let n = self.rng.roll();
                 let thr = match n % 5 {
                     2 => 2 * CELL,
@@ -2074,6 +2090,7 @@ impl Sim {
                         g.wait = 20;
                     }
                     Some(spot) => {
+                        self.mark(crate::anim::SITE_STAND_RETURN);
                         self.set_default_anim(u);
                         self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::First, false);
                         g.goto_build = true;
@@ -2103,6 +2120,7 @@ impl Sim {
                     g.wait = if self.all_gathering(b) {
                         -1
                     } else {
+                        self.mark(SITE_WORK_WAIT);
                         100 + self.rng.roll() % 50
                     };
                 }
@@ -2112,6 +2130,13 @@ impl Sim {
                 self.store_gather(u, g);
                 return;
             }
+            // The stand before the approach — `do_non_flat_gather:275`,
+            // the call at `005f113f` and so the site `+0xfd4`. §6.4's
+            // pseudocode has always carried it and the implementation did
+            // not; the whole-frame sequence check is what made the gap
+            // countable (`docs/SYNC.md` §5.1).
+            self.mark(crate::anim::SITE_STAND_TILE);
+            self.set_default_anim(u);
             let angle = find_angle(here.x - centre.x, here.y - centre.y);
             match self.find_nearby_spot(u, centre, TILE, 0x100, 2, angle, None) {
                 Some(spot) if spot != here => {
@@ -2137,21 +2162,22 @@ impl Sim {
         // Heading to, or at, the camp.
         if g.wait >= 0 {
             if self.adjacent_to(u, b) {
-                // At the camp. A first arrival stands idle — the
-                // woodcutters' four draws on run12's frame 0 (`docs/ANIM.md`
-                // §4) — and a return with a load unloads
-                // (`do_non_flat_gather:412`, `:416`: a non-looping animation
-                // whose length no dump has shown).
-                if g.been_there {
-                    let dump = if wood {
-                        crate::anim::DUMP_WOOD
-                    } else {
-                        crate::anim::DUMP_ORE
-                    };
-                    self.set_anim(u, dump, false, true);
-                } else {
-                    self.set_default_anim(u);
-                }
+                // At the camp, and the unload — `do_non_flat_gather:398`
+                // through `:416`, in the original's own order: the wait is
+                // decremented, `been_there` set, and a wait that has run
+                // out returns *before* the facing and the animation. There
+                // is **no idle stand here**: the branch is a two-way
+                // `CHAR_DUMP_WOOD` / `CHAR_DUMP_ORE` on the camp's
+                // resource, `been_there` is written and never read, and
+                // the listing at `5f0b5e`–`5f0b89` shows the two `set_anim`
+                // calls and no third.
+                //
+                // A first arrival used to stand idle here, which is where
+                // the sim's two extra frame-0 draws came from: run20's
+                // trace has no `Unit::do_non_flat_gather` draw at frame 0
+                // at all, and the sequence comparison in `rondata::diff`
+                // named this call as the divergence (`docs/SYNC.md` §4.2,
+                // §6 — the stand half of the stand/wrap swap).
                 g.wait -= 1;
                 if !g.been_there {
                     g.been_there = true;
@@ -2161,6 +2187,12 @@ impl Sim {
                     self.units[u]
                         .movement
                         .set_facing(find_angle(bpos.x - here.x, bpos.y - here.y));
+                    let dump = if wood {
+                        crate::anim::DUMP_WOOD
+                    } else {
+                        crate::anim::DUMP_ORE
+                    };
+                    self.set_anim(u, dump, false, true);
                 }
                 self.store_gather(u, g);
                 return;
@@ -2189,13 +2221,18 @@ impl Sim {
             self.store_gather(u, g);
             return;
         }
-        // Choose a tile. The stand first (`do_non_flat_gather:512`) — the
+        // Choose a tile. The stand first (`do_non_flat_gather:512`, whose
+        // call is at `005f027a` and whose return address is therefore
+        // `+0x10f` — the listing's three `CHAR_DEFAULT` stands are
+        // `+0x10f`, `+0xb99` and `+0xfd4`, and the decompile's own
+        // `pTVar19 = (TCoord *)0x5f027f` names this one) — the
         // woodcutters' frame-0 draws on run12 are this call (`docs/ANIM.md`
         // §4).
         if !g.been_there {
             g.been_there = true;
             self.ledgers[who as usize].dirty = true;
         }
+        self.mark(crate::anim::SITE_STAND_GATHER);
         self.set_default_anim(u);
         if g.tile.is_none() {
             let from = &self.buildings[b].gather_from;
@@ -2218,6 +2255,7 @@ impl Sim {
             self.buildings[b].gather_from.push(pick);
             g.tile = Some(pick);
         }
+        self.mark(SITE_TILE_WAIT);
         g.wait = 400 + self.rng.roll() % 200;
         g.goto_build = false;
         if !wood {

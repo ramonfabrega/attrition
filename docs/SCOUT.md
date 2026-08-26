@@ -438,28 +438,34 @@ the *foreign*-city arm — `max_ring = 3`, `step = 1`, rings 1 and 2 with no
 phase draw at either — and the harness reproduces its five hits and its ten
 without being told anything about them.
 
-### And the seed is not the frame's own — which is a finding
+### And the seed was not the frame's own — which is how the swap was priced
 
-Run on the frame's own stream rather than the trace's, the harness reaches
-`think_scout` **two draws early**. It spends a stand in the unit loop for
+Run on the frame's own stream rather than the trace's, the harness reached
+`think_scout` **two draws early**. It spent a stand in the unit loop for
 each gathering citizen where the original spends none and wraps the same
-figures in phase 7 instead (`docs/SYNC.md` §4.2, §6). That defect was
-recorded as **zero-sum** — "no count will ever catch it". It is not zero-sum
-any more: `think_scout`'s own draw count depends on the stream it runs on,
-because the rotation decides which cells of a ring are visited and the
-fog decides how many of those are taken.
+figures in phase 7 instead (`docs/SYNC.md` §4.2, §6). That defect had been
+recorded as **zero-sum** — "no count will ever catch it". It stopped being
+zero-sum the moment this mechanic landed, because `think_scout`'s own draw
+count depends on the stream it runs on: the rotation decides which cells of
+a ring are visited and the fog decides how many of those are taken.
 
 | | run20 | the fuzzed map |
 | --- | --- | --- |
 | before this mechanic | 165 / 175 | 185 / 195 |
 | after, on the frame's own stream | **175 / 175** | **196** / 195 |
 | after, on the trace's seed | 175 / 175 | **195 / 195** |
+| **with the swap closed** (2026-08-26) | **175 / 175** | **195 / 195** |
 
-Run20 lands on 175 either way — its ring 5 gives four cells on both
-streams. The fuzzed map gives five on the harness's stream and four on the
-original's, and that one cell is now the visible cost of the stand/wrap
-swap. A `GUYS=4` frame-0 capture is the check that settles it
-(`docs/SYNC.md` §6).
+Run20 landed on 175 either way — its ring 5 gives four cells on both
+streams. The fuzzed map gave five on the harness's stream and four on the
+original's, and that one cell was the visible price of the stand/wrap
+swap. The swap is closed: the sim's camp-arrival stand was an invention of
+its own, the original's branch there is a two-way `CHAR_DUMP_*`, and
+removing it put the wraps back as well (`docs/SYNC.md` §6). ~~A `GUYS=4`
+frame-0 capture is the check that settles it.~~ It was settled by the
+whole-frame sequence check instead (`docs/SYNC.md` §5.1), and the capture
+was never booked — the scout's own seed-anchored check is what made that
+possible, because it held while the stream reaching it was still wrong.
 
 ## 11. The region fallback — read, not implemented
 
@@ -597,12 +603,16 @@ The checks:
 8. **The second `think_scout` call site** (§2), the one inside the human
    block gated on `unit_masks & 0x100`. Not modelled — no capture reaches
    it, since `0x100` is clear on every scout in every run on disk.
-9. **The upstream stream, not this mechanic.** On the frame's own stream
+9. ~~**The upstream stream, not this mechanic.** On the frame's own stream
    the harness reaches `think_scout` two draws early (§10), so the target
    it picks is not the original's on any map where the rotation matters.
    Everything in §5–§9 is checked on the trace's seed and nothing here is
    checked on the frame's; closing the stand/wrap swap is what would join
-   the two. *Capture:* a frame-0 `GUYS=4` window (`docs/SYNC.md` §6).
+   the two. *Capture:* a frame-0 `GUYS=4` window (`docs/SYNC.md` §6).~~
+   **Closed 2026-08-26** (`docs/SYNC.md` §5.1, §6): the swap was one line
+   of `do_non_flat_gather`, the two streams are now the same one on both
+   traced maps, and this mechanic's ten draws are reached at the
+   original's own word without installing it. The capture was not needed.
 10. **`Unit::think_spellcaster`** at the head of §3, which an AI scout
     calls on every one of these frames and which draws nothing in any
     capture. Unread; the simulation skips it. *Capture:* a window with a

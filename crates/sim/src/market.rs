@@ -12,6 +12,15 @@
 
 use crate::Sim;
 
+/// The three draw sites, under the original's own offsets from
+/// `GameDaemon::calc_market@00732270`. [`Sim::mark`] writes them into
+/// [`Sim::phase_marks`], so this mechanic's draws line up against
+/// `rondata::trace`'s **site by site** rather than by a count
+/// (`docs/SYNC.md` §5).
+pub const SITE_A: &str = "GameDaemon::calc_market+0x54";
+pub const SITE_B: &str = "GameDaemon::calc_market+0x7e";
+pub const SITE_LENGTH: &str = "GameDaemon::calc_market+0xbe";
+
 /// The six tradeable goods, in `Game::market[6]` order.
 pub const GOODS: usize = 6;
 
@@ -98,24 +107,27 @@ impl Sim {
     /// `GameDaemon::calc_market(i)`: three draws — two for the next flux,
     /// one for the trend's length — and the per-tick step.
     fn calc_market(&mut self, i: usize) {
-        let tune = &self.tuning;
+        let min_variance = self.tuning.market_min_variance;
         let mut v = self.market.price[i] / 2;
-        if v < tune.market_min_variance {
-            v = tune.market_min_variance;
+        if v < min_variance {
+            v = min_variance;
         }
         v = (v + 1) / 2;
         let (a, b) = if v < 1 {
             (0, 0)
         } else {
+            self.mark(SITE_A);
             let a = self.rng.roll() % (v + 1);
+            self.mark(SITE_B);
             let b = self.rng.roll() % (v + 1);
             (a, b)
         };
         self.market.next_flux[i] = (b - (v + 1)) + a;
-        let range = tune.market_trend_range;
+        let range = self.tuning.market_trend_range;
         let spread = if range <= 1 {
             0
         } else {
+            self.mark(SITE_LENGTH);
             self.rng.roll() % range
         };
         let len = self.tuning.market_min_trend + spread;

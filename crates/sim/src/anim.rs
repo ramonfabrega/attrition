@@ -58,6 +58,29 @@ pub const REAP: i8 = 36;
 pub const FARM: i8 = 37;
 pub const NUM_ANIMS: usize = 38;
 
+/// The idle roll's draw sites, and the creation roll's.
+///
+/// The roll itself is one address — `Guy::set_anim+0x97a` — so a site alone
+/// does not say *which* of the four things asked for it. The trace's `ebp`
+/// chain does, and that is what these names carry: the roll under the
+/// caller that made it. [`Sim::mark`] writes them into
+/// [`Sim::phase_marks`], `rondata::trace` names the same four from the
+/// chain, and the two sequences line up draw for draw (`docs/SYNC.md` §5).
+///
+/// The last two are what item 26 needs: the sim spends
+/// [`SITE_STAND_GATHER`] in the unit loop for every gathering citizen,
+/// and the original spends [`SITE_WRAP`] in phase 7 for the same figures
+/// instead (`docs/SYNC.md` §4.2, §6).
+pub const SITE_IDLE_ANIMAL: &str = "Guy::set_anim+0x97a < Animal::do_idle+0x19";
+pub const SITE_IDLE_UNIT: &str = "Guy::set_anim+0x97a < Unit::do_idle+0x7d";
+pub const SITE_WRAP: &str = "Guy::set_anim+0x97a < Guy::inc_time+0x271";
+pub const SITE_STAND_GATHER: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gather+0x10f";
+pub const SITE_STAND_TILE: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xfd4";
+pub const SITE_STAND_RETURN: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99";
+
+/// `Guy::init_real@005db6b0`'s variant roll, one per guy created.
+pub const SITE_INIT_REAL: &str = "Guy::init_real+0x52";
+
 /// `UnitAnimCat` — the category of each animation, 38 dwords at
 /// `.rdata+0x2f370` of the shipped executable (`docs/ANIM.md` §2). The
 /// idle variants and the group idles are category 0 (`CHAR_DEFAULT`), the
@@ -230,6 +253,7 @@ impl Sim {
                 .and_then(|t| self.piece_of(who, t, o, n as u8))
                 .unwrap_or(-1);
             let mut g = Guy::fresh(piece);
+            self.mark(SITE_INIT_REAL);
             let p = self.rng.roll() % 100;
             g.anim = init_variant(p);
             // A variant the packet lacks falls back to the default: the
@@ -471,6 +495,7 @@ impl Sim {
                 break;
             }
             let cat = category(guy.anim);
+            self.mark(SITE_WRAP);
             if !non_looping(guy.anim) {
                 self.guy_set_anim(u, g, guy.anim, false, true);
             } else if cat != 12 {
@@ -531,6 +556,7 @@ impl Sim {
     /// wander — three in ten — near the herd centre by three more draws,
     /// or by a spot search further out (§7).
     pub(crate) fn animal_idle(&mut self, u: usize) {
+        self.mark(SITE_IDLE_ANIMAL);
         self.set_default_anim(u);
         let unit = &self.units[u];
         if unit.kind.domain != crate::attrition::Domain::Land {

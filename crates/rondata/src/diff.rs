@@ -2890,6 +2890,176 @@ mod tests {
         );
     }
 
+    /// The two sequences a whole frame folds to, in one place — ours from
+    /// [`mark_sites`], the original's from
+    /// [`Trace::labels`](crate::trace::Trace::labels) — and the index they
+    /// first part at, with a window either side.
+    ///
+    /// A `Vec<String>` comparison of 175 entries prints as a wall; the
+    /// first difference and its neighbourhood is the whole of what a
+    /// reader needs, so the failure message is built rather than left to
+    /// `assert_eq!`.
+    fn first_parting(ours: &[String], theirs: &[String]) -> Option<(usize, String)> {
+        let at = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))?;
+        let lo = at.saturating_sub(3);
+        let hi = (at + 4).min(ours.len().max(theirs.len()));
+        let mut s = format!("the sequences part at draw {at}:\n");
+        for i in lo..hi {
+            let mine = ours.get(i).map_or("—", |x| x.as_str());
+            let yours = theirs.get(i).map_or("—", |x| x.as_str());
+            let flag = if mine == yours { "  " } else { "≠ " };
+            s.push_str(&format!("  {flag}{i:>4}  ours {mine:<52} theirs {yours}\n"));
+        }
+        Some((at, s))
+    }
+
+    /// **Run20's whole frame 0, draw for draw** — item 27, and the swap it
+    /// was the instrument for.
+    ///
+    /// Frame 0 counted 175 against 175 from the moment the scout landed,
+    /// and the count was hiding two errors that cancelled. Every mechanic
+    /// the frame touches now marks its own draw sites under the original's
+    /// offsets (`sim::ai_sites`, `sim::market`, `sim::anim`, `sim::scout`,
+    /// `sim::farms`, `sim::gaia`), and [`crate::trace::SITES`] names the
+    /// same addresses out of the trace's `ebp` chain — so the frame is one
+    /// `Vec<String>` on each side and the comparison is an `assert_eq!`.
+    ///
+    /// **What it found on its first run, which is the whole of the swap.**
+    /// The two sequences agreed for 22 draws and parted: ours spent a
+    /// `set_anim` roll for each gathering citizen, at a call the original
+    /// does not make. The camp-arrival stand in `do_non_flat_gather` was
+    /// the sim's own — the branch is a two-way `CHAR_DUMP_WOOD` /
+    /// `CHAR_DUMP_ORE`, and the listing at `5f0b5e`–`5f0b89` has no third
+    /// `set_anim`. Removing it did not cost two draws; it moved four. The
+    /// stand had been resetting the citizens' clocks, so the four wraps
+    /// the original spends in phase 7 — `Guy::set_anim+0x97a` under
+    /// `Guy::inc_time`, between the herd walk and the farms — never fell
+    /// due here. Both halves of `docs/SYNC.md` §6's stand/wrap swap were
+    /// the one line, and no `GUYS=4` capture was needed to see it.
+    ///
+    /// The assertion is the whole sequence. A count of 175 cannot fail
+    /// this way twice.
+    #[test]
+    fn frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        // (dump, trace, the frame-0 word, draws, farm draws, wraps)
+        //
+        // Two lobbies, and they are not the same shape: run20's islands
+        // have two woodcutters a side and a pasture among its six farms
+        // (five crop draws); run12's world6 has four and no pasture (six).
+        // Both spend four `Guy::inc_time` wraps at the tail, and on run12
+        // those are the four woodcutters `docs/ANIM.md` §5 could not place.
+        let maps = [
+            (
+                "gamelog-run20-islands-dumpall.txt",
+                "rontrace-run20.log",
+                0x2f50_5213u32,
+                175usize,
+                5usize,
+            ),
+            (
+                "gamelog-run12-dumpall-seeds.txt",
+                "rontrace-run14.log",
+                0x3bd3_9ae9,
+                120,
+                6,
+            ),
+        ];
+        let mut ran = 0;
+        for (dump_name, trace_name, word, draws, farms) in maps {
+            let (Some(path), Some(trace)) = (dump(dump_name), trace(trace_name)) else {
+                eprintln!("skipping {dump_name}: set RON_GAMELOG_DIR");
+                continue;
+            };
+            ran += 1;
+            let text = std::fs::read_to_string(&path).unwrap();
+            let log = Log::parse(&text);
+            let init = log.initial().unwrap();
+            let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+            // The two sides start on the same word, or nothing below means
+            // anything: the dump's last setup checksum and the word the
+            // trace's own first draw stepped are one number seen from two
+            // instruments. It is the *draw's* word rather than the `FRAME`
+            // record's, because run14 predates the record carrying it —
+            // its frame 0 reports `0x03fc45c6` and its first draw steps
+            // `0x3bd39ae9`, which is what run12's dump also says.
+            assert_eq!(
+                trace.frame_draws(0).first().map(|d| d.seed),
+                Some(word),
+                "{trace_name}'s first frame-0 draw"
+            );
+            assert_eq!(built.sim.rng.seed, word, "{dump_name}: and the harness's");
+
+            built.sim.trace_phases = true;
+            built.sim.tick();
+            let ours = mark_sites(&built.sim.phase_marks, built.sim.rng.seed).expect("our sites");
+            let theirs = trace.labels(0);
+            assert_eq!(theirs.len(), draws, "{trace_name}'s frame 0");
+
+            // Every draw of the original's frame 0 is a site the sim
+            // models: a bare hex address here would be a mechanic with no
+            // mark, and the comparison below could not read it.
+            let unnamed: Vec<&String> = theirs
+                .iter()
+                .filter(|l| !crate::trace::SITES.iter().any(|(_, _, n)| n == l))
+                .collect();
+            assert!(
+                unnamed.is_empty(),
+                "{trace_name}: frame 0 has draws no mechanic marks: {unnamed:?}"
+            );
+
+            if let Some((_, shown)) = first_parting(&ours, &theirs) {
+                panic!("{dump_name}: {shown}");
+            }
+            assert_eq!(ours, theirs, "{dump_name}: frame 0, draw for draw");
+
+            // And the counts the swap turned on, stated so a regression
+            // reads as itself rather than as an index: four idle rolls for
+            // the two scouts' figures, no camp stand at all, and four
+            // phase-7 wraps.
+            let count = |site: &str| ours.iter().filter(|l| *l == site).count();
+            assert_eq!(
+                (
+                    count(sim::anim::SITE_IDLE_UNIT),
+                    count(sim::anim::SITE_STAND_GATHER),
+                    count(sim::anim::SITE_WRAP),
+                ),
+                (4, 0, 4),
+                "{dump_name}: the scouts' four, no camp stand, four wraps"
+            );
+            // The wraps sit between the herd walk and the farms — the
+            // frame's tail, which `docs/SYNC.md` §6 read as "the 4 draws
+            // at 110–113".
+            let mut fold: Vec<(String, usize)> = Vec::new();
+            for l in &ours {
+                match fold.last_mut() {
+                    Some((last, n)) if last == l => *n += 1,
+                    _ => fold.push((l.clone(), 1)),
+                }
+            }
+            let last_three: Vec<(&str, usize)> = fold
+                .iter()
+                .rev()
+                .take(3)
+                .map(|(l, n)| (l.as_str(), *n))
+                .collect();
+            assert_eq!(
+                last_three,
+                vec![
+                    (sim::farms::SITE_CHANCE, farms),
+                    (sim::anim::SITE_WRAP, 4),
+                    (sim::gaia::SITE_HERD_Y, 1),
+                ],
+                "{dump_name}: the frame ends farms ← wraps ← herd"
+            );
+        }
+        if ran == 0 {
+            eprintln!("skipping: neither traced map is on this machine");
+        }
+    }
+
     /// Run20's AI scout at frame 0 — `Unit::think_scout`'s ten draws, on
     /// the original's own stream (`docs/SCOUT.md` §10).
     ///
@@ -2900,13 +3070,16 @@ mod tests {
     /// phases from three and three; this can, and it is what the ring
     /// walk's two guards need checking against.
     ///
-    /// The seed has to be installed because the frame's own stream reaches
-    /// the scout **two draws early**: the harness spends a stand in the
-    /// unit loop for each gathering citizen where the original spends none
-    /// and wraps them in phase 7 instead (`docs/SYNC.md` §4.2, §6). That
-    /// defect used to be zero-sum, and this is what stops it being so —
-    /// `think_scout`'s count depends on the stream, so on the fuzzed map
-    /// the same ten come out as eleven.
+    /// The seed is installed rather than reached, and that is deliberate:
+    /// this check has to hold **while the stream that reaches the mechanic
+    /// is wrong**, which is the position it landed in. It was worth
+    /// keeping — the frame's own stream reached the scout two draws early
+    /// until the stand/wrap swap closed, and `think_scout`'s count depends
+    /// on the stream, so on the fuzzed map the same ten came out as
+    /// eleven. Since 2026-08-26 the sim reaches this word on its own too
+    /// (`frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps`);
+    /// installing it keeps the mechanic checkable the next time something
+    /// upstream moves.
     #[test]
     fn run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings() {
         let Some(inst) = install() else { return };
@@ -2946,30 +3119,32 @@ mod tests {
             eprintln!("skipping the sequence half: no rontrace-run20.log");
             return;
         };
-        let theirs = trace.run_in(0, sim::scout::CODE.start, sim::scout::CODE.end);
+        let draws = trace.run_in(0, sim::scout::CODE.start, sim::scout::CODE.end);
+        // Named through `trace::SITES`, which is the same string
+        // `sim::scout`'s own marks write — so the two sides of the
+        // comparison below share one vocabulary.
+        let theirs: Vec<String> = draws.iter().map(|d| trace.label(d)).collect();
+        use sim::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
         assert_eq!(
-            theirs
-                .iter()
-                .map(|d| format!("think_scout+{:#x}", d.site - sim::scout::CODE.start))
-                .collect::<Vec<_>>(),
+            theirs,
             vec![
-                "think_scout+0x436",
-                "think_scout+0x436",
-                "think_scout+0x436",
-                "think_scout+0x458",
-                "think_scout+0x64c",
-                "think_scout+0x64c",
-                "think_scout+0x64c",
-                "think_scout+0x64c",
-                "think_scout+0x436",
-                "think_scout+0x458",
+                SITE_ROTATION,
+                SITE_ROTATION,
+                SITE_ROTATION,
+                SITE_PHASE,
+                SITE_CELL,
+                SITE_CELL,
+                SITE_CELL,
+                SITE_CELL,
+                SITE_ROTATION,
+                SITE_PHASE,
             ],
             "the trace's own frame-0 sequence (docs/SCOUT.md §10)"
         );
 
         // Ours, from the first of those, site for site rather than by
         // count — four rotations and two phases, not three and three.
-        let first = theirs[0].seed;
+        let first = draws[0].seed;
         assert_eq!(first, 0x9c59_1b2b, "the trace's draw 24");
         built.sim.trace_phases = true;
         built.sim.phase_marks.clear();
@@ -2977,11 +3152,7 @@ mod tests {
         assert!(built.sim.think_scout(scout), "a target is found");
         let ours = mark_sites(&built.sim.phase_marks, built.sim.rng.seed).expect("our sites");
         assert_eq!(
-            ours,
-            theirs
-                .iter()
-                .map(|d| format!("think_scout+{:#x}", d.site - sim::scout::CODE.start))
-                .collect::<Vec<_>>(),
+            ours, theirs,
             "our ten draws, at the original's sites, in the original's order"
         );
         // Which leaves the stream where the trace's next draw found it.
@@ -3727,8 +3898,15 @@ mod tests {
         // they move the woodcutters' later waits (`% 50 + 100`) to other
         // values — noise in the untraced stretch, not a mechanic lost; the
         // traced frames 0–3 and 94–103 all held or improved.
+        // 1,242/877 → 1,246/879 with the camp-arrival stand removed
+        // (`orders.rs`, the stand/wrap swap): the woodcutter now unloads on
+        // its first frame at the camp where it used to stand idle, so its
+        // clock and its `% 50 + 100` wait land elsewhere in the untraced
+        // stretch. Four order-frames and two path-frames of that noise
+        // against three maps' frame 0 becoming exact — run20 and the fuzzed
+        // map draw for draw, run10's 128 against 120 now 120 against 120.
         assert!(
-            orders - farmer_orders <= 1_242 && paths - farmer_paths <= 877,
+            orders - farmer_orders <= 1_246 && paths - farmer_paths <= 879,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.

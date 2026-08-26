@@ -27,82 +27,76 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 24.* The commit this section was
-written against is the one that lands it; if `git log` has moved well past
-it, trust the queue below and the journal before trusting this.
+*Last verified 2026-08-26, after items 27 and 26.* The commit this section
+was written against is the one that lands it; if `git log` has moved well
+past it, trust the queue below and the journal before trusting this.
 
-**Last landed: `Unit::think_scout`, and with it run20's frame 0 at
-175/175 — the first frame-0 match the harness has had.** `docs/SCOUT.md`
-is the mechanic: an idle AI scout walks rings of cells outward from every
-city it knows, two draws at the head of each ring and one per cell that is
-in its own region and **not really seen**, then sends itself there as a
-one-member group with an `EXPLORE_TO`.
+**Last landed: frame 0 matches the original draw for draw, on two maps.**
+Item 27 was tooling — mark every mechanic's draw sites so the frame is a
+sequence rather than a count — and it settled item 26 on its first run.
 
-- **It is checked seed for seed on three maps, not by a count.** Every
-  draw record carries the seed it was taken on, so installing the trace's
-  first `think_scout` seed replays the whole sequence: 10 on run20
-  (`0x9c59_1b2b`), 10 on the fuzzed map (`0x242c_b7ed`), and **24 on the
-  Great Lakes** (`0x15fe_bc41`) — the only capture that exercises the
-  foreign-city arm, split 4/2/1 then 2/0/15 across two cities.
-- **The zero-sum defect is not zero-sum any more.** On the frame's own
-  stream the harness reaches `think_scout` two draws early, because it
-  spends a unit-loop stand for each gathering citizen where the original
-  wraps them in phase 7 instead. `think_scout`'s count depends on the
-  stream, so the fuzzed map's frame 0 is now **196 against 195** — one
-  cell, and it is the whole gap. The `GUYS=4` capture the queue has been
-  holding is now the check for a number.
-- **One seam closed in passing.** `WorldData::is_cliff_at` is
-  `(TData.mask & 3) == 1`, so `tile::OBJECT_CLIFF` is named and
-  `crate::path`'s `invalid_loc` refuses a cliff (`docs/PATHFINDER.md`
-  §11). It changed no count.
+- **`trace::SITES` names the original's addresses with the simulation's
+  own labels.** Each row is `(address, an optional caller, the label)`,
+  and the label is a `pub const` in the mechanic's module, so the name
+  lives beside the code that spends the draw. The optional caller is
+  load-bearing: `Guy::set_anim+0x97a` is *four* sites — an animal's idle,
+  a unit's idle, a gathering unit's stand, the phase-7 wrap — separated
+  only by the record's `ebp` chain. `docs/SYNC.md` §5.1.
+- **Marked:** `compute_sites`' two, `calc_market`'s three, the four
+  `set_anim` callers, `init_real`, `think_farm_animal`, the birds' two,
+  `Herd::process`' two, `Farms::inc_time`'s chance and sprout,
+  `do_non_flat_gather`'s three stands and two waits, `do_move+0xe84`.
+  Run20's frame 0 has no unattributed draw left.
+- **Item 26 was one line of our own code.** At draw 22 the check read
+  *ours `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0x10f`, theirs
+  `… < Unit::do_idle+0x7d`*. `do_non_flat_gather`'s camp-arrival branch is
+  a two-way `CHAR_DUMP_WOOD` / `CHAR_DUMP_ORE` and nothing else
+  (`5f0b5e`–`5f0b89`); the sim's idle stand for a first arrival was
+  invented. Removing it moved **four** draws, not two — the stand had been
+  resetting the citizens' clocks, so the phase-7 wraps never fell due.
+  Both halves of the swap were the same line. `docs/SYNC.md` §6.
+- **A second drift from the same document.** `docs/ORDERS.md` §6.4's
+  pseudocode had the camp arrival right all along, and also carries a
+  `set_anim(CHAR_DEFAULT)` before the tile approach (`+0xfd4`) the code
+  never had. Two lines, correct in the prose and wrong in the code, for
+  four days — invisible to every test written from that prose.
 
-**And the harness reads the trace now** — `rondata::trace`, built straight
-after, because doing the seed-anchored check by hand twice was the whole
-argument for it. Three things it buys, all reusable by the next mechanic:
-`rondata --trace <rontrace.log>` prints the original's per-frame fold **by
-site** in the same shape `--diff`'s `by phase` prints ours;
-`Trace::run_in` isolates one function's own draws from its callees';
-and a mechanic that marks its own sites (`Sim::mark`, `diff::mark_sites`)
-can be asserted **draw for draw** rather than by a total. The scout check
-is now a sequence comparison — made to fail by transposing two marks,
-which leaves the count at ten and the order wrong. `docs/SYNC.md` §5.
-
-**The numbers now.** run20 frame 0 **175/175**, frame 1 52/53, frame 2
-**5/5**. The fuzzed map: frame 0 196/195, frame 1 48/45. The Great Lakes
-(run10): frame 0 128/120 (was 96/120), frames 1 and 2 unchanged at 54/54
-and 6/6. `ticks before divergence` is still 1 everywhere; the position
-divergence at frame 2 is untouched and is the next thing.
+**The numbers now.** run20 frame 0 **175/175 draw for draw**, frame 1
+52/53, frame 2 **5/5**. The Great Lakes (run10/run12, traced as run14):
+frame 0 **120/120 draw for draw** (was 128/120), frames 1 and 2 at 54/54
+and 6/6, frame 3 7/6. The fuzzed map: frame 0 **195/195** (was 196/195),
+frame 1 48/45. `ticks before divergence` is still 1 everywhere; the
+position divergence at frame 2 is untouched and is the next thing.
 
 **Then, in order:**
 
-- **The stand/wrap swap** — item 24's last piece, and it now has a price
-  (the fuzzed map's one extra cell). The capture that settles it is a
-  frame-0 `GUYS=4` window; `docs/SYNC.md` §6 has the half that run20's own
-  dump already explains.
 - **`Farms::add`'s two draws** at run20's frame 1 (`+0x23f`, `+0x25b`
-  under `Build::init`), which is that frame's whole 52-against-53. Cheap,
-  and the trace names both offsets.
+  under `Build::init`) — item 25. Cheap, the trace names both offsets.
+- **The two spurious `Unit::do_move+0xe84`** at run20's frame 1 — item 28,
+  new. It is §6's frame-3 item seen a frame earlier and on another map,
+  and it is now narrowed: run21's 23,000 frames reach the original's
+  `+0xe84` five times in total and **never under a gather's transit**.
 - **The frame-1 order two of player 1's units hold and the sim does not**,
-  and §9.3's sixth citizen — item 25. One of the two was the scout's
-  `EXPLORE_TO` and is now issued; re-read the item before taking it.
+  and §9.3's sixth citizen — the rest of item 25. One of the two was the
+  scout's `EXPLORE_TO` and is now issued; re-read the item before taking
+  it. Its "start by ruling out item 26" no longer applies — 26 is closed.
 - **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked.
-- **Re-run run13's window** (sim-frames 95–103) now that the scout thinks:
-  §5's largest single gap was `6 / 23` at frame 95 and was attributed to
-  this mechanic.
+- **Re-run run13's window** (sim-frames 95–103) now that the scout thinks
+  *and* the stands are gone: §5's largest single gap was `6 / 23` at frame
+  95. Nothing has re-measured it since either change.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *Read the sites before the function,
-and assert on the sequence rather than the count.* Three return addresses,
-disassembled, gave the ring walk's shape and both its guards in ten
-minutes; the decompile after that was naming. And a mechanic that replays
-a **sequence** from a pinned seed is checked in a way a total never is —
-which is what let this land while the stream that reaches it is still
-wrong, and what turned that wrongness into a number. That second half is
-now a harness primitive rather than a one-off, which is the part that
-pays again next time.
+**The thing this session earned.** *A count is not a check, and a
+per-block table is barely one.* Frame 0 had read 175/175 for a day with
+two errors cancelling inside it, and §4.2's block table could see blocks
+disagree but not which *call* made a draw. Naming the caller turned it
+into a diagnosis in one run. The corollary for this file: **a capture
+booked to settle a question is worth re-examining whenever the instrument
+improves.** The `GUYS=4` window had been held for four days and was never
+needed.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -110,14 +104,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Take 27 before 26, and it is not only that it is cheaper.** The
-stand/wrap swap is a ±4 that cancels in every total. Once the animal idles
-and the phase-7 wraps carry site marks, it stops being a total and becomes
-a visible *order* mismatch at frame 0 — our stand where the original's wrap
-is — which may settle it without the `GUYS=4` capture at all. Item 27 is
-the instrument for item 26.
-
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 27: mark the other mechanics' draw sites, so frame 0's fold is a site-by-site comparison rather than a per-phase count. rondata --trace <rontrace-run20.log> prints the target; crate::scout is the worked example and docs/SYNC.md §5 the tooling. Start with the animal idles and the phase-7 wraps, because those are what item 26 needs.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 25: Farms::add's two draws at run20's frame 1 (+0x23f, +0x25b under Build::init+0x4ea < Objects::init_build+0x82), which are two of that frame's three-way gap. No run needed — run20 is on disk and rondata --trace names both offsets. Then item 28, the two spurious Unit::do_move+0xe84 on the same frame. docs/SYNC.md §4.2 and §6 have both.`
 
 ## The queue
 
@@ -274,7 +261,7 @@ in which case say so and take that. The story of each struck item is in
 24. ~~**The frame-0 draw gap**~~ — done 2026-08-26 over two sessions.
     `docs/SCOUT.md`, `docs/SYNC.md` §3.6, §3.7 and §4.2;
     `crates/sim/src/{farms,scout}.rs`. run20 frame 0 175/175, frame 2 5/5.
-    What it uncovered is item 26.
+    What it uncovered was item 26, closed the same day by item 27.
 
 25. **The first frames, on a map we did not tune against** — what item 24
     was carrying besides the draw gap. `gamelog-fuzz-424242-early.txt`
@@ -289,36 +276,44 @@ in which case say so and take that. The story of each struck item is in
       `survived = 1` on both maps. One of the two is the scout, and it is
       **half fixed**: on run20 its `EXPLORE_TO` now matches, on the fuzzed
       map the sim issues one at frame 0 and has none by frame 1, so
-      something kills it during that frame. Its target differs there
-      because of item 26, so start by ruling that out.
+      something kills it during that frame. Its target used to differ
+      there because of item 26; **item 26 is closed**, that map's frame 0
+      is 195/195, and the scout's target is now the original's — so this
+      is a clean question again.
     - **`Farms::add`'s two draws** (`+0x23f`, `+0x25b` under
       `Build::init+0x4ea` < `Objects::init_build+0x82`) at run20's frame
-      1, when the AI's new farm is created — the whole of that frame's
-      **52 against 53**. `docs/SYNC.md` §6.
+      1, when the AI's new farm is created — two of that frame's **52
+      against 53**; the rest is one `Leader::produce_building` draw short
+      and the two spurious `do_move` draws of item 28. `docs/SYNC.md` §6.
 
     None needs a new run. All are `rondata --diff` on a dump that exists.
 
-26. **The stand/wrap swap, which is no longer zero-sum.** The sim spends
-    a unit-loop stand for each gathering citizen; the original spends none
-    there and wraps the same figures in phase 7 instead — +4/−4 on run20,
-    +5/−5 on the fuzzed map. It used to net to zero and hide. It does not
-    any more: `Unit::think_scout` runs two draws late on the sim's stream
-    and takes one cell more on the fuzzed map, so that frame 0 is 196
-    against 195 (`docs/SCOUT.md` §10, `docs/SYNC.md` §4.2). *Capture:* a
-    frame-0 `GUYS=4` window — every `set_anim` logs its index at detail 4.
-    Run20's own end-of-frame-0 dump explains two of the four wraps and not
-    the other two; `docs/SYNC.md` §6 has that half.
+26. ~~**The stand/wrap swap, which is no longer zero-sum.**~~ — done
+    2026-08-26, by item 27's instrument and with no capture. It was one
+    line: `do_non_flat_gather`'s camp-arrival branch has no
+    `CHAR_DEFAULT`, and the sim's invented stand was resetting the
+    citizens' clocks so the phase-7 wraps never fell due.
+    `docs/SYNC.md` §6, `docs/ORDERS.md` §6.4, `docs/ANIM.md` §5 and §9.
 
-27. **Mark the other mechanics' draw sites.** `rondata::trace` and
-    `diff::mark_sites` make a per-mechanic draw-*sequence* assertion cheap,
-    but only `crate::scout` marks its sites so far. The candidates in
-    rough order of what a capture already covers: the market
-    (`calc_market`'s three), `Animal::do_idle` and the phase-7 wraps
-    (`docs/ANIM.md`), `Farms::inc_time`, `Objects::process_all`'s birds,
-    `Leader::compute_sites`. Each is a few `Sim::mark` calls and one
-    check; between them they would turn frame 0's whole fold from a
-    per-phase count into a site-by-site comparison. Cheap, and no run
-    needed — `rondata --trace <log>` already prints the target.
+27. ~~**Mark the other mechanics' draw sites.**~~ — done 2026-08-26.
+    `crate::trace::SITES` and the `SITE_*` consts in `sim::{ai_sites,
+    market, anim, orders, farms, gaia}`; `docs/SYNC.md` §5.1. The check is
+    `diff::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps`.
+
+28. **The `do_move` grid draw the sim spends and the original does not.**
+    Two at run20's frame 1 and one at run10's frame 3, all at
+    `Unit::do_move+0xe84` (`do_move@005f7b30:599`, the call at `005f89af`)
+    — the sim's gate before that draw opens where the original's does not.
+    The gate is `invalid_loc` on the order's cell, `path_recursion > 1`,
+    and `find_path`'s return (`docs/ORDERS.md` §4.4, `docs/SYNC.md` §6).
+    **Narrowed by the trace:** run21's 23,000 frames reach the original's
+    `+0xe84` exactly five times, under `do_attack_to`, `do_explore_to`,
+    `do_group_move`, `do_guard` and one `do_job` — and **never under a
+    gather's transit**, which is every case the sim gets wrong. So the
+    question is what a woodcutter's walk to a tile has that closes it.
+    Cheap and no run needed: the site is marked on both sides now, and
+    run20's frame 1 and run10's frame 3 are both on disk. The same three
+    units are run6's earliest position divergences (`0/2` at frame 4).
 
 ## How to maintain this file
 

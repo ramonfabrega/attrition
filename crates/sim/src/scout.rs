@@ -47,9 +47,9 @@ pub const FIRST_MAX_RING: i32 = 12;
 /// tracing, which is what lets `rondata::diff` compare our draw *sequence*
 /// against `rondata::trace`'s rather than our count against a total
 /// (`docs/SCOUT.md` §10, §12).
-pub const SITE_ROTATION: &str = "think_scout+0x436";
-pub const SITE_PHASE: &str = "think_scout+0x458";
-pub const SITE_CELL: &str = "think_scout+0x64c";
+pub const SITE_ROTATION: &str = "Unit::think_scout+0x436";
+pub const SITE_PHASE: &str = "Unit::think_scout+0x458";
+pub const SITE_CELL: &str = "Unit::think_scout+0x64c";
 
 /// The address range those three fall in — `Unit::think_scout` up to
 /// `Unit::think`, the next function in the export. What

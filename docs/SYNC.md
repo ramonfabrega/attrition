@@ -406,15 +406,25 @@ set beside the harness's own draws folded by phase (`Sim::phase_marks`, §5):
 |---|---|---|
 | `Leader::compute_sites` (the sweep's stride) | 2 / 2 | 2 / 2 |
 | `GameDaemon::calc_market` | 18 / 18 | 18 / 18 |
-| `Unit::do_idle` → `Unit::set_anim` (the two scouts, two guys each) | 4 / **8** | 4 / **9** |
-| **`Unit::think_scout`** (`+0x436` ×4, `+0x458` ×2, `+0x64c` ×4) | 10 / **10** | 10 / **11** |
+| `Unit::do_idle` → `Unit::set_anim` (the two scouts, two guys each) | 4 / ~~8~~ **4** | 4 / ~~9~~ **4** |
+| **`Unit::think_scout`** (`+0x436` ×4, `+0x458` ×2, `+0x64c` ×4) | 10 / **10** | 10 / ~~11~~ **10** |
 | `Animal::do_idle` — the dumped animals | 104 / 104 | 123 / 123 |
 | **the pasture** — 5 idle rolls + 1 `think_farm_animal` (§3.6) | **6 / 6** | **6 / 6** |
 | `Objects::process_all` — the ten bird attempts | 20 / 20 | 20 / 20 |
 | `Herd::process` | 2 / 2 | 2 / 2 |
-| **`Guy::inc_time` — the phase-7 wraps** | **4 / 0** | **5 / 0** |
+| **`Guy::inc_time` — the phase-7 wraps** | 4 / ~~0~~ **4** | 5 / ~~0~~ **5** |
 | `Farms::inc_time` — the *five* crop farms (§3.6) | 5 / 5 | 5 / 5 |
-| **total** | **175 / 175** | **196 / 195** |
+| **total** | **175 / 175** | ~~196 / 195~~ **195 / 195** |
+
+**The two struck rows closed together on 2026-08-26, and they were one
+line.** §6's stand/wrap entry has the finding; the short version is that
+the sim's camp-arrival stand in `do_non_flat_gather` was its own invention
+— the original's branch there is a two-way `CHAR_DUMP_WOOD` /
+`CHAR_DUMP_ORE` — and that stand had been resetting the citizens' clocks,
+so the wraps never fell due. Removing it moved four draws, not two. Frame
+0 is now compared **draw for draw** rather than by these blocks
+(`diff::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps`),
+on run20 and on the Great Lakes.
 
 (The "ours" column is after **two** sessions' work. Before the first the
 pasture row read `6 / 0` and the farm row `5 / 6`, for 160 and 180; before
@@ -425,31 +435,31 @@ Read down the two bold rows that are not the pasture:
 - **`think_scout` is modelled** (`docs/SCOUT.md`, 2026-08-26), and it is
   the mechanic that turns the next row from a curiosity into a bug with a
   price.
-- **The stands and the wraps cancelled, map by map** — +4/−4 on run20 and
-  +5/−5 on the fuzzed one — and **they do not cancel any more.** They were
-  never independent. The original draws **no** unit-phase stand for a
-  gathering citizen at frame 0; those citizens' guys instead run their
-  animation out in phase 7 and re-roll there. The sim does it the other way
-  round: it spends the stand in the unit loop and then has nothing left to
-  wrap. The count nets to zero and the **order and the outcomes do not** —
-  and `think_scout` is the first consumer that cares about the order,
-  because the two spurious stands put the scout's ring rotations on the
-  wrong stream. On run20 that costs nothing (ring 5 gives four cells on
-  either stream); on the fuzzed map it costs one cell, which is the whole
-  of that column's `196` against `195`. Seeded from the trace's own word
-  the harness reproduces both maps' ten exactly (`docs/SCOUT.md` §10).
-  Run20's end-of-frame-0 dump is the evidence for the swap itself and it is
-  only half explained: `1/1` and `1/2` (the AI's woodcutters) end the frame
-  at `cur_anim 1, cur_time 0, end_time 232` — wrapped — while `0/1` and
-  `0/2` (the human's, the same job) end at `cur_anim 0, cur_time 1,
-  end_time 33`, which is a `set_anim` that did **not** draw. Two of the
-  four wraps are accounted for; the other two are not. §6 carries it.
+- ~~**The stands and the wraps cancelled, map by map**~~ — **closed
+  2026-08-26, and the two halves were one line** (§6). They cancelled
+  +4/−4 on run20 and +5/−5 on the fuzzed map, and stopped cancelling when
+  `think_scout` landed, because the two spurious stands put the scout's
+  ring rotations on the wrong stream: on run20 that cost nothing (ring 5
+  gives four cells on either stream), on the fuzzed map one cell, which
+  was the whole of `196` against `195`. Both are gone. The original draws
+  **no** unit-phase stand for a gathering citizen at frame 0; those
+  citizens' guys run their animation out in phase 7 and re-roll there, and
+  the sim now does the same. The evidence that made this look half
+  explained — run20's end-of-frame-0 dump has `1/1` and `1/2` at
+  `cur_anim 1, cur_time 0, end_time 232` (wrapped) and `0/1`, `0/2` at
+  `cur_anim 0, cur_time 1, end_time 33` (a `set_anim` that did not draw)
+  — is not the whole record: the trace says four wraps and the dump shows
+  two, because a wrap whose roll lands on the slot already running leaves
+  `cur_time` stepping normally. The **sequence** settled it where the
+  dumped clocks could not, and no `GUYS=4` capture was needed.
 
-Frame 1 and frame 2 fall out of the same fold:
+Frame 1 and frame 2 fall out of the same fold. Every row below is now a
+site rather than a block — `--diff`'s `by phase` note prints the labels
+`--trace` prints (§5):
 
 | frame | theirs | ours | what is left |
 |---|---|---|---|
-| 1 (run20) | 53 | 51 | `Leader::produce_building` 43 vs our 42; the three `do_non_flat_gather` vs our four; **`Farms::add+0x23f`/`+0x25b`, two draws at the AI's new farm's `Build::init`, which the sim does not model**; the five farms on both sides |
+| 1 (run20) | 53 | 52 | `Leader::produce_building` 43 (`+0xc99` ×39, `+0x1805` ×4) against our 42; **`Farms::add+0x23f`/`+0x25b`, two draws at the AI's new farm's `Build::init`, which the sim does not model**; **two `Unit::do_move+0xe84` grid draws the sim spends and the original does not** (§6's frame-3 item, same gate); the three `do_non_flat_gather+0x54b` and the five farms on both sides |
 | 2 (run20) | 5 | **5** | none — the five crop farms and nothing else, on either side |
 | 1 (fuzzed) | 45 | 48 | ours is three *over*; the AI's script takes a different branch on a map it was not tuned on |
 
@@ -458,13 +468,16 @@ map `think_scout` is checked on and the only one that exercises the
 **foreign**-city arm: `+0x436` ×6, `+0x458` ×2, `+0x64c` ×16, which is one
 city at `max_ring = 12, step = 2` and a second at `max_ring = 3, step = 1`.
 Seeded from the trace the harness reproduces all twenty-four, split
-4/2/1 then 2/0/15. On the frame's own stream that map's frame 0 goes from
-96/120 to 128/120 — the same upstream defect, larger because the map gives
-the scout more to accept.
+4/2/1 then 2/0/15. On the frame's own stream that map's frame 0 went 96 →
+128 → **120 of 120** as the scout landed and then the stand was removed;
+it is the second map the draw-for-draw check covers, and its four
+woodcutters are the four wraps `docs/ANIM.md` §5 could not place.
 
 `rondata::diff`'s
 `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six` pins the
-run20 column.
+run20 column, and
+`frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps` pins the
+whole of it, in order.
 
 ## 5. The harness
 
@@ -494,6 +507,13 @@ which is the harness's answer to `tools/trace/report.py … sites`, and lines
 up against it directly. §4.2 is what that comparison found the first time it
 was run; a bare total would not have.
 
+**Every phase in that line is now a site** (2026-08-26, §5.1): the same
+frame reads `Leader::compute_sites+0x4ac 1, … GameDaemon::calc_market+0x54
+1, … Guy::set_anim+0x97a < Unit::do_idle+0x7d 2, … Unit::think_scout+0x436
+1, …`, and a phase name left standing in it — `unit 1/9`, `guys_inc_time`
+— is a draw *no mechanic has claimed*, which is the useful half of reading
+it.
+
 **And it reads the trace itself now** (`rondata::trace`, 2026-08-26). The
 `rontrace.log` format is thirty-two-byte records and the Rust side parses
 it, so three things stopped being Python's job:
@@ -517,6 +537,50 @@ That last one is the point. A count cannot tell four rotations and two
 phases from three and three; a sequence can, and it is checkable **while
 the frame's stream is still wrong upstream** — which is exactly the
 position `docs/SCOUT.md` landed in.
+
+### 5.1 The frame as one sequence (2026-08-26)
+
+The scout's check was seed-anchored and one function wide. Widening it to a
+**whole frame** needed one more piece: the trace's addresses and the
+harness's marks had to be the same strings.
+
+**`trace::SITES` is that table, and it is deliberately small.** Each row is
+`(address, an optional caller, the label)`, and the label is a `pub const`
+in the mechanic's own module — `sim::market::SITE_A`,
+`sim::anim::SITE_WRAP`, `sim::gaia::SITE_HERD_X` — so the name lives beside
+the code that spends the draw and only the address lives in `rondata`. It
+is **not** a symbol table: naming a trace in general is still
+`report.py`'s job with the Ghidra export, and nothing from that export
+enters the repo.
+
+The optional caller is what makes it work at all, because **one address is
+several sites**. `Guy::set_anim+0x97a` is the idle roll for an animal
+(`< Animal::do_idle+0x19`), for an idle unit (`< Unit::do_idle+0x7d`), for
+a gathering one's camp stand (`< Unit::do_non_flat_gather+0x10f`) and for
+the phase-7 wrap (`< Guy::inc_time+0x271`), and only the record's `ebp`
+chain (`Draw::up`) separates them. A row with a caller matches when that
+address is anywhere in the chain, and it must precede a bare row for the
+same site.
+
+`Trace::labels(frame)` is then the original's frame as a `Vec<String>`,
+`diff::mark_sites` is ours, and the comparison is one `assert_eq!`. Two
+things fall out of it that a per-block table did not give:
+
+- **An unmodelled draw reads as a bare hex address**, so a hole in the
+  simulation is legible rather than silent. The whole-frame test asserts
+  there are none at frame 0.
+- **A draw the sim spends under the wrong caller reads as a mismatch at
+  the exact index**, with the label on both sides. That is what found the
+  stand/wrap swap (§6) on the check's first run: `ours
+  Guy::set_anim+0x97a < Unit::do_non_flat_gather+0x10f` against `theirs
+  Guy::set_anim+0x97a < Unit::do_idle+0x7d`, at draw 22.
+
+`diff::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps`
+is the check, on run20 and on the Great Lakes; the failure message prints
+the first parting with three draws either side rather than 175 lines of
+`assert_eq!`. Made to fail on purpose by dropping `sim::anim`'s wrap mark,
+which reads as four `guys_inc_time` against four `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` at draw 166.
 
 **The counts, 2026-08-24**, run10 with run11/run3/run12 as siblings:
 
@@ -628,6 +692,28 @@ struck through and point there.
   gated on it, §3.2). So two of the four wraps have owners and two do
   not. The capture that would settle it is unchanged: a frame-0 `GUYS=4`
   window, where every `set_anim` logs its guy.
+
+  **Closed 2026-08-26, and the `GUYS=4` window was never booked.** The
+  whole-frame sequence check (§5.1) named the divergence on its first run
+  — draw 22, ours `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0x10f`
+  against theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d` — and the
+  answer was one line of the harness's own, not a gate of the original's.
+  **`do_non_flat_gather`'s camp-arrival branch has no `CHAR_DEFAULT`.**
+  The decompile (`:398`–`:416`) decrements `wait`, sets `been_there`,
+  returns if `wait < 0`, then `set_angle` and a two-way
+  `CHAR_DUMP_WOOD` / `CHAR_DUMP_ORE`; the listing at `5f0b5e`–`5f0b89`
+  shows the pair and no third `set_anim`, and `been_there` is written
+  there and never read. The sim had a first arrival standing idle
+  instead, which was the invention. Its two halves were the same line:
+  the stand was **resetting the citizens' clocks**, so the wraps the
+  original spends in phase 7 never fell due. Removing it moved four
+  draws, not two — the eight-against-four row and the zero-against-four
+  row of §4.2's table closed together, and both traced maps' frame 0 now
+  matches draw for draw. The dump's two-of-four is not a contradiction:
+  a wrap whose roll lands on the slot already running leaves `cur_time`
+  stepping, so it prints as an ordinary step. **`docs/ANIM.md` §5's "the
+  four woodcutters' draws are unit-phase stands" is superseded** — they
+  are wraps, and phase 7 did not skip them.
 - ~~**The human scout's ~~15~~ 14 and the AI scout's ~~8~~ 6** (the dogs' rolls
   are the other three, `docs/ANIM.md` §5) are placed by elimination,
   not by outcome~~ — **placed by site (run14): `Unit::think_scout` draws
@@ -666,12 +752,21 @@ struck through and point there.
   the new citizen at 103 — draw nothing on either side, so the gate agrees
   on short walks onto a farm and to a camp; what is different about frame
   3's three is still to find (forest, most likely — the flat harness
-  world's `invalid_loc` is the SEAM `find_path` names).
+  world's `invalid_loc` is the SEAM `find_path` names). **Widened
+  2026-08-26:** the site is `Unit::do_move+0xe84` (the call is at
+  `005f89af`), it is marked now, and run20's **frame 1** shows the same
+  gate twice — two `Unit::do_move+0xe84` draws the sim spends and the
+  original does not, which is two of that frame's three-way gap. Run21's
+  23,000 frames reach the original's own `+0xe84` five times in total, all
+  under `do_attack_to` / `do_explore_to` / `do_group_move` / `do_guard`,
+  and never under a gather's transit — so whatever opens the gate, a
+  woodcutter's walk to a tile does not.
 - **`Farms::add`'s two draws.** Run20's frame 1 has
   `Farms::add+0x23f` and `+0x25b` under `Build::init+0x4ea` <
   `Objects::init_build+0x82` — the AI's new farm being created — and the
-  sim draws neither, which is the whole of that frame's 51 against 53
-  (§4.2). `Farms::add@008d8a40` has at least one more draw than the
+  sim draws neither, which is two of that frame's three-way gap — the
+  other is one `Leader::produce_building` draw short and two spurious
+  `Unit::do_move+0xe84` (§4.2). `Farms::add@008d8a40` has at least one more draw than the
   `farm_type` coin the reading for §3.6 found (`rand % 4 > 2` → the
   pasture, taken only when the city's farm count leaves the choice open);
   which two sites fire at a plain crop farm is unread. Cheap: run20 is on

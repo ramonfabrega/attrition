@@ -43,6 +43,15 @@ pub const BIRD_CELL: u16 = 0x20;
 /// The feature bits a herd's wander centre must not carry.
 pub const FEATURE_MASK: u16 = 0x70;
 
+/// The four draw sites, under the original's own offsets. [`Sim::mark`]
+/// writes them into [`Sim::phase_marks`], so the tail's twenty-two draws
+/// are compared against `rondata::trace`'s by name rather than as one
+/// `gaia 22` (`docs/SYNC.md` §5).
+pub const SITE_BIRD_X: &str = "Objects::process_all+0x2df";
+pub const SITE_BIRD_Y: &str = "Objects::process_all+0x30b";
+pub const SITE_HERD_X: &str = "Herd::process+0x17";
+pub const SITE_HERD_Y: &str = "Herd::process+0x36";
+
 impl Sim {
     /// The tail of `Objects::process_all`, after the unit and building
     /// loops.
@@ -61,8 +70,18 @@ impl Sim {
         let (xs, ys) = (self.world.width(), self.world.height());
         let mut n = (xs * ys / 100).min(10) - self.gaia.birds;
         while n > 0 {
-            let x = if xs <= 1 { 0 } else { self.rng.roll() % xs };
-            let y = if ys <= 1 { 0 } else { self.rng.roll() % ys };
+            let x = if xs <= 1 {
+                0
+            } else {
+                self.mark(SITE_BIRD_X);
+                self.rng.roll() % xs
+            };
+            let y = if ys <= 1 {
+                0
+            } else {
+                self.mark(SITE_BIRD_Y);
+                self.rng.roll() % ys
+            };
             let c = Cell { x, y };
             if self.world.cell_data(c).flags & BIRD_CELL != 0 {
                 self.gaia.bird_spawns.push((frame, c));
@@ -81,7 +100,9 @@ impl Sim {
             return;
         }
         let h = idx as usize;
+        self.mark(SITE_HERD_X);
         let x = self.gaia.herds[h].wx - 1 + self.rng.roll() % 3;
+        self.mark(SITE_HERD_Y);
         let y = self.gaia.herds[h].wy - 1 + self.rng.roll() % 3;
         if x < 0 || y < 0 || x >= self.world.width() || y >= self.world.height() {
             return;
