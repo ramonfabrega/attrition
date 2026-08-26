@@ -1873,17 +1873,97 @@ instead, which reaches `TurnControl::issue_toggle_pause`; note that a paused
 game stops calling `do_frame`, so the channel cannot unpause itself and the
 driver has to.
 
-**`loglevel` moves the dump cost off the ini.** Case `0x1b` is
-`loglevel <label> <level>` → `GameLog::set_level`, which matches the label
+**`loglevel` is a runtime lever, but only over `[Start Frame]`.** Case `0x1b`
+is `loglevel <label> <level>` → `GameLog::set_level`, which matches the label
 case-insensitively against the global `game_log_strings[]` (stride 0x14) and
 writes `game_log.details[3][index] = level` for index < 0x24 — 36 category
-slots. `loglevel reset` → `GameLog::reset_levels`. So per-category verbosity
-is settable **at a frame, from a `.cmd` line**, and a window no longer has to
-be an ini edit and a relaunch: run with everything at 0, `!loglevel UNITS 3`
-the frame before the window, `!loglevel UNITS 0` after it. Open, and cheap to
-check: the help text says it changes "[start frame]" logging while the code
-writes row 3 of `details`, so which ini section row 3 is has not been
-established.
+slots. `loglevel reset` → `GameLog::reset_levels`.
+
+Row 3 is `[Start Frame]`, and that is settled rather than assumed.
+`GameLog::init@00933190` fills `details` with a nested loop — outer over an
+array of five section-name `String`s, inner over the 36 `game_log_strings`,
+`Prefs::get` per cell out of `.\gamelog.ini` — and the array is destroyed
+with `_eh_vector_destructor_iterator_(&local_128, 0x14, 5, …)`, five
+entries at `int_str` 0xde6c, 0xde80, 0xde94, 0xdea8, 0xdebc: **`Misc
+Logging`, `Start Game`, `End Game`, `Start Frame`, `End Frame`**. So row 3
+is `[Start Frame]`, matching the help text — and `GameLog::check_accept`
+gates on `details[current_mode][current_type]`, where `begin_frame` sets
+`current_mode = GAMELOGMODE_START_FRAME` and `end_frame` sets
+`GAMELOGMODE_END_FRAME`.
+
+The consequence is the useful part: **`loglevel` cannot touch `[End Frame]`**,
+which is the section every capture so far and the whole of `rondata::diff`
+are built on. Per-category verbosity at a frame is real, but it is a
+`[Start Frame]` dump — a different snapshot point, an off-by-one against
+every existing expectation, and not a free substitute for the
+`LogStartFrame`/`LogEndFrame` window in `rise2.ini`. Whether a `[Start
+Frame]` block at frame n is interchangeable with an `[End Frame]` block at
+n−1 is unestablished and is the check to run before building on it.
+
+### `restart` from the channel wedges the game (gate run, 2026-08-26)
+
+Item 13's plan was many scenarios per launch, on the strength of `restart
+<seed>` being a console command. It is, and it does what the reading says —
+`run_cmd` case `0x5d` checks `Game::is_solo`, sets `(game->info).seed` from
+`Syllable::parse` of the argument (a bare `restart` takes `timeGetTime()`
+instead, so it is *not* reproducible), then `Game::close(game, 1)`,
+`Game::init(game, 0, 0, 0)`, `Camera::outdate`, `WorldMap::reinit_all` and
+`TurnControl::set_pause(turn_control, 1)`. No lobby, no loading screen, and
+the game left paused.
+
+**It cannot be driven from the channel, because the channel fires inside the
+tick.** `rontrace.dll` hands each line to `parse_cmd` at `Game::do_frame`
+entry, so `restart` closes and re-initialises the game whose `do_frame` it is
+executing. The gate run staged `900 !restart 305419896`, `900 !go`,
+`900 !ffwd 30`, and the trace ends with:
+
+```
+FRAME      3005                    (well, 901 for the gate run)
+INFO cmd   0x5   0 0 1             !ffwd 30      ran, returned 1
+INFO cmd   0x258 1 1 1             add hoplite   ran, returned 1
+                                   ...and nothing for the restart
+```
+
+The `INFO cmd` record is emitted *after* `parse_cmd` returns, so its absence
+says `parse_cmd` never returned. The window went black, the title bar stayed,
+the process stayed alive, and no further `FRAME` record was ever written.
+`!go` and the second `!ffwd`, queued behind it in the same frame's batch,
+never ran either.
+
+**What replaces it: the seed goes in `rise.ini`.** `Seed (0 for random)` is
+the master game seed and is what the dump's own `game_random seed` line
+reports back, so one launch per seed is reproducible, needs no re-entrancy,
+and still regenerates the map — which is what the fuzzer wanted `restart`
+for. `tools/fuzz/seedini.py` writes it. Note that `check.ini` also has a
+`SEED=` and it is **not** the knob: "The lobby is not the launch line's",
+above — the profile's last-used lobby is what appears, and `USEAUTOSTART=1`
+does not auto-start either (the gate run's no-click launch sat on the Main
+Menu with `frames 0` until the six lobby clicks were sent).
+
+**What a fuzzed run costs, measured.** The `DUMP_ALL` window that the diff
+needs is far more expensive than the `[End Frame]` figure in run18: a
+`FULL DUMP` block is **~15 MB and about a minute**, not 1.7 MB and 2.4 s.
+run29 is 16 `FULL DUMP`s and 251 MB for a five-frame window, and a 20-frame
+window staged for seed 424242 was still writing at 311 MB when it was
+killed at frame 3005. So the real budget is roughly
+
+    launch + six lobby clicks   ~2.5 min
+    fast-forward to the window  seconds (the dump is gated off)
+    each dumped frame           ~1 min, ~15 MB
+
+which makes a three-frame window about six minutes and 50 MB a seed — ten
+seeds an hour, half a gigabyte. That is affordable overnight and it is an
+order of magnitude away from the "one to two minutes a seed" the queue entry
+assumed.
+
+**The tension this leaves open, and it is the real one.** The score wants a
+wide window — `ticks before divergence` can only reach as far as the dumped
+frames go — and the stand-up wants a `FULL DUMP`, which is what costs the
+minute. Whether the original can be made to emit one `FULL DUMP` at the
+window's first frame and cheap `[End Frame]` blocks after it, in a single
+run, is unresolved; `loglevel` cannot do it, because it reaches
+`[Start Frame]` only. Until it is, a fuzzed seed scores over a handful of
+frames rather than hundreds.
 
 ### The combat run (run17, 2026-08-24) — the channel's first real run
 
