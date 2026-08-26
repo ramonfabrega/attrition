@@ -27,74 +27,81 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 22.* The commit this section was
-written against is the one that lands it; if `git log` has moved well past
-it, trust the queue below and the journal before trusting this.
+*Last verified 2026-08-26, after item 13's first tier.* The commit this
+section was written against is the one that lands it; if `git log` has moved
+well past it, trust the queue below and the journal before trusting this.
 
-**Last landed.** **The mirror's predicate** (item 22) — and the entry was
-wrong about what it needed. It said a run was owed; the answer was in
-run31's dump and in two documents that had never been read next to each
-other. `docs/GROUPS.md` §6.3 has a new subsection and §12.3 is new.
+**Last landed.** **Differential fuzzing, Tier 1** (item 13) — built, run end
+to end, and it changed its own plan twice on the way. `tools/fuzz/` holds
+`scenario.py`, `seedini.py`, `run.sh` and `ledger.py`;
+`tools/gamelog/console.py` re-derives the console vocabulary from the
+install. `docs/ORACLE.md` has three new sections.
 
-- **`GroupData::facing` is a running flag, not a setting**, with four
-  writers. `Unit::set_angle` toggles it whenever the group's **leader**
-  turns by 90° or more — the ordinary source of a live group's `facing 1`.
-  `Unit::kill_current_order` **assigns** the dying order's own
-  `MoveOrder::facing` back onto it, inverted if the leader has since
-  turned around.
-- **The ordering is the whole finding.** `action_move_near`'s `QUEUE_NEW`
-  clear runs at `70524f`, `compute_form` at `7053ec` — the clear is
-  **first**. So the flag a layout reads is the *last layout's* answer, and
-  never the march's. That is why run31's frame 328 lays out square with
-  `facing 1` printed the frame before.
-- **The old reading also read the wrong frame**: 204's own end-of-frame
-  heading rather than 203's, and 204 is the one frame in the run where
-  that cannot work.
-- **Item 19 landed with it.** `Sim::add_move_facing_order` carries
-  `angle + (angles[i] << 24)` and the mirror; `MoveOrder::facing` is a
-  field with a reader now, on both sides.
-- Six predictions over three clicks, all landing; the old model kept as
-  the control in the same test, and it gets one of three wrong.
+- **The channel cannot issue an order.** `run_cmd` jumps past its first
+  switch when `from_chat` is set, and the two switches are disjoint: 56
+  console-only, 45 chat-reachable. `move` is in the chat half and is a
+  **teleport** (`Unit::set_new_location`). So every `add_*_order`, `do_*`,
+  `action_*` and `process_*` on the blind list needs the UI, and Tier 1
+  cannot touch them. Closes run17's open `move` question.
+- **`restart` from the channel wedges the game.** It fires inside
+  `Game::do_frame`, so `Game::close`/`Game::init` tear down the game whose
+  tick it is in: `parse_cmd` never returns, the screen goes black, no
+  further frame. The seed goes in `rise.ini` instead — one launch per seed.
+- **The fuzzer's first seed found a panic.** Seed 424242 drove
+  `Sim::is_enemy` with the nature player (`who 8`, 7,329 records in its
+  dump) against diplomacy tables sized by the lobby's two players:
+  `index out of bounds: the len is 2 but the index is 8`,
+  `crates/sim/src/lib.rs:930`. run29's dump carries `who 8` too and does
+  **not** panic, so this is a path 31 hand-built runs never reached, not a
+  new input. **Unfixed, and it is the next session's first job.**
+
+**The dump's cost, measured — and half of it is ours to stop paying.**
+A `FULL DUMP` block is ~25–30 MB and about a minute. With indentation
+normalised, **12.9 MB of 25.1 MB (51%) is byte-identical across all six
+blocks compared** — `COMBATTABLE` 36%, `UNITTYPE` 14%, and the small type
+tables. That is the rulebook, and we already have it from the XML.
+`DUMP_ALL=1` is what forces it, and `window.py stage` sets `DUMP_ALL` for
+one reason: `scene_at` asserts on a `WORLD` block at the stand-up frame.
+**`WORLD` is 31% and genuinely changes**, so it cannot simply be taken from
+the start block — that was claimed here first and disproved by checking.
+The cheap experiment nobody has run: `DUMP_ALL=0` with `[End Frame] WORLD=6`
+plus the state categories, which should be ~9 MB rather than ~25 with no
+code change. And gzip on a real dump is **57×** (60 MB → 1.06 MB).
 
 **Then, in order:**
 
-- **Item 13, differential fuzzing** — unchanged, and now the entry with
-  the largest leverage per hour by a distance.
-- **Item 23, the hand-back's inversion** — the narrow run item 22 leaves,
-  and it carries item 19's leftover sign with it. Cheap, and it does not
-  block anything.
-- Then the older backlog: the `LEADERDATA` and `CITY` widenings the
-  army's readers named; a `find_target` block where two candidates sit
-  within a multiplier of each other; run7's order stream under the trace;
-  a mounted attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
+- **The `who 8` panic**, above. Small, and it blocks every further seed.
+- **The cheap-window experiment**, above — it decides whether a fuzzed
+  seed can score over hundreds of frames instead of three, which is what
+  decides whether item 13 is worth keeping at all.
+- **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked.
+- Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
+  `find_target` block; run7's order stream under the trace; a mounted
+  attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings; `think_civilian_transport`.
 
-**The thing this session earned.** A rule to put beside "the
-implementation is the audit": **before booking a run, grep the dump you
-already have, and grep the listing for every writer of the field you are
-about to call frozen.** Item 22's entry claimed a grep had found the only
-other writers of `facing`; it had found two air-only ones and stopped,
-because the two that matter reach the field through a group pointer rather
-than by name — the same trap `MoveOrder::facing` was already recorded as
-having, where the read goes through an order vtable slot. And the
-corollary: **a fact written in two documents and joined in none is not
-established.** Both writers were on the page; the ordering that makes them
-matter was on neither.
+**The thing this session earned.** **Measure the oracle before building a
+better one.** A whole afternoon's plan — an in-process binary dumper to
+replace the game's logger — was retired by one twenty-minute measurement
+showing the logger is expensive for a reason we control. And the corollary,
+which cost a wrong claim in this very file: **"static" is a claim about what
+changes between frames, so check it between frames.** The first pass called
+85% of a block static by reading section names; the honest figure is 51%,
+and the difference was found by hashing the sections rather than arguing
+about them.
 
-**Needs the user.** Nothing outstanding. The ledger
-(`docs/audit/README.md`) is unchanged: its widest-reaching marker is still
-**`sin_table@00a46a00`'s second-quadrant branch**. The simulation mirrors
-the angle; the decompiler says the function does something else, and item
-21's 900 rotated destinations are more evidence the mirror is right. That
-primitive is under every heading, projectile and formation rotation in the
-game, and this is the second time the same twenty lines have fooled a
-reader through the decompiler — so the settlement is `llvm-objdump`, not
-another decompile. This session is a third data point for that: two
-`llvm-objdump` passes settled in minutes what a decompile had left
-ambiguous for a day. Twenty minutes, and it does not block anything. When
-to spend a Fable batch is still open.
+**Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`) is
+unchanged; its widest marker is still **`sin_table@00a46a00`'s
+second-quadrant branch**, and this session found a better settlement than
+another reading: the DLL runs **in-process**, so the original's own
+`sin_table` can be *called* over its whole 2^30 input domain and compared
+with `quarter_lookup` exhaustively — total, not symbolic, and minutes of
+brute force. That rig would then serve every ported leaf formula. When to
+spend a Fable batch is still open; this session's judgement is **not yet**,
+because the design question that fit Fable's mandate was the binary dumper
+and the measurement shelved it.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 13, differential fuzzing: a seed writes the .cmd and the ini, drives the original through tools/gamelog/runwin.sh, runs rondata --diff, and appends seed + first divergent frame to a ledger`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — fix the who-8 panic in Sim::is_enemy (crates/sim/src/lib.rs:930, seed 424242), then run the cheap-window experiment: DUMP_ALL=0 with [End Frame] WORLD=6, and see what a 300-frame window costs`
 
 ## The queue
 
@@ -138,46 +145,46 @@ in which case say so and take that. The story of each struck item is in
     `crates/sim/src/ai*.rs` and `bhs.rs`, `docs/audit/2026-08-25-ai.md`
     (four passes); landed under it: `docs/SYNC.md`, `docs/ANIM.md`,
     `tools/trace/`, the cheat channel, runs 7–21.
-13. **Differential fuzzing against the original** — proposed and agreed
-    2026-08-25, not started. The three pieces exist and have each been run:
-    `crates/sim/src/soak.rs` generates a scenario and an order stream from a
-    seed; `rontrace.cmd` stages a scenario into the original from a file,
-    inside the tick, unattended, and `!quit`s it cleanly (`docs/ORACLE.md`,
-    "The cheat channel"); `rondata --gamelog <dump> --diff` scores a dump
-    frame for frame. Wired together, every seed is a behavioural run, and
-    the trace's blind list shrinks without anyone writing a scenario by
-    hand. That is the whole argument, and it is why this is worth a queue
-    entry rather than a remark. What is not yet true, in the order it has
-    to become true:
+13. **Differential fuzzing against the original** — **Tier 1 built and run
+    2026-08-26**; whether it is kept is an open question with a named
+    experiment, below. `tools/fuzz/{scenario,seedini,ledger}.py` and
+    `run.sh`; `tools/gamelog/console.py`; `docs/ORACLE.md`, "The channel's
+    vocabulary, and what it cannot do" and "`restart` from the channel
+    wedges the game".
 
-    - **A map both sides carry.** The soak's world is flat and hand-built;
-      the original needs a lobby and a map. Stage on run9's map, which the
-      harness already loads from its `WORLD=6` dump, with the lobby seed
-      fixed — a scenario is then "these types at these tiles, these orders
-      at these frames" on ground both simulations agree about.
-    - **A vocabulary bounded by the channel.** A scenario can contain only
-      what the cheat channel can stage: a spawn by type at a tile, a
-      selection, an order (move, gather, build, attack, garrison). Start
-      with move, gather and attrition — the mechanics that already match
-      frame for frame — and widen by the blind list, one family a time.
-    - **An AI-free lobby, or the AI scored apart.** The original's AI runs
-      unless the lobby has none (`-config`); run6's lobby is the template.
-      With an AI in, its units are noise the diff must be told to skip.
-    - **The dump is the whole cost.** ~3 frames a second at `UNITS=3`,
-      ~500 with the per-frame dump gated off. A scenario is a window:
-      fast-forward to it, dump one to three hundred frames, quit. Budget one
-      to two minutes a seed, and run seeds in a batch overnight.
-      `tools/gamelog/runwin.sh` is that window run, unattended, today.
-    - **Definition of done:** a tool (`tools/fuzz/`, or beside
-      `tools/gamelog/`) takes a seed, writes the `.cmd` and the ini, drives
-      the game, runs the diff, and appends one line to a ledger — seed,
-      first divergent frame, the functions the trace saw execute. The ledger
-      is what `report.py … blind` reads next, and the first divergent frame
-      is the score to move.
-    - **What it cannot do**, said now so nobody expects it: reach what the
-      channel cannot stage — diplomacy, the sea half until transports can
-      be ordered, CtW, multiplayer. For those the reading stays the only
-      evidence, and that list is the reading's brief.
+    Three of the entry's own assumptions were wrong, and each was settled by
+    a run or a measurement rather than an argument:
+
+    - **A scenario cannot contain an order.** The entry said it could
+      ("move, gather, build, attack, garrison"). The chat half of the
+      console is 45 state pokes and `move` is a teleport. So Tier 1 varies
+      the map and the staging, and reaches **none** of the blind list's
+      `add_*_order` / `do_*` / `action_*` / `process_*` family. That is
+      Tier 2's job and it needs the UI.
+    - **`restart` cannot drive it.** In-tick re-entrancy wedges the game.
+      One launch per seed, the seed in `rise.ini`.
+    - **A seed costs ~6 min and ~50 MB, not "one to two minutes".** And
+      the score is over three frames, not hundreds, because the window has
+      to be narrow.
+
+    **What it has already earned:** its first seed found a panic 31
+    hand-built runs and the soak never reached — `Sim::is_enemy` with the
+    nature player against a two-player table. That is the argument for
+    keeping it, and it is one data point.
+
+    **The experiment that decides it:** `DUMP_ALL=0` with `[End Frame]
+    WORLD=6` and the state categories. 51% of a `FULL DUMP` is the rulebook,
+    byte-identical across frames and already ours from the XML, and
+    `DUMP_ALL` is what forces it. If a block drops from ~25 MB to ~9 MB, a
+    seed can score over hundreds of frames and the ledger means something.
+    If it cannot, Tier 1 is a harness waiting for an oracle it does not
+    have, and the honest move is to keep `scenario.py` and the ledger and
+    stop there.
+
+    **What it still cannot do**, unchanged: reach what the channel cannot
+    stage — diplomacy beyond the verbs, the sea half until transports can be
+    ordered, CtW, multiplayer. For those the reading stays the only
+    evidence.
 14. ~~**The sea half — transports and docks**~~ — done 2026-08-25.
     `docs/TRANSPORT.md`, `crates/sim/src/transport.rs`,
     `docs/audit/2026-08-25-transport.md`; run22 and `tools/gamelog/window.py`.

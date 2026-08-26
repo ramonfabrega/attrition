@@ -60,11 +60,19 @@ click 2262 551 indies 3
 click 1061 1176 start1 3
 click 1061 1176 start2 20
 
-# The channel quits at HI+1, so wait for the process rather than for a size.
+# `!quit` returns to the **main menu**; it does not exit the process (run16b,
+# `docs/ORACLE.md`). So wait for the dump to settle -- unchanged for a minute
+# after it has grown -- rather than for an exit that never comes. Waiting on
+# the process cost seed 424242 a quarter of an hour of spinning.
+last=0; still=0
 for i in $(seq 1 90); do
   sleep 10
-  pgrep -f $P >/dev/null || { echo "quit cleanly"; break; }
-  echo "$(date +%H:%M:%S) gamelog=$(stat -f %z "$L/gamelog.txt" 2>/dev/null || echo 0)"
+  sz=$(stat -f %z "$L/gamelog.txt" 2>/dev/null || echo 0)
+  if [ "$sz" = "$last" ]; then still=$((still + 1)); else still=0; fi
+  last=$sz
+  echo "$(date +%H:%M:%S) gamelog=$sz still=$still"
+  if [ "$still" -ge 6 ] && [ "$sz" -gt 1000000 ]; then echo "settled"; break; fi
+  pgrep -f $P >/dev/null || { echo "process gone"; break; }
 done
 screencapture -x -R760,152,1920,1108 "$T/s$SEED-end.png" 2>/dev/null
 pkill -f $P 2>/dev/null || true

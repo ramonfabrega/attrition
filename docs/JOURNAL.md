@@ -1751,3 +1751,79 @@ writers reach the field through a group pointer rather than by name. The
 same trap `MoveOrder::facing` was already recorded as having: it is
 fetched through an order vtable slot, so grepping the field name finds
 nothing.
+
+## 2026-08-26 — the fuzzer, and three assumptions it cost to keep
+
+Item 13 was the entry with "the largest leverage per hour by a distance",
+and the argument was that its three pieces already existed and only needed
+wiring. They did. The wiring took an afternoon. What took the day was that
+three of the entry's assumptions were wrong, and every one of them was
+settled by a run or a measurement after a reading had already been written
+down.
+
+**The vocabulary is readable from the install, and half of it is out of
+reach.** `ConsoleWin::init_cmds` copies every command's name and help out of
+`int_str_array`, which is `Data/internal_strings.xml` positionally — so
+`tools/gamelog/console.py` re-derives all 102 commands from the user's own
+files. `run_cmd` then opens by jumping past its first switch when
+`from_chat` is set, and the two switches are **disjoint**: 56 console-only,
+45 reachable from a `cheat ` line. The `!` prefix in a `.cmd` file is not a
+convenience; it picks which half the line can reach.
+
+And the half that matters is not there. **`move` is a teleport** —
+`Unit::set_new_location`, which is `remove_from_world` then `add_to_world`
+— and no console command issues an order at all. The queue entry had said a
+scenario could contain "an order (move, gather, build, attack, garrison)".
+It cannot contain one. Every `add_*_order`, `do_*`, `action_*` and
+`process_*` on the blind list needs the UI, which is why run31's three
+right-clicks are still the only thing that has ever entered
+`CommandPackage::process_move_to`.
+
+**`restart` wedges the game, and the gate is what found it.** The plan was
+many scenarios per launch on the strength of `restart <seed>` being a
+console command. It is one, and it does what the decompile says. But the
+channel fires at `Game::do_frame` entry, so `Game::close`/`Game::init` tear
+down the game whose tick they are in. The trace is unambiguous, because the
+`INFO cmd` record is written *after* `parse_cmd` returns and there is no
+record for that line: the window went black, the process stayed alive, and
+no further `FRAME` was ever written. `rise.ini`'s `Seed (0 for random)`
+costs one launch per seed instead, needs no re-entrancy, and still
+regenerates the map — which is all `restart` was wanted for.
+
+**The first seed found a panic.** Seed 424242 staged nine spawns and a few
+pokes, ran to its window, quit cleanly at frame 3004 — and the diff panicked
+in our own code: `Sim::is_enemy` indexing two-player diplomacy tables with
+the nature player, `index out of bounds: the len is 2 but the index is 8`.
+run29's dump carries `who 8` as well and does not panic, so this is a *path*
+31 hand-built runs and the soak never walked, not an input they never saw.
+One data point, and the best argument the fuzzer has made for itself.
+
+**Then the measurement that retired an afternoon's plan.** The dump cost
+~25–30 MB and about a minute a frame, which made a fuzzed seed score over
+three frames instead of hundreds, which made the ledger nearly meaningless.
+The obvious answer was to stop asking the game's logger for text and write
+an in-process binary dumper in `rontrace.dll` — we have the DLL, we have
+5,880 struct layouts. Twenty minutes of measuring the existing dump killed
+that: **the logger is expensive for a reason we control.** `DUMP_ALL=1`
+overrides the per-category levels, and `window.py stage` sets it for exactly
+one reason — `scene_at` asserts on a `WORLD` block at the stand-up frame.
+
+**And then the correction, which is the part worth keeping.** The first pass
+at that measurement read the section names and called 85% of a block static.
+Hashing the sections instead said **0% identical** — until the diff showed
+the only difference between two copies of `COMBATTABLE` was *one space of
+indentation*, across all 251,738 lines. Normalised, the honest figure is
+**51%**: `COMBATTABLE` 36%, `UNITTYPE` 14%, the small type tables the rest —
+the rulebook, which we already hold from the XML. `WORLD` is the other 31%
+and **genuinely changes**, so the tidy idea of taking it from the start
+block is wrong, and was claimed in the queue before it was checked.
+
+**The method note.** Two of them, and they are the same note from opposite
+ends. **Measure the oracle before building a better one** — a day's design
+went away for twenty minutes of counting. And **"static" is a claim about
+what changes between frames, so check it between frames**: naming a section
+`COMBATTABLE` is not evidence that it is constant, hashing it across six
+blocks is, and the first attempt at that got the answer wrong twice — once
+by trusting names, once by trusting bytes that differed only in whitespace.
+The rule the project already had — grep the writers of every field you call
+frozen — turns out to apply to whole sections of a dump too.
