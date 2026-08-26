@@ -110,7 +110,14 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — the stand/wrap swap (item 24's last piece). The sim spends a unit-loop stand for each gathering citizen where the original spends none and wraps the same guys in phase 7 instead; it now costs a draw on the fuzzed map, not zero. Run a frame-0 GUYS=4 window and settle which four guys wrap and why.`
+**Take 27 before 26, and it is not only that it is cheaper.** The
+stand/wrap swap is a ±4 that cancels in every total. Once the animal idles
+and the phase-7 wraps carry site marks, it stops being a total and becomes
+a visible *order* mismatch at frame 0 — our stand where the original's wrap
+is — which may settle it without the `GUYS=4` capture at all. Item 27 is
+the instrument for item 26.
+
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 27: mark the other mechanics' draw sites, so frame 0's fold is a site-by-site comparison rather than a per-phase count. rondata --trace <rontrace-run20.log> prints the target; crate::scout is the worked example and docs/SYNC.md §5 the tooling. Start with the animal idles and the phase-7 wraps, because those are what item 26 needs.`
 
 ## The queue
 
