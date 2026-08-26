@@ -36,6 +36,7 @@ pub mod load;
 pub mod recgame;
 pub mod scalar;
 pub mod table;
+pub mod trace;
 pub mod tuning;
 pub mod typesdump;
 

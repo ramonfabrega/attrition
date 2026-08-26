@@ -36,6 +36,11 @@ fn main() -> ExitCode {
         eprintln!("--types    a DUMP_ALL=1 start-of-game dump (docs/ORACLE.md): its");
         eprintln!("           UNITTYPE blocks and COMBATTABLE are checked against the");
         eprintln!("           loader's Kinds and the combat table it builds.");
+        eprintln!("--trace    a rontrace.log from tools/trace (docs/ORACLE.md): its");
+        eprintln!("           per-frame draw sites are folded and printed beside the");
+        eprintln!("           simulation's own, which is what --diff's `by phase` note");
+        eprintln!("           has to be lined up against. Addresses are bare: naming");
+        eprintln!("           them is tools/trace/report.py's job.");
         eprintln!("--recgame  a .rcx recorded game (docs/RECGAME.md): the header,");
         eprintln!("           lobby and command-package stream are parsed and");
         eprintln!("           summarised.");
@@ -45,6 +50,7 @@ fn main() -> ExitCode {
     let mut siblings: Vec<String> = Vec::new();
     let mut types: Option<String> = None;
     let mut recgame: Option<String> = None;
+    let mut trace: Option<String> = None;
     let mut diff: Option<Option<usize>> = None;
     while let Some(a) = args.next() {
         match a.as_str() {
@@ -52,6 +58,7 @@ fn main() -> ExitCode {
             "--sibling" => siblings.extend(args.next()),
             "--types" => types = args.next(),
             "--recgame" => recgame = args.next(),
+            "--trace" => trace = args.next(),
             "--diff" => {
                 diff = Some(None);
                 if let Some(n) = args.next() {
@@ -95,6 +102,10 @@ fn main() -> ExitCode {
         .and_then(|f| match &recgame {
             Some(path) => Ok(f + recgame_report(&install, path)?),
             None => Ok(f),
+        })
+        .map(|f| match &trace {
+            Some(path) => f + trace_report(path),
+            None => f,
         });
     match result {
         Ok(0) => ExitCode::SUCCESS,
@@ -108,6 +119,69 @@ fn main() -> ExitCode {
         }
     }
 }
+
+/// Folds a `rontrace.log`'s draws by site, frame by frame — the original's
+/// side of `--diff`'s `rng: frame N: ours by phase` note
+/// (`docs/ORACLE.md`, "The draw-site trace and function coverage").
+///
+/// Sites are bare addresses. Naming them needs the Ghidra export's
+/// `INDEX.tsv`, which never enters this repo; `tools/trace/report.py` is
+/// where a name comes from, and this is for lining the two folds up
+/// without leaving Rust.
+fn trace_report(path: &str) -> usize {
+    println!("\ntrace");
+    let t = match rondata::trace::Trace::read(std::path::Path::new(path)) {
+        Ok(Some(t)) => t,
+        Ok(None) => {
+            println!("  [FAIL] {path}: not a rontrace.log (no RONT header)");
+            return 1;
+        }
+        Err(e) => {
+            println!("  [FAIL] {path}: {e}");
+            return 1;
+        }
+    };
+    let sync = t.draws.iter().filter(|d| d.sync()).count();
+    println!(
+        "  base {:#010x}, {} draws of which {sync} on game_random, {} frames",
+        t.base,
+        t.draws.len(),
+        t.frames.len()
+    );
+    // The sim-frames only. The setup path is the map generator and is tens
+    // of thousands of draws; `report.py … sites setup` is where that is
+    // read, and it is not what a frame's fold is for.
+    let setup = t.draws.iter().filter(|d| d.frame < 0 && d.sync()).count();
+    if setup > 0 {
+        println!("  setup: {setup} draws, not folded (the map generator)");
+    }
+    for (f, _) in &t.frames {
+        let n = t.frame_draws(*f).len();
+        if n == 0 {
+            continue;
+        }
+        // A frame with the renderer's sites in it can run to hundreds of
+        // runs; the head is what lines up against `by phase`.
+        let fold = t.site_fold(*f);
+        let runs: Vec<&str> = fold.split(", ").collect();
+        let head = runs
+            .iter()
+            .take(RUNS)
+            .copied()
+            .collect::<Vec<_>>()
+            .join(", ");
+        let tail = if runs.len() > RUNS {
+            format!(", … {} more runs", runs.len() - RUNS)
+        } else {
+            String::new()
+        };
+        println!("  frame {f}: {n} draws — {head}{tail}");
+    }
+    0
+}
+
+/// How many runs of one site a frame's fold prints before it truncates.
+const RUNS: usize = 60;
 
 /// Loads the tables, stands the simulation up from the dump and diffs it
 /// against the logged frames.

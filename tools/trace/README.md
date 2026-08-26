@@ -107,6 +107,14 @@ tools/trace/report.py game/rontrace.log functions        # every function, first
 tools/trace/report.py game/rontrace.log blind docs/ [more logs...]
 ```
 
+There is a **second reader** since 2026-08-26, in Rust:
+`rondata::trace` parses the same file, and `rondata --trace <log>` prints
+the per-frame fold by site. It exists so a `#[test]` can assert a
+mechanic's draw *sequence* against the original's without shelling out
+(`docs/SYNC.md` §5, `docs/SCOUT.md` §12). It cannot name an address —
+that needs `INDEX.tsv`, which is outside the repo — so `report.py` stays
+the reader for anything a human is reading.
+
 `blind` collects every `name@00xxxxxx` the documents cite, and lists the
 ones no given trace entered. A cited function that no run has driven is a
 claim with no behavioural check behind it — the list is the queue for the

@@ -1781,7 +1781,13 @@ impl Sim {
     /// Records the stream's word *before* the phase named runs, so the
     /// draws between two marks belong to the earlier one. Nothing at all
     /// unless [`Sim::trace_phases`] is set.
-    fn mark(&mut self, phase: &str) {
+    ///
+    /// `Sim::tick` marks its phases and each unit the loop visits; a
+    /// **mechanic** may mark its own draw sites on top of that, under the
+    /// original's own offsets (`crate::scout` is the first), which is what
+    /// turns the fold from a count into a sequence comparable with
+    /// `rondata::trace`'s.
+    pub(crate) fn mark(&mut self, phase: &str) {
         if self.trace_phases {
             self.phase_marks.push((phase.to_string(), self.rng.seed));
         }

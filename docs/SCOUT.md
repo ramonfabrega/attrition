@@ -543,10 +543,16 @@ The checks:
   landed: `step` 1 instead of 2, the early exit removed, the phase guard
   relaxed to `>= 0`, and the fog gate short-circuited.
 - `rondata::diff`'s
-  `run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings` — the whole ten,
-  on the trace's own seed, with the seed left standing checked against the
-  trace's draw 32, plus the frame-0 count (175 against 175) and §9's
-  `EXPLORE_TO` at ring 5 of the AI's city.
+  `run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings` — the whole ten as
+  a **sequence**, not a count. It reads `rontrace-run20.log` through
+  `rondata::trace`, filters it to the draws `think_scout` took itself
+  (`scout::CODE`, the function's address range), and compares site for
+  site against the harness's own marks (`scout::SITE_ROTATION`,
+  `SITE_PHASE`, `SITE_CELL`, expanded by `diff::mark_sites`). Plus the
+  frame-0 count (175 against 175) and §9's `EXPLORE_TO` at ring 5 of the
+  AI's city. Made to fail by transposing two of the three marks, which
+  leaves the count at ten and the sequence wrong — the case a total cannot
+  see.
 - `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six`, whose
   frame-0 row moves from 165/175 to **175/175** with this.
 - `crate::no_float` and `crate::soak` as everywhere else.

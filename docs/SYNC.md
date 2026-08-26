@@ -494,6 +494,30 @@ which is the harness's answer to `tools/trace/report.py … sites`, and lines
 up against it directly. §4.2 is what that comparison found the first time it
 was run; a bare total would not have.
 
+**And it reads the trace itself now** (`rondata::trace`, 2026-08-26). The
+`rontrace.log` format is thirty-two-byte records and the Rust side parses
+it, so three things stopped being Python's job:
+
+- `rondata --trace <rontrace.log>` prints the original's own per-frame
+  fold **by site**, in the same shape `by phase` prints ours — the two
+  lines sit one above the other and no longer have to be lined up by hand.
+  Addresses are bare; naming them still needs the Ghidra export's
+  `INDEX.tsv`, which never enters this repo, so `report.py` is where a name
+  comes from.
+- `Trace::run_in(frame, lo, hi)` isolates **one function's own draws** from
+  the ones its callees took, which is what makes a per-mechanic assertion
+  possible at all.
+- A mechanic may mark its own draw sites (`Sim::mark`, under the
+  original's offsets — `crate::scout`'s three are the first), and
+  `diff::mark_sites` expands the marks into one label per draw. Seed the
+  sim with the trace's own word, run the mechanic, and compare the two
+  **sequences**.
+
+That last one is the point. A count cannot tell four rotations and two
+phases from three and three; a sequence can, and it is checkable **while
+the frame's stream is still wrong upstream** — which is exactly the
+position `docs/SCOUT.md` landed in.
+
 **The counts, 2026-08-24**, run10 with run11/run3/run12 as siblings:
 
 | frame | ours | the original's | the gap |

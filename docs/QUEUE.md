@@ -56,6 +56,17 @@ one-member group with an `EXPLORE_TO`.
   `crate::path`'s `invalid_loc` refuses a cliff (`docs/PATHFINDER.md`
   §11). It changed no count.
 
+**And the harness reads the trace now** — `rondata::trace`, built straight
+after, because doing the seed-anchored check by hand twice was the whole
+argument for it. Three things it buys, all reusable by the next mechanic:
+`rondata --trace <rontrace.log>` prints the original's per-frame fold **by
+site** in the same shape `--diff`'s `by phase` prints ours;
+`Trace::run_in` isolates one function's own draws from its callees';
+and a mechanic that marks its own sites (`Sim::mark`, `diff::mark_sites`)
+can be asserted **draw for draw** rather than by a total. The scout check
+is now a sequence comparison — made to fail by transposing two marks,
+which leaves the count at ten and the order wrong. `docs/SYNC.md` §5.
+
 **The numbers now.** run20 frame 0 **175/175**, frame 1 52/53, frame 2
 **5/5**. The fuzzed map: frame 0 196/195, frame 1 48/45. The Great Lakes
 (run10): frame 0 128/120 (was 96/120), frames 1 and 2 unchanged at 54/54
@@ -84,12 +95,14 @@ divergence at frame 2 is untouched and is the next thing.
   `calc_gather` for non-flat buildings.
 
 **The thing this session earned.** *Read the sites before the function,
-and assert on the seed rather than the count.* Three return addresses,
+and assert on the sequence rather than the count.* Three return addresses,
 disassembled, gave the ring walk's shape and both its guards in ten
 minutes; the decompile after that was naming. And a mechanic that replays
 a **sequence** from a pinned seed is checked in a way a total never is —
 which is what let this land while the stream that reaches it is still
-wrong, and what turned that wrongness into a number.
+wrong, and what turned that wrongness into a number. That second half is
+now a harness primitive rather than a one-off, which is the part that
+pays again next time.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -288,6 +301,17 @@ in which case say so and take that. The story of each struck item is in
     frame-0 `GUYS=4` window — every `set_anim` logs its index at detail 4.
     Run20's own end-of-frame-0 dump explains two of the four wraps and not
     the other two; `docs/SYNC.md` §6 has that half.
+
+27. **Mark the other mechanics' draw sites.** `rondata::trace` and
+    `diff::mark_sites` make a per-mechanic draw-*sequence* assertion cheap,
+    but only `crate::scout` marks its sites so far. The candidates in
+    rough order of what a capture already covers: the market
+    (`calc_market`'s three), `Animal::do_idle` and the phase-7 wraps
+    (`docs/ANIM.md`), `Farms::inc_time`, `Objects::process_all`'s birds,
+    `Leader::compute_sites`. Each is a few `Sim::mark` calls and one
+    check; between them they would turn frame 0's whole fold from a
+    per-phase count into a site-by-site comparison. Cheap, and no run
+    needed — `rondata --trace <log>` already prints the target.
 
 ## How to maintain this file
 

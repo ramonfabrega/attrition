@@ -2242,3 +2242,56 @@ pinned seed is checked in a way a total can never be, and it is checkable
 even while the stream that reaches it is still wrong. That is what let this
 land with the upstream defect still open — and what turned the upstream
 defect into a number.
+
+### The primitive, built the same day
+
+Doing the seed-anchored check by hand twice — once with `eprintln!`, once
+as a hand-written assertion — was the whole argument for building it
+properly, so it was built before clearing.
+
+`crates/rondata/src/trace.rs` parses `rontrace.log` from Rust. The format
+is thirty-two-byte records of eight `u32`, documented in
+`tools/trace/README.md` and authoritative in `tracer.c`'s `emit`; the two
+fields that matter are the **`Random *`**, which separates the sync stream
+from the renderer's four other generators, and the **seed before the
+step**, which is the word a replay seeds with. Sites are normalised back to
+`0x400000` so a relocated run compares against the export's addresses.
+
+Three things fall out, and all three are reusable:
+
+- `rondata --trace <rontrace.log>` prints the original's per-frame fold
+  **by site**, in the same shape `--diff`'s `by phase` note prints ours.
+  Run20's frame 0 reads
+  `… 5dac7a ×4, 5f6446 ×3, 5f6468, 5f665c ×4, 5f6446, 5f6468, 5dac7a ×105, …`
+  — the scout's ten sitting between the four stands and the animals'
+  hundred and five, on one line, with no Python in the loop. Frame 1's
+  `8d8c7f, 8d8c9b` are the two `Farms::add` draws the queue's next-but-one
+  item is about, visible without looking for them.
+- `Trace::run_in(frame, lo, hi)` isolates one function's own draws from
+  the ones its callees took — `[think_scout, think)` for this mechanic.
+- A mechanic marks its own draw sites under the original's offsets
+  (`Sim::mark`, already gated on `trace_phases` so the soak pays nothing),
+  and `diff::mark_sites` expands the marks into one label per draw.
+
+So the scout check is now a **sequence** comparison: read the trace,
+filter to `think_scout`'s own draws, seed the sim with the first of them,
+run one call, compare site for site. Made to fail by transposing two of
+the three marks — which leaves the count at ten and the order wrong, and
+is exactly the class of error a total cannot see:
+
+```
+left:  [+0x458, +0x458, +0x458, +0x458, +0x64c ×4, +0x458, +0x458]
+right: [+0x436, +0x436, +0x436, +0x458, +0x64c ×4, +0x436, +0x458]
+```
+
+Four tests on the parser itself, including a relocated run folding back
+and a non-trace being refused.
+
+**Why this one and not another tool.** It is the only kind of check that
+works while the *upstream* stream is still wrong, which is the position
+every mechanic lands in for a while: the frame that reaches it is off by a
+few draws, so nothing about the frame's totals can be trusted, but the
+mechanic itself is exactly assertable from a pinned seed. That is a
+general shape, not a scout-specific one — item 27 is the list of mechanics
+that should get the same treatment, and the trace fold is already printing
+their targets.

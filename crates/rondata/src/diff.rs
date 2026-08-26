@@ -1029,6 +1029,31 @@ pub fn draws_between(from: u32, to: u32) -> Option<u32> {
     None
 }
 
+/// The simulation's own draws as a **sequence of site labels**, one entry
+/// per draw — the harness's side of
+/// [`crate::trace::Trace::run_in`](crate::trace::Trace::run_in).
+///
+/// `marks` is [`sim::Sim::phase_marks`], each pair a label and the stream's
+/// word *before* that label's draws; `end` is the word after the last of
+/// them. A mark that drew nothing contributes nothing, which is what makes
+/// a guarded site read correctly — `sim::scout` skips its phase draw on
+/// rings under four — rather than as a zero-length hole.
+///
+/// This is the primitive the seed-anchored check is built on: seed the sim
+/// with the trace's own word, run one mechanic, and compare this against
+/// the trace's sites. A count cannot tell four rotations and two phases
+/// from three and three; this can.
+pub fn mark_sites(marks: &[(String, u32)], end: u32) -> Option<Vec<String>> {
+    let mut out = Vec::new();
+    for (i, (label, from)) in marks.iter().enumerate() {
+        let to = marks.get(i + 1).map_or(end, |m| m.1);
+        for _ in 0..draws_between(*from, to)? {
+            out.push(label.clone());
+        }
+    }
+    Some(out)
+}
+
 impl Report {
     /// Ticks before divergence: the last frame on which every compared unit
     /// agreed, or the number of frames if none ever disagreed.
@@ -2765,6 +2790,15 @@ mod tests {
         assert_eq!(draws_between(0xab3b_035d, 0xc242_06bb), Some(6));
     }
 
+    /// A trace beside the dumps — `RON_GAMELOG_DIR`, where `archive.sh`
+    /// puts both. `None` skips the half of a check that needs it, the same
+    /// way [`dump`] does.
+    fn trace(name: &str) -> Option<crate::trace::Trace> {
+        let dir = std::env::var("RON_GAMELOG_DIR").ok()?;
+        let path = std::path::Path::new(&dir).join(name);
+        crate::trace::Trace::read(&path).ok().flatten()
+    }
+
     /// Run20's `Farms` list, and the pasture in it. Six farms, one of them
     /// `farm_type == 1` — the AI's `o 2002` — which grows nothing and
     /// carries five animals of **owner 9** that no dump prints (run20's
@@ -2859,14 +2893,12 @@ mod tests {
     /// Run20's AI scout at frame 0 — `Unit::think_scout`'s ten draws, on
     /// the original's own stream (`docs/SCOUT.md` §10).
     ///
-    /// The stream is the assertion and it is exact. `rontrace-run20.log`
-    /// places frame 0's draws 24–33 at `Unit::think_scout+0x436` ×4,
-    /// `+0x458` ×2, `+0x64c` ×4, and records the seed each one was taken
-    /// on. Seeding the harness's scout with the first of those and running
-    /// `think_scout` reproduces **all ten**, and leaves the rotation draw
-    /// of ring 7 standing on `0xa358_e033` — the trace's draw 32. The same
-    /// probe on the fuzzer's control map reproduces its ten identically,
-    /// from `0x242c_b7ed`.
+    /// **The sequence is the assertion, not the count.** The trace is read
+    /// here rather than in Python (`crate::trace`), filtered to the draws
+    /// `think_scout` took itself, and compared site for site against the
+    /// harness's own marks. A total cannot tell four rotations and two
+    /// phases from three and three; this can, and it is what the ring
+    /// walk's two guards need checking against.
     ///
     /// The seed has to be installed because the frame's own stream reaches
     /// the scout **two draws early**: the harness spends a stand in the
@@ -2908,20 +2940,54 @@ mod tests {
         let scout = thinking[0];
         assert_eq!(built.sim.units[scout].owner, 1, "the computer's");
 
-        // The trace's draw 24, the first of the ten.
-        const FIRST: u32 = 0x9c59_1b2b;
-        built.sim.rng = sim::combat::Rng::new(FIRST);
-        assert!(built.sim.think_scout(scout), "a target is found");
+        // The trace's own frame-0 draws, filtered to the ones
+        // `Unit::think_scout` took itself.
+        let Some(trace) = trace("rontrace-run20.log") else {
+            eprintln!("skipping the sequence half: no rontrace-run20.log");
+            return;
+        };
+        let theirs = trace.run_in(0, sim::scout::CODE.start, sim::scout::CODE.end);
         assert_eq!(
-            draws_between(FIRST, built.sim.rng.seed),
-            Some(10),
-            "the ten of docs/SCOUT.md §10: four rotations, two phases, four cells"
+            theirs
+                .iter()
+                .map(|d| format!("think_scout+{:#x}", d.site - sim::scout::CODE.start))
+                .collect::<Vec<_>>(),
+            vec![
+                "think_scout+0x436",
+                "think_scout+0x436",
+                "think_scout+0x436",
+                "think_scout+0x458",
+                "think_scout+0x64c",
+                "think_scout+0x64c",
+                "think_scout+0x64c",
+                "think_scout+0x64c",
+                "think_scout+0x436",
+                "think_scout+0x458",
+            ],
+            "the trace's own frame-0 sequence (docs/SCOUT.md §10)"
         );
-        // Draw 32 is ring 7's rotation, two draws from the end.
+
+        // Ours, from the first of those, site for site rather than by
+        // count — four rotations and two phases, not three and three.
+        let first = theirs[0].seed;
+        assert_eq!(first, 0x9c59_1b2b, "the trace's draw 24");
+        built.sim.trace_phases = true;
+        built.sim.phase_marks.clear();
+        built.sim.rng = sim::combat::Rng::new(first);
+        assert!(built.sim.think_scout(scout), "a target is found");
+        let ours = mark_sites(&built.sim.phase_marks, built.sim.rng.seed).expect("our sites");
         assert_eq!(
-            draws_between(0xa358_e033, built.sim.rng.seed),
-            Some(2),
-            "and the last two are ring 7's rotation and phase"
+            ours,
+            theirs
+                .iter()
+                .map(|d| format!("think_scout+{:#x}", d.site - sim::scout::CODE.start))
+                .collect::<Vec<_>>(),
+            "our ten draws, at the original's sites, in the original's order"
+        );
+        // Which leaves the stream where the trace's next draw found it.
+        assert_eq!(
+            draws_between(first, built.sim.rng.seed),
+            Some(theirs.len() as u32)
         );
 
         // §9: the explore order, at a tile centre inside ring 5 of the

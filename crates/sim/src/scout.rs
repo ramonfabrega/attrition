@@ -41,6 +41,22 @@ pub const NOTHING: i32 = 99_999_999;
 /// it gets 8 (§5).
 pub const FIRST_MAX_RING: i32 = 12;
 
+/// The three draw sites, under the original's own offsets from
+/// `think_scout@005f6010`. `Sim::mark` writes them into
+/// [`Sim::phase_marks`](crate::Sim::phase_marks) while the harness is
+/// tracing, which is what lets `rondata::diff` compare our draw *sequence*
+/// against `rondata::trace`'s rather than our count against a total
+/// (`docs/SCOUT.md` §10, §12).
+pub const SITE_ROTATION: &str = "think_scout+0x436";
+pub const SITE_PHASE: &str = "think_scout+0x458";
+pub const SITE_CELL: &str = "think_scout+0x64c";
+
+/// The address range those three fall in — `Unit::think_scout` up to
+/// `Unit::think`, the next function in the export. What
+/// `rondata::trace::Trace::run_in` takes to isolate this mechanic's own
+/// draws from the ones its callees take.
+pub const CODE: std::ops::Range<u32> = 0x005f_6010..0x005f_6e40;
+
 /// The `max_ring` an AI unit uses around a **foreign** leader's city (§6).
 pub const FOREIGN_MAX_RING: i32 = 3;
 
@@ -391,8 +407,10 @@ impl Sim {
             let stride = phase + 1;
             let (start, end) = table.ring(ring);
             // `+0x436`: the rotation, modulo the **cumulative** count.
+            self.mark(SITE_ROTATION);
             let rot = if end > 1 { self.rng.roll() % end } else { 0 };
             // `+0x458`: the phase, skipped when `ring / 4 + frame % 8 == 0`.
+            self.mark(SITE_PHASE);
             let idx = if phase >= 1 {
                 self.rng.roll() % stride
             } else {
@@ -465,6 +483,7 @@ impl Sim {
         }
         let here = self.units[u].pos.cell();
         // `+0x64c`: the jitter that breaks ties between equidistant cells.
+        self.mark(SITE_CELL);
         let mut score = vector_dist(here.x - c.x, here.y - c.y) * 8 + self.rng.roll() % 8;
 
         // §8. `treaties[leader] & 3 == 0` is `diplos == 0`, which
