@@ -4098,6 +4098,12 @@ mod army_tests {
                 kind,
                 dest,
                 angle: sim::movement::Angle(i(od.angle)),
+                // `MoveOrder +0x28`, where the original's −1 is the
+                // "not a formation move" of `docs/GROUPS.md` §6.3.
+                facing: match od.facing {
+                    Some(f) if f >= 0 => Some(f != 0),
+                    _ => None,
+                },
                 has_waypoint: od.dest == Some(1),
                 waypoint: Pos::new(i(od.dest_x), i(od.dest_y)),
                 last: match (od.last_x, od.last_y) {
@@ -5778,6 +5784,55 @@ mod army_tests {
         Some(out)
     }
 
+    /// run31's twelve squads, stood up in the harness in the record's own
+    /// object order so that a harness index *is* a record slot: four
+    /// squads of the ranged type then eight of the foot one, each a
+    /// captain and two figures down its `o_down` chain, and the group
+    /// built by adding the twelve captains (§4.1's subordinate recursion
+    /// turns that into 36 members).
+    fn run31_harness(
+        loaded: &crate::load::Loaded,
+        ranged: usize,
+        foot: usize,
+    ) -> (sim::Sim, sim::group::Group) {
+        let mut s = sim::Sim::new(
+            sim::tuning::Tuning::RON,
+            sim::world::World::new(400, 400),
+            2,
+        );
+        s.nation[0].human = true;
+        let mut ours = Vec::new();
+        for &t in &[ranged, foot] {
+            let mut proto = loaded.unit_types[t].clone();
+            proto.tree = None;
+            ours.push(s.add_unit_type(proto));
+        }
+        let mut captains = Vec::new();
+        for squad in 0..12 {
+            let ty = ours[usize::from(squad >= 4)];
+            let mut chain = Vec::new();
+            for figure in 0..3 {
+                let idx = i16::try_from(s.units.len()).unwrap();
+                let mut u = Unit::new(0, idx, Pos::new(0x4000 + squad * 0x100, 0x4000), 120);
+                u.ty = Some(ty);
+                u.on_map = true;
+                u.captain = figure == 0;
+                let u = s.add_unit(u);
+                chain.push(u);
+            }
+            s.units[chain[0]].o_down = Some(chain[1]);
+            s.units[chain[1]].o_up = Some(chain[0]);
+            s.units[chain[1]].o_down = Some(chain[2]);
+            s.units[chain[2]].o_up = Some(chain[0]);
+            captains.push(chain[0]);
+        }
+        let mut g = sim::group::Group::stack(0);
+        for &c in &captains {
+            s.group_add(&mut g, c);
+        }
+        (s, g)
+    }
+
     /// **The shape of a human group move**, which no dump had held: 36
     /// members and not 12, two categories, and an anchor that is not the
     /// first member.
@@ -6097,7 +6152,6 @@ mod army_tests {
     #[test]
     fn run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns() {
         use sim::form::{cat, formation, type_cat};
-        use sim::group::Group;
         use sim::movement::Angle;
         let Some(inst) = install() else { return };
         let Some(moves) = run31_moves() else { return };
@@ -6135,47 +6189,7 @@ mod army_tests {
         }
 
         // ---- the same group, stood up in the harness ----
-        let mut s = sim::Sim::new(
-            sim::tuning::Tuning::RON,
-            sim::world::World::new(400, 400),
-            2,
-        );
-        s.nation[0].human = true;
-        let mut ours = Vec::new();
-        for &t in &[ranged, foot] {
-            let mut proto = loaded.unit_types[t].clone();
-            proto.tree = None;
-            ours.push(s.add_unit_type(proto));
-        }
-        // Twelve squads, each a captain and two figures down its `o_down`
-        // chain, spawned in the record's own object order so that the
-        // harness's indices line up with the record's slots.
-        let mut captains = Vec::new();
-        for squad in 0..12 {
-            let ty = ours[usize::from(squad >= 4)];
-            let mut chain = Vec::new();
-            for figure in 0..3 {
-                let idx = i16::try_from(s.units.len()).unwrap();
-                let mut u = Unit::new(0, idx, Pos::new(0x4000 + squad * 0x100, 0x4000), 120);
-                u.ty = Some(ty);
-                u.on_map = true;
-                u.captain = figure == 0;
-                let u = s.add_unit(u);
-                chain.push(u);
-            }
-            s.units[chain[0]].o_down = Some(chain[1]);
-            s.units[chain[1]].o_up = Some(chain[0]);
-            s.units[chain[1]].o_down = Some(chain[2]);
-            s.units[chain[2]].o_up = Some(chain[0]);
-            captains.push(chain[0]);
-        }
-        // §4.1: adding the twelve captains pulls in every figure behind its
-        // own, which is the record's `list` — a player's selection group
-        // holds 36 members and not 12.
-        let mut g = Group::stack(0);
-        for &c in &captains {
-            s.group_add(&mut g, c);
-        }
+        let (s, g) = run31_harness(&loaded, ranged, foot);
         assert_eq!(g.list.len(), 36, "the subordinate recursion");
         assert_eq!(
             g.list,
@@ -6323,5 +6337,209 @@ mod army_tests {
             mirrored > 0 && mirrored < checked,
             "run31 has moves both ways: {mirrored} of {checked} mirrored"
         );
+    }
+
+    /// One frame of run31, reduced to what the mirror's state machine reads.
+    struct Run31Frame {
+        /// The human's live group, if the pool held one that frame.
+        facing: Option<bool>,
+        /// `who == 0` object → its `UNITDATA::angle`.
+        angle: std::collections::BTreeMap<i64, i64>,
+        /// The distinct `GroupMoveOrder`s the frame carries: the click, the
+        /// order's angle, and its own `facing` byte.
+        orders: std::collections::BTreeSet<(i64, i64, i64, i64)>,
+    }
+
+    /// Every frame of run31, not only the ones carrying an order — the
+    /// predicate reads the leader's heading on the frame **before** the
+    /// click, which is the last one printed before `compute_form` ran.
+    fn run31_frames() -> Option<std::collections::BTreeMap<i64, Run31Frame>> {
+        let name = "gamelog-run31-humangroup.txt";
+        let Some(path) = dump(name) else {
+            eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
+            return None;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let mut out = std::collections::BTreeMap::new();
+        for (frame, block) in log.frames() {
+            let (units, _, _) = crate::gamelog::records(block, false);
+            let mut angle = std::collections::BTreeMap::new();
+            let mut orders = std::collections::BTreeSet::new();
+            for u in &units {
+                if u.who != 0 {
+                    continue;
+                }
+                if let Some(a) = u.angle {
+                    angle.insert(u.o, a);
+                }
+                for o in &u.orders {
+                    if o.kind != "GroupMoveOrder" {
+                        continue;
+                    }
+                    if let (Some(x), Some(y), Some(a), Some(f)) =
+                        (o.orig_x, o.orig_y, o.angle, o.facing)
+                    {
+                        orders.insert((x, y, a, f));
+                    }
+                }
+            }
+            let facing = crate::gamelog::groups(block)
+                .into_iter()
+                .find(|g| g.who == 0 && g.num > 0)
+                .map(|g| g.facing != 0);
+            out.insert(
+                frame,
+                Run31Frame {
+                    facing,
+                    angle,
+                    orders,
+                },
+            );
+        }
+        Some(out)
+    }
+
+    /// **The mirror's predicate, end to end** (`docs/GROUPS.md` §6.3,
+    /// §12.3) — the question run31 opened while closing two others, and
+    /// the one this file could not answer until the *other* writers of
+    /// `GroupData::facing` were found.
+    ///
+    /// The flag the layout reads is never the flag the dump prints. Three
+    /// things write it, and in one frame all three can run:
+    ///
+    /// 1. `Unit::kill_current_order@005e2cb0` — the `QUEUE_NEW` clear at
+    ///    `70524f` runs **before** `compute_form` at `7053ec`, and the
+    ///    leader's dying move hands its own `MoveOrder::facing` back to the
+    ///    group, inverted if the leader has since turned around.
+    /// 2. `compute_form@00707c80` toggles it around `Form::compute` and
+    ///    toggles it back — the mirror is `facing XOR (leader ≥ 90° off the
+    ///    bearing)` and the flag itself ends where it started.
+    /// 3. `Unit::set_angle@00605400` toggles it again, later in the frame,
+    ///    when the leader's own march turns it by 90° or more.
+    ///
+    /// So run31's three clicks are three predictions each, and every one
+    /// is a number the record already holds. Two of the moves have a
+    /// dumped `facing` that **contradicts** the mirror their slot table
+    /// needs, which is exactly why nothing short of the whole machine
+    /// reproduces them.
+    ///
+    /// **What this run cannot reach**, said here because four of the five
+    /// breakages written against it went red and this is the fifth: the
+    /// hand-back's *inversion*. Both of run31's kills catch the leader
+    /// 10.6° and 6.3° off the dying order's own angle, nowhere near the
+    /// 90° that would flip the byte on the way back, so `reversing`'s term
+    /// at `5e3062`–`5e307b` is carried by the listing alone. The capture
+    /// that would settle it is a group ordered somewhere, turned right
+    /// around while marching, and then re-ordered — §13.
+    #[test]
+    fn run31_s_three_mirrors_come_out_of_facing_s_three_writers() {
+        use sim::group::reversing;
+        use sim::movement::Angle;
+        let Some(moves) = run31_moves() else { return };
+        let Some(frames) = run31_frames() else { return };
+
+        // The three clicks, each on the frame its order first appears.
+        let mut clicks: Vec<(i64, (i64, i64, i64, i64))> = Vec::new();
+        let mut seen = std::collections::BTreeSet::new();
+        for (&frame, f) in &frames {
+            for &o in &f.orders {
+                if seen.insert((o.0, o.1)) {
+                    clicks.push((frame, o));
+                }
+            }
+        }
+        assert_eq!(clicks.len(), 3, "run31's three right-clicks");
+
+        // `find_leader` names object 6 — the first hoplite captain, the
+        // lowest `type_cat` in the group (§4.4) — and its slot in the
+        // 36-member list is 12, whose `angles` byte is 0 in a Line.
+        let leader = 6;
+        let leader_slot = 12;
+        for m in &moves {
+            assert_eq!(
+                m.group.members[leader_slot].o, leader,
+                "run31/{}: slot 12 is the leader's",
+                m.frame
+            );
+            assert_eq!(
+                m.group.members[leader_slot].angle, 0,
+                "run31/{}: a Line leans nowhere",
+                m.frame
+            );
+        }
+
+        // The mirror each move actually used is the one its own orders
+        // carry: `MoveOrder +0x28` is written with the flag `Form::compute`
+        // was handed, and every member of a move agrees on it.
+        let d = |a: i64, b: i64| {
+            reversing(Angle(
+                i32::try_from(a)
+                    .unwrap()
+                    .wrapping_sub(i32::try_from(b).unwrap()),
+            ))
+        };
+        let mut facing = false; // `Group::clear` — a fresh group mirrors nothing.
+        let mut prev: Option<(i64, i64)> = None; // the last order's (angle, facing)
+        // How often the flag **as the pool last printed it** predicts the
+        // wrong mirror — the model this file held until today, and the
+        // control that makes the rest of this test mean something.
+        let mut running_wrong = 0;
+        for (frame, (_, _, theta, order_facing)) in &clicks {
+            let tag = format!("run31/{frame}");
+            let before = frames
+                .get(&(frame - 1))
+                .expect("the frame before the click");
+            let now = &frames[frame];
+            let heading = *before.angle.get(&leader).expect("the leader's heading");
+
+            // 1. The dying order's hand-back, which only a leader makes.
+            //    It is an assignment and not a toggle, so whatever the march
+            //    did to the flag since the last click is discarded here.
+            if let Some((prev_angle, prev_facing)) = prev {
+                facing = (prev_facing != 0) != d(heading, prev_angle);
+            }
+
+            // 2. `compute_form`'s toggle: the mirror, and the flag put back.
+            let away = d(heading, *theta);
+            let mirror = facing != away;
+            assert_eq!(
+                mirror,
+                *order_facing != 0,
+                "{tag}: the mirror the orders carry"
+            );
+            if (before.facing.unwrap_or(false) != away) != mirror {
+                running_wrong += 1;
+            }
+
+            // 3. `set_angle`'s toggle, once the leader turns into the move —
+            //    and the flag stays turned, which is what the pool prints at
+            //    the end of the frame and carries to the next click.
+            let after = *now.angle.get(&leader).expect("the leader's heading");
+            facing = facing != d(after, heading);
+            assert_eq!(
+                Some(facing),
+                now.facing,
+                "{tag}: the `facing` the frame's own GROUPDATA prints"
+            );
+
+            prev = Some((*theta, *order_facing));
+        }
+        assert_eq!(
+            running_wrong, 1,
+            "the flag as the pool prints it mispredicts one of the three"
+        );
+
+        // The two halves are not the same sequence, and that is the whole
+        // finding: the mirrors run 0, 0, 1 while the dumped flags run
+        // 1, 0, 1, so a reader taking `facing` for the mirror gets two of
+        // the three moves wrong.
+        let mirrors: Vec<i64> = clicks.iter().map(|c| c.1.3).collect();
+        let dumped: Vec<bool> = clicks
+            .iter()
+            .map(|c| frames[&c.0].facing.expect("a live group"))
+            .collect();
+        assert_eq!(mirrors, vec![0, 0, 1], "the mirrors the orders carry");
+        assert_eq!(dumped, vec![true, false, true], "the flags the pool prints");
     }
 }

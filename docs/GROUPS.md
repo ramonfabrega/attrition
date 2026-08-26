@@ -76,16 +76,22 @@ GroupData (types.txt, 0x9cc — every field below is the PDB's own name)
   +0x3c  new_speed   int     \ the group's march speed, reset every frame by
   +0x40  speed       int     / Groups::process to the leader's own
   +0x44  form_num    int     the member count Form::compute_dests laid out
-  +0x48  facing      uchar   the formation's mirror flag (§6.3). Four writers:
-                             Group::clear (0), compute_form's toggle/restore
-                             pair (§6.3), and two outside this family that no
-                             blind brief reached — Unit::kill_current_order
-                             @005e2cb0, which writes the dying move order's own
-                             reverse flag onto the group when the unit is the
-                             group's leader, and Unit::set_angle@00605400,
-                             which *toggles* it whenever the leader turns by
-                             90° or more (the third pass; the ordinary source
-                             of a live group's `facing 1`)
+  +0x48  facing      uchar   the formation's mirror flag (§6.3), and a running
+                             one rather than a setting. Four writers, and three
+                             of them can fire in one frame:
+                             Group::clear (0); compute_form's toggle/restore
+                             pair, which nets to nothing (§6.3);
+                             Unit::set_angle@00605400, which *toggles* it
+                             whenever the group's leader is turned by 90° or
+                             more — the ordinary source of a live group's
+                             `facing 1`; and Unit::kill_current_order
+                             @005e2cb0, which on a dying move *assigns*
+                             `order.facing XOR reversing(leader.angle −
+                             order.angle)`, again only from the leader. The
+                             last one runs **before** the next layout
+                             (`70524f` precedes `7053ec`), which is why the
+                             flag a dump prints is never the mirror a layout
+                             used — §6.3's table
   +0x49  buildings   uchar   this is a group of buildings, not units
   +0x4a  who         uchar
   +0x4b  march       uchar
@@ -454,9 +460,10 @@ position translated by its current move's origin when that origin is within
   caller's angle stands, and `reverse = |find_angle(dx, dy) − angle| ≥ 90°`.
   The idiom is `0x3fffffff < d && d < 0xc0000001` at `707e09`–`707e1a`, so
   **both bounds are inclusive**;
-- if the leader's facing minus the given angle is `≥ 90°` by the same
-  idiom, `group.facing` is **toggled** around the `Form::compute` call and
-  toggled back afterwards — and the two toggles are **exactly symmetric**.
+- if the leader's facing, **minus its slot's packed angle byte**, minus the
+  given angle is `≥ 90°` by the same idiom, `group.facing` is **toggled**
+  around the `Form::compute` call and toggled back afterwards — and the two
+  toggles are **exactly symmetric**.
   The listing settles it: both are guarded by the same compare against
   `%esi`, computed at `707ea8` and never rewritten (`Form::compute@0072e8e0`
   pushes `ebx`/`esi`/`edi` on entry). So in an ordinary game
@@ -491,15 +498,77 @@ lays out **unmirrored** while the other mirrors; the third carries
 all 36 slots, by one of the two mirrors
 (`run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns`).
 
-What the capture does **not** do is confirm the predicate, and this is now
-the sharpest thing this document has open. Taking `find_leader`'s own member
-— object 6 — and its logged heading against the move's own angle, the two
-are 76° apart at the frame that mirrors *contrary* to its `facing`, which
-is inside 90° and so predicts no toggle. Either the heading at the moment of
-the call was not the one the end-of-frame dump prints (it is a mid-frame
-quantity for `curr`; see §6.6), or `facing` itself moved between the clicks,
-and nothing in the file writes it for a ground group but this toggle and
-`Group::clear`. §13 carries it with the capture that would settle it.
+#### The predicate, and the two writers that made it look wrong
+
+**Settled 2026-08-26, out of run31's own dump** — no new run: the earlier
+pass had asked the record the wrong frame and had missed two of `facing`'s
+four writers (§4.1). The predicate, from the listing at
+`707e7e`–`707ec1`:
+
+```
+S, L     = find_leader(&S)            ; S the member slot, L the object
+q        = units[who][L].angle − ((signed char)group.angles[S] << 24)
+toggle   = reversing(q − angle)       ; 0092cf20, both bounds inclusive
+mirror   = group.facing XOR toggle
+```
+
+`local_20` is `find_leader`'s **out-parameter** and `local_14` its return —
+the slot indexes `angles`, the object indexes the player's unit array. The
+same quantity is what the zero-delta branch assigns to the angle outright
+(`707e3d`–`707e6d`), which is how "the leader's own facing minus its packed
+slot byte" is read there.
+
+That leaves `group.facing` at the moment of the call, and it is **not** the
+value the last frame's `GROUPDATA` printed. Two writers move it that no
+earlier pass had looked for:
+
+- **`Unit::set_angle@00605400`** toggles it whenever the group's **leader**
+  is set to a heading 90° or more from the one it has — the same
+  `reversing` window. Every marching leader does this the moment it turns
+  onto a new bearing, so a live group's `facing 1` is ordinarily just "the
+  leader has turned round since the last layout". A follower's turn does
+  nothing: the function calls `find_leader` and compares.
+- **`Unit::kill_current_order@005e2cb0`**, on a dying order of the move
+  family (`{1, 2, 3, 4, 0x12, 0x13, 0x15}`), reads the order's own
+  `MoveOrder +0x28 facing` — the mirror **that** order was laid out with —
+  and, when the unit is the group's leader, **assigns** it back:
+  `group.facing = order.facing XOR reversing(leader.angle − order.angle)`
+  (`5e3018`–`5e30eb`). It is an assignment, not a toggle, so everything the
+  march did to the flag is discarded.
+
+And the ordering is the load-bearing part: `action_move_near`'s `QUEUE_NEW`
+clear loop at `70524f` runs **before** `compute_form`, its
+`Unit::clear_orders` at `70538d` ahead of the call at `7053ec`. So a group's
+second right-click hands the flag back *first* and lays out *second*, and
+`Form::compute` never sees the march's flag at all — it sees the last
+layout's own answer, XOR'd by the toggle.
+
+run31's three clicks are the proof, and every number is already in the file
+(`run31_s_three_mirrors_come_out_of_facing_s_three_writers`):
+
+| click | frame | leader's heading at *f−1* | the move's angle | `facing` at the call | mirror | `facing` the frame prints |
+|---|---|---|---|---|---|---|
+| 1 | 204 | 120.000° (a unit that has never moved) | 77.756° | 0, from `Group::clear` | **0** | 1 — the leader turned −118.4° |
+| 2 | 328 | 88.347° | 157.247° | 0, handed back by order 1 | **0** | 0 — the leader turned only +76.0° |
+| 3 | 356 | 163.542° | −15.595° | 0, handed back by order 2 | **1** | 1 — the leader turned +154.7° |
+
+The mirrors run 0, 0, 1 and the dumped flags 1, 0, 1, and the middle click
+is where the two models part: `facing 1` at frame 327 would mirror a block
+that the record lays out square. The earlier pass took frame **204's own**
+heading (1.577°, 76° off) rather than frame 203's, and 204 is the one frame
+where the reading is hopeless — the group is one frame old and its leader
+has already snapped 118° into the march.
+
+`MoveOrder::facing` is the last piece and the record carries it: run31's
+three orders print `facing` 0, 0 and 1, which is exactly the mirror each
+layout used, on all 945 order blocks.
+
+**Both writers were already written down** — §4.1's field table has had
+them since the third pass, and `docs/ORDERS.md` §3.2 describes the
+hand-back in full. What no document had was the *ordering*, and without it
+the hand-back reads as a carry-over into some later frame rather than as
+the input to the very next layout. The finding cost two greps of the
+listing; the day before it, this was booked as a run.
 
 `o_angle` is **written twice**, and the second write is the one that lands:
 `Form::compute`'s tail puts the leader-slot bearing in it, and then
@@ -919,6 +988,16 @@ exactly that
    product — `pathed = 1`, the action bit from `param_8`, the formation's
    reverse flag, and the original click for the order's `orig`.
 
+   Both write the angle to `MoveOrder +0xc` and the reverse flag to
+   `MoveOrder +0x28 facing`; `add_group_move_order` writes the angle a
+   second time, to the `GroupOrder`'s own `group_angle`, which is why the
+   two are equal on every record run31 holds.
+   **`Unit::add_move_order@00616ed0` is the same call** with
+   `find_angle(dx, dy)` for the angle and **−1** for the facing — and that
+   −1 is the gate that keeps §6.3's hand-back off an order that never
+   belonged to a formation. Implemented 2026-08-26:
+   `Sim::add_move_facing_order`, which the group path passes both to.
+
    `role & 0x10` is settled by the type record:
    `UnitType::determine_roles@0061c320` sets it in exactly two places —
    `is(0x45)` for a **land** type and `is(0x143)` for a **sea** one — and
@@ -1329,6 +1408,11 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 - **`refresh_group_order`'s re-origin** (§6.8): `GroupState::reorigin` and
   `Sim::group_refresh_order`, the second writer of `off`. Its trigger is a
   seam;
+- **the mirror flag's whole state machine** (§6.3): `sim::group::reversing`,
+  the `QUEUE_NEW` clear hoisted ahead of the layout, `Sim::unit_set_angle`
+  on `Unit::move_step`'s own call, and `Sim::hand_back_facing` inside
+  `kill_current_order`. `MoveOrder::facing` carries the mirror out with the
+  order, so the flag a later layout reads is the last one's answer;
 - and `army.rs`'s five callers become behaviour: `do_forming`,
   `march_to_target`, `engagement`, `send_here`, `charge`, `Army::close`'s
   halt and `set_stance`.
@@ -1339,7 +1423,7 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 | --- | --- | --- |
 | ~~`Form::compute`'s slot table (§6.4)~~ | — | **Closed 2026-08-26**: `crates/sim/src/form.rs`, diffed against run29's `GROUPDATA` from the install's own columns. What is left is the four limits at the end of §6.4 — Square, the wedge's uninitialised seed, Mob's rings, and `categorize`'s two type substitutions — and every one of them is the original's |
 | the group pool (§3) | 64 slots a leader, `get_open_slot`'s recycling | one group per army, never recycled; `push_group`'s `force == 0` rule and `equals_group` are modelled, the slot allocation is not |
-| `GroupMoveOrder`, and the order's angle | §6.6's per-frame formation, and step 6's `angle + (angles[i] << 24)` | every member gets a plain `MoveOrder` whose angle is `add_move_order`'s own bearing to the slot rather than the formation's — `docs/ORDERS.md` §8.4's verdict, unchanged. The angle **byte** is now computed and carried on the group (§6.4), so what is left is the order adder, not the table. **The record now exists** (§12.1), so this seam has a diff waiting for it |
+| `GroupMoveOrder` | §6.6's per-frame formation — the follower that tracks the leader's *current* position plus a rotated offset | every member gets a `MoveOrder` and marches to its own slot independently; `docs/ORDERS.md` §8.4's verdict, unchanged. ~~And the order's angle: step 6's `angle + (angles[i] << 24)`.~~ **The angle has left this row 2026-08-26**: `Sim::add_move_facing_order` carries the formation's own bearing plus the slot's packed byte, and `MoveOrder::facing` carries the mirror, which is what §6.3's hand-back reads |
 | ~~the follower arm of `compute_dests` (§6.4)~~ | — | **Closed 2026-08-26**: `Sim::form_follower_slot`, read from `0072d3a0`–`0072d4f0`. ~~The simulation still has no group that *contains* a follower — `Group::add`'s `keep_captain` (§4.1).~~ It does now: `Unit::o_up`/`o_down` and `Sim::group_add_keeping` carry §4.1's two recursions whole, so a group built from captains holds every figure, and the arm is reached from the sim's own side by run31's 36-member fixture |
 | `refresh_group_order`'s **trigger** (§6.8) | `do_group_move`'s "is `oxx` still usable, and am I still `0x5ff` out" | the re-origin and the re-rotation are implemented (`GroupState::reorigin`, `Sim::group_refresh_order`); nothing in the simulation ever *fires* them, because a plain `MoveOrder` names no origin to lose. `modify_group_order`'s order rewrite is unmodelled with the rest of the group-order layer, one row up |
 | `action_guard` (§9) | the escort half of a siege attack | with siege *and* a matching area the non-siege members keep their orders instead of guarding; no traced army has siege |
@@ -1369,6 +1453,13 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
    two arms; the second pins the `action_guard` seam where it stands.
 7. `action_attack_without_mandatory_lets_each_member_take_what_is_nearest`
    — §10's melee retarget, against the same call with `mandatory = 1`.
+7b. `reversing_takes_both_bounds` and
+   **`a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s`** — §6.3's
+   state machine driven by the simulation rather than replayed out of a
+   dump: an unmirrored layout, a leader that overshoots and flips the flag,
+   and a second click at a different bearing where reading `facing`
+   straight would mirror a block that must not be. Its record-side twin is
+   §12.3.
 
    Then the second reading's seven, each written to fail first and each of
    which did (`docs/audit/2026-08-25-groups.md`, items 26–34):
@@ -1562,8 +1653,8 @@ What it settles that nothing before it could:
 - **`Group::refresh_group_order` itself** — a second writer of `off` that
   no earlier pass had looked for, found because the table would not match
   on one frame in forty when every other number in it was right.
-- **The mirror is not `facing`** (§6.3), and the predicate behind it is now
-  this document's sharpest open question.
+- **The mirror is not `facing`** (§6.3), which §12.3 then closed out of the
+  same dump.
 
 Five deliberate breakages were run red before it landed, and each did on
 the first try: dropping `Group::add`'s subordinate recursion (12 members
@@ -1571,6 +1662,38 @@ instead of 36), sizing a multi-figure type by one figure instead of three
 (`x_spacing 144`), making the re-origin a no-op (frame 204 alone fails),
 allowing only the unmirrored layout (the third click alone fails), and
 comparing the raw `to` instead of the `UCoord` round trip.
+
+## 12.3 The mirror's predicate, out of the same dump
+
+`run31_s_three_mirrors_come_out_of_facing_s_three_writers`, in
+`rondata::diff`. §12.2 left "which mirror, and why" as this document's
+sharpest open question and named the run that would settle it. **No run
+was needed.** The question was a reading error twice over — the wrong
+frame's heading, and two of `facing`'s four writers unlooked-for — and
+run31's own file holds every number the corrected machine needs. §6.3 has
+the machine and the table; this section is what checks it.
+
+Six predictions from three clicks: each move's mirror, taken from the
+`facing` byte its own `MOVEORDER`s carry, and each click frame's dumped
+`GROUPDATA::facing`. All six land. The control in the same test is the
+model this document held until today — read `facing` off the previous
+frame's record and XOR the toggle — and it gets **one of the three**
+wrong, which is the whole of the disagreement.
+
+Five deliberate breakages, and the fifth is the useful one:
+
+| broken | result |
+| --- | --- |
+| the hand-back dropped, so the flag is what the march left | red at frame 328 — the mirror is 1 where the record needs 0 |
+| `set_angle`'s toggle dropped | red at frame 204 — the dumped flag is 0 where the record prints 1 |
+| `compute_form`'s toggle dropped | red at frame 356 — the mirror is 0 where the record needs 1 |
+| the click frame's own heading instead of the frame before | red at frame 204 |
+| the hand-back's `reversing` **inversion** dropped | **green** |
+
+The last row is the honest limit. Both of run31's kills catch the leader
+10.6° and 6.3° off the dying order's angle, so the inversion never fires
+and the listing at `5e3062`–`5e307b` is its only evidence. §13 carries it
+with the capture that would reach it.
 
 ## 13. What is not established
 
@@ -1616,24 +1739,34 @@ Still open:
   *size*~~ **and measured** (§6.4, §12.2): `o_dist` is the displacement,
   and it is `x_spacing/2 = 216`, printed as 215 or 217 by `vector_dist`'s
   approximation at three bearings.
-- **The mirror's predicate** (§6.3) — this document's sharpest open
-  question, and it was opened by the same capture that closed two.
-  `Form::compute` is handed `facing XOR (leader ≥ 90° off the bearing)`,
-  and `GROUPDATA` prints only `facing`. run31's three moves need the
-  mirrors 0, 0, 1 against dumped `facing` of 1, 0, 1 — so the toggle has to
-  fire on the first move and not the third, and the first move's leader is
-  76° off by its own logged heading, which predicts no toggle. Two ways
-  out and the record chooses neither: the heading at call time is not the
-  end-of-frame one (`curr` is already known to be a mid-frame quantity,
-  §6.6), or `facing` moved between the clicks, which for a ground group
-  only this toggle and `Group::clear` can do (grepped: the only other
-  writers are `action_air_patrol` and `action_flight`).
-  *Capture:* a `UNITS=3` + `GROUPS=1` window across a right-click where
-  the selected group is standing still and facing **backwards** — the
-  leader's `angle`, the order's `angle` and the group's `facing` on the
-  frame before and the frame of the click. Two clicks, one each way, would
-  pin the predicate and the byte's sign together if the formation is set
-  to Refused or an Echelon so that `angles` is not all zero.
+- ~~**The mirror's predicate** (§6.3) — this document's sharpest open
+  question, and it was opened by the same capture that closed two.~~
+  **Closed 2026-08-26 out of run31's own dump, with no new run** (§6.3,
+  §12.3). Both horns of the old dilemma were half right and the entry
+  named neither writer: `facing` *does* move between the clicks, and what
+  moves it is `Unit::set_angle` during the march and
+  `Unit::kill_current_order` at the next click, the second of which runs
+  **before** the layout and assigns the last order's own mirror back. The
+  heading to read is the frame **before** the click, not the click frame:
+  the old entry's "76° off" is frame 204's own end-of-frame angle, and 204
+  is the one frame in the run where that reading cannot work.
+  ~~*Capture:* a `UNITS=3` + `GROUPS=1` window across a right-click…~~
+  **Not owed.** What is still owed is narrower, and it is the one
+  breakage that stayed green:
+- **The hand-back's inversion** (§6.3, §12.3). `kill_current_order` writes
+  `order.facing XOR reversing(leader.angle − order.angle)`, and run31's
+  two kills catch the leader 10.6° and 6.3° off the dying order's angle,
+  so the `XOR` term never fires. The listing at `5e3062`–`5e307b` is its
+  only evidence.
+  *Capture:* a `UNITS=3` + `GROUPS=1` window over a group ordered one way,
+  turned **right around** while marching — a second click behind it, or a
+  path that doubles back — and then re-ordered, with the leader's `angle`
+  and the standing order's `angle` read on the frame before that third
+  click. The same window would settle the packed byte's sign in
+  `angle + (angles[slot] << 24)` if the formation is set to Refused or an
+  Echelon so that `angles` is not all zero — the listing gives it as an
+  addition at `705f42`–`705f4d` against `compute_form`'s subtraction at
+  `707e95`–`707ea6`, and no run has separated them.
 - **The 18 pool slots above `who*64 + 45`** (§1). Nothing allocates them
   and nothing searches them; `Groups::process` still cycles them. What they
   are for is open.

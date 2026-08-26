@@ -655,6 +655,13 @@ then per kind:
   `unit->angle − order->angle`) and,
   if the unit leads a group, write it to the group's `+0x48` — the "face the
   way you were told" carry-over (`docs/MOVEMENT.md`'s reversed bit).
+  **This paragraph was right, and it sat here unjoined to
+  `docs/GROUPS.md` §6.3 for a day while that document called the mirror's
+  predicate its sharpest open question** (2026-08-26). What was missing
+  was the *ordering*: the `QUEUE_NEW` clear that fires this runs **before**
+  the next `compute_form`, so this write is not a carry-over into some
+  later frame — it is the flag the very next layout reads.
+  `Sim::hand_back_facing` implements it.
 - **`GATHER`**: leader flags `|= 0x2000000` (the economy's re-plan hint); if
   playing and the target is a live building of the same owner,
   **`Build::remove_gatherer(build, o)`** — killing a gather order is what
@@ -2032,8 +2039,20 @@ QUEUE_FIRST, first member's mandatory, first member's action bit)`.
 plain `MoveOrder` is on disk, with its slot destination, the click it came
 from, the leader it was laid out around and the member's slot index. What
 the seam costs is therefore measurable now rather than argued, and the
-thing to measure first is step 6's `angle + (angles[i] << 24)` against the
-`MOVEORDER` base's own `angle`.
+~~thing to measure first is step 6's `angle + (angles[i] << 24)` against the
+`MOVEORDER` base's own `angle`.~~ **First thing measured, 2026-08-26.** The
+order's `angle` is the formation's own to the bit on all 945 of run31's
+order blocks, and its `facing` (`MoveOrder +0x28`) is the mirror the layout
+used — which turned out to be a *live input* rather than a record:
+`Unit::kill_current_order` hands it back to the group when the order dies,
+and that is the flag `compute_form` reads at the next click
+(`docs/GROUPS.md` §6.3). The simulation carries both now —
+`Sim::add_move_facing_order` puts the formation's bearing plus the slot's
+packed byte into the order, and `MoveOrder::facing` carries the mirror out
+with it — so what is left of this seam is the per-frame follower, not the
+order. The `angles[i] << 24` term is still all-zero in every run on disk (a
+Line leans nowhere), so the byte's **sign** rides on the listing alone
+(`docs/GROUPS.md` §13).
 
 ---
 

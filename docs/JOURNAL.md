@@ -1681,3 +1681,73 @@ formula with a formula and only the code compares it with the record.
 `git checkout` on a file mid-breakage cost twenty minutes of retyping,
 too: a deliberate breakage wants a scripted apply/revert, never the
 working tree's own undo.
+
+## 2026-08-26 — item 22: the mirror's predicate, and the run that was not needed
+
+The queue's opener for this session named a behavioural run: one
+`GROUPS=1` + `UNITS=3` window, a leaning formation, two right-clicks, to
+settle which mirror `Form::compute` is handed. **No run was needed.** The
+answer was in run31's dump, which has been on disk since the small hours,
+and the two functions that produce it were already written down in two
+different documents.
+
+**The reading error was two errors.** The first: the last session read the
+leader's heading off **frame 204**, the click frame itself — where the
+group is one frame old and its leader has already snapped 118° into the
+march — instead of frame 203. The second, and the one that mattered:
+`GroupData::facing` is a *running* flag with four writers, and the reading
+had only counted two. `Unit::set_angle@00605400` toggles it whenever the
+group's **leader** is turned by 90° or more, which is what every marching
+leader does the moment it takes a bearing. And
+`Unit::kill_current_order@005e2cb0`, on a dying move, **assigns** the
+order's own `MoveOrder::facing` back onto the group, inverted if the leader
+has since turned around.
+
+**The ordering is the finding, and it is one grep of the listing.**
+`action_move_near`'s `QUEUE_NEW` clear loop runs at `70524f`; its
+`Unit::clear_orders` is at `70538d`; `compute_form` is at `7053ec`. The
+clear comes **first**. So a group's second right-click hands the flag back
+before it lays anything out, and `Form::compute` never sees the march's
+flag at all — it sees the mirror the *last* layout used. That is why
+run31's frame 328 lays out square while its record prints `facing 1` the
+frame before.
+
+Both writers were already documented — `docs/GROUPS.md` §4.1's field table
+has had them since the group orders' third pass, and `docs/ORDERS.md` §3.2
+describes the hand-back in full, calling it a "carry-over". Nobody had put
+the two documents next to the listing's line numbers. **A fact written in
+two places and joined in none is not established**, and the queue had
+booked a run to rediscover it.
+
+**Six predictions, five breakages, one honest green.** The check
+(`run31_s_three_mirrors_come_out_of_facing_s_three_writers`) drives the
+whole machine over run31's three clicks and predicts both observables each
+time: the mirror, taken from the `facing` byte the orders themselves
+carry, and the `GROUPDATA::facing` the click frame prints. All six land,
+and the same test carries the old model as a control — it gets one of the
+three wrong. Four deliberate breakages went red on the first try. The
+fifth, dropping the hand-back's `reversing` inversion, stayed **green**,
+because both of run31's kills catch the leader 10.6° and 6.3° off the
+dying order's angle. That term is carried by the listing alone and
+`docs/GROUPS.md` §13 now names the capture that would reach it — which is
+a much narrower run than the one this session was told to make.
+
+**And the seam the angle sat behind is gone.** `Sim::add_move_facing_order`
+now takes the caller's angle and the formation's mirror, so a group move's
+orders carry `angle + (angles[i] << 24)` and `MoveOrder::facing` — the
+`+0x28` field that had a reader in the original and none here. The sim
+runs the state machine live: the `QUEUE_NEW` clear hoisted into its own
+pass ahead of the layout, `Sim::unit_set_angle` on `Unit::move_step`'s own
+call, and `Sim::hand_back_facing` inside `kill_current_order`.
+
+**The method note.** Two sessions ago the lesson was that the
+implementation is the audit. This one is smaller and cheaper: **before
+booking a run, grep the dump you already have, and grep the listing for
+every writer of the field you are about to call frozen.** The queue
+entry said "nothing in the file writes it for a ground group but this
+toggle and `Group::clear`", and cited a grep — a grep that had found
+`action_air_patrol` and `action_flight` and stopped, because the two real
+writers reach the field through a group pointer rather than by name. The
+same trap `MoveOrder::facing` was already recorded as having: it is
+fetched through an order vtable slot, so grepping the field name finds
+nothing.

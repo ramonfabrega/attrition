@@ -78,8 +78,20 @@ pub struct MoveOrder {
     /// The destination, snapped to its 48-unit cell centre.
     pub dest: Pos,
     /// The facing to apply on arrival — the direction from the unit to the
-    /// target at order time.
+    /// target at order time. A group move overrides it with the formation's
+    /// own bearing plus the slot's packed byte (`docs/GROUPS.md` §6.6 step
+    /// 6).
     pub angle: Angle,
+    /// `MoveOrder +0x28 facing` — the mirror the **formation** this order
+    /// belongs to was laid out with, or `None` for the −1 every plain move
+    /// carries (`Unit::add_move_order@00616ed0` passes it literally).
+    ///
+    /// It is not read while the order runs. It is read when the order
+    /// *dies*: `Unit::kill_current_order` writes it back onto the group as
+    /// `GroupData::facing` when the unit is the group's leader, so the next
+    /// formation starts from the mirror the last one used
+    /// (`docs/GROUPS.md` §6.3).
+    pub facing: Option<bool>,
     /// "I have a current waypoint."
     pub has_waypoint: bool,
     /// The current waypoint — what the step walks toward.
@@ -335,6 +347,16 @@ impl Sim {
         let Some(order) = self.units[u].orders.front().copied() else {
             return;
         };
+        // Before the teardown: a dying **move** carries the mirror its
+        // formation was laid out with, and the group's leader hands it back
+        // (`docs/GROUPS.md` §6.3). This is the write that makes a group's
+        // second right-click start from the first click's mirror instead of
+        // from whatever the leader's turning left behind.
+        if let Body::Move(m) = order.body
+            && let Some(f) = m.facing
+        {
+            self.hand_back_facing(u, f, m.angle);
+        }
         match order.body {
             Body::Gather(g) => {
                 let who = self.units[u].owner;
@@ -421,12 +443,41 @@ impl Sim {
         );
         let here = self.units[u].pos;
         let angle = find_angle(dest.x - here.x, dest.y - here.y);
+        self.add_move_facing_order(u, to, kind, pos, action, angle, None);
+    }
+
+    /// `Unit::add_move_facing_order@005e55c0` (§4.3), and
+    /// `add_group_move_order@005e4710` where they agree: the same snap and
+    /// the same record, with the **caller's** angle and the formation's own
+    /// `facing` instead of the bearing `add_move_order` derives.
+    ///
+    /// `add_move_order` is that call with `angle = find_angle(dest − here)`
+    /// and `facing = −1`, which is exactly what the listing at `616ed0`
+    /// pushes. The two arguments only ever come from a group move
+    /// (`docs/GROUPS.md` §6.6 step 6), which is why the ordinary adder does
+    /// not take them.
+    #[allow(clippy::too_many_arguments)] // the original's twelve, minus the eight this does not model
+    pub fn add_move_facing_order(
+        &mut self,
+        u: usize,
+        to: Pos,
+        kind: MoveKind,
+        pos: QueuePos,
+        action: bool,
+        angle: Angle,
+        facing: Option<bool>,
+    ) {
+        let dest = Pos::new(
+            to.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
+            to.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
+        );
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
             body: Body::Move(MoveOrder {
                 kind,
                 dest,
                 angle,
+                facing,
                 has_waypoint: false,
                 waypoint: dest,
                 last: None,
@@ -1124,8 +1175,12 @@ impl Sim {
             movement::TurnMode::Unit,
         );
         let step = movement::move_step(from, m.facing, mo.waypoint, speed, &m.turning, rate);
+        // `Unit::move_step`'s own `set_angle`, which is the one call of the
+        // eighteen this simulation makes — and it is where a marching
+        // leader's turn-around flips its group's mirror flag
+        // (`docs/GROUPS.md` §4.1, §6.3).
+        self.unit_set_angle(u, step.facing);
         let unit = &mut self.units[u];
-        unit.movement.facing = step.facing;
         unit.movement.des_angle = step.heading;
         let mut arrived = false;
         if self.world.accepts(step.pos) {

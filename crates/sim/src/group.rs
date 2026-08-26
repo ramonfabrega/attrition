@@ -66,6 +66,37 @@ pub mod seams {}
 /// follower's intermediate waypoints (§6.7).
 pub const FORM_MOB: i32 = 9;
 
+/// What a group move does to one member (§6.5, §6.6).
+///
+/// The original decides it twice — the `QUEUE_NEW` clear loop at `70524f`
+/// and the order loop at `7054c7` ask overlapping questions of the same
+/// member — and the two loops straddle `compute_form`. Deciding once, up
+/// front, is what lets the clear run in its own pass ahead of the layout
+/// without asking the second loop to read state the first has wiped.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Member {
+    /// Left entirely alone: not orderable, or a shooting siege unit under a
+    /// move that is not hurrying.
+    Skip,
+    /// Stabled in this city instead of marching (§6.5).
+    Stable(usize),
+    /// Cleared, then given its slot.
+    Move,
+}
+
+/// `reversing@0092cf20` — "is this angular difference a turn-around?"
+///
+/// Nine lines in the original and the engine's own name for the test three
+/// separate mirror decisions share: `compute_form`'s toggle (§6.3),
+/// `Unit::set_angle`'s (§4.1), and the inversion
+/// `Unit::kill_current_order` applies to a dying order's own flag. The
+/// compare is unsigned on the wrapped difference — `d < 0x40000000` is
+/// false and `d < 0xc0000001` is true — so **both bounds are inclusive**:
+/// exactly 90° reverses and so does exactly 270°.
+pub fn reversing(d: Angle) -> bool {
+    (0x4000_0000..=0xc000_0000).contains(&(d.0 as u32))
+}
+
 /// The persistent half of an army's one `GroupData` (`docs/GROUPS.md` §1).
 ///
 /// Nothing in the simulation reads these — they are the record, kept so a
@@ -646,13 +677,82 @@ impl Sim {
         // `get_form_mod_option`, which is 50 for an army and stays 50.
         let width = self.group_form_mod_option(g);
 
+        // §6.5: the AI branch. `hurry` is the army's, so a group with no
+        // army never takes it — and "hurrying" and "found a city" are two
+        // different facts, because the clear loop and the order loop do not
+        // gate on the same one.
+        let ai = self.ai_army_group(g);
+        let hurry = ai && self.armies[g.who as usize].list[g.army.unwrap_or(0)].hurry != 0;
+        let hurry_city = if hurry {
+            self.city_near(g.who, to)
+        } else {
+            None
+        };
+
+        // What the move does to each member, decided **before** the clear.
+        // The original decides the same thing twice — once in the clear
+        // loop at `70524f` and once in the order loop at `7054c7` — and the
+        // second reading sees state the first has already wiped, which is
+        // why a shooting siege unit that was cleared falls through and
+        // takes the move like everyone else.
+        let plan: Vec<Member> = g
+            .list
+            .iter()
+            .map(|&u| {
+                if !self.group_member_orderable(u) {
+                    return Member::Skip;
+                }
+                if !ai {
+                    return Member::Move;
+                }
+                let shooting_siege = self.is_siege_unit(u) && self.order_type(u) == index::ATTACK;
+                match hurry_city {
+                    Some(c)
+                        if self.is_siege_unit(u)
+                            || self.is_supply_unit(u)
+                            || self.is_hero_unit(u) =>
+                    {
+                        Member::Stable(c)
+                    }
+                    // The `QUEUE_NEW` clear at `70524f` gates on `hurry`
+                    // **alone**; the order loop at `7054c7` on `hurry && a
+                    // city was found`. So a siege unit that is already
+                    // shooting is left entirely alone by a move that is not
+                    // hurrying. A hurrying army that found no friendly city
+                    // clears its orders — and the order loop then re-reads
+                    // `order_type()`, which `Unit::close_orders` has left at
+                    // `NONE`, so the unit falls through and takes the move
+                    // like every other member. Only `QUEUE_NEW` clears; any
+                    // other queue position leaves it shooting and skipped.
+                    _ if shooting_siege && !(hurry && queue == QueuePos::New) => Member::Skip,
+                    _ => Member::Move,
+                }
+            })
+            .collect();
+
+        // §6.6's `QUEUE_NEW` clear, and **it runs before the layout**: the
+        // loop at `70524f` clears every member's orders, and its
+        // `Unit::clear_orders` at `70538d` is ahead of `compute_form` at
+        // `7053ec` in the listing. That ordering is load-bearing rather
+        // than incidental — the leader's dying move hands its own mirror
+        // back to the group on the way out (§6.3), so the flag
+        // `compute_form` reads a line later is the *last layout's* answer
+        // and not whatever the march left behind.
+        if queue == QueuePos::New {
+            for (&u, p) in g.list.iter().zip(&plan) {
+                if *p == Member::Move {
+                    self.clear_orders(u);
+                }
+            }
+        }
+
         // §6.4: the slot table. `facing` is the group's own mirror flag, and
         // `compute_form` **toggles it around the call** when the leader is
         // pointing more than 90° from the formation's bearing, toggling it
         // back after — so the mirror the layout uses is not the `facing` the
         // record keeps. run31 shows the two coming apart: two of its moves
         // carry `facing 1` and lay out unmirrored, the third carries
-        // `facing 1` and mirrors (§6.3, §13).
+        // `facing 1` and mirrors (§6.3, §12.3).
         let facing = self.group_facing(g);
         let reverse = facing != self.group_leader_faces_away(g, angle);
         let slots = self.form_compute(
@@ -666,53 +766,14 @@ impl Sim {
             &self.group_angles(g),
         );
 
-        // §6.5: the AI branch. `hurry` is the army's, so a group with no
-        // army never takes it — and "hurrying" and "found a city" are two
-        // different facts, because the clear loop and the order loop do not
-        // gate on the same one.
-        let ai = self.ai_army_group(g);
-        let hurry = ai && self.armies[g.who as usize].list[g.army.unwrap_or(0)].hurry != 0;
-        let hurry_city = if hurry {
-            self.city_near(g.who, to)
-        } else {
-            None
-        };
-
         for (i, &u) in g.list.iter().enumerate() {
-            if !self.group_member_orderable(u) {
-                continue;
-            }
-            if ai {
-                let shooting_siege = self.is_siege_unit(u) && self.order_type(u) == index::ATTACK;
-                match hurry_city {
-                    Some(c)
-                        if self.is_siege_unit(u)
-                            || self.is_supply_unit(u)
-                            || self.is_hero_unit(u) =>
-                    {
-                        self.stable_in_city(u, c, angle);
-                        continue;
-                    }
-                    _ if shooting_siege => {
-                        // The `QUEUE_NEW` clear at `70524f` gates on
-                        // `hurry` **alone**; the order loop at `7054c7` on
-                        // `hurry && a city was found`. So a siege unit that
-                        // is already shooting is left entirely alone by a
-                        // move that is not hurrying. A hurrying army that
-                        // found no friendly city clears its orders — and
-                        // the order loop then re-reads `order_type()`,
-                        // which `Unit::close_orders` has left at `NONE`, so
-                        // the unit falls through and takes the move like
-                        // every other member. Only `QUEUE_NEW` clears; any
-                        // other queue position leaves it shooting and
-                        // skipped.
-                        if !(hurry && queue == QueuePos::New) {
-                            continue;
-                        }
-                        self.clear_orders(u);
-                    }
-                    _ => {}
+            match plan[i] {
+                Member::Skip => continue,
+                Member::Stable(c) => {
+                    self.stable_in_city(u, c, angle);
+                    continue;
                 }
+                Member::Move => {}
             }
             // §6.6 step 1: the formation index and its width twin, on
             // every member but the four citizen/scholar ids.
@@ -726,7 +787,14 @@ impl Sim {
             // §6.6 step 3: the member's **own** slot, clamped into the
             // world — not the group's destination.
             let slot = self.restrict_pos(slots.to[i]);
-            self.add_move_order(u, slot, kind, queue, action);
+            // §6.6 step 6: the order's angle is the formation's, **plus**
+            // this slot's packed byte — an addition of a signed byte
+            // shifted into the top of the word (`705f42`–`705f4d`), where
+            // `compute_form` subtracts the same product back off the
+            // leader's heading. And its `facing` is the mirror this layout
+            // used, which is what the order hands back when it dies.
+            let order_angle = Angle(angle.0.wrapping_add(i32::from(slots.angles[i]) << 24));
+            self.add_move_facing_order(u, slot, kind, queue, action, order_angle, Some(reverse));
         }
         self.bump_order_num(g);
         // The order matters and run31 settles it: `Form::compute`'s tail
@@ -1008,11 +1076,13 @@ impl Sim {
     /// slot's angle byte, and the compare is unsigned on the wrapped
     /// difference so both bounds are inclusive.
     ///
-    /// The byte's **sign** in that sum is not pinned by any capture: the
-    /// decompiler renders it `angle + (char)angles[slot] * -0x1000000`, and
-    /// every group any run has dumped carries `angles` of all zero, so a
-    /// formation that leans (Refused, Envelop, either Echelon) is what would
-    /// settle it. Neither is the predicate itself — see §13.
+    /// The byte's **sign** in that sum is the listing's, not the
+    /// decompiler's paraphrase: `707e95`–`707ea6` is `movsbl angles[slot]`,
+    /// `shll $0x18`, `sub` — so `compute_form` **subtracts** the packed
+    /// byte, and `705f42`–`705f4d` **adds** the same product onto the angle
+    /// the order carries (§6.6 step 6). No capture separates the two, since
+    /// every group any run has dumped lays out in Line and carries `angles`
+    /// of all zero; a formation that leans is still what would show it.
     fn group_leader_faces_away(&self, g: &Group, angle: Angle) -> bool {
         let Some((u, slot)) = self.group_find_leader_slot(g) else {
             return false;
@@ -1023,14 +1093,89 @@ impl Sim {
             .facing
             .0
             .wrapping_sub(i32::from(byte) << 24);
-        let d = heading.wrapping_sub(angle.0) as u32;
-        (0x4000_0000..=0xc000_0000).contains(&d)
+        reversing(Angle(heading.wrapping_sub(angle.0)))
     }
 
     /// `GroupData::facing` — the mirror flag the layout reads.
     fn group_facing(&self, g: &Group) -> bool {
         g.army
             .is_some_and(|s| self.armies[g.who as usize].list[s].group.facing)
+    }
+
+    /// The group this unit belongs to, if any — `Object::get_army` and the
+    /// army's one group (`docs/ARMY.md` §3.2). The original reads
+    /// `unit +0x80` straight into the pool; without a pool the army is the
+    /// only thing that holds a group, so this is the same question asked of
+    /// the army list.
+    fn group_of(&self, u: usize) -> Option<Group> {
+        let s = self.army_of(u)?;
+        Some(self.army_group(self.units[u].owner, s))
+    }
+
+    /// Is this unit the leader of its own group?
+    ///
+    /// `Unit::set_angle` and `Unit::kill_current_order` both ask it the same
+    /// way and both only act when the answer is yes: `find_leader` for a
+    /// unit group, `list[0]` for a buildings group, and `-1` — nobody —
+    /// while the group holds fewer than one member.
+    fn is_group_leader(&self, u: usize, g: &Group) -> bool {
+        g.num() >= 1 && self.group_find_leader(g) == Some(u)
+    }
+
+    /// `Unit::set_angle@00605400`, the second writer of `GroupData::facing`
+    /// (§4.1) and the ordinary source of a live group's `facing 1`.
+    ///
+    /// Setting a unit's heading to something 90° or more from the one it
+    /// has **toggles its group's mirror flag**, if that unit is the group's
+    /// leader. The original also flips the unit's own `unit_masks & 2`,
+    /// which nothing this simulation models reads.
+    ///
+    /// Only `Unit::move_step`'s call is modelled — the one a marching unit
+    /// makes every frame. The other seventeen callers (`do_build`,
+    /// `do_gather`, `fight`, `come_out`, …) are turns this simulation does
+    /// not yet make, and each is a place a group's flag would move that
+    /// this one leaves still.
+    pub fn unit_set_angle(&mut self, u: usize, angle: Angle) {
+        let turned = reversing(Angle(angle.0.wrapping_sub(self.units[u].movement.facing.0)));
+        self.units[u].movement.facing = angle;
+        if !turned {
+            return;
+        }
+        let Some(g) = self.group_of(u) else { return };
+        if self.is_group_leader(u, &g)
+            && let Some(s) = g.army
+        {
+            let f = &mut self.armies[g.who as usize].list[s].group.facing;
+            *f = !*f;
+        }
+    }
+
+    /// `Unit::kill_current_order@005e2cb0`'s move branch, the third writer
+    /// of `GroupData::facing` (§4.1, §6.3) — and the one that makes a
+    /// group's *second* click behave.
+    ///
+    /// A dying move order carries the mirror its formation was laid out
+    /// with. When the unit is its group's leader, that mirror is written
+    /// back onto the group — **inverted if the unit has since turned
+    /// around**, by the same `reversing` window against the order's own
+    /// angle. So `compute_form` never sees the flag the leader's marching
+    /// left behind; it sees the last layout's own answer.
+    ///
+    /// The original also mirrors the result into `unit_masks & 2`, and
+    /// skips the whole branch for an order type outside
+    /// `{1, 2, 3, 4, 0x12, 0x13, 0x15}` — the move family, which is
+    /// [`Body::Move`] here.
+    pub(crate) fn hand_back_facing(&mut self, u: usize, order_facing: bool, order_angle: Angle) {
+        let turned = reversing(Angle(
+            self.units[u].movement.facing.0.wrapping_sub(order_angle.0),
+        ));
+        let f = order_facing != turned;
+        let Some(g) = self.group_of(u) else { return };
+        if self.is_group_leader(u, &g)
+            && let Some(s) = g.army
+        {
+            self.armies[g.who as usize].list[s].group.facing = f;
+        }
     }
 
     /// `GroupData::angles` — carried in because `Form::compute` does not
@@ -1909,6 +2054,117 @@ mod tests {
             s.units[a].combat.target,
             Some(Obj::Unit(far)),
             "mandatory 1 keeps the given target"
+        );
+    }
+
+    /// `reversing@0092cf20` is inclusive at **both** ends (§6.3): the
+    /// unsigned compares are `d < 0x40000000` → no and `d < 0xc0000001` →
+    /// yes, so exactly 90° reverses and so does exactly 270°.
+    #[test]
+    fn reversing_takes_both_bounds() {
+        assert!(!reversing(Angle(0x3fff_ffff)), "a hair under 90°");
+        assert!(reversing(Angle(0x4000_0000)), "exactly 90°");
+        assert!(reversing(Angle(-0x4000_0000)), "exactly 270°, i.e. −90°");
+        assert!(
+            !reversing(Angle(-0x3fff_ffff)),
+            "a hair under 270° from the other side"
+        );
+        assert!(reversing(Angle(i32::MIN)), "dead astern");
+    }
+
+    /// **The mirror flag's three writers, in one march** (§6.3).
+    ///
+    /// The record's own version of this is
+    /// `run31_s_three_mirrors_come_out_of_facing_s_three_writers` in
+    /// `rondata::diff`; this is the same machine driven by the simulation
+    /// rather than replayed out of a dump, and it is what proves the
+    /// writers are wired to the places that call them.
+    #[test]
+    fn a_group_s_mirror_is_the_last_layout_s_and_not_the_march_s() {
+        /// Degrees as the engine's binary angle, exactly.
+        fn deg(n: i64) -> Angle {
+            Angle((n * (1 << 32) / 360) as i32)
+        }
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let slot = s.init_army(1, None);
+        let a = spawn(&mut s, 1, t, Pos::new(0x4000, 0x4000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x4100, 0x4000));
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        assert_eq!(
+            s.group_find_leader(&g),
+            Some(a),
+            "the first of one category"
+        );
+        assert!(!s.armies[1].list[slot].group.facing, "Group::clear");
+
+        // A move at 80°. The leader faces north, which is inside the 90°
+        // window, so the block is **not** mirrored — and the order carries
+        // that answer out with it.
+        let first = deg(80);
+        let order_facing = |s: &Sim, u: usize| match s.current_order(u).map(|o| o.body) {
+            Some(crate::orders::Body::Move(m)) => m.facing,
+            _ => panic!("the unit took a move"),
+        };
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x5000, 0x5000),
+            QueuePos::New,
+            true,
+            first,
+            MoveKind::MoveTo,
+            false,
+        );
+        assert_eq!(order_facing(&s, a), Some(false), "an unmirrored block");
+        assert!(
+            !s.armies[1].list[slot].group.facing,
+            "and the toggle around Form::compute put the flag back"
+        );
+
+        // The march. The leader overshoots to 100° — a 100° `set_angle`,
+        // so the group's flag flips — and settles back onto 80°, which is
+        // only 20° and flips nothing. The group now reads `facing 1` while
+        // its live layout is unmirrored, which is precisely run31's
+        // frame 327 and the state that made §6.3 look wrong.
+        s.unit_set_angle(a, deg(100));
+        assert!(
+            s.armies[1].list[slot].group.facing,
+            "set_angle toggles the leader's group"
+        );
+        s.unit_set_angle(a, first);
+        s.unit_set_angle(b, deg(-100));
+        assert!(
+            s.armies[1].list[slot].group.facing,
+            "a small turn does not, and a follower's never does"
+        );
+
+        // A second `QUEUE_NEW` move, at 150°. Taken at face value the
+        // flag would mirror this block; the clear runs first, the leader's
+        // dying order hands back the mirror **it** was laid out with, and
+        // the answer is the unmirrored one again.
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x5000, 0x6000),
+            QueuePos::New,
+            true,
+            deg(150),
+            MoveKind::MoveTo,
+            false,
+        );
+        assert_eq!(
+            order_facing(&s, a),
+            Some(false),
+            "the hand-back discards the march's flag and restores the \
+             last layout's — reading `facing` straight would mirror here"
+        );
+        assert!(
+            !s.armies[1].list[slot].group.facing,
+            "and the march's 1 is gone: the hand-back **assigns**, so a \
+             record dumped after this click shows the last layout's flag \
+             until the leader turns again"
         );
     }
 }

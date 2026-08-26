@@ -27,77 +27,74 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 21.* The commit this section was
+*Last verified 2026-08-26, after item 22.* The commit this section was
 written against is the one that lands it; if `git log` has moved well past
 it, trust the queue below and the journal before trusting this.
 
-**Last landed.** **The 36-member table** (item 21), and it did what the
-entry promised and one thing it could not have: run31's group is now
-reproduced whole from the install's own columns — 36 members, both
-coordinates, all forty frames, and 900 slot destinations with them —
-with five deliberate breakages red on the first try.
+**Last landed.** **The mirror's predicate** (item 22) — and the entry was
+wrong about what it needed. It said a run was owed; the answer was in
+run31's dump and in two documents that had never been read next to each
+other. `docs/GROUPS.md` §6.3 has a new subsection and §12.3 is new.
 
-- **§6.4's `to`/`off` displacement is measured**, and the record had it
-  all along in a field nobody had read: `Form::compute`'s tail puts the
-  leader-slot offset in **`o_dist`** and `action_move_near` then
-  overwrites `o_angle` and leaves it. It is `x_spacing/2 = 216`; the
-  record prints 215 or 217, which is `vector_dist` at three bearings.
-- **§4.4's leader question is answered, and neither horn was right.**
-  `find_leader` names object 6 both times. `GroupOrder::oxx` is not
-  `find_leader`'s output — it is the *current origin of the block*.
-- **The finding: `compute_dests` is not the last writer of `off`.**
-  `Group::refresh_group_order@00713a50` re-origins the whole table onto
-  whichever member notices that the unit `oxx` names can no longer serve.
-  One of run31's forty frames is that, and frame 205 is it twice.
-  `docs/GROUPS.md` §6.8 is new.
-- **`Group::add`'s two recursions** are implemented (`Unit::o_up`/
-  `o_down`), so a sim group can hold a squad's figures; `Group::sort` is
-  read and is `categorize`'s own first statement.
-- And the destination side: the `MOVEORDER`'s `x`/`y` is the slot through
-  §6.6 step 6's `UCoord` round trip, which is the sim's own 48-snap.
-  `dest_x`/`dest_y` is **not** it — that is the path stack's waypoint and
-  lags a click behind on most members.
+- **`GroupData::facing` is a running flag, not a setting**, with four
+  writers. `Unit::set_angle` toggles it whenever the group's **leader**
+  turns by 90° or more — the ordinary source of a live group's `facing 1`.
+  `Unit::kill_current_order` **assigns** the dying order's own
+  `MoveOrder::facing` back onto it, inverted if the leader has since
+  turned around.
+- **The ordering is the whole finding.** `action_move_near`'s `QUEUE_NEW`
+  clear runs at `70524f`, `compute_form` at `7053ec` — the clear is
+  **first**. So the flag a layout reads is the *last layout's* answer, and
+  never the march's. That is why run31's frame 328 lays out square with
+  `facing 1` printed the frame before.
+- **The old reading also read the wrong frame**: 204's own end-of-frame
+  heading rather than 203's, and 204 is the one frame in the run where
+  that cannot work.
+- **Item 19 landed with it.** `Sim::add_move_facing_order` carries
+  `angle + (angles[i] << 24)` and the mirror; `MoveOrder::facing` is a
+  field with a reader now, on both sides.
+- Six predictions over three clicks, all landing; the old model kept as
+  the control in the same test, and it gets one of three wrong.
 
 **Then, in order:**
 
-- **The mirror's predicate** (new item 22) — the one thing item 21 opened,
-  and it needs the *cheapest kind* of run: one `GROUPS=1`+`UNITS=3`
-  window, a leaning formation, two right-clicks. It settles item 19's
-  angle-byte sign in the same window, so take them together.
-- **The order's angle** (item 19, unchanged otherwise). run31 cannot
-  settle it: a Line has every `angles[i]` at 0, and every order's `angle`
-  is the formation's own to the bit on all 36 members of all 40 frames.
-- **Item 13, differential fuzzing** — unchanged, and still the entry with
-  the largest leverage per hour.
+- **Item 13, differential fuzzing** — unchanged, and now the entry with
+  the largest leverage per hour by a distance.
+- **Item 23, the hand-back's inversion** — the narrow run item 22 leaves,
+  and it carries item 19's leftover sign with it. Cheap, and it does not
+  block anything.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings the
   army's readers named; a `find_target` block where two candidates sit
   within a multiplier of each other; run7's order stream under the trace;
   a mounted attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings; `think_civilian_transport`.
 
-**The thing this session earned.** Three sessions running, the
-implementation has been the audit — and this one shows why prose cannot
-substitute. Every formula in §6.4 was right: the anchor rule, the
-quantiser, the rank stack, the even-column shift. The document was still
-wrong about what the record *is*, because a second function was sliding
-the answer afterwards, and only writing the arithmetic out and running it
-against all forty frames could surface a discrepancy that leaves every
-relative number intact. **When a diff matches on 39 of 40 and the layout
-is identical on all 40, the difference is not in the formula — go looking
-for another writer.**
+**The thing this session earned.** A rule to put beside "the
+implementation is the audit": **before booking a run, grep the dump you
+already have, and grep the listing for every writer of the field you are
+about to call frozen.** Item 22's entry claimed a grep had found the only
+other writers of `facing`; it had found two air-only ones and stopped,
+because the two that matter reach the field through a group pointer rather
+than by name — the same trap `MoveOrder::facing` was already recorded as
+having, where the read goes through an order vtable slot. And the
+corollary: **a fact written in two documents and joined in none is not
+established.** Both writers were on the page; the ordering that makes them
+matter was on neither.
 
 **Needs the user.** Nothing outstanding. The ledger
-(`docs/audit/README.md`) is unchanged from last session: its widest-reaching
-marker is still **`sin_table@00a46a00`'s second-quadrant branch**. The
-simulation mirrors the angle; the decompiler says the function does something
-else, and item 21 is more evidence the mirror is right — 900 rotated
-destinations land exactly. That primitive is under every heading, projectile
-and formation rotation in the game, and this is the second time the same
-twenty lines have fooled a reader through the decompiler — so the settlement
-is `llvm-objdump`, not another decompile. Twenty minutes, and it does not
-block anything. When to spend a Fable batch is still open.
+(`docs/audit/README.md`) is unchanged: its widest-reaching marker is still
+**`sin_table@00a46a00`'s second-quadrant branch**. The simulation mirrors
+the angle; the decompiler says the function does something else, and item
+21's 900 rotated destinations are more evidence the mirror is right. That
+primitive is under every heading, projectile and formation rotation in the
+game, and this is the second time the same twenty lines have fooled a
+reader through the decompiler — so the settlement is `llvm-objdump`, not
+another decompile. This session is a third data point for that: two
+`llvm-objdump` passes settled in minutes what a decompile had left
+ambiguous for a day. Twenty minutes, and it does not block anything. When
+to spend a Fable batch is still open.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 22, the mirror's predicate: one GROUPS=1 + UNITS=3 window with a leaning formation and two right-clicks, which settles docs/GROUPS.md §6.3's facing toggle and item 19's angle-byte sign together`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 13, differential fuzzing: a seed writes the .cmd and the ini, drives the original through tools/gamelog/runwin.sh, runs rondata --diff, and appends seed + first divergent frame to a ledger`
 
 ## The queue
 
@@ -202,9 +199,12 @@ in which case say so and take that. The story of each struck item is in
     and §11.1, `docs/ORACLE.md`. Two of its four open items closed, one
     reassigned to item 20, one bug found in `engagement` and one in
     `find_leader`.
-19. **The move order's formation angle** — `docs/GROUPS.md` §6.6 step 6
-    and §12's `GroupMoveOrder` row, together with `docs/ORDERS.md` §8.4's
-    verdict. The angle byte is computed and carried; the adder is not.
+19. ~~**The move order's formation angle**~~ — **the adder landed
+    2026-08-26** with item 22: `Sim::add_move_facing_order` carries
+    `angle + (angles[i] << 24)` and the mirror, `docs/GROUPS.md` §6.6 step
+    6 and §12's seam row, `docs/ORDERS.md` §8.4. What is left of it is the
+    byte's **sign**, which no run can separate while every dumped group
+    lays out in Line — folded into item 23's capture.
 20. ~~**The human group move**~~ — done 2026-08-26. run30 and run31
     (`docs/ORACLE.md`), `docs/GROUPS.md` §4.4, §6.4, §6.6, §11, §12.1 and
     §13, `docs/ORDERS.md` §8.4 and §11.1; `tools/gamelog/live.sh`,
@@ -216,17 +216,26 @@ in which case say so and take that. The story of each struck item is in
     `GroupState::reorigin` and `Sim::group_refresh_order`,
     `Sim::group_find_leader_slot`. One check in `rondata::diff`, two in
     `sim::group`, five deliberate breakages.
-22. **The mirror's predicate** — `docs/GROUPS.md` §6.3 and §13's new
-    entry, which item 21 opened while closing two. `Form::compute` is
-    handed `facing XOR (leader ≥ 90° off the formation's bearing)` and
-    `GROUPDATA` prints only `facing`; run31 needs the toggle to fire on
-    one move and not another, and the leaders' logged headings do not
-    predict that. **A run is owed and it is the cheap kind**: `GROUPS=1`
-    and `UNITS=3` over a window, a selection set to a formation that leans
-    (Refused or an Echelon, so `angles` is not all zero), and two
-    right-clicks — one ahead of the group's facing and one behind it.
-    That single window settles the predicate *and* the sign of the angle
-    byte in `angle ± (angles[slot] << 24)`, which is item 19's other half.
+22. ~~**The mirror's predicate**~~ — done 2026-08-26, **and no run was
+    needed**. `docs/GROUPS.md` §6.3's new subsection, §12.3 (new), §4.1,
+    §6.6 step 6, §12's seam table and §13; `docs/ORDERS.md` §3.2 and §8.4.
+    `sim::group::reversing`, `Sim::unit_set_angle`,
+    `Sim::hand_back_facing`, `Sim::add_move_facing_order`,
+    `MoveOrder::facing`, and the `QUEUE_NEW` clear hoisted ahead of the
+    layout. One check in `rondata::diff` and two in `sim::group`; five
+    deliberate breakages, four red.
+23. **The hand-back's inversion** — what item 22 left, and it is the
+    narrow half of the run that entry had booked. `kill_current_order`
+    writes `order.facing XOR reversing(leader.angle − order.angle)`, and
+    run31's two kills catch the leader 10.6° and 6.3° off the dying
+    order's angle, so the `XOR` term never fires; the listing at
+    `5e3062`–`5e307b` is its only evidence. *Capture:* a `UNITS=3` +
+    `GROUPS=1` window over a group ordered one way, turned **right
+    around** while marching, then re-ordered. Set the formation to Refused
+    or an Echelon in the same window and it also settles item 19's sign —
+    `angles` is all zero in every run on disk, so nothing has separated
+    `compute_form`'s subtraction from the order adder's addition.
+    `docs/GROUPS.md` §13.
 
 ## How to maintain this file
 

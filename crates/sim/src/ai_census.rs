@@ -1236,6 +1236,7 @@ mod tests {
                 kind: crate::orders::MoveKind::ExploreTo,
                 dest: tile_pos(40, 40),
                 angle: crate::movement::Angle(0),
+                facing: None,
                 has_waypoint: false,
                 waypoint: tile_pos(40, 40),
                 last: None,
