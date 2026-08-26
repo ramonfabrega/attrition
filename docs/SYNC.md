@@ -548,9 +548,16 @@ site rather than a block — `--diff`'s `by phase` note prints the labels
 
 | frame | theirs | ours | what is left |
 |---|---|---|---|
-| 1 (run20) | 53 | 52 | `Leader::produce_building` 43 (`+0xc99` ×39, `+0x1805` ×4) against our 42; **`Farms::add+0x23f`/`+0x25b`, two draws at the AI's new farm's `Build::init`, which the sim does not model**; **two `Unit::do_move+0xe84` grid draws the sim spends and the original does not** (§6's frame-3 item, same gate); the three `do_non_flat_gather+0x54b` and the five farms on both sides |
+| 1 (run20) | 53 | **54** | one `Unit::do_move+0xe84`, and only that: the AI scout's straight line clips a *building* short of its waypoint, which is `go_around_building@005fc350` (`docs/ORDERS.md` §4.6). `Leader::produce_building` is **39 + 4 on both sides** since 2026-08-26 (`docs/AI.md` §2.20) and the farm it places lands on the original's own tile; `Farms::add`'s pair, the three `do_non_flat_gather+0x54b` and the five farms were already matched |
 | 2 (run20) | 5 | **5** | none — the five crop farms and nothing else, on either side |
-| 1 (fuzzed) | 45 | 48 | ours is three *over*; the AI's script takes a different branch on a map it was not tuned on |
+| 1 (fuzzed) | 45 | **43** | ours is two *short*: one `Leader::produce_building+0xc99` (29 against 30 — a spiral candidate the original scores and the sim does not) and one `do_non_flat_gather+0x54b`. The jitter is **3 on both sides** here, one of the 2×2's four sub-positions being blocked — the second map that makes the inclusive reading a rule |
+
+**Run20's frame 1 read 53 against 53 for two days and was wrong in three
+places at once** — the jitter drew once where the original draws four
+times, the spiral's stride-by-three never engaged, and
+`WorldData::buildings_allowed` was not modelled, so a forest cell scored
+and drew. The three residues cancelled to one. `docs/AI.md` §2.20 has
+each; the general lesson is §5.1's, and this is its second scalp.
 
 The Great Lakes lobby (run10/run12/run13, traced as run14) is the third
 map `think_scout` is checked on and the only one that exercises the
@@ -670,6 +677,16 @@ the first parting with three draws either side rather than 175 lines of
 `assert_eq!`. Made to fail on purpose by dropping `sim::anim`'s wrap mark,
 which reads as four `guys_inc_time` against four `Guy::set_anim+0x97a <
 Guy::inc_time+0x271` at draw 166.
+
+**A phase left standing in the fold is worth more than a matching total,
+and marking one has now paid twice.** The second was
+`Leader::produce_building`, frame 1's last unmarked phase
+(2026-08-26): the frame read 53 against 53 and the two marks split it into
+`+0xc99` 39 against 41 and `+0x1805` 4 against 1 — **three** defects whose
+residues happened to cancel, one of which (`buildings_allowed`) was a map
+layer the dump had been carrying unused. `docs/AI.md` §2.20 has all three.
+The rule that falls out: *mark the phase before believing the total*, and
+mark it even when the total already agrees.
 
 **The counts, 2026-08-24**, run10 with run11/run3/run12 as siblings:
 
@@ -875,7 +892,14 @@ struck through and point there.
   `go_around_building@005fc350` is the tile-edge walk that answers it
   (`docs/ORDERS.md` §4.6: up to three `PathData`s, a recursive `find_path`
   on the first, `return 0` when it verifies), and it is a mechanic of its
-  own rather than a fix.
+  own rather than a fix. **Re-measured 2026-08-26** after
+  `produce_building`'s three fixes moved the AI's new farm two tiles: the
+  clipped building is not that farm — it stands beside the city, at cells
+  the placement never touched — and the residue is still exactly one draw.
+  (It briefly read *zero* on the intermediate build where the jitter was
+  fixed and `buildings_allowed` was not, because the farm was then sitting
+  clear of the scout's line by accident. A residue that vanishes when an
+  unrelated object moves has not been closed.)
 
   **And the Great Lakes' frame-3 extra draw is no longer this one at all**
   — it is a `Unit::do_non_flat_gather+0x54b`, a citizen picking a tile a
@@ -896,6 +920,13 @@ struck through and point there.
   being created — and the sim draws neither, which is two of that frame's
   three-way gap — the other is one `Leader::produce_building` draw short
   and two spurious `Unit::do_move+0xe84` (§4.2).
+- ~~**`Leader::produce_building`'s draw count.**~~ **Settled and modelled
+  2026-08-26** — `docs/AI.md` §2.20. Its two sites are marked
+  (`sim::ai_place::SITE_SPIRAL`, `SITE_JITTER`) and run20's frame 1 is
+  39 + 4 on both sides, with the farm on the original's own tile. The
+  three defects behind the one-draw gap were an exclusive 2×2 jitter, a
+  stride test on the wrong index, and an unmodelled
+  `WorldData::buildings_allowed`.
 - **The pasture's twenty creation draws, and its animals' art** — §3.6's
   own open list: the offsets, the chicken/pig coin and the animation
   lengths all live in streams or dumps that no capture carries.

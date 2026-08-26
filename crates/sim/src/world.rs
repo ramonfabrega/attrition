@@ -556,6 +556,16 @@ impl World {
         }
     }
 
+    /// `WorldData::buildings_allowed@006b2340`: the cell's `flags & 0x78`
+    /// — `ROCK`, `MOUNTAIN`, `FOREST` and the unnamed `0x40` — must all be
+    /// clear. It is a **predicate, not a field**: the function returns 1
+    /// when the four bits are zero and 0 otherwise, so rough ground takes
+    /// no building. Off the map a zero record answers true, which is what
+    /// the bounds test upstream is for.
+    pub fn buildings_allowed(&self, c: Cell) -> bool {
+        self.cell_data(c).flags & 0x78 == 0
+    }
+
     /// `WorldData::is_ocean@006b4830`: not a `HALFLAND` cell, and its
     /// `land` is 1 or 2 — the kinds the census calls water. Off the map a
     /// zero record answers false.

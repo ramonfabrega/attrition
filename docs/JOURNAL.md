@@ -2502,3 +2502,90 @@ A count would call the frame done; §5.1's sequence is what does not, and
 the two residues as a row that has to be edited when it goes. The fuzzed map
 is blunter about it — 51 against 45, with `produce_building` six over, one
 gather draw short and a farm sprout the original does not spend.
+## 2026-08-26 — item 25's last half: the three defects behind one draw
+
+The queue asked for one thing: mark `Leader::produce_building`'s two draw
+sites the way item 27 marked the others, so that run20's "one draw short"
+and the fuzzed map's "six over" become rows instead of subtractions. The
+marks took twenty minutes. What they exposed took the rest of the session
+and was worth several times the asking price.
+
+### The offsets, settled by the listing
+
+`+0xc99` and `+0x1805` off `Leader::produce_building@006e1400` are
+`0x006e2099` and `0x006e2c05`. `llvm-objdump` puts a `cltd; mov ecx,
+0x1f4; idiv` at the first — the spiral candidate's `% 500` — and a `cltd;
+mov ecx, 0x64; idiv` at the second, the jitter's `% 100`, which settles
+which is which without reading the decompiler's line numbering. Ghidra had
+in fact printed the first as a stray local (`TVar31.value = 0x6e2099`, a
+spilled return address); the listing is still what confirms it, and it
+cost a minute.
+
+### One number, three defects, and they cancelled
+
+Run20's frame 1 had read **53 against 53** for two days and the queue said,
+correctly, that it was still wrong. With the marks the frame splits into
+`+0xc99` 39 against our **41** and `+0x1805` 4 against our **1** — and
+those two rows are three separate bugs:
+
+1. **The jitter walks a 2×2.** Both loops at `006e2a78` are inclusive
+   (`while ((int)uVar11 <= (int)uVar19)`), so an ordinary building — whose
+   `ex == ey == 1` — tries four sub-positions and draws for each that
+   `blocked_site` clears. The implementation had `0..ex`, which is one.
+   Run20 spends four; the fuzzed map spends **three**, one sub-position
+   blocked — the second capture is what makes the inclusive reading a rule
+   rather than a coincidence.
+2. **The stride-by-three tested the wrong index.** `local_10 = 3` when a
+   candidate improves on a standing best past `circle_radius[3]`; the code
+   compared the loop's *start* index, which is 0, 1 or exactly
+   `circle_radius[3]`, so it never fired. Fixing it moved **no** measured
+   number on any capture — the frame-1 call accepts inside ring 2 and
+   nothing later improves on it — and it is in anyway, because the next
+   call that does find something early walks 105 cells instead of 40.
+3. **`WorldData::buildings_allowed` was not modelled at all**, and it is
+   the one that mattered. The name reads like the `0x78` field; the
+   function (`006b2340`) is a *predicate* — `return (flags & 0x78) == 0` —
+   so rock, mountain, forest and the unnamed `0x40` take no building. The
+   world dump has carried those flags since the map became a dump. The
+   simulation was scoring forest cells and drawing for them.
+
+With all three, run20's frame 1 is `+0xc99` **39/39**, `+0x1805` **4/4**,
+and — the check that matters — the farm the call places lands at
+`(41856, 39552)`, the `who 1, o 2006` record of the run's own `BUILDDATA`,
+to the unit. It had been one sub-position away, which is what a jitter fed
+a stream two draws late does.
+
+### The residue that vanished for the wrong reason
+
+On the intermediate build — jitter fixed, `buildings_allowed` not — run20's
+lone `Unit::do_move+0xe84` disappeared, and the frame read 55 against 53
+with `go_around_building`'s row at zero. It was not closed: the farm had
+simply moved out of the scout's line. The next fix put the farm on the
+original's tile and the draw came back. **A residue that vanishes when an
+unrelated object moves has not been closed**, and the only reason this was
+caught is that the fold names the site rather than counting draws.
+
+### What the captures say now
+
+| capture | frame 1, before | after |
+|---|---|---|
+| run20 (islands) | 53/53, wrong in three places | **54/53**, and the only residue is `go_around_building`'s one grid draw |
+| fuzzed 424242 | 48/45 | **43/45** — one spiral candidate short, one `do_non_flat_gather+0x54b` short, jitter 3/3 |
+| Great Lakes | 120/54/6/7 vs 120/54/6/6 | unchanged, byte for byte |
+
+Run6's long pin was re-based, and the honest shape of that is worth
+recording: its **totals fell**, 1,679/1,199 order and path disagreements to
+1,552/1,160, while the split's non-farmer half rose 1,246/879 → 1,267/892,
+because the farmers' share fell further than everyone else's. The ratchet
+excludes the farmers by object number, so a change that helps them
+disproportionately reads as a regression in the half that is asserted.
+
+### The thing this session earned
+
+*Mark the phase before believing the total — and mark it even when the
+total already agrees.* Frame 1 agreed exactly while carrying three
+independent errors, and one of them was a map layer the harness had been
+loading and never reading. Item 27's instrument has now paid twice
+(§5.1's stand/wrap swap was the first); the queue item that says "one draw
+short" is the shape of question it answers, and the answer is rarely one
+draw.

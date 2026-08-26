@@ -1131,6 +1131,70 @@ discarded**: `filled += 1`, `space[n − 2] = max(0, · − 1)` for
 peasants. Run8's frame 2 shows the effect directly — `gatherers 5 → 4` on
 the frame the AI places its farm.
 
+#### Its two draw sites, and the three defects they found (2026-08-26)
+
+`produce_building` steps `game_random` at exactly two places, and both are
+now marked under the original's own offsets so the harness's fold and the
+trace's line up by name (`docs/SYNC.md` §5.1; `sim::ai_place::SITE_SPIRAL`,
+`SITE_JITTER`):
+
+| site | where | when |
+|---|---|---|
+| `+0xc99` (`0x006e2099`) | the spiral's scoring loop | once per **friendless FARM/MINE candidate** that passes every site test — `score = 4000 / max(d, 1) + r % 500` |
+| `+0x1805` (`0x006e2c05`) | the placement jitter | once per **unblocked sub-position**, `best = max(r % 100)` |
+
+Both offsets are settled by the listing rather than by the decompiler's
+line numbers: `llvm-objdump` shows `0x006e2099` followed by
+`cltd; mov ecx, 0x1f4; idiv` (the `% 500`) and `0x006e2c05` by
+`cltd; mov ecx, 0x64; idiv` (the `% 100`). The decompile even prints the
+first of them as a stray local (`TVar31.value = 0x6e2099`) — a spilled
+return address, and a free confirmation.
+
+Marking them turned run20's frame 1 from *“one `produce_building` draw
+short”* into two rows — `+0xc99` 39 against our **41**, `+0x1805` 4 against
+our **1** — and the two rows are three separate defects. A count had hidden
+all three: the frame read 53 against 53.
+
+1. **The jitter walks a 2×2, not a single sub-position.** Both of its
+   loops at `006e2a78` are **inclusive** — `while ((int)uVar11 <= (int)uVar19)`
+   over `corner.x ..= corner.x + ex` and `while ((int)local_1c <= (int)local_58)`
+   over `corner.y ..= corner.y + ey` — so an ordinary building, whose
+   `ex == ey == 1`, tries **four** positions and draws once for each that
+   `blocked_site` clears. Run20 spends four; the fuzzed map spends
+   **three**, one sub-position being blocked, which is what makes the
+   inclusive reading a rule rather than a coincidence.
+2. **The stride-by-three tested the wrong index.** `local_10 = 3` is set
+   when a candidate improves on an existing best beyond ring 3
+   (`local_60 == 0 && local_40 != 0 && local_84 == 0 && circle_radius[3] <
+   local_2c` — not a gather-scored type, a best already standing, not a
+   tower, and the **current** index past `circle_radius[3]`). The
+   implementation compared the loop's *start* index, which is 0, 1 or
+   exactly `circle_radius[3]`, so the stride could never engage. Fixing it
+   moved no measured number on any capture — the AI's frame-1 farm accepts
+   its best inside ring 2 and nothing later improves on it — but it is the
+   difference between a spiral that walks 105 cells and one that walks
+   ~40 on a call that does find something early.
+3. **`WorldData::buildings_allowed` was not modelled at all.** It is a
+   *predicate*, not the `0x78` field its name suggests
+   (`006b2340`: `return (flags & 0x78) == 0`), so a cell carrying `ROCK`,
+   `MOUNTAIN`, `FOREST` or the unnamed `0x40` takes no building. Only an
+   oil platform (`0x1a6`) skips the test. The world dump has carried those
+   flags since the map became a dump, and the simulation was scoring
+   forest cells as candidates and drawing for them.
+
+With all three, run20's frame 1 is `+0xc99` **39/39** and `+0x1805`
+**4/4**, and the farm the call places lands at `(41856, 39552)` — the
+`who 1, o 2006` record of the run's own `BUILDDATA`, to the unit. It had
+been landing one sub-position away, which is what a jitter fed the wrong
+stream does. `diff::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair`
+and `the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well` pin both.
+
+**What this leaves open on the fuzzed map**: its spiral is one candidate
+*short* (29 against 30) and a `Unit::do_non_flat_gather+0x54b` short too,
+so its frame 1 reads 43 against 45 — down from 48. The second test asserts
+those two residues as they stand, so closing either shows up as a failure
+rather than as silence.
+
 ## 3. The finding: the skirmish opening is the shipped script
 
 `CLAUDE.md` says the build order is "scripted in the open under
@@ -1591,9 +1655,11 @@ must model; `population` returns `control`; `get_starting_town_size` is
 version-gated; `ScriptTimers::check` removes the timer it reports
 expired; `research_tech_with_cost` returns 1 for an owned tech and seeds
 `find_counters[0x1e]` at 2000. `rand_int`'s exclusive upper bound is
-`combat::Rng::get`'s already. Its open items — `produce_building`'s draw
-count, `can_pay_cost`'s two context arguments — the building reader and
-`docs/COSTS.md` answer.
+`combat::Rng::get`'s already. Its open items — ~~`produce_building`'s draw
+count~~ (**settled 2026-08-26**: two sites, `+0xc99` per friendless
+FARM/MINE spiral candidate and `+0x1805` per unblocked sub-position of an
+**inclusive** 2×2 jitter — §2.20), `can_pay_cost`'s two context arguments
+— the building reader and `docs/COSTS.md` answer.
 
 **`create-units.md`** (Fable, 679 lines, two listing checks) and
 **`create-buildings.md`** (Fable, ~760 lines). The two producers read
@@ -1898,7 +1964,9 @@ folded back into §2's prose.
   filling from enemy military units**:
   `is_ally(who, who)`; the implicit variable's declared type; the
   placement's missing map layers *other than* `val`/`goods`/`region2`
-  (which the map now supplies) — `buildings_allowed`, the enemy-seen flag,
+  (which the map now supplies) — ~~`buildings_allowed`~~ (**closed
+  2026-08-26**: it is `(flags & 0x78) == 0` and the dump carries those
+  flags — §2.20), the enemy-seen flag,
   `gather_at` amounts, the oil patches; ~~`space_at_corner`'s first-row
   early-out~~ — it is the centre's, not the first row's, and the tables
   are read from the PE (§15.9); `find_build_at_city` with

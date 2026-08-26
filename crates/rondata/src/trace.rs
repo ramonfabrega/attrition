@@ -73,6 +73,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Leader::compute_sites@006cc950` — the AI's region sweep.
     (0x006c_cdfc, None, sim::ai_sites::SITE_STRIDE),
     (0x006c_ce5a, None, sim::ai_sites::SITE_MARK),
+    // `Leader::produce_building@006e1400` — the spiral's score and the
+    // 2×2 jitter's.
+    (0x006e_2099, None, sim::ai_place::SITE_SPIRAL),
+    (0x006e_2c05, None, sim::ai_place::SITE_JITTER),
     // `GameDaemon::calc_market@00732270` — three a good.
     (0x0073_22c4, None, sim::market::SITE_A),
     (0x0073_22ee, None, sim::market::SITE_B),

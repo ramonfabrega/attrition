@@ -27,62 +27,60 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after items 25 (the `Farms::add` half) and 28
-(the woodcutter half).* The commit this section was written against is the
-one that lands it; if `git log` has moved well past it, trust the queue
-below and the journal before trusting this.
+*Last verified 2026-08-26, after item 25's last half —
+`Leader::produce_building`'s two draw sites and the three defects they
+found.* The commit this section was written against is the one that lands
+it; if `git log` has moved well past it, trust the queue below and the
+journal before trusting this.
 
-**Last landed: the farm's ambience emitter, and the goal that walks
-backwards.** Both from the export and the dumps on disk; no capture was
-booked, and both were checked by re-running the two maps they were *not*
-meant to move.
+**Last landed: `produce_building` draw for draw, and the farm on the
+original's own tile.** The queue asked only for the marks. They cost
+twenty minutes and turned one number into three bugs
+(`docs/AI.md` §2.20, `docs/JOURNAL.md`):
 
-- **`Farms::add` is modelled** — `docs/SYNC.md` §3.8, `Sim::farms_add`.
-  The two draws are an ambience emitter's `x` and `y` thirds of a tile,
-  spent **once per city** by the first crop farm placed while the city
-  already holds more than one crop and no emitter; the `4` it leaves in
-  `farm_type` is what stops the second. The `farm_type` decision is a
-  six-row table, and its coin (`+0x128`) fires on none of the three
-  captures. The record and its `Farms` slot are created **with the site**,
-  not at activation.
-- **`find_path`'s pull-back is modelled** — `docs/ORDERS.md` §4.6. The
-  goal is walked back out of a refusing tile before the march, which is
-  what puts a woodcutter at the *edge* of the forest. One of run20's two
-  spurious `Unit::do_move+0xe84` went with it; path-stack disagreements
-  over four frames fell 25 → 21.
-- **A stale attribution, caught by reverting.** The Great Lakes' frame-3
-  extra draw has not been `do_move` for some time — it is a
-  `Unit::do_non_flat_gather+0x54b`. Established by building the same
-  commit with the pull-back out and diffing the fold: byte-identical on
-  that map and on the fuzzed one. `docs/SYNC.md` §5's table and §6 say so
-  now.
+- **The jitter walks a 2×2.** Both loops at `006e2a78` are inclusive, so
+  an ordinary building tries four sub-positions and draws for each one
+  `blocked_site` clears — four on run20, three on the fuzzed map where one
+  is blocked. The code had one.
+- **The stride-by-three tested the loop's start index** instead of the
+  current one, so it could never engage. Fixing it moved no measured
+  number; it is in because the next early-accepting call walks 105 cells
+  instead of 40.
+- **`WorldData::buildings_allowed` was not modelled.** It is a predicate,
+  `(flags & 0x78) == 0` — rock, mountain, forest and the unnamed `0x40`
+  take no building — and the world dump has carried those flags all along.
+  The sim was scoring forest cells and drawing for them.
 
 **The numbers now.** run20 frame 0 **175/175 draw for draw**, frame 1
-**53/53** — *and still wrong*: one `Leader::produce_building` draw short,
-one `do_move+0xe84` over, and the two cancel. Frame 2 **5/5**. The Great
-Lakes: 120/120, 54/54, 6/6, 7/6. The fuzzed map: frame 0 **195/195**,
-frame 1 51/45. `ticks before divergence` is still 1 everywhere.
+**54/53** — and the residue is now a single named thing, the AI scout's
+`Unit::do_move+0xe84`; `produce_building` is 39 + 4 on both sides and its
+farm lands at `(41856, 39552)`, the run's own `BUILDDATA` to the unit.
+Frame 2 **5/5**. The Great Lakes: 120/120, 54/54, 6/6, 7/6, unchanged byte
+for byte. The fuzzed map: frame 0 **195/195**, frame 1 **43/45** (was
+48/45). `ticks before divergence` is still 1 everywhere. Run6's long pin
+was re-based: totals **fell** 1,679/1,199 → 1,552/1,160, the asserted
+non-farmer half rose 1,246/879 → 1,267/892 because the farmers' share fell
+further.
 
 **Then, in order:**
 
-- **Mark `Leader::produce_building`'s two draw sites** (`+0xc99`,
-  `+0x1805`) — item 27's instrument, applied to the one phase of frame 1
-  that still has no marks. run20 is one draw short of the original's 43
-  and the fuzzed map is six *over* its 33, and both sit inside one
-  unmarked `strategy_all`, so neither is a row yet. Cheapest first step,
-  and it splits two open items at once. The rest of item 25.
 - **`go_around_building@005fc350`** — item 29, and a mechanic rather than
   a fix. Run20's frame 1, unit `1/0`: the AI scout's line clips a
   *building* three tiles short of a clear goal, so the pull-back has
   nothing to pull. `docs/ORDERS.md` §4.6 has the shape (up to three
   `PathData`s, a recursive `find_path` on the first, `return 0` when it
-  verifies). It is the last `+0xe84` on any capture.
-- **The fuzzed map's frame 1**, once those marks exist: 51 against 45,
-  with a `do_non_flat_gather+0x54b` short and a `Farms::inc_time+0x1de`
-  sprout the original does not spend, beside the `produce_building` gap.
+  verifies). It is the **only** residue left in run20's frame 1 and the
+  last `+0xe84` on any capture. Re-measured 2026-08-26 and still one draw:
+  the building it clips stands beside the city, not where the farm moved.
+- **The fuzzed map's frame 1**, now two rows rather than a lump: one
+  `Leader::produce_building+0xc99` **short** (29 against 30 — a spiral
+  candidate the original scores and the sim does not, the mirror image of
+  the gap just closed) and one `Unit::do_non_flat_gather+0x54b` short.
+  `diff::tests::the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well`
+  asserts both as they stand, so closing either fails the test.
 - **§9.3's sixth citizen** and **the frame-1 order two of player 1's units
-  hold and the sim does not** — the rest of item 25; re-read it, the scout
-  half has moved.
+  hold and the sim does not** — the rest of item 25; re-read it, both the
+  scout half and the `produce_building` half have moved under it.
 - **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked.
 - **Re-run run13's window** (sim-frames 95–103): §5's largest single gap
   was `6 / 23` at frame 95, and nothing has re-measured it since the
@@ -92,12 +90,15 @@ frame 1 51/45. `ticks before divergence` is still 1 everywhere.
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *When a change is meant to move one
-number, run the captures it is not meant to move — on both sides of the
-change.* Two extra builds turned "probably no regression" into "identical
-on two maps", and threw in the fact that one of those maps' open items had
-been stale for two days. The corollary for this file: **an item that names
-a cause is a claim, and claims go stale**; re-measure before taking one.
+**The thing this session earned.** *Mark the phase before believing the
+total — and mark it even when the total already agrees.* Run20's frame 1
+read 53/53 for two days while carrying three independent errors that
+cancelled, and one of them was a map layer the harness had been loading
+and never reading. Two corollaries for this file: **a residue that
+vanishes when an unrelated object moves has not been closed** (the
+`do_move` row read zero on an intermediate build and came back), and
+**a queue item that says "one draw short" is a question, not a
+measurement** — the answer is rarely one draw.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -105,7 +106,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — mark Leader::produce_building's two draw sites (+0xc99 and +0x1805) the way item 27 marked the others, so run20's frame-1 "one draw short" and the fuzzed map's "six over" become rows instead of subtractions. crates/sim/src/ai_place.rs is where they are spent; docs/SYNC.md §5.1 is the instrument and §3.8 the last mechanic to use it. Then go_around_building@005fc350 — the last Unit::do_move+0xe84 on any capture, docs/ORDERS.md §4.6.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — go_around_building@005fc350, item 29 and the only residue left in run20's frame 1: unit 1/0's straight line clips a building at tile (201, 207) three tiles short of a clear goal, and the sim pays a Unit::do_move+0xe84 grid draw the original never spends. docs/ORDERS.md §4.6 has the shape; docs/SYNC.md §6 has the measurement and §5.1 the instrument. Then the fuzzed map's frame 1 — one produce_building+0xc99 short and one do_non_flat_gather+0x54b short, both asserted where they stand.`
 
 ## The queue
 
@@ -278,11 +279,14 @@ in which case say so and take that. The story of each struck item is in
       **half fixed**: on run20 its `EXPLORE_TO` now matches, on the fuzzed
       map the sim issues one at frame 0 and has none by frame 1, so
       something kills it during that frame.
-    - **`Leader::produce_building`'s draws.** Run20's frame 1 is one
-      short of the original's 43 (39 at `+0xc99`, 4 at `+0x1805`); the
-      fuzzed map's is **six over** its 33. Both sit inside one unmarked
-      `strategy_all` phase, so neither is a row yet — **mark the two
-      sites first**, per item 27.
+    - ~~**`Leader::produce_building`'s draws**~~ — done 2026-08-26.
+      Both sites marked; three defects behind the one-draw gap (an
+      exclusive 2×2 jitter, a stride test on the wrong index, an
+      unmodelled `WorldData::buildings_allowed`). Run20's frame 1 is
+      39 + 4 on both sides and the farm lands on the original's tile.
+      `docs/AI.md` §2.20, `docs/SYNC.md` §4.2 and §6.
+      **What it left**: the fuzzed map is one `+0xc99` short (29 against
+      30) and one `do_non_flat_gather+0x54b` short, 43 against 45.
     - ~~**`Farms::add`'s two draws**~~ — done 2026-08-26, `docs/SYNC.md`
       §3.8, `crates/sim/src/farms.rs`.
 

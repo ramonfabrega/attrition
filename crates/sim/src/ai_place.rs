@@ -33,6 +33,18 @@ use crate::orders::{Body, QueuePos, index};
 use crate::world::{Cell, Terrain, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Player, Pos, Sim, cost};
 
+/// The two draw sites of `Leader::produce_building@006e1400`, under the
+/// original's own offsets. [`Sim::mark`] writes them into
+/// [`Sim::phase_marks`], so a frame's draws are compared against
+/// `rondata::trace`'s by name rather than by a total (`docs/SYNC.md` §5.1).
+///
+/// Both offsets are return addresses into `produce_building`, confirmed in
+/// the listing: `0x006e2099` is followed by `cltd; mov ecx, 0x1f4; idiv` —
+/// the spiral candidate's `% 500` — and `0x006e2c05` by `cltd; mov ecx,
+/// 0x64; idiv`, the jitter's `% 100`.
+pub const SITE_SPIRAL: &str = "Leader::produce_building+0xc99";
+pub const SITE_JITTER: &str = "Leader::produce_building+0x1805";
+
 /// `circle_x`/`circle_y`/`circle_radius`, as `circle_init` fills them.
 pub struct Circle {
     pub x: Vec<i32>,
@@ -424,7 +436,12 @@ impl Sim {
             {
                 continue;
             }
-            // `buildings_allowed` (cell flags `0x78`): the flat world allows.
+            // `WorldData::buildings_allowed` — rock, mountain, forest and
+            // the unnamed `0x40` take no building; an oil platform (0x1a6)
+            // is the one type that skips the test.
+            if ident != Ident::OilPlatform && !self.world.buildings_allowed(cell) {
+                continue;
+            }
             if self.cell_is_ocean(cell) != (bt.has(flags::WATER)) {
                 continue;
             }
@@ -455,6 +472,7 @@ impl Sim {
                     match ident {
                         Ident::Farm | Ident::Mine => {
                             let d = d.max(1);
+                            self.mark(SITE_SPIRAL);
                             let r = self.rng.roll();
                             score = 4000 / d + r % 500;
                         }
@@ -533,7 +551,12 @@ impl Sim {
             if score < best {
                 continue;
             }
-            if !scored_by_gather && best != 0 && !tower && start > circle.radius[3] {
+            // `circle_radius[3] < local_2c` — the **current** index, not
+            // the loop's start: once a second candidate has improved on a
+            // best beyond ring 3, the spiral strides by three. Comparing
+            // `start` here (which is 0, 1 or exactly `radius[3]`) meant it
+            // never engaged, and the extra cells were extra draws.
+            if !scored_by_gather && best != 0 && !tower && idx > circle.radius[3] {
                 step = 3;
             }
             best = score;
@@ -631,8 +654,12 @@ impl Sim {
         if ident != Ident::Dock && (ex > 0 && ey > 0) {
             if ident != Ident::Woodcutter {
                 let mut best_r = -1;
-                for dx in 0..ex {
-                    for dy in 0..ey {
+                // Both bounds are **inclusive** in the original
+                // (`while (uVar11 <= uVar19)`, `while (local_1c <=
+                // local_58)` at `006e2a78`), so `ex == ey == 1` is a
+                // 2×2 of sub-positions and four draws, not one.
+                for dx in 0..=ex {
+                    for dy in 0..=ey {
                         let c = Pos::new(
                             ((corner.x + dx) * 2 + bt.x_size) * (UNITS_PER_TILE / 2),
                             ((corner.y + dy) * 2 + bt.y_size) * (UNITS_PER_TILE / 2),
@@ -640,6 +667,7 @@ impl Sim {
                         if self.blocked_site(Some(who), rec, c, None)
                             == crate::place::Blocked::Clear
                         {
+                            self.mark(SITE_JITTER);
                             let r = self.rng.roll() % 100;
                             if r >= best_r {
                                 best_r = r;

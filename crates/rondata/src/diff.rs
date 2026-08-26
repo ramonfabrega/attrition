@@ -3081,10 +3081,20 @@ mod tests {
     ///   a seam. When that lands this row is `0` and the assertion below
     ///   must be edited to say so.
     ///
-    /// The residue in the total is one `Leader::produce_building` draw the
-    /// sim is short (39 + 4 against our 42), which happens to cancel the
-    /// stray `do_move` — so the frame reads 53 against 53 and a count would
-    /// call it done. That is exactly what §5.1 was built for.
+    /// - **`Leader::produce_building` draw for draw** since 2026-08-26:
+    ///   `+0xc99` ×39 and `+0x1805` ×4, the original's own split, and the
+    ///   farm the call places lands on the original's own tile. The
+    ///   frame's only residue is now the `do_move` above, so the total
+    ///   reads 54 against 53 — it no longer cancels, which is the point.
+    ///
+    /// The old note here said the frame read 53/53 and was *still wrong*,
+    /// because one missing `produce_building` draw cancelled the stray
+    /// `do_move`. Three defects were behind that one number
+    /// (`docs/AI.md` §2.20): the jitter's two loops are inclusive, so
+    /// `ex == ey == 1` is a 2×2 and four draws rather than one; the
+    /// stride-by-three test read the loop's start index instead of the
+    /// current one; and `WorldData::buildings_allowed` was not modelled at
+    /// all, so a forest cell scored as a candidate and drew.
     #[test]
     fn run20_s_frame_1_spends_the_farm_s_ambience_pair() {
         let Some(inst) = install() else { return };
@@ -3141,6 +3151,111 @@ mod tests {
             1,
             "the scout's building clip — `go_around_building` is the seam"
         );
+
+        // `produce_building`, site for site: the spiral's friendless
+        // FARM/MINE candidates and the 2×2 jitter's unblocked
+        // sub-positions, both the original's counts.
+        for site in [sim::ai_place::SITE_SPIRAL, sim::ai_place::SITE_JITTER] {
+            assert_eq!(count(&ours, site), count(&theirs, site), "{site}");
+        }
+        assert_eq!(count(&theirs, sim::ai_place::SITE_SPIRAL), 39);
+        assert_eq!(count(&theirs, sim::ai_place::SITE_JITTER), 4);
+        // And they are one call, in the original's order: every spiral
+        // draw before every jitter draw.
+        let last_spiral = ours
+            .iter()
+            .rposition(|l| *l == sim::ai_place::SITE_SPIRAL)
+            .expect("a spiral draw");
+        let first_jitter = ours
+            .iter()
+            .position(|l| *l == sim::ai_place::SITE_JITTER)
+            .expect("a jitter draw");
+        assert!(
+            last_spiral < first_jitter,
+            "the spiral scores, then jitters"
+        );
+
+        // The site itself, which is what the draws are for: the AI's new
+        // farm is `who 1, o 2006` at (41856, 39552) in the run's own
+        // `BUILDDATA`, and the sim now puts it there. Before the jitter
+        // was a 2×2 it landed one sub-position away.
+        let farm = built
+            .sim
+            .buildings
+            .iter()
+            .find(|b| b.alive && b.owner == 1 && b.index == 2006)
+            .expect("the AI's new farm");
+        assert_eq!(
+            (farm.pos.x, farm.pos.y),
+            (41856, 39552),
+            "the original's own tile"
+        );
+    }
+
+    /// **The fuzzed map's frame 1** — the second capture the 2×2 jitter is
+    /// checked on, and the one that makes it a rule rather than a run20
+    /// coincidence.
+    ///
+    /// `gamelog-fuzz-424242-*` is the fuzzer's control run on a lobby
+    /// nobody tuned against (`docs/SYNC.md` §4.2). Its frame 1 spends
+    /// `Leader::produce_building+0x1805` **three** times where run20
+    /// spends four: the jitter walks the same 2×2 and `blocked_site`
+    /// refuses one of the sub-positions. A one-draw-per-call reading
+    /// cannot produce either number.
+    ///
+    /// What is still open here is the row above it — the spiral is one
+    /// draw *short* of the original's thirty, and a
+    /// `Unit::do_non_flat_gather+0x54b` is short too, so the frame reads
+    /// 43 against 45. Those are this map's own residues, and they are
+    /// asserted as they stand so that closing one shows up as a failure.
+    #[test]
+    fn the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace)) = (
+            dump("gamelog-fuzz-424242-heights.txt"),
+            trace("rontrace-fuzz-424242.log"),
+        ) else {
+            eprintln!("skipping: set RON_GAMELOG_DIR");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+
+        built.tick();
+        built.sim.tick();
+        let ours = mark_sites(&built.sim.phase_marks, built.sim.rng.seed).expect("our sites");
+        let theirs = trace.labels(1);
+        assert_eq!(theirs.len(), 45, "the original's frame 1");
+
+        let count = |v: &[String], site: &str| v.iter().filter(|l| *l == site).count();
+        assert_eq!(count(&theirs, sim::ai_place::SITE_JITTER), 3);
+        assert_eq!(
+            count(&ours, sim::ai_place::SITE_JITTER),
+            3,
+            "one of the 2×2's four sub-positions is blocked on this map"
+        );
+        // The residues, as they stand.
+        assert_eq!(
+            (
+                count(&theirs, sim::ai_place::SITE_SPIRAL),
+                count(&ours, sim::ai_place::SITE_SPIRAL),
+            ),
+            (30, 29),
+            "the spiral is one candidate short — still open"
+        );
+        assert_eq!(
+            (
+                count(&theirs, sim::orders::SITE_TILE_WAIT),
+                count(&ours, sim::orders::SITE_TILE_WAIT),
+            ),
+            (5, 4),
+            "and one citizen picks no tile — still open"
+        );
+        assert_eq!(ours.len(), 43, "so the frame is 43 against 45");
     }
 
     /// Run20's AI scout at frame 0 — `Unit::think_scout`'s ten draws, on
@@ -3988,8 +4103,17 @@ mod tests {
         // stretch. Four order-frames and two path-frames of that noise
         // against three maps' frame 0 becoming exact — run20 and the fuzzed
         // map draw for draw, run10's 128 against 120 now 120 against 120.
+        // 1,246/879 → 1,267/892 with `produce_building`'s three placement
+        // defects fixed (`docs/AI.md` §2.20, 2026-08-26). **The totals
+        // fell**: 1,679/1,199 to 1,552/1,160. What rose is only this
+        // split's non-farmer half, because the AI now puts its buildings
+        // somewhere else on this map too and the farmers' share of the
+        // disagreements fell further than the rest (433/320 farmer-frames
+        // to 285/268). Every traced capture held or improved — run20's
+        // frame 1 lost its `produce_building` residue entirely, the fuzzed
+        // map went 48/45 to 43/45, the Great Lakes did not move.
         assert!(
-            orders - farmer_orders <= 1_246 && paths - farmer_paths <= 879,
+            orders - farmer_orders <= 1_267 && paths - farmer_paths <= 892,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.
