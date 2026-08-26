@@ -252,7 +252,12 @@ choice is said in user-visible text each time; never Sonnet. Blind readers
 may run on Opus. An Opus adjudication is acceptable under the marker
 discipline — append each verdict as it is settled, and mark what cannot be
 settled `FABLE:` rather than guess — and is closed by a Fable pass over every
-marker and every verdict that changed Rust. Launch a fan-out in waves, not
+marker and every verdict that changed Rust. **That closing pass is not a
+subagent: it is the session.** Bank, `/clear`, switch the main thread to
+Fable. And its brief is a **charter, not a checklist** — the verdicts and
+markers are the floor, the mandate is what the earlier passes missed, and a
+pass fenced to the floor can only ever agree with the framing that fenced
+it. Launch a fan-out in waves, not
 whole; readers write to durable storage from their first finding; verify
 which model actually ran from the transcript, never from the spawn
 parameter. Rationale in `docs/DECISIONS.md` entry 22; the operating checklist
