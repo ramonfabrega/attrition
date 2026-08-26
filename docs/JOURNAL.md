@@ -2001,3 +2001,121 @@ strength of a new run; two of them were wrong; the control cost thirteen
 seconds each and nobody had been in the habit of running it. A novel
 capture is the most persuasive kind of evidence and the least controlled,
 which is precisely the combination that needs a control.
+
+## 2026-08-26 — item 24: the fifteen draws that were four things
+
+The queue had carried this for four days, in one line: *the sim draws 15
+fewer than the original at frame 0, on two maps — run20 reads 160/175, the
+fuzzed map 180/195 — so it is one fixed missing block. Needs no new
+capture. Find it.*
+
+Both halves of that were right except the middle. No capture was needed;
+the block was four blocks; and two of them cancel, which is exactly why
+the shortfall came out the same on two unrelated maps and read as one
+thing.
+
+### The instrument, which took half an hour and did all the work
+
+`tools/trace/report.py … sites 0` folds the original's frame-0 draws by
+return address — that has existed since run14. The sim had no such fold:
+`rondata --diff` printed one number a frame, "ours 160 draws, the
+original's 175", and there was no way to ask *which* 160.
+
+So: a mark at every phase boundary of `Sim::tick`, and one before every
+unit the loop visits, recording the stream's word. The draws between two
+marks belong to the earlier one, and a frame becomes
+
+```
+rng: frame 0: ours by phase — strategy_all 2, markets 18, unit 0/0 2,
+  unit 0/1..0/2 ×2 1, unit 1/6 2, unit 1/7..8/115 ×106 1, gaia 22, farms 6
+```
+
+Set that beside the trace's fold and the answer falls out in one reading.
+It is gated on `Sim::trace_phases`, which the harness sets and the soak
+does not, so it costs nothing where it is not wanted. Half an hour to
+build; it turned a four-day-old mystery into a table.
+
+### The four blocks
+
+| block | run20 | the fuzzed map |
+|---|---|---|
+| `Unit::think_scout` — the sim has no seen map | −10 | −10 |
+| the pasture's five animals and its `think_farm_animal` | −6 | −6 |
+| `Farms::inc_time` on a farm that grows nothing | +1 | +1 |
+| the citizens' stand, spent in the unit loop | +4 | +5 |
+| the same guys' wrap, not spent in phase 7 | −4 | −5 |
+| | **−15** | **−15** |
+
+The last two are one defect seen twice, and they sum to zero on every map,
+because the guys the sim gives an early stand to are exactly the guys the
+original wraps late. A total can never see it. That is the argument for
+the fold in one line.
+
+### The pasture
+
+`Farms::inc_time` skips a farm whose `+0xbd` byte is 1 — `docs/SYNC.md`
+§3.3 has said so since the day it was written, with no idea what the byte
+was. `rise.pdb`'s type record says: `FarmStruct+0xbd` is **`farm_type`**,
+and the dump prints it, six times, right after `valid`. Run20's six farms
+read `1, 0, 0, 0, 0, 4`.
+
+`Farms::add_animals@008d8f30` is guarded by the same byte, and it is the
+find: a `farm_type == 1` farm is a **pasture**, and it gets five animals —
+`do { … } while (i < 5)` — of **owner 9**, chicken or pig on a coin. Each
+is stamped with the farm and its own place in the five, and that byte
+phases its `Animal::think_farm_animal` tick: `(o · (slot + 1) + frame) %
+128 == 0`. At frame 0 the first animal, `o = 0, slot = 0`, fires and the
+other four do not.
+
+So a pasture costs six draws a frame at frame 0 and saves one, and the
+sim was spending neither. The trace had been saying so for a day and a
+half in plain sight: run20's frame 0 has **109** `Animal::do_idle` idle
+rolls and the dump has **104** animals, with the five extra sitting at the
+end of the run and the single `think_farm_animal` draw between the first
+of them and the rest.
+
+**Owner 9 is why nobody had noticed.** No dump prints a leader-9 object —
+run20's first `FULL DUMP` has 104 `ANIMALDATA` records and not one `who 9`
+field anywhere in it. The five animals exist in a capture *only* as draws.
+It is the cleanest example yet of the thing the trace is for: a mechanic
+whose whole footprint in every logger the game ships is a count that does
+not add up.
+
+### What landed
+
+`Farm::farm_type`, `Sim::farm_add_animals`, `Sim::think_farm_animal`,
+`Sim::build_covers_tile`, `gamelog::Initial::farms` (the list read off the
+dump's flat fields — `Farms::log_data` gives it no block of its own), and
+the fold. Frame 0 goes 160 → **165** on run20 and 180 → **185** on the
+fuzzed map, and **frame 2, which is the crop farms and nothing else on
+both sides, goes from 6/5 to 5/5** — the first frame of run20 the harness
+matches outright.
+
+Five deliberate breakages, all caught: four animals instead of five, the
+think phase off by one, the slot dropped from the phase, the `covers_tile`
+gate removed, and the animals never reaching `think_farm_animal`.
+
+### What is left, and it is now one block
+
+**Frame 0's whole remaining gap is `Unit::think_scout` — ten draws on
+run20 and ten on the fuzzed map**, at the same three sites in the same
+proportions (`+0x436` ×4, `+0x458` ×2, `+0x64c` ×4). That two unrelated
+maps give the identical count is itself a lead: a scan drawing "once per
+unseen candidate cell" would not. It needs no capture either.
+
+And the ±4/−4 pair is a real defect wearing a zero. Run20's own
+end-of-frame-0 dump half-explains it: the AI's two woodcutters end the
+frame wrapped (`cur_anim 1, cur_time 0`), the human's two end at
+`cur_anim 0, cur_time 1, end_time 33` — a `set_anim` that took no draw at
+all. Two of the four wraps have owners; two do not.
+
+### The note
+
+**A number that reproduces is not a cause that reproduces.** Fifteen on
+two maps was read as one block precisely *because* it was stable, and
+stability was the wrong inference: it was three map-independent blocks
+plus a pair that cancels by construction. The fix was not more reading —
+it was making the sim's own draws as legible as the trace already made the
+original's, which is the same move as every instrument this project has
+built, one level in. When two totals disagree, build the fold before
+building the theory.

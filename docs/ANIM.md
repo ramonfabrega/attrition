@@ -277,9 +277,12 @@ moves those four wraps by one frame.
   compass step and two magnitudes (`(k + 1) · move · 0x30` on each axis)
   and issue a move; further out `find_nearby_spot(centre, 0xc0)` issues one
   without a draw. The `detect_unit_collision` before the near move is a
-  seam. A herdless animal's `think_farm_animal` (every 128 frames, one
-  draw `& 7` on a farm) is unread. The fish never reach any of it: their
-  domain is not land.
+  seam. ~~A herdless animal's `think_farm_animal` (every 128 frames, one
+  draw `& 7` on a farm) is unread.~~ **Read, 2026-08-26: `docs/SYNC.md`
+  §3.6** — a herdless animal is a *pasture's*, one of five owner-9 animals
+  a `farm_type == 1` farm carries, and `do_idle` hands it to
+  `think_farm_animal` with no clock gate at all. The fish never reach any
+  of it: their domain is not land.
 
 `docs/SYNC.md`'s per-frame counts move with it (its §5). Run10 with run11,
 run3 and run13 as siblings (the pinned set, `diff::tests::run13_s_window_
@@ -451,8 +454,10 @@ two passes.
   no fights.
 - **`num_guys` per type**: one guy per spawned unit; the start dump's units
   carry as many as it prints.
-- **`think_farm_animal`**, and the birds after creation (`think_bird`,
-  `do_air_physics`) — unread past their draw sites (`docs/SYNC.md` §3.2).
+- ~~**`think_farm_animal`**~~ — read, `docs/SYNC.md` §3.6; what is still
+  open there is the animals' positions and their animation lengths, which
+  no dump carries. **The birds after creation** (`think_bird`,
+  `do_air_physics`) are still unread past their draw sites.
 - ~~**The 4-draw tail of frame 0** is still not a wrap (`docs/SYNC.md` §6).~~
   It is a wrap, at 110–113 rather than at the end (the trace, above); the
   farms are the tail.

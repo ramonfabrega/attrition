@@ -359,6 +359,10 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     let players = player_count(init).max(1);
     let (world, region_map) = world_from(&init.world, &init.heights, &mut notes);
     let mut sim = loaded.sim(tuning, world, players);
+    // The harness is where the per-phase fold is wanted: it is what the
+    // sim's own draws are lined up against the trace's sites with
+    // (`docs/SYNC.md` §4.2). Everything else leaves it off.
+    sim.trace_phases = true;
     sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
     // The map seed, which picks a gaia guy's piece (`docs/ANIM.md` §3).
     sim.game_seed = get("seed").unwrap_or(0) as i32;
@@ -573,6 +577,33 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     }
 
     let builds = start_of_game(&mut sim, loaded, init, players, &units, &mut notes);
+    // `Farms::log_data`'s list: each farm's `farm_type`, and with it the
+    // pasture — the farm that grows nothing, so `Farms::inc_time` spends no
+    // draw on it, and that carries five animals of **owner 9** which do
+    // (`docs/SYNC.md` §3.6). No dump prints an owner-9 object, so the five
+    // are stood up here from the farm alone.
+    if !init.farms.is_empty() {
+        let (mut pastures, mut animals) = (0usize, 0usize);
+        for f in &init.farms {
+            let Some(b) = sim
+                .buildings
+                .iter()
+                .position(|bd| i64::from(bd.owner) == f.who && i64::from(bd.index) == f.o)
+            else {
+                notes.push(format!("farms: no building for who {} o {}", f.who, f.o));
+                continue;
+            };
+            sim.buildings[b].farm.farm_type = u8::try_from(f.farm_type).unwrap_or(0);
+            if sim.buildings[b].farm.farm_type == sim::farms::ANIMAL_FARM {
+                pastures += 1;
+                animals += sim.farm_add_animals(b).len();
+            }
+        }
+        notes.push(format!(
+            "farms: {} from the dump, {pastures} pasture(s) carrying {animals} animals of owner 9",
+            init.farms.len()
+        ));
+    }
     // On the flat fallback world a camp's survey (`gather.rs`) finds no
     // forest and would cap it at zero slots; the map-less dumps (run6, run7)
     // keep the old uncapped stand-in so their pins measure what they did.
@@ -1069,6 +1100,51 @@ impl Report {
 }
 
 impl Built {
+    /// The frame the sim just stepped, folded by phase — the harness's
+    /// answer to `tools/trace/report.py … sites`, which folds the
+    /// original's draws by return address (`docs/SYNC.md` §4.2). Phases
+    /// that drew nothing are dropped; the unit loop is one entry per unit
+    /// that drew, because that is the half that has to be lined up against
+    /// the trace. `None` when nothing drew, or when the marks are off.
+    fn phase_fold(&self) -> Option<String> {
+        let mut rows: Vec<(String, u32)> = Vec::new();
+        for pair in self.sim.phase_marks.windows(2) {
+            let (label, from) = &pair[0];
+            let n = draws_between(*from, pair[1].1)?;
+            if n > 0 {
+                rows.push((label.clone(), n));
+            }
+        }
+        // A hundred animals rolling one idle each is one fact, not a
+        // hundred: a run of neighbouring units drawing the same number
+        // folds to its first and last.
+        let mut out: Vec<String> = Vec::new();
+        let mut i = 0;
+        while i < rows.len() {
+            let mut j = i;
+            while j + 1 < rows.len()
+                && rows[j + 1].1 == rows[i].1
+                && rows[i].0.starts_with("unit ")
+                && rows[j + 1].0.starts_with("unit ")
+            {
+                j += 1;
+            }
+            if j > i {
+                out.push(format!(
+                    "{}..{} ×{} {}",
+                    rows[i].0,
+                    rows[j].0.trim_start_matches("unit "),
+                    j - i + 1,
+                    rows[i].1
+                ));
+            } else {
+                out.push(format!("{} {}", rows[i].0, rows[i].1));
+            }
+            i = j + 1;
+        }
+        (!out.is_empty()).then(|| out.join(", "))
+    }
+
     /// One engine frame, the harness's way: `Sim::tick`, then — when the
     /// dump or a sibling traced this frame's end (`docs/SYNC.md` §5) — the
     /// frame's draw count on both sides is recorded and **the original's
@@ -1083,6 +1159,10 @@ impl Built {
             let ours = draws_between(word_before, self.sim.rng.seed);
             let orig = draws_between(word_before, theirs);
             self.rng_frames.push((frame, ours, orig));
+            if let Some(fold) = self.phase_fold() {
+                self.notes
+                    .push(format!("rng: frame {frame}: ours by phase — {fold}"));
+            }
             self.notes.push(format!(
                 "rng: frame {frame}: ours {} draws, the original's {} — installed {theirs:#010x}",
                 ours.map_or("?".to_string(), |n| n.to_string()),
@@ -1410,6 +1490,14 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
         && let Some(s) = siblings.iter().find(|s| !s.herds.is_empty())
     {
         init.herds = s.herds.clone();
+    }
+    // The farm list is a `DUMP_ALL` block too, and it is the same map's
+    // (`docs/SYNC.md` §3.6): which farm is the pasture does not depend on
+    // the window the capture opened.
+    if init.farms.is_empty()
+        && let Some(s) = siblings.iter().find(|s| !s.farms.is_empty())
+    {
+        init.farms = s.farms.clone();
     }
     // The per-frame words are only the same run's if the setup stream is:
     // a sibling's count from the trace's last word, so its own trace must
@@ -2675,6 +2763,97 @@ mod tests {
         assert_eq!(draws_between(0xb619_4ba1, 0x4554_ec0f), Some(54));
         assert_eq!(draws_between(0x4554_ec0f, 0xab3b_035d), Some(6));
         assert_eq!(draws_between(0xab3b_035d, 0xc242_06bb), Some(6));
+    }
+
+    /// Run20's `Farms` list, and the pasture in it. Six farms, one of them
+    /// `farm_type == 1` — the AI's `o 2002` — which grows nothing and
+    /// carries five animals of **owner 9** that no dump prints (run20's
+    /// first `FULL DUMP` has 104 `ANIMALDATA` records and not one `who 9`).
+    ///
+    /// The stream is the assertion. `rontrace-run20.log` places frame 0's
+    /// 175 draws by site: 104 `Animal::do_idle` idle rolls for the dumped
+    /// animals, then **five more and one `Animal::think_farm_animal`** —
+    /// the pasture's — and **five** `Farms::inc_time` draws, not six. So
+    /// the harness's frame 0 moves from 160 to 165 and its frame 2, which
+    /// is the farms alone on both sides, from 6/5 to **5/5**
+    /// (`docs/SYNC.md` §3.6, §4.2).
+    #[test]
+    fn run20_s_pasture_grows_nothing_and_its_five_animals_draw_six() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run20-islands-dumpall.txt") else {
+            eprintln!("skipping: no gamelog-run20-islands-dumpall.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+
+        // The list, as `Farms::log_data` wrote it.
+        let farms = &init.farms;
+        assert_eq!(farms.len(), 6, "run20's six farms");
+        assert!(farms.iter().all(|f| f.valid == 1), "every slot live");
+        let pastures: Vec<_> = farms.iter().filter(|f| f.farm_type == 1).collect();
+        assert_eq!(pastures.len(), 1, "one pasture");
+        assert_eq!(
+            (pastures[0].who, pastures[0].o),
+            (1, 2002),
+            "the AI's first"
+        );
+        assert_eq!(
+            farms.iter().map(|f| f.farm_type).collect::<Vec<_>>(),
+            vec![1, 0, 0, 0, 0, 4],
+            "the crops, in the list's order"
+        );
+
+        // The five animals, and the farm they hang off.
+        let built = build_sim(&loaded, &init, Tuning::RON);
+        let animals: Vec<usize> = (0..built.sim.units.len())
+            .filter(|&u| built.sim.units[u].owner == 9)
+            .collect();
+        assert_eq!(animals.len(), 5, "five animals of owner 9");
+        let farm = built.sim.units[animals[0]].farm_animal.unwrap().build;
+        assert_eq!(built.sim.buildings[farm].owner, 1);
+        assert_eq!(built.sim.buildings[farm].index, 2002);
+        assert!(
+            animals
+                .iter()
+                .all(|&u| built.sim.units[u].farm_animal.unwrap().build == farm),
+            "all five on the same farm"
+        );
+        assert_eq!(
+            animals
+                .iter()
+                .map(|&u| built.sim.units[u].farm_animal.unwrap().slot)
+                .collect::<Vec<_>>(),
+            vec![0, 1, 2, 3, 4],
+            "slotted 0..5, which is what phases their think tick"
+        );
+        assert!(
+            init.units.iter().all(|u| u.who != 9),
+            "and no dump prints them"
+        );
+
+        // The counts, on the original's own stream.
+        let report = run_traced(&loaded, &log, Tuning::RON, Some(4), None, &[]).unwrap();
+        let count = |f: i64| -> (Option<u32>, Option<u32>) {
+            let &(_, ours, theirs) = report
+                .rng_frames
+                .iter()
+                .find(|(n, _, _)| *n == f)
+                .unwrap_or_else(|| panic!("frame {f} was not traced"));
+            (ours, theirs)
+        };
+        assert_eq!(
+            count(0),
+            (Some(165), Some(175)),
+            "frame 0: the ten left are `Unit::think_scout`'s"
+        );
+        assert_eq!(
+            count(2),
+            (Some(5), Some(5)),
+            "frame 2 is the five crop farms and nothing else, on both sides"
+        );
     }
 
     /// Run13's window (`docs/SYNC.md` §4.1, §5): run10 stepped with run11,

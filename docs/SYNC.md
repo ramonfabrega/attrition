@@ -150,7 +150,7 @@ Per unit, the sites that run on an ordinary frame:
 | `do_gather` at a farm | a **new tile** (`docs/ORDERS.md` §6.5) | 2 (`GameAccess::rnd(4)` twice, x then y — **4, measured on run13**: the six farmers' twelve draws on sim-frame 101 give the dump's new tiles under `% 4` and no other modulus, §4; the target is `(corner + r) · 0xc0 + 0x60`, then `add_move_order`'s 48-cell snap puts it at `corner·192 + 120 + 192r`) |
 | `Unit::think_scout@005f6010` | a scout with no orders (`think`, the bottom branch: not supply, not hero, `is(0x3a)` or `type+0xb2 & 0x10`, `get_army < 0`) — the human's too | 1 for the scan start (`% (ceil(count/100) + frame&7)`) + **1 per candidate cell** that is unseen, `invalid_loc`-clean and of the right domain (`& 7`, a score jitter); the `param_1 != 0` entry draws `% count` for a region pick and re-draws while the cell has `& 0x70` |
 | `Animal::do_idle@005d7460` | an idle animal, every frame: `Unit::set_anim(CHAR_DEFAULT, 0, 1)` first (a draw only on an arrival — run13: sheep 0 at sim-frame 101), then, for a type with `+0x218 == 0`, **a herd member** (`+0x86 ≥ 0`) rolls, a herdless one goes to `think_farm_animal` | when `guy.cur_time == guy.end_time − 1`, 1 (`% 10 < 3` → wander) and, near its herd's centre (`< 0x181`), 3 more (`& 7`, `& 3`, `& 3` → a step along `move_x/y`); else `find_nearby_spot` (0). **This lobby's forty animals are four `HERDSHEEP` (408, herd 0) and thirty-six `HERDFISH` (411) in twelve schools of three at one spot each**; the fish never reach the roll — run13's twelve `end_time 101` fish drew exactly their twelve wraps at sim-frame 100 and nothing else |
-| `Animal::think_farm_animal@005d7700` | a farm animal, every 128 frames phased by `o · (scale+1)` | 1 (`& 7`) when its farm covers the tile |
+| `Animal::think_farm_animal@005d7700` | a **pasture's** animal (owner 9, five per farm — §3.6), every 128 frames phased by `o · (slot + 1)`, where `slot` is `Animal+0x154`, its place in the five — ~~`scale`~~ | 1 (`& 7`) when the farm covers the tile of the object it measures: the farm itself while nobody gathers there, `gather_down`'s first gatherer once somebody does |
 | `Animal::think_bird@005d79e0` | who 9, every 8 frames | 2 (`% 0x51`/`% 0xf` offsets), then a landing roll `% n` and a 30-round `% count`, `% 50 + 1` search |
 | `resolve_unit_collision@005f9d30:499` | a mutual collision | 1 (`pause = % 9 + 1`) |
 | `do_group_move@005e79a0:376`, `do_guard:288`, `do_spec_anim` (2), `think_fish` (2), `think_spellcaster` (2), `do_air_physics` (2) | their situations | as named |
@@ -175,9 +175,10 @@ Landed: the birds' sampling and the herd walk, `crates/sim/src/gaia.rs`.
 
 ### 3.3 The farms — `Farms::inc_time@008d8600`
 
-Every frame, every farm whose `+0xbd` byte is not 1 and whose building is
-complete (`Build flags & 4`; a site is skipped). Each of its 16 cells holds a
-state byte and a `float percent`:
+Every frame, every farm whose **`farm_type` is not 1** (`FarmStruct+0xbd`,
+named by the type record — §3.6; that farm is a *pasture* and grows nothing)
+and whose building is complete (`Build flags & 4`; a site is skipped). Each
+of its 16 cells holds a state byte and a `float percent`:
 
 ```
 for each cell:                       # column-major: col outer, row inner
@@ -236,6 +237,78 @@ whether it joins an army (`docs/ARMY.md` §4). Neither is reached in
 run12/run13's windows; run24–26 are the captures with them
 (`docs/ARMY.md` §16). The harness's `find_target` draws on the same
 stream in the same order.
+
+### 3.6 The pasture and its five animals — `Farms::add_animals@008d8f30` (2026-08-26)
+
+**A farm's `farm_type` is `FarmStruct+0xbd`**, and `rise.pdb`'s type record
+is what names it (`FarmStruct // size 0xc0`: `who`, `o`, `float[4][4]
+percent`, `float[5][5] terrain_height`, `uchar[4][4] status`, `uchar valid`,
+`uchar farm_type`) — not the surrounding code, which only ever compares it
+to 1. **`farm_type == 1` is the pasture**, and the whole of what it changes
+is this:
+
+- **`Farms::inc_time` skips it.** So a lobby with six farms spends *five*
+  crop draws a frame, not six (§3.3). Run20's list reads `1, 0, 0, 0, 0, 4`
+  and its every frame's farm block is five draws long.
+- **`Farms::add_animals` gives it five animals of owner 9.** The loop is
+  `do { … } while (i < 5)`, guarded by the same `+0xbd == 1`; each pass is
+  `Random::get` for the type (`& 1`: even `FARMCHICKEN` 0x196, odd
+  `FARMPIG` 0x195), one for the `y` offset and one for the `x`
+  (`% 0x180 − 0xc0` from the building, so within a tile either way), then
+  `Objects::init_unit(objects, **9**, type, x, y)` — whose `Guy::init_real`
+  draws once more. **Four draws an animal, twenty a pasture**, spent where
+  the farm is built: inside `Setup::build_empire` for a starting one.
+
+Each animal is stamped with the farm's `o` (`Animal+0x150`), the farm's
+`who` (`+0x152`) and **its own place in the five** (`+0x154`), and that
+last byte is what phases its thinking.
+
+**The animals are herdless, so `Animal::do_idle` hands them straight to
+`Animal::think_farm_animal@005d7700`** — the branch §3.2 named and left
+unread. `do_idle` calls `Unit::set_anim(CHAR_DEFAULT, 0, 1)` first (the
+idle roll, one draw a guy when a new default animation starts), then, for
+a type with `+0x218 == 0`, tests `+0x86`: a herd member rolls to wander, a
+herdless one goes to `think_farm_animal` **with no clock gate of its own**.
+There:
+
+```
+if (o · (slot + 1) + game->frame) % 128 != 0: return          # its phase
+target = num_gatherers(farm) == 0 ? farm : farm->gather_down  # BuildData+0x70
+if not farm->covers_tile(target.tile):        return
+ONE DRAW: dir = rand & 7                                      # then a move
+```
+
+So a pasture costs, per frame: **five idle rolls in the unit loop, plus one
+`think_farm_animal` draw for each animal whose 128-frame phase lands and
+whose farm covers the tile it measures** — and **one fewer** crop draw in
+`Farms::inc_time`. At frame 0 exactly one animal fires, and it is always
+the first: `slot 0` with `o = 0` gives `0 · 1 + 0 = 0`.
+
+**Owner 9 is the reason this hid for so long.** No dump prints a leader-9
+object — run20's first `FULL DUMP` has 104 `ANIMALDATA` records and not one
+`who 9` field anywhere — so the five animals appear in a capture *only* as
+draws. The trace is what found them: run20's frame 0 has **109**
+`Guy::set_anim+0x97a < Unit::set_anim+0x56 < Animal::do_idle+0x19` draws
+against 104 dumped animals, and the five extra sit at the end of the animal
+run with the single `Animal::think_farm_animal+0x142 < Animal::do_idle+0x43`
+between the first of them and the rest — draws 138–143, in that order. The
+fuzzed map is the same five and the same one.
+
+Landed: `crates/sim/src/farms.rs` (`Farm::farm_type`, `Sim::farm_add_animals`,
+`Sim::think_farm_animal`), `Sim::build_covers_tile`, and
+`gamelog::Initial::farms` — the `Farms` list read off the dump, which has no
+block of its own (`Farms::log_data` writes `who`, `o`, the cells, the corner
+heights and then `valid`, `farm_type` as flat fields of the enclosing dump).
+
+**What this leaves open.** The animals' **positions**, and with them where
+`think_farm_animal` walks them: `add_animals`' two offset draws are spent in
+the setup stream the harness does not replay, and `corner_x`/`corner_y[slot]`
+with the thirds-of-a-tile arithmetic is read but not issued — a destination
+here would be fiction. So is the coin that picks chicken or pig, and so are
+their **animation lengths**: no dump prints an owner-9 `GUY`, so the sim
+gives them an unknown length, their clocks never run out and their later
+idle re-rolls are missing. None of that touches the frame-0 count; all of it
+touches a long run.
 
 ## 4. Run12 attributed
 
@@ -299,6 +372,68 @@ start-slot field (unread beyond that). The sim keeps `Sim::farm_order`,
 filled at `activate` and walked by `farms_inc_time`; `build_sim` orders
 the starting farms higher slot first.
 
+### 4.2 Frame 0 on two other maps, and the "fifteen missing draws" (2026-08-26)
+
+`docs/QUEUE.md` carried an item for four days that read: *the sim draws 15
+fewer than the original at frame 0, on two maps, so it is one fixed missing
+block.* **It is not one block. It is four, and two of them cancel** — which
+is exactly why the shortfall came out the same on both maps and looked like
+one thing.
+
+The two captures are **run20** (the islands lobby, `rontrace-run20.log`) and
+the fuzzer's control run on a map nobody tuned against
+(`gamelog-fuzz-424242-early.txt`, `rontrace-fuzz-424242.log`). Both traces
+carry `cover=1` over frame 0, so every draw is placed by site. Folded, and
+set beside the harness's own draws folded by phase (`Sim::phase_marks`, §5):
+
+| block | run20: theirs / ours | fuzzed: theirs / ours |
+|---|---|---|
+| `Leader::compute_sites` (the sweep's stride) | 2 / 2 | 2 / 2 |
+| `GameDaemon::calc_market` | 18 / 18 | 18 / 18 |
+| `Unit::do_idle` → `Unit::set_anim` (the two scouts, two guys each) | 4 / **8** | 4 / **9** |
+| **`Unit::think_scout`** (`+0x436` ×4, `+0x458` ×2, `+0x64c` ×4) | **10 / 0** | **10 / 0** |
+| `Animal::do_idle` — the dumped animals | 104 / 104 | 123 / 123 |
+| **the pasture** — 5 idle rolls + 1 `think_farm_animal` (§3.6) | **6 / 6** | **6 / 6** |
+| `Objects::process_all` — the ten bird attempts | 20 / 20 | 20 / 20 |
+| `Herd::process` | 2 / 2 | 2 / 2 |
+| **`Guy::inc_time` — the phase-7 wraps** | **4 / 0** | **5 / 0** |
+| `Farms::inc_time` — the *five* crop farms (§3.6) | 5 / 5 | 5 / 5 |
+| **total** | **175 / 165** | **195 / 185** |
+
+(The "ours" column is after this session's work; before it the pasture row
+read `6 / 0` and the farm row `5 / 6`, for 160 and 180.)
+
+Read down the two bold rows that are not the pasture:
+
+- **`think_scout` is the whole of what is left**, and it is **ten draws on
+  both maps** — the same three sites in the same proportions. It needs the
+  seen map the sim does not keep (§6), so it is the one honest gap.
+- **The stands and the wraps cancel, map by map** — +4/−4 on run20, +5/−5 on
+  the fuzzed one. They are not independent. The original draws **no**
+  unit-phase stand for a gathering citizen at frame 0; those citizens'
+  guys instead run their animation out in phase 7 and re-roll there. The
+  sim does it the other way round: it spends the stand in the unit loop and
+  then has nothing left to wrap. The count nets to zero and the **order and
+  the outcomes do not**, so this is a real defect that the total hides.
+  Run20's end-of-frame-0 dump is the evidence and it is only half
+  explained: `1/1` and `1/2` (the AI's woodcutters) end the frame at
+  `cur_anim 1, cur_time 0, end_time 232` — wrapped — while `0/1` and `0/2`
+  (the human's, the same job) end at `cur_anim 0, cur_time 1, end_time 33`,
+  which is a `set_anim` that did **not** draw. Two of the four wraps are
+  accounted for; the other two are not. §6 carries it.
+
+Frame 1 and frame 2 fall out of the same fold:
+
+| frame | theirs | ours | what is left |
+|---|---|---|---|
+| 1 (run20) | 53 | 51 | `Leader::produce_building` 43 vs our 42; the three `do_non_flat_gather` vs our four; **`Farms::add+0x23f`/`+0x25b`, two draws at the AI's new farm's `Build::init`, which the sim does not model**; the five farms on both sides |
+| 2 (run20) | 5 | **5** | none — the five crop farms and nothing else, on either side |
+| 1 (fuzzed) | 45 | 48 | ours is three *over*; the AI's script takes a different branch on a map it was not tuned on |
+
+`rondata::diff`'s
+`run20_s_pasture_grows_nothing_and_its_five_animals_draw_six` pins the
+run20 column.
+
 ## 5. The harness
 
 `rondata --diff` now reads the per-frame records out of a `DUMP_ALL` dump
@@ -311,6 +446,21 @@ moves — and **installs the original's word** so that the next frame starts
 on the true stream. That is a correction, printed as one, and it is what
 lets the script's frame-1 branch be checked on run10 without the whole of
 frame 0 modelled: the boom order that the original takes.
+
+**And it folds its own draws by phase** (`Sim::phase_marks`, filled only
+while `Sim::trace_phases` is set — the harness sets it, the soak pays
+nothing). The mark before each phase of `Sim::tick`, and one before each
+unit the loop visits, turn a frame's count into a line like
+
+```
+rng: frame 0: ours by phase — strategy_all 2, markets 18, unit 0/0 2,
+  unit 0/1..0/2 ×2 1, unit 1/6 2, unit 1/7..8/115 ×106 1, unit 9/116 2,
+  unit 9/117..9/120 ×4 1, gaia 22, farms 5
+```
+
+which is the harness's answer to `tools/trace/report.py … sites`, and lines
+up against it directly. §4.2 is what that comparison found the first time it
+was run; a bare total would not have.
 
 **The counts, 2026-08-24**, run10 with run11/run3/run12 as siblings:
 
@@ -410,7 +560,18 @@ struck through and point there.
   wrap could not), and the dump rules out `inside_up` (−1), `unit_masks2`
   (0) and the object flags (1) at every pass — so the skipped step is
   neither gate `Unit::inc_time` tests. Still open; it moves those four
-  wraps by one frame.
+  wraps by one frame. **Sharpened on two more maps, 2026-08-26 (§4.2):
+  the sim spends the citizens' stands in the unit loop and the original
+  does not spend them at all** — it wraps the same guys in phase 7
+  instead, and the two errors cancel in the total (+4/−4 on run20,
+  +5/−5 on the fuzzed map) while leaving the order and every outcome
+  wrong. Run20's own end-of-frame-0 dump splits the four woodcutters in
+  two: `1/1` and `1/2` end at `cur_anim 1, cur_time 0, end_time 232` — a
+  wrap — and `0/1`, `0/2` at `cur_anim 0, cur_time 1, end_time 33`, which
+  is a `set_anim` that took no draw at all (`param_3 == 0`; the roll is
+  gated on it, §3.2). So two of the four wraps have owners and two do
+  not. The capture that would settle it is unchanged: a frame-0 `GUYS=4`
+  window, where every `set_anim` logs its guy.
 - ~~**The human scout's ~~15~~ 14 and the AI scout's ~~8~~ 6** (the dogs' rolls
   are the other three, `docs/ANIM.md` §5) are placed by elimination,
   not by outcome~~ — **placed by site (run14): `Unit::think_scout` draws
@@ -424,7 +585,13 @@ struck through and point there.
   reading of `think_scout@…` with the offsets in hand: `think_scout`'s scan draws once per unseen candidate cell,
   which needs the seen map the sim does not keep, and the AI scout's first
   path is planned by a pathfinder wired to `do_move`'s one draw. ~~A `GUYS=4`
-  or `PATHFINDER=…` frame-0 capture would settle both.~~
+  or `PATHFINDER=…` frame-0 capture would settle both.~~ **And it is now
+  the whole of frame 0's remaining gap, on two further maps (§4.2): ten
+  draws on run20 and ten on the fuzzed one, `+0x436` ×4, `+0x458` ×2,
+  `+0x64c` ×4 in both.** That the count is identical on two unrelated maps
+  is itself a lead — a scan whose draw count were "one per unseen
+  candidate cell" would not be, so at least one of the three sites is
+  fixed-count. Reading it is the next step, and it needs no capture.
 - ~~**Frame 1's split** between the script + placement and the two AI
   moves: measured by running the sim on the true stream (§5), not by
   reading.~~ Measured: the sim draws 54 of 54, so the split is whatever the
@@ -444,6 +611,18 @@ struck through and point there.
   on short walks onto a farm and to a camp; what is different about frame
   3's three is still to find (forest, most likely — the flat harness
   world's `invalid_loc` is the SEAM `find_path` names).
+- **`Farms::add`'s two draws.** Run20's frame 1 has
+  `Farms::add+0x23f` and `+0x25b` under `Build::init+0x4ea` <
+  `Objects::init_build+0x82` — the AI's new farm being created — and the
+  sim draws neither, which is the whole of that frame's 51 against 53
+  (§4.2). `Farms::add@008d8a40` has at least one more draw than the
+  `farm_type` coin the reading for §3.6 found (`rand % 4 > 2` → the
+  pasture, taken only when the city's farm count leaves the choice open);
+  which two sites fire at a plain crop farm is unread. Cheap: run20 is on
+  disk and the trace names both offsets.
+- **The pasture's twenty creation draws, and its animals' art** — §3.6's
+  own open list: the offsets, the chicken/pig coin and the animation
+  lengths all live in streams or dumps that no capture carries.
 - **Diplomacy's cadence** (`Leader::diplomacy`, nine sites; 0 draws on
   frames 0–3).
 - **The caravan road, frames 10–11** (run16, `docs/ORACLE.md` "The

@@ -36,10 +36,36 @@ pub struct Farm {
     pub state: [u8; 16],
     /// The cell's `percent` as a count of `0.005f` adds.
     pub adds: [i32; 16],
-    /// The `+0xbd` byte `inc_time` skips a farm on. Its writer was not
-    /// read; nothing sets it.
-    pub disabled: bool,
+    /// `FarmStruct::farm_type` — the `+0xbd` byte `inc_time` skips a farm
+    /// on when it is [`ANIMAL_FARM`] (`rise.pdb`'s type record names the
+    /// field; the dump prints it after `valid`). The other values are the
+    /// crop's art and change nothing here: run20's six farms read
+    /// `1, 0, 0, 0, 0, 4`. `docs/SYNC.md` §3.6.
+    pub farm_type: u8,
 }
+
+/// `FarmType`'s pasture: no crop cells, and five animals of owner 9
+/// ([`Sim::farm_add_animals`]).
+pub const ANIMAL_FARM: u8 = 1;
+
+/// What `Farms::add_animals@008d8f30` stamps on each of a pasture's five
+/// animals: the farm it belongs to (`Animal+0x150` its `o`, `+0x152` its
+/// `who` — kept here as the building's own index) and its place in the
+/// five (`+0x154`), which is the phase of its `think_farm_animal` tick.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FarmAnimal {
+    pub build: usize,
+    pub slot: u8,
+}
+
+/// The two types `add_animals` picks between on one draw — even is the
+/// chicken, odd the pig.
+pub const FARMPIG: crate::tech::TypeId = 0x195;
+pub const FARMCHICKEN: crate::tech::TypeId = 0x196;
+/// Animals a pasture carries.
+pub const FARM_ANIMALS: u8 = 5;
+/// `think_farm_animal`'s period.
+pub const THINK_PERIOD: i64 = 128;
 
 impl Farm {
     /// `Farms::grow(farm, dx, dy)`: the farmer's add. The cell is growing;
@@ -118,6 +144,82 @@ impl Farm {
 }
 
 impl Sim {
+    /// `Farms::add_animals@008d8f30`, from `Farms::add` when the new farm's
+    /// `farm_type` is [`ANIMAL_FARM`]: **five animals of owner 9**, each
+    /// stamped with the farm and its slot in it. Returns the units.
+    ///
+    /// The original spends **four draws each** — a coin (`& 1`: even the
+    /// chicken, odd the pig), the `y` and then the `x` offset
+    /// (`% 0x180 − 0xc0` from the building), and `Guy::init_real`'s variant
+    /// roll inside `init_unit` — but every pasture on every capture so far
+    /// is a *starting* farm, built inside `Setup::build_empire`, whose
+    /// stream the harness does not replay. So this stands the five up the
+    /// way the harness stands a dumped unit up: no draws, and the farm's own
+    /// position (`docs/SYNC.md` §3.6, "What this leaves open").
+    pub fn farm_add_animals(&mut self, b: usize) -> Vec<usize> {
+        let ty = self
+            .unit_types
+            .iter()
+            .position(|t| t.tree == Some(FARMCHICKEN) || t.tree == Some(FARMPIG));
+        let Some(ty) = ty else {
+            return Vec::new();
+        };
+        let pos = self.buildings[b].pos;
+        let hits = self.unit_types[ty].hits.max(1);
+        let kind = self.unit_types[ty].kind;
+        let mut out = Vec::with_capacity(FARM_ANIMALS as usize);
+        for slot in 0..FARM_ANIMALS {
+            let Some(index) = self.find_free(9, crate::UNIT_BASE, crate::BUILD_BASE) else {
+                break;
+            };
+            let mut unit = crate::Unit::new(9, index, pos, hits);
+            unit.kind = kind;
+            unit.ty = Some(ty);
+            unit.farm_animal = Some(FarmAnimal { build: b, slot });
+            let u = self.add_unit(unit);
+            // The guy exists so the idle roll has something to set; its
+            // piece is unknown (no dump prints owner 9), so every length
+            // lookup fails and the clock never runs out.
+            self.units[u].guys = vec![crate::anim::Guy::fresh(-1)];
+            out.push(u);
+        }
+        out
+    }
+
+    /// `Animal::think_farm_animal@005d7700`: a pasture's animal, which is
+    /// what a herdless animal's `do_idle` falls through to. On its own
+    /// 128-frame phase — `(o · (slot + 1) + frame) % 128 == 0` — it takes
+    /// **one draw** when the farm covers the tile it is measuring: the
+    /// farm's own while nobody gathers there, and `gather_down`'s first
+    /// gatherer's once somebody does.
+    ///
+    /// Where it then walks (`corner_x`/`corner_y[slot]`, thirds of a tile)
+    /// is read but not issued — the animals' positions are in no dump, so a
+    /// destination here would be fiction. The draw is not.
+    pub(crate) fn think_farm_animal(&mut self, u: usize) {
+        let Some(fa) = self.units[u].farm_animal else {
+            return;
+        };
+        let o = i64::from(self.units[u].index);
+        if (o * i64::from(fa.slot + 1) + self.frame).rem_euclid(THINK_PERIOD) != 0 {
+            return;
+        }
+        let Some(bd) = self.buildings.get(fa.build) else {
+            return;
+        };
+        let at = match bd.gatherers.first() {
+            Some(&g) => match self.units.get(g) {
+                Some(unit) => unit.pos,
+                None => return,
+            },
+            None => bd.pos,
+        };
+        if !self.build_covers_tile(fa.build, at.tile()) {
+            return;
+        }
+        let _dir = self.rng.roll() & 7;
+    }
+
     /// `Farms::inc_time`, from `Objects::inc_time` after the ammo — every
     /// complete, enabled farm, in building order.
     pub fn farms_inc_time(&mut self) {
@@ -127,7 +229,7 @@ impl Sim {
         let order = self.farm_order.clone();
         for b in order {
             let bd = &self.buildings[b];
-            if !bd.alive || !bd.active || bd.farm.disabled {
+            if !bd.alive || !bd.active || bd.farm.farm_type == ANIMAL_FARM {
                 continue;
             }
             if self.building_ident(b) != crate::build::Ident::Farm {
@@ -166,6 +268,18 @@ mod tests {
     use crate::combat::Rng;
     use crate::tuning::Tuning;
     use crate::world::World;
+
+    /// Draws between two words of the stream, walked forward.
+    fn draws(from: u32, to: u32) -> usize {
+        let mut r = Rng::new(from);
+        for n in 0..64 {
+            if r.seed == to {
+                return n;
+            }
+            r.roll();
+        }
+        panic!("{to:#010x} is not within 64 draws of {from:#010x}");
+    }
 
     /// The float sequences, computed in single precision — the oracle the
     /// two pinned counts stand on.
@@ -266,6 +380,97 @@ mod tests {
     fn add_farm(s: &mut Sim, t: usize, tx: i32, ty: i32) {
         let b = s.init_build(0, t, Pos::new(tx * 192 + 96, ty * 192 + 96), false);
         s.activate(b, false, true);
+    }
+
+    /// A pasture — `farm_type == 1` — and its five animals of owner 9:
+    /// the crop draw `Farms::inc_time` would have spent is not spent, and
+    /// the five each roll an idle variant in the unit loop, the first of
+    /// them taking `think_farm_animal`'s draw as well because its phase
+    /// `o · (slot + 1) + frame` is zero at frame 0. Six draws where a crop
+    /// farm spends one — run20's frame 0, draws 138–143 (`docs/SYNC.md`
+    /// §3.6).
+    #[test]
+    fn a_pasture_spends_no_crop_draw_and_six_on_its_animals() {
+        let (mut s, b) = farm_sim();
+        let chicken = s.add_unit_type(crate::UnitType {
+            hits: 10,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[chicken].tree = Some(FARMCHICKEN);
+        s.buildings[b].farm.farm_type = ANIMAL_FARM;
+        let animals = s.farm_add_animals(b);
+        assert_eq!(animals.len(), FARM_ANIMALS as usize, "five animals");
+        assert!(
+            animals.iter().all(|&u| s.units[u].owner == 9),
+            "of owner 9 — the slot no dump prints"
+        );
+        assert_eq!(
+            animals
+                .iter()
+                .map(|&u| s.units[u].index)
+                .collect::<Vec<_>>(),
+            vec![0, 1, 2, 3, 4],
+            "numbered from the empty leader-9 list"
+        );
+
+        // The farm itself: no draw, where a crop farm with sixteen empty
+        // cells would take one.
+        let seed = s.rng.seed;
+        s.farms_inc_time();
+        assert_eq!(s.rng.seed, seed, "a pasture grows nothing");
+        s.buildings[b].farm.farm_type = 0;
+        s.farms_inc_time();
+        assert_ne!(s.rng.seed, seed, "and a crop farm does draw");
+
+        // The animals, in the unit loop: one idle roll each, and the first
+        // animal's `think_farm_animal` on top.
+        s.rng = Rng::new(seed);
+        let mut spent = Vec::new();
+        for &u in &animals {
+            let before = s.rng.seed;
+            s.animal_idle(u);
+            spent.push(draws(before, s.rng.seed));
+        }
+        assert_eq!(spent, vec![2, 1, 1, 1, 1], "the six of §3.6");
+    }
+
+    /// `think_farm_animal`'s two gates, each made to fail: the 128-frame
+    /// phase, and the farm covering the tile it measures — the farm's own
+    /// while nobody gathers there, and the first gatherer's once somebody
+    /// does.
+    #[test]
+    fn think_farm_animal_s_phase_and_its_covers_tile() {
+        let (mut s, b) = farm_sim();
+        let pig = s.add_unit_type(crate::UnitType {
+            hits: 10,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[pig].tree = Some(FARMPIG);
+        s.buildings[b].farm.farm_type = ANIMAL_FARM;
+        let animals = s.farm_add_animals(b);
+
+        // Animal 1 (`o 1`, slot 1) is off phase at frame 0 — `1 · 2 + 0`.
+        let seed = s.rng.seed;
+        s.think_farm_animal(animals[1]);
+        assert_eq!(s.rng.seed, seed, "off phase");
+        // …and on it at frame 126, `1 · 2 + 126 == 128`.
+        s.frame = 126;
+        s.think_farm_animal(animals[1]);
+        assert_ne!(s.rng.seed, seed, "on phase");
+
+        // The covers test. With a gatherer registered far away the farm
+        // does not cover its tile, and nothing is drawn.
+        s.frame = 0;
+        let far = crate::Unit::new(0, 99, Pos::new(0, 0), 10);
+        let g = s.add_unit(far);
+        s.buildings[b].gatherers.push(g);
+        let seed = s.rng.seed;
+        s.think_farm_animal(animals[0]);
+        assert_eq!(s.rng.seed, seed, "the gatherer is off the farm");
+        // Standing it on the farm brings the draw back.
+        s.units[g].pos = s.buildings[b].pos;
+        s.think_farm_animal(animals[0]);
+        assert_ne!(s.rng.seed, seed, "and on it, the walk rolls");
     }
 
     /// Run12, frame 1: the stream after the frame's 48th draw, one farm with
@@ -373,8 +578,8 @@ mod tests {
         }
     }
 
-    /// A site (not yet active) and a disabled farm draw nothing; a farm
-    /// with four or fewer empty cells draws nothing.
+    /// A site (not yet active) and a pasture draw nothing; a farm with
+    /// four or fewer empty cells draws nothing.
     #[test]
     fn the_gates() {
         let (mut s, b) = farm_sim();
@@ -383,10 +588,10 @@ mod tests {
         s.farms_inc_time();
         assert_eq!(s.rng.seed, seed, "a site");
         s.buildings[b].active = true;
-        s.buildings[b].farm.disabled = true;
+        s.buildings[b].farm.farm_type = ANIMAL_FARM;
         s.farms_inc_time();
-        assert_eq!(s.rng.seed, seed, "disabled");
-        s.buildings[b].farm.disabled = false;
+        assert_eq!(s.rng.seed, seed, "a pasture");
+        s.buildings[b].farm.farm_type = 0;
         for c in 0..12 {
             s.buildings[b].farm.state[c] = GROWING;
             s.buildings[b].farm.adds[c] = 1;

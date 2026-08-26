@@ -2495,9 +2495,16 @@ map** — which was settled by re-diffing run20 rather than assuming:
 
 - **The frame-0 draw count is 15 short — on both maps.** `rng: frame 0:
   ours 180 draws, the original's 195` on the fuzzed map, and **160 against
-  175 on run20**. The same fifteen. So it is one missing block in the
-  start-of-game path, not something the map generator does on some maps;
-  a *better* lead for being reproducible, but not one fuzzing found.
+  175 on run20**. The same fifteen. ~~So it is one missing block in the
+  start-of-game path~~ — **and that inference was wrong, 2026-08-26
+  (`docs/SYNC.md` §4.2): it is four blocks, and two of them cancel**,
+  which is precisely why the shortfall came out the same on two unrelated
+  maps and read as one thing. Three are fixed (a pasture's five animals,
+  its missing crop draw, `Unit::think_scout`'s ten); the fourth is a
+  ±4/±5 pair that nets to zero and hides a real ordering defect. The
+  lesson is the section's own: *the same number on two maps is not
+  evidence of the same cause.* Still a good lead, and still not one
+  fuzzing found.
 - **The start-of-game gather rule does not generalise.**
   `check_start_orders` (`docs/AI.md` §9.3) fails on one citizen: *`who 1 o
   6: we derived None, the log has Some(2001)`* — and is `[ok]` on run20.

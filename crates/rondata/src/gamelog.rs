@@ -1037,6 +1037,10 @@ pub struct Initial<'a> {
     /// The `HERDS` block's `HERD` records — only a `DUMP_ALL` dump prints
     /// them (`docs/SYNC.md` §3.2); empty otherwise.
     pub herds: Vec<HerdDump>,
+    /// `Farms::log_data`'s list, in the order `Farms::inc_time` walks it —
+    /// the order the sprout draw is spent in (`docs/SYNC.md` §4.1). Only a
+    /// `DUMP_ALL` dump prints it; empty otherwise.
+    pub farms: Vec<FarmDump>,
     /// The sync stream's word at the end of each engine frame, from the
     /// per-frame `say_checksum` records of a `DUMP_ALL` dump
     /// ([`Log::frame_seeds`]); empty otherwise.
@@ -1065,6 +1069,22 @@ pub struct HerdDump {
     pub wy: i64,
     pub t: i64,
     pub herd_flags: i64,
+}
+
+/// One `FarmStruct` of `Farms`' list: the building it belongs to, whether
+/// the slot is live, and the crop — `farm_type == 1` is the pasture, which
+/// grows nothing and keeps five animals of owner 9 (`docs/SYNC.md` §3.6).
+///
+/// The list has no block of its own: `Farms::log_data` writes `who`, `o`,
+/// the sixteen cells, the twenty-five corner heights and then `valid` and
+/// `farm_type` as **flat fields of the enclosing dump**, so a record is
+/// read as "the `who`/`o` pair that most recently preceded a `farm_type`".
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct FarmDump {
+    pub who: i64,
+    pub o: i64,
+    pub valid: i64,
+    pub farm_type: i64,
 }
 
 /// One frame's worth of state.
@@ -1507,6 +1527,41 @@ pub(crate) fn records(
     (units, builds, leaders)
 }
 
+/// `Farms::log_data`'s list off the enclosing block's flat fields: one
+/// record per `farm_type`, taking the `valid` immediately before it and the
+/// nearest `who`/`o` pair before that. Every other `who`/`o` on the block
+/// (the leaders' run, the ambience) is left alone because none of them is
+/// followed by a `farm_type` without an intervening pair.
+fn farms_of(b: &Block<'_>) -> Vec<FarmDump> {
+    let int = |v: &str| v.trim().parse::<i64>().ok();
+    let mut out = Vec::new();
+    let (mut who, mut o, mut valid) = (None, None, None);
+    for (k, v) in &b.fields {
+        match *k {
+            "who" => who = int(v),
+            "o" => o = int(v),
+            "valid" => valid = int(v),
+            "farm_type" => {
+                if let (Some(w), Some(oo)) = (who, o) {
+                    out.push(FarmDump {
+                        who: w,
+                        o: oo,
+                        valid: valid.unwrap_or(0),
+                        farm_type: int(v).unwrap_or(0),
+                    });
+                }
+                // Each record carries its own pair; a `farm_type` with no
+                // fresh one is the list's trailing slot, not a farm.
+                who = None;
+                o = None;
+                valid = None;
+            }
+            _ => {}
+        }
+    }
+    out
+}
+
 impl<'a> Log<'a> {
     /// The start-of-game state, from `GAME INFO` and the body of `GAME`
     /// before the first frame.
@@ -1559,6 +1614,7 @@ impl<'a> Log<'a> {
                 })
                 .collect();
         }
+        init.farms = farms_of(body);
         init.frame_seeds = self.frame_seeds();
         init.anim_lengths = self.anim_lengths();
         init.frame_guys = self

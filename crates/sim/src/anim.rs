@@ -537,7 +537,10 @@ impl Sim {
             return;
         }
         let Some(herd) = unit.herd else {
-            // `think_farm_animal`: a herdless animal on a farm — unread.
+            // A herdless animal is a pasture's (`UnitData+0x86 < 0`), and
+            // `do_idle` hands it straight to `think_farm_animal` with no
+            // clock gate of its own — `docs/SYNC.md` §3.6.
+            self.think_farm_animal(u);
             return;
         };
         let Some(g) = unit.guys.first().copied() else {

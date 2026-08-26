@@ -27,86 +27,70 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after the who-8 panic and the cheap window.* The
-commit this section was written against is the one that lands it; if
-`git log` has moved well past it, trust the queue below and the journal
-before trusting this.
+*Last verified 2026-08-26, after item 24's first half.* The commit this
+section was written against is the one that lands it; if `git log` has
+moved well past it, trust the queue below and the journal before trusting
+this.
 
-**Last landed.** Two things, and both were smaller than billed while hiding
-something larger.
+**Last landed: the fifteen missing draws at frame 0 were four things, not
+one.** The queue had them as "one fixed missing block, the same 15 on two
+maps". Three are fixed, the fourth is a pair that cancels:
 
-- **The who-8 panic is fixed, and the fix is a bound, not a guard.**
-  `Leaders::list` is `Leader[10]`; two independent places stop every object
-  search at leader eight, so the original never asks a diplomacy question
-  about gaia — it could not answer one, since `diplos` is `int[8]`. Nothing
-  in RoN can attack an animal. `world::PLAYER_SLOTS`, `docs/ANIM.md` §6.1,
-  five tests and five red breakages. Commit `d1f5be4`.
-- **The window experiment was answered by a file already on disk, and the
-  premise was wrong twice.** `[Start Game] WORLD=6` writes the 3600 cells
-  with `DUMP_ALL=0` (run31's start dump has them), and no frame *inside* a
-  window needs a `WORLD` block at all — `run_traced` stands the sim up from
-  the start dump. So `[End Frame] WORLD=6` was never needed. Same seed,
-  back to back: `DUMP_ALL` bought **5 frames for 249 MB**; the cheap window
-  bought **301 for 207 MB** in less wall clock. `docs/ORACLE.md`, "The
-  300-frame window". `tools/fuzz/run.sh` uses it now.
+- **The pasture** (`docs/SYNC.md` §3.6, new). `FarmStruct+0xbd` is
+  `farm_type` — the type record names it — and `farm_type == 1` is a farm
+  that grows no crop (so `Farms::inc_time` spends no draw on it) and
+  carries **five animals of owner 9** from `Farms::add_animals`, each of
+  which rolls an idle variant, and one of which takes
+  `think_farm_animal`'s draw at frame 0. **No dump prints an owner-9
+  object**, so the five exist in a capture only as draws; the trace is
+  what found them. Worth +5 net.
+- **`Unit::think_scout`, ten draws, is now the entire remaining gap** —
+  and it is *ten on both maps*, at the same three sites in the same
+  proportions. It needs the seen map the sim does not keep.
+- **The citizens' stand and their wrap, ±4 on run20 and ±5 on the fuzzed
+  map, cancel.** The sim spends a stand in the unit loop where the
+  original spends none and wraps the same guys in phase 7 instead. The
+  total hides it; the order and every outcome are wrong. Half explained
+  by run20's own dump (`docs/SYNC.md` §6).
 
-**The number that came out of it.** A control run — `scenario.py
---no-stage`, no cheats at all, window at **[1, 301)** — scores
-**`survived = 1`**: player 1's `o 0` is 24 position units off on both axes
-at frame 2, player 0's `o 1` by 10 at frame 4, and at frame 1 two of
-player 1's units already hold an order the sim never issued. A heights
-sibling for the same seed (`window.py stage 1 3`, six minutes) returns
-**identical** coordinates, so this is the port and not the flat map that a
-cheap window leaves behind.
+**The instrument that did it, and it is the reusable part.**
+`Sim::phase_marks` — a mark at every phase of `Sim::tick` and before every
+unit the loop visits — folds the sim's own frame into
+`strategy_all 2, markets 18, unit 0/0 2, … gaia 22, farms 5`, which is the
+harness's answer to `tools/trace/report.py … sites`. Half an hour to
+build; it turned a four-day-old total into a table in one reading. Gated
+on `Sim::trace_phases`, which only the harness sets.
 
-**And run20 scores 1 as well**, on the tuned lobby, over frames 0–4. So
-the number is *reproducible on two maps*, which is worth more than a
-novel one — but the claim that nobody had compared sim-frame 1 before is
-wrong, and was made here before it was checked. run20 has done it since
-2026-08-25. What the cheap window buys is 300 such frames instead of 4,
-for a fifth of the bytes.
-
-Two leads came with it. **Only one of them is the fuzzer's**, and that
-was settled by checking rather than assuming:
-
-- **`rng: frame 0: ours 180 draws, the original's 195`** — 15 short, then
-  4 *over* at frame 1. **Not a fuzzer finding.** run20 (the tuned lobby,
-  on disk since 2026-08-25) reads **160 against 175 — the same 15** — and
-  scores the same `ticks before divergence: 1`. That makes it a better
-  lead than a map-specific one, because it is a *fixed* missing block
-  reproducible on two maps; it just was not found by fuzzing.
-- **`check_start_orders` fails on one citizen** — *`who 1 o 6`: we derived
-  None, the log has 2001*. This one **is** the fuzzer's: the same check is
-  `[ok]` on run20. `docs/AI.md` §9.3 does not generalise off the map it
-  was built on.
+**The numbers now.** run20 frame 0 **165/175** (was 160), frame 1 51/53,
+**frame 2 5/5 — the first frame of run20 the harness matches outright**.
+The fuzzed map: frame 0 **185/195** (was 180), frame 1 48/45.
+`ticks before divergence` is still 1 on both; the position divergence at
+frame 2 is untouched by this and is the next thing.
 
 **Then, in order:**
 
-- **The frame-0 draw gap** (15 short, above) — **and it reproduces on
-  run20**, so it can be worked without a new capture at all. It is the
-  cheapest lead on the board, it is upstream of everything, and the trace
-  names every draw site. Start there.
+- **`Unit::think_scout`'s ten draws** — item 24's remainder, no capture
+  needed, and the identical count on two maps is the lead.
+- **`Farms::add`'s two draws** at run20's frame 1 (`+0x23f`, `+0x25b`
+  under `Build::init`), which is that frame's whole 51-against-53.
+  Cheap, and the trace names both offsets.
+- **The stand/wrap swap** — zero-sum, so no count will ever catch it; the
+  capture that settles it is a frame-0 `GUYS=4` window.
 - **The frame-1 order two of player 1's units hold and the sim does not**,
-  and §9.3's sixth citizen. Same run, same dump
-  (`gamelog-fuzz-424242-early.txt`, with `-heights` as its sibling).
-- **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked,
-  and now affordable to capture over hundreds of frames rather than three.
+  and §9.3's sixth citizen — item 25.
+- **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
-  `calc_gather` for non-flat buildings; `think_civilian_transport`.
+  `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** Yesterday's note was *measure the oracle
-before building a better one*. Today's is the same rule one step earlier:
-**check whether the expensive setting is doing anything before pricing
-it.** This file had budgeted a 300-frame window against 25 MB a frame and
-concluded it was probably unaffordable. It costs 0.69, and the evidence was
-a `grep -c who2` on a file that had been on disk for eleven hours. The
-corollary, which cost a wrong claim in this very file before it was
-checked: **run20 already compared frames 0-4 and already scored 1.** The
-cheap window's gain is 300 frames instead of 4 for a fifth of the bytes,
-not a first look - and a claim about what "nobody has ever done" is
-exactly the kind that costs a `--diff` to test and nothing to make.
+**The thing this session earned.** *A number that reproduces is not a
+cause that reproduces.* Fifteen on two maps was read as one block
+**because** it was stable — and stability was the wrong inference: three
+map-independent blocks plus a pair that cancels by construction. The fix
+was not more reading. It was making the sim's own draws as legible as the
+trace already makes the original's. **When two totals disagree, build the
+fold before building the theory.**
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -114,7 +98,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 24, the frame-0 draw gap: 15 draws short on two maps (run20 reads 160/175, the fuzzed map 180/195). Needs no new capture. Find the missing block.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 24's remainder: Unit::think_scout draws ten at frame 0 on two maps, at +0x436 x4, +0x458 x2, +0x64c x4, and the sim draws none. Same count on both maps, so at least one site is fixed-count. Read it; no capture needed.`
 
 ## The queue
 
@@ -268,27 +252,46 @@ in which case say so and take that. The story of each struck item is in
     `angles` is all zero in every run on disk, so nothing has separated
     `compute_form`'s subtraction from the order adder's addition.
     `docs/GROUPS.md` §13.
-24. **The first frames, on a map we did not tune against** — the two
-    leads the fuzzer's control run left, and the first entry that comes
-    from a capture opened at sim-frame 1. Both live in the same pair of
-    dumps: `gamelog-fuzz-424242-early.txt` with
-    `gamelog-fuzz-424242-heights.txt` as its `--sibling`.
+24. **The frame-0 draw gap** — **three of four blocks closed 2026-08-26**;
+    `docs/SYNC.md` §3.6 (the pasture, new), §4.2 (frame 0 attributed on
+    both maps, new), §3.3, §6; `crates/sim/src/farms.rs`,
+    `Sim::phase_marks`, `gamelog::Initial::farms`; the check is
+    `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six`.
+    run20 frame 0 is 165/175 and frame 2 is 5/5.
 
-    - **The frame-0 draw gap, on two maps.** `rng: frame 0: ours 180
-      draws, the original's 195` on the fuzzed map; **`160 against 175`
-      on run20**, the tuned lobby. The same **15**, so it is one missing
-      block and not a map accident — then frame 1 four *over* (49 against
-      45) on one and one over (52 against 53) on the other. `tools/trace/`
-      names every draw site; `tools/gamelog/rngcmp.py` and `draws.py` are
-      the instruments. Needs no new capture: run20 has been on disk since
-      2026-08-25.
+    **What is left of it is one block: `Unit::think_scout`.** Ten draws at
+    frame 0 on run20 *and* ten on the fuzzed map, at `+0x436` ×4,
+    `+0x458` ×2, `+0x64c` ×4 on both, all under `Unit::think+0x7da` <
+    `Unit::do_idle+0x94`. That the count is identical on two unrelated
+    maps says at least one of the three sites is fixed-count, which the
+    "one draw per unseen candidate cell" reading does not predict — so
+    read `think_scout@005f6010` with the three offsets in hand before
+    assuming the seen map is needed. Both traces are on disk; no capture.
+
+    **And a zero-sum defect the counts cannot catch.** The sim spends a
+    stand in the unit loop for each gathering citizen; the original
+    spends none there and wraps the same guys in phase 7 instead. +4/−4
+    on run20, +5/−5 on the fuzzed map. Run20's end-of-frame-0 dump
+    explains two of the four wraps and not the other two
+    (`docs/SYNC.md` §6). The capture that settles it is a frame-0
+    `GUYS=4` window.
+25. **The first frames, on a map we did not tune against** — what item 24
+    was carrying besides the draw gap. `gamelog-fuzz-424242-early.txt`
+    with `gamelog-fuzz-424242-heights.txt` as its `--sibling`.
+
     - **§9.3's sixth citizen.** `check_start_orders` fails on exactly one:
       *`who 1 o 6`: we derived None, the log has 2001* — and is `[ok]` on
       run20. The rule was built and confirmed on one map. `docs/AI.md`
       §9.3.
+    - **The frame-1 order two of player 1's units hold and the sim does
+      not**, and the position divergence at frame 2 that scores
+      `survived = 1` on both maps.
+    - **`Farms::add`'s two draws** (`+0x23f`, `+0x25b` under
+      `Build::init+0x4ea` < `Objects::init_build+0x82`) at run20's frame
+      1, when the AI's new farm is created — the whole of that frame's
+      51 against 53. `docs/SYNC.md` §6.
 
-    Neither needs a new run. Both are `rondata --diff` on a dump that
-    exists.
+    None needs a new run. All are `rondata --diff` on a dump that exists.
 
 ## How to maintain this file
 

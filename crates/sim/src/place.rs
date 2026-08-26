@@ -385,6 +385,19 @@ impl Sim {
         Blocked::Clear
     }
 
+    /// `WallData::covers_tile`: whether tile `t` is inside the building's
+    /// footprint. A building with no type covers nothing.
+    pub fn build_covers_tile(&self, b: usize, t: Pos) -> bool {
+        let Some(bd) = self.buildings.get(b) else {
+            return false;
+        };
+        bd.ty.is_some_and(|ty| {
+            let c = self.tile_corner(ty, bd.pos);
+            let bt = &self.build_types[ty];
+            t.x >= c.x && t.x < c.x + bt.x_size && t.y >= c.y && t.y < c.y + bt.y_size
+        })
+    }
+
     /// `ObjectsData::find_building_placed_at`: a placed, not-started building
     /// of `who` whose footprint covers `t`, other than `exclude`.
     fn find_building_placed_at(
@@ -394,15 +407,9 @@ impl Sim {
         exclude: Option<usize>,
     ) -> Option<usize> {
         self.buildings.iter().enumerate().position(|(i, b)| {
-            Some(i) != exclude
-                && b.alive
-                && !b.started
-                && b.owner == who
-                && b.ty.is_some_and(|ty| {
-                    let c = self.tile_corner(ty, b.pos);
-                    let bt = &self.build_types[ty];
-                    t.x >= c.x && t.x < c.x + bt.x_size && t.y >= c.y && t.y < c.y + bt.y_size
-                })
+            Some(i) != exclude && b.alive && !b.started && b.owner == who && {
+                self.build_covers_tile(i, t)
+            }
         })
     }
 

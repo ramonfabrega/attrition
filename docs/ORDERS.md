@@ -1602,6 +1602,10 @@ queued; frame 4 — the move steps. That is the citizen's `(4008, 28296)`.
 
 ### 6.5 The farm (`do_gather`, FARM, arrived)
 
+`ft` is `FarmStruct+0xbd` — 1 is the **pasture**, which grows no crop, is
+skipped by `Farms::inc_time` and carries five animals of owner 9
+(`docs/SYNC.md` §3.6).
+
 ```
 ft = FarmsData::get_farm_type(farm)
 ANIMAL_FARM: set_anim(CHAR_SOW); every 256 frames phased by (o*7 + frame + who):

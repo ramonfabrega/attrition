@@ -223,6 +223,10 @@ pub struct Unit {
     /// `UnitData+0x86` union for an `Animal`. `None` for everything else
     /// and for a herdless animal.
     pub herd: Option<usize>,
+    /// A pasture's animal — the farm it belongs to and its place in the
+    /// five (`docs/SYNC.md` §3.6). `None` for everything else, which is
+    /// what sends a herdless animal down `think_farm_animal`'s dead end.
+    pub farm_animal: Option<farms::FarmAnimal>,
     /// The type's `TypeIndex`, when the loader named it; −1 otherwise. The
     /// birds' walk coin reads it.
     pub type_index: i32,
@@ -477,6 +481,7 @@ impl Unit {
             never_transport: false,
             guy_flag_0x20: false,
             herd: None,
+            farm_animal: None,
             type_index: -1,
             form: -1,
             form_width: -1,
@@ -552,6 +557,16 @@ pub struct Sim {
     /// The game's random stream, `game_random`. Combat draws from it for
     /// projectile scatter and the one-in-five retarget roll.
     pub rng: combat::Rng,
+    /// Whether [`Sim::tick`] records [`Sim::phase_marks`]. Off by default:
+    /// the harness turns it on, the soak pays nothing.
+    pub trace_phases: bool,
+    /// The stream's word at each phase boundary of [`Sim::tick`], filled
+    /// only while [`Sim::trace_phases`] is set. It is what
+    /// `tools/trace/report.py sites` is for the original — a frame's draws
+    /// attributed, here to a phase and a unit rather than a return address
+    /// — and comparing the two folds is how the frame-0 gap was taken
+    /// apart (`docs/SYNC.md` §4.2).
+    pub phase_marks: Vec<(String, u32)>,
     /// Ammo in flight.
     pub projectiles: Vec<combat::Projectile>,
     /// One per player: the nation, wonder and patriot layer of the damage
@@ -820,6 +835,8 @@ impl Sim {
                 .collect(),
             tech_tree,
             setup: tech::Setup::STANDARD,
+            trace_phases: false,
+            phase_marks: Vec::new(),
             players: vec![attrition::PlayerState::default(); players],
             sources: Vec::new(),
             units: Vec::new(),
@@ -1760,6 +1777,15 @@ impl Sim {
         territory::compute_all_territory(&mut self.world, &self.tuning, &self.sources, players);
     }
 
+    /// Records the stream's word *before* the phase named runs, so the
+    /// draws between two marks belong to the earlier one. Nothing at all
+    /// unless [`Sim::trace_phases`] is set.
+    fn mark(&mut self, phase: &str) {
+        if self.trace_phases {
+            self.phase_marks.push((phase.to_string(), self.rng.seed));
+        }
+    }
+
     /// Advances one frame.
     ///
     /// The cadence is the part of this mechanic that would be easiest to get
@@ -1778,6 +1804,10 @@ impl Sim {
     pub fn tick(&mut self) -> Vec<Tick> {
         let frame = self.frame;
         let mut events = Vec::new();
+        if self.trace_phases {
+            self.phase_marks.clear();
+        }
+        self.mark("income");
 
         // Income first. `Game::do_frame` runs `Leaders::process_all` before
         // `Objects::process_all`, so every player is paid for the frame before
@@ -1807,19 +1837,23 @@ impl Sim {
             }
         }
 
+        self.mark("strategy_all");
         // `Leaders::strategy_all` — the production AI, between the income
         // and the objects (`Game::do_frame` line 267; `docs/AI.md` §2.1).
         self.strategy_all();
 
+        self.mark("markets");
         // `GameDaemon::process_all` → `calc_markets`: the market's price
         // cycle, between the AI and the objects (`docs/SYNC.md` §3.1). On
         // frame 0 it is eighteen draws, the frame's 2nd to 19th.
         self.calc_markets(frame);
 
+        self.mark("armies");
         // `Armies::process_all` — after the daemon, before the objects
         // (`Game::do_frame` line 272; `docs/ARMY.md` §5).
         self.armies_process_all();
 
+        self.mark("buildings");
         // Then the buildings. `Build::process` and `Unit::process` are both
         // reached from `Objects::process_all`, so in the original they
         // interleave by object index rather than running in two passes. Doing
@@ -1844,6 +1878,7 @@ impl Sim {
             self.process_building_combat(b, frame);
         }
 
+        self.mark("unit-loop");
         // `Objects::process_all` rotates the owners: slot `(frame + i) % 10`
         // goes `i`-th, so player `frame % 10`'s units run first this frame
         // and, within an owner, in object order (`docs/SYNC.md` §3.2). The
@@ -1866,6 +1901,7 @@ impl Sim {
         }
         visit.extend((0..self.units.len()).filter(|&i| self.units[i].owner >= 10));
         for i in visit {
+            self.mark(&format!("unit {}/{}", self.units[i].owner, i));
             if !self.units[i].alive() {
                 continue;
             }
@@ -1914,17 +1950,22 @@ impl Sim {
             }
             self.process_movement(i);
         }
+        self.mark("gaia");
         // The tail of `Objects::process_all`: the birds' sampling every 32
         // frames and one herd's walk every 64 (`gaia.rs`).
         self.process_gaia(frame);
+        self.mark("guys_inc_time");
         // `Objects::inc_time`: every guy's animation clock first — leader
         // order, no rotation (`anim.rs`) — then the ammo list, then the
         // farms' crop cells (`farms.rs`), and the sites' hit points
         // refreshed from the progress the builders just made,
         // `Wall::inc_time`.
         self.guys_inc_time(frame);
+        self.mark("projectiles");
         self.process_projectiles(frame);
+        self.mark("farms");
         self.farms_inc_time();
+        self.mark("end");
         self.refresh_site_hits();
         self.frame += 1;
         events
