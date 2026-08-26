@@ -509,6 +509,11 @@ pub struct UnitDump {
     pub o: i64,
     pub who: i64,
     pub pos: Pos,
+    /// `UnitData::angle` (`+0x50`), the unit's heading — the `UNITDATA`
+    /// level's own `angle` line, not a guy's. It is the angle
+    /// `Group::update_positions@00713810` rotates the slot table by when
+    /// this unit executes a group move (`docs/GROUPS.md` §6.6).
+    pub angle: Option<i64>,
     pub guys: Vec<Guy>,
     /// The order list, **newest first** as the log writes it — empty below
     /// `UNITS=3`. [`UnitDump::current_order`] is the one being executed.
@@ -1059,6 +1064,7 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
         o,
         who,
         pos,
+        angle: b.int("angle"),
         guys,
         orders,
         path,

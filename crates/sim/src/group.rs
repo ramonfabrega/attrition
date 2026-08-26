@@ -281,24 +281,35 @@ impl Sim {
         if caster { StanceType::Caster } else { s }
     }
 
-    /// `ObjectData` vslot `+0x108` — which stance panel a unit shows
-    /// (`docs/GROUPS.md` §13: read from its uses).
+    /// `ObjectData` vslot `+0x108` → the type's `UnitTypeData::get_stance_type@0061d350`
+    /// (the PDB names the slot; `docs/GROUPS.md` §4.4). The order of the
+    /// tests is the original's and it is load-bearing:
+    ///
+    /// 1. `role & MILITARY` → `PACKER` if `unit_flags2 & 4`, else
+    ///    `COMBAT` — so a military caster is *combat*;
+    /// 2. the four citizen ids (`role::CITIZEN`, set for exactly those) →
+    ///    `WORKER`;
+    /// 3. `(unit_flags2 & 6) == 2` — a caster that does not pack → `CASTER`;
+    /// 4. else `NONE`. Having an attack decides nothing on its own.
+    ///
+    /// `Profile::packs` is `unit_flags2 & 4` for a type from the install.
     fn unit_stance_type(&self, u: usize) -> StanceType {
         let Some(t) = self.units[u].ty else {
             return StanceType::None;
         };
         let c = &self.unit_types[t];
-        if c.cols.flag2(uflags2::CASTER) {
-            return StanceType::Caster;
-        }
-        if c.combat.packs {
-            return StanceType::Packer;
-        }
-        if self.attack_of(Obj::Unit(u)) != 0 {
-            return StanceType::Combat;
+        if c.cols.is(crate::ai_load::role::MILITARY) {
+            return if c.combat.packs {
+                StanceType::Packer
+            } else {
+                StanceType::Combat
+            };
         }
         if c.cols.is(crate::ai_load::role::CITIZEN) {
             return StanceType::Worker;
+        }
+        if c.cols.flag2(uflags2::CASTER) && !c.combat.packs {
+            return StanceType::Caster;
         }
         StanceType::None
     }
@@ -566,13 +577,18 @@ impl Sim {
                         // `hurry` **alone**; the order loop at `7054c7` on
                         // `hurry && a city was found`. So a siege unit that
                         // is already shooting is left entirely alone by a
-                        // move that is not hurrying — but a hurrying army
-                        // that found no friendly city near the destination
-                        // clears its orders and then issues it nothing.
-                        if hurry && queue == QueuePos::New {
-                            self.clear_orders(u);
+                        // move that is not hurrying. A hurrying army that
+                        // found no friendly city clears its orders — and
+                        // the order loop then re-reads `order_type()`,
+                        // which `Unit::close_orders` has left at `NONE`, so
+                        // the unit falls through and takes the move like
+                        // every other member. Only `QUEUE_NEW` clears; any
+                        // other queue position leaves it shooting and
+                        // skipped.
+                        if !(hurry && queue == QueuePos::New) {
+                            continue;
                         }
-                        continue;
+                        self.clear_orders(u);
                     }
                     _ => {}
                 }
@@ -836,6 +852,7 @@ impl Sim {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ai_load::role;
     use crate::combat;
     use crate::{Unit, UnitType};
 
@@ -853,8 +870,11 @@ mod tests {
         s
     }
 
+    /// Every hand-built combatant carries `role::MILITARY`, which is what
+    /// `UnitTypeData::get_stance_type` keys on — for a type loaded from the
+    /// install `ai_load` derives it from the same facts the original does.
     fn fighter(sim: &mut Sim) -> usize {
-        sim.add_unit_type(UnitType {
+        let mut t = UnitType {
             hits: 100,
             combat: combat::Profile {
                 attack: 15,
@@ -862,7 +882,9 @@ mod tests {
                 ..combat::Profile::default()
             },
             ..UnitType::default()
-        })
+        };
+        t.cols.role |= role::MILITARY;
+        sim.add_unit_type(t)
     }
 
     /// An air-domain type. Without `unit_flags` bit `f` it is a plane
@@ -881,11 +903,12 @@ mod tests {
         if helicopter {
             t.cols.unit_flags |= uflags::HELICOPTER;
         }
+        t.cols.role |= role::MILITARY;
         sim.add_unit_type(t)
     }
 
     fn siege_type(sim: &mut Sim) -> usize {
-        sim.add_unit_type(UnitType {
+        let mut t = UnitType {
             hits: 100,
             combat: combat::Profile {
                 attack: 40,
@@ -894,7 +917,9 @@ mod tests {
                 ..combat::Profile::default()
             },
             ..UnitType::default()
-        })
+        };
+        t.cols.role |= role::MILITARY;
+        sim.add_unit_type(t)
     }
 
     fn spawn(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
@@ -1339,12 +1364,16 @@ mod tests {
     }
 
     #[test]
-    fn a_hurrying_army_with_no_city_strands_its_shooting_siege() {
+    fn a_hurrying_army_with_no_city_clears_and_marches_its_shooting_siege() {
         // §6.5's clear/order asymmetry: the `QUEUE_NEW` clear gates on
         // `hurry` alone (`70524f`), the order loop on `hurry && a city was
-        // found` (`7054c7`). A hurrying army whose `find_city` returns −1
-        // therefore clears a shooting siege unit's orders and gives it
-        // nothing back.
+        // found` (`7054c7`). But the order loop re-reads `order_type()`
+        // **after** the clear has emptied the list (`Unit::close_orders`
+        // kills every order; `UnitData::order_type` returns `NONE` on an
+        // empty list), so the "shooting siege" arm no longer matches and
+        // the unit takes the move like everyone else. The third pass
+        // overturned the second's "issues it nothing"
+        // (`docs/audit/2026-08-25-groups.md`, "Third pass — verdicts").
         let mut s = sim();
         let siege = siege_type(&mut s);
         let slot = s.init_army(1, None);
@@ -1365,9 +1394,96 @@ mod tests {
         );
         assert_eq!(
             s.order_type(m),
-            index::NONE,
-            "the clear ran and the order loop issued nothing"
+            index::ATTACK_TO,
+            "the clear ran, and then the order loop no longer saw an ATTACK"
         );
+        assert_eq!(s.units[m].orders.len(), 1);
+
+        // Any other queue position skips the clear loop, so the unit is
+        // still shooting when the order loop looks, and is left alone.
+        s.add_attack_order(m, Obj::Unit(foe), QueuePos::New, true, true);
+        assert_eq!(s.order_type(m), index::ATTACK);
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x8000, 0x8000),
+            QueuePos::Last,
+            true,
+            Angle(0),
+            MoveKind::AttackTo,
+            true,
+        );
+        assert_eq!(s.order_type(m), index::ATTACK, "QUEUE_LAST clears nothing");
+        assert_eq!(s.units[m].orders.len(), 1, "and appends nothing either");
+    }
+
+    #[test]
+    fn the_stance_type_is_decided_by_the_military_role_first() {
+        // `UnitTypeData::get_stance_type@0061d350`, with the PDB's
+        // `StanceTypes` (`STANCE_COMBAT = 0`, `WORKER = 1`, `CASTER = 2`,
+        // `PACKER = 3`, `NONE = −1`): `role & MILITARY` → PACKER if
+        // `unit_flags2 & 4`, else COMBAT; then the four citizen ids →
+        // WORKER; then `(unit_flags2 & 6) == 2` → CASTER; else NONE. The
+        // order of the tests is the point — a military caster is COMBAT,
+        // a civilian packer is NONE, and "has an attack" decides nothing.
+        let mut s = sim();
+        let base = |role: u32, flags2: u32, packs: bool, attack: i32| UnitType {
+            hits: 100,
+            combat: combat::Profile {
+                attack,
+                packs,
+                uber_size: 1,
+                ..combat::Profile::default()
+            },
+            cols: crate::ai_load::UnitCols {
+                role,
+                unit_flags2: flags2,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..UnitType::default()
+        };
+        let cases = [
+            (
+                base(0, 0, false, 15),
+                StanceType::None,
+                "an attack alone is not military",
+            ),
+            (
+                base(role::MILITARY, uflags2::CASTER, false, 15),
+                StanceType::Combat,
+                "a military caster is combat",
+            ),
+            (
+                base(role::MILITARY, 0, true, 15),
+                StanceType::Packer,
+                "a military packer packs",
+            ),
+            (
+                base(0, 0, true, 0),
+                StanceType::None,
+                "a civilian packer has no stance",
+            ),
+            (
+                base(role::CITIZEN, 0, false, 0),
+                StanceType::Worker,
+                "a citizen works",
+            ),
+            (
+                base(0, uflags2::CASTER, false, 0),
+                StanceType::Caster,
+                "a civilian caster casts",
+            ),
+            (
+                base(0, uflags2::CASTER | uflags2::PACKS, true, 0),
+                StanceType::None,
+                "a caster that packs is neither",
+            ),
+        ];
+        for (ty, want, why) in cases {
+            let t = s.add_unit_type(ty);
+            let u = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+            assert_eq!(s.unit_stance_type(u), want, "{why}");
+        }
     }
 
     #[test]

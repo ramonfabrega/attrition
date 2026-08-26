@@ -1548,6 +1548,7 @@ mod tests {
                         y: 32664,
                         z: 528,
                     },
+                    angle: None,
                     guys: vec![
                         Guy {
                             kind: Some(0x32 + 19),
@@ -1570,6 +1571,7 @@ mod tests {
                         y: 28680,
                         z: 496,
                     },
+                    angle: None,
                     guys: vec![Guy {
                         kind: Some(0x32),
                         ..Guy::default()
@@ -1583,6 +1585,7 @@ mod tests {
                     o: 3,
                     who: 255,
                     pos: LogPos::default(),
+                    angle: None,
                     guys: vec![],
                     orders: Vec::new(),
                     path: Vec::new(),
@@ -4753,6 +4756,137 @@ mod army_tests {
         }
         assert_eq!(pool, 512 * 3);
         assert_eq!(hotkey, 162 * 3, "the hotkey array's own length");
+    }
+
+    /// The third pass's widening (`docs/audit/2026-08-25-groups.md`, "Third
+    /// pass — verdicts"): the scalars the first widening parsed and compared
+    /// against nothing, and the rotation pinned **exactly** rather than by
+    /// magnitude.
+    ///
+    /// `Group::update_positions@00713810`, from the listing: for each of
+    /// `form_num` members, `curr_x = off_x·48·sin(θ + 90°) + off_y·48·sin(θ)`
+    /// and `curr_y = off_x·48·sin(θ) − off_y·48·sin(θ + 90°)` — the matrix
+    /// `[cos θ, sin θ; sin θ, −cos θ]`, determinant −1 — where θ is the
+    /// heading (`unit +0x50`) of the unit executing the group move, the
+    /// leader. `UNITDATA` logs that heading as `angle`, so the record can be
+    /// reproduced to the bit with the simulation's own `sin_component` /
+    /// `cos_component`, which are the original's `sin_table`.
+    ///
+    /// And the scalars: `stamp` and `think_frame` never exceed the frame
+    /// (`Group::clear` stamps `game->frame`; `Groups::clear` writes 0 over
+    /// it), `speed == new_speed` outside the one `do_group_move` step that
+    /// rotates them, and `role` is the OR of the members' type roles
+    /// (`Group::add`: `role |= type +0x2c8`, and nothing ever clears a bit)
+    /// — so the navy's carries `SEA`, `SEA_MILITARY` and `MILITARY` and not
+    /// `LAND`, and army 0's `LAND` and `MILITARY` and not `SEA`.
+    #[test]
+    fn run29_s_navy_group_s_curr_is_the_leader_s_heading_applied_to_the_slot_table() {
+        use sim::ai_load::role;
+        use sim::movement::{Angle, cos_component, sin_component};
+        let name = "gamelog-run29-islands-engagement-window.txt";
+        let Some(path) = dump(name) else {
+            eprintln!("skipping: no {name} (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let mut seen = 0;
+        for (f, b) in log.frames() {
+            if !(15100..=15102).contains(&f) {
+                continue;
+            }
+            seen += 1;
+            let pool = crate::gamelog::groups(b);
+            let (units, _, _) = crate::gamelog::records(b, false);
+
+            // The scalars nobody had compared, over the whole pool.
+            for g in &pool {
+                assert!(
+                    g.stamp <= f,
+                    "{f}/{}: stamp {} is in the future",
+                    g.id,
+                    g.stamp
+                );
+                assert!(
+                    g.think_frame <= f,
+                    "{f}/{}: think_frame {} is in the future",
+                    g.id,
+                    g.think_frame
+                );
+                assert_eq!(
+                    g.speed, g.new_speed,
+                    "{f}/{}: the two speeds differ only inside do_group_move's step",
+                    g.id
+                );
+                if g.num == 0 {
+                    assert_eq!(g.role, 0, "{f}/{}: an empty slot has no role", g.id);
+                }
+            }
+
+            // `role`, by the bits `ai_load::role` names.
+            let navy = pool.iter().find(|g| g.id == 66).expect("slot 66");
+            let army0 = pool.iter().find(|g| g.id == 69).expect("slot 69");
+            let has = |g: &crate::gamelog::GroupDump, bit: u32| g.role & i64::from(bit) != 0;
+            for bit in [role::SEA, role::SEA_MILITARY, role::MILITARY] {
+                assert!(has(navy, bit), "{f}: the navy's role lacks {bit:#x}");
+            }
+            assert!(!has(navy, role::LAND), "{f}: a navy is not a land group");
+            for bit in [role::LAND, role::MILITARY] {
+                assert!(has(army0, bit), "{f}: army 0's role lacks {bit:#x}");
+            }
+            assert!(!has(army0, role::SEA), "{f}: army 0 is not a sea group");
+            // The whole word, as observed: `LAND | MILITARY | RANGED |
+            // MOUNTED | MELEE` — a mixed army. `Group::kill` never clears a
+            // bit, so the word is the OR over every member the group has
+            // *ever* had, not only the seven it has now.
+            assert_eq!(
+                army0.role,
+                i64::from(role::LAND | role::MILITARY | role::RANGED | role::MOUNTED | role::MELEE),
+                "{f}: army 0's accumulated role word"
+            );
+
+            // The rotation, exactly. The leader is the member at slot (0, 0).
+            let lead = navy
+                .members
+                .iter()
+                .find(|m| (m.off_x, m.off_y) == (0, 0))
+                .unwrap();
+            let u = units
+                .iter()
+                .find(|u| u.who == navy.who && u.o == lead.o)
+                .expect("the leader's UNITDATA");
+            let theta = Angle(i32::try_from(u.angle.expect("UNITDATA's angle")).unwrap());
+            for m in &navy.members {
+                let (dx, dy) = (
+                    i32::try_from(m.off_x * 48).unwrap(),
+                    i32::try_from(m.off_y * 48).unwrap(),
+                );
+                let want_x = cos_component(theta, dx) + sin_component(theta, dy);
+                let want_y = sin_component(theta, dx) - cos_component(theta, dy);
+                assert_eq!(
+                    (m.curr_x, m.curr_y),
+                    (i64::from(want_x), i64::from(want_y)),
+                    "{f}: member {} at off ({}, {}) under the leader's heading {}",
+                    m.o,
+                    m.off_x,
+                    m.off_y,
+                    theta.0
+                );
+                // The check has teeth: a quarter turn off does not
+                // reproduce the record. (The group's own `o_angle` does —
+                // in this window the leader's heading *is* the move's
+                // bearing, so the record cannot separate the two; the
+                // listing at `713844` is what says `update_positions`
+                // reads the heading.)
+                if dx != 0 {
+                    assert_ne!(i64::from(cos_component(theta.quarter_turn(), dx)), m.curr_x);
+                }
+            }
+            // Every `off_y` is zero, so the `−cos θ` term never fires: the
+            // y-flip is still unpinned, and needs a formation with depth.
+            assert!(navy.members.iter().all(|m| m.off_y == 0));
+        }
+        assert_eq!(seen, 3, "the window's three frames");
     }
 
     /// Run29's blocks 15100 and 15101 — the tick that put the AI's army on

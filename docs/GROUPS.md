@@ -76,13 +76,16 @@ GroupData (types.txt, 0x9cc — every field below is the PDB's own name)
   +0x3c  new_speed   int     \ the group's march speed, reset every frame by
   +0x40  speed       int     / Groups::process to the leader's own
   +0x44  form_num    int     the member count Form::compute_dests laid out
-  +0x48  facing      uchar   the formation's mirror flag (§6.3). Three writers:
+  +0x48  facing      uchar   the formation's mirror flag (§6.3). Four writers:
                              Group::clear (0), compute_form's toggle/restore
-                             pair (§6.3), and — outside this family, and the
-                             one no reading found — Unit::kill_current_order
+                             pair (§6.3), and two outside this family that no
+                             blind brief reached — Unit::kill_current_order
                              @005e2cb0, which writes the dying move order's own
                              reverse flag onto the group when the unit is the
-                             group's leader
+                             group's leader, and Unit::set_angle@00605400,
+                             which *toggles* it whenever the leader turns by
+                             90° or more (the third pass; the ordinary source
+                             of a live group's `facing 1`)
   +0x49  buildings   uchar   this is a group of buildings, not units
   +0x4a  who         uchar
   +0x4b  march       uchar
@@ -293,6 +296,25 @@ unit group and from **`list[0]`** for a buildings group, and reads its
 not `CASTER`, falling back to `CASTER` if one was seen. `docs/ARMY.md` §6's
 `set_stance` acts only on `STANCE_COMBAT` groups.
 
+A unit's own `get_stance_type` is the **type's**,
+`UnitTypeData::get_stance_type@0061d350` (the third pass; no earlier pass
+had read it), and its order of tests is the fact — with the PDB's
+`StanceTypes`, `COMBAT = 0`, `WORKER = 1`, `CASTER = 2`, `PACKER = 3`,
+`NONE = −1`:
+
+```
+if (role & MILITARY)         -> (unit_flags2 & 4) ? PACKER : COMBAT
+if (TypeIndex in 0x32..0x35) -> WORKER
+if ((unit_flags2 & 6) == 2)  -> CASTER        // a caster that does not pack
+else                         -> NONE
+```
+
+So a **military caster is combat**, a **civilian packer has no stance**,
+and having an attack decides nothing — the `MILITARY` role bit does.
+`UnitTypeData::has_stance_type@0061d3b0` is `get_stance_type() == s`, so
+`get_stance_option`'s histogram filter (vslot `+0x104`) and
+`action_stance`'s write filter (`+0x108`) are the same predicate.
+
 `GroupData::get_stance_option@0070bab0` is the one §8's cycle actually
 steps from, and the first reading never read it. It is the **modal**
 option: a `count`-entry histogram (6 / 4 / 2 by stance type) over the
@@ -458,6 +480,25 @@ reasons the first reading gave are void:
   (−440,−446), (946,960)]` — and `unit_formation_spacing 12` is printed in
   the same dump. §12's ninth check is the diff that reads it.
 
+**The rounding is settled: the `/48` is a floor.** The slot table's last
+step is `off = div_3_table[raw >> 4]` (`0072cba0:428`–`429`), and
+`init_coord_lookup_array@00681db0` builds that table as `j / 3` for
+`j ≥ 0` and `(j − 2) / 3` for `j < 0` — `floor(j / 3)` on both sides,
+with `div_3_table` pointed into the middle of `orig_div_3_table` so a
+negative index is legal — while `>> 4` is an arithmetic shift. run29's
+`[0, −14, 13, −28]` is therefore `floor(0)`, `floor(−w/48)`,
+`floor(+w/48)`, `floor(−2w/48)` for one width `w ∈ (648, 672)`; a
+truncation could not have produced both `−14` and `+13`. The fourteen
+float instructions round a *different* term (the rank stack, a C cast:
+truncation toward zero). Three more facts the implementation of item 17
+needs, from the same reading (the third pass): in the captain arm `k` is
+always 1, because `+0x2c` is overwritten by 2 for any valid category
+(`0072cba0:166`–`169`); `x += w/2` when the category's `cols` is even and
+the call is a move (`+0xd1c == 0`; `action_guard` passes 1), and again on
+odd rows for categories `< 3`, `6` or `> 11`; and the whole block is
+translated so that the **first member of the last non-empty category**
+sits at `(0, 0)` (`local_44`/`local_3c`, `:389`–`:394` and `:426`–`:427`).
+
 ### 6.5 The AI branch
 
 This is the part `docs/ARMY.md` needs and the part `docs/ORDERS.md` §8.2
@@ -494,16 +535,25 @@ interrupts a siege unit that is already shooting. `hurry` is
 (`docs/ARMY.md` §13), so both branches are reachable from the army tick.
 
 **The three loops do not gate on the same thing, and the gap has a
-consequence.** The `QUEUE_NEW` clear at `70524f` exempts a shooting siege
-unit only when `local_44 == 0` — i.e. only when the army is **not**
-hurrying — while the order loop at `7054c7` takes the "leave it alone" arm
-when `local_44 == 0 **or** local_48 < 0`, i.e. also when the army *is*
-hurrying but `find_city` returned −1. So a **hurrying AI army with no
-friendly city near its destination clears its shooting siege unit's orders
-and then issues it nothing**: the unit is left standing with an empty
-queue. Not obviously intended, and reproduced deliberately in
-`crates/sim/src/group.rs` rather than smoothed over
-(`a_hurrying_army_with_no_city_strands_its_shooting_siege`).
+consequence — but not the one the second reading drew.** The `QUEUE_NEW`
+clear at `70524f` exempts a shooting siege unit only when `local_44 == 0`
+— i.e. only when the army is **not** hurrying — while the order loop at
+`7054c7` takes the "leave it alone" arm when `local_44 == 0 **or**
+local_48 < 0`, i.e. also when the army *is* hurrying but `find_city`
+returned −1. The second reading concluded that a hurrying army with no
+city "clears its shooting siege unit's orders and then issues it nothing".
+**The third pass overturned that**: the order loop re-evaluates
+`UnitData::order_type@00616e80` *after* the clear loop has run
+`Unit::clear_orders` → `close_orders@005e37f0`, which kills every order,
+and `order_type` returns `NONE` on an empty list — so the
+`is_siege && order_type == ATTACK` test at `7054c7` no longer matches and
+the unit **takes the move like every other member**. The whole truth of
+the shooting siege unit, by queue position: not hurrying → left alone;
+hurrying with a city → into the city; hurrying without one → under
+`QUEUE_NEW` cleared and marched, under `QUEUE_LAST`/`QUEUE_FIRST` (no
+clear loop) still shooting and skipped. `crates/sim/src/group.rs` does
+exactly that
+(`a_hurrying_army_with_no_city_clears_and_marches_its_shooting_siege`).
 
 ### 6.6 The ordinary path, per member
 
@@ -562,10 +612,22 @@ Then `update_positions(leader)` turns every slot offset into
 `leal (%ecx,%ecx,2)` + `shll $4`, i.e. **× 48**; `curr_y = sin·x − cos·x`
 is a **subtraction**, so the matrix is a rotation composed with a **y-flip**
 (determinant −1, and a naive port mirrors); and the loop bound at `713a38`
-is `cmpl 0x44(%eax)` — **`form_num`, not `num`**. run29's group `id 66`
-confirms it: `off_x = [0, −14, 13, −28]` becomes
-`curr = [(0,0), (473,480), (−440,−446), (946,960)]`, magnitudes 674, 626,
-1348 — `|off_x| × 48` to the sine table's granularity. This is what
+is `cmpl 0x44(%eax)` — **`form_num`, not `num`**. The third pass read the
+whole function (`00713810`): θ is the calling unit's own heading
+(`unit +0x50`, loaded at `713844`), replaced by the angle from the unit to
+its current order's `(+0x2c, +0x30)` point when that order's `+0x10` is
+set; then, for each of `form_num` members,
+
+```
+curr_x = off_x·48·sin(θ + 90°) + off_y·48·sin(θ)
+curr_y = off_x·48·sin(θ)       − off_y·48·sin(θ + 90°)
+```
+
+Its only caller is `Unit::do_group_move@005e79a0`. `UNITDATA` logs the
+heading as `angle`, so run29's group `id 66` is reproduced **to the bit**
+from its leader's logged `angle` through the sim's own
+`sin_component`/`cos_component` (§12's check 9); the y-flip alone stays
+unpinned, because every `off_y` in the window is zero. This is what
 `do_group_move` adds to the leader's position each frame
 (`docs/ORDERS.md` §8.3).
 
@@ -842,6 +904,7 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 | `QUEUE_FIRST`'s insert dance (§6.2, §10) | `set_up_insert` / `action_halt` / recurse / `finish_insert` | `charge`'s `QUEUE_FIRST` is a plain push-to-front on each member |
 | the scenario filter (§5) | `ignore_orders` | never set outside a scenario |
 | `unit_masks` `0x100` / `0x400` / `0x4000000` | three bits `action_halt` and §6.6 clear | unmodelled bits; no reader in the sim |
+| `is_entering_or_exiting` (§7), `OBJECT_NEW_THINK` (§8), `unit +0xab = width` (§6.6) | a halt skips a unit in a doorway; a stance write flags the unit for a re-think; the width twin of `+0xaa` | three writes the third pass recorded and the sim does not model; no reader in the sim for any of them |
 
 **The checks**, cheapest first, in `group.rs` and `army.rs`'s test modules:
 
@@ -872,8 +935,12 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
    `attack_keeps_a_lone_shot_and_a_march_into_range_and_re_orders_the_rest`
    (§10's two sub-arms),
    `the_siege_anchor_scores_only_members_that_are_on_the_map` (§9), and
-   `a_hurrying_army_with_no_city_strands_its_shooting_siege` (§6.5's
-   clear/order asymmetry).
+   §6.5's clear/order asymmetry — which the third pass rewrote as
+   `a_hurrying_army_with_no_city_clears_and_marches_its_shooting_siege`
+   after finding the second reading's consequence inverted, and which,
+   with `the_stance_type_is_decided_by_the_military_role_first` (§4.4's
+   type predicate, seven cases), makes the two tests the third pass ran red
+   first (`docs/audit/2026-08-25-groups.md`, "Third pass — verdicts").
 8. In `army.rs`: `do_forming_walks_the_army_to_the_projected_muster_origin`
    (the origin is §8's projection, and the destination the 48-snap),
    `a_forming_army_actually_moves_its_units_over_the_ticks` (the end-to-end
@@ -904,6 +971,15 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
      — §6.4's fixture: `off_x = [0, −14, 13, −28]` with `off_y` and
      `angles` zero, `form 0`, `form_num == num`, and the `curr` pair that
      pins **× 48** and the shared rotation.
+   - `run29_s_navy_group_s_curr_is_the_leader_s_heading_applied_to_the_slot_table`
+     — the third pass's widening: every `curr` in the window reproduced
+     **exactly** from the leader's logged `UNITDATA` `angle` through
+     `sin_component`/`cos_component` (§6.6), with a quarter-turn control;
+     `stamp` and `think_frame` never past the frame, `speed == new_speed`,
+     `role == 0` on an empty slot, the navy's `role ⊇ {SEA, SEA_MILITARY,
+     MILITARY}` and army 0's whole word `LAND | MILITARY | RANGED | MOUNTED
+     | MELEE` — the OR over every member the group has ever had, because
+     `Group::kill` clears no bit.
    - `run29_s_priority_bit_says_allocated_rather_than_hotkey` — see §1.
      This one **failed on its first run and was right to**: the audit
      predicted `priority 1` on every `HOTKEYGROUPDATA`, and hotkey slot 28
@@ -933,9 +1009,13 @@ Still open:
   of *work* rather than of evidence. ~~*Capture:* a `UNITS=3
   COMMANDMANAGER=1` dump of a `do_forming` frame.~~ **Closed by the second
   reading:** the output is in `GROUPDATA`, per member, and run29 already
-  has a four-member group in formation 0 (§6.4). What remains is writing
-  `categorize` / `compute_rows_and_columns` / `compute_dests` and diffing
-  them against it.
+  has a four-member group in formation 0 (§6.4). ~~The rounding behind
+  `−14` versus `+13`.~~ **Closed by the third pass:** a floor, by the
+  table that does it (§6.4). What remains is writing `categorize` /
+  `compute_rows_and_columns` / `compute_dests` and diffing them against
+  it — and, on the way, reading `get_form_mod_option`'s value for an AI
+  army, the type widths `+0x228`/`+0x22c` and which `FormCatIndex` each
+  shipped type falls in, none of which any pass has read.
 - **`FormData::type_cat`** (§4.4) decides which member leads a mixed group;
   the simulation takes the group's first on-map captain, which is right for
   a one-type army and wrong for a mixed one. The blind reading read the
@@ -952,11 +1032,13 @@ Still open:
   which `docs/PATHFINDER.md` did not reach.
 - **`action_guard`** (§9) is 300 lines and unread; `GUARD` is not
   implemented in the simulation either (`docs/ORDERS.md` §14).
-- **The formal name of object vslot `+0x1c`.** Its four values are settled
-  (Unit 0, Animal 0, Build 1, Wall 1) and nothing here depends on the name,
-  but `?is_wallbuild@BuildData@@UBEHXZ` does not appear in `rise_z.map` at
-  all, which a value of 1 for `BuildData` would need. Left as the audit's
-  one surviving `FABLE:` marker.
+- ~~**The formal name of object vslot `+0x1c`.**~~ **`is_wallbuild`**, by
+  the PDB's own method records (`SubObjectData` introduces `is_unit` at
+  vftable offset 24, `is_wallbuild` at 28, `is_build` at 32, `is_seen` at
+  72); the map lacks the `BuildData` symbol only because the slot is the
+  COMDAT-folded `return 1` at `0041e0e0`. The third pass closed it, and
+  named every other slot this document had inferred from uses the same
+  way (`docs/audit/2026-08-25-groups.md`, "Third pass — verdicts").
 - **The blind list this document adds:** `Groups::get_open_slot`'s
   "UH OH, NEED MORE GROUPS" path, `Group::sort`, `refresh_group_order`,
   `distribute_attack`, `kill_group_move` — none of which any traced game
@@ -1047,11 +1129,26 @@ entry 22):
 4. `role & 0x10` is `is(SCOUT)` on land and `is(BARK)` at sea, by the type
    record. → §6.6 step 6.
 
-Only the formal name of vslot `+0x1c` is still marked, and nothing depends
-on it.
-
 **And one finding that came out of settling marker 3, which no reading
 had:** run29 shows live groups with `facing = 1`, which `compute_form`
 alone cannot produce in a game with the editor closed. The third writer is
 **`Unit::kill_current_order@005e2cb0`** — outside the `Group` family
 entirely, which is why the brief never reached it. → §1, §8.
+
+**The third pass — the Fable ratification, run in the main thread on
+2026-08-26** (`docs/audit/2026-08-25-groups.md`, "Third pass — verdicts").
+Eight of the nine Rust-changing verdicts and all four Opus-settled markers
+hold from their citations; the fifth marker is closed (`is_wallbuild`,
+above). **One verdict was overturned in its consequence**: §6.5's
+clear/order asymmetry is real, but a hurrying army with no city *marches*
+its cleared siege unit rather than stranding it, because the order loop
+re-reads an `order_type` the clear loop has already emptied. Outside the
+floor it found the predicate behind every stance decision
+(`UnitTypeData::get_stance_type`, §4.4 — the sim's test order was wrong
+on three cases), the rounding of the slot table (a floor, §6.4), the
+exact form of `update_positions` and a bit-for-bit reproduction of run29's
+`curr` from the leader's logged heading (§6.6, §12), a fourth writer of
+`facing` (`Unit::set_angle`, §1), and the loaders' two overwrites
+(`Groups::clear` zeroes `stamp` and `priority` after `Group::clear`;
+`Group::clear` zeroes `who`). Two Rust changes, both run red first; one
+new widening.
