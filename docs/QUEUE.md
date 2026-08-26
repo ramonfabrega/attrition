@@ -93,8 +93,17 @@ thirty-seven `gamelog.ini` categories has never been on, and what happened
 the one time it was?
 
 **Needs the user.** Nothing outstanding. The ledger
-(`docs/audit/README.md`) still has the two rows from item 18; this session
-added no `FABLE:` markers. When to spend a Fable batch is still open.
+(`docs/audit/README.md`) took one row off — item 18's `find_leader` marker,
+which run31 observed — and gained one, and the new one is the widest-reaching
+marker on it: **`sin_table@00a46a00`'s second-quadrant branch**. The
+simulation mirrors the angle; the decompiler says the function does something
+else, and transcribing that is a hundred times worse against run31's record,
+so the mirror is right and the *reading* is wrong. That primitive is under
+every heading, projectile and formation rotation in the game, and this is the
+second time the same twenty lines have fooled a reader through the
+decompiler — so the settlement is `llvm-objdump`, not another decompile.
+Twenty minutes, and it does not block anything. When to spend a Fable batch
+is still open.
 
 **Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 21, the 36-member table: reproduce run31's whole slot table from the install's own columns, which measures docs/GROUPS.md §6.4's to/off asymmetry and answers §4.4's leader question; the record is on disk and no run is owed`
 

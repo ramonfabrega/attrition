@@ -112,10 +112,30 @@ that needs them is being built.
   (`6f5324`/`6f5342`) and a fall-through (`6f536b`) and **no run has
   exercised it**. It is implemented in `Sim::army_engagement_seed`, so a
   ratifier is checking live code.
-- **`docs/GROUPS.md` §4.4's `find_leader` key** (2026-08-26, Opus,
+- ~~**`docs/GROUPS.md` §4.4's `find_leader` key** (2026-08-26, Opus,
   listing `0070ccb0`). Implemented and unit-tested; unobserved, because
-  every group in every dump so far has one `type_cat` category. The
-  capture is named in §13.
+  every group in every dump so far has one `type_cat` category.~~
+  **Observed 2026-08-26 by run31** and off this list:
+  `GroupOrder::oxx` names the leader in the record, and it is not
+  `list[0]`. §4.4, §12.1.
+- **`FABLE:` — `sin_table@00a46a00`'s second-quadrant branch**
+  (2026-08-26, Opus; `crates/sim/src/movement.rs`, `quarter_lookup`).
+  The simulation folds a bit-30 angle by **mirroring** it,
+  `0x7fffffff − a`, and looking the mirror up. The decompiled function
+  appears to do something else: keep the index it was given,
+  `(a & 0x3fffffff) >> 22`, and return `0xffff − base + delta` with the
+  **same** interpolation delta. Transcribing that made run31's `curr`
+  wrong by *hundreds* where the mirror is wrong by at most two, so the
+  mirror is behaviourally right and the decompilation of that branch is
+  not — but nobody has read the listing to say what it actually is.
+  Marked rather than guessed because this is not a corner: it is the
+  primitive under every heading, every projectile and every formation
+  rotation in the game, and no capture before run31 had an angle in the
+  second quadrant at all. *Cheapest settlement:* `llvm-objdump` over
+  `00a46a00`, twenty lines. The residual ±2 that started this is
+  **already explained** and is not evidence against the mirror — `curr`
+  is a mid-frame quantity (`docs/GROUPS.md` §6.6) — so what is owed here
+  is a reading, not a fix.
 
 **The cheapest way to shorten this list is not a pass.** Most of what is
 owed is arithmetic and predicates a capture can settle outright, so

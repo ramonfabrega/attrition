@@ -204,6 +204,32 @@ So the axis angles work by arithmetic overflow. Widen that multiply while
 "cleaning up" and every unit ordered along an axis stops dead.
 `crates/sim/src/movement.rs` uses a `wrapping_mul` and says why at the site.
 
+### The mirror is right; its decompilation is not (2026-08-26, open)
+
+The paragraph above says the second quarter is "mirrored with
+`0x7fffffff - angle`", and that is what `crates/sim` does. **The decompiled
+`sin_table@00a46a00` does not read that way.** It indexes with the angle it
+was handed either way — `(a & 0x3fffffff) >> 22` — and, when bit 30 is set,
+returns `(0xffff - cur) + delta` with the *same* interpolation delta, rather
+than looking up the mirrored index at all. The two agree only where
+`table[255 - i] == 0xffff - table[i]`, which this table nearly but never
+exactly satisfies.
+
+Transcribing the decompiler's version made run31's `GROUPDATA` `curr` wrong
+by **hundreds**, where the mirror is wrong by at most **two** — and the two
+are separately accounted for (`docs/GROUPS.md` §6.6: `curr` is computed
+mid-frame and the dumped heading is a hair past it). So the mirror is
+behaviourally right and the decompilation of that branch is wrong.
+
+**What is owed is a reading, not a fix.** `llvm-objdump` over `00a46a00`,
+twenty lines, settles what the branch really computes — and this is the
+second time this exact function's branch structure has misled a reader
+("Open questions" below), which is why it is now on the ratification ledger
+(`docs/audit/README.md`) rather than only in a journal entry. Nothing before
+run31 could have caught it: every captured angle either was negative, in
+which case the fold clears bit 31 and leaves bit 30 clear, or sat in the
+first quarter.
+
 There are also **three precision paths** on the distance, differing only in
 where the 16-bit shift is split so that `s × distance` cannot overflow: below
 65535 the shift is all at the end, below 2²⁴ it is split eight and eight, above
@@ -544,6 +570,15 @@ above. The lesson is general: in this codebase an expression that looks broken
 should be checked for overflow before it is called broken. The first reading
 also came from disassembling `sin_table` in two halves, which is how the
 branch structure got mixed up.
+
+**And it got mixed up again, in the other direction** (2026-08-26, **open**):
+the decompiled second-quadrant branch reads as "keep the index, return
+`0xffff − cur + delta`", which is not a mirror and which run31's `curr`
+refutes by a factor of a hundred. The mirror `crates/sim` implements is
+right; what that branch actually is, nobody has read from the listing. It is
+on the ratification ledger (`docs/audit/README.md`) and the site carries the
+warning. Twice now the same twenty lines have fooled a reader through the
+decompiler, so the third attempt should start at `llvm-objdump`.
 
 ~~**What the type's own stored turn speed means.**~~ Degrees in the file,
 `degrees_to_angle` at load, a binary angle in memory; and `UNIT_TURN_SPEED` is
