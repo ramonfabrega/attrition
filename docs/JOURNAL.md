@@ -1614,3 +1614,70 @@ did nothing — which read as "this category is not per-frame" rather than
 asking of the other keys before booking a window: not only *what does a
 dump on disk already carry*, but *which of the thirty-seven categories has
 never been turned on, and what happened the one time it was*.
+
+## 2026-08-26 — item 21: the 36-member table, and the writer nobody had looked for
+
+The whole of run31's group reproduced from the install's own columns —
+36 members, both coordinates, all forty frames, and 900 slot destinations
+with it. It closed the two questions item 20 left open, and it found a
+function writing the record behind the reading's back.
+
+**The chain has no free parameter.** `unitrules.xml` gives Hoplites and
+Slingers `X_SPACING`/`Y_SPACING`/`GUY_SPACING 12` and `UBER_SIZE 3`;
+`UnitType::init` multiplies by 12; `Form::categorize` widens a multi-figure
+rank by `min(uber_size, 3)`, so the category is 432 wide and 144 deep;
+`type_cat` splits eight hoplite captains into `FORM_CAT_FOOT` and four
+slingers into `FORM_CAT_FOOT_RANGED`; `span` and `form_mod 50` give both
+four columns; `Group::add`'s subordinate recursion turns twelve captains
+into 36 members in exactly the record's own `list` order; and
+`compute_dests` plus the floor divide by 48 lands on `off`. Five
+deliberate breakages, all red on the first try.
+
+**The finding: `compute_dests` is not the last thing that writes `off`.**
+Thirty-nine of the forty frames matched at once and one did not — frame
+204, whose block sits one column over, with every *relative* number in it
+right. The listing (`72d17c`–`72d198`) says the anchor is `cat_id 0` of
+the lowest non-empty category and nothing else, so the table was right and
+the record had been moved. `Group::refresh_group_order@00713a50` is what
+moves it: `Unit::do_group_move` checks that the unit the order's
+`GroupOrder::oxx` names is still usable as the block's origin — alive, on
+the map, in this group, holding a matching group order — and when it is
+not, the first member to notice **re-origins the whole table onto itself**
+and rewrites everyone's order. Frame 205, one frame on, is that same table
+re-origined again onto a third member. Nothing about the layout ever
+changed.
+
+That is the entire answer to the "leader is object 9 here and object 6
+there" question the last session called its sharpest. `find_leader` names
+object 6 both times. `oxx` is not `find_leader`'s output at all; it is the
+block's *current* origin.
+
+**And the displacement was in a field nobody had read.** §6.4's `to`/`off`
+asymmetry — the anchor marching to a point its own offset says is the
+click — is exactly the rotated `anchor_x`, and `Form::compute`'s tail
+measures precisely that into `group.o_dist` before `action_move_near`
+overwrites `o_angle` and leaves it alone. `x_spacing/2 = 216`; the record
+prints 215 on one move and 217 on the other two, which is `vector_dist`'s
+octagonal approximation of the same 216 at three bearings. Observed became
+measured for the cost of noticing which of two adjacent writes lands.
+
+**One question closed two and opened one.** The mirror `Form::compute` is
+handed is `facing XOR (leader ≥ 90° off the bearing)`, and `GROUPDATA`
+prints only `facing` — so run31's three moves need mirrors of 0, 0, 1
+against dumped `facing` of 1, 0, 1. The toggle has to fire on the first
+move and not the third, and by its own logged heading the first move's
+leader is 76° off, which predicts no toggle. Either the end-of-frame
+heading is not the one the call used — `curr` is already known to be a
+mid-frame quantity — or `facing` moved between clicks, which for a ground
+group only this toggle and `Group::clear` can do. The capture is named in
+`docs/GROUPS.md` §13 and it is cheap: one window, two clicks, a formation
+that leans so the angle byte is not zero either.
+
+**The method note.** This is the third session running where the
+implementation was the audit. Prose had the anchor rule right, the
+quantiser right and the rank stack right, and still could not have told
+you that a second function slides the result — because prose compares a
+formula with a formula and only the code compares it with the record.
+`git checkout` on a file mid-breakage cost twenty minutes of retyping,
+too: a deliberate breakage wants a scripted apply/revert, never the
+working tree's own undo.

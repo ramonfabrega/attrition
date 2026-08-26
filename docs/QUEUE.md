@@ -27,55 +27,46 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 20.* The commit this section was
+*Last verified 2026-08-26, after item 21.* The commit this section was
 written against is the one that lands it; if `git log` has moved well past
 it, trust the queue below and the journal before trusting this.
 
-**Last landed.** **The human group move** (item 20), and it came in
-cheaper and richer than the queue had budgeted. `GameLog::full_dump`'s
-non-`DUMP_ALL` half gates `dump_groups` on `gamelog.ini`'s own `GROUPS`
-key, so the 512-slot group pool is an ordinary per-frame record —
-684 KB and ~0.6 frames a second, against `DUMP_ALL`'s 80 MB and two
-minutes. Hundreds of frames instead of a two-frame window, which is what
-made a *human-timed* right-click affordable at all. The
-selection turned out to be scriptable too (`select <type> who=0 [+]` from
-the cheat channel), so the only human-shaped step left is the click.
-`tools/gamelog/live.sh`, `archive.sh` and `groups.py` are new;
-`setlog.py` takes `CAT=N`.
+**Last landed.** **The 36-member table** (item 21), and it did what the
+entry promised and one thing it could not have: run31's group is now
+reproduced whole from the install's own columns — 36 members, both
+coordinates, all forty frames, and 900 slot destinations with them —
+with five deliberate breakages red on the first try.
 
-run31 (`gamelog-run31-humangroup.txt`) closes all three items it was
-booked for and opens two better ones:
-
-- **`find_leader`'s key** — `GroupOrder::oxx` names the leader outright,
-  and it is a hoplite where `list[0]` is a slinger. `docs/GROUPS.md`
-  §4.4, §12.1.
-- **§6.4's `to`/`off` asymmetry — observed.** The anchor's own order does
-  not point at the click. Its *size* is not measured yet.
-- **`update_positions`' y-flip — pinned**, with the unflipped matrix as a
-  control. The eleventh deliberate breakage of the slot-table session,
-  which had not been able to turn a test red, now does.
-- Two bugs found on the way: the parser dropped `GroupMoveOrder` because
-  it is the one block in the family the binary keeps in **mixed case**
-  (and the positional `type` pairing slid with it), and
-  `compute_dests`' **follower arm** had never executed — a player's
-  selection group keeps every figure, so 36 members and not 12.
-  `Sim::form_follower_slot` implements it.
-- And one correction to carry: **`curr` is a mid-frame quantity.** The
-  end-frame `angle` is the heading a hair past the one the rotation used;
-  nine frames of forty are exact and the rest match at a heading within
-  0.05° of it.
+- **§6.4's `to`/`off` displacement is measured**, and the record had it
+  all along in a field nobody had read: `Form::compute`'s tail puts the
+  leader-slot offset in **`o_dist`** and `action_move_near` then
+  overwrites `o_angle` and leaves it. It is `x_spacing/2 = 216`; the
+  record prints 215 or 217, which is `vector_dist` at three bearings.
+- **§4.4's leader question is answered, and neither horn was right.**
+  `find_leader` names object 6 both times. `GroupOrder::oxx` is not
+  `find_leader`'s output — it is the *current origin of the block*.
+- **The finding: `compute_dests` is not the last writer of `off`.**
+  `Group::refresh_group_order@00713a50` re-origins the whole table onto
+  whichever member notices that the unit `oxx` names can no longer serve.
+  One of run31's forty frames is that, and frame 205 is it twice.
+  `docs/GROUPS.md` §6.8 is new.
+- **`Group::add`'s two recursions** are implemented (`Unit::o_up`/
+  `o_down`), so a sim group can hold a squad's figures; `Group::sort` is
+  read and is `categorize`'s own first statement.
+- And the destination side: the `MOVEORDER`'s `x`/`y` is the slot through
+  §6.6 step 6's `UCoord` round trip, which is the sim's own 48-snap.
+  `dest_x`/`dest_y` is **not** it — that is the path stack's waypoint and
+  lags a click behind on most members.
 
 **Then, in order:**
 
-- **The 36-member table** (new item 21). Reproduce run31's whole slot
-  table — which turns §6.4's *observed* asymmetry into a *measured* one,
-  and answers §4.4's new question of why the leader is object 9 on one
-  frame and object 6 on the next when both are hoplite captains and 6 is
-  first in `list`. It needs `Group::add`'s `keep_captain` on the sim
-  side. The record is on disk; no run is owed.
-- **The order's angle** (item 19, unchanged), and now with a record:
-  `docs/GROUPS.md` §6.6 step 6's `angle + (group.angles[i] << 24)`
-  against `GroupMoveOrder`'s own `MOVEORDER` `angle`.
+- **The mirror's predicate** (new item 22) — the one thing item 21 opened,
+  and it needs the *cheapest kind* of run: one `GROUPS=1`+`UNITS=3`
+  window, a leaning formation, two right-clicks. It settles item 19's
+  angle-byte sign in the same window, so take them together.
+- **The order's angle** (item 19, unchanged otherwise). run31 cannot
+  settle it: a Line has every `angles[i]` at 0, and every order's `angle`
+  is the formation's own to the bit on all 36 members of all 40 frames.
 - **Item 13, differential fuzzing** — unchanged, and still the entry with
   the largest leverage per hour.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings the
@@ -84,29 +75,29 @@ booked for and opens two better ones:
   a mounted attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings; `think_civilian_transport`.
 
-**The thing this session earned.** Item 18's lesson was *the record was
-already there and nobody had opened it*. This one is a level up: **the
-record was never written, because a key nobody had questioned was zero** —
-and it stayed zero because turning it on did nothing, which reads as "not
-a per-frame category" rather than "inherits its acceptance from whatever
-dumper ran last". Worth asking before booking any window: which of the
-thirty-seven `gamelog.ini` categories has never been on, and what happened
-the one time it was?
+**The thing this session earned.** Three sessions running, the
+implementation has been the audit — and this one shows why prose cannot
+substitute. Every formula in §6.4 was right: the anchor rule, the
+quantiser, the rank stack, the even-column shift. The document was still
+wrong about what the record *is*, because a second function was sliding
+the answer afterwards, and only writing the arithmetic out and running it
+against all forty frames could surface a discrepancy that leaves every
+relative number intact. **When a diff matches on 39 of 40 and the layout
+is identical on all 40, the difference is not in the formula — go looking
+for another writer.**
 
 **Needs the user.** Nothing outstanding. The ledger
-(`docs/audit/README.md`) took one row off — item 18's `find_leader` marker,
-which run31 observed — and gained one, and the new one is the widest-reaching
-marker on it: **`sin_table@00a46a00`'s second-quadrant branch**. The
+(`docs/audit/README.md`) is unchanged from last session: its widest-reaching
+marker is still **`sin_table@00a46a00`'s second-quadrant branch**. The
 simulation mirrors the angle; the decompiler says the function does something
-else, and transcribing that is a hundred times worse against run31's record,
-so the mirror is right and the *reading* is wrong. That primitive is under
-every heading, projectile and formation rotation in the game, and this is the
-second time the same twenty lines have fooled a reader through the
-decompiler — so the settlement is `llvm-objdump`, not another decompile.
-Twenty minutes, and it does not block anything. When to spend a Fable batch
-is still open.
+else, and item 21 is more evidence the mirror is right — 900 rotated
+destinations land exactly. That primitive is under every heading, projectile
+and formation rotation in the game, and this is the second time the same
+twenty lines have fooled a reader through the decompiler — so the settlement
+is `llvm-objdump`, not another decompile. Twenty minutes, and it does not
+block anything. When to spend a Fable batch is still open.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 21, the 36-member table: reproduce run31's whole slot table from the install's own columns, which measures docs/GROUPS.md §6.4's to/off asymmetry and answers §4.4's leader question; the record is on disk and no run is owed`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 22, the mirror's predicate: one GROUPS=1 + UNITS=3 window with a leaning formation and two right-clicks, which settles docs/GROUPS.md §6.3's facing toggle and item 19's angle-byte sign together`
 
 ## The queue
 
@@ -219,18 +210,23 @@ in which case say so and take that. The story of each struck item is in
     §13, `docs/ORDERS.md` §8.4 and §11.1; `tools/gamelog/live.sh`,
     `archive.sh`, `groups.py`. Four checks in `rondata::diff`, one in
     `sim::form`, one in `crate::gamelog`.
-21. **The 36-member table** — reproduce run31's group whole, from the
-    install's own columns through `categorize`, `compute_rows_and_columns`,
-    `compute_dests` and its follower arm, and compare with `GROUPDATA`'s
-    `off` and the members' `GroupMoveOrder` destinations. Two things fall
-    out of it and nothing else reaches them: **the size** of §6.4's
-    `to`/`off` displacement, which the record shows but does not measure,
-    and **why the leader is object 9 on frame 204 and object 6 from 328
-    on** when both are `FORM_CAT_FOOT` captains and 6 is first in `list`
-    (§4.4). It needs `Group::add`'s `keep_captain` on the simulation side,
-    so that a group can hold a follower at all. No run is owed — the
-    record is `gamelog-run31-humangroup.txt` and the fixture is
-    `rondata::diff`'s `run31_moves()`.
+21. ~~**The 36-member table**~~ — done 2026-08-26. `docs/GROUPS.md` §6.8
+    (new), §12.2 (new), §4.1, §4.4, §6.3 and §6.4;
+    `Sim::group_add_keeping` and `Unit::o_up`/`o_down`,
+    `GroupState::reorigin` and `Sim::group_refresh_order`,
+    `Sim::group_find_leader_slot`. One check in `rondata::diff`, two in
+    `sim::group`, five deliberate breakages.
+22. **The mirror's predicate** — `docs/GROUPS.md` §6.3 and §13's new
+    entry, which item 21 opened while closing two. `Form::compute` is
+    handed `facing XOR (leader ≥ 90° off the formation's bearing)` and
+    `GROUPDATA` prints only `facing`; run31 needs the toggle to fire on
+    one move and not another, and the leaders' logged headings do not
+    predict that. **A run is owed and it is the cheap kind**: `GROUPS=1`
+    and `UNITS=3` over a window, a selection set to a formation that leans
+    (Refused or an Echelon, so `angles` is not all zero), and two
+    right-clicks — one ahead of the group's facing and one behind it.
+    That single window settles the predicate *and* the sign of the angle
+    byte in `angle ± (angles[slot] << 24)`, which is item 19's other half.
 
 ## How to maintain this file
 

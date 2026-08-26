@@ -104,6 +104,30 @@ pub struct GroupState {
     pub angles: Vec<i8>,
 }
 
+impl GroupState {
+    /// `Group::refresh_group_order@00713a50`'s middle third — **slide the
+    /// whole table so that member `i` sits on the origin** (`docs/GROUPS.md`
+    /// §6.8).
+    ///
+    /// This is the second thing that writes `off`, and until run31 nobody
+    /// had looked for one: `compute_dests` puts the anchor at `(0, 0)`, and
+    /// then, whenever the unit the group order names can no longer serve as
+    /// the anchor, the member that notices re-origins the block onto
+    /// **itself** and rewrites everyone's order. The subtraction is over the
+    /// **quantised** offsets — the record's own numbers — and it runs over
+    /// `form_num` entries, not `num`.
+    pub fn reorigin(&mut self, i: usize) {
+        let Some(&(dx, dy)) = self.off.get(i) else {
+            return;
+        };
+        let n = (self.form_num.max(0) as usize).min(self.off.len());
+        for slot in &mut self.off[..n] {
+            slot.0 -= dx;
+            slot.1 -= dy;
+        }
+    }
+}
+
 impl Default for GroupState {
     fn default() -> GroupState {
         GroupState {
@@ -205,22 +229,54 @@ impl Sim {
         }
     }
 
-    /// `Group::add(o, who, 0, 0)` (§4.1) for a unit: a non-captain adds its
-    /// captain instead, and a member is added once. The simulation's units
-    /// are all captains (no squads are modelled), so the recursion is the
-    /// identity.
+    /// `Group::add(o, who, 0, 0)` (§4.1) — the entry point every caller in
+    /// the simulation uses. A non-captain is refused and **its captain is
+    /// added instead**, so asking for a figure gets you its squad.
     pub fn group_add(&self, g: &mut Group, u: usize) {
+        self.group_add_keeping(g, u, false);
+    }
+
+    /// `Group::add(o, who, keep_captain, const)` (§4.1) whole.
+    ///
+    /// `keep_captain` is the original's `param_3`, and it flips the walk:
+    /// with 0 a **non-captain** is replaced by its captain, and with 1 a
+    /// **captain** is first killed out of the group so that re-adding it
+    /// moves it to the end. The one caller that passes 1 is this function
+    /// itself, on the subordinate chain — which is why a group built from
+    /// captains still holds every figure, in `captain, o_down, o_down's
+    /// o_down` order. A player's selection is exactly that, and it is why
+    /// run31's twelve squads are **36** members and not 12
+    /// (`docs/GROUPS.md` §12.2).
+    pub fn group_add_keeping(&self, g: &mut Group, u: usize, keep_captain: bool) {
         if !self.units[u].alive() {
             return;
         }
         if self.units[u].owner != g.who && !g.list.is_empty() {
             return;
         }
+        if !keep_captain && !self.units[u].captain {
+            // The tail call: `add(unit +0x8e, who, 0, const)`.
+            if let Some(cap) = self.units[u].o_up {
+                self.group_add_keeping(g, cap, false);
+            }
+            return;
+        }
+        if keep_captain && self.units[u].captain {
+            // `kill(o, who, 0, 0)` first, so the re-add appends.
+            g.list.retain(|&m| m != u);
+        }
         if g.list.contains(&u) || g.list.len() >= 128 {
             return;
         }
         g.who = self.units[u].owner;
         g.list.push(u);
+        // `+0x90 >= 0` and active: the next figure joins behind its captain,
+        // and with `keep_captain = 1` so that it is not swapped back for one.
+        if let Some(sub) = self.units[u].o_down
+            && self.units[sub].alive()
+        {
+            self.group_add_keeping(g, sub, true);
+        }
     }
 
     /// `Groups::push_group(who, g, force)` (§3.2), the one rule that is
@@ -249,10 +305,17 @@ impl Sim {
     /// `NUM_FORM_CAT`, so it leads only when it is the first candidate and
     /// loses to any typed one that follows.
     pub fn group_find_leader(&self, g: &Group) -> Option<usize> {
+        self.group_find_leader_slot(g).map(|(u, _)| u)
+    }
+
+    /// [`Self::group_find_leader`] with the out-parameter the original also
+    /// fills: the winner's **index in `list`**, which `compute_form` uses to
+    /// read the leader's own `angles` byte (§6.3).
+    pub fn group_find_leader_slot(&self, g: &Group) -> Option<(usize, usize)> {
         let human = self.nation[g.who as usize].human;
         for on_map_only in [true, false] {
-            let mut best: Option<(usize, usize)> = None;
-            for &u in &g.list {
+            let mut best: Option<(usize, usize, usize)> = None;
+            for (i, &u) in g.list.iter().enumerate() {
                 if !self.units[u].alive() || !self.units[u].captain {
                     continue;
                 }
@@ -262,12 +325,12 @@ impl Sim {
                 let key = self.units[u].ty.map_or(crate::form::cat::NUM, |t| {
                     crate::form::type_cat(&self.unit_types[t], t, human)
                 });
-                if best.is_none_or(|(k, _)| key < k) {
-                    best = Some((key, u));
+                if best.is_none_or(|(k, _, _)| key < k) {
+                    best = Some((key, u, i));
                 }
             }
-            if let Some((_, u)) = best {
-                return Some(u);
+            if let Some((_, u, i)) = best {
+                return Some((u, i));
             }
         }
         None
@@ -583,19 +646,22 @@ impl Sim {
         // `get_form_mod_option`, which is 50 for an army and stays 50.
         let width = self.group_form_mod_option(g);
 
-        // §6.4: the slot table. `facing` is the group's own mirror flag —
-        // `compute_form` toggles it around the call when the leader points
-        // more than 90° from the formation's bearing, and toggles it back,
-        // so the value the layout sees can differ from the one the record
-        // keeps. Nothing in this simulation ever sets it, so both are 0.
+        // §6.4: the slot table. `facing` is the group's own mirror flag, and
+        // `compute_form` **toggles it around the call** when the leader is
+        // pointing more than 90° from the formation's bearing, toggling it
+        // back after — so the mirror the layout uses is not the `facing` the
+        // record keeps. run31 shows the two coming apart: two of its moves
+        // carry `facing 1` and lay out unmirrored, the third carries
+        // `facing 1` and mirrors (§6.3, §13).
         let facing = self.group_facing(g);
+        let reverse = facing != self.group_leader_faces_away(g, angle);
         let slots = self.form_compute(
             g,
             to,
             angle,
             form,
             width,
-            facing,
+            reverse,
             false,
             &self.group_angles(g),
         );
@@ -663,8 +729,15 @@ impl Sim {
             self.add_move_order(u, slot, kind, queue, action);
         }
         self.bump_order_num(g);
+        // The order matters and run31 settles it: `Form::compute`'s tail
+        // writes `o_angle` and `o_dist` from the leader's slot, and then
+        // `action_move_near` writes `o_angle` again — with the **formation
+        // angle** — for a `QUEUE_NEW`/`QUEUE_LAST` move (`00704990:464`).
+        // So the record's `o_angle` is the formation's bearing and its
+        // `o_dist` is the leader's offset within the block, which is how
+        // run31 measures §6.4's displacement.
+        self.record_form(g, &slots, to);
         self.record_move(g, to, angle, form, queue);
-        self.record_form(g, &slots);
     }
 
     /// `Group::action_siege_attack_to(x, y, ·, ·, angle)` (§9).
@@ -900,6 +973,60 @@ impl Sim {
         }
     }
 
+    /// `Group::refresh_group_order@00713a50` (§6.8) — hand the group's
+    /// formation over to `member`, which becomes the block's origin and the
+    /// object every member's group order names.
+    ///
+    /// `Unit::do_group_move@005e79a0` calls it when the unit named by the
+    /// order's `oxx` is no longer usable — dead, off the map, in another
+    /// group, or no longer holding a matching group order — and the mover is
+    /// still more than `0x5ff` away. The trigger is order machinery the
+    /// simulation stands in for (§12's third seam); the **effect** is this,
+    /// and it is what run31's record actually shows: the table it dumps is
+    /// `compute_dests`' output re-origined nought or once.
+    ///
+    /// Returns whether the group had a slot for `member`.
+    pub fn group_refresh_order(&mut self, g: &Group, member: usize) -> bool {
+        let (Some(s), Some(i)) = (g.army, g.list.iter().position(|&u| u == member)) else {
+            return false;
+        };
+        self.armies[g.who as usize].list[s].group.reorigin(i);
+        let theta = self.units[member].movement.facing;
+        let off = self.armies[g.who as usize].list[s].group.off.clone();
+        let curr = Sim::form_update_positions(&off, theta);
+        self.armies[g.who as usize].list[s].group.curr = curr;
+        true
+    }
+
+    /// `Group::compute_form`'s own reverse test (§6.3): is the leader
+    /// pointing more than 90° away from the formation's bearing?
+    ///
+    /// `compute_form@00707c80` flips `facing` when it holds, calls
+    /// `Form::compute` with the flipped value, and flips it back — so the
+    /// mirror the layout uses is `facing XOR this`, and the record only ever
+    /// shows `facing`. The heading is the **leader's** own, offset by its
+    /// slot's angle byte, and the compare is unsigned on the wrapped
+    /// difference so both bounds are inclusive.
+    ///
+    /// The byte's **sign** in that sum is not pinned by any capture: the
+    /// decompiler renders it `angle + (char)angles[slot] * -0x1000000`, and
+    /// every group any run has dumped carries `angles` of all zero, so a
+    /// formation that leans (Refused, Envelop, either Echelon) is what would
+    /// settle it. Neither is the predicate itself — see §13.
+    fn group_leader_faces_away(&self, g: &Group, angle: Angle) -> bool {
+        let Some((u, slot)) = self.group_find_leader_slot(g) else {
+            return false;
+        };
+        let byte = self.group_angles(g).get(slot).copied().unwrap_or(0);
+        let heading = self.units[u]
+            .movement
+            .facing
+            .0
+            .wrapping_sub(i32::from(byte) << 24);
+        let d = heading.wrapping_sub(angle.0) as u32;
+        (0x4000_0000..=0xc000_0000).contains(&d)
+    }
+
     /// `GroupData::facing` — the mirror flag the layout reads.
     fn group_facing(&self, g: &Group) -> bool {
         g.army
@@ -923,7 +1050,7 @@ impl Sim {
     /// off the leader's own heading; it is written here from the same
     /// heading so the record has a value the moment the move is issued,
     /// which is what run29's window compares against.
-    fn record_form(&mut self, g: &Group, f: &crate::form::Form) {
+    fn record_form(&mut self, g: &Group, f: &crate::form::Form, to: Pos) {
         let Some(s) = g.army else { return };
         let off: Vec<(i32, i32)> = f
             .off
@@ -937,8 +1064,7 @@ impl Sim {
             .collect();
         let theta = f.o.map_or(Angle(0), |u| self.units[u].movement.facing);
         let curr = Sim::form_update_positions(&off, theta);
-        let (o_angle, o_dist) =
-            Sim::form_leader_offset(f, self.armies[g.who as usize].list[s].group.o);
+        let (o_angle, o_dist) = Sim::form_leader_offset(f, to);
         let a = &mut self.armies[g.who as usize].list[s];
         a.group.form_num = g.num();
         a.group.off = off;
@@ -1073,11 +1199,12 @@ mod tests {
     ///
     /// The old simulation took the first on-map captain outright, which is
     /// only right for a group of one category — and every group in every
-    /// dump so far is exactly that, which is why no diff caught it. The
-    /// capture that would: a group of **two** categories whose members
-    /// have **different headings**, moving in a formation with non-zero
-    /// `off`, so that `GROUPDATA`'s `curr` says whose heading
-    /// `update_positions` rotated by (§6.6).
+    /// dump before run31 was exactly that, which is why no diff caught it.
+    /// run31 is the capture and it agrees:
+    /// `run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns`
+    /// stands its twelve squads up in the harness and `find_leader` names
+    /// the first **hoplite** captain, member 12 of 36, where the old rule
+    /// would have named the slinger at member 0.
     #[test]
     fn find_leader_takes_the_lowest_type_cat_and_ties_to_the_first() {
         use crate::combat::mask;
@@ -1136,6 +1263,85 @@ mod tests {
             s.units[u].health = 0;
         }
         assert_eq!(s.group_find_leader(&group_of(1, &[a, b, c, d])), None);
+    }
+
+    /// `Group::add`'s two recursions (§4.1): a **captain** drags its figures
+    /// in behind it, and a **figure** is refused and its captain taken
+    /// instead. That is why a player's selection of twelve squads is a
+    /// group of thirty-six, and it is the shape run31 dumps.
+    #[test]
+    fn adding_a_captain_takes_its_figures_and_adding_a_figure_takes_its_captain() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let squad = |s: &mut Sim, n: i32| {
+            let c = spawn(s, 1, t, Pos::new(0x1000 + n * 0x80, 0x1000));
+            let f1 = spawn(s, 1, t, Pos::new(0x1000 + n * 0x80, 0x1000));
+            let f2 = spawn(s, 1, t, Pos::new(0x1000 + n * 0x80, 0x1000));
+            for f in [f1, f2] {
+                s.units[f].captain = false;
+                s.units[f].o_up = Some(c);
+            }
+            s.units[c].o_down = Some(f1);
+            s.units[f1].o_down = Some(f2);
+            (c, f1, f2)
+        };
+        let (c0, a0, b0) = squad(&mut s, 0);
+        let (c1, a1, b1) = squad(&mut s, 1);
+
+        let mut g = Group::stack(1);
+        s.group_add(&mut g, c0);
+        s.group_add(&mut g, c1);
+        assert_eq!(
+            g.list,
+            vec![c0, a0, b0, c1, a1, b1],
+            "each captain followed by its own figures, in `o_down` order"
+        );
+
+        // A figure is never a member in its own right: asking for one adds
+        // its captain, and with the captain already in, nothing happens.
+        let mut h = Group::stack(1);
+        s.group_add(&mut h, b1);
+        assert_eq!(h.list, vec![c1, a1, b1], "the figure's whole squad");
+        let before = h.list.clone();
+        s.group_add(&mut h, a1);
+        assert_eq!(h.list, before, "and a second ask is a no-op");
+
+        // A dead figure is left out, and its own subordinate with it —
+        // `+0x90 >= 0` is tested on the object, not the chain.
+        s.units[a0].health = 0;
+        let mut k = Group::stack(1);
+        s.group_add(&mut k, c0);
+        assert_eq!(k.list, vec![c0], "the chain stops at the dead figure");
+    }
+
+    /// `Group::refresh_group_order` (§6.8) — the second writer of `off`,
+    /// and the one that makes run31's frame 204 different from its frame
+    /// 328 without a single number of the layout changing.
+    ///
+    /// The block is slid so that the taking member sits on the origin, over
+    /// `form_num` entries; `curr` is then re-rotated by **that** member's
+    /// heading rather than the old leader's.
+    #[test]
+    fn a_refresh_re_origins_the_table_onto_the_member_that_took_it_over() {
+        let mut st = GroupState {
+            form_num: 3,
+            off: vec![(0, 0), (-9, 0), (9, -3), (99, 99)],
+            ..GroupState::default()
+        };
+        st.reorigin(1);
+        assert_eq!(
+            st.off,
+            vec![(9, 0), (0, 0), (18, -3), (99, 99)],
+            "slid by member 1's own slot, and only over form_num of them"
+        );
+        // Idempotent on the member it is already origined at.
+        let again = st.off.clone();
+        st.reorigin(1);
+        assert_eq!(st.off, again);
+        // A slot past `form_num` is not an origin the walk can reach, but
+        // asking for one still slides the block it does reach.
+        st.reorigin(2);
+        assert_eq!(st.off, vec![(-9, 3), (-18, 3), (0, 0), (99, 99)]);
     }
 
     #[test]

@@ -6061,4 +6061,267 @@ mod army_tests {
             "the dumped heading is the rotation's own on {exact} of {frames}"
         );
     }
+
+    /// run31's thirty-six-member group, stood up in the harness from the
+    /// install's own columns and laid out by `sim::form` — and every one of
+    /// the 40 records reproduced, all 36 slots, both coordinates.
+    ///
+    /// The chain, with nothing fitted in the middle:
+    ///
+    /// 1. The record's twelve squads are two types. `unitrules.xml` gives
+    ///    Hoplites and Slingers `X_SPACING 12`, `Y_SPACING 12`,
+    ///    `GUY_SPACING 12` and `UBER_SIZE 3`, and `UnitType::init`
+    ///    multiplies the first two by `UNIT_FORMATION_SPACING` and the third
+    ///    by `UNIT_GUY_SPACING` — both 12 — so the columns are 144.
+    /// 2. `Form::categorize` widens a multi-figure type's rank to
+    ///    `min(uber_size, 3) × x_spacing`, so the category's width is
+    ///    **432**, and its depth `⌈3/3⌉ × 144 = 144`.
+    /// 3. `type_cat` puts the hoplites in `FORM_CAT_FOOT` and the slingers,
+    ///    which have range, in `FORM_CAT_FOOT_RANGED` — eight captains and
+    ///    four. `span = max(8 × 432 / 2, 4 × 432) = 1728`, `form_mod` is 50,
+    ///    so both categories are **4** columns wide.
+    /// 4. `Group::add`'s subordinate recursion (§4.1) turns twelve captains
+    ///    into **36** members, each captain followed by its two figures —
+    ///    which is the record's own `list`, object for object.
+    /// 5. `compute_dests` places the captains, hangs each follower off its
+    ///    captain by one `guy_spacing`, stacks `FOOT_RANGED` behind `FOOT`,
+    ///    and slides the block onto the anchor.
+    ///
+    /// **What the record adds, and what no earlier pass had looked for**:
+    /// its offsets are not always `compute_dests`' output. One of the forty
+    /// frames is that output **re-origined onto another member**, by
+    /// `Group::refresh_group_order` (`docs/GROUPS.md` §6.8) — and that is
+    /// the whole of §4.4's old question about why the leader is object 9 on
+    /// frame 204 and object 6 from 328 on. `find_leader` picks object 6 both
+    /// times; frame 204's record is one refresh past the layout.
+    #[test]
+    fn run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns() {
+        use sim::form::{cat, formation, type_cat};
+        use sim::group::Group;
+        use sim::movement::Angle;
+        let Some(inst) = install() else { return };
+        let Some(moves) = run31_moves() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+
+        // ---- the record's own membership, and the two types behind it ----
+        let first = &moves[0];
+        let objs: Vec<i64> = first.group.members.iter().map(|m| m.o).collect();
+        let type_of = |o: i64| -> usize {
+            let u = &first.units[&o];
+            loaded
+                .unit_of_type_index(i32::try_from(u.guys[0].kind.expect("a guy kind")).unwrap())
+                .expect("the member's type")
+        };
+        let kinds: Vec<usize> = objs.iter().map(|&o| type_of(o)).collect();
+        // Four squads of one type then eight of the other, three figures each.
+        let ranged = kinds[0];
+        let foot = kinds[12];
+        assert_ne!(ranged, foot, "two types");
+        assert!(kinds[..12].iter().all(|&t| t == ranged));
+        assert!(kinds[12..].iter().all(|&t| t == foot));
+        assert_eq!(type_cat(&loaded.unit_types[foot], foot, true), cat::FOOT);
+        assert_eq!(
+            type_cat(&loaded.unit_types[ranged], ranged, true),
+            cat::FOOT_RANGED
+        );
+        for &t in &[foot, ranged] {
+            let c = &loaded.unit_types[t].combat;
+            assert_eq!(
+                (c.x_spacing, c.y_spacing, c.guy_spacing, c.uber_size),
+                (144, 144, 144, 3),
+                "{}: X_SPACING/Y_SPACING/GUY_SPACING 12 and UBER_SIZE 3",
+                loaded.unit_names[t]
+            );
+        }
+
+        // ---- the same group, stood up in the harness ----
+        let mut s = sim::Sim::new(
+            sim::tuning::Tuning::RON,
+            sim::world::World::new(400, 400),
+            2,
+        );
+        s.nation[0].human = true;
+        let mut ours = Vec::new();
+        for &t in &[ranged, foot] {
+            let mut proto = loaded.unit_types[t].clone();
+            proto.tree = None;
+            ours.push(s.add_unit_type(proto));
+        }
+        // Twelve squads, each a captain and two figures down its `o_down`
+        // chain, spawned in the record's own object order so that the
+        // harness's indices line up with the record's slots.
+        let mut captains = Vec::new();
+        for squad in 0..12 {
+            let ty = ours[usize::from(squad >= 4)];
+            let mut chain = Vec::new();
+            for figure in 0..3 {
+                let idx = i16::try_from(s.units.len()).unwrap();
+                let mut u = Unit::new(0, idx, Pos::new(0x4000 + squad * 0x100, 0x4000), 120);
+                u.ty = Some(ty);
+                u.on_map = true;
+                u.captain = figure == 0;
+                let u = s.add_unit(u);
+                chain.push(u);
+            }
+            s.units[chain[0]].o_down = Some(chain[1]);
+            s.units[chain[1]].o_up = Some(chain[0]);
+            s.units[chain[1]].o_down = Some(chain[2]);
+            s.units[chain[2]].o_up = Some(chain[0]);
+            captains.push(chain[0]);
+        }
+        // §4.1: adding the twelve captains pulls in every figure behind its
+        // own, which is the record's `list` — a player's selection group
+        // holds 36 members and not 12.
+        let mut g = Group::stack(0);
+        for &c in &captains {
+            s.group_add(&mut g, c);
+        }
+        assert_eq!(g.list.len(), 36, "the subordinate recursion");
+        assert_eq!(
+            g.list,
+            (0..36).collect::<Vec<usize>>(),
+            "and in captain-then-figures order, like the record's own list"
+        );
+        assert_eq!(
+            s.group_find_leader(&g),
+            Some(12),
+            "find_leader takes the lowest category, ties to the first — the \
+             first hoplite captain, not the first member"
+        );
+        assert_eq!(s.group_form_mod_option(&g), 50, "the record's form_mod");
+
+        // ---- the layout, both mirrors ----
+        let click = Pos::new(
+            i32::try_from(first.group.ox).unwrap(),
+            i32::try_from(first.group.oy).unwrap(),
+        );
+        let table = |reverse: bool, dest: Pos, theta: Angle| {
+            s.form_compute(
+                &g,
+                dest,
+                theta,
+                formation::LINE,
+                s.group_form_mod_option(&g),
+                reverse,
+                false,
+                &[],
+            )
+        };
+        let probe = table(false, click, Angle(0));
+        assert_eq!(probe.num_category[cat::FOOT], 8, "eight hoplite captains");
+        assert_eq!(probe.num_category[cat::FOOT_RANGED], 4, "four slinger ones");
+        assert_eq!(probe.x_spacing[cat::FOOT], 432, "3 × X_SPACING 12 × 12");
+        assert_eq!(probe.y_spacing[cat::FOOT], 144, "⌈3/3⌉ × Y_SPACING 12 × 12");
+        // The anchor is the first member of the lowest non-empty category,
+        // which is the leader `find_leader` names.
+        assert_eq!(
+            probe.off[12],
+            (0, 0),
+            "compute_dests slides the block onto the leader's slot"
+        );
+
+        // ---- every frame, every slot ----
+        let (mut checked, mut refreshed, mut mirrored) = (0usize, 0usize, 0usize);
+        let mut orders_checked = 0usize;
+        for m in &moves {
+            let tag = format!("run31/{}", m.frame);
+            let rec: Vec<(i32, i32)> = m
+                .group
+                .members
+                .iter()
+                .map(|x| {
+                    (
+                        i32::try_from(x.off_x).unwrap(),
+                        i32::try_from(x.off_y).unwrap(),
+                    )
+                })
+                .collect();
+            let angles: std::collections::BTreeSet<i64> =
+                m.orders.values().filter_map(|o| o.angle).collect();
+            assert_eq!(angles.len(), 1, "{tag}: one formation angle");
+            let theta = Angle(i32::try_from(*angles.iter().next().unwrap()).unwrap());
+            let clicks: std::collections::BTreeSet<(i64, i64)> = m
+                .orders
+                .values()
+                .filter_map(|o| Some((o.orig_x?, o.orig_y?)))
+                .collect();
+            let (cx, cy) = *clicks.iter().next().unwrap();
+            let dest = Pos::new(i32::try_from(cx).unwrap(), i32::try_from(cy).unwrap());
+
+            // Exactly one mirror reproduces the frame, up to the re-origin.
+            let mut hit = None;
+            for reverse in [false, true] {
+                let f = table(reverse, dest, theta);
+                let quant: Vec<(i32, i32)> = f
+                    .off
+                    .iter()
+                    .map(|&(x, y)| (sim::form::Form::quantise(x), sim::form::Form::quantise(y)))
+                    .collect();
+                // `refresh_group_order` re-origins the *quantised* table, so
+                // the comparison is exact once both are put on the same slot.
+                let origin = (0..36).find(|&i| rec[i] == (0, 0)).expect("an anchor");
+                let mut ours = quant.clone();
+                let mut st = sim::group::GroupState {
+                    form_num: 36,
+                    off: ours.clone(),
+                    ..sim::group::GroupState::default()
+                };
+                st.reorigin(origin);
+                ours = st.off.clone();
+                if ours == rec {
+                    hit = Some((reverse, f, origin));
+                    break;
+                }
+            }
+            let Some((reverse, f, origin)) = hit else {
+                panic!("{tag}: neither mirror reproduces the record's 36 slots");
+            };
+            checked += 1;
+            if reverse {
+                mirrored += 1;
+            }
+            if origin != 12 {
+                refreshed += 1;
+                assert_eq!(origin, 15, "{tag}: run31's one refresh is onto slot 15");
+                continue;
+            }
+
+            // An un-refreshed frame: the **destinations** are ours too. The
+            // order's own `x`/`y` is the slot put through §6.6 step 6's
+            // `UCoord` (`/0x30`) — floor to the 48-unit cell and back at its
+            // centre, which is exactly `Unit::add_move_order`'s snap — and
+            // it lands on every member of every frame, all three moves.
+            for (&form_id, o) in &m.orders {
+                let i = usize::try_from(form_id).unwrap();
+                let want = Pos::new(
+                    f.to[i].x.div_euclid(0x30) * 0x30 + 0x18,
+                    f.to[i].y.div_euclid(0x30) * 0x30 + 0x18,
+                );
+                assert_eq!(
+                    (i64::from(want.x), i64::from(want.y)),
+                    (o.x.expect("x"), o.y.expect("y")),
+                    "{tag}/{form_id}: the slot destination, snapped"
+                );
+                orders_checked += 1;
+            }
+            // `o_dist` is `Form::compute`'s leftover — the distance from the
+            // order's point to the leader's slot, which is exactly the
+            // half-column the even count shifted the block by.
+            assert!(
+                (m.group.o_dist - 216).abs() <= 1,
+                "{tag}: o_dist {} is x_spacing/2",
+                m.group.o_dist
+            );
+        }
+        assert_eq!(checked, moves.len(), "every frame reproduced");
+        assert_eq!(refreshed, 1, "one of the forty is a re-origin");
+        assert!(
+            orders_checked >= 900,
+            "{orders_checked} slot destinations reproduced"
+        );
+        assert!(
+            mirrored > 0 && mirrored < checked,
+            "run31 has moves both ways: {mirrored} of {checked} mirrored"
+        );
+    }
 }

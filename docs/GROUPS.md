@@ -243,6 +243,18 @@ originates `param_4 = 1` is `Group::sort@00708090`'s fix-up
   `keep_captain = 1`.
 - `id >= 0` → `compute_speed`.
 
+**Implemented 2026-08-26** — `Sim::group_add_keeping`, with `Unit::o_up`
+and `Unit::o_down` for the two shorts. The consequence is the whole reason
+run31's group is 36 and not 12: adding a captain drags its figures in
+behind it, in `o_down` order, and adding a figure adds its captain instead.
+`Group::sort@00708090` is the fix-up that keeps that ordering true — it
+walks the list and, on a follower whose captain is not the last one seen,
+`kill`s it and re-`add`s it with `keep_captain = 0`, which (a follower
+never being added in its own right) simply drops it. It is `categorize`'s
+own **first statement**, so every formation the engine has ever laid out
+ran it; it is not implemented, because the simulation only builds lists
+that are already in order.
+
 ### 4.2 `Group::kill(o, who, keep_captain, const)@00714110`
 
 The mirror: a non-captain kills its captain instead; a captain's
@@ -303,14 +315,21 @@ is twelve squads selected slingers-first, so `list[0]` is
 first-on-map-captain rule cannot produce. The check is
 `run31_s_group_order_names_a_leader_the_first_member_rule_would_miss`.
 
-**What it does *not* settle**, and it is now the most concrete open
+~~**What it does *not* settle**, and it is now the most concrete open
 question this document has: run31's leader is object **9** on frame 204
 and object **6** on frames 328 onward — both hoplite captains, both
 `FORM_CAT_FOOT`, and object 6 comes first in `list`. A tie going to the
 first would name 6 every time. So either the walk is not the `list` order
-this document assumes, or one of the two failed a test on that frame.
-Nothing in the window says which; a reproduction of the whole 36-member
-table (§12.1) is what would.
+this document assumes, or one of the two failed a test on that frame.~~
+**Answered 2026-08-26 by the 36-member table** (§6.8, §12.2), and neither
+horn was right: **`find_leader` names object 6 both times.** `oxx` is not
+`find_leader`'s output but the *current origin of the block*, and
+`Group::refresh_group_order` moves it whenever the unit it names can no
+longer serve. Frame 204's record is `compute_dests`' table re-origined onto
+member 15 — object 9 — and frames 328 onward are the table itself, with
+object 6 on the origin exactly as this section's rule says. Frame 205, one
+frame later, has it re-origined again onto member 24. The layout never
+changed; only which member the block was hung from.
 
 `GroupData::is_on_map@0070c450` is true for a building group with members,
 and for a unit group with at least one active on-map captain.
@@ -460,6 +479,36 @@ position translated by its current move's origin when that origin is within
 `Form::compute@0072e8e0` is `compute_rows_and_columns` then `compute_dests`,
 and finally `group.o_angle = find_angle(…)`, `group.o_dist =
 vector_dist(…)`.
+
+**The mirror the layout uses is not the `facing` the record keeps**, and
+run31 is where that stops being a footnote. Because the toggle is symmetric,
+`GROUPDATA` only ever prints the *pre-call* value, while `Form::compute`
+sees `facing XOR (leader ≥ 90° off the bearing)` — so a dumped `facing 1`
+says nothing on its own about whether the block is mirrored.
+run31's three moves show both halves: two carry `facing 1`, and one of them
+lays out **unmirrored** while the other mirrors; the third carries
+`facing 0` and lays out unmirrored. Each of the three is reproduced exactly,
+all 36 slots, by one of the two mirrors
+(`run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns`).
+
+What the capture does **not** do is confirm the predicate, and this is now
+the sharpest thing this document has open. Taking `find_leader`'s own member
+— object 6 — and its logged heading against the move's own angle, the two
+are 76° apart at the frame that mirrors *contrary* to its `facing`, which
+is inside 90° and so predicts no toggle. Either the heading at the moment of
+the call was not the one the end-of-frame dump prints (it is a mid-frame
+quantity for `curr`; see §6.6), or `facing` itself moved between the clicks,
+and nothing in the file writes it for a ground group but this toggle and
+`Group::clear`. §13 carries it with the capture that would settle it.
+
+`o_angle` is **written twice**, and the second write is the one that lands:
+`Form::compute`'s tail puts the leader-slot bearing in it, and then
+`action_move_near@00704990:464` overwrites it with the **formation angle**
+for a `QUEUE_NEW`/`QUEUE_LAST` move, along with `(ox, oy) = the click`. It
+does not touch `o_dist`. run31 shows both: every one of its 36 members'
+`GroupMoveOrder` carries an `angle` equal to the group's `o_angle` to the
+bit, on all three moves — and its `o_dist` is 215 or 217 where the
+leader-slot offset is 216 (§6.4).
 
 ### 6.4 The slot table
 
@@ -675,10 +724,35 @@ the whole anchor rather than by its `y` alone, that member's order would
 point at the click itself. Frame 204's is the click `(9123, 5841)` against
 a destination of `(9096, 5640)`.
 
-What the capture does **not** yet do is reproduce the displacement's
-size. That needs the whole 36-member table, which needs the follower arm
-(§12.1) and an account of the leader (§4.4); it is the next step and the
-record is on disk for it.
+~~What the capture does **not** yet do is reproduce the displacement's
+size.~~ **The size is measured, 2026-08-26**, and the record hands it over
+in a field nobody had read: **`o_dist` is the displacement.**
+`Form::compute`'s tail measures from the order's point to the *leader's*
+slot, and the leader is the anchor — so `o_dist = |anchor_x|`, and
+`action_move_near` overwrites `o_angle` afterwards but leaves this
+(§6.3). For run31's group the anchor is a column count's half-step off
+centre, `x_spacing/2 = 432/2 = **216**`, and the record prints **215** on
+one move and **217** on the other two — `vector_dist`'s octagonal
+approximation of the same 216 at three different bearings. The whole
+36-member table is now reproduced from the install's own columns
+(§12.2), so the displacement is derived rather than fitted.
+
+**The anchor rule is confirmed on the listing**, not only the decompile:
+`72d17c`–`72d198` is `cmpl %eax, -0x1c(%ebp)` (the rank-stack's `prev`
+against this member's category), `cmpl $0x0, -0x20(%ebp)` (its `cat_id`),
+then `movl %esi, -0x40(%ebp)` / `movl %ebx, -0x38(%ebp)`. So the anchor is
+`cat_id 0` of the lowest non-empty category, full stop — which is the same
+member `find_leader` names. A record whose block sits somewhere else has
+been **re-origined** since, and that is §6.8.
+
+**Where the slot destination ends up in the order.** §6.6 step 6 passes it
+as a `UCoord` (`/0x30`), and the round trip is lossy in a way that is
+exactly `Unit::add_move_order`'s own snap: the `MOVEORDER`'s `x`/`y` is
+`floor(to / 48) × 48 + 24`. run31 reproduces all 36 members' destinations
+that way on every frame the un-refreshed table is readable — and note it is
+`x`/`y` that carries it, **not** `dest_x`/`dest_y`, which is the path
+stack's current waypoint (`docs/ORDERS.md` §11.1) and lags a whole click
+behind on most members.
 
 The quantisation is a **floor**: `init_coord_lookup_array@00681db0` builds
 `div_3_table` as `j / 3` for `j ≥ 0` and `(j − 2) / 3` for `j < 0`, which
@@ -929,6 +1003,60 @@ leader's, and `do_group_move` re-derives theirs each frame.
 Finally every member's stack is inverted, `group.order_num += 1`, and the
 `Form`'s tables are zeroed.
 
+### 6.8 `Group::refresh_group_order@00713a50` — the other writer of `off`
+
+Found 2026-08-26, and only because run31's record refused to match a table
+that had every other number in it right. **`compute_dests` is not the last
+thing that writes the group's offsets.** Once the move is out, the block
+gets handed from member to member, and each hand-over slides it.
+
+The trigger is in `Unit::do_group_move@005e79a0`. Every member executing a
+group move first looks up the unit its order's `GroupOrder::oxx` names —
+the block's current origin — and checks that it is still usable: active, on
+the map, in **this** group, holding an order that is a group order (or is a
+`CHANGE_FORM`), and whose `GroupOrder::id` is this one's. If any of that
+fails, and the mover is still more than `0x5ff` from its own point, the
+mover calls
+
+```
+refresh_group_order(group, order_id, this->o, this->who)
+```
+
+on itself. Otherwise the fallback is `ungroup_move_order` — the member
+leaves the formation and walks alone.
+
+What the call does, in order:
+
+1. `normalize` (§4.3);
+2. reads the taking unit's own current order, its `get_group_order()`
+   (vslot `0x94`) and that order's **`form_id`** (`+0x10`) — its index into
+   the group's arrays;
+3. **subtracts `off[form_id]` from every entry**, over `form_num` of them,
+   so that the taking member sits at `(0, 0)`. The subtraction is on the
+   **quantised** offsets, the record's own small numbers, so it is exact;
+4. `Unit::modify_group_order` on every valid on-map member — this is what
+   re-points `oxx` and rewrites the destinations;
+5. `update_positions`, now off the **taking** unit's heading.
+
+So `GroupOrder::oxx` is *the block's current origin*, which starts as
+`find_leader`'s pick and moves. That is the whole of §4.4's old question
+about run31's leader, and it is why the anchor of a dumped `GROUPDATA` is
+not always the member `find_leader` would name.
+
+run31 is one frame of forty past the layout on its first move and dead on it
+for the other two: its frame 204 is `compute_dests`' table re-origined onto
+member 15, its frame 205 (no orders left, so outside the fixture) is that
+re-origined again onto member 24, and frames 328–366 are the table itself.
+Nothing about the *shape* differs between them —
+`run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns`
+reproduces all three from one computation.
+
+The simulation implements step 3 and step 5 (`GroupState::reorigin`,
+`Sim::group_refresh_order`). Steps 1, 2 and 4 need the group-order layer
+§12's third seam stands in for, and the **trigger** with them: no simulated
+group has ever lost its origin, because every member gets a plain
+`MoveOrder` that names nobody.
+
 ## 7. `Group::action_halt(mask)@0070d0c0`
 
 The scenario filter, `action_begin`, and then — **only for a unit group** —
@@ -1173,8 +1301,14 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 - the record's live fields (§1) on [`army::Army`] as `army::GroupState`,
   and `Group` as the value an action is applied to, built from an army
   (`Sim::army_group`) or on the stack (§9's sub-group, §2's probe);
-- `find_leader` (§4.4) over the sim's units, `is_on_map`, `get_stance_type`,
+- `find_leader` (§4.4) over the sim's units — with the slot index the
+  original's out-parameter carries — `is_on_map`, `get_stance_type`,
   `num_valid`, `normalize`'s prune, `find_role`;
+- **`add`'s two recursions** (§4.1): `Sim::group_add_keeping` over
+  `Unit::o_up`/`o_down`, so a group can hold a squad's figures and not just
+  its captains. Nothing in the simulation *builds* such a group yet — an
+  army holds captains — but the harness does, and it is what run31's
+  fixture stands on;
 - **`action_halt`** (§7) whole, mask and all;
 - **`action_stance`** (§8): the option count by stance type, the negative
   cycle, the per-member write and the combat table's three arms;
@@ -1192,6 +1326,9 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
   fallbacks, the anchor's Manhattan score, and the whole-group attack-move;
 - **`action_attack`** (§10): the three domain passes, the `ignore` mask, the
   `mandatory == 0` melee retarget, `order_num`;
+- **`refresh_group_order`'s re-origin** (§6.8): `GroupState::reorigin` and
+  `Sim::group_refresh_order`, the second writer of `off`. Its trigger is a
+  seam;
 - and `army.rs`'s five callers become behaviour: `do_forming`,
   `march_to_target`, `engagement`, `send_here`, `charge`, `Army::close`'s
   halt and `set_stance`.
@@ -1203,7 +1340,8 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 | ~~`Form::compute`'s slot table (§6.4)~~ | — | **Closed 2026-08-26**: `crates/sim/src/form.rs`, diffed against run29's `GROUPDATA` from the install's own columns. What is left is the four limits at the end of §6.4 — Square, the wedge's uninitialised seed, Mob's rings, and `categorize`'s two type substitutions — and every one of them is the original's |
 | the group pool (§3) | 64 slots a leader, `get_open_slot`'s recycling | one group per army, never recycled; `push_group`'s `force == 0` rule and `equals_group` are modelled, the slot allocation is not |
 | `GroupMoveOrder`, and the order's angle | §6.6's per-frame formation, and step 6's `angle + (angles[i] << 24)` | every member gets a plain `MoveOrder` whose angle is `add_move_order`'s own bearing to the slot rather than the formation's — `docs/ORDERS.md` §8.4's verdict, unchanged. The angle **byte** is now computed and carried on the group (§6.4), so what is left is the order adder, not the table. **The record now exists** (§12.1), so this seam has a diff waiting for it |
-| ~~the follower arm of `compute_dests` (§6.4)~~ | — | **Closed 2026-08-26**: `Sim::form_follower_slot`, read from `0072d3a0`–`0072d4f0` and checked by `a_follower_hangs_off_the_last_captain_alternating_sides`. The simulation still has no group that *contains* a follower — `Group::add`'s `keep_captain` (§4.1) — so the arm is implemented and unreached from the sim's own side; run31's record is what it was written against |
+| ~~the follower arm of `compute_dests` (§6.4)~~ | — | **Closed 2026-08-26**: `Sim::form_follower_slot`, read from `0072d3a0`–`0072d4f0`. ~~The simulation still has no group that *contains* a follower — `Group::add`'s `keep_captain` (§4.1).~~ It does now: `Unit::o_up`/`o_down` and `Sim::group_add_keeping` carry §4.1's two recursions whole, so a group built from captains holds every figure, and the arm is reached from the sim's own side by run31's 36-member fixture |
+| `refresh_group_order`'s **trigger** (§6.8) | `do_group_move`'s "is `oxx` still usable, and am I still `0x5ff` out" | the re-origin and the re-rotation are implemented (`GroupState::reorigin`, `Sim::group_refresh_order`); nothing in the simulation ever *fires* them, because a plain `MoveOrder` names no origin to lose. `modify_group_order`'s order rewrite is unmodelled with the rest of the group-order layer, one row up |
 | `action_guard` (§9) | the escort half of a siege attack | with siege *and* a matching area the non-siege members keep their orders instead of guarding; no traced army has siege |
 | `find_nearby_spot`'s collision (§6.6 step 4) | re-slotting an invalid slot | the sim has no unit collision, so no slot is ever invalid |
 | `invalid_loc` on a slot, the `tregion` re-slot | §6.6 step 4 | same |
@@ -1328,6 +1466,13 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
     **run31 pins it from a record** — §12.1's fourth check, whose
     unflipped control is exactly that breakage and which fails on it.
 
+12. **The 36-member table** (§12.2), one in `rondata::diff` and two in
+    `group.rs` —
+    `adding_a_captain_takes_its_figures_and_adding_a_figure_takes_its_captain`
+    for §4.1's two recursions and
+    `a_refresh_re_origins_the_table_onto_the_member_that_took_it_over`
+    for §6.8's slide. Five more deliberate breakages, all red first try.
+
 ~~What no test pins is the **positions** of an army's units in a traced
 game … which is also the capture §6.4's `to`/`off` asymmetry needs.~~ The
 asymmetry has its capture; what no test pins is still the *positions* of
@@ -1378,12 +1523,54 @@ order walk's `ends_with("ORDER")` dropped the block *and* slid every later
 `a_group_move_order_carries_both_bases_and_names_its_leader` is the parser
 test and it fails on the case-sensitive form.
 
-**What is left to do with the capture**, in order: reproduce the whole
-36-member table — which needs `Group::add`'s `keep_captain` on the sim
-side, the leader question of §4.4, and then §6.4's displacement measured
-rather than only observed; and diff `GroupMoveOrder`'s angle against
-§6.6 step 6's `angle + (angles[i] << 24)`, which §12's third seam is
-still standing in for.
+~~**What is left to do with the capture**, in order: reproduce the whole
+36-member table … and then §6.4's displacement measured rather than only
+observed~~ — **done 2026-08-26, §12.2.** What is left of the list is the
+last item: diff `GroupMoveOrder`'s angle against §6.6 step 6's
+`angle + (angles[i] << 24)`, which §12's third seam is still standing in
+for. run31 **cannot** settle it: its group is a Line, so every
+`group.angles[i]` is 0 and every order's `angle` is the formation's own,
+to the bit, on all 36 members of all 40 frames. The adder needs a
+formation that leans.
+
+## 12.2 The 36-member table, reproduced
+
+`run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns`,
+in `rondata::diff`. It stands run31's group up in the harness and runs
+`sim::form` over it — nothing fitted, no fixture written from the answer —
+and then compares against all forty records.
+
+The chain, from `unitrules.xml` to the record:
+
+| step | value |
+| --- | --- |
+| Hoplites and Slingers: `X_SPACING`/`Y_SPACING`/`GUY_SPACING 12`, `UBER_SIZE 3` | `× UNIT_FORMATION_SPACING 12` → `144` each |
+| `categorize` widens a multi-figure rank by `min(uber_size, 3)` | `x_spacing = 432`, `y_spacing = ⌈3/3⌉ × 144 = 144` |
+| `type_cat`: hoplites `FOOT`, slingers (ranged) `FOOT_RANGED` | `count = 8` and `4` captains |
+| `span = max(8 × 432 / 2, 4 × 432)`, `form_mod 50` | `1728`, so `cols = 4` for both, `rows = 2` and `1` |
+| `Group::add`'s subordinate recursion (§4.1) | **36** members, the record's own `list` object for object |
+| `compute_dests` + the rank stack + the floor divide by 48 | the record's `off`, all 36, both coordinates, all 40 frames |
+| §6.6 step 6's `UCoord` round trip on each `to` | the record's `MOVEORDER` `x`/`y`, **900** of them |
+
+What it settles that nothing before it could:
+
+- **§6.4's `to`/`off` displacement, measured**: `o_dist` is it, and it is
+  `x_spacing/2 = 216` (§6.4).
+- **§4.4's leader question, answered**: `find_leader` names object 6 both
+  times, and frame 204's record is one `refresh_group_order` past the
+  layout (§6.8).
+- **`Group::refresh_group_order` itself** — a second writer of `off` that
+  no earlier pass had looked for, found because the table would not match
+  on one frame in forty when every other number in it was right.
+- **The mirror is not `facing`** (§6.3), and the predicate behind it is now
+  this document's sharpest open question.
+
+Five deliberate breakages were run red before it landed, and each did on
+the first try: dropping `Group::add`'s subordinate recursion (12 members
+instead of 36), sizing a multi-figure type by one figure instead of three
+(`x_spacing 144`), making the re-origin a no-op (frame 204 alone fails),
+allowing only the unmirrored layout (the third click alone fails), and
+comparing the raw `to` instead of the `UCoord` round trip.
 
 ## 13. What is not established
 
@@ -1418,17 +1605,35 @@ Still open:
   ~~*Capture:* a two-category group in a formation with non-zero `off`
   whose members' **headings differ**, so that `curr` names the heading
   `update_positions` used.~~ **Taken by run31, and by a better field**:
-  `GroupOrder::oxx` names the leader outright (§4.4, §12.1). What the
+  `GroupOrder::oxx` names the leader outright (§4.4, §12.1). ~~What the
   capture opened instead is **which** of two equal-category captains
   leads — object 9 on one frame and object 6 on the next, where a
-  first-wins tie says 6 both times. That is §4.4's new open question and
-  it is the most concrete one here.
+  first-wins tie says 6 both times.~~ **Closed 2026-08-26** (§12.2):
+  `find_leader` names object 6 both times, and `oxx` is the block's
+  *current origin*, which `refresh_group_order` moves (§6.8).
 - ~~**§6.4's `to`/`off` asymmetry still has no capture.**~~ **run31 is
-  the capture** and the asymmetry is observed (§6.4, §12.1): the anchor's
-  own order does not point at the click. **Still open:** its *size*. The
-  displacement should be the rotated `anchor_x` and nothing in the record
-  measures that without the whole 36-member table, which needs the
-  follower arm on a sim-side group (§12) and the leader settled.
+  the capture**, the asymmetry is observed, ~~**Still open:** its
+  *size*~~ **and measured** (§6.4, §12.2): `o_dist` is the displacement,
+  and it is `x_spacing/2 = 216`, printed as 215 or 217 by `vector_dist`'s
+  approximation at three bearings.
+- **The mirror's predicate** (§6.3) — this document's sharpest open
+  question, and it was opened by the same capture that closed two.
+  `Form::compute` is handed `facing XOR (leader ≥ 90° off the bearing)`,
+  and `GROUPDATA` prints only `facing`. run31's three moves need the
+  mirrors 0, 0, 1 against dumped `facing` of 1, 0, 1 — so the toggle has to
+  fire on the first move and not the third, and the first move's leader is
+  76° off by its own logged heading, which predicts no toggle. Two ways
+  out and the record chooses neither: the heading at call time is not the
+  end-of-frame one (`curr` is already known to be a mid-frame quantity,
+  §6.6), or `facing` moved between the clicks, which for a ground group
+  only this toggle and `Group::clear` can do (grepped: the only other
+  writers are `action_air_patrol` and `action_flight`).
+  *Capture:* a `UNITS=3` + `GROUPS=1` window across a right-click where
+  the selected group is standing still and facing **backwards** — the
+  leader's `angle`, the order's `angle` and the group's `facing` on the
+  frame before and the frame of the click. Two clicks, one each way, would
+  pin the predicate and the byte's sign together if the formation is set
+  to Refused or an Echelon so that `angles` is not all zero.
 - **The 18 pool slots above `who*64 + 45`** (§1). Nothing allocates them
   and nothing searches them; `Groups::process` still cycles them. What they
   are for is open.
@@ -1449,7 +1654,14 @@ Still open:
   `distribute_attack`, `kill_group_move` — none of which any traced game
   has executed. `tools/trace/report.py … blind docs/` will list them.
   `distribute_attack` and `kill_group_move` were read blind (§14) and the
-  reading is still the only evidence for both.
+  reading is still the only evidence for both. **Two came off the list on
+  2026-08-26 without a trace run**: `refresh_group_order` is read and
+  implemented (§6.8), and run31's record *is* evidence it ran — one of its
+  forty frames is unexplainable without it; and `Group::sort` is read
+  (`00708090`) — it is `categorize`'s own first statement, so every
+  formation any run has laid out has executed it. The trace has not seen
+  either because no traced game has held a **player's** selection group,
+  which is a gap in the runs rather than in the reading.
 - **Why nine members of thirty-six hold a `GroupMoveOrder` and the rest a
   plain `MoveOrder`** on run31's first move — eighteen on its second and
   all thirty-six on its third. §6.6 step 6's gate does not obviously

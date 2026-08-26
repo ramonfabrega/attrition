@@ -201,6 +201,15 @@ pub struct Unit {
     /// `UnitData::is_captain` — `o_up < 0`, a unit that heads its own
     /// squad; every standalone unit is one.
     pub captain: bool,
+    /// `UnitData +0x8e` — this figure's captain, the object `Group::add`
+    /// substitutes for it when `keep_captain` is 0 (`docs/GROUPS.md` §4.1).
+    /// `None` for a captain, which is what [`Self::captain`] says: the
+    /// original keeps one short and reads its sign bit.
+    pub o_up: Option<usize>,
+    /// `UnitData +0x90` — the next figure down the squad chain, which
+    /// `Group::add` pulls in behind its captain with `keep_captain = 1`.
+    /// A three-figure squad is a captain, its `o_down`, and that one's.
+    pub o_down: Option<usize>,
     /// `unit_masks & 0x800000`: may auto-transport (`docs/TRANSPORT.md`
     /// §3). Granted at birth under the leader's level and by
     /// `check_transport`; the player's toggle writes it too.
@@ -462,6 +471,8 @@ impl Unit {
             guys: Vec::new(),
             born: -1,
             captain: true,
+            o_up: None,
+            o_down: None,
             auto_transport: false,
             never_transport: false,
             guy_flag_0x20: false,
