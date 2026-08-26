@@ -34,9 +34,10 @@ it, trust the queue below and the journal before trusting this.
 **Last landed.** **The human group move** (item 20), and it came in
 cheaper and richer than the queue had budgeted. `GameLog::full_dump`'s
 non-`DUMP_ALL` half gates `dump_groups` on `gamelog.ini`'s own `GROUPS`
-key, so the 512-slot group pool is an ordinary per-frame record at full
-speed — hundreds of frames instead of a two-frame `DUMP_ALL` window,
-which is what made a *human-timed* right-click affordable at all. The
+key, so the 512-slot group pool is an ordinary per-frame record —
+684 KB and ~0.6 frames a second, against `DUMP_ALL`'s 80 MB and two
+minutes. Hundreds of frames instead of a two-frame window, which is what
+made a *human-timed* right-click affordable at all. The
 selection turned out to be scriptable too (`select <type> who=0 [+]` from
 the cheat channel), so the only human-shaped step left is the click.
 `tools/gamelog/live.sh`, `archive.sh` and `groups.py` are new;

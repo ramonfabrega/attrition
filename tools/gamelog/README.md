@@ -23,12 +23,15 @@ argument:
 `[Start Game]` and `InitialDump=1`, which is how the type tables and
 `COMBATTABLE` were captured.
 
-**`GROUPS` is a per-frame record and it does not need `DUMP_ALL`** — but it
-will come out empty unless `DEATHS` is **off**. `GroupData::log_data` sets no
-type of its own, and `dump_deaths` ends by calling `WorldData::log_data`
-twice, so the pool is accepted against `WORLD`'s threshold instead of its own.
-`docs/ORACLE.md`, "The group pool is a per-frame record", has the whole trap
-and the line that works.
+**`GROUPS` is a per-frame record and it does not need `DUMP_ALL`** — 684 KB
+a frame and ~0.6 frames a second on run31, where `DUMP_ALL` is 80 MB and two
+minutes. But it will come out empty unless `DEATHS` is **off**, and the two
+cannot both be cheap. `GroupData::log_data` sets no type of its own, and
+`dump_deaths` ends by calling `WorldData::log_data` twice, so the pool is
+accepted against **`WORLD`**'s threshold rather than its own — and raising
+`WORLD` far enough to let it through also dumps the whole per-cell map every
+frame, three times over. `docs/ORACLE.md`, "The group pool is a per-frame
+record", has the trap and the line that works.
 
 ## `gl.py` — look at the raw file
 
@@ -135,9 +138,9 @@ and quits after it — and `window.py restore` undoes them. Run22
 (`docs/ORACLE.md`) is its first use: eight minutes for a three-block window
 at frame 3579. `window.py frames LO HI` is the **cheap** window: the two
 `rise2.ini` keys and the start dump alone, leaving the detail levels to
-`setlog.py`. A per-frame dump at the `[End Frame]` thresholds runs at full
-speed, so that window can be hundreds of frames wide rather than three, and
-run31 used it.
+`setlog.py`. A per-frame dump at the `[End Frame]` thresholds costs
+hundreds of KB a frame rather than `DUMP_ALL`'s 80 MB, so that window can be
+hundreds of frames wide rather than three, and run31 used it.
 
 **A `DUMP_ALL` window.** `LogStartFrame` / `LogEndFrame` under
 `[RISE OF NATIONS]` in **`rise2.ini`** (not `gamelog.ini`'s `Checksum

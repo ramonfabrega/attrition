@@ -1147,7 +1147,8 @@ nested records. `rondata::diff` reads the whole record (§12).
 on a twelve-squad selection, on the human's own island, under
 `[End Frame] UNITS=9 GROUPS=9` — no `DUMP_ALL`, because
 `GameLog::full_dump` gates `dump_groups` on the ini's own `GROUPS` key and
-the pool is therefore a **per-frame record at full speed**
+the pool is therefore an ordinary **per-frame record** — 684 KB and
+about 0.6 sim-frames a second on run31, against `DUMP_ALL`'s 80 MB a frame
 (`docs/ORACLE.md`, "The group pool is a per-frame record"). What it holds
 that nothing before it did:
 

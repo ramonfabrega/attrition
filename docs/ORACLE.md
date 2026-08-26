@@ -2137,8 +2137,16 @@ inside the `LogStartFrame`/`LogEndFrame` window. `details[mode][0x12]` is
 bytes a slot, ~130 KB a frame.
 
 So **the group pool does not need `DUMP_ALL` at all**. `[End Frame]
-GROUPS=1` puts it in every frame at full speed, which turns a ten-minute
-250 MB window of three frames into a run that dumps hundreds. `docs/QUEUE.md`
+GROUPS=1` puts it in every frame **without `DUMP_ALL`**, which turns a
+ten-minute 250 MB window of three frames into a run that dumps hundreds.
+
+**Measured, so nobody budgets from "full speed".** run31 wrote **684 KB a
+frame** and ran at about **0.6 sim-frames a second** — 218 frames in six
+minutes, 160 MB. That is ~25× cheaper per frame than `DUMP_ALL`'s ~80 MB
+and ~12× faster, but it is *not* the 15 frames a second the engine runs at
+with the dump off, and it is seven times heavier than the `UNITS=3
+BUILDS=6 CITIES=5` line in the table above. The pool is 512 records
+whether or not any of them is live, which is most of it. `docs/QUEUE.md`
 item 20 was written expecting the expensive form; run31 used the cheap one.
 
 **But it will not come out that way on its own, and the reason is a trap
