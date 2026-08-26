@@ -178,6 +178,15 @@ impl Order {
         matches!(self.body, Body::Move(_))
     }
 
+    /// A move order's destination — the `+0x4`/`+0x8` pair
+    /// `Group::action_attack` reads off the current order (§10).
+    pub const fn move_dest(&self) -> Option<Pos> {
+        match self.body {
+            Body::Move(m) => Some(m.dest),
+            _ => None,
+        }
+    }
+
     pub const fn has(&self, f: u8) -> bool {
         self.flags & f != 0
     }

@@ -192,11 +192,18 @@ impl Sim {
     /// `ObjectData::is_in_range(o, who, x, y, …)` (§13.2). The unseen-tile
     /// test is absent: the simulation has no fog.
     pub fn is_in_range(&self, attacker: Obj, target: Obj) -> bool {
+        self.is_in_range_at(attacker, self.pos_of(attacker), target)
+    }
+
+    /// The same question asked from a **given** point rather than the
+    /// attacker's own — the eight-argument overload, which
+    /// `Group::action_attack` uses to ask whether a member's current move
+    /// order would carry it into range (`docs/GROUPS.md` §10).
+    pub fn is_in_range_at(&self, attacker: Obj, at: Pos, target: Obj) -> bool {
         if !self.active(target) {
             return false;
         }
         let ap = self.profile(attacker);
-        let at = self.pos_of(attacker);
         // `attack_dist` is called at the quarter-tile centre of the position.
         let centre = Pos::new(
             at.x.div_euclid(48) * 48 + 0x18,

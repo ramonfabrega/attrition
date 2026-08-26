@@ -78,6 +78,14 @@ pub mod role {
 pub mod uflags {
     /// `e` — a sea transport.
     pub const TRANSPORT: u32 = 0x10;
+    /// `f` — `unitrules.xml`'s own legend: "Unit flies like a helicopter".
+    /// Exactly three types carry it — `Helicopter` and the two
+    /// `Attack Helicopter`s — and all three are `<DOMAIN>Air`. It is the
+    /// exemption in `UnitData::is_plane@0046ce40`
+    /// (`domain == 2 && !(unit_flags & 0x20)`), so a helicopter is **not** a
+    /// plane: it is halted, stanced and given group orders like a ground
+    /// unit (`docs/GROUPS.md` §7, §8, §6.6).
+    pub const HELICOPTER: u32 = 0x20;
     /// `c` — the class the AI caps by city count.
     pub const CITY_CAPPED: u32 = 0x4;
     /// `d` — the second such class.

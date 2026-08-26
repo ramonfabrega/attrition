@@ -16,7 +16,23 @@
 //!
 //! What is modelled and what stands in is `docs/GROUPS.md` §12; the
 //! largest seam is `Form::compute`'s slot table (§6.4), so every member of
-//! a group is given the **same** destination.
+//! a group is given the **same** destination. That seam stands on **cost
+//! alone**: the second reading (`docs/audit/2026-08-25-groups.md`) killed
+//! both of the reasons the first gave for it — there is no float barrier,
+//! and `GroupData::log_data` dumps the table's whole output every frame.
+//!
+//! Two substitutions worth naming here rather than only in the document:
+//!
+//! - §6.6 step 1 exempts exactly `TypeIndex` `0x32..=0x35` from the
+//!   per-member `+0xaa` write. This module tests `role::CITIZEN`, and for
+//!   types loaded from the install the two are the **same set**:
+//!   `UnitType::determine_roles@0061c320` opens by setting `role = 0x200`
+//!   for those four ids and nothing else ever sets that bit
+//!   (`ai_load::RoleFacts::citizen_id`, by identity). For a hand-built test
+//!   type they are whatever the test says.
+//! - The simulation keeps an attack's target on the unit
+//!   (`combat.target`/`combat.mandatory`) rather than on the order, so
+//!   §10's `ox`/`whom`/`+0x1c` comparison is made against those.
 
 use crate::ai_load::{uflags, uflags2};
 use crate::attrition::Domain;
@@ -30,7 +46,7 @@ use crate::{Player, Sim};
 ///
 /// | seam | stands in for | what it costs |
 /// | --- | --- | --- |
-/// | `Form::compute`'s slot table | §6.4, where in the formation each member stands | every member takes the group's own destination; the group arrives as a heap |
+/// | `Form::compute`'s slot table | §6.4, where in the formation each member stands | every member takes the group's own destination; the group arrives as a heap. Diffable: `GROUPDATA` logs `off_x`/`off_y`/`curr_x`/`curr_y`/`angles`/`form_num` per member |
 /// | the group pool | §3, 64 slots a leader and `get_open_slot`'s recycling | one group per army, never recycled |
 /// | `GroupMoveOrder` | §6.6's per-frame formation | every member gets a plain `Move` — `docs/ORDERS.md` §8.4's verdict |
 /// | `action_guard` | §9's escort half | with siege *and* a matching area the escort keeps its orders; no traced army has siege |
@@ -42,8 +58,13 @@ use crate::{Player, Sim};
 /// | the area-id table (`world +0x134`) | §6.7, §9's anchor test | the sim compares tile regions instead |
 pub mod seams {}
 
-/// `GroupData::form`'s "no formation" value (§6.3).
-pub const FORM_NONE: i32 = 9;
+/// Formation 9 — **Mob**, the tenth and last of `rules.xml`'s formations
+/// (§6.4). It is a real index, not a sentinel: `GroupData::form`'s "no
+/// formation" value is **−1**, and run29 carries live groups at both. What
+/// 9 does mean is "lay nobody out": `action_move_near` treats it as one of
+/// the disqualifiers for a `GroupMoveOrder` (§6.6 step 6) and for a
+/// follower's intermediate waypoints (§6.7).
+pub const FORM_MOB: i32 = 9;
 
 /// The persistent half of an army's one `GroupData` (`docs/GROUPS.md` §1).
 ///
@@ -282,6 +303,41 @@ impl Sim {
         StanceType::None
     }
 
+    /// `GroupData::get_stance_option@0070bab0`: the **modal** stance option
+    /// over the members — a histogram of each valid member's `+0xb1` that
+    /// answers `has_stance_type` (vslot `+0x104`) for the group's own
+    /// stance type, argmax on a **strict `<`** so a tie goes to the lowest
+    /// index, and 0 when nothing counts. This, not the leader's own stance,
+    /// is what `action_stance`'s negative cycle steps from (§8).
+    fn group_stance_option(&self, g: &Group, ty: StanceType) -> i32 {
+        let n = ty.options();
+        if n == 0 {
+            return 0;
+        }
+        // Six is the largest option count (`STANCE_COMBAT`).
+        let mut counts = [0i32; 6];
+        for &u in &g.list {
+            if !self.units[u].alive() || self.unit_stance_type(u) != ty {
+                continue;
+            }
+            let opt = if ty == StanceType::Combat {
+                stance_option(self.units[u].combat.stance)
+            } else {
+                i32::from(self.units[u].stance)
+            };
+            if let Some(c) = counts.get_mut(opt as usize) {
+                *c += 1;
+            }
+        }
+        let mut best = 0usize;
+        for i in 0..n as usize {
+            if counts[i] > 0 && counts[best] < counts[i] {
+                best = i;
+            }
+        }
+        best as i32
+    }
+
     /// `GroupData::get_form`: the `unit +0xaa` shared by every active
     /// on-map member, −1 as soon as two differ.
     pub fn group_get_form(&self, g: &Group) -> i32 {
@@ -351,10 +407,23 @@ impl Sim {
         (mask & 4 != 0 && self.is_siege_unit(u)) || (mask & 2 != 0 && self.is_special_unit(u))
     }
 
+    /// `UnitData::is_plane@0046ce40` — `domain == 2 && !(unit_flags & 0x20)`.
+    /// There is no altitude test: a plane is skipped whether it is in the
+    /// air or on a runway (§7). Bit `f` is `unitrules.xml`'s "flies like a
+    /// helicopter", carried by exactly three types — `Helicopter` and the
+    /// two `Attack Helicopter`s, all of them `<DOMAIN>Air` — so a
+    /// **helicopter is not a plane** and is ordered like a ground unit.
+    fn is_plane(&self, u: usize) -> bool {
+        self.group_domain(u) == Domain::Air
+            && !self.units[u]
+                .ty
+                .is_some_and(|t| self.unit_types[t].cols.flag(uflags::HELICOPTER))
+    }
+
     /// Whether a member takes an order at all: active, on the map, and not
-    /// an airborne plane. Every action's inner loop opens with this.
+    /// a plane. Every action's inner loop opens with this.
     fn group_member_orderable(&self, u: usize) -> bool {
-        self.units[u].alive() && self.units[u].on_map && self.group_domain(u) != Domain::Air
+        self.units[u].alive() && self.units[u].on_map && !self.is_plane(u)
     }
 
     // ------------------------------------------------------------------
@@ -363,11 +432,17 @@ impl Sim {
 
     /// `Group::action_halt(mask)` (§7).
     pub fn group_action_halt(&mut self, g: &Group, mask: i32) {
+        // `0070d0c0:29`: the **group's** `form` is cleared once, before any
+        // member is examined, and only for a unit group. No member's
+        // `+0xaa` is touched — and `get_form` reads those bytes, so a halt
+        // does not cost the group the formation its members still carry.
+        if let Some(s) = g.army {
+            self.armies[g.who as usize].list[s].group.form = -1;
+        }
         for &u in &g.list {
             if !self.group_member_orderable(u) || self.ignored(u, mask) {
                 continue;
             }
-            self.units[u].form = -1;
             self.clear_orders(u);
         }
     }
@@ -383,9 +458,7 @@ impl Sim {
         if n == 0 {
             return;
         }
-        let cur = self
-            .group_find_leader(g)
-            .map_or(0, |u| stance_option(self.units[u].combat.stance));
+        let cur = self.group_stance_option(g, ty);
         let s = if s >= 0 {
             s
         } else if s == -2 {
@@ -394,7 +467,11 @@ impl Sim {
             (cur + 1) % n
         };
         for &u in &g.list {
-            if !self.units[u].alive() || self.unit_stance_type(u) != ty {
+            // `0070d440:95`: vslot `+0xc0` is `is_plane`, so a plane never
+            // receives a stance. (The building arm's gate is `is_build` —
+            // 1 for a Build and 0 for a Wall, so a wall never receives one
+            // either; the simulation has no buildings group to reach it.)
+            if !self.units[u].alive() || self.is_plane(u) || self.unit_stance_type(u) != ty {
                 continue;
             }
             if ty != StanceType::Combat {
@@ -458,28 +535,46 @@ impl Sim {
         let form = self.group_get_form(g).max(0);
 
         // §6.5: the AI branch. `hurry` is the army's, so a group with no
-        // army never takes it.
-        let hurry_city = self.group_hurry_city(g, to);
+        // army never takes it — and "hurrying" and "found a city" are two
+        // different facts, because the clear loop and the order loop do not
+        // gate on the same one.
+        let ai = self.ai_army_group(g);
+        let hurry = ai && self.armies[g.who as usize].list[g.army.unwrap_or(0)].hurry != 0;
+        let hurry_city = if hurry {
+            self.city_near(g.who, to)
+        } else {
+            None
+        };
 
         for &u in &g.list {
             if !self.group_member_orderable(u) {
                 continue;
             }
-            if g.army.is_some() {
+            if ai {
+                let shooting_siege = self.is_siege_unit(u) && self.order_type(u) == index::ATTACK;
                 match hurry_city {
-                    None => {
-                        // No hurry: a siege unit already shooting is left
-                        // entirely alone — orders, move and path.
-                        if self.is_siege_unit(u) && self.order_type(u) == index::ATTACK {
-                            continue;
-                        }
+                    Some(c)
+                        if self.is_siege_unit(u)
+                            || self.is_supply_unit(u)
+                            || self.is_hero_unit(u) =>
+                    {
+                        self.stable_in_city(u, c, angle);
+                        continue;
                     }
-                    Some(c) => {
-                        if self.is_siege_unit(u) || self.is_supply_unit(u) || self.is_hero_unit(u) {
-                            self.stable_in_city(u, c, angle);
-                            continue;
+                    _ if shooting_siege => {
+                        // The `QUEUE_NEW` clear at `70524f` gates on
+                        // `hurry` **alone**; the order loop at `7054c7` on
+                        // `hurry && a city was found`. So a siege unit that
+                        // is already shooting is left entirely alone by a
+                        // move that is not hurrying — but a hurrying army
+                        // that found no friendly city near the destination
+                        // clears its orders and then issues it nothing.
+                        if hurry && queue == QueuePos::New {
+                            self.clear_orders(u);
                         }
+                        continue;
                     }
+                    _ => {}
                 }
             }
             // §6.6 step 1: the formation index, on every member but the
@@ -576,7 +671,10 @@ impl Sim {
             let p = self.units[c].pos;
             let mut total = 0;
             for &u in &g.list {
-                if !self.units[u].alive() {
+                // `0070d830:194` gates every summed member on
+                // `is_valid_unit() && is_on_map()`, so a garrisoned or
+                // carried member does not drag the anchor towards itself.
+                if !self.units[u].alive() || !self.units[u].on_map {
                     continue;
                 }
                 let q = self.units[u].pos;
@@ -613,14 +711,35 @@ impl Sim {
                     continue;
                 }
                 // Already carrying a mandatory ATTACK on this target, out
-                // of range, with fewer than three orders queued: keep it.
-                if self.units[u].combat.mandatory
+                // of range, with fewer than three orders queued — and then
+                // two sub-arms decide (`00712490:390`–`424`). The outer
+                // test is on `get_action`, the intent under the transit
+                // legs, not on the current order's own type; the
+                // simulation keeps the target on the unit rather than on
+                // the attack order (`docs/GROUPS.md` §12), so
+                // `combat.target`/`combat.mandatory` stand in for the
+                // order's `ox`/`whom`/`+0x1c`.
+                if self
+                    .action_of(u)
+                    .is_some_and(|i| self.units[u].orders[i].index() == index::ATTACK)
+                    && self.units[u].combat.mandatory
                     && self.units[u].combat.target == Some(target)
-                    && self.order_type(u) == index::ATTACK
                     && self.units[u].orders.len() < 3
                     && !self.is_in_range(Obj::Unit(u), target)
                 {
-                    continue;
+                    // Nothing but the attack: keep it.
+                    if self.units[u].orders.len() == 1 {
+                        continue;
+                    }
+                    // Or a current *move* whose destination already puts
+                    // the target in range: it is marching into the shot.
+                    if let Some(o) = self.current_order(u)
+                        && let Some(dest) = o.move_dest()
+                        && self.is_in_range_at(Obj::Unit(u), dest, target)
+                    {
+                        continue;
+                    }
+                    // Otherwise it falls through and is re-ordered.
                 }
                 let t = if mandatory {
                     target
@@ -642,18 +761,9 @@ impl Sim {
     // The small pieces the actions share
     // ------------------------------------------------------------------
 
-    /// §6.5's hurry city: the nearest friendly city to the destination,
-    /// when this is an AI army's group and the army is hurrying.
-    fn group_hurry_city(&self, g: &Group, to: Pos) -> Option<usize> {
-        let slot = g.army?;
-        let w = g.who as usize;
-        if self.nation.get(w).is_none_or(|n| n.human) {
-            return None;
-        }
-        if self.armies[w].list[slot].hurry == 0 {
-            return None;
-        }
-        self.city_near(g.who, to)
+    /// §6.5's `ai_group`: `!(leaders[who].flags & 4) && group.army >= 0`.
+    fn ai_army_group(&self, g: &Group) -> bool {
+        g.army.is_some() && self.nation.get(g.who as usize).is_some_and(|n| !n.human)
     }
 
     /// `ObjectsData::find_city(SEARCH_FRIENDLY, who, 0x200, FILTER_ALL)`
@@ -753,6 +863,25 @@ mod tests {
             },
             ..UnitType::default()
         })
+    }
+
+    /// An air-domain type. Without `unit_flags` bit `f` it is a plane
+    /// (`UnitData::is_plane`); with it, a helicopter — which is not.
+    fn flier(sim: &mut Sim, helicopter: bool) -> usize {
+        let mut t = UnitType {
+            hits: 100,
+            combat: combat::Profile {
+                attack: 15,
+                uber_size: 1,
+                domain: Domain::Air,
+                ..combat::Profile::default()
+            },
+            ..UnitType::default()
+        };
+        if helicopter {
+            t.cols.unit_flags |= uflags::HELICOPTER;
+        }
+        sim.add_unit_type(t)
     }
 
     fn siege_type(sim: &mut Sim) -> usize {
@@ -1007,6 +1136,237 @@ mod tests {
             s.order_type(a),
             index::NONE,
             "the escort would guard the anchor; GUARD is the seam"
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // The second reading's corrections (`docs/audit/2026-08-25-groups.md`)
+    // ------------------------------------------------------------------
+
+    #[test]
+    fn halt_clears_the_group_s_form_and_leaves_every_member_s_own() {
+        // `action_halt@0070d0c0:29`: `GroupData.form = −1` is written once,
+        // on the **group**, before any member is examined. No unit's `+0xaa`
+        // is touched — and `get_form` reads the unit bytes, so writing them
+        // would make the group's next move inherit −1 instead of the form
+        // the members still carry.
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let slot = s.init_army(1, None);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::AttackTo,
+            true,
+        );
+        assert_eq!(s.armies[1].list[slot].group.form, 0, "the move settled 0");
+        assert_eq!(s.group_get_form(&g), 0, "and wrote it to both members");
+
+        s.group_action_halt(&g, 0);
+        assert_eq!(
+            s.armies[1].list[slot].group.form, -1,
+            "the halt clears the group's own form"
+        );
+        assert_eq!(
+            s.group_get_form(&g),
+            0,
+            "and leaves every member's +0xaa where it was"
+        );
+    }
+
+    #[test]
+    fn stance_cycles_from_the_modal_option_not_the_leader_s() {
+        // `action_stance@0070d440:38` seeds the cycle with
+        // `get_stance_option(NULL)` — the modal option over the members —
+        // not with the leader's own stance.
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let lead = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let g = group_of(1, &[lead, b, c]);
+        s.units[lead].combat.stance = Stance::Raid; // option 3
+        s.units[b].combat.stance = Stance::Aggressive; // option 0
+        s.units[c].combat.stance = Stance::Aggressive; // option 0
+        s.group_action_stance(&g, -1);
+        assert_eq!(
+            s.units[lead].combat.stance,
+            Stance::Defensive,
+            "the modal option is 0, so −1 steps to 1 — not to 4 from the leader's 3"
+        );
+    }
+
+    #[test]
+    fn stance_skips_a_plane_but_not_a_helicopter() {
+        // `action_stance@0070d440:95`: vslot `+0xc0` is `is_plane`, so a
+        // plane never receives a stance. A helicopter carries `unit_flags`
+        // bit `f` and is not a plane, so it does.
+        let mut s = sim();
+        let plane = flier(&mut s, false);
+        let heli = flier(&mut s, true);
+        let foot = fighter(&mut s);
+        let f = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
+        let p = spawn(&mut s, 1, plane, Pos::new(0x1100, 0x1000));
+        let h = spawn(&mut s, 1, heli, Pos::new(0x1200, 0x1000));
+        let g = group_of(1, &[f, p, h]);
+        s.group_action_stance(&g, stance_option(Stance::Raze));
+        assert_eq!(s.units[f].combat.stance, Stance::Raze);
+        assert_eq!(
+            s.units[p].combat.stance,
+            Stance::Aggressive,
+            "a plane is skipped"
+        );
+        assert_eq!(
+            s.units[h].combat.stance,
+            Stance::Raze,
+            "a helicopter is not a plane"
+        );
+    }
+
+    #[test]
+    fn a_helicopter_takes_a_group_move_where_a_plane_does_not() {
+        // The same `is_plane` split at every action's inner loop
+        // (`group_member_orderable`).
+        let mut s = sim();
+        let plane = flier(&mut s, false);
+        let heli = flier(&mut s, true);
+        let p = spawn(&mut s, 1, plane, Pos::new(0x1000, 0x1000));
+        let h = spawn(&mut s, 1, heli, Pos::new(0x1100, 0x1000));
+        let g = group_of(1, &[p, h]);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        assert_eq!(s.order_type(p), index::NONE, "a plane takes no group move");
+        assert_eq!(s.order_type(h), index::MOVE_TO, "a helicopter does");
+    }
+
+    #[test]
+    fn attack_keeps_a_lone_shot_and_a_march_into_range_and_re_orders_the_rest() {
+        // `action_attack@00712490:390`–`424`: the "already attacking" skip
+        // is conditional on two sub-arms. `orderlist.count == 1` keeps it;
+        // so does a current *move* order whose destination puts the target
+        // in range. Anything else falls through and is re-ordered.
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let foe = spawn(&mut s, 0, t, Pos::new(0x9000, 0x1000));
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1400));
+        let c = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1800));
+        for u in [a, b, c] {
+            s.add_attack_order(u, Obj::Unit(foe), QueuePos::New, true, true);
+            assert!(!s.is_in_range(Obj::Unit(u), Obj::Unit(foe)));
+        }
+        // `b` is walking somewhere that leaves the target out of range;
+        // `c`'s leg ends beside it. Both are transit moves, so the *action*
+        // under them is still the attack.
+        s.add_move_order(
+            b,
+            Pos::new(0x2000, 0x1400),
+            MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
+        s.add_move_order(
+            c,
+            Pos::new(0x8fc0, 0x1000),
+            MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
+        assert_eq!(s.units[b].orders.len(), 2);
+        assert_eq!(s.units[c].orders.len(), 2);
+
+        let g = group_of(1, &[a, b, c]);
+        s.group_action_attack(&g, Obj::Unit(foe), true, QueuePos::New, 0);
+        assert_eq!(
+            s.units[a].orders.len(),
+            1,
+            "a lone out-of-range mandatory attack on the same target is kept"
+        );
+        assert_eq!(
+            s.units[b].orders.len(),
+            1,
+            "a march that does not reach into range falls through and is replaced"
+        );
+        assert_eq!(
+            s.units[c].orders.len(),
+            2,
+            "a march that ends in range of the target is kept"
+        );
+    }
+
+    #[test]
+    fn the_siege_anchor_scores_only_members_that_are_on_the_map() {
+        // `action_siege_attack_to@0070d830:194` gates every summed member on
+        // `is_valid_unit() && is_on_map()`.
+        let mut s = sim();
+        let siege = siege_type(&mut s);
+        let foot = fighter(&mut s);
+        let near = spawn(&mut s, 1, siege, Pos::new(0x1000, 0x1000));
+        let far = spawn(&mut s, 1, siege, Pos::new(0x8000, 0x1000));
+        // A garrisoned crowd out by `far`: off the map, so it must not pull
+        // the anchor over to `far`.
+        let mut hidden = Vec::new();
+        for k in 0..6 {
+            let u = spawn(&mut s, 1, foot, Pos::new(0x8000 + k * 0x40, 0x1000));
+            s.units[u].on_map = false;
+            hidden.push(u);
+        }
+        let escort = spawn(&mut s, 1, foot, Pos::new(0x1040, 0x1000));
+        let mut list = vec![near, far, escort];
+        list.extend_from_slice(&hidden);
+        let g = group_of(1, &list);
+        let sub = group_of(1, &[near, far]);
+        assert_eq!(
+            s.siege_anchor(&g, &sub),
+            Some(near),
+            "the off-map members do not count towards the score"
+        );
+    }
+
+    #[test]
+    fn a_hurrying_army_with_no_city_strands_its_shooting_siege() {
+        // §6.5's clear/order asymmetry: the `QUEUE_NEW` clear gates on
+        // `hurry` alone (`70524f`), the order loop on `hurry && a city was
+        // found` (`7054c7`). A hurrying army whose `find_city` returns −1
+        // therefore clears a shooting siege unit's orders and gives it
+        // nothing back.
+        let mut s = sim();
+        let siege = siege_type(&mut s);
+        let slot = s.init_army(1, None);
+        let m = spawn(&mut s, 1, siege, Pos::new(0x1000, 0x1000));
+        let foe = spawn(&mut s, 0, siege, Pos::new(0x1080, 0x1000));
+        s.army_add_unit(1, slot, m);
+        s.add_attack_order(m, Obj::Unit(foe), QueuePos::New, true, true);
+        s.armies[1].list[slot].hurry = 1; // hurrying, and there is no city
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x8000, 0x8000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::AttackTo,
+            true,
+        );
+        assert_eq!(
+            s.order_type(m),
+            index::NONE,
+            "the clear ran and the order loop issued nothing"
         );
     }
 
