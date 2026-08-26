@@ -2452,14 +2452,15 @@ pathfinder's cost, `calc_gather`'s non-flat term — is untested by it. A
 seed worth keeping can be re-run once with `window.py stage` at three
 frames to get its heights; that is the only thing `DUMP_ALL` is still for.
 
-**And what it unlocked, which is bigger: a window at frame 1.** The
-`ticks before divergence` a run reports is an absolute sim-frame, so it is
-mostly a statement about where the window was put — `ledger.py` already
+**And what it unlocked: three hundred early frames, not the first one.**
+The `ticks before divergence` a run reports is an absolute sim-frame, so it
+is mostly a statement about where the window was put — `ledger.py` already
 says so and keeps `survived = ticks + 1 − lo` instead. But `survived` only
 discriminates if the window opens **before** the simulation has drifted,
-and every capture on disk opened late: run13 at 95, run31 at 149, the
-fuzzer's first at 3000. **Nobody had ever compared sim-frame 1 against the
-original, on any map.** At 50 MB a frame nobody could.
+and almost every capture opened late: run13 at 95, run31 at 149, the
+fuzzer's first at 3000. The exception is **run20**, whose `DUMP_ALL` window
+was [0, 4) — four frames for 278 MB. What the cheap window changes is the
+*width*: 300 early frames for 195 MB instead of 4 for 278.
 
 So the third run of the day was the control: `scenario.py --no-stage`
 (`FUZZ_STAGE=0`), which issues no cheat at all — not even `ai off`, whose
@@ -2472,9 +2473,13 @@ nothing was spawned by cheat.
 off on both axes at sim-frame **2** — an eighth of a tile — and player 0's
 `o 1` by 10 units at frame 4. Before that, at frame **1**, `who 1 o 0` and
 `o 6` already hold an order the sim has not issued (`Length { ours: 0,
-theirs: 1 }`). That is a floor, it is comparable between seeds, and it is
-the first honest fidelity number this project has on a map it was not
-tuned against.
+theirs: 1 }`).
+
+**run20 scores 1 as well**, on the tuned lobby, over its four frames. So
+the number is *reproducible across two maps*, which is a better thing to
+have than a novel one — and the first draft of this section claimed
+sim-frame 1 had never been compared before, which run20 disproves and one
+`--diff` would have caught. It was corrected the same day.
 
 **The height caveat was checked, not assumed.** The control's world is
 flat, so a 24-unit drift at frame 2 could have been terrain the sim cannot
@@ -2485,21 +2490,32 @@ result is *identical*: player 1 at frame 2, `(7320, 41880)` against
 `(7344, 41904)`; player 0 at frame 4, `(37840, 6385)` against `(37850,
 6384)`. **`survived = 1` is the port, not the flat map.**
 
-**Two leads came out of the same run**, and both are things 31 hand-built
-captures on one lobby could not have shown:
+**Two leads came out of the same run, and only one of them needed a new
+map** — which was settled by re-diffing run20 rather than assuming:
 
-- **The frame-0 draw count is 15 short on a map we did not tune against**
-  — `note: rng: frame 0: ours 180 draws, the original's 195`, then frame 1
-  four *over* (49 against 45). On run7's lobby the setup draws have been
-  matched for weeks.
+- **The frame-0 draw count is 15 short — on both maps.** `rng: frame 0:
+  ours 180 draws, the original's 195` on the fuzzed map, and **160 against
+  175 on run20**. The same fifteen. So it is one missing block in the
+  start-of-game path, not something the map generator does on some maps;
+  a *better* lead for being reproducible, but not one fuzzing found.
 - **The start-of-game gather rule does not generalise.**
   `check_start_orders` (`docs/AI.md` §9.3) fails on one citizen: *`who 1 o
-  6: we derived None, the log has Some(2001)`*. That is the check working
-  as designed on a map it has never seen.
+  6: we derived None, the log has Some(2001)`* — and is `[ok]` on run20.
+  **This one is the map variation's**, and so far it is the only finding
+  that is.
 
 **What a control run costs, for the record:** 195 MB, ten minutes, plus
 six more and 186 MB if the seed is worth its heights. Two runs, and the
 second is optional.
+
+**And what a re-diff of an old dump costs: thirteen seconds.** Three
+claims in the first draft of this section were tested that way afterwards
+— that sim-frame 1 had never been compared (false, run20), that the
+draw gap was map-specific (false, run20 has it), and that the who-8 panic
+needed the fuzzer (false, run31 panics on the pre-fix sim). Two of the
+three were wrong. **Before crediting a new capture with a finding, run
+the same diff against a dump already on disk**; it is the cheapest
+control this project has and it had not been in the habit.
 
 ## What is not established
 

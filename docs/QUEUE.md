@@ -51,30 +51,41 @@ something larger.
   300-frame window". `tools/fuzz/run.sh` uses it now.
 
 **The number that came out of it.** A control run — `scenario.py
---no-stage`, no cheats at all, window at **[1, 301)** — is the first time
-sim-frame 1 has ever been compared against the original **on any map**.
-It scores **`survived = 1`**: player 1's `o 0` is 24 position units off on
-both axes at frame 2, player 0's `o 1` by 10 at frame 4, and at frame 1
-two of player 1's units already hold an order the sim never issued. A
-heights sibling for the same seed (`window.py stage 1 3`, six minutes)
-returns **identical** coordinates, so this is the port and not the flat
-map that a cheap window leaves behind.
+--no-stage`, no cheats at all, window at **[1, 301)** — scores
+**`survived = 1`**: player 1's `o 0` is 24 position units off on both axes
+at frame 2, player 0's `o 1` by 10 at frame 4, and at frame 1 two of
+player 1's units already hold an order the sim never issued. A heights
+sibling for the same seed (`window.py stage 1 3`, six minutes) returns
+**identical** coordinates, so this is the port and not the flat map that a
+cheap window leaves behind.
 
-Two leads came with it, both impossible on the one lobby everything else
-was captured on:
+**And run20 scores 1 as well**, on the tuned lobby, over frames 0–4. So
+the number is *reproducible on two maps*, which is worth more than a
+novel one — but the claim that nobody had compared sim-frame 1 before is
+wrong, and was made here before it was checked. run20 has done it since
+2026-08-25. What the cheap window buys is 300 such frames instead of 4,
+for a fifth of the bytes.
 
-- **`rng: frame 0: ours 180 draws, the original's 195`** — 15 short on a
-  map we did not tune against, then 4 *over* at frame 1. On run7's lobby
-  the setup draws have matched for weeks.
+Two leads came with it. **Only one of them is the fuzzer's**, and that
+was settled by checking rather than assuming:
+
+- **`rng: frame 0: ours 180 draws, the original's 195`** — 15 short, then
+  4 *over* at frame 1. **Not a fuzzer finding.** run20 (the tuned lobby,
+  on disk since 2026-08-25) reads **160 against 175 — the same 15** — and
+  scores the same `ticks before divergence: 1`. That makes it a better
+  lead than a map-specific one, because it is a *fixed* missing block
+  reproducible on two maps; it just was not found by fuzzing.
 - **`check_start_orders` fails on one citizen** — *`who 1 o 6`: we derived
-  None, the log has 2001*. `docs/AI.md` §9.3 does not generalise off run7's
-  map.
+  None, the log has 2001*. This one **is** the fuzzer's: the same check is
+  `[ok]` on run20. `docs/AI.md` §9.3 does not generalise off the map it
+  was built on.
 
 **Then, in order:**
 
-- **The frame-0 draw gap** (15 short, above). It is the cheapest lead on
-  the board, it is upstream of everything, and the trace names every draw
-  site. Start there.
+- **The frame-0 draw gap** (15 short, above) — **and it reproduces on
+  run20**, so it can be worked without a new capture at all. It is the
+  cheapest lead on the board, it is upstream of everything, and the trace
+  names every draw site. Start there.
 - **The frame-1 order two of player 1's units hold and the sim does not**,
   and §9.3's sixth citizen. Same run, same dump
   (`gamelog-fuzz-424242-early.txt`, with `-heights` as its sibling).
@@ -91,9 +102,11 @@ before building a better one*. Today's is the same rule one step earlier:
 it.** This file had budgeted a 300-frame window against 25 MB a frame and
 concluded it was probably unaffordable. It costs 0.69, and the evidence was
 a `grep -c who2` on a file that had been on disk for eleven hours. The
-corollary for the port: **every window until today opened late** — 95,
-149, 3000 — so the first frames were never checked, and that is where the
-divergence turns out to be.
+corollary, which cost a wrong claim in this very file before it was
+checked: **run20 already compared frames 0-4 and already scored 1.** The
+cheap window's gain is 300 frames instead of 4 for a fifth of the bytes,
+not a first look - and a claim about what "nobody has ever done" is
+exactly the kind that costs a `--diff` to test and nothing to make.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -101,7 +114,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — the frame-0 draw gap: the sim makes 180 draws where the original makes 195, on the fuzzed map in gamelog-fuzz-424242-early.txt (sibling -heights). Find the missing 15.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 24, the frame-0 draw gap: 15 draws short on two maps (run20 reads 160/175, the fuzzed map 180/195). Needs no new capture. Find the missing block.`
 
 ## The queue
 
@@ -152,12 +165,27 @@ in which case say so and take that. The story of each struck item is in
     the game" and "The 300-frame window". The journal has the story.
 
     **The verdict, and it is not the one it was being judged on.** The
-    ledger's `survived` column is 1, not hundreds. But **one seed, run
-    three ways**, produced a panic (`Sim::is_enemy` with the nature
-    player), a frame-0 draw-count gap (180 against 195) and a broken
-    generalisation (§9.3's start-of-game gather rule, one citizen) — all on
-    a map nobody chose. That is what it is for, and no hand-built capture
-    on the one tuned lobby could have produced any of the three.
+    ledger's `survived` column is 1, not hundreds, and the three findings
+    it was credited with on the day were **audited the same day and two of
+    them handed back**:
+
+    - **The who-8 panic is not a fuzzer finding.** run31 — tuned lobby, no
+      cheats, on disk a day earlier — panics identically on the pre-fix
+      sim. What reached it was *stepping more frames*, not a new map and
+      not a cheat.
+    - **The frame-0 draw gap is not a fuzzer finding.** run20 is 15 short
+      too.
+    - **§9.3's sixth citizen is.** `check_start_orders` is `[ok]` on run20
+      and fails on the fuzzed map: a rule built on one map that does not
+      generalise. One finding, from **map variation**.
+
+    **And zero findings came from the cheat staging.** All three surfaced
+    at frames 0–2, before `scenario.py`'s first `add` at frame 200 could
+    fire; the control shape issues no cheat at all. So what has earned its
+    place is `seedini.py` (a new map per seed) and the early wide window.
+    `scenario.py`'s random `add`/`resource`/`military` generator — the part
+    that looks most like fuzzing — has produced nothing yet, and the next
+    session should either point it at something it can reach or drop it.
 
     **The shape it settled into.** `FUZZ_STAGE=0` — no cheats, window at
     [1, 301) — is the measuring shape; the staged shape is the coverage
@@ -235,16 +263,18 @@ in which case say so and take that. The story of each struck item is in
     dumps: `gamelog-fuzz-424242-early.txt` with
     `gamelog-fuzz-424242-heights.txt` as its `--sibling`.
 
-    - **The frame-0 draw gap.** `note: rng: frame 0: ours 180 draws, the
-      original's 195` — fifteen short — then frame 1 four *over*, 49
-      against 45. On run7's lobby the setup draws have matched for weeks,
-      so this is something the map generation or the start-of-game path
-      does on some maps and not that one. `tools/trace/` names every draw
-      site; `tools/gamelog/rngcmp.py` and `draws.py` are the instruments.
-      Upstream of everything else, and the cheapest lead on the board.
+    - **The frame-0 draw gap, on two maps.** `rng: frame 0: ours 180
+      draws, the original's 195` on the fuzzed map; **`160 against 175`
+      on run20**, the tuned lobby. The same **15**, so it is one missing
+      block and not a map accident — then frame 1 four *over* (49 against
+      45) on one and one over (52 against 53) on the other. `tools/trace/`
+      names every draw site; `tools/gamelog/rngcmp.py` and `draws.py` are
+      the instruments. Needs no new capture: run20 has been on disk since
+      2026-08-25.
     - **§9.3's sixth citizen.** `check_start_orders` fails on exactly one:
-      *`who 1 o 6`: we derived None, the log has 2001*. The rule was built
-      and confirmed on one map. `docs/AI.md` §9.3.
+      *`who 1 o 6`: we derived None, the log has 2001* — and is `[ok]` on
+      run20. The rule was built and confirmed on one map. `docs/AI.md`
+      §9.3.
 
     Neither needs a new run. Both are `rondata --diff` on a dump that
     exists.

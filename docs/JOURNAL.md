@@ -1909,14 +1909,10 @@ which is genuinely `DUMP_ALL`-only — and for a fuzzed seed there is no
 sibling to borrow it from, because the whole point is a map nothing else
 has captured.
 
-### And then the thing the cheap window actually unlocked
+### The control run, and then the audit that took two thirds of it back
 
-Every capture on disk opened its window late: run13 at 95, run31 at 149,
-the fuzzer's first at 3000. **Nobody had ever compared sim-frame 1 against
-the original, on any map.** At 50 MB a frame nobody could.
-
-So the third run was the control: `scenario.py --no-stage`, which issues
-no cheat at all — not even `ai off`, whose whole effect is to stop a leader
+The third run was the control: `scenario.py --no-stage`, which issues no
+cheat at all — not even `ai off`, whose whole effect is to stop a leader
 the sim would keep playing — and a window at [1, 301). 195 MB, ten minutes,
 301 frames, and **20** unlinked units instead of 3,610.
 
@@ -1926,23 +1922,82 @@ two of player 1's units already hold an order the sim never issued. Then
 the heights sibling — six more minutes, `window.py stage 1 3` on the same
 seed — came back **identical**, so that is the port and not the flat map.
 
-That is the first honest fidelity number this project has on a map it was
-not tuned against, and it came with two leads attached: the frame-0 draw
-count is **15 short** (180 against 195) where run7's lobby has matched for
-weeks, and `check_start_orders` fails on one citizen (*`who 1 o 6`: we
-derived None, the log has 2001*).
+The first draft of this entry called that the first honest fidelity number
+on a map we had not tuned against, and credited the fuzzer with three
+findings. **Then the session was asked, plainly, whether the fuzzing was
+real or whether the panic was a nonsense input of our own making. Two of
+the three claims did not survive the question**, and the whole audit cost
+three `--diff` runs against dumps already on disk, about forty seconds:
+
+- **The who-8 panic is not a fuzzer finding.** Reverting the sim to the
+  pre-fix commit and re-diffing **run31** — the tuned lobby, no cheats,
+  captured the previous day — panics **identically**, same line, same
+  message, same `find_muster_spot` → `nearest_enemy_attacker` stack. What
+  reached it was *stepping more frames*, not a new map and not a cheat.
+- **The frame-0 draw gap is not a fuzzer finding either.** run20 reads
+  `ours 160 draws, the original's 175` — the same **15** short — and
+  scores the same `ticks before divergence: 1`. That makes it a *better*
+  lead, because one missing block reproducible on two maps is easier to
+  chase than a map accident. It just was not found by fuzzing.
+- **§9.3's sixth citizen is.** `check_start_orders` is `[ok]` on run20 and
+  fails on the fuzzed map. A rule built and confirmed on one map that does
+  not generalise: exactly what map variation is for, and so far the only
+  thing it has produced.
+
+And **run20 had already compared sim-frame 1** — its `DUMP_ALL` window was
+[0, 4) — so the "nobody has ever" claim was wrong before it was written.
+What the cheap window actually buys is *width*: 300 early frames for 195
+MB where run20 bought 4 for 278.
+
+**Zero of the three came from the cheat staging.** All three surface at
+frames 0–2, before `scenario.py`'s first `add` at frame 200 could fire.
+What has earned its place is `seedini.py` — a new map per seed — and the
+early wide window. The random `add`/`resource`/`military` generator, the
+part that most looks like fuzzing, has produced nothing yet.
+
+### Was the fix defensive, then?
+
+Worth splitting, because the honest answer is "partly", and the parts are
+not the same size:
+
+- **Three of the five guards are defensive.** `is_enemy`/`is_ally` going
+  total, and the raw `at_war[a][b]` indexes going through `at_war_with`,
+  turn a crash into `false`. They change no outcome the original produces,
+  because the original never asks. Robustness, not fidelity — and worth
+  having, since a panic costs a ten-minute capture's whole diff.
+- **One is a live behavioural fix.** `check_hit` is a `find_unit`, and
+  `find_unit` cannot return gaia. Without the bound, a stray arrow that
+  lands within two tiles of a sheep **damages the sheep** — animals have
+  hit points, so that is a different `DeathsSync`, different health,
+  different draws. RoN cannot do it; we could. Reachable whenever a ranged
+  unit misses near an animal, and run28's map carries 47 herds.
+- **One is right-for-the-right-reason.** `valid_target`'s `7 < who`
+  changes nothing today, because gaia is also excluded incidentally by not
+  being at war with anybody. It becomes load-bearing the moment the
+  diplomacy table is anything other than the lobby's width.
+
+So the underlying defect was real and ours: we assumed a unit's owner is
+always a lobby player, and in Rise of Nations it never only is. But
+"the fuzzer found a crash" and "we were getting a rule wrong" are two
+different claims, and only the second is worth the ink.
 
 ### What the day cost, and the note
 
-Three runs, twenty-six minutes of wall clock, about 590 MB. The panic fix
-was an hour. Item 13's verdict is **keep**, and not for the reason it was
-being judged on: the ledger's `survived` column is still nearly zero, but
-the fuzzer has now produced a panic, a draw-count gap and a broken
-generalisation, all on maps nobody chose.
+Four runs, half an hour of wall clock, about 590 MB, plus three re-diffs
+of old dumps. Item 13's verdict is still **keep** — for map variation and
+the early wide window, not for the cheat generator, and on one finding
+rather than three.
 
-**The note, and it is the same one as yesterday's from the other end.**
-Yesterday: *measure the oracle before building a better one*. Today:
-**check whether the expensive setting is doing anything before pricing
-it.** The queue had budgeted a 300-frame window against 25 MB a frame and
-concluded it was probably unaffordable. It costs 0.69. The evidence was a
-`grep -c who2` on a file that had been on disk for eleven hours.
+**Two notes, and the second is the one that will keep earning.**
+Yesterday's was *measure the oracle before building a better one*; today's
+first is the same rule one step earlier — **check whether the expensive
+setting is doing anything before pricing it**, since a 300-frame window
+had been budgeted against 25 MB a frame and costs 0.69, and the evidence
+was a `grep -c who2` on a file eleven hours old.
+
+The second: **before crediting a new capture with a finding, run the same
+diff against a dump already on disk.** Three claims were made here on the
+strength of a new run; two of them were wrong; the control cost thirteen
+seconds each and nobody had been in the habit of running it. A novel
+capture is the most persuasive kind of evidence and the least controlled,
+which is precisely the combination that needs a control.
