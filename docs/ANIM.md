@@ -300,6 +300,69 @@ s_forty_first_idles`, against the LCG from draw 48 and the dump's
 `cur_anim`s; the human scout's own first roll is the original's draw 20,
 `p = 91 → IDLE2`.
 
+### 6.1 Gaia is outside every object search
+
+Established 2026-08-26, from the decompile alone, after the first fuzzed
+seed panicked the harness on it (`Sim::is_enemy` with `who 8` against a
+two-player diplomacy table).
+
+`Leaders::list` is **`Leader[10]`**, `sizeof(Leader) = 0x6eec` — eight
+players, then 8 and 9 for gaia's animals and gaia's birds. The
+player-facing world stops at eight, and the original says so in two
+independent places:
+
+- **`ObjectsData::find_unit@0065ca80`.** Its linear branch walks the
+  per-leader object lists with the cursor stepping `0x6eec` while
+  `< 0x37760` — exactly `8 × 0x6eec`, so leader slots 0–7 and no more. Its
+  by-cell branch reads the leader out of the cell's object chain and guards
+  `if ((int)leader < 8)` before it will call `Search::valid_search`. Both
+  halves stop at eight.
+- **`ObjectData::valid_target_const@006472c0`.** Its **first line** is
+  `if (param_1 < 0 || param_2 < 0 || 7 < param_2) return 0`, where
+  `param_2` is the target's leader. This runs *before*
+  `LeaderData::is_enemy`.
+
+So no search returns a gaia unit, no attacker may target one, and
+`Ammo::check_hit@00678d90` — which is a `find_unit` — cannot land a shot on
+one. In RoN the animals are scenery, and this is where that is written
+down. `Object::find_nearby_target@00648da0` is the case that matters most,
+because it walks the world's per-cell object chains with **no leader bound
+of its own**: `valid_target` is the only thing keeping gaia out of the ring
+search.
+
+**The bound is on the target, not the attacker.** `Object::valid_target`
+dispatches `valid_target_const` through the *attacker's* vtable, and an
+animal's — `AnimalData::valid_target_const@005d8120` — is the whole of two
+lines: the target's `flags & 1`, no leader test and no diplomacy. So the
+asymmetry is real in the original: nothing may target an animal, and an
+animal may target anything. It does not arise here, because
+`Sim::animal_idle` is the whole of an animal's behaviour and it only
+wanders; the sim applies the player rules to a gaia attacker, which is a
+divergence no path reaches.
+
+**The second bound is also why the first is never tested.**
+`LeaderData::diplos` is `int[8]` (`+0x74`, with `treaties` at `+0x94`), so
+`is_enemy(8)` would read `treaties[0]` — the original has no answer for a
+leader outside the table, and never asks for one.
+
+In the sim: `world::PLAYER_SLOTS = 8`, which `Unit::is_gaia` is defined
+against; `Sim::valid_target` carries `valid_target_const`'s first line; and
+the four `find_unit`-modelled scans (`Sim::nearest_enemy_attacker` and the
+chain scan beside it in `army.rs`, `check_hit` in `fight.rs`, the capture
+re-test in `city.rs`) skip `is_gaia()` units. `Sim::is_enemy` and
+`Sim::is_ally` are total in both arguments as well, the way
+`Sim::at_war_with` already was — a guard rather than a model, since the
+answer the original would give is a read past the end of an array.
+
+**Not established.** `Build::check_capture@006276a0`'s tally walks the cell
+chains with no leader bound and writes `local_8c[leader]`, a local array
+that a gaia object would overrun; whether its filter (index 8 in
+`Search::valid_filter`'s jump table, the block at `0067de47`, which turns
+on a type field `+0x1e8`) excludes animals for another reason is unread.
+The sim skips gaia there, which cannot be wrong in effect but is not
+derived. *Capture:* an animal inside a capture radius during a contested
+capture, with `CITIES=5` and `UNITS=3` over the window.
+
 ## 7. The animals' herd centre
 
 `Animal::do_idle:37–39`: with the herd record `(cx, cy, wx, wy)`, the

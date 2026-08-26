@@ -230,10 +230,19 @@ impl Sim {
             return false;
         }
         let (me, them) = (self.owner_of(attacker), self.owner_of(target));
+        // `ObjectData::valid_target_const@006472c0`'s first line: `7 < who`
+        // is refused before the diplomacy question is even asked, so gaia's
+        // animals and birds are nobody's target (`world::PLAYER_SLOTS`).
+        // `Object::find_nearby_target@00648da0` walks the cell chains with no
+        // leader bound of its own, so this is the only thing keeping them out
+        // of the ring search.
+        if them >= crate::world::PLAYER_SLOTS {
+            return false;
+        }
         if me == them {
             return false;
         }
-        if !self.at_war[me as usize][them as usize] && !self.at_war[them as usize][me as usize] {
+        if !self.at_war_with(me, them) && !self.at_war_with(them, me) {
             return false;
         }
         if !self.active(target) {
@@ -697,11 +706,8 @@ impl Sim {
     /// a non-combatant does nothing (it would flee).
     fn target_opportunity(&mut self, victim: usize, attacker: Obj, _frame: i64) {
         let me = Obj::Unit(victim);
-        let (a, b) = (
-            self.units[victim].owner as usize,
-            self.owner_of(attacker) as usize,
-        );
-        if !self.at_war[a][b] && !self.at_war[b][a] {
+        let (a, b) = (self.units[victim].owner, self.owner_of(attacker));
+        if !self.at_war_with(a, b) && !self.at_war_with(b, a) {
             return;
         }
         if !self.valid_target(me, attacker) {
@@ -1178,9 +1184,7 @@ impl Sim {
             .filter(|&o| {
                 let owner = self.owner_of(o);
                 owner != p.owner
-                    && !self.at_war.is_empty()
-                    && (self.at_war[p.owner as usize][owner as usize]
-                        || self.at_war[owner as usize][p.owner as usize])
+                    && (self.at_war_with(p.owner, owner) || self.at_war_with(owner, p.owner))
             })
             .collect();
         for o in candidates {
@@ -1232,6 +1236,11 @@ impl Sim {
             if !(u.alive() && u.on_map) || Obj::Unit(i) == p.shooter {
                 continue;
             }
+            // `check_hit` is a `find_unit`, whose leader loop stops at eight:
+            // an arrow never lands on gaia (`world::PLAYER_SLOTS`).
+            if u.is_gaia() {
+                continue;
+            }
             let up = self.profile(Obj::Unit(i));
             if matches!(up.domain, Domain::Air) != p.air {
                 continue;
@@ -1271,4 +1280,114 @@ impl Sim {
 /// `Object::take_damage` on a site: `whole × 50` off the progress.
 const fn combat_progress_lost(whole: i32) -> i32 {
     crate::build::progress_lost(whole)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::world::{PLAYER_SLOTS, World};
+
+    /// Two players at war, and a soldier type that can shoot.
+    fn at_war() -> (Sim, usize) {
+        at_war_with_slots(2)
+    }
+
+    /// The same, with `slots` player slots — so a test can *widen* the
+    /// diplomacy table past the eight the original has and check that the
+    /// leader bound, not the table's length, is what refuses gaia.
+    fn at_war_with_slots(slots: usize) -> (Sim, usize) {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), slots);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        (sim, ty)
+    }
+
+    fn put(sim: &mut Sim, who: Player, ty: usize, p: Pos) -> usize {
+        let index = i16::try_from(sim.units.len()).unwrap();
+        let hits = sim.unit_types[ty].hits;
+        let mut u = crate::Unit::new(who, index, p, hits);
+        u.ty = Some(ty);
+        u.on_map = true;
+        u.kind = sim.unit_types[ty].kind;
+        sim.add_unit(u)
+    }
+
+    /// `ObjectData::valid_target_const@006472c0`'s first line, `7 < who`,
+    /// which runs *before* the diplomacy question. To show that it is the
+    /// leader bound doing the work and not the sim's short table, the table
+    /// here is ten wide and gaia is declared at war: the animal is still
+    /// nobody's target, and the ring search — which walks the cell chains
+    /// with no leader bound of its own — steps over it to the enemy behind.
+    #[test]
+    fn a_gaia_animal_is_no_ones_target_even_at_war() {
+        let (mut sim, ty) = at_war_with_slots(usize::from(PLAYER_SLOTS) + 2);
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        let sheep = put(&mut sim, PLAYER_SLOTS, ty, Pos::new(0x1040, 0x1000));
+        sim.at_war[0][usize::from(PLAYER_SLOTS)] = true;
+        sim.at_war[usize::from(PLAYER_SLOTS)][0] = true;
+        assert!(sim.units[sheep].is_gaia());
+        assert!(sim.is_enemy(0, PLAYER_SLOTS), "the table says enemy");
+        assert!(sim.valid_target(Obj::Unit(me), Obj::Unit(foe)));
+        assert!(!sim.valid_target(Obj::Unit(me), Obj::Unit(sheep)));
+        assert_eq!(
+            sim.find_nearby_target(Obj::Unit(me), 0),
+            Some(Obj::Unit(foe))
+        );
+    }
+
+    /// And with the table the size a real lobby gives it — two — asking the
+    /// question at all is what took the first fuzzed seed down. Both
+    /// accessors are total now (`Sim::is_ally`).
+    #[test]
+    fn the_diplomacy_accessors_are_total_past_the_table() {
+        let (sim, _) = at_war();
+        assert_eq!(sim.at_war.len(), 2);
+        assert!(!sim.is_enemy(0, PLAYER_SLOTS));
+        assert!(!sim.is_ally(0, PLAYER_SLOTS));
+        assert!(!sim.is_enemy(PLAYER_SLOTS, 0));
+        assert!(!sim.is_ally(PLAYER_SLOTS, 0));
+        // Reflexivity survives it.
+        assert!(sim.is_ally(PLAYER_SLOTS, PLAYER_SLOTS));
+    }
+
+    /// `Ammo::check_hit@00678d90` is an `ObjectsData::find_unit`, whose
+    /// leader loop runs eight slots. So an arrow that comes down on top of a
+    /// sheep passes through it.
+    #[test]
+    fn an_arrow_never_lands_on_gaia() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let landing = Pos::new(0x1400, 0x1000);
+        let sheep = put(&mut sim, PLAYER_SLOTS, ty, landing);
+        let ammo = combat::Projectile {
+            shooter: Obj::Unit(me),
+            owner: 0,
+            target: None,
+            launch: sim.units[me].pos,
+            landing,
+            cur_time: 0,
+            total_time: 1,
+            accuracy: 100,
+            angle: crate::movement::Angle(0),
+            splash_area: 0,
+            num_guys: 1,
+            air: false,
+        };
+        assert_eq!(sim.check_hit(&ammo), None);
+        // The same arrow does find a player's unit standing there.
+        let foe = put(&mut sim, 1, ty, landing);
+        assert_eq!(sim.check_hit(&ammo), Some(Obj::Unit(foe)));
+        assert!(sim.units[sheep].is_gaia());
+    }
 }

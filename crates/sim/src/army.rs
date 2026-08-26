@@ -1737,6 +1737,7 @@ impl Sim {
                             .find(|(_, u)| {
                                 u.alive()
                                     && u.on_map
+                                    && !u.is_gaia()
                                     && self.is_enemy(who, u.owner)
                                     && u.combat.target == Some(Obj::Building(m))
                                     && dist(u.pos, bpos) <= 0x1200
@@ -1943,10 +1944,14 @@ impl Sim {
 
     /// `find_unit(SEARCH_ENEMY, FILTER_COMBAT)`: the nearest enemy unit of
     /// `who` with an attack within `range` of `p`.
+    ///
+    /// The search's leader loop stops at eight (`world::PLAYER_SLOTS`), so
+    /// gaia's animals are not in its space at all — and asking the diplomacy
+    /// question about them is what panicked the first fuzzed seed.
     fn nearest_enemy_attacker(&self, who: Player, p: Pos, range: i32) -> Option<usize> {
         let mut best: Option<(i32, usize)> = None;
         for (i, u) in self.units.iter().enumerate() {
-            if !u.alive() || !u.on_map || !self.is_enemy(who, u.owner) {
+            if !u.alive() || !u.on_map || u.is_gaia() || !self.is_enemy(who, u.owner) {
                 continue;
             }
             if self.attack_of(Obj::Unit(i)) == 0 {
@@ -2363,10 +2368,14 @@ mod tests {
     use super::*;
 
     fn sim_with_city() -> (Sim, usize) {
+        sim_with_city_slots(2)
+    }
+
+    fn sim_with_city_slots(slots: usize) -> (Sim, usize) {
         let mut sim = Sim::new(
             crate::tuning::Tuning::RON,
             crate::world::World::new(60, 60),
-            2,
+            slots,
         );
         sim.nation[0].human = true;
         sim.nation[1].human = false;
@@ -2929,5 +2938,73 @@ mod tests {
         sim.armies[1].list[s2].muster = Cell::new(10, 17);
         assert!(sim.find_muster_spot(1, s, Obj::Building(b), false));
         assert_eq!(sim.armies[1].list[s].muster, Cell::new(10, 19));
+    }
+
+    // ---- gaia is outside the object searches (`world::PLAYER_SLOTS`) ----
+
+    /// A damaged friendly building with an animal standing beside it. The
+    /// muster search asks `find_unit(SEARCH_ENEMY)` about everything on the
+    /// map, and the diplomacy table a two-player lobby builds is two wide —
+    /// which is how the first fuzzed seed (424242) took `Sim::is_enemy`
+    /// down with `who 8`. The accessors are total now, so it merely
+    /// answers.
+    #[test]
+    fn the_muster_search_survives_a_gaia_unit_with_a_two_wide_table() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        assert_eq!(sim.at_war.len(), 2, "the lobby's table, not a wide one");
+        let b = sim.cities[c].building;
+        sim.buildings[b].hits = 100;
+        sim.buildings[b].health = 50;
+        let slot = sim.init_army(1, Some(c));
+        let sheep = put(
+            &mut sim,
+            crate::world::PLAYER_SLOTS,
+            t,
+            Pos::new(0x3100, 0x3000),
+        );
+        assert!(sim.units[sheep].is_gaia());
+        // No panic, and the animal is not an attacker to hurry towards.
+        sim.find_muster_spot(1, slot, Obj::Building(b), false);
+        assert_eq!(sim.armies[1].list[slot].hurry, 0);
+    }
+
+    /// And it is the leader bound that refuses it, not the table's length:
+    /// widen the table past the eight the original has, declare war on
+    /// gaia, and the animal is still not the muster point.
+    #[test]
+    fn a_gaia_unit_is_never_the_muster_point_even_at_war() {
+        let slots = usize::from(crate::world::PLAYER_SLOTS) + 2;
+        let (mut sim, c) = sim_with_city_slots(slots);
+        let t = soldier_type(&mut sim);
+        let b = sim.cities[c].building;
+        sim.buildings[b].hits = 100;
+        sim.buildings[b].health = 50;
+        let slot = sim.init_army(1, Some(c));
+        let g = usize::from(crate::world::PLAYER_SLOTS);
+        sim.at_war[1][g] = true;
+        sim.at_war[g][1] = true;
+        let sheep = put(
+            &mut sim,
+            crate::world::PLAYER_SLOTS,
+            t,
+            Pos::new(0x3100, 0x3000),
+        );
+        assert!(
+            sim.is_enemy(1, crate::world::PLAYER_SLOTS),
+            "the table says enemy"
+        );
+        let sheep_cell = sim.units[sheep].pos.cell();
+        sim.find_muster_spot(1, slot, Obj::Building(b), false);
+        assert_eq!(sim.armies[1].list[slot].hurry, 0);
+        assert_ne!(sim.armies[1].list[slot].muster, sheep_cell);
+        // A player's soldier in the same spot *is* the muster point, so the
+        // search is otherwise working.
+        let foe = put(&mut sim, 0, t, Pos::new(0x3100, 0x3000));
+        sim.at_war[1][0] = true;
+        sim.at_war[0][1] = true;
+        assert!(sim.find_muster_spot(1, slot, Obj::Building(b), false));
+        assert_eq!(sim.armies[1].list[slot].hurry, 1);
+        assert_eq!(sim.armies[1].list[slot].muster, sim.units[foe].pos.cell());
     }
 }

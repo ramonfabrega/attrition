@@ -1161,7 +1161,9 @@ a found unit whose `target_size` is less than the search's own distance
 is rejected; failing a unit, `find_building_at` on the landing tile; failing
 that, a miss sound by terrain and no target. **So a shot that misses its
 mark can hit another unit within two tiles of where it lands, or the
-building it lands on, and does full damage to it.**
+building it lands on, and does full damage to it.** Not gaia's, though:
+`find_unit`'s leader loop stops at eight (§12.1), so an arrow that comes
+down on a sheep passes through it.
 
 ### 9.5 What a shot costs in random draws
 
@@ -1226,7 +1228,8 @@ stance type is combat, else `STAND_GROUND`.
 
 ### 12.1 Validity — `ObjectData::valid_target_const(o, who)`
 
-All of, in order: the target exists and is not mine; **the owners are at war**
+All of, in order: the target exists, **its owner is a leader below eight**,
+and it is not mine; **the owners are at war**
 (`LeaderData::is_enemy`: my diplomacy toward them is war, or theirs toward
 me); the target is active; it is **seen** by my owner (`is_seen(who, 0)`); a
 unit target is on the map (not garrisoned); a submarine or a self-destructing
@@ -1239,6 +1242,17 @@ attacker's own `fly_high`/`fly_low` and ANTI_AIR flag (helicopters are
 targetable by anything ranged but siege, tanks, missiles and bombers;
 missiles never target or are targeted by missiles); and finally **a land-
 domain or building attacker with ANTI_AIR never targets ground or sea**.
+**The leader bound is the function's literal first line** —
+`if (param_1 < 0 || param_2 < 0 || 7 < param_2) return 0` at `006472c0`,
+*before* `LeaderData::is_enemy` is reached. `Leaders::list` is `Leader[10]`
+and 8 and 9 are gaia's, so **an animal or a bird is nobody's target**, and
+the diplomacy question is never asked about one. It could not be answered:
+`LeaderData::diplos` is `int[8]`, so `is_enemy(8)` would read `treaties[0]`.
+`ObjectsData::find_unit@0065ca80` states the same bound independently — its
+per-leader loop steps `0x6eec` (one `Leader`) while the cursor is `<
+0x37760`, exactly eight, and its by-cell branch guards `(int)leader < 8`
+before `Search::valid_search`. See `docs/ANIM.md` §6.1.
+
 `Object::valid_target` adds: a city that is capture-eligible is not attacked
 (the capture path takes it) unless the attacker is a `VEHICLE` **and** `WAR_MACHINE` (both masks; `docs/CITIES.md` §7.1)
 unit under a mandatory attack order on it, or a missile. `GroupData::

@@ -586,8 +586,11 @@ impl Sim {
 
 impl Unit {
     /// Whether this unit is gaia's — an animal or a bird (owner 8 or 9).
+    ///
+    /// Which is also the bound every object search and every valid-target
+    /// test stops at; see [`crate::world::PLAYER_SLOTS`].
     pub fn is_gaia(&self) -> bool {
-        self.owner >= 8
+        self.owner >= crate::world::PLAYER_SLOTS
     }
 }
 

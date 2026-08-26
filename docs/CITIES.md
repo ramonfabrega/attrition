@@ -1236,6 +1236,18 @@ The defending side's **buildings weigh more than units**: each of the owner's
 buildings in the radius counts `7 + garrison`, a fort `13 + garrison`; a
 third party's counts 1 and on neither side. Siege counts nothing.
 
+**Gaia in the tally — a guard, not a reading.** The loop above walks the
+cells' object chains, which carry gaia's animals as well, and
+`per_player[X.who]` is a **local `int` array** in the original: an animal
+that reached it would write past the end. Nothing in the loop bounds the
+leader (unlike `find_unit` and `valid_target_const` — `docs/ANIM.md` §6.1),
+so either `valid_filter(8)` rejects animals for some other reason or the
+overrun is real. The filter is the block at `0067de47` in
+`Search::valid_filter`'s jump table; it turns on a type field `+0x1e8` that
+is unnamed in the export. The sim skips gaia here on the leader bound, which
+cannot change the outcome but is not derived. *Capture:* a contested capture
+with an animal inside the radius, `CITIES=5` and `UNITS=3` over the window.
+
 ### 7.3 The hand-over — `Cities::capture_city(A, c, O)`
 
 1. `O.cities_lost++`, `A.cities_captured++`; `was_capital = old.city_flags &

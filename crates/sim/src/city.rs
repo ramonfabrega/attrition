@@ -1431,7 +1431,9 @@ impl Sim {
             let pos = self.buildings[b].pos;
             let mut best: Option<(i32, usize)> = None;
             for (i, u) in self.units.iter().enumerate() {
-                if !u.alive() || !u.on_map || !self.is_enemy(who, u.owner) {
+                // A `find_unit`, so gaia is out of its space
+                // (`world::PLAYER_SLOTS`) — and a sheep cannot capture.
+                if !u.alive() || !u.on_map || u.is_gaia() || !self.is_enemy(who, u.owner) {
                     continue;
                 }
                 if !matches!(u.kind.domain, crate::attrition::Domain::Land) {
@@ -1628,6 +1630,12 @@ impl Sim {
         };
         for (i, x) in self.units.iter().enumerate() {
             if i == unit || !x.alive() || !x.on_map {
+                continue;
+            }
+            // Gaia is out of the tally (`world::PLAYER_SLOTS`); see
+            // `docs/CITIES.md` §7.2 for what the original's own tally does
+            // instead, which is *not* a leader bound.
+            if x.is_gaia() {
                 continue;
             }
             if !matches!(x.kind.domain, crate::attrition::Domain::Land) {

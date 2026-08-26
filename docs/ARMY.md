@@ -847,6 +847,11 @@ target's own cell; then `muster_y += 1`, or `−= 1` on the map's last row;
 chase left, and a best there overrides it. (The first implementation
 returned here, and every own-city search skipped the ring.)
 
+Both enemy lookups are `find_unit`, whose leader loop stops at eight, so
+**gaia's animals are not in their search space** and no diplomacy question
+is asked about one. Asking it is what the first fuzzed seed panicked on
+(`docs/ANIM.md` §6.1, `Sim::nearest_enemy_attacker`).
+
 **The ring search.** Centre `(ax, ay) = cell(x, y)`, the army's point.
 `inner`: 5 for a navy, or for a target that is not a city centre
 (`OBJECT_CITY` clear); 4 for a city centre whose building

@@ -920,14 +920,32 @@ impl Sim {
         self.allied[b as usize][a as usize] = true;
     }
 
+    /// Whether `a` has allied `b` — false for an owner outside the player
+    /// table, the same reading [`Sim::at_war_with`] gives.
+    pub fn allied_with(&self, a: Player, b: Player) -> bool {
+        self.allied
+            .get(a as usize)
+            .and_then(|row| row.get(b as usize))
+            .copied()
+            .unwrap_or(false)
+    }
+
     /// `LeaderData::is_ally`: the same player, or allied both ways.
+    ///
+    /// Total in both arguments, like [`Sim::at_war_with`]. The original's
+    /// `LeaderData::diplos` is `int[8]`, so `is_ally(8)` reads `treaties[0]`
+    /// past the end of it — there is no faithful answer for a leader outside
+    /// the table, and no caller asks for one ([`world::PLAYER_SLOTS`]). This
+    /// is a guard, not a model: it keeps a gaia unit that reached a scan it
+    /// should never have reached from taking the process down.
     pub fn is_ally(&self, a: Player, b: Player) -> bool {
-        a == b || (self.allied[a as usize][b as usize] && self.allied[b as usize][a as usize])
+        a == b || (self.allied_with(a, b) && self.allied_with(b, a))
     }
 
     /// `LeaderData::is_enemy`: different players with war declared either way.
+    /// Total in both arguments; see [`Sim::is_ally`].
     pub fn is_enemy(&self, a: Player, b: Player) -> bool {
-        a != b && (self.at_war[a as usize][b as usize] || self.at_war[b as usize][a as usize])
+        a != b && (self.at_war_with(a, b) || self.at_war_with(b, a))
     }
 
     /// Registers a building type and returns its id.

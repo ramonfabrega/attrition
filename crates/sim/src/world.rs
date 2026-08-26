@@ -32,6 +32,26 @@
 /// not; nothing here assumes a count.
 pub type Player = u8;
 
+/// The leader slots the *player-facing* world uses, and the first gaia one.
+///
+/// `Leaders::list` is `Leader[10]` (`rise.pdb`, `sizeof(Leader) = 0x6eec`):
+/// eight players and then 8 and 9, gaia's animals and gaia's birds. Every
+/// object search stops at this bound, and the original says so twice —
+///
+/// - `ObjectsData::find_unit@0065ca80` walks the per-leader object lists with
+///   a stride of `0x6eec` while the cursor is `< 0x37760`, which is exactly
+///   eight of them, and its by-cell branch guards `(int)leader < 8` outright
+///   before it will even call `Search::valid_search`;
+/// - `ObjectData::valid_target_const@006472c0` returns 0 on `7 < who` in its
+///   **first line**, before it would reach `LeaderData::is_enemy`.
+///
+/// So gaia's units cannot be found by a search, cannot be a valid target, and
+/// cannot be hit by ammunition (`Ammo::check_hit@00678d90` is a `find_unit`).
+/// The second bound is also why the original never asks a diplomacy question
+/// about them: `LeaderData::diplos` is `int[8]`, so `is_enemy(8)` would read
+/// `treaties[0]` — the original has no answer there either.
+pub const PLAYER_SLOTS: Player = 8;
+
 /// Position units per tile.
 pub const UNITS_PER_TILE: i32 = 192;
 /// Tiles per world cell.
