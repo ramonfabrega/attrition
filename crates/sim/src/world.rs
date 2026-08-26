@@ -383,10 +383,12 @@ pub const MOVE_49: [(i32, i32); 49] = [
 /// in the original. Two-bit fields are tested as `(mask & field) == value`.
 pub mod tile {
     /// The two-bit terrain-object field: `3` a building footprint, `2` a
-    /// mountain.
+    /// mountain, `1` a cliff — `WorldData::is_cliff_at@0046f8c0` is exactly
+    /// `(mask & 3) == 1` (`docs/SCOUT.md` §12, 2026-08-26).
     pub const OBJECT: u16 = 0x3;
     pub const OBJECT_BUILDING: u16 = 0x3;
     pub const OBJECT_MOUNTAIN: u16 = 0x2;
+    pub const OBJECT_CLIFF: u16 = 0x1;
     /// The two-bit surface field: `0` plain land, `0x10` road, `0x20` ocean,
     /// `0x30` forest.
     pub const SURFACE: u16 = 0x30;

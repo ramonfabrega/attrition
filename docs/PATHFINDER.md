@@ -557,6 +557,11 @@ the sim has (tile mask bits via `place.rs`, cell owner via `territory`,
 `tregion`), with named seams returning the open-ground answer for the
 layers it does not (fog: everything seen; danger: 0; diplomacy: none;
 rush rules: off) — each seam marked in the code with the §5 term it stubs.
+**The cliff seam closed 2026-08-26** with `docs/SCOUT.md`:
+`WorldData::is_cliff_at@0046f8c0` is one line, `(TData.mask & 3) == 1`, so
+the two-bit terrain-object field's third value is named
+(`world::tile::OBJECT_CLIFF`) and `invalid_loc`'s land arm refuses a cliff
+as the original does.
 `find_path`'s march rewritten per §9, and `do_move`'s two planner call
 sites wired per `docs/ORDERS.md` §4.4 (the fresh-move `find_wpath` with
 tile fallback; the RNG-thresholded re-plan). `invalid_loc` is implemented

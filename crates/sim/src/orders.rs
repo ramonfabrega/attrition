@@ -805,7 +805,14 @@ impl Sim {
         if self.worker_of(u) != Worker::None {
             self.think_peasant(u, false);
         }
-        // `think_attack`'s and `think`'s `add_to_army` (`docs/ARMY.md` §4).
+        // The tail (`docs/SCOUT.md` §2): a scout or a spy not in an army
+        // takes `think_scout`, and everything else the `add_to_army` of
+        // `think_attack` and `think` (`docs/ARMY.md` §4). The two are
+        // exclusive in the original and are kept so.
+        if self.scout_thinks(u) {
+            self.think_scout(u);
+            return;
+        }
         self.think_join_army(u);
     }
 

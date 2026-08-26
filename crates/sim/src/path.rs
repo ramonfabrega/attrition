@@ -138,9 +138,14 @@ impl Sim {
         // SEAM, deliberate: `self.units[u].auto_transport` is the bit, kept
         // out of the water test until the boarding path exists.
         let transport_forced = false;
-        // Land domain: forest, mountain, cliff, then water.
+        // Land domain: forest, mountain, cliff, then water. The original
+        // tests the three together and only forest reaches the walker
+        // exemption: `if (surface == 0x30 || (mask & 3) == 2 ||
+        // is_cliff_at(t)) { if (surface != 0x30) return 2; if
+        // (!forest_walker) return 2; }`.
         if (surface == tile::SURFACE_FOREST && !forest_walker)
             || mask & tile::OBJECT == tile::OBJECT_MOUNTAIN
+            || mask & tile::OBJECT == tile::OBJECT_CLIFF
         {
             return loc::TERRAIN;
         }

@@ -147,7 +147,7 @@ impl Sim {
     /// combat profile's `BARK` role and the `Scout` lineage for the scout bit,
     /// the garrison layer's `transport` for `carry`. That is exactly what the
     /// five `seam_*` helpers used to answer one at a time.
-    fn role_word(&self, t: TypeId, rec: usize) -> u32 {
+    pub(crate) fn role_word(&self, t: TypeId, rec: usize) -> u32 {
         let u = &self.unit_types[rec];
         if u.cols.role != 0 {
             return u.cols.role;

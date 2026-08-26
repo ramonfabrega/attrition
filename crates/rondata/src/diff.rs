@@ -2846,14 +2846,100 @@ mod tests {
         };
         assert_eq!(
             count(0),
-            (Some(165), Some(175)),
-            "frame 0: the ten left are `Unit::think_scout`'s"
+            (Some(175), Some(175)),
+            "frame 0, with `Unit::think_scout`'s ten in (`docs/SCOUT.md` §10)"
         );
         assert_eq!(
             count(2),
             (Some(5), Some(5)),
             "frame 2 is the five crop farms and nothing else, on both sides"
         );
+    }
+
+    /// Run20's AI scout at frame 0 — `Unit::think_scout`'s ten draws, on
+    /// the original's own stream (`docs/SCOUT.md` §10).
+    ///
+    /// The stream is the assertion and it is exact. `rontrace-run20.log`
+    /// places frame 0's draws 24–33 at `Unit::think_scout+0x436` ×4,
+    /// `+0x458` ×2, `+0x64c` ×4, and records the seed each one was taken
+    /// on. Seeding the harness's scout with the first of those and running
+    /// `think_scout` reproduces **all ten**, and leaves the rotation draw
+    /// of ring 7 standing on `0xa358_e033` — the trace's draw 32. The same
+    /// probe on the fuzzer's control map reproduces its ten identically,
+    /// from `0x242c_b7ed`.
+    ///
+    /// The seed has to be installed because the frame's own stream reaches
+    /// the scout **two draws early**: the harness spends a stand in the
+    /// unit loop for each gathering citizen where the original spends none
+    /// and wraps them in phase 7 instead (`docs/SYNC.md` §4.2, §6). That
+    /// defect used to be zero-sum, and this is what stops it being so —
+    /// `think_scout`'s count depends on the stream, so on the fuzzed map
+    /// the same ten come out as eleven.
+    #[test]
+    fn run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run20-islands-dumpall.txt") else {
+            eprintln!("skipping: no gamelog-run20-islands-dumpall.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+        // Two scouts stand up on this map, one a side — the two units the
+        // trace shows standing two figures each before either thinks. Only
+        // the computer's reaches `think_scout`.
+        let scouts: Vec<usize> = (0..built.sim.units.len())
+            .filter(|&u| built.sim.unit_is_scout(u))
+            .collect();
+        assert_eq!(scouts.len(), 2, "one scout a side");
+        let thinking: Vec<usize> = scouts
+            .iter()
+            .copied()
+            .filter(|&u| built.sim.scout_thinks(u))
+            .collect();
+        assert_eq!(
+            thinking.len(),
+            1,
+            "the human's does not — its `unit_masks & 0x40000` is clear"
+        );
+        let scout = thinking[0];
+        assert_eq!(built.sim.units[scout].owner, 1, "the computer's");
+
+        // The trace's draw 24, the first of the ten.
+        const FIRST: u32 = 0x9c59_1b2b;
+        built.sim.rng = sim::combat::Rng::new(FIRST);
+        assert!(built.sim.think_scout(scout), "a target is found");
+        assert_eq!(
+            draws_between(FIRST, built.sim.rng.seed),
+            Some(10),
+            "the ten of docs/SCOUT.md §10: four rotations, two phases, four cells"
+        );
+        // Draw 32 is ring 7's rotation, two draws from the end.
+        assert_eq!(
+            draws_between(0xa358_e033, built.sim.rng.seed),
+            Some(2),
+            "and the last two are ring 7's rotation and phase"
+        );
+
+        // §9: the explore order, at a tile centre inside ring 5 of the
+        // AI's city.
+        let order = *built.sim.units[scout].orders.front().expect("an order");
+        let sim::orders::Body::Move(m) = order.body else {
+            panic!("not a move: {order:?}");
+        };
+        assert_eq!(m.kind, sim::orders::MoveKind::ExploreTo);
+        let ci = built
+            .sim
+            .cities
+            .iter()
+            .position(|c| c.alive && c.owner == 1)
+            .expect("the AI's city");
+        let city = built.sim.cities[ci].pos.cell();
+        let d = sim::world::vector_dist(m.dest.cell().x - city.x, m.dest.cell().y - city.y);
+        assert_eq!(d, 5, "ring 5, where the four cells were");
     }
 
     /// Run13's window (`docs/SYNC.md` §4.1, §5): run10 stepped with run11,

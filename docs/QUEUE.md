@@ -27,70 +27,69 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 24's first half.* The commit this
-section was written against is the one that lands it; if `git log` has
-moved well past it, trust the queue below and the journal before trusting
-this.
+*Last verified 2026-08-26, after item 24.* The commit this section was
+written against is the one that lands it; if `git log` has moved well past
+it, trust the queue below and the journal before trusting this.
 
-**Last landed: the fifteen missing draws at frame 0 were four things, not
-one.** The queue had them as "one fixed missing block, the same 15 on two
-maps". Three are fixed, the fourth is a pair that cancels:
+**Last landed: `Unit::think_scout`, and with it run20's frame 0 at
+175/175 — the first frame-0 match the harness has had.** `docs/SCOUT.md`
+is the mechanic: an idle AI scout walks rings of cells outward from every
+city it knows, two draws at the head of each ring and one per cell that is
+in its own region and **not really seen**, then sends itself there as a
+one-member group with an `EXPLORE_TO`.
 
-- **The pasture** (`docs/SYNC.md` §3.6, new). `FarmStruct+0xbd` is
-  `farm_type` — the type record names it — and `farm_type == 1` is a farm
-  that grows no crop (so `Farms::inc_time` spends no draw on it) and
-  carries **five animals of owner 9** from `Farms::add_animals`, each of
-  which rolls an idle variant, and one of which takes
-  `think_farm_animal`'s draw at frame 0. **No dump prints an owner-9
-  object**, so the five exist in a capture only as draws; the trace is
-  what found them. Worth +5 net.
-- **`Unit::think_scout`, ten draws, is now the entire remaining gap** —
-  and it is *ten on both maps*, at the same three sites in the same
-  proportions. It needs the seen map the sim does not keep.
-- **The citizens' stand and their wrap, ±4 on run20 and ±5 on the fuzzed
-  map, cancel.** The sim spends a stand in the unit loop where the
-  original spends none and wraps the same guys in phase 7 instead. The
-  total hides it; the order and every outcome are wrong. Half explained
-  by run20's own dump (`docs/SYNC.md` §6).
+- **It is checked seed for seed on three maps, not by a count.** Every
+  draw record carries the seed it was taken on, so installing the trace's
+  first `think_scout` seed replays the whole sequence: 10 on run20
+  (`0x9c59_1b2b`), 10 on the fuzzed map (`0x242c_b7ed`), and **24 on the
+  Great Lakes** (`0x15fe_bc41`) — the only capture that exercises the
+  foreign-city arm, split 4/2/1 then 2/0/15 across two cities.
+- **The zero-sum defect is not zero-sum any more.** On the frame's own
+  stream the harness reaches `think_scout` two draws early, because it
+  spends a unit-loop stand for each gathering citizen where the original
+  wraps them in phase 7 instead. `think_scout`'s count depends on the
+  stream, so the fuzzed map's frame 0 is now **196 against 195** — one
+  cell, and it is the whole gap. The `GUYS=4` capture the queue has been
+  holding is now the check for a number.
+- **One seam closed in passing.** `WorldData::is_cliff_at` is
+  `(TData.mask & 3) == 1`, so `tile::OBJECT_CLIFF` is named and
+  `crate::path`'s `invalid_loc` refuses a cliff (`docs/PATHFINDER.md`
+  §11). It changed no count.
 
-**The instrument that did it, and it is the reusable part.**
-`Sim::phase_marks` — a mark at every phase of `Sim::tick` and before every
-unit the loop visits — folds the sim's own frame into
-`strategy_all 2, markets 18, unit 0/0 2, … gaia 22, farms 5`, which is the
-harness's answer to `tools/trace/report.py … sites`. Half an hour to
-build; it turned a four-day-old total into a table in one reading. Gated
-on `Sim::trace_phases`, which only the harness sets.
-
-**The numbers now.** run20 frame 0 **165/175** (was 160), frame 1 51/53,
-**frame 2 5/5 — the first frame of run20 the harness matches outright**.
-The fuzzed map: frame 0 **185/195** (was 180), frame 1 48/45.
-`ticks before divergence` is still 1 on both; the position divergence at
-frame 2 is untouched by this and is the next thing.
+**The numbers now.** run20 frame 0 **175/175**, frame 1 52/53, frame 2
+**5/5**. The fuzzed map: frame 0 196/195, frame 1 48/45. The Great Lakes
+(run10): frame 0 128/120 (was 96/120), frames 1 and 2 unchanged at 54/54
+and 6/6. `ticks before divergence` is still 1 everywhere; the position
+divergence at frame 2 is untouched and is the next thing.
 
 **Then, in order:**
 
-- **`Unit::think_scout`'s ten draws** — item 24's remainder, no capture
-  needed, and the identical count on two maps is the lead.
+- **The stand/wrap swap** — item 24's last piece, and it now has a price
+  (the fuzzed map's one extra cell). The capture that settles it is a
+  frame-0 `GUYS=4` window; `docs/SYNC.md` §6 has the half that run20's own
+  dump already explains.
 - **`Farms::add`'s two draws** at run20's frame 1 (`+0x23f`, `+0x25b`
-  under `Build::init`), which is that frame's whole 51-against-53.
-  Cheap, and the trace names both offsets.
-- **The stand/wrap swap** — zero-sum, so no count will ever catch it; the
-  capture that settles it is a frame-0 `GUYS=4` window.
+  under `Build::init`), which is that frame's whole 52-against-53. Cheap,
+  and the trace names both offsets.
 - **The frame-1 order two of player 1's units hold and the sim does not**,
-  and §9.3's sixth citizen — item 25.
+  and §9.3's sixth citizen — item 25. One of the two was the scout's
+  `EXPLORE_TO` and is now issued; re-read the item before taking it.
 - **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked.
+- **Re-run run13's window** (sim-frames 95–103) now that the scout thinks:
+  §5's largest single gap was `6 / 23` at frame 95 and was attributed to
+  this mechanic.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *A number that reproduces is not a
-cause that reproduces.* Fifteen on two maps was read as one block
-**because** it was stable — and stability was the wrong inference: three
-map-independent blocks plus a pair that cancels by construction. The fix
-was not more reading. It was making the sim's own draws as legible as the
-trace already makes the original's. **When two totals disagree, build the
-fold before building the theory.**
+**The thing this session earned.** *Read the sites before the function,
+and assert on the seed rather than the count.* Three return addresses,
+disassembled, gave the ring walk's shape and both its guards in ten
+minutes; the decompile after that was naming. And a mechanic that replays
+a **sequence** from a pinned seed is checked in a way a total never is —
+which is what let this land while the stream that reaches it is still
+wrong, and what turned that wrongness into a number.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -98,7 +97,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 24's remainder: Unit::think_scout draws ten at frame 0 on two maps, at +0x436 x4, +0x458 x2, +0x64c x4, and the sim draws none. Same count on both maps, so at least one site is fixed-count. Read it; no capture needed.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — the stand/wrap swap (item 24's last piece). The sim spends a unit-loop stand for each gathering citizen where the original spends none and wraps the same guys in phase 7 instead; it now costs a draw on the fuzzed map, not zero. Run a frame-0 GUYS=4 window and settle which four guys wrap and why.`
 
 ## The queue
 
@@ -252,29 +251,11 @@ in which case say so and take that. The story of each struck item is in
     `angles` is all zero in every run on disk, so nothing has separated
     `compute_form`'s subtraction from the order adder's addition.
     `docs/GROUPS.md` §13.
-24. **The frame-0 draw gap** — **three of four blocks closed 2026-08-26**;
-    `docs/SYNC.md` §3.6 (the pasture, new), §4.2 (frame 0 attributed on
-    both maps, new), §3.3, §6; `crates/sim/src/farms.rs`,
-    `Sim::phase_marks`, `gamelog::Initial::farms`; the check is
-    `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six`.
-    run20 frame 0 is 165/175 and frame 2 is 5/5.
+24. ~~**The frame-0 draw gap**~~ — done 2026-08-26 over two sessions.
+    `docs/SCOUT.md`, `docs/SYNC.md` §3.6, §3.7 and §4.2;
+    `crates/sim/src/{farms,scout}.rs`. run20 frame 0 175/175, frame 2 5/5.
+    What it uncovered is item 26.
 
-    **What is left of it is one block: `Unit::think_scout`.** Ten draws at
-    frame 0 on run20 *and* ten on the fuzzed map, at `+0x436` ×4,
-    `+0x458` ×2, `+0x64c` ×4 on both, all under `Unit::think+0x7da` <
-    `Unit::do_idle+0x94`. That the count is identical on two unrelated
-    maps says at least one of the three sites is fixed-count, which the
-    "one draw per unseen candidate cell" reading does not predict — so
-    read `think_scout@005f6010` with the three offsets in hand before
-    assuming the seen map is needed. Both traces are on disk; no capture.
-
-    **And a zero-sum defect the counts cannot catch.** The sim spends a
-    stand in the unit loop for each gathering citizen; the original
-    spends none there and wraps the same guys in phase 7 instead. +4/−4
-    on run20, +5/−5 on the fuzzed map. Run20's end-of-frame-0 dump
-    explains two of the four wraps and not the other two
-    (`docs/SYNC.md` §6). The capture that settles it is a frame-0
-    `GUYS=4` window.
 25. **The first frames, on a map we did not tune against** — what item 24
     was carrying besides the draw gap. `gamelog-fuzz-424242-early.txt`
     with `gamelog-fuzz-424242-heights.txt` as its `--sibling`.
@@ -285,13 +266,28 @@ in which case say so and take that. The story of each struck item is in
       §9.3.
     - **The frame-1 order two of player 1's units hold and the sim does
       not**, and the position divergence at frame 2 that scores
-      `survived = 1` on both maps.
+      `survived = 1` on both maps. One of the two is the scout, and it is
+      **half fixed**: on run20 its `EXPLORE_TO` now matches, on the fuzzed
+      map the sim issues one at frame 0 and has none by frame 1, so
+      something kills it during that frame. Its target differs there
+      because of item 26, so start by ruling that out.
     - **`Farms::add`'s two draws** (`+0x23f`, `+0x25b` under
       `Build::init+0x4ea` < `Objects::init_build+0x82`) at run20's frame
       1, when the AI's new farm is created — the whole of that frame's
-      51 against 53. `docs/SYNC.md` §6.
+      **52 against 53**. `docs/SYNC.md` §6.
 
     None needs a new run. All are `rondata --diff` on a dump that exists.
+
+26. **The stand/wrap swap, which is no longer zero-sum.** The sim spends
+    a unit-loop stand for each gathering citizen; the original spends none
+    there and wraps the same figures in phase 7 instead — +4/−4 on run20,
+    +5/−5 on the fuzzed map. It used to net to zero and hide. It does not
+    any more: `Unit::think_scout` runs two draws late on the sim's stream
+    and takes one cell more on the fuzzed map, so that frame 0 is 196
+    against 195 (`docs/SCOUT.md` §10, `docs/SYNC.md` §4.2). *Capture:* a
+    frame-0 `GUYS=4` window — every `set_anim` logs its index at detail 4.
+    Run20's own end-of-frame-0 dump explains two of the four wraps and not
+    the other two; `docs/SYNC.md` §6 has that half.
 
 ## How to maintain this file
 

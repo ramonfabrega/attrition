@@ -71,6 +71,7 @@ pub mod orders;
 pub mod path;
 pub mod place;
 pub mod production;
+pub mod scout;
 pub mod supply;
 pub mod tech;
 pub mod territory;

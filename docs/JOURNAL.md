@@ -2119,3 +2119,126 @@ it was making the sim's own draws as legible as the trace already made the
 original's, which is the same move as every instrument this project has
 built, one level in. When two totals disagree, build the fold before
 building the theory.
+
+## 2026-08-26 — the scout's ten draws, and the zero-sum defect that stopped being zero-sum (item 24's remainder)
+
+The opener asked for one thing: `Unit::think_scout` draws ten at frame 0 on
+two maps, at `+0x436` ×4, `+0x458` ×2, `+0x64c` ×4, and the sim draws none;
+the same count on both maps says at least one site is fixed-count, so read
+it, no capture needed. What came out is `docs/SCOUT.md` — the whole
+mechanic, implemented, and checked against **three** traces seed for seed —
+plus a finding the reading was not looking for.
+
+### The reading was steered by the trace from the first minute
+
+The three offsets were the entire brief, and disassembling them first was
+what made the rest cheap. `+0x436` and `+0x458` are 0x22 apart and both are
+the return of a `Random::get` followed by an `idiv`: two draws at the head
+of a loop, on the tables at `00cbe32c`/`00cbe330` — which turn out to be
+`circle_radius` and `circle_radius − 1`, so **ring `r` is the index range
+`[radius[r−1], radius[r])`** and the whole loop is a ring walk. `+0x64c` is
+a `vector_dist` followed by a draw folded to `& 7`: a per-candidate jitter.
+Three sites, three roles, before a line of the decompile was read closely.
+
+The counts then constrained the shape. Two draws per ring, the second
+guarded by `ring / 4 + frame % 8 >= 1`, means at frame 0 the phase draw
+only fires from ring 4 up — so `4 / 2` is **four rings of which the last
+two are ≥ 4**, which is 1, 3, 5, 7 and *not* 1, 2, 3, 4. That forced a step
+of 2, which forced `unit_masks & 0x40000`, which `Unit::init@00612100:586`
+sets exactly when `(leader_flags & 0xc) != 4` — **every unit of a
+non-human leader**. `crate::path` had it down as the amphibious bit; it is
+the AI-unit bit.
+
+The same discipline placed the caller. `Unit::think`'s tail calls
+`think_scout` only after the human block returns at
+`if (!(unit_masks & 0x40000)) return`, so a **human's** scout never gets
+here at all — and run20's interleaved `HIT` records show exactly that: the
+first idle unit reaches `Unit::think_spellcaster` and stops, the second
+reaches `Object::get_army` and then `Unit::think_scout`. Two scouts, one
+thinks. (`Unit::think_scout`'s `HIT` arriving *late* in the frame is the
+proof: an `int 3` is one-shot per arming, so a first entry at record 798
+says the unit at 758 never called it.)
+
+### The check that made it a mechanic rather than a story
+
+A count is a weak check and this one had a strong alternative sitting in
+the log: **every draw record carries the seed it was taken on.** Install
+the seed of the trace's first `think_scout` draw in the harness's own
+scout, run one call, and compare the seed left standing. On all three
+captures it is exact:
+
+| capture | first draw | ours | sites |
+| --- | --- | --- | --- |
+| run20 | `0x9c59_1b2b` | **10** | 4 / 2 / 4, ending on the trace's own draw 32 |
+| fuzz 424242 | `0x242c_b7ed` | **10** | 4 / 2 / 4, likewise |
+| run10/run14 | `0x15fe_bc41` | **24** | **6 / 2 / 16**, split 4/2/1 and 2/0/15 across two cities |
+
+The third row is the one that earns the reading. The Great Lakes map is the
+only capture that exercises the **foreign**-city arm — `max_ring = 3`,
+`step = 1`, rings 1 and 2 with no phase draw at either — and the harness
+reproduces its five hits and its ten without being told anything about
+them. Nothing about that arm was inferable from run20.
+
+### And then the finding
+
+Run on the frame's own stream instead of the trace's, the harness arrives
+at `think_scout` **two draws early**. That is the stand/wrap swap the last
+session found and filed as zero-sum: the sim spends a unit-loop stand for
+each gathering citizen where the original spends none and wraps the same
+figures in phase 7 instead, +4/−4 on run20 and +5/−5 on the fuzzed map. The
+queue's own words were "zero-sum, so no count will ever catch it".
+
+**A count catches it now.** `think_scout`'s draw count depends on the
+stream it runs on, because the rotation decides which cells of a ring are
+visited and the fog decides how many of those are taken. Run20 lands on 175
+either way — its ring 5 gives four cells on both streams — but the fuzzed
+map gives five on ours and four on the original's, so frame 0 is **196
+against 195**. One cell, and it is the whole of the gap.
+
+That is the second time in two sessions that the same instinct paid: a
+defect that hides behind a total stops hiding the moment something
+downstream reads the *order*. The `GUYS=4` capture the queue has been
+holding for the swap is now the check for a real number, not for a
+principle.
+
+### What landed
+
+`docs/SCOUT.md` (thirteen sections, the circle loader re-derived, the
+score's four multipliers, the region fallback read and explicitly not
+implemented), `crates/sim/src/scout.rs`, the wiring in `Sim::think`'s tail,
+five tests in `sim::scout` and
+`run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings` in `rondata::diff`.
+Frame 0 on run20 is **175/175** — the first frame-0 match the harness has
+had — and frame 2 stays 5/5.
+
+One seam closed on the way past: `WorldData::is_cliff_at@0046f8c0` is one
+line, `(TData.mask & 3) == 1`, so the two-bit terrain-object field's third
+value is named (`tile::OBJECT_CLIFF`) and `crate::path`'s `invalid_loc`
+refuses a cliff as the original does (`docs/PATHFINDER.md` §11). It did not
+change any count — none of the candidate cells on either map is a cliff —
+which is worth saying, because the hypothesis that it *would* is what sent
+me to read it.
+
+Five deliberate breakages, four in `sim::scout` and one in the diff check:
+`step` 1 instead of 2, the early exit removed, the phase guard relaxed to
+`>= 0`, the fog gate short-circuited, and the pinned seed advanced by one
+draw. All caught.
+
+### The note
+
+**Read the sites before the function.** The offsets in the queue entry were
+not a hint about where to start — they were most of the answer. Three
+return addresses, disassembled, gave the loop's shape, its two guards and
+its per-candidate cost in about ten minutes; the decompile after that was
+confirmation and naming. The general form: when a trace has already told
+you *where* the draws are, the arithmetic around each site is a much
+cheaper question than "what does this function do", and it constrains the
+answer to the second question hard enough that the reading almost writes
+itself.
+
+And **the seed is a better assertion than the count.** Every draw record in
+`rontrace` carries its seed; a mechanic that reproduces a *sequence* from a
+pinned seed is checked in a way a total can never be, and it is checkable
+even while the stream that reaches it is still wrong. That is what let this
+land with the upstream defect still open — and what turned the upstream
+defect into a number.

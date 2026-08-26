@@ -310,6 +310,22 @@ gives them an unknown length, their clocks never run out and their later
 idle re-rolls are missing. None of that touches the frame-0 count; all of it
 touches a long run.
 
+### 3.7 The idle scout — `Unit::think_scout@005f6010` (2026-08-26)
+
+The unit loop's largest single site, and the whole of frame 0's remaining
+gap on three maps. An idle AI scout walks rings of cells outward from each
+city it knows about and takes **two draws at the head of every ring** (a
+rotation and, from ring 4 up, a phase) plus **one per cell** that is in its
+own region and not really seen. Ten draws on run20 and on the fuzzed map,
+twenty-four on the Great Lakes.
+
+`docs/SCOUT.md` is the mechanic, `crates/sim/src/scout.rs` the
+implementation. Two things belong here rather than there: the ring count
+depends on `frame % 8` (so this site's cost changes every eight frames),
+and the cell count depends on the **fog grid**, which only a `DUMP_ALL`
+capture's `WORLD` block supplies — a harness world without one sees
+everything and spends the ring draws alone.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):
@@ -391,36 +407,43 @@ set beside the harness's own draws folded by phase (`Sim::phase_marks`, §5):
 | `Leader::compute_sites` (the sweep's stride) | 2 / 2 | 2 / 2 |
 | `GameDaemon::calc_market` | 18 / 18 | 18 / 18 |
 | `Unit::do_idle` → `Unit::set_anim` (the two scouts, two guys each) | 4 / **8** | 4 / **9** |
-| **`Unit::think_scout`** (`+0x436` ×4, `+0x458` ×2, `+0x64c` ×4) | **10 / 0** | **10 / 0** |
+| **`Unit::think_scout`** (`+0x436` ×4, `+0x458` ×2, `+0x64c` ×4) | 10 / **10** | 10 / **11** |
 | `Animal::do_idle` — the dumped animals | 104 / 104 | 123 / 123 |
 | **the pasture** — 5 idle rolls + 1 `think_farm_animal` (§3.6) | **6 / 6** | **6 / 6** |
 | `Objects::process_all` — the ten bird attempts | 20 / 20 | 20 / 20 |
 | `Herd::process` | 2 / 2 | 2 / 2 |
 | **`Guy::inc_time` — the phase-7 wraps** | **4 / 0** | **5 / 0** |
 | `Farms::inc_time` — the *five* crop farms (§3.6) | 5 / 5 | 5 / 5 |
-| **total** | **175 / 165** | **195 / 185** |
+| **total** | **175 / 175** | **196 / 195** |
 
-(The "ours" column is after this session's work; before it the pasture row
-read `6 / 0` and the farm row `5 / 6`, for 160 and 180.)
+(The "ours" column is after **two** sessions' work. Before the first the
+pasture row read `6 / 0` and the farm row `5 / 6`, for 160 and 180; before
+the second the `think_scout` row read `10 / 0`, for 165 and 185.)
 
 Read down the two bold rows that are not the pasture:
 
-- **`think_scout` is the whole of what is left**, and it is **ten draws on
-  both maps** — the same three sites in the same proportions. It needs the
-  seen map the sim does not keep (§6), so it is the one honest gap.
-- **The stands and the wraps cancel, map by map** — +4/−4 on run20, +5/−5 on
-  the fuzzed one. They are not independent. The original draws **no**
-  unit-phase stand for a gathering citizen at frame 0; those citizens'
-  guys instead run their animation out in phase 7 and re-roll there. The
-  sim does it the other way round: it spends the stand in the unit loop and
-  then has nothing left to wrap. The count nets to zero and the **order and
-  the outcomes do not**, so this is a real defect that the total hides.
-  Run20's end-of-frame-0 dump is the evidence and it is only half
-  explained: `1/1` and `1/2` (the AI's woodcutters) end the frame at
-  `cur_anim 1, cur_time 0, end_time 232` — wrapped — while `0/1` and `0/2`
-  (the human's, the same job) end at `cur_anim 0, cur_time 1, end_time 33`,
-  which is a `set_anim` that did **not** draw. Two of the four wraps are
-  accounted for; the other two are not. §6 carries it.
+- **`think_scout` is modelled** (`docs/SCOUT.md`, 2026-08-26), and it is
+  the mechanic that turns the next row from a curiosity into a bug with a
+  price.
+- **The stands and the wraps cancelled, map by map** — +4/−4 on run20 and
+  +5/−5 on the fuzzed one — and **they do not cancel any more.** They were
+  never independent. The original draws **no** unit-phase stand for a
+  gathering citizen at frame 0; those citizens' guys instead run their
+  animation out in phase 7 and re-roll there. The sim does it the other way
+  round: it spends the stand in the unit loop and then has nothing left to
+  wrap. The count nets to zero and the **order and the outcomes do not** —
+  and `think_scout` is the first consumer that cares about the order,
+  because the two spurious stands put the scout's ring rotations on the
+  wrong stream. On run20 that costs nothing (ring 5 gives four cells on
+  either stream); on the fuzzed map it costs one cell, which is the whole
+  of that column's `196` against `195`. Seeded from the trace's own word
+  the harness reproduces both maps' ten exactly (`docs/SCOUT.md` §10).
+  Run20's end-of-frame-0 dump is the evidence for the swap itself and it is
+  only half explained: `1/1` and `1/2` (the AI's woodcutters) end the frame
+  at `cur_anim 1, cur_time 0, end_time 232` — wrapped — while `0/1` and
+  `0/2` (the human's, the same job) end at `cur_anim 0, cur_time 1,
+  end_time 33`, which is a `set_anim` that did **not** draw. Two of the
+  four wraps are accounted for; the other two are not. §6 carries it.
 
 Frame 1 and frame 2 fall out of the same fold:
 
@@ -429,6 +452,15 @@ Frame 1 and frame 2 fall out of the same fold:
 | 1 (run20) | 53 | 51 | `Leader::produce_building` 43 vs our 42; the three `do_non_flat_gather` vs our four; **`Farms::add+0x23f`/`+0x25b`, two draws at the AI's new farm's `Build::init`, which the sim does not model**; the five farms on both sides |
 | 2 (run20) | 5 | **5** | none — the five crop farms and nothing else, on either side |
 | 1 (fuzzed) | 45 | 48 | ours is three *over*; the AI's script takes a different branch on a map it was not tuned on |
+
+The Great Lakes lobby (run10/run12/run13, traced as run14) is the third
+map `think_scout` is checked on and the only one that exercises the
+**foreign**-city arm: `+0x436` ×6, `+0x458` ×2, `+0x64c` ×16, which is one
+city at `max_ring = 12, step = 2` and a second at `max_ring = 3, step = 1`.
+Seeded from the trace the harness reproduces all twenty-four, split
+4/2/1 then 2/0/15. On the frame's own stream that map's frame 0 goes from
+96/120 to 128/120 — the same upstream defect, larger because the map gives
+the scout more to accept.
 
 `rondata::diff`'s
 `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six` pins the
@@ -483,7 +515,7 @@ run13's word at the end of 94 and then counts:
 
 | sim-frame | ours | the original's | the gap |
 |---|---|---|---|
-| 95 | 6 | 23 | the AI scout's `think_scout` re-target — the sim has no seen map |
+| 95 | 6 | 23 | the AI scout's `think_scout` re-target — **modelled since 2026-08-26**, `docs/SCOUT.md`; the window has not been re-run against it |
 | 96 | 26 | 28 | the birds' twenty on both sides; the scout's two |
 | 97 | 6 | 7 | the scout's one |
 | 98 | **6** | **6** | none |
