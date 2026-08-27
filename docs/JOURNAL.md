@@ -3524,3 +3524,115 @@ and reading the `UNITS=3` order blocks back), not the reading.
   exceptions. One did not: `do_attack` owning no reload logic is **not** a
   disagreement — §7.2 already put the gate in `fight`, and the
   implementation was right where the prose was wrong (R6).
+
+## 2026-08-27 — item 43: where a trained unit comes out (Opus 5)
+
+**The headline moved twice in one session: ticks before divergence 99 → 102,
+and player 1's first divergence 100 → 103.** Both players now first part on
+the same frame, 103, and that frame is one mechanic — the farm re-target —
+rather than five units going wrong in five ways.
+
+### The row
+
+Item 25 left player 1 first diverging at frame 100, on unit `1/6`. The dump
+made it easy: `1/6` is created on frame 100 at `(42360, 17208)`, and the
+simulation created it on the same frame at `(42336, 16224)` — London's centre
+tile, a thousand units north. Not a movement problem, a **birth** problem.
+
+`Build::train@0062f9b0` creates a trained unit at the building's own position,
+calls `Unit::go_inside`, and then `Unit::come_out`. The simulation did the
+first of those three and stopped: `Handover::Trained` put the unit at
+`bd.pos` and left it there. `come_out` existed, was correct about the FIFO
+and the cadence, and was an admitted stub about the spot — "the exit ring
+toward the building's facing at the minimum distance", which is the `+x` axis.
+
+The ring itself was already right, and the listing at `618411` confirms it:
+`(x_size + y_size) × 0x30 + UNIT_TRAIN_DISTANCE` out to
+`… + UNIT_TRAIN_MAX_DISTANCE`, with the inner radius handed to the search
+only while the building is alive (`618437`, `flags & 1`). What was missing is
+that the original then calls `find_nearby_spot` on it — the same sweep the
+gather order uses — and takes the first free quarter-tile centre.
+
+### The bearing is diff-backed, and says so
+
+The angle argument is where the decompiler gives out. It aliases the stack
+slot: `local_a18` is written from the container's `angle` on the arm where
+the container is a *unit*, and on the building arm it is never written at all,
+so what reaches `find_nearby_spot` cannot be read off the C. The listing
+(`0x6184cc` pushes `[esp+0x2c]`) says the same thing — that slot is written
+only on the sibling arm.
+
+So it was settled by the dump instead. **Due south at the inner radius
+predicts `(42360, 17208)` exactly**, and every citizen run10's AI trains —
+frames 100, 206, 320, 1297, 1505 — appears there, as do the fuzzed map's two.
+`docs/CITIES.md` §6.5's earlier reading says a *set gather point* turns the
+exit toward it, so this is the no-rally-point default; the simulation does not
+model gather points, and the document says which capture would separate the
+two.
+
+### The bug underneath
+
+Wiring the handover through `go_inside` crashed on the first tick, indexing
+`nation[8]`. `garrison.rs` was reading `combat.captain` — which is an **object
+number**, the thing `damage_o` is compared against — as a simulation index,
+and `squad_of` matched on it without the owner. So a lone unit's "squad" was
+every other player's `o`-th unit, and the first trained citizen took a herd of
+Gaia's animals into London with it. The two helpers are owner-aware now. The
+bug was latent in `do_gather`'s `go_inside` the whole time; only a unit whose
+`o` collided across owners could see it.
+
+### Numbers
+
+| | before | after |
+|---|---|---|
+| headline (run10) | ticks 99, orders 102, p0 @ 103, p1 @ 100 | **ticks 102, orders 102, both @ 103** |
+| `1/6` first divergence | 100 | 103 |
+| `1/5` / `1/7` / `1/8` | 219 / 206 / 320 | 224 / 209 / 323 |
+| run6 order/path rows | 2,583 / 1,674 | 2,591 / 1,613 |
+| run10 angle rows compared | 15,336 | 15,010 |
+
+Every unit's **first** divergence held or improved. The angle count fell
+because the AI's citizens are now alive and walking through the untraced
+stretch instead of standing on their city, so their later frames are their
+own — the same trade item 25's own note describes, and the first-divergence
+list is what says which way it went.
+
+### Paperwork
+
+`docs/CITIES.md` §11 states what is modelled and what is not, and its
+2026-08-20 second-reading section moved here (below) to pay for the room;
+`docs_guard::OVER` lowers `CITIES.md` to 106,858.
+
+### Lifted from `docs/CITIES.md`, the 2026-08-20 second reading
+
+Five blind readers re-derived the five sub-areas from the same export without
+this document, the implementation or the first reports; the adjudication is
+`docs/audit/2026-08-20-cities.md`. **Doubly confirmed**, branch by branch: the
+`BlockIndex` verdicts and the site-over-tile rule, the foothold, the spacing
+lists and their `≤`, the must-belong-to-a-city and one-per-city rules, the
+city limit; the harmonic builders, the `do_construct` argument (both readers
+went to the disassembly), the site's `>> 5` hit-point growth and the wonder's
+half, the refund's float and its `job_counter_2` numerator, the repair period
+and its price; the member chain, membership by nearest covering city with the
+`+100` push, the automatic level-up on `CITY_BUILDINGS + 1` exact type ids
+with the city counting itself, the level's consumers; the garrison chain and
+its FIFO, `num_inside`'s two modes, the limit's two techs, the full
+`can_garrison` table, every `do_garrison` gate in order, the exit ring, one
+squad a frame, the heal's rate and eligibility; capture eligibility at zero,
+the radius count with buildings at `7 + garrison`, `capture_strength = mine`
+(both readers in the listing), the hand-over at ten hit points, the plunder
+formulas and the 4501-frame protection, the assimilation stamp and its three
+modifiers, the city heal, the elimination modes. **Overturned and landed
+above:** the construction clock is re-baked on `calc_wall_stats`, not frozen
+(§3.2); the building's own attrition runs every 32 frames, 16 only under rush
+rules before war (§9.5); the city radius mask is the even circle of a rounded
+`sqrtf`, not `vector_dist` (§3.6); `find_buildings` stops at a failed
+conversion (§5.4); built forts are spaced without a region test (§2.6.3); the
+Chinese assimilation `set_type` lays no mask (§8.1); `CityData::pop` is not
+the pop value (§1.1). **Settled for the first reading:** type-vtable slot
+`+0xfc` is `is_fort` (read out of the PE: `0x472ba0 BuildTypeData::is_fort`),
+so the Senate HP exemption is forts, towers and lookouts, not wonders;
+`town_hits` is read by nothing but the type's backup/restore. The
+implementation was corrected to match (`Sim::wall_stats_dirty`,
+`calc_wall_stats`, `ENEMY_TERRITORY_PERIOD = 32`, `city_mask_tiles`), and a
+test added for each.

@@ -1616,11 +1616,18 @@ heal, ejection), then the sites' `construct_hits` refresh.
 - **Adjacency** for a builder or repairer is "the unit's tile is within one
   tile of the footprint" (`adjacent_to` was not read; the original's
   `swarm_around` walks the unit there). Movement to the site is the caller's.
-- **`come_out` places the unit on the exit ring toward the building's facing
-  at the minimum distance** and never fails; the original searches for a free
-  spot through `find_nearby_spot` (movement's) and a unit that finds none
-  stays in (or dies, when the building is dying). The one-squad-a-frame
-  cadence and the FIFO order are kept.
+- **`come_out` searches §6.5's land ring** through `find_nearby_spot`, and a
+  trained unit reaches it: `Build::train@0062f9b0` builds the unit at its
+  trainer, `go_inside`s it and lets it out (2026-08-27). Not modelled: the
+  `BOAT_*` and disembark rings, the gather point's turn, and the refusal —
+  where a `block_radius` type would stay inside, this falls back to the
+  building's position, so `come_out` never fails. **The default bearing is
+  due south, and it is diff-backed rather than read**: all five citizens
+  run10's AI trains appear at `(42360, 17208)`, on the inner radius directly
+  south of London. `train`'s own arms before the exit — a gather-inside
+  building that keeps its worker, the dock's boat count, the owner's text
+  bubble — are not modelled either; every trainer here lets its unit out.
+  The one-squad-a-frame cadence and the FIFO order are kept.
 - **`valid_filter(8)`** in the capture count is taken as "alive and on the
   map" — what every other filter the combat document read reduces to.
 - **The capture attempt inside `Object::valid_target`** (§7.1's fourth caller)
@@ -1733,36 +1740,11 @@ heal, ejection), then the sites' `construct_hits` refresh.
 
 ---
 
-## 13. Second reading (2026-08-20) — landed
+## 13. Second reading — landed
 
-Five blind readers re-derived the five sub-areas from the same export without
-this document, the implementation or the first reports; the adjudication is
-`docs/audit/2026-08-20-cities.md`. **Doubly confirmed**, branch by branch: the
-`BlockIndex` verdicts and the site-over-tile rule, the foothold, the spacing
-lists and their `≤`, the must-belong-to-a-city and one-per-city rules, the
-city limit; the harmonic builders, the `do_construct` argument (both readers
-went to the disassembly), the site's `>> 5` hit-point growth and the wonder's
-half, the refund's float and its `job_counter_2` numerator, the repair period
-and its price; the member chain, membership by nearest covering city with the
-`+100` push, the automatic level-up on `CITY_BUILDINGS + 1` exact type ids
-with the city counting itself, the level's consumers; the garrison chain and
-its FIFO, `num_inside`'s two modes, the limit's two techs, the full
-`can_garrison` table, every `do_garrison` gate in order, the exit ring, one
-squad a frame, the heal's rate and eligibility; capture eligibility at zero,
-the radius count with buildings at `7 + garrison`, `capture_strength = mine`
-(both readers in the listing), the hand-over at ten hit points, the plunder
-formulas and the 4501-frame protection, the assimilation stamp and its three
-modifiers, the city heal, the elimination modes. **Overturned and landed
-above:** the construction clock is re-baked on `calc_wall_stats`, not frozen
-(§3.2); the building's own attrition runs every 32 frames, 16 only under rush
-rules before war (§9.5); the city radius mask is the even circle of a rounded
-`sqrtf`, not `vector_dist` (§3.6); `find_buildings` stops at a failed
-conversion (§5.4); built forts are spaced without a region test (§2.6.3); the
-Chinese assimilation `set_type` lays no mask (§8.1); `CityData::pop` is not
-the pop value (§1.1). **Settled for the first reading:** type-vtable slot
-`+0xfc` is `is_fort` (read out of the PE: `0x472ba0 BuildTypeData::is_fort`),
-so the Senate HP exemption is forts, towers and lookouts, not wonders;
-`town_hits` is read by nothing but the type's backup/restore. The
-implementation was corrected to match (`Sim::wall_stats_dirty`,
-`calc_wall_stats`, `ENEMY_TERRITORY_PERIOD = 32`, `city_mask_tiles`), and a
-test added for each.
+Five blind readers re-derived the five sub-areas from the same export;
+the verdicts are `docs/audit/2026-08-20-cities.md` and the story — what
+was doubly confirmed, what was overturned into the sections above, and
+what the reading settled for the first — is in `docs/JOURNAL.md`
+(2026-08-20). Every correction it produced is landed in `crates/sim`
+with a test.

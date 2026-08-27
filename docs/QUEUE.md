@@ -13,36 +13,36 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-27, after item 25.*
+*2026-08-27, after items 25 and 43.*
 
 **The headline — run10, 1,772 frames, RNG seeded from run11's trace: ticks
-before divergence 99, orders 102; player 0 first diverges at frame 103,
-player 1 at frame 100.** It moved for the first time since it was pinned
-(from 3 / 2 / 103 / 4), and the pin in `run10_s_opening_…` carries its
-second history line. What is left at 100 and 103 is no longer any one
-unit: player 1's trained citizen `1/6` on 100, and player 0's three farmers
-on 103.
+before divergence 102, orders 102; both players first diverge at frame 103.**
+It moved twice this session, from 3 / 2 / 103 / 4, and the pin in
+`run10_s_opening_…` carries both history lines. What is left is one
+mechanic rather than five units: frame 103 is the farm re-target, for
+player 0's three farmers and player 1's citizen `1/6` alike.
 
-**Landed:** item 25 — the tile choice scores only tiles that still carry
-`mask & 0x4000` *and* pass `has_gather_access` (`005f0575`); player 1's
-woodcutter had been walking to the tree in the middle of its own forest.
-Two things fell out of it: `borrow_from_siblings` now takes the whole
-`WORLD` block from a matching sibling — run6's is `BUILDS=7`'s and the
-harness had been diffing it against a flat treeless world of its own
-making, so **run6 and run10 are the same game and now report the same
-score** — and `compare_orders` diffs the `GATHERORDER`'s whole row.
+**Landed:** item 25 — the gather tile choice scores only tiles that still
+carry `mask & 0x4000` *and* pass `has_gather_access`; and item 43 —
+`come_out` searches the exit ring with `find_nearby_spot`, and a trained
+unit goes through it, so the AI's citizens now appear where the original
+puts them. Two harness fixes fell out: `borrow_from_siblings` takes the
+whole `WORLD` block from a matching sibling (run6 had been diffed against
+a flat treeless world, and now agrees with run10 unit for unit), and
+`compare_orders` diffs the `GATHERORDER`'s whole row.
 
-**Owed:** unchanged — items 42 and 40 (`ORDERS.md` lowered to 191,335),
-`scenario.py` parked (item 41).
+**Owed:** unchanged — items 42 and 40 (`ORDERS.md` 191,335 and `CITIES.md`
+106,858 this session), `scenario.py` parked (item 41).
 
 **Needs the user:** nothing.
 
-**Opener (Opus):** `proceed @docs/QUEUE.md — raise the headline. Player 1
-now first diverges at frame 100: unit 1/6, the AI's first trained citizen,
-which the original sends somewhere this simulation does not. Player 0 is at
-103, three farmers at once. Take 1/6 first, find what orders it, land it,
-raise the floor in run10_s_opening_… and add its history line. Take nothing
-that cannot name the score it moves.`
+**Opener (Opus):** `proceed @docs/QUEUE.md — raise the headline. Both
+players now first diverge at frame 103, and it is one mechanic: the farm
+re-target inserts a move in front of the gather order and sends the farmer
+to a tile the sim picks differently (player 0's 0/3, 0/4, 0/5 and player
+1's 1/6 all at once, PathTo at slot 0). docs/ORDERS.md §6.5 and
+docs/SYNC.md §4. Find it, land it, raise the floor and add its history
+line. Take nothing that cannot name the score it moves.`
 
 ## The queue
 

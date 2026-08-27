@@ -1628,6 +1628,17 @@ impl Sim {
                 // (The unit's `ty` stays unset here, as it always has; the
                 // piece lookup takes the type directly.)
                 self.init_guys(unit, Some(ty));
+                // **The trained unit is born inside its trainer and walks
+                // out.** `Build::train@0062f9b0` creates it at the
+                // building's own position, calls `Unit::go_inside`, and
+                // then `Unit::come_out` — which is what puts it on the exit
+                // ring rather than on the building's centre tile. The
+                // arms `train` takes before that last call — a
+                // gather-inside building that keeps its worker, a dock's
+                // boat count, the player's own text bubble — are not
+                // modelled; every trainer here lets its unit straight out.
+                self.go_inside(unit, at);
+                self.come_out(unit);
                 self.economy_changed(who);
                 Advanced::Trained(Produced { unit, ty, at })
             }

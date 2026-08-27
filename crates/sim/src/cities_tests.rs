@@ -729,11 +729,12 @@ fn hoplites_fill_a_barracks_to_its_limit_and_leave_one_squad_a_frame() {
     assert!(sim.buildings[b].eject_pending);
     sim.tick();
     assert!(!sim.buildings[b].eject_pending);
-    // They stand on the exit ring: (4 + 4) × 0x30 + 288 from the centre.
-    assert_eq!(
-        sim.units[inside[0]].pos.x - sim.buildings[b].pos.x,
-        8 * 0x30 + 288
-    );
+    // They stand on the exit ring: `find_nearby_spot` sweeping from due
+    // south at `(4 + 4) × 0x30 + 288`, and its first candidate — the ring
+    // point itself — snapped to its quarter-tile centre, which is what puts
+    // the pair 24 off a tile corner in both axes.
+    let (u, bp) = (sim.units[inside[0]].pos, sim.buildings[b].pos);
+    assert_eq!((u.x - bp.x, u.y - bp.y), (24, 8 * 0x30 + 288 + 24));
 }
 
 #[test]

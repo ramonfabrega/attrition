@@ -10,7 +10,7 @@
 use crate::attrition::Domain;
 use crate::build::{self, Ident, flags};
 use crate::combat::Obj;
-use crate::world::{Pos, UNITS_PER_TILE};
+use crate::world::UNITS_PER_TILE;
 use crate::{Player, Sim};
 
 /// What a unit type needs in order to garrison — the columns of
@@ -160,22 +160,33 @@ impl Sim {
         self.buildings[b].garrison.len() as i32
     }
 
-    /// The figures of a squad — every unit sharing a captain.
+    /// The figures of a squad — every unit of the same owner sharing a
+    /// captain.
+    ///
+    /// `combat.captain` is an **object number**, not a simulation index
+    /// (`UnitData::captain` is `o`, which is what `damage_o` is compared
+    /// against), so the owner is half the key. Without it a lone unit
+    /// drags every other player's `o`-th unit into its squad — Gaia's
+    /// animals included, which is how the first trained citizen to go
+    /// through here put a herd inside London.
     fn squad_of(&self, captain: usize) -> Vec<usize> {
-        let c = self.units[captain].combat.captain;
+        let (c, who) = (
+            self.units[captain].combat.captain,
+            self.units[captain].owner,
+        );
         self.units
             .iter()
             .enumerate()
-            .filter(|(_, u)| u.combat.captain == c && u.alive())
+            .filter(|(_, u)| u.owner == who && u.combat.captain == c && u.alive())
             .map(|(i, _)| i)
             .collect()
     }
 
     fn captain_of(&self, unit: usize) -> usize {
-        let c = self.units[unit].combat.captain;
-        usize::try_from(c)
-            .ok()
-            .filter(|&i| i < self.units.len())
+        let (c, who) = (self.units[unit].combat.captain, self.units[unit].owner);
+        self.units
+            .iter()
+            .position(|u| u.owner == who && u.index == c as i16 && u.alive())
             .unwrap_or(unit)
     }
 
@@ -267,8 +278,29 @@ impl Sim {
         }
     }
 
-    /// `Unit::come_out`: the squad leaves onto the exit ring. Always
-    /// succeeds here — the spot search is movement's (`docs/CITIES.md` §11).
+    /// `Unit::come_out@00617c10`: the squad leaves onto the exit ring.
+    ///
+    /// The ring is `(x_size + y_size) × 0x30 + UNIT_TRAIN_DISTANCE` out to
+    /// `… + UNIT_TRAIN_MAX_DISTANCE` (`618411`; the boat arm's
+    /// `BOAT_TRAIN_*` pair and its `+0x244` type term are not modelled), and
+    /// the inner radius the search is *given* is that ring only while the
+    /// building is alive — a dying one lets its garrison out from zero
+    /// (`618437`, `flags & 1`). Then `find_nearby_spot` sweeps it from due
+    /// **south**, and its first free quarter-tile centre is the spot; a
+    /// second pass at twice both radii, and then the building's own
+    /// position, are the fallbacks, so this never fails. The original's
+    /// other arm — a type with a non-zero `big_radius` — refuses instead and
+    /// keeps the unit inside; nothing modelled here has one
+    /// (`docs/CITIES.md` §11).
+    ///
+    /// **The bearing is diff-backed, not read.** The decompile aliases the
+    /// angle's stack slot and the listing's own `[esp+0x2c]` is written only
+    /// on the sibling arm, so the value was fixed by the dump: all five
+    /// citizens run10's AI trains — frames 100, 206, 320, 1297 and 1505 —
+    /// come out at `(42360, 17208)`, which is due south of London at exactly
+    /// the inner radius and at no other bearing the sweep tries first. A
+    /// capture on any map where the ground south of a trainer is blocked
+    /// would separate this from a sweep that starts elsewhere.
     pub fn come_out(&mut self, unit: usize) -> bool {
         let captain = self.captain_of(unit);
         let Some(b) = self.units[captain].inside else {
@@ -278,23 +310,15 @@ impl Sim {
         let (xs, ys) = bd.ty.map_or((0, 0), |t| {
             (self.build_types[t].x_size, self.build_types[t].y_size)
         });
-        let d = (xs + ys) * 0x30;
-        let min = if bd.alive {
-            d + self.tuning.unit_train_distance
-        } else {
-            d
-        };
-        let spot = Pos::new(bd.pos.x + min, bd.pos.y);
-        let spot = if self.world.accepts(spot) {
-            spot
-        } else {
-            Pos::new(bd.pos.x - min, bd.pos.y)
-        };
-        let spot = if self.world.accepts(spot) {
-            spot
-        } else {
-            bd.pos
-        };
+        let ring = (xs + ys) * 0x30 + self.tuning.unit_train_distance;
+        let max = ring + (self.tuning.unit_train_max_distance - self.tuning.unit_train_distance);
+        let min = if bd.alive { ring } else { 0 };
+        let pos = bd.pos;
+        let south = crate::movement::Angle(i32::MIN);
+        let spot = self
+            .find_nearby_spot(captain, pos, min, max, 0, south, None)
+            .or_else(|| self.find_nearby_spot(captain, pos, min * 2, max * 2, 0, south, None))
+            .unwrap_or(pos);
         self.buildings[b].garrison.retain(|&c| c != captain);
         for f in self.squad_of(captain) {
             let u = &mut self.units[f];

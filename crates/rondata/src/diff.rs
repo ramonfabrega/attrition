@@ -4367,6 +4367,15 @@ mod tests {
         //               no longer any one unit's: what is left at 100 and
         //               103 is a whole cohort at once — the AI's citizen
         //               `1/6` on 100, and player 0's three farmers on 103.
+        //   2026-08-27  ticks 102, orders 102; **both players @ 103**
+        //               (item 43: `come_out`'s exit ring). A trained unit
+        //               was being put on its trainer's centre tile; the
+        //               original builds it there, walks it inside and lets
+        //               it out onto a ring five tiles clear of the wall.
+        //               Every citizen run10's AI trains now appears where
+        //               the original puts it, and the only frame either
+        //               player still parts on is 103 — the farm re-target,
+        //               which is one mechanic and not five units.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -4375,9 +4384,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 99 && orders >= 102 && first[0] >= 103 && first[1] >= 100,
+            ticks >= 102 && orders >= 102 && first[0] >= 103 && first[1] >= 103,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 99, orders 102, player 0 @ 103, player 1 @ 100",
+             — the floor is ticks 102, orders 102, both players @ 103",
             report.first_divergence
         );
         assert!(
@@ -4488,6 +4497,26 @@ mod tests {
             "player 0's woodcutters chop the original's trees for all 1,772 frames"
         );
 
+        // **Where a trained unit appears** (item 43). The AI's citizens are
+        // created on frames 100, 206 and 320, and on each of those frames
+        // the simulation stands its unit on the original's own tile —
+        // `(42360, 17208)`, due south of London on the exit ring. Before
+        // `come_out` was wired into the handover the unit was left on its
+        // trainer's centre and this reported the city's position against
+        // that one, a thousand units away.
+        for (born, o) in [(100i64, 6i64), (206, 7), (320, 8)] {
+            let f = report
+                .frames
+                .iter()
+                .find(|f| f.frame == born)
+                .expect("the frame the citizen is trained on");
+            assert!(
+                !f.diverged.iter().any(|d| d.who == 1 && d.o == o),
+                "1/{o} does not appear where the original puts it on frame {born}: {:?}",
+                f.diverged.iter().find(|d| d.who == 1 && d.o == o)
+            );
+        }
+
         // **Both angles, on every unit-frame where the positions agree**
         // (`docs/MOVEMENT.md` §"Two angles", item 34): `UnitData::angle`
         // against the heading and guy 0's `angle` against the facing.
@@ -4495,8 +4524,13 @@ mod tests {
         // whose *positions* agree, so the tile-choice fix bought 897 of
         // them outright — player 1's woodcutter alone now stands where the
         // original stands it from frame 4 to frame 567.
+        // 15,336 → 15,010 with item 43. Every unit's **first** divergence
+        // held or improved, and the AI's trained citizens now appear on the
+        // original's own tile; what fell is agreement deep in the untraced
+        // stretch, where those citizens are alive and walking instead of
+        // standing on their city, so their later frames are their own.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 15_336, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 15_010, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -4834,8 +4868,15 @@ mod tests {
         //   all of them player 1's `1/1`, the citizen the original turns
         //   into a builder and this simulation keeps at the woodcutter
         //   (first row: frame 167). None of them is before the score.
+        // 1,957/1,254 → **2,084/1,242** with item 43's exit ring, and the
+        // totals fell: 2,583/1,674 to 2,591/1,613 with the farmers' share
+        // down from 626/420 to 507/371. The AI's trained citizens are alive
+        // on the map from the frame the original creates them instead of
+        // standing on their city, so they are compared where they used not
+        // to be — and the check that says this is the right trade is the
+        // first-divergence list, every entry of which held or improved.
         assert!(
-            orders - farmer_orders <= 1_957 && paths - farmer_paths <= 1_254,
+            orders - farmer_orders <= 2_084 && paths - farmer_paths <= 1_254,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.
