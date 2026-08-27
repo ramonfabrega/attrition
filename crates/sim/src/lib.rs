@@ -270,14 +270,27 @@ pub enum FarmAnim {
 /// `avg_speed` the unit's turn rate reads — is here.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Movement {
-    /// Which way the unit faces — guy 0's angle, which the unit step turns and
-    /// the body shares. North is zero.
+    /// Which way the unit faces — **`GuyData::angle` (`+0x18`)**, guy 0's own
+    /// facing, which the unit step turns by the rate and steps along. North is
+    /// zero.
     pub facing: movement::Angle,
     /// The facing as it stood at the start of this frame — what the body
-    /// follow compares against after the order step has turned the unit.
+    /// follow compares against after the order step has turned the unit
+    /// (`guy_flags & 2`).
     pub frame_facing: movement::Angle,
-    /// The heading the last unit step recorded as desired, `GuyData::des_angle`.
-    /// An idle body turns toward it.
+    /// Where it *wants* to face: **`UnitData::angle` (`+0x50`)**, which is
+    /// also **`GuyData::des_angle` (`+0x64`)** — `Unit::set_angle` writes the
+    /// two together, and `Unit::move_step` calls it with the bearing to the
+    /// destination on every frame, before turning. So this is the heading, not
+    /// the facing: it is what the dump's `UNITDATA angle` line carries, what
+    /// `Group::update_positions` rotates a slot table by, and what an idle
+    /// body turns toward.
+    pub heading: movement::Angle,
+    /// **`UnitData::dest_angle` (`+0x58`)**, which is a different field and a
+    /// different thing: the angle the *order* wants the unit to end up facing.
+    /// `Unit::update_action` seeds it from [`Movement::heading`] and then
+    /// overwrites it with the angle of the last transit move it walks past
+    /// (`docs/ORDERS.md` §3.3). Nothing in the step reads it.
     pub des_angle: movement::Angle,
     /// Where it is headed. `None` means it is not going anywhere.
     pub dest: Option<Pos>,
@@ -292,14 +305,16 @@ pub struct Movement {
 }
 
 impl Movement {
-    /// A unit standing at `pos`, facing north, with its body on it and stopped
-    /// — which, for a foot or mounted type, is what lets the first order turn
-    /// it instantly.
+    /// A unit standing at `pos`, with its body on it and stopped — which, for
+    /// a foot or mounted type, is what lets the first order turn it
+    /// instantly. All three angles are `Unit::init`'s own
+    /// [`movement::Angle::INITIAL`], not north.
     pub const fn at(pos: Pos) -> Movement {
         Movement {
-            facing: movement::Angle::NORTH,
-            frame_facing: movement::Angle::NORTH,
-            des_angle: movement::Angle::NORTH,
+            facing: movement::Angle::INITIAL,
+            frame_facing: movement::Angle::INITIAL,
+            heading: movement::Angle::INITIAL,
+            des_angle: movement::Angle::INITIAL,
             dest: None,
             speed: 0,
             turning: movement::Turning {
@@ -312,11 +327,46 @@ impl Movement {
         }
     }
 
-    /// Faces the unit and its body a given way at once — `Guy::set_angle` with
-    /// the snap flag, which writes both the facing and the desired angle.
+    /// Points the unit and its body a given way at once — `Guy::set_angle`
+    /// with the snap flag, the one caller that moves the facing and the
+    /// heading together. `Unit::move_step` never uses it: its `set_angle`
+    /// passes zero for that flag, so a step moves the heading and leaves the
+    /// facing to the turn rate.
     pub const fn set_facing(&mut self, facing: movement::Angle) {
         self.facing = facing;
+        self.heading = facing;
         self.des_angle = facing;
+    }
+}
+
+/// The type-level facts the turn rate and the turn-in-place limits read —
+/// `movement::Turning` as `Guy::init_real` and `Unit::move_step` derive them.
+///
+/// **`instant_from_stop` is `guy_flags & 0x10`**, and `Guy::init_real` builds
+/// it out of four type tests: not a packing type (`unit_flags2 & 4`), carrying
+/// objmask `FOOT` or `MOUNTED` or the program-set `unit_flags & 0x10`, and
+/// **not** `unit_flags & 2` — the `FLAGS b` whose legend is "Unit is a
+/// horse-drawn cart type thing". A cart does not pivot. That is the whole of
+/// `unitrules.xml`'s own note, "Foot & Mounted units turn instantly from a
+/// stopped position", and with a stopped body — which is every frame the unit
+/// did not move — it makes the next step's turn free.
+///
+/// `wide_limit` is `move_step`'s 80° branch: a non-land type, or a `VEHICLE`,
+/// keeps walking while it still owes up to 80° — but only two tiles out or
+/// more.
+///
+/// `packed` is not here: it is `unit_masks & 0x80000`, a runtime state.
+pub fn turning_of(t: &UnitType) -> movement::Turning {
+    let objmask = t.combat.obj_masks;
+    let foot_or_mounted = objmask & (combat::mask::FOOT | combat::mask::MOUNTED) != 0;
+    movement::Turning {
+        type_turn_speed: t.turn_speed,
+        packed: false,
+        instant_from_stop: !t.cols.flag2(ai_load::uflags2::PACKS)
+            && (foot_or_mounted || t.cols.flag(ai_load::uflags::TRANSPORT))
+            && !t.cols.flag(ai_load::uflags::CART),
+        wide_limit: t.combat.domain != attrition::Domain::Land
+            || objmask & combat::mask::VEHICLE != 0,
     }
 }
 
@@ -1572,7 +1622,7 @@ impl Sim {
                 unit.ty = Some(ty);
                 unit.type_index = self.unit_types[ty].type_index;
                 unit.movement.speed = self.unit_types[ty].moves;
-                unit.movement.turning.type_turn_speed = self.unit_types[ty].turn_speed;
+                unit.movement.turning = self.turning_for(ty);
                 let unit = self.add_unit(unit);
                 // `Unit::init` → `Guy::init_real`: the figure's one draw.
                 // (The unit's `ty` stays unset here, as it always has; the
@@ -2078,15 +2128,20 @@ impl Sim {
         })
     }
 
-    /// The body's chase, `Guy::move` through `Guy::process`, which
-    /// `Unit::process` reaches after the order step: the body follows where
+    /// [`turning_of`] for a type this simulation holds.
+    pub fn turning_for(&self, ty: usize) -> movement::Turning {
+        turning_of(&self.unit_types[ty])
+    }
+
+    /// The body's frame, `Guy::move` through `Guy::process`, which
+    /// `Unit::process` reaches after the order step: the body lands on where
     /// the unit *now* is. The unit step itself is the move order's
     /// (`orders::do_move`), in the same frame and before this.
     fn process_movement(&mut self, i: usize) {
         let unit = &self.units[i];
         let m = unit.movement;
         let facing = m.facing;
-        let des_angle = m.des_angle;
+        let heading = m.heading;
         let pos = unit.pos;
         // The body's rate is mode 1: the base, always. It reads `last_speed`
         // as it stood before this frame, the way `Guy::move` does.
@@ -2098,8 +2153,7 @@ impl Sim {
             m.body.avg_speed,
             movement::TurnMode::Body,
         );
-        let mut follow =
-            movement::body_follow(m.body, facing, pos, des_angle, turned, m.speed, rate);
+        let mut follow = movement::body_follow(m.body, facing, pos, heading, turned, rate);
         if !self.world.accepts(follow.body.pos) {
             follow.body.pos = m.body.pos;
         }

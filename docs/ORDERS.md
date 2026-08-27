@@ -984,10 +984,17 @@ unit cuts its corners.
 **The facing on arrival** is `mo->angle` — the direction from the start point
 to the goal *at order time* — applied only when the move was the unit's only
 order or the action beneath is a gather; a unit with a second order queued
-keeps its heading. (A flag for `docs/MOVEMENT.md`: `move_step` writes
+keeps its heading. ~~(A flag for `docs/MOVEMENT.md`: `move_step` writes
 `UnitData::angle` with the *heading* every step, yet that document logged a
 facing 1–2° off the heading while walking — `Guy::set_angle`/`do_turn` may
-write it back; the citizen case cannot tell, since it turns instantly.)
+write it back; the citizen case cannot tell, since it turns instantly.)~~
+**Answered 2026-08-27**, and this flag was right to be raised: they are two
+different fields. `UnitData::angle` is the heading and `GuyData::angle` is the
+facing, `do_turn` is the only writer of the second, and the 1–2° is the gap
+between them while a unit turns. `docs/MOVEMENT.md`, "Two angles". Note also
+that `set_angle(mo->angle, 0)` on arrival passes **0** for the snap flag, so
+it moves the heading and not the facing: the body swings onto the order's
+angle over the frames after the unit stops.
 
 ### 4.6 `Unit::find_path@005fb910` — the straight-line verifier, and the pathfinder seam
 

@@ -76,6 +76,10 @@ pub mod role {
 /// word is the `FLAGS` column folded a letter to a bit, plus `0x10` from
 /// `init_final_flags`.
 pub mod uflags {
+    /// `b` — "Unit is a horse-drawn cart type thing". The one exemption from
+    /// the instant turn from a standstill (`Sim::turning_for`): a cart does
+    /// not pivot.
+    pub const CART: u32 = 0x2;
     /// `e` — a sea transport.
     pub const TRANSPORT: u32 = 0x10;
     /// `f` — `unitrules.xml`'s own legend: "Unit flies like a helicopter".

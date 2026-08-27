@@ -27,62 +27,59 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-27, after item 33 — reveal cells as units move.*
+*Last verified 2026-08-27, after item 34 — the stopped unit's instant turn.*
 The commit this section was written against is the one that lands it; if
 `git log` has moved well past it, trust the queue below and the journal
 before trusting this.
 
-**Last landed: `docs/VISION.md`, in `crates/sim/src/vision.rs`.** A unit
-now lights a disc of `LOS / 2` fog cells every time it crosses a
-half-cell — centred, below radius four, a **half-cell ahead of its own
-facing**, which is most of what a citizen's vision is — plus the
-hundredth-frame resync at `frame % 100 == 33`. `ring_init`'s thickened
-table is rebuilt from the listing and the PE's own offset bytes. `seen2`
-grows as the game runs, so the three consumers that read it — the
-pathfinder's `calc_cost`, `think_scout`'s cell filter, the site census —
-are no longer reading the frame-0 snapshot.
+**Last landed: item 34, and it was three findings, not one.** The queue
+booked it as a turn rule and it was not the turn rule at all.
+`docs/MOVEMENT.md` is amended in three places and has a new "The checks"
+section.
 
-**The check with teeth is `mylos`, and it was a `grep`, not a run.**
-Every object record in every capture, at every detail level, prints
-`ObjectData::mylos` — `update_los`' whole output. `rondata::diff`
-compares it now and run10 asserts **26,433 unit-frames, one
-disagreement**, which is a cache: `Leader::calc_unit_stats` refreshes
-`mylos` the frame *after* `gain_tech` sets the dirty bit, so the sim's
-pure function reports the Scout's `4 + 1 × 2` a frame early. That one row
-is what proves `epoch[3]` is the Science line.
+- **Guy 0's body never chases the unit.** `Guy::move` tests
+  `guy_num == 0` before it reaches any of the arithmetic and writes the
+  body straight onto the unit, recording `vector_dist` of the jump as
+  `last_speed`. The 11/8 belongs to a guy with a track offset and to
+  nothing else. So `avg_speed` settles at **33** for a diagonal step of 34,
+  not 46, and the unit's turn rate divides by nine — which reproduces the
+  original's own `0x222221c` on run10's frame 62 to the unit. And a unit
+  that spent its frame turning in place has `last_speed` zero *that same
+  frame*, which arms the next frame's instant turn.
+- **Nothing had ever set `instant_from_stop`.** The rule and the rate were
+  both there; every unit built from the shipped data came out with the flag
+  clear. `sim::turning_of` derives the whole `Turning` from the type now.
+  The predicate's rider is worth keeping: `unit_flags & 2` vetoes it, and
+  its legend is "Unit is a horse-drawn cart type thing".
+- **`UnitData::angle` is the heading, not the facing.** `move_step` writes
+  it from `find_angle` at the top of every step; the facing lives in
+  `GuyData::angle` and only `Guy::do_turn` moves it. `UnitData::dest_angle`
+  is a third field and is the order's. And `Unit::init` starts every unit
+  at `0x55555555` — 120° — where this simulation started them at north.
 
-**What the check found on its first run was a different mechanic's
-bug.** 5,170 of those unit-frames read `ours 0`, because a unit the
-simulation *trained* was never given its type: `advance_job` set `kind`
-and left `Unit::ty` unset, so it had no LOS, no combat profile, no speed
-and no worker role. Fixed; 5,170 → 1. It made the AI's trained citizens
-start gathering, so run6's path ceiling rose 892 → 1,602 while every
-traced check held to the number.
+**The check with teeth is 13,542 rows, and the gate is what makes it
+sharp.** Both angles are compared against the dump on every unit-frame
+**where the two sides agree on the position** — a unit that walked
+somewhere else points somewhere else as a consequence, and counting that
+measures the position gap twice. run20's opening is 72 comparisons and
+**zero**; run10's is 13,542 and 5,435, all of it `Unit::set_angle`'s
+seventeen unmodelled callers (item 36). The scout that opened the item is
+**two rows in 1,772 frames**, and frames 57–91 are exact on position and
+both angles.
 
-**And the row item 33 was booked to close is not the fog's.** run10's
-frame 102 went 24 → **22** and stopped. Both sides give AI scout `1/0`
-the same `EXPLORE_TO` and walk it to the same point; on frame 62 the
-original stands one frame and turns, stepping a constant `(−19, +29)`
-thereafter, while the sim takes one more step, **stands for seven
-frames**, and eases into the heading over eight more. Six frames late to
-the target, so its `think_scout` ring draws land on 102 where the
-original's landed on 96. That is `docs/MOVEMENT.md`'s stopped-unit
-instant turn, and it is item 34.
-
-**Thirteen deliberate breakages, all red** — and two of them only after
-the *guard* was strengthened, which is the transferable part: a fog-cell
-count cannot tell a skipped sweep from a repeated one, so `moved_to`
-answers `None` when the half-cell test declined; and asserting the ring
-*flag* does not assert the ring *table*, so the indices are compared
-against `ring_radius` directly.
+**run13's frame 102 went `22 / 6` to `6 / 6`.** The row three items had
+been chasing. run6's totals fell 1,793/2,043 → 1,516/1,911, and the
+farmers' share 612/441 → 304/317 because they now walk the original's
+frames. Five deliberate breakages, all red.
 
 **Then, in order:**
 
-- **Item 34, the stopped unit's instant turn** — new, and the direct
-  successor: run10's frames 62–78 are the whole case, pinned at `(22, 6)`
-  so closing it fails there. `docs/MOVEMENT.md`'s `last_speed`/`avg_speed`
-  interplay. The same shape as the older `1/1`-at-frame-2 residue and
-  `0/2`'s `(2, 8)`, which are also the movement layer's.
+- **Item 35, `mylos` as a cache** — unchanged, the smallest entry on the
+  list, and it takes run10's one LOS disagreement to zero.
+- **Item 36, `Unit::set_angle`'s seventeen other callers** — new, and the
+  whole of what the angle check has left. Start at `do_gather`'s: run10's
+  unit `0/2` is 2,680 of the 5,435 and its frame 432/433 is one screen of
+  trace. Each caller is also a place a group's mirror flag would move.
 - **The fuzzed map's frame 1**, two rows: one
   `Leader::produce_building+0xc99` **short** (29 against 30) and one
   `Unit::do_non_flat_gather+0x54b` short.
@@ -92,32 +89,29 @@ against `ring_radius` directly.
   hold and the sim does not** — the rest of item 25.
 - **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked,
   and its capture is still worth **widening** for §6.7's translation half.
-- **Item 35, `mylos` as a cache** — `docs/VISION.md` §7, and the smallest
-  entry on this list: a `unit_stats_dirty` per player and a cached
-  `mylos`, refreshed at the five sites that call `update_los`. It takes
-  run10's one disagreement to zero.
-- **Re-run run13's window** (sim-frames 95–103): §5's largest single gap
-  was `6 / 23` at frame 95.
+- **Item 37, the arrival frame's facing** — two rows, and a `grep` of
+  `guy_flags` on a capture already on disk.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *Grep the dump for the field before
-booking anything.* `docs/VISION.md` was written from the decompile as a
-blind reading, and then one `grep` for `mylos` in a log already on disk
-turned its central section into a 26,433-row differential check — which
-immediately found a bug in a different mechanic that no amount of reading
-about vision would have surfaced. The `OBJECT` level is free, on every
-capture, and `docs/ORACLE.md` now says so where the detail-level table is.
+**The thing this session earned.** *A field two blind readings agreed on is
+not thereby settled.* The 11/8 survived a first reading, an adversarial
+second reading and an adjudication — because all three read the same
+arithmetic and none re-read the `if` above it. What found it was the first
+frame of a differential check on a field the dump had been printing all
+along, which is now twice in two sessions: `mylos` last time, `angle` this
+time. The capture is cheaper than the reader, and it disagrees.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
-second-quadrant branch**. When to spend a Fable batch is still open;
-this session's judgement is still **not yet** — but `docs/VISION.md` is
-now on the list of documents with no second reading.
+second-quadrant branch**. When to spend a Fable batch is still open, and
+this session moves the judgement slightly toward *soon*: `docs/MOVEMENT.md`
+has now been corrected twice on the same twenty lines, once by an audit and
+once by a diff, and it has no second reading of its own since 2026-08-20.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 34, the stopped unit's instant turn. run10's AI scout 1/0 is the pinned case and the frames are 62 to 78: the original stands still for exactly one frame on 62 and then steps a constant (-19, +29) from 63 to the end, while the sim takes one more step north-east, stands for seven frames (63-69), and eases into the heading over eight more, reaching (-19, +29) only at 77. Ten frames of lag that never close. diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched pins frame 102 at (22, 6) so closing this fails there. Start from docs/MOVEMENT.md's turn model - Unit::set_angle, last_speed/avg_speed, and what makes a stopped unit turn instantly - and from Unit::move_step's own half-step clause. No new run needed: run10 and run13's window are both on disk with UNITS=3.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 35, mylos as a cache. docs/VISION.md §7 has the whole design: a unit_stats_dirty bit per player and a cached mylos on the unit, refreshed where Leader::calc_unit_stats refreshes it and at the five other update_los sites. run10's 26,433-row check asserts exactly one disagreement today (frame 202, player 1's scout, ours 6 theirs 4, the frame gain_tech sets the bit); closing this takes it to zero, so change the assertion to an empty vec and make it fail first. Then item 36, Unit::set_angle's seventeen other callers, starting at do_gather's — run10's unit 0/2 at frames 432 and 433 is the readable case and 2,680 of the 5,435 angle rows.`
 
 ## The queue
 
@@ -355,18 +349,16 @@ in which case say so and take that. The story of each struck item is in
     disagreement; thirteen deliberate breakages. It uncovered items 34 and
     35, and one bug in `advance_job` (a trained unit had no type).
 
-34. **The stopped unit's instant turn.** run10's AI scout `1/0`, frames
-    62–78, and it is the residue under three older entries as well
-    (`1/1`'s position at frame 2, `0/2`'s old `(2, 8)`). The original
-    stands still for **one** frame and then steps a constant `(−19, +29)`
-    from the next; this simulation takes one more step on its old heading,
-    stands for **seven**, and eases into the new one over eight more —
-    ten frames of lag that never close, so every later re-target lands on
-    a different frame. `docs/MOVEMENT.md`'s `last_speed`/`avg_speed`
-    interplay and `Unit::set_angle`. Pinned:
-    `diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_
-    matched` asserts frame 102 at `(22, 6)`, so closing it fails there.
-    No new run needed.
+34. ~~**The stopped unit's instant turn**~~ — done 2026-08-27, and it was
+    three things, none of them the turn rule. `docs/MOVEMENT.md` ("Two
+    angles", "The body step", "The checks"), `docs/ORDERS.md` §4.5,
+    `docs/GROUPS.md` §6.6, `crates/sim/src/{movement,lib,orders,group,
+    anim,ai_load}.rs`, `rondata::diff`. Guy 0 is written onto the unit
+    rather than chasing it at 11/8; nothing had ever populated
+    `instant_from_stop` from the type; and `UnitData::angle` is the
+    **heading**, a different field from the facing. run13's frame 102
+    `22 / 6` → `6 / 6`; 13,542 angle comparisons added; five deliberate
+    breakages.
 
 35. **`mylos` as a cache.** `docs/VISION.md` §7: the original stores
     `ObjectData::mylos` and refreshes it in `Leader::calc_unit_stats`,
@@ -378,6 +370,27 @@ in which case say so and take that. The story of each struck item is in
     per player and a cached `mylos`, refreshed at `calc_unit_stats`,
     `Unit::init`, `Unit::set_type`, `Build::activate`, `check_explore` and
     `plan_strategy`, takes it to zero.
+
+36. **`Unit::set_angle`'s other seventeen callers.** The whole of what the
+    new angle check has left, and it is a large, well-measured population:
+    5,435 disagreements over run10's 13,542 comparisons, on unit-frames
+    where the two sides agree on the *position*. `Sim::unit_set_angle`
+    models exactly one caller, `move_step`'s. Unit `0/2` alone is 2,680 of
+    it and is the readable case — it walks to `(4440, 28680)` on run10's
+    frame 432 with both sides agreeing on position, path and both angles,
+    and on 433 the original turns it to face what it is about to gather
+    while the simulation leaves it pointing the way it walked. So the
+    first caller to read is `do_gather`'s. Each one is also a place a
+    group's mirror flag would move that this simulation leaves still
+    (`docs/GROUPS.md` §4.1). No new run needed: run10 and run6 both carry
+    it, and the ceiling in `run10_s_opening_…` is the score.
+
+37. **The arrival frame's facing, and it is a grep.** Two unit-frames in
+    run10's 1,772 — the AI scout, both the frame after an `EXPLORE_TO`
+    arrival: the original's body is already on the order's angle where the
+    simulation's turns a frame later. `docs/MOVEMENT.md`'s open questions
+    names the suspect (when `guy_flags & 2` is cleared relative to
+    `Guy::move`) and `GUYS=2` prints `guy_flags` on every capture.
 
 ## How to maintain this file
 

@@ -22,11 +22,24 @@ integration, and applied its rules — including an 11/8 multiplier that belongs
 to the body — to the unit. Those corrections are landed below and marked where
 they changed what an earlier draft said.
 
-**Confidence.** High throughout. The unit of speed, the three-layer speed
-pipeline, the angle representation, `find_angle`, the sine table and its
-generator, both per-frame steps and both turn rules are read end to end, and
-the one thing that looked wrong turned out to be a misreading — see the note
-below, which is kept because the mistake is instructive.
+**And a third pass, 2026-08-27 (queue item 34), which is the one with a check
+behind it.** Three things this document had wrong survived both readings and
+were caught by a differential: guy 0's body does not chase the unit at all
+(the 11/8 belongs to a guy with a track offset), `UnitData::angle` is the
+heading rather than the facing, and a unit starts life at `0x55555555` rather
+than north. Each is marked where it changed what an earlier draft said, and
+"The checks" at the end is what now holds them.
+
+**Confidence.** High throughout, and for the first time partly *measured*
+rather than argued: both of a unit's angles are compared against the
+original's own dump on every unit-frame where the two sides agree on the
+position, which on run20's opening is exact and on run10's 1,772 frames leaves
+only the `set_angle` callers this simulation does not make. The unit of speed,
+the three-layer speed pipeline, the angle representation, `find_angle`, the
+sine table and its generator, both per-frame steps and both turn rules are
+read end to end, and the one thing that looked wrong turned out to be a
+misreading — see the note below, which is kept because the mistake is
+instructive.
 
 **Where the implementation is.** `crates/sim/src/movement.rs`, driven from
 `Sim::process_movement` in `crates/sim/src/lib.rs`.
@@ -87,15 +100,25 @@ doing anything else, which is the screen convention showing through into the
 simulation.
 
 **Confirmed in a logged run (2026-08-20), and it settles a question in another
-document.** `UnitData +0x50 angle` is the direction the unit *faces*, and a
-walking unit faces where it is going: read frame by frame at `UNITS=3`, a
-squad stepping south-east logged `angle` 133.90° falling to 133.45° against a
-per-frame position delta whose `find_angle` is exactly 135.00°, and one
-stepping north-west logged −43.20° rising to −42.85° against −45.00°. The
-heading quantises to the diagonal because the step does; the facing sits about
-two degrees off it and drifts smoothly, which is a unit turning as it walks.
-`tools/gamelog/heading.py` is the reader. `docs/COMBAT.md` §14.1 rested its
-flank convention on exactly this, and it is what makes level 1 the rear.
+document.** A walking unit points where it is going: read frame by frame at
+`UNITS=3`, a squad stepping south-east logged `angle` 133.90° falling to
+133.45° against a per-frame position delta whose `find_angle` is exactly
+135.00°, and one stepping north-west logged −43.20° rising to −42.85° against
+−45.00°. `tools/gamelog/heading.py` is the reader. `docs/COMBAT.md` §14.1
+rested its flank convention on exactly this, and it is what makes level 1 the
+rear.
+
+**Which field that is, corrected 2026-08-27 (item 34).** An earlier draft
+called `UnitData +0x50 angle` "the direction the unit faces". It is the
+direction the unit *wants* — the bearing to where it is going. See "Two
+angles" below: `move_step` writes it from `find_angle` on every frame, before
+turning, and the facing the step is actually taken along lives in
+`GuyData +0x18`. The observation above stands either way, because a unit that
+has finished turning has the two equal; what it cannot distinguish is exactly
+what the correction is about. A unit the original has just created carries
+neither: `Unit::init@00612100` writes **`0x55555555`** — 120° — into `angle`
+and `dest_angle`, a literal with nothing behind it, and that is what every
+unit faces until its first order (`Angle::INITIAL`).
 
 Degrees do appear in one place: the data. A type's `<TURN_SPEED>` is written
 in degrees and converted once at load by `degrees_to_angle`, which is not a
@@ -250,23 +273,52 @@ for it, one to four per squad. **The `Unit` has a position and so does each
 - Each guy's position is `GuyData::x / y`, and `GuyData::des_x / des_y` is
   where it is trying to be. `Unit::set_new_location` writes the unit's new
   position into guy 0's `des_x / des_y` on every step (`Unit/set_new_location`
-  +158), and **`Guy::move` walks the body toward that point** at
-  `floor(speed × 11/8)` — fast enough to always catch up, which is the whole
-  reason the multiplier exists.
+  +158), and **`Guy::move` puts guy 0 straight onto that point** — see "The
+  body step". Guy 0 does not chase and never lags.
 
 So the unit is a point that moves at its quoted speed and the body is a
-presentation that chases it. The two share one thing that matters to the
-simulation, guy 0's **facing** (`GuyData::angle`), which both steps turn and
-both steps read; and the body's bookkeeping — `last_speed` and `avg_speed` —
-feeds the unit step's turn rate, below. That is why `crates/sim` models the
-body's position and those two counters even though nothing in the simulation
-reads the body's position yet: the unit's turn rate is not honest without them.
+presentation pinned to it. The body's bookkeeping — `last_speed` and
+`avg_speed` — feeds the unit step's turn rate, below. That is why `crates/sim`
+models the body at all, even though nothing in the simulation reads its
+position yet: the unit's turn rate is not honest without those two counters,
+and the *value* they hold turns out to depend on the body not chasing.
 
 (An earlier draft described only `Guy::move`, called it "the integration, per
 figure", and applied it to the unit's position. Every consequence that
 followed — the 11/8 on the unit, the "27% faster than quoted" claim, the
 pre-turn heading in the trig, and the turn gate as the unit's rule — was that
-one mistake.)
+one mistake. **A later one, corrected 2026-08-27, kept the 11/8 as the
+body's rate.** It is not guy 0's either; see below.)
+
+## Two angles
+
+Also two *angles* per unit, in different fields, and telling them apart is
+what item 34 was.
+
+| field | what it is | who writes it |
+| --- | --- | --- |
+| `GuyData::angle` (`+0x18`) | the **facing** — the direction the step is taken along | `Guy::do_turn` only, and never by more than the turn rate |
+| `UnitData::angle` (`+0x50`) | the **heading** — the bearing to the current destination | `Unit::set_angle`, outright, from anywhere |
+| `GuyData::des_angle` (`+0x64`) | the same value again | `Unit::set_angle` writes both in one call |
+| `UnitData::dest_angle` (`+0x58`) | the **order's** angle: where the order wants the unit to end up pointing | `Unit::update_action` (§3.3 of `docs/ORDERS.md`) |
+
+`Unit::move_step` calls `find_angle` on the remainder to its destination and
+then, at once and before any turning, `set_angle(this, want, …, 0)`. So the
+heading is the bearing every frame, quantised to 2¹⁶ of a circle by
+`find_angle`'s mask, while the facing crawls toward it at the turn rate. The
+third argument is the snap flag; `move_step` passes zero at all three of its
+call sites, so **nothing in the step ever snaps the facing**. Only
+`Guy::set_angle` with that flag set does, and the step does not use it.
+
+Two consequences worth stating because they are easy to get backwards:
+
+- The group layer's `update_positions` rotates its slot table by the leader's
+  **heading** (`docs/GROUPS.md` §6.6), not its facing — the two differ by up
+  to the turn rate on any frame the leader is turning, which is exactly why
+  §6.6 had to call `curr` a mid-frame quantity.
+- An idle body turns toward the heading (`Guy::move`'s first branch), so a
+  unit that arrives and is given the order's angle swings onto it over the
+  frames after it stops, rather than snapping on the frame it arrives.
 
 ## The unit step — `Unit::move_step`
 
@@ -354,14 +406,17 @@ waypoint.
 ## The body step — `Guy::move`
 
 Once per frame for every guy, from `Guy::process`, whether or not the unit is
-moving. For guy 0 (the others are offset copies, or snap to their own
-destinations):
+moving. **Corrected 2026-08-27 (item 34); what an earlier draft had here was
+the wrong branch.**
 
 ```
-if pos == des:                                   # caught up
+if pos == des:                                   # the unit did not move
     last_speed = 0
     turn toward des_angle at turn_speed(mode 1)  # only if not turned this frame
-else:
+elif guy_num == 0 or (track_dx == 0 and track_dy == 0):
+    last_speed = vector_dist(des - pos)          # the jump's own length
+    pos = des                                    # written straight onto it
+else:                                            # a guy with a track offset
     heading = find_angle(des - pos)
     owed    = turn_towards(facing, heading, turn_speed(mode 1))
     if 2 * turn_speed(mode 1) < owed:  return    # turning costs the frame
@@ -371,34 +426,48 @@ else:
         last_speed = vector_dist(dx, dy)
         pos = des                                # Manhattan snap
     else:
-        sx = sinx(facing, step); cy = cosx(facing, step)    # post-turn facing
+        sx = sinx(facing, step); cy = cosx(facing, step)
         if |sx| > |dx|:  sx =  dx                # never overshoot on an axis
         if |cy| > |dy|:  cy = -dy
         if the world accepts (x + sx, y - cy):  move there
 avg_speed = (avg_speed * 3 + last_speed) / 4     # skipped on the turn-gate return
 ```
 
-**The 11/8 is the body's.** A literal, with no constant behind it, and its job
-is to make the body faster than the unit so the body is always on the unit's
-heels — an 8/8 body would fall behind on every diagonal, where the Manhattan
-distance of the unit's step is longer than the body's snap. (An earlier draft
-put this on the unit.)
+**Guy 0 never chases.** The `guy_num == 0` test is the first thing after the
+walk animation, and it goes straight to the write: no turn, no trig, no
+clamps, no 11/8. Whatever the unit's step was, the body is put on top of it,
+and `last_speed` is `vector_dist` of that step. An earlier draft read the
+third branch, took it for guy 0's, and put the 11/8 here — which is the same
+mistake as the draft before it, one field further down.
 
-**The body's turn shares the unit's facing, and for a moving unit never moves
-it.** Guy 0's facing is the same field the unit step just turned, and the body
-turns toward where the unit actually went — which is along the facing the unit
-just stepped on, so the two agree to within the snap tolerance. `crates/sim`
-models the turn anyway, on the shared facing, because it is three lines and it
-is what turns an idle body: standing on its destination, not turned this frame
-by the unit step, it turns toward `des_angle` — the heading the last unit step
-recorded through `Unit::set_angle`, or the order angle on arrival, which the
-simulation does not have yet.
+**So `last_speed` is the unit's own Euclidean speed**, and this is the whole
+of why the body is modelled. The number that comes out is not the same one a
+chase would give. run10's AI scout walks a diagonal at `MOVES` 34, stepping
+`(24, 24)`: `vector_dist(24, 24)` is 36 — the octagonal measure, `hi + lo²/2hi`
+— and `(3a + 36) / 4` truncates to a fixpoint of **33**, so the turn rate is
+divided by `33/4 + 1 = 9`. An 11/8 chase would have given 46, an average of
+43 and a divisor of 11. The two differ by 22% on every turning frame, and the
+9 is the one that reproduces the original's own `0x222221c` on frame 62.
 
-**`last_speed` and `avg_speed` are the body's, and the unit reads them.** The
-unit step's turn rate divides by `avg_speed / 4 + 1` and goes instant when
-`last_speed == 0`, so a unit that stops turns on a sixpence and a unit at full
-stride turns slowly. `avg_speed` decays by a quarter a frame once the body has
-caught up and stopped.
+**And a unit that did not move has `last_speed` zero the same frame.** Turn in
+place, arrive, be refused a step by the world — the body is already on the
+unit, the first branch runs, and the *next* frame's unit step finds
+`last_speed == 0`. For a foot or mounted type that is the instant turn
+(below), which is why a unit that stops to turn pays exactly one frame for it
+and not seven.
+
+**The 11/8 is the tracked guy's**, and nothing else's. A literal, with no
+constant behind it. `track_dx`/`track_dy` are what the branch is gated on;
+what sets them is unread, and the simulation has only guy 0, so the branch is
+read and not modelled.
+
+**The idle body's turn.** Standing on its destination and not turned this
+frame by the unit step (`guy_flags & 2`, which `do_turn` sets), guy 0 turns
+its own facing toward `des_angle` — the heading, which `Unit::set_angle` last
+wrote. `turn_towards` uses `turn_speed(mode 1)`, and the instant-turn test
+sits *before* the mode test, so a stopped foot unit snaps its body onto the
+heading in one frame. That is how a unit that has arrived comes around to its
+order's angle.
 
 `GuyData::get_speed` is `UnitData::get_speed(body x, body y, 1)` — the body's
 tile, and **flag 1, so the group cap never applies to the body** — plus nine
@@ -467,6 +536,21 @@ and does not have `unit_flags & 2`. With `last_speed == 0` the rate is
 same frame. (An earlier draft said "heavy units feel sticky when reversed" and
 pinned a unit standing fourteen frames to turn; the original has that only for
 types without the flag — siege, ships — or for a unit already moving.)
+
+Objmask `0x20` and `0x1000` are bits 5 and 12, `FOOT` and `MOUNTED`, so the
+predicate is the data file's own note with two riders. `unit_flags & 0x10`
+(`FLAGS e`, "this flag is set in the program" — a sea transport) lets a type
+in without either mask; `unit_flags & 2` keeps one out, and its legend is
+**"Unit is a horse-drawn cart type thing"**. A cart does not pivot. And a
+packing type (`unit_flags2 & 4`) takes the `0x8` branch instead and never gets
+`0x10` at all.
+
+**Nothing populated that flag until 2026-08-27**, which is the other half of
+item 34: `crates/sim` had the rule and the rate, and every unit built from the
+data came out with the flag clear, so no unit in the simulation had ever
+turned instantly. `sim::turning_of` derives the whole `Turning` from the type
+now — the rate, this flag and the 80° `wide_limit` — and the training site and
+both of `rondata::diff`'s scene builders go through it.
 
 **While moving, the unit turns slower the faster it goes.** Mode 0 divides the
 base by `avg_speed / 4 + 1` and floors the result at one degree a frame. A
@@ -588,8 +672,23 @@ decompiler, so the third attempt should start at `llvm-objdump`.
 to 1 and only a cheat changes it. It multiplies both steps and is part of the
 synchronised state by construction; `crates/sim` treats it as 1.
 
+~~**Which field is the facing and which the heading.**~~ Settled 2026-08-27,
+item 34, and settled by a *check* rather than a reading: `UnitData::angle`
+against the heading and guy 0's `angle` against the facing, on every
+unit-frame where the two sides agree on the position. See "Two angles" and
+the checks below.
+
 **Still open:**
 
+- **The arrival frame's facing, and it is worth one grep.** Two unit-frames
+  in run10's 1,772 — both the AI scout, both the frame after it arrives on an
+  `EXPLORE_TO` — have the original's body already on the order's angle where
+  the simulation's turns a frame later. `arrive` sets the heading through
+  `set_angle(mo->angle, …, 0)`; the body then swings onto it, and the
+  simulation's `guy_flags & 2` equivalent (`facing != frame_facing`) is set on
+  the arrival frame, which costs it that frame. Whether the original's bit is
+  cleared earlier in `Unit::process` than this simulation clears it is the
+  question, and `GUYS=2` prints `guy_flags` on every capture, so it is a grep.
 - **What world tile flag `0x800` is.** It halves land speed at ground level, so
   it is terrain of some kind — forest, swamp or shallow water are the obvious
   candidates.
@@ -613,7 +712,13 @@ synchronised state by construction; `crates/sim` treats it as 1.
   sit above all of this and decide what the destination is — and the angle the
   unit and its body snap to on the last waypoint.
 - **The body's `+9`.** `GuyData::get_speed` adds nine when the current order's
-  vslot `0x2c` is non-zero. Which orders, and why nine, is unread.
+  vslot `0x2c` is non-zero. Which orders, and why nine, is unread. Note that
+  after item 34 nothing in the simulation reads `GuyData::get_speed` at all:
+  guy 0 never takes a step of its own.
+- **`track_dx` / `track_dy`.** The two fields that decide whether a guy walks
+  or is written onto its destination. Nothing has been read about what sets
+  them; the name suggests a tracked vehicle's treads. Guy 0 takes the write
+  either way, so the simulation does not need the answer yet.
 
 ---
 
@@ -631,3 +736,40 @@ folded in where it belongs. The decompile agreed with the audit at every point
 re-read; what this reading adds beyond the audit is that the body's turn shares
 the unit's facing field and, for a moving unit, never moves it — which is what
 lets the simulation model the body's counters without a second facing.
+
+**D2 was half wrong and both readings missed it (2026-08-27, item 34).** The
+11/8 is not the unit's — that much the audit fixed — but it is not guy 0's
+either: `Guy::move` tests `guy_num == 0` before it reaches the turn, and takes
+a branch that writes the body onto its destination and records `vector_dist`.
+Two independent readers went past that test on the way to the arithmetic
+underneath it, which is the recurring shape in `docs/audit/README.md`: the
+predicates are where the errors are, not the arithmetic. What found it was
+not a third reading. It was the first frame of a differential check on a
+field the dump had been printing all along.
+
+## The checks (2026-08-27, item 34)
+
+Three, all differential, all in `rondata::diff`:
+
+- **`UnitData::angle` and guy 0's `angle`, on every unit-frame where the two
+  sides agree on the position.** The gate matters: a unit that walked
+  somewhere else points somewhere else as a consequence, and counting that
+  measures the position gap twice. run20's opening is **72 comparisons, zero
+  disagreements**; run10's 1,772 frames are 13,542 comparisons and 5,435
+  disagreements, and none of the residue is the step's — it is
+  `Unit::set_angle`'s other seventeen callers, which the simulation does not
+  make. Unit `0/2` alone is 2,680 of it: it walks to `(4440, 28680)` on frame
+  432 with both sides agreeing on position, path and both angles, and on 433
+  the original turns it to face what it is about to gather.
+- **The AI scout in run10, `1/0`**: two rows in the whole run, both after an
+  arrival (see the open question). Frames 57 to 91 — the case item 34 was
+  opened on — are exact on position and on both angles.
+- **run13's window, frame 102**: the `think_scout` ring draws, `22 / 6`
+  before and `6 / 6` after.
+
+Five deliberate breakages, all red: the instant-turn flag forced off (run13's
+102 goes to `27 / 8`), `last_speed` set to the 11/8 step (run10's comparison
+count falls, and the unit test on the fixpoint fails outright), the initial
+angle put back to north (run20's zero becomes 64), the heading compared
+against the facing, and the step's `set_angle` given the facing instead of the
+heading (both raise run10's count).

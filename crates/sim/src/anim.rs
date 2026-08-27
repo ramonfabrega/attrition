@@ -519,7 +519,7 @@ impl Sim {
             return;
         }
         let unit = &self.units[u];
-        let facing_settled = unit.movement.facing == unit.movement.des_angle;
+        let facing_settled = unit.movement.facing == unit.movement.heading;
         let anim = unit.guys[0].anim;
         if was_at_des {
             if facing_settled {

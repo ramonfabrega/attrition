@@ -3177,3 +3177,131 @@ one `grep`, produced 26,433 rows of evidence, confirmed a type-record name
 by behaviour, and found a bug in a *different* mechanic that no amount of
 reading about vision would have surfaced. `docs/ORACLE.md` now says which
 fields the `OBJECT` level gives away for free.
+
+## 2026-08-27 — item 34: the body was never chasing, and the angle was never the facing
+
+The queue booked this as "the stopped unit's instant turn", with run10's AI
+scout `1/0` as the pinned case and frames 62 to 78 as the evidence: the
+original stands one frame and steps a constant `(−19, +29)` thereafter, the
+simulation stands seven and eases in over eight more. Ten frames of lag that
+never close, and one `think_scout` re-target six frames late because of it.
+
+It was three things, and none of them was the turn rule `docs/MOVEMENT.md`
+already had.
+
+### Read the dump first
+
+The whole diagnosis came out of one `track.py` run over a log already on
+disk. `UNITDATA` at run10's frames 50–85 gives the scout's position, its
+`angle`, its `tolerance`, its path stack and its order — and at `GUYS=2` its
+figures' positions and angles too. Two facts fell straight out.
+
+**The original's frame 62 turned 78° in one frame.** From `0x5fb30000` to
+`0x973c0000`, at a standstill, with the unit not moving. That is
+`turn_towards` snapping, which needs the instant rate, which needs
+`last_speed == 0`.
+
+**And guy 0's angle that frame was neither.** It read `0x61d5221c` — exactly
+`0x222221c` past the old one. A rate-limited turn, and not by anything a
+multiple of `UNIT_TURN_SPEED`. Solving `0x222221c × n` for a plausible base
+gives `n = 9` against a 27° type: `avg_speed / 4 + 1 = 9` means `avg_speed`
+between 32 and 35, where an eleven-eighths chase of a 34-speed unit would
+have held 43.
+
+So two different fields, and an average that was too high.
+
+### `Guy::move` for guy 0 does not chase
+
+The first test after the walk animation is
+`guy_num == 0 || (track_dx == 0 && track_dy == 0)`, and it goes straight to
+`set_new_location(des_x, des_y)` with `last_speed = vector_dist(dx, dy)`. No
+turn, no trig, no clamps, **no 11/8**. The body is written onto the unit every
+frame; the walking branch underneath belongs to a guy with a track offset,
+which guy 0 never is.
+
+The consequence is the whole of the mechanic. `vector_dist(24, 24)` is 36, and
+`(3a + 36) / 4` truncates to a fixpoint of **33** — so the turn rate divides
+by nine, not eleven, and the original's `0x222221c` comes out to the unit. And
+a unit that spent its frame turning in place has `last_speed` zero *that same
+frame*, which is what arms the next frame's instant turn. Seven frames of
+standing become one.
+
+The 11/8 has now been wrong twice in this document, one field apart: the first
+reading put it on the unit, the audit moved it to the body, and it belongs to
+neither. Both readers walked past the `guy_num == 0` test on their way to the
+arithmetic under it — which is `docs/audit/README.md`'s oldest lesson, that
+the predicates are where the errors are.
+
+### Nothing had ever set the instant-turn flag
+
+`crates/sim` had `instant_from_stop` on `movement::Turning`, had the rule, had
+a unit test for it — and nothing outside the hand-built test scenes ever set
+it. Every unit built from the shipped data came out with it clear, so no unit
+in the simulation had ever turned instantly. `sim::turning_of` derives the
+whole `Turning` from the type now.
+
+The predicate is `Guy::init_real`'s, and reading it out has a detail worth
+keeping: objmask `0x20` and `0x1000` are `FOOT` and `MOUNTED`, so it is the
+data file's own note — but `unit_flags & 2` vetoes it, and that flag's legend
+is *"Unit is a horse-drawn cart type thing"*. A cart does not pivot.
+
+### `UnitData::angle` is the heading
+
+`Unit::move_step` calls `find_angle` and then `set_angle(want, …, 0)` at once,
+before any turning. So `+0x50` is the bearing to the destination, quantised to
+2¹⁶ of a circle, and the direction the step is actually taken along is
+`GuyData::angle` at `+0x18`, which only `Guy::do_turn` moves and only by the
+rate. `Unit::set_angle` writes the heading into guy 0's `des_angle` as well —
+which is what an idle body turns toward — and the third argument is a snap
+flag the step passes zero for at all three of its call sites.
+
+That corrects this document, `docs/ORDERS.md` §4.5 (which had raised the flag
+and was right to), and `docs/GROUPS.md` §6.6, whose "mid-frame quantity" now
+has a name and a bound. It also un-conflates `UnitData::dest_angle` at `+0x58`,
+a third field that is the *order's* angle and which `crates/sim` had been
+storing the heading in.
+
+One more field fell out for free: `Unit::init` writes **`0x55555555`** into
+both, so every unit faces 120° until its first order. The simulation was
+starting them at north.
+
+### The check, and it is 13,542 rows
+
+Both angles are compared against the dump now, on every unit-frame **where
+the two sides agree on the position** — the gate matters, because a unit that
+walked somewhere else points somewhere else as a consequence, and counting
+that would measure the position gap twice. run20's opening is 72 comparisons
+and **zero** disagreements. run10's 1,772 frames are 13,542 comparisons and
+5,435 disagreements, and none of the residue is the step's: it is
+`Unit::set_angle`'s other seventeen callers, which this simulation does not
+make. Unit `0/2` alone is 2,680 of it, and its story is legible in one screen
+of trace — it walks to `(4440, 28680)` on frame 432 with both sides agreeing
+on position, path and both angles, and on 433 the original turns it to face
+what it is about to gather.
+
+The scout that opened the item is **two rows in 1,772 frames**, both the frame
+after an arrival, and frames 57 to 91 are exact on position and on both
+angles.
+
+run13's frame 102 went `22 / 6` to **`6 / 6`**, closing the row the item was
+booked on. run6's totals fell from 1,793/2,043 to 1,516/1,911, and the split
+moved: the farmers' share went 612/441 to 304/317, because they now walk the
+original's frames.
+
+### Five deliberate breakages, all red
+
+The instant-turn flag forced off (run13's 102 → `27 / 8`); `last_speed` set
+back to the 11/8 step (run10's comparison *count* falls, and the unit test on
+the fixpoint fails outright); the initial angle put back to north (run20's
+zero becomes 64); the heading compared against the facing; and the step's
+`set_angle` given the facing instead of the heading.
+
+### What this session earned
+
+*A field that two blind readings agreed on is not thereby settled.* The 11/8
+survived a first reading, an adversarial second reading and an adjudication —
+and it survived them because all three were reading the same arithmetic and
+none re-read the `if` above it. What found it was the first frame of a
+differential check on a field the dump had been printing all along, and that
+is now twice in two sessions: `mylos` last time, `angle` this time. The
+capture is cheaper than the reader, and it disagrees.

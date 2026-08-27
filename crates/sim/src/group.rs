@@ -1086,7 +1086,7 @@ impl Sim {
             return false;
         };
         self.armies[g.who as usize].list[s].group.reorigin(i);
-        let theta = self.units[member].movement.facing;
+        let theta = self.units[member].movement.heading;
         let off = self.armies[g.who as usize].list[s].group.off.clone();
         let curr = Sim::form_update_positions(&off, theta);
         self.armies[g.who as usize].list[s].group.curr = curr;
@@ -1117,7 +1117,7 @@ impl Sim {
         let byte = self.group_angles(g).get(slot).copied().unwrap_or(0);
         let heading = self.units[u]
             .movement
-            .facing
+            .heading
             .0
             .wrapping_sub(i32::from(byte) << 24);
         reversing(Angle(heading.wrapping_sub(angle.0)))
@@ -1157,14 +1157,22 @@ impl Sim {
     /// leader. The original also flips the unit's own `unit_masks & 2`,
     /// which nothing this simulation models reads.
     ///
+    /// The field is `UnitData::angle` — [`Movement::heading`], not the
+    /// facing. `set_angle` compares against it, writes it, and passes the
+    /// same value on to guy 0 as its `des_angle`; guy 0's own `angle`, the
+    /// one the step is taken along, is turned by `Guy::do_turn` and is not
+    /// touched here.
+    ///
     /// Only `Unit::move_step`'s call is modelled — the one a marching unit
     /// makes every frame. The other seventeen callers (`do_build`,
     /// `do_gather`, `fight`, `come_out`, …) are turns this simulation does
     /// not yet make, and each is a place a group's flag would move that
     /// this one leaves still.
     pub fn unit_set_angle(&mut self, u: usize, angle: Angle) {
-        let turned = reversing(Angle(angle.0.wrapping_sub(self.units[u].movement.facing.0)));
-        self.units[u].movement.facing = angle;
+        let turned = reversing(Angle(
+            angle.0.wrapping_sub(self.units[u].movement.heading.0),
+        ));
+        self.units[u].movement.heading = angle;
         if !turned {
             return;
         }
@@ -1194,7 +1202,7 @@ impl Sim {
     /// [`Body::Move`] here.
     pub(crate) fn hand_back_facing(&mut self, u: usize, order_facing: bool, order_angle: Angle) {
         let turned = reversing(Angle(
-            self.units[u].movement.facing.0.wrapping_sub(order_angle.0),
+            self.units[u].movement.heading.0.wrapping_sub(order_angle.0),
         ));
         let f = order_facing != turned;
         let Some(g) = self.group_of(u) else { return };
@@ -1234,7 +1242,7 @@ impl Sim {
                 )
             })
             .collect();
-        let theta = f.o.map_or(Angle(0), |u| self.units[u].movement.facing);
+        let theta = f.o.map_or(Angle(0), |u| self.units[u].movement.heading);
         let curr = Sim::form_update_positions(&off, theta);
         let (o_angle, o_dist) = Sim::form_leader_offset(f, to);
         let a = &mut self.armies[g.who as usize].list[s];
@@ -2126,6 +2134,12 @@ mod tests {
             "the first of one category"
         );
         assert!(!s.armies[1].list[slot].group.facing, "Group::clear");
+        // Both face north to start. `Unit::init` would leave them on
+        // `Angle::INITIAL` — 120°, which is inside the first order's window
+        // too, but the march below is written in round numbers from north.
+        for u in [a, b] {
+            s.units[u].movement.set_facing(Angle::NORTH);
+        }
 
         // A move at 80°. The leader faces north, which is inside the 90°
         // window, so the block is **not** mirrored — and the order carries

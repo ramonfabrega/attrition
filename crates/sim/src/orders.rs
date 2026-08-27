@@ -308,7 +308,7 @@ impl Sim {
     pub fn update_action(&mut self, u: usize) -> Option<usize> {
         let unit = &mut self.units[u];
         unit.orders_pos = unit.pos;
-        unit.movement.des_angle = unit.movement.facing;
+        unit.movement.des_angle = unit.movement.heading;
         let mut action = None;
         for (i, o) in unit.orders.iter().enumerate() {
             match o.body {
@@ -1589,10 +1589,13 @@ impl Sim {
         // `Unit::move_step`'s own `set_angle`, which is the one call of the
         // eighteen this simulation makes — and it is where a marching
         // leader's turn-around flips its group's mirror flag
-        // (`docs/GROUPS.md` §4.1, §6.3).
-        self.unit_set_angle(u, step.facing);
+        // (`docs/GROUPS.md` §4.1, §6.3). It is passed the **heading**, before
+        // and regardless of the turn: `move_step` calls it at the top, on the
+        // bearing `find_angle` just returned. The facing that the step is
+        // actually taken along is guy 0's, and only `Guy::do_turn` moves it.
+        self.unit_set_angle(u, step.heading);
         let unit = &mut self.units[u];
-        unit.movement.des_angle = step.heading;
+        unit.movement.facing = step.facing;
         let mut arrived = false;
         if self.world.accepts(step.pos) {
             self.units[u].pos = step.pos;
@@ -1642,7 +1645,10 @@ impl Sim {
             .action_of(u)
             .is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Gather(_)));
         if only || gather_beneath {
-            self.units[u].movement.set_facing(mo.angle);
+            // `set_angle(mo->angle, …, 0)` — the heading, and guy 0's
+            // `des_angle` with it. The facing does not snap: the body turns
+            // toward the order's angle while it stands there.
+            self.unit_set_angle(u, mo.angle);
         }
         if let Some(front) = self.units[u].orders.front_mut() {
             front.flags &= !flag::PATHED;

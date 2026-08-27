@@ -514,7 +514,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         if let Some(t) = ty {
             unit.kind = t.kind;
             unit.movement.speed = t.moves;
-            unit.movement.turning.type_turn_speed = t.turn_speed;
+            unit.movement.turning = sim::turning_of(t);
         }
         if gaia {
             // The herd: not logged per animal, so the herd of the animal's
@@ -990,6 +990,34 @@ pub struct FrameResult {
     /// Every one that disagreed — `docs/VISION.md` §2. The dump writes
     /// `mylos` at every detail level, so this is compared on every capture.
     pub los_diverged: Vec<LosDivergence>,
+    /// Angle comparisons made this frame — `UnitData::angle` for every unit
+    /// record, and guy 0's `angle` for every record that carries a guy
+    /// (`GUYS` at 1 or above). Two per unit-frame where both are present.
+    pub angle_compared: usize,
+    /// Every heading or facing that disagreed (`docs/MOVEMENT.md`).
+    pub angle_diverged: Vec<AngleDivergence>,
+}
+
+/// Which of a unit's two angles disagreed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Which {
+    /// `UnitData::angle` (`+0x50`) against `Movement::heading` — the bearing
+    /// to the destination, which `Unit::set_angle` writes outright.
+    Heading,
+    /// Guy 0's `angle` (`+0x18`) against `Movement::facing` — the direction
+    /// the step was actually taken along, which only the turn rate moves.
+    Facing,
+}
+
+/// One unit whose heading or facing the two sides disagree on.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AngleDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    pub which: Which,
+    pub ours: i32,
+    pub theirs: i64,
 }
 
 /// One unit whose line of sight the two sides disagree on.
@@ -1488,6 +1516,34 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     ours: ours_los,
                     theirs: theirs_los,
                 });
+            }
+        }
+        // The two angles, each against its own field — **on the unit-frames
+        // where the two sides still agree on the position**. A unit that has
+        // walked somewhere else is facing somewhere else as a consequence,
+        // and counting that would measure the position gap twice over; what
+        // is wanted here is the turn model on its own. A garrisoned unit is
+        // skipped for the same reason `mylos` is: nothing turns it.
+        if ours == theirs && built.sim.units[link.unit].on_map {
+            let m = built.sim.units[link.unit].movement;
+            let mut angle = |which: Which, ours: i32, theirs: i64| {
+                r.angle_compared += 1;
+                if i64::from(ours) != theirs {
+                    r.angle_diverged.push(AngleDivergence {
+                        frame: frame.n,
+                        who: u.who,
+                        o: u.o,
+                        which,
+                        ours,
+                        theirs,
+                    });
+                }
+            };
+            if let Some(theirs) = u.angle {
+                angle(Which::Heading, m.heading.0, theirs);
+            }
+            if let Some(theirs) = u.guys.first().and_then(|g| g.angle) {
+                angle(Which::Facing, m.facing.0, theirs);
             }
         }
         if orders_logged {
@@ -2923,6 +2979,20 @@ mod tests {
             (Some(5), Some(5)),
             "frame 2 is the five crop farms and nothing else, on both sides"
         );
+
+        // And the islands' opening carries **both angles exactly**, on
+        // every unit-frame — the smallest of the angle checks and the only
+        // one at zero (`docs/MOVEMENT.md`, "Two angles"). It is the one
+        // that would fail first if `Unit::init`'s 0x55555555 or the two
+        // fields' assignment were put back the way they were.
+        let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
+        let bad: Vec<AngleDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.angle_diverged.iter().copied())
+            .collect();
+        assert_eq!(angles, 72);
+        assert_eq!(bad, vec![], "every heading and every facing");
     }
 
     /// The two sequences a whole frame folds to, in one place — ours from
@@ -3780,33 +3850,37 @@ mod tests {
             (Some(20), Some(21)),
             "the scout's wrap; the sheep"
         );
-        // **102 is a re-target the sim makes six frames late, and it is the
-        // movement layer's, not the fog's.** This row was booked as the
-        // stale-fog row when item 32 landed; item 33 revealed cells as
-        // units move (`docs/VISION.md`) and it went 24 → 22, which is what
-        // sent someone to look at the trace instead of the theory.
+        // **102 was the six-frames-late re-target, and it closed with the
+        // body** (item 34, 2026-08-27). It had been booked as the stale-fog
+        // row when item 32 landed; item 33 revealed cells as units move and
+        // it went 24 → 22, which is what sent someone to the trace instead
+        // of the theory — and the trace said the movement layer.
         //
-        // What the trace says. Both sides give the AI scout `1/0` the same
-        // `EXPLORE_TO`, to `(45048, 19704)`, and both walk it there — the
-        // destination agrees on every frame from 57 to 101. On **frame 62**
-        // the original stands still for exactly one frame and then turns,
-        // stepping a constant `(−19, +29)` from frame 63 to the end. The
-        // simulation takes one more step north-east, then **stands still
-        // for seven frames** (63–69) and eases into the new heading over
-        // eight more, reaching `(−19, +29)` only at frame 77. That is
-        // `docs/MOVEMENT.md`'s stopped-unit instant turn against this
-        // simulation's gradual one: the sim ends up ~350 position units —
-        // ten frames — behind, arrives at frame 101 where the original
-        // arrived at 95, and so spends its eighteen `think_scout` ring
-        // draws on frame 102 where the original spent them on 96.
+        // What it was. Both sides give the AI scout `1/0` the same
+        // `EXPLORE_TO`, to `(45048, 19704)`, and both walk it there. On
+        // **frame 62** the original stands still for exactly one frame,
+        // turning three degrees, and then steps a constant `(−19, +29)`
+        // from 63 to the end. The simulation stood for *seven* frames and
+        // eased into the heading over eight more, arriving at frame 101
+        // where the original arrived at 95 — so its eighteen `think_scout`
+        // ring draws landed on 102 where the original's landed on 96.
         //
-        // So the fog is not what this row is waiting on. It is waiting on
-        // the turn, and `docs/QUEUE.md` books it there. The frames either
-        // side are the farm and animation clocks and are untouched.
+        // Two things behind one number, and both are the body's
+        // (`docs/MOVEMENT.md`, "The body step"). Guy 0 does not chase the
+        // unit at eleven eighths; it is **written onto** it, with
+        // `last_speed` the Euclidean length of the unit's own step — so the
+        // average settles at 33 rather than 46 and divides the turn rate by
+        // nine rather than eleven. And a unit that spent its frame turning
+        // in place has `last_speed` zero that same frame, which is what
+        // arms `guy_flags & 0x10`, the instant turn from a standstill —
+        // which no unit in this simulation had, because nothing populated
+        // the flag from the type. With both, the scout is on the
+        // original's position and both of its angles on every frame from
+        // 57 to 91.
         assert_eq!(
             count(102),
-            (Some(22), Some(6)),
-            "the scout's re-target lands six frames late — the turn, not the fog"
+            (Some(6), Some(6)),
+            "the scout's re-target is on the original's frame"
         );
         assert_eq!(count(103), (Some(6), Some(6)));
         // The AI's farmers re-target on sim-frame 101 and walk from 102;
@@ -4272,6 +4346,46 @@ mod tests {
             }],
             "the scout's science level, one frame ahead of the original's cache"
         );
+
+        // **Both angles, on every unit-frame where the positions agree**
+        // (`docs/MOVEMENT.md` §"Two angles", item 34): `UnitData::angle`
+        // against the heading and guy 0's `angle` against the facing.
+        let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
+        assert_eq!(angles, 13_542, "two per agreeing unit-frame that has a guy");
+        let bad: Vec<AngleDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.angle_diverged.iter().copied())
+            .collect();
+        // 2026-08-27, on landing item 34: 5,435. The residue is **not** the
+        // step's — it is `Unit::set_angle`'s other seventeen callers, which
+        // this simulation does not make (`Sim::unit_set_angle`). Unit `0/2`
+        // alone is 2,680 of it: it walks to `(4440, 28680)` on frame 432
+        // with both sides agreeing on the position, the path and both
+        // angles, and on 433 the original turns it to face what it is about
+        // to gather while the simulation leaves it pointing the way it
+        // walked. The farmers (`o` 3 to 5) are most of the rest, and they
+        // are doing a different job at the same spot (`docs/SYNC.md` §6).
+        assert!(
+            bad.len() <= 5_435,
+            "angle disagreements grew: {} of {angles}",
+            bad.len()
+        );
+        // The scout, whose turn this item was: **two** rows in 1,772 frames,
+        // both the frame after an arrival, where the original's body has
+        // already snapped onto the order's angle and the simulation's turns
+        // a frame later. Frames 57 to 91 — the whole of the case item 34
+        // was opened on — are exact on both angles.
+        let scout: Vec<AngleDivergence> = bad
+            .iter()
+            .copied()
+            .filter(|d| (d.who, d.o) == (1, 0))
+            .collect();
+        assert_eq!(scout.len(), 2, "the AI scout: {scout:?}");
+        assert!(
+            scout.iter().all(|d| d.frame > 91),
+            "and none of it in the window item 34 opened on: {scout:?}"
+        );
     }
 
     /// The slot count against the original's own survey: run9's frame-1
@@ -4535,8 +4649,21 @@ mod tests {
         // 98–103 unmoved but for its own row. And the measurement that
         // motivated it: `mylos` over run10's 26,433 unit-frames went from
         // 5,170 disagreements to **1**.
+        // 1,181/1,602 → **1,212/1,594** on 2026-08-27, item 34, and the
+        // totals fell hard: 1,793/2,043 to **1,516/1,911**. The body stopped
+        // chasing the unit at eleven eighths and started being written onto
+        // it, and every unit that turns instantly from a standstill started
+        // doing so (`docs/MOVEMENT.md`). What moved is the *split*: the
+        // farmers' share fell from 612/441 to 304/317 — they now walk the
+        // original's frames, so their later re-targets land elsewhere in
+        // the untraced stretch — and 31 order-frames crossed out of it.
+        // Every traced check held or improved: run13's window frame 102
+        // went 22/6 to **6/6** (the row item 34 was booked on), run20's
+        // frame 0 175/175 and frame 2 5/5 unmoved, and run10's scout is on
+        // the original's position and both of its angles for the whole of
+        // frames 57 to 91.
         assert!(
-            orders - farmer_orders <= 1_181 && paths - farmer_paths <= 1_602,
+            orders - farmer_orders <= 1_212 && paths - farmer_paths <= 1_594,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.
@@ -4557,8 +4684,11 @@ mod tests {
         // the sim's own stream, and the idle wraps and the training rolls
         // now sit in front of it — the tiles it sends them to are as much
         // its own as before, only different ones.
+        // 612/441 → **304/317** with item 34: the farmers walk on the
+        // original's frames now, so the tiles their second re-target picks
+        // are fewer frames' worth of drift away from the original's.
         assert!(
-            farmer_orders <= 612 && farmer_paths <= 441,
+            farmer_orders <= 304 && farmer_paths <= 317,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }
@@ -5438,15 +5568,24 @@ mod army_tests {
             unit.type_index = u.guys.first().and_then(|g| g.kind).unwrap_or(-1) as i32;
             if let Some(t) = t {
                 unit.kind = t.kind;
-                unit.movement.turning.type_turn_speed = t.turn_speed;
+                unit.movement.turning = sim::turning_of(t);
             }
             unit.movement.speed = u.myspeed.unwrap_or(0) as i32;
-            // `+0x50`, the heading `update_positions` rotates the slot
-            // table by, and `+0x58` its desired twin.
+            // The three angles, each from its own field. `UnitData::angle`
+            // (`+0x50`) is the **heading** — what `update_positions` rotates
+            // the slot table by — and guy 0's `angle` (`+0x18`) is the
+            // **facing** the step is taken along; a record without a guy
+            // falls back to the heading, which is where a unit that has
+            // finished turning sits anyway. `UnitData::dest_angle` (`+0x58`)
+            // is the third and is the order's.
             if let Some(a) = u.angle {
-                unit.movement.facing = sim::movement::Angle(a as i32);
-                unit.movement.frame_facing = unit.movement.facing;
+                unit.movement.heading = sim::movement::Angle(a as i32);
+                unit.movement.facing = unit.movement.heading;
             }
+            if let Some(a) = u.guys.first().and_then(|g| g.angle) {
+                unit.movement.facing = sim::movement::Angle(a as i32);
+            }
+            unit.movement.frame_facing = unit.movement.facing;
             if let Some(a) = u.dest_angle {
                 unit.movement.des_angle = sim::movement::Angle(a as i32);
             }

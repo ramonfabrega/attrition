@@ -1054,6 +1054,15 @@ reproduces all seventy-two numbers exactly; on the rest a heading within
 carrying into any later `curr` diff: the dumped heading is an
 approximation of the one that was used, and only sometimes the same.
 
+**And "heading" is the right word, confirmed 2026-08-27** (`docs/MOVEMENT.md`,
+"Two angles", queue item 34). `UnitData::angle` is not the direction the unit
+faces — that is `GuyData::angle`, which turns at the turn rate — but the
+bearing to where it is going, which `move_step` writes outright at the top of
+every step. So the mid-frame gap this section had to allow for has a name and
+a size: it is the frame's turn, and it is at most the turn rate. `crates/sim`
+reads `Movement::heading` at all three of the `update_positions` sites and at
+both `GroupData::facing` writers.
+
 ### 6.7 The path
 
 **Implemented 2026-08-26** — `crates/sim/src/grouppath.rs`, and §16 has
