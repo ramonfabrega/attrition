@@ -771,10 +771,33 @@ impl Sim {
     /// (`docs/PATHFINDER.md` §3). Pops the goal, pre-walks it, runs the
     /// search, returns the stack length (0 no path, −1 off the map).
     pub(crate) fn find_wpath(&mut self, u: usize) -> i32 {
+        let here = self.units[u].pos;
+        self.find_wpath_from(u, here, false)
+    }
+
+    /// [`Sim::find_wpath`] with the two arguments the group's own plan
+    /// supplies (`docs/GROUPS.md` §6.7).
+    ///
+    /// The original's `PathFinder::find_wpath@00688fc0` takes the stack and
+    /// the start point as arguments; the four-argument overload at
+    /// `00688e10` is the one that reads the object's own position, and it is
+    /// what every ordinary caller uses. `Group::action_move_near` calls the
+    /// six-argument form with a **static** `grouppath` stack and a start
+    /// that is the leader's top-of-stack, so this simulation installs that
+    /// stack on the leader for the call and takes it back after.
+    ///
+    /// `army_hint` is `pathfinder +0x70` — `Group::action_move_near` sets it
+    /// to 1 around the call for a group that belongs to an army
+    /// (`706178`–`70619f`: `cmpl $0x0, 0x8(%eax)` on `GroupData::army`, then
+    /// `movl $0x1, 0xe85eb0`). The flag is the **same** `army` mode
+    /// `find_wpath` derives for an AI's own units at `00688fc0:242`, forced
+    /// on from outside — which is the only way a *human*'s army ever gets
+    /// it, since a human jumps the whole mode block (`leaders & 4` at
+    /// `0068973d`).
+    pub(crate) fn find_wpath_from(&mut self, u: usize, here: Pos, army_hint: bool) -> i32 {
         let Some(goal_e) = self.units[u].path.pop() else {
             return 0;
         };
-        let here = self.units[u].pos;
         let gc = goal_e.to.cell();
         if !self.world.contains(gc) {
             self.units[u].path.clear();
@@ -835,7 +858,7 @@ impl Sim {
             scouting: self.current_order(u).is_some_and(
                 |o| matches!(o.body, Body::Move(mo) if mo.kind == MoveKind::ExploreTo),
             ),
-            army: !human && self.army_mode(u),
+            army: army_hint || (!human && self.army_mode(u)),
             worker: !human
                 && self.units[u]
                     .ty

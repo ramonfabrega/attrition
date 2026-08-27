@@ -64,6 +64,7 @@ pub mod gaia;
 pub mod garrison;
 pub mod gather;
 pub mod group;
+pub mod grouppath;
 pub mod holdings;
 pub mod market;
 pub mod movement;

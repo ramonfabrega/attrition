@@ -2202,7 +2202,11 @@ and that is the flag `compute_form` reads at the next click
 `Sim::add_move_facing_order` puts the formation's bearing plus the slot's
 packed byte into the order, and `MoveOrder::facing` carries the mirror out
 with it — so what is left of this seam is the per-frame follower, not the
-order. The `angles[i] << 24` term is still all-zero in every run on disk (a
+order. **The `pathed` argument left it too, 2026-08-26**: the group's
+adders pass 1 (the table in §1.3), and now that `Group::action_move_near`
+plans the whole chain itself (`docs/GROUPS.md` §6.7) the simulation passes
+it too — so a group's move order is born with `flag::PATHED` set and a
+stack under it, and `do_move` no longer re-plans it a frame later. The `angles[i] << 24` term is still all-zero in every run on disk (a
 Line leans nowhere), so the byte's **sign** rides on the listing alone
 (`docs/GROUPS.md` §13).
 

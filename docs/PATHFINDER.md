@@ -50,7 +50,11 @@ inside. Out of scope, named and skipped: `astar_river` (map generation),
 `astar_caravan_road`/`find_road` (the caravan's road layer, with its nine
 tunable `road_*` weights at `PFD+0x60..0x80`, set once by `PathFinder::init`
 from constants and adjustable only in a debug window), `find_wpath_army` (the
-group's shared path — belongs with group orders).
+group's shared path — **it belonged with group orders and now lives
+there**: `docs/GROUPS.md` §6.7, `crates/sim/src/grouppath.rs`. The named
+function at `00683730` is four instructions and has zero callers, because
+`Group::action_move_near` inlines it; what it does is set `+0x70` and call
+`find_wpath` on the `grouppath` static).
 
 ## 2. The state
 
@@ -596,6 +600,15 @@ blocks tiles the type's mask template marks, and citizens stand on farms.
 `toff` is read from the current order (§4.1) rather than stubbed —
 `Sim::toff`, which is `None` when no move order is current and the offset
 is then not applied at all.
+`find_wpath` is split in two: `Sim::find_wpath(u)` is the four-argument
+overload at `00688e10` — the object's own position — and
+`Sim::find_wpath_from(u, here, army_hint)` is the six-argument one at
+`00688fc0`, which takes the stack and the start point. Only
+`Group::action_move_near` calls the second (`docs/GROUPS.md` §6.7): it
+plans on a stack that is not a unit's, from a start that is the leader's
+top-of-stack, and it forces the `army` mode on through `pathfinder +0x70`
+for a group that belongs to an army — the same word §3's mode block sets
+for an AI's own units, and the only way a **human**'s army reaches it.
 Big-unit strides and the transport tail are implemented as dormant seams;
 suspend returns −1 without stashing (its restorer has no caller until
 collision recovery exists); the corner-cutting probes are a named seam
@@ -635,16 +648,28 @@ Four of the first reading's open items were **settled by the audit**
   stacks filled from it. The member's own order carries the same point
   snapped (`x = 41976`) and the group's destination in `orig_x/orig_y`
   (`41952`), which is why all three numbers line up on a group of one.
-  Two consequences the simulation does not have yet, both item 31's: the
-  goal, and the fact that the path exists **at order time** — run20's
-  `1/0` is `is_pathed` with nine entries on the frame the sim still has an
-  empty stack and `flags 0`.
-- **The middle of run20's `1/0` chain still parts**, and it is not the
-  offset: with `toff` right, the sim walks `(52,51) (51,51)` where the
-  original walks `(52,50) (51,50) (50,50)`, and the original's chain
-  carries one node the sim's does not — `(55,48)`, between the goal and
-  the first shared node. Both are inside the group path above, so they are
-  worth re-measuring only once item 31 lands.
+  ~~Two consequences the simulation does not have yet, both item 31's: the
+  goal, and the fact that the path exists **at order time**.~~
+  **Both landed 2026-08-26** — `crates/sim/src/grouppath.rs`,
+  `docs/GROUPS.md` §6.7 and §12.4. Run20's `1/0` now carries
+  `(41952, 36576, 0, 1)` at the bottom of a stack it already has at frame
+  1, with `flags 1`; `rondata --diff` scores run20 at **0** order
+  disagreements where it scored 1.
+- **The middle of run20's `1/0` chain still parts**, and it is now the
+  pathfinder's alone. Item 31 has landed, so both sides plan on the same
+  frame, from the same position — `(38040, 40344)` — to the same goal,
+  with the same `toff`; the search is `find_wpath` from the leader's
+  position on a stack of one, which is what `do_move` was doing anyway.
+  What is left after that: the sim walks cell row **51** through the
+  middle where the original walks row **50**, the original carries
+  `(55,48)` between the goal and the first shared node, and it carries one
+  more node at the start end — `(49,51)`, an orthogonal first step, where
+  the sim takes `(50,51)` diagonally. Four of the sim's seven entries are
+  the original's **whole** — position, tolerance and flag
+  (`diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_
+  leaders_slot`). The first step's choice is the cheapest thread to pull:
+  it is a `calc_cost` or a direction-wheel tie, on open ground, two cells
+  from the start.
 - The exhausted-open-list pause gate `order data +0x20 < 13` is
   byte-verified (V30); **which field that is** (order age? range band?)
   remains unread and unnamed in the PDB.

@@ -2830,3 +2830,105 @@ not. Both sit inside §6.7's leader-path-plus-offset, so they are worth
 re-measuring only once that lands, not before. Nothing here was checked
 against a run: every claim is either a byte in the PE or a field in a dump
 already on disk.
+
+## 2026-08-26 — item 31: the group plans, and the decompiler's one bad stride
+
+Last session found the owner of run20's `0x18` residue and named it:
+`Group::action_move_near` plans one path of its own, at order time, off
+the leader's **raw** slot, and hands every member a translated copy.
+`docs/GROUPS.md` §6.7 had the mechanic in plain words and the simulation
+had none of it. This session built it — `crates/sim/src/grouppath.rs`,
+about 250 lines — and the interesting part is not the code.
+
+### Two of three, and the third changed owner
+
+| | before | after | the original |
+|---|---|---|---|
+| `1/0`'s order flags at frame 1 | `0` | `1` (`PATHED`) | `1` |
+| its path stack at frame 1 | empty | 7 entries | 9 |
+| the stack's bottom | `(41976, 36600)` | `(41952, 36576, 0, 1)` | `(41952, 36576, 0, 1)` |
+| whole entries shared | 0 | **4** | — |
+| `rondata --diff`, order disagreements | 1 | **0** | — |
+
+The **goal** and the **timing** are closed. The **route** is not, and it
+is no longer this mechanic's: both sides now plan on the same frame, from
+the same position — `(38040, 40344)`, which the new test pins — to the same
+goal with the same `toff`, and `astar_path` still walks cell row 51 where
+the original walks row 50 and drops a node at each end. That went to
+`docs/PATHFINDER.md` §12 with the cheapest thread named: the **first
+step**, orthogonal in the original and diagonal here, two cells from the
+start on open ground.
+
+The third half of item 31 — the *translation*, `slot[i] − slot[leader]` —
+run20 cannot measure at all, because its group has one member. That is
+now the only thing `docs/GROUPS.md` §13 owes this section, and it wants
+the `UNITS=3` window item 23 already books.
+
+### The count went up, and the count was already known to be wrong
+
+`rondata --diff` scores run20 at **21** path-stack disagreements where it
+scored 17. Nothing regressed: at frame 1 there is now a seven-entry stack
+to disagree with instead of an empty one, and the differ compares slot for
+slot from the bottom while the two chains agree one slot apart. Last
+session's queue said exactly this about the frame-2 comparison and moved
+to an entry-for-entry test; this session did the same for frame 1. *A
+metric that rewards having no answer over having most of one is not a
+metric.* Worth remembering when the path-stack differ is next touched: the
+fix is an alignment, not a threshold.
+
+### The decompiler's one bad stride
+
+The area guard pulls a member's waypoint back into the leader's cell when
+the slot offset has pushed it across a coastline. Ghidra renders it as
+
+```
+iVar22 = (wy / 0x300 - fy / 0x300) * 0x300 + fy;
+piVar24 = fx + (wx / 0x300 - fx / 0x300) * 0xc0;      // <- 0xc0
+```
+
+— a tile stride on `x` against a cell stride on `y`. That is *exactly* the
+shape of an original bug this project reproduces on purpose, and a
+faithful port would have shipped it. It is not one. `70672d`–`706764` is
+`leal (%eax,%eax,2)` then `shll $0x8` — × 3 × 256 — on both axes, with
+`imull $0x2aaaaaab` / `sarl $0x7` either side, which is a signed divide by
+`0x300` and not by `0xc0`. Two minutes of `llvm-objdump` against a defect
+no test on disk could have caught, because no capture crosses a coastline.
+
+Three more the listing settled while the code was being written, all in
+§6.7 and §16 now: the `0x900` is measured from the search's own start to
+the leader's slot (not from the group to the order's point); `grouppath`
+and `cols` are **function-local statics** of `action_move_near`, and
+`cols` — which Column indexes its non-final waypoints by — is written by
+no instruction in the export, so that arm reads uninitialised heap and is
+a seam by necessity; and `pathfinder +0x70` is not a private hint but the
+*same* `army` mode `find_wpath` derives for an AI's own units, forced on
+from outside, which is the only way a **human**'s army ever gets AI army
+costing. The engine names the pair itself:
+`PathFinder::find_wpath_army@00683730` is four instructions and has zero
+callers, because it is inlined here — which `docs/PATHFINDER.md` §2's
+`army` row had already noticed.
+
+### The guard that could not fail
+
+Five checks landed, each made to fail on purpose first, and one of them
+did not fail on the first try. `a_short_group_move_plans_no_route_at_all`
+put its goal two cells east; removing the `0x900` gate left it green,
+because `find_wpath`'s **own** near test exits under a cell-Manhattan of 3
+and produces the same one-entry stack. The distance moved to
+`(1500, 1500)` — `vector_dist 2250`, cell-Manhattan 4 — where only the
+`0x900` gate can produce it, and then the breakage was red. *A test whose
+subject is one of two short-circuits has to be placed against the other
+one*, and the way to find that out is the same way as always: break the
+thing on purpose and watch.
+
+### What this session earned
+
+*The decompiler is a reading tool, and the place it is least trustworthy
+is a fold of `lea` and `shl` into a multiply.* Both of this session's near
+misses were that shape — the `0xc0` stride, and `cols._padding_` standing
+in for every field of a static. Neither is a subtle semantic question; both
+are one `llvm-objdump` away. The rule the audit README already carries —
+*when the decompiler prints a local that cannot be right, the listing
+settles it in a minute* — extends: when it prints a constant that **could**
+be right and would be a bug, check it anyway. A plausible bug is more
+dangerous than an implausible one.

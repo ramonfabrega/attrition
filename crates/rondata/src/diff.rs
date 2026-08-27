@@ -3262,11 +3262,12 @@ mod tests {
     /// `+0x180` instead, no sim entry is on the lattice at all, and the
     /// count below is zero — which is how this was made to fail.
     ///
-    /// What it does **not** yet assert is the two ends. The original's
-    /// stack is nine entries and the sim's seven: the goal itself is the
-    /// member's raw **slot** rather than its order's snapped `dest`, and
-    /// the top of the chain parts as well, both of them
-    /// `Group::action_move_near`'s (the queue's item 31).
+    /// ~~What it does **not** yet assert is the two ends.~~ The goal end is
+    /// closed by item 31 (`docs/GROUPS.md` §6.7): the bottom entry is the
+    /// leader's raw slot and the sim now writes the original's own number.
+    /// What is left is the **middle** of the route, which is the
+    /// pathfinder's and not this mechanic's — see
+    /// `run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot`.
     #[test]
     fn run20_s_world_chain_sits_on_the_move_orders_own_offset() {
         let Some(inst) = install() else { return };
@@ -3340,12 +3341,12 @@ mod tests {
             .iter()
             .map(|p| (i64::from(p.to.x), i64::from(p.to.y)))
             .collect();
-        // Item 31, asserted as it stands: the goal at the bottom is the
-        // order's snapped `dest` and the original's is the member's raw
-        // slot, `0x18` short on both axes. Closing that fails here.
-        assert_eq!(ours[0], (41976, 36600), "ours: the order's own dest");
-        assert_eq!(theirs_path[0].0 - ours[0].0, -0x18);
-        assert_eq!(theirs_path[0].1 - ours[0].1, -0x18);
+        // Item 31, closed: the goal at the bottom is the leader's raw slot
+        // — `Group::action_move_near` pushes `form +0x514/+0x714` un-snapped
+        // — and not the order's `dest`, which `add_move_facing_order` has
+        // put on the `u*0x30 + 0x18` grid `0x18` further out on both axes.
+        assert_eq!(ours[0], (41952, 36576), "ours: the leader's raw slot");
+        assert_eq!((theirs_path[0].0, theirs_path[0].1), ours[0]);
         let on_lattice: Vec<(i64, i64)> = ours[1..]
             .iter()
             .copied()
@@ -3366,9 +3367,9 @@ mod tests {
         // And three of them are the original's own entries, exactly. The
         // rest of the route still parts a row further down (the sim takes
         // `y = 39672` where the original takes `38904`) and the original
-        // carries one node the sim does not — the same
-        // `Group::action_move_near` residue as the goal, and unowned by
-        // this item.
+        // carries one node the sim does not — `astar_path`'s own residue
+        // now that the goal and the plan frame agree, and unowned by this
+        // item.
         let shared = on_lattice
             .iter()
             .filter(|e| theirs_path.iter().any(|t| (t.0, t.1) == **e))
@@ -3377,6 +3378,127 @@ mod tests {
             shared >= 3,
             "shared with the original: {shared} of {ours:?}"
         );
+    }
+
+    /// **§6.7 — the group plans, at order time, off the leader's raw slot**
+    /// (item 31, `docs/GROUPS.md` §6.7).
+    ///
+    /// Run20's `1/0` is a one-member group on auto-explore
+    /// (`Sim::scout_issue` → `group_action_move_to`), which makes it the
+    /// cheapest possible fixture for this section: with one member the slot
+    /// translation is the identity, so what is left is exactly the two
+    /// halves the simulation did not have — **when** the path is planned
+    /// and **what goal** it is planned to.
+    ///
+    /// The original's frame **1** already carries `flags 1` (`PATHED`) and
+    /// a nine-entry stack whose bottom is `(41952, 36576)` with
+    /// `tolerance 0` and `flags 1`; before this landed the simulation's
+    /// frame 1 had `flags 0` and an **empty** stack, because every member
+    /// got a bare `MoveOrder` and waited for its own `do_move` a frame
+    /// later. Both halves are asserted here, and both were made to fail
+    /// first — by handing `add_move_facing_order` `pathed = false`, and by
+    /// pushing the order's snapped `dest` in place of `form.to[idx]`.
+    ///
+    /// What it deliberately does **not** assert is the whole chain. Four of
+    /// the sim's seven entries are the original's entry for entry — the
+    /// goal and three world nodes, with their tolerances and flags — and
+    /// the middle parts: the original's route runs along cell row 50 where
+    /// the sim's runs along row 51, and it carries one more node at each
+    /// end. Both searches now start from the **same** position (frame 1's
+    /// `(38040, 40344)`, which this test also pins) with the same goal and
+    /// the same `toff`, so what is left is `astar_path`'s own and belongs
+    /// to `docs/PATHFINDER.md`.
+    #[test]
+    fn run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run20-islands-dumpall.txt") else {
+            eprintln!("skipping: no gamelog-run20-islands-dumpall.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.tick();
+
+        let theirs = log
+            .frame_states()
+            .into_iter()
+            .find(|f| f.n == 1)
+            .expect("frame 1")
+            .units
+            .into_iter()
+            .find(|ud| ud.who == 1 && ud.o == 0)
+            .expect("1/0 at frame 1");
+        let theirs_path: Vec<(i64, i64, i64, i64)> = theirs
+            .path
+            .iter()
+            .map(|p| (p.to.0, p.to.1, p.tolerance, p.flags))
+            .collect();
+        // The oracle: pathed on the frame the order was issued, with the
+        // whole chain already on the stack.
+        assert_eq!(
+            theirs.orders.first().map(|o| o.flags),
+            Some(1),
+            "the original's order is PATHED at frame 1"
+        );
+        assert_eq!(theirs_path.len(), 9, "and its stack is nine deep");
+        assert_eq!(
+            theirs_path[0],
+            (41952, 36576, 0, 1),
+            "whose bottom is the leader's raw slot, tolerance and flag"
+        );
+
+        let v = built
+            .sim
+            .units
+            .iter()
+            .position(|x| x.alive() && x.owner == 1 && x.index == 0)
+            .expect("the AI's unit 0");
+        // The same position at plan time, so that the two searches are
+        // comparable at all: if this drifts, the rest is measuring
+        // something else.
+        assert_eq!(
+            (
+                i64::from(built.sim.units[v].pos.x),
+                i64::from(built.sim.units[v].pos.y)
+            ),
+            (theirs.pos.x, theirs.pos.y),
+            "the plan frame's position"
+        );
+        let front = built.sim.units[v].orders.front().expect("the move order");
+        assert_eq!(
+            front.flags & sim::orders::flag::PATHED,
+            sim::orders::flag::PATHED,
+            "ours is PATHED at frame 1 too"
+        );
+        let ours: Vec<(i64, i64, i64, i64)> = built.sim.units[v]
+            .path
+            .iter()
+            .map(|p| {
+                (
+                    i64::from(p.to.x),
+                    i64::from(p.to.y),
+                    i64::from(p.tolerance),
+                    i64::from(p.flags),
+                )
+            })
+            .collect();
+        assert!(!ours.is_empty(), "the group planned nothing");
+        assert_eq!(
+            ours[0], theirs_path[0],
+            "the goal is the leader's raw slot, whole"
+        );
+        let shared = ours.iter().filter(|e| theirs_path.contains(e)).count();
+        assert!(
+            shared >= 4,
+            "shared with the original, whole entries: {shared} of {ours:?}"
+        );
+        // The residue, asserted as it stands so that closing it fails here:
+        // the original carries two nodes the sim does not, and its route
+        // runs a cell row higher through the middle.
+        assert_eq!(ours.len(), 7, "the sim's chain: {ours:?}");
     }
 
     /// **The fuzzed map's frame 1** — the second capture the 2×2 jitter is

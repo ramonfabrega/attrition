@@ -414,7 +414,7 @@ impl Sim {
     /// type age past 5 — or, for a player with tribe bonus `0x12`, the flag
     /// alone. The simulation has no tribe bonuses, so it is the flag and the
     /// age.
-    fn is_modern_infantry(&self, u: usize) -> bool {
+    pub(crate) fn is_modern_infantry(&self, u: usize) -> bool {
         self.units[u].ty.is_some_and(|t| {
             let ty = &self.unit_types[t];
             ty.cols.unit_flags & 0x100 != 0 && ty.combat.age > 5

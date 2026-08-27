@@ -74,7 +74,7 @@ pub const FORM_MOB: i32 = 9;
 /// front, is what lets the clear run in its own pass ahead of the layout
 /// without asking the second loop to read state the first has wiped.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Member {
+pub(crate) enum Member {
     /// Left entirely alone: not orderable, or a shooting siege unit under a
     /// move that is not hurrying.
     Skip,
@@ -534,7 +534,7 @@ impl Sim {
             .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SCOUT))
     }
 
-    fn group_domain(&self, u: usize) -> Domain {
+    pub(crate) fn group_domain(&self, u: usize) -> Domain {
         self.units[u]
             .ty
             .map_or(Domain::Land, |t| self.unit_types[t].combat.domain)
@@ -784,6 +784,14 @@ impl Sim {
                 self.units[u].form = form as i8;
                 self.units[u].form_width = width as i8;
             }
+            // §6.6 step 2, and it only means anything now that §6.7
+            // plans: a `QUEUE_LAST` move turns the member's existing stack
+            // over before the group's new legs are pushed on top, so that
+            // the single invert at the end of §6.7 leaves the old segment
+            // the right way up underneath the new one.
+            if queue == QueuePos::Last {
+                self.units[u].path.reverse();
+            }
             // §6.6 step 3: the member's **own** slot, clamped into the
             // world — not the group's destination.
             let slot = self.restrict_pos(slots.to[i]);
@@ -794,8 +802,27 @@ impl Sim {
             // leader's heading. And its `facing` is the mirror this layout
             // used, which is what the order hands back when it dies.
             let order_angle = Angle(angle.0.wrapping_add(i32::from(slots.angles[i]) << 24));
-            self.add_move_facing_order(u, slot, kind, queue, action, order_angle, Some(reverse));
+            self.add_move_facing_order(
+                u,
+                slot,
+                kind,
+                queue,
+                action,
+                order_angle,
+                Some(reverse),
+                true,
+            );
         }
+        // §6.7: the group's own path, planned once off the leader's slot
+        // and handed to every member translated. It sits exactly here in
+        // the original — after the order loop, before `order_num` — and it
+        // is why the orders above are born `PATHED`.
+        //
+        // `from` is `get_loc`'s answer and is `None` only for a group with
+        // no leader at all, which is the same condition that sends the plan
+        // down its own no-leader arm; the destination stands in so that the
+        // arm has a start to fall back on.
+        self.group_plan_path(g, &slots, &plan, kind, form, from.unwrap_or(to));
         self.bump_order_num(g);
         // The order matters and run31 settles it: `Form::compute`'s tail
         // writes `o_angle` and `o_dist` from the leader's slot, and then
@@ -1220,7 +1247,7 @@ impl Sim {
     }
 
     /// `WorldData::restrict` on a destination (§6.1).
-    fn restrict_pos(&self, p: Pos) -> Pos {
+    pub(crate) fn restrict_pos(&self, p: Pos) -> Pos {
         Pos::new(
             p.x.clamp(0, self.world.width() * crate::world::UNITS_PER_CELL - 1),
             p.y.clamp(0, self.world.height() * crate::world::UNITS_PER_CELL - 1),

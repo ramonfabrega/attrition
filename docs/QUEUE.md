@@ -27,59 +27,55 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after items 30 and 31 — `toff`, and the goal
-that turned out to be the group's.* The commit this section was written
-against is the one that lands it; if `git log` has moved well past it,
-trust the queue below and the journal before trusting this.
+*Last verified 2026-08-26, after item 31 — the group's own path.* The
+commit this section was written against is the one that lands it; if
+`git log` has moved well past it, trust the queue below and the journal
+before trusting this.
 
-**Last landed: `toff` is the current move order's own `off_x/off_y`.**
-`docs/PATHFINDER.md` §4.1 and §7 had it as a *target's*, behind two
-COMDAT-folded vtable slots; the PDB's own method list names them
-`UnitOrder::is_move` (`+0x14`) and `update_move_order` (`+0x40`), which
-`docs/ORDERS.md` §4.1 had printed correctly all along, and their bodies
-are `mov eax,1`, `xor eax,eax` and `lea eax,[ecx-0x54]`. So a plain move
-fills `toff` too, and `crates/sim/src/path.rs`'s stated zero seam is gone
-(`Sim::toff`). The same misreading in §3's `find_tpath` line is corrected
-with it.
+**Last landed: `docs/GROUPS.md` §6.7, in `crates/sim/src/grouppath.rs`.**
+A group move now plans **one** path, at order time, from the leader's
+position to the leader's **raw** slot destination, and hands every member
+that chain translated by `slot[i] − slot[leader]`. With it: the `0x900`
+short-circuit, the `pathfinder +0x70` army hint, the clamp and the
+coastline guard, the follower's `0x600` cutoff, the no-leader arm, the
+ungated tail invert, §6.6 step 2's `QUEUE_LAST` pre-invert, and
+`add_move_facing_order`'s `pathed` argument — a group's move order is born
+`PATHED` with a stack under it.
 
-**The numbers now.** Run20's unit `1/0` walks the original's own
-`cell*0x300 + 504` lattice, and **three of its five world nodes are the
-original's entry for entry** where before **none** were
-(`diff::tests::run20_s_world_chain_sits_on_the_move_orders_own_offset`,
-made to fail twice on purpose). Everything else is untouched and was
-re-measured, not assumed: run20 175/175, 53/53, 5/5; the fuzzed map
-195/195, 43/45; the Great Lakes 120/54/6 with 7 at frame 3; run6's long
-pin exactly **1,552 / 1,160**. `ticks before divergence` is still 1.
+**The numbers.** Run20's `1/0` at frame **1** now has `flags 1` and a
+seven-entry stack where it had `flags 0` and an empty one; its bottom
+entry is `(41952, 36576, 0, 1)`, the original's exactly; **four** whole
+entries (position, tolerance, flag) are the original's, where none were.
+`rondata --diff` on run20: **0** order disagreements, down from 1.
+Everything else re-measured and unmoved: 175/175, 53/53, 5/5; the fuzzed
+map 195/195, 43/45; `ticks before divergence` still 1. All 575 sim tests
+and 121 rondata tests green with `RON_INSTALL` and `RON_GAMELOG_DIR` set.
 
-**The path-stack count did not move, and that is the honest reading.**
-Still 17 over five frames. The two stacks are now the same numbers
-*shifted by one slot* — the original's is nine entries and ours seven — so
-a slot-wise diff cannot see a chain that agrees. The count is the wrong
-instrument for this; the entry-for-entry test is the right one.
+**The path-stack count went 17 → 21, and that is the count.** At frame 1
+there is now a seven-entry stack to disagree with instead of an empty one,
+and the differ compares slot for slot from the bottom while the two chains
+agree one slot apart. The instrument with teeth is the new
+`diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot`,
+which compares whole entries and does not care where they sit. If the
+path-stack differ is ever touched, the fix is an **alignment**, not a
+threshold.
 
-**Item 31 was not a pathfinder item at all.** The goal `0x18` short on
-both axes cannot come from `find_wpath`'s pre-walk (it steps through
-`sin_table`, never `−0x18` on both axes) nor from `Unit::do_move` (which
-pushes `mo->x` verbatim, and `add_move_facing_order` makes every `mo->x`
-`≡ 0x18 (mod 0x30)` — `41952` is `≡ 0`). It is
-`Group::action_move_near@00704990`, and **`docs/GROUPS.md` §6.7 already
-had it in plain words**: the group plans one path on the global
-`grouppath` whose `FINAL` entry is the leader's **raw slot destination**,
-un-snapped, and hands it to its members. The simulation does not
-implement §6.7 at all — `docs/GROUPS.md` §12 claimed it did, and is
-corrected.
+**Two things almost shipped as defects, and the listing caught both.**
+Ghidra renders the coastline guard's `x` snap with a `0xc0` stride against
+`y`'s `0x300` — a plausible-looking original bug that is not one
+(`70672d`–`706764` is `lea`+`shl` × 3 × 256 on both axes). And
+`cols._padding_`, which reads like an array being filled, is a
+function-local static nothing writes. `docs/GROUPS.md` §16 has both.
 
 **Then, in order:**
 
-- **§6.7, the group's own path — the new item 31.** It is three of
-  run20's disagreements at once and needs no capture: the goal (the raw
-  slot), the *timing* (the original's `1/0` is `is_pathed` with nine
-  entries on the frame ours has an empty stack and `flags 0`, because the
-  group plans at order time and we wait for `do_move`), and the *route*
-  (theirs is the leader's chain translated by `slot[i] − slot[leader]`;
-  ours is each member's own from its own position). `pathfinder +0x70 = 1`
-  around an army group's call has to land with it, and the `< 0x900`
-  short-circuit is what keeps a short group move from planning at all.
+- **The pathfinder's first step — the new item 32.** Item 31 removed every
+  other variable from run20's `1/0`: same frame, same start, same goal,
+  same `toff`. What is left is `astar_path` choosing a **diagonal** first
+  step where the original steps orthogonally, two cells from the start on
+  open ground — a `calc_cost` or a direction-wheel tie. It costs no
+  capture and it is the last thing between the sim's seven entries and the
+  original's nine. `docs/PATHFINDER.md` §12.
 - **The fuzzed map's frame 1**, two rows: one
   `Leader::produce_building+0xc99` **short** (29 against 30 — a spiral
   candidate the original scores and the sim does not) and one
@@ -88,25 +84,28 @@ corrected.
   asserts both as they stand, so closing either fails the test.
 - **§9.3's sixth citizen** and **the frame-1 order two of player 1's units
   hold and the sim does not** — the rest of item 25.
-- **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked.
+- **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked, and
+  its capture is now worth **widening**: the same `UNITS=3` + `GROUPS=1`
+  window read for the members' *path stacks* settles the one half of §6.7
+  run20 cannot reach (the `slot[i] − slot[leader]` translation, the
+  follower cutoff, the AI sea guard), because run20's group has one member
+  and the translation is the identity.
 - **Re-run run13's window** (sim-frames 95–103): §5's largest single gap
   was `6 / 23` at frame 95, and nothing has re-measured it since the
-  scout, the stands, the pull-back or the detour.
+  scout, the stands, the pull-back, the detour or the group path.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *The answer to an open question is
-often already written down in another mechanic's document.* The queue
-named `find_wpath`'s pre-walk and the pre-walk was innocent; one `grep` of
-`docs/GROUPS.md` for "slot" would have cost a minute. The rule:
-**before booking a reading for a residue, grep the documents of every
-mechanic the value passes through, not only the one it was measured in.**
-Its sibling, from the same session: *a folded vtable slot is named by the
-type record, never by the listing* — `llvm-pdbutil dump --types`'s
-`LF_ONEMETHOD ... vftable offset` gave both slots in one pass, and Ghidra
-named neither.
+**The thing this session earned.** *When the decompiler prints a constant
+that could be right and would be a bug, check it anyway.* Both near misses
+were the same shape — a fold of `lea` and `shl` into a multiply, and a
+static whose fields all print as `_padding_`. Neither was subtle; both
+were one `llvm-objdump` away. Its sibling, from the tests: *a guard whose
+subject is one of two short-circuits has to be placed against the other
+one* — the `0x900` breakage was green on the first try because
+`find_wpath`'s own near test produced the same answer.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -114,7 +113,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 31, and it is a GROUPS item, not a pathfinder one. docs/GROUPS.md §6.7 has Group::action_move_near planning ONE path on the global grouppath — FINAL entry at the leader's raw, un-snapped slot destination from form+0x514/form+0x714, nothing planned within 0x900, pathfinder +0x70 = 1 around an army group's find_wpath, then every waypoint popped from the top and translated by slot[i] - slot[leader] with the area-id guard and the 0x600 follower cutoff. crates/sim/src/group.rs ends its member loop at add_move_facing_order and never plans, so run20's 1/0 disagrees three ways at once: the goal is 0x18 long, the order is not is_pathed at frame 1 where the original's is with nine entries, and the route is each member's own instead of the leader's. docs/GROUPS.md §13's first entry has the whole shape; no capture needed, run20 is on disk.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 32, the pathfinder's first step. Item 31 has landed, so run20's 1/0 now plans on the same frame as the original, from the same position (38040, 40344), to the same goal (41952, 36576), with the same toff (504, 504) — and the chains still part. The sim's first step out of the start cell (49,52) is DIAGONAL to (50,51); the original's is orthogonal to (49,51), and from there it walks cell row 50 where the sim walks row 51, and it carries (55,48) between the goal and the first shared node. Four of the sim's seven entries are the original's whole. That is astar_path's direction wheel or calc_cost on open ground two cells from the start — docs/PATHFINDER.md §4.2, §5, §12's third bullet. No capture needed; gamelog-run20-islands-dumpall.txt is on disk and diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot asserts the residue as it stands, so closing it fails that test.`
 
 ## The queue
 
@@ -329,15 +328,26 @@ in which case say so and take that. The story of each struck item is in
     `docs/PATHFINDER.md` §4.1/§7/§12, `crates/sim/src/path.rs`
     (`Sim::toff`), `docs/JOURNAL.md`.
 
-31. **`Group::action_move_near` plans the group's path — §6.7, which the
-    simulation does not have.** ~~`find_wpath`'s pre-walk moves the
-    goal~~ — that was the wrong suspect (`docs/PATHFINDER.md` §12 says
-    why). The goal on a group member's stack is the **leader's raw slot
-    destination**, the path is planned **at order time**, and the members'
-    waypoints are the leader's chain translated by `slot[i] −
-    slot[leader]`. `docs/GROUPS.md` §6.7 has the mechanic and §13's first
-    entry has the three disagreements it costs run20, each with the field
-    that measures it. No capture needed.
+31. ~~**`Group::action_move_near` plans the group's path — §6.7**~~ — done
+    2026-08-26. `docs/GROUPS.md` §6.7, §12.4, §13 and §16 (new),
+    `crates/sim/src/grouppath.rs`, `docs/PATHFINDER.md` §11 and §12,
+    `docs/ORDERS.md` §8.4. Two of its three disagreements closed; the
+    third became item 32. What §6.7 still owes is the **translation**
+    half, which run20's one-member group cannot reach — folded into item
+    23's capture.
+
+32. **The pathfinder's first step.** All that is left of run20's `1/0`
+    chain, and item 31 stripped every other variable out of it: both sides
+    plan on the same frame, from `(38040, 40344)`, to `(41952, 36576)`,
+    with `toff (504, 504)`. The sim's first step out of cell `(49,52)` is
+    **diagonal** to `(50,51)`; the original's is orthogonal to `(49,51)`,
+    and from there the original walks cell row 50 where the sim walks row
+    51 and carries `(55,48)` between the goal and the first shared node.
+    Four of the sim's seven entries are the original's whole.
+    `docs/PATHFINDER.md` §4.2 (the direction wheel), §5 (`calc_cost`) and
+    §12's third bullet. No capture needed;
+    `diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot`
+    asserts the residue as it stands, so closing it fails that test.
 
 ## How to maintain this file
 

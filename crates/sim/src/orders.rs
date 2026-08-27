@@ -461,7 +461,7 @@ impl Sim {
         );
         let here = self.units[u].pos;
         let angle = find_angle(dest.x - here.x, dest.y - here.y);
-        self.add_move_facing_order(u, to, kind, pos, action, angle, None);
+        self.add_move_facing_order(u, to, kind, pos, action, angle, None, false);
     }
 
     /// `Unit::add_move_facing_order@005e55c0` (§4.3), and
@@ -474,7 +474,13 @@ impl Sim {
     /// pushes. The two arguments only ever come from a group move
     /// (`docs/GROUPS.md` §6.6 step 6), which is why the ordinary adder does
     /// not take them.
-    #[allow(clippy::too_many_arguments)] // the original's twelve, minus the eight this does not model
+    ///
+    /// `pathed` is the original's `param_5`, and it writes [`flag::PATHED`]
+    /// straight into the order at birth (`005e55c0`: `*pbVar1 |= 1`). Only
+    /// the group move passes it: `action_move_near` plans the whole chain
+    /// itself a few lines later (`docs/GROUPS.md` §6.7), so the order it
+    /// hands out must not send `do_move` off to plan again.
+    #[allow(clippy::too_many_arguments)] // the original's twelve, minus the seven this does not model
     pub fn add_move_facing_order(
         &mut self,
         u: usize,
@@ -484,13 +490,14 @@ impl Sim {
         action: bool,
         angle: Angle,
         facing: Option<bool>,
+        pathed: bool,
     ) {
         let dest = Pos::new(
             to.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
             to.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
         );
         let order = Order {
-            flags: if action { flag::ACTION } else { 0 },
+            flags: if action { flag::ACTION } else { 0 } | if pathed { flag::PATHED } else { 0 },
             body: Body::Move(MoveOrder {
                 kind,
                 dest,

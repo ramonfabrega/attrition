@@ -1056,28 +1056,94 @@ approximation of the one that was used, and only sometimes the same.
 
 ### 6.7 The path
 
+**Implemented 2026-08-26** — `crates/sim/src/grouppath.rs`, and §16 has
+what building it corrected in the text below.
+
 One path is planned and offset, exactly as `docs/ORDERS.md` §8.2 outlines:
 a single-entry `grouppath` at the **leader's slot destination** with the
 call's tolerance and `FINAL`; within `0x900` nothing more is planned;
 otherwise `PathFinder::find_wpath` from the group's location, with
-`pathfinder +0x70 = 1` set around the call for an army's group (an AI hint
-the pathfinder reads).
+`pathfinder +0x70 = 1` set around the call for an army's group.
 
-If that produced nothing, **each member plans its own** single-entry path
-and `find_wpath`s it, and the stack is inverted.
+Six things about that paragraph are sharper than it reads, and all six
+were settled from the listing while it was being built:
+
+- **The goal is the leader's `form.to[idx]` raw.** `7060df`–`706137` loads
+  `0x514(%edx,%eax,4)` / `0x714(%edx,%eax,4)` at `form +0x34` and stores
+  them into the `PathData` with no snap. §6.6 step 3 clamps the *order's*
+  destination and `add_move_facing_order` snaps it to `u × 0x30 + 0x18`;
+  the path entry is neither clamped nor snapped, so a member's stack
+  bottom and its order's `dest` are **different numbers** — run20's `1/0`
+  by `0x18` on both axes.
+- **`grouppath` and `cols` are function-local statics of
+  `action_move_near`**, not fields of anything (`0xee1538` and `0xee155c`,
+  with `_Init_thread_header` guards at `705295`). The stack is drained to
+  zero by every arm before the function returns, which is what makes
+  "`grouppath.length == 0` after the search" mean *the leader was
+  unusable*, and not "left over from last time".
+- **The `0x900` is measured from the search's start to the leader's
+  slot**, not from the group to the order's point:
+  `vector_dist(|start_x − slot_x|, |start_y − slot_y|)` at
+  `70614e`–`706172`, where `(start_x, start_y)` is the pair pushed to
+  `find_wpath` four instructions later.
+- **The start is the leader's top-of-stack when it has one**, and
+  `get_loc`'s answer otherwise (`706921`–`70692e`). After a `QUEUE_NEW`
+  clear it never has one; after a `QUEUE_LAST` it does, which is what
+  makes step 2's pre-invert (§6.6) load-bearing.
+- **`pathfinder +0x70` is the `army` mode**, not a private hint:
+  `PathFinder::find_wpath@00688fc0` sets that same word at `:242` for an
+  AI's armed non-worker off water, and clears it on the way out at `:258`.
+  Setting it from outside is therefore the only way a **human**'s army
+  ever gets AI army costing, since a human jumps the whole mode block
+  (`leaders & 4` at `0068973d`). The gate is `GroupData::army >= 0`
+  (`70617e: cmpl $0x0, 0x8(%eax)`), so a group on the stack — a scout's,
+  a `find_target` probe's — never sets it. The engine names this pair:
+  `PathFinder::find_wpath_army@00683730` is four instructions,
+  `+0x70 = 1; find_wpath(&grouppath, …); +0x70 = 0`, and it hard-codes
+  `grouppath` rather than using its own stack argument. It has **zero
+  callers** because it is inlined here, which is what
+  `docs/PATHFINDER.md` §2's `army` row already said.
+- **The tail invert asks none of the move's questions.** `706909`–`7069a8`
+  tests active, on the map and not a plane, and nothing else: a member the
+  move stabled in a city or left shooting has its own untouched stack
+  turned over with everyone else's.
+
+If the search produced nothing, **each member plans its own** single-entry
+path and `find_wpath`s it — without the `+0x70` hint — and the stack is
+inverted. A member whose own search also fails gets the goal pushed by
+itself, off the copy the caller kept.
 
 Otherwise each waypoint is popped from the top and, for each member,
-translated by `slot[i] − slot[leader]` and clamped. A terrain guard follows:
-the **area id** of the member's waypoint cell (`world +0x134`, one 0x1c-byte
-record per cell, `+0x4` land and `+0x6` water, the latter chosen when the
-cell is `HALFLAND 0x100` and the tile's terrain is water) is compared with
-the leader's; if they differ **and** the member's waypoint is an invalid
-location, the waypoint is snapped back into the leader's cell. Then it is
-pushed — but a **follower** only receives a **non-final** waypoint when it
-is *not* in a group move (`orders != MOVE_TO`, or modern infantry, or sea,
-or `form == 9`) **and** is within `0x600` of the leader. Group-move
-followers get the final waypoint only; the intermediate legs are the
-leader's, and `do_group_move` re-derives theirs each frame.
+translated by `slot[i] − slot[leader]` and clamped (`706520`–`7065be`; the
+bounds test is `tiles × 0xc0` and the clamp `cells × 0x300`, which are the
+same number). A terrain guard follows: the **area id** of the member's
+waypoint cell (`world +0x134`, one 0x1c-byte record per cell, `+0x4` land
+and `+0x6` water, the latter chosen when the cell is `HALFLAND 0x100` and
+the tile's terrain is water — `WorldData::get_tregion`'s coastal
+refinement, and a **16-bit** compare at `7066ce`) is compared with the
+leader's; if they differ **and** the member's waypoint is an invalid
+location, the waypoint is snapped back into the leader's cell — or, on a
+short move, replaced by the leader's own point outright.
+
+That snap is `p + (w/0x300 − p/0x300) × 0x300` on **both** axes.
+Ghidra renders the `x` half with a `0xc0` stride, which would make it an
+asymmetric original bug worth reproducing; it is not one. `70672d`–`706764`
+is `leal (%eax,%eax,2)` then `shll $0x8` — × 3 × 256 — and the
+`imull $0x2aaaaaab` / `sarl $0x7` pairs either side are signed divides by
+`0x300`. Reading the decompiler here would have shipped a real defect.
+
+Then the waypoint is pushed — but a **follower** only receives a
+**non-final** waypoint when it is *not* in a group move
+(`orders != MOVE_TO`, or modern infantry, or sea, or `form == 9`) **and**
+is within `0x600` of the leader. Group-move followers get the final
+waypoint only; the intermediate legs are the leader's, and
+`do_group_move` re-derives theirs each frame. Two other members are
+dropped before that: an **AI**'s sea member on a non-final waypoint that
+is not the leader (`706473`, opening on `leaders & 4`, so a human's navy
+is exempt), and — for **Column** on a non-final waypoint of a planned move
+— nobody, but the slot index becomes `cols[i]` rather than `i`
+(`7064db`–`706507`), and `cols` is the static above, sized to `num` on
+every call and **written by nothing**. That arm reads uninitialised heap.
 
 Finally every member's stack is inverted, `group.order_num += 1`, and the
 `Form`'s tables are zeroed.
@@ -1394,12 +1460,14 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 - **`action_move_near`** (§6): the domain split's `army < 0` guard, the
   `QUEUE_FIRST` rotation, `get_form`/`get_loc`, `compute_form`'s angle and
   reverse rules, **the AI branch of §6.5 whole**, and the ordinary path's
-  order choice. **Not §6.7** — corrected 2026-08-26; an earlier draft of
-  this line claimed the leader-path-plus-offset and the simulation has
-  never had it. `crates/sim/src/group.rs` ends the member loop at
-  `add_move_facing_order` and leaves the planning to each member's own
-  `do_move` on a later frame, which run20 catches three ways at once
-  (§13);
+  order choice. ~~**Not §6.7**~~ — **§6.7 landed 2026-08-26**, in
+  `crates/sim/src/grouppath.rs`: the one search off the leader's raw slot,
+  the `0x900` short-circuit, the `pathfinder +0x70` hint, the per-member
+  translation with its clamp and its area guard, the follower cutoff, the
+  no-leader arm and the ungated tail invert. §6.6 step 2's `QUEUE_LAST`
+  pre-invert lands with it, because it means nothing without a stack to
+  invert, and the orders the member loop issues are now born `PATHED`
+  (`add_move_facing_order`'s `param_5`). §12.4 has what it moved;
 - **`Form::compute`'s slot table** (§6.4) whole, in `crates/sim/src/form.rs`
   — `type_cat`, `categorize`, `compute_rows_and_columns`, `compute_dests`,
   `get_form_mod_option` and `update_positions` — so each member now takes
@@ -1429,6 +1497,7 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 | ~~`Form::compute`'s slot table (§6.4)~~ | — | **Closed 2026-08-26**: `crates/sim/src/form.rs`, diffed against run29's `GROUPDATA` from the install's own columns. What is left is the four limits at the end of §6.4 — Square, the wedge's uninitialised seed, Mob's rings, and `categorize`'s two type substitutions — and every one of them is the original's |
 | the group pool (§3) | 64 slots a leader, `get_open_slot`'s recycling | one group per army, never recycled; `push_group`'s `force == 0` rule and `equals_group` are modelled, the slot allocation is not |
 | `GroupMoveOrder` | §6.6's per-frame formation — the follower that tracks the leader's *current* position plus a rotated offset | every member gets a `MoveOrder` and marches to its own slot independently; `docs/ORDERS.md` §8.4's verdict, unchanged. ~~And the order's angle: step 6's `angle + (angles[i] << 24)`.~~ **The angle has left this row 2026-08-26**: `Sim::add_move_facing_order` carries the formation's own bearing plus the slot's packed byte, and `MoveOrder::facing` carries the mirror, which is what §6.3's hand-back reads |
+| **Column's `cols[i]`** (§6.7) | the slot index a Column formation translates a non-final waypoint by | the member's own slot. `cols` is a function-local static of `action_move_near` (`0xee155c`) that nothing writes, so the original reads uninitialised heap there; every simulated group is form 0, and a `debug_assert!` refuses to pretend otherwise |
 | ~~the follower arm of `compute_dests` (§6.4)~~ | — | **Closed 2026-08-26**: `Sim::form_follower_slot`, read from `0072d3a0`–`0072d4f0`. ~~The simulation still has no group that *contains* a follower — `Group::add`'s `keep_captain` (§4.1).~~ It does now: `Unit::o_up`/`o_down` and `Sim::group_add_keeping` carry §4.1's two recursions whole, so a group built from captains holds every figure, and the arm is reached from the sim's own side by run31's 36-member fixture |
 | `refresh_group_order`'s **trigger** (§6.8) | `do_group_move`'s "is `oxx` still usable, and am I still `0x5ff` out" | the re-origin and the re-rotation are implemented (`GroupState::reorigin`, `Sim::group_refresh_order`); nothing in the simulation ever *fires* them, because a plain `MoveOrder` names no origin to lose. `modify_group_order`'s order rewrite is unmodelled with the rest of the group-order layer, one row up |
 | `action_guard` (§9) | the escort half of a siege attack | with siege *and* a matching area the non-siege members keep their orders instead of guarding; no traced army has siege |
@@ -1700,34 +1769,93 @@ The last row is the honest limit. Both of run31's kills catch the leader
 and the listing at `5e3062`–`5e307b` is its only evidence. §13 carries it
 with the capture that would reach it.
 
+## 12.4 What §6.7 moved, and what it did not
+
+Landed 2026-08-26 against `gamelog-run20-islands-dumpall.txt`, whose unit
+`1/0` is the cheapest possible fixture for this section: a **one-member**
+group on auto-explore (`Sim::scout_issue` → `group_action_move_to` →
+`push_group(force = 1)`), so the slot translation is the identity and what
+is left is exactly *when* the path is planned and *what goal* it is planned
+to.
+
+**Two of the three disagreements §13 named are closed.**
+
+| | before | after | the original |
+|---|---|---|---|
+| the order's flags at frame 1 | `0` | `1` (`PATHED`) | `1` |
+| the stack at frame 1 | empty | 7 entries | 9 |
+| the stack's bottom | `(41976, 36600)`, the order's snapped `dest` | `(41952, 36576, 0, 1)` | `(41952, 36576, 0, 1)` |
+| whole entries shared | 0 | **4** | — |
+| `rondata --diff`, order disagreements | 1 (`Flags`) | **0** | — |
+
+The position at the plan frame is the same on both sides —
+`(38040, 40344)` — so the two searches are now genuinely comparable, and
+the test pins that too.
+
+**The third, the route, is not this mechanic's.** Both sides now plan from
+the same point, to the same goal, with the same `toff`, and the chains
+still part in the middle: the original's runs along cell row 50 where the
+simulation's runs along row 51, and it carries one more node at each end.
+That is `astar_path`'s, and it belongs to `docs/PATHFINDER.md`. With one
+member the *translation* half of the route disagreement cannot be measured
+at all; no capture on disk holds a multi-member group's path stacks.
+
+**The path-stack count went up, and that is the count's fault rather than
+the port's.** `rondata --diff` scores run20 at **21** path-stack
+disagreements where the old code scored 17, because at frame 1 there is now
+a seven-entry stack to disagree with instead of an empty one, and the
+differ compares slot for slot from the bottom while the two chains agree
+one slot apart. §13's old entry said the same thing about the frame-2
+comparison; the instrument with teeth is
+`run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot`, which
+compares **whole entries** — position, tolerance and flag — and does not
+care where in the stack they sit.
+
+**The checks**, five, and every one made to fail on purpose first:
+
+- `diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot`
+  — the table above. Red first by handing `add_move_facing_order`
+  `pathed = false`, and again by pushing the order's snapped `dest` in
+  place of `form.to[idx]`.
+- `grouppath::tests::a_group_move_plans_one_path_and_the_follower_takes_only_the_goal`
+  — two members, form 0, `MOVE_TO`: the leader carries the chain and the
+  follower carries its own raw slot alone. Red first by pushing every
+  waypoint to every member.
+- `grouppath::tests::a_short_group_move_plans_no_route_at_all` — the
+  `0x900` gate, at a distance chosen to clear `find_wpath`'s **own** near
+  test (`vector_dist 2250`, cell-Manhattan 4), or it would prove nothing.
+  Red first by removing the gate.
+- `grouppath::tests::a_follower_out_of_formation_takes_the_legs_only_while_it_is_near`
+  — an `EXPLORE_TO` group, one follower inside `0x600` and one outside.
+  Red first by dropping the distance test.
+- `grouppath::tests::the_tail_invert_turns_over_a_stack_the_move_never_wrote_to`
+  — §6.5's shooting siege under a non-hurrying AI move: the move skips it
+  and the invert does not. Red first by gating the invert on the same
+  `Member::Move` the rest of the section uses.
+
 ## 13. What is not established
 
 Still open:
 
-- **§6.7 is not implemented at all**, and run20 measures the cost
-  (2026-08-26, found while closing `docs/PATHFINDER.md`'s `toff`). Its
-  unit `1/0` is a group's member on auto-explore, and at the original's
-  frame 1 its order is already `is_pathed` with a **nine-entry** stack,
-  where the simulation has `flags 0` and an **empty** one: the original
-  planned inside `action_move_near` on the frame the order was issued and
-  the simulation waits for the member's own `do_move`. Three separate
-  disagreements fall out of that one gap, all visible on the dump already
-  on disk:
-  - the **goal**: the original's bottom entry is `(41952, 36576)`, the raw
-    `{slot_x[leader], slot_y[leader]}` this section pushes, un-snapped;
-    the simulation pushes the member's *order* `dest`, which
-    `add_move_facing_order` has snapped to `u*0x30 + 0x18` — so it is
-    `0x18` long on both axes, every time, and nothing else can produce
-    that difference (`docs/PATHFINDER.md` §12 rules out the pre-walk and
-    `do_move`);
-  - the **timing**: `flags` and the path length at frame 1;
-  - the **route**: the original's chain is the *leader's*, translated;
-    the simulation's is each member's own from its own position, so the
-    middle of the chain parts even where the sub-cell offset now agrees.
-  It needs no capture. `pathfinder +0x70 = 1` (§6.7) around an army
-  group's call is the one piece that has to land with it, since it changes
-  `calc_cost`; and the `< 0x900` short-circuit is what keeps a short group
-  move from planning at all.
+- ~~**§6.7 is not implemented at all**, and run20 measures the cost.~~
+  **Implemented 2026-08-26**, `crates/sim/src/grouppath.rs`; §12.4 has the
+  table and §16 has what the listing corrected on the way. Of the three
+  disagreements this entry named, the **goal** and the **timing** are
+  closed and the **route** is not:
+  - ~~the goal~~ — the bottom entry is `(41952, 36576, 0, 1)` on both
+    sides now.
+  - ~~the timing~~ — frame 1 is `PATHED` with a seven-entry stack.
+  - the **route** is open, and it has changed owner. Both sides plan from
+    the same position to the same goal with the same `toff`, and
+    `astar_path` still parts a cell row through the middle and drops a
+    node at each end — `docs/PATHFINDER.md`, not this document.
+  What this document still owes is the **translation** half, which run20
+  cannot reach: its group has one member, so `slot[i] − slot[leader]` is
+  zero on every waypoint. *Capture:* a `UNITS=3` window over an army of
+  three or more given one move, read for the members' path stacks rather
+  than their positions — the same window item 23 already owes, widened.
+  It would also settle the follower cutoff and the AI sea guard, neither
+  of which any dump on disk exercises.
 
 - ~~**`Form::compute`'s slot table** (§6.4), the largest gap.~~
   **Closed 2026-08-26**, and the four things left in it are the
@@ -1998,3 +2126,49 @@ The type field names the table turns on came from the engine's own
 `log_data` strings rather than from use: `attack`, `guy_spacing`,
 `x_spacing`, `y_spacing`, `uber_size`. `FormCatIndex`'s eighteen values
 are the PDB's `LF_ENUM` record, checked here rather than taken from A.16.
+
+## 16. The path's implementation, and what the listing corrected
+
+Built 2026-08-26 from §6.7's own text plus the listing at `706128`–`7069a8`.
+The project's default applies here as it did to §15 — *where a reading's
+product is arithmetic, the implementation is a pass of the audit* — and it
+earned its keep again. Four things the decompiler said, or did not say,
+would have shipped as defects:
+
+1. **The area-guard snap's `x` stride is `0x300`, not `0xc0`.** Ghidra
+   renders it as `local_14 + (param_11 / 0x300 - (int)local_14 / 0x300) *
+   0xc0` against the `y` half's `* 0x300`, which reads as a plausible
+   original bug: a tile stride where a cell stride belongs, asymmetric,
+   exactly the kind of thing this project reproduces on purpose. The
+   listing at `70672d`–`706764` is `leal (%eax,%eax,2)` then `shll $0x8`
+   — × 3 × 256 — on **both** axes. Transcribing the decompile would have
+   introduced a defect the original does not have, and no test on disk
+   would have caught it, because no capture crosses a coastline.
+2. **`cols` is a function-local static that nothing writes.** The
+   decompile shows `cols._padding_` a dozen times with every field folded
+   onto one name, which reads like an ordinary array being filled. It is
+   `0xee155c`, allocated to `num` ints on every call by
+   `action_move_near`'s own prologue and written by no instruction in the
+   export. Column's non-final waypoints therefore index uninitialised
+   heap. That is a **seam by necessity**, not by choice, and §12's table
+   says so.
+3. **`pathfinder +0x70` is not a private hint.** §6.7's old text called it
+   "an AI hint the pathfinder reads", which is true and unhelpful. It is
+   the *same word* `find_wpath` sets for an AI's own armed non-worker
+   (`00688fc0:242`) — the `army` mode of `docs/PATHFINDER.md` §3 — and the
+   only reason to set it from outside is that a **human** jumps that whole
+   block. So an army's group move gets AI army costing whoever owns it,
+   and a stack group never does.
+4. **The `0x900` is measured to the leader's slot, from the search's own
+   start.** Not from the group to the order's point, which is what "within
+   `0x900` nothing more is planned" invites. `70614e`–`706172` subtracts
+   the slot pair that was pushed four instructions earlier from the exact
+   pair handed to `find_wpath` at `706187`.
+
+And one the *test* corrected rather than the listing: a first draft of
+`a_short_group_move_plans_no_route_at_all` put its goal two cells away,
+which is inside `find_wpath`'s **own** near test (`docs/PATHFINDER.md` §3),
+so removing the `0x900` gate left the assertion green. A guard that cannot
+fail has not been tested; the distance was moved to `(1500, 1500)` —
+`vector_dist 2250`, cell-Manhattan 4 — where only the `0x900` gate can
+produce a one-entry stack.
