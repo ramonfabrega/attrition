@@ -3049,3 +3049,131 @@ neither had been re-read since the layer under it landed. The rule the
 project already has — *grep the writers of every field you call frozen* —
 has a sibling: **grep the readers of every layer you land.** A seam is a
 claim about the world, and a claim about the world goes stale.
+
+## 2026-08-27 — item 33: the fog moves, and the field the dump was already printing
+
+`docs/VISION.md`, `crates/sim/src/vision.rs`, `seen`/`seen2` on
+`crate::world::World`, `mylos` in `rondata::diff`.
+
+Item 32 left the pathfinder reading a fog grid nothing wrote. This closed
+that: `Object::update_seen@00651b80` in full — the radius, the centre, the
+two index ranges, the write — plus the two callers that decide when it
+runs. The reading was ordinary and the decompile was generous. Three
+things it settled that were not obvious:
+
+**`LOS` is in tiles and the radius is half of it.** `unitrules.xml` says
+so in a comment nobody had read (`LOS = Line of sight, in TCoords`), and
+`update_seen` computes `(los * 0xc0) / 0x180` — a tile over a half-cell.
+A Citizen's `2` is a radius of **one** fog cell; a Scout's `4` is two.
+The listing at `651c0d` is `lea (%eax,%eax,2); shl $6` and the
+divide-by-384 magic sequence, which is how the `0xc0` was pinned rather
+than assumed.
+
+**A small land unit sees from in front of its nose.** Below radius four —
+which in the Ancient age is every unit a game starts with — the disc is
+centred not on the unit but on `project(x, y, dist = 0x180, angle)`, one
+half-cell along its facing. Ghidra dropped both of `project`'s register
+arguments; `mov 0x50(%ecx), %ecx` at `651cf1` (the unit's `angle`) and
+`mov $0x180, %edx` at `651d00` put them back. A citizen's vision is
+mostly this.
+
+**`ring_init` is a thickened circle, and its offsets are in `.rdata`.**
+The decompiler mis-symbolised three of its globals — `circle_radius − 1`
+printed as `KeyMap::await_keymap`, `ring_radius − 1` as
+`ConquestBonusCardTypes::loads` — so the listing settled the loop and the
+PE's own bytes at `00add254`/`00add214` settled the four orthogonal
+offsets. It matters only from radius four up, which no capture on disk
+reaches, so it is held by unit tests alone and the document says so.
+
+### The `grep` that was worth more than the reading
+
+`docs/VISION.md` was written from the decompile, blind, the way a first
+reading is. Then one `grep` for `mylos` in a log already on disk turned
+its central section into a differential check: **every object record, in
+every capture, at every detail level, prints `ObjectData::mylos`** —
+`update_los`' whole output. `rondata::diff` compares it now, `--diff`
+tallies it, and run10 asserts **26,433 unit-frames with exactly one
+disagreement**.
+
+That one is a cache. `Leader::calc_unit_stats` refreshes `mylos`, and
+`Leader::process` calls it only when `leader_flags & 0x4000000` is set —
+the twin of the `0x8000000` this simulation already models as
+`wall_stats_dirty`. So the original's value is one frame behind its
+inputs, and the sim's pure function is one frame ahead: on the frame
+player 1's first science level lands, the sim says the Scout sees `4 + 1 ×
+2 = 6` and the original still says 4. **That pair is what proves
+`epoch[3]` is the Science line** — the type record named the field
+(`LeaderDataEncrypt +0xe8 int[4] epoch`, so the `^ 0x87` byte read at
+`+0xf4` is its fourth entry), and the run confirmed the name.
+
+### What the check found, which was not about vision at all
+
+On its first run, 5,170 of those 26,433 unit-frames disagreed with `ours
+0`. A unit the simulation *trained* had never been given its type:
+`advance_job` set `kind` and left `Unit::ty` unset, so it had no `LOS`, no
+combat profile, no speed of its own and no worker role. `Unit::init` sets
+all of them and the harness's own dump loader always had; the production
+path did not, and a comment said so — *"the unit's `ty` stays unset here,
+as it always has"* — which is what an unmeasured gap looks like from the
+inside. 5,170 → 1.
+
+It cost something. The AI's trained citizens **started gathering**, so
+run6's non-farmer path ceiling rose from 892 to 1,602: a unit that idles
+disagrees once a frame and a unit that works disagrees in detail on every
+frame it lives. Every traced check held to the number — run20 175/175,
+53/53, 5/5 and its world chain entry for entry; the fuzzed map 195/195,
+43/45 and 1,377/1,221 unmoved — which is the same bar the earlier
+re-bases used, and it is written into the assertion.
+
+### The row this item was booked to close, and did not
+
+`docs/PATHFINDER.md` §12 blamed run10's frame-102 draw gap on stale fog:
+24 against the original's 6, the AI scout re-targeting against a
+hundred-frame-old map. With the fog live it went to **22** and stopped,
+which is what sent someone to the trace instead of the theory.
+
+Both sides give the scout the same `EXPLORE_TO`, to `(45048, 19704)`, and
+the destination agrees on every frame from 57 to 101. On **frame 62** the
+original stands still for exactly one frame and turns, stepping a constant
+`(−19, +29)` from 63 to the end. The simulation takes one more step
+north-east, then **stands still for seven frames**, and eases into the new
+heading over eight more, reaching `(−19, +29)` only at 77. Ten frames
+behind, it arrives at 101 where the original arrived at 95, and spends its
+eighteen `think_scout` ring draws on 102 where the original spent them on
+96.
+
+So the row is `docs/MOVEMENT.md`'s stopped-unit instant turn, not the fog.
+It is re-pinned at `(22, 6)` with the frames written into the test, and it
+is the queue's item 34.
+
+### Thirteen deliberate breakages, and two guards that had to be fixed first
+
+Ten against the unit tests — the radius divisor, the science term, the
+projection and its gate, the ring table's reach, `ring_init`'s patch
+condition and its strict inequality, the half-cell trigger, the resync's
+frame, `set_seen`'s return — and three against the diff: a trained unit
+losing its type again, the nomad term firing on every map, the merchants'
+fixed radius applied to every type.
+
+Two of the ten came back **green**, and the lesson is in what was wrong
+with the guards rather than with the code. A test that counts fog cells
+cannot tell a *skipped* sweep from a *repeated* one, because both reveal
+nothing new — so `moved_to` now answers `None` when the half-cell test
+declined, and the test asserts on that. And asserting that a sweep is
+flagged `ring` does not assert that it walks the ring *table* — so the
+indices are compared against `ring_radius` directly, and against the
+circle's for inequality. Neither hole would have been found by writing
+more tests; both were found by breaking the code on purpose and watching
+the tests not care.
+
+### What this session earned
+
+*Grep the dump for the field before booking anything.* The project already
+has "grep the dump before booking a reading" for open questions. This is
+the stronger form: the field you want may be in a capture you already
+have, at a detail level you are already paying for, and it may turn a
+whole document's central section into a differential check. `mylos` cost
+one `grep`, produced 26,433 rows of evidence, confirmed a type-record name
+by behaviour, and found a bug in a *different* mechanic that no amount of
+reading about vision would have surfaced. `docs/ORACLE.md` now says which
+fields the `OBJECT` level gives away for free.

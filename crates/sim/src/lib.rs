@@ -78,6 +78,7 @@ pub mod tech;
 pub mod territory;
 pub mod transport;
 pub mod tuning;
+pub mod vision;
 pub mod world;
 
 pub use tuning::Tuning;
@@ -355,6 +356,15 @@ pub struct UnitType {
     /// `TURN_SPEED`, through `degrees_to_angle` as `UnitType::init` stores
     /// it — the `type_turn_speed` of [`movement::Turning`].
     pub turn_speed: i32,
+    /// `LOS`, `ObjectTypeData +0x21c` — line of sight **in tiles**, which
+    /// `Object::update_seen` halves to get a fog radius (`docs/VISION.md`
+    /// §3). Zero means the type reveals nothing at all.
+    pub los: i32,
+    /// `SCIENCE_LOS`, `+0x220` — added once per science level.
+    pub science_los: i32,
+    /// The type's own `TypeIndex` — `0x32 + record`, the number the dump's
+    /// `GUY.type` carries and several predicates test by identity.
+    pub type_index: i32,
     /// Which worker kind this is — a citizen or scholar may gather and is
     /// what `think_peasant` runs for (`docs/ORDERS.md` §6.1).
     pub worker: orders::Worker,
@@ -1559,6 +1569,10 @@ impl Sim {
                     .unwrap_or(i16::MAX);
                 let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
                 unit.kind = self.unit_types[ty].kind;
+                unit.ty = Some(ty);
+                unit.type_index = self.unit_types[ty].type_index;
+                unit.movement.speed = self.unit_types[ty].moves;
+                unit.movement.turning.type_turn_speed = self.unit_types[ty].turn_speed;
                 let unit = self.add_unit(unit);
                 // `Unit::init` → `Guy::init_real`: the figure's one draw.
                 // (The unit's `ty` stays unset here, as it always has; the
@@ -1849,6 +1863,13 @@ impl Sim {
         // `Leaders::strategy_all` — the production AI, between the income
         // and the objects (`Game::do_frame` line 267; `docs/AI.md` §2.1).
         self.strategy_all();
+
+        // `GameDaemon::process_all` → `update_all_seen`, the fourth thing
+        // that function does and the one before `calc_markets`
+        // (`docs/VISION.md` §6). It draws nothing, so it takes no mark.
+        if frame % 100 == 0x21 {
+            self.update_all_seen();
+        }
 
         self.mark("markets");
         // `GameDaemon::process_all` → `calc_markets`: the market's price

@@ -364,6 +364,35 @@ fn diff_report(
             cells.join(" ")
         );
     }
+    // `ObjectData::mylos`, which every object record carries at every
+    // detail level — `docs/VISION.md` §2.
+    let los_seen: usize = report.frames.iter().map(|f| f.los_compared).sum();
+    if los_seen > 0 {
+        let bad: Vec<&rondata::diff::LosDivergence> =
+            report.frames.iter().flat_map(|f| &f.los_diverged).collect();
+        if bad.is_empty() {
+            println!("  mylos: {los_seen} unit-frames compared, every one matched");
+        } else {
+            println!(
+                "  mylos: {los_seen} unit-frames compared, {} disagreements",
+                bad.len()
+            );
+            // One line a unit: the first frame it parted and the pair.
+            let mut by_unit: std::collections::BTreeMap<(i64, i64), (i64, i32, i64, usize)> =
+                std::collections::BTreeMap::new();
+            for d in &bad {
+                let e = by_unit
+                    .entry((d.who, d.o))
+                    .or_insert((d.frame, d.ours, d.theirs, 0));
+                e.3 += 1;
+            }
+            for ((w, o), (f, ours, theirs, n)) in by_unit.iter().take(12) {
+                println!(
+                    "    who {w} o {o}: first at frame {f}, ours {ours}, the log has {theirs} ({n} frames)"
+                );
+            }
+        }
+    }
     // The order lists, frame by frame — the intent diff, which sees what a
     // position diff cannot. `UNITS=3` or nothing.
     if report.orders_seen() {

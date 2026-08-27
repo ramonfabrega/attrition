@@ -656,6 +656,15 @@ pub struct UnitDump {
     /// type carries and points taken off them.
     pub myhits: Option<i64>,
     pub damage: Option<i64>,
+    /// `ObjectData::mylos` — the line of sight `Unit::update_los` last
+    /// computed for this object, in tiles (`docs/VISION.md` §2). On the
+    /// `OBJECT` level, beside `myhits`.
+    pub mylos: Option<i64>,
+    /// `ObjectData::infiltrated` and `ObjectData::visible` — the two masks
+    /// `Object::update_seen` reveals *with* rather than *for*. Zero in
+    /// every capture on disk; kept so the record is compared whole.
+    pub infiltrated: Option<i64>,
+    pub visible: Option<i64>,
 }
 
 impl UnitDump {
@@ -1295,6 +1304,9 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
         inside_up: b.int("inside_up"),
         myhits: obj.and_then(|o| o.int("myhits")),
         damage: obj.and_then(|o| o.int("damage")),
+        mylos: obj.and_then(|o| o.int("mylos")),
+        infiltrated: obj.and_then(|o| o.int("infiltrated")),
+        visible: obj.and_then(|o| o.int("visible")),
     })
 }
 

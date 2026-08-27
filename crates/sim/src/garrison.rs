@@ -306,6 +306,9 @@ impl Sim {
                 turning: u.movement.turning,
                 ..crate::Movement::at(spot)
             };
+            // `Object::add_to_world` reaches `update_seen(0)` — the whole
+            // disc, not the ring (`docs/VISION.md` §6).
+            self.update_seen(f, false);
         }
         // The city alarm clears when the city empties.
         if self.building_is_city(b)

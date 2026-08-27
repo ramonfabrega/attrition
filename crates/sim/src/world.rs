@@ -262,12 +262,20 @@ pub struct World {
     tile_z: Vec<i32>,
     /// `world+0x34` — see [`World::sea_map`].
     sea_map: i32,
-    /// `WorldData::seen2` — the fog grid, two entries per cell each way
-    /// (`fog_xs = 2 × xs`), one bit per player: what `was_seen` answers.
-    /// Empty until a dump supplies it, and then a snapshot the simulation
-    /// does not yet advance (nothing here models sight); see
-    /// [`World::seen2`].
+    /// `WorldData::seen2` (`World +0x160`) — the fog grid, two entries per
+    /// cell each way (`fog_xs = 2 × xs`), one bit per player: what
+    /// `was_seen` and `was_really_seen` answer from. Empty until a dump or
+    /// [`World::set_fog`] supplies it; **monotone**, since nothing in a
+    /// running game clears it (`docs/VISION.md` §1). [`World::set_seen`] is
+    /// what grows it as units move.
     fog: Vec<u8>,
+    /// `WorldData::seen` (`World +0x15c`) — current line of sight, the same
+    /// shape as [`World::fog`]. Written by the same call and cleared whole
+    /// only by `update_all_seen`, every hundredth frame, so between
+    /// resyncs it only ever grows (`docs/VISION.md` §6). Nothing in this
+    /// simulation reads it yet; it is kept because the write is free and
+    /// the `WORLD` dump prints it beside `seen2`.
+    fog_now: Vec<u8>,
     /// `Region::coast` per region: for a land region, the sea regions any
     /// of its cells touches in the eight-neighbourhood — `Regions::
     /// set_coastals`' first mask (`docs/TRANSPORT.md` §9.1). Sorted,
@@ -429,6 +437,7 @@ impl World {
             tile_z: Vec::new(),
             sea_map: 0,
             fog: Vec::new(),
+            fog_now: Vec::new(),
             coast: Vec::new(),
         }
     }
@@ -501,13 +510,81 @@ impl World {
 
     /// Install the fog grid's `seen2` bytes, `(2 × width) × (2 × height)`
     /// row-major; any other length is refused and the world stays fogless.
+    /// The `seen` plane starts as a copy, which is what the original's own
+    /// start-of-game state is — every cell an object has ever seen it is
+    /// currently seeing, because nothing has moved yet.
     pub fn set_fog(&mut self, seen2: Vec<u8>) -> bool {
         let n = (self.width as usize) * (self.height as usize) * 4;
         if seen2.len() != n {
             return false;
         }
+        self.fog_now.clone_from(&seen2);
         self.fog = seen2;
         true
+    }
+
+    /// Install the `seen` plane on its own, when a dump carries it.
+    pub fn set_fog_now(&mut self, seen: Vec<u8>) -> bool {
+        let n = (self.width as usize) * (self.height as usize) * 4;
+        if seen.len() != n {
+            return false;
+        }
+        self.fog_now = seen;
+        true
+    }
+
+    /// `WorldData::seen[fy × fog_xs + fx]` — current line of sight.
+    pub fn seen(&self, fx: i32, fy: i32) -> Option<u8> {
+        self.fog_index(fx, fy).map(|i| self.fog_now[i])
+    }
+
+    /// `World::set_seen@006b3c60` on the two planes this world keeps: ors
+    /// `mask` into `seen` and `seen2` at one fog cell, and answers whether
+    /// **`seen2` changed** — the original's return value, which is what
+    /// gates `reveal_fog`. Off the grid it writes nothing and answers
+    /// false. `docs/VISION.md` §5.
+    ///
+    /// The three writes the original also makes and this does not — `seen3`
+    /// (gated on a flag nothing here sets), `World +0x168` and `WData
+    /// +0x14` — have no reader in this simulation; §7.
+    pub fn set_seen(&mut self, fx: i32, fy: i32, mask: u8) -> bool {
+        let Some(i) = self.fog_index(fx, fy) else {
+            return false;
+        };
+        self.fog_now[i] |= mask;
+        let before = self.fog[i];
+        self.fog[i] = before | mask;
+        self.fog[i] != before
+    }
+
+    /// The index of a fog cell, when there is a fog grid and the pair is on
+    /// it.
+    fn fog_index(&self, fx: i32, fy: i32) -> Option<usize> {
+        if self.fog.is_empty() {
+            return None;
+        }
+        let (fw, fh) = (self.width * 2, self.height * 2);
+        if fx < 0 || fy < 0 || fx >= fw || fy >= fh {
+            return None;
+        }
+        Some((fy * fw + fx) as usize)
+    }
+
+    /// Whether a fog grid has been installed at all — the difference
+    /// between "nothing is seen" and "everything is seen", which is what
+    /// [`World::seen2`] answering `None` means to its callers.
+    pub fn has_fog(&self) -> bool {
+        !self.fog.is_empty()
+    }
+
+    /// The fog grid's width in fog cells, `fog_xs = 2 × xs`.
+    pub const fn fog_xs(&self) -> i32 {
+        self.width * 2
+    }
+
+    /// The fog grid's height in fog cells, `fog_ys = 2 × ys`.
+    pub const fn fog_ys(&self) -> i32 {
+        self.height * 2
     }
 
     /// `WorldData::seen2[fy × fog_xs + fx]` — the fog cell's seen bits, one

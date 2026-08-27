@@ -704,20 +704,22 @@ Four of the first reading's open items were **settled by the audit**
   (`diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_
   leaders_slot` compares it whole). See §5's note on why the two terms
   had to land together.
-- **The fog the sim reads is the frame-0 snapshot**, and now that
-  `calc_cost` reads it, that is load-bearing rather than cosmetic.
-  `World::set_fog` has exactly one caller — `rondata::diff` installing the
-  `WORLD` dump's `seen2` plane at build time — because nothing reveals a
-  cell as a unit moves (`Unit::look` is unread and unmodelled). So a path
-  planned at frame 1 is planned against the truth and a path planned at
-  frame 100 is planned against a hundred-frame-old map. It is visible and
-  it is pinned: run10's frame 102 now spends **24** draws where the
-  original spends 6, because AI scout `1/0` plans against stale fog, its
-  unit-grid search fails, `find_upath` kills the `EXPLORE_TO` and
-  `think_scout` re-targets over eighteen ring draws
-  (`diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_
-  matched`, which asserts the 24 so that fixing it fails there). The fix
-  is to reveal cells as units move, not to un-read the fog.
+- ~~**The fog the sim reads is the frame-0 snapshot.**~~ **Closed
+  2026-08-27** — `docs/VISION.md` and `crates/sim/src/vision.rs`. A unit
+  now lights a disc of `LOS / 2` fog cells every time it crosses a
+  half-cell, centred (below radius four) a half-cell ahead of its own
+  facing, and `Object::update_seen`'s hundredth-frame resync runs from
+  `tick`. `seen2` grows as the game runs, so a path planned at frame 100
+  is planned against what its planner has actually seen.
+
+  **And the run10 row this entry blamed on the fog was not the fog's.**
+  Frame 102 went 24 → **22** with the reveal live and stopped there. The
+  trace says both sides give AI scout `1/0` the same `EXPLORE_TO` and walk
+  it to the same point; the original turns in one frame on frame 62 and
+  this simulation stands for seven and then eases for eight, arriving six
+  frames late and spending its `think_scout` ring draws a frame after the
+  original spent them. It is `docs/MOVEMENT.md`'s stopped-unit instant
+  turn, and it is the queue's now. `docs/VISION.md` §8.
 - **The half-cell fog convention is unfalsifiable by any run on disk.**
   `calc_cost` reads `div_3_table[to >> 7]`; `Unit::think_scout` reads
   `2c + 1`. Every world-grid search node in every capture sits at a

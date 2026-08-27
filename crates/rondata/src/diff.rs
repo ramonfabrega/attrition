@@ -984,6 +984,22 @@ pub struct FrameResult {
     pub order_compared: usize,
     /// Every order-list and path-stack disagreement this frame.
     pub order_diverged: Vec<OrderDivergence>,
+    /// Unit-frames whose `ObjectData::mylos` the log carried, so
+    /// [`sim::Sim::unit_los`] could be checked against it.
+    pub los_compared: usize,
+    /// Every one that disagreed — `docs/VISION.md` §2. The dump writes
+    /// `mylos` at every detail level, so this is compared on every capture.
+    pub los_diverged: Vec<LosDivergence>,
+}
+
+/// One unit whose line of sight the two sides disagree on.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LosDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    pub ours: i32,
+    pub theirs: i64,
 }
 
 impl FrameResult {
@@ -1455,6 +1471,25 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         let ours = built.sim.units[link.unit].pos;
         let theirs = pos_of(u.pos);
         r.compared += 1;
+        // `ObjectData::mylos`, which the object record writes at every
+        // detail level — `docs/VISION.md` §2. A garrisoned unit is skipped:
+        // `update_los` is not run for one, so the field is whatever it held
+        // when the unit was last on the map.
+        if let Some(theirs_los) = u.mylos
+            && built.sim.units[link.unit].on_map
+        {
+            r.los_compared += 1;
+            let ours_los = built.sim.unit_los(link.unit);
+            if i64::from(ours_los) != theirs_los {
+                r.los_diverged.push(LosDivergence {
+                    frame: frame.n,
+                    who: u.who,
+                    o: u.o,
+                    ours: ours_los,
+                    theirs: theirs_los,
+                });
+            }
+        }
         if orders_logged {
             r.order_compared += 1;
             r.order_diverged
@@ -3745,23 +3780,33 @@ mod tests {
             (Some(20), Some(21)),
             "the scout's wrap; the sheep"
         );
-        // **102 is the stale-fog row, and it is not a pathfinder defect.**
-        // `calc_cost` reads the fog now (item 32), and the fog the sim has
-        // is the frame-**0** snapshot the `WORLD` dump carried: nothing
-        // reveals a cell, because line of sight is not modelled. A hundred
-        // frames in, the AI scout `1/0` plans its world path against a map
-        // it has long since walked off the edge of, its unit-grid search
-        // fails, `find_upath` kills the `EXPLORE_TO`, and `think_scout`
-        // spends eighteen ring draws re-targeting on the next frame. With
-        // the fog read pinned back to "everything is seen" this row is
-        // `(6, 6)` again and run20's chain parts — that is the trade, and
-        // `docs/PATHFINDER.md` §12 books the fix (reveal cells as units
-        // move) rather than the symptom. The frames either side of it are
-        // the farm and animation clocks and are untouched.
+        // **102 is a re-target the sim makes six frames late, and it is the
+        // movement layer's, not the fog's.** This row was booked as the
+        // stale-fog row when item 32 landed; item 33 revealed cells as
+        // units move (`docs/VISION.md`) and it went 24 → 22, which is what
+        // sent someone to look at the trace instead of the theory.
+        //
+        // What the trace says. Both sides give the AI scout `1/0` the same
+        // `EXPLORE_TO`, to `(45048, 19704)`, and both walk it there — the
+        // destination agrees on every frame from 57 to 101. On **frame 62**
+        // the original stands still for exactly one frame and then turns,
+        // stepping a constant `(−19, +29)` from frame 63 to the end. The
+        // simulation takes one more step north-east, then **stands still
+        // for seven frames** (63–69) and eases into the new heading over
+        // eight more, reaching `(−19, +29)` only at frame 77. That is
+        // `docs/MOVEMENT.md`'s stopped-unit instant turn against this
+        // simulation's gradual one: the sim ends up ~350 position units —
+        // ten frames — behind, arrives at frame 101 where the original
+        // arrived at 95, and so spends its eighteen `think_scout` ring
+        // draws on frame 102 where the original spent them on 96.
+        //
+        // So the fog is not what this row is waiting on. It is waiting on
+        // the turn, and `docs/QUEUE.md` books it there. The frames either
+        // side are the farm and animation clocks and are untouched.
         assert_eq!(
             count(102),
-            (Some(24), Some(6)),
-            "the scout re-targets against hundred-frame-old fog"
+            (Some(22), Some(6)),
+            "the scout's re-target lands six frames late — the turn, not the fog"
         );
         assert_eq!(count(103), (Some(6), Some(6)));
         // The AI's farmers re-target on sim-frame 101 and walk from 102;
@@ -4193,6 +4238,40 @@ mod tests {
             unlinked <= 268,
             "unlinked unit-frames: {unlinked} — 2026-08-24 was 268: 1/10 from 1505"
         );
+
+        // **`ObjectData::mylos` over the whole run** — the differential
+        // check `docs/VISION.md` §2 hangs on, and the longest one available:
+        // every object record carries `mylos` at every detail level, so this
+        // is 26,433 unit-frames of the original's own line of sight against
+        // `Sim::unit_los`.
+        //
+        // Exactly one disagreement, and it is a **cache**, not a formula.
+        // `mylos` is stored on the object and refreshed by
+        // `Leader::calc_unit_stats`, which `Leader::process` runs on the
+        // frame *after* `gain_tech` sets `leader_flags & 0x4000000`. So when
+        // player 1's first science level lands, the simulation's pure
+        // function reports `4 + 1 × 2 = 6` on the frame the level is gained
+        // and the original still reports 4 until the next one. `docs/VISION.md`
+        // §7 books modelling the cache; the pair is what proves `epoch[3]`
+        // is the Science line and `science_los` its multiplier.
+        let los_seen: usize = report.frames.iter().map(|f| f.los_compared).sum();
+        assert_eq!(los_seen, 26_433, "every compared unit-frame carries mylos");
+        let bad: Vec<LosDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.los_diverged.iter().copied())
+            .collect();
+        assert_eq!(
+            bad,
+            vec![LosDivergence {
+                frame: 202,
+                who: 1,
+                o: 0,
+                ours: 6,
+                theirs: 4,
+            }],
+            "the scout's science level, one frame ahead of the original's cache"
+        );
     }
 
     /// The slot count against the original's own survey: run9's frame-1
@@ -4337,9 +4416,16 @@ mod tests {
                 ) || matches!(d.what, OrderMismatch::Flags { .. })
             })
             .collect();
+        // The `o` bound is "a citizen that farms": `o` 3–5 are the three
+        // starting farmers, and `o >= 6` is every citizen trained during
+        // the run — which reached this carve-out on 2026-08-27, when a
+        // trained unit started carrying its type (`docs/VISION.md` §8) and
+        // therefore started farming at all. Both are the same mechanism and
+        // the same frame bound. `o` 0–2 — the scout and the two citizens
+        // that never re-sow — are still held to the letter.
         let (farmers_late, rest): (Vec<&OrderDivergence>, Vec<&OrderDivergence>) = modelled
             .iter()
-            .partition(|d| d.frame > 150 && (3..=5).contains(&d.o));
+            .partition(|d| d.frame > 150 && (d.o >= 6 || (3..=5).contains(&d.o)));
         assert!(
             rest.is_empty(),
             "a modelled order field disagrees: {:?}",
@@ -4434,8 +4520,23 @@ mod tests {
         // to 285/268). Every traced capture held or improved — run20's
         // frame 1 lost its `produce_building` residue entirely, the fuzzed
         // map went 48/45 to 43/45, the Great Lakes did not move.
+        // 1,267/892 → **1,181/1,602** on 2026-08-27, when a trained unit
+        // started carrying its type (`docs/VISION.md` §8). The orders half
+        // fell; the paths half rose by 710, and the reason is that the AI's
+        // trained citizens used to **idle** — a unit with no order has one
+        // `Length` disagreement a frame and no path stack at all, and a
+        // unit that gathers has a stack that differs in detail on every one
+        // of the four hundred frames it lives. So the ceiling rose because
+        // the simulation started doing the thing, not because it stopped.
+        // What settles that this is not a regression is that **every traced
+        // check held**: run20 frame 0 175/175, frame 1 53/53, frame 2 5/5
+        // and its world chain entry for entry; the fuzzed map 195/195,
+        // 43/45 and 1,377/1,221 unmoved to the number; run10's window
+        // 98–103 unmoved but for its own row. And the measurement that
+        // motivated it: `mylos` over run10's 26,433 unit-frames went from
+        // 5,170 disagreements to **1**.
         assert!(
-            orders - farmer_orders <= 1_267 && paths - farmer_paths <= 892,
+            orders - farmer_orders <= 1_181 && paths - farmer_paths <= 1_602,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.

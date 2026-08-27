@@ -518,7 +518,10 @@ AI scout's own city is always in its region at the frames observed — and
   call on a chosen seed.
 - `Sim::was_really_seen` — §7's fog read; the sibling of
   `crate::ai_sites`' `site_was_seen`, which is `was_seen` and is a
-  different function with one word between their names.
+  different function with one word between their names. **The grid it
+  reads is no longer frozen** (2026-08-27): `crate::vision` writes `seen2`
+  as units move, so a scout that has walked for a hundred frames filters
+  its candidate cells against what it has actually seen. `docs/VISION.md`.
 - `Sim::scout_thinks` and `Sim::unit_is_scout` — §2's gate, wired into
   `Sim::think`'s tail in `crates/sim/src/orders.rs`, where it is exclusive
   with `think_join_army` as it is in the original.

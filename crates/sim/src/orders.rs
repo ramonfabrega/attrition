@@ -1596,6 +1596,10 @@ impl Sim {
         let mut arrived = false;
         if self.world.accepts(step.pos) {
             self.units[u].pos = step.pos;
+            // `Unit::set_new_location`'s half-cell test and the reveal
+            // behind it (`docs/VISION.md` §6). `move_step` is the caller
+            // that passes `param_3 = 0`, so this is the **ring** pass.
+            self.moved_to(u, from, true);
             if step.arrived {
                 arrived = true;
             } else {
@@ -2425,8 +2429,12 @@ impl Sim {
             self.units[u].movement.set_facing(Angle(0x4000_0000));
             let stand = Pos::new(bpos.x + OILWELL_OFFSET, bpos.y);
             if self.world.accepts(stand) {
+                let from = self.units[u].pos;
                 self.units[u].pos = stand;
                 self.units[u].movement.body.pos = stand;
+                // `do_gather`'s `set_new_location(…, 1, 1)`: the whole disc,
+                // not the ring (`docs/VISION.md` §6).
+                self.moved_to(u, from, false);
             }
             return;
         }

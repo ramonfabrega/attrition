@@ -2387,8 +2387,11 @@ to `crates/sim` that no Great Lakes capture could have found:
    itself; it was landed from the listing.)
 4. **`was_seen` is not a seam**, §2.13 step 1 above. `REVEAL_MAP 1` on
    every run; the fog grid `seen2` is in the WORLD dump (`seen[scan]`,
-   `seen2[scan]`, `seen3[scan]` triplets, 14,400 each) and is loaded
-   (`World::seen2`), and the AI's ten sites are unseen on it — they are
+   `seen2[scan]`, `seen3[scan]` triplets, 14,400 each), is loaded
+   (`World::seen2`) and, since 2026-08-27, **grows as units move**
+   (`docs/VISION.md`) rather than staying the dump's frame-0 snapshot —
+   so a census taken late in a game reads a map the player has explored.
+   The AI's ten sites are unseen on it — they are
    scored through the **territory arm**, an ally's (one's own) cell in a
    region with `reg_cities` or `reg_forts`. With the fog alone the harness
    scored nothing; with the arm, all ten records match, `val` included.

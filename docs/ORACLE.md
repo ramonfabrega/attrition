@@ -679,6 +679,15 @@ forty more; at `BUILDS=6`, `job_counter`, `job_counter_2`, `constr_time`,
 are, field for field, the quantities `docs/CITIES.md` and `docs/COMBAT.md`
 list as needing a behavioural check.
 
+**And the `OBJECT` level costs nothing** — every object record, unit or
+building, at every detail level, carries `myhits`, `damage`, `damage_frac`,
+`uid`, `hold_frames`, `infiltrated`, **`mylos`**, `visible`, `near_o`,
+`near_who` and `healing`. `mylos` is `Unit::update_los`' whole output and
+it turned `docs/VISION.md` §2 from prose into a 26,433-unit-frame diff for
+the price of a `grep`; it is worth remembering that this level is free
+before booking a run for anything it already prints. `los_x`/`los_y`, one
+level in, are **dead**: `Unit::init` is their only writer.
+
 **`DUMP_ALL=1` is a different thing entirely, and not the one you want per
 frame.** It is `game_log.do_dump_all`, and its only use is as the argument to
 `GameLog::full_dump`. Non-zero takes the early branch: set `detail_override=1`

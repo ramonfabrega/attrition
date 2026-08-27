@@ -827,6 +827,9 @@ pub fn load_tables(
             garrison,
             moves: c.moves,
             turn_speed: c.turn_speed,
+            los: c.los,
+            science_los: c.science_los,
+            type_index: BASE_UNITTYPES + i as i32,
             // PEASANTS, PEASANTSKOREAN, SCHOLARS, SCHOLARSKOREAN — by id
             // (`TypeIndex − 0x32`), the four kinds `Build::add_gatherer`
             // admits (`docs/ORDERS.md` §6.1).
@@ -1504,6 +1507,9 @@ struct UnitCols {
     hits: i32,
     moves: i32,
     turn_speed: i32,
+    /// `LOS` and `SCIENCE_LOS` — `docs/VISION.md` §2. In tiles.
+    los: i32,
+    science_los: i32,
     cost: [i32; RESOURCES],
     support: Vec<(Resource, i32)>,
     progression: i32,
@@ -1589,6 +1595,8 @@ impl UnitCols {
             hits: int(l, "HITS").unwrap_or(0),
             moves: int(l, "MOVES").unwrap_or(0),
             turn_speed: degrees_to_angle(int(l, "TURN_SPEED").unwrap_or(0)).0,
+            los: int(l, "LOS").unwrap_or(0),
+            science_los: int(l, "SCIENCE_LOS").unwrap_or(0),
             cost: cost_slots(l.text("COST")),
             support,
             progression: int(l, "PROGRESSION").unwrap_or(0),

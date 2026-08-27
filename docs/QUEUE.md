@@ -27,94 +27,97 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 32 — the pathfinder's first step.*
+*Last verified 2026-08-27, after item 33 — reveal cells as units move.*
 The commit this section was written against is the one that lands it; if
 `git log` has moved well past it, trust the queue below and the journal
 before trusting this.
 
-**Last landed: `docs/PATHFINDER.md` §5 and §5.1, in
-`crates/sim/src/path.rs`.** `calc_cost`'s two oldest seams are gone. The
-world grid now reads the **fog** — at `div_3_table[to >> 7]`, the
-half-cell the step lands in, through the new `Sim::was_really_seen_fog` —
-and the **terrain cost** off the cell's own `WData.blocked` (`solid`,
-signed, for a forest-walker). With them: the `+100000` at 13, an army's
-`+10000` at 5 and its `base << 5` on a `NEARBLOCK` cell, the fog branch's
-`0x124` / `0x2480` / a scout's `8`, the halfland `base ×= 3` with the
-transport tail's *last* shoreline result threaded to it as
-`00685773`–`006858b9` threads it, and §5.1's corner-cutting probes —
-reachable for the first time, since they are gated on `tcost != 0`.
+**Last landed: `docs/VISION.md`, in `crates/sim/src/vision.rs`.** A unit
+now lights a disc of `LOS / 2` fog cells every time it crosses a
+half-cell — centred, below radius four, a **half-cell ahead of its own
+facing**, which is most of what a citizen's vision is — plus the
+hundredth-frame resync at `frame % 100 == 33`. `ring_init`'s thickened
+table is rebuilt from the listing and the PE's own offset bytes. `seen2`
+grows as the game runs, so the three consumers that read it — the
+pathfinder's `calc_cost`, `think_scout`'s cell filter, the site census —
+are no longer reading the frame-0 snapshot.
 
-**The numbers.** Run20's `1/0` now walks the original's chain **entry for
-entry**: nine waypoints, position, tolerance and flag, in order.
-`rondata --diff` on run20 — **0** order disagreements and **0**
-path-stack disagreements, down from 0 and 21; `ticks before an order
-diverges` 0 → **5**, the whole window; the diverging-unit list is `1/1`
-alone where it was `1/0 1/1`. The 301-frame fuzz map: 1451 → **1377**
-order disagreements, 1247 → **1221** path-stack, and three of player 0's
-units hold their orders to frame 160–219 where they parted at 103.
-Everything else unmoved: 175/175, 53/53, 5/5; the fuzz map 195/195,
-43/45. 580 sim tests and 121 rondata tests green with `RON_INSTALL` and
-`RON_GAMELOG_DIR` set; clippy and fmt clean; `rondata` exits zero.
+**The check with teeth is `mylos`, and it was a `grep`, not a run.**
+Every object record in every capture, at every detail level, prints
+`ObjectData::mylos` — `update_los`' whole output. `rondata::diff`
+compares it now and run10 asserts **26,433 unit-frames, one
+disagreement**, which is a cache: `Leader::calc_unit_stats` refreshes
+`mylos` the frame *after* `gain_tech` sets the dirty bit, so the sim's
+pure function reports the Scout's `4 + 1 × 2` a frame early. That one row
+is what proves `epoch[3]` is the Science line.
 
-**They had to land together, and that is the transferable part.** Terrain
-alone makes run20 *worse* (21 → 24). Fog alone gets 12. Both get 0. A
-scout's base is `8` unseen against `0x400` seen — a factor of 128 — so
-the two terms multiply rather than add, and closing half of a product is
-not half a fix. `docs/PATHFINDER.md` §5 has the note.
+**What the check found on its first run was a different mechanic's
+bug.** 5,170 of those unit-frames read `ours 0`, because a unit the
+simulation *trained* was never given its type: `advance_job` set `kind`
+and left `Unit::ty` unset, so it had no LOS, no combat profile, no speed
+and no worker role. Fixed; 5,170 → 1. It made the AI's trained citizens
+start gathering, so run6's path ceiling rose 892 → 1,602 while every
+traced check held to the number.
 
-**Twelve deliberate breakages, and one the captures cannot see.** Every
-new term has a unit test and every test was made to fail. The twelfth:
-swapping `calc_cost`'s half-cell fog read for `think_scout`'s `2c + 1`
-moves **not one number** in run20 or the fuzz map, because every
-world-grid node in every dump sits past `0x180` inside its cell. The
-decompile is unambiguous and the unit test is the only thing holding it.
+**And the row item 33 was booked to close is not the fog's.** run10's
+frame 102 went 24 → **22** and stopped. Both sides give AI scout `1/0`
+the same `EXPLORE_TO` and walk it to the same point; on frame 62 the
+original stands one frame and turns, stepping a constant `(−19, +29)`
+thereafter, while the sim takes one more step, **stands for seven
+frames**, and eases into the heading over eight more. Six frames late to
+the target, so its `think_scout` ring draws land on 102 where the
+original's landed on 96. That is `docs/MOVEMENT.md`'s stopped-unit
+instant turn, and it is item 34.
+
+**Thirteen deliberate breakages, all red** — and two of them only after
+the *guard* was strengthened, which is the transferable part: a fog-cell
+count cannot tell a skipped sweep from a repeated one, so `moved_to`
+answers `None` when the half-cell test declined; and asserting the ring
+*flag* does not assert the ring *table*, so the indices are compared
+against `ring_radius` directly.
 
 **Then, in order:**
 
-- **Item 33, reveal cells as units move** — the new item, and the one
-  this session's landing made load-bearing. The fog is the frame-0
-  snapshot; three consumers read it (the pathfinder, `think_scout`, the
-  site census) and nothing writes it. Run10's frame 102 is pinned at 24
-  against the original's 6 so that closing it fails there.
+- **Item 34, the stopped unit's instant turn** — new, and the direct
+  successor: run10's frames 62–78 are the whole case, pinned at `(22, 6)`
+  so closing it fails there. `docs/MOVEMENT.md`'s `last_speed`/`avg_speed`
+  interplay. The same shape as the older `1/1`-at-frame-2 residue and
+  `0/2`'s `(2, 8)`, which are also the movement layer's.
 - **The fuzzed map's frame 1**, two rows: one
-  `Leader::produce_building+0xc99` **short** (29 against 30 — a spiral
-  candidate the original scores and the sim does not) and one
+  `Leader::produce_building+0xc99` **short** (29 against 30) and one
   `Unit::do_non_flat_gather+0x54b` short.
   `diff::tests::the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well`
   asserts both as they stand.
 - **§9.3's sixth citizen** and **the frame-1 order two of player 1's units
   hold and the sim does not** — the rest of item 25.
 - **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked,
-  and its capture is still worth **widening** for §6.7's translation half
-  (the `slot[i] − slot[leader]` translation, the follower cutoff, the AI
-  sea guard), which run20's one-member group cannot reach.
+  and its capture is still worth **widening** for §6.7's translation half.
+- **Item 35, `mylos` as a cache** — `docs/VISION.md` §7, and the smallest
+  entry on this list: a `unit_stats_dirty` per player and a cached
+  `mylos`, refreshed at the five sites that call `update_los`. It takes
+  run10's one disagreement to zero.
 - **Re-run run13's window** (sim-frames 95–103): §5's largest single gap
-  was `6 / 23` at frame 95, and item 32 has now moved frame 102 as well.
-- **`1/1`'s position at frame 2**, which is what run20's residue is now
-  and has always been the movement layer's rather than the planner's
-  (`docs/MOVEMENT.md`'s step/turn interplay). `0/2`'s old `(2, 8)` is the
-  same shape.
+  was `6 / 23` at frame 95.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *Grep the readers of every layer you
-land.* The queue booked item 32 as a direction-wheel or cost tie and
-pointed at two document sections; what it actually needed was to notice
-that two `SEAM:` comments in `calc_cost` were describing a world the sim
-had stopped living in — both written truthfully, neither re-read since
-the layer under it landed. It is the sibling of the rule the audit README
-already carries about frozen fields. A seam is a claim about the world,
-and a claim about the world goes stale.
+**The thing this session earned.** *Grep the dump for the field before
+booking anything.* `docs/VISION.md` was written from the decompile as a
+blind reading, and then one `grep` for `mylos` in a log already on disk
+turned its central section into a 26,433-row differential check — which
+immediately found a bug in a different mechanic that no amount of reading
+about vision would have surfaced. The `OBJECT` level is free, on every
+capture, and `docs/ORACLE.md` now says so where the detail-level table is.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
-second-quadrant branch**, with the in-process exhaustive comparison as the
-settlement. When to spend a Fable batch is still open; this session's
-judgement is still **not yet**.
+second-quadrant branch**. When to spend a Fable batch is still open;
+this session's judgement is still **not yet** — but `docs/VISION.md` is
+now on the list of documents with no second reading.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 33, reveal cells as units move. Item 32 landed the pathfinder's fog read, so the frame-0 seen2 snapshot the WORLD dump installs is now an input to every world path as well as to think_scout and the site census — and nothing writes it: World::set_fog has one caller, rondata::diff at build time, because Unit::look is unread. The symptom is pinned: run10's frame 102 spends 24 draws against the original's 6 (diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched), the AI scout re-targeting off hundred-frame-old fog after find_upath kills its EXPLORE_TO. Start from Unit::look's writers of seen2/seen in the decompile, and from what the type record's LOS means in half-cells. docs/PATHFINDER.md §12 second bullet, docs/SCOUT.md §7. A behavioural check may not be needed — run20 and run10 are both on disk with WORLD dumps.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 34, the stopped unit's instant turn. run10's AI scout 1/0 is the pinned case and the frames are 62 to 78: the original stands still for exactly one frame on 62 and then steps a constant (-19, +29) from 63 to the end, while the sim takes one more step north-east, stands for seven frames (63-69), and eases into the heading over eight more, reaching (-19, +29) only at 77. Ten frames of lag that never close. diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched pins frame 102 at (22, 6) so closing this fails there. Start from docs/MOVEMENT.md's turn model - Unit::set_angle, last_speed/avg_speed, and what makes a stopped unit turn instantly - and from Unit::move_step's own half-step clause. No new run needed: run10 and run13's window are both on disk with UNITS=3.`
 
 ## The queue
 
@@ -344,21 +347,37 @@ in which case say so and take that. The story of each struck item is in
     (`was_really_seen_fog`). Run20: 21 path-stack disagreements → **0**,
     the whole chain asserted. Twelve deliberate breakages.
 
-33. **Reveal cells as units move.** The pathfinder reads the fog now, and
-    the fog the sim has is the **frame-0 snapshot**: `World::set_fog` has
-    exactly one caller, `rondata::diff` installing the `WORLD` dump's
-    `seen2` plane at build time, because `Unit::look` is unread and
-    unmodelled. So every path planned past the first handful of frames is
-    planned against a stale map, and it is now visible: run10's frame 102
-    spends 24 draws against the original's 6 because AI scout `1/0`
-    re-targets off hundred-frame-old fog
-    (`diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched`
-    asserts the 24, so closing this fails there). It is also what
-    `docs/SCOUT.md`'s `think_scout` has always been reading, and what
-    `docs/AI.md`'s site census reads — three consumers, one frozen input.
-    Start from `Unit::look`'s writers of `seen2`/`seen`, and from what
-    `LOS` on the type record means in half-cells. `docs/PATHFINDER.md`
-    §12, second bullet.
+33. ~~**Reveal cells as units move**~~ — done 2026-08-27, and it was not
+    what run10's frame-102 row was waiting on. `docs/VISION.md`,
+    `crates/sim/src/vision.rs`, the `seen`/`seen2` planes in
+    `crates/sim/src/world.rs`, `mylos` in `rondata::diff`. 26,433
+    unit-frames of `ObjectData::mylos` against `Sim::unit_los`, one
+    disagreement; thirteen deliberate breakages. It uncovered items 34 and
+    35, and one bug in `advance_job` (a trained unit had no type).
+
+34. **The stopped unit's instant turn.** run10's AI scout `1/0`, frames
+    62–78, and it is the residue under three older entries as well
+    (`1/1`'s position at frame 2, `0/2`'s old `(2, 8)`). The original
+    stands still for **one** frame and then steps a constant `(−19, +29)`
+    from the next; this simulation takes one more step on its old heading,
+    stands for **seven**, and eases into the new one over eight more —
+    ten frames of lag that never close, so every later re-target lands on
+    a different frame. `docs/MOVEMENT.md`'s `last_speed`/`avg_speed`
+    interplay and `Unit::set_angle`. Pinned:
+    `diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_
+    matched` asserts frame 102 at `(22, 6)`, so closing it fails there.
+    No new run needed.
+
+35. **`mylos` as a cache.** `docs/VISION.md` §7: the original stores
+    `ObjectData::mylos` and refreshes it in `Leader::calc_unit_stats`,
+    which `Leader::process` runs only when `leader_flags & 0x4000000` is
+    set — the twin of the `0x8000000` this simulation already models as
+    `wall_stats_dirty`. So the original's value is one frame behind its
+    inputs, and `Sim::unit_los`, being pure, is one frame ahead. It is the
+    only disagreement in run10's 26,433 unit-frames. A `unit_stats_dirty`
+    per player and a cached `mylos`, refreshed at `calc_unit_stats`,
+    `Unit::init`, `Unit::set_type`, `Build::activate`, `check_explore` and
+    `plan_strategy`, takes it to zero.
 
 ## How to maintain this file
 
