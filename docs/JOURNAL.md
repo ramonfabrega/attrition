@@ -2932,3 +2932,120 @@ are one `llvm-objdump` away. The rule the audit README already carries —
 settles it in a minute* — extends: when it prints a constant that **could**
 be right and would be a bug, check it anyway. A plausible bug is more
 dangerous than an implausible one.
+
+## 2026-08-26 — item 32: the first step was never the wheel's
+
+Item 31 had stripped run20's `1/0` down to one variable. Both sides
+planned on the same frame, from `(38040, 40344)`, to `(41952, 36576)`,
+with the same `toff (504, 504)`; four of the sim's seven waypoints were
+the original's whole, and the middle parted. The queue booked it as
+"`astar_path`'s direction wheel or `calc_cost` on open ground, two cells
+from the start", and the opener said as much.
+
+**The ground was not open.** The first thing this session did was print
+the map around the route, and cell `(50,51)` — the diagonal step the sim
+took where the original stepped orthogonally to `(49,51)` — carries
+`WData.blocked = 9`. So does `(51,51)`, the next one the sim walked.
+§5 prices that at `+20 × 9 = 180` a cell, and `calc_cost` was charging
+zero for it, because the terrain term was a seam:
+
+> SEAM: terrain movement cost — the cell byte the original reads (`+0x11`,
+> `+0x13` for iroquois) has no layer here; grass is 0
+
+That was true when it was written. It had not been true since the `WORLD`
+dump's `WData` records started loading. The same paragraph three lines up
+said the same thing about fog — *no fog model, every cell is seen* — and
+`World::seen2` had been installed from the dump for as long.
+
+So this was not a reading. It was two stale seams and a `grep` for the
+word.
+
+### They had to land together, and that is the finding
+
+The tempting move is to land the terrain cost, watch the number fall, and
+stop. Landing it alone makes run20 **worse**: 21 path-stack disagreements
+become 24. Landing the fog branch alone gets 12. Landing both gets **0** —
+nine waypoints, position, tolerance and flag, entry for entry, and the
+whole order stream matched over the five frames the window steps.
+
+The reason is in §5's own numbers and it generalises past this capture. A
+scout's base cost is `8` on ground it cannot see and `0x400` on ground it
+can: a factor of **128**. Whether a cell is known and what it costs once
+known are not two independent terms that happen to sit in the same
+function — they multiply. Pricing terrain while calling every cell seen
+tells a scout the whole map is expensive and the rough parts more so;
+pricing fog while calling every cell free tells it the dark is cheap and
+nothing else. Only both together say what the original says, which is
+*the dark is nearly free and the light is dear, and inside the light the
+rough is dearer still*.
+
+The generalisable form: **a seam is not a per-term stub when the terms
+share a multiplier.** Closing half of a product is not half a fix.
+
+### What came with them
+
+Once `tcost` could be non-zero, §5.1's corner-cutting probes became
+reachable for the first time — they are gated on `tcost != 0 || iroquois`,
+so a flat world never ran them and the table sat in the document with
+nothing to check it. They went in from the audit's byte-verified table,
+with the direction recovered from the step's **world-cell delta** rather
+than from the wheel index: a big unit's two-cell stride matches no
+`move_x` entry, and the block is skipped for it. That is the original's
+behaviour, and taking `dir` instead would have silently invented a
+different one the day big-unit strides go live.
+
+The halfland `base ×= 3` came too, and with it the one thing the
+transport tail had been getting wrong: `00685773`–`006858b9` gates the
+multiplier on whichever `needs_transport` ran **last**, and at `depth == 1`
+the second probe overwrites the first. The sim was testing the first
+either way, and testing `crossing != 1` where the original tests the
+reassigned value.
+
+### Twelve breakages, and one the captures cannot see
+
+Every new term got a unit test, and every unit test was made to fail:
+terrain off, the `+100000` off, the army's `+10000` off, fog off, the
+scout's base off, halfland off, the corner probes off, `any` swapped for
+`all` on the diagonals, `all` for `any` on the cardinals, the depth gate
+widened, the forest-walker exemption removed. Twelve, all caught.
+
+The twelfth is the interesting one. `calc_cost` reads the fog at
+`div_3_table[to >> 7]` — the **half-cell** containing the step, `to /
+0x180`. `Unit::think_scout` reads `2c + 1`. They are different functions
+with one letter between their names, and swapping one for the other in
+`calc_cost` moves **not a single number** in run20 or in the 301-frame
+fuzz map. Every world-grid node in every capture on disk sits at a
+sub-cell offset past `0x180` — run20's chain is at `+504`, its start at
+`+408` — so the two readings agree everywhere a run has ever looked. The
+decompile is unambiguous; the unit test is the only thing holding it; and
+the capture that would separate them is any world path whose unit stands
+under `0x180` inside its cell. That is now in §12 by name.
+
+### The row that got worse, and why it is the right kind of worse
+
+Run10's frame 102 went from 6 draws to 24, and the run13 window test
+caught it. The cause is not the fog branch: it is that the fog the sim
+reads is the **frame-0 snapshot** and nothing ever updates it, because
+line of sight is not modelled. `World::set_fog` has one caller. At frame
+1 that is the truth; at frame 101 the AI scout is planning against a map
+it walked off the edge of a hundred frames ago, its unit-grid search
+fails, `find_upath` kills the `EXPLORE_TO`, and `think_scout` spends
+eighteen ring draws re-targeting.
+
+Pinning the fog read back to "everything is seen" makes that row `(6, 6)`
+again and makes run20's chain part. So the 24 is asserted as it stands,
+with the cause named in the test, and the fix — reveal cells as units move
+— is the queue's next pathfinder item rather than a quiet revert. A stale
+input surfacing as a visible failure is the system working; the failure
+was there before, invisible, in every path the sim planned past frame 1.
+
+### What this session earned
+
+*Grep the seams before booking the reading.* The queue named a direction
+wheel and a cost tie and pointed at two document sections. What the item
+actually needed was to notice that two `SEAM:` comments were describing a
+world the sim had stopped living in. Both had been written truthfully and
+neither had been re-read since the layer under it landed. The rule the
+project already has — *grep the writers of every field you call frozen* —
+has a sibling: **grep the readers of every layer you land.** A seam is a
+claim about the world, and a claim about the world goes stale.

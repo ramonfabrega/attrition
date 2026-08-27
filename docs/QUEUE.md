@@ -27,85 +27,86 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 31 — the group's own path.* The
-commit this section was written against is the one that lands it; if
+*Last verified 2026-08-26, after item 32 — the pathfinder's first step.*
+The commit this section was written against is the one that lands it; if
 `git log` has moved well past it, trust the queue below and the journal
 before trusting this.
 
-**Last landed: `docs/GROUPS.md` §6.7, in `crates/sim/src/grouppath.rs`.**
-A group move now plans **one** path, at order time, from the leader's
-position to the leader's **raw** slot destination, and hands every member
-that chain translated by `slot[i] − slot[leader]`. With it: the `0x900`
-short-circuit, the `pathfinder +0x70` army hint, the clamp and the
-coastline guard, the follower's `0x600` cutoff, the no-leader arm, the
-ungated tail invert, §6.6 step 2's `QUEUE_LAST` pre-invert, and
-`add_move_facing_order`'s `pathed` argument — a group's move order is born
-`PATHED` with a stack under it.
+**Last landed: `docs/PATHFINDER.md` §5 and §5.1, in
+`crates/sim/src/path.rs`.** `calc_cost`'s two oldest seams are gone. The
+world grid now reads the **fog** — at `div_3_table[to >> 7]`, the
+half-cell the step lands in, through the new `Sim::was_really_seen_fog` —
+and the **terrain cost** off the cell's own `WData.blocked` (`solid`,
+signed, for a forest-walker). With them: the `+100000` at 13, an army's
+`+10000` at 5 and its `base << 5` on a `NEARBLOCK` cell, the fog branch's
+`0x124` / `0x2480` / a scout's `8`, the halfland `base ×= 3` with the
+transport tail's *last* shoreline result threaded to it as
+`00685773`–`006858b9` threads it, and §5.1's corner-cutting probes —
+reachable for the first time, since they are gated on `tcost != 0`.
 
-**The numbers.** Run20's `1/0` at frame **1** now has `flags 1` and a
-seven-entry stack where it had `flags 0` and an empty one; its bottom
-entry is `(41952, 36576, 0, 1)`, the original's exactly; **four** whole
-entries (position, tolerance, flag) are the original's, where none were.
-`rondata --diff` on run20: **0** order disagreements, down from 1.
-Everything else re-measured and unmoved: 175/175, 53/53, 5/5; the fuzzed
-map 195/195, 43/45; `ticks before divergence` still 1. All 575 sim tests
-and 121 rondata tests green with `RON_INSTALL` and `RON_GAMELOG_DIR` set.
+**The numbers.** Run20's `1/0` now walks the original's chain **entry for
+entry**: nine waypoints, position, tolerance and flag, in order.
+`rondata --diff` on run20 — **0** order disagreements and **0**
+path-stack disagreements, down from 0 and 21; `ticks before an order
+diverges` 0 → **5**, the whole window; the diverging-unit list is `1/1`
+alone where it was `1/0 1/1`. The 301-frame fuzz map: 1451 → **1377**
+order disagreements, 1247 → **1221** path-stack, and three of player 0's
+units hold their orders to frame 160–219 where they parted at 103.
+Everything else unmoved: 175/175, 53/53, 5/5; the fuzz map 195/195,
+43/45. 580 sim tests and 121 rondata tests green with `RON_INSTALL` and
+`RON_GAMELOG_DIR` set; clippy and fmt clean; `rondata` exits zero.
 
-**The path-stack count went 17 → 21, and that is the count.** At frame 1
-there is now a seven-entry stack to disagree with instead of an empty one,
-and the differ compares slot for slot from the bottom while the two chains
-agree one slot apart. The instrument with teeth is the new
-`diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot`,
-which compares whole entries and does not care where they sit. If the
-path-stack differ is ever touched, the fix is an **alignment**, not a
-threshold.
+**They had to land together, and that is the transferable part.** Terrain
+alone makes run20 *worse* (21 → 24). Fog alone gets 12. Both get 0. A
+scout's base is `8` unseen against `0x400` seen — a factor of 128 — so
+the two terms multiply rather than add, and closing half of a product is
+not half a fix. `docs/PATHFINDER.md` §5 has the note.
 
-**Two things almost shipped as defects, and the listing caught both.**
-Ghidra renders the coastline guard's `x` snap with a `0xc0` stride against
-`y`'s `0x300` — a plausible-looking original bug that is not one
-(`70672d`–`706764` is `lea`+`shl` × 3 × 256 on both axes). And
-`cols._padding_`, which reads like an array being filled, is a
-function-local static nothing writes. `docs/GROUPS.md` §16 has both.
+**Twelve deliberate breakages, and one the captures cannot see.** Every
+new term has a unit test and every test was made to fail. The twelfth:
+swapping `calc_cost`'s half-cell fog read for `think_scout`'s `2c + 1`
+moves **not one number** in run20 or the fuzz map, because every
+world-grid node in every dump sits past `0x180` inside its cell. The
+decompile is unambiguous and the unit test is the only thing holding it.
 
 **Then, in order:**
 
-- **The pathfinder's first step — the new item 32.** Item 31 removed every
-  other variable from run20's `1/0`: same frame, same start, same goal,
-  same `toff`. What is left is `astar_path` choosing a **diagonal** first
-  step where the original steps orthogonally, two cells from the start on
-  open ground — a `calc_cost` or a direction-wheel tie. It costs no
-  capture and it is the last thing between the sim's seven entries and the
-  original's nine. `docs/PATHFINDER.md` §12.
+- **Item 33, reveal cells as units move** — the new item, and the one
+  this session's landing made load-bearing. The fog is the frame-0
+  snapshot; three consumers read it (the pathfinder, `think_scout`, the
+  site census) and nothing writes it. Run10's frame 102 is pinned at 24
+  against the original's 6 so that closing it fails there.
 - **The fuzzed map's frame 1**, two rows: one
   `Leader::produce_building+0xc99` **short** (29 against 30 — a spiral
   candidate the original scores and the sim does not) and one
   `Unit::do_non_flat_gather+0x54b` short.
   `diff::tests::the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well`
-  asserts both as they stand, so closing either fails the test.
+  asserts both as they stand.
 - **§9.3's sixth citizen** and **the frame-1 order two of player 1's units
   hold and the sim does not** — the rest of item 25.
-- **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked, and
-  its capture is now worth **widening**: the same `UNITS=3` + `GROUPS=1`
-  window read for the members' *path stacks* settles the one half of §6.7
-  run20 cannot reach (the `slot[i] − slot[leader]` translation, the
-  follower cutoff, the AI sea guard), because run20's group has one member
-  and the translation is the identity.
+- **Item 23, the hand-back's inversion** — unchanged, cheap, unblocked,
+  and its capture is still worth **widening** for §6.7's translation half
+  (the `slot[i] − slot[leader]` translation, the follower cutoff, the AI
+  sea guard), which run20's one-member group cannot reach.
 - **Re-run run13's window** (sim-frames 95–103): §5's largest single gap
-  was `6 / 23` at frame 95, and nothing has re-measured it since the
-  scout, the stands, the pull-back, the detour or the group path.
+  was `6 / 23` at frame 95, and item 32 has now moved frame 102 as well.
+- **`1/1`'s position at frame 2**, which is what run20's residue is now
+  and has always been the movement layer's rather than the planner's
+  (`docs/MOVEMENT.md`'s step/turn interplay). `0/2`'s old `(2, 8)` is the
+  same shape.
 - Then the older backlog: the `LEADERDATA` and `CITY` widenings; a
   `find_target` block; run7's order stream under the trace; a mounted
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *When the decompiler prints a constant
-that could be right and would be a bug, check it anyway.* Both near misses
-were the same shape — a fold of `lea` and `shl` into a multiply, and a
-static whose fields all print as `_padding_`. Neither was subtle; both
-were one `llvm-objdump` away. Its sibling, from the tests: *a guard whose
-subject is one of two short-circuits has to be placed against the other
-one* — the `0x900` breakage was green on the first try because
-`find_wpath`'s own near test produced the same answer.
+**The thing this session earned.** *Grep the readers of every layer you
+land.* The queue booked item 32 as a direction-wheel or cost tie and
+pointed at two document sections; what it actually needed was to notice
+that two `SEAM:` comments in `calc_cost` were describing a world the sim
+had stopped living in — both written truthfully, neither re-read since
+the layer under it landed. It is the sibling of the rule the audit README
+already carries about frozen fields. A seam is a claim about the world,
+and a claim about the world goes stale.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -113,7 +114,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 32, the pathfinder's first step. Item 31 has landed, so run20's 1/0 now plans on the same frame as the original, from the same position (38040, 40344), to the same goal (41952, 36576), with the same toff (504, 504) — and the chains still part. The sim's first step out of the start cell (49,52) is DIAGONAL to (50,51); the original's is orthogonal to (49,51), and from there it walks cell row 50 where the sim walks row 51, and it carries (55,48) between the goal and the first shared node. Four of the sim's seven entries are the original's whole. That is astar_path's direction wheel or calc_cost on open ground two cells from the start — docs/PATHFINDER.md §4.2, §5, §12's third bullet. No capture needed; gamelog-run20-islands-dumpall.txt is on disk and diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot asserts the residue as it stands, so closing it fails that test.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 33, reveal cells as units move. Item 32 landed the pathfinder's fog read, so the frame-0 seen2 snapshot the WORLD dump installs is now an input to every world path as well as to think_scout and the site census — and nothing writes it: World::set_fog has one caller, rondata::diff at build time, because Unit::look is unread. The symptom is pinned: run10's frame 102 spends 24 draws against the original's 6 (diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched), the AI scout re-targeting off hundred-frame-old fog after find_upath kills its EXPLORE_TO. Start from Unit::look's writers of seen2/seen in the decompile, and from what the type record's LOS means in half-cells. docs/PATHFINDER.md §12 second bullet, docs/SCOUT.md §7. A behavioural check may not be needed — run20 and run10 are both on disk with WORLD dumps.`
 
 ## The queue
 
@@ -336,18 +337,28 @@ in which case say so and take that. The story of each struck item is in
     half, which run20's one-member group cannot reach — folded into item
     23's capture.
 
-32. **The pathfinder's first step.** All that is left of run20's `1/0`
-    chain, and item 31 stripped every other variable out of it: both sides
-    plan on the same frame, from `(38040, 40344)`, to `(41952, 36576)`,
-    with `toff (504, 504)`. The sim's first step out of cell `(49,52)` is
-    **diagonal** to `(50,51)`; the original's is orthogonal to `(49,51)`,
-    and from there the original walks cell row 50 where the sim walks row
-    51 and carries `(55,48)` between the goal and the first shared node.
-    Four of the sim's seven entries are the original's whole.
-    `docs/PATHFINDER.md` §4.2 (the direction wheel), §5 (`calc_cost`) and
-    §12's third bullet. No capture needed;
-    `diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot`
-    asserts the residue as it stands, so closing it fails that test.
+32. ~~**The pathfinder's first step**~~ — done 2026-08-26, and it was
+    neither the wheel nor a tie: `calc_cost`'s fog and terrain seams had
+    gone stale. `docs/PATHFINDER.md` §5, §5.1, §11 and §12,
+    `crates/sim/src/path.rs`, `crates/sim/src/scout.rs`
+    (`was_really_seen_fog`). Run20: 21 path-stack disagreements → **0**,
+    the whole chain asserted. Twelve deliberate breakages.
+
+33. **Reveal cells as units move.** The pathfinder reads the fog now, and
+    the fog the sim has is the **frame-0 snapshot**: `World::set_fog` has
+    exactly one caller, `rondata::diff` installing the `WORLD` dump's
+    `seen2` plane at build time, because `Unit::look` is unread and
+    unmodelled. So every path planned past the first handful of frames is
+    planned against a stale map, and it is now visible: run10's frame 102
+    spends 24 draws against the original's 6 because AI scout `1/0`
+    re-targets off hundred-frame-old fog
+    (`diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_matched`
+    asserts the 24, so closing this fails there). It is also what
+    `docs/SCOUT.md`'s `think_scout` has always been reading, and what
+    `docs/AI.md`'s site census reads — three consumers, one frozen input.
+    Start from `Unit::look`'s writers of `seen2`/`seen`, and from what
+    `LOS` on the type record means in half-cells. `docs/PATHFINDER.md`
+    §12, second bullet.
 
 ## How to maintain this file
 

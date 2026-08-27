@@ -3364,12 +3364,11 @@ mod tests {
             on_lattice.len() >= 5,
             "the sim's chain is off the order's lattice: {ours:?}"
         );
-        // And three of them are the original's own entries, exactly. The
-        // rest of the route still parts a row further down (the sim takes
-        // `y = 39672` where the original takes `38904`) and the original
-        // carries one node the sim does not — `astar_path`'s own residue
-        // now that the goal and the plan frame agree, and unowned by this
-        // item.
+        // And they are the original's own entries, exactly — every one of
+        // them, since item 32. This check keeps its own floor rather than
+        // pinning the chain: what it is *for* is the lattice, and the
+        // chain is `run20_s_group_member_is_pathed_at_order_time_off_the_
+        // leaders_slot`'s to pin.
         let shared = on_lattice
             .iter()
             .filter(|e| theirs_path.iter().any(|t| (t.0, t.1) == **e))
@@ -3399,15 +3398,14 @@ mod tests {
     /// first — by handing `add_move_facing_order` `pathed = false`, and by
     /// pushing the order's snapped `dest` in place of `form.to[idx]`.
     ///
-    /// What it deliberately does **not** assert is the whole chain. Four of
-    /// the sim's seven entries are the original's entry for entry — the
-    /// goal and three world nodes, with their tolerances and flags — and
-    /// the middle parts: the original's route runs along cell row 50 where
-    /// the sim's runs along row 51, and it carries one more node at each
-    /// end. Both searches now start from the **same** position (frame 1's
-    /// `(38040, 40344)`, which this test also pins) with the same goal and
-    /// the same `toff`, so what is left is `astar_path`'s own and belongs
-    /// to `docs/PATHFINDER.md`.
+    /// It asserts the **whole chain**, and it did not always. When this
+    /// landed, four of the sim's seven entries were the original's entry
+    /// for entry and the middle parted — the original ran along cell row
+    /// 50 where the sim ran along row 51. That residue was
+    /// `astar_path`'s own, and item 32 closed it the same day by pricing
+    /// the two things `calc_cost` was not reading: whether the step's
+    /// half-cell is **seen**, and what the cell it lands in **costs**
+    /// (`docs/PATHFINDER.md` §5). All nine entries agree now, in order.
     #[test]
     fn run20_s_group_member_is_pathed_at_order_time_off_the_leaders_slot() {
         let Some(inst) = install() else { return };
@@ -3490,15 +3488,13 @@ mod tests {
             ours[0], theirs_path[0],
             "the goal is the leader's raw slot, whole"
         );
-        let shared = ours.iter().filter(|e| theirs_path.contains(e)).count();
-        assert!(
-            shared >= 4,
-            "shared with the original, whole entries: {shared} of {ours:?}"
-        );
-        // The residue, asserted as it stands so that closing it fails here:
-        // the original carries two nodes the sim does not, and its route
-        // runs a cell row higher through the middle.
-        assert_eq!(ours.len(), 7, "the sim's chain: {ours:?}");
+        // **No residue left.** Item 32 closed the middle of the chain on
+        // 2026-08-26: `calc_cost`'s fog read and its terrain cost are both
+        // live (`docs/PATHFINDER.md` §5, §12), and with them the sim plans
+        // the original's nine entries — position, tolerance and flag —
+        // **in order**. The whole chain is the assertion now; anything
+        // that moves one waypoint fails here.
+        assert_eq!(ours, theirs_path, "the sim's chain: {ours:?}");
     }
 
     /// **The fuzzed map's frame 1** — the second capture the 2×2 jitter is
@@ -3749,7 +3745,24 @@ mod tests {
             (Some(20), Some(21)),
             "the scout's wrap; the sheep"
         );
-        assert_eq!(count(102), (Some(6), Some(6)));
+        // **102 is the stale-fog row, and it is not a pathfinder defect.**
+        // `calc_cost` reads the fog now (item 32), and the fog the sim has
+        // is the frame-**0** snapshot the `WORLD` dump carried: nothing
+        // reveals a cell, because line of sight is not modelled. A hundred
+        // frames in, the AI scout `1/0` plans its world path against a map
+        // it has long since walked off the edge of, its unit-grid search
+        // fails, `find_upath` kills the `EXPLORE_TO`, and `think_scout`
+        // spends eighteen ring draws re-targeting on the next frame. With
+        // the fog read pinned back to "everything is seen" this row is
+        // `(6, 6)` again and run20's chain parts — that is the trade, and
+        // `docs/PATHFINDER.md` §12 books the fix (reveal cells as units
+        // move) rather than the symptom. The frames either side of it are
+        // the farm and animation clocks and are untouched.
+        assert_eq!(
+            count(102),
+            (Some(24), Some(6)),
+            "the scout re-targets against hundred-frame-old fog"
+        );
         assert_eq!(count(103), (Some(6), Some(6)));
         // The AI's farmers re-target on sim-frame 101 and walk from 102;
         // their path goals are compared on the log's frame 103 (the end of

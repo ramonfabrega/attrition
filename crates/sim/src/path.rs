@@ -11,18 +11,31 @@
 //! oldest-first tie-break walks visibly different paths.
 //!
 //! What the world does not model yet enters as a named seam, each marked
-//! `SEAM:` with the `docs/PATHFINDER.md` §5 term it stubs — fog (everything
-//! is seen), the danger map (zero), diplomacy and rush-rule penalties
-//! (none), terrain movement costs (zero — the harness's worlds are grass),
-//! unit collision on the 48-grid (clear), transports (the unit cannot), and
-//! the per-type collision size (one). Each returns the open-ground answer,
-//! so on the flat worlds the harness builds the search is exact; the seams
-//! are where the remaining layers plug in.
+//! `SEAM:` with the `docs/PATHFINDER.md` §5 term it stubs — the danger map
+//! (zero), diplomacy and rush-rule penalties (none), unit collision on the
+//! 48-grid (clear), transports (the unit cannot), and the per-type
+//! collision size (one). Each returns the open-ground answer, so on the
+//! flat worlds the harness builds the search is exact; the seams are where
+//! the remaining layers plug in.
+//!
+//! Two of those seams closed on 2026-08-26 and they closed **together**:
+//! the fog read and the terrain cost. Either alone leaves run20's scout
+//! walking a route the original does not take — terrain alone is worse
+//! than neither — and the pair reproduces the original's nine-entry chain
+//! entry for entry. That is not a coincidence of one capture: a scout's
+//! base is `8` on unseen ground against `0x400` on seen, so *whether a
+//! cell is known* and *what it costs once known* are the two halves of one
+//! number, and pricing one without the other prices nothing.
+//!
+//! The fog those terms read is the **frame-0 snapshot**, because nothing
+//! reveals cells yet (`World::set_fog` has one caller). It is right at the
+//! frames a capture is compared on and drifts from there — see
+//! `docs/PATHFINDER.md` §12.
 
 use std::collections::BTreeMap;
 
 use crate::orders::{self, Body, MoveKind, PathData, Worker, path_flag};
-use crate::world::{Owner, Pos, TILES_PER_CELL, Terrain, UNITS_PER_CELL, tile, vector_dist};
+use crate::world::{Owner, Pos, TILES_PER_CELL, Terrain, UNITS_PER_CELL, cell, tile, vector_dist};
 use crate::{Sim, movement};
 
 /// The three grids' steps, in position units.
@@ -68,13 +81,13 @@ struct Modes {
     /// `anti_unit`: set for every unit-grid search; gates the node limit,
     /// the +5 probe cost on the tile grid, and flag 2 on waypoints.
     anti_unit: bool,
-    /// Read by the unseen-cell and rough-terrain cost terms, all behind
-    /// the fog and terrain-cost seams today.
-    #[allow(dead_code)]
+    /// Read by the unseen-cell and rough-terrain cost terms: an army pays
+    /// `0x2480` to step into an unseen cell next to something blocked, and
+    /// `+10000` to step onto rough ground it can see.
     army: bool,
-    /// Read by the terrain-cost and corner-cutting terms, behind the same
-    /// seams.
-    #[allow(dead_code)]
+    /// A forest-walker. Swaps the terrain cost's `WData.blocked` for the
+    /// signed `WData.solid`, and exempts a fully forested tile from the
+    /// corner-cutting probes.
     iroquois: bool,
     /// Read by the diplomacy term, behind its seam.
     #[allow(dead_code)]
@@ -262,11 +275,27 @@ impl Sim {
         let mut extra = 0;
         let mut embarks = false;
 
-        if step != STEP_UNIT {
-            // SEAM: `was_really_seen` — no fog model, every cell is seen,
-            // so the unseen-cell branch (base 0x124, scout base 8) never
-            // runs. A scout's preference for the unexplored is therefore
-            // absent until fog exists.
+        // `was_really_seen(div3[to >> 7], div3[to >> 7], who)` — the fog
+        // read is at the **half-cell** the step lands in, not the cell's
+        // `2c + 1` sample (`crate::scout`). World grid only.
+        let seen = step != STEP_WORLD
+            || self.was_really_seen_fog(to.x.div_euclid(0x180), to.y.div_euclid(0x180), who);
+        if step == STEP_WORLD && !seen {
+            // The fog branch: terrain, owner and danger are all unread —
+            // the player cannot know them — so the only thing priced is
+            // what the cell is *for*. An army pays through the nose to
+            // enter an unseen cell next to something blocked; a scout pays
+            // almost nothing to enter any unseen cell at all, which is the
+            // whole of "exploration seeks the unexplored".
+            base = 0x124;
+            if m.army && self.world.cell_data(to.cell()).flags & cell::NEARBLOCK != 0 {
+                base = 0x2480;
+            }
+            if m.scouting {
+                base = 8;
+            }
+            extra = if m.scouting { 0 } else { 8 };
+        } else if step != STEP_UNIT {
             if step == STEP_WORLD && m.scouting {
                 base = 0x400;
             }
@@ -307,15 +336,35 @@ impl Sim {
                         e += 200;
                     }
                 }
-                // SEAM: terrain movement cost — the cell byte the original
-                // reads (`+0x11`, `+0x13` for iroquois) has no layer here;
-                // grass is 0, so the `+20×`, `+100000`, army-rough and
-                // army-forest terms are dormant, and with cost 0 and no
-                // iroquois flag the corner-cutting probes (§5.1) are
-                // faithfully skipped.
-                let tcost = 0;
+                // Terrain movement cost: `WData.blocked` (`+0x11`), or the
+                // signed `WData.solid` (`+0x13`) for a forest-walker. 13
+                // and up is impassable in all but name — the `+100000`
+                // makes any detour cheaper — and an army treats 5 as the
+                // line where rough ground stops being worth crossing.
+                let d = self.world.cell_data(to_cell);
+                let tcost = if m.iroquois {
+                    i32::from(d.solid)
+                } else {
+                    i32::from(d.blocked)
+                };
                 e += tcost * 20;
+                if tcost >= 13 {
+                    e += 100_000;
+                }
+                if m.army {
+                    if tcost >= 5 {
+                        e += 10_000;
+                    }
+                    if d.flags & cell::NEARBLOCK != 0 {
+                        base <<= 5;
+                    }
+                }
                 extra = e.max(0);
+                // §5.1 — the corner-cutting probes, live now that a cell
+                // can carry a cost at all.
+                if depth < 10 && (tcost != 0 || m.iroquois) && self.cuts_a_corner(from, to, m) {
+                    return (REFUSED, false);
+                }
             }
             // Fleeing triples the additive part.
             if self
@@ -326,10 +375,6 @@ impl Sim {
             }
             // SEAM: the no-rush timer (+500) and the team-style diplomacy
             // wall (+5000) read game rules the simulation does not carry.
-            if step == STEP_WORLD {
-                // River cells triple the base (`cell flags & 0x100`); the
-                // cell-flag layer does not exist. SEAM.
-            }
         }
 
         // The transport tail. SEAM, deliberate: `Sim::unit_can_transport(u)`
@@ -338,6 +383,10 @@ impl Sim {
         // refusals stay dormant; the water itself was priced above.
         let crossing = self.needs_transport(from.tile(), to.tile());
         let can_transport = false;
+        // The value the shoreline test **last** answered with, which is
+        // what the halfland multiplier below is gated on: at `depth == 1`
+        // the second probe overwrites the first (`00685773`–`006858b9`).
+        let mut shore = crossing;
         if crossing > 0 && can_transport && depth >= 2 {
             if avoid_sea == 2 {
                 return (REFUSED, false);
@@ -357,11 +406,12 @@ impl Sim {
             embarks = true;
         } else if depth == 1 {
             let own_tile = self.units[u].pos.tile();
-            if self.needs_transport(own_tile, to.tile()) > 0 && can_transport {
+            shore = self.needs_transport(own_tile, to.tile());
+            if shore > 0 && can_transport {
                 if avoid_sea == 2 {
                     return (REFUSED, false);
                 }
-                if crossing != 1 {
+                if shore != 1 {
                     extra += if avoid_sea == 0 && avoid_land == 0 {
                         250
                     } else {
@@ -371,8 +421,84 @@ impl Sim {
                 embarks = true;
             }
         }
+        // A halfland cell — one whose second region is the sea — costs
+        // three times the base to enter, and the multiplier is skipped
+        // whenever the step crossed a shoreline at all, transporter or
+        // not (audit V20).
+        if step == STEP_WORLD
+            && shore <= 0
+            && self.world.cell_data(to.cell()).flags & cell::HALFLAND != 0
+        {
+            base *= 3;
+        }
 
         (base * 32 / 256 + extra + (dir as i32 & 1) * 8, embarks)
+    }
+
+    /// `WorldData::is_blocked_at@00461340` — the tile's `BLOCKED` bit,
+    /// except that a forest-walker (`mode ≠ 0`) is not stopped by a fully
+    /// forested tile.
+    fn is_blocked_at(&self, tx: i32, ty: i32, mode: bool) -> bool {
+        let mask = self.world.tile_mask(Pos::new(tx, ty));
+        mask & tile::BLOCKED != 0 && !(mode && mask & tile::SURFACE == tile::SURFACE_FOREST)
+    }
+
+    /// §5.1 — the corner-cutting refusal. `from`/`to` are the step's
+    /// endpoints; every probe is on tiles around the **from** tile.
+    ///
+    /// A diagonal is refused when **either** of its two probes is blocked;
+    /// a cardinal only when **all four** of its are — you cannot cut past a
+    /// building's corner, but you may walk at a wall until it runs out.
+    /// The direction is recovered from the step's own world-cell delta —
+    /// `div_3_table[(to − from) >> 8]`, matched against `move_x`/`move_y`
+    /// — and **not** taken from the caller's wheel index, which is why
+    /// this does not take one. A big unit's stride is two cells, no
+    /// `move_x` entry matches a delta of two, and the original therefore
+    /// skips the whole block for it; passing `dir` would quietly invent a
+    /// different behaviour the day big-unit strides go live.
+    fn cuts_a_corner(&self, from: Pos, to: Pos, m: &Modes) -> bool {
+        let cdx = (to.x - from.x).div_euclid(0x300);
+        let cdy = (to.y - from.y).div_euclid(0x300);
+        let Some(d) = (1..=8).find(|&d| MOVE_X[d] == cdx && MOVE_Y[d] == cdy) else {
+            return false;
+        };
+        let (cx, cy) = (from.tile().x, from.tile().y);
+        let probes: &[(i32, i32)] = match d {
+            1 => &[(cx - 2, cy - 2), (cx - 3, cy - 3)],
+            2 => &[
+                (cx - 2, cy - 3),
+                (cx - 1, cy - 3),
+                (cx, cy - 3),
+                (cx + 1, cy - 3),
+            ],
+            3 => &[(cx + 1, cy - 2), (cx + 2, cy - 3)],
+            4 => &[
+                (cx + 2, cy - 2),
+                (cx + 2, cy - 1),
+                (cx + 2, cy),
+                (cx + 2, cy + 1),
+            ],
+            5 => &[(cx + 1, cy + 1), (cx + 2, cy + 2)],
+            6 => &[
+                (cx - 2, cy + 2),
+                (cx - 1, cy + 2),
+                (cx, cy + 2),
+                (cx + 1, cy + 2),
+            ],
+            7 => &[(cx - 2, cy + 1), (cx - 3, cy + 2)],
+            _ => &[
+                (cx - 3, cy - 2),
+                (cx - 3, cy - 1),
+                (cx - 3, cy),
+                (cx - 3, cy + 1),
+            ],
+        };
+        let blocked = |&(x, y): &(i32, i32)| self.is_blocked_at(x, y, m.iroquois);
+        if d & 1 == 1 {
+            probes.iter().any(blocked)
+        } else {
+            probes.iter().all(blocked)
+        }
     }
 
     /// The heuristic — `PathFinderData::get_estimate`.
@@ -1383,5 +1509,230 @@ mod tests {
         sim.at_war[0][1] = true;
         let (enemy, _) = sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 1);
         assert_eq!(enemy, 36);
+    }
+
+    /// §5's terrain term: `+20 × WData.blocked`, the `+100000` at 13, and
+    /// an army's `+10000` at 5. None of it fires on a flat world, which is
+    /// why it sat behind a seam for so long; all of it fires the moment a
+    /// cell record carries a cost.
+    #[test]
+    fn rough_ground_costs_twenty_a_point_and_thirteen_is_a_wall() {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let from = Pos::new(0x180, 0x180);
+        let to = Pos::new(0x180 + 0x300, 0x180);
+        let cost = |sim: &Sim, m: &Modes| sim.calc_cost(u, m, from, to, 4, STEP_WORLD, 2, 0, 1).0;
+        let plain = Modes::default();
+        let army = Modes {
+            army: true,
+            ..Modes::default()
+        };
+        assert_eq!(cost(&sim, &plain), 32, "clean ground");
+
+        let mut d = sim.world.cell_data(to.cell());
+        d.blocked = 4;
+        sim.world.set_cell_data(to.cell(), d);
+        assert_eq!(cost(&sim, &plain), 32 + 80);
+        assert_eq!(cost(&sim, &army), 32 + 80, "4 is under the army's line");
+
+        d.blocked = 5;
+        sim.world.set_cell_data(to.cell(), d);
+        assert_eq!(cost(&sim, &plain), 32 + 100);
+        assert_eq!(cost(&sim, &army), 32 + 100 + 10_000, "rough, to an army");
+
+        d.blocked = 13;
+        sim.world.set_cell_data(to.cell(), d);
+        assert_eq!(cost(&sim, &plain), 32 + 260 + 100_000, "impassable");
+
+        // The forest-walker reads the **signed** `solid` byte instead, and
+        // a negative one is a discount the clamp then eats.
+        d.solid = -1;
+        sim.world.set_cell_data(to.cell(), d);
+        let iroquois = Modes {
+            iroquois: true,
+            ..Modes::default()
+        };
+        assert_eq!(cost(&sim, &iroquois), 32, "solid −1, clamped at zero");
+    }
+
+    /// §5's fog branch, and the half of it that is the whole of scouting:
+    /// on ground it cannot see, a scout's base is **8** against the `0x400`
+    /// it pays for ground it can — a factor of 128 — so a scout's cheapest
+    /// route is the one through the dark. Everyone else pays `0x124 + 8`
+    /// for the unknown, slightly more than the `0x100` of the known.
+    ///
+    /// The read is at the step's **half-cell**, `to / 0x180`, not the
+    /// cell's `2c + 1` sample: with the first half-cell of the destination
+    /// dark and the second lit, a step landing in the first is priced as
+    /// unseen. No capture on disk separates those two readings — every
+    /// world node in every dump sits past the half-cell line — so this is
+    /// the only thing holding the convention.
+    #[test]
+    fn the_unseen_is_cheap_to_a_scout_and_the_read_is_the_half_cell() {
+        let mut sim = flat_sim(10);
+        // A fog grid of all-dark. `seen2` is one byte a half-cell, a bit a
+        // player, `2 × width` across.
+        let fw = 20usize;
+        let mut fog = vec![0u8; fw * fw];
+        assert!(sim.world.set_fog(fog.clone()));
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        assert_eq!(sim.units[u].owner, 0);
+        let from = Pos::new(0x180, 0x180);
+        let scout = Modes {
+            scouting: true,
+            ..Modes::default()
+        };
+        let plain = Modes::default();
+        let cost =
+            |sim: &Sim, m: &Modes, to: Pos| sim.calc_cost(u, m, from, to, 4, STEP_WORLD, 2, 0, 1).0;
+
+        // Dark everywhere: `base 8` for the scout, `0x124 + 8` for the rest.
+        let to = Pos::new(0x180 + 0x300, 0x180);
+        assert_eq!(cost(&sim, &scout, to), 1, "8 × 32 / 256");
+        assert_eq!(cost(&sim, &plain, to), 0x124 * 32 / 256 + 8);
+
+        // Light the destination cell's **second** half-cell only. `to` is
+        // at `+0x180` inside its cell, which is the second half — so it
+        // reads lit, and the scout pays the seen base.
+        let c = to.cell();
+        for fy in [2 * c.y, 2 * c.y + 1] {
+            fog[fy as usize * fw + (2 * c.x + 1) as usize] = 1;
+        }
+        assert!(sim.world.set_fog(fog));
+        assert_eq!(cost(&sim, &scout, to), 0x400 * 32 / 256, "seen: 128");
+        assert_eq!(cost(&sim, &plain, to), 32);
+
+        // A step landing in the same cell's **first** half-cell is still
+        // dark. `2c + 1` would call it seen; `to / 0x180` does not.
+        let first_half = Pos::new(c.x * 0x300 + 0x80, 0x80);
+        assert_eq!(first_half.cell(), c);
+        assert_eq!(cost(&sim, &scout, first_half), 1, "the near half is dark");
+    }
+
+    /// §5's halfland multiplier — `base ×= 3` on a cell whose `flags` carry
+    /// `0x100`, and **skipped** whenever the step crossed a shoreline
+    /// (audit V20). Nothing on disk exercises it: the routes the captures
+    /// take either miss halfland cells or cross into them.
+    #[test]
+    fn a_halfland_cell_triples_the_base_unless_the_step_crossed_the_shore() {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let from = Pos::new(0x180, 0x180);
+        let to = Pos::new(0x180 + 0x300, 0x180);
+        let m = Modes::default();
+        assert_eq!(sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 1).0, 32);
+
+        let mut d = sim.world.cell_data(to.cell());
+        d.flags |= crate::world::cell::HALFLAND;
+        sim.world.set_cell_data(to.cell(), d);
+        assert_eq!(
+            sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 1).0,
+            96,
+            "0x300 × 32 / 256"
+        );
+        // The multiplier is the *base*'s, so the diagonal's +8 sits outside
+        // it, and the tile grid never sees it at all.
+        let se = Pos::new(to.x, to.y + 0x300);
+        let mut d2 = sim.world.cell_data(se.cell());
+        d2.flags |= crate::world::cell::HALFLAND;
+        sim.world.set_cell_data(se.cell(), d2);
+        assert_eq!(
+            sim.calc_cost(u, &m, from, se, 5, STEP_WORLD, 2, 0, 1).0,
+            104
+        );
+    }
+
+    /// §5.1's probe table: a diagonal is refused when **either** of its two
+    /// probes is blocked, a cardinal only when **all four** of its are —
+    /// and the whole block is skipped on ground that costs nothing, which
+    /// is why a flat world never sees it.
+    #[test]
+    fn a_diagonal_is_refused_past_one_corner_and_a_cardinal_needs_all_four() {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let from = Pos::new(3 * 0x300 + 0x180, 3 * 0x300 + 0x180);
+        let (cx, cy) = (from.tile().x, from.tile().y);
+        // Give the destination cells a cost, or §5.1 never runs.
+        for (dx, dy) in [(1, 1), (1, 0)] {
+            let c = crate::world::Cell::new(from.cell().x + dx, from.cell().y + dy);
+            let mut d = sim.world.cell_data(c);
+            d.blocked = 1;
+            sim.world.set_cell_data(c, d);
+        }
+        let m = Modes::default();
+        let se = Pos::new(from.x + 0x300, from.y + 0x300);
+        let east = Pos::new(from.x + 0x300, from.y);
+        let cost = |sim: &Sim, to: Pos, dir: usize| {
+            sim.calc_cost(u, &m, from, to, dir, STEP_WORLD, 2, 0, 1).0
+        };
+        assert_ne!(cost(&sim, se, 5), REFUSED, "clear to begin with");
+
+        // SE probes `(cx+1, cy+1)` then `(cx+2, cy+2)`; either is enough.
+        sim.world
+            .set_tile_bits(Pos::new(cx + 2, cy + 2), tile::BLOCKED);
+        assert_eq!(cost(&sim, se, 5), REFUSED, "the far corner alone");
+        sim.world
+            .clear_tile_bits(Pos::new(cx + 2, cy + 2), tile::BLOCKED);
+        sim.world
+            .set_tile_bits(Pos::new(cx + 1, cy + 1), tile::BLOCKED);
+        assert_eq!(cost(&sim, se, 5), REFUSED, "the near corner alone");
+        sim.world
+            .clear_tile_bits(Pos::new(cx + 1, cy + 1), tile::BLOCKED);
+
+        // East probes the whole column `(cx+2, cy-2 ..= cy+1)` and needs
+        // every one of them.
+        let col = [
+            Pos::new(cx + 2, cy - 2),
+            Pos::new(cx + 2, cy - 1),
+            Pos::new(cx + 2, cy),
+            Pos::new(cx + 2, cy + 1),
+        ];
+        for t in &col[..3] {
+            sim.world.set_tile_bits(*t, tile::BLOCKED);
+        }
+        assert_ne!(cost(&sim, east, 4), REFUSED, "three of four is a gap");
+        sim.world.set_tile_bits(col[3], tile::BLOCKED);
+        assert_eq!(cost(&sim, east, 4), REFUSED, "the edge is built over");
+
+        // And a fully forested tile is not a wall to a forest-walker.
+        for t in &col {
+            sim.world.set_tile_bits(*t, tile::SURFACE_FOREST);
+        }
+        let iroquois = Modes {
+            iroquois: true,
+            ..Modes::default()
+        };
+        assert_ne!(
+            sim.calc_cost(u, &iroquois, from, east, 4, STEP_WORLD, 2, 0, 1)
+                .0,
+            REFUSED,
+            "the Iroquois walk through the trees"
+        );
+    }
+
+    /// The depth gate: §5.1 runs only for the first nine steps of a search
+    /// (`depth < 10`), so a corner ten steps out is not probed at all.
+    #[test]
+    fn the_corner_probes_stop_after_nine_steps() {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let from = Pos::new(3 * 0x300 + 0x180, 3 * 0x300 + 0x180);
+        let (cx, cy) = (from.tile().x, from.tile().y);
+        let se = Pos::new(from.x + 0x300, from.y + 0x300);
+        let mut d = sim.world.cell_data(se.cell());
+        d.blocked = 1;
+        sim.world.set_cell_data(se.cell(), d);
+        sim.world
+            .set_tile_bits(Pos::new(cx + 1, cy + 1), tile::BLOCKED);
+        let m = Modes::default();
+        assert_eq!(
+            sim.calc_cost(u, &m, from, se, 5, STEP_WORLD, 9, 0, 1).0,
+            REFUSED
+        );
+        assert_ne!(
+            sim.calc_cost(u, &m, from, se, 5, STEP_WORLD, 10, 0, 1).0,
+            REFUSED,
+            "depth 10 is past the gate"
+        );
     }
 }

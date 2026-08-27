@@ -354,7 +354,11 @@ the transport tail below.
 
 **World cells (`0x300`)**, unseen (`was_really_seen(to half-cell, who)`
 false — the per-player fog byte; always "seen" for `who >= 8`, revealed
-maps, and post-defeat leaders):
+maps, and post-defeat leaders). The read is at
+`div_3_table[to >> 7]` on both axes, i.e. the **half-cell containing the
+step's destination**, `to / 0x180` — *not* the cell's `2c + 1` sample that
+`Unit::think_scout` and the site census use, which is a different function
+call with one letter between the names (§6, `crate::scout`):
 `base = 0x124`; armies (`army`) pay `base = 0x2480` if the cell's flags have
 `0x200`; **scouts (`scouting`) pay `base = 8`** — exploration seeks the
 unseen. `extra = 8` unless scouting. Terrain, owner, danger are **not
@@ -379,6 +383,16 @@ read** — fog hides them.
 | no-rush timer | `+ 500` | `rr = rush_rules age ≠ 0`, current age < `rr`, (`rr < 9` **or** `frame < rush_rules[rr].+0x3c × 900` — the once-garbled clause, settled in the listing, audit V6), owner ≥ 0, not an ally; same two branches as fleeing |
 | diplomacy | `+ 5000` | (`army` or `worker`) and team-style rules: peace with the owner (styles 0/8/11), or style 2 and the owner is neither `who` nor `get_target(who)`; `0x300` only, and reachable from the **fog branch too** (audit V5) |
 | river cell | `base ×= 3` | `0x300` only, cell flags `& 0x100`, **skipped whenever `needs_transport > 0`** — a shoreline crossed in either direction, transporter or not (audit V20) |
+
+The fog branch and the terrain row below are **one term, not two**, and
+2026-08-26 is where that stopped being a guess. Both had been seams; each
+was landed alone against run20's own scout and each made the chain
+*worse* or barely better — terrain alone took run20's path-stack
+disagreements from 21 to **24**, fog alone to 12 — and the pair took them
+to **0**, nine waypoints reproduced entry for entry. The reason is in the
+numbers: a scout's base is `8` unseen against `0x400` seen, a factor of
+128, so *whether a cell is known* and *what it costs once known* multiply
+rather than add. Pricing one without the other prices nothing.
 
 **Tiles (`0xc0`)** read the tile mask instead: `base = 0x100`, `0x400` if
 the tile has `0x2000` (rough); danger and the ±4 owner terms as above (the
@@ -423,8 +437,13 @@ With `cx, cy` the from tile:
 A refusal is `0x7fffffff` — you cannot cut a diagonal past a building
 corner, and a cardinal step is refused only when the whole destination-
 side tile edge is built over. On zero-cost terrain (all of
-`gamelog-run6`) the block never runs, so the implementation keeps it as a
-seam behind the terrain-cost layer, with this table ready.
+`gamelog-run6`) the block never runs at all, which is why it sat behind
+the terrain-cost seam. **Implemented 2026-08-26** as
+`Sim::cuts_a_corner`, from this table, with the direction recovered from
+the step's own world-cell delta rather than from the wheel index — a big
+unit's two-cell stride matches no `move_x` entry, so the whole block is
+skipped for it, which is the original's behaviour and not an accident of
+transcription. No capture on disk exercises it (§12).
 
 ## 6. Validity, the memo, and the heuristic
 
@@ -582,9 +601,10 @@ way. (`docs/ORDERS.md` §4.6 amended in place, pointing here.)
 containers replaced by deterministic equivalents that preserve **min-value
 with LIFO ties** and metric-keyed dedup; the world read through the layers
 the sim has (tile mask bits via `place.rs`, cell owner via `territory`,
-`tregion`), with named seams returning the open-ground answer for the
-layers it does not (fog: everything seen; danger: 0; diplomacy: none;
-rush rules: off) — each seam marked in the code with the §5 term it stubs.
+`tregion`, the `WData` records and the `seen2` fog plane via the `WORLD`
+dump), with named seams returning the open-ground answer for the layers it
+does not (danger: 0; diplomacy: none; rush rules: off) — each seam marked
+in the code with the §5 term it stubs.
 **The cliff seam closed 2026-08-26** with `docs/SCOUT.md`:
 `WorldData::is_cliff_at@0046f8c0` is one line, `(TData.mask & 3) == 1`, so
 the two-bit terrain-object field's third value is named
@@ -609,10 +629,24 @@ plans on a stack that is not a unit's, from a start that is the leader's
 top-of-stack, and it forces the `army` mode on through `pathfinder +0x70`
 for a group that belongs to an army — the same word §3's mode block sets
 for an AI's own units, and the only way a **human**'s army reaches it.
+**The fog and terrain seams closed 2026-08-26** (the queue's item 32), and
+with them everything that hung off a cell record: `+20 × WData.blocked`
+(`WData.solid`, signed, for a forest-walker), the `+100000` at 13, the
+army's `+10000` at 5 and its `base << 5` on a `NEARBLOCK` cell, the fog
+branch's `0x124` / `0x2480` / scout's `8`, the halfland `base ×= 3`, and
+§5.1's corner-cutting probes — which were only ever unreachable because
+`tcost` was pinned to zero. What holds them is twelve deliberate
+breakages, listed in §12; the last of them, the half-cell fog convention,
+is held by a unit test alone because **no capture on disk separates it**
+from the `2c + 1` read: every world-grid node in every dump sits past the
+half-cell line, so `to / 0x180 == 2c + 1` throughout.
+The transport tail's shoreline result is now threaded to the halfland
+multiplier the way `00685773`–`006858b9` threads it — the `depth == 1`
+probe overwrites the `from → to` one, and the multiplier is gated on
+whichever ran last.
 Big-unit strides and the transport tail are implemented as dormant seams;
 suspend returns −1 without stashing (its restorer has no caller until
-collision recovery exists); the corner-cutting probes are a named seam
-pending §12's listing pass; `find_upath` is complete and tested but
+collision recovery exists); `find_upath` is complete and tested but
 uncalled until `resolve_unit_collision` is modelled.
 
 ## 12. What is not established
@@ -655,21 +689,50 @@ Four of the first reading's open items were **settled by the audit**
   `(41952, 36576, 0, 1)` at the bottom of a stack it already has at frame
   1, with `flags 1`; `rondata --diff` scores run20 at **0** order
   disagreements where it scored 1.
-- **The middle of run20's `1/0` chain still parts**, and it is now the
-  pathfinder's alone. Item 31 has landed, so both sides plan on the same
-  frame, from the same position — `(38040, 40344)` — to the same goal,
-  with the same `toff`; the search is `find_wpath` from the leader's
-  position on a stack of one, which is what `do_move` was doing anyway.
-  What is left after that: the sim walks cell row **51** through the
-  middle where the original walks row **50**, the original carries
-  `(55,48)` between the goal and the first shared node, and it carries one
-  more node at the start end — `(49,51)`, an orthogonal first step, where
-  the sim takes `(50,51)` diagonally. Four of the sim's seven entries are
-  the original's **whole** — position, tolerance and flag
+- ~~**The middle of run20's `1/0` chain still parts.**~~ **Closed
+  2026-08-26** (the queue's item 32), and it was neither the direction
+  wheel nor a tie: it was `calc_cost` not reading the two things the data
+  layer had been able to answer for weeks. The sim's first step was
+  diagonal to `(50,51)` because nothing charged it the `+180` that cell's
+  `WData.blocked = 9` costs; the row it then walked was row 51 because
+  nothing told a scout that row 50 was dark and therefore nearly free.
+  With the fog read and the terrain cost both live, **all nine entries
+  agree, in order** — position, tolerance and flag — and `rondata --diff`
+  scores run20 at **0** path-stack disagreements against 21, with the
+  whole order stream matched over the five frames it steps. The chain is
+  the assertion now
   (`diff::tests::run20_s_group_member_is_pathed_at_order_time_off_the_
-  leaders_slot`). The first step's choice is the cheapest thread to pull:
-  it is a `calc_cost` or a direction-wheel tie, on open ground, two cells
-  from the start.
+  leaders_slot` compares it whole). See §5's note on why the two terms
+  had to land together.
+- **The fog the sim reads is the frame-0 snapshot**, and now that
+  `calc_cost` reads it, that is load-bearing rather than cosmetic.
+  `World::set_fog` has exactly one caller — `rondata::diff` installing the
+  `WORLD` dump's `seen2` plane at build time — because nothing reveals a
+  cell as a unit moves (`Unit::look` is unread and unmodelled). So a path
+  planned at frame 1 is planned against the truth and a path planned at
+  frame 100 is planned against a hundred-frame-old map. It is visible and
+  it is pinned: run10's frame 102 now spends **24** draws where the
+  original spends 6, because AI scout `1/0` plans against stale fog, its
+  unit-grid search fails, `find_upath` kills the `EXPLORE_TO` and
+  `think_scout` re-targets over eighteen ring draws
+  (`diff::tests::run13_s_window_counts_and_the_ai_farmers_re_targets_are_
+  matched`, which asserts the 24 so that fixing it fails there). The fix
+  is to reveal cells as units move, not to un-read the fog.
+- **The half-cell fog convention is unfalsifiable by any run on disk.**
+  `calc_cost` reads `div_3_table[to >> 7]`; `Unit::think_scout` reads
+  `2c + 1`. Every world-grid search node in every capture sits at a
+  sub-cell offset past `0x180` — run20's whole chain is at `+504`, its
+  start at `+408` — so the two readings answer identically on all of them,
+  and swapping one for the other moves not a single number in run20 or in
+  the 301-frame fuzz map. Only
+  `path::tests::the_unseen_is_cheap_to_a_scout_and_the_read_is_the_half_
+  cell` separates them. A capture that would: any world path whose unit
+  stands at a sub-cell offset under `0x180` on either axis.
+- **The corner-cutting probes and the halfland multiplier are implemented
+  and unexercised by any capture.** Removing either moves nothing in run20
+  or the fuzz map; both are held by unit tests written from §5.1's table
+  and from `006858b9`. §5.1's own open question — what the gate bits mean
+  on the ground — is unchanged below.
 - The exhausted-open-list pause gate `order data +0x20 < 13` is
   byte-verified (V30); **which field that is** (order age? range band?)
   remains unread and unnamed in the PDB.

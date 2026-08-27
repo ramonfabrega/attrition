@@ -244,10 +244,25 @@ impl Sim {
     /// The two leader exits (`leader_flags & 0x800`, `LeaderData +0x59e4`)
     /// are seams: no run sets either.
     pub(crate) fn was_really_seen(&self, c: Cell, who: Player) -> bool {
+        self.was_really_seen_fog(2 * c.x + 1, 2 * c.y + 1, who)
+    }
+
+    /// The same read at the fog grid's **own** coordinates — the half-cell
+    /// pair `was_really_seen` actually takes.
+    ///
+    /// Its two callers hand it different things and the difference shows.
+    /// [`Sim::was_really_seen`] samples a whole cell at `2c + 1`, the
+    /// second half-cell each way, because that is what `Unit::think_scout`
+    /// and the site census do. `PathFinder::calc_cost` instead asks about
+    /// the **point** it is stepping to, `div_3_table[to >> 7]` — the
+    /// half-cell that contains it, `to / 0x180` — so a step landing in a
+    /// cell's first half reads `2c`, not `2c + 1`
+    /// (`docs/PATHFINDER.md` §5).
+    pub(crate) fn was_really_seen_fog(&self, fx: i32, fy: i32, who: Player) -> bool {
         if who >= 8 || self.lobby.reveal_map == 3 {
             return true;
         }
-        let Some(bits) = self.world.seen2(2 * c.x + 1, 2 * c.y + 1) else {
+        let Some(bits) = self.world.seen2(fx, fy) else {
             return true;
         };
         let mask = self.ai.get(who as usize).map_or(0, |a| a.census.ally_mask) | (1 << who);
