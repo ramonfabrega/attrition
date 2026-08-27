@@ -907,6 +907,17 @@ pub enum OrderMismatch {
     /// the path stack, which the pathfinder stub does not reproduce. Reported
     /// because a surprise here is worth seeing.
     Flags { ours: u8, theirs: i64 },
+    /// One field of a `GATHERORDER`'s own row, named as the log writes it
+    /// (`docs/ORDERS.md` §6.4). The tile is the one that matters: the order
+    /// list can agree on kind, target and flags for a hundred frames while
+    /// the two sides send the worker to different trees, and the first sign
+    /// is a `Length` two frames later when one of them queues a walk the
+    /// other does not.
+    Gather {
+        field: &'static str,
+        ours: i64,
+        theirs: i64,
+    },
     /// The path stack's depth.
     PathLength { ours: usize, theirs: usize },
     /// A path segment's goal, bottom-first.
@@ -937,6 +948,7 @@ impl OrderMismatch {
             Self::Action { .. } => "action",
             Self::Target { .. } => "target",
             Self::Flags { .. } => "flags",
+            Self::Gather { .. } => "gather",
             Self::PathLength { .. } => "path-length",
             Self::PathTo { .. } => "path-to",
         }
@@ -1423,6 +1435,36 @@ fn compare_orders(
                 },
             );
         }
+        // **The gather order's own row**, field for field (§6.4). The kind
+        // and the target agreeing says only that both sides are working the
+        // same camp; the tile, the phase and the countdown are what say they
+        // are doing the same thing at it — and the tile is the field whose
+        // absence from this comparison hid the tile choice's missing access
+        // filter for as long as it existed.
+        if let sim::orders::Body::Gather(g) = ours.body {
+            let t = g.tile.unwrap_or(sim::Pos::new(-1, -1));
+            for (field, mine, logged) in [
+                ("tx", i64::from(t.x), theirs.tx),
+                ("ty", i64::from(t.y), theirs.ty),
+                ("wait", i64::from(g.wait), theirs.wait),
+                ("goto_build", i64::from(g.goto_build), theirs.goto_build),
+                ("been_there", i64::from(g.been_there), theirs.been_there),
+                ("dist_mod", i64::from(g.dist_mod), theirs.dist_mod),
+            ] {
+                if let Some(theirs) = logged
+                    && theirs != mine
+                {
+                    at(
+                        slot,
+                        OrderMismatch::Gather {
+                            field,
+                            ours: mine,
+                            theirs,
+                        },
+                    );
+                }
+            }
+        }
     }
 
     if unit.path.len() != them.path.len() {
@@ -1596,6 +1638,32 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
         && let Some(s) = siblings.iter().find(|s| !s.checksums.is_empty())
     {
         init.checksums = s.checksums.clone();
+    }
+    // **The map itself**, on the same terms as the heights.
+    // `WorldData::log_data` writes the cells and the per-tile masks only at
+    // `WORLD ≥ 5`; a capture taken for another category — run6 is
+    // `BUILDS=7` — writes the block's seventeen scalars and stops. On such
+    // a world every cell is region-less and every tile reads back `mask 0`,
+    // so `has_gather_access` is false everywhere and no woodcutter can ever
+    // choose a tile: a gap in the *capture* that reads exactly like a gap in
+    // the mechanic.
+    //
+    // The gate is those seventeen scalars. They are the map seed, the
+    // extent, the eight totals the generator wrote and the territory limits;
+    // a sibling whose block opens with the same values, field for field,
+    // generated the same map, and the rest of its block is therefore ours.
+    // A sibling that disagrees anywhere contributes nothing.
+    if !init.world.is_empty()
+        && crate::gamelog::world_cells(&init.world).is_empty()
+        && let Some(s) = siblings.iter().find(|s| {
+            s.world.len() > init.world.len()
+                && s.world[..init.world.len()]
+                    .iter()
+                    .zip(&init.world)
+                    .all(|(a, b)| a == b)
+        })
+    {
+        init.world = s.world.clone();
     }
     if init.heights.is_empty()
         && let Some(s) = siblings.iter().find(|s| !s.heights.is_empty())
@@ -4289,6 +4357,16 @@ mod tests {
         // History:
         //   2026-08-27  ticks 3, orders 2; player 0 @ 103, player 1 @ 4
         //               (item 34 landed; the first pin)
+        //   2026-08-27  ticks 99, orders 102; player 0 @ 103, player 1 @ 100
+        //               (item 25: the tile choice's access filter). Player
+        //               1's woodcutter was being sent to a tile ringed by
+        //               its own forest, which the original never considers,
+        //               and the walk it queued for it was the frame-3 second
+        //               order the simulation did not have. With the filter
+        //               the two sides pick the same tree, and the score is
+        //               no longer any one unit's: what is left at 100 and
+        //               103 is a whole cohort at once — the AI's citizen
+        //               `1/6` on 100, and player 0's three farmers on 103.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -4297,9 +4375,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 3 && orders >= 2 && first[0] >= 103 && first[1] >= 4,
+            ticks >= 99 && orders >= 102 && first[0] >= 103 && first[1] >= 100,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 3, orders 2, player 0 @ 103, player 1 @ 4",
+             — the floor is ticks 99, orders 102, player 0 @ 103, player 1 @ 100",
             report.first_divergence
         );
         assert!(
@@ -4373,11 +4451,52 @@ mod tests {
             "the scout's science level, one frame ahead of the original's cache"
         );
 
+        // **The tile choice, asserted where it was wrong** (item 25). The
+        // earliest frame on which the two sides' `GATHERORDER` name
+        // different resource tiles: **2** before the access filter landed,
+        // when player 1's woodcutter picked `(214, 93)` — a tree ringed by
+        // its own forest, with no orthogonal neighbour to stand on — and
+        // the original picked `(213, 92)`. That one tile pinned the
+        // headline at ticks 3. It is now 169, and it belongs to `1/1`, the
+        // citizen the original turns into a builder and this simulation
+        // keeps at the woodcutter.
+        let tile_row = |d: &&OrderDivergence| {
+            matches!(
+                d.what,
+                OrderMismatch::Gather {
+                    field: "tx" | "ty",
+                    ..
+                }
+            )
+        };
+        let first_tile = report
+            .frames
+            .iter()
+            .find(|f| f.order_diverged.iter().any(|d| tile_row(&d)))
+            .map(|f| f.frame);
+        assert_eq!(
+            first_tile,
+            Some(169),
+            "the first frame on which a gather tile disagrees"
+        );
+        assert!(
+            !report
+                .frames
+                .iter()
+                .flat_map(|f| f.order_diverged.iter())
+                .any(|d| d.who == 0 && tile_row(&d)),
+            "player 0's woodcutters chop the original's trees for all 1,772 frames"
+        );
+
         // **Both angles, on every unit-frame where the positions agree**
         // (`docs/MOVEMENT.md` §"Two angles", item 34): `UnitData::angle`
         // against the heading and guy 0's `angle` against the facing.
+        // 13,542 → 15,336 with item 25: this counts only the unit-frames
+        // whose *positions* agree, so the tile-choice fix bought 897 of
+        // them outright — player 1's woodcutter alone now stands where the
+        // original stands it from frame 4 to frame 567.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 13_542, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 15_336, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -4392,8 +4511,12 @@ mod tests {
         // to gather while the simulation leaves it pointing the way it
         // walked. The farmers (`o` 3 to 5) are most of the rest, and they
         // are doing a different job at the same spot (`docs/SYNC.md` §6).
+        // 5,435 → 6,382 with item 25, against 13,542 → 15,336 compared: the
+        // ceiling rose because 1,794 rows the harness could not see before
+        // came into view, and 847 of them agree. Item 36 is still the item
+        // that takes this down.
         assert!(
-            bad.len() <= 5_435,
+            bad.len() <= 6_382,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );
@@ -4688,8 +4811,31 @@ mod tests {
         // frame 0 175/175 and frame 2 5/5 unmoved, and run10's scout is on
         // the original's position and both of its angles for the whole of
         // frames 57 to 91.
+        // 1,212/1,594 → **1,957/1,254** on 2026-08-27, item 25, and the two
+        // halves moved for two different reasons that are worth keeping
+        // apart:
+        //
+        // - **run6 was being run against the wrong map.** Its `WORLD` block
+        //   is `BUILDS=7`'s — seventeen scalars, no cells, no tile masks —
+        //   so the harness stood a flat, region-less, treeless world up and
+        //   every number below was measured on it. `borrow_from_siblings`
+        //   now takes the whole block from a sibling whose scalars match
+        //   field for field, and the effect is the one that settles it:
+        //   **run6 and run10 are the same game, and their diffs now agree
+        //   exactly** — the same headline, the same first divergence for
+        //   every unit. Before, run6 said player 1 broke at frame 2 and
+        //   run10 said frame 4. That took the totals to 1,362/1,674
+        //   (736/1,254 without the farmers), and moved the farmers' share
+        //   *up*, from 304/317 to 626/420: their tiles were never being
+        //   compared against real terrain.
+        // - **The gather order is now diffed whole** — `tx`, `ty`, `wait`,
+        //   `goto_build`, `been_there`, `dist_mod`, which the harness
+        //   parsed and never compared. That is the other 1,221 order rows,
+        //   all of them player 1's `1/1`, the citizen the original turns
+        //   into a builder and this simulation keeps at the woodcutter
+        //   (first row: frame 167). None of them is before the score.
         assert!(
-            orders - farmer_orders <= 1_212 && paths - farmer_paths <= 1_594,
+            orders - farmer_orders <= 1_957 && paths - farmer_paths <= 1_254,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.
@@ -4713,8 +4859,14 @@ mod tests {
         // 612/441 → **304/317** with item 34: the farmers walk on the
         // original's frames now, so the tiles their second re-target picks
         // are fewer frames' worth of drift away from the original's.
+        // 304/317 → **626/420** with item 25's whole-`WORLD` borrow, and
+        // this is a re-base rather than a regression: 304/317 was measured
+        // against a flat treeless world of the harness's own making. run10
+        // — the same game, with its own map — has always read the farmers
+        // the way run6 reads them now, and the two captures now agree unit
+        // for unit.
         assert!(
-            farmer_orders <= 304 && farmer_paths <= 317,
+            farmer_orders <= 626 && farmer_paths <= 420,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }

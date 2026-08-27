@@ -498,6 +498,23 @@ lacks from **siblings** — other dumps of the same lobby and seed, hence the
 same setup stream and the same map: run11 for the trace, run3 for the
 heights. Without either the notes say so, and the stream is the sim's own.
 
+**The `WORLD` block is borrowed the same way, and it has to be** (2026-08-27).
+`WorldData::log_data` writes the cells and the per-tile masks only at
+`WORLD ≥ 5`; a capture taken for some other category writes the block's
+seventeen scalars and stops. The harness then stands up a flat, region-less,
+treeless world — and every number measured on it is measured against a map
+the game never had. run6 was read that way for three weeks: it and run10 are
+the *same game*, and their diffs disagreed, run6 putting player 1's first
+divergence at frame 2 and run10 at frame 4. The gate on the borrow is those
+seventeen scalars themselves — the map seed, the extent, the generator's
+eight totals and the territory limits — so a sibling whose block opens with
+the same values field for field generated the same map and the rest of its
+block is ours. With it the two captures agree unit for unit.
+
+The lesson generalises past this field: **a dump that carries less is not a
+dump that says less — it is a dump the harness quietly fills in**, and what
+it fills in is not marked as a guess anywhere the score can see.
+
 **The buildings go in the way §9.2 says, not through `place_building`.**
 `build_cities@005ab910` is `Build::init` then `activate(0, 0, 0)`, and
 `produce_building` at frame 0 is `Objects::init_build` then
@@ -511,22 +528,21 @@ derivation.** At `BUILDS=6` a building carries `orig_type` and at `BUILDS=7`
 it carries `gather_from` (`docs/ORDERS.md` §11.2), so the harness reads both.
 §9.2's typing rule is still *derived* alongside and any disagreement is a
 note — the same derive-then-read discipline as the starting orders — but the
-dump wins where it speaks. `gather_from` is an input by construction: the
-original fills it from the terrain, which no dump carries.
+dump wins where it speaks. `gather_from` is an input: the original fills it
+from the terrain, which only a `WORLD ≥ 5` dump carries — and which the
+worker's tile choice then filters again on `has_gather_access`
+(`docs/ORDERS.md` §6.4), so the list alone is not enough.
 
-**The score, on `gamelog-run6`: ticks before divergence 1**, and it is worth
-being precise about why, because the single number hides the state of the
-port. `Report::first_divergence_by_unit` gives the breakdown; over all 432
-frames it is `0/2@4 0/3@103 0/4@103 0/5@103 1/0@2 1/1@2 1/2@4 1/3@103
-1/4@103 1/5@103` — **and `0/1`, a woodcutter's citizen, never disagrees at
-all: 432 frames of matching positions and matching order lists.** The score
-is a minimum over every unit, so it is pinned by whichever unit the
-simulation cannot yet drive:
+**The score, on `gamelog-run6`: ticks before divergence 99** (2026-08-27),
+and it is worth being precise about why, because the single number hides the
+state of the port. `Report::first_divergence_by_unit` gives the breakdown;
+over all 432 frames it is `0/3@103 0/4@103 0/5@103 1/0@363 1/1@171 1/3@219
+1/4@203 1/5@219 1/6@100 1/7@206 1/8@320` — **and both woodcutters' citizens,
+`0/1` and `0/2`, never disagree at all: 432 frames of matching positions and
+matching order lists.** The score is a minimum over every unit, so it is
+pinned by whichever unit the simulation cannot yet drive:
 
-- The **AI's units** (`1/0` the scout, then the rest) move because the AI
-  orders them, and there is no AI. Nothing but the order stream or phase 5
-  moves those.
-- The **farm citizens** (`0/3`, `0/4`, `0/5` and player 1's) hold to frame
+- The **farm citizens** (`0/3`, `0/4`, `0/5`) hold to frame
   **102**, where the original inserts a move in front of their gather order
   ~~and ours does not — the farm re-target, and the measurement that says
   `FARM_GROWS = 200` is wrong by about a factor of two (`docs/ORDERS.md`
@@ -535,9 +551,13 @@ simulation cannot yet drive:
   *tile* is two sync-stream draws, so past the traced frames the farmers
   part on the tile, not the frame. Before this run the farmers "agreed"
   only because both sides stood still.
-- `0/2`, the second woodcutter's citizen, parts on frame 4 by a few position
-  units and rejoins the argument only at 428 — a path difference, not an
-  order one (`path-to`, below).
+- The **AI's units** part one at a time from frame 100 on — `1/6` the
+  trained citizen first, then the scout at 363 — where the AI orders them
+  somewhere this simulation's AI does not.
+
+The whole capture is the same game as `gamelog-run10`, which runs six times
+longer; the two now report the same score and the same per-unit breakdown,
+and that agreement is itself the check on the borrow above.
 
 The harness also runs a **derive-then-read check** (`check_start_orders`):
 the starting orders it derived from §9.3 against the `GATHERORDER` blocks the

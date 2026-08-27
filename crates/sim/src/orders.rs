@@ -20,7 +20,7 @@ use crate::build::{self, Ident, flags as bflags};
 use crate::combat::{self, Obj};
 use crate::garrison::GarrisonRefused;
 use crate::movement::{self, Angle, find_angle};
-use crate::world::vector_dist;
+use crate::world::{tile, vector_dist};
 use crate::{FarmAnim, Player, Pos, Sim, farms};
 
 /// `OrderIndex` — the value the gamelog's `type` line carries.
@@ -2636,24 +2636,44 @@ impl Sim {
         }
         self.mark(crate::anim::SITE_STAND_GATHER);
         self.set_default_anim(u);
-        if g.tile.is_none() {
-            let from = &self.buildings[b].gather_from;
-            if from.is_empty() {
-                // No tile list: an input. The worker keeps the camp.
-                self.store_gather(u, g);
-                return;
-            }
+        // `tx < 0 || ty < 0 || !has_gather_access(tx, ty, who, 1, 0)` — the
+        // held tile is given up and chosen again when the walk into it has
+        // closed (`005f0655`, the `else` arm's `goto LAB_005f02b2`).
+        let stale = match g.tile {
+            None => true,
+            Some(t) => !self.has_gather_access(t, who),
+        };
+        if stale {
+            g.tile = None;
             let btile = bpos.tile();
             let dm = g.dist_mod;
-            let mut best = (i32::MAX, 0usize);
-            for (i, t) in from.iter().enumerate() {
+            let mut best: Option<(i32, usize)> = None;
+            for i in 0..self.buildings[b].gather_from.len() {
+                let t = self.buildings[b].gather_from[i];
+                // **The candidate is filtered before it is scored**
+                // (`005f0575`): the tile still carries `mask & 0x4000`, and
+                // `has_gather_access` still holds for it. A tile ringed by
+                // its own kind has no orthogonal neighbour to stand on, so
+                // it is never chosen however near the camp it is — which is
+                // exactly what separates player 1's `(213, 92)` from the
+                // nearer `(214, 93)` on run10 (`docs/ORDERS.md` §6.4).
+                if self.world.tile_mask(t) & tile::BLOCKED == 0 || !self.has_gather_access(t, who) {
+                    continue;
+                }
                 let score = vector_dist((t.x - btile.x).abs(), (t.y - btile.y).abs()).max(3) * dm
                     + (i as i32 >> 2);
-                if score < best.0 {
-                    best = (score, i);
+                if best.is_none_or(|(s, _)| score < s) {
+                    best = Some((score, i));
                 }
             }
-            let pick = self.buildings[b].gather_from.remove(best.1);
+            // Nothing eligible — an empty list, or every tile walled in.
+            // The original returns here (`005f05b0`), before the wait is
+            // rolled, so the worker keeps the camp and takes no draw.
+            let Some((_, at)) = best else {
+                self.store_gather(u, g);
+                return;
+            };
+            let pick = self.buildings[b].gather_from.remove(at);
             self.buildings[b].gather_from.push(pick);
             g.tile = Some(pick);
         }

@@ -511,10 +511,19 @@ pub struct OrderDump {
     pub ox: Option<i64>,
     pub whom: Option<i64>,
     pub uid: Option<i64>,
-    /// `GATHERORDER`.
+    /// `GATHERORDER`, the whole row (`docs/ORDERS.md` §6.4): the chosen
+    /// resource tile, the camp/tile phase, the countdown, the distance
+    /// weight the tile choice scores with, and whether the worker has been
+    /// out yet. The first pass carried three of these and compared none of
+    /// them, and the tile it did not carry is what pinned player 1's score
+    /// at frame 4 for three days.
+    pub tx: Option<i64>,
+    pub ty: Option<i64>,
     pub build_type: Option<i64>,
     pub been_there: Option<i64>,
     pub goto_build: Option<i64>,
+    pub non_flat_gather: Option<i64>,
+    pub dist_mod: Option<i64>,
     pub wait: Option<i64>,
     /// `MOVEORDER` and its subclasses.
     pub x: Option<i64>,
@@ -1184,9 +1193,13 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
                 ox: target.and_then(|t| t.int("ox")),
                 whom: target.and_then(|t| t.int("whom")),
                 uid: target.and_then(|t| t.int("uid")),
+                tx: o.int("tx"),
+                ty: o.int("ty"),
                 build_type: o.int("build_type"),
                 been_there: o.int("been_there"),
                 goto_build: o.int("goto_build"),
+                non_flat_gather: o.int("non_flat_gather"),
+                dist_mod: o.int("dist_mod"),
                 wait: o.int("wait"),
                 x: o.find("MOVEORDER")
                     .map_or_else(|| o.int("x"), |m| m.int("x")),

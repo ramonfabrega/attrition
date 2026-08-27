@@ -13,51 +13,42 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-27, the first Fable steering session, after item 34.*
+*2026-08-27, after item 25.*
 
 **The headline — run10, 1,772 frames, RNG seeded from run11's trace: ticks
-before divergence 3, orders 2; player 0 first diverges at frame 103, player
-1 at frame 4.** Pinned as a floor in `run10_s_opening_…` (`rondata::diff`)
-with a history line; it has not moved since the capture was taken. Every
-sub-score has — frame 0–2 draws exact on run20, `mylos` 26,433 rows and one
-disagreement, path stacks 0 on run20, 13,542 angles compared. The whole has
-not, and from now on the handoff says whether it did.
+before divergence 99, orders 102; player 0 first diverges at frame 103,
+player 1 at frame 100.** It moved for the first time since it was pinned
+(from 3 / 2 / 103 / 4), and the pin in `run10_s_opening_…` carries its
+second history line. What is left at 100 and 103 is no longer any one
+unit: player 1's trained citizen `1/6` on 100, and player 0's three farmers
+on 103.
 
-**Landed this session:** the headline pin; this file's rewrite and its
-guard; the `sin_table` marker closed from the listing — the mirror is the
-original's own, inlined at 63 of 65 call sites, and the odd branch is live
-only in `MapGrass::make_continents`; `CLAUDE.md` amended (the finish line,
-the stopping rule, Fable's lane, spec versus story); `DECISIONS.md` 24.
+**Landed:** item 25 — the tile choice scores only tiles that still carry
+`mask & 0x4000` *and* pass `has_gather_access` (`005f0575`); player 1's
+woodcutter had been walking to the tree in the middle of its own forest.
+Two things fell out of it: `borrow_from_siblings` now takes the whole
+`WORLD` block from a matching sibling — run6's is `BUILDS=7`'s and the
+harness had been diffing it against a flat treeless world of its own
+making, so **run6 and run10 are the same game and now report the same
+score** — and `compare_orders` diffs the `GATHERORDER`'s whole row.
 
-**Owed:** the ratification ledger (`docs/audit/README.md`), taken by
-steering sessions over marked rows only; the spec/story split of the eight
-documents over 60 KB, one per touch under the guard's ratchet; `scenario.py`
-is parked and `seedini.py` stays as the second-map harness (item 41).
+**Owed:** unchanged — items 42 and 40 (`ORDERS.md` lowered to 191,335),
+`scenario.py` parked (item 41).
 
 **Needs the user:** nothing.
 
 **Opener (Opus):** `proceed @docs/QUEUE.md — raise the headline. Player 1
-first diverges at frame 4 because unit 1/2 holds a second order at frame 3
-that the sim does not (item 25, Length { ours: 1, theirs: 2 }). Find what
-issues it, land it, raise the floor in run10_s_opening_… and add its history
-line. Then the next-earliest first divergence. Take nothing that cannot
-name the score it moves.`
+now first diverges at frame 100: unit 1/6, the AI's first trained citizen,
+which the original sends somewhere this simulation does not. Player 0 is at
+103, three farmers at once. Take 1/6 first, find what orders it, land it,
+raise the floor in run10_s_opening_… and add its history line. Take nothing
+that cannot name the score it moves.`
 
 ## The queue
 
 In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
-
-25. **The first frames, on a map we did not tune against.** Two rows left:
-    the frame-1 order two of player 1's units hold and the sim does not —
-    **this is the headline's frame 4** — and §9.3's sixth citizen, which
-    `check_start_orders` derives on run20 and not on the fuzzed map
-    (`gamelog-fuzz-424242-early.txt`, sibling `-heights`). Also the fuzzed
-    map's frame 1, one `Leader::produce_building+0xc99` and one
-    `Unit::do_non_flat_gather+0x54b` short, asserted as they stand in
-    `the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well`.
-    `docs/AI.md` §9.3, `docs/SYNC.md` §4.2.
 
 38. **One long traced capture, human versus AI, on both maps.** run10 is the
     longest capture and predates the trace, so its RNG is seeded from a

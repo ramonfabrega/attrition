@@ -79,44 +79,13 @@ confirmed the list orientation, the log format, the citizen's first moving
 frame and a 327-frame build trace. Nothing is transcribed; see
 `docs/DECISIONS.md` entry 7.
 
-**Status (2026-08-21).** First reading, implementation, blind second reading
-and **all seven adjudications** are landed —
-`docs/audit/2026-08-21-orders.md`. What is left of the queue item is the
-harness work §13's last two bullets name (the start-of-game in `build_sim`
-and reading the `UNITS=3` order blocks back), not the reading.
-
-- **The blind side, done.** Seven readers on Opus 5, split the same way as
-  the first reading, each given only the entry points and the traps: 355
-  numbered claims across R1 the order system (38), R2 the move order (42),
-  R3 build/repair/garrison (57), R4 gather (48), R5 the start of a game
-  (56), R6 the combat and group orders (64), R7 the spatial queries and the
-  log (50). The reports are **not in the repo** (entry 7) — they are at
-  `~/ghidra-projects/reading/orders-2026-08-21/`, with a README there
-  giving the state and how to finish.
-- **The adjudication, all seven**, one per sub-area, each taking every
-  disagreement back to the decompiled function, the listing or the PE:
-  R1 (A 11 · B 11 · both 15 · neither 2), R2 (A 4 · B 8 · both 3 ·
-  neither 1 · open 2), R3 (**A 0 · B 21** · both 39 · neither 4 · open 2),
-  R4 (A 5 · B 13 · both 29 · neither 1), R5 (A 0 · B 9 · both 26 ·
-  neither 2), R6 (A 6 · B 14 · both 24 · neither 8 · open 1),
-  R7 (A 6 · B 13 · both 29 · neither 0 · open 2). Ten corrections landed in
-  `crates/sim`, every one re-verified in the listing before it was applied;
-  the document corrections are marked inline throughout, each naming the
-  sub-area that found it.
-- **The three first-reader disagreements are all closed, none needing a
-  behavioural check.** `UnitOrder::flags & 4` is the action bit, settled by
-  `Group::set_up_insert@0070e520:25` — a reader neither reading had cited
-  (R1). The `OrderIndex` values are in the PDB (R1). `do_gather`'s approach
-  radius is `min(x_size, y_size) × 0x60 + 0x30`, settled in the listing at
-  `0x5ef756` **twice over**, by R4 and R7 independently.
-- **What the second reading cost the first.** Two claims the blind side
-  raised against this document held: `add_repair_order` really has no
-  `QUEUE_FIRST` branch (R3), so §3.1's "one shape, 21 functions" has
-  exceptions. One did not: `do_attack` owning no reload logic is **not** a
-  disagreement — §7.2 already put the gate in `fight`, and the
-  implementation was right where the prose was wrong (R6).
-
-What the implementation leaves as inputs is §13.
+**Status.** First reading, implementation, blind second reading and all
+seven adjudications are landed; the verdicts, the counts and what the
+second reading cost the first are in `docs/audit/2026-08-21-orders.md`
+and the story is in `docs/JOURNAL.md` (2026-08-21). The reports
+themselves are outside the repo, at
+`~/ghidra-projects/reading/orders-2026-08-21/`. What the implementation
+leaves as inputs is §13.
 
 **Confidence.** High for the structures, the list's orientation and the three
 enqueue modes, the dispatch and its place in the frame, `do_move`'s planning
@@ -1726,28 +1695,32 @@ stream to line up has to take them in order. `WorldData::has_gather_access@
 is −1/`who`/an ally, and at least one orthogonal neighbour is neither terrain
 class `(mask & 0x30) == 0x20` nor itself a resource tile (`& 0x4000`).
 
-**Two lines of this block were right here and wrong in the code, for four
-days (2026-08-26).** The pseudocode above is what the decompile says; the
-implementation had drifted from it in two places, and only a *sequence*
-comparison against the original's own trace could see either:
+**Three lines of this block have been right here and wrong in the code.**
+The pseudocode above is what the decompile says; the implementation drifted
+from it three times, each caught only by a differential check and never by a
+reading (the story: `docs/JOURNAL.md`, 2026-08-26 and 2026-08-27). As rules:
 
-- **The camp arrival is `wait--`, `been_there`, `wait < 0 → return`, face,
-  `CHAR_DUMP_*`** — as the `goto_build == 1` line has it. `orders.rs` had a
-  `CHAR_DEFAULT` for a first arrival instead, which is an animation the
-  branch does not contain (the listing at `5f0b5e`–`5f0b89` is the two
-  dumps and nothing else) and, being an idle request, a **draw**. It cost
-  frame 0 four draws, not two: the stand reset the citizens' clocks, so the
-  phase-7 wraps the original spends never fell due (`docs/SYNC.md` §6).
-- **`set_anim(CHAR_DEFAULT)` before the tile approach's `find_nearby_spot`**
-  — the `goto_build == 0` line — was simply missing. The original's site is
-  `Unit::do_non_flat_gather+0xfd4`, reached at run21's frame 23,299.
+- **The camp arrival** is `wait--`, `been_there`, `wait < 0 → return`, face,
+  `CHAR_DUMP_*`, and no third `set_anim` — the listing at
+  `5f0b5e`–`5f0b89` holds the two dumps and nothing else.
+- **`set_anim(CHAR_DEFAULT)` runs before** the tile approach's
+  `find_nearby_spot` (`+0xfd4`).
+- **The tile choice's filter is not optional** (`005f0575`): a candidate is
+  scored only if it still carries `mask & 0x4000` *and* `has_gather_access`
+  holds for it, and when nothing passes, the function returns before
+  `wait = 400 + rnd % 200` — no tile, and no draw. Without the filter a
+  woodcutter is sent to the tile in the middle of its own forest, which has
+  no orthogonal neighbour to stand on and which the original therefore never
+  picks; the `else` arm re-chooses on the same test, so a held tile that
+  loses its access is given up too (`005f0655`).
 
-The lesson is the one `CLAUDE.md` states as a default: prose that cites
-every address correctly is not a check. The three `CHAR_DEFAULT` sites of
-this function are now marked (`anim::SITE_STAND_GATHER` `+0x10f`,
-`SITE_STAND_TILE` `+0xfd4`, `SITE_STAND_RETURN` `+0xb99`) and so are its
-two direct draws (`SITE_TILE_WAIT` `+0x54b`, `SITE_WORK_WAIT` `+0xcc3`), so
-the next drift is an `assert_eq!` rather than a re-reading.
+The three `CHAR_DEFAULT` sites are marked (`anim::SITE_STAND_GATHER`
+`+0x10f`, `SITE_STAND_TILE` `+0xfd4`, `SITE_STAND_RETURN` `+0xb99`) and so
+are the two draws (`SITE_TILE_WAIT` `+0x54b`, `SITE_WORK_WAIT` `+0xcc3`).
+The order's whole row — `tx`, `ty`, `wait`, `goto_build`, `been_there`,
+`dist_mod` — is diffed against the dump's on every frame
+(`OrderMismatch::Gather`), which is what makes the next drift a failure
+rather than a reading.
 
 For the dump's woodcutter citizen (§4.8): frame 1 — `goto_build 1, wait 0`,
 adjacent (it was placed beside the camp), `wait → −1`, `been_there = 1`; frame

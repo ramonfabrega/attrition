@@ -3392,3 +3392,135 @@ capture that would have shown the whole standing still was on disk the
 whole time. And the cheapest steering instrument is a floor assertion: it
 costs one line, it cannot be forgotten, and it turns "are we converging"
 from a conversation into a test.
+
+## 2026-08-27 — item 25: the tree in the middle of the forest (Opus 5)
+
+**The headline moved for the first time since it was pinned: ticks before
+divergence 3 → 99, orders 2 → 102, player 1's first divergence frame 4 →
+100.** The floor in `run10_s_opening_…` carries the new numbers and its
+second history line.
+
+### The row
+
+The opener named it exactly: player 1's unit `1/2` holds a second order at
+the original's frame 3 that the simulation does not
+(`Length { ours: 1, theirs: 2 }`, then `Kind { ours: 7, theirs: 1 }` — a
+`MOVEORDER` pushed in front of the `GATHERORDER`). Two frames later the
+simulation pushes one too, so the shape was a lag, and lags are usually a
+clock. This one was not.
+
+Reading the two sides frame by frame is what said so. The original's
+`GATHERORDER` at frame 2 carries `tx 213 ty 92`; the simulation's carries
+`(214, 93)`. Both are in the woodcutter's mining list, both are three tiles
+from the camp, and the scoring rule in `docs/ORDERS.md` §6.4 —
+`max(3, vector_dist) × dist_mod + (i >> 2)` — genuinely prefers the
+simulation's: `(214, 93)` sits at index 5 and scores 13, `(213, 92)` at index
+10 and scores 14. The arithmetic was right. **The predicate in front of it
+was missing.**
+
+`005f0575` scores a candidate only if it still carries `mask & 0x4000` *and*
+`WorldData::has_gather_access` holds for it; the implementation scored every
+tile in the list. `(214, 93)`'s four orthogonal neighbours — `(213, 93)`,
+`(215, 93)`, `(214, 92)`, `(214, 94)` — are all in the same mining list, so
+it is a tree in the middle of a forest with nowhere to stand, and the
+original never considers it. `(213, 92)` has `(213, 91)` clear, so it does.
+With the filter the two sides pick the same tree and `1/2` tracks the
+original's position from frame 4 to frame 567.
+
+That is the recurring lesson again, in the form `docs/audit/README.md`
+already states it: *the arithmetic is doubly confirmed almost everywhere and
+the predicates are where the errors are.* The pseudocode in §6.4 has carried
+this filter since the first reading. Nothing but a diff was ever going to
+notice that the code did not.
+
+### The other half: run6 was being diffed against the wrong map
+
+Landing the filter broke `the_original_s_own_run_is_still_matched_frame_for_
+frame`, and the reason was worth more than the fix. run6's `WORLD` block is
+`BUILDS=7`'s — seventeen scalars, no cells, no tile masks — so the harness
+had been standing up a flat, region-less, **treeless** world and measuring
+run6 against it for three weeks. On such a world `has_gather_access` is false
+everywhere, and the new filter correctly refuses every tile.
+
+The tell had been on disk the whole time and nobody looked: **run6 and run10
+are the same game**, and their diffs disagreed. run6 said player 1 first
+diverged at frame 2; run10 said frame 4. run6 said its farmers held to 213;
+run10 said 103.
+
+`borrow_from_siblings` now takes the whole `WORLD` block from a sibling whose
+seventeen scalars match ours field for field — the map seed, the extent, the
+generator's eight totals, the territory limits. Two captures of one game now
+report the same headline and the same per-unit breakdown, which is the check
+on the borrow. Some of run6's ceilings went *up* as a result (the farmers'
+304/317 → 626/420); that is a re-base, not a regression, and run10 had always
+read them the higher way.
+
+### The widening
+
+`compare_orders` compared an order's kind, action bit, flags and target and
+nothing else, so a `GATHERORDER` whose `tx`/`ty` disagreed was invisible until
+it produced a different *walk* two frames later. The gather order's whole row
+— `tx`, `ty`, `wait`, `goto_build`, `been_there`, `dist_mod` — is now diffed
+every frame (`OrderMismatch::Gather`); `tx`, `ty`, `dist_mod` and
+`non_flat_gather` were not even parsed. It costs 1,221 rows on run6 and 6,330
+on run10, none of them before the score, and all of run6's are player 1's
+`1/1` — the citizen the original turns into a builder and this simulation
+keeps at the woodcutter.
+
+### Numbers
+
+| | before | after |
+|---|---|---|
+| headline (run10) | ticks 3, orders 2, p0 @ 103, p1 @ 4 | **ticks 99, orders 102, p0 @ 103, p1 @ 100** |
+| run6 headline | ticks 1, orders 0, p0 @ 213, p1 @ 2 | ticks 99, orders 102, p0 @ 103, p1 @ 100 |
+| run10 angle rows compared | 13,542 | 15,336 |
+| run10 `mylos` | 26,433 rows, 1 disagreement | unmoved |
+| run6 order/path rows | 1,516 / 1,911 | 2,583 / 1,674 |
+
+`1/2`'s position now agrees to frame 567; `0/1` and `0/2` agree for the whole
+of run6.
+
+### Paperwork
+
+`docs/ORDERS.md` §6.4 states the filter as a rule and its 2026-08-21 status
+block moved here (below); `docs/DATALAYER.md` has the `WORLD` borrow and a
+corrected run6 score; `docs_guard::OVER` lowers `ORDERS.md` to 191,335.
+
+### Lifted from `docs/ORDERS.md`, the 2026-08-21 status block
+
+**Status (2026-08-21).** First reading, implementation, blind second reading
+and **all seven adjudications** are landed —
+`docs/audit/2026-08-21-orders.md`. What is left of the queue item is the
+harness work §13's last two bullets name (the start-of-game in `build_sim`
+and reading the `UNITS=3` order blocks back), not the reading.
+
+- **The blind side, done.** Seven readers on Opus 5, split the same way as
+  the first reading, each given only the entry points and the traps: 355
+  numbered claims across R1 the order system (38), R2 the move order (42),
+  R3 build/repair/garrison (57), R4 gather (48), R5 the start of a game
+  (56), R6 the combat and group orders (64), R7 the spatial queries and the
+  log (50). The reports are **not in the repo** (entry 7) — they are at
+  `~/ghidra-projects/reading/orders-2026-08-21/`, with a README there
+  giving the state and how to finish.
+- **The adjudication, all seven**, one per sub-area, each taking every
+  disagreement back to the decompiled function, the listing or the PE:
+  R1 (A 11 · B 11 · both 15 · neither 2), R2 (A 4 · B 8 · both 3 ·
+  neither 1 · open 2), R3 (**A 0 · B 21** · both 39 · neither 4 · open 2),
+  R4 (A 5 · B 13 · both 29 · neither 1), R5 (A 0 · B 9 · both 26 ·
+  neither 2), R6 (A 6 · B 14 · both 24 · neither 8 · open 1),
+  R7 (A 6 · B 13 · both 29 · neither 0 · open 2). Ten corrections landed in
+  `crates/sim`, every one re-verified in the listing before it was applied;
+  the document corrections are marked inline throughout, each naming the
+  sub-area that found it.
+- **The three first-reader disagreements are all closed, none needing a
+  behavioural check.** `UnitOrder::flags & 4` is the action bit, settled by
+  `Group::set_up_insert@0070e520:25` — a reader neither reading had cited
+  (R1). The `OrderIndex` values are in the PDB (R1). `do_gather`'s approach
+  radius is `min(x_size, y_size) × 0x60 + 0x30`, settled in the listing at
+  `0x5ef756` **twice over**, by R4 and R7 independently.
+- **What the second reading cost the first.** Two claims the blind side
+  raised against this document held: `add_repair_order` really has no
+  `QUEUE_FIRST` branch (R3), so §3.1's "one shape, 21 functions" has
+  exceptions. One did not: `do_attack` owning no reload logic is **not** a
+  disagreement — §7.2 already put the gate in `fight`, and the
+  implementation was right where the prose was wrong (R6).
