@@ -513,3 +513,45 @@ residue is often already written in another mechanic's document.** The
 "slot" would have found it in a minute. Before booking a reading for a
 residue, grep the documents of every mechanic the value passes through —
 not only the one it was measured in.
+
+**A plausible bug is more dangerous than an implausible one (2026-08-26,
+no audit file — item 31's own session).** The rule above is "when the
+decompiler prints a local that cannot be right, the listing settles it in
+a minute". Building `docs/GROUPS.md` §6.7 found the other half of it.
+Ghidra renders `action_move_near`'s coastline snap as
+
+```
+y = fy + (wy / 0x300 - fy / 0x300) * 0x300;
+x = fx + (wx / 0x300 - fx / 0x300) * 0xc0;      // <- a tile stride
+```
+
+which *can* be right, and if it were would be exactly the kind of
+asymmetric original defect this project reproduces on purpose. It is not
+one: `70672d`–`706764` is `leal (%eax,%eax,2)` then `shll $0x8` — × 3 ×
+256 — on both axes, with `imull $0x2aaaaaab` / `sarl $0x7` either side,
+a signed divide by `0x300`. A faithful transcription would have shipped a
+defect the original does not have, and no capture on disk crosses a
+coastline, so no test would have caught it. **The trigger is not "this
+cannot be right"; it is "this is arithmetic, and a constant is doing the
+work" — check the fold.**
+
+Two more from the same hour, both of them the decompiler's rendering
+rather than its logic. `grouppath` and `cols` print as
+`grouppath.length` and `cols._padding_`, which read like fields of
+something; both are **function-local statics** of `action_move_near`
+(`0xee1538`, `0xee155c`), and `cols` is written by no instruction in the
+export — so Column's non-final waypoints index uninitialised heap, and
+what looked like a mechanic to port is a seam by necessity. And
+`pathfinder +0x70`, glossed in §6.7's first draft as "an AI hint the
+pathfinder reads", is the *same word* `find_wpath` sets for an AI's own
+units: a mode forced on from outside, not a private channel. All three
+were one `llvm-objdump` or one `grep` for a writer away, which is the
+point.
+
+And from the tests rather than the listing: **a guard whose subject is
+one of two short-circuits has to be placed against the other one.** The
+first `a_short_group_move_plans_no_route_at_all` put its goal two cells
+away and stayed green when the `0x900` gate was removed, because
+`find_wpath`'s own near test produced the same one-entry stack. Breaking
+it on purpose is what found that; a fixture chosen to clear both is what
+fixed it.
