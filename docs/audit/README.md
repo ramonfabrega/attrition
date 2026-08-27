@@ -118,24 +118,12 @@ that needs them is being built.
   **Observed 2026-08-26 by run31** and off this list:
   `GroupOrder::oxx` names the leader in the record, and it is not
   `list[0]`. §4.4, §12.1.
-- **`FABLE:` — `sin_table@00a46a00`'s second-quadrant branch**
-  (2026-08-26, Opus; `crates/sim/src/movement.rs`, `quarter_lookup`).
-  The simulation folds a bit-30 angle by **mirroring** it,
-  `0x7fffffff − a`, and looking the mirror up. The decompiled function
-  appears to do something else: keep the index it was given,
-  `(a & 0x3fffffff) >> 22`, and return `0xffff − base + delta` with the
-  **same** interpolation delta. Transcribing that made run31's `curr`
-  wrong by *hundreds* where the mirror is wrong by at most two, so the
-  mirror is behaviourally right and the decompilation of that branch is
-  not — but nobody has read the listing to say what it actually is.
-  Marked rather than guessed because this is not a corner: it is the
-  primitive under every heading, every projectile and every formation
-  rotation in the game, and no capture before run31 had an angle in the
-  second quadrant at all. *Cheapest settlement:* `llvm-objdump` over
-  `00a46a00`, twenty lines. The residual ±2 that started this is
-  **already explained** and is not evidence against the mirror — `curr`
-  is a mid-frame quantity (`docs/GROUPS.md` §6.6) — so what is owed here
-  is a reading, not a fix.
+- ~~**`FABLE:` — `sin_table@00a46a00`'s second-quadrant branch**~~
+  **Closed 2026-08-27, Fable, from the listing.** The decompiler is right
+  about `sin_table`; the mirror is in `sinx`/`cosx` and inlined at 63 of the
+  65 call sites; the branch is reached only from
+  `MapGrass::make_continents`. `docs/MOVEMENT.md`, "The mirror is the
+  original's". No code change.
 
 **The cheapest way to shorten this list is not a pass.** Most of what is
 owed is arithmetic and predicates a capture can settle outright, so

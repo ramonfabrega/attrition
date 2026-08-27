@@ -4276,6 +4276,32 @@ mod tests {
         let refs: Vec<&Initial> = inits.iter().collect();
         let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs).unwrap();
         assert_eq!(report.frames.len(), 1772);
+
+        // **The headline.** Phase 3's score is ticks before divergence, and
+        // this is the longest capture there is, so this is the number. It is
+        // pinned as a **floor** so that it can only go up: a session that
+        // lowers it fails here before it reaches any sub-score below, and a
+        // session that raises it moves the floor and adds a line to the
+        // history. `first_divergence` is the breakdown the single score
+        // hides — one unit the simulation cannot yet drive pins the score
+        // while every other unit may be tracking to the end.
+        //
+        // History:
+        //   2026-08-27  ticks 3, orders 2; player 0 @ 103, player 1 @ 4
+        //               (item 34 landed; the first pin)
+        let ticks = report.ticks_before_divergence();
+        let orders = report.order_ticks_before_divergence();
+        let first: Vec<i64> = report
+            .first_divergence
+            .iter()
+            .map(|&(_, f)| f.unwrap_or(i64::MAX))
+            .collect();
+        assert!(
+            ticks >= 3 && orders >= 2 && first[0] >= 103 && first[1] >= 4,
+            "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
+             — the floor is ticks 3, orders 2, player 0 @ 103, player 1 @ 4",
+            report.first_divergence
+        );
         assert!(
             report
                 .notes

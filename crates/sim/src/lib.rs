@@ -2236,6 +2236,8 @@ mod cities_tests;
 // The hard constraint, checked against this crate's own source rather than
 // trusted: `docs/DECISIONS.md` 16, `CLAUDE.md`.
 #[cfg(test)]
+mod docs_guard;
+#[cfg(test)]
 mod no_float;
 
 // Generated games, each played twice: determinism on paths no hand-written

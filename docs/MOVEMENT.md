@@ -227,31 +227,46 @@ So the axis angles work by arithmetic overflow. Widen that multiply while
 "cleaning up" and every unit ordered along an axis stops dead.
 `crates/sim/src/movement.rs` uses a `wrapping_mul` and says why at the site.
 
-### The mirror is right; its decompilation is not (2026-08-26, open)
+### The mirror is the original's; the decompiled branch is real and unreached (closed 2026-08-27)
 
 The paragraph above says the second quarter is "mirrored with
-`0x7fffffff - angle`", and that is what `crates/sim` does. **The decompiled
-`sin_table@00a46a00` does not read that way.** It indexes with the angle it
-was handed either way — `(a & 0x3fffffff) >> 22` — and, when bit 30 is set,
-returns `(0xffff - cur) + delta` with the *same* interpolation delta, rather
-than looking up the mirrored index at all. The two agree only where
-`table[255 - i] == 0xffff - table[i]`, which this table nearly but never
-exactly satisfies.
+`0x7fffffff - angle`", and that is what `crates/sim` does. The decompiled
+`sin_table@00a46a00` reads as though it did something else — keep the index
+it was given and, with bit 30 set, return `0xffff − cur + delta` — and on
+2026-08-26 transcribing that made run31's `curr` wrong by hundreds. Read
+from the listing (`llvm-objdump` over `a46a00`–`a46b27` and `92d0c0`–`92d129`),
+both are true, and there is no contradiction:
 
-Transcribing the decompiler's version made run31's `GROUPDATA` `curr` wrong
-by **hundreds**, where the mirror is wrong by at most **two** — and the two
-are separately accounted for (`docs/GROUPS.md` §6.6: `curr` is computed
-mid-frame and the dumped heading is a hair past it). So the mirror is
-behaviourally right and the decompilation of that branch is wrong.
+- **`sin_table` is exactly what the decompiler says.** `a46a2d`: `test eax`
+  on `angle & 0x40000000`; the bit-clear path (`a46a5f`) is `delta + cur`
+  and the bit-set path (`a46a4c`–`a46a52`) is `delta − cur + 0xffff`, on the
+  unmirrored index. That is not a mirror and not a sine.
+- **The mirror lives in the callers.** `sinx@0092d100` and `cosx@0092d0c0`
+  negate the distance and clear bit 31 for a negative angle, then
+  `mov ecx, 0x7fffffff; sub ecx, angle; and eax, 0x40000000; cmove ecx, angle`
+  — mirror when bit 30 is set, keep otherwise — and tail-jump to
+  `sin_table` with **bit 30 always clear**. `cosx` is `sinx` after
+  `lea esi, [ecx + 0x40000000]`.
+- **The compiler inlined that fold at the call sites.** The sim's functions
+  — `Unit::move_step` (twice), `Form::compute_dests` (fourteen),
+  `Group::update_positions` (four), the three pathfinders, `Army::do_forming`,
+  `Guy::set_angle`, `go_around_building`, `check_fuel`, `project` — call
+  `sin_table` directly, and every one of them carries the
+  `0x7fffffff`/`cmove` sequence in the instructions before the call. Ghidra
+  shows `sin_table(unaff_EDI, unaff_ESI)` because it lost the register
+  arguments, which is why the fold was invisible from the decompile.
+- **63 of the 65 call sites in the executable fold.** The two that do not
+  are one loop in `MapGrass::make_continents@00695050` (`6950cb`, `6950e5`),
+  which walks `n` equally spaced angles round a full circle and takes the
+  cosine as `sin_table(angle + 0x3fffffff)` — the `cos_table@00a469f0`
+  convention (`add ecx, 0x3fffffff; jmp sin_table`), which has no other
+  caller. So the bit-30 branch is live in **map generation only**, and the
+  day that is ported it must be reproduced as written, sawtooth and all.
 
-**What is owed is a reading, not a fix.** `llvm-objdump` over `00a46a00`,
-twenty lines, settles what the branch really computes — and this is the
-second time this exact function's branch structure has misled a reader
-("Open questions" below), which is why it is now on the ratification ledger
-(`docs/audit/README.md`) rather than only in a journal entry. Nothing before
-run31 could have caught it: every captured angle either was negative, in
-which case the fold clears bit 31 and leaves bit 30 clear, or sat in the
-first quarter.
+For everything this document covers, then, `sin_component`'s mirror is the
+original's own arithmetic, instruction for instruction. The lesson is the
+audit README's: when the decompiler prints an `unaff_` argument, the
+listing is the only place the caller's half of the contract can be read.
 
 There are also **three precision paths** on the distance, differing only in
 where the 16-bit shift is split so that `s × distance` cannot overflow: below
@@ -655,14 +670,11 @@ should be checked for overflow before it is called broken. The first reading
 also came from disassembling `sin_table` in two halves, which is how the
 branch structure got mixed up.
 
-**And it got mixed up again, in the other direction** (2026-08-26, **open**):
-the decompiled second-quadrant branch reads as "keep the index, return
-`0xffff − cur + delta`", which is not a mirror and which run31's `curr`
-refutes by a factor of a hundred. The mirror `crates/sim` implements is
-right; what that branch actually is, nobody has read from the listing. It is
-on the ratification ledger (`docs/audit/README.md`) and the site carries the
-warning. Twice now the same twenty lines have fooled a reader through the
-decompiler, so the third attempt should start at `llvm-objdump`.
+~~**And it got mixed up again, in the other direction** (2026-08-26).~~
+Closed 2026-08-27 from the listing: the decompiled branch is real, the
+mirror is inlined in every sim caller, and the branch is reached only from
+`MapGrass::make_continents`. See "The mirror is the original's" under "The
+sine table".
 
 ~~**What the type's own stored turn speed means.**~~ Degrees in the file,
 `degrees_to_angle` at load, a binary angle in memory; and `UNIT_TURN_SPEED` is

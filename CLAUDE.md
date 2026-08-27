@@ -96,8 +96,13 @@ artifact is the next phase's tool.
    **every frame** to a text file, and a fixed seed makes a run reproducible.
    That file, not a recording, is the per-frame ground truth the sim is diffed
    against.
-3. **Sim skeleton** — economy, one unit type, movement. Replay a recorded game
-   and diff. Score is ticks before divergence. This is the long middle.
+3. **Sim skeleton** — the rules of a match, mechanic by mechanic, diffed
+   against the original's own per-frame dumps. **The score is ticks before
+   divergence** on the longest traced capture, pinned as a floor in
+   `rondata::diff` and stated first in `docs/QUEUE.md`. **Done when** a
+   fixed-seed, traced human-versus-AI capture on two maps stays in lockstep
+   — no position or order disagreement — for its full length. This is the
+   long middle, and the number is how anyone can tell where in it we are.
 4. **Renderer** — thin client. Original assets first; they are the visual
    oracle.
 5. **AI** — hardest, least-oracled, and less bad than it looked: build order
@@ -125,9 +130,9 @@ subagent inherits this file and the memory index, and nothing else
 | file | holds | how it grows | inherited by a subagent |
 |---|---|---|---|
 | `CLAUDE.md` | the rules | rarely changes | **yes** |
-| `docs/QUEUE.md` | where things stand, and the backlog | rewritten every session; subtracts | no |
-| `docs/JOURNAL.md` | the chronicle, dated | append-only | no |
-| `docs/<MECHANIC>.md` | the specification and its provenance | amended in place; its § numbers are an API the code cites | no |
+| `docs/QUEUE.md` | where things stand, and the backlog | rewritten every session; **deletes** finished items; guarded | no |
+| `docs/JOURNAL.md` | the chronicle, dated, and every finished item's story | append-only | no |
+| `docs/<MECHANIC>.md` | the specification: rules, fields, formulas, coverage | amended in place; its section numbers are an API the code cites; the story goes to the journal; size guarded | no |
 | `docs/DECISIONS.md` | decisions and their rationale | append; amend in place, never delete | no |
 | `docs/audit/` | the second readings' verdicts, and the method's record | one file per audit | no |
 | memory (`~/.claude/projects/…/memory/`) | machine and account facts only | per user, outside git | **the index is** — keep its hooks free of findings |
@@ -142,10 +147,18 @@ reads `docs/<MECHANIC>.md` and knows what the last one knew. That is what makes
 `/clear` between mechanics free, and it is why the document is written before
 the implementation rather than after.
 
+**An item is booked with the score it moves.** The headline, or a sub-score
+the queue names — and the item nearest the headline's first divergence is
+the default. An item that turns out to be something else spawns its
+successors at the *back* of the queue, not the front, and a session that
+moved no score says so in the handoff. This is the stopping rule for the
+long middle: the residue chase is productive and unbounded, and only the
+number says whether the whole is converging.
+
 **Definition of done**, all five:
 
 - `docs/<MECHANIC>.md`, stating how it was established, how confident it is,
-  and what it has *not* established.
+  what it has *not* established, and which of its claims a diff backs.
 - The implementation, in its own module.
 - Tests, including the end-to-end kind that run the new mechanic against the
   ones already there.
@@ -191,9 +204,13 @@ outside the per-mechanic tests, and each was written by first making it fail:
   frame for frame, so the state of the port is a test rather than a number in
   a commit message. The dumps live outside the repo; a machine without them
   says so rather than passing quietly.
+- `crates/sim/src/docs_guard.rs` reads the paperwork: the queue deletes
+  rather than strikes and stays short, this file names no finding, and a
+  document over the size ceiling may only shrink.
 
 A guard that has never failed has not been tested; make it fail on purpose
-once, then land it.
+once, then land it. A rule that could be a guard and is only prose will be
+broken within the week; the queue's own rules were.
 
 **Prefer a diff to a reading, and convert readings into diffs.** Reading is
 how we find out what to check; a differential check against the original's
@@ -241,7 +258,12 @@ eventually make the second reading unnecessary** — so the list is the queue
 of runs, and a run that lights up a whole family is worth more than one that
 lights up a function.
 
-**Every mechanic gets a blind second reading before it is called done.** One
+**Every reading-only claim gets a blind second reading before it is called
+done.** A claim a diff against the original's dump has confirmed needs no
+reader — the dump is the stronger oracle, and it keeps checking on every
+commit — so each document's coverage section says which of its claims are
+diff-backed and which rest on a reading alone, and the readers are briefed
+with the second list. For those: one
 reader writes the document from the decompile; a second, who has not seen the
 document or the implementation, re-derives the same mechanic from the same
 export and writes a report; a third adjudicates every disagreement back to the
@@ -264,12 +286,16 @@ reader inherits this file — so **this file must never name what a reader is
 meant to re-derive**; findings go in the mechanic's document and the queue.
 
 **Fan-out rules.** **Opus drives.** It is the default for a subagent and for
-the session, and it carries most of this work end to end — implementation,
-diffs, widenings, adjudication, the ordinary reading. Fable is chosen, not
-inherited, and the choice is said in user-visible text each time; never
-Sonnet. What Fable is for: a **first** decompile reading, an overarching or
-genuinely new piece of design, and the **ratification** — the final pass
-over what the earlier ones settled. Blind readers may run on Opus.
+the session, and it carries this work end to end — implementation, diffs,
+widenings, readings, adjudication under the marker discipline, the
+documents and the queue. **Fable never reads blind and is never a
+subagent.** It is the **steering session** — every ten items or two days,
+in the main thread: is the tranche real, has the headline moved, what is
+the finish line; then the batched ratification of the *marked rows only*,
+any verdict that overturns an earlier one, a listing read where the
+decompiler is wrong, and the rewrites of this file and the queue. It writes
+the next opener. Never Sonnet; the model is said in user-visible text each
+time.
 
 An Opus adjudication is acceptable under the marker discipline — append each
 verdict as it is settled, and mark what cannot be settled `FABLE:` rather

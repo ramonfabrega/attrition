@@ -218,16 +218,13 @@ pub const SIN_TABLE: [i32; 256] = [
 /// This is the single most delicate thing in the module, and it is why the
 /// multiply below is a `wrapping_mul` and not a widening one.
 ///
-/// **Open, and on the ratification ledger** (`docs/audit/README.md`,
-/// 2026-08-26): the *caller* folds a second-quarter angle by mirroring it,
-/// `0x7fffffff − a`, and looking the mirror up here. `sin_table@00a46a00`
-/// decompiles as though it did something else — keep the index it was given
-/// and return `0xffff − cur + delta`, the same delta. Transcribing that makes
-/// run31's `GROUPDATA` `curr` wrong by hundreds where the mirror is wrong by
-/// at most two, and the two are fully explained (`docs/GROUPS.md` §6.6:
-/// `curr` is a mid-frame quantity), so the mirror is behaviourally right and
-/// that branch's decompilation is not. What nobody has done is read the
-/// listing. Do not "fix" this toward the decompiler without one.
+/// The *caller* folds a second-quarter angle by mirroring it,
+/// `0x7fffffff − a`, before looking it up here — as `sinx@0092d100` does and
+/// as the compiler inlined at all 63 sim call sites of `sin_table@00a46a00`
+/// (read from the listing, 2026-08-27; `docs/MOVEMENT.md`, "The sine
+/// table"). `sin_table` itself has a bit-30 branch that returns
+/// `0xffff − cur + delta` on the unmirrored index; it is real, and it is
+/// reached only from `MapGrass::make_continents`. Do not model it here.
 fn quarter_lookup(folded: i32) -> i32 {
     let idx = ((folded & 0x3fff_ffff) >> 22) as usize;
     let frac = folded & 0x003f_ffff;

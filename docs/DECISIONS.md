@@ -872,3 +872,54 @@ no reading could have reached, one of which is a genuine
 non-reproducibility in the original — a wedge's row count is seeded from
 uninitialised stack. None of that came from reading the functions again.
 It came from writing them out and running the diff.
+
+## 24. The score is the finish line, the queue deletes, and Fable steers
+
+**Decided 2026-08-27**, in the first Fable steering session, after two days
+and twenty Opus sessions of the long middle. Amends entries 21, 22 and 23
+in place; overturns nothing.
+
+**What was found.** The tranche was real — every finding spot-checked held
+against the decompile and the PDB, the tree was green with the install
+wired in, nothing had leaked — and the loop had changed shape without a
+decision: from one mechanic per session to one diff residue per session,
+each closed item spawning one or two more at the front of the queue. Every
+sub-score had improved. The score phase 3 names, ticks before divergence,
+was **3** on the longest capture, had been 2–5 throughout, was asserted
+nowhere and stated nowhere. The queue was 409 lines against its own "about
+twenty", its struck entries had grown paragraphs, three documents were over
+150 KB, and fifteen audits were owed a ratification that never came because
+nothing scheduled it.
+
+**The decisions.**
+
+1. **The headline is pinned and stated first.** `ticks_before_divergence`,
+   the order score and each player's first-divergence frame are asserted
+   as a *floor* on the longest capture, with a dated history line; the
+   handoff opens with them and says whether they moved. Phase 3's finish
+   line is written into `CLAUDE.md`: a traced human-versus-AI capture on
+   two maps, in lockstep for its full length.
+2. **An item is booked with the score it moves**, and the default item is
+   the one nearest the headline's first divergence. Spawned items go to the
+   back. This is the stopping rule the long middle lacked.
+3. **The queue deletes.** A finished item leaves for the journal under its
+   number; no struck lines. `crates/sim/src/docs_guard.rs` fails the build
+   on a strike, on 180 lines, on a 32-line handoff — made to fail first on
+   the 409-line file, as the working agreement asks of every guard.
+4. **Specification and story are different documents.** `docs/<M>.md` keeps
+   rules, fields, formulas and a coverage section; narrative goes to the
+   journal. The eight documents over 60 KB are pinned at their size and may
+   only shrink — one per touch, not a rewrite campaign.
+5. **Blind readings are for reading-only claims.** A diff-backed claim has a
+   stronger, standing oracle. The coverage section is the reader's brief.
+6. **Fable steers; it never reads.** Readers and adjudicators are Opus. A
+   steering session runs every ten items or two days in the main thread,
+   ratifies marked rows only, and writes the opener. The reasons are cost —
+   a reading scales with the decompile, not the model — and evidence: the
+   11/8 survived a Fable reading and a Fable adjudication and died on a
+   diff's first frame.
+
+**Why not sooner.** The long middle was deliberately left to run — that was
+the point of writing it down as one — and it ran well. What it could not do
+alone was notice that the number had not moved, because the number was not
+written down. Now it is.

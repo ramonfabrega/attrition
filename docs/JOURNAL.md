@@ -3305,3 +3305,90 @@ none re-read the `if` above it. What found it was the first frame of a
 differential check on a field the dump had been printing all along, and that
 is now twice in two sessions: `mylos` last time, `angle` this time. The
 capture is cheaper than the reader, and it disagrees.
+
+## 2026-08-27 — the first steering session: the number nobody had written down
+
+Run on Fable, in the main thread, at the user's request after two days of
+`/clear` and "go": *are we still aligned, or did we go down a rabbit hole?*
+The answer took the morning, and it was both.
+
+### What checked out
+
+Thirty commits and twenty journal entries over 2026-08-26 and -27, all Opus
+by their trailers, `+14,645 / −719` over 63 files. The tree was green with
+the install wired in (13 + 121 + 589 + 3 tests, clippy and fmt clean), the
+dump-backed checks were really reading the captures (run10's takes 28 s),
+nothing from the install was tracked, and the numbers the queue quoted were
+live assertions. The last commit's central claim — `Guy::move` writes guy 0
+straight onto the unit, `guy_num == 0 || (track_dx == 0 && track_dy == 0)`,
+the 11/8 in the `else` — was re-derived here from the decompile and the
+type record (`+0xa2 guy_num`, `+0x54/+0x58 track_dx/dy`) and held; so did
+`Unit::init`'s `0x55555555` at `+0x50` and `+0x58`.
+
+### What had drifted
+
+The loop had changed shape without a decision. 08-20 to 08-25 was one
+mechanic per session — a document, a module, a blind audit. 08-26 and -27
+were one diff residue per session, items 17 to 34, each closed item opening
+one or two more at the front of the queue. Every sub-score improved. The
+score phase 3 names had not moved and was stated nowhere:
+
+```
+run10, 1,772 frames, RNG seeded from run11's trace:
+  ticks before divergence 3, orders 2
+  player 0 first diverges at frame 103, player 1 at frame 4
+  order lists: 17,751 of 26,433 unit-frames disagree
+```
+
+`ticks_before_divergence()` had a definition and no caller in any test.
+The queue was 409 lines against its own "about twenty"; its struck entries
+had grown paragraphs; three documents were over 150 KB; `SCOUT.md` and
+`VISION.md` had no second reading and `MOVEMENT.md`'s was from 08-20; the
+ratification ledger owed fifteen audits and nothing scheduled the pass.
+The fuzzer, by its own same-day audit, had one real finding (map variation)
+and none from its cheat generator, at a cost of two sessions.
+
+None of that is a rabbit hole in quality. It is a long middle with no
+stopping rule and no number, which is what a long middle becomes.
+
+### What landed
+
+- **The headline is pinned.** `run10_s_opening_…` asserts ticks 3, orders
+  2, player 0 @ 103, player 1 @ 4 as a floor, with a dated history line.
+  Made to fail first at `9999`, which is how the real numbers were read.
+- **The queue deletes.** `docs/QUEUE.md` went 409 → 134 lines: the headline
+  first, open items only (25, 35–37, 23 kept; 38–42 new), no struck lines.
+  `crates/sim/src/docs_guard.rs` fails the build on a strike, on 180 lines,
+  on a 32-line handoff, on a finding in `CLAUDE.md`, and on any of the eight
+  documents over 60 KB growing — it failed four of five on the old file
+  before the rewrite, as a guard should.
+- **The rules.** `CLAUDE.md`: phase 3's finish line; an item is booked with
+  the score it moves and spawns to the back; specification and story are
+  different documents; blind readings are for reading-only claims; Fable
+  never reads and steers instead. `docs/DECISIONS.md` 24.
+- **The `sin_table` marker, closed from the listing.** The decompiler was
+  right about `sin_table@00a46a00`; the mirror is `sinx`/`cosx`'s and the
+  compiler inlined it at 63 of 65 call sites — which Ghidra hid behind
+  `sin_table(unaff_EDI, unaff_ESI)`. The two unfolded sites are one loop in
+  `MapGrass::make_continents`, so the odd branch is map generation's alone.
+  No code change; `docs/MOVEMENT.md`, "The mirror is the original's".
+
+### Index of the items this session deleted from the queue
+
+Items 0–16 are told in "Lifted from the queue" above. The rest, by number,
+under the dated entries of 2026-08-25 to -27: 17 the slot table · 18 run29's
+`UNITS=3` half · 19 the formation angle's adder (with 22) · 20 the human
+group move · 21 the 36-member table · 22 the mirror's predicate · 24 the
+frame-0 draw gap (two entries) · 26 the stand/wrap swap (with 27) · 27 the
+draw sites · 28 the `do_move` grid draw (with 25) · 29 `go_around_building`
+· 30 `toff` (with 31) · 31 the group's own path (two entries) · 32 the
+pathfinder's first step · 33 the fog moves · 34 the body never chased.
+
+### What this session earned
+
+*The number has to be written down, or the loop optimises what is.* Twenty
+sessions improved every score they could see and none they could not; the
+capture that would have shown the whole standing still was on disk the
+whole time. And the cheapest steering instrument is a floor assertion: it
+costs one line, it cannot be forgotten, and it turns "are we converging"
+from a conversation into a test.
