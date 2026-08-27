@@ -3245,6 +3245,140 @@ mod tests {
         );
     }
 
+    /// **`toff`, against the original's own world chain** (item 30).
+    ///
+    /// Run20's unit `1/0` walks a `find_wpath` chain the original logs at
+    /// `(42744, 37368)`, `(41976, 38136)`, `(41976, 38904)`, … — every one
+    /// of them `cell*0x300 + 504` on both axes, where the simulation used
+    /// to emit the cell **centre** `+0x180`. `504` is the unit's own move
+    /// order's `off_x` (`MoveOrder +0x4c` = `dest % 0x300`), and
+    /// `astar_path`'s prologue reads it through `is_move` / `update_move_
+    /// order` — the current order's own, with no target involved
+    /// (`docs/PATHFINDER.md` §2, §7).
+    ///
+    /// So the assertion is on the **lattice**: every waypoint the sim puts
+    /// on the world grid sits at `+504` and is one the original's stack
+    /// also carries. With the old `toff = 0` seam every one of them sits at
+    /// `+0x180` instead, no sim entry is on the lattice at all, and the
+    /// count below is zero — which is how this was made to fail.
+    ///
+    /// What it does **not** yet assert is the two ends. The original's
+    /// stack is nine entries and the sim's seven: the goal itself is the
+    /// member's raw **slot** rather than its order's snapped `dest`, and
+    /// the top of the chain parts as well, both of them
+    /// `Group::action_move_near`'s (the queue's item 31).
+    #[test]
+    fn run20_s_world_chain_sits_on_the_move_orders_own_offset() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run20-islands-dumpall.txt") else {
+            eprintln!("skipping: no gamelog-run20-islands-dumpall.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.tick();
+        built.tick();
+
+        let theirs = log
+            .frame_states()
+            .into_iter()
+            .find(|f| f.n == 2)
+            .expect("frame 2")
+            .units
+            .into_iter()
+            .find(|ud| ud.who == 1 && ud.o == 0)
+            .expect("1/0 at frame 2");
+        // The oracle, pinned: the goal, then eight world nodes, every one
+        // of them on the `+504` lattice with the world grid's tolerance.
+        let theirs_path: Vec<(i64, i64, i64, i64)> = theirs
+            .path
+            .iter()
+            .map(|p| (p.to.0, p.to.1, p.tolerance, p.flags))
+            .collect();
+        assert_eq!(
+            theirs_path,
+            vec![
+                (41952, 36576, 0, 1),
+                (42744, 37368, 384, 0),
+                (41976, 38136, 384, 0),
+                (41976, 38904, 384, 0),
+                (41208, 39672, 384, 0),
+                (40440, 38904, 384, 0),
+                (39672, 38904, 384, 0),
+                (38904, 38904, 384, 0),
+                (38136, 39672, 384, 0),
+            ],
+            "the original's 1/0 at frame 2"
+        );
+        // And the offset is the order's own, read straight off the dump.
+        let mo = theirs.orders.first().expect("the current order");
+        assert_eq!(
+            (mo.off_x, mo.off_y),
+            (Some(504), Some(504)),
+            "run20's `off_x`/`off_y`"
+        );
+        assert_eq!(
+            (mo.x, mo.y),
+            (Some(41976), Some(36600)),
+            "and they are `x mod 0x300`"
+        );
+        for e in &theirs_path[1..] {
+            assert_eq!((e.0 % 0x300, e.1 % 0x300), (504, 504), "{e:?}");
+        }
+
+        let v = built
+            .sim
+            .units
+            .iter()
+            .position(|x| x.alive() && x.owner == 1 && x.index == 0)
+            .expect("the AI's unit 0");
+        let ours: Vec<(i64, i64)> = built.sim.units[v]
+            .path
+            .iter()
+            .map(|p| (i64::from(p.to.x), i64::from(p.to.y)))
+            .collect();
+        // Item 31, asserted as it stands: the goal at the bottom is the
+        // order's snapped `dest` and the original's is the member's raw
+        // slot, `0x18` short on both axes. Closing that fails here.
+        assert_eq!(ours[0], (41976, 36600), "ours: the order's own dest");
+        assert_eq!(theirs_path[0].0 - ours[0].0, -0x18);
+        assert_eq!(theirs_path[0].1 - ours[0].1, -0x18);
+        let on_lattice: Vec<(i64, i64)> = ours[1..]
+            .iter()
+            .copied()
+            .filter(|(x, y)| x % 0x300 == 504 && y % 0x300 == 504)
+            .collect();
+        // Not one of them on the cell centre any more — that is the whole
+        // of the old seam, and it is what pinning `toff` back to zero
+        // restores.
+        let on_centre = ours[1..]
+            .iter()
+            .filter(|(x, y)| x % 0x300 == 0x180 && y % 0x300 == 0x180)
+            .count();
+        assert_eq!(on_centre, 0, "cell centres are back: {ours:?}");
+        assert!(
+            on_lattice.len() >= 5,
+            "the sim's chain is off the order's lattice: {ours:?}"
+        );
+        // And three of them are the original's own entries, exactly. The
+        // rest of the route still parts a row further down (the sim takes
+        // `y = 39672` where the original takes `38904`) and the original
+        // carries one node the sim does not — the same
+        // `Group::action_move_near` residue as the goal, and unowned by
+        // this item.
+        let shared = on_lattice
+            .iter()
+            .filter(|e| theirs_path.iter().any(|t| (t.0, t.1) == **e))
+            .count();
+        assert!(
+            shared >= 3,
+            "shared with the original: {shared} of {ours:?}"
+        );
+    }
+
     /// **The fuzzed map's frame 1** — the second capture the 2×2 jitter is
     /// checked on, and the one that makes it a rule rather than a run20
     /// coincidence.

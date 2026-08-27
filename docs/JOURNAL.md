@@ -2702,3 +2702,131 @@ settle them. Two tests stand in for now without the install — a citizen
 whose line clips a barracks detours and never re-plans, and a mountain
 ridge with no way round gives up and pays the grid draw — and both were
 made to fail on purpose before landing.
+
+
+## 2026-08-26 — items 30 and 31: `toff` is the order's, and the goal is the group's
+
+Two rows of last session's side-by-side print, taken as written. One of
+them was right about the number and wrong about the reason; the other was
+right about the number and wrong about *which document* the answer was
+already in.
+
+### `toff` — the two folded vtable slots
+
+`docs/PATHFINDER.md` §4.1 said `astar_path`'s prologue reads the offset
+"if the current order's target is a transport-relevant unit (vfunc
+`+0x14`)", and took `+0x4c/+0x4e` off the target. Both virtuals belong to
+the base `UnitOrder`, and the PDB's own method list names them —
+`+0x14 is_move`, `+0x40 update_move_order` — which `docs/ORDERS.md` §4.1
+had printed correctly a month ago. Ghidra's `vtables.txt` shows neither,
+because both slots hold **COMDAT-folded** stubs and the linker keeps one
+name for the fold: slot `+0x14` prints as `StrafeOrder::is_air` on
+`MoveOrder` and as `Window::get_button` on the base, and slot `+0x40`
+prints as `MoveOrder::get_move_order`, which is a *different* slot
+(`+0xb8`) with the same body.
+
+The bodies settle it in three lines of `llvm-objdump`:
+
+| address | bytes | meaning |
+|---|---|---|
+| `0041e0e0` | `b8 01 00 00 00  c3` | `is_move` on the move family: **1** |
+| `0041bff0` | `33 c0  c3` | `is_move` on the base `UnitOrder`: **0** |
+| `00482f60` | `8d 41 ac  c3` | `update_move_order`: `this − 0x54`, the order's own `MoveOrder` |
+
+So `toff` is **the current move order's `off_x/off_y`**, which
+`Unit::add_move_facing_order@005e55c0` writes as `x mod 0x300` — the
+destination's offset inside its own world cell — for every move, targeted
+or not. Nothing about a target is involved anywhere. The same misreading
+sat in §3's `find_tpath` line, where `docs/ORDERS.md` §4.6's table had
+been right all along; both are corrected in place.
+
+*A folded vtable slot is named by the type record, never by the listing —*
+and this is the second time that rule has paid (`docs/audit/README.md`).
+The memory note about `LF_ONEMETHOD vftable offset` was written for
+exactly this and had not been used on a *predicate* before.
+
+### What it bought, against the original's own chain
+
+Run20's unit `1/0` walks a `find_wpath` chain the original logs at
+`cell*0x300 + 504` on both axes. The simulation emitted the cell centre:
+
+| | before | after |
+|---|---|---|
+| `1/0`'s world nodes | `(41856, 38016) (41856, 38784) (41088, 39552) …` | `(41976, 38136) (41976, 38904) (41208, 39672) …` |
+| on the original's stack | **none** | **three of five**, entry for entry |
+
+`diff::tests::run20_s_world_chain_sits_on_the_move_orders_own_offset` is
+the assertion, and it was made to fail twice on purpose — once with `toff`
+pinned to `(0, 0)` (the chain lands on the cell *corner*), once with the
+offset removed altogether (the cell centre, the old seam). Two unit tests
+in `path.rs` carry the same claim without the install.
+
+The path-stack **count** did not move — still 17 over five frames — and
+that is the honest reading: the two stacks are now the same numbers
+*offset by one slot*, because the original's is nine entries and ours is
+seven. A slot-wise diff cannot see a chain that agrees but is shifted, so
+the count is the wrong instrument here and the entry-for-entry test is the
+right one.
+
+### The other row: the goal, which was never the pre-walk
+
+`(41952, 36576)` against the order's `(41976, 36600)`, `0x18` short on both
+axes. Last session's guess was `find_wpath`'s pre-walk. It cannot be:
+
+- the AI walk steps through `sin_table` by `0x180`/`0x30` and cannot
+  produce `−0x18` on both axes at once; the human variant only pops;
+- `Unit::do_move` pushes `{mo->x, mo->y}` verbatim, and
+  `add_move_facing_order` writes `x = u*0x30 + 0x18` — so **every** `mo->x`
+  is `≡ 0x18 (mod 0x30)` and `41952` is `≡ 0`. It cannot be an `mo->x` at
+  all.
+
+What pushes it is `Group::action_move_near@00704990`, and
+`docs/GROUPS.md` §6.7 had it in plain words: the group plans **one** path
+on the global `grouppath` whose `FINAL` entry is the **leader's raw slot
+destination**, read out of the form table at `form+0x514`/`form+0x714`,
+un-snapped, and hands the result to every member. The dump agrees on every
+number: `1/0` carries `group 65`, `form 0`, `form_mod 50`, an
+`EXPLORETOORDER` whose `orig_x/orig_y` are `(41952, 36576)` — which only
+`action_move_near` and `ungroup_move_order` ever write, and the latter
+writes `orig = x` — and whose `x/y` are that same point snapped.
+`Group::finish_insert@0070e620` is the caller: a unit that joins a group
+holding an `EXPLORE_TO` has it re-issued through `action_move_near` at the
+old order's `orig`.
+
+So item 31 is not a pathfinder item. It is **§6.7, which the simulation
+does not implement at all** — and `docs/GROUPS.md` §12 claimed it did,
+which is corrected. The gap costs run20 three separate disagreements at
+once, all on the dump already on disk: the goal, the *timing* (the
+original's `1/0` is `is_pathed` with nine entries on the frame ours has an
+empty stack and `flags 0`, because the group planned at order time and the
+simulation waits for `do_move`), and the *route* (the original's chain is
+the leader's, translated; ours is each member's own from its own
+position).
+
+*The answer to an open question is sometimes already written down in
+another mechanic's document.* The queue named the pre-walk and the
+pre-walk was innocent; one `grep` of `docs/GROUPS.md` for the word "slot"
+would have cost a minute and saved the reading. **Before booking a reading
+for a residue, grep the documents of every mechanic the value passes
+through, not only the one the residue was measured in.**
+
+### What the captures say now
+
+| capture | before | after |
+|---|---|---|
+| run20 (islands) frames 0/1/2 | 175/175, 53/53, 5/5 | unchanged |
+| run20 path stacks, five frames | 17 (3, 14) | 17 (3, 14) — *the numbers changed, the slots did not align* |
+| run20 `1/0`'s world nodes on the original's stack | 0 | **3** |
+| fuzzed 424242 | 195/195, 43/45 | unchanged |
+| Great Lakes | 120/54/6/7 | unchanged |
+| run6, 432 frames | 1,552 / 1,160 | unchanged |
+
+### What it did not establish
+
+The middle of `1/0`'s chain still parts — ours walks `(52,51) (51,51)`
+where the original walks `(52,50) (51,50) (50,50)`, and the original
+carries one node between the goal and the first shared one that ours does
+not. Both sit inside §6.7's leader-path-plus-offset, so they are worth
+re-measuring only once that lands, not before. Nothing here was checked
+against a run: every claim is either a byte in the PE or a field in a dump
+already on disk.

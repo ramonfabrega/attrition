@@ -942,8 +942,15 @@ struck through and point there.
   three defects behind the one-draw gap were an exclusive 2×2 jitter, a
   stride test on the wrong index, and an unmodelled
   `WorldData::buildings_allowed`.
-- **The world grid's waypoints sit at `cell + off`, not at the cell
-  centre** (2026-08-26, found while closing the item above and unread).
+- ~~**The world grid's waypoints sit at `cell + off`, not at the cell
+  centre**~~ — **settled and implemented 2026-08-26**, no capture:
+  `toff` is the current move order's own `off_x/off_y`, read through
+  `UnitOrder::is_move` / `update_move_order` (`docs/PATHFINDER.md` §4.1,
+  §7). Run20's `1/0` now walks the original's own `+504` lattice and
+  three of its five world nodes are the original's exactly
+  (`diff::tests::run20_s_world_chain_sits_on_the_move_orders_own_offset`).
+  Original text: (2026-08-26, found while closing the item above and
+  unread).
   Run20's unit `1/0` walks a `find_wpath` chain the original logs at
   `(42744, 37368)`, `(41976, 38136)`, `(41976, 38904)`, `(41208, 39672)`,
   … — every one of them `cell*0x300 + 504` on both axes, where the
@@ -960,8 +967,16 @@ struck through and point there.
   most of run20's remaining path-to disagreements and all of `1/0`'s
   position drift, and it needs no capture: the dump on disk has both
   sides.
-- **And the goal at the bottom of that stack is `0x18` short of the
-  order's own** (2026-08-26, the same comparison). The original logs
+- ~~**And the goal at the bottom of that stack is `0x18` short of the
+  order's own**~~ — **settled 2026-08-26, and it is not the pre-walk.**
+  It is `Group::action_move_near`'s own goal push: a group plans one path
+  on the global `grouppath` whose `FINAL` entry is the **raw slot
+  destination**, un-snapped, and hands it to its members
+  (`docs/GROUPS.md` §6.7, and §13 for the three disagreements it costs
+  run20). The simulation does not implement §6.7 at all; the queue's item
+  31 is that, not a pre-walk. `docs/PATHFINDER.md` §12 records why the
+  pre-walk and `do_move` are both ruled out. Original text:
+  (2026-08-26, the same comparison). The original logs
   `(41952, 36576)`, both exact multiples of `0x30`, where the order itself
   is at `(41976, 36600)` — `add_move_order`'s `u*0x30 + 0x18`, which the
   `off_x = 504` above confirms for the original too. So the snap is not the

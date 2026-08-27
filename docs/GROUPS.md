@@ -1393,8 +1393,13 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
   cycle, the per-member write and the combat table's three arms;
 - **`action_move_near`** (§6): the domain split's `army < 0` guard, the
   `QUEUE_FIRST` rotation, `get_form`/`get_loc`, `compute_form`'s angle and
-  reverse rules, **the AI branch of §6.5 whole**, the ordinary path's order
-  choice, and the leader-path-plus-offset of §6.7;
+  reverse rules, **the AI branch of §6.5 whole**, and the ordinary path's
+  order choice. **Not §6.7** — corrected 2026-08-26; an earlier draft of
+  this line claimed the leader-path-plus-offset and the simulation has
+  never had it. `crates/sim/src/group.rs` ends the member loop at
+  `add_move_facing_order` and leaves the planning to each member's own
+  `do_move` on a later frame, which run20 catches three ways at once
+  (§13);
 - **`Form::compute`'s slot table** (§6.4) whole, in `crates/sim/src/form.rs`
   — `type_cat`, `categorize`, `compute_rows_and_columns`, `compute_dests`,
   `get_form_mod_option` and `update_positions` — so each member now takes
@@ -1698,6 +1703,31 @@ with the capture that would reach it.
 ## 13. What is not established
 
 Still open:
+
+- **§6.7 is not implemented at all**, and run20 measures the cost
+  (2026-08-26, found while closing `docs/PATHFINDER.md`'s `toff`). Its
+  unit `1/0` is a group's member on auto-explore, and at the original's
+  frame 1 its order is already `is_pathed` with a **nine-entry** stack,
+  where the simulation has `flags 0` and an **empty** one: the original
+  planned inside `action_move_near` on the frame the order was issued and
+  the simulation waits for the member's own `do_move`. Three separate
+  disagreements fall out of that one gap, all visible on the dump already
+  on disk:
+  - the **goal**: the original's bottom entry is `(41952, 36576)`, the raw
+    `{slot_x[leader], slot_y[leader]}` this section pushes, un-snapped;
+    the simulation pushes the member's *order* `dest`, which
+    `add_move_facing_order` has snapped to `u*0x30 + 0x18` — so it is
+    `0x18` long on both axes, every time, and nothing else can produce
+    that difference (`docs/PATHFINDER.md` §12 rules out the pre-walk and
+    `do_move`);
+  - the **timing**: `flags` and the path length at frame 1;
+  - the **route**: the original's chain is the *leader's*, translated;
+    the simulation's is each member's own from its own position, so the
+    middle of the chain parts even where the sub-cell offset now agrees.
+  It needs no capture. `pathfinder +0x70 = 1` (§6.7) around an army
+  group's call is the one piece that has to land with it, since it changes
+  `calc_cost`; and the `< 0x900` short-circuit is what keeps a short group
+  move from planning at all.
 
 - ~~**`Form::compute`'s slot table** (§6.4), the largest gap.~~
   **Closed 2026-08-26**, and the four things left in it are the

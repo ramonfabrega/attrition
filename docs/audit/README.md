@@ -491,3 +491,25 @@ surfaced a fourth `facing` writer, with every hit re-read in the main
 thread before it became a claim. The one control the widening dropped is
 recorded with its reason: a capture where the leader's heading equals the
 move's bearing cannot separate the two, and only the listing can.
+**A third instance of the `LF_ONEMETHOD` method, on a predicate this time
+(2026-08-26, no audit file — it was a mechanic's own session).** Two
+vtable slots in `PathFinder::astar_path`'s prologue had been read as "the
+current order's target is a transport-relevant unit" and "fetch that
+target", because Ghidra's `vtables.txt` prints them as
+`StrafeOrder::is_air` and `MoveOrder::get_move_order` — both COMDAT folds,
+the second naming a *different* slot with the same body. The PDB's own
+`UnitOrder` field list names slot `+0x14` `is_move` and slot `+0x40`
+`update_move_order`, and three `llvm-objdump` lines confirm the bodies:
+`mov eax,1` on the move family, `xor eax,eax` on the base,
+`lea eax,[ecx-0x54]` for the down-cast. So the offset is the current
+*move order's own*, and no target is involved anywhere — a predicate
+error, of exactly the class the first pass's headline named, found and
+fixed by the same ten-second command. `docs/PATHFINDER.md` §4.1, §3.
+
+And its sibling lesson, which is not about vtables: **the answer to a
+residue is often already written in another mechanic's document.** The
+`0x18` on run20's goal was queued as a pathfinder question for a session;
+`docs/GROUPS.md` §6.7 had the sentence that answers it, and a `grep` for
+"slot" would have found it in a minute. Before booking a reading for a
+residue, grep the documents of every mechanic the value passes through —
+not only the one it was measured in.

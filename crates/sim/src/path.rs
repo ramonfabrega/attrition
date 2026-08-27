@@ -170,6 +170,27 @@ impl Sim {
         loc::VALID
     }
 
+    /// `toff` — the offset `astar_path` carries into the world probe (§6)
+    /// and into every reconstructed waypoint (§7), `None` when it does not
+    /// apply at all.
+    ///
+    /// `astar_path`'s prologue reads it through two virtuals of the unit's
+    /// **current order**: slot `+0x14` is `UnitOrder::is_move` and slot
+    /// `+0x40` is `UnitOrder::update_move_order` (`docs/ORDERS.md` §4.1's
+    /// vtable). `is_move` is a folded constant — `1` on the move family,
+    /// `0` on the base — and `update_move_order` hands back the order's own
+    /// `MoveOrder` sub-object, so `toff` is **that order's** `off_x/off_y`
+    /// (`MoveOrder +0x4c/+0x4e`), which
+    /// `Unit::add_move_facing_order@005e55c0` writes as `dest % 0x300`.
+    /// Nothing about it is conditional on a *target*: a plain move fills it
+    /// too (`docs/PATHFINDER.md` §12, run20).
+    fn toff(&self, u: usize) -> Option<(i32, i32)> {
+        match self.current_order(u)?.body {
+            Body::Move(mo) => Some((mo.dest.x % 0x300, mo.dest.y % 0x300)),
+            _ => None,
+        }
+    }
+
     /// `PathFinder::valid_wcoord` — the world grid's probe. `p` is a
     /// position; `timeout` the parent node's depth; `goal` the search goal.
     fn valid_wcoord(&self, u: usize, p: Pos, timeout: i32, goal: Pos) -> bool {
@@ -414,6 +435,9 @@ impl Sim {
             _ => width * 16,
         };
         let dinc: i32 = if step == STEP_UNIT && anti != 0 { 2 } else { 1 };
+        // The prologue's `toff`; zero when the current order is not a move,
+        // which is exactly what the probe's `− 0x180` then means.
+        let toff = self.toff(u).unwrap_or((0, 0));
 
         // avoid_land / avoid_sea from the start's terrain (§4.1).
         let same_region = self.world.tregion(start.tile()) == self.world.tregion(goal.tile());
@@ -550,11 +574,12 @@ impl Sim {
 
                 let valid = match step {
                     STEP_WORLD => {
-                        // The first two steps probe the cell corner (the
-                        // target-unit offsets are zero here); later steps
-                        // the centre.
+                        // The first two steps probe `node + toff − 0x180`
+                        // — the cell corner when the order is not a move,
+                        // the order's own sub-cell offset when it is;
+                        // later steps the node itself.
                         let probe = if cur.timeout < 2 {
-                            Pos::new(nx - 0x180, ny - 0x180)
+                            Pos::new(nx + toff.0 - 0x180, ny + toff.1 - 0x180)
                         } else {
                             p
                         };
@@ -691,8 +716,10 @@ impl Sim {
             }
         }
 
-        // SEAM: the target-is-a-unit offsets (`toff`) are zero — move
-        // orders here have point goals.
+        // `toff` again, re-read here as the original re-reads it: the walk
+        // offsets each emitted node only while the current order `is_move`,
+        // and leaves it where it stands otherwise.
+        let toff = self.toff(u);
         let mut id = Some(root_id);
         while let Some(i) = id {
             let n = nodes[i as usize];
@@ -718,8 +745,17 @@ impl Sim {
                 flags |= path_flag::TRANSPORT;
                 tolerance = 0;
             }
+            // World: `node + toff − 0x180`. Tile: `node + toff % 0xc0 −
+            // 0x60`. The unit grid never offsets.
+            let to = match (toff, step) {
+                (Some((tx, ty)), STEP_WORLD) => Pos::new(n.x + tx - 0x180, n.y + ty - 0x180),
+                (Some((tx, ty)), STEP_TILE) => {
+                    Pos::new(n.x + tx % 0xc0 - 0x60, n.y + ty % 0xc0 - 0x60)
+                }
+                _ => Pos::new(n.x, n.y),
+            };
             let entry = PathData {
-                to: Pos::new(n.x, n.y),
+                to,
                 tolerance,
                 flags,
             };
@@ -1153,6 +1189,57 @@ mod tests {
         // cell along the line — the walk is straight on open ground.
         let top = path.last().unwrap();
         assert_eq!(top.to, Pos::new(0x180 + 0x300, 0x180));
+    }
+
+    /// §7's `toff`: with a move order current, every reconstructed world
+    /// node comes out at `cell*0x300 + off`, where `off` is the **order's
+    /// own** `off_x/off_y` — the cell centre only when the offset happens
+    /// to be `0x180`. The seam this replaced emitted the centre always, so
+    /// pinning `toff` back to zero fails this on the first waypoint.
+    #[test]
+    fn a_move_orders_world_chain_carries_the_orders_own_sub_cell_offset() {
+        let mut sim = flat_sim(20);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        // A destination six cells east whose 48-grid snap puts it at
+        // `+0x1f8` inside its cell — run20's own `off_x = 504`.
+        let goal = Pos::new(6 * 0x300 + 0x1f8, 0x1f8);
+        sim.add_move_order(u, goal, MoveKind::MoveTo, orders::QueuePos::New, false);
+        let dest = match sim.current_order(u).expect("the move").body {
+            Body::Move(mo) => mo.dest,
+            _ => unreachable!(),
+        };
+        assert_eq!(
+            (dest.x % 0x300, dest.y % 0x300),
+            (504, 504),
+            "the order's off"
+        );
+        assert_eq!(sim.toff(u), Some((504, 504)));
+
+        push_goal(&mut sim, u, dest);
+        let r = sim.find_wpath(u);
+        assert!(r > 1, "expected a planned chain, got {r}");
+        let path = &sim.units[u].path;
+        assert_eq!(path[0].to, dest, "the goal is pushed as it stands");
+        for p in &path[1..] {
+            assert_eq!(p.to.x % 0x300, 504, "not on the order's offset: {:?}", p.to);
+            assert_eq!(p.to.y % 0x300, 504, "not on the order's offset: {:?}", p.to);
+        }
+    }
+
+    /// And the same walk with **no** move order current leaves the nodes on
+    /// the cell centre: `toff` is `None`, and then nothing is added or
+    /// subtracted at all.
+    #[test]
+    fn without_a_move_order_the_world_chain_stays_on_the_cell_centres() {
+        let mut sim = flat_sim(20);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        assert_eq!(sim.toff(u), None, "a unit with no order has no offset");
+        push_goal(&mut sim, u, Pos::new(6 * 0x300 + 0x180, 0x180));
+        assert!(sim.find_wpath(u) > 1);
+        for p in &sim.units[u].path[1..] {
+            assert_eq!(p.to.x % 0x300, 0x180, "{:?}", p.to);
+            assert_eq!(p.to.y % 0x300, 0x180, "{:?}", p.to);
+        }
     }
 
     #[test]

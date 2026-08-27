@@ -27,48 +27,59 @@ file for `docs/JOURNAL.md`, which is where the story goes.
 
 ## Where things stand
 
-*Last verified 2026-08-26, after item 29 — `go_around_building` and the
-detour `find_path` accepts.* The commit this section was written against is
-the one that lands it; if `git log` has moved well past it, trust the queue
-below and the journal before trusting this.
+*Last verified 2026-08-26, after items 30 and 31 — `toff`, and the goal
+that turned out to be the group's.* The commit this section was written
+against is the one that lands it; if `git log` has moved well past it,
+trust the queue below and the journal before trusting this.
 
-**Last landed: the last `Unit::do_move+0xe84` on any capture.**
-`Unit::go_around_building@005fc350` is a mechanic now, not a seam
-(`docs/ORDERS.md` §4.6.1, `crates/sim/src/orders.rs`,
-`docs/JOURNAL.md`): the tile-edge walk in both directions, the pick, the
-one-or-three pushes with their `off % 0xc0 / 2` skew, the give-up, and
-`find_path`'s half — lift the pushes off, drop one that lands on the unit,
-refuse six degenerate cases, recurse on what is left, and on a verified
-line put them back with each entry's shore bit recomputed.
+**Last landed: `toff` is the current move order's own `off_x/off_y`.**
+`docs/PATHFINDER.md` §4.1 and §7 had it as a *target's*, behind two
+COMDAT-folded vtable slots; the PDB's own method list names them
+`UnitOrder::is_move` (`+0x14`) and `update_move_order` (`+0x40`), which
+`docs/ORDERS.md` §4.1 had printed correctly all along, and their bodies
+are `mov eax,1`, `xor eax,eax` and `lea eax,[ecx-0x54]`. So a plain move
+fills `toff` too, and `crates/sim/src/path.rs`'s stated zero seam is gone
+(`Sim::toff`). The same misreading in §3's `find_tpath` line is corrected
+with it.
 
-**The numbers now.** run20 frame 0 **175/175**, frame 1 **53/53 draw for
-draw over the whole sequence**, frame 2 **5/5** — three frames exact on
-that map. Its path-stack disagreements over five frames fell **21 → 17**.
-The Great Lakes (120/54/6, 7/6 at frame 3) and the fuzzed map (195/195,
-43/45) did not move by a draw or a position; run6's long pin held at
-**1,552 / 1,160**. `ticks before divergence` is still 1 everywhere.
+**The numbers now.** Run20's unit `1/0` walks the original's own
+`cell*0x300 + 504` lattice, and **three of its five world nodes are the
+original's entry for entry** where before **none** were
+(`diff::tests::run20_s_world_chain_sits_on_the_move_orders_own_offset`,
+made to fail twice on purpose). Everything else is untouched and was
+re-measured, not assumed: run20 175/175, 53/53, 5/5; the fuzzed map
+195/195, 43/45; the Great Lakes 120/54/6 with 7 at frame 3; run6's long
+pin exactly **1,552 / 1,160**. `ticks before divergence` is still 1.
 
-**The check that matters is the original's own stack, not the count.**
-Run20's unit `1/1` ends frame 1 with `[{(41640, 39384), tol 0, flags 1},
-{(40644, 39036), tol 0, flags 0}]` and the log's frame-2 record is those
-same two entries. Pinning the skew at `0x30` moves the second to
-`(40608, 39072)` and the assertion fails — that is how it was made to fail
-on purpose.
+**The path-stack count did not move, and that is the honest reading.**
+Still 17 over five frames. The two stacks are now the same numbers
+*shifted by one slot* — the original's is nine entries and ours seven — so
+a slot-wise diff cannot see a chain that agrees. The count is the wrong
+instrument for this; the entry-for-entry test is the right one.
+
+**Item 31 was not a pathfinder item at all.** The goal `0x18` short on
+both axes cannot come from `find_wpath`'s pre-walk (it steps through
+`sin_table`, never `−0x18` on both axes) nor from `Unit::do_move` (which
+pushes `mo->x` verbatim, and `add_move_facing_order` makes every `mo->x`
+`≡ 0x18 (mod 0x30)` — `41952` is `≡ 0`). It is
+`Group::action_move_near@00704990`, and **`docs/GROUPS.md` §6.7 already
+had it in plain words**: the group plans one path on the global
+`grouppath` whose `FINAL` entry is the leader's **raw slot destination**,
+un-snapped, and hands it to its members. The simulation does not
+implement §6.7 at all — `docs/GROUPS.md` §12 claimed it did, and is
+corrected.
 
 **Then, in order:**
 
-- **`toff`, item 30** — the sharpest thing this session found, and it needs
-  no run. `docs/PATHFINDER.md` §7 pushes each reconstructed world node at
-  `node + toff − 0x180`; `path.rs` carries `toff = 0` as a stated seam for
-  point goals; run20's dump has unit `1/0`'s whole chain at
-  `cell*0x300 + 504` where the sim emits the cell centre. `504 − 0x180 =
-  120` and the order's own `off_x` is `504`, so `toff` is the move order's
-  `off_x/off_y` whether or not the target is a unit. Most of run20's
-  remaining path-to disagreements, and all of `1/0`'s position drift.
-- **`find_wpath`'s pre-walk**, item 31 and the same comparison: the goal at
-  the bottom of that stack is `(41952, 36576)` where the order is at
-  `(41976, 36600)` — `0x18` short on both axes, which the sim does not
-  move at all.
+- **§6.7, the group's own path — the new item 31.** It is three of
+  run20's disagreements at once and needs no capture: the goal (the raw
+  slot), the *timing* (the original's `1/0` is `is_pathed` with nine
+  entries on the frame ours has an empty stack and `flags 0`, because the
+  group plans at order time and we wait for `do_move`), and the *route*
+  (theirs is the leader's chain translated by `slot[i] − slot[leader]`;
+  ours is each member's own from its own position). `pathfinder +0x70 = 1`
+  around an army group's call has to land with it, and the `< 0x900`
+  short-circuit is what keeps a short group move from planning at all.
 - **The fuzzed map's frame 1**, two rows: one
   `Leader::produce_building+0xc99` **short** (29 against 30 — a spiral
   candidate the original scores and the sim does not) and one
@@ -86,14 +97,16 @@ on purpose.
   attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
   `calc_gather` for non-flat buildings.
 
-**The thing this session earned.** *A residue's owner is a measurement too,
-and naming it costs one print.* `docs/SYNC.md` §6 had the last `+0xe84`
-down to the unit, the position and the clipped tile — and it was the wrong
-unit. One `eprintln!` in the blocked branch said so in a second, and the
-same print, widened to the two stacks side by side, produced items 30 and
-31 for free. The sibling rule from last session: *mark the phase before
-believing the total*; this one: **print the actor before believing the
-attribution**.
+**The thing this session earned.** *The answer to an open question is
+often already written down in another mechanic's document.* The queue
+named `find_wpath`'s pre-walk and the pre-walk was innocent; one `grep` of
+`docs/GROUPS.md` for "slot" would have cost a minute. The rule:
+**before booking a reading for a residue, grep the documents of every
+mechanic the value passes through, not only the one it was measured in.**
+Its sibling, from the same session: *a folded vtable slot is named by the
+type record, never by the listing* — `llvm-pdbutil dump --types`'s
+`LF_ONEMETHOD ... vftable offset` gave both slots in one pass, and Ghidra
+named neither.
 
 **Needs the user.** Nothing blocking. The ledger (`docs/audit/README.md`)
 is unchanged; its widest marker is still **`sin_table@00a46a00`'s
@@ -101,7 +114,7 @@ second-quadrant branch**, with the in-process exhaustive comparison as the
 settlement. When to spend a Fable batch is still open; this session's
 judgement is still **not yet**.
 
-**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 30, toff. docs/PATHFINDER.md §7 pushes every reconstructed world node at node + toff - 0x180 and crates/sim/src/path.rs carries toff = 0 as a stated seam for point goals; run20's dump has unit 1/0's whole find_wpath chain at cell*0x300 + 504 where the sim emits the cell centre 0x180. 504 - 0x180 = 120 and the order's own off_x is 504, so toff is the MoveOrder's +0x4c/+0x4e whether or not the target is a unit — re-read the toff store in astar_path's prologue (PATHFINDER §2) and widen the diff. Item 31, find_wpath's pre-walk, is the same comparison: the goal at the bottom of that stack is 0x18 short of the order's own on both axes. Both are on disk; no capture needed.`
+**Opener (for an Opus session):** `proceed @docs/QUEUE.md — item 31, and it is a GROUPS item, not a pathfinder one. docs/GROUPS.md §6.7 has Group::action_move_near planning ONE path on the global grouppath — FINAL entry at the leader's raw, un-snapped slot destination from form+0x514/form+0x714, nothing planned within 0x900, pathfinder +0x70 = 1 around an army group's find_wpath, then every waypoint popped from the top and translated by slot[i] - slot[leader] with the area-id guard and the 0x600 follower cutoff. crates/sim/src/group.rs ends its member loop at add_move_facing_order and never plans, so run20's 1/0 disagrees three ways at once: the goal is 0x18 long, the order is not is_pathed at frame 1 where the original's is with nine entries, and the route is each member's own instead of the leader's. docs/GROUPS.md §13's first entry has the whole shape; no capture needed, run20 is on disk.`
 
 ## The queue
 
@@ -312,21 +325,19 @@ in which case say so and take that. The story of each struck item is in
     entry for entry. The residue's owner in the old text (`1/0`) was
     wrong; the count was not.
 
-30. **`toff`, and the world grid's waypoints** — the sim emits
-    reconstructed world nodes at the cell centre and the original emits
-    them at `cell*0x300 + off`. `docs/PATHFINDER.md` §7 and §12 have the
-    arithmetic and the evidence; `crates/sim/src/path.rs` has the seam
-    comment to delete. Run20's dump has both sides, so this is a widening,
-    not a reading — but §2's `toff` store ("if the current order's target
-    is a transport-relevant unit") is what to re-read first, because the
-    evidence says a plain move fills it too.
+30. ~~**`toff`, and the world grid's waypoints**~~ — done 2026-08-26.
+    `docs/PATHFINDER.md` §4.1/§7/§12, `crates/sim/src/path.rs`
+    (`Sim::toff`), `docs/JOURNAL.md`.
 
-31. **`find_wpath`'s pre-walk moves the goal** — `(41952, 36576)` against
-    the order's own `(41976, 36600)`, `0x18` short on both axes, on the
-    same unit and the same dump. `docs/PATHFINDER.md` §3 has the walk
-    (`0x180`/`0x30` steps until `get_tregion` matches); the sim does not
-    move the goal at all. Take it with item 30 — one comparison found
-    both.
+31. **`Group::action_move_near` plans the group's path — §6.7, which the
+    simulation does not have.** ~~`find_wpath`'s pre-walk moves the
+    goal~~ — that was the wrong suspect (`docs/PATHFINDER.md` §12 says
+    why). The goal on a group member's stack is the **leader's raw slot
+    destination**, the path is planned **at order time**, and the members'
+    waypoints are the leader's chain translated by `slot[i] −
+    slot[leader]`. `docs/GROUPS.md` §6.7 has the mechanic and §13's first
+    entry has the three disagreements it costs run20, each with the field
+    that measures it. No capture needed.
 
 ## How to maintain this file
 

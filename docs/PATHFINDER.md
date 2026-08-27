@@ -68,7 +68,7 @@ group's shared path — belongs with group orders).
 | +0x18/0x1c | 0x58/0x5c | `sx, sy` | every wrapper | the unit's **tile** (`div3[pos>>6]`) |
 | +0x20 | 0x60 | `dbg_collisions` | nothing | dead (printed by `log_data`, never read) |
 | +0x24 | 0x64 | `anti_unit` | `find_upath` = 1 | **"this is the unit grid"** — not the `anti` argument. Gates the `limit` budget, the suspend path, +5-per-probe at `0xc0`, and flag 2 on reconstructed waypoints |
-| +0x28/0x2c | 0x68/0x6c | `offx, offy` | `find_tpath` | target unit's sub-tile offset, `pos % 0xc0 − 0x60`; **no readers anywhere** (writers survey) — dead; `astar_path` re-derives the offsets itself (§7) |
+| +0x28/0x2c | 0x68/0x6c | `offx, offy` | `find_tpath` | target unit's sub-tile offset, `pos % 0xc0 − 0x60`; **no readers anywhere** (writers survey) — dead. `astar_path` derives its own `toff` instead, and from the **order**, not the target (§4.1) |
 | +0x30 | 0x70 | `army` | `find_wpath`; also `Group::action_move_near` (which inlines `find_wpath_army`'s body — the named function has zero callers) | military, not a worker, not attacking, start cell not river-flagged (§3) |
 | +0x34 | 0x74 | `iroquois` | `astar_path` entry | the unit's `unit_masks2 & 0x4000` — forest-walking; zeroed by each wrapper after |
 | +0x38 | 0x78 | `worker` | `find_wpath` | `ObjectData::is_worker` |
@@ -181,9 +181,15 @@ sets `saving = 1` and `limit = 300 / repaths²`; both zero `saving` after.
 **`find_tpath@006897d0`** (tiles): as ORDERS §4.6, plus: the goal keeps its
 own tolerance on the stack; the goal-tile-centre entry's tolerance is
 **`0x180` if the goal's tolerance was `0x180`, else `0x60`**; the start-tile
-centre gets tol 0. Before A\*: if the current order's target is a unit,
-`offx/offy = target.pos % 0xc0 − 0x60`. On failure pop a non-final top; no
-order-killing here.
+centre gets tol 0. Before A\*, `PFD.offx/offy = mo->off_x/off_y % 0xc0 −
+0x60` — the **current move order's** own, behind the same
+`is_move()`/`update_move_order()` pair as §4.1's `toff` and a `Unit`
+virtual (`+0x18`) that is a folded `return 1`. **R2, 2026-08-26**: the
+first reading had this as "the current order's target is a unit,
+`target.pos % 0xc0 − 0x60`", where `docs/ORDERS.md` §4.6's table had it
+right; the field is dead either way (no readers), but the misreading is
+the same one §4.1 carried and it was the live one. On failure pop a
+non-final top; no order-killing here.
 
 **`find_upath@00682f30`** (48-cells): as ORDERS §4.6, with the pre-walk's
 validity being `valid_ucoord` (which also **seeds the memo**), the same-cell
@@ -212,9 +218,23 @@ pops the stack's new top is the caller's final goal, and **`tol` := that
 entry's tolerance** (0 when the stack emptied). Derived once:
 
 - `iroquois = unit_masks2 & 0x4000`; `no_danger` per §2's rule.
-- If the current order's target is a transport-relevant unit (vfunc
-  `+0x14`), `toff_x/toff_y` = the target's `+0x4c/+0x4e` shorts — used to
-  offset reconstructed waypoints toward the target (§7).
+- **`toff_x/toff_y`** — `0, 0`, then, if the unit has a current order and
+  that order **`is_move()`**, the order's own `+0x4c/+0x4e` shorts. Both
+  virtuals are the base `UnitOrder`'s and `docs/ORDERS.md` §4.1 already
+  names them: slot `+0x14` is `is_move` and slot `+0x40` is
+  `update_move_order`. Neither says anything about a *target*. `is_move` is
+  a folded constant — `mov eax,1; ret` at `0041e0e0` for `MoveOrder` and
+  its six derivatives, `xor`-to-zero at `0041bff0` for the base — and
+  `update_move_order` is `lea eax,[ecx-0x54]; ret` at `00482f60`, the
+  order's own `MoveOrder` sub-object. So `toff` is **the current move
+  order's `off_x/off_y`**, which
+  `Unit::add_move_facing_order@005e55c0` writes as `x mod 0x300` — the
+  destination's offset inside its world cell — for every move, targeted or
+  not. Used by the world probe (§6) and by every reconstructed waypoint
+  (§7). **R2, 2026-08-26**: the first reading read the two folded slots as
+  a target test and a target fetch; run20's dump settled it in a grep (the
+  logged chain is at `cell*0x300 + off_x`, and `off_x` is on the same
+  record).
 - Per-step work budget `work_cap = 50` (`0x30`: **500**); stride `su = 1`
   (`0x30`: `(type +0x248 collision + 1) / 2`, min 1 — big units search on a
   coarser lattice); `stride = su * step`; row width `W` = cells (`0x300`),
@@ -426,8 +446,9 @@ a stale register.
   `docs/ORDERS.md` §4.5); then `invalid_loc(tile of p, 1, timeout > 1, 0,
   1, 0)`; a verdict of exactly **3** is forgiven when `p` is in the goal's
   cell. Note the first two steps of a world search are probed at `p + toff
-  − 0x180` (the cell corner, or offset toward a unit target), later steps
-  at `p` itself.
+  − 0x180` — the cell corner when there is no move order current, the
+  order's own sub-cell point when there is (§4.1) — later steps at `p`
+  itself. Unlike §7's, this one is not gated: `toff` is simply zero.
 - **`valid_tcoord(p)`** (pre-walk only; the search inlines it):
   `invalid_loc(tile, 0,1,1,1,0) == 0`.
 - **`valid_ucoord(p, metric)`**: bounds (`0 ≤ p < tiles × 0xc0`), then the
@@ -455,8 +476,11 @@ is **truncated** there: the unit is routed only as far as the gate nearest
 it (audit V24). Then up the parent chain, for
 each node push one `PathData`:
 
-- position: the node's, plus — when the order's target is a unit —
-  `toff − 0x180` (world) or `toff % 0xc0 − 0x60` (tile);
+- position: the node's, plus — when the current order **`is_move()`**
+  (§4.1's `toff`, re-read here rather than carried) — `toff − 0x180`
+  (world) or `toff % 0xc0 − 0x60` (tile). The unit grid never offsets, and
+  neither does any grid when the order is not a move: the whole expression,
+  the `− 0x180` included, is inside the `is_move` arm;
 - tolerance: `0x180` (world) / `0` (unit grid) / tile: `0` if the unit can
   transport and `anti_unit == 0`, else `0x60`; forced 0 on a
   transport-flagged node;
@@ -569,6 +593,9 @@ with the original's five flags and return codes over the sim's tile masks
 — which surfaced a placement bug: `mask_building` was marking **flat**
 gatherers' footprints `BLOCKED`, where the original's `mask_me` only
 blocks tiles the type's mask template marks, and citizens stand on farms.
+`toff` is read from the current order (§4.1) rather than stubbed —
+`Sim::toff`, which is `None` when no move order is current and the offset
+is then not applied at all.
 Big-unit strides and the transport tail are implemented as dormant seams;
 suspend returns −1 without stashing (its restorer has no caller until
 collision recovery exists); the corner-cutting probes are a named seam
@@ -583,25 +610,41 @@ Four of the first reading's open items were **settled by the audit**
 (`rr < 9 ||`, V6), the region-crossing `avoid_land` store (V25) and the
 `vector_dist` operands (V26). Still open:
 
-- **`toff` is not only a unit target's, and the simulation's zero is
-  wrong** (2026-08-26, `docs/SYNC.md` §6). §7 pushes each reconstructed
-  world node at `node + toff − 0x180`, and `crates/sim/src/path.rs` carries
-  `toff = 0` as a stated seam because "move orders here have point goals".
-  Run20's dump says otherwise: unit `1/0`'s logged world chain is
-  `(42744, 37368)`, `(41976, 38136)`, `(41208, 39672)`, … — every node at
-  `cell*0x300 + 504`, where the simulation emits the cell centre
-  `+ 0x180`. `504 − 0x180 = 120`, and the order's own `off_x` is `504`, so
-  the offset is the **move order's** `+0x4c/+0x4e` (`off_x/off_y`,
-  `docs/ORDERS.md` §4.1) whether or not the target is a unit. §2's reading
-  of the `toff` store — "if the current order's target is a
-  transport-relevant unit" — is what to re-read, and the check is free:
-  the dump has both sides, and it is most of run20's remaining path-to
-  disagreements.
-- Related, from the same comparison: the goal at the **bottom** of that
-  stack is `(41952, 36576)` where the order is at `(41976, 36600)` —
-  `0x18` short on both axes. `find_wpath`'s pre-walk (§3) moves the goal
-  toward the start until `get_tregion` matches, and the simulation's does
-  not move it here. Same dump, same grep.
+- ~~**`toff` is not only a unit target's, and the simulation's zero is
+  wrong.**~~ **Settled and implemented 2026-08-26** — §4.1 has the two
+  vtable slots and their folded bodies, §7 the gate. It was never a
+  target's: `toff` is the *current move order's* `off_x/off_y`. Run20's
+  unit `1/0` now walks the original's own chain, `cell*0x300 + 504` on
+  both axes, and three of its five world nodes are the original's entry for
+  entry (`diff::tests::run20_s_world_chain_sits_on_the_move_orders_own_
+  offset`, made to fail on purpose twice — once with `toff` pinned to zero,
+  once with the offset removed altogether).
+- ~~**The goal at the bottom of that stack is `0x18` short of the
+  order's own.**~~ **Not the pre-walk** (2026-08-26, settled by reading;
+  the implementation is the queue's item 31). `find_wpath`'s pre-walk
+  cannot produce it in either variant: the AI walk steps by `0x180`/`0x30`
+  through `sin_table`, never `−0x18` on both axes at once, and the human
+  variant only pops. Nor can `Unit::do_move`, which pushes
+  `{mo->x, mo->y}` verbatim — and `add_move_facing_order` writes
+  `x = u*0x30 + 0x18`, so an `mo->x` is *always* `≡ 0x18 (mod 0x30)` and
+  `41952` is `≡ 0`. What actually pushes it is
+  **`Group::action_move_near@00704990`**: the group plans one path of its
+  own on the global `grouppath`, and the goal it pushes is the **raw slot
+  destination** `{slot_x[leader], slot_y[leader]}` read out of the form
+  table at `form+0x514`/`form+0x714` — un-snapped — with the members'
+  stacks filled from it. The member's own order carries the same point
+  snapped (`x = 41976`) and the group's destination in `orig_x/orig_y`
+  (`41952`), which is why all three numbers line up on a group of one.
+  Two consequences the simulation does not have yet, both item 31's: the
+  goal, and the fact that the path exists **at order time** — run20's
+  `1/0` is `is_pathed` with nine entries on the frame the sim still has an
+  empty stack and `flags 0`.
+- **The middle of run20's `1/0` chain still parts**, and it is not the
+  offset: with `toff` right, the sim walks `(52,51) (51,51)` where the
+  original walks `(52,50) (51,50) (50,50)`, and the original's chain
+  carries one node the sim's does not — `(55,48)`, between the goal and
+  the first shared node. Both are inside the group path above, so they are
+  worth re-measuring only once item 31 lands.
 - The exhausted-open-list pause gate `order data +0x20 < 13` is
   byte-verified (V30); **which field that is** (order age? range band?)
   remains unread and unnamed in the PDB.
