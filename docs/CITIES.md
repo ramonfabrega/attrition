@@ -743,7 +743,7 @@ With `radius = CityData::get_radius(city)` for a city that has its record,
 `LeaderData::get_radius(who, type)` for a city building without one, 0 for
 anything else: `W.flags |= 0x4000` on the centre cell; every footprint tile
 clears `0x40|0x80` and sets `T |= 3`; tiles whose per-type collision mask
-(`BuildType::init_build_mask`, `y_size` lines of `x_size` ints) is 1 get
+(`masks.txt`, named by the graphic — `docs/DATALAYER.md`) is 1 get
 `set_blocked_at(1)` (`T |= 0x4000`, neighbours `0x2000`), the others
 `set_blocked_at(0)` and, for a city or a `connects_to_roads` type,
 `set_road_at(1)`; a dock's three-tile sea ring `set_bad_path(1)`; **a city:

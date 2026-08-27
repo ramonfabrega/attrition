@@ -449,6 +449,54 @@ itself.
 `rondata::balance::unit_kind` read a `TYPE` column that does not exist and
 called every unit a land unit; the column is `DOMAIN`. Fixed.
 
+### A building's blocked tiles are art, not rules (2026-08-27)
+
+**No column of `buildingrules.xml` says which of a footprint's tiles a
+building blocks.** `BuildType::mask_me@006312a0` marks the object field
+(`T |= 3`) over the whole rectangle and then consults a **per-tile
+template**, `BuildType::mask`, one byte per tile: 1 calls
+`World::set_blocked_at(1)` (`T |= 0x4000`, `0x2000` on the neighbours), and
+anything else calls `set_blocked_at(0)` and **clears** the bit. So a
+footprint's object field and its blocked bits are different shapes, and
+`docs/CITIES.md` §3.6 says so.
+
+The template comes from two files outside the rules tables:
+
+- **`masks.txt`, at the install root** — 36 named grids, each `#<name>`,
+  then `x, y`, then `y` rows of `x` comma-separated ints.
+  `BuildType::init_build_mask@006310b0` reads exactly `x × y` items and
+  stops, so the **second grid** several sections carry after a blank line
+  (the `gather` family) is never read. `;` starts a comment; a non-numeric
+  item is 0, which is what the `doobers` grids (`up, right, left, down`)
+  come to.
+- **`Data/building_graphics.xml`** — every `<BUILD name="GRAPH-TRIBE-AGEn"
+  … mask="…">` names one of those grids, and the Farm is written as its own
+  `<FARM><DEFAULT><AGE0 mask="…">` tag instead. No shipped graphic gives two
+  masks to one `GRAPH`, so the age and the nation drop out: the map is a
+  function of the rules row's `GRAPH` alone, and all 129 building types
+  resolve.
+
+Three consequences, and the first is the one that cost a divergence:
+
+- **A Woodcutter's Camp blocks nothing at all** (`2x2 gather`, four zeros),
+  and neither does a Mine's neighbour on the same footprint size — the Mine
+  is `2x2 solid` and blocks all four. Gatherers stand *on* their camp: a
+  returning citizen's `find_nearby_spot` refuses a `0x4000` tile
+  (`docs/ORDERS.md` §10) and the camp's own tiles do not carry one.
+- **An `extra space` mask leaves the last row and column free**, so a city's
+  7×7 footprint blocks 6×6, a Granary's 5×5 blocks 4×4, and so on down.
+- **`4x4 oil`** is a saltire — the four corners and the middle 2×2 — which is
+  the only non-rectangular template shipped.
+
+*How it is established.* The two files, the two decompiled loaders, and a
+**differential check against the original's own map**: a `WORLD ≥ 6` or
+`DUMP_ALL` start dump prints all 57,600 `tdata[scan].mask` words, the
+harness loads them and then re-marks every building through `mask_me`, and
+`rondata::diff`'s `every_footprint_takes_the_blocked_bits_the_original_s_map_shows`
+compares the object and blocked bits of every tile on three captures. With
+this crate's old rule — block every non-flat footprint whole — run10 alone
+disagrees on 59 tiles.
+
 ---
 
 ## 3. The harness — the dump against the simulation

@@ -232,6 +232,104 @@ fn name_group_leaders(names: &[String]) -> Vec<usize> {
     leader
 }
 
+/// One named grid of `masks.txt` — the per-tile blocking templates
+/// `BuildType::init_build_mask@006310b0` reads into `BuildType::mask`.
+///
+/// `x × y` bytes, row-major by `y`, exactly as
+/// `BuildType::mask_me@006312a0` indexes them (`mask[y × x_size + x]`).
+/// A byte of 1 is a `World::set_blocked_at(…, 1)`; anything else clears the
+/// tile's `0x4000`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TileMask {
+    pub x: i32,
+    pub y: i32,
+    pub cells: Vec<u8>,
+}
+
+/// Parses `masks.txt` — the file at the install's **root**, not under
+/// `Data/`. Sections open with `#<name>`; `;` starts a comment; the two
+/// numbers after the name are `x, y` and the next `x × y` items are the
+/// grid, comma- or whitespace-separated. Several sections carry a **second**
+/// grid after a blank line, which the original never reads: `init_build_mask`
+/// takes exactly `x × y` items and stops. Non-numeric items (the `doobers`
+/// grids spell `up, right, left, down`) come back 0, as `String::convert_int`
+/// leaves them.
+pub fn parse_masks_txt(text: &str) -> Vec<(String, TileMask)> {
+    let mut out: Vec<(String, TileMask)> = Vec::new();
+    let mut name: Option<String> = None;
+    let mut items: Vec<&str> = Vec::new();
+    let mut flush = |name: &mut Option<String>, items: &mut Vec<&str>| {
+        let Some(n) = name.take() else {
+            items.clear();
+            return;
+        };
+        let num = |s: &&str| s.trim().parse::<i32>().unwrap_or(0);
+        let x = items.first().map_or(0, num);
+        let y = items.get(1).map_or(0, num);
+        let want = (x.max(0) as usize) * (y.max(0) as usize);
+        if x > 0 && y > 0 && items.len() >= want + 2 {
+            let cells = items[2..want + 2]
+                .iter()
+                .map(|s| u8::try_from(s.trim().parse::<i32>().unwrap_or(0)).unwrap_or(0))
+                .collect();
+            out.push((n, TileMask { x, y, cells }));
+        }
+        items.clear();
+    };
+    for line in text.lines() {
+        let l = line.split(';').next().unwrap_or("").trim();
+        if let Some(rest) = l.strip_prefix('#') {
+            flush(&mut name, &mut items);
+            name = Some(rest.trim().to_string());
+            continue;
+        }
+        if name.is_some() {
+            items.extend(l.split(',').map(str::trim).filter(|s| !s.is_empty()));
+        }
+    }
+    flush(&mut name, &mut items);
+    out
+}
+
+/// Each building graphic's blocking-template name, from
+/// `Data/building_graphics.xml`: the `mask=` attribute of every `BUILD`
+/// element, keyed by the `GRAPH` its `name` starts with
+/// (`WOODCUTTER-DEFAULT-AGE0` → `WOODCUTTER`), plus the `FARM` element,
+/// which is written as its own tag with the attribute on a nested `AGE0`.
+///
+/// No shipped graphic gives two masks to one `GRAPH`, so the age and the
+/// nation drop out and the map is a function of the rules row's `GRAPH`
+/// alone (checked in `graphic_masks_are_one_per_graph`).
+pub fn parse_graphic_masks(doc: &roxmltree::Document<'_>) -> Vec<(String, String)> {
+    let mut out: Vec<(String, String)> = Vec::new();
+    let mut push = |graph: &str, mask: &str| {
+        if graph.is_empty() || mask.is_empty() {
+            return;
+        }
+        if !out.iter().any(|(g, _)| g == graph) {
+            out.push((graph.to_string(), mask.to_string()));
+        }
+    };
+    for n in doc.descendants().filter(roxmltree::Node::is_element) {
+        let Some(mask) = n.attribute("mask") else {
+            continue;
+        };
+        let graph = match n.attribute("name") {
+            // `<BUILD name="GRAPH-TRIBE-AGEn">`.
+            Some(name) => name.split('-').next().unwrap_or("").to_string(),
+            // `<FARM …><DEFAULT><AGE0 mask="…"/>`: the graphic's own tag.
+            None => n
+                .ancestors()
+                .find(|a| {
+                    a.is_element() && !matches!(a.tag_name().name(), "DEFAULT" | "AGE0" | "ROOT")
+                })
+                .map_or(String::new(), |a| a.tag_name().name().to_string()),
+        };
+        push(&graph, mask);
+    }
+    out
+}
+
 /// Reads every table of an install and loads them.
 pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     let rules = install.rules()?;
@@ -250,6 +348,42 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
         Some(&balance),
         crafts.as_ref(),
     );
+    // The per-tile blocking templates. Two files outside the rules tables —
+    // `masks.txt` at the root and the graphics table's `mask=` — decide
+    // which of a footprint's tiles take `0x4000`, and nothing in
+    // `buildingrules.xml` does. Neither is required: without them every
+    // type falls back on `BuildType::blocks`'s flat/non-flat line.
+    let masks = crate::read(&install.root().join("masks.txt"))
+        .map(|t| parse_masks_txt(&t))
+        .unwrap_or_default();
+    let gpath = install.data("building_graphics.xml");
+    let gtext = crate::read(&gpath).unwrap_or_default();
+    let graphics = crate::parse(&gpath, &gtext)
+        .map(|d| parse_graphic_masks(&d))
+        .unwrap_or_default();
+    for (i, r) in buildings.records.iter().enumerate() {
+        let Some(graph) = r.text("GRAPH").map(str::trim) else {
+            continue;
+        };
+        let Some((_, name)) = graphics.iter().find(|(g, _)| g == graph) else {
+            continue;
+        };
+        let Some((_, m)) = masks.iter().find(|(n, _)| n == name) else {
+            loaded
+                .warnings
+                .push(format!("{graph}: masks.txt has no {name:?}"));
+            continue;
+        };
+        let b = &mut loaded.build_types[i];
+        if m.x != b.x_size || m.y != b.y_size {
+            loaded.warnings.push(format!(
+                "{graph}: mask {name:?} is {}×{}, the row is {}×{}",
+                m.x, m.y, b.x_size, b.y_size
+            ));
+            continue;
+        }
+        b.block_mask.clone_from(&m.cells);
+    }
     // The nations' names, from the per-nation files rules.xml points at.
     let names = install.tribe_names(&rules)?;
     for (tribe, name) in loaded.tree.tribes.iter_mut().zip(names) {
@@ -1019,6 +1153,9 @@ pub fn load_tables(
             price,
             tree: Some(build_tree[i]),
             combat: Some(combat),
+            // Filled by [`load`] from `masks.txt` and the graphics table;
+            // the tables alone do not carry it.
+            block_mask: Vec::new(),
         });
     }
     // `BuildTypeData::to`: the successor by `FROM`, as `BuildType::init` sets
@@ -1990,6 +2127,110 @@ mod tests {
         let cm = l.unit_named("Continental Marines").unwrap();
         assert_eq!(l.unit_type_names[cm], "Marines");
         assert_eq!(l.unit_named("Marines"), Some(cm));
+    }
+
+    /// `masks.txt`'s shape: `#name`, then `x, y`, then the grid — and the
+    /// second grid some sections carry after a blank line is **not** read,
+    /// because `init_build_mask` takes `x × y` items and stops.
+    #[test]
+    fn masks_txt_reads_the_first_grid_of_each_section() {
+        let text = "\
+;
+; Upper left is \"North\", Upper right is \"East\"
+;
+
+#2x2 solid
+2, 2
+1, 1
+1, 1
+
+#4x4 gather
+4, 4
+0, 0, 0, 0
+0, 0, 0, 0
+0, 0, 0, 0
+0, 0, 0, 0
+
+0, 0, 0, 0
+0, 1, 1, 0
+0, 1, 1, 0
+0, 0, 0, 0
+
+#3x3 extra space
+3, 3
+1, 1, 0
+1, 1, 0
+0, 0, 0
+";
+        let m = parse_masks_txt(text);
+        assert_eq!(m.len(), 3, "three sections, and the comment is not one");
+        assert_eq!(m[0].0, "2x2 solid");
+        assert_eq!(m[0].1.cells, vec![1, 1, 1, 1]);
+        assert_eq!(m[1].0, "4x4 gather");
+        assert_eq!(m[1].1.cells, vec![0; 16], "the second grid is not read");
+        assert_eq!(m[2].0, "3x3 extra space");
+        assert_eq!(m[2].1.cells, vec![1, 1, 0, 1, 1, 0, 0, 0, 0]);
+        assert_eq!((m[2].1.x, m[2].1.y), (3, 3));
+    }
+
+    /// The graphics table names the mask, and the rules row names the
+    /// graphic: `<BUILD name="GRAPH-TRIBE-AGEn" mask="…">`, with the Farm
+    /// written as its own tag instead.
+    #[test]
+    fn graphic_masks_are_keyed_by_the_graph() {
+        let text = r#"<?xml version="1.0"?>
+<ROOT><BUILDINGS>
+  <FARM texture="x"><DEFAULT><AGE0 mask="4x4 gather S"/></DEFAULT></FARM>
+  <BUILD name="WOODCUTTER-DEFAULT-AGE0" mask="2x2 gather"/>
+  <BUILD name="WOODCUTTER-DEFAULT-AGE3" mask="2x2 gather"/>
+  <BUILD name="MINE-DEFAULT-AGE0" mask="2x2 solid"/>
+</BUILDINGS></ROOT>"#;
+        let doc = roxmltree::Document::parse(text).unwrap();
+        let g = parse_graphic_masks(&doc);
+        assert_eq!(
+            g,
+            vec![
+                ("FARM".to_string(), "4x4 gather S".to_string()),
+                ("WOODCUTTER".to_string(), "2x2 gather".to_string()),
+                ("MINE".to_string(), "2x2 solid".to_string()),
+            ]
+        );
+    }
+
+    /// Against the shipped files: every building type gets a template of its
+    /// own size, and the three that matter are what `masks.txt` says.
+    ///
+    /// The Woodcutter's Camp blocking **nothing** is the whole point — a
+    /// citizen returning to it stands on its own footprint, which is where
+    /// `find_nearby_spot` puts it and where this crate refused to
+    /// (`docs/ORDERS.md` §10, item 44).
+    #[test]
+    fn every_building_type_takes_its_graphic_s_blocking_template() {
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        let missing: Vec<&str> = l
+            .build_types
+            .iter()
+            .enumerate()
+            .filter(|(_, b)| b.block_mask.len() != (b.x_size * b.y_size).max(0) as usize)
+            .map(|(n, _)| l.build_names[n].as_str())
+            .collect();
+        assert!(missing.is_empty(), "no blocking template: {missing:?}");
+        let of = |name: &str| {
+            l.build_types[l.build_named(name).unwrap()]
+                .block_mask
+                .clone()
+        };
+        assert_eq!(of("Woodcutter's Camp"), vec![0, 0, 0, 0], "2x2 gather");
+        assert_eq!(of("Mine"), vec![1, 1, 1, 1], "2x2 solid");
+        assert_eq!(of("Farm"), vec![0u8; 16], "4x4 gather S");
+        // `7x7 extra space`: the last row and the last column are free, so a
+        // city's 7×7 footprint blocks 6×6.
+        let city = of("Small City");
+        assert_eq!(city.len(), 49);
+        assert!(city[..6].iter().all(|&b| b == 1));
+        assert_eq!(city[6], 0, "the last column");
+        assert!(city[42..].iter().all(|&b| b == 0), "the last row");
     }
 
     #[test]

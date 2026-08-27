@@ -51,10 +51,10 @@ const DOC_CEILING: usize = 60_000;
 /// Each may only shrink. `JOURNAL.md` is not here: it is the append-only
 /// chronicle and is meant to grow.
 const OVER: &[(&str, usize)] = &[
-    ("SYNC.md", 70_067),
+    ("SYNC.md", 70_026),
     ("ARMY.md", 84_781),
     ("COMBAT.md", 107_149),
-    ("CITIES.md", 106_858),
+    ("CITIES.md", 106_854),
     ("GROUPS.md", 127_760),
     ("ORACLE.md", 148_461),
     ("AI.md", 157_530),

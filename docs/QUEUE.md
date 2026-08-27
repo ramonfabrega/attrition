@@ -13,36 +13,36 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-27, after items 25 and 43.*
+*2026-08-27, after item 44.*
 
 **The headline — run10, 1,772 frames, RNG seeded from run11's trace: ticks
-before divergence 102, orders 102; both players first diverge at frame 103.**
-It moved twice this session, from 3 / 2 / 103 / 4, and the pin in
-`run10_s_opening_…` carries both history lines. What is left is one
-mechanic rather than five units: frame 103 is the farm re-target, for
-player 0's three farmers and player 1's citizen `1/6` alike.
+before divergence 122, orders 122; player 1 first diverges at frame 123,
+player 0 at 182.** It moved from 102 / 102 / 103 / 103, and the pin in
+`run10_s_opening_…` carries the history.
 
-**Landed:** item 25 — the gather tile choice scores only tiles that still
-carry `mask & 0x4000` *and* pass `has_gather_access`; and item 43 —
-`come_out` searches the exit ring with `find_nearby_spot`, and a trained
-unit goes through it, so the AI's citizens now appear where the original
-puts them. Two harness fixes fell out: `borrow_from_siblings` takes the
-whole `WORLD` block from a matching sibling (run6 had been diffed against
-a flat treeless world, and now agrees with run10 unit for unit), and
-`compare_orders` diffs the `GATHERORDER`'s whole row.
+**Landed:** item 44 — **not** the farm re-target the opener named, whose
+arithmetic was already right. Frame 103 was two things, one per player.
+Player 1: a building's blocked tiles are a **per-tile template** from
+`masks.txt`, named by the graphic in `building_graphics.xml`, and a
+Woodcutter's Camp blocks *nothing*, so `find_nearby_spot` refused the
+camp's own tile (`docs/DATALAYER.md`; a new guard compares every tile's
+object/blocked bits against the dump's own map). Player 0: frame 101 runs
+AI farmers, **a sheep's arrival**, human farmers — and the sheep wandered
+on an untraced frame, so `Sim::reseat_animal` re-seats gaia's animals from
+every traced dump and reports the drift.
 
-**Owed:** unchanged — items 42 and 40 (`ORDERS.md` 191,335 and `CITIES.md`
-106,858 this session), `scenario.py` parked (item 41).
+**Owed:** unchanged — items 42 and 40 (`ORDERS.md` 191,335, `CITIES.md`
+106,854 and `SYNC.md` 70,026 this session), `scenario.py` parked (item 41).
 
 **Needs the user:** nothing.
 
-**Opener (Opus):** `proceed @docs/QUEUE.md — raise the headline. Both
-players now first diverge at frame 103, and it is one mechanic: the farm
-re-target inserts a move in front of the gather order and sends the farmer
-to a tile the sim picks differently (player 0's 0/3, 0/4, 0/5 and player
-1's 1/6 all at once, PathTo at slot 0). docs/ORDERS.md §6.5 and
-docs/SYNC.md §4. Find it, land it, raise the floor and add its history
-line. Take nothing that cannot name the score it moves.`
+**Opener (Opus):** `proceed @docs/QUEUE.md — raise the headline. Player 1
+first diverges at frame 123 and it is the pathfinder: unit 1/6 walking to
+its woodcutter has PathLength 2 where the original has 7, so the sim takes
+a straight line the original breaks into legs. docs/PATHFINDER.md and
+docs/ORDERS.md §4.6. Player 0 holds to 182. Find it, land it, raise the
+floor and add its history line. Take nothing that cannot name the score it
+moves.`
 
 ## The queue
 
@@ -106,6 +106,15 @@ say so. Numbers are stable; the journal is indexed by them.
     audits adjudicated on Opus, the groups fourth pass first (it overturns
     three earlier Fable rows), then `docs/ARMY.md` §18's marker. A steering
     session's job, over marked rows only; not an Opus item.
+
+45. **Gaia's animals, and taking the re-seat crutch away.**
+    `Sim::reseat_animal` puts the animals back from every traced dump
+    because their wander rides a stream the harness only holds at those
+    frames (`docs/SYNC.md` §4.2's tail). It is a correction, it is noted as
+    one, and it should die: widen the diff to the `ANIMALDATA` record — 40
+    of run10's 54 objects, uncompared to this day — as its own sub-score,
+    then close what it shows. Frame 94's 6 against 472 is the size of what
+    stands between here and that.
 
 Older backlog, one line each, unchanged: the `LEADERDATA` and `CITY`
 widenings; a `find_target` block; run7's order stream under the trace; a

@@ -479,11 +479,9 @@ the starting farms higher slot first.
 
 ### 4.2 Frame 0 on two other maps, and the "fifteen missing draws" (2026-08-26)
 
-`docs/QUEUE.md` carried an item for four days that read: *the sim draws 15
-fewer than the original at frame 0, on two maps, so it is one fixed missing
-block.* **It is not one block. It is four, and two of them cancel** — which
-is exactly why the shortfall came out the same on both maps and looked like
-one thing.
+The shortfall booked as "15 missing draws, one fixed block" **is four
+blocks, two of which cancel** — which is why it came out the same on both
+maps and looked like one thing.
 
 The two captures are **run20** (the islands lobby, `rontrace-run20.log`) and
 the fuzzer's control run on a map nobody tuned against
@@ -552,21 +550,10 @@ site rather than a block — `--diff`'s `by phase` note prints the labels
 | 2 (run20) | 5 | **5** | none — the five crop farms and nothing else, on either side |
 | 1 (fuzzed) | 45 | **43** | ours is two *short*: one `Leader::produce_building+0xc99` (29 against 30 — a spiral candidate the original scores and the sim does not) and one `do_non_flat_gather+0x54b`. The jitter is **3 on both sides** here, one of the 2×2's four sub-positions being blocked — the second map that makes the inclusive reading a rule |
 
-**And the unit paying that last `+0xe84` was not the one this document
-named.** §6 had it as the AI scout, `1/0`, on a waypoint of `(38784,
-39552)`; when the mechanic landed, the only unit whose march reaches the
-blocked branch on run20's frame 1 is **`1/1`**, and `1/0` never enters it —
-its `find_wpath` chain has moved since that reading, most likely when
-`produce_building`'s three fixes moved the AI's farm. The count was right
-twice and the owner was wrong. *A residue's owner is a measurement too, and
-naming it costs one print.*
-
-**Run20's frame 1 read 53 against 53 for two days and was wrong in three
-places at once** — the jitter drew once where the original draws four
-times, the spiral's stride-by-three never engaged, and
-`WorldData::buildings_allowed` was not modelled, so a forest cell scored
-and drew. The three residues cancelled to one. `docs/AI.md` §2.20 has
-each; the general lesson is §5.1's, and this is its second scalp.
+The unit that pays run20's last `+0xe84` is `1/1`, not the `1/0` §6 once
+named; and that frame read 53 against 53 for two days while wrong in three
+places that cancelled. Both stories are in `docs/JOURNAL.md`, 2026-08-27;
+the arithmetic is `docs/AI.md` §2.20 and the lesson is §5.1's.
 
 The Great Lakes lobby (run10/run12/run13, traced as run14) is the third
 map `think_scout` is checked on and the only one that exercises the
@@ -733,11 +720,23 @@ the window starts (§6's frame-3 draw is specific to those three), and the
 next gaps are the ones §6 names: the animation clock and the scout.
 
 **With the animation clock, 2026-08-24 (`docs/ANIM.md` §6)**, the same
-run: 98 **6/6**, 99 **8/8**, 100 **18/18**, 101 20/21 (the scout's wrap
-in, the sheep's arrival out), 102 **6/6**, 103 **6/6**; 97 6/7, 96 26/28,
-95 6/23 are the AI scout's. With run12 as a sibling too, frame 0 is **96
-of 120** — the forty animals' first idles, the two scouts' four and the
-four woodcutters' stands — and frames 1 and 2 hold at 54/54 and 6/6.
+run: 98 **6/6**, 99 **8/8**, 100 **18/18**, 101 ~~20/21 (the scout's wrap
+in, the sheep's arrival out)~~ **21/21 since 2026-08-27**, 102 **6/6**, 103
+**6/6**; 97 6/7, 96 26/28, 95 6/23 are the AI scout's. With run12 as a
+sibling too, frame 0 is **96 of 120** — the forty animals' first idles, the
+two scouts' four and the four woodcutters' stands — and frames 1 and 2 hold
+at 54/54 and 6/6.
+
+The sheep closed as a **harness correction, not a model**. An animal
+wanders on draws of the sync stream, so between two traced frames it walks
+somewhere the sim's own stream sent it and arrives on the wrong frame — and
+an arrival costs one draw, *in the middle of the unit loop*, between one
+player's units and the next. `Sim::reseat_animal` puts gaia's animals back
+on every traced frame's dumped position and goal, beside the clocks and the
+word; the drift is reported rather than hidden (run10's is under a tile).
+Until the untraced stretch is modelled there is nothing else that can put
+that draw in the right place, and it is worth 20 ticks of the headline:
+without it the human's three farmers spend the AI's leftovers.
 
 The siblings' traced frames are **pooled** (`borrow_from_siblings`): with
 run12 and run13 both on the list, a run of this lobby gets the true word at

@@ -8,7 +8,9 @@
 //! wander around, kept so its walk draws where the original's does.
 
 use crate::Sim;
+use crate::orders::QueuePos;
 use crate::world::Cell;
+use crate::world::Pos;
 
 /// `Herd`: the herd's home (`cx, cy`) and its wander centre (`wx, wy`), in
 /// cells, and the animal type it spawns. The dump's `HERDS` block prints
@@ -88,6 +90,39 @@ impl Sim {
             }
             n -= 1;
         }
+    }
+
+    /// Puts one of gaia's animals back where a dump says it was, with the
+    /// walk it was on — the harness's correction, and the twin of
+    /// [`Sim::set_guy`].
+    ///
+    /// An animal wanders when its idle animation runs out and a `% 10` comes
+    /// up under 3 (`Animal::do_idle`, `crate::anim`), so where it walks and
+    /// when it arrives are decided by draws on the sync stream. Between two
+    /// traced frames the harness's stream is **not** the original's — that
+    /// is why the word is re-installed at all — so the animals drift, and
+    /// their arrivals then fall on the wrong frames. An arrival costs one
+    /// draw, in the middle of the unit loop, and that draw sits between one
+    /// player's units and the next: run10's sheep is draw 6 of frame 101,
+    /// between the AI's three farmers and the human's (`docs/SYNC.md`
+    /// §4.1). Re-seating them is what keeps the players' units on the
+    /// original's draws through a stretch nothing else can reach.
+    ///
+    /// Returns how far the animal had drifted, so a harness can report the
+    /// size of the correction rather than hide it.
+    pub fn reseat_animal(&mut self, u: usize, pos: Pos, goal: Option<Pos>) -> i32 {
+        let drift =
+            crate::world::vector_dist(self.units[u].pos.x - pos.x, self.units[u].pos.y - pos.y);
+        self.units[u].pos = pos;
+        self.units[u].movement.body = crate::movement::Body::at(pos);
+        self.units[u].movement.dest = None;
+        self.units[u].orders.clear();
+        if let Some(g) = goal
+            && g != pos
+        {
+            self.add_move_order(u, g, crate::orders::MoveKind::MoveTo, QueuePos::New, false);
+        }
+        drift
     }
 
     /// `Herd::process` for herd `(frame >> 6) % max(count, 5)`: two draws

@@ -3636,3 +3636,109 @@ so the Senate HP exemption is forts, towers and lookouts, not wonders;
 implementation was corrected to match (`Sim::wall_stats_dirty`,
 `calc_wall_stats`, `ENEMY_TERRITORY_PERIOD = 32`, `city_mask_tiles`), and a
 test added for each.
+
+## 2026-08-27 — item 44: what frame 103 actually was (headline 102 → 122)
+
+The opener booked this as the farm re-target: both players first diverged
+on run10's frame 103, three of player 0's farmers and player 1's `1/6` at
+once, and one mechanic looked like the answer. It was not the farm
+re-target — that arithmetic was already right, and the AI's own three
+farmers matched to the unit. Frame 103 was **two different things wearing
+the same date**, one per player, and neither is a farm.
+
+### Player 1: a building's blocked tiles are art, not rules
+
+`1/6`, the citizen trained at frame 99, walks back to its Woodcutter's Camp
+and `do_gather` sends it to `find_nearby_spot(camp, 240, …)`. The original
+takes bearing `k = −1` and stands it on `(40680, 17688)`; the sim rejected
+that candidate and took `k = −2`, 48 units short on both axes — one step of
+the quarter-tile lattice, which is why it read as a rounding bug and was
+not one.
+
+The rejected tile is the **camp's own footprint**, and the sim had it
+carrying `0x4000`. The original's map does not: the dump's own
+`tdata[scan].mask` words show all four of the camp's tiles with the object
+field set and the blocked bit clear. `find_nearby_spot` refuses a `0x4000`
+tile (`docs/ORDERS.md` §10) and is otherwise happy to put a unit on a
+building — so a gatherer stands on its camp, and the whole disagreement was
+one bit of loaded data.
+
+Where that bit comes from is the finding, and `docs/CITIES.md` §3.6 had
+already said it and been ignored: `mask_me` consults a **per-tile
+template**, one byte per footprint tile, and clears the blocked bit
+wherever the byte is not 1. The template is not in `buildingrules.xml` at
+all. It is `masks.txt` at the install root — 36 named grids — selected by
+the `mask=` attribute of the building's graphic in
+`Data/building_graphics.xml`. A Woodcutter's Camp is `2x2 gather` and
+blocks **nothing**; the Mine beside it is `2x2 solid` and blocks all four;
+every `extra space` mask leaves the last row and column free, so a city's
+7×7 footprint blocks 6×6. This crate had been blocking every non-flat
+footprint whole. `docs/DATALAYER.md` has the two loaders and the file
+formats; the "read the loaders, not only the consumers" lesson scores
+again, and this time the consumer's own document was right.
+
+The check with teeth: a `WORLD ≥ 6` start dump prints all 57,600 tile
+masks, so the map the harness loads is the oracle for the map it then
+stamps its buildings onto.
+`every_footprint_takes_the_blocked_bits_the_original_s_map_shows` compares
+the object and blocked bits of every tile on run10, run20 and run9. Made to
+fail first: with the old rule, run10 alone disagrees on 59 tiles, the first
+being the last column of London's 7×7.
+
+### Player 0: a sheep, and where a draw falls in a frame
+
+Frame 101's stream is, in order: the AI's three farmers (two `% 4` each),
+**a sheep arriving**, the human's three farmers, the human scout's wrap, the
+seven farm draws — 21 draws (`docs/SYNC.md` §4.1). The sim spent 20. The
+missing one is the sheep's, and because it sits *between* the two players'
+farmers, its absence did not lose a draw so much as shift six: player 0's
+three farmers spent the values the sheep should have had and walked one
+tile wrong on each axis.
+
+The sheep wandered at sim-frame 89, on a `% 10` the harness cannot reach —
+run10 has no traced word before 94, and frame 94 alone costs 472 draws the
+sim does not model. So there is no version of the animal model that puts
+that arrival on frame 101. The fix is a harness correction and is labelled
+one: `Sim::reseat_animal` puts gaia's animals back on every traced frame's
+dumped position and goal, beside the clocks and the word that are already
+installed there, and **reports the drift** rather than hiding it (run10's
+is under a tile, on two animals). Frame 101 went 20/21 → 21/21.
+
+A second, smaller correction fell out on the way: a walking clock on a unit
+the sim has standing used to be skipped wholesale, and one of those cases
+is an *arrival* — the dump's own order list is empty and the figure still
+holds the walk it was playing, which is exactly the state `Guy::set_anim`
+reads as an arrival and draws for. Those are installed now; run10's frame
+94 has one.
+
+### The number
+
+| | before | after |
+|---|---|---|
+| **ticks before divergence** | **102** | **122** |
+| orders before divergence | 102 | 122 |
+| player 0 first divergence | 103 | 182 |
+| player 1 first divergence | 103 | 123 |
+| run10 angle rows compared | 15,010 | 15,318 |
+| run13 frame 101 draws | 20 / 21 | **21 / 21** |
+
+What is left at 123 is `1/6` again, and it is the pathfinder this time:
+`PathLength { ours: 2, theirs: 7 }`. Player 0 holds to 182.
+
+### Lifted from `docs/SYNC.md` §4.2, to pay for the room
+
+**And the unit paying run20's last `+0xe84` was not the one that document
+named.** §6 had it as the AI scout, `1/0`, on a waypoint of `(38784,
+39552)`; when `go_around_building` landed, the only unit whose march reaches
+the blocked branch on run20's frame 1 is `1/1`, and `1/0` never enters it —
+its `find_wpath` chain had moved, most likely when `produce_building`'s
+three fixes moved the AI's farm. The count was right twice and the owner was
+wrong. *A residue's owner is a measurement too, and naming it costs one
+print.*
+
+**Run20's frame 1 read 53 against 53 for two days and was wrong in three
+places at once** — the jitter drew once where the original draws four times,
+the spiral's stride-by-three never engaged, and
+`WorldData::buildings_allowed` was not modelled, so a forest cell scored and
+drew. The three residues cancelled to one. `docs/AI.md` §2.20 has each; the
+general lesson is `docs/SYNC.md` §5.1's, and this is its second scalp.

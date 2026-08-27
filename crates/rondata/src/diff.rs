@@ -1256,7 +1256,10 @@ impl Built {
             if let Some((_, states)) = self.frame_guys.iter().find(|(n, _)| *n == frame) {
                 let mut installed = 0;
                 let mut skipped = 0;
-                for (who, o, guys) in states {
+                let mut arrivals = 0;
+                let (mut reseated, mut drift) = (0usize, 0i32);
+                for state in states {
+                    let (who, o, guys) = (&state.who, &state.o, &state.guys);
                     let unit = self
                         .units
                         .iter()
@@ -1270,10 +1273,48 @@ impl Built {
                     let Some(u) = unit else {
                         continue;
                     };
+                    // **Gaia's animals are re-seated, not compared.** Where
+                    // they wander is decided by draws on a stream the
+                    // harness only holds at the traced frames, so between
+                    // two of them they drift — and an animal's arrival
+                    // costs a draw in the middle of the unit loop, between
+                    // one player's units and the next (`sim::Sim::
+                    // reseat_animal`, `docs/SYNC.md` §4.1). Putting them
+                    // back is what keeps the players' units on the
+                    // original's draws; the drift is reported rather than
+                    // hidden.
+                    if *who >= 8 {
+                        let d =
+                            self.sim
+                                .reseat_animal(u, pos_of(state.pos), state.goal.map(pos_of));
+                        if d > 0 {
+                            reseated += 1;
+                            drift = drift.max(d);
+                        }
+                        for (n, g) in guys.iter().enumerate() {
+                            if let Some(guy) = guy_of(g) {
+                                self.sim.set_guy(u, n, guy);
+                                installed += 1;
+                            }
+                        }
+                        continue;
+                    }
                     // A walking clock on a unit the sim has standing (or
                     // the reverse) is no correction: the sim would then
                     // read every idle request as an arrival. Such a unit
                     // keeps its own clock and is counted.
+                    //
+                    // **Unless the dump's own unit is standing there too.**
+                    // A walk animation over an *empty* order list is the
+                    // arrival itself — the order popped this frame and the
+                    // figure still holds the walk it was playing, which is
+                    // exactly the state `Guy::set_anim` reads as an arrival
+                    // on the next frame and draws for (`docs/ANIM.md` §4).
+                    // The sheep of run10's frame 101 is this and nothing
+                    // else: it wandered on an untraced frame the sim's
+                    // stream cannot reach, and without its clock the sim
+                    // skipped the arrival draw that stands between the AI's
+                    // farmers and the human's in `docs/SYNC.md` §4.1.
                     let walking_here = self.sim.units[u]
                         .orders
                         .front()
@@ -1283,8 +1324,11 @@ impl Built {
                         .and_then(|g| g.cur_anim)
                         .is_some_and(|a| sim::anim::category(a as i8) == 8);
                     if walking_here != walking_there {
-                        skipped += 1;
-                        continue;
+                        if !(walking_there && state.orderless && !walking_here) {
+                            skipped += 1;
+                            continue;
+                        }
+                        arrivals += 1;
                     }
                     for (n, g) in guys.iter().enumerate() {
                         if let Some(guy) = guy_of(g) {
@@ -1294,7 +1338,9 @@ impl Built {
                     }
                 }
                 self.notes.push(format!(
-                    "anim: frame {frame}: {installed} guy clocks installed, {skipped} units skipped (walking on one side only)"
+                    "anim: frame {frame}: {installed} guy clocks installed ({arrivals} arrivals the sim had not made), \
+                     {skipped} units skipped (walking on one side only), \
+                     {reseated} of gaia's animals re-seated (drift up to {drift})"
                 ));
             }
         }
@@ -3908,14 +3954,19 @@ mod tests {
         };
         // With the animation clock (`docs/ANIM.md` §6): the new citizen's
         // two creation draws at 99, the twelve fish wraps at 100 and the
-        // scout's wrap at 101 are the sim's now; the one left at 101 is the
-        // sheep's arrival, whose walk the sim does not have.
+        // scout's wrap at 101 are the sim's. ~~The one left at 101 is the
+        // sheep's arrival, whose walk the sim does not have.~~ **Closed
+        // 2026-08-27**: the sheep wandered on an untraced frame, so the
+        // harness re-seats gaia's animals from every traced frame's dump
+        // (`sim::Sim::reseat_animal`) and its arrival now falls where the
+        // original's does — draw 6 of 21, between the AI's three farmers
+        // and the human's.
         assert_eq!(count(98), (Some(6), Some(6)));
         assert_eq!(count(99), (Some(8), Some(8)), "the new citizen's two");
         assert_eq!(count(100), (Some(18), Some(18)), "the twelve fish wraps");
         assert_eq!(
             count(101),
-            (Some(20), Some(21)),
+            (Some(21), Some(21)),
             "the scout's wrap; the sheep"
         );
         // **102 was the six-frames-late re-target, and it closed with the
@@ -3951,24 +4002,91 @@ mod tests {
             "the scout's re-target is on the original's frame"
         );
         assert_eq!(count(103), (Some(6), Some(6)));
-        // The AI's farmers re-target on sim-frame 101 and walk from 102;
-        // their path goals are compared on the log's frame 103 (the end of
-        // sim-frame 102, the walk's first step). The human's three draw one
-        // place late (the sheep's arrival is not modelled) and are not
-        // pinned.
+        // The farmers re-target on sim-frame 101 and walk from 102; their
+        // path goals are compared on the log's frame 103 (the end of
+        // sim-frame 102, the walk's first step). ~~The human's three draw
+        // one place late (the sheep's arrival is not modelled) and are not
+        // pinned.~~ **Both players are pinned now** (2026-08-27): the
+        // sheep's arrival is draw 6, and it is the *ordering* that mattered
+        // — the AI's six draws come before it and the human's six after, so
+        // without it the human's three farmers spent the AI's leftovers and
+        // walked one tile wrong on both axes.
         let at_103 = report
             .frames
             .iter()
             .find(|f| f.frame == 103)
             .expect("the log's frame 103");
-        for o in 3..=5 {
-            let bad: Vec<_> = at_103
-                .order_diverged
-                .iter()
-                .filter(|d| d.who == 1 && d.o == o)
-                .collect();
-            assert!(bad.is_empty(), "AI farmer 1/{o} at frame 103: {bad:?}");
+        for who in 0..=1 {
+            for o in 3..=5 {
+                let bad: Vec<_> = at_103
+                    .order_diverged
+                    .iter()
+                    .filter(|d| d.who == who && d.o == o)
+                    .collect();
+                assert!(bad.is_empty(), "farmer {who}/{o} at frame 103: {bad:?}");
+            }
         }
+    }
+
+    /// **Every footprint's blocked bits, against the original's own tile
+    /// masks** (item 44). A `WORLD ≥ 6` or `DUMP_ALL` start dump prints all
+    /// 57,600 `tdata[scan].mask` words, so the map the harness loads *is*
+    /// the oracle for the map the harness then stamps its buildings onto:
+    /// `build_sim` re-marks every one of them through `Wall::mask_me`, and
+    /// if the template is wrong the two disagree on the spot.
+    ///
+    /// They used to. This crate blocked every non-flat footprint whole,
+    /// which is right for a Mine (`2x2 solid`) and wrong for the
+    /// Woodcutter's Camp beside it (`2x2 gather`, which blocks nothing) and
+    /// wrong for every `extra space` mask, where a 7×7 city blocks 6×6. The
+    /// cost was one citizen sent 48 units past the camp's own tile, because
+    /// `find_nearby_spot` refuses a `0x4000` tile and the original's camp
+    /// does not carry one (`docs/ORDERS.md` §10, `docs/DATALAYER.md`).
+    ///
+    /// Only the object field and the blocked bit are compared: the rest of
+    /// the word is terrain, fog and city radii that the setup does not
+    /// re-derive.
+    #[test]
+    fn every_footprint_takes_the_blocked_bits_the_original_s_map_shows() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut ran = 0;
+        for name in [
+            "gamelog-run10-world6-long.txt",
+            "gamelog-run20-islands-dumpall.txt",
+            "gamelog-run9-world6.txt",
+        ] {
+            let Some(path) = dump(name) else { continue };
+            let text = std::fs::read_to_string(&path).unwrap();
+            let log = Log::parse(&text);
+            let Some(init) = log.initial() else { continue };
+            let tiles = crate::gamelog::world_tiles(&init.world);
+            let built = build_sim(&loaded, &init, Tuning::RON);
+            let tw = (built.sim.world.width() * sim::world::TILES_PER_CELL) as usize;
+            if tiles.len() != tw * tw {
+                continue;
+            }
+            ran += 1;
+            let keep = sim::world::tile::OBJECT | sim::world::tile::BLOCKED;
+            let bad: Vec<(usize, u16, u16)> = tiles
+                .iter()
+                .enumerate()
+                .filter_map(|(i, &theirs)| {
+                    let t = Pos::new((i % tw) as i32, (i / tw) as i32);
+                    let ours = built.sim.world.tile_mask(t);
+                    (ours & keep != theirs & keep).then_some((i, ours, theirs))
+                })
+                .collect();
+            assert!(
+                bad.is_empty(),
+                "{name}: {} tiles differ on the object/blocked bits, first {:?} \
+                 (tile {:?})",
+                bad.len(),
+                bad.first(),
+                bad.first().map(|&(i, _, _)| ((i % tw), (i / tw))),
+            );
+        }
+        assert!(ran > 0, "no start dump with a tile map on this machine");
     }
 
     /// The sibling dumps of the run9/run10/run11 map that carry what the
@@ -4376,6 +4494,25 @@ mod tests {
         //               the original puts it, and the only frame either
         //               player still parts on is 103 — the farm re-target,
         //               which is one mechanic and not five units.
+        //   2026-08-27  ticks 122, orders 122; player 1 @ 123, player 0 @
+        //               182 (item 44). Frame 103 was **not** the farm
+        //               re-target: the arithmetic was right and the AI's
+        //               three farmers already matched. It was two other
+        //               things, one per player.
+        //               *Player 1's* `1/6` walked to a spot 48 units off
+        //               because `find_nearby_spot` rejected the camp's own
+        //               tile as blocked. A building's blocked bits are a
+        //               **per-tile template** — `masks.txt`, named by the
+        //               graphic (`docs/DATALAYER.md`) — and a Woodcutter's
+        //               Camp blocks nothing at all, where this crate had
+        //               been blocking every non-flat footprint whole.
+        //               *Player 0's* three farmers spent the wrong draws:
+        //               frame 101's stream runs AI farmers, **a sheep's
+        //               arrival**, human farmers, and the sheep had
+        //               wandered on an untraced frame the sim's stream
+        //               cannot reach. The harness re-seats gaia's animals
+        //               from every traced frame's dump; the draw fell back
+        //               into place and 101 went 20/21 → 21/21.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -4384,9 +4521,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 102 && orders >= 102 && first[0] >= 103 && first[1] >= 103,
+            ticks >= 122 && orders >= 122 && first[0] >= 182 && first[1] >= 123,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 102, orders 102, both players @ 103",
+             — the floor is ticks 122, orders 122, player 0 @ 182, player 1 @ 123",
             report.first_divergence
         );
         assert!(
@@ -4529,8 +4666,12 @@ mod tests {
         // original's own tile; what fell is agreement deep in the untraced
         // stretch, where those citizens are alive and walking instead of
         // standing on their city, so their later frames are their own.
+        // 15,010 → 15,318 with item 44, and the same caveat holds twice
+        // over: the headline went 102 → 122 while this moved by 308, which
+        // is the useful reminder that a total over 1,772 frames is not the
+        // score. The score is where the *first* divergence falls.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 15_010, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 15_318, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()

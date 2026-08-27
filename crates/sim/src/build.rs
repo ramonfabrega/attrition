@@ -177,6 +177,20 @@ pub struct BuildType {
     pub tree: Option<tech::TypeId>,
     /// Its combat columns, for a building that shoots — `docs/COMBAT.md`.
     pub combat: Option<combat::Profile>,
+    /// `BuildType::mask` — the per-tile blocking template
+    /// `BuildType::init_build_mask@006310b0` reads, `x_size × y_size` bytes
+    /// row-major by `y` (`mask[y × x_size + x]`), 1 where
+    /// `BuildType::mask_me@006312a0` calls `World::set_blocked_at` and 0
+    /// where it *clears* the bit. Empty when nothing loaded it, in which
+    /// case [`BuildType::blocks`] falls back on [`flags::FLAT`].
+    ///
+    /// The names come from the graphic, not the rules row: `building_
+    /// graphics.xml`'s `mask=` attribute selects one of the 36 named grids
+    /// in `masks.txt` (`docs/DATALAYER.md`). It is the difference between a
+    /// Mine (`2x2 solid`) and a Woodcutter's Camp (`2x2 gather`, which
+    /// blocks nothing), and between a city's 7×7 footprint and the 6×6 it
+    /// actually blocks (`7x7 extra space`).
+    pub block_mask: Vec<u8>,
 }
 
 impl BuildType {
@@ -205,6 +219,23 @@ impl BuildType {
     /// `BuildTypeData::is_civilian`: neither `n` nor `e`.
     pub const fn is_civilian(&self) -> bool {
         self.flags & (flags::NOT_CIVILIAN | flags::NO_CITY) == 0
+    }
+
+    /// Whether the footprint tile `(u, v)` from the corner takes the blocked
+    /// bit — [`BuildType::block_mask`] where one is loaded, and otherwise
+    /// "everything but a flat type", which is what this crate assumed before
+    /// the templates were read and is still what a hand-built type gets.
+    pub fn blocks(&self, u: i32, v: i32) -> bool {
+        if self.block_mask.is_empty() {
+            return !self.has(flags::FLAT);
+        }
+        if !(0..self.x_size).contains(&u) || !(0..self.y_size).contains(&v) {
+            return false;
+        }
+        usize::try_from(v * self.x_size + u)
+            .ok()
+            .and_then(|i| self.block_mask.get(i))
+            .is_some_and(|&b| b == 1)
     }
 }
 
@@ -686,6 +717,28 @@ mod tests {
 
     fn t() -> Tuning {
         Tuning::RON
+    }
+
+    /// The template, and the fallback for a type nothing loaded one for.
+    #[test]
+    fn the_blocking_template_is_read_row_major_by_y() {
+        // `7x7 extra space`, cut down: a 3×3 footprint blocking 2×2.
+        let mut b = BuildType {
+            x_size: 3,
+            y_size: 3,
+            block_mask: vec![1, 1, 0, 1, 1, 0, 0, 0, 0],
+            ..BuildType::default()
+        };
+        assert!(b.blocks(0, 0) && b.blocks(1, 1));
+        assert!(!b.blocks(2, 0), "the last column");
+        assert!(!b.blocks(0, 2), "the last row");
+        assert!(!b.blocks(3, 0), "off the template");
+        // No template: the old flat/non-flat line, which every hand-built
+        // type in this crate still takes.
+        b.block_mask.clear();
+        assert!(b.blocks(2, 2));
+        b.flags |= flags::FLAT;
+        assert!(!b.blocks(0, 0));
     }
 
     fn types() -> Vec<BuildType> {

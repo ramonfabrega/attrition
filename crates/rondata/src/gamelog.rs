@@ -1074,8 +1074,29 @@ pub struct Initial<'a> {
     pub frame_guys: FrameGuys,
 }
 
-/// Every unit's `(who, o, guys)` at the end of each traced engine frame.
-pub type FrameGuys = Vec<(i64, Vec<(i64, i64, Vec<Guy>)>)>;
+/// Every unit's clocks at the end of each traced engine frame.
+pub type FrameGuys = Vec<(i64, Vec<FrameUnit>)>;
+
+/// One unit as a traced frame's dump left it: who it is, its figures'
+/// clocks, and whether its order list was **empty** at that moment.
+///
+/// The last is what separates a unit the original had mid-walk from one that
+/// has just arrived — an arrival keeps the walk animation for the frame that
+/// notices it, and the difference decides whether the clock is a correction
+/// or a corruption ([`crate::diff::Built::tick`]).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct FrameUnit {
+    pub who: i64,
+    pub o: i64,
+    pub guys: Vec<Guy>,
+    /// `orders.is_empty()` — only meaningful at `UNITS=3`, where the list is
+    /// written at all.
+    pub orderless: bool,
+    /// The unit's position, and the goal of a leading `MOVEORDER` if it has
+    /// one — what [`crate::diff::Built::tick`] re-seats gaia's animals from.
+    pub pos: Pos,
+    pub goal: Option<Pos>,
+}
 
 /// One `HERD` record: the home cell, the wander centre, the animal type
 /// and the flags.
@@ -1647,10 +1668,26 @@ impl<'a> Log<'a> {
             .into_iter()
             .filter_map(|(n, b)| {
                 let (units, _, _) = records(b, false);
-                let guys: Vec<(i64, i64, Vec<Guy>)> = units
+                let guys: Vec<FrameUnit> = units
                     .into_iter()
                     .filter(|u| u.guys.iter().any(Guy::has_clock))
-                    .map(|u| (u.who, u.o, u.guys))
+                    .map(|u| {
+                        let goal = u.orders_front_first().next().and_then(|o| {
+                            Some(Pos {
+                                x: o.x?,
+                                y: o.y?,
+                                z: 0,
+                            })
+                        });
+                        FrameUnit {
+                            who: u.who,
+                            o: u.o,
+                            orderless: u.orders.is_empty(),
+                            pos: u.pos,
+                            goal,
+                            guys: u.guys,
+                        }
+                    })
                     .collect();
                 (!guys.is_empty()).then_some((n - 1, guys))
             })
