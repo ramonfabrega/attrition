@@ -113,7 +113,7 @@ impl Sim {
     pub fn reseat_animal(&mut self, u: usize, pos: Pos, goal: Option<Pos>) -> i32 {
         let drift =
             crate::world::vector_dist(self.units[u].pos.x - pos.x, self.units[u].pos.y - pos.y);
-        self.units[u].pos = pos;
+        self.set_new_location(u, pos, true);
         self.units[u].movement.body = crate::movement::Body::at(pos);
         self.units[u].movement.dest = None;
         self.units[u].orders.clear();

@@ -1510,7 +1510,7 @@ army to a single group (`docs/ARMY.md` §3.2) and has no player selection:
 | ~~the follower arm of `compute_dests` (§6.4)~~ | — | **Closed 2026-08-26**: `Sim::form_follower_slot`, read from `0072d3a0`–`0072d4f0`. ~~The simulation still has no group that *contains* a follower — `Group::add`'s `keep_captain` (§4.1).~~ It does now: `Unit::o_up`/`o_down` and `Sim::group_add_keeping` carry §4.1's two recursions whole, so a group built from captains holds every figure, and the arm is reached from the sim's own side by run31's 36-member fixture |
 | `refresh_group_order`'s **trigger** (§6.8) | `do_group_move`'s "is `oxx` still usable, and am I still `0x5ff` out" | the re-origin and the re-rotation are implemented (`GroupState::reorigin`, `Sim::group_refresh_order`); nothing in the simulation ever *fires* them, because a plain `MoveOrder` names no origin to lose. `modify_group_order`'s order rewrite is unmodelled with the rest of the group-order layer, one row up |
 | `action_guard` (§9) | the escort half of a siege attack | with siege *and* a matching area the non-siege members keep their orders instead of guarding; no traced army has siege |
-| `find_nearby_spot`'s collision (§6.6 step 4) | re-slotting an invalid slot | the sim has no unit collision, so no slot is ever invalid |
+| `find_nearby_spot`'s collision (§6.6 step 4) | re-slotting an invalid slot | it never asks the occupancy index (`docs/COLLISION.md`) |
 | `invalid_loc` on a slot, the `tregion` re-slot | §6.6 step 4 | same |
 | `QUEUE_FIRST`'s insert dance (§6.2, §10) | `set_up_insert` / `action_halt` / recurse / `finish_insert` | `charge`'s `QUEUE_FIRST` is a plain push-to-front on each member |
 | the scenario filter (§5) | `ignore_orders` | never set outside a scenario |

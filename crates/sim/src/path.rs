@@ -12,9 +12,11 @@
 //!
 //! What the world does not model yet enters as a named seam, each marked
 //! `SEAM:` with the `docs/PATHFINDER.md` §5 term it stubs — the danger map
-//! (zero), diplomacy and rush-rule penalties (none), unit collision on the
-//! 48-grid (clear), transports (the unit cannot), and the per-type
-//! collision size (one). Each returns the open-ground answer, so on the
+//! (zero), diplomacy and rush-rule penalties (none), transports (the unit
+//! cannot), and the per-type collision *stride* (one; the size itself is
+//! loaded, `docs/COLLISION.md` §2). Unit collision on the 48-grid is no
+//! longer one: `valid_ucoord` asks `detect_unit_collision`. Each remaining
+//! stub returns the open-ground answer, so on the
 //! flat worlds the harness builds the search is exact; the seams are where
 //! the remaining layers plug in.
 //!
@@ -224,9 +226,10 @@ impl Sim {
     }
 
     /// `PathFinder::valid_ucoord` — the 48-grid's probe, memoised per
-    /// search in the original's `validlist`. SEAM: `detect_unit_collision`
-    /// — the half that sees other units — reports clear; the 48-grid is
-    /// where collision avoidance would live.
+    /// search in the original's `validlist`. Its second half is
+    /// `detect_unit_collision` in its quick form, which is what makes the
+    /// recovery path go **around** the units in the way rather than
+    /// through them (`docs/COLLISION.md` §4.2).
     fn valid_ucoord(&self, u: usize, p: Pos, metric: i64, memo: &mut BTreeMap<i64, bool>) -> bool {
         let w = &self.world;
         if p.x < 0
@@ -239,7 +242,8 @@ impl Sim {
         if let Some(&v) = memo.get(&metric) {
             return v;
         }
-        let v = self.invalid_loc(u, p.tile(), false, true, false, true, false) == loc::VALID;
+        let v = self.invalid_loc(u, p.tile(), false, true, false, true, false) == loc::VALID
+            && !self.detect_quick(u, p);
         memo.insert(metric, v);
         v
     }
@@ -530,9 +534,9 @@ impl Sim {
     /// `PathFinder::astar_path` (`docs/PATHFINDER.md` §4). Returns 1 on a
     /// path pushed, 0 on failure, −1 on a suspended unit-grid search.
     ///
-    /// SEAM: suspension stashes nothing — `find_upath_restore` has no
-    /// caller until collision recovery exists, so a suspended search is
-    /// simply lost. The condition and return are the original's.
+    /// SEAM: suspension stashes nothing — `find_upath_restore` still has
+    /// no caller, so a suspended search is simply lost. The condition and
+    /// return are the original's.
     fn astar_path(&mut self, u: usize, m: &Modes, step: i32, anti: i32) -> i32 {
         let stack_len = self.units[u].path.len();
         if stack_len < 2 {
@@ -549,8 +553,9 @@ impl Sim {
         let tol = self.units[u].path.last().map_or(0, |p| p.tolerance);
 
         let work_cap = if step == STEP_UNIT { 500 } else { 50 } * 64;
-        // SEAM: the unit-grid stride is `(type collision + 1) / 2`; no
-        // collision size is loaded, so every unit searches at stride 1.
+        // SEAM: the unit-grid stride is `(type collision + 1) / 2`, which
+        // is 1 for every `BLOCK_RADIUS 1` type — all of them in every
+        // capture so far (`docs/COLLISION.md` §2).
         let su: i32 = 1;
         let stride = su * step;
         let arrive = tol / 2 + stride;
@@ -661,8 +666,12 @@ impl Sim {
                         STEP_UNIT => {
                             // SEAM: the pause roll happens only when the
                             // order's target is a unit; move orders here
-                            // never target one, so no draw. The `+0xb2 +=
-                            // 30` retry cooldown is not modelled.
+                            // never target one, so no draw. The retry
+                            // cooldown is: `+0xb2 += 30`, which
+                            // `detect_unit_collision` reads as "stop
+                            // colliding for thirty frames"
+                            // (`docs/COLLISION.md` §4.1).
+                            self.units[u].safe += 30;
                             return 0;
                         }
                         STEP_WORLD => {
@@ -1100,9 +1109,8 @@ impl Sim {
 
     /// `PathFinder::find_upath` — the 48-grid planner, collision
     /// recovery's. `anti` halves the node limit and expands cardinals
-    /// only. Public because its caller, `resolve_unit_collision`, is not
-    /// modelled yet (`docs/ORDERS.md` §4.7); the mechanic is complete and
-    /// tested, the wiring arrives with collision.
+    /// only. Its caller is `Sim::resolve_unit_collision`
+    /// (`docs/COLLISION.md` §6 step 6).
     pub fn find_upath(&mut self, u: usize, anti: bool) -> i32 {
         // SEAM: `repaths[who]` is 0 with no collision pressure model, so
         // the limit is the full 500 (250 with `anti`).

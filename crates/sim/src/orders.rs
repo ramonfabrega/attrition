@@ -100,6 +100,10 @@ pub struct MoveOrder {
     pub last: Option<Pos>,
     pub pause: i32,
     pub timer: i32,
+    /// `MoveOrder +0x3c/+0x40 coll_x/coll_y` — the point the last
+    /// collision refused, which `resolve_unit_collision` sidesteps from
+    /// (`docs/COLLISION.md` §4.3, §6 step 4). The dump prints the pair.
+    pub coll: Option<Pos>,
 }
 
 /// One entry of the unit's path stack.
@@ -213,7 +217,7 @@ impl Order {
         self.is_move() && !self.has(flag::ACTION)
     }
 
-    const fn move_mut(&mut self) -> Option<&mut MoveOrder> {
+    pub(crate) const fn move_mut(&mut self) -> Option<&mut MoveOrder> {
         match &mut self.body {
             Body::Move(m) => Some(m),
             _ => None,
@@ -508,6 +512,7 @@ impl Sim {
                 last: None,
                 pause: 0,
                 timer: 0,
+                coll: None,
             }),
         };
         self.enqueue(u, order, pos);
@@ -726,6 +731,12 @@ impl Sim {
                 return;
             }
         }
+        // `Unit::work@0060d180:378`, before the dispatch: the collision
+        // cooldown a failed 48-grid search bought counts down
+        // (`docs/COLLISION.md` §4.1).
+        if self.units[u].safe != 0 {
+            self.units[u].safe -= 1;
+        }
         if !self.units[u].orders.is_empty() {
             self.units[u].idle = 0;
         }
@@ -765,6 +776,8 @@ impl Sim {
         }
         self.mark(crate::anim::SITE_IDLE_UNIT);
         self.set_default_anim(u);
+        // `Unit::do_idle`'s own `collide = 0` (`docs/COLLISION.md` §6).
+        self.units[u].collide = 0;
         self.check_idle(u, frame);
         self.think(u, frame);
     }
@@ -1036,9 +1049,11 @@ impl Sim {
                     {
                         self.units[u].path.pop();
                     }
-                    // Not colliding (SEAM: `collide` is not modelled, so
-                    // the 48-grid branch never runs from here): drop loose
-                    // near waypoints, then plan on tiles.
+                    // Not colliding: drop loose near waypoints, then plan
+                    // on tiles. (The `collide != 0` arm of `do_move`'s own
+                    // branch — a re-probe of `coll_x/coll_y` every other
+                    // frame — is still unmodelled; the recovery path is
+                    // `move_step`'s, `docs/COLLISION.md` §5.)
                     while let Some(t) = self.units[u].path.last().copied() {
                         if t.flags & (path_flag::FINAL | 0x20) == 0 && t.tolerance < 0x60 {
                             self.units[u].path.pop();
@@ -1103,7 +1118,8 @@ impl Sim {
                 if !self.units[u].line_ok {
                     // The line to the new top failed too: with a world-grid
                     // plan, wait for the next frame; the tile-grid case
-                    // falls into collision resolution (SEAM: not modelled).
+                    // falls into collision resolution (SEAM: `do_move`'s own
+                    // arm, `docs/COLLISION.md` §9 — the step's is modelled).
                     self.store_move(u, mo, flags);
                     return Did::Something;
                 }
@@ -1596,17 +1612,67 @@ impl Sim {
         self.unit_set_angle(u, step.heading);
         let unit = &mut self.units[u];
         unit.movement.facing = step.facing;
+
+        // **The collision block** (`docs/COLLISION.md` §5). The proposed
+        // point is tested against the occupancy index; a blocked step
+        // either snaps through onto a sidestep waypoint, waits out the
+        // turn it still owes, gives up and calls the waypoint reached, or
+        // goes to `resolve_unit_collision`.
+        let top = self.units[u].path.last().copied();
+        let mut target = step.pos;
+        let hit = self.detect_unit_collision(u, target);
+        if let Some(other) = hit {
+            let (dx, dy) = (mo.waypoint.x - from.x, mo.waypoint.y - from.y);
+            let through = top.is_some_and(|t| t.flags & path_flag::SIDESTEP != 0)
+                && !self.detect_quick(u, top.expect("tested").to)
+                && dx.abs() < 0x61
+                && dy.abs() < 0x61;
+            if through {
+                // The final snap through a collision: walk onto the
+                // waypoint itself and let the arrival test take it.
+                target = mo.waypoint;
+            } else {
+                // SEAM: the original's `set_anim(CHAR_DEFAULT, 0, 1)` here
+                // has no counterpart, because this crate does not set the
+                // walk animation either (`docs/COLLISION.md` §7).
+                if step.owed != 0 {
+                    let flags = self.current_order(u).map_or(0, |o| o.flags);
+                    self.store_move(u, mo, flags);
+                    return Did::Something;
+                }
+                let manh = dx.abs() + dy.abs();
+                let reach = self.profile(Obj::Unit(u)).big_radius
+                    + self.profile(Obj::Unit(other)).big_radius;
+                let give_up = reach * 3 <= manh
+                    || self.units[u].collide < 0x1a
+                    || (top.is_none_or(|t| t.tolerance == 0 || t.flags & path_flag::SIDESTEP != 0)
+                        && top.is_none_or(|t| t.flags & path_flag::FINAL == 0));
+                if give_up {
+                    self.resolve_unit_collision(u);
+                    let flags = self.current_order(u).map_or(0, |o| o.flags);
+                    if self.current_order(u).is_some_and(Order::is_move) {
+                        let mo = self.current_move(u).expect("a move order");
+                        self.store_move(u, mo, flags);
+                    }
+                    return Did::Something;
+                }
+                // Give up on reaching it exactly: the waypoint is close
+                // enough now.
+                self.units[u].tolerance = manh * 2;
+            }
+        }
+
         let mut arrived = false;
-        if self.world.accepts(step.pos) {
-            self.units[u].pos = step.pos;
+        if self.world.accepts(target) {
+            self.set_new_location(u, target, false);
             // `Unit::set_new_location`'s half-cell test and the reveal
             // behind it (`docs/VISION.md` §6). `move_step` is the caller
             // that passes `param_3 = 0`, so this is the **ring** pass.
             self.moved_to(u, from, true);
-            if step.arrived {
+            if step.arrived && target == step.pos {
                 arrived = true;
             } else {
-                let (dx, dy) = (mo.waypoint.x - step.pos.x, mo.waypoint.y - step.pos.y);
+                let (dx, dy) = (mo.waypoint.x - target.x, mo.waypoint.y - target.y);
                 if dx.abs() + dy.abs() <= self.units[u].tolerance {
                     arrived = true;
                 }
@@ -2436,8 +2502,7 @@ impl Sim {
             let stand = Pos::new(bpos.x + OILWELL_OFFSET, bpos.y);
             if self.world.accepts(stand) {
                 let from = self.units[u].pos;
-                self.units[u].pos = stand;
-                self.units[u].movement.body.pos = stand;
+                self.set_new_location(u, stand, true);
                 // `do_gather`'s `set_new_location(…, 1, 1)`: the whole disc,
                 // not the ring (`docs/VISION.md` §6).
                 self.moved_to(u, from, false);

@@ -54,6 +54,7 @@ pub mod balance;
 pub mod bhs;
 pub mod build;
 pub mod city;
+pub mod collide;
 pub mod combat;
 pub mod cost;
 pub mod economy;
@@ -244,6 +245,30 @@ pub struct Unit {
     /// bytes together are how a formation remembers its own shape
     /// (`docs/GROUPS.md` §6.4, §6.6).
     pub form_width: i8,
+    /// `UnitData::collide` — how many frames running this unit has been
+    /// blocked. `Unit::do_idle` zeroes it; `detect_unit_collision` ages it
+    /// out five frames after the last one (`docs/COLLISION.md` §4, §6).
+    pub collide: i16,
+    /// `UnitData::collide_frame`.
+    pub collide_frame: i64,
+    /// `UnitData::collide_o` / `collide_who` / `collide_guy`: what is in
+    /// the way, `-1` for nothing.
+    pub collide_o: i16,
+    pub collide_who: i8,
+    pub collide_guy: i16,
+    /// `UnitData::safe` (`+0xb2`): frames left of the collision cooldown a
+    /// failed 48-grid search buys. `Unit::work` counts it down and
+    /// `detect_unit_collision` refuses to test while it is set.
+    pub safe: i32,
+    /// `unit_masks & 0x40`: waiting for the unit in front to move.
+    pub waiting_on: bool,
+    /// `unit_masks & 0x100000`: the one-shot half step a soft collision
+    /// asks for (`docs/MOVEMENT.md`, `docs/COLLISION.md` §4.3).
+    pub half_step: bool,
+    /// `ObjectData::down` / `up`: this unit's place in its world cell's
+    /// object chain, newest first (`docs/COLLISION.md` §3).
+    pub down: Option<usize>,
+    pub up: Option<usize>,
 }
 
 /// The two animations `Unit::do_gather`'s farm branch tests for.
@@ -547,6 +572,16 @@ impl Unit {
             type_index: -1,
             form: -1,
             form_width: -1,
+            collide: 0,
+            collide_frame: 0,
+            collide_o: -1,
+            collide_who: -1,
+            collide_guy: -1,
+            safe: 0,
+            waiting_on: false,
+            half_step: false,
+            down: None,
+            up: None,
         }
     }
 
@@ -698,6 +733,14 @@ pub struct Sim {
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
     /// piece by `(seed + o) % 3`.
     pub game_seed: i32,
+    /// The collision occupancy index — `CollBlock`, flattened
+    /// (`docs/COLLISION.md` §2).
+    pub coll: collide::CollGrid,
+    /// `WData::down` per world cell: the head of the object chain (§3).
+    pub chain_heads: Vec<Option<usize>>,
+    /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
+    /// has asked for, the throttle collision recovery reads (§6 step 6).
+    pub repaths: Vec<i32>,
     pub frame: i64,
 }
 
@@ -938,6 +981,9 @@ impl Sim {
             scripts: None,
             ai: vec![ai::Leader::new(); players],
             ai_speed: 1,
+            coll: collide::CollGrid::new(world.width(), world.height()),
+            chain_heads: vec![None; (world.width() * world.height()) as usize],
+            repaths: vec![0; players.max(10)],
             tuning,
             world,
             frame: 0,
@@ -976,6 +1022,7 @@ impl Sim {
         self.city_tally.push(city::Tally::default());
         self.wall_stats_dirty.push(false);
         self.marks.push(Marks::default());
+        self.repaths.push(0);
         self.ai.push(ai::Leader::new());
         self.transport.push(transport::LeaderTransport::default());
         self.docks.push(transport::Docks::default());
@@ -1068,6 +1115,12 @@ impl Sim {
         self.transport_init_unit(i);
         if source {
             self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
+        }
+        // `Object::add_to_world`: both collision indices
+        // (`docs/COLLISION.md` §2, §3).
+        self.coll_add(i);
+        if self.units[i].alive() && self.units[i].on_map {
+            self.chain_add(i);
         }
         i
     }
@@ -1770,12 +1823,16 @@ impl Sim {
         Ok(at)
     }
 
-    /// Gives a dead unit's supply slot back — `Unit::close`.
+    /// Gives a dead unit's supply slot back — `Unit::close` — and takes it
+    /// out of both collision indices, which is `Object::remove_from_world`
+    /// (`docs/COLLISION.md` §2, §3). This is every death path's tail.
     fn close_supply(&mut self, unit: usize) {
         let owner = self.units[unit].owner as usize;
         if let Some(slot) = self.units[unit].supply_slot.take() {
             self.supply[owner].list.close(slot);
         }
+        self.coll_remove(unit);
+        self.chain_remove(unit);
     }
 
     /// Whether anything of `owner`'s supplies a unit standing at `at`.

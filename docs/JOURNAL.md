@@ -3742,3 +3742,113 @@ the spiral's stride-by-three never engaged, and
 `WorldData::buildings_allowed` was not modelled, so a forest cell scored and
 drew. The three residues cancelled to one. `docs/AI.md` §2.20 has each; the
 general lesson is `docs/SYNC.md` §5.1's, and this is its second scalp.
+
+## 2026-08-27 — item 46: unit collision (headline 122 → 170)
+
+The opener said the frame-123 divergence was the pathfinder, because `1/6`'s
+path stack was 2 entries deep where the original's was 7. It was not the
+pathfinder. The five extra entries all carried `flags 2`, and `flags 2` is
+what `find_upath` stamps on a reconstructed 48-grid waypoint — so the
+question was not "why is the plan wrong" but "what asked for a plan at all".
+The answer was in the same record, three lines up: `collide 1`,
+`collide_frame 122`, `collide_o 3`, `collide_who 1`, `collide_guy 0`.
+`1/6` had walked into `1/3`.
+
+`docs/MOVEMENT.md` had this as an open question — "Collision and pushing …
+Unread" — and it is now `docs/COLLISION.md` and `crates/sim/src/collide.rs`.
+
+### Two indices, and why neither can be a scan
+
+The mechanic is not a search over units. It is two indices the world keeps.
+
+`CollBlock` is a bitmask of **48-unit cells**, one per world cell, and every
+unit sets the Chebyshev disc of radius `BLOCK_RADIUS` around its figure's
+cell. `CollCheck::collide_here` reads it. The tempting simplification —
+recompute occupancy from the unit list on demand — is wrong for a reason
+worth writing down: `CollCheck::move_unit` **clears** the cells a unit
+leaves without asking whether anybody else is standing on them. Two
+overlapping blocks share bits, and one of them moving punches holes in the
+other. For `BLOCK_RADIUS 1` — 220 of the 364 shipped types, and every unit
+in every capture — the blocks overlap most of the time, so the two answers
+differ constantly. The bug is the behaviour.
+
+The second index is the per-world-cell object chain, `WData::down` threaded
+through `ObjectData::down`/`up`, head-inserted by `Object::add_to_world`.
+That is how the bitmask's "something is at cell (871, 354)" becomes "that is
+`1/3`". This crate chains units only; the original chains buildings and
+goodies too, but the walk skips them and dropping them from a linked list
+does not reorder the rest. What that costs is a diff — the dump prints
+`down`/`down_who` and they cannot be compared until buildings join — and it
+is booked.
+
+### The corner rule, which the dump adjudicated
+
+With a hit cell in hand, the exemption ladder decides whether this is a
+collision or a nudge, and the last rung is geometric:
+`will_be_corner(me, hit)` and `is_corner(other, hit)` each return `1, 3, 5,
+7` for NW, NE, SE, SW when the hit is exactly a diagonal corner of the
+block, and the pair passes **only if they differ by four** — opposite
+diagonals, two units touching at one corner from opposite sides.
+
+For run10's pair: `1/6` proposes cell `(872, 355)`, the hit is `(871, 354)`,
+`will_be_corner` is 1 and `1/3`'s `is_corner` is 0 because the hit is on its
+edge and not its corner. `|1 − 0| ≠ 4`, so it is hard. The dump's five
+`collide*` fields and its `coll_x 41880, coll_y 17065` are what say the
+reading is right, and `coll_x/coll_y` corrected `docs/ORDERS.md` on the way
+past: they are the **refused step point**, not the blocker's position.
+
+### `move_guys`, and the frame that was nearly lost
+
+`resolve_unit_collision` snaps the blocked unit onto its own 48-cell centre
+and re-plans. Implemented that far, frame 123 matched exactly — the
+position, all seven path entries, every field — and frame 124 was one step
+behind for the rest of the walk. The unit had turned 71° to face its new
+waypoint and spent the frame doing it; the original turned and walked.
+
+The difference is `Unit::set_new_location`'s third argument. `move_step`
+passes 0 and leaves the body to chase the unit; `resolve_unit_collision`
+passes **1**, which teleports the body onto the new point. The follow phase
+then reads `last_speed 0`, and a foot type standing still turns instantly
+(`docs/MOVEMENT.md`, "The body step"). One boolean, threaded through the new
+`Sim::set_new_location`, and `1/6` went from parting at 124 to parting at
+208.
+
+That is the third time in three sessions that the residue was in a
+*predicate or a flag* rather than in arithmetic, which is what the audit
+README has been saying.
+
+### The check with teeth
+
+`UnitData::log_data` writes `collide`, `collide_frame`, `collide_o`,
+`collide_who`, `collide_guy` and `safe` at **every detail level**, so the
+whole block is comparable on every capture the harness reads. Widened and
+pinned: **40,600 field-frames on run10, 285 disagreements, none before frame
+201** — and 277 of those are one sticky byte, because `collide_guy` is
+written to 0 by a hard collision and never cleared, so a single extra
+collision on `1/3` reads 0 against −1 for the rest of the run. The other
+eight are two units and two collisions, both past the score.
+`coll_x`/`coll_y` are compared too, as a scoring order mismatch, and adding
+them did not move the score.
+
+`crates/sim/src/collide.rs` carries four tests written to fail first,
+including the one that pins the un-refcounted clear.
+
+### The number
+
+| | before | after |
+|---|---|---|
+| **ticks before divergence** | **122** | **170** |
+| orders before divergence | 122 | 166 |
+| player 0 first divergence | 182 | 182 |
+| player 1 first divergence | 123 | **171** |
+| `1/6` first divergence | 123 | 208 |
+| run10 angle rows compared | 15,318 | 16,206 |
+| collision-block field-frames | — | 40,600 (285 bad) |
+
+What pins player 1 now is `1/1` at 167, and it is not collision: it is the
+gather order's `dist_mod`, on the citizen the original turns into a builder
+and this simulation keeps at the woodcutter. Player 0 is unmoved at 182.
+
+run6 re-based with it: the farmers' share went 626/420 to 675/346 — six
+citizens clustered round one farm collide constantly, so their walks now go
+round each other — while everyone else's fell on both halves.

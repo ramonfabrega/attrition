@@ -51,7 +51,7 @@ use crate::{Player, Sim};
 /// | `GroupMoveOrder` | §6.6's per-frame formation | every member gets a plain `Move` — `docs/ORDERS.md` §8.4's verdict |
 /// | `action_guard` | §9's escort half | with siege *and* a matching area the escort keeps its orders; no traced army has siege |
 /// | the order-time path plan | §6.7 | the sim plans on the first step, in `do_move`; with a zero slot offset the plan is the same one |
-/// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4 | no slot is ever invalid, so no member is re-slotted |
+/// | `find_nearby_spot`'s collision, `invalid_loc` on a slot | §6.6 step 4 | `find_nearby_spot` still does not ask the occupancy index, so no slot is ever invalid and no member is re-slotted |
 /// | `QUEUE_FIRST`'s insert dance (`set_up_insert` / `action_halt` / recurse / `finish_insert`) | §6.2, §10 | `charge`'s `QUEUE_FIRST` is a plain `push_front` on each member |
 /// | the scenario `ignore_orders` filter | §5 | never set outside a scenario |
 /// | `is_modern_infantry`, `is_packing`, the strafe | §6.6, §10 | no modern infantry, no packers in flight, no planes |

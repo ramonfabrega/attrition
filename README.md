@@ -6,10 +6,10 @@ Games, 2003) in Rust — simulation first, art last.
 Named for the mechanic no open-source RTS has ever implemented: units bleeding
 health inside hostile national borders.
 
-> **Status: the sim skeleton, twelve mechanics in.** Attrition and supply,
-> movement, the economy, costs and production, the tech tree, combat, cities
-> and buildings, orders, the pathfinder, the animation clock, the per-frame
-> random stream, and the AI — its scripted opening through an interpreter of
+> **Status: the sim skeleton, thirteen mechanics in.** Attrition and supply,
+> movement and unit collision, the economy, costs and production, the tech
+> tree, combat, cities and buildings, orders, the pathfinder, the animation
+> clock, the per-frame random stream, and the AI — its scripted opening through an interpreter of
 > our own, and its C++ producers behind it. All of it headless, integer-only,
 > and diffed frame for frame against the original's own per-frame log: a
 > citizen walks the original's walk for every logged frame, the AI's first
@@ -118,7 +118,7 @@ scripts/            fetch-depot.sh
 | `ORACLE.md` | running the original, its loggers, and every logged run |
 | `DATALAYER.md`, `SYNC.md` | the install into the sim; the per-frame random stream |
 | `RECGAME.md`, `COMMANDS.md`, `INPUT.md` | recorded games: the container, the command payloads, the order stream |
-| `ATTRITION.md`, `SUPPLY.md`, `MOVEMENT.md`, `ECONOMY.md`, `COSTS.md`, `PRODUCTION.md`, `TECH.md`, `COMBAT.md`, `CITIES.md`, `ORDERS.md`, `PATHFINDER.md`, `ANIM.md`, `AI.md` | one document per mechanic |
+| `ATTRITION.md`, `SUPPLY.md`, `MOVEMENT.md`, `ECONOMY.md`, `COSTS.md`, `PRODUCTION.md`, `TECH.md`, `COMBAT.md`, `CITIES.md`, `ORDERS.md`, `PATHFINDER.md`, `COLLISION.md`, `ANIM.md`, `AI.md` | one document per mechanic |
 | `audit/` | the blind second readings and their verdicts |
 
 `CLAUDE.md` is the working agreement: thesis, hard constraints, phases, and
@@ -127,7 +127,7 @@ the rules the sessions run by.
 ## Development
 
 ```sh
-cargo test --workspace     # ~580 tests
+cargo test --workspace     # ~740 tests
 cargo clippy --all-targets
 cargo fmt
 ```

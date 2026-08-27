@@ -714,7 +714,7 @@ invariant — 17 of the 79 carry a blocker's position, which is
 | `facing` | the caller's (−1 from `add_move_order`; the formation's `reverse` from `action_move_near`); read by `kill_current_order` (§3.2). Not used by the step. |
 | `dest_x, dest_y` | **the current waypoint — what `move_step` walks toward.** Initialised to `x, y`; rewritten from the stack top each time `dest` goes 0 → 1; moved by `find_path`'s pull-back and by `resolve_unit_collision`'s side-step. |
 | `last_x, last_y` | the position at which the last straight-line plan was made (`find_path` after a successful detour); −1 when a fresh target is taken; a stack top equal to `last` (and not final) is popped before re-planning. |
-| `coll_x, coll_y` | the blocker's position, **written by `detect_unit_collision@00617060`** — not by `astar_path`, as the first reading assumed (R2). `do_move` probes `detect_unit_collision(coll)` every other frame while a search is pending. |
+| `coll_x, coll_y` | **the refused step point**, not the blocker's (run10 frame 123) and not `astar_path`'s: `detect_unit_collision@00617060` writes it. `do_move` re-probes it every other frame while a search runs. `docs/COLLISION.md` §4.3. |
 | `orig_x, orig_y` | the un-snapped point the caller asked for (`action_move_near` passes the click; `add_move_order` passes −1, −1). Not reset by `clear`. Informational. |
 | `off_x, off_y` | `x mod 0x300`, `y mod 0x300` — the destination's offset inside its world cell; `go_around_building` and `find_tpath` use `off % 0xc0` (inside the *tile*) to place detour waypoints off-centre. |
 

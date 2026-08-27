@@ -1242,6 +1242,7 @@ mod tests {
                 last: None,
                 pause: 0,
                 timer: 0,
+                coll: None,
             }),
         });
 

@@ -266,6 +266,10 @@ impl Sim {
     pub fn go_inside(&mut self, unit: usize, b: usize) {
         let captain = self.captain_of(unit);
         for f in self.squad_of(captain) {
+            // `Object::remove_from_world`: off the map is out of both
+            // collision indices (`docs/COLLISION.md` §2, §3).
+            self.coll_remove(f);
+            self.chain_remove(f);
             let u = &mut self.units[f];
             u.inside = Some(b);
             u.on_map = false;
@@ -331,7 +335,10 @@ impl Sim {
                 ..crate::Movement::at(spot)
             };
             // `Object::add_to_world` reaches `update_seen(0)` — the whole
-            // disc, not the ring (`docs/VISION.md` §6).
+            // disc, not the ring (`docs/VISION.md` §6) — and both
+            // collision indices (`docs/COLLISION.md` §2, §3).
+            self.coll_add(f);
+            self.chain_add(f);
             self.update_seen(f, false);
         }
         // The city alarm clears when the city empties.

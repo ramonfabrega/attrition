@@ -918,6 +918,12 @@ pub enum OrderMismatch {
         ours: i64,
         theirs: i64,
     },
+    /// `MoveOrder::coll_x`/`coll_y` — the point the last collision refused
+    /// (`docs/COLLISION.md` §4.3).
+    Coll {
+        ours: Option<(i32, i32)>,
+        theirs: (i64, i64),
+    },
     /// The path stack's depth.
     PathLength { ours: usize, theirs: usize },
     /// A path segment's goal, bottom-first.
@@ -949,6 +955,7 @@ impl OrderMismatch {
             Self::Target { .. } => "target",
             Self::Flags { .. } => "flags",
             Self::Gather { .. } => "gather",
+            Self::Coll { .. } => "coll",
             Self::PathLength { .. } => "path-length",
             Self::PathTo { .. } => "path-to",
         }
@@ -1008,6 +1015,10 @@ pub struct FrameResult {
     pub angle_compared: usize,
     /// Every heading or facing that disagreed (`docs/MOVEMENT.md`).
     pub angle_diverged: Vec<AngleDivergence>,
+    /// Collision-block fields compared this frame, and the ones that
+    /// disagreed (`docs/COLLISION.md` §8).
+    pub collide_compared: usize,
+    pub collide_diverged: Vec<CollideDivergence>,
 }
 
 /// Which of a unit's two angles disagreed.
@@ -1029,6 +1040,20 @@ pub struct AngleDivergence {
     pub o: i64,
     pub which: Which,
     pub ours: i32,
+    pub theirs: i64,
+}
+
+/// One field of a unit's collision block the two sides disagree on —
+/// `docs/COLLISION.md` §8. The block is written at every detail level, so
+/// this is compared on every capture the harness reads.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CollideDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    /// The field, named as `UnitData::log_data` writes it.
+    pub field: &'static str,
+    pub ours: i64,
     pub theirs: i64,
 }
 
@@ -1481,6 +1506,18 @@ fn compare_orders(
                 },
             );
         }
+        // **`coll_x`/`coll_y`**, the point the last collision refused. The
+        // original leaves the pair at its `(0, 0)` start until a collision
+        // writes it, and never clears it (`docs/COLLISION.md` §4.3).
+        if let Some(theirs) = theirs.coll_x.zip(theirs.coll_y)
+            && theirs != (0, 0)
+            && let sim::orders::Body::Move(m) = ours.body
+        {
+            let mine = m.coll.map(|p| (p.x, p.y));
+            if mine.map(|(x, y)| (i64::from(x), i64::from(y))) != Some(theirs) {
+                at(slot, OrderMismatch::Coll { ours: mine, theirs });
+            }
+        }
         // **The gather order's own row**, field for field (§6.4). The kind
         // and the target agreeing says only that both sides are working the
         // same camp; the tile, the phase and the countdown are what say they
@@ -1604,6 +1641,56 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     ours: ours_los,
                     theirs: theirs_los,
                 });
+            }
+        }
+        // **The collision block**, field for field
+        // (`docs/COLLISION.md` §8). `UnitData::log_data` writes all five at
+        // every detail level, so this is checked on every capture — and
+        // the whole record is compared, not the field the mechanic happens
+        // to care about. Only on unit-frames whose *positions* agree: a
+        // unit that has walked somewhere else collides with different
+        // things as a consequence, and counting that would measure the
+        // position gap twice.
+        if ours == theirs && built.sim.units[link.unit].on_map {
+            let un = &built.sim.units[link.unit];
+            for (field, mine, logged) in [
+                ("collide", i64::from(un.collide), u.collide),
+                ("collide_o", i64::from(un.collide_o), u.collide_o),
+                ("collide_who", i64::from(un.collide_who), u.collide_who),
+                ("collide_guy", i64::from(un.collide_guy), u.collide_guy),
+                ("safe", i64::from(un.safe), u.safe),
+            ] {
+                let Some(theirs) = logged else { continue };
+                r.collide_compared += 1;
+                if theirs != mine {
+                    r.collide_diverged.push(CollideDivergence {
+                        frame: frame.n,
+                        who: u.who,
+                        o: u.o,
+                        field,
+                        ours: mine,
+                        theirs,
+                    });
+                }
+            }
+            // `collide_frame` starts at −1 in the original and at 0 here,
+            // so it is compared only once a collision has actually
+            // happened on both sides.
+            if let Some(theirs) = u.collide_frame
+                && theirs >= 0
+                && un.collide_frame > 0
+            {
+                r.collide_compared += 1;
+                if theirs != un.collide_frame {
+                    r.collide_diverged.push(CollideDivergence {
+                        frame: frame.n,
+                        who: u.who,
+                        o: u.o,
+                        field: "collide_frame",
+                        ours: un.collide_frame,
+                        theirs,
+                    });
+                }
             }
         }
         // The two angles, each against its own field — **on the unit-frames
@@ -4513,6 +4600,19 @@ mod tests {
         //               cannot reach. The harness re-seats gaia's animals
         //               from every traced frame's dump; the draw fell back
         //               into place and 101 went 20/21 → 21/21.
+        //   2026-08-27  ticks 170, orders 166; player 1 @ 171, player 0 @
+        //               182 (item 46: **unit collision**, `docs/COLLISION.md`).
+        //               `1/6` walked into `1/3` at frame 122. The original
+        //               detects it on the 48-cell occupancy bitmask, names
+        //               the other unit off the world cell's object chain,
+        //               finds the corner rule does not let them slip past,
+        //               snaps the walker onto its own cell centre and
+        //               re-plans on the 48-grid. Every field of that is in
+        //               the dump and every one of them now matches: the
+        //               five `collide*` fields, `coll_x`/`coll_y`, the
+        //               position, and all seven path entries. `1/6` went
+        //               from 123 to 208, and what pins player 1 now is
+        //               `1/1`'s gather `dist_mod` at 167.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -4521,9 +4621,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 122 && orders >= 122 && first[0] >= 182 && first[1] >= 123,
+            ticks >= 170 && orders >= 166 && first[0] >= 182 && first[1] >= 171,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 122, orders 122, player 0 @ 182, player 1 @ 123",
+             — the floor is ticks 170, orders 166, player 0 @ 182, player 1 @ 171",
             report.first_divergence
         );
         assert!(
@@ -4595,6 +4695,48 @@ mod tests {
                 theirs: 4,
             }],
             "the scout's science level, one frame ahead of the original's cache"
+        );
+
+        // **The collision block over the whole run** (`docs/COLLISION.md`
+        // §8). `UnitData::log_data` writes `collide`, `collide_o`,
+        // `collide_who`, `collide_guy` and `safe` at every detail level, so
+        // this is 40,600 field-frames of the original's own collision state
+        // against `crates/sim/src/collide.rs` — the widest single record
+        // this harness compares, and the one that says the mechanic is
+        // right rather than merely plausible.
+        //
+        // 285 disagree, none before frame 201, and 277 of those are one
+        // sticky byte: `collide_guy` is written to 0 by a hard collision
+        // and **never cleared** (the clear path writes only `collide_o` and
+        // `collide_who`), so a single collision this simulation has and the
+        // original does not leaves `1/3` reading 0 against −1 for every one
+        // of its remaining frames. The other eight are two units and two
+        // collisions: `1/4` at 201–202 and `1/6` at 207, both well past the
+        // score.
+        let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
+        assert_eq!(
+            coll_seen, 40_600,
+            "five fields on every agreeing unit-frame"
+        );
+        let coll_bad: Vec<CollideDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.collide_diverged.iter().copied())
+            .collect();
+        assert!(
+            coll_bad.len() <= 285,
+            "the collision block's disagreements grew: {} of {coll_seen}",
+            coll_bad.len()
+        );
+        assert_eq!(
+            coll_bad.first().map(|d| (d.frame, d.who, d.o)),
+            Some((201, 1, 4)),
+            "the first collision-block disagreement is well past the score"
+        );
+        assert!(
+            !coll_bad.iter().any(|d| d.field == "safe"),
+            "`safe` never disagrees: {:?}",
+            coll_bad.iter().find(|d| d.field == "safe")
         );
 
         // **The tile choice, asserted where it was wrong** (item 25). The
@@ -4670,8 +4812,10 @@ mod tests {
         // over: the headline went 102 → 122 while this moved by 308, which
         // is the useful reminder that a total over 1,772 frames is not the
         // score. The score is where the *first* divergence falls.
+        // 15,318 → 16,206 with item 46 (collision): `1/6` alone holds from
+        // frame 123 to frame 208.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 15_318, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 16_206, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -4690,8 +4834,11 @@ mod tests {
         // ceiling rose because 1,794 rows the harness could not see before
         // came into view, and 847 of them agree. Item 36 is still the item
         // that takes this down.
+        // 6,382 → 6,866 with item 46, against 15,318 → 16,206 compared:
+        // 404 of the 888 rows collision brought into view agree, and the
+        // rest are the same seventeen callers.
         assert!(
-            bad.len() <= 6_382,
+            bad.len() <= 6_866,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );
@@ -5047,8 +5194,14 @@ mod tests {
         // — the same game, with its own map — has always read the farmers
         // the way run6 reads them now, and the two captures now agree unit
         // for unit.
+        // 626/420 → **675/346** with item 46 (collision). The paths half
+        // fell by 74 and the orders half rose by 49, and the split is the
+        // familiar one: six farmers standing in a cluster around one farm
+        // collide constantly, so their walks now go round each other on the
+        // 48-grid. Everyone else's share fell on both halves (1,979/1,194
+        // to 1,930/1,120), and run10 — the same game — went 122 → 170.
         assert!(
-            farmer_orders <= 626 && farmer_paths <= 420,
+            farmer_orders <= 675 && farmer_paths <= 420,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }
@@ -5741,6 +5894,13 @@ mod army_tests {
                 },
                 pause: i(od.pause),
                 timer: i(od.timer),
+                // `coll_x`/`coll_y`, the point the last collision refused
+                // (`docs/COLLISION.md` §4.3). The original leaves 0 rather
+                // than −1 when there has been none.
+                coll: match (od.coll_x, od.coll_y) {
+                    (Some(x), Some(y)) if x > 0 || y > 0 => Some(Pos::new(x as i32, y as i32)),
+                    _ => None,
+                },
             }),
         })
     }

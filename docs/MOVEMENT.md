@@ -713,11 +713,14 @@ the checks below.
   on arrival; `PathData.flags & 4` forces turn-in-place and `& 2` allows a
   final snap through a collision; `& 1` marks the last waypoint. Entirely
   unread beyond that.
-- **Collision and pushing.** `detect_unit_collision` runs on every proposed
-  step, `resolve_unit_collision` when it fails, `UnitData::tolerance` is set to
-  `2 × manh` when the unit gives up, and the `0x100000` one-shot half step is
-  collision's. `PUSH_SIZE` and `PUSH_CIRCLES` in `unitrules.xml` describe a
-  unit's collision profile as a row of circles. Unread.
+- ~~**Collision and pushing.** … Unread.~~ **Read and modelled**:
+  `docs/COLLISION.md` and `crates/sim/src/collide.rs`. `detect_unit_collision`
+  runs on every proposed step, `resolve_unit_collision` when it fails,
+  `UnitData::tolerance` is set to `2 × manh` when the unit gives up, and the
+  `0x100000` one-shot half step is collision's — the last of those is the only
+  part still unmodelled (§7 there). `PUSH_SIZE` and `PUSH_CIRCLES` in
+  `unitrules.xml` remain unread; the occupancy profile the mechanic actually
+  uses is `BLOCK_RADIUS`.
 - **Formations and groups.** `Group::compute_speed`, `report_speed` and
   `leader_report_speed` fill the group speed the cap reads. Unread.
 - **The order layer.** `MoveOrder`, `PatrolOrder`, `AttackToOrder` and the rest

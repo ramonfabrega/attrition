@@ -13,35 +13,35 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-27, after item 44.*
+*2026-08-27, after item 46.*
 
 **The headline — run10, 1,772 frames, RNG seeded from run11's trace: ticks
-before divergence 122, orders 122; player 1 first diverges at frame 123,
-player 0 at 182.** It moved from 102 / 102 / 103 / 103, and the pin in
+before divergence 170, orders 166; player 1 first diverges at frame 171,
+player 0 at 182.** It moved from 122 / 122 / 123 / 182, and the pin in
 `run10_s_opening_…` carries the history.
 
-**Landed:** item 44 — **not** the farm re-target the opener named, whose
-arithmetic was already right. Frame 103 was two things, one per player.
-Player 1: a building's blocked tiles are a **per-tile template** from
-`masks.txt`, named by the graphic in `building_graphics.xml`, and a
-Woodcutter's Camp blocks *nothing*, so `find_nearby_spot` refused the
-camp's own tile (`docs/DATALAYER.md`; a new guard compares every tile's
-object/blocked bits against the dump's own map). Player 0: frame 101 runs
-AI farmers, **a sheep's arrival**, human farmers — and the sheep wandered
-on an untraced frame, so `Sim::reseat_animal` re-seats gaia's animals from
-every traced dump and reports the drift.
+**Landed:** item 46 — **unit collision**, `docs/COLLISION.md` and
+`crates/sim/src/collide.rs`. Frame 123 was not the pathfinder: `1/6` walked
+into `1/3` at 122, and the five extra path entries were `find_upath`'s
+recovery. Two indices (a 48-cell occupancy bitmask that is deliberately not
+refcounted, and the per-world-cell object chain), the parity probe, the
+corner rule, and `resolve`'s snap-and-replan. The frame that nearly got
+away was `Unit::set_new_location`'s `move_guys`: it teleports the body, so
+the snapped unit turns instantly instead of spending a frame. New
+differential check: the whole collision block, 40,600 field-frames on run10,
+285 bad and none before 201.
 
-**Owed:** unchanged — items 42 and 40 (`ORDERS.md` 191,335, `CITIES.md`
-106,854 and `SYNC.md` 70,026 this session), `scenario.py` parked (item 41).
+**Owed:** unchanged — items 42 and 40 (`ORDERS.md` 189,209, `CITIES.md`
+106,854 and `SYNC.md` 70,026 this session).
 
 **Needs the user:** nothing.
 
 **Opener (Opus):** `proceed @docs/QUEUE.md — raise the headline. Player 1
-first diverges at frame 123 and it is the pathfinder: unit 1/6 walking to
-its woodcutter has PathLength 2 where the original has 7, so the sim takes
-a straight line the original breaks into legs. docs/PATHFINDER.md and
-docs/ORDERS.md §4.6. Player 0 holds to 182. Find it, land it, raise the
-floor and add its history line. Take nothing that cannot name the score it
+first diverges at frame 171 and player 0 at 182; the order score is 166 and
+it is `1/1` at frame 167, `Gather { dist_mod: ours 0, theirs 4 }` — the
+citizen the original turns into a builder and this simulation keeps at the
+woodcutter. docs/ORDERS.md §6.4 and §6.5. Find it, land it, raise the floor
+and add its history line. Take nothing that cannot name the score it
 moves.`
 
 ## The queue
@@ -49,6 +49,13 @@ moves.`
 In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
+
+47. **`1/1`'s `dist_mod`, and the builder it should become.** The order
+    score's first divergence, frame 167: the original's gather order carries
+    `dist_mod 4` and this one carries 0, and by 205 the two sides are
+    working different resource tiles. `docs/ORDERS.md` §6.4 has the field
+    and §6.5 the re-target that writes it. It is the item nearest the
+    headline.
 
 38. **One long traced capture, human versus AI, on both maps.** run10 is the
     longest capture and predates the trace, so its RNG is seeded from a
@@ -63,8 +70,8 @@ say so. Numbers are stable; the journal is indexed by them.
     `Leader::calc_unit_stats` refreshes it. Takes run10's one LOS
     disagreement to zero; change the assertion to an empty vec first.
 
-36. **`Unit::set_angle`'s seventeen other callers.** 5,435 of run10's
-    13,542 angle rows, on frames where the positions agree. Start at
+36. **`Unit::set_angle`'s seventeen other callers.** 6,866 of run10's
+    16,206 angle rows, on frames where the positions agree. Start at
     `do_gather`'s: unit `0/2` at frames 432–433 is 2,680 of them and one
     screen of trace. Each caller is also where a group's mirror flag would
     move (`docs/GROUPS.md` §4.1).
@@ -73,6 +80,14 @@ say so. Numbers are stable; the journal is indexed by them.
     frame after an `EXPLORE_TO` arrival. `docs/MOVEMENT.md` open questions
     names the suspect; `GUYS=2` prints `guy_flags` on every capture — a grep.
 
+48. **The object chain, whole.** `crates/sim/src/collide.rs` chains units
+    only; the original threads buildings and goodies through the same list
+    (`docs/COLLISION.md` §3, §7). The units' order is unaffected, so the
+    mechanic is right — but the dump prints `down`/`down_who` on every
+    object at every detail level and the harness parses them and compares
+    nothing. Put buildings in the chain and widen the diff to it; it is the
+    cheapest untaken widening on the board.
+
 23. **The hand-back's inversion, and the formation byte's sign.**
     `kill_current_order` writes `order.facing XOR reversing(leader.angle −
     order.angle)`; no run has fired the XOR term. *Capture:* `UNITS=3` +
@@ -80,6 +95,13 @@ say so. Numbers are stable; the journal is indexed by them.
     marching, re-ordered — in Refused or an Echelon, which also settles the
     `angles` byte's sign (item 19). `docs/GROUPS.md` §13. Fold into item 38's
     capture if the shapes can share a run.
+
+49. **Collision's unrun arms.** `docs/COLLISION.md` §8 lists what no
+    capture has executed: three of the four soft-collision arms, the
+    wait-for-it branch (`unit_masks & 0x40`), the throttle above four
+    repaths, the `pause = % 9 + 1` draw, and any `BLOCK_RADIUS ≠ 1` unit.
+    §9 names the capture for each; most are one run of two units ordered
+    head-on with `UNITS=3` and `rontrace`. Fold into item 38's capture.
 
 39. **A debug viewer.** A thin, read-only 2D client over `Sim` state — map,
     units, fog, order lines, with the original's dump overlaid for the same

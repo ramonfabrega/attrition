@@ -674,6 +674,23 @@ pub struct UnitDump {
     /// every capture on disk; kept so the record is compared whole.
     pub infiltrated: Option<i64>,
     pub visible: Option<i64>,
+    /// The collision block, written at every detail level
+    /// (`docs/COLLISION.md`): the counter, the frame of the last one, and
+    /// what was in the way.
+    pub collide: Option<i64>,
+    pub collide_frame: Option<i64>,
+    pub collide_o: Option<i64>,
+    pub collide_who: Option<i64>,
+    pub collide_guy: Option<i64>,
+    /// `UnitData::safe` — the cooldown a failed 48-grid search buys.
+    pub safe: Option<i64>,
+    /// `ObjectData::down`/`down_who` and `up`/`up_who`: this object's place
+    /// in its world cell's chain, on the `OBJECT` level
+    /// (`docs/COLLISION.md` §3).
+    pub down: Option<i64>,
+    pub down_who: Option<i64>,
+    pub up: Option<i64>,
+    pub up_who: Option<i64>,
 }
 
 impl UnitDump {
@@ -1341,6 +1358,16 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
         mylos: obj.and_then(|o| o.int("mylos")),
         infiltrated: obj.and_then(|o| o.int("infiltrated")),
         visible: obj.and_then(|o| o.int("visible")),
+        collide: b.int("collide"),
+        collide_frame: b.int("collide_frame"),
+        collide_o: b.int("collide_o"),
+        collide_who: b.int("collide_who"),
+        collide_guy: b.int("collide_guy"),
+        safe: b.int("safe"),
+        down: obj.and_then(|o| o.int("down")),
+        down_who: obj.and_then(|o| o.int("down_who")),
+        up: obj.and_then(|o| o.int("up")),
+        up_who: obj.and_then(|o| o.int("up_who")),
     })
 }
 

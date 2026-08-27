@@ -646,8 +646,10 @@ probe overwrites the `from → to` one, and the multiplier is gated on
 whichever ran last.
 Big-unit strides and the transport tail are implemented as dormant seams;
 suspend returns −1 without stashing (its restorer has no caller until
-collision recovery exists); `find_upath` is complete and tested but
-uncalled until `resolve_unit_collision` is modelled.
+collision recovery exists); `find_upath` is complete and tested, and
+**`resolve_unit_collision` now calls it** (`docs/COLLISION.md` §6 step 6),
+which is also where `valid_ucoord`'s `detect_unit_collision` half came
+alive: the 48-grid plan goes round the units in the way.
 
 ## 12. What is not established
 

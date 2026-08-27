@@ -1,7 +1,8 @@
 //! Movement: how fast a unit moves, which way it faces, and how far one frame
 //! carries it.
 //!
-//! Not how it decides where to go. Pathfinding, collision and formations are
+//! Not how it decides where to go. Pathfinding, collision (`collide.rs`)
+//! and formations are
 //! separate mechanics; `docs/MOVEMENT.md` surveys them and this module does not
 //! implement them.
 //!
@@ -452,10 +453,11 @@ pub struct Step {
 ///    only time a clamp could fire — and propose that position.
 ///
 /// The original also refuses a step outside the world, checks collision, and
-/// pops its path stack on arrival. The bounds check is the caller's, through
-/// `World::accepts`, which is why this returns a proposal; the rest is not
-/// modelled. Arrival is exact — `UnitData::tolerance` is zero unless the unit
-/// is giving up on a collision.
+/// pops its path stack on arrival. All three are the caller's — the bounds
+/// check through `World::accepts`, the collision test and its recovery
+/// through `Sim::detect_unit_collision` (`docs/COLLISION.md` §5) — which is
+/// why this returns a proposal. Arrival is exact: `UnitData::tolerance` is
+/// zero unless the unit is giving up on a collision.
 pub fn move_step(
     from: Pos,
     facing: Angle,
@@ -498,8 +500,8 @@ pub fn move_step(
     }
 
     // Half a step while still turning hard. (The original also has a one-shot
-    // half step here, `unit_masks & 0x100000`, which collision sets; not
-    // modelled.)
+    // half step here, `unit_masks & 0x100000`, which a *soft* collision sets
+    // — `Unit::half_step`, written but not yet read: `docs/COLLISION.md` §7.)
     let step = if owed >= FORTY_FIVE / slow as u32 {
         step / 2
     } else {
