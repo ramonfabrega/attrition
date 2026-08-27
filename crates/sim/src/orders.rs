@@ -1934,7 +1934,14 @@ impl Sim {
                 self.check_build_order(u);
                 return;
             }
-            if self.building_ident(b) != Ident::OilPlatform && self.units[u].stance > 1 {
+            // §5.2 step 2, and the same predicate as step 6: only an
+            // **oil platform** overrides it, and the exemption is
+            // "not AI-driven *and* a gathering stance". An AI builder
+            // that finds its site already finished never adopts it — it
+            // goes back through `build_done`'s own arm.
+            if self.building_ident(b) != Ident::OilPlatform
+                && (self.ai_driven(who) || self.units[u].stance > 1)
+            {
                 self.build_done(u, Some(b));
                 return;
             }
@@ -1975,7 +1982,13 @@ impl Sim {
             self.check_build_order(u);
             return;
         }
-        let gather = (self.building_ident(b) == Ident::OilPlatform || self.units[u].stance <= 1)
+        // §5.2 step 6 — **the builder keeps the building it just finished
+        // only if it is not the AI's.** `(OILPLATFORM or (not
+        // `unit_masks & 0x40000` and stance ∈ {0,1}))`; an AI citizen goes
+        // to `build_done`, whose own arm searches afresh and may well pick
+        // a different building.
+        let gather = (self.building_ident(b) == Ident::OilPlatform
+            || (!self.ai_driven(who) && self.units[u].stance <= 1))
             && self.buildings[b].owner == who
             && self.is_gather_type(b)
             && self.building_ident(b) != Ident::University;
@@ -2069,15 +2082,28 @@ impl Sim {
     }
 
     /// `Unit::build_done` (§5.5): what a builder does next.
+    ///
+    /// **The AI's arm is its own and stops there.** `unit_masks & 0x40000`
+    /// takes `find_build_spot` → `find_repair_spot` → `find_gather_spot`
+    /// with **no stance gate** and, crucially, **without the tail** that
+    /// hands a human builder the site it has just finished. The two object
+    /// searches are the unmodelled seams; the gather search is not.
     fn build_done(&mut self, u: usize, site: Option<usize>) {
         if self.units[u].orders.len() > 1 {
+            return;
+        }
+        let who = self.units[u].owner;
+        if self.ai_driven(who) {
+            // `find_build_spot`/`find_repair_spot` — seams (§5.5).
+            if !self.lobby.resources_unlimited() {
+                self.find_gather_spot(u, self.tuning.unit_gather_respond_range * TILE);
+            }
             return;
         }
         let stance = self.units[u].stance;
         if stance <= 1 && self.find_gather_spot(u, self.tuning.unit_gather_respond_range * TILE) {
             return;
         }
-        let who = self.units[u].owner;
         if let Some(b) = site
             && self
                 .buildings
@@ -2105,8 +2131,12 @@ impl Sim {
         };
         let who = self.units[u].owner;
         let action = flags & flag::ACTION != 0;
+        // §5.6: an AI repairer takes `find_repair_spot` (a seam) instead of
+        // adopting the building it has just mended — the same `unit_masks &
+        // 0x40000` split as `do_build`'s two.
         let gather_after = |sim: &mut Sim| {
-            if sim.order_type(u) == index::NONE
+            if !sim.ai_driven(who)
+                && sim.order_type(u) == index::NONE
                 && sim.buildings[b].owner == who
                 && sim.units[u].stance < 2
                 && sim.is_gather_type(b)

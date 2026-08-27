@@ -994,6 +994,16 @@ pub struct FrameResult {
     /// The `(who, o)` of each unlinked unit-frame — the units the original
     /// has on this frame that the simulation does not.
     pub unlinked_units: Vec<(i64, i64)>,
+    /// The `(who, o)` of each unit the **simulation** has on this frame and
+    /// the original does not — [`unlinked`](Self::unlinked_units)' mirror.
+    ///
+    /// Counting one side only is a measure that can be *gamed by
+    /// over-producing*: a simulation whose AI trains its ninth citizen four
+    /// hundred frames early reads as "every unit the original has, we have"
+    /// from the frame the original catches up, and the early frames cost it
+    /// nothing. Both directions are counted so that neither running ahead
+    /// nor running behind can hide.
+    pub extra_units: Vec<(i64, i64)>,
     pub compared: usize,
     pub diverged: Vec<Divergence>,
     /// The leaders' scores as logged, by `who`.
@@ -1734,6 +1744,27 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 ours,
                 theirs,
             });
+        }
+    }
+    // **And the other direction.** A unit this simulation holds for a
+    // player the frame does not name at all. `UnitData::log_data` writes
+    // every unit of every player at any detail level, so a frame that names
+    // none is a capture below the roster rather than an empty world; such a
+    // frame is skipped rather than reported as an invented army.
+    if frame
+        .units
+        .iter()
+        .any(|u| (0..players as i64).contains(&u.who))
+    {
+        for un in built.sim.units.iter().filter(|u| u.alive()) {
+            let who = i64::from(un.owner);
+            if !(0..players as i64).contains(&who) {
+                continue;
+            }
+            let o = i64::from(un.index);
+            if !frame.units.iter().any(|u| u.who == who && u.o == o) {
+                r.extra_units.push((who, o));
+            }
         }
     }
     r.scores = frame.leaders.iter().map(|l| (l.who, l.score)).collect();
@@ -4613,6 +4644,19 @@ mod tests {
         //               position, and all seven path entries. `1/6` went
         //               from 123 to 208, and what pins player 1 now is
         //               `1/1`'s gather `dist_mod` at 167.
+        //   2026-08-27  ticks 181, orders 168; player 1 @ 203, player 0 @
+        //               182 (item 47: **the AI builder does not keep what
+        //               it built**). `Unit::do_build`'s two gather
+        //               predicates and `Unit::do_repair`'s each carry a
+        //               `unit_masks & 0x40000` term this crate did not
+        //               have: only a **human** builder adopts the site it
+        //               has just finished. `1/1` finished its farm on frame
+        //               167 and this simulation put it on that farm; the
+        //               original sent it back through `build_done`, whose
+        //               AI arm searches afresh and picked the Woodcutter's
+        //               Camp `2001` — the same camp, the same tile
+        //               `(212, 93)`, the same `dist_mod 4`. The first
+        //               gather-tile disagreement went 169 → 430.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -4621,9 +4665,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 170 && orders >= 166 && first[0] >= 182 && first[1] >= 171,
+            ticks >= 181 && orders >= 168 && first[0] >= 182 && first[1] >= 203,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 170, orders 166, player 0 @ 182, player 1 @ 171",
+             — the floor is ticks 181, orders 168, player 0 @ 182, player 1 @ 203",
             report.first_divergence
         );
         assert!(
@@ -4652,15 +4696,48 @@ mod tests {
             .collect();
         missing.sort_unstable();
         missing.dedup();
-        // 2026-08-24, on the true stream through frame 3 (run12's words)
-        // and with the market, the farms, the birds and the herds drawing:
-        // 1/9 now trains on the original's frame, and only the last citizen
-        // is missing.
-        assert_eq!(missing, vec![(1, 10)], "the last food-bound citizen, 1/10");
+        // **The roster, both ways.** `unlinked` is what the original has and
+        // this simulation does not; `extra` is the mirror, and it exists
+        // because the one-sided count could be *paid off by
+        // over-producing* — which is exactly what was happening.
+        //
+        // 2026-08-24 read "1/9 now trains on the original's frame, and only
+        // the last citizen is missing", on 268 unlinked unit-frames. It did
+        // not: the AI's ninth citizen was standing here from frame **897**
+        // against the original's 1297, four hundred frames early, and the
+        // one-sided measure could not see a unit that arrives too soon —
+        // from 1297 the link exists and the earlier frames cost nothing.
+        // The mirror was added in item 47 and reported those 400 at once.
+        //
+        // Item 47 (the AI builder's `unit_masks & 0x40000`) took `1/1` off
+        // the farm it had built and put it on the original's woodcutter,
+        // which is right and is what moved the headline — and with one
+        // fewer farmer the AI now never reaches its ninth citizen inside
+        // 1,772 frames. So the gap did not appear here; it changed sign,
+        // and the two-sided total went 668 → 744. **The AI's long-run
+        // economy is the item this measure now names**, and until it is
+        // taken the honest statement is a floor on the *pair*.
+        assert_eq!(
+            missing,
+            vec![(1, 9), (1, 10)],
+            "the two food-bound citizens the AI does not reach"
+        );
+        let extras: Vec<(i64, i64)> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.extra_units.iter().copied())
+            .collect();
+        assert!(
+            extras.is_empty(),
+            "a unit this simulation has that the original does not: {:?}",
+            &extras[..extras.len().min(4)]
+        );
         let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
         assert!(
-            unlinked <= 268,
-            "unlinked unit-frames: {unlinked} — 2026-08-24 was 268: 1/10 from 1505"
+            unlinked + extras.len() <= 744,
+            "roster unit-frames: {unlinked} missing + {} extra — 2026-08-27 \
+             was 744 + 0, and 2026-08-24's 268 hid 400 of its own",
+            extras.len()
         );
 
         // **`ObjectData::mylos` over the whole run** — the differential
@@ -4678,8 +4755,12 @@ mod tests {
         // and the original still reports 4 until the next one. `docs/VISION.md`
         // §7 books modelling the cache; the pair is what proves `epoch[3]`
         // is the Science line and `science_los` its multiplier.
+        //
+        // 26,433 → 25,957 with item 47: the 476 are `1/9`'s, the citizen
+        // the AI no longer reaches (see the roster note above). The one
+        // disagreement is unmoved.
         let los_seen: usize = report.frames.iter().map(|f| f.los_compared).sum();
-        assert_eq!(los_seen, 26_433, "every compared unit-frame carries mylos");
+        assert_eq!(los_seen, 25_957, "every compared unit-frame carries mylos");
         let bad: Vec<LosDivergence> = report
             .frames
             .iter()
@@ -4713,9 +4794,17 @@ mod tests {
         // of its remaining frames. The other eight are two units and two
         // collisions: `1/4` at 201–202 and `1/6` at 207, both well past the
         // score.
+        //
+        // 40,600 → 42,630 with item 47, and 285 → 400 with it. Both are
+        // the *same* sticky byte and the same frame: `1/3` holds its
+        // position against the original for 115 more frames than it did,
+        // so 115 more of its unit-frames come into view — and every one of
+        // them reads that one stale `collide_guy`. 392 of the 400 are
+        // `1/3`'s; the field tally is the check that says so, and it is
+        // asserted below rather than left to the total.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 40_600,
+            coll_seen, 42_630,
             "five fields on every agreeing unit-frame"
         );
         let coll_bad: Vec<CollideDivergence> = report
@@ -4724,9 +4813,18 @@ mod tests {
             .flat_map(|f| f.collide_diverged.iter().copied())
             .collect();
         assert!(
-            coll_bad.len() <= 285,
+            coll_bad.len() <= 400,
             "the collision block's disagreements grew: {} of {coll_seen}",
             coll_bad.len()
+        );
+        // And what they are: `1/3`'s stale block, plus ten rows over two
+        // other collisions (`1/4` at 201–202, `1/6` at 207). Anything else
+        // is a new fault, however the total moves.
+        let sticky = coll_bad.iter().filter(|d| (d.who, d.o) == (1, 3)).count();
+        assert!(
+            coll_bad.len() - sticky <= 10,
+            "collision rows that are not `1/3`'s: {}",
+            coll_bad.len() - sticky
         );
         assert_eq!(
             coll_bad.first().map(|d| (d.frame, d.who, d.o)),
@@ -4745,9 +4843,10 @@ mod tests {
         // when player 1's woodcutter picked `(214, 93)` — a tree ringed by
         // its own forest, with no orthogonal neighbour to stand on — and
         // the original picked `(213, 92)`. That one tile pinned the
-        // headline at ticks 3. It is now 169, and it belongs to `1/1`, the
-        // citizen the original turns into a builder and this simulation
-        // keeps at the woodcutter.
+        // headline at ticks 3. It went to 169 — `1/1`, the citizen the
+        // original turned into a woodcutter and this simulation kept on the
+        // farm it had built — and with item 47 it is **430**, where the
+        // woodcutter `1/6` chooses its second tree of the game.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -4764,7 +4863,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(169),
+            Some(430),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -4814,8 +4913,10 @@ mod tests {
         // score. The score is where the *first* divergence falls.
         // 15,318 → 16,206 with item 46 (collision): `1/6` alone holds from
         // frame 123 to frame 208.
+        // 16,206 → 17,018 with item 47, against 6,866 → 6,926 bad: of the
+        // 812 rows the AI builder's fix brought into view, 752 agree.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 16_206, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 17_018, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -4838,7 +4939,7 @@ mod tests {
         // 404 of the 888 rows collision brought into view agree, and the
         // rest are the same seventeen callers.
         assert!(
-            bad.len() <= 6_866,
+            bad.len() <= 6_926,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );

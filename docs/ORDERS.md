@@ -1284,10 +1284,20 @@ either index is negative) — the liveness key `work` step 8 compares.
 
 `worker_stance` = `UnitData::get_worker_stance@006109f0` → `stance`
 (`UnitData+0xb1`) if the type has one, else 0; **1 and 2 build and repair, 0
-and 1 gather** (1 is the normal citizen). In the logged run the builder stood
-adjacent at frame 176, its move was gone at 177, `do_construct` first ran at
-178 (`flags 1 → 3`, `job_counter 100`), and completion at 327 left the AI
-builder with a `GATHERORDER` on the farm it had just built.
+and 1 gather** (1 is the normal citizen).
+
+**Steps 2 and 6 are `not AI`, and this crate read them as stance alone.**
+Both gather arms here — and §5.6's — are `OILPLATFORM or
+(`unit_masks & 0x40000` clear and worker_stance ∈ {0,1})`: **only a human
+builder adopts the site it has just finished.** The AI's goes back through
+`build_done`, whose own arm (§5.5) searches afresh and need not pick that
+site at all. The observation that hid it for a month is that in the logged
+run the AI builder finished its farm and *did* end up gathering there —
+but by `find_gather_spot`, which takes the nearest gather building, and
+that was it. run10's frame 167 is the case that tells the two apart: the
+AI's `1/1` finishes a farm and the original sends it to the Woodcutter's
+Camp instead. **Diff-backed 2026-08-27** (item 47) — the building, the
+tile `(212, 93)` and `dist_mod 4` all agree on the frame.
 
 **The walk is not the order's.** `BuildOrder` owns no `MoveOrder` and calls no
 `go_to`: a non-adjacent `do_build` kills itself and `action_swarm_around`
@@ -1759,22 +1769,11 @@ occurs twice among them. `Farms::
 grow@008d91c0` sets `state = 1` and adds **`0.005f` to a `float[4][4]
 percent`** until it reaches `1.0f`, then `state = 2`; `snip` turns 2 into 3;
 what regrows 3 → 0 (`Farms::process`, presumably) was not read. So a float
-accumulator sits upstream of the sync RNG — a count-to-N for the simulation,
-with N (200 or 201) a behavioural check (§14). ~~A farmer therefore stands on
-its first tile for some two hundred frames before its first re-target.~~
+accumulator sits upstream of the sync RNG.
 
-**The check has been run, and N is not 200.** In `gamelog-run6` — a fresh
-Ancient-Age start at `UNITS=3 BUILDS=7` — **all six farm citizens, on both
-players, take an inserted move in front of their gather order on frame 102**,
-and their positions part company on 103 (`docs/DATALAYER.md` §3.1). That is
-one shared, deterministic tick for every farmer, which is what a count-to-N
-started at frame 0 looks like — so the count is about **101**, not 200. ~~Two
-readings fit and the decompile has not been re-read to choose between them:
-`grow` is called twice a frame, or the increment is `0.01f` and the `0.005f`
-the decompiler printed is half of it. Until one is settled the simulation
-keeps `FARM_GROWS`, and the constant is wrong by a factor of two; the
-harness's order diff is now the instrument that says so.~~ **Settled
-2026-08-24 (`docs/SYNC.md` §3.3): neither.** `Farms::inc_time@008d8600`,
+**The count is 101, not 200** — `gamelog-run6` puts all six farm citizens,
+on both players, into an inserted move on frame 102 (`docs/DATALAYER.md`
+§3.1). **Settled 2026-08-24 (`docs/SYNC.md` §3.3).** `Farms::inc_time@008d8600`,
 run every frame from `Objects::inc_time`, adds a *second* `0.005f` to every
 growing cell (and takes `0.01f` from every cut one, and rolls the farm's
 sync-stream draw), so a farmed cell gets two adds a frame — and `0.005f`
@@ -2741,7 +2740,9 @@ what is listed as an input is stated as such in the code):
   `do_construct`/`repair_*`/`garrison` seams, with adjacency = `attack_dist <
   96` (replacing the tile-based stand-in), the swarm ring (`ExploreTo` to the
   §10 spot, re-queued in front with the same action bit), `check_build_order`,
-  `build_done` and the stance rules, `come_out`'s citizen/scholar rally rules.
+  `build_done` with **its own AI arm** and the stance rules (§5.2's note;
+  `find_build_spot`/`find_repair_spot` are the seams inside it),
+  `come_out`'s citizen/scholar rally rules.
 - **`do_gather`** — the chain on the building (`gatherers: Vec<usize>`,
   push-front, the prune), `num_gatherers(arrived, skip_decoys)` — the count
   the economy should read; **`economy::Site::gatherers` is still an input**,

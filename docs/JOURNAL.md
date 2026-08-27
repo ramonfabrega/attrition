@@ -3852,3 +3852,92 @@ and this simulation keeps at the woodcutter. Player 0 is unmoved at 182.
 run6 re-based with it: the farmers' share went 626/420 to 675/346 — six
 citizens clustered round one farm collide constantly, so their walks now go
 round each other — while everyone else's fell on both halves.
+
+## 2026-08-27 — item 47: the builder that does not keep what it built (headline 170 → 181, Opus 5)
+
+`run10` frame 167. The AI's citizen `1/1` finishes a farm; the original's
+gather order carries `dist_mod 4` and this simulation's carries 0. Everything
+else on the row agrees — kind, flags, target — which is what made it look
+like an arithmetic slip in one field.
+
+It was not a field. `dist_mod` is written once, by `add_gather_order`, and it
+is 4 for a **non-flat** gather building and 0 for a flat one. The two sides
+were gathering at different buildings and the diff could not say so: the
+target comparison is skipped when either side names a building the harness
+cannot map to a logged `o`, and both of these were built during the game. The
+original's `1/1` was on the Woodcutter's Camp `2001`; this one was on the
+farm it had just raised.
+
+### The predicate, and why the run that "confirmed" it did not
+
+`Unit::do_build`'s step 6 hands the finished site to its builder only when
+
+> `is(OILPLATFORM)` **or** (`unit_masks & 0x40000` clear **and**
+> `get_worker_stance() ∈ {0, 1}`)
+
+and step 2 — the arm for a site that finished before the builder arrived —
+is the same test negated. `Unit::do_repair` carries it a third time. This
+crate had the stance half of all three and none of the AI half, so every AI
+builder adopted its own site.
+
+The reason nothing caught it for a month is in `docs/ORDERS.md` §5.2's own
+worked example, which has now been rewritten. The logged run it was written
+from *did* leave the AI builder gathering at the farm it had built — but by
+`build_done` → `find_gather_spot`, which takes the nearest gather building
+with room, and that was it. A predicate and its negation produce the same
+observation whenever the fresh search lands back on the site, which is most
+of the time. Frame 167 is one of the times it does not.
+
+`build_done`'s AI arm is now its own: `find_build_spot` → `find_repair_spot`
+→ `find_gather_spot`, with **no stance gate**, gated on the lobby's
+`starting_resources != 8`, and **without the tail** that hands a human
+builder its site. The two object searches stay seams.
+
+With the term in, `1/1` walks to the original's camp, takes the original's
+tile `(212, 93)`, and carries `dist_mod 4`. The first frame on which any
+gather tile disagrees went from 169 to **430**.
+
+### The measure that was being paid off
+
+Pinned beside the headline was "1/9 trains on the original's frame, and only
+the last citizen is missing — 268 unlinked unit-frames". It was not true, and
+the measure could not see it: `unlinked` counts units the *original* has that
+this simulation does not, so a unit that arrives **too early** is free. The
+AI's ninth citizen had been standing here from frame **897** against the
+original's 1297, and from 1297 the link existed and the earlier four hundred
+frames cost nothing.
+
+`FrameResult::extra_units` is the mirror, added here and made to fail on
+purpose first: on the pre-fix code it reports those 400 at once. With the fix
+the AI has one farmer fewer and never reaches its ninth citizen inside 1,772
+frames, so the gap changed sign rather than closing — 268 + 400 hidden
+becomes 744 + 0 seen. **The AI's long-run economy is what this measure now
+names**, and it is booked as its own item rather than smuggled into this one.
+
+### Numbers
+
+| | before | after |
+|---|---|---|
+| **ticks before divergence** | **170** | **181** |
+| orders before divergence | 166 | **168** |
+| player 0 first divergence | 182 | 182 |
+| player 1 first divergence | 171 | **203** |
+| first gather-tile disagreement | 169 | **430** |
+| roster unit-frames (missing + extra) | 268 + 400 | 744 + 0 |
+| run10 angle rows compared | 16,206 | 17,018 (6,926 bad) |
+| collision-block field-frames | 40,600 (285 bad) | 42,630 (400 bad) |
+| `mylos` unit-frames | 26,433 | 25,957 |
+
+The two totals that fell are the same citizen: `1/9` is 476 of the `mylos`
+rows and its absence is the whole of the roster's move. The two that rose are
+`1/3` and `1/6` holding the original's positions for longer — 812 more angle
+rows, of which 752 agree, and 115 more frames of `1/3` reading its one stale
+`collide_guy`, which is 392 of the 400.
+
+### Paperwork
+
+`docs/ORDERS.md` §5.2 gains the predicate and the trap, §13 the AI arm; §6.5
+gave up the superseded `FARM_GROWS` narrative to pay for the room (the story
+is in this file's 2026-08-24 entry) and the pin came down 191,335 → 191,190.
+`crates/sim/src/cities_tests.rs` carries the split as a test, written to fail
+first.

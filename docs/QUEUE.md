@@ -13,36 +13,36 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-27, after item 46.*
+*2026-08-27, after item 47.*
 
 **The headline — run10, 1,772 frames, RNG seeded from run11's trace: ticks
-before divergence 170, orders 166; player 1 first diverges at frame 171,
-player 0 at 182.** It moved from 122 / 122 / 123 / 182, and the pin in
+before divergence 181, orders 168; player 0 first diverges at frame 182,
+player 1 at 203.** It moved from 122 / 170, and the pin in
 `run10_s_opening_…` carries the history.
 
-**Landed:** item 46 — **unit collision**, `docs/COLLISION.md` and
-`crates/sim/src/collide.rs`. Frame 123 was not the pathfinder: `1/6` walked
-into `1/3` at 122, and the five extra path entries were `find_upath`'s
-recovery. Two indices (a 48-cell occupancy bitmask that is deliberately not
-refcounted, and the per-world-cell object chain), the parity probe, the
-corner rule, and `resolve`'s snap-and-replan. The frame that nearly got
-away was `Unit::set_new_location`'s `move_guys`: it teleports the body, so
-the snapped unit turns instantly instead of spending a frame. New
-differential check: the whole collision block, 40,600 field-frames on run10,
-285 bad and none before 201.
+**Landed:** item 47 — **the AI builder does not keep what it built**.
+`do_build`'s two gather arms and `do_repair`'s carry a `unit_masks &
+0x40000` term this crate lacked: only a *human* adopts the site it just
+finished. `1/1` now walks to the original's camp, tile and `dist_mod`, and
+the first gather-tile disagreement went 169 → 430. New differential check:
+`FrameResult::extra_units`, `unlinked`'s mirror — it caught the AI's ninth
+citizen standing here 400 frames early, which one-sided counting could not
+see. Item 51 is what that leaves.
 
-**Owed:** unchanged — items 42 and 40 (`ORDERS.md` 189,209, `CITIES.md`
-106,854 and `SYNC.md` 70,026 this session).
+**Owed:** unchanged — items 42 and 40 (`ORDERS.md` 191,190, `CITIES.md`
+106,854 and `SYNC.md` 70,026).
 
 **Needs the user:** nothing.
 
-**Opener (Opus):** `proceed @docs/QUEUE.md — raise the headline. Player 1
-first diverges at frame 171 and player 0 at 182; the order score is 166 and
-it is `1/1` at frame 167, `Gather { dist_mod: ours 0, theirs 4 }` — the
-citizen the original turns into a builder and this simulation keeps at the
-woodcutter. docs/ORDERS.md §6.4 and §6.5. Find it, land it, raise the floor
-and add its history line. Take nothing that cannot name the score it
-moves.`
+**Opener (Opus):** `proceed @docs/QUEUE.md — raise the headline. Two units
+pin the two scores. Orders, 168: at frame 169 `1/1`'s camp-return draw is
+ours 581 against theirs 460 — the same `400 + rnd % 200` on a different
+word, so the stream is off earlier in that frame and `--diff`'s per-frame
+draw counts say where. Ticks, 181: `0/3` at 181 holds `[Move, Gather]`
+where the original holds `[Gather]`, and parts on 182. docs/ORDERS.md §6.3,
+§6.4. Take the draw first: it is earlier and it is one frame to read. Raise
+the floor and add its history line. Take nothing that cannot name the score
+it moves.`
 
 ## The queue
 
@@ -50,11 +50,11 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-47. **`1/1`'s `dist_mod`, and the builder it should become.** The order
-    score's first divergence, frame 167: the original's gather order carries
-    `dist_mod 4` and this one carries 0, and by 205 the two sides are
-    working different resource tiles. `docs/ORDERS.md` §6.4 has the field
-    and §6.5 the re-target that writes it. It is the item nearest the
+50. **`0/3`'s move that will not die.** The order score's first
+    divergence, frame 181: player 0's citizen holds `[Move, Gather]` where
+    the original holds `[Gather]` alone, and on 182 the two positions part
+    — which is the whole of player 0's 182. `docs/ORDERS.md` §6.3's walk
+    and §6.4's camp return are where it lives. It is the item nearest the
     headline.
 
 38. **One long traced capture, human versus AI, on both maps.** run10 is the
@@ -137,6 +137,20 @@ say so. Numbers are stable; the journal is indexed by them.
     of run10's 54 objects, uncompared to this day — as its own sub-score,
     then close what it shows. Frame 94's 6 against 472 is the size of what
     stands between here and that.
+
+51. **The AI's long-run economy, now that the roster is measured both
+    ways.** `FrameResult::extra_units` (item 47) is the mirror of
+    `unlinked`, and together they say the AI reaches eight citizens on the
+    original's frames and then stalls: the original trains `1/9` at 1297
+    and `1/10` at 1505 and this simulation reaches neither inside 1,772
+    frames, where before item 47 it was reaching `1/9` four hundred frames
+    *early* off one farmer too many. So the gap was always there and the
+    one-sided measure was paying it off. Two threads to pull, in order:
+    the AI's citizens spend long stretches on `AttackTo` moves rather than
+    gathering (`docs/ARMY.md`; the original's `1/6`–`1/8` sit on the camp
+    and the fourth farm for the whole run), and the income itself —
+    `CITY.gatherers` is in every dump at every detail level and is
+    uncompared. Score it on the roster pin, 744 + 0.
 
 Older backlog, one line each, unchanged: the `LEADERDATA` and `CITY`
 widenings; a `find_target` block; run7's order stream under the trace; a

@@ -1166,6 +1166,86 @@ fn a_citizen_with_a_gather_order_walks_to_the_farm_and_then_counts() {
     ));
 }
 
+/// **Only a human builder keeps the site it just finished** — `docs/ORDERS.md`
+/// §5.2's note. Step 6's gather arm is `OILPLATFORM or (`unit_masks &
+/// 0x40000` clear and worker_stance ∈ {0, 1})`, so an AI citizen never
+/// adopts its own site: it goes back through `build_done`, whose arm (§5.5)
+/// is `find_build_spot` → `find_repair_spot` → a fresh `find_gather_spot`
+/// **gated on the lobby's `starting_resources != 8`**.
+///
+/// That gate is what makes the two arms separable here without geometry: a
+/// human keeps its farm under either lobby, and an AI under the unlimited
+/// one ends the frame holding nothing at all. Which building the AI's fresh
+/// search lands on when it does run is run10's frame 167, where it walks
+/// past the farm it built to the Woodcutter's Camp — the distinction is
+/// invisible whenever the search would pick the site anyway, which is how
+/// the missing term survived a month in this crate.
+#[test]
+fn only_a_human_builder_adopts_the_site_it_has_just_finished() {
+    // `run` stands a citizen on an unfinished farm, lets it build the farm
+    // out, and answers with the order it is left holding.
+    fn run(human: bool, unlimited: bool) -> Option<Body> {
+        use crate::tech::{TechTree, TypeDef};
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        sim.nation[0].human = human;
+        sim.lobby.starting_resources = if unlimited { 8 } else { 1 };
+        // An AI leader runs `Leaders::strategy_all` on every tick, and its
+        // research step indexes the tech tree by resource. Six goods is the
+        // least that makes that sweep legal here; nothing else reads them.
+        let mut tree = TechTree::new();
+        for name in ["Food", "Timber", "Metal", "Wealth", "Knowledge", "Oil"] {
+            tree.add(TypeDef::good(name));
+        }
+        sim.set_tech_tree(tree);
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+
+        let site = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
+        assert!(!sim.buildings[site].active, "the site starts unfinished");
+        let builder = spawn(&mut sim, 0, citizen, tile_pos(44, 32));
+        sim.add_build_order(builder, site, QueuePos::New, true);
+
+        let mut frames = 0;
+        while !sim.buildings[site].active {
+            sim.tick();
+            frames += 1;
+            assert!(frames < 4_000, "the farm should go up");
+        }
+        assert!(
+            !matches!(
+                sim.units[builder].orders.front().map(|o| o.body),
+                Some(Body::Build(_))
+            ),
+            "the build order dies on the frame the site finishes"
+        );
+        sim.units[builder].orders.front().map(|o| o.body)
+    }
+
+    let gathers = |b: Option<Body>| matches!(b, Some(Body::Gather(_)));
+    assert!(
+        gathers(run(true, false)),
+        "a human builder gathers at the farm it raised"
+    );
+    assert!(
+        gathers(run(true, true)),
+        "and the lobby's resource rule is none of the human arm's business"
+    );
+    // The AI's arm ran and found the site, which is the case the missing
+    // term could not be told apart from...
+    assert!(
+        gathers(run(false, false)),
+        "the AI's own search lands on the site when nothing beats it"
+    );
+    // ...and this is the one it can.
+    let ai = run(false, true);
+    assert_eq!(
+        ai, None,
+        "an unlimited-resources AI builder searches for nothing at all: {ai:?}"
+    );
+}
+
 /// On open ground no move draws from the sync stream: a near one never
 /// asks the pathfinder, and a far one is planned by `find_wpath` at order
 /// time — before the RNG-thresholded re-plan branch, which only runs when
