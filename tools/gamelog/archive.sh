@@ -7,9 +7,10 @@ G=/Users/rf-studio/code/fun/attrition/game
 W=$(cd "$(dirname "$0")/../.." && pwd)
 L="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
 T=${RON_TMP:-/tmp/ron-runs}; mkdir -p "$T"
+source "$W/tools/gamelog/lobby.sh"
+lobby_init || exit 1
 
-screencapture -x -R760,152,1920,1108 "$T/r$N-end.png"
-sips -Z 900 "$T/r$N-end.png" --out "$T/r$N-ends.png" >/dev/null
+lobby_shot "$T/r$N-end.png"
 pkill -f riseofnations_trace.exe; sleep 4
 mv "$L/gamelog.txt" "$L/gamelog-run$N-$TAG.txt"
 cp "$G/rontrace.log" "$L/rontrace-run$N.log"

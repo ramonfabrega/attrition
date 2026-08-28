@@ -9,6 +9,8 @@ G=/Users/rf-studio/code/fun/attrition/game
 W=$(cd "$(dirname "$0")/../.." && pwd)
 L="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
 P=riseofnations_trace.exe
+source "$W/tools/gamelog/lobby.sh"
+lobby_init || exit 1
 
 python3 "$W/tools/gamelog/window.py" stage $LO $HI
 Q=$((HI + 1))
@@ -34,24 +36,16 @@ nohup /Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine \
   "$G/$P" -config check.ini -automation > "$T/wine$N.log" 2>&1 &
 echo "launched pid $!"
 
-click() {
-  osascript -e "tell application \"System Events\" to set frontmost of process \"$P\" to true" >/dev/null 2>&1
-  sleep 0.5
-  cliclick m:$1,$2 w:400 c:$1,$2
-  sleep ${4:-3}
-  screencapture -x -R760,152,1920,1108 "$T/r$N-$3.png"
-  sips -Z 900 "$T/r$N-$3.png" --out "$T/r$N-$3s.png" >/dev/null
-  echo "$(date +%H:%M:%S) clicked $3 at $1,$2"
-}
-
 zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"
 sleep 4
-click 1715 744 solo 4
-click 1715 672 quick 8
-click 2392 291 combo 3
-click 2262 551 indies 3
-click 1061 1176 start1 3
-click 1061 1176 start2 20
+lobby_click solo 4 "$T/r$N-solo.png"
+lobby_click quick 8 "$T/r$N-quick.png"
+# The islands lobby's Map Style. Only the wide desktop has it measured; on
+# any other, set the style in `PlayerProfile/Player.dat`'s `<MULTI>` block
+# and `check.ini` with the game closed, which is what roadcapture.sh does.
+lobby_click combo 3 "$T/r$N-combo.png"
+lobby_click indies 3 "$T/r$N-indies.png"
+lobby_start 20 "$T/r$N-"
 
 # wait for the dump to settle: gamelog.txt unchanged for 90 s once past 100 MB
 last=0; still=0
@@ -64,7 +58,7 @@ for i in {1..160}; do
   echo "$(date +%H:%M:%S) gamelog=$sz last='$fr' still=$still"
   if [ $still -ge 6 ] && [ "$sz" -gt 100000000 ]; then echo settled; break; fi
 done
-screencapture -x -R760,152,1920,1108 "$T/r$N-end.png"; sips -Z 900 "$T/r$N-end.png" --out "$T/r$N-ends.png" >/dev/null
+lobby_shot "$T/r$N-end.png"
 pkill -f $P; sleep 4
 mv "$L/gamelog.txt" "$L/gamelog-run$N-islands-$TAG.txt"
 cp "$G/rontrace.log" "$L/rontrace-run$N.log"

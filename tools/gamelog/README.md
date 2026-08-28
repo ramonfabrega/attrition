@@ -121,8 +121,7 @@ the functions the documents cite that no traced run has entered.
 `docs/ORACLE.md`, "The draw-site trace and function coverage".
 
 **A run a person has to touch.** `live.sh N` launches the traced exe with
-whatever the inis and `rontrace.cmd` already say, drives the five lobby
-clicks, and **returns with the game running** — where `runwin.sh` waits for a
+whatever the inis and `rontrace.cmd` already say, drives the lobby, and **returns with the game running** — where `runwin.sh` waits for a
 `!quit` and archives. It exists for the one capture the cheat channel cannot
 make on its own: a right-click on a multi-unit selection, which has to come
 from `cliclick` (`docs/GROUPS.md` §6.4). `archive.sh N TAG` is the other end —
@@ -234,6 +233,28 @@ through `cliclick`** — System Events clicks do not reach the game — and a fa
 `cliclick c:` often does not register, so press and release with a hold:
 
     cliclick dd:X,Y w:250 du:X,Y      # or:  cliclick m:X,Y w:400 c:X,Y
+
+**The lobby's buttons are not in one place, and `lobby.sh` is where they
+live.** This machine has two desktops — 3440×1440 with the main monitor on,
+1920×1080 without — and the game opens windowed at (760, 152) on the first
+and full-screen at (0, 0) on the second, so a script carrying one desktop's
+coordinates clicks on nothing on the other and sits on the Main Menu until
+it is killed (run32, ten minutes). Every drive script now sources it:
+
+    source "$W/tools/gamelog/lobby.sh"
+    lobby_init || exit 1          # measures the screen, picks the table
+    lobby_click solo 4 "$T/solo.png"
+    lobby_click quick 8 "$T/quick.png"
+    lobby_start 20 "$T/"          # two presses on the wide desktop, one here
+
+`lobby_shot FILE` takes the game's own region on whichever desktop is up. A
+width neither table knows is an **error**, not a guess: screenshot the
+lobby, downscale it with `sips -Z 900`, read the button off the image and
+multiply by `width / 900`, then add a row. The Map Style combo is measured
+on the wide desktop only, and needs no measuring on the other — the style
+can be set in `PlayerProfile/Player.dat`'s `<MULTI>` block and `check.ini`
+with the game closed, which is faster and cannot mis-click
+(`roadcapture.sh`).
 
 There is no multi-select and none is needed: orders are per unit and persist,
 so `rclick.sh` run once per unit puts several on one job. The rest of what

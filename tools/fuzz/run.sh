@@ -29,10 +29,11 @@
 # calling `WorldData::log_data` twice, and `GroupData::log_data` never sets its
 # own type, so with `DEATHS` on the group pool is silently dropped.
 #
-# The lobby clicks are fixed coordinates for the 3440x1440 display the window
-# opens on at (760, 152); they are the same six `runwin.sh` uses. If the window
-# moves, this is what breaks first, and the screenshots under $T are how you
-# see that rather than guess it.
+# The lobby clicks come from `tools/gamelog/lobby.sh`, which measures the
+# screen first: this machine's two desktops put the game's window in
+# different places, and a script carrying one of them as a constant clicks
+# on nothing on the other. The screenshots under $T are how you see that
+# rather than guess it.
 #
 # `FUZZ_STAGE=0` runs the control shape: an early window and no cheats at all,
 # which is the only way `survived` measures fidelity rather than where the
@@ -49,6 +50,8 @@ W=$(cd "$(dirname "$0")/../.." && pwd)
 R="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations"
 L="$R/Logs"
 P=riseofnations_trace.exe
+source "$W/tools/gamelog/lobby.sh"
+lobby_init || exit 1
 
 python3 "$W/tools/fuzz/seedini.py" "$SEED"
 python3 "$W/tools/gamelog/setlog.py" 0 \
@@ -66,23 +69,15 @@ nohup /Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine \
   --bottle ron --workdir "$G" --wait-children \
   "$G/$P" -config check.ini -automation > "$T/wine-$SEED.log" 2>&1 &
 
-click() {
-  osascript -e "tell application \"System Events\" to set frontmost of process \"$P\" to true" >/dev/null 2>&1
-  sleep 0.5
-  cliclick m:$1,$2 w:400 c:$1,$2
-  sleep ${4:-3}
-  screencapture -x -R760,152,1920,1108 "$T/s$SEED-$3.png" 2>/dev/null
-  echo "$(date +%H:%M:%S) clicked $3"
-}
-
 zsh "$W/tools/gamelog/waitwin.sh" "$T/s$SEED-menu.png"
 sleep 4
-click 1715 744 solo 4
-click 1715 672 quick 8
-click 2392 291 combo 3
-click 2262 551 indies 3
-click 1061 1176 start1 3
-click 1061 1176 start2 20
+lobby_click solo 4 "$T/s$SEED-solo.png"
+lobby_click quick 8 "$T/s$SEED-quick.png"
+# The islands lobby's Map Style, measured on the wide desktop only;
+# elsewhere set it in `PlayerProfile/Player.dat` with the game closed.
+lobby_click combo 3 "$T/s$SEED-combo.png"
+lobby_click indies 3 "$T/s$SEED-indies.png"
+lobby_start 20 "$T/s$SEED-"
 
 # `!quit` returns to the **main menu**; it does not exit the process (run16b,
 # `docs/ORACLE.md`). So wait for the dump to settle -- unchanged for a minute
@@ -98,7 +93,7 @@ for i in $(seq 1 120); do
   if [ "$still" -ge 6 ] && [ "$sz" -gt 1000000 ]; then echo "settled"; break; fi
   pgrep -f $P >/dev/null || { echo "process gone"; break; }
 done
-screencapture -x -R760,152,1920,1108 "$T/s$SEED-end.png" 2>/dev/null
+lobby_shot "$T/s$SEED-end.png"
 pkill -f $P 2>/dev/null || true
 sleep 3
 

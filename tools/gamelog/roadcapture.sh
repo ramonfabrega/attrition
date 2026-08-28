@@ -19,7 +19,7 @@
 # what lets the harness reproduce the search's jitters exactly
 # (`sim.rng.seed`) and diff the laid road tile by tile.
 #
-# Needs macOS **Accessibility** for the three lobby clicks (`cliclick p` must
+# Needs macOS **Accessibility** for the lobby clicks (`cliclick p` must
 # answer a real cursor position, not 0,0), on top of Screen Recording and
 # Automation. Restores gamelog.ini/rise.ini/rise2.ini at the end; check.ini
 # and Player.dat are left on map style 14 deliberately -- that is run10-14's
@@ -35,12 +35,19 @@ T=${RON_TMP:-/tmp/ron-runs}
 P=riseofnations_trace.exe
 mkdir -p "$T"
 
-# --- the probe. Three permissions, and they come back separately.
-screencapture -x "$T/probe$N.png" || { echo "screen recording is off"; exit 1; }
+# --- the probe. Three permissions, and they come back separately; then the
+# lobby's own table, because the buttons are not in the same place on both of
+# this machine's desktops (`tools/gamelog/lobby.sh`).
 osascript -e 'tell application "System Events" to get name of first process' >/dev/null \
   || { echo "automation is off"; exit 1; }
 pos=$(cliclick p 2>/dev/null | tail -1)
-[ "$pos" = "0,0" ] && { echo "Accessibility is off (cliclick p answered $pos)"; exit 1; }
+if [ "$pos" = "0,0" ]; then
+  echo "Accessibility is off (cliclick p answered $pos) — System Settings ->"
+  echo "Privacy & Security -> Accessibility, for the terminal this runs in."
+  exit 1
+fi
+source "$W/tools/gamelog/lobby.sh"
+lobby_init "$T/probe$N.png" || exit 1
 echo "probe ok (cursor $pos)"
 
 # --- stage
@@ -76,26 +83,11 @@ nohup /Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine \
   "$G/$P" -config check.ini -automation > "$T/wine$N.log" 2>&1 &
 echo "launched pid $!"
 
-click() {
-  osascript -e "tell application \"System Events\" to set frontmost of process \"$P\" to true" >/dev/null 2>&1
-  sleep 0.5
-  cliclick m:$1,$2 w:400 c:$1,$2
-  sleep ${4:-3}
-  screencapture -x "$T/r$N-$3.png"
-  sips -Z 900 "$T/r$N-$3.png" --out "$T/r$N-${3}s.png" >/dev/null
-  echo "$(date +%H:%M:%S) clicked $3 at $1,$2"
-}
-
-# The lobby, at the desktop this machine has now: **1920x1080**, the game
-# full-screen at (0, 0). The 3440x1440 coordinates every earlier run used
-# land on nothing here, and a blind click is a wasted ten minutes -- so
-# check each screenshot, and re-measure off one when the desktop changes
-# (`sips -g pixelWidth` on the shot; image x/y divided by 900/width).
 zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"
 sleep 4
-click 960 565 solo 4
-click 960 495 quick 8
-click 292 994 start1 20
+lobby_click solo 4 "$T/r$N-solo.png"
+lobby_click quick 8 "$T/r$N-quick.png"
+lobby_start 20 "$T/r$N-"
 
 last=0; still=0
 for i in {1..120}; do
@@ -107,7 +99,7 @@ for i in {1..120}; do
   echo "$(date +%H:%M:%S) gamelog=$sz last='$fr' still=$still"
   if [ $still -ge 6 ] && [ "$sz" -gt 100000000 ]; then echo settled; break; fi
 done
-screencapture -x "$T/r$N-end.png"
+lobby_shot "$T/r$N-end.png"
 pkill -f $P; sleep 4
 mv "$L/gamelog.txt" "$L/gamelog-run$N-$TAG.txt"
 cp "$G/rontrace.log" "$L/rontrace-run$N.log"
