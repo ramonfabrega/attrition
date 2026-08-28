@@ -865,6 +865,7 @@ impl Sim {
             alive: true,
             started: false,
             activated: false,
+            regen_roads: false,
             damage: 0,
             job_counter: 0,
             job_counter_2: 0,
@@ -1272,6 +1273,14 @@ impl Sim {
         if dock {
             self.check_transport(who);
         }
+        // `Build::activate@00623e20+0x744`: the city's roads want
+        // replanning, which is what flags every one of its buildings
+        // (`crate::roads` §1). It is the only writer a traced game reaches.
+        if let Some(c) = self.buildings[b].city
+            && self.cities[c].alive
+        {
+            self.city_regen_roads(c);
+        }
     }
 
     /// `Object::disband(full)`: the building goes back; the refund is the
@@ -1416,6 +1425,7 @@ impl Sim {
             }
         }
         self.buildings[b].helpers = 0;
+        self.regen_roads_due(b, frame);
         // A building in enemy territory bleeds.
         let who = self.buildings[b].owner;
         if phase % build::ENEMY_TERRITORY_PERIOD == 0

@@ -4730,6 +4730,68 @@ mod tests {
     /// Making a mark finer therefore *raises* this number, which is the
     /// intended incentive: `docs/SYNC.md` §5.1's "mark the phase before
     /// believing the total".
+    /// **The rings lay nothing new.** `BuildType::place_roads` runs on
+    /// run14's frames 0 and 10 to 15 and again from 167, and the original's
+    /// own map says what it does to the world: the tile masks of run13's
+    /// `DUMP_ALL` at sim-frame 95 are **identical, all 57,600 of them**, to
+    /// run10's start-of-game `WORLD=6` block. Ninety-five frames of road
+    /// regeneration changed not one tile, because every tile a ring or a
+    /// road reaches is already a road or is blocked.
+    ///
+    /// That is the whole oracle for `crate::roads`' §3, and it is sharp:
+    /// widening the city's ring by the one column the *third* `place_roads`
+    /// arm uses lays twenty-six new roads here and fails this at once (tried,
+    /// 2026-08-28). The surface field is what a road changes, so that is
+    /// what this compares; `PLACED` and the footprint bits move for reasons
+    /// of their own.
+    #[test]
+    fn run14_s_road_rings_change_no_tile_the_original_does_not() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run10-world6-long.txt") else {
+            eprintln!("skipping: set RON_GAMELOG_DIR");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let (tw, th) = (
+            built.sim.world.width() * sim::world::TILES_PER_CELL,
+            built.sim.world.height() * sim::world::TILES_PER_CELL,
+        );
+        let surfaces = |s: &sim::Sim| -> Vec<u16> {
+            (0..th)
+                .flat_map(|y| (0..tw).map(move |x| (x, y)))
+                .map(|(x, y)| s.world.tile_mask(Pos::new(x, y)) & sim::world::tile::SURFACE)
+                .collect()
+        };
+        let before = surfaces(&built.sim);
+        assert_eq!(before.len(), 57_600, "run14's map is 240 tiles square");
+        for _ in 0..285 {
+            built.tick();
+        }
+        let after = surfaces(&built.sim);
+        let moved: Vec<(i32, i32, u16, u16)> = (0..before.len())
+            .filter(|&i| before[i] != after[i])
+            .map(|i| {
+                let (x, y) = (i as i32 % tw, i as i32 / tw);
+                (x, y, before[i], after[i])
+            })
+            .collect();
+        assert!(
+            moved.is_empty(),
+            "the rings laid {} tiles the original leaves alone: {:?}",
+            moved.len(),
+            &moved[..moved.len().min(8)]
+        );
+    }
+
     #[test]
     fn run14_s_frames_match_the_trace_draw_for_draw() {
         let Some(inst) = install() else { return };

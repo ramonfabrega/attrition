@@ -86,7 +86,8 @@ per-frame ones are listed by phase below; the rest are event-driven — combat
 `explore_goody`, `SpellType::cast_pilfer`, `Dock::init`, `Farms::add` and
 `add_animals` (a farm's creation), `Build::find_gather_tiles` (a camp's
 creation), `World::compute_val` (a site value), `PathFinder::calc_road_cost`
-(a cost jitter `% 20` per node on the **road** grid — a caravan's), and the
+(a cost jitter `% 20` per node on the **road** grid — a building's road to
+its city, `docs/ROADS.md`), and the
 `astar_path` refusals that roll `pause = % 3 + 6`.
 
 ## 3. The per-frame sites
@@ -530,16 +531,11 @@ changed no mechanic and moved run14 **192 → 198 of 284**.
 
 **`GameAccess::rnd` is frameless, and its address alone names nothing** —
 it is the helper `Random::get(0, 0xffff) % ecx`, whose call returns to
-`+0x20` for every caller in the executable. The `ebp` walk skips it *and*
-`Unit::do_gather`, so the chain reads `< Unit::do_job+0x67 <
-Unit::work+0x95d`: `do_job+0x67` is `do_gather`'s own return address, the
-one that appears a level up in `do_non_flat_gather+0x54b < do_gather+0xea0
-< do_job+0x67`. A `via` is mandatory here and needless for the four unique
-`Animal::do_idle` addresses. Both draws of the pair share the address, so
-one mark carries them: `do_gather`'s cell switch falls through to `rnd(4)`,
-`rnd(4)` when the cell's state and the farmer's animation disagree
-(`docs/ORDERS.md` §6.5). Frame 101 is twelve — six farmers, the frame §4.1
-already pinned by value.
+`+0x20` for every caller in the executable, and the `ebp` walk skips it
+*and* `Unit::do_gather`, so the chain reads `< Unit::do_job+0x67`. A `via`
+is mandatory here and needless for the four unique `Animal::do_idle`
+addresses. Both draws of the pair share the address, so one mark carries
+them (`docs/ORDERS.md` §6.5).
 
 **`Guy::move+0x19f` sits one frame higher than the other `+0x97a` chains**,
 being `Guy::move`'s own call rather than `Unit::set_anim+0x56`'s; the
@@ -552,12 +548,13 @@ agreeing unit-frames, 198 → 196 traced frames — because these collisions do
 not yet fall on the original's frames. The row stays regardless: without it
 frames 122, 184 and 256 read as a bare `5dac7a`.
 
-**One site is left unnamed on run14**: `PathFinder::calc_road_cost+0x46`,
-657 draws on frames 10, 11 and 171 (220, 248, 189), one per node the
-caravan road's A* costs. That block is also what desynchronises the stream
-from frame 10 on, and with it every value-driven label after — the
-`Farms::inc_time` orderings, the birds' counts, the animals' wanders. The
-remaining eighty-six frames are therefore mostly not naming faults.
+~~**One site is left unnamed on run14**~~ — **named 2026-08-28,
+`docs/ROADS.md`**: `PathFinder::calc_road_cost+0x46`, 657 draws on frames
+10, 11 and 171, one per node a **building's** road to its city centre
+costs, `sim::roads::SITE_COST`. The block desynchronises the stream from
+frame 10 on and with it every value-driven label after, so the remaining
+eighty-six frames are mostly not naming faults. The site is taken under
+`Sim::plan_roads`, **off** while the search's count is short.
 
 ## 4. Run12 attributed
 
@@ -977,16 +974,13 @@ struck through and point there.
   lengths all live in streams or dumps that no capture carries.
 - **Diplomacy's cadence** (`Leader::diplomacy`, nine sites; 0 draws on
   frames 0–3).
-- **The caravan road, frames 10, 11 and 171** (run16, `docs/ORACLE.md`
-  "The attrition run"; run14 carries all three): 220, 248 and 189
-  `game_random` draws at `PathFinder::calc_road_cost+0x46` <
-  `astar_caravan_road+0x52b` < `find_road+0x3a8` — the game planning a road
-  two frames after the start, with no caravan in it. One draw per node
-  costed, a `% 0x14` jitter added to the road cost, so the count is the A*
-  expansion and reproducing it means reproducing the search. Who calls
-  `find_road` at frame 10 is unread. **This is the whole of run14's
-  unnamed residue and the whole of its stream desynchronisation** (§3.10);
-  the sim draws 6, 6 and 7 there.
+- ~~**The caravan road, frames 10, 11 and 171**~~ — **read 2026-08-28,
+  `docs/ROADS.md`, and the caravan was a misnomer.** The caller is
+  `Build::process`: a **building** whose `build_masks & 0x100` fires on the
+  frame `(frame + o) % 16` picks out, replanning the road to its city
+  centre. Its schedule and its ring are diff-backed; its expansion count is
+  six per cent short (208, 222, 178 against 220, 248, 189), so
+  `Sim::plan_roads` is off and the sim still draws 6, 6 and 7 there.
 - ~~**Animals, and the animation clock**, the lengths being art data
   (run12's `end_time`s cycle 101/116/170 for the fish and 90/109/250 for
   the sheep with the scale variant `o % 3`; the scout's idle is 41 or 61,

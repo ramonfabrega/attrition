@@ -4275,3 +4275,79 @@ test or a diff cites was removed; what went was the account of how each was
 found, which is this file's job. `docs/ANIM.md` §4's caller table gained the
 two `set_anim` rows it was missing.
 
+## 2026-08-28 — the road nobody asked for (item 54)
+
+The queue's guess was that the road at frames 10, 11 and 171 was planned
+"for a reason the sim never has", and that skipping it would be cheaper
+than reproducing it. Both halves were wrong.
+
+**The caller is `Build::process`.** A building carries
+`WallData::build_masks & 0x100`, "my roads want replanning", and fires it on
+the frame where `(frame + o) % 16 == 0` — which is why run14's road frames
+are 10, 11 and 171 and not any others. The flag is set by
+`City::regen_roads`, which walks a city's member chain and marks every
+building in it, and whose callers are `Build::activate` and
+`Build::remove_from_city`. So the road is a *building's* road to its city
+centre, `astar_caravan_road` is just the one road search the engine has,
+and the caravan argument is `−1` — which is the sign that turns its wheel
+from eight directions to four.
+
+Every step of that was settled by grepping the dump rather than by reading.
+`build_masks` is printed for every building at every detail level, and its
+lifetime on run14 is the rule exactly: `2006` (a Market) fires at 10,
+`2005` (both Libraries) at 11, the four farms and the woodcutter at 12 to
+15 and draw nothing, and at 167 the AI's first farm *activates* and flags
+its whole city again, so `1/2005` searches at 171. One `grep` and a
+sixteen-line script; the reading only had to explain what the grep had
+already shown. The queue's own rule — grep the dump before booking a
+reading — paid twice over here, because it also named the three buildings,
+which is what made the rest falsifiable.
+
+**Everything but the count is established.** The nine `road_*` weights came
+out of the PE at the two `movaps` sources `PathFinder::init` names;
+`calc_road_cost` was read off the listing term for term after the
+decompiler's rendering of it proved trustworthy but unhelpful about ±1s;
+`valid_roadcoord`'s guard, its city-only footprint exemption, the wheel's
+parity gate, the two different heuristics (the root's divides by `0xc0`,
+every other node's by `0x180` — a real inconsistency, and harmless), the
+budget and the endpoints all likewise. `docs/ROADS.md` is the write-up.
+
+**The ring is diff-backed, and by an oracle that was sitting on disk.**
+run13's `DUMP_ALL` window starts at sim-frame 95, so its tile masks are the
+world *after* frames 0, 10 and 11 laid their roads; run10's `WORLD=6` block
+is the world before. They are identical — all 57,600 masks, not one tile
+moved in ninety-five frames, because everything a ring or a road reaches is
+already a road or is blocked. That is now
+`run14_s_road_rings_change_no_tile_the_original_does_not`, and it was made
+to fail on purpose first: widening the city's ring by the one column the
+*third* `place_roads` arm uses lays twenty-six roads the original does not.
+The same dump settled the ring's shape directly — a picture of the tiles
+round p0's city centre shows a full eight-by-eight border, which is only
+possible because a city stands on seven tiles each way and blocks the inner
+five.
+
+**The count is six per cent short, and that is the whole of what is left.**
+208, 222 and 178 nodes costed against 220, 248 and 189. The world was
+checked (the sim's masks at frame 10 differ from the dump's in sixteen
+tiles, all of them the `PLACED` bit on a farm site two hundred tiles from
+the search), the stream was checked (frames 0 to 9 match draw for draw, so
+the word at the head of frame 10 is the original's), the cost function and
+the validity predicate were checked against the listing, and the wheel, the
+preference, the endpoints and the search's direction were each varied and
+each made it worse. `docs/ROADS.md` §7 lists all of it, and the two inputs
+that have still never been diffed against anything: the loader's per-tile
+heights, and `vector_dist`'s rounding at the magnitudes the heuristic uses.
+
+So `Sim::plan_roads` is **false**. This is the first time a finished
+mechanic has landed switched off, and the reason is arithmetic rather than
+taste: the draws land in the middle of a frame, so a count that is close
+puts every later draw in that frame on the wrong word, and run14's ledger
+falls 198 → 153. Off — with the rings still laid and the schedule still
+kept — it is unchanged at 198. A mechanic that is *nearly* right on a
+shared stream is worth less than none, and the switch is how that is said
+in code rather than in prose.
+
+Paperwork: `docs/SYNC.md`'s §3.10 and §6 entries struck through and pointed
+at `docs/ROADS.md`; the pin came down 67,581 → 67,140, paid for by
+condensing §3.10's account of the `GameAccess::rnd` chain to the two rules
+a reader needs.

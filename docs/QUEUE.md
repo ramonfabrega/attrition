@@ -13,52 +13,42 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after item 53.*
+*2026-08-28, after item 54.*
 
 **The headline — run10, 1,772 frames: ticks before divergence 181, orders
-180; player 0 first diverges at frame 182, player 1 at 203.** Unmoved this
-session; item 53 was booked on the ledger and moved that.
+180.** Unmoved. **The ledger — run14: 198 of 284 frames.** Unmoved: item 54
+landed **switched off**.
 
-**The ledger — run14: 198 of 284 frames match draw for draw**, up from 192.
+**Landed:** item 54 — **the road, and it is not a caravan's**
+(`docs/ROADS.md`, `crates/sim/src/roads.rs`). `Build::process` replans a
+*building's* road to its city centre on the frame `(frame + o) % 16 == 0`
+picks out; `build_masks` in the dump proves the schedule, the three frames
+and the three buildings. The ring is diff-backed against the original's own
+map — run13's frame-95 tiles are identical to run10's frame 0, all 57,600 —
+with a guard made to fail first. The weights came out of the PE, the cost
+function off the listing.
 
-**Landed:** item 53 — **the residue's names** (`docs/SYNC.md` §3.10). Five
-draws the sim already took under a coarse mark got a `trace::SITES` row
-each; no mechanic changed. Carry two things: `GameAccess::rnd` is
-**frameless**, so its site names nothing and the `ebp` walk skips it *and*
-`do_gather` — the chain is `< Unit::do_job+0x67`; and `move_step`'s blocked
-stand (`+0x823`) is named from the original's side but **unmodelled on
-purpose**, because making the call costs 43340 → 42755 agreeing unit-frames
-and 198 → 196 traced frames (`docs/COLLISION.md` §7; the old "lone half of
-a pair" reason was wrong). Exactly one site on run14 is now unnamed, and it
-is item 54.
+**What did not land: the count.** 208, 222 and 178 nodes where the original
+costs 220, 248 and 189 — six per cent short, cause unfound, eight
+hypotheses ruled out by measurement (`docs/ROADS.md` §7). So
+`Sim::plan_roads` is **false**: with it on the ledger falls 198 → 153,
+because a draw count that is close puts every later draw in the frame on
+the wrong word. That is item 55, at the back.
 
-**Owed:** unchanged — items 42 and 40 (`ORDERS.md` 191,190, `CITIES.md`
-106,854). `SYNC.md`'s pin came down 67,737 → 67,581 to pay for §3.10.
+**Owed:** items 42 and 40. `SYNC.md`'s pin came down 67,581 → 67,140.
 
 **Needs the user:** nothing.
 
-**Opener (Opus):** `proceed @docs/QUEUE.md — the headline is 180 and did
-not move last session. Take item 54, the caravan road: it is the last
-unnamed site on run14, the cause of the stream desync from frame 10, and
-therefore the gate on most of the ledger's remaining eighty-six frames.`
+**Opener (Opus):** `proceed @docs/QUEUE.md — headline 180, ledger 198,
+neither moved. Take item 38, the long traced capture: it widens the ledger
+sixfold and is the sharpest tool left for item 55, which needs more than
+three instances of the road to measure against.`
 
 ## The queue
 
 In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
-
-54. **The caravan road.** `PathFinder::calc_road_cost+0x46` <
-    `astar_caravan_road+0x52b` < `find_road+0x3a8`: 220, 248 and 189 draws
-    on run14's frames 10, 11 and 171, where the sim draws 6, 6 and 7.
-    It is the last unnamed site on the ledger and the reason the stream
-    desynchronises from frame 10, which is what turns the
-    `Farms::inc_time+0x1ae`/`+0x1de` orderings, the birds' counts and the
-    animals' wanders into value differences no naming can fix. One draw per
-    node costed (`% 0x14`, added to the road cost), so the count *is* the
-    A* expansion: read who calls `find_road` at frame 10 first — with no
-    caravan in the game — because a road planned for a reason the sim never
-    has is cheaper to skip than to reproduce. `docs/SYNC.md` §3.10, §6.
 
 38. **One long traced capture, human versus AI, on both maps.** run14's
     trace reaches 284 of run10's 1,772 frames, so nothing on disk measures
@@ -152,6 +142,17 @@ say so. Numbers are stable; the journal is indexed by them.
     sit on the camp and the fourth farm for the whole run), and the income
     itself — `CITY.gatherers` is in every dump at every detail level and is
     uncompared. Score it on the roster pin, 744 + 0.
+
+55. **The road's last six per cent.** `docs/ROADS.md` §7: the search
+    costs 208, 222 and 178 nodes on run14's frames 10, 11 and 171 where the
+    original costs 220, 248 and 189, and `Sim::plan_roads` stays off until
+    it is exact. The world, the stream, the cost function, the validity
+    predicate, the wheel, the endpoints and the direction are each ruled
+    out by measurement. Two inputs have never been diffed against anything:
+    the loader's per-tile heights, and `vector_dist`'s rounding at the
+    heuristic's magnitudes. **Do item 38 first** — three instances is too
+    few to tell a systematic six per cent from the ±5 per cent the jitter
+    alone moves, and a longer capture gives a dozen.
 
 Older backlog, one line each, unchanged: the `LEADERDATA` and `CITY`
 widenings; a `find_target` block; run7's order stream under the trace; a

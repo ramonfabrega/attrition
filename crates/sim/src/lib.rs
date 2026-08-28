@@ -73,6 +73,7 @@ pub mod orders;
 pub mod path;
 pub mod place;
 pub mod production;
+pub mod roads;
 pub mod scout;
 pub mod supply;
 pub mod tech;
@@ -665,6 +666,14 @@ pub struct Sim {
     /// Whether [`Sim::tick`] records [`Sim::phase_marks`]. Off by default:
     /// the harness turns it on, the soak pays nothing.
     pub trace_phases: bool,
+    /// Whether a building replans the road to its city — `crate::roads` §5.
+    /// **Off by default**, and deliberately: the search is implemented and
+    /// its cost function is read off the listing term for term, but it
+    /// expands about six per cent fewer nodes than the original's, and its
+    /// cost is one shared-stream draw a node. A count that is close is
+    /// worse than no count at all, because it desynchronises the frame it
+    /// runs in *and* every value-driven label after it. `docs/ROADS.md` §7.
+    pub plan_roads: bool,
     /// The stream's word at each phase boundary of [`Sim::tick`], filled
     /// only while [`Sim::trace_phases`] is set. It is what
     /// `tools/trace/report.py sites` is for the original — a frame's draws
@@ -835,6 +844,10 @@ pub struct Building {
     pub started: bool,
     /// `build_masks & 0x1000`: has been activated at some point.
     pub activated: bool,
+    /// `build_masks & 0x100`: this building's roads want replanning, and
+    /// `Build::process` will replan them on the frame `(frame + o) % 16`
+    /// picks out. Set by `City::regen_roads` — `crate::roads` §1.
+    pub regen_roads: bool,
     /// `ObjectData::damage`, whole hits taken. [`Building::health`] is kept
     /// equal to `hits_now − damage` and is what combat reads as the share.
     pub damage: i32,
@@ -949,6 +962,7 @@ impl Sim {
             tech_tree,
             setup: tech::Setup::STANDARD,
             trace_phases: false,
+            plan_roads: false,
             phase_marks: Vec::new(),
             players: vec![attrition::PlayerState::default(); players],
             sources: Vec::new(),
@@ -1290,6 +1304,7 @@ impl Sim {
             health: 0,
             damage_frac: 0,
             active: true,
+            regen_roads: false,
             garrison_attack: 0,
             recharging: 0,
             target: None,

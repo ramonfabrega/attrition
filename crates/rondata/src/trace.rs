@@ -172,6 +172,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x009d_5901), // `ScriptFuncSet::call_func+0x401`
         sim::ai_host::SITE_RAND_INT,
     ),
+    // `PathFinder::calc_road_cost@00686300` — the road jitter, one draw a
+    // node costed, under `astar_caravan_road+0x52b < find_road+0x3a8`
+    // (`docs/ROADS.md` §5). Its own address, so no chain is needed.
+    (0x0068_6346, None, sim::roads::SITE_COST),
     // `Farms::inc_time@008d8600` — the crop clock.
     (0x008d_87ae, None, sim::farms::SITE_CHANCE),
     (0x008d_87de, None, sim::farms::SITE_SPROUT),
