@@ -251,7 +251,17 @@ Outside the repo, per `CLAUDE.md` — nothing from the install enters it.
 | what | where |
 |---|---|
 | `gamelog-run7-ancient-nubian-orders.txt` | the bottle's `Logs\`, as the other dumps (`$RON_GAMELOG_DIR`) |
-| `Playback - 2026.08.24 10'15'53 (Mon).rcx` | `~/Documents/My Games/Rise of Nations/Recorded Games/` (`$RON_RECGAME_DIR`) |
+| `Playback - 2026.08.24 10'15'53 (Mon).rcx` | the bottle's `Logs\`, kept beside its own dump (`$RON_RECGAME_DIR`) |
+
+**A recording is kept with the other captures, not where the game writes it.**
+The original writes to `PlayerProfile::get_record_game_directory`, which
+CrossOver maps to the Mac's `~/Documents` — and macOS gates that directory
+behind a consent dialog. The first `open` under it blocks until a human at the
+machine clicks Allow, so a background or SSH run sits at 0 % CPU looking hung
+for as long as it is left to (2026-08-28: ~30 minutes of one session). The
+corpus therefore lives in the bottle's `Logs\` with the dumps and traces, and
+`diff::tests::recording` looks there first; `~/Documents` stays as the
+fallback, which is where a *fresh* capture is found before it is archived.
 
 `rondata <install> --recgame <file> --gamelog <dump> --diff` runs the whole
 thing, and `--recgame` alone now prints the input as a transcript — every

@@ -5503,12 +5503,26 @@ mod tests {
     /// `PlayerProfile::get_record_game_directory` builds it under
     /// `CSIDL_PERSONAL`, which CrossOver maps to the Mac's `~/Documents`.
     fn recording(name: &str) -> Option<String> {
-        let dir = std::env::var("RON_RECGAME_DIR").unwrap_or_else(|_| {
+        if let Ok(dir) = std::env::var("RON_RECGAME_DIR") {
+            let path = format!("{dir}/{name}");
+            return std::path::Path::new(&path).is_file().then_some(path);
+        }
+        // **The kept corpus first, the game's own output directory second.**
+        // A recording is a capture like a gamelog or a trace, so it belongs
+        // with them — `dump`'s directory, which is `$RON_GAMELOG_DIR` or the
+        // bottle's `Logs\`. The original writes new ones to
+        // `PlayerProfile::get_record_game_directory`, which CrossOver maps
+        // to the Mac's `~/Documents`, and that path is **gated by macOS
+        // consent**: the first `open` under it blocks until a human at the
+        // machine clicks Allow, which over SSH is nobody. A background run
+        // then looks hung at 0 % CPU for as long as it is left to. So the
+        // fallback stays — a fresh capture is found where the game put it —
+        // but it is the fallback.
+        dump(name).or_else(|| {
             let home = std::env::var("HOME").unwrap_or_default();
-            format!("{home}/Documents/My Games/Rise of Nations/Recorded Games")
-        });
-        let path = format!("{dir}/{name}");
-        std::path::Path::new(&path).is_file().then_some(path)
+            let path = format!("{home}/Documents/My Games/Rise of Nations/Recorded Games/{name}");
+            std::path::Path::new(&path).is_file().then_some(path)
+        })
     }
 
     /// **The paired run** (2026-08-24): one game described by both ground
