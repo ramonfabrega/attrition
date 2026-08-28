@@ -210,10 +210,38 @@ variant on the unit's idle request (§5 says why that never shows).
 | `Unit::do_non_flat_gather@005f0170:512` (`+0x10f`), the tile choice; `:135` (`+0xb99`), the return to camp; `:275` (`+0xfd4`), the tile approach | `(DEFAULT, 0, 1)` | ~~the woodcutters' four draws at frame 0 (§8)~~ **not at frame 0 on any traced map** — run14 and run20 have no `do_non_flat_gather` draw there at all, and the four are wraps (§5). Run21 reaches `+0x10f` at frame 381, `+0xb99` at 526 and `+0xfd4` at 23,299 |
 | `do_non_flat_gather:130`, `:267`, `:271`, `:412`, `:416` | `CHOP_WOOD`, `MINE_ORE`, `DUMP_WOOD`, `DUMP_ORE` | never — their own categories. **There is no `CHAR_DEFAULT` beside `:412`/`:416`**: the camp-arrival branch is those two and nothing else (`5f0b5e`–`5f0b89`), which is what the sim had wrong until 2026-08-26 (`docs/SYNC.md` §6) |
 | `do_gather:407`, `:473`, `:479`, `:486` | `SOW`, `REAP` | never |
+| `Unit::do_build@005eebf0:step 4`, every frame an adjacent builder builds | `CHAR_SOW` on a `FARM` (`is(0x1a1)`), else `CHAR_BUILD` | never — its own category. **What it costs is the arrival stand it prevents**: §4.6 |
+| `Unit::do_repair@005ee420:1`, ahead of every gate | `CHAR_REPAIR` | never, and unconditionally — even on the frame the order dies |
 | `Guy::move@005d9240:86`, `Unit::move_step@005faf30:304` | the walk | never (a bird's coin aside) |
 | `Guy::move:59` (`+0x19f`), the frame after a walking guy stops with the plain `WALK` slot and nothing else changed it | `(DEFAULT, 0, 1)` | the arrival, when no order made the request first. **The one caller that reaches `Guy::set_anim` directly** rather than through `Unit::set_anim+0x56`, so its chain is a frame shorter and the trace's disambiguator sits at `up[0]` (`sim::anim::SITE_ARRIVE`, `docs/SYNC.md` §3.10) |
 | `Unit::move_step:281` (`+0x823`), a unit whose step is blocked, before the three give-up tests | `(DEFAULT, 0, 1)` | the same conditions as any idle request — three times on run14 (frames 122, 184, 256). **Unmodelled**: `sim::anim::SITE_BLOCKED` names it from the original's side only, and `docs/COLLISION.md` §7 has what making the call costs |
 | `Guy::inc_time` (§5) | the wrap | an idle running out |
+
+### 4.6 The work animation is what keeps a worker off the arrival stand
+
+The arrival row above turns on `field_0x9c == 8` — the **slot**, `CHAR_WALK`,
+not the category (`Guy::move:57`; `set_anim` indexes `UnitAnimCat` by the same
+byte, so it is `cur_anim`). A guy that reaches its destination and is still on
+that slot the next frame spends an idle roll. A worker never is, because its
+order put it on a work animation first, and that is one draw a frame's stream
+either has or does not.
+
+Diff-backed 2026-08-28 (item 59), on run14's frame 18. Player 1's citizen
+`uid 7` reaches its build site on sim-frame 16, `Unit::do_build` turns it on
+17 (`angle -136249344 → -292028416`, the dump's own two frames) and this
+crate — which had step 4's `set_anim` missing — spent a
+`Guy::set_anim+0x97a < Guy::move+0x19f` at index 0 of frame 18 that the
+original does not. With the work animation in, run14's traced stream goes
+from parting at frame 18 to parting at **99**, and from 173 of 284 frames
+matching to **219**.
+
+The order the original writes them in is worth keeping: `do_build` sets the
+animation at step 4 and *then* faces the site (`set_angle(…, 0)` — the heading
+only, no snap), so on the frame the site is first faced `Guy::move` takes its
+`des_angle != angle` arm instead, which puts the guy back on `CHAR_WALK` and
+clears `field_0x9d`; the *next* frame's `do_build` puts it on `CHAR_BUILD`
+again, before `Guy::move`'s arrival test reads the slot. Either way the test
+never sees a walk, which is why no capture has an arrival stand for a builder.
 
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 
@@ -304,7 +332,10 @@ place on both traced maps.
 - **`Sim::set_default_anim`** at the callers in §4's table: `do_idle`
   (`orders.rs`), the wood machine's camp stand, tile choice and return, and
   the frame-after-arrival in `guys_follow`. The work animations at the
-  chop, the dump, the sow and the reap. The walk in **`guys_follow`**, run
+  chop, the dump, the sow and the reap — and, since item 59, at
+  `Sim::do_build` (`CHAR_BUILD`, or `CHAR_SOW` on a farm) and
+  `Sim::do_repair` (`CHAR_REPAIR`, ahead of its gates), which is what keeps
+  a worker off the arrival stand (§4.6). The walk in **`guys_follow`**, run
   from `process_movement` with the body as it stood before the follow: a
   body away from the unit starts the walk (`Guy::move:86`; `move_step:304`
   is the same frame), one standing on it since last frame goes idle if it is
@@ -515,6 +546,16 @@ two passes.
   offsets, the turn animations, the squad's synchronised group idle** —
   read as far as the table in §4 and not modelled: the harness's runs have
   no fights.
+- **The build and repair animations' lengths** are not in any dump for a
+  player's citizen, so their clocks take `UNKNOWN` and never wrap. Nothing
+  observable turns on it — a wrap of either re-requests its own category and
+  draws nothing — but a `DUMP_ALL` window over a build would settle them
+  alongside the chop and the sow (above).
+- **`Guy::move`'s `des_angle != angle` arm** — the walk a guy plays standing
+  still while it turns, and the `field_0x218 == 1` / `SPECIAL_ANIM` exemption
+  in front of it (§4.6) — is read and not modelled: this crate's `do_build`
+  faces the site with the snap, so the arm's frame does not arise. It would
+  for any caller that moves the heading without the facing.
 - **`num_guys` per type**: one guy per spawned unit; the start dump's units
   carry as many as it prints.
 - ~~**`think_farm_animal`**~~ — read, `docs/SYNC.md` §3.6; what is still

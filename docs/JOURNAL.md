@@ -5036,3 +5036,100 @@ the dump's is the one being used), the route (a coin flip in this model,
 and ours takes the original's), and any other split of the 2,913 (scanned
 one by one). What is left is `PathFinder`'s own state between two searches
 of a frame, and a three-node rounding difference that is item 58's.
+
+## 2026-08-28 — item 59: the builder's own animation (the stream parts at 99, Opus 5)
+
+Item 59 was one frame, one draw, one unit, and it was a whole caller this
+crate had never made.
+
+### The lead
+
+With the road on, run14's frames 0–17 matched the trace draw for draw and
+frame 18 did not: ours 7 draws, theirs 6, and the extra sat at **index 0** —
+`Guy::set_anim+0x97a < Guy::move+0x19f`, the arrival stand. Everything
+before it was exact, so there was nowhere for the cause to hide.
+
+The unit named itself in a minute. Its position at the end of frame 17 —
+`(40440, 17544)` — is in run10's dump once: player 1's `uid 7`, a citizen
+with a `BUILDORDER` on `ox 2006`, standing adjacent to its site. The dump
+tracks it walking in from frame 2, arriving on sim-frame 16, and being
+turned on 17 (`angle -136249344 → -292028416`, both frames printed). This
+simulation had it on the same tile with the same two angles on the same
+frames. The only thing it had differently was the animation.
+
+### The rule
+
+`Guy::move`'s arrival test is `field_0x9c == 8 && field_0x9d != 0` — the
+guy's **slot** is `CHAR_WALK` and it was already standing on its
+destination last frame. `Unit::do_build@005eebf0`'s step 4 is
+`set_anim(is(FARM) ? CHAR_SOW : CHAR_BUILD, 0, 1)` and then the facing;
+`Unit::do_repair@005ee420` opens with `set_anim(CHAR_REPAIR, 0, 1)` ahead
+of every gate. Neither costs a draw — a work animation is its own category
+— but between them they mean **a worker is never on the walk slot when it
+arrives**, so no capture has a builder's arrival stand in it.
+
+`docs/ORDERS.md` §5.2 has had step 4 written down correctly since the
+mechanic was read. The implementation did not have it. That is the whole
+bug: two `set_anim` calls, six lines, and a document that needed no
+correction. `docs/ANIM.md` §4.6 now states the consequence, which is the
+part neither document had — that the work animation is what keeps a worker
+off the arrival stand — and §4's caller table has both rows.
+
+### The scores
+
+| | before | after |
+|---|---|---|
+| the first frame whose draws differ from the trace | 18 | **99** |
+| the first frame whose draw **count** differs | – | **122** |
+| the ledger, frames matching the trace | 173 / 284 | **219 / 284** |
+| ticks before an order diverges | 168 | **185** |
+| ticks before divergence | 202 | 190 |
+| player 0's first parting | 213 | 191 |
+
+**Frame 99 is not a divergence.** Eight draws either side, and the one that
+differs is the same address under a different caller: ours
+`Unit::do_idle+0x7d`, the original's `Guy::inc_time+0x271` — the standing
+swap `docs/SYNC.md` §6 already names. The word is still the original's.
+What parts it at **122** is the blocked stand, `Unit::move_step+0x823`,
+which this crate does not take at all (item 49). So the ledger test now
+pins that number too, and it was made to fail first.
+
+**`orders` rose and `ticks` fell, and the two are the same 81 frames.**
+`1/1`'s gather `wait` at frame 169 — what pinned `orders` at 168 — is the
+original's now, because the draws between 18 and 99 are. What pins 185 is
+`0/4`, a human farmer whose re-target moved 220 → 186: the same shape of
+disagreement (a `MOVE_TO` in front of a gather the original never
+re-issues), the same already-wrong `wait`, a different frame. Every other
+unit held or improved; `1/1` went 577 → 647. run6, the same game read
+through a second capture, fell from 2,591/1,613 disagreements to
+**1,588/1,415**.
+
+### The bird came back to its own frame
+
+The row worth more than the headline. This crate's first bird used to hatch
+at sim-frame 32 and the original's at 96, so the hatch frames were pinned as
+drift and the wing beat was pinned at offsets from the hatch rather than at
+frames. With the arrival stand gone the sampling reads the original's cells
+off the original's stream and **the first bird hatches at 96, the frame the
+original hatches it**. So the ledger test now asserts against the trace
+directly:
+
+- `Animal::think_bird`, three draws a bird every eighth frame, **row for row
+  from 104 to 192** — twelve rows, ours equal to the trace's;
+- the wing-beat coins at **97, 127, 142, 150** on both sides — the birth coin
+  the frame after the hatch, then *Bird Soar*'s 31 and *Bird Flap*'s 23.
+
+The second bird is still drift (ours 224, the original's 192) because the
+word has parted at 122 by then, and that is now the stated reason rather
+than a hedge.
+
+### The pins that moved, and why
+
+Four coverage counters, all in the same direction and all for the same
+reason — more unit-frames hold their positions, so more of them are
+compared: the collision block 40,750 → 42,615 rows and its split 10 → 18
+(the same two fields on `1/4` over six more frames, 316–321, guarded now by
+unit as well as by field), the angle block 16,266 → 17,012, the farmers'
+share of run6 719/404 → 739/390, and the first gather-tile disagreement
+430 → 407, which is `1/6`'s second tree drawn hundreds of frames past any
+traced word and has been luck in both directions since item 47.

@@ -16,6 +16,7 @@
 //! verifier, and the three grid planners live in `path.rs`
 //! (`docs/PATHFINDER.md`).
 
+use crate::anim;
 use crate::build::{self, Ident, flags as bflags};
 use crate::combat::{self, Obj};
 use crate::garrison::GarrisonRefused;
@@ -1997,6 +1998,18 @@ impl Sim {
             self.swarm_around(u, b, Body::Build(b), action);
             return;
         }
+        // §5.2 step 4's first half, and it is a draw the arrival stand
+        // would otherwise spend: the builder is put on its **work**
+        // animation before it is turned, so `Guy::move`'s arrival test
+        // (`cur_anim == CHAR_WALK`) never sees a walk again and the idle
+        // roll at `Guy::set_anim+0x97a < Guy::move+0x19f` never fires
+        // (`docs/ANIM.md` §4.6). A farm sows; everything else builds.
+        let work = if self.building_ident(b) == Ident::Farm {
+            anim::SOW
+        } else {
+            anim::BUILD
+        };
+        self.set_anim(u, work, false, true);
         let bpos = self.buildings[b].pos;
         let here = self.units[u].pos;
         self.units[u]
@@ -2166,6 +2179,10 @@ impl Sim {
         };
         let who = self.units[u].owner;
         let action = flags & flag::ACTION != 0;
+        // §5.6's first line, and unlike `do_build`'s it is **ahead of every
+        // gate**: a repairer is put on `CHAR_REPAIR` even on the frame the
+        // order dies. Same reason as `do_build`'s (`docs/ANIM.md` §4.6).
+        self.set_anim(u, anim::REPAIR, false, true);
         // §5.6: an AI repairer takes `find_repair_spot` (a seam) instead of
         // adopting the building it has just mended — the same `unit_masks &
         // 0x40000` split as `do_build`'s two.

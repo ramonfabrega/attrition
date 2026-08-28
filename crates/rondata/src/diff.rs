@@ -5417,92 +5417,116 @@ mod tests {
             .map(|(f, _)| *f)
             .unwrap_or(last);
         assert!(
-            first_part >= 18,
-            "the stream parts at frame {first_part}; the floor is 18\n{}",
+            first_part >= 99,
+            "the stream parts at frame {first_part}; the floor is 99\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         assert!(
-            matched >= 173,
-            "the trace floor fell: {matched} of {last} frames match, the floor is 173\n{}",
+            matched >= 219,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 219\n{}",
             parted.join("\n")
         );
-        // The bird's own row, stated so a regression reads as itself. Every
-        // eighth-frame carries **three** `Animal::think_bird` draws per
-        // living bird, and frame 96's hatching draw sits at index 6 —
-        // inside the sampling loop, between the third pair and the fourth.
-        //
-        // The step from three to six at 136 is the *second* bird, and it is
-        // drift rather than a mechanic: the sampling's cells come off a
-        // stream that has parted from the original's (at frame 18 as of
-        // item 55), so our second bird hatches around 130 and the
-        // original's at 192. Those frames cannot match the trace either
-        // way; what is pinned here is that the beat itself stays three.
-        let think = |f: i64| -> usize {
-            built
-                .frame_sites
-                .iter()
-                .find(|(n, _)| *n == f)
-                .map_or(0, |(_, s)| {
-                    s.iter()
-                        .filter(|l| l.starts_with("Animal::think_bird"))
-                        .count()
-                })
-        };
-        let beats: Vec<usize> = [104, 112, 120, 128, 136, 144, 152, 160, 168]
+        // **And a stricter floor beside it: the first frame whose draw
+        // *count* differs.** Frame 99's disagreement is an attribution and
+        // not a divergence — eight draws either side, and the one that
+        // differs is the same address under a different caller (ours
+        // `Unit::do_idle+0x7d`, the original's `Guy::inc_time+0x271`, the
+        // standing swap `docs/SYNC.md` §6 names). The word is still the
+        // original's through frame 121; what parts it at **122** is the
+        // blocked stand, `Unit::move_step+0x823`, which this simulation
+        // does not take at all (`docs/COLLISION.md` §7, item 49).
+        let first_count = built
+            .frame_sites
             .iter()
-            .map(|&f| think(f))
+            .find(|(f, ours)| ours.len() != trace.labels(*f).len())
+            .map(|(f, _)| *f)
+            .unwrap_or(last);
+        assert!(
+            first_count >= 122,
+            "the stream's *word* parts at frame {first_count}; the floor is 122"
+        );
+        // **The bird's own row, and it is the original's now.** Every
+        // eighth frame carries three `Animal::think_bird` draws per living
+        // bird, and with item 59 this simulation hatches its first on
+        // **frame 96 — the original's own frame** — so the beat agrees row
+        // for row from 104 to 192, the last eighth-frame before the
+        // original's second bird. (Before item 59 ours hatched at 32 and
+        // 128 and the rows could not be compared at all.) The second bird
+        // is still drift: the sampling reads cells off a stream that parts
+        // at 122, so ours hatches at 224 where the original's hatches at
+        // 192, and every row from 200 on is ours rather than the
+        // original's.
+        let think = |sites: &[String]| -> usize {
+            sites
+                .iter()
+                .filter(|l| l.starts_with("Animal::think_bird"))
+                .count()
+        };
+        let ours_beat: Vec<(i64, usize)> = built
+            .frame_sites
+            .iter()
+            .map(|(f, s)| (*f, think(s)))
+            .filter(|&(f, n)| n > 0 && f <= 192)
+            .collect();
+        let theirs_beat: Vec<(i64, usize)> = (0..=192)
+            .map(|f| (f, think(&trace.labels(f))))
+            .filter(|&(_, n)| n > 0)
             .collect();
         assert_eq!(
-            beats,
-            vec![3, 3, 3, 3, 6, 6, 6, 6, 6],
-            "three draws a bird an eighth-frame, and a second bird from 136"
+            ours_beat, theirs_beat,
+            "three draws a bird an eighth-frame, on the original's frames"
+        );
+        assert_eq!(
+            ours_beat.len(),
+            12,
+            "every eighth frame from the hatch to the original's second bird"
         );
         assert_eq!(
             trace.labels(96)[6],
             sim::anim::SITE_INIT_REAL,
             "the hatching roll is draw 6 of the original's sampling frame"
         );
-        // **Which frame a bird hatches on is drift, not mechanism.** The
-        // sampling reads cells off the stream, and this simulation's parts
-        // from the original's at frame 18 (above), so ours hatch at 32 and
-        // 128 where run14's hatch at 96, 192 and 256. Before item 55 the
-        // first happened to land on 96 and the row said so; that was the
-        // luck of a stream 468 draws short, not the sampling agreeing.
-        // What is checked here instead is the part that does not depend on
-        // when: two birds over 284 frames, and the beat below, which is
-        // stated **relative to the hatch**.
+        // **The hatch frame is a mechanism again, not drift.** run14's
+        // birds hatch at 96, 192 and 256; ours at 96 and 224. The first is
+        // the original's to the frame — the sampling reads the same cells
+        // off the same stream — and the second is 32 frames late because
+        // the word has parted by then.
         let hatches: Vec<i64> = built.sim.gaia.bird_spawns.iter().map(|(f, _)| *f).collect();
-        assert_eq!(hatches, vec![32, 128], "the hatch frames, off the drift");
+        assert_eq!(hatches, vec![96, 224], "the first is the original's frame");
         assert_eq!(built.sim.live_birds(), 2, "both alive at the end");
-        // The wing beat, and it is the whole of what item 52 bought: the
-        // hatch frame's wrap (`Guy::init_real` leaves `end_time` at zero,
-        // so the same frame's `inc_time` overflows it at once), the birth
-        // coin `do_air_physics` throws the frame after, and a coin at
-        // every wrap the animation's own length places. *Which* animation
-        // is a coin, so the spacing here is **23** — *Bird Flap* — where
-        // the pre-item-55 stream drew *Bird Soar*'s 31 and then flipped.
-        // The lengths are the claim, and they are the install's.
-        let coins = |f: i64| -> usize {
+        // The wing beat, which item 52 bought and item 59 put on the
+        // original's frames: the hatch frame's wrap (`Guy::init_real`
+        // leaves `end_time` at zero, so the same frame's `inc_time`
+        // overflows it at once), the birth coin `do_air_physics` throws
+        // the frame after, and a coin at every wrap the animation's own
+        // length places. *Which* animation is a coin, so the spacing
+        // alternates between *Bird Flap*'s 23 frames and *Bird Soar*'s 31.
+        // The lengths are the install's; the frames are the original's —
+        // **97, 127, 142, 150** on both sides, and the next coin is past
+        // the word divergence at 122 and is ours.
+        let coin_frames = |at: &dyn Fn(i64) -> Vec<String>, upto: i64| -> Vec<i64> {
+            (0..=upto)
+                .filter(|f| at(*f).iter().any(|l| *l == sim::anim::SITE_BIRD_COIN))
+                .collect()
+        };
+        let ours_at = |f: i64| -> Vec<String> {
             built
                 .frame_sites
                 .iter()
                 .find(|(n, _)| *n == f)
-                .map_or(0, |(_, s)| {
-                    s.iter().filter(|l| *l == sim::anim::SITE_BIRD_COIN).count()
-                })
+                .map_or_else(Vec::new, |(_, s)| s.clone())
         };
-        let h = hatches[0];
-        let first_bird: Vec<i64> = built
-            .frame_sites
-            .iter()
-            .map(|(f, _)| *f)
-            .filter(|f| coins(*f) > 0 && *f < hatches[1])
-            .collect();
+        let theirs_at = |f: i64| -> Vec<String> { trace.labels(f) };
         assert_eq!(
-            (h, first_bird),
-            (32, vec![33, 55, 78, 101, 124]),
+            coin_frames(&ours_at, 160),
+            coin_frames(&theirs_at, 160),
             "the birth coin the frame after the hatch, then a coin at every \
-             wrap of *Bird Flap* — 23 frames, out of the install's own `.bha`"
+             wrap — on the original's frames while the word is still its own"
+        );
+        assert_eq!(
+            coin_frames(&ours_at, 160),
+            vec![97, 127, 142, 150],
+            "the hatch's birth coin, then Soar's 31 and Flap's 23"
         );
         // Item 53's own rows, each stated so a regression reads as itself.
         //
@@ -5753,6 +5777,31 @@ mod tests {
         //               by ten, which the old stream happened to land on.
         //               The number that is not luck is in the ledger test:
         //               the first frame whose draws differ at all, 10 → 18.
+        //   2026-08-28  ticks **190**, orders **185**; player 0 @ 191,
+        //               player 1 @ 203 (item 59: **the builder's own
+        //               animation**). `Unit::do_build`'s step 4 and
+        //               `Unit::do_repair`'s first line put the worker on
+        //               `CHAR_BUILD` / `CHAR_SOW` / `CHAR_REPAIR`, which
+        //               this crate never modelled — so its builders stayed
+        //               on `CHAR_WALK` and spent an arrival stand
+        //               (`Guy::move+0x19f`) the original does not spend.
+        //               One draw, on run14's frame 18, and it was the whole
+        //               of the residue: the traced stream now parts at
+        //               **99** rather than 18 and matches **219** of 284
+        //               frames rather than 173.
+        //
+        //               **`orders` rose and `ticks` fell, and the two are
+        //               the same 81 frames.** `1/1`'s gather `wait` at
+        //               frame 169 — what pinned `orders` at 168 — is now
+        //               the original's, because the draws between 18 and 99
+        //               are. What pins 185 is `0/4`, a human farmer whose
+        //               re-target moved 220 → 186: its `wait` was already
+        //               wrong at 220 and the shape of the disagreement is
+        //               unchanged (a `MOVE_TO` in front of a gather the
+        //               original never re-issues), so it is the same defect
+        //               on a different frame. Every other unit held or
+        //               improved — `1/1` went 577 → 647 — and run6's
+        //               totals fell from 2,591/1,613 to 1,588/1,415.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -5761,9 +5810,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 202 && orders >= 168 && first[0] >= 213 && first[1] >= 203,
+            ticks >= 190 && orders >= 185 && first[0] >= 191 && first[1] >= 203,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 202, orders 168, player 0 @ 213, player 1 @ 203",
+             — the floor is ticks 190, orders 185, player 0 @ 191, player 1 @ 203",
             report.first_divergence
         );
         assert!(
@@ -5919,9 +5968,15 @@ mod tests {
         // whose values have all changed, and between them they part
         // sooner. The two assertions that say the mechanic is right are
         // below, and both held.
+        //
+        // 40,750 → **42,615** with item 59 (the builder's animation), and
+        // the same coverage effect a third time: the AI's units hold their
+        // positions longer on a stream that is the original's for 81 more
+        // frames, so 1,865 more of their unit-frames come into view. `1/1`
+        // alone parts 70 frames later.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 40_750,
+            coll_seen, 42_615,
             "five fields on every agreeing unit-frame"
         );
         let coll_bad: Vec<CollideDivergence> = report
@@ -5930,7 +5985,7 @@ mod tests {
             .flat_map(|f| f.collide_diverged.iter().copied())
             .collect();
         assert!(
-            coll_bad.len() <= 413,
+            coll_bad.len() <= 473,
             "the collision block's disagreements grew: {} of {coll_seen}",
             coll_bad.len()
         );
@@ -5946,11 +6001,28 @@ mod tests {
         // says is by **field**: `collide_guy` is the one a hard collision
         // writes and no path clears, and every other field is a real
         // disagreement.
+        //
+        // 10 → **18** with item 59, and they are the same two fields on
+        // the same unit: `1/4` reads `collide_o`/`collide_who` as −1
+        // against the original's `1/2` on frames 316–321 as well as on
+        // 201–202 — one collision the original has and this simulation
+        // does not, now visible over six more frames because `1/4` holds
+        // its position that much longer. No new field and no new unit.
         let sticky = coll_bad.iter().filter(|d| d.field == "collide_guy").count();
         assert!(
-            coll_bad.len() - sticky <= 10,
+            coll_bad.len() - sticky <= 18,
             "collision rows that are not the stale `collide_guy`: {}",
             coll_bad.len() - sticky
+        );
+        assert!(
+            coll_bad
+                .iter()
+                .filter(|d| d.field != "collide_guy")
+                .all(|d| (d.who, d.o) == (1, 4) || (d.who, d.o) == (1, 6)),
+            "and every one of them is `1/4`'s missing collision or `1/6`'s: {:?}",
+            coll_bad.iter().find(|d| d.field != "collide_guy"
+                && (d.who, d.o) != (1, 4)
+                && (d.who, d.o) != (1, 6))
         );
         assert!(
             coll_bad.iter().all(|d| d.frame >= 201),
@@ -5995,6 +6067,12 @@ mod tests {
         //
         // **430 with item 55 (the road)**, back where item 47 left it, and
         // by the same luck in the other direction.
+        //
+        // **407 with item 59**, the same twenty-three frames back the other
+        // way. `1/6`'s second tree is drawn on a frame the stream reaches
+        // long after it has parted (122 on run14's trace), so which tree it
+        // is remains luck; the numbers that are not are the two the item
+        // was booked on.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -6011,7 +6089,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(430),
+            Some(407),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -6073,8 +6151,11 @@ mod tests {
         // bird's two animation lengths have brought closer.
         // 17,302 → **16,266** with item 55 (the road): coverage again, and
         // again against the headline's direction, which went 181 → 202.
+        // 16,266 → **17,012** with item 59 (the builder's animation): 746
+        // more unit-frames hold their positions on a stream that is the
+        // original's for 81 more frames.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 16_266, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 17_012, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -6471,8 +6552,16 @@ mod tests {
         // either direction, and here both (orders +44, paths −16). The
         // half of this test with teeth is `rest`, which is held to the
         // letter and did not move; run10's headline went 181 → 185.
+        // 719/404 → **739/390** with item 59 (the builder's animation), and
+        // the totals fell hard: 2,591/1,613 to **1,588/1,415**. run6 is
+        // run10's game, so the builders' arrival stand goes with it and the
+        // stream is the original's for 81 more frames; what that buys is
+        // 1,003 fewer order disagreements and 198 fewer path ones across
+        // everyone. The farmers' own share moved twenty rows the other way,
+        // because their second re-target still rolls past the last traced
+        // word — the same drift this split has always carried.
         assert!(
-            farmer_orders <= 719 && farmer_paths <= 420,
+            farmer_orders <= 739 && farmer_paths <= 420,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }
