@@ -4935,11 +4935,14 @@ Great Lakes), a Granary dropped at tile `(6, 171)` and a Smelter at
 `0x3bd39ae9` and frames 0–3 draw 120, 54, 6, 6, so it is run14's game to
 the word; `INFO cmd` says both `add` lines parsed and ran.
 
-**The lobby had to be driven by hand**: the desktop is 1920×1080 now, not
-the 3440×1440 every stored coordinate assumed, so the five blind clicks
-landed on nothing. Solo Game is at (960, 565), Quick Battle at (960, 495)
-and Start at (292, 994) — measured off a screenshot, which is what the
-memory has said to do since run8 and what the script now does.
+**The lobby had to be driven by hand**: the desktop is 1920×1080 with the
+main monitor off, not the 3440×1440 every stored coordinate assumed, so the
+five blind clicks landed on nothing and the game sat on the Main Menu for
+ten minutes. Solo Game is at (960, 565), Quick Battle at (960, 495) and
+Start at (292, 994), one press. Both desktops are a table now —
+`tools/gamelog/lobby.sh`, sourced by every drive script, which measures the
+screen before it clicks and refuses a width it does not know; the whole
+path was smoke-tested against the game afterwards.
 
 ### What the capture found first, which was not the road
 
