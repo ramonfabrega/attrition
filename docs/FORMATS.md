@@ -679,7 +679,65 @@ presentation layer, and that our sim can consume them unmodified.
 
 3D geometry and animation. Converters exist in both directions. Not needed
 until the renderer; *reading* them early is what proves out an eventual art
-swap.
+swap — and one number in a `.BHa` turned out to be **simulation state**, so
+the first slice of it is read already (below).
+
+#### The animation file (`.BHa`) — its length is on the sync stream (2026-08-28)
+
+`Guy::set_anim` writes `end_time = animmgr.frames[packet.action_ids[slot]]`,
+and a clock that runs out **draws from `game_random`** (`docs/ANIM.md` §4).
+So an animation's frame count is not art: it decides when a draw is spent,
+and a unit whose length is unknown is a unit whose stream is wrong. Gaia's
+bird is the case that forced it — no dump prints owner 9, so its piece and
+its lengths had no other source (`docs/SYNC.md` §3.9).
+
+`crates/rondata/src/artdata.rs` reads it. Three files, all of them open data
+in the install:
+
+| file | what it gives |
+|---|---|
+| `Data/unit_graphics.xml` | `<UNIT name="HERDSHEEP-TYPE1">` with `<ANIM name="CHAR_DEFAULT" file="Sheep Idle3"/>` children — the packet's `action_ids`, one row per slot |
+| `Data/anim_graphics.xml` | `<ANIM name="Sheep Idle3" file=".\art\sheep_idle3.bha"/>`, under `<LOOPING>` or `<NONLOOPING>` |
+| `art/*.bha` | the animation, whose root node's key times give the length |
+
+**The container** is a chunk stream. A chunk header is eight bytes —
+`{u32 size; u16 id; u16 version}` — and `size` is measured **from the `size`
+field itself**, which is what `ChunkRead` does (`(int)&header->size +
+header->size`). A `.BHa` is three nested headers deep: the file (id 0) at
+offset 0, the object (id 8) at 8, and the root `AnimObj` node (id 7) at 16.
+The node's payload is a `u32` key count at 24 and then that many **36-byte**
+keys from 28.
+
+**The number** is the first `f32` of each key: that key's own duration in
+seconds. `AnimObj::load_hier` accumulates `int(seconds · 1000)` — truncated,
+then masked to 16 bits — into a `u16` per key, and `AnimMgr::force_load`
+takes the **last** of them (the second-to-last for a non-looping animation)
+as `times[]`. Then:
+
+```
+frames = round(times · 3 / 200)          # fifteen frames a second
+```
+
+which is `AnimMgr::force_load@0053ade0`'s own `(float)(times*3) / 200.0f`
+with a half-up round, and `AnimationPacket::get_game_frames@00918cc0`
+returns **3** for a slot the packet does not name.
+
+*How it is checked.* Two ways, both of which can fail. The header arithmetic
+is self-checking — a node's chunk must end exactly where its keys do, and
+`cargo run -p rondata -- <install>` fails if it stops holding. And the
+lengths themselves are cross-checked against the *other* oracle: a
+`DUMP_ALL` dump prints `end_time` on every `GUY`, and
+`the_install_s_gaia_lengths_match_the_dump_s` asserts every one of run12's
+thirteen gaia rows against the file — the three sheep pieces' idles
+(90 / 109 / 250, from `Sheep Idle1` / `Idle3` / `Idle5`) and the three fish
+pieces' (170 / 101 / 116). That agreement is also what pins the `-TYPE<v>`
+suffix in `unit_graphics.xml` to the variant `(seed + o) % 3` picks, which
+is the one link in the chain neither file states.
+
+*What is not read.* The geometry, the bone hierarchy, the child nodes' own
+key arrays, and the whole of `.BH3`. Only the gaia types' rows are built:
+a player's unit needs `GraphicPieces::get_unit_gpiece`'s tribe, age and
+gender walk to know which `<UNIT>` entry it plays, and that is unmodelled.
 
 ### 4. Map / scenario formats
 

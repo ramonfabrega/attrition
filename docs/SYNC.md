@@ -418,17 +418,15 @@ settles the type without one.
 
 ### 3.9 The bird — `Animal::think_bird@005d79e0`, `Unit::do_air_patrol@005ea620` (2026-08-28)
 
-A bird is the object `Objects::process_all`'s sampling creates: `init_unit(
-who 9, BASE_GAIATYPES)` at the hit cell's centre (`cell·0x300 + 0x180` on
-each axis) and `add_air_patrol_order` on the same point. From that frame it
-is in the unit loop's who-9 slot every frame, and `do_job` runs
-`do_air_patrol`, whose **first act** — the `+0x180` virtual at `+0x28` — is
-`think_bird`.
+A bird is what `Objects::process_all`'s sampling creates: `init_unit(who 9,
+BASE_GAIATYPES)` at the hit cell's centre (`cell·0x300 + 0x180` on each
+axis) and `add_air_patrol_order` on the same point. From that frame it is in
+the unit loop's who-9 slot, and `do_job` runs `do_air_patrol`: the `+0x180`
+virtual (`think_bird`), then `Unit::do_air_physics`.
 
 **No dump prints owner 9 at all** (run20's first `FULL DUMP` has 104
-`ANIMALDATA` records and not one; run13's window has none across ten
-frames). So the draw-site trace is the bird's only oracle, and every claim
-here is a site or a count from run14.
+`ANIMALDATA` records and not one). The draw-site trace is the bird's only
+behavioural oracle, and every count below is run14's.
 
 `think_bird`, the `0x192` arm, with `spell_time` (`UnitData+0x98`, named by
 the type record; `Unit::init` clears it with `mana_burn`, so a bird starts
@@ -454,46 +452,64 @@ list) cannot fire until the counter has passed 100 — the counter is the
 modulus — which is ~90 frames of flight, and no traced frame reaches it.
 `0x194` returns after an `order_type` call and draws nothing.
 
-Run14 is the whole of the evidence and it is exact:
-
 | what | run14 |
 |---|---|
 | hatchings (`Guy::init_real` under `Animal::init`) | frames **96, 192, 256** |
 | the sampling's pairs | 10 at 0/32/64/96, **9** at 128/160/192, **8** at 224/256 |
 | `think_bird` | **3** a frame at 104…192, **6** at 200…256, **9** at 264…280 |
 
-— which is the count read off the unit list rather than kept: the sampling
-is `min(10, xs·ys/100)` less the birds alive *at that moment*, and a bird
-born inside the loop is not yet counted by it.
+The sampling's count is read off the unit list rather than kept: it is
+`min(10, xs·ys/100)` less the birds alive *at that moment*, and a bird born
+inside the loop is not yet counted by it.
 
-**What the simulation has.** The hatching (a unit of owner 9 with the
-type's guy, so `Guy::init_real` is spent where the original spends it), the
-live count, `think_bird` whole, and the patrol point as state. `is_air` is
-now the domain rather than the seam it was, so a bird does not paint the
-occupancy grid a citizen walks on (`docs/COLLISION.md` §2).
+#### The wing beat — `Guy::set_anim+0x104b`
 
-**What it does not, and what each is worth.** All of it is
-`Guy::set_anim`'s bird branch and the flight it serves:
+`set_anim` on a guy of owner 9 and type `0x192`–`0x194` whose *category* is
+`CHAR_WALK` draws once and takes the **second** walk animation when
+`rnd % 100 > 0x31` (`set_anim:620`). Run14 spends it 28 times: 25 as
+phase-7 wraps under `Guy::inc_time+0x271` and 3 under
+`Unit::do_air_physics+0x683`. Four rules place all of them.
 
-- **`Guy::set_anim+0x104b`** — `set_anim(CHAR_WALK)` on a guy of owner 9
-  and type `0x192`–`0x194` draws once and takes the **second** walk
-  animation when `rnd % 100 > 0x31` (`set_anim:620`). Run14 spends it 28
-  times: **25 as phase-7 wraps** under `Guy::inc_time+0x271` and 3 under
-  `Unit::do_air_physics+0x683`. Six of the 25 fall between the last traced
-  word and frame 168, which is most of what still stands between the
-  simulation's stream and the original's there.
-- **The lengths.** A wrap falls when the animation ends, and the bird's
-  two lengths are art data — the `AnimationPacket` frame counts. `Art` is
-  read out of a dump's `GUY` blocks, and no dump has a bird, so there is
-  no entry: the simulation's bird carries `piece = −1`, every length
-  lookup fails and it never wraps. **This is the open item**, and the
-  check is run14's own list — 97, 127 (×2), 142, 150 (×3), 181, 193, 212,
-  223 (×2), 238, 243 (×8), 257, 261, 274 (×2), 279, 284.
-- **`Unit::do_air_physics@005e86d0`** and the flight: unread past its
-  `set_anim` site.
-- **The landing search**, unreachable on every capture; a bird that
-  reaches it is recorded in `Gaia::bird_landings` rather than drifting
-  quietly.
+- **The two lengths.** `unit_graphics.xml` names exactly two animations for
+  `WILDBIRD` — `CHAR_WALK` is *Bird Soar* and `CHAR_JOG` is *Bird Flap* —
+  and the `.bha` files make them **31 frames and 23** (`docs/FORMATS.md`,
+  "The animation file"; `rondata::artdata`). Every idle slot is absent, so
+  `AnimationPacket::get_game_frames` gives them its fallback of **3**.
+- **The coin re-throws.** `set_anim` dispatches on `UnitAnimCat[anim]` and
+  the walk arm opens with that *category* as its answer (`set_anim:613`),
+  so the slot the caller named never reaches it: a wrap's
+  `set_anim(CHAR_JOG)` starts again from `CHAR_WALK`. A flip keeps
+  `cur_time` (the rescale is `t/t`), and 31 still overruns 23, so one wrap
+  can spend several coins — two at frame 127, nine at 243.
+- **The hatch frame wraps.** `Guy::init_real` leaves `end_time` at **zero**
+  and a bird is created on open ground mid-`Objects::process_all`, so the
+  same frame's `Objects::inc_time` reaches it and overflows it at once.
+  That is frame 96's twenty-second draw. The "created this frame" skip in
+  the clock only ever meant *created inside a building*.
+- **The birth coin.** `do_air_physics` ends in `set_anim(CHAR_WALK, 0, 1)`
+  on every frame (`field_0xae` gates it and is only ever set for
+  `FLOCKBIRD`); it draws once per bird, at birth, because from the frame
+  after the guy is walk-category and inside its length and
+  `set_anim:169`'s gaia early return takes it.
+
+Run14's coin frames: 97, 127 (×2), 142, 150 (×3), 181, 193, 212, 223 (×2),
+238, 243 (×9), 257, 261, 274 (×2), 279, 284. The first four are reproduced
+exactly (96 + 31 = 127, then the flip's 15 to 142); from 143 the stream has
+drifted for other reasons (§3.1) and the later coins are its own.
+
+**What the simulation has**: the hatching, the live count, `think_bird`
+whole, the patrol point as state, and the wing beat. `is_air` is the loaded
+domain, so a bird does not paint the occupancy grid a citizen walks on
+(`docs/COLLISION.md` §2).
+
+**What it does not**: `do_air_physics@005e86d0`'s flight — the bird is
+parked on its hatch cell and `Guy::move`'s arrival half is skipped for it,
+there being no ground body to follow. That function's own draw (`+0x3b`,
+`rnd % 7 + 0xd`) sits behind a vtable test the wild bird fails on every
+traced frame, and run14 confirms it: three `think_bird` draws an eighth
+frame per bird and no fourth. **The landing search** is unreachable on
+every capture; a bird that reaches it is recorded in `Gaia::bird_landings`
+rather than drifting quietly.
 
 ## 4. Run12 attributed
 
@@ -593,32 +609,19 @@ so the wraps never fell due. Removing it moved four draws, not two. Frame
 (`diff::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps`),
 on run20 and on the Great Lakes.
 
-(The "ours" column is after **two** sessions' work. Before the first the
-pasture row read `6 / 0` and the farm row `5 / 6`, for 160 and 180; before
-the second the `think_scout` row read `10 / 0`, for 165 and 185.)
-
 Read down the two bold rows that are not the pasture:
 
 - **`think_scout` is modelled** (`docs/SCOUT.md`, 2026-08-26), and it is
   the mechanic that turns the next row from a curiosity into a bug with a
   price.
 - ~~**The stands and the wraps cancelled, map by map**~~ — **closed
-  2026-08-26, and the two halves were one line** (§6). They cancelled
-  +4/−4 on run20 and +5/−5 on the fuzzed map, and stopped cancelling when
-  `think_scout` landed, because the two spurious stands put the scout's
-  ring rotations on the wrong stream: on run20 that cost nothing (ring 5
-  gives four cells on either stream), on the fuzzed map one cell, which
-  was the whole of `196` against `195`. Both are gone. The original draws
-  **no** unit-phase stand for a gathering citizen at frame 0; those
-  citizens' guys run their animation out in phase 7 and re-roll there, and
-  the sim now does the same. The evidence that made this look half
-  explained — run20's end-of-frame-0 dump has `1/1` and `1/2` at
-  `cur_anim 1, cur_time 0, end_time 232` (wrapped) and `0/1`, `0/2` at
-  `cur_anim 0, cur_time 1, end_time 33` (a `set_anim` that did not draw)
-  — is not the whole record: the trace says four wraps and the dump shows
-  two, because a wrap whose roll lands on the slot already running leaves
-  `cur_time` stepping normally. The **sequence** settled it where the
-  dumped clocks could not, and no `GUYS=4` capture was needed.
+  2026-08-26, and the two halves were one line** (§6; the story is in
+  `docs/JOURNAL.md`, 2026-08-26). The original draws **no** unit-phase
+  stand for a gathering citizen at frame 0; those citizens' guys run their
+  animation out in phase 7 and re-roll there. The dumped clocks could not
+  have settled it — a wrap whose roll lands on the slot already running
+  leaves `cur_time` stepping normally, so the trace says four wraps where
+  the dump shows two — and the **sequence** did.
 
 Frame 1 and frame 2 fall out of the same fold. Every row below is now a
 site rather than a block — `--diff`'s `by phase` note prints the labels
@@ -631,9 +634,9 @@ site rather than a block — `--diff`'s `by phase` note prints the labels
 | 1 (fuzzed) | 45 | **43** | ours is two *short*: one `Leader::produce_building+0xc99` (29 against 30 — a spiral candidate the original scores and the sim does not) and one `do_non_flat_gather+0x54b`. The jitter is **3 on both sides** here, one of the 2×2's four sub-positions being blocked — the second map that makes the inclusive reading a rule |
 
 The unit that pays run20's last `+0xe84` is `1/1`, not the `1/0` §6 once
-named; and that frame read 53 against 53 for two days while wrong in three
-places that cancelled. Both stories are in `docs/JOURNAL.md`, 2026-08-27;
-the arithmetic is `docs/AI.md` §2.20 and the lesson is §5.1's.
+named, and that frame read 53 against 53 for two days while wrong in three
+places that cancelled (`docs/JOURNAL.md`, 2026-08-27; the arithmetic is
+`docs/AI.md` §2.20, the lesson §5.1's).
 
 The Great Lakes lobby (run10/run12/run13, traced as run14) is the third
 map `think_scout` is checked on and the only one that exercises the
@@ -691,11 +694,9 @@ it.
 it, so three things stopped being Python's job:
 
 - `rondata --trace <rontrace.log>` prints the original's own per-frame
-  fold **by site**, in the same shape `by phase` prints ours — the two
-  lines sit one above the other and no longer have to be lined up by hand.
-  Addresses are bare; naming them still needs the Ghidra export's
-  `INDEX.tsv`, which never enters this repo, so `report.py` is where a name
-  comes from.
+  fold **by site**, in the same shape `by phase` prints ours. Addresses are
+  bare; naming them needs the Ghidra export's `INDEX.tsv`, which never
+  enters this repo, so `report.py` is where a name comes from.
 - `Trace::run_in(frame, lo, hi)` isolates **one function's own draws** from
   the ones its callees took, which is what makes a per-mechanic assertion
   possible at all.
@@ -705,16 +706,15 @@ it, so three things stopped being Python's job:
   sim with the trace's own word, run the mechanic, and compare the two
   **sequences**.
 
-That last one is the point. A count cannot tell four rotations and two
-phases from three and three; a sequence can, and it is checkable **while
-the frame's stream is still wrong upstream** — which is exactly the
-position `docs/SCOUT.md` landed in.
+That last one is the point: a count cannot tell four rotations and two
+phases from three and three, a sequence can, and it is checkable **while
+the frame's stream is still wrong upstream**.
 
 ### 5.1 The frame as one sequence (2026-08-26)
 
-The scout's check was seed-anchored and one function wide. Widening it to a
-**whole frame** needed one more piece: the trace's addresses and the
-harness's marks had to be the same strings.
+Widening the scout's seed-anchored, one-function check to a **whole frame**
+needed one piece: the trace's addresses and the harness's marks had to be
+the same strings.
 
 **`trace::SITES` is that table, and it is deliberately small.** Each row is
 `(address, an optional caller, the label)`, and the label is a `pub const`
@@ -749,10 +749,9 @@ things fall out of it that a per-block table did not give:
 
 `diff::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps`
 is the check, on run20 and on the Great Lakes; the failure message prints
-the first parting with three draws either side rather than 175 lines of
-`assert_eq!`. Made to fail on purpose by dropping `sim::anim`'s wrap mark,
-which reads as four `guys_inc_time` against four `Guy::set_anim+0x97a <
-Guy::inc_time+0x271` at draw 166.
+the first parting with three draws either side. Made to fail on purpose by
+dropping `sim::anim`'s wrap mark, which reads as four `guys_inc_time`
+against four `Guy::set_anim+0x97a < Guy::inc_time+0x271` at draw 166.
 
 **A phase left standing in the fold is worth more than a matching total,
 and marking one has now paid twice.** The second was

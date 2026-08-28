@@ -657,6 +657,26 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
     let mut failures = 0;
     println!("\nstructural checks");
 
+    // The animation art, read out of the install's own graphics tables and
+    // the `.bha` headers they name (`docs/FORMATS.md`, "The animation file
+    // (`.BHa`)"). The claim is the header arithmetic: a node's chunk ends
+    // exactly where its keys do, which is what says the key count and the
+    // 36-byte stride are read at the right offsets. If it stopped holding
+    // the reader would go quietly wrong rather than loudly, so it is a
+    // check rather than a print.
+    let gaia = rondata::artdata::gaia_lengths(install);
+    let bird_walk = gaia.get(&(0x192, 0, sim::anim::WALK)).copied();
+    let bird_jog = gaia.get(&(0x192, 0, sim::anim::JOG)).copied();
+    failures += check(
+        "the gaia types' animation lengths read from the install's art",
+        gaia.len() >= 100 && bird_walk == Some(31) && bird_jog == Some(23),
+        &format!(
+            "{} (type, variant, slot) rows; WILDBIRD CHAR_WALK {bird_walk:?} \
+             (Bird Soar, 31), CHAR_JOG {bird_jog:?} (Bird Flap, 23)",
+            gaia.len()
+        ),
+    );
+
     // The claim that forces index-keyed loading. If this ever comes back
     // empty, name-keying would be safe and decision 9 deserves revisiting.
     let dups = rules.constants.duplicate_tags();

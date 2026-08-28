@@ -389,6 +389,16 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             init.anim_lengths.len()
         ));
     }
+    // And the gaia types' whole slot lists, from the install rather than
+    // the dump — which is what gives a bird a length at all
+    // (`crate::artdata`, `docs/SYNC.md` §3.9).
+    sim.art.gaia_lengths = loaded.gaia_lengths.clone();
+    if !loaded.gaia_lengths.is_empty() {
+        notes.push(format!(
+            "anim: {} (type, variant, slot) gaia lengths from the install",
+            loaded.gaia_lengths.len()
+        ));
+    }
 
     for l in &init.leaders {
         if (0..players as i64).contains(&l.who) {
@@ -3096,6 +3106,111 @@ mod tests {
         }
     }
 
+    /// **The install's animation lengths against the dump's.**
+    ///
+    /// `crate::artdata` reads `unit_graphics.xml`, `anim_graphics.xml` and
+    /// the `.bha` headers to say what every gaia type's slots are worth;
+    /// `Log::anim_lengths` reads the same numbers back off a `DUMP_ALL`
+    /// dump's `GUY` blocks. They are two independent oracles for one
+    /// table, and this is what makes the reader's arithmetic — the key
+    /// times in milliseconds, `round(times * 3 / 200)` — an assertion
+    /// rather than a story.
+    ///
+    /// Run12 shows six of them: the three sheep pieces' `CHAR_DEFAULT`
+    /// (90, 109, 250 — `Sheep Idle1`, `Idle3`, `Idle5`) and the three fish
+    /// pieces' idles (170, 101, 116 — `Fish Idle1`, `Idle2`, `Idle3`). It
+    /// is also what pins the `-TYPE<v>` suffix to the variant `(seed + o)
+    /// % 3` picks, which is the one step of the chain neither file states
+    /// outright.
+    #[test]
+    fn the_install_s_gaia_lengths_match_the_dump_s() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run12-dumpall-seeds.txt") else {
+            eprintln!("skipping: no gamelog-run12-dumpall-seeds.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        assert!(
+            !loaded.gaia_lengths.is_empty(),
+            "the install's graphics tables read"
+        );
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let init = log.initial().unwrap();
+        let built = build_sim(&loaded, &init, Tuning::RON);
+        let sim = &built.sim;
+        // Every gaia piece the dump named, and every length it showed for
+        // it, against the install's own row.
+        let mut checked = Vec::new();
+        for (&(who, ty, sub, _), &piece) in &sim.art.pieces {
+            // Gaia is owners 8 and 9: the herds the map generator laid
+            // down are 8 and the birds `Objects::process_all` hatches are
+            // 9, which is why no dump has ever printed a bird.
+            if who < 8 {
+                continue;
+            }
+            let index = sim.unit_types[ty].type_index;
+            for (&(p, slot), &n) in &sim.art.lengths {
+                if p != piece {
+                    continue;
+                }
+                let theirs = sim.art.gaia_lengths.get(&(index, sub, slot)).copied();
+                assert_eq!(
+                    theirs,
+                    Some(n),
+                    "type {index:#x} variant {sub} slot {slot}: the dump says {n}, \
+                     the install {theirs:?}"
+                );
+                checked.push((index, sub, slot, n));
+            }
+        }
+        checked.sort_unstable();
+        checked.dedup();
+        // The sheep and the fish, by type and variant — named so a run
+        // that stops showing them reads as a thinner check rather than as
+        // a passing one.
+        assert_eq!(
+            checked,
+            vec![
+                (0x198, 0, sim::anim::DEFAULT, 90),
+                (0x198, 1, sim::anim::DEFAULT, 109),
+                (0x198, 2, sim::anim::DEFAULT, 250),
+                (0x19b, 0, sim::anim::DEFAULT, 170),
+                (0x19b, 0, sim::anim::IDLE1, 170),
+                (0x19b, 0, sim::anim::IDLE2, 170),
+                (0x19b, 0, sim::anim::IDLE3, 170),
+                (0x19b, 1, sim::anim::DEFAULT, 101),
+                (0x19b, 1, sim::anim::IDLE1, 101),
+                (0x19b, 1, sim::anim::IDLE2, 101),
+                (0x19b, 2, sim::anim::DEFAULT, 116),
+                (0x19b, 2, sim::anim::IDLE1, 116),
+                (0x19b, 2, sim::anim::IDLE3, 116),
+            ],
+            "the six lengths both oracles state"
+        );
+        // And the bird's two, which only the install has: no dump prints
+        // owner 9's bird at all (`docs/SYNC.md` §3.9). *Bird Soar* is the
+        // `CHAR_WALK` and *Bird Flap* the `CHAR_JOG`, and their wraps are
+        // what run14's stream confirms.
+        for v in 0..3u8 {
+            assert_eq!(
+                loaded.gaia_lengths.get(&(0x192, v, sim::anim::WALK)),
+                Some(&31),
+                "the bird's Bird Soar"
+            );
+            assert_eq!(
+                loaded.gaia_lengths.get(&(0x192, v, sim::anim::JOG)),
+                Some(&23),
+                "the bird's Bird Flap"
+            );
+            assert_eq!(
+                loaded.gaia_lengths.get(&(0x192, v, sim::anim::DEFAULT)),
+                None,
+                "and no idle at all, which is worth three frames"
+            );
+        }
+    }
+
     /// Run12's per-frame words, read straight from the dump (`docs/SYNC.md`
     /// §1): the `end_frame` record inside each `FRAME n` block's `FULL
     /// DUMP`, keyed by the engine frame.
@@ -4595,6 +4710,11 @@ mod tests {
     ///   2026-08-28  **184** of 284 (the bird, `docs/SYNC.md` §3.9): the
     ///               nine frames of `Animal::think_bird`'s three draws
     ///               between 104 and 168, and the sampling's own count.
+    ///   2026-08-28  **192** of 284 (the bird's wing beat, §3.9): its two
+    ///               animation lengths, read out of the install's own
+    ///               `.bha` files (`crate::artdata`), and with them the
+    ///               hatch frame's wrap, the birth coin and the wraps at
+    ///               127 and 142.
     ///
     /// A frame is counted only when the two label sequences are equal, so
     /// a coarse mark on our side (`unit 1/9` against a `GameAccess::rnd`
@@ -4648,8 +4768,8 @@ mod tests {
             ));
         }
         assert!(
-            matched >= 184,
-            "the trace floor fell: {matched} of {last} frames match, the floor is 184\n{}",
+            matched >= 192,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 192\n{}",
             parted.join("\n")
         );
         // The bird's own row, stated so a regression reads as itself. Nine
@@ -4686,15 +4806,34 @@ mod tests {
         // last traced word being frame 103's — and it hatches here too.
         // The later ones are **not**: the sampling's cells come off a
         // stream that has drifted, so run14's second and third (192, 256)
-        // do not line up and this run hatches four. That is the untraced
-        // stretch showing, not the sampling being wrong; it closes when
-        // the stream does.
+        // do not line up. That is the untraced stretch showing, not the
+        // sampling being wrong; it closes when the stream does.
         assert_eq!(
             built.sim.gaia.bird_spawns.first().map(|(f, _)| *f),
             Some(96),
             "the first bird hatches on the original's frame"
         );
-        assert_eq!(built.sim.live_birds(), 4, "and three more off the drift");
+        assert_eq!(built.sim.live_birds(), 2, "and one more off the drift");
+        // The wing beat, and it is the whole of what item 52 bought: the
+        // hatch frame's wrap (`Guy::init_real` leaves `end_time` at zero,
+        // so the same frame's `inc_time` overflows it at once), the birth
+        // coin `do_air_physics` throws the frame after, and the two wraps
+        // the lengths then place — 96 + 31 for *Bird Soar*, then a coin
+        // that flips to *Bird Flap* and overruns it in the same frame.
+        let coins = |f: i64| -> usize {
+            built
+                .frame_sites
+                .iter()
+                .find(|(n, _)| *n == f)
+                .map_or(0, |(_, s)| {
+                    s.iter().filter(|l| *l == sim::anim::SITE_BIRD_COIN).count()
+                })
+        };
+        assert_eq!(
+            (coins(97), coins(127), coins(142)),
+            (1, 2, 1),
+            "the wing beat"
+        );
         // And it flies, which is what keeps it out of the occupancy grid a
         // citizen walks on — `collide.rs`'s `is_air` is the loaded domain
         // now rather than the seam it was (`docs/COLLISION.md` §2).
@@ -4815,6 +4954,27 @@ mod tests {
         //               `1/1`'s `wait` went 581 → 476 against 460. Six of
         //               the ten are the bird's own animation, which needs
         //               a length no dump carries.
+        //   2026-08-28  ticks 181, orders **180**; player 0 @ 182, player 1
+        //               @ 203 (item 52: **the bird's wing beat**,
+        //               `docs/SYNC.md` §3.9). The length no dump carries is
+        //               in the install: `WILDBIRD` plays *Bird Soar* for
+        //               `CHAR_WALK` and *Bird Flap* for `CHAR_JOG`, and the
+        //               `.bha` files say 31 frames and 23
+        //               (`rondata::artdata`). With them the bird spends the
+        //               hatch frame's wrap, `do_air_physics`'s birth coin
+        //               and every later one, and the ledger went 184 → 192.
+        //
+        //               **The two scores met, and that is why `ticks` reads
+        //               lower.** The residue is one unit and it did not
+        //               change: `0/3`'s order list goes wrong when its
+        //               gather tile is picked off a stream that is still
+        //               short, and that pick moved **169 → 181**. What
+        //               moved with it is when the wrong order starts
+        //               *moving* the unit — at 169 it did not for another
+        //               seventeen frames, so `ticks` read 185 while the
+        //               orders had already parted; now the position follows
+        //               the order by one frame, as it should. A `ticks`
+        //               above `orders` is the accident, not the gain.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -4823,9 +4983,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 185 && orders >= 168 && first[0] >= 186 && first[1] >= 203,
+            ticks >= 181 && orders >= 180 && first[0] >= 182 && first[1] >= 203,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 185, orders 168, player 0 @ 186, player 1 @ 203",
+             — the floor is ticks 181, orders 180, player 0 @ 182, player 1 @ 203",
             report.first_divergence
         );
         assert!(
@@ -4969,9 +5129,13 @@ mod tests {
         // of frames out on a stream the bird has changed, part 281
         // unit-frames sooner between them. The two assertions that say the
         // mechanic is still right are below and both held.
+        //
+        // 41,225 → **43,340** with item 52 (the bird's wing beat), the
+        // same way and in the other direction: the stream is closer, so
+        // more unit-frames hold their positions and come into view.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 41_225,
+            coll_seen, 43_340,
             "five fields on every agreeing unit-frame"
         );
         let coll_bad: Vec<CollideDivergence> = report
@@ -4980,18 +5144,32 @@ mod tests {
             .flat_map(|f| f.collide_diverged.iter().copied())
             .collect();
         assert!(
-            coll_bad.len() <= 400,
+            coll_bad.len() <= 413,
             "the collision block's disagreements grew: {} of {coll_seen}",
             coll_bad.len()
         );
-        // And what they are: `1/3`'s stale block, plus ten rows over two
-        // other collisions (`1/4` at 201–202, `1/6` at 207). Anything else
-        // is a new fault, however the total moves.
-        let sticky = coll_bad.iter().filter(|d| (d.who, d.o) == (1, 3)).count();
+        // And what they are: the stale `collide_guy`, plus ten rows over
+        // two other collisions (`1/4` at 201–202, `1/6` at 207). Anything
+        // else is a new fault, however the total moves.
+        //
+        // The split used to be by unit — `1/3`'s rows against the rest —
+        // and item 52 made that the wrong cut: `1/4` now holds its
+        // position 97 frames longer and carries the *same* stale byte
+        // through every one of them, so the count by unit grew while
+        // nothing about the mechanic changed. The cut that means what it
+        // says is by **field**: `collide_guy` is the one a hard collision
+        // writes and no path clears, and every other field is a real
+        // disagreement.
+        let sticky = coll_bad.iter().filter(|d| d.field == "collide_guy").count();
         assert!(
             coll_bad.len() - sticky <= 10,
-            "collision rows that are not `1/3`'s: {}",
+            "collision rows that are not the stale `collide_guy`: {}",
             coll_bad.len() - sticky
+        );
+        assert!(
+            coll_bad.iter().all(|d| d.frame >= 201),
+            "and none of them is before frame 201: {:?}",
+            coll_bad.iter().find(|d| d.frame < 201)
         );
         assert_eq!(
             coll_bad.first().map(|d| (d.frame, d.who, d.o)),
@@ -5023,6 +5201,11 @@ mod tests {
         // luck went against. Said plainly rather than folded into a
         // ceiling: the two scores that decide the item both rose, and this
         // sub-score fell 17 frames.
+        //
+        // **407 with item 52 (the wing beat)**, six frames the same way and
+        // for the same reason: `1/6`'s second tree is still drawn off a
+        // stream that has drifted by then, and a closer stream at frame 180
+        // is not a closer one at 407.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -5039,7 +5222,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(413),
+            Some(407),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -5096,8 +5279,11 @@ mod tests {
         // positions agree, so it follows each unit's own parting frame,
         // and three units hundreds of frames out part sooner on a stream
         // the bird has changed. The headline went 181 → 185.
+        // 16,456 → **17,302** with item 52 (the wing beat), the other way
+        // round: 846 more unit-frames hold their positions on a stream the
+        // bird's two animation lengths have brought closer.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 16_456, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 17_302, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -5119,8 +5305,11 @@ mod tests {
         // 6,382 → 6,866 with item 46, against 15,318 → 16,206 compared:
         // 404 of the 888 rows collision brought into view agree, and the
         // rest are the same seventeen callers.
+        // 6,926 → 7,042 with item 52, against 16,456 → 17,302 compared:
+        // 730 of the 846 the wing beat brought into view agree, and the
+        // 116 that do not are those same callers again (item 36).
         assert!(
-            bad.len() <= 6_926,
+            bad.len() <= 7_042,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );

@@ -108,6 +108,38 @@ and scout piece, 16 on the sheep; the chop 33, the sow 47; the scout's
 `DEFAULT` 61 (piece 371) and `IDLE2` 41; the sheep's idles 90/109/250 by
 piece; the fish's 101/116/170 by piece, the same for every variant.
 
+### 3.1 The install says it outright, for the gaia types (2026-08-28)
+
+A dump is a weak source for this: it shows a length only where something
+played it, and it shows **nothing at all for owner 9** — gaia's bird, whose
+animation therefore never wrapped and never drew (`docs/SYNC.md` §3.9). The
+install has the whole table. `Data/unit_graphics.xml` is the packet's
+`action_ids` — `<UNIT name="HERDSHEEP-TYPE1">` with an `<ANIM
+name="CHAR_DEFAULT" file="Sheep Idle3"/>` per slot — `Data/anim_graphics.xml`
+resolves each name to a `.bha`, and the file's own key times give the frame
+count. `docs/FORMATS.md`, "The animation file (`.BHa`)", has the container
+and the arithmetic; `rondata::artdata` is the reader.
+
+[`Art::gaia_lengths`] carries the result, `(TypeIndex, variant, slot) →
+frames`, and **takes precedence** over the dump's table for a `(type,
+variant)` it mentions: that pair's slot list is complete, so a slot it omits
+is the packet's own missing slot and gets [`anim::MISSING`] — the
+original's 3 — rather than `UNKNOWN`. The `-TYPE<v>` suffix **is** the
+variant `(seed + o) % 3` picks; that link is the only one neither file
+states, and it is what the two oracles' agreement pins.
+
+Only the gaia types are read. A player's unit needs
+`GraphicPieces::get_unit_gpiece`'s tribe, age and gender walk to know which
+`<UNIT>` it plays, and none of that is modelled — the dump stays its source.
+`FARMPIG` and `FARMCHICKEN` are left out too: they name a `-TYPE0` and a
+`-TYPE1` and no `-TYPE2`, so a third of the pasture would be a guess.
+
+*The check.* `the_install_s_gaia_lengths_match_the_dump_s` asserts every
+gaia length run12's dump shows against the file — thirteen rows, the three
+sheep pieces' `DEFAULT` (90 / 109 / 250) and the three fish pieces' idles
+(170 / 101 / 116) — and `cargo run -p rondata -- <install>` re-derives the
+header arithmetic. Two independent oracles for one table.
+
 ## 4. `Guy::set_anim@005da300` — the draw
 
 Every request goes through the early returns, then the apply. The paths a
@@ -116,7 +148,10 @@ unit on open ground reaches, in the order the function tests them:
 1. **The early returns** (`:155–224`). An idle request (`DEFAULT`, second
    argument 0) on a guy whose current category is idle returns while
    `cur_time < end_time` — the request is a no-op until the animation runs
-   out. On a **walking** guy it compares the guy's destination with its own
+   out. The same test covers **any** category that matches the current one,
+   with the walk category excepted (it re-resolves its slot every time) —
+   and `TypeIndex::BIRD` excepted from that exception (`:219`), so a bird
+   inside its wing beat is left alone. On a **walking** guy it compares the guy's destination with its own
    position (`des_x != x − off_x`): a body still on its way returns (and, if
    the walk cycle has run out, rewinds `cur_time` to 0 — no draw); a body
    that has **arrived** falls through to the roll. That is the arrival draw:
@@ -138,13 +173,19 @@ unit on open ground reaches, in the order the function tests them:
    `DEFAULT` (`:546–554`).
 3. **The attack roll** (`:575–587`), category 12 with the third argument:
    one draw, `p < 30 → ATTACK1`, `p > 70 → ATTACK3`, else `ATTACK2`.
-4. **The walk** (`:614–706`), category 8: the plain walk becomes `SLOG` /
-   `WALK` / `JOG` by the body's average speed against the type's base
-   (`avg_speed / (moves · UNIT_MOVE_SPEED)` below `0.6f` slogs, above
+4. **The walk** (`:614–706`), category 8. **The slot asked for does not
+   enter it**: the arm opens with the *category* — `CHAR_WALK` — as its
+   answer, so every walk request is re-resolved from scratch and a
+   `set_anim(CHAR_JOG)` is not a request for `CHAR_JOG`. From there:
+   `SLOG` / `WALK` / `JOG` by the body's average speed against the type's
+   base (`avg_speed / (moves · UNIT_MOVE_SPEED)` below `0.6f` slogs, above
    `1.1f` jogs — a float in the original, cross-multiplied here; the
    lengths are equal on every piece observed so the boundary is
-   unobservable); a bird's walk is a coin (`% 100 > 49 → JOG`); the carrying
-   walks come from `unit_masks & 0x78000000`. A walk already playing keeps
+   unobservable); an **owner-9** bird's is a coin instead (`% 100 > 49 →
+   JOG`, `docs/SYNC.md` §3.9); then the carrying walks override, from
+   `unit_masks & 0x78000000` rather than from what the caller named. A
+   slot the packet lacks falls back to `CHAR_WALK` (`:596`).
+   A walk already playing keeps
    its time, and so does a walk-to-walk slot change: ~~rescales `cur_time
    · len_new / len_old`~~ the rescale at `:691` passes the **old** slot to
    both `get_anim_time` calls (`ecx` is loaded at `0x5db404` and the new
@@ -451,12 +492,15 @@ two passes.
 - **`Guy::move:52` tests `des_x == x` without the formation offset** while
   `set_anim:163` tests `des_x == x − off_x`; the same for guy 0 (`off` 0)
   and for every unit in the dumps. Unsettled for a formation with offsets.
-- **Lengths the dumps have not shown**: `DUMP_WOOD`, `REAP`, `FARM`, the
-  scout's `IDLE1/3`, most citizen variants on most pieces. A missing entry
-  never wraps here; the original's is 3 for a slot the packet lacks. A
-  `DUMP_ALL` window over frames 108–125 of this lobby shows the chop (110,
-  122), the sow (112, 141) and the walks wrapping, and a longer one the
-  dumps; a BHA reader would settle all of them from the art.
+- **Lengths the dumps have not shown**, for a **player's** unit:
+  `DUMP_WOOD`, `REAP`, `FARM`, the scout's `IDLE1/3`, most citizen variants
+  on most pieces. A missing entry never wraps here; the original's is 3 for
+  a slot the packet lacks. The `.bha` reader that would settle them exists
+  now (§3.1) — what it cannot do yet is say *which* `<UNIT>` entry a
+  player's unit plays, which is `get_unit_gpiece`'s tribe/age/gender walk.
+  The gaia types are settled. A `DUMP_ALL` window over frames 108–125 of
+  this lobby would show the chop (110, 122), the sow (112, 141) and the
+  walks wrapping.
 - **The loop flags by slot** (`anim::non_looping`): from the XML's names,
   not from the packets' slot-to-file mapping. Only the dumps and the
   attacks depend on it.
@@ -473,9 +517,10 @@ two passes.
 - **`num_guys` per type**: one guy per spawned unit; the start dump's units
   carry as many as it prints.
 - ~~**`think_farm_animal`**~~ — read, `docs/SYNC.md` §3.6; what is still
-  open there is the animals' positions and their animation lengths, which
-  no dump carries. **The birds after creation** (`think_bird`,
-  `do_air_physics`) are still unread past their draw sites.
+  open there is the animals' positions, and their lengths are the pasture
+  pair §3.1 leaves out. ~~**The birds after creation**~~ — `think_bird` and
+  `Guy::set_anim`'s bird arm are read and modelled (`docs/SYNC.md` §3.9);
+  `do_air_physics`'s **flight** is not.
 - ~~**The 4-draw tail of frame 0** is still not a wrap (`docs/SYNC.md` §6).~~
   It is a wrap, at 110–113 rather than at the end (the trace, above); the
   farms are the tail.

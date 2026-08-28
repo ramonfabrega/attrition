@@ -13,34 +13,36 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after item 50.*
+*2026-08-28, after item 52.*
 
-**The headline — run10, 1,772 frames: ticks before divergence 185, orders
-168; player 0 first diverges at frame 186, player 1 at 203.** It moved from
-181 / 168.
+**The headline — run10, 1,772 frames: ticks before divergence 181, orders
+180; player 0 first diverges at frame 182, player 1 at 203.** Orders
+moved 168 → 180 and ticks 185 → 181, and that is one event, not two: the
+residue is `0/3`'s gather tile, its pick moved 169 → 181, and at 169 the
+wrong order simply did not move the unit for seventeen frames. A tick score
+above the order score is slack, not progress.
 
-**A second score, and it is what this session bought.** Run14 is run10's own
-lobby and seed under `tools/trace`: 284 frames of the original's draws named
-by site. `run14_s_frames_match_the_trace_draw_for_draw` compares the whole run
-frame by frame — **184 of 284 match draw for draw**, up from 179 — and its
-failure message is a ledger of every hole in the stream. Frame 0 was the only
-frame checked this way until today.
+**The ledger — run14: 192 of 284 frames match draw for draw**, up from 184.
 
-**Landed:** item 50 — **the bird**. `1/1`'s frame-169 draw was never one frame
-to read: the last installed word is frame 103's and the stream is 33 draws
-short by the time the tile is picked. Twenty-seven are gaia's bird, hatched at
-frame 96 and never created here. `docs/SYNC.md` §3.9; `wait` went 581 → 476
-against 460, and the last ten are item 52.
+**Landed:** item 52 — **the wing beat**. The bird's two animation lengths
+are in the install, not in any dump: *Bird Soar* 31 frames, *Bird Flap* 23,
+read from `art/*.bha` by the new `rondata::artdata` and cross-checked
+against the dump on six sheep and fish lengths (`docs/FORMATS.md`,
+`docs/ANIM.md` §3.1, `docs/SYNC.md` §3.9). Three side-findings that are not
+about birds: `set_anim`'s walk arm re-resolves from the *category*;
+`Guy::init_real` leaves `end_time` at zero, so a guy created outdoors wraps
+on its own birth frame; and `spawn_bird` never set `type_index`, which made
+every bird rule inert.
 
 **Owed:** unchanged — items 42 and 40 (`ORDERS.md` 191,190, `CITIES.md`
 106,854).
 
 **Needs the user:** nothing.
 
-**Opener (Opus):** `proceed @docs/QUEUE.md — raise the order score. It is
-pinned by ten draws between frames 103 and 168 and six are one thing: the
-bird's animation (item 52, docs/SYNC.md §3.9). Run the ledger test first; it
-names every other hole. Take nothing that cannot name the score it moves.`
+**Opener (Opus):** `proceed @docs/QUEUE.md — raise the order score, now
+180. Run the ledger test first: its failure message names the ninety-two
+frames that still part, and the two biggest families are one table row
+each (item 53). Take nothing that cannot name the score it moves.`
 
 ## The queue
 
@@ -48,29 +50,17 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-52. **The bird's animation, and the last ten draws before frame 169.**
-    `docs/SYNC.md` §3.9: `Guy::set_anim`'s bird branch (`+0x104b`) draws
-    once and takes the second walk animation when `rnd % 100 > 0x31`; run14
-    spends it 28 times, **25 as phase-7 wraps**, six of them between the
-    last traced word and frame 168. A wrap needs the animation's *length*,
-    which is art data — and no dump prints owner 9, so `Art` has no entry
-    and this crate's bird never wraps. Read `Unit::do_air_physics@005e86d0`
-    and `Guy::set_anim`'s bird path; the check is run14's wrap frames (97,
-    127 ×2, 142, 150 ×3, 181, 193, 212, 223 ×2, 238, 243 ×8, 257, 261, 274
-    ×2, 279, 284). The other four: one `Guy::set_anim+0x97a <
-    Unit::move_step+0x823` arrival stand at frame 122, most likely one of
-    gaia's drifting animals (item 45), and three of market, displaced by
-    the rest rather than wrong. Score: the order score, 168, and the
-    ledger, 184.
-
-53. **The ledger's other hundred frames.** The failure message of
-    `run14_s_frames_match_the_trace_draw_for_draw` lists them, and the
-    dominant shape is not a mechanic: our side marks `unit 0/5` where the
-    trace names `GameAccess::rnd+0x20` under a caller `trace::SITES` does
-    not carry, so the counts agree and the frame still fails. A table row
-    each. `Animal::do_idle+0x83` — the animals' wander roll — has no row at
-    all. `PathFinder::calc_road_cost+0x46` (frames 10, 11, 171; 226, 254
-    and 197 draws) is the caravan road, its own item.
+53. **The ledger's other ninety-two frames.** The failure message of
+    `run14_s_frames_match_the_trace_draw_for_draw` lists them. Two
+    families dominate and each is a `trace::SITES` row: `5d74e3` is
+    `Animal::do_idle+0x83`, the animals' wander roll, which has no row at
+    all, and a bare `5dac7a` is `Guy::set_anim+0x97a` under a caller the
+    table does not carry. Naming them is not the whole of either — several
+    of those frames differ in *count* as well — but it is what makes the
+    residue readable. `PathFinder::calc_road_cost+0x46` (frames 10, 11,
+    171; 226, 254 and 197 draws) is the caravan road, its own item. The
+    `Farms::inc_time+0x1ae` / `+0x1de` orderings are a third family and
+    the cheapest: same count, wrong order, on about a dozen frames.
 
 38. **One long traced capture, human versus AI, on both maps.** run14's
     trace reaches 284 of run10's 1,772 frames, so nothing on disk measures
@@ -142,14 +132,17 @@ say so. Numbers are stable; the journal is indexed by them.
     three earlier Fable rows), then `docs/ARMY.md` §18's marker. A steering
     session's job, over marked rows only; not an Opus item.
 
-45. **Gaia's animals, and taking the re-seat crutch away.**
+45. **Gaia's animals, the re-seat crutch, and the pasture's lengths.**
     `Sim::reseat_animal` puts the animals back from every traced dump
     because their wander rides a stream the harness only holds at those
     frames (`docs/SYNC.md` §4.2's tail). It is a correction, it is noted as
     one, and it should die: widen the diff to the `ANIMALDATA` record — 40
     of run10's 54 objects, uncompared to this day — as its own sub-score,
-    then close what it shows. Frame 122's unspent arrival stand (item 52)
-    is most likely one of these.
+    then close what it shows. `rondata::artdata` deliberately leaves
+    `FARMPIG` and `FARMCHICKEN` out of the install's length table — they
+    name a `-TYPE0` and a `-TYPE1` and no `-TYPE2`, so a third of the
+    pasture would be a guess — and until that is settled their idle rolls
+    never wrap here (`docs/ANIM.md` §3.1).
 
 51. **The AI's long-run economy, now that the roster is measured both
     ways.** `FrameResult::extra_units` is the mirror of `unlinked`, and

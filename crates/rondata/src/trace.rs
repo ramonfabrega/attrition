@@ -112,6 +112,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005f_0d09), // `Unit::do_non_flat_gather+0xb99`
         sim::anim::SITE_STAND_RETURN,
     ),
+    // `Guy::set_anim@005da300+0x104b` — the gaia bird's wing-beat coin.
+    // Its own address, so no chain is needed to tell it from the other
+    // four (`docs/SYNC.md` §3.9).
+    (0x005d_b34b, None, sim::anim::SITE_BIRD_COIN),
     // `Guy::init_real@005db6b0` — the creation roll.
     (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
     // `Unit::do_non_flat_gather@005f0170` — the wood machine's own two.

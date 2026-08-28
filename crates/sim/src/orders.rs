@@ -773,13 +773,18 @@ impl Sim {
         if self.units[u].is_gaia() {
             // A bird is never idle in the original: it carries the
             // `AirOrder` `Objects::process_all` gave it at birth, and
-            // `do_job` runs `Unit::do_air_patrol` on it every frame, whose
-            // first act is `Animal::think_bird`. SEAM: this crate has no
-            // `AirOrder`, so the bird stands here instead and the patrol's
-            // own step — `do_air_physics`, its `set_anim` and the flight —
-            // is unmodelled (`docs/SYNC.md` §3.9).
+            // `do_job` runs `Unit::do_air_patrol` on it every frame —
+            // first the `+0x180` virtual, `Animal::think_bird`, then
+            // `Unit::do_air_physics`, which ends in `set_anim(CHAR_WALK,
+            // 0, 1)` on every frame the bird is not a flock's
+            // (`field_0xae`, only ever set for `FLOCKBIRD`). SEAM: this
+            // crate has no `AirOrder`, so the bird stands here instead and
+            // the *flight* is unmodelled — but the two things that reach
+            // the stream, the think and that walk request, are both here
+            // (`docs/SYNC.md` §3.9).
             if self.units[u].ty == self.bird_type() {
                 self.think_bird(u, frame);
+                self.set_anim(u, crate::anim::WALK, false, true);
                 return;
             }
             self.animal_idle(u);

@@ -163,6 +163,11 @@ impl Sim {
         let mut unit = crate::Unit::new(BIRD_OWNER, index, pos, self.unit_types[ty].hits);
         unit.kind = self.unit_types[ty].kind;
         unit.ty = Some(ty);
+        // `TypeIndex::BIRD`. `set_anim` names it by identity twice — the
+        // wing-beat coin and the early return it is exempt from — so a
+        // bird that carried the default −1 was a bird whose animation
+        // could never resolve (`docs/SYNC.md` §3.9).
+        unit.type_index = self.unit_types[ty].type_index;
         let at = self.add_unit(unit);
         self.init_guys(at, Some(ty));
         Some(at)

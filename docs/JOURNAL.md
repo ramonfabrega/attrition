@@ -4041,3 +4041,132 @@ the room by giving up two closed narratives — the frame-0 tail and frame
 3's extra draw — whose stories are in this file's 2026-08-24 and
 2026-08-26 entries, and the pin came down 70,026 → 67,763.
 `docs/COLLISION.md` records the air seam as closed.
+
+## 2026-08-28 — item 52: the bird's wing beat, and the art file that was simulation state (orders 168 → 180, Opus 5)
+
+Item 50 left the bird flying and mute. Its animation wanted two numbers —
+how many frames *Bird Soar* and *Bird Flap* run for — and the note said
+they were art data no dump carries, which was true and was the wrong place
+to stop. The install carries them, in the open, in files anyone can read.
+
+### The chain, and it is three files long
+
+`Data/unit_graphics.xml` has `<UNIT name="WILDBIRD-TYPE0">` with two
+children and only two: `CHAR_WALK` is *Bird Soar*, `CHAR_JOG` is *Bird
+Flap*. `Data/anim_graphics.xml` turns those names into `art/bird_soar.bha`
+and `art/bird_flap.bha`. And the `.bha` is a chunk stream whose root node
+carries a key count and a 36-byte key each, the first `f32` of which is
+that key's duration in seconds — which `AnimObj::load_hier` accumulates
+into a `u16` of milliseconds and `AnimMgr::force_load` converts with
+
+```
+frames = round(times · 3 / 200)          # fifteen frames a second
+```
+
+**31 and 23.** And a slot the packet does not name — every idle, for a
+bird — is `AnimationPacket::get_game_frames`'s own `return 3`.
+
+The reader is `crates/rondata/src/artdata.rs` and it took an afternoon
+because the *decompile* said exactly where to look: `force_load` is forty
+lines of chunk walking and one line of arithmetic, and `load_hier` names
+the key stride. Guessing at the header would have cost a day and been
+wrong; three wrong offsets were discarded in five minutes each because the
+node's chunk has to end exactly where its keys do, and that is now the
+assertion `cargo run -p rondata -- <install>` makes.
+
+### The check that made it safe
+
+A new reader of a binary format is a new way to be confidently wrong, so
+it is checked against the oracle that already existed. A `DUMP_ALL` dump
+prints `end_time` on every `GUY`, and run12 shows thirteen gaia rows: the
+three sheep pieces' `CHAR_DEFAULT` at 90, 109 and 250, and the three fish
+pieces' idles at 170, 101 and 116. The file agrees with every one.
+
+That agreement does more than validate the arithmetic. It pins the one
+link neither file states — that `-TYPE0`, `-TYPE1`, `-TYPE2` in
+`unit_graphics.xml` **are** the variant `(seed + o) % 3` picks — because
+`Sheep Idle1` / `Idle3` / `Idle5` land on pieces 60063 / 60064 / 60065 in
+that order and no other.
+
+### Four rules, and the bird's whole stream
+
+With the lengths in hand the wing beat fell out of `Guy::set_anim` and
+`Guy::inc_time` in one sitting, and three of the four rules were things
+this crate had wrong for reasons that had nothing to do with birds:
+
+- **`set_anim` dispatches on the category, and the walk arm opens with the
+  category as its answer.** So `set_anim(CHAR_JOG)` is not a request for
+  `CHAR_JOG`: it re-resolves from `CHAR_WALK` and throws the coin again.
+  That is what lets a bird alternate its two beats — and what makes one
+  wrap spend several draws, because a flip keeps `cur_time` (the rescale
+  is the identity the second reading found) and 31 still overruns 23. Run14
+  spends two coins at frame 127 and **nine** at 243, and the loop bound of
+  four in `guy_inc_time` would have swallowed five of them.
+- **`Guy::init_real` leaves `end_time` at zero**, so a guy's first
+  `inc_time` always wraps. For a unit trained inside a building nobody
+  notices; a bird is created on open ground in the middle of
+  `Objects::process_all`, so the same frame's clock reaches it. The
+  "created this frame" skip here only ever meant *created inside a
+  building*, and frame 96's twenty-second draw is the proof.
+- **`do_air_physics` asks for `CHAR_WALK` every frame** and draws exactly
+  once per bird, at birth, because from the frame after, the gaia early
+  return takes it.
+- And the bird's `type_index` was **−1**. `spawn_bird` set `kind` and `ty`
+  and not the index `set_anim` names by identity, twice. Every rule above
+  was inert until that line landed, and the symptom was a bird drawing an
+  unlabelled idle roll every frame — which the ledger showed as `unit 9/52`
+  where the trace said `Guy::set_anim+0x104b`, at frame 97, seven frames
+  after the hatch. A count would have said "seven against seven" and moved
+  on.
+
+### The two scores met
+
+The order score went **168 → 180** and the ledger **184 → 192**. The tick
+score went 185 → 181, and that is worth stating plainly rather than
+burying: it is the same residue, and it moved *forward*.
+
+`0/3`'s order list goes wrong when its gather tile is picked off a stream
+that is still short, and that pick moved **169 → 181**. At 169 the wrong
+order did not move the unit for another seventeen frames, so `ticks` read
+185 while the orders had already parted — a position score above the order
+score is an accident, not a gain. Now the position follows the order by one
+frame, which is what the two numbers mean when both are honest. Two other
+sub-scores moved with the coverage: the angle rows compared went 16,456 →
+17,302 and the collision fields 41,225 → 43,340, both because more
+unit-frames hold their positions long enough to be seen.
+
+One sub-score fell for the same reason item 50's did: `1/6`'s second tree
+is chosen at frame 407 now rather than 413, on a stream that has drifted by
+then for reasons of its own. A closer stream at 180 is not a closer stream
+at 407.
+
+### The collision tally was cut the wrong way
+
+`1/4` now holds its position 97 frames longer, and every one of those
+frames carries the same stale `collide_guy` — the byte a hard collision
+writes and no path clears. The assertion that said "at most ten rows that
+are not `1/3`'s" went to 105 without anything changing about the mechanic,
+because the cut was by *unit*. It is by **field** now: `collide_guy` is the
+sticky one, everything else is a real disagreement, and there are eight.
+
+### Numbers
+
+| | before | after |
+|---|---|---|
+| **orders before divergence** | **168** | **180** |
+| ticks before divergence | 185 | 181 |
+| player 0 first divergence | 186 | 182 |
+| player 1 first divergence | 203 | 203 |
+| **frames matching the trace, draw for draw** | **184 / 284** | **192 / 284** |
+| angle rows compared | 16,456 | 17,302 |
+| collision fields compared | 41,225 | 43,340 |
+| first gather-tile disagreement | 413 | 407 |
+
+### Paperwork
+
+`docs/FORMATS.md` gains "The animation file (`.BHa`)" under BH3/BHA — the
+container, the arithmetic and both ways it is checked. `docs/ANIM.md` gains
+§3.1 and corrects §4's walk arm. `docs/SYNC.md` §3.9 is rewritten around
+the wing beat and paid for the room by compressing §4.2's and §5.1's
+narrative, whose stories are in this file's 2026-08-26 and 2026-08-27
+entries; the pin came down 67,763 → 67,737.

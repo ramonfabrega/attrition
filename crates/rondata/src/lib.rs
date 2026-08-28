@@ -26,6 +26,7 @@
 //! # Ok::<(), rondata::Error>(())
 //! ```
 
+pub mod artdata;
 pub mod balance;
 pub mod commands;
 pub mod diff;

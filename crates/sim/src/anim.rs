@@ -81,6 +81,18 @@ pub const SITE_STAND_RETURN: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gat
 /// `Guy::init_real@005db6b0`'s variant roll, one per guy created.
 pub const SITE_INIT_REAL: &str = "Guy::init_real+0x52";
 
+/// `Guy::set_anim+0x104b` — the coin a gaia bird throws for its wing beat
+/// every time a walk-category animation is resolved for it: `rnd % 100 >
+/// 0x31` takes `CHAR_JOG` (*Bird Flap*), anything else `CHAR_WALK`
+/// (*Bird Soar*). It is its own address, not the `+0x97a` the other four
+/// share, so the trace names it without a chain (`docs/SYNC.md` §3.9).
+pub const SITE_BIRD_COIN: &str = "Guy::set_anim+0x104b";
+
+/// `TypeIndex::BIRD` = `BASE_GAIATYPES`, the wild bird — the one type
+/// `set_anim` names by identity twice: in the walk coin's guard and in the
+/// same-category early return it is exempt from.
+pub const BIRD_TYPE: i32 = crate::gaia::BIRD_TYPE_INDEX;
+
 /// `UnitAnimCat` — the category of each animation, 38 dwords at
 /// `.rdata+0x2f370` of the shipped executable (`docs/ANIM.md` §2). The
 /// idle variants and the group idles are category 0 (`CHAR_DEFAULT`), the
@@ -135,10 +147,18 @@ pub struct Guy {
 
 /// The length a guy takes when the table has none for its piece and slot:
 /// the clock steps but never wraps, so a missing entry costs no draw
-/// (§6). The original's own fallback — 3, for a slot the packet lacks —
-/// is not taken because an unobserved length and a missing slot cannot be
-/// told apart from a dump.
+/// (§6). The original's own fallback is [`MISSING`], and it is not taken
+/// here because an unobserved length and a missing slot cannot be told
+/// apart *from a dump* — only from the install's own tables, which is
+/// what [`Art::gaia_lengths`] carries for the types it covers.
 pub const UNKNOWN: u32 = u32::MAX;
+
+/// `AnimationPacket::get_game_frames@00918cc0`'s own `return 3`: the
+/// length of a slot the packet does not name. It is reachable only where
+/// the slot list is known — the gaia types the install describes — and it
+/// is what a bird's `CHAR_DEFAULT` is worth, since `WILDBIRD` names two
+/// animations and neither is an idle.
+pub const MISSING: u32 = 3;
 
 impl Guy {
     /// `Guy::init_real@005db6b0`'s clock, before its draw: nothing played,
@@ -172,12 +192,35 @@ pub struct Art {
     /// captain's idle re-roll skip a draw once every 16 frames (§4.2).
     /// Empty until a dump shows one.
     pub group_idle: BTreeSet<i32>,
+    /// `(TypeIndex, variant, slot) → frames` for the gaia types, read from
+    /// the install's own `unit_graphics.xml` rather than from a dump
+    /// (`rondata::artdata`, §3.1). It is the stronger of the two sources
+    /// and takes precedence where it speaks: a `(type, variant)` it
+    /// mentions at all is one whose **whole slot list** is known, so a
+    /// slot missing from it is the packet's own missing slot and takes
+    /// [`MISSING`] rather than [`UNKNOWN`].
+    ///
+    /// This is what gives gaia's bird a length. No dump prints owner 9,
+    /// so its piece is unknown and every `lengths` lookup fails; the
+    /// install says `WILDBIRD` plays *Bird Soar* for `CHAR_WALK` and
+    /// *Bird Flap* for `CHAR_JOG`, 31 frames and 23 (`docs/SYNC.md` §3.9).
+    pub gaia_lengths: BTreeMap<(i32, u8, i8), u32>,
 }
 
 impl Art {
     /// The length of `anim` on `gpiece`, if the table has it.
     pub fn length(&self, gpiece: i32, anim: i8) -> Option<u32> {
         self.lengths.get(&(gpiece, anim)).copied()
+    }
+
+    /// Whether [`Art::gaia_lengths`] describes this type and variant — a
+    /// packet whose slot list is known, so a lookup that misses is a
+    /// missing slot rather than an unobserved one.
+    pub fn knows_gaia(&self, ty: i32, variant: u8) -> bool {
+        self.gaia_lengths
+            .range((ty, variant, i8::MIN)..=(ty, variant, i8::MAX))
+            .next()
+            .is_some()
     }
 }
 
@@ -239,6 +282,39 @@ impl Sim {
         self.art.pieces.get(&(who, ty, sub, guy_num)).copied()
     }
 
+    /// The gaia variant of a unit — `(seed + o) % 3`, the index into the
+    /// three `<UNIT name="X-TYPE<v>">` entries the install names for a
+    /// gaia type and the `sub` [`Sim::piece_of`] keys by.
+    fn gaia_variant(&self, u: usize) -> u8 {
+        let o = self.units[u].index;
+        (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8
+    }
+
+    /// `end_time` for one guy's slot: the install's own table for a gaia
+    /// type it describes, and the dump-derived `(gpiece, slot)` one for
+    /// everybody else.
+    ///
+    /// The two are the same table read from two ends, and the install's
+    /// is the complete one — which is the whole difference for a bird,
+    /// whose piece no dump has ever named. Where the install describes a
+    /// `(type, variant)`, a slot it omits is the packet's missing slot and
+    /// gets [`MISSING`]; where it does not, an omission is only an
+    /// unobserved length and gets [`UNKNOWN`].
+    pub(crate) fn slot_length(&self, u: usize, gpiece: i32, anim: i8) -> Option<u32> {
+        let ty = self.units[u].type_index;
+        let v = self.gaia_variant(u);
+        if self.art.knows_gaia(ty, v) {
+            return Some(
+                self.art
+                    .gaia_lengths
+                    .get(&(ty, v, anim))
+                    .copied()
+                    .unwrap_or(MISSING),
+            );
+        }
+        self.art.length(gpiece, anim)
+    }
+
     /// `Unit::init`'s guys: one [`Guy::fresh`] per member, each with
     /// `Guy::init_real`'s one draw (`% 100`, [`init_variant`]). The count
     /// is the type's — one, until the loader carries `num_guys`.
@@ -258,7 +334,7 @@ impl Sim {
             g.anim = init_variant(p);
             // A variant the packet lacks falls back to the default: the
             // table stands in for the packet here.
-            if g.anim != DEFAULT && piece >= 0 && self.art.length(piece, g.anim).is_none() {
+            if g.anim != DEFAULT && piece >= 0 && self.slot_length(u, piece, g.anim).is_none() {
                 g.anim = DEFAULT;
             }
             guys.push(g);
@@ -320,7 +396,16 @@ impl Sim {
             return;
         }
         let target_cat = category(anim);
-        if !force && cur_cat == target_cat && cur_cat != 8 && guy.cur_time < guy.end_time {
+        // `set_anim:219` — the same category, already inside its length,
+        // is left alone. The walk category is the exception, because a
+        // walk re-resolves its slot from the body's speed every time it is
+        // asked — **unless the type is `BIRD`**, whose slot is a coin and
+        // is not re-thrown while the wing beat is still running.
+        if !force
+            && cur_cat == target_cat
+            && (cur_cat != 8 || self.units[u].type_index == BIRD_TYPE)
+            && guy.cur_time < guy.end_time
+        {
             return;
         }
 
@@ -343,7 +428,7 @@ impl Sim {
                     v = idle_variant(p, self.units[u].guy_flag_0x20, peasant_on_masked);
                 }
             }
-            if v != DEFAULT && guy.gpiece >= 0 && self.art.length(guy.gpiece, v).is_none() {
+            if v != DEFAULT && guy.gpiece >= 0 && self.slot_length(u, guy.gpiece, v).is_none() {
                 v = DEFAULT;
             }
             v
@@ -387,21 +472,33 @@ impl Sim {
             guy.cur_time -= guy.cur_time.min(end_at_entry);
         }
         guy.last_time = -1;
-        guy.end_time = self.art.length(guy.gpiece, guy.anim).unwrap_or(UNKNOWN);
+        let (piece, slot) = (guy.gpiece, guy.anim);
+        self.units[u].guys[g].end_time = self.slot_length(u, piece, slot).unwrap_or(UNKNOWN);
     }
 
-    /// The walk slot for a walk-category request: the carrying walks by
-    /// the gather state, else `SLOG` / `WALK` / `JOG` by the body's average
-    /// speed against the type's base — below six tenths slogs, above
-    /// eleven tenths jogs (§4.3). A bird's is a coin.
-    fn walk_variant(&mut self, u: usize, anim: i8) -> i8 {
+    /// The walk slot for a walk-category request (`set_anim:613–657`).
+    ///
+    /// **The slot asked for does not enter it.** `set_anim` dispatches on
+    /// `UnitAnimCat[anim]`, and the walk arm opens with that category —
+    /// `CHAR_WALK` — as the answer, so every walk request is re-resolved
+    /// from scratch: gaia's bird by a coin, everyone else by the body's
+    /// average speed against the type's base (below six tenths slogs,
+    /// above eleven tenths jogs, §4.3), and then the carrying walks by the
+    /// **gather mask** rather than by what the caller named. A wrap's
+    /// `set_anim(CHAR_JOG)` therefore re-throws the bird's coin and can
+    /// hand it back `CHAR_WALK`, which is what makes run14's bird alternate
+    /// its two wing beats (`docs/SYNC.md` §3.9).
+    fn walk_variant(&mut self, u: usize, _anim: i8) -> i8 {
         let unit = &self.units[u];
-        let mut v = anim;
+        let mut v = WALK;
         if unit.owner == 9 {
-            if (0x192..=0x194).contains(&unit.type_index) && self.rng.roll() % 100 > 0x31 {
-                v = JOG;
+            if (BIRD_TYPE..=0x194).contains(&unit.type_index) {
+                self.mark(SITE_BIRD_COIN);
+                if self.rng.roll() % 100 > 0x31 {
+                    v = JOG;
+                }
             }
-        } else if anim == WALK {
+        } else {
             let base = unit.ty.map_or(0, |t| self.unit_types[t].moves);
             let avg = unit.movement.body.avg_speed;
             if base > 0 {
@@ -412,13 +509,20 @@ impl Sim {
                 }
             }
         }
-        let guy = unit.guys.first().copied();
+        // The gather mask's override — `unit_masks & 0x78000000`, the same
+        // read `Guy::move` makes, and it wins over the speed.
+        if let Some(w) = self.gather_walk(u) {
+            v = w;
+        }
+        // `set_anim:596` — a slot the packet lacks falls back to
+        // `CHAR_WALK`, the category's own.
+        let guy = self.units[u].guys.first().copied();
         if let Some(g) = guy
             && g.gpiece >= 0
-            && v != anim
-            && self.art.length(g.gpiece, v).is_none()
+            && v != WALK
+            && self.slot_length(u, g.gpiece, v).is_none()
         {
-            v = anim;
+            v = WALK;
         }
         v
     }
@@ -440,8 +544,13 @@ impl Sim {
     /// every guy, then the buildings (no clock here). A garrisoned unit's
     /// clock stops (`inside_up ≥ 0`) unless it is a scholar (`TypeIndex`
     /// 52/53 — a scholar inside a university plays its teach/student
-    /// slots), and so does a unit's on the frame it was created, which the
-    /// original spends inside its building.
+    /// slots), and so does a **player's** unit on the frame it was
+    /// created, which the original spends inside its building. Gaia's
+    /// does not: a bird is created on open ground in the middle of
+    /// `Objects::process_all`, so the same frame's `inc_time` reaches it,
+    /// and with `end_time` still `Guy::init_real`'s zero it wraps at once
+    /// — run14's frame 96, the sampling frame, carries that wrap
+    /// (`docs/SYNC.md` §3.9).
     pub(crate) fn guys_inc_time(&mut self, frame: i64) {
         let mut visit: Vec<usize> = Vec::with_capacity(self.units.len());
         for who in 0..10u8 {
@@ -455,8 +564,8 @@ impl Sim {
             let unit = &self.units[u];
             let inside_and_not_scholar =
                 unit.inside.is_some() && self.worker_of(u) != crate::orders::Worker::Scholar;
-            if !unit.alive() || inside_and_not_scholar || unit.born == frame || unit.guys.is_empty()
-            {
+            let born_indoors = unit.born == frame && !unit.is_gaia();
+            if !unit.alive() || inside_and_not_scholar || born_indoors || unit.guys.is_empty() {
                 continue;
             }
             for g in 0..self.units[u].guys.len() {
@@ -487,9 +596,13 @@ impl Sim {
             guy.last_time = i32::try_from(guy.cur_time).unwrap_or(i32::MAX);
             guy.cur_time = guy.cur_time.saturating_add(step);
         }
-        // The original loops until the clock is inside its animation; a
-        // table with a zero length would spin, so the loop is bounded.
-        for _ in 0..4 {
+        // The original loops until the clock is inside its animation, and
+        // the loop is real: a bird's coin can hand a walk-to-walk change
+        // an old `cur_time` that overruns the new slot too, and run14's
+        // frame 243 spends **nine** coins in one wrap before the slot
+        // repeats itself. A table with a zero length would spin, so the
+        // loop is bounded well above what any capture has needed.
+        for _ in 0..64 {
             let guy = self.units[u].guys[g];
             if guy.cur_time < guy.end_time {
                 break;
@@ -516,6 +629,15 @@ impl Sim {
     /// stood before this frame's follow.
     pub(crate) fn guys_follow(&mut self, u: usize, was_at_des: bool) {
         if self.units[u].guys.is_empty() {
+            return;
+        }
+        // A bird has no ground body to follow: `Unit::do_air_physics`
+        // moves it with `set_new_location` and asks for `CHAR_WALK`
+        // itself, and `Guy::move`'s arrival half never runs for it. This
+        // crate parks the bird on its hatch cell (`orders.rs`), so without
+        // this the standing body would ask it to idle every frame and
+        // spend a draw the original never spends.
+        if self.units[u].type_index == BIRD_TYPE {
             return;
         }
         let unit = &self.units[u];

@@ -112,6 +112,12 @@ pub struct Loaded {
     /// `economic.bhs`, `defensive.bhs` and the library they include
     /// (`docs/AI.md` §3). Empty when loaded from tables alone.
     pub scripts: Vec<(String, String)>,
+    /// The gaia types' animation lengths, `(TypeIndex, variant, slot) →
+    /// frames`, read from `unit_graphics.xml`, `anim_graphics.xml` and the
+    /// `.bha` files they name (`crate::artdata`). Empty when loaded from
+    /// tables alone; it is the only art the loader reads, and the only
+    /// place a length exists for a unit no dump has ever printed.
+    pub gaia_lengths: crate::artdata::GaiaLengths,
 }
 
 impl Loaded {
@@ -389,6 +395,11 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     for (tribe, name) in loaded.tree.tribes.iter_mut().zip(names) {
         tribe.name = name;
     }
+    // The gaia types' animation lengths, straight from the install's own
+    // graphics tables and the `.bha` files they name. It is the only art
+    // the loader reads, and the only source there is for a unit no dump
+    // has ever printed — gaia's bird (`crate::artdata`).
+    loaded.gaia_lengths = crate::artdata::gaia_lengths(install);
     // The opening scripts — `Leaders::prod_script_path` is `.\ai\scripts\`.
     // A missing file is not an error: a game without scripts is a game whose
     // AI skips to step 2, which is what the original does when
@@ -1384,6 +1395,7 @@ pub fn load_tables(
             })
             .unwrap_or_default(),
         scripts: Vec::new(),
+        gaia_lengths: Default::default(),
     }
 }
 
@@ -1958,6 +1970,7 @@ mod tests {
             warnings: vec![],
             map_styles: vec![],
             scripts: vec![],
+            gaia_lengths: Default::default(),
         };
         assert_eq!(l.type_index(0), 0);
         assert_eq!(l.type_index(6), BASE_UNITTYPES);
