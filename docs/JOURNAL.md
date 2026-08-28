@@ -4170,3 +4170,108 @@ container, the arithmetic and both ways it is checked. `docs/ANIM.md` gains
 the wing beat and paid for the room by compressing §4.2's and §5.1's
 narrative, whose stories are in this file's 2026-08-26 and 2026-08-27
 entries; the pin came down 67,763 → 67,737.
+
+## 2026-08-28 — lifted from `docs/SYNC.md` §6, to pay for §3.10
+
+`docs/SYNC.md` is pinned in `docs_guard::OVER` and may only shrink, so
+adding §3.10 meant taking the same weight out. What follows is the original
+text of the world-grid item, kept verbatim; the item's *answer* stays in
+§6, and only the account of finding it moves here.
+
+> (2026-08-26, found while closing the item above and unread.)
+> Run20's unit `1/0` walks a `find_wpath` chain the original logs at
+> `(42744, 37368)`, `(41976, 38136)`, `(41976, 38904)`, `(41208, 39672)`,
+> … — every one of them `cell*0x300 + 504` on both axes, where the
+> simulation's `astar_path` emits the cell **centre**, `cell*0x300 + 0x180`.
+> It is `toff`, and `docs/PATHFINDER.md` §7 already had it: a reconstructed
+> world node is pushed at `node + toff − 0x180`, and the simulation carried
+> that as a **stated seam** (`path.rs`: "the target-is-a-unit offsets
+> (`toff`) are zero — move orders here have point goals"). The arithmetic
+> closes: `504 − 0x180 = 120`, and the order's own `off_x` is `504` —
+> `41976 mod 0x300`, from a destination the simulation computes the same
+> way the original does. So the seam was wrong for a *plain* move, not only
+> for a unit target: `toff` is the order's `+0x4c/+0x4e`, which on a
+> `MoveOrder` is `off_x/off_y` (`docs/ORDERS.md` §4.1). That one number was
+> most of run20's remaining path-to disagreements and all of `1/0`'s
+> position drift, and it needed no capture: the dump on disk had both
+> sides.
+
+The same trade also condensed §4.2's post-mortem prose and two of §6's
+closed entries. Nothing that a diff or a test cites was removed; what went
+was the account of how each was found, which is this file's job.
+
+## 2026-08-28 — item 53: the residue's names, and the seam that measured worse
+
+Booked on the ledger, which moved **192 → 198 of 284**. The headline did not
+move and was not touched.
+
+The queue named two families and there were five. Getting them took one
+Python reader over `rontrace-run14.log` — the format is nine lines of
+`struct.unpack` (`crates/rondata/src/trace.rs` documents it) — folding the
+sync draws of frames 2–284 by `(site, up[0], up[1])` and resolving each
+address through the Ghidra export's `INDEX.tsv`. That histogram is the
+whole method: **thirty-five distinct chains, and every one either already
+had a `SITES` row or was a hole**. It cost minutes and it is repeatable;
+before it, the residue was read out of a failure message one frame at a
+time.
+
+The five, in the order they were worth:
+
+- **`MathUtilFuncSet::rand_int+0x18`**, eight draws, all frame 1 — the AI's
+  opening `rand_int(1, 10)` × 8 inside the script VM. Frame 1 had been
+  reading *54 against 54* and failing, because ours said `strategy_all`
+  where theirs said `9e18a8`. One row, one frame.
+- **`Animal::do_idle+0x83`** and its three step draws at `+0x1a4`,
+  `+0x1d4`, `+0x212` — the herd animal's wander. Already implemented in
+  `Sim::animal_idle`, already correct, and entirely invisible because the
+  four draws were being attributed to `SITE_IDLE_ANIMAL`.
+- **`GameAccess::rnd+0x20`**, thirty draws over eight frames — the farmer's
+  cell re-pick, also already implemented. This one is the finding worth
+  keeping: **`GameAccess::rnd` is frameless**. It is
+  `Random::get(0, 0xffff) % ecx` with no `push ebp`, so its `Random::get`
+  call returns to `+0x20` for every caller in the executable *and* the
+  tracer's `ebp` walk skips both it and `Unit::do_gather`, landing on
+  `Unit::do_job+0x67` — which is `do_gather`'s own return address, the one
+  that appears a level up in `do_non_flat_gather+0x54b < do_gather+0xea0 <
+  do_job+0x67`. The chain that looks wrong is the chain that proves it.
+  Reading `do_gather` also turned up a second, unmodelled `rnd` pair on the
+  **pasture** branch, behind a `(o·7 + frame + who) % 256 == 0` phase gate;
+  no capture reaches it.
+- **`Guy::set_anim+0x97a < Guy::move+0x19f`** — the arrival stand, and the
+  one caller that reaches `Guy::set_anim` directly rather than through
+  `Unit::set_anim+0x56`, so its disambiguator sits at `up[0]`.
+
+The fifth is the one that did not land. **`Unit::move_step+0x823`** is the
+stand a blocked unit plays, and `docs/COLLISION.md` §7 had carried it as a
+seam with a reason: "this crate does not set the walk animation either, so
+setting the idle one would be a lone half of a pair". That reason was
+false — `Sim::guys_follow` has set the walk for some time. So the seam was
+closed, and it measured **worse**: 43340 → 42755 agreeing unit-frames on
+run10 and 198 → 196 traced frames on run14. Reverted, and §7 now carries
+the measurement instead of the wrong reason. The row stays in `SITES`, so
+run14's frames 122, 184 and 256 read as `SITE_BLOCKED` from the original's
+side rather than as a bare `5dac7a` — a name for a thing we deliberately do
+not do is worth more than no name, because it is what says the frame is not
+a naming fault.
+
+Why it measured worse is the same fact that governs the rest of the
+residue. **`PathFinder::calc_road_cost+0x46` is the only site on run14 with
+no name**, 657 draws on frames 10, 11 and 171 where the sim draws 6, 6 and
+7 — the game planning a caravan road two frames after the start with no
+caravan in it. From frame 10 the two streams are 657 draws apart, so every
+value-driven label after it can differ while every mechanic is right: the
+`Farms::inc_time+0x1ae`/`+0x1de` orderings the queue called "the cheapest
+family, same count wrong order" are exactly this, and they are not cheap at
+all — they are the road. Our collisions fall on different frames for the
+same reason, which is why paying the blocked stand's draws costs rather
+than earns. That is item 54, and the note there says to read *who calls
+`find_road`* before reproducing an A* expansion draw for draw.
+
+Paperwork: `docs/SYNC.md` gained §3.10 and, being pinned in
+`docs_guard::OVER`, paid for it — §4.2's post-mortem prose and two of §6's
+closed entries condensed to their standing facts, one "Original text:"
+block lifted here verbatim, and the pin lowered 67,737 → 67,581. Nothing a
+test or a diff cites was removed; what went was the account of how each was
+found, which is this file's job. `docs/ANIM.md` §4's caller table gained the
+two `set_anim` rows it was missing.
+

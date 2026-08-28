@@ -13,36 +13,34 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after item 52.*
+*2026-08-28, after item 53.*
 
 **The headline — run10, 1,772 frames: ticks before divergence 181, orders
-180; player 0 first diverges at frame 182, player 1 at 203.** Orders
-moved 168 → 180 and ticks 185 → 181, and that is one event, not two: the
-residue is `0/3`'s gather tile, its pick moved 169 → 181, and at 169 the
-wrong order simply did not move the unit for seventeen frames. A tick score
-above the order score is slack, not progress.
+180; player 0 first diverges at frame 182, player 1 at 203.** Unmoved this
+session; item 53 was booked on the ledger and moved that.
 
-**The ledger — run14: 192 of 284 frames match draw for draw**, up from 184.
+**The ledger — run14: 198 of 284 frames match draw for draw**, up from 192.
 
-**Landed:** item 52 — **the wing beat**. The bird's two animation lengths
-are in the install, not in any dump: *Bird Soar* 31 frames, *Bird Flap* 23,
-read from `art/*.bha` by the new `rondata::artdata` and cross-checked
-against the dump on six sheep and fish lengths (`docs/FORMATS.md`,
-`docs/ANIM.md` §3.1, `docs/SYNC.md` §3.9). Three side-findings that are not
-about birds: `set_anim`'s walk arm re-resolves from the *category*;
-`Guy::init_real` leaves `end_time` at zero, so a guy created outdoors wraps
-on its own birth frame; and `spawn_bird` never set `type_index`, which made
-every bird rule inert.
+**Landed:** item 53 — **the residue's names** (`docs/SYNC.md` §3.10). Five
+draws the sim already took under a coarse mark got a `trace::SITES` row
+each; no mechanic changed. Carry two things: `GameAccess::rnd` is
+**frameless**, so its site names nothing and the `ebp` walk skips it *and*
+`do_gather` — the chain is `< Unit::do_job+0x67`; and `move_step`'s blocked
+stand (`+0x823`) is named from the original's side but **unmodelled on
+purpose**, because making the call costs 43340 → 42755 agreeing unit-frames
+and 198 → 196 traced frames (`docs/COLLISION.md` §7; the old "lone half of
+a pair" reason was wrong). Exactly one site on run14 is now unnamed, and it
+is item 54.
 
 **Owed:** unchanged — items 42 and 40 (`ORDERS.md` 191,190, `CITIES.md`
-106,854).
+106,854). `SYNC.md`'s pin came down 67,737 → 67,581 to pay for §3.10.
 
 **Needs the user:** nothing.
 
-**Opener (Opus):** `proceed @docs/QUEUE.md — raise the order score, now
-180. Run the ledger test first: its failure message names the ninety-two
-frames that still part, and the two biggest families are one table row
-each (item 53). Take nothing that cannot name the score it moves.`
+**Opener (Opus):** `proceed @docs/QUEUE.md — the headline is 180 and did
+not move last session. Take item 54, the caravan road: it is the last
+unnamed site on run14, the cause of the stream desync from frame 10, and
+therefore the gate on most of the ledger's remaining eighty-six frames.`
 
 ## The queue
 
@@ -50,17 +48,17 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-53. **The ledger's other ninety-two frames.** The failure message of
-    `run14_s_frames_match_the_trace_draw_for_draw` lists them. Two
-    families dominate and each is a `trace::SITES` row: `5d74e3` is
-    `Animal::do_idle+0x83`, the animals' wander roll, which has no row at
-    all, and a bare `5dac7a` is `Guy::set_anim+0x97a` under a caller the
-    table does not carry. Naming them is not the whole of either — several
-    of those frames differ in *count* as well — but it is what makes the
-    residue readable. `PathFinder::calc_road_cost+0x46` (frames 10, 11,
-    171; 226, 254 and 197 draws) is the caravan road, its own item. The
-    `Farms::inc_time+0x1ae` / `+0x1de` orderings are a third family and
-    the cheapest: same count, wrong order, on about a dozen frames.
+54. **The caravan road.** `PathFinder::calc_road_cost+0x46` <
+    `astar_caravan_road+0x52b` < `find_road+0x3a8`: 220, 248 and 189 draws
+    on run14's frames 10, 11 and 171, where the sim draws 6, 6 and 7.
+    It is the last unnamed site on the ledger and the reason the stream
+    desynchronises from frame 10, which is what turns the
+    `Farms::inc_time+0x1ae`/`+0x1de` orderings, the birds' counts and the
+    animals' wanders into value differences no naming can fix. One draw per
+    node costed (`% 0x14`, added to the road cost), so the count *is* the
+    A* expansion: read who calls `find_road` at frame 10 first — with no
+    caravan in the game — because a road planned for a reason the sim never
+    has is cheaper to skip than to reproduce. `docs/SYNC.md` §3.10, §6.
 
 38. **One long traced capture, human versus AI, on both maps.** run14's
     trace reaches 284 of run10's 1,772 frames, so nothing on disk measures

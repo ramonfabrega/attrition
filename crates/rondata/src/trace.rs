@@ -112,6 +112,16 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005f_0d09), // `Unit::do_non_flat_gather+0xb99`
         sim::anim::SITE_STAND_RETURN,
     ),
+    (
+        0x005d_ac7a,
+        Some(0x005d_93df), // `Guy::move+0x19f`, the arrival stand
+        sim::anim::SITE_ARRIVE,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x005f_b753), // `Unit::move_step+0x823`, the blocked stand
+        sim::anim::SITE_BLOCKED,
+    ),
     // `Guy::set_anim@005da300+0x104b` — the gaia bird's wing-beat coin.
     // Its own address, so no chain is needed to tell it from the other
     // four (`docs/SYNC.md` §3.9).
@@ -121,12 +131,27 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Unit::do_non_flat_gather@005f0170` — the wood machine's own two.
     (0x005f_06bb, None, sim::orders::SITE_TILE_WAIT),
     (0x005f_0e33, None, sim::orders::SITE_WORK_WAIT),
+    // `GameAccess::rnd@0043cca0+0x20` — the frameless helper. Its address
+    // says nothing on its own; the chain does, and `Unit::do_job+0x67` is
+    // `do_gather`'s own return address (both it and `GameAccess::rnd` are
+    // skipped by the `ebp` walk).
+    (
+        0x0043_ccc0,
+        Some(0x0061_7a77), // `Unit::do_job+0x67` — `Unit::do_gather`
+        sim::orders::SITE_FARM_CELL,
+    ),
     // `Unit::do_move@005f7b30` — the grid draw.
     (0x005f_89b4, None, sim::orders::SITE_MOVE_GRID),
     // `Unit::think_scout@005f6010` — the ring walk (`docs/SCOUT.md` §10).
     (0x005f_6446, None, sim::scout::SITE_ROTATION),
     (0x005f_6468, None, sim::scout::SITE_PHASE),
     (0x005f_665c, None, sim::scout::SITE_CELL),
+    // `Animal::do_idle@005d7460` — a herd animal's wander: the coin, then
+    // the direction and the two step counts. Four addresses of its own.
+    (0x005d_74e3, None, sim::gaia::SITE_WANDER_ROLL),
+    (0x005d_7604, None, sim::gaia::SITE_WANDER_DIR),
+    (0x005d_7634, None, sim::gaia::SITE_WANDER_X),
+    (0x005d_7672, None, sim::gaia::SITE_WANDER_Y),
     // `Animal::think_farm_animal@005d7700` — a pasture animal's step.
     (0x005d_7842, None, sim::farms::SITE_ANIMAL_DIR),
     // `Objects::process_all@0065dce0` — the birds' sampling.
@@ -140,6 +165,13 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Herd::process@00741760` — one herd's walk.
     (0x0074_1777, None, sim::gaia::SITE_HERD_X),
     (0x0074_1796, None, sim::gaia::SITE_HERD_Y),
+    // `MathUtilFuncSet::rand_int@009e1890` — the script VM's one draw,
+    // under the interpreter's call-out.
+    (
+        0x009e_18a8,
+        Some(0x009d_5901), // `ScriptFuncSet::call_func+0x401`
+        sim::ai_host::SITE_RAND_INT,
+    ),
     // `Farms::inc_time@008d8600` — the crop clock.
     (0x008d_87ae, None, sim::farms::SITE_CHANCE),
     (0x008d_87de, None, sim::farms::SITE_SPROUT),

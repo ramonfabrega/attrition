@@ -4715,6 +4715,14 @@ mod tests {
     ///               `.bha` files (`crate::artdata`), and with them the
     ///               hatch frame's wrap, the birth coin and the wraps at
     ///               127 and 142.
+    ///   2026-08-28  **198** of 284 (the residue's names, item 53): five
+    ///               draws this simulation was already taking under a
+    ///               coarse mark — the script VM's `rand_int`, the herd
+    ///               animal's wander coin and its three step draws, the
+    ///               farmer's cell re-pick and the arrival stand — given
+    ///               a [`crate::trace::SITES`] row each. No mechanic
+    ///               changed; the marks got finer, which is the incentive
+    ///               below.
     ///
     /// A frame is counted only when the two label sequences are equal, so
     /// a coarse mark on our side (`unit 1/9` against a `GameAccess::rnd`
@@ -4768,8 +4776,8 @@ mod tests {
             ));
         }
         assert!(
-            matched >= 192,
-            "the trace floor fell: {matched} of {last} frames match, the floor is 192\n{}",
+            matched >= 198,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 198\n{}",
             parted.join("\n")
         );
         // The bird's own row, stated so a regression reads as itself. Nine
@@ -4834,6 +4842,86 @@ mod tests {
             (1, 2, 1),
             "the wing beat"
         );
+        // Item 53's own rows, each stated so a regression reads as itself.
+        //
+        // Frame 1 is the AI's opening: eight `rand_int(1, 10)` inside the
+        // script VM, and it is the whole of that frame's script draws.
+        // Naming them took the frame from "54 against 54 in the wrong
+        // vocabulary" to a match.
+        let frame_one = &built
+            .frame_sites
+            .iter()
+            .find(|(n, _)| *n == 1)
+            .expect("frame 1")
+            .1;
+        assert_eq!(
+            &frame_one[..8],
+            &[sim::ai_host::SITE_RAND_INT; 8],
+            "the script VM's eight, and no others"
+        );
+        // Frame 101 is the farmers' re-target: six farmers, two
+        // `GameAccess::rnd(4)` each, one mark carrying the pair.
+        let count = |f: i64, label: &str| -> usize {
+            built
+                .frame_sites
+                .iter()
+                .find(|(n, _)| *n == f)
+                .map_or(0, |(_, s)| s.iter().filter(|l| *l == label).count())
+        };
+        assert_eq!(
+            count(101, sim::orders::SITE_FARM_CELL),
+            12,
+            "six farmers' cell re-pick, two draws each"
+        );
+        // Frame 108 is one herd animal's whole wander: the three-in-ten
+        // coin, then the direction and the two step counts, in that order.
+        let hundred_eight = &built
+            .frame_sites
+            .iter()
+            .find(|(n, _)| *n == 108)
+            .expect("frame 108")
+            .1;
+        let wander: Vec<&String> = hundred_eight
+            .iter()
+            .filter(|l| l.starts_with("Animal::do_idle"))
+            .collect();
+        assert_eq!(
+            wander,
+            vec![
+                sim::gaia::SITE_WANDER_ROLL,
+                sim::gaia::SITE_WANDER_DIR,
+                sim::gaia::SITE_WANDER_X,
+                sim::gaia::SITE_WANDER_Y,
+            ],
+            "the wander's four, in order"
+        );
+        // The two rows that name a draw from the **original's** side only.
+        // `Guy::move+0x19f` is the arrival stand, which this simulation
+        // takes on its own frames; `Unit::move_step+0x823` is the blocked
+        // stand, which it does not take at all (`docs/COLLISION.md` §7).
+        // Without the chain both read as a bare `5dac7a` and the residue is
+        // unreadable, which is the whole of item 53.
+        assert!(
+            trace
+                .labels(232)
+                .iter()
+                .any(|l| l == sim::anim::SITE_ARRIVE),
+            "the arrival stand is named on the trace's frame 232"
+        );
+        for f in [122, 184, 256] {
+            assert!(
+                trace.labels(f).iter().any(|l| l == sim::anim::SITE_BLOCKED),
+                "frame {f}: the blocked stand is named, and unmodelled"
+            );
+        }
+        assert!(
+            !built
+                .frame_sites
+                .iter()
+                .any(|(_, s)| s.iter().any(|l| l == sim::anim::SITE_BLOCKED)),
+            "and this simulation takes none of them"
+        );
+
         // And it flies, which is what keeps it out of the occupancy grid a
         // citizen walks on — `collide.rs`'s `is_air` is the loaded domain
         // now rather than the seam it was (`docs/COLLISION.md` §2).

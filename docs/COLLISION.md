@@ -213,6 +213,12 @@ if detect(proposed, quick 0):
 
 `big_radius` is `ObjectType +0x244`.
 
+The `set_anim(CHAR_DEFAULT)` is the call at `005fb74e`, so its draw site is
+`Unit::move_step+0x823` and the trace names it
+`sim::anim::SITE_BLOCKED` (`docs/SYNC.md` §3.10). Note where it sits: it is
+taken **before** all three give-up tests, so a unit that is still owed a
+turn has already re-rolled its idle by the time `move_step` returns.
+
 ## 6. `Unit::resolve_unit_collision`
 
 In order, with the first that fires winning:
@@ -297,8 +303,17 @@ Not modelled, each listed in §9: `detect_boat_collision` (no ships); step 1
 (`Unit::half_step` is written and nothing reads it — the halving lives
 inside `move_step`, which this crate does not thread it into); the
 `TRADE_ROUTE`, `0xc` and group arms of §4.3; the pause draw of §6's tail;
-`move_step`'s `set_anim(CHAR_DEFAULT)` (this crate does not set the walk
-animation either, so setting the idle one would be a lone half of a pair);
+`move_step`'s `set_anim(CHAR_DEFAULT)` (§5) — ~~this crate does not set the
+walk animation either, so setting the idle one would be a lone half of a
+pair~~ **superseded 2026-08-28: `Sim::guys_follow` does set the walk, and
+the reason the call is still not made is a measurement.** Adding it is one
+line and it **costs** both scores as things stand — 43340 → 42755 agreeing
+unit-frames on run10, 198 → 196 traced frames on run14 — because this
+simulation's collisions do not yet fall on the original's frames, so the
+extra idle rolls land where the original has none. The original's three
+draws (run14's frames 122, 184, 256) are named from its side by
+`sim::anim::SITE_BLOCKED` so that the residue reads as itself; closing the
+seam waits on the collisions themselves lining up;
 `do_move`'s own collision arm — the every-other-frame re-probe of
 `coll_x/coll_y` while a search is pending; squads, since only figure 0
 marks the index; the `WData::block == −1` sentinel; and `CollBlock`'s lazy

@@ -32,6 +32,14 @@ use crate::tech::{Kind, TypeId};
 use crate::world::{Pos, UNITS_PER_TILE};
 use crate::{BUILD_BASE, Player, Sim, UNIT_BASE, cost, tech};
 
+/// `MathUtilFuncSet::rand_int@009e1890+0x18` — the one host function that
+/// steps the sync stream, and the only draw site in the whole script VM.
+/// The trace names it under `ScriptFuncSet::call_func+0x401`, the
+/// interpreter's own call-out; on run14 every one of its eight draws is
+/// frame 1's `rand_int(1, 10)` in the AI's opening strategy pick
+/// (`docs/AI.md` §12.1, `docs/SYNC.md` §3.10).
+pub const SITE_RAND_INT: &str = "MathUtilFuncSet::rand_int+0x18";
+
 /// `ScenarioData::find_counters[]` — as many as the highest index the
 /// scripts reach, and the timers. Sim state: digested by the soak.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -408,7 +416,10 @@ impl Host for ScriptHost<'_> {
             }
 
             // ---- the sync stream ----
-            "rand_int" => int(self.sim.rng.get(a(0), a(1))),
+            "rand_int" => {
+                self.sim.mark(SITE_RAND_INT);
+                int(self.sim.rng.get(a(0), a(1)))
+            }
 
             other => return Err(format!("no host function `{other}`")),
         })

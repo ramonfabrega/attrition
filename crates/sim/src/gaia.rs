@@ -66,6 +66,17 @@ pub const SITE_HERD_Y: &str = "Herd::process+0x36";
 pub const SITE_BIRD_WANDER_X: &str = "Animal::think_bird+0x82";
 pub const SITE_BIRD_WANDER_Y: &str = "Animal::think_bird+0xa6";
 pub const SITE_BIRD_LAND: &str = "Animal::think_bird+0x1f8";
+/// `Animal::do_idle@005d7460` — a herd animal's wander, the four draws
+/// that follow its idle roll: the three-in-ten coin at `+0x83`, then, when
+/// it comes up and the animal is inside `WANDER_NEAR` of its herd centre,
+/// the direction and the two step counts. They are four addresses, so the
+/// trace names them without a chain — unlike the idle roll itself, which
+/// shares `Guy::set_anim+0x97a` with three other callers
+/// (`docs/SYNC.md` §3.10).
+pub const SITE_WANDER_ROLL: &str = "Animal::do_idle+0x83";
+pub const SITE_WANDER_DIR: &str = "Animal::do_idle+0x1a4";
+pub const SITE_WANDER_X: &str = "Animal::do_idle+0x1d4";
+pub const SITE_WANDER_Y: &str = "Animal::do_idle+0x212";
 
 /// The owner `Objects::process_all` creates a bird under —
 /// `init_unit(objects, 9, BASE_GAIATYPES, …)`. Gaia's animals are owner 8;

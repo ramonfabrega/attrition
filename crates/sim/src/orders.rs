@@ -262,6 +262,17 @@ const FARM_SPAN: i32 = 4;
 pub const SITE_TILE_WAIT: &str = "Unit::do_non_flat_gather+0x54b";
 pub const SITE_WORK_WAIT: &str = "Unit::do_non_flat_gather+0xcc3";
 
+/// The farmer's cell re-pick — `Unit::do_gather@005ef2a0`'s two
+/// `GameAccess::rnd(4)` calls, the pair that follows the cell-state switch
+/// when the state and the animation disagree (§6.5).
+///
+/// Both draws are the **same** address: `GameAccess::rnd` is a frameless
+/// helper whose `Random::get` call returns to `+0x20` whoever asked, so the
+/// trace names the pair once and the `ebp` walk skips straight past both it
+/// and `do_gather` to `Unit::do_job+0x67`. One mark therefore carries the
+/// two draws (`docs/SYNC.md` §3.10).
+pub const SITE_FARM_CELL: &str = "GameAccess::rnd+0x20 < Unit::do_job+0x67";
+
 /// `Unit::do_move@005f7b30:599`'s grid draw — the call is at `005f89af`,
 /// so the site is `+0xe84` (§4.4, `docs/SYNC.md` §6's frame-3 item). The
 /// sim reaches it where the original does not, and naming it is what turns
@@ -1649,8 +1660,16 @@ impl Sim {
                 target = mo.waypoint;
             } else {
                 // SEAM: the original's `set_anim(CHAR_DEFAULT, 0, 1)` here
-                // has no counterpart, because this crate does not set the
-                // walk animation either (`docs/COLLISION.md` §7).
+                // — `move_step:281`, the call at `005fb74e` and so the site
+                // `+0x823` (`docs/COLLISION.md` §5) — has no counterpart.
+                // It is named from the other side by
+                // [`crate::anim::SITE_BLOCKED`], so run14's three draws
+                // (frames 122, 184, 256) read as themselves in the ledger
+                // rather than as a bare address; making the call **here**
+                // costs both scores, because this simulation's collisions
+                // do not fall on the original's frames yet — 43340 → 42755
+                // agreeing unit-frames and 198 → 196 traced frames, measured
+                // 2026-08-28 (`docs/COLLISION.md` §7).
                 if step.owed != 0 {
                     let flags = self.current_order(u).map_or(0, |o| o.flags);
                     self.store_move(u, mo, flags);
@@ -2853,6 +2872,7 @@ impl Sim {
             // Empty under a reaper, or ripe under a sower: a new tile.
             _ => {}
         }
+        self.mark(SITE_FARM_CELL);
         let rx = self.rng.roll() % FARM_SPAN;
         let ry = self.rng.roll() % FARM_SPAN;
         let dest = Pos::new(

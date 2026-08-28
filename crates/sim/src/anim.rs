@@ -78,6 +78,19 @@ pub const SITE_STAND_GATHER: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gat
 pub const SITE_STAND_TILE: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xfd4";
 pub const SITE_STAND_RETURN: &str = "Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99";
 
+/// `Unit::move_step@005faf30+0x823` — the stand a blocked unit plays. The
+/// call is `Unit::set_anim`'s, so the chain runs through `+0x56`; the
+/// disambiguator is the frame above it (`docs/COLLISION.md` §5).
+pub const SITE_BLOCKED: &str = "Guy::set_anim+0x97a < Unit::move_step+0x823";
+
+/// `Guy::move@005d9240+0x19f` — the arrival stand. A guy whose body has
+/// caught up with its destination and whose angle is settled, still on a
+/// walk it has been told to stop (`field_0x9c == 8 && field_0x9d`), is
+/// asked for the idle; the call is `Guy::move`'s own, not `Unit::set_anim`'s,
+/// so the chain is one frame shorter than the four above
+/// (`docs/ANIM.md` §4, `docs/SYNC.md` §3.10).
+pub const SITE_ARRIVE: &str = "Guy::set_anim+0x97a < Guy::move+0x19f";
+
 /// `Guy::init_real@005db6b0`'s variant roll, one per guy created.
 pub const SITE_INIT_REAL: &str = "Guy::init_real+0x52";
 
@@ -646,6 +659,7 @@ impl Sim {
         if was_at_des {
             if facing_settled {
                 if anim == WALK && unit.guys[0].stopped {
+                    self.mark(SITE_ARRIVE);
                     self.set_default_anim(u);
                 }
                 for g in &mut self.units[u].guys {
@@ -697,6 +711,7 @@ impl Sim {
         if g.end_time == 0 || g.cur_time != g.end_time - 1 {
             return;
         }
+        self.mark(crate::gaia::SITE_WANDER_ROLL);
         if self.rng.roll() % 10 >= 3 {
             return;
         }
@@ -706,9 +721,12 @@ impl Sim {
         let centre = herd_centre(h.cx, h.cy, h.wx, h.wy);
         let here = self.units[u].pos;
         if vector_dist(centre.x - here.x, centre.y - here.y) < WANDER_NEAR {
+            self.mark(crate::gaia::SITE_WANDER_DIR);
             let d = (self.rng.roll() & 7) as usize;
+            self.mark(crate::gaia::SITE_WANDER_X);
             let kx = self.rng.roll() & 3;
             let x = (kx + 1) * crate::ai_place::MOVE_X[d + 1] * 0x30 + here.x;
+            self.mark(crate::gaia::SITE_WANDER_Y);
             let ky = self.rng.roll() & 3;
             let y = (ky + 1) * crate::ai_place::MOVE_Y[d + 1] * 0x30 + here.y;
             let dest = Pos::new(x, y);
