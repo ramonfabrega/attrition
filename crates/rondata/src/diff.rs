@@ -4792,6 +4792,130 @@ mod tests {
         );
     }
 
+    /// **The map itself, ninety-five frames in.** The road search reads the
+    /// world and nothing else — a cell's owner decides a 240-unit term, its
+    /// `ROCK` flag a 120, and a tile's mask decides whether the tile is
+    /// valid at all (`docs/ROADS.md` §5.2) — so "is our map the original's"
+    /// is the first question any count that comes out wrong has to answer,
+    /// and until this it had only ever been asked of the *start* dump the
+    /// map was loaded from, which is circular.
+    ///
+    /// Run13's `DUMP_ALL` writes a whole `WORLD` block at sim-frame 95:
+    /// 3,600 cells and 57,600 tile masks of the same game run10 records.
+    /// Ninety-five frames of simulation later the two worlds agree on
+    /// **every cell's owner and every tile's mask**, and on every cell's
+    /// flags but one.
+    ///
+    /// **The one:** cell `(52, 22)` carries `cell::BUILDING` there and not
+    /// here, because nothing in this simulation ever *sets* that bit — every
+    /// cell that has it got it from the start dump, and a building finished
+    /// after frame 0 in a cell that had none leaves it clear. It is read
+    /// (`crate::army`'s muster search classes a cell by it), so it is a real
+    /// gap; it is pinned here as the one known difference rather than
+    /// waived, and `docs/QUEUE.md` carries it.
+    ///
+    /// Made to fail twice before landing: once by comparing the world
+    /// *before* the ninety-five frames, which the tile masks catch, and
+    /// once by moving one cell's owner, which the borders do.
+    #[test]
+    fn run13_s_world_at_frame_95_is_the_original_s_cell_for_cell() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r13)) = (
+            dump("gamelog-run10-world6-long.txt"),
+            dump("gamelog-run13-window-95-105.txt"),
+        ) else {
+            eprintln!("skipping: set RON_GAMELOG_DIR");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..95 {
+            built.tick();
+        }
+        // Run13's own frame-95 block, read the way `Initial` reads a start
+        // dump: `world_from` takes any `WORLD` block's fields.
+        let t13 = std::fs::read_to_string(&r13).unwrap();
+        let l13 = Log::parse(&t13);
+        let block = l13
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == 95)
+            .map(|(_, b)| b)
+            .expect("run13 traced frame 95");
+        let w = block
+            .kid("FULL DUMP")
+            .unwrap_or(block)
+            .kid("WORLD")
+            .expect("run13's frame 95 carries a WORLD block");
+        let mut notes = Vec::new();
+        let (theirs, _) = world_from(&w.fields, &[], &mut notes);
+        let (xs, ys) = (theirs.width(), theirs.height());
+        assert_eq!((xs, ys), (60, 60), "the cell grid of run10's map");
+
+        let cells: Vec<sim::world::Cell> = (0..ys)
+            .flat_map(|y| (0..xs).map(move |x| sim::world::Cell::new(x, y)))
+            .collect();
+        let owners: Vec<String> = cells
+            .iter()
+            .filter(|&&c| built.sim.world.owner(c) != theirs.owner(c))
+            .map(|&c| {
+                format!(
+                    "cell ({}, {}) ours {:?} theirs {:?}",
+                    c.x,
+                    c.y,
+                    built.sim.world.owner(c),
+                    theirs.owner(c)
+                )
+            })
+            .collect();
+        assert!(
+            owners.is_empty(),
+            "the borders parted from the original's by frame 95: {owners:?}"
+        );
+
+        let flags: Vec<(i32, i32, u16, u16)> = cells
+            .iter()
+            .map(|&c| {
+                (
+                    c.x,
+                    c.y,
+                    built.sim.world.cell_data(c).flags,
+                    theirs.cell_data(c).flags,
+                )
+            })
+            .filter(|(_, _, a, b)| a != b)
+            .collect();
+        assert_eq!(
+            flags,
+            vec![(52, 22, 0x200, 0x4200)],
+            "cell flags other than the one `BUILDING` bit nothing here sets"
+        );
+
+        let (tw, th) = (
+            xs * sim::world::TILES_PER_CELL,
+            ys * sim::world::TILES_PER_CELL,
+        );
+        let masks: Vec<(i32, i32, u16, u16)> = (0..th)
+            .flat_map(|y| (0..tw).map(move |x| Pos::new(x, y)))
+            .map(|t| (t.x, t.y, built.sim.world.tile_mask(t), theirs.tile_mask(t)))
+            .filter(|(_, _, a, b)| a != b)
+            .collect();
+        assert!(
+            masks.is_empty(),
+            "{} of 57,600 tile masks differ at frame 95: {:?}",
+            masks.len(),
+            &masks[..masks.len().min(8)]
+        );
+    }
+
     #[test]
     fn run14_s_frames_match_the_trace_draw_for_draw() {
         let Some(inst) = install() else { return };

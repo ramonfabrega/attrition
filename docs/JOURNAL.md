@@ -4351,3 +4351,105 @@ Paperwork: `docs/SYNC.md`'s §3.10 and §6 entries struck through and pointed
 at `docs/ROADS.md`; the pin came down 67,581 → 67,140, paid for by
 condensing §3.10's account of the `GameAccess::rnd` chain to the two rules
 a reader needs.
+
+## 2026-08-28 — what the headline actually is (item 55, Opus 5)
+
+The session opened on item 38, the long traced capture, and could not run
+it: `screencapture` answers *could not create image from display* and an
+`osascript` to System Events times out after a minute. The machine has a
+console session and an unlocked screen, and no display attached to render
+into. So every behavioural run is blocked, and with it items 38, 23, 49
+and — as it turned out — the one check `docs/VISION.md` now owes. That is
+worth saying plainly rather than working around: the oracle this project
+leans hardest on is a GUI application.
+
+What was left was the tables, and they had more in them than expected.
+
+**The headline was chased to its cause, and the cause is item 55.** Phase
+3's score is `ticks before divergence` and it has read 181 since item 52,
+pinned by player 0's citizen `0/3` at frame 182. The dump says what that
+citizen is doing: it walks onto its farm on frame 110, sows one cell for a
+hundred frames, re-picks a tile on 212 and walks off on 213. Here it does
+the same thing thirty-one frames early — re-picks on **181**, moves on 182
+— and `do_farm`'s "a new tile" branch is two draws, so the order list
+parts and the position follows.
+
+The farm's clock is not wrong. `Farms::inc_time` adds `0.005f` a frame and
+the farmer's `grow` adds another, and 201 adds reach `1.0f` — that is
+pinned in `farms.rs` and it is exactly the original's hundred frames. What
+is wrong is *which cell was already growing when the farmer arrived*: the
+original's is empty and takes the full 101 frames; this simulation's was
+sprouted on frame 49 and is 61 adds old on 110, so it ripens on 180.
+
+The sprout is a coin, `rand % 1000 < chance`, one a frame a farm — and by
+frame 94 this simulation's stream is **466 draws behind** the original's.
+`--diff` had been printing that all along, in a line nobody had read as a
+number: *frame 94: ours 6 draws, the original's 472*. The 466 are the road
+searches item 54 landed switched off. So the chain is: no road draws → the
+farms sprout off the wrong words → a cell is already half grown when the
+farmer reaches it → the citizen leaves thirty-one frames early → the
+headline. **Item 55 is not a residue chase; it is the headline item**, and
+the queue now says so.
+
+**The deficit is a constant, not a percentage.** `docs/ROADS.md` §7 had it
+as "about six per cent", which is what 208 against 220 looks like on one
+frame. Frame 11 is *two* searches, 52 + 170 against 248: six per cent of
+222 is 13, and the actual gap is 26. Twelve, thirteen and thirteen, eleven
+— **each search is short by about a dozen nodes whatever its size**, which
+is three expansions, not a bias that grows with the path. That changes what
+to look for: something that happens once per search.
+
+**A widening, and it ruled the map out.** The road search reads the world
+and nothing else, so "is our map the original's" is the first question the
+count has to answer — and it had only ever been asked of the start dump the
+map was *loaded from*, which is circular. Run13's `DUMP_ALL` writes a whole
+`WORLD` block at sim-frame 95, ninety-five frames of the same game later.
+`run13_s_world_at_frame_95_is_the_original_s_cell_for_cell` compares it:
+3,600 cell owners, 3,600 cell flag words, 57,600 tile masks. Everything
+agrees but one cell's `BUILDING` bit, which nothing in this simulation
+sets — a real gap, found by the widening, and item 56. Made to fail twice
+before landing: once by comparing the world before the ninety-five frames
+(the tile masks catch it) and once by moving a single cell's owner.
+
+Four more things were ruled out by measurement rather than by reading. The
+territory term: forcing every cell friendly changes no count, so every cell
+the three searches touch is already the searcher's; forcing them unowned
+takes frame 10 from 208 to 405, so the term is live and the map's answer is
+the one in use. The fog: forcing `was_seen` true changes nothing. The
+heights' orientation and scale: every object record carries `z_internal`,
+and on flat ground it equals `World::tile_z` at the object's tile exactly,
+while the transpose is nonsense at every one of them — and flattening the
+heights takes frame 10 to 103, so the climb term is what shapes this search
+and it is reading the right numbers. And the containers, read this time
+from the listing: the open list is a plain BST keyed by `value` whose equal
+keys go left and whose leftmost is popped, which is LIFO among equals and
+is what this crate does; the refs and closed lists are red-black *maps*
+keyed by metric that overwrite on an equal key. Nothing to model there.
+
+The decompiler was wrong about one thing worth recording: it prints the
+goal's `x` and `y` crossed in `astar_caravan_road`'s locals, so the
+heuristic reads as `vector_dist(node.x − goal.y, node.y − goal.x)`. The
+listing settles it at the sane pairing — `[ebp-0x20]` is the goal's `x`,
+written straight from the popped `PathData`. A reading that had believed
+the decompiler here would have found a bug that is not there.
+
+**And a correction to `docs/VISION.md` §7.** Its list of the sites that
+refresh `mylos` was assembled from a text search and includes the AI's
+`check_explore` and `plan_strategy`, neither of which calls `update_los`:
+both read `World +0x160`, a *field* at the same offset as the vtable slot.
+The real callers are `Unit::init`, `Unit::set_type`, `calc_unit_stats`,
+`calc_wall_stats`, `Build::activate`, `Cities::capture_city`,
+`Wall::swap_team` and three spells; the dirty bit is raised by
+`Build::activate`, `Build::close`, and `gain_tech` only for a gained type
+that `is_unit_type` and `is(MILITIA)`. Which leaves the item's own
+evidence unexplained: run10's single `mylos` disagreement is player 1's
+Scout going 4 → 6 across frames 202 and 203, and the per-frame
+`LEADERDATA` shows **no** `0x4000000` on player 1 at the end of either
+frame — where player 0 carries it at 202 and is clear at 203, the bit
+behaving exactly as read. The check that would settle it is a `rontrace`
+run over frames 195–210, so item 35 is behind item 38 too.
+
+One more measurement, banked for item 45: gaia's animals track the
+original's positions **exactly** to frame 90 and first part at 91. The
+`ANIMALDATA` record is 70,960 animal-frames on run10 and still compares
+nothing; the drift it would measure is the stream's, which is item 55's.

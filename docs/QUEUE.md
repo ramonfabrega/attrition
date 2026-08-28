@@ -13,36 +13,35 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after item 54.*
+*2026-08-28, after the road's measurement.*
 
 **The headline — run10, 1,772 frames: ticks before divergence 181, orders
-180.** Unmoved. **The ledger — run14: 198 of 284 frames.** Unmoved: item 54
-landed **switched off**.
+180.** Unmoved. **The ledger — run14: 198 of 284 frames.** Unmoved.
 
-**Landed:** item 54 — **the road, and it is not a caravan's**
-(`docs/ROADS.md`, `crates/sim/src/roads.rs`). `Build::process` replans a
-*building's* road to its city centre on the frame `(frame + o) % 16 == 0`
-picks out; `build_masks` in the dump proves the schedule, the three frames
-and the three buildings. The ring is diff-backed against the original's own
-map — run13's frame-95 tiles are identical to run10's frame 0, all 57,600 —
-with a guard made to fail first. The weights came out of the PE, the cost
-function off the listing.
+**What moved is knowing what the headline *is*.** Player 0's first
+divergence at 182 is farmer `0/3` re-picking its farm tile thirty-one
+frames early, and the chain behind it is now measured end to end:
+`Sim::plan_roads` is off, so run14's three road searches never spend their
+220 + 248 + 189 draws, the stream is **466 draws behind by frame 94**, and
+the farms' sprout coins land on the wrong words — the cell `0/3` sows was
+sprouted here on frame 49 and is empty in the original, so it ripens on
+180 against 211. **Item 55 is the headline item** (`docs/ROADS.md` §7).
 
-**What did not land: the count.** 208, 222 and 178 nodes where the original
-costs 220, 248 and 189 — six per cent short, cause unfound, eight
-hypotheses ruled out by measurement (`docs/ROADS.md` §7). So
-`Sim::plan_roads` is **false**: with it on the ledger falls 198 → 153,
-because a draw count that is close puts every later draw in the frame on
-the wrong word. That is item 55, at the back.
+**Landed:** the world widening — `run13_s_world_at_frame_95_is_the_
+original_s_cell_for_cell` compares 3,600 cell owners, 3,600 cell flags and
+57,600 tile masks against run13's `DUMP_ALL` at sim-frame 95. All agree but
+one cell's `BUILDING` bit (item 56). Made to fail twice before landing.
 
-**Owed:** items 42 and 40. `SYNC.md`'s pin came down 67,581 → 67,140.
+**Blocked:** every behavioural run. `screencapture` answers "could not
+create image from display" and System Events times out, so the original
+cannot be driven from here (item 38 and all that folds into it).
 
-**Needs the user:** nothing.
+**Owed:** 42 and 40. **Needs the user:** a display, or word there won't be one.
 
-**Opener (Opus):** `proceed @docs/QUEUE.md — headline 180, ledger 198,
-neither moved. Take item 38, the long traced capture: it widens the ledger
-sixfold and is the sharpest tool left for item 55, which needs more than
-three instances of the road to measure against.`
+**Opener (Opus):** `proceed @docs/QUEUE.md — headline 181, ledger 198.
+Take item 55: it is the headline, the deficit is a constant twelve nodes a
+search rather than six per cent, and `docs/ROADS.md` §7 names the three
+shapes left to test.`
 
 ## The queue
 
@@ -50,17 +49,31 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
+55. **The road's missing twelve nodes a search — the headline.**
+    `docs/ROADS.md` §7: the search costs 208, 222 and 178 nodes on run14's
+    frames 10, 11 and 171 where the original costs 220, 248 and 189, and
+    `Sim::plan_roads` stays off until it is exact. Frame 10 carries **no
+    jitter noise** — frames 0–9 match the trace draw for draw, so both
+    sides start it on the same word — and frame 11 is two searches, which
+    is what says the deficit is a **constant per search** (+12, +13 +13,
+    +11), about three expansions, not a percentage. The world, the
+    heights, the territory term, the fog, the cost function, the
+    containers, the wheel, the endpoints and the direction are each ruled
+    out by measurement. §7's last paragraph names the three shapes left.
+
 38. **One long traced capture, human versus AI, on both maps.** run14's
     trace reaches 284 of run10's 1,772 frames, so nothing on disk measures
     the whole against the original by site. Gamelog at `UNITS=3` plus
     `rontrace`, ≥ 1,800 frames, the recipe in `docs/ORACLE.md`; then pin
     its headline beside run10's and retire the tests it supersedes. It
-    would also lengthen the ledger sixfold.
+    would also lengthen the ledger sixfold. **Blocked on a display.**
 
-35. **`mylos` as a cache.** `docs/VISION.md` §7 has the design: a
-    `unit_stats_dirty` bit per player and a cached `mylos` refreshed where
-    `Leader::calc_unit_stats` refreshes it. Takes run10's one LOS
-    disagreement to zero; change the assertion to an empty vec first.
+35. **`mylos` as a cache.** `docs/VISION.md` §7 has the design — and, as of
+    2026-08-28, the correction that its list of refresh sites was wrong
+    and an open question the dump does not answer: player 1 carries no
+    `0x4000000` at the end of frame 202 or 203, yet its Scout's `mylos`
+    moves 4 → 6 across them. Settle that before modelling the bit; the
+    check is a `rontrace` run over frames 195–210, so it is behind item 38.
 
 36. **`Unit::set_angle`'s seventeen other callers.** 6,866 of run10's
     16,206 angle rows, on frames where the positions agree. Start at
@@ -80,6 +93,15 @@ say so. Numbers are stable; the journal is indexed by them.
     nothing. Put buildings in the chain and widen the diff to it; it is the
     cheapest untaken widening on the board.
 
+56. **The cell's `BUILDING` bit, which nothing here sets.** Item 55's
+    widening found it: run13's frame-95 world carries `cell::BUILDING` on
+    cell `(52, 22)` and this simulation does not, because every cell that
+    has the bit got it from the start dump and a building finished later
+    leaves it clear. `crate::army`'s muster search reads it
+    (`docs/ARMY.md` §13), so it is a live gap. Find the writer — it is not
+    `World::set_building_at`, which writes the *tile* mask's `0x3` — and
+    the clearer with it, then tighten the guard to zero differences.
+
 23. **The hand-back's inversion, and the formation byte's sign.**
     `kill_current_order` writes `order.facing XOR reversing(leader.angle −
     order.angle)`; no run has fired the XOR term. *Capture:* `UNITS=3` +
@@ -89,17 +111,15 @@ say so. Numbers are stable; the journal is indexed by them.
 
 49. **Collision's unrun arms.** `docs/COLLISION.md` §8 lists what no
     capture has executed: three of the four soft-collision arms, the
-    wait-for-it branch (`unit_masks & 0x40`), the throttle above four
-    repaths, the `pause = % 9 + 1` draw, and any `BLOCK_RADIUS ≠ 1` unit.
-    §9 names the capture for each; most are one run of two units ordered
-    head-on with `UNITS=3` and `rontrace`. Fold into item 38's capture.
+    wait-for-it branch, the throttle above four repaths, the
+    `pause = % 9 + 1` draw, and any `BLOCK_RADIUS ≠ 1` unit. §9 names the
+    capture for each. Fold into item 38's.
 
 39. **A debug viewer.** A thin, read-only 2D client over `Sim` state — map,
     units, fog, order lines, with the original's dump overlaid for the same
-    frame. It needs no parity, would have shown the untyped trained unit and
-    the seven-frame stand on sight, and is the renderer's first slice. One
-    earned windowing dependency; take it when a residue is opaque in the
-    tables.
+    frame. It needs no parity, would have shown the untyped trained unit
+    and the seven-frame stand on sight, and is the renderer's first slice.
+    Take it when a residue is opaque in the tables.
 
 40. **The spec/story split, one document per touch.** The documents over
     60 KB are pinned in `docs_guard::OVER` and may only shrink. When a
@@ -122,14 +142,14 @@ say so. Numbers are stable; the journal is indexed by them.
 
 45. **Gaia's animals, the re-seat crutch, and the pasture's lengths.**
     `Sim::reseat_animal` puts the animals back from every traced dump
-    because their wander rides a stream the harness only holds at those
-    frames (`docs/SYNC.md` §4.2's tail). It is a correction, it is noted as
-    one, and it should die: widen the diff to the `ANIMALDATA` record — 40
-    of run10's 54 objects, uncompared to this day — as its own sub-score,
-    then close what it shows. `rondata::artdata` deliberately leaves
-    `FARMPIG` and `FARMCHICKEN` out of the install's length table — they
-    name a `-TYPE0` and a `-TYPE1` and no `-TYPE2`, so a third of the
-    pasture would be a guess — and until that is settled their idle rolls
+    because their wander rides a stream held only at those frames
+    (`docs/SYNC.md` §4.2's tail). Widen the diff to the `ANIMALDATA`
+    record — 40 of run10's 54 objects, 70,960 animal-frames, uncompared to
+    this day — as its own sub-score. **Measured 2026-08-28:** they track
+    the original exactly to frame 90 and first part at 91, which is the
+    stream's own drift showing. `rondata::artdata` leaves `FARMPIG` and
+    `FARMCHICKEN` out of the length table — they name a `-TYPE0` and a
+    `-TYPE1` and no `-TYPE2` — so until that is settled their idle rolls
     never wrap here (`docs/ANIM.md` §3.1).
 
 51. **The AI's long-run economy, now that the roster is measured both
@@ -138,21 +158,9 @@ say so. Numbers are stable; the journal is indexed by them.
     frames and then stalls: the original trains `1/9` at 1297 and `1/10` at
     1505 and this simulation reaches neither inside 1,772 frames. Two
     threads, in order: the AI's citizens spend long stretches on `AttackTo`
-    moves rather than gathering (`docs/ARMY.md`; the original's `1/6`–`1/8`
-    sit on the camp and the fourth farm for the whole run), and the income
-    itself — `CITY.gatherers` is in every dump at every detail level and is
+    moves rather than gathering (`docs/ARMY.md`), and the income itself —
+    `CITY.gatherers` is in every dump at every detail level and is
     uncompared. Score it on the roster pin, 744 + 0.
-
-55. **The road's last six per cent.** `docs/ROADS.md` §7: the search
-    costs 208, 222 and 178 nodes on run14's frames 10, 11 and 171 where the
-    original costs 220, 248 and 189, and `Sim::plan_roads` stays off until
-    it is exact. The world, the stream, the cost function, the validity
-    predicate, the wheel, the endpoints and the direction are each ruled
-    out by measurement. Two inputs have never been diffed against anything:
-    the loader's per-tile heights, and `vector_dist`'s rounding at the
-    heuristic's magnitudes. **Do item 38 first** — three instances is too
-    few to tell a systematic six per cent from the ±5 per cent the jitter
-    alone moves, and a longer capture gives a dozen.
 
 Older backlog, one line each, unchanged: the `LEADERDATA` and `CITY`
 widenings; a `find_target` block; run7's order stream under the trace; a

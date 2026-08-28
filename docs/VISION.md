@@ -276,15 +276,36 @@ simulation sets `visible`.
 - **`mylos` is a cached value, and this simulation computes it fresh.**
   `Leader::calc_unit_stats@006cf970` walks a player's units calling
   `update_los`, and `Leader::process` calls *it* only when `leader_flags &
-  0x4000000` is set — the dirty bit `gain_tech`, `set_age` and `set_epoch`
-  raise, and the twin of the `0x8000000` this simulation already models as
-  `wall_stats_dirty`. So the original's `mylos` is refreshed on the frame
-  **after** its inputs change. §8's diff sees exactly that, once, and
-  nothing else. Modelling the cache means a `mylos` on the unit and a
-  `unit_stats_dirty` per player, refreshed at the five sites that call
-  `update_los`: `calc_unit_stats`, `Unit::init`, `Unit::set_type`,
-  `Build::activate`, and the AI's `Leader::check_explore` and
-  `plan_strategy`.
+  0x4000000` is set — the twin of the `0x8000000` this simulation already
+  models as `wall_stats_dirty`. So the original's `mylos` is refreshed on
+  the frame **after** its inputs change. §8's diff sees exactly that, once,
+  and nothing else.
+
+  The sites, corrected 2026-08-28 by a `grep` of the vtable call rather
+  than of the name. `Unit::update_los` is slot `+0x160`, and the whole set
+  of callers is `Unit::init`, `Unit::set_type`, `Leader::calc_unit_stats`,
+  `Leader::calc_wall_stats`, `Build::activate`, `Cities::capture_city`,
+  `Wall::swap_team` and three `SpellType::cast_*`. ~~the AI's
+  `Leader::check_explore` and `plan_strategy`~~ — **neither calls it**;
+  both only read `World +0x160`, a field at the same offset, which is what
+  a text search finds. The dirty bit's writers are `Build::activate` and
+  `Build::close`, which raise it on the building's owner, and
+  `Leader::gain_tech`, which raises it only for a gained type that
+  `is_unit_type` **and** `is(MILITIA, 0)` — `TypeIndex 0x42`, pushed at
+  `6dd98a` in the listing, the militia line term 3 adds `+2` for.
+  `set_age` and `set_epoch` call `calc_unit_stats` outright rather than
+  through the bit, and in a normal game neither runs: `ConsoleWin::run_cmd`
+  and the scenario functions are their only callers.
+
+  **What that does not yet explain**, and it is the open question this
+  document owes: run10's one disagreement is player 1's Scout, `mylos` 4
+  through frame 202 and 6 from 203, and the per-frame `LEADERDATA` (at
+  `LEADERS=1`, free on every capture) shows **no** `0x4000000` on player 1
+  at the end of either frame — where player 0 carries it at 202 and is
+  clear at 203, which is the bit behaving exactly as read. So the refresh
+  that moved that scout is not one of the sites above, or not on the frame
+  they would put it. *Check:* `GUYS=2 LEADERS=9` over frames 195–210 with
+  `rontrace` attached — the trace names the function that ran.
 - **No dump on disk carries a *second* fog plane to diff against.** The
   `WORLD` scan — `seen[scan]`/`seen2[scan]`/`seen3[scan]`, 14,400 triples
   on a 60×60 map — is written only under `[Start Game]`, so every capture

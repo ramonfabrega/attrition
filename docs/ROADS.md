@@ -249,11 +249,23 @@ begins on a road does not get the bonus on its first step.
   run14_s_road_rings_change_no_tile_the_original_does_not` is that guard,
   and widening the city's ring by one column fails it with 26 tiles.
 - The weights, read from the PE at the addresses `PathFinder::init` names.
+- **The world the search reads**, ninety-five frames in, against run13's
+  `DUMP_ALL` block for the same frame: every one of 3,600 cells' owners,
+  every cell's flags but one, and all 57,600 tile masks.
+  `rondata::diff::tests::run13_s_world_at_frame_95_is_the_original_s_cell_
+  for_cell`. The one exception is cell `(52, 22)`'s `BUILDING` bit, which
+  nothing in this simulation sets; the cost function does not read it.
 
 **Reading-only, from the listing rather than the decompiler:** every
 arithmetic step of §5.2, the two heuristics, the wheel's parity gate, the
 budget, `valid_roadcoord`'s guard and its city-only exemption, and the
-endpoint derivation.
+endpoint derivation. All of these were re-derived a second time, from the
+listing again, on 2026-08-28 (§7), together with the containers: the open
+tree's LIFO tie-break among equal `value`s, `first_open_node`'s leftmost
+pop, the closed set's tombstone semantics, and the heuristic's two
+arguments — which the decompiler prints with the goal's `x` and `y`
+crossed and the listing settles at `vector_dist(|node.x − goal.x|,
+|node.y − goal.y|)`.
 
 **Unmodelled, and stated as such:** `place_roads`' `REGEN_TOTAL` arm and its
 `set == 0` teardown; `BuildType::mask_me`'s call; the caravan itself — the
@@ -263,65 +275,116 @@ ocean arm of the cost; the alliance arm of the territory test; and
 `was_seen`'s ally-territory shortcut, which on every capture so far agrees
 with the fog bit because the search never leaves its own ground.
 
-## 7. What is not established — the six per cent
+## 7. What is not established — the twelve nodes a search is short
 
-**The search expands fewer nodes than the original's, by about six per
-cent, and the cause is not found.** With the world, the stream and the
-schedule all verified identical, run14 reads:
+**The search expands fewer nodes than the original's, and the cause is not
+found.** With the world, the stream and the schedule all verified
+identical, run14 reads:
 
 | frame | the search | ours | theirs |
 |---|---|---|---|
-| 10 | `0/2006` Market → centre | 208 | **220** |
-| 11 | `0/2005` Library → centre | 52 | — |
-| 11 | `1/2005` Library → centre | 170 | — |
+| 10 | `0/2006` Market → centre, tile (15, 155) → (16, 160) | 208 | **220** |
+| 11 | `0/2005` Library → centre, (12, 160) → (16, 160) | 52 | — |
+| 11 | `1/2005` Library → centre, (228, 89) → (220, 84) | 170 | — |
 | 11 | both | 222 | **248** |
-| 171 | `1/2005` Library → centre | 178 | **189** |
+| 171 | `1/2005` Library → centre, (228, 89) → (220, 84) | 178 | **189** |
 
-The count is noisy in its own right: the same search at frames 11 and 171,
-on an unchanged map, costs 170 and 178 nodes purely because the jitters
-differ. The deficit is under twice that noise, which is what makes it hard.
+**It is a constant, not a percentage** (measured 2026-08-28). The three
+deficits are `+12`, `+26` and `+11`, and frame 11 is *two* searches: at
+six per cent its 222 would be short by 13, not 26, while `+13` each is
+exactly the other two frames' figure. So a search of 52 nodes and a search
+of 178 are each short by about a dozen — **roughly three extra expansions,
+once per search**, rather than a bias that grows with the path. Anything
+proportional — a cost term slightly too small, a heuristic slightly too
+large — is the wrong shape for that.
+
+**Why it is the headline.** `Sim::plan_roads` is off, so those 220, 248 and
+189 draws are never spent, and by the end of frame 94 the simulation's
+stream is **466 draws behind** the original's (`--diff`'s note at frame 94:
+"ours 6 draws, the original's 472"). Everything drawn in the untraced
+stretch then reads the wrong word — and what draws there is the farms'
+sprout (`docs/SYNC.md` §3.3, one coin a frame per farm). Player 0's farmer
+`0/3` walks onto its farm on frame 110 on both sides; the original's cell
+is **empty** and takes 101 frames of two adds to ripen, so the citizen
+re-picks a tile on frame 212 and moves on 213. Here the same cell was
+sprouted at frame 49 by a coin off the wrong word and is already 61 adds
+old when the farmer arrives, so it ripens on 180, the citizen re-picks on
+**181** and moves on 182. That is the headline's own first divergence —
+`ticks 181, orders 180, player 0 @ 182` — and it is downstream of this
+count, not of anything in `docs/ORDERS.md` §6.5.
 
 **Ruled out**, each by measurement rather than by reading:
 
-- **The world.** The sim's 57,600 tile masks at frame 10 differ from the
-  dump's in 16 tiles, all of them the `PLACED` bit on the AI's farm site
-  200 tiles away from the search. Cell ownership around both cities is
-  uniform and correct; the fog grid is loaded and no costed tile is unseen;
-  the heights are loaded and in range.
+- **The world.** Ninety-five frames in, every cell owner, every cell flag
+  but one and all 57,600 tile masks are the original's (§6's guard). At
+  frame 10 the sim's masks differ from the dump's in 16 tiles, all of them
+  the `PLACED` bit on the AI's farm site 200 tiles from the search.
+- **The territory term.** Forcing every cell friendly changes no count at
+  all: every cell the three searches touch is already the searcher's own.
+  Forcing them unowned takes frame 10 to 405 and forcing them foreign to
+  304, so the term is live and the map's answer is the one being used.
+- **The fog.** Forcing `was_seen` true changes no count: no costed tile is
+  unseen.
+- **The heights' orientation and scale.** Every dumped object carries
+  `z_internal`, and on flat ground it equals `World::tile_z` at the
+  object's tile exactly — sixteen of twenty checked objects on run10's
+  frame 0, the rest off-centre on a slope, where the object's own
+  interpolation and the tile's two-corner mean part company. The transpose
+  is nonsense at every one of them.
 - **The stream.** Frames 0 to 9 match the trace draw for draw, so the word
-  at the head of frame 10 — and therefore every jitter — is the original's.
-- **The cost function**, term for term against the listing, including the
-  two accumulators, the clamp, the `× 3`, the `>> 3` with its
-  round-toward-zero, and the argument order of `was_seen`.
+  at the head of frame 10 — and therefore every jitter — is the original's,
+  and frame 10's comparison carries no jitter noise at all.
+- **The cost function**, term for term against the listing, twice, the
+  second time including the friendly/foreign split that surrounds the road
+  bonus: the halving of `total − removable` is inside the friendly arm, the
+  `>> 3` and the `× 4` are the same weight, and the `z` negation happens on
+  both arms.
 - **`valid_roadcoord`**, likewise, including which endpoint the `is_city`
-  guard belongs to. Dropping that guard — exempting both footprints —
-  overshoots: 225, 315 and 253 against 220, 248 and 189.
+  guard belongs to (both, separately) and `WallData::covers_tile`'s
+  `corner ≤ t < corner + size`. Dropping the guard — exempting both
+  footprints — overshoots: 225, 315 and 253 against 220, 248 and 189.
+- **The containers.** `Tree::ordered_insert` sends an equal key left and
+  `first_open_node` takes the leftmost, so the open list is LIFO among
+  equal `value`s, which is what this crate's `(value, Reverse(seq))` does;
+  the refs and closed trees are red-black **maps** keyed by metric that
+  overwrite on an equal key, and a `seek` reads a tombstoned entry as
+  absent. No duplicate-metric behaviour to model.
 - **The wheel and the preference**, against the listing's `setg`/`jle`
-  pair; reversing either is worse.
-- **The endpoints.** Four readings of `road_end` and two of the city's were
-  tried; every alternative is further away than `corner + size − 1`.
+  pair, and `move_x`/`move_y`'s 1-based compass; reversing either is worse.
+- **The endpoints and the stack order.** Four readings of `road_end` and
+  two of the city's were tried; every alternative is further away than
+  `corner + size − 1`.
 - **The search's direction**: running it from the centre to the building
   gives 94, 194 and 139.
 - **The ring**: with the pad the map proves, it lays nothing, so it cannot
-  be moving the search. Widening it changes the count and breaks §6's
-  guard.
+  be moving the search.
 
 A constant added to each off-road step lands the count on frame 10 at
 `+5` — but it overshoots frames 11 and 171, so it is not a missing
-constant of that shape.
+constant of that shape, and the per-search reading above says it would not
+be.
 
-**Where a next session would look.** The deficit is uniform, which points
-at the *ratio* of step cost to heuristic rather than at any one term. Two
-things have never been checked against an independent oracle: the sim's
-per-tile heights (`crate::world::World::tile_z`, built by the loader from
-`master_land_heights` and never diffed against anything the original
-prints), and `vector_dist`'s exact rounding at the magnitudes the
-heuristic uses. A third possibility is that the original runs the frame-10
-search **twice** for a reason `build_masks` does not show; 220 is not
-2 × 208, but nor is the pairing at frame 11 pinned per search.
+**How sensitive the count is**, for calibration: flattening the heights
+takes frame 10 from 208 to **103**, so the climb term is what shapes this
+search; the same search at frames 11 and 171, on an unchanged map, costs
+170 and 178 purely because the jitters differ.
+
+**Where a next session would look.** Something that costs about twelve
+extra costed nodes **once per search** — three expansions, not a per-step
+bias. The shapes are small enough to hold in the head: frame 10 pops 57
+nodes for a five-tile road, frame 11's first pops 16 for three tiles, and
+the AI's pops 47–49 for twelve. Candidates that fit that shape and have
+not been measured: the root's own `z_val` (unclamped and unnegated, so a
+search that starts on a road pays the join on its first step — worth
+testing against a root whose `z` is clamped like every other node's); the
+`Recycler<PathNode>` pool's state across the two searches of frame 11
+(nothing in the reading says a recycled node keeps anything, but nothing
+has checked it either); and `Build::process`'s call itself — whether the
+original reaches `place_roads` by a path that runs the search twice for
+one of the three frames, which `build_masks` cannot see.
 
 Until it is exact, `Sim::plan_roads` is **false**. A count that is close is
 worse than no count at all: the draws land in the middle of the frame, so
 every later draw in it reads the wrong word, and run14's ledger falls from
-198 of 284 to 153. With the flag off — the rings still laid, the schedule
+198 of 284 to 162. With the flag off — the rings still laid, the schedule
 still kept — the ledger is unchanged.
