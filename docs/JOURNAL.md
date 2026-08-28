@@ -4582,3 +4582,89 @@ and, being pinned, paid for the room by lifting §16.2 and §16.3 here:
 `docs/audit/README.md`'s ledger strikes two rows; `gamelog.rs`'s
 comment tells the truth about the ⅛ grid. `main` fast-forwarded to this
 branch at the end of the session.
+
+## 2026-08-28 — item 55: the capture is staged and the mouse is not (Opus 5)
+
+The steering pass said the road's oracle, not the road's reading, is the
+problem, and named the capture: a building on fresh, un-roaded ground far
+enough from its city to lay a road the map has never had, under a
+`DUMP_ALL` frame window and the trace. This session picked the site,
+staged the run — and could not drive the lobby, because macOS
+**Accessibility** is off for this terminal. The turn ends with the ask.
+
+### The capture, chosen rather than guessed
+
+Three decisions, each made against the simulation rather than by eye.
+
+**The channel places the building; no human hand is needed.** `run_cmd`'s
+`add` case, for a type index past the units, calls
+`Objects::init_build(who, type, x, y, 0, -1)` and then — when the `NEW`
+token is absent — the object's vtable slot `+0x1a8`, which `vtables.txt`
+names **`Build::activate`**. `Build::init` calls `find_city` on the way in
+and `Build::activate` ends at `City::regen_roads`, so a cheat-channel
+`add` is a finished building that flags its city exactly as a human's
+would. `ConsoleWin::parse_type` matches the type table's own name with no
+availability filter, so a prerequisite the human has not researched is not
+in the way.
+
+**The site has to bind to the city, and the simulation knows which do.**
+`Build::find_city` → `get_town` → `find_city_at` wants every footprint
+tile inside the `CITY_RADIUS` mask and `vector_dist ≤ CityData::get_radius`
+(20 tiles for a Small City), which `crate::place` already models. Scanning
+every tile 10–20 tiles from p0's centre `(16, 160)`, for every type that
+`connects_to_roads` and that `place_building` will accept — the city has a
+Library and a Market already, so those two are refused as one-per-city and
+the **Granary**, the **Lumber Mill** and the **Smelter** are not — gives
+the two the run uses:
+
+| type | tile | dist | the road our search lays |
+| --- | --- | --- | --- |
+| Granary | `(6, 171)` | 15 | `(16, 164…168)` then west `(8…16, 169)` — an L, 14 tiles |
+| Smelter | `(33, 161)` | 17 | `(20…30, 157)` — straight, 11 tiles |
+
+Both on ground with real relief (the climb term is what shapes this
+search: flattening it took run14's frame 10 from 208 nodes to 103), both
+laying road where the map has none, and on opposite sides of the city so
+neither can disturb the other.
+
+**The frames come out of the schedule.** p0's objects run 2000–2006, so
+the two new ones are 2007 and 2008, and `(frame + o) % 16 == 0` puts their
+replans on sim-frames **105** and **104**. A block `FRAME n` is the end of
+sim-frame n−1, so the window `[104, 109)` brackets both roads, the state
+before them, and the Market's and the old Library's replans behind them —
+five `DUMP_ALL` blocks, about six minutes and 300 MB.
+
+### What the run was to produce, and why it is a fifty-number oracle
+
+The dump gives the laid tiles in the `WORLD` masks and the
+post-terraform `master_land_heights` (which is why the terraform this
+simulation does not model — queue item 57 — cannot spoil the comparison:
+the heights come from the dump, after `Wall::init` has flattened the
+footprint). The trace gives, per draw, **the seed before the step**, so
+the harness can set `sim.rng.seed` to the word at the search's first
+`calc_road_cost` draw and reproduce the original's jitters exactly, then
+diff the road tile by tile instead of comparing three totals.
+
+### The block
+
+`waitwin.sh` sat ten minutes on `osascript … get name of every window of
+process`, which answers **`osascript is not allowed assistive access
+(-1728)`**, and `cliclick p` prints `0,0` with an Accessibility warning.
+Screen Recording and Automation both passed the pre-drive probe — they
+were re-approved this morning — so the lesson is that there are **three**
+permissions and they come back separately; the probe now includes
+`cliclick p`, and the memory says so. The game was killed at the main
+menu, where nothing is logged.
+
+The staging is left in place — `rise.ini` `Seed=12345 InitialDump=1`,
+`gamelog.ini` `DUMP_ALL=1`, `rise2.ini` `LogStartFrame=104
+LogEndFrame=109`, `check.ini` and `Player.dat` moved back to map style 14
+(Great Lakes, run10–14's map), `rontrace.cfg`/`rontrace.cmd` written — so
+that the run is one command once the checkbox is ticked. Anything else
+that launches the game before then gets a `DUMP_ALL`; `python3
+tools/gamelog/window.py restore` undoes it.
+
+### Numbers
+
+Unmoved, and this session booked no score: ticks 181, orders 180, ledger
+198 / 284.
