@@ -1660,17 +1660,14 @@ impl Sim {
                 // waypoint itself and let the arrival test take it.
                 target = mo.waypoint;
             } else {
-                // SEAM: the original's `set_anim(CHAR_DEFAULT, 0, 1)` here
-                // — `move_step:281`, the call at `005fb74e` and so the site
-                // `+0x823` (`docs/COLLISION.md` §5) — has no counterpart.
-                // It is named from the other side by
-                // [`crate::anim::SITE_BLOCKED`], so run14's three draws
-                // (frames 122, 184, 256) read as themselves in the ledger
-                // rather than as a bare address; making the call **here**
-                // costs both scores, because this simulation's collisions
-                // do not fall on the original's frames yet — 43340 → 42755
-                // agreeing unit-frames and 198 → 196 traced frames, measured
-                // 2026-08-28 (`docs/COLLISION.md` §7).
+                // The blocked stand — `move_step:281`, the call at
+                // `005fb74e` and so the site `+0x823`
+                // ([`crate::anim::SITE_BLOCKED`], `docs/COLLISION.md` §5).
+                // It sits **before** all three give-up tests, so a unit
+                // still owed a turn has re-rolled its idle by the time
+                // `move_step` returns.
+                self.mark(crate::anim::SITE_BLOCKED);
+                self.set_default_anim(u);
                 if step.owed != 0 {
                     let flags = self.current_order(u).map_or(0, |o| o.flags);
                     self.store_move(u, mo, flags);

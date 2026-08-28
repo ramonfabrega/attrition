@@ -527,7 +527,7 @@ changed no mechanic and moved run14 **192 → 198 of 284**.
 | `Animal::do_idle+0x1a4`, `+0x1d4`, `+0x212` | its direction and two step counts | `gaia::SITE_WANDER_{DIR,X,Y}` | — |
 | `GameAccess::rnd@0043cca0+0x20` | the farmer's cell re-pick, **two** draws | `orders::SITE_FARM_CELL` | `Unit::do_job+0x67` |
 | `Guy::set_anim+0x97a` | the arrival stand | `anim::SITE_ARRIVE` | `Guy::move+0x19f` |
-| `Guy::set_anim+0x97a` | the blocked stand — **unmodelled** | `anim::SITE_BLOCKED` | `Unit::move_step+0x823` |
+| `Guy::set_anim+0x97a` | the blocked stand | `anim::SITE_BLOCKED` | `Unit::move_step+0x823` |
 
 **`GameAccess::rnd` is frameless, and its address alone names nothing** —
 it is the helper `Random::get(0, 0xffff) % ecx`, whose call returns to

@@ -286,9 +286,16 @@ In order, with the first that fires winning:
 Modelled: the bitmask with its clear-on-move semantics and the region gate;
 the object chain over units; the probe with its parity filter and disc
 order; the `safe`, `DETOUR`, same-cell and `coll_size 0` gates; the corner
-rule; the same-player-attack exemption; `move_step`'s block; and `resolve`'s
-steps 2, 4, 5 and 6 including the throttle, the stack unwind, the centre
-snap and `find_upath`.
+rule; the same-player-attack exemption; `move_step`'s block, **including its
+`set_anim(CHAR_DEFAULT)`** (§5); and `resolve`'s steps 2, 4, 5 and 6
+including the throttle, the stack unwind, the centre snap and `find_upath`.
+
+`Animal::do_idle`'s own `detect_unit_collision` came with the last of those
+(item 49): a herd animal's wander destination is tested `quick 1` after
+`is_valid` and before the order, so a sheep with a neighbour in the way
+stays where it is. It costs no draw — all four of the wander's rolls are
+already spent by the time the gate runs — and it is what keeps this
+lobby's four `HERDSHEEP` standing where the original stands them.
 
 `Unit::set_new_location` came with it, because the mechanic needs the point
 that had been implicit: **`move_guys`**. `move_step` passes 0 and leaves the
@@ -303,17 +310,6 @@ Not modelled, each listed in §9: `detect_boat_collision` (no ships); step 1
 (`Unit::half_step` is written and nothing reads it — the halving lives
 inside `move_step`, which this crate does not thread it into); the
 `TRADE_ROUTE`, `0xc` and group arms of §4.3; the pause draw of §6's tail;
-`move_step`'s `set_anim(CHAR_DEFAULT)` (§5) — ~~this crate does not set the
-walk animation either, so setting the idle one would be a lone half of a
-pair~~ **superseded 2026-08-28: `Sim::guys_follow` does set the walk, and
-the reason the call is still not made is a measurement.** Adding it is one
-line and it **costs** both scores as things stand — 43340 → 42755 agreeing
-unit-frames on run10, 198 → 196 traced frames on run14 — because this
-simulation's collisions do not yet fall on the original's frames, so the
-extra idle rolls land where the original has none. The original's three
-draws (run14's frames 122, 184, 256) are named from its side by
-`sim::anim::SITE_BLOCKED` so that the residue reads as itself; closing the
-seam waits on the collisions themselves lining up;
 `do_move`'s own collision arm — the every-other-frame re-probe of
 `coll_x/coll_y` while a search is pending; squads, since only figure 0
 marks the index; the `WData::block == −1` sentinel; and `CollBlock`'s lazy
@@ -349,6 +345,14 @@ buildings join the chain, which is why §8 does not claim it.
   `run10_s_opening_…`.
 - **`coll_x`/`coll_y`** on every dumped move order, as a scoring order
   mismatch.
+- **§5's `set_anim(CHAR_DEFAULT)`, against run14's draw-site trace.** The
+  original spends the blocked stand on frames **122, 184 and 256** and on
+  no others; this simulation spends its first two on the same frames, to
+  the frame, which is what carries the traced word from 122 to **185**
+  (item 49, 2026-08-28). The third is past the divergence. The gate on
+  `Animal::do_idle`'s wander is measured by the same run: without it
+  gaia's `8/1` walks off on frame 108 where the original's does not move
+  for 120 frames, and takes a blocked stand of its own at 112.
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §4's naming and §6's snap-and-replan end to end, in

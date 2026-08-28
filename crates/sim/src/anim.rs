@@ -730,9 +730,15 @@ impl Sim {
             let ky = self.rng.roll() & 3;
             let y = (ky + 1) * crate::ai_place::MOVE_Y[d + 1] * 0x30 + here.y;
             let dest = Pos::new(x, y);
-            // `WorldData::is_valid`, then `detect_unit_collision` — the
-            // collision test is a seam (`docs/ORDERS.md`).
-            if self.world.accepts(dest) {
+            // `WorldData::is_valid`, then **`detect_unit_collision(dest,
+            // quick 1, boats 1, 0, 0, 0)`** — a wander onto an occupied
+            // cell is not ordered at all. The sheep of this lobby's one
+            // herd stand shoulder to shoulder, so this is the gate that
+            // keeps them still: without it `8/1` walks off on frame 108
+            // where the original's has not moved a unit in 120 frames.
+            // `boats` is asked for, but a herd animal is neither
+            // sea-domain nor a hero nor supply, so the arm never fires.
+            if self.world.accepts(dest) && !self.detect_quick(u, dest) {
                 self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::New, false);
             }
         } else {
@@ -988,6 +994,95 @@ mod tests {
         assert_eq!(init_variant(79), IDLE1);
         assert_eq!(init_variant(89), IDLE2);
         assert_eq!(init_variant(99), IDLE3);
+    }
+
+    /// **`Animal::do_idle`'s own collision test.** A wander destination
+    /// that is occupied is not ordered at all — `is_valid`, then
+    /// `detect_unit_collision(dest, quick 1, …)`. The four draws are spent
+    /// either way; only the order differs. This is what keeps a herd of
+    /// sheep standing shoulder to shoulder still, and without it run14's
+    /// `8/1` walks off on frame 108 where the original's has not moved in
+    /// 120 frames.
+    #[test]
+    fn a_wander_onto_an_occupied_cell_is_not_ordered() {
+        use crate::world::{Cell, Terrain};
+        // Both sims are the same game to the draw; only the second has a
+        // unit standing where the wander wants to go.
+        let build = |seed: u32, blocker: Option<Pos>| -> (Sim, usize, u32) {
+            let mut world = World::new(40, 40);
+            world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+            let mut s = Sim::new(Tuning::RON, world, 2);
+            s.rng = Rng::new(seed);
+            let ty = s.add_unit_type(crate::UnitType {
+                hits: 10,
+                moves: 11,
+                combat: crate::combat::Profile {
+                    block_radius: 48,
+                    big_radius: 48,
+                    uber_size: 1,
+                    ..crate::combat::Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            s.gaia.herds.push(crate::gaia::Herd {
+                cx: 10,
+                cy: 10,
+                wx: 10,
+                wy: 10,
+                kind: 408,
+                alive: true,
+            });
+            for slot in 0..4 {
+                s.art.lengths.insert((60063, slot), 90);
+            }
+            let at = herd_centre(10, 10, 10, 10);
+            let mut u = Unit::new(8, 1, at, 10);
+            u.ty = Some(ty);
+            u.herd = Some(0);
+            u.guys = vec![Guy {
+                cur_time: 89,
+                end_time: 90,
+                last_time: -1,
+                anim: DEFAULT,
+                gpiece: 60063,
+                stopped: true,
+            }];
+            let a = s.add_unit(u);
+            if let Some(p) = blocker {
+                let mut b = Unit::new(8, 2, p, 10);
+                b.ty = Some(ty);
+                s.add_unit(b);
+            }
+            let before = s.rng.seed;
+            s.animal_idle(a);
+            (s, a, before)
+        };
+
+        // The first word that carries the roll through — three in ten,
+        // and then a destination the world accepts.
+        let (seed, open, a, before) = (1u32..200)
+            .find_map(|n| {
+                let (s, a, before) = build(n, None);
+                (!s.units[a].orders.is_empty()).then_some((n, s, a, before))
+            })
+            .expect("a seed whose wander lands");
+        let dest = open.units[a]
+            .orders
+            .front()
+            .and_then(crate::orders::Order::move_dest)
+            .expect("the open ground gets a wander order");
+        let spent = open.rng.seed;
+        assert_ne!(spent, before, "the wander's own draws");
+
+        let (blocked, b, _) = build(seed, Some(dest));
+        assert!(
+            blocked.units[b].orders.is_empty(),
+            "the same wander onto an occupied cell is refused"
+        );
+        assert_eq!(
+            blocked.rng.seed, spent,
+            "and the refusal costs no draw — the gate is after all four"
+        );
     }
 
     /// Run12's frame 0: the herd centre of herd 0 at home `(22, 34)`,

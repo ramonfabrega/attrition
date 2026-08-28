@@ -876,6 +876,41 @@ mod tests {
         assert_eq!(sim.units[x].safe, 0, "one a frame, in `Unit::work`");
     }
 
+    /// §5: **the blocked stand.** A refused step asks for `CHAR_DEFAULT`
+    /// before any of the three give-up tests, so a walker re-rolls its
+    /// idle on the frame it is blocked — the draw run14 spends on frames
+    /// 122, 184 and 256, [`crate::anim::SITE_BLOCKED`].
+    #[test]
+    fn a_refused_step_re_rolls_the_idle_before_the_give_up_tests() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(27 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, _y) = pair(a, b);
+        // A guy with a piece whose idle has a length, so the roll has
+        // somewhere to land.
+        for slot in 0..4 {
+            sim.art.lengths.insert((1, slot), 40);
+        }
+        sim.units[x].guys = vec![crate::anim::Guy::fresh(1)];
+        sim.trace_phases = true;
+        sim.order_move(x, Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18));
+        let mut marks = None;
+        for _ in 0..40 {
+            sim.tick();
+            if sim.units[x].collide_o >= 0 {
+                marks = Some(sim.phase_marks.clone());
+                break;
+            }
+        }
+        let marks = marks.expect("a frame on which the step is refused");
+        let at = marks
+            .iter()
+            .position(|(l, _)| l == crate::anim::SITE_BLOCKED)
+            .expect("the blocked stand is marked on that frame");
+        // And it *drew*: the word moves between this mark and the next.
+        let after = marks.get(at + 1).map_or(sim.rng.seed, |(_, w)| *w);
+        assert_ne!(marks[at].1, after, "the blocked stand spends a draw");
+    }
+
     /// §2.1: the generated spiral is the Chebyshev disc, ring by ring, and
     /// its first nine entries are the compass the pathfinder uses.
     #[test]

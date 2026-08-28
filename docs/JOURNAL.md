@@ -5176,3 +5176,102 @@ own same-day audit kept one finding of three, but it moves no score today.
 
 Verified from the transcript, not the spawn label: this session's system
 prompt said Opus and its last twelve API rows say `claude-fable-5`.
+
+## 2026-08-28 — item 49: the blocked stand, and the sheep that had to stand still first (ticks 190 → 192, the word 122 → 185, Opus 5)
+
+Item 49 was one call this crate had never made — and it could not be made
+until an unrelated gate on gaia's animals was.
+
+### The lead, which was already written down
+
+`Unit::move_step:281` asks for `CHAR_DEFAULT` the instant a step is refused,
+**before** all three give-up tests (`docs/COLLISION.md` §5). The call is at
+`005fb74e`, so the draw site is `Unit::move_step+0x823`, and run14's trace
+spends it on frames **122, 184 and 256**. Frame 122 was the first frame whose
+draw *count* differed from the original's, and the seam had been named in the
+code since the mechanic landed.
+
+It had also been *measured* and refused. `docs/COLLISION.md` §7 said adding
+the call cost both scores — 43340 → 42755 agreeing unit-frames, 198 → 196
+traced frames — "because this simulation's collisions do not yet fall on the
+original's frames". That reading turned out to be half right and, as a
+verdict, wrong: with the debug print in, this crate enters the collision
+block on run14's frames **112, 122, 184** and then a storm from 206. Two of
+those three are the original's own, to the frame. The one that is not is
+**112, unit `8/1`** — a sheep.
+
+### The sheep
+
+The original's `8/1` does not move at all in run14: `x_internal 17448`,
+`y_internal 26424` on every frame from 0 to 119, `collide_frame −1`. This
+crate had it at `(17472, 26445)` walking to `(17640, 26568)` and bumping
+into `8/0` on the way. The dump was unambiguous and the trace agreed: our
+sheep wandered where the original's never does.
+
+`Animal::do_idle@005d7460` says why. After `WorldData::is_valid` it calls
+
+    Unit::detect_unit_collision(this, x, y, 1, 1, 0, 0, 0)
+
+and **only then** `add_move_order`. A wander destination with anything
+standing on it is not ordered at all. This lobby's four `HERDSHEEP` are one
+herd standing shoulder to shoulder, so for them the gate is not an edge case
+— it is what keeps them still. The seam was in the code as a comment
+(`// the collision test is a seam`) and cost nothing to close: the four
+wander draws are already spent by the time it runs, so it changes an order
+and never the stream.
+
+Note the shape of it. Two of the three blocked stands were *already* on the
+original's frames; what made the earlier measurement read as a loss was one
+spurious collision on an animal, fourteen frames ahead of the first real one.
+A measurement that says "the mechanic costs" and a measurement that says
+"one unit is in the wrong place" look identical from the score.
+
+### The scores
+
+| | before | after |
+|---|---|---|
+| run10 `ticks` | 190 | **192** |
+| run10 `orders` | 185 | 185 |
+| player 0's first divergence | 191 | **193** |
+| player 1's first divergence | 203 | 203 |
+| run14, first frame whose draw **count** differs | 122 | **185** |
+| run14, frames matching draw for draw | 219 / 284 | **235 / 284** |
+| run6 orders / paths | 1,588 / 1,415 | **1,351 / 1,340** |
+| run6, the farmers' share | 739 / 390 | **503 / 290** |
+| collision block, rows compared | 42,615 | 43,575 |
+| angle block, rows compared | 17,012 | 17,396 |
+
+The wander gate on its own moves nothing (190/185, and 122/219 on the trace);
+the blocked stand on its own *loses* the trace score, parting the word at 112.
+The two together are the item.
+
+run6's fall is the largest in the tranche and it is the same mechanism: six
+farmers clustered round one farm are what collides most in that capture, so
+the idle a refused step re-rolls is theirs more often than anyone's, and
+1,003 order disagreements and 198 path ones go with it.
+
+### What it cost, and what it named
+
+The second bird. Ours used to hatch at 96 and 224 against the original's 96,
+192 and 256; it now hatches at 96 alone. That is not a regression in the
+bird — the sampling reads cells off the stream, the original's second hatch
+is on frame **192**, and the word now parts at **185**, seven frames short.
+The pin says so rather than hiding it.
+
+And what parts 185 is named: two `orders::SITE_FARM_CELL` draws — the human
+farmer's cell re-pick, **item 61** — falling on 185, 187, 189 and 191 where
+the original spends them on 199. The queue's next item is the one the trace
+points at.
+
+### The checks
+
+Both new tests were made to fail first: `collide.rs`'s
+`a_refused_step_re_rolls_the_idle_before_the_give_up_tests` (the mark is
+absent without the call) and `anim.rs`'s
+`a_wander_onto_an_occupied_cell_is_not_ordered`, a differential pair — the
+same seed with and without a unit standing on the destination the open run
+picks, asserting the refusal and that it costs no draw.
+
+The trace test's `SITE_BLOCKED` assertion changed sides. It used to say the
+original names three and this crate takes none; it now asserts the original's
+three frames *and* that ours are `[122, 184]` up to the divergence.

@@ -13,29 +13,33 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after item 59 (Opus).*
+*2026-08-28, after item 49 (Opus).*
 
-**The ledger — run14's trace: the stream parts at 18 → 99 and matches 219
-of 284 frames, not 173.** Frame 99 is an *attribution*; the first frame
-whose draw **count** differs is **122**, the new sub-score.
+**The ledger — run14's trace: the stream's word runs to 185, not 122, and
+235 of 284 frames match, not 219.** The headline is **ticks 192, orders
+185**; player 0 parts at 193, player 1 at 203.
 
-**Item 59 was one draw and a whole caller.** `do_build` step 4 sets
-`CHAR_BUILD`/`CHAR_SOW`, `do_repair` opens with `CHAR_REPAIR` — both in
-`docs/ORDERS.md` §5.2/§5.6, neither implemented — so builders stayed on
-`CHAR_WALK` and spent an arrival stand the original never spends.
-`docs/ANIM.md` §4.6. **Its best row is the bird**: the first hatches on
-frame 96, the original's own, so `think_bird`'s beat matches the trace row
-for row from 104 to 192 and the coins land on 97, 127, 142, 150 both sides.
+**Item 49 was one call and one sheep.** `Unit::move_step:281` asks for
+`CHAR_DEFAULT` the instant a step is refused, before all three give-up
+tests (`docs/COLLISION.md` §5) — run14's frames 122, 184, 256. It had been
+measured as a *loss* and refused, and the loss was one spurious collision
+on gaia's `8/1` at frame **112**: `Animal::do_idle` tests its wander
+destination with `detect_unit_collision` before ordering it and this crate
+did not, so a sheep of a shoulder-to-shoulder herd walked off where the
+original's has not moved in 120 frames. With both, two of the three
+blocked stands fall on the original's own frames. run6 fell hardest:
+1,588/1,415 → **1,351/1,340**, the farmers' share 739/390 → 503/290.
 
-**`orders` rose 168 → 185 and `ticks` fell 202 → 190, the same 81 frames**:
-`1/1`'s gather wait at 169 is right now, and the headline is pinned by
-`0/4`, a farmer whose already-wrong re-target moved 220 → 186 (item 61).
-Every other unit held or improved; run6 fell 2,591/1,613 → 1,588/1,415.
+**What it named:** the two `orders::SITE_FARM_CELL` draws that part 185 —
+ours on 185, 187, 189, 191, the original's on 199 — item 61. The bird's
+second hatch (frame 192) is now past the divergence, so ours hatches once
+in 284 frames rather than twice; the pin says so.
 
-**Owed:** 40. **Needs the user:** nothing. A Fable aside moved no score; item 42.
+**Owed:** 40. **Needs the user:** nothing.
 
-**Opener (Opus):** `take item 49 from @docs/QUEUE.md — the trace's word
-parts at frame 122 on one Unit::move_step+0x823 the sim never takes.`
+**Opener (Opus):** `take item 61 from @docs/QUEUE.md — the human farmer
+re-targets on 185/187/189/191 where the original re-targets on 199, and it
+is what parts the traced word.`
 
 ## The queue
 
@@ -43,15 +47,14 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-49. **The blocked stand, and it is where the word parts.** run14's frame
-    122 has a `Guy::set_anim+0x97a < Unit::move_step+0x823` this crate does
-    not take, and it is the **first frame whose draw count differs**.
-    `move_step:281` asks for the idle before its three give-up tests;
-    `docs/COLLISION.md` §7 has what the call costs, §5 the chain, 184 and
-    256 the other two. Behind it, §8's unrun arms — three soft-collision
-    arms, the wait-for-it branch, the throttle above four repaths, the
-    `pause = % 9 + 1` draw, any `BLOCK_RADIUS ≠ 1` unit — and §9's capture,
-    which folds into item 38's.
+61. **The farmer's re-target, which parts the traced word.** A human
+    farmer re-picks its cell on 185, 187, 189 and 191 where the original
+    re-picks on 199 — two `orders::SITE_FARM_CELL` draws each time, the
+    first frame whose draw *count* differs on run14. It is the same
+    defect that pins `orders` at 185: `0/4` puts a `MOVE_TO` in front of
+    its gather on frame 186 and parts its position on 191. `do_gather`'s
+    wait (`docs/ORDERS.md` §7) against run10's `GATHERORDER wait` on
+    every frame of `0/3`, `0/4`, `0/5`.
 
 38. **One long traced capture, human versus AI, on both maps.** run14's
     trace reaches 284 of run10's 1,772 frames, so nothing on disk measures
@@ -116,10 +119,12 @@ say so. Numbers are stable; the journal is indexed by them.
     heading for audit records — the slot `FABLE:` lacks (journal, 08-28).
 
 45. **Gaia's animals, and the pasture's lengths.** `Sim::reseat_animal`
-    puts the animals back from every traced dump (`docs/SYNC.md` §4.2).
-    Widen the diff to `ANIMALDATA` — 70,960 uncompared animal-frames on
-    run10 — as a sub-score; `rondata::artdata` lacks `FARMPIG`/
-    `FARMCHICKEN` lengths (`docs/ANIM.md` §3.1).
+    puts the animals back from every traced dump (`docs/SYNC.md` §4.2), so
+    a wrong animal is invisible until an untraced run — item 49's sheep
+    cost the trace score for a week. Widen the diff to `ANIMALDATA` —
+    70,960 uncompared animal-frames on run10 — as a sub-score;
+    `rondata::artdata` lacks `FARMPIG`/`FARMCHICKEN` lengths
+    (`docs/ANIM.md` §3.1).
 
 51. **The AI's long-run economy.** The roster pins say the AI reaches eight
     citizens on the original's frames and then stalls: `1/9` at 1297 and
@@ -149,13 +154,6 @@ say so. Numbers are stable; the journal is indexed by them.
     between two searches would show (the `Recycler<PathNode>` pool, the
     containers' reuse). `docs/ROADS.md` §7.1 lists what measurement has
     ruled out; the capture is on disk, so this is a reading and a re-run.
-
-61. **`0/4`'s early re-target, which pins the headline now.** A human
-    farmer re-targets on frame 186 where the original never does (a
-    `MOVE_TO` in front of the gather) and parts its position on 191. The
-    same disagreement stood at 220 before item 59, so the `wait` has always
-    been wrong. `do_gather`'s wait (`docs/ORDERS.md` §7) against run10's
-    `GATHERORDER wait` on every frame of `0/3`, `0/4`, `0/5`.
 
 62. **The standing swap, at frame 99.** The first frame whose draw
     *sequence* differs, costing no word: ours spends

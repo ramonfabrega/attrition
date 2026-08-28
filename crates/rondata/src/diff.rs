@@ -5422,8 +5422,8 @@ mod tests {
             parted.first().cloned().unwrap_or_default()
         );
         assert!(
-            matched >= 219,
-            "the trace floor fell: {matched} of {last} frames match, the floor is 219\n{}",
+            matched >= 235,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 235\n{}",
             parted.join("\n")
         );
         // **And a stricter floor beside it: the first frame whose draw
@@ -5431,10 +5431,14 @@ mod tests {
         // not a divergence — eight draws either side, and the one that
         // differs is the same address under a different caller (ours
         // `Unit::do_idle+0x7d`, the original's `Guy::inc_time+0x271`, the
-        // standing swap `docs/SYNC.md` §6 names). The word is still the
-        // original's through frame 121; what parts it at **122** is the
-        // blocked stand, `Unit::move_step+0x823`, which this simulation
-        // does not take at all (`docs/COLLISION.md` §7, item 49).
+        // standing swap `docs/SYNC.md` §6 names).
+        //
+        // The word was the original's through 121 and parted at **122** on
+        // the blocked stand this simulation did not take. It takes it now
+        // (item 49, `docs/COLLISION.md` §5) and the word runs to **185**,
+        // where two `orders::SITE_FARM_CELL` draws — the human farmer's
+        // cell re-pick, item 61 — fall fourteen frames early: ours on
+        // 185, 187, 189 and 191, the original's on 199.
         let first_count = built
             .frame_sites
             .iter()
@@ -5442,8 +5446,8 @@ mod tests {
             .map(|(f, _)| *f)
             .unwrap_or(last);
         assert!(
-            first_count >= 122,
-            "the stream's *word* parts at frame {first_count}; the floor is 122"
+            first_count >= 185,
+            "the stream's *word* parts at frame {first_count}; the floor is 185"
         );
         // **The bird's own row, and it is the original's now.** Every
         // eighth frame carries three `Animal::think_bird` draws per living
@@ -5487,13 +5491,21 @@ mod tests {
             "the hatching roll is draw 6 of the original's sampling frame"
         );
         // **The hatch frame is a mechanism again, not drift.** run14's
-        // birds hatch at 96, 192 and 256; ours at 96 and 224. The first is
+        // birds hatch at 96, 192 and 256; ours at 96 alone. The first is
         // the original's to the frame — the sampling reads the same cells
-        // off the same stream — and the second is 32 frames late because
-        // the word has parted by then.
+        // off the same stream — and the second is the word's: the original
+        // hatches at **192**, seven frames after ours parts at 185, and
+        // the sampling is reading cells off a stream that is no longer its
+        // own. The old pin here was `[96, 224]`, a second bird 32 frames
+        // late off a word that had parted at 122; the divergence moving to
+        // 185 does not put that hatch back, it moves it past the trace's
+        // end. What the missing bird names is item 61 — the farmer's
+        // re-target, which is what parts 185 (`orders::SITE_FARM_CELL`,
+        // twice, on 185/187/189/191 where the original spends them on
+        // 199).
         let hatches: Vec<i64> = built.sim.gaia.bird_spawns.iter().map(|(f, _)| *f).collect();
-        assert_eq!(hatches, vec![96, 224], "the first is the original's frame");
-        assert_eq!(built.sim.live_birds(), 2, "both alive at the end");
+        assert_eq!(hatches, vec![96], "the first is the original's frame");
+        assert_eq!(built.sim.live_birds(), 1, "alive at the end");
         // The wing beat, which item 52 bought and item 59 put on the
         // original's frames: the hatch frame's wrap (`Guy::init_real`
         // leaves `end_time` at zero, so the same frame's `inc_time`
@@ -5581,12 +5593,10 @@ mod tests {
             ],
             "the wander's four, in order"
         );
-        // The two rows that name a draw from the **original's** side only.
         // `Guy::move+0x19f` is the arrival stand, which this simulation
-        // takes on its own frames; `Unit::move_step+0x823` is the blocked
-        // stand, which it does not take at all (`docs/COLLISION.md` §7).
-        // Without the chain both read as a bare `5dac7a` and the residue is
-        // unreadable, which is the whole of item 53.
+        // takes on its own frames. Without the chain it reads as a bare
+        // `5dac7a` and the residue is unreadable, which is the whole of
+        // item 53.
         assert!(
             trace
                 .labels(232)
@@ -5594,18 +5604,34 @@ mod tests {
                 .any(|l| l == sim::anim::SITE_ARRIVE),
             "the arrival stand is named on the trace's frame 232"
         );
-        for f in [122, 184, 256] {
-            assert!(
-                trace.labels(f).iter().any(|l| l == sim::anim::SITE_BLOCKED),
-                "frame {f}: the blocked stand is named, and unmodelled"
-            );
-        }
-        assert!(
-            !built
-                .frame_sites
+        // **The blocked stand, on the original's own frames** (item 49).
+        // `Unit::move_step+0x823` is the idle a unit re-rolls the moment
+        // its step is refused, before the three give-up tests. run14 has
+        // three of them; this simulation takes the first two on the
+        // original's frames, which is what carries the word from 122 to
+        // 185. The third is past the divergence and neither side is
+        // measuring the same game by then.
+        let blocked = |sites: &[String]| sites.iter().any(|l| l == sim::anim::SITE_BLOCKED);
+        let theirs_blocked: Vec<i64> = (0..=last).filter(|&f| blocked(&trace.labels(f))).collect();
+        assert_eq!(
+            theirs_blocked,
+            vec![122, 184, 256],
+            "the original's three blocked stands"
+        );
+        let ours_blocked: Vec<i64> = built
+            .frame_sites
+            .iter()
+            .filter(|(_, s)| blocked(s))
+            .map(|(f, _)| *f)
+            .collect();
+        assert_eq!(
+            ours_blocked
                 .iter()
-                .any(|(_, s)| s.iter().any(|l| l == sim::anim::SITE_BLOCKED)),
-            "and this simulation takes none of them"
+                .copied()
+                .filter(|&f| f <= 185)
+                .collect::<Vec<i64>>(),
+            vec![122, 184],
+            "the two before the word parts are the original's, frame for frame"
         );
 
         // And it flies, which is what keeps it out of the occupancy grid a
@@ -5802,6 +5828,21 @@ mod tests {
         //               on a different frame. Every other unit held or
         //               improved — `1/1` went 577 → 647 — and run6's
         //               totals fell from 2,591/1,613 to 1,588/1,415.
+        //   2026-08-28  ticks **192**, orders 185; player 0 @ **193**,
+        //               player 1 @ 203 (item 49: **the blocked stand**).
+        //               `Unit::move_step:281` asks for `CHAR_DEFAULT` the
+        //               moment a step is refused, *before* the three
+        //               give-up tests, and this crate skipped the call —
+        //               so a blocked unit spent no idle roll where the
+        //               original spends one. It could not be made until
+        //               `Animal::do_idle`'s own `detect_unit_collision`
+        //               was: gaia's sheep stand shoulder to shoulder, and
+        //               without that gate `8/1` wandered off on a frame
+        //               the original's has not moved on in 120, taking a
+        //               blocked stand of its own at 112 and parting the
+        //               word *earlier*. With both, run14's word runs
+        //               122 → **185** and 219 → **235** of 284 frames
+        //               match. What parts 185 is item 61's farmer.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -5810,9 +5851,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 190 && orders >= 185 && first[0] >= 191 && first[1] >= 203,
+            ticks >= 192 && orders >= 185 && first[0] >= 193 && first[1] >= 203,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 190, orders 185, player 0 @ 191, player 1 @ 203",
+             — the floor is ticks 192, orders 185, player 0 @ 193, player 1 @ 203",
             report.first_divergence
         );
         assert!(
@@ -5974,9 +6015,15 @@ mod tests {
         // positions longer on a stream that is the original's for 81 more
         // frames, so 1,865 more of their unit-frames come into view. `1/1`
         // alone parts 70 frames later.
+        //
+        // 42,615 → **43,575** with item 49 (the blocked stand), the same
+        // coverage effect a fourth time and in the up direction: the
+        // headline moved 190 → 192 and the AI's units, hundreds of frames
+        // out either way, hold their positions on a stream that is the
+        // original's for 63 more frames.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 42_615,
+            coll_seen, 43_575,
             "five fields on every agreeing unit-frame"
         );
         let coll_bad: Vec<CollideDivergence> = report
@@ -6154,8 +6201,10 @@ mod tests {
         // 16,266 → **17,012** with item 59 (the builder's animation): 746
         // more unit-frames hold their positions on a stream that is the
         // original's for 81 more frames.
+        // 17,012 → **17,396** with item 49 (the blocked stand): 384 more,
+        // and the headline went 190 → 192.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 17_012, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 17_396, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -6506,8 +6555,12 @@ mod tests {
         // standing on their city, so they are compared where they used not
         // to be — and the check that says this is the right trade is the
         // first-divergence list, every entry of which held or improved.
+        // 2,084/1,254 → **848/1,050** with item 49 (the blocked stand):
+        // run6 is run10's game, so the two blocked stands go with it, and
+        // the ceiling comes down to what the run now measures rather than
+        // to a peak nobody has reached since.
         assert!(
-            orders - farmer_orders <= 2_084 && paths - farmer_paths <= 1_254,
+            orders - farmer_orders <= 848 && paths - farmer_paths <= 1_050,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.
@@ -6560,8 +6613,13 @@ mod tests {
         // everyone. The farmers' own share moved twenty rows the other way,
         // because their second re-target still rolls past the last traced
         // word — the same drift this split has always carried.
+        // 739/390 → **503/290** with item 49 (the blocked stand), and the
+        // totals with them: 1,588/1,415 to **1,351/1,340**. Six farmers in
+        // a cluster round one farm are what collides most in this capture,
+        // so the idle a refused step re-rolls is theirs more often than
+        // anyone's — and it puts them back on the original's stream.
         assert!(
-            farmer_orders <= 739 && farmer_paths <= 420,
+            farmer_orders <= 503 && farmer_paths <= 290,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }
