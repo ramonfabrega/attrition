@@ -31,12 +31,19 @@ pub struct Herd {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Gaia {
     pub herds: Vec<Herd>,
-    /// Bird spawns the sampling hit and the sim does not model: the frame
-    /// and the cell. Each is a divergence from there on (`Guy::init_real`
-    /// draws once, then `think_bird` every eight frames).
+    /// Every bird the sampling has hatched: the frame and the cell. Kept
+    /// because no dump prints owner 9, so this is the only record a check
+    /// can compare against the trace's `Animal::init` births.
     pub bird_spawns: Vec<(i64, Cell)>,
-    /// Live birds (who 9, type `0x192`) — none until birds exist.
-    pub birds: i32,
+    /// Each live bird's patrol point — the `AirOrder`'s single waypoint,
+    /// which `Animal::think_bird` steps and `Unit::do_air_physics` flies
+    /// at. Nothing else reads it; it is here so the bird's own state is
+    /// state rather than a discarded draw.
+    pub bird_goals: Vec<(usize, Pos)>,
+    /// Frames on which a bird's landing roll came up — the branch whose
+    /// thirty rounds are **not** modelled (`docs/SYNC.md` §3.9). Empty on
+    /// every capture so far.
+    pub bird_landings: Vec<(i64, i16)>,
 }
 
 /// The flag a bird's cell must carry — `WData.flags & 0x20`, a mountain
@@ -45,7 +52,7 @@ pub const BIRD_CELL: u16 = 0x20;
 /// The feature bits a herd's wander centre must not carry.
 pub const FEATURE_MASK: u16 = 0x70;
 
-/// The four draw sites, under the original's own offsets. [`Sim::mark`]
+/// The draw sites, under the original's own offsets. [`Sim::mark`]
 /// writes them into [`Sim::phase_marks`], so the tail's twenty-two draws
 /// are compared against `rondata::trace`'s by name rather than as one
 /// `gaia 22` (`docs/SYNC.md` §5).
@@ -53,6 +60,23 @@ pub const SITE_BIRD_X: &str = "Objects::process_all+0x2df";
 pub const SITE_BIRD_Y: &str = "Objects::process_all+0x30b";
 pub const SITE_HERD_X: &str = "Herd::process+0x17";
 pub const SITE_HERD_Y: &str = "Herd::process+0x36";
+/// `Animal::think_bird@005d79e0` — the patrol point's two offsets and the
+/// landing roll, the three draws a live bird spends every eighth frame
+/// (`docs/SYNC.md` §3.9).
+pub const SITE_BIRD_WANDER_X: &str = "Animal::think_bird+0x82";
+pub const SITE_BIRD_WANDER_Y: &str = "Animal::think_bird+0xa6";
+pub const SITE_BIRD_LAND: &str = "Animal::think_bird+0x1f8";
+
+/// The owner `Objects::process_all` creates a bird under —
+/// `init_unit(objects, 9, BASE_GAIATYPES, …)`. Gaia's animals are owner 8;
+/// its birds and a pasture's five are owner 9, and **no dump prints owner
+/// 9 at all**, so the draw-site trace is the only oracle a bird has.
+pub const BIRD_OWNER: crate::Player = 9;
+
+/// `BASE_GAIATYPES` — the `TypeIndex` of the bird, the first of the twelve
+/// gaia types. `think_bird` tests it by identity, and the sampling counts
+/// live units of exactly this type.
+pub const BIRD_TYPE_INDEX: i32 = 0x192;
 
 impl Sim {
     /// The tail of `Objects::process_all`, after the unit and building
@@ -68,9 +92,17 @@ impl Sim {
 
     /// Up to ten attempts, two draws each (`% xs`, `% ys`); a `0x20` cell
     /// spawns a bird.
+    ///
+    /// **The attempt count is `min(10, xs·ys/100)` less the birds already
+    /// flying**, so the sampling shrinks as they accumulate: run14's traces
+    /// ten pairs at frames 0, 32, 64 and 96, nine at 128, 160 and 192 (one
+    /// bird, born at 96) and eight at 224 and 256 (two, the second born at
+    /// 192). Counting the live ones wrongly is worth two draws a sampling
+    /// frame, which is why the count is taken from the unit list rather
+    /// than kept.
     fn sample_birds(&mut self, frame: i64) {
         let (xs, ys) = (self.world.width(), self.world.height());
-        let mut n = (xs * ys / 100).min(10) - self.gaia.birds;
+        let mut n = (xs * ys / 100).min(10) - self.live_birds();
         while n > 0 {
             let x = if xs <= 1 {
                 0
@@ -87,8 +119,140 @@ impl Sim {
             let c = Cell { x, y };
             if self.world.cell_data(c).flags & BIRD_CELL != 0 {
                 self.gaia.bird_spawns.push((frame, c));
+                self.spawn_bird(c);
             }
             n -= 1;
+        }
+    }
+
+    /// The simulation's index for [`BIRD_TYPE_INDEX`], if the data layer
+    /// loaded it. A world stood up without the tables has none, and then
+    /// the sampling records its spawns and creates nothing.
+    pub fn bird_type(&self) -> Option<usize> {
+        self.unit_types
+            .iter()
+            .position(|t| t.type_index == BIRD_TYPE_INDEX)
+    }
+
+    /// Live units of exactly the bird type — the original's own loop over
+    /// every object testing `flags & 1`, `is_unit` and `type+4 == 0x192`.
+    pub fn live_birds(&self) -> i32 {
+        let ty = self.bird_type();
+        self.units
+            .iter()
+            .filter(|u| u.alive() && u.ty == ty && ty.is_some())
+            .count() as i32
+    }
+
+    /// `init_unit(objects, 9, BASE_GAIATYPES, cell centre)` and the
+    /// `add_air_patrol_order` that follows it.
+    ///
+    /// The creation itself is on the stream: `Unit::init` builds the guy and
+    /// `Guy::init_real` rolls its variant, which is run14's frame-96 draw 6
+    /// — taken *inside* the sampling loop, between the third pair and the
+    /// fourth, exactly where the hit fell.
+    fn spawn_bird(&mut self, c: Cell) -> Option<usize> {
+        let ty = self.bird_type()?;
+        let pos = Pos::new(
+            c.x * crate::world::UNITS_PER_CELL + crate::world::UNITS_PER_CELL / 2,
+            c.y * crate::world::UNITS_PER_CELL + crate::world::UNITS_PER_CELL / 2,
+        );
+        let index = self
+            .find_free(BIRD_OWNER, crate::UNIT_BASE, crate::BUILD_BASE)
+            .unwrap_or(i16::MAX);
+        let mut unit = crate::Unit::new(BIRD_OWNER, index, pos, self.unit_types[ty].hits);
+        unit.kind = self.unit_types[ty].kind;
+        unit.ty = Some(ty);
+        let at = self.add_unit(unit);
+        self.init_guys(at, Some(ty));
+        Some(at)
+    }
+
+    /// `Animal::think_bird@005d79e0`, the `0x192` arm — what
+    /// `Unit::do_air_patrol+0x28` calls on every one of the bird's frames.
+    ///
+    /// ```text
+    /// spell_time < 0 → run;  else spell_time += 1, run only when frame & 7 == 0
+    /// mana_burn = 0
+    /// the patrol point moves:  spell_time < 1 → ±0x28 on each axis (% 0x51)
+    ///                          else            → ±7    on each axis (% 0xf)
+    ///     kept when both are on the map and the destination cell's region
+    ///     is the point's own
+    /// spell_time ≥ 0 → the order's target object is cleared
+    /// spell_time > 0: spell_time += 1; when it is not 1, one more draw —
+    ///     `% spell_time`, and `== 100` or `> 799` starts the landing
+    ///     search (thirty rounds, two draws each). The modulus is the
+    ///     counter, so the search cannot fire before the bird has been
+    ///     flying a hundred think-cycles, and no traced frame reaches it.
+    /// ```
+    ///
+    /// **Three draws a think, and only the third's modulus is state** — the
+    /// two offsets decide where the bird goes and nothing reads that, which
+    /// is why this models the counter exactly and the flight loosely.
+    pub(crate) fn think_bird(&mut self, u: usize, frame: i64) {
+        let counter = self.units[u].spell_time;
+        if counter >= 0 {
+            self.units[u].spell_time = counter.saturating_add(1);
+            if frame & 7 != 0 {
+                return;
+            }
+        }
+        let counter = self.units[u].spell_time;
+        let span = if counter < 1 { 0x51 } else { 0xf };
+        let back = if counter < 1 { 0x28 } else { 7 };
+        let from = self.bird_goal(u);
+        self.mark(SITE_BIRD_WANDER_X);
+        let x = from.x + self.rng.roll() % span - back;
+        self.mark(SITE_BIRD_WANDER_Y);
+        let y = from.y + self.rng.roll() % span - back;
+        let to = Pos::new(x, y);
+        // The bounds are in position units — `world.xs · 0xc0` on each
+        // axis — and the region test is the *point's* own, not the bird's:
+        // the step is kept only when it stays inside the region the patrol
+        // point already sits in.
+        if x >= 0
+            && y >= 0
+            && x < self.world.width() * crate::world::UNITS_PER_CELL
+            && y < self.world.height() * crate::world::UNITS_PER_CELL
+            && self.world.region_of(to.cell()) == self.world.region_of(from.cell())
+        {
+            self.set_bird_goal(u, to);
+        }
+        if counter <= 0 {
+            return;
+        }
+        let counter = counter.saturating_add(1);
+        self.units[u].spell_time = counter;
+        if counter == 1 {
+            return;
+        }
+        self.mark(SITE_BIRD_LAND);
+        let r = self.rng.roll() % i32::from(counter);
+        // The landing search — thirty rounds over the region's cell list,
+        // two draws each — is unreachable until the counter passes 100, and
+        // no traced frame has entered it (`docs/SYNC.md` §3.9). Its draws
+        // are **not** modelled; a bird that reaches it is recorded so a
+        // capture that does reach it reads as a note rather than as silent
+        // drift.
+        if r == 100 || r > 799 {
+            self.units[u].spell_time = 0;
+            self.gaia.bird_landings.push((frame, self.units[u].index));
+        }
+    }
+
+    /// The patrol point of a bird, which starts on the cell it hatched in.
+    fn bird_goal(&self, u: usize) -> Pos {
+        self.gaia
+            .bird_goals
+            .iter()
+            .find(|(b, _)| *b == u)
+            .map_or(self.units[u].pos, |(_, p)| *p)
+    }
+
+    fn set_bird_goal(&mut self, u: usize, to: Pos) {
+        match self.gaia.bird_goals.iter_mut().find(|(b, _)| *b == u) {
+            Some((_, p)) => *p = to,
+            None => self.gaia.bird_goals.push((u, to)),
         }
     }
 

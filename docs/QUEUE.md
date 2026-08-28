@@ -13,36 +13,34 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-27, after item 47.*
+*2026-08-28, after item 50.*
 
-**The headline — run10, 1,772 frames, RNG seeded from run11's trace: ticks
-before divergence 181, orders 168; player 0 first diverges at frame 182,
-player 1 at 203.** It moved from 122 / 170, and the pin in
-`run10_s_opening_…` carries the history.
+**The headline — run10, 1,772 frames: ticks before divergence 185, orders
+168; player 0 first diverges at frame 186, player 1 at 203.** It moved from
+181 / 168.
 
-**Landed:** item 47 — **the AI builder does not keep what it built**.
-`do_build`'s two gather arms and `do_repair`'s carry a `unit_masks &
-0x40000` term this crate lacked: only a *human* adopts the site it just
-finished. `1/1` now walks to the original's camp, tile and `dist_mod`, and
-the first gather-tile disagreement went 169 → 430. New differential check:
-`FrameResult::extra_units`, `unlinked`'s mirror — it caught the AI's ninth
-citizen standing here 400 frames early, which one-sided counting could not
-see. Item 51 is what that leaves.
+**A second score, and it is what this session bought.** Run14 is run10's own
+lobby and seed under `tools/trace`: 284 frames of the original's draws named
+by site. `run14_s_frames_match_the_trace_draw_for_draw` compares the whole run
+frame by frame — **184 of 284 match draw for draw**, up from 179 — and its
+failure message is a ledger of every hole in the stream. Frame 0 was the only
+frame checked this way until today.
+
+**Landed:** item 50 — **the bird**. `1/1`'s frame-169 draw was never one frame
+to read: the last installed word is frame 103's and the stream is 33 draws
+short by the time the tile is picked. Twenty-seven are gaia's bird, hatched at
+frame 96 and never created here. `docs/SYNC.md` §3.9; `wait` went 581 → 476
+against 460, and the last ten are item 52.
 
 **Owed:** unchanged — items 42 and 40 (`ORDERS.md` 191,190, `CITIES.md`
-106,854 and `SYNC.md` 70,026).
+106,854).
 
 **Needs the user:** nothing.
 
-**Opener (Opus):** `proceed @docs/QUEUE.md — raise the headline. Two units
-pin the two scores. Orders, 168: at frame 169 `1/1`'s camp-return draw is
-ours 581 against theirs 460 — the same `400 + rnd % 200` on a different
-word, so the stream is off earlier in that frame and `--diff`'s per-frame
-draw counts say where. Ticks, 181: `0/3` at 181 holds `[Move, Gather]`
-where the original holds `[Gather]`, and parts on 182. docs/ORDERS.md §6.3,
-§6.4. Take the draw first: it is earlier and it is one frame to read. Raise
-the floor and add its history line. Take nothing that cannot name the score
-it moves.`
+**Opener (Opus):** `proceed @docs/QUEUE.md — raise the order score. It is
+pinned by ten draws between frames 103 and 168 and six are one thing: the
+bird's animation (item 52, docs/SYNC.md §3.9). Run the ledger test first; it
+names every other hole. Take nothing that cannot name the score it moves.`
 
 ## The queue
 
@@ -50,20 +48,36 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-50. **`0/3`'s move that will not die.** The order score's first
-    divergence, frame 181: player 0's citizen holds `[Move, Gather]` where
-    the original holds `[Gather]` alone, and on 182 the two positions part
-    — which is the whole of player 0's 182. `docs/ORDERS.md` §6.3's walk
-    and §6.4's camp return are where it lives. It is the item nearest the
-    headline.
+52. **The bird's animation, and the last ten draws before frame 169.**
+    `docs/SYNC.md` §3.9: `Guy::set_anim`'s bird branch (`+0x104b`) draws
+    once and takes the second walk animation when `rnd % 100 > 0x31`; run14
+    spends it 28 times, **25 as phase-7 wraps**, six of them between the
+    last traced word and frame 168. A wrap needs the animation's *length*,
+    which is art data — and no dump prints owner 9, so `Art` has no entry
+    and this crate's bird never wraps. Read `Unit::do_air_physics@005e86d0`
+    and `Guy::set_anim`'s bird path; the check is run14's wrap frames (97,
+    127 ×2, 142, 150 ×3, 181, 193, 212, 223 ×2, 238, 243 ×8, 257, 261, 274
+    ×2, 279, 284). The other four: one `Guy::set_anim+0x97a <
+    Unit::move_step+0x823` arrival stand at frame 122, most likely one of
+    gaia's drifting animals (item 45), and three of market, displaced by
+    the rest rather than wrong. Score: the order score, 168, and the
+    ledger, 184.
 
-38. **One long traced capture, human versus AI, on both maps.** run10 is the
-    longest capture and predates the trace, so its RNG is seeded from a
-    sibling and nothing on disk can measure the whole against the original
-    for more than 300 traced frames. Gamelog at `UNITS=3` plus `rontrace`,
-    ≥ 1,800 frames, the recipe in `docs/ORACLE.md`; then pin its headline
-    beside run10's and retire tests on captures it supersedes. This is the
-    measurement every later item is scored on.
+53. **The ledger's other hundred frames.** The failure message of
+    `run14_s_frames_match_the_trace_draw_for_draw` lists them, and the
+    dominant shape is not a mechanic: our side marks `unit 0/5` where the
+    trace names `GameAccess::rnd+0x20` under a caller `trace::SITES` does
+    not carry, so the counts agree and the frame still fails. A table row
+    each. `Animal::do_idle+0x83` — the animals' wander roll — has no row at
+    all. `PathFinder::calc_road_cost+0x46` (frames 10, 11, 171; 226, 254
+    and 197 draws) is the caravan road, its own item.
+
+38. **One long traced capture, human versus AI, on both maps.** run14's
+    trace reaches 284 of run10's 1,772 frames, so nothing on disk measures
+    the whole against the original by site. Gamelog at `UNITS=3` plus
+    `rontrace`, ≥ 1,800 frames, the recipe in `docs/ORACLE.md`; then pin
+    its headline beside run10's and retire the tests it supersedes. It
+    would also lengthen the ledger sixfold.
 
 35. **`mylos` as a cache.** `docs/VISION.md` §7 has the design: a
     `unit_stats_dirty` bit per player and a cached `mylos` refreshed where
@@ -76,9 +90,9 @@ say so. Numbers are stable; the journal is indexed by them.
     screen of trace. Each caller is also where a group's mirror flag would
     move (`docs/GROUPS.md` §4.1).
 
-37. **The arrival frame's facing.** Two rows in run10, the AI scout the
-    frame after an `EXPLORE_TO` arrival. `docs/MOVEMENT.md` open questions
-    names the suspect; `GUYS=2` prints `guy_flags` on every capture — a grep.
+37. **The arrival frame's facing.** Two rows in run10, the AI scout the frame
+    after an `EXPLORE_TO` arrival. `docs/MOVEMENT.md`'s open questions name
+    the suspect; `GUYS=2` prints `guy_flags` on every capture — a grep.
 
 48. **The object chain, whole.** `crates/sim/src/collide.rs` chains units
     only; the original threads buildings and goodies through the same list
@@ -93,8 +107,7 @@ say so. Numbers are stable; the journal is indexed by them.
     order.angle)`; no run has fired the XOR term. *Capture:* `UNITS=3` +
     `GROUPS=1` over a group ordered one way, turned right round while
     marching, re-ordered — in Refused or an Echelon, which also settles the
-    `angles` byte's sign (item 19). `docs/GROUPS.md` §13. Fold into item 38's
-    capture if the shapes can share a run.
+    `angles` byte's sign (item 19). `docs/GROUPS.md` §13. Fold into item 38.
 
 49. **Collision's unrun arms.** `docs/COLLISION.md` §8 lists what no
     capture has executed: three of the four soft-collision arms, the
@@ -107,22 +120,22 @@ say so. Numbers are stable; the journal is indexed by them.
     units, fog, order lines, with the original's dump overlaid for the same
     frame. It needs no parity, would have shown the untyped trained unit and
     the seven-frame stand on sight, and is the renderer's first slice. One
-    earned windowing dependency. Take it when a residue is opaque in the
-    tables, not before.
+    earned windowing dependency; take it when a residue is opaque in the
+    tables.
 
-40. **The spec/story split, one document per touch.** The eight documents
-    over 60 KB are pinned in `docs_guard::OVER` and may only shrink. When a
+40. **The spec/story split, one document per touch.** The documents over
+    60 KB are pinned in `docs_guard::OVER` and may only shrink. When a
     session touches one: keep the rules, fields, formulas and a **Coverage**
     section (diff-backed / reading-only / unmodelled); move the narrative to
     the journal; lower the pin. The Coverage section is also what a blind
     reader is briefed with.
 
-41. **The second-map harness, and `scenario.py`'s fate.** `seedini.py` and
-    the early window stay. `scenario.py`'s cheat generator has produced
-    nothing and cannot issue orders; before deleting it, run the one
-    measurement that could redeem it — `zsh tools/fuzz/run.sh 424242 1000
-    1300`, then `tools/trace/report.py … blind docs/` against both traces —
-    and record whether any of its 188 extra functions is on the blind list.
+41. **The second-map harness, and `scenario.py`'s fate.** `seedini.py` and the
+    early window stay. `scenario.py`'s cheat generator has produced nothing and
+    cannot issue orders; before deleting it, run the one measurement that could
+    redeem it — `zsh tools/fuzz/run.sh 424242 1000 1300`, then
+    `tools/trace/report.py … blind docs/` against both traces — and record
+    whether any of its 188 extra functions is on the blind list.
 
 42. **The ratification ledger, in batches.** `docs/audit/README.md`: fifteen
     audits adjudicated on Opus, the groups fourth pass first (it overturns
@@ -135,21 +148,18 @@ say so. Numbers are stable; the journal is indexed by them.
     frames (`docs/SYNC.md` §4.2's tail). It is a correction, it is noted as
     one, and it should die: widen the diff to the `ANIMALDATA` record — 40
     of run10's 54 objects, uncompared to this day — as its own sub-score,
-    then close what it shows. Frame 94's 6 against 472 is the size of what
-    stands between here and that.
+    then close what it shows. Frame 122's unspent arrival stand (item 52)
+    is most likely one of these.
 
 51. **The AI's long-run economy, now that the roster is measured both
-    ways.** `FrameResult::extra_units` (item 47) is the mirror of
-    `unlinked`, and together they say the AI reaches eight citizens on the
-    original's frames and then stalls: the original trains `1/9` at 1297
-    and `1/10` at 1505 and this simulation reaches neither inside 1,772
-    frames, where before item 47 it was reaching `1/9` four hundred frames
-    *early* off one farmer too many. So the gap was always there and the
-    one-sided measure was paying it off. Two threads to pull, in order:
-    the AI's citizens spend long stretches on `AttackTo` moves rather than
-    gathering (`docs/ARMY.md`; the original's `1/6`–`1/8` sit on the camp
-    and the fourth farm for the whole run), and the income itself —
-    `CITY.gatherers` is in every dump at every detail level and is
+    ways.** `FrameResult::extra_units` is the mirror of `unlinked`, and
+    together they say the AI reaches eight citizens on the original's
+    frames and then stalls: the original trains `1/9` at 1297 and `1/10` at
+    1505 and this simulation reaches neither inside 1,772 frames. Two
+    threads, in order: the AI's citizens spend long stretches on `AttackTo`
+    moves rather than gathering (`docs/ARMY.md`; the original's `1/6`–`1/8`
+    sit on the camp and the fourth farm for the whole run), and the income
+    itself — `CITY.gatherers` is in every dump at every detail level and is
     uncompared. Score it on the roster pin, 744 + 0.
 
 Older backlog, one line each, unchanged: the `LEADERDATA` and `CITY`

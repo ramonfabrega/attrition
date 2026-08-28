@@ -181,6 +181,13 @@ pub struct Unit {
     /// `UnitData::stance`, the worker stance: 1 is the normal citizen (builds
     /// and gathers), 0 gathers only, 2 builds only.
     pub stance: u8,
+    /// `UnitData::spell_time` (`+0x98`) — a caster's clock, and the field a
+    /// **bird** reuses as its patrol counter: `Animal::think_bird` steps it
+    /// every frame it runs and again on each eighth, and the number it has
+    /// reached is the modulus of the landing roll (`crate::gaia`,
+    /// `docs/SYNC.md` §3.9). `Unit::init` clears it with `mana_burn`, so a
+    /// bird starts at 0.
+    pub spell_time: i16,
     /// `unit_masks & 0x400`: has been given a build or repair order.
     pub was_builder: bool,
     /// `SubObjectData::flags & 0x10`: could not reach its target.
@@ -554,6 +561,7 @@ impl Unit {
             idle: 0,
             idle_threshold: 2,
             stance: 1,
+            spell_time: 0,
             was_builder: false,
             cant_reach: false,
             decoy: false,

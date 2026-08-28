@@ -3941,3 +3941,103 @@ gave up the superseded `FARM_GROWS` narrative to pay for the room (the story
 is in this file's 2026-08-24 entry) and the pin came down 191,335 → 191,190.
 `crates/sim/src/cities_tests.rs` carries the split as a test, written to fail
 first.
+
+## 2026-08-28 — item 50: the bird, and the ledger that found it (headline 181 → 185, Opus 5)
+
+The opener said the order score's first divergence was one frame to read:
+at frame 169 `1/1`'s camp-return draw is ours 581 against theirs 460, the
+same `400 + rnd % 200` on a different word, so read frame 169. It is not
+one frame. It is sixty-five.
+
+### The measurement that turned it into a ledger
+
+`1/1` picks its tile in the *same* frame on both sides — the dump has
+`tx 212, ty 93, wait 460` at `FRAME 169`, and the simulation writes its own
+`wait` on the tick that produces that block. So the tile choice is right and
+the **word** is wrong, and the word is wrong because the last one installed
+from a dump is frame 103's: everything from 104 to 168 runs on the
+simulation's own stream. Walking the LCG forward from the frame-104 word
+says how far: our draw is the 460th, and the nearest word yielding 60 is
+**33 further on**.
+
+Thirty-three is not a bug in a frame. It is a bill.
+
+Paying it needed the original's per-frame draws for a stretch no `DUMP_ALL`
+window covers — and **run14 has them**. It is run10's own lobby and seed
+with `tools/trace` attached, 284 frames, every draw named by its site. The
+harness already had both halves of the comparison (`trace::SITES`,
+`diff::mark_sites`) and used them on frame 0 alone; `Built::frame_sites`
+now records the simulation's own sequence on **every** frame, before the
+word is installed, and `run14_s_frames_match_the_trace_draw_for_draw`
+compares all 284. The first run: **179 of 284**, and a list naming what is
+missing on each of the other 105.
+
+The thirty-three, itemised: 27 `Animal::think_bird`, 6 phase-7 wraps of a
+guy of owner 9, −4 from a sampling loop that ran two pairs too many twice,
++3 from a market run displaced by the rest, +1 an arrival stand. Every one
+of them, except the last, is **the bird**.
+
+### The bird
+
+`Objects::process_all`'s tail samples ten cells every 32 frames and hatches
+a bird on a `flags & 0x20` one. The simulation had been drawing the twenty
+sampling draws and *recording* the hit — `gaia.bird_spawns` — and creating
+nothing. So it missed `Guy::init_real`'s hatching roll, missed
+`Animal::think_bird`'s three draws every eighth frame from then on, and
+kept sampling ten pairs where the original, one bird up, samples nine.
+
+Run14 settles all three without a capture:
+
+- hatchings at **96, 192, 256** (`Guy::init_real` < `Unit::init` <
+  `Animal::init`);
+- the sampling at **10, 10, 10, 10, 9, 9, 9, 8, 8** on frames 0…256;
+- `think_bird` at **3, 3, … 6, 6, … 9** — three a live bird, every eighth
+  frame, from 104.
+
+`think_bird`'s counter is `UnitData::spell_time`, which a bird reuses: it
+steps every frame the function runs and again on each think, and the number
+it has reached is the **modulus of the landing roll**. That is why the
+landing search — thirty rounds, two draws each — cannot fire for the first
+ninety frames of flight and fires on no traced frame: `rnd % counter` can
+only equal 100 once the counter has passed it.
+
+`docs/SYNC.md` §3.9 has the whole of it. The two things that made it cheap
+were `is_air` — the domain is loaded, so a bird need not paint the
+occupancy grid, and a documented seam closed itself — and the fact that
+nothing reads a bird's patrol point, so the flight can be loose while the
+stream is exact.
+
+### What it did not close, and why the order score did not move
+
+`Guy::set_anim`'s bird branch draws once and takes the second walk
+animation when `rnd % 100 > 0x31`. Run14 spends it 28 times, **25 of them
+as phase-7 wraps**, and a wrap falls when the animation ends — so it needs
+the bird's two animation *lengths*. Those are art data, `Art` is read out
+of a dump's `GUY` blocks, and **no dump prints owner 9 at all**. The
+simulation's bird carries `piece = −1`, never wraps, and is six draws short
+between frame 103 and frame 168. `1/1`'s `wait` went 581 → **476** against
+460: nearer, and still on the wrong word.
+
+That is the honest shape of it. The tick score moved because positions stop
+depending on the stream sooner than orders do; the order score is pinned by
+a bird's animation, and the item that unpins it is named with the frames
+that check it.
+
+### Numbers
+
+| | before | after |
+|---|---|---|
+| **ticks before divergence** | **181** | **185** |
+| orders before divergence | 168 | 168 |
+| player 0 first divergence | 182 | **186** |
+| player 1 first divergence | 203 | 203 |
+| **frames matching the trace, draw for draw** | **179 / 284** | **184 / 284** |
+| `1/1`'s frame-169 `wait` (theirs 460) | 581 | 476 |
+
+### Paperwork
+
+`docs/SYNC.md` gains §3.9 and strikes "Birds after creation"; it paid for
+the room by giving up two closed narratives — the frame-0 tail and frame
+3's extra draw — whose stories are in this file's 2026-08-24 and
+2026-08-26 entries, and the pin came down 70,026 → 67,763.
+`docs/COLLISION.md` records the air seam as closed.

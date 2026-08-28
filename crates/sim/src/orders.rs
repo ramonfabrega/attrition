@@ -771,6 +771,17 @@ impl Sim {
     /// replaces the whole of it (`anim.rs`).
     fn do_idle(&mut self, u: usize, frame: i64) {
         if self.units[u].is_gaia() {
+            // A bird is never idle in the original: it carries the
+            // `AirOrder` `Objects::process_all` gave it at birth, and
+            // `do_job` runs `Unit::do_air_patrol` on it every frame, whose
+            // first act is `Animal::think_bird`. SEAM: this crate has no
+            // `AirOrder`, so the bird stands here instead and the patrol's
+            // own step — `do_air_physics`, its `set_anim` and the flight —
+            // is unmodelled (`docs/SYNC.md` §3.9).
+            if self.units[u].ty == self.bird_type() {
+                self.think_bird(u, frame);
+                return;
+            }
             self.animal_idle(u);
             return;
         }

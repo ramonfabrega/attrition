@@ -63,7 +63,10 @@ Marking is gated three ways, all in `Object::add_to_world` and
 `CollCheck::move_unit`:
 
 - `coll_size != 0` — a type with `BLOCK_RADIUS 0` is never in the index;
-- `ObjectType::domain != 2` — aircraft do not occupy ground;
+- `ObjectType::domain != 2` — aircraft do not occupy ground. The
+  simulation carried this as a stated seam (`is_air` returned false, since
+  nothing flew); it is the loaded domain since 2026-08-28, when gaia's
+  bird became the first air unit to stand up (`docs/SYNC.md` §3.9);
 - **the region gate**: a cell is marked only when the world cell's
   `WData::region` equals `get_tregion` of the marking figure's **own tile**,
   or the figure's tile has no region. So a block does not spill across a

@@ -171,7 +171,8 @@ Then, still inside `process_all`:
   `flags & 0x70` feature and its `+0x11` byte `< 8`. Run12: herd 0's
   `wy 34 → 35` with `wx 22` kept — the pair `(1, 2) mod 3`.
 
-Landed: the birds' sampling and the herd walk, `crates/sim/src/gaia.rs`.
+Landed: the birds' sampling, the bird itself (§3.9) and the herd walk,
+`crates/sim/src/gaia.rs`.
 
 ### 3.3 The farms — `Farms::inc_time@008d8600`
 
@@ -414,6 +415,85 @@ settles the type without one.
   and the simulation stands its animals up only for a farm read off a dump
   (`Sim::farm_add_animals` has no caller in `Sim::activate`). No capture
   contains one.
+
+### 3.9 The bird — `Animal::think_bird@005d79e0`, `Unit::do_air_patrol@005ea620` (2026-08-28)
+
+A bird is the object `Objects::process_all`'s sampling creates: `init_unit(
+who 9, BASE_GAIATYPES)` at the hit cell's centre (`cell·0x300 + 0x180` on
+each axis) and `add_air_patrol_order` on the same point. From that frame it
+is in the unit loop's who-9 slot every frame, and `do_job` runs
+`do_air_patrol`, whose **first act** — the `+0x180` virtual at `+0x28` — is
+`think_bird`.
+
+**No dump prints owner 9 at all** (run20's first `FULL DUMP` has 104
+`ANIMALDATA` records and not one; run13's window has none across ten
+frames). So the draw-site trace is the bird's only oracle, and every claim
+here is a site or a count from run14.
+
+`think_bird`, the `0x192` arm, with `spell_time` (`UnitData+0x98`, named by
+the type record; `Unit::init` clears it with `mana_burn`, so a bird starts
+at 0) as its counter:
+
+```
+spell_time < 0                     → run;
+else spell_time += 1, run only when frame & 7 == 0     # every frame, the step
+mana_burn = 0
+the order's patrol point moves:
+    spell_time < 1 → x += rnd % 0x51 − 0x28 ; y += rnd % 0x51 − 0x28
+    else           → x += rnd % 0xf  − 7    ; y += rnd % 0xf  − 7
+    kept when 0 ≤ x < xs·0xc0, 0 ≤ y < ys·0xc0 and the new cell's region is
+    the point's own (not the bird's)
+spell_time ≥ 0 → the order's target object is cleared
+spell_time > 0: spell_time += 1; when it is not 1, one more draw —
+    rnd % spell_time; == 100 or > 799 starts the landing search
+```
+
+**Three draws every eighth frame per live bird**, and nothing else: the
+landing search's thirty rounds (two draws each, over the region's cell
+list) cannot fire until the counter has passed 100 — the counter is the
+modulus — which is ~90 frames of flight, and no traced frame reaches it.
+`0x194` returns after an `order_type` call and draws nothing.
+
+Run14 is the whole of the evidence and it is exact:
+
+| what | run14 |
+|---|---|
+| hatchings (`Guy::init_real` under `Animal::init`) | frames **96, 192, 256** |
+| the sampling's pairs | 10 at 0/32/64/96, **9** at 128/160/192, **8** at 224/256 |
+| `think_bird` | **3** a frame at 104…192, **6** at 200…256, **9** at 264…280 |
+
+— which is the count read off the unit list rather than kept: the sampling
+is `min(10, xs·ys/100)` less the birds alive *at that moment*, and a bird
+born inside the loop is not yet counted by it.
+
+**What the simulation has.** The hatching (a unit of owner 9 with the
+type's guy, so `Guy::init_real` is spent where the original spends it), the
+live count, `think_bird` whole, and the patrol point as state. `is_air` is
+now the domain rather than the seam it was, so a bird does not paint the
+occupancy grid a citizen walks on (`docs/COLLISION.md` §2).
+
+**What it does not, and what each is worth.** All of it is
+`Guy::set_anim`'s bird branch and the flight it serves:
+
+- **`Guy::set_anim+0x104b`** — `set_anim(CHAR_WALK)` on a guy of owner 9
+  and type `0x192`–`0x194` draws once and takes the **second** walk
+  animation when `rnd % 100 > 0x31` (`set_anim:620`). Run14 spends it 28
+  times: **25 as phase-7 wraps** under `Guy::inc_time+0x271` and 3 under
+  `Unit::do_air_physics+0x683`. Six of the 25 fall between the last traced
+  word and frame 168, which is most of what still stands between the
+  simulation's stream and the original's there.
+- **The lengths.** A wrap falls when the animation ends, and the bird's
+  two lengths are art data — the `AnimationPacket` frame counts. `Art` is
+  read out of a dump's `GUY` blocks, and no dump has a bird, so there is
+  no entry: the simulation's bird carries `piece = −1`, every length
+  lookup fails and it never wraps. **This is the open item**, and the
+  check is run14's own list — 97, 127 (×2), 142, 150 (×3), 181, 193, 212,
+  223 (×2), 238, 243 (×8), 257, 261, 274 (×2), 279, 284.
+- **`Unit::do_air_physics@005e86d0`** and the flight: unread past its
+  `set_anim` site.
+- **The landing search**, unreachable on every capture; a bird that
+  reaches it is recorded in `Gaia::bird_landings` rather than drifting
+  quietly.
 
 ## 4. Run12 attributed
 
@@ -759,75 +839,24 @@ struck through and point there.
   are at 110–113, not 116–119, and they are phase-7 wraps** —
   `Guy::set_anim+0x97a` < `Guy::inc_time+0x271` < `Unit::inc_time+0x3e`,
   followed by the six farms at 114–119 (the farms are the frame's *last*
-  draws). The "not a wrap" verdict below read the variants at the wrong
-  slot; which four guys wrap and why the variants read as they do is the
-  remaining reconciliation (`docs/ANIM.md` §9). The rest of frame 0, in
-  order: 2 `compute_sites`, 18 market, **4 stands from `Unit::do_idle+0x7d`
-  through `Unit::set_anim+0x56`/`+0xb6`** (20–23), **24 `think_scout`**
+  draws). The rest of frame 0, in order: 2 `compute_sites`, 18 market,
+  **4 stands from `Unit::do_idle+0x7d`** (20–23), **24 `think_scout`**
   (`+0x436` ×6, `+0x458` ×2, `+0x64c` ×16; 24–47), 40 `Animal::do_idle`
   (48–87), 20 `Objects::process_all+0x2df`/`+0x30b` (88–107), 2
-  `Herd::process` (108–109). Original text: Nothing after `Farms::inc_time` in
-  `do_frame` names `game_random`. The alternative reading — five draws in
-  the buildings' `process` before the birds (`Wall::process` reaches
-  `Object::disband`, which draws) and only five farms — is consistent with
-  every pin too; run12's `BUILDDATA` shows no site or disband at frame 0.
-  A frame-0 `GUYS=4` capture (every `set_anim` logs its index at detail 4)
-  or a second `DUMP_ALL` on a lobby with a different farm count separates
-  them. **Tried and refused, run12 (2026-08-24):** phase 7's wrap draws
-  (§2 step 7) were the obvious candidate — and the end-of-frame-0 dump
-  does show exactly four guys at `cur_time 0` where everything else stands
-  at 1, the four woodcutters `0/1`, `0/2`, `1/1`, `1/2`, whose idle anims
-  are 1, 0, 0, 0. But neither slot fits: draws 110–113 read variants
-  `2,0,0,0` and 116–119 `0,1,0,0`, while 36, 37, 46, 47 read `1,0,0,0` as
-  §4 has them. So the tail is not a wrap, and why those four guys end frame
-  0 un-stepped is unread. The gates, named from `types.txt`:
-  `Unit::inc_time` steps the guys when **`inside_up < 0`** (`UnitData+0x82`
-  — a garrisoned unit's clock stops) or the type's `+4` category is
-  `0x34`/`0x35`; `Guy::inc_time`'s step is 0 while **`unit_masks2 & 0x10`**
-  (`+0x6c`). Both are clean for the four at the end of frame 0, so the
-  remaining candidate is the `execute_events` call that follows each
-  unit's `inc_time` in `Objects::inc_time` — an event that sets an
-  animation there would leave `cur_time 0`. A `GUYS=4` frame-0 capture
-  settles it. **Narrowed, 2026-08-24 (`docs/ANIM.md` §5):** the four
-  woodcutters' draws are unit-phase stands (the camp stand of
-  `do_non_flat_gather`; a same-slot `set_anim` leaves `cur_time 0`, a
-  wrap could not), and the dump rules out `inside_up` (−1), `unit_masks2`
-  (0) and the object flags (1) at every pass — so the skipped step is
-  neither gate `Unit::inc_time` tests. Still open; it moves those four
-  wraps by one frame. **Sharpened on two more maps, 2026-08-26 (§4.2):
-  the sim spends the citizens' stands in the unit loop and the original
-  does not spend them at all** — it wraps the same guys in phase 7
-  instead, and the two errors cancel in the total (+4/−4 on run20,
-  +5/−5 on the fuzzed map) while leaving the order and every outcome
-  wrong. Run20's own end-of-frame-0 dump splits the four woodcutters in
-  two: `1/1` and `1/2` end at `cur_anim 1, cur_time 0, end_time 232` — a
-  wrap — and `0/1`, `0/2` at `cur_anim 0, cur_time 1, end_time 33`, which
-  is a `set_anim` that took no draw at all (`param_3 == 0`; the roll is
-  gated on it, §3.2). So two of the four wraps have owners and two do
-  not. The capture that would settle it is unchanged: a frame-0 `GUYS=4`
-  window, where every `set_anim` logs its guy.
+  `Herd::process` (108–109).
 
   **Closed 2026-08-26, and the `GUYS=4` window was never booked.** The
   whole-frame sequence check (§5.1) named the divergence on its first run
   — draw 22, ours `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0x10f`
-  against theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d` — and the
-  answer was one line of the harness's own, not a gate of the original's.
-  **`do_non_flat_gather`'s camp-arrival branch has no `CHAR_DEFAULT`.**
-  The decompile (`:398`–`:416`) decrements `wait`, sets `been_there`,
-  returns if `wait < 0`, then `set_angle` and a two-way
-  `CHAR_DUMP_WOOD` / `CHAR_DUMP_ORE`; the listing at `5f0b5e`–`5f0b89`
-  shows the pair and no third `set_anim`, and `been_there` is written
-  there and never read. The sim had a first arrival standing idle
-  instead, which was the invention. Its two halves were the same line:
-  the stand was **resetting the citizens' clocks**, so the wraps the
-  original spends in phase 7 never fell due. Removing it moved four
-  draws, not two — the eight-against-four row and the zero-against-four
-  row of §4.2's table closed together, and both traced maps' frame 0 now
-  matches draw for draw. The dump's two-of-four is not a contradiction:
-  a wrap whose roll lands on the slot already running leaves `cur_time`
-  stepping, so it prints as an ordinary step. **`docs/ANIM.md` §5's "the
-  four woodcutters' draws are unit-phase stands" is superseded** — they
-  are wraps, and phase 7 did not skip them.
+  against theirs `< Unit::do_idle+0x7d` — and the answer was one line of
+  the harness's own: **`do_non_flat_gather`'s camp-arrival branch has no
+  `CHAR_DEFAULT`** (`:398`–`:416`, the listing at `5f0b5e`–`5f0b89`). The
+  invented stand had been resetting the citizens' clocks, so the wraps the
+  original spends in phase 7 never fell due; removing it moved four draws,
+  not two, and both traced maps' frame 0 now matches draw for draw.
+  `docs/ANIM.md` §5's "the four woodcutters' draws are unit-phase stands"
+  is superseded — they are wraps. The four readings this replaced, and why
+  each looked right, are in `docs/JOURNAL.md` (2026-08-24 and 2026-08-26).
 - ~~**The human scout's ~~15~~ 14 and the AI scout's ~~8~~ 6** (the dogs' rolls
   are the other three, `docs/ANIM.md` §5) are placed by elimination,
   not by outcome~~ — **placed by site (run14): `Unit::think_scout` draws
@@ -852,76 +881,29 @@ struck through and point there.
   moves: measured by running the sim on the true stream (§5), not by
   reading.~~ Measured: the sim draws 54 of 54, so the split is whatever the
   sim's script, `produce_building` and `do_move` take — and they add up.
-- **Frame 3's extra draw.** The sim's `do_move` rolls its `% 5` grid
-  threshold for one of the three woodcutters' walks (`orders.rs`, the
-  "first `do_move` of a move `find_path` refuses" reading of
-  `do_move@005f7b30:599`); the original's frame 3 is the six farms and
-  nothing else — **confirmed by site (run14): frames 2 and 3 carry six
-  `Farms::inc_time+0x1ae` draws each and no other `game_random` call**, so
-  the divergence is entirely the sim's gate. The gate before that draw — `invalid_loc` on the order's
-  cell, `path_recursion > 1`, and `find_path`'s return — is read
-  differently for at least one of the three walks. The same three units
-  are run6's earliest position divergences (`0/2` at frame 4). **Narrowed
-  by run13 (§5):** the seven walks the window starts — six farmers at 102,
-  the new citizen at 103 — draw nothing on either side, so the gate agrees
-  on short walks onto a farm and to a camp; what is different about frame
-  3's three is still to find (forest, most likely — the flat harness
-  world's `invalid_loc` is the SEAM `find_path` names). **Widened
-  2026-08-26:** the site is `Unit::do_move+0xe84` (the call is at
-  `005f89af`), it is marked now, and run20's **frame 1** shows the same
-  gate twice — two `Unit::do_move+0xe84` draws the sim spends and the
-  original does not, which is two of that frame's three-way gap. Run21's
-  23,000 frames reach the original's own `+0xe84` five times in total, all
-  under `do_attack_to` / `do_explore_to` / `do_group_move` / `do_guard`,
-  and never under a gather's transit — so whatever opens the gate, a
-  woodcutter's walk to a tile does not.
+- **Frame 3's extra draw.** The original's frames 2 and 3 carry six
+  `Farms::inc_time+0x1ae` draws each and no other `game_random` call
+  (confirmed by site, run14), so the divergence is entirely the sim's own
+  gate — the one before `Unit::do_move+0xe84`'s `% 5`: `invalid_loc` on
+  the order's cell, `path_recursion > 1`, and `find_path`'s return.
 
-  **Half closed, 2026-08-26, and the answer was upstream of the gate:
-  `find_path`'s pull-back.** `docs/ORDERS.md` §4.6 has carried it since the
-  first reading — *while `invalid_loc(goal tile, 0,0,0,0,0)`, pull the goal
-  back toward us by `(sx, cy)`, rewriting `mo->waypoint` and the stack top
-  where they are the goal* (`005fbaa6`–`005fbb56`) — and the simulation had
-  never implemented it. A woodcutter is sent at a **forest tile**, forest
-  refuses, and the original therefore sends it at the last open point short
-  of the forest and marches a line that never enters a bad tile. The sim
-  marched into the forest, found the tile invalid, had no
-  `go_around_building` to ask, and paid the grid draw for a detour the
-  original never needed. Landed in `Sim::find_path`; **run20's frame 1 went
-  from two of these to one, and neither the Great Lakes nor the fuzzed map
-  moved by a single draw or a single position** — the one change on the
-  three captures on disk. Run20's path-stack disagreements over four frames
-  fell 25 → 21.
-
-  ~~**What remains is the AI scout's, and it is `go_around_building`
-  proper.**~~ **Closed 2026-08-26** — `docs/ORDERS.md` §4.6.1,
-  `crates/sim/src/orders.rs`. The last `Unit::do_move+0xe84` on any capture
-  is gone: run20's frame 1 is **53 against 53, draw for draw over the whole
-  sequence**, and frames 0, 1 and 2 all match on that map now. Its
-  path-stack disagreements over five frames fell **21 → 17** (path-length
-  5 → 3, path-to 16 → 14); the Great Lakes and the fuzzed map did not move
-  by a draw or a position, and run6's long pin held at 1,552/1,160.
-
-  **The check is the original's own stack, not the count.** Unit `1/1`'s
-  path at frame 2 is `[{(41640, 39384), tol 0, flags 1}, {(40644, 39036),
-  tol 0, flags 0}]`, and the sim produces exactly those two entries — the
-  second being what the edge walk pushed, with the `off % 0xc0 / 2` skew
-  that puts it `36` off the tile centre rather than on it.
-
-  **And the residue was never the unit this document named.** It said `1/0`
-  at `(38040, 40344)` on a waypoint of `(38784, 39552)`, clipping the
-  building at tile `(201, 207)`. On the commit that landed the mechanic the
-  only unit whose march reaches the blocked branch on run20's frame 1 is
-  `1/1`; `1/0` never enters it, because its `find_wpath` chain has moved
-  since that reading. The count was one both times and the owner was wrong
-  — see §4.2.
+  **Two thirds of it closed 2026-08-26, and the answer was upstream of the
+  gate: `find_path`'s pull-back** — while `invalid_loc(goal tile)`, pull
+  the goal back toward us by `(sx, cy)`, rewriting `mo->waypoint` and the
+  stack top (`005fbaa6`–`005fbb56`, `docs/ORDERS.md` §4.6). A woodcutter
+  sent at a **forest tile** is therefore sent at the last open point short
+  of it; the simulation had marched in, found the tile invalid and paid
+  the grid draw for a detour the original never needed. The last
+  `+0xe84` went with `go_around_building` proper (§4.6.1): run20's frame 1
+  is **53 against 53, draw for draw**, and its path-stack disagreements
+  over five frames fell 25 → 17.
 
   **And the Great Lakes' frame-3 extra draw is no longer this one at all**
   — it is a `Unit::do_non_flat_gather+0x54b`, a citizen picking a tile a
-  frame the original does not. Measured on the same commit with the
-  pull-back reverted, so it was already so before this session; the
-  attribution above ("the sim's `do_move` rolls its `% 5` for one of the
-  three woodcutters' walks") is stale for run10 and was only ever right for
-  run20.
+  frame the original does not. The `do_move` attribution was only ever
+  right for run20. The story, and the residue whose owner this document
+  named wrongly twice, is in `docs/JOURNAL.md` (2026-08-26).
+
 - ~~**`Farms::add`'s two draws.**~~ **Settled 2026-08-26 and modelled,
   §3.8**, with no capture: they are the **ambience emitter's** `x` and `y`
   offsets, spent once per *city* by the first wheat farm placed while the
@@ -1017,7 +999,12 @@ struck through and point there.
   1` for a citizen); the harness installs the clocks beside the words. What
   it left open is its §9: the woodcutters' un-stepped frame 0, the dog's
   own roll, the unobserved lengths, `think_farm_animal`.
-- **Birds after creation** (`think_bird`, `do_air_physics`), and
+- ~~**Birds after creation** (`think_bird`, `do_air_physics`)~~ — **read
+  and modelled 2026-08-28, §3.9**: `think_bird` is three draws every
+  eighth frame per live bird, and its landing search is unreachable.
+  `do_air_physics` and `Guy::set_anim`'s bird branch stay open, and the
+  25 phase-7 wraps they leave unspent are what still stands between the
+  simulation's stream and the original's after frame 103. And
   `Farms::add`/`add_animals` at a farm's creation — event-driven, unread
   past their draw sites.
 - ~~**`Checksum Dump` / `Checksum Break`** (`gamelog.ini`; internal strings

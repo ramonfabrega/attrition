@@ -143,9 +143,14 @@ impl Sim {
     }
 
     /// `ObjectType::domain == 2` — air, which neither occupies ground nor
-    /// collides. SEAM: no domain is loaded, so every unit is land.
-    const fn is_air(&self, _u: usize) -> bool {
-        false
+    /// collides.
+    ///
+    /// ~~SEAM: no domain is loaded, so every unit is land.~~ The domain is
+    /// loaded (`UnitKind::domain`, `rondata::load`), and the first air unit
+    /// the simulation ever stands up is gaia's bird (`crate::gaia`), which
+    /// must not paint the occupancy grid a citizen walks on.
+    fn is_air(&self, u: usize) -> bool {
+        self.units[u].kind.domain == crate::attrition::Domain::Air
     }
 
     /// The region gate (`docs/COLLISION.md` §2): a cell is written only

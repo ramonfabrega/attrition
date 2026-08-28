@@ -128,6 +128,11 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Objects::process_all@0065dce0` — the birds' sampling.
     (0x0065_dfbf, None, sim::gaia::SITE_BIRD_X),
     (0x0065_dfeb, None, sim::gaia::SITE_BIRD_Y),
+    // `Animal::think_bird@005d79e0` — a live bird's three, every eighth
+    // frame, under `Unit::do_air_patrol+0x28` < `Unit::do_job+0xd7`.
+    (0x005d_7a62, None, sim::gaia::SITE_BIRD_WANDER_X),
+    (0x005d_7a86, None, sim::gaia::SITE_BIRD_WANDER_Y),
+    (0x005d_7bd8, None, sim::gaia::SITE_BIRD_LAND),
     // `Herd::process@00741760` — one herd's walk.
     (0x0074_1777, None, sim::gaia::SITE_HERD_X),
     (0x0074_1796, None, sim::gaia::SITE_HERD_Y),

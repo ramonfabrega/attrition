@@ -63,6 +63,13 @@ pub struct Built {
     /// beside the word, so the clocks are the original's where the stream
     /// is.
     pub frame_guys: crate::gamelog::FrameGuys,
+    /// Per frame ticked, the simulation's own draws as a sequence of site
+    /// labels — [`mark_sites`] over the frame's marks, taken **before** the
+    /// word is installed. Filled only while [`sim::Sim::trace_phases`] is
+    /// on, which is what makes a whole run comparable against
+    /// [`crate::trace::Trace::labels`] frame for frame rather than one
+    /// hand-seeded frame at a time.
+    pub frame_sites: Vec<(i64, Vec<String>)>,
 }
 
 /// A sim guy from a dump's `GUY` record, when the record carries the
@@ -658,6 +665,7 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         frame_seeds: init.frame_seeds.clone(),
         rng_frames: Vec::new(),
         frame_guys: init.frame_guys.clone(),
+        frame_sites: Vec::new(),
     }
 }
 
@@ -1271,6 +1279,13 @@ impl Built {
         let frame = self.sim.frame;
         let word_before = self.sim.rng.seed;
         self.sim.tick();
+        // The frame's own draws, named, before anything is installed —
+        // the harness's side of `Trace::labels(frame)`.
+        if self.sim.trace_phases
+            && let Some(sites) = mark_sites(&self.sim.phase_marks, self.sim.rng.seed)
+        {
+            self.frame_sites.push((frame, sites));
+        }
         if let Some(&(_, theirs)) = self.frame_seeds.iter().find(|(n, _)| *n == frame) {
             let ours = draws_between(word_before, self.sim.rng.seed);
             let orig = draws_between(word_before, theirs);
@@ -4561,6 +4576,137 @@ mod tests {
     /// the rush order, two farms go down at step 3 and the city is never
     /// placed. So `1/9` (1297) and `1/10` (1505) are the ceiling, 744
     /// unit-frames, and the per-frame draws are what move it. The earlier
+    /// **Every traced frame, draw for draw** — the whole-run form of
+    /// `frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps`, and
+    /// the sub-score the untraced stretch is worked against.
+    ///
+    /// Run14 is run10's own lobby and seed with the draw-site instrument
+    /// attached, and it carries **284 frames** rather than the nine a
+    /// `DUMP_ALL` window can afford. The dump's words are installed at the
+    /// ends of frames 0–3 and 94–103 as always; everywhere else the
+    /// simulation's stream is its own, and this compares the *sites*
+    /// rather than the values — so a frame can be checked draw for draw on
+    /// a stretch where nothing else can reach it at all.
+    ///
+    /// The number is a floor and it is what says whether a stream item
+    /// converged. History:
+    ///
+    ///   2026-08-28  **179** of 284 (the first pin)
+    ///   2026-08-28  **184** of 284 (the bird, `docs/SYNC.md` §3.9): the
+    ///               nine frames of `Animal::think_bird`'s three draws
+    ///               between 104 and 168, and the sampling's own count.
+    ///
+    /// A frame is counted only when the two label sequences are equal, so
+    /// a coarse mark on our side (`unit 1/9` against a `GameAccess::rnd`
+    /// the table does not name) fails it even where the counts agree.
+    /// Making a mark finer therefore *raises* this number, which is the
+    /// intended incentive: `docs/SYNC.md` §5.1's "mark the phase before
+    /// believing the total".
+    #[test]
+    fn run14_s_frames_match_the_trace_draw_for_draw() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace)) = (
+            dump("gamelog-run10-world6-long.txt"),
+            trace("rontrace-run14.log"),
+        ) else {
+            eprintln!("skipping: set RON_GAMELOG_DIR");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let last = trace.frames.last().map_or(0, |(n, _)| *n);
+        assert_eq!(last, 284, "run14's traced length");
+        for _ in 0..last {
+            built.tick();
+        }
+        let mut matched = 0usize;
+        let mut parted: Vec<String> = Vec::new();
+        for (frame, ours) in &built.frame_sites {
+            let theirs = trace.labels(*frame);
+            if *ours == theirs {
+                matched += 1;
+                continue;
+            }
+            let at = (0..ours.len().max(theirs.len()))
+                .find(|&i| ours.get(i) != theirs.get(i))
+                .unwrap_or(0);
+            parted.push(format!(
+                "frame {frame}: ours {} theirs {} — at {at}, ours {:?} theirs {:?}",
+                ours.len(),
+                theirs.len(),
+                ours.get(at),
+                theirs.get(at),
+            ));
+        }
+        assert!(
+            matched >= 184,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 184\n{}",
+            parted.join("\n")
+        );
+        // The bird's own row, stated so a regression reads as itself. Nine
+        // eighth-frames between 104 and 168 carry three
+        // `Animal::think_bird` draws on both sides, and frame 96's
+        // hatching draw sits at index 6 — inside the sampling loop,
+        // between the third pair and the fourth.
+        let think = |f: i64| -> usize {
+            built
+                .frame_sites
+                .iter()
+                .find(|(n, _)| *n == f)
+                .map_or(0, |(_, s)| {
+                    s.iter()
+                        .filter(|l| l.starts_with("Animal::think_bird"))
+                        .count()
+                })
+        };
+        for f in [104, 112, 120, 128, 136, 144, 152, 160, 168] {
+            assert_eq!(think(f), 3, "frame {f}: the bird's three");
+        }
+        let ninety_six = &built
+            .frame_sites
+            .iter()
+            .find(|(n, _)| *n == 96)
+            .expect("frame 96")
+            .1;
+        assert_eq!(
+            ninety_six[6],
+            sim::anim::SITE_INIT_REAL,
+            "the hatching roll is draw 6 of the sampling frame"
+        );
+        // The first bird is on the original's own stream — frame 96, the
+        // last traced word being frame 103's — and it hatches here too.
+        // The later ones are **not**: the sampling's cells come off a
+        // stream that has drifted, so run14's second and third (192, 256)
+        // do not line up and this run hatches four. That is the untraced
+        // stretch showing, not the sampling being wrong; it closes when
+        // the stream does.
+        assert_eq!(
+            built.sim.gaia.bird_spawns.first().map(|(f, _)| *f),
+            Some(96),
+            "the first bird hatches on the original's frame"
+        );
+        assert_eq!(built.sim.live_birds(), 4, "and three more off the drift");
+        // And it flies, which is what keeps it out of the occupancy grid a
+        // citizen walks on — `collide.rs`'s `is_air` is the loaded domain
+        // now rather than the seam it was (`docs/COLLISION.md` §2).
+        let bird = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.owner == sim::gaia::BIRD_OWNER)
+            .expect("a bird");
+        assert_eq!(bird.kind.domain, sim::attrition::Domain::Air);
+    }
+
     /// 268 was on a stream that was not the original's.
     #[test]
     fn run10_s_opening_trains_the_original_s_citizens_on_its_frames() {
@@ -4657,6 +4803,18 @@ mod tests {
         //               Camp `2001` — the same camp, the same tile
         //               `(212, 93)`, the same `dist_mod 4`. The first
         //               gather-tile disagreement went 169 → 430.
+        //   2026-08-28  ticks 185, orders 168; player 1 @ 203, player 0 @
+        //               186 (item 50: **the bird**, `docs/SYNC.md` §3.9).
+        //               Frame 96's sampling hatches one, and from 104 a
+        //               live bird spends three `Animal::think_bird` draws
+        //               every eighth frame that this crate was not
+        //               spending — twenty-four of them between the last
+        //               traced word and the frame `1/1` picks its tile.
+        //               The order score does not move with it: at the tile
+        //               draw the stream is still ten draws short, and
+        //               `1/1`'s `wait` went 581 → 476 against 460. Six of
+        //               the ten are the bird's own animation, which needs
+        //               a length no dump carries.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -4665,9 +4823,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 181 && orders >= 168 && first[0] >= 182 && first[1] >= 203,
+            ticks >= 185 && orders >= 168 && first[0] >= 186 && first[1] >= 203,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 181, orders 168, player 0 @ 182, player 1 @ 203",
+             — the floor is ticks 185, orders 168, player 0 @ 186, player 1 @ 203",
             report.first_divergence
         );
         assert!(
@@ -4802,9 +4960,18 @@ mod tests {
         // them reads that one stale `collide_guy`. 392 of the 400 are
         // `1/3`'s; the field tally is the check that says so, and it is
         // asserted below rather than left to the total.
+        //
+        // 42,630 → **41,225** with item 50 (the bird): the *coverage*
+        // moved, not the mechanic. This counter is five fields on every
+        // unit-frame whose position already agrees, so it follows each
+        // unit's own parting frame rather than the headline's — and the
+        // headline went 181 → 185 while `0/1`, `1/1` and `1/2`, hundreds
+        // of frames out on a stream the bird has changed, part 281
+        // unit-frames sooner between them. The two assertions that say the
+        // mechanic is still right are below and both held.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 42_630,
+            coll_seen, 41_225,
             "five fields on every agreeing unit-frame"
         );
         let coll_bad: Vec<CollideDivergence> = report
@@ -4845,8 +5012,17 @@ mod tests {
         // the original picked `(213, 92)`. That one tile pinned the
         // headline at ticks 3. It went to 169 — `1/1`, the citizen the
         // original turned into a woodcutter and this simulation kept on the
-        // farm it had built — and with item 47 it is **430**, where the
+        // farm it had built — and with item 47 it is 430, where the
         // woodcutter `1/6` chooses its second tree of the game.
+        //
+        // **413 with item 50 (the bird), and this one moved the wrong
+        // way.** Which tree a woodcutter's second choice lands on is decided
+        // by `find_gather_spot` on a stream that is still ten draws short
+        // of the original's from frame 168 (`docs/SYNC.md` §3.9), so it is
+        // luck rather than a rule until that closes — and this time the
+        // luck went against. Said plainly rather than folded into a
+        // ceiling: the two scores that decide the item both rose, and this
+        // sub-score fell 17 frames.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -4863,7 +5039,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(430),
+            Some(413),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -4915,8 +5091,13 @@ mod tests {
         // frame 123 to frame 208.
         // 16,206 → 17,018 with item 47, against 6,866 → 6,926 bad: of the
         // 812 rows the AI builder's fix brought into view, 752 agree.
+        // 17,018 → **16,456** with item 50 (the bird), the same coverage
+        // move the collision tally makes: this counts unit-frames whose
+        // positions agree, so it follows each unit's own parting frame,
+        // and three units hundreds of frames out part sooner on a stream
+        // the bird has changed. The headline went 181 → 185.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 17_018, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 16_456, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -5301,8 +5482,17 @@ mod tests {
         // collide constantly, so their walks now go round each other on the
         // 48-grid. Everyone else's share fell on both halves (1,979/1,194
         // to 1,930/1,120), and run10 — the same game — went 122 → 170.
+        // 675/420 → **719/404** with item 50 (the bird, `docs/SYNC.md`
+        // §3.9), and this is the same re-base every stream change makes
+        // here: run6 is run10's game, so a bird hatches in it too and
+        // spends three draws every eighth frame from then on. The farmers'
+        // *second* re-target rolls past the last traced word, on the sim's
+        // own stream, so its tiles move whenever the stream does — in
+        // either direction, and here both (orders +44, paths −16). The
+        // half of this test with teeth is `rest`, which is held to the
+        // letter and did not move; run10's headline went 181 → 185.
         assert!(
-            farmer_orders <= 675 && farmer_paths <= 420,
+            farmer_orders <= 719 && farmer_paths <= 420,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }
