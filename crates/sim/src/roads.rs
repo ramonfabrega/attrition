@@ -131,7 +131,7 @@ impl Sim {
     /// searching — and the `set == 0` teardown that *removes* a footprint's
     /// roads are both unmodelled; nothing in a traced game reaches them, and
     /// `City::regen_roads` is what actually flags a building here.
-    pub(crate) fn place_roads(&mut self, b: usize) {
+    pub fn place_roads(&mut self, b: usize) {
         let Some(ty) = self.buildings[b].ty else {
             return;
         };
@@ -226,7 +226,7 @@ impl Sim {
 
     /// The endpoints, and the search between them. Returns the road's tiles
     /// as positions, empty when there is no road to lay.
-    pub(crate) fn find_road(&mut self, from: usize, to: usize) -> Vec<Pos> {
+    pub fn find_road(&mut self, from: usize, to: usize) -> Vec<Pos> {
         let (Some(fty), Some(tty)) = (self.buildings[from].ty, self.buildings[to].ty) else {
             return Vec::new();
         };
@@ -675,6 +675,39 @@ mod tests {
         assert!(connects_to_roads(&types, 1), "a university does");
         assert!(connects_to_roads(&types, 2), "a library does");
         assert!(!connects_to_roads(&types, 3), "a no-city type does not");
+    }
+
+    /// `Wall::start@0063e810` passes `REGEN_FORCE` to `mask_me`, whose
+    /// tail is `place_roads` — so the ring and the road are laid the moment
+    /// a building **starts**, and the flag `City::regen_roads` sets is what
+    /// makes it happen *again* later. Before run32 nothing here modelled
+    /// that, because no traced game had placed a non-farm building: the
+    /// setup's own go up before the first frame and the AI never got past
+    /// its citizens (`docs/QUEUE.md` item 51).
+    #[test]
+    fn a_building_lays_its_road_when_it_starts_not_when_its_flag_comes_round() {
+        let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));
+        sim.plan_roads = true;
+        let before = sim.rng.seed;
+        // Placed, not yet started: nothing is laid and nothing is drawn.
+        let b = sim
+            .place_building(0, lib_ty, centre_of(Pos::new(40, 52)))
+            .expect("the library places");
+        assert!(!sim.buildings[b].started, "a site is not started");
+        assert!(!is_road(&sim, 40, 52), "an unstarted site has laid no ring");
+        assert_eq!(sim.rng.seed, before, "and taken no draw");
+        // Starting it lays the ring and plans the road in one go.
+        sim.start_building(b);
+        assert!(is_road(&sim, 38, 50), "the ring is down");
+        assert!(
+            sim.rng.seed != before,
+            "and the search has drawn its jitter a node"
+        );
+        let road: Vec<i32> = (44..52).filter(|&y| is_road(&sim, 40, y)).collect();
+        assert!(
+            road.len() >= 4,
+            "a road runs back towards the city: {road:?}"
+        );
     }
 
     #[test]

@@ -382,7 +382,47 @@ fn checksums_in<'a>(fields: &[(&'a str, &'a str)]) -> Vec<Checksum<'a>> {
     }
 }
 
+/// The `master_land_heights` carried by one block or any block under it.
+///
+/// `GameLog::dump_all@0092f2d0` prints `SimpleArray<float>::log_data` with
+/// no block of its own, right after `UnbuiltForts::log_data`, so the
+/// `length N` and the `list[scan]` values land on the `UnbuiltForts` block
+/// at the same indent — the one whose `length` is over 1,000 (the forts
+/// list itself is `length 0`). The waterline arrays that follow land there
+/// too, so the values are taken in field order rather than by key.
+fn heights_in(b: &Block<'_>) -> Option<Vec<i64>> {
+    if b.name == "UnbuiltForts"
+        && let Some(at) = b
+            .fields
+            .iter()
+            .position(|(k, v)| *k == "length" && v.trim().parse::<usize>().is_ok_and(|n| n > 1000))
+    {
+        let n: usize = b.fields[at].1.trim().parse().unwrap_or(0);
+        let values: Vec<i64> = b.fields[at + 1..]
+            .iter()
+            .filter(|(k, _)| *k == "list[scan]")
+            .take(n)
+            .filter_map(|(_, v)| micro(v.trim()))
+            .collect();
+        if values.len() == n {
+            return Some(values);
+        }
+    }
+    b.children.iter().find_map(heights_in)
+}
+
 impl<'a> Log<'a> {
+    /// The `BUILDDATA` records of one frame's block — every building the
+    /// original had standing at the end of sim-frame `n − 1`, with the
+    /// `orig_type` and `build_masks` a `DUMP_ALL` block always carries.
+    pub fn frame_builds(&self, n: i64) -> Vec<BuildDump> {
+        self.dumps()
+            .into_iter()
+            .find(|(f, _)| *f == n)
+            .map(|(_, b)| records(b, false).1)
+            .unwrap_or_default()
+    }
+
     /// The terrain's height grid from a `DUMP_ALL` dump, in millionths
     /// (see [`Initial::heights`]). `GameLog::dump_all@0092f2d0` prints
     /// `SimpleArray<float>::log_data(terrain->master_land_heights)` with no
@@ -391,40 +431,22 @@ impl<'a> Log<'a> {
     /// block at the same indent — the one whose `length` is over 1,000
     /// (the forts list itself is `length 0`). Empty when no dump has it.
     pub fn terrain_heights(&self) -> Vec<i64> {
-        fn walk<'b, 'a>(b: &'b Block<'a>, out: &mut Vec<&'b Block<'a>>) {
-            if b.name == "UnbuiltForts" {
-                out.push(b);
-            }
-            for k in &b.children {
-                walk(k, out);
-            }
-        }
-        let mut found = Vec::new();
-        for r in &self.roots {
-            walk(r, &mut found);
-        }
-        for b in found {
-            // The `length N` over 1,000 and the `list[scan]` run right after
-            // it — the waterline arrays that follow at the same indent land
-            // on this block too, so the values are taken in field order,
-            // not by key.
-            let Some(at) = b.fields.iter().position(|(k, v)| {
-                *k == "length" && v.trim().parse::<usize>().is_ok_and(|n| n > 1000)
-            }) else {
-                continue;
-            };
-            let n: usize = b.fields[at].1.trim().parse().unwrap_or(0);
-            let values: Vec<i64> = b.fields[at + 1..]
-                .iter()
-                .filter(|(k, _)| *k == "list[scan]")
-                .take(n)
-                .filter_map(|(_, v)| micro(v.trim()))
-                .collect();
-            if values.len() == n {
-                return values;
-            }
-        }
-        Vec::new()
+        self.roots.iter().find_map(heights_in).unwrap_or_default()
+    }
+
+    /// The height grid **of one frame's block** — the same table, as it
+    /// stood at the end of sim-frame `n − 1`. A whole-log
+    /// [`Log::terrain_heights`] answers with the *first* it finds, which on
+    /// a windowed capture is the start dump's; a building placed during the
+    /// game re-terraforms the grid (`TerrainOut::terraform_for_building`,
+    /// `docs/QUEUE.md` item 57), so anything comparing a mid-game search
+    /// has to ask the frame rather than the game.
+    pub fn frame_heights(&self, n: i64) -> Vec<i64> {
+        self.frames()
+            .into_iter()
+            .find(|(f, _)| *f == n)
+            .and_then(|(_, b)| heights_in(b))
+            .unwrap_or_default()
     }
 
     /// One leader's whole `LEADERDATA` block at one frame — every field a
@@ -717,6 +739,10 @@ pub struct BuildDump {
     /// `orig_type` — the `TypeIndex` the building was created as. Written at
     /// **`BUILDS=6`** and above, and the only type the dump ever carries.
     pub orig_type: Option<i64>,
+    /// `WallData::build_masks`, whose `0x100` is "my roads want replanning"
+    /// — the schedule's own field (`docs/ROADS.md` §1), written from
+    /// **`BUILDS=1`**. `None` where the level did not print it.
+    pub build_masks: Option<i64>,
     /// `BuildData::gather_from`, the `MiningList` — a woodcutter's or mine's
     /// resource tiles, in tiles, in the order the original keeps them.
     /// **`BUILDS=7`**, and written *flat*: `MiningList::log_data` opens no
@@ -1400,6 +1426,7 @@ fn build_of(b: &Block<'_>) -> Option<BuildDump> {
         who,
         pos,
         orig_type: b.int("orig_type"),
+        build_masks: b.int("build_masks"),
         gather_from,
     })
 }

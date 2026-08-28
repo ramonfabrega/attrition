@@ -355,6 +355,128 @@ pub fn world_from(
     (world, region_map)
 }
 
+/// One `DUMP_ALL` frame block, stood up as a simulation.
+pub struct AtFrame {
+    pub sim: Sim,
+    /// The buildings that were created: simulation handle → the log's
+    /// object number.
+    pub builds: Vec<(usize, i64)>,
+    pub notes: Vec<String>,
+}
+
+impl AtFrame {
+    /// The handle of the building the log calls `who`/`o`.
+    pub fn build(&self, who: i64, o: i64) -> Option<usize> {
+        self.builds
+            .iter()
+            .find(|(b, n)| *n == o && i64::from(self.sim.buildings[*b].owner) == who)
+            .map(|(b, _)| *b)
+    }
+}
+
+/// The state at the **end of sim-frame `frame − 1`**, from a windowed
+/// `DUMP_ALL` capture: the map exactly as the block prints it — cells,
+/// tile masks, fog and `master_land_heights` — with every dumped building
+/// stood up on it, typed and active.
+///
+/// [`build_sim`] is the start-of-game path and cannot be this: it infers a
+/// building's type from its object number (`start_of_game`), which only
+/// holds for the setup's own list. A frame block carries `orig_type` on
+/// every record, so a mid-game state needs no inference at all.
+///
+/// What it is for is a mechanic whose input is the world and whose output
+/// is the world — the road plan is the first (`docs/ROADS.md` §7). It is
+/// deliberately **not** a whole game: units, orders, the economy and the
+/// leaders are not restored, so nothing here can be ticked. Building the
+/// objects moves the map (a footprint is reserved, a city masks its radius
+/// and re-syncs the borders), so the world is put back to the dump's
+/// afterwards and the dump is what the mechanic then reads.
+pub fn sim_at_frame(loaded: &Loaded, log: &Log, frame: i64, tuning: Tuning) -> Option<AtFrame> {
+    let mut notes = Vec::new();
+    let (_, body) = log.dumps().into_iter().find(|(n, _)| *n == frame)?;
+    let w = body.kid("WORLD")?;
+    let heights = log.frame_heights(frame);
+    if heights.is_empty() {
+        notes.push("no master_land_heights in this block: the map is flat".to_string());
+    }
+    let (world, region_map) = world_from(&w.fields, &heights, &mut notes);
+    let (_, builds, leaders) = crate::gamelog::records(body, false);
+    let players = builds
+        .iter()
+        .map(|b| b.who)
+        .chain(leaders.iter().map(|l| l.who))
+        .filter(|w| (0..8).contains(w))
+        .max()
+        .map_or(1, |m| m as usize + 1);
+    let mut sim = loaded.sim(tuning, world.clone(), players);
+    for l in &leaders {
+        if (0..players as i64).contains(&l.who) {
+            sim.nation[l.who as usize].human = l.leader_flags & 4 != 0;
+        }
+    }
+
+    // Cities first: a building joins its city at placement, so the centre
+    // has to be standing before its members are.
+    let mut out: Vec<(usize, i64)> = Vec::new();
+    let place = |sim: &mut Sim, b: &crate::gamelog::BuildDump, notes: &mut Vec<String>| {
+        let Some(ty) = b
+            .orig_type
+            .and_then(|t| loaded.build_of_type_index(t as i32))
+        else {
+            notes.push(format!(
+                "build {}/{}: orig_type {:?} is not a build type — skipped",
+                b.who, b.o, b.orig_type
+            ));
+            return None;
+        };
+        let h = sim.init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
+        sim.buildings[h].index = b.o as i16;
+        sim.activate(h, false, false);
+        Some((h, b.o))
+    };
+    let city_of = |b: &crate::gamelog::BuildDump| {
+        b.orig_type
+            .and_then(|t| loaded.build_of_type_index(t as i32))
+            .is_some_and(|ty| sim::build::is_city(&loaded.build_types, ty))
+    };
+    for b in builds
+        .iter()
+        .filter(|b| (0..players as i64).contains(&b.who))
+    {
+        if city_of(b)
+            && let Some(p) = place(&mut sim, b, &mut notes)
+        {
+            out.push(p);
+        }
+    }
+    for b in builds
+        .iter()
+        .filter(|b| (0..players as i64).contains(&b.who))
+    {
+        if !city_of(b)
+            && let Some(p) = place(&mut sim, b, &mut notes)
+        {
+            out.push(p);
+        }
+    }
+
+    // Standing the objects up wrote to the map — the footprints' `PLACED`,
+    // `mask_city`'s radius, `sync_territory`'s owners. The dump's map is
+    // the one the mechanic under test read, so it goes back.
+    sim.world = world;
+    notes.push(format!(
+        "frame {frame}: {} buildings, {} cities, {} regions mapped",
+        out.len(),
+        sim.cities.iter().filter(|c| c.alive).count(),
+        region_map.len()
+    ));
+    Some(AtFrame {
+        sim,
+        builds: out,
+        notes,
+    })
+}
+
 pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     let mut notes = Vec::new();
     let get = |k: &str| -> Option<i64> {
@@ -1822,6 +1944,24 @@ pub fn run_with(
 
 /// Fills `init`'s checksum trace and height grid from the first sibling
 /// dump that has each, when `init` itself has none (see [`run_traced`]).
+/// Whether two dumps opened on the same board: every starting building, by
+/// owner, object number and position. It is the test a *terraformed* field
+/// needs — [`Initial::heights`] is the grid after `Wall::init` has flattened
+/// each footprint, so a sibling that placed its buildings elsewhere has a
+/// different table however well its map seed matches.
+fn same_start(a: &Initial, b: &Initial) -> bool {
+    let key = |i: &Initial| -> Vec<(i64, i64, i64, i64)> {
+        let mut v: Vec<(i64, i64, i64, i64)> = i
+            .builds
+            .iter()
+            .map(|b| (b.who, b.o, b.pos.x, b.pos.y))
+            .collect();
+        v.sort_unstable();
+        v
+    };
+    !a.builds.is_empty() && key(a) == key(b)
+}
+
 pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Initial<'b>]) {
     if init.checksums.is_empty()
         && let Some(s) = siblings.iter().find(|s| !s.checksums.is_empty())
@@ -1854,8 +1994,29 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
     {
         init.world = s.world.clone();
     }
+    // **The heights are not the map's; they are the map *after* the setup
+    // buildings.** `TerrainOut::terraform_for_building` flattens every
+    // non-farm footprint out of `Wall::init`, before the first frame, so
+    // two runs of the same seed, style and size whose starting buildings
+    // stand anywhere else have different tables — and the difference is
+    // not local to the footprints, because the border blend
+    // `(h + mean) × 0.5` reaches a tile further and every later placement
+    // compounds it.
+    //
+    // run3 is exactly that sibling: seed 12345, style 14, size 2 like
+    // run10–14, but `GAME_RULES 0` rather than 1, and its grid differs
+    // from run12's and run13's on **237 corners spread from (7, 83) to
+    // (230, 163)** — over the human's own city as well as the AI's. It is
+    // the first sibling in the list, so it is what the road search has
+    // been reading, and a search whose climb term is a third of its cost
+    // cannot survive that (`docs/ROADS.md` §7).
+    //
+    // The test is the starting buildings themselves: same owner, same
+    // object number, same position, all of them.
     if init.heights.is_empty()
-        && let Some(s) = siblings.iter().find(|s| !s.heights.is_empty())
+        && let Some(s) = siblings
+            .iter()
+            .find(|s| !s.heights.is_empty() && same_start(init, s))
     {
         init.heights = s.heights.clone();
     }
@@ -3247,9 +3408,12 @@ mod tests {
     /// puts both. `None` skips the half of a check that needs it, the same
     /// way [`dump`] does.
     fn trace(name: &str) -> Option<crate::trace::Trace> {
-        let dir = std::env::var("RON_GAMELOG_DIR").ok()?;
-        let path = std::path::Path::new(&dir).join(name);
-        crate::trace::Trace::read(&path).ok().flatten()
+        // The same default as [`dump`]: a machine with the captures but no
+        // `RON_GAMELOG_DIR` used to skip every trace-backed half silently.
+        let path = dump(name)?;
+        crate::trace::Trace::read(std::path::Path::new(&path))
+            .ok()
+            .flatten()
     }
 
     /// Run20's `Farms` list, and the pasture in it. Six farms, one of them
@@ -4724,12 +4888,31 @@ mod tests {
     ///               changed; the marks got finer, which is the incentive
     ///               below.
     ///
+    ///   2026-08-28  **173** of 284, and the *fall* is the item (item 55,
+    ///               the road). Two things landed together: the height
+    ///               grid stopped being borrowed from another game
+    ///               ([`borrow_from_siblings`]), and with the search
+    ///               therefore exact, `Sim::plan_roads` came on. Frames 10
+    ///               and 11 now match — 226 and 254 draws against 6 and 6
+    ///               — and **the first frame whose draws differ at all
+    ///               moved from 10 to 18**, which is the number below that
+    ///               says so. What fell is the tail: past the first
+    ///               divergence both sides are running on words that have
+    ///               parted, and which of two wrong streams happens to
+    ///               label a frame the same way is luck. 198 was that luck
+    ///               with the divergence at 10; 173 is it with the
+    ///               divergence at 18.
+    ///
     /// A frame is counted only when the two label sequences are equal, so
     /// a coarse mark on our side (`unit 1/9` against a `GameAccess::rnd`
     /// the table does not name) fails it even where the counts agree.
     /// Making a mark finer therefore *raises* this number, which is the
     /// intended incentive: `docs/SYNC.md` §5.1's "mark the phase before
     /// believing the total".
+    ///
+    /// **The sharper number is the first frame that differs**, and it is
+    /// asserted too: a matched *count* rewards luck past the divergence,
+    /// where this cannot. It has gone 4 → 10 → **18**.
     /// **The rings lay nothing new.** `BuildType::place_roads` runs on
     /// run14's frames 0 and 10 to 15 and again from 167, and the original's
     /// own map says what it does to the world: the tile masks of run13's
@@ -4789,6 +4972,270 @@ mod tests {
             "the rings laid {} tiles the original leaves alone: {:?}",
             moved.len(),
             &moved[..moved.len().min(8)]
+        );
+    }
+
+    /// **The road two fresh sites lay, tile for tile** — item 55's oracle,
+    /// and the first time this mechanic is checked against a *path* rather
+    /// than against three totals.
+    ///
+    /// run32 (`docs/ORACLE.md`) is run10–14's game with two enhancers
+    /// dropped from the cheat channel at sim-frame 100 on ground the map
+    /// has never had a road on: a **Granary** at tile `(6, 171)` and a
+    /// **Smelter** at `(33, 161)`. `add` without `NEW` runs
+    /// `Build::activate`, and `Wall::start` → `Wall::mask_me(1,
+    /// REGEN_FORCE)` → `BuildType::place_roads` plans the road **there and
+    /// then** — which is why the roads are on the map four frames before
+    /// the scheduled replans of `docs/ROADS.md` §1 come round.
+    ///
+    /// The world before is **run13's** `FRAME 100` block: the same game,
+    /// the same map, ninety-nine frames in, and nothing between them lays a
+    /// road (the trace has no `calc_road_cost` draw before frame 100). The
+    /// world after is run32's `FRAME 104`. The heights are run13's own —
+    /// the *pre*-terraform grid — because `TerrainOut::terraform_for_build\
+    /// ing` runs **after** the road is planned: under the frame-104 grid,
+    /// which has both footprints flattened, the first search costs 967
+    /// nodes against the original's 1,043, and under the pre-terraform one
+    /// it costs 1,046.
+    ///
+    /// The jitters are not left to chance: `calc_road_cost` takes one
+    /// `Random::get(0, 0xffff) % 20` a node and the trace records the
+    /// generator's word **before** every draw, so each search starts on the
+    /// original's own state. The boundary between the two searches is in
+    /// the trace too, and it is not a road draw: `Wall::activate` plays a
+    /// sound off a *different* generator, so the one non-sync draw inside
+    /// frame 100 splits the 2,913 road draws into the Granary's 1,043 and
+    /// the Smelter's 1,870.
+    ///
+    /// **What this pins, and what it leaves open.** The tiles are exact —
+    /// 62 of them, both roads and both rings. The counts are not: 1,046
+    /// against 1,043 and 1,460 against 1,870, with the right road either
+    /// way. Every search this simulation has been shown a *frame's own*
+    /// world for — run14's frames 10 and 11, run32's 104 to 107 — matches
+    /// node for node, so what is left is particular to the frame a
+    /// building is placed on (`docs/ROADS.md` §7).
+    #[test]
+    fn run32_s_two_fresh_roads_are_the_original_s_tile_for_tile() {
+        let Some(inst) = install() else { return };
+        let (Some(r32), Some(r13), Some(tr)) = (
+            dump("gamelog-run32-roadpath.txt"),
+            dump("gamelog-run13-window-95-105.txt"),
+            trace("rontrace-run32.log"),
+        ) else {
+            eprintln!("skipping: no run32 (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let (t32, t13) = (
+            std::fs::read_to_string(&r32).unwrap(),
+            std::fs::read_to_string(&r13).unwrap(),
+        );
+        let (l32, l13) = (Log::parse(&t32), Log::parse(&t13));
+
+        let world_at = |log: &Log, n: i64, heights: &[i64]| -> World {
+            let (_, body) = log
+                .dumps()
+                .into_iter()
+                .find(|(f, _)| *f == n)
+                .unwrap_or_else(|| panic!("frame {n} is dumped"));
+            let w = body.kid("WORLD").expect("a WORLD block");
+            let mut notes = Vec::new();
+            world_from(&w.fields, heights, &mut notes).0
+        };
+        let roads = |w: &World| -> std::collections::BTreeSet<(i32, i32)> {
+            let (tw, th) = (w.width() * 4, w.height() * 4);
+            (0..th)
+                .flat_map(|y| (0..tw).map(move |x| (x, y)))
+                .filter(|&(x, y)| {
+                    w.tile_mask(Pos::new(x, y)) & sim::world::tile::SURFACE
+                        == sim::world::tile::SURFACE_ROAD
+                })
+                .collect()
+        };
+
+        let heights = l13.frame_heights(100);
+        assert_eq!(heights.len(), 58_081, "run13's frame-100 height grid");
+        let before = world_at(&l13, 100, &heights);
+        let after = world_at(&l32, 104, &heights);
+        let was = roads(&before);
+        let theirs: std::collections::BTreeSet<(i32, i32)> =
+            roads(&after).difference(&was).copied().collect();
+        assert_eq!(theirs.len(), 62, "the tiles the original laid at frame 100");
+
+        // The two searches, and the boundary between them: the one draw of
+        // frame 100 that is *not* on `game_random` is `Wall::activate`'s
+        // sound, and it is emitted after the first building's plan.
+        const COST: u32 = 0x0068_6346;
+        let draws = tr.run_in(100, COST, COST + 1);
+        assert_eq!(draws.len(), 2913, "frame 100's road draws");
+        let sound = tr
+            .draws
+            .iter()
+            .position(|d| d.frame == 100 && !d.sync())
+            .expect("Wall::activate's sound draw");
+        let first = tr.draws[..sound]
+            .iter()
+            .filter(|d| d.frame == 100 && d.sync() && d.site == COST)
+            .count();
+        assert_eq!(
+            (first, draws.len() - first),
+            (1043, 1870),
+            "the Granary's nodes and the Smelter's"
+        );
+
+        // Stand run13's frame-100 buildings up on run13's frame-100 map,
+        // then place the two the channel placed, in the order it placed
+        // them, each seeded where the original's own search began.
+        let mut sim = loaded.sim(Tuning::RON, before.clone(), 2);
+        for pass in [true, false] {
+            for b in l13
+                .frame_builds(100)
+                .iter()
+                .filter(|b| (0..2).contains(&b.who))
+            {
+                let Some(ty) = b
+                    .orig_type
+                    .and_then(|t| loaded.build_of_type_index(t as i32))
+                else {
+                    continue;
+                };
+                if sim::build::is_city(&loaded.build_types, ty) != pass {
+                    continue;
+                }
+                let h = sim.init_build(b.who as sim::Player, ty, pos_of(b.pos), false);
+                sim.buildings[h].index = b.o as i16;
+                sim.activate(h, false, false);
+            }
+        }
+        // Standing them up moved the map (footprints, `mask_city`,
+        // `sync_territory`); the dump's map is the one the searches read.
+        sim.world = before.clone();
+        sim.plan_roads = true;
+
+        let mut laid: std::collections::BTreeSet<(i32, i32)> = std::collections::BTreeSet::new();
+        let mut costed: Vec<u32> = Vec::new();
+        for (id, tile, seed) in [
+            (sim::build::Ident::Granary, Pos::new(6, 171), draws[0].seed),
+            (
+                sim::build::Ident::Smelter,
+                Pos::new(33, 161),
+                draws[first].seed,
+            ),
+        ] {
+            let ty = loaded
+                .build_types
+                .iter()
+                .position(|b| b.ident == id)
+                .unwrap_or_else(|| panic!("a {id:?} type"));
+            let b = sim.init_build(
+                0,
+                ty,
+                Pos::new(
+                    tile.x * sim::world::UNITS_PER_TILE + sim::world::UNITS_PER_TILE / 2,
+                    tile.y * sim::world::UNITS_PER_TILE + sim::world::UNITS_PER_TILE / 2,
+                ),
+                false,
+            );
+            assert_eq!(
+                sim.buildings[b].city,
+                Some(0),
+                "{id:?} joins the human's city, as `Build::find_city` puts it"
+            );
+            let mine = roads(&sim.world);
+            sim.rng.seed = seed;
+            // Not `place_roads` directly: `Build::activate` → `Wall::start`
+            // → `mask_me(1, REGEN_FORCE)` → `place_roads` is the chain the
+            // channel's `add` ran, and nothing else on it draws.
+            sim.activate(b, false, false);
+            costed.push(draws_between(seed, sim.rng.seed).unwrap_or(0));
+            laid.extend(roads(&sim.world).difference(&mine).copied());
+        }
+
+        assert_eq!(
+            laid, theirs,
+            "the two roads and their rings are not the original's, tile for tile"
+        );
+        assert_eq!(
+            costed,
+            vec![1046, 1460],
+            "the nodes costed — the original's are 1043 and 1870 (`docs/ROADS.md` §7)"
+        );
+    }
+
+    /// **The scheduled replans cost the original's nodes, exactly.** Four
+    /// searches, on the world of the frame that ran them.
+    ///
+    /// run32's two placements flag their city, so `(frame + o) % 16 == 0`
+    /// walks the whole of it: the Smelter on sim-frame 104, the Granary on
+    /// 105, the Market on 106 and the Library on 107. Each re-runs the same
+    /// search over a map that already has the road, and the trace says what
+    /// each cost — **332, 231, 232 and 60**. This simulation, given the
+    /// frame's own world through [`sim_at_frame`] and the original's word
+    /// at the search's first draw, costs the same four, and lays no tile
+    /// (there is nothing left to lay).
+    ///
+    /// This is what settled item 55: nothing was wrong with the search. The
+    /// harness had been feeding it the *heights of another game* — run3's,
+    /// which shares the seed, the style and the size but not `GAME_RULES`,
+    /// and whose grid differs on 237 corners from (7, 83) to (230, 163)
+    /// because its starting buildings terraformed elsewhere
+    /// ([`borrow_from_siblings`]).
+    #[test]
+    fn run32_s_scheduled_replans_cost_the_original_s_nodes() {
+        let Some(inst) = install() else { return };
+        let (Some(r32), Some(tr)) = (
+            dump("gamelog-run32-roadpath.txt"),
+            trace("rontrace-run32.log"),
+        ) else {
+            eprintln!("skipping: no run32 (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&r32).unwrap();
+        let log = Log::parse(&text);
+        const COST: u32 = 0x0068_6346;
+        let roads = |w: &World| -> std::collections::BTreeSet<(i32, i32)> {
+            let (tw, th) = (w.width() * 4, w.height() * 4);
+            (0..th)
+                .flat_map(|y| (0..tw).map(move |x| (x, y)))
+                .filter(|&(x, y)| {
+                    w.tile_mask(Pos::new(x, y)) & sim::world::tile::SURFACE
+                        == sim::world::tile::SURFACE_ROAD
+                })
+                .collect()
+        };
+        let mut seen = Vec::new();
+        for (frame, o) in [(104i64, 2008i64), (105, 2007), (106, 2006), (107, 2005)] {
+            let draws = tr.run_in(frame, COST, COST + 1);
+            let mut at = sim_at_frame(&loaded, &log, frame, Tuning::RON)
+                .expect("run32's frame block stands up");
+            let b = at
+                .build(0, o)
+                .unwrap_or_else(|| panic!("frame {frame}: no building 0/{o}"));
+            let mine = roads(&at.sim.world);
+            at.sim.plan_roads = true;
+            at.sim.rng.seed = draws[0].seed;
+            at.sim.place_roads(b);
+            let laid: Vec<(i32, i32)> = roads(&at.sim.world).difference(&mine).copied().collect();
+            assert!(
+                laid.is_empty(),
+                "frame {frame}: the replan laid {laid:?}, and the original laid nothing"
+            );
+            seen.push((
+                frame,
+                draws_between(draws[0].seed, at.sim.rng.seed).unwrap_or(0),
+                draws.len() as u32,
+            ));
+        }
+        assert_eq!(
+            seen,
+            vec![
+                (104, 332, 332),
+                (105, 231, 231),
+                (106, 232, 232),
+                (107, 60, 60)
+            ],
+            "(frame, ours, the original's) nodes costed"
         );
     }
 
@@ -4961,16 +5408,35 @@ mod tests {
                 theirs.get(at),
             ));
         }
+        // The first frame whose draw *sequence* is not the original's —
+        // the number the tail cannot flatter.
+        let first_part = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| *ours != trace.labels(*f))
+            .map(|(f, _)| *f)
+            .unwrap_or(last);
         assert!(
-            matched >= 198,
-            "the trace floor fell: {matched} of {last} frames match, the floor is 198\n{}",
+            first_part >= 18,
+            "the stream parts at frame {first_part}; the floor is 18\n{}",
+            parted.first().cloned().unwrap_or_default()
+        );
+        assert!(
+            matched >= 173,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 173\n{}",
             parted.join("\n")
         );
-        // The bird's own row, stated so a regression reads as itself. Nine
-        // eighth-frames between 104 and 168 carry three
-        // `Animal::think_bird` draws on both sides, and frame 96's
-        // hatching draw sits at index 6 — inside the sampling loop,
-        // between the third pair and the fourth.
+        // The bird's own row, stated so a regression reads as itself. Every
+        // eighth-frame carries **three** `Animal::think_bird` draws per
+        // living bird, and frame 96's hatching draw sits at index 6 —
+        // inside the sampling loop, between the third pair and the fourth.
+        //
+        // The step from three to six at 136 is the *second* bird, and it is
+        // drift rather than a mechanic: the sampling's cells come off a
+        // stream that has parted from the original's (at frame 18 as of
+        // item 55), so our second bird hatches around 130 and the
+        // original's at 192. Those frames cannot match the trace either
+        // way; what is pinned here is that the beat itself stays three.
         let think = |f: i64| -> usize {
             built
                 .frame_sites
@@ -4982,38 +5448,40 @@ mod tests {
                         .count()
                 })
         };
-        for f in [104, 112, 120, 128, 136, 144, 152, 160, 168] {
-            assert_eq!(think(f), 3, "frame {f}: the bird's three");
-        }
-        let ninety_six = &built
-            .frame_sites
+        let beats: Vec<usize> = [104, 112, 120, 128, 136, 144, 152, 160, 168]
             .iter()
-            .find(|(n, _)| *n == 96)
-            .expect("frame 96")
-            .1;
+            .map(|&f| think(f))
+            .collect();
         assert_eq!(
-            ninety_six[6],
+            beats,
+            vec![3, 3, 3, 3, 6, 6, 6, 6, 6],
+            "three draws a bird an eighth-frame, and a second bird from 136"
+        );
+        assert_eq!(
+            trace.labels(96)[6],
             sim::anim::SITE_INIT_REAL,
-            "the hatching roll is draw 6 of the sampling frame"
+            "the hatching roll is draw 6 of the original's sampling frame"
         );
-        // The first bird is on the original's own stream — frame 96, the
-        // last traced word being frame 103's — and it hatches here too.
-        // The later ones are **not**: the sampling's cells come off a
-        // stream that has drifted, so run14's second and third (192, 256)
-        // do not line up. That is the untraced stretch showing, not the
-        // sampling being wrong; it closes when the stream does.
-        assert_eq!(
-            built.sim.gaia.bird_spawns.first().map(|(f, _)| *f),
-            Some(96),
-            "the first bird hatches on the original's frame"
-        );
-        assert_eq!(built.sim.live_birds(), 2, "and one more off the drift");
+        // **Which frame a bird hatches on is drift, not mechanism.** The
+        // sampling reads cells off the stream, and this simulation's parts
+        // from the original's at frame 18 (above), so ours hatch at 32 and
+        // 128 where run14's hatch at 96, 192 and 256. Before item 55 the
+        // first happened to land on 96 and the row said so; that was the
+        // luck of a stream 468 draws short, not the sampling agreeing.
+        // What is checked here instead is the part that does not depend on
+        // when: two birds over 284 frames, and the beat below, which is
+        // stated **relative to the hatch**.
+        let hatches: Vec<i64> = built.sim.gaia.bird_spawns.iter().map(|(f, _)| *f).collect();
+        assert_eq!(hatches, vec![32, 128], "the hatch frames, off the drift");
+        assert_eq!(built.sim.live_birds(), 2, "both alive at the end");
         // The wing beat, and it is the whole of what item 52 bought: the
         // hatch frame's wrap (`Guy::init_real` leaves `end_time` at zero,
         // so the same frame's `inc_time` overflows it at once), the birth
-        // coin `do_air_physics` throws the frame after, and the two wraps
-        // the lengths then place — 96 + 31 for *Bird Soar*, then a coin
-        // that flips to *Bird Flap* and overruns it in the same frame.
+        // coin `do_air_physics` throws the frame after, and a coin at
+        // every wrap the animation's own length places. *Which* animation
+        // is a coin, so the spacing here is **23** — *Bird Flap* — where
+        // the pre-item-55 stream drew *Bird Soar*'s 31 and then flipped.
+        // The lengths are the claim, and they are the install's.
         let coins = |f: i64| -> usize {
             built
                 .frame_sites
@@ -5023,10 +5491,18 @@ mod tests {
                     s.iter().filter(|l| *l == sim::anim::SITE_BIRD_COIN).count()
                 })
         };
+        let h = hatches[0];
+        let first_bird: Vec<i64> = built
+            .frame_sites
+            .iter()
+            .map(|(f, _)| *f)
+            .filter(|f| coins(*f) > 0 && *f < hatches[1])
+            .collect();
         assert_eq!(
-            (coins(97), coins(127), coins(142)),
-            (1, 2, 1),
-            "the wing beat"
+            (h, first_bird),
+            (32, vec![33, 55, 78, 101, 124]),
+            "the birth coin the frame after the hatch, then a coin at every \
+             wrap of *Bird Flap* — 23 frames, out of the install's own `.bha`"
         );
         // Item 53's own rows, each stated so a regression reads as itself.
         //
@@ -5249,6 +5725,34 @@ mod tests {
         //               orders had already parted; now the position follows
         //               the order by one frame, as it should. A `ticks`
         //               above `orders` is the accident, not the gain.
+        //   2026-08-28  ticks **202**, orders 168; player 0 @ **213**,
+        //               player 1 @ 203 (item 55: **the road, and the
+        //               heights of another game**). Two things landed
+        //               together. `borrow_from_siblings` was taking
+        //               `master_land_heights` from run3 — the same seed,
+        //               style and size, a different `GAME_RULES`, and a
+        //               grid that differs on 237 corners because its
+        //               starting buildings terraformed elsewhere — so the
+        //               road search, a third of whose cost is the climb
+        //               term, had been reading another game's terrain.
+        //               With the map's own heights the search is the
+        //               original's node for node on every capture that
+        //               shows it a frame's own world (run14's 10 and 11,
+        //               run32's 104–107), and the road it lays on fresh
+        //               ground is the original's tile for tile, so
+        //               `Sim::plan_roads` came on.
+        //
+        //               **`orders` fell, and it is the same kind of luck
+        //               `ticks` used to be.** Frames 10 and 11 now spend
+        //               the 468 draws they always should have, so the
+        //               stream is the original's through frame 17 rather
+        //               than through 9 — and every value after the new
+        //               divergence at 18 is a *different* wrong value.
+        //               `0/3`, which pinned the old 180, now holds to 213;
+        //               what pins 168 is `1/1`'s gather wait at 169, off
+        //               by ten, which the old stream happened to land on.
+        //               The number that is not luck is in the ledger test:
+        //               the first frame whose draws differ at all, 10 → 18.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -5257,9 +5761,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 181 && orders >= 180 && first[0] >= 182 && first[1] >= 203,
+            ticks >= 202 && orders >= 168 && first[0] >= 213 && first[1] >= 203,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 181, orders 180, player 0 @ 182, player 1 @ 203",
+             — the floor is ticks 202, orders 168, player 0 @ 213, player 1 @ 203",
             report.first_divergence
         );
         assert!(
@@ -5407,9 +5911,17 @@ mod tests {
         // 41,225 → **43,340** with item 52 (the bird's wing beat), the
         // same way and in the other direction: the stream is closer, so
         // more unit-frames hold their positions and come into view.
+        //
+        // 43,340 → **40,750** with item 55 (the road). The same coverage
+        // effect once more, and this time the headline went *up* while
+        // this went down: `0/3` holds 31 frames longer, but the AI's units
+        // — which are hundreds of frames out either way — sit on a stream
+        // whose values have all changed, and between them they part
+        // sooner. The two assertions that say the mechanic is right are
+        // below, and both held.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 43_340,
+            coll_seen, 40_750,
             "five fields on every agreeing unit-frame"
         );
         let coll_bad: Vec<CollideDivergence> = report
@@ -5480,6 +5992,9 @@ mod tests {
         // for the same reason: `1/6`'s second tree is still drawn off a
         // stream that has drifted by then, and a closer stream at frame 180
         // is not a closer one at 407.
+        //
+        // **430 with item 55 (the road)**, back where item 47 left it, and
+        // by the same luck in the other direction.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -5496,7 +6011,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(407),
+            Some(430),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -5556,8 +6071,10 @@ mod tests {
         // 16,456 → **17,302** with item 52 (the wing beat), the other way
         // round: 846 more unit-frames hold their positions on a stream the
         // bird's two animation lengths have brought closer.
+        // 17,302 → **16,266** with item 55 (the road): coverage again, and
+        // again against the headline's direction, which went 181 → 202.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 17_302, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 16_266, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()

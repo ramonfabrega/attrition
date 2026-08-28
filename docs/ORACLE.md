@@ -322,252 +322,6 @@ than a recorded game would have.
 
 ---
 
-## Running it: how far Wine gets, and what stops it (2026-08-20)
-
-The first attempt at phase 2, recorded because the failure is specific and the
-partial success is reusable.
-
-**What works.** Homebrew's `wine-stable` cask (Wine 11.0, x86-64 under Rosetta)
-installs without admin rights if `--skip-cask-deps` skips the `gstreamer-runtime`
-`.pkg`, which needs a password and which Wine only wants for media playback. The
-cask fails Gatekeeper, so `xattr -dr com.apple.quarantine` on the app bundle is
-required or the binary is `SIGKILL`ed on launch. A prefix built with `wineboot`
-comes up `win64` with a populated `syswow64`, and **32-bit PE execution works** —
-`syswow64\cmd.exe /c ver` returns `Microsoft Windows 10.0.19045`.
-
-`riseofnations.exe` then launches, loads 70 modules, and runs far enough to
-write its own configuration.
-
-**Which incidentally confirmed this document's INI derivation.** The game
-created `rise.ini` and `rise2.ini` at
-`%APPDATA%\Microsoft Games\Rise of Nations\`, the exact path derived above from
-`Prefs::get_primary_app_directory`, alongside the `synclogger.ini` placed there
-in advance. `rise.ini` also confirms the `[Section] key=value` shape, and turns
-up two settings worth knowing:
-
-```ini
-[RISE OF NATIONS]
-GraphicsDLL=d3dgl.dll
-AllowLogs=0
-Dialog Error Level (0 - 3)=2
-```
-
-`GraphicsDLL` means the renderer is a swappable module — but `d3dgl.dll` is the
-only one the install ships, so there is no D3D9 fallback to switch to.
-`rise2.ini`'s `Fullscreen=3` accepts `0` for windowed, which works.
-
-**What stops it, and it is not a configuration problem.** Despite its name,
-`d3dgl.dll` implements a **Direct3D 11** context — the strings around its error
-are `d3d11context.cpp`, `IDXGIDevice`, `IDXGIFactory`, `IDXGIAdapter` — and it
-requests exactly one feature level, `D3D_FEATURE_LEVEL_10_0`, with no fallback.
-Three ways of providing that were tried and all three fail:
-
-| path | failure |
-| --- | --- |
-| wined3d over OpenGL (default) | `wined3d_select_feature_level`: none of the requested levels supported with the current shader backend — macOS OpenGL caps at 4.1 |
-| DXVK 3.0.2 | `Skipping: Device does not support required feature 'geometryShader'` → no adapters |
-| wined3d over Vulkan (`renderer=vulkan`) | creates a `VkDevice` on the M4 Max, then `dxgi_device_init` fails `0x80004005` |
-
-The DXVK line is the informative one. **Metal has never had geometry shaders**,
-so MoltenVK cannot advertise the feature, and DXVK requires it. That is an
-architectural gap rather than a missing package, and no amount of prefix
-configuration closes it.
-
-The remaining candidate was **D3DMetal**, Apple's Game Porting Toolkit
-translation of D3D11 straight to Metal, which handles the gaps MoltenVK
-exposes because it targets Metal directly rather than going through Vulkan.
-CrossOver bundles the same technology. The next section is what happened when
-it was tried.
-
-It is worth being clear about what GPTK is *not* for here: it translates a
-Windows binary's D3D calls, which is useful for running the original as an
-oracle and has nothing to do with this project's own renderer. Phase 4 is a
-Rust client and will not go near it.
-
----
-
-## Running it, second attempt: the original runs, and it writes (2026-08-20)
-
-**CrossOver with D3DMetal renders the game fully.** The whole path, so it can
-be repeated without rediscovery:
-
-```
-brew install --cask crossover
-cxbottle --bottle ron --create --template win10_64 \
-         --param 'EnvironmentVariables:CX_GRAPHICS_BACKEND=d3dmetal'
-wine --bottle ron --workdir <install> --wait-children <install>/riseofnations.exe
-```
-
-(`cxbottle` and `wine` are under
-`/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/`; the
-`--cx-app` form wants a bottle-internal path and fails on a native one.) The
-game's own configuration lands at
-`~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/`,
-the same `%APPDATA%` path as before. The first launch after creating the bottle
-page-faulted once in a system DLL; the second and every later one ran: player
-profile, main menu, Quick Battle setup, map generation, the in-game view with
-the economy ticking at its normal rate. Keyboard input reaches it from
-`osascript`; synthetic clicks from System Events do not, and `cliclick` (brew)
-does. The window is borderless at screen size, so screenshot coordinates are
-click coordinates. The in-game menu is the icon at the top-right corner of the
-screen; Escape does not open it.
-
-**What it wrote back settles most of the open questions below, and one of the
-answers is a second oracle nobody had derived.**
-
-### The SyncLogger's real configuration
-
-The game rewrites `synclogger.ini` on first read with its full key set. There
-is no mask. Every one of the 37 categories is its own key — `WorldSync=0`,
-`UnitsSync=0`, … — defaulting to **0**, so a file that sets only
-`DesyncTrackingEnabled=1` and `DesyncCategoryMask=-1` enables nothing. It also
-adds `SkipCountdown`, `NoteOnlySync`, `FinalSync` and, after a run, a
-`LogFile=` line naming the `Logs\` directory. The categories-to-track header it
-later writes lists `NoteOnlySync` and `FinalSync` as "cannot be turned off".
-
-With every category on and a Quick Battle played for two minutes and quit
-through the menu, four files appear in `Logs\`: `SyncLog Standard .txt`,
-`SyncLog TurnLog .txt`, `SyncLog SendLog .txt`, `SyncLog ReceiveLog .txt` —
-the `%s %s` of the pattern above are the session mode and an empty lobby
-string. Each holds the settings header and then the line
-`<snipped data frames>` under `Game completed without desync`. **In a solo game
-that does not desync, the frame data is dropped at write time.** That matches
-the code: `Game::run_solo` calls `setupWithConfigSettings`,
-`beginNewLogSession(SessionModeStandard)`, runs the whole game, and only then
-`writeToFileAndReset(null)`; the other writer is `CommandPackage::end_process`,
-on an actual desync, which also sets `mDesyncOnTurn`. Whether a flag makes the
-no-desync write keep its frames is the remaining question, named below. Killing
-the process writes nothing, which is why the first two runs produced no file.
-
-### The older logger, which is the one that works
-
-`rise.ini` carries `AllowLogs=0`. `Log::init` reads exactly that key through
-`Prefs` and returns before opening anything when it is 0; with `AllowLogs=1`
-the game writes `gamelog.ini` with its own full key set and then
-`Logs\gamelog.txt`, and adds `AllowLogs_ToConsole=1` to `rise.ini`.
-
-`gamelog.ini` is the 2003 engine's logging switchboard:
-
-```ini
-[Logging Options]
-Checksum Dump=-1
-Checksum Break=-1
-DUMP_ALL=0
-LogFile=...\Logs\gamelog.txt
-DumpFileName=Logs\dumplog.txt
-[Misc Logging]   [Start Game]   [End Game]   [Start Frame]   [End Frame]
-WORLD=0  CITIES=0  BUILDS=0  UNITS=0  ANIMALS=0  WALLS=0  AMMO=0  DEATHS=0
-GROUPS=0  LEADERS=0  GUYS=0  GOODS=0  ITEMS=0  MAPMAKE=0  TERRAIN=0
-PATHFINDER=0  CHECKSUM=0  RULES=0  SCRIPT=0  ...            (37 per section)
-```
-
-— the same 37 categories as `sSyncDefines`, under five phases. Each category
-under `[Start Game]` dumps that subsystem once when the game starts; under
-`[End Frame]`, **every frame**. The output is a nested text dump produced by the
-objects' own `log_data` virtuals — `UnitData::log_data` is slot 0 of
-`Unit::vftable` — in the shape:
-
-```
-BEGIN FRAME 100
-  BEGIN UNITDATA
-   BEGIN OBJECT
-    BEGIN SUBOBJECT
-     flags 73
-     o 0
-     who 0
-     x_internal 4248
-     y_internal 32664
-     z_internal 528
-   BEGIN GUY
-  BEGIN LEADERDATA
-   who 0
-   tribe 11
-   ...
-```
-
-The initial dump with everything enabled (`InitialDump=1` in `rise.ini` plus
-`[Start Game]` all on) is 337k lines and contains `BEGIN CONSTANTS` — **every
-field of the loaded `Constants` struct, by name, in its in-memory
-representation** (`unit_move_speed 1`, `river_modifier 512`,
-`fort_upgrade_terr[scan] 2 4 6 9`, `peasant_rate …`) — followed by `BEGIN
-WORLD` (`seed`, `xs ys`, `player_territory_limit 44`, …), every leader, every
-city, building and unit with positions. That is a direct check on every
-`Slot::Ratio256`/`Ratio100` claim `rondata` makes, and on `Tuning::RON` as a
-whole, read from the program rather than from our reading of its loader.
-
-Two practical facts about cost. With every category on under both `[Start
-Frame]` and `[End Frame]`, the simulation crawled to about one frame per five
-seconds and the file grew at ~25 MB a minute — unusable. With `[End Frame]`
-`UNITS`, `LEADERS`, `DEATHS`, `CHECKSUM` only, the game ran at full speed and
-logged 1,730 frames (1:55 of game time) in 20 MB: one `BEGIN FRAME n` per
-simulation frame, every unit's `flags o who x y z` per frame. ~~Per-unit detail
-beyond the object base (`UnitData::log_data` goes on to `collide_frame`,
-`damage_frame`, `angle`, and some fifty more fields) is emitted with a
-detail-level argument of 1, which is presumably what `DUMP_ALL=1` unlocks;
-untried.~~ **Both halves of that were wrong** — the detail argument is not 1,
-and `DUMP_ALL=1` is not how you ask for it. See "The detail level is the
-knob" below.
-
-**`Seed (0 for random)` in `rise.ini` fixes the game.** Two runs with
-`Seed=12345` produced the same nation, the same map and the same opening; two
-runs with `0` did not. So a logged run is reproducible from a config file,
-which is the property the SyncLogger section above wanted and now has, from the
-older system.
-
-### What this makes possible
-
-A replay diff no longer needs a recorded game at all. Fix the seed, enable
-`[End Frame]` for the categories a mechanic emits, play or script a short game,
-and `gamelog.txt` is a per-frame ground truth for exactly those subsystems —
-positions for movement, leader fields for economy and tech, deaths for
-attrition — against which `crates/sim` can be run from the same initial dump.
-The `BEGIN CONSTANTS` block is the cheapest win and should be wired into
-`rondata` first.
-
-Two more things the running game offers, both read from the binary before it
-ran: the **unit balance tool** (`game/balancerules.txt`, `UnitBalance` in
-`unitbalance.cpp`) runs scripted unit-versus-unit combats and writes results —
-its switch is `game.semaphore.ptr[1] & 2`, set somewhere unread — and the
-`[Start Game]` dump with `RULES=1` ~~should print the loaded type tables~~
-— ~~**it does not**: the 114 MB run had `RULES=1` under `[Start Game]` and
-wrote no type table and no `COMBATTABLE`; the only `RULES` in it are the
-`GAME_RULES` and `RUSH_RULES` lobby settings. `Game::log_rules_data` is
-reached some other way, or under a flag not yet found.~~ **Found: the flag is
-`DUMP_ALL=1`.** `RULES=1` was never the switch — `Game::log_rules_data` is
-reached from `dump_all`, which `full_dump` calls only when it is passed a
-non-zero argument, and the only thing that passes one is `do_dump_all`. With
-it the type tables are all there: 1,820 `UNITTYPE` blocks, 387 `BUILDTYPE`,
-255 `TECHTYPE`, and a `COMBATTABLE` of 493×493 shorts. See below.
-
-**And the type blocks carry the loader's derived words, which is what makes
-them an oracle for more than the combat table** (2026-08-25). Each type's
-`log_data` prints the fields the rules files never say: `UnitType::log_data`
-writes `unit_flags`, `unit_flags2` and **`role`** per unit type,
-`BuildType::log_data` writes `build_flags`, and `TechType::log_data` writes
-**eleven `ai[scan]` shorts** — `TechType::ai[11]`, the production AI's
-per-technology weights. So one `DUMP_ALL` start dump settles every derivation
-in `docs/DATALAYER.md`'s "The derived words no column carries", and
-`rondata --types <dump>` checks all of them: 364 roles, 364 `unit_flags2`,
-129 `build_flags`, 85 × 11 weights, plus `armor` and `splash_percent` for the
-name-group rule. Run3 is the dump.
-
-### Read back (2026-08-20, later)
-
-The dump is now read by `crates/rondata/src/gamelog.rs`, and what it holds
-is written up in `docs/DATALAYER.md`. In short: at detail level 0, per unit
-per frame the object base (`flags o who x_internal y_internal z_internal`)
-and nothing else — the `GUY` blocks carry `type` (a `TypeIndex`), position
-and `angle` only in the start-of-game dump; per leader `who tribe
-defeated_by gov score leader_flags leader_flags2`, no goods; buildings the
-same base with no type; no terrain under any category the two runs enabled.
-The `CONSTANTS` block's keys are the `Constants` struct's field names — the
-lowercased `rules.xml` tags, one renamed — and its values the loaded
-representation, which `rondata --gamelog` classifies for all 716 matched
-constants and checks against every `Tuning::RON` slot (231 of 232 equal;
-`LIBERTY_FREE_UPGRADES` is loaded and not logged). And the seed reproduces
-the game to the position unit: two runs with `Seed=12345` move the same
-units to the same coordinates on the same frames.
-
 ### Running a check: the recipe in one place (2026-08-20, consolidated)
 
 The sections that follow were written as the method was discovered, each
@@ -2532,6 +2286,69 @@ needed the fuzzer (false, run31 panics on the pre-fix sim). Two of the
 three were wrong. **Before crediting a new capture with a finding, run
 the same diff against a dump already on disk**; it is the cheapest
 control this project has and it had not been in the habit.
+
+### run32 — the road on fresh ground, and the heights of another game (2026-08-28)
+
+The capture item 55 asked for, and it settled the item twice over.
+
+**The recipe is `tools/gamelog/roadcapture.sh`**, end to end: it probes the
+three macOS permissions, puts run10–14's game back (seed 12345 in `rise.ini`,
+map style 14 "Great Lakes" in `check.ini` **and** in `PlayerProfile/Player.dat`
+— the `<MULTI>` block is the one Quick Battle reads), stages the `DUMP_ALL`
+window `[104, 109)` and a `rontrace.cmd` of four lines, drives the lobby and
+archives. Nine minutes, 366 MB, five frame blocks.
+
+```
+5 !ffwd 30
+100 add granary who=0 6,171
+100 add smelter who=0 33,161
+110 !quit
+```
+
+**The channel can place a finished building, and it plans its road there and
+then.** `run_cmd`'s `add`, for a type index past the units, calls
+`Objects::init_build` and then the object's vtable slot `+0x1a8`, which
+`vtables.txt` names `Build::activate`; `Build::init` calls `find_city` on the
+way in, so the building joins the human's city exactly as a built one does.
+What no reading had noticed is what happens next: `Wall::start@0063e810`
+passes **`REGEN_FORCE`** to `mask_me`, and `BuildType::mask_me`'s tail is
+`place_roads` — so the ring and the road go down at *start*, and
+`City::regen_roads`' flag is what makes it happen again later. Frame 100's
+first 2,913 draws are `calc_road_cost`'s, before phase 1.
+
+**The two searches are separable, and not by counting.** `Wall::activate`
+plays a sound off a *different* generator, and the trace records every
+generator's draws in file order — so the one non-sync record inside frame
+100 splits the road draws into the Granary's **1,043** and the Smelter's
+**1,870**. (Looking a word up in the trace does not: every draw's seed is
+just the LCG advanced that far, so "where does our word appear" always
+answers "at our own count".)
+
+**The sites were chosen against the simulation.** Every tile 10–20 from p0's
+centre whose whole footprint carries `CITY_RADIUS`, for every type that
+`connects_to_roads` and that `place_building` accepts — the city already has
+a Library and a Market, so those are refused as one-per-city and the
+Granary, the Lumber Mill and the Smelter are not. It is worth doing: a
+site that does not bind to a city plans no road at all.
+
+**What it produced.**
+
+| what | where |
+| --- | --- |
+| the fresh road, tile for tile | 62 tiles; `run32_s_two_fresh_roads_are_the_original_s_tile_for_tile` |
+| four scheduled replans, node for node | 332, 231, 232, 60; `run32_s_scheduled_replans_cost_the_original_s_nodes` |
+| the terraform's before and after | run13's `FRAME 100` heights against run32's `FRAME 104`: 128 corners, in the two footprints' boxes and nowhere else |
+| the search reads the **pre**-terraform grid | 1,046 nodes against the original's 1,043 on the pre-terraform table, 967 on the post |
+
+**And the thing it was not looking for.** The harness had been feeding the
+road search `master_land_heights` from **run3** — the same seed, style and
+size as run10–14 but `GAME_RULES 0` rather than 1, so its starting buildings
+terraformed different ground and its grid differs on 237 corners spread from
+(7, 83) to (230, 163). `borrow_from_siblings` took the first sibling with a
+height table and run3 is first in the list. With the map's own heights
+(run12's and run13's, which agree exactly), run14's frames 10 and 11 cost
+**220** and **248** nodes — the original's, exactly, where they had been 208
+and 222. That, not anything in the search, was item 55's six per cent.
 
 ## What is not established
 

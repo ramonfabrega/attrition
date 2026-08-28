@@ -1,12 +1,14 @@
 # Roads
 
 *Established 2026-08-28 from the decompile (`tools/ghidra/`), the PE listing
-(`llvm-objdump`) for every arithmetic step, and three oracles: run14's
-draw-site trace, run10's start-of-game `WORLD=6` block, and run13's
-`DUMP_ALL` window at sim-frame 95. Confidence: **high** on the schedule, the
-predicates, the endpoints, the ring and the cost function's terms; the
-search's **expansion count** is six per cent short of the original's and the
-gap is not found (§7), so the search is off by default.*
+(`llvm-objdump`) for every arithmetic step, and four oracles: run14's
+draw-site trace, run10's start-of-game `WORLD=6` block, run13's `DUMP_ALL`
+window at sim-frame 95, and **run32**, which drops two buildings on fresh
+ground and catches the road they lay. Confidence: **high** throughout. The
+search costs the original's nodes exactly on every capture that shows it a
+frame's own world, and the road it lays on ground the map has never had one
+on is the original's tile for tile; the "six per cent" §7 chased for a
+session was the harness feeding it another game's terraformed heights.*
 
 The mechanic is `docs/QUEUE.md`'s item 54, and its name was wrong. The draws
 appear under `PathFinder::calc_road_cost+0x46 < astar_caravan_road+0x52b <
@@ -36,6 +38,22 @@ finished) and `Build::remove_from_city`. `place_roads`' own `REGEN_TOTAL`
 arm sets it too, but nothing in a traced game reaches that arm, and it would
 never reach a farm or a city, which is how we know `regen_roads` is the
 writer that matters.
+
+**But the flag is not how a road first appears.** `Wall::start@0063e810`
+calls `Wall::mask_me(this, 1, REGEN_FORCE)`, and the tail of
+`BuildType::mask_me@006312a0` is `place_roads(this, x, y, o, who, 1,
+REGEN_FORCE)` — so a building lays its ring and plans its road **the moment
+it starts**, and the
+flag is what makes it happen *again* sixteen frames later. Every other
+`mask_me` caller passes `REGEN_NONE` (`Build::activate` line 146,
+`Build::finished` line 113) or `REGEN_SIMPLE` (`Wall::close`), and those
+plan nothing.
+
+No traced game had shown this before run32, because none had placed a
+non-farm building: the setup's own go up before frame 0 and the AI never
+gets past its citizens. run32 places two, and frame 100's **first** 2,913
+draws are the two searches — before phase 1, out of the channel's `add`.
+`Sim::start_building` models it.
 
 **This is diff-backed, and exactly.** `build_masks` is in every `BUILDS`
 dump, and on run14 (`gamelog-run14-trace.txt`) its lifetime is the rule
@@ -239,6 +257,16 @@ begins on a road does not get the bonus on its first step.
 
 **Diff-backed:**
 
+- **The search's expansion count, six times over**, against the original's
+  own draw record: run14's frames 10 (220 nodes) and 11 (248), and run32's
+  104, 105, 106 and 107 (332, 231, 232, 60). Each is seeded with the word
+  the trace records *before* the search's first draw, so the jitters are
+  the original's and only the search can differ.
+- **The road itself, tile for tile**, on ground the map has never had a road
+  on: run32's Granary at (6, 171) and Smelter at (33, 161), 62 tiles
+  including both rings (§7).
+- **The placement-time plan** (§1), against those same 2,913 draws.
+
 - The schedule, object for object, against `build_masks` on run14's frames
   0 to 172 (§1).
 - The three frames the search runs on, and the buildings that run it.
@@ -275,145 +303,87 @@ ocean arm of the cost; the alliance arm of the territory test; and
 `was_seen`'s ally-territory shortcut, which on every capture so far agrees
 with the fog bit because the search never leaves its own ground.
 
-## 7. What is not established — the twelve nodes a search is short
+## 7. What is not established — two counts on a placement frame
 
-**The search expands fewer nodes than the original's, and the cause is not
-found.** With the world, the stream and the schedule all verified
-identical, run14 reads:
+**The twelve nodes a search was short were never the search's.** For a
+session §7 read: 208, 222 and 178 costed nodes against the original's 220,
+248 and 189, with the world, the stream and the schedule all verified
+identical and three readings of §4–§5 agreeing line for line. The cause was
+outside all of it. `rondata::diff::borrow_from_siblings` fills a dump's
+missing fields from a sibling capture, and `Initial::heights` was being
+taken from **run3** — the same seed, map style and size as run10–14, but
+`GAME_RULES 0` rather than 1, so its starting buildings stand elsewhere and
+`TerrainOut::terraform_for_building` flattened different ground before its
+first frame. The two grids differ on **237 corners, from (7, 83) to
+(230, 163)** — over the human's own city as well as the AI's. A search a
+third of whose cost is the climb term cannot survive that, and it did not:
+with the map's own heights (run12's and run13's, which agree exactly),
+run14's frames 10 and 11 cost **220** and **248**, the original's numbers
+exactly. `same_start` is the guard — a sibling's heights are borrowed only
+when every starting building matches by owner, object number and position.
 
-| frame | the search | ours | theirs |
-|---|---|---|---|
-| 10 | `0/2006` Market → centre, tile (15, 155) → (16, 160) | 208 | **220** |
-| 11 | `0/2005` Library → centre, (12, 160) → (16, 160) | 52 | — |
-| 11 | `1/2005` Library → centre, (228, 89) → (220, 84) | 170 | — |
-| 11 | both | 222 | **248** |
-| 171 | `1/2005` Library → centre, (228, 89) → (220, 84) | 178 | **189** |
+`Sim::plan_roads` is therefore **on**.
 
-**It is a constant, not a percentage** (measured 2026-08-28). The three
-deficits are `+12`, `+26` and `+11`, and frame 11 is *two* searches: at
-six per cent its 222 would be short by 13, not 26, while `+13` each is
-exactly the other two frames' figure. So a search of 52 nodes and a search
-of 178 are each short by about a dozen — **roughly three extra expansions,
-once per search**, rather than a bias that grows with the path. Anything
-proportional — a cost term slightly too small, a heuristic slightly too
-large — is the wrong shape for that.
+### 7.1 The two counts that are still short
 
-**Why it is the headline.** `Sim::plan_roads` is off, so those 220, 248 and
-189 draws are never spent, and by the end of frame 94 the simulation's
-stream is **466 draws behind** the original's (`--diff`'s note at frame 94:
-"ours 6 draws, the original's 472"). Everything drawn in the untraced
-stretch then reads the wrong word — and what draws there is the farms'
-sprout (`docs/SYNC.md` §3.3, one coin a frame per farm). Player 0's farmer
-`0/3` walks onto its farm on frame 110 on both sides; the original's cell
-is **empty** and takes 101 frames of two adds to ripen, so the citizen
-re-picks a tile on frame 212 and moves on 213. Here the same cell was
-sprouted at frame 49 by a coin off the wrong word and is already 61 adds
-old when the farmer arrives, so it ripens on 180, the citizen re-picks on
-**181** and moves on 182. That is the headline's own first divergence —
-`ticks 181, orders 180, player 0 @ 182` — and it is downstream of this
-count, not of anything in `docs/ORDERS.md` §6.5.
+run32 (`docs/ORACLE.md`) places a Granary at tile (6, 171) and a Smelter at
+(33, 161) from the cheat channel at sim-frame 100. Both roads come out
+**tile for tile the original's** — 62 tiles with the rings — and both counts
+do not:
 
-**Ruled out**, each by measurement rather than by reading:
+| the search | ours | the original's |
+| --- | --- | --- |
+| Granary → centre, on the pre-terraform grid | 1,046 | **1,043** |
+| Smelter → centre, likewise | 1,460 | **1,870** |
 
-- **The world.** Ninety-five frames in, every cell owner, every cell flag
-  but one and all 57,600 tile masks are the original's (§6's guard). At
-  frame 10 the sim's masks differ from the dump's in 16 tiles, all of them
-  the `PLACED` bit on the AI's farm site 200 tiles from the search.
-- **The territory term.** Forcing every cell friendly changes no count at
-  all: every cell the three searches touch is already the searcher's own.
-  Forcing them unowned takes frame 10 to 405 and forcing them foreign to
-  304, so the term is live and the map's answer is the one being used.
-- **The fog.** Forcing `was_seen` true changes no count: no costed tile is
-  unseen.
-- **The heights' orientation and scale.** Every dumped object carries
-  `z_internal`, and on flat ground it equals `World::tile_z` at the
-  object's tile exactly — sixteen of twenty checked objects on run10's
-  frame 0, the rest off-centre on a slope, where the object's own
-  interpolation and the tile's two-corner mean part company. The transpose
-  is nonsense at every one of them.
-- **The heights' identity** (2026-08-28, Fable, from the listing and the
-  type record). `calc_road_cost` reads `TerrainOut+0x4a4`, which is not
-  `master_land_heights` by `TerrainData`'s record (`+0x454`) — but
-  `TerrainOut` carries a 0x40-byte prefix over `TerrainData`
-  (`tesselation_level` at `+0x4b3c` is the code's `+0x4b7c`), so `+0x4a4`
-  **is** `master_land_heights.list`: the array the dump prints. And the
-  dump is written *after* the setup buildings' `Wall::init` ran
-  `TerrainOut::terraform_for_building` over it — p0's city stands on a
-  plateau of 536.016 with the `(h + mean) × 0.5` blend on its border — so
-  the loader's table is the original's grid at frame 0, footprints
-  included. `find_tcoord_z@008544a0`'s fourth, stack-passed argument is
-  `0` at both road call sites (`68650e`, `685c67`), so its own negative
-  clamp is off and the root's `z_val` is unclamped as §5 says. Two
-  residues, neither the gap: the loader's exact-millionths mean truncates
-  differently from the original's `f32` mean on **three tiles** —
-  (14, 147), (99, 173), (14, 223) — none within the three searches' reach;
-  and a non-farm building placed *during* a game re-terraforms the grid
-  in float, which this simulation does not model (`docs/QUEUE.md`).
-- **The stream.** Frames 0 to 9 match the trace draw for draw, so the word
-  at the head of frame 10 — and therefore every jitter — is the original's,
-  and frame 10's comparison carries no jitter noise at all.
-- **The cost function**, term for term against the listing, twice, the
-  second time including the friendly/foreign split that surrounds the road
-  bonus: the halving of `total − removable` is inside the friendly arm, the
-  `>> 3` and the `× 4` are the same weight, and the `z` negation happens on
-  both arms.
-- **`valid_roadcoord`**, likewise, including which endpoint the `is_city`
-  guard belongs to (both, separately) and `WallData::covers_tile`'s
-  `corner ≤ t < corner + size`. Dropping the guard — exempting both
-  footprints — overshoots: 225, 315 and 253 against 220, 248 and 189.
-- **The containers.** `Tree::ordered_insert` sends an equal key left and
-  `first_open_node` takes the leftmost, so the open list is LIFO among
-  equal `value`s, which is what this crate's `(value, Reverse(seq))` does;
-  the refs and closed trees are red-black **maps** keyed by metric that
-  overwrite on an equal key, and a `seek` reads a tombstoned entry as
-  absent. No duplicate-metric behaviour to model.
-- **The wheel and the preference**, against the listing's `setg`/`jle`
-  pair, and `move_x`/`move_y`'s 1-based compass; reversing either is worse.
-- **The endpoints and the stack order.** Four readings of `road_end` and
-  two of the city's were tried; every alternative is further away than
-  `corner + size − 1`.
-- **The search's direction**: running it from the centre to the building
-  gives 94, 194 and 139.
-- **The ring**: with the pad the map proves, it lays nothing, so it cannot
-  be moving the search.
+The split is the trace's, not an inference: `Wall::activate` plays a sound
+off a *different* generator, so the one non-sync draw inside frame 100 falls
+between the two searches.
 
-A constant added to each off-road step lands the count on frame 10 at
-`+5` — but it overshoots frames 11 and 171, so it is not a missing
-constant of that shape, and the per-search reading above says it would not
-be.
+**What the same capture settles about the terraform.** The grid the search
+reads on a placement frame is the **pre**-terraform one: under run32's
+frame-104 heights, which have both new footprints flattened, the Granary's
+search costs 967 nodes and lays a *different* Smelter road; under run13's
+frame-100 heights it costs 1,046 and both roads are exact. So
+`terraform_for_building` runs after `place_roads`, and the 128 corners it
+moves — the two footprints' boxes and nothing else — are that capture's own
+before-and-after (`docs/QUEUE.md` item 57).
 
-**How sensitive the count is**, for calibration: flattening the heights
-takes frame 10 from 208 to **103**, so the climb term is what shapes this
-search; the same search at frames 11 and 171, on an unchanged map, costs
-170 and 178 purely because the jitters differ.
+**What has been ruled out for the remaining two**, each by measurement:
 
-**Where a next session would look — and it is not a fourth reading.**
-Three readings now agree on every line of §4–§5 (the first, the listing
-pass above, and a third on 2026-08-28 from the export and the listing that
-re-derived the search, `first_open_node`, `find_node_open`, both `BRTree`
-inserts and `seek`, the cost function and the height lookup, and found no
-disagreement). The reading path is exhausted; **the oracle is the
-problem.** Three counts — 220, 248, 189 — are three numbers for searches
-that cost two hundred nodes each, and every road they lay falls on tiles
-that are already road, so the path itself is invisible. A building the
-human places on **fresh, un-roaded, sloped ground** ten or more tiles from
-its city lays a road the map has never had: a `rise2.ini` frame window
-(`docs/ORACLE.md`, run13's recipe) bracketing its road frame — it
-activates, `regen_roads` flags its city, and `(frame + o) % 16 == 0`
-fires within sixteen frames — gives the laid tiles in the `WORLD` masks,
-the post-terraform heights in `master_land_heights`, and with `rontrace`
-the count. That turns a three-number oracle into a fifty-number one, and
-the same capture is item 38's. Something that costs about twelve nodes
-**once per search** is still the shape to expect: frame 10 pops 57 nodes
-for a five-tile road, frame 11's first pops 16 for three, the AI's 47–49
-for twelve. The candidates a path would settle at once: the root's own
-`z_val`; the `Recycler<PathNode>` pool across frame 11's two searches;
-and whether `Build::process` reaches `place_roads` by a path that runs a
-search twice, which `build_masks` cannot see.
+- The cost function's terms and the endpoints: six other searches of the
+  same code, on the same map, cost the original's nodes exactly (§6).
+- The territory arm: forcing every unowned cell friendly changes neither
+  count — no cell either search touches is unowned.
+- The fog: forcing `was_seen` true moves the Smelter to 1,624 **and a
+  different road**, so the fog as the dump carries it is the one being used.
+- The route: the north/south choice west of the Smelter's ring is a coin
+  flip in this cost model (fifty other words: north 20, south 19), and with
+  the pre-terraform grid ours takes the original's.
+- A boundary elsewhere in the 2,913: no split `B + n = 2913` is consistent
+  with our own second search from the word before draw `B`, scanned one by
+  one over 600–2,200.
 
-Until it is exact, `Sim::plan_roads` is **false**. A count that is close is
-worse than no count at all: the draws land in the middle of the frame, so
-every later draw in it reads the wrong word, and run14's ledger falls from
-198 of 284 to the 150s (162 and 153 were both recorded on 2026-08-28; the
-next session re-measures). With the flag off — the rings still laid, the
-schedule still kept — the ledger is unchanged.
+**Where a next session would look.** The two searches that are short are
+both on the frame a building is *placed*, and the one that is short by 410
+is the **second** of that frame — which is where `PathFinder`'s own state
+between two searches would show up (the `Recycler<PathNode>` pool, the
+containers' reuse). The first is short by three, which is the size of a
+rounding difference: `rondata::diff` means the heights in exact millionths
+and the original does `(f32 + f32) × 0.5f` and truncates (item 58). Neither
+is on the stream's critical path any more — the road frames of the traced
+games are exact — so this is a residue, not a blocker.
+
+## 8. What the road costs the stream
+
+`Sim::plan_roads` spends one `game_random` draw a node costed, in the middle
+of the frame the plan runs in, so it is worth stating what turning it on did
+to the scores on 2026-08-28:
+
+- **the headline, ticks before divergence: 181 → 202**, and player 0's first
+  parting 182 → 213;
+- **the first frame whose draws differ from the trace at all: 10 → 18** —
+  the number that is not luck;
+- `orders` 180 → 168 and the ledger 198 → 173, both of which are past that
+  first divergence, where two streams have parted and which of them happens
+  to label a frame the same way is chance. `docs/JOURNAL.md`, 2026-08-28.

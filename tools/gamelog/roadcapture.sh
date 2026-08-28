@@ -19,7 +19,7 @@
 # what lets the harness reproduce the search's jitters exactly
 # (`sim.rng.seed`) and diff the laid road tile by tile.
 #
-# Needs macOS **Accessibility** for the five lobby clicks (`cliclick p` must
+# Needs macOS **Accessibility** for the three lobby clicks (`cliclick p` must
 # answer a real cursor position, not 0,0), on top of Screen Recording and
 # Automation. Restores gamelog.ini/rise.ini/rise2.ini at the end; check.ini
 # and Player.dat are left on map style 14 deliberately -- that is run10-14's
@@ -81,17 +81,21 @@ click() {
   sleep 0.5
   cliclick m:$1,$2 w:400 c:$1,$2
   sleep ${4:-3}
-  screencapture -x -R760,152,1920,1108 "$T/r$N-$3.png"
+  screencapture -x "$T/r$N-$3.png"
   sips -Z 900 "$T/r$N-$3.png" --out "$T/r$N-${3}s.png" >/dev/null
   echo "$(date +%H:%M:%S) clicked $3 at $1,$2"
 }
 
+# The lobby, at the desktop this machine has now: **1920x1080**, the game
+# full-screen at (0, 0). The 3440x1440 coordinates every earlier run used
+# land on nothing here, and a blind click is a wasted ten minutes -- so
+# check each screenshot, and re-measure off one when the desktop changes
+# (`sips -g pixelWidth` on the shot; image x/y divided by 900/width).
 zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"
 sleep 4
-click 1715 744 solo 4
-click 1715 672 quick 8
-click 1061 1176 start1 3
-click 1061 1176 start2 20
+click 960 565 solo 4
+click 960 495 quick 8
+click 292 994 start1 20
 
 last=0; still=0
 for i in {1..120}; do
@@ -103,7 +107,7 @@ for i in {1..120}; do
   echo "$(date +%H:%M:%S) gamelog=$sz last='$fr' still=$still"
   if [ $still -ge 6 ] && [ "$sz" -gt 100000000 ]; then echo settled; break; fi
 done
-screencapture -x -R760,152,1920,1108 "$T/r$N-end.png"
+screencapture -x "$T/r$N-end.png"
 pkill -f $P; sleep 4
 mv "$L/gamelog.txt" "$L/gamelog-run$N-$TAG.txt"
 cp "$G/rontrace.log" "$L/rontrace-run$N.log"

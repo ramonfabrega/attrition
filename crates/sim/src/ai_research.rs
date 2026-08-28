@@ -877,6 +877,11 @@ mod tests {
         let mut w = World::new(40, 40);
         w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
         let mut sim = Sim::new(Tuning::RON, w, 2);
+        // These are the research coin's tests, and the coin's outcome is
+        // the *seed's*. A building started here would plan its road
+        // (`Wall::start`, `crate::roads` §1) and spend a draw a node before
+        // the coin is tossed, which is a different question.
+        sim.plan_roads = false;
         for l in &mut sim.ledgers {
             l.bucket = [10_000; RESOURCES];
             l.income = [100 * 16; RESOURCES];

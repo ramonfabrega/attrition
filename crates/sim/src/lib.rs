@@ -667,12 +667,12 @@ pub struct Sim {
     /// the harness turns it on, the soak pays nothing.
     pub trace_phases: bool,
     /// Whether a building replans the road to its city — `crate::roads` §5.
-    /// **Off by default**, and deliberately: the search is implemented and
-    /// its cost function is read off the listing term for term, but it
-    /// expands about six per cent fewer nodes than the original's, and its
-    /// cost is one shared-stream draw a node. A count that is close is
-    /// worse than no count at all, because it desynchronises the frame it
-    /// runs in *and* every value-driven label after it. `docs/ROADS.md` §7.
+    /// **On**, as of run32: the search's expansion count is the original's
+    /// exactly on every capture that feeds it the map's *own* terraformed
+    /// heights, and the road it lays is the original's tile for tile
+    /// (`docs/ROADS.md` §7). It was off while the count was six per cent
+    /// short, which turned out to be the harness reading a different
+    /// game's height grid rather than anything in the search.
     pub plan_roads: bool,
     /// The stream's word at each phase boundary of [`Sim::tick`], filled
     /// only while [`Sim::trace_phases`] is set. It is what
@@ -962,7 +962,7 @@ impl Sim {
             tech_tree,
             setup: tech::Setup::STANDARD,
             trace_phases: false,
-            plan_roads: false,
+            plan_roads: true,
             phase_marks: Vec::new(),
             players: vec![attrition::PlayerState::default(); players],
             sources: Vec::new(),

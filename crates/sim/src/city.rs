@@ -1061,6 +1061,15 @@ impl Sim {
             self.disband_building(o, true);
         }
         self.mask_building(b, true);
+        // `Wall::start@0063e810` passes **`REGEN_FORCE`** to `mask_me`, and
+        // `BuildType::mask_me@006312a0`'s tail is `place_roads` — so a
+        // building lays its ring and plans its road the moment it *starts*,
+        // not only when `Build::process` comes round to its flag. run32 is
+        // the capture: two enhancers dropped at sim-frame 100 spend 2,913
+        // road-cost draws in that frame, before phase 1, and the roads are
+        // on the map four frames before their scheduled replans
+        // (`docs/ROADS.md` §1).
+        self.place_roads(b);
     }
 
     /// `Wall::mask_me` → `BuildType::mask_me`: the footprint marked (or
