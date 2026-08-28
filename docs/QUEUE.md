@@ -32,7 +32,7 @@ for row from 104 to 192 and the coins land on 97, 127, 142, 150 both sides.
 `0/4`, a farmer whose already-wrong re-target moved 220 → 186 (item 61).
 Every other unit held or improved; run6 fell 2,591/1,613 → 1,588/1,415.
 
-**Owed:** 40. **Needs the user:** nothing.
+**Owed:** 40. **Needs the user:** nothing. A Fable aside moved no score; item 42.
 
 **Opener (Opus):** `take item 49 from @docs/QUEUE.md — the trace's word
 parts at frame 122 on one Unit::move_step+0x823 the sim never takes.`
@@ -112,7 +112,8 @@ say so. Numbers are stable; the journal is indexed by them.
 
 42. **The ratification ledger, in batches.** `docs/audit/README.md`: nine
     audits of 2026-08-20 and five of 2026-08-23/25, adjudicated on Opus and
-    never ratified. A steering session's job, marked rows only.
+    never ratified. Marked rows only; also rule on a **leads not pursued**
+    heading for audit records — the slot `FABLE:` lacks (journal, 08-28).
 
 45. **Gaia's animals, and the pasture's lengths.** `Sim::reseat_animal`
     puts the animals back from every traced dump (`docs/SYNC.md` §4.2).
@@ -163,9 +164,8 @@ say so. Numbers are stable; the journal is indexed by them.
     needs is the gate that keeps a standing unit's request out of the loop.
 
 Older backlog, unchanged: the `LEADERDATA` and `CITY` widenings; a
-`find_target` block; run7's order stream under the trace; a mounted
-attacker; a caravan; `make_stuff` whole; `Leader::diplomacy`;
-`calc_gather` for non-flat buildings.
+`find_target` block; run7's order stream under the trace; a mounted attacker;
+a caravan; `make_stuff` whole; `Leader::diplomacy`; `calc_gather` non-flat.
 
 ## How to maintain this file
 

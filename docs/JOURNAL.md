@@ -5133,3 +5133,46 @@ unit as well as by field), the angle block 16,266 → 17,012, the farmers'
 share of run6 719/404 → 739/390, and the first gather-tile disagreement
 430 → 407, which is `1/6`'s second tree drawn hundreds of frames past any
 traced word and has been luck in both directions since item 47.
+
+## 2026-08-28 — a steering aside: the guard-must-fail tool, rejected as a port target (no score, Fable 5)
+
+The `lore` session routed an outside team's CI check — `elenchus.py`, "a
+fix is guarded when its changed test records an assertion failure against
+the parent tree" — on the grounds that this project breaks its guards on
+purpose every session by hand. Read at the source rather than on report,
+and rejected on three structural facts, each worse than the last:
+
+- Its test matcher wants `test_`, `_test.`, `.spec.` or a `tests/` parent.
+  `find crates -path '*/tests/*.rs'` is empty here; all 58 test-bearing
+  files are inline `#[cfg(test)]`. Every commit verdicts `unguarded`.
+- Widen the matcher and it lies: copying a changed `.rs` onto the parent
+  copies the fix with the test, so the test passes and the verdict is
+  `passed` — "not a guard at all". A false accusation against a real guard.
+- The one no matcher fixes: its three report formats are Python, Node and
+  Solidity, where a call to a not-yet-existing function fails at runtime as
+  an assertion. In Rust it fails to compile, which its `classify()` scores
+  as `errors > 0 → inconclusive` *before* it can reach `guarded`. For the
+  shape this project does most — new mechanic, new function — `guarded` is
+  unreachable.
+
+The routing premise was also off: the three standing guards were each
+broken once, at creation, not per commit, and the discipline has no
+observed defect rate. lore verified all three points against the script,
+retracted the premise, and retracted a second claim — that the same repo's
+enumerated review register contradicts `docs/DECISIONS.md` entry 22's
+"charter, not checklist". It does not: their register is a floor with a
+third field, *leads not pursued*, for findings outside it; ours names the
+verdicts as the floor and the misses as the mandate. Two vocabularies for
+one rule, read as a contradiction at the level of slogans.
+
+**The one keeper** is that third field. `docs/audit/` has "covered" and
+"could not settle" (`FABLE:`) and no slot for "noticed and did not chase",
+so those evaporate. Whether a record gains the heading is the ratification
+pass's call, now on item 42. Set aside knowingly: a perf-discipline skill
+(no perf phase exists), a rule refusing epsilons chosen to make a test pass
+(`no_float.rs` leaves nothing to choose), and a SHOULD-HOLD/EXPLORATORY tag
+declared before a campaign — the live one of the three, since the fuzzer's
+own same-day audit kept one finding of three, but it moves no score today.
+
+Verified from the transcript, not the spawn label: this session's system
+prompt said Opus and its last twelve API rows say `claude-fable-5`.
