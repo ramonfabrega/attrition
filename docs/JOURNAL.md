@@ -4354,14 +4354,26 @@ a reader needs.
 
 ## 2026-08-28 — what the headline actually is (item 55, Opus 5)
 
-The session opened on item 38, the long traced capture, and could not run
-it: `screencapture` answers *could not create image from display* and an
-`osascript` to System Events times out after a minute. The machine has a
-console session and an unlocked screen, and no display attached to render
-into. So every behavioural run is blocked, and with it items 38, 23, 49
-and — as it turned out — the one check `docs/VISION.md` now owes. That is
-worth saying plainly rather than working around: the oracle this project
-leans hardest on is a GUI application.
+The session opened on item 38, the long traced capture, and did not run
+it. `screencapture` answered *could not create image from display* and an
+`osascript` to System Events timed out after a minute, and that was read as
+"this machine has no display". **It was wrong.** Both are what revoked
+screen-recording and automation permissions look like, a Claude Code update
+had reset them, and the moment the user re-approved both, `screencapture`
+wrote a 983 KB PNG and System Events answered at once.
+
+The cost was the whole session's booked work, and the lesson is a process
+one rather than a technical one: a permission-shaped failure — a capture
+that refuses, an Apple Event that times out, a tool that hangs — **ends the
+turn with a question**. It does not get diagnosed into a fact about the
+hardware and worked around, because the user cannot unblock what they are
+not told about, and an hour of good side work is not worth an hour of the
+work that was asked for. The user's words: *stop the turn so I can know you
+are stuck.*
+
+What follows is what the session did instead. It is worth keeping, and it
+is also unadjudicated: the same judgement that concluded "no display" wrote
+it.
 
 What was left was the tables, and they had more in them than expected.
 

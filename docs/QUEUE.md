@@ -28,20 +28,20 @@ sprouted here on frame 49 and is empty in the original, so it ripens on
 180 against 211. **Item 55 is the headline item** (`docs/ROADS.md` §7).
 
 **Landed:** the world widening — `run13_s_world_at_frame_95_is_the_
-original_s_cell_for_cell` compares 3,600 cell owners, 3,600 cell flags and
-57,600 tile masks against run13's `DUMP_ALL` at sim-frame 95. All agree but
-one cell's `BUILDING` bit (item 56). Made to fail twice before landing.
+original_s_cell_for_cell`: 3,600 cell owners, 3,600 cell flags and 57,600
+tile masks against run13's `DUMP_ALL` at frame 95, all agreeing but one
+cell's `BUILDING` bit (item 56). Made to fail twice first.
 
-**Blocked:** every behavioural run. `screencapture` answers "could not
-create image from display" and System Events times out, so the original
-cannot be driven from here (item 38 and all that folds into it).
+**Not blocked.** A `screencapture` failure and a System Events timeout were
+read mid-session as "no display"; they were **revoked screen and automation
+permissions**, which a Claude Code update resets. Re-approved, both work. A
+permission-shaped failure ends the turn with a question.
 
-**Owed:** 42 and 40. **Needs the user:** a display, or word there won't be one.
+**Owed:** 42 and 40. **Needs the user:** a Fable pass — see below.
 
-**Opener (Opus):** `proceed @docs/QUEUE.md — headline 181, ledger 198.
-Take item 55: it is the headline, the deficit is a constant twelve nodes a
-search rather than six per cent, and `docs/ROADS.md` §7 names the three
-shapes left to test.`
+**Opener (Fable):** `ratify @docs/QUEUE.md — this session's claims are
+unadjudicated and the driving conclusion was wrong once already. Check
+item 55's chain and the new guard, then take the marked rows (item 42).`
 
 ## The queue
 
@@ -66,14 +66,14 @@ say so. Numbers are stable; the journal is indexed by them.
     the whole against the original by site. Gamelog at `UNITS=3` plus
     `rontrace`, ≥ 1,800 frames, the recipe in `docs/ORACLE.md`; then pin
     its headline beside run10's and retire the tests it supersedes. It
-    would also lengthen the ledger sixfold. **Blocked on a display.**
+    would also lengthen the ledger sixfold.
 
 35. **`mylos` as a cache.** `docs/VISION.md` §7 has the design — and, as of
     2026-08-28, the correction that its list of refresh sites was wrong
     and an open question the dump does not answer: player 1 carries no
     `0x4000000` at the end of frame 202 or 203, yet its Scout's `mylos`
     moves 4 → 6 across them. Settle that before modelling the bit; the
-    check is a `rontrace` run over frames 195–210, so it is behind item 38.
+    check is a `rontrace` run over frames 195–210 — item 38's capture.
 
 36. **`Unit::set_angle`'s seventeen other callers.** 6,866 of run10's
     16,206 angle rows, on frames where the positions agree. Start at
