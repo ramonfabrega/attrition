@@ -1521,15 +1521,13 @@ which `is_gathering_at(this, arrived = 1)` holds — a citizen/scholar on the
 map whose **action** is a `GATHER` on this building **with `been_there`
 set** — skipping decoys (`unit_masks & 1`).
 
-**Second reading (R4 G16), and it is load-bearing.** `is_gathering_at@
-00608880` matches on **`get_action()`** — §3.3's walk — not on the front of
-the list. `do_gather` and `do_non_flat_gather` insert their walks as
+**`is_gathering_at@00608880` matches on `get_action()`** — §3.3's walk —
+not on the front of the list, and it is load-bearing. `do_gather` and `do_non_flat_gather` insert their walks as
 `QUEUE_FIRST` moves *without* the action bit, so during every walk-out and
 walk-back leg the front order is a `MOVE` and only `get_action` still finds
 the `GATHER`. Under the "first order" shorthand a woodcutter would stop
 counting the moment it set off — and be **pruned out of its own chain by
-`check_gatherers`**. The shorthand contradicted §3.3, which was right; the
-implementation carried the bug until the audit. Two further details: the
+`check_gatherers`**. Two further details: the
 inside-the-building match is **scholar-only** (`ptype[4] ∈ {0x34, 0x35}`;
 G17), and `num_gatherers`' second argument is both the decoy filter **and** a
 `count_inside` mode selector, `COUNT_TYPE + 2` (G13). This is `Site::gatherers`' real
@@ -1695,20 +1693,18 @@ goto_build == 1:
         unit_masks |= 0x10000000; return
 ```
 
-In plain terms: a woodcutter alternates between chopping at a tile for 400–599
-frames (re-checking every 100–149 until every peer is out) and walking back
-to the camp for a 32-frame dump animation; a miner walks out once and stays.
-`all_gathering` staggers the return trips. **Three sync-stream draws** (`% 100
-+ 300`, `% 50 + 100`, `% 200 + 400`), so a simulation that wants the combat
-stream to line up has to take them in order. `WorldData::has_gather_access@
+In plain terms: a woodcutter alternates 400–599 frames at a tile
+(re-checking every 100–149 until every peer is out) with a walk back to the
+camp for a 32-frame dump animation; a miner walks out once and stays;
+`all_gathering` staggers the return trips. **Three sync-stream draws**
+(`% 100 + 300`, `% 50 + 100`, `% 200 + 400`), taken in that order. `WorldData::has_gather_access@
 006b4e50(tx, ty, who, 1, 0)`: the tile has `mask & 0x8000`, its `wdata` owner
 is −1/`who`/an ally, and at least one orthogonal neighbour is neither terrain
 class `(mask & 0x30) == 0x20` nor itself a resource tile (`& 0x4000`).
 
-**Three lines of this block have been right here and wrong in the code.**
-The pseudocode above is what the decompile says; the implementation drifted
-from it three times, each caught only by a differential check and never by a
-reading (the story: `docs/JOURNAL.md`, 2026-08-26 and 2026-08-27). As rules:
+**Three lines the implementation has drifted from, each caught by a
+differential check and never by a reading** (`docs/JOURNAL.md`, 2026-08-26
+and 2026-08-27). As rules:
 
 - **The camp arrival** is `wait--`, `been_there`, `wait < 0 → return`, face,
   `CHAR_DUMP_*`, and no third `set_anim` — the listing at
@@ -1718,11 +1714,10 @@ reading (the story: `docs/JOURNAL.md`, 2026-08-26 and 2026-08-27). As rules:
 - **The tile choice's filter is not optional** (`005f0575`): a candidate is
   scored only if it still carries `mask & 0x4000` *and* `has_gather_access`
   holds for it, and when nothing passes, the function returns before
-  `wait = 400 + rnd % 200` — no tile, and no draw. Without the filter a
-  woodcutter is sent to the tile in the middle of its own forest, which has
-  no orthogonal neighbour to stand on and which the original therefore never
-  picks; the `else` arm re-chooses on the same test, so a held tile that
-  loses its access is given up too (`005f0655`).
+  `wait = 400 + rnd % 200` — no tile, and no draw. Without it a woodcutter
+  is sent to the tile in the middle of its own forest, which has no
+  orthogonal neighbour to stand on; the `else` arm re-chooses on the same
+  test, so a held tile that loses its access is given up too (`005f0655`).
 
 The three `CHAR_DEFAULT` sites are marked (`anim::SITE_STAND_GATHER`
 `+0x10f`, `SITE_STAND_TILE` `+0xfd4`, `SITE_STAND_RETURN` `+0xb99`) and so
@@ -1732,11 +1727,11 @@ The order's whole row — `tx`, `ty`, `wait`, `goto_build`, `been_there`,
 (`OrderMismatch::Gather`), which is what makes the next drift a failure
 rather than a reading.
 
-For the dump's woodcutter citizen (§4.8): frame 1 — `goto_build 1, wait 0`,
-adjacent (it was placed beside the camp), `wait → −1`, `been_there = 1`; frame
-2 — choose a tile (`wait = 400 + rnd % 200`, `goto_build = 0`); frame 3 — out
-of `0x140` of the tile centre, `find_nearby_spot(T, 0xc0, 0x100)`, `move(spot)`
-queued; frame 4 — the move steps. That is the citizen's `(4008, 28296)`.
+The dump's woodcutter citizen (§4.8): frame 1 — `goto_build 1, wait 0`,
+adjacent, `wait → −1`, `been_there = 1`; frame 2 — a tile (`wait = 400 +
+rnd % 200`, `goto_build = 0`); frame 3 — outside `0x140` of the tile
+centre, `find_nearby_spot(T, 0xc0, 0x100)`, `move(spot)`; frame 4 — the
+move steps. That is its `(4008, 28296)`.
 
 ### 6.5 The farm (`do_gather`, FARM, arrived)
 
@@ -1749,10 +1744,10 @@ ft = FarmsData::get_farm_type(farm)
 ANIMAL_FARM: set_anim(CHAR_SOW); every 256 frames phased by (o*7 + frame + who):
     move((cx + 1 + GameAccess::rnd(n)) * 0xc0 + 0x60, (cy + 1 + GameAccess::rnd(n)) * 0xc0 + 0x60); return
 dx, dy = u.tile − b.tile_corner(); out of the footprint → dx = dy = 1
-state = farms.farm_data[farm].state[dy][dx]
+state = farms.farm_data[farm].status[dx][dy]           # NOT [dy][dx] — see below
 0: guy0.cur_anim != '$' → as 1;  else → new tile
-1: set_anim(CHAR_SOW); Farms::grow(farm, dx, dy); return
-2: guy0.cur_anim != '#' → set_anim(CHAR_REAP); Farms::snip(farm, dx, dy); return;  else → new tile
+1: set_anim(CHAR_SOW); Farms::grow(farm, dy, dx); return
+2: guy0.cur_anim != '#' → set_anim(CHAR_REAP); Farms::snip(farm, dy, dx); return;  else → new tile
 3: set_anim(CHAR_REAP); return
 new tile: move((cx + GameAccess::rnd(n)) * 0xc0 + 0x60, (cy + GameAccess::rnd(n)) * 0xc0 + 0x60)
 ```
@@ -1771,21 +1766,35 @@ percent`** until it reaches `1.0f`, then `state = 2`; `snip` turns 2 into 3;
 what regrows 3 → 0 (`Farms::process`, presumably) was not read. So a float
 accumulator sits upstream of the sync RNG.
 
-**The count is 101, not 200** — `gamelog-run6` puts all six farm citizens,
-on both players, into an inserted move on frame 102 (`docs/DATALAYER.md`
-§3.1). **Settled 2026-08-24 (`docs/SYNC.md` §3.3).** `Farms::inc_time@008d8600`,
-run every frame from `Objects::inc_time`, adds a *second* `0.005f` to every
-growing cell (and takes `0.01f` from every cut one, and rolls the farm's
-sync-stream draw), so a farmed cell gets two adds a frame — and `0.005f`
-summed in single precision first reaches `1.0f` on the **201st** add, not
-the 200th. `grow`'s add on frame 100 is the 201st: state 2, still under a
-sowing farmer, and the next frame is the "new tile" above with its two
-draws — the log's frame 102. Two corrections to the pseudo-code above fell
-out of the same reading: `'#'` is the **sow** animation (index 35, the one
-every farmer shows) and `'$'` the reap, so case 2's "not `'#'`" is *not
-sowing* and the farmer that just ripened its own cell goes straight to a
-new tile; and the regrowth from 3 is `inc_time`'s `−0.01f` a frame, 101
-frames to empty. `FARM_GROWS` is retired; the clock is `farms.rs`.
+**The clock is 101 frames, not 200** (`docs/SYNC.md` §3.3).
+`Farms::inc_time@008d8600` adds a *second* `0.005f` to every growing cell
+each frame, so a farmed cell takes two adds a frame, and `0.005f` in single
+precision first passes `1.0f` on the **201st**: `grow`'s add on frame 100
+is that one, the cell ripens under a still-sowing farmer, and the next
+frame is the "new tile" above with its two draws. `'#'` is the **sow**
+animation (index 35, the one every farmer shows) and `'$'` the reap, so
+case 2's "not `'#'`" is *not sowing*; the regrowth from 3 is `−0.01f` a
+frame, 101 frames to empty. The clock is `farms.rs`.
+
+**The cell is `status[dx][dy]`, index `dx·4 + dy` — the first reading had
+it transposed** (item 61, 2026-08-28). `FarmStruct` holds `float[4][4]
+percent` at `+0x8` and `uchar[4][4] status` at `+0xac`, and three
+addressings name the same byte: `do_gather`'s switch at `005eff54` reads
+`(dx + farm·0x30)·4 + 0xac + dy`; `Farms::grow(farm, dy, dx)@008d91c0` —
+note the argument order — writes `(farm·0x30 + dx)·4 + 0xac + dy`, and
+`snip` the same; `inc_time` sweeps `4·dx + dy` with `dx` inner. The dump
+prints the sixteen cells in that order too.
+
+The transpose is invisible for a hundred frames, every starting farmer
+standing on `(2, 2)` — its own transpose — and wrong from the first
+re-target: six farmers sow six wrong cells and each walks off on the wrong
+frame. It cost fourteen frames of the traced word (185 against 199) and
+eight of the headline. Both halves are **diff-backed** now:
+`run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell` compares
+every cell against `Farms::log_data`'s `percent[scan][scan2]` /
+`status[scan][scan2]` over run12's frames 1–3 and run13's 95–104, and
+`run14_s_frames_match_the_trace_draw_for_draw` pins the re-targets'
+frames — 101, 199, 211, 217 — against the trace.
 
 ### 6.6 `Unit::find_gather_spot(range)@005f5170`
 
@@ -1795,9 +1804,9 @@ gather_max` or already gathered by this unit, in the unit's `tregion`; a
 citizen standing in a city skips a building of *another* city when its own
 city's population is `< 2`, **or** when `mypop <= otherpop + 2` — i.e. it
 crosses to the other city's building only when its own city is more than two
-more crowded than that one. (The first reading had **both clauses
-inverted**; R4 G43, `find_gather_spot@005f5170:108`. `CityData +0x5a/+0x5c`
-is AI bookkeeping and is an input to `crates/sim`.) within `range` if `> 0` — **a scholar ignores `range` entirely**, the
+more crowded than that one (`find_gather_spot@005f5170:108`; `CityData
++0x5a/+0x5c` is AI bookkeeping and an input to `crates/sim`); within `range`
+if `> 0` — **a scholar ignores `range` entirely**, the
 caller's value being kept only `if (!bVar2)` where `bVar2` is the
 `SCHOLARS`/`SCHOLARSKOREAN` test (R4 G42) — **score = `(Σ_goods rate_g) × 500 /
 (dist / 0xc0 + 2)`**, `rate_g` the leader's per-good rate for the building's
@@ -2814,11 +2823,8 @@ what is listed as an input is stated as such in the code):
   captured, and with the tile list in hand **a woodcutter's citizen walks
   the original's walk for all 432 frames**. What still cannot move: the AI's
   units, which need the order stream — `COMMANDMANAGER=1`, or the `UNITS=3`
-  order blocks replayed as they appear — and ~~the farmers, which part at
-  frame 102 on `FARM_GROWS` (§6.5)~~ the farmers, which now re-target on
-  102 as the original does and part on the *tile* — two sync-stream draws
-  on the sim's own stream past the four frames run12 traced
-  (`docs/SYNC.md` §5).
+  order blocks replayed as they appear. The farmers re-target on the
+  original's own frames now, and the whole farm record is diffed (§6.5).
 - **The log** — ~~the harness should read the `UNITS=3` order blocks (§11.1)
   and diff `type/ox/whom/uid/flags` and the path stack per frame; not yet
   written.~~ **Done 2026-08-21** (`docs/DATALAYER.md` §3.1):
@@ -2897,9 +2903,8 @@ moves fall out of dispatching once on the front at the top of `work`.
   order`'s move-skip rule; `BuildType +0xfc/+0x100` (its stop rule); the
   worker-stance names; `unit_masks & 1` (decoy) and `& 0x400` ("was a
   builder") by bit name; which AI call issues the opening `flags 4`.
-- The `UnitAnim` codes `'%' '$' '#' 0x19 0x1d` (they gate `wait` countdowns);
-  the farm re-target moduli (ECX, lost — `llvm-objdump` at `0x5efd9x`);
-  `Farms::process` and the 200-vs-201 grow count; what reads the four
+- The `UnitAnim` codes `'%' 0x19 0x1d` (they gate `wait` countdowns);
+  `Farms::process`; what reads the four
   `unit_masks 0x78000000` bits; `BuildTypeData::max_gatherers`/`calc_gather`'s
   slot count (`docs/ECONOMY.md`'s open item, unchanged).
 - `Leader::produce_building`'s scoring line by line (read in shape; the

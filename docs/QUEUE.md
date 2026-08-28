@@ -13,33 +13,32 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after item 49 (Opus).*
+*2026-08-28, after item 61 (Opus).*
 
-**The ledger — run14's trace: the stream's word runs to 185, not 122, and
-235 of 284 frames match, not 219.** The headline is **ticks 192, orders
-185**; player 0 parts at 193, player 1 at 203.
+**The headline is ticks 200, orders 200** — up from 192/185. Player 0 parts
+at 213, player 1 at 201. run14's traced word runs to **201** (from 185) and
+**251 of 284** frames match draw for draw (from 235).
 
-**Item 49 was one call and one sheep.** `Unit::move_step:281` asks for
-`CHAR_DEFAULT` the instant a step is refused, before all three give-up
-tests (`docs/COLLISION.md` §5) — run14's frames 122, 184, 256. It had been
-measured as a *loss* and refused, and the loss was one spurious collision
-on gaia's `8/1` at frame **112**: `Animal::do_idle` tests its wander
-destination with `detect_unit_collision` before ordering it and this crate
-did not, so a sheep of a shoulder-to-shoulder herd walked off where the
-original's has not moved in 120 frames. With both, two of the three
-blocked stands fall on the original's own frames. run6 fell hardest:
-1,588/1,415 → **1,351/1,340**, the farmers' share 739/390 → 503/290.
+**Item 61 was one transposed index.** `FarmStruct::status` is a
+`uchar[4][4]` and the farmer's cell is `status[dx][dy]` — `Farms::grow`'s
+own addressing — where `do_farm` read `status[dy][dx]`. It hides for a
+hundred frames (every starting farmer stands on `(2, 2)`, its own
+transpose) and is wrong from the first re-target on 101: six farmers sow
+six wrong cells. `docs/ORDERS.md` §6.5 had the transpose too, so the code
+was faithful to a wrong document.
 
-**What it named:** the two `orders::SITE_FARM_CELL` draws that part 185 —
-ours on 185, 187, 189, 191, the original's on 199 — item 61. The bird's
-second hatch (frame 192) is now past the divergence, so ours hatches once
-in 284 frames rather than twice; the pin says so.
+**The widening it forced.** `Farms::log_data` dumps sixteen
+`percent`/`status` pairs per farm and the harness compared four fields and
+none of the cells. It compares the whole record now, over run12's frames
+1–3 and run13's 95–104 — but that window stops before any farmer reaches
+its new cell, so the *trace* is what pins this defect, and the re-target
+frames are now an assertion of their own.
 
 **Owed:** 40. **Needs the user:** nothing.
 
-**Opener (Opus):** `take item 61 from @docs/QUEUE.md — the human farmer
-re-targets on 185/187/189/191 where the original re-targets on 199, and it
-is what parts the traced word.`
+**Opener (Opus):** `take item 63 from @docs/QUEUE.md — the AI farmer 1/4
+re-picks the cell it is standing on at frame 199, the original's move there
+is refused by a collision and killed without a step, and ours walks.`
 
 ## The queue
 
@@ -47,14 +46,16 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-61. **The farmer's re-target, which parts the traced word.** A human
-    farmer re-picks its cell on 185, 187, 189 and 191 where the original
-    re-picks on 199 — two `orders::SITE_FARM_CELL` draws each time, the
-    first frame whose draw *count* differs on run14. It is the same
-    defect that pins `orders` at 185: `0/4` puts a `MOVE_TO` in front of
-    its gather on frame 186 and parts its position on 191. `do_gather`'s
-    wait (`docs/ORDERS.md` §7) against run10's `GATHERORDER wait` on
-    every frame of `0/3`, `0/4`, `0/5`.
+63. **The re-pick that lands where the unit already stands, and the
+    collision that kills it.** The AI's farmer `1/4` re-picks its cell on
+    199, both sides draw `(3, 2)` and both queue a `MOVE_TO` to
+    `(41400, 17400)` — the tile it is standing on. The original's move is
+    gone the next frame with the unit unmoved and `collide_o 2 /
+    collide_who 1` on its record, so `do_farm` runs again on 201 and
+    re-picks properly; ours finds a path and walks. This is the first
+    divergence (player 1 @ 201) and what parts run14's word.
+    `docs/COLLISION.md` §5's give-up tests against `Unit::do_move`'s first
+    step; run10's frames 199–203 for `1/4` are the whole capture.
 
 38. **One long traced capture, human versus AI, on both maps.** run14's
     trace reaches 284 of run10's 1,772 frames, so nothing on disk measures

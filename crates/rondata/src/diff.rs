@@ -5239,6 +5239,139 @@ mod tests {
         );
     }
 
+    /// The simulation's `Farms` list as the dump writes it: one row per
+    /// record in `Sim::farm_order`, the cells in the record's own memory
+    /// order (`status[dx][dy]`, index `dx * 4 + dy`).
+    fn farm_rows(sim: &Sim) -> Vec<crate::gamelog::FarmDump> {
+        sim.farm_order
+            .iter()
+            .map(|&b| {
+                let bd = &sim.buildings[b];
+                crate::gamelog::FarmDump {
+                    who: i64::from(bd.owner),
+                    o: i64::from(bd.index),
+                    valid: i64::from(bd.farm.valid),
+                    farm_type: i64::from(bd.farm.farm_type),
+                    status: bd.farm.state.iter().map(|&s| i64::from(s)).collect(),
+                    adds: bd.farm.adds.iter().map(|&a| i64::from(a)).collect(),
+                }
+            })
+            .collect()
+    }
+
+    /// **The farm record, whole — every cell of every farm, on every frame
+    /// two `DUMP_ALL` captures of this game print one.**
+    ///
+    /// `Farms::log_data` writes each `FarmStruct` as flat fields of the
+    /// dump: `who`, `o`, then sixteen `percent`/`status` pairs, the
+    /// twenty-five corner heights, `valid` and `farm_type`. The harness
+    /// read four of those fields and threw the thirty-two cells away, and
+    /// the thirty-two are the whole of the farm clock — a crop cell's
+    /// state and its age in `0.005f` adds. Two hundred frames of that
+    /// clock decide when a farmer's cell ripens under it and it walks off
+    /// to another, which is two draws on the sync stream and a `MOVE_TO`
+    /// in front of its gather.
+    ///
+    /// Run12 dumps frames 1–3 and run13 frames 95–104 of the same game
+    /// run10 records, so this is ninety-five frames of simulation checked
+    /// against the original's own arithmetic, cell for cell. What it pins:
+    ///
+    /// - **The clock.** `Farms::inc_time`'s `0.005f` a frame and the
+    ///   farmer's `Farms::grow` on top, and the 201st add crossing `1.0f`
+    ///   — every growing cell's count, every frame.
+    /// - **The sprout's cell.** Sim-frame 101 sprouts one cell of the AI's
+    ///   `1/2003` (`docs/SYNC.md` §4.1's draw 15/16), and it is **memory
+    ///   index 5** — which fixes the order `nth_empty` counts in.
+    /// - **The farmer's cell**, but only up to frame 101. Every starting
+    ///   farmer stands on `(2, 2)`, which is its own transpose, and the
+    ///   six that re-pick on 101 do not *reach* their new cells until 109
+    ///   — past the last dumped frame. So the transposed index item 61
+    ///   fixed (`status[dy][dx]` for `status[dx][dy]`) is **not** caught
+    ///   here; the trace is what catches it, and
+    ///   `run14_s_frames_match_the_trace_draw_for_draw` pins the
+    ///   re-target's own frames for that reason.
+    ///
+    /// Made to fail on purpose, both halves: dropping `Farm::advance`'s
+    /// add parts this at frame 1, and transposing `nth_empty`'s walk
+    /// parts it at frame 2 on the AI's `1/2003`.
+    #[test]
+    fn run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r12), Some(r13)) = (
+            dump("gamelog-run10-world6-long.txt"),
+            dump("gamelog-run12-dumpall-seeds.txt"),
+            dump("gamelog-run13-window-95-105.txt"),
+        ) else {
+            eprintln!("skipping: set RON_GAMELOG_DIR");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+
+        // Every frame either capture dumps the list on, by frame number.
+        // A `FRAME n` block's `FULL DUMP` is the state after `n` ticks —
+        // the same alignment `run13_s_world_at_frame_95…` stands on.
+        let (t12, t13) = (
+            std::fs::read_to_string(&r12).unwrap(),
+            std::fs::read_to_string(&r13).unwrap(),
+        );
+        let (l12, l13) = (Log::parse(&t12), Log::parse(&t13));
+        let mut want: Vec<(i64, Vec<crate::gamelog::FarmDump>)> = Vec::new();
+        for l in [&l12, &l13] {
+            for (n, b) in l.frames() {
+                let farms = crate::gamelog::farms_of(b.kid("FULL DUMP").unwrap_or(b));
+                if !farms.is_empty() {
+                    want.push((n, farms));
+                }
+            }
+        }
+        want.sort_by_key(|(n, _)| *n);
+        assert!(
+            want.len() >= 13 && want.first().map(|(n, _)| *n) == Some(1),
+            "run12's frames 1–3 and run13's 95–104: {:?}",
+            want.iter().map(|(n, _)| *n).collect::<Vec<_>>()
+        );
+
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let last = want.last().map_or(0, |(n, _)| *n);
+        let mut parted: Vec<String> = Vec::new();
+        for frame in 1..=last {
+            built.tick();
+            for (_, theirs) in want.iter().filter(|(n, _)| *n == frame) {
+                let ours = farm_rows(&built.sim);
+                if ours == *theirs {
+                    continue;
+                }
+                for (i, (a, b)) in ours.iter().zip(theirs.iter()).enumerate() {
+                    if a != b {
+                        parted.push(format!(
+                            "frame {frame} slot {i}: ours {a:?}\n              theirs {b:?}"
+                        ));
+                    }
+                }
+                if ours.len() != theirs.len() {
+                    parted.push(format!(
+                        "frame {frame}: ours {} records, theirs {}",
+                        ours.len(),
+                        theirs.len()
+                    ));
+                }
+            }
+        }
+        assert!(
+            parted.is_empty(),
+            "the farm records parted from the original's:\n{}",
+            parted[..parted.len().min(6)].join("\n")
+        );
+    }
+
     /// **The map itself, ninety-five frames in.** The road search reads the
     /// world and nothing else — a cell's owner decides a 240-unit term, its
     /// `ROCK` flag a 120, and a tile's mask decides whether the tile is
@@ -5422,8 +5555,8 @@ mod tests {
             parted.first().cloned().unwrap_or_default()
         );
         assert!(
-            matched >= 235,
-            "the trace floor fell: {matched} of {last} frames match, the floor is 235\n{}",
+            matched >= 251,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 251\n{}",
             parted.join("\n")
         );
         // **And a stricter floor beside it: the first frame whose draw
@@ -5435,10 +5568,12 @@ mod tests {
         //
         // The word was the original's through 121 and parted at **122** on
         // the blocked stand this simulation did not take. It takes it now
-        // (item 49, `docs/COLLISION.md` §5) and the word runs to **185**,
-        // where two `orders::SITE_FARM_CELL` draws — the human farmer's
-        // cell re-pick, item 61 — fall fourteen frames early: ours on
-        // 185, 187, 189 and 191, the original's on 199.
+        // (item 49, `docs/COLLISION.md` §5), and with item 61's cell index
+        // it runs to **201** — where the AI's farmer `1/4` re-picks a
+        // second time and this simulation does not, because its move to
+        // the cell it was already standing on was not refused by the
+        // collision (`docs/QUEUE.md`'s successor item; run10's frame-201
+        // record names the blocker, `collide_o 2`).
         let first_count = built
             .frame_sites
             .iter()
@@ -5446,8 +5581,72 @@ mod tests {
             .map(|(f, _)| *f)
             .unwrap_or(last);
         assert!(
-            first_count >= 185,
-            "the stream's *word* parts at frame {first_count}; the floor is 185"
+            first_count >= 201,
+            "the stream's *word* parts at frame {first_count}; the floor is 201"
+        );
+        // **The farmer's re-target, frame for frame — item 61's own row.**
+        // Two `orders::SITE_FARM_CELL` draws are one farmer picking a new
+        // cell because the one under it ripened, and the frame it happens
+        // on is a hundred frames of the farm clock plus the cell it was
+        // sowing. The cell index was transposed (`status[dy][dx]` for
+        // `status[dx][dy]`, `docs/ORDERS.md` §6.5), so from frame 101 —
+        // the first time a farmer stands anywhere but the symmetric
+        // `(2, 2)` — six farmers sowed six wrong cells, and the first
+        // re-target fell on **185** where the original's falls on 199.
+        // The farm-record diff cannot see this (its captures stop at 104,
+        // before any farmer reaches its new cell), so it is pinned here.
+        let cell_frames = |at: &dyn Fn(i64) -> Vec<String>| -> Vec<(i64, usize)> {
+            (0..=last)
+                .map(|f| {
+                    let n = at(f)
+                        .iter()
+                        .filter(|l| **l == sim::orders::SITE_FARM_CELL)
+                        .count();
+                    (f, n)
+                })
+                .filter(|&(_, n)| n > 0)
+                .collect()
+        };
+        let ours_at = |f: i64| -> Vec<String> {
+            built
+                .frame_sites
+                .iter()
+                .find(|(n, _)| *n == f)
+                .map_or_else(Vec::new, |(_, s)| s.clone())
+        };
+        let theirs_at = |f: i64| -> Vec<String> { trace.labels(f) };
+        let (mine, theirs) = (cell_frames(&ours_at), cell_frames(&theirs_at));
+        assert_eq!(
+            theirs,
+            vec![
+                (101, 12),
+                (199, 2),
+                (201, 2),
+                (211, 4),
+                (217, 4),
+                (218, 2),
+                (220, 2),
+                (241, 2)
+            ],
+            "the original's own re-targets: six farmers on 101, then one a \
+             cell at a time as each ripens"
+        );
+        // Ours agrees up to the word divergence at 201 — 101, 199, 211 and
+        // 217 to the draw — and after it the tail is this simulation's own
+        // stream and cannot be compared.
+        assert_eq!(
+            mine.iter()
+                .copied()
+                .take_while(|&(f, _)| f <= 200)
+                .collect::<Vec<_>>(),
+            vec![(101, 12), (199, 2)],
+            "the six farmers' first re-target, and the AI's `1/4` on the \
+             original's own frame"
+        );
+        assert_eq!(
+            mine.iter().copied().find(|&(f, _)| f == 211),
+            Some((211, 4)),
+            "the two farmers whose cells were empty when they arrived"
         );
         // **The bird's own row, and it is the original's now.** Every
         // eighth frame carries three `Animal::think_bird` draws per living
@@ -5491,21 +5690,30 @@ mod tests {
             "the hatching roll is draw 6 of the original's sampling frame"
         );
         // **The hatch frame is a mechanism again, not drift.** run14's
-        // birds hatch at 96, 192 and 256; ours at 96 alone. The first is
-        // the original's to the frame — the sampling reads the same cells
-        // off the same stream — and the second is the word's: the original
-        // hatches at **192**, seven frames after ours parts at 185, and
-        // the sampling is reading cells off a stream that is no longer its
-        // own. The old pin here was `[96, 224]`, a second bird 32 frames
-        // late off a word that had parted at 122; the divergence moving to
-        // 185 does not put that hatch back, it moves it past the trace's
-        // end. What the missing bird names is item 61 — the farmer's
-        // re-target, which is what parts 185 (`orders::SITE_FARM_CELL`,
-        // twice, on 185/187/189/191 where the original spends them on
-        // 199).
+        // birds hatch at 96, 192 and 256, and the sampling that decides a
+        // hatch reads cells off the sync stream — so a hatch is the
+        // original's exactly as far as the word is. With item 61 the word
+        // runs to 201 and **the first two hatches are the original's own
+        // frames**: 96 (where the pin has stood since item 59) and now
+        // **192**, which the old `[96]` pin could not reach because the
+        // word parted at 185, seven frames short of it. The tail —
+        // ours at 224 and a pair at 256 — is off a stream that is no
+        // longer the original's after 201, and the count of live birds
+        // with it. The history of this pin is the history of the word:
+        // `[96, 224]` off a divergence at 122, `[96]` off 185, and this
+        // off 201.
         let hatches: Vec<i64> = built.sim.gaia.bird_spawns.iter().map(|(f, _)| *f).collect();
-        assert_eq!(hatches, vec![96], "the first is the original's frame");
-        assert_eq!(built.sim.live_birds(), 1, "alive at the end");
+        assert_eq!(
+            &hatches[..2],
+            &[96, 192],
+            "the first two are the original's own frames"
+        );
+        assert_eq!(
+            hatches,
+            vec![96, 192, 224, 256, 256],
+            "and the tail is past the word's divergence at 201"
+        );
+        assert_eq!(built.sim.live_birds(), 5, "alive at the end");
         // The wing beat, which item 52 bought and item 59 put on the
         // original's frames: the hatch frame's wrap (`Guy::init_real`
         // leaves `end_time` at zero, so the same frame's `inc_time`
@@ -5843,6 +6051,28 @@ mod tests {
         //               word *earlier*. With both, run14's word runs
         //               122 → **185** and 219 → **235** of 284 frames
         //               match. What parts 185 is item 61's farmer.
+        //   2026-08-28  ticks **200**, orders **200**; player 0 @ **213**,
+        //               player 1 @ 201 (item 61: **the farmer's cell
+        //               index**). `FarmStruct::status` is a `uchar[4][4]`
+        //               indexed `status[dx][dy]` — `Farms::grow`'s own
+        //               addressing — and `do_farm` read `status[dy][dx]`.
+        //               The transpose is invisible for a hundred frames,
+        //               because every starting farmer stands on `(2, 2)`;
+        //               from frame 101, when six of them re-pick a cell,
+        //               all six sow the wrong one and ripen on the wrong
+        //               frame. run14's word runs 185 → **201** and 235 →
+        //               **251** of 284 frames match, and the trace's
+        //               re-targets now agree to the draw on 101, 199, 211
+        //               and 217.
+        //
+        //               **Player 1's own number fell, 203 → 201**, and it
+        //               is the newly-correct 199 that exposes it: the
+        //               AI's `1/4` re-picks the cell it is *standing on*,
+        //               and the original's move there is refused by a
+        //               collision (`collide_o 2` in run10's frame-201
+        //               record) and killed without a step, so it re-picks
+        //               again on 201. Ours paths and walks. That is the
+        //               successor item, and the first divergence now.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -5851,9 +6081,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 192 && orders >= 185 && first[0] >= 193 && first[1] >= 203,
+            ticks >= 200 && orders >= 200 && first[0] >= 213 && first[1] >= 201,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 192, orders 185, player 0 @ 193, player 1 @ 203",
+             — the floor is ticks 200, orders 200, player 0 @ 213, player 1 @ 201",
             report.first_divergence
         );
         assert!(
@@ -6021,9 +6251,18 @@ mod tests {
         // headline moved 190 → 192 and the AI's units, hundreds of frames
         // out either way, hold their positions on a stream that is the
         // original's for 63 more frames.
+        //
+        // 43,575 → **39,950** with item 61 (the farmer's cell index), the
+        // coverage effect in the down direction while the headline went
+        // 192 → 200. Six farmers now walk off their cells on the
+        // original's frames rather than fourteen early, which moves every
+        // value the stream carries after 185 — and the AI's units, which
+        // are hundreds of frames out either way, part 3,625 unit-frames
+        // sooner between them. The two assertions that say the mechanic
+        // is right are below and both held.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 43_575,
+            coll_seen, 39_950,
             "five fields on every agreeing unit-frame"
         );
         let coll_bad: Vec<CollideDivergence> = report
@@ -6076,9 +6315,15 @@ mod tests {
             "and none of them is before frame 201: {:?}",
             coll_bad.iter().find(|d| d.frame < 201)
         );
+        // The first row was `1/4`'s missing collision on 201. With item 61
+        // that unit *parts* on 201 — it is the first divergence now — so
+        // its rows leave the comparison altogether and the earliest one
+        // left is `1/6`'s on 207. The collision itself has not gone away;
+        // it is the successor item, and run10's frame-201 record names its
+        // blocker.
         assert_eq!(
             coll_bad.first().map(|d| (d.frame, d.who, d.o)),
-            Some((201, 1, 4)),
+            Some((207, 1, 6)),
             "the first collision-block disagreement is well past the score"
         );
         assert!(
@@ -6120,6 +6365,11 @@ mod tests {
         // long after it has parted (122 on run14's trace), so which tree it
         // is remains luck; the numbers that are not are the two the item
         // was booked on.
+        //
+        // **415 with item 61**, eight frames the same luck's way again:
+        // `1/6`'s second tree is still drawn on a frame long past the
+        // word's divergence (201 now), and the six farmers' corrected
+        // cells move every value the stream carries from 185 on.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -6136,7 +6386,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(407),
+            Some(415),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -6203,8 +6453,14 @@ mod tests {
         // original's for 81 more frames.
         // 17,012 → **17,396** with item 49 (the blocked stand): 384 more,
         // and the headline went 190 → 192.
+        // 17,396 → **15,946** with item 61 (the farmer's cell index):
+        // coverage against the headline's direction a fourth time, and
+        // for the same reason as the collision tally three paragraphs up
+        // — the six corrected farmers move every value the stream carries
+        // after 185, and the units hundreds of frames out part sooner on
+        // it. The headline went 192 → 200.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 17_396, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 15_946, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -6618,8 +6874,15 @@ mod tests {
         // a cluster round one farm are what collides most in this capture,
         // so the idle a refused step re-rolls is theirs more often than
         // anyone's — and it puts them back on the original's stream.
+        // 503/290 → **378/312** with item 61 (the farmer's cell index),
+        // and the totals 1,351/1,340 → **1,210/1,360**. The orders half
+        // fell 141 across everyone: six farmers now sow the cell the
+        // original sows and leave it on the original's frame. The paths
+        // half rose 20, and it is the drift this split has always
+        // carried — the *second* re-target rolls past the last traced
+        // word, so its tiles move whenever the stream does.
         assert!(
-            farmer_orders <= 503 && farmer_paths <= 290,
+            farmer_orders <= 378 && farmer_paths <= 312,
             "the farmers' disagreements grew: orders {farmer_orders}, paths {farmer_paths}"
         );
     }

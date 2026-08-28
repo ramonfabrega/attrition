@@ -29,8 +29,10 @@ pub const GROWING: u8 = 1;
 pub const RIPE: u8 = 2;
 pub const CUT: u8 = 3;
 
-/// `Farms`' per-farm record: sixteen cells, row-major `[row][col]` as the
-/// farmer's stand indexes them (`dy * 4 + dx`).
+/// `Farms`' per-farm record: sixteen cells in `FarmStruct`'s own memory
+/// order — `uchar[4][4] status` at `+0xac` and `float[4][4] percent` at
+/// `+0x8`, both indexed **`[dx][dy]`**, so a cell is `dx * 4 + dy`
+/// (`docs/ORDERS.md` §6.5, and the dump prints them in this order).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Farm {
     pub state: [u8; 16],
@@ -98,8 +100,10 @@ pub const SITE_AMBIENCE_X: &str = "Farms::add+0x23f";
 pub const SITE_AMBIENCE_Y: &str = "Farms::add+0x25b";
 
 impl Farm {
-    /// `Farms::grow(farm, dx, dy)`: the farmer's add. The cell is growing;
-    /// `1.0f < percent` after the add ripens it and clamps.
+    /// `Farms::grow(farm, dy, dx)@008d91c0`: the farmer's add — the
+    /// original takes `dy` then `dx` and writes `[dx][dy]`, so `cell` here
+    /// is `dx * 4 + dy`. `1.0f < percent` after the add ripens it and
+    /// clamps; the add is unconditional, even on a ripe or cut cell.
     pub fn grow(&mut self, cell: usize) {
         self.state[cell] = GROWING;
         self.adds[cell] += 1;
@@ -109,7 +113,7 @@ impl Farm {
         }
     }
 
-    /// `Farms::snip(farm, dx, dy)`: ripe → cut.
+    /// `Farms::snip(farm, dy, dx)@008d9240`: ripe → cut, same index.
     pub fn snip(&mut self, cell: usize) {
         if self.state[cell] == RIPE {
             self.state[cell] = CUT;
@@ -118,13 +122,18 @@ impl Farm {
 
     /// The per-frame pass over one farm's cells: the adds, the ripening,
     /// the reset of anything at or under zero. Returns how many cells are
-    /// empty afterwards. Column-major, as `inc_time` walks them — the order
-    /// the sprout's index counts in.
+    /// empty afterwards.
+    ///
+    /// The walk order is `inc_time`'s own — `dy` outer, `dx` inner, so the
+    /// index `dx * 4 + dy` runs `0, 4, 8, 12, 1, 5, …` — which is the
+    /// order [`Farm::nth_empty`] counts the sprout's `k` in. It makes no
+    /// difference here (the count is order-free) and all the difference
+    /// there.
     fn advance(&mut self) -> i32 {
         let mut empty = 0;
-        for col in 0..4 {
-            for row in 0..4 {
-                let c = row * 4 + col;
+        for dy in 0..4 {
+            for dx in 0..4 {
+                let c = dx * 4 + dy;
                 let st = self.state[c];
                 if st == GROWING {
                     self.adds[c] += 1;
@@ -155,12 +164,15 @@ impl Farm {
         empty
     }
 
-    /// The `k`-th empty cell in column-major order.
+    /// The `k`-th empty cell in [`Farm::advance`]'s order — `dy` outer,
+    /// `dx` inner, so `0, 4, 8, 12, 1, 5, …` over the memory index. This
+    /// is `inc_time`'s sprout search at `008d87ba`, and it is diffed:
+    /// walking the other way parts run12's frame 2 (`docs/SYNC.md` §3.3).
     fn nth_empty(&self, k: i32) -> Option<usize> {
         let mut n = k;
-        for col in 0..4 {
-            for row in 0..4 {
-                let c = row * 4 + col;
+        for dy in 0..4 {
+            for dx in 0..4 {
+                let c = dx * 4 + dy;
                 if self.adds[c] == 0 && self.state[c] == EMPTY {
                     if n == 0 {
                         return Some(c);
@@ -671,11 +683,12 @@ mod tests {
         assert_ne!(s.rng.seed, seed, "and on it, the walk rolls");
     }
 
-    /// Run12, frame 1: the stream after the frame's 48th draw, one farm with
-    /// its farmer's cell `(row 2, col 2)` growing and fifteen empty — the
-    /// sprout: `% 1000 = 19 < 20`, then `% 15 = 12`, the thirteenth empty
-    /// cell in column-major order, `(row 1, col 3)` — the cell the frame-2
-    /// dump shows starting to grow (`docs/SYNC.md` §4).
+    /// Run12, frame 1: the stream after the frame's 48th draw, one farm
+    /// with its farmer's cell `(dx 2, dy 2)` growing and fifteen empty —
+    /// the sprout: `% 1000 = 19 < 20`, then `% 15 = 12`, the thirteenth
+    /// empty cell in [`Farm::nth_empty`]'s order, **memory index 7** —
+    /// the cell the frame-2 dump shows starting to grow (`docs/SYNC.md`
+    /// §4).
     #[test]
     fn run12_s_frame_1_sprout_lands_on_the_dump_s_cell() {
         let (mut s, b) = farm_sim();
@@ -688,8 +701,8 @@ mod tests {
         s.buildings[b].farm.adds[2 * 4 + 2] = 3;
         s.farms_inc_time();
         let f = &s.buildings[b].farm;
-        assert_eq!(f.state[4 + 3], GROWING, "row 1, col 3 sprouted");
-        assert_eq!(f.adds[4 + 3], 0);
+        assert_eq!(f.state[7], GROWING, "(dx 1, dy 3) sprouted");
+        assert_eq!(f.adds[7], 0);
         assert_eq!(f.state.iter().filter(|&&x| x == GROWING).count(), 2);
         let mut r2 = Rng::new(0xb619_4ba1);
         for _ in 0..50 {

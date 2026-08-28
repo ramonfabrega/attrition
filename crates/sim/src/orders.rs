@@ -2862,7 +2862,16 @@ impl Sim {
             dx = 1;
             dy = 1;
         }
-        let idx = (dy * 4 + dx) as usize;
+        // **`dx * 4 + dy`, not `dy * 4 + dx`.** `FarmStruct::status` is a
+        // `uchar[4][4]` and the farmer's cell is `status[dx][dy]`: both
+        // `do_gather`'s own switch (`005eff54`, `(dx + farm·0x30)·4 + 0xac +
+        // dy`) and `Farms::grow@008d91c0`'s write (`(farm·0x30 + param_3)·4
+        // + 0xac + param_2`, called `(dy, dx)`) land on the same byte, and
+        // it is the transpose of what this had. Invisible for a hundred
+        // frames — every starting farmer stands on `(2, 2)`, which is its
+        // own transpose — and then wrong the moment one re-picks a cell
+        // (`docs/ORDERS.md` §6.5).
+        let idx = (dx * 4 + dy) as usize;
         let anim = self.units[u].farm_anim;
         let state = self.buildings[b].farm.state[idx];
         match state {

@@ -183,7 +183,7 @@ and whose building is complete (`Build flags & 4`; a site is skipped). Each
 of its 16 cells holds a state byte and a `float percent`:
 
 ```
-for each cell:                       # column-major: col outer, row inner
+for each cell:                       # `4·dx + dy`, dx inner, dy outer — a row at a time
     if state == 1: percent += 0.005f
     if state == 3: percent −= 0.01f
     if percent > 0: if percent ≥ 1.0f: state = 2, percent = 1.0f
@@ -193,27 +193,37 @@ elif empty ≥ 5: chance = (empty − 4) · 20 / 8
 else: next farm
 ONE DRAW: if rand % 1000 < chance:
     ONE DRAW (if empty > 1): k = rand % empty
-    the k-th empty cell in column-major order → state = 1   # a sprout
+    the k-th empty cell in that same order → state = 1     # a sprout
 ```
 
 So **a complete farm costs one draw a frame** while it has five or more
 empty cells, and two on the 2 % of frames it sprouts. Run12's lobby has
 six farms: 6 draws on frames 2 and 3 (nothing else drew), 6 at frame 0
 (no sprout), and **7 at frame 1** — farm 1 sprouted (`% 1000 = 19`,
-`% 15 = 12` → its 13th empty cell, `(row 1, col 3)`), which is exactly the
+`% 15 = 12` → its 13th empty cell, memory index 7), which is exactly the
 cell the frame-2 dump shows starting to grow. The AI's seventh farm is a
 site and draws nothing until it completes.
 
-**This is the other half of the farm clock, and it closes `docs/ORDERS.md`
-§6.5's open item.** The farmer's `Farms::grow@008d91c0` adds `0.005f` and
-sets state 1; `inc_time` adds another `0.005f` the same frame; and `0.005f`
-summed in single precision reaches `1.0f` on the **201st** add, not the
-200th (the pinned crossing, `farms.rs`'s test). Two adds a frame checked
-once a frame: `< 1.0f` after 200 adds at frame 99, `≥ 1.0f` after 202 at
-frame **100** → state 2 → the farmer's `snip` (2 → 3) on 101 → the "new
-tile" branch with its two draws on **102**. The regrowth is `1.0f − 0.01f`
-per frame, `≤ 0` on the **101st** subtraction. Landed:
-`crates/sim/src/farms.rs`, `FARM_GROWS` retired.
+**The record is dumped, and it is diffed** (2026-08-28). `Farms::log_data`
+writes each `FarmStruct` as flat fields of the enclosing dump: `who`, `o`,
+sixteen `percent[scan][scan2]` / `status[scan][scan2]` pairs **in memory
+order** (`[dx][dy]`, index `dx·4 + dy`; `docs/ORDERS.md` §6.5), the
+twenty-five corner heights, then `valid` and `farm_type`. The harness read
+four of those fields and threw the thirty-two cells away for a month;
+`run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell` now
+compares the whole record on every frame either `DUMP_ALL` capture of this
+game prints one — run12's 1–3 and run13's 95–104 — so the clock and the
+sprout's cell are assertions rather than readings. Made to fail twice:
+dropping `inc_time`'s add parts frame 1, transposing the sprout's search
+parts frame 2.
+
+**The clock.** The farmer's `Farms::grow@008d91c0` adds `0.005f` and sets
+state 1; `inc_time` adds another the same frame; and `0.005f` in single
+precision reaches `1.0f` on the **201st** add, not the 200th (`farms.rs`'s
+pinned crossing). Two adds a frame checked once a frame: `< 1.0f` after 200
+adds at frame 99, `≥ 1.0f` after 202 at frame **100** → state 2 → the "new
+tile" branch's two draws on **101**. The regrowth is `−0.01f` a frame, `≤ 0`
+on the **101st** subtraction.
 
 ### 3.4 The docks — `Dock::init@00740a80` (2026-08-25)
 
@@ -603,7 +613,7 @@ each draw did. The three frames that mattered, from the words `0x259a53dd`
 |---|---|---|
 | 99 | 8 | 0–1: the AI's new citizen `1/6` — `Guy::init_real`'s `% 100` and its first idle anim (`% 100 = 74` → variant 1, the dump's `cur_anim 1`); 2–7: the six farms, no sprout |
 | 100 | **18** | **0–11: the twelve `end_time 101` fish, `o` 4, 7, …, 37, each `% 100` → variant** — the replay gives `2,0,0,1,0,0,0,0,0,0,0,0` and the dump's new `cur_anim`s are exactly those, in that order, with `cur_time` reset to 0 (the phase-7 wrap, §2 step 7); 12–17: the six farms |
-| 101 | **21** | the rotation puts the AI first: **0–5: the AI's farmers `1/3`, `1/4`, `1/5`, two `% 4` each** — `1,0 / 3,2 / 1,0`, and their new `MoveOrder` goals are the farm's centre `− 264 + 192·r` on each axis; **6: sheep 0 arrives** (its walk cut at `12/16`, `set_anim(CHAR_DEFAULT)` from `do_idle`, `% 100 = 27` → variant 0); **7–12: the human's farmers `0/3`, `0/4`, `0/5`** — `2,1 / 0,3 / 2,1`, likewise; **13: the human scout's wrap** (`60/61 → 0/61`, phase 7, leader 0 before anything else); **14–20: the seven farm draws** — farm 1 of the list (the AI's `2003`, twelve empties) sprouts at draw 15 (`% 1000 = 6`) and draw 16 picks `65297 % 12 = 5`, the sixth empty cell in print order, which is the one cell that appears in the next pass |
+| 101 | **21** | the rotation puts the AI first: **0–5: the AI's farmers `1/3`, `1/4`, `1/5`, two `% 4` each** — `1,0 / 3,2 / 1,0`, and their new `MoveOrder` goals are the farm's centre `− 264 + 192·r` on each axis; **6: sheep 0 arrives** (its walk cut at `12/16`, `set_anim(CHAR_DEFAULT)` from `do_idle`, `% 100 = 27` → variant 0); **7–12: the human's farmers `0/3`, `0/4`, `0/5`** — `2,1 / 0,3 / 2,1`, likewise; **13: the human scout's wrap** (`60/61 → 0/61`, phase 7, leader 0 before anything else); **14–20: the seven farm draws** — farm 1 of the list (the AI's `2003`, twelve empties) sprouts at draw 15 (`% 1000 = 6`) and draw 16 picks `65297 % 12 = 5`, the sixth empty cell **in the search's own order** — `inc_time` walks `4·dx + dy` with `dx` inner and `dy` outer, so it visits `0, 4, 8, 12, 1, 5, …` rather than `0, 1, 2, …` — which lands on **memory index 5**, the one cell that appears in the next pass. (Print order agrees on this one by luck: both orders reach index 5 sixth. The two are told apart by the diff, which fails at frame 2 under the wrong one.) |
 | 102, 103 | 6, 6 | the farms; the six farmers' walks start on 102 and `1/6`'s on 103 **with no draw** — `find_path` takes them |
 | 95–98 | 23, 28, 7, 6 | the AI scout's `think_scout` re-target at 95 (17 beyond the farms), the birds' twenty at 96 (`frame & 0x1f == 0`) plus two, one at 97, the farms alone at 98 |
 
@@ -644,19 +654,17 @@ set beside the harness's own draws folded by phase (`Sim::phase_marks`, §5):
 | `Farms::inc_time` — the *five* crop farms (§3.6) | 5 / 5 | 5 / 5 |
 | **total** | **175 / 175** | ~~196 / 195~~ **195 / 195** |
 
-**The two struck rows closed together on 2026-08-26, and they were one
-line** (§6's stand/wrap entry; the story is `docs/JOURNAL.md`, 2026-08-26).
-The standing facts: the original draws **no** unit-phase stand for a
-gathering citizen at frame 0 — those guys run their animation out in phase
-7 and re-roll there — and the sim's camp-arrival stand, its own invention
-where the original branches two ways on `CHAR_DUMP_WOOD`/`CHAR_DUMP_ORE`,
-had been resetting their clocks so the wraps never fell due. Removing it
-moved four draws, not two. The dumped clocks could not have settled it: a
-wrap whose roll lands on the slot already running leaves `cur_time`
-stepping normally, so the trace says four wraps where the dump shows two.
-The **sequence** did. `think_scout` is modelled (`docs/SCOUT.md`), and it
-is what turned that row from a curiosity into a bug with a price. Frame 0
-is now compared draw for draw rather than by these blocks
+**The two struck rows were one line** (§6's stand/wrap entry;
+`docs/JOURNAL.md`, 2026-08-26). The standing facts: the original draws
+**no** unit-phase stand for a gathering citizen at frame 0 — those guys run
+their animation out in phase 7 and re-roll there — and the sim's
+camp-arrival stand, its own invention where the original branches two ways
+on `CHAR_DUMP_WOOD`/`CHAR_DUMP_ORE`, had been resetting their clocks so the
+wraps never fell due. Removing it moved four draws, not two. The dumped
+clocks could not have settled it: a wrap whose roll lands on the slot
+already running leaves `cur_time` stepping normally, so the trace says four
+wraps where the dump shows two. The **sequence** did. Frame 0 is now
+compared draw for draw rather than by these blocks
 (`diff::tests::frame_0_matches_the_trace_draw_for_draw_on_both_traced_maps`),
 on run20 and on the Great Lakes.
 
@@ -799,48 +807,12 @@ layer the dump had been carrying unused. `docs/AI.md` §2.20 has all three.
 The rule that falls out: *mark the phase before believing the total*, and
 mark it even when the total already agrees.
 
-**The counts, 2026-08-24**, run10 with run11/run3/run12 as siblings:
-
-| frame | ours | the original's | the gap |
-|---|---|---|---|
-| 0 | **48** | 120 | the 52 idle anims, the two scouts' 23, the 4-draw tail — 48 is exactly sweep 2 + market 18 + birds 20 + herd 2 + farms 6 |
-| 1 | **54** | **54** | none: the script's eight, the placement, the AI scout's re-plan and the builder's walk, the three woodcutters, the seven farm draws — all of frame 1 is modelled |
-| 2 | 6 | 6 | none |
-| 3 | 7 | 6 | one — ~~the sim's `do_move` draws its `% 5` for one of the three woodcutters' walks queued that frame~~ **stale: re-measured 2026-08-26 and it is a `Unit::do_non_flat_gather+0x54b`, a citizen picking a tile a frame the original does not.** The `do_move` reading was right for run20 and is fixed there (§6); on this map it had already stopped being the cause. Still a lead for the run6 `0/2` divergence at frame 4 |
-
-With the words installed, run7's first script call takes the original's
-branch (steps 6 → 7 → 9 → 10 → 11, pinned), run6's AI trains its three
-citizens on the original's frames, and run10 holds at 268 unlinked
-unit-frames with `1/9` now linking — only `1/10` at 1505 is missing.
-
-**The window, 2026-08-24**: run10 with run11, run3 and **run13** as the
-siblings (`--sibling` takes any dump whose setup trace ends on the same
-word; run13's `frame_seeds` are sim-frames 94–103). The harness installs
-run13's word at the end of 94 and then counts:
-
-| sim-frame | ours | the original's | the gap |
-|---|---|---|---|
-| 95 | 6 | 23 | the AI scout's `think_scout` re-target — **modelled since 2026-08-26**, `docs/SCOUT.md`; the window has not been re-run against it |
-| 96 | 26 | 28 | the birds' twenty on both sides; the scout's two |
-| 97 | 6 | 7 | the scout's one |
-| 98 | **6** | **6** | none |
-| 99 | 6 | 8 | the new citizen's two creation draws — the sim creates it without them |
-| 100 | 6 | 18 | the twelve fish wraps — the sim has no animation clock |
-| 101 | 19 | 21 | the sheep's arrival and the scout's wrap; the twelve farmer draws and the seven farm draws are on both sides |
-| 102 | **6** | **6** | none — the six walks start without a draw on both sides |
-| 103 | **6** | **6** | none |
-
-So the sim's `do_move` gate agrees with the original's on all seven walks
-the window starts (§6's frame-3 draw is specific to those three), and the
-next gaps are the ones §6 names: the animation clock and the scout.
-
-**With the animation clock, 2026-08-24 (`docs/ANIM.md` §6)**, the same
-run: 98 **6/6**, 99 **8/8**, 100 **18/18**, 101 ~~20/21 (the scout's wrap
-in, the sheep's arrival out)~~ **21/21 since 2026-08-27**, 102 **6/6**, 103
-**6/6**; 97 6/7, 96 26/28, 95 6/23 are the AI scout's. With run12 as a
-sibling too, frame 0 is **96 of 120** — the forty animals' first idles, the
-two scouts' four and the four woodcutters' stands — and frames 1 and 2 hold
-at 54/54 and 6/6.
+**The per-frame counts that got us here are the journal's** (2026-08-24
+to 08-27). They are superseded by the draw-for-draw comparison of §5.1,
+which places every draw by site rather than counting a frame's; what the
+counting phase left behind as rules is here and in `docs/ANIM.md` §6, and
+what it left behind as gaps is §6. Two of its conclusions are still load-
+bearing and are stated here rather than in the journal.
 
 The sheep closed as a **harness correction, not a model**. An animal
 wanders on draws of the sync stream, so between two traced frames it walks

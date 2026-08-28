@@ -1166,12 +1166,25 @@ pub struct HerdDump {
 /// the sixteen cells, the twenty-five corner heights and then `valid` and
 /// `farm_type` as **flat fields of the enclosing dump**, so a record is
 /// read as "the `who`/`o` pair that most recently preceded a `farm_type`".
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+/// The sixteen cells are printed **in memory order** — `FarmStruct` holds
+/// `float[4][4] percent` at `+0x8` and `uchar[4][4] status` at `+0xac`, and
+/// `Farms::log_data` walks them as one flat run of `percent`/`status`
+/// pairs. The farmer's cell is `status[dx][dy]` (`docs/ORDERS.md` §6.5), so
+/// the index here is `dx * 4 + dy`.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FarmDump {
     pub who: i64,
     pub o: i64,
     pub valid: i64,
     pub farm_type: i64,
+    /// `status[dx][dy]` — 0 empty, 1 growing, 2 ripe, 3 cut.
+    pub status: Vec<i64>,
+    /// `percent[dx][dy]`, as the count of `0.005f` adds the simulation
+    /// keeps ([`sim::farms::Farm::adds`]): the printed float divided by
+    /// `0.005` and rounded. Six decimals over a `0.005` step leaves no
+    /// ambiguity, and [`farms_of`] refuses a value that is not within a
+    /// tenth of an add of an integer.
+    pub adds: Vec<i64>,
 }
 
 /// One frame's worth of state.
@@ -1637,15 +1650,28 @@ pub(crate) fn records(
 /// nearest `who`/`o` pair before that. Every other `who`/`o` on the block
 /// (the leaders' run, the ambience) is left alone because none of them is
 /// followed by a `farm_type` without an intervening pair.
-fn farms_of(b: &Block<'_>) -> Vec<FarmDump> {
+pub(crate) fn farms_of(b: &Block<'_>) -> Vec<FarmDump> {
     let int = |v: &str| v.trim().parse::<i64>().ok();
     let mut out = Vec::new();
     let (mut who, mut o, mut valid) = (None, None, None);
+    let (mut status, mut adds): (Vec<i64>, Vec<i64>) = (Vec::new(), Vec::new());
     for (k, v) in &b.fields {
         match *k {
             "who" => who = int(v),
             "o" => o = int(v),
             "valid" => valid = int(v),
+            "status[scan][scan2]" => status.push(int(v).unwrap_or(0)),
+            "percent[scan][scan2]" => {
+                // The float is a count of `0.005f` adds; six decimals over
+                // a five-thousandth step names the count exactly.
+                let p: f64 = v.trim().parse().unwrap_or(0.0);
+                let n = (p / 0.005).round();
+                assert!(
+                    (p / 0.005 - n).abs() < 0.1,
+                    "a farm cell's percent is not a whole number of 0.005f adds: {v}"
+                );
+                adds.push(n as i64);
+            }
             "farm_type" => {
                 if let (Some(w), Some(oo)) = (who, o) {
                     out.push(FarmDump {
@@ -1653,6 +1679,8 @@ fn farms_of(b: &Block<'_>) -> Vec<FarmDump> {
                         o: oo,
                         valid: valid.unwrap_or(0),
                         farm_type: int(v).unwrap_or(0),
+                        status: std::mem::take(&mut status),
+                        adds: std::mem::take(&mut adds),
                     });
                 }
                 // Each record carries its own pair; a `farm_type` with no
@@ -1660,6 +1688,8 @@ fn farms_of(b: &Block<'_>) -> Vec<FarmDump> {
                 who = None;
                 o = None;
                 valid = None;
+                status.clear();
+                adds.clear();
             }
             _ => {}
         }

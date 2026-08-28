@@ -5275,3 +5275,93 @@ picks, asserting the refusal and that it costs no draw.
 The trace test's `SITE_BLOCKED` assertion changed sides. It used to say the
 original names three and this crate takes none; it now asserts the original's
 three frames *and* that ours are `[122, 184]` up to the divergence.
+
+## 2026-08-28 — item 61: the farmer's cell, transposed (ticks 192 → 200, the word 185 → 201, Opus 5)
+
+The trace said the human's farmer re-picked its cell on 185 where the
+original re-picks on 199, and the item was booked as "the farmer's
+re-target". It is one index.
+
+`FarmStruct` is `uchar[4][4] status` at `+0xac` and `float[4][4] percent`
+at `+0x8`. `Unit::do_gather`'s farm branch computes the farmer's `(dx, dy)`
+inside the footprint and reads **`status[dx][dy]`** — `005eff54` addresses
+`(dx + farm·0x30)·4 + 0xac + dy`, and `Farms::grow(farm, dy, dx)` writes
+the same byte from the other argument order. This crate read
+`status[dy][dx]`. `docs/ORDERS.md` §6.5 had it transposed too, so the code
+was faithful to the document and the document was wrong.
+
+**It hides for a hundred frames.** Every starting farmer stands on
+`(2, 2)`, which is its own transpose, and every farm's cell 10 is therefore
+the right cell on both readings. The six farmers re-pick on frame 101 — the
+first time any of them stands anywhere else — and from that frame all six
+sow the wrong cell. `0/4`'s new cell was 61 adds old under the transpose
+and empty under the correct index, so it ripened fourteen frames early and
+the farmer walked off fourteen frames early, two draws on the sync stream
+and a `MOVE_TO` in front of its gather.
+
+### The oracle was in the dump the whole time
+
+`Farms::log_data` writes every farm as flat fields: `who`, `o`, **sixteen
+`percent[scan][scan2]` / `status[scan][scan2]` pairs**, twenty-five corner
+heights, `valid`, `farm_type`. The harness parsed four of those fields and
+threw the thirty-two cells away. Two `DUMP_ALL` captures of this game print
+them — run12's frames 1–3 and run13's 95–104 — which is ninety-five frames
+of the farm clock, cell for cell, that nobody had ever compared.
+
+`run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell` compares
+the whole record now, and it was made to fail twice: dropping
+`inc_time`'s `0.005f` parts frame 1, and transposing the sprout's search
+parts frame 2 on the AI's `1/2003`. What it does **not** catch is the
+defect that prompted it — its captures stop at 104 and no farmer reaches
+its new cell until 109 — so the trace test pins the re-target's own frames
+instead. Both are worth having; only one of them was the diff that would
+have found this.
+
+The reading that settled it came from the same decompile the document was
+written from. What was new was knowing which line to read, and the trace
+is what said which line.
+
+### The scores
+
+| | before | after |
+|---|---|---|
+| run10 `ticks` | 192 | **200** |
+| run10 `orders` | 185 | **200** |
+| player 0's first divergence | 193 | **213** |
+| player 1's first divergence | 203 | 201 |
+| run14, first frame whose draw **count** differs | 185 | **201** |
+| run14, frames matching draw for draw | 235 / 284 | **251 / 284** |
+| run6 orders / paths | 1,351 / 1,340 | **1,210 / 1,360** |
+| run6, the farmers' share | 503 / 290 | **378 / 312** |
+| collision block, rows compared | 43,575 | 39,950 |
+| angle block, rows compared | 17,396 | 15,946 |
+
+The trace's re-target row is the item's own: the original spends its two
+`orders::SITE_FARM_CELL` draws on 101 (all six farmers), 199, 201, 211,
+217, 218, 220 and 241. Ours now agrees on 101, 199, 211 and 217 — every one
+up to the word's divergence, and two past it — where before it read 101,
+185, 187, 189, 191.
+
+The second bird comes back with it. Ours hatched at 96 and 224 when the
+word parted at 122, at 96 alone when it parted at 185, and now at **96 and
+192** — both the original's own frames — with the tail past 201 its own.
+
+**Player 1's own number fell, 203 → 201, and it is the newly-correct 199
+that exposes it.** The AI's `1/4` re-picks the cell it is *standing on*:
+both sides draw `(3, 2)`, both queue a move to `(41400, 17400)`, which is
+where the unit already is. The original's move is refused by a collision on
+the next frame — run10's frame-201 record carries `collide_o 2`,
+`collide_who 1` and the order gone with the unit unmoved — and it re-picks
+again on 201. Ours finds a path and walks. That is the successor item and
+the first divergence now.
+
+### What it cost the paperwork
+
+`docs/ORDERS.md` and `docs/SYNC.md` are both over the size ceiling, so item
+40's rule applied: the new specification went in and an equal weight of
+narrative came out. SYNC's two superseded per-frame count tables
+(2026-08-24, the ones the draw-for-draw comparison replaced) are the
+journal's now; ORDERS lost the audit stories around §6.1, §6.4 and §6.6 and
+two settled entries in "what is not established" — the farm re-target
+modulus and the 200-vs-201 grow count, both of which this item's diff now
+holds. Both pins came down.
