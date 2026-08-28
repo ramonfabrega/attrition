@@ -175,6 +175,14 @@ about *direction*, a divergence worth making deliberately, anything
 irreversible or outward-facing, or a finding that changes what the project
 should do next: those are worth a conversation, and the conversation is cheap.
 
+**A permission-shaped failure ends the turn with a question.** A capture
+that refuses, an Apple Event that times out, a tool that hangs at 0 % CPU:
+these are what a revoked macOS permission or a consent dialog look like,
+and a Claude Code update resets the permissions. They are not diagnosed
+into a fact about the hardware and worked around — the user cannot unblock
+what they are not told about, and an hour of good side work is not worth
+the hour of the work that was asked for.
+
 In practice the natural boundary is the end of a mechanic. Finish it, commit
 it, say where things stand and what you would do next — then it is a good
 moment to clear the context and start the next one fresh, because the document

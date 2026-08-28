@@ -605,8 +605,14 @@ through to the next iteration (`6f536b jmp 6f5373`) does **not** restore
 them. So the tail at `6f5383` accepts whatever the *last* qualifying unit
 wrote, on `ox >= 0 && whom >= 0` alone. The rule is: the **first**
 qualifying unit whose target is a map unit; failing that, the **last**
-qualifying unit's target, map unit or not; and only "no unit qualified at
-all" gives nothing.
+qualifying unit's target, map unit or not; and nothing when no unit
+qualified at all — **or when the last qualifying unit's target order
+carries a negative `ox` or `whom`** (2026-08-28, Fable, from the listing):
+`6f5345`/`6f5349` jump straight to the next iteration on a negative
+register without restoring the spill, so a qualifying unit whose target
+has gone leaves `−1` in the registers and overwrites an earlier
+building target. Only the arm that fails the centre-of-gravity distance
+(`6f52f6 jg 6f536d`) reloads `%ebx`/`%edi` from the spills.
 
 **And the test is on `get_action()`, not the front order** — `6f51fa`
 calls `UnitData::get_action` and `6f520e` compares its `get_type()` with
@@ -1031,31 +1037,13 @@ and before the `Line` records; there is no `ARMIES` parent. Run20's frame
 muster 51,53`, every count 0 — `Armies::init_army` from the census's step
 16 at frame 0, before any unit joined (§2).
 
-### 16.2 run21 — the family without an enemy
+### 16.2 run21 and 16.3 run23
 
-The islands game to 24000 (`docs/ORACLE.md`): `do_mustering`,
-`do_forming`, `release_mustering`, `find_muster_spot`, `is_moving`,
-`is_engaged`, `set_stance`, `count` from **252** (army 0's first tick);
-`add_group`/`add_unit`/`member` 10187, `get_unit` 10232,
-`center_of_gravity` 10488, `num_armies` 14074, `do_transporting`,
-`find_target`, `find_aggressive_army` **14586**, `do_marching` and
-`Army::close` **14838**, `use_generals` 15898, `leader_defeated` at the
-quit. Never: `engagement`, `march_to_target`, `do_defending`,
-`find_besieged_city`, `remove_group`, `stop`, `send_here`, `charge`,
-`use_scouts`, `use_spies`, `find_waiting_unit`, `find_useful_army`,
-`find_city`, `update_city`, `emergency`, `diplo_change`, `send_navy`.
-
-### 16.3 run23 — the null result
-
-The same lobby with `6000 war who=1` in `rontrace.cmd`: the line ran
-(`INFO cmd`, `Leader::set_diplo` entered at 6000) and **every one of the
-24,001 `game_random` words is identical to run21's** — a Quick Battle
-already starts at war (run16 had to declare *peace* first,
-`docs/ORACLE.md`), so the command changed nothing, and run21 was already
-a war in which the AI never marched on an idle human. Worth a line
-because it is the cheapest possible check of "did the scenario take": the
-per-frame RNG word in the trace's `FRAME` records
-(`tools/gamelog/rngcmp.py`).
+run21 is the islands game to 24000 and run23 its null result (`6000 war
+who=1` changed no word: a Quick Battle already starts at war). Their
+function-by-frame coverage lists were lifted verbatim to
+`docs/JOURNAL.md` on 2026-08-28; `tools/trace/report.py … blind docs/`
+regenerates them from the logs.
 
 ### 16.4 run24 — the raid
 
@@ -1386,9 +1374,13 @@ Checks, cheapest first (`rondata::diff`, `army_tests`):
   qualifying unit's target anyway. run29 breaks on the first, so the arm
   is unexercised. *Capture:* an army whose only attackers are pointed at
   **buildings** — every `TARGETORDER` in reach then fails `is_map_unit`
-  and the army should still take the last one. `FABLE:` the listing is the
-  only evidence; the register spill at `6f5324`/`6f5342` and the
-  fall-through at `6f536b` are the whole argument.
+  and the army should still take the last one. ~~`FABLE:` the listing is
+  the only evidence; the register spill at `6f5324`/`6f5342` and the
+  fall-through at `6f536b` are the whole argument.~~ **Ratified
+  2026-08-28, Fable, from the listing** (§11): the reading stands, with
+  one refinement — a last qualifying unit whose target order is negative
+  yields nothing, not the earlier target — and the simulation now does
+  the same. Still reading-only; the capture above is still the check.
 - **The blind list after run28**, from `tools/trace/report.py … blind
   docs` over **every** trace on disk (18 logs; 524 addresses cited under
   `docs/`, 428 entered, 96 never) — this document's share is just three:

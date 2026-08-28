@@ -1064,10 +1064,15 @@ pub struct Initial<'a> {
     /// run had `[Misc Logging] CHECKSUM ≥ 1` and `check_all_level ≥ 14`.
     pub checksums: Vec<Checksum<'a>>,
     /// The terrain's `master_land_heights` — `(4·xs + 1) × (4·ys + 1)`
-    /// corner heights, row-major, each in **millionths** (the log prints
-    /// the floats with six decimals; the shipped maps' heights are
-    /// multiples of ⅛, so the text is exact). Only a `DUMP_ALL` dump
-    /// carries it (`docs/ORACLE.md`); empty otherwise.
+    /// corner heights, row-major, each in **millionths** — the log prints
+    /// the floats with six decimals, which is finer than an `f32`'s
+    /// spacing at these magnitudes, so the text names the float exactly;
+    /// but the floats are **not** on a ⅛ grid (run12 has 39,746 of 58,081
+    /// off it, because `terraform_for_building` has averaged every
+    /// footprint by the time the dump is written), so a consumer that
+    /// wants the original's arithmetic must do it in `f32`, not in
+    /// millionths (`docs/ROADS.md` §7, `docs/QUEUE.md`). Only a `DUMP_ALL`
+    /// dump carries it (`docs/ORACLE.md`); empty otherwise.
     pub heights: Vec<i64>,
     /// The `HERDS` block's `HERD` records — only a `DUMP_ALL` dump prints
     /// them (`docs/SYNC.md` §3.2); empty otherwise.

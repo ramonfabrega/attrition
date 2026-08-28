@@ -98,11 +98,18 @@ that needs them is being built.
 - `2026-08-23-pathfinder.md`, `2026-08-24-anim.md`,
   `2026-08-24-commands.md`, `2026-08-24-recgame.md`;
 - `2026-08-25-transport.md`, `2026-08-25-army.md`;
-- **`2026-08-25-groups.md`'s "Fourth pass"** — the row that matters most,
+- ~~**`2026-08-25-groups.md`'s "Fourth pass"** — the row that matters most,
   because it *overturns* three verdicts an earlier Fable pass confirmed.
   A ratifier should start there and should be told that a previous
-  ratification agreed with the rows now being retracted.
-- **`docs/ARMY.md` §11's two corrections and §18's new `FABLE:` marker**
+  ratification agreed with the rows now being retracted.~~ **Off the list
+  2026-08-28, Fable — by diff, not by reading.** Rows 35 and 36 are the
+  slot table and `compute_dests`, which `docs/GROUPS.md` §12 (its table's
+  §6.4 row, and §12.2's 36-member reproduction from run31) now backs
+  against run29's and run31's `GROUPDATA`; a diff is the stronger oracle
+  and needs no reader. Row 37 — Square is dead code — models nothing and
+  is checked by the export alone. The earlier pass's three rows stand
+  retracted.
+- ~~**`docs/ARMY.md` §11's two corrections and §18's new `FABLE:` marker**
   (2026-08-26, Opus, from the listing at `6f5160`): that `is_engaged` and
   `engagement` test `get_action()` rather than the front order — which a
   run29 diff then confirmed, so it needs no ratification — and that
@@ -111,7 +118,15 @@ that needs them is being built.
   second is the marked one: it rests on a register spill
   (`6f5324`/`6f5342`) and a fall-through (`6f536b`) and **no run has
   exercised it**. It is implemented in `Sim::army_engagement_seed`, so a
-  ratifier is checking live code.
+  ratifier is checking live code.~~ **Ratified 2026-08-28, Fable, from
+  the listing.** The reading holds — `6f5345`/`6f5349` leave the loop
+  iteration without restoring the spills, `6f536d` is the only arm that
+  does, `6f5369` the only exit — with one refinement that changed a line
+  of `Sim::army_engagement_seed`: a last qualifying unit whose target
+  order is negative yields nothing. `docs/ARMY.md` §11, §18. The test
+  that "confirmed" the old reading passed for an unrelated reason (an
+  unarmed building is not `active`, so `group_action_attack` returned
+  before ordering anyone); it is rewritten.
 - ~~**`docs/GROUPS.md` §4.4's `find_leader` key** (2026-08-26, Opus,
   listing `0070ccb0`). Implemented and unit-tested; unobserved, because
   every group in every dump so far has one `type_cat` category.~~

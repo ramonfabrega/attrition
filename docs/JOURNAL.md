@@ -4465,3 +4465,120 @@ One more measurement, banked for item 45: gaia's animals track the
 original's positions **exactly** to frame 90 and first part at 91. The
 `ANIMALDATA` record is 70,960 animal-frames on run10 and still compares
 nothing; the drift it would measure is the stream's, which is item 55's.
+
+## 2026-08-28 — the second steering pass (Fable 5): the tranche holds, and the road's oracle is the problem
+
+Two days and thirteen commits of Opus sessions since the first steer
+(2489b8b), all on `worktree-replan-pdb` and none yet on `main`. The
+question was whether to intervene. **No** — the loop is doing what it was
+set up to do, and the numbers say so: ticks before divergence **3 → 181**,
+orders **2 → 180**, the run14 draw-for-draw ledger **179 → 198 of 284**,
+every step booked with its number, the one that went backwards (item 52)
+stated as such. `cargo test --workspace` with `RON_INSTALL` set: 132
+rondata and 610 sim tests, no `skipping` lines — the dump-backed tests
+found the captures and ran. The wasted session (permissions read as "no
+display") is recorded honestly with its lesson, which is now a rule in
+`CLAUDE.md` rather than a line in a handoff that gets rewritten.
+
+### The road, read a third time
+
+`docs/ROADS.md` §4–§5 were re-derived from the export and the listing —
+`astar_caravan_road`, `find_road`, `place_roads`, `calc_road_cost`,
+`valid_roadcoord`, `first_open_node`, `find_node_open`, both `BRTree`
+inserts and `seek` — and **every line agrees with `roads.rs`**. Two
+additions from the listing: `find_tcoord_z@008544a0` has a fourth,
+stack-passed argument the decompiler cannot name, and both road call
+sites push `0` for it, so the root's unclamped `z_val` rests on the
+listing now rather than on inference.
+
+Then the one input §7 admitted was never diffed, the heights, and a chase
+that ended in a dead end with useful debris. `calc_road_cost` reads
+`TerrainOut+0x4a4`, which by `TerrainData`'s record is inside
+`master_mount`'s index buffers — and `terraform_for_building` writes it,
+in float, at every non-farm building's `Wall::init`. For an hour that
+was a second, working height grid the dump never prints, and the search
+spends its expansions exactly where it would differ. It is not:
+`TerrainOut` (0x6ac0) carries a **0x40-byte prefix** over `TerrainData`
+(0x6a80) — `tesselation_level` at `+0x4b3c` is the code's `+0x4b7c` —
+so `+0x4a4` is `master_land_heights.list`, the array the dump prints.
+And run12's frame-0 heights are already terraformed: p0's city stands on
+a plateau of 536.016 with the `(h + mean) × 0.5` blend on its border, the
+Library's later terraform overwriting the city's western columns. The
+loader's table is the original's grid at frame 0. What the chase left
+behind: `gamelog.rs`'s "multiples of ⅛, so the text is exact" is false
+(39,746 of 58,081 vertices are off the grid, because of the terraforms);
+the loader's exact-millionths mean truncates differently from the
+original's `f32` mean on three tiles, none near the searches; and a
+building placed *during* a game re-terraforms the grid, which the
+simulation does not model. Two queue items, at the back. The trap — a
+derived class's `field_0xNNN` may be a base field at `NNN − prefix` — is
+in `tools/ghidra/README.md`.
+
+So three readings agree and the count is still twelve short a search.
+**The oracle is the problem, not the reading**, and §7 now says what the
+next session does instead of a fourth: a building placed on fresh,
+un-roaded, sloped ground, a frame window round its road frame, the laid
+tiles and the count. Folded with item 38's capture.
+
+### The ledger, two rows
+
+`docs/ARMY.md` §18's `FABLE:` marker — `engagement`'s last-qualifier
+fallback — ratified from the listing at `6f52f6`–`6f5383`: the reading
+holds, with one refinement. `6f5345`/`6f5349` leave the iteration on a
+negative `ox`/`whom` **without** restoring the spills, so a qualifying
+unit whose target has gone erases an earlier building target and the
+tail gives nothing. `Sim::army_engagement_seed` now does the same; the
+new test was made to fail against the old line first. The old test,
+`engagement_ignores_a_building_target`, asserted the opposite of §11's
+own rule and passed because an unarmed building is not `active`, so
+`group_action_attack` ordered nobody — a test written from the reading,
+confirming nothing. Rewritten around an armed wall.
+
+The groups "fourth pass" — three rows an earlier Fable pass confirmed
+and the implementation overturned — is off the ledger **by diff**, not by
+reading: the slot table and `compute_dests` are backed by run29's and
+run31's `GROUPDATA` (`docs/GROUPS.md` §12), and Square being dead code
+models nothing. The nine audits of 2026-08-20 and the five that followed
+stay owed, and the stance stays: a capture retires them faster than a
+pass.
+
+### Numbers
+
+Unmoved, and this session did not book a score: ticks 181, orders 180,
+ledger 198 / 284.
+
+### Paperwork
+
+`CLAUDE.md` gains the permission rule. `docs/ARMY.md` §11 and §18 amended
+and, being pinned, paid for the room by lifting §16.2 and §16.3 here:
+
+> ### 16.2 run21 — the family without an enemy
+>
+> The islands game to 24000 (`docs/ORACLE.md`): `do_mustering`,
+> `do_forming`, `release_mustering`, `find_muster_spot`, `is_moving`,
+> `is_engaged`, `set_stance`, `count` from **252** (army 0's first tick);
+> `add_group`/`add_unit`/`member` 10187, `get_unit` 10232,
+> `center_of_gravity` 10488, `num_armies` 14074, `do_transporting`,
+> `find_target`, `find_aggressive_army` **14586**, `do_marching` and
+> `Army::close` **14838**, `use_generals` 15898, `leader_defeated` at the
+> quit. Never: `engagement`, `march_to_target`, `do_defending`,
+> `find_besieged_city`, `remove_group`, `stop`, `send_here`, `charge`,
+> `use_scouts`, `use_spies`, `find_waiting_unit`, `find_useful_army`,
+> `find_city`, `update_city`, `emergency`, `diplo_change`, `send_navy`.
+>
+> ### 16.3 run23 — the null result
+>
+> The same lobby with `6000 war who=1` in `rontrace.cmd`: the line ran
+> (`INFO cmd`, `Leader::set_diplo` entered at 6000) and **every one of the
+> 24,001 `game_random` words is identical to run21's** — a Quick Battle
+> already starts at war (run16 had to declare *peace* first,
+> `docs/ORACLE.md`), so the command changed nothing, and run21 was already
+> a war in which the AI never marched on an idle human. Worth a line
+> because it is the cheapest possible check of "did the scenario take": the
+> per-frame RNG word in the trace's `FRAME` records
+> (`tools/gamelog/rngcmp.py`).
+
+`docs/ROADS.md` §7 gains the heights' identity and the oracle paragraph;
+`docs/audit/README.md`'s ledger strikes two rows; `gamelog.rs`'s
+comment tells the truth about the ⅛ grid. `main` fast-forwarded to this
+branch at the end of the session.

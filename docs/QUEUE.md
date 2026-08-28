@@ -13,35 +13,29 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after the road's measurement.*
+*2026-08-28, after the second steering pass (Fable).*
 
 **The headline — run10, 1,772 frames: ticks before divergence 181, orders
 180.** Unmoved. **The ledger — run14: 198 of 284 frames.** Unmoved.
 
-**What moved is knowing what the headline *is*.** Player 0's first
-divergence at 182 is farmer `0/3` re-picking its farm tile thirty-one
-frames early, and the chain behind it is now measured end to end:
-`Sim::plan_roads` is off, so run14's three road searches never spend their
-220 + 248 + 189 draws, the stream is **466 draws behind by frame 94**, and
-the farms' sprout coins land on the wrong words — the cell `0/3` sows was
-sprouted here on frame 49 and is empty in the original, so it ripens on
-180 against 211. **Item 55 is the headline item** (`docs/ROADS.md` §7).
+**The tranche was ratified, not re-steered.** Two days of Opus sessions
+moved the headline 3 → 181 and the ledger 179 → 198 with every step
+booked; the tree is green against the install and the dumps. `docs/ROADS.md`
+§4–§5 were re-derived a third time and agree line for line, so **item 55
+is no longer a reading**: three counts are too weak an oracle, and §7
+names the capture that gives the *path*. The heights were chased to a
+dead end that left items 57 and 58 at the back.
 
-**Landed:** the world widening — `run13_s_world_at_frame_95_is_the_
-original_s_cell_for_cell`: 3,600 cell owners, 3,600 cell flags and 57,600
-tile masks against run13's `DUMP_ALL` at frame 95, all agreeing but one
-cell's `BUILDING` bit (item 56). Made to fail twice first.
-
-**Not blocked.** A `screencapture` failure and a System Events timeout were
-read mid-session as "no display"; they were **revoked screen and automation
-permissions**, which a Claude Code update resets. Re-approved, both work. A
+**The ledger (item 42)** lost two rows: ARMY §18's marker, ratified from
+the listing with a one-line refinement in `army_engagement_seed`, and the
+groups fourth pass, diff-backed. `CLAUDE.md` gained one rule: a
 permission-shaped failure ends the turn with a question.
 
-**Owed:** 42 and 40. **Needs the user:** a Fable pass — see below.
+**Owed:** 40. **Needs the user:** nothing until the next steer.
 
-**Opener (Fable):** `ratify @docs/QUEUE.md — this session's claims are
-unadjudicated and the driving conclusion was wrong once already. Check
-item 55's chain and the new guard, then take the marked rows (item 42).`
+**Opener (Opus):** `take item 55 from @docs/QUEUE.md — not a fourth
+reading: run the capture docs/ROADS.md §7 names, load its window, and
+compare the laid road tile by tile before touching the search.`
 
 ## The queue
 
@@ -49,24 +43,24 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-55. **The road's missing twelve nodes a search — the headline.**
-    `docs/ROADS.md` §7: the search costs 208, 222 and 178 nodes on run14's
-    frames 10, 11 and 171 where the original costs 220, 248 and 189, and
-    `Sim::plan_roads` stays off until it is exact. Frame 10 carries **no
-    jitter noise** — frames 0–9 match the trace draw for draw, so both
-    sides start it on the same word — and frame 11 is two searches, which
-    is what says the deficit is a **constant per search** (+12, +13 +13,
-    +11), about three expansions, not a percentage. The world, the
-    heights, the territory term, the fog, the cost function, the
-    containers, the wheel, the endpoints and the direction are each ruled
-    out by measurement. §7's last paragraph names the three shapes left.
+55. **The road's missing twelve nodes a search — the headline, by a path
+    oracle.** `docs/ROADS.md` §7: 208, 222 and 178 costed nodes against
+    220, 248 and 189, about a dozen short per search, and three readings
+    that agree on every line. Do not read it a fourth time. *The capture:*
+    fixed seed, `rontrace`, the human places a Library on **fresh,
+    un-roaded, sloped ground** ten-plus tiles from its city, and a
+    `rise2.ini` frame window (run13's recipe) round its road frame —
+    within sixteen frames of activation — gives the laid tiles, the
+    heights and the count. Load that frame, heights included, run
+    `find_road` from the building, diff the road tile by tile before
+    touching `astar_road`; then re-measure the ledger with `plan_roads` on.
 
 38. **One long traced capture, human versus AI, on both maps.** run14's
     trace reaches 284 of run10's 1,772 frames, so nothing on disk measures
     the whole against the original by site. Gamelog at `UNITS=3` plus
     `rontrace`, ≥ 1,800 frames, the recipe in `docs/ORACLE.md`; then pin
-    its headline beside run10's and retire the tests it supersedes. It
-    would also lengthen the ledger sixfold.
+    its headline beside run10's and retire the tests it supersedes. Item
+    55's capture is its first minute; fold them if the trace holds.
 
 35. **`mylos` as a cache.** `docs/VISION.md` §7 has the design — and, as of
     2026-08-28, the correction that its list of refresh sites was wrong
@@ -135,32 +129,38 @@ say so. Numbers are stable; the journal is indexed by them.
     `tools/trace/report.py … blind docs/` against both traces — and record
     whether any of its 188 extra functions is on the blind list.
 
-42. **The ratification ledger, in batches.** `docs/audit/README.md`: fifteen
-    audits adjudicated on Opus, the groups fourth pass first (it overturns
-    three earlier Fable rows), then `docs/ARMY.md` §18's marker. A steering
-    session's job, over marked rows only; not an Opus item.
+42. **The ratification ledger, in batches.** `docs/audit/README.md`: nine
+    audits of 2026-08-20 and five of 2026-08-23/25, adjudicated on Opus and
+    never ratified. A steering session's job, over marked rows only; a
+    capture retires a row faster than a pass.
 
 45. **Gaia's animals, the re-seat crutch, and the pasture's lengths.**
     `Sim::reseat_animal` puts the animals back from every traced dump
-    because their wander rides a stream held only at those frames
     (`docs/SYNC.md` §4.2's tail). Widen the diff to the `ANIMALDATA`
-    record — 40 of run10's 54 objects, 70,960 animal-frames, uncompared to
-    this day — as its own sub-score. **Measured 2026-08-28:** they track
-    the original exactly to frame 90 and first part at 91, which is the
-    stream's own drift showing. `rondata::artdata` leaves `FARMPIG` and
-    `FARMCHICKEN` out of the length table — they name a `-TYPE0` and a
-    `-TYPE1` and no `-TYPE2` — so until that is settled their idle rolls
-    never wrap here (`docs/ANIM.md` §3.1).
+    record — 70,960 animal-frames on run10, uncompared — as a sub-score;
+    they track the original to frame 90 and part at 91. `rondata::artdata`
+    lacks `FARMPIG`/`FARMCHICKEN` lengths (`docs/ANIM.md` §3.1).
 
-51. **The AI's long-run economy, now that the roster is measured both
-    ways.** `FrameResult::extra_units` is the mirror of `unlinked`, and
-    together they say the AI reaches eight citizens on the original's
-    frames and then stalls: the original trains `1/9` at 1297 and `1/10` at
-    1505 and this simulation reaches neither inside 1,772 frames. Two
-    threads, in order: the AI's citizens spend long stretches on `AttackTo`
-    moves rather than gathering (`docs/ARMY.md`), and the income itself —
-    `CITY.gatherers` is in every dump at every detail level and is
-    uncompared. Score it on the roster pin, 744 + 0.
+51. **The AI's long-run economy.** The roster pins (`extra_units`,
+    `unlinked`) say the AI reaches eight citizens on the original's frames
+    and then stalls: `1/9` at 1297 and `1/10` at 1505 are never trained
+    here. Two threads: citizens on `AttackTo` moves rather than gathering
+    (`docs/ARMY.md`), then the income — `CITY.gatherers` is in every dump
+    and uncompared. Score it on the roster pin, 744 + 0.
+
+57. **The terraform.** `TerrainOut::terraform_for_building@00875210`, from
+    `Wall::init` for every non-farm building: the footprint-plus-pad box of
+    `master_land_heights` set to its mean, the border blended
+    `(h + mean) × 0.5`, in `f32`. The frame-0 dump already carries the
+    setup buildings', but a building placed *during* a game moves the grid
+    behind `Unit::update_z`, `Leader::compute_site_stats` and the road
+    cost. The software float carries it; any frame window after a
+    placement is the oracle. `docs/ROADS.md` §7.
+
+58. **The height loader's arithmetic.** `rondata::diff` means the heights in
+    exact millionths; the original does `(f32 + f32) × 0.5f` and truncates,
+    and on run12 they differ on tiles (14, 147), (99, 173), (14, 223). Do it
+    in `f32`, pin the three. Ten lines, and a prerequisite of 57.
 
 Older backlog, one line each, unchanged: the `LEADERDATA` and `CITY`
 widenings; a `find_target` block; run7's order stream under the trace; a

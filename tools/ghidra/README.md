@@ -104,6 +104,14 @@ still: a data dump after a retype, a fresh vtable walk, an address sweep.
   `ExportAll` matched `startsWith("vftable")`. `DumpVtable` now matches names
   on letters and digits only, so either spelling finds it. Re-run `export.sh`
   to get them into `vtables.txt`.
+- **A derived class's `this->field_0xNNN` may be a base-class field at
+  `NNN − prefix`.** `TerrainOut` (0x6ac0) is `TerrainData` (0x6a80) behind
+  a **0x40-byte prefix**, so every `this->field_0x4a4` in a `TerrainOut`
+  method is `TerrainData + 0x464` — `master_land_heights.list`, not the
+  `PtrArray<IndexBuffer>` the raw offset lands in. `tesselation_level` at
+  `+0x4b3c` appearing as `field_0x4b7c` is the check. Before calling a
+  field "a second array the dump does not print", subtract the derived
+  class's size difference and look again.
 - **`run.sh` must be run with `zsh` or as an executable, and `status` is
   read-only in zsh.** The script once did `status=$?` and died with
   "read-only variable" on every run; it is `rc` now.

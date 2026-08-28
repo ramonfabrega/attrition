@@ -1293,6 +1293,11 @@ impl Sim {
             // half of the pair).
             self.update_action(u);
             let Some(t) = self.units[u].combat.target else {
+                // `6f5345`/`6f5349`: a negative `ox`/`whom` goes to the
+                // next iteration without restoring the spills, so a
+                // qualifying unit whose target has gone erases an earlier
+                // fallback rather than leaving it standing.
+                last = None;
                 continue;
             };
             last = Some((u, t));
@@ -2534,8 +2539,21 @@ mod tests {
         }
     }
 
+    /// An armed enemy building at the army's point: `active`, so
+    /// `group_action_attack` will order against it. The earlier form of
+    /// the test below left it unarmed, and its "the army ignores a
+    /// building target" passed only because nobody could be ordered at
+    /// an inactive target — the opposite of §11's fallback rule.
+    fn armed_wall(sim: &mut Sim, p: Pos) -> usize {
+        let wall = sim.add_building(0, p, 1);
+        sim.buildings[wall].combat = Some(crate::combat::Profile::default());
+        sim.buildings[wall].hits = 100;
+        sim.buildings[wall].health = 50;
+        wall
+    }
+
     #[test]
-    fn engagement_ignores_a_building_target() {
+    fn engagement_falls_back_to_the_last_qualifier_s_building_target() {
         let (mut sim, c) = sim_with_city();
         let t = soldier_type(&mut sim);
         let slot = sim.init_army(1, Some(c));
@@ -2545,12 +2563,41 @@ mod tests {
         let b = put(&mut sim, 1, t, Pos::new(p.x + 0x40, p.y));
         sim.army_add_unit(1, slot, a);
         sim.army_add_unit(1, slot, b);
-        let wall = sim.add_building(0, Pos::new(p.x + 0x100, p.y), 1);
+        let wall = armed_wall(&mut sim, Pos::new(p.x + 0x100, p.y));
         sim.add_attack_order(a, Obj::Building(wall), QueuePos::New, true, true);
         sim.engagement(1, slot);
         assert_eq!(
-            sim.units[b].combat.target, None,
-            "`is_map_unit` gates it: a building target is not the army's"
+            sim.units[b].combat.target,
+            Some(Obj::Building(wall)),
+            "`is_map_unit` gates only the break: with no map-unit target the \
+             last qualifying unit's building is the army's (§11)"
+        );
+    }
+
+    #[test]
+    fn engagement_yields_nothing_when_the_last_qualifier_s_target_is_gone() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let p = Pos::new(0x5000, 0x5000);
+        sim.armies[1].list[slot].pos = p;
+        let a = put(&mut sim, 1, t, p);
+        let b = put(&mut sim, 1, t, Pos::new(p.x + 0x40, p.y));
+        let idle = put(&mut sim, 1, t, Pos::new(p.x + 0x80, p.y));
+        for &u in &[a, b, idle] {
+            sim.army_add_unit(1, slot, u);
+        }
+        let wall = armed_wall(&mut sim, Pos::new(p.x + 0x100, p.y));
+        sim.add_attack_order(a, Obj::Building(wall), QueuePos::New, true, true);
+        // `b` qualifies — it carries an attack action — but its target
+        // order has gone negative, as an attack whose target died reads.
+        sim.add_attack_order(b, Obj::Building(wall), QueuePos::New, true, true);
+        sim.units[b].combat.target = None;
+        sim.engagement(1, slot);
+        assert_eq!(
+            sim.units[idle].combat.target, None,
+            "`6f5345`: the last qualifier's −1 overwrites the earlier wall, \
+             and the tail at `6f5383` gives nothing"
         );
     }
 

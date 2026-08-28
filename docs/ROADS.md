@@ -331,6 +331,24 @@ count, not of anything in `docs/ORDERS.md` §6.5.
   frame 0, the rest off-centre on a slope, where the object's own
   interpolation and the tile's two-corner mean part company. The transpose
   is nonsense at every one of them.
+- **The heights' identity** (2026-08-28, Fable, from the listing and the
+  type record). `calc_road_cost` reads `TerrainOut+0x4a4`, which is not
+  `master_land_heights` by `TerrainData`'s record (`+0x454`) — but
+  `TerrainOut` carries a 0x40-byte prefix over `TerrainData`
+  (`tesselation_level` at `+0x4b3c` is the code's `+0x4b7c`), so `+0x4a4`
+  **is** `master_land_heights.list`: the array the dump prints. And the
+  dump is written *after* the setup buildings' `Wall::init` ran
+  `TerrainOut::terraform_for_building` over it — p0's city stands on a
+  plateau of 536.016 with the `(h + mean) × 0.5` blend on its border — so
+  the loader's table is the original's grid at frame 0, footprints
+  included. `find_tcoord_z@008544a0`'s fourth, stack-passed argument is
+  `0` at both road call sites (`68650e`, `685c67`), so its own negative
+  clamp is off and the root's `z_val` is unclamped as §5 says. Two
+  residues, neither the gap: the loader's exact-millionths mean truncates
+  differently from the original's `f32` mean on **three tiles** —
+  (14, 147), (99, 173), (14, 223) — none within the three searches' reach;
+  and a non-farm building placed *during* a game re-terraforms the grid
+  in float, which this simulation does not model (`docs/QUEUE.md`).
 - **The stream.** Frames 0 to 9 match the trace draw for draw, so the word
   at the head of frame 10 — and therefore every jitter — is the original's,
   and frame 10's comparison carries no jitter noise at all.
@@ -369,22 +387,33 @@ takes frame 10 from 208 to **103**, so the climb term is what shapes this
 search; the same search at frames 11 and 171, on an unchanged map, costs
 170 and 178 purely because the jitters differ.
 
-**Where a next session would look.** Something that costs about twelve
-extra costed nodes **once per search** — three expansions, not a per-step
-bias. The shapes are small enough to hold in the head: frame 10 pops 57
-nodes for a five-tile road, frame 11's first pops 16 for three tiles, and
-the AI's pops 47–49 for twelve. Candidates that fit that shape and have
-not been measured: the root's own `z_val` (unclamped and unnegated, so a
-search that starts on a road pays the join on its first step — worth
-testing against a root whose `z` is clamped like every other node's); the
-`Recycler<PathNode>` pool's state across the two searches of frame 11
-(nothing in the reading says a recycled node keeps anything, but nothing
-has checked it either); and `Build::process`'s call itself — whether the
-original reaches `place_roads` by a path that runs the search twice for
-one of the three frames, which `build_masks` cannot see.
+**Where a next session would look — and it is not a fourth reading.**
+Three readings now agree on every line of §4–§5 (the first, the listing
+pass above, and a third on 2026-08-28 from the export and the listing that
+re-derived the search, `first_open_node`, `find_node_open`, both `BRTree`
+inserts and `seek`, the cost function and the height lookup, and found no
+disagreement). The reading path is exhausted; **the oracle is the
+problem.** Three counts — 220, 248, 189 — are three numbers for searches
+that cost two hundred nodes each, and every road they lay falls on tiles
+that are already road, so the path itself is invisible. A building the
+human places on **fresh, un-roaded, sloped ground** ten or more tiles from
+its city lays a road the map has never had: a `rise2.ini` frame window
+(`docs/ORACLE.md`, run13's recipe) bracketing its road frame — it
+activates, `regen_roads` flags its city, and `(frame + o) % 16 == 0`
+fires within sixteen frames — gives the laid tiles in the `WORLD` masks,
+the post-terraform heights in `master_land_heights`, and with `rontrace`
+the count. That turns a three-number oracle into a fifty-number one, and
+the same capture is item 38's. Something that costs about twelve nodes
+**once per search** is still the shape to expect: frame 10 pops 57 nodes
+for a five-tile road, frame 11's first pops 16 for three, the AI's 47–49
+for twelve. The candidates a path would settle at once: the root's own
+`z_val`; the `Recycler<PathNode>` pool across frame 11's two searches;
+and whether `Build::process` reaches `place_roads` by a path that runs a
+search twice, which `build_masks` cannot see.
 
 Until it is exact, `Sim::plan_roads` is **false**. A count that is close is
 worse than no count at all: the draws land in the middle of the frame, so
 every later draw in it reads the wrong word, and run14's ledger falls from
-198 of 284 to 162. With the flag off — the rings still laid, the schedule
-still kept — the ledger is unchanged.
+198 of 284 to the 150s (162 and 153 were both recorded on 2026-08-28; the
+next session re-measures). With the flag off — the rings still laid, the
+schedule still kept — the ledger is unchanged.
