@@ -6,6 +6,7 @@ use super::*;
 use crate::build::{BuildType, Ident, flags};
 use crate::city::{PlaceFail, capture_value, health_level};
 use crate::garrison::{GarrisonRefused, UnitTraits};
+use crate::orders::Coll;
 use crate::place::Blocked;
 use crate::world::{UNITS_PER_CELL, tile};
 
@@ -1400,6 +1401,77 @@ fn the_spot_search_starts_on_the_units_side_and_keeps_off_the_footprint() {
     assert!(
         sim.find_nearby_spot(east, site, 0, 0, 0, angle, None)
             .is_some()
+    );
+}
+
+/// `find_nearby_spot`'s collision half (§10, `docs/COLLISION.md` §5.2):
+/// the sweep refuses a candidate another unit is **standing on** and one
+/// another unit has been **ordered to**, and `Coll::None` takes either.
+///
+/// This is item 66's mechanic on a bench. In run10 the AI's new citizen
+/// `1/7` was sent to the exact quarter-tile `1/6` was standing on, because
+/// the sweep's last test had never been written.
+#[test]
+fn the_spot_search_refuses_a_unit_standing_there_and_one_walking_there() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    // `coll_size` is `block_radius / 48`, and a type with none is in
+    // neither index — the whole test would pass vacuously.
+    sim.unit_types[citizen].combat.block_radius = 48;
+    let east = spawn(&mut sim, 0, citizen, tile_pos(46, 40));
+    let other = spawn(&mut sim, 0, citizen, tile_pos(20, 20));
+    let site = sim.buildings[b].pos;
+    let here = sim.units[east].pos;
+    let angle = movement::find_angle(here.x - site.x, here.y - site.y);
+    let ring = 3 * 0x60 + 0x30;
+
+    let clear = sim
+        .find_nearby_spot(east, site, ring, 0, -1, angle, Some(b))
+        .expect("open ground has a spot");
+
+    // Standing on it. The next candidate must be somewhere else, and far
+    // enough that the two blocks do not overlap: Chebyshev `> 2` unit
+    // cells, which is `coll_size 1` twice over.
+    sim.set_new_location(other, clear, true);
+    let pushed = sim
+        .find_nearby_spot(east, site, ring, 0, -1, angle, Some(b))
+        .expect("the ring is not full");
+    assert_ne!(pushed, clear, "the occupied quarter-tile is refused");
+    let (a, c) = (collide::ucell(pushed), collide::ucell(clear));
+    assert!(
+        (a.x - c.x).abs() > 2 || (a.y - c.y).abs() > 2,
+        "and so is every candidate whose block overlaps it: {pushed:?}"
+    );
+    assert_eq!(
+        sim.find_nearby_spot_coll(east, site, ring, 0, -1, angle, Some(b), Coll::None),
+        Some(clear),
+        "`nocoll` takes it regardless"
+    );
+
+    // Walking to it. Two unit cells clear of the spot is far enough that
+    // the *position* test passes, and near enough to stay on the chain
+    // the nine world cells around the candidate walk.
+    let aside = Pos::new(clear.x, clear.y + 3 * 0x30);
+    sim.set_new_location(other, aside, true);
+    sim.units[other].orders_pos = aside;
+    assert_eq!(
+        sim.find_nearby_spot(east, site, ring, 0, -1, angle, Some(b)),
+        Some(clear),
+        "standing aside, it blocks nothing"
+    );
+    sim.units[other].orders_pos = clear;
+    assert_ne!(
+        sim.find_nearby_spot(east, site, ring, 0, -1, angle, Some(b)),
+        Some(clear),
+        "but a spot it has been ordered to is taken"
+    );
+    assert_eq!(
+        sim.find_nearby_spot_coll(east, site, ring, 0, -1, angle, Some(b), Coll::None),
+        Some(clear),
+        "`nocoll` takes that too"
     );
 }
 

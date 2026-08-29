@@ -287,6 +287,21 @@ const BEARINGS: [i32; 31] = [
     13, -13, 14, -14, 15, -15,
 ];
 
+/// Which of `find_nearby_spot`'s two collision halves a call site asks for
+/// (`docs/ORDERS.md` §10).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Coll {
+    /// `FILTER_NOT_ME` / `FILTER_CAN_COLLIDE` with a real `(o, who)` and no
+    /// squad — every build, repair, gather, garrison, idle and stable site:
+    /// `Objects::find_collision` and then `find_ordered_collision`.
+    Pairwise,
+    /// Accept any passable candidate. The original's `nocoll != 0`, and —
+    /// as a stated seam — its **general** path too: `FILTER_ALL` and a
+    /// squad placement go through `ObjectsData::find_unit_with_radius`,
+    /// whose `big_radius + r_coll` circle this crate does not model.
+    None,
+}
+
 /// Which worker kind a unit type is, for the gather chain and `think_peasant`.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Worker {
@@ -1840,17 +1855,19 @@ impl Sim {
     }
 
     /// `UnitType::find_nearby_spot(x, y, min, max, step, angle, …)`
-    /// (`docs/ORDERS.md` §10): rings of radius `min, min + step, …, max`
-    /// around the centre, each swept over 31 bearings in the order `0, ±1,
-    /// ±2, … ±7` sixteenths of a turn from `angle`, then the odd
-    /// thirty-seconds (`17/32` twice, `1/32` never, the direct opposite
-    /// never); each projected point snapped to its quarter-tile centre; the
-    /// first candidate on the map, not on a blocked tile, not on
-    /// `footprint_of`'s footprint (a farm excepted for a citizen) and of the
-    /// unit's terrain class wins. `max <= 0` and `step <= 0` take the
-    /// defaults. No RNG. The collision half — other units' positions and
-    /// ordered positions — is not modelled: on open ground with nothing in
-    /// the way the first candidate is free, which is the stated assumption.
+    /// (`docs/ORDERS.md` §10) under the **pairwise** filter — the
+    /// `FILTER_NOT_ME` every build, repair, gather, garrison and stable
+    /// call site passes.
+    ///
+    /// Rings of radius `min, min + step, …, max` around the centre, each
+    /// swept over 31 bearings in the order `0, ±1, ±2, … ±7` sixteenths of
+    /// a turn from `angle`, then the odd thirty-seconds (`17/32` twice,
+    /// `1/32` never, the direct opposite never); each projected point
+    /// snapped to its quarter-tile centre; the first candidate on the map,
+    /// not on a blocked tile, not on `footprint_of`'s footprint (a farm
+    /// excepted for a citizen), of the unit's terrain class and **free of
+    /// other units** wins. `max <= 0` and `step <= 0` take the defaults.
+    /// No RNG.
     #[allow(clippy::too_many_arguments)]
     pub fn find_nearby_spot(
         &self,
@@ -1861,6 +1878,33 @@ impl Sim {
         step: i32,
         angle: Angle,
         footprint_of: Option<usize>,
+    ) -> Option<Pos> {
+        self.find_nearby_spot_coll(
+            u,
+            centre,
+            min,
+            max,
+            step,
+            angle,
+            footprint_of,
+            Coll::Pairwise,
+        )
+    }
+
+    /// The same sweep with the collision half named. `Coll::None` is the
+    /// original's `nocoll != 0` — and, as a stated seam, its whole
+    /// general path (`docs/ORDERS.md` §10, §14).
+    #[allow(clippy::too_many_arguments)]
+    pub fn find_nearby_spot_coll(
+        &self,
+        u: usize,
+        centre: Pos,
+        min: i32,
+        max: i32,
+        step: i32,
+        angle: Angle,
+        footprint_of: Option<usize>,
+        coll: Coll,
     ) -> Option<Pos> {
         let p = self.profile(Obj::Unit(u));
         let mut max = max;
@@ -1932,6 +1976,16 @@ impl Sim {
                     continue;
                 }
                 if !air && !self.world.accepts(c) {
+                    continue;
+                }
+                // The collision half, last of all: `Objects::find_collision`
+                // then `Objects::find_ordered_collision`, both against
+                // `(u)` as "me" (`docs/COLLISION.md` §5.2). A spot another
+                // unit is standing on — or has already been sent to — is
+                // taken.
+                if coll == Coll::Pairwise
+                    && (self.find_collision(u, c) || self.find_ordered_collision(u, c))
+                {
                     continue;
                 }
                 return Some(c);

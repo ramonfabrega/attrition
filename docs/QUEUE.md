@@ -13,29 +13,33 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after item 64 (Opus).*
+*2026-08-28, after item 66 (Opus).*
 
-**The headline is ticks 209, orders 208** — up from 207/206. Player 0
-holds at 326, player 1 moves 208 → 210. run14's traced word is unmoved
-at 232 and 260 of 284 frames still match draw for draw.
+**The headline is ticks 252, orders 252** — up from 209/208. Player 0
+holds at 326, player 1 moves 210 → 253.
 
-**The item was a stated seam, and the answer was already in `docs/`.**
-`resolve_unit_collision`'s step 2 asks the gather target's type `+0x94`;
-that is `BuildTypeData::is_flat`, named in `docs/CITIES.md` §1.5 and read
-correctly by `add_gather_order` one function away. `collide.rs` read it
-as `true`, so a woodcutter bumped on its own camp's footprint killed its
-walk and re-made it every other frame for ever.
+**`find_nearby_spot` had no collision half.** Every walk an order makes
+ends at the point its ring-and-bearing sweep returns, and the sweep's last
+test — `Objects::find_collision`, then `find_ordered_collision` — had been
+a stated seam since the reading. So the AI's new citizen `1/7` was sent to
+the exact quarter-tile `1/6` was standing on. `docs/COLLISION.md` §5.2 now
+carries both queries; `come_out`'s two arms were branched on the wrong
+field and were fixed with it (`docs/CITIES.md` §11).
 
-**The collision block now agrees entire**: 0 disagreements in 48,790
-field-frames, from 245 in 42,840 — and 243 of those were the sticky
-`collide_guy` nobody could explain away. The pin is emptiness, not a
-ceiling.
+**run14's trace is spent, and that is the finding.** Its word ran to 232;
+it now runs to the end of all 284 frames, 282 of which match draw for
+draw, and gaia's bird hatches on the original's 96, 192 and 256 and on no
+frame of its own. **Nothing on disk can now say where this simulation next
+parts by site.** Item 38 is no longer a nice-to-have: it is the instrument
+the next several items need, and it is first in the queue.
 
-**Owed:** 40. **Needs the user:** nothing.
+**Owed:** 40. **Needs the user:** nothing — but item 38 is a capture, so
+it is an hour at the original rather than at the decompile.
 
-**Opener (Opus):** `take item 66 from @docs/QUEUE.md — the AI's new
-citizen 1/7 is sent to the cell 1/6 is standing on; find_nearby_spot
-does not filter by other units' positions or their ordered ones.`
+**Opener (Opus):** `take item 38 from @docs/QUEUE.md — one long traced
+capture, human versus AI, on both maps; run14 reaches 284 of run10's 1,772
+frames and its word now matches to the end, so the trace can no longer say
+where we part.`
 
 ## The queue
 
@@ -43,26 +47,24 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-66. **`find_nearby_spot` walks onto the unit already standing there.**
-    The first divergence (player 1 @ 210). `1/7` is trained on 206 and
-    sent to its camp: ours picks `(40680, 17688)` — the cell `1/6` is
-    standing on — the original `(40680, 18024)`, seven cells further
-    south. `docs/ORDERS.md` §10 states the seam: the ring-and-bearing
-    sweep's collision half, "other units' positions **and ordered
-    positions**", is unmodelled, so the first walkable candidate wins.
-    Read `UnitType::find_nearby_spot`'s filter; run10's frames 206–212
-    for `1/7`, whose `MOVEORDER` names both destinations.
+38. **One long traced capture, human versus AI, on both maps.** run14's
+    trace reaches 284 of run10's 1,772 frames — and since item 66 its word
+    matches for **all 284**, so the instrument is exhausted and nothing on
+    disk measures the rest by site. Gamelog at `UNITS=3` plus `rontrace`,
+    ≥ 1,800 frames, the recipe in `docs/ORACLE.md`; then pin its headline
+    beside run10's and retire the tests it supersedes. Fold in the captures
+    items 23, 35 and `docs/COLLISION.md` §9 name while the game is up.
 
 65. **The human farmers' re-target, a frame late and a cell out.** Player
-    0's first divergence (326): `0/3` and `0/5` re-pick on the original's
-    325 and ours' 326, onto a different cell. `docs/ORDERS.md` §6.5's
-    clock against run10's frames 320–330.
+    0's first divergence, and now the headline's own (326): `0/3` and
+    `0/5` re-pick on the original's 325 and ours' 326, onto a different
+    cell. `docs/ORDERS.md` §6.5's clock against run10's frames 320–330.
 
-38. **One long traced capture, human versus AI, on both maps.** run14's
-    trace reaches 284 of run10's 1,772 frames, so nothing on disk measures
-    the whole by site. Gamelog at `UNITS=3` plus `rontrace`, ≥ 1,800
-    frames, the recipe in `docs/ORACLE.md`; then pin its headline beside
-    run10's and retire the tests it supersedes.
+67. **What parts `1/6` and `1/7` at 253.** Player 1's new first
+    divergence, both units on the same frame: `1/6`'s order kind goes 2
+    against the original's 7 (a `MOVE_TO` where it holds a `GATHER`), and
+    `1/7` carries one order where it holds two. run10's frames 248–256
+    under `UNITS=3`; `docs/ORDERS.md` §6.4's clock is the suspect.
 
 35. **`mylos` as a cache.** `docs/VISION.md` §7 has the design and an open
     question the dump does not answer: player 1 carries no `0x4000000` at

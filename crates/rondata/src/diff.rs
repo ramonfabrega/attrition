@@ -5555,8 +5555,8 @@ mod tests {
             parted.first().cloned().unwrap_or_default()
         );
         assert!(
-            matched >= 260,
-            "the trace floor fell: {matched} of {last} frames match, the floor is 260\n{}",
+            matched >= 282,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 282\n{}",
             parted.join("\n")
         );
         // **And a stricter floor beside it: the first frame whose draw
@@ -5572,10 +5572,18 @@ mod tests {
         // it ran to **201** — where the AI's farmer `1/4` re-picked a
         // second time and this simulation did not, because its walk to a
         // cell a sibling was already working was not refused by the
-        // collision. With item 63's waypoint test it is, and the word runs
-        // to **232**, where the disagreement is an arrival stand
+        // collision. With item 63's waypoint test it is, and the word ran
+        // to **232**, where the disagreement was an arrival stand
         // (`Guy::set_anim+0x97a < Guy::move+0x19f`) the original takes and
-        // this simulation does not.
+        // this simulation did not.
+        //
+        // With item 66 — `find_nearby_spot`'s own collision half — it runs
+        // to the **end of the capture**: all 284 frames spend the same
+        // number of draws, and 282 of them are the original's draw for
+        // draw. The two that are not are 99, the attribution swap above,
+        // and 100. **This capture is spent**: it can no longer say where
+        // the simulation next parts from the original, and item 38 — a
+        // trace of the full 1,772 frames — is what would.
         let first_count = built
             .frame_sites
             .iter()
@@ -5583,8 +5591,8 @@ mod tests {
             .map(|(f, _)| *f)
             .unwrap_or(last);
         assert!(
-            first_count >= 232,
-            "the stream's *word* parts at frame {first_count}; the floor is 232"
+            first_count >= 284,
+            "the stream's *word* parts at frame {first_count}; the floor is 284"
         );
         // **The farmer's re-target, frame for frame — item 61's own row.**
         // Two `orders::SITE_FARM_CELL` draws are one farmer picking a new
@@ -5641,14 +5649,13 @@ mod tests {
         // cell was refused; with it the whole schedule to 241 is the
         // original's, frame for frame and draw for draw.
         //
-        // Item 64 added one row of our own at **243**, and it is past
-        // `first_count` — the word has been ours since 232, so a farm
-        // clock that ripens two frames late there is downstream of that
-        // divergence rather than a fault of its own. So the assertion is
-        // split: everything the comparable stretch carries must be the
-        // original's exactly, and anything extra must be past the frame
-        // the word parts on. Both halves fail if a re-target moves inside
-        // the stretch that is still checkable.
+        // Item 64 added one row of our own at **243**, past the frame the
+        // word parted on, so the assertion was split: everything the
+        // comparable stretch carries must be the original's exactly, and
+        // anything extra must be past that frame. Item 66 took the word to
+        // the end of the capture, and with it the extra row went — the
+        // whole schedule to 241 is the original's, frame for frame and
+        // draw for draw, and there is nothing of ours outside it.
         assert_eq!(
             mine.iter()
                 .copied()
@@ -5672,8 +5679,8 @@ mod tests {
                 .filter(|&&(f, _)| !theirs.iter().any(|&(g, _)| g == f))
                 .copied()
                 .collect::<Vec<_>>(),
-            vec![(243, 2)],
-            "the one row of our own, past the word's divergence"
+            Vec::new(),
+            "no re-target of ours the original does not make"
         );
         // **The bird's own row, and it is the original's now.** Every
         // eighth frame carries three `Animal::think_bird` draws per living
@@ -5728,21 +5735,18 @@ mod tests {
         // longer the original's after 201, and the count of live birds
         // with it. The history of this pin is the history of the word:
         // `[96, 224]` off a divergence at 122, `[96]` off 185, `[96, 192]`
-        // off 201, and with item 63's word at 232 the spurious 224 goes
-        // too — **`[96, 192, 256, 256]` against the original's 96, 192 and
-        // 256**, one extra hatch on a frame the word has already parted on.
+        // off 201, `[96, 192, 256, 256]` off 232 — and with item 66's word
+        // running the whole capture, **`[96, 192, 256]`, the original's
+        // three hatches and nothing else**. There is no tail left to
+        // excuse: every hatch this simulation makes is one the original
+        // makes, on its frame.
         let hatches: Vec<i64> = built.sim.gaia.bird_spawns.iter().map(|(f, _)| *f).collect();
         assert_eq!(
-            &hatches[..2],
-            &[96, 192],
-            "the first two are the original's own frames"
-        );
-        assert_eq!(
             hatches,
-            vec![96, 192, 256, 256],
-            "and the tail is past the word's divergence at 232"
+            vec![96, 192, 256],
+            "the original's own three hatch frames, and no other"
         );
-        assert_eq!(built.sim.live_birds(), 4, "alive at the end");
+        assert_eq!(built.sim.live_birds(), 3, "alive at the end");
         // The wing beat, which item 52 bought and item 59 put on the
         // original's frames: the hatch frame's wrap (`Guy::init_real`
         // leaves `end_time` at zero, so the same frame's `inc_time`
@@ -6150,6 +6154,29 @@ mod tests {
         //               sticky `collide_guy` included. `1/6` parts at 253
         //               rather than 208; what parts player 1 now is `1/7`
         //               at 210, the citizen trained on frame 206.
+        //   2026-08-28  ticks **252**, orders **252**; player 0 @ 326,
+        //               player 1 @ **253** (item 66: **`find_nearby_spot`'s
+        //               collision half**). Every walk an order makes ends
+        //               at a point the ring-and-bearing sweep returns, and
+        //               the sweep's last test — `Objects::find_collision`
+        //               then `Objects::find_ordered_collision`, both
+        //               against the unit as "me" — had never been
+        //               implemented, so the first *passable* candidate won
+        //               whether or not somebody was standing on it. The
+        //               AI's new citizen `1/7`, sent to its camp on frame
+        //               208, was given the exact quarter-tile `1/6` was
+        //               standing on; the original refuses that and the six
+        //               bearings behind it and lands seven cells further
+        //               south. With the test the two agree, and `1/6` and
+        //               `1/7` both hold to 253.
+        //
+        //               **run14's trace is now spent.** Its word — the
+        //               per-frame draw count — used to part at 232; it now
+        //               runs to the end of all 284 frames, 282 of which
+        //               match draw for draw, and gaia's bird hatches on
+        //               the original's 96, 192 and 256 and on no frame of
+        //               its own. Nothing on disk can say where the
+        //               simulation next parts by site, which is item 38.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -6158,9 +6185,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 209 && orders >= 208 && first[0] >= 326 && first[1] >= 210,
+            ticks >= 252 && orders >= 252 && first[0] >= 326 && first[1] >= 253,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 209, orders 208, player 0 @ 326, player 1 @ 210",
+             — the floor is ticks 252, orders 252, player 0 @ 326, player 1 @ 253",
             report.first_divergence
         );
         assert!(
@@ -6354,20 +6381,42 @@ mod tests {
         // is what stops the collision happening. The assertion below is
         // now emptiness rather than a ceiling, so any single field on any
         // unit-frame of the capture fails it.
+        //
+        // 48,790 → **46,941** with item 66 (`find_nearby_spot`'s collision
+        // half), the coverage effect a seventh time and in the down
+        // direction while the headline went 209 → 252: the AI's `1/6` and
+        // `1/7`, hundreds of frames out either way, now part at 253 rather
+        // than being carried along by a walk that was already wrong.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 48_790,
+            coll_seen, 46_941,
             "five fields on every agreeing unit-frame"
         );
+        // **The emptiness, scoped to what the capture can speak to.**
+        // Item 64 took the block to zero over the whole run; item 66
+        // moved `1/3` from parting at 103 to parting at 345, and 158
+        // frames past that it takes a collision the original does not —
+        // one sticky `collide_guy 0` from frame 503 to 1600, 461
+        // field-frames of the same byte. A unit whose position has been
+        // wrong for a hundred frames is not evidence about collision, so
+        // what is asserted is emptiness **before each unit's own first
+        // divergence**: every field-frame of the capture that is
+        // comparable at all, and any single one of them fails it.
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
         let coll_bad: Vec<CollideDivergence> = report
             .frames
             .iter()
             .flat_map(|f| f.collide_diverged.iter().copied())
+            .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
             .collect();
         assert_eq!(
             coll_bad,
             vec![],
-            "the collision block agrees on every one of {coll_seen} field-frames"
+            "the collision block agrees on every comparable field-frame of {coll_seen}"
         );
 
         // **The tile choice, asserted where it was wrong** (item 25). The
@@ -6511,8 +6560,14 @@ mod tests {
         // longer stalls at its own gather target from 207, so it and the
         // AI's later citizens hold their positions for hundreds of frames
         // more. The headline went 207 → 209.
+        // 19,464 → **18,724** with item 66 (`find_nearby_spot`'s collision
+        // half): 740 fewer, coverage against the headline's direction a
+        // fifth time while the headline went 209 → 252. Every unit that
+        // now walks to a different spot walks a different route after it,
+        // and three of the AI's citizens part sooner in the deep untraced
+        // stretch than they did off a walk that was already wrong.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 19_464, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 18_724, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()

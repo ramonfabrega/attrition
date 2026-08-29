@@ -246,6 +246,47 @@ The full form is used, so a hit here writes `collide_o`, `collide_who`,
 the clearing on the way out (§4.1) for every unit that takes a waypoint.
 `docs/ORDERS.md` §4.4 has the block in full.
 
+### 5.2 The two queries `find_nearby_spot` asks
+
+The other consumer of both indices, and the one nothing here reached until
+item 66. Every walk an order makes ends at a point
+`UnitType::find_nearby_spot` returns (`docs/ORDERS.md` §10), and the last
+test each candidate takes is a collision test. Which one depends on the
+filter, and every build, repair, gather, garrison, idle-wander and stable
+call site passes `FILTER_NOT_ME` with the unit's own `(o, who)` and no
+squad — the **pairwise** pair below. `nocoll != 0` skips both.
+
+**`Objects::find_collision(x, y, o, who, 0)@0065b1b0`** — "is anything
+standing here". A **land** caller returns `CollCheck::collide_here(o, who,
+ucell(x), ucell(y), coll_size, 0, 0, 0)` and nothing else: the same probe
+§4.2 describes, so the caller's own block is exempt and the parity filter
+applies, and a type with `coll_size 0` never collides. A sea or air caller
+(or the flag set, which no `find_nearby_spot` call site sets) walks the 3×3
+world cells around the candidate and each cell's `down` chain instead,
+comparing **current** positions in unit cells: a hit is `|ucell(cand) −
+ucell(other)| <= my coll_size + its coll_size` on both axes.
+
+**`Objects::find_ordered_collision(x, y, o, who)@0065b440`** — "is anything
+*walking* here". `0` when my `coll_size` is 0; otherwise the same 3×3 chain
+walk for every domain, but against each other unit's `UnitData::orders_x/
+orders_y` — where it has been told to stand — rather than where it is. So a
+spot another unit is already walking to is taken, which is what keeps two
+citizens sent to the same camp on the same frame from being given the same
+quarter-tile.
+
+Both walks skip the caller, and both require the other object's owner to be
+a **player** (`who < 8`): gaia's animals are invisible to them, though a
+land caller's `collide_here` sees the cells a sheep paints, because the
+bitmask has no owner.
+
+The chain arm is keyed on where the other unit *stands* while it tests
+where that unit is *going*, so a unit parked far from the candidate but
+ordered next to it is missed. That is deliberate in the original, and it is
+why `find_ordered_collision` has a second pass this crate does not model:
+if I am in a group whose `+0x49` byte is clear, every other active member
+with `inside_up < 0` and a block is tested against its ordered position
+regardless of where it stands. §9 carries it.
+
 ## 6. `Unit::resolve_unit_collision`
 
 In order, with the first that fires winning:
@@ -323,7 +364,8 @@ In order, with the first that fires winning:
 ## 7. What this crate models
 
 `crates/sim/src/collide.rs`, wired into `Sim::unit_step`
-(`crates/sim/src/orders.rs`) and `Sim::set_new_location`.
+(`crates/sim/src/orders.rs`), `Sim::set_new_location` and
+`Sim::find_nearby_spot`.
 
 Modelled: the bitmask with its clear-on-move semantics and the region gate;
 the object chain over units; the probe with its parity filter and disc
@@ -333,6 +375,14 @@ rule; the same-player-attack exemption; `move_step`'s block, **including its
 its arms** (§5.1, item 63); and `resolve`'s steps 2 — **with its `is_flat`
 fence** (§6, item 64) — 4, 5 and 6, the last including the throttle, the
 stack unwind, the centre snap and `find_upath`.
+
+**§5.2's pair came with item 66**, and it is the second consumer of both
+indices: `Sim::find_collision` is `collide_here` for a land caller and the
+3×3 chain walk otherwise, `Sim::find_ordered_collision` is that walk
+against `orders_pos`, and `Sim::find_nearby_spot` runs the two as its last
+test. `Sim::find_nearby_spot_coll` takes the `Coll` a call site wants —
+every site is `Coll::Pairwise` but `come_out`'s two, which are the
+original's `nocoll` and its unmodelled general path.
 
 `Animal::do_idle`'s own `detect_unit_collision` came with the last of those
 (item 49): a herd animal's wander destination is tested `quick 1` after
@@ -353,7 +403,8 @@ Not modelled, each listed in §9: `detect_boat_collision` (no ships); step 1
 (`+0x2b4 & 0x2000`) and step 3 (the enemy ladder); the soft half-step flag
 (`Unit::half_step` is written and nothing reads it — the halving lives
 inside `move_step`, which this crate does not thread it into); the
-`TRADE_ROUTE`, `0xc` and group arms of §4.3; the pause draw of §6's tail;
+`TRADE_ROUTE`, `0xc` and group arms of §4.3; §5.2's own group arm and its
+general `find_unit_with_radius` path; the pause draw of §6's tail;
 `do_move`'s own collision arm — the every-other-frame re-probe of
 `coll_x/coll_y` while a search is pending; squads, since only figure 0
 marks the index; the `WData::block == −1` sentinel; and `CollBlock`'s lazy
@@ -420,6 +471,16 @@ buildings join the chain, which is why §8 does not claim it.
   order, re-made it on the next frame and did that for ever; with the
   fence it builds the same stack and walks the original's frames to 253.
   Headline 207 → 209 (item 64, 2026-08-28).
+- **§5.2's pair, on the frame a citizen is trained.** run10's AI trains
+  `1/7` on frame 206 and sends it to camp `2001`; `do_non_flat_gather`'s
+  sweep starts on the unit's own bearing and its first passable candidate
+  is `(40680, 17688)` — the exact quarter-tile `1/6` is standing on. The
+  original refuses it and the six bearings behind it and issues
+  `(40680, 18024)`, seven quarter-tiles further south, which is the first
+  candidate clear of both `1/6`'s block and the `(40680, 18168)` it is
+  itself walking to. With the pair the two agree, and `1/6` and `1/7` both
+  hold to 253. Headline 209 → **252**, and run14's traced *word* went 232
+  → the end of all 284 frames (item 66, 2026-08-28).
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §4's naming and §6's snap-and-replan end to end, in
@@ -467,3 +528,21 @@ buildings join the chain, which is why §8 does not claim it.
   row and the draw in `rontrace`.
 - **Whether `collide_guy` is ever non-zero.** Every hard collision this
   reading found writes 0; the field exists, so something writes it.
+- **§5.2's group arm.** `find_ordered_collision`'s second pass tests every
+  other member of my group against its ordered position, wherever it
+  stands, and this crate keeps no `UnitData::group` back-pointer to reach
+  it with. Every unit in every capture so far dumps `group -1`. *Capture:*
+  `UNITS=3` + `GROUPS=1`, a selected group ordered to build or gather at
+  one site while its members are scattered — fold into the item-23 run.
+- **§5.2's general path.** `FILTER_ALL` and a squad placement use
+  `ObjectsData::find_unit_with_radius` and its ordered sibling instead of
+  the pairwise pair: a `vector_dist` circle of `other.big_radius +
+  r_coll`, where `r_coll` is the type's `block_radius` — bumped to
+  `0x180` when that is 0 and the filter is `FILTER_ALL`. The `search`
+  argument the call passes is a **live register the decompiler loses**
+  (`0x61e375`, `push ecx` where `ecx` last held a terrain word), so which
+  players it searches is not settled and the listing does not settle it
+  either. The only call site that reaches it is `come_out`'s
+  `block_radius == 0` arm, and no shipped type any capture trains has a
+  zero `block_radius` — a Citizen's is 1. *Capture:* a scenario that
+  trains one of the ten `BLOCK_RADIUS 0` types beside a crowded trainer.

@@ -54,11 +54,11 @@ const OVER: &[(&str, usize)] = &[
     ("SYNC.md", 65_400),
     ("ARMY.md", 84_495),
     ("COMBAT.md", 107_149),
-    ("CITIES.md", 106_854),
+    ("CITIES.md", 106_773),
     ("GROUPS.md", 127_758),
     ("ORACLE.md", 139_186),
     ("AI.md", 157_530),
-    ("ORDERS.md", 191_141),
+    ("ORDERS.md", 190_800),
 ];
 
 #[test]

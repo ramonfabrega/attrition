@@ -518,6 +518,79 @@ impl Sim {
     }
 
     // ------------------------------------------------------------------
+    // §5.2 — the two queries `find_nearby_spot` asks
+    // ------------------------------------------------------------------
+
+    /// `Objects::find_collision(x, y, o, who, 0)@0065b1b0` — "is anything
+    /// standing on this point" (`docs/COLLISION.md` §5.2).
+    ///
+    /// A **land** caller is the occupancy grid and nothing else: the
+    /// original returns `CollCheck::collide_here` directly, the same probe
+    /// a step takes, so the caller's own block is exempt and the parity
+    /// filter applies. Sea and air callers walk the 3×3 world cells'
+    /// object chains instead and compare *current* positions in unit
+    /// cells, Chebyshev, against the sum of the two `coll_size`s.
+    pub(crate) fn find_collision(&self, u: usize, at: Pos) -> bool {
+        if self.units[u].kind.domain == crate::attrition::Domain::Land {
+            return self.collide_here(u, ucell(at)).is_some();
+        }
+        self.chain_hit(u, at, |s, o| ucell(s.units[o].pos))
+    }
+
+    /// `Objects::find_ordered_collision(x, y, o, who)@0065b440` — "is
+    /// anything *walking to* this point". The same 3×3 chain walk for
+    /// every domain, but against each other unit's `orders_x`/`orders_y`
+    /// rather than where it stands, so a spot another unit has already
+    /// been sent to is taken.
+    ///
+    /// SEAM: the original follows the chain walk with a second pass over
+    /// **my own group's** member list, which catches a member ordered next
+    /// to the candidate from anywhere on the map; this crate keeps no
+    /// `UnitData::group` back-pointer, and every unit in every capture so
+    /// far is ungrouped (`docs/COLLISION.md` §9).
+    pub(crate) fn find_ordered_collision(&self, u: usize, at: Pos) -> bool {
+        self.chain_hit(u, at, |s, o| ucell(s.units[o].orders_pos))
+    }
+
+    /// The walk both share: the nine world cells around `at`, each cell's
+    /// `down` chain, every other unit of a **player** (`who < 8`, so
+    /// gaia's animals are invisible to it) that is alive, on the map and
+    /// has a block; a hit is Chebyshev `<= my coll_size + its coll_size`
+    /// in unit cells against whichever position `of` names.
+    fn chain_hit(&self, u: usize, at: Pos, of: impl Fn(&Sim, usize) -> Pos) -> bool {
+        let mine = self.coll_size(u);
+        if mine == 0 {
+            return false;
+        }
+        let c = ucell(at);
+        for (dx, dy) in spiral(1) {
+            let p = Pos::new(at.x + dx * UNITS_PER_CELL, at.y + dy * UNITS_PER_CELL);
+            let Some(s) = self.chain_slot(p) else {
+                continue;
+            };
+            let mut next = self.chain_heads[s];
+            while let Some(o) = next {
+                next = self.units[o].down;
+                if o == u || self.units[o].owner >= 8 {
+                    continue;
+                }
+                if !self.units[o].alive() || !self.units[o].on_map {
+                    continue;
+                }
+                let r = self.coll_size(o);
+                if r == 0 {
+                    continue;
+                }
+                let q = of(self, o);
+                if (c.x - q.x).abs() <= mine + r && (c.y - q.y).abs() <= mine + r {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    // ------------------------------------------------------------------
     // §6 — `Unit::resolve_unit_collision`
     // ------------------------------------------------------------------
 

@@ -1618,10 +1618,17 @@ heal, ejection), then the sites' `construct_hits` refresh.
   `swarm_around` walks the unit there). Movement to the site is the caller's.
 - **`come_out` searches §6.5's land ring** through `find_nearby_spot`, and a
   trained unit reaches it: `Build::train@0062f9b0` builds the unit at its
-  trainer, `go_inside`s it and lets it out (2026-08-27). Not modelled: the
-  `BOAT_*` and disembark rings, the gather point's turn, and the refusal —
-  where a `block_radius` type would stay inside, this falls back to the
-  building's position, so `come_out` never fails. **The default bearing is
+  trainer, `go_inside`s it and lets it out (2026-08-27). **Both of §6.5's
+  arms are modelled since item 66**, and the branch between them is the
+  type's `block_radius` (`+0x240`), not its `big_radius` as this bullet
+  first said: a Citizen's `BLOCK_RADIUS` is 1, so every unit any capture
+  trains takes the `FILTER_NOT_ME` arm — the ring free of other units,
+  then the *same* ring with `nocoll`, then a **refusal** that keeps the
+  unit inside. The `block_radius == 0` arm is the one that doubles the
+  ring and falls back to the building's own position; its `FILTER_ALL`
+  filter goes through the general test `docs/COLLISION.md` §9 does not
+  model, so both of its passes accept. Still not modelled: the `BOAT_*`
+  and disembark rings, and the gather point's turn. **The default bearing is
   due south, and it is diff-backed rather than read**: all five citizens
   run10's AI trains appear at `(42360, 17208)`, on the inner radius directly
   south of London. `train`'s own arms before the exit — a gather-inside
@@ -1674,8 +1681,12 @@ heal, ejection), then the sites' `construct_hits` refresh.
 8. **`Build::close`'s reason codes** `0`/`3`/`5`, **`Object::disband(0)` vs
    `(1)`** beyond the refund.
 9. **Whether a `come_out` that fails in `process_ejection` can wedge an
-   ejection forever** (the head never advances, no kill). Check: destroy a
-   tower whose exits are fully blocked, `UnitsSync`/`BuildsSync` per frame.
+   ejection forever** (the head never advances, no kill) — **live since
+   item 66**, which modelled the refusing arm: before it the search fell
+   back to the building's own position and could not fail. It still takes
+   a ring with no passable quarter-tile at all, since the second pass
+   ignores collision. Check: destroy a tower whose exits are fully
+   blocked, `UnitsSync`/`BuildsSync` per frame.
 10. **`Unit::come_out`'s rally-point half** and the two `is()` tests that set
     `LEADER_RECOMPUTE` — `docs/PRODUCTION.md`'s and economy's.
 11. **The granary/lumber bonus-table swap** in `activate` (the GRANARY branch
@@ -1706,37 +1717,27 @@ heal, ejection), then the sites' `construct_hits` refresh.
     per 4 frames) once assimilated; the capture count with one citizen versus
     one tower (tower: 7 — the citizen loses).
 
-    **Status, 2026-08-20.** The first is **run and confirmed** (§3.2, §3.3):
-    two builders give `accel + accel/2` exactly, and the construction clock
-    re-bakes on a tech change. ~~The **city-spacing one is still open, and the
-    obvious way to run it does not work**~~ — **run and confirmed** (§2.6.2):
-    a city is refused at exactly 24 tiles and starts at 25, on two bearings.
-    `cheat add` force-places without calling `blocked_site`
-    (`docs/ORACLE.md`), so a placement cheat can never test a placement rule
-    on its own: cities went down four tiles apart. The method that works, for
-    this and for every other `blocked_site` verdict in the list (the dock's ¾
-    water, the island, the unstarted enemy city): `add NEW` the site at the
-    distance under test, send one builder, and watch whether the site starts
-    (`flags` 1 → 3) or is disbanded when `do_construct` runs the check (§3.3)
-    — with a **tower site on the same tile first** as the control that rules
-    out terrain and territory. `docs/ORACLE.md`, "A scripted placement test",
-    has the whole recipe including how to aim the click.
+    **Status.** The first is **run and confirmed** (§3.2, §3.3): two
+    builders give `accel + accel/2` exactly, and the construction clock
+    re-bakes on a tech change. The city-spacing one is **run and confirmed**
+    (§2.6.2): a city is refused at exactly 24 tiles and starts at 25, on two
+    bearings. `cheat add` force-places without calling `blocked_site`, so a
+    placement cheat can never test a placement rule on its own; the method
+    that works — for this and every other `blocked_site` verdict in the list
+    — is `add NEW` at the distance under test, one builder, and watch
+    whether the site starts (`flags` 1 → 3) or is disbanded when
+    `do_construct` runs the check (§3.3), with a tower site on the same tile
+    first as the control. `docs/ORACLE.md`, "A scripted placement test".
 
-    **The garrison-heal one was attempted the same day and is still open**,
-    for a reason worth writing down: *there is no way found yet to put a unit
-    inside a building from a script.* The cheat vocabulary has no garrison
-    verb; a right-click on one's own city with a citizen selected produced a
-    gather order and on a tower with an infantry squad a plain move order,
-    both confirmed by `orders_x/y` in the log; the panel's garrison button
-    (row 4, column 2) left `inside_up` at −1 whether clicked alone or followed
-    by a click on the target building. What the attempt did show, incidentally
-    and not from the garrison branch at all, is that **a damaged unit merely
-    standing near a friendly city heals** — a citizen at 20 damage lost a
-    point every few frames with `inside_up = −1` and `healing` set — which is
-    one of the six branches of `Unit::process_healing` that `docs/SUPPLY.md`
-    lists as underived. The remaining route to the garrison branch is
-    `Build::train`, which leaves a trained unit inside when the rally point is
-    the building itself (§6.8), reached by `cheat finish` on a queued unit.
+    **The garrison-heal one is still open**: no way has been found to put a
+    unit inside a building from a script — the cheat vocabulary has no
+    garrison verb, and neither a right-click nor the panel's garrison button
+    moves `inside_up` off −1 (the attempt is in `docs/JOURNAL.md`,
+    2026-08-20; it did establish in passing that a damaged unit merely
+    standing near a friendly city heals, one of `Unit::process_healing`'s
+    six underived branches — `docs/SUPPLY.md`). The remaining route is
+    `Build::train` with the rally point on the building itself (§6.8),
+    reached by `cheat finish` on a queued unit.
 
 ---
 

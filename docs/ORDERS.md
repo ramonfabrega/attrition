@@ -2469,7 +2469,8 @@ into those dead slots (R7 N13).
   cliff all pass here** — `invalid_loc` is the stricter predicate, and
   `find_path` later teleports a unit off a tile it rejects); collision —
   `nocoll` accepts anything; else `FILTER_NOT_ME`/`CAN_COLLIDE` with a real
-  `(o, who)` use `Objects::find_collision` (land: `CollCheck::collide_here`
+  `(o, who)` — **the pairwise pair, `docs/COLLISION.md` §5.2** — use
+  `Objects::find_collision` (land: `CollCheck::collide_here`
   with `new_block_radius` in quarter-tiles) **and** `find_ordered_collision`
   (a 9-cell walk against other units' `orders_x/y` — a spot another own unit
   is walking to is taken); any other filter uses `find_unit_with_radius`
@@ -2803,43 +2804,38 @@ what is listed as an input is stated as such in the code):
 - **Not implemented** (documented above, stated here): `ATTACK_TO` as an
   order kind of its own, `GUARD`, `FOLLOW`, `PATROL`, `ATTACK_GROUND`,
   `GroupMoveOrder` (§8.3, §8.4), board/await-board, cast, trade, strafe,
-  air, special-anim; `check_target_path`'s 16-frame re-path; the collision half of
-  `find_nearby_spot` (§10 — the first candidate is free on open ground);
-  `resolve_unit_collision`, suspended searches, the
-  entrench wait; `come_out`'s rally orders (the existing `come_out` keeps its
-  placement); `Wall::process`'s AI recruiter; the gamelog emission of the
+  air, special-anim; `check_target_path`'s 16-frame re-path;
+  `find_nearby_spot`'s **general** collision path — `FILTER_ALL` and a
+  squad placement, whose `find_unit_with_radius` circle is
+  `docs/COLLISION.md` §9's last entry (~~the collision half of
+  `find_nearby_spot`~~ is otherwise **done**, item 66: the pairwise pair
+  runs as the sweep's last test, and `Sim::find_nearby_spot_coll` names
+  which half a call site wants);
+  ~~`resolve_unit_collision`~~ (done, items 46 and 64 —
+  `docs/COLLISION.md` §6), suspended searches, the
+  entrench wait; `come_out`'s rally orders (its placement is now the
+  original's two arms, `docs/CITIES.md` §11); `Wall::process`'s AI
+  recruiter; the gamelog emission of the
   list (the harness reads the dump's, it does not yet write its own).
 - **The start of a game** — **done 2026-08-21** (`docs/DATALAYER.md` §3):
-  `rondata::diff::build_sim` adds
-  the pre-placed buildings `2001..` (complete and active, typed by the §9.2
-  production order when the dump carries no type) and give each starting
-  citizen its `GATHER` on the building it stands beside by the §9.3 rule
-  (`ordered = 2` on `2001`, the rest on successive farms), and
-  `check_start_orders` compares every derived target against the
-  `GATHERORDER` the original logged — **all ten citizens agree**, on
-  `gamelog-run4` and on `gamelog-run6`. ~~The score does *not* move~~ **it
-  moves now**: `BuildData::log_data@0062e810:269` puts `gather_from`, the
-  `GATHERPOINT` list and `BUILDQUEUE` behind `set_detail(7)` (tier 4 is
-  `city`/`gather_down`, tier 6 stops at `orig_type`; the first reading said
-  `BUILDS=6`, which would have wasted a run — R7 L14), that dump has been
-  captured, and with the tile list in hand **a woodcutter's citizen walks
-  the original's walk for all 432 frames**. What still cannot move: the AI's
-  units, which need the order stream — `COMMANDMANAGER=1`, or the `UNITS=3`
-  order blocks replayed as they appear. The farmers re-target on the
-  original's own frames now, and the whole farm record is diffed (§6.5).
-- **The log** — ~~the harness should read the `UNITS=3` order blocks (§11.1)
-  and diff `type/ox/whom/uid/flags` and the path stack per frame; not yet
-  written.~~ **Done 2026-08-21** (`docs/DATALAYER.md` §3.1):
+  `rondata::diff::build_sim` adds the pre-placed buildings `2001..`
+  (complete and active, typed by the §9.2 production order when the dump
+  carries no type) and gives each starting citizen its `GATHER` on the
+  building it stands beside by the §9.3 rule (`ordered = 2` on `2001`, the
+  rest on successive farms); `check_start_orders` compares every derived
+  target against the `GATHERORDER` the original logged, and **all ten
+  citizens agree**. `BuildData::log_data@0062e810:269` puts `gather_from`,
+  the `GATHERPOINT` list and `BUILDQUEUE` behind `set_detail(7)` — tier 4
+  is `city`/`gather_down`, tier 6 stops at `orig_type` — so **`BUILDS=7`**
+  is the dump that carries a camp's tile list. The farmers re-target on the
+  original's own frames, and the whole farm record is diffed (§6.5).
+- **The log** — **done 2026-08-21** (`docs/DATALAYER.md` §3.1):
   `rondata::diff::compare_orders` walks both lists front first — the log's
-  reversed, because §11.1 writes it newest first — and the path stacks bottom
-  first, and reports the kind, the action bit, the `flags` byte, the target's
-  `whom`/`ox`, the stack's depth and each segment's goal. `flags` is
-  reported without scoring (`0x8`/`0x10` have no reader); ~~the path stack
-  too~~ **the path stack scores since the pathfinder landed** (2026-08-23,
-  `docs/PATHFINDER.md` §10).
-  It found the harness's farms outside any city on its first run — the
-  citizens held `THINK` where the original held `GATHER`, invisibly, from
-  frame 1.
+  reversed, because §11.1 writes it newest first — and the path stacks
+  bottom first, and reports the kind, the action bit, the `flags` byte, the
+  target's `whom`/`ox`, the stack's depth and each segment's goal. `flags`
+  is reported without scoring (`0x8`/`0x10` have no reader); the path stack
+  scores (2026-08-23, `docs/PATHFINDER.md` §10).
 
 `Sim::tick` is unchanged in shape: income, buildings, then per unit attrition
 → **the order step** (`work`: the liveness check, `idle`, `do_job`) →

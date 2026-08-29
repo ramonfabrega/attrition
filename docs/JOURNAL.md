@@ -5572,3 +5572,123 @@ assumption is a debt, and the ledger of them is the document's "what is not
 established" section**; this one had been sitting on it since item 46 with
 the answer already written down elsewhere. Before booking a reading, grep
 the documents for the slot.
+
+## 2026-08-28 — item 66: `find_nearby_spot`'s collision half (ticks 209 → 252, run14's word to the end of the capture, Opus 5)
+
+Every walk an order makes ends at a point `UnitType::find_nearby_spot`
+returns. The sweep is rings of a fixed radius sequence, 31 bearings a ring
+in a fixed order, each candidate snapped to its quarter-tile centre, and a
+ladder of tests: on the map, in the region, off a `0x4000` tile, off the
+target building's footprint, of the unit's terrain class — and then, last,
+**free of other units**. This crate had the first five and not the sixth,
+declared as a seam in `docs/ORDERS.md` §10 since the reading: *"on open
+ground with nothing in the way the first candidate is free, which is the
+stated assumption."*
+
+The ground stopped being open around frame 200 of run10.
+
+### The two queries
+
+`docs/COLLISION.md` §5.2 now carries them. Which pair a call site gets is
+its `FilterIndex`, and every build, repair, gather, garrison, idle-wander
+and stable site passes `FILTER_NOT_ME` with the unit's own `(o, who)` — so
+they all take the **pairwise** pair, and `nocoll` is what skips it:
+
+- **`Objects::find_collision(x, y, o, who, 0)`** — is anything *standing*
+  here. A land caller is `CollCheck::collide_here` and nothing else: the
+  same probe a step takes, with the caller's own block exempt and the
+  parity filter applied. Sea and air walk the 3×3 world cells' object
+  chains and compare current positions, Chebyshev, in unit cells.
+- **`Objects::find_ordered_collision(x, y, o, who)`** — is anything
+  *walking* here. The chain walk for every domain, against each other
+  unit's `orders_x`/`orders_y`.
+
+Both skip gaia (`who < 8`) and both fall out at once for a type with no
+block. The reading (R7 §1.5, 2026-08-21) had all of it; what was missing
+was somebody writing it down in Rust.
+
+### What it cost
+
+run10's AI trains its citizen `1/7` on frame 206, and on 208
+`do_non_flat_gather` sends it to camp `2001`. The sweep starts on the
+unit's own bearing, and its first *passable* candidate is
+`(40680, 17688)` — the exact quarter-tile `1/6` is standing on. The original refuses it, refuses the six bearings behind it,
+and issues `(40680, 18024)`, seven quarter-tiles further south: the first
+candidate clear of both `1/6`'s block **and** the `(40680, 18168)` that
+`1/6` is itself walking to, which is the ordered half earning its place on
+the same frame as the standing half.
+
+With the pair, `1/6` and `1/7` both hold to 253.
+
+### The scores
+
+| | before | after |
+|---|---|---|
+| run10 `ticks` | 209 | **252** |
+| run10 `orders` | 208 | **252** |
+| player 0's first divergence | 326 | 326 |
+| player 1's first divergence | 210 | **253** |
+| `1/7`'s own first divergence | 210 | **253** |
+| run14, first frame whose draw **count** differs | 232 | **284 (none)** |
+| run14, frames matching draw for draw | 260 / 284 | **282 / 284** |
+| run14, gaia's bird hatches | 96, 192, 256, **256** | **96, 192, 256** |
+| collision block, field-frames compared | 48,790 | 46,941 |
+| angle block, rows compared | 19,464 | 18,724 |
+
+### run14's trace is spent, and that is the finding
+
+The word — the per-frame draw *count* — used to part at 232. It now runs
+to the end of all 284 frames, and 282 of them match the original draw for
+draw. The earliest of the two that do not is 99, the attribution swap the
+test has always excused: eight draws either side, the same address under a
+different caller.
+
+Gaia's bird makes the same point from the other end. The hatch frames were
+`[96, 192, 256, 256]` against the original's 96, 192 and 256 — one hatch of
+our own, off a stream that had parted. They are now `[96, 192, 256]`, the
+original's three and nothing else, and the assertion is equality rather
+than a prefix plus an excuse.
+
+**So nothing on disk can now say where this simulation next parts from the
+original by site.** run14 traces 284 of run10's 1,772 frames; the headline
+is 252. Item 38 — one long traced capture, `UNITS=3` plus `rontrace`, ≥ 1,800
+frames — stops being a nice-to-have and becomes the instrument the next
+several items need. It moves to the front of the queue.
+
+### The two things that went with it
+
+**`come_out`'s arms were branched on the wrong field.** `docs/CITIES.md`
+§11 said the refusing arm belonged to a type with a non-zero `big_radius`
+and that nothing modelled here had one. The branch is on `block_radius`
+(`+0x240`), and a Citizen's `BLOCK_RADIUS` is 1 — so every unit any capture
+trains takes the refusing arm: `FILTER_NOT_ME` over the exit ring, then the
+*same* ring with `nocoll`, then a refusal that keeps the unit inside. The
+doubling-and-fall-back-to-the-building arm belongs to the ten
+`BLOCK_RADIUS 0` types, and its filter is `FILTER_ALL`, whose general test
+is still a seam. §6.5 had this right all along; §11's summary of it did
+not, which is the second time in two items that a document's *own* other
+section held the answer.
+
+**The collision block's emptiness is now scoped.** Item 64 took it to zero
+over the whole capture. Item 66 moved `1/3` from parting at 103 to parting
+at 345, and 158 frames past that it takes a collision the original does not
+— one sticky `collide_guy 0` from frame 503 to 1600. A unit whose position
+has been wrong for a hundred frames is not evidence about collision, so the
+assertion is emptiness **before each unit's own first divergence** rather
+than over the whole run. That is a stronger check, not a weaker one: it no
+longer flatters itself with frames that were never comparable, and it does
+not have to be relaxed again the next time coverage moves.
+
+### The lesson
+
+Two items running, the answer was already in `docs/` — `is_flat` in
+`CITIES.md` §1.5, and this one in the audit report `R7-spot.md` §1.5, whose
+prose describes both functions completely. The pattern is not that the
+readings are wrong; it is that **a reading's product is not landed until
+somebody writes the code**. `docs/ORDERS.md` §10 has carried the collision
+half's full specification since 2026-08-21 and carried "not modelled"
+beside it for a week, and the seam cost the score twice — once at 210 and,
+before that, in every walk that happened to be lucky. The queue's rule
+already says an item is booked with the score it moves; the corollary is
+that a *seam* should be booked the same way, and the seam list in a
+document's §13 is a queue nobody reads.

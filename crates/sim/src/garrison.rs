@@ -10,6 +10,7 @@
 use crate::attrition::Domain;
 use crate::build::{self, Ident, flags};
 use crate::combat::Obj;
+use crate::orders::Coll;
 use crate::world::UNITS_PER_TILE;
 use crate::{Player, Sim};
 
@@ -290,11 +291,12 @@ impl Sim {
     /// the inner radius the search is *given* is that ring only while the
     /// building is alive — a dying one lets its garrison out from zero
     /// (`618437`, `flags & 1`). Then `find_nearby_spot` sweeps it from due
-    /// **south**, and its first free quarter-tile centre is the spot; a
-    /// second pass at twice both radii, and then the building's own
-    /// position, are the fallbacks, so this never fails. The original's
-    /// other arm — a type with a non-zero `big_radius` — refuses instead and
-    /// keeps the unit inside; nothing modelled here has one
+    /// **south**, and its first free quarter-tile centre is the spot.
+    /// What the fallbacks are depends on the type's `block_radius`: zero
+    /// takes a second pass at twice both radii and then the building's own
+    /// position, so it never fails; non-zero — which is every unit any
+    /// capture has trained — re-sweeps the *same* ring ignoring collision
+    /// and refuses if that finds nothing, keeping the unit inside
     /// (`docs/CITIES.md` §11).
     ///
     /// **The bearing is diff-backed, not read.** The decompile aliases the
@@ -319,10 +321,40 @@ impl Sim {
         let min = if bd.alive { ring } else { 0 };
         let pos = bd.pos;
         let south = crate::movement::Angle(i32::MIN);
-        let spot = self
-            .find_nearby_spot(captain, pos, min, max, 0, south, None)
-            .or_else(|| self.find_nearby_spot(captain, pos, min * 2, max * 2, 0, south, None))
-            .unwrap_or(pos);
+        // **The two arms are chosen on `block_radius` (`+0x240`), not on
+        // `big_radius`**, which is what the first reading of this function
+        // said (`618457`/`61852c`). A citizen's `BLOCK_RADIUS` is 1, so
+        // every unit run10 trains takes the *second* arm: `FILTER_NOT_ME`
+        // over the ring, then the **same** ring with `nocoll 1`, and a
+        // refusal — the unit stays inside — if even that finds nothing
+        // passable. The `block_radius == 0` arm is the one that doubles
+        // the ring and falls back to the building's own position, and its
+        // filter is `FILTER_ALL`, whose general test is a seam
+        // (`docs/CITIES.md` §11, `docs/ORDERS.md` §10).
+        let spot = if self.profile(Obj::Unit(captain)).block_radius == 0 {
+            self.find_nearby_spot_coll(captain, pos, min, max, 0, south, None, Coll::None)
+                .or_else(|| {
+                    self.find_nearby_spot_coll(
+                        captain,
+                        pos,
+                        min * 2,
+                        max * 2,
+                        0,
+                        south,
+                        None,
+                        Coll::None,
+                    )
+                })
+                .unwrap_or(pos)
+        } else {
+            let free = self.find_nearby_spot(captain, pos, min, max, 0, south, None);
+            match free.or_else(|| {
+                self.find_nearby_spot_coll(captain, pos, min, max, 0, south, None, Coll::None)
+            }) {
+                Some(spot) => spot,
+                None => return false,
+            }
+        };
         self.buildings[b].garrison.retain(|&c| c != captain);
         for f in self.squad_of(captain) {
             let u = &mut self.units[f];
