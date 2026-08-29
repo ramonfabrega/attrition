@@ -911,6 +911,50 @@ mod tests {
         assert_ne!(marks[at].1, after, "the blocked stand spends a draw");
     }
 
+    /// §5.1's second arm: a **parked** unit on the waypoint widens the
+    /// tolerance to three of its `big_radius` instead of killing the move,
+    /// so the walker gives up short of it rather than colliding. The kill
+    /// arm needs a `GATHER`/`ATTACK`/`BUILD_AT` action under the move and
+    /// is tested end to end in `cities_tests`; this is the other branch,
+    /// which no capture has entered.
+    #[test]
+    fn a_parked_unit_on_the_waypoint_widens_the_tolerance() {
+        let a = Pos::new(34 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(24 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, y) = pair(a, b);
+        // `big_radius` is `ObjectType +0x244` and `block_radius` `+0x240`;
+        // they are the same number for every unit in every capture, so
+        // give them different ones here and the test says which is read.
+        sim.unit_types[0].combat.big_radius = 96;
+        assert_eq!(sim.coll_size(y), 1, "still a one-cell block");
+        // Straight onto the standing unit, ten cells away.
+        sim.order_move(x, b);
+        sim.tick();
+        assert_eq!(
+            sim.units[x].tolerance,
+            3 * 96,
+            "three of the parked unit's `big_radius`"
+        );
+        assert_eq!(
+            sim.units[x].path.last().map(|p| p.tolerance),
+            Some(3 * 96),
+            "and the path top carries it"
+        );
+        for _ in 0..40 {
+            sim.tick();
+        }
+        assert!(
+            sim.units[x].orders.is_empty(),
+            "the walk ended: {:?}",
+            sim.units[x].orders
+        );
+        let gap = (sim.units[x].pos.x - sim.units[y].pos.x).abs();
+        assert!(
+            (0x30..=3 * 96).contains(&gap),
+            "it stopped short of the parked unit rather than on it: {gap}"
+        );
+    }
+
     /// §2.1: the generated spiral is the Chebyshev disc, ring by ring, and
     /// its first nine entries are the compass the pathfinder uses.
     #[test]

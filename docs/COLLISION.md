@@ -219,6 +219,31 @@ The `set_anim(CHAR_DEFAULT)` is the call at `005fb74e`, so its draw site is
 taken **before** all three give-up tests, so a unit that is still owed a
 turn has already re-rolled its idle by the time `move_step` returns.
 
+### 5.1 `do_move`'s waypoint test — the third call site
+
+The other pre-step probe, and the one that is not `move_step`'s. `do_move`
+takes a waypoint off the path stack on the frame the move order's `dest`
+goes 0 → 1 — **once per leg** — and ends that block with
+`detect_unit_collision(top.to, quick 0)`. On a hit:
+
+- if the waypoint is **final** (`flags & 1`) and the unit's *action* is
+  `TRADE_ROUTE`, `GATHER`, `ATTACK` or `BUILD_AT` → `kill_current_order`.
+  The walk is abandoned where the unit stands, and the action re-decides
+  next frame.
+- otherwise, if the collider's **current order is not a move**
+  (`UnitOrder +0x14`, `is_move` — the same set §6 step 4 lists), the unit's
+  tolerance is widened to `other.big_radius × 3` and the path top is
+  re-pushed with it: give up short of a parked unit rather than walk into
+  it.
+
+Then the arrival test `vector_dist(dest − pos) ≤ tolerance` runs, so a
+widened tolerance can end the leg on the same frame it was widened.
+
+The full form is used, so a hit here writes `collide_o`, `collide_who`,
+`collide_guy` and `coll_x`/`coll_y` — and, being `quick 0`, it also does
+the clearing on the way out (§4.1) for every unit that takes a waypoint.
+`docs/ORDERS.md` §4.4 has the block in full.
+
 ## 6. `Unit::resolve_unit_collision`
 
 In order, with the first that fires winning:
@@ -287,7 +312,8 @@ Modelled: the bitmask with its clear-on-move semantics and the region gate;
 the object chain over units; the probe with its parity filter and disc
 order; the `safe`, `DETOUR`, same-cell and `coll_size 0` gates; the corner
 rule; the same-player-attack exemption; `move_step`'s block, **including its
-`set_anim(CHAR_DEFAULT)`** (§5); and `resolve`'s steps 2, 4, 5 and 6
+`set_anim(CHAR_DEFAULT)`** (§5); **`do_move`'s waypoint test with both of
+its arms** (§5.1, item 63); and `resolve`'s steps 2, 4, 5 and 6
 including the throttle, the stack unwind, the centre snap and `find_upath`.
 
 `Animal::do_idle`'s own `detect_unit_collision` came with the last of those
@@ -353,6 +379,14 @@ buildings join the chain, which is why §8 does not claim it.
   `Animal::do_idle`'s wander is measured by the same run: without it
   gaia's `8/1` walks off on frame 108 where the original's does not move
   for 120 frames, and takes a blocked stand of its own at 112.
+- **§5.1's waypoint test, both sides of it.** run10's `1/4` re-picks farm
+  cell `(0, 3)` on frame 199, where `1/2` is standing; the original names
+  `1/2` on `collide_o`/`collide_who`/`collide_guy`, kills the `MOVE_TO`
+  without a step, and `do_farm` picks `(2, 1)` on 201. Both order stacks,
+  both positions and all three fields match, and run14's trace has the two
+  `SITE_FARM_CELL` draws on 199 and 201 — the whole re-target schedule of
+  the capture, to the draw. It took the traced word from 201 to **232**
+  (item 63, 2026-08-28).
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §4's naming and §6's snap-and-replan end to end, in
@@ -361,6 +395,10 @@ buildings join the chain, which is why §8 does not claim it.
 **Reading-only** — no capture has executed these:
 
 - §4.3's `TRADE_ROUTE`, `0xc` and group arms, and the soft half-step flag.
+- §5.1's tolerance-widening arm. Every hit a capture has reached there was
+  a final waypoint under a gather, so the parked-collider branch rests on
+  the decompile; `collide.rs`'s own test is what exercises it, and it was
+  written to fail first.
 - §6 steps 1 and 3.
 - §6 step 5's wait-for-it branch (`unit_masks & 0x40`).
 - The throttle's `repaths ≥ 4` and `≥ 8` arms.

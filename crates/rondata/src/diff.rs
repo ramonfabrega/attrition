@@ -5555,8 +5555,8 @@ mod tests {
             parted.first().cloned().unwrap_or_default()
         );
         assert!(
-            matched >= 251,
-            "the trace floor fell: {matched} of {last} frames match, the floor is 251\n{}",
+            matched >= 260,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 260\n{}",
             parted.join("\n")
         );
         // **And a stricter floor beside it: the first frame whose draw
@@ -5569,11 +5569,13 @@ mod tests {
         // The word was the original's through 121 and parted at **122** on
         // the blocked stand this simulation did not take. It takes it now
         // (item 49, `docs/COLLISION.md` §5), and with item 61's cell index
-        // it runs to **201** — where the AI's farmer `1/4` re-picks a
-        // second time and this simulation does not, because its move to
-        // the cell it was already standing on was not refused by the
-        // collision (`docs/QUEUE.md`'s successor item; run10's frame-201
-        // record names the blocker, `collide_o 2`).
+        // it ran to **201** — where the AI's farmer `1/4` re-picked a
+        // second time and this simulation did not, because its walk to a
+        // cell a sibling was already working was not refused by the
+        // collision. With item 63's waypoint test it is, and the word runs
+        // to **232**, where the disagreement is an arrival stand
+        // (`Guy::set_anim+0x97a < Guy::move+0x19f`) the original takes and
+        // this simulation does not.
         let first_count = built
             .frame_sites
             .iter()
@@ -5581,8 +5583,8 @@ mod tests {
             .map(|(f, _)| *f)
             .unwrap_or(last);
         assert!(
-            first_count >= 201,
-            "the stream's *word* parts at frame {first_count}; the floor is 201"
+            first_count >= 232,
+            "the stream's *word* parts at frame {first_count}; the floor is 232"
         );
         // **The farmer's re-target, frame for frame — item 61's own row.**
         // Two `orders::SITE_FARM_CELL` draws are one farmer picking a new
@@ -5631,22 +5633,17 @@ mod tests {
             "the original's own re-targets: six farmers on 101, then one a \
              cell at a time as each ripens"
         );
-        // Ours agrees up to the word divergence at 201 — 101, 199, 211 and
-        // 217 to the draw — and after it the tail is this simulation's own
-        // stream and cannot be compared.
+        // And ours is now that list **entire**, over all 284 traced
+        // frames. It used to be a prefix — 101 and 199, with 211 and 217
+        // checked separately and the tail past the word's divergence
+        // unusable. Item 63's waypoint collision test bought the 201 row,
+        // which is `1/4` re-picking a second time after its walk to `1/2`'s
+        // cell was refused; with it the whole re-target schedule of both
+        // players' farms is the original's, frame for frame and draw for
+        // draw, to the end of the capture.
         assert_eq!(
-            mine.iter()
-                .copied()
-                .take_while(|&(f, _)| f <= 200)
-                .collect::<Vec<_>>(),
-            vec![(101, 12), (199, 2)],
-            "the six farmers' first re-target, and the AI's `1/4` on the \
-             original's own frame"
-        );
-        assert_eq!(
-            mine.iter().copied().find(|&(f, _)| f == 211),
-            Some((211, 4)),
-            "the two farmers whose cells were empty when they arrived"
+            mine, theirs,
+            "every farm re-target of the capture, on the original's frames"
         );
         // **The bird's own row, and it is the original's now.** Every
         // eighth frame carries three `Animal::think_bird` draws per living
@@ -5700,8 +5697,10 @@ mod tests {
         // ours at 224 and a pair at 256 — is off a stream that is no
         // longer the original's after 201, and the count of live birds
         // with it. The history of this pin is the history of the word:
-        // `[96, 224]` off a divergence at 122, `[96]` off 185, and this
-        // off 201.
+        // `[96, 224]` off a divergence at 122, `[96]` off 185, `[96, 192]`
+        // off 201, and with item 63's word at 232 the spurious 224 goes
+        // too — **`[96, 192, 256, 256]` against the original's 96, 192 and
+        // 256**, one extra hatch on a frame the word has already parted on.
         let hatches: Vec<i64> = built.sim.gaia.bird_spawns.iter().map(|(f, _)| *f).collect();
         assert_eq!(
             &hatches[..2],
@@ -5710,10 +5709,10 @@ mod tests {
         );
         assert_eq!(
             hatches,
-            vec![96, 192, 224, 256, 256],
-            "and the tail is past the word's divergence at 201"
+            vec![96, 192, 256, 256],
+            "and the tail is past the word's divergence at 232"
         );
-        assert_eq!(built.sim.live_birds(), 5, "alive at the end");
+        assert_eq!(built.sim.live_birds(), 4, "alive at the end");
         // The wing beat, which item 52 bought and item 59 put on the
         // original's frames: the hatch frame's wrap (`Guy::init_real`
         // leaves `end_time` at zero, so the same frame's `inc_time`
@@ -6073,6 +6072,33 @@ mod tests {
         //               record) and killed without a step, so it re-picks
         //               again on 201. Ours paths and walks. That is the
         //               successor item, and the first divergence now.
+        //   2026-08-28  ticks **207**, orders **206**; player 0 @ **326**,
+        //               player 1 @ **208** (item 63: **the waypoint's own
+        //               collision test**). `Unit::do_move`'s waypoint take
+        //               — the block that runs once per leg, on the frame
+        //               the waypoint is first read off the path stack —
+        //               ends with a `detect_unit_collision` at the
+        //               waypoint that this crate did not make, and a
+        //               **final** waypoint under a `GATHER`, `ATTACK` or
+        //               `BUILD_AT` action that another unit is standing on
+        //               kills the whole move outright (`docs/ORDERS.md`
+        //               §4.4). `1/4` re-picks farm cell `(0, 3)` on 199,
+        //               where its sibling `1/2` is already working; the
+        //               original names `1/2` on `collide_o`/`collide_who`,
+        //               kills the walk without a step, and `do_farm` picks
+        //               `(2, 1)` on 201 instead. Ours pathed and walked
+        //               off across the farm.
+        //
+        //               **Player 0 moved 213 → 326 with it**: the human
+        //               farmers `0/3` and `0/5` had been parting at 213 on
+        //               a walk to a cell that was not the original's, and
+        //               they now hold to 325. What parts them at 326 is a
+        //               re-target the original has made a frame before
+        //               this simulation makes its own, onto a different
+        //               cell again. What parts player 1 is `1/6` at 208:
+        //               the original's woodcutter collides on 206 and
+        //               repaths onto a seven-entry stack this simulation
+        //               does not build.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -6081,9 +6107,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 200 && orders >= 200 && first[0] >= 213 && first[1] >= 201,
+            ticks >= 207 && orders >= 206 && first[0] >= 326 && first[1] >= 208,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 200, orders 200, player 0 @ 213, player 1 @ 201",
+             — the floor is ticks 207, orders 206, player 0 @ 326, player 1 @ 208",
             report.first_divergence
         );
         assert!(
@@ -6260,9 +6286,15 @@ mod tests {
         // are hundreds of frames out either way, part 3,625 unit-frames
         // sooner between them. The two assertions that say the mechanic
         // is right are below and both held.
+        //
+        // 39,950 → **42,840** with item 63 (the waypoint's own collision
+        // test), the coverage effect a sixth time and in the up direction:
+        // `1/4` no longer walks off its farm on 200, so it and the two
+        // farmers behind it hold their positions for hundreds of frames
+        // more, and 2,890 further unit-frames come into view.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 39_950,
+            coll_seen, 42_840,
             "five fields on every agreeing unit-frame"
         );
         let coll_bad: Vec<CollideDivergence> = report
@@ -6370,6 +6402,11 @@ mod tests {
         // `1/6`'s second tree is still drawn on a frame long past the
         // word's divergence (201 now), and the six farmers' corrected
         // cells move every value the stream carries from 185 on.
+        //
+        // **407 with item 63**, those same eight frames back the other
+        // way — the sixth time this sub-score has bounced between 407 and
+        // 430 on a draw nobody has fixed. It stops being luck when the
+        // stream reaches frame 407 in step, and not before.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -6386,7 +6423,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(415),
+            Some(407),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -6459,8 +6496,12 @@ mod tests {
         // — the six corrected farmers move every value the stream carries
         // after 185, and the units hundreds of frames out part sooner on
         // it. The headline went 192 → 200.
+        // 15,946 → **17,102** with item 63 (the waypoint's own collision
+        // test): 1,156 more, the coverage effect back in the headline's
+        // direction — `1/4` stays on its farm from 200 rather than walking
+        // off it, and the farmers behind it hold with it.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 15_946, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 17_102, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -6815,8 +6856,17 @@ mod tests {
         // run6 is run10's game, so the two blocked stands go with it, and
         // the ceiling comes down to what the run now measures rather than
         // to a peak nobody has reached since.
+        // 832/1,048 measured → **853/1,024** with item 63 (the waypoint's
+        // own collision test): the paths half fell by 24 and the orders
+        // half rose by 21, and all of both is `1/6`, `1/7` and `1/8` — the
+        // AI's citizens, whose own first divergences are 208, 210 and 323
+        // and did not move. What settles that this is the untraced tail
+        // rather than a loss is the first-divergence list, which is run10's
+        // to the frame: **six of the ten units improved and four held**,
+        // `0/3` and `0/5` 213 → 326, `0/4` 220 → 356, `1/3` 219 → 345,
+        // `1/4` 201 → 316, `1/5` 219 → 243.
         assert!(
-            orders - farmer_orders <= 848 && paths - farmer_paths <= 1_050,
+            orders - farmer_orders <= 853 && paths - farmer_paths <= 1_024,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.

@@ -1004,6 +1004,60 @@ impl Sim {
             mo.waypoint = top.to;
             self.units[u].line_ok = false;
             self.units[u].tolerance = top.tolerance;
+            self.store_move(u, mo, flags);
+
+            // **The waypoint's own collision test** (§4.4), the one call of
+            // `detect_unit_collision` that is not `move_step`'s or
+            // `resolve_unit_collision`'s. It runs once per leg — only on
+            // the frame the waypoint is taken — and asks whether somebody
+            // is already standing where this leg ends.
+            //
+            // A **final** waypoint under a `GATHER`, `ATTACK` or
+            // `BUILD_AT` action is then not worth walking at all: the walk
+            // dies here and the action picks somewhere else next frame.
+            // That is how a farmer whose re-picked cell a sibling already
+            // works stays where it is (`docs/COLLISION.md` §8).
+            //
+            // Otherwise a **parked** collider — one whose own current order
+            // is not a move, so it is not going to get out of the way —
+            // widens the tolerance to three of its `big_radius`
+            // (`ObjectType +0x244`): give up short of it rather than walk
+            // into it.
+            //
+            // SEAM: the original also spells `TRADE_ROUTE` in the kill's
+            // action set and runs a region check just above (a
+            // turn-in-place before a leg that ends in another terrain
+            // region); neither is modelled — `docs/ORDERS.md` §4.4.
+            if let Some(other) = self.detect_unit_collision(u, mo.waypoint) {
+                let action = self.action_of(u).map(|a| self.units[u].orders[a].index());
+                if top.flags & path_flag::FINAL != 0
+                    && matches!(
+                        action,
+                        Some(index::GATHER | index::ATTACK | index::BUILD_AT)
+                    )
+                {
+                    self.kill_current_order(u);
+                    return Did::Nothing;
+                }
+                if !self.current_order(other).is_some_and(Order::is_move) {
+                    let t = self.profile(Obj::Unit(other)).big_radius * 3;
+                    if self.units[u].tolerance < t {
+                        self.units[u].tolerance = t;
+                        self.units[u].path.pop();
+                        self.units[u].path.push(PathData {
+                            tolerance: t,
+                            ..top
+                        });
+                    }
+                }
+            }
+            // `detect_unit_collision` writes `coll_x`/`coll_y` into the
+            // order in place; take the copy back so the stores below keep
+            // them.
+            if let Some(m) = self.current_move(u) {
+                mo = m;
+            }
+
             let here = self.units[u].pos;
             // Already there: the Euclidean test before the step.
             if vector_dist(mo.waypoint.x - here.x, mo.waypoint.y - here.y)

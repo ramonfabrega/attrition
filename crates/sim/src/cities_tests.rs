@@ -1166,6 +1166,83 @@ fn a_citizen_with_a_gather_order_walks_to_the_farm_and_then_counts() {
     ));
 }
 
+/// **A gather's walk to an occupied spot dies where it stands** —
+/// `docs/ORDERS.md` §4.4's waypoint take, the third and last call site of
+/// `Unit::detect_unit_collision`. It runs **once per leg**, on the frame
+/// the waypoint is first read off the path stack, and a *final* waypoint
+/// somebody is already standing on under a `GATHER`, `ATTACK` or
+/// `BUILD_AT` action kills the whole move rather than walking it.
+///
+/// This is run10's frames 199–201: the AI's farmer `1/4` re-picked the farm
+/// cell its sibling `1/2` was working, the original named `1/2` on
+/// `collide_o`/`collide_who` and killed the walk without a step, and
+/// `do_farm` picked a different cell the frame after. Without the test the
+/// walk is planned and taken, and the farmer wanders off across its own
+/// farm.
+#[test]
+fn a_gather_walk_onto_an_occupied_spot_is_killed_where_it_stands() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let farm = sim.place_building(0, t.farm, tile_pos(40, 32)).unwrap();
+    finish(&mut sim, farm);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    sim.unit_types[citizen].worker = Worker::Citizen;
+    // Both blockable: `coll_size` is `block_radius / 48`, and a type with
+    // none never collides at all (`docs/COLLISION.md` §2).
+    sim.unit_types[citizen].combat.block_radius = 48;
+    sim.unit_types[citizen].combat.big_radius = 48;
+
+    // The spot the gather's walk ends on: the farm's 48-snapped centre.
+    let centre = sim.buildings[farm].pos;
+    let snapped = Pos::new(
+        centre.x.div_euclid(48) * 48 + 24,
+        centre.y.div_euclid(48) * 48 + 24,
+    );
+    let blocker = spawn(&mut sim, 0, citizen, snapped);
+    let u = spawn(&mut sim, 0, citizen, tile_pos(44, 32));
+    sim.add_gather_order(u, farm, QueuePos::New, false);
+
+    let start = sim.units[u].pos;
+    sim.tick(); // the gather step queues the walk; nothing moves yet
+    assert!(matches!(sim.units[u].orders[0].body, Body::Move(_)));
+    assert_eq!(sim.units[u].pos, start);
+
+    sim.tick(); // `do_move` plans, takes the waypoint — and finds it taken
+    assert_eq!(
+        sim.units[u].pos, start,
+        "not one step of the walk was taken"
+    );
+    assert!(
+        matches!(sim.units[u].orders[0].body, Body::Gather(_)),
+        "the move is gone and the gather is current again: {:?}",
+        sim.units[u].orders[0].body
+    );
+    assert_eq!(
+        sim.units[u].collide_o, sim.units[blocker].index,
+        "and the blocker is named on the record"
+    );
+    assert_eq!(sim.units[u].collide_who, 0);
+    assert_eq!(sim.units[u].collide_guy, 0);
+
+    // With nobody there the same walk is planned and taken.
+    let mut sim2 = world_sim();
+    let t2 = install_types(&mut sim2);
+    let _ = city_at(&mut sim2, &t2, 0, 32, 32);
+    let farm2 = sim2.place_building(0, t2.farm, tile_pos(40, 32)).unwrap();
+    finish(&mut sim2, farm2);
+    let c2 = sim2.add_unit_type(citizen_type(t2.village));
+    sim2.unit_types[c2].worker = Worker::Citizen;
+    sim2.unit_types[c2].combat.block_radius = 48;
+    sim2.unit_types[c2].combat.big_radius = 48;
+    let v = spawn(&mut sim2, 0, c2, tile_pos(44, 32));
+    sim2.add_gather_order(v, farm2, QueuePos::New, false);
+    let from = sim2.units[v].pos;
+    sim2.tick();
+    sim2.tick();
+    assert_ne!(sim2.units[v].pos, from, "the unblocked walk steps");
+}
+
 /// **Only a human builder keeps the site it just finished** — `docs/ORDERS.md`
 /// §5.2's note. Step 6's gather arm is `OILPLATFORM or (`unit_masks &
 /// 0x40000` clear and worker_stance ∈ {0, 1})`, so an AI citizen never

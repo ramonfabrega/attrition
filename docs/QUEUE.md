@@ -13,32 +13,34 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after item 61 (Opus).*
+*2026-08-28, after item 63 (Opus).*
 
-**The headline is ticks 200, orders 200** — up from 192/185. Player 0 parts
-at 213, player 1 at 201. run14's traced word runs to **201** (from 185) and
-**251 of 284** frames match draw for draw (from 235).
+**The headline is ticks 207, orders 206** — up from 200/200. Player 0
+parts at 326 (from 213), player 1 at 208 (from 201). run14's traced word
+runs to **232** (from 201) and **260 of 284** frames match draw for draw
+(from 251).
 
-**Item 61 was one transposed index.** `FarmStruct::status` is a
-`uchar[4][4]` and the farmer's cell is `status[dx][dy]` — `Farms::grow`'s
-own addressing — where `do_farm` read `status[dy][dx]`. It hides for a
-hundred frames (every starting farmer stands on `(2, 2)`, its own
-transpose) and is wrong from the first re-target on 101: six farmers sow
-six wrong cells. `docs/ORDERS.md` §6.5 had the transpose too, so the code
-was faithful to a wrong document.
+**Item 63 was a call site nobody had implemented.** `Unit::do_move`'s
+waypoint take ends with a `detect_unit_collision` at the waypoint, once
+per leg, and a **final** waypoint under a `GATHER`/`ATTACK`/`BUILD_AT`
+action that somebody stands on kills the move where the unit is.
+`docs/ORDERS.md` §4.4 has had it written out since 08-21; nothing built it.
 
-**The widening it forced.** `Farms::log_data` dumps sixteen
-`percent`/`status` pairs per farm and the harness compared four fields and
-none of the cells. It compares the whole record now, over run12's frames
-1–3 and run13's 95–104 — but that window stops before any farmer reaches
-its new cell, so the *trace* is what pins this defect, and the re-target
-frames are now an assertion of their own.
+**The booking was wrong about the case.** `1/4` does *not* re-pick the
+cell it stands on: frame 200's `MOVEORDER` says `(40824, 17592)`, cell
+`(0, 3)`, and the blocker is `1/2`, the AI's **woodcutter**, parked inside
+the farm's footprint. `orders_x/y` misled it — `update_action` writes the
+unit's own position there when there is no move. Read the order block.
+
+**The whole farm re-target schedule is now the original's** — 101, 199,
+201, 211, 217, 218, 220, 241, over all 284 traced frames, asserted entire
+rather than as a prefix.
 
 **Owed:** 40. **Needs the user:** nothing.
 
-**Opener (Opus):** `take item 63 from @docs/QUEUE.md — the AI farmer 1/4
-re-picks the cell it is standing on at frame 199, the original's move there
-is refused by a collision and killed without a step, and ours walks.`
+**Opener (Opus):** `take item 64 from @docs/QUEUE.md — the AI woodcutter
+1/6 collides on frame 206 and repaths onto a seven-entry stack; ours has
+no path at all.`
 
 ## The queue
 
@@ -46,37 +48,37 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-63. **The re-pick that lands where the unit already stands, and the
-    collision that kills it.** The AI's farmer `1/4` re-picks its cell on
-    199, both sides draw `(3, 2)` and both queue a `MOVE_TO` to
-    `(41400, 17400)` — the tile it is standing on. The original's move is
-    gone the next frame with the unit unmoved and `collide_o 2 /
-    collide_who 1` on its record, so `do_farm` runs again on 201 and
-    re-picks properly; ours finds a path and walks. This is the first
-    divergence (player 1 @ 201) and what parts run14's word.
-    `docs/COLLISION.md` §5's give-up tests against `Unit::do_move`'s first
-    step; run10's frames 199–203 for `1/4` are the whole capture.
+64. **`1/6`'s collision at 206, and the seven-entry stack.** The first
+    divergence (player 1 @ 208). On run10's frame 207 the original carries
+    a `MOVE_TO` over its `GATHER` with a **seven**-entry path stack,
+    `collide 1`, `collide_frame 206`, `coll (40680, 17713)`; ours has the
+    `GATHER` alone and no path. `resolve_unit_collision`'s step 6
+    (`docs/COLLISION.md` §6); run10's frames 203–212 for `1/6`.
+
+65. **The human farmers' re-target, a frame late and a cell out.** Player
+    0's first divergence (326): `0/3` and `0/5` re-pick on the original's
+    325 and ours' 326, onto a different cell. `docs/ORDERS.md` §6.5's
+    clock against run10's frames 320–330.
 
 38. **One long traced capture, human versus AI, on both maps.** run14's
     trace reaches 284 of run10's 1,772 frames, so nothing on disk measures
-    the whole against the original by site. Gamelog at `UNITS=3` plus
-    `rontrace`, ≥ 1,800 frames, the recipe in `docs/ORACLE.md`; then pin
-    its headline beside run10's and retire the tests it supersedes.
+    the whole by site. Gamelog at `UNITS=3` plus `rontrace`, ≥ 1,800
+    frames, the recipe in `docs/ORACLE.md`; then pin its headline beside
+    run10's and retire the tests it supersedes.
 
 35. **`mylos` as a cache.** `docs/VISION.md` §7 has the design and an open
     question the dump does not answer: player 1 carries no `0x4000000` at
     the end of frame 202 or 203, yet its Scout's `mylos` moves 4 → 6 across
-    them. Settle that first; the check is a `rontrace` run over frames
-    195–210 — item 38's capture.
+    them. Settle it with a `rontrace` run over 195–210 — item 38's.
 
 36. **`Unit::set_angle`'s seventeen other callers.** Most of run10's angle
     rows, on frames where the positions agree. Start at `do_gather`'s: unit
-    `0/2` at frames 432–433 is thousands of them and one screen of trace.
-    Each caller is where a group's mirror flag moves (`docs/GROUPS.md` §4.1).
+    `0/2` at 432–433 is thousands of them and one screen of trace; each
+    caller is where a group's mirror flag moves (`docs/GROUPS.md` §4.1).
 
 37. **The arrival frame's facing.** Two rows in run10, the AI scout the
-    frame after an `EXPLORE_TO` arrival. `docs/MOVEMENT.md`'s open questions
-    name the suspect; `GUYS=2` prints `guy_flags` — a grep.
+    frame after an `EXPLORE_TO` arrival. `docs/MOVEMENT.md`'s open
+    questions name the suspect; `GUYS=2` prints `guy_flags` — a grep.
 
 48. **The object chain, whole.** `crates/sim/src/collide.rs` chains units
     only; the original threads buildings and goodies through the same list
@@ -93,13 +95,13 @@ say so. Numbers are stable; the journal is indexed by them.
 
 23. **The hand-back's inversion, and the formation byte's sign.**
     `kill_current_order` writes `order.facing XOR reversing(leader.angle −
-    order.angle)`; no run has fired the XOR term. *Capture:* `UNITS=3` +
-    `GROUPS=1` over a group ordered one way, turned right round while
-    marching, re-ordered — in Refused or an Echelon, which also settles the
-    `angles` byte's sign (item 19). `docs/GROUPS.md` §13. Fold into item 38.
+    order.angle)`; no run has fired the XOR term. *Capture (fold into 38):*
+    `UNITS=3` + `GROUPS=1`, a group ordered one way, turned right round
+    while marching, re-ordered, in Refused or an Echelon — which also
+    settles the `angles` byte's sign (item 19). `docs/GROUPS.md` §13.
 
 39. **A debug viewer.** A thin, read-only 2D client over `Sim` state — map,
-    units, fog, order lines, with the original's dump overlaid for the same
+    units, fog, order lines, the original's dump overlaid for the same
     frame. The renderer's first slice; take it when a residue is opaque.
 
 40. **The spec/story split, one document per touch.** The documents over
@@ -157,14 +159,13 @@ say so. Numbers are stable; the journal is indexed by them.
     ruled out; the capture is on disk, so this is a reading and a re-run.
 
 62. **The standing swap, at frame 99.** The first frame whose draw
-    *sequence* differs, costing no word: ours spends
-    `Guy::set_anim+0x97a < Unit::do_idle+0x7d` where the original spends
-    `< Guy::inc_time+0x271`. `docs/SYNC.md` §6 names the swap; what it
-    needs is the gate that keeps a standing unit's request out of the loop.
+    *sequence* differs, costing no word: ours spends `Guy::set_anim+0x97a
+    < Unit::do_idle+0x7d` where the original spends `< Guy::inc_time+0x271`.
+    `docs/SYNC.md` §6; it needs the gate keeping a standing unit out.
 
 Older backlog, unchanged: the `LEADERDATA` and `CITY` widenings; a
-`find_target` block; run7's order stream under the trace; a mounted attacker;
-a caravan; `make_stuff` whole; `Leader::diplomacy`; `calc_gather` non-flat.
+`find_target` block; run7's order stream under the trace; a mounted attacker; a
+caravan; `make_stuff` whole; `Leader::diplomacy`; `calc_gather` non-flat.
 
 ## How to maintain this file
 

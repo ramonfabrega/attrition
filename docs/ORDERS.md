@@ -855,6 +855,13 @@ for a `TRADE_ROUTE` leg, and it also zeroes the tolerance. The turn-in-place
 is what a unit does before crossing into a different terrain region at the
 *end* of a leg, not in the middle of one.
 
+**The collision test is the block's teeth, and it is diff-backed** (item 63).
+It is `detect_unit_collision`'s third call site — the only one that runs
+*before* a step — and it fires **once per leg**, on the frame `dest` goes
+0 → 1. Its kill arm is what makes a worker whose destination is taken stand
+still instead of walking into it; run10's frames 199–201 are the case, and
+`docs/COLLISION.md` §5.1 and §8 carry it.
+
 **The speed, and the straight-line check.** `speed = get_speed(pos, 0)`, `×
 ai_speed` if > 1, `× 5/4` truncating toward zero for modern infantry — exactly
 as `docs/MOVEMENT.md` states. Then:
@@ -1192,21 +1199,13 @@ gets wrong the `find_tpath` refinement on the nearer branch (tile centres,
 tolerance `0x60`), the `find_upath` branch under collision, `tregion`
 crossings (flag 4), and the `−1`/kill exits.
 
-### 4.7 Collision, in one paragraph
+### 4.7 Collision — see `docs/COLLISION.md`
 
-`detect_unit_collision(x, y, a, b, c, d, e)@00617060` returns non-zero when the
-unit's collision circles at `(x, y)` overlap another unit's (or, with some
-flags, a building's); `do_move` probes the waypoint with it before taking it
-and `move_step` probes every step (§10). `resolve_unit_collision(x, y)@
-005f9d30` is what a failed step falls into: it may kill the order (arrived at
-a wall it was building; a transport to board; in range of the target),
-attack the blocker (`add_attack_order QUEUE_FIRST`), wait (`pause = rand % 9 +
-1` — a sync-stream draw), side-step (push `{tile corner, tol 0, flags 2}` and
-point `dest_x/y` at it), or, with a path and `repaths[who] < 16`, pop the
-stack down to a real waypoint, snap the unit to its 48-cell centre and
-`find_upath(…, anti = action is ATTACK)`. It only ever *pushes* waypoints and
-writes `dest/dest_x/y/pause`; the next `do_move` handles the rest. A map with
-a handful of well-spaced units never reaches it.
+`detect_unit_collision@00617060` and `resolve_unit_collision@005f9d30` have
+their own document. Three call sites touch this one: `move_step`'s per-step
+probe (§4.5, `COLLISION` §5), `do_move`'s waypoint test (§4.4, `COLLISION`
+§5.1), and the recovery, which only ever *pushes* waypoints and writes
+`dest`/`dest_x/y`/`pause` — the next `do_move` handles the rest.
 
 ### 4.8 The worked example — the dump's citizen
 
@@ -1785,16 +1784,14 @@ note the argument order — writes `(farm·0x30 + dx)·4 + 0xac + dy`, and
 `snip` the same; `inc_time` sweeps `4·dx + dy` with `dx` inner. The dump
 prints the sixteen cells in that order too.
 
-The transpose is invisible for a hundred frames, every starting farmer
-standing on `(2, 2)` — its own transpose — and wrong from the first
-re-target: six farmers sow six wrong cells and each walks off on the wrong
-frame. It cost fourteen frames of the traced word (185 against 199) and
-eight of the headline. Both halves are **diff-backed** now:
+Both halves are **diff-backed**:
 `run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell` compares
 every cell against `Farms::log_data`'s `percent[scan][scan2]` /
 `status[scan][scan2]` over run12's frames 1–3 and run13's 95–104, and
-`run14_s_frames_match_the_trace_draw_for_draw` pins the re-targets'
-frames — 101, 199, 211, 217 — against the trace.
+`run14_s_frames_match_the_trace_draw_for_draw` pins **every re-target of
+the capture** — 101, 199, 201, 211, 217, 218, 220, 241 — against the
+trace, draw for draw (the 201 row needs §4.4's waypoint collision test,
+item 63). The story is in `docs/JOURNAL.md`, 2026-08-28.
 
 ### 6.6 `Unit::find_gather_spot(range)@005f5170`
 
@@ -2740,11 +2737,16 @@ what is listed as an input is stated as such in the code):
   the waypoint take with both arrival tests, the 48-snap of the destination
   and `angle = find_angle` at order time in `order_move`), the step through
   `movement::move_step`, the arrival facing (`length == 1` or the action is
-  a gather), the kill, and **`go_around_building` whole** (§4.6.1, 2026-08-26:
+  a gather), the kill, **the waypoint take's own collision test** (§4.4:
+  the probe, the kill under a `GATHER`/`ATTACK`/`BUILD_AT` action, the
+  parked collider's `big_radius × 3` tolerance), and
+  **`go_around_building` whole** (§4.6.1, 2026-08-26:
   the edge walk, the pick, the one-or-three pushes with their `off % 0xc0 / 2`
   skew, the give-up, and `find_path`'s acceptance with the recursive verify
-  and the shore's `flags & 4`). Collision, suspended searches, `resolve_block`,
-  the entrench wait are not modelled (no crowds; stated).
+  and the shore's `flags & 4`). What is not modelled: the waypoint take's
+  region check (the turn-in-place before a leg ending in another terrain
+  region) and its `TRADE_ROUTE` arms, suspended searches, `resolve_block`,
+  the entrench wait.
 - **`do_build`/`do_repair`/`do_garrison`** — §5.2, §5.6, §5.7 on the existing
   `do_construct`/`repair_*`/`garrison` seams, with adjacency = `attack_dist <
   96` (replacing the tile-based stand-in), the swarm ring (`ExploreTo` to the

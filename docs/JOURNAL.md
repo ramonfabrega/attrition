@@ -5365,3 +5365,98 @@ journal's now; ORDERS lost the audit stories around §6.1, §6.4 and §6.6 and
 two settled entries in "what is not established" — the farm re-target
 modulus and the 200-vs-201 grow count, both of which this item's diff now
 holds. Both pins came down.
+## 2026-08-28 — item 63: the waypoint's own collision test (ticks 200 → 207, the word 201 → 232, Opus 5)
+
+`Unit::do_move`'s waypoint take — the block that runs on the frame a move
+order's `dest` goes 0 → 1, once per leg — ends with a call to
+`detect_unit_collision` at the waypoint. It is the third and last of that
+function's call sites, and the only one that runs *before* a step rather
+than on one. On a hit, a **final** waypoint under a `GATHER`, `ATTACK`,
+`BUILD_AT` or `TRADE_ROUTE` action kills the whole move where the unit
+stands; otherwise a **parked** collider — one whose current order is not a
+move — widens the tolerance to three of its `big_radius` and the walker
+gives up short of it.
+
+`docs/ORDERS.md` §4.4 has had the block written out since the second
+reading of 2026-08-21, guard corrected and all. Nothing implemented it.
+Twenty lines in `orders.rs` and the traced word went from 201 to 232.
+
+### The case, and a correction to yesterday's reading of it
+
+The item was booked as "the AI's farmer `1/4` re-picks the cell it is
+standing on", off `orders_x/orders_y` reading `41400, 17400` — the unit's
+own position — in run10's frame-201 record. That is not what happened, and
+`orders_x/y` is why: `update_action` writes it as the end of the leading
+run of transit moves, so a unit with **no** move carries its own position
+there. The record whose move order is intact is frame **200**, and it says
+`MOVEORDER x 40824 y 17592`, `off_x 120 off_y 696` — farm cell `(0, 3)`,
+not the `(3, 2)` the farmer is standing on.
+
+What is on that cell is `1/2`, and it is not a farmer at all: it is the
+AI's woodcutter, `GATHER`ing tile `(213, 92)` from camp `2001` and parked
+at `(40872, 17640)`, which happens to be inside farm `2003`'s footprint,
+48 units diagonally off cell `(0, 3)`'s centre. Two `coll_size 1` discs
+that close overlap, so the cell is blocked.
+
+So: on frame 199 `do_farm` re-picks `(0, 3)` and queues the walk. On 200
+`do_move` takes the waypoint, finds `1/2` under it, writes
+`collide_o 2 / collide_who 1 / collide_guy 0`, and — the waypoint being
+final and the action a `GATHER` — kills the move without a step. On 201
+`do_farm` runs again and picks `(2, 1)`, and *that* walk is the one the
+farmer takes. This simulation had planned a path on 200 and walked.
+
+The lesson is the one the audit README already carries in another form:
+**a dumped field is only as good as its writer**, and `orders_x/y`'s writer
+is `update_action`, not the order. The order block was in the same record
+all along.
+
+### The scores
+
+| | before | after |
+|---|---|---|
+| run10 `ticks` | 200 | **207** |
+| run10 `orders` | 200 | **206** |
+| player 0's first divergence | 213 | **326** |
+| player 1's first divergence | 201 | **208** |
+| run14, first frame whose draw **count** differs | 201 | **232** |
+| run14, frames matching draw for draw | 251 / 284 | **260 / 284** |
+| run6 orders / paths | 1,210 / 1,360 | **1,050 / 1,205** |
+| run6, the farmers' share | 378 / 312 | **197 / 181** |
+| collision block, rows compared | 39,950 | **42,840** |
+| angle block, rows compared | 15,946 | **17,102** |
+| run10, first gather-tile disagreement | 415 | 407 |
+
+Every one of run6's ten units held or improved its own first divergence —
+`0/3` and `0/5` 213 → 326, `0/4` 220 → 356, `1/3` 219 → 345, `1/4`
+201 → 316, `1/5` 219 → 243, and `1/0`, `1/6`, `1/7`, `1/8` unmoved. The
+non-farmer ceiling rose by 21 order-frames and fell by 24 path-frames, all
+of it `1/6`, `1/7` and `1/8` hundreds of frames past their own partings;
+the gather-tile row bounced back to 407 for the sixth time, on a draw that
+stays luck until the stream reaches frame 407 in step.
+
+**The farm re-target schedule is now the original's, entire.** The trace
+test used to compare a prefix — 101 and 199 — with 211 and 217 checked
+separately and the tail past the word unusable. It now asserts the whole
+list, 101, 199, 201, 211, 217, 218, 220, 241, draw for draw over all 284
+frames. The 201 row is this item's: it is `1/4` re-picking a second time
+after the refusal.
+
+The bird follows the word again: ours hatched at 96, 192, **224**, 256 and
+256 when the word parted at 201, and the spurious 224 is gone now that it
+parts at 232 — `[96, 192, 256, 256]` against the original's 96, 192, 256.
+
+### What parts them now
+
+Player 1 at 208 is `1/6`, the woodcutter: the original collides on 206 and
+repaths onto a seven-entry stack this simulation does not build. Player 0
+at 326 is `0/3` and `0/5`, a farm re-target the original makes a frame
+before this simulation does, onto a different cell.
+
+### What it cost the paperwork
+
+`docs/ORDERS.md` is over the ceiling, so item 40's rule applied again: the
+new specification went in and more than its weight of narrative came out.
+§4.7 ("Collision, in one paragraph") is now a pointer at `docs/COLLISION.md`,
+which has owned the mechanic since item 46; §6.5's account of the
+transpose's hundred invisible frames is this journal's. The pin came down
+to 191,141. `docs/COLLISION.md` gained §5.1 and is well under its ceiling.
