@@ -15,26 +15,28 @@ handoff pass 32.
 
 *2026-08-29, after item 38 (Opus).*
 
-**The headline is unmoved at ticks 252, orders 252** — this item bought an
-instrument, not a tick. **The trace sub-score moved 284 → 307.**
+**The headline is unmoved at ticks 252, orders 252** — this item bought
+instruments, not ticks. **The trace sub-score moved 284 → 307, and the
+second map has its first number: East Indies scores 167/167.**
 
 **run33 replaces run14.** run10's game, traced, 1,850 frames
 (`tools/gamelog/longtrace.sh`, fourteen minutes unattended), and it is
 run10's game by measurement: `tools/gamelog/samegame.py` digests every
 `BEGIN FRAME` block and run10 against run33 is **1,771 in common and none
 differing**, so the traced executable, the `int 3`s and `!ffwd` are
-invisible over 1,771 frames where run18a had checked four.
+invisible over 1,771 frames where run18a had checked four. **The word
+parts at 307, on a non-flat gather** — item 68; over the run 668 frames
+spend the original's number of draws and 556 are its draws in its order.
+**The blind list did not move** (101 never-entered, run33 in or out), so a
+run booked to shrink it must do what no earlier run did.
 
-**The word parts at 307, on a non-flat gather** — item 68. Over the run,
-668 frames spend the original's number of draws and 556 are its draws in
-its order. **The blind list did not move**: 101 never-entered with run33
-in or out, so a run booked to shrink it must do what no earlier run did.
+**East Indies is captured and scored** — run38/run39, run10's rules on
+`MAP_STYLE 18`. run38 stands `build_sim` up with **no sibling**, frame 0
+is 175 draws against 175, and 1,850 frames score **167/167** first time.
+What parts it is item 69. Getting there cost three captures of the wrong
+map: `-config check.ini` pins the style and no file moves it.
 
-**East Indies is captured** — run38 (`DUMP_ALL` start) and run39 (the long
-trace), `MAP_STYLE 18`, run10's rules otherwise. run38 stands `build_sim`
-up with **no sibling** and frame 0 is 175 draws against 175; item 69.
-
-**Owed:** 40 (ORACLE.md had its first pass; the pin is 138,580).
+**Owed:** 40 (ORACLE.md had two passes; the pin is 138,489).
 
 **Opener (Opus):** `take item 68 from @docs/QUEUE.md — run33's word parts
 at 307 on a non-flat gather this simulation does not make; the site fires
@@ -67,12 +69,12 @@ say so. Numbers are stable; the journal is indexed by them.
     carries no `0x4000000` at the end of frame 202 or 203, yet its Scout's
     `mylos` moves 4 → 6. **run33's trace covers 195–210** — read it.
 
-69. **The second map, scored.** run38/run39 (East Indies, `MAP_STYLE 18`,
-    seed 12345, run10's rules otherwise) are the `DUMP_ALL` start and the
-    1,850-frame dump-plus-trace of a game no test builds yet. run38 alone
-    stands `build_sim` up with no sibling and spends frame 0's 175 draws
-    against 175; run39 takes it as `--sibling`. The finish line is *both*
-    maps, so this is where the second number lives.
+69. **The second map's own first divergence, at 168.** East Indies scores
+    167/167 (`run39_s_islands_game_is_the_second_map_s_score`) and what
+    parts it is an order-list **length**: `1/4` holds two orders on the
+    original's frame 168 where this holds one, and its position parts on
+    the same frame; `1/5` at 186 and `1/3` at 202 are the same. run39's
+    frames 160–210 with `rontrace-run39.log` beside them.
 
 36. **`Unit::set_angle`'s seventeen other callers.** Most of run10's angle
     rows, on frames where the positions agree. Start at `do_gather`'s: `0/2`
@@ -80,8 +82,8 @@ say so. Numbers are stable; the journal is indexed by them.
     flag moves (`docs/GROUPS.md` §4.1).
 
 37. **The arrival frame's facing.** Two rows in run10, the AI scout the frame
-    after an `EXPLORE_TO` arrival. `docs/MOVEMENT.md`'s open questions name
-    the suspect; `GUYS=2` prints `guy_flags` — a grep.
+    after an `EXPLORE_TO` arrival. MOVEMENT's open questions name the
+    suspect; `GUYS=2` prints `guy_flags` — a grep.
 
 48. **The object chain, whole.** `collide.rs` chains units only; the
     original threads buildings and goodies through the same list (COLLISION
@@ -105,8 +107,7 @@ say so. Numbers are stable; the journal is indexed by them.
     are human. Settles the `angles` byte's sign too (item 19; GROUPS §13).
 
 39. **A debug viewer.** A thin, read-only 2D client over `Sim` state — map,
-    units, fog, order lines, the original's dump overlaid for the same
-    frame. The renderer's first slice; take it when a residue is opaque.
+    units, fog, order lines, the dump overlaid. Take it when a residue is opaque.
 
 40. **The spec/story split, one document per touch.** The documents over
     60 KB are pinned in `docs_guard::OVER` and may only shrink. When a
@@ -126,11 +127,10 @@ say so. Numbers are stable; the journal is indexed by them.
     for audit records — the slot `FABLE:` lacks (journal, 08-28).
 
 45. **Gaia's animals, and the pasture's lengths.** `Sim::reseat_animal` puts
-    the animals back from every traced dump (`docs/SYNC.md` §4.2), so a
-    wrong animal is invisible until an untraced run — item 49's sheep cost
-    the trace score for a week. Widen the diff to `ANIMALDATA` (70,960
-    uncompared animal-frames on run10) as a sub-score; `rondata::artdata`
-    lacks `FARMPIG`/`FARMCHICKEN` lengths (`docs/ANIM.md` §3.1).
+    the animals back from every traced dump (SYNC §4.2), so a wrong animal
+    is invisible until an untraced run — item 49's sheep cost the trace
+    score for a week. Widen the diff to `ANIMALDATA` (70,960 uncompared
+    animal-frames on run10); `rondata::artdata` lacks the farm lengths.
 
 51. **The AI's long-run economy.** The roster pins say the AI reaches eight
     citizens on the original's frames and then stalls: `1/9` at 1297 and
@@ -158,10 +158,10 @@ say so. Numbers are stable; the journal is indexed by them.
     between two searches would show (the `Recycler<PathNode>` pool, the
     containers' reuse). `docs/ROADS.md` §7.1 lists what is ruled out.
 
-62. **The standing swap, at frame 99.** The first frame whose draw
-    *sequence* differs, costing no word: ours spends `Guy::set_anim+0x97a
-    < Unit::do_idle+0x7d` where the original spends `< Guy::inc_time+0x271`.
-    `docs/SYNC.md` §6; it needs the gate keeping a standing unit out.
+62. **The standing swap, at frame 99.** The first frame whose draw *sequence*
+    differs, costing no word: ours spends `Guy::set_anim+0x97a <
+    Unit::do_idle+0x7d` where the original has `< Guy::inc_time+0x271`. SYNC
+    §6; it needs the gate keeping a standing unit out.
 
 Older backlog, unchanged: the `LEADERDATA` and `CITY` widenings; a
 `find_target` block; run7's order stream under the trace; a mounted attacker; a

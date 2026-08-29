@@ -1734,54 +1734,28 @@ frames rather than hundreds.
 
 ### The combat run (run17, 2026-08-24) — the channel's first real run
 
-Fourteen lines, no driver, 2,600 frames in fourteen minutes; the arena is
-unowned mid-map land (cells x 27–44, y 27–35 of run9's owner map — tiles
-110–170, 110–150), `!ai off` at frame 100 so the AI's wagons stand where
-they are placed. A cheat-placed unit faces `0x55555555` = 120° (clockwise
-from north, y south) until ordered, so the bearings are precomputed:
-`dx = 4 sin b`, `dy = −4 cos b`. No `die` lines — an object number cannot
-be predicted from a file, so each trial has its own spot thirty tiles
-from the last.
+Fourteen `rontrace.cmd` lines, no driver, 2,600 frames in fourteen
+minutes: six duels on unowned mid-map land with `!ai off` at frame 100.
+What it found is `docs/COMBAT.md` §16 — every unit-on-unit hit in the run
+is one of the sizes the formula predicts, with the flank sectors confirmed
+by damage; the run itself is in `docs/JOURNAL.md` under 2026-08-29,
+"Lifted from ORACLE.md".
 
-```
-100  !ai off
-200  add supply who=1 110,110     230  add hoplite who=0 107,108    # rear, b 300°
-600  add supply who=1 140,110     630  add hoplite who=0 138,113    # side, b 210°
-1000 add supply who=1 110,140     1030 add hoplite who=0 113,142    # front, b 120°
-1400 add hoplite who=1 140,140    1430 add hoplite who=0 144,140
-1800 add supply who=1 170,120     1830 add slinger who=0 176,120
-2200 add tower who=0 170,150      2230 add supply who=1 170,154
-2600 !quit
-```
+**Five staging facts from it, used by every scenario since.**
 
-What it found is `docs/COMBAT.md` §16: every unit-on-unit hit in the run
-is one of the sizes the formula predicts (122; 48/85/117; 32/58/85; 53),
-the flank sectors confirmed by damage, the projectile draw sites. What it
-taught about staging: **a Supply Wagon flees on sight**, so a wagon is a
-one-hit target unless the attacker spawns within striking distance;
-`add`'s `find_nearby_spot` moved one hoplite eight tiles from the asked
-tile; the AI's own units kept training after `!ai off` (o 8, 9 citizens
-at its city), so **`!ai off` stops the leader's strategy, not the
-buildings' queues**; and the `[End Frame]` dump grew to 155 KB a frame
-with twenty extra units — 2,600 frames in 403 MB.
-
-~~**Open:** `move 6 190,60` from the channel ran (`parse_cmd` returned 1)
-and did not move the unit, where the typed `move 10,0 190,60` in run16
-moved one to tile (0, 190). Whether `move`'s coordinate arm reads the
-mouse tile the channel does not supply, or the unit's engagement at the
-time refused it, is a reading of `run_cmd`'s `move` case.~~ **Read
-2026-08-26**, and the question was the wrong shape: `move` is a
-**teleport** (`Unit::set_new_location`), not an order, and `no_mouse`
-widens rather than narrows what the case will do — "The channel's
-vocabulary, and what it cannot do", above. **The speed
-floor is now the dump, not the input**: run16b ran at ~3.3 sim-frames a
-second with `UNITS=3` (137 KB a frame), so a 2,400-frame scenario is
-twelve minutes whatever drives it; ~~`ffwd` cannot help while every frame
-is logged~~ — **and that is exactly why it helps: gate the dump off and
-`ffwd` runs 24,000 frames in a quarter of an hour** (run18a, below) — a
-`LogStartFrame`/`LogEndFrame` window around the frames that matter is the
-lever.
-
+- A cheat-placed unit faces `0x55555555` = 120° (clockwise from north, y
+  south) until it is ordered, so bearings are precomputed:
+  `dx = 4 sin b`, `dy = −4 cos b`.
+- **A Supply Wagon flees on sight**, so it is a one-hit target unless the
+  attacker spawns within striking distance.
+- **`!ai off` stops the leader's strategy, not the buildings' queues** —
+  the AI kept training citizens after it.
+- `add`'s `find_nearby_spot` can land a unit **eight tiles** from the
+  asked one, and an object number cannot be predicted from a file, so give
+  each trial its own spot rather than a `die` line.
+- `move` from the channel is a **teleport** (`Unit::set_new_location`),
+  not an order — the question of why `move 6 190,60` "did not work" was
+  the wrong shape ("The channel's vocabulary", above).
 ### The producers' run (run18, 2026-08-25) — the script ends, the C++ takes over
 
 The blind list's third entry: *a long game past the script, at `LEADERS=9`
@@ -2317,6 +2291,32 @@ pinned in `run33_s_long_trace_says_where_the_word_parts`.
 **101 never entered**, with run33 in or out — though run33 entered 6,702
 functions against run14's 6,585. A long run of the *same* no-input game
 lights nothing new: the list is shrunk by scenarios, not by frames.
+
+### run38 and run39 — the second map, and its first score (2026-08-29)
+
+Phase 3's finish line names **two** maps, and every number in the harness
+was Great Lakes. run38 and run39 are the other one: **East Indies**
+(`MAP_STYLE 18`), seed 12345, and run10's rules otherwise (`MAP_SIZE 2`,
+`GAME_RULES 1`, `REVEAL_MAP 1`) — the profile's lobby rather than
+`check.ini`'s, which is the whole trick (see "The lobby is a file").
+run38 is `tools/gamelog/startcapture.sh`'s `DUMP_ALL` start, two frames
+and 151 MB; run39 is `longtrace.sh`'s 1,850 frames, 482 MB and an 11 MB
+trace. Their traces' words agree on every frame they share, so they are
+one game.
+
+**run38 is the whole sibling list.** Its own `Initial` carries the
+heights, the checksum trace, the herds and the frame seeds, so `build_sim`
+stands the simulation up on a map it has never seen with nothing borrowed
+— and **frame 0 is 175 draws against 175 on the first try**.
+
+**The score, first time of asking: ticks 167, orders 167**; player 0 parts
+at 219, player 1 at 168
+(`run39_s_islands_game_is_the_second_map_s_score`). Great Lakes stands at
+252 the same day, so the residue chased on the one map was not chased into
+its shape. What parts it first is an order-list **length** — `1/4` holds
+two orders on the original's frame 168 where this simulation holds one,
+and its position parts on the same frame; `1/5` at 186 and `1/3` at 202
+are the same disagreement.
 
 ## What is not established
 

@@ -5897,3 +5897,113 @@ frames, and it means a run can be killed the moment the capture is in
 hand. `Log` flushes per line, so the kill costs at most the frame in
 progress — run31's last block is half-written, which any reader of it has
 to tolerate.
+
+### The combat run (run17, 2026-08-24) — the channel's first real run
+
+Fourteen lines, no driver, 2,600 frames in fourteen minutes; the arena is
+unowned mid-map land (cells x 27–44, y 27–35 of run9's owner map — tiles
+110–170, 110–150), `!ai off` at frame 100 so the AI's wagons stand where
+they are placed. A cheat-placed unit faces `0x55555555` = 120° (clockwise
+from north, y south) until ordered, so the bearings are precomputed:
+`dx = 4 sin b`, `dy = −4 cos b`. No `die` lines — an object number cannot
+be predicted from a file, so each trial has its own spot thirty tiles
+from the last.
+
+```
+100  !ai off
+200  add supply who=1 110,110     230  add hoplite who=0 107,108    # rear, b 300°
+600  add supply who=1 140,110     630  add hoplite who=0 138,113    # side, b 210°
+1000 add supply who=1 110,140     1030 add hoplite who=0 113,142    # front, b 120°
+1400 add hoplite who=1 140,140    1430 add hoplite who=0 144,140
+1800 add supply who=1 170,120     1830 add slinger who=0 176,120
+2200 add tower who=0 170,150      2230 add supply who=1 170,154
+2600 !quit
+```
+
+What it found is `docs/COMBAT.md` §16: every unit-on-unit hit in the run
+is one of the sizes the formula predicts (122; 48/85/117; 32/58/85; 53),
+the flank sectors confirmed by damage, the projectile draw sites. What it
+taught about staging: **a Supply Wagon flees on sight**, so a wagon is a
+one-hit target unless the attacker spawns within striking distance;
+`add`'s `find_nearby_spot` moved one hoplite eight tiles from the asked
+tile; the AI's own units kept training after `!ai off` (o 8, 9 citizens
+at its city), so **`!ai off` stops the leader's strategy, not the
+buildings' queues**; and the `[End Frame]` dump grew to 155 KB a frame
+with twenty extra units — 2,600 frames in 403 MB.
+
+~~**Open:** `move 6 190,60` from the channel ran (`parse_cmd` returned 1)
+and did not move the unit, where the typed `move 10,0 190,60` in run16
+moved one to tile (0, 190). Whether `move`'s coordinate arm reads the
+mouse tile the channel does not supply, or the unit's engagement at the
+time refused it, is a reading of `run_cmd`'s `move` case.~~ **Read
+2026-08-26**, and the question was the wrong shape: `move` is a
+**teleport** (`Unit::set_new_location`), not an order, and `no_mouse`
+widens rather than narrows what the case will do — "The channel's
+vocabulary, and what it cannot do", above. **The speed
+floor is now the dump, not the input**: run16b ran at ~3.3 sim-frames a
+second with `UNITS=3` (137 KB a frame), so a 2,400-frame scenario is
+twelve minutes whatever drives it; ~~`ffwd` cannot help while every frame
+is logged~~ — **and that is exactly why it helps: gate the dump off and
+`ffwd` runs 24,000 frames in a quarter of an hour** (run18a, below) — a
+`LogStartFrame`/`LogEndFrame` window around the frames that matter is the
+lever.
+
+## 2026-08-29 — item 38, second half: the other map, and its first number (East Indies 167/167, Opus 5)
+
+Item 38 asked for the long trace "on both maps". The first half is above.
+This is the second, and it cost three captures of the wrong map before it
+cost anything else.
+
+### `-config` pins the map style and no file can move it
+
+`tools/gamelog/mapstyle.py` was written to put a style in `check.ini` and
+in the profile with the game closed — faster than clicking a combo and
+unable to mis-click. It came back on Great Lakes. So did the next version,
+which had found that `Player.dat` carries a `<SOLO>` block *and* a
+`<MULTI>` block with a `<MAP_STYLE value>` each and wrote both. So did the
+third, which also wrote the `<SETTINGS><MAP_STYLE>N</MAP_STYLE>` near the
+file's head. Three fifteen-minute captures, each announced by one line of
+its own log.
+
+What settled it was launching **without** `-config check.ini`: the lobby
+came up East Indies, from the profile, on the first try. So the chain is
+that `-config` builds the lobby from a default `GameInfo` with the file's
+rules half applied on top, `mapstyles=` is one of the four combos that
+have never taken (in either spelling — `East Indies` or
+`#ICON102East Indies`), and the style therefore stays the default 14
+whatever any file says. `docs/ORACLE.md` had recorded the four-combo gap
+since 2026-08-20 and had never connected it to the map style being
+*unsettable*; the note said "read the combo from a screenshot every
+launch", which is true and was the wrong lesson.
+
+Two facts fell out of the same hour. **A traced run can never write the
+profile**: quitting `riseofnations_trace.exe` through the menu dies in a
+Wine `Program Error` box before the write, which is the real reason a
+combo pick has never survived a launch — not the `pkill` that was blamed
+for it. And the rules half of the profile lobby is run10's anyway
+(`MAP_SIZE 2`, `GAME_RULES 1`, `REVEAL_MAP 1`, seed 12345), so dropping
+`-config` moves the map and nothing else.
+
+### run38 and run39
+
+`startcapture.sh` takes the `DUMP_ALL` start a game on a new map needs —
+two frames, 151 MB — and `longtrace.sh` takes the 1,850-frame
+dump-plus-trace, 482 MB. Their traces agree on every frame they share.
+
+**run38 is the whole sibling list.** Its own `Initial` carries the
+heights, the checksum trace, the herds and the frame seeds, so `build_sim`
+stands the simulation up on a map it has never seen with nothing borrowed
+— and frame 0 spends **175 draws against 175** on the first try. Nothing
+about that was arranged: it is what the year of Great Lakes work bought.
+
+**The score, first time of asking: ticks 167, orders 167**, player 0
+parting at 219 and player 1 at 168. Great Lakes stands at 252 the same
+day. The gap matters less than the closeness: a residue chased on one map
+for a month could have been chased into that map's shape, and 167 against
+252 says it was not.
+
+What parts it is an order-list **length** — `1/4` holds two orders on the
+original's frame 168 where this simulation holds one, and its position
+parts on the same frame; `1/5` at 186 and `1/3` at 202 are the same
+disagreement. That is item 69, and it is the first residue in this project
+that was found somewhere other than Great Lakes.

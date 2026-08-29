@@ -6021,6 +6021,84 @@ mod tests {
         );
     }
 
+    /// **The second map's score.**
+    ///
+    /// Phase 3's finish line is a traced human-versus-AI capture holding
+    /// lockstep on **two** maps, and until 2026-08-29 there was only one:
+    /// every number in this file is Great Lakes, seed 12345, the lobby
+    /// run10–14 played. A residue chased on one map can be chased into that
+    /// map's shape, and nothing here would say so.
+    ///
+    /// run38 and run39 are the other map — East Indies (`MAP_STYLE 18`),
+    /// the same seed and the same rules (`MAP_SIZE 2`, `GAME_RULES 1`,
+    /// `REVEAL_MAP 1`). Getting there took finding that **`-config
+    /// check.ini` pins the map style and no file can move it**
+    /// (`docs/ORACLE.md`, "The lobby is a file"): the capture scripts drop
+    /// it for any style but 14 and take the profile's lobby instead.
+    ///
+    /// run39 is the 1,850-frame dump; run38 is its `DUMP_ALL` start, and it
+    /// is the whole sibling list — its own `Initial` carries the heights,
+    /// the checksum trace, the herds and the frame seeds, so `build_sim`
+    /// stands the simulation up on a map it has never seen with nothing
+    /// borrowed. Frame 0 is **175 draws against 175** on the first try.
+    ///
+    /// History:
+    ///   2026-08-29  ticks **167**, orders **167**; player 0 @ 219,
+    ///               player 1 @ 168 (item 38's second capture, the first
+    ///               number this map has ever had). Great Lakes stands at
+    ///               252 the same day, so the two are within a hundred
+    ///               frames of each other — the residue chased on one map
+    ///               was not chased into its shape.
+    ///
+    /// What parts it first is an order-list **length**: `1/4` holds two
+    /// orders on the original's frame 168 where this simulation holds one,
+    /// and its position parts on the same frame. `1/3` at 202 and `1/5` at
+    /// 186 are the same disagreement.
+    #[test]
+    fn run39_s_islands_game_is_the_second_map_s_score() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs).unwrap();
+        // 1,851: the `1850 !quit` runs at the top of frame 1850, and the
+        // block the quit interrupts is written too.
+        assert_eq!(report.frames.len(), 1851, "run39's length");
+        assert!(
+            report
+                .notes
+                .iter()
+                .any(|n| n.starts_with("rng: frame 0: ours 175 draws, the original's 175")),
+            "frame 0 on the second map: {:?}",
+            report.notes
+        );
+        let ticks = report.ticks_before_divergence();
+        let orders = report.order_ticks_before_divergence();
+        let first: Vec<i64> = report
+            .first_divergence
+            .iter()
+            .map(|&(_, f)| f.unwrap_or(i64::MAX))
+            .collect();
+        assert!(
+            ticks >= 167 && orders >= 167 && first[0] >= 219 && first[1] >= 168,
+            "the second map's score fell: ticks {ticks}, orders {orders}, first \
+             divergence {:?} — the floor is ticks 167, orders 167, player 0 @ 219, \
+             player 1 @ 168",
+            report.first_divergence
+        );
+    }
+
     /// 268 was on a stream that was not the original's.
     #[test]
     fn run10_s_opening_trains_the_original_s_citizens_on_its_frames() {
