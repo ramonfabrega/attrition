@@ -20,22 +20,21 @@ instrument, not a tick. **The trace sub-score moved 284 → 307.**
 
 **run33 replaces run14.** run10's game, traced, 1,850 frames
 (`tools/gamelog/longtrace.sh`, fourteen minutes unattended), and it is
-run10's game by measurement rather than by the frame-0 word:
-`tools/gamelog/samegame.py` digests every `BEGIN FRAME` block and run10
-against run33 is **1,771 in common and none differing**, so the traced
-executable, the `int 3`s and `!ffwd` are invisible over 1,771 frames where
-run18a had checked four.
+run10's game by measurement: `tools/gamelog/samegame.py` digests every
+`BEGIN FRAME` block and run10 against run33 is **1,771 in common and none
+differing**, so the traced executable, the `int 3`s and `!ffwd` are
+invisible over 1,771 frames where run18a had checked four.
 
 **The word parts at 307, on a non-flat gather** — item 68. Over the run,
 668 frames spend the original's number of draws and 556 are its draws in
 its order. **The blind list did not move**: 101 never-entered with run33
 in or out, so a run booked to shrink it must do what no earlier run did.
 
-**East Indies (`MAP_STYLE 18`, seed 12345) is being captured** as this is
-written — run36 (`DUMP_ALL` start) and run37 (the long trace) — for the
-second map the finish line names; wiring it into the harness is item 69.
+**East Indies is captured** — run38 (`DUMP_ALL` start) and run39 (the long
+trace), `MAP_STYLE 18`, run10's rules otherwise. run38 stands `build_sim`
+up with **no sibling** and frame 0 is 175 draws against 175; item 69.
 
-**Owed:** 40 (ORACLE.md had its first pass; the pin is 138,731).
+**Owed:** 40 (ORACLE.md had its first pass; the pin is 138,580).
 
 **Opener (Opus):** `take item 68 from @docs/QUEUE.md — run33's word parts
 at 307 on a non-flat gather this simulation does not make; the site fires
@@ -68,11 +67,12 @@ say so. Numbers are stable; the journal is indexed by them.
     carries no `0x4000000` at the end of frame 202 or 203, yet its Scout's
     `mylos` moves 4 → 6. **run33's trace covers 195–210** — read it.
 
-69. **The second map, wired in.** run36/run37 (East Indies, `MAP_STYLE 18`,
-    seed 12345) are the `DUMP_ALL` start and the 1,850-frame trace of a
-    game no test builds yet. Stand `build_sim` up from run36's own
-    `Initial` — it carries its heights, checksums and herds, so it needs no
-    sibling — and score it. Phase 3 is done when *both* maps hold.
+69. **The second map, scored.** run38/run39 (East Indies, `MAP_STYLE 18`,
+    seed 12345, run10's rules otherwise) are the `DUMP_ALL` start and the
+    1,850-frame dump-plus-trace of a game no test builds yet. run38 alone
+    stands `build_sim` up with no sibling and spends frame 0's 175 draws
+    against 175; run39 takes it as `--sibling`. The finish line is *both*
+    maps, so this is where the second number lives.
 
 36. **`Unit::set_angle`'s seventeen other callers.** Most of run10's angle
     rows, on frames where the positions agree. Start at `do_gather`'s: `0/2`
