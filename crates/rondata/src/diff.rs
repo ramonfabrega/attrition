@@ -5887,6 +5887,140 @@ mod tests {
         assert_eq!(bird.kind.domain, sim::attrition::Domain::Air);
     }
 
+    /// **The long trace, and where the word parts past run14's 284.**
+    ///
+    /// run14 traced 284 of run10's 1,772 frames, and since item 66 its
+    /// word — the per-frame draw *count* — matched for every one of them.
+    /// A trace that agrees to its own end cannot say where the simulation
+    /// next parts by *site*, which is what item 38 was: **run33** is run10's
+    /// own game captured again under the traced executable, with run10's
+    /// exact dump settings and `cover=1`, quitting at frame 1,850
+    /// (`docs/ORACLE.md`, "run33"). `tools/gamelog/samegame.py` is the
+    /// proof it is the same game — every frame block of run33 and run10
+    /// digests identically — so this capture inherits run10's siblings and
+    /// supersedes run14 wherever the two overlap.
+    ///
+    /// Two numbers come out of it, and they are the sub-scores the residue
+    /// chase is steered by:
+    ///
+    /// - **the word**: the first frame whose draw *count* is not the
+    ///   original's, and
+    /// - **the sequence**: the first frame whose draws are not the
+    ///   original's site for site, which is at or before it.
+    #[test]
+    fn run33_s_long_trace_says_where_the_word_parts() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace)) = (
+            dump("gamelog-run33-longtrace.txt"),
+            trace("rontrace-run33.log"),
+        ) else {
+            eprintln!("skipping: no run33 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let last = trace.frames.last().map_or(0, |(n, _)| *n);
+        assert!(
+            last >= 1_800,
+            "run33's traced length is {last}, wanted 1,800+"
+        );
+        for _ in 0..last {
+            built.tick();
+        }
+        let mut matched = 0usize;
+        let mut parted: Vec<String> = Vec::new();
+        for (frame, ours) in &built.frame_sites {
+            let theirs = trace.labels(*frame);
+            if *ours == theirs {
+                matched += 1;
+                continue;
+            }
+            let at = (0..ours.len().max(theirs.len()))
+                .find(|&i| ours.get(i) != theirs.get(i))
+                .unwrap_or(0);
+            parted.push(format!(
+                "frame {frame}: ours {} theirs {} — at {at}, ours {:?} theirs {:?}",
+                ours.len(),
+                theirs.len(),
+                ours.get(at),
+                theirs.get(at),
+            ));
+        }
+        let first_part = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| *ours != trace.labels(*f))
+            .map(|(f, _)| *f)
+            .unwrap_or(last);
+        let first_count = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| ours.len() != trace.labels(*f).len())
+            .map(|(f, _)| *f)
+            .unwrap_or(last);
+        let words = built
+            .frame_sites
+            .iter()
+            .filter(|(f, ours)| ours.len() == trace.labels(*f).len())
+            .count();
+        eprintln!(
+            "run33: word parts at {first_count}, sequence at {first_part}; \
+             {words} of {last} frames spend the original's number of draws, \
+             {matched} of them draw for draw"
+        );
+        for p in parted.iter().take(4) {
+            eprintln!("{p}");
+        }
+        // **The word: 307.** run14's capture agreed to its own end at 284;
+        // this one carries 1,566 frames more, and the simulation's
+        // per-frame draw *count* is the original's for twenty-three of
+        // them before it parts.
+        //
+        // What parts it is a **non-flat gather**. The original's frame 307
+        // spends eleven draws and this simulation nine, and the two it
+        // does not spend are one unit's: a stand issued from inside
+        // `Unit::do_non_flat_gather+0x10f`, and `+0x54b`, the gather's own
+        // roll — so on the original a gatherer is working a non-flat
+        // resource on that frame and here it is not. The other nine are
+        // the same on both sides and in the same order: an
+        // `Animal::do_idle` roll, a phase-7 wrap, and seven farms.
+        assert!(
+            first_count >= 307,
+            "the word parts at frame {first_count}; the floor is 307\n{}",
+            parted.first().cloned().unwrap_or_default()
+        );
+        // **The sequence: 99**, and it is the same attribution swap run14's
+        // capture has always shown — the same address under a different
+        // caller, ours `Unit::do_idle+0x7d` where the original has
+        // `Guy::inc_time+0x271`, with the draw count equal either side
+        // (`docs/SYNC.md` §6, queue item 62). It is a floor here so that a
+        // regression that moved it would read as itself.
+        assert!(
+            first_part >= 99,
+            "the draw sequence parts at frame {first_part}; the floor is 99"
+        );
+        // And the totals over the whole 1,850, which is what says whether a
+        // change past the divergence helped or only moved the noise: 668
+        // frames spend the original's number of draws and 556 of them are
+        // its draws in its order. Past 307 both sides are off streams of
+        // their own, so these are weak numbers — but they are monotone in
+        // the right direction and a fall in them is worth reading.
+        assert!(
+            words >= 668 && matched >= 556,
+            "the trace floor fell: {words} frames on the original's word, \
+             {matched} draw for draw; the floors are 668 and 556"
+        );
+    }
+
     /// 268 was on a stream that was not the original's.
     #[test]
     fn run10_s_opening_trains_the_original_s_citizens_on_its_frames() {

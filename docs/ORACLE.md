@@ -569,7 +569,7 @@ six options by name. Two of them matter here.
 | `-config <file>` | extension `rcx` → `sys.playback_file`; extension `ini` → `sys.autostart_file` |
 | `-automation` | `sys.automation = 1` |
 | `-inifile <file>` | replaces `prefs_file`, i.e. which `rise.ini` is read |
-| `-distribution <n>`, `-executable <n>`, `-touchpatch` | patcher plumbing |
+| `-distribution`, `-executable`, `-touchpatch` | patcher plumbing |
 
 **`-config foo.ini` fills the lobby from the file.** `SetupWin::exec` reads
 `sys.autostart_file` and, when it is set, calls
@@ -586,23 +586,26 @@ It does **not** press Start: the flag it sets (`local_3c`) only reaches
 `ConnectionData::init`. So a run is two clicks — Solo Game, Quick Battle — and
 then Start, with every rule already correct.
 
-Observed 2026-08-20: the rules half of the file took (team style, map size,
-game speed, rules, difficulty, starting town, tech costs, population, rush
-rules, start and end age, elimination, victory), while `mapstyles`,
-`startingresources`, `revealmaps` and `PLAYERn_TRIBE` fell back to the player
-profile. Not chased; ticking **Save to Profile** once in the lobby makes those
-four stick across launches, which is enough. **Not established:** why those
-four differ. Confirmed the hard way on 2026-08-25: every run through run19
-was on `map 14` / `MAP_STYLE 14` — **Great Lakes, the profile's default** —
-while `check.ini` said Great Sahara the whole time; the WORLD block's `map`
-and `GAME INFO`'s `MAP_STYLE` are the read-back, and `docs/AI.md`'s
-`map_style` predicates were exercised on 14, not on 7. Run20 needed an
-islands map and got it by picking East Indies in the lobby's combo — and
-ticking Save to Profile **did not make it stick**: the next launch (run21,
-the process having been killed at the Game Over screen rather than quit
-through the menu) offered Great Lakes again, so the profile is written on
-a clean quit or not at all. Read the combo from a screenshot every launch;
-the file's `MAP_STYLE` is the read-back.
+Observed 2026-08-20: the rules half of the file took, while `mapstyles`,
+`startingresources`, `revealmaps` and `PLAYERn_TRIBE` fell back to the
+player profile. **Not established:** why those four differ. Confirmed the
+hard way on 2026-08-25: every run through run19 was on `MAP_STYLE 14` —
+**Great Lakes, the profile's default** — while `check.ini` said Great
+Sahara the whole time, so `docs/AI.md`'s `map_style` predicates were
+exercised on 14 and not on 7. Ticking **Save to Profile** does not make a
+combo stick either: run21, whose process had been killed at the Game Over
+screen rather than quit through the menu, offered Great Lakes again.
+
+**The combo does not have to be clicked at all now.**
+`tools/gamelog/mapstyle.py N` writes the style into `check.ini` and into
+the profile with the game closed. `PlayerProfile/Player.dat` carries
+**two** lobbies — a `<SOLO>` block and a `<MULTI>` block, each with its own
+`<MAP_STYLE value="N"/>` — and Solo Game → Quick Battle reads the
+**`<SOLO>`** one. Writing only `<MULTI>`, which is what the first version
+did, leaves the run on the old map with nothing but its own `MAP_STYLE`
+line to say so (run34, 2026-08-29, a fifteen-minute capture of the wrong
+map). The `GAME INFO` block's `MAP_STYLE` and the `WORLD` block's `map`
+are the read-back, and they are the first thing to grep in a new capture.
 
 **`-automation` suppresses the modal furniture.** `Options::exec` skips the
 quit confirmation, `EndGameWin::exec` skips the end-game window, and
@@ -1992,70 +1995,46 @@ the process at the Game Over screen writing blocks 3583–3584 for a minute;
 a size poll on `gamelog.txt` (90 s unchanged) is the "done" signal, then
 `pkill -f riseofnations_trace.exe`.
 
-### run23–run27 — the army's captures (2026-08-25)
+### runs 23–31 — the army's and the group's captures (2026-08-25/26)
 
-Five runs of the run21 lobby for `docs/ARMY.md`, all driven unattended by
-one script (`tools/gamelog/runwin.sh N LO HI TAG`: stage with `window.py`,
-re-add the scenario lines, launch, the five clicks, poll until the dump is
-quiet, archive, restore), chained three at a time.
+Nine runs of the run21 lobby, staged from `docs/ARMY.md` §16 and
+`docs/GROUPS.md` §11 and driven unattended by `tools/gamelog/runwin.sh N LO
+HI TAG`. The story is in `docs/JOURNAL.md` under 2026-08-29, "Lifted from
+ORACLE.md"; what belongs here is the inventory and the traps.
 
-- **run23** (`gamelog-run23-islands-war.txt`, `rontrace-run23.log`; dump
-  off, trace on, `6000 war who=1`): **a null result worth keeping.** The
-  line ran (`INFO cmd`, `Leader::set_diplo` entered at 6000) and every one
-  of the 24,001 per-frame `game_random` words is identical to run21's — a
-  Quick Battle **already starts at war**, so the command changed nothing.
-  `tools/gamelog/rngcmp.py A B` is the ten-second check that a scenario
-  took; run it before reading anything else.
-- **run24** (`gamelog-run24-islands-raid.txt`, `rontrace-run24.log`; seven
-  `add hoplite who=0` beside the AI's capital at 12000–12006 and
-  16000–16006): the words diverge at 12001, the capital falls at 13125
-  (`Cities::capture_city`), the AI is defeated at 16488 and the game ends
-  — the first traced game with the army's combat half in it
-  (`docs/ARMY.md` §16.4). Two minutes.
-- **run25–27**: `DUMP_ALL` windows of run24's game at `[12129, 12132)`
-  (`Armies::emergency`), `[12024, 12027)` (`find_target` with a live
-  enemy) and `[15100, 15103)` (`do_defending`). About ten minutes each: at
-  frame 12000 a block is ~130 MB and takes two to three minutes. Each has
-  **five** blocks, not three: the `!quit` at `HI + 1` returns the game to
-  the Game Over screen and the simulation runs on at fast-forward until
-  the process is killed; the last block (16007 in run25 and run26) is the
-  dump written then — a free capture of a later frame, labelled by the
-  frame it was written at.
+| run | file | what is in it |
+| --- | --- | --- |
+| 23 | `gamelog-run23-islands-war.txt` | a null result worth keeping: a Quick Battle **already starts at war**, so the `war` line changed nothing and all 24,001 per-frame words are run21's. `tools/gamelog/rngcmp.py A B` is the ten-second check that a scenario took at all |
+| 24 | `gamelog-run24-islands-raid.txt` | the first traced game with combat in it: seven hoplites beside the AI's capital, which falls at 13125, and the AI is defeated at 16488 |
+| 25–27 | `…-emergency-`, `…-findtarget-`, `…-defending-window.txt` | `DUMP_ALL` windows of run24's game at [12129, 12132), [12024, 12027) and [15100, 15103) — `Armies::emergency`, `find_target` with a live enemy, `do_defending` |
+| 28 | `gamelog-run28-islands-engagement.txt` | `cover=1` with no dump at all: `Army::engagement@006f5160` is entered at **15100**, with the frame's coverage naming the chain down to `Group::action_attack`. Three minutes — the cheapest behavioural check there is |
+| 29 | `gamelog-run29-islands-engagement-window.txt` | the same scenario windowed: its `ARMY` half is `docs/ARMY.md` §17 and its `UNITS=3` half `docs/GROUPS.md` §6.4 |
+| 30 | `gamelog-run30-humangroup-nogroups.txt` | `GROUPS=1` set under `[End Frame]` only, so **no `GROUPDATA` came out**; kept as the first dump on disk holding `GroupMoveOrder` blocks |
+| 31 | `gamelog-run31-humangroup.txt` | three human right-clicks on twelve selected units: forty frames carrying a `GroupMoveOrder` and a live group (`docs/GROUPS.md` §11, §12.1) |
 
-### run28 and run29 — the army engaged while mustering (2026-08-25)
+**Four facts from them that every later run uses.**
 
-Staged from a reading rather than a guess (`docs/ARMY.md` §16.6): the one
-path in `Army::process` that reaches `Army::engagement` is
-`do_mustering`'s release, so the army has to be **engaged at its own
-mustering tick**. run24's game plus six `add hoplite who=0` on army 0's
-own point — run27's block gives it as tile (180, 192) — at 15020–15030,
-and quit at 15400.
-
-- **run28** (`gamelog-run28-islands-engagement.txt`,
-  `rontrace-run28.log`; dump off, `cover=1`, `window=15095-15105`):
-  **three minutes**, and `Army::engagement@006f5160` is entered at
-  **15100** with the frame's coverage naming the chain down to
-  `Group::action_attack` → `Unit::find_melee_target` →
-  `Unit::add_attack_order`. A `cover=1` trace with no dump is the cheapest
-  behavioural check there is, and it answers "did this function ever
-  execute" outright.
-- **run29** (`gamelog-run29-islands-engagement-window.txt`): the same
-  scenario under a `DUMP_ALL` window at [15100, 15103), for the records
-  on either side of that frame. Ten minutes, ~250 MB, and its `ARMY`
-  half is a test the same day (`docs/ARMY.md` §17 item 6) — `status 1 →
-  32`, `city 1 → −1`, the point to the muster cell's centre. Its
-  **`UNITS=3` half** was opened 2026-08-26: 465 order blocks, 79 move
-  orders, and `Army::engagement`'s choice of unit (`docs/ARMY.md` §11).
-  It carries **four** states, not three — 15100, 15101, 15102 and the
-  free 15105 — and the fourth needed `Log::dumps` to reach ("A `DUMP_ALL`
-  frame writes its dump twice", above).
-
-A trap the same session found: `rontrace.cmd` clamps a frame lower than
-the previous line's **to it**, so a `!quit` written after a later-frame
-`add` runs at the later frame. run27's `15104 !quit` sat after lines at
-16000–16006 and so quit at 16006, which is where its free 16007 block
-came from. Write the file in ascending frame order.
-
+- **`select` is scriptable, so a group capture needs one human click and
+  not twelve.** `ConsoleWin::run_cmd`'s `select` case takes
+  `[[ob#|type] [who] [+]]`: with a *type* it walks every object of that
+  player and adds each match to its `SelectGroup`, and the trailing `+`
+  suppresses the clear. `160 select slinger who=0` then `170 select
+  hoplite who=0 +` puts twelve portraits in the tray. (The old note that
+  `+` "is not reliable" was the **chat box** dropping lines, not the
+  command.)
+- **`rontrace.cmd` clamps a frame lower than the previous line's to it**,
+  so a `!quit` written after a later-frame `add` runs at the *later*
+  frame. Write the file in ascending frame order.
+- **`!quit` at `HI + 1` does not end the process**: the game returns to the
+  Game Over screen and runs on at fast-forward until it is killed, so a
+  windowed run has more blocks than its window — the extra is a free
+  capture of a later frame, labelled by the frame it was written at.
+- **The East Indies lobby at seed 12345** (`MAP_STYLE 18`) starts the human
+  on tiles 26–30 × 25–42 and the AI on 198–214 × 201–214.
+  `tools/gamelog/live.sh` launches and **returns with the game running**,
+  where `runwin.sh` waits for a `!quit`; `archive.sh N TAG` is the other
+  end. At ~370 KB a frame the game runs about one frame every two seconds,
+  which is what leaves a driver wall clock between frames.
 ### The group pool is a per-frame record (2026-08-26)
 
 `GameLog::full_dump@00930380` has two halves. `do_dump_all != 0` takes the
@@ -2109,63 +2088,6 @@ flag, and `GROUPS` is a category whose own record has no levels at all.
 A second-order lesson: `LEADERS=9` is the expensive key. run30 ran at
 1.6 MB a frame with `UNITS=3 LEADERS=9 GUYS=2`; run31 at ~370 KB with
 `LEADERS=1` and `GROUPS` added.
-
-### run30 and run31 — the human group move (2026-08-26)
-
-`docs/QUEUE.md` item 20: the capture three of `docs/GROUPS.md`'s open
-items were waiting on, and the first that needed a **human-shaped**
-action in the middle of the run. The cheat table has no order verb, so the
-right-click has to come from `cliclick` on the live game — which is why
-`tools/gamelog/live.sh` exists: it stages nothing, launches, drives the
-five lobby clicks and **returns with the game running**, where
-`runwin.sh` would have waited for a `!quit`. `archive.sh N TAG` is the
-other end.
-
-**The selection is scriptable after all**, and that was the finding that
-made the run cheap. `ConsoleWin::run_cmd`'s `select` case takes
-`[[ob#|type] [who] [+]]`: with a type it walks every object of that player
-and adds each match to the player's `SelectGroup`, and the trailing `+`
-suppresses the clear that otherwise opens the case. So
-
-```
-160 select slinger who=0
-170 select hoplite who=0 +
-```
-
-selects twelve units from the channel, and the only thing left for a
-person is one right-click. The earlier note that `+` "is not reliable"
-was the **chat box's** dropped lines, not the command: through
-`rontrace.cmd` it appended cleanly on both runs, twelve portraits in the
-tray.
-
-- **run30** (`gamelog-run30-humangroup-nogroups.txt`, 378 MB, 215
-  frames): the same scenario with `[End Frame] GROUPS=1` and `DEATHS=1`,
-  so **no `GROUPDATA` came out** — the trap above. Kept anyway, because it
-  is the first dump on disk that holds `GroupMoveOrder` blocks, and
-  because it proved the select-then-cliclick chain end to end before the
-  ini was spent on it.
-- **run31** (`gamelog-run31-humangroup.txt`, 160 MB, 219 frames;
-  `rontrace-run31.log`, `cover=1`, no trace window): three right-clicks at
-  three bearings on the human's own island, eight hoplites and four
-  slingers added at frames 60–96 and selected at 160/170. Forty frames
-  carry a `GroupMoveOrder` and a live group. `docs/GROUPS.md` §11 and
-  §12.1 are what it holds.
-
-**Driving notes.** The window sat at `(760, 152)` again and the five
-lobby clicks of `runwin.sh` were unchanged. `cheat camera 29,31` with
-`Console Coord Mode=2` centres tile (29, 31), which is enough aiming: the
-right-click's own world point is recorded in the order's
-`orig_x`/`orig_y`, so the click does not have to be *precise*, only on
-land. Reading the screenshot before each click is what keeps it on land.
-The human's start on this lobby (East Indies, seed 12345, `MAP_STYLE 18`)
-is tiles 26–30 × 25–42; the AI's is 198–214 × 201–214.
-
-At ~370 KB a frame the game runs at about one frame every two seconds,
-which is *convenient*: it leaves a driver plenty of wall clock between
-frames, and it means a run can be killed the moment the capture is in
-hand. `Log` flushes per line, so the kill costs at most the frame in
-progress — run31's last block is half-written, which any reader of it has
-to tolerate.
 
 ### The 300-frame window, and the `DUMP_ALL` the fuzzer did not need (2026-08-26)
 
@@ -2349,6 +2271,53 @@ height table and run3 is first in the list. With the map's own heights
 (run12's and run13's, which agree exactly), run14's frames 10 and 11 cost
 **220** and **248** nodes — the original's, exactly, where they had been 208
 and 222. That, not anything in the search, was item 55's six per cent.
+
+### run33 — the long trace, and the proof that the instrument is free (2026-08-29)
+
+run14 traced 284 of run10's 1,772 frames, and once the simulation's word
+matched all 284 there was nothing on disk that could say where the two next
+parted by *site*. run33 is the replacement: **run10's own game, traced,
+1,850 frames**, and the recipe is `tools/gamelog/longtrace.sh` end to end —
+the three permissions, `mapstyle.py` putting style 14 in `check.ini` and the
+profile, seed 12345, run10's exact detail —
+
+```
+[Start Game] WORLD=6 TERRAIN=2 GOODS=3 UNITS=3 BUILDS=7 CITIES=5 GUYS=2 LEADERS=9 DEATHS=1
+[End Frame]  MISC=1 UNITS=3 BUILDS=7 CITIES=5 GUYS=2 DEATHS=1 LEADERS=1
+```
+
+— `rise2.ini`'s frame window `[0, 1900)`, `rontrace.cfg` `cover=1` with no
+window, and a two-line `rontrace.cmd` (`5 !ffwd 30`, `1850 !quit`).
+**Fourteen minutes**, 284 MB of dump and 9.5 MB of trace, unattended.
+
+**It is the same game, and that is now a measurement rather than a hope.**
+`tools/gamelog/samegame.py` reduces each `BEGIN FRAME` block to a digest of
+its indented lines and compares two dumps frame for frame; run33 against
+run10 is **1,771 blocks in common and not one that differs**. So the traced
+executable, the `int 3` on all 48,233 function entries, the cheat channel and
+`!ffwd 30` are all invisible to the simulation over 1,771 frames — where
+run18a had checked four — and run33 inherits run10's siblings, its
+`build_sim` and its tests. (Calibrated on run10 against run14's gamelog:
+284 identical blocks, the only difference being run14's truncated 285th.)
+
+**What it says.** The simulation's per-frame draw **count** is the
+original's through frame 306 and parts at **307**, twenty-three frames past
+where run14's capture ran out. The original spends eleven draws there and
+this simulation nine, and the two missing are one unit's non-flat gather —
+a stand issued from `Unit::do_non_flat_gather+0x10f`, then `+0x54b`, the
+gather's own roll. The site fires nineteen times in the whole run — 1, 168,
+204, **307**, 465, 508, 565, 687, 780, 983, 985, 1030, 1091, 1393, 1498,
+1544, 1590, 1643, 1781 — and this simulation makes the first three and
+misses the fourth. Over the whole 1,850, **668 frames spend the
+original's number of draws and 556 are its draws in its order**; both are
+pinned in `run33_s_long_trace_says_where_the_word_parts`.
+
+**And the thing it did not buy.** The blind list did not move: 617 functions
+cited by address under `docs/`, **101 never entered**, with run33 added to
+the other twenty traces exactly as without it. run33 entered 6,702 functions
+against run14's 6,585 and not one of the extra 117 is cited anywhere. A long
+run of the *same* no-input game lights nothing new: the blind list is shrunk
+by scenarios, not by frames.
 
 ## What is not established
 
