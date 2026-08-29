@@ -587,25 +587,26 @@ It does **not** press Start: the flag it sets (`local_3c`) only reaches
 then Start, with every rule already correct.
 
 Observed 2026-08-20: the rules half of the file took, while `mapstyles`,
-`startingresources`, `revealmaps` and `PLAYERn_TRIBE` fell back to the
-player profile. **Not established:** why those four differ. Confirmed the
-hard way on 2026-08-25: every run through run19 was on `MAP_STYLE 14` —
-**Great Lakes, the profile's default** — while `check.ini` said Great
-Sahara the whole time, so `docs/AI.md`'s `map_style` predicates were
-exercised on 14 and not on 7. Ticking **Save to Profile** does not make a
-combo stick either: run21, whose process had been killed at the Game Over
-screen rather than quit through the menu, offered Great Lakes again.
+`startingresources`, `revealmaps` and `PLAYERn_TRIBE` did not. **Not
+established:** why those four differ. Confirmed the hard way on
+2026-08-25: every run through run19 was on `MAP_STYLE 14` — **Great
+Lakes** — while `check.ini` said Great Sahara, so `docs/AI.md`'s
+`map_style` predicates were exercised on 14 and not on 7.
 
-**The combo does not have to be clicked at all now.**
-`tools/gamelog/mapstyle.py N` writes the style into `check.ini` and into
-the profile with the game closed. `PlayerProfile/Player.dat` carries
-**two** lobbies — a `<SOLO>` block and a `<MULTI>` block, each with its own
-`<MAP_STYLE value="N"/>` — and Solo Game → Quick Battle reads the
-**`<SOLO>`** one. Writing only `<MULTI>`, which is what the first version
-did, leaves the run on the old map with nothing but its own `MAP_STYLE`
-line to say so (run34, 2026-08-29, a fifteen-minute capture of the wrong
-map). The `GAME INFO` block's `MAP_STYLE` and the `WORLD` block's `map`
-are the read-back, and they are the first thing to grep in a new capture.
+**`-config` pins the map style and no file can move it** (2026-08-29,
+three wasted captures). With `-config check.ini` the style is the default
+**14, Great Lakes**, whatever the profile says, and `mapstyles=` does not
+take in either spelling (`East Indies`, `#ICON102East Indies`). **Without
+`-config` the lobby is the profile's** and a written style does take. So
+`tools/gamelog/mapstyle.py N` writes `check.ini` and all three of the
+profile's copies — `<SETTINGS><MAP_STYLE>N</MAP_STYLE>`, and a
+`<MAP_STYLE value="N"/>` in each of `<SOLO>` and `<MULTI>` — and the
+capture scripts drop `-config` for any style but 14. Two corollaries:
+**a traced run can never write the profile** (quitting
+`riseofnations_trace.exe` through the menu dies in a `Program Error` box
+first, which is why a combo pick never survives a launch), and the run's
+own `GAME INFO` `MAP_STYLE` is the only read-back there is — **grep it
+before reading anything else.**
 
 **`-automation` suppresses the modal furniture.** `Options::exec` skips the
 quit confirmation, `EndGameWin::exec` skips the end-game window, and
@@ -2007,9 +2008,9 @@ ORACLE.md"; what belongs here is the inventory and the traps.
 | 23 | `gamelog-run23-islands-war.txt` | a null result worth keeping: a Quick Battle **already starts at war**, so the `war` line changed nothing and all 24,001 per-frame words are run21's. `tools/gamelog/rngcmp.py A B` is the ten-second check that a scenario took at all |
 | 24 | `gamelog-run24-islands-raid.txt` | the first traced game with combat in it: seven hoplites beside the AI's capital, which falls at 13125, and the AI is defeated at 16488 |
 | 25–27 | `…-emergency-`, `…-findtarget-`, `…-defending-window.txt` | `DUMP_ALL` windows of run24's game at [12129, 12132), [12024, 12027) and [15100, 15103) — `Armies::emergency`, `find_target` with a live enemy, `do_defending` |
-| 28 | `gamelog-run28-islands-engagement.txt` | `cover=1` with no dump at all: `Army::engagement@006f5160` is entered at **15100**, with the frame's coverage naming the chain down to `Group::action_attack`. Three minutes — the cheapest behavioural check there is |
+| 28 | `gamelog-run28-islands-engagement.txt` | `cover=1` with no dump at all: `Army::engagement@006f5160` entered at **15100**, the frame's coverage naming the chain down to `Group::action_attack`. Three minutes — the cheapest behavioural check there is |
 | 29 | `gamelog-run29-islands-engagement-window.txt` | the same scenario windowed: its `ARMY` half is `docs/ARMY.md` §17 and its `UNITS=3` half `docs/GROUPS.md` §6.4 |
-| 30 | `gamelog-run30-humangroup-nogroups.txt` | `GROUPS=1` set under `[End Frame]` only, so **no `GROUPDATA` came out**; kept as the first dump on disk holding `GroupMoveOrder` blocks |
+| 30 | `gamelog-run30-humangroup-nogroups.txt` | `GROUPS=1` under `[End Frame]` only, so **no `GROUPDATA` came out**; kept as the first dump holding `GroupMoveOrder` blocks |
 | 31 | `gamelog-run31-humangroup.txt` | three human right-clicks on twelve selected units: forty frames carrying a `GroupMoveOrder` and a live group (`docs/GROUPS.md` §11, §12.1) |
 
 **Four facts from them that every later run uses.**
@@ -2312,12 +2313,10 @@ misses the fourth. Over the whole 1,850, **668 frames spend the
 original's number of draws and 556 are its draws in its order**; both are
 pinned in `run33_s_long_trace_says_where_the_word_parts`.
 
-**And the thing it did not buy.** The blind list did not move: 617 functions
-cited by address under `docs/`, **101 never entered**, with run33 added to
-the other twenty traces exactly as without it. run33 entered 6,702 functions
-against run14's 6,585 and not one of the extra 117 is cited anywhere. A long
-run of the *same* no-input game lights nothing new: the blind list is shrunk
-by scenarios, not by frames.
+**And the thing it did not buy.** The blind list did not move — 617 cited,
+**101 never entered**, with run33 in or out — though run33 entered 6,702
+functions against run14's 6,585. A long run of the *same* no-input game
+lights nothing new: the list is shrunk by scenarios, not by frames.
 
 ## What is not established
 

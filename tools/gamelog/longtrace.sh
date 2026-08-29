@@ -37,6 +37,18 @@ N=${1:-33}
 FRAMES=${2:-1850}
 TAG=${3:-longtrace}
 MAPSTYLE=${4:-14}
+# **`-config check.ini` pins the map style and no file can move it.** The
+# lobby it builds is a default `GameInfo` with the rules half of the file
+# applied on top, and `mapstyles=` is one of the four combos that never
+# take (`docs/ORACLE.md`, "The lobby is a file"), so the style stays the
+# default 14 — Great Lakes — whatever the profile says. Without `-config`
+# the lobby is the **profile's**, and `mapstyle.py`'s write does take.
+# So: the Great Lakes captures keep `-config`, because run10–14's game is
+# that lobby; a run on any other map drops it and takes the profile's,
+# recording its own lobby in its own `GAME INFO` block either way.
+if [ -z "${CFG+set}" ]; then
+  if [ "$MAPSTYLE" = 14 ]; then CFG="-config check.ini"; else CFG=""; fi
+fi
 W=$(cd "$(dirname "$0")/../.." && pwd)
 G=${RON_INSTALL:-/Users/rf-studio/code/fun/attrition/game}
 B="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations"
@@ -80,7 +92,7 @@ rm -f "$G/rontrace.log" "$L/gamelog.txt"
 cd "$G"
 nohup /Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine \
   --bottle ron --workdir "$G" --wait-children \
-  "$G/$P" -config check.ini -automation > "$T/wine$N.log" 2>&1 &
+  "$G/$P" ${=CFG} -automation > "$T/wine$N.log" 2>&1 &
 echo "launched pid $!"
 
 zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"

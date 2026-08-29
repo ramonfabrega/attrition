@@ -11,13 +11,16 @@ a style picked from the combo does not survive a killed process. Both are
 written here, with the game closed, which is faster than clicking and
 cannot mis-click.
 
-**The profile has two lobbies and Solo Game reads the first.** `Player.dat`
-carries a `<SOLO>` block and a `<MULTI>` block, each with its own
-`<MAP_STYLE>`. Writing only `<MULTI>` — which is what this did until
-2026-08-29 — leaves Solo Game → Quick Battle on whatever `<SOLO>` said, and
-the run comes back on the wrong map with nothing but its own `MAP_STYLE`
-line to say so (run34). Every `<MAP_STYLE>` in the file is written now, and
-the run's log is still what confirms it took.
+**The profile says the map style three times and the lobby reads the one
+you would not guess.** `Player.dat` carries
+`<SETTINGS><MAP_STYLE>N</MAP_STYLE>` near its head and a
+`<MAP_STYLE value="N"/>` inside each of its `<SOLO>` and `<MULTI>` blocks.
+**Solo Game → Quick Battle reads the `<SETTINGS>` one**: with `<MULTI>`
+alone set the run came back on the old map (run34), and with `<SOLO>` and
+`<MULTI>` both set it came back on the old map again (run36) — two
+fifteen-minute captures of Great Lakes. All three are written now, and the
+run's own `MAP_STYLE` line is still what confirms it took: **grep it before
+reading anything else.**
 
 The index is the position in `data/rules.xml`'s `mapstyles` category list,
 which is what the dump's `MAP_STYLE` reports back — so a run's own log says
@@ -54,13 +57,15 @@ def main():
 
     p = B + "/PlayerProfile/Player.dat"
     t = open(p, "rb").read().decode("utf-8", "replace")
-    # Every `<MAP_STYLE value="N"/>` — the `<SOLO>` lobby's and the
-    # `<MULTI>` lobby's. The bare `<MAP_STYLE>` element near the head of
-    # the file is a different tag (it has no `value` attribute) and is left
-    # alone.
-    t, n = re.subn(r'<MAP_STYLE value="\d+"/>',
+    # All three, in two spellings. `<SETTINGS><MAP_STYLE>N</MAP_STYLE>` is
+    # the one Solo Game → Quick Battle actually reads; `<SOLO>` and
+    # `<MULTI>` carry `<MAP_STYLE value="N"/>`. Writing fewer than all
+    # three is how two captures came back on the wrong map.
+    t, a = re.subn(r"<MAP_STYLE>\d+</MAP_STYLE>",
+                   "<MAP_STYLE>%d</MAP_STYLE>" % want, t)
+    t, b = re.subn(r'<MAP_STYLE value="\d+"/>',
                    '<MAP_STYLE value="%d"/>' % want, t)
-    assert n >= 2, "expected a <MAP_STYLE> in both the SOLO and MULTI lobbies"
+    assert a >= 1 and b >= 2, "profile: %d <SETTINGS>, %d lobby MAP_STYLE" % (a, b)
     open(p, "wb").write(t.encode())
     print("map style %d (%s) in check.ini and the profile" % (want, name))
     return 0

@@ -19,6 +19,12 @@ set -e
 N=${1:-34}
 MAPSTYLE=${2:-18}
 TAG=${3:-start}
+# See `longtrace.sh`: `-config check.ini` pins the map style to the default
+# 14 and no file can move it, so a run on any other map drops it and takes
+# the profile's lobby, which `mapstyle.py` has just written.
+if [ -z "${CFG+set}" ]; then
+  if [ "$MAPSTYLE" = 14 ]; then CFG="-config check.ini"; else CFG=""; fi
+fi
 W=$(cd "$(dirname "$0")/../.." && pwd)
 G=${RON_INSTALL:-/Users/rf-studio/code/fun/attrition/game}
 B="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations"
@@ -45,7 +51,7 @@ rm -f "$G/rontrace.log" "$L/gamelog.txt"
 cd "$G"
 nohup /Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine \
   --bottle ron --workdir "$G" --wait-children \
-  "$G/$P" -config check.ini -automation > "$T/wine$N.log" 2>&1 &
+  "$G/$P" ${=CFG} -automation > "$T/wine$N.log" 2>&1 &
 echo "launched pid $!"
 
 zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"
