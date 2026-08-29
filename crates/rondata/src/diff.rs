@@ -5633,17 +5633,47 @@ mod tests {
             "the original's own re-targets: six farmers on 101, then one a \
              cell at a time as each ripens"
         );
-        // And ours is now that list **entire**, over all 284 traced
-        // frames. It used to be a prefix — 101 and 199, with 211 and 217
+        // And ours is that list entire up to the frame the word parts on.
+        // It used to be a prefix of two — 101 and 199, with 211 and 217
         // checked separately and the tail past the word's divergence
         // unusable. Item 63's waypoint collision test bought the 201 row,
         // which is `1/4` re-picking a second time after its walk to `1/2`'s
-        // cell was refused; with it the whole re-target schedule of both
-        // players' farms is the original's, frame for frame and draw for
-        // draw, to the end of the capture.
+        // cell was refused; with it the whole schedule to 241 is the
+        // original's, frame for frame and draw for draw.
+        //
+        // Item 64 added one row of our own at **243**, and it is past
+        // `first_count` — the word has been ours since 232, so a farm
+        // clock that ripens two frames late there is downstream of that
+        // divergence rather than a fault of its own. So the assertion is
+        // split: everything the comparable stretch carries must be the
+        // original's exactly, and anything extra must be past the frame
+        // the word parts on. Both halves fail if a re-target moves inside
+        // the stretch that is still checkable.
         assert_eq!(
-            mine, theirs,
-            "every farm re-target of the capture, on the original's frames"
+            mine.iter()
+                .copied()
+                .filter(|&(f, _)| f < first_count)
+                .collect::<Vec<_>>(),
+            theirs
+                .iter()
+                .copied()
+                .filter(|&(f, _)| f < first_count)
+                .collect::<Vec<_>>(),
+            "every farm re-target before the word parts, on the original's frames"
+        );
+        assert!(
+            mine.iter()
+                .all(|&(f, _)| f >= first_count || theirs.iter().any(|&(g, _)| g == f)),
+            "and no re-target of ours inside the comparable stretch that the \
+             original does not make: {mine:?} against {theirs:?}"
+        );
+        assert_eq!(
+            mine.iter()
+                .filter(|&&(f, _)| !theirs.iter().any(|&(g, _)| g == f))
+                .copied()
+                .collect::<Vec<_>>(),
+            vec![(243, 2)],
+            "the one row of our own, past the word's divergence"
         );
         // **The bird's own row, and it is the original's now.** Every
         // eighth frame carries three `Animal::think_bird` draws per living
@@ -6099,6 +6129,27 @@ mod tests {
         //               the original's woodcutter collides on 206 and
         //               repaths onto a seven-entry stack this simulation
         //               does not build.
+        //   2026-08-28  ticks **209**, orders **208**; player 0 @ 326,
+        //               player 1 @ **210** (item 64: **`is_flat`, the
+        //               fence on `resolve_unit_collision`'s step 2**).
+        //               The step that kills a walk because the unit is
+        //               standing inside its own gather target's footprint
+        //               asks that target's type `+0x94` —
+        //               `BuildTypeData::is_flat`, `build_flags &
+        //               0x10000000` — and this crate read the virtual as
+        //               true (a stated seam, `docs/COLLISION.md` §9). So
+        //               a woodcutter that collides while standing on its
+        //               *camp's* footprint killed its own walk and re-made
+        //               it on the next frame, for ever: run10's `1/6`
+        //               pushed and killed the same `MOVE_TO` every other
+        //               frame from 206 to the end of the capture. With the
+        //               fence it falls through to the repath and builds
+        //               the original's seven-entry stack, field for field
+        //               — and the **whole collision block goes to zero
+        //               disagreements** over 48,790 field-frames, the
+        //               sticky `collide_guy` included. `1/6` parts at 253
+        //               rather than 208; what parts player 1 now is `1/7`
+        //               at 210, the citizen trained on frame 206.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -6107,9 +6158,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 207 && orders >= 206 && first[0] >= 326 && first[1] >= 208,
+            ticks >= 209 && orders >= 208 && first[0] >= 326 && first[1] >= 210,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 207, orders 206, player 0 @ 326, player 1 @ 208",
+             — the floor is ticks 209, orders 208, player 0 @ 326, player 1 @ 210",
             report.first_divergence
         );
         assert!(
@@ -6292,9 +6343,20 @@ mod tests {
         // `1/4` no longer walks off its farm on 200, so it and the two
         // farmers behind it hold their positions for hundreds of frames
         // more, and 2,890 further unit-frames come into view.
+        //
+        // 42,840 → **48,790** with item 64 (`is_flat`, §6 step 2's fence),
+        // and the disagreements went **245 → 0**. This is the run that
+        // says the mechanic is right: every one of the 48,790 field-frames
+        // agrees, the sticky `collide_guy` included — 243 of the 245 were
+        // that one byte, written by a hard collision and never cleared, so
+        // a collision this simulation had and the original did not left a
+        // unit reading 0 against −1 for the rest of the run, and the fence
+        // is what stops the collision happening. The assertion below is
+        // now emptiness rather than a ceiling, so any single field on any
+        // unit-frame of the capture fails it.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 42_840,
+            coll_seen, 48_790,
             "five fields on every agreeing unit-frame"
         );
         let coll_bad: Vec<CollideDivergence> = report
@@ -6302,66 +6364,10 @@ mod tests {
             .iter()
             .flat_map(|f| f.collide_diverged.iter().copied())
             .collect();
-        assert!(
-            coll_bad.len() <= 473,
-            "the collision block's disagreements grew: {} of {coll_seen}",
-            coll_bad.len()
-        );
-        // And what they are: the stale `collide_guy`, plus ten rows over
-        // two other collisions (`1/4` at 201–202, `1/6` at 207). Anything
-        // else is a new fault, however the total moves.
-        //
-        // The split used to be by unit — `1/3`'s rows against the rest —
-        // and item 52 made that the wrong cut: `1/4` now holds its
-        // position 97 frames longer and carries the *same* stale byte
-        // through every one of them, so the count by unit grew while
-        // nothing about the mechanic changed. The cut that means what it
-        // says is by **field**: `collide_guy` is the one a hard collision
-        // writes and no path clears, and every other field is a real
-        // disagreement.
-        //
-        // 10 → **18** with item 59, and they are the same two fields on
-        // the same unit: `1/4` reads `collide_o`/`collide_who` as −1
-        // against the original's `1/2` on frames 316–321 as well as on
-        // 201–202 — one collision the original has and this simulation
-        // does not, now visible over six more frames because `1/4` holds
-        // its position that much longer. No new field and no new unit.
-        let sticky = coll_bad.iter().filter(|d| d.field == "collide_guy").count();
-        assert!(
-            coll_bad.len() - sticky <= 18,
-            "collision rows that are not the stale `collide_guy`: {}",
-            coll_bad.len() - sticky
-        );
-        assert!(
-            coll_bad
-                .iter()
-                .filter(|d| d.field != "collide_guy")
-                .all(|d| (d.who, d.o) == (1, 4) || (d.who, d.o) == (1, 6)),
-            "and every one of them is `1/4`'s missing collision or `1/6`'s: {:?}",
-            coll_bad.iter().find(|d| d.field != "collide_guy"
-                && (d.who, d.o) != (1, 4)
-                && (d.who, d.o) != (1, 6))
-        );
-        assert!(
-            coll_bad.iter().all(|d| d.frame >= 201),
-            "and none of them is before frame 201: {:?}",
-            coll_bad.iter().find(|d| d.frame < 201)
-        );
-        // The first row was `1/4`'s missing collision on 201. With item 61
-        // that unit *parts* on 201 — it is the first divergence now — so
-        // its rows leave the comparison altogether and the earliest one
-        // left is `1/6`'s on 207. The collision itself has not gone away;
-        // it is the successor item, and run10's frame-201 record names its
-        // blocker.
         assert_eq!(
-            coll_bad.first().map(|d| (d.frame, d.who, d.o)),
-            Some((207, 1, 6)),
-            "the first collision-block disagreement is well past the score"
-        );
-        assert!(
-            !coll_bad.iter().any(|d| d.field == "safe"),
-            "`safe` never disagrees: {:?}",
-            coll_bad.iter().find(|d| d.field == "safe")
+            coll_bad,
+            vec![],
+            "the collision block agrees on every one of {coll_seen} field-frames"
         );
 
         // **The tile choice, asserted where it was wrong** (item 25). The
@@ -6500,8 +6506,13 @@ mod tests {
         // test): 1,156 more, the coverage effect back in the headline's
         // direction — `1/4` stays on its farm from 200 rather than walking
         // off it, and the farmers behind it hold with it.
+        // 17,102 → **19,464** with item 64 (`is_flat`): 2,362 more, the
+        // coverage effect in the headline's direction again — `1/6` no
+        // longer stalls at its own gather target from 207, so it and the
+        // AI's later citizens hold their positions for hundreds of frames
+        // more. The headline went 207 → 209.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 17_102, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 19_464, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -6526,8 +6537,13 @@ mod tests {
         // 6,926 → 7,042 with item 52, against 16,456 → 17,302 compared:
         // 730 of the 846 the wing beat brought into view agree, and the
         // 116 that do not are those same callers again (item 36).
+        // 7,042 → 8,737 with item 64, against 17,102 → 19,464 compared:
+        // 667 of the 2,362 rows the fence brought into view agree, and the
+        // 1,695 that do not are the same seventeen callers on units that
+        // now stand where the original stands them for far longer. Item 36
+        // is still the item that takes this down.
         assert!(
-            bad.len() <= 7_042,
+            bad.len() <= 8_737,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );
@@ -6865,8 +6881,18 @@ mod tests {
         // to the frame: **six of the ten units improved and four held**,
         // `0/3` and `0/5` 213 → 326, `0/4` 220 → 356, `1/3` 219 → 345,
         // `1/4` 201 → 316, `1/5` 219 → 243.
+        // 853/1,024 → **697/1,044** with item 64 (`is_flat`): the orders
+        // half fell by 156 and the paths half rose by 20, and again the
+        // first-divergence list is what says which way the run moved —
+        // **every unit held or improved, and one left the list**. `0/4`
+        // now tracks the original's position for the whole run, `0/3`
+        // 326 → 331, `1/3` 345 → 411, `1/4` 316 → 318 and `1/6` 208 →
+        // 253; `0/5`, `1/5`, `1/7` and `1/8` held. The twenty extra path
+        // frames are `1/6`'s own: it walks for another forty-five frames
+        // instead of standing still re-making the same order, and a stack
+        // it carries is a stack that can disagree.
         assert!(
-            orders - farmer_orders <= 853 && paths - farmer_paths <= 1_024,
+            orders - farmer_orders <= 697 && paths - farmer_paths <= 1_044,
             "disagreements grew: orders {orders} ({farmer_orders} farmers'), paths {paths} ({farmer_paths} farmers')"
         );
         // Printed so a re-base reads the numbers off `--nocapture`.

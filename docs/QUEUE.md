@@ -13,34 +13,29 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-28, after item 63 (Opus).*
+*2026-08-28, after item 64 (Opus).*
 
-**The headline is ticks 207, orders 206** — up from 200/200. Player 0
-parts at 326 (from 213), player 1 at 208 (from 201). run14's traced word
-runs to **232** (from 201) and **260 of 284** frames match draw for draw
-(from 251).
+**The headline is ticks 209, orders 208** — up from 207/206. Player 0
+holds at 326, player 1 moves 208 → 210. run14's traced word is unmoved
+at 232 and 260 of 284 frames still match draw for draw.
 
-**Item 63 was a call site nobody had implemented.** `Unit::do_move`'s
-waypoint take ends with a `detect_unit_collision` at the waypoint, once
-per leg, and a **final** waypoint under a `GATHER`/`ATTACK`/`BUILD_AT`
-action that somebody stands on kills the move where the unit is.
-`docs/ORDERS.md` §4.4 has had it written out since 08-21; nothing built it.
+**The item was a stated seam, and the answer was already in `docs/`.**
+`resolve_unit_collision`'s step 2 asks the gather target's type `+0x94`;
+that is `BuildTypeData::is_flat`, named in `docs/CITIES.md` §1.5 and read
+correctly by `add_gather_order` one function away. `collide.rs` read it
+as `true`, so a woodcutter bumped on its own camp's footprint killed its
+walk and re-made it every other frame for ever.
 
-**The booking was wrong about the case.** `1/4` does *not* re-pick the
-cell it stands on: frame 200's `MOVEORDER` says `(40824, 17592)`, cell
-`(0, 3)`, and the blocker is `1/2`, the AI's **woodcutter**, parked inside
-the farm's footprint. `orders_x/y` misled it — `update_action` writes the
-unit's own position there when there is no move. Read the order block.
-
-**The whole farm re-target schedule is now the original's** — 101, 199,
-201, 211, 217, 218, 220, 241, over all 284 traced frames, asserted entire
-rather than as a prefix.
+**The collision block now agrees entire**: 0 disagreements in 48,790
+field-frames, from 245 in 42,840 — and 243 of those were the sticky
+`collide_guy` nobody could explain away. The pin is emptiness, not a
+ceiling.
 
 **Owed:** 40. **Needs the user:** nothing.
 
-**Opener (Opus):** `take item 64 from @docs/QUEUE.md — the AI woodcutter
-1/6 collides on frame 206 and repaths onto a seven-entry stack; ours has
-no path at all.`
+**Opener (Opus):** `take item 66 from @docs/QUEUE.md — the AI's new
+citizen 1/7 is sent to the cell 1/6 is standing on; find_nearby_spot
+does not filter by other units' positions or their ordered ones.`
 
 ## The queue
 
@@ -48,12 +43,15 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-64. **`1/6`'s collision at 206, and the seven-entry stack.** The first
-    divergence (player 1 @ 208). On run10's frame 207 the original carries
-    a `MOVE_TO` over its `GATHER` with a **seven**-entry path stack,
-    `collide 1`, `collide_frame 206`, `coll (40680, 17713)`; ours has the
-    `GATHER` alone and no path. `resolve_unit_collision`'s step 6
-    (`docs/COLLISION.md` §6); run10's frames 203–212 for `1/6`.
+66. **`find_nearby_spot` walks onto the unit already standing there.**
+    The first divergence (player 1 @ 210). `1/7` is trained on 206 and
+    sent to its camp: ours picks `(40680, 17688)` — the cell `1/6` is
+    standing on — the original `(40680, 18024)`, seven cells further
+    south. `docs/ORDERS.md` §10 states the seam: the ring-and-bearing
+    sweep's collision half, "other units' positions **and ordered
+    positions**", is unmodelled, so the first walkable candidate wins.
+    Read `UnitType::find_nearby_spot`'s filter; run10's frames 206–212
+    for `1/7`, whose `MOVEORDER` names both destinations.
 
 65. **The human farmers' re-target, a frame late and a cell out.** Player
     0's first divergence (326): `0/3` and `0/5` re-pick on the original's

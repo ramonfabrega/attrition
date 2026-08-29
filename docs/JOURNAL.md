@@ -5460,3 +5460,115 @@ new specification went in and more than its weight of narrative came out.
 which has owned the mechanic since item 46; §6.5's account of the
 transpose's hundred invisible frames is this journal's. The pin came down
 to 191,141. `docs/COLLISION.md` gained §5.1 and is well under its ceiling.
+
+## 2026-08-28 — item 64: `is_flat`, the fence on step 2 (ticks 207 → 209, the collision block to zero, Opus 5)
+
+`Unit::resolve_unit_collision`'s step 2 abandons a walk outright when the
+unit is standing inside the footprint of the building its `GATHER` action
+targets. `docs/COLLISION.md` §6 had the shape of it and one gap: the step
+also asks the target's **type** a virtual, `+0x94`, and this crate read it
+as `true` and said so in §9 as a seam.
+
+`+0x94` is `BuildTypeData::is_flat` — `build_flags & 0x10000000` — and
+`docs/CITIES.md` §1.5 has named it that since the type table was read. So the
+answer was in the repository the whole time, one document over from the one
+that needed it.
+
+`FLAT` is not a letter in any shipped `BUILD_FLAGS` string: the loader
+derives it for the Farm, the Oil Well and the Oil Platform lineages and for
+nothing else (`crate::build::init_final_flags`). So step 2 is **the
+farmer's step**. A citizen bumped while standing on the field it works
+gives up the walk where it stands and lets `do_farm` pick again next frame.
+A citizen bumped while standing on a woodcutter's camp — a footprint it is
+very likely to be standing on, because a camp is placed among its trees —
+is *not* meant to take that branch at all.
+
+### What it cost
+
+run10's `1/6` is the AI's woodcutter. It stands at `(40680, 17688)`, inside
+camp `2001`'s footprint, and on frame 206 `do_gather`'s clock runs out and
+queues a `MOVE_TO` to `(40680, 18168)`. The first step south, to
+`(40680, 17713)`, walks into `1/1` standing three cells below. The original
+falls through to step 6: `collide 1`, `collide_frame 206`, `collide_o 1`,
+`collide_who 1`, `collide_guy 0`, `coll_x/coll_y` the refused point, the
+centre snap a no-op because the unit is already on its cell centre, and
+`find_upath` puts a **seven-entry stack** on it — the goal plus six `flags
+2` waypoints that go west, south and back east around the blocker.
+
+This simulation killed the order instead. Then `do_gather` queued it again
+on 208, killed it again, queued it on 210 — every other frame to the end of
+the capture, a unit standing still re-making the same order for 1,500
+frames.
+
+### The measurement that says it is right
+
+The dumped collision block — `collide`, `collide_frame`, `collide_o`,
+`collide_who`, `collide_guy`, `safe` on every unit-frame whose position
+agrees — went from **245 disagreements in 42,840 field-frames to 0 in
+48,790**. 243 of the 245 were one sticky byte: `collide_guy` is written by
+a hard collision and never cleared, so a single collision this simulation
+had and the original did not left a unit reading 0 against −1 for every
+remaining frame of the run. That byte was the residue's shape for a week,
+and it was never `collide_guy`'s fault — it was the tail of one wrong
+predicate. The pin is emptiness now, not a ceiling: one field on one
+unit-frame fails it.
+
+### The scores
+
+| | before | after |
+|---|---|---|
+| run10 `ticks` | 207 | **209** |
+| run10 `orders` | 206 | **208** |
+| player 0's first divergence | 326 | 326 |
+| player 1's first divergence | 208 | **210** |
+| `1/6`'s own first divergence | 208 | **253** |
+| collision block, disagreements | 245 / 42,840 | **0 / 48,790** |
+| angle block, rows compared | 17,102 | **19,464** |
+| run6 orders / paths, non-farmer | 853 / 1,024 | **697 / 1,044** |
+| run14, first frame whose draw **count** differs | 232 | 232 |
+| run14, frames matching draw for draw | 260 / 284 | 260 / 284 |
+
+run6 is run10's game, and every one of its units held or improved: `0/4`
+left the divergence list altogether — it now tracks the original's position
+for the whole run — `0/3` 326 → 331, `1/3` 345 → 411, `1/4` 316 → 318,
+`1/6` 208 → 253, and `0/5`, `1/0`, `1/5`, `1/7`, `1/8` unmoved. The twenty
+extra path-frames are `1/6`'s own: it walks for another forty-five frames
+instead of standing still, and a unit carrying a stack is a unit whose
+stack can disagree.
+
+The traced word did not move, which is the honest half of the entry: `1/6`
+takes no draw on 206 that it was not taking before, so run14's sites are
+unchanged to the frame. What did change past the word's divergence is one
+farm re-target of our own at frame **243**, which the original does not
+make inside the traced 284. That is downstream of a word that has been ours
+since 232, so the trace test's farm-schedule assertion was split rather
+than relaxed: everything before `first_count` must be the original's
+exactly, and the one extra row is named and pinned where it is.
+
+### What parts them now
+
+Player 1 at 210 is `1/7`, the citizen trained on frame 206 and sent to the
+same camp. Both sides send it with a `MOVE_TO`; the destinations differ —
+ours `(40680, 17688)`, which is **the cell `1/6` is standing on**, against
+the original's `(40680, 18024)`, seven cells further south. That is
+`find_nearby_spot`'s unmodelled half (`docs/ORDERS.md` §10): the search
+filters candidates by other units' positions *and their ordered
+positions*, and this crate takes the first candidate that is on the map
+and walkable. Item 66.
+
+Player 0 at 326 is unmoved: `0/3` and `0/5`, a farm re-target the original
+makes a frame before this simulation makes its own, onto a different cell
+(item 65).
+
+### The lesson, which is the audit README's
+
+The identification cost one `grep`. `docs/CITIES.md` had `+0x94 is_flat` in
+its vtable table, `crates/sim/src/build.rs` had the derived bit with the
+listing quoted in its doc comment, and `Sim::add_gather_order` was already
+reading `is_flat` for the *same* virtual at the *same* call shape — one
+function away in the same decompiled file. What was missing was anybody
+asking the seam in `collide.rs` §9 whether it was still a seam. **A stated
+assumption is a debt, and the ledger of them is the document's "what is not
+established" section**; this one had been sitting on it since item 46 with
+the answer already written down elsewhere. Before booking a reading, grep
+the documents for the slot.

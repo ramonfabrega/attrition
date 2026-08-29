@@ -14,9 +14,11 @@ export (`~/ghidra-projects/decomp/`) by the main thread on Opus:
 block. The `move_x`/`move_y` spiral was dumped from the PE (§2.1).
 
 Confidence: **high** on the two indices, the probe, the corner rule and the
-recovery's shape — one whole run of the mechanic is confirmed field for
-field against run10's own dump (§8). The exemption ladder (§4.3) is
-reading-only: no run has entered five of its six arms.
+recovery's shape — two whole runs of the mechanic are confirmed field for
+field against run10's own dump, and since item 64 the dumped collision
+block agrees on **every** compared unit-frame of the capture (§8). The
+exemption ladder (§4.3) is reading-only: no run has entered five of its
+six arms.
 
 This document is the mechanic `docs/MOVEMENT.md`'s open questions called
 "Collision and pushing. … Unread." That entry is now struck and points here.
@@ -250,10 +252,25 @@ In order, with the first that fires winning:
 
 1. **Attack it.** If the type has `+0x2b4 & 0x2000` and the other unit is a
    valid target: `set_attack`, `fire_ammo`, done.
-2. **I am standing in my own gather target.** Only when the other unit is
-   the same player's. If the current action is a `GATHER` whose target is an
-   active build whose type answers vfunc `+0x94`, and that building's
-   footprint `covers_tile` my tile → `kill_current_order`.
+2. **I am standing in my own *flat* gather target.** Only when the other
+   unit is the same player's. If the current action is a `GATHER` whose
+   target is an active build whose type answers vfunc `+0x94` —
+   `BuildTypeData::is_flat`, `build_flags & 0x10000000` (`docs/CITIES.md`
+   §1.5, and `mov eax,[ecx+0x2c0]; and eax,0x10000000` in the listing) —
+   and that building's footprint `covers_tile` my tile →
+   `kill_current_order`.
+
+   `FLAT` is not a `BUILD_FLAGS` letter: the loader derives it for the
+   Farm, the Oil Well and the Oil Platform lineages and nothing else
+   (`crate::build::init_final_flags`), so this step is **the farmer's**.
+   A citizen bumped while standing on the field it works abandons the
+   walk where it stands and re-decides; one bumped on the footprint of a
+   woodcutter's camp it is merely gathering *at* — a footprint it may
+   well be standing on, because a camp is placed among its trees — falls
+   through to step 6 and repaths. `+0x94` is the same virtual
+   `Unit::add_gather_order` asks about the target when it sets
+   `goto_build` and `dist_mod` (`docs/ORDERS.md` §6.4), which is where
+   this crate had already read it correctly.
 3. **The enemy ladder** (other player's unit, my order is a target order on
    *it*, or it is in range, or it is attacking something I can reach):
    `kill_current_order`, or `repath` + `add_attack_order(QUEUE_FIRST)`, or
@@ -313,8 +330,9 @@ the object chain over units; the probe with its parity filter and disc
 order; the `safe`, `DETOUR`, same-cell and `coll_size 0` gates; the corner
 rule; the same-player-attack exemption; `move_step`'s block, **including its
 `set_anim(CHAR_DEFAULT)`** (§5); **`do_move`'s waypoint test with both of
-its arms** (§5.1, item 63); and `resolve`'s steps 2, 4, 5 and 6
-including the throttle, the stack unwind, the centre snap and `find_upath`.
+its arms** (§5.1, item 63); and `resolve`'s steps 2 — **with its `is_flat`
+fence** (§6, item 64) — 4, 5 and 6, the last including the throttle, the
+stack unwind, the centre snap and `find_upath`.
 
 `Animal::do_idle`'s own `detect_unit_collision` came with the last of those
 (item 49): a herd animal's wander destination is tested `quick 1` after
@@ -362,13 +380,16 @@ buildings join the chain, which is why §8 does not claim it.
   `find_upath` adds the **five `flags 2` waypoints the dump prints, to the
   unit**. The unit then walks the original's frames to 208, where it used
   to part at 123. This is the run that moved the headline from 122 to 170.
-- **The collision block over the whole capture**: `collide`,
-  `collide_frame`, `collide_o`, `collide_who`, `collide_guy` and `safe` on
-  every agreeing unit-frame of run10 — **40,600 field-frames, 285
-  disagreements, none before frame 201**, and 277 of those are one sticky
-  byte (`collide_guy` is never cleared, so a single extra collision on
-  `1/3` reads 0 against −1 for the rest of the run). Pinned in
-  `run10_s_opening_…`.
+- **The collision block over the whole capture, and it agrees entire**:
+  `collide`, `collide_frame`, `collide_o`, `collide_who`, `collide_guy`
+  and `safe` on every agreeing unit-frame of run10 — **48,790
+  field-frames, zero disagreements** since item 64. It used to be 285 of
+  40,600, of which 277 were one sticky byte: `collide_guy` is written by
+  a hard collision and never cleared, so a single collision this
+  simulation had and the original did not left `1/3` reading 0 against −1
+  for the rest of the run. The fence in §6 step 2 is what stopped that
+  collision happening, and with it the whole record. Pinned as emptiness
+  in `run10_s_opening_…`, so one field on one unit-frame fails it.
 - **`coll_x`/`coll_y`** on every dumped move order, as a scoring order
   mismatch.
 - **§5's `set_anim(CHAR_DEFAULT)`, against run14's draw-site trace.** The
@@ -387,6 +408,18 @@ buildings join the chain, which is why §8 does not claim it.
   `SITE_FARM_CELL` draws on 199 and 201 — the whole re-target schedule of
   the capture, to the draw. It took the traced word from 201 to **232**
   (item 63, 2026-08-28).
+- **§6 step 2's fence, and step 6 behind it.** run10's `1/6` is a
+  woodcutter standing inside its own camp's footprint at `(40680, 17688)`.
+  On frame 206 it takes a fresh `MOVE_TO` to `(40680, 18168)`, steps south
+  to `(40680, 17713)` and is refused by `1/1`. The camp is not `FLAT`, so
+  the original falls through to step 6: `collide 1`, `collide_frame 206`,
+  `collide_o 1`, `collide_who 1`, `collide_guy 0`, `coll_x 40680`,
+  `coll_y 17713`, the snap a no-op because it already stands on its cell
+  centre, and `find_upath` puts the dump's **seven-entry stack** on it,
+  waypoint for waypoint. This simulation read `+0x94` as true, killed the
+  order, re-made it on the next frame and did that for ever; with the
+  fence it builds the same stack and walks the original's frames to 253.
+  Headline 207 → 209 (item 64, 2026-08-28).
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §4's naming and §6's snap-and-replan end to end, in
@@ -416,8 +449,10 @@ buildings join the chain, which is why §8 does not claim it.
 
 - **`ObjectType +0x2b4 & 0x2000`** — the "attack what you bump into" bit.
   Read as a flag, not traced to its XML column.
-- **`+0x10c`, `+0x94`, `+0x74`, `+0xf4`** — the virtuals §4.1 step 3 and §6
-  steps 2 and 3 call. Named by slot, not by identity.
+- **`+0x10c`, `+0x74`, `+0xf4`** — the virtuals §4.1 step 3 and §6 step 3
+  call. Named by slot, not by identity. ~~`+0x94`~~ is settled: it is
+  `BuildTypeData::is_flat` (§6 step 2, item 64), and reading it as `true`
+  cost the score for a week.
 - **The action indices `0xc` and `0xf`** in §4.3. `0xf` sits next to
   `TRADE_ROUTE` in the same arm, so one of the two is the caravan's.
 - **`WData::block == −1`.** Where the sentinel is written is unread; this

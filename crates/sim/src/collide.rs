@@ -531,10 +531,15 @@ impl Sim {
         let who = self.units[u].owner;
         let other = self.collider_of(u);
 
-        // Step 2: standing inside my own gather target's footprint.
+        // Step 2: standing inside my own **flat** gather target's footprint.
         //
-        // SEAM: the type virtual `+0x94` the original also asks about the
-        // target is read as true (`docs/COLLISION.md` §9).
+        // The type virtual the original asks the target about is `+0x94`,
+        // `BuildTypeData::is_flat` — `build_flags & 0x10000000`, named in
+        // `docs/CITIES.md` §5 and read here since item 64. It is what
+        // fences the kill to a farm: a citizen bumped while standing on
+        // the field it works abandons the walk and re-picks a cell, while
+        // one bumped on its way to a woodcutter's camp — whose footprint
+        // it may also be standing on — falls through to the repath.
         if other.is_some_and(|o| self.units[o].owner == who)
             && let Some(a) = self.action_of(u)
             && let Body::Gather(g) = self.units[u].orders[a].body
@@ -542,6 +547,7 @@ impl Sim {
                 .buildings
                 .get(g.building)
                 .is_some_and(|b| b.alive && b.active)
+            && self.is_flat(g.building)
             && self.covers_tile(g.building, self.units[u].pos.tile())
         {
             self.kill_current_order(u);
@@ -909,6 +915,111 @@ mod tests {
         // And it *drew*: the word moves between this mark and the next.
         let after = marks.get(at + 1).map_or(sim.rng.seed, |(_, w)| *w);
         assert_ne!(marks[at].1, after, "the blocked stand spends a draw");
+    }
+
+    /// §6 step 2's fence, and what it is: the target type's `+0x94` is
+    /// `BuildTypeData::is_flat` — `build_flags & 0x10000000`, the derived
+    /// bit only the Farm, the Oil Well and the Oil Platform carry
+    /// (`crate::build::init_final_flags`). So the step that abandons a walk
+    /// because the unit is standing inside its own gather target's
+    /// footprint fires for a **farmer on its field** and for nothing else.
+    /// A woodcutter bumped while standing on its camp's footprint — which
+    /// is run10's `1/6` on frame 206 — falls through to step 6 instead, and
+    /// this crate read the virtual as `true` and killed its order for ever
+    /// until item 64.
+    #[test]
+    fn only_a_flat_gather_target_abandons_the_walk_where_the_unit_stands() {
+        for flat in [true, false] {
+            // Near the west edge of its cell, so one step west lands in
+            // the next cell along — the same-cell gate (§4.1 step 6) is
+            // what a step that stays put would fall out of.
+            let a = Pos::new(29 * 0x30 + 4, 30 * 0x30 + 0x14);
+            let b = Pos::new(27 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+            let (mut sim, x, y) = pair(a, b);
+            let bt = sim.add_build_type(crate::build::BuildType {
+                ident: if flat {
+                    crate::build::Ident::Farm
+                } else {
+                    crate::build::Ident::Woodcutter
+                },
+                x_size: 5,
+                y_size: 5,
+                flags: if flat { crate::build::flags::FLAT } else { 0 },
+                ..crate::build::BuildType::default()
+            });
+            let camp = sim.add_building(0, a, 0);
+            sim.buildings[camp].ty = Some(bt);
+            assert!(
+                sim.covers_tile(camp, sim.units[x].pos.tile()),
+                "the walker stands inside the footprint either way"
+            );
+            assert_eq!(sim.is_flat(camp), flat, "and only one of them is flat");
+
+            // A transit move under the gather, as `do_gather` queues one:
+            // the `ACTION` flag belongs to the order beneath, which is the
+            // one `action_of` has to find for step 2 to look at all.
+            let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+            sim.add_move_order(
+                x,
+                goal,
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::New,
+                false,
+            );
+            sim.units[x].orders.push_back(Order {
+                flags: crate::orders::flag::ACTION,
+                body: Body::Gather(crate::orders::GatherOrder {
+                    building: camp,
+                    tile: None,
+                    wait: 0,
+                    goto_build: true,
+                    dist_mod: 0,
+                    been_there: false,
+                }),
+            });
+            sim.units[x].path.push(PathData {
+                to: goal,
+                tolerance: 0,
+                flags: path_flag::FINAL,
+            });
+
+            // The step that is refused: one speed west, into the block of
+            // the unit standing still.
+            let proposed = Pos::new(sim.units[x].pos.x - 25, sim.units[x].pos.y);
+            assert_eq!(
+                sim.detect_unit_collision(x, proposed),
+                Some(y),
+                "the unit in front is named"
+            );
+            sim.resolve_unit_collision(x);
+
+            let moving = sim
+                .current_order(x)
+                .is_some_and(|o| matches!(o.body, Body::Move(_)));
+            if flat {
+                assert!(
+                    !moving,
+                    "the farmer on its own field abandons the walk: {:?}",
+                    sim.units[x].orders
+                );
+            } else {
+                assert!(
+                    moving,
+                    "the woodcutter on its camp keeps the walk: {:?}",
+                    sim.units[x].orders
+                );
+                assert_eq!(
+                    sim.units[x].pos,
+                    ucell_centre(ucell(a)),
+                    "and takes step 6's snap onto its own cell centre"
+                );
+                assert!(
+                    sim.units[x].path.len() > 1,
+                    "and step 6's plan on the 48-grid: {:?}",
+                    sim.units[x].path
+                );
+            }
+        }
     }
 
     /// §5.1's second arm: a **parked** unit on the waypoint widens the
