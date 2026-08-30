@@ -275,13 +275,12 @@ const AT_TILE: i32 = 0x140;
 const OILWELL_OFFSET: i32 = 0x120;
 /// Adjacency: `attack_dist < 0x60`.
 const ADJACENT: i32 = 0x60;
-/// The farm's tile extent, `GameAccess::rnd`'s modulus on a re-target
-/// (§6.5). The decompiler lost the register; the first reading guessed 3
-/// from the geometry, and run13 measured **4**: all six farmers' twelve
-/// draws on sim-frame 101 land on the dump's new tiles under `% 4` and
-/// under no other modulus (`docs/SYNC.md` §4) — a 4 × 4 farm has sixteen
-/// cells, and the farmer may be sent to any of them.
-const FARM_SPAN: i32 = 4;
+/// The herder's phase — `Unit::do_gather@005ef2a0:5efd8c`. A citizen
+/// gathering at a **pasture** re-picks its spot on the frames where
+/// `(o · 7 + frame + who) % 256` is zero, and does nothing else at all
+/// (§6.5). Both numbers are the listing's.
+const PASTURE_PHASE: i64 = 0x100;
+const PASTURE_STRIDE: i64 = 7;
 
 /// `unit_masks & 0x78000000` — the four carrying-walk bits
 /// ([`crate::Unit::carry`]), named as `Guy::set_anim`'s walk arm tests
@@ -3129,6 +3128,7 @@ impl Sim {
     /// shows — and `'$'` the reap):
     ///
     /// ```text
+    /// pasture: set_anim(SOW); off phase → return; else → inner tile
     /// 0: not reaping → as 1;                    else → new tile
     /// 1: set_anim(SOW); Farms::grow
     /// 2: not sowing  → set_anim(REAP); snip;    else → new tile
@@ -3138,17 +3138,56 @@ impl Sim {
     /// The clock is `farms.rs`'s: the farmer's `grow` and `inc_time`'s add
     /// each frame ripen the cell on frame 100's `grow` — the farmer is still
     /// sowing, so the next frame is the "new tile": two draws
-    /// (`GameAccess::rnd(4)` for x, then y) and a move to that tile's
-    /// centre, in front of the gather order. That is the original's
-    /// re-target on the log's frame 102 — sim-frame 101, where run13 shows
-    /// all six farmers' `orders_x/y` change and the walk start on 102
-    /// (`docs/SYNC.md` §4).
-    fn do_farm(&mut self, u: usize, b: usize, _g: GatherOrder, _frame: i64) {
+    /// (`GameAccess::rnd` on the type's `x_size`, then its `y_size`) and a
+    /// move to that tile's centre, in front of the gather order. That is
+    /// the original's re-target on the log's frame 102 — sim-frame 101,
+    /// where run13 shows all six farmers' `orders_x/y` change and the walk
+    /// start on 102 (`docs/SYNC.md` §4). A **pasture** has no such clock
+    /// and no switch: see the arm below.
+    fn do_farm(&mut self, u: usize, b: usize, _g: GatherOrder, frame: i64) {
         let Some(ty) = self.buildings[b].ty else {
             return;
         };
         let corner = self.tile_corner(ty, self.buildings[b].pos);
+        // **The re-target's modulus is the type's own footprint**, and the
+        // decompiler lost it because it travels in `ecx`: `005efff9` loads
+        // the crop's from `ObjectType::x_size` (`+0x234`) and `005f0004`
+        // its `y_size` (`+0x238`); the pasture's two, at `005efdd8` and
+        // `005efde5`, take half of each. Both are 4 for the farm, which is
+        // what run13 measured before the register was read — all six
+        // farmers' twelve draws on sim-frame 101 land on the dump's new
+        // tiles under `% 4` and under no other modulus (`docs/SYNC.md` §4).
         let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        // **The pasture arm, `005efd77`.** `FarmsData::get_farm_type`
+        // answers `farm_type & 1`, and a `1` takes the whole of the
+        // function before the cell arithmetic below has run. A herder sows
+        // nothing: it shows the sow animation, and on its own 256-frame
+        // phase it walks to a tile of the **inner** 2 × 2 —
+        // `corner + 1 + rnd(size / 2)` an axis, against the crop's
+        // `corner + rnd(size)` over all sixteen. `Farms::inc_time` skips a
+        // pasture, so no cell under it ever ripens on the clock, and the
+        // switch below would instead send the herder walking on the
+        // farmer's own 201st add — a hundred frames late, and on a frame
+        // the original spends nothing (`docs/SYNC.md` §3.15).
+        if self.buildings[b].farm.farm_type & farms::ANIMAL_FARM != 0 {
+            self.units[u].farm_anim = FarmAnim::Sow;
+            self.set_anim(u, crate::anim::SOW, false, true);
+            let phase = i64::from(self.units[u].index) * PASTURE_STRIDE
+                + frame
+                + i64::from(self.units[u].owner);
+            if phase % PASTURE_PHASE != 0 {
+                return;
+            }
+            self.mark(SITE_FARM_CELL);
+            let rx = self.rnd(xs / 2);
+            let ry = self.rnd(ys / 2);
+            let dest = Pos::new(
+                (corner.x + 1 + rx) * TILE + HALF_TILE,
+                (corner.y + 1 + ry) * TILE + HALF_TILE,
+            );
+            self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
+            return;
+        }
         let here = self.units[u].pos.tile();
         let (mut dx, mut dy) = (here.x - corner.x, here.y - corner.y);
         if dx < 0 || dy < 0 || dx >= xs || dy >= ys {
@@ -3189,8 +3228,8 @@ impl Sim {
             _ => {}
         }
         self.mark(SITE_FARM_CELL);
-        let rx = self.rng.roll() % FARM_SPAN;
-        let ry = self.rng.roll() % FARM_SPAN;
+        let rx = self.rnd(xs);
+        let ry = self.rnd(ys);
         let dest = Pos::new(
             (corner.x + rx) * TILE + HALF_TILE,
             (corner.y + ry) * TILE + HALF_TILE,

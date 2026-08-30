@@ -2016,6 +2016,18 @@ impl Sim {
         }
     }
 
+    /// `GameAccess::rnd(n)@0043cca0` — `Random::get(game_random, 0, 0xffff)
+    /// % n`, and **zero without a draw** when `n <= 1`. The early return is
+    /// the whole reason this is a function rather than a `%`: a caller that
+    /// passes a one-wide span spends nothing, and a frame's draw count is
+    /// what the diff compares (`docs/ORDERS.md` §6.5).
+    pub(crate) fn rnd(&mut self, n: i32) -> i32 {
+        if n <= 1 {
+            return 0;
+        }
+        self.rng.roll() % n
+    }
+
     /// Advances one frame.
     ///
     /// The cadence is the part of this mechanic that would be easiest to get

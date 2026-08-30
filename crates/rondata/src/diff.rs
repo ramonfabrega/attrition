@@ -7115,6 +7115,24 @@ mod tests {
     ///               window holds at 64/64. `docs/SYNC.md` §3.14, and
     ///               [`a_blocked_animal_drops_its_walk_where_it_stands`]
     ///               is the rule against the record.
+    ///   2026-08-30  word **201 -> 219**, **the pasture's herder**:
+    ///               `Unit::do_gather@005ef2a0:5efd77` takes the whole of
+    ///               the function when the farm's `farm_type & 1` is set —
+    ///               a herder shows the sow animation and draws only on
+    ///               the frames where `(o · 7 + frame + who) % 256` is
+    ///               zero, then walks to one of the farm's inner four
+    ///               tiles. `docs/ORDERS.md` §6.5 had the arm from its
+    ///               first writing and `do_farm` never did, so the AI's
+    ///               `1/3` ran the crop switch instead; a pasture is the
+    ///               one farm `Farms::inc_time` skips, so its cell reached
+    ///               `RIPE_ADDS` on the herder's own adds alone — the two
+    ///               hundredth frame rather than the hundredth — and it
+    ///               re-picked a tile on 201 where the original spends its
+    ///               pair on **234**, its first phase frame. **Every one
+    ///               of the 219 frames is now draw for draw**, not only
+    ///               the first 64. `docs/SYNC.md` §3.15, and
+    ///               [`a_pasture_herder_walks_only_on_its_own_256_frame_phase`]
+    ///               is the rule against the record.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7176,6 +7194,15 @@ mod tests {
         // window**: of the first 64 frames, how many spend the original's
         // number of draws, and how many draw for draw.
         const WINDOW: i64 = 64;
+        // And the frame the *sequence* parts on, which since the herder
+        // (§3.15) is the same frame: every draw of every frame before it
+        // is the original's, in its order, not merely its count.
+        let first_part = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| **ours != tr.labels(*f))
+            .map(|(f, _)| *f)
+            .unwrap_or(last);
         let words = built
             .frame_sites
             .iter()
@@ -7187,8 +7214,9 @@ mod tests {
             .filter(|(f, ours)| *f < WINDOW && **ours == tr.labels(*f))
             .count();
         eprintln!(
-            "run39: word parts at {first_count}; of the first {WINDOW} frames {words} \
-             spend the original's number of draws and {matched} draw for draw"
+            "run39: word parts at {first_count}, sequence at {first_part}; of the first \
+             {WINDOW} frames {words} spend the original's number of draws and {matched} \
+             draw for draw"
         );
         let mut shown = 0;
         for (f, ours) in built.frame_sites.iter().take(WINDOW as usize) {
@@ -7212,10 +7240,186 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 201 && words >= 64 && matched >= 64,
-            "the second map's word fell: parts at {first_count}, {words} of the first \
-             {WINDOW} frames on the count, {matched} draw for draw — the floor is \
-             201, 64 and 64"
+            first_count >= 219 && first_part >= 219 && words >= 64 && matched >= 64,
+            "the second map's word fell: parts at {first_count}, its sequence at \
+             {first_part}, {words} of the first {WINDOW} frames on the count, \
+             {matched} draw for draw — the floor is 219, 219, 64 and 64"
+        );
+    }
+
+    /// **A pasture herder walks only on its own 256-frame phase**, and it
+    /// is the rule of `docs/SYNC.md` §3.15 against run39's own record.
+    ///
+    /// `Unit::do_gather@005ef2a0:5efd77` takes the whole of the function
+    /// when `FarmsData::get_farm_type` answers 1: the citizen shows the
+    /// sow animation, and unless `(o · 7 + frame + who) % 256` is zero it
+    /// returns having drawn nothing. A pasture is the one farm
+    /// `Farms::inc_time` skips, so no cell under it ripens on the clock —
+    /// which is why the crop switch below is not merely the wrong branch
+    /// but a branch whose *trigger* never comes on time. This crate ran
+    /// the herder through it, and the farmer's own `Farms::grow` alone
+    /// carried its cell to `RIPE_ADDS` on the two hundredth frame instead
+    /// of the hundredth: two draws on East Indies' frame 201, where the
+    /// original spends none.
+    ///
+    /// Three things are asserted, and each of them can fail:
+    ///
+    /// - **The record.** Over run39's 1,850 frames the herder's dumped
+    ///   position changes on **42** of them, in **four** runs, and every
+    ///   run's first frame is `phase + 2` — the order is issued on the
+    ///   phase frame and the first step lands the frame after. Three of
+    ///   the seven phase frames move it nowhere, because the inner 2 × 2
+    ///   holds four tiles and the roll may name the one it stands on.
+    /// - **The trace.** All **seven** phase frames of the capture spend
+    ///   the `GameAccess::rnd+0x20 < Unit::do_job+0x67` pair, and the pair
+    ///   is two draws rather than one because `x_size / 2` is 2 and
+    ///   `GameAccess::rnd` only skips its draw at 1 or less.
+    /// - **The port.** This crate's herder walks the original's first run
+    ///   frame for frame — sim-frames 235 to 242 — and takes **no** step
+    ///   on any frame outside a phase's window, over the whole capture.
+    ///   Under the crop switch it walks from 202 and the first assertion
+    ///   fails at once.
+    ///
+    /// Great Lakes cannot check this: run33's AI built seven farms and no
+    /// pasture, which is why the residue only ever showed on the second
+    /// map.
+    #[test]
+    fn a_pasture_herder_walks_only_on_its_own_256_frame_phase() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        // The pasture, and the one citizen registered at it. Named rather
+        // than searched for, so a capture whose setup changes says so.
+        let pasture = (0..built.sim.buildings.len())
+            .find(|&b| built.sim.buildings[b].farm.farm_type & sim::farms::ANIMAL_FARM != 0)
+            .expect("run39's AI built one pasture");
+        let herder = *built.sim.buildings[pasture]
+            .gatherers
+            .first()
+            .expect("and put a citizen on it");
+        let (who, o) = (
+            i64::from(built.sim.units[herder].owner),
+            i64::from(built.sim.units[herder].index),
+        );
+        assert_eq!(
+            (who, o, built.sim.buildings[pasture].index),
+            (1, 3, 2002),
+            "run39's pasture is the AI's `1/2002` and its herder `1/3`"
+        );
+        // `(o · 7 + frame + who) % 256 == 0`, in sim-frames.
+        let on_phase = |f: i64| (o * 7 + f + who) % 0x100 == 0;
+
+        // **The record.** `FRAME n` is the state at the end of sim-frame
+        // `n − 1`, so a position that differs between `FRAME n − 1` and
+        // `FRAME n` is a step taken on sim-frame `n − 1`.
+        let states = log.frame_states();
+        let theirs: Vec<(i64, crate::gamelog::Pos)> = states
+            .iter()
+            .filter_map(|f| {
+                let u = f.units.iter().find(|u| u.who == who && u.o == o)?;
+                Some((f.n - 1, u.pos))
+            })
+            .collect();
+        assert_eq!(theirs.len(), 1851, "the herder is in every frame's dump");
+        let moved: Vec<i64> = theirs
+            .windows(2)
+            .filter(|w| w[0].1 != w[1].1)
+            .map(|w| w[1].0)
+            .collect();
+        assert_eq!(moved.len(), 42, "the herder's steps: {moved:?}");
+        let starts: Vec<i64> = moved
+            .iter()
+            .copied()
+            .filter(|f| !moved.contains(&(f - 1)))
+            .collect();
+        assert_eq!(
+            starts,
+            vec![235, 747, 1003, 1515],
+            "four walks, and each begins the frame after a phase frame"
+        );
+        for f in &starts {
+            assert!(
+                on_phase(f - 1),
+                "the walk that starts on {f} was ordered on {}, which is not a phase frame",
+                f - 1
+            );
+        }
+
+        // **The trace.** Every phase frame of the capture spends the pair.
+        let last = tr.frames.last().map_or(0, |(n, _)| *n);
+        let phases: Vec<i64> = (0..last).filter(|&f| on_phase(f)).collect();
+        assert_eq!(
+            phases,
+            vec![234, 490, 746, 1002, 1258, 1514, 1770],
+            "seven phase frames in 1,850"
+        );
+        for f in &phases {
+            let n = tr
+                .labels(*f)
+                .iter()
+                .filter(|l| *l == sim::orders::SITE_FARM_CELL)
+                .count();
+            assert!(
+                n >= 2,
+                "the original spends {n} `{}` draws on phase frame {f}, wanted the pair",
+                sim::orders::SITE_FARM_CELL
+            );
+        }
+
+        // **The port.** Our herder's own steps, over the whole capture.
+        let mut ours: Vec<(i64, sim::Pos)> = Vec::new();
+        for _ in 0..last {
+            let f = built.sim.frame;
+            built.tick();
+            ours.push((f, built.sim.units[herder].pos));
+        }
+        let ours_moved: Vec<i64> = ours
+            .windows(2)
+            .filter(|w| w[0].1 != w[1].1)
+            .map(|w| w[1].0)
+            .collect();
+        let ours_starts: Vec<i64> = ours_moved
+            .iter()
+            .copied()
+            .filter(|f| !ours_moved.contains(&(f - 1)))
+            .collect();
+        for f in &ours_starts {
+            assert!(
+                on_phase(f - 1),
+                "this crate's herder starts walking on {f}, off its phase: {ours_moved:?}"
+            );
+        }
+        // The first walk is the original's, frame for frame. Past the
+        // word's own parting at 219 the rolls are on a stream that is
+        // nobody's, so which of the later phases moves it is not a fact
+        // about this simulation — but *that* it only ever moves on one is.
+        let first_walk: Vec<i64> = moved.iter().copied().take_while(|&f| f < 300).collect();
+        assert_eq!(
+            ours_moved
+                .iter()
+                .copied()
+                .take_while(|&f| f < 300)
+                .collect::<Vec<_>>(),
+            first_walk,
+            "the herder's first walk is the original's"
         );
     }
 

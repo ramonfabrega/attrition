@@ -13,33 +13,33 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 95's successor (Opus).*
+*2026-08-30, after item 97 (Opus).*
 
-**The headline moved further in one item than it ever has.** East Indies:
-run39's word parts at **201**, up from 91, with its first 64 frames still
-**64/64** draw for draw. Great Lakes holds where it can be seen: run10
-ticks **572**, orders **776**, both players' first divergence 802 and
-573, and twelve of its thirteen units unchanged to the frame; run33's
-word at 780 and its sequence at 99. What fell is coverage, and all of it
-is `1/9` parting at 1320 rather than 1377: collision rows 93,398 →
-**91,210**, angle rows 35,942 → **35,188**, run33's weak totals 938/841 →
-**943/827** — draws identical, count *and* sequence, to frame **1128**.
-Tree green: 644 sim, 147 rondata.
+**East Indies' word is at 219, and for the first time the whole of it is
+draw for draw** — every draw of every frame before the parting, in its
+order, not a 64-frame window. run39's own score holds at 167/167 with
+player 0 at 217 and player 1 at 168. Great Lakes is untouched to the byte:
+run10 ticks **572**, orders **776**, both players' first divergence 802
+and 573, all thirteen units unchanged; run33's word at 780 and its
+sequence at 99, weak totals 943/827; collision rows 91,210, angle rows
+35,188. Tree green: 644 sim, 148 rondata.
 
-**It was a collision, not a wander.** The booked "`8/0`'s near branch" was
-never taken — both sides take the far arm — and what differed was `8/2`,
-blocked twenty frames earlier and walked on by this crate.
-`Unit::resolve_unit_collision`'s **first** statement is
-`SubObjectData::is_animal` (vftable offset 48, from the PDB's
-`LF_ONEMETHOD` list; the map folds both overrides onto stubs), and when
-it answers the body is the `QUEUE_NEW` clear — an animal takes none of
-`docs/COLLISION.md` §6's six steps. §6 step 0; `docs/SYNC.md` §3.14.
-Pinned against **16 of 16** dropped animal walks on both maps, made to
-fail two ways.
+**The residue was a branch the document had and the code did not.**
+`Unit::do_gather`'s farm block asks `FarmsData::get_farm_type` first, and
+a **pasture** takes the whole of the function: the herder shows the sow
+animation and draws only where `(o · 7 + frame + who) % 256` is zero, then
+walks to one of the farm's inner four tiles. `docs/ORDERS.md` §6.5 has had
+that arm since it was written; `do_farm` ran the AI's `1/3` through the
+crop switch, and because `Farms::inc_time` skips a pasture its cell
+ripened on the herder's own adds alone — frame 201 instead of the
+original's 234. `docs/SYNC.md` §3.15. Pinned against run39's own record:
+42 dumped steps in four runs, seven phase frames of seven in the trace,
+made to fail three ways.
 
-**Opener (Opus):** `take item 97 from @docs/QUEUE.md — East Indies' word
-now parts at 201 on a citizen's job draw; docs/SYNC.md §3.14 has how the
-last one was found.`
+**Opener (Opus):** `take item 60 from @docs/QUEUE.md — East Indies' word
+now parts at 219 on the road search, 129 nodes against 152 and the
+citizen's re-target on the wrong side of it; docs/SYNC.md §3.15 has how
+the last one was found.`
 
 ## The queue
 
@@ -47,22 +47,24 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-97. **East Indies' word at 201, and it is item 84 on both maps now.** Ours
-    spends 38 draws where the original spends 36, and the first difference
-    is at 0: ours opens `GameAccess::rnd+0x20 < Unit::do_job+0x67` — a
-    citizen on a job, item 84's own signature — where the original opens
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271`, the standing-turn residue
-    run33 shows on 99, 205 and 319. Take the two together; the second is
-    the one no capture has ever explained.
+60. **East Indies' word at 219, and it is the road search.** The original
+    spends that frame's citizen re-target *before* the frame's road
+    costs and this crate after it, and the two searches cost **129 nodes
+    against 152**. Great Lakes' own version of this is ROADS §7.1's
+    "the frame's second search, 1,460 against 1,870". Take the ordering
+    and the count together; the ordering is the cheaper half.
 
-69. **East Indies' order-list length at 168.** `1/4` holds two orders on
-    the original's 168 where this holds one; `1/5` at 186 and `1/3` at
-    202 the same. Now *behind* the word by 33 frames rather than ahead of
-    it, so it is real — but re-measure before booking: it was read off a
-    simulation four items ago.
+69. **East Indies' order-list length at 168.** `1/4` and the original
+    disagree on the order list at 168 and `1/5` at 186, and both are now
+    **ahead** of the word rather than behind it, so they are seen while
+    the two streams still agree. `1/3` at 202 was item 97 and is gone.
 
-84. **The word at 780, four frames past the city.** Eleven draws against
-    eight, the same `Unit::do_job+0x67` opening 97 has. Fold into it.
+84. **Great Lakes' word at 780, and a seventh farm.** Ours spends two
+    `Unit::do_job+0x67` draws the original does not — a crop re-target,
+    since run33's AI built no pasture — and from **781** on ours ticks
+    **seven** `Farms::inc_time` chances where the original ticks six, four
+    frames after a city is founded. The extra farm is the half to chase;
+    the re-target is probably downstream of it.
 
 87. **The widening ledger.** Items 74 and 83 were closed by comparing
     dumped fields nobody had compared. Make the backlog a number:
@@ -143,12 +145,11 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     frames item 95 had its position wrong — and those ten frames cost the
     word twenty-two. Widen to `ANIMALDATA`: 70,960 uncompared.
 
-The road residue, all in ROADS §7.1 and SYNC §6: (57) the terraform,
-`terraform_for_building@00875210` after `place_roads`, oracle run13's
-`FRAME 100` against run32's 104; (58) the height loader's mean in `f32`,
-three of run12's tiles; (60) the frame's second search, 1,460 nodes
-against 1,870; (62) the standing swap at frame 99, the first draw
-*sequence* difference, costing no word.
+The rest of the road residue, all in ROADS §7.1 and SYNC §6: (57) the
+terraform, `terraform_for_building@00875210` after `place_roads`, oracle
+run13's `FRAME 100` against run32's 104; (58) the height loader's mean in
+`f32`, three of run12's tiles; (62) the standing swap at frame 99, the
+first draw *sequence* difference, costing no word.
 
 91. **The final scenario, not a final dump.** One 24,000-frame game per
     map: the **trace** whole (`cover=1`, no window — cheap; the word over

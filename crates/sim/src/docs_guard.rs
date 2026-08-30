@@ -81,13 +81,12 @@ const OVER: &[(&str, &str, usize)] = &[
         44_907,
     ),
     ("ORDERS.md", "1. The order system", 16_545),
-    ("ORDERS.md", "4. The move order", 37_817),
+    ("ORDERS.md", "4. The move order", 37_806),
     (
         "ORDERS.md",
         "5. Build, repair, garrison — and what a citizen does next",
         16_450,
     ),
-    ("ORDERS.md", "6. The gather order", 21_139),
 ];
 
 /// `(heading, bytes)` for every `## ` section of a document, the preamble

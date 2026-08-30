@@ -8003,3 +8003,112 @@ the `unit_masks & 0x4000000` the branch clears — whose two readers,
 `Unit::work` and `Unit::think`, an animal never runs. `docs/SYNC.md` §3.14
 carries the story; §3.13's closing paragraph, which named the near branch,
 is struck through in place and points at it.
+
+---
+
+## 2026-08-30 (later, Opus) — item 97: East Indies' word 201 → 219, and the branch the document had all along
+
+The residue at frame 201 was two draws, and the whole of it was a branch
+`docs/ORDERS.md` §6.5 had written down weeks ago and `orders.rs::do_farm`
+had never had.
+
+### What the frame said
+
+The trace's frame 201 on run39 is 36 game draws: 31 `Guy::inc_time` wraps
+and five `Farms::inc_time` chances. This crate spent 38 — the same 36, with
+two `GameAccess::rnd+0x20 < Unit::do_job+0x67` in front of them. So the
+queue's framing ("ours opens on a citizen's job draw where the original
+opens on the standing-turn residue") was an artefact of the insertion:
+nothing was reordered, two draws were *added*.
+
+The pair is a farmer re-picking its cell, and printing every `do_farm`
+re-target the crate makes named the unit at once: the AI's `1/3`, at
+building `1/2002`, whose `FarmStruct::farm_type` is **1** — the pasture. It
+had been sowing its centre cell since frame 1 and the cell ripened under it
+on 201.
+
+### Why 201 and not 101
+
+Every other farmer re-picked on **101**, which is the clock §6.5 already
+describes: `Farms::inc_time` adds `0.005f` to a growing cell and the
+farmer's own `Farms::grow` adds a second, so a sown cell crosses `1.0f` on
+the 201st add, a hundred frames in. A pasture is the one farm `inc_time`
+**skips**, so the herder's own add was the only one and the crossing came
+on the two hundredth frame. The wrong branch and the missing clock together
+made a residue that looked like a citizen wandering and was neither.
+
+### The arm, from the listing
+
+`Unit::do_gather@005ef2a0` asks `FarmsData::get_farm_type` — which is
+`farm_type & 1`, so an ambience-carrying pasture still answers 1 — and
+branches at `005efd77` before the cell arithmetic:
+
+```
+005efd80  set_anim(CHAR_SOW, 0, 1)
+005efd8c  edx = o*7 + game->frame + who;  edx &= 0x800000ff (signed % 256)
+005efdbb  jne  → return
+005efdd8  rnd(x_size / 2)          ; ecx = 0x234 >> 1
+005efde5  rnd(y_size / 2)          ; ecx = 0x238 >> 1
+005efe04  move((cx + 1 + rx)*0xc0 + 0x60, (cy + 1 + ry)*0xc0 + 0x60)
+```
+
+`GameAccess::rnd@0043cca0(n)` takes its modulus in `ecx`, which is why the
+decompiler lost it in all four places it appears here. The crop's two loads
+at `005efff9`/`005f0004` are the type's `x_size` and `y_size` whole — 4 and
+4 for a farm, which is the number run13 had already *measured* off the
+dump's goals in August — and the pasture's halve each. So the herder goes
+to one of the inner four tiles and the farmer to any of the sixteen, and
+the `+ 1` is what centres the smaller square.
+
+### What it cost
+
+East Indies' word **201 → 219**, and its *sequence* with it: every draw of
+every frame before 219 is now the original's, in its order, which is the
+first time this map has had a whole-run draw-for-draw stretch rather than a
+64-frame window. The score holds at 167/167 with player 0 at 217 and player
+1 at 168, and the herder `1/3`'s own position now tracks the original's to
+frame **492**.
+
+Great Lakes is untouched to the byte — run33's AI built seven farms and no
+pasture: `first_count` 780, `first_part` 99, run10's ticks and orders
+572/776, all thirteen units' divergences unchanged, collision rows 91,210
+and angle rows 35,188 equal.
+
+### The check
+
+`rondata::diff::a_pasture_herder_walks_only_on_its_own_256_frame_phase`,
+made to fail three ways. Its oracle half needed no new capture: run39's
+dump moves the herder on **42** frames of 1,850, in **four** runs, and each
+run's first frame is the one after a phase frame — the order is issued on
+the phase, the step lands next. Three of the seven phase frames move it
+nowhere at all, because the inner square holds four tiles and the roll may
+name the one it stands on. The trace's half is that all **seven** phase
+frames — 234, 490, 746, 1002, 1258, 1514, 1770 — spend the pair. The port's
+half is that this crate walks the original's first run frame for frame,
+sim-frames 235 to 242, and starts no walk off a phase over the whole
+capture. Removing the arm makes it walk from 202; halving the modulus makes
+it walk from 107; giving it the crop's own span makes its first walk six
+frames too long.
+
+### Where the word goes next
+
+Frame **219**, and it is not a farm. The original spends that frame's
+citizen re-target *before* the frame's road search and this crate after it,
+and the two searches cost 129 nodes against 152 — the road residue of
+`docs/ROADS.md` §7.1 and queue item 60, arriving as the next thing in the
+way. Great Lakes' own 780 was looked at while this was open and is a
+different animal: no pasture there, but a **seventh farm ticking where the
+original ticks six** from frame 781 on, four frames after a city is
+founded. Item 84 keeps its number and its own story.
+
+### Paperwork
+
+`docs/SYNC.md` gains §3.15 and a coverage row. Two sections were split
+rather than grown, which is what `docs_guard` asks for: `ORDERS.md`'s §6
+was 21 KB and its subsections 6.5, 6.6 and 6.7 are now `## ` headings of
+their own — the numbers the code cites are untouched, and its `OVER` row is
+gone because all four halves are under the ceiling. `SYNC.md`'s §6 had been
+carrying the coverage list inside "what is not established"; that list is
+now `## 7`, which is also where CLAUDE.md says a coverage section belongs.
+`FARM_SPAN` is gone from `orders.rs`: the modulus is read from the type,
+where the original reads it.

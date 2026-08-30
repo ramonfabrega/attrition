@@ -1711,68 +1711,71 @@ rnd % 200`, `goto_build = 0`); frame 3 — outside `0x140` of the tile
 centre, `find_nearby_spot(T, 0xc0, 0x100)`, `move(spot)`; frame 4 — the
 move steps. That is its `(4008, 28296)`.
 
-### 6.5 The farm (`do_gather`, FARM, arrived)
+## 6.5 The farm (`do_gather`, FARM, arrived)
 
 `ft` is `FarmStruct+0xbd` — 1 is the **pasture**, which grows no crop, is
 skipped by `Farms::inc_time` and carries five animals of owner 9
 (`docs/SYNC.md` §3.6).
 
 ```
-ft = FarmsData::get_farm_type(farm)
+ft = FarmsData::get_farm_type(farm)                    # farm_type & 1
 ANIMAL_FARM: set_anim(CHAR_SOW); every 256 frames phased by (o*7 + frame + who):
-    move((cx + 1 + GameAccess::rnd(n)) * 0xc0 + 0x60, (cy + 1 + GameAccess::rnd(n)) * 0xc0 + 0x60); return
+    move((cx + 1 + GameAccess::rnd(xs/2)) * 0xc0 + 0x60, (cy + 1 + GameAccess::rnd(ys/2)) * 0xc0 + 0x60); return
 dx, dy = u.tile − b.tile_corner(); out of the footprint → dx = dy = 1
 state = farms.farm_data[farm].status[dx][dy]           # NOT [dy][dx] — see below
 0: guy0.cur_anim != '$' → as 1;  else → new tile
 1: set_anim(CHAR_SOW); Farms::grow(farm, dy, dx); return
 2: guy0.cur_anim != '#' → set_anim(CHAR_REAP); Farms::snip(farm, dy, dx); return;  else → new tile
 3: set_anim(CHAR_REAP); return
-new tile: move((cx + GameAccess::rnd(n)) * 0xc0 + 0x60, (cy + GameAccess::rnd(n)) * 0xc0 + 0x60)
+new tile: move((cx + GameAccess::rnd(xs)) * 0xc0 + 0x60, (cy + GameAccess::rnd(ys)) * 0xc0 + 0x60)
 ```
 
-**`GameAccess::rnd@0043cca0(n)` is `Random::get(game_random, 0, 0xffff) % n`** —
-the sync stream (`n ≤ 1 → 0` without a draw). `docs/COMBAT.md` §10 calls it
-a second, unsynchronised stream; it is not. The modulus `n` is passed in ECX
-and the decompiler lost it; ~~geometry says the farm's tile extent (3)~~
-**run13 measured 4** (`docs/SYNC.md` §4.1, 2026-08-24): the six farmers'
-twelve re-target draws on sim-frame 101 give the dump's new `MoveOrder`
-goals under `% 4` — `(corner + r)·0xc0 + 0x60`, snapped to the 48-cell
-centre by `add_move_order` (§4) — and under no other modulus, and `r = 3`
-occurs twice among them. `Farms::
-grow@008d91c0` sets `state = 1` and adds **`0.005f` to a `float[4][4]
-percent`** until it reaches `1.0f`, then `state = 2`; `snip` turns 2 into 3;
-what regrows 3 → 0 (`Farms::process`, presumably) was not read. So a float
-accumulator sits upstream of the sync RNG.
+**The modulus is the type's own footprint** — `ObjectType::x_size`
+(`+0x234`) and `y_size` (`+0x238`), 4 and 4 for the farm, lost by the
+decompiler because `GameAccess::rnd` takes it in `ecx`. All four loads are
+in the listing: `005efff9`/`005f0004` for the crop, `005efdd8`/`005efde5`
+for the pasture, which halve each — so the herder gets one of the *inner*
+four tiles, hence its `+ 1`, and the farmer any of the sixteen. run13 had
+measured 4 off the dump's goals first (`docs/SYNC.md` §4.1).
+
+**`GameAccess::rnd@0043cca0(n)` is `Random::get(game_random, 0, 0xffff) % n`**
+— the sync stream, and `n ≤ 1` answers 0 *without a draw*; `docs/COMBAT.md`
+§10 calls it unsynchronised and is wrong. `Farms::grow@008d91c0` sets `state = 1` and adds **`0.005f` to a
+`float[4][4] percent`** until it reaches `1.0f`, then `state = 2`; `snip`
+turns 2 into 3; what regrows 3 → 0 (`Farms::process`, presumably) was not
+read, so a float accumulator sits upstream of the sync RNG.
 
 **The clock is 101 frames, not 200** (`docs/SYNC.md` §3.3).
 `Farms::inc_time@008d8600` adds a *second* `0.005f` to every growing cell
 each frame, so a farmed cell takes two adds a frame, and `0.005f` in single
 precision first passes `1.0f` on the **201st**: `grow`'s add on frame 100
 is that one, the cell ripens under a still-sowing farmer, and the next
-frame is the "new tile" above with its two draws. `'#'` is the **sow**
-animation (index 35, the one every farmer shows) and `'$'` the reap, so
-case 2's "not `'#'`" is *not sowing*; the regrowth from 3 is `−0.01f` a
-frame, 101 frames to empty. The clock is `farms.rs`.
+frame is the "new tile" above with its two draws. `'#'` is the **sow** animation
+(index 35, the one every farmer shows) and `'$'` the reap, so case 2's
+"not `'#'`" is *not sowing*; regrowth from 3 is `−0.01f` a frame, 101
+frames to empty. The clock is `farms.rs`, and a **pasture has
+none**: `inc_time` skips it, so a herder run through the crop switch would
+reach the ripening on the two hundredth frame rather than the hundredth.
 
-**The cell is `status[dx][dy]`, index `dx·4 + dy` — the first reading had
-it transposed** (item 61, 2026-08-28). `FarmStruct` holds `float[4][4]
-percent` at `+0x8` and `uchar[4][4] status` at `+0xac`, and three
-addressings name the same byte: `do_gather`'s switch at `005eff54` reads
-`(dx + farm·0x30)·4 + 0xac + dy`; `Farms::grow(farm, dy, dx)@008d91c0` —
-note the argument order — writes `(farm·0x30 + dx)·4 + 0xac + dy`, and
-`snip` the same; `inc_time` sweeps `4·dx + dy` with `dx` inner. The dump
-prints the sixteen cells in that order too.
+**The cell is `status[dx][dy]`, index `dx·4 + dy`, not the transpose.**
+`FarmStruct` holds `float[4][4] percent` at `+0x8` and `uchar[4][4]
+status` at `+0xac`, and three addressings name the same byte:
+`do_gather`'s switch at `005eff54` reads `(dx + farm·0x30)·4 + 0xac + dy`;
+`Farms::grow(farm, dy, dx)@008d91c0` — note the argument order — writes
+`(farm·0x30 + dx)·4 + 0xac + dy`, and `snip` the same; `inc_time` sweeps
+`4·dx + dy`, `dx` inner. The dump prints them in that order too.
 
-Both halves are **diff-backed**:
-`run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell` compares
-every cell against `Farms::log_data`'s `percent[scan][scan2]` /
-`status[scan][scan2]` over run12's frames 1–3 and run13's 95–104, and
-`run14_s_frames_match_the_trace_draw_for_draw` pins **every re-target of
-the capture** — 101, 199, 201, 211, 217, 218, 220, 241 — against the
-trace, draw for draw (the 201 row needs §4.4's waypoint collision test,
-item 63). The story is in `docs/JOURNAL.md`, 2026-08-28.
+**Coverage**, all diff-backed. The cell index and the clock:
+`run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell` (every
+cell of run12's frames 1–3 and run13's 95–104 against `Farms::log_data`)
+and `run14_s_frames_match_the_trace_draw_for_draw` (every re-target of
+that capture — 101, 199, 201, 211, 217, 218, 220, 241 — draw for draw).
+The pasture arm: `a_pasture_herder_walks_only_on_its_own_256_frame_phase`
+against run39's record — 42 dumped steps in four runs, each opening the
+frame after a phase frame, and all seven phase frames spending the pair in
+the trace (`docs/SYNC.md` §3.15).
 
-### 6.6 `Unit::find_gather_spot(range)@005f5170`
+## 6.6 `Unit::find_gather_spot(range)@005f5170`
 
 Walk the owner's buildings: keep those that exist, are active, `is_gather_
 type`, not neutralised, university-iff-scholar, with `num_gatherers(0,0) <
@@ -1816,7 +1819,7 @@ out of the search rather than merely scoring them low. `dist / 0xc0` buckets
 by the tile, so ties are the common case and the numerator decides them.
 The story is in `docs/JOURNAL.md`, 2026-08-29.
 
-### 6.7 How a gather order ends
+## 6.7 How a gather order ends
 
 `kill_current_order` on a `GATHER` (§3.2) → `Build::remove_gatherer`. The chain
 also self-prunes: `check_gatherers` on every `add_gatherer` and on arrival;

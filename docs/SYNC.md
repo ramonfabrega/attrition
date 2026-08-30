@@ -909,6 +909,56 @@ long captures that ends short of its goal — sixteen of them — ends with the
 animal's position **unchanged** across the frame the order dies, and this
 crate broke that on all sixteen.
 
+## 3.15 The pasture's herder — East Indies' word 201 → 219 (2026-08-30)
+
+The residue at 201 was two draws this crate spends and the original does
+not, and the whole of it was a **branch the document had and the code did
+not**.
+
+`Unit::do_gather@005ef2a0`'s farm block asks `FarmsData::get_farm_type`
+first, and when the answer is 1 — the **pasture** — the function is over
+before the cell arithmetic starts (`005efd77`). A herder shows the sow
+animation and returns; only on the frames where `(o · 7 + frame + who) %
+256` is zero does it draw, and then it draws twice and walks to one of the
+farm's *inner* four tiles: `corner + 1 + GameAccess::rnd(size / 2)` an
+axis, against the crop's `corner + rnd(size)` over all sixteen.
+`docs/ORDERS.md` §6.5 had that arm in its pseudocode from the day it was
+written; `orders.rs::do_farm` ran the AI's herder through the crop switch
+below it instead.
+
+**What made it a hundred-frame error rather than a cosmetic one is the
+clock.** A pasture is the one farm `Farms::inc_time` skips (§3.3), so
+nothing under it ripens on the engine's own add. The crop switch's
+"new tile" fires when a cell is ripe under a sower, and with the farm's
+half of the two adds a frame missing, the herder's own `Farms::grow`
+carried its cell to `RIPE_ADDS` alone — on the **two hundredth** frame
+instead of the hundredth. So run39's `1/3` re-picked a tile on frame 201,
+where the original had spent its two draws on **234**, its first phase
+frame: `3 · 7 + 234 + 1 = 256`.
+
+**What it cost, and what it did not.** East Indies' word **201 → 219**,
+and every one of the 219 frames is now draw for draw as well as
+count for count — the early window's 64 of 64 has become the whole run up
+to the parting. What is at 219 is not a farm at all: the original spends
+that citizen's re-target *before* the frame's road search and this crate
+after it, and the two searches cost 129 nodes against 152 — the road
+residue of §6 and queue item 60, arriving as the next thing in the way.
+Great Lakes is untouched to the byte, because run33's AI built seven
+farms and no pasture: `first_count` 780, `first_part` 99, run10's ticks
+and orders 572/776, its thirteen units' divergences unchanged, and both
+coverage counts (91,210 collision rows, 35,188 angle rows) equal. East
+Indies' own game score holds at 167/167 with player 0 at 217 and player 1
+at 168.
+
+**The lesson is the one item 72 keeps paying for, with the sign
+reversed.** Five times now a document and its code have disagreed and the
+document was the one that was wrong; this is the sixth and the first where
+the *document was right* and had been for weeks. Nothing read it against
+the code. The check that now stands is not the reading but the record:
+run39's dump moves the herder on 42 frames of 1,850, in four runs, and
+every run opens the frame after a phase frame — and all seven of the
+capture's phase frames spend the pair in the trace.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):
@@ -1360,6 +1410,14 @@ struck through and point there.
   (`Unit+0x6c & 0x10`, `+0x82`, the type's `+4`) in ways the four
   woodcutters' frame 0 shows but this reading has not named.
 
+## 7. Coverage — what a diff backs, and what rests on a reading
+
+CLAUDE.md's rule: a claim a diff against the original's dump has
+confirmed needs no second reader, and a claim that rests on a reading
+alone is what a blind reader is briefed with. Each row below says which
+this document's mechanics are, and names the test that keeps the first
+kind honest.
+
 - **The pasture, §3.11 (2026-08-30).** Diff-backed, on two captures: the
   five's phases, their species and offsets, the `type_index` that reaches
   the gaia table, and the destination the one draw picks are all pinned by
@@ -1406,6 +1464,21 @@ struck through and point there.
   the map folds both overrides onto trivial stubs), and the meaning of
   the `unit_masks & 0x4000000` the branch clears, whose two readers an
   animal never runs.
+
+- **The pasture's herder, §3.15 (2026-08-30).** Diff-backed, on the one
+  capture that has a pasture:
+  `a_pasture_herder_walks_only_on_its_own_256_frame_phase` holds run39's
+  dumped herder to **42** steps in **four** runs, each opening the frame
+  after a phase frame, checks that all **seven** phase frames of the
+  capture spend the `GameAccess::rnd` pair in the trace, and requires this
+  crate's own herder to walk the original's first run frame for frame and
+  to start no walk off its phase. The arm's absence, a halved modulus and
+  the crop's own span each make it fail. Reading-only, and named as such:
+  that the pasture's two moduli are `x_size / 2` and `y_size / 2` rather
+  than some other halving — the listing is unambiguous (`005efdd8`,
+  `005efde5`) but a 4 × 4 farm cannot tell `size / 2` from a literal 2;
+  and what a herder does at a pasture whose footprint is not 4 × 4, which
+  this install has none of.
 
 - **The two arrival arms, §3.12 (2026-08-30).** Diff-backed, on one
   capture and six frames apart: run10's `0/3` arrives on 110 by the
