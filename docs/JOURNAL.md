@@ -6657,3 +6657,40 @@ site. `the_return_walk_goes_in_front_of_the_gather_order_it_updates`
 (`cities_tests.rs`) is the focused guard — a woodcutter whose shift has
 ended, one `work` call, and the two fields read off the order rather than
 off the list head; made to fail by putting `front_mut()` back.
+
+## 2026-08-30 (Opus) — a note for the next steering session: what the byte pins are actually doing
+
+Written the moment it was felt, so it is not reconstructed later. Item 78
+needed four lines of rule in `docs/ORDERS.md` §6.4 and the file was 254
+bytes under its pin, so the session paid for them by compressing the
+Status paragraph. It landed at **190,724 of 190,800**. Three observations
+the next `docs_guard` rewrite should have in front of it:
+
+- **The tax lands on whoever adds a finding, and the cheapest thing to cut
+  is not reliably the story.** The guard's comment says "the way to add a
+  correction to one is to move its story out to the journal first"; what
+  actually happens under a 254-byte margin is that a session trims whatever
+  it personally needs least. This one considered cutting §6.4's worked
+  walk-through of the dump's woodcutter — evidence, not story — and did not
+  only because the Status paragraph happened to be softer. The new bullet
+  also lost its cross-reference to §6's read-side rule, which is the one
+  sentence that would tell a reader the rule generalises.
+
+- **Bytes are the wrong unit; the cost we care about is what a session must
+  read to take an item.** Nobody reads `ORDERS.md` whole. A session takes
+  §6.4 (about 2 KB) and §4. A 190 KB file with a good section index is
+  cheaper to start from than a 55 KB one without. If the metric were "the
+  largest contiguous chunk an item requires", the answer would be to split
+  `docs/orders/` into per-section files with an index and pin each — and
+  then the ceiling would mean something and adding to §6.4 would not tax
+  §12. That is item 40 with a design rather than an instruction.
+
+- **The 60 KB ceiling has no split path.** `OVER` is eight grandfathered
+  files; everything else is capped flat. `SYNC.md` is 65,400 and pinned,
+  `AI.md` 157,530, `ORACLE.md` 138,489 with item 40 owed twice. The next
+  document to cross 60 KB — `PATHFINDER.md` at 48,169 is nearest — has
+  nowhere to go but into `OVER`, which is how `OVER` got to eight.
+
+None of this is an argument for growth. It is an argument that the ratchet
+should measure the thing it is for. `docs/QUEUE.md` items 40 and 42 are
+both Fable's, both owed, and the pin design belongs with them.
