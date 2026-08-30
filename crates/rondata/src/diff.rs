@@ -5993,9 +5993,19 @@ mod tests {
         // resource on that frame and here it is not. The other nine are
         // the same on both sides and in the same order: an
         // `Animal::do_idle` roll, a phase-7 wrap, and seven farms.
+        // **345 since item 68** (2026-08-29). The two draws frame 307 was
+        // short were `1/7`'s, and `1/7` was not at its camp to spend them
+        // because the AI's army had marched it away on 252: `Unit::think`'s
+        // tail was joining any attacker to an army, where the original
+        // joins only a supply wagon or a hero, and run33's own coverage
+        // says `Unit::add_to_army@005f7740` is never entered in this game
+        // at all. With the tail as the listing has it the word runs to
+        // **345**, and what parts it there is the AI's ninth citizen `1/8`,
+        // sent to a Woodcutter's Camp where the original sends it to a farm
+        // (the headline test's history, same date).
         assert!(
-            first_count >= 307,
-            "the word parts at frame {first_count}; the floor is 307\n{}",
+            first_count >= 345,
+            "the word parts at frame {first_count}; the floor is 345\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         // **The sequence: 99**, and it is the same attribution swap run14's
@@ -6009,15 +6019,23 @@ mod tests {
             "the draw sequence parts at frame {first_part}; the floor is 99"
         );
         // And the totals over the whole 1,850, which is what says whether a
-        // change past the divergence helped or only moved the noise: 668
-        // frames spend the original's number of draws and 556 of them are
-        // its draws in its order. Past 307 both sides are off streams of
-        // their own, so these are weak numbers — but they are monotone in
-        // the right direction and a fall in them is worth reading.
+        // change past the divergence helped or only moved the noise: 618
+        // frames spend the original's number of draws and 460 of them are
+        // its draws in its order. Past the part frame both sides are off
+        // streams of their own, so these are weak numbers — but a fall in
+        // them is worth reading.
+        //
+        // 668 / 556 → **618 / 460** with item 68, the only time either has
+        // fallen while the score rose. Every frame before 345 matches on
+        // both counts, so the whole of the fall is past the divergence: the
+        // stream this simulation is on after `1/8` takes the wrong job is a
+        // *different* wrong stream from the one it was on after `1/7` was
+        // marched off, and it happens to coincide with the original's less
+        // often. The number that is not luck is `first_count`, 307 → 345.
         assert!(
-            words >= 668 && matched >= 556,
+            words >= 618 && matched >= 460,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 668 and 556"
+             {matched} draw for draw; the floors are 618 and 460"
         );
     }
 
@@ -6389,6 +6407,48 @@ mod tests {
         //               the original's 96, 192 and 256 and on no frame of
         //               its own. Nothing on disk can say where the
         //               simulation next parts by site, which is item 38.
+        //   2026-08-29  ticks **322**, orders **320**; player 0 @ **356**,
+        //               player 1 @ **323** (item 68: **the think tail
+        //               conscripted the woodcutters**). `Unit::think`'s
+        //               tail at `005f7615` is `if (!is_supply &&
+        //               !is_hero) { … return } add_to_army(this)` —
+        //               `docs/SCOUT.md` §2 had the listing right all
+        //               along — and `Sim::think_join_army` also joined
+        //               "an attacker that is not a scout or a caravan",
+        //               which is `docs/ARMY.md` §4's prose for the
+        //               *other* caller, `think_attack@005f5a80:155`,
+        //               grafted onto the wrong site. A citizen has an
+        //               attack, so run10's AI woodcutters `1/6` and
+        //               `1/7` joined army 0 on frames 99 and 205, and
+        //               leader 1's army 0 ticks at `frame ≡ 252 (mod
+        //               256)`: on **252** `do_forming` sent both on a
+        //               siege attack across the map. The original never
+        //               calls `add_to_army` **at all** in this game —
+        //               `Unit::add_to_army@005f7740` and
+        //               `Army::add_unit@006f9f40` are absent from
+        //               run33's 6,703 entered functions over 1,850
+        //               frames — and every citizen's dumped `group` is
+        //               −1 on every frame it exists, against the scout's
+        //               65 and then 64.
+        //
+        //               The second half is the same listing's line
+        //               `005f7195`: a worker whose `think_peasant`
+        //               **found something** returns there, and the
+        //               return value was being dropped.
+        //
+        //               `1/6` went 253 → 735 and `1/7` 253 → 937.
+        //               **Player 0 moved with them, 326 → 356**, because
+        //               the stream it shares is the original's for
+        //               seventy frames more: item 65's farmer re-target
+        //               at 326 is gone, `0/3` and `0/5` now hold to 450
+        //               and 455, and what pins player 0 is `0/4`'s farm
+        //               walk at 356 (its path goal parts at 351, one
+        //               tile north-west of the original's). What pins
+        //               player 1 is the AI's ninth citizen `1/8` at
+        //               321: its gather order names the Woodcutter's
+        //               Camp `2001` with `dist_mod 4` where the original
+        //               names `2006` with `dist_mod 0` — a **farm** —
+        //               so `find_gather_spot`'s choice is the successor.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -6397,9 +6457,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 252 && orders >= 252 && first[0] >= 326 && first[1] >= 253,
+            ticks >= 322 && orders >= 320 && first[0] >= 356 && first[1] >= 323,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 252, orders 252, player 0 @ 326, player 1 @ 253",
+             — the floor is ticks 322, orders 320, player 0 @ 356, player 1 @ 323",
             report.first_divergence
         );
         assert!(
@@ -6599,9 +6659,15 @@ mod tests {
         // direction while the headline went 209 → 252: the AI's `1/6` and
         // `1/7`, hundreds of frames out either way, now part at 253 rather
         // than being carried along by a walk that was already wrong.
+        //
+        // 46,941 → **62,307** with item 68 (the think tail's conscription),
+        // the coverage effect an eighth time and in the up direction while
+        // the headline went 252 → 322: `1/6` and `1/7` are no longer
+        // marched across the map on frame 252, so the two of them alone
+        // bring 15,366 further field-frames into view before they part.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 46_941,
+            coll_seen, 62_307,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -6778,8 +6844,14 @@ mod tests {
         // now walks to a different spot walks a different route after it,
         // and three of the AI's citizens part sooner in the deep untraced
         // stretch than they did off a walk that was already wrong.
+        // 18,724 → **24,120** with item 68 (the think tail's conscription):
+        // 5,396 more, the coverage effect back in the headline's direction
+        // and the largest single move it has made — `1/6` and `1/7` are no
+        // longer marched off on frame 252 and hold to 735 and 937, and the
+        // human's farmers hold with them on a stream that is the original's
+        // for seventy frames more. The headline went 252 → 322.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 18_724, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 24_120, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -6809,8 +6881,14 @@ mod tests {
         // 1,695 that do not are the same seventeen callers on units that
         // now stand where the original stands them for far longer. Item 36
         // is still the item that takes this down.
+        // 8,737 → 9,378 with item 68, against 19,464 → 24,120 compared:
+        // 4,755 of the 5,396 rows the think tail's correction brought into
+        // view agree and 641 do not, which is the best ratio any widening
+        // has had here — and the 641 are the same seventeen callers on
+        // two woodcutters that now work their trees for another five
+        // hundred frames. Item 36 is still the item that takes this down.
         assert!(
-            bad.len() <= 8_737,
+            bad.len() <= 9_378,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );

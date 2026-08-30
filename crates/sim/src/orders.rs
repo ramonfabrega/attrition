@@ -884,13 +884,18 @@ impl Sim {
             self.add_attack_order(u, t, QueuePos::New, false, false);
             return;
         }
-        if self.worker_of(u) != Worker::None {
-            self.think_peasant(u, false);
+        // `005f7195`: a worker whose `think_peasant` **found something**
+        // ends the think there — the listing's `goto LAB_005f761a`, which
+        // is the function's own exit. Ignoring the return value put a
+        // citizen that had just been given a gather job through the tail
+        // below on the same frame.
+        if self.worker_of(u) != Worker::None && self.think_peasant(u, false) {
+            return;
         }
         // The tail (`docs/SCOUT.md` §2): a scout or a spy not in an army
-        // takes `think_scout`, and everything else the `add_to_army` of
-        // `think_attack` and `think` (`docs/ARMY.md` §4). The two are
-        // exclusive in the original and are kept so.
+        // takes `think_scout`; a supply wagon or a hero takes
+        // `add_to_army` (`docs/ARMY.md` §4). The two are exclusive in the
+        // original and are kept so — and nothing else joins anything.
         if self.scout_thinks(u) {
             self.think_scout(u);
             return;

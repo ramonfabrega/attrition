@@ -442,9 +442,40 @@ impl Sim {
         best.map(|(_, c)| c)
     }
 
-    /// The idle-think hook (§4): an AI-owned unit with nothing to do joins
-    /// an army if it is a supply wagon or hero (`Unit::think`'s tail) or
-    /// an attacker that is not a scout or caravan (`think_attack`).
+    /// The idle-think hook (§4): an AI-owned unit at the end of
+    /// `Unit::think` joins an army **only if it is a supply wagon or a
+    /// hero**.
+    ///
+    /// The tail at `005f7615` is three tests and no more
+    /// (`docs/SCOUT.md` §2 transcribes the same listing):
+    ///
+    /// ```text
+    /// if (!is_supply(this) && !is_hero(this)) {
+    ///     if ((type->role & 0x10) == 0 && !is(SPY, 0)) return;
+    ///     if (get_army() < 0) think_scout(this, 0);
+    ///     return;
+    /// }
+    /// add_to_army(this);
+    /// ```
+    ///
+    /// `is_supply` is `unit_flags2 & 0x40`
+    /// ([`uflags2::SUPPLY_OR_HERO`]) and `is_hero` is `& 0x20`
+    /// ([`uflags2::GENERAL`]); **everything else returns without an
+    /// army**. `think_attack@005f5a80:155`'s own `add_to_army` is a
+    /// different site, behind that function's city search, and is not
+    /// modelled — no capture reaches it (§17).
+    ///
+    /// This used to also join "an attacker that is not a scout or a
+    /// caravan", which is `docs/ARMY.md` §4's prose for `think_attack`
+    /// grafted onto the wrong site. It cost run10's AI two citizens: `1/6`
+    /// joined army 0 on frame 99 and `1/7` on 205, and the army's tick at
+    /// **252** — leader 1's army 0 is `frame ≡ 252 (mod 256)`, §5 — sent
+    /// both on a siege attack while the original had them chopping wood.
+    /// The original never calls `add_to_army` at all in that game
+    /// (run33's coverage: `Unit::add_to_army@005f7740` and
+    /// `Army::add_unit@006f9f40` are on the never-entered list over all
+    /// 1,850 frames), and every citizen's dumped `group` is −1 from the
+    /// frame it appears.
     pub(crate) fn think_join_army(&mut self, u: usize) {
         let unit = &self.units[u];
         let w = unit.owner as usize;
@@ -453,11 +484,7 @@ impl Sim {
         }
         let Some(t) = unit.ty else { return };
         let cols = self.unit_types[t].cols;
-        let supply_or_hero = cols.flag2(uflags2::SUPPLY_OR_HERO) || cols.flag2(uflags2::GENERAL);
-        let attacker = self.attack_of(Obj::Unit(u)) != 0
-            && !cols.flag2(uflags2::SCOUT)
-            && !cols.flag2(uflags2::CARAVAN);
-        if supply_or_hero || attacker {
+        if cols.flag2(uflags2::SUPPLY_OR_HERO) || cols.flag2(uflags2::GENERAL) {
             self.add_to_army(u);
         }
     }
@@ -2635,6 +2662,59 @@ mod tests {
         assert_eq!(army.pos, to);
         assert_eq!(army.muster, to.cell());
         assert_eq!(sim.order_type(a), crate::orders::index::MOVE_TO);
+    }
+
+    /// **`Unit::think`'s tail joins supply wagons and heroes, and nothing
+    /// else** (§4) — the rule item 68 was.
+    ///
+    /// The listing at `005f7615` is `if (!is_supply && !is_hero) { … return
+    /// } add_to_army(this)`, so a fighting unit reaching the *tail* does
+    /// **not** join: `think_attack`'s own `add_to_army` is a different
+    /// site, behind that function's city search, and `think_attack` is not
+    /// reached by a unit that has a job. The implementation used to join
+    /// "an attacker that is not a scout or a caravan" here, which
+    /// conscripted run10's woodcutters.
+    #[test]
+    fn only_a_supply_wagon_or_a_hero_joins_an_army_from_the_think_tail() {
+        let (mut sim, _c) = sim_with_city();
+        // A plain fighting type — an attack, no lineage bit.
+        let soldier = soldier_type(&mut sim);
+        let a = put(&mut sim, 1, soldier, Pos::new(0x1000, 0x1000));
+        sim.think_join_army(a);
+        assert_eq!(
+            sim.army_of(a),
+            None,
+            "the tail is not `think_attack`: an attacker does not join here"
+        );
+
+        // The same type with the supply lineage bit — `unit_flags2 & 0x40`.
+        let wagon = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: uflags2::SUPPLY_OR_HERO,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let b = put(&mut sim, 1, wagon, Pos::new(0x1000, 0x1000));
+        sim.think_join_army(b);
+        assert!(
+            sim.army_of(b).is_some(),
+            "`is_supply` is the first of the tail's two ways in"
+        );
+
+        // And the hero bit — `unit_flags2 & 0x20`.
+        let hero = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: uflags2::GENERAL,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let h = put(&mut sim, 1, hero, Pos::new(0x1000, 0x1000));
+        sim.think_join_army(h);
+        assert!(sim.army_of(h).is_some(), "`is_hero` is the second");
     }
 
     #[test]

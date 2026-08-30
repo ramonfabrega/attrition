@@ -34,50 +34,18 @@ air patrols and the special-animation order (named, not read); the unit's body
 (`Guy::move`, `docs/MOVEMENT.md`); the construction clock, the garrison gates
 and the attack step themselves (`docs/CITIES.md`, `docs/COMBAT.md`).
 
-**How this was established.** Symbol names, struct layouts and field offsets
-from `game/sbl/rise.pdb`; behaviour from the decompile export under
-`~/ghidra-projects/decomp` (`tools/ghidra/`). Seven readers took one sub-area
-each — the list and the frame; the move order and the path seam; build/
-repair/garrison and `come_out`; gather and `work`; the start of a game; the
-combat and group orders and the command stream; the spatial queries — and
-each read its functions in full: `Unit::process`, `work`, `do_job`, `do_idle`,
-`check_idle`, `think`, `update_order`, `update_action`, `kill_current_order`,
-`close_orders`, `clear_orders`, `add_think_order`, `do_think_order`,
-`OrderList`/`LinkListBase` and `OrdersMemManager::*`; `Unit::add_move_order`,
-`add_move_facing_order`, `do_move`, `find_path`, `repath`, `move_step`'s
-arrival half, `go_around_building`, `resolve_unit_collision` (summarised), the
-three `PathFinder::find_*path` wrappers up to their `astar_path` call;
-`Unit::add_build_order`, `add_repair_order`, `add_garrison_order`, `do_build`,
-`check_build_order`, `build_done`, `do_repair`, `do_garrison`,
-`kill_garrison_order`, `go_inside`, `come_out`, `Group::action_swarm_around`,
-`Unit::find_build_spot`, `find_repair_spot`, `think_peasant`, `Wall::process`'s
-recruiter; `Unit::add_gather_order`, `do_gather`, `do_non_flat_gather`,
-`find_gather_spot`, `Build::add_gatherer`/`remove_gatherer`/`check_gatherers`,
-`BuildData::num_gatherers`/`is_gathered_by`/`calc_gather`'s count,
-`UnitData::is_gathering_at`, `Build::find_gather_tiles`, `WorldData::
-has_gather_access`, `GatherPoint*`; `Setup::build_game`/`build_empire`/
-`build_cities`/`build_units`/`place_unit`/`small_city_buildings`/
-`large_city_buildings`/`build_civ_specific`/`get_starting_citizens`, `Game::run`,
-`init_rules_and_teams`, `init_starting_resources`, `do_frame`, `Objects::clear`/
-`find_free`/`init_unit`, `Leader::produce_building` (in shape), `GameLog::
-check_accept`; `Unit::add_attack_order`, `do_attack`, `fight`'s
-order-management half, `do_attack_to`, `do_attack_ground`, `do_guard`,
-`do_follow`, `do_patrol`, `add_*` of each, `do_group_move`,
-`ungroup_move_order`, `kill_group_move`, `modify_group_order`, `Group::
-refresh_group_order`, `distribute_attack`, `action_attack`, `action_move_near`
-(the per-member choice in full, the leader-path copy in outline),
-`CommandPackage::process_*`; `UnitType::find_nearby_spot`, `UnitData::
-invalid_loc`, `Object::adjacent_to`, `WallData::covers_tile`,
-`Unit::detect_unit_collision`'s interface. Every `*Order` constructor and
-`clear`. Four claims were settled in the PE bytes or the listing
-(`llvm-objdump`): `get_starting_citizens`' jump table, `add_move_order`'s
-register-passed `find_angle` arguments, the `QueuePos` values in
-`add_move_facing_order` (the decompile prints the `QUEUE_NEW` clear as
-unconditional; it is not), and `MoveOrder::log_data`'s twenty keys (which also
-settle the `this[-1]` offset shift, §1.1). Two real gamelogs at `UNITS=3`
-confirmed the list orientation, the log format, the citizen's first moving
-frame and a 327-frame build trace. Nothing is transcribed; see
-`docs/DECISIONS.md` entry 7.
+**How this was established.** Symbol names, struct layouts and field
+offsets from `game/sbl/rise.pdb`; behaviour from the decompile export under
+`~/ghidra-projects/decomp` (`tools/ghidra/`). Seven readers took one
+sub-area each and read their functions in full; four claims were settled in
+the PE bytes or the listing (`get_starting_citizens`' jump table,
+`add_move_order`'s register-passed `find_angle` arguments, the `QueuePos`
+values in `add_move_facing_order`, and `MoveOrder::log_data`'s twenty keys,
+which also settle the `this[-1]` offset shift, §1.1), and two real gamelogs
+at `UNITS=3` confirmed the list orientation, the log format, the citizen's
+first moving frame and a 327-frame build trace. **The function-by-function
+inventory of what each reader read is in `docs/JOURNAL.md`, 2026-08-29.**
+Nothing is transcribed; see `docs/DECISIONS.md` entry 7.
 
 **Status.** First reading, implementation, blind second reading and all
 seven adjudications are landed; the verdicts, the counts and what the
@@ -546,12 +514,16 @@ soldier runs its target search, and it was a live divergence in
    frames phased by `o`, a captain with a remembered `near_o/near_who` that is
    alive and in range → `add_attack_order(near, QUEUE_NEW, 0, 0)`; then for
    fighting kinds `think_attack` (`docs/COMBAT.md` §8.1) or `think_merchant`.
-4. **Workers** (`ObjectData::is_worker`): **`think_peasant(0)`** — §5.9.
+4. **Workers** (`ObjectData::is_worker`): **`think_peasant(0)`** — §5.9;
+   nonzero **ends the think** (`005f7195`), so a citizen just given a job
+   never reaches 5.
 5. Caravans → `think_caravan`; rare-goods merchants (AI only) on `idle == 1`
    or every 32 frames → `do_gather(search)`; AI specials → `think_spellcaster`,
    `think_scout`; everyone on `idle == 1`/32: fishermen → `think_fish`;
    merchants on `idle == 1`/128 → `think_merchant`; carriers → `think_carry`;
-   scouts → `think_scout`; `add_to_army`.
+   then the tail (`005f7615`): a supply wagon or hero → `add_to_army`, a
+   scout or spy with no army → `think_scout`, anything else returns
+   (`docs/SCOUT.md` §2).
 
 So an idle soldier does its target search on its first idle frame and every
 32 frames after, phased by `o`; an idle citizen runs `think_peasant(0)` every

@@ -52,7 +52,7 @@ const DOC_CEILING: usize = 60_000;
 /// chronicle and is meant to grow.
 const OVER: &[(&str, usize)] = &[
     ("SYNC.md", 65_400),
-    ("ARMY.md", 84_495),
+    ("ARMY.md", 84_493),
     ("COMBAT.md", 107_149),
     ("CITIES.md", 106_773),
     ("GROUPS.md", 127_758),

@@ -1,14 +1,11 @@
 # Armies — the AI's military state machine
 
-*First reading, 2026-08-25, in the main thread on Fable, from the Ghidra
-export (`~/ghidra-projects/decomp`), the PDB type records (`types.txt`,
-`vtables.txt`), the listing (`llvm-objdump`) wherever the decompiler dropped
-a register argument, and four traced runs of the islands lobby — run21 (no
-attack), run23 (the null result of §16.3), run24 (the AI's capital raided)
-and the `DUMP_ALL` windows staged from run24's frames (§16). The second
-reading's army rows from the transport audit (B.44–B.68,
-`docs/audit/2026-08-25-transport.md`) are folded in where they stand.
-Second reading: §19.*
+*First reading, 2026-08-25, from the Ghidra export, the PDB type records,
+the listing wherever the decompiler dropped a register argument, and the
+four traced islands runs of §16 (run21, run23, run24 and its `DUMP_ALL`
+windows); the story is in `docs/JOURNAL.md`. The transport audit's army
+rows (B.44–B.68, `docs/audit/2026-08-25-transport.md`) are folded in
+where they stand. Second reading: §19.*
 
 **What this is.** A computer leader's soldiers are not driven one by one.
 Every military unit the AI owns is put into an **army** — one of sixteen
@@ -111,7 +108,7 @@ handler in turn, so an army can be mustering and forming in the same tick
 
 The flow, in the order a game reaches it: the census seeds an army at a
 city (`Armies::init_army`, `docs/AI.md` §2.3 step 16) → every military
-unit's idle think joins the nearest one (`Unit::add_to_army`, §4) → every
+supply wagon's or hero's idle think joins the nearest (§4) → every
 256 frames `Army::process` recounts, disbands or merges, and runs the
 state (§5–§6) → mustering until `release_mustering` says so (§7), forming
 at the muster spot (§8) → `find_target` scores every enemy city and fort
@@ -263,20 +260,24 @@ With an existing army: `normalize` it, and if it has units, the unit
 unit is active) — then `add_unit`. Returns the slot.
 
 **Its callers**, all in the unit AI (`docs/ORDERS.md` §4.5):
-`Unit::think@005f6e40:338` at the end of a computer unit's idle think —
-after the supply, hero and spy branches, for any type that is not a supply
-wagon, a hero, or a spy without the special flag (those scout instead if
-they have no army); `Unit::think_attack@005f5a80:155`, an idle attacker
+`Unit::think@005f6e40:338`, the tail of an AI unit's idle think, where
+it is **only a supply wagon or a hero** — `if (!is_supply &&
+!is_hero) { if (!(role & 0x10) && !is(SPY, 0)) return; if (get_army() < 0)
+think_scout(0); return } add_to_army(this)` at `005f7615` — a scout or
+spy takes `think_scout`, everything else returns with no army
+(`docs/SCOUT.md` §2; read here as its complement till 2026-08-29,
+journal 68); `Unit::think_attack@005f5a80:155`, an idle attacker
 that is not a merchant (`0x3d`, `0x3e`, `0x190`), not a caravan and not a
-special (`unit_flags2 & 0x10`), when its city is not one the census marks
-weak; `think_supply` and `think_hero`, unconditionally;
+special (`unit_flags2 & 0x10`), when its city is not one the census
+marks weak — behind its city search, unreached by any trace;
+`think_supply` and `think_hero`, unconditionally;
 `think_scout@005f6010:571`, a **sea** unit whose region is scouted;
 `Unit::come_out@00617c10:1614`, a unit leaving a building, **unless a
 draw says otherwise**: `Random::get(game_random, 0, 0xffff)` — `frame &
 (draw & 1) == 0` for a non-`is` type, `frame & (draw % 3) == 0` for the
 other — skips the join. A `game_random` site the sync accounting
-(`docs/SYNC.md` §3) now lists. Run21's first `add_to_army` is frame 5823,
-`add_group`/`add_unit` 10187.
+(`docs/SYNC.md` §3) now lists. Run21's first `add_to_army` is 5823,
+`add_group`/`add_unit` 10187; run33's 1,850 enter **neither**.
 
 **`SpellType::cast_create_decoy@00674370:157`** adds the decoy it creates
 to the caster's army; **`Unit::fight@005fd4d0:293`** and
@@ -1041,9 +1042,8 @@ muster 51,53`, every count 0 — `Armies::init_army` from the census's step
 
 run21 is the islands game to 24000 and run23 its null result (`6000 war
 who=1` changed no word: a Quick Battle already starts at war). Their
-function-by-frame coverage lists were lifted verbatim to
-`docs/JOURNAL.md` on 2026-08-28; `tools/trace/report.py … blind docs/`
-regenerates them from the logs.
+coverage lists are in `docs/JOURNAL.md`, 2026-08-28, and
+`report.py … blind docs/` regenerates them.
 
 ### 16.4 run24 — the raid
 

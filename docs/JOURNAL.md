@@ -6007,3 +6007,175 @@ original's frame 168 where this simulation holds one, and its position
 parts on the same frame; `1/5` at 186 and `1/3` at 202 are the same
 disagreement. That is item 69, and it is the first residue in this project
 that was found somewhere other than Great Lakes.
+
+## 2026-08-29 (later, Opus) — item 68: the think tail was conscripting the woodcutters
+
+**ticks 252 → 322, orders 252 → 320; player 0 @ 326 → 356, player 1 @ 253 →
+323. run33's word parts at 345 rather than 307.** East Indies is unmoved at
+167/167, which is what says the fix is not this map's shape.
+
+### What item 68 turned out to be
+
+The item was booked as a clock. run33's trace says the original spends two
+draws on frame 307 that this simulation does not, both from
+`Unit::do_non_flat_gather` — the `+0x10f` stand and the `+0x54b` roll of a
+citizen choosing a wood tile — and the site fires on 1, 168, 204, **307**,
+465, … with the first three made here. A site that fires three times and
+then misses looks like a timer that has drifted.
+
+It was not a timer. `tools/gamelog/track.py` on run33's frames 290–320 names
+the unit: `1/7`, the AI's eighth citizen, whose `GATHERORDER` sits at
+`wait 0, goto_build 1, been_there 0` for seventeen frames, ticks to `wait
+−1, been_there 1` on 306 as it reaches its camp, and takes a tile
+(`tx 209, ty 96, wait 586`) on 307. This simulation's `1/7` was nowhere
+near that camp: it had been given an `ATTACK_TO` to tile (201, 69) on frame
+**252** and was walking north-west across the map, and so had `1/6`.
+
+Which is item 67, the other open item — the same two units, the same frame.
+The backtrace says `Armies::process_all` → `army_tick` →
+`group_action_siege_attack_to`, and §5's cadence explains the frame exactly:
+leader 1's army 0 ticks at `frame ≡ 252 (mod 256)`.
+
+### How they got into an army, and how the original says they never do
+
+`Sim::think_join_army` joined "an attacker that is not a scout or a
+caravan". A citizen has an attack, so `1/6` joined army 0 on frame 99 and
+`1/7` on 205, at the end of an idle think.
+
+Two independent oracles say the original does no such thing.
+
+**The dump.** Every `UNITDATA` record carries `group`, and over run33's
+frames 90–219 the only player-1 unit with a non-negative one is the scout
+`1/0` — 65 at frame 90, then 64 from 96. `1/6` appears on frame 100 with
+`group −1` and `1/7` on 206 with `group −1`, and neither ever changes. That
+alone does not settle it, because `do_non_flat_gather` writes `group = −1`
+every frame it runs, so a citizen that joined and resigned each frame would
+dump the same.
+
+**The coverage.** `tools/trace/report.py rontrace-run33.log functions` lists
+every function the traced executable entered and the frame it was first
+entered on: 6,703 of them over 1,850 frames. `Unit::add_to_army@005f7740`
+is not among them. Neither is `Army::add_unit@006f9f40`, `Army::add_group`,
+`find_local_army` or `Army::member`. The AI of a no-contact opening never
+puts a single unit in an army; `Armies::init_army` runs at frame 0 from the
+census and the slot stays empty, which is why `Army::do_mustering` and
+`do_forming` can first run at 252 and move nothing.
+
+### The reading that was wrong, and the one that was right
+
+`Unit::think`'s tail at `005f7615`:
+
+```
+if (!is_supply(this) && !is_hero(this)) {
+    if ((type->role & 0x10) == 0 && !is(SPY, 0)) return;
+    if (get_army() < 0) think_scout(this, 0);
+    return;
+}
+add_to_army(this);
+```
+
+`docs/SCOUT.md` §2 transcribed exactly that, in June's scout work, and the
+simulation's `scout_thinks` implements its middle arm. `docs/ARMY.md` §4
+described the **complement** — "for any type that is not a supply wagon, a
+hero, or a spy without the special flag" — and that is the sentence
+`think_join_army` was written from. The `attacker` half of the predicate is
+`think_attack@005f5a80:155`'s condition, a different call site behind that
+function's own city search, grafted onto the wrong one.
+
+So this is not a decompiler trap or a subtle predicate. It is two documents
+disagreeing about one listing for four days with the implementation
+following the wrong one, and the thing that found it was neither a reading
+nor a re-reading: it was following one missing draw back through a
+`track.py` on the dump and a `functions` on the trace. The lesson the audit
+README already carries — *the predicates are where the errors are* — with a
+new corollary: **when two documents cite the same address, they are a diff
+waiting to be run.** Nothing checks that today.
+
+A second line came out of the same listing. `005f7195` is
+`if (is_worker && think_peasant(0)) goto LAB_005f761a` — the function's own
+exit — and `Sim::think` was calling `think_peasant` and dropping its return
+value, so a citizen that had just been given a gather job walked on into the
+tail on the same frame. It costs nothing on any capture now that the tail
+joins nobody, and it is the listing.
+
+### What moved
+
+- `1/6` 253 → **735**, `1/7` 253 → **937**, and player 1's first divergence
+  is now the AI's ninth citizen `1/8` at **321**.
+- **Player 0 moved with them, 326 → 356**, on the stream the two players
+  share: item 65's human-farmer re-target at 326 is gone, `0/3` and `0/5`
+  hold to 450 and 455, and `0/4`'s farm walk parts at 351 (its path goal one
+  tile north-west of the original's) with the position following at 356.
+- The collision block's coverage 46,941 → **62,307** field-frames with zero
+  disagreements before each unit's own parting frame, and the angle rows
+  18,724 → **24,120** compared, 4,755 of the 5,396 new ones agreeing — the
+  best ratio a widening has had.
+- run33's word 307 → **345**.
+
+And one number fell. run33's totals over all 1,850 frames go 668 → **618**
+frames on the original's draw count and 556 → **460** draw for draw. Every
+frame before 345 matches on both counts, so the whole of the fall is past
+the divergence: after `1/8` takes the wrong job this simulation is on a
+*different* wrong stream from the one it was on after `1/7` was marched off,
+and it coincides with the original's less often. The floors are re-pinned at
+618 and 460 with that written down, because a total past the divergence is
+noise and `first_count` is not.
+
+### The successor
+
+`1/8`'s gather order on frame 321 names the Woodcutter's Camp `2001` with
+`dist_mod 4`; the original names `2006` with `dist_mod 0` — a **farm**. So
+`Unit::find_gather_spot`'s choice is what parts player 1 now, and it is the
+same mechanism queue item 51 wants for the AI's long-run economy.
+
+### Paperwork moved
+
+`docs/ARMY.md` §4 is rewritten to the listing and the section's first-reading
+provenance trimmed to keep the file under its pin (lowered to 84,493).
+`docs/ORDERS.md` §4.5 steps 4 and 5 are corrected, and its **"How this was
+established"** function inventory moved here to pay for it:
+
+*Lifted from `docs/ORDERS.md` 2026-08-29.* Symbol names, struct layouts and field offsets
+from `game/sbl/rise.pdb`; behaviour from the decompile export under
+`~/ghidra-projects/decomp` (`tools/ghidra/`). Seven readers took one sub-area
+each — the list and the frame; the move order and the path seam; build/
+repair/garrison and `come_out`; gather and `work`; the start of a game; the
+combat and group orders and the command stream; the spatial queries — and
+each read its functions in full: `Unit::process`, `work`, `do_job`, `do_idle`,
+`check_idle`, `think`, `update_order`, `update_action`, `kill_current_order`,
+`close_orders`, `clear_orders`, `add_think_order`, `do_think_order`,
+`OrderList`/`LinkListBase` and `OrdersMemManager::*`; `Unit::add_move_order`,
+`add_move_facing_order`, `do_move`, `find_path`, `repath`, `move_step`'s
+arrival half, `go_around_building`, `resolve_unit_collision` (summarised), the
+three `PathFinder::find_*path` wrappers up to their `astar_path` call;
+`Unit::add_build_order`, `add_repair_order`, `add_garrison_order`, `do_build`,
+`check_build_order`, `build_done`, `do_repair`, `do_garrison`,
+`kill_garrison_order`, `go_inside`, `come_out`, `Group::action_swarm_around`,
+`Unit::find_build_spot`, `find_repair_spot`, `think_peasant`, `Wall::process`'s
+recruiter; `Unit::add_gather_order`, `do_gather`, `do_non_flat_gather`,
+`find_gather_spot`, `Build::add_gatherer`/`remove_gatherer`/`check_gatherers`,
+`BuildData::num_gatherers`/`is_gathered_by`/`calc_gather`'s count,
+`UnitData::is_gathering_at`, `Build::find_gather_tiles`, `WorldData::
+has_gather_access`, `GatherPoint*`; `Setup::build_game`/`build_empire`/
+`build_cities`/`build_units`/`place_unit`/`small_city_buildings`/
+`large_city_buildings`/`build_civ_specific`/`get_starting_citizens`, `Game::run`,
+`init_rules_and_teams`, `init_starting_resources`, `do_frame`, `Objects::clear`/
+`find_free`/`init_unit`, `Leader::produce_building` (in shape), `GameLog::
+check_accept`; `Unit::add_attack_order`, `do_attack`, `fight`'s
+order-management half, `do_attack_to`, `do_attack_ground`, `do_guard`,
+`do_follow`, `do_patrol`, `add_*` of each, `do_group_move`,
+`ungroup_move_order`, `kill_group_move`, `modify_group_order`, `Group::
+refresh_group_order`, `distribute_attack`, `action_attack`, `action_move_near`
+(the per-member choice in full, the leader-path copy in outline),
+`CommandPackage::process_*`; `UnitType::find_nearby_spot`, `UnitData::
+invalid_loc`, `Object::adjacent_to`, `WallData::covers_tile`,
+`Unit::detect_unit_collision`'s interface. Every `*Order` constructor and
+`clear`. Four claims were settled in the PE bytes or the listing
+(`llvm-objdump`): `get_starting_citizens`' jump table, `add_move_order`'s
+register-passed `find_angle` arguments, the `QueuePos` values in
+`add_move_facing_order` (the decompile prints the `QUEUE_NEW` clear as
+unconditional; it is not), and `MoveOrder::log_data`'s twenty keys (which also
+settle the `this[-1]` offset shift, §1.1). Two real gamelogs at `UNITS=3`
+confirmed the list orientation, the log format, the citizen's first moving
+frame and a 327-frame build trace. Nothing is transcribed; see
+`docs/DECISIONS.md` entry 7.

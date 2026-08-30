@@ -524,7 +524,11 @@ AI scout's own city is always in its region at the frames observed — and
   its candidate cells against what it has actually seen. `docs/VISION.md`.
 - `Sim::scout_thinks` and `Sim::unit_is_scout` — §2's gate, wired into
   `Sim::think`'s tail in `crates/sim/src/orders.rs`, where it is exclusive
-  with `think_join_army` as it is in the original.
+  with `think_join_army` as it is in the original. **The other arm caught
+  up 2026-08-29** (item 68): `think_join_army` was joining any attacker,
+  where §2's listing joins a supply wagon or a hero and nothing else, so
+  the AI's woodcutters were being conscripted and marched off. This
+  section had the listing right; `docs/ARMY.md` §4 did not.
 
 §7's `invalid_loc` is not a new entry point: `crate::path`'s
 `Sim::invalid_loc` already carries `UnitData::invalid_loc` and this call
