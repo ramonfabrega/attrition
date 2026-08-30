@@ -683,7 +683,7 @@ mod tests {
     /// makes it happen *again* later. Before run32 nothing here modelled
     /// that, because no traced game had placed a non-farm building: the
     /// setup's own go up before the first frame and the AI never got past
-    /// its citizens (`docs/QUEUE.md` item 51).
+    /// its citizens (`docs/QUEUE.md` item 74).
     #[test]
     fn a_building_lays_its_road_when_it_starts_not_when_its_flag_comes_round() {
         let (mut sim, _city, _, lib_ty) = town(Pos::new(40, 40));

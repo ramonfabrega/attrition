@@ -13,34 +13,30 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-29, after item 68 (Opus).*
+*2026-08-29, after item 70 (Opus).*
 
-**ticks 322, orders 320 — the headline moved seventy frames** (252/252),
-player 0 at 356 and player 1 at 323. **run33's word parts at 345**, was
-307. East Indies is unmoved at 167/167, which is what says this was not
-chased into one map's shape.
+**ticks 355, orders 350 — the headline moved thirty-three frames** (322/320),
+and **player 0 @ 356 is now the whole of it**: player 1 went 323 → 363.
+East Indies unmoved at 167/167; run33's word still parts at 345.
 
-**Item 68 was not a clock; it was item 67, and both are closed.** The two
-draws frame 307 was short were `1/7`'s, and `1/7` was not at its camp to
-spend them because the AI had marched it away on 252:
-`Sim::think_join_army` joined "an attacker that is not a scout or a
-caravan", where `Unit::think`'s tail at `005f7615` joins **a supply wagon
-or a hero and nothing else**. A citizen has an attack, so `1/6` (frame 99)
-and `1/7` (205) were conscripted and leader 1's army 0 — `frame ≡ 252 (mod
-256)` — sent them on a siege attack. `docs/SCOUT.md` §2 had the listing
-right; `docs/ARMY.md` §4 described its complement, and the implementation
-followed §4. Two oracles settle it: run33's coverage never enters
-`Unit::add_to_army`, and every citizen's dumped `group` is −1 always.
-`1/6` now holds to 735 and `1/7` to 937; **player 0 moved with them, 326
-→ 356**, so item 65 is gone too.
+**`find_gather_spot`'s numerator is cap headroom, not rate.** ORDERS §6.6
+read it as the leader's per-good rate and `crates/sim` took that as 1 — a
+nearest-building search. It is `Σ_g resource_cap[g] − income[g]`, skipped
+where `over_cap[g]`, and `dist / 0xc0` buckets by the tile so ties are
+normal: frame 321's candidates are 1,958 and 2,041, both bucket 10, and
+the numerator alone sends `1/8` to the farm. The whole function came with
+it. The first disagreeing gather tile went **407 → 1,298**, and run6's
+order-field diff **lost its farmer carve-out** — plain emptiness now over
+432 frames. **Item 68's note about run33 was wrong**, corrected in
+`diff.rs`: what parts the word at 345 is an animation draw against
+`Farms::inc_time+0x1ae`, and fixing `1/8` moved it not at all.
 
-**Owed:** 40 (ORACLE.md had two passes; the pin is 138,489). ARMY.md's pin
-is now 84,493 and ORDERS.md is 188,730, under its 190,800.
+**Owed:** 40 (ORACLE.md had two passes; the pin is 138,489). **ORDERS.md
+is 190,215 of its 190,800** — the next non-deleting edit fails the guard.
 
-**Opener (Opus):** `take item 70 from @docs/QUEUE.md — the AI's ninth
-citizen 1/8 is sent to the Woodcutter's Camp 2001 on run10's frame 321
-where the original sends it to the farm 2006; find_gather_spot's choice
-is the headline's first divergence.`
+**Opener (Opus):** `take item 71 from @docs/QUEUE.md — player 0's farmer
+0/4 walks one tile north-west of the original's cell, its path goal
+parting at 351 and its position at 356, and it is now the whole headline.`
 
 ## The queue
 
@@ -48,18 +44,25 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-70. **`find_gather_spot` sends the ninth citizen to the wrong building.**
-    The headline's first divergence, both scores: on run10's frame 321
-    `1/8`'s gather order names the Woodcutter's Camp `2001`, `dist_mod
-    4`, where the original names `2006`, `dist_mod 0` — a **farm** — and
-    its position parts at 323. ORDERS §6.6's walk over the owner's
-    buildings, against run33's 315–325. Half of item 51.
-
 71. **`0/4`'s farm walk, one tile north-west.** Player 0's first
     divergence, successor to item 65: the path goal parts at **351** —
     ours `(1848, 31800)`, theirs `(2040, 31992)` — the position at 356,
     and `0/3`/`0/5` hold to 450 and 455, so it is one farmer's cell
     pick. ORDERS §6.5, run33's 345–360.
+
+74. **The AI's long-run economy** (was item 51, now the other way up).
+    Item 70 put `1/9` back and it arrives on **897** against the
+    original's 1,297; `1/10` at 1505 is still never trained. The roster
+    pair is 268 missing + 400 extra and the extra is all this one unit,
+    so the AI now earns food faster than the original rather than
+    slower. `CITY.gatherers` is in every dump and uncompared, and a
+    `LEADERS` dump prints `resource_cap`/`income`/`rate` per good.
+    Score it 268 + 400.
+
+75. **run33's word at 345 — an animation draw against a farm's.** Eight
+    draws against seven, the first ours `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271` where the original has `Farms::inc_time+0x1ae`.
+    run33's 340–350 with `rontrace-run33.log`.
 
 35. **`mylos` as a cache.** VISION §7: player 1 carries no `0x4000000`
     at the end of frame 202 or 203, yet its Scout's `mylos` moves 4 → 6.
@@ -134,11 +137,6 @@ say so. Numbers are stable; the journal is indexed by them.
     traced dump (SYNC §4.2), so a wrong animal is invisible until an
     untraced run. Widen the diff to `ANIMALDATA` (70,960 uncompared
     animal-frames on run10).
-
-51. **The AI's long-run economy.** The AI reaches eight citizens on the
-    original's frames and stalls: `1/9` at 1297 and `1/10` at 1505 are
-    never trained here. Item 70's building choice, then the income —
-    `CITY.gatherers`, in every dump and uncompared. Score it 744 + 0.
 
 57. **The terraform.** `TerrainOut::terraform_for_building@00875210`,
     from `Wall::init` for every non-farm building: the footprint-plus-pad

@@ -19,6 +19,7 @@
 use crate::anim;
 use crate::build::{self, Ident, flags as bflags};
 use crate::combat::{self, Obj};
+use crate::economy;
 use crate::garrison::GarrisonRefused;
 use crate::movement::{self, Angle, find_angle};
 use crate::world::{tile, vector_dist};
@@ -38,6 +39,17 @@ pub mod index {
     pub const GARRISON: u8 = 26;
     pub const THINK: u8 = 27;
 }
+
+/// How far above the commerce cap `find_gather_spot` believes the Dutch
+/// interest bonus (`has_tribe_bonus(0x16)`) can carry a good's income, in
+/// sixteenths — `0x640` at `find_gather_spot@005f5170:191`.
+///
+/// `Leader::do_gather` spells the same headroom `dutch_interest_cap × 16`
+/// out of `GameAccess::constants`; the search hard-codes it, so it is a
+/// literal here too rather than a [`crate::tuning::Tuning`] slot. Nothing in
+/// this simulation pays the bonus yet, so this term only ever moves the
+/// *choice* of building, never the income.
+const DUTCH_INTEREST_HEADROOM: i32 = 0x640;
 
 /// `UnitOrder::flags` bits (`docs/ORDERS.md` §1.3).
 pub mod flag {
@@ -3018,9 +3030,10 @@ impl Sim {
         self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
     }
 
-    /// `Unit::find_gather_spot` (§6.6): the nearest-best gather building of
-    /// the owner's with room; the per-good rate term is an input (taken as 1).
-    fn find_gather_spot(&mut self, u: usize, range: i32) -> bool {
+    /// `Unit::find_gather_spot` (§6.6): the best gather building of the
+    /// owner's with room, scored on the **headroom under the commerce cap**
+    /// of the goods it gathers, divided by the distance.
+    pub(crate) fn find_gather_spot(&mut self, u: usize, range: i32) -> bool {
         let who = self.units[u].owner;
         let here = self.units[u].pos;
         let scholar = self.worker_of(u) == Worker::Scholar;
@@ -3029,7 +3042,14 @@ impl Sim {
         // `bVar2` is the `SCHOLARS`/`SCHOLARSKOREAN` test — otherwise it
         // stays −1. (`docs/audit/2026-08-21-orders.md` R4 G42.)
         let range = if scholar { -1 } else { range };
+        let region = self.world.tregion(here.tile());
+        // `find_city_at(x, y, who, −1, 0)` on the citizen's own position: the
+        // city it counts as standing in, and the input to the crossing rule.
+        let my_city = self.find_city_at(who, here, None);
+        // `local_20 = 0` and a strict `<`: the first maximum wins, and a
+        // building whose score is not **above** zero is never taken.
         let mut best: Option<(i32, usize)> = None;
+        let mut best_score = 0;
         for b in 0..self.buildings.len() {
             let bd = &self.buildings[b];
             if !bd.alive || !bd.active || bd.owner != who || !self.is_gather_type(b) {
@@ -3038,15 +3058,28 @@ impl Sim {
             if (self.building_ident(b) == Ident::University) != scholar {
                 continue;
             }
-            if !self.gather_room(b) && !self.is_gathered_by(b, u) {
+            if !self.gather_room(b) && !self.is_gathering_at(u, b, false) {
                 continue;
             }
-            let dist = vector_dist(bd.pos.x - here.x, bd.pos.y - here.y);
+            if self.world.tregion(self.buildings[b].pos.tile()) != region {
+                continue;
+            }
+            if !scholar
+                && let Some(mine) = my_city
+                && !self.crosses_to(who, mine, self.buildings[b].city)
+            {
+                continue;
+            }
+            let dist = vector_dist(
+                self.buildings[b].pos.x - here.x,
+                self.buildings[b].pos.y - here.y,
+            );
             if range > 0 && dist > range {
                 continue;
             }
-            let score = 500 / (dist / TILE + 2);
-            if best.is_none_or(|(s, _)| score > s) {
+            let score = self.gather_spot_value(who, b) * 500 / (dist / TILE + 2);
+            if score > best_score {
+                best_score = score;
                 best = Some((score, b));
             }
         }
@@ -3057,6 +3090,71 @@ impl Sim {
             self.add_gather_order(u, b, QueuePos::Last, false);
         }
         true
+    }
+
+    /// `find_gather_spot@005f5170:108` — whether a citizen standing in city
+    /// `mine` will walk to a building belonging to city `theirs`.
+    ///
+    /// It always will inside its own city, and never when its own city holds
+    /// fewer than two citizens (`CityData +0x5a free` plus `+0x5c gatherers`,
+    /// the census counters). Otherwise it crosses only to a building of no
+    /// city at all, or to a city that is more than two citizens *less*
+    /// crowded than its own.
+    fn crosses_to(&self, who: Player, mine: usize, theirs: Option<usize>) -> bool {
+        if theirs == Some(mine) {
+            return true;
+        }
+        // `city_ai` only exists as far as the last census reached, and a
+        // human leader never runs one — so an absent record is zero, which
+        // is what the original's `CityData` holds for the same reason.
+        let pop = |c: usize| {
+            self.ai[who as usize]
+                .city_ai
+                .get(c)
+                .map_or(0, |r| r.free + r.gatherers)
+        };
+        let mypop = pop(mine);
+        if mypop < 2 {
+            return false;
+        }
+        match theirs {
+            Some(c) => mypop > pop(c) + 2,
+            None => true,
+        }
+    }
+
+    /// The numerator of `find_gather_spot`'s score: over the six goods, the
+    /// ones this leader has and this building gathers, each contributing the
+    /// **unused** part of its commerce cap — `resource_cap[g] − income[g]`,
+    /// both in sixteenths — and skipped entirely while the good is already
+    /// over its cap. `has_tribe_bonus(0x16)` — the Dutch interest — adds
+    /// [`DUTCH_INTEREST_HEADROOM`] to every good but knowledge, because
+    /// `Leader::do_gather` lets that bonus carry income that far above the
+    /// commerce cap.
+    ///
+    /// This is what sends a citizen to a farm rather than to a nearer
+    /// woodcutter's camp once the camp's timber is closer to the ceiling.
+    fn gather_spot_value(&self, who: Player, b: usize) -> i32 {
+        let Some(good) = crate::ai_place::gather_good(self.building_ident(b)) else {
+            return 0;
+        };
+        let w = who as usize;
+        if !self.holdings[w].available[good] {
+            return 0;
+        }
+        let ledger = &self.ledgers[w];
+        if ledger.over_cap[good] != economy::OverCap::Under {
+            return 0;
+        }
+        let mut v = ledger.cap[good] - ledger.income[good];
+        if good != economy::Resource::Knowledge.index()
+            && self
+                .tech_tree
+                .has_tribe_bonus(&self.setup, &self.tech[w], 0x16)
+        {
+            v += DUTCH_INTEREST_HEADROOM;
+        }
+        v
     }
 
     // ------------------------------------------------------------------

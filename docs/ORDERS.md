@@ -1263,12 +1263,12 @@ Both gather arms here — and §5.6's — are `OILPLATFORM or
 builder adopts the site it has just finished.** The AI's goes back through
 `build_done`, whose own arm (§5.5) searches afresh and need not pick that
 site at all. The observation that hid it for a month is that in the logged
-run the AI builder finished its farm and *did* end up gathering there —
-but by `find_gather_spot`, which takes the nearest gather building, and
-that was it. run10's frame 167 is the case that tells the two apart: the
-AI's `1/1` finishes a farm and the original sends it to the Woodcutter's
-Camp instead. **Diff-backed 2026-08-27** (item 47) — the building, the
-tile `(212, 93)` and `dist_mod 4` all agree on the frame.
+run the AI builder finished its farm and *did* end up gathering there — but
+by `find_gather_spot` (§6.6), which happened to score it highest. run10's
+frame 167 is the case that tells the two apart: the AI's `1/1` finishes a
+farm and the original sends it to the Woodcutter's Camp instead.
+**Diff-backed 2026-08-27** (item 47) — the building, the tile `(212, 93)`
+and `dist_mod 4` all agree on the frame.
 
 **The walk is not the order's.** `BuildOrder` owns no `MoveOrder` and calls no
 `go_to`: a non-adjacent `do_build` kills itself and `action_swarm_around`
@@ -1769,18 +1769,45 @@ item 63). The story is in `docs/JOURNAL.md`, 2026-08-28.
 
 Walk the owner's buildings: keep those that exist, are active, `is_gather_
 type`, not neutralised, university-iff-scholar, with `num_gatherers(0,0) <
-gather_max` or already gathered by this unit, in the unit's `tregion`; a
+gather_max` **or `is_gathering_at` this building already** (the unit's own
+action, not membership of the gatherer chain), in the unit's `tregion`; a
 citizen standing in a city skips a building of *another* city when its own
 city's population is `< 2`, **or** when `mypop <= otherpop + 2` — i.e. it
 crosses to the other city's building only when its own city is more than two
 more crowded than that one (`find_gather_spot@005f5170:108`; `CityData
-+0x5a/+0x5c` is AI bookkeeping and an input to `crates/sim`); within `range`
-if `> 0` — **a scholar ignores `range` entirely**, the
-caller's value being kept only `if (!bVar2)` where `bVar2` is the
-`SCHOLARS`/`SCHOLARSKOREAN` test (R4 G42) — **score = `(Σ_goods rate_g) × 500 /
-(dist / 0xc0 + 2)`**, `rate_g` the leader's per-good rate for the building's
-`best_gather_type`; pick the max; if not already gathering there →
-`add_gather_order(best, QUEUE_LAST, 0)`. Integer division throughout.
++0x5a free` plus `+0x5c gatherers` is AI bookkeeping and an input to
+`crates/sim`); within `range` if `> 0` — **a scholar ignores `range`
+entirely**, the caller's value being kept only `if (!bVar2)` where `bVar2` is
+the `SCHOLARS`/`SCHOLARSKOREAN` test (R4 G42) — score as below; take the max
+with a **strict** `best < score` from a starting `0`, so the first maximum
+wins a tie and a building scoring zero or less is not a candidate at all; if
+not already gathering there → `add_gather_order(best, QUEUE_LAST, 0)`.
+Integer division throughout.
+
+**The score is cap headroom, not rate** — read as "the leader's per-good
+rate" here until 2026-08-29, and it is not:
+
+```
+value = 0
+for g in the six goods:                      # iVar7 = 0x30, 0x34 … 0x44
+    if not type_avail(g, 1):        continue
+    if not building.is(best_gather_type(g)): continue
+    if over_cap[g] != 0:            continue # +0x4c, key 0x8932
+    value += resource_cap[g] - income[g]     # +0x30 key 0x1281, +0x94 key 0x90236
+    if has_tribe_bonus(0x16) and g != KNOWLEDGE:
+        value += 0x640                       # dutch_interest_cap × 16, a literal here
+score = value * 500 / (dist / 0xc0 + 2)
+```
+
+The three fields are `LeaderDataEncrypt`'s, all written by
+`Leader::do_gather` (`docs/ECONOMY.md`), the first two in sixteenths — so
+the term is **the unused part of the commerce cap** for the good this
+building gathers, and the citizen goes to whichever good the player is
+furthest from maxing out. `over_cap[g]` is nonzero only where that good's
+income was clamped this frame, which drops an already-maxed good's buildings
+out of the search rather than merely scoring them low. `dist / 0xc0` buckets
+by the tile, so ties are the common case and the numerator decides them.
+The story is in `docs/JOURNAL.md`, 2026-08-29.
 
 ### 6.7 How a gather order ends
 
@@ -2736,19 +2763,16 @@ what is listed as an input is stated as such in the code):
   §10 ring), `been_there` and the dirty flag, the oil-well stance, the
   university/platform `go_inside`, the §6.4 wood/ore machine with its three
   draws **given the building's `gather_from` list** (an input — the original
-  fills it from terrain the simulation does not model — but no longer an
-  *absent* one: ~~the harness has none at level 0, so a woodcutter's citizen
-  stays at the camp~~ a `BUILDS=7` dump carries it and the harness reads it
-  in, and with it a woodcutter's citizen walks the original's walk for 432
-  frames, §11.2), ~~the §6.5 farm stand as a count-to-N (`FARM_GROWS = 200`,
-  an assumption **now contradicted** — the original re-targets at frame 102,
-  §6.5; the two `GameAccess::rnd` re-target draws and the animation-gated
-  "new tile" branch are still not taken, so the farmer stands)~~ the §6.5
-  farm stand on the full clock (`farms.rs`, 2026-08-24: the farmer
-  re-targets on the log's frame 102 as the original does; the tile is two
-  sync-stream draws, right only on the traced stream),
-  `find_gather_spot` by distance (the per-good rate term is an input, taken
-  as 1).
+  fills it from terrain the simulation does not model, and a `BUILDS=7` dump
+  carries it, so a woodcutter's citizen walks the original's walk for 432
+  frames, §11.2), the §6.5 farm stand on the full clock (`farms.rs`: the
+  farmer re-targets on the log's frame 102 as the original does; the tile is
+  two sync-stream draws, right only on the traced stream),
+  and `find_gather_spot` **whole** (§6.6, 2026-08-29): the `tregion` gate,
+  the city-crossing rule, `is_gathering_at` as the room exemption, the
+  strict maximum from zero, and the cap-headroom numerator off
+  `ledgers[who]`. The Dutch `0x640` is arithmetically there and untested —
+  nothing pays that bonus yet.
 - **`do_attack`** — the order wraps `combat::State`'s target; `fight` is
   called once a frame with `mandatory`; **a recharging unit returns at once
   unless `new_ord`** (the reload gate — previously the stub chased while
@@ -2890,6 +2914,11 @@ moves fall out of dispatching once on the front at the top of `work`.
   row (`UnitType +0x308`) or a `UNITS=3` start dump.
 - Whether `OrderList::log_data` reaches the file at `UNITS=3` — confirmed by
   the dumps cited here (it does).
+- **§6.6's two unexercised gates.** `is_neutralized` is not modelled at all
+  (nothing in `crates/sim` infiltrates), and the Dutch `0x640` is in the
+  arithmetic but no run pays that bonus, so neither has ever been executed.
+  Both would fall out of a capture with a spy, or with `has_tribe_bonus(0x16)`
+  in the lobby.
 
 **Not established — combat and group**
 

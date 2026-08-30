@@ -6000,9 +6000,17 @@ mod tests {
         // joins only a supply wagon or a hero, and run33's own coverage
         // says `Unit::add_to_army@005f7740` is never entered in this game
         // at all. With the tail as the listing has it the word runs to
-        // **345**, and what parts it there is the AI's ninth citizen `1/8`,
-        // sent to a Woodcutter's Camp where the original sends it to a farm
-        // (the headline test's history, same date).
+        // **345**.
+        //
+        // **What parts it at 345 is not the ninth citizen.** Item 68's
+        // note guessed it was — `1/8`'s Woodcutter's Camp, the row that
+        // pinned the headline three frames earlier — and item 70 fixed
+        // exactly that and moved this number not at all. The row is an
+        // animation draw against a farm's: on 345 this simulation spends
+        // eight where the original spends seven, and the very first is
+        // ours `Guy::set_anim < Guy::inc_time` against the original's
+        // `Farms::inc_time+0x1ae`. It is the same row before and after
+        // item 70, byte for byte. The **totals** are what moved.
         assert!(
             first_count >= 345,
             "the word parts at frame {first_count}; the floor is 345\n{}",
@@ -6032,10 +6040,17 @@ mod tests {
         // *different* wrong stream from the one it was on after `1/7` was
         // marched off, and it happens to coincide with the original's less
         // often. The number that is not luck is `first_count`, 307 → 345.
+        //
+        // 618 / 460 → **635 / 488** with item 70, and this is the useful
+        // half of that item on this capture: `first_count` did not move,
+        // but seventeen more frames spend the original's number of draws
+        // and twenty-eight more spend them in its order, because the AI's
+        // citizens are at the buildings the original has them at for the
+        // rest of the run.
         assert!(
-            words >= 618 && matched >= 460,
+            words >= 635 && matched >= 488,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 618 and 460"
+             {matched} draw for draw; the floors are 635 and 488"
         );
     }
 
@@ -6449,6 +6464,30 @@ mod tests {
         //               Camp `2001` with `dist_mod 4` where the original
         //               names `2006` with `dist_mod 0` — a **farm** —
         //               so `find_gather_spot`'s choice is the successor.
+        //   2026-08-29  ticks **355**, orders **350**; player 0 @ 356,
+        //               player 1 @ **363** (item 70: **the gather score
+        //               is cap headroom, not distance**).
+        //               `find_gather_spot@005f5170`'s numerator is not
+        //               the rate it was taken for: over the six goods the
+        //               leader has and the building gathers, it is
+        //               `resource_cap[g] − income[g]` — the unused part
+        //               of the commerce cap, both sixteenths, skipped
+        //               entirely while `over_cap[g]` is set. Both
+        //               candidates for `1/8` sat in the same distance
+        //               bucket (`1958 / 0xc0` and `2041 / 0xc0` are both
+        //               10), so the tie was the whole question, and with
+        //               four woodcutters against three farmers the food
+        //               headroom is the larger. `1/8` takes the farm,
+        //               parts at 506 rather than 323, and what pins
+        //               player 1 now is the **scout** `1/0` at 363.
+        //               Player 0 is unmoved at 356 and is the headline:
+        //               item 71, `0/4`'s farm walk.
+        //
+        //               The rest of the function came with it — the
+        //               `tregion` gate, the city-crossing rule at
+        //               `:108`, `is_gathering_at` in place of the
+        //               gatherer chain, and the strict `local_20 < score`
+        //               that makes a zero-scoring building unpickable.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -6457,9 +6496,9 @@ mod tests {
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
         assert!(
-            ticks >= 322 && orders >= 320 && first[0] >= 356 && first[1] >= 323,
+            ticks >= 355 && orders >= 350 && first[0] >= 356 && first[1] >= 363,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 322, orders 320, player 0 @ 356, player 1 @ 323",
+             — the floor is ticks 355, orders 350, player 0 @ 356, player 1 @ 363",
             report.first_divergence
         );
         assert!(
@@ -6509,26 +6548,35 @@ mod tests {
         // and the two-sided total went 668 → 744. **The AI's long-run
         // economy is the item this measure now names**, and until it is
         // taken the honest statement is a floor on the *pair*.
+        //
+        // Item 70 (`find_gather_spot`'s cap-headroom score) changed the
+        // sign back: preferring the good whose income is furthest below
+        // its commerce cap puts the AI back on its farms, `1/9` is trained
+        // inside the capture again, and the pair returns to **268 + 400**
+        // — the ninth citizen four hundred frames early, exactly where it
+        // stood before item 47. The over-production is unexplained and is
+        // its own item; what this pin says is that the whole is not worse
+        // for it.
         assert_eq!(
             missing,
-            vec![(1, 9), (1, 10)],
-            "the two food-bound citizens the AI does not reach"
+            vec![(1, 10)],
+            "the food-bound citizen the AI does not reach"
         );
         let extras: Vec<(i64, i64)> = report
             .frames
             .iter()
             .flat_map(|f| f.extra_units.iter().copied())
             .collect();
-        assert!(
-            extras.is_empty(),
-            "a unit this simulation has that the original does not: {:?}",
-            &extras[..extras.len().min(4)]
+        assert_eq!(
+            extras.iter().collect::<std::collections::BTreeSet<_>>(),
+            [(1, 9)].iter().collect(),
+            "only the early ninth citizen is ahead of the original"
         );
         let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
         assert!(
-            unlinked + extras.len() <= 744,
-            "roster unit-frames: {unlinked} missing + {} extra — 2026-08-27 \
-             was 744 + 0, and 2026-08-24's 268 hid 400 of its own",
+            unlinked + extras.len() <= 668,
+            "roster unit-frames: {unlinked} missing + {} extra — 2026-08-29 \
+             was 268 + 400, 2026-08-27 was 744 + 0",
             extras.len()
         );
 
@@ -6549,10 +6597,11 @@ mod tests {
         // is the Science line and `science_los` its multiplier.
         //
         // 26,433 → 25,957 with item 47: the 476 are `1/9`'s, the citizen
-        // the AI no longer reaches (see the roster note above). The one
-        // disagreement is unmoved.
+        // the AI no longer reaches (see the roster note above). Item 70
+        // put it back and the count with it — 25,957 → 26,433, the same
+        // 476 unit-frames. The one disagreement is unmoved through both.
         let los_seen: usize = report.frames.iter().map(|f| f.los_compared).sum();
-        assert_eq!(los_seen, 25_957, "every compared unit-frame carries mylos");
+        assert_eq!(los_seen, 26_433, "every compared unit-frame carries mylos");
         let bad: Vec<LosDivergence> = report
             .frames
             .iter()
@@ -6665,9 +6714,18 @@ mod tests {
         // the headline went 252 → 322: `1/6` and `1/7` are no longer
         // marched across the map on frame 252, so the two of them alone
         // bring 15,366 further field-frames into view before they part.
+        //
+        // 62,307 → **60,247** with item 70 (`find_gather_spot`'s score),
+        // the ninth time and in the down direction while the headline went
+        // 322 → 355. Two units moved and they moved opposite ways: `1/8`
+        // parts at 506 rather than 323, and `1/4` at 437 rather than 550.
+        // This count is scoped to **agreement**, not to first divergence —
+        // a farmer that walks off and comes back keeps contributing after
+        // it has parted — so a re-tasked farmer costs more field-frames
+        // than its own parting alone accounts for.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 62_307,
+            coll_seen, 60_247,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -6740,6 +6798,13 @@ mod tests {
         // way — the sixth time this sub-score has bounced between 407 and
         // 430 on a draw nobody has fixed. It stops being luck when the
         // stream reaches frame 407 in step, and not before.
+        //
+        // **1,298 with item 70**, and this one is not the same bounce: the
+        // cap-headroom score sends the AI's citizens to the buildings the
+        // original sends them to, so `1/6`'s trees stop being the question
+        // and every gather tile of the capture agrees until the frame
+        // after the original trains `1/9`. Nine hundred frames is three
+        // times the span the bounce ever covered.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -6756,7 +6821,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(407),
+            Some(1298),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -6850,8 +6915,13 @@ mod tests {
         // longer marched off on frame 252 and hold to 735 and 937, and the
         // human's farmers hold with them on a stream that is the original's
         // for seventy frames more. The headline went 252 → 322.
+        // 24,120 → **23,296** with item 70 (`find_gather_spot`'s score):
+        // 824 fewer, coverage against the headline's direction a sixth
+        // time while the headline went 322 → 355, and the same two units
+        // the collision tally names — `1/4` re-tasked 113 frames sooner
+        // costs more agreeing frames than `1/8`'s 183 extra ones pay for.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 24_120, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 23_296, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -7051,24 +7121,20 @@ mod tests {
                 ) || matches!(d.what, OrderMismatch::Flags { .. })
             })
             .collect();
-        // The `o` bound is "a citizen that farms": `o` 3–5 are the three
-        // starting farmers, and `o >= 6` is every citizen trained during
-        // the run — which reached this carve-out on 2026-08-27, when a
-        // trained unit started carrying its type (`docs/VISION.md` §8) and
-        // therefore started farming at all. Both are the same mechanism and
-        // the same frame bound. `o` 0–2 — the scout and the two citizens
-        // that never re-sow — are still held to the letter.
-        let (farmers_late, rest): (Vec<&OrderDivergence>, Vec<&OrderDivergence>) = modelled
-            .iter()
-            .partition(|d| d.frame > 150 && (d.o >= 6 || (3..=5).contains(&d.o)));
+        // **The carve-out is gone, 2026-08-29.** It used to except a farmer
+        // (`o` 3–5, or any citizen trained during the run) after frame 150,
+        // for the second re-target's two draws off a stream that had
+        // drifted. Item 70 — `find_gather_spot` scored on the headroom
+        // under the commerce cap rather than on distance alone — put every
+        // citizen of this capture on the building the original puts it on,
+        // and with that the exception has nothing left in it. So the
+        // assertion is now the plain one: **no modelled order field
+        // disagrees anywhere in the 432 frames**, and any single row fails
+        // it.
         assert!(
-            rest.is_empty(),
+            modelled.is_empty(),
             "a modelled order field disagrees: {:?}",
-            &rest[..rest.len().min(4)]
-        );
-        assert!(
-            !farmers_late.is_empty(),
-            "the farmers' second re-target now happens on both sides"
+            &modelled[..modelled.len().min(4)]
         );
 
         // **The unit that tracks**: player 0's first woodcutter citizen

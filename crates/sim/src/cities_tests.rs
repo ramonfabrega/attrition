@@ -1674,3 +1674,93 @@ fn a_wall_with_no_way_round_gives_up_and_pays_the_grid_draw() {
     }
     assert!(!sim.units[u].orders.is_empty(), "still trying");
 }
+
+/// **`find_gather_spot` scores the headroom under the commerce cap, not the
+/// distance** — `docs/ORDERS.md` §6.6, and the whole of queue item 70.
+///
+/// The numerator is `Σ_g resource_cap[g] − income[g]` over the goods the
+/// leader has and the building gathers, so two candidates that land in the
+/// same distance bucket are separated entirely by which good the player is
+/// further from maxing. run10's frame 321 is exactly that shape: the AI's
+/// ninth citizen stands 1,958 from a Woodcutter's Camp and 2,041 from a
+/// farm, both `/ 0xc0 == 10`, and the original takes the farm.
+///
+/// Here the geometry is made a dead heat on purpose — one gather building
+/// six tiles east, one six tiles west — so nothing but the ledger can
+/// decide, and the choice flips when the ledger does.
+#[test]
+fn a_citizen_gathers_where_the_cap_has_the_most_room_left() {
+    fn pick(food_income: i32, timber_income: i32, timber_over_cap: bool) -> Option<Ident> {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        city_at(&mut sim, &t, 0, 30, 30);
+
+        // Six tiles either way: `vector_dist` is 1,152 to both, and
+        // `1152 / 0xc0 + 2` is 8 for both. The distance term cancels.
+        let farm = sim.place_building(0, t.farm, tile_pos(36, 30)).unwrap();
+        let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
+        for b in [farm, wood] {
+            finish(&mut sim, b);
+            // The camp's own slot count is the map survey (`gather.rs`) and
+            // there are no trees here; the search only asks for room.
+            sim.buildings[b].gather_max = Some(4);
+        }
+
+        let food = economy::Resource::Food.index();
+        let timber = economy::Resource::Timber.index();
+        let l = &mut sim.ledgers[0];
+        l.cap = [70 * economy::RATE_SCALE; economy::RESOURCES];
+        l.income = [0; economy::RESOURCES];
+        l.income[food] = food_income;
+        l.income[timber] = timber_income;
+        l.over_cap = [economy::OverCap::Under; economy::RESOURCES];
+        if timber_over_cap {
+            l.over_cap[timber] = economy::OverCap::At;
+        }
+
+        let u = spawn(&mut sim, 0, citizen, tile_pos(30, 30));
+        // The range the caller passes; both candidates are well inside it.
+        let range = sim.tuning.unit_gather_respond_range * TILE;
+        if !sim.find_gather_spot(u, range) {
+            return None;
+        }
+        match sim.units[u].orders.front().map(|o| o.body) {
+            Some(Body::Gather(g)) => Some(sim.building_ident(g.building)),
+            other => panic!("a gather order was expected, got {other:?}"),
+        }
+    }
+
+    // Timber further from its cap than food: the camp, which is also the
+    // building the walk-order tie would have given anyway.
+    assert_eq!(
+        pick(600, 100, false),
+        Some(Ident::Woodcutter),
+        "the good with the most headroom wins"
+    );
+    // Food further from its cap: the farm, at the same distance. This is
+    // the row a distance-only score could never produce.
+    assert_eq!(
+        pick(100, 600, false),
+        Some(Ident::Farm),
+        "and it wins from the other side too"
+    );
+    // A good already over its cap contributes nothing at all — not a
+    // smaller number, nothing — so its building drops out of the search
+    // even though it is the nearer half of a dead heat.
+    assert_eq!(
+        pick(600, 100, true),
+        Some(Ident::Farm),
+        "an over-cap good takes its building out of the running"
+    );
+    // And with every good at its cap there is no positive score anywhere:
+    // `local_20` starts at 0 and the comparison is strict, so the search
+    // finds nothing rather than falling back on the nearest.
+    assert_eq!(
+        pick(70 * economy::RATE_SCALE, 70 * economy::RATE_SCALE, false),
+        None,
+        "a zero score is not a candidate"
+    );
+}

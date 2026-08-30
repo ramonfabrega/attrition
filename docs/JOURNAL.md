@@ -6179,3 +6179,124 @@ settle the `this[-1]` offset shift, §1.1). Two real gamelogs at `UNITS=3`
 confirmed the list orientation, the log format, the citizen's first moving
 frame and a 327-frame build trace. Nothing is transcribed; see
 `docs/DECISIONS.md` entry 7.
+
+## 2026-08-29 (later still, Opus) — item 70: the gather score is cap headroom, not distance
+
+**ticks 322 → 355, orders 320 → 350; player 1 @ 323 → 363. Player 0 is
+unmoved at 356 and is now the whole headline.** run33's totals go 618/460 →
+635/488, East Indies is unmoved at 167/167, and run6's order-field diff
+loses the carve-out it has carried since 2026-08-24.
+
+### The item as booked, and what it was
+
+Item 70 was booked on one row: on run10's frame 321 the AI's ninth citizen
+`1/8` takes a `GATHERORDER` naming the Woodcutter's Camp `2001` with
+`dist_mod 4`, where the original names `2006` with `dist_mod 0` — a farm.
+`dist_mod` is not a field to chase; `add_gather_order` writes it from the
+building's type, so the whole disagreement is *which building*.
+
+`docs/ORDERS.md` §6.6 had the predicates right and the arithmetic wrong. It
+read the numerator as "`Σ_goods rate_g`, `rate_g` the leader's per-good rate
+for the building's `best_gather_type`", and `crates/sim` took that term as an
+input worth 1 — which makes the score `500 / (dist / 0xc0 + 2)` and the
+search a nearest-building search.
+
+It is not a rate. The loop at `find_gather_spot@005f5170` walks `iVar7` from
+`0x30` to `0x44` — six goods — over `LeaderData::data_encrypted`, and the
+three fields it touches are `resource_cap` (`+0x30`, XOR key `0x1281`),
+`over_cap` (`+0x4c`, key `0x8932`) and `income` (`+0x94`, key `0x90236`).
+The body is `value += resource_cap[g] − income[g]`, gated on
+`type_avail(g, 1)`, on the building being `is(best_gather_type(g))`, and on
+`over_cap[g] == 0`. So the numerator is **the unused part of the commerce
+cap** for the good this building gathers, and the citizen goes to whichever
+good the player is furthest from maxing.
+
+Three readings settle the field names, and none of them is the surrounding
+code. `LeaderData::resource_cap_get@0046ee80` is a one-line getter, `return
+data_encrypted->resource_cap[i] ^ 0x1281`, which fixes `0x1281`.
+`Leader::do_gather@006ce450` writes all three: `income[g] = resources[g] −
+support[g] + …`, clamped at `resource_cap[g]`, with `over_cap[g]` set to `1`
+or `2` when the clamp bites and to `0` when it does not — and `0x8932` is
+`over_cap`'s key, so the search's raw `== 0x8932` is `over_cap[g] == 0`. And
+`0x640` is `dutch_interest_cap × 16`: `do_gather` lets the Dutch interest
+bonus carry income that far above the cap, and `find_gather_spot` hard-codes
+the same headroom where `do_gather` reads the constant.
+
+### Why the distance term could not decide it
+
+Both terms are integers and `dist / 0xc0` buckets by the tile, so ties are
+the common case rather than the exception. Frame 321's two candidates are
+1,958 (the camp) and 2,041 (the farm) from `1/8`; `1958 / 192` and
+`2041 / 192` are both 10, so both denominators are 12 and the distance term
+cancels **exactly**. With four woodcutters at the camp against three farmers,
+timber income is the higher and food has the larger headroom — so the farm
+wins by the numerator alone. A distance-only score cannot produce that row on
+any tie-break, and this one had gone to the camp because it is scanned first.
+
+The rest of the function came with the arithmetic: the `tregion` gate,
+the city-crossing rule at `:108` (`CityData +0x5a free` plus `+0x5c
+gatherers`, the AI census counters, which a human leader never fills — so a
+human never crosses), `is_gathering_at` rather than the gatherer chain as the
+exemption from `num_gatherers < gather_max`, and the strict `local_20 <
+score` from a starting zero, which makes a zero-scoring building unpickable
+rather than a last resort.
+
+### What moved
+
+`1/8` parts at 506 rather than 323, and player 1's first divergence is now
+the **scout** `1/0` at 363. Player 0 is untouched at 356 — `0/4`'s farm walk,
+item 71 — and it is the headline.
+
+The sub-scores, in both directions and said plainly:
+
+- **The gather tile**, the first frame on which any `tx`/`ty` of a gather
+  order disagrees: **407 → 1,298**. This sub-score had bounced between 407
+  and 430 six times on a draw nobody had fixed; this is not that bounce.
+  Every gather tile of the capture now agrees until the frame after the
+  original trains `1/9`.
+- **run6's order-field diff**: the carve-out is gone. It had excepted a
+  farmer after frame 150 for a re-target whose two draws come off a drifted
+  stream; there is nothing left in it, and the assertion is now the plain
+  "no modelled order field disagrees anywhere in the 432 frames".
+- **run33**: `first_count` is **unmoved at 345**, and item 68's note guessed
+  wrong about what parts it there. It is not `1/8`'s camp — item 70 fixed
+  exactly that and moved the number not at all. The row is ours
+  `Guy::set_anim < Guy::inc_time` against the original's
+  `Farms::inc_time+0x1ae`, eight draws against seven, byte for byte the same
+  before and after. What moved is the totals: 618/460 → **635/488**.
+- **The roster**: 744 + 0 → **268 + 400**, back to where it stood before
+  item 47. The AI reaches its ninth citizen again — more food, sooner — but
+  trains it on frame 897 against the original's 1,297. The over-production
+  is unexplained and is its own item; the pair total is what says the whole
+  is not worse for it. `mylos` comes back with it, 25,957 → 26,433, its one
+  disagreement unmoved.
+- **Coverage against the headline**, a sixth time: the collision block
+  62,307 → 60,247 and the angle tally 24,120 → 23,296. Two units moved and
+  opposite ways — `1/8` +183 frames, `1/4` −113 — and both counts are scoped
+  to *agreement* rather than to first divergence, so a re-tasked farmer costs
+  more than its own parting.
+
+### The tests
+
+`a_citizen_gathers_where_the_cap_has_the_most_room_left` makes the geometry a
+dead heat on purpose — a farm six tiles east, a camp six tiles west, both
+`1152 / 0xc0 + 2 == 8` — so only the ledger can decide. The choice flips with
+the incomes, an over-cap good takes its building out of the search entirely
+rather than scoring it low, and with every good at its cap the search finds
+nothing at all rather than falling back on the nearest. It was made to fail
+first: with the numerator forced to a constant 1 the tie goes to the
+first-placed building and the very first case answers Farm where it wants
+Woodcutter.
+
+`find_gather_spot@005f5170` is entered by the traces, so §6.6 is coverage- and
+diff-backed rather than reading-only; the two gates no run reaches —
+`is_neutralized`, which `crates/sim` does not model at all, and the Dutch
+`0x640` — are booked in §14.
+
+### Paperwork
+
+`docs/ORDERS.md` §6.6 is rewritten, §5.2's "which takes the nearest gather
+building" corrected, §13's coverage bullet updated and its struck-through
+history trimmed to pay for the addition. The document is 190,215 bytes
+against a 190,800 pin: **item 40 is now due for this file**, and the next
+edit to it that is not a deletion will fail the guard.
