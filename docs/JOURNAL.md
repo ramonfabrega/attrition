@@ -6455,3 +6455,112 @@ clocks — while the walk's speed ratio becomes *observable* for the first
 time, because the scout's `CHAR_JOG` is 12 frames against `CHAR_WALK`'s 15.
 `docs/ORDERS.md` §6.4 gains one rule (the mask, not `goto_build`) and stands
 at 190,546 of its 190,800 pin.
+
+## 2026-08-30 (Opus) — item 76: the scout's surface probe read the wrong tile
+
+**ticks 362 → 436, orders 361 → 427; player 1's scout `1/0` 363 → 484;
+run33's word 361 → 432 and its totals 696/523 → 724/606.** Player 0 fell
+464 → 450, and every unit that fell parts after the word does. East Indies
+unmoved at 167/167.
+
+### One line, four days old, and a `+ 4`
+
+The item was "player 1's scout `1/0` at 363, the whole headline", and the
+queue had already named the shape: run33's word parts at **361**, thirty-five
+draws against thirty-seven, at index 15 ours `Unit::think_scout+0x436` where
+the original has `+0x64c`.
+
+Reading the frame's draws by ring says what that is. Both sides walk seven
+rings around London and then two around Napata; every ring's rotation and
+phase agree; and in ring 7 the original takes **six** cells where this
+simulation takes five. The cell it does not take is `(48, 23)` — which is
+the cell the original's scout *goes to*: run33's frame 363 prints `1/0`'s
+new order at `dest 37344, 18144`, the centre of tile `(194, 94)`, which is
+`4·48 + 2, 4·23 + 2`.
+
+`crates/sim` refused it on §7's surface test, and §7's surface test was
+reading the wrong tile:
+
+```
+surf = tdata[(4*wy + 2)*tile_xs + 4*wx] & 0x30;    // note: 4*wx, not 4*wx + 2
+```
+
+Cell `(48, 23)` is a shoreline cell. Tile `(192, 94)` carries `0x420` —
+ocean — and tile `(194, 94)` carries `0x0`.
+
+**The `+ 4` was a fold, not a field.** Ghidra prints the probe as
+`*(byte *)(world->tdata + 4 + (...) * 2)`, and two lines above it, over a
+*different* array, the identical `+ 4` really is a field offset: `wdata` has
+stride `0x1c` and `WData::region` at `+0x4`. But `TData` is `size 0x2` with
+`mask` at `+0x0`, so four bytes is **two elements**. The listing says it in
+five instructions:
+
+```
+005f652e  leal 0x2(,%edi,4), %eax      ; 4·wy + 2
+005f6535  imull 0x18(%ebx), %eax       ; × tile_xs
+005f6539  leal (%eax,%esi,4), %ecx     ; + 4·wx
+005f653c  movl 0x138(%ebx), %eax       ; tdata
+005f6542  movb 0x4(%eax,%ecx,2), %al   ; tdata[ecx + 2].mask
+```
+
+and the array's canonical accessors say it a second way: `is_cliff_at` and
+`is_tocean_slow` are both `tdata[(tile_xs·ty + tx) * 2]`, with no constant at
+all. So the surface tile is the cell **centre**, the same tile `invalid_loc`
+is handed four lines later, and the asymmetry §7 was written to explain never
+existed.
+
+### Why nothing had caught it
+
+Every capture that exercised this mechanic was a **frame-0** one — run20,
+the fuzzer's control map, run14's Great Lakes — and the three of them pin the
+draw sequence exactly. None of their candidate cells straddles a shoreline,
+so the two tiles agree on all of them. A mechanic checked only at the opening
+frame is checked on its easiest input, and run33 is the first capture long
+enough to reach a second call.
+
+### The numbers
+
+- **The headline**: ticks 362 → **436**, orders 361 → **427**. Player 1's
+  scout `1/0` goes 363 → **484**, and eight of the twelve compared units
+  improve with it: `1/5` 421 → 663, `1/3` 470 → 583, `0/4` 464 → 577.
+- **run33's word**: 361 → **432**, and the totals 696/523 → **724/606** —
+  eighty-three more frames are the original's draws in the original's order.
+- **Player 0 falls 464 → 450**, and it is downstream rather than a
+  regression: the word now parts at 432, and every unit that fell — `0/5` at
+  450, `0/3` at 455, `1/4` at 437 — parts after that frame, on a stream that
+  is nobody's. `0/4`, which used to pin player 0 at 464, went to 577.
+- **Coverage**: the collision block 62,932 → **62,957** and the angle tally
+  24,370 → **24,380**, the two directions nearly cancelling.
+- **East Indies unmoved at 167/167** — its first divergence is at 168, three
+  hundred frames before any scout re-targets.
+
+### What parts the word now, at 432
+
+A gather stand: this simulation spends twenty-three draws where the original
+spends twenty-two, and at index 15 ours is
+`Guy::set_anim < Unit::do_non_flat_gather+0xb99` where the original spends a
+farm's `Farms::inc_time+0x1ae`. That is the successor, at the front of the
+queue.
+
+### The test
+
+`run33_s_scout_re_targets_at_361_on_the_original_s_cell` is the frame as
+**two** oracles: the trace's own site sequence for frame 361 (twenty-seven
+draws over seven rings, filtered to `scout::CODE` on both sides) and the
+destination the dump prints for the order the call issues. Unlike
+`run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings`, the stream is
+*reached* rather than installed — the simulation walks its own way to frame
+361. Made to fail by putting the probe back on `4*wx`, which is the defect it
+was written for.
+
+### Paperwork
+
+`docs/SCOUT.md` §7 gains a subsection on the misreading and what settled it,
+its confidence paragraph says which line was wrong and for how long, §12
+lists the new check, and §13 gains one open question the frame turned up: the
+order's destination is the tile centre **plus 24 on both axes** on the frame
+after it is issued and the centre exactly on the frame after that, and this
+crate reproduces the first but not the second. `docs/audit/README.md` gains
+the lesson — *a constant byte offset inside an array index is a field offset
+only if the element is wide enough to hold one* — and the corollary about
+frame-0-only coverage.

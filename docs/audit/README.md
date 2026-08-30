@@ -558,3 +558,32 @@ away and stayed green when the `0x900` gate was removed, because
 `find_wpath`'s own near test produced the same one-entry stack. Breaking
 it on purpose is what found that; a fixture chosen to clear both is what
 fixed it.
+
+**A byte constant inside an array index is not always a field offset
+(2026-08-30, no audit file — queue item 76's own session).** The rule
+above is about a fold doing arithmetic; this is the same trap one level
+down. Ghidra prints `Unit::think_scout`'s surface probe as
+
+```
+*(byte *)(world->tdata + 4 + ((wy*4 + 2) * world->tile_xs + wx*4) * 2) & 0x30
+```
+
+and two lines above it, over a **different** array, the identical `+ 4` is
+genuinely a field offset: `wdata` has stride `0x1c` and `WData::region` sits
+at `+0x4`. `docs/SCOUT.md` §7 read the second one the way it had just read
+the first, wrote "note: `4*wx`, not `4*wx + 2`", and carried the asymmetry
+as a quirk of the original for four days. But `TData` is **`size 0x2` with
+`mask` at `+0x0`** — there is no field at `+4` to reach — so four bytes is
+two elements and the tile is the cell centre. Two things settle it in a
+minute each: the type record's **size**, and the array's canonical
+accessors, which carry no constant at all (`WorldData::is_cliff_at`,
+`is_tocean_slow`).
+
+So: **before reading a constant byte offset in an index as a field, check
+that the element is wide enough to hold one, and compare against another
+reader of the same array.** The cost here was a scout sent to the wrong
+cell for four days; the headline moved 362 → 436 when it was fixed. And the
+reason no test caught it is worth its own line — every capture that had
+exercised the mechanic was a **frame-0** one, where no candidate cell
+straddles a shoreline, so the two tiles agree. A mechanic checked only at
+the opening frame is checked on its easiest input.

@@ -27,7 +27,12 @@ it did not have was this.
 **Confidence.** The gate (§2), the ring walk (§5–§6) and the cell filter
 (§7) are read line by line against the listing and then *checked against
 three traces*, which between them pin the exact draw sequence on three maps;
-high. The score (§8) is read from the listing and is arithmetic no capture
+high. **One line of §7 was wrong for four days and a fourth capture found
+it** — the surface probe's tile, `(4x, 4y + 2)` where the listing reads the
+cell centre; §7's own subsection has the misreading and what settled it, and
+run33's frame 361 is now a diff (2026-08-30, item 76). Every frame-0 trace
+had agreed with the wrong tile, because no candidate at frame 0 straddles a
+shoreline. The score (§8) is read from the listing and is arithmetic no capture
 separates yet — the danger term is zero in every run on disk and the goods
 term needs a leader with exactly one city; medium. The target's rejection
 test (§9, `find_unit_ordered`) is read only as far as this mechanic reaches
@@ -297,7 +302,7 @@ if (wx < 0 || wy < 0 || wx >= world.xs || wy >= world.ys) continue;
 d = type->domain;
 if (d != 2) {                                          // an aircraft takes anything
     if (wdata[wy*xs + wx].region != region) continue;
-    surf = tdata[(4*wy + 2)*tile_xs + 4*wx] & 0x30;    // note: 4*wx, not 4*wx + 2
+    surf = tdata[(4*wy + 2)*tile_xs + 4*wx + 2] & 0x30;   // the cell centre
     if (d == 0 ? surf == 0x20 : surf != 0x20) continue; // land wants not-ocean
 }
 if (++budget > 0x600) goto CITY_LOOP_DONE;             // 1536 cells, whole-call
@@ -332,6 +337,52 @@ the `short` at `WData +0` is unnamed in the type record and unread here.
 candidate's, and multiplied by 8; the `rand() % 8` (a signed
 `& 0x80000007` fold) is a jitter that breaks ties between equidistant
 cells.
+
+### The surface tile is the cell centre — and how it was read wrong
+
+~~`4*wx`, not `4*wx + 2`~~. This document carried the `x` uncentred for
+four days, and it was a **decompiler fold read as a field offset**. Ghidra
+prints the probe as
+
+```
+*(byte *)(world->tdata + 4 + ((wy*4 + 2) * world->tile_xs + wx*4) * 2) & 0x30
+```
+
+and the `+ 4` looks exactly like the `+ 4` two lines above it, which really
+is a field offset — `wdata[...]` has stride `0x1c` and `WData::region` at
+`+0x4`. But `TData` is **`size 0x2` with `mask` at `+0`**, so four bytes is
+**two elements**, and the listing says so plainly:
+
+```
+005f652e  leal 0x2(,%edi,4), %eax      ; 4·wy + 2
+005f6535  imull 0x18(%ebx), %eax       ; × tile_xs
+005f6539  leal (%eax,%esi,4), %ecx     ; + 4·wx
+005f653c  movl 0x138(%ebx), %eax       ; tdata
+005f6542  movb 0x4(%eax,%ecx,2), %al   ; tdata[ecx + 2].mask
+```
+
+The canonical accessors through the same array carry no constant at all —
+`WorldData::is_cliff_at@0046f8c0` and `is_tocean_slow@006b2400` are both
+`tdata[(tile_xs·ty + tx) * 2]` — which is the second thing that settles it.
+
+So the surface tile is `(4x + 2, 4y + 2)`, **the same tile `invalid_loc` is
+handed four lines later**, and the asymmetry the note was written to explain
+never existed.
+
+**What it cost, and what the diff says.** On run33's frame 361 the AI scout
+`1/0` re-targets. Cell `(48, 23)` carries ocean at tile `(192, 94)` and land
+at `(194, 94)`; with the uncentred probe the candidate was refused, the call
+spent **twenty-six** draws where the original spends twenty-seven, and the
+scout went to `(48, 20)` instead. With the centre tile the two agree draw
+for draw and the scout takes the original's cell —
+`rondata::diff`'s `run33_s_scout_re_targets_at_361_on_the_original_s_cell`
+is that frame as a sequence and as a destination, and the headline went
+**362 → 436** (2026-08-30, item 76).
+
+The lesson generalises and is now in `docs/audit/README.md`: **a constant
+byte offset inside a decompiled array index is a field offset only if the
+element is wide enough to hold one.** Check the record's size before
+reading it as one.
 
 ## 8. The score
 
@@ -566,6 +617,16 @@ The checks:
   AI's city. Made to fail by transposing two of the three marks, which
   leaves the count at ten and the sequence wrong — the case a total cannot
   see.
+- `rondata::diff`'s
+  `run33_s_scout_re_targets_at_361_on_the_original_s_cell` (2026-08-30) —
+  the one call in the corpus where the **cell filter** decides something.
+  Three hundred frames into run33 the AI scout `1/0` re-targets, and the
+  original spends twenty-seven draws there over seven rings; this compares
+  the whole sequence and the destination the dump prints for the order the
+  call issues, on a stream the simulation **reaches** rather than has
+  installed. Made to fail by putting §7's surface probe back on `4*wx`,
+  which is the defect it was written for: twenty-six draws against
+  twenty-seven, and the wrong cell.
 - `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six`, whose
   frame-0 row moves from 165/175 to **175/175** with this.
 - `crate::no_float` and `crate::soak` as everywhere else.
@@ -610,6 +671,17 @@ The checks:
 8. **The second `think_scout` call site** (§2), the one inside the human
    block gated on `unit_masks & 0x100`. Not modelled — no capture reaches
    it, since `0x100` is clear on every scout in every run on disk.
+8b. **The order's destination is refined a frame later, and by what is
+   not read.** §9 issues the move at the **tile centre**, `4·cell + 2`
+   scaled to `tile·0xc0 + 0x60`. Run33's dump prints `1/0`'s new order
+   first on frame 362 with `dest 37368, 18168` — the centre plus 24 on
+   both axes, which the simulation reproduces — and on frame 363 with
+   `dest 37344, 18144`, the centre exactly. So something between the two
+   frames takes the offset back off and this crate does not do it; the
+   harness's order diff holds for `1/0` to 483 regardless, so no score
+   sees it yet. *Capture:* a `UNITS=3` window over the two frames after
+   any `EXPLORE_TO`, with `GROUPS=1` to say whether the group's own slot
+   layout is what writes it.
 9. ~~**The upstream stream, not this mechanic.** On the frame's own stream
    the harness reaches `think_scout` two draws early (§10), so the target
    it picks is not the original's on any map where the rotation matters.

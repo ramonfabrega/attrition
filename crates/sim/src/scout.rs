@@ -468,9 +468,13 @@ impl Sim {
             if self.world.region_of(c) != self.world.tregion(self.units[u].pos.tile()) {
                 return;
             }
-            // The surface tile the original reads here is `(4x, 4y + 2)` —
-            // the y centred and the x not. Transcribed as it stands.
-            let t = Pos::new(c.x * 4, c.y * 4 + 2);
+            // The surface tile is the cell **centre**, `(4x + 2, 4y + 2)` —
+            // the same tile `invalid_loc` is handed below. The listing at
+            // `005f6542` is `movb 0x4(%eax,%ecx,2)` over `ecx =
+            // (4y + 2)·tile_xs + 4x`, and `TData` is two bytes wide with
+            // its `mask` at `+0`, so the `+4` is **two elements**, not a
+            // field offset: tile index `ecx + 2` (`docs/SCOUT.md` §7).
+            let t = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
             let ocean = self.world.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN;
             if (domain == Domain::Land) == ocean {
                 return;

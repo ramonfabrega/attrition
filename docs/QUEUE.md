@@ -13,31 +13,30 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-29, after item 71 (Opus).*
+*2026-08-30, after item 76 (Opus).*
 
-**ticks 362, orders 361 — the headline moved seven frames** (355/350), and
-**player 0 went 356 → 464**, so what pins it now is player 1's scout `1/0`
-at 363. run33's word 345 → **361** and its totals 635/488 → **696/523**.
-East Indies unmoved at 167/167.
+**ticks 436, orders 427 — the headline moved seventy-four frames**
+(362/361), and **player 1's scout `1/0` went 363 → 484**. run33's word
+361 → **432** and its totals 696/523 → **724/606**. **Player 0 fell
+464 → 450**, and every unit that fell parts *after* the word does. East
+Indies unmoved at 167/167.
 
-**The animation lengths are the install's now, not a dump's.** `0/4`'s farm
-walk was never `do_gather`'s: the scout rolled `CHAR_IDLE1` on frame 284,
-no dump has ever shown that slot's length, and the variant fell back to
-`CHAR_DEFAULT` — 61 frames instead of 76 — so the clock wrapped fifteen
-frames early and the farmer's two `% 4` draws came off the wrong words.
-`unit_graphics.xml` has the whole table and
-`GraphicPieces::init_piece_ranges`' four strides say which piece each
-`<UNIT>` entry is (ANIM §3.2, 1,359 pieces). **Item 75 was the same
-defect.** Two more came with it: the carrying walk is `unit_masks &
-0x78000000`, not the order's `goto_build`, and `man_walk.bha` carries one
-more key than its own count says.
+**The scout's surface probe was reading the wrong tile.** SCOUT §7 had
+`tdata[(4y + 2)·tile_xs + 4x]` from a decompiled `+ 4` read as a field
+offset — but `TData` is `size 0x2` with `mask` at `+0`, so four bytes is
+**two elements** and the tile is the cell **centre**, the same one
+`invalid_loc` is handed four lines later. Cell `(48, 23)` is ocean at
+tile `(192, 94)` and land at `(194, 94)`, so run33's frame-361 re-target
+refused the candidate the original takes. Every capture that had
+exercised the mechanic was a **frame-0** one, where no candidate cell
+straddles a shoreline. Lesson in `docs/audit/README.md`.
 
-**Owed:** 40 (ORACLE.md had two passes; the pin is 138,489). **ORDERS.md is
-190,546 of its 190,800.**
+**Owed:** 40 (ORACLE.md had two passes; the pin is 138,489). **ORDERS.md
+is 190,546 of its 190,800.**
 
-**Opener (Opus):** `take item 76 from @docs/QUEUE.md — player 1's scout
-`1/0` parts at 363 and is the whole headline; run33's 355–370 with
-rontrace-run33.log beside it.`
+**Opener (Opus):** `take item 78 from @docs/QUEUE.md — run33's word parts
+at 432 on a gather stand, twenty-three draws against twenty-two; run33's
+425–440 with rontrace-run33.log beside it.`
 
 ## The queue
 
@@ -45,12 +44,13 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-76. **The scout `1/0` at 363, the whole headline.** Player 0 now holds
-    to 464, so player 1's scout is it and has been since item 70. run33's
-    word parts at **361**, thirty-five draws against thirty-seven: at
-    index 15 ours is `Unit::think_scout+0x436` where the original has
-    `+0x64c`, a scan draw two frames before the position, so the two are
-    very likely one thing. run33's 355–370, SCOUT §2, VISION §7.
+78. **The word's next parting, at 432 — a gather stand.** run33's
+    word now runs to 431 and parts on **432**, twenty-three draws
+    against twenty-two: at index 15 ours is
+    `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` where the
+    original spends a farm's `Farms::inc_time+0x1ae`. So a gatherer
+    stands here that does not there. run33's 425–440 with
+    `rontrace-run33.log` beside it; ORDERS §6.6, ANIM §5.
 
 74. **The AI's long-run economy** (was item 51, now the other way up).
     Item 70 put `1/9` back and it arrives on **897** against the

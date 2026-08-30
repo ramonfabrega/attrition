@@ -6169,9 +6169,22 @@ mod tests {
         // `WALK_WITH_WOOD` and lost the arrival stand the original spends
         // at frame 232. The mask is `do_non_flat_gather`'s own, and with
         // it the word runs to **361**.
+        //
+        // **432 with item 76**, and what was wrong at 361 was a **tile**.
+        // The cell filter's surface probe (`docs/SCOUT.md` §7) was reading
+        // `(4x, 4y + 2)` where the listing reads the cell **centre**: the
+        // `+4` in `movb 0x4(%eax,%ecx,2)` is two `TData` elements, not a
+        // field offset. Cell `(48, 23)` is ocean at its first tile and
+        // land at its centre, so the AI scout's re-target refused a
+        // candidate the original takes — twenty-six draws against
+        // twenty-seven — and went to `(48, 20)` instead. What parts the
+        // word at 432 is a gather stand: ours spends
+        // `Guy::set_anim < Unit::do_non_flat_gather+0xb99` where the
+        // original spends a farm's `Farms::inc_time+0x1ae`, twenty-three
+        // draws against twenty-two.
         assert!(
-            first_count >= 361,
-            "the word parts at frame {first_count}; the floor is 361\n{}",
+            first_count >= 432,
+            "the word parts at frame {first_count}; the floor is 432\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         // **The sequence: 99**, and it is the same attribution swap run14's
@@ -6208,10 +6221,131 @@ mod tests {
         //
         // 635 / 488 → **696 / 523** with item 71, the largest move either
         // has made, and the two rose together with `first_count`.
+        //
+        // 696 / 523 → **724 / 606** with item 76, and `matched` moved most:
+        // eighty-three more frames are the original's draws in the
+        // original's order, which is what a scout sent to the original's
+        // cell buys downstream.
         assert!(
-            words >= 696 && matched >= 523,
+            words >= 724 && matched >= 606,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 696 and 523"
+             {matched} draw for draw; the floors are 724 and 606"
+        );
+    }
+
+    /// **Run33's frame 361 — the scout's second explore target, and the
+    /// surface probe that had been reading the wrong tile.**
+    ///
+    /// `run20_s_ai_scout_draws_ten_at_frame_0_in_four_rings` pins the
+    /// mechanic's *opening* call, ten draws over four rings on a stream
+    /// that is installed rather than reached. This pins the one call in
+    /// the whole corpus where the cell filter actually decides something:
+    /// the AI scout `1/0` re-targets on run33's frame 361, three hundred
+    /// frames into a game it walked into on its own stream, and the
+    /// original spends **twenty-seven** draws there over seven rings.
+    ///
+    /// The filter's surface read (`docs/SCOUT.md` §7) is what this
+    /// caught. The listing at `005f6542` is
+    /// `movb 0x4(%eax,%ecx,2)` over `ecx = (4y + 2)·tile_xs + 4x`, and
+    /// `TData` is two bytes wide with its `mask` at `+0` — so the `+4` is
+    /// **two elements**, and the tile read is the cell centre
+    /// `(4x + 2, 4y + 2)`, not `(4x, 4y + 2)`. Cell `(48, 23)` carries
+    /// ocean at tile `(192, 94)` and land at `(194, 94)`: with the wrong
+    /// probe it was refused, the call spent twenty-six draws instead of
+    /// twenty-seven, and the scout went to `(48, 20)` instead.
+    ///
+    /// Two oracles, and each catches the transposition on its own: the
+    /// trace's own site sequence for the frame, and the destination the
+    /// dump prints for the order the call issues.
+    #[test]
+    fn run33_s_scout_re_targets_at_361_on_the_original_s_cell() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace)) = (
+            dump("gamelog-run33-longtrace.txt"),
+            trace("rontrace-run33.log"),
+        ) else {
+            eprintln!("skipping: no run33 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        for _ in 0..363 {
+            built.tick();
+        }
+
+        // The original's side: frame 361's draws, filtered to the ones
+        // `Unit::think_scout` took itself.
+        use sim::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
+        let theirs: Vec<String> = trace
+            .run_in(361, sim::scout::CODE.start, sim::scout::CODE.end)
+            .iter()
+            .map(|d| trace.label(d))
+            .collect();
+        // Seven rings, and thirteen cells taken across three of them —
+        // `docs/SCOUT.md` §10's table for this frame.
+        let ring = [SITE_ROTATION, SITE_PHASE];
+        let mut want: Vec<&str> = Vec::new();
+        for cells in [0, 0, 0, 6, 0, 2, 5] {
+            want.extend(ring);
+            want.extend(std::iter::repeat_n(SITE_CELL, cells));
+        }
+        assert_eq!(theirs, want, "the trace's own frame-361 sequence");
+
+        // Ours: the same frame's marks, filtered the same way. The stream
+        // is **reached**, not installed — the simulation walks its own way
+        // to frame 361 and the trace agrees draw for draw to 431.
+        let sites = [SITE_ROTATION, SITE_PHASE, SITE_CELL];
+        let ours: Vec<String> = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 361)
+            .map(|(_, v)| v.clone())
+            .expect("frame 361's marks")
+            .into_iter()
+            .filter(|l| sites.contains(&l.as_str()))
+            .collect();
+        assert_eq!(
+            ours, theirs,
+            "our twenty-seven draws, at the original's sites, in its order"
+        );
+
+        // And the target the call chose, against the dump's own. The order
+        // reaches the unit through its group, so the first frame that
+        // prints it is 362, one past the frame that thought.
+        let frames = log.frame_states();
+        let dest = frames
+            .iter()
+            .find(|f| f.n == 362)
+            .and_then(|f| f.units.iter().find(|u| u.who == 1 && u.o == 0))
+            .and_then(|u| u.orders.first())
+            .and_then(|o| Some((o.dest_x?, o.dest_y?)))
+            .expect("run33's frame-362 order for 1/0");
+        assert_eq!(
+            dest,
+            (37_368, 18_168),
+            "the original: inside tile (194, 94)"
+        );
+        let scout = (0..built.sim.units.len())
+            .find(|&u| built.sim.units[u].owner == 1 && built.sim.units[u].index == 0)
+            .expect("1/0");
+        let order = *built.sim.units[scout].orders.front().expect("an order");
+        let sim::orders::Body::Move(m) = order.body else {
+            panic!("not a move: {order:?}");
+        };
+        assert_eq!(m.kind, sim::orders::MoveKind::ExploreTo);
+        assert_eq!(
+            (i64::from(m.dest.x), i64::from(m.dest.y)),
+            dest,
+            "cell (48, 23), whose centre tile is land where its first is ocean"
         );
     }
 
@@ -6284,6 +6418,10 @@ mod tests {
             .iter()
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
+        eprintln!(
+            "run39: ticks {ticks}, orders {orders}, first divergence {:?}",
+            report.first_divergence
+        );
         assert!(
             ticks >= 167 && orders >= 167 && first[0] >= 219 && first[1] >= 168,
             "the second map's score fell: ticks {ticks}, orders {orders}, first \
@@ -6680,6 +6818,35 @@ mod tests {
         //
         //               What pins the headline now is player 1's
         //               **scout** `1/0` at 363, unmoved by this item.
+        //   2026-08-30  ticks **436**, orders **427**; player 0 @ 450,
+        //               player 1 @ **437** (item 76: **the scout's
+        //               surface probe read the wrong tile**). The cell
+        //               filter's `TData` read (`docs/SCOUT.md` §7) had
+        //               been transcribed as `(4x, 4y + 2)` from a
+        //               decompiled `+4` that is **two elements** of a
+        //               two-byte record, not a field offset: the listing
+        //               at `005f6542` is `movb 0x4(%eax,%ecx,2)` over
+        //               `ecx = (4y + 2)·tile_xs + 4x`, so the tile is the
+        //               cell **centre**, the same one `invalid_loc` is
+        //               handed two lines later. On run33's frame 361 the
+        //               AI scout `1/0` re-targets; cell `(48, 23)` is
+        //               ocean at tile `(192, 94)` and land at
+        //               `(194, 94)`, so the candidate the original takes
+        //               was refused — twenty-six draws against
+        //               twenty-seven — and the scout went to `(48, 20)`.
+        //               With the centre tile it takes the original's
+        //               cell: `1/0` goes 363 → **484**, and eight of the
+        //               twelve compared units improve
+        //               (`1/5` 421 → 663, `1/3` 470 → 583, `0/4`
+        //               464 → 577).
+        //
+        //               **Player 0 falls 464 → 450**, and it is
+        //               downstream: run33's word now parts at **432**
+        //               (from 361), and every unit that fell — `0/5` at
+        //               450, `0/3` at 455, `1/4` at 437 — parts after
+        //               that frame, on a stream that is nobody's. What
+        //               parts the word at 432 is a gather stand, and it
+        //               is the successor item.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -6692,9 +6859,9 @@ mod tests {
             report.first_divergence
         );
         assert!(
-            ticks >= 362 && orders >= 361 && first[0] >= 464 && first[1] >= 363,
+            ticks >= 436 && orders >= 427 && first[0] >= 450 && first[1] >= 437,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 362, orders 361, player 0 @ 464, player 1 @ 363",
+             — the floor is ticks 436, orders 427, player 0 @ 450, player 1 @ 437",
             report.first_divergence
         );
         assert!(
@@ -6919,9 +7086,15 @@ mod tests {
         // a farmer that walks off and comes back keeps contributing after
         // it has parted — so a re-tasked farmer costs more field-frames
         // than its own parting alone accounts for.
+        //
+        // 60,247 → **62,932** with item 71 (the idle variant's length),
+        // and 62,932 → **62,957** with item 76 (the scout's surface
+        // probe) — the eleventh time, and a small one: the scout holds a
+        // hundred and twenty frames longer and three units behind it part
+        // earlier, so the two nearly cancel.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 62_932,
+            coll_seen, 62_957,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -7001,6 +7174,10 @@ mod tests {
         // and every gather tile of the capture agrees until the frame
         // after the original trains `1/9`. Nine hundred frames is three
         // times the span the bounce ever covered.
+        //
+        // **1,299 with item 76**, one frame further: the AI's `1/9` is
+        // still trained late here, and the frame its gather tile first
+        // disagrees is the frame after that.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -7017,7 +7194,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(1298),
+            Some(1299),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -7116,8 +7293,13 @@ mod tests {
         // time while the headline went 322 → 355, and the same two units
         // the collision tally names — `1/4` re-tasked 113 frames sooner
         // costs more agreeing frames than `1/8`'s 183 extra ones pay for.
+        // 23,296 → **24,370** with item 71 (the idle variant's length), and
+        // 24,370 → **24,380** with item 76 (the scout's surface probe): ten
+        // more, the two directions nearly cancelling — the scout holds a
+        // hundred and twenty frames longer, three units behind it part
+        // earlier.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 24_370, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 24_380, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
