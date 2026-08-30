@@ -696,22 +696,99 @@ answers a zero `last_speed` on a foot or mounted guy with `0x80000000`. The
 residual here is 8.8° against a chicken's 5° a frame; with the zero it is one
 frame, so the pair is 19/20 and not 19/20/21.
 
-**Landed: (3) alone.** It holds every score and closes queue item 37 — run10's
-AI scout no longer turns a frame late at 96, 362 or 721, and the angle
-disagreements go 9,156 of 33,992 → **8,969 of 35,868**.
+**(3) landed first, alone.** It holds every score and closed queue item 37 —
+run10's AI scout no longer turns a frame late at 96, 362 or 721, and the angle
+disagreements went 9,156 of 33,992 → **8,969 of 35,868**.
 
-**Not landed: (1) and (2), and they only work together.** With both, run39's
-early window is **64 of 64 on the count and 64 draw for draw**, and the word
-goes 19 → **69**. Either alone is worse than neither: the snap alone moves the
-word to 20 and the window to 60/53, the arm alone to 58/57. What blocks them
-is the other map — the arm reads `des_angle != angle` on *every* standing
-unit, and Great Lakes' facings are not the original's yet (queue item 36), so
-run33's word falls 780 → 584 and run10's orders 776 → 586. The named suspect
-is `Guy::do_turn@005d97a0:15`: with `guy_flags & 8` — set when the guy's piece
-has a turn animation (`Guy::init_real@005db6b0:179`) — the turn overrides the
-arm's walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, a category this crate does
-not model, and a guy on a turn animation spends **no** arrival draw where one
-on the walk does.
+**(1) and (2) landed together, once §3.12 had put the farmers' angles right.**
+Either alone is worse than neither — the snap alone moves the word to 20 and
+the window to 60/53, the arm alone to 58/57 — and until the other map's
+facings were the original's, both together cost run33's word 780 → 584,
+because the arm reads `des_angle != angle` on *every* standing unit. With
+§3.12 in first they cost nothing: run39's early window is **64 of 64 on the
+count and 64 draw for draw**, the word goes 19 → **69**, and Great Lakes holds
+at 780 and improves to 954/843. `crates/sim/src/farms.rs` snaps the animal at
+birth; `anim.rs`'s `guys_follow` carries the arm and its sea guard.
+
+**The named suspect for the other map was a dead end, and that is now an
+assertion.** `Guy::do_turn@005d97a0:15` overrides the arm's walk with
+`CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` when `guy_flags & 8`, which
+`Guy::init_real@005db6b0:179` sets only for a guy whose piece names a turn
+animation. 273 of the install's 1,359 unit pieces do — but **none of the
+eight a `DUMP_ALL` run's guys carry**: pieces 0, 19, 352, 371, 6336, 6688,
+12691 and 13043, the two scouts, their dogs and the six citizens. Gaia's
+60063–60074 are not `<UNIT>` entries at all. So the override cannot fire on
+any capture there is, and `rondata::diff`'s
+`the_install_s_piece_lengths_match_the_dumps` says so on every commit.
+
+## 3.12 The farmers' angles — two predicates, not seventeen callers (2026-08-30)
+
+Item 36 was booked as "`Unit::set_angle`'s seventeen other callers", the
+name the residue had carried since 2026-08-27: 8,866 of run10's 8,969 angle
+disagreements were farmers — `0/3`–`0/5`, `1/3`–`1/5`, `1/8` — standing
+where the original stands them and pointing somewhere else. It is **not**
+seventeen callers. It is two predicates in the code this crate already had,
+and both are visible in the same capture on frames six apart.
+
+**1. The order's angle is the bearing to the caller's point, not to the
+snap of it.** `Unit::add_move_order@00616ed0` computes `find_angle`'s two
+arguments in registers from its own *arguments* — `ecx = x − (this->
+field_0x10 ^ 0x63637)`, `edx = y − (field_0x14 ^ 0x63637)`, the obfuscated
+position pair — and only then indexes `div_3_table` for the coordinates it
+pushes to `add_move_facing_order`. So a caller that hands over an unsnapped
+point gets a heading to *that* point and a destination up to 24 units an
+axis away from it. `Unit::do_gather@005ef2a0`'s wheat branch is such a
+caller: its re-picked cell is `(corner + rnd % 4) · 0xc0 + 0x60`, the centre
+of a **192**-unit tile, which is never the centre of a 48-unit cell.
+
+run10's farmer `0/3` walks from `(2712, 32136)` to the cell whose snapped
+centre is `(2808, 31992)`; the dump's `MOVEORDER angle` is `0x10890000`
+(23.25°), and `find_angle` over the *raw* `(2784, 31968)` gives exactly
+that, where the snapped pair gives 33.72°. `0/4`'s `−124.74°` is
+`find_angle(−312, 216)` on the same rule. Two farmers, two exact matches,
+no free parameters — and this crate had `let dest = snapped(to)` one line
+above the `find_angle` it fed. **8,969 → 1,227 of 35,868.**
+
+The pasture already knew this: §3.11's `think_farm_animal` takes "the angle
+to that point before the snap", and its note says the walk "cannot go
+through `Sim::add_move_order`". It can now; the special case was the bug
+report.
+
+**2. The gather clause belongs to the snap arm alone.** `move_step@005faf30`
+ends a final leg two ways, and `docs/ORDERS.md` §4.5 has had both since it
+was written: the **Manhattan snap** (`manh <= step`) faces the order's angle
+when `orderlist.length == 1` **or** the action beneath is a `GATHER`
+(`005fb562`); the **partial step** — the unit walked its whole step and
+happened to land on the destination — faces it only when the move was the
+only order (`005fb4a8`). The code applied the gather clause to both.
+
+The two arms are six frames apart in one capture. `0/3` arrives on 110 with
+`manh 7` at speed 25: the snap, a gather beneath, and the heading becomes
+the order's 23.25°. `1/3` arrives on 116 from `(41789, 17040)` with
+`manh 29` — a full 25-unit step whose sine and cosine are −5 and 24 lands it
+exactly — so it is the partial arm, and its heading stays
+`find_angle(−5, −24) = −11.42°` while its order's angle is −18.58°. A
+farmer's last leg is routinely the second kind, which is why every farmer
+was in the residue and nothing else was.
+
+**What it cost, and what it unblocked.** Both together: run10's angle
+disagreements 8,969 → **1,227 of 35,868**, the earliest surviving row 110 →
+820, and `1/1`, `1/5` and `1/9` out of the residue entirely. Ticks and
+orders hold at 572/776; East Indies holds at 19/62/55. That is the shape of
+a dependency rather than a score: item 93's arm reads `des_angle != angle`
+on every standing unit, and with the facings wrong it cost the other map
+196 frames of word. With them right it costs nothing, and §3.11's pair
+lands the same session — **East Indies' word 19 → 69, 64 of 64 draw for
+draw**, Great Lakes unmoved at 780 and up to 954/843, run10's angle residue
+settling at 1,910 of 35,984 on the wider view the pair brings.
+
+**The lesson is item 72's, a fifth time.** `docs/ORDERS.md` §4.5 stated the
+two arms correctly and the code merged them; §4.3 said `add_move_order` "is
+a thin wrapper that snaps and computes the angle" and never said *what* it
+computes it from. Neither was found by reading the mechanic again. Both
+were found by taking one row of a residue — a farmer standing still and
+facing wrong — and printing the original's own record for the twenty frames
+around it.
 
 ## 4. Run12 attributed
 
@@ -1167,12 +1244,25 @@ struck through and point there.
 - **The pasture, §3.11 (2026-08-30).** Diff-backed, on two captures: the
   five's phases, their species and offsets, the `type_index` that reaches
   the gaia table, and the destination the one draw picks are all pinned by
-  `run39_s_long_trace_says_where_the_second_map_s_word_parts` (62 of the
-  first 64 frames on the count, 55 draw for draw) and by run20's own
-  fifteen setup draws. Reading-only, and named as such: `corner_x`/
-  `corner_y`'s **row order** — the trace confirms the five destinations
-  are three distinct thirds of a tile, not which corner belongs to which
-  slot, because every animal here sits on the farm's own tile; and the
-  `find_angle` argument, which is the *unsnapped* point (`5d7889`–
-  `5d78a5` in the listing) and which no capture separates from the
-  snapped one, since both round to the same eighth of a turn on run39.
+  `run39_s_long_trace_says_where_the_second_map_s_word_parts` (**64 of the
+  first 64 frames on the count and 64 draw for draw** since the pair
+  landed) and by run20's own fifteen setup draws. Reading-only, and named
+  as such: `corner_x`/`corner_y`'s **row order** — the trace confirms the
+  five destinations are three distinct thirds of a tile, not which corner
+  belongs to which slot, because every animal here sits on the farm's own
+  tile. ~~And the `find_angle` argument, the *unsnapped* point
+  (`5d7889`–`5d78a5`), which no capture separates from the snapped one.~~
+  **The argument is diff-backed since §3.12 (2026-08-30)** — not on the
+  animal, whose two points still round to the same eighth of a turn on
+  run39, but on the rule: `add_move_order@00616ed0` takes the same
+  unsnapped bearing, and run10's farmers separate the two by up to 10.5°
+  on frames the dump prints.
+
+- **The two arrival arms, §3.12 (2026-08-30).** Diff-backed, on one
+  capture and six frames apart: run10's `0/3` arrives on 110 by the
+  Manhattan snap and takes its order's angle under a gather; `1/3` arrives
+  on 116 by a partial step and keeps its own bearing. Not established:
+  whether any *other* action index than `GATHER` (7) reaches the snap
+  arm's second clause — the check is a capture with a unit arriving under
+  an `ATTACK` or a `BUILD_AT` while a second order is queued, which no run
+  has yet.

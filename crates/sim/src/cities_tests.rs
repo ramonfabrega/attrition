@@ -1081,13 +1081,117 @@ fn the_three_queue_modes_append_rotate_and_replace() {
         "QUEUE_NEW replaces everything"
     );
     // Every destination is a quarter-tile centre, and the facing to apply
-    // on arrival is the direction at order time (§4.1).
+    // on arrival is the direction at order time (§4.1) — **to the point the
+    // caller named, not to the snap of it** (§4.3). `tile_pos` is a
+    // 192-tile centre, which is never a 48-cell centre, so the two differ
+    // here by 24 units on each axis and the bearings by 1.7°.
     let Body::Move(m) = sim.units[u].orders[0].body else {
         panic!()
     };
     assert_eq!(m.dest.x.rem_euclid(48), 24);
     assert_eq!(m.dest.y.rem_euclid(48), 24);
-    assert_eq!(m.angle, movement::Angle::EAST);
+    let here = Pos::new(at.x + 24, at.y + 24);
+    let to = tile_pos(24, 20);
+    assert_eq!(
+        m.angle,
+        movement::find_angle(to.x - here.x, to.y - here.y),
+        "the bearing to the caller's point"
+    );
+    assert_eq!(
+        movement::find_angle(m.dest.x - here.x, m.dest.y - here.y),
+        movement::Angle::EAST,
+        "and the snapped destination is due east, which the order's angle is not"
+    );
+    assert_ne!(m.angle, movement::Angle::EAST);
+}
+
+/// **The two arrival arms, and the one clause between them** (§4.5).
+///
+/// `move_step@005faf30` ends a final leg two ways. The **Manhattan snap**
+/// (`manh <= step`, the destination written in outright) faces the order's
+/// angle when the move was the only order **or the action beneath is a
+/// gather** — `005fb562`. The **partial step** (the unit walked its whole
+/// step and happened to land on the destination) faces it only when the
+/// move was the only order — `005fb4a8`, no gather clause. A farmer's last
+/// leg is routinely the second kind: run10's AI farmers land on their cells
+/// by a 29-unit Manhattan step at speed 25 whose sine and cosine still
+/// reach, so they keep the bearing of that step, and the human's land by a
+/// 7-unit snap and take the order's angle. Both are on frames 110 and 116
+/// of the same capture, which is what made the pair readable.
+///
+/// Made to fail by giving `arrive` the gather clause on both arms: the
+/// partial-step citizen then faces east with the rest.
+#[test]
+fn only_the_snap_arm_s_arrival_faces_the_order_s_angle_under_a_gather() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    // The farm is far away: the gather order beneath is the *action*, and
+    // nothing it does interferes with the leg under test.
+    let farm = sim.place_building(0, t.farm, tile_pos(20, 20)).unwrap();
+    finish(&mut sim, farm);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    sim.unit_types[citizen].worker = Worker::Citizen;
+
+    // A 48-snapped destination, and two starts: one 7 units of Manhattan
+    // away (the snap takes it) and one 29 (a full 25-unit step lands on it
+    // exactly — `sin/cos` of the bearing are −5 and 24).
+    let dest = Pos::new(176 * 48 + 24, 130 * 48 + 24);
+    let arrive_from = |sim: &mut Sim, d: (i32, i32), gather: bool| -> movement::Angle {
+        let from = Pos::new(dest.x - d.0, dest.y - d.1);
+        let u = spawn(sim, 0, citizen, from);
+        // Settled on the bearing, so the step is taken along it and no
+        // frame is spent turning.
+        let bearing = movement::find_angle(d.0, d.1);
+        sim.units[u].movement.facing = bearing;
+        sim.units[u].movement.heading = bearing;
+        if gather {
+            sim.add_gather_order(u, farm, QueuePos::New, false);
+        }
+        // The order's own angle is due east, which neither bearing is.
+        sim.add_move_facing_order(
+            u,
+            dest,
+            MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+            movement::Angle::EAST,
+            None,
+            false,
+        );
+        let mut frames = 0;
+        while sim.units[u]
+            .orders
+            .front()
+            .is_some_and(crate::orders::Order::is_move)
+        {
+            sim.tick();
+            frames += 1;
+            assert!(frames < 20, "never arrived from {d:?}");
+        }
+        assert_eq!(sim.units[u].pos, dest, "landed on the destination");
+        sim.units[u].movement.heading
+    };
+
+    // The snap arm, gather beneath: the order's angle.
+    assert_eq!(
+        arrive_from(&mut sim, (3, -4), true),
+        movement::Angle::EAST,
+        "the snap arm takes the order's angle under a gather"
+    );
+    // The partial arm, gather beneath: the bearing of its own last step.
+    assert_eq!(
+        arrive_from(&mut sim, (-5, -24), true),
+        movement::find_angle(-5, -24),
+        "the partial step keeps its own bearing"
+    );
+    // The same partial arm with the move as the only order: the order's
+    // angle after all, which is the clause the gather one sits beside.
+    assert_eq!(
+        arrive_from(&mut sim, (-5, -24), false),
+        movement::Angle::EAST,
+        "a lone move takes the order's angle on either arm"
+    );
 }
 
 /// The dump's starting citizen (§4.8, §6.3): a gather order on a farm joins

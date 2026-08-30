@@ -710,6 +710,31 @@ impl Sim {
                 for g in &mut self.units[u].guys {
                     g.stopped = true;
                 }
+                return;
+            }
+            // **Standing but still owed a turn**: `Guy::move:73–89` puts the
+            // body back on `CHAR_WALK` and marks it unstopped, so the next
+            // frame's `do_idle` sees the walk category again and rolls
+            // again. That second roll is the arrival's second draw
+            // (`docs/SYNC.md` §3.11, the pair) and it is the plain walk,
+            // not [`Sim::walk_for`]'s carrying one — the carry nibble is
+            // read in the *moving* half of `Guy::move` and not here.
+            //
+            // The arm's guard is a **sea** unit (`type+0x218 == 1`) or a
+            // `SPECIAL_ANIM` order, either of which only marks the body
+            // stopped. `SPECIAL_ANIM` is not modelled in this crate at all
+            // (`docs/ORDERS.md` §3), so only the first is tested.
+            if self.units[u].kind.domain == crate::attrition::Domain::Sea {
+                for g in &mut self.units[u].guys {
+                    g.stopped = true;
+                }
+                return;
+            }
+            if anim != TURN_LEFT && anim != TURN_RIGHT && anim != ATTACKWALK {
+                self.set_anim(u, WALK, false, true);
+            }
+            for g in &mut self.units[u].guys {
+                g.stopped = false;
             }
             return;
         }
@@ -1040,6 +1065,64 @@ mod tests {
         assert_eq!(s.rng.seed, stepped(before, 1));
         let g = s.units[u].guys[0];
         assert_eq!((g.anim, g.cur_time, g.end_time), (DEFAULT, 0, 90));
+    }
+
+    /// **The standing body still owed a turn walks in place** —
+    /// `Guy::move@005d9240:73–89`, the arm the arrival's *second* draw
+    /// comes from (`docs/SYNC.md` §3.11, "the pair").
+    ///
+    /// The body is on its unit, so the moving half never runs; but
+    /// `des_angle != angle`, so instead of idling it is put back on
+    /// `CHAR_WALK` and marked unstopped. The frame after, `do_idle` sees
+    /// the walk category and a stopped body again and rolls a second
+    /// time — which is why a farm animal arriving spends two
+    /// `Animal::do_idle` draws on consecutive frames, run39's 19 and 20.
+    ///
+    /// The arm's only guard is a **sea** unit or a `SPECIAL_ANIM` order,
+    /// and the walk it asks for is the plain one: the carrying walk is
+    /// chosen in the moving half, which this is not.
+    ///
+    /// Made to fail by returning early when the facing has not settled —
+    /// the body then idles on the arrival frame and draws once, not twice.
+    #[test]
+    fn a_standing_body_still_owed_a_turn_walks_in_place_and_draws_again() {
+        let mut s = sim_at(7);
+        s.art.lengths.insert((60063, WALK), 20);
+        s.art.lengths.insert((60063, DEFAULT), 90);
+        let u = animal(&mut s, 8, 0, 60063, WALK, 11, 20);
+        // On its unit — the body has arrived — but a turn is still owed.
+        s.units[u].movement.body.pos = s.units[u].pos;
+        s.units[u].movement.facing = crate::movement::Angle::NORTH;
+        s.units[u].movement.heading = crate::movement::Angle::EAST;
+        s.guys_follow(u, true);
+        assert_eq!(s.units[u].guys[0].anim, WALK, "back on the walk");
+        assert!(!s.units[u].guys[0].stopped, "and unstopped");
+
+        // With the facing settled it is an arrival instead: one draw, and
+        // the body stops.
+        let mut s = sim_at(7);
+        s.art.lengths.insert((60063, WALK), 20);
+        s.art.lengths.insert((60063, DEFAULT), 90);
+        let u = animal(&mut s, 8, 0, 60063, WALK, 11, 20);
+        s.units[u].movement.body.pos = s.units[u].pos;
+        let before = s.rng.seed;
+        s.guys_follow(u, true);
+        assert_eq!(s.rng.seed, stepped(before, 1), "the arrival's own draw");
+        assert_eq!(s.units[u].guys[0].anim, DEFAULT);
+        assert!(s.units[u].guys[0].stopped);
+
+        // A ship owed a turn takes the guard: stopped, and no walk.
+        let mut s = sim_at(7);
+        s.art.lengths.insert((60063, WALK), 20);
+        let u = animal(&mut s, 8, 0, 60063, DEFAULT, 11, 90);
+        s.units[u].kind.domain = crate::attrition::Domain::Sea;
+        s.units[u].movement.body.pos = s.units[u].pos;
+        s.units[u].movement.facing = crate::movement::Angle::NORTH;
+        s.units[u].movement.heading = crate::movement::Angle::EAST;
+        s.units[u].guys[0].stopped = false;
+        s.guys_follow(u, true);
+        assert_eq!(s.units[u].guys[0].anim, DEFAULT, "a ship keeps its slot");
+        assert!(s.units[u].guys[0].stopped);
     }
 
     /// The step: one a frame, `last_time` trailing; a work animation that

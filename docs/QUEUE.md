@@ -13,33 +13,29 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after items 93, 94 and 37 (Opus).*
+*2026-08-30, after items 36 and 93 (Opus).*
 
-**The headline is the pair, lower map first.** East Indies: run39's
-**word parts at 19**, window **62/55** of its first 64 frames. Great
-Lakes: run10 ticks **572**, orders 776; run33's word at **780**, totals
-951/838 of 1,850. None of the four moved. What did move is the angle
-sub-score: run10's disagreements **9,156 of 33,992 → 8,969 of 35,868**,
-with item 37's three rows gone. Tree green: 639 sim, 145 rondata.
+**The headline moved on the lower map.** East Indies: run39's word parts at
+**69**, up from 19, and its first 64 frames are **64/64** — every frame the
+original's draws in the original's order. Great Lakes: run10 ticks **572**,
+orders 776; run33's word holds at **780** and its totals rise 951/838 →
+**954/843** of 1,850. The angle sub-score, item 36's own, went **8,969 of
+33,992 → 1,227 of 35,868**, then settled at 1,910 of 35,984 under item 93's
+wider view. Tree green: 642 sim, 145 rondata.
 
-**Items 93 and 94 are read, measured, and not landed.** Together they
-take run39 to **64 of 64 draw for draw and the word to 69**; either alone
-is worse than neither. `docs/SYNC.md` §3.11's last section has both, the
-listing that settles each, and the numbers. What blocks them is the
-*other* map — see item 36, which is now the headline's dependency and not
-a residue.
+**Item 36 was not seventeen callers.** It was two predicates in code this
+crate already had — `add_move_order` taking the angle to the *snapped*
+destination where the listing takes it to the point the caller handed over,
+and `move_step`'s gather clause applied to both arrival arms where the
+original has it on the Manhattan snap alone. Both are visible in run10 six
+frames apart (`0/3` at 110, `1/3` at 116). `docs/SYNC.md` §3.12. With the
+farmers' facings right, item 93 landed the same session and cost the other
+map nothing. Item 36's named second half — `guy_flags & 8`'s turn animation
+— is closed from the install: no piece any traced guy carries has one.
 
-**What landed is the third of the three**, and it was item 37:
-`Guy::move` zeroes `last_speed` before the turn at the foot of the same
-branch, so a standing foot or mounted body swallows its whole owed turn
-in one frame. `docs/MOVEMENT.md`, "The body step" — whose pseudocode had
-the order right since 2026-08-27 while the code read the stale value.
-Item 72's fourth kind of bug, found by reading the document beside the
-listing.
-
-**Opener (Opus):** `take item 36 from @docs/QUEUE.md — the farmers'
-angles are what blocks the headline now; docs/SYNC.md 3.11's last
-section says what 36 unblocks and names guy_flags & 8 as the suspect.`
+**Opener (Opus):** `take item 95 from @docs/QUEUE.md — East Indies' word
+now parts at 69 on a blocked stand a frame late; docs/COLLISION.md §5 has
+the site and docs/SYNC.md §3.12 has how the last one was found.`
 
 ## The queue
 
@@ -47,30 +43,17 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-36. **`Unit::set_angle`'s seventeen other callers — and it is the
-    headline's dependency now.** Most of run10's angle rows where the
-    positions agree; the farmers are all of it — `0/3`–`0/5`, `1/3`–`1/5`,
-    `1/8` (GROUPS §4.1), 8,866 of 8,969. Item 93's arm reads
-    `des_angle != angle` on **every** standing unit, so it cannot land
-    until these are the original's. The other half of the same block is
-    `Guy::do_turn@005d97a0:15`: `guy_flags & 8` — the guy's piece has a
-    turn animation (`Guy::init_real@005db6b0:179`) — overrides the arm's
-    walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, unmodelled here, and a
-    guy on a turn animation spends no arrival draw where one on the walk
-    does.
-
-93. **The arrival pair: `Guy::move`'s turn arm, and `Unit::init`'s
-    snap.** Read, measured, unlanded — **together** they take run39 to
-    64/64 and the word 19 → 69; the arm alone gives 58/57, the snap alone
-    20 and 60/53. Both are written and diffed in SYNC §3.11's last
-    section, with the listing that settles each; the code is a dozen lines
-    (`anim.rs`'s `guys_follow`, `farms.rs`'s `farm_add_animals`).
-    **Blocked on 36**, which costs run33's word 780 → 584 and run10's
-    orders 776 → 586 if this lands first.
+95. **East Indies' blocked stand, a frame late.** run39's word parts at
+    **69**: the original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`
+    — the blocked stand, `sim::anim::SITE_BLOCKED`, COLLISION §5 — and this
+    crate spends it on **70**. Frame 91 is the same one frame the other way.
+    Then 96–98 and 119 are the pasture's own: `Animal::do_idle+0x83` and
+    `Objects::process_all+0x2df` against our `Animal::do_idle+0x19`.
 
 69. **East Indies' order-list length at 168.** `1/4` holds two orders on
     the original's 168 where this holds one; `1/5` at 186 and `1/3` at
-    202 the same. **Downstream of 93** — not booked until the word moves.
+    202 the same. A hundred frames past 95 — not booked until the word
+    reaches it.
 
 84. **The word at 780, four frames past the city.** Eleven draws against
     eight; ours opens `GameAccess::rnd+0x20 < Unit::do_job+0x67` where the
@@ -106,9 +89,10 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     in `INDEX.tsv`. Both made to fail first.
 
 72. **A document and its code disagreeing is a diff waiting to be run.**
-    Items 68, 79, 80 and 74 — four in a row. Every `name@00xxxxxx` and
-    `+0xNN` a document pins, checked against the module implementing it,
-    and every "halved"/"every frame"/"cleared" verb about a field here.
+    Items 68, 79, 80, 74 and now **36 twice over** — `ORDERS.md` §4.5 had
+    both arrival arms right while the code merged them. Every
+    `name@00xxxxxx` and `+0xNN` a document pins, checked against the module
+    implementing it, and every "halved"/"every frame"/"cleared" verb here.
 
 88. **The blind list is the ledger.** `report.py … blind docs/` lists the
     cited functions no traced run has entered (101 of 617); intersected
@@ -132,7 +116,14 @@ better, and say so. Numbers are stable; the journal is indexed by them.
 90. **The capture queue.** A capture is fourteen unattended minutes — the
     screen for thirty seconds of lobby, then nothing a session needs — so
     it runs *beside* a session. A scenario file (`longtrace.sh`'s inputs)
-    and a script running the lines back to back; 23, 45 and 57 first.
+    and a script running the lines back to back; 23, 45, 57 and 96 first.
+
+96. **A turning vehicle or ship, which no capture has.** `guy_flags & 8`
+    is set for 273 of the install's 1,359 unit pieces and for none of the
+    eight any traced guy carries, so `Guy::do_turn@005d97a0:15`'s
+    `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` override of the standing walk is
+    unmodelled and unfalsifiable (ANIM §4.6). *Capture, owed:* a unit whose
+    piece has one, turning in place, with `UNITS=3`.
 
 23. **The hand-back's inversion, and the formation byte's sign.**
     `kill_current_order` writes `order.facing XOR reversing(leader.angle −

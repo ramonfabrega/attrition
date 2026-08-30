@@ -353,6 +353,28 @@ never sees a walk, which is why no capture has an arrival stand for a builder.
 That arm is the table's new row above, and the builder is the one caller whose
 answer does not depend on modelling it.
 
+**The arm itself, modelled 2026-08-30** (`Guy::move@005d9240:73–89`,
+`crates/sim/src/anim.rs`'s `guys_follow`). A body standing on its unit with
+`des_angle != angle` is put back on `CHAR_WALK` — the plain one; the carrying
+walk is resolved in the *moving* half — and marked unstopped, so the next
+frame's `do_idle` sees the walk category and a stopped body and rolls again.
+That second roll is the arrival's second draw, run39's frames 19 and 20
+(`docs/SYNC.md` §3.11). Its only guard is a **sea** unit (`type+0x218 == 1`)
+or a `SPECIAL_ANIM` order, the second of which this crate does not model at
+all.
+
+**And `Guy::do_turn@005d97a0:15`'s override cannot fire on any capture.**
+With `guy_flags & 8` the turn replaces that walk with
+`CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, which `Guy::move`'s own slot exclusions
+then keep, so such a guy spends no arrival draw. `Guy::init_real@005db6b0:179`
+sets the bit only for a guy whose piece names a turn animation: 273 of the
+install's 1,359 unit pieces do, and **none of the eight a `DUMP_ALL` run's
+guys carry** — 0, 19, 352, 371, 6336, 6688, 12691, 13043 — while gaia's
+60063–60074 are not `<UNIT>` entries at all. Asserted in `rondata::diff`'s
+`the_install_s_piece_lengths_match_the_dumps`, beside the `GROUP_IDLE2`
+finding of §3.2, and unmodelled deliberately: the check that would make it
+matter is a capture with a vehicle or a ship turning in place.
+
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 
 Phase 7 of the frame (`docs/SYNC.md` §2): `Objects::inc_time` walks leaders

@@ -7597,3 +7597,151 @@ angle to the snapped destination also produced 64/64, and the listing is what
 says it was a second compensating error rather than the answer. And
 `Unit::init`'s snap is two lines of the same function's prologue, which no
 amount of reading its callers would have found.
+
+## 2026-08-30 (later, Opus) — items 36 and 93: East Indies' word 19 → 69, and the farmers were never seventeen callers
+
+**The headline moved: East Indies' word parts at 19 → 69, and its first
+sixty-four frames are 64 of 64 on the count and 64 draw for draw.** Great
+Lakes holds at 780 and rises to 954/843 of 1,850; run10 holds at ticks 572,
+orders 776. run10's angle sub-score, item 36's own, goes **8,969 of 33,992 →
+1,227 of 35,868** with item 36 and settles at **1,910 of 35,984** once item 93
+lands on top of it. Tree green: 642 sim, 145 rondata.
+
+### Item 36 as booked, and what it was
+
+"`Unit::set_angle`'s seventeen other callers." It had carried that name since
+2026-08-27, on the strength of a residue that looked like it: farmers standing
+exactly where the original stands them and pointing somewhere else, 8,866 of
+the 8,969 rows, and a list of seventeen call sites the simulation does not
+make.
+
+It was two predicates in code this crate already had. Neither is a caller.
+
+**One.** `Unit::add_move_order@00616ed0` takes the angle to the point it was
+handed, not to the snap of it. The listing is unambiguous — `ecx = x −
+(this->field_0x10 ^ 0x63637)`, `edx = y − (field_0x14 ^ 0x63637)`, then
+`call find_angle`, and only after that the two `sar $4`s that index
+`div_3_table` for the coordinates it pushes. This crate had `let dest =
+snapped(to)` one line above the `find_angle` it fed. It matters because
+`Unit::do_gather`'s wheat branch picks `(corner + rnd % 4) · 0xc0 + 0x60` —
+the centre of a **192**-unit tile, which is never the centre of a 48-unit
+cell — so every farm walk in the game ends facing a bearing 24 units an axis
+off the one this crate computed.
+
+run10's `0/3` walks from `(2712, 32136)` to the cell whose snapped centre is
+`(2808, 31992)`. The dump's `MOVEORDER angle` is `0x10889...` — 23.25° — and
+`find_angle` over the raw `(2784, 31968)` gives it exactly, where the snapped
+pair gives 33.72°. `0/4`'s `−124.74°` is `find_angle(−312, 216)` on the same
+rule. Two exact matches with no free parameters.
+
+**Two.** `move_step@005faf30` ends a final leg two ways and the gather clause
+belongs to only one of them. The Manhattan snap (`manh <= step`) faces the
+order's angle when the move was the only order **or** the action beneath is a
+`GATHER` (`005fb562`); the partial step — the unit walked its whole step and
+happened to land on the destination — faces it only when the move was the
+only order (`005fb4a8`). `docs/ORDERS.md` §4.5 has had both since it was
+written. The code applied the gather clause to both arms.
+
+The two arms are six frames apart in one capture. `0/3` arrives on 110 with
+`manh 7` at speed 25 — the snap, and its heading becomes the order's 23.25°.
+`1/3` arrives on 116 from `(41789, 17040)` with `manh 29`: a full 25-unit
+step whose sine and cosine are −5 and 24 lands it exactly, so it is the
+partial arm, and its heading stays `find_angle(−5, −24) = −11.42°` while its
+order's angle is −18.58°. A farmer's last leg is routinely the second kind,
+which is why every farmer was in the residue and nothing else was.
+
+### What found it
+
+Not a reading of the mechanic. One row of the residue — a farmer standing
+still and facing wrong on frame 110 — and then the original's own `UNITDATA`
+record for the twenty frames around it, printed as one line a frame. The
+`MOVEORDER angle` sitting in that record next to a position the dump also
+prints is the whole derivation; the listing only confirmed which of the two
+candidate points it was taken to.
+
+`docs/SYNC.md` §3.11 had already found this rule for the pasture two hours
+earlier and implemented it as a special case, with a note saying the walk
+"cannot go through `Sim::add_move_order`". It can now. The special case was
+the bug report, and nobody read it as one.
+
+### Item 93, which item 36 existed to unblock
+
+`docs/SYNC.md` §3.11's pair, unchanged from how it was written and measured
+yesterday: `Unit::init@00612100:69`'s snap on a pasture animal's birth point
+(`farms.rs`), and `Guy::move`'s turn arm putting a standing body still owed a
+turn back on `CHAR_WALK` and unstopping it (`anim.rs`'s `guys_follow`). A
+dozen lines, and the numbers came out exactly as the table in the previous
+entry predicted for "both, with (3)" — except for the column that was the
+whole problem:
+
+| | run39 word | window | run33 word | run33 totals |
+|---|---|---|---|---|
+| before item 36 | 19 | 62/55 | 780 | 951/838 |
+| item 36 alone | 19 | 62/55 | 780 | 951/838 |
+| + item 93 | **69** | **64/64** | **780** | **954/843** |
+
+Predicted for item 93 without item 36: run33's word 780 → 584 and run10's
+orders 776 → 586. With the farmers' facings right it costs nothing at all,
+which is what a dependency looks like when it is real.
+
+### The named suspect was a dead end, and that is now an assertion
+
+Item 36's second half was `Guy::do_turn@005d97a0:15` — with `guy_flags & 8`
+the turn overrides the arm's walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, and
+a guy on a turn animation spends no arrival draw. `Guy::init_real@005db6b0:179`
+sets that bit only for a guy whose piece names a turn animation. **273 of the
+install's 1,359 unit pieces do, and none of the eight a `DUMP_ALL` run's guys
+carry** — 0, 19, 352, 371, 6336, 6688, 12691, 13043, the two scouts, their
+dogs and the six citizens of a Nubian and a British start; gaia's
+60063–60074 are not `<UNIT>` entries at all. So the override cannot fire on
+any capture there is. It is asserted in
+`the_install_s_piece_lengths_match_the_dumps`, beside the `GROUP_IDLE2`
+finding it rhymes with, and left unmodelled with the check that would make it
+matter named: a capture with a vehicle or a ship turning in place.
+
+That is the second time a whole booked mechanic has been closed by reading
+the install's own art tables rather than the executable.
+
+### The checks
+
+- `only_the_snap_arm_s_arrival_faces_the_order_s_angle_under_a_gather`
+  (`cities_tests.rs`): the same two geometries as run10's frames 110 and 116,
+  plus the lone-move case that pins the clause they sit beside. Red when the
+  gather clause is given to both arms.
+- `a_standing_body_still_owed_a_turn_walks_in_place_and_draws_again`
+  (`anim.rs`): the arm, the settled-facing arrival beside it, and the sea
+  guard. Red when the guard is forced on.
+- `an_animal_is_born_on_the_snap_of_its_two_draws` (`farms.rs`): red when the
+  animal is placed on the raw point.
+- `the_three_queue_modes_append_rotate_and_replace` now asserts the order's
+  angle **is** the bearing to the caller's point and **is not** the bearing to
+  the snapped destination — the two differ by 1.7° in that fixture, and the
+  old assertion was the wrong one of the pair.
+- `move_step` reports which arm it arrived on (`Step::snapped`), pinned both
+  ways in `the_clamps_land_the_unit_exactly_and_that_counts_as_arrival`.
+
+### Paperwork
+
+`docs/SYNC.md` §3.12 is new and carries both predicates with the evidence;
+§3.11's last section is rewritten from "not landed" to landed, and its
+coverage bullet's reading-only `find_angle` claim is struck — the argument is
+diff-backed now, on the farmers rather than on the animal. `docs/ORDERS.md`
+§4.3 says what `add_move_order` computes the angle *from*, which it never did;
+§4.5 needed no correction and is marked diff-backed, and paid for the new
+bytes by losing a struck question it had already answered. `docs/ANIM.md` §4.6
+carries the arm and the turn-animation finding. `docs/MOVEMENT.md`'s checks
+section strikes "it is `Unit::set_angle`'s other seventeen callers".
+
+### The lesson, and it is item 72's a fifth time
+
+`docs/ORDERS.md` §4.5 stated the two arrival arms correctly and the code
+merged them. §4.3 said `add_move_order` "is a thin wrapper that snaps and
+computes the angle" and never said what it computes it *from* — a sentence
+that is not wrong, and that a reader checking the code against it would pass.
+Neither was found by reading the mechanic again. Both were found by printing
+the original's own record around one bad row.
+
+And a booked item's *name* is a hypothesis. "Seventeen callers" survived three
+sessions and two widenings because every new measurement was reported against
+it — "the same seventeen callers again" appears four times in
+`rondata::diff`'s own history comments. The residue was never once opened.

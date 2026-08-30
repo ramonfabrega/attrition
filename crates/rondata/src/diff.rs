@@ -3472,6 +3472,35 @@ mod tests {
                 .all(|m| !m.contains_key(&sim::anim::GROUP_IDLE2)),
             "no unit packet names a group idle"
         );
+        // **And no piece any traced unit carries has a turn animation** —
+        // which is what makes `Guy::do_turn@005d97a0:15` unreachable on
+        // every capture there is. That arm overrides `Guy::move`'s
+        // standing walk (`crates/sim/src/anim.rs`, `guys_follow`) with
+        // `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` when `guy_flags & 8`, and
+        // `Guy::init_real@005db6b0:179` sets that bit only when the guy's
+        // piece names one. 273 of the install's 1,359 unit pieces do, so
+        // the mechanic is real; **none of the eight a `DUMP_ALL` run's
+        // guys name is among them** — the two scouts, their two dogs and
+        // the six citizens of a Nubian and a British start — and gaia's
+        // six pieces are not `<UNIT>` entries at all, so they cannot carry
+        // the bit either. Booked as item 36's second half; closed here,
+        // from the install, rather than modelled (`docs/ANIM.md` §4.6).
+        for p in [0, 19, 352, 371, 6336, 6688, 12691, 13043] {
+            let m = &loaded.piece_lengths[&p];
+            assert!(
+                !m.contains_key(&sim::anim::TURN_LEFT) && !m.contains_key(&sim::anim::TURN_RIGHT),
+                "piece {p} names a turn animation, so `guy_flags & 8` is live"
+            );
+        }
+        assert_eq!(
+            loaded
+                .piece_lengths
+                .values()
+                .filter(|m| m.contains_key(&sim::anim::TURN_LEFT))
+                .count(),
+            273,
+            "the pieces that do have one — the check is that it is neither 0 nor all"
+        );
 
         let mut rows = 0usize;
         let mut mirrored = Vec::new();
@@ -6371,10 +6400,17 @@ mod tests {
         // together: the AI's second city is founded on the original's
         // frame, so its ninth citizen is trained on the original's frame
         // too and the roster is one-sided again at 268 + 0.
+        //
+        // 951 / 838 → **954 / 843** with items 36 and 93 together. This is
+        // the number item 93 was held back for: the arm alone, before the
+        // farmers' angles were the original's, cost `first_count` 780 →
+        // 584 and run10's orders 776 → 586. With item 36 in front of it
+        // the word holds at 780 and both totals rise
+        // (`docs/SYNC.md` §3.11, §3.12).
         assert!(
-            words >= 951 && matched >= 838,
+            words >= 954 && matched >= 843,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 951 and 838"
+             {matched} draw for draw; the floors are 954 and 843"
         );
     }
 
@@ -7025,6 +7061,14 @@ mod tests {
     ///               `MOVE_TO` it cannot step — `movement.speed` unset —
     ///               *does* cost player 0 two frames, which is what the
     ///               first attempt measured.
+    ///   2026-08-30  the pair, landed behind item 36: word **19 → 69** and
+    ///               the window **64 of 64 on the count and 64 draw for
+    ///               draw**. `Unit::init`'s snap on the animal's birth
+    ///               point and `Guy::move`'s turn arm — either alone is
+    ///               worse than neither (20 and 60/53; 58/57), and both
+    ///               together cost the *other* map 196 frames of word
+    ///               until the farmers' angles were the original's
+    ///               (`docs/SYNC.md` §3.11's last section, §3.12).
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
         let Some(inst) = install() else { return };
@@ -7121,10 +7165,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 19 && words >= 62 && matched >= 55,
+            first_count >= 69 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, {words} of the first \
              {WINDOW} frames on the count, {matched} draw for draw — the floor is \
-             19, 62 and 55"
+             69, 64 and 64"
         );
     }
 
@@ -8017,7 +8061,7 @@ mod tests {
         // longer with them.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 93_341,
+            coll_seen, 93_357,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -8244,8 +8288,10 @@ mod tests {
         // 33,992 → **35,868** with item 74 (the AI's thirty-two food):
         // 1,876 more, `1/9`'s own rows and the eight units that hold
         // longer beside it.
+        // Unmoved by item 36 — it changes no position — and 35,868 →
+        // **35,984** with item 93.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 35_868, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 35_984, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -8302,8 +8348,21 @@ mod tests {
         // compared: the standing body's instant turn
         // (`docs/MOVEMENT.md`, "The body step") both removed the scout's
         // three and kept 1,876 more rows in view.
+        // 8,969 → **1,227** with item 36, on the same 35,868 — and it was
+        // never the seventeen callers. It was two predicates in code this
+        // crate already had (`docs/SYNC.md` §3.12): `add_move_order` took
+        // the angle to the **snapped** destination where the listing takes
+        // it to the point the caller handed over, and `move_step`'s gather
+        // clause was applied to both arrival arms where the original has it
+        // on the Manhattan snap alone. Every farmer left the residue and
+        // the earliest surviving row went 110 → 820.
+        // 1,227 → **1,910** against 35,868 → 35,984 with item 93 (the
+        // pasture's snap and `Guy::move`'s turn arm, §3.11's pair, landed
+        // the same session because item 36 unblocked it): 116 more rows in
+        // view, and the coverage effect deep in the untraced stretch that
+        // every widening has had here.
         assert!(
-            bad.len() <= 8_969,
+            bad.len() <= 1_910,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );

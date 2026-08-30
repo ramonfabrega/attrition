@@ -802,11 +802,14 @@ Three, all differential, all in `rondata::diff`:
   somewhere else points somewhere else as a consequence, and counting that
   measures the position gap twice. run20's opening is **72 comparisons, zero
   disagreements**; run10's 1,772 frames are 13,542 comparisons and 5,435
-  disagreements, and none of the residue is the step's — it is
+  disagreements, and none of the residue is the step's. ~~It is
   `Unit::set_angle`'s other seventeen callers, which the simulation does not
-  make. Unit `0/2` alone is 2,680 of it: it walks to `(4440, 28680)` on frame
-  432 with both sides agreeing on position, path and both angles, and on 433
-  the original turns it to face what it is about to gather.
+  make.~~ **It was not** (2026-08-30, item 36): it was two predicates in code
+  this crate already had — `add_move_order` taking the angle to the *snapped*
+  destination rather than to the point it was handed, and `move_step`'s
+  gather clause applied to both arrival arms rather than to the Manhattan
+  snap alone. `docs/SYNC.md` §3.12; **8,969 of 33,992 → 1,227 of 35,868**,
+  and every farmer left the residue.
 - **The AI scout in run10, `1/0`**: two rows in the whole run, both after an
   arrival — ~~see the open question~~ **none since 2026-08-30**, the standing
   body's instant turn. Frames 57 to 91 — the case item 34 was opened on — are

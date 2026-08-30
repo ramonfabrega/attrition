@@ -519,6 +519,19 @@ impl Sim {
 
     /// `Unit::add_move_order` → `add_move_facing_order` (§4.3): the 48-unit
     /// snap, the angle at order time, the action bit from the caller.
+    ///
+    /// **The angle is taken to the caller's point, not to the snapped one**
+    /// (§4.3). The listing at `00616ed0` computes the two `find_angle`
+    /// arguments in registers from the *arguments* — `ecx = x − (this->
+    /// field_0x10 ^ 0x63637)`, `edx = y − (field_0x14 ^ 0x63637)` — and only
+    /// then indexes `div_3_table` for the pair it pushes. So a caller that
+    /// hands over an unsnapped point gets the bearing to that point and a
+    /// destination 48-snapped away from it, and the two differ by up to
+    /// twenty-four units on each axis. A farmer's re-picked cell is
+    /// `t · 0xc0 + 0x60` — the centre of a 192-unit tile, which is never a
+    /// 48-unit cell centre — so every farm walk in the game ends facing
+    /// somewhere the snapped bearing does not name (`docs/ORDERS.md` §4.3,
+    /// `docs/SYNC.md` §3.12).
     pub fn add_move_order(
         &mut self,
         u: usize,
@@ -527,9 +540,8 @@ impl Sim {
         pos: QueuePos,
         action: bool,
     ) {
-        let dest = snapped(to);
         let here = self.units[u].pos;
-        let angle = find_angle(dest.x - here.x, dest.y - here.y);
+        let angle = find_angle(to.x - here.x, to.y - here.y);
         self.add_move_facing_order(u, to, kind, pos, action, angle, None, false);
     }
 
@@ -1140,7 +1152,10 @@ impl Sim {
                 if popped.is_none_or(|p| p.flags & path_flag::FINAL == 0) {
                     return Did::Something;
                 }
-                self.arrive(u, mo);
+                // `false`: `do_move`'s own arrival (`005f8844`) tests
+                // `orderlist.length == 1` and nothing else — the gather
+                // clause belongs to `move_step`'s snap arm alone.
+                self.arrive(u, mo, false);
                 return Did::Nothing;
             }
             self.store_move(u, mo, flags);
@@ -1821,6 +1836,7 @@ impl Sim {
         }
 
         let mut arrived = false;
+        let mut snapped_in = false;
         if self.world.accepts(target) {
             self.set_new_location(u, target, false);
             // `Unit::set_new_location`'s half-cell test and the reveal
@@ -1829,6 +1845,7 @@ impl Sim {
             self.moved_to(u, from, true);
             if step.arrived && target == step.pos {
                 arrived = true;
+                snapped_in = step.snapped;
             } else {
                 let (dx, dy) = (mo.waypoint.x - target.x, mo.waypoint.y - target.y);
                 if dx.abs() + dy.abs() <= self.units[u].tolerance {
@@ -1857,17 +1874,30 @@ impl Sim {
             self.units[u].line_ok = false;
             return Did::Something;
         }
-        self.arrive(u, mo);
+        self.arrive(u, mo, snapped_in);
         Did::Something
     }
 
     /// The final waypoint: `set_angle(mo->angle)` when the move is the only
-    /// order or the action is a gather; clear the pathed bit; kill.
-    fn arrive(&mut self, u: usize, mo: MoveOrder) {
+    /// order — **or, on the Manhattan-snap arm only, when the action beneath
+    /// is a gather**; clear the pathed bit; kill.
+    ///
+    /// The two arms of `move_step@005faf30` end with two different tests, and
+    /// the difference is one clause: the snap's is `orderlist.length == 1 ||
+    /// get_action()->get_type() == GATHER` (`005fb562`), the partial step's
+    /// is `orderlist.length == 1` alone (`005fb4a8`). A farmer that lands on
+    /// its cell by a partial step — its last leg still *longer* in Manhattan
+    /// than one step, so the snap does not fire, while the sine and cosine
+    /// components reach it exactly — keeps the bearing of that step and never
+    /// faces the order's angle. run10's AI farmers do
+    /// exactly that on frame 116 and the human's do not on 110
+    /// (`docs/ORDERS.md` §4.5, `docs/SYNC.md` §3.12).
+    fn arrive(&mut self, u: usize, mo: MoveOrder, snapped_in: bool) {
         let only = self.units[u].orders.len() == 1;
-        let gather_beneath = self
-            .action_of(u)
-            .is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Gather(_)));
+        let gather_beneath = snapped_in
+            && self
+                .action_of(u)
+                .is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Gather(_)));
         if only || gather_beneath {
             // `set_angle(mo->angle, …, 0)` — the heading, and guy 0's
             // `des_angle` with it. The facing does not snap: the body turns

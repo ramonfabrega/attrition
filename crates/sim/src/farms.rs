@@ -405,8 +405,23 @@ impl Sim {
                 Some(_) => pig.unwrap_or(any),
                 None => any,
             };
+            // **Snapped**, because `Unit::init@00612100:69` snaps every
+            // unit's starting position — `div_3_table[v >> 4] · 0x30 +
+            // 0x18`, the same 48-unit snap a move order's destination
+            // takes — before it hands the pair to `Object::init` and to
+            // `set_new_location`. `Farms::add_animals` computes
+            // `building ± (rnd % 0x180 − 0xc0)` and `Objects::init_unit`
+            // passes that straight through, so the two draws name a point
+            // the animal is never born on: run39's first is born at
+            // `(40536, 40392)` and not the `(40552, 40369)` they say, and
+            // its walk is eighteen steps rather than nineteen
+            // (`docs/SYNC.md` §3.11, the pair). A pasture animal is the
+            // only object this crate places from a raw, unrounded point —
+            // every other one comes from a dump, which prints where an
+            // object *is* rather than where it was born — so the snap
+            // belongs here and not in [`crate::Sim::add_unit`].
             let at = match seed {
-                Some(s) => crate::Pos::new(pos.x + s.dx, pos.y + s.dy),
+                Some(s) => crate::orders::snapped(crate::Pos::new(pos.x + s.dx, pos.y + s.dy)),
                 None => pos,
             };
             let Some(index) = self.find_free(9, crate::UNIT_BASE, crate::BUILD_BASE) else {
@@ -782,6 +797,46 @@ mod tests {
     /// corner of −1, 0 or +1, which is the low edge, the middle and the
     /// high side of a 192-unit tile.
     ///
+    /// **An animal is born on the snap of its two draws, not on them.**
+    ///
+    /// `Unit::init@00612100:69` snaps every unit's starting position, and
+    /// `Objects::init_unit` hands `Farms::add_animals`' raw
+    /// `building ± (rnd % 0x180 − 0xc0)` straight to it. run39's first
+    /// animal is born at `(40536, 40392)` where its draws say
+    /// `(40552, 40369)`, which is 432 units of walk rather than 455 — at 25
+    /// a frame, eighteen steps and not nineteen, and the arrival lands on
+    /// the frame the word parts (`docs/SYNC.md` §3.11, the pair).
+    ///
+    /// Made to fail by placing the animal on the raw point.
+    #[test]
+    fn an_animal_is_born_on_the_snap_of_its_two_draws() {
+        let (mut s, b) = farm_sim();
+        let chicken = s.add_unit_type(crate::UnitType {
+            hits: 10,
+            moves: 25,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[chicken].tree = Some(FARMCHICKEN);
+        s.buildings[b].farm.farm_type = ANIMAL_FARM;
+        // `+0x134` and `+0x182` are a `y` and an `x` offset in
+        // `[−0xc0, 0xbf]`; neither of these lands on a cell centre.
+        let seeds = [AnimalSeed {
+            chicken: true,
+            dy: -119,
+            dx: 43,
+        }; FARM_ANIMALS as usize];
+        let pos = s.buildings[b].pos;
+        let animals = s.farm_add_animals(b, &seeds);
+        let raw = crate::Pos::new(pos.x + 43, pos.y - 119);
+        let snapped = crate::orders::snapped(raw);
+        assert_ne!(raw, snapped, "the draws do not name a cell centre");
+        for &u in &animals {
+            assert_eq!(s.units[u].pos, snapped);
+            assert_eq!(s.units[u].pos.x.rem_euclid(48), 24);
+            assert_eq!(s.units[u].pos.y.rem_euclid(48), 24);
+        }
+    }
+
     /// The corner is what this is made to fail on: five animals of one
     /// pasture, all measuring the same farm and all rolling the same
     /// direction, land on **three** different points, and which one is

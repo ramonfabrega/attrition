@@ -429,6 +429,18 @@ pub struct Step {
     pub owed: u32,
     /// Whether it is now exactly on the destination.
     pub arrived: bool,
+    /// Whether it got there by the **Manhattan snap** — `manh <= step`, the
+    /// arm that writes the destination in outright — rather than by a
+    /// partial step that happened to land on it.
+    ///
+    /// The two are different arms of `move_step@005faf30` and they end
+    /// differently: the snap's arrival faces the order's angle when the move
+    /// is the only order **or the action beneath is a gather**, the partial
+    /// step's only when it is the only order (`docs/ORDERS.md` §4.5). A
+    /// farmer walking to its next cell has a `GATHERORDER` beneath, so which
+    /// arm it lands on decides whether it ends facing the order's angle or
+    /// the bearing of its own last step.
+    pub snapped: bool,
 }
 
 /// One frame of the unit's movement toward a destination — the original's
@@ -482,6 +494,7 @@ pub fn move_step(
         heading,
         owed,
         arrived: false,
+        snapped: false,
     };
     if manh < slow * UNITS_PER_TILE {
         // Close in, any turn still owed costs the frame.
@@ -515,6 +528,7 @@ pub fn move_step(
             heading,
             owed,
             arrived: true,
+            snapped: true,
         };
     }
 
@@ -539,6 +553,7 @@ pub fn move_step(
         heading,
         owed,
         arrived: pos == dest,
+        snapped: false,
     }
 }
 
@@ -1002,6 +1017,16 @@ mod tests {
         // a zero tolerance that is arrival, even though the snap never said so.
         assert_eq!(s.pos, dest);
         assert!(s.arrived);
+        // And **which arm** it arrived on is the difference between facing
+        // the order's angle and keeping this step's bearing when a gather
+        // order sits beneath (`docs/ORDERS.md` §4.5). This one is the
+        // partial step; a shorter hop of the same shape is the snap.
+        assert!(!s.snapped, "the partial step, not the Manhattan snap");
+        let near = Pos::new(3, -4);
+        assert!(arrives(3, -4, 149));
+        let s = move_step(Pos::new(0, 0), Angle::NORTH, near, 149, &CITIZEN, rate);
+        assert_eq!(s.pos, near);
+        assert!(s.arrived && s.snapped);
     }
 
     #[test]

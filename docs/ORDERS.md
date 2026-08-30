@@ -720,8 +720,12 @@ enemy → `add_attack_order`); `0x20` = a caravan road waypoint.
 ### 4.3 Lifecycle
 
 **Created** by `Unit::add_move_facing_order@005e55c0` — the only constructor
-path; `add_move_order@00616ed0` is a thin wrapper that snaps and computes the
-angle. It fills `x, y, angle, dest = 0, dest_x/y = x/y, last = −1, off_x/y,
+path; `add_move_order@00616ed0` is a thin wrapper that snaps the destination
+and takes the angle **to the point it was handed, not to the snap of it** —
+the listing subtracts the unit's position from the *arguments* and only then
+indexes `div_3_table`, so an unsnapped point (every farm cell, every pasture
+walk) gives a heading up to 24 units an axis off the destination
+(`docs/SYNC.md` §3.12). It fills `x, y, angle, dest = 0, dest_x/y = x/y, last = −1, off_x/y,
 orig, facing, pause = retry = timer = 0`, the `flags` bits `1/4/0x20` from
 three arguments; two side rules: a `QUEUE_LAST` `MOVE_TO` for a **`role & 0x10`** type
 (`UnitTypeData +0x2c8` — *not* `unit_flags2`, as §2.3 step 5 already had it
@@ -930,17 +934,13 @@ unit cuts its corners.
 **The facing on arrival** is `mo->angle` — the direction from the start point
 to the goal *at order time* — applied only when the move was the unit's only
 order or the action beneath is a gather; a unit with a second order queued
-keeps its heading. ~~(A flag for `docs/MOVEMENT.md`: `move_step` writes
-`UnitData::angle` with the *heading* every step, yet that document logged a
-facing 1–2° off the heading while walking — `Guy::set_angle`/`do_turn` may
-write it back; the citizen case cannot tell, since it turns instantly.)~~
-**Answered 2026-08-27**, and this flag was right to be raised: they are two
-different fields. `UnitData::angle` is the heading and `GuyData::angle` is the
-facing, `do_turn` is the only writer of the second, and the 1–2° is the gap
-between them while a unit turns. `docs/MOVEMENT.md`, "Two angles". Note also
-that `set_angle(mo->angle, 0)` on arrival passes **0** for the snap flag, so
-it moves the heading and not the facing: the body swings onto the order's
-angle over the frames after the unit stops.
+keeps its heading — and **the two arms differ by exactly that gather
+clause**, which is diff-backed on run10's frames 110 and 116
+(`docs/SYNC.md` §3.12). `UnitData::angle` is the heading and `GuyData::
+angle` the facing, `do_turn` the only writer of the second
+(`docs/MOVEMENT.md`, "Two angles"); `set_angle(mo->angle, 0)` passes **0**
+for the snap flag, so it moves the heading and not the facing, and the body
+swings onto the order's angle over the frames after the unit stops.
 
 ### 4.6 `Unit::find_path@005fb910` — the straight-line verifier, and the pathfinder seam
 
