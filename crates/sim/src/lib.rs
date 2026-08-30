@@ -2023,6 +2023,21 @@ impl Sim {
         // and the objects (`Game::do_frame` line 267; `docs/AI.md` §2.1).
         self.strategy_all();
 
+        // `GameDaemon::process_all`'s **first** act, before anything it
+        // does for vision or the market: every player's repath pressure is
+        // halved and snapped to zero under three
+        // (`docs/PATHFINDER.md` §8). It is what keeps the collision
+        // throttle of `docs/COLLISION.md` §6 step 6 a *rate* rather than a
+        // lifetime count — without it the counter only climbs, and a unit
+        // that has collided four times in a game is throttled for the rest
+        // of it. It draws nothing, so it takes no mark.
+        for r in &mut self.repaths {
+            *r /= 2;
+            if *r < 3 {
+                *r = 0;
+            }
+        }
+
         // `GameDaemon::process_all` → `update_all_seen`, the fourth thing
         // that function does and the one before `calc_markets`
         // (`docs/VISION.md` §6). It draws nothing, so it takes no mark.

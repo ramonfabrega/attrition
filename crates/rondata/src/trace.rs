@@ -122,6 +122,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005f_b753), // `Unit::move_step+0x823`, the blocked stand
         sim::anim::SITE_BLOCKED,
     ),
+    // `Unit::resolve_unit_collision@005f9d30+0xb52` — the head-on pair's
+    // stagger, the collision mechanic's only draw.
+    (0x005f_a882, None, sim::collide::SITE_PAUSE),
     // `Guy::set_anim@005da300+0x104b` — the gaia bird's wing-beat coin.
     // Its own address, so no chain is needed to tell it from the other
     // four (`docs/SYNC.md` §3.9).

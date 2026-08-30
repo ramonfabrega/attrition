@@ -6779,3 +6779,96 @@ convergence looks like rather than a regression.
 **What parts the word at 571** is a collision: the original spends a draw
 at `5fa882`, inside `Unit::resolve_unit_collision@005f9d30`, that this
 simulation does not — eight draws against seven. That is the successor.
+
+## 2026-08-30 (Opus) — item 80: the repath throttle was a lifetime count (571 → 576)
+
+**The headline: ticks 571 → 572, orders 571 → 576.** run33's word parts at
+**576** (from 571), its totals go 791/662 → **802/688**, and player 0
+recovers everything item 79 cost it and passes it: `0/3`, `0/4`, `0/5` go
+577/574/579 → **700/703/687**. East Indies is unmoved at 167/167.
+
+**What the item was booked as, and it was exactly that.** The queue said:
+run33's frame 571 is the original's eight draws against this simulation's
+seven, and the first to differ is theirs at `5fa882` — inside
+`Unit::resolve_unit_collision@005f9d30`, `+0xb52` — against ours
+`Farms::inc_time+0x1ae`. That draw is the last line of §6 step 6: the
+repath succeeded, the unit it collided with is colliding with *it*, and it
+rolls `Random::get(0, 0xffff) % 9 + 1` into the order's `pause`. The
+stagger for a head-on pair, so the two do not both step off on the frame
+their searches land and collide again.
+
+`docs/COLLISION.md` §9 listed it as unmodelled and asked for a capture:
+"two units of the same player ordered into each other head-on". The
+capture was already on disk and had been for a day.
+
+**The draw was the symptom; the throttle was the defect.** With the roll
+alone nothing would have moved, because this simulation never reached the
+repath. The trace of our own side says `1/2` resolves its collision on
+571 and 572 and repaths only on 572, and the reason is one line of
+`GameDaemon::process_all` that nothing here ran:
+
+```
+repaths[p] = repaths[p] / 2;  if (repaths[p] < 3) repaths[p] = 0;
+```
+
+`Game::do_frame` calls `GameDaemon::process_all` **every frame**, between
+`Leaders::strategy_all` and `Objects::process_all` — so the throttle
+`resolve_unit_collision` reads is a *rate*: how hard this player has been
+colliding in the last frame or two. Nothing halved it here, so it was a
+lifetime tally. Player 1 reached 5 somewhere in the first five hundred
+frames and stayed there for the rest of the game, which puts the throttle
+permanently into its `repaths ≥ 4` arm — `if ((o + collide) & 3) return`,
+three collisions in four thrown away. `1/2` is object 2 with `collide 1`
+on frame 571: `3 & 3 ≠ 0`, and the frame was thrown away.
+
+**The document had it, again.** `docs/PATHFINDER.md` §8 has said "halved
+every frame and snapped to zero below 3 (`GameDaemon::process_all`)" since
+the writers survey, and `crates/sim/src/lib.rs` had `repaths` as a
+monotone `Vec<i32>` with one writer and no decay. That is item 79's shape
+for the third time in a week — §3 of `VISION.md` pinned the field and the
+code read another; here §8 pinned the decay and the code had none — and it
+is exactly the pair item 72 is booked to find mechanically.
+
+**The dump named the frame the trace could not.** The trace says how many
+draws and at which site, never for which unit. `UNITDATA` carries
+`collide`, `collide_o` and `collide_who` on every record of every frame,
+and `track.py … --frames 569-573` prints two lines that are not zero:
+`1/4` naming `1/2` from 570 to 573 with its own `collide` never moving,
+and `1/2` naming `1/4` with `collide 1` in the block after 571. A mutual
+collision, which is precisely the tail's guard. Twenty seconds of `grep`
+against a reading that would have taken an hour.
+
+**What it cost to check the guards.** Both tests were made to fail on
+purpose before landing: with the decay commented out the throttle test
+fails on the first tick, and with `collide_pause` commented out the
+stagger test reports an empty mark list. The first attempt at the stagger
+test asserted on the RNG *seed* rather than the mark, and passed for the
+wrong reason — the recovery's own `set_new_location` teleports the body
+and can roll an idle variant of its own, so the seed moves either way.
+The second attempt failed for a better reason still: the "one-sided" case
+was not one-sided, because the two units really had collided during the
+setup tick and `1/4`'s `collide_o` already named `1/2`. Both had to be
+written out explicitly.
+
+**The numbers.**
+
+- **The headline**: ticks 571 → **572**, orders 571 → **576**; player 0
+  574 → **687**, player 1 572 → **573**.
+- **run33's word**: 571 → **576**, totals 791/662 → **802/688**.
+- **The collision block**: 77,211 → **80,161** comparable field-frames,
+  still zero disagreements — the largest single move that count has made
+  since item 78, and this is the block's own item.
+- **The angles**: 29,878 → **31,022** compared, 7,242 → 7,870 bad. The
+  residue is item 36's and nothing else's: `0/3`–`0/5`, `1/3`–`1/5` and
+  `1/8`, every one a farmer, are 7,818 of the 7,870 and no other unit
+  contributes more than twenty-eight rows.
+- Two units fell — `1/8` 778 → 621 and `1/2` to 573 — and both sit past
+  the word's own parting.
+
+**What parts the word at 576** is a **city founding**, and it is a large
+one: five `ScenarioFuncSet::place_city_with_cost` calls, each spending two
+`Leader::compute_sites` draws and then **three** in
+`Leader::make_stuff+0x221` under `Leader::found_cities+0x696`. This
+simulation spends the compute_sites pair five times and the make_stuff
+triple never — forty draws against sixty. That is the successor, and
+`make_stuff` was already in the queue's older backlog.

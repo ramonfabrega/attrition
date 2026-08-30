@@ -342,7 +342,11 @@ In order, with the first that fires winning:
    - otherwise fall through to the repath.
 6. **The repath.** With a non-empty path stack, and under the throttle
    (`repaths[who] < 0x10`; over 4 only every fourth collision counts, over 8
-   only every sixteenth object number):
+   only every sixteenth object number). **The throttle is a rate, not a
+   lifetime count**: `GameDaemon::process_all` halves every player's
+   `repaths` at the top of each frame and snaps it to zero under three
+   (`docs/PATHFINDER.md` §8), so all three arms above are reached only
+   while a player is colliding repeatedly *now*. Then:
    - `repaths[who] += 1`;
    - **pop the path stack** until an entry is worth keeping: stop on
      `flags & 1` (final), or on an entry with `tolerance ≥ 0x60` and no
@@ -357,7 +361,14 @@ In order, with the first that fires winning:
    - if the search succeeded **and** the other unit is colliding with *me*
      and is not already waiting, roll
      `pause = Random::get(0, 0xffff) % 9 + 1` into my order — **a draw on
-     the shared stream** (`docs/SYNC.md`).
+     the shared stream** (`docs/SYNC.md`), and the only one the whole
+     mechanic spends. It is the stagger for a head-on pair: `do_move`
+     will not step while `pause` is non-zero, so the two do not both set
+     off on the frame their searches land and collide again. The guard is
+     read off the unit `resolve` was *handed*, not off `collide_o` again:
+     `other.collide_o == my o`, `other.collide_who == my who`, and
+     `other.unit_masks & 0x40` clear. Site
+     `Unit::resolve_unit_collision+0xb52`, `sim::collide::SITE_PAUSE`.
 
 `Unit::do_idle` zeroes `collide`.
 
@@ -373,8 +384,9 @@ order; the `safe`, `DETOUR`, same-cell and `coll_size 0` gates; the corner
 rule; the same-player-attack exemption; `move_step`'s block, **including its
 `set_anim(CHAR_DEFAULT)`** (§5); **`do_move`'s waypoint test with both of
 its arms** (§5.1, item 63); and `resolve`'s steps 2 — **with its `is_flat`
-fence** (§6, item 64) — 4, 5 and 6, the last including the throttle, the
-stack unwind, the centre snap and `find_upath`.
+fence** (§6, item 64) — 4, 5 and 6, the last including the throttle **with
+its per-frame decay**, the stack unwind, the centre snap, `find_upath` and
+**the stagger draw of its tail** (item 80).
 
 **§5.2's pair came with item 66**, and it is the second consumer of both
 indices: `Sim::find_collision` is `collide_here` for a land caller and the
@@ -404,9 +416,10 @@ Not modelled, each listed in §9: `detect_boat_collision` (no ships); step 1
 (`Unit::half_step` is written and nothing reads it — the halving lives
 inside `move_step`, which this crate does not thread it into); the
 `TRADE_ROUTE`, `0xc` and group arms of §4.3; §5.2's own group arm and its
-general `find_unit_with_radius` path; the pause draw of §6's tail;
+general `find_unit_with_radius` path;
 `do_move`'s own collision arm — the every-other-frame re-probe of
-`coll_x/coll_y` while a search is pending; squads, since only figure 0
+`coll_x/coll_y` while a search is pending, and the `repaths[who] += 1` in
+it; squads, since only figure 0
 marks the index; the `WData::block == −1` sentinel; and `CollBlock`'s lazy
 allocation, replaced here by one flat bitset over the whole unit grid.
 
@@ -481,6 +494,20 @@ buildings join the chain, which is why §8 does not claim it.
   itself walking to. With the pair the two agree, and `1/6` and `1/7` both
   hold to 253. Headline 209 → **252**, and run14's traced *word* went 232
   → the end of all 284 frames (item 66, 2026-08-28).
+- **The stagger of §6's tail, and the throttle's decay** (item 80,
+  2026-08-30). run33's frame 571 is the original's eight draws against
+  this simulation's seven, and the one it was short is
+  `Unit::resolve_unit_collision+0xb52` under
+  `Unit::move_step+0x896 < Unit::do_move+0x1157`. The AI's `1/2` walks
+  into `1/4` on that frame — the dump's next `UNITDATA` block carries
+  `collide 1`, `collide_o 4`, `collide_who 1` — and each names the other,
+  so step 5 refuses and the repath runs. It did not run here: `repaths[1]`
+  had climbed monotonically to **5** over five hundred frames and stuck,
+  because nothing halved it, and `(o + collide) & 3` threw the collision
+  away three times in four. With the decay and the roll, run33's word
+  parts at **576** instead of 571, its totals go 791/662 → **802/688**,
+  and the headline goes ticks 571 → **572**, orders 571 → **576** with
+  player 0 at 574 → **687**.
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §4's naming and §6's snap-and-replan end to end, in
@@ -495,8 +522,9 @@ buildings join the chain, which is why §8 does not claim it.
   written to fail first.
 - §6 steps 1 and 3.
 - §6 step 5's wait-for-it branch (`unit_masks & 0x40`).
-- The throttle's `repaths ≥ 4` and `≥ 8` arms.
-- The pause draw of §6's tail.
+- The throttle's `repaths ≥ 4` and `≥ 8` arms. The decay of §6 step 6
+  makes them rarer, not commoner: a player reaches 4 only by repathing
+  eight times inside two frames.
 - `UnitData::safe`: `find_upath`'s `+= 30` is modelled and the gate reads
   it, but no unit in any capture has ever carried a non-zero one — which
   the pin asserts rather than assumes.
@@ -523,9 +551,12 @@ buildings join the chain, which is why §8 does not claim it.
   a formation and each marks its own disc. *Capture:* `UNITS=3` +
   `GUYS=2` over a four-figure squad walking into another unit.
 - **`coll_size ≥ 2`.** *Capture:* the same, with siege or a ship.
-- **The `pause` draw.** *Capture:* two units of the same player ordered
-  into each other head-on, `UNITS=3`; the pause shows in the `MOVEORDER`
-  row and the draw in `rontrace`.
+- ~~**The `pause` draw.**~~ **Settled by a run** (item 80, 2026-08-30):
+  run33's frame 571 spends it, and §8 has the frame. What the capture
+  named in this row would still add is the *value* — no dump in hand
+  prints a non-zero `MOVEORDER pause` — so the `% 9 + 1` itself rests on
+  the listing. *Capture, still owed:* `UNITS=3`, two units of the same
+  player ordered into each other head-on, for the `MOVEORDER` row.
 - **Whether `collide_guy` is ever non-zero.** Every hard collision this
   reading found writes 0; the field exists, so something writes it.
 - **§5.2's group arm.** `find_ordered_collision`'s second pass tests every

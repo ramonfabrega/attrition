@@ -29,6 +29,13 @@ const UNIT_BLOCK_RADIUS: i32 = 48;
 /// The tile bits the path unwind refuses: blocked, or next to blocked.
 const UNWIND_REFUSES: u16 = tile::BLOCKED | tile::BAD_PATH;
 
+/// The one draw the whole mechanic spends: the stagger a unit gives itself
+/// when the repath of §6 step 6 succeeded and the unit it collided with is
+/// colliding with **it** — `Random::get(0, 0xffff) % 9 + 1` into the
+/// order's `pause` (`docs/COLLISION.md` §6). Two units walking into each
+/// other therefore do not both step off on the same frame.
+pub const SITE_PAUSE: &str = "Unit::resolve_unit_collision+0xb52";
+
 /// The unit cell a position falls in.
 pub const fn ucell(p: Pos) -> Pos {
     Pos {
@@ -674,7 +681,7 @@ impl Sim {
             }
         }
 
-        self.collide_repath(u);
+        self.collide_repath(u, other);
     }
 
     /// The unit named by `collide_o`/`collide_who`, if it is still alive.
@@ -730,7 +737,7 @@ impl Sim {
 
     /// §6 step 6: unwind the path stack to something worth walking, snap
     /// onto the cell centre, and plan on the 48-grid.
-    fn collide_repath(&mut self, u: usize) {
+    fn collide_repath(&mut self, u: usize, other: Option<usize>) {
         if self.units[u].path.is_empty() {
             return;
         }
@@ -791,6 +798,30 @@ impl Sim {
                 }
             }
             self.units[u].line_ok = false;
+            self.collide_pause(u, other);
+        }
+    }
+
+    /// The tail of §6 step 6, and the mechanic's only draw.
+    ///
+    /// The original re-reads the unit it was handed at entry — not
+    /// `collide_o` again — and rolls only when that unit names **me** back
+    /// and is not already waiting on somebody: a stagger for a head-on
+    /// pair, so the two do not step off together and collide again.
+    fn collide_pause(&mut self, u: usize, other: Option<usize>) {
+        let Some(o) = other else { return };
+        if self.units[o].collide_o != self.units[u].index
+            || self.units[o].collide_who != self.units[u].owner as i8
+            || self.units[o].waiting_on
+        {
+            return;
+        }
+        self.mark(SITE_PAUSE);
+        let pause = self.rng.roll() % 9 + 1;
+        if let Some(front) = self.units[u].orders.front_mut()
+            && let Some(m) = front.move_mut()
+        {
+            m.pause = pause;
         }
     }
 }
@@ -935,6 +966,114 @@ mod tests {
             );
         }
         assert!(sim.units[y].pos == stood, "the other one never moved");
+    }
+
+    /// §6's tail, the mechanic's **only** draw — and the two guards that
+    /// silence it.
+    ///
+    /// A head-on pair: each names the other, so step 5's "wait for it"
+    /// refuses on `on_me` and step 4's sidestep is out because the path
+    /// top already carries the sidestep flag. What is left is the repath,
+    /// and it ends in `Random::get(0, 0xffff) % 9 + 1` written into the
+    /// order's `pause` — the stagger that keeps the two from stepping off
+    /// on the same frame and colliding again. One-sided, or against a unit
+    /// already waiting, nothing is rolled and the stream does not move.
+    #[test]
+    fn the_head_on_pair_staggers_itself_and_that_is_the_only_draw() {
+        let a = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let b = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+
+        // The three cases share the setup: `x` walking west into `y`,
+        // `y` walking east into `x`, and a sidestep already on the top of
+        // `x`'s stack.
+        let arrange = |named_back: bool, waiting: bool| {
+            let (mut sim, x, y) = pair(a, b);
+            sim.order_move(x, goal);
+            sim.order_move(y, Pos::new(35 * 0x30 + 0x18, 30 * 0x30 + 0x18));
+            sim.tick();
+            sim.units[x].path.push(PathData {
+                to: Pos::new(29 * 0x30 + 0x18, 30 * 0x30 + 0x18),
+                tolerance: 0,
+                flags: path_flag::SIDESTEP,
+            });
+            sim.units[x].collide_o = sim.units[y].index;
+            sim.units[x].collide_who = 0;
+            let (o, who) = if named_back {
+                (sim.units[x].index, 0)
+            } else {
+                (-1, -1)
+            };
+            sim.units[y].collide_o = o;
+            sim.units[y].collide_who = who;
+            sim.units[y].waiting_on = waiting;
+            sim.trace_phases = true;
+            sim.phase_marks.clear();
+            (sim, x)
+        };
+        // The snap teleports the body, so the recovery re-anims and can
+        // roll an idle variant of its own; what the site table cares about
+        // is whether the *stagger* is one of the frame's draws.
+        let staggered = |sim: &Sim| sim.phase_marks.iter().any(|(m, _)| m == SITE_PAUSE);
+
+        let (mut sim, x) = arrange(true, false);
+        sim.resolve_unit_collision(x);
+        assert!(
+            staggered(&sim),
+            "the stagger is a draw: {:?}",
+            sim.phase_marks
+        );
+        let pause = sim.current_move(x).expect("still a move").pause;
+        assert!((1..=9).contains(&pause), "`% 9 + 1`, got {pause}");
+
+        // It does not name me back: the repath still happens, and it is
+        // silent.
+        let (mut sim, x) = arrange(false, false);
+        sim.resolve_unit_collision(x);
+        assert!(
+            !staggered(&sim),
+            "one-sided, no draw: {:?}",
+            sim.phase_marks
+        );
+        assert_eq!(sim.current_move(x).expect("still a move").pause, 0);
+
+        // It names me back but is already waiting on somebody: also
+        // silent, because it is not going to step off either.
+        let (mut sim, x) = arrange(true, true);
+        sim.resolve_unit_collision(x);
+        assert!(!staggered(&sim), "already waiting: {:?}", sim.phase_marks);
+        assert_eq!(sim.current_move(x).expect("still a move").pause, 0);
+    }
+
+    /// The throttle of §6 step 6 is a **rate**, not a lifetime count:
+    /// `GameDaemon::process_all` halves every player's `repaths` at the top
+    /// of each frame and snaps it to zero under three
+    /// (`docs/PATHFINDER.md` §8).
+    ///
+    /// Without the decay the counter only ever climbs, and the fifth
+    /// recovery a player ever makes puts it past 4 for the rest of the
+    /// game — where `(o + collide) & 3` throws away three collisions in
+    /// four. That is what run33's frame 571 was: `1/2` reached the repath
+    /// with `repaths` stuck at 5 and was thrown away, so the stagger draw
+    /// the original spends was never spent.
+    #[test]
+    fn the_repath_throttle_halves_every_frame_and_clears_under_three() {
+        let (mut sim, _x, _y) = pair(
+            Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18),
+            Pos::new(20 * 0x30 + 0x18, 20 * 0x30 + 0x18),
+        );
+        sim.repaths[0] = 12;
+        sim.repaths[1] = 5;
+        sim.tick();
+        assert_eq!(
+            (sim.repaths[0], sim.repaths[1]),
+            (6, 0),
+            "halved, and 2 < 3"
+        );
+        sim.tick();
+        assert_eq!(sim.repaths[0], 3, "6 → 3, which survives");
+        sim.tick();
+        assert_eq!(sim.repaths[0], 0, "3 → 1, which does not");
     }
 
     /// §4.1: `safe` — the cooldown a failed 48-grid search buys — turns the

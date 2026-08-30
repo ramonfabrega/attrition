@@ -529,6 +529,18 @@ collide threshold rises `0x20 → 0x80`). Zeroed by `GameDaemon::init/close`
 and `World::close`; an OOS recovery calls `PathFinder::close`, wiping every
 mode field.
 
+**The decay is the load-bearing half, and it went unmodelled** (item 80,
+2026-08-30). Without it the counter is a lifetime tally: this crate's
+`repaths[1]` reached 5 by run33's frame 500 and never came down, which put
+`resolve_unit_collision`'s throttle permanently into its `≥ 4` arm and
+threw away three collisions in four — including the one at frame 571 the
+original repaths and staggers (`docs/COLLISION.md` §6 step 6, §8).
+`Sim::tick` now runs the halving where `Game::do_frame` runs it: first
+thing in `GameDaemon::process_all`, before the vision sweep and the market,
+and before any unit steps. The `500 / repaths²` limit is downstream of the
+same fix — a decayed counter is 0 or 3 on almost every frame, so the
+squared divisor is the one the original uses.
+
 ## 9. `Unit::find_path`'s march — the §4.6 question, settled
 
 The fixed point that hung `crates/sim` (2026-08-22) came from a

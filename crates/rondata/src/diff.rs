@@ -7190,9 +7190,9 @@ mod tests {
         // unit it was about, and every history line below quotes it.
         eprintln!("run10 by unit: {:?}", report.first_divergence_by_unit());
         assert!(
-            ticks >= 571 && orders >= 571 && first[0] >= 574 && first[1] >= 572,
+            ticks >= 572 && orders >= 576 && first[0] >= 687 && first[1] >= 573,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 571, orders 571, player 0 @ 574, player 1 @ 572",
+             — the floor is ticks 572, orders 576, player 0 @ 687, player 1 @ 573",
             report.first_divergence
         );
         assert!(
@@ -7433,9 +7433,15 @@ mod tests {
         // thirteenth: player 1's units all hold longer and player 0's
         // three farmers part earlier, and the AI's five are worth more
         // field-frames than the human's three cost.
+        //
+        // 77,211 → **80,161** with item 80 (the repath throttle's decay),
+        // the fourteenth — and it is the collision block's own item, so
+        // the count is the one to read: player 0's three farmers recover
+        // everything item 79 cost them and pass it, 574/577/579 →
+        // 687/700/703.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 77_211,
+            coll_seen, 80_161,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -7655,8 +7661,10 @@ mod tests {
         // 28,916 → **29,878** with item 79 (the vision projection): 962
         // more, the AI's five holding longer against the human farmers'
         // earlier parting.
+        // 29,878 → **31,022** with item 80 (the repath throttle's decay):
+        // 1,144 more, the human farmers holding a hundred frames longer.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 29_878, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 31_022, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -7698,8 +7706,14 @@ mod tests {
         // 7,366) doing a different job at the same spot.
         // 7,366 → **7,242** with item 79, against 28,916 → 29,878
         // compared.
+        // 7,242 → **7,870** with item 80, against 29,878 → 31,022
+        // compared: 516 of the 1,144 rows the throttle's decay brought
+        // into view agree, and the residue is item 36's and nothing else —
+        // `0/3`–`0/5`, `1/3`–`1/5` and `1/8`, every one of them a farmer,
+        // are 7,818 of the 7,870, and no other unit contributes more than
+        // twenty-eight rows.
         assert!(
-            bad.len() <= 7_242,
+            bad.len() <= 7_870,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );
