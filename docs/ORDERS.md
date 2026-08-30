@@ -1682,6 +1682,11 @@ and 2026-08-27). As rules:
   `5f0b5e`–`5f0b89` holds the two dumps and nothing else.
 - **`set_anim(CHAR_DEFAULT)` runs before** the tile approach's
   `find_nearby_spot` (`+0xfd4`).
+- **`unit_masks & 0x78000000` is what a carrying walk is**, and the four
+  `|=` above are its only writers (`Unit::think:82` and
+  `kill_current_order:107` clear it). Reading `goto_build` instead makes a
+  citizen's first walk to its camp a `WALK_WITH_WOOD` and costs the
+  arrival stand at the end of it — `docs/ANIM.md` §4.4.
 - **The tile choice's filter is not optional** (`005f0575`): a candidate is
   scored only if it still carries `mask & 0x4000` *and* `has_gather_access`
   holds for it, and when nothing passes, the function returns before

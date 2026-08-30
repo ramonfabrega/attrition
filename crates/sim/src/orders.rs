@@ -267,6 +267,16 @@ const ADJACENT: i32 = 0x60;
 /// cells, and the farmer may be sent to any of them.
 const FARM_SPAN: i32 = 4;
 
+/// `unit_masks & 0x78000000` — the four carrying-walk bits
+/// ([`crate::Unit::carry`]), named as `Guy::set_anim`'s walk arm tests
+/// them and written only by `Unit::do_non_flat_gather` (§6.4).
+pub(crate) const CARRY_WITH_WOOD: u32 = 0x0800_0000;
+pub(crate) const CARRY_TO_WOOD: u32 = 0x1000_0000;
+pub(crate) const CARRY_WITH_ORE: u32 = 0x2000_0000;
+pub(crate) const CARRY_TO_ORE: u32 = 0x4000_0000;
+/// The nibble `& 0x87ffffff` clears whole.
+const CARRY_ANY: u32 = CARRY_WITH_WOOD | CARRY_TO_WOOD | CARRY_WITH_ORE | CARRY_TO_ORE;
+
 /// The wood machine's two direct draw sites, under the original's own
 /// offsets from `Unit::do_non_flat_gather@005f0170` — the tile-choice wait
 /// (`% 200 + 400`) and the at-work wait (`% 50 + 100`), §6.4. [`Sim::mark`]
@@ -427,6 +437,9 @@ impl Sim {
                 {
                     self.remove_gatherer(g.building, u);
                 }
+                // `kill_current_order:107`, inside the same arm and after
+                // the chain: the carrying walk goes with the job.
+                self.units[u].carry &= !CARRY_ANY;
             }
             Body::Attack(_) => {
                 // The order is the target's home; dropping it drops the target.
@@ -837,24 +850,30 @@ impl Sim {
         self.think(u, frame);
     }
 
-    /// The carrying walk a gatherer plays, if its action is a wood or ore
-    /// gather — `unit_masks & 0x78000000` as `Guy::move:118–137` reads it:
-    /// `WALK_TO_*` on the way to a tile, `WALK_WITH_*` on the way back.
+    /// The carrying walk a gatherer plays — `unit_masks & 0x78000000`, in
+    /// `Guy::set_anim`'s own order (`005db61f`–`005db665`): `WALK_TO_WOOD`
+    /// first, then `WALK_WITH_WOOD`, `WALK_TO_ORE`, `WALK_WITH_ORE`.
+    ///
+    /// **It is the mask, not the order's `goto_build`.** Reading the order
+    /// made every walk of a gather a carrying walk, including the first
+    /// walk to the camp — which `do_non_flat_gather` has never run for, so
+    /// the original plays it as the plain `CHAR_WALK` and takes the
+    /// arrival stand `Guy::move+0x19f` at the end of it. run33's `1/7`
+    /// carries `unit_masks 262146` on the frame it arrives, and this
+    /// crate had it on `WALK_WITH_WOOD` (`docs/ANIM.md` §4.4).
     pub(crate) fn gather_walk(&self, u: usize) -> Option<i8> {
-        let a = self.action_of(u)?;
-        let Body::Gather(g) = self.units[u].orders[a].body else {
+        let m = self.units[u].carry;
+        if m & CARRY_ANY == 0 {
             return None;
-        };
-        let wood = match self.building_ident(g.building) {
-            Ident::Woodcutter => true,
-            Ident::Mine => false,
-            _ => return None,
-        };
-        Some(match (wood, g.goto_build) {
-            (true, false) => crate::anim::WALK_TO_WOOD,
-            (true, true) => crate::anim::WALK_WITH_WOOD,
-            (false, false) => crate::anim::WALK_TO_ORE,
-            (false, true) => crate::anim::WALK_WITH_ORE,
+        }
+        Some(if m & CARRY_TO_WOOD != 0 {
+            crate::anim::WALK_TO_WOOD
+        } else if m & CARRY_WITH_WOOD != 0 {
+            crate::anim::WALK_WITH_WOOD
+        } else if m & CARRY_TO_ORE != 0 {
+            crate::anim::WALK_TO_ORE
+        } else {
+            crate::anim::WALK_WITH_ORE
         })
     }
 
@@ -875,6 +894,16 @@ impl Sim {
     /// `Unit::think` (§2.4): the auto-attack on the first idle frame and
     /// every 32 after, phased by `o`; a worker's `think_peasant(0)`.
     fn think(&mut self, u: usize, frame: i64) {
+        // `think:82` — a **citizen** (`TypeIndex` 0x32 or 0x33) drops its
+        // carrying walk here, and the leader takes `0x80000`. In the
+        // original this sits after the auto-attack arm and before the
+        // cadence gate; here the gate stands first, so a citizen that
+        // takes an auto-attack keeps the nibble the original would have
+        // cleared. SEAM: the two orderings differ only for an armed
+        // citizen, and no capture has one.
+        if matches!(self.units[u].type_index, 0x32 | 0x33) {
+            self.units[u].carry &= !CARRY_ANY;
+        }
         let unit = &self.units[u];
         let phase = frame + i64::from(unit.index);
         // The global cadence gate (`Unit::think@005f6e40:87`, found by the
@@ -2742,6 +2771,10 @@ impl Sim {
         });
         let d = xs.min(ys) * HALF_TILE + SNAP;
         if !g.goto_build {
+            // `do_non_flat_gather:96`, the first statement of this half:
+            // the carrying walk is dropped whole, and one of the four is
+            // put back by whichever walk this frame issues.
+            self.units[u].carry &= !CARRY_ANY;
             if !g.been_there {
                 g.been_there = true;
                 self.ledgers[who as usize].dirty = true;
@@ -2766,6 +2799,13 @@ impl Sim {
                         self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::First, false);
                         g.goto_build = true;
                         g.wait = 32;
+                        // `:150` / `:154` — the walk back is a *carrying*
+                        // one, by the camp's resource.
+                        self.units[u].carry |= if wood {
+                            CARRY_WITH_WOOD
+                        } else {
+                            CARRY_WITH_ORE
+                        };
                     }
                 }
                 self.store_gather(u, g);
@@ -2817,6 +2857,9 @@ impl Sim {
                         return;
                     }
                     self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::First, false);
+                    // `:376` and `LAB_005f13da` — the approach is a walk
+                    // *to* the resource.
+                    self.units[u].carry |= if wood { CARRY_TO_WOOD } else { CARRY_TO_ORE };
                 }
                 _ => {
                     g.tile = None;
@@ -2952,6 +2995,8 @@ impl Sim {
         if !wood {
             g.wait = 1_000_000;
         }
+        // `:694` / `:700`, the function's last statement either way.
+        self.units[u].carry |= if wood { CARRY_TO_WOOD } else { CARRY_TO_ORE };
         self.store_gather(u, g);
     }
 

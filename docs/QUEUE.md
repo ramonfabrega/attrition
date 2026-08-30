@@ -13,30 +13,31 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-29, after item 70 (Opus).*
+*2026-08-29, after item 71 (Opus).*
 
-**ticks 355, orders 350 — the headline moved thirty-three frames** (322/320),
-and **player 0 @ 356 is now the whole of it**: player 1 went 323 → 363.
-East Indies unmoved at 167/167; run33's word still parts at 345.
+**ticks 362, orders 361 — the headline moved seven frames** (355/350), and
+**player 0 went 356 → 464**, so what pins it now is player 1's scout `1/0`
+at 363. run33's word 345 → **361** and its totals 635/488 → **696/523**.
+East Indies unmoved at 167/167.
 
-**`find_gather_spot`'s numerator is cap headroom, not rate.** ORDERS §6.6
-read it as the leader's per-good rate and `crates/sim` took that as 1 — a
-nearest-building search. It is `Σ_g resource_cap[g] − income[g]`, skipped
-where `over_cap[g]`, and `dist / 0xc0` buckets by the tile so ties are
-normal: frame 321's candidates are 1,958 and 2,041, both bucket 10, and
-the numerator alone sends `1/8` to the farm. The whole function came with
-it. The first disagreeing gather tile went **407 → 1,298**, and run6's
-order-field diff **lost its farmer carve-out** — plain emptiness now over
-432 frames. **Item 68's note about run33 was wrong**, corrected in
-`diff.rs`: what parts the word at 345 is an animation draw against
-`Farms::inc_time+0x1ae`, and fixing `1/8` moved it not at all.
+**The animation lengths are the install's now, not a dump's.** `0/4`'s farm
+walk was never `do_gather`'s: the scout rolled `CHAR_IDLE1` on frame 284,
+no dump has ever shown that slot's length, and the variant fell back to
+`CHAR_DEFAULT` — 61 frames instead of 76 — so the clock wrapped fifteen
+frames early and the farmer's two `% 4` draws came off the wrong words.
+`unit_graphics.xml` has the whole table and
+`GraphicPieces::init_piece_ranges`' four strides say which piece each
+`<UNIT>` entry is (ANIM §3.2, 1,359 pieces). **Item 75 was the same
+defect.** Two more came with it: the carrying walk is `unit_masks &
+0x78000000`, not the order's `goto_build`, and `man_walk.bha` carries one
+more key than its own count says.
 
-**Owed:** 40 (ORACLE.md had two passes; the pin is 138,489). **ORDERS.md
-is 190,215 of its 190,800** — the next non-deleting edit fails the guard.
+**Owed:** 40 (ORACLE.md had two passes; the pin is 138,489). **ORDERS.md is
+190,546 of its 190,800.**
 
-**Opener (Opus):** `take item 71 from @docs/QUEUE.md — player 0's farmer
-0/4 walks one tile north-west of the original's cell, its path goal
-parting at 351 and its position at 356, and it is now the whole headline.`
+**Opener (Opus):** `take item 76 from @docs/QUEUE.md — player 1's scout
+`1/0` parts at 363 and is the whole headline; run33's 355–370 with
+rontrace-run33.log beside it.`
 
 ## The queue
 
@@ -44,11 +45,12 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-71. **`0/4`'s farm walk, one tile north-west.** Player 0's first
-    divergence, successor to item 65: the path goal parts at **351** —
-    ours `(1848, 31800)`, theirs `(2040, 31992)` — the position at 356,
-    and `0/3`/`0/5` hold to 450 and 455, so it is one farmer's cell
-    pick. ORDERS §6.5, run33's 345–360.
+76. **The scout `1/0` at 363, the whole headline.** Player 0 now holds
+    to 464, so player 1's scout is it and has been since item 70. run33's
+    word parts at **361**, thirty-five draws against thirty-seven: at
+    index 15 ours is `Unit::think_scout+0x436` where the original has
+    `+0x64c`, a scan draw two frames before the position, so the two are
+    very likely one thing. run33's 355–370, SCOUT §2, VISION §7.
 
 74. **The AI's long-run economy** (was item 51, now the other way up).
     Item 70 put `1/9` back and it arrives on **897** against the
@@ -58,11 +60,6 @@ say so. Numbers are stable; the journal is indexed by them.
     slower. `CITY.gatherers` is in every dump and uncompared, and a
     `LEADERS` dump prints `resource_cap`/`income`/`rate` per good.
     Score it 268 + 400.
-
-75. **run33's word at 345 — an animation draw against a farm's.** Eight
-    draws against seven, the first ours `Guy::set_anim+0x97a <
-    Guy::inc_time+0x271` where the original has `Farms::inc_time+0x1ae`.
-    run33's 340–350 with `rontrace-run33.log`.
 
 35. **`mylos` as a cache.** VISION §7: player 1 carries no `0x4000000`
     at the end of frame 202 or 203, yet its Scout's `mylos` moves 4 → 6.
@@ -163,7 +160,9 @@ say so. Numbers are stable; the journal is indexed by them.
 
 Older backlog, unchanged: the `LEADERDATA` and `CITY` widenings; a
 `find_target` block; run7's order stream under the trace; a mounted attacker; a
-caravan; `make_stuff` whole; `Leader::diplomacy`; `calc_gather` non-flat.
+caravan; `make_stuff` whole; `Leader::diplomacy`; `calc_gather` non-flat. New
+(77): ANIM §3.2's `AGE3`/`AGE5` piece rows, which no capture has ever aged
+into, and `get_unit_gpiece`'s fall-back walk with them.
 
 ## How to maintain this file
 

@@ -118,6 +118,14 @@ pub struct Loaded {
     /// tables alone; it is the only art the loader reads, and the only
     /// place a length exists for a unit no dump has ever printed.
     pub gaia_lengths: crate::artdata::GaiaLengths,
+    /// Every player unit graphic piece's `slot → frames`, read from the
+    /// same three files (`crate::artdata::piece_lengths`). Empty when
+    /// loaded from tables alone. Where a dump and this table both name a
+    /// `(piece, slot)` they agree — `the_install_s_piece_lengths_match_
+    /// the_dumps` — and where only this one does, it is the difference
+    /// between an idle variant with its own length and one silently
+    /// played as the default (`docs/ANIM.md` §3.2).
+    pub piece_lengths: crate::artdata::PieceLengths,
 }
 
 impl Loaded {
@@ -400,6 +408,15 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     // the loader reads, and the only source there is for a unit no dump
     // has ever printed — gaia's bird (`crate::artdata`).
     loaded.gaia_lengths = crate::artdata::gaia_lengths(install);
+    // And every player unit's, keyed by the graphic piece
+    // `GraphicPieces::get_unit_gpiece` hands out — the `GRAPH` column of
+    // each record placed by `init_piece_ranges`' arithmetic.
+    let graphs: Vec<String> = units
+        .records
+        .iter()
+        .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
+        .collect();
+    loaded.piece_lengths = crate::artdata::piece_lengths(install, &graphs);
     // The opening scripts — `Leaders::prod_script_path` is `.\ai\scripts\`.
     // A missing file is not an error: a game without scripts is a game whose
     // AI skips to step 2, which is what the original does when
@@ -1396,6 +1413,7 @@ pub fn load_tables(
             .unwrap_or_default(),
         scripts: Vec::new(),
         gaia_lengths: Default::default(),
+        piece_lengths: Default::default(),
     }
 }
 
@@ -1971,6 +1989,7 @@ mod tests {
             map_styles: vec![],
             scripts: vec![],
             gaia_lengths: Default::default(),
+            piece_lengths: Default::default(),
         };
         assert_eq!(l.type_index(0), 0);
         assert_eq!(l.type_index(6), BASE_UNITTYPES);

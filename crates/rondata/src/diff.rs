@@ -521,6 +521,16 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             loaded.gaia_lengths.len()
         ));
     }
+    // And every player unit piece's whole slot list, from the same three
+    // files — which is what stops an idle variant nothing has played from
+    // being handed the default's length (`docs/ANIM.md` §3.2).
+    sim.art.piece_lengths = loaded.piece_lengths.clone();
+    if !loaded.piece_lengths.is_empty() {
+        notes.push(format!(
+            "anim: {} unit pieces' slot lists from the install",
+            loaded.piece_lengths.len()
+        ));
+    }
 
     for l in &init.leaders {
         if (0..players as i64).contains(&l.who) {
@@ -3372,6 +3382,129 @@ mod tests {
         }
     }
 
+    /// **The player units' lengths, from the install against the dumps.**
+    ///
+    /// The gaia check above says the `.bha` arithmetic is right; this one
+    /// says the *addressing* is — that
+    /// `GraphicPieces::init_piece_ranges@008f70e0`'s strides and
+    /// `get_unit_gpiece@0090c030`'s sum put each `<UNIT name="…">` entry at
+    /// the piece number the original hands out. Five dumps between them
+    /// print 88 `(gpiece, cur_anim) → end_time` rows over six pieces of two
+    /// nations, and every one of them has to be the install's own.
+    ///
+    /// **Except a mirrored guy's, and that is the check's other half.** A
+    /// crew member past the squad's size copies guy 0's `cur_anim` and
+    /// `cur_time` every frame and keeps its **own** `end_time`
+    /// (`docs/ANIM.md` §5), so the pair a dump prints for the scouts' dogs
+    /// is not a length row at all: it is one animation's slot beside
+    /// another's length. Five of the 88 are that, all on the two dogs
+    /// (crew 1, `13043` and `12691`), and each is a length the *same piece*
+    /// carries at another slot — which is what says the rows are the
+    /// mirror rather than a mis-addressed piece.
+    #[test]
+    fn the_install_s_piece_lengths_match_the_dumps() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        assert_eq!(
+            loaded.piece_lengths.len(),
+            1359,
+            "every `<UNIT>` entry the unit path can name"
+        );
+        // The pieces run12's guys name, by the arithmetic
+        // (`artdata::tests::a_unit_graphic_s_name_gives_its_piece`): player
+        // 0 is Nubian (`UNIT_CONTINENT 1 Arab`, one style stride of
+        // `0x160`) and player 1 British (`0 European`, style 0), the scout
+        // is `TypeIndex` 69 and the citizen 50, and a dog is crew 1
+        // (`+0x3180`). Each of the six is a `<UNIT>` entry the install
+        // names, and a mis-addressed table would miss one.
+        for p in [371, 13043, 19, 12691, 352, 6688] {
+            assert!(
+                loaded.piece_lengths.contains_key(&p),
+                "no install entry for piece {p}"
+            );
+        }
+        // The scout's idle variants, which are the whole of item 71: its
+        // `CHAR_DEFAULT` is 61 frames and its `CHAR_IDLE1` **76**, and no
+        // dump has ever shown the second — so a roll that took `IDLE1`
+        // used to be played as the default and the clock wrapped fifteen
+        // frames early.
+        let scout = &loaded.piece_lengths[&371];
+        assert_eq!(scout.get(&sim::anim::DEFAULT), Some(&61));
+        assert_eq!(scout.get(&sim::anim::IDLE1), Some(&76));
+        assert_eq!(scout.get(&sim::anim::IDLE2), Some(&41));
+        assert_eq!(scout.get(&sim::anim::IDLE3), Some(&190));
+        // And no unit piece in the shipped file has a `CHAR_GROUP_IDLE2` —
+        // so `set_anim`'s captain gate, the one frame in sixteen that
+        // skips the idle roll, can never fire (§4.2). It was `Art::
+        // group_idle`, empty for want of a dump; it is now a fact.
+        assert!(
+            loaded
+                .piece_lengths
+                .values()
+                .all(|m| !m.contains_key(&sim::anim::GROUP_IDLE2)),
+            "no unit packet names a group idle"
+        );
+
+        let mut rows = 0usize;
+        let mut mirrored = Vec::new();
+        for name in [
+            "gamelog-run12-dumpall-seeds.txt",
+            "gamelog-run13-window-95-105.txt",
+            "gamelog-run20-islands-dumpall.txt",
+            "gamelog-run3-fulldump-types.txt",
+            "gamelog-run22-islands-dock-window.txt",
+        ] {
+            let Some(path) = dump(name) else { continue };
+            let text = std::fs::read_to_string(&path).unwrap();
+            let log = Log::parse(&text);
+            let Some(init) = log.initial() else { continue };
+            let built = build_sim(&loaded, &init, Tuning::RON);
+            let sim = &built.sim;
+            for (&(who, _, _, guy), &piece) in &sim.art.pieces {
+                // Gaia is the other check's.
+                if who >= 8 {
+                    continue;
+                }
+                let theirs = loaded
+                    .piece_lengths
+                    .get(&piece)
+                    .unwrap_or_else(|| panic!("{name}: no install entry for piece {piece}"));
+                for (&(p, slot), &n) in &sim.art.lengths {
+                    if p != piece {
+                        continue;
+                    }
+                    rows += 1;
+                    if theirs.get(&slot) == Some(&n) {
+                        continue;
+                    }
+                    // A mirrored guy: the slot is guy 0's and the length is
+                    // this one's, so it must be *some* slot of this piece.
+                    assert!(guy > 0, "{name}: piece {piece} slot {slot} says {n}");
+                    assert!(
+                        theirs.values().any(|&m| m == n),
+                        "{name}: piece {piece} slot {slot} says {n}, which is no \
+                         slot of its own"
+                    );
+                    mirrored.push((piece, slot, n));
+                }
+            }
+        }
+        assert_eq!(rows, 88, "the rows five dumps between them print");
+        mirrored.sort_unstable();
+        mirrored.dedup();
+        assert_eq!(
+            mirrored,
+            vec![
+                (12691, sim::anim::DEFAULT, 76),
+                (12691, sim::anim::IDLE1, 190),
+                (12691, sim::anim::IDLE3, 41),
+                (13043, sim::anim::IDLE2, 61),
+                (13043, sim::anim::IDLE2, 190),
+            ],
+            "the mirrored rows, all on the two dogs"
+        );
+    }
+
     /// Run12's per-frame words, read straight from the dump (`docs/SYNC.md`
     /// §1): the `end_frame` record inside each `FRAME n` block's `FULL
     /// DUMP`, keyed by the engine frame.
@@ -6011,9 +6144,34 @@ mod tests {
         // ours `Guy::set_anim < Guy::inc_time` against the original's
         // `Farms::inc_time+0x1ae`. It is the same row before and after
         // item 70, byte for byte. The **totals** are what moved.
+        //
+        // **361 with item 71** (2026-08-29), and what was wrong at 345 was
+        // a **length**. The human scout's guy 0 rolled `CHAR_IDLE1` on
+        // frame 284; no dump has ever shown that slot's length for its
+        // piece, so `Art::lengths` had none and the roll fell back to
+        // `CHAR_DEFAULT` — 61 frames instead of 76. The clock wrapped on
+        // 345 where the original's runs to 360, and in the five frames
+        // between, the original's *dog* — whose mirrored `cur_time` had
+        // run past its own `end_time` — re-rolled once a frame from
+        // `Unit::do_idle`, which this simulation never reached. Four
+        // draws of drift by frame 349, and the farmer `0/4`'s two `% 4`
+        // re-target draws came off the wrong words (item 71's own
+        // symptom, the headline).
+        //
+        // The lengths now come from the install: `unit_graphics.xml` for
+        // every `<UNIT>` entry, placed at the piece
+        // `GraphicPieces::get_unit_gpiece` hands out
+        // (`crate::artdata::piece_lengths`). That exposed a second one —
+        // `unit_masks & 0x78000000`, the carrying walk, which this crate
+        // had been reading off the gather order's `goto_build` instead.
+        // With the carrying slots' lengths known the stand-in stopped
+        // being invisible: `1/7`'s first walk to its camp became a
+        // `WALK_WITH_WOOD` and lost the arrival stand the original spends
+        // at frame 232. The mask is `do_non_flat_gather`'s own, and with
+        // it the word runs to **361**.
         assert!(
-            first_count >= 345,
-            "the word parts at frame {first_count}; the floor is 345\n{}",
+            first_count >= 361,
+            "the word parts at frame {first_count}; the floor is 361\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         // **The sequence: 99**, and it is the same attribution swap run14's
@@ -6047,10 +6205,13 @@ mod tests {
         // and twenty-eight more spend them in its order, because the AI's
         // citizens are at the buildings the original has them at for the
         // rest of the run.
+        //
+        // 635 / 488 → **696 / 523** with item 71, the largest move either
+        // has made, and the two rose together with `first_count`.
         assert!(
-            words >= 635 && matched >= 488,
+            words >= 696 && matched >= 523,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 635 and 488"
+             {matched} draw for draw; the floors are 696 and 523"
         );
     }
 
@@ -6488,6 +6649,37 @@ mod tests {
         //               `:108`, `is_gathering_at` in place of the
         //               gatherer chain, and the strict `local_20 < score`
         //               that makes a zero-scoring building unpickable.
+        //   2026-08-29  ticks **362**, orders **361**; player 0 @ **464**,
+        //               player 1 @ 363 (item 71: **the idle variant's
+        //               length, from the install**). `0/4`'s farm walk
+        //               was never `do_gather`'s: the two `% 4` draws it
+        //               takes on frame 349 came off a stream four words
+        //               ahead of the original's, and what had put them
+        //               there was an animation length nothing knew. The
+        //               human scout rolled `CHAR_IDLE1` on frame 284 and
+        //               this crate played it as `CHAR_DEFAULT`, because
+        //               `Art::lengths` came out of dumps and no dump had
+        //               ever shown that slot. `unit_graphics.xml` has the
+        //               whole table, and
+        //               `GraphicPieces::init_piece_ranges`' four strides
+        //               say which piece each `<UNIT>` entry is
+        //               (`crate::artdata::piece_lengths`, 1,359 of them).
+        //               With the lengths in, `0/4` takes the original's
+        //               cell and **player 0 goes 356 → 464**.
+        //
+        //               Two more came with it, both exposed by the first.
+        //               The carrying walk is `unit_masks & 0x78000000`,
+        //               not the gather order's `goto_build`: the walk a
+        //               citizen makes to its camp before it has ever
+        //               reached a tile is the plain `CHAR_WALK`, and it
+        //               ends in the arrival stand `Guy::move+0x19f`.
+        //               And `man_walk.bha` carries thirty-one keys where
+        //               its own count says thirty, so the reader's
+        //               "the keys fill the chunk" test had been throwing
+        //               away every citizen's walk.
+        //
+        //               What pins the headline now is player 1's
+        //               **scout** `1/0` at 363, unmoved by this item.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -6495,10 +6687,14 @@ mod tests {
             .iter()
             .map(|&(_, f)| f.unwrap_or(i64::MAX))
             .collect();
+        eprintln!(
+            "run10: ticks {ticks}, orders {orders}, first divergence {:?}",
+            report.first_divergence
+        );
         assert!(
-            ticks >= 355 && orders >= 350 && first[0] >= 356 && first[1] >= 363,
+            ticks >= 362 && orders >= 361 && first[0] >= 464 && first[1] >= 363,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 355, orders 350, player 0 @ 356, player 1 @ 363",
+             — the floor is ticks 362, orders 361, player 0 @ 464, player 1 @ 363",
             report.first_divergence
         );
         assert!(
@@ -6725,7 +6921,7 @@ mod tests {
         // than its own parting alone accounts for.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 60_247,
+            coll_seen, 62_932,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -6921,7 +7117,7 @@ mod tests {
         // the collision tally names — `1/4` re-tasked 113 frames sooner
         // costs more agreeing frames than `1/8`'s 183 extra ones pay for.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 23_296, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 24_370, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -7127,10 +7323,32 @@ mod tests {
         // drifted. Item 70 — `find_gather_spot` scored on the headroom
         // under the commerce cap rather than on distance alone — put every
         // citizen of this capture on the building the original puts it on,
-        // and with that the exception has nothing left in it. So the
-        // assertion is now the plain one: **no modelled order field
-        // disagrees anywhere in the 432 frames**, and any single row fails
-        // it.
+        // and with that the exception had nothing left in it.
+        //
+        // **Scoped to each unit's own first divergence, 2026-08-29
+        // (item 71).** Run6 is not traced past its start, so the stream is
+        // the simulation's own from frame 4 on, and a farmer's *second*
+        // re-target is two draws off it. With the animation lengths read
+        // from the install the clocks moved, and `1/5`'s second re-target
+        // now lands one frame apart: it parts in **position** on frame
+        // 421, and its order list follows. Rows a unit produces after its
+        // own position has parted are not evidence about the order system
+        // — the same reasoning the collision block above is scoped by — so
+        // what is asserted is emptiness up to each unit's own parting, and
+        // any single row before it fails.
+        let parted_orders: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let modelled: Vec<&OrderDivergence> = modelled
+            .into_iter()
+            .filter(|d| {
+                parted_orders
+                    .get(&(d.who, d.o))
+                    .is_none_or(|&f| d.frame < f)
+            })
+            .collect();
         assert!(
             modelled.is_empty(),
             "a modelled order field disagrees: {:?}",

@@ -38,6 +38,52 @@ use crate::Install;
 /// `(TypeIndex, variant, slot) → frames`, for the twelve gaia types.
 pub type GaiaLengths = BTreeMap<(i32, u8, i8), u32>;
 
+/// `gpiece → (slot → frames)` for every graphic piece the install's own
+/// `<UNIT>` entries name — a player's units, where [`GaiaLengths`] covers
+/// gaia's. A piece present here has its **whole** slot list known, so a
+/// slot it omits is the packet's own missing slot.
+pub type PieceLengths = BTreeMap<i32, BTreeMap<i8, u32>>;
+
+/// `GraphicPieces::init_piece_ranges@008f70e0`, read straight out of the
+/// executable — the layout of the unit half of the graphic-piece pool.
+/// `get_unit_gpiece@0090c030` indexes it as
+///
+/// ```text
+/// piece = (TypeIndex - 0x32)
+///       + NUM_PIECES      * art_set     # 0..5, the tribe's UNIT_CONTINENT
+///       + PER_AGE         * age_bracket # 0..2
+///       + PER_GENDER      * female      # or `packed`, which shares the slot
+///       + PER_CREW        * guy_num     # 0..3
+/// ```
+///
+/// and the four strides nest exactly: `PER_AGE` is six art sets of
+/// `NUM_PIECES`, `PER_GENDER` three ages of `PER_AGE`, `PER_CREW` two
+/// genders of `PER_GENDER`, and `total_num_unit_pieces` is `0xc606` —
+/// four crews of `PER_CREW` plus the six "over time" pieces the function
+/// reaches by `total - 6 … total - 1`. `first_unit_piece` is zero.
+///
+/// Diff-backed: run12's own `GUY` blocks give the human scout `371` and
+/// its dog `13043`, the AI's `19` and `12691`, and player 0's citizens
+/// `352` (male) / `6688` (female) — which this arithmetic reproduces from
+/// the two nations' `UNIT_CONTINENT` (Nubians `1 Arab`, British
+/// `0 European`) and the `GUY.type` the same records carry.
+const NUM_PIECES: i32 = 0x160;
+const PER_AGE: i32 = 0x840;
+const PER_GENDER: i32 = 0x18c0;
+const PER_CREW: i32 = 0x3180;
+
+/// The six unit art styles, by the index a nation's `UNIT_CONTINENT`
+/// carries — `say_unit_art_style_name@006f02e0`'s switch, whose six arms
+/// name six consecutive `internal_strings.xml` entries: `Europe` (the
+/// empty style, written `DEFAULT` in the graphics file), `Arab`, `American`,
+/// `Asian`, `NA` and `India`.
+///
+/// A `<UNIT>` whose style is none of these — the handful of `MERCHANT`
+/// entries written `-NEUROPE-`, `-KOREAN-`, `-IROQUOIS-`, `-COLONIAL-`,
+/// `-EINDIAN-` — is a name `get_unit_gpiece` can never build, so it holds
+/// no piece and is skipped.
+const STYLES: [&str; 6] = ["DEFAULT", "ARAB", "AMERICAN", "ASIAN", "NA", "INDIA"];
+
 /// The `UnitAnim` slot each `<ANIM name="CHAR_…">` names. The indices are
 /// `sim::anim`'s, which are the enum's (`rise.pdb`, type 0x46B1); a name
 /// this table does not carry is skipped rather than guessed.
@@ -46,6 +92,9 @@ const SLOTS: &[(&str, i8)] = &[
     ("CHAR_IDLE1", sim::anim::IDLE1),
     ("CHAR_IDLE2", sim::anim::IDLE2),
     ("CHAR_IDLE3", sim::anim::IDLE3),
+    ("CHAR_GROUP_IDLE1", sim::anim::GROUP_IDLE1),
+    ("CHAR_GROUP_IDLE2", sim::anim::GROUP_IDLE2),
+    ("CHAR_GROUP_IDLE3", sim::anim::GROUP_IDLE3),
     ("CHAR_SLOG", sim::anim::SLOG),
     ("CHAR_WALK", sim::anim::WALK),
     ("CHAR_JOG", sim::anim::JOG),
@@ -53,8 +102,17 @@ const SLOTS: &[(&str, i8)] = &[
     ("CHAR_ATTACK1", sim::anim::ATTACK1),
     ("CHAR_ATTACK2", sim::anim::ATTACK2),
     ("CHAR_ATTACK3", sim::anim::ATTACK3),
+    ("CHAR_ATTACKSPECIAL", sim::anim::ATTACKSPECIAL),
+    ("CHAR_DEATH_STAB1", sim::anim::DEATH_STAB1),
+    ("CHAR_DEATH_STAB2", sim::anim::DEATH_STAB2),
+    ("CHAR_DEATH_SHOT1", sim::anim::DEATH_SHOT1),
+    ("CHAR_DEATH_SHOT2", sim::anim::DEATH_SHOT2),
+    ("CHAR_DEATH_SPLODED1", sim::anim::DEATH_SPLODED1),
+    ("CHAR_DEATH_SPLODED2", sim::anim::DEATH_SPLODED2),
     ("CHAR_TURN_LEFT", sim::anim::TURN_LEFT),
     ("CHAR_TURN_RIGHT", sim::anim::TURN_RIGHT),
+    ("CHAR_PACK", sim::anim::PACK),
+    ("CHAR_UNPACK", sim::anim::UNPACK),
     ("CHAR_CHOP_WOOD", sim::anim::CHOP_WOOD),
     ("CHAR_WALK_WITH_WOOD", sim::anim::WALK_WITH_WOOD),
     ("CHAR_DUMP_WOOD", sim::anim::DUMP_WOOD),
@@ -145,6 +203,130 @@ pub fn gaia_lengths(install: &Install) -> GaiaLengths {
     out
 }
 
+/// One `<UNIT name="…">`'s place in the piece pool: the graphic's own name
+/// and the four coordinates of [`NUM_PIECES`]' arithmetic.
+///
+/// The name is `{GRAPH}-{STYLE}-AGE{n}` with three optional tails —
+/// `-PACKED`, `-CREW{k}` and `-FEMALE`. `PACKED` and `FEMALE` are the
+/// **same** coordinate: `get_unit_gpiece` reaches the packed art through
+/// its `packing` argument in place of the gender bit, and no shipped entry
+/// carries both. The age digit is the age itself, not the bracket — `0`,
+/// `3` and `5` for brackets 0, 1 and 2, which is `age < 5 ? age / 3 : 2`,
+/// the same fold `get_unit_gpiece` applies to the leader's age.
+struct PieceName<'a> {
+    graph: &'a str,
+    style: i32,
+    age: i32,
+    gender: i32,
+    crew: i32,
+}
+
+impl<'a> PieceName<'a> {
+    /// Splits a `<UNIT>` name, or `None` when it is not one the unit path
+    /// can build — a gaia `-TYPE<v>`, or one of the styles [`STYLES`] does
+    /// not name.
+    fn parse(name: &'a str) -> Option<PieceName<'a>> {
+        let (graph, rest) = name.split_once('-')?;
+        let mut parts = rest.split('-');
+        let style = parts.next()?;
+        let style = STYLES.iter().position(|s| *s == style)? as i32;
+        let age: i32 = parts.next()?.strip_prefix("AGE")?.parse().ok()?;
+        let age = if age < 5 { age / 3 } else { 2 };
+        let (mut gender, mut crew) = (0, 0);
+        for tail in parts {
+            match tail {
+                "PACKED" | "FEMALE" => gender = 1,
+                _ => crew = tail.strip_prefix("CREW")?.parse().ok()?,
+            }
+        }
+        Some(PieceName {
+            graph,
+            style,
+            age,
+            gender,
+            crew,
+        })
+    }
+
+    /// The piece index of one `TypeIndex` playing this entry.
+    fn piece(&self, type_index: i32) -> i32 {
+        (type_index - 0x32)
+            + NUM_PIECES * self.style
+            + PER_AGE * self.age
+            + PER_GENDER * self.gender
+            + PER_CREW * self.crew
+    }
+}
+
+/// Every player unit piece's `(slot → frames)`, read from the install.
+///
+/// `graphs` is the `GRAPH` column of each unit record in file order — the
+/// string `UnitType::init` keeps at `+0x88`, which is what
+/// `get_unit_gpiece`'s name is built from — so record `i` is `TypeIndex`
+/// `0x32 + i`. Records share a `GRAPH` (thirteen of the shipped 364 do),
+/// and a shared one gives each of its types its own piece with the same
+/// animations, which is what a lookup by *name* does.
+///
+/// A slot whose file the install lacks, or whose file this reader cannot
+/// parse, is left out — and a slot left out of an entry that is here at
+/// all is the packet's own missing slot, which `Guy::set_anim` gives the
+/// three-frame fallback ([`sim::anim::MISSING`]). Returns an empty map
+/// when either XML is unreadable.
+pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
+    let apath = install.data("anim_graphics.xml");
+    let upath = install.data("unit_graphics.xml");
+    let (Ok(atext), Ok(utext)) = (crate::read(&apath), crate::read(&upath)) else {
+        return PieceLengths::new();
+    };
+    let (Ok(adoc), Ok(udoc)) = (crate::parse(&apath, &atext), crate::parse(&upath, &utext)) else {
+        return PieceLengths::new();
+    };
+    let files = anim_files(&adoc);
+    let units = unit_anims(&udoc);
+    // `GRAPH` to the `TypeIndex`es that play it. The gaia records
+    // (`0x192` up) are left out: their pieces come from
+    // `first_bird_piece`, not from this arithmetic ([`gaia_lengths`]).
+    let mut by_graph: BTreeMap<&str, Vec<i32>> = BTreeMap::new();
+    for (i, g) in graphs.iter().enumerate() {
+        let ty = 0x32 + i as i32;
+        if ty >= 0x192 {
+            break;
+        }
+        by_graph.entry(g.trim()).or_default().push(ty);
+    }
+    let mut frames: BTreeMap<&str, u32> = BTreeMap::new();
+    let mut out = PieceLengths::new();
+    for (name, rows) in &units {
+        let Some(p) = PieceName::parse(name) else {
+            continue;
+        };
+        let Some(types) = by_graph.get(p.graph) else {
+            continue;
+        };
+        let mut lengths: BTreeMap<i8, u32> = BTreeMap::new();
+        for (slot, anim) in rows {
+            let Some(file) = files.get(anim) else {
+                continue;
+            };
+            let n = match frames.get(file.as_str()) {
+                Some(&n) => n,
+                None => {
+                    let Some(n) = file_frames(install.root(), file) else {
+                        continue;
+                    };
+                    frames.insert(file, n);
+                    n
+                }
+            };
+            lengths.insert(*slot, n);
+        }
+        for &ty in types {
+            out.insert(p.piece(ty), lengths.clone());
+        }
+    }
+    out
+}
+
 /// `anim_graphics.xml`'s `<ANIM name= file=>`: the animation's name as a
 /// `<UNIT>` cites it, and the file it resolves to (`.\art\x.bha` kept as
 /// the install-relative path it is).
@@ -225,6 +407,14 @@ fn resolve(root: &Path, rel: &str) -> Option<PathBuf> {
 /// seconds**. `load_hier` accumulates `int(seconds · 1000)` into a `u16`
 /// per key, which is the array `force_load` reads the last element of.
 /// Child nodes follow and carry their own copies; only the root's count.
+///
+/// The count is the chunk's **own** field and the keys need not fill it:
+/// `load_hier` reads `header[1].size` keys from `header + 12` and never
+/// compares the two (`0054b700`, the `local_18` loop). `man_walk.bha`
+/// says thirty and carries thirty-one, and the strict equality this once
+/// had rejected it — and with it the citizen's whole walk
+/// (`docs/ANIM.md` §3.2). A chunk whose keys **overrun** it is still not
+/// one this reader understands.
 pub fn key_times(bytes: &[u8]) -> Option<Vec<u16>> {
     let word = |at: usize| -> Option<u32> {
         bytes
@@ -233,9 +423,7 @@ pub fn key_times(bytes: &[u8]) -> Option<Vec<u16>> {
     };
     let size = word(16)? as usize;
     let n = word(24)? as usize;
-    // The node's own arithmetic, which is what says the offsets are right:
-    // the chunk ends exactly where its keys do.
-    if 28 + n.checked_mul(36)? != 16 + size || n == 0 {
+    if 28 + n.checked_mul(36)? > 16 + size || n == 0 {
         return None;
     }
     let mut acc: i64 = 0;
@@ -263,6 +451,54 @@ pub fn game_frames(times: &[u16]) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The `<UNIT>` name grammar, and the piece each coordinate lands on.
+    /// `GraphicPieces::init_piece_ranges@008f70e0`'s four strides nest —
+    /// six art styles to an age, three ages to a gender, two genders to a
+    /// crew — and `total_num_unit_pieces` is `0xc606`, four crews plus the
+    /// six "over time" pieces. Player 0's scout on run12 is `371` and its
+    /// dog `13043`, which is this arithmetic.
+    #[test]
+    fn a_unit_graphic_s_name_gives_its_piece() {
+        let p = PieceName::parse("SCOUT-ARAB-AGE0").expect("a unit entry");
+        assert_eq!(
+            (p.graph, p.style, p.age, p.gender, p.crew),
+            ("SCOUT", 1, 0, 0, 0)
+        );
+        assert_eq!(p.piece(69), 371);
+        let d = PieceName::parse("SCOUT-ARAB-AGE0-CREW1").expect("the dog");
+        assert_eq!(d.crew, 1);
+        assert_eq!(d.piece(69), 13043);
+        // `AGE3` and `AGE5` are the ages themselves, folded to the two
+        // upper brackets by `age < 5 ? age / 3 : 2`.
+        assert_eq!(PieceName::parse("CITIZENS-DEFAULT-AGE3").unwrap().age, 1);
+        assert_eq!(PieceName::parse("CITIZENS-DEFAULT-AGE5").unwrap().age, 2);
+        // `-FEMALE` and `-PACKED` are the same coordinate.
+        assert_eq!(
+            PieceName::parse("CITIZENS-ARAB-AGE0-FEMALE")
+                .unwrap()
+                .piece(50),
+            6688
+        );
+        assert_eq!(
+            PieceName::parse("CATAPULT-DEFAULT-AGE0-PACKED")
+                .unwrap()
+                .gender,
+            1
+        );
+        // The four crews and the six styles bound the pool.
+        assert!(
+            PieceName::parse("SCOUT-DEFAULT-AGE5-CREW3")
+                .unwrap()
+                .piece(0x191)
+                < 0xc606
+        );
+        // A gaia entry, and a style the unit path cannot build, are not
+        // pieces at all.
+        assert!(PieceName::parse("HERDSHEEP-TYPE1").is_none());
+        assert!(PieceName::parse("MERCHANT-KOREAN-AGE3").is_none());
+        assert!(PieceName::parse("NOTAUNITNAME").is_none());
+    }
 
     /// The header arithmetic, hand-built: two keys a third of a second
     /// apart is 333 ms and then 666, which is ten frames.

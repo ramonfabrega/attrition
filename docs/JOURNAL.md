@@ -6300,3 +6300,158 @@ building" corrected, §13's coverage bullet updated and its struck-through
 history trimmed to pay for the addition. The document is 190,215 bytes
 against a 190,800 pin: **item 40 is now due for this file**, and the next
 edit to it that is not a deletion will fail the guard.
+
+## 2026-08-29 (later still, Opus) — item 71: the idle variant nothing had a length for
+
+**ticks 355 → 362, orders 350 → 361; player 0 356 → 464; run33's word
+345 → 361, and its totals 635/488 → 696/523.** The item was "`0/4`'s farm
+walk, one tile north-west", and the farm had nothing to do with it.
+
+### What the item actually was
+
+Player 0's farmer `0/4` re-targets its cell on run10's frame 349 with two
+`GameAccess::rnd(4)` draws, and the goal it walked to was `(1848, 31800)`
+against the original's `(2040, 31992)` — one tile north-west in both axes,
+which is `r = (1, 0)` where the original drew `(2, 1)`. Both draws wrong by
+one is not a farm defect; it is a **stream offset**, and the trace says
+where it came from. By the start of frame 349 this simulation had spent two
+draws fewer than the original, all of it accumulated over frames 345–348:
+
+| frame | ours | theirs | what |
+|---|---|---|---|
+| 345 | 8 | 7 | ours spends a wrap the original does not |
+| 346–350 | one fewer each | | theirs spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, five frames running |
+
+So item 71 and item 75 (run33's word at 345) were the same defect, and the
+queue had them as two.
+
+### The defect: a length nothing knew
+
+The human scout `0/0` stands idle from frame 101 on and its guy 0 wraps
+every 61 frames — 162, 223, 284 — and on **284** the roll took `CHAR_IDLE1`.
+`Art::lengths` is built from `DUMP_ALL` dumps' `GUY` blocks, no dump has ever
+shown that slot for the scout's piece, and `Guy::set_anim`'s "a variant the
+packet lacks falls back to `CHAR_DEFAULT`" was implemented as "a variant
+*nothing knows a length for*". So the scout played its default idle, 61
+frames, and wrapped on 345; the original's `CHAR_IDLE1` is **76** frames and
+runs to 360.
+
+The five frames the original spends and this simulation did not are the
+**dog's**. A crew member past the squad's size mirrors guy 0's `cur_time`
+every frame in `Guy::inc_time` and keeps its own `end_time` — 61, its own
+default — so from the frame guy 0's clock passes 61 the dog's mirrored time
+is past its own end, and `Unit::do_idle`'s `set_anim(CHAR_DEFAULT, 0, 1)`
+re-rolls it once a frame until a long enough variant comes up. `docs/ANIM.md`
+§5 had predicted exactly this and called it unobserved. It is observed now,
+on run33's 346–350.
+
+### The fix: read the install, not the dumps
+
+`docs/ANIM.md` §3.1 (2026-08-28) read the gaia types' lengths out of
+`unit_graphics.xml` + `anim_graphics.xml` + the `.bha` files and said the
+player units needed `get_unit_gpiece`'s tribe/age/gender walk first. They
+need only its **arithmetic**, because a dump already hands over the piece
+*number*:
+
+```
+piece = (TypeIndex − 0x32) + 0x160·style + 0x840·age + 0x18c0·gender + 0x3180·crew
+```
+
+— four literals out of `GraphicPieces::init_piece_ranges@008f70e0`, whose
+strides nest exactly (six styles to an age, three ages to a gender, two
+genders to a crew) and whose `total_num_unit_pieces` is `0xc606`, four crews
+plus the six "over time" pieces `get_unit_gpiece` reaches by `total − 6 …
+total − 1`. `unit_graphics.xml`'s `<UNIT name="SCOUT-ARAB-AGE0-CREW1">` is
+that sum spelled out, so **inverting the name** gives the piece, and no
+tribe, age or gender has to be modelled at all. The six styles are
+`say_unit_art_style_name@006f02e0`'s six arms — six consecutive
+`internal_strings.xml` entries, `Europe`/`Arab`/`American`/`Asian`/`NA`/
+`India`, which are the values a nation file's `<UNIT_CONTINENT>` carries.
+1,359 pieces, `rondata::artdata::piece_lengths`.
+
+The four data points the dumps had were the check and they all fell out:
+player 0 is Nubian (`1 Arab`) and player 1 British (`0 European`), so the
+scouts are `69 − 0x32 + 0x160 = 371` and `19`, the dogs `+0x3180`, the
+female citizen `+0x18c0`. And `first_bird_piece = 0xea8d` reproduces run12's
+sheep at 60063 through the *other* formula in the same function.
+
+### Two more, both found by the first
+
+**`man_walk.bha` carries thirty-one keys and says thirty.** `key_times` had
+required `28 + 36n == 16 + size` — "the chunk ends exactly where its keys
+do", which was true of every file the gaia reader had touched.
+`AnimObj::load_hier@0054b700` requires no such thing: it reads
+`header[1].size` keys from `header + 12` and never compares the two. Nine of
+the first run's fourteen failing rows were that one test throwing away every
+citizen's `CHAR_WALK` and `CHAR_JOG`.
+
+**The carrying walk is `unit_masks & 0x78000000`, not the gather order.**
+With the carrying slots' lengths finally known, a stand-in that had been
+invisible for months stopped being invisible: `Sim::gather_walk` derived
+`WALK_TO_WOOD`/`WALK_WITH_WOOD` from the order's `goto_build`, and every
+walk of a gather became a carrying one — including the citizen's **first**
+walk to its camp, which `find_gather_spot` issues and `do_non_flat_gather`
+has never run for. The original plays that one as the plain `CHAR_WALK` and
+takes the arrival stand `Guy::move+0x19f` at the end of it; run33's `1/7`
+carries `unit_masks 262146` on the frame it arrives, and with the carrying
+slot in place the word fell from 345 to **232**. `Unit::carry` is the nibble
+now, written at `do_non_flat_gather`'s four sites (`:96` clears, `:150`,
+`:154`, `:376`, `:694`, `:700` set), `Unit::think:82` for a citizen and
+`kill_current_order:107` for anybody.
+
+**And no unit packet names a `CHAR_GROUP_IDLE2`** — none of the 1,337
+`<UNIT>` entries — so `set_anim`'s captain gate, the one frame in sixteen
+that skips the idle roll, can never fire. `Art::group_idle` was an empty set
+waiting for a dump; it is a fact now, and the gate reads the packet.
+
+### The numbers
+
+- **The headline**: ticks 355 → **362**, orders 350 → **361**. Player 0 went
+  356 → **464** — `0/4` takes the original's cell, and the three farmers
+  behind it hold — and what pins the headline now is player 1's **scout**
+  `1/0` at 363, unmoved.
+- **run33's word**: 345 → **361**, and the totals 635/488 → **696/523**, the
+  largest move either has made. The sequence still parts at 99, and it is
+  still the same attribution swap (a new unit's first idle roll: ours in
+  `do_idle`, the original's in the phase-7 wrap) at 99, 205 and 319, three
+  frames whose *counts* agree.
+- **Coverage with the headline**, for once: the collision block 60,247 →
+  **62,932** and the angle tally 23,296 → **24,370**.
+- **run6 costs one unit.** Its stream is the simulation's own past frame 3,
+  and with the clocks moved the AI farmer `1/5`'s second re-target lands one
+  frame apart: it parts in position on frame 421 and its order list follows.
+  The order-field assertion is scoped to each unit's own first divergence
+  now — the same scoping the collision block already had — rather than
+  carrying a named exception.
+
+### The tests
+
+`the_install_s_piece_lengths_match_the_dumps` is the two-oracle check, and
+where §3.1's asserted the `.bha` arithmetic this one asserts the
+**addressing**: the 88 `(gpiece, cur_anim) → end_time` rows five dumps print
+over six pieces of two nations, every one against the install. It had teeth
+on its first run — fourteen failures, both families real.
+
+**Five of them still fail, and that is the check's other half.** They are all
+on the two dogs, and a mirrored guy's dumped pair is not a length row at all:
+the slot is guy 0's and the length is its own. Each of the five is a length
+the *same piece* carries at another slot, which is what says they are the
+mirror rather than a mis-addressed piece — and it means **a dump is not a
+source of lengths for a mirrored guy**, which nothing had noticed.
+
+Beside it: `a_unit_graphic_s_name_gives_its_piece` (the grammar and the four
+strides, from the names alone), `a_known_piece_s_missing_slot_is_three_
+frames_and_not_a_variant` (`slot_length` and `packet_has` are two questions,
+and running them together is what swallowed the scout's `IDLE1`),
+`the_scout_s_idle1_runs_seventy_six_frames_not_the_default_s_sixty_one` (the
+same draw, two lengths, two wrap frames — 345 against 360), and
+`the_carrying_walk_comes_off_the_mask_and_not_off_goto_build`.
+
+### Paperwork
+
+`docs/ANIM.md` gains §3.2 and a coverage paragraph, and §9 loses three open
+items to it — the unshown lengths, the group-idle gate and the build/repair
+clocks — while the walk's speed ratio becomes *observable* for the first
+time, because the scout's `CHAR_JOG` is 12 frames against `CHAR_WALK`'s 15.
+`docs/ORDERS.md` §6.4 gains one rule (the mask, not `goto_build`) and stands
+at 190,546 of its 190,800 pin.

@@ -33,6 +33,7 @@ pub const IDLE1: i8 = 1;
 pub const IDLE2: i8 = 2;
 pub const IDLE3: i8 = 3;
 pub const GROUP_IDLE1: i8 = 4;
+pub const GROUP_IDLE2: i8 = 5;
 pub const GROUP_IDLE3: i8 = 6;
 pub const SLOG: i8 = 7;
 pub const WALK: i8 = 8;
@@ -41,8 +42,17 @@ pub const ATTACKWALK: i8 = 10;
 pub const ATTACK1: i8 = 11;
 pub const ATTACK2: i8 = 12;
 pub const ATTACK3: i8 = 13;
+pub const ATTACKSPECIAL: i8 = 14;
+pub const DEATH_STAB1: i8 = 15;
+pub const DEATH_STAB2: i8 = 16;
+pub const DEATH_SHOT1: i8 = 17;
+pub const DEATH_SHOT2: i8 = 18;
+pub const DEATH_SPLODED1: i8 = 19;
+pub const DEATH_SPLODED2: i8 = 20;
 pub const TURN_LEFT: i8 = 21;
 pub const TURN_RIGHT: i8 = 22;
+pub const PACK: i8 = 23;
+pub const UNPACK: i8 = 24;
 pub const CHOP_WOOD: i8 = 25;
 pub const WALK_WITH_WOOD: i8 = 26;
 pub const DUMP_WOOD: i8 = 27;
@@ -201,10 +211,19 @@ pub struct Art {
     /// The unit types whose pieces come three to a type by `(seed + o) % 3`
     /// — `TypeIndex` `0x192..0x19e`, the birds and the herd animals.
     pub gaia_types: BTreeSet<usize>,
-    /// Pieces whose packet has a `GROUP_IDLE2` animation, which makes a
-    /// captain's idle re-roll skip a draw once every 16 frames (§4.2).
-    /// Empty until a dump shows one.
-    pub group_idle: BTreeSet<i32>,
+    /// `gpiece → (slot → frames)` for every graphic piece the install's own
+    /// `<UNIT>` entries name — the same table as [`Art::lengths`], read
+    /// from the whole of `unit_graphics.xml` rather than from what a dump
+    /// happened to play, and **it wins where it speaks**.
+    ///
+    /// The difference is not cosmetic. A dump shows a length only where
+    /// something played it, and the fallback for a length nothing knew was
+    /// `CHAR_DEFAULT` — so a scout that rolled `IDLE1` played its default
+    /// idle instead, and its clock ran to the wrong number
+    /// (`docs/ANIM.md` §3.2). A piece here has its **whole** slot list, so
+    /// a slot it omits is the packet's own missing slot: [`MISSING`]
+    /// frames, and a variant the roll must fall back from.
+    pub piece_lengths: BTreeMap<i32, BTreeMap<i8, u32>>,
     /// `(TypeIndex, variant, slot) → frames` for the gaia types, read from
     /// the install's own `unit_graphics.xml` rather than from a dump
     /// (`rondata::artdata`, §3.1). It is the stronger of the two sources
@@ -325,7 +344,33 @@ impl Sim {
                     .unwrap_or(MISSING),
             );
         }
+        if let Some(slots) = self.art.piece_lengths.get(&gpiece) {
+            return Some(slots.get(&anim).copied().unwrap_or(MISSING));
+        }
         self.art.length(gpiece, anim)
+    }
+
+    /// Whether the guy's **packet** names this slot at all —
+    /// `AnimationPacket::get_animobj(packet, slot) != NULL`, which is the
+    /// test `set_anim` makes before falling a variant back to
+    /// `CHAR_DEFAULT` (`:546`) and a walk back to `CHAR_WALK` (`:596`).
+    ///
+    /// It is not the same question as [`Sim::slot_length`]: a slot the
+    /// packet lacks still gets a length, the three frames
+    /// `AnimationPacket::get_game_frames` returns. Where neither the
+    /// install nor a dump describes the piece the answer is the dump's —
+    /// a length nothing has seen reads as a slot nothing has, which is
+    /// what this crate did everywhere before the install was read.
+    pub(crate) fn packet_has(&self, u: usize, gpiece: i32, anim: i8) -> bool {
+        let ty = self.units[u].type_index;
+        let v = self.gaia_variant(u);
+        if self.art.knows_gaia(ty, v) {
+            return self.art.gaia_lengths.contains_key(&(ty, v, anim));
+        }
+        match self.art.piece_lengths.get(&gpiece) {
+            Some(slots) => slots.contains_key(&anim),
+            None => self.art.length(gpiece, anim).is_some(),
+        }
     }
 
     /// `Unit::init`'s guys: one [`Guy::fresh`] per member, each with
@@ -347,7 +392,7 @@ impl Sim {
             g.anim = init_variant(p);
             // A variant the packet lacks falls back to the default: the
             // table stands in for the packet here.
-            if g.anim != DEFAULT && piece >= 0 && self.slot_length(u, piece, g.anim).is_none() {
+            if g.anim != DEFAULT && piece >= 0 && !self.packet_has(u, piece, g.anim) {
                 g.anim = DEFAULT;
             }
             guys.push(g);
@@ -430,7 +475,7 @@ impl Sim {
                 && unit.captain
                 && !(GROUP_IDLE1..=GROUP_IDLE3).contains(&guy.anim)
                 && g == 0
-                && self.art.group_idle.contains(&guy.gpiece);
+                && self.packet_has(u, guy.gpiece, GROUP_IDLE2);
             let mut v = DEFAULT;
             if !gate {
                 // `openlist == 0`: a unit with a suspended search does not
@@ -441,7 +486,7 @@ impl Sim {
                     v = idle_variant(p, self.units[u].guy_flag_0x20, peasant_on_masked);
                 }
             }
-            if v != DEFAULT && guy.gpiece >= 0 && self.slot_length(u, guy.gpiece, v).is_none() {
+            if v != DEFAULT && guy.gpiece >= 0 && !self.packet_has(u, guy.gpiece, v) {
                 v = DEFAULT;
             }
             v
@@ -533,7 +578,7 @@ impl Sim {
         if let Some(g) = guy
             && g.gpiece >= 0
             && v != WALK
-            && self.slot_length(u, g.gpiece, v).is_none()
+            && !self.packet_has(u, g.gpiece, v)
         {
             v = WALK;
         }
@@ -680,7 +725,7 @@ impl Sim {
     /// The walk a unit plays — `CHAR_WALK`, or a carrying walk when the
     /// gather machine has it heading to or from a tile (`unit_masks &
     /// 0x78000000`, `Guy::move:118–137`).
-    fn walk_for(&self, u: usize) -> i8 {
+    pub(crate) fn walk_for(&self, u: usize) -> i8 {
         match self.gather_walk(u) {
             Some(w) => w,
             None => WALK,
@@ -801,6 +846,68 @@ mod tests {
             stopped: true,
         }];
         s.add_unit(u)
+    }
+
+    /// **A piece the install describes has its whole slot list**, and a
+    /// slot it leaves out is the packet's own — three frames from
+    /// `AnimationPacket::get_game_frames`, and a variant the idle roll has
+    /// to fall back from. That is not the same question as "does anything
+    /// know a length", and reading it as one is what made the roll's
+    /// fallback swallow the human scout's `CHAR_IDLE1` (`docs/ANIM.md`
+    /// §3.2).
+    #[test]
+    fn a_known_piece_s_missing_slot_is_three_frames_and_not_a_variant() {
+        let mut s = sim_at(1);
+        let u = animal(&mut s, 0, 0, 7, DEFAULT, 0, 61);
+        // Nothing knows the piece: every slot is unknown, and an unknown
+        // length reads as a slot the packet lacks — which is what this
+        // crate did everywhere before the install was read.
+        assert_eq!(s.slot_length(u, 7, IDLE1), None);
+        assert!(!s.packet_has(u, 7, IDLE1));
+        // The install names it: `CHAR_DEFAULT` and `CHAR_IDLE1` only.
+        s.art
+            .piece_lengths
+            .insert(7, [(DEFAULT, 61u32), (IDLE1, 76)].into_iter().collect());
+        assert_eq!(s.slot_length(u, 7, IDLE1), Some(76));
+        assert!(s.packet_has(u, 7, IDLE1));
+        assert_eq!(s.slot_length(u, 7, IDLE2), Some(MISSING));
+        assert!(!s.packet_has(u, 7, IDLE2));
+        // And it wins over a dump row for the same pair.
+        s.art.lengths.insert((7, IDLE1), 61);
+        assert_eq!(s.slot_length(u, 7, IDLE1), Some(76));
+    }
+
+    /// **The scout's fifteen frames.** Run33's human scout wraps its idle
+    /// on frame 284 and the roll takes `CHAR_IDLE1`; the original's clock
+    /// then runs 76 frames and this crate's ran 61, because the variant
+    /// fell back to `CHAR_DEFAULT` for want of a length. The draw is the
+    /// same either way — what changed is the slot it lands on and the
+    /// frame the clock next wraps (`docs/ANIM.md` §3.2).
+    #[test]
+    fn the_scout_s_idle1_runs_seventy_six_frames_not_the_default_s_sixty_one() {
+        // A word whose `% 100` is `IDLE1`'s band.
+        let seed = (1u32..)
+            .take(10_000)
+            .find(|&sd| (70..=82).contains(&(Rng::new(sd).roll() % 100)))
+            .expect("a seed in the band");
+        for (known, wrap) in [(false, 345u32), (true, 360)] {
+            let mut s = sim_at(seed);
+            let u = animal(&mut s, 0, 0, 371, DEFAULT, 61, 61);
+            s.art.lengths.insert((371, DEFAULT), 61);
+            if known {
+                s.art.piece_lengths.insert(
+                    371,
+                    [(DEFAULT, 61u32), (IDLE1, 76), (IDLE2, 41), (IDLE3, 190)]
+                        .into_iter()
+                        .collect(),
+                );
+            }
+            s.guy_set_anim(u, 0, DEFAULT, false, true);
+            let g = s.units[u].guys[0];
+            assert_eq!(g.anim, if known { IDLE1 } else { DEFAULT });
+            assert_eq!(g.end_time, if known { 76 } else { 61 });
+            assert_eq!(284 + g.end_time, wrap, "the frame the clock next wraps");
+        }
     }
 
     /// The categories as the executable holds them: idles 0, walks 8, the

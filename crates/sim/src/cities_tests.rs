@@ -1764,3 +1764,63 @@ fn a_citizen_gathers_where_the_cap_has_the_most_room_left() {
         "a zero score is not a candidate"
     );
 }
+
+/// **The carrying walk is `unit_masks & 0x78000000`, not the order.**
+///
+/// `Guy::set_anim`'s walk arm reads four bits off the unit and nothing else
+/// (`005db61f`–`005db665`); `Unit::do_non_flat_gather` is the only writer,
+/// and it sets one on each walk it issues. This crate had been deriving the
+/// slot from the gather order's `goto_build`, which made the citizen's very
+/// first walk to its camp — issued by `find_gather_spot`, before
+/// `do_non_flat_gather` has ever run — a `CHAR_WALK_WITH_WOOD`. The
+/// original plays that walk as the plain `CHAR_WALK` and takes the arrival
+/// stand at the end of it, which is a draw (`docs/ANIM.md` §4.4); run33's
+/// `1/7` carries `unit_masks 262146` on the frame it arrives, and the two
+/// sides parted on frame 232 over exactly that.
+#[test]
+fn the_carrying_walk_comes_off_the_mask_and_not_off_goto_build() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    sim.unit_types[citizen].worker = Worker::Citizen;
+    city_at(&mut sim, &t, 0, 30, 30);
+    let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
+    finish(&mut sim, wood);
+    sim.buildings[wood].gather_max = Some(4);
+    let u = spawn(&mut sim, 0, citizen, tile_pos(30, 30));
+    sim.add_gather_order(u, wood, orders::QueuePos::Last, false);
+
+    // The order says it is heading to the building; the mask is clear, so
+    // the walk is the plain one and the arrival stand can fire.
+    assert!(matches!(
+        sim.units[u].orders.front().map(|o| o.body),
+        Some(Body::Gather(g)) if g.goto_build
+    ));
+    assert_eq!(sim.units[u].carry, 0);
+    assert_eq!(sim.gather_walk(u), None);
+    assert_eq!(sim.walk_for(u), crate::anim::WALK);
+
+    // One bit at a time, in the order the walk arm tests them.
+    for (bit, slot) in [
+        (orders::CARRY_WITH_WOOD, crate::anim::WALK_WITH_WOOD),
+        (orders::CARRY_TO_WOOD, crate::anim::WALK_TO_WOOD),
+        (orders::CARRY_WITH_ORE, crate::anim::WALK_WITH_ORE),
+        (orders::CARRY_TO_ORE, crate::anim::WALK_TO_ORE),
+    ] {
+        sim.units[u].carry = bit;
+        assert_eq!(sim.gather_walk(u), Some(slot));
+    }
+    // Two at once — the walk out is only ever cleared by the arrival, so a
+    // worker that has been both carries both, and `WALK_TO_WOOD` is asked
+    // for first.
+    sim.units[u].carry = orders::CARRY_WITH_WOOD | orders::CARRY_TO_WOOD;
+    assert_eq!(sim.gather_walk(u), Some(crate::anim::WALK_TO_WOOD));
+    sim.units[u].carry = orders::CARRY_WITH_ORE | orders::CARRY_TO_ORE;
+    assert_eq!(sim.gather_walk(u), Some(crate::anim::WALK_TO_ORE));
+
+    // And the job's end takes them with it (`kill_current_order:107`).
+    sim.units[u].carry = orders::CARRY_WITH_WOOD;
+    sim.kill_current_order(u);
+    assert_eq!(sim.units[u].carry, 0);
+}

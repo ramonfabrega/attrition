@@ -8,6 +8,18 @@ in `crates/sim/src/anim.rs`, wired through `lib.rs`'s tick and `orders.rs`'s
 stands; the harness side is `crates/rondata/src/{gamelog,diff}.rs`. The
 document says how each claim was established and what it has not.*
 
+*Amended 2026-08-29 (item 71): the **lengths** are no longer a dump's — the
+install's own `unit_graphics.xml` gives every player unit piece its whole
+slot list, and §3.2 is the arithmetic that says which piece an entry is.
+Which of this document's claims a diff backs, and which rest on a reading:
+**diff-backed** are the categories, the wrap and its roll, the mirror, the
+arrival stand, the four gaia-piece lengths, the whole player piece table
+(88 rows, five dumps) and the carrying walk's four bits — every one of them
+is asserted in `rondata::diff` or `sim::anim`'s tests against a capture.
+**Reading-only** are the boat-crew offsets, the squad's synchronised group
+idle, the attack and death animations, the age brackets above `AGE0`, and
+`Guy::move`'s `des_angle != angle` arm; §9 lists them.*
+
 Every figure (`Guy`) of every unit plays an animation, `cur_time` frames into
 one of `end_time`. `Objects::inc_time` steps every clock once a frame, and a
 clock that runs out restarts its animation through `Guy::set_anim` — which,
@@ -140,6 +152,82 @@ sheep pieces' `DEFAULT` (90 / 109 / 250) and the three fish pieces' idles
 (170 / 101 / 116) — and `cargo run -p rondata -- <install>` re-derives the
 header arithmetic. Two independent oracles for one table.
 
+### 3.2 And for a player's units, by the piece number itself (2026-08-29)
+
+~~Only the gaia types are read.~~ All of them are. What §3.1 said needed
+`get_unit_gpiece`'s tribe/age/gender walk needs only its **arithmetic**,
+because a dump already gives the piece *number* and the walk's whole job is
+to produce one.
+
+`GraphicPieces::init_piece_ranges@008f70e0` sets the unit half of the pool
+out in four nested strides, and they are literals in the executable:
+
+| field | value | what one step is |
+|---|---|---|
+| `first_unit_piece` | 0 | |
+| `num_unit_pieces` | `0x160` = 352 | one art style; also `BASE_GAIATYPES − 0x32`, the unit records |
+| `num_unit_pieces_per_age` | `0x840` | six art styles |
+| `num_unit_pieces_per_gender` | `0x18c0` | three age brackets |
+| `num_unit_pieces_per_crew` | `0x3180` | two genders |
+| `total_num_unit_pieces` | `0xc606` | four crews, **plus six**: the "over time" pieces `get_unit_gpiece` reaches by `total − 6 … total − 1` |
+
+so `get_unit_gpiece@0090c030`'s sum is
+
+```
+piece = (TypeIndex − 0x32)
+      + 0x160  · art_style     # the nation's UNIT_CONTINENT, 0..5
+      + 0x840  · age_bracket   # age < 5 ? age / 3 : 2
+      + 0x18c0 · gender        # o & 1, or `packed` — the same slot
+      + 0x3180 · guy_num
+```
+
+and `unit_graphics.xml`'s names are that sum spelled out:
+`{GRAPH}-{STYLE}-AGE{0|3|5}[-PACKED][-CREW{k}][-FEMALE]`, where `GRAPH` is
+the rules row's own `GRAPH` column (`UnitType::init` keeps it at `+0x88`)
+and the age **digit** is the age, not the bracket. The six styles are
+`say_unit_art_style_name@006f02e0`'s six arms, which name six consecutive
+`internal_strings.xml` entries: `Europe` (written `DEFAULT`), `Arab`,
+`American`, `Asian`, `NA`, `India` — the values a nation file's
+`<UNIT_CONTINENT>` carries. A `<UNIT>` whose style is none of those (the
+handful of `MERCHANT-NEUROPE-`, `-KOREAN-`, `-IROQUOIS-`, `-COLONIAL-`,
+`-EINDIAN-` entries) is a name `get_unit_gpiece` can never build and holds
+no piece.
+
+So the whole table is readable without modelling a tribe or an age:
+`rondata::artdata::piece_lengths` walks every `<UNIT>` entry, inverts its
+name, and files its `<ANIM>` rows under the piece each of that `GRAPH`'s
+`TypeIndex`es lands on — **1,359 pieces**. [`Art::piece_lengths`] carries
+them, and it **wins over the dump's table** wherever it speaks; a piece it
+names at all has its whole slot list, so a slot it omits is the packet's own
+and gets [`anim::MISSING`], three frames.
+
+*The check.* `the_install_s_piece_lengths_match_the_dumps` takes the 88
+`(gpiece, cur_anim) → end_time` rows five dumps print over six pieces of two
+nations and asserts every one against the install — which checks the
+addressing, where §3.1's check checked the `.bha` arithmetic. It had teeth
+on its first run: fourteen rows failed, and both families were real.
+
+**The five that still fail are the mirror, and that is the second half of
+the check.** A crew member past the squad's size copies guy 0's `cur_anim`
+and keeps its **own** `end_time` (§5), so the pair a dump prints for a
+scout's dog is one animation's slot beside another's length. All five are on
+the two dogs, and each is a length the *same piece* carries at another slot,
+which is what says they are the mirror rather than a mis-addressed piece.
+**A dump is not a reliable source of lengths for a mirrored guy at all**, and
+nothing before this had noticed.
+
+**The other nine were `man_walk.bha`.** `key_times` had required the key
+array to fill its chunk exactly. `AnimObj::load_hier@0054b700` requires no
+such thing — it reads `header[1].size` keys from `header + 12` and never
+compares the two — and `man_walk.bha` says thirty and carries thirty-one. So
+every citizen's `CHAR_WALK` and `CHAR_JOG` had been dropped on the floor, and
+with them `Man Ouch` and the deaths. The test is `28 + 36n ≤ 16 + size` now.
+
+**And no unit packet in the shipped file names a `CHAR_GROUP_IDLE2`** — none
+of 1,337 `<UNIT>` entries — so `set_anim`'s captain gate (§4.2, the one frame
+in sixteen that skips the idle roll) can never fire. That was `Art::group_idle`,
+empty for want of a dump; it is now a fact, and the gate reads the packet.
+
 ## 4. `Guy::set_anim@005da300` — the draw
 
 Every request goes through the early returns, then the apply. The paths a
@@ -161,7 +249,8 @@ unit on open ground reaches, in the order the function tests them:
 2. **The idle roll** (`:254–320`), when the requested category is 0. First
    the group-idle gate: a captain (`o_up < 0`, every standalone unit) whose
    piece has a `GROUP_IDLE2` animation skips the roll one frame in sixteen,
-   `(frame + 0x2e + o) & 15 == 0`, and takes `DEFAULT`. Otherwise, **if the
+   `(frame + 0x2e + o) & 15 == 0`, and takes `DEFAULT` — **and no shipped
+   unit packet has one** (§3.2), so it never fires. Otherwise, **if the
    unit has no suspended search (`openlist == 0`), one draw**, `p = rand %
    100`. The variant is chosen only when the guy was already idle and the
    request carries its third argument (`local_20 == DEFAULT && param_3`):
@@ -183,7 +272,25 @@ unit on open ground reaches, in the order the function tests them:
    lengths are equal on every piece observed so the boundary is
    unobservable); an **owner-9** bird's is a coin instead (`% 100 > 49 →
    JOG`, `docs/SYNC.md` §3.9); then the carrying walks override, from
-   `unit_masks & 0x78000000` rather than from what the caller named. A
+   `unit_masks & 0x78000000` rather than from what the caller named —
+   `0x10000000` `WALK_TO_WOOD`, then `0x8000000` `WALK_WITH_WOOD`,
+   `0x40000000` `WALK_TO_ORE`, `0x20000000` `WALK_WITH_ORE`, tested in that
+   order (`005db61f`–`005db665`).
+
+   **The mask is the whole of it, and it is not the gather order.**
+   `Unit::do_non_flat_gather` is its only writer: it clears the nibble at
+   the head of its arrived half (`:96`) and sets one bit on each walk it
+   issues — `WITH` on the walk back to the camp (`:150`/`:154`), `TO` on
+   the approach to a tile (`:376`) and on the walk out a tile choice ends
+   with (`:694`/`:700`). `Unit::think` clears it for a citizen (`:82`),
+   `kill_current_order` for anybody (`:107`). So the citizen's **first**
+   walk to its camp — issued by `find_gather_spot`, before
+   `do_non_flat_gather` has ever run for it — is the plain `CHAR_WALK`, and
+   it ends in the arrival stand below. This crate derived the slot from the
+   order's `goto_build` until 2026-08-29, which made that walk a carrying
+   one and cost the stand; it was invisible while the carrying slots had no
+   length, because the packet fallback turned every one of them back into
+   `CHAR_WALK`. A
    slot the packet lacks falls back to `CHAR_WALK` (`:596`).
    A walk already playing keeps
    its time, and so does a walk-to-walk slot change: ~~rescales `cur_time
@@ -297,9 +404,13 @@ Three things follow.
   is overwritten by the mirror the same frame, and frame 0's draw 21 is the
   human scout's dog (`docs/SYNC.md` §4). The consequence by the code: a
   dog whose own `end_time` is shorter than guy 0's running idle finds its
-  mirrored `cur_time` past it and re-rolls on every idle frame — unobserved
-  so far, because both scouts' dogs ended frame 0 with the longer length
-  or walked.
+  mirrored `cur_time` past it and re-rolls on every idle frame. ~~Unobserved
+  so far~~ — **observed, run33's frames 346–350** (2026-08-29): the human
+  scout's guy 0 takes `CHAR_IDLE1` on frame 284, 76 frames long, and from
+  the frame its mirrored `cur_time` passes the dog's own 61 the dog spends
+  one `Unit::do_idle+0x7d` roll a frame until a variant long enough comes
+  up — five of them, and then nothing. The simulation reproduces the five
+  once the lengths come from the install (§3.2).
 
 ~~The four woodcutters' frame 0 on run12 — their draws at 36, 37, 46, 47 are
 unit-phase stands (§4's camp stand; a same-slot `set_anim` leaves `cur_time
@@ -329,6 +440,12 @@ place on both traced maps.
   squad's group-idle synchronisation (a one-guy unit has no partner). The
   draw is `rng.roll() % 100`; the `openlist` gate is always open (the sim
   keeps no suspended search, `docs/PATHFINDER.md`).
+- **The lengths.** `Sim::slot_length` answers "how many frames" and
+  `Sim::packet_has` answers "does the packet name this slot at all" — two
+  questions the crate ran together until 2026-08-29, when the install's
+  table made them differ (§3.2). The first returns [`anim::MISSING`] for a
+  slot a known piece omits; the second is what the three fallbacks read —
+  `init_real`'s variant, the idle roll's variant, and the walk's `:596`.
 - **`Sim::set_default_anim`** at the callers in §4's table: `do_idle`
   (`orders.rs`), the wood machine's camp stand, tile choice and return, and
   the frame-after-arrival in `guys_follow`. The work animations at the
@@ -340,7 +457,8 @@ place on both traced maps.
   body away from the unit starts the walk (`Guy::move:86`; `move_step:304`
   is the same frame), one standing on it since last frame goes idle if it is
   still on the plain `WALK` slot (`Guy::move:59`) — the carrying walk for a
-  gather's transit legs from `gather_walk`.
+  gather's transit legs from `gather_walk`, which reads `Unit::carry`, the
+  `unit_masks & 0x78000000` nibble `do_non_flat_gather` writes (§4.4).
 - **`Sim::guys_inc_time`** in the tick between `process_gaia` and the ammo,
   §5 whole: leader order, the mirror, the bounded wrap loop. A unit created
   this frame is skipped (`born == frame`): the original spends a trained
@@ -524,33 +642,41 @@ two passes.
 - **`Guy::move:52` tests `des_x == x` without the formation offset** while
   `set_anim:163` tests `des_x == x − off_x`; the same for guy 0 (`off` 0)
   and for every unit in the dumps. Unsettled for a formation with offsets.
-- **Lengths the dumps have not shown**, for a **player's** unit:
+- ~~**Lengths the dumps have not shown**, for a **player's** unit:
   `DUMP_WOOD`, `REAP`, `FARM`, the scout's `IDLE1/3`, most citizen variants
-  on most pieces. A missing entry never wraps here; the original's is 3 for
-  a slot the packet lacks. The `.bha` reader that would settle them exists
-  now (§3.1) — what it cannot do yet is say *which* `<UNIT>` entry a
-  player's unit plays, which is `get_unit_gpiece`'s tribe/age/gender walk.
-  The gaia types are settled. A `DUMP_ALL` window over frames 108–125 of
-  this lobby would show the chop (110, 122), the sow (112, 141) and the
-  walks wrapping.
+  on most pieces.~~ **Settled 2026-08-29, §3.2**: the whole table is
+  `unit_graphics.xml`'s, filed under the piece
+  `GraphicPieces::init_piece_ranges`' four strides say each `<UNIT>` entry
+  is. The scout's `IDLE1` is 76 frames, and its absence was item 71 — the
+  roll fell back to `CHAR_DEFAULT` and the clock wrapped fifteen frames
+  early. What is left open is the **age brackets**: no capture ages a
+  player up, so only `AGE0`'s pieces have ever been read back, and the
+  `0x840` stride is arithmetic rather than an observation.
 - **The loop flags by slot** (`anim::non_looping`): from the XML's names,
   not from the packets' slot-to-file mapping. Only the dumps and the
   attacks depend on it.
 - **The walk's speed ratio** is `f32` in the original; cross-multiplied
-  here. Unobservable while every piece's three walks share a length.
-- **The group-idle gate**: `Art::group_idle` is empty until a dump shows a
-  captain skipping a roll; the animals' forty first idles at frame 0
-  include `o` 2, 18 and 34, whose gate frame it was, so their pieces have
-  no `GROUP_IDLE2` — consistent with the roll for every one of them.
+  here. ~~Unobservable while every piece's three walks share a length.~~
+  **Observable since 2026-08-29** — the install gives the scout's
+  `CHAR_JOG` 12 frames against `CHAR_WALK`'s 15, and the female citizen's
+  11 against 15 — so a wrong side of the `0.6f`/`1.1f` boundary now costs a
+  wrap on a different frame. Nothing has failed on it yet; a capture that
+  fails will name the boundary.
+- ~~**The group-idle gate**: `Art::group_idle` is empty until a dump shows a
+  captain skipping a roll~~ — **settled 2026-08-29, §3.2, and it can never
+  fire**: no `<UNIT>` entry in the shipped `unit_graphics.xml` names a
+  `CHAR_GROUP_IDLE2` at all. The animals' forty first idles at frame 0
+  already pointed at it — `o` 2, 18 and 34 were on the gate frame and rolled
+  anyway — and the install says it outright.
 - **The attack animations, the deaths, pack/unpack, the boat crews'
   offsets, the turn animations, the squad's synchronised group idle** —
   read as far as the table in §4 and not modelled: the harness's runs have
   no fights.
-- **The build and repair animations' lengths** are not in any dump for a
-  player's citizen, so their clocks take `UNKNOWN` and never wrap. Nothing
-  observable turns on it — a wrap of either re-requests its own category and
-  draws nothing — but a `DUMP_ALL` window over a build would settle them
-  alongside the chop and the sow (above).
+- ~~**The build and repair animations' lengths** are not in any dump for a
+  player's citizen, so their clocks take `UNKNOWN` and never wrap.~~ The
+  install has them (§3.2): both are `Construction Saw`, fourteen frames on
+  the citizen pieces. A wrap of either re-requests its own category and
+  draws nothing, so nothing observable turned on it either way.
 - **`Guy::move`'s `des_angle != angle` arm** — the walk a guy plays standing
   still while it turns, and the `field_0x218 == 1` / `SPECIAL_ANIM` exemption
   in front of it (§4.6) — is read and not modelled: this crate's `do_build`

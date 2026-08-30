@@ -191,6 +191,23 @@ pub struct Unit {
     pub spell_time: i16,
     /// `unit_masks & 0x400`: has been given a build or repair order.
     pub was_builder: bool,
+    /// `unit_masks & 0x78000000`: the carrying walk a gatherer plays.
+    ///
+    /// Four bits, and `Guy::set_anim`'s walk arm reads them in its own
+    /// order — `0x10000000` `WALK_TO_WOOD`, then `0x8000000`
+    /// `WALK_WITH_WOOD`, then `0x40000000` `WALK_TO_ORE`, then
+    /// `0x20000000` `WALK_WITH_ORE` — so they are kept as the nibble
+    /// rather than as a slot. `Unit::do_non_flat_gather` is the only
+    /// writer: it clears them whole on the frame a worker reaches its
+    /// tile and sets one on each walk it issues. `Unit::think` clears
+    /// them for a citizen, `kill_current_order` for anybody.
+    ///
+    /// They are why a walk this crate had been playing as the plain
+    /// `CHAR_WALK` — the carrying slots' lengths were unknown, so the
+    /// packet fallback swallowed them — is a carrying walk, and why an
+    /// arrival stand fires for one and not the other (`docs/ANIM.md`
+    /// §4.4).
+    pub carry: u32,
     /// `SubObjectData::flags & 0x10`: could not reach its target.
     pub cant_reach: bool,
     /// `unit_masks & 1`: a decoy; not counted as a gatherer.
@@ -564,6 +581,7 @@ impl Unit {
             stance: 1,
             spell_time: 0,
             was_builder: false,
+            carry: 0,
             cant_reach: false,
             decoy: false,
             avoid: None,
