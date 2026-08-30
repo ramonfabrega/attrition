@@ -13,30 +13,30 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 76 (Opus).*
+*2026-08-30, after item 78 (Opus).*
 
-**ticks 436, orders 427 — the headline moved seventy-four frames**
-(362/361), and **player 1's scout `1/0` went 363 → 484**. run33's word
-361 → **432** and its totals 696/523 → **724/606**. **Player 0 fell
-464 → 450**, and every unit that fell parts *after* the word does. East
-Indies unmoved at 167/167.
+**ticks 505, orders 482 — the headline moved sixty-nine frames** (436/427),
+and **every one of the twelve compared units improved**: player 0 450 →
+**687**, player 1 437 → **506** (pinned by `1/8`). run33's word 432 →
+**482**, totals 724/606 → **752/622**. East Indies unmoved at 167/167.
 
-**The scout's surface probe was reading the wrong tile.** SCOUT §7 had
-`tdata[(4y + 2)·tile_xs + 4x]` from a decompiled `+ 4` read as a field
-offset — but `TData` is `size 0x2` with `mask` at `+0`, so four bytes is
-**two elements** and the tile is the cell **centre**, the same one
-`invalid_loc` is handed four lines later. Cell `(48, 23)` is ocean at
-tile `(192, 94)` and land at `(194, 94)`, so run33's frame-361 re-target
-refused the candidate the original takes. Every capture that had
-exercised the mechanic was a **frame-0** one, where no candidate cell
-straddles a shoreline. Lesson in `docs/audit/README.md`.
+**The gather order's write-back went to the front of the list.**
+`store_gather` wrote `orders.front_mut()`, but every walk
+`do_non_flat_gather` issues is a `QUEUE_FIRST` move *in front of* the
+gather — so the `goto_build = 1` / `wait = 32` written **after**
+`add_move_order` landed on the move and were dropped. `0/2` reached its
+camp on 431 and re-entered the same branch every other frame for the rest
+of the capture. ORDERS §6 had the rule on the *read* side
+(`is_gathering_at` matches `get_action`); the write side never matched it.
 
-**Owed:** 40 (ORACLE.md had two passes; the pin is 138,489). **ORDERS.md
-is 190,546 of its 190,800.**
+**Item 36 was never `0/2`'s.** The angle block blamed `set_angle`'s other
+callers for `0/2`'s 2,680 rows on frame 433; they were this bug. 9,378 →
+**7,366** of 28,916. **Owed:** 40 (ORACLE.md's pin is 138,489; **ORDERS.md
+is 190,724 of its 190,800 and item 40 now blocks it**).
 
-**Opener (Opus):** `take item 78 from @docs/QUEUE.md — run33's word parts
-at 432 on a gather stand, twenty-three draws against twenty-two; run33's
-425–440 with rontrace-run33.log beside it.`
+**Opener (Opus):** `take item 79 from @docs/QUEUE.md — run33's word parts
+at 482 on the scout's ring walk, thirty-one draws against thirty; run33's
+480-485 with rontrace-run33.log beside it.`
 
 ## The queue
 
@@ -44,13 +44,15 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-78. **The word's next parting, at 432 — a gather stand.** run33's
-    word now runs to 431 and parts on **432**, twenty-three draws
-    against twenty-two: at index 15 ours is
-    `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` where the
-    original spends a farm's `Farms::inc_time+0x1ae`. So a gatherer
-    stands here that does not there. run33's 425–440 with
-    `rontrace-run33.log` beside it; ORDERS §6.6, ANIM §5.
+79. **The word's next parting, at 482 — the scout's third cell.** `1/0`
+    re-targets on 482; both sides agree draw for draw through index 12 —
+    four rings' `+0x436`/`+0x458` pairs and two accepted cells — and then
+    the original takes a **third** cell in that ring (`+0x64c`) where this
+    walks on. `best_ring` drops on every hit and the walk runs one ring
+    past it (SCOUT §6), so the original stops a ring earlier: thirty draws
+    against thirty-one, six cells against seven. The order score is the
+    same frame, `1/0`'s path stack at 483. run33's 480–485 with
+    `rontrace-run33.log`; SCOUT §6, §7.
 
 74. **The AI's long-run economy** (was item 51, now the other way up).
     Item 70 put `1/9` back and it arrives on **897** against the
@@ -78,8 +80,9 @@ say so. Numbers are stable; the journal is indexed by them.
     `report.py`'s `blind` already collects the citations.
 
 36. **`Unit::set_angle`'s seventeen other callers.** Most of run10's
-    angle rows, where the positions agree — now 9,378 of 24,120. Start at
-    `do_gather`'s: `0/2` at 432–433 is thousands (GROUPS §4.1).
+    angle rows, where the positions agree — now 7,366 of 28,916, and item
+    78 took `0/2`'s 2,680 out of it. What is left is the farmers:
+    `0/3`–`0/5` and `1/3`–`1/5` are 6,658 of it (GROUPS §4.1).
 
 37. **The arrival frame's facing.** Two rows in run10, the AI scout the
     frame after an `EXPLORE_TO` arrival. MOVEMENT's open questions name

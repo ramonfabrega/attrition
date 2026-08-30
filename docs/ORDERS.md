@@ -48,12 +48,10 @@ inventory of what each reader read is in `docs/JOURNAL.md`, 2026-08-29.**
 Nothing is transcribed; see `docs/DECISIONS.md` entry 7.
 
 **Status.** First reading, implementation, blind second reading and all
-seven adjudications are landed; the verdicts, the counts and what the
-second reading cost the first are in `docs/audit/2026-08-21-orders.md`
-and the story is in `docs/JOURNAL.md` (2026-08-21). The reports
-themselves are outside the repo, at
-`~/ghidra-projects/reading/orders-2026-08-21/`. What the implementation
-leaves as inputs is §13.
+seven adjudications are landed: the verdicts and the counts are in
+`docs/audit/2026-08-21-orders.md`, the story and the reports' location in
+`docs/JOURNAL.md` (2026-08-21). What the implementation leaves as inputs
+is §13.
 
 **Confidence.** High for the structures, the list's orientation and the three
 enqueue modes, the dispatch and its place in the frame, `do_move`'s planning
@@ -1673,9 +1671,9 @@ camp for a 32-frame dump animation; a miner walks out once and stays;
 is −1/`who`/an ally, and at least one orthogonal neighbour is neither terrain
 class `(mask & 0x30) == 0x20` nor itself a resource tile (`& 0x4000`).
 
-**Three lines the implementation has drifted from, each caught by a
-differential check and never by a reading** (`docs/JOURNAL.md`, 2026-08-26
-and 2026-08-27). As rules:
+**Four lines the implementation has drifted from, each caught by a
+differential check and never by a reading** (`docs/JOURNAL.md`, 2026-08-26,
+2026-08-27 and 2026-08-30). As rules:
 
 - **The camp arrival** is `wait--`, `been_there`, `wait < 0 → return`, face,
   `CHAR_DUMP_*`, and no third `set_anim` — the listing at
@@ -1687,6 +1685,10 @@ and 2026-08-27). As rules:
   `kill_current_order:107` clear it). Reading `goto_build` instead makes a
   citizen's first walk to its camp a `WALK_WITH_WOOD` and costs the
   arrival stand at the end of it — `docs/ANIM.md` §4.4.
+- **A walk goes in *front* of the order that issued it, and the order is
+  still the order.** The function holds `go` for its whole body, so the
+  `goto_build = 1` / `wait = 32` written after `add_move_order(…, 1, …)`
+  land on the gather order, not on the move now ahead of it.
 - **The tile choice's filter is not optional** (`005f0575`): a candidate is
   scored only if it still carries `mask & 0x4000` *and* `has_gather_access`
   holds for it, and when nothing passes, the function returns before

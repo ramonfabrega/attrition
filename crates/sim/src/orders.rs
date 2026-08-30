@@ -2745,9 +2745,31 @@ impl Sim {
         self.do_farm(u, b, g, frame);
     }
 
+    /// Writes a gather order's fields back — **to the gather order, not to
+    /// the front of the list**.
+    ///
+    /// The original holds a pointer to the order object (`go`) for the whole
+    /// of `do_gather` and `do_non_flat_gather`, and every walk those
+    /// functions issue goes in *front* of it: `add_move_order(…, 1, …)`
+    /// allocates a new order and links it at the head, leaving `go` valid.
+    /// So a branch that issues a walk and then writes `go->goto_build` is
+    /// writing the same object it was handed.
+    ///
+    /// Writing the front instead dropped every field of the branches that
+    /// walk — most visibly the return to camp, which sets `goto_build = 1`
+    /// and `wait = 32` *after* `add_move_order` (`docs/ORDERS.md` §6.4).
+    /// Without them a woodcutter that had finished its shift never left the
+    /// `goto_build == 0, wait < 0` arm: it walked to the camp, arrived, and
+    /// re-issued the same walk and the same `CHAR_DEFAULT` stand for the
+    /// rest of the game, so it never unloaded and never took another tile.
     fn store_gather(&mut self, u: usize, g: GatherOrder) {
-        if let Some(front) = self.units[u].orders.front_mut()
-            && let Body::Gather(x) = &mut front.body
+        if let Some(x) = self.units[u]
+            .orders
+            .iter_mut()
+            .find_map(|o| match &mut o.body {
+                Body::Gather(x) => Some(x),
+                _ => None,
+            })
         {
             *x = g;
         }

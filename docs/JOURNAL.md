@@ -6564,3 +6564,96 @@ crate reproduces the first but not the second. `docs/audit/README.md` gains
 the lesson — *a constant byte offset inside an array index is a field offset
 only if the element is wide enough to hold one* — and the corollary about
 frame-0-only coverage.
+
+## 2026-08-30 (later, Opus) — item 78: the gather order's write-back went to the front of the list
+
+The word parted at 432 on a gather stand: twenty-three draws against
+twenty-two, ours `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` at
+index 15 where the original spends a farm's `Farms::inc_time+0x1ae`. The
+frame's own draws name the unit — `unit 0/2`, the human's woodcutter — and
+its order tells the rest.
+
+### What it was
+
+`Sim::store_gather` wrote the gather order's fields back to
+`orders.front_mut()`. Every walk `do_gather` and `do_non_flat_gather` issue
+is a `QUEUE_FIRST` move *in front of* the gather order, so on the four
+branches that walk, the front is a `Move` by the time the store runs and the
+`if let Body::Gather` fell through — a silent no-op. The return to camp is
+where it shows, because that branch writes `goto_build = 1` and `wait = 32`
+**after** `add_move_order`:
+
+```
+find_nearby_spot(b, d, …) ok → set_anim(CHAR_DEFAULT); move(spot);
+                               goto_build = 1; wait = 32; unit_masks |= …
+```
+
+The original has no such hazard: `do_non_flat_gather(go)` is handed a
+pointer to the order object and `add_move_order` only relinks the list head,
+so `go->goto_build` lands on the same object all through the function. This
+is the same rule `docs/ORDERS.md` §6 already had for the *read* side —
+`is_gathering_at@00608880` matches on `get_action()`, not on the front,
+"and it is load-bearing" — and the write side was never made to match it.
+
+### What it cost, in the game
+
+`0/2` chopped for its 400-odd frames, finished on 426, set off for its camp
+on 427 and arrived on 431. With `goto_build` still 0 and `wait` still −1 it
+re-entered the same branch on 432, spent the stand again, and re-issued a
+walk to a spot it was already standing on. It did that every other frame for
+the remaining 1,400 frames of the capture: it never unloaded, never took
+another tile, and never faced its camp.
+
+### The numbers
+
+- **The headline**: ticks 436 → **505**, orders 427 → **482**. Player 0
+  450 → **687**, player 1 437 → **506**. **Every one of the twelve compared
+  units improves** — `0/5` 450 → 687, `0/3` 455 → 702, `0/4` 577 → 703,
+  `1/8` 506 (unmoved, and now what pins player 1), `1/0` 484 → 637.
+- **run33's word**: 432 → **482**, totals 724/606 → **752/622**.
+- **Coverage, and the first widening whose disagreements fell with it**: the
+  collision block 62,957 → **74,429** (11,472 more field-frames comparable,
+  the largest move that tally has made) and the angle tally 24,380 →
+  **28,916** *against* 9,378 → **7,366** bad.
+- **East Indies unmoved at 167/167** — item 69's order-list length at 168 is
+  three hundred frames before any of this.
+
+### A booked item that was not what it said
+
+The angle block's own note, written on 2026-08-27 when item 34 landed, read:
+"Unit `0/2` alone is 2,680 of it: it walks to `(4440, 28680)` on frame 432
+with both sides agreeing on the position, the path and both angles, and on
+433 the original turns it to face what it is about to gather while the
+simulation leaves it pointing the way it walked." Those 2,680 rows were
+booked to item 36, `Unit::set_angle`'s seventeen other callers. They were
+not: `0/2` never reached the camp-arrival branch that faces the camp, and
+with the write-back landing its share is 140. Item 36 is 2,012 rows smaller
+than it was, and what is left of it is the farmers — `0/3`–`0/5` and
+`1/3`–`1/5` are 6,658 of the 7,366.
+
+The lesson is the note's own frame number: **432**, the exact frame the word
+parted on. A residue attributed to one item and a divergence sitting on the
+same frame are worth reading together before either is booked.
+
+### What parts the word now, at 482
+
+The scout again, and the cell filter again. `1/0` re-targets on 482; the
+two sides agree draw for draw through index 12 — four rings' `+0x436` /
+`+0x458` pairs and two accepted cells — and then the original accepts a
+**third** cell in that ring (`+0x64c`) where this simulation moves on to the
+next ring. Because `best_ring` is lowered on every hit and the walk runs one
+ring past it (`docs/SCOUT.md` §6), the original then stops a ring earlier:
+thirty draws against thirty-one, six accepted cells against seven. The same
+frame is the order score, as `1/0`'s path stack at 483.
+
+### Paperwork
+
+`docs/ORDERS.md` §6.4's "three lines the implementation has drifted from"
+is four, the new one stated as a rule about where a walk goes relative to
+the order that issued it; the Status paragraph was compressed to pay for it
+and the file is at **190,724 of its 190,800** — item 40 is now blocking for
+this document. `store_gather`'s doc comment carries the same rule at the
+site. `the_return_walk_goes_in_front_of_the_gather_order_it_updates`
+(`cities_tests.rs`) is the focused guard — a woodcutter whose shift has
+ended, one `work` call, and the two fields read off the order rather than
+off the list head; made to fail by putting `front_mut()` back.

@@ -6182,9 +6182,27 @@ mod tests {
         // `Guy::set_anim < Unit::do_non_flat_gather+0xb99` where the
         // original spends a farm's `Farms::inc_time+0x1ae`, twenty-three
         // draws against twenty-two.
+        //
+        // **482 with item 78**, and what was wrong at 432 was a **write
+        // that went to the wrong order**. `Sim::store_gather` wrote the
+        // gather order's fields back to `orders.front_mut()`, but every
+        // walk `do_non_flat_gather` issues goes in *front* of the gather
+        // (`QUEUE_FIRST`, no action bit) — so on the return-to-camp branch
+        // the `goto_build = 1` and `wait = 32` that follow
+        // `add_move_order` were written to the move and silently dropped.
+        // The original holds a pointer to the order object for the whole
+        // function, which is the same rule `is_gathering_at` already
+        // needed on the *read* side (`docs/ORDERS.md` §6, §6.4).
+        //
+        // The human's woodcutter `0/2` finished its shift on frame 426,
+        // set off for its camp on 427 and arrived on 431 — and then, with
+        // `goto_build` still 0 and `wait` still −1, re-entered the same
+        // branch on 432 and spent the stand again. It never unloaded, never
+        // took another tile, and re-issued that walk every other frame for
+        // the remaining 1,400 frames of the capture.
         assert!(
-            first_count >= 432,
-            "the word parts at frame {first_count}; the floor is 432\n{}",
+            first_count >= 482,
+            "the word parts at frame {first_count}; the floor is 482\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         // **The sequence: 99**, and it is the same attribution swap run14's
@@ -6226,10 +6244,12 @@ mod tests {
         // eighty-three more frames are the original's draws in the
         // original's order, which is what a scout sent to the original's
         // cell buys downstream.
+        //
+        // 724 / 606 → **752 / 622** with item 78.
         assert!(
-            words >= 724 && matched >= 606,
+            words >= 752 && matched >= 622,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 724 and 606"
+             {matched} draw for draw; the floors are 752 and 622"
         );
     }
 
@@ -6411,6 +6431,38 @@ mod tests {
             "frame 0 on the second map: {:?}",
             report.notes
         );
+        //   2026-08-30  ticks **505**, orders **482**; player 0 @ **687**,
+        //               player 1 @ **506** (item 78: **the gather order's
+        //               write-back went to the front of the list**).
+        //               `Sim::store_gather` wrote to `orders.front_mut()`,
+        //               and every walk `do_gather` and
+        //               `do_non_flat_gather` issue is a `QUEUE_FIRST` move
+        //               *in front of* the gather order — so the
+        //               `goto_build = 1` / `wait = 32` that the
+        //               return-to-camp branch writes **after**
+        //               `add_move_order` landed on the move and were
+        //               dropped. The original holds the order pointer for
+        //               the whole function; §6 of `docs/ORDERS.md` had
+        //               already established the same rule for the *read*
+        //               side (`is_gathering_at` matches `get_action`, not
+        //               the front), and the write side was never made to
+        //               match.
+        //
+        //               The human's `0/2` finished its shift on 426,
+        //               reached its camp on 431 and then re-entered the
+        //               same branch for the rest of the capture: it never
+        //               unloaded, never took another tile, and spent a
+        //               `+0xb99` stand every other frame. run33's word
+        //               goes 432 → **482** and its totals 724/606 →
+        //               **752/622**.
+        //
+        //               Every one of the twelve compared units improves.
+        //               Player 0 recovers item 76's fall and passes it,
+        //               450 → 687 (`0/5` 450 → 687, `0/3` 455 → 702,
+        //               `0/4` 577 → 703); player 1 goes 437 → 506, and
+        //               what pins it is `1/8` at 506. East Indies is
+        //               unmoved at 167/167 — its own divergence is an
+        //               order-list length at 168, item 69.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -6859,9 +6911,9 @@ mod tests {
             report.first_divergence
         );
         assert!(
-            ticks >= 436 && orders >= 427 && first[0] >= 450 && first[1] >= 437,
+            ticks >= 505 && orders >= 482 && first[0] >= 687 && first[1] >= 506,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 436, orders 427, player 0 @ 450, player 1 @ 437",
+             — the floor is ticks 505, orders 482, player 0 @ 687, player 1 @ 506",
             report.first_divergence
         );
         assert!(
@@ -7092,9 +7144,14 @@ mod tests {
         // probe) — the eleventh time, and a small one: the scout holds a
         // hundred and twenty frames longer and three units behind it part
         // earlier, so the two nearly cancel.
+        //
+        // 62,957 → **74,429** with item 78 (the gather write-back), the
+        // twelfth time and the largest single move it has made: every one
+        // of the twelve compared units parts later, so 11,472 further
+        // field-frames are comparable.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 62_957,
+            coll_seen, 74_429,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -7178,6 +7235,9 @@ mod tests {
         // **1,299 with item 76**, one frame further: the AI's `1/9` is
         // still trained late here, and the frame its gather tile first
         // disagrees is the frame after that.
+        //
+        // **1,298 with item 78**, the same frame back: `1/9` is still the
+        // unit, and it is still trained late (item 74).
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -7194,7 +7254,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(1299),
+            Some(1298),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -7298,8 +7358,18 @@ mod tests {
         // more, the two directions nearly cancelling — the scout holds a
         // hundred and twenty frames longer, three units behind it part
         // earlier.
+        // 24,380 → **28,916** with item 78 (the gather write-back), and
+        // this is the first widening whose *disagreements* fell with it:
+        // 4,536 more rows compared and 2,012 fewer bad. The paragraph
+        // below opened on `0/2`'s 2,680 rows — the woodcutter that
+        // "walks to `(4440, 28680)` on frame 432 … and on 433 the original
+        // turns it to face what it is about to gather while the simulation
+        // leaves it pointing the way it walked". That was not one of
+        // `set_angle`'s seventeen other callers after all: with the
+        // write-back landing, `0/2` reaches the camp-arrival branch on 433
+        // and faces the camp there, and its share of the residue is 140.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 24_380, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 28_916, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -7335,8 +7405,12 @@ mod tests {
         // has had here — and the 641 are the same seventeen callers on
         // two woodcutters that now work their trees for another five
         // hundred frames. Item 36 is still the item that takes this down.
+        // 9,378 → **7,366** with item 78, against 24,380 → 28,916
+        // compared: `0/2`'s 2,680 rows were never item 36's, and what is
+        // left is the farmers (`0/3`–`0/5` and `1/3`–`1/5`, 6,658 of the
+        // 7,366) doing a different job at the same spot.
         assert!(
-            bad.len() <= 9_378,
+            bad.len() <= 7_366,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );

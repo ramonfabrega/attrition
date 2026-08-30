@@ -1765,6 +1765,70 @@ fn a_citizen_gathers_where_the_cap_has_the_most_room_left() {
     );
 }
 
+/// **A walk goes in front of the order that issued it, and the order is
+/// still the order** (`docs/ORDERS.md` §6.4).
+///
+/// `Unit::do_non_flat_gather` is handed a pointer to the `GatherOrder` and
+/// keeps it for the whole function; `add_move_order(…, QUEUE_FIRST, …)`
+/// only relinks the list head. So the `goto_build = 1` and `wait = 32` the
+/// return-to-camp branch writes *after* it issues the walk land on the
+/// gather order that is now second in the list — never on the move.
+///
+/// Writing the front instead was a silent no-op, and it cost the whole of
+/// a woodcutter's working life: `0/2` on run33 finished its shift on frame
+/// 426, reached its camp on 431, and with `goto_build` still 0 and `wait`
+/// still −1 re-entered the same branch on 432 and every other frame after
+/// it for the rest of the capture — a stand and a walk to the spot it was
+/// already standing on, never an unload and never another tile. That
+/// stand is where run33's word parted.
+#[test]
+fn the_return_walk_goes_in_front_of_the_gather_order_it_updates() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let camp = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    sim.unit_types[citizen].worker = Worker::Citizen;
+    city_at(&mut sim, &t, 0, 30, 30);
+    let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
+    finish(&mut sim, wood);
+    sim.buildings[wood].gather_max = Some(4);
+    // Out at a tree, five tiles from the camp, with the shift just over:
+    // `goto_build == 0` and `wait < 0` is "return to the camp".
+    let u = spawn(&mut sim, 0, citizen, tile_pos(30, 30));
+    sim.add_gather_order(u, wood, orders::QueuePos::Last, false);
+    let Some(Body::Gather(g)) = sim.units[u].orders.front_mut().map(|o| &mut o.body) else {
+        panic!("the gather order");
+    };
+    g.goto_build = false;
+    g.been_there = true;
+    g.wait = -1;
+    g.tile = Some(Pos::new(31, 30));
+
+    sim.work(u, 0);
+
+    // The walk is in front, and it is a carrying one.
+    assert!(
+        sim.units[u]
+            .orders
+            .front()
+            .is_some_and(orders::Order::is_move),
+        "the return walk goes in front: {:?}",
+        sim.units[u].orders
+    );
+    assert_eq!(sim.units[u].carry, orders::CARRY_WITH_WOOD);
+    // And the two fields behind it are the gather order's, not the move's.
+    let g = sim.units[u]
+        .orders
+        .iter()
+        .find_map(|o| match o.body {
+            Body::Gather(g) => Some(g),
+            _ => None,
+        })
+        .expect("the gather order is still there");
+    assert!(g.goto_build, "goto_build was written to the walk instead");
+    assert_eq!(g.wait, 32, "wait was written to the walk instead");
+}
+
 /// **The carrying walk is `unit_masks & 0x78000000`, not the order.**
 ///
 /// `Guy::set_anim`'s walk arm reads four bits off the unit and nothing else
