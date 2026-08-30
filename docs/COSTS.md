@@ -433,7 +433,13 @@ Three that are not the standard shape, and are the interesting ones:
   negative discount — a surcharge, from the same expression. It is
   part of every technology's price and was missing from an earlier draft of
   this list. `Build::refund_cost` inverts exactly this expression, which is why
-  a queued item's price is re-derived rather than remembered.
+  a queued item's price is re-derived rather than remembered — see §Paying,
+  where it is written out and landed. **The purchase side is still not
+  applied**: `Sim::tech_price` passes `Modifiers::default()`, so a technology
+  is charged its undiscounted price here. It is zero on every purchase any
+  traced game has reached — the AI buys both its Ancient epoch techs at
+  Science 0, where `epoch[3] - age` is 0 — so nothing measures it yet, and it
+  is booked in the queue rather than guessed at.
 - **Final techs ramp against each other.** `cost *= (100 + RAMP_FINAL * n) / 100`
   where `n` is how many of the four final techs you already hold or are
   researching, and `RAMP_FINAL` ships as 50%. Four final techs, each half again
@@ -521,12 +527,43 @@ unpay:  bucket[t] = bucket[t] + cost[t]
 `unpay` is skipped entirely when the game's "costs are free" flag is set, which
 is the only asymmetry between them.
 
-`Build::refund_cost` is a third path and a stranger one: a cancelled item is
-refunded what it *paid*, and the refund is re-derived by dividing out the
-science discount that was in force when it was paid rather than by remembering
-the number. If the discount changed in between, the refund differs from the
-payment. It is recorded because it is the only place in this subsystem where a
-price is reconstructed instead of stored.
+`Build::refund_cost@00620490` is a third path and a stranger one, and it is
+**not a cancel** — an earlier draft of this section said it was, and the open
+item below already had it right. `Leader::gain_tech@006dcb60` line 189 is its
+only caller in the executable, and what it does is **re-price every technology
+still queued in the player's first library the moment their Science level
+rises**, handing the difference back where the item sits:
+
+```
+ahead = epoch[3] - TechType::age        # epoch[3] *before* gain_tech raises it
+base  = paid * 100 / (100 - TECH_SCIENCE_DISCOUNT * ahead)
+now   = base - (ahead + 1) * TECH_SCIENCE_DISCOUNT * base / 100
+bucket[good] += paid - now
+queue.cost[pair] = now
+```
+
+per `(resource, amount)` pair of the slot, for every slot of the library whose
+type is a technology and is not the one just gained. The gate is three-fold:
+the gained tech must be an epoch type (`is_epoch_type`), its line must be **3**
+— Science — and the player must have a library
+(`LeaderData::get_first_library@006db6c0`, the lowest-numbered live,
+city-linked, assimilated one).
+
+Two things are worth keeping. The price is **reconstructed, not remembered**:
+the amount paid is divided by the discount that was in force when it was paid,
+and the base that comes out is re-struck one level further along, so a chain of
+levels does not compound its truncations. And the reconstruction reads
+`TechType +0x1c8` **raw**, where the purchase-side
+`LeaderData::calc_science_discount@006da630` adds one to it for a tech that is
+neither an age nor a library tech — so the inversion is exact for an age or an
+epoch and one level out for a plain tech.
+
+**Diff-backed, 2026-08-30.** The AI of run33/run40 researches Written Word and
+City State on frame 2 and pays 120 food for the latter; Written Word lands on
+201 with the City State still behind it, `ahead` is 0, and the twelve food
+`120 - (120 - 12)` gives back is twelve of the thirty-two the AI's census was
+short (`docs/ECONOMY.md` has the other twenty). `sim::cost::reprice` is the
+expression; `Sim::reprice_library` is the pass.
 
 ### Escrow, and what it is for
 
@@ -693,16 +730,37 @@ budget is wasted:
   and 59 timber, and bought on 776 with 83 and 73, its buckets falling to
   23 and 14. Sixty of each, twice: the base ten plus the ramp's fifty,
   **uncapped**. Pinned in `run40_s_census_prices_the_ai_s_second_city_at_sixty`.
-- **Both players' timber and metal**, every frame of run40's window, exact.
-  Player 0's food too. The AI's food is thirty-two short on every one of
-  them, which is a gathering question rather than a pricing one and is
-  `docs/QUEUE.md`'s.
+- **Every good either player holds, and its accumulator**, over the whole of
+  run40's window: `bucket`, `leftover`, `resources`, `income`,
+  `resource_cap` and `gather_slots` on all six goods, forty frames, both
+  players — 2,880 good-frames, of which 560 disagree and every one of them
+  is a *standing* state named below rather than anything the window does.
+  ~~The AI's food is thirty-two short on every one of them.~~ Closed
+  2026-08-30 by `Build::refund_cost` (§Paying) and `Build::do_bonus`
+  (`docs/ECONOMY.md`): twelve and twenty.
+- **`Build::refund_cost`'s twelve.** The AI pays 120 food for City State on
+  frame 2 at Science 0 and Written Word lands on 201 with it still queued;
+  the re-price hands back `120 - 108`. Measured as the difference between
+  the AI's `bucket` and the original's over the window, and as the frame the
+  trace first enters `Build::refund_cost@00620490` — 201, one before the
+  dump's own.
 - **Knowledge, oil and wealth**: the original holds **0** and this crate
   **100**, both players, every frame. Inert while none of the three is
   available (an unavailable good is never charged) and booked in the queue.
+- **The AI's `resource_cap`** is 1392 against this crate's 1120 on every
+  frame and every capped good, which is `BRITISH_COMMERCE` on a nation this
+  harness never sets (`docs/ECONOMY.md`, "The commerce cap"). Inert, and
+  booked.
+- **`gather_slots`** agrees on every farm and on nothing else: the two
+  woodcutters' camps read zero here, and the human files one slot under a
+  good `get_good` cannot produce. Both are `docs/ECONOMY.md`'s, "What a
+  finished gather building pays", and both are booked.
 
-Everything else in this document — the discounts, the redirect, escrow, the
-population chain — rests on the reading and the audit of 2026-08-20.
+Everything else in this document — the rest of the discounts, the redirect,
+escrow, the population chain — rests on the reading and the audit of
+2026-08-20. In particular **the science discount's purchase side has never
+been exercised**: every technology any traced game buys is struck at
+`epoch[3] - age == 0`.
 
 ## What is not established
 
@@ -735,11 +793,17 @@ population chain — rests on the reading and the audit of 2026-08-20.
   in between — the refund is the number that was paid. `Build::refund_cost` is
   a different thing entirely: `Leader::gain_tech` is its only caller, and it
   re-prices every queued item in place when your science rises, handing the
-  difference back where the item sits.
+  difference back where the item sits. **Both are landed**, and §Paying now
+  writes the second one out.
 - ~~**`JOB_TIME`, `JOB_EXTRA_TIME` and `RESEARCH_PREMIUM_TIME`.**~~ **Closed**
   by `docs/PRODUCTION.md`. Time does ramp the way price does, with one ceiling
   instead of four and against a different count: the price ramp reads
   `num_units + num_queued` and the time ramp reads `num_units` alone.
+- **Whether a *cascaded* Science epoch refunds.** `Sim::reprice_library` runs
+  on the tech `Sim::gain_tech` is called with, once. The original's
+  `Leader::gain_tech` grants prerequisites and auto-types on its own account,
+  and whether those re-enter it — and so re-price the library a second time
+  in a frame — is unread. No traced game reaches a Science epoch by cascade.
 - **What writes `escrow_rate`.**
 - **Whether the maximum in `can_pay_cost` is visible in play**, which needs
   phase 2.

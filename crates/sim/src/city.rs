@@ -41,6 +41,8 @@ pub struct Nation {
     pub romans: bool,
     pub british: bool,
     pub nubians: bool,
+    pub french: bool,
+    pub inca: bool,
     /// The Pyramids, Versailles, the Taj Mahal, the Red Fort, Tikal.
     pub pyramids: bool,
     pub versailles: bool,
@@ -88,6 +90,8 @@ impl Default for Nation {
             romans: false,
             british: false,
             nubians: false,
+            french: false,
+            inca: false,
             pyramids: false,
             versailles: false,
             taj_mahal: false,
@@ -1290,6 +1294,41 @@ impl Sim {
         {
             self.city_regen_roads(c);
         }
+        // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
+        // the bonus for the ones the player has never held.
+        self.claim_gather_slots(b, captured, counted);
+    }
+
+    /// `Build::activate`'s tail: a finished gather building's slots join the
+    /// leader's running count, and whatever part of them is past the
+    /// high-water mark is paid for — `Build::do_bonus`
+    /// (`docs/ECONOMY.md`, "What a finished gather building pays").
+    ///
+    /// The slots are claimed whatever the frame and whoever asked, because
+    /// the counter is the player's inventory; only the *payment* is gated,
+    /// on `frame != 0`, on the building not arriving by capture, and on the
+    /// caller counting it — which is what keeps a dump's own buildings and
+    /// the frame-0 setup from paying.
+    fn claim_gather_slots(&mut self, b: usize, captured: bool, counted: bool) {
+        let Some(r) = self.gather_good(b) else { return };
+        let who = self.buildings[b].owner as usize;
+        let slots = self.buildings[b].gather_max.unwrap_or(0);
+        let i = r.index();
+        let ledger = &mut self.ledgers[who];
+        ledger.gather_slots[i] += slots;
+        let fresh = ledger.gather_slots[i] - ledger.gather_slots_high[i];
+        if fresh <= 0 {
+            return;
+        }
+        ledger.gather_slots_high[i] = ledger.gather_slots[i];
+        if self.frame == 0 || captured || !counted {
+            return;
+        }
+        let mut amount = crate::economy::completion_bonus(&self.tuning, r, fresh);
+        if self.nation[who].germans {
+            amount = (self.tuning.german_completion_bonus + 100) * amount / 100;
+        }
+        self.ledgers[who].bucket[i] += amount;
     }
 
     /// `Object::disband(full)`: the building goes back; the refund is the
@@ -1372,6 +1411,16 @@ impl Sim {
         // `Build::close` line 227: a dock leaves the registry while the
         // object is still flagged in use (`docs/TRANSPORT.md` §5.3).
         self.dock_close(b);
+        // `Build::close@00628980` line 104, inside the same `flags & 4`
+        // guard that gates the wall stats: an **active** gather building
+        // gives its slots back. The high-water mark does not follow it
+        // down, which is what makes a rebuild free of bonus.
+        if self.buildings[b].active
+            && let Some(r) = self.gather_good(b)
+        {
+            let slots = self.buildings[b].gather_max.unwrap_or(0);
+            self.ledgers[who as usize].gather_slots[r.index()] -= slots;
+        }
         self.buildings[b].alive = false;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();

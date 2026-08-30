@@ -1773,6 +1773,10 @@ impl Sim {
     /// `docs/TECH.md`, "`gain_tech`: owning it".
     pub fn gain_tech(&mut self, who: Player, t: tech::TypeId) -> Vec<tech::Gained> {
         let frame = self.frame;
+        // `Leader::gain_tech@006dcb60` line 189, *before* the epoch counter
+        // it is about to raise: a Science level re-prices every technology
+        // waiting in the player's first library.
+        self.reprice_library(who, t);
         let events = self
             .tech_tree
             .gain_tech(&self.setup, &mut self.tech[who as usize], t, frame);
@@ -1781,6 +1785,50 @@ impl Sim {
         // §4).
         self.check_transport(who);
         events
+    }
+
+    /// `Leader::gain_tech`'s refund pass: gaining a **Science** library tech
+    /// re-prices every technology queued in the player's first library and
+    /// hands back the difference — `Build::refund_cost@00620490`,
+    /// `docs/COSTS.md`, "The discounts".
+    ///
+    /// The gained tech is skipped, and so is anything queued that is not a
+    /// technology. Nothing else in the executable calls `refund_cost`.
+    fn reprice_library(&mut self, who: Player, t: tech::TypeId) {
+        let tech::Kind::Epoch { line, .. } = self.tech_tree.kind(t) else {
+            return;
+        };
+        if line != tech::Line::Science {
+            return;
+        }
+        let Some(lib) = self.first_library(who) else {
+            return;
+        };
+        let level = self.tech[who as usize].epoch[tech::Line::Science.index()];
+        for slot in 0..self.buildings[lib].queue.items.len() {
+            let item = &self.buildings[lib].queue.items[slot];
+            let Some(id) = item.tech else { continue };
+            if id == t || !self.tech_tree.kind(id).is_tech() {
+                continue;
+            }
+            let age = self.tech_tree.types[id].age;
+            let mut back = [0i32; economy::RESOURCES];
+            let item = &mut self.buildings[lib].queue.items[slot];
+            for pair in 0..production::PAIRS {
+                let good = item.good[pair];
+                if good < 0 {
+                    continue;
+                }
+                let paid = i32::from(item.cost[pair]);
+                let now = cost::reprice(&self.tuning, paid, level, age);
+                back[good as usize] += paid - now;
+                item.cost[pair] = now as i16;
+            }
+            let ledger = &mut self.ledgers[who as usize];
+            for (g, amount) in back.iter().enumerate() {
+                ledger.bucket[g] += amount;
+            }
+        }
     }
 
     /// `LeaderData::type_avail(t, 1)` for a tree entry: 0, 2 or 4.

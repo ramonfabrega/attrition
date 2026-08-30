@@ -577,6 +577,38 @@ pub fn pay(
     }
 }
 
+/// What a queued technology costs now that the player's Science level has
+/// risen by one — `Build::refund_cost@00620490`, per `(resource, amount)`
+/// pair.
+///
+/// The number is **reconstructed, not remembered**: the amount paid is
+/// divided by the science discount that was in force when it was paid, and
+/// the base that comes out is re-discounted one level further along. So the
+/// queue never stores a price; it stores a price *and* the level it was
+/// struck at, implicitly, and this recovers both.
+///
+/// `level` is `epoch[3]` as it stands **before** the gain — `Leader::gain_tech`
+/// calls this before it raises the counter — and `age` is the tech's own
+/// `AGE` column, taken raw. That raw reading is the asymmetry worth knowing:
+/// [`crate::economy`]'s purchase-side twin, `LeaderData::calc_science_discount`,
+/// adds one to `age` for a tech that is neither an age nor a library tech, and
+/// this does not. The reconstruction is therefore exact for an age or a
+/// library tech and one level out for a plain one — a Ancient plain tech
+/// queued at Science 0 comes back a little dearer than it went in.
+///
+/// Integer throughout, with the original's two truncations: the divide that
+/// recovers the base rounds toward zero, and so does the per-cent that
+/// re-applies the discount, which the original spells as a divide by −100.
+pub fn reprice(t: &Tuning, paid: i32, level: i32, age: i32) -> i32 {
+    let ahead = level - age;
+    let denom = 100 - t.tech_science_discount * ahead;
+    if denom == 0 {
+        return paid;
+    }
+    let base = paid * 100 / denom;
+    base - (ahead + 1) * t.tech_science_discount * base / 100
+}
+
 /// Puts the price back — `Type::unpay_cost`.
 pub fn unpay(charges: &[i32; RESOURCES], ledger: &mut Ledger, available: &[bool; RESOURCES]) {
     for r in Resource::ALL {
@@ -1170,5 +1202,26 @@ mod tests {
         assert!(!exceeds_population(25, 24, 1));
         assert!(exceeds_population(25, 25, 1));
         assert!(!exceeds_population(25, 25, 0));
+    }
+    #[test]
+    fn a_queued_tech_is_repriced_by_reconstruction_not_by_memory() {
+        // run40's own numbers: the AI pays 120 food for City State at
+        // Science 0, and Written Word lands while it is still in the queue.
+        let t = Tuning::RON;
+        assert_eq!(reprice(&t, 120, 0, 0), 108, "120 - 10% of 120");
+        // And again at the next level, from the *new* stored amount: 108 is
+        // divided by the 90% that was in force to recover the 120 base, and
+        // re-struck at 80%. That is what makes the chain lossless where a
+        // remembered number would compound its truncation.
+        assert_eq!(reprice(&t, 108, 1, 0), 96);
+        assert_eq!(reprice(&t, 96, 2, 0), 84);
+        // A tech whose own age is above the player's Science level costs
+        // *more*, from the same expression — the surcharge `docs/COSTS.md`
+        // names — and the reconstruction inverts that too.
+        assert_eq!(
+            reprice(&t, 120, 0, 2),
+            110,
+            "120 was 100 at a 20% surcharge; three levels behind it is 110"
+        );
     }
 }

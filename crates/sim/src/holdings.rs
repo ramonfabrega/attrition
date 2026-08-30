@@ -374,6 +374,10 @@ impl Sim {
         h.refineries = refineries;
         h.commerce = commerce;
         h.handicap = handicap;
+        h.british = self.nation[w].british;
+        h.egyptians = self.nation[w].egyptians;
+        h.french = self.nation[w].french;
+        h.inca = self.nation[w].inca;
     }
 
     /// Whether this player's rate would be reassembled on this frame, so the

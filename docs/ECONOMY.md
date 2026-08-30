@@ -490,6 +490,92 @@ the indices are written the way they were meant.
 
 Shipped, `GRANARY_BONUS` is `20 50 100 200 250` percent by level.
 
+## What a finished gather building pays
+
+`Build::activate@00623e20` ends with a block that has nothing to do with
+`calc_gather` and everything to do with income, and it was missing here until
+2026-08-30. It is what puts twenty food in the AI's hands on run40's frame 166.
+
+The block runs for a **gather building** — `BuildTypeData::is_gather_type`, a
+`build_flags & 0x40` — and does two things in order.
+
+**One: the slots join the leader's running count.**
+
+```
+good = BuildTypeData::get_good(type)
+gather_slots[good] += (signed char) BuildData::gather_max
+```
+
+`get_good@0063bd50` is a six-entry jump table at `0063bd84`: Farm (`0x1a1`) is
+food, the Woodcutter's Camp (`0x1a2`) timber, the **Mine (`0x1a3`) metal**, the
+University (`0x1a4`) knowledge, and the Oil Well and Platform (`0x1a5`,
+`0x1a6`) oil. Anything else answers −1, and the write then lands on
+`gather_slots[-1]`, the int in front of the array — the same running-off-the-end
+idiom `GRANARY_BONUS` and `ATTRITION_UPGRADE` are reached by. No shipped
+gather type takes that arm.
+
+`Build::close@00628980` line 104 is the mirror, inside the same `flags & 4`
+guard that gates the wall stats: an **active** gather building subtracts its
+slots again as it goes. So `gather_slots` is an inventory, not a total.
+
+**Two: the part of them nobody has held before is paid for.**
+
+```
+fresh = gather_slots[good] - gather_slots_high[good]
+if fresh <= 0:  (a farm still calls Farms::add_animals) and stop
+gather_slots_high[good] = gather_slots[good]
+if frame == 0 or captured or not counted or <loading>:  stop
+do_bonus(good, amount)
+```
+
+`gather_slots_high` never falls, which is the whole rule: **the bonus is paid
+once per slot in the life of a player**, so a farm rebuilt where one was razed
+is worth nothing, and a camp on a richer patch pays only for the slots the last
+one did not have.
+
+The amounts are two shapes, and the constants' names do not give the split
+away:
+
+| Building | Good | Pays |
+| --- | --- | --- |
+| Farm | food | `FOOD_BONUS_FOR_FARM` = 20, **flat** |
+| Woodcutter's camp | timber | `TIMBER_BONUS_PER_WOOD_SLOT` = 5 **per new slot** |
+| University | knowledge | `KNOWLEDGE_BONUS_FOR_UNIVERSITY` = 25, flat |
+| Mine | metal | `METAL_BONUS_PER_MINE_SLOT` = 5 **per new slot** |
+| Oil well or platform | oil | `OIL_BONUS_FOR_WELL` = 50, flat |
+
+Wealth has no case: the original's second switch — on the *good*, not the
+type, at `006259b5` — falls through for 2, and `Build::do_bonus` is not
+reached. `do_bonus` itself is one line of arithmetic and a message: the
+Germans (`has_tribe_bonus(0xc)`) scale the amount by
+`(GERMAN_COMPLETION_BONUS + 100) / 100`, and then `bucket[good] += amount`.
+
+There is a **third** `do_bonus`, earlier in `activate` and not part of this
+block: thirty wealth (`do_bonus(2, 0x1e)`) the first time a player finishes a
+kind of building they have never finished before, off a separate pair of
+counters at `+0x8ac`/`+0x8dc`. It is unread and unimplemented; no traced game
+has reached it, since both players start with every building they own.
+
+**How it is established.** The block is read; the *amount* is diff-backed.
+run40's census has the AI's food thirty-two behind the original's on every
+frame of `[560, 600)` while its `leftover` — the fractional accumulator —
+agrees on all forty, which can only be true if the gap is a lump. Twenty of
+the thirty-two is this bonus, on the frame the AI's fourth farm finishes; the
+other twelve are `Build::refund_cost`'s (`docs/COSTS.md`). With both, the AI's
+food is the original's on every frame of the window, and run33's word runs
+776 → 780.
+
+**What it does not establish.** `gather_slots` itself is still wrong in the
+harness on the camps: `Build::init` surveys a camp's slots against its own
+still-empty `gather_from` and `Build::find_gather_tiles` recomputes once the
+list is filled, so a camp the harness stands up from a dump activates with
+zero. And run40's human files **one slot under good 2**, which `get_good`
+cannot produce — `Leader::plan_strategy@006b9620` line 1137 assigns the whole
+array from `City::count_gather_slots` and raises the high-water to match, and
+that second writer is unread. Both are booked in the queue; the run40 diff
+asserts the disagreement as it stands so that fixing either moves an
+assertion.
+
 ## The commerce cap
 
 `Leader::calc_resource_caps`, every frame, for seven slots:
@@ -505,6 +591,18 @@ cap += bonus_cap[t]
 cap = clamp(cap, 0, 999)
 cap *= 16
 ```
+
+**The first two lines are diff-backed, 2026-08-30.** run40's `LEADERDATA`
+prints `resource_cap`, and the AI — the British, `tribe 11` — carries **1392**
+on every frame of the window against the human's 1120. `70 × 125 / 100` is
+87.5, and 87 × 16 is 1392: the truncation is per-percentage and *before* the
+`<< 4`, which is what fixes the order of the whole pipeline. The British term
+and the three per-resource nation terms are implemented
+(`sim::economy::commerce_cap`); what is not is anything that would set
+`Nation::british`, because **nothing in this harness reads the dump's own
+`tribe`** — so every traced game is played with no nation power at all. That
+is booked in the queue, and it is inert on this capture only because the AI's
+largest rate in it is 800.
 
 with two overrides that skip the whole body: **knowledge (slot 3) is always
 999**, and so is everything if the player holds the Virtual Reality bonus.

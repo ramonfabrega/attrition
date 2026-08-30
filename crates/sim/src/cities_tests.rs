@@ -1888,3 +1888,59 @@ fn the_carrying_walk_comes_off_the_mask_and_not_off_goto_build() {
     sim.kill_current_order(u);
     assert_eq!(sim.units[u].carry, 0);
 }
+
+/// `Build::activate`'s tail (`docs/ECONOMY.md`, "What a finished gather
+/// building pays"): the slots join the leader's count, and only the part of
+/// them past the high-water mark is paid for. So the first farm of a game is
+/// worth twenty food and a farm rebuilt where one was razed is worth nothing,
+/// which is what run40 measures — the AI's fourth farm on frame 166 is the
+/// twenty of the thirty-two it was short.
+#[test]
+fn a_finished_farm_pays_once_and_a_rebuilt_one_pays_nothing() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    // Frame 0 is the setup path and pays nothing whatever is finished on it.
+    sim.frame = 1;
+    for l in &mut sim.ledgers {
+        l.gather_slots = [0; economy::RESOURCES];
+        l.gather_slots_high = [0; economy::RESOURCES];
+    }
+    let food = |s: &Sim| s.ledgers[0].bucket[0];
+    let bonus = sim.tuning.food_bonus_for_farm;
+
+    let before = food(&sim);
+    let farm = sim.place_building(0, t.farm, tile_pos(40, 32)).unwrap();
+    finish(&mut sim, farm);
+    assert_eq!(
+        sim.ledgers[0].gather_slots[0], 1,
+        "a flat type has one slot"
+    );
+    assert_eq!(sim.ledgers[0].gather_slots_high[0], 1);
+    assert_eq!(food(&sim) - before, bonus, "FOOD_BONUS_FOR_FARM, once");
+
+    // A second farm is a second slot, so it pays again.
+    let before = food(&sim);
+    let second = sim.place_building(0, t.farm, tile_pos(44, 36)).unwrap();
+    finish(&mut sim, second);
+    assert_eq!(sim.ledgers[0].gather_slots[0], 2);
+    assert_eq!(food(&sim) - before, bonus);
+
+    // Raze one and rebuild it: `Build::close` gives the slot back, the
+    // high-water does not fall, and the rebuild is free of bonus.
+    sim.disband_building(second, true);
+    assert_eq!(sim.ledgers[0].gather_slots[0], 1, "the slot goes back");
+    let before = food(&sim);
+    let third = sim.place_building(0, t.farm, tile_pos(44, 36)).unwrap();
+    finish(&mut sim, third);
+    assert_eq!(sim.ledgers[0].gather_slots[0], 2);
+    assert_eq!(
+        sim.ledgers[0].gather_slots_high[0], 2,
+        "the mark does not fall"
+    );
+    assert_eq!(
+        food(&sim) - before,
+        0,
+        "a slot the player has held before pays nothing"
+    );
+}

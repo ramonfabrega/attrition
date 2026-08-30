@@ -241,6 +241,14 @@ pub struct Holdings {
     /// straight into the cap itself, which is why [`commerce_cap`] adds it
     /// after the percentages rather than before.
     pub bonus_cap: [i32; RESOURCES],
+    /// The three nation powers on the commerce cap that the shipped data has,
+    /// plus the British one that applies to every slot. **Inputs**, like the
+    /// rest of the nation layer: nothing reads the dump's `tribe` yet, so a
+    /// traced game leaves all four false — see `docs/ECONOMY.md`.
+    pub british: bool,
+    pub egyptians: bool,
+    pub french: bool,
+    pub inca: bool,
     /// Percentage adjustment to income from the difficulty setting.
     ///
     /// **AI leaders only.** A human earns 100% of their capped rate unless the
@@ -301,6 +309,16 @@ pub struct Ledger {
     pub over_cap: [OverCap; RESOURCES],
     /// Lifetime total, for the score screen.
     pub collected: [i32; RESOURCES],
+    /// `LeaderData + 0x8a4`, the dump's `gather_slots`: how many gatherers
+    /// the player's finished gather buildings have room for, per resource.
+    /// `Build::activate` adds a building's `gather_max` as it goes active and
+    /// nothing ever takes it back — a razed farm leaves its slot behind.
+    pub gather_slots: [i32; RESOURCES],
+    /// `LeaderData + 0x8d4`, the dump's `gather_slots_high`: the high-water
+    /// mark of [`Ledger::gather_slots`]. It is what decides whether a
+    /// completed gather building pays its bonus, and rebuilding a razed farm
+    /// therefore pays nothing.
+    pub gather_slots_high: [i32; RESOURCES],
     /// Frame of the last reassembly.
     pub gather_stamp: i64,
     /// Whether something changed since the last reassembly.
@@ -474,14 +492,34 @@ pub fn territory_tax(t: &Tuning, h: &Holdings) -> i32 {
 /// single asymmetry shapes the whole game, because it is why scholars scale and
 /// farmers do not.
 ///
-/// The nation, wonder and republic terms are not here; they are additions and
-/// percentages on the same value and belong with the rest of the wonder layer.
+/// The **nation** terms are here, in the original's order: the British on
+/// every slot first, then the one per-resource power — Egyptian food, French
+/// timber, Inca wealth. Each is a percentage of the running value and each
+/// truncates on its own, so a British Egyptian's food cap is
+/// `70 * 125 / 100 * 110 / 100` and not `70 * 137 / 100`. The wonder, rare
+/// and republic terms are additions on the same value and are not here; they
+/// belong with the rest of the wonder layer.
+///
+/// The British 25% is what run40 measures: the AI's `resource_cap` is 1392
+/// on every frame of the window against the human's 1120, and
+/// `70 * 125 / 100` is 87 — the half is lost here, before the `* 16`.
 pub fn commerce_cap(t: &Tuning, h: &Holdings, r: Resource) -> i32 {
     if r == Resource::Knowledge {
         return CAP_CEILING * RATE_SCALE;
     }
     let level = h.commerce.min(t.commerce_cap.len() - 1);
-    let cap = t.commerce_cap[level] + h.bonus_cap[r.index()];
+    let mut cap = t.commerce_cap[level];
+    if h.british {
+        cap = cap * (100 + t.british_commerce) / 100;
+    }
+    let nation = match r {
+        Resource::Food if h.egyptians => t.egyptian_food_commerce,
+        Resource::Timber if h.french => t.french_timber_commerce,
+        Resource::Wealth if h.inca => t.inca_wealth_cap,
+        _ => 0,
+    };
+    cap = cap * (100 + nation) / 100;
+    let cap = cap + h.bonus_cap[r.index()];
     cap.clamp(0, CAP_CEILING) * RATE_SCALE
 }
 
@@ -492,6 +530,34 @@ pub fn caps(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
         out[r.index()] = commerce_cap(t, h, r);
     }
     out
+}
+
+/// What finishing a gather building pays its owner, per resource —
+/// `Build::activate`'s tail, through `Build::do_bonus`.
+///
+/// The tail runs for a gather building (`build_flags & 0x40`) whatever else
+/// it is: the building's `gather_max` goes into [`Ledger::gather_slots`] for
+/// the resource it gathers, and **only the part of that which is past the
+/// high-water mark is paid for**. So the first farm of a game pays, a farm
+/// rebuilt where one was razed does not, and a woodcutter's camp on a
+/// richer patch pays only for the slots the last one did not have.
+///
+/// Two of the five are flat and three are per new slot, which is not a
+/// symmetry the constants' names give away: `FOOD_BONUS_FOR_FARM` and
+/// `KNOWLEDGE_BONUS_FOR_UNIVERSITY` and `OIL_BONUS_FOR_WELL` are paid once
+/// however many slots arrived, and `TIMBER_BONUS_PER_WOOD_SLOT` and
+/// `METAL_BONUS_PER_MINE_SLOT` multiply. Wealth has no case at all: the
+/// original's switch falls through for it, as it does for a resource no
+/// gather building gathers.
+pub fn completion_bonus(t: &Tuning, r: Resource, new_slots: i32) -> i32 {
+    match r {
+        Resource::Food => t.food_bonus_for_farm,
+        Resource::Timber => t.timber_bonus_per_wood_slot * new_slots,
+        Resource::Knowledge => t.knowledge_bonus_for_university,
+        Resource::Metal => t.metal_bonus_per_mine_slot * new_slots,
+        Resource::Oil => t.oil_bonus_for_well,
+        Resource::Wealth => 0,
+    }
 }
 
 /// The difficulty setting's percentage adjustment to income —
@@ -941,5 +1007,48 @@ mod tests {
         }
         assert_eq!(l.bucket, [100; RESOURCES]);
         assert_eq!(l.income, [-160; RESOURCES]);
+    }
+    #[test]
+    fn a_finished_gather_building_pays_only_for_slots_nobody_has_held() {
+        // `Build::do_bonus`'s table, and the split the constants' names hide:
+        // a farm, a university and an oil well pay flat, a camp and a mine
+        // pay per new slot.
+        let t = Tuning::RON;
+        assert_eq!(completion_bonus(&t, Resource::Food, 1), 20);
+        assert_eq!(completion_bonus(&t, Resource::Food, 4), 20, "flat");
+        assert_eq!(completion_bonus(&t, Resource::Knowledge, 7), 25, "flat");
+        assert_eq!(completion_bonus(&t, Resource::Oil, 1), 50, "flat");
+        assert_eq!(completion_bonus(&t, Resource::Timber, 5), 25, "per slot");
+        assert_eq!(completion_bonus(&t, Resource::Metal, 3), 15, "per slot");
+        // Wealth has no case at all: no gather building gathers it, and the
+        // original's switch falls through.
+        assert_eq!(completion_bonus(&t, Resource::Wealth, 9), 0);
+    }
+
+    #[test]
+    fn the_british_commerce_cap_is_the_one_run40_measures() {
+        // `COMMERCE_CAP[0]` is seventy; the British take `70 × 125 / 100`,
+        // and the truncation is *before* the `<< 4`, which is why the dump
+        // prints 1392 and not 1400.
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        assert_eq!(commerce_cap(&t, &h, Resource::Food), 70 * RATE_SCALE);
+        h.british = true;
+        assert_eq!(commerce_cap(&t, &h, Resource::Food), 1392);
+        assert_eq!(commerce_cap(&t, &h, Resource::Wealth), 1392);
+        // Knowledge skips the body entirely, British or not.
+        assert_eq!(
+            commerce_cap(&t, &h, Resource::Knowledge),
+            CAP_CEILING * RATE_SCALE
+        );
+        // The per-resource powers stack on the British one, each truncating
+        // on its own: `70 × 125 / 100 = 87`, then `87 × 110 / 100 = 95`.
+        h.egyptians = true;
+        assert_eq!(commerce_cap(&t, &h, Resource::Food), 95 * RATE_SCALE);
+        assert_eq!(
+            commerce_cap(&t, &h, Resource::Timber),
+            87 * RATE_SCALE,
+            "food only"
+        );
     }
 }

@@ -241,6 +241,28 @@ pub struct Tuning {
     pub territory_taxes: [i32; 5],
     /// The ceiling on every capped resource's rate, by commerce level.
     pub commerce_cap: [i32; 8],
+    /// Percentage the British add to every commerce cap.
+    pub british_commerce: i32,
+    /// The same, for the Egyptians on food.
+    pub egyptian_food_commerce: i32,
+    /// The same, for the French on timber.
+    pub french_timber_commerce: i32,
+    /// The same, for the Inca on wealth.
+    pub inca_wealth_cap: i32,
+    /// What finishing a farm pays, once per gather slot the player has never
+    /// held before — `Build::activate`'s tail through `Build::do_bonus`.
+    /// A flat amount, not per slot.
+    pub food_bonus_for_farm: i32,
+    /// The same for a woodcutter's camp, and this one *is* per new slot.
+    pub timber_bonus_per_wood_slot: i32,
+    /// The same for a university. Flat.
+    pub knowledge_bonus_for_university: i32,
+    /// The same for a mine, per new slot.
+    pub metal_bonus_per_mine_slot: i32,
+    /// The same for an oil well or platform. Flat.
+    pub oil_bonus_for_well: i32,
+    /// Percentage the Germans add to a completion bonus.
+    pub german_completion_bonus: i32,
 
     // ---- costs ----
     /// What a unit's written `COST` is multiplied by.
@@ -690,6 +712,16 @@ impl Tuning {
         library_literacy: 0,
         territory_taxes: [0, 50, 100, 200, 300],
         commerce_cap: [70, 100, 150, 200, 260, 320, 400, 500],
+        british_commerce: 25,
+        egyptian_food_commerce: 10,
+        french_timber_commerce: 10,
+        inca_wealth_cap: 33,
+        food_bonus_for_farm: 20,
+        timber_bonus_per_wood_slot: 5,
+        knowledge_bonus_for_university: 25,
+        metal_bonus_per_mine_slot: 5,
+        oil_bonus_for_well: 50,
+        german_completion_bonus: 50,
 
         unit_cost_factor: 10,
         build_cost_factor: 10,
@@ -865,7 +897,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 240] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 250] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -965,6 +997,34 @@ impl Tuning {
             ("UNIT_TURN_SPEED", Slot::Ratio256(T.unit_turn_speed)),
             ("UNIT_PACK_TURN_BONUS", Slot::Value(T.unit_pack_turn_bonus)),
             ("GATHER_RATE", Slot::Value(T.gather_rate)),
+            ("BRITISH_COMMERCE", Slot::Value(T.british_commerce)),
+            (
+                "EGYPTIAN_FOOD_COMMERCE",
+                Slot::Value(T.egyptian_food_commerce),
+            ),
+            (
+                "FRENCH_TIMBER_COMMERCE",
+                Slot::Value(T.french_timber_commerce),
+            ),
+            ("INCA_WEALTH_CAP", Slot::Value(T.inca_wealth_cap)),
+            ("FOOD_BONUS_FOR_FARM", Slot::Value(T.food_bonus_for_farm)),
+            (
+                "TIMBER_BONUS_PER_WOOD_SLOT",
+                Slot::Value(T.timber_bonus_per_wood_slot),
+            ),
+            (
+                "KNOWLEDGE_BONUS_FOR_UNIVERSITY",
+                Slot::Value(T.knowledge_bonus_for_university),
+            ),
+            (
+                "METAL_BONUS_PER_MINE_SLOT",
+                Slot::Value(T.metal_bonus_per_mine_slot),
+            ),
+            ("OIL_BONUS_FOR_WELL", Slot::Value(T.oil_bonus_for_well)),
+            (
+                "GERMAN_COMPLETION_BONUS",
+                Slot::Value(T.german_completion_bonus),
+            ),
             ("REFINERY_BONUS", Slot::Value(T.refinery_bonus)),
             ("VILLAGE_TAXES", Slot::Value(T.village_taxes)),
             ("BUILDING_TAXES", Slot::Value(T.building_taxes)),

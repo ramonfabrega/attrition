@@ -7005,3 +7005,106 @@ run41 rows; that is item 40's, and it is named in the queue's handoff.
 closed deliberation, was folded into `docs/DECISIONS.md` entry 20, which
 already carried the choice, the two rejected options and the two
 conditions.
+
+## 2026-08-30 (Opus) — item 74: the AI's thirty-two food, which was two lumps (776 → 780)
+
+**The headline: run33's word 776 → 780, its totals 944/828 → 951/838.**
+run10 is unmoved at ticks 572, orders 776 — but its **roster is**, and by
+the largest step it has taken: 468 missing + 0 extra → **268 + 0**, the
+lowest the pair has ever been. `1/9`, the AI's ninth citizen, arrives on
+the original's own frame instead of two hundred late; the collision block
+goes 87,548 → **93,341** compared field-frames and the angles 33,992 →
+**35,868**, both of them `1/9`'s rows returning with eight of the other
+twelve units holding longer.
+
+**What the item was booked as, and what settled it in the first ten
+minutes.** run40's census said the AI's food was 36 against 68 on every
+frame of `[560, 600)` — a flat thirty-two — with the human's food and both
+players' timber and metal exact. The first move was to widen the same
+record rather than read anything: `leftover`, `resources`, `income`,
+`resource_cap` and `gather_slots` beside the `bucket` that was already
+compared. **`leftover` agreed on all forty frames**, and that is the whole
+diagnosis. The fractional accumulator can only agree if the two sides are
+paid the same amount every frame, so the thirty-two was never a rate — it
+was a lump, or two, somewhere behind the window.
+
+**run13 halved the interval for nothing.** `gamelog-run13-window-95-105.txt`
+is the same game (`MAP_STYLE 14`, seed 12345) and its `[Start]` detail
+includes `LEADERS=9`, so it carries the census at frames 95–105 as well as
+the start. Every field of both leaders agrees there — bucket, leftover,
+rate, income — which put the two lumps in `(105, 560)` without a new
+capture. A dump already on disk answered what looked like a run.
+
+**And the trace named them.** `rontrace-run40.log` is `cover=1` over the
+whole game, so every function carries the frame it was **first** entered
+on. Crossing that list against every function in the decompile that writes
+the leader's `bucket` — a `grep -l 0x8221` over `funcs/`, twenty-one hits
+in the coverage — leaves exactly two inside the interval:
+`Build::do_bonus@00627140` at frame 166 and `Build::refund_cost@00620490`
+at 201. Twenty and twelve. It took longer to write the cross-reference than
+to read the answer off it.
+
+- **Twenty, on 166**: `Build::activate`'s tail. A finished gather building
+  adds its `gather_max` to the leader's `gather_slots[good]`, and whatever
+  part of that is past `gather_slots_high` is paid for — `FOOD_BONUS_FOR_FARM`
+  is 20, flat, and the AI's fourth farm is the slot. The high-water never
+  falls, so a rebuilt farm pays nothing. `docs/ECONOMY.md` writes the block
+  out, including the two constants that pay **per new slot** rather than
+  flat and the wealth case that falls through.
+- **Twelve, on 201**: `Leader::gain_tech`'s refund pass. Gaining a Science
+  epoch tech re-prices every technology still queued in the player's first
+  library, and hands the difference back where it sits. The AI bought City
+  State for 120 food on frame 2 and Written Word landed on 201 with the
+  City State behind it: `120 → 108`. `docs/COSTS.md` §Paying had been
+  calling this a cancel refund since it was first written, while its own
+  open-questions section had it right — item 72's shape exactly, and the
+  third time in a row that a document disagreeing with itself was a real
+  finding.
+
+**The thing worth keeping about `refund_cost`** is that it does not
+remember a price. It divides the amount paid by the discount that was in
+force when it was paid, recovers the base, and re-strikes it one Science
+level further along. That is why a chain of levels does not compound its
+truncations — and why the inversion is exact only for an age or an epoch
+tech: the purchase side adds one to `TechType +0x1c8` for a plain tech and
+the refund reads it raw.
+
+**Three more things the widening turned up, all inert, all booked.**
+
+- The AI's `resource_cap` is **1392** on every frame against the human's
+  1120. `70 × 125 / 100` is 87.5 and 87 × 16 is 1392, so the British
+  commerce bonus is real, truncates per percentage, and truncates before
+  the `<< 4`. `sim::economy::commerce_cap` now computes it — and nothing
+  sets `Nation::british`, because **nothing in this harness reads the
+  dump's own `tribe` at all**. Every traced game so far has been played
+  with no nation power on either side; the dump prints `tribe 11` for the
+  AI and `tribe 4` for the human and `rondata`'s own nation table maps
+  those to the British and the Nubians. That is a new item and it is a
+  bigger one than the cap.
+- `gather_slots` agrees on every farm and on neither camp: `Build::init`
+  surveys a camp against its own still-empty `gather_from`, so a camp the
+  harness stands up from a dump activates with zero slots.
+- run40's **human** files one slot under good 2, which
+  `BuildTypeData::get_good@0063bd50` cannot produce — its jump table at
+  `0063bd84` is Farm 0, Camp 1, Mine 4, University 3, Oil 5 and nothing
+  else, checked in the listing rather than the decompile. There is a second
+  writer: `Leader::plan_strategy@006b9620` line 1137 assigns the **whole**
+  array from `City::count_gather_slots` and raises the high-water to match.
+  Unread.
+
+**What parts the word at 780** is four frames past the city the AI can now
+afford: eleven draws against eight, and the first of ours is
+`GameAccess::rnd+0x20 < Unit::do_job+0x67` where the original's is
+`Unit::do_non_flat_gather+0x54b`. A citizen is on a job where the original
+has it gathering. That is the successor.
+
+**The method note.** The rule that earned its keep was "diff first, then
+read what no run reaches", and it earned it twice over in one item: the
+widening said *lump not rate*, the sibling dump said *between 105 and 560*,
+and the trace's first-entry list said *these two functions* — three
+mechanical narrowings, no reading at all, before a single decompiled
+function was opened. What was read afterwards was two short functions whose
+identity was already known.
+
+**Owed:** `docs/ORACLE.md` is still at its pin and still owes run40/run41
+rows (item 40).
