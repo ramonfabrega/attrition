@@ -79,6 +79,14 @@ impl Progression {
 /// units. Taking it as a field is the same choice movement made for `speed`:
 /// the mechanic is complete and the classification arrives with the layer that
 /// produces it.
+///
+/// **All four are the unit arm's.** `TypeData::get_cost` has two ramps, not
+/// one: the unit arm (`00665196`..`006656b8`, where `UNIT_COST_FACTOR` at
+/// `+0x354` and all four `*_RAMP_MAX` at `+0x394`..`+0x3a0` are read) and the
+/// building arm (`00665787`..`00665b5a`, `BUILD_COST_FACTOR` at `+0x358` and
+/// `BUILD_SUPPORT_FACTOR` at `+0x37c`). The building arm loads no `RAMP_MAX`
+/// at all — [`RampClass::Building`] is that absence, and it is what makes a
+/// second Small City cost sixty rather than twenty-two.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum RampClass {
     /// 2000%, and the only class with a second, convex term.
@@ -93,16 +101,21 @@ pub enum RampClass {
     /// 125%. Everything that fights.
     #[default]
     Military,
+    /// **No ceiling.** Every building: the arm that prices them never reads a
+    /// `RAMP_MAX`, so a building's support term is whatever the count makes it.
+    Building,
 }
 
 impl RampClass {
-    /// The ceiling as a percentage of the scaled base price.
+    /// The ceiling as a percentage of the scaled base price; zero is "none",
+    /// which [`cost_of`] reads as no clamp.
     pub const fn ceiling_percent(self, t: &Tuning) -> i32 {
         match self {
             RampClass::Scholar => t.unit_scholar_ramp_max,
             RampClass::Worker => t.unit_worker_ramp_max,
             RampClass::OtherCivilian => t.unit_other_civilian_ramp_max,
             RampClass::Military => t.unit_military_ramp_max,
+            RampClass::Building => 0,
         }
     }
 }
@@ -272,12 +285,19 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
             RampClass::Scholar => scholar_surcharge(steps),
             _ => 0,
         };
+        // The building arm multiplies the written amount by
+        // `BUILD_SUPPORT_FACTOR` (`imull 0x37c(%eax), %esi` at `00665ad1`)
+        // before the count; the unit arm has no such factor. It ships as one.
+        let support_factor = match price.kind {
+            Kind::Building => t.build_support_factor,
+            _ => 1,
+        };
         for slot in price.support.iter().flatten() {
             let (good, amount) = *slot;
             if good != r {
                 continue;
             }
-            let mut term = amount * steps + extra;
+            let mut term = amount * support_factor * steps + extra;
             if ceiling != 0 && term > ceiling {
                 term = ceiling;
             }
@@ -731,6 +751,20 @@ mod tests {
         }
     }
 
+    /// The Small City, from `buildingrules.xml`: `COST 1t/1f`,
+    /// `SUPPORT food 50 / timber 50`, and no progression column at all.
+    fn small_city() -> Price {
+        Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free()
+                .with_base(Resource::Food, 1)
+                .with_base(Resource::Timber, 1)
+                .with_support(Resource::Food, 50)
+                .with_support(Resource::Timber, 50)
+        }
+    }
+
     fn owned(n: i32) -> Counts {
         Counts {
             of_type: n,
@@ -740,6 +774,45 @@ mod tests {
 
     fn plain(price: &Price, r: Resource, counts: Counts) -> i32 {
         cost_of(&T, price, r, counts, &Modifiers::default())
+    }
+
+    /// **A building's ramp has no ceiling**, and that is the difference
+    /// between an AI that founds its second city on frame 576 and one that
+    /// founds it on 776.
+    ///
+    /// `TypeData::get_cost` has two ramps. The unit arm reads
+    /// `UNIT_COST_FACTOR` (`+0x354`) and one of the four `*_RAMP_MAX`
+    /// (`+0x394`..`+0x3a0`); the building arm (`00665787`..`00665b5a`) reads
+    /// `BUILD_COST_FACTOR` (`+0x358`) and `BUILD_SUPPORT_FACTOR` (`+0x37c`)
+    /// and loads no `RAMP_MAX` at all. With the military 125% applied — which
+    /// is what `RampClass::default()` gave every building — the Small City's
+    /// `SUPPORT 50` clamps to 12 and the second city costs 22 instead of 60.
+    ///
+    /// Measured, not inferred: run40 and run41 (`rondata::diff`) put the AI
+    /// at 69 food / 59 timber on the frame it cannot buy and 83 / 73 on the
+    /// frame it can, and its buckets fall by sixty of each when it does.
+    #[test]
+    fn a_building_s_ramp_is_not_capped() {
+        let city = small_city();
+        // The first is free of the ramp, as everything's first is.
+        assert_eq!(plain(&city, Resource::Food, owned(0)), 10);
+        assert_eq!(plain(&city, Resource::Timber, owned(0)), 10);
+        // The second: 10 + 50 x BUILD_SUPPORT_FACTOR x 1, and the military
+        // ceiling would have made it 10 + 12.
+        assert_eq!(plain(&city, Resource::Food, owned(1)), 60);
+        assert_eq!(plain(&city, Resource::Timber, owned(1)), 60);
+        assert_eq!(plain(&city, Resource::Metal, owned(1)), 0);
+        // And it keeps climbing, linearly, for ever.
+        assert_eq!(plain(&city, Resource::Food, owned(4)), 210);
+        let capped = Price {
+            class: RampClass::Military,
+            ..small_city()
+        };
+        assert_eq!(
+            plain(&capped, Resource::Food, owned(4)),
+            22,
+            "what this crate priced it at before item 81"
+        );
     }
 
     #[test]

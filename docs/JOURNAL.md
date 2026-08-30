@@ -6872,3 +6872,136 @@ one: five `ScenarioFuncSet::place_city_with_cost` calls, each spending two
 simulation spends the compute_sites pair five times and the make_stuff
 triple never — forty draws against sixty. That is the successor, and
 `make_stuff` was already in the queue's older backlog.
+
+## 2026-08-30 (Opus) — item 81: a building's ramp has no ceiling (576 → 776)
+
+**The item was booked as a city founding, and it was a price.** run33's
+frame 576 spends sixty draws where this simulation spent forty, in five
+repeats of one block: `ScenarioFuncSet::place_city_with_cost+0x68` calls
+`Leader::compute_sites` twice, then `+0x7f` calls `found_cities+0x696` →
+`make_stuff+0x221` three times. The last session read that as "the
+compute_sites pair five times and the make_stuff triple never". It was
+not: unmarked draws inherit the previous mark's label, so this
+simulation's five draws were **one whole block** — the pair *and* the
+triple, spent correctly once — and the four blocks it did not spend were
+not spent at all.
+
+`ScenarioFuncSet::place_city_with_cost@009f5860` says why. Its first act
+is a guard:
+
+```
+if (get_city_limit() <= get_total_cities()) return -1;
+```
+
+and `get_total_cities` counts queued cities. So the five calls the
+`defensive.bhs` step-11 loop makes (`num_loops = 5`, through
+`aibestbuildlibrary.bhs`'s `city_placement` and its `city_build` trigger)
+are five *drawing* calls only while nothing has been bought. The original
+made five; this simulation bought on its first and returned −1, without a
+draw, four times. **The frame's word is a yes/no answer to "did the AI buy
+its second city".**
+
+**Which made it a question about resources, and run33 could not answer
+it.** run33 carries `LEADERS=1` at `[End Frame]`: five scalars, no
+resources at all. A `LEADERS=9` record is the census oracle and is ~10k
+lines a leader, so it is a window setting rather than a whole-run one —
+which is what `tools/gamelog/censuswindow.sh` now is: `longtrace.sh`'s
+recipe with `LEADERS=9` under `[End Frame]` and `window.py frames LO HI`.
+**run40** is `[560, 600)` and **run41** `[770, 800)`, the only two frames
+in the whole 1,850 that reach `place_city_with_cost`. Six minutes each,
+unattended; both traces' words are run33's draw for draw where they
+overlap, which is how we know they are the same game.
+
+**What they measure.** On frame 576 the AI holds **69 food and 59
+timber** and does not buy. On 776 it holds 83 and 73, buys, and holds 23
+and 14 after. Sixty of each, twice over — and this crate priced the
+Small City's second copy at **22**.
+
+**Two ramps, not one.** A Small City is `COST 1t/1f` with `SUPPORT food
+50 / timber 50`. `TypeData::get_cost@00664090` is one function with two
+ramp arms, and the decompile merges them badly enough that reading it is
+not enough; the listing separates them in a line:
+
+```
+$ llvm-objdump -d --start-address=0x664090 ... | grep -E '0x35[48]|0x37c|0x39[48c]|0x3a0'
+  6651ad: movl 0x354(%eax), %eax    # UNIT_COST_FACTOR
+  6653ff: movl 0x39c(%eax), %ecx    # UNIT_OTHER_CIVILIAN_RAMP_MAX
+  66568f: movl 0x3a0(%eax), %ecx    # UNIT_MILITARY_RAMP_MAX
+  66569f: movl 0x398(%eax), %ecx    # UNIT_WORKER_RAMP_MAX
+  6656af: movl 0x394(%eax), %ecx    # UNIT_SCHOLAR_RAMP_MAX
+  665787: movl 0x358(%eax), %eax    # BUILD_COST_FACTOR
+  665ad1: imull 0x37c(%eax), %esi   # BUILD_SUPPORT_FACTOR
+```
+
+Every ceiling is above `665787` and none below it. The building arm reads
+its own two factors and **no `RAMP_MAX` at all**; its count is
+`num_units[t] + num_queued[t]` off two `u16` arrays with no `PROGRESSION`
+shaping. This crate gave every building `RampClass::default()` — the
+military 125% — which clamped the fifty-timber ramp to twelve. Ten plus
+twelve is twenty-two; ten plus fifty is sixty; the AI held fifty-nine.
+
+**And both readings of 2026-08-20 called the four ceilings "doubly
+confirmed".** They were, on one arm. `docs/COSTS.md`'s ceiling table now
+says whose they are, and the document has a **What is diff-backed**
+section for the first time — the audit's own lesson that the predicates,
+not the arithmetic, are where the errors live, in its purest form: nothing
+about the formula was wrong, only *which types it applies to*.
+
+**Two smaller listing-backed corrections landed with it**, both from the
+same eight lines of `place_city_with_cost`: `compute_sites` is called with
+**`force = 0`** (`push $0x0` at `009f58bd`), not 1 — inert for an AI
+leader, whose gate is `force || !human`, and not inert for a human one —
+and `MakeList::clear()` runs **on both sides** of `found_cities`, where
+`found_cities`' own tail clears only when it bought. Neither moved a
+number; both are what `docs/AI.md` §2.12 now says.
+
+**The numbers.**
+
+- **The headline**: ticks 572 (unmoved — `1/2` still parts at 573),
+  orders 576 → **776**; player 0 687 → **802**. East Indies unmoved at
+  167/167.
+- **run33's word**: 576 → **776**, totals 802/688 → **944/828** — the
+  largest move either has made.
+- **The roster**: 268 missing + 400 extra → **468 + 0**. `1/9` used to
+  stand here from frame 897 against the original's 1297, four hundred
+  frames early, on the hundred and twenty food and timber the AI had not
+  spent on a city; it now arrives on 1497, two hundred late. The pair is
+  one-sided again for the first time since item 47.
+- **The collision block**: 80,161 → **87,548** comparable field-frames,
+  still zero disagreements before each unit's own divergence.
+- **The angles**: 31,022 → 33,992 compared, 7,870 → **9,156** bad; 1,684
+  of the 2,970 new rows agree and the residue is still item 36's farmers
+  (8,866 of 9,156), with `0/1` and `0/2` newly on the list at 140 and 136.
+- **`mylos`**: 26,433 → 26,233 compared, the one cache disagreement
+  unmoved.
+- **The first gather-tile disagreement**: 1298 → **1373**.
+
+**What parts the word at 776 is the same block, the other way up**:
+theirs five draws, ours twenty-five, because now it is the original that
+buys on its first call and this simulation that cannot pay. run40 says
+why in one line — the AI's food is **36 against 68** on every frame of
+its window, where player 0's food and both players' timber and metal are
+exact on all forty. That is item 74, and it is the successor.
+
+**Also measured, and booked as item 82**: the original holds **0**
+knowledge, oil and wealth for both players on every frame of the window
+and this crate holds **100**. Inert while none of the three is available,
+because an unavailable good is never charged — and it stops being inert
+the moment the AI ages up.
+
+**What it cost to check the guard.** The new pins can all fail and one
+did, on its first run: `run40_s_census_prices_the_ai_s_second_city_at_sixty`
+was written with a guessed floor of 144 disagreeing good-frames and
+reported 280, which is what produced the breakdown above. Its price
+assertion was then made to fail on purpose — with `load.rs` put back to
+`RampClass::default()` it reads `[22, 22]` against `[60, 60]` — so the
+one line that carries the whole item is guarded rather than assumed. The
+`cost.rs` unit test keeps the old number beside the new one for the same
+reason: `RampClass::Military` on the same price still gives 22.
+
+**Owed:** `docs/ORACLE.md` is at its pin (138,489) and now owes run40 and
+run41 rows; that is item 40's, and it is named in the queue's handoff.
+`docs/AI.md` shrank to 156,559 to fit §2.12's new paragraph — its §4, a
+closed deliberation, was folded into `docs/DECISIONS.md` entry 20, which
+already carried the choice, the two rejected options and the two
+conditions.

@@ -677,6 +677,19 @@ the rest of the sweep starts fresh. No `game_random` draw of its own; the
 draws on this path are `compute_sites`' (§2.7) and `make_stuff`'s expiry
 (§2.6).
 
+**`place_city_with_cost@009f5860`**, the script's way in, is the same two
+calls fenced (listing `009f5898`–`009f58e8`): **return −1** unless
+`total_cities < city_limit`, then `compute_sites(0)` — the argument is a
+literal zero, `push $0x0` at `009f58bd` — then `MakeList::clear()`,
+`found_cities()`, `MakeList::clear()` **again**, and return whether
+`total_cities` rose. Both clears are unconditional, where the tail above
+clears only on a buy: the offers `make_stuff` prices are the sites and
+nothing else. The guard is load-bearing for the draw count —
+`defensive.bhs` step 11 calls this five times in one frame (`num_loops`),
+and each call after a successful buy returns −1 without a draw, so the
+frame's word says whether the city was bought (`rondata::diff`,
+`run40_s_census_prices_the_ai_s_second_city_at_sixty`).
+
 ### 2.13 The site score — `compute_site_stats@006cd040`
 
 Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
@@ -1039,9 +1052,8 @@ later rejected candidate overwrites it. Reproduced as the original has it.
 Run7's city site `2007` appears in gamelog `FRAME 777`, which is the end
 of **game frame 776** (`docs/INPUT.md` §3: the dump numbers from 1, the
 game from 0). `who = 1`'s sweep is at 775 (`175 + 200·3`), so 776 is
-**step 1 — the script**: `city_placement`'s `place_city_with_cost`, which
-is `compute_sites(0)` + `found_cities()` under the hood, and
-`found_cities` bought on the spot. The C++ `found_cities` step proper
+**step 1 — the script**: `city_placement`'s `place_city_with_cost`
+(§2.12), and `found_cities` bought on the spot. The C++ `found_cities` step proper
 would have been 778. By the same convention the farm in `FRAME 2` is game
 frame 1, step 1 again: the script's `place_farm`.
 
@@ -1373,38 +1385,11 @@ call; implicit globals (`my_capital`, `wood_camp_2`, `xpos`, `i`, `wc`,
 `labels`; `include`; string literals with an apostrophe (`"Woodcutter's
 Camp"`); the double `;;` after `return −1` in `assign_idle`.
 
-## 4. The fork this opens — decided: (a), 2026-08-24
+## 4. The fork this opens — ~~decided: (a), 2026-08-24~~
 
-Three ways to have the opening, in the order of the project's own rules.
-**(a) was chosen the same day**, with the two conditions stated at the
-time: the interpreter's `float` (unused by the shipped scripts, present in
-the language) is implemented on `combat::F32`, the integer-mantissa
-software float, so a mod's script stays under `no_float.rs`; and script
-statics and timers are sim state, digested by the soak from the first
-commit. `docs/DECISIONS.md` gets the entry when the interpreter lands.
-
-- **(a) A BHS interpreter of our own, reading the `.bhs` files from the
-  install.** The scripts are shipped data like the XML tables — "nothing
-  from the user's install ever enters this repo" makes them *data to load*,
-  not source to translate — and this is the only option under which a
-  modder's edited script still drives our AI. Our interpreter is a
-  tree-walker over the language above (~1.5–2k lines of Rust), not a port
-  of the bytecode VM; the reading of `VirtualMachine`/`Compiler` is for
-  the semantics list in §3, not for its design. Cost: the interpreter plus
-  55 host functions, each a small predicate or action over state the sim
-  already has (cities, sites, queues, techs, costs).
-- **(b) Transcribe the two scripts into Rust.** Cheaper to start, and
-  wrong twice: it copies shipped content into the repo (the legal line),
-  and it freezes the one part of the AI the original left open.
-- **(c) Skip the script** — start `production_step` at 2 as the
-  `starting_resources == 8` branch does — and take the C++ layers only.
-  Reproduces nothing the oracle shows for the first 1,732 frames (§5) and
-  is not what the original does in any lobby but one.
-
-**Recommendation: (a).** It is the rule-consistent one, it is the one the
-oracle can score, and it is smaller than it looks: the language is C
-without pointers, the VM is 5k lines to *read* and 0 to *port*, and the
-host surface is 55 named functions over existing state.
+**Folded into `docs/DECISIONS.md` entry 20**, which carries the choice (an
+interpreter of our own over the install's own `.bhs` files), the two
+options it was taken over, and the two conditions set with it.
 
 ## 5. The oracle, already on disk
 

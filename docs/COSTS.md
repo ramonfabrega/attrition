@@ -165,7 +165,7 @@ for `2f/2m` and behaves exactly as written.
 The ramp for the resource being priced is then:
 
 ```
-term = support_amount * count
+term = support_amount * support_factor * count
 if ramp_max != 0 and term > ramp_max:  term = ramp_max
 if maize:                              term = term * (100 - MAIZE_RAMPING_BONUS) / 100
 cost += term
@@ -177,9 +177,34 @@ cost += term
 constant exists only for the building side and is recorded because its absence
 on the unit side is the thing that has to be established rather than assumed.
 
+**`ramp_max` is zero for a building, and that is not a detail.**
+`TypeData::get_cost@00664090` has **two** ramps, not one, and they are
+different code:
+
+| | unit arm | building arm |
+| --- | --- | --- |
+| listing | `00665196`–`006656b8` | `00665787`–`00665b5a` |
+| factor | `UNIT_COST_FACTOR` `+0x354` | `BUILD_COST_FACTOR` `+0x358` |
+| support factor | none | `BUILD_SUPPORT_FACTOR` `+0x37c`, at `00665ad1` |
+| shape | `PROGRESSION`, triangular or linear | linear, plus per-family steps |
+| ceiling | one of the four below, `+0x394`–`+0x3a0` | **none — no `RAMP_MAX` is read** |
+
+So a building's support term climbs for ever. A **Small City** is
+`COST 1t/1f` with `SUPPORT food 50 / timber 50`: the first costs 10 and 10,
+the second **60 and 60**, the fifth 210 and 210. Applying the military 125%
+to it — which is what this crate did until 2026-08-30 — prices the second at
+22 and lets an AI found it two hundred frames early
+(`rondata::diff`, `run40_s_census_prices_the_ai_s_second_city_at_sixty`;
+the AI's own buckets fall by exactly sixty of each when it buys).
+
+The count is the building arm's own, too: `num_units[t] + num_queued[t]`
+read as two `u16` arrays off the leader, with no `PROGRESSION` shaping —
+see "What is not established" for the per-family steps above it, which no
+capture has yet exercised.
+
 **The ceiling.** `ramp_max` is a percentage of the base price *before any
 discount* — `ramp_max_percent * base * cost_factor / 100` — chosen by what
-kind of unit it is:
+kind of unit it is (and **every one of the four is a unit's**):
 
 | Constant | Ships | Applies to |
 | --- | --- | --- |
@@ -196,6 +221,9 @@ from the fighting units. `UnitType::init_final_flags` sets bit 8 for exactly
 two types, the Caravan and the Merchant Fleet, and both also carry the `C` in
 their `OBJ_MASK`. The flags test runs first, so both ramp to 500%, not 200%.
 (An earlier draft had caravans in the 200% class and merchant fleets nowhere.)
+The nest is reached only from the unit arm; nothing in it applies to a
+building, and both readings of 2026-08-20 called the four ceilings "doubly
+confirmed" without noticing that they had only ever read one of the two arms.
 
 **A military unit's price at most doubles, and it gets there fast.** A hoplite
 is `5f/3m` — fifty food and thirty metal — with `1f/1m support` and
@@ -651,6 +679,30 @@ original's interface shows a player, and not at all what "the cap stops
 production" would predict.
 
 ---
+
+## What is diff-backed
+
+Everything below is a reading. What a run has actually checked, frame for
+frame, is smaller and is named here so a second reader knows where its
+budget is wasted:
+
+- **The building ramp, both ends.** run40 (`[560, 600)`) and run41
+  (`[770, 800)`) are run10's game with `LEADERS=9` over a frame window —
+  `tools/gamelog/censuswindow.sh` — and they carry the AI's own
+  `resources`. Its second Small City is unbought on frame 576 with 69 food
+  and 59 timber, and bought on 776 with 83 and 73, its buckets falling to
+  23 and 14. Sixty of each, twice: the base ten plus the ramp's fifty,
+  **uncapped**. Pinned in `run40_s_census_prices_the_ai_s_second_city_at_sixty`.
+- **Both players' timber and metal**, every frame of run40's window, exact.
+  Player 0's food too. The AI's food is thirty-two short on every one of
+  them, which is a gathering question rather than a pricing one and is
+  `docs/QUEUE.md`'s.
+- **Knowledge, oil and wealth**: the original holds **0** and this crate
+  **100**, both players, every frame. Inert while none of the three is
+  available (an unavailable good is never charged) and booked in the queue.
+
+Everything else in this document — the discounts, the redirect, escrow, the
+population chain — rests on the reading and the audit of 2026-08-20.
 
 ## What is not established
 

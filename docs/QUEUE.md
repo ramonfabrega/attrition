@@ -13,30 +13,32 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 80 (Opus).*
+*2026-08-30, after item 81 (Opus).*
 
-**ticks 572, orders 576 — the word moved five frames** (571/571), and
-run33's word 571 → **576**, totals 791/662 → **802/688**. East Indies
-unmoved at 167/167.
+**ticks 572, orders 576 → 776 — two hundred frames**, and run33's word
+576 → **776**, totals 802/688 → **944/828**, the largest move either
+has made. Player 0 687 → **802**. East Indies unmoved at 167/167.
 
-**The repath throttle was a lifetime count.**
-`GameDaemon::process_all` halves every player's `repaths` each frame and
-clears it under three; nothing here did, so player 1's reached 5 and
-stuck, pinning `resolve_unit_collision`'s throttle in its `≥ 4` arm where
-`(o + collide) & 3` throws away three collisions in four. `1/2`'s
-collision on 571 was one, so the repath — and the stagger draw at its
-tail, `Random::get(0, 0xffff) % 9 + 1` into `pause` — was never spent.
-PATHFINDER §8 had the decay in prose; the code had none (item 72 again).
+**A building's ramp has no ceiling.** `TypeData::get_cost` has two: the
+unit arm reads `UNIT_COST_FACTOR` and one of the four `*_RAMP_MAX`, the
+building arm (`00665787`–`00665b5a`) reads `BUILD_COST_FACTOR`,
+`BUILD_SUPPORT_FACTOR` and **no ceiling at all**. This crate gave every
+building `RampClass::default()`, clamping the Small City's `SUPPORT 50` to
+12 and pricing the AI's second city at 22 instead of **60** — so it
+founded it on 576 where the original cannot pay until 776. Both readings
+of 2026-08-20 called the four ceilings doubly confirmed, on one arm.
 
-**The collision block is 80,161 comparable field-frames** (from 77,211),
-still zero disagreements, and player 0 recovers item 79's fall and passes
-it — 574/577/579 → 687/700/703.
+**Two new captures, and they are the census oracle.**
+`tools/gamelog/censuswindow.sh` is run10's game with `LEADERS=9` over a
+frame window — run40 `[560, 600)`, run41 `[770, 800)`. They carry the AI's
+own `resources`, and they measured the sixty twice over.
 
-**Owed:** 40 (ORACLE.md's pin is 138,489), 42.
+**Owed:** 40 (ORACLE.md's pin is 138,489, and it owes run40/run41 rows),
+42.
 
-**Opener (Opus):** `take item 81 from @docs/QUEUE.md — run33's word parts
-at 576 on a city founding, sixty draws against forty; run33's 576 with
-rontrace-run33.log beside it.`
+**Opener (Opus):** `take item 74 from @docs/QUEUE.md — the AI's food is
+thirty-two short on every frame of run40's window and it is what parts
+the word at 776; gamelog-run40-census.txt beside it.`
 
 ## The queue
 
@@ -44,22 +46,21 @@ In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, in which case
 say so. Numbers are stable; the journal is indexed by them.
 
-81. **The word's next parting, at 576 — a city founding.** Sixty draws
-    against forty, in five repeats of one block:
-    `ScenarioFuncSet::place_city_with_cost+0x68` calls
-    `Leader::compute_sites` for two (`+0x4ac`, `+0x50a`), then `+0x7f`
-    calls `Leader::found_cities+0x696` → **`Leader::make_stuff+0x221`,
-    three draws**, which this spends never. The pair is modelled; the
-    founding behind it is not. `make_stuff` whole was in the older
-    backlog — this is where it is owed. run33's 576 with
-    `rontrace-run33.log`; `docs/AI.md`, `docs/CITIES.md`.
+74. **The AI's food, thirty-two short — and it is the word.** run40
+    measures it: `1/`'s food is **36 against 68** on every frame of
+    `[560, 600)`, where player 0's food and both players' timber and metal
+    are exact on all forty. That gap is why this cannot pay for the second
+    city on 776 when the original can — the word parts there, twenty-five
+    draws against five — and why `1/9` arrives on 1497 against 1297 (the
+    roster is **468 missing + 0 extra**, from 268 + 400). run40's
+    `LEADERDATA` also prints `income`, `rate`, `leftover` and
+    `gather_slots` per good; `CITY.gatherers` is still uncompared.
 
-74. **The AI's long-run economy** (was item 51, now the other way up).
-    `1/9` arrives on **897** against the original's 1,297 and `1/10` is
-    never trained: the roster pair is 268 missing + 400 extra, all this
-    one unit, so the AI earns food faster. `CITY.gatherers` is in every
-    dump and uncompared, and a `LEADERS` dump prints
-    `resource_cap`/`income`/`rate` per good. Score it 268 + 400.
+82. **A hundred knowledge, oil and wealth nobody gave anybody.** run40:
+    the original holds **0** in goods 3, 4 and 5 for both players on every
+    frame and this crate **100**. Inert while none is available — an
+    unavailable good is never charged — so it is a loader question, and it
+    stops being inert the moment the AI ages up.
 
 35. **`mylos` as a cache.** VISION §7: player 1 carries no `0x4000000`
     at the end of frame 202 or 203, yet its Scout's `mylos` moves 4 → 6.
@@ -161,11 +162,10 @@ say so. Numbers are stable; the journal is indexed by them.
     < Unit::do_idle+0x7d` where the original has `< Guy::inc_time+0x271`.
     SYNC §6; it needs the gate keeping a standing unit out.
 
-Older backlog, unchanged: the `LEADERDATA` and `CITY` widenings; a
-`find_target` block; run7's order stream under the trace; a mounted
-attacker; a caravan; `Leader::diplomacy`; `calc_gather` non-flat; and (77)
-ANIM §3.2's `AGE3`/`AGE5` piece rows, which no capture has ever aged into,
-with `get_unit_gpiece`'s fall-back walk.
+Older backlog (the `LEADERDATA` widening is item 74's now): the `CITY`
+widening; a `find_target` block; run7's order stream under the trace; a
+mounted attacker; a caravan; `Leader::diplomacy`; `calc_gather` non-flat; and
+(77) ANIM §3.2's `AGE3`/`AGE5` piece rows, which no capture has aged into.
 
 ## How to maintain this file
 

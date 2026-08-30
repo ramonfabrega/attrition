@@ -1187,12 +1187,30 @@ impl Sim {
         true
     }
 
-    /// `ScenarioFuncSet::place_city_with_cost`'s body: a forced sweep, then
-    /// the city AI. `ai_host.rs`'s `Sim::place_city_ai` is the seam that
-    /// should call this.
+    /// `ScenarioFuncSet::place_city_with_cost`'s body: a sweep, then the city
+    /// AI, with the **make list cleared on both sides of it**.
+    /// `ai_host.rs`'s `Sim::place_city_ai` is the seam that should call this.
+    ///
+    /// The listing is five calls between the city-limit guard and the return
+    /// (`009f58bd`..`009f58e1`): `push $0` / `compute_sites`,
+    /// `MakeList::clear`, `found_cities`, `MakeList::clear`. Two things it
+    /// settles that the prose had wrong:
+    ///
+    /// - **`compute_sites` is called with `force = 0`**, not 1 — the `push
+    ///   $0x0` at `009f58bd`. For an AI leader the two are the same (§2.7's
+    ///   gate is `force || !human`), so nothing in a traced game moves; for a
+    ///   human-driven leader they are not.
+    /// - **The list is cleared before the offers and again after them.** The
+    ///   pre-clear is what makes `found_cities`' make list *only* the city
+    ///   offers, so `make_stuff`'s head is a city and its expiry walk
+    ///   (`make_stuff+0x221`) counts city slots and nothing else; the
+    ///   post-clear is unconditional, where `found_cities`' own tail clears
+    ///   only when it bought.
     pub fn place_city_ai_impl(&mut self, who: Player) {
-        self.compute_sites(who, true);
+        self.compute_sites(who, false);
+        self.ai[who as usize].make_list.clear();
         self.found_cities(who);
+        self.ai[who as usize].make_list.clear();
     }
 }
 

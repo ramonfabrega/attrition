@@ -6223,9 +6223,34 @@ mod tests {
         // spends a draw at `5fa882`, inside
         // `Unit::resolve_unit_collision@005f9d30`, that this simulation
         // does not — eight draws against seven.
+        //
+        // **776 with item 81**, and what was wrong at 576 was a **price**.
+        // The original's frame 576 spends sixty draws over five
+        // `ScenarioFuncSet::place_city_with_cost` calls — the script's
+        // `city_placement` under `defensive.bhs` step 11, once per turn of
+        // its `num_loops = 5` loop — and this simulation spent forty,
+        // because its *first* call bought the city and the guard at
+        // `009f5898` (`city_limit <= total_cities`) then returned −1 four
+        // times without a draw. The original could not pay: a second Small
+        // City costs **sixty** food and sixty timber, not twenty-two, and
+        // the AI held 69 and **59**.
+        //
+        // `TypeData::get_cost` has two ramps. The unit arm reads
+        // `UNIT_COST_FACTOR` and all four `*_RAMP_MAX`; the building arm
+        // (`00665787`..`00665b5a`) reads `BUILD_COST_FACTOR` and
+        // `BUILD_SUPPORT_FACTOR` and **no ceiling at all**. This crate gave
+        // every building `RampClass::default()` — the military 125% — which
+        // clamped the city's `SUPPORT 50` ramp to 12 and priced it at 22.
+        // run40 and run41 measure both ends of it
+        // (`run40_s_census_prices_the_ai_s_second_city_at_sixty`).
+        //
+        // What parts the word at 776 is that same block a second time: the
+        // original spends five draws there and this simulation ten, because
+        // on 776 it is the *original* that buys on its first call and this
+        // simulation that does not.
         assert!(
-            first_count >= 571,
-            "the word parts at frame {first_count}; the floor is 571\n{}",
+            first_count >= 776,
+            "the word parts at frame {first_count}; the floor is 776\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         // **The sequence: 99**, and it is the same attribution swap run14's
@@ -6274,10 +6299,170 @@ mod tests {
         // `first_count` again — thirty-nine more frames on the original's
         // word, forty more of them draw for draw, because the AI's scout
         // now walks the original's fog as well as its ground.
+        //
+        // 791 / 662 → 802 / 688 with item 80, and → **944 / 828** with item
+        // 81 — the largest move either has made, and both rose with
+        // `first_count`: a hundred and forty-two more frames spend the
+        // original's number of draws because the AI's whole economy is two
+        // hundred frames closer to the original's from 576 on.
         assert!(
-            words >= 791 && matched >= 662,
+            words >= 944 && matched >= 828,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 791 and 662"
+             {matched} draw for draw; the floors are 944 and 828"
+        );
+    }
+
+    /// **run40 and run41 — the leader census over a window, and what the
+    /// AI's second city actually costs.**
+    ///
+    /// run33 carries `LEADERS=1` at `[End Frame]`: five scalars, and no
+    /// resources. A `LEADERS=9` record is the census oracle
+    /// (`docs/ORACLE.md`) but it is ~10k lines a leader, so it is a *window*
+    /// setting — `tools/gamelog/censuswindow.sh`, run10's game and lobby
+    /// with the frame window moved. run40 is `[560, 600)` and run41 is
+    /// `[770, 800)`, the two frames on which
+    /// `ScenarioFuncSet::place_city_with_cost` is reached in the whole
+    /// 1,850. Both traces' words are run33's draw for draw where they
+    /// overlap, so all three are the same game.
+    ///
+    /// What they measure is a **price**. The AI's `defensive.bhs` step 11
+    /// calls `city_placement` once per turn of its `num_loops = 5` loop, and
+    /// `place_city_with_cost` returns −1 without a draw once
+    /// `city_limit <= total_cities`. So the *number of draws* on those two
+    /// frames says whether the city was bought:
+    ///
+    /// - **576**: sixty draws, five whole blocks — not bought. The census
+    ///   says why: 69 food and **59** timber.
+    /// - **776**: five draws, one block — bought. 83 food and 73 timber
+    ///   before, 23 and 14 after.
+    ///
+    /// Sixty food and sixty timber, twice over. A Small City is `COST 1t/1f`
+    /// with `SUPPORT food 50 / timber 50`, so that is
+    /// `1 × BUILD_COST_FACTOR(10) + 50 × BUILD_SUPPORT_FACTOR(1) × 1` with
+    /// **no ceiling** — and the ceiling is what this crate had wrong. All
+    /// four `*_RAMP_MAX` belong to `TypeData::get_cost`'s unit arm; the
+    /// building arm (`00665787`..`00665b5a`) reads `BUILD_COST_FACTOR` at
+    /// `+0x358` and `BUILD_SUPPORT_FACTOR` at `+0x37c` and loads no
+    /// `RAMP_MAX` at all. With `RampClass::default()` — military, 125% — the
+    /// ramp was clamped to 12 and the city priced at 22, which the AI could
+    /// always pay.
+    ///
+    /// The buckets themselves are compared too, over every frame and both
+    /// players, because a price is only half of an affordability test. They
+    /// do not all agree: the AI's **food** runs behind the original's, which
+    /// is the successor item and the thing that now parts the word at 776.
+    #[test]
+    fn run40_s_census_prices_the_ai_s_second_city_at_sixty() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run40-census.txt") else {
+            eprintln!("skipping: no run40 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+        // The window is [560, 600); a `FRAME n` block is the end of
+        // sim-frame n − 1, so the record for `n` is read after `n` ticks.
+        let mut compared = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        let mut city_price = [0i32; sim::economy::RESOURCES];
+        for n in 1..=599 {
+            built.tick();
+            if n < 560 {
+                continue;
+            }
+            if n == 576 {
+                let village = built
+                    .sim
+                    .build_types
+                    .iter()
+                    .position(|b| b.ident == sim::build::Ident::Village)
+                    .expect("the Small City");
+                city_price = built.sim.building_price(1, village);
+            }
+            for who in 0..2i64 {
+                let Some(block) = log.leader_block(n, who) else {
+                    continue;
+                };
+                let theirs: Vec<i64> = block
+                    .all("bucket")
+                    .iter()
+                    .map(|v| v.trim().parse().unwrap_or(i64::MIN))
+                    .collect();
+                if theirs.len() != sim::economy::RESOURCES {
+                    continue;
+                }
+                let ours = built.sim.ledgers[who as usize].bucket;
+                for g in 0..sim::economy::RESOURCES {
+                    compared += 1;
+                    if i64::from(ours[g]) != theirs[g] {
+                        wrong.push(format!(
+                            "frame {n} who {who} good {g}: ours {} theirs {}",
+                            ours[g], theirs[g]
+                        ));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run40: {} of {compared} good-frames disagree; first {:?}",
+            wrong.len(),
+            wrong.first()
+        );
+
+        // **The price, which is the item.** Twenty-two before, sixty after,
+        // and sixty is what run41's before-and-after measures.
+        assert_eq!(
+            &city_price[..2],
+            &[60, 60],
+            "the AI's second Small City: 1 x BUILD_COST_FACTOR + 50 x 1 x 1, uncapped"
+        );
+        assert!(
+            city_price[2..].iter().all(|&c| c == 0),
+            "and nothing else: {city_price:?}"
+        );
+
+        // **The buckets**: 480 good-frames — forty frames, two players, six
+        // goods — and 280 disagree, in exactly two shapes.
+        //
+        // - **240 of them are goods 3, 4 and 5** (knowledge, oil, wealth),
+        //   both players, every frame: the original holds **0** and this
+        //   crate holds **100**. It is inert here because none of the three
+        //   is available in the Ancient age and an unavailable good is never
+        //   charged — but it is a hundred of something nobody gave the
+        //   leader, and it is booked.
+        // - **40 are the AI's food**, 36 against 68 on every frame of the
+        //   window — a flat thirty-two short. **The human's food is exact**,
+        //   and so are both players' timber and metal on all forty frames,
+        //   which is what makes the 59 above a measurement rather than a
+        //   coincidence. That gap is why this simulation still cannot pay
+        //   for the city on 776 when the original can, and it is the
+        //   successor item.
+        assert_eq!(compared, 480, "forty frames, two players, six goods");
+        let of_good = |g: usize| {
+            wrong
+                .iter()
+                .filter(|w| w.contains(&format!("good {g}:")))
+                .count()
+        };
+        assert_eq!(
+            (of_good(1), of_good(2)),
+            (0, 0),
+            "timber and metal are the original's on every frame: {wrong:?}"
+        );
+        assert!(
+            of_good(0) <= 40 && wrong.len() <= 280,
+            "the census fell: {} of {compared}, food {} — the floors are 280 and 40",
+            wrong.len(),
+            of_good(0)
         );
     }
 
@@ -7251,26 +7436,34 @@ mod tests {
         // stood before item 47. The over-production is unexplained and is
         // its own item; what this pin says is that the whole is not worse
         // for it.
+        // Item 81 (the building ramp's missing ceiling) changed the sign a
+        // third time, and this is the first reading in which the pair is
+        // **one-sided again**: the AI's second city costs sixty rather than
+        // twenty-two, so it is bought on the original's frame 776 rather
+        // than 576, and the hundred and twenty food and timber it no longer
+        // has two hundred frames early are what `1/9` was trained on. `1/9`
+        // now arrives at **1497** against the original's 1297 — late, where
+        // it used to be four hundred frames early — so it joins `1/10` in
+        // `missing` and leaves `extras` empty. 268 + 400 → **468 + 0**.
         assert_eq!(
             missing,
-            vec![(1, 10)],
-            "the food-bound citizen the AI does not reach"
+            vec![(1, 9), (1, 10)],
+            "the two citizens the AI reaches late or not at all"
         );
         let extras: Vec<(i64, i64)> = report
             .frames
             .iter()
             .flat_map(|f| f.extra_units.iter().copied())
             .collect();
-        assert_eq!(
-            extras.iter().collect::<std::collections::BTreeSet<_>>(),
-            [(1, 9)].iter().collect(),
-            "only the early ninth citizen is ahead of the original"
+        assert!(
+            extras.is_empty(),
+            "nothing is ahead of the original any more: {extras:?}"
         );
         let unlinked: usize = report.frames.iter().map(|f| f.unlinked).sum();
         assert!(
-            unlinked + extras.len() <= 668,
-            "roster unit-frames: {unlinked} missing + {} extra — 2026-08-29 \
-             was 268 + 400, 2026-08-27 was 744 + 0",
+            unlinked + extras.len() <= 468,
+            "roster unit-frames: {unlinked} missing + {} extra — 2026-08-30 \
+             was 468 + 0, 2026-08-29 was 268 + 400, 2026-08-27 was 744 + 0",
             extras.len()
         );
 
@@ -7293,9 +7486,13 @@ mod tests {
         // 26,433 → 25,957 with item 47: the 476 are `1/9`'s, the citizen
         // the AI no longer reaches (see the roster note above). Item 70
         // put it back and the count with it — 25,957 → 26,433, the same
-        // 476 unit-frames. The one disagreement is unmoved through both.
+        // 476 unit-frames. 26,433 → **26,233** with item 81, and it is the
+        // same citizen a third time: `1/9` is trained two hundred frames
+        // later than the original now rather than four hundred early, so
+        // two hundred of its unit-frames are no longer comparable. The one
+        // disagreement is unmoved through all three.
         let los_seen: usize = report.frames.iter().map(|f| f.los_compared).sum();
-        assert_eq!(los_seen, 26_433, "every compared unit-frame carries mylos");
+        assert_eq!(los_seen, 26_233, "every compared unit-frame carries mylos");
         let bad: Vec<LosDivergence> = report
             .frames
             .iter()
@@ -7439,9 +7636,14 @@ mod tests {
         // the count is the one to read: player 0's three farmers recover
         // everything item 79 cost them and pass it, 574/577/579 →
         // 687/700/703.
+        //
+        // 80,161 → **87,548** with item 81 (the building ramp), the
+        // fifteenth and the largest single move it has made: the AI's
+        // second city lands on the original's frame, so every unit of both
+        // players holds two hundred frames longer.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 80_161,
+            coll_seen, 87_548,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -7544,7 +7746,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(1298),
+            Some(1373),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -7663,8 +7865,10 @@ mod tests {
         // earlier parting.
         // 29,878 → **31,022** with item 80 (the repath throttle's decay):
         // 1,144 more, the human farmers holding a hundred frames longer.
+        // 31,022 → **33,992** with item 81 (the building ramp): 2,970
+        // more, of which 1,684 agree.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 31_022, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 33_992, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -7712,8 +7916,13 @@ mod tests {
         // `0/3`–`0/5`, `1/3`–`1/5` and `1/8`, every one of them a farmer,
         // are 7,818 of the 7,870, and no other unit contributes more than
         // twenty-eight rows.
+        // 7,870 → **9,156** with item 81, against 31,022 → 33,992
+        // compared: 1,684 of the 2,970 new rows agree, and the residue is
+        // still the farmers — `0/3`–`0/5`, `1/3`–`1/5` and `1/8` are 8,866
+        // of the 9,156. What is new is `0/1` (140) and `0/2` (136), the two
+        // woodcutters, which item 36 did not have to account for before.
         assert!(
-            bad.len() <= 7_870,
+            bad.len() <= 9_156,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );

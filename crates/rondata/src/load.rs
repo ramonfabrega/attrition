@@ -1089,7 +1089,10 @@ pub fn load_tables(
             base: c.cost,
             support: [None; 2],
             progression: Progression::default(),
-            class: RampClass::default(),
+            // Not `default()`: the four `*_RAMP_MAX` ceilings belong to
+            // `get_cost`'s unit arm, and a building's ramp has none
+            // (`sim::cost::RampClass::Building`).
+            class: RampClass::Building,
             pop: 0,
         };
         for (res, n) in &c.support {
