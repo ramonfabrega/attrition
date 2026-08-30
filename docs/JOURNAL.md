@@ -7393,3 +7393,30 @@ sibling dump, and that is the item.
 `docs/SYNC.md` §3.11 is the specification; §3.6's "what this leaves open"
 is struck through and pointed at it, and `docs/ORACLE.md`'s run38/run39
 row too.
+
+### Postscript — two inputs item 92 will not have to re-derive
+
+The user asked whether the warm context mapped onto the deferred fix. The
+half-fix does not — it is the wrong shape whoever writes it — but two of
+item 92's *inputs* were a few minutes each with the decompile open, and
+both are now durable rather than in a session's head.
+
+**`corner_x` and `corner_y`.** `rise_z.map` names them at `00adc3e0` and
+`00adc3c0` in `compass.obj`, and read out of the PE they are a centre and
+four corners — `x = [0, −1, 1, 1, −1]`, `y = [0, −1, −1, 1, 1]`, one per
+animal, which is what `Animal+0x154` is for. With them
+`think_farm_animal`'s destination collapses to `192·T + {24, 120, 168}`
+for a corner of `−1`, `0`, `+1`, and §3.11 carries the derivation. Item 92
+no longer owes a PE read.
+
+**`report.py <log> draws` now prints the value each draw returned.** The
+whole coin argument of this session rested on a throwaway script that
+stepped the LCG from the seed a record carries; the record's seed is the
+word *before* the step, so **every draw's outcome is recoverable from a
+trace without the game**, including the ones that leave nothing in any
+dump — a setup coin, a direction, an idle roll. That belongs in the
+instrument, not in a session, so it is fifteen lines in the reader. It
+reproduces this session's numbers exactly (`add_animals+0x92` 27358,
+`+0x134` 15025, `+0x182` 55912, ...) and names the chain while it is at
+it, which confirms §3.8's `Build::activate` correction from the ebp chain
+rather than from a reading.

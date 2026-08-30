@@ -4,7 +4,8 @@
     report.py <log> [--index INDEX.tsv] summary
     report.py <log> draws [FRAME ...]          every draw of the given sim-frames
                                                (default: all; `setup` = before frame 0),
-                                               with the caller and the ebp chain named
+                                               with the caller, the ebp chain, and the
+                                               value the draw returned
     report.py <log> sites [FRAME ...]          the same, folded by caller site with counts
     report.py <log> coverage [FRAME ...]       functions entered, per frame (re-armed
                                                frames) — names, counts
@@ -81,6 +82,31 @@ def s32(u):
     return u - (1 << 32) if u >= (1 << 31) else u
 
 
+def lcg(seed):
+    """One step of `Random::get`'s generator, from the seed a record carries."""
+    return (seed * 0x19660D + 0x3C6EF35F) & 0xFFFFFFFF
+
+
+def value(rec):
+    """What a draw record actually returned.
+
+    The record's `seed` is the word *before* the step (docs/ORACLE.md, "The
+    draw-site trace"), so the outcome is recoverable without the game: step
+    once, then apply `Random::get(lo, hi)`'s own scaling,
+    `((seed & 0xffff) * (hi - lo)) >> 16) + lo`. A draw that leaves no
+    outcome in any dump — a coin inside `Setup::build_empire`, a direction
+    nothing records — is readable this way and only this way.
+
+    `get()` and `get(a, b)` are both `(0, 0xffff)` at every site the
+    documents cite; `rand_real` and `reseed` return None rather than a
+    number that would be a guess.
+    """
+    kind = rec[0]
+    if kind not in (1, 3):
+        return None
+    return ((lcg(rec[3]) & 0xFFFF) * 0xFFFF) >> 16
+
+
 def frame_of(rec):
     return s32(rec[7])
 
@@ -142,7 +168,10 @@ def main():
             chain = f"{nm(r[1])} < {nm(r[4])} < {nm(r[5])}"
             if cmd == "draws":
                 extra = f" arg0={s32(r[6])}" if r[0] in (3, 6) else ""
-                print(f"f{f:<5} {k:>4} {kind:<10} {rng(r[2]):<5} seed {r[3]:08x}  {chain}{extra}")
+                v = value(r)
+                got = f" = {v:<5}" if v is not None else " " * 8
+                print(f"f{f:<5} {k:>4} {kind:<10} {rng(r[2]):<5} seed {r[3]:08x}{got}  "
+                      f"{chain}{extra}")
                 k += 1
             else:
                 per_site[(f, kind, rng(r[2]), chain)] += 1

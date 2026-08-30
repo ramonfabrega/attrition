@@ -608,13 +608,42 @@ which its clock is nineteen frames behind the other four and wraps at 49
 rather than 29. The signature repeats all game: every `think_farm_animal`
 draw is followed nine to twenty-five frames later by such a pair.
 
+**Where it walks to, in full.** `think_farm_animal`'s destination needs
+nothing but the one draw it already spends. Let `T` be the tile of the
+reference object (the farm, or `gather_down`'s first gatherer) plus
+`move_x`/`move_y[dir + 1]`, and `C` the slot's corner; then the axis is
+
+```
+idx  = div_3_table[((T · 3 + C) · 0x40 + 0x60) >> 4]   =  4·T + (4·C + 6)/3
+dest = idx · 0x30 + 0x18                               =  192·T + {24, 120, 168}
+```
+
+for `C` of `−1`, `0`, `+1` — the low edge, the middle and the high side of
+a tile, which is 192 position units wide. **`corner_y@00adc3c0` and
+`corner_x@00adc3e0`** (`compass.obj`, `const int[]`; read out of the PE
+against `rise_z.map`) are
+
+| slot | 0 | 1 | 2 | 3 | 4 |
+| --- | --- | --- | --- | --- | --- |
+| `corner_x` | 0 | −1 | +1 | +1 | −1 |
+| `corner_y` | 0 | −1 | −1 | +1 | +1 |
+
+— a centre and its four corners, one per animal, which is what
+`Animal+0x154` is for.
+
 **What is still open.** The animals' two position offsets, which set that
 arrival frame — a whole tile of slack on each axis, and a chicken crosses a
 tile in several frames, so the farm's own centre puts the arrival anywhere.
-run39's are `(−143, 40)`, `(−187, −148)`, `(−39, −144)`, `(−83, −76)`,
-`(−63, 56)` as `(dy, dx)`, read out of the same trace; so the pasture's five
-are **borrowable the way the heights and the herds are**, and that is the
-shape the queue carries.
+`Farms::add_animals` spends them at **`+0x92`** (the coin), **`+0x134`**
+(`y`) and **`+0x182`** (`x`), under `Build::activate+0x1c25 <
+Leader::produce_building+0x1a10` — which is §3.8's correction confirmed by
+the chain rather than by reading. run39's five are `(−143, 40)`, `(−187,
+−148)`, `(−39, −144)`, `(−83, −76)`, `(−63, 56)` as `(dy, dx)`, and
+`tools/trace/report.py <log> draws setup` prints them: **a draw record
+carries the seed before the step, so its outcome is recoverable without the
+game**, and the reader now does that arithmetic (2026-08-30). So the
+pasture's five are **borrowable the way the heights and the herds are**,
+and that is the shape the queue carries.
 
 ## 4. Run12 attributed
 

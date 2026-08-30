@@ -27,7 +27,7 @@ the how-to.
 | `build.sh <install>` | clang (Homebrew LLVM) → `llvm-dlltool` → the pinned toolchain's `rust-lld -flavor link`; then `funcs.py` and `patch_exe.py`. Nothing to install. |
 | `funcs.py` | `INDEX.tsv` → `rontrace.funcs`, the function entries as u32 RVAs |
 | `patch_exe.py` | `riseofnations.exe` → `riseofnations_trace.exe`: a copy with one added section carrying a copy of the import table plus one descriptor for `rontrace.dll`. The install's own exe is never modified. |
-| `report.py` | the reader: `summary`, `draws`, `sites`, `coverage`, `functions`, `blind` |
+| `report.py` | the reader: `summary`, `draws`, `sites`, `coverage`, `functions`, `blind`. `draws` prints **the value each draw returned**: the record carries the seed *before* the step, so stepping the LCG once and applying `Random::get`'s scaling recovers an outcome no dump holds — a setup coin, a direction. |
 
 Everything staged lands in the install directory (`/game`, gitignored):
 `rontrace.dll`, `rontrace.funcs`, `rontrace.cfg`, `riseofnations_trace.exe`,

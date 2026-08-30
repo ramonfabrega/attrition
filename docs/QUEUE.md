@@ -44,14 +44,14 @@ map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
 92. **The pasture's five, and the walk they take.** The second map's
-    word parts at **19** and this is all of it (SYNC §3.11). One commit,
-    three parts: a pasture animal's `type_index`; chickens rather than
-    pigs; and `think_farm_animal`'s `MOVE_TO`, whose destination needs
-    `corner_x`/`corner_y` read out of the PE. The blocker is the
+    word parts at **19** and this is all of it (SYNC §3.11, which now
+    carries the corner tables and the destination arithmetic whole). One
+    commit, three parts: a pasture animal's `type_index`; chickens rather
+    than pigs; and `think_farm_animal`'s `MOVE_TO`. The blocker is the
     animals' **positions** — two setup draws — so borrow the five from
-    the trace the way the heights and herds are borrowed from a sibling.
-    The first two parts alone cost the ticks 167 → 102, so they do not
-    land alone.
+    the trace (`report.py <log> draws setup` prints them) the way the
+    heights and herds are borrowed from a sibling. The first two parts
+    alone cost the ticks 167 → 102, so they do not land alone.
 
 69. **East Indies' order-list length at 168.** `1/4` holds two orders on
     the original's 168 where this holds one; `1/5` at 186 and `1/3` at
