@@ -80,7 +80,6 @@ const OVER: &[(&str, &str, usize)] = &[
         "6. The move — `Group::action_move_near@00704990`",
         44_907,
     ),
-    ("ORACLE.md", "What this changes", 121_737),
     ("ORDERS.md", "1. The order system", 16_545),
     ("ORDERS.md", "4. The move order", 37_817),
     (
@@ -89,7 +88,6 @@ const OVER: &[(&str, &str, usize)] = &[
         16_450,
     ),
     ("ORDERS.md", "6. The gather order", 21_139),
-    ("SYNC.md", "3. The per-frame sites", 30_064),
 ];
 
 /// `(heading, bytes)` for every `## ` section of a document, the preamble

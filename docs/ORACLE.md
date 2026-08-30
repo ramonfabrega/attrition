@@ -322,7 +322,7 @@ than a recorded game would have.
 
 ---
 
-### Running a check: the recipe in one place (2026-08-20, consolidated)
+## Running a check: the recipe in one place (2026-08-20, consolidated)
 
 The sections that follow were written as the method was discovered, each
 correcting the one before, and they are kept that way. This one is the
@@ -390,7 +390,7 @@ terrain, then the building under test — and a tower that starts leaves the
 rule under test as the only candidate reason for a refusal. The full recipe
 is "A scripted placement test, end to end" below.
 
-### The detail level is the knob (2026-08-20, third session)
+## The detail level is the knob (2026-08-20, third session)
 
 The two earlier sessions read `gamelog.ini`'s 37 per-category keys as
 booleans, and read `DUMP_ALL` as the switch that adds per-object detail. Both
@@ -559,7 +559,7 @@ not the keys we guessed"). On run11's stream run10 scores **744** — the script
 draws the simulation does not model, and pick the rush order; the 268 was
 the boom order reached by the sim's own stream's luck.
 
-### The lobby is a file: `-config` and `-automation` (2026-08-20)
+## The lobby is a file: `-config` and `-automation` (2026-08-20)
 
 `System::init_cmdlineopts` splits the command line on `/` and `-` and matches
 six options by name. Two of them matter here.
@@ -620,7 +620,7 @@ it the console-only half of `run_cmd`'s command table (`ai off` among them).
 **invisible until it has printed a line**, so the first look at it found
 nothing. See "The `~` console, which documents itself" below.
 
-### The `~` console, which documents itself (2026-08-20)
+## The `~` console, which documents itself (2026-08-20)
 
 `StartConsole=1` in `rise2.ini` does work — `Game::solo_checks` calls the
 console window's show slot at game start — and an earlier session's "no console
@@ -707,7 +707,7 @@ identical, the y 46 out, because the window came up at a different position
 (the trap is already in "Traps that cost a run each"). One cheat line
 re-probes it, so probe rather than trust a stored number.
 
-### Staging a scenario: the chat cheats
+## Staging a scenario: the chat cheats
 
 A behavioural check needs a *situation* — two builders on one site, a citizen
 against a tower, one squad hitting another from behind — and building one by
@@ -917,7 +917,7 @@ the player had no city, was disbanded on arrival — the foothold and `COLONIZE`
 branches of §2.4/§2.6.1 — which is why the ladder has to be run on ground the
 tower probe has already proven.
 
-### Traps that cost a run each (merged 2026-08-20)
+## Traps that cost a run each (merged 2026-08-20)
 
 Two lists were kept in two places as the sessions found them; this is the one
 list, and `tools/gamelog/README.md` points here.
@@ -991,7 +991,7 @@ list, and `tools/gamelog/README.md` points here.
 
 ---
 
-### The map is a dump too: `WORLD` under `[Start Game]` (2026-08-24)
+## The map is a dump too: `WORLD` under `[Start Game]` (2026-08-24)
 
 Every run so far had `WORLD=0`, and "the dump carries no terrain"
 (`docs/DATALAYER.md`) was true of those runs, not of the logger.
@@ -1056,7 +1056,7 @@ from them; the flat world is the fallback. First effect: the AI's fourth
 farm lands on the original's tile and its builder tracks the whole run
 (`docs/DATALAYER.md` §3).
 
-### `LEADERS=9` is the census oracle (2026-08-24)
+## `LEADERS=9` is the census oracle (2026-08-24)
 
 The `LEADERDATA` record at level 9 is the whole of `LeaderData` — about
 10k lines a leader a frame, most of it the `reg_buildings[64][129]` array —
@@ -1074,7 +1074,7 @@ acceptance oracle for `crates/sim/src/ai_census.rs`; the human's block
 carries `peasants`/`gatherers` too, from `Leader::calc_gather@006ceee0`
 (the goods display's pass), not the sweep.
 
-### The setup path's checksum trace is the RNG state (2026-08-24, run11)
+## The setup path's checksum trace is the RNG state (2026-08-24, run11)
 
 The `CHECKSUM` category was never wired into `full_dump`'s per-category
 dispatch, which is why every run with `CHECKSUM=1` printed nothing of it.
@@ -1172,7 +1172,7 @@ siblings, and installs them frame by frame with the count on both sides.
 `DUMP_ALL` trace of frame 100 a 130 MB file instead of a 6 GB one.
 Untried.~~
 
-### The frame window is real, and it is not the keys we guessed (run13, 2026-08-24)
+## The frame window is real, and it is not the keys we guessed (run13, 2026-08-24)
 
 **The window exists and works. It is `LogStartFrame` / `LogEndFrame` in
 `rise2.ini`, not `Checksum Dump` / `Checksum Break` in `gamelog.ini`** — the
@@ -1251,7 +1251,7 @@ Against run12's 120 / 54 / 6 / 6 for frames 0–3 this is the same shape with
 a bigger economy: a floor of six from `Farms::inc_time` and spikes where the
 AI, a new farm or a herd steps.
 
-### The draw-site trace and function coverage (run14, 2026-08-24)
+## The draw-site trace and function coverage (run14, 2026-08-24)
 
 The dumps show a draw's *outcome*; the draws that leave none — the scouts'
 scan, frame 0's four-draw tail — were placed by elimination
@@ -1445,7 +1445,7 @@ functions) would need a different instrument — DynamoRIO's `drcov` does not
 run under Wine; a `winedbg --gdb` single-step is too slow for a frame — and
 is not needed for the question the blind list answers.
 
-### The attrition run (run16, 2026-08-24) — the first of the blind runs
+## The attrition run (run16, 2026-08-24) — the first of the blind runs
 
 The first run taken off the blind list. Same lobby and seed as run12–14
 (frame-0 word `0x3bd39ae9`), the traced exe with `cover=1` and no window,
@@ -1525,7 +1525,7 @@ a run reproducible to the frame and unattended; a scheduled `quit`
 ~~That is the next thing built.~~ **Built and validated the same night —
 next section.**
 
-### The cheat channel: a scenario from a file (run16b, 2026-08-24)
+## The cheat channel: a scenario from a file (run16b, 2026-08-24)
 
 `rontrace.cmd` beside the exe, one entry per line — `<sim-frame> <text>`,
 where `<text>` is what would follow `cheat ` in the chat box, or `!` plus a
@@ -1571,7 +1571,7 @@ refreshes `mouse_coord_x/y` only when `no_mouse == 0`, so an omitted
 coordinate silently uses whatever the last real cursor read left. Always
 give `x,y`.
 
-### The channel's vocabulary, and what it cannot do (2026-08-26)
+## The channel's vocabulary, and what it cannot do (2026-08-26)
 
 The whole console vocabulary is readable without running anything, and
 `tools/gamelog/console.py` re-derives it from the user's own install on
@@ -1667,7 +1667,7 @@ every existing expectation, and not a free substitute for the
 Frame]` block at frame n is interchangeable with an `[End Frame]` block at
 n−1 is unestablished and is the check to run before building on it.
 
-### `restart` from the channel wedges the game (gate run, 2026-08-26)
+## `restart` from the channel wedges the game (gate run, 2026-08-26)
 
 Item 13's plan was many scenarios per launch, on the strength of `restart
 <seed>` being a console command. It is, and it does what the reading says —
@@ -1732,7 +1732,7 @@ run, is unresolved; `loglevel` cannot do it, because it reaches
 `[Start Frame]` only. Until it is, a fuzzed seed scores over a handful of
 frames rather than hundreds.
 
-### The combat run (run17, 2026-08-24) — the channel's first real run
+## The combat run (run17, 2026-08-24) — the channel's first real run
 
 Fourteen `rontrace.cmd` lines, no driver, 2,600 frames in fourteen
 minutes: six duels on unowned mid-map land with `!ai off` at frame 100.
@@ -1756,7 +1756,7 @@ by damage; the run itself is in `docs/JOURNAL.md` under 2026-08-29,
 - `move` from the channel is a **teleport** (`Unit::set_new_location`),
   not an order — the question of why `move 6 190,60` "did not work" was
   the wrong shape ("The channel's vocabulary", above).
-### The producers' run (run18, 2026-08-25) — the script ends, the C++ takes over
+## The producers' run (run18, 2026-08-25) — the script ends, the C++ takes over
 
 The blind list's third entry: *a long game past the script, at `LEADERS=9`
 around a sweep*, which `docs/AI.md` §12.1 item 4 had been asking for since
@@ -1882,7 +1882,7 @@ frame 576, inside the script's era, so the window that catches them also
 catches the script calling `place_city_with_cost`, and the two callers have
 to be told apart by the step in the dump.
 
-### run20 and run21 — the islands map (2026-08-25)
+## run20 and run21 — the islands map (2026-08-25)
 
 The first runs off the profile's Great Lakes, and the first `DUMP_ALL`
 capture read as the harness's own oracle rather than as a sibling.
@@ -1928,7 +1928,7 @@ diff on run20 — passes and fails on demand.
 - **Save to Profile does not survive a killed process** — see "The lobby
   is a file" above. The combo is read from a screenshot every launch.
 
-### run22 — the first dock, under the window (2026-08-25)
+## run22 — the first dock, under the window (2026-08-25)
 
 The run21 lobby (East Indies from the combo, seed 12345, the profile's
 Nubians) with the per-frame dump **gated to the frames that matter**: run21's
@@ -1970,7 +1970,7 @@ the process at the Game Over screen writing blocks 3583–3584 for a minute;
 a size poll on `gamelog.txt` (90 s unchanged) is the "done" signal, then
 `pkill -f riseofnations_trace.exe`.
 
-### runs 23–31 — the army's and the group's captures (2026-08-25/26)
+## runs 23–31 — the army's and the group's captures (2026-08-25/26)
 
 Nine runs of the run21 lobby, staged from `docs/ARMY.md` §16 and
 `docs/GROUPS.md` §11 and driven unattended by `tools/gamelog/runwin.sh N LO
@@ -2010,7 +2010,7 @@ ORACLE.md"; what belongs here is the inventory and the traps.
   where `runwin.sh` waits for a `!quit`; `archive.sh N TAG` is the other
   end. At ~370 KB a frame the game runs about one frame every two seconds,
   which is what leaves a driver wall clock between frames.
-### The group pool is a per-frame record (2026-08-26)
+## The group pool is a per-frame record (2026-08-26)
 
 `GameLog::full_dump@00930380` has two halves. `do_dump_all != 0` takes the
 early branch — `detail_override = 1`, then `dump_all`, which is the 70 MB
@@ -2064,7 +2064,7 @@ A second-order lesson: `LEADERS=9` is the expensive key. run30 ran at
 1.6 MB a frame with `UNITS=3 LEADERS=9 GUYS=2`; run31 at ~370 KB with
 `LEADERS=1` and `GROUPS` added.
 
-### The 300-frame window, and the `DUMP_ALL` the fuzzer did not need (2026-08-26)
+## The 300-frame window, and the `DUMP_ALL` the fuzzer did not need (2026-08-26)
 
 `docs/QUEUE.md` item 13's Tier 1 windowed with `window.py stage`, which
 sets `DUMP_ALL=1`. The stated reason was that `rondata`'s `scene_at` wants
@@ -2184,7 +2184,7 @@ three were wrong. **Before crediting a new capture with a finding, run
 the same diff against a dump already on disk**; it is the cheapest
 control this project has and it had not been in the habit.
 
-### run32 — the road on fresh ground, and the heights of another game (2026-08-28)
+## run32 — the road on fresh ground, and the heights of another game (2026-08-28)
 
 The capture item 55 asked for, and it settled the item twice over.
 
@@ -2247,7 +2247,7 @@ height table and run3 is first in the list. With the map's own heights
 **220** and **248** nodes — the original's, exactly, where they had been 208
 and 222. That, not anything in the search, was item 55's six per cent.
 
-### run33 — the long trace, and the proof that the instrument is free (2026-08-29)
+## run33 — the long trace, and the proof that the instrument is free (2026-08-29)
 
 run14 traced 284 of run10's 1,772 frames, and once the simulation's word
 matched all 284 there was nothing on disk that could say where the two next
@@ -2292,7 +2292,7 @@ pinned in `run33_s_long_trace_says_where_the_word_parts`.
 functions against run14's 6,585. A long run of the *same* no-input game
 lights nothing new: the list is shrunk by scenarios, not by frames.
 
-### run38 and run39 — the second map, and its first score (2026-08-29)
+## run38 and run39 — the second map, and its first score (2026-08-29)
 
 Phase 3's finish line names **two** maps, and every number in the harness
 was Great Lakes. run38 and run39 are the other one: **East Indies**
@@ -2313,10 +2313,34 @@ stands the simulation up on a map it has never seen with nothing borrowed
 at 219, player 1 at 168
 (`run39_s_islands_game_is_the_second_map_s_score`). Great Lakes stands at
 252 the same day, so the residue chased on the one map was not chased into
-its shape. What parts it first is an order-list **length** — `1/4` holds
-two orders on the original's frame 168 where this simulation holds one,
-and its position parts on the same frame; `1/5` at 186 and `1/3` at 202
-are the same disagreement.
+its shape. ~~What parts it first is an order-list **length**~~ — `1/4`
+holds two orders on the original's frame 168 where this simulation holds
+one, and its position parts on the same frame; `1/5` at 186 and `1/3` at
+202 are the same disagreement — but **that is not what parts it first**,
+see the next row.
+
+## run39's trace, read at last — the second map's word (2026-08-30)
+
+run39 shipped with an 11 MB `cover=1` trace and nothing read it: the map
+was scored on its dump alone. Read against the harness frame for frame
+(`run39_s_long_trace_says_where_the_second_map_s_word_parts`), **the word
+parts at 19** — 148 frames before the order-list divergence above, so
+run39's 167 is a number on a stream that is nobody's, and the row above is
+struck for it.
+
+The cause is the AI's **pasture**, which East Indies has and Great Lakes
+does not: its five animals carry no `type_index` and so no animation
+length, they are the wrong species, and the `MOVE_TO` that
+`think_farm_animal` hands one of them at frame 0 is read and not issued —
+its arrival is the two draws of frames 19 and 20. `docs/SYNC.md` §3.11 has
+all of it, including the coin's parity argument (a pasture is one species,
+always) and the five position offsets read back out of the trace's own
+seeds.
+
+The score beside the word is the **early window**, not a total: past the
+parting a total is noise, and a strictly more faithful pasture measurably
+scores worse on it. Of the first 64 frames, **49 spend the original's
+number of draws and 47 draw for draw**.
 
 ## What is not established
 

@@ -92,7 +92,7 @@ its city, `docs/ROADS.md`), and the
 
 ## 3. The per-frame sites
 
-### 3.1 The market — `GameDaemon::calc_markets@00732180`
+## 3.1 The market — `GameDaemon::calc_markets@00732180`
 
 Runs when `frame == 0`, or `market_cycle_rate < 2` (it ships as **1**, so
 every frame), or `frame % market_cycle_rate == 0`. For each of the six goods
@@ -127,7 +127,7 @@ good `i` is visited once every eight ticks, drawing three when its
 offset — the pin that places the market and proves the two phases before it
 draw exactly the sweep's two. Landed: `crates/sim/src/market.rs`.
 
-### 3.2 The objects — `Objects::process_all@0065dce0`
+## 3.2 The objects — `Objects::process_all@0065dce0`
 
 **The unit loop rotates.** `for i in 0..10: slot = (frame + i) % 10` — the
 owner whose units go first is `frame % 10`, so at frame 0 player 0's units
@@ -175,7 +175,7 @@ Then, still inside `process_all`:
 Landed: the birds' sampling, the bird itself (§3.9) and the herd walk,
 `crates/sim/src/gaia.rs`.
 
-### 3.3 The farms — `Farms::inc_time@008d8600`
+## 3.3 The farms — `Farms::inc_time@008d8600`
 
 Every frame, every farm whose **`farm_type` is not 1** (`FarmStruct+0xbd`,
 named by the type record — §3.6; that farm is a *pasture* and grows nothing)
@@ -225,7 +225,7 @@ adds at frame 99, `≥ 1.0f` after 202 at frame **100** → state 2 → the "new
 tile" branch's two draws on **101**. The regrowth is `−0.01f` a frame, `≤ 0`
 on the **101st** subtraction.
 
-### 3.4 The docks — `Dock::init@00740a80` (2026-08-25)
+## 3.4 The docks — `Dock::init@00740a80` (2026-08-25)
 
 Not per frame: per dock finished. `Build::activate` → `Docks::init_dock` →
 `Dock::init` spawns the dock's gull (`Objects::init_unit(9, GULLBIRD, x −
@@ -237,7 +237,7 @@ are `Guy::init_real+0x52 < Unit::init < Animal::init` and `Dock::init+0x125
 < Docks::init_dock+0x128 < Build::activate+0xcbf`. `docs/TRANSPORT.md`
 §5.2; landed in `crates/sim/src/transport.rs` (`dock_open`).
 
-### 3.5 The armies — `Army::find_target@006f69b0`, `Unit::come_out@00617c10` (2026-08-25)
+## 3.5 The armies — `Army::find_target@006f69b0`, `Unit::come_out@00617c10` (2026-08-25)
 
 `Army::find_target` draws `Random::get(game_random, 0, 0xffff)` **once per
 candidate city** that reaches its score (`% 200 + 900`, the base), once
@@ -250,7 +250,7 @@ run12/run13's windows; run24–26 are the captures with them
 (`docs/ARMY.md` §16). The harness's `find_target` draws on the same
 stream in the same order.
 
-### 3.6 The pasture and its five animals — `Farms::add_animals@008d8f30` (2026-08-26)
+## 3.6 The pasture and its five animals — `Farms::add_animals@008d8f30` (2026-08-26)
 
 **A farm's `farm_type` is `FarmStruct+0xbd`**, and `rise.pdb`'s type record
 is what names it (`FarmStruct // size 0xc0`: `who`, `o`, `float[4][4]
@@ -324,10 +324,11 @@ with the thirds-of-a-tile arithmetic is read but not issued — a destination
 here would be fiction. So is the coin that picks chicken or pig, and so are
 their **animation lengths**: no dump prints an owner-9 `GUY`, so the sim
 gives them an unknown length, their clocks never run out and their later
-idle re-rolls are missing. None of that touches the frame-0 count; all of it
-touches a long run.
+idle re-rolls are missing. ~~None of that touches the frame-0 count; all of
+it touches a long run.~~ — **it is the whole of the second map's word, from
+frame 19 on (§3.11).**
 
-### 3.7 The idle scout — `Unit::think_scout@005f6010` (2026-08-26)
+## 3.7 The idle scout — `Unit::think_scout@005f6010` (2026-08-26)
 
 The unit loop's largest single site, and the whole of frame 0's remaining
 gap on three maps. An idle AI scout walks rings of cells outward from each
@@ -343,7 +344,7 @@ and the cell count depends on the **fog grid**, which only a `DUMP_ALL`
 capture's `WORLD` block supplies — a harness world without one sees
 everything and spends the ring draws alone.
 
-### 3.8 The new farm — `Farms::add@008d8a40` (2026-08-26)
+## 3.8 The new farm — `Farms::add@008d8a40` (2026-08-26)
 
 Not a per-frame site: it fires **once, where a farm is placed**, and it is
 what run20's frame 1 spends two draws on that no other capture's frame 0–3
@@ -427,7 +428,7 @@ settles the type without one.
   (`Sim::farm_add_animals` has no caller in `Sim::activate`). No capture
   contains one.
 
-### 3.9 The bird — `Animal::think_bird@005d79e0`, `Unit::do_air_patrol@005ea620` (2026-08-28)
+## 3.9 The bird — `Animal::think_bird@005d79e0`, `Unit::do_air_patrol@005ea620` (2026-08-28)
 
 A bird is what `Objects::process_all`'s sampling creates: `init_unit(who 9,
 BASE_GAIATYPES)` at the hit cell's centre (`cell·0x300 + 0x180` on each
@@ -522,7 +523,7 @@ frame per bird and no fourth. **The landing search** is unreachable on
 every capture; a bird that reaches it is recorded in `Gaia::bird_landings`
 rather than drifting quietly.
 
-### 3.10 The residue's other names (2026-08-28)
+## 3.10 The residue's other names (2026-08-28)
 
 Five draws this simulation was already taking, each of them under a coarse
 phase mark (`strategy_all`, `unit w/o`) rather than a site of its own. A
@@ -565,6 +566,55 @@ costs, `sim::roads::SITE_COST`. The block desynchronises the stream from
 frame 10 on and with it every value-driven label after, so the remaining
 eighty-six frames are mostly not naming faults. The site is taken under
 `Sim::plan_roads`, **off** while the search's count is short.
+
+## 3.11 The pasture is East Indies' word, at 19 (2026-08-30)
+
+§3.6 left three things open and a long run has now priced all three.
+`crates/rondata`'s `run39_s_long_trace_says_where_the_second_map_s_word_parts`
+reads `rontrace-run39.log` against the harness frame for frame: **the second
+map's word parts at 19**, 148 frames before the order-list divergence at 168
+that had been called its first, and all three of the open items are in it.
+East Indies' AI starts with a pasture and Great Lakes has none, which is why
+run33's word never saw any of this.
+
+**The coin is settled, and a pasture is one species.** The four draws an
+animal are a fixed stride, so every coin of a call lands on the same parity
+of the stream; and `Random::get(0, 0xffff)` returns `((seed & 0xffff) ·
+0xffff) >> 16`, whose low bit is the complement of the seed's, which the LCG
+flips on every step. **Five even coins or five odd ones, never a mix.**
+Which of the two is still a setup draw — but the trace carries the seed
+*before* each step, so a capture's own coins are readable: run39's five, at
+`add_animals+0x92`, are even. **Chickens**, whose `CHAR_DEFAULT` is 30
+frames where a pig's is 90; both name `CHAR_IDLE1..3` at 90.
+
+**The lengths were missing twice over.** A pasture animal here carries no
+`type_index`, so `Sim::slot_length` cannot reach the gaia table at all; and
+the table itself had no row, because `rondata::artdata`'s `GAIA_UNITS` left
+`FARMPIG` and `FARMCHICKEN` out of its twelve. The second is fixed
+(2026-08-30) and is inert until the first is. Together they are **three of
+the original's six `Guy::inc_time` wraps on run39's frame 29**, and they
+take the early window from 49 frames on the count to 60 and 47 draw-for-draw
+to 53 — while **costing the ticks score 167 → 102**, because the stream
+after 19 is nobody's either way and 167 was luck on it. So they wait for the
+walk rather than landing alone.
+
+**The walk is the fourth animal's nineteen frames.** The one whose phase
+hits frame 0 — `o` 0 of 0–4, slot 0, and the trace's own phases
+`{0, 108, 116, 122, 126}` are `(o·(slot+1)) % 128` for exactly that
+assignment — is handed a `MOVE_TO` this crate does not add. It walks, and
+its **arrival spends two `Animal::do_idle` set_anim draws on consecutive
+frames**, 19 and 20 (both roll `≤ 69`, so both take `CHAR_DEFAULT`), after
+which its clock is nineteen frames behind the other four and wraps at 49
+rather than 29. The signature repeats all game: every `think_farm_animal`
+draw is followed nine to twenty-five frames later by such a pair.
+
+**What is still open.** The animals' two position offsets, which set that
+arrival frame — a whole tile of slack on each axis, and a chicken crosses a
+tile in several frames, so the farm's own centre puts the arrival anywhere.
+run39's are `(−143, 40)`, `(−187, −148)`, `(−39, −144)`, `(−83, −76)`,
+`(−63, 56)` as `(dy, dx)`, read out of the same trace; so the pasture's five
+are **borrowable the way the heights and the herds are**, and that is the
+shape the queue carries.
 
 ## 4. Run12 attributed
 

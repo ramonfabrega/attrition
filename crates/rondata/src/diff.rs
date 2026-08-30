@@ -6896,6 +6896,159 @@ mod tests {
         }
     }
 
+    /// **The second map's word, and where it parts.**
+    ///
+    /// run33 gave Great Lakes a word — the first frame whose draw *count*
+    /// is not the original's — and it is the sub-score a dozen items were
+    /// steered by. East Indies had none: run39 was scored on ticks and
+    /// orders alone, and `rontrace-run39.log` sat unread beside its dump.
+    ///
+    /// It parts at **19**, which is 148 frames before the order-list
+    /// divergence at 168 that the queue had been calling this map's first.
+    /// Everything run39 diverges on after 19 is on a stream that is
+    /// nobody's — **its ticks and orders of 167 included** — so this is
+    /// the number to move, and the score beside it is the early window
+    /// rather than a total over the game (a total past the parting is
+    /// noise: a more faithful simulation can score worse on a stream that
+    /// is nobody's, and this one measurably does).
+    ///
+    /// What parts it is **the pasture's five animals**. East Indies' AI
+    /// starts with an animal farm (`farm_type 1`, `o 2003`) and Great
+    /// Lakes has none, which is why run33 never saw any of this. Three
+    /// things are wrong with them here, and the trace names all three:
+    ///
+    /// 1. **They have no `type_index`**, so `Sim::slot_length` cannot
+    ///    reach the install's gaia table and every one carries
+    ///    `sim::anim::UNKNOWN`. A clock that never wraps costs no draw,
+    ///    and that is **three** of the original's six `Guy::inc_time`
+    ///    wraps on frame 29.
+    /// 2. **They are the wrong species.** `Farms::add_animals@008d8f30`
+    ///    throws `(rnd & 1) == 0 ? FARMCHICKEN : FARMPIG` per animal, and
+    ///    a pasture is therefore always **one** species: the four draws
+    ///    are a fixed stride, and `Random::get(0, 0xffff)`'s low bit is
+    ///    the complement of the seed's, which the LCG flips every step —
+    ///    five even coins or five odd ones, never a mix. run39's, read
+    ///    back out of its own trace at `add_animals+0x92` with the seeds
+    ///    the record carries, are even: **chickens**, whose
+    ///    `CHAR_DEFAULT` is 30 frames where a pig's is 90.
+    /// 3. **The walk is read and not issued.** The animal whose
+    ///    `think_farm_animal` phase hits frame 0 — `o` 0 of 0–4, slot 0;
+    ///    the trace's own phases `{0, 108, 116, 122, 126}` are
+    ///    `(o·(slot+1)) % 128` for exactly that assignment — is handed a
+    ///    `MOVE_TO` this crate does not add. It walks, and its arrival
+    ///    spends the **two** `Animal::do_idle` set_anim draws of frames
+    ///    19 and 20, after which its clock is nineteen frames behind the
+    ///    other four and wraps at 49 rather than 29. The signature
+    ///    repeats all game: every `think_farm_animal` draw is followed
+    ///    nine to twenty-five frames later by a pair of `Animal::do_idle`
+    ///    draws on consecutive frames.
+    ///
+    /// (1) and (2) together take the early window from 49 frames on the
+    /// count to 60 and from 47 draw-for-draw to 53 — frames 29 and 32
+    /// come right — but they **cost the ticks score 167 → 102**, because
+    /// the stream after 19 is nobody's either way and the old number was
+    /// luck on it. So they land with (3), not before it; the queue holds
+    /// them together.
+    ///
+    /// (3) needs the animals' **positions**, and that is the wall:
+    /// `add_animals` places each of the five at the farm ± `% 0x180 −
+    /// 0xc0` on each axis — up to a whole tile — from two draws inside
+    /// `Setup::build_empire`, whose stream the harness does not replay.
+    /// Standing them on the farm's own centre puts every arrival frame
+    /// somewhere else. The trace carries those draws too (run39's are
+    /// `(−143, 40)`, `(−187, −148)`, `(−39, −144)`, `(−83, −76)`,
+    /// `(−63, 56)` as `(dy, dx)`), so the pasture's five are borrowable
+    /// the way the heights and the herds are.
+    ///
+    /// History:
+    ///   2026-08-30  word parts at **19**; of the first 64 frames 49
+    ///               spend the original's number of draws and 47 draw for
+    ///               draw (the first reading of this trace).
+    #[test]
+    fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let last = tr.frames.last().map_or(0, |(n, _)| *n);
+        assert!(
+            last >= 1_800,
+            "run39's traced length is {last}, wanted 1,800+"
+        );
+        for _ in 0..last {
+            built.tick();
+        }
+        let first_count = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| ours.len() != tr.labels(*f).len())
+            .map(|(f, _)| *f)
+            .unwrap_or(last);
+        // Past the parting the totals over the whole game are noise — a
+        // more faithful simulation can score worse on a stream that is
+        // nobody's — so the number pinned beside the word is the **early
+        // window**: of the first 64 frames, how many spend the original's
+        // number of draws, and how many draw for draw.
+        const WINDOW: i64 = 64;
+        let words = built
+            .frame_sites
+            .iter()
+            .filter(|(f, ours)| *f < WINDOW && ours.len() == tr.labels(*f).len())
+            .count();
+        let matched = built
+            .frame_sites
+            .iter()
+            .filter(|(f, ours)| *f < WINDOW && **ours == tr.labels(*f))
+            .count();
+        eprintln!(
+            "run39: word parts at {first_count}; of the first {WINDOW} frames {words} \
+             spend the original's number of draws and {matched} draw for draw"
+        );
+        let mut shown = 0;
+        for (f, ours) in built.frame_sites.iter().take(WINDOW as usize) {
+            let theirs = tr.labels(*f);
+            if *ours == theirs {
+                continue;
+            }
+            let at = (0..ours.len().max(theirs.len()))
+                .find(|&i| ours.get(i) != theirs.get(i))
+                .unwrap_or(0);
+            eprintln!(
+                "frame {f}: ours {} theirs {} — at {at}, ours {:?} theirs {:?}",
+                ours.len(),
+                theirs.len(),
+                ours.get(at),
+                theirs.get(at),
+            );
+            shown += 1;
+            if shown == 4 {
+                break;
+            }
+        }
+        assert!(
+            first_count >= 19 && words >= 49 && matched >= 47,
+            "the second map's word fell: parts at {first_count}, {words} of the first \
+             {WINDOW} frames on the count, {matched} draw for draw — the floor is \
+             19, 49 and 47"
+        );
+    }
+
     /// **The second map's score.**
     ///
     /// Phase 3's finish line is a traced human-versus-AI capture holding
@@ -6929,6 +7082,15 @@ mod tests {
     /// orders on the original's frame 168 where this simulation holds one,
     /// and its position parts on the same frame. `1/3` at 202 and `1/5` at
     /// 186 are the same disagreement.
+    ///
+    /// **2026-08-30: that is not the first divergence, and this is not a
+    /// fidelity number.** run39's own trace says the word parts at **19**
+    /// — see
+    /// [`run39_s_long_trace_says_where_the_second_map_s_word_parts`] — so
+    /// every figure below sits 148 frames deep into a stream that is
+    /// nobody's, and moving them by chasing frame 168 moves nothing. The
+    /// floor stays where it is so that nothing falls through it by
+    /// accident; the number to steer this map by is the word.
     #[test]
     fn run39_s_islands_game_is_the_second_map_s_score() {
         let Some(inst) = install() else { return };

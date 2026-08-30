@@ -133,16 +133,28 @@ const SLOTS: &[(&str, i8)] = &[
 /// the whale carry a `-TYPE0` only, which every variant then shares.
 ///
 /// `FARMPIG` (0x195) and `FARMCHICKEN` (0x196) — the pasture's five,
-/// `docs/SYNC.md` §3.6 — are **left out on purpose**: they name a `-TYPE0`
-/// and a `-TYPE1` and no `-TYPE2`, so a third of them would be a guess,
-/// and giving the other two lengths would start their idle rolls drawing
-/// in the same commit as the bird's. They are the queue's, not this
-/// item's; without a row here they keep the dump's table and the
-/// behaviour they had.
+/// `docs/SYNC.md` §3.6 — were left out while the missing `-TYPE2` looked
+/// like a guess. It is not one: the `-TYPE0` fall-back below is the piece
+/// pool's own, and in any case **both of their `-TYPE` entries name the
+/// same three animation files** (`Pig Default`, `Pig Idle1`, `Pig Walk`;
+/// `Chicken …`), so the variant cannot change a length. What they give is
+/// `CHAR_DEFAULT` 90 and the walks 15 for the pig, 30 and 18 for the
+/// chicken, with `CHAR_IDLE1..3` 90 for both.
+///
+/// These two rows are **inert until a pasture animal carries a
+/// `type_index`**, which `sim::Sim::farm_add_animals` does not yet set:
+/// `Sim::slot_length` keys a gaia type by the index, so the lookup still
+/// misses and the clock still never wraps. That is deliberate and the
+/// queue holds it — the pair of them moves run39's early word window but
+/// costs its ticks score, and both land with the walk that goes with
+/// them (`crate::diff::tests::run39_s_long_trace_says_where_the_second_
+/// map_s_word_parts`).
 const GAIA_UNITS: &[(i32, &str)] = &[
     (0x192, "WILDBIRD"),
     (0x193, "FLOCKBIRD"),
     (0x194, "GULLBIRD"),
+    (0x195, "FARMPIG"),
+    (0x196, "FARMCHICKEN"),
     (0x197, "HERDHORSES"),
     (0x198, "HERDSHEEP"),
     (0x199, "HERDBISON"),

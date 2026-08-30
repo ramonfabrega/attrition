@@ -7297,3 +7297,99 @@ because the game is reproducible and a new window is a five-minute re-run.
 Item 91 restated to say so. And a capture takes the screen for thirty
 seconds and then nothing a session uses, so item 90's "while idle" was
 wrong: it runs beside a session.
+
+## 2026-08-30 (later, Opus) — item 69 was a consequence: East Indies' word parts at 19, on the pasture
+
+The opener said item 69, the second map's order-list length at frame 168.
+The first thing done instead was the cheapest thing nobody had done: read
+`rontrace-run39.log`. It shipped with run39 on 08-29, 11 MB at `cover=1`,
+and no test had ever opened it — East Indies was scored on its dump alone.
+
+**The word parts at 19.** One hundred and forty-eight frames before 168.
+So run39's ticks 167 and orders 167 are figures on a stream that is
+nobody's, item 69 is a consequence of something much earlier, and the
+number to steer the second map by is now the word, exactly as run33's is
+for Great Lakes.
+
+### What parts it
+
+The AI's **pasture** — East Indies has one, Great Lakes has none, which is
+why run33's word never saw any of this. `docs/SYNC.md` §3.6 had listed
+three things it left open in August, and all three are here:
+
+1. **No `type_index`.** A pasture animal is stood up by
+   `Sim::farm_add_animals` with `ty` set and the index left at −1, so
+   `Sim::slot_length` cannot reach the install's gaia table and every one
+   carries `anim::UNKNOWN`. A clock that never wraps costs no draw — and
+   that is **three** of the original's six `Guy::inc_time` wraps on frame
+   29.
+2. **The table had no row anyway.** `rondata::artdata`'s `GAIA_UNITS` left
+   `FARMPIG` and `FARMCHICKEN` out of the twelve gaia types, on the ground
+   that their missing `-TYPE2` would be a guess. It is not: the `-TYPE0`
+   fall-back is the piece pool's own, and both of their `-TYPE` entries
+   name the *same three animation files*, so the variant cannot change a
+   length. Added.
+3. **The wrong species, and the coin is settled.** `Farms::add_animals`
+   throws `(rnd & 1) == 0 ? FARMCHICKEN : FARMPIG` per animal — and a
+   pasture is therefore **always one species**. The four draws an animal
+   are a fixed stride, so every coin lands on the same parity of the
+   stream, and `Random::get(0, 0xffff)` returns `((seed & 0xffff) ·
+   0xffff) >> 16`, whose low bit is the complement of the seed's, which
+   the LCG flips every step. Five even coins or five odd, never a mix.
+   Which of the two is a setup draw — but **the trace carries the seed
+   before each step**, so a capture's own coins are readable, and run39's
+   are even. Chickens: `CHAR_DEFAULT` 30 frames where a pig's is 90.
+
+### The two draws of frames 19 and 20
+
+The animal whose `think_farm_animal` phase hits frame 0 is handed a
+`MOVE_TO` this crate reads and does not issue. It walks — silently, since
+a walk's re-resolve draws for no gaia type but the bird — and **its
+arrival spends two `Animal::do_idle` set_anim draws on consecutive
+frames**, 19 and 20. Both rolls come out `≤ 69` (24 and 14, computed from
+the trace's own seeds), so both take `CHAR_DEFAULT`; and the animal's
+clock is then nineteen frames behind the other four and wraps at 49 rather
+than 29, which the trace shows. The signature repeats all game: every one
+of the fifteen `think_farm_animal` draws in the first 400 frames is
+followed nine to twenty-five frames later by such a pair.
+
+The five animals' `o` values are confirmed as 0–4 with slots 0–4: the
+trace's own phase set `{0, 108, 116, 122, 126}` is `(o·(slot+1)) % 128`
+for exactly that assignment and no other.
+
+### What landed, and what deliberately did not
+
+Landed: the word test
+(`run39_s_long_trace_says_where_the_second_map_s_word_parts`), pinned at
+**19**, and beside it the **early window** rather than a total — of the
+first 64 frames, 49 spend the original's number of draws and 47 draw for
+draw. The window is the right unit here because a total past the parting
+is noise, and this session measured that directly: a strictly more
+faithful pasture scores *worse* over 1,850 frames (494/329 → 456/310).
+Landed too: `GAIA_UNITS`' two missing types, inert until (1) is fixed, and
+the comment saying so.
+
+**Not landed: (1) and (3).** Together they take the early window 49 → 60
+and 47 → 53, and frames 29 and 32 come right — but they cost run39's ticks
+score **167 → 102**, because the stream after 19 is nobody's either way
+and 167 was luck on it. Trading a pinned headline for a stream that is
+locally better and still wrong is the wrong shape of commit: they land
+with the walk, not before it. The measured numbers are here so the next
+session can redo the change in minutes.
+
+### The wall, and the shape of the fix
+
+Issuing that `MOVE_TO` needs the animals' **positions**, and
+`add_animals` places each of the five at the farm ± `% 0x180 − 0xc0` on
+each axis — up to a whole tile — from two draws inside
+`Setup::build_empire`, whose stream the harness does not replay. The
+farm's own centre puts every arrival frame somewhere else. But the trace
+carries those draws as well: run39's five are `(−143, 40)`, `(−187,
+−148)`, `(−39, −144)`, `(−83, −76)`, `(−63, 56)` as `(dy, dx)`. So the
+pasture's five are **borrowable the way the heights, the herds and the
+frame seeds are** — a new kind of borrowing, from a trace rather than a
+sibling dump, and that is the item.
+
+`docs/SYNC.md` §3.11 is the specification; §3.6's "what this leaves open"
+is struck through and pointed at it, and `docs/ORACLE.md`'s run38/run39
+row too.
