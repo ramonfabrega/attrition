@@ -2316,13 +2316,26 @@ impl Sim {
         let facing = m.facing;
         let heading = m.heading;
         let pos = unit.pos;
+        // `Guy::move`'s animation half runs on the body as it stood before
+        // the follow: a body away from its destination starts the walk, one
+        // standing on it a frame after arriving goes idle (`anim.rs`).
+        let was_at_des = m.body.pos == pos;
         // The body's rate is mode 1: the base, always. It reads `last_speed`
-        // as it stood before this frame, the way `Guy::move` does.
+        // — but **a body already standing on its unit reads a zero**, because
+        // `Guy::move@005d9240:53` writes `last_speed = 0` at the head of its
+        // at-des branch, ahead of everything else in it and so ahead of
+        // `turn_towards`. That is not bookkeeping: `GuyData::turn_speed:29`
+        // returns `0x80000000` — instant — for `last_speed == 0` on a foot or
+        // mounted type (`guy_flags & 0x10`), so **a standing body swallows
+        // whatever turn it is owed in one frame**, however large. The frame it
+        // arrives on still reads the step it just took, so the turn is one
+        // frame and not two: `docs/SYNC.md` §3.11's arrival pair, whose second
+        // draw the third frame would have made a third.
         let turned = facing != m.frame_facing;
         let rate = movement::turn_speed(
             &self.tuning,
             &m.turning,
-            m.body.last_speed,
+            if was_at_des { 0 } else { m.body.last_speed },
             m.body.avg_speed,
             movement::TurnMode::Body,
         );
@@ -2330,10 +2343,6 @@ impl Sim {
         if !self.world.accepts(follow.body.pos) {
             follow.body.pos = m.body.pos;
         }
-        // `Guy::move`'s animation half runs on the body as it stood before
-        // the follow: a body away from its destination starts the walk, one
-        // standing on it a frame after arriving goes idle (`anim.rs`).
-        let was_at_des = m.body.pos == pos;
         self.guys_follow(i, was_at_des);
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;

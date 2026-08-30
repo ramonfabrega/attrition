@@ -321,6 +321,7 @@ variant on the unit's idle request (§5 says why that never shows).
 | `Unit::do_repair@005ee420:1`, ahead of every gate | `CHAR_REPAIR` | never, and unconditionally — even on the frame the order dies |
 | `Guy::move@005d9240:86`, `Unit::move_step@005faf30:304` | the walk | never (a bird's coin aside) |
 | `Guy::move:59` (`+0x19f`), the frame after a walking guy stops with the plain `WALK` slot and nothing else changed it | `(DEFAULT, 0, 1)` | the arrival, when no order made the request first. **The one caller that reaches `Guy::set_anim` directly** rather than through `Unit::set_anim+0x56`, so its chain is a frame shorter and the trace's disambiguator sits at `up[0]` (`sim::anim::SITE_ARRIVE`, `docs/SYNC.md` §3.10) |
+| `Guy::move:78` (`+0x14f`), the **turn arm** — a body standing on its unit whose angle has not reached `des_angle`, every frame it is still turning | `(CHAR_WALK, 0, 1)` | never itself, but it puts the guy back on the walk category, so the *next* frame's idle request rolls again. That is the second draw of an arrival pair (`docs/SYNC.md` §3.11). **Unmodelled**, and what it costs is there too |
 | `Unit::move_step:281` (`+0x823`), a unit whose step is blocked, before the three give-up tests | `(DEFAULT, 0, 1)` | the same conditions as any idle request — three times on run14 (frames 122, 184, 256), and this crate takes the first two on the original's own frames (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5, §8) |
 | `Guy::inc_time` (§5) | the wrap | an idle running out |
 
@@ -349,6 +350,8 @@ only, no snap), so on the frame the site is first faced `Guy::move` takes its
 clears `field_0x9d`; the *next* frame's `do_build` puts it on `CHAR_BUILD`
 again, before `Guy::move`'s arrival test reads the slot. Either way the test
 never sees a walk, which is why no capture has an arrival stand for a builder.
+That arm is the table's new row above, and the builder is the one caller whose
+answer does not depend on modelling it.
 
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 

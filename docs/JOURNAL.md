@@ -7490,3 +7490,110 @@ residues behind it — which is the whole yield of the session's second half:
 Both are in `docs/SYNC.md` §3.11's last section with the evidence, and the
 coverage bullet in §6 says which of §3.11's claims a diff backs and which
 two rest on the listing alone.
+
+## 2026-08-30 (later, Opus) — items 93, 94 and 37: the arrival pair is read whole, and one third of it lands
+
+Item 93 was booked as "an arrival costs two `Animal::do_idle` draws and this
+crate spends one". It is three things, not one, and by the end of the session
+all three were read out of the original, all three were measured against
+run39, and **one of them landed**. The other two are worth 19 → 69 on the
+lower map's word and a perfect 64-of-64 window, and they are blocked by a
+different item.
+
+### 1. The turn arm, exactly as booked
+
+`Guy::move@005d9240`'s at-des branch splits on `des_angle == angle`. The
+settled half is the arrival stand this crate already had. **The other half was
+never modelled**: a body standing on its unit that has not yet come round to
+the order's angle is put *back on `CHAR_WALK`* and marked unstopped, every
+frame it is still turning — so the next frame's `Animal::do_idle` sees the
+walk category and rolls again. Two draws, on consecutive frames. The guard the
+arm carries is a sea unit (`type+0x218 == 1`) or a `SPECIAL_ANIM` order,
+neither of which is a chicken.
+
+The `Guy+0x9e`/`+0xa0` stashes the last session named here are `hold_attack`
+and `queued_attack` and belong to `set_anim`'s **attack** category. They had
+nothing to do with it. The type record said so; the surrounding code did not.
+
+### 2. The arrival is a frame early because of where the animal is born
+
+The animal walked 455 units of `y` at 25 a frame — nineteen steps here,
+eighteen there — and the last session's experiment was one extra unit of
+speed. That is not where the unit comes from: `Unit::update_speed@006055c0`
+gives `MOVES × unit_move_speed` = 25 and its four multipliers are all
+`is(ARQUEBUSIERS|RIFLEMAN|INFANTRY|MECHINFANTRY)`, so a chicken qualifies for
+none. The tolerance really is zero; every writer of `UnitData::tolerance` was
+grepped.
+
+**`Unit::init@00612100:69` snaps every unit's starting position** —
+`div_3_table[v >> 4] · 0x30 + 0x18`, the same 48-unit snap a move order's
+destination takes — before it hands the pair to `Object::init` and to
+`set_new_location`. `Farms::add_animals` computes `building ± (rnd % 0x180 −
+0xc0)` and `Objects::init_unit` passes it straight through, so run39's first
+animal is born at `(40536, 40392)` and not at the `(40552, 40369)` its two
+draws name. **432 units, not 455. Eighteen steps.** A pasture animal is the
+only object this crate places from a raw, unrounded point — every other one
+comes from a dump, which prints where an object *is* rather than where it was
+born — so the snap belongs at the pasture and not in `Sim::add_unit`.
+
+### 3. The standing body turns instantly, and that was item 37
+
+With both of the above the pair still came out three draws, not two: the
+residual angle is 8.8° and a chicken turns 5° a frame. The answer is an
+ordering the document already had and the code did not. `Guy::move` writes
+`last_speed = 0` at the **head** of the at-des branch, ahead of the
+`turn_towards` at its foot, and `GuyData::turn_speed@005de340:29` answers a
+zero `last_speed` on a foot or mounted guy with `0x80000000` — larger than any
+turn that can be owed. **A standing body swallows its whole owed turn in one
+frame, this frame, however slowly its type turns.** `crates/sim` read
+`last_speed` as it stood before the frame, so a slow turner came round at its
+rate.
+
+That is queue item 37 whole — run10's AI scout at 96, 362 and 721, "where the
+original's body has already snapped onto the order's angle". `docs/MOVEMENT.md`
+had listed the suspect as `guy_flags & 2` and called it "worth one grep"; it
+was neither. The pseudocode in the same document had `last_speed = 0` above
+the turn since 2026-08-27, correctly, and nobody had read the two lines
+against the implementation. Item 72's fourth kind of bug in a row.
+
+**Landed alone.** run10's angle disagreements go **9,156 of 33,992 → 8,969 of
+35,868** — the three scout rows gone and 1,876 more rows kept in view — and
+every other floor holds untouched. The assertion is now `scout.is_empty()`,
+and `a_standing_body_takes_its_whole_turn_in_one_frame` in `harness_tests.rs`
+was made to fail first (a five-degree turner is the whole of the test; at a
+Citizen's forty-five it lands in one frame either way).
+
+### What the pair is worth, and what stops it
+
+| | run39 word | window | run33 word | run10 orders |
+|---|---|---|---|---|
+| before | 19 | 62/55 | 780 | 776 |
+| the snap alone | 20 | 60/53 | — | — |
+| the arm alone | 19 | 58/57 | 205 | 212 (ticks) |
+| both, with (3) | **69** | **64/64** | 584 | 586 |
+| (3) alone — landed | 19 | 62/55 | 780 | 776 |
+
+Either of (1) and (2) alone is worse than neither, and together they cost the
+*other* map more than they win on this one. The arm reads `des_angle != angle`
+on **every** standing unit, and Great Lakes' facings are not the original's
+yet: that is queue item 36, the farmers, 8,866 of the 8,969 rows. The other
+half of the same block is named now — `Guy::do_turn@005d97a0:15` overrides the
+arm's walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` whenever the guy's piece has
+a turn animation (`guy_flags & 8`, `Guy::init_real@005db6b0:179`), a category
+this crate does not model, and a guy on a turn animation spends **no** arrival
+draw where one on the walk does.
+
+So item 36 stops being a residue and becomes the headline's dependency, and
+item 93 becomes a dozen lines waiting on it. Both halves are written into
+`docs/SYNC.md` §3.11's last section with the listing that settles each.
+
+### The listing settled two things the decompiler could not
+
+`Animal::think_farm_animal`'s `find_angle(unaff_EDI, unaff_ESI)` — the order's
+own facing — is taken to the **unsnapped** point, and `5d7887`–`5d78a5` shows
+it: `edi`/`esi` hold `(3(T + m) + C)·0x40 + 0x60` and the `sar $4` that snaps
+them comes ten instructions *after* the call. An experiment that took the
+angle to the snapped destination also produced 64/64, and the listing is what
+says it was a second compensating error rather than the answer. And
+`Unit::init`'s snap is two lines of the same function's prologue, which no
+amount of reading its callers would have found.

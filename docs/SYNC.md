@@ -656,26 +656,62 @@ borrowed position, with `Objects::init_unit`'s speed and turn rate, and
 to that point rather than to the snapped one. run39's early window goes
 **49/47 → 62/55** of its first 64 frames; ticks and orders hold at 167.
 
-**What is still open, and it is not this mechanic's.** The word still parts
-at **19**, on the *first* of the arrival's two draws. Two residues, each
-demonstrated rather than guessed:
+### The pair, read (2026-08-30)
 
-- **The arrival is one frame late.** The walk is 455 units at 25 a frame:
-  nineteen steps here, eighteen there. The arrival test is
-  `dist ≤ tolerance` and this crate's straight-line goal carries
-  `tolerance 0`; one extra unit of speed makes frame 19 match the original
-  **draw for draw**, which is the experiment that separated this residue
-  from the next.
-- **An arrival costs two `Animal::do_idle` draws.** Always two, always on
-  consecutive frames, all game (19/20, 121/122, 134/135, 245/246, …). One
-  is the walk-to-idle transition, which this crate spends. The other needs
-  the guy to be playing something *non-idle* on the following frame:
-  `Guy::set_anim`'s own early return is by **category** — an idle request
-  on an already-idle guy stashes into `Guy+0xa0` and returns, an idle
-  request on a guy whose body is not at des stashes into `+0x9e` — so a
-  second draw means a second non-idle category, and the unit is still
-  easing onto the order's angle across both frames. `Guy::move`'s turn arm
-  is unmodelled here (GROUPS/MOVEMENT's territory, queue items 36 and 37).
+The word parted at **19**, on the *first* of the arrival's two draws, and the
+three things that stood between are now all read out of the original. **Two
+of them are unlanded**, together, because the third of them costs the other
+map more than the pair is worth; the numbers below are what they are worth,
+measured.
+
+**1. The arrival is a frame early, and the reason is where the animal is
+born.** `Unit::init@00612100:69` **snaps every unit's starting position** —
+`div_3_table[v >> 4] · 0x30 + 0x18`, the same 48-unit snap a move order's
+destination takes — before it hands the pair to `Object::init` and to
+`set_new_location`. `Farms::add_animals` computes `building ± (rnd % 0x180 −
+0xc0)` and `Objects::init_unit` passes that straight through, so run39's
+first animal is born at `(40536, 40392)` and not at the `(40552, 40369)` the
+two draws name. That is **432 units of `y` at 25 a frame, not 455** —
+eighteen steps rather than nineteen. Nothing else moves: `myspeed` is
+`MOVES × unit_move_speed` = 25 (`Unit::update_speed@006055c0`, whose four
+multipliers are all `is(ARQUEBUSIERS|RIFLEMAN|INFANTRY|MECHINFANTRY)`), and
+the arrival tolerance really is zero. **A pasture animal is the only object
+this crate places from a raw, unrounded point**; every other one comes from a
+dump, which prints where an object *is* rather than where it was born, so the
+snap belongs at the pasture and not in `Sim::add_unit`.
+
+**2. The second draw is `Guy::move`'s turn arm**, exactly as item 93
+predicted. Standing on its unit with `des_angle != angle`, the guy is put
+**back on `CHAR_WALK`** and marked unstopped (`Guy::move:73–89`,
+`docs/MOVEMENT.md`), so the next frame's `Animal::do_idle` sees the walk
+category again and rolls again. The guard the arm carries is a **sea** unit
+(`type+0x218 == 1`) or a `SPECIAL_ANIM` order, neither of which is a chicken.
+The `+0x9e`/`+0xa0` stashes an earlier draft named here are `hold_attack` and
+`queued_attack` and belong to `set_anim`'s **attack** category, not to this.
+
+**3. And the turn is one frame, not two, because the standing body turns
+instantly.** `Guy::move` writes `last_speed = 0` at the head of the at-des
+branch, *ahead* of the `turn_towards` at its foot, and `GuyData::turn_speed`
+answers a zero `last_speed` on a foot or mounted guy with `0x80000000`. The
+residual here is 8.8° against a chicken's 5° a frame; with the zero it is one
+frame, so the pair is 19/20 and not 19/20/21.
+
+**Landed: (3) alone.** It holds every score and closes queue item 37 — run10's
+AI scout no longer turns a frame late at 96, 362 or 721, and the angle
+disagreements go 9,156 of 33,992 → **8,969 of 35,868**.
+
+**Not landed: (1) and (2), and they only work together.** With both, run39's
+early window is **64 of 64 on the count and 64 draw for draw**, and the word
+goes 19 → **69**. Either alone is worse than neither: the snap alone moves the
+word to 20 and the window to 60/53, the arm alone to 58/57. What blocks them
+is the other map — the arm reads `des_angle != angle` on *every* standing
+unit, and Great Lakes' facings are not the original's yet (queue item 36), so
+run33's word falls 780 → 584 and run10's orders 776 → 586. The named suspect
+is `Guy::do_turn@005d97a0:15`: with `guy_flags & 8` — set when the guy's piece
+has a turn animation (`Guy::init_real@005db6b0:179`) — the turn overrides the
+arm's walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, a category this crate does
+not model, and a guy on a turn animation spends **no** arrival draw where one
+on the walk does.
 
 ## 4. Run12 attributed
 

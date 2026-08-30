@@ -8298,29 +8298,29 @@ mod tests {
         // still the farmers — `0/3`–`0/5`, `1/3`–`1/5` and `1/8` are 8,866
         // of the 9,156. What is new is `0/1` (140) and `0/2` (136), the two
         // woodcutters, which item 36 did not have to account for before.
+        // 9,156 → **8,969** with item 37, against 33,992 → 35,868
+        // compared: the standing body's instant turn
+        // (`docs/MOVEMENT.md`, "The body step") both removed the scout's
+        // three and kept 1,876 more rows in view.
         assert!(
-            bad.len() <= 9_156,
+            bad.len() <= 8_969,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );
-        // The scout, whose turn item 37 is: **three** rows in 1,772 frames
-        // (two until item 79 carried it from 637 to 722, which brought its
-        // third arrival into view), each the frame after an arrival, where
-        // the original's body has already snapped onto the order's angle
-        // and the simulation's turns a frame later — 96, 362 and 721, and
-        // the `theirs` of the last is `1830420480`, the very angle the
-        // frame-483 `EXPLORETOORDER` carries. Frames 57 to 91 — the whole
-        // of the case item 34 was opened on — are exact on both angles.
+        // The scout was item 37: **three** rows in 1,772 frames, each the
+        // frame after an arrival, where the original's body had already
+        // snapped onto the order's angle and the simulation's turned a
+        // frame later — 96, 362 and 721. **None, since 2026-08-30**:
+        // `Guy::move` zeroes `last_speed` at the head of its at-des branch
+        // and `GuyData::turn_speed` reads that zero, so a standing foot or
+        // mounted body swallows whatever turn it is owed in one frame.
+        // The whole of the residue above is item 36's farmers now.
         let scout: Vec<AngleDivergence> = bad
             .iter()
             .copied()
             .filter(|d| (d.who, d.o) == (1, 0))
             .collect();
-        assert_eq!(scout.len(), 3, "the AI scout: {scout:?}");
-        assert!(
-            scout.iter().all(|d| d.frame > 91),
-            "and none of it in the window item 34 opened on: {scout:?}"
-        );
+        assert!(scout.is_empty(), "the AI scout turns late again: {scout:?}");
     }
 
     /// The slot count against the original's own survey: run9's frame-1

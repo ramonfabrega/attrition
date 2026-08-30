@@ -13,30 +13,33 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 92 (Opus).*
+*2026-08-30, after items 93, 94 and 37 (Opus).*
 
 **The headline is the pair, lower map first.** East Indies: run39's
-**word parts at 19**, and beside it the early window **62 of the first 64
-frames on the count, 55 draw for draw** (was 49/47) — a total past a
-parting is noise, so the window is this map's score. Great Lakes: run10
-ticks **572**, orders 776; run33's word parts at **780**, totals 951/838,
-of 1,850. Tree green with the install wired in: 638 sim, 145 rondata.
+**word parts at 19**, window **62/55** of its first 64 frames. Great
+Lakes: run10 ticks **572**, orders 776; run33's word at **780**, totals
+951/838 of 1,850. None of the four moved. What did move is the angle
+sub-score: run10's disagreements **9,156 of 33,992 → 8,969 of 35,868**,
+with item 37's three rows gone. Tree green: 639 sim, 145 rondata.
 
-**What this session did.** Item 92 whole: the pasture's five carry their
-species and its `type_index`, stand on positions **borrowed from the
-run's own trace** (`Initial::pasture`, the first field a trace rather
-than a sibling dump fills), and `think_farm_animal` issues the `MOVE_TO`.
-Ticks/orders hold at 167 and player 0 at 219 — the feared cost never
-arrived, and the line missing for an hour was `movement.speed`.
+**Items 93 and 94 are read, measured, and not landed.** Together they
+take run39 to **64 of 64 draw for draw and the word to 69**; either alone
+is worse than neither. `docs/SYNC.md` §3.11's last section has both, the
+listing that settles each, and the numbers. What blocks them is the
+*other* map — see item 36, which is now the headline's dependency and not
+a residue.
 
-**The word did not move**, and the reason is no longer the pasture's: one
-draw, on the arrival frame, split into two residues by experiment (93 and
-94). `docs/SYNC.md` §3.11's last section has both, with the capture that
-falsifies each.
+**What landed is the third of the three**, and it was item 37:
+`Guy::move` zeroes `last_speed` before the turn at the foot of the same
+branch, so a standing foot or mounted body swallows its whole owed turn
+in one frame. `docs/MOVEMENT.md`, "The body step" — whose pseudocode had
+the order right since 2026-08-27 while the code read the stale value.
+Item 72's fourth kind of bug, found by reading the document beside the
+listing.
 
-**Opener (Opus):** `take item 93 from @docs/QUEUE.md — an arrival costs
-two Animal::do_idle draws and this crate spends one; docs/SYNC.md 3.11's
-last section has the pairs and the two stashes.`
+**Opener (Opus):** `take item 36 from @docs/QUEUE.md — the farmers'
+angles are what blocks the headline now; docs/SYNC.md 3.11's last
+section says what 36 unblocks and names guy_flags & 8 as the suspect.`
 
 ## The queue
 
@@ -44,25 +47,30 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-93. **An arrival costs two `Animal::do_idle` draws; this spends one.**
-    Always two, always consecutive, one pair per `think_farm_animal` draw
-    nine to twenty-five frames earlier — 19/20, 121/122, 134/135, 245/246
-    — and the first of run39's pair is the word at 19. `Guy::set_anim`
-    returns early **by category**, through `Guy+0x9e` (body not at des)
-    and `+0xa0` (already idle), so a second draw is a second non-idle
-    category the frame after: the unmodelled turn arm of `Guy::move`,
-    items 36 and 37's ground. SYNC §3.11's last section.
+36. **`Unit::set_angle`'s seventeen other callers — and it is the
+    headline's dependency now.** Most of run10's angle rows where the
+    positions agree; the farmers are all of it — `0/3`–`0/5`, `1/3`–`1/5`,
+    `1/8` (GROUPS §4.1), 8,866 of 8,969. Item 93's arm reads
+    `des_angle != angle` on **every** standing unit, so it cannot land
+    until these are the original's. The other half of the same block is
+    `Guy::do_turn@005d97a0:15`: `guy_flags & 8` — the guy's piece has a
+    turn animation (`Guy::init_real@005db6b0:179`) — overrides the arm's
+    walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, unmodelled here, and a
+    guy on a turn animation spends no arrival draw where one on the walk
+    does.
 
-94. **The animal arrives one frame late.** 455 units at 25 a frame is
-    nineteen steps here, eighteen there; the test is `dist ≤ tolerance`
-    and `path.rs:1036` gives a straight-line goal `tolerance 0`. **One
-    extra unit of speed makes run39's frame 19 match draw for draw** —
-    the experiment that separates this from 93.
+93. **The arrival pair: `Guy::move`'s turn arm, and `Unit::init`'s
+    snap.** Read, measured, unlanded — **together** they take run39 to
+    64/64 and the word 19 → 69; the arm alone gives 58/57, the snap alone
+    20 and 60/53. Both are written and diffed in SYNC §3.11's last
+    section, with the listing that settles each; the code is a dozen lines
+    (`anim.rs`'s `guys_follow`, `farms.rs`'s `farm_add_animals`).
+    **Blocked on 36**, which costs run33's word 780 → 584 and run10's
+    orders 776 → 586 if this lands first.
 
 69. **East Indies' order-list length at 168.** `1/4` holds two orders on
     the original's 168 where this holds one; `1/5` at 186 and `1/3` at
-    202 the same. **Downstream of 93/94** — not booked until the word
-    moves.
+    202 the same. **Downstream of 93** — not booked until the word moves.
 
 84. **The word at 780, four frames past the city.** Eleven draws against
     eight; ours opens `GameAccess::rnd+0x20 < Unit::do_job+0x67` where the
@@ -106,15 +114,6 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     cited functions no traced run has entered (101 of 617); intersected
     with `crates/sim`, that is every reading-only claim here. Print it,
     pin its size as a floor, put it in each Coverage section.
-
-36. **`Unit::set_angle`'s seventeen other callers.** Most of run10's
-    angle rows where the positions agree; the farmers are all of it —
-    `0/3`–`0/5`, `1/3`–`1/5`, `1/8` (GROUPS §4.1).
-
-37. **The arrival frame's facing.** Three rows in run10 (96, 362, 721),
-    each the AI scout the frame after an `EXPLORE_TO` arrival, where the
-    original's body has already snapped onto the order's angle. MOVEMENT's
-    open questions name the suspect; `GUYS=2` prints `guy_flags`.
 
 48. **The object chain, whole.** `collide.rs` chains units only; the
     original threads buildings and goodies through the same list

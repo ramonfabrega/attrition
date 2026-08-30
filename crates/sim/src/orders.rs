@@ -251,6 +251,22 @@ const SNAP_CENTRE: i32 = 0x18;
 const HALF_TILE: i32 = 0x60;
 const TILE: i32 = 0xc0;
 const CELL: i32 = 0x300;
+/// The 48-unit snap, `div_3_table[v >> 4] * 0x30 + 0x18`.
+///
+/// Two callers in the original and they are the same arithmetic: every move
+/// order's destination (`Unit::add_move_facing_order`, §4.3) and **every
+/// unit's starting position** — `Unit::init@00612100:69` snaps both
+/// coordinates before it hands them to `Object::init` and to
+/// `set_new_location`, so an object is never born off the grid however
+/// unrounded the point its maker computed. `div_3_table` is `floor(i / 3)`
+/// and the coordinates are non-negative, so `div_euclid` is the same table.
+pub(crate) const fn snapped(p: Pos) -> Pos {
+    Pos::new(
+        p.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
+        p.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
+    )
+}
+
 /// `find_path`'s "far and reachable: the pathfinder's job" rule, world cells.
 const STRAIGHT_LINE_CELLS: i32 = 4;
 /// The working-the-tile radius of a woodcutter or miner.
@@ -511,10 +527,7 @@ impl Sim {
         pos: QueuePos,
         action: bool,
     ) {
-        let dest = Pos::new(
-            to.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
-            to.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
-        );
+        let dest = snapped(to);
         let here = self.units[u].pos;
         let angle = find_angle(dest.x - here.x, dest.y - here.y);
         self.add_move_facing_order(u, to, kind, pos, action, angle, None, false);
@@ -548,10 +561,7 @@ impl Sim {
         facing: Option<bool>,
         pathed: bool,
     ) {
-        let dest = Pos::new(
-            to.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
-            to.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
-        );
+        let dest = snapped(to);
         let order = Order {
             flags: if action { flag::ACTION } else { 0 } | if pathed { flag::PATHED } else { 0 },
             body: Body::Move(MoveOrder {

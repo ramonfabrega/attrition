@@ -426,7 +426,16 @@ the wrong branch.**
 
 ```
 if pos == des:                                   # the unit did not move
-    last_speed = 0
+    last_speed = 0                               # FIRST, and the turn reads it
+    if des_angle == angle:                       # settled: the arrival stand
+        if cur_anim == CHAR_WALK and stopped:  set_anim(DEFAULT, 0, 1)
+        stopped = 1
+    elif domain == sea or order is SPECIAL_ANIM:
+        stopped = 0                              # turn, but leave the animation
+    else:                                        # still coming round: the arm
+        if cur_anim not in (TURN_LEFT, TURN_RIGHT, ATTACKWALK):
+            set_anim(CHAR_WALK, 0, 1)
+        stopped = 0
     turn toward des_angle at turn_speed(mode 1)  # only if not turned this frame
 elif guy_num == 0 or (track_dx == 0 and track_dy == 0):
     last_speed = vector_dist(des - pos)          # the jump's own length
@@ -470,6 +479,31 @@ unit, the first branch runs, and the *next* frame's unit step finds
 `last_speed == 0`. For a foot or mounted type that is the instant turn
 (below), which is why a unit that stops to turn pays exactly one frame for it
 and not seven.
+
+**And so does the turn at the foot of the same branch** — that is the order
+above, and it is load-bearing. `last_speed = 0` is written at `:53`, ahead of
+everything else in the at-des branch, and the `turn_towards` at `:99` reads
+the zero it just wrote. **A standing body therefore swallows whatever turn it
+is owed in one frame**, however slowly its type turns, because
+`GuyData::turn_speed@005de340:29` answers a zero `last_speed` on a foot or
+mounted guy with `0x80000000`. Not the next frame: this one. This crate read
+`last_speed` as it stood before the frame until 2026-08-30, so a slow turner
+came round at its rate — five degrees a frame for a chicken — and run10's AI
+scout was a frame behind the original on the three frames after an arrival
+(96, 362, 721), which was queue item 37. Diff-backed: those three rows are
+gone and the compared population grew from 33,992 to 35,868
+(`rondata::diff`'s `run10_s_opening_trains_the_original_s_citizens_on_its_frames`).
+
+**The two arms above the turn are `Guy::move`'s own `set_anim` callers**, and
+the second of them — the **turn arm** — is not modelled yet. A body that has
+arrived but has not yet come round to the order's angle is put *back on the
+walk* and marked unstopped, every frame it is still turning, so the next
+frame's idle request sees the walk category and rolls again. That is the
+second draw of `docs/SYNC.md` §3.11's arrival pair. What it costs to land is
+in the queue: the arm reads `des_angle != angle` on every standing unit, and
+`Guy::do_turn` overrides the walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`
+whenever the guy's piece has a turn animation (`guy_flags & 8`,
+`Guy::init_real@005db6b0:179`), which this crate does not model at all.
 
 **The 11/8 is the tracked guy's**, and nothing else's. A literal, with no
 constant behind it. `track_dx`/`track_dy` are what the branch is gated on;
@@ -692,15 +726,12 @@ the checks below.
 
 **Still open:**
 
-- **The arrival frame's facing, and it is worth one grep.** Two unit-frames
-  in run10's 1,772 — both the AI scout, both the frame after it arrives on an
-  `EXPLORE_TO` — have the original's body already on the order's angle where
-  the simulation's turns a frame later. `arrive` sets the heading through
-  `set_angle(mo->angle, …, 0)`; the body then swings onto it, and the
-  simulation's `guy_flags & 2` equivalent (`facing != frame_facing`) is set on
-  the arrival frame, which costs it that frame. Whether the original's bit is
-  cleared earlier in `Unit::process` than this simulation clears it is the
-  question, and `GUYS=2` prints `guy_flags` on every capture, so it is a grep.
+- ~~**The arrival frame's facing, and it is worth one grep.**~~ **Closed
+  2026-08-30**, and it was not `guy_flags & 2` at all: `Guy::move` writes
+  `last_speed = 0` at the head of the at-des branch, ahead of the
+  `turn_towards` at its foot, and a zero `last_speed` is the instant turn —
+  so the body comes round in one frame however slowly its type turns. "The
+  body step" above has it; run10's three scout rows are gone.
 - **What world tile flag `0x800` is.** It halves land speed at ground level, so
   it is terrain of some kind — forest, swamp or shallow water are the obvious
   candidates.
@@ -777,8 +808,9 @@ Three, all differential, all in `rondata::diff`:
   432 with both sides agreeing on position, path and both angles, and on 433
   the original turns it to face what it is about to gather.
 - **The AI scout in run10, `1/0`**: two rows in the whole run, both after an
-  arrival (see the open question). Frames 57 to 91 — the case item 34 was
-  opened on — are exact on position and on both angles.
+  arrival — ~~see the open question~~ **none since 2026-08-30**, the standing
+  body's instant turn. Frames 57 to 91 — the case item 34 was opened on — are
+  exact on position and on both angles.
 - **run13's window, frame 102**: the `think_scout` ring draws, `22 / 6`
   before and `6 / 6` after.
 

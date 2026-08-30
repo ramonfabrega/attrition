@@ -555,6 +555,76 @@ fn a_citizen_reverses_on_the_spot_and_its_body_keeps_up() {
     assert!(m.body.avg_speed < 25 && m.body.avg_speed > 0);
 }
 
+/// **A standing body swallows its whole owed turn in one frame**, however
+/// slowly its type turns — `Guy::move@005d9240:53` writes `last_speed = 0` at
+/// the head of its at-des branch, ahead of the `turn_towards` at the foot of
+/// the same branch, and `GuyData::turn_speed@005de340:29` answers a zero
+/// `last_speed` on a foot or mounted type (`guy_flags & 0x10`) with
+/// `0x80000000`, which exceeds any turn that can be owed.
+///
+/// The arrival frame itself still reads the step it just took, so the snap
+/// lands on the frame **after** the arrival — which is exactly the run10 rows
+/// item 37 was: the AI scout at 96, 362 and 721, where the original's body had
+/// already reached the order's angle and this crate's was still five degrees
+/// short (`docs/MOVEMENT.md`, "The body step").
+///
+/// A five-degree turner is the whole of the test: at a Citizen's forty-five it
+/// would land in one frame either way.
+#[test]
+fn a_standing_body_takes_its_whole_turn_in_one_frame() {
+    const SLOW: movement::Turning = movement::Turning {
+        type_turn_speed: movement::degrees_to_angle(5).0,
+        packed: false,
+        instant_from_stop: true,
+        wide_limit: false,
+    };
+    let mut sim = skirmish(1);
+    let start = quarter_of(Cell::new(4, 0));
+    let u = sim.add_unit(Unit::new(0, 0, start, 200));
+    make_mobile(&mut sim, u, movement::Angle::EAST);
+    sim.units[u].movement.turning = SLOW;
+
+    // The order's own facing, a quarter turn off the bearing the walk ends
+    // on — `add_move_facing_order`'s second argument, which `arrive` hands to
+    // `set_angle` and nothing snaps.
+    let owed = movement::Angle::SOUTH;
+    sim.add_move_facing_order(
+        u,
+        quarter_of(Cell::new(3, 0)),
+        orders::MoveKind::MoveTo,
+        orders::QueuePos::New,
+        false,
+        owed,
+        None,
+        false,
+    );
+    let mut arrived = None;
+    for f in 0..64 {
+        sim.tick();
+        if sim.units[u].orders.is_empty() {
+            arrived = Some(f);
+            break;
+        }
+    }
+    let arrived = arrived.expect("the walk finishes inside 64 frames");
+    let m = sim.units[u].movement;
+    assert_eq!(sim.units[u].pos, quarter_of(Cell::new(3, 0)));
+    assert_eq!(m.heading, owed, "`arrive` set the order's angle");
+    assert_eq!(
+        m.facing,
+        movement::Angle::WEST,
+        "the arrival frame still reads the step it took, so it turns by the rate"
+    );
+    assert_ne!(m.body.last_speed, 0, "and that step is what it reads");
+
+    // One frame later — and it is one, not the eighteen a five-degree turner
+    // would need for a quarter turn.
+    sim.tick();
+    assert_eq!(sim.units[u].movement.facing, owed);
+    assert_eq!(sim.units[u].movement.body.last_speed, 0);
+    assert!(arrived > 0);
+}
+
 #[test]
 fn the_border_that_kills_also_pays() {
     // Territory is the only thing in the game that both damages whoever stands
