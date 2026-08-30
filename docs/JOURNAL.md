@@ -7108,3 +7108,63 @@ identity was already known.
 
 **Owed:** `docs/ORACLE.md` is still at its pin and still owes run40/run41
 rows (item 40).
+
+## 2026-08-30 (later, Opus) — item 83: the nation nobody had (run40's cap, 200 → 0)
+
+The item was booked from item 74's widening with a sentence that turned out
+to be half wrong, and the half that was wrong is the interesting part.
+
+**What was already true.** `rondata::diff` has read the dump's
+`LeaderData::tribe` since the harness existed — `sim.tech[who].tribe` and
+`sim.tech[who].power` were both set from it, so `TechTree::has_tribe_bonus`
+has been answering correctly all along, and every rule that asks the tree
+directly (the free-tech blocks, `has_preq`'s waivers, `tribe_can_type`) has
+had its nation. What had no wire was `city::Nation`, the seventeen-boolean
+input struct the older mechanics take instead of the tree — `british`,
+`nubians`, `egyptians`, `french`, `inca` and the rest, every one of them
+false on every traced game since the struct was written. `commerce_cap`
+reads `Holdings::british`, `Holdings` copies `Nation::british`, and nothing
+ever set it. So the claim "no nation power on either side" was true of the
+half of the codebase that the cap happens to live in, and false of the
+other half.
+
+**The wire**, `crates/sim/src/nations.rs`: `ROSTER`, the twenty-four
+nations in `rules.xml`'s own `TRIBES` order; `Sim::set_tribe`, which takes
+the dump's number; and `Sim::refresh_nation_powers`, which recomputes the
+booleans. They are computed **through `has_tribe_bonus`**, one call per
+roster index, so they are a cache of that answer rather than a second
+source and the "No Nation Powers" and no-city gates apply to them for free.
+`docs/TECH.md` gains the roster table and the wiring paragraph.
+
+**Two things the old two lines had wrong** besides the missing flags.
+`l.tribe.max(0)` turned the `−1` a gaia leader carries into roster index 0,
+which is the Aztecs — inert only because the harness's player loop stops
+before the gaia slots. And `Setup::no_nation_powers`, which is the gate
+`has_tribe_bonus` actually reads, was never set from `info.flags & 4`;
+`Lobby::no_nation_powers` was, and the AI's host function reads that one.
+Same bit, two layers, and only one of them wired. Both are fixed.
+
+**The score.** run40's census: 560 of 2,880 good-frames disagreed, now
+**360**. `resource_cap` was 200 of those and is **0** — both players' whole
+cap, on all forty frames, including the AI's British 1392. The two shapes
+left are the hundred knowledge/oil/wealth nobody granted (item 82) and the
+camps' `gather_slots` (item 85). The headline did not move and was not
+expected to: run33 and run10 are the same two nations, and in an Ancient-age
+window the British power is a commerce cap that never binds (the largest
+rate in the window is 800) and an air-defence build speed with no air
+defence, while the Nubian power is Market hit points.
+
+**The guard.** Every nation power in this crate is a hardcoded index, so a
+roster that shifted by one would hand a power to its neighbour with nothing
+to say so. `cargo run -p rondata -- <install>` now re-derives all
+twenty-four names from `rules.xml` and `tribes/` and fails if one moved; it
+was made to fail on purpose by swapping the Greeks and the Romans, which it
+named exactly, before being restored.
+
+**What is worth remembering** is the shape of the miss rather than the fix.
+The cap had a correct implementation, a correct constant, a correct
+truncation order and a *diff-backed* comment saying so — and it computed the
+wrong number for a month, because one boolean between the tree and the
+mechanic had no writer. The widening found it in twenty minutes. A reading
+of `calc_resource_caps` would not have: every line of that function was
+already right.

@@ -493,6 +493,10 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // (`docs/SYNC.md` §4.2). Everything else leaves it off.
     sim.trace_phases = true;
     sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
+    // `info.flags & 4` is asked of two layers — the AI's host function
+    // `get_is_no_nation_powers` reads the lobby, `has_tribe_bonus` reads the
+    // tech tree's `Setup` — and it is one bit, so they are kept the same.
+    sim.setup.no_nation_powers = sim.lobby.no_nation_powers;
     // The map seed, which picks a gaia guy's piece (`docs/ANIM.md` §3).
     sim.game_seed = get("seed").unwrap_or(0) as i32;
     // The animation art: the lengths a `DUMP_ALL` dump (or a sibling)
@@ -535,8 +539,12 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     for l in &init.leaders {
         if (0..players as i64).contains(&l.who) {
             let who = l.who as usize;
-            sim.tech[who].tribe = l.tribe.max(0) as usize;
-            sim.tech[who].power = Some(l.tribe.max(0) as usize);
+            // The nation, and every power that follows from it
+            // (`crates/sim/src/nations.rs`). The dump's `tribe` is the
+            // roster index — run40's 11 and 4 are the British and the
+            // Nubians — and `-1`, which a gaia leader carries, is a leader
+            // with no nation rather than the Aztecs.
+            sim.set_tribe(who as u8, l.tribe);
             // `leader_flags & 4` is `LeaderData::is_human` — the bit that
             // picks `find_wpath`'s pull-back variant and withholds the
             // `army`/`worker` cost modes (`docs/PATHFINDER.md` §3).
@@ -6383,16 +6391,20 @@ mod tests {
     /// Written Word lands on 201 and re-prices the City State waiting
     /// behind it in the library. See `docs/ECONOMY.md` and `docs/COSTS.md`.
     ///
-    /// Two of the six are still wrong and both are inert, so both are
-    /// asserted **as they stand** rather than left out — the day either is
-    /// fixed the assertion moves rather than passing quietly.
+    /// Two of the six were wrong. One of them is now right, and for a
+    /// reason outside the mechanic. **`resource_cap`**: the AI's is
+    /// **1392** on every frame against the human's 1120, which is the
+    /// British `+25%` on `COMMERCE_CAP[0]` — `70 × 125 / 100 = 87` with
+    /// the half truncated before the `× 16`.
+    /// [`sim::economy::commerce_cap`] computed that all along and
+    /// `Nation::british` was never true, because nothing in this harness
+    /// read the dump's own `tribe`. `Sim::set_tribe` does now
+    /// (`crates/sim/src/nations.rs`) — run40's `tribe 11` and `tribe 4`
+    /// are the roster's British and Nubians — and the 200 became **0**.
     ///
-    /// `resource_cap`: the AI's is **1392** on every frame against the
-    /// human's 1120, which is the British `+25%` on `COMMERCE_CAP[0]`,
-    /// `70 × 125 / 100 = 87` with the half truncated before the `× 16`.
-    /// [`sim::economy::commerce_cap`] now computes it; nothing sets
-    /// `Nation::british`, because nothing in this harness reads the dump's
-    /// own `tribe`. Inert because the largest rate in the window is 800.
+    /// The other is still wrong and inert, so it is asserted **as it
+    /// stands** rather than left out — the day it is fixed the assertion
+    /// moves rather than passing quietly.
     ///
     /// `gather_slots`: the farms agree and the camps do not — the human's
     /// seven and the AI's five read zero here. `Build::init` surveys a
@@ -6500,9 +6512,8 @@ mod tests {
         );
 
         // **The record**: 2,880 good-frames — forty frames, two players, six
-        // goods, six fields — and 560 disagree, in exactly three shapes,
-        // every one of them a *standing* state rather than anything the
-        // window does.
+        // goods, six fields — and 360 disagree, in exactly two shapes, both
+        // of them a *standing* state rather than anything the window does.
         //
         // - **240 are `bucket` on goods 3, 4 and 5** (knowledge, metal,
         //   oil), both players, every frame: the original holds **0** and
@@ -6510,19 +6521,17 @@ mod tests {
         //   is available in the Ancient age and an unavailable good is never
         //   charged — but it is a hundred of something nobody gave the
         //   leader, and it is booked.
-        // - **200 are `resource_cap`** — the AI's five capped goods, 1120
-        //   against the original's 1392, the British commerce bonus this
-        //   harness cannot apply because nothing reads the dump's `tribe`.
-        //   Knowledge is 15,984 on both sides. Inert: the AI's largest rate
-        //   in the window is 800.
         // - **120 are `gather_slots`** — the two woodcutters' camps and the
         //   human's odd wealth slot, three per frame, for the two reasons
         //   the doc comment above sets out.
         //
+        // `resource_cap` was the third shape and is gone: 200 to **0**, the
+        // British commerce bonus arriving with the dump's own `tribe`.
+        //
         // Everything else is exact on every frame: both players' `bucket` on
         // food, timber and wealth — which is the item — every `leftover`,
         // every `resources`, every `income`, every farm's gather slot, and
-        // the human's whole cap.
+        // both players' whole cap.
         eprintln!("run40: {} of {compared} good-frames disagree", wrong.len());
         assert_eq!(
             compared, 2_880,
@@ -6548,12 +6557,16 @@ mod tests {
             0,
             "every farm's gather slot, both players: {wrong:?}"
         );
-        assert!(
-            of("resource_cap") <= 200 && of("gather_slots") <= 120 && wrong.len() <= 560,
-            "the census fell: {} of {compared}, caps {}, slots {} — the \
-             floors are 560, 200 and 120",
-            wrong.len(),
+        assert_eq!(
             of("resource_cap"),
+            0,
+            "both players' whole commerce cap, the British +25% included: {wrong:?}"
+        );
+        assert!(
+            of("gather_slots") <= 120 && wrong.len() <= 360,
+            "the census fell: {} of {compared}, slots {} — the floors are \
+             360 and 120",
+            wrong.len(),
             of("gather_slots")
         );
     }
@@ -9219,6 +9232,7 @@ mod army_tests {
         let players = player_count(&init).max(1);
         let mut sim = loaded.sim(Tuning::RON, world, players);
         sim.lobby = lobby_of(&init.game_info, &loaded.map_styles);
+        sim.setup.no_nation_powers = sim.lobby.no_nation_powers;
         // Block `n` is the state sim-frame `n` begins on (`docs/SYNC.md`
         // §1): the frame the stamps are compared against, and the sync
         // stream's word its `say_checksum` record carries — what the
@@ -9231,8 +9245,7 @@ mod army_tests {
         for l in &leaders {
             if (0..players as i64).contains(&l.who) {
                 let who = l.who as usize;
-                sim.tech[who].tribe = l.tribe.max(0) as usize;
-                sim.tech[who].power = Some(l.tribe.max(0) as usize);
+                sim.set_tribe(who as u8, l.tribe);
                 sim.nation[who].human = l.leader_flags & 4 != 0;
                 let t = &mut sim.transport[who];
                 t.civilian = l.leader_flags & 0x100 != 0;

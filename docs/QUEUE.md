@@ -13,44 +13,39 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 74 (Opus).*
+*2026-08-30, after item 83 (Opus).*
 
-**run33's word 776 → 780**, totals 944/828 → **951/838**. run10's headline
-is unmoved at ticks 572, orders 776 — but its **roster is**, by its largest
-step: 468 missing + 0 extra → **268 + 0**, the lowest it has been, because
-`1/9` now arrives on the original's own frame. Collision 87,548 → 93,341,
-angles 33,992 → 35,868. East Indies unmoved at 167/167.
+**run40's census 560 → 360**, and `resource_cap` 200 → **0**: both players'
+whole commerce cap is the original's on all forty frames, the AI's British
+1392 included. The headline is unmoved — run33's word parts at 780, totals
+951/838; run10 at ticks 572, orders 776, roster 268 + 0; East Indies
+167/167 — and was not expected to move: run33 and run10 are the same two
+nations, and in an Ancient-age window neither power binds.
 
-**The AI's thirty-two food was two lumps, and no reading found them.**
-Widening run40's leader record showed `leftover` exact on all forty frames
-— so a lump, not a rate. run13's `[Start]` census (frames 95–105, same
-game) put it in `(105, 560)`. `rontrace-run40.log`'s first-entry list,
-crossed against every `bucket` writer in the decompile, named two:
-`Build::do_bonus` on 166 (twenty food, a farm finishing) and
-`Build::refund_cost` on 201 (twelve, a queued tech re-priced when Science
-rose). Both landed; `docs/ECONOMY.md` and `docs/COSTS.md` write them out.
+**The nation nobody had.** The item was booked as "nothing reads the dump's
+`tribe`", and half of that was wrong. `sim.tech[who].tribe` and `.power`
+were set from the dump all along, so the *tech tree* has always had the
+nation; what had no writer was `city::Nation`'s seventeen booleans, which
+the older mechanics take instead — so `commerce_cap` read a `british` that
+nothing set. `crates/sim/src/nations.rs` is the wire: `ROSTER`,
+`Sim::set_tribe`, and flags computed **through** `has_tribe_bonus` so the
+lobby and no-city gates come free. Two smaller things went with it: a
+gaia leader's `−1` was becoming roster index 0 (the Aztecs), and
+`Setup::no_nation_powers` — the gate `has_tribe_bonus` reads — was never
+set from `info.flags & 4` while `Lobby`'s was.
 
 **Owed:** 40 (ORACLE.md's pin is 138,489, and it owes run40/run41 rows),
 42.
 
-**Opener (Opus):** `take item 83 from @docs/QUEUE.md — nothing in the
-harness reads the dump's own tribe, so every traced game has been played
-with no nation power on either side; run40's resource_cap measures the
-first one.`
+**Opener (Opus):** `take item 84 from @docs/QUEUE.md — run33's word parts
+at 780, four frames past the AI's second city: eleven draws against eight,
+ours opening on Unit::do_job where the original is gathering.`
 
 ## The queue
 
 In dependency order, headline-nearest first. Take the first unstarted one
 unless something has made a different order obviously better, and say so.
 Numbers are stable; the journal is indexed by them.
-
-83. **Nothing reads the dump's `tribe`.** So every traced game is played
-    with **no nation power on either side** — none of the twenty-four. The
-    dump prints `tribe 11` and `tribe 4`, which `rondata`'s nation table
-    maps to the British and the Nubians. Oracle on disk: run40's
-    `resource_cap`, 1392 against 1120, `70 × 125 / 100` truncated before
-    the `<< 4` (ECONOMY, "The commerce cap"). Wiring `tribe` to `Nation`'s
-    flags is the item.
 
 84. **The word at 780, four frames past the city.** Eleven draws against
     eight; ours opens `GameAccess::rnd+0x20 < Unit::do_job+0x67` where the

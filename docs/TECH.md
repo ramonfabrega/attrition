@@ -380,6 +380,37 @@ roster, `0` Aztecs … `23` Persians — and, where named, a `rules.xml` constan
 a tribe of `−1`, and — unless the power is a Conquer-the-World racial power —
 when `leader_flags2 & 0x40`.
 
+**The roster, which is the index.** `rules.xml`'s `TRIBES` block lists
+twenty-four `TRIBE` records, each naming a file under `tribes/` whose root
+element carries the display name `ScenarioFuncSet::find_nation` matches. The
+record's position is the nation's identity everywhere: the `n` of
+`has_tribe_bonus(n)`, the bit `TRIBE_MASK` sets, and the number
+`LeaderData::tribe` holds and `LEADERS=9` prints.
+
+| | | | | | |
+| --- | --- | --- | --- | --- | --- |
+| 0 Aztecs | 1 Maya | 2 Inca | 3 Bantu | 4 Nubians | 5 Greeks |
+| 6 Romans | 7 Egyptians | 8 Turks | 9 Spanish | 10 French | 11 British |
+| 12 Germans | 13 Russians | 14 Chinese | 15 Japanese | 16 Koreans | 17 Mongols |
+| 18 Iroquois | 19 Lakota | 20 Americans | 21 Indians | 22 Dutch | 23 Persians |
+
+`crates/sim/src/nations.rs` holds it as `ROSTER`, and
+`cargo run -p rondata -- <install>` re-derives the whole list from the user's
+own `rules.xml` and `tribes/` and exits non-zero if a name has moved — a
+nation that shifted by one would silently hand its power to its neighbour.
+
+**Where a player's nation comes from.** `Sim::set_tribe` takes the dump's own
+`LeaderData::tribe` and sets both `PlayerTech::power` (the roster index, or
+`None` for the `−1` a gaia leader carries) and `PlayerTech::tribe` (the index
+into the loaded roster, for the graft and unique-unit tables, which stays in
+range and is zero for a `−1`). It then refreshes the seventeen per-nation
+booleans on `city::Nation` that the older mechanics read — each one an answer
+from `has_tribe_bonus`, so the "No Nation Powers" and no-city gates above
+apply to them unchanged. Before that wire existed the flags were all false on
+every traced game, which is what hid the British commerce cap for a month
+(`docs/ECONOMY.md`, "The commerce cap"). `leader_flags2 & 0x40` is still not
+modelled.
+
 **The four finals** (`0x243–0x246`) ignore their data prerequisites: they
 require `INFORMATION_AGE`, `COMPUTERIZATION`, `GLOBALIZATION`,
 `INTERNATIONAL_LAW` and `SELECTIVE_SERVICE`, and return 1 on those alone.

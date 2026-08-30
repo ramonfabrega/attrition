@@ -598,11 +598,17 @@ on every frame of the window against the human's 1120. `70 × 125 / 100` is
 87.5, and 87 × 16 is 1392: the truncation is per-percentage and *before* the
 `<< 4`, which is what fixes the order of the whole pipeline. The British term
 and the three per-resource nation terms are implemented
-(`sim::economy::commerce_cap`); what is not is anything that would set
-`Nation::british`, because **nothing in this harness reads the dump's own
-`tribe`** — so every traced game is played with no nation power at all. That
-is booked in the queue, and it is inert on this capture only because the AI's
-largest rate in it is 800.
+(`sim::economy::commerce_cap`).
+
+**And the British term now fires.** `Holdings::british` is
+`Nation::british`, which nothing set until the harness read the dump's own
+`LeaderData::tribe` — the roster index, 11 here and 4 for the Nubian human
+(`crates/sim/src/nations.rs`, `docs/TECH.md`). All 200 of run40's
+`resource_cap` disagreements went with it, and both players' whole cap is
+now the original's on all forty frames. It changed nothing else on any
+capture, which is what the arithmetic predicts: the AI's largest rate in
+that window is 800, well under either ceiling, so a cap that was 272 too
+low still never bound.
 
 with two overrides that skip the whole body: **knowledge (slot 3) is always
 999**, and so is everything if the player holds the Virtual Reality bonus.

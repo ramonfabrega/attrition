@@ -788,6 +788,37 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         &join(named.iter().cloned()),
     );
 
+    // The roster itself, which is an index the simulation hardcodes: every
+    // nation power is `has_tribe_bonus(n)` for a fixed `n`, so a nation that
+    // moved would silently hand its power to its neighbour. `sim::nations`
+    // names the twenty-four in order; this re-derives them from `rules.xml`'s
+    // own `TRIBES` block and each nation file's `<TRIBE name>`.
+    let roster = install.tribe_names(&rules).unwrap_or_default();
+    let drift: Vec<String> = sim::nations::ROSTER
+        .iter()
+        .enumerate()
+        .filter(|(i, name)| roster.get(*i).map(String::as_str) != Some(**name))
+        .map(|(i, name)| {
+            format!(
+                "{i} is {:?}, not {name:?}",
+                roster.get(i).map(String::as_str).unwrap_or("(absent)")
+            )
+        })
+        .collect();
+    failures += check(
+        "the nation roster is the order the powers are indexed by",
+        roster.len() == sim::nations::ROSTER.len() && drift.is_empty(),
+        &format!(
+            "{} nations{}",
+            roster.len(),
+            if drift.is_empty() {
+                String::new()
+            } else {
+                format!("; {}", join(drift.iter().cloned()))
+            }
+        ),
+    );
+
     // `SUPPORT` is the ramping cost, and the engine keeps it in two ordered
     // slots rather than a six-slot array: `ObjectType::load_support` walks the
     // pairs in order, skips zero amounts, and stops after two. So a field can
