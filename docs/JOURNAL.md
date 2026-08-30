@@ -7168,3 +7168,118 @@ wrong number for a month, because one boolean between the tree and the
 mechanic had no writer. The widening found it in twenty minutes. A reading
 of `calc_resource_caps` would not have: every line of that function was
 already right.
+
+## 2026-08-30 — the third steering pass (Fable 5): the loop is faster than its rules, and the rules catch up
+
+Twelve items and sixteen Opus sessions since the 08-28 steer, every one of
+them single-threaded — `lore spawns` shows no subagent since 08-25 — and
+every one booked with its number. The question was the same as the last
+two times: intervene, or `lgtm, back to Opus`. The answer is the second,
+with four paperwork rules amended to match what the work already does, one
+stale instrument fixed, and a plainer statement of where the end is.
+
+### The tranche
+
+| score | 08-28 | 08-30 | of |
+|---|---|---|---|
+| run10 ticks before divergence | 200 | **572** | 1,772 |
+| run10 orders | 200 | **776** | 1,772 |
+| run33's word parts at | 284 | **780** | 1,850 |
+| run33 totals, word / draw-for-draw | — | 951 / 838 | 1,850 |
+| East Indies (run39) ticks / orders | — | **167 / 167** | 1,850 |
+| run10 roster, missing + extra | 468 + 0 | **268 + 0** | `1/10` only |
+
+`cargo test --workspace` with `RON_INSTALL`: 637 sim and 143 rondata
+tests, no `skipping` line. One finding spot-checked against the decompile
+rather than the journal: `Build::activate` calls
+`do_bonus(this, 0, constants->food_bonus_for_farm)` flat for a farm and
+`timber_bonus_per_wood_slot × slots` for a camp, which is item 74's
+"flat versus per new slot" verbatim.
+
+**The loop changed shape again, and again for the better.** Decision 24
+said "diff first, then read". What the tranche actually does is *widen*
+first: items 74 and 83 — the two largest roster and census moves — were
+closed by comparing dumped fields nobody had compared, with no decompiler
+open. Blind readings and adjudications stopped on their own; the listing is
+read when one decompiled line is suspect, and that is all the reading there
+is. Nothing in the rules forbade any of this. What the rules had wrong was
+around it.
+
+### Four amendments (DECISIONS 25)
+
+**The headline is the pair, lower map first.** Entry 24 pinned "the
+longest traced capture"; both maps' captures are 1,850 frames, the finish
+line names two maps, and one stood at 32–42 % while the other stood at 9 %.
+The default item is now the nearest divergence on the lower map, so the
+opener goes to East Indies (item 69). A residue that shows on one map only
+is exactly the kind a single-map chase never meets.
+
+**The size pin's unit is the section.** Opus's note of this morning ("what
+the byte pins are actually doing") was right: a file ceiling taxes whoever
+adds a finding to any section of a large file, and under a 254-byte margin
+what gets cut is whatever the session needs least. Measured: the largest
+`## ` section is 38 KB in ORDERS, 72 KB in AI, 122 KB in ORACLE (its whole
+run log), 45 KB in GROUPS; **eleven sections** in all documents exceed
+16 KB. `docs_guard.rs` now holds every section under 16 KB, pins those
+eleven by file and heading, and has no file ceiling. Made to fail three
+ways first — a pin lowered, a heading misspelled, and the unpinned section
+that exposed — and it named all three. ORACLE's owed run40/run41 rows now
+cost a heading promotion (`### run` → `## run`), not a compression.
+
+**The ratification ledger is the blind list.** The fifteen audits "owed"
+a Fable pass carry **zero** `FABLE:` markers between them — the nine of
+08-20 predate the marker discipline. "Marked rows only" over unmarked
+files was a batch of nothing, owed indefinitely, and the README already
+said a capture retires more than a pass. The surface is now claim-level
+and mechanical: a cited function no traced run has entered (101 of 617)
+that `crates/sim` implements. Item 88 builds the intersection; a run that
+enters the function retires the claim; a steer takes what is marked on it.
+Items 40 and 42 leave the queue here.
+
+**The steer runs every twenty items, or when the headline stalls two
+sessions.** Three passes in four days each found the loop sound.
+
+### The instrument
+
+The run10 floor in `rondata::diff` still asserted `orders >= 576` and
+`player 0 @ 687` while the queue had carried 776 and 802 for two items —
+the pin is the thing that is supposed to notice, and it was two steps
+behind the prose. Raised to what the run prints; item 89 makes the
+handoff-equals-pins check a guard so it cannot happen quietly again, and
+pairs it with a citation check against the export's `INDEX.tsv`, item 72's
+shape made mechanical.
+
+### Where the end is
+
+The engine runs at 15 frames a second, so both 1,850-frame captures are
+**two minutes of game**: the Ancient-age opening, citizens and scouts. At
+the tranche's pace — roughly 400 frames of headline in two days — the
+finish line as written is about a week away on Great Lakes and further on
+East Indies. It is the right finish line for the skeleton and it is not
+the end of phase 3: what stands beyond it is the next length (item 91;
+run18a's 24,000 frames is the precedent), and that is where every mechanic
+with a reading and no diff — combat, armies, ages — gets its oracle. The
+blind list is shrunk by scenarios, not frames (run33 proved that), so item
+90 books the capture queue: a scenario file and a script that runs
+captures back to back while the machine is idle, instead of each one
+waiting for the session that needs it.
+
+### What was not changed, and the case against changing it
+
+Opus driving, one item per session, `Continue` as the whole prompt, thirty
+to sixty minutes an item, no subagents. Considered and not taken: two
+sessions in parallel on the two maps — both write `diff.rs`, the queue and
+the journal, and the merge tax would eat the gain unless the second lane is
+fenced to widenings and captures, which is worth one measured trial and no
+more; Sonnet for the widenings — the judgment is in what a dumped field
+means, not in the comparison; Fable in the loop — the 11/8 taught that the
+oracle is the limit, not the reader. The subagent machinery stays for the
+mechanic no run reaches.
+
+### Housekeeping
+
+Six merged branches from the 08-20 readings deleted with their worktrees;
+`worktree-agent-a60f39ef1fda297a6` kept, its worktree removed, because ten
+of its commits are not ancestors of this branch and a steer does not delete
+what it has not read. `main` is fast-forwarded by hand from
+`worktree-replan-pdb`, by the user, when they choose.

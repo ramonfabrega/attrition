@@ -877,7 +877,9 @@ It came from writing them out and running the diff.
 
 **Decided 2026-08-27**, in the first Fable steering session, after two days
 and twenty Opus sessions of the long middle. Amends entries 21, 22 and 23
-in place; overturns nothing.
+in place; overturns nothing. *Amended 2026-08-30 by entry 25: the headline
+is the pair of maps, the size pin is per section, the ratification ledger
+is the blind list, and the steer is every twenty items.*
 
 **What was found.** The tranche was real — every finding spot-checked held
 against the decompile and the PDB, the tree was green with the install
@@ -923,3 +925,55 @@ nothing scheduled it.
 the point of writing it down as one — and it ran well. What it could not do
 alone was notice that the number had not moved, because the number was not
 written down. Now it is.
+
+## 25. The headline is the pair, the pin is the section, the ledger is the blind list
+
+**Decided 2026-08-30**, in the third Fable steering session, after twelve
+Opus items in two days. Amends entry 24 in place; overturns nothing.
+
+**What was found.** The loop entry 24 set up is doing better than it was
+designed to. Twelve items, sixteen single-threaded Opus sessions, no
+subagent spawned since 08-25, every item booked with its number: run10's
+ticks before divergence 200 → 572 of 1,772, run33's draw-word 284 → 780
+of 1,850, the roster 468 + 0 → 268 + 0, and the second map stood up at
+167 of 1,850 on its first try. The two largest moves (items 74 and 83)
+were made by **widening** — comparing dumped fields nobody had compared —
+with no decompiler reading at all. Four paperwork rules had drifted from
+what the work needs, and each is a one-line amendment:
+
+1. **The headline is the pair, the lower map first.** Entry 24 pinned "the
+   longest traced capture", and both maps' captures are 1,850 frames; the
+   finish line names two maps, and one was at 32–42 % while the other was
+   at 9 %. The default item is the nearest divergence on the lower map. A
+   residue that shows on one map only is exactly what a single-map chase
+   cannot find, and the Great Lakes chase would otherwise have run on
+   until it stalled.
+2. **The size pin's unit is the `## ` section, not the file.** A file
+   ceiling taxed whoever added a finding to *any* section of a large file,
+   and under a 254-byte margin what got cut was whatever the session
+   needed least — once, nearly evidence (`docs/JOURNAL.md`, 2026-08-30,
+   "what the byte pins are actually doing"). Nobody reads a file; a
+   session reads a section. `crates/sim/src/docs_guard.rs` now holds
+   every section under 16 KB, pins the eleven over it at their size, and
+   drops the file ceiling. A section that needs room splits at a heading.
+3. **The ratification ledger is the blind list.** The fifteen audits
+   "owed" a Fable pass carried **no** `FABLE:` markers — the nine of 08-20
+   predate the marker discipline — so "marked rows only" over them was a
+   batch of nothing, owed forever. The surface a pass ratifies is
+   claim-level and mechanical: a function `docs/` cites that no traced
+   run has entered (`report.py … blind`, 101 of 617 today) and that
+   `crates/sim` implements. A run that enters it retires it; a marker on
+   it is what a steer takes. The file-level list is struck in
+   `docs/audit/README.md` and pointed here.
+4. **The steer runs every twenty items, or sooner when the headline has
+   not moved for two sessions.** Three steers in four days each found the
+   loop sound and moved only paperwork; the cadence was costing a session
+   per ten items for a check whose answer had not changed.
+
+**Why not more.** Opus driving, one item per session, `Continue` as the
+whole prompt, no subagents: the telemetry says this is the most productive
+configuration the project has had, and nothing in it is changed. Sonnet for
+widenings would save little — the judgment is in what a dumped field means,
+not in the comparison. Blind readings have stopped on their own, because
+the diff, the trace and the listing settle a claim faster; the machinery
+stays for a mechanic no run reaches.

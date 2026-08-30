@@ -17,12 +17,14 @@
 //!   is bounded harder.
 //! - **`CLAUDE.md` carries rules, not findings.** A blind reader inherits
 //!   it, so an address or a section number in it contaminates the reading.
-//! - **A document over the ceiling may not grow.** The specifications are
-//!   the handoff between sessions, and a 190 KB handoff is not one. Every
-//!   document is held under [`DOC_CEILING`]; the ones already over it are
-//!   pinned at their size in [`OVER`] and may only shrink — the way to add a
-//!   correction to one is to move its story out to the journal first. When
-//!   one drops under the ceiling, delete its row.
+//! - **A section over the ceiling may not grow.** The specifications are
+//!   the handoff between sessions, and the unit a session reads is the
+//!   `## ` section, not the file. Every section is held under
+//!   [`SECTION_CEILING`]; the ones already over it are pinned at their size
+//!   in [`OVER`] and may only shrink — the way to add a correction to one is
+//!   to split it, or to move its story out to the journal first. When one
+//!   drops under the ceiling, delete its row. (Until 2026-08-30 the unit was
+//!   the file, at 60 KB; the journal entry of that day says why it moved.)
 
 use std::path::PathBuf;
 
@@ -44,22 +46,65 @@ const QUEUE_LINES: usize = 180;
 /// twenty"; this is the tolerance.
 const HANDOFF_LINES: usize = 32;
 
-/// Bytes. A document a fresh session can actually read before starting.
-const DOC_CEILING: usize = 60_000;
+/// Bytes, per `## ` section. The unit is the section because that is what
+/// a session reads: an item names §6.4 and §4, never the file. A whole-file
+/// ceiling (60 KB, 2026-08-27 to 08-30) taxed whoever added a finding to
+/// any section of a large file, and what got cut under a 254-byte margin
+/// was whatever the session personally needed least — once, nearly the
+/// evidence (`docs/JOURNAL.md`, 2026-08-30, "what the byte pins are actually
+/// doing"). Sixteen thousand is a section a session reads whole before
+/// starting; the text before the first `## ` counts as a section too.
+const SECTION_CEILING: usize = 16_000;
 
-/// The documents over the ceiling on 2026-08-27, pinned at that day's size.
-/// Each may only shrink. `JOURNAL.md` is not here: it is the append-only
-/// chronicle and is meant to grow.
-const OVER: &[(&str, usize)] = &[
-    ("SYNC.md", 65_400),
-    ("ARMY.md", 84_493),
-    ("COMBAT.md", 107_149),
-    ("CITIES.md", 106_773),
-    ("GROUPS.md", 127_758),
-    ("ORACLE.md", 138_489),
-    ("AI.md", 156_559),
-    ("ORDERS.md", 190_724),
+/// The sections over the ceiling on 2026-08-30, pinned at that day's size by
+/// file and heading. Each may only shrink; a row whose section drops under
+/// the ceiling, or whose heading is renamed, must be deleted. `JOURNAL.md`
+/// is not measured: it is the append-only chronicle and is meant to grow.
+/// A section that wants to grow past its pin splits — a `## ` heading is
+/// the split, and it costs nothing a reader needs.
+const OVER: &[(&str, &str, usize)] = &[
+    ("AI.md", "2. The production AI — read", 71_955),
+    (
+        "AI.md",
+        "15. The behavioural run — run18, 2026-08-25",
+        27_527,
+    ),
+    ("CITIES.md", "3. Construction", 16_823),
+    (
+        "DATALAYER.md",
+        "2. The loader — the tables into the sim's types",
+        20_324,
+    ),
+    (
+        "GROUPS.md",
+        "6. The move — `Group::action_move_near@00704990`",
+        44_907,
+    ),
+    ("ORACLE.md", "What this changes", 121_737),
+    ("ORDERS.md", "1. The order system", 16_545),
+    ("ORDERS.md", "4. The move order", 37_817),
+    (
+        "ORDERS.md",
+        "5. Build, repair, garrison — and what a citizen does next",
+        16_450,
+    ),
+    ("ORDERS.md", "6. The gather order", 21_139),
+    ("SYNC.md", "3. The per-frame sites", 30_064),
 ];
+
+/// `(heading, bytes)` for every `## ` section of a document, the preamble
+/// first under an empty heading. A section's bytes run from its heading
+/// line to the next `## ` line, newlines included.
+fn sections(text: &str) -> Vec<(String, usize)> {
+    let mut out: Vec<(String, usize)> = vec![(String::new(), 0)];
+    for line in text.lines() {
+        if let Some(h) = line.strip_prefix("## ") {
+            out.push((h.to_string(), 0));
+        }
+        out.last_mut().expect("preamble").1 += line.len() + 1;
+    }
+    out
+}
 
 #[test]
 fn the_queue_deletes_rather_than_strikes() {
@@ -146,8 +191,9 @@ fn claude_md_carries_no_findings() {
 }
 
 #[test]
-fn a_document_over_the_ceiling_may_not_grow() {
+fn a_section_over_the_ceiling_may_not_grow() {
     let mut failures = Vec::new();
+    let mut seen = Vec::new();
     for entry in std::fs::read_dir(docs()).expect("docs/") {
         let path = entry.expect("entry").path();
         let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
@@ -156,26 +202,42 @@ fn a_document_over_the_ceiling_may_not_grow() {
         if !name.ends_with(".md") || name == "JOURNAL.md" {
             continue;
         }
-        let size = std::fs::metadata(&path).expect("metadata").len() as usize;
-        let bound = OVER
-            .iter()
-            .find(|(n, _)| *n == name)
-            .map_or(DOC_CEILING, |&(_, pinned)| pinned);
-        if size > bound {
-            failures.push(format!(
-                "docs/{name}: {size} bytes, bound {bound} — move its story to the journal, keep the specification"
-            ));
+        let text = std::fs::read_to_string(&path).expect("read");
+        for (heading, size) in sections(&text) {
+            let pin = OVER
+                .iter()
+                .find(|(n, h, _)| *n == name && *h == heading)
+                .map(|&(_, _, pinned)| pinned);
+            if pin.is_some() {
+                seen.push((name.to_string(), heading.clone()));
+            }
+            let bound = pin.unwrap_or(SECTION_CEILING);
+            let label = if heading.is_empty() {
+                "the preamble".to_string()
+            } else {
+                format!("`## {heading}`")
+            };
+            if size > bound {
+                failures.push(format!(
+                    "docs/{name} {label}: {size} bytes, bound {bound} — split the section, or move its story to the journal"
+                ));
+            } else if let Some(pinned) = pin {
+                if size <= SECTION_CEILING {
+                    failures.push(format!(
+                        "docs/{name} {label} is under the ceiling now ({size} ≤ {SECTION_CEILING}); delete its row from OVER"
+                    ));
+                } else if size < pinned {
+                    // Fine — but say so, so the next session lowers the pin.
+                    eprintln!("docs/{name} {label} shrank to {size}; lower its pin from {pinned}");
+                }
+            }
         }
     }
-    for (name, pinned) in OVER {
-        let size = std::fs::metadata(docs().join(name)).map_or(0, |m| m.len() as usize);
-        if size <= DOC_CEILING {
+    for (name, heading, _) in OVER {
+        if !seen.iter().any(|(n, h)| n == name && h == heading) {
             failures.push(format!(
-                "docs/{name} is under the ceiling now ({size} ≤ {DOC_CEILING}); delete its row from OVER"
+                "docs/{name} has no `## {heading}` — the pinned section was renamed or removed; fix the row"
             ));
-        } else if size < *pinned {
-            // Fine — but say so, so the next session lowers the pin.
-            eprintln!("docs/{name} shrank to {size}; lower its pin from {pinned}");
         }
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));

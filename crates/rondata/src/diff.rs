@@ -7479,10 +7479,14 @@ mod tests {
         // It is what says whether an item moved the whole or only the
         // unit it was about, and every history line below quotes it.
         eprintln!("run10 by unit: {:?}", report.first_divergence_by_unit());
+        // 2026-08-30, the third steer (Fable): items 81 and 74 had moved
+        // orders 576 → 776 and player 0's first divergence 687 → 802 and
+        // left this line where it was; the queue carried the numbers and
+        // the assertion did not. Raised to what the run prints.
         assert!(
-            ticks >= 572 && orders >= 576 && first[0] >= 687 && first[1] >= 573,
+            ticks >= 572 && orders >= 776 && first[0] >= 802 && first[1] >= 573,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 572, orders 576, player 0 @ 687, player 1 @ 573",
+             — the floor is ticks 572, orders 776, player 0 @ 802, player 1 @ 573",
             report.first_divergence
         );
         assert!(

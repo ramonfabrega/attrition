@@ -91,13 +91,22 @@ on it, and the `objdump` recipe is in the R2 adjudication — and R4's
 a camp itself. Neither blocks a batch; both go into one when the thing
 that needs them is being built.
 
-**Owed, oldest first.** Adjudicated on Opus and never ratified:
+~~**Owed, oldest first.** Adjudicated on Opus and never ratified:~~
+**Struck 2026-08-30, Fable — the list was owed against an empty set.**
+None of the fifteen files below carries a `FABLE:` marker (the nine of
+08-20 predate the marker discipline), so "marked rows only" over them was a
+batch of nothing. The surface a pass ratifies is now claim-level: a
+function `docs/` cites that no traced run has entered *and* `crates/sim`
+implements — `tools/trace/report.py … blind docs/`, 101 of 617 on this
+date — with markers on it. A run that enters the function retires the
+claim; `docs/DECISIONS.md` entry 25; `docs/QUEUE.md` item 88 builds the
+intersection. The files stay as the record of their readings.
 
-- the nine of 2026-08-20 — attrition, cities, combat, costs, economy,
-  movement, production, supply, tech;
-- `2026-08-23-pathfinder.md`, `2026-08-24-anim.md`,
-  `2026-08-24-commands.md`, `2026-08-24-recgame.md`;
-- `2026-08-25-transport.md`, `2026-08-25-army.md`;
+- ~~the nine of 2026-08-20 — attrition, cities, combat, costs, economy,
+  movement, production, supply, tech;~~
+- ~~`2026-08-23-pathfinder.md`, `2026-08-24-anim.md`,
+  `2026-08-24-commands.md`, `2026-08-24-recgame.md`;~~
+- ~~`2026-08-25-transport.md`, `2026-08-25-army.md`;~~
 - ~~**`2026-08-25-groups.md`'s "Fourth pass"** — the row that matters most,
   because it *overturns* three verdicts an earlier Fable pass confirmed.
   A ratifier should start there and should be told that a previous

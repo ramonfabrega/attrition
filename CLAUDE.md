@@ -98,8 +98,9 @@ artifact is the next phase's tool.
    against.
 3. **Sim skeleton** — the rules of a match, mechanic by mechanic, diffed
    against the original's own per-frame dumps. **The score is ticks before
-   divergence** on the longest traced capture, pinned as a floor in
-   `rondata::diff` and stated first in `docs/QUEUE.md`. **Done when** a
+   divergence** on each of the two maps the finish line names — the lower
+   map first, and the default item is its nearest divergence — pinned as
+   floors in `rondata::diff` and stated first in `docs/QUEUE.md`. **Done when** a
    fixed-seed, traced human-versus-AI capture on two maps stays in lockstep
    — no position or order disagreement — for its full length. This is the
    long middle, and the number is how anyone can tell where in it we are.
@@ -214,7 +215,8 @@ outside the per-mechanic tests, and each was written by first making it fail:
   says so rather than passing quietly.
 - `crates/sim/src/docs_guard.rs` reads the paperwork: the queue deletes
   rather than strikes and stays short, this file names no finding, and a
-  document over the size ceiling may only shrink.
+  document *section* over the size ceiling may only shrink — the unit is
+  the section because that is what a session reads.
 
 A guard that has never failed has not been tested; make it fail on purpose
 once, then land it. A rule that could be a guard and is only prose will be
@@ -297,9 +299,10 @@ meant to re-derive**; findings go in the mechanic's document and the queue.
 the session, and it carries this work end to end — implementation, diffs,
 widenings, readings, adjudication under the marker discipline, the
 documents and the queue. **Fable never reads blind and is never a
-subagent.** It is the **steering session** — every ten items or two days,
-in the main thread: is the tranche real, has the headline moved, what is
-the finish line; then the batched ratification of the *marked rows only*,
+subagent.** It is the **steering session** — every twenty items, or sooner
+when the headline has not moved for two sessions running — in the main
+thread: is the tranche real, has the headline moved, what is the finish
+line; then the batched ratification of the *marked rows only*,
 any verdict that overturns an earlier one, a listing read where the
 decompiler is wrong, and the rewrites of this file and the queue. It writes
 the next opener. Never Sonnet; the model is said in user-visible text each
