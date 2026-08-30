@@ -608,6 +608,22 @@ impl Sim {
     /// [`Sim::detect_unit_collision`] has just written; this takes only the
     /// unit.
     pub(crate) fn resolve_unit_collision(&mut self, u: usize) {
+        // Step 0, before everything: **an animal gives up**
+        // (`docs/COLLISION.md` §6). `resolve_unit_collision@005f9d30`'s
+        // first statement is a virtual on slot `+0x30`, which the map
+        // folds onto a stub — `Buffer::is_pending_load` (`return 1`) in
+        // `Animal::vftable`, `Window::get_button` (`return 0`) in
+        // `Unit::vftable` — and the PDB's `LF_ONEMETHOD` list names it
+        // **`SubObjectData::is_animal`**, vftable offset 48. When it
+        // answers, the body is the `QUEUE_NEW` clear and nothing else:
+        // the whole order list and the path go, and none of steps 1–6
+        // runs. So a herd animal blocked by its herd-mate stops there for
+        // good — no sidestep, no wait, no repath, no cell-centre snap.
+        if self.units[u].is_gaia() {
+            self.clear_orders(u);
+            return;
+        }
+
         let who = self.units[u].owner;
         let other = self.collider_of(u);
 
@@ -966,6 +982,66 @@ mod tests {
             );
         }
         assert!(sim.units[y].pos == stood, "the other one never moved");
+    }
+
+    /// §6 step 0, the twin of the test above: **an animal takes none of
+    /// it.** `resolve_unit_collision`'s first statement is
+    /// `SubObjectData::is_animal` (vftable offset 48, from the PDB's
+    /// `LF_ONEMETHOD` list — the map folds both overrides onto trivial
+    /// stubs and cannot name it), and when it answers, the body is the
+    /// `QUEUE_NEW` clear: the order list and the path go, and steps 1–6
+    /// never run.
+    ///
+    /// The same walk, the same blocker, the same frame — and where a
+    /// player's unit snaps onto its cell centre and paths around, gaia's
+    /// stops dead where it stood, keeps no order, and never moves again.
+    /// This is run39's `8/2`, whose herd-mate blocks it on frame 69:
+    /// the original stands it at `(28856, 24197)` for the rest of the
+    /// capture, and this crate walked it round to the goal
+    /// (`docs/SYNC.md` §3.14).
+    #[test]
+    fn an_animal_drops_its_walk_where_it_stands_and_takes_no_step() {
+        let a = Pos::new(30 * 0x30 + 0x20, 30 * 0x30 + 0x14);
+        let b = Pos::new(27 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let (mut sim, x, y) = pair(a, b);
+        // The walker is gaia's; everything else is the player's case.
+        sim.units[x].owner = 8;
+        sim.order_move(x, goal);
+        // `collide_frame` is step 5's write and an animal never reaches
+        // it; what names the blocker is `detect_unit_collision`, which
+        // runs before `resolve_unit_collision` is called at all.
+        let mut blocked = None;
+        for _ in 0..60 {
+            let before = sim.units[x].pos;
+            sim.tick();
+            if sim.units[x].collide_o >= 0 {
+                blocked = Some(before);
+                break;
+            }
+        }
+        let stopped = blocked.expect("the walk reached the unit in front");
+        assert_eq!(
+            sim.units[x].pos, stopped,
+            "an animal does not take §6 step 6's cell-centre snap"
+        );
+        assert_eq!(
+            sim.units[x].collide_frame, 0,
+            "and step 5's counter is never reached"
+        );
+        assert!(
+            sim.units[x].orders.is_empty(),
+            "the whole order list goes: {:?}",
+            sim.units[x].orders
+        );
+        assert!(sim.units[x].path.is_empty(), "and so does the path");
+        // And it stays there: no repath, no second attempt at the goal.
+        for _ in 0..200 {
+            sim.tick();
+            assert_eq!(sim.units[x].pos, stopped, "it walked again");
+        }
+        assert_ne!(stopped, goal, "the goal was never reached");
+        assert_eq!(sim.units[y].pos, b, "the blocker never moved");
     }
 
     /// §6's tail, the mechanic's **only** draw — and the two guards that

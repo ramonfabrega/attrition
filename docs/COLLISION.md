@@ -291,6 +291,31 @@ regardless of where it stands. §9 carries it.
 
 In order, with the first that fires winning:
 
+0. **An animal gives up.** The function's *first* statement is a virtual on
+   slot `+0x30`, and when it answers non-zero the body is the `QUEUE_NEW`
+   clear and nothing else — `unit_masks &= ~0x4000000`, `path.length = 0`,
+   `close_orders(0)`, `clear_partial_path`, `update_action`, return. The
+   same five lines `Unit::add_move_facing_order@005e55c0:58` runs when a
+   new order replaces the queue. **None of steps 1–6 below runs**: no
+   sidestep, no wait, no repath, and above all no cell-centre snap.
+
+   The slot is **`SubObjectData::is_animal`**, vftable offset 48, and the
+   name comes from the PDB's `LF_ONEMETHOD` list because the map cannot
+   give it: both overrides are trivial and COMDAT-folded, so the export
+   prints `Buffer::is_pending_load` (`return 1`) in `Animal::vftable` and
+   `Window::get_button` (`return 0`) in `Unit::vftable`. The two stubs are
+   the predicate: an `Animal` answers, a `Unit` does not.
+
+   So a herd animal blocked by its herd-mate stops dead where it stood and
+   stays there until its next wander roll — which is run39's `8/2`,
+   blocked on frame 69 at `(28856, 24197)` and standing there for the rest
+   of the capture (`docs/SYNC.md` §3.14). The record says so on both
+   captures at once: `rondata::diff::a_blocked_animal_drops_its_walk_where_it_stands`
+   takes every animal walk in the two long traces that ends short of its
+   goal — sixteen of them, twelve on East Indies and four on Great Lakes,
+   against seventeen that arrive — and every one of the sixteen ends with
+   the animal's position **unchanged** across the frame the order dies.
+
 1. **Attack it.** If the type has `+0x2b4 & 0x2000` and the other unit is a
    valid target: `set_attack`, `fire_ammo`, done.
 2. **I am standing in my own *flat* gather target.** Only when the other
@@ -383,10 +408,19 @@ the object chain over units; the probe with its parity filter and disc
 order; the `safe`, `DETOUR`, same-cell and `coll_size 0` gates; the corner
 rule; the same-player-attack exemption; `move_step`'s block, **including its
 `set_anim(CHAR_DEFAULT)`** (§5); **`do_move`'s waypoint test with both of
-its arms** (§5.1, item 63); and `resolve`'s steps 2 — **with its `is_flat`
-fence** (§6, item 64) — 4, 5 and 6, the last including the throttle **with
-its per-frame decay**, the stack unwind, the centre snap, `find_upath` and
-**the stagger draw of its tail** (item 80).
+its arms** (§5.1, item 63); and `resolve`'s steps **0** — the animal's
+whole-queue clear, `Sim::clear_orders` behind `Unit::is_gaia` — 2, with
+its `is_flat` fence (§6, item 64), 4, 5 and 6, the last including the
+throttle **with its per-frame decay**, the stack unwind, the centre snap,
+`find_upath` and **the stagger draw of its tail** (item 80).
+
+**Step 0's predicate is read off the owner.** The original asks the object
+what class it is; this crate has no `Animal` class and asks
+`Unit::is_gaia()` — owner ≥ 8 — instead. The two agree on every capture
+there is: every `ANIMALDATA` record in run12 (360) and run20 (936) carries
+`who 8`, the pasture's carry `who 9`, and nothing gaia owns is anything
+but an animal or a bird. A player-owned `Animal`, if one exists, would
+part them; none has been seen.
 
 **§5.2's pair came with item 66**, and it is the second consumer of both
 indices: `Sim::find_collision` is `collide_here` for a land caller and the
@@ -508,6 +542,19 @@ buildings join the chain, which is why §8 does not claim it.
   parts at **576** instead of 571, its totals go 791/662 → **802/688**,
   and the headline goes ticks 571 → **572**, orders 571 → **576** with
   player 0 at 574 → **687**.
+- **§6 step 0, on both captures at once** (2026-08-30). Every animal walk
+  in run39 and run33 that **ends short of its goal** — sixteen, twelve on
+  East Indies and four on Great Lakes, against seventeen that arrive —
+  ends with the animal's position *unchanged* across the frame the order
+  dies. That is exactly what step 6's cell-centre snap would break, and
+  this crate broke it on all sixteen before the step was read.
+  `a_blocked_animal_drops_its_walk_where_it_stands` is the check, and the
+  sim's own half — an animal and a player's unit walking into the same
+  blocker from the same point, one dropping its order where it stands and
+  the other snapping and pathing around — is
+  `an_animal_drops_its_walk_where_it_stands_and_takes_no_step`, written to
+  fail first. It took East Indies' word 91 → **201**
+  (`docs/SYNC.md` §3.14).
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §4's naming and §6's snap-and-replan end to end, in
@@ -559,6 +606,16 @@ buildings join the chain, which is why §8 does not claim it.
   player ordered into each other head-on, for the `MOVEORDER` row.
 - **Whether `collide_guy` is ever non-zero.** Every hard collision this
   reading found writes 0; the field exists, so something writes it.
+- **`unit_masks & 0x4000000`, which §6 step 0 clears.** Its one writer is
+  `add_move_facing_order@005e55c0:28` — a `QUEUE_LAST` move whose type
+  carries `+0x2c8 & 0x10`, which the same line turns into an
+  `EXPLORE_TO` — and the `QUEUE_NEW` clear at `:58` drops it again; step
+  0 is that clear, five lines for five lines. Its two readers are
+  `Unit::work@0060d180:124` and `Unit::think@005f6e40:233`, neither of
+  which an animal runs (`Animal` overrides both slots), so what the bit
+  *means* to a unit is unread here and this crate does not carry it.
+  Nothing about step 0 turns on it. *What would settle it:* the two
+  readers, which is a reading rather than a run.
 - **§5.2's group arm.** `find_ordered_collision`'s second pass tests every
   other member of my group against its ordered position, wherever it
   stands, and this crate keeps no `UnitData::group` back-pointer to reach

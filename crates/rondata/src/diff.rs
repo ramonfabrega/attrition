@@ -6419,10 +6419,20 @@ mod tests {
         // wrong streams the simulation is on after 1108. The number that
         // is not luck is the *other* map's, where the same change takes
         // the word 69 -> 91.
+        //
+        // 938 / 841 -> **943 / 827** with the blocked animal's dropped
+        // walk, and the same argument holds a second time with the same
+        // shape: with that rule in and out, this capture's per-frame draws
+        // are **identical — the count and the sequence both — up to frame
+        // 1128**, 348 frames past the word's own parting at 780 and past
+        // eleven of the twelve units' first divergence. `first_count`
+        // holds at 780, `first_part` at 99, run10's ticks and orders at
+        // 572/776, and the other map's word goes 91 -> 201
+        // (`docs/SYNC.md` §3.14).
         assert!(
-            words >= 938 && matched >= 841,
+            words >= 943 && matched >= 827,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 938 and 841"
+             {matched} draw for draw; the floors are 943 and 827"
         );
     }
 
@@ -7093,6 +7103,19 @@ mod tests {
     ///               `docs/SYNC.md` §3.13, and
     ///               [`an_animal_more_than_0x180_from_its_order_hurries_by_three_halves`]
     ///               is the rule against the record.
+    ///   2026-08-30  word **91 -> 201**, **the blocked animal's dropped
+    ///               walk**: `Unit::resolve_unit_collision`'s first
+    ///               statement is `SubObjectData::is_animal`, and when it
+    ///               answers the body is the `QUEUE_NEW` clear —
+    ///               `docs/COLLISION.md` §6 step 0. Gaia's `8/2`, blocked
+    ///               by its herd-mate on 69, stands there for the rest of
+    ///               the capture; this crate sidestepped, snapped it onto
+    ///               its cell centre and walked it round to the goal,
+    ///               where it then blocked `8/0`'s wander spot on 89. The
+    ///               window holds at 64/64. `docs/SYNC.md` §3.14, and
+    ///               [`a_blocked_animal_drops_its_walk_where_it_stands`]
+    ///               is the rule against the record.
+
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
         let Some(inst) = install() else { return };
@@ -7189,10 +7212,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 91 && words >= 64 && matched >= 64,
+            first_count >= 201 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, {words} of the first \
              {WINDOW} frames on the count, {matched} draw for draw — the floor is \
-             91, 64 and 64"
+             201, 64 and 64"
         );
     }
 
@@ -8104,9 +8127,19 @@ mod tests {
         // with item 95 (the animal's hurry): the AI's `1/4` and `1/5` each
         // hold a few frames longer, so their collision blocks are
         // comparable for longer.
+        //
+        // 93,398 -> **91,210** with the blocked animal's dropped walk, the
+        // seventeenth and the second time it has fallen while a score
+        // rose. **One** of the thirteen units moved: the AI's `1/9` parts
+        // at 1320 rather than 1377, and the other twelve are unchanged to
+        // the frame, as are both players' first divergences (802 and 573)
+        // and the headline 572/776. run33's draws are identical to frame
+        // 1128 under the same change, so a unit whose position parts at
+        // 1320 has been on a stream of its own for two hundred frames
+        // (`docs/SYNC.md` §3.14).
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 93_398,
+            coll_seen, 91_210,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -8341,8 +8374,12 @@ mod tests {
         // earlier deep in the untraced stretch. run10's headline is
         // unmoved at 572/776 and its collision rows *rose*, 93,357 →
         // 93,398.
+        // 35,942 → **35,188** with the blocked animal's dropped walk: 754
+        // fewer, and all of them `1/9`'s, which parts at 1320 rather than
+        // 1377 (see the collision rows above). The headline is unmoved at
+        // 572/776 and the other map's word goes 91 → 201.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 35_942, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 35_188, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -9297,6 +9334,120 @@ mod tests {
             (264, 39, 39),
             "the two captures' gaia steps, the ones beyond `0x180`, and the \
              ones the rule's absence would get wrong"
+        );
+    }
+
+    /// **A blocked animal drops its walk where it stands.**
+    ///
+    /// `Unit::resolve_unit_collision@005f9d30`'s first statement is a
+    /// virtual on slot `+0x30` — the PDB's `LF_ONEMETHOD` list names it
+    /// `SubObjectData::is_animal` at vftable offset 48, which the map
+    /// cannot, because both overrides are COMDAT-folded onto trivial
+    /// stubs (`Buffer::is_pending_load`, `return 1`, in `Animal`'s
+    /// vtable; `Window::get_button`, `return 0`, in `Unit`'s). When it
+    /// answers, the body is the `QUEUE_NEW` clear and nothing else —
+    /// `unit_masks &= ~0x4000000`, `path.length = 0`, `close_orders`,
+    /// `clear_partial_path`, `update_action` — and **none of
+    /// `docs/COLLISION.md` §6's six steps runs**. No sidestep, no wait,
+    /// no repath, and above all no cell-centre snap.
+    ///
+    /// The snap is what the record can see. §6 step 6 moves every other
+    /// unit onto the middle of its 48-cell before it re-plans, so a
+    /// simulation that lets an animal through to step 6 moves it on the
+    /// frame the collision lands; the original does not move it at all.
+    ///
+    /// So the assertion is over every animal walk in both long captures
+    /// that **ends short of its goal**: `orders_x/orders_y` stop naming a
+    /// point and start naming the animal's own position, while the animal
+    /// is not standing on the goal. Sixteen of those — twelve on East
+    /// Indies, four on Great Lakes — and on every one of them the
+    /// position is **unchanged** across the frame the order dies. Before
+    /// this rule was in, `crates/sim` moved the animal on all sixteen.
+    ///
+    /// The other half of the same window is the arrival, which is not a
+    /// collision: seventeen walks end *on* their goal, and they are
+    /// counted here so that a parse which stopped seeing orders would
+    /// fail rather than pass with nothing to check.
+    #[test]
+    fn a_blocked_animal_drops_its_walk_where_it_stands() {
+        let files = [
+            "gamelog-run39-islands-longtrace.txt",
+            "gamelog-run33-longtrace.txt",
+        ];
+        let Some(paths) = files
+            .iter()
+            .map(|f| dump(f))
+            .collect::<Option<Vec<String>>>()
+        else {
+            eprintln!("skipping: no long-trace captures (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let texts: Vec<String> = paths
+            .iter()
+            .map(|p| std::fs::read_to_string(p).unwrap())
+            .collect();
+        let captures: Vec<Vec<Frame>> =
+            texts.iter().map(|t| Log::parse(t).frame_states()).collect();
+
+        let mut reached = 0usize;
+        let mut abandoned = 0usize;
+        let mut moved: Vec<String> = Vec::new();
+        for (c, frames) in captures.iter().enumerate() {
+            for w in frames.windows(2) {
+                for u in w[0].units.iter().filter(|u| u.who >= 8) {
+                    let (Some(gx), Some(gy)) = (u.orders_x, u.orders_y) else {
+                        continue;
+                    };
+                    // A live goal: the order names somewhere else.
+                    if (gx, gy) == (u.pos.x, u.pos.y) {
+                        continue;
+                    }
+                    let Some(next) = w[1].units.iter().find(|n| n.who == u.who && n.o == u.o)
+                    else {
+                        continue;
+                    };
+                    let (Some(nx), Some(ny)) = (next.orders_x, next.orders_y) else {
+                        continue;
+                    };
+                    // The goal is gone: the order list is empty and
+                    // `orders_x/y` name the animal itself again.
+                    if (nx, ny) != (next.pos.x, next.pos.y) {
+                        continue;
+                    }
+                    if (next.pos.x, next.pos.y) == (gx, gy) {
+                        reached += 1;
+                        continue;
+                    }
+                    abandoned += 1;
+                    if (next.pos.x, next.pos.y) != (u.pos.x, u.pos.y) {
+                        moved.push(format!(
+                            "{} frame {} {}/{}: {:?} → {:?}, goal {:?}",
+                            files[c],
+                            w[0].n,
+                            u.who,
+                            u.o,
+                            (u.pos.x, u.pos.y),
+                            (next.pos.x, next.pos.y),
+                            (gx, gy),
+                        ));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "the two long traces: {reached} animal walks reached their goal, {abandoned} were dropped short of it"
+        );
+        assert!(
+            moved.is_empty(),
+            "{} of {abandoned} dropped animal walks moved the animal — §6 step 6's \
+             cell-centre snap, which an animal never takes:\n{}",
+            moved.len(),
+            moved.join("\n")
+        );
+        assert_eq!(
+            (reached, abandoned),
+            (17, 16),
+            "the two captures' animal walks that arrived and that were dropped short"
         );
     }
 }

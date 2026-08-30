@@ -842,13 +842,72 @@ changed from 28 to 19 on the frame `z_internal` changed, which looked like
 terrain and was not. Item 72, a sixth time — and this one the documents had
 *not* got right, which is why it needed the record.
 
-**And the same rule is now the next item.** The word parts at **91** on the
-same site: gaia `8/0` gets a wander order to `(28968, 23976)`, walks one
-step, and is blocked. This crate sends it to `(28776, 24120)` instead — a
-point the near branch can reach and the original's cannot, since
-`Animal::do_idle`'s near offsets cap at `4 × 0x30` an axis — so the two took
-different branches on frame 89, and ours never meets `8/1`.
+~~**And the same rule is now the next item.** The word parts at **91** on
+the same site: gaia `8/0` gets a wander order to `(28968, 23976)`, walks
+one step, and is blocked. This crate sends it to `(28776, 24120)` instead —
+a point the near branch can reach and the original's cannot, since
+`Animal::do_idle`'s near offsets cap at `4 × 0x30` an axis — so the two
+took different branches on frame 89.~~ **Wrong on the branch, right on the
+symptom.** Both sides take the *far* branch on 89: the herd centre is
+`(28800, 23936)` and `8/0` stands 413 away, over the `0x180` the near arm
+needs. What differed was what `find_nearby_spot` had to work with — see
+§3.14, which took the word to 201.
 
+## 3.14 The blocked animal's dropped walk — 91 → 201 (2026-08-30)
+
+The residue at 91 was one draw and the wrong animal. `8/0`'s wander spot on
+frame 89 is `find_nearby_spot`'s first free candidate on the ring of
+`0xc0` around the herd centre `(28800, 23936)`, and the original's answer —
+`(28968, 23976)` — was free for it and taken for us. What was
+standing in it was **`8/2`**, twenty frames after §3.13's blocked stand:
+the original leaves it at `(28856, 24197)` for the rest of the capture, and
+this crate side-stepped it, snapped it onto its cell centre, and walked it
+round to the goal — arriving beside `8/0`'s spot on the very frame `8/0`
+needed it.
+
+**`Unit::resolve_unit_collision@005f9d30`'s first statement is
+`SubObjectData::is_animal`,** vftable offset 48, and when it answers, the
+body is the `QUEUE_NEW` clear and nothing else: `unit_masks &= ~0x4000000`,
+`path.length = 0`, `close_orders`, `clear_partial_path`, `update_action`,
+return. `docs/COLLISION.md` §6 now opens on it as step 0. An animal takes
+**none** of the six steps below it — no sidestep, no wait-for-it, no
+repath, and above all no cell-centre snap.
+
+**The name is the whole of the finding, and only the PDB has it.** The
+decompiler prints `(**(code **)(*(int *)this + 0x30))()`, and the map names
+that slot after a trivial function it was COMDAT-folded with:
+`Buffer::is_pending_load` in `Animal::vftable`, `Window::get_button` in
+`Unit::vftable`. Those two stubs *are* the predicate — `return 1` against
+`return 0` — but nothing in the export says so, which is why a document
+that had read §6 six times had no step 0 in it. The PDB's `LF_ONEMETHOD`
+list carries `vftable offset = 48` on `SubObjectData::is_animal`, three
+slots after `is_wonder` and one before `get_gpiece`. This is the third time
+that list has settled a slot the map cannot (`docs/MOVEMENT.md`, "The
+animal's own `get_speed`", was the first two).
+
+**What it cost, and what it did not.** East Indies' word **91 → 201**, the
+early window holding at 64 of 64 on the count and 64 draw for draw. On
+Great Lakes: run33's `first_count` holds at 780 and `first_part` at 99,
+run10's ticks and orders at 572/776, and both players' first divergence at
+802 and 573. Twelve of run10's thirteen units are unchanged **to the
+frame**; the thirteenth, the AI's `1/9`, parts at 1320 rather than 1377,
+which is the whole of the fall in the two coverage counts (collision rows
+93,398 → 91,210, angle rows 35,942 → 35,188). run33's weak totals go
+938/841 → 943/827 with the count *up* and the order down, and the same
+argument as §3.13's applies with the same shape: with the rule in and out,
+that capture's per-frame draws are **identical, count and sequence both, up
+to frame 1128** — 348 frames past its own parting.
+
+**The lesson is the one §3.13 ended on, one layer further in.** The queue
+booked this as "`8/0`'s wander branch" and named the near arm; the near arm
+was never taken. What found it was printing every unit within 700 of the
+contested point for the twenty frames around it and noticing that a *third*
+animal was somewhere the original's was not — and then that this crate's
+`8/2` had walked a dog-leg no dumped animal has ever walked. The check that
+now stands is that shape and not the reading: every animal walk in both
+long captures that ends short of its goal — sixteen of them — ends with the
+animal's position **unchanged** across the frame the order dies, and this
+crate broke that on all sixteen.
 
 ## 4. Run12 attributed
 
@@ -1332,6 +1391,21 @@ struck through and point there.
   `ExploreToOrder` on an animal would hurry too; and that the air arm
   returns before the floor of 3 as well as before the hurry, which no
   bird in any capture is slow enough to show.
+
+- **The blocked animal's dropped walk, §3.14 (2026-08-30).** Diff-backed,
+  on both captures: `a_blocked_animal_drops_its_walk_where_it_stands`
+  takes every animal walk in run39 and run33 that ends short of its goal
+  — **sixteen**, against seventeen that arrive — and on every one the
+  animal's position is unchanged across the frame the order dies, which
+  is what `docs/COLLISION.md` §6 step 6's cell-centre snap would break.
+  The sim's half is `collide.rs`'s
+  `an_animal_drops_its_walk_where_it_stands_and_takes_no_step`, an animal
+  and a player's unit walking into the same blocker from the same point,
+  written to fail first. Reading-only, and named as such: that slot
+  `+0x30` is `SubObjectData::is_animal` (the PDB's `LF_ONEMETHOD` list;
+  the map folds both overrides onto trivial stubs), and the meaning of
+  the `unit_masks & 0x4000000` the branch clears, whose two readers an
+  animal never runs.
 
 - **The two arrival arms, §3.12 (2026-08-30).** Diff-backed, on one
   capture and six frames apart: run10's `0/3` arrives on 110 by the

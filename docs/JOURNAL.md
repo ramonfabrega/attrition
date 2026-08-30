@@ -7882,3 +7882,124 @@ immediately after the three-layer pipeline it corrects the scope of.
 section names what is diff-backed (the threshold, the ratio, the base) and
 what is reading-only (that `+0x14` is `is_move`, and the air arm's missing
 floor).
+
+## 2026-08-30 (later, Opus) — item 95's successor: East Indies' word 91 → 201, and a blocked animal gives up
+
+The queue booked this as "gaia `8/0`'s wander branch": on run39's frame 89
+the original sends `8/0` to `(28968, 23976)` and this crate sends it to
+`(28776, 24120)`, which is exactly `4 × 0x30` on each axis and therefore
+looks like `Animal::do_idle`'s **near** arm. It is not. The near arm was
+never taken. Herd 0's centre on that frame is `(28800, 23936)` —
+`((wx + 2cx) · 0x300 + 0x480) / 3` with `wy` already walked from 31 to 30 on
+frame 0 — and `8/0` stands `vector_dist 413` from it, over the `0x180` the
+near arm needs. Both sides take the far arm; the near-arm arithmetic was a
+coincidence of two offsets.
+
+### What the record actually said
+
+The way in was to stop looking at `8/0` and print every unit within 700 of
+the contested point for the twenty frames around it. `8/2` — §3.13's animal,
+blocked by `8/1` on frame 69 — is at `(28856, 24197)` in the original on
+every frame from 70 to the end of the capture, and in this crate it had
+**walked on**: a side-step to `(28872, 24216)`, a snap onto its own cell
+centre, a fresh path through `(28824, 24168)` and `(28824, 24024)`, and by
+frame 88 it is sitting at `(28872, 23976)` — ninety-six units from the spot
+`8/0` was about to be given. `find_nearby_spot` refused that candidate for
+us and took the next one.
+
+So the divergence at 91 was not a branch and not a wander. It was one
+animal's collision, twenty frames earlier, and this crate was giving it the
+whole of `docs/COLLISION.md` §6.
+
+### The branch nobody had read, and why
+
+`Unit::resolve_unit_collision@005f9d30`'s **first statement**, before the
+attack arm, before the flat-gather fence, before everything the document
+had:
+
+```
+if ((**(code **)(*(int *)this + 0x30))() != 0) {
+    this->unit_masks &= ~0x4000000;
+    this->path.length = 0;
+    close_orders(this, 0);  clear_partial_path(this);  update_action(this);
+    return 1;
+}
+```
+
+— the same five lines `add_move_facing_order@005e55c0:58` runs for a
+`QUEUE_NEW` order. The whole order list and the path go, and none of the six
+steps below runs.
+
+Slot `+0x30` is where the reading had stopped every previous time, because
+the export cannot name it: both overrides are trivial and COMDAT-folded, so
+`vtables.txt` prints `Buffer::is_pending_load` for `Animal` and
+`Window::get_button` for `Unit`. Those two stubs are `return 1` and
+`return 0` — the predicate is right there in the fold — but nothing says so.
+The PDB's `LF_ONEMETHOD` list does: `SubObjectData::is_animal`, **vftable
+offset 48**, between `is_wonder` and `get_gpiece`. That is the third slot
+this session's family of items has had to take from the type stream rather
+than the map, after `is_move` at 20 and `get_move_order` at 184.
+
+`crates/sim/src/collide.rs` now opens `resolve_unit_collision` with
+`if self.units[u].is_gaia() { self.clear_orders(u); return; }`. The
+predicate is the owner rather than the class, which is a stated seam: every
+`ANIMALDATA` record in run12 (360) and run20 (936) carries `who 8`, and the
+pasture's carry `who 9`.
+
+### What it cost
+
+East Indies' word **91 → 201**, the early window holding at 64 of 64 on the
+count and 64 draw for draw. `8/2` now stands at `(28856, 24197)` from frame
+70 to the end, frame for frame with the original, and `8/0` gets
+`(28968, 23976)` on 89.
+
+Great Lakes holds where it can be seen: run33's `first_count` at 780 and
+`first_part` at 99, run10's ticks and orders at 572/776, both players' first
+divergence at 802 and 573, and **twelve of run10's thirteen units unchanged
+to the frame**. The thirteenth, `1/9`, parts at 1320 rather than 1377, and
+that one unit is the whole of the fall in the two coverage counts: collision
+rows 93,398 → **91,210**, angle rows 35,942 → **35,188**. run33's weak
+totals go 938/841 → **943/827**, the count up and the order down, and the
+same argument as §3.13's holds with the same shape — with the rule in and
+out, that capture's per-frame draws are **identical, count and sequence
+both, up to frame 1128**, 348 frames past its own parting.
+
+### The checks
+
+Two, and both were made to fail first.
+
+`rondata::diff::a_blocked_animal_drops_its_walk_where_it_stands` is the
+oracle half and it needed no new capture: over run39 and run33, every animal
+walk that **ends short of its goal** — the order stops naming a point and
+starts naming the animal, while the animal is not standing on the goal —
+must leave the position *unchanged* across that frame. Sixteen of those,
+twelve on East Indies and four on Great Lakes, against seventeen that
+arrive; the pair `(17, 16)` is asserted so a parse that stopped seeing
+orders fails rather than passes with nothing to check. §6 step 6's
+cell-centre snap is exactly what would break it, and this crate broke it on
+all sixteen.
+
+`sim::collide::an_animal_drops_its_walk_where_it_stands_and_takes_no_step`
+is the twin of the existing `the_recovery_snaps_to_the_cell_centre_and_
+paths_around`: the same walk, the same blocker, the same frame, and gaia's
+walker stops dead with an empty order list and an empty path while the
+player's snaps and paths around. With the branch commented out it fails on
+the snap, which is how it was landed.
+
+### Where the word goes next
+
+Frame **201**, and it is the other map's item 84 arriving here: this crate
+spends 38 draws where the original spends 36, and the first difference is
+ours opening `GameAccess::rnd+0x20 < Unit::do_job+0x67` — a citizen on a job
+— where the original opens `Guy::set_anim+0x97a < Guy::inc_time+0x271`, the
+standing-turn residue run33 already shows on 99, 205 and 319. Two known
+items, both now on both maps.
+
+### Paperwork
+
+`docs/COLLISION.md` §6 has a new **step 0** at the top, §7 says the
+predicate is read off the owner and why, §8 lists the new diff, and §9 gains
+the `unit_masks & 0x4000000` the branch clears — whose two readers,
+`Unit::work` and `Unit::think`, an animal never runs. `docs/SYNC.md` §3.14
+carries the story; §3.13's closing paragraph, which named the near branch,
+is struck through in place and points at it.
