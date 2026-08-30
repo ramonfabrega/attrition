@@ -330,8 +330,16 @@ does not count as seen here, only the fog grid does — which is exactly what
 makes this the mechanic that needs the seen map.
 
 The escape when the cell **is** seen (`owner == who` and the cell's first
-`short` is negative) lets a scout re-target onto its own unclaimed ground;
-the `short` at `WData +0` is unnamed in the type record and unread here.
+`short` is negative) lets a scout re-target onto its own unclaimed ground.
+`WData +0` is `flags`, read as a *signed* short, so "negative" is bit
+`0x8000` — `GOODY`, a cell carrying a goody box. Great Lakes has 22 of
+them and none is ever a candidate in this capture, so the escape is a
+seam here; it is named rather than unknown.
+
+**The fog read is what this filter actually turns on**, and it is only as
+good as `seen2`. Item 79 (2026-08-30) was a wrong *reveal* three hundred
+frames upstream showing up here as a refused candidate: see §12's
+`run33_s_scout_re_targets_at_482_on_the_original_s_ring`.
 
 `vector_dist` is measured in **cells**, from the scout's cell to the
 candidate's, and multiplied by 8; the `rand() % 8` (a signed
@@ -627,6 +635,22 @@ The checks:
   installed. Made to fail by putting §7's surface probe back on `4*wx`,
   which is the defect it was written for: twenty-six draws against
   twenty-seven, and the wrong cell.
+- `rondata::diff`'s
+  `run33_s_scout_re_targets_at_482_on_the_original_s_ring` (2026-08-30) —
+  the same scout's *next* re-target, a hundred and twenty frames later, and
+  what it pins is §7's **fog** read rather than its surface read. The
+  original scores three cells in the first city's ring 7 where this
+  simulation scored two: cell `(56, 28)` was seen here and not there,
+  because `Object::update_seen` had been throwing the scout's vision disc
+  along the guy's eased facing instead of `UnitData::angle`, the unit's own
+  heading (`docs/VISION.md` §3), and on frame 168 the scout was mid-turn
+  with thirty-one degrees between them. The trace cannot say *which* cell,
+  since every accepted cell draws at the same site — §8's arithmetic can:
+  of the five cells this refuses in that ring, `(50, 26)`, `(48, 20)` and
+  `(48, 24)` score 48, 0 and 32 against the winner's 76 and would have
+  taken the frame, so only `(56, 28)` and `(58, 28)` are consistent with
+  the destination the dump prints, and only `(56, 28)` was revealed on a
+  frame the scout was turning. The word went 482 → **571**.
 - `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six`, whose
   frame-0 row moves from 165/175 to **175/175** with this.
 - `crate::no_float` and `crate::soak` as everywhere else.

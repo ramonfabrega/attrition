@@ -58,7 +58,7 @@ const OVER: &[(&str, usize)] = &[
     ("GROUPS.md", 127_758),
     ("ORACLE.md", 138_489),
     ("AI.md", 157_530),
-    ("ORDERS.md", 190_800),
+    ("ORDERS.md", 190_724),
 ];
 
 #[test]

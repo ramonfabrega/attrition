@@ -587,3 +587,35 @@ reason no test caught it is worth its own line — every capture that had
 exercised the mechanic was a **frame-0** one, where no candidate cell
 straddles a shoreline, so the two tiles agree. A mechanic checked only at
 the opening frame is checked on its easiest input.
+
+**A right document does not make a right implementation, and a monotone
+grid hides its own errors (2026-08-30, no audit file — queue item 79's own
+session).** `docs/VISION.md` §3 has said since it was written that
+`Object::update_seen` projects a unit's vision disc along `unit->angle`,
+and cited the instruction that proves it: `mov 0x50(%ecx), %ecx` at
+`00651cf1`, `UnitData +0x50`. `vision.rs` projected along
+`Movement::facing` instead — the *guy's* eased angle, `GuyData +0x18` —
+because that is the field whose name reads like "which way it is facing".
+Nothing in the second-reading process looks at this: a blind reader
+re-derives the *document*, and the document was right.
+
+Two lessons, and the second is the larger.
+
+- **Audit the citation, not only the prose.** Where a document pins a
+  field by offset, the check that has teeth is `grep` for that offset in
+  the module that claims to implement it. Queue item 72 was booked for
+  two *documents* citing one address; this is the same tool pointed at a
+  document and its code, and it is cheaper than either reading.
+- **A monotone accumulator is the worst place for a bug.** `seen2` only
+  ever grows, so a wrong reveal is silent until some later mechanic reads
+  the cell — here three hundred frames later, inside a scout's ring walk,
+  which is what the item was booked as. The general form: **when a
+  mechanic writes state that nothing reads for hundreds of frames, the
+  diff has to be on the state, not on its consumers.** The `WORLD` dump
+  had been printing all 14,400 bytes of the grid since the first capture
+  and nothing compared them; ten frames of it are compared now
+  (`run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames`), and
+  it is exact — but *it does not catch this bug*, because the projection
+  is wrong only while a unit turns and nothing turned far enough inside
+  that window. So the widening is right and insufficient at once, which
+  is the honest thing to record about it.

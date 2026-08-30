@@ -195,10 +195,20 @@ impl Sim {
                     && !self.unit_types[rec].cols.flag2(uflags2::PACKS)
             });
             let (centre, start) = if projects {
-                let facing = unit.movement.facing;
+                // **The unit's own angle, not its body's.** The `project` at
+                // `00651d05` is handed `UnitData +0x50` in `ecx`
+                // (`movl 0x50(%ecx), %ecx` at `00651cf1`, `ecx` the
+                // `units.list[who][o]` the two tests above it read) — the
+                // heading `Unit::set_angle` writes toward the next waypoint,
+                // which the dump prints as `UNITDATA angle`. It is
+                // [`Movement::heading`], not the guy's eased
+                // [`Movement::facing`]: while a unit turns, the two differ by
+                // as much as thirty degrees, and the half-cell the disc is
+                // thrown to differs with them (`docs/VISION.md` §3).
+                let heading = unit.movement.heading;
                 let p = Pos::new(
-                    pos.x + sin_component(facing, PROJECT_DIST),
-                    pos.y - cos_component(facing, PROJECT_DIST),
+                    pos.x + sin_component(heading, PROJECT_DIST),
+                    pos.y - cos_component(heading, PROJECT_DIST),
                 );
                 // `r - 5 < 1` for every `r < 4`, so this is always
                 // `circle_radius[0]` — the whole disc bar its centre.
@@ -408,10 +418,10 @@ mod tests {
     }
 
     /// §3: a small land unit sees from a half-cell in front of its nose,
-    /// not from where it stands. Facing east and facing west put the centre
-    /// on opposite sides of the unit's own fog cell.
+    /// not from where it stands. Heading east and heading west put the
+    /// centre on opposite sides of the unit's own fog cell.
     #[test]
-    fn a_small_land_unit_sees_from_a_half_cell_ahead_of_its_facing() {
+    fn a_small_land_unit_sees_from_a_half_cell_ahead_of_its_heading() {
         let (mut s, u) = fog_sim(4, 0);
         let own = (fog_of(s.units[u].pos.x), fog_of(s.units[u].pos.y));
         // `Angle` runs clockwise from north through the full `u32`; a
@@ -420,8 +430,27 @@ mod tests {
         let east = s.seen_sweep(u, false).unwrap().centre;
         s.units[u].movement.set_facing(Angle(-0x4000_0000));
         let west = s.seen_sweep(u, false).unwrap().centre;
-        assert_eq!(east, (own.0 + 1, own.1), "facing east, one fog cell east");
-        assert_eq!(west, (own.0 - 1, own.1), "facing west, one fog cell west");
+        assert_eq!(east, (own.0 + 1, own.1), "heading east, one fog cell east");
+        assert_eq!(west, (own.0 - 1, own.1), "heading west, one fog cell west");
+    }
+
+    /// §3, and the distinction item 79 turned on: the angle the disc is
+    /// thrown along is **`UnitData::angle`** — [`Movement::heading`] — not
+    /// the guy's eased [`Movement::facing`]. `set_facing` writes all three
+    /// together, so a test that only ever uses it cannot tell them apart;
+    /// this one sets them a half-turn apart, which is what a unit
+    /// mid-turn looks like.
+    #[test]
+    fn the_projection_follows_the_unit_s_heading_not_its_body_s_facing() {
+        let (mut s, u) = fog_sim(4, 0);
+        let own = (fog_of(s.units[u].pos.x), fog_of(s.units[u].pos.y));
+        s.units[u].movement.facing = Angle(-0x4000_0000);
+        s.units[u].movement.heading = Angle(0x4000_0000);
+        assert_eq!(
+            s.seen_sweep(u, false).unwrap().centre,
+            (own.0 + 1, own.1),
+            "heading east while the body still points west"
+        );
     }
 
     /// §3: and a unit with radius four or more does not project — its

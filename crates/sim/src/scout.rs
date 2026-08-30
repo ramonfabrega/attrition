@@ -490,9 +490,12 @@ impl Sim {
             if owner != who {
                 return;
             }
-            // The second arm of the escape — `WData +0`'s unnamed `short`,
-            // negative. Zero on every world the harness builds.
-            if self.scout_wdata_head(c) >= 0 {
+            // The second arm of the escape — `WData +0` read as a
+            // *signed* short, so "negative" is bit `0x8000`: `GOODY`, a
+            // cell carrying a goody box (`docs/SCOUT.md` §7). Great Lakes
+            // has 22 and none of them is ever a candidate in any capture,
+            // but the bit is loaded, so this reads it rather than a seam.
+            if self.world.cell_data(c).flags & crate::world::cell::GOODY == 0 {
                 return;
             }
         }
@@ -533,12 +536,6 @@ impl Sim {
         scan.score = score;
         scan.tile = tile;
         scan.ring = scan.ring.min(ring);
-    }
-
-    /// **Seam** — `WData +0`'s `short`, unnamed in the type record and the
-    /// second arm of §7's seen escape. Nothing here writes it.
-    fn scout_wdata_head(&self, _c: Cell) -> i16 {
-        0
     }
 
     /// **Seam** — `WorldData::danger[who]` at half the cell resolution

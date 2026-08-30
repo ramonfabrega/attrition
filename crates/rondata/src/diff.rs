@@ -6200,9 +6200,32 @@ mod tests {
         // branch on 432 and spent the stand again. It never unloaded, never
         // took another tile, and re-issued that walk every other frame for
         // the remaining 1,400 frames of the capture.
+        //
+        // **571 with item 79**, and what was wrong at 482 was an **angle**.
+        // The scout re-targets on 482 and the original spends thirty-one
+        // draws over its seven rings where this spent thirty: cell
+        // `(56, 28)` was already seen here and not there, so the cell
+        // filter refused a candidate the original scores
+        // (`run33_s_scout_re_targets_at_482_on_the_original_s_ring`).
+        //
+        // It was seen here because of a reveal three hundred frames
+        // earlier. `Object::update_seen` throws a small land unit's disc
+        // half a cell forward of its nose, and the angle it projects along
+        // is `UnitData +0x50` — the unit's own heading — not the guy's
+        // eased facing; the `project` at `00651d05` is handed it by
+        // `movl 0x50(%ecx), %ecx` two instructions earlier. This crate had
+        // the guy's. On frame 168 the scout was mid-turn, the two angles
+        // were −51.6° and −83.0°, and the disc thrown along the wrong one
+        // lit a fog cell the original's never reached (`docs/VISION.md`
+        // §3).
+        //
+        // What parts the word at 571 is a **collision**: the original
+        // spends a draw at `5fa882`, inside
+        // `Unit::resolve_unit_collision@005f9d30`, that this simulation
+        // does not — eight draws against seven.
         assert!(
-            first_count >= 482,
-            "the word parts at frame {first_count}; the floor is 482\n{}",
+            first_count >= 571,
+            "the word parts at frame {first_count}; the floor is 571\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         // **The sequence: 99**, and it is the same attribution swap run14's
@@ -6246,10 +6269,15 @@ mod tests {
         // cell buys downstream.
         //
         // 724 / 606 → **752 / 622** with item 78.
+        //
+        // 752 / 622 → **791 / 662** with item 79, and the two rose with
+        // `first_count` again — thirty-nine more frames on the original's
+        // word, forty more of them draw for draw, because the AI's scout
+        // now walks the original's fog as well as its ground.
         assert!(
-            words >= 752 && matched >= 622,
+            words >= 791 && matched >= 662,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 752 and 622"
+             {matched} draw for draw; the floors are 791 and 662"
         );
     }
 
@@ -6369,6 +6397,215 @@ mod tests {
         );
     }
 
+    /// **Run33's frame 482 — the scout's third explore target, and the fog
+    /// the vision projection had been throwing to the wrong half-cell.**
+    ///
+    /// The AI scout `1/0` re-targets again on frame 482, and the ring walk
+    /// is the same shape as frame 361's: seven rings around two cities, the
+    /// first its own leader's at cell `(55, 21)` walked every other ring to
+    /// twelve, then a three-ring look at the human's at `(4, 40)`. What
+    /// this pins is the **cell filter's fog read** (`docs/SCOUT.md` §7):
+    /// the original scores **three** cells in city one's ring 7 where this
+    /// simulation scored two, because cell `(56, 28)` was seen here and not
+    /// there.
+    ///
+    /// Why it was seen here. `Object::update_seen` throws a small land
+    /// unit's disc a half-cell forward of its nose, and the angle it
+    /// projects along is `UnitData +0x50` — the unit's own `angle`, the
+    /// heading `Unit::set_angle` writes toward the next waypoint — not the
+    /// guy's eased facing (`docs/VISION.md` §3). This crate had the guy's.
+    /// On frame 168 the scout was mid-turn: the dump's `UNITDATA angle` is
+    /// −51.6° and its guy's is −83.0°, and the two projections land in
+    /// different fog cells. The disc thrown along the guy's angle reached
+    /// fog `(113, 57)` and the original's did not, so `(56, 28)` was
+    /// "already seen" here three hundred frames later and the scan spent
+    /// thirty draws where the original spends thirty-one.
+    ///
+    /// The score arithmetic is what identifies the cell, and it is worth
+    /// keeping because the trace cannot: the four cells this simulation
+    /// refuses in that ring are `(50, 26)`, `(56, 28)`, `(58, 28)`,
+    /// `(48, 20)` and `(48, 24)`, and the scan's own `dist × 8` puts three
+    /// of them — 48, 0 and 32 — **below** the 76 that wins the frame. Only
+    /// `(56, 28)` at 96 and `(58, 28)` at 104 can be scored without
+    /// changing the target the dump prints, and only `(56, 28)`'s reveal
+    /// falls on a frame the scout was turning.
+    #[test]
+    fn run33_s_scout_re_targets_at_482_on_the_original_s_ring() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace)) = (
+            dump("gamelog-run33-longtrace.txt"),
+            trace("rontrace-run33.log"),
+        ) else {
+            eprintln!("skipping: no run33 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        for _ in 0..484 {
+            built.tick();
+        }
+
+        use sim::scout::{SITE_CELL, SITE_PHASE, SITE_ROTATION};
+        let theirs: Vec<String> = trace
+            .run_in(482, sim::scout::CODE.start, sim::scout::CODE.end)
+            .iter()
+            .map(|d| trace.label(d))
+            .collect();
+        // Seven rings and six cells: three in the first city's ring 7, then
+        // one and two in the human city's rings 1 and 2.
+        let ring = [SITE_ROTATION, SITE_PHASE];
+        let mut want: Vec<&str> = Vec::new();
+        for cells in [0, 0, 0, 3, 0, 1, 2] {
+            want.extend(ring);
+            want.extend(std::iter::repeat_n(SITE_CELL, cells));
+        }
+        assert_eq!(theirs, want, "the trace's own frame-482 sequence");
+
+        let sites = [SITE_ROTATION, SITE_PHASE, SITE_CELL];
+        let ours: Vec<String> = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 482)
+            .map(|(_, v)| v.clone())
+            .expect("frame 482's marks")
+            .into_iter()
+            .filter(|l| sites.contains(&l.as_str()))
+            .collect();
+        assert_eq!(
+            ours, theirs,
+            "our thirty-one draws, at the original's sites, in its order"
+        );
+
+        // Cell `(56, 28)` is the one the projection decided, and the fog is
+        // where it shows: unseen for player 1 on the original's stream, and
+        // unseen here now.
+        assert!(
+            built.sim.world.seen2(2 * 56 + 1, 2 * 28 + 1).unwrap_or(0) & 2 == 0,
+            "cell (56, 28) is not seen by player 1 at frame 482"
+        );
+
+        // And the target, against the dump's own — cell `(52, 28)`, which
+        // both sides pick and which the extra draw does not move.
+        let frames = log.frame_states();
+        let dest = frames
+            .iter()
+            .find(|f| f.n == 483)
+            .and_then(|f| f.units.iter().find(|u| u.who == 1 && u.o == 0))
+            .and_then(|u| u.orders.first())
+            .and_then(|o| Some((o.dest_x?, o.dest_y?)))
+            .expect("run33's frame-483 order for 1/0");
+        assert_eq!(
+            dest,
+            (40_440, 22_008),
+            "the original: inside tile (210, 114)"
+        );
+        let scout = (0..built.sim.units.len())
+            .find(|&u| built.sim.units[u].owner == 1 && built.sim.units[u].index == 0)
+            .expect("1/0");
+        let order = *built.sim.units[scout].orders.front().expect("an order");
+        let sim::orders::Body::Move(m) = order.body else {
+            panic!("not a move: {order:?}");
+        };
+        assert_eq!(m.kind, sim::orders::MoveKind::ExploreTo);
+        assert_eq!(
+            (i64::from(m.dest.x), i64::from(m.dest.y)),
+            dest,
+            "cell (52, 28), seven rings out and the cheapest unseen one"
+        );
+    }
+
+    /// **The fog grid, whole, on ten consecutive frames** — the record the
+    /// `WORLD` dump has always printed and nothing compared.
+    ///
+    /// `seen2` is a 120 × 120 byte grid on this map, one bit a player, and
+    /// three things read it: the pathfinder's unseen-cell preference, the
+    /// scout's cell filter and the AI's site census. Until this test it was
+    /// installed from a frame-0 dump and then grown by `crate::vision`
+    /// with **nothing checking the growth** — a wrong disc, a wrong centre
+    /// or a wrong radius would show up only when some later mechanic read
+    /// a cell it had got wrong, three hundred frames downstream and wearing
+    /// somebody else's name. That is exactly how it went: item 79 was a
+    /// scout's ring walk and turned out to be this grid.
+    ///
+    /// run13 is run10's own game with `DUMP_ALL` over frames 95–104, so it
+    /// prints the grid ten times. The simulation is stood up on run33's
+    /// start (the same game again) and walked forward with nothing
+    /// installed; each frame's grid is compared cell for cell against the
+    /// dump taken at the **start** of the next frame.
+    #[test]
+    fn run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r13)) = (
+            dump("gamelog-run33-longtrace.txt"),
+            dump("gamelog-run13-window-95-105.txt"),
+        ) else {
+            eprintln!("skipping: no run33/run13 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+        let t13 = std::fs::read_to_string(&r13).unwrap();
+        let l13 = Log::parse(&t13);
+        let grids: Vec<(i64, Vec<u8>)> = l13
+            .dumps()
+            .into_iter()
+            .filter_map(|(n, body)| {
+                let w = body.kid("WORLD")?;
+                let fog = crate::gamelog::world_fog(&w.fields);
+                (!fog.is_empty()).then_some((n, fog))
+            })
+            .collect();
+        assert_eq!(
+            grids.iter().map(|(n, _)| *n).collect::<Vec<i64>>(),
+            (95..=104).collect::<Vec<i64>>(),
+            "run13's ten dumped worlds"
+        );
+
+        let (fw, fh) = (built.sim.world.fog_xs(), built.sim.world.fog_ys());
+        assert_eq!((fw, fh), (120, 120), "Great Lakes' fog grid");
+        for f in 1..=103i64 {
+            built.tick();
+            // The dump at the head of frame `f + 1` is the state this many
+            // ticks have produced.
+            let Some((_, theirs)) = grids.iter().find(|(n, _)| *n == f + 1) else {
+                continue;
+            };
+            assert_eq!(theirs.len(), (fw * fh) as usize, "frame {f}'s grid size");
+            let bad: Vec<(i32, i32, u8, u8)> = (0..fh)
+                .flat_map(|y| (0..fw).map(move |x| (x, y)))
+                .filter_map(|(x, y)| {
+                    let t = theirs[(y * fw + x) as usize];
+                    let o = built.sim.world.seen2(x, y).unwrap_or(0);
+                    (o != t).then_some((x, y, o, t))
+                })
+                .collect();
+            assert_eq!(
+                bad,
+                vec![],
+                "the fog grid parts after {f} ticks, against run13's FRAME {}",
+                f + 1
+            );
+        }
+    }
+
     /// **The second map's score.**
     ///
     /// Phase 3's finish line is a traced human-versus-AI capture holding
@@ -6463,6 +6700,44 @@ mod tests {
         //               what pins it is `1/8` at 506. East Indies is
         //               unmoved at 167/167 — its own divergence is an
         //               order-list length at 168, item 69.
+        //   2026-08-30  ticks **571**, orders **571**; player 0 @ 574,
+        //               player 1 @ 572 (item 79: **the vision projection
+        //               was thrown along the guy's angle**).
+        //               `Object::update_seen` throws a small land unit's
+        //               disc half a cell forward of its nose, and the
+        //               angle it projects along is `UnitData +0x50` — the
+        //               unit's own heading, what the dump prints as
+        //               `UNITDATA angle` — not `GuyData::angle`, the eased
+        //               facing the body actually wears. The `project` at
+        //               `00651d05` is handed it by `movl 0x50(%ecx), %ecx`
+        //               two instructions earlier, with `ecx` the
+        //               `units.list[who][o]` the branch above it read.
+        //
+        //               While a unit turns the two differ by as much as
+        //               thirty degrees and the disc lands in a different
+        //               fog cell. On run33's frame 168 the AI scout was
+        //               mid-turn — heading −51.6°, facing −83.0° — and the
+        //               disc thrown along the facing lit fog `(113, 57)`,
+        //               which the original's never reached. Three hundred
+        //               frames later, on **482**, `Unit::think_scout`'s
+        //               cell filter refused cell `(56, 28)` as "already
+        //               seen" and spent thirty draws where the original
+        //               spends thirty-one. run33's word goes 482 → **571**
+        //               and its totals 752/622 → **791/662**.
+        //
+        //               **Every player-1 unit improves or holds** — `1/8`
+        //               506 → 778, `1/4` and `1/5` 550 → 673 and 663,
+        //               `1/0` 637 → 722 — which is the AI walking the
+        //               original's fog as well as its ground. **Player 0's
+        //               three farmers fall**, 687/702/703 → 579/574/577,
+        //               and it is the same downstream effect item 76 had:
+        //               their old numbers were all past the word's own
+        //               parting at 482, on a stream that was nobody's, and
+        //               the new ones sit three frames past the new parting
+        //               at 571. The whole capture now diverges within
+        //               eight frames of the word, which is what
+        //               convergence looks like. East Indies is again
+        //               unmoved at 167/167.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
         let first: Vec<i64> = report
@@ -6910,10 +7185,14 @@ mod tests {
             "run10: ticks {ticks}, orders {orders}, first divergence {:?}",
             report.first_divergence
         );
+        // The breakdown behind those two numbers: which unit parts when.
+        // It is what says whether an item moved the whole or only the
+        // unit it was about, and every history line below quotes it.
+        eprintln!("run10 by unit: {:?}", report.first_divergence_by_unit());
         assert!(
-            ticks >= 505 && orders >= 482 && first[0] >= 687 && first[1] >= 506,
+            ticks >= 571 && orders >= 571 && first[0] >= 574 && first[1] >= 572,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 505, orders 482, player 0 @ 687, player 1 @ 506",
+             — the floor is ticks 571, orders 571, player 0 @ 574, player 1 @ 572",
             report.first_divergence
         );
         assert!(
@@ -7149,9 +7428,14 @@ mod tests {
         // twelfth time and the largest single move it has made: every one
         // of the twelve compared units parts later, so 11,472 further
         // field-frames are comparable.
+        //
+        // 74,429 → **77,211** with item 79 (the vision projection), the
+        // thirteenth: player 1's units all hold longer and player 0's
+        // three farmers part earlier, and the AI's five are worth more
+        // field-frames than the human's three cost.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 74_429,
+            coll_seen, 77_211,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -7368,8 +7652,11 @@ mod tests {
         // `set_angle`'s seventeen other callers after all: with the
         // write-back landing, `0/2` reaches the camp-arrival branch on 433
         // and faces the camp there, and its share of the residue is 140.
+        // 28,916 → **29,878** with item 79 (the vision projection): 962
+        // more, the AI's five holding longer against the human farmers'
+        // earlier parting.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 28_916, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 29_878, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -7409,22 +7696,27 @@ mod tests {
         // compared: `0/2`'s 2,680 rows were never item 36's, and what is
         // left is the farmers (`0/3`–`0/5` and `1/3`–`1/5`, 6,658 of the
         // 7,366) doing a different job at the same spot.
+        // 7,366 → **7,242** with item 79, against 28,916 → 29,878
+        // compared.
         assert!(
-            bad.len() <= 7_366,
+            bad.len() <= 7_242,
             "angle disagreements grew: {} of {angles}",
             bad.len()
         );
-        // The scout, whose turn this item was: **two** rows in 1,772 frames,
-        // both the frame after an arrival, where the original's body has
-        // already snapped onto the order's angle and the simulation's turns
-        // a frame later. Frames 57 to 91 — the whole of the case item 34
-        // was opened on — are exact on both angles.
+        // The scout, whose turn item 37 is: **three** rows in 1,772 frames
+        // (two until item 79 carried it from 637 to 722, which brought its
+        // third arrival into view), each the frame after an arrival, where
+        // the original's body has already snapped onto the order's angle
+        // and the simulation's turns a frame later — 96, 362 and 721, and
+        // the `theirs` of the last is `1830420480`, the very angle the
+        // frame-483 `EXPLORETOORDER` carries. Frames 57 to 91 — the whole
+        // of the case item 34 was opened on — are exact on both angles.
         let scout: Vec<AngleDivergence> = bad
             .iter()
             .copied()
             .filter(|d| (d.who, d.o) == (1, 0))
             .collect();
-        assert_eq!(scout.len(), 2, "the AI scout: {scout:?}");
+        assert_eq!(scout.len(), 3, "the AI scout: {scout:?}");
         assert!(
             scout.iter().all(|d| d.frame > 91),
             "and none of it in the window item 34 opened on: {scout:?}"

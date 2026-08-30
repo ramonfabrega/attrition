@@ -6694,3 +6694,88 @@ the next `docs_guard` rewrite should have in front of it:
 None of this is an argument for growth. It is an argument that the ratchet
 should measure the thing it is for. `docs/QUEUE.md` items 40 and 42 are
 both Fable's, both owed, and the pin design belongs with them.
+
+## 2026-08-30 (Opus) — item 79: the vision disc was thrown along the wrong angle (505 → 571)
+
+**The headline: ticks 505 → 571, orders 482 → 571.** run33's word parts at
+571 (from 482), its totals go 752/622 → **791/662**, and every one of
+player 1's units improves or holds — `1/8` 506 → 778, `1/5` 550 → 663,
+`1/4` 550 → 673, `1/0` 637 → 722.
+
+**What the item was booked as.** The queue said: `1/0` re-targets on
+run33's frame 482, the two sides agree draw for draw through index 12, and
+then the original takes a **third** cell in that ring where this walks on
+— thirty draws against thirty-one — with `best_ring` and the one-ring-past
+exit as the suspects (`docs/SCOUT.md` §6). That framing was wrong in an
+instructive way: the ring *structure* agrees exactly, seven rings on both
+sides with the same two draws each. What differs is one cell inside city
+one's ring 7, and everything after it is the shifted stream.
+
+**Ruling out the filter, one predicate at a time.** The ring's ten
+candidates are identical on both sides (same `rot`, same `idx`, same
+table), and this simulation refuses five of them: `(50, 26)`, `(56, 28)`,
+`(58, 28)`, `(48, 20)`, `(48, 24)`, every one at `was_really_seen` with
+the cell owned by the scout's own leader. The escape from that arm is
+`WData +0` read as a signed short — bit `0x8000`, `GOODY` — and the world
+carries exactly 22 goody cells, matching the dump's own `goodies 22`, none
+of them in the ring. So the escape was not it, and the question became the
+fog.
+
+**§8's arithmetic named the cell where the trace could not.** Every
+accepted cell draws at the same site, so the trace says *how many*, never
+*which*. The score does: `vector_dist × 8` from the scout's cell `(48,
+20)` puts `(50, 26)` at 48, `(48, 20)` at 0 and `(48, 24)` at 32 — all
+below the 76 that wins the frame — and the dump prints the winner as cell
+`(52, 28)`. So three of the five are impossible, and the original's third
+cell is `(56, 28)` or `(58, 28)`.
+
+**The fog was wrong because the projection was.** Both of those were
+revealed here by the scout itself, at frames 168 and 140, each at exactly
+the disc's edge — offset `(−1, +2)` and `(0, +2)` from a radius-2 centre.
+`Object::update_seen` throws a small land unit's disc half a cell forward
+of its nose, and this crate projected along `Movement::facing`, the guy's
+eased angle. The listing does not: `project` at `00651d05` is handed
+`UnitData +0x50` by `movl 0x50(%ecx), %ecx` two instructions earlier, with
+`ecx` the `units.list[who][o]` the branch above it read. That is the
+unit's *heading* — what `Unit::set_angle` writes toward the next waypoint,
+and what the dump prints as `UNITDATA angle`, against each `GUYS`
+sub-record's own `angle`.
+
+At frame 140 the two agreed and `(58, 28)` is revealed either way. At
+frame 168 the scout was mid-turn: heading −51.6°, facing −83.0°,
+thirty-one degrees apart, and the two projections land in different fog
+cells. Along the heading, `(56, 28)`'s sample point is three fog cells out
+and the radius is two. One line, and the word moved eighty-nine frames.
+
+**`docs/VISION.md` §3 had it right all along.** The section says
+`angle = unit->angle` and cites `mov 0x50(%ecx), %ecx` by address; the
+implementation reached for the field with the friendlier name. It is the
+mirror of item 68's lesson — there the document was wrong and the listing
+right; here the document was right and the code did not follow it.
+
+**The widening: the fog grid, whole.** `WData::log_data`'s `WORLD` block
+prints all 14,400 bytes of `seen2` and nothing had ever compared them; the
+grid was installed from a frame-0 dump and grown by `crate::vision`
+against no oracle at all. run13 dumps it ten times, frames 95–104, and
+`run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames` now walks
+the simulation forward with nothing installed and compares all 144,000
+cells. It is exact, and a radius one fog cell too large fails it on the
+first frame.
+
+It did **not** catch this bug, and that is the part worth keeping: the
+projection is wrong only while a unit turns, and in that ten-frame window
+nothing turned far enough to move a fog cell. A monotone grid hides its
+own errors until something downstream reads a cell — and the reading
+arrives three hundred frames later wearing the downstream mechanic's name.
+Item 79 was booked as a scout's ring walk.
+
+**Player 0 fell, and it is the same downstream effect item 76 had.** The
+three human farmers went 687/702/703 → 579/574/577. Their old numbers all
+sat past the word's own parting at 482, on a stream that was nobody's; the
+new ones sit three to eight frames past the new parting at 571. The whole
+capture now diverges within eight frames of the word, which is what
+convergence looks like rather than a regression.
+
+**What parts the word at 571** is a collision: the original spends a draw
+at `5fa882`, inside `Unit::resolve_unit_collision@005f9d30`, that this
+simulation does not — eight draws against seven. That is the successor.

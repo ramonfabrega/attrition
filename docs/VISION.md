@@ -132,6 +132,25 @@ decompiler dropped both register arguments; the listing at `651cf1`
 lighting a disc centred a half-cell ahead of itself, which is most of what
 a citizen's vision *is*.
 
+**`unit->angle` is `UnitData +0x50`, and it is not the guy's facing.**
+The distinction is the whole of item 79 (2026-08-30), and this section
+carried it correctly for two days while `vision.rs` projected along the
+other one. `Unit::set_angle` writes `UnitData::angle` (`+0x50`) *and*
+`GuyData::des_angle` (`+0x64`) together, with the bearing to the
+destination, on every frame of a move; the body's own `GuyData::angle`
+(`+0x18`) then turns toward it at the type's rate. So while a unit turns
+the two differ — on run33's frame 168 the AI scout's dumped `UNITDATA
+angle` is −51.6° and its guy's is −83.0°, thirty-one degrees apart — and
+the projected half-cell differs with them. The dump prints both: a
+`UNITDATA` record's `angle` is the heading, and each `GUYS` sub-record's
+`angle` is the facing.
+
+What it cost: the disc thrown along the facing lit fog cell `(113, 57)`,
+which the original's never reached, and three hundred frames later
+`Unit::think_scout`'s cell filter (`docs/SCOUT.md` §7) refused cell
+`(56, 28)` as already-seen and spent thirty draws where the original
+spends thirty-one. run33's word went 482 → **571** when it was fixed.
+
 ## 4. The two index ranges — full disc and thickened ring
 
 The offsets come from `circle_x`/`circle_y`/`circle_radius`
@@ -323,7 +342,7 @@ simulation sets `visible`.
 |---|---|---|
 | 1 | `seen` and `seen2`, and `World::set_seen` answering "newly revealed" | `world.rs` |
 | 2 | `Sim::unit_los` — terms 1–5b and 12, of which only the type's own `LOS`, the citizen terms and the science term can be nonzero here | `vision.rs` |
-| 3, 4 | `Sim::seen_sweep` — the radius, the forward projection, and the four index ranges | `vision.rs` |
+| 3, 4 | `Sim::seen_sweep` — the radius, the forward projection **along `UnitData::angle`**, and the four index ranges | `vision.rs` |
 | 4 | `vision::ring` — `ring_init` rebuilt in integers | `vision.rs` |
 | 5 | `Sim::update_seen` | `vision.rs` |
 | 6 | `Sim::moved_to` at the move step and at the gather stand, `Sim::update_seen` at ejection, `Sim::update_all_seen` from `tick` | `orders.rs`, `garrison.rs`, `lib.rs` |
@@ -351,6 +370,24 @@ does too. 5,170 → 1. The cost was that the AI's trained citizens
 for_frame`'s path ceiling rose from 892 to 1,602 — a unit that idles
 disagrees once a frame and a unit that works disagrees in detail — while
 every traced check held to the number.
+
+**The second differential check is §5's, and it is the grid itself**
+(2026-08-30, item 79). `WData::log_data`'s `WORLD` block prints the whole
+of `seen2` — 14,400 bytes on Great Lakes, one bit a player — and for a
+month nothing compared it: the grid was installed from a frame-0 dump and
+then grown by this module with no oracle at all. run13 is run10's own game
+with `DUMP_ALL` over frames 95–104, so it prints the grid **ten times**,
+and `diff::tests::run13_s_fog_grid_is_the_original_s_on_every_cell_of_
+ten_frames` walks the simulation forward with nothing installed and
+compares all 144,000 cells. It is exact.
+
+It is also **not** what caught item 79 — the projection is wrong only
+while a unit turns, and in that window nothing turned far enough to move a
+fog cell. The check that caught it was the scout's own ring walk three
+hundred frames later, and the lesson is in `docs/audit/README.md`: a
+monotone grid hides its own errors until something downstream reads a
+cell, and the reading arrives wearing the downstream mechanic's name. A
+radius one fog cell too large fails the new check on its first frame.
 
 **Thirteen deliberate breakages, all red.** Ten against the unit tests
 (the radius divisor, the science term, the projection and its gate, the
