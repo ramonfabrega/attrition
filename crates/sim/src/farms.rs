@@ -84,6 +84,31 @@ pub const FARMCHICKEN: crate::tech::TypeId = 0x196;
 pub const FARM_ANIMALS: u8 = 5;
 /// `think_farm_animal`'s period.
 pub const THINK_PERIOD: i64 = 128;
+/// The span each of `add_animals`' two offset draws is folded into —
+/// `Random::get(0, 0xffff) % 0x180 − 0xc0`, so a whole tile either way from
+/// the farm's centre.
+pub const ANIMAL_SPREAD: i32 = 0x180;
+
+/// What one of a pasture's five animals was created with — the three draws
+/// `Farms::add_animals@008d8f30` spends on it, minus `Guy::init_real`'s.
+///
+/// **These are setup draws.** Every pasture any capture has ever held is a
+/// *starting* farm, stood up inside `Setup::build_empire`, whose stream the
+/// harness does not replay — so the simulation cannot produce them and the
+/// five are borrowed from the capture's own trace instead, the way the
+/// heights and the herds are borrowed from a sibling dump
+/// (`rondata::trace::Trace::add_animals`, `docs/SYNC.md` §3.11). A pasture
+/// with no seeds keeps the old stand-in: the farm's own centre, and no
+/// `type_index` at all.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AnimalSeed {
+    /// `(rnd & 1) == 0` — the chicken. A pasture's four-draw stride keeps
+    /// every coin on one parity of the stream, so all five agree.
+    pub chicken: bool,
+    /// `+0x134`, then `+0x182`: the `y` and the `x` offset from the farm.
+    pub dy: i32,
+    pub dx: i32,
+}
 
 /// The draw sites this module spends, under the original's own offsets.
 /// [`Sim::mark`] writes them into [`Sim::phase_marks`], so a frame's farm
@@ -349,36 +374,70 @@ impl Sim {
     ///
     /// The original spends **four draws each** — a coin (`& 1`: even the
     /// chicken, odd the pig), the `y` and then the `x` offset
-    /// (`% 0x180 − 0xc0` from the building), and `Guy::init_real`'s variant
+    /// ([`ANIMAL_SPREAD`] from the building), and `Guy::init_real`'s variant
     /// roll inside `init_unit` — but every pasture on every capture so far
     /// is a *starting* farm, built inside `Setup::build_empire`, whose
-    /// stream the harness does not replay. So this stands the five up the
-    /// way the harness stands a dumped unit up: no draws, and the farm's own
-    /// position (`docs/SYNC.md` §3.6, "What this leaves open").
-    pub fn farm_add_animals(&mut self, b: usize) -> Vec<usize> {
-        let ty = self
+    /// stream the harness does not replay. So none of the four is taken
+    /// here; the three that leave a mark are **borrowed** from the
+    /// capture's own trace as `seeds` ([`AnimalSeed`]).
+    ///
+    /// With seeds each animal gets its species — and with it a
+    /// `type_index`, which is what lets [`crate::Sim::slot_length`] reach
+    /// the install's gaia table so the idle clock wraps at all — and its
+    /// own place on the ground. With none, the old stand-in: one type
+    /// either way, no `type_index`, and all five on the farm's centre
+    /// (`docs/SYNC.md` §3.11).
+    pub fn farm_add_animals(&mut self, b: usize, seeds: &[AnimalSeed]) -> Vec<usize> {
+        let chicken = self
             .unit_types
             .iter()
-            .position(|t| t.tree == Some(FARMCHICKEN) || t.tree == Some(FARMPIG));
-        let Some(ty) = ty else {
+            .position(|t| t.tree == Some(FARMCHICKEN));
+        let pig = self.unit_types.iter().position(|t| t.tree == Some(FARMPIG));
+        let Some(any) = chicken.or(pig) else {
             return Vec::new();
         };
         let pos = self.buildings[b].pos;
-        let hits = self.unit_types[ty].hits.max(1);
-        let kind = self.unit_types[ty].kind;
         let mut out = Vec::with_capacity(FARM_ANIMALS as usize);
         for slot in 0..FARM_ANIMALS {
+            let seed = seeds.get(slot as usize).copied();
+            let ty = match seed {
+                Some(s) if s.chicken => chicken.unwrap_or(any),
+                Some(_) => pig.unwrap_or(any),
+                None => any,
+            };
+            let at = match seed {
+                Some(s) => crate::Pos::new(pos.x + s.dx, pos.y + s.dy),
+                None => pos,
+            };
             let Some(index) = self.find_free(9, crate::UNIT_BASE, crate::BUILD_BASE) else {
                 break;
             };
-            let mut unit = crate::Unit::new(9, index, pos, hits);
-            unit.kind = kind;
+            let hits = self.unit_types[ty].hits.max(1);
+            let mut unit = crate::Unit::new(9, index, at, hits);
+            unit.kind = self.unit_types[ty].kind;
             unit.ty = Some(ty);
+            // `Objects::init_unit`'s own two, without which the `MOVE_TO`
+            // `think_farm_animal` hands out is an order the animal can
+            // never step: it stands still and its arrival — two
+            // `Animal::do_idle` draws — never comes.
+            unit.movement.speed = self.unit_types[ty].moves;
+            unit.movement.turning = self.turning_for(ty);
+            // `TypeIndex` `FARMPIG`/`FARMCHICKEN`. Without it the gaia
+            // table cannot be keyed and every animation length reads
+            // `anim::UNKNOWN`, so the clock steps and never wraps — three
+            // of run39's six missing `Guy::inc_time` wraps on frame 29.
+            // A pasture the trace does not name keeps the −1, because
+            // which of the two species it is, is exactly what the coin
+            // said and nothing else records.
+            if seed.is_some() {
+                unit.type_index = self.unit_types[ty].type_index;
+            }
             unit.farm_animal = Some(FarmAnimal { build: b, slot });
             let u = self.add_unit(unit);
-            // The guy exists so the idle roll has something to set; its
-            // piece is unknown (no dump prints owner 9), so every length
-            // lookup fails and the clock never runs out.
+            // The guy exists so the idle roll has something to set. Its
+            // piece stays −1 — no dump prints an owner-9 object, so the
+            // piece pool cannot name one — and the gaia table is keyed by
+            // the type instead.
             self.units[u].guys = vec![crate::anim::Guy::fresh(-1)];
             out.push(u);
         }
@@ -392,9 +451,21 @@ impl Sim {
     /// farm's own while nobody gathers there, and `gather_down`'s first
     /// gatherer's once somebody does.
     ///
-    /// Where it then walks (`corner_x`/`corner_y[slot]`, thirds of a tile)
-    /// is read but not issued — the animals' positions are in no dump, so a
-    /// destination here would be fiction. The draw is not.
+    /// Then it walks, and the one draw is the whole of where to
+    /// (`docs/SYNC.md` §3.11). Let `T` be the reference object's tile plus
+    /// [`crate::world::MOVE_8`]`[dir]`, `C` the slot's
+    /// [`crate::world::CORNER_X`]: the original scales the pair to
+    /// `(3T + C) · 0x40 + 0x60`, which is `192·T + 64·C + 96` — the
+    /// unsnapped point — takes the **angle** to that, and only then snaps
+    /// it with `div_3_table[v >> 4] · 0x30 + 0x18`, the same 48-unit snap
+    /// every `add_move_order` applies. So the destination is
+    /// `add_move_facing_order`'s own of that point, and the facing is the
+    /// bearing to it *before* the snap, which is why this cannot go
+    /// through [`crate::Sim::add_move_order`].
+    ///
+    /// The order is `MOVE_TO` on an emptied list, appended after
+    /// `close_orders`, `clear_partial_path` and `update_action` — the
+    /// listing's own sequence at `5d78c5`–`5d79d4`.
     pub(crate) fn think_farm_animal(&mut self, u: usize) {
         let Some(fa) = self.units[u].farm_animal else {
             return;
@@ -413,11 +484,33 @@ impl Sim {
             },
             None => bd.pos,
         };
-        if !self.build_covers_tile(fa.build, at.tile()) {
+        let t = at.tile();
+        if !self.build_covers_tile(fa.build, t) {
             return;
         }
         self.mark(SITE_ANIMAL_DIR);
-        let _dir = self.rng.roll() & 7;
+        let dir = (self.rng.roll() & 7) as usize;
+        let (mx, my) = crate::world::MOVE_8[dir];
+        let c = usize::from(fa.slot).min(crate::world::CORNER_X.len() - 1);
+        let raw = crate::Pos::new(
+            ((t.x + mx) * 3 + crate::world::CORNER_X[c]) * 0x40 + 0x60,
+            ((t.y + my) * 3 + crate::world::CORNER_Y[c]) * 0x40 + 0x60,
+        );
+        let here = self.units[u].pos;
+        let angle = crate::movement::find_angle(raw.x - here.x, raw.y - here.y);
+        self.close_orders(u);
+        self.clear_partial_path(u);
+        self.update_action(u);
+        self.add_move_facing_order(
+            u,
+            raw,
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::Last,
+            false,
+            angle,
+            None,
+            false,
+        );
     }
 
     /// `Farms::inc_time`, from `Objects::inc_time` after the ammo — every
@@ -608,7 +701,7 @@ mod tests {
         });
         s.unit_types[chicken].tree = Some(FARMCHICKEN);
         s.buildings[b].farm.farm_type = ANIMAL_FARM;
-        let animals = s.farm_add_animals(b);
+        let animals = s.farm_add_animals(b, &[]);
         assert_eq!(animals.len(), FARM_ANIMALS as usize, "five animals");
         assert!(
             animals.iter().all(|&u| s.units[u].owner == 9),
@@ -657,7 +750,7 @@ mod tests {
         });
         s.unit_types[pig].tree = Some(FARMPIG);
         s.buildings[b].farm.farm_type = ANIMAL_FARM;
-        let animals = s.farm_add_animals(b);
+        let animals = s.farm_add_animals(b, &[]);
 
         // Animal 1 (`o 1`, slot 1) is off phase at frame 0 — `1 · 2 + 0`.
         let seed = s.rng.seed;
@@ -681,6 +774,81 @@ mod tests {
         s.units[g].pos = s.buildings[b].pos;
         s.think_farm_animal(animals[0]);
         assert_ne!(s.rng.seed, seed, "and on it, the walk rolls");
+    }
+
+    /// **Where the one draw sends it.** `docs/SYNC.md` §3.11: the tile of
+    /// the reference object plus `move_x/move_y[dir + 1]`, then the slot's
+    /// own corner of that tile — `192·T + 24`, `+ 120` or `+ 168` for a
+    /// corner of −1, 0 or +1, which is the low edge, the middle and the
+    /// high side of a 192-unit tile.
+    ///
+    /// The corner is what this is made to fail on: five animals of one
+    /// pasture, all measuring the same farm and all rolling the same
+    /// direction, land on **three** different points, and which one is
+    /// [`crate::world::CORNER_X`]'s row for the slot.
+    #[test]
+    fn the_walk_lands_on_the_slot_s_corner_of_the_tile_it_picks() {
+        let (mut s, b) = farm_sim();
+        let chicken = s.add_unit_type(crate::UnitType {
+            hits: 10,
+            moves: 25,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[chicken].tree = Some(FARMCHICKEN);
+        s.buildings[b].farm.farm_type = ANIMAL_FARM;
+        let seeds = [AnimalSeed {
+            chicken: true,
+            dy: 0,
+            dx: 0,
+        }; FARM_ANIMALS as usize];
+        let animals = s.farm_add_animals(b, &seeds);
+        let t = s.buildings[b].pos.tile();
+
+        for (slot, &u) in animals.iter().enumerate() {
+            // Each animal's phase — `o · (slot + 1) + frame ≡ 0` — with
+            // `o == slot` here, so the five fire on `128 − slot(slot + 1)`:
+            // 128, 126, 122, 116, 108, which is §3.11's own set.
+            s.frame = THINK_PERIOD - (slot * (slot + 1)) as i64;
+            // The direction the draw is about to return, taken off a copy
+            // of the generator so the assertion names a point rather than
+            // a range.
+            let dir = (crate::combat::Rng::new(s.rng.seed).roll() & 7) as usize;
+            let (mx, my) = crate::world::MOVE_8[dir];
+            s.think_farm_animal(u);
+            let Some(crate::orders::Body::Move(mo)) = s.units[u].orders.front().map(|o| o.body)
+            else {
+                panic!("animal {slot} took no MOVE_TO");
+            };
+            let edge = |c: i32| match c {
+                -1 => 24,
+                0 => 120,
+                _ => 168,
+            };
+            assert_eq!(
+                (mo.dest.x, mo.dest.y),
+                (
+                    192 * (t.x + mx) + edge(crate::world::CORNER_X[slot]),
+                    192 * (t.y + my) + edge(crate::world::CORNER_Y[slot]),
+                ),
+                "animal {slot}'s corner of tile ({}, {})",
+                t.x + mx,
+                t.y + my
+            );
+        }
+        // The centre and the four corners really are three distinct
+        // points on each axis, so the table is doing work.
+        let xs: std::collections::BTreeSet<i32> = animals
+            .iter()
+            .map(|&u| match s.units[u].orders.front().map(|o| o.body) {
+                Some(crate::orders::Body::Move(m)) => m.dest.x % 192,
+                _ => unreachable!(),
+            })
+            .collect();
+        assert_eq!(
+            xs,
+            [24, 120, 168].into_iter().collect(),
+            "the low edge, the middle and the high side"
+        );
     }
 
     /// Run12, frame 1: the stream after the frame's 48th draw, one farm

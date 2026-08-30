@@ -326,6 +326,15 @@ pub const MOVE_8: [(i32, i32); 8] = [
     (-1, 0),
 ];
 
+/// `corner_x[0..5]@00adc3e0` / `corner_y[0..5]@00adc3c0` — the centre and
+/// its four corners, in `compass.obj` beside [`MOVE_8`] and read out of the
+/// PE against `rise_z.map`. Two mechanics index them: the nomad's wood test
+/// (`Leader::compute_sites`, `docs/AI.md` §11) and a pasture animal's own
+/// place in its five, which is what `Animal+0x154` is for
+/// (`docs/SYNC.md` §3.11).
+pub const CORNER_X: [i32; 5] = [0, -1, 1, 1, -1];
+pub const CORNER_Y: [i32; 5] = [0, -1, -1, 1, 1];
+
 /// `move_x[0..0x31]`, `move_y[0..0x31]` — the original's walk of the 7 × 7
 /// neighbourhood: the cell itself, the eight neighbours as [`MOVE_8`], the
 /// sixteen cells of the 5 × 5 ring (the twelve edge cells clockwise from

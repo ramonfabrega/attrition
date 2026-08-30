@@ -752,8 +752,13 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             };
             sim.buildings[b].farm.farm_type = u8::try_from(f.farm_type).unwrap_or(0);
             if sim.buildings[b].farm.farm_type == sim::farms::ANIMAL_FARM {
+                // The five's species and their two offsets, from the run's
+                // own trace where it reached the setup — the harness cannot
+                // draw them (`docs/SYNC.md` §3.11).
+                let seeds: &[sim::farms::AnimalSeed] =
+                    init.pasture.get(pastures).map_or(&[], Vec::as_slice);
                 pastures += 1;
-                animals += sim.farm_add_animals(b).len();
+                animals += sim.farm_add_animals(b, seeds).len();
             }
         }
         notes.push(format!(
@@ -1978,6 +1983,21 @@ fn same_start(a: &Initial, b: &Initial) -> bool {
         v
     };
     !a.builds.is_empty() && key(a) == key(b)
+}
+
+/// **The pasture's five, from the run's own trace.**
+///
+/// Every other input the harness stands its roster up from is a dump's;
+/// this one cannot be, because owner 9 is in no dump block at all and the
+/// three draws that place each animal are spent inside
+/// `Setup::build_empire` (`docs/SYNC.md` §3.11). A trace that reached the
+/// setup carries them, and [`crate::trace::Trace::add_animals`] reads them
+/// back out of the seeds the records hold; a windowed trace carries
+/// nothing and the simulation keeps its stand-in.
+pub fn borrow_pasture(init: &mut Initial<'_>, tr: &crate::trace::Trace) {
+    if init.pasture.is_empty() {
+        init.pasture = tr.add_animals();
+    }
 }
 
 pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Initial<'b>]) {
@@ -3579,7 +3599,7 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         let text = std::fs::read_to_string(&path).unwrap();
         let log = Log::parse(&text);
-        let init = log.initial().unwrap();
+        let mut init = log.initial().unwrap();
 
         // The list, as `Farms::log_data` wrote it.
         let farms = &init.farms;
@@ -3598,7 +3618,26 @@ mod tests {
             "the crops, in the list's order"
         );
 
-        // The five animals, and the farm they hang off.
+        // The five animals, and the farm they hang off. run20's own trace
+        // reached the setup, so the five are borrowed from it rather than
+        // stood on the farm's centre — a **second** capture through
+        // `Trace::add_animals`, and a different pasture from run39's
+        // (`docs/SYNC.md` §3.11).
+        if let Some(tr) = trace("rontrace-run20.log") {
+            borrow_pasture(&mut init, &tr);
+            assert_eq!(init.pasture.len(), 1, "run20's one pasture, from its trace");
+            assert!(
+                init.pasture[0].iter().all(|a| a.chicken)
+                    || init.pasture[0].iter().all(|a| !a.chicken),
+                "a pasture is one species — five even coins or five odd, never a mix"
+            );
+            assert!(
+                init.pasture[0]
+                    .iter()
+                    .all(|a| (-0xc0..0xc0).contains(&a.dx) && (-0xc0..0xc0).contains(&a.dy)),
+                "and each offset is `% 0x180 - 0xc0`, so inside a tile either way"
+            );
+        }
         let built = build_sim(&loaded, &init, Tuning::RON);
         let animals: Vec<usize> = (0..built.sim.units.len())
             .filter(|&u| built.sim.units[u].owner == 9)
@@ -6943,27 +6982,49 @@ mod tests {
     ///    nine to twenty-five frames later by a pair of `Animal::do_idle`
     ///    draws on consecutive frames.
     ///
-    /// (1) and (2) together take the early window from 49 frames on the
-    /// count to 60 and from 47 draw-for-draw to 53 — frames 29 and 32
-    /// come right — but they **cost the ticks score 167 → 102**, because
-    /// the stream after 19 is nobody's either way and the old number was
-    /// luck on it. So they land with (3), not before it; the queue holds
-    /// them together.
+    /// All three are landed (2026-08-30). The animals' **positions** were
+    /// the wall — `add_animals` places each of the five at the farm ±
+    /// `% 0x180 − 0xc0` on each axis, up to a whole tile, from two draws
+    /// inside `Setup::build_empire`, whose stream the harness does not
+    /// replay — and [`borrow_pasture`] takes them from the run's own
+    /// trace, the way the heights and the herds are taken from a sibling
+    /// dump. run39's five are `(−143, 40)`, `(−187, −148)`, `(−39, −144)`,
+    /// `(−83, −76)`, `(−63, 56)` as `(dy, dx)`, and the test asserts them.
     ///
-    /// (3) needs the animals' **positions**, and that is the wall:
-    /// `add_animals` places each of the five at the farm ± `% 0x180 −
-    /// 0xc0` on each axis — up to a whole tile — from two draws inside
-    /// `Setup::build_empire`, whose stream the harness does not replay.
-    /// Standing them on the farm's own centre puts every arrival frame
-    /// somewhere else. The trace carries those draws too (run39's are
-    /// `(−143, 40)`, `(−187, −148)`, `(−39, −144)`, `(−83, −76)`,
-    /// `(−63, 56)` as `(dy, dx)`), so the pasture's five are borrowable
-    /// the way the heights and the herds are.
+    /// **What is left at 19 is not the pasture's.** With the walk issued
+    /// the arrival's *second* draw, frame 20, comes right and the first,
+    /// frame 19, does not — and the two residues behind that are movement
+    /// and animation, not this mechanic:
+    ///
+    /// - **The animal arrives one frame late.** Its 455-unit walk takes
+    ///   nineteen 25-unit steps here and eighteen there; the arrival test
+    ///   is `dist ≤ tolerance` and this crate's straight-line goal carries
+    ///   `tolerance 0` (`path.rs:1036`). Give the chicken one more unit of
+    ///   speed and frame 19 matches the original **draw for draw** — that
+    ///   is how the two halves were told apart.
+    /// - **An arrival costs two `Animal::do_idle` draws, not one.** The
+    ///   pair is on consecutive frames, every time, all game. One is the
+    ///   walk-to-idle transition this crate spends; the other needs the
+    ///   guy to be playing something non-idle on the following frame,
+    ///   which is what `Guy::move`'s turn arm would do — the unit is still
+    ///   easing onto the order's angle on both frames (queue items 36, 37).
     ///
     /// History:
     ///   2026-08-30  word parts at **19**; of the first 64 frames 49
     ///               spend the original's number of draws and 47 draw for
     ///               draw (the first reading of this trace).
+    ///   2026-08-30  the pasture's five landed whole — the species and the
+    ///               `type_index`, the borrowed positions, and
+    ///               `think_farm_animal`'s `MOVE_TO`. The window goes
+    ///               49/47 → **62/55**; frames 20, 29 and 32 come right
+    ///               and the word holds at 19 on the arrival frame alone.
+    ///               The feared cost never arrived: ticks and orders stay
+    ///               at 167 and player 0 at 219, because the walk is what
+    ///               (1) and (2) were missing rather than a second
+    ///               perturbation. A pasture animal that carries a
+    ///               `MOVE_TO` it cannot step — `movement.speed` unset —
+    ///               *does* cost player 0 two frames, which is what the
+    ///               first attempt measured.
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
         let Some(inst) = install() else { return };
@@ -6984,6 +7045,24 @@ mod tests {
         let refs: Vec<&Initial> = vec![&sib_init];
         let mut init = log.initial().unwrap();
         borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        assert_eq!(
+            init.pasture.len(),
+            1,
+            "run39's trace reached the setup and East Indies' AI has one pasture"
+        );
+        assert!(
+            init.pasture[0].iter().all(|a| a.chicken),
+            "a pasture is one species, and run39's five coins are even"
+        );
+        assert_eq!(
+            init.pasture[0]
+                .iter()
+                .map(|a| (a.dy, a.dx))
+                .collect::<Vec<_>>(),
+            vec![(-143, 40), (-187, -148), (-39, -144), (-83, -76), (-63, 56)],
+            "the five offsets `report.py <log> draws setup` prints"
+        );
         let mut built = build_sim(&loaded, &init, Tuning::RON);
         built.sim.trace_phases = true;
         let last = tr.frames.last().map_or(0, |(n, _)| *n);
@@ -7042,10 +7121,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 19 && words >= 49 && matched >= 47,
+            first_count >= 19 && words >= 62 && matched >= 55,
             "the second map's word fell: parts at {first_count}, {words} of the first \
              {WINDOW} frames on the count, {matched} draw for draw — the floor is \
-             19, 49 and 47"
+             19, 62 and 55"
         );
     }
 

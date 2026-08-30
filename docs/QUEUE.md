@@ -13,29 +13,30 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 69 (Opus).*
+*2026-08-30, after item 92 (Opus).*
 
 **The headline is the pair, lower map first.** East Indies: run39's
-**word parts at 19** — its ticks 167 / orders 167 are 148 frames deep
-into a stream that is nobody's, so the word is this map's number now.
-Great Lakes: run10 ticks **572**, orders 776; run33's word parts at
-**780**, totals 951/838, of 1,850. The tree is green with the install
-wired in: 637 sim, 144 rondata, no `skipping`.
+**word parts at 19**, and beside it the early window **62 of the first 64
+frames on the count, 55 draw for draw** (was 49/47) — a total past a
+parting is noise, so the window is this map's score. Great Lakes: run10
+ticks **572**, orders 776; run33's word parts at **780**, totals 951/838,
+of 1,850. Tree green with the install wired in: 638 sim, 145 rondata.
 
-**What this session found.** run39's 11 MB trace had never been read.
-Read frame for frame, the second map parts at **19**, on the AI's
-**pasture** — all three of `docs/SYNC.md` §3.6's own open questions, now
-§3.11. **Landed:** the word test (floor 19, plus the early window 49/47
-of the first 64 frames — a total past a parting is noise, measurably so),
-and `GAIA_UNITS`' two missing gaia types, inert until item 92. **Not
-landed:** the `type_index` and the species, which take the window to
-60/53 and cost the ticks 167 → 102 — they land with the walk, as item 92.
-Also owed and done: ORACLE's and SYNC's oversized sections dissolved by
-promoting their `### ` headings, and two pins deleted from `OVER`.
+**What this session did.** Item 92 whole: the pasture's five carry their
+species and its `type_index`, stand on positions **borrowed from the
+run's own trace** (`Initial::pasture`, the first field a trace rather
+than a sibling dump fills), and `think_farm_animal` issues the `MOVE_TO`.
+Ticks/orders hold at 167 and player 0 at 219 — the feared cost never
+arrived, and the line missing for an hour was `movement.speed`.
 
-**Opener (Opus):** `take item 92 from @docs/QUEUE.md — borrow the
-pasture's five from run39's own trace and issue think_farm_animal's
-MOVE_TO; docs/SYNC.md 3.11 has the offsets and the arithmetic.`
+**The word did not move**, and the reason is no longer the pasture's: one
+draw, on the arrival frame, split into two residues by experiment (93 and
+94). `docs/SYNC.md` §3.11's last section has both, with the capture that
+falsifies each.
+
+**Opener (Opus):** `take item 93 from @docs/QUEUE.md — an arrival costs
+two Animal::do_idle draws and this crate spends one; docs/SYNC.md 3.11's
+last section has the pairs and the two stashes.`
 
 ## The queue
 
@@ -43,37 +44,40 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-92. **The pasture's five, and the walk they take.** The second map's
-    word parts at **19** and this is all of it (SYNC §3.11, which now
-    carries the corner tables and the destination arithmetic whole). One
-    commit, three parts: a pasture animal's `type_index`; chickens rather
-    than pigs; and `think_farm_animal`'s `MOVE_TO`. The blocker is the
-    animals' **positions** — two setup draws — so borrow the five from
-    the trace (`report.py <log> draws setup` prints them) the way the
-    heights and herds are borrowed from a sibling. The first two parts
-    alone cost the ticks 167 → 102, so they do not land alone.
+93. **An arrival costs two `Animal::do_idle` draws; this spends one.**
+    Always two, always consecutive, one pair per `think_farm_animal` draw
+    nine to twenty-five frames earlier — 19/20, 121/122, 134/135, 245/246
+    — and the first of run39's pair is the word at 19. `Guy::set_anim`
+    returns early **by category**, through `Guy+0x9e` (body not at des)
+    and `+0xa0` (already idle), so a second draw is a second non-idle
+    category the frame after: the unmodelled turn arm of `Guy::move`,
+    items 36 and 37's ground. SYNC §3.11's last section.
+
+94. **The animal arrives one frame late.** 455 units at 25 a frame is
+    nineteen steps here, eighteen there; the test is `dist ≤ tolerance`
+    and `path.rs:1036` gives a straight-line goal `tolerance 0`. **One
+    extra unit of speed makes run39's frame 19 match draw for draw** —
+    the experiment that separates this from 93.
 
 69. **East Indies' order-list length at 168.** `1/4` holds two orders on
     the original's 168 where this holds one; `1/5` at 186 and `1/3` at
-    202 the same. **Downstream of 92** — not booked until the word moves.
+    202 the same. **Downstream of 93/94** — not booked until the word
+    moves.
 
 84. **The word at 780, four frames past the city.** Eleven draws against
     eight; ours opens `GameAccess::rnd+0x20 < Unit::do_job+0x67` where the
-    original has `Unit::do_non_flat_gather+0x54b` — a citizen on a job
-    where the original has it gathering.
+    original has `Unit::do_non_flat_gather+0x54b` — a citizen on a job.
 
 87. **The widening ledger.** Items 74 and 83 were closed by comparing
     dumped fields nobody had compared. Make the backlog a number:
     `rondata::diff` prints, per dumped record, the fields it parses and
-    does not compare, pinned as a floor that may only fall. `ANIMALDATA`
-    (45) and `down`/`down_who` (48) are the first rows.
+    does not compare, pinned as a floor that may only fall.
 
 85. **`gather_slots`, and a slot `get_good` cannot produce.** 120 of the
     run40 diff's 480 good-frames. `Build::init` surveys a camp against its
     still-empty `gather_from`, so a harness camp activates with zero; and
     run40's *human* files one under good 2, where `get_good@0063bd50`'s
     table at `0063bd84` is Farm 0, Camp 1, Mine 4, University 3, Oil 5.
-    Unread second writer: `plan_strategy@006b9620:1137`.
 
 86. **The science discount's purchase side.** `Sim::tech_price` passes
     `Modifiers::default()`, so a tech is charged undiscounted, and
@@ -91,19 +95,17 @@ better, and say so. Numbers are stable; the journal is indexed by them.
 89. **Two guards for the instrument itself.** (a) The handoff's headline
     numbers equal `rondata::diff`'s pinned floors — one sat two items
     stale. (b) Every `name@00xxxxxx` a document cites names that function
-    in the export's `INDEX.tsv`. Both made to fail first.
+    in `INDEX.tsv`. Both made to fail first.
 
 72. **A document and its code disagreeing is a diff waiting to be run.**
     Items 68, 79, 80 and 74 — four in a row. Every `name@00xxxxxx` and
-    `+0xNN` a document pins, checked across documents and against the
-    module implementing it, and every "halved"/"every frame"/"cleared"
-    verb about a field this crate owns.
+    `+0xNN` a document pins, checked against the module implementing it,
+    and every "halved"/"every frame"/"cleared" verb about a field here.
 
 88. **The blind list is the ledger.** `report.py … blind docs/` lists the
     cited functions no traced run has entered (101 of 617); intersected
-    with `crates/sim`, that is every reading-only claim the harness rests
-    on. Print it, pin its size as a floor, put it in each Coverage
-    section.
+    with `crates/sim`, that is every reading-only claim here. Print it,
+    pin its size as a floor, put it in each Coverage section.
 
 36. **`Unit::set_angle`'s seventeen other callers.** Most of run10's
     angle rows where the positions agree; the farmers are all of it —
@@ -121,19 +123,17 @@ better, and say so. Numbers are stable; the journal is indexed by them.
 73. **`UnitData::group`, compared on no frame.** No unit here holds the
     back-pointer, so `Group::normalize`'s cull (GROUPS §4.3) and its six
     writers of `−1` are unmodelled. The pool slot is the hard half: run33's
-    scout goes 65 → 64 on 96 where `get_open_slot`'s `last_group` rule
-    (GROUPS §3.1) predicts 65.
+    scout goes 65 → 64 on 96 where `get_open_slot` (§3.1) predicts 65.
 
 56. **The cell's `BUILDING` bit, which nothing here sets.** run13's
-    frame-95 world carries `cell::BUILDING` on `(52, 22)` and this does not;
-    `army`'s muster search reads it (ARMY §13). Find the writer — not
-    `World::set_building_at`, which writes the *tile* mask.
+    frame-95 world carries `cell::BUILDING` on `(52, 22)` and this does
+    not; `army`'s muster search reads it (ARMY §13). Find the writer —
+    not `World::set_building_at`, which writes the *tile* mask.
 
 90. **The capture queue.** A capture is fourteen unattended minutes — the
     screen for thirty seconds of lobby, then nothing a session needs — so
-    it runs *beside* a session, not between them. A scenario file
-    (`longtrace.sh`'s inputs) and a script that runs the lines back to
-    back; items 23, 45 and 57 are the first three.
+    it runs *beside* a session. A scenario file (`longtrace.sh`'s inputs)
+    and a script running the lines back to back; 23, 45 and 57 first.
 
 23. **The hand-back's inversion, and the formation byte's sign.**
     `kill_current_order` writes `order.facing XOR reversing(leader.angle −

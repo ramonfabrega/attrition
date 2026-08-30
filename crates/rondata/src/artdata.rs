@@ -141,14 +141,14 @@ const SLOTS: &[(&str, i8)] = &[
 /// `CHAR_DEFAULT` 90 and the walks 15 for the pig, 30 and 18 for the
 /// chicken, with `CHAR_IDLE1..3` 90 for both.
 ///
-/// These two rows are **inert until a pasture animal carries a
-/// `type_index`**, which `sim::Sim::farm_add_animals` does not yet set:
-/// `Sim::slot_length` keys a gaia type by the index, so the lookup still
-/// misses and the clock still never wraps. That is deliberate and the
-/// queue holds it — the pair of them moves run39's early word window but
-/// costs its ticks score, and both land with the walk that goes with
-/// them (`crate::diff::tests::run39_s_long_trace_says_where_the_second_
-/// map_s_word_parts`).
+/// These two rows were inert while a pasture animal carried no
+/// `type_index` — `Sim::slot_length` keys a gaia type by the index, so the
+/// lookup missed and the clock never wrapped. **Live since 2026-08-30**:
+/// `sim::Sim::farm_add_animals` sets the index from the species the
+/// capture's own trace names, and with the walk that goes with it run39's
+/// early window moves 49/47 → 62/55 of its first 64 frames
+/// (`docs/SYNC.md` §3.11,
+/// `crate::diff::tests::run39_s_long_trace_says_where_the_second_map_s_word_parts`).
 const GAIA_UNITS: &[(i32, &str)] = &[
     (0x192, "WILDBIRD"),
     (0x193, "FLOCKBIRD"),

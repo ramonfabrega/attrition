@@ -7420,3 +7420,73 @@ reproduces this session's numbers exactly (`add_animals+0x92` 27358,
 `+0x134` 15025, `+0x182` 55912, ...) and names the chain while it is at
 it, which confirms §3.8's `Build::activate` correction from the ebp chain
 rather than from a reading.
+
+
+## 2026-08-30 (Opus) — item 92: the pasture's five, and the walk they take
+
+The second map's word parts at **19** and the whole of it is five animals
+of owner 9 that no dump prints. Yesterday's session priced the three
+things wrong with them and stopped at the wall: the positions are two
+draws inside `Setup::build_empire`. This session went through the wall the
+way the queue said to — **borrow them from the run's own trace** — and
+landed all three parts in one commit.
+
+### The borrow is a new kind
+
+`Initial` has carried the heights, the herds, the farm list and the frame
+seeds from *sibling dumps* since the harness existed. `Initial::pasture`
+is the first field a **trace** fills. `Trace::add_animals` walks the setup
+path's records at `Farms::add_animals+0x92`, `+0x134` and `+0x182`, three
+to an animal, and recovers each outcome from the seed the record carries —
+`Draw::value`, the Rust half of yesterday's fifteen lines in `report.py`.
+run39's five come back `(−143, 40)`, `(−187, −148)`, `(−39, −144)`,
+`(−83, −76)`, `(−63, 56)`, all five coins even, and the test asserts the
+list rather than a count. run20's trace and the fuzzed map's carry their
+own fifteen, so the reader is confirmed on more than one capture; run20's
+test now borrows too.
+
+### What landed, and the one line that was missing
+
+The species, the `type_index` that follows from it and reaches the gaia
+table, the borrowed positions, and `think_farm_animal`'s `MOVE_TO` at
+`add_move_facing_order`'s snap of the unsnapped point — with the angle
+taken to the *unsnapped* point, which is why it cannot go through
+`add_move_order` (the listing computes `find_angle` at `5d7889` before the
+`sarl $4` that snaps).
+
+The line that was missing for an hour: **`movement.speed`**.
+`farm_add_animals` had never set it, because until now the animals never
+had an order. An animal carrying a `MOVE_TO` it cannot step is worse than
+one standing still — it was the *only* reason the first run's player-0
+score fell 219 → 217, and with the speed and turn rate in it the pin is
+back at 219 untouched. The feared cost of parts (1) and (2) — "the ticks
+score 167 → 102" — never arrived either: the walk was what they were
+missing, not a second perturbation.
+
+**The score.** run39's early window goes **49/47 → 62/55** of its first 64
+frames. Frames 20, 29 and 32 come right. Ticks and orders hold at 167.
+
+### The word held at 19, and the reason is not the pasture's
+
+One draw, on the arrival frame, and two experiments separated the two
+residues behind it — which is the whole yield of the session's second half:
+
+- **The animal arrives one frame late.** Give the chicken one more unit of
+  speed and frame 19 matches the original draw for draw. 455 units at 25 a
+  frame is nineteen steps here and eighteen there; the arrival test is
+  `dist ≤ tolerance` and this crate's straight-line goal carries
+  `tolerance 0`.
+- **An arrival costs two `Animal::do_idle` draws, always on consecutive
+  frames** — 19/20, 121/122, 134/135, 245/246, all game, one pair per
+  `think_farm_animal` draw nine to twenty-five frames earlier. This crate
+  spends one. `Guy::set_anim`'s early return is by **category**, and the
+  decompile names the two stashes it returns through — `Guy+0x9e` when the
+  body is not at des, `+0xa0` when the guy is already idle — so a second
+  draw means a second *non-idle* category on the following frame. The unit
+  is still easing onto the order's angle across both, and `Guy::move`'s
+  turn arm is unmodelled here. That is items 36 and 37's ground, not this
+  mechanic's, and it is now booked with the capture that falsifies it.
+
+Both are in `docs/SYNC.md` §3.11's last section with the evidence, and the
+coverage bullet in §6 says which of §3.11's claims a diff backs and which
+two rest on the listing alone.

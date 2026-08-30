@@ -1120,6 +1120,13 @@ pub struct Initial<'a> {
     /// guys)` at the end of that frame — the clocks the harness installs
     /// beside the frame's word. Empty for any other dump.
     pub frame_guys: FrameGuys,
+    /// **The one field no dump fills.** Each pasture's five animals as
+    /// `Farms::add_animals` created them, borrowed from the run's own
+    /// *trace* ([`crate::trace::Trace::add_animals`]) because owner 9 is in
+    /// no dump block at all and the draws are spent inside
+    /// `Setup::build_empire` (`docs/SYNC.md` §3.11). One `Vec` a pasture,
+    /// in creation order; empty leaves the simulation's stand-in.
+    pub pasture: Vec<Vec<sim::farms::AnimalSeed>>,
 }
 
 /// Every unit's clocks at the end of each traced engine frame.

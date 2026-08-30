@@ -408,7 +408,7 @@ impl Sim {
 
     /// `clear_partial_path`: there is no suspended search here; the scratch
     /// it would clear is the verified-line bit.
-    fn clear_partial_path(&mut self, u: usize) {
+    pub(crate) fn clear_partial_path(&mut self, u: usize) {
         self.units[u].line_ok = false;
     }
 

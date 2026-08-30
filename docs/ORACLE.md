@@ -2329,18 +2329,18 @@ run39's 167 is a number on a stream that is nobody's, and the row above is
 struck for it.
 
 The cause is the AI's **pasture**, which East Indies has and Great Lakes
-does not: its five animals carry no `type_index` and so no animation
-length, they are the wrong species, and the `MOVE_TO` that
-`think_farm_animal` hands one of them at frame 0 is read and not issued —
-its arrival is the two draws of frames 19 and 20. `docs/SYNC.md` §3.11 has
-all of it, including the coin's parity argument (a pasture is one species,
-always) and the five position offsets read back out of the trace's own
-seeds.
+does not. `docs/SYNC.md` §3.11 has all of it, including the coin's parity
+argument (a pasture is one species, always) and the five position offsets
+read back out of the trace's own seeds — **which is the first thing this
+harness has taken from a trace rather than from a dump**, because owner 9
+appears in no dump block at all.
 
 The score beside the word is the **early window**, not a total: past the
-parting a total is noise, and a strictly more faithful pasture measurably
-scores worse on it. Of the first 64 frames, **49 spend the original's
-number of draws and 47 draw for draw**.
+parting a total is noise. Of the first 64 frames, **62 spend the
+original's number of draws and 55 draw for draw** (2026-08-30; 49/47
+before the pasture landed). What still parts at 19 is the *first* of the
+two `Animal::do_idle` draws an arrival costs — movement's and animation's
+residue, not the pasture's.
 
 ## What is not established
 

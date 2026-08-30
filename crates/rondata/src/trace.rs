@@ -222,7 +222,35 @@ impl Draw {
     pub fn sync(&self) -> bool {
         self.rng == IMAGE_BASE + RVA_GAME_RANDOM
     }
+
+    /// **What the draw returned.**
+    ///
+    /// The record carries the word *before* the step, so the outcome is
+    /// recoverable without the game: step the LCG once, then apply
+    /// `Random::get(lo, hi)`'s own scaling. Every site the documents cite
+    /// is `(0, 0xffff)`, which is [`sim::combat::Rng::roll`].
+    ///
+    /// This is the only reader of a draw whose outcome **no dump holds** —
+    /// a coin inside `Setup::build_empire`, a direction, an idle roll —
+    /// and it is what makes a setup draw borrowable (`docs/SYNC.md`
+    /// §3.11). `rand_real` and `reseed` return `None` rather than a number
+    /// that would be a guess.
+    pub fn value(&self) -> Option<i32> {
+        if self.kind != 1 && self.kind != 3 {
+            return None;
+        }
+        let mut rng = sim::combat::Rng::new(self.seed);
+        Some(rng.roll())
+    }
 }
+
+/// `Farms::add_animals@008d8f30`'s three draws per animal, at the offsets
+/// run39's own trace names: the species coin, the `y` offset and the `x`
+/// (`docs/SYNC.md` §3.11). The fourth of the four is `Guy::init_real`'s,
+/// inside `Objects::init_unit`, and leaves nothing to borrow.
+pub const ADD_ANIMALS_COIN: u32 = 0x008d_8fc2;
+pub const ADD_ANIMALS_Y: u32 = 0x008d_9064;
+pub const ADD_ANIMALS_X: u32 = 0x008d_90b2;
 
 /// A parsed `rontrace.log`.
 #[derive(Clone, Debug)]
@@ -290,6 +318,53 @@ impl Trace {
     /// Reads a trace off disk. `Ok(None)` when the file is not one.
     pub fn read(path: &Path) -> std::io::Result<Option<Trace>> {
         Ok(Trace::parse(&std::fs::read(path)?))
+    }
+
+    /// **The pasture's five, read back out of the setup path.**
+    ///
+    /// `Farms::add_animals` runs inside `Setup::build_empire`, whose stream
+    /// the harness does not replay, so its three marks — the species coin
+    /// and the two offsets — exist nowhere else: no dump prints an owner-9
+    /// object at all (`docs/SYNC.md` §3.6). [`Draw::value`] recovers them
+    /// from the seeds the records carry, which is what makes the five
+    /// **borrowable** the way a sibling dump's heights and herds are.
+    ///
+    /// Returns one `Vec` a pasture, in the order the setup created them,
+    /// each of [`sim::farms::FARM_ANIMALS`] seeds. A trace that opened
+    /// after the setup — every windowed capture — returns nothing, and the
+    /// simulation then keeps its stand-in.
+    pub fn add_animals(&self) -> Vec<Vec<sim::farms::AnimalSeed>> {
+        let sites = [ADD_ANIMALS_COIN, ADD_ANIMALS_Y, ADD_ANIMALS_X];
+        let marks: Vec<&Draw> = self
+            .draws
+            .iter()
+            .filter(|d| d.sync() && d.frame < 0 && sites.contains(&d.site))
+            .collect();
+        let mut seeds: Vec<sim::farms::AnimalSeed> = Vec::new();
+        // The three are consecutive and in this order; anything else is a
+        // trace whose window clipped the run, and a partial animal is
+        // dropped rather than half-borrowed.
+        for t in marks.chunks(3) {
+            let [coin, y, x] = t else { break };
+            if (coin.site, y.site, x.site) != (sites[0], sites[1], sites[2]) {
+                break;
+            }
+            let (Some(coin), Some(y), Some(x)) = (coin.value(), y.value(), x.value()) else {
+                break;
+            };
+            let fold =
+                |v: i32| v.rem_euclid(sim::farms::ANIMAL_SPREAD) - sim::farms::ANIMAL_SPREAD / 2;
+            seeds.push(sim::farms::AnimalSeed {
+                chicken: coin & 1 == 0,
+                dy: fold(y),
+                dx: fold(x),
+            });
+        }
+        seeds
+            .chunks(sim::farms::FARM_ANIMALS as usize)
+            .filter(|c| c.len() == sim::farms::FARM_ANIMALS as usize)
+            .map(<[sim::farms::AnimalSeed]>::to_vec)
+            .collect()
     }
 
     /// The sync-stream draws of one sim-frame, in the order they were
@@ -446,6 +521,54 @@ mod tests {
             "the callee's draw is not this function's"
         );
         assert_eq!(t.site_fold(0), "5f6446 ×2, 5f6468, 5f2800, 5f665c");
+    }
+
+    /// **A setup draw's outcome, recovered from the seed it carries.**
+    ///
+    /// The three records are run39's own first animal, verbatim
+    /// (`report.py <log> draws setup`): seeds `a236f580`, `588a6adf`,
+    /// `51d23ab2`, which return 27358, 15025 and 55912 — an even coin, so
+    /// a chicken, and `% 0x180 − 0xc0` on each of the other two, so
+    /// `(dy −143, dx 40)`. Nothing else in the capture holds any of it:
+    /// no dump prints an owner-9 object at all (`docs/SYNC.md` §3.11).
+    #[test]
+    fn a_setup_draw_s_outcome_is_recovered_from_the_seed_it_carries() {
+        let setup = |site: u32, seed: u32| [3u32, site, GAME_RANDOM, seed, 0, 0, 0, 0xffff_ffff];
+        let log = bytes(&[
+            [MAGIC, 1, IMAGE_BASE, 0x1000, 0x2000, 1, 0, 0xffff_ffff],
+            setup(ADD_ANIMALS_COIN, 0xa236_f580),
+            setup(ADD_ANIMALS_Y, 0x588a_6adf),
+            setup(ADD_ANIMALS_X, 0x51d2_3ab2),
+        ]);
+        let t = Trace::parse(&log).expect("a trace");
+        assert_eq!(
+            t.draws.iter().map(Draw::value).collect::<Vec<_>>(),
+            vec![Some(27358), Some(15025), Some(55912)],
+            "the values report.py prints beside these three records"
+        );
+        // Four animals short of a pasture, so nothing is borrowable yet.
+        assert_eq!(t.add_animals(), Vec::<Vec<sim::farms::AnimalSeed>>::new());
+
+        let mut recs = vec![[MAGIC, 1, IMAGE_BASE, 0x1000, 0x2000, 1, 0, 0xffff_ffff]];
+        for _ in 0..sim::farms::FARM_ANIMALS {
+            recs.push(setup(ADD_ANIMALS_COIN, 0xa236_f580));
+            recs.push(setup(ADD_ANIMALS_Y, 0x588a_6adf));
+            recs.push(setup(ADD_ANIMALS_X, 0x51d2_3ab2));
+        }
+        let five = Trace::parse(&bytes(&recs)).expect("a trace");
+        let got = five.add_animals();
+        assert_eq!(got.len(), 1, "one pasture");
+        assert_eq!(
+            got[0],
+            vec![
+                sim::farms::AnimalSeed {
+                    chicken: true,
+                    dy: -143,
+                    dx: 40,
+                };
+                sim::farms::FARM_ANIMALS as usize
+            ]
+        );
     }
 
     #[test]

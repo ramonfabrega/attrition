@@ -317,16 +317,15 @@ Landed: `crates/sim/src/farms.rs` (`Farm::farm_type`, `Sim::farm_add_animals`,
 block of its own (`Farms::log_data` writes `who`, `o`, the cells, the corner
 heights and then `valid`, `farm_type` as flat fields of the enclosing dump).
 
-**What this leaves open.** The animals' **positions**, and with them where
-`think_farm_animal` walks them: `add_animals`' two offset draws are spent in
-the setup stream the harness does not replay, and `corner_x`/`corner_y[slot]`
-with the thirds-of-a-tile arithmetic is read but not issued — a destination
-here would be fiction. So is the coin that picks chicken or pig, and so are
-their **animation lengths**: no dump prints an owner-9 `GUY`, so the sim
-gives them an unknown length, their clocks never run out and their later
-idle re-rolls are missing. ~~None of that touches the frame-0 count; all of
-it touches a long run.~~ — **it is the whole of the second map's word, from
-frame 19 on (§3.11).**
+~~**What this leaves open.** The animals' **positions**, and with them where
+`think_farm_animal` walks them … So is the coin that picks chicken or pig,
+and so are their **animation lengths**.~~ — **all four are closed by §3.11
+(2026-08-30)**: the coin, the two offsets and the species come off the
+capture's own trace, the `type_index` that follows from the species is what
+reaches the install's gaia table, and the walk is issued. ~~None of that
+touches the frame-0 count; all of it touches a long run.~~ — it was the
+whole of the second map's word from frame 19 on, and what is left there is
+movement's and animation's, not this mechanic's (§3.11's last section).
 
 ## 3.7 The idle scout — `Unit::think_scout@005f6010` (2026-08-26)
 
@@ -631,19 +630,52 @@ against `rise_z.map`) are
 — a centre and its four corners, one per animal, which is what
 `Animal+0x154` is for.
 
-**What is still open.** The animals' two position offsets, which set that
-arrival frame — a whole tile of slack on each axis, and a chicken crosses a
-tile in several frames, so the farm's own centre puts the arrival anywhere.
-`Farms::add_animals` spends them at **`+0x92`** (the coin), **`+0x134`**
-(`y`) and **`+0x182`** (`x`), under `Build::activate+0x1c25 <
-Leader::produce_building+0x1a10` — which is §3.8's correction confirmed by
-the chain rather than by reading. run39's five are `(−143, 40)`, `(−187,
-−148)`, `(−39, −144)`, `(−83, −76)`, `(−63, 56)` as `(dy, dx)`, and
-`tools/trace/report.py <log> draws setup` prints them: **a draw record
-carries the seed before the step, so its outcome is recoverable without the
-game**, and the reader now does that arithmetic (2026-08-30). So the
-pasture's five are **borrowable the way the heights and the herds are**,
-and that is the shape the queue carries.
+**The positions are borrowed, not derived.** They are the last thing the
+harness cannot produce: `Farms::add_animals` spends them at **`+0x92`**
+(the coin), **`+0x134`** (`y`) and **`+0x182`** (`x`), under
+`Build::activate+0x1c25 < Leader::produce_building+0x1a10` — which is
+§3.8's correction confirmed by the chain rather than by reading — and the
+whole call sits inside `Setup::build_empire`. run39's five are `(−143,
+40)`, `(−187, −148)`, `(−39, −144)`, `(−83, −76)`, `(−63, 56)` as
+`(dy, dx)`. **A draw record carries the seed before the step, so its
+outcome is recoverable without the game**, and both readers now do that
+arithmetic (`tools/trace/report.py <log> draws setup`;
+`rondata::trace::Trace::add_animals`, and `diff::borrow_pasture` puts them
+on `Initial` — the one field of it no dump fills). run20's trace and the
+fuzzed map's carry their own fifteen, so this is not one capture's trick.
+
+### The pasture, landed (2026-08-30)
+
+`crates/sim/src/farms.rs` now creates each animal with its species and so
+with a **`type_index`** — which is the whole of why the clock never wrapped,
+since `Sim::slot_length` keys the install's gaia table by it — at its
+borrowed position, with `Objects::init_unit`'s speed and turn rate, and
+`Sim::think_farm_animal` issues the `MOVE_TO` above after
+`close_orders`/`clear_partial_path`/`update_action`, at
+`add_move_facing_order`'s snap of the unsnapped point with the angle taken
+to that point rather than to the snapped one. run39's early window goes
+**49/47 → 62/55** of its first 64 frames; ticks and orders hold at 167.
+
+**What is still open, and it is not this mechanic's.** The word still parts
+at **19**, on the *first* of the arrival's two draws. Two residues, each
+demonstrated rather than guessed:
+
+- **The arrival is one frame late.** The walk is 455 units at 25 a frame:
+  nineteen steps here, eighteen there. The arrival test is
+  `dist ≤ tolerance` and this crate's straight-line goal carries
+  `tolerance 0`; one extra unit of speed makes frame 19 match the original
+  **draw for draw**, which is the experiment that separated this residue
+  from the next.
+- **An arrival costs two `Animal::do_idle` draws.** Always two, always on
+  consecutive frames, all game (19/20, 121/122, 134/135, 245/246, …). One
+  is the walk-to-idle transition, which this crate spends. The other needs
+  the guy to be playing something *non-idle* on the following frame:
+  `Guy::set_anim`'s own early return is by **category** — an idle request
+  on an already-idle guy stashes into `Guy+0xa0` and returns, an idle
+  request on a guy whose body is not at des stashes into `+0x9e` — so a
+  second draw means a second non-idle category, and the unit is still
+  easing onto the order's angle across both frames. `Guy::move`'s turn arm
+  is unmodelled here (GROUPS/MOVEMENT's territory, queue items 36 and 37).
 
 ## 4. Run12 attributed
 
@@ -1095,3 +1127,16 @@ struck through and point there.
   farm's modulus is 4, not 3; and `Guy::inc_time`'s step is gated
   (`Unit+0x6c & 0x10`, `+0x82`, the type's `+4`) in ways the four
   woodcutters' frame 0 shows but this reading has not named.
+
+- **The pasture, §3.11 (2026-08-30).** Diff-backed, on two captures: the
+  five's phases, their species and offsets, the `type_index` that reaches
+  the gaia table, and the destination the one draw picks are all pinned by
+  `run39_s_long_trace_says_where_the_second_map_s_word_parts` (62 of the
+  first 64 frames on the count, 55 draw for draw) and by run20's own
+  fifteen setup draws. Reading-only, and named as such: `corner_x`/
+  `corner_y`'s **row order** — the trace confirms the five destinations
+  are three distinct thirds of a tile, not which corner belongs to which
+  slot, because every animal here sits on the farm's own tile; and the
+  `find_angle` argument, which is the *unsnapped* point (`5d7889`–
+  `5d78a5` in the listing) and which no capture separates from the
+  snapped one, since both round to the same eighth of a turn on run39.

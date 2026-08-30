@@ -56,7 +56,7 @@ use crate::place::Blocked;
 use crate::tech::{Kind, TypeId};
 #[cfg(test)]
 use crate::world::Terrain;
-use crate::world::{Cell, Owner, Pos, UNITS_PER_CELL, tile, vector_dist};
+use crate::world::{CORNER_X, CORNER_Y, Cell, Owner, Pos, UNITS_PER_CELL, tile, vector_dist};
 use crate::{Player, Sim, cost};
 
 /// The sweep's two draw sites, under the original's own offsets from
@@ -89,10 +89,10 @@ const RING5_Y: [i32; 40] = [
     5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4,
 ];
 
-/// `corner_x[0..5]` / `corner_y[0..5]` at `0x00adc3e0` / `0x00adc3c0` — the
-/// centre and the four corners, the nomad's wood test.
-const CORNER_X: [i32; 5] = [0, -1, 1, 1, -1];
-const CORNER_Y: [i32; 5] = [0, -1, -1, 1, 1];
+// `corner_x[0..5]` / `corner_y[0..5]` at `0x00adc3e0` / `0x00adc3c0` — the
+// centre and the four corners, the nomad's wood test. The table itself is
+// `crate::world::CORNER_X`; the pasture indexes the same one
+// (`docs/SYNC.md` §3.11).
 
 /// What `compute_site_stats` writes back: the score, the distance figure,
 /// and the site's coordinates, which a `keep` call may have moved.
