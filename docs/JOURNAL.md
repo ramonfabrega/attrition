@@ -7283,3 +7283,17 @@ Six merged branches from the 08-20 readings deleted with their worktrees;
 of its commits are not ancestors of this branch and a steer does not delete
 what it has not read. `main` is fast-forwarded by hand from
 `worktree-replan-pdb`, by the user, when they choose.
+
+### Postscript — the giant capture, and why it is a scenario
+
+Asked whether the original could be run faster or headless for a "final"
+capture that covers everything. ORACLE.md had already measured the answer:
+the sim runs at ~500 frames a second under `!ffwd` and a dump block costs
+2.4 s, so a fully dumped 24,000-frame game is sixteen hours of dump and
+forty gigabytes, and no renderer work touches that. The giant capture is
+one giant *scenario*: the trace whole (cheap; the word over the whole game
+is the long headline) and the dump in windows re-captured on demand,
+because the game is reproducible and a new window is a five-minute re-run.
+Item 91 restated to say so. And a capture takes the screen for thirty
+seconds and then nothing a session uses, so item 90's "while idle" was
+wrong: it runs beside a session.

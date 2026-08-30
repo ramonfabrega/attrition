@@ -40,10 +40,9 @@ run39's 160–210, rontrace-run39.log beside them.`
 
 ## The queue
 
-In dependency order, headline-nearest first — and the headline is the
-lower map. Take the first unstarted one unless something has made a
-different order obviously better, and say so. Numbers are stable; the
-journal is indexed by them.
+In dependency order, headline-nearest first — the headline is the lower
+map. Take the first unstarted one unless a different order is obviously
+better, and say so. Numbers are stable; the journal is indexed by them.
 
 69. **The second map's own first divergence, at 168.** East Indies is
     167/167 and what parts it is an order-list **length**: `1/4` holds two
@@ -95,12 +94,10 @@ journal is indexed by them.
     install-backed tests. Both made to fail first.
 
 72. **A document and its code disagreeing is a diff waiting to be run.**
-    Items 68, 79, 80 and 74 (COSTS §Paying called `refund_cost` a cancel
-    refund while its own open questions had it right) — four in a row.
-    Both halves: every `name@00xxxxxx` and `+0xNN` a document pins,
-    checked across documents and against the module implementing it, and
-    every "halved"/"every frame"/"cleared" verb a document uses about a
-    field this crate owns. `report.py`'s `blind` collects the citations.
+    Items 68, 79, 80 and 74 — four in a row. Both halves: every
+    `name@00xxxxxx` and `+0xNN` a document pins, checked across documents
+    and against the module implementing it, and every "halved"/"every
+    frame"/"cleared" verb about a field this crate owns.
 
 88. **The blind list is the ledger.** `report.py … blind docs/` lists the
     cited functions no traced run has entered (101 of 617); intersected
@@ -132,11 +129,11 @@ journal is indexed by them.
     `army`'s muster search reads it (ARMY §13). Find the writer — not
     `World::set_building_at`, which writes the *tile* mask.
 
-90. **The capture queue.** A capture is fourteen unattended minutes and the
-    blind list shrinks by scenarios, not frames; today each waits for the
-    session that needs it. A scenario file (`longtrace.sh`'s inputs) and a
-    script that runs them back to back while the machine is idle — items
-    23, 45 and 57 are the first three lines.
+90. **The capture queue.** A capture is fourteen unattended minutes — the
+    screen for thirty seconds of lobby, then nothing a session needs — so
+    it runs *beside* a session, not between them. A scenario file
+    (`longtrace.sh`'s inputs) and a script that runs the lines back to
+    back; items 23, 45 and 57 are the first three.
 
 23. **The hand-back's inversion, and the formation byte's sign.**
     `kill_current_order` writes `order.facing XOR reversing(leader.angle −
@@ -156,10 +153,13 @@ three of run12's tiles; (60) the frame's second search, 1,460 nodes
 against 1,870; (62) the standing swap at frame 99, the first draw
 *sequence* difference, costing no word.
 
-91. **The next length.** Both captures are two minutes of game. When a map
-    reaches its full length, the next capture is *longer*, not another map
-    — run18a's 24,000 is the precedent — and it is where every mechanic
-    with a reading and no diff (combat, armies, ages) gets its oracle.
+91. **The final scenario, not a final dump.** One 24,000-frame game per
+    map: the **trace** whole (`cover=1`, no window — cheap; the word over
+    the whole game is the long headline) and the dump in windows
+    re-captured *on demand*, since the game is reproducible (`samegame.py`)
+    and a new window is a five-minute re-run. A full dump is
+    24,000 × 2.4 s. Due when a map's word matches its 1,850; before that
+    the long word parts where the short one does.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — run `zsh tools/fuzz/run.sh 424242
