@@ -359,6 +359,63 @@ impl Sim {
         self.units[u].orders.front()
     }
 
+    /// `get_speed(x, y, 0)` — the virtual at slot `+0x17c` that both the
+    /// unit step (`do_move@005f7b30`) and the pull-back
+    /// (`find_path@005fb910`) call for the step length.
+    ///
+    /// For a player's unit this is `UnitData::get_speed@00608720`, whose
+    /// three layers `docs/MOVEMENT.md`, "The speed pipeline", describes and
+    /// which this crate takes as the cached `Movement::speed`.
+    ///
+    /// **An animal replaces it whole.** `AnimalData::get_speed@005d8380`
+    /// occupies the same slot on `Animal`'s and `AnimalData`'s vtables, and
+    /// it does not call `UnitData::get_speed` at all — it calls
+    /// `UnitData::speed` (the aura layer) and then, on a land or sea
+    /// animal:
+    ///
+    /// - if the current order `is_move` (slot `+0x14`) and the animal is
+    ///   more than `0x180` from that order's **goal** — `get_move_order`
+    ///   (slot `+0xb8`), then `MoveOrder +0x4/+0x8`, the ordered point and
+    ///   not the current waypoint — the speed becomes `speed * 3 / 2`,
+    ///   truncated toward zero;
+    /// - and the result is floored at 3.
+    ///
+    /// An **air** animal — a bird, `type +0x218 == 2` — returns before
+    /// both: no hurry and no floor.
+    ///
+    /// So none of `UnitData::get_speed`'s own layers reach an animal: not
+    /// the order scale, not the `unit_masks & 0x10` halving, not the
+    /// `0x800` tile, not the group cap. The two things `do_move` applies
+    /// *after* the virtual — `ai_speed` and the modern-infantry `5/4` —
+    /// still do.
+    ///
+    /// The `0x180` is the same threshold `Animal::do_idle` measures its
+    /// wander with ([`crate::anim::WANDER_NEAR`] is `0x181`, the strict
+    /// `<`), but it is a **different distance**: `do_idle` measures from
+    /// the herd's centre, this from the order's goal. `docs/MOVEMENT.md`,
+    /// "The animal's own `get_speed`".
+    ///
+    /// SEAM: the original decides this by class — a unit is an `Animal` or
+    /// it is not — and this crate has no class, so it asks
+    /// [`crate::Unit::is_gaia`], the same stand-in
+    /// [`Sim::do_idle`](Self::do_idle) uses to reach `Animal::do_idle`.
+    pub fn get_speed(&self, u: usize) -> i32 {
+        let unit = &self.units[u];
+        let speed = unit.movement.speed;
+        if !unit.is_gaia() {
+            return speed;
+        }
+        if unit.kind.domain == crate::attrition::Domain::Air {
+            return speed;
+        }
+        let far = self
+            .current_order(u)
+            .and_then(Order::move_dest)
+            .is_some_and(|to| vector_dist(unit.pos.x - to.x, unit.pos.y - to.y) > 0x180);
+        let speed = if far { speed * 3 / 2 } else { speed };
+        speed.max(3)
+    }
+
     /// `UnitData::order_type`: the current order's `OrderIndex`, `NONE` for
     /// an empty list.
     pub fn order_type(&self, u: usize) -> u8 {
@@ -1161,8 +1218,10 @@ impl Sim {
             self.store_move(u, mo, flags);
         }
 
-        // The speed, and the straight-line check.
-        let speed = self.units[u].movement.speed;
+        // The speed, and the straight-line check. `do_move` takes it from
+        // the `+0x17c` virtual, which an animal overrides
+        // ([`Sim::get_speed`]).
+        let speed = self.get_speed(u);
         if !self.units[u].line_ok {
             self.units[u].path_recursion = 0;
             let goal = mo.waypoint;
@@ -1339,7 +1398,9 @@ impl Sim {
             return 1;
         }
         self.units[u].path_recursion = self.units[u].path_recursion.saturating_add(1);
-        let speed = self.units[u].movement.speed.max(3);
+        // `find_path`'s own `(*+0x17c)(x, y, 0)` and its `< 4 → 3` floor,
+        // the same virtual the step takes ([`Sim::get_speed`]).
+        let speed = self.get_speed(u).max(3);
         // THE PULL-BACK (§4.6, `005fbaa6`-`005fbb56`), and it is what item 28
         // was: a goal whose own tile refuses is walked *back toward us* one
         // step at a time until it does not, and the waypoint and the path's

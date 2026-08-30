@@ -790,6 +790,66 @@ were found by taking one row of a residue — a farmer standing still and
 facing wrong — and printing the original's own record for the twenty frames
 around it.
 
+## 3.13 The animal's hurry — East Indies' word 69 → 91 (2026-08-30)
+
+Item 95 was booked as "East Indies' blocked stand, a frame late": on run39's
+frame 69 the original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+`sim::anim::SITE_BLOCKED`, and this crate spent it on **70**. It is one draw,
+one frame apart, and the whole of it is a **speed**.
+
+**Whose stand it is.** Gaia's `8/2`, blocked by its herd-mate `8/1`. Both
+sides start it at `(28776, 24360)` on the same frame with the same wander
+goal, `(28968, 23976)`; both stop at exactly `(28856, 24197)`, because the
+stop is positional — the next step's point is where `8/1` stands. The
+original covers that ground in **nine** steps and this crate took **ten**.
+
+**The steps say the speed outright.** The original's, from the dump:
+`(12, −25)`, `(12, −25)`, `(8, −17)`, then `(8, −16)` six times. Ours:
+`(8, −17)` three times, then `(8, −16)`. Solve each against `find_angle` to
+the goal and the sine table and the answer is a single integer per frame:
+the original walks at **28, 28, 19, 18…** and this crate at **19** the whole
+way. The two long steps gain exactly one step's worth of ground, which is
+the frame.
+
+`19 × 3 / 2 = 28`, and the dump prints `myspeed 19` on every one of the nine
+frames — so the `3/2` is applied downstream of the cached speed, not instead
+of it. `AnimalData::get_speed@005d8380` is where: an animal more than
+`0x180` from its current **move order's goal** walks at `speed * 3 / 2`.
+`docs/MOVEMENT.md`, "The animal's own `get_speed`", has the function whole
+and what a fresh reading gets wrong about it. `vector_dist` to the goal on
+the three frames that matter is **432, 404, 376** — the last is the first
+one under `0x181`, and it is the frame the step drops to 19.
+
+**What it cost, and what it did not.** East Indies' word **69 → 91**, the
+early window holding at 64 of 64 on the count and 64 draw for draw. Great
+Lakes is untouched where it can be seen: `first_count` holds at 780,
+`first_part` at 99, run10's ticks and orders at 572/776, and its collision
+rows *rise* 93,357 → 93,398. run33's weak totals fall 954/843 → **938/841**,
+and it can be said exactly where: with the hurry in and out, the per-frame
+draw counts are **identical up to frame 1108** — 328 frames past that
+capture's own parting and past every unit's first divergence. run39's player
+0 goes 219 → **217** on the same argument: by 217 the two sides have been on
+different mid-frame draw orders for a hundred and twenty frames, and which
+of three citizens parts first is not a fact about this simulation.
+
+**The lesson is that the residue was one draw and the cause was a table
+nobody had looked at.** The queue's own framing — "a blocked stand, a frame
+late" — was the *symptom*, and reading `Unit::move_step`'s collision block
+again would never have found it, because the collision block is right. What
+found it was taking the one row, printing the original's own record for the
+twenty frames around it, and solving the steps for a speed: an integer that
+changed from 28 to 19 on the frame `z_internal` changed, which looked like
+terrain and was not. Item 72, a sixth time — and this one the documents had
+*not* got right, which is why it needed the record.
+
+**And the same rule is now the next item.** The word parts at **91** on the
+same site: gaia `8/0` gets a wander order to `(28968, 23976)`, walks one
+step, and is blocked. This crate sends it to `(28776, 24120)` instead — a
+point the near branch can reach and the original's cannot, since
+`Animal::do_idle`'s near offsets cap at `4 × 0x30` an axis — so the two took
+different branches on frame 89, and ours never meets `8/1`.
+
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):
@@ -1257,6 +1317,21 @@ struck through and point there.
   run39, but on the rule: `add_move_order@00616ed0` takes the same
   unsnapped bearing, and run10's farmers separate the two by up to 10.5°
   on frames the dump prints.
+
+- **The animal's hurry, §3.13 (2026-08-30).** Diff-backed, on both
+  captures and with no free parameter:
+  `an_animal_more_than_0x180_from_its_order_hurries_by_three_halves`
+  re-derives `move_step`'s whole step for **every** gaia unit-frame on
+  which an animal moved in run39 and run33 — **264 of 264**, 39 of them
+  beyond `0x180` — from the `myspeed`, `orders_x/orders_y` and positions
+  the dump prints, against two different cached speeds (19 and 11). The
+  threshold, the ratio and the absence of the rule are each made to fail.
+  Reading-only, and named as such: that `is_move` is what slot `+0x14` is
+  (from the PDB's `LF_ONEMETHOD` list — the map's COMDAT folding names it
+  `StrafeOrder::is_air`), and so whether an `AttackToOrder` or
+  `ExploreToOrder` on an animal would hurry too; and that the air arm
+  returns before the floor of 3 as well as before the hurry, which no
+  bird in any capture is slow enough to show.
 
 - **The two arrival arms, §3.12 (2026-08-30).** Diff-backed, on one
   capture and six frames apart: run10's `0/3` arrives on 110 by the

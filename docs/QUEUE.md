@@ -13,29 +13,28 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after items 36 and 93 (Opus).*
+*2026-08-30, after item 95 (Opus).*
 
-**The headline moved on the lower map.** East Indies: run39's word parts at
-**69**, up from 19, and its first 64 frames are **64/64** — every frame the
-original's draws in the original's order. Great Lakes: run10 ticks **572**,
-orders 776; run33's word holds at **780** and its totals rise 951/838 →
-**954/843** of 1,850. The angle sub-score, item 36's own, went **8,969 of
-33,992 → 1,227 of 35,868**, then settled at 1,910 of 35,984 under item 93's
-wider view. Tree green: 642 sim, 145 rondata.
+**The headline moved again on the lower map.** East Indies: run39's word
+parts at **91**, up from 69, with its first 64 frames still **64/64** draw
+for draw. Great Lakes: run10 ticks **572**, orders 776 and its collision
+rows rise 93,357 → **93,398**; run33's word holds at 780 and its sequence
+at 99, while its weak totals fall 954/843 → **938/841** — a fall whose
+first changed frame is **1108**, 328 past that capture's own parting.
+run39's player 0 goes 219 → **217** on the same argument. Tree green: 643
+sim, 146 rondata.
 
-**Item 36 was not seventeen callers.** It was two predicates in code this
-crate already had — `add_move_order` taking the angle to the *snapped*
-destination where the listing takes it to the point the caller handed over,
-and `move_step`'s gather clause applied to both arrival arms where the
-original has it on the Manhattan snap alone. Both are visible in run10 six
-frames apart (`0/3` at 110, `1/3` at 116). `docs/SYNC.md` §3.12. With the
-farmers' facings right, item 93 landed the same session and cost the other
-map nothing. Item 36's named second half — `guy_flags & 8`'s turn animation
-— is closed from the install: no piece any traced guy carries has one.
+**Item 95 was a speed, not a collision.** Gaia's `8/2` covered in ten steps
+what the original covers in nine, so it reached its blocker a frame late.
+`AnimalData::get_speed@005d8380` replaces `UnitData::get_speed` whole for an
+animal and walks it at `speed × 3 / 2` while it is more than `0x180` from
+its order's **goal**. `docs/MOVEMENT.md`, "The animal's own `get_speed`";
+`docs/SYNC.md` §3.13. The rule is pinned against **264 of 264** dumped gaia
+steps on both maps, made to fail three ways.
 
 **Opener (Opus):** `take item 95 from @docs/QUEUE.md — East Indies' word
-now parts at 69 on a blocked stand a frame late; docs/COLLISION.md §5 has
-the site and docs/SYNC.md §3.12 has how the last one was found.`
+now parts at 91 on gaia 8/0's wander branch; docs/SYNC.md §3.13 has the
+site and how the last one was found.`
 
 ## The queue
 
@@ -43,17 +42,21 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-95. **East Indies' blocked stand, a frame late.** run39's word parts at
-    **69**: the original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`
-    — the blocked stand, `sim::anim::SITE_BLOCKED`, COLLISION §5 — and this
-    crate spends it on **70**. Frame 91 is the same one frame the other way.
-    Then 96–98 and 119 are the pasture's own: `Animal::do_idle+0x83` and
-    `Objects::process_all+0x2df` against our `Animal::do_idle+0x19`.
+95. **East Indies' word at 91: gaia `8/0`'s wander branch.** The original
+    gives `8/0` a goal of `(28968, 23976)` on frame 89, walks it one step,
+    and blocks it on 91 — `sim::anim::SITE_BLOCKED` again. This crate sends
+    it to `(28776, 24120)`, which `Animal::do_idle`'s **near** branch can
+    reach and the original's cannot (the near offsets cap at `4 × 0x30` an
+    axis), so the two took different branches on 89 and ours never meets
+    `8/1`. Then 95–98, 106, 107, 112, 119 and 120 are the pasture's own:
+    ours spends `Guy::set_anim+0x97a < Animal::do_idle+0x19` on frames the
+    original does not, and the original spends `Animal::do_idle+0x83` and
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271` on frames we do not.
 
 69. **East Indies' order-list length at 168.** `1/4` holds two orders on
     the original's 168 where this holds one; `1/5` at 186 and `1/3` at
-    202 the same. A hundred frames past 95 — not booked until the word
-    reaches it.
+    202 the same. Seventy-seven frames past 95 — not booked until the
+    word reaches it.
 
 84. **The word at 780, four frames past the city.** Eleven draws against
     eight; ours opens `GameAccess::rnd+0x20 < Unit::do_job+0x67` where the
@@ -132,9 +135,11 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     re-ordered in Refused or an Echelon (GROUPS §13); with it COLLISION
     §9's pause capture, two units ordered head-on.
 
-45. **Gaia's animals.** `Sim::reseat_animal` puts them back from every
-    traced dump (SYNC §4.2), so a wrong animal is invisible until an
-    untraced run. Widen to `ANIMALDATA`: 70,960 uncompared.
+45. **Gaia's animals, and it is worth more than it looked.**
+    `Sim::reseat_animal` puts them back from every traced dump (SYNC §4.2),
+    so `run_traced` reported **no** divergence for `8/2` on any of the ten
+    frames item 95 had its position wrong — and those ten frames cost the
+    word twenty-two. Widen to `ANIMALDATA`: 70,960 uncompared.
 
 The road residue, all in ROADS §7.1 and SYNC §6: (57) the terraform,
 `terraform_for_building@00875210` after `place_roads`, oracle run13's

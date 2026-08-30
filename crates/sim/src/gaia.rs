@@ -436,4 +436,71 @@ mod tests {
         s.sample_birds(0);
         assert_eq!(s.gaia.bird_spawns.len(), 10);
     }
+
+    /// **`AnimalData::get_speed@005d8380`, the animal's own** — the slot
+    /// `+0x17c` override that replaces `UnitData::get_speed` whole
+    /// (`docs/MOVEMENT.md`, "The animal's own `get_speed`").
+    ///
+    /// The threshold is on the order's **goal**, not the herd centre and
+    /// not the current waypoint, and it is strict: `0x180` exactly is
+    /// near. run39's `8/2` crosses it mid-walk, which is what put its
+    /// blocked stand a frame late (`docs/SYNC.md` §3.13).
+    #[test]
+    fn an_animal_beyond_0x180_of_its_order_walks_at_three_halves() {
+        use crate::orders::{MoveKind, QueuePos};
+        let mut s = Sim::new(Tuning::RON, World::new(60, 60), 2);
+        let ty = s.add_unit_type(crate::UnitType {
+            hits: 1,
+            moves: 19,
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(28776, 24360);
+        let mut u = crate::Unit::new(8, 2, at, 1);
+        u.ty = Some(ty);
+        let a = s.add_unit(u);
+        s.units[a].movement.speed = 19;
+        assert_eq!(s.get_speed(a), 19, "no order at all: the base, floored");
+
+        // 432 from the goal — the distance run39 prints on the frame its
+        // step is 28 long.
+        let far = Pos::new(28968, 23976);
+        assert_eq!(crate::world::vector_dist(192, -384), 432);
+        s.add_move_order(a, far, MoveKind::MoveTo, QueuePos::New, false);
+        assert_eq!(s.get_speed(a), 28, "19 * 3 / 2, truncated");
+
+        // And the step it buys, against the record: `(12, −25)`.
+        let want = crate::movement::find_angle(far.x - at.x, far.y - at.y);
+        assert_eq!(
+            (
+                crate::movement::sin_component(want, 28),
+                crate::movement::cos_component(want, 28)
+            ),
+            (12, 25)
+        );
+
+        // Exactly `0x180` is near — the test is `> 0x180`, not `>=`.
+        s.units[a].orders.clear();
+        let near = Pos::new(28776, 24360 - 0x180);
+        s.add_move_order(a, near, MoveKind::MoveTo, QueuePos::New, false);
+        assert_eq!(crate::world::vector_dist(0, -0x180), 0x180);
+        assert_eq!(s.get_speed(a), 19, "0x180 is not more than 0x180");
+
+        // A player's unit takes none of it, however far it is going.
+        let mut p = crate::Unit::new(0, 0, at, 1);
+        p.ty = Some(ty);
+        let h = s.add_unit(p);
+        s.units[h].movement.speed = 19;
+        s.add_move_order(h, far, MoveKind::MoveTo, QueuePos::New, false);
+        assert_eq!(s.get_speed(h), 19, "`UnitData::get_speed` has no hurry");
+
+        // Nor does a bird: air returns before the hurry *and* before the
+        // floor, which is the only way to see the two apart.
+        s.units[a].kind.domain = crate::attrition::Domain::Air;
+        s.units[a].movement.speed = 1;
+        s.units[a].orders.clear();
+        s.add_move_order(a, far, MoveKind::MoveTo, QueuePos::New, false);
+        assert_eq!(s.get_speed(a), 1, "air: neither the 3/2 nor the floor of 3");
+        s.units[a].kind.domain = crate::attrition::Domain::Land;
+        assert_eq!(s.get_speed(a), 3, "and on the ground, the floor");
+    }
 }

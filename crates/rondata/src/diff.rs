@@ -6407,10 +6407,22 @@ mod tests {
         // 584 and run10's orders 776 → 586. With item 36 in front of it
         // the word holds at 780 and both totals rise
         // (`docs/SYNC.md` §3.11, §3.12).
+        //
+        // 954 / 843 -> **938 / 841** with item 95, the animal's hurry, and
+        // this is the second time either has fallen while the score rose
+        // (item 68 was the first). The fall is entirely noise and it can
+        // be said exactly where it starts: with the hurry in and out, this
+        // capture's per-frame draw counts are **identical up to frame
+        // 1108** — 328 frames past the word's own parting at 780, and past
+        // every one of the twelve units' first divergence. `first_count`
+        // holds at 780 and `first_part` at 99; what moved is which of two
+        // wrong streams the simulation is on after 1108. The number that
+        // is not luck is the *other* map's, where the same change takes
+        // the word 69 -> 91.
         assert!(
-            words >= 954 && matched >= 843,
+            words >= 938 && matched >= 841,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 954 and 843"
+             {matched} draw for draw; the floors are 938 and 841"
         );
     }
 
@@ -7069,6 +7081,18 @@ mod tests {
     ///               together cost the *other* map 196 frames of word
     ///               until the farmers' angles were the original's
     ///               (`docs/SYNC.md` §3.11's last section, §3.12).
+    ///   2026-08-30  word **69 -> 91** with item 95, **the animal's
+    ///               hurry**: `AnimalData::get_speed@005d8380` walks an
+    ///               animal at `speed * 3 / 2` while it is more than
+    ///               `0x180` from its order's goal, and this crate walked
+    ///               it at `speed`. Gaia's `8/2` therefore took ten steps
+    ///               over ground the original crosses in nine, reached its
+    ///               blocked stand a frame late, and spent
+    ///               `sim::anim::SITE_BLOCKED` on 70 where the original
+    ///               spends it on 69. The window holds at 64/64.
+    ///               `docs/SYNC.md` §3.13, and
+    ///               [`an_animal_more_than_0x180_from_its_order_hurries_by_three_halves`]
+    ///               is the rule against the record.
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
         let Some(inst) = install() else { return };
@@ -7165,10 +7189,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 69 && words >= 64 && matched >= 64,
+            first_count >= 91 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, {words} of the first \
              {WINDOW} frames on the count, {matched} draw for draw — the floor is \
-             69, 64 and 64"
+             91, 64 and 64"
         );
     }
 
@@ -7324,10 +7348,26 @@ mod tests {
             "run39: ticks {ticks}, orders {orders}, first divergence {:?}",
             report.first_divergence
         );
+        //   2026-08-30  ticks and orders hold at **167**; player 1 holds
+        //               at 168 and **player 0 goes 219 -> 217** with item
+        //               95, the animal's hurry. It is the one fall the
+        //               item costs, and it is downstream of the word: the
+        //               word on this map now parts at 91, so by 217 the
+        //               two sides have been on different mid-frame draw
+        //               orders for a hundred and twenty frames. What moved
+        //               is which of player 0's citizens parts first —
+        //               `0/3` and `0/5` at 219 before, `0/4` at 217 after,
+        //               each of them a step out on a walk no animal
+        //               touches. The animal's own step is now the
+        //               original's on **264 of 264** dumped gaia steps
+        //               across both maps
+        //               ([`an_animal_more_than_0x180_from_its_order_hurries_by_three_halves`]),
+        //               which is a stronger statement about this
+        //               simulation than two frames of a citizen.
         assert!(
-            ticks >= 167 && orders >= 167 && first[0] >= 219 && first[1] >= 168,
+            ticks >= 167 && orders >= 167 && first[0] >= 217 && first[1] >= 168,
             "the second map's score fell: ticks {ticks}, orders {orders}, first \
-             divergence {:?} — the floor is ticks 167, orders 167, player 0 @ 219, \
+             divergence {:?} — the floor is ticks 167, orders 167, player 0 @ 217, \
              player 1 @ 168",
             report.first_divergence
         );
@@ -8059,9 +8099,14 @@ mod tests {
         // sixteenth: `1/9` is trained on the original's frame again, so its
         // own field-frames return, and eight of the other twelve units hold
         // longer with them.
+        //
+        // 93,341 -> **93,357** with items 36 and 93, and -> **93,398**
+        // with item 95 (the animal's hurry): the AI's `1/4` and `1/5` each
+        // hold a few frames longer, so their collision blocks are
+        // comparable for longer.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 93_357,
+            coll_seen, 93_398,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -8290,8 +8335,14 @@ mod tests {
         // longer beside it.
         // Unmoved by item 36 — it changes no position — and 35,868 →
         // **35,984** with item 93.
+        // 35,984 → **35,942** with item 95 (the animal's hurry): 42 fewer,
+        // the coverage effect against the headline's direction for the
+        // seventh time, and it is `1/4` and `1/5` parting a frame or two
+        // earlier deep in the untraced stretch. run10's headline is
+        // unmoved at 572/776 and its collision rows *rose*, 93,357 →
+        // 93,398.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 35_984, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 35_942, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -9079,6 +9130,174 @@ mod tests {
             d[0].what,
             OrderMismatch::PathLength { ours: 2, theirs: 1 }
         ));
+    }
+
+    /// **The animal's hurry, re-derived from the original's own record.**
+    ///
+    /// `AnimalData::get_speed@005d8380` is `Animal`'s and `AnimalData`'s
+    /// slot `+0x17c` — the virtual `do_move` and `find_path` both take the
+    /// step length from — and it does not call `UnitData::get_speed` at
+    /// all. It takes `UnitData::speed`, and then, on a land or sea animal
+    /// whose current order `is_move` (slot `+0x14`, named from the PDB's
+    /// `LF_ONEMETHOD` list, not from the map's COMDAT-folded stub),
+    /// measures `vector_dist` from the animal to that order's **goal** —
+    /// `get_move_order` (slot `+0xb8`), then `MoveOrder +0x4/+0x8`, the
+    /// ordered point rather than `dest_x/dest_y`, the current waypoint —
+    /// and multiplies the speed by **3/2** when it is more than `0x180`.
+    /// Then a floor of 3. An air animal returns before both.
+    ///
+    /// This is checked against the record rather than the listing.
+    /// run39's gaia `8/2` walks nine frames from `(28776, 24360)` toward
+    /// `(28968, 23976)`; the dump prints `myspeed 19` on every one of
+    /// them, so the cached base never moves, and the steps it prints are
+    /// **`(12, −25)` twice and then `(8, −17)`, `(8, −16)` ×6** — a step
+    /// of 28 while `vector_dist` is 432 and 404, and of 19 once it is 376.
+    /// `19 * 3 / 2 = 28`, truncated, and there is no free parameter in
+    /// that.
+    ///
+    /// So the assertion is the whole prediction: for every gaia
+    /// unit-frame in the capture on which the animal moved, the step
+    /// `Unit::move_step` would take at that speed, and nothing else. The
+    /// same walk without the 3/2 is checked to *fail*, because a rule
+    /// nothing can break is not a rule.
+    #[test]
+    fn an_animal_more_than_0x180_from_its_order_hurries_by_three_halves() {
+        use sim::movement::{cos_component, find_angle, sin_component};
+        use sim::world::vector_dist;
+        // **Both maps.** The rule was found on East Indies and is checked
+        // on Great Lakes too, where the herd's `myspeed` is 11 rather than
+        // 19 — so the `3/2` is exercised against two different bases and
+        // cannot be a coincidence of one animal's arithmetic.
+        let files = [
+            "gamelog-run39-islands-longtrace.txt",
+            "gamelog-run33-longtrace.txt",
+        ];
+        let Some(paths) = files
+            .iter()
+            .map(|f| dump(f))
+            .collect::<Option<Vec<String>>>()
+        else {
+            eprintln!("skipping: no long-trace captures (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let texts: Vec<String> = paths
+            .iter()
+            .map(|p| std::fs::read_to_string(p).unwrap())
+            .collect();
+        let captures: Vec<Vec<Frame>> =
+            texts.iter().map(|t| Log::parse(t).frame_states()).collect();
+
+        // One dumped step: where it was, where its order sends it, the
+        // cached speed `myspeed`, and where it ended up.
+        struct Step {
+            capture: &'static str,
+            frame: i64,
+            who: i64,
+            o: i64,
+            from: (i64, i64),
+            goal: (i64, i64),
+            base: i64,
+            to: (i64, i64),
+        }
+        let mut steps: Vec<Step> = Vec::new();
+        for (c, frames) in captures.iter().enumerate() {
+            for w in frames.windows(2) {
+                for u in w[0].units.iter().filter(|u| u.who >= 8) {
+                    let Some(next) = w[1].units.iter().find(|n| n.who == u.who && n.o == u.o)
+                    else {
+                        continue;
+                    };
+                    if (next.pos.x, next.pos.y) == (u.pos.x, u.pos.y) {
+                        continue;
+                    }
+                    let (Some(gx), Some(gy), Some(base)) = (u.orders_x, u.orders_y, u.myspeed)
+                    else {
+                        continue;
+                    };
+                    steps.push(Step {
+                        capture: files[c],
+                        frame: w[0].n,
+                        who: u.who,
+                        o: u.o,
+                        from: (u.pos.x, u.pos.y),
+                        goal: (gx, gy),
+                        base,
+                        to: (next.pos.x, next.pos.y),
+                    });
+                }
+            }
+        }
+        assert!(
+            steps.len() >= 9,
+            "the gaia walks: {} steps, wanted at least the nine `8/2` takes",
+            steps.len()
+        );
+
+        // The prediction, with the hurry and without it.
+        let walk = |s: &Step, boost: bool| -> (i64, i64) {
+            let (dx, dy) = (s.goal.0 - s.from.0, s.goal.1 - s.from.1);
+            let far = vector_dist(dx as i32, dy as i32) > 0x180;
+            let mut speed = s.base as i32;
+            if boost && far {
+                speed = speed * 3 / 2;
+            }
+            let speed = speed.max(3);
+            if dx.abs() + dy.abs() <= i64::from(speed) {
+                return s.goal;
+            }
+            let a = find_angle(dx as i32, dy as i32);
+            (
+                s.from.0 + i64::from(sin_component(a, speed)),
+                s.from.1 - i64::from(cos_component(a, speed)),
+            )
+        };
+
+        let wrong: Vec<String> = steps
+            .iter()
+            .filter(|s| walk(s, true) != s.to)
+            .map(|s| {
+                format!(
+                    "{} frame {} {}/{}: from {:?} goal {:?} base {} — ours {:?} theirs {:?}",
+                    s.capture,
+                    s.frame,
+                    s.who,
+                    s.o,
+                    s.from,
+                    s.goal,
+                    s.base,
+                    walk(s, true),
+                    s.to
+                )
+            })
+            .collect();
+        assert!(
+            wrong.is_empty(),
+            "{} of {} gaia steps are not the rule's:\n{}",
+            wrong.len(),
+            steps.len(),
+            wrong.join("\n")
+        );
+
+        let far = steps
+            .iter()
+            .filter(|s| {
+                vector_dist((s.goal.0 - s.from.0) as i32, (s.goal.1 - s.from.1) as i32) > 0x180
+            })
+            .count();
+        eprintln!(
+            "the two long traces: {} gaia steps, {far} of them beyond 0x180",
+            steps.len()
+        );
+        // And the same walk with the 3/2 taken out, which must break: the
+        // frames on which an animal is beyond `0x180` are the ones the
+        // hurry is for.
+        let unboosted = steps.iter().filter(|s| walk(s, false) != s.to).count();
+        assert_eq!(
+            (steps.len(), far, unboosted),
+            (264, 39, 39),
+            "the two captures' gaia steps, the ones beyond `0x180`, and the \
+             ones the rule's absence would get wrong"
+        );
     }
 }
 

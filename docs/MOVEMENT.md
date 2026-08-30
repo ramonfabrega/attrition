@@ -690,6 +690,81 @@ is above 1, and × 5/4 for **modern infantry** — `UnitData::is_modern_infantry
 a `unit_flags & 0x100` type at age six or later, or any such type under tribe
 bonus `0x12`.
 
+## The animal's own `get_speed` (2026-08-30, item 95)
+
+**Everything above is `UnitData::get_speed`, and an animal never runs a line
+of it.** `get_speed(x, y, flag)` is a virtual — slot `+0x17c`, and both
+`Unit::do_move@005f7b30` and `Unit::find_path@005fb910` take the step length
+from it. `Animal`'s and `AnimalData`'s vtables carry
+**`AnimalData::get_speed@005d8380`** in that slot, and it calls
+`UnitData::speed` (layer 2, the auras) and nothing else from the pipeline:
+
+```
+speed = UnitData::speed()
+if type.domain == 2:  return speed             # air: no hurry, no floor
+order = get_current_order()
+if order and order->is_move():                 # slot +0x14
+    m = order->get_move_order()                # slot +0xb8
+    if vector_dist(|x − m->x|, |y − m->y|) > 0x180:
+        speed = speed * 3 / 2                  # truncated toward zero
+return max(speed, 3)
+```
+
+So for a herd animal or a pasture's, none of layer 3 applies: not the order
+scale, not the `unit_masks & 0x10` halving, not the `0x800` tile, not the
+group cap. What `do_move` applies *after* the virtual — `ai_speed`, and the
+modern-infantry `5/4` — still does.
+
+**The three things a fresh reading gets wrong here.**
+
+- **It is the order's goal, not the waypoint.** `get_move_order` then
+  `MoveOrder +0x4/+0x8`, the point the order was given at — not `+0x2c/+0x30`
+  `dest_x/dest_y`, which the pathfinder overwrites with the current leg. An
+  animal on the last leg of a long walk is still hurrying.
+- **It is not the herd centre.** `0x180` is the same number
+  `Animal::do_idle` measures its wander with — the near branch is
+  `vector_dist(centre − here) < 0x181` — but that one is measured from the
+  herd's centre and this one from the order. They agree on the constant and
+  on nothing else.
+- **The two vtable slots are COMDAT-folded in the map**, so the export names
+  `+0x14` and `+0xb8` after whatever trivial stub they were merged with
+  (`Window::get_button`, `StrafeOrder::is_air`). The PDB's `LF_ONEMETHOD`
+  list carries the real `vftable offset` for each: **20 is `is_move`, 184 is
+  `get_move_order`.**
+
+**Which walks it fires on.** `Animal::do_idle`'s **near** branch offsets the
+animal by at most `4 × 1 × 0x30 = 192` on each axis, so its `vector_dist` is
+at most 288 and a near wander never hurries. The **far** branch —
+`UnitType::find_nearby_spot` around the herd centre at `0xc0` — routinely
+lands beyond `0x180`, so the hurry is the far branch's, and it lasts until
+the animal has closed to `0x180`. That is why an animal's walk *decelerates*
+partway through, which is what it looks like in a dump and is not what it is.
+
+**How it was established, and how confident this is.** Diff-backed on both
+captures, and the arithmetic has no free parameter.
+`rondata::diff::an_animal_more_than_0x180_from_its_order_hurries_by_three_halves`
+re-derives `move_step`'s whole step from `myspeed`, `orders_x/orders_y` and
+the position the dump prints, for **every gaia unit-frame on which an animal
+moved** in run39 and run33: **264 steps, 39 of them beyond `0x180`, and 264
+predicted exactly**. Drop the `3/2` and exactly those 39 break; move the
+threshold to `0x200` and 27 break; make the ratio `4/3` and all 39 break.
+
+The base is the dump's own: run39's `8/2` prints `myspeed 19` on every frame
+of the walk, including the two whose step is 28 long, so the `3/2` is applied
+strictly after `UnitData::speed` and is not a different cached value. Great
+Lakes' herd prints `myspeed 11`, so the ratio is exercised against two bases.
+
+**Not established.** Whether `is_move` is true for any order this crate does
+not model as a `Body::Move` — `AttackToOrder`, `ExploreToOrder` and
+`FleeToOrder` all embed a `MoveOrder` and would answer the `+0xb8` — since no
+capture has an animal carrying one. And `AnimalData::get_speed`'s
+domain-2 arm returns **before** the floor of 3, so a bird with a cached speed
+below 3 would keep it; no bird in any capture is that slow, and this crate has
+no `AirOrder` to walk one with (`docs/SYNC.md` §3.9).
+
+---
+
+
 ---
 
 ## Open questions
