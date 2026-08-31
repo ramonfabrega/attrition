@@ -31,6 +31,12 @@ writes an entry only when its `dependent` is negative — that is what marks a
 binding as the player's own rather than the shipped default — so a written
 entry carries `dependent="-1"`.
 
+**Restore only once the game has exited.** The game rewrites `Player.dat`
+when it quits, binding included, so a `--restore` issued while it is still up
+is silently undone a minute later — which looked, for one confusing check,
+like the tool not working at all. `runqueue.sh` has already killed the process
+by the time its stanza finishes, so restoring after the queue returns is safe.
+
 **This writes to the profile, not to the install's shipped data.**
 `PlayerProfile/Player.dat` is user state and already edited with the game
 closed by `mapstyle.py`; `data/playerprofile.xml` is the game's own and is

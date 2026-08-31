@@ -2752,6 +2752,67 @@ group's own value cannot be read off it, and run46's proof worked because the
 next order there is nothing to read it from. A capture that wants the
 completion path needs a fourth click after the arrival.
 
+## runs 51 and 52 — the profile IS read, and the key that answered it opened the chat box
+
+The experiment run50's section asked for, run in two halves, and it closes the
+`007d39a0` caller question from the behavioural side without reading another
+line of the decompile.
+
+**run51: the profile's `<KEYS>` is read.** `bindkey.py` wrote an `<INPUT>` for
+`OPTION_AUTO_EXPLORE` — chosen because it is the one action whose binding is
+**visible**, printed in its own tooltip — rebinding it from its shipped
+CTRL+E to key 120. Hovering the button then photographs the answer:
+
+| run | the same tooltip |
+| --- | --- |
+| run48, profile untouched | `Auto Explore: ON - ... (Hotkey: CTRL + E)` |
+| run51, after `bindkey.py OPTION_AUTO_EXPLORE 120` | `Auto Explore: OFF - ... (Hotkey: F9)` |
+
+So `KeyMap::load`'s `String` overload at `007d39a0` **does** run, whatever the
+export shows about its callers, and `bindkey.py`'s element is right:
+`<KEY enum=... dependent="-1"><INPUT key=... mouse=... ctrl=... shift=...
+alt=.../></KEY>` in the profile's `<KEYS>`, exactly as
+`KeyMap::save_entry@007d4220` writes it. **That is a tool the lane keeps**:
+any action in `data/playerprofile.xml` can now be given a key with the game
+closed, and the tooltip is how you check the game agrees.
+
+**run52: and the keystroke arrives, but not at the action.** With the same
+bind in place, hover, press, hover:
+
+- before — `Auto Explore: OFF - Click to turn on Auto Explore. (Hotkey: F9)`
+- `osascript ... key code 101`, the mouse parked off the card
+- after — **the chat dialog is open** (`Chat`, `Chat Ally`, `Chat All`,
+  `Close`), the game dimmed behind it, and Auto Explore still OFF.
+
+So input reaches the game — something plainly happened — and it did not reach
+the bound action. Two readings fit and this run does not separate them: either
+F9 also opens chat and chat wins, or **macOS `key code 101` does not arrive as
+F9 through CrossOver** and landed as the `Return` that opens the chat box (the
+recipe's own table says the chat box is opened by `Return`). The second is the
+likelier, and either way the lane's conclusion is the same.
+
+**What this settles for item 23.** run50's `FORM_E_RIGHT`-on-F9 failure is no
+longer a mystery and no longer evidence about formations at all: its two key
+presses were opening a modal chat box, not asking for an Echelon. The bind
+itself was fine. So the Echelon half is **not** blocked on the profile route,
+which works; it is blocked on sending a key the game receives as the key it
+was bound to.
+
+**One operational trap, found by tripping it.** The game **rewrites
+`Player.dat` when it quits**, binding included, so a `--restore` issued while
+it is still running is undone a minute later. Restore after the process has
+exited — which is where `runqueue.sh` leaves things — or the profile keeps a
+binding nobody meant to leave behind.
+
+**How the next attempt should send it.** Bind to a **plain letter** and send
+it with `osascript ... keystroke "j"`, which is the path the recipe says
+reaches the game, rather than a function key through `key code`. Then verify
+before relying on it, in this order, because each step is cheap and the one
+after is not: (1) the tooltip says the letter, so the game loaded the bind;
+(2) pressing it toggles Auto Explore, so that letter arrives; (3) only then
+rebind `FORM_E_RIGHT` to the same letter and look for `form 3` in the dump.
+Steps 1 and 2 are a 250-frame run apiece and would have saved run50.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
