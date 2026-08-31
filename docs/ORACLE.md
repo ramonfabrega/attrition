@@ -2342,6 +2342,90 @@ before the pasture landed). What still parts at 19 is the *first* of the
 two `Animal::do_idle` draws an arrival costs — movement's and animation's
 residue, not the pasture's.
 
+## The capture lane, and run42 — the goody box's pile (2026-08-31)
+
+The second lane of `docs/DECISIONS.md` entry 27, running beside the main
+loop. Its products are logs outside the repo, so it needs no git
+coordination at all; its repo writes are `tools/` and these run sections.
+**The screen, the `ron` bottle and the install's INIs belong to it while it
+exists** — a main-loop item that wants a behavioural check appends a stanza
+to `tools/gamelog/captures.txt` rather than taking the screen.
+
+**The queue is a file now.** `longtrace.sh` kept its four positional
+arguments and grew the hooks a queue of captures needs — `DETAIL_END` and
+`DETAIL_START`, `CMD_EXTRA` for the scenario's `rontrace.cmd` lines,
+`TRACE_COVER`, `WINDOW` for a `DUMP_ALL` window, `SETTLE_MIN`, and `DRIVER`
+for the right-clicks the cheat channel cannot issue. Every one defaults to
+exactly what the script did before it existed, so an unset environment still
+reproduces run33 and run39. `captures.txt` holds one stanza per owed
+capture and `runqueue.sh` walks it **one at a time**, skipping any stanza
+whose archive already exists, so an interrupted queue resumes rather than
+restarts.
+
+**Run numbers start at 42, and the reason is a trap worth naming.** 40 and
+41 are taken by two `census` captures from 2026-08-30 that no run section
+here mentions — and `rondata::diff` reads `gamelog-run40-census.txt`, while
+`economy.rs`, `cost.rs`, `nations.rs` and `cities_tests.rs` all cite run40
+or run41 by name. `longtrace.sh` archives its trace as `rontrace-run$N.log`
+**unconditionally**, so re-using a number silently overwrites another run's
+trace while leaving its gamelog beside it, which is the worst of the two
+outcomes: the run still looks archived. Read the `Logs` directory, not the
+documents, before picking a number.
+
+**Two guards that were prose and are now checks.** `samegame.py --exclude
+NAME` drops one record type from both digests, which is what makes the
+same-game question answerable when a capture raises a category's threshold
+to read a field — the raised category's blocks differ on every frame by
+construction, and everything else is still compared frame for frame. It is
+the weaker claim and the tool says so. `cmdsran.py` reads the `INFO cmd`
+records back out of a run's trace and fails when a staged line did not run,
+or ran and `parse_cmd` refused it: run23 is the standing example of a
+capture whose scenario did not happen and whose dump looked ordinary, and
+only a word-for-word comparison against run21 caught it.
+
+### run42 — `LEADERS=2`, and the pile is no longer unchecked
+
+run39's lobby and seed exactly (East Indies, `MAP_STYLE 18`, seed 12345, the
+profile's lobby with no `-config`), 900 frames, at run39's detail **plus
+`LEADERS=2`**. The `LEADERDATA` block that carries `bucket`, `ages_get()`
+and `epoch_get(scan)` is the encrypted one, and `LeaderData::log_data@006e5110`
+announces it at detail **2** — the `this_00[1].handle = 2` before the
+`LeaderDataEncrypt::log_data` call — not the **9** of the census. That is
+the whole reason this capture is cheap: 245 MB and eleven minutes, where
+`LEADERS=9` per frame is ten thousand lines a leader a frame and crawls.
+`samegame.py --exclude LEADERDATA` against run39 is **900 frames in common
+and not one that differs**, so it is run39's game and inherits its
+siblings.
+
+**It settles `docs/GOODY.md` §6's owed capture, and corrects one detail of
+it.** The prediction was `bucket[2]` stepping by 50 on frame 867 with
+`epoch_get(scan)` reading `0 0 0 1`.
+
+- The step is there and it is the AI's: leader **1**'s `bucket[2]` goes
+  **50 → 100** between the blocks labelled `FRAME 867` and `FRAME 868` — a
+  block `FRAME n` is the end of sim-frame `n − 1`, so the pay lands on
+  **sim-frame 867**, the predicted frame.
+- **The trace names the cause rather than leaving it to be inferred.**
+  `ObjectsData::find_goody_at` and `Unit::explore_goody` are entered on
+  sim-frame 867 and on no other frame in the neighbourhood — 860, 863, 865,
+  866, 868, 869, 872 and 880 all have neither. A box was opened on exactly
+  the frame the pile moved.
+- **`epoch_get(scan)` reads `0 1 0 1`, not `0 0 0 1`.** Civic is 1 as well
+  as Science. It does not enter the formula — `epoch[3] × 25 + 25` reads
+  Science alone, and `1 × 25 + 25 = 50` is the observed pay — so §6's
+  arithmetic stands and only its stated vector was wrong.
+- So the reading that mattered is **confirmed and its alternative refuted**:
+  an `ages` reading would pay 25, because `ages` is 0 in an Ancient-age
+  game, and the observed step is 50.
+
+What run42 does **not** settle is which *good* a box picks: the lottery's
+winner depends on the finder's buckets, and the frame's draw count would be
+identical whichever good won (§6's last row). `bucket[0]` and `bucket[1]`
+are visibly a different clock — the human's step by one every eleven and
+fifteen frames respectively, all run long — so the record now on disk is
+enough to separate the pile's income from the box's, which it was not
+before.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
