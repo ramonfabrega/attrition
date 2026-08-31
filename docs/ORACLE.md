@@ -2617,6 +2617,66 @@ argument for a guard over prose. `groupfacing.py` now fails on `≤ 512`
 blocks and names the cause, so the next stanza to do it is told in a minute
 rather than after a twenty-minute capture.
 
+## run46 — the XOR term fires, and the formula is right
+
+Item 23's event, and the first time `Unit::kill_current_order@005e2cb0`'s
+
+    group.facing = order.facing XOR reversing(leader.angle - order.angle)
+
+has run with `order.facing` **1** in any capture. run10's lobby, 900 frames
+at run31's group detail, eight hoplites added and selected from the cheat
+channel, and three right-clicks from `clickdriver.sh` — the camera alternating
+between tiles (30, 167) and (6, 167) either side of the units, so every order
+after the first is a ~180 degree turn and `reversing` is not left to luck.
+
+| click | frame | its order appears | the order's angle | `order.facing` |
+| --- | --- | --- | --- | --- |
+| 1 | 213 | 216 | **+85.8°** | 0 |
+| 2 | 333 | 336 | **−92.8°** | **1** |
+| 3 | 453 | 456 | **+86.0°** | 0 |
+
+Read it as two hand-backs, and both come out as the formula says:
+
+- **click 1 → 2.** The leader turns +85.8° to −92.8°, which is 178.6° and
+  inside the `reversing` window, so the toggle is 1. `Form::compute` sees
+  `order.facing XOR toggle` = `0 XOR 1` = **1**, and click 2's order is laid
+  out carrying `facing 1`. That is the mirrored layout run31 also reaches.
+- **click 2 → 3, which is the one nobody had.** The dying order carries
+  `facing 1`, the leader turns −92.8° to +86.0° — 178.8°, the window again,
+  toggle 1 — and the hand-back is `1 XOR 1` = **0**. Click 3's order is laid
+  out carrying `facing 0`, which is what the dump prints from frame 456.
+
+The mirrored order lives on frames **336 to 455** and dies on the frame click
+3's replaces it; 1,509 group move orders carry `facing 1` across those 120
+frames, against **none** in run45 and none in any AI capture.
+
+**What is still owed, and it is the other half of item 23.** Every group here
+is a **Line** (`form 0`, 1,587 records, nothing else), and `docs/GROUPS.md`
+§6.4's slot table only reads `reverse` on the Echelon rows. So the mirror's
+*consequence for the positions* — the formation byte's sign — is still
+unexercised: this run proves the flag is computed as stated and not what it
+then does to a slot. A formation cannot be set from the console (its 102
+commands have no such verb, `tools/gamelog/console.py`), so that half needs
+the unit panel, which is a click on a button rather than on the map.
+
+**Two instrument lessons, both of which cost a run.**
+
+- **`!ffwd` stops the renderer.** run46's first attempt clicked three times
+  and produced no order at all, and its screenshot showed the capital still
+  selected — which read as `select hoplite who=0` having failed. It had not.
+  run47's five screenshots, taken across ninety sim frames, came back
+  **byte-for-byte identical** with the in-game clock at 00:00:00: the game
+  was simulating and not drawing, so the driver was clicking at a picture
+  minutes stale and no screenshot of that run was evidence of anything. With
+  the fast-forward dropped the shots differ, the clock runs, and `select
+  hoplite who=0` puts six hoplite portraits in the tray exactly as the
+  recipe above says. `FFWD` is an input now; **every stanza with a `driver:`
+  sets it empty.**
+- **An accepted line is not a line that did something.** `cmdsran.py` reports
+  what `ConsoleWin::parse_cmd` returned, and it returned 1 for the select
+  that changed nothing. The tick means the channel took the line, and no
+  more.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
