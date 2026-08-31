@@ -159,8 +159,8 @@ impl PlayerBorders {
             steps += russian_steps(t.eiffel_tower_territory_bonus, n.russian);
         }
         if n.russian {
-            flat += t.russian_borders + t.russian_borders_per_age * n.age;
-            steps += i32::from(t.russian_borders != 0) + n.age;
+            flat += t.russian_borders + t.russian_borders_per_age * n.civic;
+            steps += i32::from(t.russian_borders != 0) + n.civic;
         }
         flat += handicap_bonus;
 
@@ -193,8 +193,13 @@ pub struct NationBonuses {
     pub russian: bool,
     /// Whether the player holds a gem resource.
     pub gems: bool,
-    /// Current age, for the Russian per-age border bonus.
-    pub age: i32,
+    /// The **Civic library level**, which is what the Russians' per-step
+    /// border bonus multiplies — not the age. `compute_reg_territory` reads
+    /// `data_encrypted->epoch[1] ^ 0x63187` twice in the same loop body,
+    /// once for [`PlayerBorders::civic`] and once here, and they are the
+    /// same expression on the same field (`+0xec`, which
+    /// `LeaderData::get_city_limit` names `epoch[1]`).
+    pub civic: i32,
 }
 
 /// A city's own contribution, on top of its player's.

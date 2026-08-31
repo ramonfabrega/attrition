@@ -2589,3 +2589,55 @@ return 2, and only the second.
 weak totals 943/830 → **943/851**; run10's roster the original's both ways
 for the first time (268 missing + 0 extra → **0 + 0**). The story and every
 number are in `docs/JOURNAL.md`.
+
+## 18. The site list, its territory, and the slide's reach (2026-08-31)
+
+The two census windows (`run40` `[560, 600)`, `run41` `[770, 800)`, §2.13's
+own oracle at last) print `Leader::sites` **whole** — ten
+`{wx, wy, val, reg, dist, rank}` a leader a frame — and
+`LeaderData::territory` beside it. Nine tenths of that record had gone
+uncompared for a month; `diff::tests::run40_and_run41_s_sites_and_territory_
+are_the_original_s` compares all 7,000 fields of it and the territory that
+feeds them.
+
+**What it found.** §2.13 step 1's second early return is
+`WorldData::was_seen@006b53f0`, and its **first** arm is territorial: a cell
+owned by an ally — `is_ally` is reflexive, so one's own land — is seen
+wherever that owner's `reg_cities[region]` or `reg_forts[region]` is
+non-zero. On this map the AI's fog plane is empty over the whole southern
+approach, so *the site scorer sees exactly the AI's own borders*. Getting
+the borders one Civic step too small therefore blinds the scorer, and this
+crate's borders were: `World::compute_reg_territory` rebuilds its per-player
+bonus table on every pass and `crates/sim` cached it at `add_player`
+(`docs/ATTRITION.md`, "Territory"). The AI held **261 cells against 290**,
+the human's 266 exact.
+
+The twenty-nine dark cells are step 3's, not step 1's: an unseen cell is
+neither counted for `danger`/`water` nor eligible for the **slide**. On
+run10's frame 575 the AI samples cell `(48, 29)`; the original slides it to
+`(47, 28)` and scores 6,181, and this crate could not see `(47, 28)` at all
+— it slid to `(49, 27)` and scored 1,159, and its second city went up at
+cell `(55, 21)` instead of the original's `(54, 32)`. With the borders live,
+the winning site on frames 576–799 is `(54, 32) / 6079`, the original's, and
+the `BUILDORDER` the AI hands `1/1` on 777 carries the original's own
+`(41448, 23928)`.
+
+**The residue, and it is one slot.** Where the original's 5×5 leaves
+`(48, 29)` for `(47, 28)`, this crate keeps `(48, 29)`: `q = 19` at offset 0
+against 17 at offset 1, and offset 0 is the centre, so the original's
+`blocked_town` must refuse the centre where `site_clear` allows it.
+`BuildTypeData::blocked_site@00636a50` counts the footprint **tiles** whose
+fog half-cell (`t >> 1`) the placer has never seen and returns `0x24` when
+more than half are dark, with only a Dock (`is(0x1b0)`) exempt;
+`blocked_tcoord` here grants visibility everywhere (`docs/CITIES.md` §11).
+Landing that rule alone moves none of the numbers — the AI's own territory
+answers "seen" through the same territorial arm — so it is **booked, not
+guessed at**. The one wrong slot drags the `rank` of the four it outscores
+with it, which is the rest of the 580-of-4,000 and 520-of-3,000 residue the
+test pins as ceilings.
+
+**Coverage.** Diff-backed: the territory count, both players, every frame of
+both windows; the ten sites' `wx`, `wy`, `val` and `dist` on every slot but
+the one above. Reading-only: `was_seen`'s `reg_forts` arm (`+0x12de`), which
+`was_seen_fog` does not implement and no capture reaches — no player in the
+corpus owns a fort.

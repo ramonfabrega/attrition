@@ -542,6 +542,28 @@ Bonuses accumulate from:
 The per-player half of that is recomputed for all eight players at the top of
 every region pass; the per-object half is resolved inside the per-cell loop.
 
+**Recomputed, not cached — and that is behaviour** (2026-08-31, item 113).
+`compute_reg_territory@006b0bb0` lines 125–260 build the whole eight-row table
+on *every* pass, so a leader's borders widen on the frame its Civic level
+rises. The level is `data_encrypted->epoch[1] ^ 0x63187` — the same field
+`LeaderData::get_city_limit` reads, so `epoch[1]` is Civic and `epoch[0]` is
+Military (queue item 107) — and it is read **twice** in the same loop body:
+once for `CIVIC_UPGRADE_TERR` and once for the Russians' flat bonus, whose
+"per age" is therefore per *Civic level*, not per age. `crates/sim` built the
+table once in `Sim::add_player` and never rewrote it; [`Sim::player_borders`]
+now reads it live and `sync_territory` rebuilds all eight rows, with
+`apply_gained` re-syncing when a gain moves the row. The cost of getting this
+wrong was not the border: `WorldData::was_seen@006b53f0`'s **first** arm is
+territorial — a cell of an ally's, and `is_ally` is reflexive — so twenty-nine
+cells the AI should have owned were *dark* to the site scorer, and it founded
+its second city in the wrong place (`docs/AI.md` §18).
+
+Four inputs are still seams here, all inert on every capture so far: the
+temple and fort border levels (`has_preq(TEMPLEBORDERS2..4)`,
+`has_preq(FORTBORDERS2..4)` — bonus types `0x2c8..0x2ca` and `0x2d1..0x2d3`,
+which the loader reads as `bonus_preqs` and does not expose), the Colosseum
+and Eiffel Tower, a gem rare, and the AI handicap allowance.
+
 ### Distance is not Euclidean, and this matters
 
 Two departures, neither of which anyone would arrive at by guessing, and both

@@ -689,6 +689,15 @@ impl Sim {
     /// records — and the borders recomputed wholesale (`docs/ATTRITION.md`'s
     /// stated simplification).
     pub fn sync_territory(&mut self) {
+        // `World::compute_reg_territory` rebuilds its whole per-player table
+        // at the top of every region pass (`006b0bb0` lines 125–260) rather
+        // than caching it, so the Civic level a leader holds *now* is what
+        // its cities project. This crate cached the table at `add_player`
+        // and never rewrote it, which cost the AI its `CIVIC_UPGRADE_TERR`
+        // step for the whole of a game (item 113).
+        for w in 0..self.players.len() {
+            self.borders[w] = self.player_borders(w as Player);
+        }
         // Drop every source a city or fort owns, keep the ones tests put in
         // by hand, then add the live ones back.
         let mut owned: Vec<usize> = self

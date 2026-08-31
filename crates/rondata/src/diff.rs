@@ -6672,10 +6672,23 @@ mod tests {
         // number of draws in some other order, against 68 before — which
         // is what a stretch of real agreement rather than coincidence
         // looks like.
+        //
+        // 1471 / 1439 -> **1467 / 1436** with item 113, the second fall
+        // these two have taken, and the argument is exact rather than
+        // statistical this time: **the word and the sequence both hold at
+        // 1372**, and `first_count` is by construction the first frame
+        // whose draw *count* differs, so every frame before 1372 spends
+        // the original's number of draws in the original's order on both
+        // sides of the change. Every one of the seven verdicts that moved
+        // is at 1372 or later, past the parting, on the two wrong streams
+        // this comment's opening paragraph names. What the item moved is
+        // the headline: this map's ticks go 910 -> **1375** and its orders
+        // 776 -> **791**, the AI's `1/1` stops parting at all, and East
+        // Indies holds at 1374/1373.
         assert!(
-            words >= 1471 && matched >= 1439,
+            words >= 1467 && matched >= 1436,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 1471 and 1439"
+             {matched} draw for draw; the floors are 1467 and 1436"
         );
     }
 
@@ -6909,6 +6922,172 @@ mod tests {
             wrong.len(),
             of("gather_slots")
         );
+    }
+
+    /// **run40 and run41 — the ten `SITE` records, and the territory the
+    /// site scorer reads through them (item 113).**
+    ///
+    /// The census windows the price item captured
+    /// ([`run40_s_census_prices_the_ai_s_second_city_at_sixty`]) carry more
+    /// than goods: `LEADERS=9` prints `Leader::sites` whole — ten
+    /// `{wx, wy, val, reg, dist, rank}` a leader a frame — and
+    /// `LeaderData::territory` beside it. Nine tenths of that record had
+    /// gone uncompared, and inside it was the whole of Great Lakes' `1/1`.
+    ///
+    /// **The territory, first, because it is the item.** `World::compute_
+    /// reg_territory@006b0bb0` rebuilds its per-player bonus table at the
+    /// top of every region pass (lines 125–260) and reads
+    /// `data_encrypted->epoch[1] ^ 0x63187` — the **Civic** library level,
+    /// the same field `LeaderData::get_city_limit` names — for both
+    /// `CIVIC_UPGRADE_TERR` and the Russians' per-step flat bonus. This
+    /// crate built that table once, in `add_player`, and never rewrote it,
+    /// so the AI's City State never widened its border: **261 cells against
+    /// the original's 290**, with the human's 266 exact on every frame of
+    /// both windows. [`sim::Sim::player_borders`] reads the level live and
+    /// `sync_territory` rebuilds all eight rows, as the original does.
+    ///
+    /// Twenty-nine cells is not a rounding error in this mechanic, because
+    /// `compute_site_stats`' fog test is `WorldData::was_seen@006b53f0` and
+    /// its **first** arm is territorial: a cell owned by an ally — `is_ally`
+    /// is reflexive — is seen wherever that owner has a city in the region.
+    /// Every one of those cells was dark to the site scorer, so its 5×5
+    /// slide could not move onto them. On run10's frame 575 the AI samples
+    /// cell `(48, 29)`, the original slides it to `(47, 28)` for 6,181 and
+    /// this crate could not see `(47, 28)` at all: it slid to `(49, 27)` for
+    /// 1,159, and from there the second city went up in the wrong place.
+    ///
+    /// **What is still wrong, asserted as it stands.** One slot. Where the
+    /// original's 5×5 leaves cell `(48, 29)` for `(47, 28)`, this crate
+    /// keeps `(48, 29)` — `q = 19` at offset 0 against 17 at offset 1, and
+    /// the original's `blocked_town` must be refusing the centre where this
+    /// crate's `site_clear` allows it. `BuildTypeData::blocked_site@00636a50`
+    /// counts the footprint tiles whose fog half-cell the placer has never
+    /// seen and returns `0x24` when more than half of them are dark, with
+    /// only a Dock exempt; `blocked_tcoord` here grants visibility
+    /// everywhere (`docs/CITIES.md` §11). Landing that rule alone moves
+    /// none of these numbers — the AI's own territory is "seen" through the
+    /// same territorial arm — so it is booked rather than guessed at. The
+    /// one wrong slot drags the `rank` of the four slots it outscores with
+    /// it, which is where the rest of the residue comes from.
+    #[test]
+    fn run40_and_run41_s_sites_and_territory_are_the_original_s() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut ran = 0;
+        for (file, lo, hi, fields, floor) in [
+            (
+                "gamelog-run40-census.txt",
+                560i64,
+                600i64,
+                4_000usize,
+                580usize,
+            ),
+            ("gamelog-run41-census.txt", 770, 800, 3_000, 520),
+        ] {
+            let Some(path) = dump(file) else {
+                eprintln!("skipping: no {file} (set RON_GAMELOG_DIR)");
+                continue;
+            };
+            ran += 1;
+            let text = std::fs::read_to_string(&path).unwrap();
+            let log = Log::parse(&text);
+            let mut init = log.initial().unwrap();
+            borrow_from_siblings(&mut init, &refs);
+            let mut built = build_sim(&loaded, &init, Tuning::RON);
+            let mut compared = 0usize;
+            let mut wrong: Vec<String> = Vec::new();
+            let mut terr_compared = 0usize;
+            let mut terr_wrong: Vec<String> = Vec::new();
+            for n in 1..hi {
+                built.tick();
+                if n < lo {
+                    continue;
+                }
+                // The live owned-cell count, which is what
+                // `LeaderData::territory` is. The census's own
+                // `my_team_terr` is a snapshot of it taken on the AI's
+                // sweep and lags by up to a sweep, so it is not the field
+                // to compare.
+                let mut owned = vec![0i64; built.sim.players.len()];
+                for y in 0..built.sim.world.height() {
+                    for x in 0..built.sim.world.width() {
+                        if let sim::world::Owner::Player(p) =
+                            built.sim.world.owner(sim::world::Cell::new(x, y))
+                        {
+                            owned[p as usize] += 1;
+                        }
+                    }
+                }
+                for who in 0..2i64 {
+                    let Some(block) = log.leader_block(n, who) else {
+                        continue;
+                    };
+                    terr_compared += 1;
+                    let theirs = block.int("territory");
+                    if theirs != Some(owned[who as usize]) {
+                        terr_wrong.push(format!(
+                            "frame {n} who {who}: ours {} theirs {theirs:?}",
+                            owned[who as usize]
+                        ));
+                    }
+                    let sites: Vec<(i64, i64, i64, i64, i64)> = block
+                        .kids("SITE")
+                        .map(|s| {
+                            (
+                                s.int("wx").unwrap_or(0),
+                                s.int("wy").unwrap_or(0),
+                                s.int("val").unwrap_or(0),
+                                s.int("dist").unwrap_or(0),
+                                s.int("rank").unwrap_or(0),
+                            )
+                        })
+                        .collect();
+                    assert_eq!(sites.len(), 10, "ten SITE records, frame {n} who {who}");
+                    for (i, t) in sites.iter().enumerate() {
+                        let o = built.sim.ai[who as usize].sites[i];
+                        let ours = (
+                            i64::from(o.wx),
+                            i64::from(o.wy),
+                            i64::from(o.val),
+                            i64::from(o.dist),
+                            i64::from(o.rank),
+                        );
+                        compared += 5;
+                        if ours != *t {
+                            wrong.push(format!(
+                                "frame {n} who {who} [{i}] ours {ours:?} theirs {t:?}"
+                            ));
+                        }
+                    }
+                }
+            }
+            assert_eq!(
+                compared, fields,
+                "{file}: ten slots, five fields, two leaders"
+            );
+            // **The item.** Both players' territory, every frame of the
+            // window, exact — 261 against 290 before the Civic level
+            // reached the border pass.
+            assert!(
+                terr_wrong.is_empty(),
+                "{file}: {} of {terr_compared} leader-frames hold the original's territory:\n  {}",
+                terr_compared - terr_wrong.len(),
+                terr_wrong.join("\n  ")
+            );
+            let bad = wrong.len() * 5;
+            eprintln!("{file}: {bad} of {compared} site fields disagree");
+            assert!(
+                bad <= floor,
+                "{file}: the site record fell to {bad} of {compared} disagreeing fields, \
+                 the ceiling is {floor}:\n  {}",
+                wrong.join("\n  ")
+            );
+        }
+        assert!(ran > 0, "neither census window is on this machine");
     }
 
     /// **Run33's frame 361 — the scout's second explore target, and the
@@ -9658,10 +9837,47 @@ mod tests {
         // item. Six of the fourteen moved and all six later (`0/3` 1154 ->
         // 1385, `0/4` 1227 -> 1462, `0/5` 1191 -> 1409, `1/5` 1359 ->
         // 1379, `1/8` 1376 unchanged, `1/10` 1552 unchanged).
+        //
+        // 2026-08-31, item 113: ticks **910 -> 1375**, orders **776 ->
+        // 791**, player 1 **911 -> 1376**, and this map's headline is a
+        // fifth of a game further in. `1/1` is **gone from the by-unit
+        // list entirely** — it never parts on position across the whole
+        // 1,772 — and every other one of the fourteen parts on the frame
+        // it did before, to the frame. Two defects, and the second was
+        // only reachable once the first was fixed.
+        //
+        // The first is the AI's borders. `World::compute_reg_territory`
+        // rebuilds its per-player bonus table at the top of every pass and
+        // reads the **Civic** level out of it; this crate built the table
+        // once in `add_player`. The AI's City State never widened its
+        // border, so it held 261 cells against the original's 290 — and
+        // `WorldData::was_seen`'s first arm is territorial, so those
+        // twenty-nine cells were dark to `compute_site_stats`. Its 5×5
+        // slide could not reach `(47, 28)` and the second city went up in
+        // the wrong place
+        // ([`run40_and_run41_s_sites_and_territory_are_the_original_s`]).
+        //
+        // The second is `find_wpath`'s `scouting` mode, and it took the
+        // word *down* to 786 on its own before it was found. `scouting`
+        // prices seen ground at `0x400` against unseen `8` — the whole of
+        // "exploration seeks the unexplored" — and it is set only when the
+        // **type** is a scout (`role & 0x10`, `is(SCOUT)` on land,
+        // `is(BARK)` at sea) *and* the order is `EXPLORE_TO`. This crate
+        // tested the order alone, so the citizen the AI sends to its city
+        // site under an `EXPLORETO` took a ten-cell detour west through
+        // the fog where the original walks seven south-east. No capture
+        // had ever exercised it: until the borders were right, no
+        // non-scout in either game was given an explore order over any
+        // distance.
+        //
+        // What now holds the order score at 791 is `1/1` again, and it is
+        // one field: on frame 792 the original's `coll_x/coll_y` is
+        // `(40539, 18258)` and this crate's `(40632, 18044)` — the same
+        // walk, a different collision point.
         assert!(
-            ticks >= 910 && orders >= 776 && first[0] >= 1385 && first[1] >= 911,
+            ticks >= 1375 && orders >= 791 && first[0] >= 1385 && first[1] >= 1376,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 910, orders 776, player 0 @ 1385, player 1 @ 911",
+             — the floor is ticks 1375, orders 791, player 0 @ 1385, player 1 @ 1376",
             report.first_divergence
         );
         assert!(
@@ -10027,9 +10243,14 @@ mod tests {
         // player 0's three by two hundred frames apiece — so eleven
         // thousand more unit-frames are comparable at all, and the block
         // stays empty over every one of them.
+        //
+        // 123,500 -> **128,672** with item 113, the twenty-sixth, and it
+        // moves with the headline: `1/1` never parts at all now, so its
+        // whole run is comparable where only nine hundred frames of it
+        // were.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 123_500,
+            coll_seen, 128_672,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -10318,8 +10539,11 @@ mod tests {
         // with item 112's herd centre: both rises are the comparable
         // window growing on six of the fourteen units at once, and neither
         // is a coincidence past a parting — the word carries them.
+        // 47,364 → **49,088** with item 113's two halves, and again the
+        // word carries it: `1/1` never parts, so its whole 1,772 frames
+        // are comparable where nine hundred were.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 47_364, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 49_088, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()

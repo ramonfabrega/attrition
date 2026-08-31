@@ -990,9 +990,28 @@ impl Sim {
         // search past the whole mode block (audit V14).
         let human = self.nation[self.units[u].owner as usize].human;
         let modes = Modes {
-            scouting: self.current_order(u).is_some_and(
-                |o| matches!(o.body, Body::Move(mo) if mo.kind == MoveKind::ExploreTo),
-            ),
+            // `scouting = 1` iff the **type** is a scout — `role & 0x10`,
+            // `is(SCOUT)` on land and `is(BARK)` at sea
+            // (`UnitType::determine_roles@0061c320`) — **and** the order is
+            // `EXPLORE_TO` (§3). The type half was missing, and it is not a
+            // refinement: `scouting` prices seen ground at `0x400` against
+            // unseen `8`, so any unit given an `EXPLORE_TO` walked toward
+            // the fog. run10's AI citizen `1/1` is sent to its second
+            // city's site under an `EXPLORETO` on frame 777 and took a
+            // ten-cell detour west through unexplored ground where the
+            // original walks seven cells south-east.
+            //
+            // SEAM: the clause `order.flags & 4 == 0 || unit_masks &
+            // 0x40100`, which can only ever turn scouting *off* for a
+            // scout whose explore order carries `ACTION`. Left out until
+            // the two mask bits are modelled; every explore order in the
+            // corpus has `flags 1`.
+            scouting: self.units[u]
+                .ty
+                .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::SCOUT))
+                && self.current_order(u).is_some_and(
+                    |o| matches!(o.body, Body::Move(mo) if mo.kind == MoveKind::ExploreTo),
+                ),
             army: army_hint || (!human && self.army_mode(u)),
             worker: !human
                 && self.units[u]

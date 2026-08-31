@@ -9483,3 +9483,117 @@ The cheap route to it was the sweep enumeration. Once the original's
 answer was shown *not to be in our candidate list at any radius*, the
 question stopped being "which candidate" and became "which centre", and
 the centre inverts to two integers.
+
+## 2026-08-31 (later still again, Opus) — item 113: Great Lakes' ticks 910 → 1375, orders 776 → 791, and a citizen sent to look for fog
+
+Great Lakes' **headline moved for the first time in three items**: ticks
+**910 → 1375** and orders **776 → 791**, player 1's first divergence
+**911 → 1376**. The unit the queue named — the AI's `1/1` — is **gone from
+the by-unit list entirely**: it never parts on position across the whole
+1,772 frames, and every one of the other thirteen parts on the frame it did
+before, to the frame. East Indies is untouched at 1374/1373 and word 1373.
+
+```
+run10: ticks 1375, orders 791, first divergence [(0, Some(1385)), (1, Some(1376))]
+run10 by unit: [(0,3,1385), (0,4,1462), (0,5,1409), (1,3,1725), (1,4,1489),
+                (1,5,1379), (1,6,1735), (1,8,1376), (1,10,1552)]
+run33: word parts at 1372, sequence at 1372; 1467 of 1850 frames spend the
+       original's number of draws, 1436 of them draw for draw
+```
+
+The two window totals fell 1471/1439 → **1467/1436**, and for once the
+argument is exact rather than statistical: `first_count` is by construction
+the first frame whose draw *count* differs, and it holds at 1372 with the
+sequence, so every frame before 1372 is identical on both sides of the
+change and all seven moved verdicts are past the parting.
+
+### The oracle was already on disk, and nine tenths of it was uncompared
+
+`LEADERS=9` prints `Leader::sites` **whole** — ten
+`{wx, wy, val, reg, dist, rank}` a leader a frame — and
+`LeaderData::territory` beside it. The two census windows captured for the
+city *price* a day earlier (`run40` `[560, 600)`, `run41` `[770, 800)`)
+therefore carried the site scorer's own per-frame output over the two frames
+in the whole 1,850 on which `place_city_with_cost` runs, and nothing had
+ever looked at it. Widening it took twenty minutes and printed the answer:
+frames 560–575 agree slot for slot, **576 is the first disagreement**, and
+it is one slot — ours `(49, 27) / 1159` against the original's
+`(47, 28) / 6181`.
+
+### The first defect: a border that never widened
+
+Tracing our own 5×5 slide over the sampled cell `(48, 29)` showed
+`(47, 28)` **UNSEEN**, and the whole fog plane around it zero on both sides
+— so `WorldData::was_seen@006b53f0` was deciding it on its *first* arm,
+which is territorial: a cell owned by an ally, and `is_ally` is reflexive.
+The scorer sees exactly the AI's own borders here. The dump's own
+`territory` field settled it in one line: **the AI holds 290 cells and this
+crate held 261**, with the human's 266 exact on every frame of both windows.
+
+`World::compute_reg_territory@006b0bb0` rebuilds its eight-row per-player
+bonus table at the top of *every* pass and reads
+`data_encrypted->epoch[1] ^ 0x63187` — the Civic library level, the same
+field `get_city_limit` names — for `CIVIC_UPGRADE_TERR`. `crates/sim` built
+that table once in `add_player` and never rewrote it, so the AI's City State
+(researched around frame 200) never widened its border for the rest of the
+game. `Sim::player_borders` reads it live now; `sync_territory` rebuilds all
+eight rows and `apply_gained` re-syncs when a gain moves one.
+
+A free correction fell out of the same loop body: the Russians'
+`RUSSIAN_BORDERS_PER_AGE` multiplies the **Civic level**, not the age — the
+decompile reads the identical `+0xec ^ 0x63187` expression twice, ten lines
+apart.
+
+### The second defect, which only the first could uncover
+
+With the border right, the AI chose the original's site and handed `1/1` the
+original's `BUILDORDER` to `(41448, 23928)` on frame 777 — and Great Lakes'
+word **fell from 1372 to 786**. The path was the reason: eleven waypoints
+against the original's eight, swinging ten cells west and back where the
+original walks seven south-east.
+
+The pathfinder's own entry log named it in one word: `scouting: true`, on a
+citizen. `find_wpath@00688fc0`'s predicate is `type->role & 0x10` **and** the
+order is `EXPLORE_TO`; this crate tested the order alone. `scouting` prices
+seen ground at `0x400` against unseen `8` — the whole of "exploration seeks
+the unexplored" — so any unit handed an `EXPLORETO` walked *toward the fog*.
+`UnitTypeData::role` is `+0x2c8`, `UnitType::determine_roles@0061c320`
+derives it, bit `0x10` is `is(SCOUT)` on land and `is(BARK)` at sea, and
+`crate::ai_load::role::SCOUT` had been carrying exactly that number on every
+type since the AI loader landed. One `&&`.
+
+No capture had ever exercised it, and that is the point: until the borders
+were right, no non-scout in either game was given an explore order over any
+distance at all.
+
+### What is left, and it is booked
+
+The site record's residue is **one slot**: where the original's 5×5 leaves
+the centre `(48, 29)` for `(47, 28)`, this crate keeps the centre — `q = 19`
+against 17 — so the original's `blocked_town` refuses a cell `site_clear`
+allows. `blocked_site@00636a50` counts footprint tiles whose fog half-cell
+is unseen and refuses the site when more than half are dark, with only a
+Dock exempt; `blocked_tcoord` here grants visibility everywhere
+(`docs/CITIES.md` §11). Writing that rule out and running it moved **not one
+number** — the AI's own territory answers "seen" through the same
+territorial arm — so it was reverted and booked rather than landed blind.
+And the order score's new holder is `1/1` again, one field: on frame 792 the
+original's `coll_x/coll_y` is `(40539, 18258)` and this crate's
+`(40632, 18044)`.
+
+### The lesson
+
+**Grep the dump before booking a reading — and then diff the whole record.**
+The queue booked this item as "the AI's site choice, `compute_sites` /
+`produce_building`", which would have been a reading of two long functions.
+The site scorer's own output was already on disk, per frame, for exactly the
+frames that mattered; comparing it cost twenty minutes and turned a scoring
+question into a *territory* question, which the same record answers with a
+single integer. Neither of the two defects was in either function the item
+named.
+
+**And a fix that lowers the score may still be the right fix.** The border
+correction is verified against the original's own count — 290 against 290 —
+and it took the word down four hundred frames on its own, because it opened
+a code path nothing had walked. The instinct to revert it would have been
+wrong; what it had exposed was a second, older defect sitting behind it.

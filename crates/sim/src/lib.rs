@@ -1894,6 +1894,13 @@ impl Sim {
             self.muster[who as usize].military_level = level;
             self.recompute_pop_caps();
         }
+        // The Military epoch's sibling: a **Civic** epoch widens every one of
+        // this leader's cities, because `compute_reg_territory` reads the
+        // level rather than a cached bonus. Guarded on the table actually
+        // changing so an ordinary tech does not repaint 3,600 cells.
+        if self.borders[who as usize] != self.player_borders(who) {
+            self.sync_territory();
+        }
     }
 
     /// The tree owns the bit for every unit type that is in it; `Muster`
@@ -2029,6 +2036,46 @@ impl Sim {
         for l in &mut self.ledgers {
             l.dirty = true;
         }
+    }
+
+    /// The per-player half of the border bonus, read from live state —
+    /// `World::compute_reg_territory@006b0bb0`'s own opening loop, which
+    /// rebuilds all eight rows on every pass.
+    ///
+    /// The Civic level is `data_encrypted->epoch[1] ^ 0x63187`, the same
+    /// field `LeaderData::get_city_limit` reads, and it feeds both
+    /// `CIVIC_UPGRADE_TERR` and the Russians' per-step flat bonus.
+    ///
+    /// **Still seams**, because nothing here models them: the temple and
+    /// fort border levels (`has_preq(TEMPLEBORDERS2..4)`,
+    /// `has_preq(FORTBORDERS2..4)` — bonus types `0x2c8..0x2ca` and
+    /// `0x2d1..0x2d3`, which this crate loads as `bonus_preqs` and does not
+    /// expose), the Colosseum and Eiffel Tower, a gem rare, and the AI
+    /// handicap allowance. All four are inert on every capture so far: no
+    /// player in one holds a Temple, a Fort, either wonder or a gem, and
+    /// the lobbies run at handicap 0.
+    fn player_borders(&self, who: Player) -> territory::PlayerBorders {
+        let w = who as usize;
+        let civic = self.tech[w].epoch[tech::Line::Civic.index()].max(0);
+        let n = &self.nation[w];
+        territory::PlayerBorders::new(
+            &self.tuning,
+            civic as usize,
+            1,
+            1,
+            &territory::Wonders {
+                colosseum: false,
+                tikal: n.tikal,
+                eiffel_tower: false,
+            },
+            &territory::NationBonuses {
+                roman: n.romans,
+                russian: n.russians,
+                gems: false,
+                civic,
+            },
+            0,
+        )
     }
 
     /// Recomputes every border from scratch.

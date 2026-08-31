@@ -170,7 +170,21 @@ sets `saving = 1` and `limit = 300 / repaths²`; both zero `saving` after.
   length** (the near case the stub was exact for).
 - Modes: `scouting = 1` iff the type has `+0x2c8 & 0x10`, the order is
   `EXPLORE_TO` with vfunc `+0x10` == 3, and (order `flags & 4` clear or
-  `unit_masks & 0x40100`). **`army` and `worker` are AI-only** — a human's
+  `unit_masks & 0x40100`). **`+0x2c8` is `UnitTypeData::role`** — the word
+  `UnitType::determine_roles@0061c320` derives — and bit `0x10` is set for a
+  land type that `is(SCOUT)` and a sea type that `is(BARK)`, nothing else
+  (`crate::ai_load::role::SCOUT`, already loaded on every type). **The type
+  half is load-bearing and was missing until 2026-08-31** (queue item 113):
+  `scouting` prices seen ground at `0x400` against unseen `8`, so *any* unit
+  given an `EXPLORE_TO` walked toward the fog. run10's AI citizen `1/1` is
+  sent to its second city's site under an `EXPLORETO` on frame 777 and took a
+  ten-cell detour west through unexplored ground where the original walks
+  seven cells south-east; no capture had exercised it before, because until
+  the AI's borders were right no non-scout in either game was given an
+  explore order over any distance. The `flags & 4` clause is a **seam**: it
+  can only ever turn scouting *off* for a scout whose explore order carries
+  `ACTION`, the two `unit_masks` bits are unmodelled, and every explore order
+  in the corpus has `flags 1`. **`army` and `worker` are AI-only** — a human's
   `find_wpath` jumps straight to the search past the whole block (audit
   V14): for AI leaders, `army = 1` iff the type is military (`+0x1e8`
   attack ≠ 0, or its `is_supply` virtual — for the base class,

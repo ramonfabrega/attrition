@@ -1607,6 +1607,15 @@ heal, ejection), then the sites' `construct_hits` refresh.
 
 - **Visibility is not modelled.** `was_seen`/`was_really_seen` are taken as
   true everywhere; `BLOCKED_SEEN`/`BLOCKED_UNSEEN` are never returned.
+  **The rule that omission drops** (2026-08-31, read for item 113):
+  `blocked_site@00636a50` counts, inside the same footprint walk as
+  `blocked_tcoord`, the footprint **tiles** whose fog half-cell (`t >> 1` on
+  both axes) `was_seen(·, who)` denies, and after the walk returns `0x24`
+  when `x_size × y_size / 2 < that count` — with only a Dock (`is(0x1b0)`)
+  exempt, and the whole tally skipped for `who < 0`. Landing it moves no
+  measured number on any capture, because `was_seen`'s first arm is
+  territorial and every footprint an AI considers is inside its own border,
+  so it is booked rather than landed blind (`docs/AI.md` §18, queue).
 - **The editor relaxations are not modelled.** `semaphore[1] & 8` is always
   clear.
 - **The cancel refund and the unfinished-building plunder are pinned
