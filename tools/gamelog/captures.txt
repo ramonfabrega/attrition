@@ -181,3 +181,51 @@ start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
 # rather than 1400 for that reason.
 frames: 900
 check: python3 tools/gamelog/groupfacing.py gamelog-run45-islands-groups.txt
+
+run: 46
+tag: greatlakes-fourthclick
+item: 23
+driver: tools/gamelog/clickdriver.sh
+why: a group marched back and forth, so a mirrored order is laid and then dies
+# run45 settled that no AI lays a `GroupMoveOrder` — 945 in run31 against
+# none in eight other archives, three of them DUMP_ALL windows taken during
+# the AI's own fighting — so the record item 23 needs only exists behind a
+# right-click. This is that click, three times, from `clickdriver.sh`.
+#
+# **Why three and not four.** An order of the move family dies when it is
+# replaced *or when it completes*, and `Unit::kill_current_order` hands the
+# mirror back either way. run31 stopped at frame 367 with its mirrored order
+# still alive — its group move orders carry `facing 1` from 356 to 367, the
+# last frame in the file — so what it lacked was not a fourth click but
+# **time**. Click three lays the mirrored order; the 450 frames after it are
+# what let that order die.
+#
+# **Why the destinations alternate.** `Unit::set_angle` toggles the flag when
+# the leader is set to a heading 90 degrees or more off its own, so marching
+# the group between two tiles on opposite sides of it makes every order after
+# the first a ~180 degree turn and the toggle is not left to luck.
+#
+# Great Lakes rather than the islands: run32 placed buildings at tiles
+# (6, 171) and (33, 161) on this lobby, so the corridor between them is known
+# to be land, and a right-click that lands in water issues no order at all.
+frames: 900
+mapstyle: 14
+# run31's detail, and DEATHS off under [End Frame] for the reason in run45's
+# section: `dump_deaths` leaves the current type at WORLD and the pool is
+# dropped silently.
+end: MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1,GROUPS=1
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 162 add hoplite who=0 14,170
+cmd: 164 add hoplite who=0 15,170
+cmd: 180 select hoplite who=0
+cmd: 200 camera 30,167
+cmd: 320 camera 6,167
+cmd: 440 camera 30,167
+check: python3 tools/gamelog/cmdsran.py rontrace-run46.log 180:1 200:1 320:1 440:1
+check: python3 tools/gamelog/groupfacing.py gamelog-run46-greatlakes-fourthclick.txt
