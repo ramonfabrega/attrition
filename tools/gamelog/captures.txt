@@ -26,6 +26,9 @@
 #   driver:     a script driven while the game runs, for the right-clicks the
 #               cheat channel cannot issue — `move` is a teleport and **no
 #               console command issues an order at all**
+#   ffwd:       the `!ffwd` line; `-` means none. **Every stanza with a
+#               `driver:` needs `-`** — under `!ffwd` the game stops drawing
+#               and a click lands on a frozen picture (run47)
 #   settle_min: bytes below which the poll loop will not call a run finished
 #   check:      a command run after the capture, from the repo root, to say
 #               whether it landed; repeatable, and a non-zero exit is loud
@@ -186,6 +189,7 @@ run: 46
 tag: greatlakes-fourthclick
 item: 23
 driver: tools/gamelog/clickdriver.sh
+ffwd: -
 why: a group marched back and forth, so a mirrored order is laid and then dies
 # run45 settled that no AI lays a `GroupMoveOrder` — 945 in run31 against
 # none in eight other archives, three of them DUMP_ALL windows taken during
@@ -229,3 +233,40 @@ cmd: 320 camera 6,167
 cmd: 440 camera 30,167
 check: python3 tools/gamelog/cmdsran.py rontrace-run46.log 180:1 200:1 320:1 440:1
 check: python3 tools/gamelog/groupfacing.py gamelog-run46-greatlakes-fourthclick.txt
+
+run: 47
+tag: greatlakes-selectprobe
+item: 23
+driver: tools/gamelog/selectprobe.sh
+ffwd: -
+why: which way of selecting units actually selects them — a diagnostic, not a capture
+# run46's lesson, and it is about evidence rather than about RoN. Its eight
+# `add hoplite` lines ran and were accepted, 4,728 `type 132` records prove
+# the hoplites existed, and `select hoplite who=0` returned 1 — and the
+# screenshot at frame 212 shows the **capital** still selected and no
+# `GroupMoveOrder` anywhere. `parse_cmd` returning 1 means the line was
+# accepted, not that it matched anything, so `cmdsran.py`'s green tick was
+# never evidence the selection took. ORACLE's "select is scriptable, so a
+# group capture needs one human click and not twelve" is the claim under
+# test.
+#
+# Cheap on purpose: 300 frames, no group detail, no DUMP_ALL. The product is
+# five screenshots, and the bottom-centre panel in each names what is
+# selected.
+frames: 300
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+start: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+settle_min: 1000000
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 170 camera 15,168
+cmd: 180 select hoplite who=0
+cmd: 200 select hoplite
+cmd: 220 select 0 0
+cmd: 240 camera 15,168
+check: python3 tools/gamelog/cmdsran.py rontrace-run47.log 180:1 200:1 220:1

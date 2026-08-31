@@ -56,12 +56,12 @@ echo "scenario $SCEN -> $LOG"
 typeset -a summary cmds checks covers
 summary=()
 run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""
+endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""; ffwd=""
 cmds=(); checks=(); covers=()
 
 reset_stanza() {
   run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-  endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""
+  endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""; ffwd=""
   cmds=(); checks=(); covers=()
 }
 
@@ -100,6 +100,12 @@ flush() {
     if [ ${#covers} -gt 0 ]; then pass+=("TRACE_COVER=${(pj:\n:)covers}"); fi
     if [ -n "$driver" ];  then pass+=("DRIVER=$W/$driver"); fi
     if [ -n "$settle" ];  then pass+=("SETTLE_MIN=$settle"); fi
+    # `ffwd: -` means no fast-forward at all, which every driven stanza wants.
+    if [ "$ffwd" = "-" ]; then
+      pass+=("FFWD=")
+    elif [ -n "$ffwd" ]; then
+      pass+=("FFWD=$ffwd")
+    fi
     # `cfg: -` is "no -config"; an absent cfg leaves longtrace.sh's own
     # per-mapstyle default, which is not the same thing.
     if [ "$cfg" = "-" ]; then
@@ -157,6 +163,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     cover) covers+=("$val") ;;
     driver) driver=$val ;;
     settle_min) settle=$val ;;
+    ffwd) ffwd=$val ;;
     cmd) cmds+=("$val") ;;
     check) checks+=("$val") ;;
     *) echo "unknown key '$key' in $SCEN" >&2; exit 1 ;;

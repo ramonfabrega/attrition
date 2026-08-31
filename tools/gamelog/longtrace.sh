@@ -40,6 +40,10 @@
 #   DUMP_ALL      setlog.py's first argument   (default 0)
 #   CMD_EXTRA     newline-separated `rontrace.cmd` lines inserted before the
 #                 `!quit` — the scenario's cheats (default none)
+#   FFWD          the fast-forward line (default `5 !ffwd 30`). Set it
+#                 **empty** for a capture with a `DRIVER`: `!ffwd` stops the
+#                 renderer, so a click lands on a picture that is minutes
+#                 stale. Costs wall-clock, and buys a game that draws.
 #   TRACE_COVER   `rontrace.cfg` body          (default `cover=1`)
 #   DRIVER        a script run in the background once the game is up, for the
 #                 right-clicks the cheat channel cannot issue (default none)
@@ -115,7 +119,13 @@ fi
 printf '%s\n' "${TRACE_COVER:-cover=1}" > "$G/rontrace.cfg"
 {
   echo "# longtrace.sh — run$N ($TAG), map style $MAPSTYLE, to frame $FRAMES."
-  echo "5 !ffwd 30"
+  # `FFWD=` (empty) drops the fast-forward entirely, which a **driven**
+  # capture must do: under `!ffwd` the game stops drawing, and a driver that
+  # clicks at a screen point is then aiming at a frozen picture. run47 is the
+  # measurement — five screenshots taken over ninety sim frames came back
+  # byte-for-byte identical, the in-game clock reading 00:00:00 in all of
+  # them — and it is why every driven capture on disk predates this script.
+  if [ -n "${FFWD-x}" ]; then echo "${FFWD:-5 !ffwd 30}"; fi
   if [ -n "$CMD_EXTRA" ]; then printf '%s\n' "$CMD_EXTRA"; fi
   echo "$FRAMES !quit"
 } > "$G/rontrace.cmd"
