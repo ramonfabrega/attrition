@@ -13,34 +13,33 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 98 (Opus).*
+*2026-08-30, after item 86 (Opus).*
 
-**East Indies' word and sequence are at 413, Great Lakes' word at 780 and
-its sequence at 576, and run10's roster is the original's both ways for
-the first time — 0 missing, 0 extra.** run33's weak totals 943/830 →
-943/851. run39's own game score holds at 167/167 with player 0 at 217 and
-player 1 at 168; run10's ticks 572, orders 776, first divergences 802 and
-573. Coverage rose with the roster: `mylos` 26,701, collision rows 92,766,
-angle rows 35,742. Tree green: 645 sim, 149 rondata.
+**The headline did not move: East Indies' word and sequence hold at 413,
+Great Lakes' word at 780 and its sequence at 576 with 943/851.** What moved
+is the sub-score item 86 named. run39's queue record is **33,631 fields, 1
+disagreeing, first at 1851** — the capture's last frame, at `1/2000` — where
+it was 21 and 383, and both are pinned. run10 holds at ticks 572, orders 776,
+first divergences 802 and 573, roster 0 + 0; run39's own game score at
+167/167 with 217/168. Tree green: 650 sim, 149 rondata.
 
-**A script's `static` is one variable on the `Script`, not a frame slot.**
-`VirtualMachine::get_value/set_value` take it from `Script::static_vars`
-on operand bit `0x40000000` and never touch the call's frame. This crate
-mirrored a frame slot back into the store after every expression — over
-statics the call had not yet declared — so `economic.bhs`, which has three
-statements above its `static` block, lost all eight of them on its
-**second** call and every call after. `needed_citizens` was zero from
-frame 176 on, the opening's every-call `train_unit_with_need` trained
-nobody, and **the AI trained no citizen for the rest of the game on either
-map**. `docs/AI.md` §17. The record it was found in is now diffed whole:
-`BUILDQUEUE` and `queued` were parsed by nothing, and are now 33,631
-fields over run39's 1,851 frames with 21 disagreeing.
+**The science speedup and the science discount are two functions, not one.**
+The item was booked as `calc_science_discount@006da630` serving both call
+sites; the time side is an inline block in `ObjectData::train_time@006508c0`,
+with a *different* constant, the tech's `AGE` **raw** where the price side
+adds one, and a `level < epoch[3]` gate so falling behind costs nothing in
+time. The AI queues Written Word and City State at frame 2, both
+`JOB_TIME 200`: Written Word is itself the Science epoch, so it takes the
+full 20,000 and lands on 201; City State is then a level behind and takes
+18,000 and lands on **382**, where this crate landed it on 402.
+`docs/PRODUCTION.md` §"The record, diffed". The price side is applied too and
+is measured by nothing — every type any capture queues is one of two epochs,
+whose `ahead` is zero.
 
-**Opener (Opus):** `take item 86 from @docs/QUEUE.md — TECH_SCIENCE_SPEEDUP
-is loaded and read by nothing, and it is the 21 of run39's 33,631 queue
-fields: the AI's library lands on 402 where the original lands on 382, so
-it sits upstream of East Indies' word at 413. docs/PRODUCTION.md's "What
-is not established" has the formula and both call sites.`
+**Opener (Opus):** `take item 99 from @docs/QUEUE.md — East Indies' word at
+413 is the AI's scout: the original spends two Unit::do_idle+0x7d idle anims
+and a nine-draw Unit::think_scout scan that this crate does not, 20 draws
+against 7. docs/SCOUT.md against run39's own trace.`
 
 ## The queue
 
@@ -48,19 +47,11 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-86. **The science discount, both call sites.** `TECH_SCIENCE_SPEEDUP` is
-    in `Tuning` at 10 and read by nothing: run39's AI library takes 20,000
-    hundredths against the original's 18,000 and lands on 402, not 382 —
-    the 21 of `run39_s_build_queues`' 33,631, and upstream of the word.
-    Its twin is `Sim::tech_price` passing `Modifiers::default()`, so a
-    tech is charged undiscounted. `calc_science_discount@006da630` serves
-    both; `cost.rs`'s `reprice` is the refund side and is already right.
-
 99. **East Indies' word at 413, and it is the AI's scout.** The original
     spends two `Unit::do_idle+0x7d` idle anims and a nine-draw
     `Unit::think_scout` scan (`+0x436`/`+0x458` pairs, then `+0x64c`) that
     this crate does not: 20 draws against 7. `docs/SCOUT.md` against
-    run39's own trace. Take 86 first — it parts 30 frames earlier.
+    run39's own trace.
 
 69. **East Indies' order-list length at 168.** `1/4` and the original
     disagree on the order list at 168 and `1/5` at 186, and both are now

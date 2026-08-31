@@ -434,12 +434,23 @@ Three that are not the standard shape, and are the interesting ones:
   part of every technology's price and was missing from an earlier draft of
   this list. `Build::refund_cost` inverts exactly this expression, which is why
   a queued item's price is re-derived rather than remembered — see §Paying,
-  where it is written out and landed. **The purchase side is still not
-  applied**: `Sim::tech_price` passes `Modifiers::default()`, so a technology
-  is charged its undiscounted price here. It is zero on every purchase any
-  traced game has reached — the AI buys both its Ancient epoch techs at
-  Science 0, where `epoch[3] - age` is 0 — so nothing measures it yet, and it
-  is booked in the queue rather than guessed at.
+  where it is written out and landed. ~~The purchase side is still not
+  applied.~~ Applied 2026-08-30: `crates/sim/src/cost.rs`'s
+  `science_discount`, carried into `cost_of` as `Modifiers::science_ahead`
+  and set by `Sim::tech_price`. It sits where the original calls it — after
+  `TECH_COST_FACTOR` and the nation tail, before the age-behind discount and
+  the final-tech ramp, and **inside** the per-resource computation, so the
+  redirect at the end of `get_cost` carries the discounted number rather than
+  discounting a redirected one. It is a subtraction of a truncated term, not
+  a `(100 - pct)` scale, and the two differ by one wherever `pct × cost` is
+  not a round hundred. **Still unmeasured**, and it is a reading: `ahead` is
+  zero on every purchase any traced game has reached, because the only two
+  types any capture queues are the epochs `0x227` and `0x235`, whose level is
+  their `AGE` of zero with no plus-one. Where the surcharge arm would bite in
+  a shipped game is a *plain* tech, whose level is `AGE + 1` — an Ancient one
+  costs 110% until the player has a Science level. Its **time**-side twin
+  fires on the same two epochs and is diff-backed; `docs/PRODUCTION.md`
+  §"The record, diffed" has it.
 - **Final techs ramp against each other.** `cost *= (100 + RAMP_FINAL * n) / 100`
   where `n` is how many of the four final techs you already hold or are
   researching, and `RAMP_FINAL` ships as 50%. Four final techs, each half again
@@ -758,9 +769,16 @@ budget is wasted:
 
 Everything else in this document — the rest of the discounts, the redirect,
 escrow, the population chain — rests on the reading and the audit of
-2026-08-20. In particular **the science discount's purchase side has never
-been exercised**: every technology any traced game buys is struck at
-`epoch[3] - age == 0`.
+2026-08-20. In particular **the science discount's purchase side is
+implemented and still never exercised**: every technology any traced game
+buys is one of two epochs, struck at `epoch[3] - age == 0`. Its plus-one for
+a plain tech, and the surcharge that plus-one produces at Science 0, are the
+reading's alone. *The capture that would settle it:* an AI or a human
+researching any building tech (`0x247..0x26e`) with `LEADERS=9` and
+`BUILDS=1` over the frames either side of the purchase — the entry's
+`cost[0..2]` in `BUILDQUEUE` is the answer, and
+`run39_s_build_queues_are_the_original_s_clock` would compare it the moment
+a capture has one.
 
 ## What is not established
 

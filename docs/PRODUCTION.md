@@ -372,7 +372,22 @@ enumerated here rather than each derived:
   if `n > 0`, `t = (P - n + 1) * t / (P + 1)` with `P` the player count. The
   Greek bonus does not apply here.
 - **A science speedup**, `TECH_SCIENCE_SPEEDUP` percent per level of science
-  above the tech's own level.
+  above the tech's own level — `t -= (epoch[3] - level) * TECH_SCIENCE_SPEEDUP
+  * t / 100`, written as the `-0x51eb851f` magic multiply *added* to `t`, so
+  it is a truncated term subtracted rather than a `(100 - pct)` scale. Three
+  things separate it from the price side's `calc_science_discount`, and each
+  is worth stating because two of them look like the other function and are
+  not: the constant is `TECH_SCIENCE_SPEEDUP`, a second `Tuning` entry that
+  merely ships at the same ten; `level` is the tech's `AGE` column **raw**,
+  with none of the price side's plus-one for a plain tech; and it is gated on
+  `level < epoch[3]`, so falling behind costs nothing in time where the price
+  side turns the same distance into a surcharge. For a **unit or building**
+  research job — a type whose availability bit is clear — `level` is not the
+  type's own, since only a tech record has an `AGE`, but its first
+  prerequisite's: `TypeData +0x30` is `preq[0]`, `TechTypeData +0x1c8` is the
+  column, and a negative `preq[0]` reads as level zero.
+  `crates/sim/src/production.rs`'s `science_speedup`, and **diff-backed** —
+  see "The record, diffed".
 - **An unassimilated-city penalty** at the very end, applied to everything:
   a building in a city whose owner's race is not the player's, while the
   assimilation flags say so, takes `t = t * 5 / 4`. Then the `max(1, t)`.
@@ -596,13 +611,31 @@ and nothing parsed it.
 It is parsed now (`rondata::gamelog::QueueItemDump`) and diffed whole:
 `run39_s_build_queues_are_the_original_s_clock` compares every building of
 both players on every one of run39's 1,851 frames, `queued` and then the
-first `queued` slots' every field. **33,631 fields, of which 21 disagree** —
+first `queued` slots' every field. **33,631 fields, of which 21 disagreed** —
 four times further than the sync word reaches on that map. So the clock (the
 accelerator, the compare-before-add, the cap at the target), the charge, the
 per-entry price ramp and the handover are the original's on the record, not
 merely on the reading.
 
-The 21 are one residue, below.
+**The 21 were the science speedup, and are now 1.** They were twenty
+consecutive frames of `1/2005: queued ours 1 theirs 0` — the AI's library,
+holding an entry the original had already finished. The AI queues Written
+Word and City State at frame 2 and both are `JOB_TIME 200`, so both start at
+20,000 hundredths. Written Word is itself the Science epoch, so while it is
+being researched `epoch[3]` is zero against its own level of zero, the gate
+`level < epoch[3]` is false, and it takes the full 20,000 and lands on 201.
+From 202 the player is a Science level ahead of City State's own zero, so
+City State's target is 18,000 and it lands on **382**. This simulation
+applied no speedup, charged the second entry 20,000 too, and emptied the
+queue on 403.
+
+That is what makes the speedup diff-backed rather than read: the twenty
+frames are not a coincidence of magnitudes, they are exactly ten per cent of
+one `JOB_TIME 200` entry, on the frame the level arrives, in a record that
+pins the counter to the hundredth. The one field still disagreeing is on
+frame 1851 — the capture's last — at `1/2000`, and is unrelated.
+
+The floor is pinned in `rondata::diff`: `first >= 1851`, `wrong.len() <= 1`.
 
 ## What is not established
 
@@ -647,19 +680,21 @@ The 21 are one residue, below.
   order that matters.** The full order is now recorded (audit §3 O7) and the
   research/train partition is stated above; which pairs can coincide is a
   balance question, not a fidelity one.
-- **`TECH_SCIENCE_SPEEDUP` is loaded and never applied.** `Tuning` carries it
-  at 10 and nothing reads it. `LeaderData::calc_science_discount@006da630`
-  returns `value − levels × TECH_SCIENCE_DISCOUNT × value / 100`, where
-  `levels` is the decrypted `epoch[3]` less the tech's own level — plus one
-  unless the type is an age (`0x220..0x226`) or an epoch (`0x227..0x242`) —
-  and it is applied to a research job's **time** as well as its price. The
-  diff above measures it exactly: run39's AI library takes 20,000 hundredths
-  where the original takes 18,000, so its research lands on frame 402 rather
-  than 382, and those twenty frames are the whole of the 21. Its purchase-side
-  twin — `Sim::tech_price` passing `Modifiers::default()` — is the same
-  function's other caller, and the two belong in one session
-  (`docs/QUEUE.md` item 86). `crates/sim/src/cost.rs`'s `reprice` is the
-  *refund* side and is already right.
+- ~~**`TECH_SCIENCE_SPEEDUP` is loaded and never applied.**~~ Applied, both
+  sides, 2026-08-30. The **time** side is `ObjectData::train_time`'s own
+  inline step and is enumerated under "Time" above; it is
+  `crates/sim/src/production.rs`'s `science_speedup`, reached from
+  `Sim::tech_time` for a technology and from `Sim::queue_target` for a unit
+  research job, and it is **diff-backed** — see "The record, diffed". The
+  **price** side is `LeaderData::calc_science_discount@006da630`, which
+  returns `value − ahead × TECH_SCIENCE_DISCOUNT × value / 100` with `ahead`
+  the decrypted `epoch[3]` less the tech's own level — the `AGE` column plus
+  one unless the type is an age (`0x220..0x226`) or an epoch
+  (`0x227..0x242`); it is `crates/sim/src/cost.rs`'s `science_discount`,
+  reached from `Sim::tech_price` through `Modifiers::science_ahead`, and it
+  is **reading-only**: no traced capture queues anything but the two epochs
+  `0x227` and `0x235`, for which `ahead` is zero. `docs/COSTS.md`
+  §"The discounts" carries the price side's own record.
 - **The AI counters** at `leader + 0xa10` through `+0xa24`, moved by both
   `queue_up` and `unqueue`. They are per-production-building tallies and
   nothing in the simulation reads them yet.

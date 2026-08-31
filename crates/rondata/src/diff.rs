@@ -7326,6 +7326,17 @@ mod tests {
     /// ramp is checked per entry rather than at the head alone, and the
     /// library's research entry is checked beside them.
     ///
+    /// **And the library's clock is the science discount's diff.** The AI
+    /// queues Written Word and City State at frame 2; both are
+    /// `JOB_TIME 200`. Written Word is researched at Science 0 and takes
+    /// the full 20,000 hundredths, landing on 201; City State is then a
+    /// level behind the player's Science and takes 18,000, landing on 382.
+    /// Until `TECH_SCIENCE_SPEEDUP` was applied this simulation charged the
+    /// second one 20,000 too and emptied the queue on 403 — twenty frames
+    /// of `queued ours 1 theirs 0`, which were twenty of the twenty-one
+    /// fields this test used to disagree on. `docs/PRODUCTION.md`
+    /// §"The base, and the research step"; queue item 86.
+    ///
     /// Only the first `queued` slots are compared: the tail of the array
     /// holds whatever it was last left with (`type −1` on a queue never
     /// used, `type 0` on one that has been), which is not state either
@@ -7432,7 +7443,15 @@ mod tests {
             compared >= 33_631,
             "the record is being read: {compared} fields"
         );
-        assert!(first >= 383, "the queues part at {first}; the floor is 383");
+        assert!(
+            first >= 1851,
+            "the queues part at {first}; the floor is 1851"
+        );
+        assert!(
+            wrong.len() <= 1,
+            "{} queue fields disagree; the ceiling is 1",
+            wrong.len()
+        );
     }
 
     /// **A pasture herder walks only on its own 256-frame phase**, and it

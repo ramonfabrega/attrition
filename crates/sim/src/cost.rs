@@ -226,6 +226,18 @@ pub struct Modifiers {
     /// the original, after the captured-building doubling rather than before it
     /// — the Supercollider surcharge and the Indian elephant discount.
     pub late_discount: i32,
+    /// How many Science levels the player is **ahead of the technology's
+    /// own** — the only term of `LeaderData::calc_science_discount@006da630`,
+    /// and signed: a player whose Science line is behind the tech's age pays a
+    /// *surcharge* out of the same expression. Zero for anything that is not a
+    /// technology, because the original guards the whole function on
+    /// `is_tech_type`, and zero is the identity here.
+    ///
+    /// It is a level count rather than a percentage because the original
+    /// multiplies by `TECH_SCIENCE_DISCOUNT` itself, and it is not folded into
+    /// [`Modifiers::discount`] because the shape is a subtraction rather than a
+    /// scale — see [`science_discount`].
+    pub science_ahead: i32,
     /// Maize halves the ramp term — `MAIZE_RAMPING_BONUS`.
     pub maize: bool,
     /// Producing at a captured, unassimilated building doubles the price.
@@ -276,6 +288,12 @@ pub fn scholar_surcharge(count: i32) -> i32 {
 pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modifiers) -> i32 {
     let scaled = price.base[r.index()] * price.kind.factor(t);
     let mut cost = scaled * (100 - m.discount) / 100;
+    // `LeaderData::calc_science_discount`, where the original calls it: after
+    // the factor and the nation tail, before the age-behind discount and the
+    // final-tech ramp, and **inside** the per-resource computation, so the
+    // redirect at the end of `get_cost` carries the discounted number rather
+    // than discounting a redirected one.
+    cost = science_discount(t, m.science_ahead, cost);
 
     let raw = counts.for_progression(price.progression);
     if raw > 0 {
@@ -575,6 +593,28 @@ pub fn pay(
             ledger.escrow[i] = (ledger.escrow[i] - due).max(0);
         }
     }
+}
+
+/// What Science takes off a technology's price —
+/// `LeaderData::calc_science_discount@006da630`, whole.
+///
+/// ```text
+/// cost - ahead * TECH_SCIENCE_DISCOUNT * cost / 100
+/// ```
+///
+/// `ahead` is the player's `epoch[3]` less the technology's own level, where
+/// that level is the `AGE` column **plus one** for a tech that is neither an
+/// age nor a library epoch. It is deliberately **not** written as
+/// `cost * (100 - pct) / 100`: the original truncates the term and subtracts
+/// it, and the two disagree by one wherever `pct * cost` is not a multiple of
+/// a hundred. The divide truncates toward zero on both signs, which is what
+/// makes the surcharge arm (negative `ahead`) round the player's way exactly
+/// as the discount arm does.
+///
+/// [`reprice`] is this function's inverse, and the asymmetry between them —
+/// the plus-one, which `reprice` does not have — is recorded there.
+pub const fn science_discount(t: &Tuning, ahead: i32, cost: i32) -> i32 {
+    cost - ahead * t.tech_science_discount * cost / 100
 }
 
 /// What a queued technology costs now that the player's Science level has
@@ -1203,6 +1243,54 @@ mod tests {
         assert!(exceeds_population(25, 25, 1));
         assert!(!exceeds_population(25, 25, 0));
     }
+    #[test]
+    fn science_prices_an_epoch_flat_and_surcharges_a_plain_tech() {
+        // run40's own number: City State is `12f`, so `120` after
+        // `TECH_COST_FACTOR`, and the AI pays exactly that. It is an *epoch*,
+        // so its level is its `AGE` of zero with no plus-one, and a player at
+        // Science 0 is neither ahead nor behind.
+        let t = Tuning::RON;
+        assert_eq!(science_discount(&t, 0, 120), 120);
+        // A level of Science ahead takes ten percent off, two levels twenty —
+        // off the base each time, not compounding.
+        assert_eq!(science_discount(&t, 1, 120), 108);
+        assert_eq!(science_discount(&t, 2, 120), 96);
+        // Behind, the same expression charges more. A *plain* tech is where
+        // this bites in a shipped game: its level is `AGE + 1`, so an Ancient
+        // one is already a level ahead of a player who has researched no
+        // Science at all, and costs 110% until they do.
+        assert_eq!(science_discount(&t, -1, 120), 132);
+        assert_eq!(science_discount(&t, -3, 120), 156);
+        // The truncation is the original's: the term is truncated toward zero
+        // and then taken away, on both signs.
+        assert_eq!(science_discount(&t, 1, 5), 5, "10% of 5 truncates to 0");
+        assert_eq!(science_discount(&t, -1, 5), 5);
+    }
+
+    #[test]
+    fn the_refund_inverts_the_discount_exactly_for_an_epoch() {
+        // [`reprice`] reads the `AGE` column raw where [`science_discount`]
+        // adds one for a plain tech, so the pair is an exact inverse for an
+        // age or an epoch and one level out for anything else. That asymmetry
+        // is the original's, and it is the reason a plain tech queued at one
+        // Science level and refunded at the next comes back slightly dearer
+        // than it went in.
+        let t = Tuning::RON;
+        for base in [120, 250, 1_000] {
+            for level in 0..4 {
+                // An epoch: `science_discount`'s `ahead` and `reprice`'s
+                // `level - age` are the same number, so the refund of a price
+                // struck at `level` is the price struck at `level + 1`.
+                let paid = science_discount(&t, level, base);
+                assert_eq!(
+                    reprice(&t, paid, level, 0),
+                    science_discount(&t, level + 1, base),
+                    "base {base} at level {level}"
+                );
+            }
+        }
+    }
+
     #[test]
     fn a_queued_tech_is_repriced_by_reconstruction_not_by_memory() {
         // run40's own numbers: the AI pays 120 food for City State at

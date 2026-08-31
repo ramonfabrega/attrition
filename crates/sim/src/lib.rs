@@ -1431,12 +1431,12 @@ impl Sim {
     }
 
     /// A technology's price for `who` — `TypeData::get_cost` over a tech
-    /// record: `COST × TECH_COST_FACTOR`, no ramp, the redirect for a good
-    /// the player does not have (`docs/COSTS.md` §"The redirect"). The
-    /// discount tail — science, being behind, the lobby's tech-cost setting,
-    /// the final-tech ramp — is [`cost::Modifiers`]'s and arrives as the
-    /// undiscounted price until the layers that produce it exist, as
-    /// [`Sim::price_of`] does for a unit.
+    /// record: `COST × TECH_COST_FACTOR`, the **science discount**, no ramp,
+    /// the redirect for a good the player does not have (`docs/COSTS.md`
+    /// §"The redirect"). The rest of the discount tail — being behind in
+    /// ages, the lobby's tech-cost setting, the final-tech ramp — is
+    /// [`cost::Modifiers`]'s and arrives as the undiscounted price until the
+    /// layers that produce it exist, as [`Sim::price_of`] does for a unit.
     pub fn tech_price(&self, who: Player, t: tech::TypeId) -> [i32; economy::RESOURCES] {
         let holdings = &self.holdings[who as usize];
         let price = cost::Price {
@@ -1448,20 +1448,58 @@ impl Sim {
             &self.tuning,
             &price,
             cost::Counts::default(),
-            &cost::Modifiers::default(),
+            &cost::Modifiers {
+                science_ahead: self.science_ahead(who, t),
+                ..cost::Modifiers::default()
+            },
             &holdings.available,
             &holdings.discovered,
             &self.redirects,
         )
     }
 
+    /// How many Science levels `who` is ahead of technology `t` —
+    /// `LeaderData::calc_science_discount`'s level term, on its **price**
+    /// side.
+    ///
+    /// `epoch[3]` less the tech's own `AGE`, and the plus-one is the whole
+    /// subtlety: the original adds one to `AGE` unless the type is an age
+    /// (`0x220..0x226`) or a library epoch (`0x227..0x242`), which is
+    /// [`tech::Kind::is_plain_tech`]. A non-tech gets zero, because the
+    /// original guards the function on `is_tech_type` and returns the price
+    /// untouched.
+    ///
+    /// The answer is signed. `docs/COSTS.md` §"The discounts": a player whose
+    /// Science line is behind the tech's age pays *more*, out of the same
+    /// expression.
+    fn science_ahead(&self, who: Player, t: tech::TypeId) -> i32 {
+        let kind = self.tech_tree.kind(t);
+        if !kind.is_tech() {
+            return 0;
+        }
+        let level = self.tech_tree.types[t].age + i32::from(kind.is_plain_tech());
+        self.tech[who as usize].epoch[tech::Line::Science.index()] - level
+    }
+
     /// `TypeData::research_time` for a tech, in hundredths of a frame:
-    /// `JOB_TIME × 100 × RESEARCH_TICK_PREMIUM >> 8`, floored at one. The
-    /// unit-only `RESEARCH_PREMIUM_TIME` does not apply
-    /// (`docs/PRODUCTION.md` §"The base, and the research step").
-    pub fn tech_time(&self, t: tech::TypeId) -> i32 {
+    /// `JOB_TIME × 100 × RESEARCH_TICK_PREMIUM >> 8`, then the one step of
+    /// `train_time`'s research tail this simulation has — the science
+    /// speedup — then the floor at one. The unit-only
+    /// `RESEARCH_PREMIUM_TIME` does not apply (`docs/PRODUCTION.md` §"The
+    /// base, and the research step").
+    ///
+    /// The speedup reads the tech's `AGE` **raw**, not the price side's
+    /// `AGE + 1`: see [`production::science_speedup`]. Because the target is
+    /// recomputed every frame rather than stored, a Science epoch landing
+    /// mid-research shortens the job already in progress — which is what
+    /// puts the AI's second library entry on the original's frame rather
+    /// than twenty later.
+    pub fn tech_time(&self, who: Player, t: tech::TypeId) -> i32 {
         let time = self.tech_tree.types[t].job_time * production::TIME_SCALE;
-        ((time * self.tuning.research_tick_premium) >> 8).max(production::MIN_TIME)
+        let time = (time * self.tuning.research_tick_premium) >> 8;
+        let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
+        let tail = production::science_speedup(&self.tuning, science, self.tech_tree.types[t].age);
+        production::adjusted(time, tail.as_slice()).max(production::MIN_TIME)
     }
 
     /// `LeaderData::researching(t)` as the scripts' `researching_tech` reads
@@ -1548,16 +1586,39 @@ impl Sim {
     pub fn queue_target(&self, at: usize, slot: usize) -> i32 {
         let b = &self.buildings[at];
         let item = &b.queue.items[slot];
+        let who = b.owner;
         if let Some(t) = item.tech {
-            return self.tech_time(t);
+            return self.tech_time(who, t);
         }
-        let muster = &self.muster[b.owner as usize];
+        let muster = &self.muster[who as usize];
+        let researched = muster.researched[item.ty];
+        // A unit type whose availability bit is *clear* is a research job, and
+        // it reaches `train_time`'s research block — so it takes the science
+        // speedup and a trained unit does not. Its level is its first
+        // prerequisite's `AGE` (`TypeData +0x30`, then `TechTypeData +0x1c8`);
+        // a prerequisite that is not a technology has no `AGE` column, and
+        // reads as zero here.
+        let tail = (!researched)
+            .then(|| {
+                let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
+                let level = match self.unit_types[item.ty]
+                    .tree
+                    .map(|id| self.tech_tree.types[id].preq[0])
+                {
+                    Some(tech::Preq::Of(p)) if self.tech_tree.kind(p).is_tech() => {
+                        self.tech_tree.types[p].age
+                    }
+                    _ => 0,
+                };
+                production::science_speedup(&self.tuning, science, level)
+            })
+            .flatten();
         production::train_time(
             &self.tuning,
             &self.unit_types[item.ty].times,
-            muster.researched[item.ty],
+            researched,
             muster.by_type[item.ty],
-            &[],
+            tail.as_slice(),
         )
     }
 
@@ -1643,7 +1704,7 @@ impl Sim {
             // A technology entry: research pace, and on completion
             // `Leader::gain_tech` and nothing else — no unit, no refund, no
             // population test.
-            let target = self.tech_time(t);
+            let target = self.tech_time(who, t);
             let accel = production::accel(&self.tuning, production::Job::Research, 1);
             let done =
                 production::advance(&mut self.buildings[at].queue.items[slot], target, accel);

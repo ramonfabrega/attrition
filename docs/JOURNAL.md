@@ -8300,3 +8300,97 @@ nothing, so the AI's library takes 20,000 hundredths where the original takes
 18,000 and its research lands on 402 rather than 382. That is
 `calc_science_discount@006da630`'s time side; its purchase side is queue item
 86, and the two are one session's work.
+
+
+## 2026-08-30 (later, Opus) — item 86: the science discount, both sides, and run39's queue record 21 → 1
+
+`TECH_SCIENCE_SPEEDUP` shipped in `Tuning` at 10 and was read by nothing. Item
+86 was booked off the widening of the previous session: of the 33,631 queue
+fields `run39_s_build_queues_are_the_original_s_clock` compares, **21
+disagreed**, and twenty of them were twenty consecutive frames of
+`1/2005: queued ours 1 theirs 0` — the AI's library holding an entry the
+original had already finished.
+
+### What the two sides actually are
+
+`calc_science_discount@006da630` was booked as serving both call sites. It does
+not. The **price** side is that function; the **time** side is an inline block
+inside `ObjectData::train_time@006508c0`, and reading it as the same function
+would have got three things wrong:
+
+- the constant is `TECH_SCIENCE_SPEEDUP`, a *second* `Tuning` entry that merely
+  ships at the same ten;
+- the level is the tech's `AGE` column **raw** — none of the price side's
+  plus-one for a tech that is neither an age nor an epoch;
+- it is gated on `level < epoch[3]`, so falling behind costs nothing in time,
+  where the price side turns the same distance into a surcharge out of the same
+  expression.
+
+And the level for a **non-tech** research job — a unit or building whose
+availability bit is clear, which reaches the same research block — is not the
+type's own, since only a tech record has an `AGE`, but its first
+prerequisite's: `TypeData +0x30` is `preq[0]`, `TechTypeData +0x1c8` is the
+column. That arm is implemented and unexercised; no capture queues one.
+
+The arithmetic is a subtraction of a truncated term, not a `(100 - pct)` scale.
+The listing spells it as the `-0x51eb851f` magic multiply **added** to the
+time, which `production::neg_hundredth` had already named a session ago with a
+comment pointing at exactly this step. `Adjust::Off` is that shape; `Off(10)`
+and `Scale(90)` differ on 7 hundredths, and the test says so.
+
+### What the record says
+
+The AI queues Written Word and City State at frame 2 and both are
+`JOB_TIME 200`, so both start at 20,000 hundredths. Written Word *is* the
+Science epoch, so while it is being researched `epoch[3]` is zero against its
+own level of zero, the strict gate is false, and it takes the full 20,000 and
+lands on 201. From 202 the player is a level ahead of City State's own zero, so
+City State takes 18,000 and lands on **382**. This crate charged it 20,000 too
+and emptied the queue on 403.
+
+That is why the twenty frames are evidence rather than a coincidence of
+magnitudes: they are exactly ten per cent of one `JOB_TIME 200` entry, arriving
+on the frame the level does, in a record that pins the counter to the
+hundredth. `run39_s_build_queues_are_the_original_s_clock` now reports
+**33,631 fields, 1 disagreeing, first at 1851** — the capture's last frame, at
+`1/2000`, unrelated. Both floors are pinned: `first >= 1851` and
+`wrong.len() <= 1`.
+
+### What it moved
+
+- **run39's queue record 21 → 1**, and its first divergence **383 → 1851**.
+  That is the sub-score the queue named for this item.
+- **The headline did not move.** East Indies' word and sequence hold at 413,
+  Great Lakes' word at 780 and its sequence at 576 with 943/851, run10's 572
+  ticks / 776 orders and 802/573 to the frame, run39's own game score 167/167
+  with 217/168. The library's twenty frames were upstream of the word in the
+  queue record and are not what parts the trace at 413: item 99 — the AI's
+  scout, 20 draws against 7 — is.
+- The end-to-end test walks the whole thing:
+  `the_science_epoch_shortens_the_entry_behind_it_and_refunds_its_price` queues
+  the two epochs at a library with the shipped numbers and asserts 201, the
+  re-struck 108, the 18,000 target and 382.
+
+### The price side is implemented and still unmeasured
+
+`Sim::tech_price` passed `Modifiers::default()`, so a technology was charged
+undiscounted. It now carries `Modifiers::science_ahead`, applied in `cost_of`
+where the original calls it: after `TECH_COST_FACTOR` and the nation tail,
+before the age-behind discount and the final-tech ramp, and **inside** the
+per-resource computation, so the redirect at the end of `get_cost` carries the
+discounted number rather than discounting a redirected one.
+
+No diff touches it, and grepping the dumps is what says so rather than
+assuming: `queue[scan].type` across run33's and run39's whole captures takes
+four values — `-1`, `0`, `50` (a citizen) and the two epochs `551` (`0x227`,
+Written Word) and `565` (`0x235`, City State). An epoch's level is its `AGE`
+with no plus-one, so `ahead` is zero on every purchase ever traced, which is
+what `run40_s_census`'s 120 food for City State already showed. The plus-one,
+and the 110% an Ancient *plain* tech therefore costs a player at Science 0, are
+the reading's alone; `docs/COSTS.md` §"What is diff-backed" names the capture
+that would settle them.
+
+The two sides are inverses of each other only for an age or an epoch:
+`reprice` reads `AGE` raw where `science_discount` adds one, and
+`the_refund_inverts_the_discount_exactly_for_an_epoch` pins that asymmetry as
+the original's rather than a bug in one of them.

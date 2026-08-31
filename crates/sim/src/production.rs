@@ -367,6 +367,13 @@ pub enum Adjust {
     /// `t = t * num / den`, truncating toward zero. The original writes the
     /// three-quarters cases as a shift and they are non-negative throughout.
     Ratio(i32, i32),
+    /// `t = t - pct * t / 100` — a subtraction, and **not** the same thing as
+    /// `Scale(100 - pct)`: the original truncates the term and takes it away,
+    /// where a scale truncates the product. The two differ by one wherever
+    /// `pct * t` is not a multiple of a hundred. The science speedup is the
+    /// tail's only step of this shape, and it is written as a divide by −100
+    /// in the listing, which is where the shape shows.
+    Off(i32),
 }
 
 impl Adjust {
@@ -375,6 +382,9 @@ impl Adjust {
             Adjust::Faster(pct) => time * 100 / (pct + 100),
             Adjust::Scale(pct) => pct * time / 100,
             Adjust::Ratio(num, den) => time * num / den,
+            // Written the original's way: the same `-0x51eb851f` magic
+            // multiply [`neg_hundredth`] names, added rather than subtracted.
+            Adjust::Off(pct) => time + neg_hundredth(pct * time),
         }
     }
 }
@@ -382,6 +392,38 @@ impl Adjust {
 /// Applies the tail in order. Order matters and the caller owns it.
 pub fn adjusted(time: i32, tail: &[Adjust]) -> i32 {
     tail.iter().fold(time, |t, a| a.apply(t))
+}
+
+/// The research block's science speedup — the `TECH_SCIENCE_SPEEDUP` step of
+/// `ObjectData::train_time@006508c0`, and the time-side twin of
+/// [`crate::cost::science_discount`].
+///
+/// ```text
+/// if level < science { t -= (science - level) * TECH_SCIENCE_SPEEDUP * t / 100 }
+/// ```
+///
+/// Three things separate it from the price side, and each is read off the
+/// listing rather than carried over from it:
+///
+/// - the constant is `TECH_SCIENCE_SPEEDUP`, a second `Tuning` entry that
+///   merely happens to ship at the same ten;
+/// - `level` is the technology's `AGE` column **raw**, with none of the price
+///   side's plus-one for a plain tech — so a plain Ancient tech is already a
+///   level behind the player's first Science epoch here, and level with it
+///   there;
+/// - it is gated on `level < science`, so falling behind costs *nothing* in
+///   time where the price side turns the same expression into a surcharge.
+///
+/// For a **unit or building** research job the level is not the type's own —
+/// types other than techs have no `AGE` — but its first prerequisite's:
+/// `TypeData +0x30` is `preq[0]`, and a negative one reads as level zero. The
+/// caller resolves that; this takes the answer.
+///
+/// It returns nothing when it does not fire, so a caller can splice it into a
+/// tail, and it belongs to the **research** half of the tail's partition: a
+/// train job jumps over this block entirely and must never be handed one.
+pub fn science_speedup(t: &Tuning, science: i32, level: i32) -> Option<Adjust> {
+    (level < science).then(|| Adjust::Off((science - level) * t.tech_science_speedup))
 }
 
 /// The floor `ObjectData::train_time` returns through. One hundredth of a
@@ -795,6 +837,48 @@ mod tests {
         let back = reprice(&mut item, t.tech_science_discount, 1, &mut ledger);
         assert_eq!(item.cost[0], 80);
         assert_eq!(back, 10);
+    }
+
+    #[test]
+    fn the_science_speedup_is_run39_s_second_library_entry() {
+        // run39's own clock. The AI queues Written Word and City State at
+        // frame 2; both are `JOB_TIME 200`, so both start at 20,000
+        // hundredths. Written Word is researched at Science 0 — its own level
+        // is 0, and the gate is *strict* — so it takes the full 20,000 and
+        // lands on 201. City State is then researched with `epoch[3]` at one
+        // against its own level of zero, takes 18,000, and lands on 382. The
+        // twenty frames between 382 and 402 were the whole of the twenty-one
+        // fields `run39_s_build_queues_are_the_original_s_clock` disagreed on.
+        let t = tuning();
+        assert_eq!(
+            science_speedup(&t, 0, 0),
+            None,
+            "level with it is not ahead"
+        );
+        let up = science_speedup(&t, 1, 0).expect("a level ahead");
+        assert_eq!(up, Adjust::Off(10));
+        assert_eq!(up.apply(20_000), 18_000);
+        // Two levels ahead is twice off the *whole*, not a compounding.
+        assert_eq!(science_speedup(&t, 2, 0).unwrap().apply(20_000), 16_000);
+        // And being behind costs nothing in time, where on the price side the
+        // same distance is a surcharge.
+        assert_eq!(science_speedup(&t, 0, 3), None);
+    }
+
+    #[test]
+    fn taking_a_percentage_off_is_not_scaling_by_its_complement() {
+        // `Adjust::Off(pct)` truncates the term and subtracts it;
+        // `Adjust::Scale(100 - pct)` truncates the product. The original
+        // spells the science speedup the first way — a magic multiply by
+        // −0x51eb851f added to the time — so the difference is not cosmetic.
+        // Seven hundredths of a frame at ten percent: 7 − 0 = 7, against
+        // 630 / 100 = 6.
+        assert_eq!(Adjust::Off(10).apply(7), 7);
+        assert_eq!(Adjust::Scale(90).apply(7), 6);
+        // They agree wherever the product is a round hundred.
+        for time in [0, 100, 1_000, 20_000] {
+            assert_eq!(Adjust::Off(10).apply(time), Adjust::Scale(90).apply(time));
+        }
     }
 
     #[test]

@@ -1679,6 +1679,91 @@ fn a_technology_queues_at_the_library_and_completes_as_research() {
     assert!(sim.units.is_empty());
 }
 
+/// **run39's library, end to end**: Written Word on 201, City State on 382.
+///
+/// The two entries the AI queues at frame 2 in both long captures, with the
+/// shipped numbers — both `JOB_TIME 200`, City State `12f`. Only slot 0
+/// advances (one library city), so they run one after the other, and the pair
+/// exercises every side of the science discount at once:
+///
+/// - **The gate is strict.** Written Word is itself the Science epoch, so
+///   while it is being researched `epoch[3]` is still zero against its own
+///   level of zero and it takes the full 20,000 hundredths — 200 frames of
+///   climbing, observed done on the 201st.
+/// - **The refund.** Gaining it re-prices what is still queued *before* the
+///   counter it is about to raise, so City State's 120 food comes back to 108
+///   (`docs/COSTS.md` §Paying).
+/// - **The speedup.** From frame 202 `epoch[3]` is one and City State's own
+///   level is zero, so its target is 18,000 rather than 20,000 and it lands on
+///   382. Before item 86 this simulation charged it the full 20,000 and landed
+///   on 402; those twenty frames were the whole of the twenty-one fields
+///   `run39_s_build_queues_are_the_original_s_clock` disagreed on.
+///
+/// The target is recomputed every frame rather than stored, which is what lets
+/// a level arriving mid-queue shorten a job already under way.
+#[test]
+fn the_science_epoch_shortens_the_entry_behind_it_and_refunds_its_price() {
+    use crate::tech::{Line, TechTree, TypeDef};
+    let food = economy::Resource::Food.index();
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let library_t = tree.add(TypeDef::building("Library"));
+    // `JOB_TIME 200` on both, as `techrules.xml` writes them.
+    let mut ww = TypeDef::epoch("Written Word", Line::Science, 0).at(library_t);
+    ww.job_time = 200;
+    let written_word = tree.add(ww);
+    let mut cs = TypeDef::epoch("City State", Line::Commerce, 0).at(library_t);
+    cs.job_time = 200;
+    cs.cost[food] = 12;
+    let city_state = tree.add(cs);
+    sim.set_tech_tree(tree);
+    sim.build_types[t.library].tree = Some(library_t);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
+    finish(&mut sim, lib);
+    sim.ledgers[0].bucket[food] = 1_000;
+
+    assert_eq!(sim.queue_tech(lib, written_word), Ok(0));
+    assert_eq!(sim.queue_tech(lib, city_state), Ok(1));
+    assert_eq!(
+        sim.ledgers[0].bucket[food],
+        1_000 - 120,
+        "12f × TECH_COST_FACTOR, charged on queue with no science discount: \
+         City State is an epoch, so its level is its AGE of zero and the \
+         player is level with it"
+    );
+    assert_eq!(sim.buildings[lib].queue.items[1].cost[0], 120);
+    // Neither entry is sped up while the player has no Science level: the
+    // gate is `level < science`, and both are zero.
+    assert_eq!(sim.queue_target(lib, 0), 20_000);
+    assert_eq!(sim.queue_target(lib, 1), 20_000);
+
+    let mut frames = 0;
+    while !sim.tech[0].tech[written_word] {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 600);
+    }
+    assert_eq!(frames, 201, "200 frames of climbing, the 201st observes it");
+    assert_eq!(sim.tech[0].epoch[Line::Science.index()], 1);
+    // The refund landed: the entry carries the re-struck price, and the
+    // twelve food that came back with it is
+    // `run40_s_census_prices_the_ai_s_second_city_at_sixty`'s. (The ledger is
+    // not asserted here because the city beside the library is also earning.)
+    assert_eq!(sim.buildings[lib].queue.items[0].cost[0], 108);
+    // And the entry behind it is now a level behind the player's Science.
+    assert_eq!(sim.queue_target(lib, 0), 18_000);
+
+    while !sim.tech[0].tech[city_state] {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 600);
+    }
+    assert_eq!(frames, 382, "the original's frame, not 402");
+    assert!(sim.buildings[lib].queue.items.is_empty());
+}
+
 /// `Unit::go_around_building` (`docs/ORDERS.md` §4.6): a straight line that
 /// clips a **building** is answered with a detour, not with a re-plan — and
 /// the re-plan is what costs a sync draw.
