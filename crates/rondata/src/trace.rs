@@ -129,6 +129,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Unit::resolve_unit_collision@005f9d30+0xb52` — the head-on pair's
     // stagger, the collision mechanic's only draw.
     (0x005f_a882, None, sim::collide::SITE_PAUSE),
+    // `Unit::explore_goody@005f9780+0x27c` — the goody box's lottery, one
+    // draw a candidate good (`docs/GOODY.md` §3).
+    (0x005f_99fc, None, sim::goody::SITE_PICK),
     // `Guy::set_anim@005da300+0x104b` — the gaia bird's wing-beat coin.
     // Its own address, so no chain is needed to tell it from the other
     // four (`docs/SYNC.md` §3.9).

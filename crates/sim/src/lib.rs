@@ -64,6 +64,7 @@ pub mod form;
 pub mod gaia;
 pub mod garrison;
 pub mod gather;
+pub mod goody;
 pub mod group;
 pub mod grouppath;
 pub mod holdings;

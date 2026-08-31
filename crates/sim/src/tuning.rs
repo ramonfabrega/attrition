@@ -425,6 +425,18 @@ pub struct Tuning {
     pub british_archer_upgrades: i32,
     /// Spanish: scout upgrades free.
     pub spanish_scout_upgrades: i32,
+    /// `GOODY_BOX`: the flat half of a goody box's pile (`docs/GOODY.md`
+    /// §3). Written `25 resources` and read by `Constants::get_item`, so it
+    /// arrives plain — not one of the `get_fraction` neighbours.
+    pub goody_box: i32,
+    /// `GOODY_BOX_AGE`: the per-level half, multiplied by the finder's
+    /// **Science** library level and not by their age.
+    pub goody_box_age: i32,
+    /// `SPANISH_RUINS_BASE`: [`Tuning::goody_box`]'s replacement for a
+    /// player with `has_tribe_bonus(9)`.
+    pub spanish_ruins_base: i32,
+    /// `SPANISH_RUINS`: [`Tuning::goody_box_age`]'s replacement, likewise.
+    pub spanish_ruins: i32,
     /// Turks: siege upgrades free.
     pub turk_free_siege_upgrades: i32,
     /// Statue of Liberty: unit upgrades free.
@@ -792,6 +804,10 @@ impl Tuning {
         german_heavy_infantry: 0,
         british_archer_upgrades: 1,
         spanish_scout_upgrades: 1,
+        goody_box: 25,
+        goody_box_age: 25,
+        spanish_ruins_base: 30,
+        spanish_ruins: 26,
         turk_free_siege_upgrades: 1,
         liberty_free_upgrades: 1,
         colosseum_fort_upgrades: 0,
@@ -897,7 +913,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 250] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 254] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1224,6 +1240,10 @@ impl Tuning {
                 "SPANISH_SCOUT_UPGRADES",
                 Slot::Value(T.spanish_scout_upgrades),
             ),
+            ("GOODY_BOX", Slot::Value(T.goody_box)),
+            ("GOODY_BOX_AGE", Slot::Value(T.goody_box_age)),
+            ("SPANISH_RUINS_BASE", Slot::Value(T.spanish_ruins_base)),
+            ("SPANISH_RUINS", Slot::Value(T.spanish_ruins)),
             (
                 "TURK_FREE_SIEGE_UPGRADES",
                 Slot::Value(T.turk_free_siege_upgrades),

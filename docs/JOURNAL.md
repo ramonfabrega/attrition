@@ -8751,3 +8751,134 @@ tells you whether it is the right one. At three of `find_nearby_spot`'s six
 call sites the natural reading is wrong; here it cost 125 frames of the
 word, and the item that chased it spent its budget on the wrong mechanic
 until the dump was asked which unit was blocked.
+
+## 2026-08-31 (later, Opus) — item 104: East Indies' word 867 → 879, and the box is a lottery
+
+Frame 867 of run39 is nine draws and this crate spent five. The first three
+are `Unit::explore_goody+0x27c < Unit::set_new_location+0x3cc <
+Unit::move_step+0x8f4`, and nothing here modelled the function at all. The
+ninth fell out with them: it was the frame's sixth `Farms::inc_time` draw,
+`+0x1de`, the sprout that only happens when the chance draw before it comes
+up — and the chance draw before it was reading the wrong word.
+
+### Which unit, and which cell
+
+The `WORLD` record's cells answer both. East Indies has seven cells whose
+first `short` is negative — `goodies 7`, and `flags` prints them as 32768
+and 33280 —
+
+```
+(52, 5)  (22, 22)  (53, 26)  (8, 28)  (36, 31)  (38, 34)  (45, 49)
+```
+
+and the per-frame dump puts exactly one unit near one of them: player 1's
+scout `1/0`, walking south at three units a frame, `(34984, 38437)` at the
+end of 866 and `(34977, 38371)` at the end of 867 — across `y = 38400`,
+which is the boundary between cells 50 and 49. `(45, 49)` is the seventh.
+
+### One draw per good you can gather
+
+`Unit::explore_goody@005f9780` is short and the loop is the whole mechanic:
+
+```
+best = 99,999,999;  pick = -1
+for good in 0..6:
+    if type_avail(who, good, 1) == 0: continue
+    if good == 3: continue                            // KNOWLEDGE, always
+    score = Random::get(game_random, 0, 0xffff) % 25 + bucket[good]
+    if score < best: best = score; pick = good
+if pick < 0: pick = 2                                 // WEALTH
+```
+
+So **the draw count is the candidate count**, and three is what an Ancient
+game gives: food, timber and wealth available, metal and oil not, knowledge
+refused by name. Every capture on disk that reaches a box spends three —
+run39 on 867, run33 on 898 and 1659 — which makes the frame a test of
+`LeaderData::type_avail` over the six good types rather than of the
+lottery.
+
+The pick itself is neither "the poorest good" nor a coin: `draw % 25 +
+bucket`, lowest wins, ties to the earlier good. A good more than 24 behind
+the field wins outright; within 24 the jitter decides.
+
+### The constant whose name lies
+
+```
+5f9a37  movl 0xf4(%eax), %ebx         ; LeaderDataEncrypt +0xf4
+5f9a5f  imull 0xc28(%eax), %ebx       ; constants->goody_box_age = 25
+5f9a66  addl  0xc24(%eax), %ebx       ; constants->goody_box     = 25
+```
+
+`+0xf4` is `epoch[3]`, not `ages` — `ages` is `+0xdc` and masked `0x62766`
+where this site masks `0x63187` — and `LeaderData::get_epoch_base(3)`
+returns `BASE_EPOCHTYPES`, which the `TypeIndex` enum gives the same value
+as `BASE_SCIENCETYPES`. **`GOODY_BOX_AGE` is per Science library level.**
+run39's player 1 is on Science 1 at 867, so its box pays 50 where the age
+reading would pay 25. The Spanish pair replaces *both* halves, not the base
+alone.
+
+Two smaller things the listing settled that the decompiler could not. The
+guard in front of the call is vtable slot `+0x30`, which the map folds onto
+`Window::get_button`/`Buffer::is_pending_load` and the PDB's `LF_ONEMETHOD`
+list names `SubObjectData::is_animal` — the same slot step 0 of
+`docs/COLLISION.md` §6 reads, so **gaia takes nothing**. And the cell's
+object-chain repair has a genuine dead store in it: where the cell's own
+`down` is `-3` the original writes `-3` straight back (`movl
+$0xfffffffd, %edx; movw %dx, 0x8(...)` at `5f98ff`). It is the `flags &=
+0x7fff` two instructions later that actually spends the box.
+
+### What landed
+
+`crates/sim/src/goody.rs`, four constants in `Tuning` (all checked against
+`rules.xml` by `cargo run -p rondata`, made to fail once), a
+`goody_box_resources` counter on `Ledger` for `LeaderData +0x86c`, the four
+guards in `Sim::set_new_location`, one row in `rondata::trace::SITES`, and
+`docs/GOODY.md`. `docs/VISION.md` §7's open question is struck and pointed
+at it — and it was wrong twice over: not one draw but three, and it shares
+`set_new_location`'s *caller*, not its trigger, since the reveal hangs off
+the tile test and the goody off the cell test.
+
+`a_goody_box_draws_once_for_each_good_its_finder_can_gather` is the rule
+against the record: the seven cells, the bit set through 866 and clear
+after 867 with the other six untouched, the frame's sequence equal to the
+trace's, and fifty wealth in player 1's bucket. Made to fail twice — by
+dropping the availability guard, which spends five draws and parts the word
+back at 867, and by reading `ages`, which pays 25.
+
+**East Indies' word and sequence: 867 → 879.** Great Lakes holds at 780 on
+both with its totals unchanged at 986/884 — its two boxes are at 898 and
+1659, past its parting. run10 is untouched in every figure, headline,
+by-unit and coverage; it has no trace and world6's units reach no goody.
+run39's game score holds at 167/167 with 217/168, its queue record at
+33,631 fields and its gather record at 16,152 to 897. Tree: 661 sim, 154
+rondata.
+
+**One number fell**, and it is worth being plain about: run39's gaia
+agreement over the whole capture, 190,417 → **189,843** of 192,504, with
+its first parting frame **983 unmoved**. Every frame past the word's own
+parting draws from a stream that is nobody's, so moving the word forward
+re-rolls all of them; a herd's coin at frame 1,400 is not evidence about
+anything. The test now pins 983 — the number with meaning — alongside the
+weakened total, and says so.
+
+### What is not settled
+
+The pile. No dump on disk prints a leader's `bucket` after a box opens:
+the `LEADERS` detail that writes `bucket`, `ages_get()` and
+`epoch_get(scan)` is emitted once, in the start block, where every value is
+still its opening one. So `epoch[3] × 25 + 25` rests on the listing alone.
+The capture that would settle it is cheap and is now in the queue: the
+run39 lobby under `samegame.py` with `LEADERS` per frame, nine hundred
+frames, and `epoch_get(scan)` reading `0 0 0 1` on 867 is the whole of the
+difference between the Science reading and an `ages` one.
+
+### The lesson
+
+A constant's *name* is not evidence about what it multiplies. `GOODY_BOX_AGE`
+multiplies a library level; `SPANISH_RUINS` replaces the per-level half and
+`SPANISH_RUINS_BASE` the flat one, which the pairing of names does not tell
+you either. Item 102's lesson was that a literal argument is a claim; this
+is the same lesson one level down — the tuning file's vocabulary is the
+designers', and only the consumer says what a constant means. `CLAUDE.md`
+has said "read the consumer before believing the digits" about
+*representation* since the 8.8 traps; it holds for meaning too.

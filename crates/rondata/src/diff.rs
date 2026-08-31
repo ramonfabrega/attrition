@@ -7271,6 +7271,26 @@ mod tests {
     ///               `docs/SYNC.md` §3.19, and
     ///               [`a_far_wander_sweeps_from_the_literal_bearing`] is
     ///               the rule against the record.
+    ///   2026-08-31  word **867 -> 879** (item 104), **the goody box**:
+    ///               `Unit::set_new_location@005f8d20+0x3cc` calls
+    ///               `Unit::explore_goody@005f9780` on any non-animal land
+    ///               unit that enters a new cell carrying `WData.flags &
+    ///               0x8000`, and run39's world has seven of them —
+    ///               the `WORLD` record's own `goodies 7`. Player 1's
+    ///               scout `1/0` walks into `(45, 49)` on 867, and the box
+    ///               holds a lottery: one draw for each good the finder can
+    ///               gather, scored `draw % 25 + bucket[good]`, lowest
+    ///               wins, knowledge never a candidate. In the Ancient age
+    ///               that is **three** — food, timber and wealth — and this
+    ///               crate spent none, so the frame read 5 against 9 and
+    ///               the sixth `Farms::inc_time` draw (`+0x1de`, the
+    ///               sprout) fell out with them. Frame 879 is next and it
+    ///               is the scout: two `Unit::set_anim` stands and then
+    ///               `Unit::think_scout+0x436`/`+0x458` six times over with
+    ///               `+0x64c` twice — sixteen draws this crate does not
+    ///               spend. `docs/GOODY.md`, and
+    ///               [`a_goody_box_draws_once_for_each_good_its_finder_can_gather`]
+    ///               is the rule against the record.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7392,10 +7412,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 867 && first_part >= 867 && words >= 64 && matched >= 64,
+            first_count >= 879 && first_part >= 879 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 867, 867, 64 and 64"
+             {matched} draw for draw — the floor is 879, 879, 64 and 64"
         );
     }
 
@@ -7472,6 +7492,7 @@ mod tests {
         // `o`, ours and theirs. Printed rather than asserted — it is the
         // successor item the next time the floor moves.
         let mut first_bad: Option<String> = None;
+        let mut first_bad_frame: i64 = i64::MAX;
         let mut last = 0i64;
         for f in log.frame_states() {
             while last < f.n {
@@ -7493,6 +7514,7 @@ mod tests {
                 if i64::from(ours.x) == u.pos.x && i64::from(ours.y) == u.pos.y {
                     agree += 1;
                 } else if first_bad.is_none() {
+                    first_bad_frame = f.n;
                     first_bad = Some(format!(
                         "frame {} 8/{}: ours ({}, {}) theirs ({}, {})",
                         f.n, u.o, ours.x, ours.y, u.pos.x, u.pos.y
@@ -7540,16 +7562,176 @@ mod tests {
         assert!(built.sim.units[u].orders.is_empty());
         // **The whole-capture floor**, and it is the wider claim: gaia's
         // animals are the one population this capture lets free-run for
-        // 1,850 frames with nothing installed, and **190,417 of 192,504
-        // dumped animal-frames stand on the original's own point**. The
-        // first that does not is `8/3` again, on frame **983** — 116
-        // frames past the word's own parting — where the original wanders
-        // off the point it was refused at and this crate has not yet. The
-        // floor may only rise.
+        // 1,850 frames with nothing installed, and the first animal-frame
+        // that is not the original's is `8/3` again on frame **983**, where
+        // the original wanders off the point it was refused at and this
+        // crate has not yet. That frame is the number with meaning and it
+        // may only rise.
+        //
+        // The whole-capture *count* is the weaker half, and it is not
+        // monotone. Every frame past the word's own parting is drawn from a
+        // stream that is nobody's — a herd's next coin is whatever the
+        // frames before it happened to spend — so a mechanic that moves the
+        // word forward re-rolls all of them: item 104's goody box took the
+        // word 867 → 879 and the count 190,417 → 189,843, with **983
+        // unmoved**. Read the count as a floor on the same word, not as a
+        // score across words.
         assert!(
-            agree >= 190_417 && seen == 192_504,
+            first_bad_frame >= 983 && agree >= 189_843 && seen == 192_504,
             "run39's gaia positions fell: {agree} of {seen}, first {first_bad:?}"
         );
+    }
+
+    /// **A goody box draws once for every good its finder can gather**
+    /// (2026-08-31, item 104) — the mechanic behind East Indies' word going
+    /// 867 → 879, asserted where the word's own count cannot see it.
+    ///
+    /// `Unit::set_new_location@005f8d20+0x3cc` calls
+    /// `Unit::explore_goody@005f9780` whenever a unit that is not an animal,
+    /// not a placement ghost and of a land type enters a **new cell** whose
+    /// `WData` first `short` is negative — bit `0x8000`, `GOODY`. run39's
+    /// world carries seven such cells, which is the `WORLD` record's own
+    /// `goodies 7`, and on frame 867 player 1's scout `1/0` walks south out
+    /// of cell `(45, 50)` into `(45, 49)`, one of them. The original spends
+    /// **three** draws there and this crate spent none.
+    ///
+    /// Three, not six: the lottery walks goods 0…5, skips `KNOWLEDGE`
+    /// outright and skips anything `LeaderData::type_avail(good, 1)` does
+    /// not call available — and in the Ancient age that is knowledge, metal
+    /// and oil, so the candidates are food, timber and wealth. **The draw
+    /// count is the candidate count**, which is what makes this frame a test
+    /// of `type_avail` over the goods rather than of the lottery.
+    ///
+    /// What the frame's count cannot see, and this does:
+    ///
+    /// - **The cell.** The bit at `(45, 49)` is set through frame 866 and
+    ///   clear after 867, and the other six are untouched — so no unit can
+    ///   take the same ruins twice, and none of the other six has been
+    ///   consumed by a walk that merely passed nearby.
+    /// - **The pile.** `epoch[3] * GOODY_BOX_AGE + GOODY_BOX`, and the
+    ///   `epoch` is the **Science** library level rather than the age
+    ///   (`docs/GOODY.md` §3). Player 1 is on Science 1 by 867, so the pile
+    ///   is `1 × 25 + 25 = 50` where the age reading would pay 25.
+    /// - **The good.** Wealth, and it goes to the finder's bucket and to
+    ///   `goody_box_resources`, the score counter `Leader::reset_score`
+    ///   zeroes beside `goody_box_techs` and `goody_box_units`.
+    ///
+    /// Made to fail by dropping the availability guard, which spends five
+    /// draws and parts the word back at 867. **The pile is the half no dump
+    /// on disk can check**: run39's leader detail is written once, at start,
+    /// where every `bucket` and every `epoch_get(scan)` is still its opening
+    /// value. `docs/GOODY.md` §6 names the capture that would settle it.
+    #[test]
+    fn a_goody_box_draws_once_for_each_good_its_finder_can_gather() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+
+        // The seven, from the dump's own cells — `goodies 7`.
+        let goody_cells = |s: &sim::Sim| -> Vec<(i32, i32)> {
+            let mut out = Vec::new();
+            for y in 0..s.world.height() {
+                for x in 0..s.world.width() {
+                    let c = sim::world::Cell::new(x, y);
+                    if s.world.cell_data(c).flags & sim::world::cell::GOODY != 0 {
+                        out.push((x, y));
+                    }
+                }
+            }
+            out
+        };
+        assert_eq!(
+            goody_cells(&built.sim),
+            vec![
+                (52, 5),
+                (22, 22),
+                (53, 26),
+                (8, 28),
+                (36, 31),
+                (38, 34),
+                (45, 49),
+            ],
+            "run39's `WORLD` record carries `goodies 7`, and these are they"
+        );
+
+        // `Built::tick` stamps the frame it is *about* to run, so 867 ticks
+        // leave frames 0…866 behind and `Sim::frame` on 867.
+        for _ in 0..867 {
+            built.tick();
+        }
+        assert_eq!(built.sim.frame, 867);
+        let before = built.sim.ledgers[1].bucket;
+        assert_eq!(
+            goody_cells(&built.sim).len(),
+            7,
+            "nothing has taken a goody through frame 866"
+        );
+        assert_eq!(built.sim.ledgers[1].goody_box_resources, 0);
+
+        built.tick();
+        // The frame itself, against the trace: three of the lottery's draws
+        // and then the six the farms spend.
+        let ours = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 867)
+            .map(|(_, s)| s.clone())
+            .expect("frame 867's sites");
+        assert_eq!(
+            ours,
+            tr.labels(867),
+            "frame 867 is the goody's three draws and the farms' six"
+        );
+        assert_eq!(
+            ours.iter().filter(|s| *s == sim::goody::SITE_PICK).count(),
+            3,
+            "food, timber and wealth are the candidates; knowledge, metal and oil are not"
+        );
+
+        // The cell is spent and its six neighbours in the list are not.
+        assert_eq!(
+            goody_cells(&built.sim),
+            vec![(52, 5), (22, 22), (53, 26), (8, 28), (36, 31), (38, 34),],
+            "`(45, 49)` is taken and only `(45, 49)`"
+        );
+        // And the finder is where run39's own `FRAME 868` dump puts it.
+        let u = built
+            .sim
+            .unit_by_o(1, 0)
+            .expect("run39 dumps player 1's `1/0`");
+        assert_eq!(built.sim.units[u].pos.cell(), sim::world::Cell::new(45, 49));
+
+        // The pile: fifty wealth, and nothing anywhere else.
+        let after = built.sim.ledgers[1].bucket;
+        let moved: Vec<(usize, i32)> = (0..6)
+            .filter(|&g| after[g] != before[g])
+            .map(|g| (g, after[g] - before[g]))
+            .collect();
+        assert_eq!(
+            moved,
+            vec![(2, 50)],
+            "one good, `epoch[3] × GOODY_BOX_AGE + GOODY_BOX` of it, and player 1 \
+             is on Science 1"
+        );
+        assert_eq!(built.sim.ledgers[1].goody_box_resources, 50);
     }
 
     /// **A building's own line of sight, and the scout's path that reads

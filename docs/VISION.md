@@ -341,11 +341,12 @@ simulation sets `visible`.
 - **The two per-cell planes** `World +0x168` and `WData +0x14`. Written by
   `set_seen`, read by nothing here. `WData +0x14` is the `WORLD` dump's
   `was_seen`, so a future widening of that record would need it.
-- **`Unit::explore_goody@005f9780`'s one draw.** `set_new_location` calls
-  it whenever a unit newly enters a cell whose `WData` first `short` is
-  negative — a goody. That is one sync draw this simulation does not
-  spend, on any map with goodies. It belongs to a goodies mechanic, not
-  to this one, but it shares this mechanic's trigger.
+- ~~**`Unit::explore_goody@005f9780`'s one draw.**~~ Answered
+  2026-08-31 in `docs/GOODY.md`, and it is not one draw but **one per good
+  the finder can gather** — three in the Ancient age. It shares this
+  mechanic's *caller* and not its trigger: the reveal hangs off the **tile**
+  test (`p >> 6`) and the goody off the **cell** test (`p >> 8`), which is
+  §6's outer one.
 - **`mylos` is a cached value, and this simulation computes it fresh.**
   `Leader::calc_unit_stats@006cf970` walks a player's units calling
   `update_los`, and `Leader::process` calls *it* only when `leader_flags &

@@ -15,6 +15,7 @@
 //! `coll_size 1` — every unit in every capture so far — the blocks overlap
 //! most of the time.
 
+use crate::attrition::Domain;
 use crate::combat::Obj;
 use crate::orders::{Body, MoveOrder, Order, PathData, index, path_flag};
 use crate::world::{Cell, Pos, UNITS_PER_CELL, tile};
@@ -318,6 +319,21 @@ impl Sim {
         self.units[u].pos = to;
         if cell_change {
             self.chain_add(u);
+            // The goody box, `docs/GOODY.md` §2. The original's four
+            // guards, in its own order after `add_to_world`: not an animal
+            // (`SubObjectData::is_animal`, the same slot `+0x30` step 0 of
+            // §6 reads), not a placement ghost (`unit_masks & 1`), a land
+            // type (`type->domain == 0`), and the cell's `WData` first
+            // `short` negative — bit `0x8000`, `GOODY`.
+            if !self.units[u].is_gaia()
+                && !self.units[u].decoy
+                && self.units[u]
+                    .ty
+                    .is_none_or(|t| self.unit_types[t].combat.domain == Domain::Land)
+                && self.world.cell_data(to.cell()).flags & crate::world::cell::GOODY != 0
+            {
+                self.explore_goody(u);
+            }
         }
         if move_guys {
             self.units[u].movement.body.pos = to;

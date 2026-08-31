@@ -1200,6 +1200,45 @@ literal where a variable would read naturally, it is worth one grep of the
 other call sites before assuming the natural reading — and here the natural
 reading cost 125 frames of the word.
 
+## 3.20 The goody box — East Indies' word 867 → 879 (2026-08-31)
+
+Frame 867 of run39 is nine draws and this crate spent five. The first three
+are `Unit::explore_goody+0x27c < Unit::set_new_location+0x3cc <
+Unit::move_step+0x8f4` — player 1's scout `1/0` walking south out of cell
+`(45, 50)` into `(45, 49)`, one of the seven cells East Indies' `WORLD`
+record marks `GOODY`. The ninth was the frame's sixth `Farms::inc_time`
+draw (`+0x1de`, the sprout), which the original's stream reaches only
+because the three before it moved the word.
+
+**Three draws, not one and not six.** `explore_goody` runs a lottery over
+goods 0…5, skipping knowledge outright and skipping anything
+`LeaderData::type_avail@006e33a0` does not call available, and each
+survivor costs one draw. In the Ancient age the survivors are food, timber
+and wealth — metal and oil are not yet available and knowledge is refused
+by name — so **the draw count is a test of `type_avail` over the good
+types**. Every capture on disk that reaches a box agrees: run39 on 867,
+run33 on 898 and 1659, three draws each.
+
+The mechanic is `docs/GOODY.md`; the two facts a reader of this file wants
+are that the trigger is `set_new_location`'s **cell** test (`p >> 8`), not
+the tile test the fog reveal hangs off, and that the pile's multiplier is
+`LeaderDataEncrypt +0xf4` — `epoch[3]`, the **Science** library level —
+however much `GOODY_BOX_AGE` sounds like the age.
+
+**What it is worth.** East Indies' word **867 → 879**; Great Lakes'
+word holds at 780 (its boxes are at 898 and 1659, past its parting) and
+run10 is untouched — world6 has no goodies its units reach. run39's
+gaia agreement over the *whole* capture falls 190,417 → 189,843 with its
+first parting frame **983 unmoved**, which is what a count past the word's
+parting does whenever the word moves: every frame after 879 draws from a
+stream that is nobody's, so the herds re-roll. The number to read there is
+983, not the total.
+
+Frame 879 is next, and it is the same scout: two `Unit::set_anim` stands
+and then `Unit::think_scout+0x436`/`+0x458` six times over with `+0x64c`
+twice — the region fallback's cell walk (`docs/SCOUT.md` §11), sixteen
+draws this crate does not spend.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):

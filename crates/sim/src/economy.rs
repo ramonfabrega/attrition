@@ -309,6 +309,11 @@ pub struct Ledger {
     pub over_cap: [OverCap; RESOURCES],
     /// Lifetime total, for the score screen.
     pub collected: [i32; RESOURCES],
+    /// `LeaderData + 0x86c goody_box_resources`: how much a player's goody
+    /// boxes have paid, all goods together. A score counter — `Leader::
+    /// reset_score` zeroes it beside `goody_box_techs` and `goody_box_units`
+    /// — and `crate::goody` is its only writer, as in the original.
+    pub goody_box_resources: i32,
     /// `LeaderData + 0x8a4`, the dump's `gather_slots`: how many gatherers
     /// the player's finished gather buildings have room for, per resource.
     /// `Build::activate` adds a building's `gather_max` as it goes active and
