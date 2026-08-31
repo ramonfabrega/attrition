@@ -6360,9 +6360,15 @@ mod tests {
         // frame and `Objects::inc_time` wraps its `end_time 0` clock
         // instead. `docs/SYNC.md` §3.16. It is a floor here so that a
         // regression that moved it would read as itself.
+        // **576 -> 780 with item 100**, and the two numbers meet: naming
+        // `make_stuff`'s expiry walk (`+0x221`) is what moved it, because
+        // an unnamed draw takes the last mark's name and five frames of
+        // `place_city_with_cost` at 576 read as `compute_sites+0x50a`.
+        // Nothing about the simulation's arithmetic changed there; what
+        // changed is that the comparison stopped lying about it.
         assert!(
-            first_part >= 576,
-            "the draw sequence parts at frame {first_part}; the floor is 576"
+            first_part >= 780,
+            "the draw sequence parts at frame {first_part}; the floor is 780"
         );
         // And the totals over the whole 1,850, which is what says whether a
         // change past the divergence helped or only moved the noise: 618
@@ -6445,10 +6451,21 @@ mod tests {
         // and what moved with them is the *sequence*: 99 -> 576. The word
         // holds at 780, run10's ticks and orders at 572/776, and the other
         // map's word goes 219 -> 274 (`docs/SYNC.md` §3.16).
+        //
+        // 943 / 830 -> **964 / 864** with item 100, and again it is the
+        // *sequence* that moves: **576 -> 780**, so this map's two numbers
+        // are now the same frame. Two things landed together and only one
+        // of them is a mechanic. `make_stuff`'s expiry walk had always
+        // spent its draws and never **named** them, so every one read as
+        // whatever site marked last — here `compute_sites+0x50a`, five
+        // frames of it at 576 — and a hole that was only a missing label
+        // sat in front of the holes that are real. The mechanic is the
+        // bird's landing search (`docs/SYNC.md` §3.9), sixty draws a
+        // landing, which is what takes the *other* map's word 576 -> 645.
         assert!(
-            words >= 943 && matched >= 830,
+            words >= 964 && matched >= 864,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 943 and 830"
+             {matched} draw for draw; the floors are 964 and 864"
         );
     }
 
@@ -7190,6 +7207,30 @@ mod tests {
     ///               therefore arrived on 412 and idled on 413 while this
     ///               one was still twelve frames short. `docs/VISION.md`
     ///               §2.1.
+    ///   2026-08-31  word **576 -> 645** (item 100), **the bird's landing
+    ///               search**: `Animal::think_bird@005d79e0`'s tail is
+    ///               thirty rounds over the cell list of the region the
+    ///               patrol point sits in, two draws a round, and
+    ///               `docs/SYNC.md` §3.9 had recorded it as unreachable
+    ///               because no capture had reached it. run39's gaia bird
+    ///               `9/8` reaches it on frame **576** — its landing roll
+    ///               is the `% spell_time` at `+0x1f8`, and the counter
+    ///               only passes 100 after ~90 frames of flight — so the
+    ///               original spends **sixty** draws there and this crate
+    ///               spent none. The frame's 118 against 56 was that,
+    ///               plus the two the frame's own animal birth then falls
+    ///               out of step over.
+    ///
+    ///               **What the frame was not is its AI**, which is what
+    ///               the item was booked as. Frame 576 is
+    ///               `place_city_with_cost` five times over, and this
+    ///               crate spends every one of its twenty draws already:
+    ///               `make_stuff`'s expiry walk simply had no
+    ///               [`sim::Sim::mark`] on it, so each of its draws read
+    ///               as the last site marked — `compute_sites+0x50a` —
+    ///               and the sequence appeared to part on a draw that was
+    ///               in fact correct. An unnamed draw is a lie in this
+    ///               comparison, not a gap.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7311,10 +7352,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 576 && first_part >= 576 && words >= 64 && matched >= 64,
+            first_count >= 645 && first_part >= 645 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 576, 576, 64 and 64"
+             {matched} draw for draw — the floor is 645, 645, 64 and 64"
         );
     }
 
@@ -7439,6 +7480,94 @@ mod tests {
             })
             .collect();
         assert_eq!(ours, theirs, "the scout's stack on the frame it re-targets");
+    }
+
+    /// **A bird that lands, and the sixty draws it spends looking**
+    /// (2026-08-31, item 100) — the mechanic behind the second map's word
+    /// going 576 -> 645, asserted at the frame rather than as a total.
+    ///
+    /// `Animal::think_bird@005d79e0`'s third draw is `rnd % spell_time`,
+    /// and `== 100` or `> 799` opens the landing search: thirty rounds
+    /// over the cell list of the region the bird's patrol point sits in,
+    /// two draws a round — the cell (`+0x2aa`, skipped for a region of one)
+    /// and a `% 0x32 + 1` score (`+0x2d3`). The modulus of the roll that
+    /// opens it *is* the counter, so it cannot fire before a bird has
+    /// flown a hundred think-cycles, which is why `docs/SYNC.md` §3.9
+    /// recorded the branch as unreached and left its draws unmodelled.
+    ///
+    /// run39 reaches it. Gaia's `9/8` fires on frame **576**, the frame
+    /// the AI also founds its second city on, and the sixty draws are more
+    /// than half of that frame's 118 — this crate spent 56. What the check
+    /// asserts is the frame's whole draw sequence against the original's,
+    /// which is the only oracle there is: the search's *score* is computed
+    /// and never compared (`if (-1 < score)` cannot fail), so the cell it
+    /// settles on is the thirtieth sampled and no dump prints owner 9
+    /// anyway. Made to fail first by dropping the call from `think_bird`,
+    /// which puts the frame back at 56 draws against 118.
+    #[test]
+    fn run39_s_bird_lands_on_576_and_spends_the_search_s_sixty() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        for _ in 0..=576 {
+            built.tick();
+        }
+
+        // The landing itself: one bird, on the original's frame.
+        assert_eq!(
+            built.sim.gaia.bird_landings,
+            vec![(576, 8)],
+            "gaia's `9/8` is the only bird to land by 576, and it lands there"
+        );
+
+        // The frame's sixty, in the original's own alternation — thirty
+        // pairs, never a `+0x2aa` skipped, so the region has more than one
+        // cell in it.
+        let ours = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 576)
+            .map(|(_, v)| v.clone())
+            .expect("frame 576 drew");
+        let search: Vec<&str> = ours
+            .iter()
+            .map(String::as_str)
+            .filter(|s| {
+                *s == sim::gaia::SITE_BIRD_SEARCH_CELL || *s == sim::gaia::SITE_BIRD_SEARCH_SCORE
+            })
+            .collect();
+        let want: Vec<&str> = (0..sim::gaia::BIRD_SEARCH_ROUNDS)
+            .flat_map(|_| {
+                [
+                    sim::gaia::SITE_BIRD_SEARCH_CELL,
+                    sim::gaia::SITE_BIRD_SEARCH_SCORE,
+                ]
+            })
+            .collect();
+        assert_eq!(search, want, "thirty rounds of two, in order");
+
+        // And the frame whole, which is what says the sixty fall in the
+        // right *place* as well as in the right number.
+        assert_eq!(ours.len(), 118, "frame 576's draw count");
+        assert_eq!(ours, tr.labels(576), "frame 576, draw for draw");
     }
 
     /// **The production queues, whole**, against run39's own record —
@@ -8699,9 +8828,16 @@ mod tests {
         // 91,210 -> **92,766** with item 98 (the script's statics), the
         // eighteenth: `1/10` exists, so its own field-frames join the
         // count, and the other twelve are unchanged to the frame.
+        //
+        // 92,766 -> **97,333** with item 100 (the bird's landing search),
+        // the nineteenth and the largest rise yet from a mechanic with no
+        // unit in it: sixty draws a landing is enough of the stream that
+        // several of the thirteen hold hundreds of frames longer. The
+        // headline 572/776 and both players' first divergences (802 and
+        // 573) are unchanged.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 92_766,
+            coll_seen, 97_333,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -8943,8 +9079,10 @@ mod tests {
         // 35,188 → **35,742** with item 98 (the script's statics): 554
         // more, and all of them `1/10`'s, the citizen the AI reaches for
         // the first time.
+        // 35,742 → **37,376** with item 100 (the bird's landing search):
+        // 1,634 more, the same holding-longer the collision rows show.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 35_742, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 37_376, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()

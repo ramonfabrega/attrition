@@ -458,11 +458,43 @@ spell_time > 0: spell_time += 1; when it is not 1, one more draw —
     rnd % spell_time; == 100 or > 799 starts the landing search
 ```
 
-**Three draws every eighth frame per live bird**, and nothing else: the
-landing search's thirty rounds (two draws each, over the region's cell
-list) cannot fire until the counter has passed 100 — the counter is the
-modulus — which is ~90 frames of flight, and no traced frame reaches it.
+**Three draws every eighth frame per live bird, and sixty more on the
+frame it lands.** The landing search cannot fire until the counter has
+passed 100 — the counter is the modulus — which is ~90 frames of flight,
+so the short captures never reach it. run39 does, on frame **576**.
 `0x194` returns after an `order_type` call and draws nothing.
+
+#### The landing search — `think_bird+0x2aa`, `+0x2d3` (2026-08-31)
+
+```
+spell_time = 0
+best = the patrol point's own cell;  r = the region that cell is in
+thirty rounds:
+    n = r.size                                       # Region+0x14
+    i = n <= 1 ? 0 : rnd % n                         # +0x2aa
+    (x, y) = r.tiles[i]                              # Region+0x7c, 8 bytes a cell
+    score = rnd % 0x32 + 1                           # +0x2d3
+    if cell(x, y).flags & 0x20 (FOREST):   score *= 3
+    if cell(x, y).flags & 0x10 (MOUNTAIN): score *= 2
+    if score > −1:  best = (x, y)                    # always
+the patrol point = best · 0x300 + 0x180 on each axis
+```
+
+**The score decides nothing.** The "is this one better" test the loop
+carries is `-1 < score`, and a `% 0x32 + 1` product of 1..300 can never
+fail it, so `best` is simply the **thirtieth** cell sampled and the two
+terrain multipliers are dead arithmetic. Only the sixty draws are
+observable — no dump prints owner 9 (above) — and they are what the word
+sees: run39's frame 576 spends 118 draws to this simulation's 56 without
+them, and 118 to 118 with them
+(`rondata::diff`, `run39_s_bird_lands_on_576_and_spends_the_search_s_sixty`).
+
+**What is not established.** Which cell the search settles on, and
+therefore where the bird then flies, rests on the reading alone: the score
+being inert makes the answer "the thirtieth sample", which no capture can
+confirm because nothing dumps a bird. A region of one cell would spend
+thirty draws rather than sixty; run39's does not, so the `n <= 1` skip is
+reading-only too.
 
 | what | run14 |
 |---|---|
@@ -519,9 +551,9 @@ parked on its hatch cell and `Guy::move`'s arrival half is skipped for it,
 there being no ground body to follow. That function's own draw (`+0x3b`,
 `rnd % 7 + 0xd`) sits behind a vtable test the wild bird fails on every
 traced frame, and run14 confirms it: three `think_bird` draws an eighth
-frame per bird and no fourth. **The landing search** is unreachable on
-every capture; a bird that reaches it is recorded in `Gaia::bird_landings`
-rather than drifting quietly.
+frame per bird and no fourth. ~~**The landing search** is unreachable on
+every capture~~ — run39 reaches it on frame 576 and it is modelled above;
+every bird that fires it is still recorded in `Gaia::bird_landings`.
 
 ## 3.10 The residue's other names (2026-08-28)
 
@@ -1039,6 +1071,30 @@ no citizen for the rest of the game. The word and the sequence run to
 **413**, where the original spends two `Unit::do_idle+0x7d` idle anims and a
 nine-draw `Unit::think_scout` scan that this crate does not.
 
+## 3.17 An unnamed draw is a wrong answer — 576 → 645 and 576 → 780 (2026-08-31)
+
+Two things landed on East Indies' 576 and only one of them is a mechanic.
+
+**The mechanic** is the bird's landing search (§3.9): sixty draws, run39's
+frame 576, more than half of that frame's 118 against this crate's 56.
+
+**The other is the comparison lying.** `Leader::make_stuff`'s expiry walk
+had always spent its draws — the arithmetic was settled against run18's own
+seeds on 2026-08-25 (`docs/AI.md` §15.3) — and never carried a
+[`Sim::mark`]. An unmarked draw takes the name of whatever site marked
+*last*, so the ten the AI spends founding its second city at 576 read as
+`Leader::compute_sites+0x50a`, which is where the sequence appeared to
+part. The frame's real hole was sixty draws further down and invisible
+behind it, and Great Lakes' `first_part` had been pinned at 576 for the
+same reason since item 60; it went to **780** — its word's own frame — the
+moment `+0x221` and `+0x63d` reached `rondata::trace`'s table, with nothing
+about the simulation changed.
+
+**The rule.** A modelled draw site with no mark is worse than an unmodelled
+one: an unmodelled draw shows up as a bare hex address and reads as a hole,
+where an unnamed modelled draw borrows a neighbour's name and reads as a
+*disagreement about a draw that is correct*. When a mechanic's draws land,
+its marks land with them.
 
 ## 4. Run12 attributed
 
@@ -1441,7 +1497,8 @@ struck through and point there.
   own roll, the unobserved lengths, `think_farm_animal`.
 - ~~**Birds after creation** (`think_bird`, `do_air_physics`)~~ — **read
   and modelled 2026-08-28, §3.9**: `think_bird` is three draws every
-  eighth frame per live bird, and its landing search is unreachable.
+  eighth frame per live bird, and its landing search is sixty more on the
+  frame a bird lands (2026-08-31).
   `do_air_physics` and `Guy::set_anim`'s bird branch stay open, and the
   25 phase-7 wraps they leave unspent are what still stands between the
   simulation's stream and the original's after frame 103. And

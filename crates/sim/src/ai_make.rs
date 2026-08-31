@@ -15,6 +15,13 @@ use crate::orders::{Body, Worker, index};
 use crate::tech::{self, Kind, Line, TypeId};
 use crate::{Player, Sim};
 
+/// The two expiry walks' draw sites, under the original's own offsets —
+/// step 4's over the head's type and step 6's over a bought slot's
+/// (`docs/AI.md` §2.6). They share a body here and two addresses there, so
+/// the mark is what tells them apart in the trace's sequence.
+pub const SITE_EXPIRE_HEAD: &str = "Leader::make_stuff+0x221";
+pub const SITE_EXPIRE_SLOT: &str = "Leader::make_stuff+0x63d";
+
 /// Which good a gather building gathers — `make_stuff`'s switch on the build
 /// type's own `TypeIndex` (`0x1a1` food, `0x1a2` wood, `0x1a3` metal, `0x1a4`
 /// knowledge, `0x1a5`/`0x1a6` oil). An exact type test, not a lineage one, so
@@ -268,10 +275,16 @@ impl Sim {
     /// that resets the whole record.
     pub fn expire(&mut self, who: Player, t: i32, from: usize, unconditional: bool) {
         let w = who as usize;
+        let site = if from == 0 {
+            SITE_EXPIRE_HEAD
+        } else {
+            SITE_EXPIRE_SLOT
+        };
         for k in from..MAKE_SLOTS {
             if self.ai[w].make_list.list[k].t != t {
                 continue;
             }
+            self.mark(site);
             let r = self.rng.get(0, 0xffff);
             if r % 3 == 0 || unconditional {
                 self.ai[w].make_list.list[k].t = -1;

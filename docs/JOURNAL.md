@@ -8488,3 +8488,76 @@ disagreement. The new parting frame is the AI's **second city**:
 `place_city_with_cost` five times over, and the two
 `Leader::make_stuff+0x221` draws each of them spends that this crate does
 not — 118 draws against 56.
+
+## 2026-08-31 (later, Opus) — item 100: East Indies' word 576 → 645, and the frame was not what it was booked as
+
+Item 100 was booked as the AI's second city. Frame 576 of run39 is
+`ScenarioFuncSet::place_city_with_cost` five times over, and the queue read
+the trace as saying this crate spent the two `Leader::make_stuff+0x221`
+draws each call takes "not at all" — 118 draws against 56, parting at the
+third.
+
+It spends every one of them. What it does not do is **name** them.
+
+### An unnamed draw is a wrong answer, not a neutral one
+
+`Built::frame_sites` turns the simulation's `Sim::mark` calls into one label
+per draw, and the label of a draw with no mark in front of it is whatever
+site marked *last*. `make_stuff`'s expiry walk never carried a mark — its
+arithmetic was settled against run18's own seeds on 2026-08-25, five of five
+(`docs/AI.md` §15.3), and the marks were simply never added — so its ten
+draws at 576 read as `Leader::compute_sites+0x50a`. The comparison therefore
+parted on a draw that was correct, at index 2, and the frame's real hole sat
+sixty draws further down where nobody looked.
+
+Adding the two marks (`+0x221` the head's walk, `+0x63d` the bought slot's)
+changed nothing about the simulation and took **Great Lakes' draw sequence
+from 576 to 780** — its word's own frame, so that map's two numbers are now
+one. That number had been pinned at 576 since item 60. `docs/SYNC.md` §3.17.
+
+### The mechanic: a bird that lands
+
+Frame 576's actual gap is `Animal::think_bird@005d79e0`'s tail. A bird's
+third draw is `rnd % spell_time`, and `== 100` or `> 799` opens a landing
+search: thirty rounds over the cell list of the region the patrol point sits
+in, two draws a round — `% size` for a cell (`+0x2aa`, skipped for a region
+of one) and `% 0x32 + 1` for a score (`+0x2d3`). Sixty draws.
+
+`docs/SYNC.md` §3.9 had read the branch on 2026-08-28 and left its draws
+unmodelled with a reason that was true at the time: the modulus of the roll
+that opens it *is* the counter, so it cannot fire before a bird has flown a
+hundred think-cycles — ~90 frames — and no capture then in hand was long
+enough. A `Gaia::bird_landings` list was kept so that a capture which did
+reach it would read as a note rather than as silent drift. run39 is 1,850
+frames long, and the note was already there: `(576, 8)`, on the nose, the
+first entry of fourteen.
+
+**The score decides nothing.** The loop's "is this one better" test is
+`-1 < score`, and a `% 0x32 + 1` product of 1..300 can never fail it, so the
+patrol point lands on the *thirtieth* cell sampled and the two terrain
+multipliers — `×3` forest, `×2` mountain — are dead arithmetic. It is
+transliterated anyway, so the next reader does not have to re-derive that it
+is inert. Nothing dumps owner 9, so the sixty draws are the whole oracle.
+
+### What landed
+
+`Sim::bird_landing_search` in `gaia.rs`; `SITE_BIRD_SEARCH_CELL`/`_SCORE`
+and `SITE_EXPIRE_HEAD`/`_SLOT` in the trace's naming table; the marks in
+`Sim::expire`. The diff is
+`run39_s_bird_lands_on_576_and_spends_the_search_s_sixty` — the landing at
+`(576, 8)`, thirty pairs in the original's alternation, and frame 576 whole
+at 118 draws against the trace, label for label. Made to fail first by
+dropping the call (back to 56 against 118) and, for the naming half, by
+dropping the mark (Great Lakes' sequence back to 576).
+
+**East Indies' word and sequence: 576 → 645.** Great Lakes' word holds at
+780 and its **sequence rises 576 → 780**, with 964/864 (from 943/830).
+run10's ticks and orders hold at 572/776 with first divergences 802 and 573,
+and its two coverage totals rise — collision field-frames 92,766 → 97,333
+and angle rows 35,742 → 37,376, the largest rise either has taken from a
+mechanic with no unit in it. run39's own game score holds at 167/167 with
+217/168 and its queue record at 33,631 fields, one disagreeing.
+
+The new parting frame is **645**, where this crate spends a
+`Guy::set_anim+0x97a` under `Unit::do_non_flat_gather+0xb99` — the return
+stand — that the original does not, eight draws against seven.

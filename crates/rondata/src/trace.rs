@@ -73,6 +73,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Leader::compute_sites@006cc950` — the AI's region sweep.
     (0x006c_cdfc, None, sim::ai_sites::SITE_STRIDE),
     (0x006c_ce5a, None, sim::ai_sites::SITE_MARK),
+    // `Leader::make_stuff@006c8af0` — the two expiry walks, step 4's over
+    // the head's type and step 6's over a bought slot's (`docs/AI.md` §2.6).
+    (0x006c_8d11, None, sim::ai_make::SITE_EXPIRE_HEAD),
+    (0x006c_912d, None, sim::ai_make::SITE_EXPIRE_SLOT),
     // `Leader::produce_building@006e1400` — the spiral's score and the
     // 2×2 jitter's.
     (0x006e_2099, None, sim::ai_place::SITE_SPIRAL),
@@ -165,6 +169,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x005d_7a62, None, sim::gaia::SITE_BIRD_WANDER_X),
     (0x005d_7a86, None, sim::gaia::SITE_BIRD_WANDER_Y),
     (0x005d_7bd8, None, sim::gaia::SITE_BIRD_LAND),
+    // …and the landing search it opens, thirty rounds of two.
+    (0x005d_7c8a, None, sim::gaia::SITE_BIRD_SEARCH_CELL),
+    (0x005d_7cb3, None, sim::gaia::SITE_BIRD_SEARCH_SCORE),
     // `Herd::process@00741760` — one herd's walk.
     (0x0074_1777, None, sim::gaia::SITE_HERD_X),
     (0x0074_1796, None, sim::gaia::SITE_HERD_Y),

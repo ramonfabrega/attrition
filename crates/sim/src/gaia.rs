@@ -40,9 +40,9 @@ pub struct Gaia {
     /// at. Nothing else reads it; it is here so the bird's own state is
     /// state rather than a discarded draw.
     pub bird_goals: Vec<(usize, Pos)>,
-    /// Frames on which a bird's landing roll came up — the branch whose
-    /// thirty rounds are **not** modelled (`docs/SYNC.md` §3.9). Empty on
-    /// every capture so far.
+    /// Frames on which a bird's landing roll came up and its thirty-round
+    /// search ran (`docs/SYNC.md` §3.9). run39's frame 576 is the first
+    /// capture to reach one.
     pub bird_landings: Vec<(i64, i16)>,
 }
 
@@ -51,6 +51,8 @@ pub struct Gaia {
 pub const BIRD_CELL: u16 = 0x20;
 /// The feature bits a herd's wander centre must not carry.
 pub const FEATURE_MASK: u16 = 0x70;
+/// `local_10 = 0x1e` — the rounds the landing search takes, a literal.
+pub const BIRD_SEARCH_ROUNDS: i32 = 0x1e;
 
 /// The draw sites, under the original's own offsets. [`Sim::mark`]
 /// writes them into [`Sim::phase_marks`], so the tail's twenty-two draws
@@ -66,6 +68,11 @@ pub const SITE_HERD_Y: &str = "Herd::process+0x36";
 pub const SITE_BIRD_WANDER_X: &str = "Animal::think_bird+0x82";
 pub const SITE_BIRD_WANDER_Y: &str = "Animal::think_bird+0xa6";
 pub const SITE_BIRD_LAND: &str = "Animal::think_bird+0x1f8";
+/// `Animal::think_bird@005d79e0`'s landing search — thirty rounds over the
+/// patrol point's region, two draws a round: the cell it samples and the
+/// score it gives it (`docs/SYNC.md` §3.9).
+pub const SITE_BIRD_SEARCH_CELL: &str = "Animal::think_bird+0x2aa";
+pub const SITE_BIRD_SEARCH_SCORE: &str = "Animal::think_bird+0x2d3";
 /// `Animal::do_idle@005d7460` — a herd animal's wander, the four draws
 /// that follow its idle roll: the three-in-ten coin at `+0x83`, then, when
 /// it comes up and the animal is inside `WANDER_NEAR` of its herd centre,
@@ -197,14 +204,16 @@ impl Sim {
     /// spell_time ≥ 0 → the order's target object is cleared
     /// spell_time > 0: spell_time += 1; when it is not 1, one more draw —
     ///     `% spell_time`, and `== 100` or `> 799` starts the landing
-    ///     search (thirty rounds, two draws each). The modulus is the
-    ///     counter, so the search cannot fire before the bird has been
-    ///     flying a hundred think-cycles, and no traced frame reaches it.
+    ///     search ([`Sim::bird_landing_search`], thirty rounds, two draws
+    ///     each). The modulus is the counter, so the search cannot fire
+    ///     before the bird has been flying a hundred think-cycles.
     /// ```
     ///
     /// **Three draws a think, and only the third's modulus is state** — the
     /// two offsets decide where the bird goes and nothing reads that, which
-    /// is why this models the counter exactly and the flight loosely.
+    /// is why this models the counter exactly and the flight loosely. The
+    /// search's sixty are the exception: they are a tenth of run39's frame
+    /// 576 and were what parted the second map's word there.
     pub(crate) fn think_bird(&mut self, u: usize, frame: i64) {
         let counter = self.units[u].spell_time;
         if counter >= 0 {
@@ -244,16 +253,63 @@ impl Sim {
         }
         self.mark(SITE_BIRD_LAND);
         let r = self.rng.roll() % i32::from(counter);
-        // The landing search — thirty rounds over the region's cell list,
-        // two draws each — is unreachable until the counter passes 100, and
-        // no traced frame has entered it (`docs/SYNC.md` §3.9). Its draws
-        // are **not** modelled; a bird that reaches it is recorded so a
-        // capture that does reach it reads as a note rather than as silent
-        // drift.
         if r == 100 || r > 799 {
             self.units[u].spell_time = 0;
             self.gaia.bird_landings.push((frame, self.units[u].index));
+            self.bird_landing_search(u);
         }
+    }
+
+    /// The landing search — `think_bird`'s tail, thirty rounds over the
+    /// cell list of the region the patrol point sits in, two draws a round
+    /// (`docs/SYNC.md` §3.9).
+    ///
+    /// **The score it computes is never compared**, and that is the whole
+    /// shape of it: `if (-1 < iVar7)` guards the "this one is better"
+    /// assignment with a test a `% 0x32 + 1` product can never fail, so the
+    /// point lands on the **thirtieth** cell sampled and the terrain
+    /// multipliers — `×3` on forest, `×2` on mountain — decide nothing.
+    /// Only the sixty draws are observable, and they are what the stream
+    /// sees; the score is transliterated anyway, because the next reader of
+    /// this function should not have to re-derive that it is inert.
+    ///
+    /// The region's own size is the first draw's modulus, so a region of a
+    /// single cell spends thirty draws rather than sixty.
+    fn bird_landing_search(&mut self, u: usize) {
+        let from = self.bird_goal(u).cell();
+        let reg = self.world.region_of(from).unwrap_or(0);
+        let cells: Vec<Cell> = self.world.cells_in(reg).collect();
+        let mut best = from;
+        for _ in 0..BIRD_SEARCH_ROUNDS {
+            let n = cells.len() as i32;
+            let i = if n <= 1 {
+                0
+            } else {
+                self.mark(SITE_BIRD_SEARCH_CELL);
+                self.rng.roll() % n
+            };
+            let Some(&c) = cells.get(i as usize) else {
+                continue;
+            };
+            self.mark(SITE_BIRD_SEARCH_SCORE);
+            let mut score = self.rng.roll() % 0x32 + 1;
+            let f = self.world.cell_data(c).flags;
+            if f & crate::world::cell::FOREST != 0 {
+                score *= 3;
+            }
+            if f & crate::world::cell::MOUNTAIN != 0 {
+                score *= 2;
+            }
+            // `-1 < score`, which a score of 1..=300 always is.
+            if score > -1 {
+                best = c;
+            }
+        }
+        let at = Pos::new(
+            best.x * crate::world::UNITS_PER_CELL + crate::world::UNITS_PER_CELL / 2,
+            best.y * crate::world::UNITS_PER_CELL + crate::world::UNITS_PER_CELL / 2,
+        );
+        self.set_bird_goal(u, at);
     }
 
     /// The patrol point of a bird, which starts on the cell it hatched in.

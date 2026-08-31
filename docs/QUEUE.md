@@ -13,36 +13,34 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 99 (Opus).*
+*2026-08-31, after item 100 (Opus).*
 
-**East Indies' word and sequence moved 413 → 576**; Great Lakes holds at
-780 and 576 with 943/851. run39's own game score is unchanged at 167/167
-with 217/168, and its queue record at 33,631 fields, 1 disagreeing, first
-at 1851. run10 holds at ticks 572, orders 776, first divergences 802 and
-573. Tree green: 653 sim, 150 rondata.
+**East Indies' word and sequence moved 576 → 645**, and **Great Lakes'
+sequence 576 → 780**, so that map's two numbers are now one frame; its word
+holds at 780 with 964/864. run10 holds at ticks 572, orders 776, first
+divergences 802 and 573 — and its two coverage totals rose, 92,766 → 97,333
+collision field-frames and 35,742 → 37,376 angle rows. run39's own game
+score is unchanged at 167/167 with 217/168, and its queue record at 33,631
+fields, 1 disagreeing, first at 1851. Tree green: 653 sim, 151 rondata.
 
-**Item 99 was not the scout: it was the fog the scout reads.**
-`Build::activate@00623e20` ends with `update_seen(0)` — the whole disc —
-and nothing here threw it, so the grid grew only where units walked.
-run39's AI finishes its sixth farm on frame 219 at cell `(54, 51)`; at
-`mylos 8` (a building's LOS is `LOS + x_size / 2`) its disc lights the
-three cells of column 56 beside it and stops short of `(56, 54)`, which
-`think_scout` needs dark. Nineteen frames later the scout re-targets and
-the `EXPLORE_TO` path reads the grid: unseen ground costs a scout a base
-of 8 against a seen cell's `0x400`, so this crate walked *through* those
-three where the original goes round on the seen column 55 — and its scout
-arrived twelve frames late. `docs/VISION.md` §2.1, §8.
+**Item 100 was not the AI's second city.** This crate spends every one of
+the twenty draws frame 576's five `place_city_with_cost` calls take. What it
+never did was **name** ten of them: `make_stuff`'s expiry walk carried no
+`Sim::mark`, and an unmarked draw takes the name of whatever site marked
+last — so the comparison parted on a draw that was correct and the real hole
+sat sixty draws below it, invisible. Adding the two marks changed nothing in
+the simulation and moved Great Lakes' sequence 204 frames.
 
-**A monotone grid hides a missing write, not only a wrong one.** run13's
-ten-frame fog diff is exact — over frames 95–104 of a game in which no
-building finishes. `vision.rs` skipped buildings "because `seen2` is
-monotone", which answers a question nobody asked.
+**The mechanic was a bird landing.** `Animal::think_bird@005d79e0`'s tail is
+thirty rounds over the patrol point's region, two draws a round; `SYNC` §3.9
+had read it in August and left it unmodelled because no capture was long
+enough to reach it. run39 is, on frame 576 — and `Gaia::bird_landings`, kept
+for exactly that, had `(576, 8)` in it all along. `docs/SYNC.md` §3.9, §3.17.
 
-**Opener (Opus):** `take item 100 from @docs/QUEUE.md — East Indies' word
-at 576 is the AI's second city: the original spends two
-Leader::make_stuff+0x221 draws per site inside
-place_city_with_cost/found_cities that this crate does not, 118 draws
-against 56. docs/AI.md against run39's own trace.`
+**Opener (Opus):** `take item 101 from @docs/QUEUE.md — East Indies' word
+at 645 is one stand this crate spends and the original does not:
+Guy::set_anim+0x97a under Unit::do_non_flat_gather+0xb99, eight draws
+against seven. docs/ORDERS.md §6.4 against run39's own trace.`
 
 ## The queue
 
@@ -50,13 +48,14 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-100. **East Indies' word at 576, and it is the AI's second city.** Frame
-    576 is `ScenarioFuncSet::place_city_with_cost` five times over:
-    `Leader::compute_sites+0x4ac`/`+0x50a` twice each and then
-    **`Leader::make_stuff+0x221` twice**, inside `Leader::found_cities`,
-    which this crate does not spend at all — 118 draws against 56, parting
-    at the third. The frame also births an animal (`Animal::init`) and
-    runs a `Herd::process` pair. `docs/AI.md` against run39's own trace.
+101. **East Indies' word at 645, and it is a return stand.** Frame 645 is
+    seven draws — an `Animal::do_idle` idle anim and six `Farms::inc_time`
+    — and this crate spends an eighth in front of the farms:
+    `Guy::set_anim+0x97a` under `Unit::do_non_flat_gather+0xb99`, the
+    non-flat machine's **return** stand (`docs/ORDERS.md` §6.4). So a
+    woodcutter or miner of ours turns for its drop-off on a frame the
+    original's does not. Find which unit, and whether it is the frame or
+    the arm. `docs/ORDERS.md` §6.4 against run39's own trace.
 
 69. **East Indies' order-list length at 168.** `1/4` and the original
     disagree on the order list at 168 and `1/5` at 186, and both are now
