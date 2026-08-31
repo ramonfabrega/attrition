@@ -9597,3 +9597,73 @@ correction is verified against the original's own count — 290 against 290 —
 and it took the word down four hundred frames on its own, because it opened
 a code path nothing had walked. The instinct to revert it would have been
 wrong; what it had exposed was a second, older defect sitting behind it.
+
+## 2026-08-31 (later still again and again, Opus) — item 115: Great Lakes' orders 791 → 1374, and a pointer this crate does not have
+
+Great Lakes' order score was 581 frames behind its tick score, and the whole
+of the gap was one unit and one field. On run10's frame 792 the AI's `1/1`
+carries `coll_x/coll_y (40539, 18258)` in the original and `(40632, 18044)`
+here — the same walk, the same position on every frame, a different
+collision point.
+
+### Reading the dump first
+
+`(40632, 18044)` is not a wrong answer; it is an **old** one. The original
+carries exactly that pair on frames 788 through 791, and replaces it on 792.
+So the question was never "what does the original probe" but "why did this
+crate stop writing".
+
+Instrumenting the probe settled it in one run: the crate probes the same
+points on the same frames the original does — `(40539, 18258)` on internal
+frame 791 and `(40539, 18250)` on 792, both reproducible from the sine
+table with the **guy's** angle, not the unit's, because the citizen is
+mid-turn. `Sim::detect_unit_collision` wrote the first of the two into the
+order and something took it straight back out again.
+
+### The defect
+
+`detect_unit_collision` writes `coll_x/coll_y` **into the move order**. The
+original then walks the rest of `move_step` on a `MoveOrder *` and keeps
+writing its own fields through that same pointer, so the probe's answer is
+simply there for everything downstream. This crate steps on a *copy* —
+`unit_step(u, mut mo, speed)` — and every `store_move` below the probe put
+the stale pair back.
+
+`do_move`'s own waypoint test already knew this: it has a "take the copy
+back" three lines after its `detect_unit_collision`, with a comment saying
+why. `unit_step` did not.
+
+The arm where it shows is narrow, which is why it survived: the copy has to
+be stored *without* the probe running again. That is §5's **blocked stand
+while a turn is still owed** — `move_step` marks the idle, stores the move
+and returns without stepping. `1/1` stands mid-turn on 792, and its answer
+was discarded on the way out.
+
+One `if let` after the probe, taking `mo.coll` back off the live order.
+
+### What it moved
+
+Great Lakes' orders **791 → 1374**, one frame short of its ticks. Nothing
+else moved at all, and that is the useful part of the number: ticks hold at
+1375, both first divergences hold at 1385 and 1376, every one of the
+fourteen units parts on the frame it did to the frame, run33's word and
+sequence hold at 1372 and its totals at 1467/1436, and East Indies holds at
+1374/1373. A field that is compared every frame and nothing else — no draw,
+no position, no order kind — is what a pure bookkeeping fix looks like.
+
+Both maps' both scores are now past their own word: Great Lakes 1375/1374
+of 1,772 against a word at 1372, East Indies 1374/1373 of 1,850 against
+1373. What holds Great Lakes now is `1/8` — its move order's destination
+`x` is `40440` here against `40248` at 1375, and its position parts at
+1376 — the same unit on both scores.
+
+### The lesson
+
+**A port that copies what the original points at owes a write-back at every
+site, not at the one that hurt.** The pattern was already in the file, with
+a comment explaining itself, three hundred lines above the site that needed
+it — which is the shape of a fix that is applied where it was found rather
+than where it belongs. The check that now stands is a section of
+`docs/COLLISION.md` §4.3 saying the store is into the order and every
+caller keeps it, plus `a_blocked_stand_keeps_the_point_the_probe_refused`,
+written to fail first.

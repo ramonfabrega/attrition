@@ -923,6 +923,46 @@ mod tests {
         let _ = &sim;
     }
 
+    /// §4 again, and the half of it that is a **write into the order**:
+    /// the probe records the point it refused in `coll_x`/`coll_y`, and
+    /// `move_step`'s own stores must not put the stale pair back.
+    ///
+    /// The original steps on a pointer to the move order, so the write is
+    /// simply there for everything downstream; this crate steps on a copy
+    /// and has to take it back. The arm that shows the difference is the
+    /// **blocked stand while a turn is still owed** (§5): it stores the
+    /// move and returns without stepping, so a copy written back over the
+    /// probe's is the whole of the bug. run10's `1/1` is the case — on the
+    /// original's frame 792 it stands mid-turn with
+    /// `coll_x/coll_y (40539, 18258)` and this crate held the pair it had
+    /// refused fifteen frames earlier.
+    #[test]
+    fn a_blocked_stand_keeps_the_point_the_probe_refused() {
+        // Facing north, ordered sixty degrees round to the east: one
+        // frame's turn leaves fifteen degrees owed, which is under
+        // `move_step`'s forty-five and so still takes the step — into the
+        // unit standing on the next cell up and to the right.
+        let a = Pos::new(30 * 0x30 + 40, 30 * 0x30 + 8);
+        let b = ucell_centre(Pos::new(31, 29));
+        let (mut sim, x, y) = pair(a, b);
+        sim.units[x].movement.turning.instant_from_stop = false;
+        sim.units[x].movement.facing = crate::movement::Angle(0);
+        sim.order_move(x, Pos::new(a.x + 866, a.y - 500));
+        sim.tick();
+
+        assert_eq!(sim.units[x].pos, a, "it stood: the turn was still owed");
+        assert_eq!(
+            sim.units[x].collide_o, sim.units[y].index,
+            "and it named the unit it would have walked into"
+        );
+        let coll = sim
+            .current_move(x)
+            .and_then(|m| m.coll)
+            .expect("the refused point survives the blocked stand's own store");
+        assert_eq!(coll, Pos::new(1497, 1431), "the point the step proposed");
+        assert_ne!(ucell(coll), ucell(a), "and it is not the unit's own cell");
+    }
+
     /// §4: a unit walking into another one detects it, names it, and
     /// records the refused point.
     #[test]

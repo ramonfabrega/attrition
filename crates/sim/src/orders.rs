@@ -1936,6 +1936,16 @@ impl Sim {
         let top = self.units[u].path.last().copied();
         let mut target = step.pos;
         let hit = self.detect_unit_collision(u, target);
+        // `detect_unit_collision` writes `coll_x`/`coll_y` **into the
+        // order**, and the original walks `move_step` on a pointer to it,
+        // so every later write of the move's own fields keeps the pair.
+        // This crate steps on a copy, so take the pair back before any
+        // `store_move` below puts the stale one back — the same reason
+        // `do_move`'s waypoint test does it, and the arm that showed it is
+        // the one that stores and returns while a turn is still owed.
+        if let Some(m) = self.current_move(u) {
+            mo.coll = m.coll;
+        }
         if let Some(other) = hit {
             let (dx, dy) = (mo.waypoint.x - from.x, mo.waypoint.y - from.y);
             let through = top.is_some_and(|t| t.flags & path_flag::SIDESTEP != 0)

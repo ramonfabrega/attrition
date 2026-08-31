@@ -12,45 +12,37 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 113.*
+*2026-08-31, after item 115.*
 
-**Great Lakes' headline moved for the first time in three items.** Phase 3's
-score is ticks before divergence: **Great Lakes 1375/791** of 1,772 (run10)
-and **East Indies 1374/1373** of 1,850 (run39, unchanged). The words are
-**1372** and 1373; Great Lakes' totals went 1471/1439 → 1467/1436, every
-moved frame being at 1372 or later — past the word's own parting.
+**Both maps' both scores are now past their own word.** Phase 3's score is
+ticks before divergence: **Great Lakes 1375/1374** of 1,772 (run10) and
+**East Indies 1374/1373** of 1,850 (run39). The words are **1372** and
+**1373**, and every one of the four numbers sits on or past its own.
 
-Item 113 was the AI's `1/1`, and it was two defects.
-`compute_reg_territory` rebuilds its per-player border table every pass and
-reads the **Civic** level from it; this crate cached the table at
-`add_player`, so the AI held 261 cells against 290 — and `was_seen`'s first
-arm is territorial, so those cells were dark to the site scorer and its
-second city went up in the wrong place. Fixing that took the word *down* to
-786, because it opened a path nothing had walked: `find_wpath`'s `scouting`
-needs the **type** to be a scout (`role & 0x10`) as well as the order to be
-`EXPLORE_TO`. With both, `1/1` never parts at all.
+Item 115 was one `if let`. `detect_unit_collision` writes `coll_x/coll_y`
+**into the move order**, and the original walks the rest of `move_step` on a
+pointer to it; this crate steps on a copy, so every `store_move` below the
+probe put the stale pair back. The arm that shows it is the blocked stand a
+unit takes while a turn is still owed. Great Lakes' orders **791 → 1374**
+and **nothing else moved at all** — ticks, both first divergences, all
+fourteen units' partings, run33's 1467/1436, East Indies' pair.
 
-**Great Lakes' ticks reached its word; its orders did not.** Orders part at
-792 on one field of one unit — `1/1`'s `coll_x/coll_y` — where ticks part at
-1376 and the word at 1372. That is item 115, and it is the default.
+**So the word is the constraint on both maps now**: Great Lakes parts at
+1372 on a pasture being stocked (114), East Indies at 1373 on a seventh
+ring (110). `1/8`, which holds Great Lakes at 1375/1376, is residue.
 
-**Opener (Opus):** `Continue — item 115: run10's frame 792, where `1/1`'s
-`coll_x/coll_y` is `(40539, 18258)` in the original and `(40632, 18044)`
-here. Same walk, a different collision point; it holds Great Lakes' orders
-at 791 against ticks 1375.`
+**Opener (Opus):** `Continue — item 114: Great Lakes' word at 1372. The
+original spends twenty-five draws in `Farms::add_animals` under
+`Build::activate+0x1c25` plus five `Guy::init_real` under `Animal::init` —
+the five animals a farm gets on activation. This crate spends three, and
+nothing creates a pasture mid-run.`
 
 ## The queue
 
 In dependency order, headline-nearest first; the headline is the tick pair.
-Both maps' **ticks** now sit on their own word; Great Lakes' orders are 581
-frames short of it. Take the first unstarted unless a better order is
-obvious — and say so. Numbers are stable; the journal indexed by them.
-
-115. **run10's frame 792: one collision point, and it is the order score.**
-    `1/1` walks the original's own path to its city site and on 792 the
-    original writes `coll_x/coll_y` `(40539, 18258)` where this crate writes
-    `(40632, 18044)` — the only thing between Great Lakes and its own word
-    on both scores. COLLISION §6, ORDERS §4.1.
+All four scores now sit on or past their own word, so the two word items
+lead. Take the first unstarted unless a better order is obvious — and say
+so. Numbers are stable; the journal indexed by them.
 
 114. **Great Lakes' word at 1372, and a pasture being stocked.** The
     original spends twenty-five draws in `Farms::add_animals` — `+0x92`,
@@ -63,6 +55,14 @@ obvious — and say so. Numbers are stable; the journal indexed by them.
     six rings on both sides; the original then leaves the loop for
     `Unit::think_scout+0x941` once and `+0xaba` five times — sites SCOUT
     §6/§7 have never named — where ours takes a seventh ring.
+
+118. **`1/8` holds Great Lakes at 1375/1376** — its move order's `x` is
+    `40440` here against `40248`. Residue until 114 lands.
+
+119. **`1/1`'s `last_x/last_y`, cleared where the original keeps them.**
+    From run10's 778 on the original holds `(40680, 18024)` and this crate
+    `-1`: our TAKE clears `last` on every fresh waypoint (ORDERS §4.4) and
+    the original's 778 did not go through one. Non-scoring; a seam.
 
 103. **The wood machine's record parts at 1,686, on a clock.** After 26,094
     agreeing fields the human's `0/2` holds a wait of 445 where the

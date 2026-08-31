@@ -9874,10 +9874,29 @@ mod tests {
         // one field: on frame 792 the original's `coll_x/coll_y` is
         // `(40539, 18258)` and this crate's `(40632, 18044)` — the same
         // walk, a different collision point.
+        //
+        // 2026-08-31, item 115: orders **791 -> 1374**, and it is one
+        // line. `detect_unit_collision` writes `coll_x/coll_y` **into the
+        // order**; the original then walks the rest of `move_step` on a
+        // *pointer* to that order, so the write is simply there, while
+        // this crate steps on a copy and every `store_move` below put the
+        // stale pair back. The arm that shows it is the blocked stand a
+        // unit takes while it still owes a turn (`docs/COLLISION.md` §5):
+        // it stores and returns without stepping. `1/1` probed
+        // `(40539, 18258)` on the original's own frame and this crate
+        // threw the answer away.
+        //
+        // Nothing else moved: **ticks hold at 1375**, both first
+        // divergences hold, every one of the fourteen units parts on the
+        // frame it did, and run33's word and sequence hold at 1372 with
+        // its two totals at 1467/1436. What holds the order score now is
+        // `1/8`, whose move order's `x` is `40440` here against `40248`
+        // at **1375** — the same unit that holds the tick score at 1376,
+        // and both are past the word.
         assert!(
-            ticks >= 1375 && orders >= 791 && first[0] >= 1385 && first[1] >= 1376,
+            ticks >= 1375 && orders >= 1374 && first[0] >= 1385 && first[1] >= 1376,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 1375, orders 791, player 0 @ 1385, player 1 @ 1376",
+             — the floor is ticks 1375, orders 1374, player 0 @ 1385, player 1 @ 1376",
             report.first_divergence
         );
         assert!(

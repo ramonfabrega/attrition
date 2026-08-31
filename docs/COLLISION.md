@@ -196,6 +196,18 @@ A hard collision writes `collide_o`, `collide_who`, `collide_guy = 0`,
 stores the proposed point in the move order's `coll_x`/`coll_y`
 (`MoveOrder +0x3c/+0x40` — the dump prints them), and returns 1.
 
+**The store is into the order, and every caller keeps it.** `move_step`
+and `do_move` hold a `MoveOrder *` and go on writing their own fields
+through it, so the pair the probe just refused survives whatever the
+caller does next. That is not free in a port that steps on a *copy* of the
+order and writes it back: the first store after the probe puts the stale
+pair back, and the arm where it shows is §5's blocked stand while a turn
+is still owed, which stores and returns without stepping. run10's `1/1`
+is the case — on frame 792 the original carries `(40539, 18258)`, the
+point its own step proposed, and this crate carried the point it had
+refused fifteen frames earlier (item 115, and it was Great Lakes' whole
+order score).
+
 ## 5. `Unit::move_step`'s collision block
 
 ```
@@ -407,7 +419,8 @@ Modelled: the bitmask with its clear-on-move semantics and the region gate;
 the object chain over units; the probe with its parity filter and disc
 order; the `safe`, `DETOUR`, same-cell and `coll_size 0` gates; the corner
 rule; the same-player-attack exemption; `move_step`'s block, **including its
-`set_anim(CHAR_DEFAULT)`** (§5); **`do_move`'s waypoint test with both of
+`set_anim(CHAR_DEFAULT)`** (§5) **and the probe's write back into the
+order** (§4.3, item 115); **`do_move`'s waypoint test with both of
 its arms** (§5.1, item 63); and `resolve`'s steps **0** — the animal's
 whole-queue clear, `Sim::clear_orders` behind `Unit::is_gaia` — 2, with
 its `is_flat` fence (§6, item 64), 4, 5 and 6, the last including the
@@ -489,7 +502,13 @@ buildings join the chain, which is why §8 does not claim it.
   collision happening, and with it the whole record. Pinned as emptiness
   in `run10_s_opening_…`, so one field on one unit-frame fails it.
 - **`coll_x`/`coll_y`** on every dumped move order, as a scoring order
-  mismatch.
+  mismatch — and since item 115 it is what carries Great Lakes' order
+  score. §4.3's write-into-the-order was the last thing between that
+  score and its own word: with the pair taken back after the probe, run10
+  goes **791 → 1374** while its ticks, both first divergences, all
+  fourteen units' partings and run33's word and totals hold exactly.
+  `a_blocked_stand_keeps_the_point_the_probe_refused` is the sim's own
+  half, written to fail first.
 - **§5's `set_anim(CHAR_DEFAULT)`, against run14's draw-site trace.** The
   original spends the blocked stand on frames **122, 184 and 256** and on
   no others; this simulation spends its first two on the same frames, to

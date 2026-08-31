@@ -1242,6 +1242,14 @@ to `(40728, 17615)` — the fresh waypoint was verified and stepped in the
 same frame. Frames 574, 575, 576: `pause` 2, 1, 0 with the position
 unchanged, the three still frames. 577 steps.
 
+**`coll_x/coll_y` is written into the order by the probe, not by the
+step**, and `move_step` goes on writing its own fields through the same
+pointer afterwards — so a port that steps on a copy has to take the pair
+back or its next store undoes the probe. The arm that shows it is the
+blocked stand while a turn is still owed (`docs/COLLISION.md` §4.3, §5),
+and it was worth Great Lakes' whole order score: 791 → **1374**, with the
+tick score and every unit's parting frame unmoved (item 115).
+
 Ticking the pause on 573 costs one frame for the rest of that walk, and it
 was worth **209 frames of the headline**: Great Lakes' ticks 572 → 781 and
 its player 1 573 → 782, East Indies' 536 → 1373 orders. Both maps' tick
