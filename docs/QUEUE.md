@@ -25,8 +25,10 @@ for eleven items. DECISIONS 26 pins the bound: a word chase ends where
 it passes its map's tick divergence; the tick item is then the default.
 
 The tranche is verified — all Opus by trailer, floors equal the handoff,
-tree green with the install, item 109 re-read against the decompile. R4's
-marker travels with item 85, its condition met; R2 O1 stays parked.
+tree green with the install, item 109 re-read against the decompile.
+**The capture lane is live** (DECISIONS 27, item 90): the screen, the
+bottle and the INIs are its — enqueue a behavioural check there rather
+than driving the game. R4's marker travels with item 85; R2 O1 parked.
 
 **Opener (Opus):** `Continue — item 69: East Indies' order list at 168,
 now draw-free; the score it moves is the headline, run39's 167/167. A
@@ -114,10 +116,9 @@ is obvious — and say so. Numbers are stable; the journal indexed by them.
     muster search reads it (ARMY §13). Find the writer — not
     `World::set_building_at`, which writes the *tile* mask.
 
-90. **The capture queue.** A capture is fourteen unattended minutes —
-    the screen for thirty seconds, then nothing — so it runs *beside* a
-    session; DECISIONS 27 is the lane's shape. A scenario file
-    (`longtrace.sh`'s inputs) and a script; 23, 96, 108 and 57 first.
+90. **The capture queue** is live — an independent session, DECISIONS
+    27's shape, running the owed 23, 96, 108 and 57 beside the loop. A
+    scenario file (`longtrace.sh`'s inputs) and a script, back to back.
 
 96. **A turning vehicle or ship, which no capture has.** `guy_flags & 8`
     is set for 273 of the install's 1,359 unit pieces and none of the eight
@@ -133,9 +134,8 @@ is obvious — and say so. Numbers are stable; the journal indexed by them.
     two units ordered head-on.
 
 45. **Gaia's animals.** `Sim::reseat_animal` puts them back from every
-    traced dump (SYNC §4.2), so `run_traced` reported **no** divergence for
-    `8/2` on the ten frames item 95 had wrong. `ANIMALDATA`: 70,960
-    uncompared.
+    traced dump (SYNC §4.2) — `run_traced` saw no `8/2` divergence on item
+    95's ten frames. `ANIMALDATA`: 70,960 uncompared.
 
 The rest of the road residue, both in ROADS §7.1: (57) the terraform,
 `terraform_for_building@00875210` after `place_roads`, run13's `FRAME 100`
