@@ -9097,3 +9097,84 @@ shifts was three hundred frames away. The rule the audits keep
 rediscovering is *read the loaders, not only the consumers*; this is its
 twin. **Read the caller, not only the callee** — especially where the
 callee's whole product is a piece of hidden state.
+
+## 2026-08-31 — the fourth steering pass (Fable 5): the word outran the finish line
+
+Sixteen item commits in a day since the third pass, every trailer Opus,
+no subagent. The verification came first and it all held: the floors in
+`rondata::diff` equal the handoff's numbers, the tree is green with the
+install attached — 668 sim, 156 rondata, no `skipping` line — and the
+tranche's newest claim, re-read against the decompile, came back
+verbatim: item 109's `do_air_patrol` tail is exactly `if
+(do_air_physics(…)) { if (vtable+0x30() == 0) … the military search …
+else if (field_0x98 == 0) field_0x98 = 1; }` — the one-step bump on the
+animal arm, `spell_time` by the PDB. The tranche is real. It was also,
+after item 102, booked on the wrong number, and the queue's own handoff
+half-saw it: "the headline is Great Lakes at 780 and it has not moved in
+six items" — with three items booked on the higher map and none saying
+so.
+
+### The two scores, and which one is the finish line
+
+Phase 3's score is **ticks before divergence** (CLAUDE.md, DECISIONS 24),
+and this pass measured the pair rather than reading it off the prose:
+
+```
+run39: ticks 167, orders 167, first divergence [(0, Some(217)), (1, Some(168))]
+run10: ticks 572, orders 776
+```
+
+East Indies 167/167 of 1,850; Great Lakes 572/776 of 1,772. **Neither
+number moved in the whole tranche** — both stand where they stood on
+08-30, and run39's has stood since 08-29, before the tranche began. What
+moved was East Indies' *word*, 19 → 1373, and the handoff was calling
+Great Lakes' word 780 "the headline" — the lower map read off the words
+(780 < 1373) when the score reads the other way (167 < 572).
+
+When run39's word parted at 19, `diff.rs`'s own comment was right: ticks
+167 was a figure on a stream that is nobody's, and the word was the
+number to move. The comment did not age. The word passed 168 between
+items 95 and 97, and from that frame the inference runs the other way:
+every draw before 168 now agrees, draw for draw, so what parts at 168 —
+`1/4`'s order list, then `1/5`'s at 186 — is arithmetic no stream
+touches, and no amount of word motion past it can close it. Item 69
+became the most valuable item on the board around item 97 and sat third
+in the queue for eleven items while the chase ran to 1373.
+
+### What the chase bought anyway
+
+Not nothing, and it matters for the verdict: the goody box and the bird
+counter are cross-map mechanics — Great Lakes' bird landings went from
+meeting one of the original's thirteen to two, run10's collision rows
+rose 91,210 → 99,607 and its angle rows 35,188 → 38,104, run39's gaia
+agreement reached 191,173 of 192,504, and its gather record 26,094
+fields to 1,686 — which retired item 103's 897 and 1,573 versions
+without anyone booking them. A word chase on one map keeps paying the
+other. The failure is not the chase; it is that nothing bounded it.
+
+### The amendment, and the batch
+
+DECISIONS 26: **the headline is the tick pair, lower first; each map's
+word is the instrument beside it; and a word chase is bounded by its
+map's tick divergence** — the frame the word passes it, the tick item is
+the default booking. The reporting rule stays ("booked off the default
+says so"), with the judgment call that made silence easy removed.
+
+The batch was two parked rows in the orders audit. **R4 —
+`find_gather_tcoords@0063bdc0`, parked as "matters only when the harness
+builds a camp itself" — is live**: item 85's finding is a harness-built
+camp activating with zero `gather_slots`. The marker travels with item
+85; the audit file is left as it is, per the section pins. R2 O1
+(`do_move`'s attack-retarget block) stays parked; nothing in
+`crates/sim` reads it yet.
+
+Cadence: by entry 25's rule the steer was due after item 106 — the
+headline had not moved for two sessions — and it ran after 109. One
+session late; the rule is unchanged, and what actually fired it was the
+handoff writer noticing, which is the system working.
+
+### Where the next session starts
+
+Item 69, on Opus: East Indies' order list at 168, the pair's own nearest
+divergence, now draw-free — run39's dump names the fields, and the score
+it moves is the headline itself.

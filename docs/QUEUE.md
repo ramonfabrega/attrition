@@ -12,34 +12,43 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 109 (Opus).*
+*2026-08-31, after the fourth steering pass (Fable 5).*
 
-**East Indies' word and sequence moved 1256 → 1373**, over two of the
-original's own bird landings: `do_air_patrol`'s tail steps a bird's
-`spell_time` once per landing (SYNC §3.9). Great Lakes holds at 780; its
-window totals **fell** for the first time, 986/892 → **959/876**, all of
-it 429+ past the parting, with the reason beside the lowered floor. run10
-holds at 572/776; every other sub-score rose, and the journal has the
-numbers. Tree green: 668 sim, 156 rondata.
+**The score is the tick pair, and the words were standing in for it.**
+Phase 3's score is ticks before divergence: **East Indies 167/167** of
+1,850 (run39) and **Great Lakes 572/776** of 1,772 (run10); the words —
+Great Lakes 780, East Indies 1373 — are instruments beside it. The
+tranche chased East Indies' word 19 → 1373, sixteen items, while every
+number in the pair stood still. The word passed 168 between items 95 and
+97; from that frame `1/4`'s divergence at 168 is **draw-free** and no
+word motion can explain it — item 69, third in the queue, has been ripe
+for eleven items. DECISIONS 26 pins the bound: a word chase ends where
+it passes its map's tick divergence; the tick item is then the default.
 
-**The headline is Great Lakes at 780 and it has not moved since item
-100.** East Indies passed it at item 102, so 104, 106 and 109 were booked
-on the **higher** map — against "the lower map first" — and none said so.
-Sixteen items since the third steering pass, all East Indies; item 84 is
-the lower map's own and has sat fourth throughout.
+The tranche is verified — all Opus by trailer, floors equal the handoff,
+tree green with the install, item 109 re-read against the decompile. The
+orders audit's R4 marker travels with item 85 (its condition is met);
+R2 O1 stays parked. The journal has the story.
 
-**Opener (Fable, main thread):** `the fourth steering pass — read
-@docs/QUEUE.md and @docs/JOURNAL.md from the third pass (2026-08-30) on.
-Sixteen items, one map, the headline unmoved for six: is the tranche
-real, is Great Lakes at 780 stuck or unattended, what is the finish line.
-The batch is nearly empty — two open FABLE: rows, parked, in the orders
-audit — so the mandate is the steering half. You write the next opener.`
+**Opener (Opus):** `Continue — item 69: East Indies' order list at 168,
+now draw-free; the score it moves is the headline, run39's 167/167.`
 
 ## The queue
 
-In dependency order, headline-nearest first — the headline is the lower
-map. Take the first unstarted one unless a different order is obviously
-better, and say so. Numbers are stable; the journal is indexed by them.
+In dependency order, headline-nearest first; the headline is the tick
+pair, East Indies first. Take the first unstarted unless a better order
+is obvious — and say so. Numbers are stable; the journal indexed by them.
+
+69. **East Indies' order list at 168 — the pair's nearest divergence,
+    draw-free since the word passed it.** Ticks/orders part at 167/167
+    while the word runs to 1373: `1/4`'s list disagrees at 168, `1/5`'s
+    at 186, on frames whose every draw agrees; the dump names the fields.
+
+84. **Great Lakes' word at 780, and a seventh farm.** Ours spends two
+    `Unit::do_job+0x67` draws the original does not — a crop re-target,
+    since run33's AI built no pasture — and from **781** on ours ticks
+    **seven** `Farms::inc_time` chances where the original ticks six. The
+    extra farm is the half to chase.
 
 110. **East Indies' word at 1373, and a seventh ring.** The AI scout
     walks six rings on both sides; the original then leaves the loop and
@@ -48,19 +57,8 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     where ours takes a seventh ring and spends a lone `+0x458`.
 
 103. **The wood machine's record parts at 1,686, on a clock.** After
-    26,094 agreeing fields the human's `0/2` holds `(32, 26)` with a wait
-    of 445 where the original's holds 480, tile and phase right. Its 897
-    and 1,573 versions went away with items 106 and 109. ORDERS §6.4.
-
-69. **East Indies' order-list length at 168.** `1/4` and the original
-    disagree on the order list at 168 and `1/5` at 186 — both **ahead** of
-    the word, so they are seen while the two streams still agree.
-
-84. **Great Lakes' word at 780, and a seventh farm.** Ours spends two
-    `Unit::do_job+0x67` draws the original does not — a crop re-target,
-    since run33's AI built no pasture — and from **781** on ours ticks
-    **seven** `Farms::inc_time` chances where the original ticks six. The
-    extra farm is the half to chase.
+    26,094 agreeing fields the human's `0/2` holds a wait of 445 where
+    the original's holds 480, tile and phase right. ORDERS §6.4.
 
 105. **Gaia's positions, and the 1,814 that are not.** 190,690 of run39's
     192,504 dumped animal-frames agree; the first that does not is
@@ -77,7 +75,9 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     files one under good 2, where `get_good@0063bd50`'s table at `0063bd84`
     is Farm 0, Camp 1, Mine 4, University 3, Oil 5. (82) the original holds
     **0** in goods 3, 4 and 5 for both players and this crate **100** —
-    inert while none is available, so a loader question.
+    inert while none is available, so a loader question. The orders
+    audit's parked `FABLE:` R4 row (`find_gather_tcoords@0063bdc0`)
+    travels with this item; its condition, a harness camp, is met here.
 
 35. **`mylos` as a cache.** VISION §7: player 1 carries no `0x4000000` at
     the end of 202 or 203, yet its Scout's `mylos` moves 4 → 6; ours moves

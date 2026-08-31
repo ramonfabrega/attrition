@@ -947,7 +947,8 @@ what the work needs, and each is a one-line amendment:
    at 9 %. The default item is the nearest divergence on the lower map. A
    residue that shows on one map only is exactly what a single-map chase
    cannot find, and the Great Lakes chase would otherwise have run on
-   until it stalled.
+   until it stalled. *Refined by entry 26: the pair is the tick
+   pair, and a word chase is bounded by its map's tick divergence.*
 2. **The size pin's unit is the `## ` section, not the file.** A file
    ceiling taxed whoever added a finding to *any* section of a large file,
    and under a 254-byte margin what got cut was whatever the session
@@ -977,3 +978,51 @@ widenings would save little — the judgment is in what a dumped field means,
 not in the comparison. Blind readings have stopped on their own, because
 the diff, the trace and the listing settle a claim faster; the machinery
 stays for a mechanic no run reaches.
+
+## 26. The word is the instrument; the finish line is the tick pair
+
+**Decided 2026-08-31**, in the fourth Fable steering session, after
+sixteen Opus item commits in a day. Refines entry 25's first amendment;
+overturns nothing.
+
+**What was found.** The tranche is real and verified — every commit
+trailer Opus, floors equal to the handoff, the tree green with the
+install, item 109's branch re-read against the decompile — and every
+booking after item 102 was on the wrong number. Phase 3's score is
+**ticks before divergence** (entry 24, CLAUDE.md phase 3), and the pair
+stands at East Indies 167/167 (run39) and Great Lakes 572/776 (run10);
+neither moved in the whole tranche. The *words* — the first frame whose
+draw count parts the original's, run33's 780 and run39's 1373 — are
+instruments built beside the score, because a state diff on divergent
+draw streams chases noise ("item 69 was a consequence", 2026-08-30). The
+queue promoted the instrument to headline: "the lower map" was read off
+the words (780 < 1373) when the score reads 167 < 572, so the handoff
+called Great Lakes stuck while East Indies' own headline sat still.
+
+**The bound that was missing.** A word behind its map's tick divergence
+is the honest thing to chase. The frame the word *passes* it, the
+inference reverses: every draw before the divergence agrees, so what
+parts there is draw-free and no later word motion can explain it — the
+tick item is due. run39's word passed 168 between items 95 and 97; item
+69 was then ripe for eleven items while the chase ran to 1373. Three
+rules:
+
+1. **The headline the handoff states first is the tick pair**, run39 and
+   run10, lower first, with each map's word stated beside it as the
+   instrument.
+2. **A word chase is bounded by its map's tick divergence.** The frame
+   the word passes it, the tick item is the default booking.
+3. An item booked off the default **says so in the handoff** — breached
+   silently three times this tranche, caught by the handoff's own writer
+   two items late. Rule 2 removes the judgment call that made the
+   silence easy.
+
+**Why not more.** The chase was not wasted: the goody and bird mechanics
+are cross-map, Great Lakes' landings went from meeting one of the
+original's thirteen to two, run10's collision and angle rows rose, and
+the gather record reached 26,094 fields — retiring item 103's earlier
+versions unbooked. The loop — Opus driving, one item a session, no
+subagents — stays exactly as entry 25 left it. The batch: the orders
+audit's R4 marker (`find_gather_tcoords@0063bdc0`) is unparked — its
+condition, a harness-built camp, is item 85's own finding — and travels
+with that item; R2 O1 stays parked, nothing depending on it.
