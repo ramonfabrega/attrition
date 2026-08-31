@@ -1062,6 +1062,15 @@ owed captures (23, 96, 108, 57) land and retire their claims, and was
 the merge cost actually zero. Keep or kill on the answer; entry 25's
 "one trial and no more" stands.
 
+**Measured, 2026-08-31, at intake (Fable).** Both answers are yes. Runs
+42–50 landed: 108, 96 and 57's capture half retired outright; 23's XOR
+half fired and held, its Echelon half re-booked with the blocker named.
+The merge measured zero — no conflicts, no file overlap with the loop
+since 651f9fe — and the lane left the instrument cheaper than it found
+it: the capture queue is a file (`tools/gamelog/captures.txt`), and a
+stanza is the whole cost of a run. **Kept**, still fenced to widenings
+and captures per entry 25.
+
 ## 28. A check asserts its own inputs, and a harness source belongs to every run
 
 **Decided 2026-08-31**, on item 69. Refines entry 24's "the score is the

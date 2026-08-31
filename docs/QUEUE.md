@@ -12,20 +12,22 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 115.*
+*2026-08-31, after the capture-lane intake (Fable; the lane ran on Opus).*
 
 **Both maps' both scores are now past their own word.** Phase 3's score is
 ticks before divergence: **Great Lakes 1375/1374** of 1,772 (run10) and
 **East Indies 1374/1373** of 1,850 (run39). The words are **1372** and
 **1373**, and every one of the four numbers sits on or past its own.
 
-Item 115 was one `if let`. `detect_unit_collision` writes `coll_x/coll_y`
-**into the move order**, and the original walks the rest of `move_step` on a
-pointer to it; this crate steps on a copy, so every `store_move` below the
-probe put the stale pair back. The arm that shows it is the blocked stand a
-unit takes while a turn is still owed. Great Lakes' orders **791 → 1374**
-and **nothing else moved at all** — ticks, both first divergences, all
-fourteen units' partings, run33's 1467/1436, East Indies' pair.
+The capture lane (item 90, DECISIONS 27) came home: runs 42–50, all in
+`docs/ORACLE.md`, merged at zero cost. run42 retires 108 — the pile pays
+`epoch[3] × 25 + 25`, the `ages` reading refuted; run43 retires 57's
+capture half — 128 corners, two 8×8 boxes, one corner per tile; run44
+retires 96 — the turn override fires, and `guy_flags` 0x20 has a writer
+in no scored game; runs 45/46 fire 23's XOR term and the formula holds,
+so 23 is re-booked below as the Echelon half alone. The instrument
+survives the lane: a behavioural check is now a stanza appended to
+`tools/gamelog/captures.txt`, and `runqueue.sh` walks the file.
 
 **So the word is the constraint on both maps now**: Great Lakes parts at
 1372 on a pasture being stocked (114), East Indies at 1373 on a seventh
@@ -76,6 +78,7 @@ so. Numbers are stable; the journal indexed by them.
 87. **The widening ledger.** Items 74, 83, 69 and **113** were closed by
     fields the parser had and nothing compared. Make the backlog a number:
     per dumped record, the fields `rondata::diff` parses and never compares.
+    run42 adds the per-frame `LEADERDATA` — buckets, epochs — to that pool.
 
 85/82. **run40's 360 disagreeing good-frames, in two halves.** (85)
     `Build::init` surveys a camp against its still-empty `gather_from`, so
@@ -116,19 +119,15 @@ so. Numbers are stable; the journal indexed by them.
     frame-95 world carries it on `(52, 22)` and this does not; `army`'s
     muster search reads it (ARMY §13). Find the *tile* mask's writer.
 
-90. **The capture queue** is live — an independent session, DECISIONS 27's
-    shape, running the owed 23, 96, 108 and 57 beside the loop.
-
-96. **A turning vehicle or ship, which no capture has.** `guy_flags & 8` is
-    set for 273 of 1,359 unit pieces and no traced guy's, so
-    `Guy::do_turn@005d97a0:15`'s override is unfalsifiable (ANIM §4.6).
-    *Capture, owed:* one turning in place.
-
-23. **The hand-back's inversion, and the formation byte's sign.**
-    `kill_current_order` writes `order.facing XOR reversing(leader.angle −
-    order.angle)`; no run has fired the XOR term. *Capture, still owed:*
-    `UNITS=3` + `GROUPS=1`, a group turned right round while marching and
-    re-ordered in Refused or an Echelon (GROUPS §13); with it COLLISION §9.
+23. **The formation byte's sign — the Echelon half.** runs 45/46 fired the
+    XOR term and `kill_current_order`'s formula holds (ORACLE); `reverse`'s
+    *displacement* is read only on GROUPS §6.4's Echelon rows — Refused has
+    no reverse term — and every captured group is a Line. Formations ship
+    unbound (zero `<INPUT>` in `data/playerprofile.xml`; run50's F9 bind
+    did not take). First question: is the profile's `<KEYS>` read at all?
+    `KeyMap::load`'s String overload at `007d39a0` has no found caller.
+    Cheap check: rebind `OPTION_AUTO_EXPLORE`, whose tooltip prints its
+    key, and photograph the tooltip. With it COLLISION §9.
 
 116. **The one `SITE` slot still wrong, and the rule that is not it.** AI
     §18: a 5×5 slide keeps its centre where the original leaves it, so
@@ -145,19 +144,16 @@ so. Numbers are stable; the journal indexed by them.
     `check_explore` answers the whole region grid — `explored` is 900 here
     against the dump's 36 and 19 on every frame of both windows.
 
-The rest of the road residue, both in ROADS §7.1: (57) the terraform after
-`place_roads`; (58) the height loader's mean in `f32`, three tiles.
+The rest of the road residue, both in ROADS §7.1: (57) the two node counts
+— 1,046 v 1,043 and 1,460 v 1,870 — re-read on run43's own before-grid,
+its capture half landed (ORACLE run43); (58) the height loader's mean in
+`f32`, three tiles.
 
 107. **`epoch[0]` is the Military level, and `army.rs` reads `ages`.**
     `get_epoch_base(0)` is `BASE_MILITARYTYPES` and the army family reads
     `+0xe8`, so it is the **Military** level, not ARMY's glossary's "current
     age". `army.rs:769,1365` read `tech[w].ages`, so every `age < 2/3/5`
     gate in the muster caps and `find_target` fires on the wrong counter.
-
-108. **The goody box's pile, and the capture that would pin it.** GOODY §6:
-    `epoch[3] × 25 + 25` is listing-only. *Capture, owed:* the run39 lobby
-    under `samegame.py`, `LEADERS` per frame, ~900 frames; `bucket[2]`
-    steps by 50 on 867.
 
 91. **The final scenario, not a final dump.** One 24,000-frame game per
     map: the **trace** whole (`cover=1`, no window) and the dump in windows

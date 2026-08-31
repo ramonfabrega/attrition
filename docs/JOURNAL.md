@@ -9667,3 +9667,71 @@ than where it belongs. The check that now stands is a section of
 `docs/COLLISION.md` §4.3 saying the store is into the order and every
 caller keeps it, plus `a_blocked_stand_keeps_the_point_the_probe_refused`,
 written to fail first.
+
+## 2026-08-31 (the capture lane, Opus; intake by Fable 5) — runs 42–50 come home: 108, 96 and 57's capture half retired, and 23's XOR term fired
+
+The second lane of DECISIONS 27 ran beside the main loop for a day and
+closed out everything it was booked for: nine runs, 42–50, all seed 12345.
+The record is `docs/ORACLE.md`'s "The capture lane" section and the run
+sections after it; the instrument it leaves behind is
+`tools/gamelog/captures.txt` — the capture queue is a file now, one stanza
+per run, and `runqueue.sh` walks it, skipping stanzas whose archive
+already exists, so an interrupted queue resumes.
+
+What the runs settled:
+
+- **108 (run42).** run39's game re-captured with `LEADERS=2` per frame —
+  `samegame.py --exclude LEADERDATA` says 900 frames in common, none
+  differing — shows leader 1's `bucket[2]` step 50 → 100 on sim-frame
+  867, with the trace putting `find_goody_at` and `explore_goody` on 867
+  and on no neighbouring frame. GOODY §3's Science reading confirmed, the
+  `ages` alternative refuted (it would pay 25). One correction: the
+  predicted `epoch_get(scan)` vector was wrong — `0 1 0 1`, not
+  `0 0 0 1` — and only `epoch[3]` enters the formula. GOODY §5/§6 amended.
+- **57's capture half (run43).** run32's scenario with the `DUMP_ALL`
+  window opened four frames earlier gives the terraform its own before
+  and after: 128 corners move, in exactly two 8×8 boxes on the two placed
+  tiles, nothing outside — ROADS §7.1's number, now one game's own
+  difference rather than run13-vs-run32 — and the corner grid is one
+  corner per tile (the 4 in `(4·xs+1)` is cells-to-tiles). What remains
+  of 57 is harness arithmetic: the two node counts re-read on this grid.
+- **96 (run44).** 452 guy-frames play a turn animation, both directions,
+  both sides; every earlier capture has zero. No driver was needed:
+  `Guy::move:109`'s standing arm passes the override too, so turning
+  towards a target is enough and a fight supplies one. `guy_flags` 0x8 is
+  exactly the three turner types, and 0x20 — which ANIM §9 carried as "no
+  writer found" — is on 12,582 records, toggling within a type. Neither
+  appears in any scored game (run13 and run38 carry 16 on every guy), so
+  no score moves; ANIM §4.6 and §9 amended, the override now diff-backed.
+- **23, half (runs 45/46/50).** run45's negative is the load-bearing
+  part: in 900 frames the AI never lays a `GroupMoveOrder` — across nine
+  archives the order is a human-click artifact — so the XOR term needed
+  the mouse. run46's three driven right-clicks fired it, the first time
+  in any capture, and both hand-backs come out as `kill_current_order`'s
+  formula says: `0 XOR 1 = 1` lays the mirrored order, `1 XOR 1 = 0`
+  hands it back. The Echelon half stayed shut behind four doors, each
+  closed with evidence — no console verb, no command-card button, not
+  gated on military research, and the formations ship unbound: zero
+  `<INPUT>` elements in `data/playerprofile.xml`, and run50's F9 bind
+  into the profile did not take. Re-booked as that half alone, with the
+  open question named: does anything call `KeyMap::load`'s String
+  overload at `007d39a0`?
+
+The lane's traps are written in ORACLE where the next stanza will read
+them, but two deserve the chronicle. zsh's `${(j:\n:)a}` joins on a
+literal backslash-n, which folded two staged `add` lines into one and
+produced a 550 MB archive holding half its scenario — caught by
+`cmdsran.py` on its first real outing, which is why it had been written.
+And `!ffwd` stops the renderer: a driven run under fast-forward clicks at
+a picture minutes stale, proved by five byte-identical screenshots across
+ninety sim frames. The lesson in both: an accepted console line is not a
+line that did something, and a screenshot is only evidence if something
+in it can change.
+
+Intake (Fable): merged conflict-free — DECISIONS 27's second trial
+question, "was the merge cost zero", measures zero, and the entry now
+carries the verdict: kept, fenced as before. GOODY and ANIM amended as
+above; 108, 96 and 90 deleted from the queue; 57 narrowed; 23 re-booked;
+run42's per-frame `LEADERDATA` added to the widening ledger (87). The
+headline did not move and was not booked to — the lane's items were owed
+captures, and all four were delivered.

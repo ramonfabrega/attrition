@@ -179,22 +179,23 @@ unit taking the same ruins, since step 2 leaves the item linked.
 | The seven `GOODY` cells of run39, and `(45, 49)` taken on 867 | diff — the `WORLD` record's cells and the dumped position of `1/0` on 868 |
 | `score = draw % 25 + bucket`, lowest wins, strict `<` | reading (listing at `5f99f7`–`5f9a12`) |
 | The fallback to `WEALTH` | reading (`cmovnsl` at `5f9a7c`) |
-| `epoch[3] × GOODY_BOX_AGE + GOODY_BOX`, and the Spanish pair | reading (listing in §3). **Not diff-backed** — see §6 |
+| `epoch[3] × GOODY_BOX_AGE + GOODY_BOX` | diff — run42 frame 867 (`docs/ORACLE.md`): `bucket[2]` 50 → 100, `epoch_get(scan)` `0 1 0 1`, and `1 × 25 + 25` is the observed pay; an `ages` reading would pay 25 |
+| The Spanish pair replaces both halves | reading (listing in §3); the branch has never run |
 | Frame 0 consumes without paying | reading |
 | The four guards | reading; only the animal guard is exercised by a capture, and only negatively |
 | The cell's object chain and the goody *item* | read, **not modelled** — queue item 48 |
 
 ## 6. What is not established
 
-- **The pile is unchecked.** No dump on disk prints a leader's `bucket`
-  after a box is opened: the `LEADERS` detail that writes `bucket`,
-  `ages_get()` and `epoch_get(scan)` is emitted once, in the start block,
-  where every value is still its opening one. *Capture, owed:* East Indies,
-  the run39 lobby and seed under `samegame.py`, `LEADERS` enabled per frame
-  in `gamelog.ini`, ~900 frames. It would pin `bucket[2]` stepping by 50 on
-  frame 867 and `epoch_get(scan)` reading `0 0 0 1` — which is the *only*
-  thing that separates the Science reading from an `ages` reading, since in
-  an Ancient-age game `ages` is 0 and would pay 25.
+- ~~**The pile is unchecked.**~~ **Checked 2026-08-31** (`docs/ORACLE.md`,
+  run42 — run39's game with `LEADERS=2` per frame, `samegame.py --exclude
+  LEADERDATA` giving 900 common frames and none differing): leader 1's
+  `bucket[2]` steps 50 → 100 on sim-frame 867, the trace puts
+  `find_goody_at` and `explore_goody` on 867 and on no neighbouring frame,
+  and the pay of 50 is the Science reading's — `ages` would pay 25. One
+  detail of the prediction was wrong: `epoch_get(scan)` reads `0 1 0 1`,
+  not `0 0 0 1` — Civic is 1 as well as Science. Only `epoch[3]` enters
+  the formula, so §3's arithmetic stands as written.
 - **`unit_masks & 1`.** Inherited unread from `docs/VISION.md` §7 and
   treated as clear, as everywhere else.
 - **The item, and the message.** `find_goody_at`, the vtable `+0x90` close,
@@ -206,8 +207,10 @@ unit taking the same ruins, since step 2 leaves the item linked.
 - **The Spanish branch has never run.** `has_tribe_bonus(9)` is false in
   every capture on disk.
 - **Whether a box's *good* is right.** The lottery's winner depends on the
-  finder's buckets, which no capture prints at the moment a box opens; the
-  frame's draw count would be identical whichever good won.
+  finder's buckets, ~~which no capture prints at the moment a box opens~~ —
+  run42 prints every leader's buckets every frame now — but the frame's
+  draw count is identical whichever good won, so the question is
+  answerable from disk and still unanswered.
 
 ## 7. The approach — `Unit::find_goody_box@005f2540`
 

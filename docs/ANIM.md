@@ -363,7 +363,8 @@ That second roll is the arrival's second draw, run39's frames 19 and 20
 or a `SPECIAL_ANIM` order, the second of which this crate does not model at
 all.
 
-**And `Guy::do_turn@005d97a0:15`'s override cannot fire on any capture.**
+**And `Guy::do_turn@005d97a0:15`'s override could not fire on any
+capture — until run44, below.**
 With `guy_flags & 8` the turn replaces that walk with
 `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, which `Guy::move`'s own slot exclusions
 then keep, so such a guy spends no arrival draw. `Guy::init_real@005db6b0:179`
@@ -374,6 +375,19 @@ guys carry** — 0, 19, 352, 371, 6336, 6688, 12691, 13043 — while gaia's
 `the_install_s_piece_lengths_match_the_dumps`, beside the `GROUP_IDLE2`
 finding of §3.2, and unmodelled deliberately: the check that would make it
 matter is a capture with a vehicle or a ship turning in place.
+
+**Fired 2026-08-31** (`docs/ORACLE.md`, run44): 452 guy-frames play
+`CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, nine `(who, o, slot)` combinations,
+both sides, once a capture had combat and `GUYS=4` at once — and no driver
+was needed, because `move_step`'s turn-in-place branches are not the only
+path: `Guy::move:109`'s standing arm hands the override through
+`Guy::turn_towards@005d9720` to `do_turn`, so a turner unit turning
+towards a target is enough, and a fight supplies one. The paragraph above
+stays true of the *scored* games — run13's 2,288 guy records and run38's
+1,180 all carry 16 — so the override stays unmodelled and moves no score;
+what changed is that the row is diff-backed (`tools/gamelog/turnanim.py`
+counts the 452) rather than unfalsifiable, and `guy_flags & 8` is
+observed as exactly the three turner types 134, 265 and 266.
 
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 
@@ -697,11 +711,20 @@ two passes.
   the second reading from the dump's own `end_time` (§5); the sim's reading
   stands. What is unobserved is the drawn *value* for a dog (the mirror
   hides it) and the every-frame re-roll of a dog under a shorter idle.
-- **`guy_flags` bits 0x2, 0x4 and 0x20** have no writer found (the second
-  reading's list): 0x4 doubles the attack step, 0x20 collapses the idle
-  roll, 0x2 skips `turn_towards`. Every guy in both dumps carries
-  `guy_flags 16`; none of the three is exercised, and the sim leaves all
-  three off.
+- **`guy_flags` bits 0x2, 0x4 and 0x20**: 0x4 doubles the attack step,
+  0x20 collapses the idle roll, 0x2 skips `turn_towards`. Every guy in both
+  *scored* dumps carries `guy_flags 16` — run13's 2,288 records and run38's
+  1,180, every one — so the sim leaves all three off and no score turns on
+  them. But ~~no writer found~~ **0x20 is exercised and written** (run44,
+  `docs/ORACLE.md`, 2026-08-31): 12,582 records across five types including
+  `PEASANTS`, toggling within a type — state, not a per-piece init bit; the
+  writer itself is still unread. 0x2 is now a puzzle rather than an absence:
+  `do_turn`'s first statement sets `|= 2` on `+0x9a` whenever the angle
+  changes, and run44's 452 turn animations mean it ran with no record
+  showing the bit — either the dumped `guy_flags` is not the whole `ushort`
+  at `+0x9a`, or something clears it before the frame ends. And 265/266
+  carry `8`/`40` **without 0x10**, which every other type has; whatever
+  0x10 is, the siege pieces lack it.
 - **`Guy::move:52` tests `des_x == x` without the formation offset** while
   `set_anim:163` tests `des_x == x − off_x`; the same for guy 0 (`off` 0)
   and for every unit in the dumps. Unsettled for a formation with offsets.
