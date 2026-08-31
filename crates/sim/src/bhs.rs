@@ -15,7 +15,11 @@
 //! - **function arguments evaluate right to left**;
 //! - `&&`/`||` short-circuit and always yield 0 or 1;
 //! - a `static` initialiser runs **once, ever**, on the first execution by
-//!   any caller — one slot per function shared by all eight leaders;
+//!   any caller — one slot per function shared by all eight leaders — and
+//!   the slot is live for the *whole* of a call, statements above the
+//!   declaration included, because the original keeps it on
+//!   `Script::static_vars` rather than in the call's frame
+//!   (`docs/AI.md` §17);
 //! - a `trigger` block is inline code guarded by a bit that
 //!   `enable_trigger` sets and that **firing clears**;
 //! - `String` comparison is case-insensitive, and a mixed `String`/`int`
@@ -423,6 +427,11 @@ struct Func {
     slots: Vec<Ty>,
     body: Vec<Stmt>,
     statics: usize,
+    /// Every `static` declaration's `(index, frame slot)`, in body order —
+    /// what [`Run::call`] seeds a call's frame from and what
+    /// [`Run::sync_statics`] mirrors back. Precomputed because both run on
+    /// the hot path.
+    static_slots: Vec<(usize, usize)>,
     triggers: Vec<String>,
     defined: bool,
 }
@@ -1413,6 +1422,7 @@ impl Program {
                             slots: Vec::new(),
                             body: Vec::new(),
                             statics: 0,
+                            static_slots: Vec::new(),
                             triggers: Vec::new(),
                             defined: false,
                         });
@@ -1474,6 +1484,8 @@ impl Program {
             }
             let f = &mut funcs[idx];
             f.slots = p.slots;
+            f.static_slots = Vec::new();
+            collect_statics(&body, &mut f.static_slots);
             f.body = body;
             f.statics = p.statics;
             f.triggers = p.triggers;
@@ -1501,6 +1513,40 @@ impl Program {
 
     pub fn files(&self) -> &[String] {
         &self.files
+    }
+}
+
+/// Every `static` declaration in a body, as `(static index, frame slot)`.
+///
+/// A `static`'s frame slot is an ordinary local that the run seeds from the
+/// persistent store on entry and mirrors back on every write, so the whole
+/// body — including the statements *above* the declaration — sees the value
+/// the last call left. The walk recurses through every construct a
+/// declaration can sit in.
+fn collect_statics(body: &[Stmt], out: &mut Vec<(usize, usize)>) {
+    for s in body {
+        match s {
+            Stmt::Decl {
+                slot,
+                stat: Some(si),
+                ..
+            } => out.push((*si, *slot)),
+            Stmt::If(_, a, b) => {
+                collect_statics(a, out);
+                collect_statics(b, out);
+            }
+            Stmt::While(_, b)
+            | Stmt::DoWhile(b, _)
+            | Stmt::For(_, _, _, b)
+            | Stmt::Block(b)
+            | Stmt::Trigger(_, _, b) => collect_statics(b, out),
+            Stmt::Switch(_, cases) => {
+                for (_, b) in cases {
+                    collect_statics(b, out);
+                }
+            }
+            _ => {}
+        }
     }
 }
 
@@ -1605,6 +1651,14 @@ impl Vm<'_> {
         for (i, a) in args.into_iter().enumerate() {
             vars[i] = a;
         }
+        // Seed the `static` slots from the store *before* the body runs.
+        // `VirtualMachine::get_value/set_value` read and write a static
+        // straight on `Script::static_vars`, never through the call's frame,
+        // so a static is visible from the first instruction of every call;
+        // a frame that starts it at zero loses what the last call wrote
+        // (`docs/AI.md` §17).
+        self.seed_statics(fi, &mut vars);
+        let f = &self.program.funcs[fi];
         let body = &f.body;
         let flow = self.block(fi, body, &mut vars)?;
         self.depth -= 1;
@@ -1775,52 +1829,27 @@ impl Vm<'_> {
         }
     }
 
-    /// A static's frame slot is the static itself; writes to the slot are
-    /// mirrored back so the next call sees them.
-    fn sync_statics(&mut self, fi: usize, vars: &[Value]) {
-        let f = &self.program.funcs[fi];
-        if f.statics == 0 {
-            return;
-        }
-        for s in &f.body {
-            self.sync_one(fi, s, vars);
+    /// The frame's `static` slots, from the store: `get_value`'s
+    /// `0x40000000` operand, which does not go through the frame at all.
+    fn seed_statics(&self, fi: usize, vars: &mut [Value]) {
+        for &(si, slot) in &self.program.funcs[fi].static_slots {
+            if let Some(v) = &self.state.statics[fi][si] {
+                vars[slot] = v.clone();
+            }
         }
     }
 
-    fn sync_one(&mut self, fi: usize, s: &Stmt, vars: &[Value]) {
-        match s {
-            Stmt::Decl {
-                slot,
-                stat: Some(si),
-                ..
-            } => {
-                if self.state.statics[fi][*si].is_some() {
-                    self.state.statics[fi][*si] = Some(vars[*slot].clone());
-                }
+    /// The mirror back: a write to a `static`'s frame slot reaches the
+    /// store, so the next call — and this call's next read — sees it. Only
+    /// a slot the store already holds is mirrored, which is what keeps a
+    /// declaration's "once, ever" initialiser from being pre-empted by the
+    /// frame's default.
+    fn sync_statics(&mut self, fi: usize, vars: &[Value]) {
+        for i in 0..self.program.funcs[fi].static_slots.len() {
+            let (si, slot) = self.program.funcs[fi].static_slots[i];
+            if self.state.statics[fi][si].is_some() {
+                self.state.statics[fi][si] = Some(vars[slot].clone());
             }
-            Stmt::If(_, a, b) => {
-                for s in a.iter().chain(b) {
-                    self.sync_one(fi, s, vars);
-                }
-            }
-            Stmt::While(_, b) | Stmt::DoWhile(b, _) | Stmt::For(_, _, _, b) | Stmt::Block(b) => {
-                for s in b {
-                    self.sync_one(fi, s, vars);
-                }
-            }
-            Stmt::Switch(_, cases) => {
-                for (_, b) in cases {
-                    for s in b {
-                        self.sync_one(fi, s, vars);
-                    }
-                }
-            }
-            Stmt::Trigger(_, _, b) => {
-                for s in b {
-                    self.sync_one(fi, s, vars);
-                }
-            }
-            _ => {}
         }
     }
 
@@ -1909,6 +1938,8 @@ impl Vm<'_> {
                 }
                 self.sync_statics(fi, vars);
                 let (ret, back) = self.call(*callee, vals)?;
+                // A recursive call shares the store, so read it back.
+                self.seed_statics(fi, vars);
                 // `ref` write-back into the caller's variables.
                 for (i, (p, a)) in params.iter().zip(args.iter()).enumerate() {
                     if p.by_ref
@@ -2129,6 +2160,37 @@ mod tests {
         );
         assert_eq!(run_int(&p, &mut s, &mut h, "go", &mut [Value::Int(1)]), 103);
         assert_eq!(h.counter, 1, "the initialiser ran once");
+    }
+
+    /// A statement above the declarations does not wipe the statics.
+    ///
+    /// `VirtualMachine::get_value`/`set_value` read and write a static on
+    /// `Script::static_vars` rather than through the call's frame, so the
+    /// value the last call left is live from the first instruction. This
+    /// simulation gives a static a frame slot and mirrors it back, and the
+    /// mirror used to run over slots the call had not yet declared — so any
+    /// script with an expression statement above its `static` block lost
+    /// every one of them on its *second* call, and only on the second.
+    /// `economic.bhs` has three such statements, and its `needed_citizens`
+    /// went back to zero on every call after the first: the AI stopped
+    /// training citizens for the rest of the game (`docs/AI.md` §17).
+    #[test]
+    fn a_statement_above_the_declarations_does_not_wipe_the_statics() {
+        let (p, mut s, mut h) = load(
+            "int ai go(int who) {
+               mark(who);
+               static int hits = 0;
+               hits++;
+               return hits;
+             }",
+        );
+        assert_eq!(run_int(&p, &mut s, &mut h, "go", &mut [Value::Int(1)]), 1);
+        assert_eq!(
+            run_int(&p, &mut s, &mut h, "go", &mut [Value::Int(1)]),
+            2,
+            "the second call is the one that used to lose it"
+        );
+        assert_eq!(run_int(&p, &mut s, &mut h, "go", &mut [Value::Int(1)]), 3);
     }
 
     #[test]

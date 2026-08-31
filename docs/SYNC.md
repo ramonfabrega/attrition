@@ -1029,8 +1029,15 @@ restored but the AI's threshold still 2 took it to **122**; and the
 threshold alone, without the loops, is what run14's frames 99 and 100 had
 always been.
 
-What is at 274 is not either of these: the original creates a guy there —
-`Guy::init_real+0x52` and its wrap — and this crate creates none.
+~~What is at 274 is not either of these: the original creates a guy there —
+`Guy::init_real+0x52` and its wrap — and this crate creates none.~~
+**Answered 2026-08-30, `docs/AI.md` §17**: nothing was queued to create.
+A script `static` lives on `Script::static_vars`, not in the call's frame,
+and this crate's frame mirror wiped `economic.bhs`'s on every call after the
+first — so the AI's `needed_citizens` was zero from frame 176 and it trained
+no citizen for the rest of the game. The word and the sequence run to
+**413**, where the original spends two `Unit::do_idle+0x7d` idle anims and a
+nine-draw `Unit::think_scout` scan that this crate does not.
 
 
 ## 4. Run12 attributed
@@ -1562,6 +1569,15 @@ kind honest.
   arm's second clause — the check is a capture with a unit arriving under
   an `ATTACK` or a `BUILD_AT` while a second order is queued, which no run
   has yet.
+
+- **A script `static` is not a frame slot, `docs/AI.md` §17
+  (2026-08-30).** Diff-backed on all three captures: East Indies' word and
+  sequence 274 → **413**, Great Lakes' weak totals 943/830 → **943/851**,
+  and run10's roster the original's both ways for the first time. The
+  operand's `0x40000000` bit and `Script::static_vars` are read from
+  `VirtualMachine::get_value`/`set_value`; what a run cannot separate is
+  seeding the frame at entry from mirroring only past-declaration slots,
+  because every read in the shipped scripts is below the declarations.
 
 - **The frame's two loops, §3.16 (2026-08-30).** Diff-backed on every
   capture the harness has, and it is the strongest row here because the

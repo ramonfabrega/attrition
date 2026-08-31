@@ -2530,3 +2530,62 @@ silence: `Leader::diplomacy`, the `Army`/`Armies` family, and the BHS language
 and its 55 host functions — the last because they already have two dedicated
 reports and run7's opening reproduces frame for frame, so the reading is not
 their only evidence.
+
+
+## 17. `static` is one variable on the `Script`, not a frame slot (2026-08-30)
+
+The BHS language and its host functions were left deliberately unread by the
+second reading (§16's last paragraph), on the ground that run7's opening
+reproduces frame for frame. It does; the *second* call does not, and this is
+what was wrong.
+
+**Where a variable lives is two bits of the operand.**
+`VirtualMachine::get_value@004d1010` and `set_value@009e07b0` both branch on
+them:
+
+| operand bit | storage |
+| --- | --- |
+| `0x20000000` | `ScriptFile::const_pool` — a literal |
+| `0x40000000` | `Script::static_vars`, indexed by the operand less the bit |
+| neither | `VirtualMachine::vars`, the call's own frame |
+
+So a `static` never touches the frame. It is one `ScriptType *` on the
+`Script` object, shared by every call and every caller, live from a call's
+first instruction to its last, and the compiler keeps the two namespaces
+apart — `Script` carries `static_var_names` (`+0x94`) beside `var_names`
+(`+0x7c`).
+
+Two consequences the shipped scripts depend on. A read **above** the
+declaration sees the last call's value, not a zero; and a recursive callee's
+write is visible to its caller on return, because both index the same array.
+
+**What this crate had.** A `static` was given a frame slot, seeded at its
+declaration statement and mirrored back into the store after every
+expression — and the mirror ran over *every* static of the function,
+including those whose declaration the call had not yet reached. Any script
+with an expression statement above its `static` block therefore wrote zeros
+over all of them, on its **second** call and every call after, never the
+first. `economic.bhs` has three such statements and eight statics per
+leader; the AI's `needed_citizens` was zero from its second call on, the
+opening's every-call `train_unit_with_need(who, needed_citizens, "Citizen")`
+found `pop < 0` false at once, and **the AI trained no citizen for the rest
+of the game**. `static int needed_techs = get_techs_per_age(who)` stayed zero
+for the same reason with the initialiser never re-running: "once ever" is
+keyed on the store holding nothing, and the store held a zero.
+
+**What it is now.** `Run::seed_statics` fills the frame's static slots from
+the store on entry and again after every script-to-script call; the
+mirror-back is unchanged in effect and walks a precomputed
+`(static index, slot)` list. On the shipped scripts, seeding at entry and
+mirroring only past-declaration slots are indistinguishable — every read is
+below the declarations — so the model taken is the VM's own.
+
+**Guard**: `bhs.rs`'s
+`a_statement_above_the_declarations_does_not_wipe_the_statics`, written
+against the old seeding first: the second call returned 1 where it must
+return 2, and only the second.
+
+**Diff-backed.** East Indies' word and sequence 274 → **413**; Great Lakes'
+weak totals 943/830 → **943/851**; run10's roster the original's both ways
+for the first time (268 missing + 0 extra → **0 + 0**). The story and every
+number are in `docs/JOURNAL.md`.

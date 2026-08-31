@@ -7164,6 +7164,17 @@ mod tests {
     ///               unit created this frame is *not* skipped by
     ///               `Objects::inc_time`, and `think_peasant`'s idle
     ///               threshold is **1** for an AI-driven worker.
+    ///   2026-08-30  **413** (item 98, `docs/AI.md` §17): a script's
+    ///               `static` is one variable on `Script::static_vars`,
+    ///               not a frame slot, and this crate's mirror wiped
+    ///               every one of them on the second call. So
+    ///               `economic.bhs`'s `needed_citizens` was zero from
+    ///               the second call on, its every-call
+    ///               `train_unit_with_need` trained nobody, and the
+    ///               citizen the original's city hall finishes at 274 was
+    ///               never queued. With the statics live the queue clock
+    ///               runs 100 to 9,750 on the original's own frames and
+    ///               the guy is born on 274.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7249,33 +7260,179 @@ mod tests {
              {WINDOW} frames {words} spend the original's number of draws and {matched} \
              draw for draw"
         );
-        let mut shown = 0;
-        for (f, ours) in built.frame_sites.iter().take(WINDOW as usize) {
-            let theirs = tr.labels(*f);
-            if *ours == theirs {
-                continue;
-            }
+        // The parting frame's own row, and the first few inside the window
+        // — the row is the successor item every time the number moves, so
+        // the run prints it rather than leaving it to be re-derived.
+        let row = |f: i64, ours: &Vec<String>| {
+            let theirs = tr.labels(f);
             let at = (0..ours.len().max(theirs.len()))
                 .find(|&i| ours.get(i) != theirs.get(i))
                 .unwrap_or(0);
-            eprintln!(
+            format!(
                 "frame {f}: ours {} theirs {} — at {at}, ours {:?} theirs {:?}",
                 ours.len(),
                 theirs.len(),
                 ours.get(at),
                 theirs.get(at),
-            );
+            )
+        };
+        let mut shown = 0;
+        for (f, ours) in built.frame_sites.iter().take(WINDOW as usize) {
+            if *ours == tr.labels(*f) {
+                continue;
+            }
+            eprintln!("{}", row(*f, ours));
             shown += 1;
             if shown == 4 {
                 break;
             }
         }
+        for (f, ours) in built.frame_sites.iter() {
+            if *f == first_part {
+                eprintln!("parts: {}", row(*f, ours));
+            }
+            if *f == first_count && first_count != first_part {
+                eprintln!("counts: {}", row(*f, ours));
+            }
+        }
         assert!(
-            first_count >= 274 && first_part >= 274 && words >= 64 && matched >= 64,
+            first_count >= 413 && first_part >= 413 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 274, 274, 64 and 64"
+             {matched} draw for draw — the floor is 413, 413, 64 and 64"
         );
+    }
+
+    /// **The production queues, whole**, against run39's own record —
+    /// every building of both players, every live slot, every field
+    /// `BuildQueue::log_data` writes.
+    ///
+    /// `docs/PRODUCTION.md` is read end to end and was, until this test,
+    /// backed by a single hand-transcribed frame (run7's `[25, 26, 27]`
+    /// ramp in
+    /// [`run7_s_first_script_call_fills_the_queues_the_dump_shows`]). The
+    /// dump has carried the record all along and nothing parsed it: the
+    /// clock, the charge, the ramp and the handover are all in it, on
+    /// every frame, for every building. This is the working agreement's
+    /// "when the original dumps a record, diff the whole record", and it
+    /// is what says the counter's arithmetic is the original's rather
+    /// than merely plausible.
+    ///
+    /// **What it pins.** The AI's city hall queues its first citizen on
+    /// frame 176 and the counter climbs 100 a frame to the `train_time`
+    /// 9,750, capping there on 273 and handing the guy over on 274 — the
+    /// two draws `docs/SYNC.md` §3.16 left as the word's residue. Three
+    /// citizens sit in that queue at costs 25, 26 and 27, so the price
+    /// ramp is checked per entry rather than at the head alone, and the
+    /// library's research entry is checked beside them.
+    ///
+    /// Only the first `queued` slots are compared: the tail of the array
+    /// holds whatever it was last left with (`type −1` on a queue never
+    /// used, `type 0` on one that has been), which is not state either
+    /// side owns.
+    #[test]
+    fn run39_s_build_queues_are_the_original_s_clock() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // The `TypeIndex` of one of this simulation's queue entries, which
+        // is what the dump writes: a tech entry is its tree id, a unit
+        // entry its record's.
+        let type_index = |item: &sim::production::Item| -> i64 {
+            let id = match item.tech {
+                Some(t) => t,
+                None => loaded.unit_tree[item.ty],
+            };
+            i64::from(loaded.type_index(id))
+        };
+
+        let mut compared = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        let mut frames = 0usize;
+        for (n, block) in log.frames() {
+            while built.sim.frame < n {
+                built.tick();
+            }
+            if built.sim.frame != n {
+                continue;
+            }
+            frames += 1;
+            for b in crate::gamelog::records(block, false).1 {
+                let Some(q) = b.queued else { continue };
+                let ours = built
+                    .sim
+                    .buildings
+                    .iter()
+                    .find(|x| i64::from(x.owner) == b.who && i64::from(x.index) == b.o);
+                let Some(ours) = ours else {
+                    wrong.push(format!("frame {n}: no building {}/{}", b.who, b.o));
+                    continue;
+                };
+                compared += 1;
+                if ours.queue.items.len() as i64 != q {
+                    wrong.push(format!(
+                        "frame {n} {}/{}: queued ours {} theirs {q}",
+                        b.who,
+                        b.o,
+                        ours.queue.items.len()
+                    ));
+                    continue;
+                }
+                for (k, theirs) in b.queue.iter().take(q as usize).enumerate() {
+                    let item = &ours.queue.items[k];
+                    compared += 4;
+                    let mine = (
+                        type_index(item),
+                        i64::from(item.job_counter),
+                        item.cost.map(i64::from),
+                        item.good.map(i64::from),
+                    );
+                    let yours = (theirs.ty, theirs.job_counter, theirs.cost, theirs.good);
+                    if mine != yours {
+                        wrong.push(format!(
+                            "frame {n} {}/{} slot {k}: ours {mine:?} theirs {yours:?}",
+                            b.who, b.o
+                        ));
+                    }
+                }
+            }
+        }
+        let first = wrong
+            .first()
+            .and_then(|w| w.strip_prefix("frame "))
+            .and_then(|w| w.split(&[' ', ':'][..]).next())
+            .and_then(|w| w.parse::<i64>().ok())
+            .unwrap_or(built.sim.frame);
+        eprintln!(
+            "run39 queues: {compared} fields over {frames} frames, \
+             {} disagree, first at {first}",
+            wrong.len()
+        );
+        for w in wrong.iter().take(24) {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 33_631,
+            "the record is being read: {compared} fields"
+        );
+        assert!(first >= 383, "the queues part at {first}; the floor is 383");
     }
 
     /// **A pasture herder walks only on its own 256-frame phase**, and it
@@ -8145,10 +8302,15 @@ mod tests {
         // the lowest the pair has been, and the 268 are `1/10` alone — the
         // tenth citizen, which the original trains at 1772 and this does
         // not reach.
-        assert_eq!(
-            missing,
-            vec![(1, 10)],
-            "the one citizen the AI does not reach"
+        //
+        // Item 98 (the script's statics, `docs/AI.md` §17) closes that
+        // one too: `needed_citizens` survives the call it was set in, so
+        // the opening's every-call `train_unit_with_need` keeps training,
+        // and `1/10` arrives. **268 + 0 → 0 + 0** — the roster is the
+        // original's, both ways, over the whole capture.
+        assert!(
+            missing.is_empty(),
+            "a citizen the original trains and the AI does not reach: {missing:?}"
         );
         let extras: Vec<(i64, i64)> = report
             .frames
@@ -8202,8 +8364,12 @@ mod tests {
         // re-pricing give the AI back the thirty-two food it was short, so
         // `1/9` is trained on the original's own frame again and its two
         // hundred unit-frames come back into view.
+        //
+        // 26,433 → **26,701** with item 98 (the script's statics): `1/10`
+        // is trained at last, and its 268 unit-frames are the difference.
+        // The one disagreement is unmoved through all five.
         let los_seen: usize = report.frames.iter().map(|f| f.los_compared).sum();
-        assert_eq!(los_seen, 26_433, "every compared unit-frame carries mylos");
+        assert_eq!(los_seen, 26_701, "every compared unit-frame carries mylos");
         let bad: Vec<LosDivergence> = report
             .frames
             .iter()
@@ -8372,9 +8538,13 @@ mod tests {
         // 1128 under the same change, so a unit whose position parts at
         // 1320 has been on a stream of its own for two hundred frames
         // (`docs/SYNC.md` §3.14).
+        //
+        // 91,210 -> **92,766** with item 98 (the script's statics), the
+        // eighteenth: `1/10` exists, so its own field-frames join the
+        // count, and the other twelve are unchanged to the frame.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 91_210,
+            coll_seen, 92_766,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -8613,8 +8783,11 @@ mod tests {
         // fewer, and all of them `1/9`'s, which parts at 1320 rather than
         // 1377 (see the collision rows above). The headline is unmoved at
         // 572/776 and the other map's word goes 91 → 201.
+        // 35,188 → **35,742** with item 98 (the script's statics): 554
+        // more, and all of them `1/10`'s, the citizen the AI reaches for
+        // the first time.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 35_188, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 35_742, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()

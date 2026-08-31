@@ -584,6 +584,26 @@ the first time it was asked a question with a five in the denominator.
 
 ---
 
+## The record, diffed (2026-08-30)
+
+Until this date every claim in this document rested on a reading plus one
+hand-transcribed frame. The dump carries the whole thing —
+`BuildQueue::log_data` writes `queue_size` and then all `queue_size` slots,
+each as `type`, `job_counter`, `cost[0..2]`, `good[0..2]`, under a
+`BUILDQUEUE` block inside `BUILDDATA`, with `BuildData::queued` beside it —
+and nothing parsed it.
+
+It is parsed now (`rondata::gamelog::QueueItemDump`) and diffed whole:
+`run39_s_build_queues_are_the_original_s_clock` compares every building of
+both players on every one of run39's 1,851 frames, `queued` and then the
+first `queued` slots' every field. **33,631 fields, of which 21 disagree** —
+four times further than the sync word reaches on that map. So the clock (the
+accelerator, the compare-before-add, the cap at the target), the charge, the
+per-entry price ramp and the handover are the original's on the record, not
+merely on the reading.
+
+The 21 are one residue, below.
+
 ## What is not established
 
 - ~~**`BuildQueue::init` and where `queue_size` comes from.**~~ Closed by the
@@ -627,6 +647,19 @@ the first time it was asked a question with a five in the denominator.
   order that matters.** The full order is now recorded (audit §3 O7) and the
   research/train partition is stated above; which pairs can coincide is a
   balance question, not a fidelity one.
+- **`TECH_SCIENCE_SPEEDUP` is loaded and never applied.** `Tuning` carries it
+  at 10 and nothing reads it. `LeaderData::calc_science_discount@006da630`
+  returns `value − levels × TECH_SCIENCE_DISCOUNT × value / 100`, where
+  `levels` is the decrypted `epoch[3]` less the tech's own level — plus one
+  unless the type is an age (`0x220..0x226`) or an epoch (`0x227..0x242`) —
+  and it is applied to a research job's **time** as well as its price. The
+  diff above measures it exactly: run39's AI library takes 20,000 hundredths
+  where the original takes 18,000, so its research lands on frame 402 rather
+  than 382, and those twenty frames are the whole of the 21. Its purchase-side
+  twin — `Sim::tech_price` passing `Modifiers::default()` — is the same
+  function's other caller, and the two belong in one session
+  (`docs/QUEUE.md` item 86). `crates/sim/src/cost.rs`'s `reprice` is the
+  *refund* side and is already right.
 - **The AI counters** at `leader + 0xa10` through `+0xa24`, moved by both
   `queue_up` and `unqueue`. They are per-production-building tallies and
   nothing in the simulation reads them yet.

@@ -13,33 +13,34 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 60 (Opus).*
+*2026-08-30, after item 98 (Opus).*
 
-**East Indies' word is at 274, Great Lakes' *sequence* at 576, and run14's
-whole traced window is 284 of 284 — draw for draw, end to end.** run39's
-own score holds at 167/167 with player 0 at 217 and player 1 at 168;
-run10's ticks 572, orders 776, first divergences 802 and 573, all thirteen
-units unchanged. run33's word holds at 780, weak totals 943/827 → 943/830.
-Collision rows 91,210; angle rows 35,188. Tree green: 644 sim, 148 rondata.
+**East Indies' word and sequence are at 413, Great Lakes' word at 780 and
+its sequence at 576, and run10's roster is the original's both ways for
+the first time — 0 missing, 0 extra.** run33's weak totals 943/830 →
+943/851. run39's own game score holds at 167/167 with player 0 at 217 and
+player 1 at 168; run10's ticks 572, orders 776, first divergences 802 and
+573. Coverage rose with the roster: `mylos` 26,701, collision rows 92,766,
+angle rows 35,742. Tree green: 645 sim, 149 rondata.
 
-**The residue was the frame's own shape.** `Objects::process_all@0065dce0`
-is two loops — the units rotated by owner, then a *second, unrotated* pass
-over each player's buildings and then their walls — and `Sim::tick` ran the
-buildings first. `docs/SYNC.md` §3.2 has said so since it was written. With
-the order right, frame 219's citizen re-target lands in front of the road
-search and the search that looked **152 nodes against 129** costs 129: the
-count was the same search on a world the units had not yet touched. Two
-compensations fell out with it, each of which had been cancelling the loop
-order exactly — a newborn is **not** skipped by `Objects::inc_time` (that
-was item 62's "standing swap", never an attribution question), and
-`think_peasant`'s idle threshold is **1** for an AI-driven worker, which
-`docs/ORDERS.md` §5.9 has had in its pseudocode all along. `docs/SYNC.md`
-§3.16. Made to fail three ways, all three seen on the way in.
+**A script's `static` is one variable on the `Script`, not a frame slot.**
+`VirtualMachine::get_value/set_value` take it from `Script::static_vars`
+on operand bit `0x40000000` and never touch the call's frame. This crate
+mirrored a frame slot back into the store after every expression — over
+statics the call had not yet declared — so `economic.bhs`, which has three
+statements above its `static` block, lost all eight of them on its
+**second** call and every call after. `needed_citizens` was zero from
+frame 176 on, the opening's every-call `train_unit_with_need` trained
+nobody, and **the AI trained no citizen for the rest of the game on either
+map**. `docs/AI.md` §17. The record it was found in is now diffed whole:
+`BUILDQUEUE` and `queued` were parsed by nothing, and are now 33,631
+fields over run39's 1,851 frames with 21 disagreeing.
 
-**Opener (Opus):** `take item 98 from @docs/QUEUE.md — East Indies' word
-now parts at 274 on a unit the original trains and this crate does not:
-Guy::init_real plus the newborn's wrap, two draws; docs/SYNC.md §3.16 has
-how the last one was found.`
+**Opener (Opus):** `take item 86 from @docs/QUEUE.md — TECH_SCIENCE_SPEEDUP
+is loaded and read by nothing, and it is the 21 of run39's 33,631 queue
+fields: the AI's library lands on 402 where the original lands on 382, so
+it sits upstream of East Indies' word at 413. docs/PRODUCTION.md's "What
+is not established" has the formula and both call sites.`
 
 ## The queue
 
@@ -47,12 +48,19 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-98. **East Indies' word at 274, and it is a unit nobody trained.** The
-    original spends `Guy::init_real+0x52` and the newborn's
-    `Guy::inc_time` wrap on that frame — two draws for one guy — and
-    this crate creates none. Not an order and not an animal: a queue
-    finishing on a frame ours does not. `docs/PRODUCTION.md`'s clock
-    against run39's own `BUILDS`.
+86. **The science discount, both call sites.** `TECH_SCIENCE_SPEEDUP` is
+    in `Tuning` at 10 and read by nothing: run39's AI library takes 20,000
+    hundredths against the original's 18,000 and lands on 402, not 382 —
+    the 21 of `run39_s_build_queues`' 33,631, and upstream of the word.
+    Its twin is `Sim::tech_price` passing `Modifiers::default()`, so a
+    tech is charged undiscounted. `calc_science_discount@006da630` serves
+    both; `cost.rs`'s `reprice` is the refund side and is already right.
+
+99. **East Indies' word at 413, and it is the AI's scout.** The original
+    spends two `Unit::do_idle+0x7d` idle anims and a nine-draw
+    `Unit::think_scout` scan (`+0x436`/`+0x458` pairs, then `+0x64c`) that
+    this crate does not: 20 draws against 7. `docs/SCOUT.md` against
+    run39's own trace. Take 86 first — it parts 30 frames earlier.
 
 69. **East Indies' order-list length at 168.** `1/4` and the original
     disagree on the order list at 168 and `1/5` at 186, and both are now
@@ -76,11 +84,6 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     still-empty `gather_from`, so a harness camp activates with zero; and
     run40's *human* files one under good 2, where `get_good@0063bd50`'s
     table at `0063bd84` is Farm 0, Camp 1, Mine 4, University 3, Oil 5.
-
-86. **The science discount's purchase side.** `Sim::tech_price` passes
-    `Modifiers::default()`, so a tech is charged undiscounted, and
-    `Build::refund_cost` inverts an expression the buy side never applies.
-    Zero on every traced purchase. `calc_science_discount@006da630`.
 
 82. **A hundred knowledge, oil and wealth nobody gave anybody.** run40:
     the original holds **0** in goods 3, 4 and 5 for both players and this

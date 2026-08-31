@@ -8202,3 +8202,101 @@ Frame **274**, and it is a unit this crate does not make. The original spends
 `Guy::init_real+0x52` and the newborn's wrap there — two draws for a guy — and
 this crate creates none. It is the training clock, not an order or an animal:
 the next item is which building finishes what, and when.
+
+
+## 2026-08-30 (later, Opus) — item 98: East Indies' word 274 → 413, and the AI stopped training citizens on its second call
+
+Item 98 was one guy. The original's frame 274 opens with `Guy::init_real+0x52`
+and the newborn's wrap, two draws for a unit this crate never created, and the
+brief was `docs/PRODUCTION.md`'s clock against run39's own `BUILDS`. The clock
+was fine. Nothing was ever queued.
+
+### Following the queue back
+
+Run39's `BUILDQUEUE` says exactly where to look: the AI's city hall `1/2000`
+starts a citizen on frame **176** and its `job_counter` climbs 100 a frame to
+`train_time` 9,750, capping there on 273 and handing the guy over on 274. This
+crate's only live queue in that game was the library's research. So the
+question was not the counter but the order to start one.
+
+Frame 176 is the AI's script call. `economic.bhs`'s every-call line is
+`train_unit_with_need(who, needed_citizens, "Citizen")`, and a host trace
+showed it being called with **`needed_citizens = 0`** — where step 8, on game
+frame 1, sets it to 9. The static was being written back correctly (a trace of
+the store showed `economic#9 0 → 9` at the end of frame 1) and read back as
+zero on the next call.
+
+### What it was
+
+`VirtualMachine::get_value@004d1010` and `set_value@009e07b0` decide where a
+variable lives from two bits of the operand: `0x20000000` is the constant pool,
+`0x40000000` is `Script::static_vars`, and neither is the call's own frame. A
+`static` is **one `ScriptType *` on the `Script` object** — it never touches a
+frame, and it is live from a call's first instruction.
+
+This crate gave it a frame slot and mirrored the slot back into the store after
+every expression statement — over *all* of the function's statics, including
+the ones whose declaration the call had not yet reached. `economic.bhs` has
+three expression statements above its `static` block. So on the **second** call
+and every one after, never the first, the AI's whole opening state was zeroed:
+`needed_citizens`, `prev_step`, `timer_started`, `fishermen_total`,
+`wood_camp`, `max_woodcutters`, `build_merchant` — and `needed_techs`, which is
+initialised from a host call and stayed zero, because "once ever" is keyed on
+the store holding nothing and the store held a zero.
+
+The AI trained no citizen from frame 176 to the end of the game, on either map.
+
+`docs/AI.md` §17. The second reading left the BHS language deliberately unread
+(§16's last paragraph) because "run7's opening reproduces frame for frame". It
+does. The second call does not, and nothing had ever looked at a second call.
+
+### What it moved
+
+- **East Indies' word and sequence 274 → 413.** What parts there is something
+  else: the original spends two `Unit::do_idle+0x7d` idle anims and a nine-draw
+  `Unit::think_scout` scan that this crate does not.
+- **Great Lakes' weak totals 943/830 → 943/851**; its word holds at 780 and its
+  sequence at 576.
+- **run10's roster is the original's both ways for the first time.** `1/10` —
+  the tenth citizen, trained at 1772, that no session had reached — arrives, so
+  268 missing + 0 extra becomes **0 + 0**. Its coverage follows: `mylos`
+  26,433 → 26,701 unit-frames, the collision block 91,210 → 92,766, the angles
+  35,188 → 35,742. The headline 572/776 and both first divergences (802, 573)
+  are unmoved to the frame.
+- run39's own game score (167/167, 217/168) and run14's whole 284-frame window
+  are unmoved.
+
+The guard is `bhs.rs`'s
+`a_statement_above_the_declarations_does_not_wipe_the_statics`, written against
+the old seeding first: the second call returns 1 where it must return 2, and
+only the second.
+
+### The widening, and what it found
+
+`BUILDQUEUE` and `BuildData::queued` were parsed by nothing, and the whole of
+`docs/PRODUCTION.md` — a document read end to end — rested on **one**
+hand-transcribed frame, run7's `[25, 26, 27]` citizen ramp. The dump has
+written `queue_size` and every capacity slot's `type`, `job_counter`,
+`cost[0..2]` and `good[0..2]` on every frame all along.
+
+Parsed and diffed whole:
+`run39_s_build_queues_are_the_original_s_clock` compares both players' every
+building over run39's 1,851 frames — **33,631 fields, of which 21 disagree**.
+That is four times further than the sync word reaches on that map, and it makes
+the accelerator, the compare-before-add, the cap at the target, the charge, the
+per-entry ramp and the handover diff-backed rather than read.
+
+It also cost a wrong turn worth recording. Read with a python parser that kept
+only the first value of each repeated key, the record looked like *one* queued
+citizen where this crate had three, and half an hour went into "the AI has more
+food than the original's". The dump writes all twenty slots one after another
+under the same key; `queued 3` was three lines further up the same block. The
+lesson is the export's own: read the record's shape before believing a summary
+of it.
+
+The 21 that disagree are one residue, and it sits **upstream of the word's
+413**: `TECH_SCIENCE_SPEEDUP` is loaded into `Tuning` at 10 and read by
+nothing, so the AI's library takes 20,000 hundredths where the original takes
+18,000 and its research lands on 402 rather than 382. That is
+`calc_science_discount@006da630`'s time side; its purchase side is queue item
+86, and the two are one session's work.

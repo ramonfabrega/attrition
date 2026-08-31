@@ -751,6 +751,29 @@ pub struct BuildDump {
     /// all at `BUILDDATA`'s own field indent. Nothing else at that level
     /// writes `tx`, so the pairs are unambiguous.
     pub gather_from: Vec<(i64, i64)>,
+    /// `BuildData::queued` (`+0x82`) — how many entries of the queue are
+    /// live. Written from **`BUILDS=1`**; `None` below it.
+    pub queued: Option<i64>,
+    /// The production queue, capacity slots and all —
+    /// `BuildQueue::log_data`'s `queue[scan]` run under `BEGIN BUILDQUEUE`,
+    /// one nine-line group per slot, `queue_size` of them. Only the first
+    /// [`BuildDump::queued`] are live; the rest hold whatever the array was
+    /// last left with, which is `type −1` on a queue that has never been
+    /// used and `type 0` on the tail of one that has.
+    pub queue: Vec<QueueItemDump>,
+}
+
+/// One `QueueItem` as the dump writes it (`docs/PRODUCTION.md`, "The queue
+/// record"): the counter, the type, and the three `(good, cost)` pairs the
+/// entry remembers of the six a price can have.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct QueueItemDump {
+    /// `type` — a `TypeIndex`, over units and techs alike.
+    pub ty: i64,
+    /// `job_counter`, in hundredths of a frame.
+    pub job_counter: i64,
+    pub cost: [i64; 3],
+    pub good: [i64; 3],
 }
 
 /// One leader's level-0 fields.
@@ -1448,7 +1471,48 @@ fn build_of(b: &Block<'_>) -> Option<BuildDump> {
         orig_type: b.int("orig_type"),
         build_masks: b.int("build_masks"),
         gather_from,
+        queued: b.int("queued"),
+        queue: b.kid("BUILDQUEUE").map(queue_of).unwrap_or_default(),
     })
+}
+
+/// The slots of a `BUILDQUEUE` block, in file order.
+///
+/// `BuildQueue::log_data` writes every field of every capacity slot under
+/// one key each — `queue[scan].type`, `.job_counter`, `.cost[0..2]`,
+/// `.good[0..2]` — so the k-th value of each key is the k-th slot, and the
+/// run length is `queue_size`. A slot the log did not reach reads as zero,
+/// which is why the count is taken from the shortest run rather than
+/// assumed.
+fn queue_of(b: &Block<'_>) -> Vec<QueueItemDump> {
+    let ints = |k: &str| -> Vec<i64> {
+        b.all(k)
+            .iter()
+            .filter_map(|v| v.trim().parse::<i64>().ok())
+            .collect()
+    };
+    let ty = ints("queue[scan].type");
+    let jc = ints("queue[scan].job_counter");
+    let cost: Vec<Vec<i64>> = (0..3)
+        .map(|i| ints(&format!("queue[scan].cost[{i}]")))
+        .collect();
+    let good: Vec<Vec<i64>> = (0..3)
+        .map(|i| ints(&format!("queue[scan].good[{i}]")))
+        .collect();
+    let n = [ty.len(), jc.len()]
+        .into_iter()
+        .chain(cost.iter().map(Vec::len))
+        .chain(good.iter().map(Vec::len))
+        .min()
+        .unwrap_or(0);
+    (0..n)
+        .map(|k| QueueItemDump {
+            ty: ty[k],
+            job_counter: jc[k],
+            cost: [cost[0][k], cost[1][k], cost[2][k]],
+            good: [good[0][k], good[1][k], good[2][k]],
+        })
+        .collect()
 }
 
 /// The group pool of one `GAME` or `FRAME` block: the 512 `GROUPDATA`
