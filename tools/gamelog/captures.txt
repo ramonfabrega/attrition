@@ -132,3 +132,36 @@ cmd: 164 add pikemen who=0 204,212
 cmd: 166 add catapult who=0 207,212
 check: python3 tools/gamelog/cmdsran.py rontrace-run44.log 150:1 152:1 154:1 160:1 162:1 164:1 166:1
 check: python3 tools/gamelog/turnanim.py gamelog-run44-islands-turners.txt
+
+run: 45
+tag: islands-groups
+item: 23
+why: does the AI's own play kill a mirrored group order — the XOR term, driver-free
+# `Unit::kill_current_order@005e2cb0` assigns
+# `group.facing = order.facing XOR reversing(leader.angle - order.angle)`,
+# and GROUPS §13 says no run has fired the XOR term. `groupfacing.py` on
+# run31 says why, exactly: its group move orders carry `facing 1` on frames
+# 356-367 and the capture then stops, so the mirrored order is still alive
+# when the log closes. The term needs that order to **die**.
+#
+# Before reaching for the mouse — the only path GROUPS §13 names, since the
+# console's 102 commands include no formation verb and `move` is a teleport —
+# this asks whether the AI does it unaided. run39's trace answers the half
+# that can be answered without a capture: `Group::action_move_near`,
+# `Form::compute` and `GroupData::find_leader` are all entered at frame 0 of
+# a game with **no human input at all**, and `Unit::kill_current_order` at
+# frame 1. So the machinery runs; what no dump on disk says is whether a
+# *mirrored* layout is ever among the orders it kills, because no capture of
+# an AI game has ever been taken with GROUPS=1.
+#
+# run39's lobby exactly, so `samegame.py --exclude GROUPDATA` can still say
+# it is run39's game and it inherits run39's siblings.
+frames: 1400
+mapstyle: 18
+cfg: -
+# GROUPS=1 is what `GameLog::full_dump` gates `dump_groups` on — run30 took
+# it under the wrong section and got no GROUPDATA at all.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1,GROUPS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1,GROUPS=1
+check: python3 tools/gamelog/samegame.py --exclude GROUPDATA gamelog-run39-islands-longtrace.txt gamelog-run45-islands-groups.txt
+check: python3 tools/gamelog/groupfacing.py gamelog-run45-islands-groups.txt
