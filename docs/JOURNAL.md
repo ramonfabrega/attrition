@@ -9393,3 +9393,93 @@ The cheap route to it was the one the working agreement names: the trace
 said frame 780's first draw was ours and not theirs, and eight lines of
 temporary `eprintln` over the farm list and the farm switch — which farm,
 which cell, which unit, what state, what anim — said the rest in one run.
+
+## 2026-08-31 (later still, Opus) — item 112: Great Lakes' word 986 → 1372, and a herd that does not walk
+
+Great Lakes' word **986 → 1372** and its sequence with it, its two window
+totals **1182/1114 → 1471/1439**, and player 0's first divergence **1154 →
+1385**. East Indies is untouched at 1374/1373 and word 1373. **The headline
+did not move**: ticks stay 910/776, and that is the fact this item hands
+forward.
+
+```
+run33: word parts at 1372, sequence at 1372; 1471 of 1850 frames spend the
+       original's number of draws, 1439 of them draw for draw
+run10: ticks 910, orders 776, first divergence [(0, Some(1385)), (1, Some(911))]
+```
+
+### The blocked stand was five frames of walking, and the walk was aimed wrong
+
+The queue booked one frame of a blocked unit's timing: ours spends
+`Guy::set_anim+0x97a < Unit::move_step+0x823` on 986 where the original
+spends it on 987, with the six farms and every other draw of both frames
+equal. The unit is Gaia's sheep `8/3`.
+
+It is not a timing question. The animal's wander coin comes up on 981 —
+one draw, `Animal::do_idle+0x83`, in both traces — and the far branch then
+picks a destination with **no draw at all**, so the word cannot see the
+difference. Ours walks five steps of `(+15, −5)` to `(17688, 26616)`; the
+original walks five of `(+12, −10)` to `(17688, 26328)`. Both are refused
+by the same neighbour, and ours reaches the refusal a frame early.
+
+### The centre the ring is drawn about
+
+The far wander is `find_nearby_spot(herd_centre, 0xc0, −1, 0, 0x55555555)`
+(`docs/ANIM.md` §7). Enumerating our own sweep — nine radii, thirty-one
+bearings each — showed `(17688, 26328)` is not in it anywhere, so the
+disagreement is the **centre**, not the sweep.
+
+`herd_centre` is `((w + 2·c)·0x300 + 0x480)/3` per axis, which inverts:
+our centre `(17536, 26496)` is `(wx + 2cx, wy + 2cy) = (67, 102)` and the
+original's answer needs **101**. One cell of `wy`.
+
+`Herd::process@00741760`:
+
+```
+iVar3 = *(int *)this             + -1 + rand % 3;   // +0x0  cx
+iVar2 = *(int *)&this->field_0x4 + -1 + rand % 3;   // +0x4  cy
+...
+    *(int *)&this->field_0x8 = iVar3;               // wx
+    *(int *)&this->field_0xc = iVar2;               // wy
+```
+
+It **reads the home cell and writes the wander centre**. `HerdData` names
+`+0x0..+0xc` `cx, cy, wx, wy`. So the centre is jitter about home, bounded
+to nine cells for ever; this crate read the destination as the source and
+random-walked it.
+
+The two readings agree until a herd's **second** walk, and the cadence is
+`(frame >> 6) % 13` — thirteen herds on this map — so inside 1,850 frames
+exactly one herd gets a second, herd 0 on frame 832. Its `wy` ended 34 here
+against the original's 33, and 150 frames later that was five hundred
+frames of the word.
+
+### What the new parting is
+
+Frame 1372, and it is a mechanic rather than a residue: the original spends
+twenty-five draws in `Farms::add_animals` — `+0x92`, `+0x134`, `+0x182`,
+five each — under `Build::activate+0x1c25`, and five more in
+`Guy::init_real` under `Animal::init`. A farm activating stocks a pasture
+with five animals. This crate spends three draws on that frame.
+
+But the headline is no longer the word. Great Lakes' ticks are held at 910
+by **one** unit, `1/1`, parting at 911 — four hundred and sixty frames
+before the word does — while every other unit of the fourteen parts at
+1375 or later. That unit is the item, and the pasture is behind it.
+
+### The lesson
+
+**A field's writer is not its reader, and the decompile prints both.** The
+arithmetic here was right — `−1 + p % 3`, the bounds test, the feature
+mask, the `< 8` — and it had been checked against a capture. What was
+wrong is which field the `−1` was added to, and the capture that checked
+it could not tell, because on a herd's first walk the two fields hold the
+same number. The rule the project already has for frozen fields — grep the
+writers — has a twin: **when a function reads one field and writes
+another, say so out loud**, because a paraphrase that collapses them into
+`w' = f(w)` is a different mechanic that agrees on its first step.
+
+The cheap route to it was the sweep enumeration. Once the original's
+answer was shown *not to be in our candidate list at any radius*, the
+question stopped being "which candidate" and became "which centre", and
+the centre inverts to two integers.

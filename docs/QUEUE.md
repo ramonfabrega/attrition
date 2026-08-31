@@ -12,46 +12,57 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 84.*
+*2026-08-31, after item 112.*
 
-**Great Lakes' word moved two hundred frames and took the ticks with
-it.** Phase 3's score is ticks before divergence: **Great Lakes 910/776**
-of 1,772 (run10, was 781/776) and **East Indies 1374/1373** of 1,850
-(run39, unchanged). The words are **986** and 1373, and both maps' tick
-scores still sit on their own word's parting.
+**Great Lakes' word went four hundred frames and the headline did not
+move.** Phase 3's score is ticks before divergence: **Great Lakes
+910/776** of 1,772 (run10, unchanged) and **East Indies 1374/1373** of
+1,850 (run39, unchanged). The words are **1372** and 1373 — the two maps
+are level on the word for the first time — and Great Lakes' window totals
+went 1182/1114 → **1471/1439**.
 
-Item 84 was one byte. `do_gather`'s farm switch reads the guy's live
-`cur_anim` (`GuyData +0x9c`); this crate kept a flag written only by that
-switch and cleared only by a step that moved the body. A farmer whose
-reap animation had been replaced by a **blocked stand** — which plays
-without moving anything — re-picked a cell the original sows, every other
-frame for ever, and held its farm above `Farms::inc_time`'s five-empty
-gate. Both of the item's booked symptoms were that. It also emptied the
-collision block again, closing item 111.
+Item 112 was a herd that does not walk. `Herd::process` reads `cx`/`cy`
+and writes `wx`/`wy`, so a herd's wander centre jitters about its home
+cell for ever; this crate random-walked it, which is the same thing until
+a herd's *second* walk and only one herd gets one inside the capture. One
+cell of `wy` moved `Animal::do_idle`'s far-wander ring 240 units, sent the
+sheep `8/3` to the wrong spot on 981, and put its blocked stand on 986
+where the original's falls on 987.
 
-Great Lakes is still the lower map, and item 112 is its word.
+**Great Lakes' headline is now one unit, and it is not the word.** `1/1`
+parts at 911 and every other unit of the fourteen at 1375 or later; its
+order parts at 777, which is the order score too. So the map's two
+sub-scores are the same citizen, four hundred and sixty frames before the
+word. That is item 113, and it is the default.
 
-**Opener (Opus):** `Continue — item 112: Great Lakes' word at 986, the
-lower of the two, and the score it moves is the pair. Ours plays the
-blocked stand `Guy::set_anim+0x97a < Unit::move_step+0x823` on 986 where
-the original plays it on 987; the farms are equal either side and the
-rest of both frames is identical, so it is one frame of a blocked unit's
-timing.`
+**Opener (Opus):** `Continue — item 113: Great Lakes' `1/1`, which holds
+both of that map's scores. On 777 the original gives it a BUILDORDER to
+(41448, 23928) — `ox 2007, uid 16`, an eight-deep path — and this crate
+builds at x 43752. Ticks 910 and orders 776 are both that one unit; the
+word is four hundred frames past it at 1372.`
 
 ## The queue
 
-In dependency order, headline-nearest first; the headline is the tick
-pair, and both halves still sit on their map's word, so the word is what
-moves them — Great Lakes first, as the lower. Take the first unstarted
-unless a better order is obvious — and say so. Numbers are stable; the
-journal indexed by them.
+In dependency order, headline-nearest first; the headline is the tick pair.
+East Indies' half still sits on its own word; **Great Lakes' no longer
+does** — one unit holds it four hundred frames short. Take the first
+unstarted unless a better order is obvious — and say so. Numbers are stable;
+the journal indexed by them.
 
-112. **Great Lakes' word at 986, and a stand one frame early.** Ours
-    spends `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked
-    stand `Unit::move_step` plays before its three give-up tests
-    (COLLISION §5, §7) — on **986**, the original on **987**. Seven draws
-    against six, then seven against eight; the six farms and every other
-    draw of both frames agree. One frame of a blocked unit's timing.
+113. **Great Lakes' `1/1`, which holds both of that map's scores.** Ticks
+    910 and orders 776 are the same AI citizen: order parts at 777, position
+    at 911, every other unit of the fourteen at 1375 or later. On 777 the
+    original's `1/1` carries a **BUILDORDER** to `(41448, 23928)` — `ox 2007,
+    whom 1, uid 16, type 3` — under an eight-deep path stack with an
+    `EXPLORETO` beneath it; this crate's builds at x **43752**. So it is the
+    AI's site choice (`Leader::compute_sites`, `produce_building`).
+
+114. **Great Lakes' word at 1372, and a pasture being stocked.** The original
+    spends twenty-five draws in `Farms::add_animals` — `+0x92`, `+0x134`,
+    `+0x182`, five each — under `Build::activate+0x1c25`, plus five
+    `Guy::init_real` under `Animal::init`: the five animals a farm gets on
+    activation. This crate spends three. `borrow_pasture` fakes the *start*
+    pasture on East Indies; nothing creates one mid-run.
 
 110. **East Indies' word at 1373, and a seventh ring.** The AI scout
     walks six rings on both sides; the original then leaves the loop for
@@ -63,23 +74,24 @@ journal indexed by them.
     26,094 agreeing fields the human's `0/2` holds a wait of 445 where
     the original's holds 480, tile and phase right. ORDERS §6.4.
 
-105. **Gaia's positions, and the 1,814 that are not.** 190,690 of run39's
-    192,504 dumped animal-frames agree; the first that does not is **1261**,
-    `8/1` a step off. Great Lakes is uncompared.
+105/45. **Gaia's positions, and the residue on both maps.** run39: 191,173
+    of 192,504 agree, first bad **1381**. run33: 73,608 of 74,040, first bad
+    **1420**, `8/1` eleven units off. Both pinned; `Sim::reseat_animal` still
+    corrects them wherever a dump carries clocks (SYNC §4.2).
 
-87. **The widening ledger.** Items 74, 83 and now 69 were closed by
-    fields the parser had and nothing compared. Make the backlog a
-    number: `rondata::diff` prints, per dumped record, the fields it
-    parses and does not compare.
+87. **The widening ledger.** Items 74, 83 and 69 were closed by fields the
+    parser had and nothing compared. Make the backlog a number:
+    `rondata::diff` prints, per dumped record, the fields it parses and
+    does not compare.
 
 85/82. **run40's 360 disagreeing good-frames, in two halves.** (85)
     `Build::init` surveys a camp against its still-empty `gather_from`, so
-    a harness camp activates with zero `gather_slots`; run40's *human*
-    files one under good 2, where `get_good@0063bd50`'s table at `0063bd84`
-    is Farm 0, Camp 1, Mine 4, University 3, Oil 5. (82) the original holds
-    **0** in goods 3–5 for both players and this crate **100** — inert
-    while none is available, so a loader question. The orders audit's
-    parked `FABLE:` R4 row (`find_gather_tcoords@0063bdc0`) travels here.
+    a harness camp activates with zero `gather_slots`; run40's *human* files
+    one under good 2 (`get_good@0063bd50`'s table at `0063bd84`: Farm 0,
+    Camp 1, Mine 4, University 3, Oil 5). (82) the original holds **0** in
+    goods 3–5 for both players and this crate **100** — inert while none is
+    available, so a loader question. The orders audit's parked `FABLE:` R4
+    row (`find_gather_tcoords@0063bdc0`) travels here.
 
 35. **`mylos` as a cache.** VISION §7: player 1 carries no `0x4000000` at
     the end of 202 or 203, yet its Scout's `mylos` moves 4 → 6; ours moves
@@ -87,15 +99,14 @@ journal indexed by them.
 
 89. **Three guards for the instrument itself.** (a) The handoff's numbers
     equal `rondata::diff`'s pinned floors. (b) Every `name@00xxxxxx` a
-    document cites names a function in `INDEX.tsv`. (c) run33's floor
-    pins whole-run totals of which ~1,070 frames are past its parting: a
-    non-monotone score pinned as monotone, which has now fallen twice
-    (items 109, 69). run39 pins an early window instead.
+    document cites names a function in `INDEX.tsv`. (c) run33's floor pins
+    whole-run totals of which ~480 frames are past its parting — a
+    non-monotone score pinned as monotone, fallen twice (109, 69).
 
 72. **A document and its code disagreeing is a diff waiting to be run.**
-    Items 68, 79, 80, 74, **36 twice over** and 107. Every `name@00xxxxxx`
-    and `+0xNN` a document pins, checked against its module, and every
-    "halved"/"every frame"/"cleared" verb.
+    Items 68, 79, 80, 74, **36 twice over**, 107 and now 112's `wx'`.
+    Every `name@00xxxxxx` and `+0xNN` a document pins, checked against its
+    module, and every "halved"/"every frame"/"cleared" verb.
 
 88. **The blind list is the ledger.** `report.py … blind docs/` lists the
     cited functions no traced run has entered (101 of 617). Print it, pin
@@ -118,10 +129,10 @@ journal indexed by them.
     27's shape, running the owed 23, 96, 108 and 57 beside the loop. A
     scenario file (`longtrace.sh`'s inputs) and a script, back to back.
 
-96. **A turning vehicle or ship, which no capture has.** `guy_flags & 8`
-    is set for 273 of the install's 1,359 unit pieces and none any traced
-    guy carries, so `Guy::do_turn@005d97a0:15`'s turn override is
-    unfalsifiable (ANIM §4.6). *Capture, owed:* one turning in place.
+96. **A turning vehicle or ship, which no capture has.** `guy_flags & 8` is
+    set for 273 of the install's 1,359 unit pieces and no traced guy's, so
+    `Guy::do_turn@005d97a0:15`'s override is unfalsifiable (ANIM §4.6).
+    *Capture, owed:* one turning in place.
 
 23. **The hand-back's inversion, and the formation byte's sign.**
     `kill_current_order` writes `order.facing XOR reversing(leader.angle −
@@ -130,12 +141,8 @@ journal indexed by them.
     re-ordered in Refused or an Echelon (GROUPS §13); with it COLLISION §9,
     two units ordered head-on.
 
-45. **Gaia's animals.** `Sim::reseat_animal` puts them back from every
-    traced dump (SYNC §4.2). `ANIMALDATA`: 70,960 uncompared.
-
-The rest of the road residue, both in ROADS §7.1: (57) the terraform,
-`terraform_for_building@00875210` after `place_roads`, run13's `FRAME 100`
-against run32's 104; (58) the height loader's mean in `f32`, three tiles.
+The rest of the road residue, both in ROADS §7.1: (57) the terraform after
+`place_roads`; (58) the height loader's mean in `f32`, three tiles.
 
 107. **`epoch[0]` is the Military level, and `army.rs` reads `ages`.**
     `get_epoch_base(0)` is `BASE_MILITARYTYPES` and the army family reads
@@ -143,11 +150,11 @@ against run32's 104; (58) the height loader's mean in `f32`, three tiles.
     age". `army.rs:769,1365` read `tech[w].ages`, so every `age < 2/3/5`
     gate in the muster caps and `find_target` fires on the wrong counter.
 
-108. **The goody box's pile, and the capture that would pin it.**
-    GOODY §6: `epoch[3] × 25 + 25` is listing-only — the `LEADERS` detail
-    writing `bucket` and `epoch_get(scan)` is emitted once, at start.
-    *Capture, owed:* the run39 lobby under `samegame.py`, `LEADERS` per
-    frame, ~900 frames; `bucket[2]` steps by 50 on 867.
+108. **The goody box's pile, and the capture that would pin it.** GOODY §6:
+    `epoch[3] × 25 + 25` is listing-only — the `LEADERS` detail writing
+    `bucket` is emitted once, at start. *Capture, owed:* the run39 lobby
+    under `samegame.py`, `LEADERS` per frame, ~900 frames; `bucket[2]`
+    steps by 50 on 867.
 
 91. **The final scenario, not a final dump.** One 24,000-frame game per
     map: the **trace** whole (`cover=1`, no window) and the dump in windows
@@ -155,11 +162,11 @@ against run32's 104; (58) the height loader's mean in `f32`, three tiles.
     its 1,850.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
-overlaid; (41) `scenario.py`'s fate — run `zsh tools/fuzz/run.sh 424242
-1000 1300` then `report.py … blind docs/` before deleting it; the `CITY`
-widening; a `find_target` block; run7's order stream under the trace; a
-mounted attacker; a caravan; `Leader::diplomacy`; `calc_gather` non-flat;
-and (77) ANIM §3.2's `AGE3`/`AGE5` piece rows.
+overlaid; (41) `scenario.py`'s fate — run `zsh tools/fuzz/run.sh 424242 1000
+1300` then `report.py … blind docs/` before deleting it; the `CITY` widening;
+a `find_target` block; run7's order stream under the trace; a mounted
+attacker; a caravan; `Leader::diplomacy`; `calc_gather` non-flat; and (77)
+ANIM §3.2's `AGE3`/`AGE5` piece rows.
 
 ## How to maintain this file
 
@@ -168,6 +175,5 @@ and (77) ANIM §3.2's `AGE3`/`AGE5` piece rows.
   goes to the journal. Run `cargo test -p sim docs_guard`.
 - **Start of session:** "Where things stand", the item, then its document.
 - **Before a blind fan-out:** `grep -n <mechanic> CLAUDE.md`, and the memory
-  index — a subagent inherits both.
-- **Never** quote this file or the journal into `CLAUDE.md`, a subagent
-  brief, an agent definition, or a memory hook.
+  index — a subagent inherits both. **Never** quote this file or the journal
+  into `CLAUDE.md`, a subagent brief, an agent definition, or a memory hook.

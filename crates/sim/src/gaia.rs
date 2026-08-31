@@ -367,8 +367,22 @@ impl Sim {
     }
 
     /// `Herd::process` for herd `(frame >> 6) % max(count, 5)`: two draws
-    /// move the wander centre one cell in each axis (`−1 + % 3`), kept only
-    /// if the cell is on the map, featureless and not blocked.
+    /// put the wander centre one cell either side of the **home** cell
+    /// (`−1 + % 3`), kept only if that cell is on the map, featureless and
+    /// not blocked.
+    ///
+    /// **It reads `cx`/`cy` and writes `wx`/`wy`** — the jitter is around
+    /// the home cell every time, not a random walk of the wander centre.
+    /// `Herd::process@00741760` loads `field_0x0`/`field_0x4` and stores
+    /// `field_0x8`/`field_0xc`, which `HerdData` names `cx, cy, wx, wy`;
+    /// this crate read the destination as the source until 2026-08-31 and
+    /// the two only agree until the second walk. What it costs is the
+    /// **herd centre** `Animal::do_idle` measures from (`docs/ANIM.md` §7):
+    /// run33's herd 0 walks on frames 0 and 832 only, and the second walk
+    /// left `wy` at 34 here against the original's 33 — a quarter-tile
+    /// short of nothing, but the far wander's ring is drawn about that
+    /// point and `8/3` was sent to `(17688, 26616)` where the original
+    /// sends it to `(17688, 26328)`.
     fn herd_walk(&mut self, frame: i64) {
         let count = self.gaia.herds.len() as i64;
         let idx = (frame >> 6) % count.max(5);
@@ -377,9 +391,9 @@ impl Sim {
         }
         let h = idx as usize;
         self.mark(SITE_HERD_X);
-        let x = self.gaia.herds[h].wx - 1 + self.rng.roll() % 3;
+        let x = self.gaia.herds[h].cx - 1 + self.rng.roll() % 3;
         self.mark(SITE_HERD_Y);
-        let y = self.gaia.herds[h].wy - 1 + self.rng.roll() % 3;
+        let y = self.gaia.herds[h].cy - 1 + self.rng.roll() % 3;
         if x < 0 || y < 0 || x >= self.world.width() || y >= self.world.height() {
             return;
         }
@@ -437,6 +451,27 @@ mod tests {
         assert_eq!((s.gaia.herds[0].wx, s.gaia.herds[0].wy), (22, 35));
         assert_eq!((s.gaia.herds[1].wx, s.gaia.herds[1].wy), (44, 21));
         assert_eq!(s.rng.seed, stepped(0x3bd3_9ae9, 110));
+    }
+
+    /// **The second walk is about the home cell, not the first walk's
+    /// answer.** `Herd::process@00741760` reads `cx`/`cy` and writes
+    /// `wx`/`wy`, so the wander centre is never more than one cell from
+    /// home however often the herd is processed. Run12's first walk moves
+    /// herd 0 to `(22, 35)`; the same two draws applied a second time
+    /// return it to `(22, 35)` rather than carrying it on to `(22, 36)`.
+    #[test]
+    fn a_second_herd_walk_jitters_about_home_again() {
+        let mut s = sim_at(stepped(0x3bd3_9ae9, 108));
+        s.gaia.herds.push(Herd {
+            cx: 22,
+            cy: 34,
+            wx: 22,
+            wy: 35,
+            kind: 408,
+            alive: true,
+        });
+        s.herd_walk(0);
+        assert_eq!((s.gaia.herds[0].wx, s.gaia.herds[0].wy), (22, 35));
     }
 
     /// Run12, frame 0, draws 88–107: ten attempts on a 60×60 map, none on a

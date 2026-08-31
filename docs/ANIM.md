@@ -610,7 +610,23 @@ capture, with `CITIES=5` and `UNITS=3` over the window.
 centre it measures from is `((wx + 2·cx) · 0x300 + 0x480) / 3` on each axis
 — a third of the way from the home cell's centre to the wander centre's, in
 position units (`anim::herd_centre`). The herd's own walk every 64 frames is
-`gaia.rs`. Which herd an animal belongs to is `UnitData+0x86` for an
+`gaia.rs`.
+
+**The wander centre jitters about the home cell; it does not walk**
+(2026-08-31, item 112). `Herd::process@00741760` writes
+`wx = cx − 1 + p % 3` and `wy = cy − 1 + p % 3`: it loads `HerdData
++0x0/+0x4` and stores into `+0x8/+0xc`, so however many times a herd is
+processed its centre stays inside the nine cells around home. This crate
+read the destination as the source and random-walked it, which is
+indistinguishable until a herd's *second* walk — and on run33 only herd 0
+gets one, on frame 832, because the cadence is `(frame >> 6) % 13`. One
+cell of `wy` moves the far wander's whole ring 240 units: run33's sheep
+`8/3` was sent to `(17688, 26616)` where the original sends it to
+`(17688, 26328)`, a spot our ring did not contain at any of its nine
+radii. Diff-backed: `docs/SYNC.md` §3.2, and
+`rondata::diff::run33_s_herd_centre_jitters_about_its_home_cell` holds
+`8/3`'s walk to the dump step for step and the whole capture's 74,040
+animal-frames beside it. Which herd an animal belongs to is `UnitData+0x86` for an
 `Animal`, which the dump does not print; the harness assigns the herd of the
 animal's own type — one sheep herd on this lobby — and the fish, which are
 `HERDFISH` in twelve schools, never wander.

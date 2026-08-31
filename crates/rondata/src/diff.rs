@@ -6465,9 +6465,34 @@ mod tests {
         // seventh `Farms::inc_time` from 781 — the farm keeps five empty
         // cells here and drops to four there — and what parts the word at
         // 986 is a blocked stand of its own, seven draws against six.
+        //
+        // **1372 with item 112**, and what was wrong at 986 was a **herd's
+        // wander centre, which does not walk**. `Herd::process@00741760`
+        // writes `wx = cx − 1 + p % 3` and `wy = cy − 1 + p % 3` — it
+        // reads `HerdData +0x0/+0x4` and stores into `+0x8/+0xc`, so the
+        // jitter is about the **home** cell every time. This crate read
+        // the destination as the source and random-walked it, which is the
+        // same thing until a herd's *second* walk; `(frame >> 6) % 13`
+        // gives herd 0 its second on frame 832 and no other herd one at
+        // all inside the capture. Its `wy` ended 34 here against the
+        // original's 33, and the far wander's ring is drawn about
+        // `herd_centre` (`docs/ANIM.md` §7): on 981 the sheep `8/3` was
+        // sent to `(17688, 26616)` where the original sends it to
+        // `(17688, 26328)`, five steps of `(+15, −5)` against five of
+        // `(+12, −10)`, so the same neighbour refused it a frame early and
+        // the blocked stand fell on 986 instead of 987. Pinned step for
+        // step by `run33_s_herd_centre_jitters_about_its_home_cell`.
+        //
+        // What parts the word at 1372 is a **pasture being stocked**: the
+        // original spends twenty-five draws in `Farms::add_animals` —
+        // `+0x92`, `+0x134`, `+0x182`, five each — under
+        // `Build::activate+0x1c25`, and five more in `Guy::init_real` under
+        // `Animal::init`, for the five animals a farm gets on activation.
+        // This crate spends three. It is a mechanic that is not here, not a
+        // residue.
         assert!(
-            first_count >= 986,
-            "the word parts at frame {first_count}; the floor is 986\n{}",
+            first_count >= 1_372,
+            "the word parts at frame {first_count}; the floor is 1372\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         // **The sequence: 576**, and getting there was the whole of the
@@ -6490,9 +6515,12 @@ mod tests {
         // **780 -> 986 with item 84**, the two still meeting: the farm
         // stand's byte is the guy's live `cur_anim`, and nothing between
         // 780 and 986 is a naming question.
+        // **986 -> 1372 with item 112**, and the two meet a third time:
+        // the herd's wander centre is jitter about the home cell, and
+        // nothing between 986 and 1372 is a naming question either.
         assert!(
-            first_part >= 986,
-            "the draw sequence parts at frame {first_part}; the floor is 986"
+            first_part >= 1_372,
+            "the draw sequence parts at frame {first_part}; the floor is 1372"
         );
         // And the totals over the whole 1,850, which is what says whether a
         // change past the divergence helped or only moved the noise: 618
@@ -6636,10 +6664,18 @@ mod tests {
         // noise: the word itself goes 780 -> 986, so two hundred of those
         // frames are frames both sides genuinely agree on rather than
         // coincidences past a parting.
+        //
+        // 1182 / 1114 -> **1471 / 1439** with item 112, larger again and
+        // not noise either: the word goes 986 -> 1372, so three hundred
+        // more of these are frames both sides genuinely agree on. The gap
+        // between the two also narrows — 68 frames spend the original's
+        // number of draws in some other order, against 68 before — which
+        // is what a stretch of real agreement rather than coincidence
+        // looks like.
         assert!(
-            words >= 1182 && matched >= 1114,
+            words >= 1471 && matched >= 1439,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 1182 and 1114"
+             {matched} draw for draw; the floors are 1471 and 1439"
         );
     }
 
@@ -7801,6 +7837,125 @@ mod tests {
         assert!(
             first_bad_frame >= 1381 && agree >= 191_173 && seen == 192_504,
             "run39's gaia positions fell: {agree} of {seen}, first {first_bad:?}"
+        );
+    }
+
+    /// **A herd's wander centre jitters about its home cell, and does not
+    /// walk** (2026-08-31, item 112) — the mechanic behind Great Lakes'
+    /// word going 986 → 1372, asserted against the record the word's own
+    /// count cannot see.
+    ///
+    /// `Herd::process@00741760` takes two draws and writes
+    /// `wx = cx − 1 + p % 3`, `wy = cy − 1 + p % 3`: it **reads `cx`/`cy`
+    /// and writes `wx`/`wy`** — `HerdData +0x0/+0x4` into `+0x8/+0xc` — so
+    /// the wander centre is never more than one cell from the home cell,
+    /// however many times the herd is processed. This crate read the
+    /// destination as the source and random-walked it. The two agree until
+    /// a herd's *second* walk, and only one herd in thirteen gets a second
+    /// inside run33's 1,850 frames: `(frame >> 6) % 13`, so herd 0 walks on
+    /// frames 0 and 832 and nothing else does twice.
+    ///
+    /// What one cell is worth is `Animal::do_idle`'s far wander
+    /// (`docs/ANIM.md` §7), whose whole ring is drawn about
+    /// `herd_centre(cx, cy, wx, wy)`. Herd 0's `wy` ends frame 832 at 34
+    /// here against the original's **33**, which moves that centre 240
+    /// units south — and on frame 981 the sheep `8/3` is sent to
+    /// `(17688, 26616)` where the original sends it to `(17688, 26328)`,
+    /// a spot our ring does not contain at any of its nine radii.
+    ///
+    /// Five frames later the difference is a *draw*: both animals are
+    /// refused by the same neighbour, but ours has walked five steps of
+    /// `(+15, −5)` against the original's five of `(+12, −10)` and reaches
+    /// the refusal one frame early, spending `Guy::set_anim+0x97a <
+    /// Unit::move_step+0x823` on 986 where the original spends it on 987.
+    /// That one frame was the whole of the word's parting at 986.
+    ///
+    /// Both halves are here: `8/3`'s walk against the dump step for step,
+    /// and the whole capture's animal-frames. Made to fail by putting
+    /// `wx`/`wy` back on the right-hand side, which walks `8/3` to the
+    /// wrong point on frame 982 and never reaches the original's.
+    #[test]
+    fn run33_s_herd_centre_jitters_about_its_home_cell() {
+        let Some(inst) = install() else { return };
+        let Some(path) = dump("gamelog-run33-longtrace.txt") else {
+            eprintln!("skipping: no run33 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut walk: Vec<(i64, i32, i32)> = Vec::new();
+        let (mut agree, mut seen) = (0usize, 0usize);
+        let mut first_bad: Option<String> = None;
+        let mut first_bad_frame: i64 = i64::MAX;
+        let mut last = 0i64;
+        for f in log.frame_states() {
+            while last < f.n {
+                built.tick();
+                last += 1;
+            }
+            for u in f.units.iter().filter(|u| u.who == 8) {
+                let Some(unit) = i16::try_from(u.o)
+                    .ok()
+                    .and_then(|o| built.sim.unit_by_o(8, o))
+                else {
+                    continue;
+                };
+                let ours = built.sim.units[unit].pos;
+                if u.o == 3 && (980..=990).contains(&f.n) {
+                    walk.push((f.n, ours.x, ours.y));
+                }
+                seen += 1;
+                if i64::from(ours.x) == u.pos.x && i64::from(ours.y) == u.pos.y {
+                    agree += 1;
+                } else if first_bad.is_none() {
+                    first_bad_frame = f.n;
+                    first_bad = Some(format!(
+                        "frame {} 8/{}: ours ({}, {}) theirs ({}, {})",
+                        f.n, u.o, ours.x, ours.y, u.pos.x, u.pos.y
+                    ));
+                }
+            }
+        }
+        eprintln!(
+            "run33 gaia: {agree} of {seen} dumped animal-frames on the original's point, \
+             first {first_bad:?}"
+        );
+        // The coin comes up on 981, the first step lands on 982, and the
+        // fifth is refused: five steps of `(+12, −10)` toward
+        // `(17688, 26328)`, then the point held. The frames are the dump's
+        // own `FRAME n` blocks, which carry engine frame `n − 1`'s end.
+        assert_eq!(
+            walk,
+            vec![
+                (980, 17112, 26808),
+                (981, 17112, 26808),
+                (982, 17112, 26808),
+                (983, 17124, 26798),
+                (984, 17136, 26788),
+                (985, 17148, 26778),
+                (986, 17160, 26768),
+                (987, 17172, 26758),
+                (988, 17172, 26758),
+                (989, 17172, 26758),
+                (990, 17172, 26758),
+            ],
+            "run33's `8/3` walks the original's ground and is refused on 987"
+        );
+        // The whole-capture floor, read the same way run39's is: the first
+        // animal-frame that is not the original's is the number with
+        // meaning, and the count beside it is a floor on this word rather
+        // than a score across words.
+        assert!(
+            first_bad_frame >= 1_420 && agree >= 73_608 && seen == 74_040,
+            "run33's gaia positions fell: {agree} of {seen}, first {first_bad:?}"
         );
     }
 
@@ -9491,10 +9646,22 @@ mod tests {
         // — `1/1`'s move at 777 is untouched — and every one of the
         // thirteen units parts later, the median by three hundred
         // frames.
+        //
+        // 2026-08-31, item 112: player 0 **1154 -> 1385**, and **ticks and
+        // orders do not move at all** — the herd's wander centre took the
+        // word 986 -> 1372 and this map's headline stayed at 910/776, so
+        // for the first time since the two were tied the tick score is no
+        // longer sitting on the word's own parting. What holds it is one
+        // unit: `1/1` parts at **911**, four hundred and sixty frames
+        // before the word does, and every other unit of the fourteen parts
+        // at 1375 or later. That unit, not the word, is Great Lakes' next
+        // item. Six of the fourteen moved and all six later (`0/3` 1154 ->
+        // 1385, `0/4` 1227 -> 1462, `0/5` 1191 -> 1409, `1/5` 1359 ->
+        // 1379, `1/8` 1376 unchanged, `1/10` 1552 unchanged).
         assert!(
-            ticks >= 910 && orders >= 776 && first[0] >= 1154 && first[1] >= 911,
+            ticks >= 910 && orders >= 776 && first[0] >= 1385 && first[1] >= 911,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 910, orders 776, player 0 @ 1154, player 1 @ 911",
+             — the floor is ticks 910, orders 776, player 0 @ 1385, player 1 @ 911",
             report.first_divergence
         );
         assert!(
@@ -9851,9 +10018,18 @@ mod tests {
         // 98,019 -> **99,343** with item 69's two halves, the twenty-third.
         // The total is scoped to agreeing unit-frames, so it moves with the
         // headline; ticks 572 -> 781 is what moved it.
+        //
+        // 99,343 -> **112,447** with item 84, the twenty-fourth: ticks
+        // 781 -> 910 and every one of the thirteen parting later.
+        //
+        // 112,447 -> **123,500** with item 112, the twenty-fifth, and this
+        // one moved without the headline. Six of the fourteen part later —
+        // player 0's three by two hundred frames apiece — so eleven
+        // thousand more unit-frames are comparable at all, and the block
+        // stays empty over every one of them.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 112_447,
+            coll_seen, 123_500,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -9958,6 +10134,11 @@ mod tests {
         // intervening items had reached: the scout's walk to a goody box
         // moves `1/0` and, through the stream, the frames the AI's
         // citizens re-pick on.
+        //
+        // **1,598 with item 112**, two hundred frames on, and it is the
+        // word carrying it: with the herd's wander centre right the stream
+        // is the original's to 1372, so the citizens re-pick on the
+        // original's frames for two hundred frames more.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -9974,7 +10155,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(1395),
+            Some(1598),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -10133,8 +10314,12 @@ mod tests {
         // past a parting included, so it falls by 266 while the score it
         // sits beside rises by 209 frames. The number to read is the
         // headline.
+        // 37,838 → **43,202** with item 84's farm byte, and → **47,364**
+        // with item 112's herd centre: both rises are the comparable
+        // window growing on six of the fourteen units at once, and neither
+        // is a coincidence past a parting — the word carries them.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 43_202, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 47_364, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()

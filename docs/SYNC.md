@@ -168,10 +168,17 @@ Then, still inside `process_all`:
   bird** — all ten cells miss.
 - **One herd, every 64 frames** (`frame & 0x3f == 0`): herd
   `(frame >> 6) % max(count, 5)`, if it exists and is alive:
-  `Herd::process@00741760` — **2 draws**, `wx' = wx − 1 + rand % 3`,
-  `wy' = wy − 1 + rand % 3`, accepted when in bounds, the cell has no
-  `flags & 0x70` feature and its `+0x11` byte `< 8`. Run12: herd 0's
-  `wy 34 → 35` with `wx 22` kept — the pair `(1, 2) mod 3`.
+  `Herd::process@00741760` — **2 draws**, ~~`wx' = wx − 1 + rand % 3`,
+  `wy' = wy − 1 + rand % 3`~~ **`wx' = cx − 1 + rand % 3`,
+  `wy' = cy − 1 + rand % 3`** — the read is the **home** cell
+  (`HerdData +0x0/+0x4`) and only the write is the wander centre
+  (`+0x8/+0xc`), so the jitter is about home every time and the centre is
+  never more than one cell from it. Accepted when in bounds, the cell has
+  no `flags & 0x70` feature and its `+0x11` byte `< 8`. Run12: herd 0's
+  `wy 34 → 35` with `wx 22` kept — the pair `(1, 2) mod 3`; a herd's
+  first walk cannot tell the two readings apart, because `w == c` until
+  it. Corrected 2026-08-31, item 112, and it is worth Great Lakes' word
+  986 → 1372 (`docs/ANIM.md` §7).
 
 Landed: the birds' sampling, the bird itself (§3.9) and the herd walk,
 `crates/sim/src/gaia.rs`.
