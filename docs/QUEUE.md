@@ -19,19 +19,19 @@ Phase 3's score is ticks before divergence: **East Indies 167/167** of
 1,850 (run39) and **Great Lakes 572/776** of 1,772 (run10); the words —
 Great Lakes 780, East Indies 1373 — are instruments beside it. The
 tranche chased East Indies' word 19 → 1373, sixteen items, while every
-number in the pair stood still. The word passed 168 between items 95 and
-97; from that frame `1/4`'s divergence at 168 is **draw-free** and no
-word motion can explain it — item 69, third in the queue, has been ripe
+number in the pair stood still. The word passed 168 at items 95–97; from
+there `1/4`'s divergence at 168 is **draw-free**, and item 69 sat ripe
 for eleven items. DECISIONS 26 pins the bound: a word chase ends where
 it passes its map's tick divergence; the tick item is then the default.
 
 The tranche is verified — all Opus by trailer, floors equal the handoff,
-tree green with the install, item 109 re-read against the decompile. The
-orders audit's R4 marker travels with item 85 (its condition is met);
-R2 O1 stays parked. The journal has the story.
+tree green with the install, item 109 re-read against the decompile. R4's
+marker travels with item 85, its condition met; R2 O1 stays parked.
 
 **Opener (Opus):** `Continue — item 69: East Indies' order list at 168,
-now draw-free; the score it moves is the headline, run39's 167/167.`
+now draw-free; the score it moves is the headline, run39's 167/167. A
+parting no draw feels for 1,200 frames is a field no draw reads, or the
+diff's own misreading — split that first.`
 
 ## The queue
 
