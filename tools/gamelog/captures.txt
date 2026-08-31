@@ -90,7 +90,7 @@ settle_min: 100000000
 # every one of them would "differ" for a reason that is not the game. What is
 # worth asserting is that both `add`s executed — an `INFO cmd` record apiece —
 # and that the window really did open at 100.
-check: python3 tools/gamelog/cmdsran.py gamelog-run43-roadterraform.txt 2
+check: python3 tools/gamelog/cmdsran.py rontrace-run43.log 100:2
 
 run: 44
 tag: islands-turners
