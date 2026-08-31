@@ -2522,14 +2522,25 @@ clocks, has none in its whole window.
   a turn, observed rather than read. §4.6's "none of the eight a `DUMP_ALL`
   run's guys carry" is still true of those eight; it was a fact about which
   units had been captured.
-- **0x20 is set on 12,582 records and it toggles within a type**: type 50
-  appears as both 16 (14,276) and 48 (1,534), type 132 as 16 (30) and 48
-  (6,450), type 134 as 24 and 56, type 265 as 8 and 40. So it is **state,
-  not a per-piece init bit, and it has a writer.** `docs/ANIM.md` §9 lists
-  0x20 among three bits with "no writer found", says "none of the three is
-  exercised", and leaves it off in the sim — where §9 also reads it as
-  *collapsing the idle roll*, which is a draw. This is the row of §9 most
-  worth a second look, and run44 is the capture that can carry it.
+- **0x20 is set on 12,582 records and it toggles within a type**: 50
+  `PEASANTS` appears as both 16 (14,276) and 48 (1,534), 132 `HOPLITES` as
+  16 (30) and 48 (6,450), 134 as 24 and 56, 265 as 8 and 40. So it is
+  **state, not a per-piece init bit, and it has a writer.** `docs/ANIM.md`
+  §9 lists 0x20 among three bits with "no writer found", says "none of the
+  three is exercised", and leaves it off in the sim — where §9 also reads
+  it as *collapsing the idle roll*, which is a draw.
+
+  **This does not move either map's score today, and the reason is worth
+  stating.** §9's "every guy in both dumps carries `guy_flags 16`" is still
+  exactly true of the scored games: run13, which is run10's own game under
+  `DUMP_ALL`, has **2,288 records and every one of them 16**, and run38,
+  the islands start, has 1,180 and the same. Nothing in either turns 0x20
+  on. run44 is simply the first capture that has **combat and guy-level
+  detail at once** — the earlier fights (run17, run24) were taken without
+  the clocks, and the earlier `GUYS=4` runs have no fight in them. So the
+  bit is real, it is reachable, and it is waiting for the sim to arrive at
+  the part of the game that turns it on; it is not a divergence in the
+  1,850 frames anyone is scoring.
 - **0x2 and 0x4 are still unobserved**, and 0x2 is a puzzle rather than an
   absence: `do_turn`'s first statement is
   `*(ushort *)&this->field_0x9a |= 2` whenever the angle actually changes,
