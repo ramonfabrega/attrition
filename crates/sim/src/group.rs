@@ -38,7 +38,7 @@ use crate::ai_load::{uflags, uflags2};
 use crate::attrition::Domain;
 use crate::combat::{Obj, Stance};
 use crate::movement::{Angle, find_angle};
-use crate::orders::{MoveKind, QueuePos, index};
+use crate::orders::{Body, MoveKind, Order, QueuePos, flag, index};
 use crate::world::Pos;
 use crate::{Player, Sim};
 
@@ -654,6 +654,66 @@ impl Sim {
         if !self.group_is_on_map(g) || g.list.is_empty() {
             return;
         }
+
+        // §17 — **a group's `QUEUE_FIRST` is not a member's.** The arm at
+        // `00704bfe` does not hand `QUEUE_FIRST` down to
+        // `add_move_facing_order` at all: it copies the **leader's**
+        // action-flagged orders aside (`set_up_insert`), `action_halt`s
+        // every member, calls itself with `QUEUE_NEW`, and re-issues the
+        // copies as group actions at `QUEUE_LAST` (`finish_insert`).
+        //
+        // So the walk a member was on is *dropped*, not stacked behind —
+        // which is what run39's frame 825 shows: the scout's plain
+        // `EXPLORE_TO` carries no action bit, so nothing is saved, and its
+        // order list comes out of `Unit::get_goody_box` holding the new
+        // explore alone (`docs/GOODY.md` §7.3).
+        if queue == QueuePos::First {
+            let leader = self.group_find_leader(g);
+            let saved: Vec<Order> = leader
+                .map(|l| {
+                    self.units[l]
+                        .orders
+                        .iter()
+                        .filter(|o| o.has(flag::ACTION))
+                        .copied()
+                        .collect()
+                })
+                .unwrap_or_default();
+            // The target goes with the copies: this crate keeps it on the
+            // unit rather than on the attack order (`docs/GROUPS.md` §12),
+            // and the halt below clears it.
+            let aim = leader.and_then(|l| {
+                let unit = &self.units[l];
+                unit.combat.target.map(|t| (t, unit.combat.mandatory))
+            });
+            self.group_action_halt(g, 0);
+            self.group_action_move_to(g, to, QueuePos::New, set_angle, angle, kind, action);
+            for o in saved {
+                match o.body {
+                    Body::Move(m) => self.group_action_move_to(
+                        g,
+                        m.dest,
+                        QueuePos::Last,
+                        true,
+                        m.angle,
+                        m.kind,
+                        true,
+                    ),
+                    Body::Attack(_) => {
+                        if let Some((t, mandatory)) = aim {
+                            self.group_action_attack(g, t, mandatory, QueuePos::Last, 0);
+                        }
+                    }
+                    // SEAM: `finish_insert`'s other twenty cases —
+                    // gather, garrison, board, follow, guard, patrol,
+                    // trade, spell, the two swarms. No capture reaches a
+                    // group `QUEUE_FIRST` carrying one.
+                    _ => {}
+                }
+            }
+            return;
+        }
+
         let to = self.restrict_pos(to);
 
         // §6.3: the formation angle. With `set_angle` the caller's stands;

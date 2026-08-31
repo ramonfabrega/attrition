@@ -15,17 +15,24 @@
 //! the jitter only decides between goods within 24 of each other and the
 //! poorest good wins outright whenever it is more than 24 behind.
 //!
-//! # What it is not
+//! # The other half: the search
 //!
-//! `Unit::find_goody_box@005f2540` (`docs/SCOUT.md` §12) is a scout's
-//! *search* for one, and `Unit::get_goody_box@005f7690` — reached from
-//! `World::reveal_fog` for a unit carrying `unit_masks & 0x100` — is the
-//! auto-walk that orders a unit onto one it has just seen. Neither is
-//! here; this module is only what happens on arrival.
+//! `Unit::find_goody_box@005f2540` is the *approach* — a land unit's
+//! 49-cell sweep for a box it has seen and not yet taken, and the
+//! `EXPLORE_TO` order `Unit::get_goody_box@005f7690` gives it. It runs from
+//! two places: the head of `Unit::think_scout` and, every fifteenth frame,
+//! the tail of `Unit::do_explore_to`. Neither spends a draw. `docs/GOODY.md`
+//! §7 is the whole of it.
+//!
+//! `World::reveal_fog@006b3d30` reaches `get_goody_box` directly for a unit
+//! carrying `unit_masks & 0x100`; nothing here sets that bit, so that third
+//! caller is still a seam.
 
 use crate::economy::RESOURCES;
+use crate::orders::{MoveKind, QueuePos};
 use crate::tech::Line;
 use crate::world::cell::GOODY;
+use crate::world::{Cell, MOVE_49, Pos, UNITS_PER_CELL};
 use crate::{Player, Sim};
 
 /// The lottery's draw site, under the original's own offset. One draw per
@@ -93,6 +100,131 @@ impl Sim {
         pick.unwrap_or(FALLBACK)
     }
 
+    /// `Unit::find_goody_box@005f2540` (`docs/GOODY.md` §7): the 49-cell
+    /// sweep for a box worth walking to. Returns whether an order was
+    /// issued; spends no draw either way.
+    ///
+    /// A candidate cell must be **in the sweeper's own region**, carry
+    /// [`GOODY`], and have been seen — `WorldData::was_seen` at any one of
+    /// the cell's four half-cells, so a cell glimpsed at one corner
+    /// counts. The first candidate in `move_x`/`move_y` order wins, and a
+    /// candidate the unit is *already* walking to (the cell of
+    /// `orders_x`/`orders_y`) ends the sweep with no order rather than
+    /// re-issuing the one it has.
+    pub(crate) fn find_goody_box(&mut self, u: usize) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        if self.unit_types[t].kind.domain != crate::attrition::Domain::Land {
+            return false;
+        }
+        let who = self.units[u].owner;
+        let here = self.units[u].pos.cell();
+        // The original reads `WData.region` of its own cell whatever it is
+        // — including the `-1` of a cell in no region — and compares the
+        // raw short, so an off-region unit looks for off-region boxes.
+        let region = self.world.region_of(here);
+        for (dx, dy) in MOVE_49 {
+            let c = Cell::new(here.x + dx, here.y + dy);
+            if !self.world.contains(c) {
+                continue;
+            }
+            if self.world.region_of(c) != region {
+                continue;
+            }
+            let d = self.world.cell_data(c);
+            if d.flags & GOODY == 0 {
+                continue;
+            }
+            if !self.goody_was_seen(c, who) {
+                continue;
+            }
+            // …and then the **item** on the cell: `find_goody_at`'s chain
+            // walk, and `ItemData::is_seen` on what it finds. That is a
+            // second, *stricter* fog read — `ever_seen`, the bare
+            // accumulation of line of sight, with none of `was_seen`'s
+            // ally-territory shortcut — and on East Indies it is the gate
+            // that matters, because the box sits inside its finder's own
+            // borders and the shortcut above answers yes from frame 0.
+            // `docs/GOODY.md` §7.2.
+            if !self.goody_item_is_seen(c, who) {
+                continue;
+            }
+            if c == self.units[u].orders_pos.cell() {
+                return false;
+            }
+            self.get_goody_box(u, c);
+            return true;
+        }
+        false
+    }
+
+    /// The sweep's fog read: `WorldData::was_seen` at all four half-cells
+    /// of `c`, in the original's own order — `(2x+1, 2y+1)`, `(2x, 2y+1)`,
+    /// `(2x+1, 2y)`, `(2x, 2y)` — and true if **any** of them answers yes.
+    /// The listing tests them in sequence and only falls through to the
+    /// next cell when all four are clear.
+    fn goody_was_seen(&self, c: Cell, who: Player) -> bool {
+        let (x, y) = (2 * c.x, 2 * c.y);
+        self.was_seen_fog(x + 1, y + 1, who)
+            || self.was_seen_fog(x, y + 1, who)
+            || self.was_seen_fog(x + 1, y, who)
+            || self.was_seen_fog(x, y, who)
+    }
+
+    /// `ItemData::is_seen@00677850` (vtable `+0x48`) on the box's own
+    /// item, as far as a simulation with no item chain can answer it.
+    ///
+    /// The original's first arm is `ever_seen & ally_mask` — a per-item
+    /// byte that `check_ever_seen` ORs the **current** line-of-sight grid
+    /// into every frame the object is processed, which makes it the same
+    /// monotone accumulation `World::seen2` already is. So this reads
+    /// `was_really_seen` — the fog with none of `was_seen`'s
+    /// ally-territory shortcut — over the cell's four half-cells, because
+    /// the item's own point inside the cell is not something this crate
+    /// carries.
+    ///
+    /// SEAM: the two arms below it — the Spanish `has_tribe_bonus(9)`
+    /// exemption and the fall-through to `WorldData::is_seen`, the
+    /// *current* grid rather than the accumulated one — and the whole
+    /// chain walk that finds the item in the first place
+    /// (`docs/QUEUE.md` item 48). A box on a cell nothing has ever seen
+    /// answers no here either way.
+    fn goody_item_is_seen(&self, c: Cell, who: Player) -> bool {
+        let (x, y) = (2 * c.x, 2 * c.y);
+        self.was_really_seen_fog(x + 1, y + 1, who)
+            || self.was_really_seen_fog(x, y + 1, who)
+            || self.was_really_seen_fog(x + 1, y, who)
+            || self.was_really_seen_fog(x, y, who)
+    }
+
+    /// `Unit::get_goody_box@005f7690`: a one-member group, and an
+    /// `EXPLORE_TO` to the box's **cell centre** at `QUEUE_FIRST`.
+    ///
+    /// The queue position is the group's, not the unit's, and the two are
+    /// different things (`docs/GROUPS.md` §17): the group halts its
+    /// members and re-issues the move as `QUEUE_NEW`, so the walk the unit
+    /// was on is dropped rather than stacked behind.
+    fn get_goody_box(&mut self, u: usize, c: Cell) {
+        let who = self.units[u].owner;
+        let mut g = crate::group::Group::stack(who);
+        self.group_add(&mut g, u);
+        if !self.push_group(&g, true) {
+            return;
+        }
+        let half = UNITS_PER_CELL / 2;
+        let to = Pos::new(c.x * UNITS_PER_CELL + half, c.y * UNITS_PER_CELL + half);
+        self.group_action_move_to(
+            &g,
+            to,
+            QueuePos::First,
+            false,
+            crate::movement::Angle(0),
+            MoveKind::ExploreTo,
+            false,
+        );
+    }
+
     /// The pile: `epoch * GOODY_BOX_AGE + GOODY_BOX`, and the Spanish pair
     /// in place of both when the finder has `has_tribe_bonus(9)`.
     ///
@@ -150,6 +282,171 @@ mod tests {
         d.flags |= GOODY;
         s.world.set_cell_data(Cell::new(3, 2), d);
         (s, u)
+    }
+
+    // ------------------------------------------------------------------
+    // §7 — the search
+    // ------------------------------------------------------------------
+
+    /// [`sim`]'s world with a **typed** land unit, so the sweep's own
+    /// `domain == 0` head lets it in, and no fog grid — which answers every
+    /// `was_seen` yes, the flat world this harness has always had.
+    fn sweeper() -> (crate::Sim, usize) {
+        let (mut s, u) = sim();
+        let t = s.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            ..crate::UnitType::default()
+        });
+        s.units[u].ty = Some(t);
+        (s, u)
+    }
+
+    /// The box the unit is aimed at, if it has been given one — the cell
+    /// centre `get_goody_box` orders, read back off the order.
+    fn aimed_at(s: &crate::Sim, u: usize) -> Option<Cell> {
+        match s.units[u].orders.front().map(|o| o.body) {
+            Some(crate::orders::Body::Move(m)) => Some(m.dest.cell()),
+            _ => None,
+        }
+    }
+
+    /// The base case: a box two cells away, in range of the 49-cell sweep,
+    /// and the walk the sweep issues aims at its **cell centre** —
+    /// `c × 0x300 + 0x180`, which is not the `4c + 2` tile centre
+    /// `think_scout` aims at.
+    #[test]
+    fn the_sweep_orders_a_walk_to_the_box_s_cell_centre() {
+        let (mut s, u) = sweeper();
+        let before = s.rng.seed;
+        assert!(s.find_goody_box(u), "the box at (3, 2) is one cell east");
+        assert_eq!(aimed_at(&s, u), Some(Cell::new(3, 2)));
+        let m = match s.units[u].orders.front().map(|o| o.body) {
+            Some(crate::orders::Body::Move(m)) => m,
+            other => panic!("an EXPLORE_TO, not {other:?}"),
+        };
+        assert_eq!(m.kind, crate::orders::MoveKind::ExploreTo);
+        // The cell centre, then `add_move_facing_order`'s 48-unit snap —
+        // `p / 0x30 * 0x30 + 0x18`, which lands a cell centre 24 units on.
+        // run39's `FRAME 826` shows the same pair: `orders_x 34968` for a
+        // box whose cell centre is 34944.
+        assert_eq!(
+            m.dest,
+            Pos::new(3 * 0x300 + 0x180 + 0x18, 2 * 0x300 + 0x180 + 0x18)
+        );
+        assert_eq!(s.rng.seed, before, "the whole sweep is free");
+    }
+
+    /// The sweep walks `move_x`/`move_y`, so of two boxes the winner is the
+    /// one **earlier in that table**, not the nearer one by any metric of
+    /// its own: `(2, 1)` is the compass entry 1 and `(3, 2)` is entry 4.
+    #[test]
+    fn the_first_box_in_the_table_s_order_wins() {
+        let (mut s, u) = sweeper();
+        let mut d = s.world.cell_data(Cell::new(1, 1));
+        d.flags |= GOODY;
+        s.world.set_cell_data(Cell::new(1, 1), d);
+        assert!(s.find_goody_box(u));
+        assert_eq!(
+            aimed_at(&s, u),
+            Some(Cell::new(1, 1)),
+            "`move_49[1]` is `(-1, -1)` and `(1, 0)` is entry 4"
+        );
+    }
+
+    /// A box the sweeper has never seen is not a candidate. With a fog grid
+    /// installed nothing is seen, and lighting **one** of the box cell's
+    /// four half-cells for the sweeper is enough — the listing falls
+    /// through to the next cell only when all four are clear.
+    #[test]
+    fn a_box_no_line_of_sight_has_reached_is_not_a_candidate() {
+        let (mut s, u) = sweeper();
+        assert!(s.world.set_fog(vec![0; 16 * 16]));
+        assert!(!s.find_goody_box(u), "the whole map is dark");
+        assert!(s.units[u].orders.is_empty());
+        // `(2 × 3, 2 × 2)`, the box cell's first half-cell each way, lit
+        // for player 1 alone.
+        s.world.set_seen(6, 4, 1 << 1);
+        assert!(s.find_goody_box(u), "one half-cell is enough");
+        assert_eq!(aimed_at(&s, u), Some(Cell::new(3, 2)));
+    }
+
+    /// A box in another region is not a candidate however close it is: the
+    /// sweep compares each cell's `WData.region` against the sweeper's own.
+    #[test]
+    fn a_box_across_a_region_boundary_is_not_a_candidate() {
+        let (mut s, u) = sweeper();
+        let other = s
+            .world
+            .fill_region(Terrain::Land, Cell::new(3, 0), Cell::new(3, 7));
+        assert_eq!(s.world.region_of(Cell::new(3, 2)), Some(other));
+        assert!(!s.find_goody_box(u), "the box is on the far side of a seam");
+        assert!(s.units[u].orders.is_empty());
+    }
+
+    /// The box the unit is **already** walking to ends the sweep with no
+    /// order at all — the original's `return 0` at `005f2761`, which is
+    /// what keeps the fifteen-frame look from re-issuing the same walk over
+    /// and over.
+    #[test]
+    fn the_box_already_aimed_at_ends_the_sweep_with_nothing() {
+        let (mut s, u) = sweeper();
+        assert!(s.find_goody_box(u));
+        let orders = s.units[u].orders.clone();
+        let before = s.rng.seed;
+        assert!(!s.find_goody_box(u), "it is already going there");
+        assert_eq!(s.units[u].orders, orders, "and the walk is untouched");
+        assert_eq!(s.rng.seed, before);
+    }
+
+    /// The walk **replaces** what the unit was doing. `get_goody_box` asks
+    /// for `QUEUE_FIRST`, but it asks a *group*, and a group's
+    /// `QUEUE_FIRST` halts its members and re-issues as `QUEUE_NEW`
+    /// (`docs/GROUPS.md` §17) — so a plain transit move is dropped rather
+    /// than stacked behind, and run39's `FRAME 826` holds one order where a
+    /// unit-level `QUEUE_FIRST` would leave two.
+    #[test]
+    fn the_walk_replaces_the_transit_it_interrupts() {
+        let (mut s, u) = sweeper();
+        s.add_move_order(
+            u,
+            Pos::new(6 * 0x300 + 0x180, 6 * 0x300 + 0x180),
+            crate::orders::MoveKind::ExploreTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        assert_eq!(s.units[u].orders.len(), 1);
+        assert!(s.find_goody_box(u));
+        assert_eq!(s.units[u].orders.len(), 1, "the old walk is gone");
+        assert_eq!(aimed_at(&s, u), Some(Cell::new(3, 2)));
+    }
+
+    /// The look is one frame in fifteen, phased by `o`, and it runs from
+    /// `do_explore_to` — so a unit walking an `EXPLORE_TO` re-aims on a
+    /// multiple of fifteen and on no other frame.
+    #[test]
+    fn the_look_runs_one_frame_in_fifteen() {
+        let (mut s, u) = sweeper();
+        s.add_move_order(
+            u,
+            Pos::new(6 * 0x300 + 0x180, 6 * 0x300 + 0x180),
+            crate::orders::MoveKind::ExploreTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        // `o` is 0 here, so 14 is not a look and 15 is.
+        for f in 1..15 {
+            s.frame = f;
+            s.work(u, f);
+            assert_ne!(
+                aimed_at(&s, u),
+                Some(Cell::new(3, 2)),
+                "frame {f} is not a fifteenth"
+            );
+        }
+        s.frame = 15;
+        s.work(u, 15);
+        assert_eq!(aimed_at(&s, u), Some(Cell::new(3, 2)), "frame 15 is");
     }
 
     /// Walking east one cell is one cell change, and the cell change is the

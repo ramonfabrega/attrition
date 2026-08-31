@@ -282,13 +282,18 @@ impl Sim {
         };
         let domain = self.unit_types[rec].kind.domain;
         let type_index = self.units[u].type_index;
+
+        // The head, and it comes before the region read: a land unit that
+        // can see an untaken box walks to that instead of thinking, and
+        // spends no draw doing it (`docs/GOODY.md` §7). `think_spellcaster`
+        // is still a seam (`docs/SCOUT.md` §13 item 8).
+        if domain == Domain::Land && self.find_goody_box(u) {
+            return true;
+        }
+
         let Some(region) = self.world.tregion(self.units[u].pos.tile()) else {
             return false;
         };
-
-        // The head. `find_goody_box` and `think_spellcaster` are seams
-        // (`docs/SCOUT.md` §13 items 2 and 8): neither fires in any capture,
-        // and neither draws when it does not.
 
         // §3's branch. `unit_masks & 0x100` is a seam (clear on every scout
         // in every run on disk); the two citizen ids, the spy and the naval

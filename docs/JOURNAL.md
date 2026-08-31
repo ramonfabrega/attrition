@@ -8882,3 +8882,119 @@ is the same lesson one level down — the tuning file's vocabulary is the
 designers', and only the consumer says what a constant means. `CLAUDE.md`
 has said "read the consumer before believing the digits" about
 *representation* since the 8.8 traps; it holds for meaning too.
+
+## 2026-08-31 (later, Opus) — item 106: East Indies' word 879 → 1256, and a scout that finished a walk nobody gave it
+
+Item 106 was booked as frame 879: the scout going idle and re-thinking, two
+`Unit::set_anim` stands and `think_scout`'s six ring pairs with two cell
+draws — sixteen draws this crate did not spend. It was that, and the item
+was not about `think_scout` at all. **The question was why the scout was
+idle on 879**, twelve frames after it took the goody box on 867, when
+`think_scout` had sent it to a cell it had not reached.
+
+### The reading
+
+`Unit::do_explore_to@005f24a0` is not `do_move`. It is `do_move` and then:
+
+```c
+if ((o + frame) % 15 == 0 && orderlist.head == this_order && is_captain())
+    find_goody_box(this);
+```
+
+`Unit::find_goody_box@005f2540` is a 49-cell sweep — `move_x`/`move_y` to
+`0xc4 / 4`, the 7 × 7 the muster search already uses — for a cell of the
+sweeper's own region carrying `WData.flags & 0x8000`, and the first one it
+accepts is handed to `Unit::get_goody_box@005f7690`, which pushes a
+one-member group and orders it `EXPLORE_TO` the box's **cell centre**. None
+of it draws. `think_scout`'s own first line calls the same function, which
+is why `docs/SCOUT.md` §13 had carried it as item 2, unread, since August.
+
+So run39's scout re-aims on frame **825** — the fifteenth frame after the
+box comes into its own line of sight — walks to `(45, 49)`, takes the box on
+867 as item 104 already had it, arrives on 879 with an empty order list, and
+re-thinks. `docs/GOODY.md` §7.
+
+### The gate that is not the obvious one
+
+The sweep has two fog tests and the first one is a decoy. The cell's is
+`WorldData::was_seen`, which carries the **ally-territory shortcut**: a cell
+owned by an ally of the asker, in a region where that ally has a city, is
+seen whether or not anyone has looked at it. `(45, 49)` sits inside player
+1's own borders, so that test answers yes from frame 0 — and a sweep gated
+on it alone fires on **796**, the frame `think_scout` runs, and parts the
+word there. The implementation did exactly that on its first run: 879 →
+796, a regression, which is how the second gate got found.
+
+The second is the **item's**: `find_goody_at` walks the cell's object chain
+and asks what it finds `ItemData::is_seen` (vtable `+0x48`), which reads
+`ever_seen & ally_mask` — a per-item byte `check_ever_seen` accumulates out
+of the current line-of-sight grid, with no shortcut at all. That is what
+holds the scout until its own eyes reach the box, some time between 811 and
+825. This crate chains no items, so it models `is_seen` as `was_really_seen`
+over the same four half-cells; the two are the same accumulation under
+different names.
+
+**Two functions one letter apart decided a four-hundred-frame move.** The
+crate has had `was_seen` and `was_really_seen` side by side since
+`docs/SCOUT.md` §12 wrote them down as "different functions with one word
+between their names". This is the first time the difference has been worth
+anything, and it was worth 377 frames.
+
+### And a document that was right while the code was not
+
+`Group::action_move_near`'s `QUEUE_FIRST` arm halts the group and re-runs
+itself as `QUEUE_NEW`, restoring only the leader's **action-flagged** orders
+afterwards. `docs/GROUPS.md` §6.2 has said so since the first reading — and
+this crate had been passing the queue position straight down to
+`add_move_facing_order`, which stacks and keeps. The difference is one field
+of run39's `FRAME 826`: **one** order in the scout's list, not two. That is
+the queue's item 72 shape again — a document and its code disagreeing is a
+diff waiting to be run — and the fix went into `group_action_move_to` for
+every caller, `army_charge` included.
+
+The correction could not go in §6.2, which the size guard pins; it is
+`docs/GROUPS.md` §17, in the shape §15 and §16 already had.
+
+### What landed
+
+`Sim::find_goody_box`, `Sim::get_goody_box` and the two fog gates in
+`crates/sim/src/goody.rs`; `Sim::was_seen_fog`, split out of
+`ai_sites::site_was_seen` so the sweep can sample all four half-cells;
+`do_explore_to`'s tail in `orders.rs`; `think_scout`'s head in `scout.rs`;
+the group `QUEUE_FIRST` arm in `group.rs`; `docs/GOODY.md` §7,
+`docs/GROUPS.md` §17, `docs/ORDERS.md` §13's entry, and `docs/SCOUT.md` §13
+item 2 struck and pointed at its answer.
+
+`a_scout_re_aims_its_walk_at_a_goody_box_it_has_seen` is the rule against
+the record — four frames of run39's own `UNITDATA`, `orders_x/y`, the whole
+path stack and the order count on each: 797's three legs, 826's one, 879's
+empty list, 880's four. Made to fail by dropping the item gate, which fires
+on 796 and parts the word there.
+
+**East Indies' word and sequence: 879 → 1256.** Three hundred and
+seventy-seven frames, with four `think_scout` frames — 879, 1021, 1143,
+1231 — inside them. Great Lakes holds at 780 with 986
+frames on the count and its draw-for-draw total **884 → 892**. run10's
+headline is unmoved at 572/776 with both first divergences at 802 and 573,
+and three of its fourteen units hold longer — `1/0` 872 → 959, `1/8` 904 →
+906, `1/10` 1522 → 1552 — which takes its collision rows 97,108 → **98,019**,
+its angle rows 37,170 → **37,450** and its first disagreeing gather tile
+1,373 → **1,384**. run39's gaia agreement rises 189,843 → **190,690** of
+192,504 and its first parting frame 983 → **1261**. Its queue record holds
+at 33,631 fields with one disagreement, and **its gather record went 16,152
+fields to frame 897 → 24,738 to frame 1,573**, which closes item 103 without
+touching it: the ten-frame wait that parted at 897 was downstream of the
+scout. Tree: 668 sim, 155 rondata.
+
+### The lesson
+
+**A frame the word parts on is not always the frame the mechanic is in.**
+879 was a real hole and its sixteen draws were exactly what the trace said;
+the thing that had to change to fill it happened fifty-four frames earlier
+and spent nothing. Item 102 learned that a booked frame can turn out to be
+a different mechanic; this is the sharper version — the booked frame was the
+right *symptom* and its cause left no trace at all, because
+`find_goody_box` draws nothing. The draw stream says where two runs stop
+agreeing, never where they stopped doing the same thing. When the frame's
+own content is already understood and still will not come out, the question
+to ask is what the unit was doing before it.

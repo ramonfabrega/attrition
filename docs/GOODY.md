@@ -16,17 +16,16 @@ High for the arithmetic as *read* — the listing is quoted below — but **no
 capture on disk checks the pile**, because leader detail is written once, at
 start, before any box is opened. §6 names the capture that would.
 
-**What it is not.** Two neighbouring functions carry "goody" in their names
-and are different mechanics:
+**And the approach.** §7 is the other half, added 2026-08-31 with item 106:
+`Unit::find_goody_box@005f2540`, the 49-cell sweep that sends a land unit
+*to* a box it has seen, and `Unit::get_goody_box@005f7690`, the walk it
+issues. Neither spends a draw, and both are diff-backed — East Indies'
+scout re-aims on frame 825 and arrives on 879, which is what took the word
+879 → 1256.
 
-- `Unit::find_goody_box@005f2540`, a scout's *search* for a box to walk to —
-  `docs/SCOUT.md` §12, already read, never yet reached by a capture.
-- `Unit::get_goody_box@005f7690`, reached from `World::reveal_fog@006b3d30`
-  when a unit carrying `unit_masks & 0x100` reveals a box: it pushes a
-  one-member group and gives it an `EXPLORE_TO` order to the box's cell
-  centre. Unmodelled; nothing here sets `unit_masks & 0x100`.
-
-This document is only what happens on arrival.
+`World::reveal_fog@006b3d30` reaches `get_goody_box` by a third path, for a
+unit carrying `unit_masks & 0x100`. Nothing here sets that bit, and it is
+still a seam.
 
 ---
 
@@ -209,3 +208,161 @@ unit taking the same ruins, since step 2 leaves the item linked.
 - **Whether a box's *good* is right.** The lottery's winner depends on the
   finder's buckets, which no capture prints at the moment a box opens; the
   frame's draw count would be identical whichever good won.
+
+## 7. The approach — `Unit::find_goody_box@005f2540`
+
+*Added 2026-08-31 (item 106), read from the export and then diffed against
+run39's own `UNITDATA` frame by frame. High confidence for the sweep, its
+two gates and the order it issues; the seams are named in §7.2 and §7.4.*
+
+A box is not only something a unit trips over. A land unit that can see one
+**walks to it**, and that walk is why East Indies' scout is standing still
+on frame 879 twelve frames after taking the box on 867: the explore order it
+finished was not the one `think_scout` gave it on 796.
+
+### 7.1 Where it runs from
+
+Two call sites, and neither spends a draw:
+
+```c
+// Unit::think_scout@005f6010, the first thing it does
+if (type->domain == 0 && find_goody_box(this)) return 1;
+
+// Unit::do_explore_to@005f24a0, after do_move
+if ((o + frame) % 15 == 0
+    && orderlist.head == this_order      // still the same order
+    && is_captain())                     // o_up < 0
+    find_goody_box(this);
+```
+
+The first makes an idle scout prefer a box to a ring walk, and it returns
+before any of `think_scout`'s ten draws. The second is the one the capture
+exercises: **one frame in fifteen, phased by `o`**, a unit still walking the
+`EXPLORE_TO` this call was dispatched for looks around again. `is_captain`
+is `UnitData::is_captain@0046ceb0`, `o_up < 0` — a figure marching inside
+someone else's formation does not go off on its own.
+
+A third caller, `World::reveal_fog@006b3d30`, reaches `get_goody_box`
+directly for a unit carrying `unit_masks & 0x100`; that bit is set nowhere
+here and it is a seam.
+
+### 7.2 The sweep, and its two gates
+
+49 cells — `move_x`/`move_y` walked to `0xc4 / 4`, which is the 7 × 7
+neighbourhood `crate::world::MOVE_49` already holds — around the unit's own
+cell, in the table's order. The first cell that passes wins; there is no
+scoring.
+
+```c
+if (type->domain != 0) return 0;                 // land only
+region = wdata[here].region;                     // read raw, -1 included
+for (k = 0; k < 49; k++) {
+    (wx, wy) = (cx, cy) + (move_x[k], move_y[k]);
+    if (out of bounds) continue;
+    if (wdata[wx, wy].region != region) continue;
+    if ((short)wdata[wx, wy].flags >= 0) continue;        // GOODY is the sign bit
+    if (!was_seen(2wx+1, 2wy+1) && !was_seen(2wx, 2wy+1)
+     && !was_seen(2wx+1, 2wy) && !was_seen(2wx, 2wy)) continue;
+    if (!is_ocean(wx, wy)) {
+        i = find_goody_at(wx, wy);
+        if (i >= 0 && !items[i]->is_seen(who)) continue;
+    }
+    if ((wx, wy) == cell(orders_x, orders_y)) return 0;   // already going there
+    get_goody_box(this, wx, wy);
+    return 1;
+}
+return 0;
+```
+
+Three things there are worth naming.
+
+- **The region is read raw.** `local_20` is the unit's own cell's `region`
+  short whatever it is, so a unit standing in no region at all looks for
+  boxes in no region at all.
+- **The cell's fog gate is four samples, and one is enough.** The listing
+  tests `(2x+1, 2y+1)`, `(2x, 2y+1)`, `(2x+1, 2y)`, `(2x, 2y)` in that
+  order and falls through to the next cell only when all four are clear.
+  This is `WorldData::was_seen@006b53f0`, the one **with** the
+  ally-territory shortcut.
+- **…and the *item's* gate is the one that bites.** The inlined `is_ocean`
+  at the top of `ObjectsData::find_goody_at@0065b7c0` is the same test that
+  short-circuits its chain walk, so what the code below it asks is: *if
+  there is a goody item on this cell, has this leader seen it?* —
+  `ItemData::is_seen@00677850`, vtable slot `+0x48`. That reads
+  `ever_seen & ally_mask`, a per-item byte `check_ever_seen` accumulates
+  from the **current** line-of-sight grid, and it has **no** territory
+  shortcut.
+
+  On East Indies that distinction is the whole mechanic. `(45, 49)` is
+  inside player 1's own borders, so `was_seen` answers yes there from frame
+  0 and the cell gate alone would fire the sweep on **796** — the frame
+  `think_scout` runs on, which parts the word at 796. The item gate holds it
+  until the scout's own line of sight reaches the box, which happens between
+  811 and 825, and 825 is the next fifteenth frame.
+
+  **SEAM.** This crate chains no items (`docs/QUEUE.md` item 48), so it
+  cannot walk `find_goody_at` and cannot hold a per-item `ever_seen`. It
+  models `is_seen` as `was_really_seen` — the bare fog, `World::seen2`
+  without the shortcut — over the same four half-cells, which is the same
+  accumulation under a different name and at cell rather than item
+  resolution. Unmodelled with it: the Spanish `has_tribe_bonus(9)` arm and
+  the fall-through to `WorldData::is_seen`, the *current* grid rather than
+  the accumulated one.
+
+### 7.3 The order — `Unit::get_goody_box@005f7690`
+
+```c
+Group g; g.clear(-1); g.add(this->o, this->who);
+i = groups.push_group(who, &g, 1);
+groups[i].action_move_to(wx * 0x300 + 0x180, wy * 0x300 + 0x180,
+                         QUEUE_FIRST, 0, 0, EXPLORE_TO, 0, -1, -1, 0);
+```
+
+A one-member group, forced in, and an `EXPLORE_TO` to the box's **cell
+centre** — `c × 0x300 + 0x180`, which is not the `4c + 2` tile centre
+`think_scout` aims at (`docs/SCOUT.md` §8). `Unit::add_move_facing_order`
+then applies its 48-unit snap, so the order's own `x`/`y` land 24 units past
+the centre: run39 writes `orders_x 34968` for a box whose cell centre is
+34944.
+
+**`QUEUE_FIRST` here is the *group's*, and it is not the unit's.**
+`Group::action_move_near@00704990`'s arm at `00704bfe` copies the leader's
+**action-flagged** orders aside (`set_up_insert`, `flags & 4`), calls
+`action_halt`, recurses as `QUEUE_NEW`, and re-issues the copies as group
+actions at `QUEUE_LAST` (`finish_insert`). A plain transit move carries no
+action bit, so it is not copied and not restored: the walk the unit was on
+is **dropped**. run39's `FRAME 826` is the proof — one order in the list,
+where a unit-level `QUEUE_FIRST` would leave two. `docs/GROUPS.md` §17.
+
+### 7.4 What run39 shows, field for field
+
+Player 1's scout `1/0`, from its own `UNITDATA` record:
+
+| frame | `orders_x/y` | path stack | orders |
+| --- | --- | --- | --- |
+| 797 | `35064 / 37368` | `(35040, 37344)`, `(35064, 38904)`, `(35064, 39672)` | 1 |
+| 826 | `34968 / 38040` | `(34944, 38016)` | 1 |
+| 879 | `34944 / 38016` | empty | 0 |
+| 880 | `31224 / 39672` | `(31200, 39648)`, `(32760, 40440)`, `(33528, 39672)`, `(34296, 38904)` | 1 |
+
+796 is `think_scout`'s ten draws and the target it picks; 825 is the
+re-aim, and it changes the order, the whole path stack and nothing else;
+879 is the arrival, and the frame the scout is idle for is the sixteen
+draws — two `Unit::set_anim` stands and six `think_scout` ring pairs with
+two cell draws — the word had been short of. 880 is the next explore
+target, over four legs, and it agrees too.
+
+### 7.5 Coverage
+
+| Claim | Backed by |
+| --- | --- |
+| The look is `(o + frame) % 15`, from `do_explore_to` | diff — run39 re-aims on **825** and on no other frame between 796 and 879 |
+| The sweep walks `move_49` and takes the first pass | diff — the cell it takes, and reading for the order within a ring |
+| The order is the box's **cell centre**, `QUEUE_FIRST` at the group | diff — `FRAME 826`'s `orders_x/y` and its one path leg |
+| A group's `QUEUE_FIRST` halts and re-issues as `QUEUE_NEW` | diff — `FRAME 826` holds **one** order, not two |
+| The item's `is_seen` gate, not the cell's `was_seen` | diff — the cell gate alone fires on 796 and parts the word there |
+| `is_captain` (`o_up < 0`) | reading; no capture has a figure under a captain walking an explore |
+| `think_scout`'s head call | reading — every capture reaches it and none accepts there; by the time a scout is idle beside a box the box is taken |
+| The region compare, read raw | reading |
+| `find_goody_at`'s chain walk and `ever_seen` itself | read, **not modelled** — §7.2's seam |
+| `reveal_fog`'s third call site | read, **not modelled** — nothing sets `unit_masks & 0x100` |

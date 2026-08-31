@@ -882,8 +882,11 @@ impl Sim {
         }
         match self.current_order(u).map(|o| o.body) {
             None => self.do_idle(u, frame),
-            Some(Body::Move(_)) => {
+            Some(Body::Move(m)) => {
                 self.do_move(u, frame);
+                if m.kind == MoveKind::ExploreTo {
+                    self.do_explore_to_tail(u, frame, m.dest);
+                }
             }
             Some(Body::Build(_)) => self.do_build(u, frame),
             Some(Body::Repair(_)) => self.do_repair(u, frame),
@@ -892,6 +895,33 @@ impl Sim {
             Some(Body::Attack(_)) => self.do_attack(u, frame),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
+    }
+
+    /// `Unit::do_explore_to@005f24a0`'s tail — everything the case does
+    /// beyond `do_move`.
+    ///
+    /// **One frame in fifteen, phased by `o`**, a unit still walking the
+    /// same `EXPLORE_TO` looks around for a goody box and re-targets onto
+    /// it (`docs/GOODY.md` §7). The phase is `(o + frame) % 15`, and the
+    /// original's `pUVar2 == param_1` — the order list's head is still the
+    /// order this call was dispatched for — is what `dest` stands in for:
+    /// an arrival that popped the order, or a collision that replaced it,
+    /// skips the look.
+    ///
+    /// `is_captain` (`o_up < 0`) is the second guard: a figure marching
+    /// under someone else's formation does not go off on its own.
+    fn do_explore_to_tail(&mut self, u: usize, frame: i64, dest: Pos) {
+        if (frame + i64::from(self.units[u].index)).rem_euclid(15) != 0 {
+            return;
+        }
+        let same = matches!(
+            self.current_order(u).map(|o| o.body),
+            Some(Body::Move(m)) if m.kind == MoveKind::ExploreTo && m.dest == dest
+        );
+        if !same || !self.is_captain(u) {
+            return;
+        }
+        self.find_goody_box(u);
     }
 
     /// `Unit::repath`: pop the leading transit legs so the target order

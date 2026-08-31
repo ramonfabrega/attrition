@@ -36,8 +36,9 @@ shoreline. The score (§8) is read from the listing and is arithmetic no capture
 separates yet — the danger term is zero in every run on disk and the goods
 term needs a leader with exactly one city; medium. The target's rejection
 test (§9, `find_unit_ordered`) is read only as far as this mechanic reaches
-into it. The two branches this document does **not** establish are the
-region fallback's cell walk and the naval/goody-box heads (§11, §13).
+into it. The branch this document does **not** establish is the region
+fallback's cell walk (§11); the goody-box head it deferred is
+`docs/GOODY.md` §7 as of 2026-08-31 (§13 item 2).
 
 **Naming.** Offsets are the PDB's: `struct /rise.pdb/UnitData`,
 `LeaderData`, `WorldData`, `WData`, `Region`, `CityData`. A cell is 4 × 4
@@ -141,7 +142,7 @@ head (`if (param_1 != 0)`, which picks a random cell out of a named
 region's coordinate list) is dead from here. What is left:
 
 ```
-if (type->domain == 0 && find_goody_box(this)) return 1;         // §12
+if (type->domain == 0 && find_goody_box(this)) return 1;         // GOODY §7
 if ((leaders[who].leader_flags & 4) == 0)                         // not human
     if (is_spellcaster) and think_spellcaster(this) return 1;
 region = get_tregion(unit.tile);                                  // the scout's region
@@ -671,13 +672,15 @@ The checks:
 1. **The region fallback's cell walk** (§11). It needs `Region.coords` in
    the generator's order and no dump carries it. *Capture:* none would
    help; a `REGIONS` dump detail that printed the coordinate list would.
-2. **`Unit::find_goody_box`** — the very first thing `think_scout` does for
-   a land unit, and it returns 1 (and skips everything here) when it finds
-   a goody box to walk to. It is entered at frame 0 in every trace and
-   draws nothing there. Not read; the simulation treats it as always
-   failing, which is right on every capture on disk because no goody box is
-   in range at frame 0. *Capture:* a `UNITS=3` window over a scout that
-   walks to a ruin.
+2. ~~**`Unit::find_goody_box`** — the very first thing `think_scout` does
+   for a land unit, and it returns 1 (and skips everything here) when it
+   finds a goody box to walk to. Not read; the simulation treats it as
+   always failing.~~ **Read and implemented 2026-08-31** (item 106):
+   `docs/GOODY.md` §7 is the 49-cell sweep, its two fog gates and the
+   `EXPLORE_TO` it issues. It is still true that no capture *accepts* at
+   this call site — the one that fires on East Indies is
+   `Unit::do_explore_to`'s fifteen-frame look, and by the time a scout is
+   idle beside a box the box is taken.
 3. **The score's danger term** (§8). Zero in every capture. *Capture:* a
    window at a frame where `GameDaemon::calc_danger` has written a non-zero
    figure near a scout, with the scout's chosen target in the same window.

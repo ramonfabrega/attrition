@@ -148,10 +148,22 @@ impl Sim {
     /// `0x141` in any run) and `reg_forts` (the census does not keep it;
     /// no fort stands in any capture at the sweep).
     fn site_was_seen(&self, wx: i32, wy: i32, who: Player) -> bool {
+        self.was_seen_fog(2 * wx + 1, 2 * wy + 1, who)
+    }
+
+    /// The same read at the fog grid's **own** coordinates, which is the
+    /// pair `WorldData::was_seen` actually takes — `site_was_seen` is the
+    /// whole-cell sampler on top of it, and `Sim::find_goody_box` is the
+    /// caller that wants all four half-cells of a cell rather than one.
+    ///
+    /// The territory shortcut reads the **cell** the half-cell falls in
+    /// (`(fy >> 1) * xs + (fx >> 1)` at `006b5460`), not the half-cell, so
+    /// it is the same answer for all four samples of a cell.
+    pub(crate) fn was_seen_fog(&self, fx: i32, fy: i32, who: Player) -> bool {
         if self.lobby.reveal_map > 1 || who > 7 {
             return true;
         }
-        let cell = Cell::new(wx, wy);
+        let cell = Cell::new(fx >> 1, fy >> 1);
         if let Owner::Player(o) = self.world.owner(cell)
             && self.is_ally(who, o)
             && let Some(r) = self.world.region_of(cell)
@@ -162,7 +174,7 @@ impl Sim {
         {
             return true;
         }
-        let Some(bits) = self.world.seen2(2 * wx + 1, 2 * wy + 1) else {
+        let Some(bits) = self.world.seen2(fx, fy) else {
             return true;
         };
         let mask = self.ai[who as usize].census.ally_mask | (1 << who);

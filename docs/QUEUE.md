@@ -12,31 +12,32 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 104 (Opus).*
+*2026-08-31, after item 106 (Opus).*
 
-**East Indies' word and sequence moved 867 → 879**; Great Lakes holds at
-780 with its totals unchanged at 986/884, its two boxes being at 898 and
-1659, past its parting. run10 is untouched in every figure — 572/776, first
-divergences 802 and 573, all fourteen by-unit partings, both coverage
-totals. run39's game score holds at 167/167 with 217/168, its queue record
-at 33,631 fields and its gather record at 16,152 to 897. Tree green: 661
-sim, 154 rondata.
+**East Indies' word and sequence moved 879 → 1256**, 377 frames with four
+`think_scout` frames inside them. Great Lakes holds at 780, 986 on the
+count, draw for draw **884 → 892**. run10's headline is unmoved at 572/776
+with both divergences at 802 and 573; three of its fourteen hold longer, so
+its collision rows go 97,108 → 98,019, its angle rows 37,170 → 37,450 and
+its first bad gather tile 1,373 → 1,384. run39's gaia rises 189,843 →
+**190,690** of 192,504, first parting 983 → **1261**; its queue record
+holds at 33,631 and **its gather record went 16,152 fields to 897 → 24,738
+to 1,573**, closing item 103 untouched. Tree green: 668 sim, 155 rondata.
 
-**Frame 867 was a goody box, and a box is a lottery.**
-`Unit::explore_goody@005f9780` refuses knowledge by name and anything
-`type_avail` does not call available, then spends **one draw per survivor**
-— three in the Ancient age, which is what every capture that reaches a box
-spends. The pile is `epoch[3] × GOODY_BOX_AGE + GOODY_BOX`, and `epoch[3]`
-is the **Science** level, not the age. GOODY.md; VISION §7 is struck.
+**Frame 879 was the symptom and frame 825 was the mechanic.**
+`Unit::do_explore_to` is `do_move` plus a 49-cell sweep for a goody box,
+one frame in fifteen, spending no draw (`Unit::find_goody_box@005f2540`).
+Its gate is not the cell's `was_seen` — a box inside its finder's own
+borders answers yes from frame 0 — but the **item's** `ItemData::is_seen`,
+the bare accumulated fog. GOODY §7; SCOUT §13 item 2 is struck. A group's
+`QUEUE_FIRST` also drops the walk it interrupts rather than stacking it
+(GROUPS §17, item 72's family again).
 
-**One number fell**: run39's gaia agreement 190,417 → 189,843 of 192,504,
-first parting frame 983 unmoved. Past the word's parting the stream is
-nobody's, so moving the word re-rolls every later coin; the test pins 983.
-
-**Opener (Opus):** `take item 106 from @docs/QUEUE.md — East Indies' word
-at 879 is the scout going idle and re-thinking: two Unit::set_anim stands
-then Unit::think_scout+0x436/+0x458 six times over and +0x64c twice.
-docs/SCOUT.md §11 is the region fallback; diff it against run39.`
+**Opener (Opus):** `take item 109 from @docs/QUEUE.md — East Indies' word
+at 1256 is a bird: ours spends 87 draws where the original spends 27,
+because our third bird lands (`Animal::think_bird+0x2aa`) and none of the
+original's eight does. docs/SYNC.md §3.9 is the landing search; diff it
+against run39.`
 
 ## The queue
 
@@ -44,16 +45,15 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-106. **East Indies' word at 879, and the scout re-thinks.** Twenty-one
-    draws against five. The scout that took the goody goes idle
-    (`Guy::set_anim+0x97a < Unit::set_anim+0x56` and `+0xb6` under
-    `Unit::do_idle+0x7d`), then `think_scout` spends `+0x436`/`+0x458`
-    **six times over** and `+0x64c` twice. `docs/SCOUT.md` §11 is the
-    region fallback; run33's re-targets at 361 and 482 are neighbours.
+109. **East Indies' word at 1256, and a bird that lands early.** 87
+    draws against 27: the original's eight birds only think (three each);
+    ours lands on its third, `Animal::think_bird+0x2aa` and the sixty-draw
+    search behind it. SYNC §3.9, item 100 its last reading.
 
-103. **The wood machine's record parts at 897, on a clock.** After 16,152
-    agreeing fields the human's `1/2` holds a wait of 499 where the
-    original's holds 509 — ten frames, tile and phase right. ORDERS §6.4.
+103. **The wood machine's record parts at 1,573, on a clock.** After
+    24,738 agreeing fields the human's `0/1` holds a wait of 543 where the
+    original's holds 443, tile and phase right. Its 897 version went away
+    with item 106. ORDERS §6.4.
 
 69. **East Indies' order-list length at 168.** `1/4` and the original
     disagree on the order list at 168 and `1/5` at 186 — both **ahead** of
@@ -65,9 +65,9 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     **seven** `Farms::inc_time` chances where the original ticks six. The
     extra farm is the half to chase.
 
-105. **Gaia's positions, and the 2,661 that are not.** 189,843 of run39's
-    192,504 dumped animal-frames agree; the first that does not is **983**,
-    `8/3` wandering off the point it was refused at. Great Lakes is
+105. **Gaia's positions, and the 1,814 that are not.** 190,690 of run39's
+    192,504 dumped animal-frames agree; the first that does not is
+    **1261**, `8/1` a step off the original's point. Great Lakes is
     uncompared.
 
 87. **The widening ledger.** Items 74 and 83 were closed by comparing

@@ -6475,10 +6475,16 @@ mod tests {
         // original's number of draws and eighteen more are draw for draw,
         // while the word and the sequence hold at 780. The other map's
         // word goes 742 -> 867.
+        //
+        // 986 / 884 -> **986 / 892** with item 106, the scout's walk to a
+        // goody box (`docs/GOODY.md` §7): Great Lakes has 22 boxes, and
+        // eight more frames past the parting come out draw for draw while
+        // the word and the sequence hold at 780. The other map's word goes
+        // 879 -> 1256.
         assert!(
-            words >= 986 && matched >= 884,
+            words >= 986 && matched >= 892,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 986 and 884"
+             {matched} draw for draw; the floors are 986 and 892"
         );
     }
 
@@ -7291,6 +7297,29 @@ mod tests {
     ///               spend. `docs/GOODY.md`, and
     ///               [`a_goody_box_draws_once_for_each_good_its_finder_can_gather`]
     ///               is the rule against the record.
+    ///   2026-08-31  word **879 -> 1256** (item 106), **the walk to the
+    ///               box**: frame 879 was the scout going idle and
+    ///               re-thinking, and the reason it was idle twelve frames
+    ///               after the box is that its explore order had been
+    ///               *re-aimed at the box* — `Unit::do_explore_to@005f24a0`
+    ///               calls `Unit::find_goody_box@005f2540` one frame in
+    ///               fifteen, and on frame 825 the sweep found `(45, 49)`
+    ///               and re-issued the walk to that cell's centre. The
+    ///               gate is not the cell's `was_seen`, which the box's
+    ///               own borders answer yes from frame 0, but the **item's**
+    ///               `ItemData::is_seen` — the bare accumulated fog, which
+    ///               only reaches the box between 811 and 825. So the
+    ///               retarget lands on 825, the arrival on 879, and
+    ///               `think_scout` runs there with the original's own six
+    ///               ring pairs. Three hundred and seventy-seven frames,
+    ///               four `think_scout` frames (879, 1021, 1143, 1231) and
+    ///               the goody's own second box at 1659 all pass; 1256 is
+    ///               next and it is a **bird**: ours lands (87 draws, the
+    ///               third bird's `Animal::think_bird+0x2aa`) where the
+    ///               original's eight birds only think (27).
+    ///               `docs/GOODY.md` §7, and
+    ///               [`a_scout_re_aims_its_walk_at_a_goody_box_it_has_seen`]
+    ///               is the rule against the record.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7412,10 +7441,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 879 && first_part >= 879 && words >= 64 && matched >= 64,
+            first_count >= 1256 && first_part >= 1256 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 879, 879, 64 and 64"
+             {matched} draw for draw — the floor is 1256, 1256, 64 and 64"
         );
     }
 
@@ -7575,10 +7604,201 @@ mod tests {
         // word forward re-rolls all of them: item 104's goody box took the
         // word 867 → 879 and the count 190,417 → 189,843, with **983
         // unmoved**. Read the count as a floor on the same word, not as a
-        // score across words.
+        // score across words. Item 106 then moved both: 879 → 1256 took
+        // the count to 190,690 and the first parting to **1261**, five
+        // frames past the word, because the walk to the box put the whole
+        // stream back on the original's for another four hundred frames.
         assert!(
-            first_bad_frame >= 983 && agree >= 189_843 && seen == 192_504,
+            first_bad_frame >= 1261 && agree >= 190_690 && seen == 192_504,
             "run39's gaia positions fell: {agree} of {seen}, first {first_bad:?}"
+        );
+    }
+
+    /// **A scout re-aims its walk at a goody box it has seen**
+    /// (2026-08-31, item 106) — the mechanic behind East Indies' word going
+    /// 879 → 1256, asserted against the record the word's own count cannot
+    /// see.
+    ///
+    /// `Unit::do_explore_to@005f24a0` is not `do_move`. One frame in
+    /// fifteen, phased by `o`, a captain still walking the same
+    /// `EXPLORE_TO` runs `Unit::find_goody_box@005f2540`: a 49-cell sweep
+    /// in `move_x`/`move_y` order for a cell of its own region carrying
+    /// `WData.flags & 0x8000`, and the first one it accepts is re-issued
+    /// as an `EXPLORE_TO` to that cell's **centre** by
+    /// `Unit::get_goody_box@005f7690`. None of it spends a draw.
+    ///
+    /// run39's scout `1/0` is inside the sweep's range of `(45, 49)` from
+    /// frame 796 on, and the original does not re-aim until **825**. The
+    /// gate that holds it is not the cell's `WorldData::was_seen`, which
+    /// the box's own borders answer yes to from frame 0, but the **item's**
+    /// `ItemData::is_seen` — the bare accumulated fog, with no
+    /// ally-territory shortcut — which the scout's own line of sight does
+    /// not reach until it is two cells out. `docs/GOODY.md` §7.2.
+    ///
+    /// What the frame's draw count cannot see, and this does — every one
+    /// of these is a field of run39's own `UNITDATA`:
+    ///
+    /// - **`FRAME 797`**: `orders_x/y 35064/37368` and a path of three,
+    ///   `(35040, 37344)`, `(35064, 38904)`, `(35064, 39672)`. That is
+    ///   `think_scout`'s target and it is untouched through 824.
+    /// - **`FRAME 826`**: `orders_x/y 34968/38040`, a path of **one** at
+    ///   `(34944, 38016)` — `45 × 0x300 + 0x180`, `49 × 0x300 + 0x180`,
+    ///   the box's cell centre — and an order list still holding **one**
+    ///   order. A unit-level `QUEUE_FIRST` would leave two; the group's
+    ///   halts and re-issues as `QUEUE_NEW` (`docs/GROUPS.md` §17).
+    /// - **`FRAME 879`**: the walk is over, the list is empty, and
+    ///   `orders_x/y` is `34944/38016`. That idle frame is the sixteen
+    ///   draws the word had been short: two `Unit::set_anim` stands and
+    ///   `think_scout`'s six ring pairs with two cell draws.
+    /// - **`FRAME 880`**: the re-think's own answer, `orders_x/y
+    ///   31224/39672` over four legs from `(31200, 39648)`.
+    ///
+    /// Made to fail by dropping the item gate, which fires the sweep on
+    /// **796** instead — the frame `think_scout` itself runs on — and
+    /// parts the word there.
+    #[test]
+    fn a_scout_re_aims_its_walk_at_a_goody_box_it_has_seen() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+
+        // The scout's order, its path stack and how many orders it holds —
+        // `orders_x`/`orders_y`, `STACK<PathData>` and the order list's
+        // own length, in the dump's order.
+        let state = |b: &Built| {
+            let u = b.sim.unit_by_o(1, 0).expect("run39 dumps player 1's `1/0`");
+            let un = &b.sim.units[u];
+            (
+                (un.orders_pos.x, un.orders_pos.y),
+                un.path.iter().map(|p| (p.to.x, p.to.y)).collect::<Vec<_>>(),
+                un.orders.len(),
+            )
+        };
+
+        // `Built::tick` stamps the frame it is about to run, so 797 ticks
+        // leave `Sim::frame` on 797 and the state is `FRAME 797`'s.
+        for _ in 0..797 {
+            built.tick();
+        }
+        assert_eq!(built.sim.frame, 797);
+        let think_scout_target = (
+            (35_064, 37_368),
+            vec![(35_040, 37_344), (35_064, 38_904), (35_064, 39_672)],
+            1,
+        );
+        assert_eq!(
+            state(&built),
+            think_scout_target,
+            "`FRAME 797`: frame 796's `think_scout` target and its three legs"
+        );
+
+        // Through 824 the sweep finds the box in range and refuses it:
+        // 810 is a fifteenth frame and the item is still dark there.
+        for f in 797..825 {
+            built.tick();
+            assert_eq!(
+                built.sim.frame,
+                f + 1,
+                "the tick counter, so the frames below name themselves"
+            );
+            assert_eq!(
+                state(&built).0,
+                think_scout_target.0,
+                "`FRAME {}`: the box is in range and its item is not yet seen",
+                f + 1
+            );
+        }
+
+        // Frame 825 is the retarget, and the box's cell centre is where it
+        // aims.
+        built.tick();
+        assert_eq!(built.sim.frame, 826);
+        assert_eq!(
+            state(&built),
+            ((34_968, 38_040), vec![(34_944, 38_016)], 1),
+            "`FRAME 826`: the box's cell centre, one leg, and **one** order"
+        );
+
+        // …and it costs nothing: every frame from 796 to 878 spends the
+        // original's draws in the original's order.
+        for f in 826..879 {
+            built.tick();
+            assert_eq!(built.sim.frame, f + 1);
+        }
+        let ours: Vec<(i64, Vec<String>)> = built
+            .frame_sites
+            .iter()
+            .filter(|(f, _)| (796..879).contains(f))
+            .cloned()
+            .collect();
+        let bad: Vec<i64> = ours
+            .iter()
+            .filter(|(f, s)| *s != tr.labels(*f))
+            .map(|(f, _)| *f)
+            .collect();
+        assert_eq!(
+            bad,
+            Vec::<i64>::new(),
+            "the sweep spends no draw, so 796…878 stay the original's"
+        );
+
+        // Frame 879: the arrival, and the re-think it lets happen.
+        assert_eq!(built.sim.frame, 879);
+        assert_eq!(
+            state(&built),
+            ((34_944, 38_016), vec![], 0),
+            "`FRAME 879`: the walk is over and the list is empty"
+        );
+        built.tick();
+        let f879 = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 879)
+            .map(|(_, s)| s.clone())
+            .expect("frame 879's sites");
+        assert_eq!(
+            f879,
+            tr.labels(879),
+            "frame 879 is two stands, six ring pairs, two cell draws and five farms"
+        );
+        assert_eq!(
+            f879.iter()
+                .filter(|s| *s == sim::scout::SITE_ROTATION)
+                .count(),
+            6,
+            "an AI scout skips the even rings, so `max_ring` 12 walks six"
+        );
+        assert_eq!(
+            state(&built),
+            (
+                (31_224, 39_672),
+                vec![
+                    (31_200, 39_648),
+                    (32_760, 40_440),
+                    (33_528, 39_672),
+                    (34_296, 38_904)
+                ],
+                1,
+            ),
+            "`FRAME 880`: the re-think's own target, over four legs"
         );
     }
 
@@ -9230,9 +9450,19 @@ mod tests {
         // The headline 572/776, both players' first divergences and every
         // by-unit parting are unchanged; East Indies' word goes 742 → 867
         // and run33's own window totals rise 977/866 → 986/884.
+        //
+        // 97,108 -> **98,019** with item 106 (the scout's walk to a goody
+        // box), the twenty-second. **Three** of the fourteen moved and all
+        // three later: `1/0` parts at 959 rather than 872, `1/8` at 906
+        // rather than 904, and `1/10` at 1552 rather than 1522. `1/0` is
+        // the AI's scout and it is the unit the mechanic is about; the
+        // other two move because a scout that walks somewhere else is a
+        // different stream from frame 800 on. The headline 572/776 and
+        // both players' first divergences (802 and 573) are unchanged;
+        // East Indies' word goes 879 → 1256.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 97_108,
+            coll_seen, 98_019,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -9319,6 +9549,11 @@ mod tests {
         //
         // **1,298 with item 78**, the same frame back: `1/9` is still the
         // unit, and it is still trained late (item 74).
+        //
+        // **1,384 with item 106**, eleven frames on from the 1,373 the
+        // intervening items had reached: the scout's walk to a goody box
+        // moves `1/0` and, through the stream, the frames the AI's
+        // citizens re-pick on.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -9335,7 +9570,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(1373),
+            Some(1384),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -9484,8 +9719,11 @@ mod tests {
         // bearing): four fewer, the same two unit-frames the collision rows
         // lost, and no unit parts on a different frame. East Indies' word
         // goes 742 → 867.
+        // 37,170 → **37,450** with item 106 (the scout's walk to a goody
+        // box): 280 more, the three units that hold longer for it —
+        // `1/0` at 959, `1/8` at 906, `1/10` at 1552.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 37_170, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 37_450, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -10800,14 +11038,19 @@ mod tests {
             "run39 gather: {compared} fields to frame {parted}, first {}",
             first_bad.as_deref().unwrap_or("none disagreeing")
         );
-        // The floor, and it may only rise. Frame 897 is the successor:
-        // the human's `1/2` holds its tile with a wait ten short of the
-        // original's, so the whole record agrees for two hundred frames
-        // past the word and then parts on a clock, not on a branch.
+        // The floor, and it may only rise. Frame 897 used to be the
+        // successor — the human's `1/2` holding its tile with a wait ten
+        // short of the original's — and item 106 walked straight past it:
+        // the scout's walk to a goody box put the stream back on the
+        // original's, and the same clock now runs true through 1,572.
+        // **1,573 is the successor and it is the same shape**: the human's
+        // `0/1` holds `(31, 22)` with a wait of 543 where the original's
+        // holds 443, a hundred frames rather than ten, on the tile and
+        // phase both sides agree on. `docs/ORDERS.md` §6.4.
         assert!(
-            compared >= 16_152 && parted >= 897,
+            compared >= 24_738 && parted >= 1_573,
             "the wood machine's record fell: {compared} fields to frame {parted}, \
-             the floor is 16,152 and 897 — {}",
+             the floor is 24,738 and 1,573 — {}",
             first_bad.as_deref().unwrap_or("none disagreeing")
         );
     }

@@ -268,7 +268,7 @@ impl Sim {
     // ---- membership and the counts (§3) ----
 
     /// `UnitData::is_captain`: `o_up < 0`, a unit inside nothing.
-    fn is_captain(&self, u: usize) -> bool {
+    pub(crate) fn is_captain(&self, u: usize) -> bool {
         self.units[u].on_map && self.units[u].inside.is_none()
     }
 

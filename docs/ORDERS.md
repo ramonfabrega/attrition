@@ -2755,6 +2755,12 @@ what is listed as an input is stated as such in the code):
   value for the log. Guard, follow, patrol, attack-ground, the group orders,
   board/await-board, cast, trade, strafe, air and special-anim are documented
   above and not implemented — each is stated in §14.
+- **`do_explore_to`'s tail** (2026-08-31, item 106) — §4.1 has `do_job`
+  sending `EXPLORE_TO` to `do_explore_to`, and that function is `do_move`
+  **plus a mechanic**: one frame in fifteen, phased by `o`, a captain
+  (`o_up < 0`) whose order list still heads with *this* order runs
+  `Unit::find_goody_box@005f2540` and may re-aim the whole walk at a goody
+  box it has seen. No draw, and `docs/GOODY.md` §7 is the whole of it.
 - **`OrderList`** — a `VecDeque<Order>` whose **front is the current order**
   (the ring's `head->prev`); `add(order, QueuePos)`: `Last` → `push_back`;
   `First` → `push_front`; `New` → `close_orders` then `push_back`.

@@ -2181,3 +2181,32 @@ so removing the `0x900` gate left the assertion green. A guard that cannot
 fail has not been tested; the distance was moved to `(1500, 1500)` —
 `vector_dist 2250`, cell-Manhattan 4 — where only the `0x900` gate can
 produce a one-entry stack.
+
+## 17. `QUEUE_FIRST`'s insert, and the walk it drops
+
+*2026-08-31, item 106. Amends §6.2, which the guard's size pin will not let
+grow; §15 and §16 are the same shape.*
+
+§6.2's closing sentence — "this is `docs/ORDERS.md` §1.5's rotation, done at
+the group level" — is **wrong**, and the rest of §6.2 is what says so.
+`Group::set_up_insert@0070e520` copies only the leader's orders whose
+`flags & 4` is set, and that is the **action** bit. A plain transit move
+does not carry it, so it is not copied; `action_halt(this, 0)` then kills
+it, and `finish_insert` has nothing to put back. A group's `QUEUE_FIRST`
+therefore **drops** the walk a member was on, where the *unit's* own
+`QUEUE_FIRST` (`docs/ORDERS.md` §1.5) stacks the new order in front of it
+and keeps the old.
+
+The difference is diff-backed, and the caller that shows it is
+`Unit::get_goody_box@005f7690` (`docs/GOODY.md` §7.3): on frame 825 run39's
+AI scout re-aims at a goody box, and its `FRAME 826` record holds **one**
+order — the box's walk alone, with the `think_scout` target it was given on
+796 gone. A unit-level `QUEUE_FIRST` leaves two, which is what this crate
+did until this item, having passed the queue position straight down to
+`add_move_facing_order`.
+
+`finish_insert@0070e620` re-issues each copy as a **group** action at
+`QUEUE_LAST`, switching on the order's own index over twenty-one cases.
+`crates/sim/src/group.rs` carries the move and the attack arms and stands
+in for the rest; no capture on disk reaches a group `QUEUE_FIRST` whose
+leader holds one of the others, and `army_charge` is the only other caller.
