@@ -114,10 +114,10 @@ is obvious — and say so. Numbers are stable; the journal indexed by them.
     muster search reads it (ARMY §13). Find the writer — not
     `World::set_building_at`, which writes the *tile* mask.
 
-90. **The capture queue.** A capture is fourteen unattended minutes — the
-    screen for thirty seconds of lobby, then nothing — so it runs *beside*
-    a session. A scenario file (`longtrace.sh`'s inputs) and a script
-    running the lines back to back; 23, 96, 108 and 57 first.
+90. **The capture queue.** A capture is fourteen unattended minutes —
+    the screen for thirty seconds, then nothing — so it runs *beside* a
+    session; DECISIONS 27 is the lane's shape. A scenario file
+    (`longtrace.sh`'s inputs) and a script; 23, 96, 108 and 57 first.
 
 96. **A turning vehicle or ship, which no capture has.** `guy_flags & 8`
     is set for 273 of the install's 1,359 unit pieces and none of the eight

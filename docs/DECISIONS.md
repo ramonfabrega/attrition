@@ -1026,3 +1026,38 @@ subagents — stays exactly as entry 25 left it. The batch: the orders
 audit's R4 marker (`find_gather_tcoords@0063bdc0`) is unparked — its
 condition, a harness-built camp, is item 85's own finding — and travels
 with that item; R2 O1 stays parked, nothing depending on it.
+
+## 27. The second lane, if it runs, is the capture lane — an independent session, never a subagent
+
+**Decided 2026-08-31**, in the fourth steering session's coda, with the
+user. Settles the shape of entry 25's "one measured trial"; books
+nothing — the trial starts when the user opens the second terminal.
+
+**Why this lane.** Entry 25 allowed a parallel session only if fenced to
+widenings and captures. Item 90 *is* the fence: a capture's products are
+logs outside the repo — self-announcing to the main loop through
+`rondata::diff`, with no git coordination at all — and its only repo
+writes are `tools/` and ORACLE.md run sections, files the main loop
+rarely touches. The merge tax entry 25 feared rounds to zero.
+
+**Topology.** An independent session in its own worktree off
+`worktree-replan-pdb`, committing to its own branch, on Opus; the main
+loop or the user merges when convenient. Not a subagent and not a team
+hung off a main conversation, for three reasons with scars behind them:
+`/clear` or a session's end kills its in-flight agents, and a capture is
+fourteen minutes times four; the quota wall kills every agent in flight
+at once; and a permission-shaped failure — the consent dialogs macOS
+aims at screen drivers — must end a visible turn with a question, which
+a buried subagent cannot do. Messages between live sessions are allowed
+and never required; the filesystem is the interface.
+
+**The single-writer rule.** The screen, the `ron` bottle and the
+install's INIs are one global resource. While the capture lane exists,
+all game-driving belongs to it: a main-loop item that needs a
+behavioural check appends the run to the scenario file rather than
+taking the screen. One capture at a time.
+
+**The trial's measure.** The fifth steer asks two questions: did the
+owed captures (23, 96, 108, 57) land and retire their claims, and was
+the merge cost actually zero. Keep or kill on the answer; entry 25's
+"one trial and no more" stands.
