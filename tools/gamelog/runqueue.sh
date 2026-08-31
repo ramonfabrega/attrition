@@ -81,7 +81,7 @@ flush() {
     if [ -n "$window" ];  then pass+=("WINDOW=$window"); fi
     # `rontrace.cfg` is a several-line file when the trace takes a window of
     # its own, so `cover:` is repeatable and the lines are joined in order.
-    if [ ${#covers} -gt 0 ]; then pass+=("TRACE_COVER=${(j:\n:)covers}"); fi
+    if [ ${#covers} -gt 0 ]; then pass+=("TRACE_COVER=${(pj:\n:)covers}"); fi
     if [ -n "$driver" ];  then pass+=("DRIVER=$W/$driver"); fi
     if [ -n "$settle" ];  then pass+=("SETTLE_MIN=$settle"); fi
     # `cfg: -` is "no -config"; an absent cfg leaves longtrace.sh's own
@@ -91,7 +91,12 @@ flush() {
     elif [ -n "$cfg" ]; then
       pass+=("CFG=$cfg")
     fi
-    if [ ${#cmds} -gt 0 ]; then pass+=("CMD_EXTRA=${(j:\n:)cmds}"); fi
+    # `(j:\n:)` joins with a **literal** backslash-n in zsh; `p` is what makes
+    # it a newline. Without it every `cmd:` line of a stanza became one line of
+    # `rontrace.cmd`, `parse_cmd` took the first and silently ignored the rest,
+    # and the capture was of a scenario that half happened. `cmdsran.py` is
+    # what caught it — 3 lines parsed where the stanza wrote 4.
+    if [ ${#cmds} -gt 0 ]; then pass+=("CMD_EXTRA=${(pj:\n:)cmds}"); fi
     if [ -n "$DRY" ]; then
       echo "   would run: env ${pass} longtrace.sh $run $frames $tag $mapstyle"
       for c in "${checks[@]}"; do echo "   would check: $c"; done
