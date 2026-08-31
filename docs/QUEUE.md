@@ -15,27 +15,25 @@ lines, or lets the handoff pass 32.
 *2026-08-31, after item 109 (Opus).*
 
 **East Indies' word and sequence moved 1256 → 1373**, over two of the
-original's own bird landings. Great Lakes holds at 780 and its two window
-totals **fell** for the first time, 986/892 → **959/876** — every changed
-frame is 1209 or later, 429 past the parting, and the comment beside the
-lowered floor says why. run10's headline is unmoved at 572/776 with both
-divergences at 802 and 573; `1/10` holds to 1579, so its collision rows go
-98,019 → **99,607**, its angle rows 37,450 → **38,104** and its first bad
-gather tile 1,384 → **1,394**. run39's gaia rises 190,690 → **191,173** of
-192,504, first parting 1261 → **1381**; its gather record went 24,738
-fields to 1,573 → **26,094 to 1,686**, moving item 103 again without
-touching it. Tree green: 668 sim, 156 rondata.
+original's own bird landings: `do_air_patrol`'s tail steps a bird's
+`spell_time` once per landing (SYNC §3.9). Great Lakes holds at 780; its
+window totals **fell** for the first time, 986/892 → **959/876**, all of
+it 429+ past the parting, with the reason beside the lowered floor. run10
+holds at 572/776; every other sub-score rose, and the journal has the
+numbers. Tree green: 668 sim, 156 rondata.
 
-**A function read whole was missing a line, and the line was in its
-caller.** `Unit::do_air_patrol`'s tail sets a bird's `spell_time` to 1
-when `do_air_physics` leaves it at 0 — only ever the frame the landing
-search zeroed it, so one extra step per landing. SYNC §3.9.
+**The headline is Great Lakes at 780 and it has not moved since item
+100.** East Indies passed it at item 102, so 104, 106 and 109 were booked
+on the **higher** map — against "the lower map first" — and none said so.
+Sixteen items since the third steering pass, all East Indies; item 84 is
+the lower map's own and has sat fourth throughout.
 
-**Opener (Opus):** `take item 110 from @docs/QUEUE.md — East Indies' word
-at 1373 is the AI scout's ring walk: after six rings the original leaves
-it and spends `Unit::think_scout+0x941` once and `+0xaba` five times, two
-sites docs/SCOUT.md has never named; ours takes a seventh ring and draws a
-lone `+0x458`. SCOUT §6, §7.`
+**Opener (Fable, main thread):** `the fourth steering pass — read
+@docs/QUEUE.md and @docs/JOURNAL.md from the third pass (2026-08-30) on.
+Sixteen items, one map, the headline unmoved for six: is the tranche
+real, is Great Lakes at 780 stuck or unattended, what is the finish line.
+The batch is nearly empty — two open FABLE: rows, parked, in the orders
+audit — so the mandate is the steering half. You write the next opener.`
 
 ## The queue
 
@@ -85,9 +83,12 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     the end of 202 or 203, yet its Scout's `mylos` moves 4 → 6; ours moves
     at 202 too, so what is owed is the *cache*.
 
-89. **Two guards for the instrument itself.** (a) The handoff's numbers
+89. **Three guards for the instrument itself.** (a) The handoff's numbers
     equal `rondata::diff`'s pinned floors — one sat two items stale. (b)
     Every `name@00xxxxxx` a document cites names a function in `INDEX.tsv`.
+    (c) run33's floor asserts totals over 1,850 frames of which ~1,070 are
+    past its parting: a non-monotone score pinned as monotone, which fell
+    for the first time on item 109. run39 pins an early window instead.
 
 72. **A document and its code disagreeing is a diff waiting to be run.**
     Items 68, 79, 80, 74, **36 twice over** and now 107. Every
