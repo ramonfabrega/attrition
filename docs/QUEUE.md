@@ -13,33 +13,36 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 86 (Opus).*
+*2026-08-31, after item 99 (Opus).*
 
-**The headline did not move: East Indies' word and sequence hold at 413,
-Great Lakes' word at 780 and its sequence at 576 with 943/851.** What moved
-is the sub-score item 86 named. run39's queue record is **33,631 fields, 1
-disagreeing, first at 1851** — the capture's last frame, at `1/2000` — where
-it was 21 and 383, and both are pinned. run10 holds at ticks 572, orders 776,
-first divergences 802 and 573, roster 0 + 0; run39's own game score at
-167/167 with 217/168. Tree green: 650 sim, 149 rondata.
+**East Indies' word and sequence moved 413 → 576**; Great Lakes holds at
+780 and 576 with 943/851. run39's own game score is unchanged at 167/167
+with 217/168, and its queue record at 33,631 fields, 1 disagreeing, first
+at 1851. run10 holds at ticks 572, orders 776, first divergences 802 and
+573. Tree green: 653 sim, 150 rondata.
 
-**The science speedup and the science discount are two functions, not one.**
-The item was booked as `calc_science_discount@006da630` serving both call
-sites; the time side is an inline block in `ObjectData::train_time@006508c0`,
-with a *different* constant, the tech's `AGE` **raw** where the price side
-adds one, and a `level < epoch[3]` gate so falling behind costs nothing in
-time. The AI queues Written Word and City State at frame 2, both
-`JOB_TIME 200`: Written Word is itself the Science epoch, so it takes the
-full 20,000 and lands on 201; City State is then a level behind and takes
-18,000 and lands on **382**, where this crate landed it on 402.
-`docs/PRODUCTION.md` §"The record, diffed". The price side is applied too and
-is measured by nothing — every type any capture queues is one of two epochs,
-whose `ahead` is zero.
+**Item 99 was not the scout: it was the fog the scout reads.**
+`Build::activate@00623e20` ends with `update_seen(0)` — the whole disc —
+and nothing here threw it, so the grid grew only where units walked.
+run39's AI finishes its sixth farm on frame 219 at cell `(54, 51)`; at
+`mylos 8` (a building's LOS is `LOS + x_size / 2`) its disc lights the
+three cells of column 56 beside it and stops short of `(56, 54)`, which
+`think_scout` needs dark. Nineteen frames later the scout re-targets and
+the `EXPLORE_TO` path reads the grid: unseen ground costs a scout a base
+of 8 against a seen cell's `0x400`, so this crate walked *through* those
+three where the original goes round on the seen column 55 — and its scout
+arrived twelve frames late. `docs/VISION.md` §2.1, §8.
 
-**Opener (Opus):** `take item 99 from @docs/QUEUE.md — East Indies' word at
-413 is the AI's scout: the original spends two Unit::do_idle+0x7d idle anims
-and a nine-draw Unit::think_scout scan that this crate does not, 20 draws
-against 7. docs/SCOUT.md against run39's own trace.`
+**A monotone grid hides a missing write, not only a wrong one.** run13's
+ten-frame fog diff is exact — over frames 95–104 of a game in which no
+building finishes. `vision.rs` skipped buildings "because `seen2` is
+monotone", which answers a question nobody asked.
+
+**Opener (Opus):** `take item 100 from @docs/QUEUE.md — East Indies' word
+at 576 is the AI's second city: the original spends two
+Leader::make_stuff+0x221 draws per site inside
+place_city_with_cost/found_cities that this crate does not, 118 draws
+against 56. docs/AI.md against run39's own trace.`
 
 ## The queue
 
@@ -47,11 +50,13 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-99. **East Indies' word at 413, and it is the AI's scout.** The original
-    spends two `Unit::do_idle+0x7d` idle anims and a nine-draw
-    `Unit::think_scout` scan (`+0x436`/`+0x458` pairs, then `+0x64c`) that
-    this crate does not: 20 draws against 7. `docs/SCOUT.md` against
-    run39's own trace.
+100. **East Indies' word at 576, and it is the AI's second city.** Frame
+    576 is `ScenarioFuncSet::place_city_with_cost` five times over:
+    `Leader::compute_sites+0x4ac`/`+0x50a` twice each and then
+    **`Leader::make_stuff+0x221` twice**, inside `Leader::found_cities`,
+    which this crate does not spend at all — 118 draws against 56, parting
+    at the third. The frame also births an animal (`Animal::init`) and
+    runs a `Herd::process` pair. `docs/AI.md` against run39's own trace.
 
 69. **East Indies' order-list length at 168.** `1/4` and the original
     disagree on the order list at 168 and `1/5` at 186, and both are now

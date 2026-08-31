@@ -628,3 +628,13 @@ Two lessons, and the second is the larger.
   is wrong only while a unit turns and nothing turned far enough inside
   that window. So the widening is right and insufficient at once, which
   is the honest thing to record about it.
+- **And monotone hides a missing write, not only a wrong one** (item 99,
+  2026-08-31 — the same grid five days later). `vision.rs` skipped
+  buildings in the hundred-frame resync with the reason written down:
+  "because `seen2` is monotone — the pass cannot *remove* a bit from it".
+  True, and beside the point: nothing else in the crate wrote a
+  building's disc at all, so a farm finished mid-game revealed nothing
+  ever. The general form: **a justification for skipping work must name
+  the write that covers it, not a property of the store.** The same
+  ten-frame diff was exact throughout, because no building finishes
+  inside its window.

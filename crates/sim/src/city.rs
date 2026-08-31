@@ -1212,6 +1212,7 @@ impl Sim {
         let Some(ty) = self.buildings[b].ty else {
             self.buildings[b].active = true;
             self.buildings[b].activated = true;
+            self.update_seen_build(b);
             return;
         };
         // Chinese cities are founded as Large Cities.
@@ -1297,6 +1298,10 @@ impl Sim {
         // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
         // the bonus for the ones the player has never held.
         self.claim_gather_slots(b, captured, counted);
+        // The function's **last** statement, vtable `+0x174` with `ring =
+        // 0`: the finished building lights its whole fog disc
+        // (`docs/VISION.md` §2.1, §6).
+        self.update_seen_build(b);
     }
 
     /// `Build::activate`'s tail: a finished gather building's slots join the

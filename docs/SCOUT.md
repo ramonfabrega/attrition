@@ -653,6 +653,17 @@ The checks:
   frame the scout was turning. The word went 482 → **571**.
 - `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six`, whose
   frame-0 row moves from 165/175 to **175/175** with this.
+- `rondata::diff`'s
+  `run39_s_sixth_farm_lights_the_cells_its_scout_then_paths_around`
+  (2026-08-31, item 99) — which is **not** this mechanic and is here
+  because the frame it pins looked exactly like it. East Indies parts at
+  413 with two `do_idle` anims and this call's nine draws missing, and the
+  cause is three cells of fog three hundred frames upstream: a building
+  lights its own disc when it finishes (`docs/VISION.md` §2.1), nothing
+  here did, and the scout's `EXPLORE_TO` path therefore ran through
+  ground the original could see and priced accordingly. The scan itself
+  was never wrong; the scout was twelve frames late to run it. The word
+  went 413 → **576**.
 - `crate::no_float` and `crate::soak` as everywhere else.
 
 ## 13. What is not established

@@ -7175,6 +7175,21 @@ mod tests {
     ///               never queued. With the statics live the queue clock
     ///               runs 100 to 9,750 on the original's own frames and
     ///               the guy is born on 274.
+    ///   2026-08-31  word **413 -> 576** (item 99), **the building's own
+    ///               line of sight**: `Build::activate@00623e20`'s last
+    ///               statement is `update_seen(0)` — the whole fog disc —
+    ///               and nothing here threw it, so the fog grew only where
+    ///               units walked. The AI's sixth farm finishes on frame
+    ///               219 at cell `(54, 51)` with `mylos 8`, which lights
+    ///               the three cells of column 56 east of it; nineteen
+    ///               frames later `Unit::think_scout` re-targets and the
+    ///               `EXPLORE_TO` path runs *through* those cells here — a
+    ///               scout prices unseen ground at a base of 8 against a
+    ///               seen cell's `0x400` — where the original, which can
+    ///               see them, walks the seen column 55 instead. Its scout
+    ///               therefore arrived on 412 and idled on 413 while this
+    ///               one was still twelve frames short. `docs/VISION.md`
+    ///               §2.1.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7296,11 +7311,134 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 413 && first_part >= 413 && words >= 64 && matched >= 64,
+            first_count >= 576 && first_part >= 576 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 413, 413, 64 and 64"
+             {matched} draw for draw — the floor is 576, 576, 64 and 64"
         );
+    }
+
+    /// **A building's own line of sight, and the scout's path that reads
+    /// it** (2026-08-31, item 99) — the mechanic behind the word's
+    /// 413 → 576, asserted where a count cannot see it.
+    ///
+    /// run39's AI finishes its sixth farm on frame **219** at cell
+    /// `(54, 51)`; `Wall::update_los` gives it `mylos 8` (`LOS 6` plus half
+    /// its `X_SIZE 4`), so `Build::activate`'s closing `update_seen(0)`
+    /// lights a radius-4 disc that reaches the three cells of column 56
+    /// beside it — and stops short of `(56, 54)`, which
+    /// `Unit::think_scout` still needs dark to pick as a target.
+    ///
+    /// Nineteen frames later the scout re-targets, and the path it plans is
+    /// the whole point: with those cells dark a scout's `EXPLORE_TO` search
+    /// prices them at a base of **8** against a seen cell's `0x400` and
+    /// runs straight through them; with them lit it walks the seen column
+    /// 55, which is what the original's dumped stack says it does. Both
+    /// halves are here, and both were made to fail first — by dropping
+    /// `update_seen_build` from `Sim::activate`, which puts the three cells
+    /// back in the dark and the path back on column 56.
+    #[test]
+    fn run39_s_sixth_farm_lights_the_cells_its_scout_then_paths_around() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+        // The three cells the farm lights, and the one it must not: their
+        // `2c + 1` half-cells, which is what both readers sample.
+        let lit = [(56, 50), (56, 51), (56, 52)];
+        let seen = |b: &Built, (cx, cy): (i32, i32)| {
+            b.sim
+                .world
+                .seen2(2 * cx + 1, 2 * cy + 1)
+                .is_some_and(|v| v & 2 != 0)
+        };
+        for _ in 0..218 {
+            built.tick();
+        }
+        assert!(
+            lit.iter().all(|&c| !seen(&built, c)),
+            "column 56 is lit before the farm finishes"
+        );
+        for _ in 218..220 {
+            built.tick();
+        }
+        assert!(
+            lit.iter().all(|&c| seen(&built, c)),
+            "the finished farm did not light column 56"
+        );
+        assert!(
+            !seen(&built, (56, 54)),
+            "the disc reached (56, 54), which think_scout needs dark"
+        );
+
+        // And the path the scout plans on frame 238, entry for entry
+        // against the original's own stack. Its middle three are the whole
+        // of the disagreement: column 55 where this crate ran column 56.
+        for _ in 220..=238 {
+            built.tick();
+        }
+        let theirs: Vec<(i64, i64, i64, i64)> = log
+            .frame_states()
+            .into_iter()
+            .find(|f| f.n == 239)
+            .expect("the dump's frame 239 is sim-frame 238")
+            .units
+            .into_iter()
+            .find(|ud| ud.who == 1 && ud.o == 0)
+            .expect("the AI scout")
+            .path
+            .iter()
+            .map(|p| (p.to.0, p.to.1, p.tolerance, p.flags))
+            .collect();
+        assert_eq!(
+            theirs,
+            vec![
+                (43488, 41952, 0, 1),
+                (42744, 41208, 384, 0),
+                (42744, 40440, 384, 0),
+                (42744, 39672, 384, 0),
+                (42744, 38904, 384, 0),
+                (42744, 38136, 384, 0),
+                (41976, 37368, 384, 0),
+            ],
+            "the original's own seven entries"
+        );
+        let v = built
+            .units
+            .iter()
+            .find(|l| l.who == 1 && l.o == 0)
+            .map(|l| l.unit)
+            .expect("the AI scout");
+        let ours: Vec<(i64, i64, i64, i64)> = built.sim.units[v]
+            .path
+            .iter()
+            .map(|p| {
+                (
+                    i64::from(p.to.x),
+                    i64::from(p.to.y),
+                    i64::from(p.tolerance),
+                    i64::from(p.flags),
+                )
+            })
+            .collect();
+        assert_eq!(ours, theirs, "the scout's stack on the frame it re-targets");
     }
 
     /// **The production queues, whole**, against run39's own record —

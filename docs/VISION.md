@@ -1,7 +1,9 @@
-# Vision — what a unit reveals as it moves
+# Vision — what a unit reveals as it moves, and what a building reveals
+when it is finished
 
 `Object::update_seen@00651b80`, `World::set_seen@006b3c60`,
-`Unit::update_los@0060e4d0`, and the two callers that decide when they run.
+`Unit::update_los@0060e4d0`, `Wall::update_los@0063eeb0`, and the three
+callers that decide when they run.
 
 **How this was established.** Entirely from the decompile and the listing —
 `tools/ghidra/decomp` for the bodies, `llvm-objdump` over
@@ -92,6 +94,50 @@ two, so a term is worth a *fog* cell only when it reaches 2.
 `epoch[Science]` is `LeaderDataEncrypt::epoch[3]` — the type record makes
 `+0xe8 int[4] epoch` and `+0xf4` its fourth entry, and the `^ 0x87` in the
 decompile is the low byte of the `^ 0x63187` the sibling `int` reads use.
+
+## 2.1 A building's line of sight — `Wall::update_los@0063eeb0`
+
+`Build` and `Wall` share vtable slot `+0x160`, and the function there is
+**not** §2's: it is a shorter one with a tail §2 has no counterpart to.
+
+```
+if !is_started                  { mylos = 0; return 0 }
+if !is_active && !vfunc(+0x2c)  { mylos = 0; return 0 }
+if !is_active                   { mylos = 1; goto tail }
+if !(leader_flags & 1) { mylos = 0; c = 0 } else { c = type->los; mylos = c }
+mylos = epoch[Science] * type->science_los + c
+if is_fort()        mylos += constants.fort_upgrade_range[get_fort_los() + 4]
+else if is(0x1b7)   mylos += constants.tower_fort_range[get_tower_fort_los() + 3]
+if (fort or tower) and has_wonder(0x212)  mylos += constants.colosseum_fort_range
+if leader has furs                        mylos += constants.furs_los
+tail: mylos += type->x_size / 2
+```
+
+**The tail is the half nobody would guess**, and the dump is what settles
+it. run39's AI opens with a Small City at `mylos 15` (`LOS 12`,
+`X_SIZE 7`), a Woodcutter's Camp at **7** (`6`, `2`) and four Farms at
+**8** (`6`, `4`); every one of them is `LOS + X_SIZE / 2`. The city then
+goes to **17** on sim-frame 202 — the frame its Science epoch reaches 1
+— which is the science term with the Small City's `SCIENCE_LOS 2`.
+
+Three consequences worth stating:
+
+- An **unfinished** building sees `1 + x_size / 2`, never its type's
+  `LOS`; an unstarted one sees nothing. run39's sixth farm is dumped at
+  `mylos 0` from the frame it is placed (frame 2, `flags 1`) through the
+  frame it is started (70, `flags 3`) — because nothing *calls*
+  `update_los` in between — and at **8** from the frame it activates.
+- The fort, tower, colosseum and furs terms are read and not carried; none
+  can fire in any capture on disk. Every one of them is an addition to a
+  value §3 halves, so a term is worth a fog cell only when it reaches 2.
+- `type->x_size` is the footprint in **tiles**, the same field the block
+  mask is sized by, and the division is C's — toward zero.
+
+The caller is what makes this matter: **`Build::activate@00623e20`'s last
+statement is `update_seen(0)`**, the whole disc, at vtable `+0x174`, after
+`update_hits` (`+0x15c`) and `update_los` (`+0x160`) a few lines above it.
+So a building lights its disc on the frame it is finished, and
+`update_all_seen` (§6) throws it again every hundredth frame.
 
 ## 3. The radius, and where it is centred
 
@@ -263,6 +309,14 @@ added; what it rebuilds is `seen`, and the consequence worth writing down
 is that **current visibility is only fully recomputed every hundred
 frames** — between resyncs `seen` only ever grows.
 
+**Every building that finishes.** `Build::activate@00623e20` ends with
+`update_seen(0)` — the whole disc at §2.1's radius, from the building's
+own half-cell, since a building is not `is_unit()` and §3's projection is
+an `is_unit()` case. This is the third caller, and it is the one this
+simulation lacked until 2026-08-31: the fog grew only where units walked,
+so a farm finished mid-game revealed nothing at all. What that cost is in
+§8.
+
 `Unit::update_local_seen@0060e410` is the second, smaller reveal: an
 object with `ObjectData::visible != 0` lights `circle_radius[type->x_size]`
 points around its own half-cell into `seen2` and `seen` with the
@@ -342,10 +396,12 @@ simulation sets `visible`.
 |---|---|---|
 | 1 | `seen` and `seen2`, and `World::set_seen` answering "newly revealed" | `world.rs` |
 | 2 | `Sim::unit_los` — terms 1–5b and 12, of which only the type's own `LOS`, the citizen terms and the science term can be nonzero here | `vision.rs` |
+| 2.1 | `Sim::build_los` — the started/active heads, the science term and the `x_size / 2` tail; the fort, tower, colosseum and furs terms are seams | `vision.rs` |
+| 2.1, 5 | `Sim::build_sweep` and `Sim::update_seen_build` — the whole disc at the building's own half-cell | `vision.rs` |
 | 3, 4 | `Sim::seen_sweep` — the radius, the forward projection **along `UnitData::angle`**, and the four index ranges | `vision.rs` |
 | 4 | `vision::ring` — `ring_init` rebuilt in integers | `vision.rs` |
 | 5 | `Sim::update_seen` | `vision.rs` |
-| 6 | `Sim::moved_to` at the move step and at the gather stand, `Sim::update_seen` at ejection, `Sim::update_all_seen` from `tick` | `orders.rs`, `garrison.rs`, `lib.rs` |
+| 6 | `Sim::moved_to` at the move step and at the gather stand, `Sim::update_seen` at ejection, `Sim::update_seen_build` from `Sim::activate`, `Sim::update_all_seen` — now units **and** buildings — from `tick` | `orders.rs`, `garrison.rs`, `city.rs`, `lib.rs` |
 
 **The differential check is §2's, and it is the whole of run10.** Every
 object record carries `ObjectData::mylos` at every detail level — which is
@@ -389,13 +445,43 @@ monotone grid hides its own errors until something downstream reads a
 cell, and the reading arrives wearing the downstream mechanic's name. A
 radius one fog cell too large fails the new check on its first frame.
 
-**Thirteen deliberate breakages, all red.** Ten against the unit tests
+**The third differential check is §2.1's, and it is what the second one
+could not see** (2026-08-31, item 99). run13's ten frames are frames 95 to
+104 of a game in which no building finishes, so a grid that grows only
+from units passed it exactly — and the defect it missed cost East Indies
+a hundred and sixty-three frames of word. run39's AI finishes its sixth
+farm on frame **219** at cell `(54, 51)`; at `mylos 8` its disc has radius
+4 and reaches the three cells of column 56 beside it, and stops short of
+`(56, 54)`, which `Unit::think_scout` still needs dark to pick as its next
+target. Nineteen frames later the scout re-targets, and the `EXPLORE_TO`
+path it plans is what reads the grid: a scout prices an unseen cell at a
+base of **8** against a seen cell's `0x400` (`docs/PATHFINDER.md` §5), so
+with those three cells dark it walked *through* them, and with them lit it
+takes the seen column 55 — which is the original's own dumped stack, entry
+for entry. `diff::tests::run39_s_sixth_farm_lights_the_cells_its_scout_
+then_paths_around` is both halves, and
+`run39_s_long_trace_says_where_the_second_map_s_word_parts` went
+**413 → 576** with it.
+
+The lesson is the twin of item 79's, and it is now in
+`docs/audit/README.md`: a monotone grid hides its errors until something
+reads a cell, and *"the pass cannot remove a bit, so it need not run"* —
+which is what this module's own comment said about buildings — answers a
+question nobody asked. Monotonicity says a second sweep cannot **unset**
+anything. It says nothing about a sweep that was never thrown.
+
+**Sixteen deliberate breakages, all red.** Ten against the unit tests
 (the radius divisor, the science term, the projection and its gate, the
 ring table's reach, `ring_init`'s patch condition and its strict
 inequality, the half-cell trigger, the resync's frame, `set_seen`'s
 return) and three against the diff (a trained unit losing its type again,
 the nomad term firing on every map, the merchants' fixed radius applied
-to every type). Two of the ten were caught only after the *guard* was
+to every type), and three for §2.1 (the `x_size / 2` tail dropped, the
+unfinished building given its type's `LOS`, and `update_seen_build`
+dropped from `Sim::activate` — which leaves the score at 576, because the
+hundred-frame pass covers this one case on frame 233, and fails the
+frame-220 half of the new diff, which is the whole reason that half is
+there). Two of the ten were caught only after the *guard* was
 strengthened: `moved_to` now answers `None` when the half-cell test
 skipped the reveal, because a fog-cell count cannot tell a skipped sweep
 from a repeated one, and the ring case asserts the ring table's own

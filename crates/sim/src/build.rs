@@ -155,6 +155,12 @@ pub struct BuildType {
     /// The footprint, in tiles.
     pub x_size: i32,
     pub y_size: i32,
+    /// `LOS` and `SCIENCE_LOS`, in tiles — what `Wall::update_los@0063eeb0`
+    /// (the slot `Build` shares) reads for a finished building, and the
+    /// input to the fog disc `Build::activate` throws
+    /// (`docs/VISION.md` §2.1).
+    pub los: i32,
+    pub science_los: i32,
     /// The `BUILD_FLAGS` bits; see [`flags`].
     pub flags: u32,
     /// `JOB_TIME`: the construction time's base, in frames at `1/1`.

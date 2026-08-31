@@ -8394,3 +8394,97 @@ The two sides are inverses of each other only for an age or an epoch:
 `reprice` reads `AGE` raw where `science_discount` adds one, and
 `the_refund_inverts_the_discount_exactly_for_an_epoch` pins that asymmetry as
 the original's rather than a bug in one of them.
+
+## 2026-08-31 — a building's own line of sight (item 99, Opus)
+
+The item was booked as the AI's scout: East Indies parts at frame 413, where
+the original spends two `Unit::do_idle+0x7d` idle anims and a nine-draw
+`Unit::think_scout` scan and this crate spends none of them. It was the
+scout's *arrival* that was late, not its scan. The original's `1/0` reaches
+its explore target on frame 412 and idles on 413; this one was still twelve
+frames short, because the two had taken different routes since **285**.
+
+### What the two routes were
+
+Both scouts are ordered `EXPLORE_TO (43512, 41976)` on frame 238 by the same
+`think_scout` call, draw for draw. The dump prints the whole path stack at
+`UNITS=3`, and the two differ in exactly three of seven entries: the original
+walks cells `(55, 50)`, `(55, 51)`, `(55, 52)`; this crate walked
+`(56, 50)`, `(56, 51)`, `(56, 52)`, one column east.
+
+`PathFinder::calc_cost` is what chooses, and for a scout the fog is the whole
+of it: an unseen world cell costs base **8** and a seen one **0x400**
+(`docs/PATHFINDER.md` §5), a factor of 128 against a diagonal's surcharge of
+8. Column 55 is inside the AI's frame-0 reveal and column 56 is not — so with
+this crate's fog, column 56 was 128× cheaper and the search took it. The
+arithmetic was not close: 151 against 512.
+
+### The false trails, and what closed it
+
+Three readings were checked and all three held. `find_wpath@00688fc0`'s
+`scouting` predicate — the type's scout bit, `EXPLORE_TO`, the order's
+`flags & 4`, `get_type() == 3` — is byte-verified in the listing at
+`0x68957c`, including the `cmovel` that makes the write conditional and the
+`movl $0x0, 0xe85ed4` that resets it at the head; nothing about it can differ
+between two calls of the same unit. `calc_cost`'s own branch, the fog read at
+`div_3_table[to >> 7]`, and `div_3_table` itself (`n / 3`, filled by
+`init_coord_lookup_array@00681db0`) are all as `docs/PATHFINDER.md` had them.
+And the frame-1 path — nine entries, reproduced exactly — *needs* the scout's
+fog pricing: turning it off costs the word 187 frames.
+
+So the model was right and its **input** was wrong. Forcing the three cells
+seen from frame 234 moved the word 413 → 576 in one run, which said the fog
+and nothing else. The reveal is `Build::activate@00623e20`'s last statement,
+vtable `+0x174`, `update_seen(0)` — the whole disc. run39's AI finishes its
+sixth farm on frame **219** at cell `(54, 51)`, and nothing in this crate
+threw that disc: the grid grew only where units walked.
+
+### `Wall::update_los`, and the tail nobody would guess
+
+A building's line of sight is not `Unit::update_los`. `Build` and `Wall`
+share slot `+0x160`, and the function there ends
+`mylos += type->x_size / 2` — a term the unit's has no counterpart to. The
+dump is what settles it, and it is unambiguous: run39's AI opens with a Small
+City at `mylos 15` (`LOS 12`, `X_SIZE 7`), a Woodcutter's Camp at 7 (`6`,
+`2`) and four Farms at 8 (`6`, `4`), and the city goes to **17** on frame 202
+— the frame its Science epoch reaches 1, `SCIENCE_LOS` being 2. An unfinished
+building sees `1 + x_size / 2`; an unstarted one sees nothing. All of it is
+`docs/VISION.md` §2.1.
+
+At `mylos 8` the farm's disc has radius 4, which reaches the three cells of
+column 56 beside it and stops short of `(56, 54)` — the cell `think_scout`
+still needs dark to pick as its next target, and does. That coincidence is
+the check: force `(56, 54)` seen and frame **0** breaks, because the
+original's own ring walk accepts it there.
+
+### Why the fog diff did not catch it
+
+`run13_s_fog_grid_is_the_original_s_on_every_cell_of_ten_frames` compares all
+144,000 cells over ten frames and is exact. It covers frames 95–104 of a game
+in which no building finishes. And `vision.rs`'s own comment had justified
+skipping buildings in the hundred-frame resync "because `seen2` is monotone —
+the pass cannot *remove* a bit from it", which is true and answers a question
+nobody asked: monotonicity says a second sweep cannot unset anything, and
+says nothing about a sweep that is never thrown. The lesson is the twin of
+item 79's, five days earlier, and it is the same grid.
+
+### What landed
+
+`Sim::build_los`, `Sim::build_sweep` and `Sim::update_seen_build` in
+`vision.rs`; the call at the end of `Sim::activate`; buildings walked by
+`update_all_seen` beside units; `BuildType::los`/`science_los` through the
+loader. Three unit tests and one diff —
+`run39_s_sixth_farm_lights_the_cells_its_scout_then_paths_around`, which
+asserts the three cells dark on 218 and lit on 220, `(56, 54)` still dark,
+and the scout's stack on 238 entry for entry against the original's. All four
+made to fail first; dropping the `activate` call leaves the *word* at 576,
+because the hundred-frame pass happens to cover this one case on frame 233,
+and that is exactly why the frame-220 half of the diff exists.
+
+**East Indies' word and sequence: 413 → 576.** Great Lakes holds at 780 and
+576 with 943/851; run10 at 572 ticks, 776 orders, 802/573; run39's own game
+score at 167/167 with 217/168 and its queue record at 33,631 fields with one
+disagreement. The new parting frame is the AI's **second city**:
+`place_city_with_cost` five times over, and the two
+`Leader::make_stuff+0x221` draws each of them spends that this crate does
+not — 118 draws against 56.

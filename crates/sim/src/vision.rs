@@ -257,6 +257,93 @@ impl Sim {
         })
     }
 
+    /// `Wall::update_los@0063eeb0` — the **building's** line of sight,
+    /// which sits in the same vtable slot (`+0x160`) as the unit's and is a
+    /// different function (`docs/VISION.md` §2.1).
+    ///
+    /// ```text
+    /// if !is_started              { mylos = 0; return 0 }
+    /// if !is_active && !vfunc0x2c { mylos = 0; return 0 }
+    /// if !is_active              { mylos = 1; goto tail }
+    /// mylos = type->LOS + epoch[Science] * type->SCIENCE_LOS
+    /// <fort, tower, colosseum and furs terms>
+    /// tail: mylos += type->x_size / 2
+    /// ```
+    ///
+    /// The tail is what the dump's figures are read off: run39's AI opens
+    /// with a Small City at `mylos 15` (`LOS 12`, `X_SIZE 7`), a
+    /// Woodcutter's Camp at `7` (`6`, `2`) and four Farms at `8`
+    /// (`6`, `4`) — and the city goes to **17** on the frame its Science
+    /// epoch reaches 1, which is the science term with `SCIENCE_LOS 2`.
+    /// SEAM: the fort/tower/colosseum and furs terms are read and not
+    /// carried; none can fire in any capture on disk.
+    pub fn build_los(&self, b: usize) -> i32 {
+        let bd = &self.buildings[b];
+        if !bd.started || !bd.alive {
+            return 0;
+        }
+        let Some(rec) = bd.ty else { return 0 };
+        let ty = &self.build_types[rec];
+        let mut los = if bd.active {
+            let epoch = self
+                .tech
+                .get(bd.owner as usize)
+                .map_or(0, |t| t.epoch[crate::tech::Line::Science.index()]);
+            ty.los + epoch * ty.science_los
+        } else {
+            1
+        };
+        los += ty.x_size / 2;
+        los
+    }
+
+    /// The disc `Object::update_seen(0)` walks for a building: its own
+    /// half-cell, radius `los / 2`, the whole circle. A building is not
+    /// `is_unit()`, so §3's projected centre never applies to it.
+    pub fn build_sweep(&self, b: usize) -> Option<Sweep> {
+        let los = self.build_los(b);
+        if los == 0 {
+            return None;
+        }
+        let mut r = (los * UNITS_PER_TILE) / UNITS_PER_FOG;
+        if r > MAX_RADIUS {
+            r = MAX_RADIUS;
+        }
+        let pos = self.buildings[b].pos;
+        Some(Sweep {
+            centre: (fog_of(pos.x), fog_of(pos.y)),
+            radius: r,
+            ring: false,
+            start: 0,
+            end: circle().radius[r as usize],
+        })
+    }
+
+    /// `Object::update_seen@00651b80` for a building — the call
+    /// `Build::activate@00623e20` makes last, at vtable `+0x174` with
+    /// `ring = 0`.
+    ///
+    /// **This is what a building erected during a game reveals**, and until
+    /// 2026-08-31 nothing here did it: the fog grew only where units walked,
+    /// so run39's AI farm at cell `(54, 51)` — finished on frame 219 — left
+    /// the three cells east of it dark, and nineteen frames later its
+    /// scout's `EXPLORE_TO` path ran through them as cheap unexplored ground
+    /// where the original, which could see them, went round
+    /// (`docs/PATHFINDER.md` §5, `docs/SCOUT.md`).
+    pub fn update_seen_build(&mut self, b: usize) -> usize {
+        if !self.world.has_fog() || !self.buildings[b].alive {
+            return 0;
+        }
+        let who = self.buildings[b].owner;
+        if who >= 8 {
+            return 0;
+        }
+        let Some(sw) = self.build_sweep(b) else {
+            return 0;
+        };
+        self.write_sweep(&sw, who)
+    }
+
     // ------------------------------------------------------------------
     // §5 — the write
     // ------------------------------------------------------------------
@@ -279,6 +366,11 @@ impl Sim {
         let Some(sw) = self.seen_sweep(u, ring_pass) else {
             return 0;
         };
+        self.write_sweep(&sw, who)
+    }
+
+    /// §5's loop, shared by the unit's disc and the building's.
+    fn write_sweep(&mut self, sw: &Sweep, who: crate::Player) -> usize {
         let mask = 1u8 << who;
         let (cx, cy) = sw.centre;
         let (fw, fh) = (self.world.fog_xs(), self.world.fog_ys());
@@ -329,17 +421,24 @@ impl Sim {
     /// keeps: every unit's whole disc, `frame % 100 == 0x21`.
     ///
     /// The original clears `seen` and `seen3` first and rebuilds `seen` from
-    /// every object, buildings included. Here the clear is skipped and only
-    /// units are walked, because `seen2` is monotone — the pass cannot
-    /// *remove* a bit from it — and `seen` has no reader. What it is for is
-    /// the units the incremental path misses: one that never crosses a
-    /// half-cell still gets its disc every hundred frames.
+    /// every object. Here the clear is skipped, because `seen2` is monotone
+    /// — the pass cannot *remove* a bit from it — and `seen` has no reader.
+    /// What the pass is for is the objects the incremental path misses: a
+    /// unit that never crosses a half-cell, and **every building**, which
+    /// has no incremental path at all.
+    ///
+    /// `update_local_seen` — the second, smaller reveal a *started*
+    /// building makes through `ObjectData::visible` — is still not carried
+    /// (§6); nothing here sets `visible`.
     pub(crate) fn update_all_seen(&mut self) {
         if !self.world.has_fog() {
             return;
         }
         for u in 0..self.units.len() {
             self.update_seen(u, false);
+        }
+        for b in 0..self.buildings.len() {
+            self.update_seen_build(b);
         }
     }
 }
@@ -380,6 +479,88 @@ mod tests {
             .flat_map(|y| (0..fw).map(move |x| (x, y)))
             .filter(|&(x, y)| s.world.seen2(x, y).is_some_and(|v| v & (1 << who) != 0))
             .count()
+    }
+
+    /// The same world with one **building** of the caller's `LOS`,
+    /// `SCIENCE_LOS` and footprint, finished and on a cell centre.
+    fn fog_build(los: i32, science_los: i32, x_size: i32) -> (crate::Sim, usize) {
+        let mut world = World::new(40, 40);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+        assert!(world.set_fog(vec![0; 80 * 80]));
+        let mut s = crate::Sim::new(Tuning::RON, world, 2);
+        let t = s.add_build_type(crate::build::BuildType {
+            los,
+            science_los,
+            x_size,
+            y_size: x_size,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(20 * 0x300 + 0x180, 20 * 0x300 + 0x180);
+        let b = s.add_building(0, at, 0);
+        s.buildings[b].ty = Some(t);
+        (s, b)
+    }
+
+    /// §2.1: a building's `mylos` is its type's `LOS`, plus the science
+    /// term, plus **half its footprint** — the tail
+    /// `Wall::update_los@0063eeb0` adds last and the unit's own
+    /// `update_los` has no counterpart to.
+    ///
+    /// The three run39 opens with are the oracle: a Small City
+    /// (`LOS 12`, `X_SIZE 7`) at `mylos 15`, a Woodcutter's Camp
+    /// (`6`, `2`) at `7`, a Farm (`6`, `4`) at `8` — and the city at
+    /// **17** once its Science epoch is 1, `SCIENCE_LOS` being 2.
+    #[test]
+    fn a_buildings_los_adds_half_its_footprint_and_the_science_term() {
+        for (los, x, want) in [(12, 7, 15), (6, 2, 7), (6, 4, 8), (8, 4, 10)] {
+            let (s, b) = fog_build(los, 0, x);
+            assert_eq!(s.build_los(b), want, "LOS {los}, X_SIZE {x}");
+        }
+        let (mut s, b) = fog_build(12, 2, 7);
+        assert_eq!(s.build_los(b), 15);
+        s.tech[0].epoch[crate::tech::Line::Science.index()] = 1;
+        assert_eq!(s.build_los(b), 17, "the science term");
+        assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(8));
+    }
+
+    /// §2.1's head: an unstarted building sees nothing, and a started but
+    /// unfinished one sees `1 + x_size / 2` — never its type's `LOS`.
+    #[test]
+    fn an_unfinished_building_sees_one_plus_half_its_footprint() {
+        let (mut s, b) = fog_build(12, 0, 7);
+        s.buildings[b].active = false;
+        assert_eq!(s.build_los(b), 4);
+        s.buildings[b].started = false;
+        assert_eq!(s.build_los(b), 0);
+        assert!(s.build_sweep(b).is_none());
+    }
+
+    /// §6: the disc a finished building throws is the **whole** circle at
+    /// its own half-cell — never §3's projected centre, which is an
+    /// `is_unit()` case — and `update_all_seen` throws it again.
+    #[test]
+    fn a_finished_building_lights_its_whole_disc_from_its_own_half_cell() {
+        let (mut s, b) = fog_build(6, 0, 4);
+        let own = (fog_of(s.buildings[b].pos.x), fog_of(s.buildings[b].pos.y));
+        let sw = s.build_sweep(b).expect("a finished building sees");
+        assert_eq!(
+            (sw.centre, sw.radius, sw.ring, sw.start),
+            (own, 4, false, 0)
+        );
+        assert_eq!(sw.end, circle().radius[4]);
+        assert_eq!(s.update_seen_build(b), sw.end, "every point is new");
+        assert_eq!(seen(&s, 0), sw.end);
+        // The half-cell four east is inside the disc and the one six south
+        // of that is not — the octagonal radius, not a square.
+        assert!(s.world.seen2(own.0 + 4, own.1).is_some_and(|v| v & 1 != 0));
+        assert!(
+            s.world
+                .seen2(own.0 + 4, own.1 + 6)
+                .is_some_and(|v| v & 1 == 0)
+        );
+        // Idempotent, and the hundred-frame pass runs it for buildings too.
+        s.update_all_seen();
+        assert_eq!(seen(&s, 0), sw.end);
     }
 
     /// §3: `LOS` is in tiles and the fog radius is half of it, truncating.
