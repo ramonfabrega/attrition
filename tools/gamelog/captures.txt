@@ -91,3 +91,44 @@ settle_min: 100000000
 # worth asserting is that both `add`s executed — an `INFO cmd` record apiece —
 # and that the window really did open at 100.
 check: python3 tools/gamelog/cmdsran.py gamelog-run43-roadterraform.txt 2
+
+run: 44
+tag: islands-turners
+item: 96
+why: a turning unit, which no capture has — guy_flags & 8 and the turn override
+# `Guy::do_turn@005d97a0:15` swaps the standing walk for CHAR_TURN_LEFT/RIGHT
+# on a guy whose piece names a turn, and no guy in any capture on disk carries
+# the bit. The reading that makes this stageable is **which** call fires the
+# override: `Unit::move_step` passes 1 only on its two turn-in-place branches,
+# but `Guy::move:109` calls `turn_towards(this, des_angle, _, 1)` — and
+# `turn_towards` passes that straight through to `do_turn` — on the standing
+# arm, guarded only by `guy_flags & 2`, which every dumped guy has clear. So a
+# turner unit **turning towards a target in a fight** fires it, which is far
+# easier to stage than a 180-degree walk.
+#
+# The units are chosen off `unit_graphics.xml`: 274 of its 1,435 <UNIT> pieces
+# name a CHAR_TURN_LEFT/RIGHT, across 40 base names, and CATAPULT, TREBUCHET
+# and PIKEMEN are the three of them an Ancient-age game can be handed. Both
+# sides get some, so the capture does not depend on either the AI's response
+# or the human's units surviving.
+frames: 700
+mapstyle: 18
+cfg: -
+# GUYS=**4**, not run39's 2: `GuyData::log_data@005de6c0` announces levels 2,
+# 3 and 4 and `cur_anim` sits past the last, so at 2 a GUY block stops after
+# `ox` and the question cannot be asked of the file at all.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1
+# runwin.sh's tiles, which are known-good land beside the AI capital on this
+# lobby (the AI starts on 198-214 x 201-214). A Quick Battle already starts at
+# war, so no `war` line is needed — run23 is the null result that established
+# it.
+cmd: 150 add catapult who=1 203,207
+cmd: 152 add catapult who=1 205,207
+cmd: 154 add trebuchet who=1 203,210
+cmd: 160 add hoplite who=0 206,210
+cmd: 162 add hoplite who=0 206,208
+cmd: 164 add pikemen who=0 204,212
+cmd: 166 add catapult who=0 207,212
+check: python3 tools/gamelog/cmdsran.py rontrace-run44.log 150:1 152:1 154:1 160:1 162:1 164:1 166:1
+check: python3 tools/gamelog/turnanim.py gamelog-run44-islands-turners.txt
