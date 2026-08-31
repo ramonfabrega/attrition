@@ -368,3 +368,63 @@ cmd: 200 camera 30,167
 cmd: 320 camera 6,167
 cmd: 440 camera 30,167
 check: python3 tools/gamelog/groupfacing.py gamelog-run50-greatlakes-echelon.txt
+
+run: 51
+tag: greatlakes-tooltip
+item: 23
+driver: tools/gamelog/tooltipprobe.sh
+ffwd: -
+why: is the profile's <KEYS> read at all — the one question the Echelon half waits on
+# run50 bound FORM_E_RIGHT and the formation never changed, which is equally
+# consistent with "the profile is not read" and "the bind was wrong in some
+# detail" — a formation that does not happen looks the same either way. So
+# bind something whose key is **visible**: `OPTION_AUTO_EXPLORE` prints its
+# own binding in its tooltip, and run48 photographed it saying CTRL+E. Rebind
+# it to F9 and hover.
+#
+#   tooltip says F9     -> the profile IS read; run50's bind was wrong
+#   tooltip says CTRL+E -> the profile is NOT read, and the <INPUT> belongs in
+#                          the shipped data/playerprofile.xml instead
+#
+# Run `bindkey.py OPTION_AUTO_EXPLORE 120` before and `bindkey.py --restore`
+# after. The photograph is the evidence; the dump is incidental.
+frames: 250
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+start: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+settle_min: 1000000
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 170 camera 15,168
+cmd: 180 select hoplite who=0
+
+run: 52
+tag: greatlakes-keypress
+item: 23
+driver: tools/gamelog/keypressprobe.sh
+ffwd: -
+why: does a synthetic keystroke reach a bound action — the other half of run51
+# run51 settled that the profile's <KEYS> **is** read: Auto Explore's tooltip
+# stopped saying CTRL+E and started saying F9. That leaves run50 unexplained
+# rather than explained — its FORM_E_RIGHT bind would have loaded the same
+# way, so the formation not changing means either the keystroke never arrived
+# or the action wants a context the scenario lacked. This separates them on
+# the one action whose state is legible: Auto Explore prints ON or OFF.
+#
+#   OFF -> press F9 -> ON    the keystroke arrives; run50's problem is
+#                            FORM_E_RIGHT's context, not the input path
+#   OFF -> press F9 -> OFF   the keystroke does not arrive, and every driven
+#                            capture needs the mouse rather than the keyboard
+#
+# Keep `bindkey.py OPTION_AUTO_EXPLORE 120` in place from run51; restore after.
+frames: 260
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+start: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+settle_min: 1000000
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 170 camera 15,168
+cmd: 180 select hoplite who=0
