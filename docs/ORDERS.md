@@ -1204,6 +1204,53 @@ the three quiet passes `docs/DATALAYER.md` saw.
 
 ---
 
+## 4.9 The row, the jump, and what a diff now backs (2026-08-31)
+
+**The whole `MOVEORDER` row is compared** (`OrderMismatch::Move` in
+`rondata::diff`), field for field against every dumped move of both maps.
+Until this item only `coll_x/coll_y` was, and the cost of that is the
+lesson: East Indies' `1/4` was booked for three days as an order-list
+*length* at frame 168, because the two sides had picked different farm
+tiles on **167** and no comparison read the field that said so. §4.1's
+table had been diff-backed since 2026-08-26 for run29's four states; this
+is the same table asserted on every frame of a 1,850-frame capture.
+
+Three of the row's fields are **reported and do not score**, each for a
+stated reason, exactly as `UnitOrder::flags` is:
+
+- `dest` — the original clears it on arrival, on a `go_around_building`
+  failure, after `resolve_unit_collision` and on a collision at
+  `coll_x/coll_y`. Three of the four are the pathfinder seam's own timing.
+  `dest_x/dest_y` is compared on the frames `dest` says it is live, and the
+  path stack scores outright.
+- `last_x/last_y` — written only by a *successful detour*, the same seam.
+- `facing` — the formation mirror, whose sign is an open question
+  (`docs/GROUPS.md` §6.3).
+
+**`goto STEP` lands past the pause check**, and it is worth stating as a
+rule rather than leaving in §4.4's pseudocode. The straight-line check's
+success jumps to `STEP`; only the re-plan's `TAKE` comes back through
+`STEP_IF_MOVING`, and only a unit that *already* held `unit_masks & 8` at
+entry reaches the check at all. So **a unit that re-verifies its line this
+frame steps this frame, and its collision `pause` does not tick.**
+
+run10's `1/2` is the worked example, and the dump carries every field of
+it. Frame 572: `resolve_unit_collision` writes `pause 3`, `coll_x/coll_y
+40752/17630` and `dest 0`, and the unit stands at `(40728, 17640)`. Frame
+**573**: `dest` is 1 again, `pause` is **still 3**, and the unit has moved
+to `(40728, 17615)` — the fresh waypoint was verified and stepped in the
+same frame. Frames 574, 575, 576: `pause` 2, 1, 0 with the position
+unchanged, the three still frames. 577 steps.
+
+Ticking the pause on 573 costs one frame for the rest of that walk, and it
+was worth **209 frames of the headline**: Great Lakes' ticks 572 → 781 and
+its player 1 573 → 782, East Indies' 536 → 1373 orders. Both maps' tick
+scores now sit one frame past their own word parting, which is what a
+capture that holds position for exactly as long as it holds the stream
+looks like.
+
+---
+
 ## 5. Build, repair, garrison — and what a citizen does next
 
 ### 5.1 The structures
@@ -1321,17 +1368,15 @@ for a FARM** under `BUILD_AT`; `find_nearby_spot(site, R, …, FILTER_NOT_ME)`
 `0x30` further from the site's centre on each axis and re-validated with
 radius 0; `add_move_facing_order(spot, angle, mode = BUILD_AT ? 1 | (human ? 0
 : 2) : 1, pathed 0, pos, action…)` — in the dump the order this creates is an
-**`EXPLORETOORDER`** (type 3); for `pos == QUEUE_LAST` on a member whose
+**`EXPLORETOORDER`** (type 3). **That `angle` is `find_angle(site − spot)`,
+from the spot the ring returned and *before* the `BUILD_AT` nudge** — the
+builder arrives facing what it will build — and **not** the ring's own sweep
+bearing, `find_angle(unit − site)`. The decompiler prints both calls with the
+same locals (the pair travels in `ecx`/`edx`); the listing settles it
+(`7103f3`, `710415`, `71021a`). Diffed, §4.9; for `pos == QUEUE_LAST` on a member whose
 action is `GATHER` with `action != 0`, the pos becomes `QUEUE_NEW` (the gather
 is pre-empted); then `add_build_order(o, who, QUEUE_LAST, action)` (or
 `add_repair_order`), and for `BUILD_AT` the site's `build_masks &= ~0x2000`.
-
-Four additions from the second reading (R3 S1, S6, S9, S10): a `QUEUE_FIRST`
-swarm is a **re-entry that halts the group first**; a barge or a carried unit
-has its footprint substituted; the scratch group closes with an
-`action_move_to`; and the members' spots deconflict **through
-`find_nearby_spot`'s own occupancy test**, not through any geometric
-spreading — which is why two builders never need a formation.
 
 Four additions from the second reading (R3 S1, S6, S9, S10): a `QUEUE_FIRST`
 swarm is a **re-entry that halts the group first**; a barge or a carried unit

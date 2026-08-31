@@ -1087,6 +1087,17 @@ pub enum OrderMismatch {
         ours: Option<(i32, i32)>,
         theirs: (i64, i64),
     },
+    /// One field of a `MOVEORDER`'s own row, named as the log writes it
+    /// (`docs/ORDERS.md` §4.1). The destination is the one that matters:
+    /// two sides can hold the same kind, the same target and the same
+    /// flags while walking to different points, and the first thing any
+    /// other check sees is a `Length` a few frames later when one of them
+    /// arrives and the other does not.
+    Move {
+        field: &'static str,
+        ours: i64,
+        theirs: i64,
+    },
     /// The path stack's depth.
     PathLength { ours: usize, theirs: usize },
     /// A path segment's goal, bottom-first.
@@ -1104,9 +1115,30 @@ impl OrderMismatch {
     }
 
     /// Whether it counts against the order score. Everything does except
-    /// [`Self::Flags`], for the reason on that variant.
-    pub const fn scores(&self) -> bool {
-        !matches!(self, Self::Flags { .. })
+    /// [`Self::Flags`], for the reason on that variant, and two fields of
+    /// [`Self::Move`]:
+    ///
+    /// - **`dest`** is "I have a current waypoint", and the original clears
+    ///   it on arrival, on a `go_around_building` failure, after
+    ///   `resolve_unit_collision` and on a collision at `coll_x/coll_y`
+    ///   (`docs/ORDERS.md` §4.1) — three of the four are the pathfinder
+    ///   seam's own timing, which this crate does not reproduce frame for
+    ///   frame. `dest_x/dest_y`, the waypoint itself, scores on the frames
+    ///   the flag says it is live, and the path stack scores outright.
+    /// - **`last_x/last_y`** is where the last straight-line plan was made,
+    ///   and only a *successful detour* writes it — `go_around_building`,
+    ///   the same seam.
+    /// - **`facing`** is the formation mirror, and `docs/QUEUE.md` item 23
+    ///   is the open question of its sign: the mirrors the orders carry and
+    ///   the flags the pool prints are known to be two different sequences.
+    ///
+    /// Both are reported, because a surprise in either is worth seeing.
+    pub fn scores(&self) -> bool {
+        match self {
+            Self::Flags { .. } => false,
+            Self::Move { field, .. } => !matches!(*field, "dest" | "facing" | "last_x" | "last_y"),
+            _ => true,
+        }
     }
 
     /// The variant's name, for a tally.
@@ -1119,6 +1151,7 @@ impl OrderMismatch {
             Self::Flags { .. } => "flags",
             Self::Gather { .. } => "gather",
             Self::Coll { .. } => "coll",
+            Self::Move { .. } => "move",
             Self::PathLength { .. } => "path-length",
             Self::PathTo { .. } => "path-to",
         }
@@ -1698,6 +1731,65 @@ fn compare_orders(
                 at(slot, OrderMismatch::Coll { ours: mine, theirs });
             }
         }
+        // **The move order's own row**, field for field (§4.1) — every
+        // field of the record this crate models. `tolerance`, `retry`,
+        // `attempts` and `orig_x/orig_y` are left out because nothing here
+        // writes them and `run29_s_move_orders_match_the_field_table_row_
+        // for_row` already pins them against the original; `off_x/off_y`
+        // are `x mod 0x300` and so are the destination said twice, which
+        // is worth having as a check on this crate's own snapping.
+        //
+        // Until 2026-08-31 the whole row went uncompared and only
+        // `coll_x/coll_y` was read, which is how East Indies' `1/4` came
+        // to be booked as an order-list *length* at frame 168: the two
+        // sides had picked different camp spots on **167**, and nothing
+        // looked at the field that said so.
+        if let sim::orders::Body::Move(m) = ours.body {
+            // `dest_x/dest_y` is the **current waypoint**, and it is live
+            // only while `dest` is 1: on arrival the original clears the
+            // flag and leaves the pair holding the waypoint it just
+            // reached (§4.1), which is state this crate does not carry.
+            // So the pair is compared on the frames the flag says it means
+            // something, and `dest` itself on every frame.
+            let live = m.has_waypoint && theirs.dest == Some(1);
+            let last = m.last.unwrap_or(sim::Pos::new(-1, -1));
+            for (field, mine, logged) in [
+                ("x", i64::from(m.dest.x), theirs.x),
+                ("y", i64::from(m.dest.y), theirs.y),
+                ("angle", i64::from(m.angle.0), theirs.angle),
+                ("dest", i64::from(m.has_waypoint), theirs.dest),
+                (
+                    "dest_x",
+                    i64::from(m.waypoint.x),
+                    live.then_some(theirs.dest_x).flatten(),
+                ),
+                (
+                    "dest_y",
+                    i64::from(m.waypoint.y),
+                    live.then_some(theirs.dest_y).flatten(),
+                ),
+                ("last_x", i64::from(last.x), theirs.last_x),
+                ("last_y", i64::from(last.y), theirs.last_y),
+                ("pause", i64::from(m.pause), theirs.pause),
+                ("timer", i64::from(m.timer), theirs.timer),
+                ("facing", m.facing.map_or(-1, i64::from), theirs.facing),
+                ("off_x", i64::from(m.dest.x).rem_euclid(0x300), theirs.off_x),
+                ("off_y", i64::from(m.dest.y).rem_euclid(0x300), theirs.off_y),
+            ] {
+                if let Some(theirs) = logged
+                    && theirs != mine
+                {
+                    at(
+                        slot,
+                        OrderMismatch::Move {
+                            field,
+                            ours: mine,
+                            theirs,
+                        },
+                    );
+                }
+            }
+        }
         // **The gather order's own row**, field for field (§6.4). The kind
         // and the target agreeing says only that both sides are working the
         // same camp; the tile, the phase and the countdown are what say they
@@ -1962,7 +2054,7 @@ pub fn run_with(
     limit: Option<usize>,
     stream: Option<&mut crate::input::Stream>,
 ) -> Option<Report> {
-    run_traced(loaded, log, tuning, limit, stream, &[])
+    run_traced(loaded, log, tuning, limit, stream, &[], None)
 }
 
 /// Fills `init`'s checksum trace and height grid from the first sibling
@@ -2132,6 +2224,16 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
 /// path's checksum trace is the RNG state") and the terrain's height grid
 /// (only a `DUMP_ALL` dump prints it; run3 is this map's). The dump's own
 /// data wins; the first sibling that has each thing supplies it.
+///
+/// **`trace` is a source too, and the score depends on it.** A pasture's
+/// five animals are owner 9 and no dump prints them (`docs/SYNC.md` §3.6);
+/// only [`crate::trace::Trace::add_animals`] has them. They roll an idle
+/// every frame, so a map whose AI built a pasture and a run that borrowed
+/// none are **not the same simulation** — the stream parts within a few
+/// frames of the pasture going up and every later figure is on a stream
+/// that is nobody's. East Indies' score sat at 167 for two days for
+/// exactly that reason (2026-08-31, item 69); with the trace it is 1374,
+/// which is the word's own parting. Pass the trace wherever one exists.
 pub fn run_traced<'a, 'b: 'a>(
     loaded: &Loaded,
     log: &Log<'a>,
@@ -2139,9 +2241,13 @@ pub fn run_traced<'a, 'b: 'a>(
     limit: Option<usize>,
     stream: Option<&mut crate::input::Stream>,
     siblings: &[&Initial<'b>],
+    trace: Option<&crate::trace::Trace>,
 ) -> Option<Report> {
     let mut init = log.initial()?;
     borrow_from_siblings(&mut init, siblings);
+    if let Some(tr) = trace {
+        borrow_pasture(&mut init, tr);
+    }
     let players = player_count(&init);
     let mut built = build_sim(loaded, &init, tuning);
     let mut report = Report {
@@ -3695,7 +3801,7 @@ mod tests {
         );
 
         // The counts, on the original's own stream.
-        let report = run_traced(&loaded, &log, Tuning::RON, Some(4), None, &[]).unwrap();
+        let report = run_traced(&loaded, &log, Tuning::RON, Some(4), None, &[], None).unwrap();
         let count = |f: i64| -> (Option<u32>, Option<u32>) {
             let &(_, ours, theirs) = report
                 .rng_frames
@@ -4564,7 +4670,7 @@ mod tests {
         );
         assert_eq!(inits[2].frame_seeds.len(), 10);
         let refs: Vec<&Initial> = inits.iter().collect();
-        let report = run_traced(&loaded, &log, Tuning::RON, Some(105), None, &refs).unwrap();
+        let report = run_traced(&loaded, &log, Tuning::RON, Some(105), None, &refs, None).unwrap();
         let count = |f: i64| -> (Option<u32>, Option<u32>) {
             let &(_, ours, theirs) = report
                 .rng_frames
@@ -6498,10 +6604,18 @@ mod tests {
         // 1256 -> 1373, and run39's landings up to its word are the
         // original's exactly
         // ([`a_bird_s_landing_frames_are_the_trace_s_own`]).
+        //
+        // 959 / 876 -> **953 / 877** with item 69's collision pause
+        // (`docs/ORDERS.md` §4.4, `goto STEP`), the second fall and the
+        // same kind of noise: the word and the sequence hold at **780**,
+        // and every frame whose verdict changed is past it, on a stream
+        // that is nobody's. What the item did move is the score — this
+        // map's ticks 572 -> 781 and East Indies' 167 -> 1374 — which is
+        // the number these two are instruments beside.
         assert!(
-            words >= 959 && matched >= 876,
+            words >= 953 && matched >= 877,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 959 and 876"
+             {matched} draw for draw; the floors are 953 and 877"
         );
     }
 
@@ -7368,7 +7482,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -7534,7 +7652,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -7706,7 +7828,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -7891,7 +8017,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -8023,7 +8153,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -8149,7 +8283,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -8244,7 +8382,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -8349,7 +8491,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -8498,7 +8644,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -8677,9 +8827,10 @@ mod tests {
     #[test]
     fn run39_s_islands_game_is_the_second_map_s_score() {
         let Some(inst) = install() else { return };
-        let (Some(path), Some(sib)) = (
+        let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -8691,7 +8842,20 @@ mod tests {
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
-        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs).unwrap();
+        // **The pasture is a source, and without it this is a different
+        // game.** East Indies' AI builds one, its five animals are owner 9
+        // and no dump prints them, and they roll an idle every frame — so
+        // a score run that borrows none parts from the original within a
+        // few frames of the pasture going up, and every figure below is
+        // then on a stream that is nobody's. That is what pinned this map
+        // at 167 (item 69). The assertion is the guard: a run that loses
+        // the pasture fails here rather than quietly scoring low.
+        assert_eq!(
+            tr.add_animals().len(),
+            1,
+            "run39's trace reached the setup and East Indies' AI has one pasture"
+        );
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
         // 1,851: the `1850 !quit` runs at the top of frame 1850, and the
         // block the quit interrupts is written too.
         assert_eq!(report.frames.len(), 1851, "run39's length");
@@ -8800,11 +8964,43 @@ mod tests {
         //               ([`an_animal_more_than_0x180_from_its_order_hurries_by_three_halves`]),
         //               which is a stronger statement about this
         //               simulation than two frames of a citizen.
+        //   2026-08-31  ticks **1374**, orders **536**; player 0 @ **1411**,
+        //               player 1 @ **1375** (item 69: **the score run was
+        //               not the run the word measures**). Every figure
+        //               above was taken on a simulation with no pasture in
+        //               it: `run_traced` borrowed the siblings' initial
+        //               state and the trace was handed only to the word's
+        //               own check, so the five owner-9 animals no dump
+        //               prints were missing from the one run that scored.
+        //               They roll an idle a frame, so the stream parted
+        //               within a few frames of the pasture going up and
+        //               everything downstream — `1/4`'s farm re-target at
+        //               167, `1/5`'s at 186, player 0's citizens at 217 —
+        //               was a different game's arithmetic, not a mechanic.
+        //               With the trace passed in, ticks land **one frame
+        //               past the word's own parting at 1373**, which is
+        //               what a converged capture looks like: the
+        //               simulation holds position for as long as it holds
+        //               the stream, and parts when the stream does.
+        //
+        //               Orders followed to **1373** on the same item's
+        //               second half — the collision pause's own frame
+        //               (`docs/ORDERS.md` §4.4, `goto STEP`) — so both
+        //               numbers now sit **on the word's parting**: this
+        //               capture holds position and intent for exactly as
+        //               long as it holds the stream. The next figure to
+        //               move is the word's, and 1373 is item 110's.
+        //
+        //               The comparison behind `orders` is also wider than
+        //               it was: the same item added `OrderMismatch::Move`,
+        //               the whole `MOVEORDER` row, of which `dest`,
+        //               `facing` and `last_x/last_y` are reported and do
+        //               not score (see [`OrderMismatch::scores`]).
         assert!(
-            ticks >= 167 && orders >= 167 && first[0] >= 217 && first[1] >= 168,
+            ticks >= 1374 && orders >= 1373 && first[0] >= 1411 && first[1] >= 1375,
             "the second map's score fell: ticks {ticks}, orders {orders}, first \
-             divergence {:?} — the floor is ticks 167, orders 167, player 0 @ 217, \
-             player 1 @ 168",
+             divergence {:?} — the floor is ticks 1374, orders 1373, player 0 @ 1411, \
+             player 1 @ 1375",
             report.first_divergence
         );
     }
@@ -8826,7 +9022,7 @@ mod tests {
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
-        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs).unwrap();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, None).unwrap();
         assert_eq!(report.frames.len(), 1772);
 
         // **The headline.** Phase 3's score is ticks before divergence, and
@@ -9240,14 +9436,31 @@ mod tests {
         // It is what says whether an item moved the whole or only the
         // unit it was about, and every history line below quotes it.
         eprintln!("run10 by unit: {:?}", report.first_divergence_by_unit());
+        eprintln!(
+            "run10 orders by unit: {:?}",
+            report.order_divergence_by_unit()
+        );
         // 2026-08-30, the third steer (Fable): items 81 and 74 had moved
         // orders 576 → 776 and player 0's first divergence 687 → 802 and
         // left this line where it was; the queue carried the numbers and
         // the assertion did not. Raised to what the run prints.
+        //
+        // 2026-08-31, item 69: ticks **572 -> 781** and player 1 **573 ->
+        // 782**, on `do_move`'s `goto STEP` (`docs/ORDERS.md` §4.4). The
+        // jump the straight-line check takes when it succeeds lands past
+        // the pause check, so a unit that re-verifies its line under a
+        // collision pause **steps that frame and does not tick the
+        // pause**. `1/2` is the case, field for field in the dump: the
+        // collision at 572 writes `pause 3` and `coll_x/coll_y`, 573 steps
+        // with the pause still 3, and 574–576 are the three still frames.
+        // Ticking on 573 put this simulation one frame ahead for the rest
+        // of that walk and parted the position at 573. The order score
+        // holds at 776 under a **wider** comparison — the same item added
+        // the whole `MOVEORDER` row — and East Indies goes to 1374/1373.
         assert!(
-            ticks >= 572 && orders >= 776 && first[0] >= 802 && first[1] >= 573,
+            ticks >= 781 && orders >= 776 && first[0] >= 802 && first[1] >= 782,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 572, orders 776, player 0 @ 802, player 1 @ 573",
+             — the floor is ticks 781, orders 776, player 0 @ 802, player 1 @ 782",
             report.first_divergence
         );
         assert!(
@@ -9600,9 +9813,13 @@ mod tests {
         // different stream from frame 800 on. The headline 572/776 and
         // both players' first divergences (802 and 573) are unchanged;
         // East Indies' word goes 879 → 1256.
+        //
+        // 98,019 -> **99,343** with item 69's two halves, the twenty-third.
+        // The total is scoped to agreeing unit-frames, so it moves with the
+        // headline; ticks 572 -> 781 is what moved it.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 99_607,
+            coll_seen, 99_343,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -9626,10 +9843,27 @@ mod tests {
             .flat_map(|f| f.collide_diverged.iter().copied())
             .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
             .collect();
+        // 2026-08-31, item 69: **two field-frames, and they are the
+        // item's own residue.** With ticks 572 -> 781 the comparable
+        // window grew by two hundred frames on every unit, and `1/6`'s
+        // frame 797 came inside it: this crate's `collide` counter reads
+        // **3** where the original's reads 2 and its `collide_frame` is
+        // **796** against 795 — one collision more, entered a frame later,
+        // on the unit whose position then parts at 798. It is the
+        // collision seam one layer under the pause, and it is the queue's
+        // successor to this item. Everything else in the window is still
+        // empty, and any third row fails this.
         assert_eq!(
-            coll_bad,
-            vec![],
-            "the collision block agrees on every comparable field-frame of {coll_seen}"
+            coll_bad
+                .iter()
+                .map(|d| (d.frame, d.who, d.o, d.field, d.ours, d.theirs))
+                .collect::<Vec<_>>(),
+            vec![
+                (797, 1, 6, "collide", 3, 2),
+                (797, 1, 6, "collide_frame", 796, 795),
+            ],
+            "the collision block agrees on every comparable field-frame of {coll_seen} \
+             but `1/6`'s 797"
         );
 
         // **The tile choice, asserted where it was wrong** (item 25). The
@@ -9862,8 +10096,15 @@ mod tests {
         // 37,170 → **37,450** with item 106 (the scout's walk to a goody
         // box): 280 more, the three units that hold longer for it —
         // `1/0` at 959, `1/8` at 906, `1/10` at 1552.
+        // 38,104 → **37,838** with item 69's two halves. The four units
+        // whose parting moved are `1/2` 573 → **1184**, `1/1` 794 → 797,
+        // `1/6` 795 → 798 and `1/10` 1579 → **1528**; the total counts
+        // every agreeing unit-frame of the whole capture, coincidences
+        // past a parting included, so it falls by 266 while the score it
+        // sits beside rises by 209 frames. The number to read is the
+        // headline.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 38_104, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 37_838, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -10034,7 +10275,7 @@ mod tests {
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
         let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
         let refs: Vec<&Initial> = inits.iter().collect();
-        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs).unwrap();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, None).unwrap();
 
         assert_eq!(report.frames.len(), 432, "the dump's frame count");
         assert!(report.orders_seen(), "run6 is a UNITS=3 dump");
@@ -10971,7 +11212,11 @@ mod tests {
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run39.log"),
+            dump("rontrace-run39.log").and_then(|p| {
+                crate::trace::Trace::read(std::path::Path::new(&p))
+                    .ok()
+                    .flatten()
+            }),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;

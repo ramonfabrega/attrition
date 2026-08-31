@@ -1294,6 +1294,19 @@ impl Sim {
         // the `+0x17c` virtual, which an animal overrides
         // ([`Sim::get_speed`]).
         let speed = self.get_speed(u);
+        // `if (masks & 8) goto STEP` (§4.4): the jump the straight-line
+        // check takes when it succeeds lands **past** the pause check, so a
+        // unit that verifies its line this frame steps this frame even with
+        // a collision pause running — and the pause does not tick. Only the
+        // re-plan's own `TAKE` comes back through `STEP_IF_MOVING`, and so
+        // does a unit that already had the bit at entry.
+        //
+        // run10's `1/2` is the case, and it is worth a line: the collision
+        // at frame 572 sets `pause = 3` and clears the bit; 573 re-verifies
+        // and **steps with `pause` still 3**; 574–576 are the three still
+        // frames. Ticking on 573 put this simulation a frame ahead for the
+        // rest of the walk (2026-08-31, item 69).
+        let mut straight_to_step = false;
         if !self.units[u].line_ok {
             self.units[u].path_recursion = 0;
             let goal = mo.waypoint;
@@ -1311,6 +1324,7 @@ impl Sim {
                     _ => self.units[u].line_ok = false,
                 }
             }
+            straight_to_step = self.units[u].line_ok;
             if !self.units[u].line_ok {
                 // The straight line is not enough: the pathfinder's job
                 // (§4.4). An unreachable goal with more orders queued kills
@@ -1426,8 +1440,8 @@ impl Sim {
             }
         }
 
-        // Stepping.
-        if mo.pause != 0 {
+        // Stepping — `STEP_IF_MOVING`, which `goto STEP` jumps past.
+        if !straight_to_step && mo.pause != 0 {
             mo.pause -= 1;
             self.store_move(u, mo, flags);
             return Did::Something;
@@ -2218,7 +2232,19 @@ impl Sim {
 
     /// The swarm ring (§5.4): `min(x_size, y_size) × 0x60 + 0x30`, halved
     /// for a farm under a build, nudged `0x30` outward.
-    fn swarm_spot(&self, u: usize, b: usize, building: bool) -> Option<Pos> {
+    ///
+    /// Returns the spot **and the move order's angle**, which is
+    /// `find_angle(site − spot)` — the bearing from the spot back to the
+    /// site, so a builder arrives facing what it is about to build. It is
+    /// taken from the ring's own answer, *before* the `BUILD_AT` nudge:
+    /// the listing at `7103f3`–`710406` reads the two out-parameters of
+    /// `find_nearby_spot` straight into the subtraction and only then, at
+    /// `710415`, runs `leal 0x30(%esi)` on the same register. The
+    /// decompiler prints both of the function's `find_angle` calls with
+    /// the same two locals because the pair travels in `ecx`/`edx`, and
+    /// they are not the same pair: the first is `find_angle(unit − site)`
+    /// (`71021a`), the ring's sweep bearing, and this is the second.
+    fn swarm_spot(&self, u: usize, b: usize, building: bool) -> Option<(Pos, Angle)> {
         let bd = &self.buildings[b];
         let (xs, ys) = bd.ty.map_or((1, 1), |t| {
             (self.build_types[t].x_size, self.build_types[t].y_size)
@@ -2230,8 +2256,9 @@ impl Sim {
         let here = self.units[u].pos;
         let angle = find_angle(here.x - bd.pos.x, here.y - bd.pos.y);
         let spot = self.find_nearby_spot(u, bd.pos, r, 0, -1, angle, Some(b))?;
+        let facing = find_angle(bd.pos.x - spot.x, bd.pos.y - spot.y);
         if !building {
-            return Some(spot);
+            return Some((spot, facing));
         }
         // The `+0x30` nudge away from the site on each axis, re-validated
         // as a one-candidate ring.
@@ -2245,18 +2272,28 @@ impl Sim {
             }
         };
         let nudged = Pos::new(nudge(spot.x, bd.pos.x), nudge(spot.y, bd.pos.y));
-        Some(
+        Some((
             self.find_nearby_spot(u, nudged, 0, 0, 0, angle, Some(b))
                 .unwrap_or(spot),
-        )
+            facing,
+        ))
     }
 
     /// `Group::action_swarm_around` for one unit: the approach move in
     /// front, then the order re-queued with the same action bit.
     pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
         let building = matches!(body, Body::Build(_));
-        if let Some(spot) = self.swarm_spot(u, b, building) {
-            self.add_move_order(u, spot, MoveKind::ExploreTo, QueuePos::First, false);
+        if let Some((spot, facing)) = self.swarm_spot(u, b, building) {
+            self.add_move_facing_order(
+                u,
+                spot,
+                MoveKind::ExploreTo,
+                QueuePos::First,
+                false,
+                facing,
+                None,
+                false,
+            );
         }
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },

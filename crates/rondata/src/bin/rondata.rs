@@ -89,7 +89,14 @@ fn main() -> ExitCode {
             Some(path) => {
                 let mut f = f + gamelog_report(&install, path)?;
                 if let Some(limit) = diff {
-                    f += diff_report(&install, path, limit, recgame.as_deref(), &siblings)?;
+                    f += diff_report(
+                        &install,
+                        path,
+                        limit,
+                        recgame.as_deref(),
+                        &siblings,
+                        trace.as_deref(),
+                    )?;
                 }
                 Ok(f)
             }
@@ -191,6 +198,7 @@ fn diff_report(
     limit: Option<usize>,
     recgame: Option<&str>,
     siblings: &[String],
+    trace: Option<&str>,
 ) -> Result<usize, rondata::Error> {
     use rondata::gamelog::{Initial, Log};
 
@@ -258,6 +266,12 @@ fn diff_report(
         }
         None => None,
     };
+    // The trace is a source, not only a report: a pasture's five animals
+    // are in no dump and they draw every frame, so a run without them is a
+    // different game (`run_traced`).
+    let tr = trace
+        .and_then(|p| rondata::trace::Trace::read(std::path::Path::new(p)).ok())
+        .flatten();
     let Some(report) = rondata::diff::run_traced(
         &loaded,
         &log,
@@ -265,6 +279,7 @@ fn diff_report(
         limit,
         stream.as_mut(),
         &sibling_refs,
+        tr.as_ref(),
     ) else {
         println!("  no BEGIN GAME in the log; nothing to diff");
         return Ok(failures);

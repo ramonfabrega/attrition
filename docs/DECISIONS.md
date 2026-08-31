@@ -1061,3 +1061,45 @@ taking the screen. One capture at a time.
 owed captures (23, 96, 108, 57) land and retire their claims, and was
 the merge cost actually zero. Keep or kill on the answer; entry 25's
 "one trial and no more" stands.
+
+## 28. A check asserts its own inputs, and a harness source belongs to every run
+
+**Decided 2026-08-31**, on item 69. Refines entry 24's "the score is the
+finish line"; overturns nothing.
+
+**What was found.** East Indies' score read 167/167 for two days and the
+whole of the previous tranche was reasoned against it. It was not a
+mechanic and not a bad number — it was a *different game*. `rondata::diff`
+stands the simulation up from a dump plus whatever a run "borrows": the
+sibling dumps' checksum trace, heights, herds and farms, and — since
+2026-08-26 — a pasture's five owner-9 animals, which appear in no dump at
+all and come only from the draw-site trace (`docs/SYNC.md` §3.6).
+
+`borrow_pasture` was called by exactly one test: the one that measures the
+*word*. `run_traced`, which every tick-and-order score is measured on, did
+not call it. On a map whose AI builds a pasture, five idle rolls a frame
+were missing from the scoring run, so its stream parted almost at once
+while the word check reported draw-for-draw agreement to frame 1373. Two
+numbers in one file, describing two different simulations, for a week.
+
+**The rule.** Two halves, and the second is the one with teeth.
+
+1. **A source is a source for every run.** Anything a capture borrows to
+   stand the simulation up belongs to `run_traced`, not to whichever check
+   first needed it. A borrow reachable from one test only is a fork of the
+   harness wearing the same name.
+2. **A check asserts its own inputs.** Not "the mechanic works" — that was
+   already asserted, five days earlier, and it was true — but "*this run
+   has one*". The second map's score now fails outright if the pasture is
+   not in the run it scores, rather than quietly scoring low. Any figure a
+   run's setup can silently lose gets the same treatment: assert the input,
+   in the test whose number depends on it.
+
+**What it cost, and what it bought.** Three hours, and the pair went
+167/167 → 1374/1373 and 572/776 → 781/776 in one session — after sixteen
+items had moved neither. The two mechanics found on the way (the swarm
+move's angle, `do_move`'s `goto STEP`) both came from the *other* half of
+the same item: widening `OrderMismatch` to the whole `MOVEORDER` row, a
+record the parser had carried and nothing had compared. That is CLAUDE.md's
+"diff the whole record" paying for the fourth time, and it is why the
+widening ledger (queue item 87) is worth building rather than repeating.

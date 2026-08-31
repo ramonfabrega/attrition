@@ -312,6 +312,21 @@ run with the single `Animal::think_farm_animal+0x142 < Animal::do_idle+0x43`
 between the first of them and the rest — draws 138–143, in that order. The
 fuzzed map is the same five and the same one.
 
+**And owner 9 is the reason a *score* hid for a week.** Because no dump
+prints the five, the only place a run can get them is the trace —
+`Trace::add_animals`, through `diff::borrow_pasture` — and until 2026-08-31
+that call sat in the word's own check and nowhere else. `run_traced`, which
+is what every tick-and-order score is measured on, borrowed the siblings'
+initial state and no pasture: so on a map whose AI builds one, **the run
+that scores and the run that matches the word were not the same
+simulation**. The five roll an idle a frame, the stream parts within a few
+frames of the pasture finishing, and every position after that is a
+different game's arithmetic. East Indies read 167/167 for two days for that
+reason and nothing else; with the trace passed in it reads **1374/1373** —
+its own word's parting. `run_traced` now takes the trace as a source beside
+the siblings, and the second map's score asserts the pasture is there
+(item 69).
+
 Landed: `crates/sim/src/farms.rs` (`Farm::farm_type`, `Sim::farm_add_animals`,
 `Sim::think_farm_animal`), `Sim::build_covers_tile`, and
 `gamelog::Initial::farms` — the `Farms` list read off the dump, which has no

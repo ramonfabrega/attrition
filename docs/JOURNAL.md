@@ -9178,3 +9178,134 @@ handoff writer noticing, which is the system working.
 Item 69, on Opus: East Indies' order list at 168, the pair's own nearest
 divergence, now draw-free — run39's dump names the fields, and the score
 it moves is the headline itself.
+
+## 2026-08-31 (later, Opus) — item 69: the score run was not the run the word measures
+
+East Indies **167/167 → 1374/1373**. Great Lakes **572/776 → 781/776**.
+Both maps' tick scores now sit one frame past their own word's parting.
+
+```
+run39: ticks 1374, orders 1373, first divergence [(0, Some(1411)), (1, Some(1375))]
+run10: ticks  781, orders  776, first divergence [(0, Some(802)),  (1, Some(782))]
+```
+
+The opener asked the right question and split it the wrong way round. A
+parting no draw feels for 1,200 frames is a field no draw reads, **or the
+diff's own misreading** — and it was the second, in a form nobody had
+looked for: the run that scores and the run that matches the word were
+not the same simulation.
+
+### The widening first, because the item's own claim was wrong
+
+`1/4` was booked as an order-list *length* at 168. It is not. At 167 both
+sides hold two orders, the same kinds, the same target, the same flags —
+and different destinations: ours `(40440, 39480)`, the original's
+`(40248, 39288)`. Nothing compared them. The dump has written the whole
+`MOVEORDER` row since the parser was widened for it, and `compare_orders`
+read `coll_x/coll_y` and stopped.
+
+`OrderMismatch::Move` now walks the row — `x`, `y`, `angle`, `dest`,
+`dest_x/dest_y`, `last_x/last_y`, `pause`, `timer`, `facing`,
+`off_x/off_y` — on every dumped move of both maps. Three fields are
+reported and do not score, each for a reason on the variant: `dest` and
+`last_x/last_y` are the pathfinder seam's own timing, `facing` is item
+23's open formation mirror. `dest_x/dest_y` is compared on the frames
+`dest` says it is live.
+
+It paid immediately and twice. `1/1`'s swarm move disagreed on `angle`
+at **frame 2**: `Group::action_swarm_around` passes
+`find_angle(site − spot)` — the bearing from the spot back to the site,
+so a builder arrives facing what it will build — taken from the ring's
+answer *before* the `BUILD_AT` nudge. This crate derived
+`find_angle(spot − here)` instead. The decompiler prints both of that
+function's `find_angle` calls with the same two locals because the pair
+travels in `ecx`/`edx`; the listing separates them in a minute
+(`7103f3`–`710406` reads both out-parameters of `find_nearby_spot`
+straight into the subtraction, and `710415` nudges the same register
+afterwards). `docs/ORDERS.md` §5.4.
+
+### The pasture was in the trace and not in the score
+
+With the angle fixed, `1/4` still parted at 167, and the trace said
+frames 164–169 were draw for draw. Two `GameAccess::rnd(4)` at the same
+stream position cannot return `(1, 0)` on one side and `(2, 1)` on the
+other — so the streams were not the same, and the word check said they
+were. They are two different runs.
+
+A pasture's five animals are owner 9 and **no dump prints them**
+(`docs/SYNC.md` §3.6). The only source is the trace, through
+`diff::borrow_pasture` — and that call lived in
+`run39_s_long_trace_says_where_the_second_map_s_word_parts` and nowhere
+else. `run_traced`, which every tick-and-order score is measured on,
+borrowed the siblings and no pasture. East Indies' AI builds one. Five
+idle rolls a frame went missing from the scoring run, its stream parted
+within a few frames of the pasture finishing, and every figure this
+capture has ever produced — `1/4` at 167, `1/5` at 186, player 0's
+citizens at 217, and the fourth steer's whole reading of the tranche —
+was a different game's arithmetic.
+
+`run_traced` now takes the trace as a source beside the siblings, and the
+score asserts the pasture is there rather than scoring low in silence.
+That alone took East Indies to **1374/536**.
+
+### And then the pause, which was Great Lakes'
+
+The widened row put `1/2`'s `pause` at frame 573 at 2 against the
+original's 3, on the frame Great Lakes' ticks had parted for weeks.
+
+`do_move`'s straight-line check ends `if (masks & 8) goto STEP`, and
+`STEP` is **past** the pause check; only the re-plan's `TAKE` comes back
+through `STEP_IF_MOVING`. So a unit that re-verifies its line this frame
+steps this frame and its collision pause does not tick. The dump carries
+the whole example: 572 writes `pause 3`, `coll_x/coll_y` and `dest 0`;
+573 steps with `pause` still 3; 574–576 are the three still frames; 577
+walks. This crate ticked on 573 and was a frame ahead for the rest of the
+walk.
+
+Great Lakes' ticks went 572 → **781** and its player 1 573 → 782. East
+Indies' orders went 536 → **1373**. `docs/ORDERS.md` §4.9.
+
+### What landed
+
+- `OrderMismatch::Move`, the whole `MOVEORDER` row, with three fields
+  reported and not scoring and the reason on each.
+- `run_traced` takes `Option<&Trace>`; `rondata --diff --trace` passes it.
+  The run39 score test asserts the pasture is in the run.
+- `Sim::swarm_spot` returns the move's angle;
+  `Sim::do_move` models `goto STEP`.
+- `docs/ORDERS.md` §4.9 (new) and §5.4; `docs/SYNC.md` §3.6.
+- Floors raised: run39 1374/1373/1411/1375, run10 781/776/802/782.
+
+### The floors that fell, and one residue
+
+run33's window totals 959/876 → **953/877** and run10's angle rows
+38,104 → **37,838**: both are whole-run totals that count coincidences
+past a parting, and both moved while the parting itself held at 780. The
+number to read is the headline, and it rose on both maps.
+
+run10's collision block is no longer empty inside the comparable window.
+`1/6`'s frame 797 reads `collide 3` against 2 and `collide_frame 796`
+against 795 — one collision more, entered a frame later, on a unit whose
+position parts at 798. It only became comparable because the window grew
+by two hundred frames. It is pinned as two rows, any third fails, and it
+is the queue's successor to this item.
+
+### The lesson
+
+**A harness has state, and state that only one check installs is state
+the other checks do not have.** The pasture was found, read, implemented
+and asserted five days ago; what was never asked is *which runs get it*.
+The word check did, the score did not, and for a week the two numbers
+described different games while sitting in the same file. A tranche of
+sixteen items chased one of them.
+
+The cheap guard is the one now in the test: the score asserts its own
+inputs. Not "the pasture mechanic works" — that was already true — but
+"this run has one".
+
+And the second lesson is the older one, which cost the first three hours
+here before the first fixed anything: **when the original dumps a record,
+diff the whole record.** The move order's row had been parsed and
+uncompared for as long as the parser has had it. It found the swarm
+angle at frame 2, the farm tile at 167 and the collision pause at 573 in
+the same afternoon.
