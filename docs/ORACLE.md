@@ -2342,6 +2342,416 @@ before the pasture landed). What still parts at 19 is the *first* of the
 two `Animal::do_idle` draws an arrival costs — movement's and animation's
 residue, not the pasture's.
 
+## The capture lane (2026-08-31)
+
+The second lane of `docs/DECISIONS.md` entry 27, running beside the main
+loop. Its products are logs outside the repo, so it needs no git
+coordination at all; its repo writes are `tools/` and these run sections.
+**The screen, the `ron` bottle and the install's INIs belong to it while it
+exists** — a main-loop item that wants a behavioural check appends a stanza
+to `tools/gamelog/captures.txt` rather than taking the screen.
+
+**The queue is a file now.** `longtrace.sh` kept its four positional
+arguments and grew the hooks a queue of captures needs — `DETAIL_END` and
+`DETAIL_START`, `CMD_EXTRA` for the scenario's `rontrace.cmd` lines,
+`TRACE_COVER`, `WINDOW` for a `DUMP_ALL` window, `SETTLE_MIN`, and `DRIVER`
+for the right-clicks the cheat channel cannot issue. Every one defaults to
+exactly what the script did before it existed, so an unset environment still
+reproduces run33 and run39. `captures.txt` holds one stanza per owed
+capture and `runqueue.sh` walks it **one at a time**, skipping any stanza
+whose archive already exists, so an interrupted queue resumes rather than
+restarts.
+
+**Run numbers start at 42, and the reason is a trap worth naming.** 40 and
+41 are taken by two `census` captures from 2026-08-30 that no run section
+here mentions — and `rondata::diff` reads `gamelog-run40-census.txt`, while
+`economy.rs`, `cost.rs`, `nations.rs` and `cities_tests.rs` all cite run40
+or run41 by name. `longtrace.sh` archives its trace as `rontrace-run$N.log`
+**unconditionally**, so re-using a number silently overwrites another run's
+trace while leaving its gamelog beside it, which is the worst of the two
+outcomes: the run still looks archived. Read the `Logs` directory, not the
+documents, before picking a number.
+
+**Two guards that were prose and are now checks.** `samegame.py --exclude
+NAME` drops one record type from both digests, which is what makes the
+same-game question answerable when a capture raises a category's threshold
+to read a field — the raised category's blocks differ on every frame by
+construction, and everything else is still compared frame for frame. It is
+the weaker claim and the tool says so. `cmdsran.py` reads the `INFO cmd`
+records back out of a run's trace and fails when a staged line did not run,
+or ran and `parse_cmd` refused it: run23 is the standing example of a
+capture whose scenario did not happen and whose dump looked ordinary, and
+only a word-for-word comparison against run21 caught it.
+
+## run42 — `LEADERS=2`, and the pile is no longer unchecked
+
+run39's lobby and seed exactly (East Indies, `MAP_STYLE 18`, seed 12345, the
+profile's lobby with no `-config`), 900 frames, at run39's detail **plus
+`LEADERS=2`**. The `LEADERDATA` block that carries `bucket`, `ages_get()`
+and `epoch_get(scan)` is the encrypted one, and `LeaderData::log_data@006e5110`
+announces it at detail **2** — the `this_00[1].handle = 2` before the
+`LeaderDataEncrypt::log_data` call — not the **9** of the census. That is
+the whole reason this capture is cheap: 245 MB and eleven minutes, where
+`LEADERS=9` per frame is ten thousand lines a leader a frame and crawls.
+`samegame.py --exclude LEADERDATA` against run39 is **900 frames in common
+and not one that differs**, so it is run39's game and inherits its
+siblings.
+
+**It settles `docs/GOODY.md` §6's owed capture, and corrects one detail of
+it.** The prediction was `bucket[2]` stepping by 50 on frame 867 with
+`epoch_get(scan)` reading `0 0 0 1`.
+
+- The step is there and it is the AI's: leader **1**'s `bucket[2]` goes
+  **50 → 100** between the blocks labelled `FRAME 867` and `FRAME 868` — a
+  block `FRAME n` is the end of sim-frame `n − 1`, so the pay lands on
+  **sim-frame 867**, the predicted frame.
+- **The trace names the cause rather than leaving it to be inferred.**
+  `ObjectsData::find_goody_at` and `Unit::explore_goody` are entered on
+  sim-frame 867 and on no other frame in the neighbourhood — 860, 863, 865,
+  866, 868, 869, 872 and 880 all have neither. A box was opened on exactly
+  the frame the pile moved.
+- **`epoch_get(scan)` reads `0 1 0 1`, not `0 0 0 1`.** Civic is 1 as well
+  as Science. It does not enter the formula — `epoch[3] × 25 + 25` reads
+  Science alone, and `1 × 25 + 25 = 50` is the observed pay — so §6's
+  arithmetic stands and only its stated vector was wrong.
+- So the reading that mattered is **confirmed and its alternative refuted**:
+  an `ages` reading would pay 25, because `ages` is 0 in an Ancient-age
+  game, and the observed step is 50.
+
+What run42 does **not** settle is which *good* a box picks: the lottery's
+winner depends on the finder's buckets, and the frame's draw count would be
+identical whichever good won (§6's last row). `bucket[0]` and `bucket[1]`
+are visibly a different clock — the human's step by one every eleven and
+fifteen frames respectively, all run long — so the record now on disk is
+enough to separate the pile's income from the box's, which it was not
+before.
+
+## run43 — the terraform's own before and after, in one game
+
+run32's scenario exactly — the same two enhancers on the same fresh ground
+at the same frame, seed 12345 and map style 14 — with the `DUMP_ALL` window
+opened four frames earlier: **[100, 108) rather than [104, 109)**. A block
+`FRAME n` is the end of sim-frame `n − 1`, so `FRAME 100` is the grid before
+either `add` lands and `FRAME 106` the grid after the Smelter's replan on
+104 and the Granary's on 105.
+
+**Why the four frames were worth a second capture.** `docs/ROADS.md` §7.1
+reads the road search's grid as the pre-terraform one, and it had to reach
+into **run13** for that grid — a different game, in which nothing is ever
+placed. The two games are identical up to sim-frame 100 by construction, so
+the substitution was almost certainly sound; "almost certainly" is what a
+capture is for. run32's own window cannot supply it: `heightdiff.py` on
+run32's `FRAME 104` against its `FRAME 108` moves **not one corner**, because
+both are already post-terraform.
+
+**What run43 says**, `tools/gamelog/heightdiff.py` on its own two frames:
+
+- **128 corners move**, which is §7.1's number, now a single game's own
+  difference rather than a cross-game one.
+- They fall in **exactly two clusters of 64**, and nothing lies outside
+  them: columns 3..10 × rows 168..175, and columns 30..37 × rows 158..165 —
+  centres (6.5, 171.5) and (33.5, 161.5), for buildings placed at tiles
+  **(6, 171)** and **(33, 161)**. So "the two footprints' boxes and nothing
+  else" is exact, and each box is 8 × 8.
+- **The corner grid is one corner per tile.** `master_land_heights` is
+  `(4·xs + 1)²` for xs = 60 *cells* of four tiles — 58,081 corners, 241 a
+  side, spanning 240 tiles. The 4 in the formula is cells-to-tiles, not
+  tiles-to-corners, and run43's clusters are what says so: a building at
+  tile 6 moves columns 3..10, and at tile 33 columns 30..37.
+
+What this capture does **not** do is re-derive the two short node counts
+(1,046 against the original's 1,043, and 1,460 against 1,870). Those are the
+harness's arithmetic over the grid, not the dump's; what changes is that the
+grid the harness should read them on is now this game's own, at a frame the
+same file also carries the placement for.
+
+**A trap this run cost, and the guard that caught it.** run43 was captured
+twice. The first archive was 550 MB, the right map style, the right seed,
+and a full window — and held **half its scenario**: zsh's `${(j:\n:)a}`
+joins with a literal backslash-n rather than a newline, so the stanza's two
+`add` lines reached `rontrace.cmd` as one, `ConsoleWin::parse_cmd` took the
+Granary, returned 1 and dropped the rest. Nothing in the dump looked wrong.
+`cmdsran.py` read the trace's `INFO cmd` records and said "3 lines parsed,
+1 at frame 100, expected 2" — which is what it was written for one run
+earlier, and it caught the bug on its first real outing. The same join had
+silently emptied `rontrace.cfg`'s window line too. The fix is the `p` flag;
+the incomplete archive was deleted rather than kept, because a
+half-happened scenario that reads as valid is precisely run23's failure
+mode.
+
+## run44 — the turn override fires, and `guy_flags` has more writers than §9 has
+
+`docs/ANIM.md` §4.6 calls `Guy::do_turn@005d97a0:15`'s override
+unfalsifiable and owes it "a capture with a vehicle or a ship turning in
+place". run44 fires it, and it needed no driver — which is a reading, not
+luck. `Unit::move_step` passes the override flag on only its two
+turn-in-place branches, but it is **not the only caller**: `Guy::move:109`
+calls `turn_towards(this, des_angle, _, 1)` on the standing arm, guarded
+only by `guy_flags & 2`, and `Guy::turn_towards@005d9720` hands its
+argument straight to `do_turn`. So a turner unit **turning towards a
+target** fires it, and a fight is enough.
+
+run39's lobby, 700 frames, `GUYS=4` — `cur_anim` sits past the last of
+`GuyData::log_data@005de6c0`'s three level announcements, so at run39's
+`GUYS=2` a `GUY` block stops after `ox` and the question cannot be asked of
+the file. Seven `add` lines from `rontrace.cmd`, all nine records accepted:
+catapults and a trebuchet for the AI on the tiles beside its capital,
+hoplites, pikemen and a catapult for the human among them.
+
+**452 guy-frames play a turn animation**, in nine distinct
+`(who, o, slot)` combinations, both `CHAR_TURN_LEFT` and
+`CHAR_TURN_RIGHT`, on **both sides** — the human's pikemen from frame 166
+and the AI's own catapults at 247 and 248, which the AI ordered unaided.
+Every capture before this one has **zero**: run13, which does carry
+clocks, has none in its whole window.
+
+**And the flag byte says why, per type.** `guy_flags` in run44:
+
+| value | bits | records |
+| --- | --- | --- |
+| 16 | 0x10 | 165,938 |
+| 48 | 0x10 0x20 | 7,984 |
+| 8 | 0x8 | 4,034 |
+| 56 | 0x8 0x10 0x20 | 3,206 |
+| 40 | 0x8 0x20 | 1,392 |
+| 24 | 0x8 0x10 | 16 |
+
+- **0x8 is exactly the three turner types** — 134 `PIKEMEN`, 265
+  `CATAPULT`, 266 `TREBUCHET` — and no others, which is
+  `Guy::init_real@005db6b0:179` setting the bit for a guy whose piece names
+  a turn, observed rather than read. §4.6's "none of the eight a `DUMP_ALL`
+  run's guys carry" is still true of those eight; it was a fact about which
+  units had been captured.
+- **0x20 is set on 12,582 records and it toggles within a type**: 50
+  `PEASANTS` appears as both 16 (14,276) and 48 (1,534), 132 `HOPLITES` as
+  16 (30) and 48 (6,450), 134 as 24 and 56, 265 as 8 and 40. So it is
+  **state, not a per-piece init bit, and it has a writer.** `docs/ANIM.md`
+  §9 lists 0x20 among three bits with "no writer found", says "none of the
+  three is exercised", and leaves it off in the sim — where §9 also reads
+  it as *collapsing the idle roll*, which is a draw.
+
+  **This does not move either map's score today, and the reason is worth
+  stating.** §9's "every guy in both dumps carries `guy_flags 16`" is still
+  exactly true of the scored games: run13, which is run10's own game under
+  `DUMP_ALL`, has **2,288 records and every one of them 16**, and run38,
+  the islands start, has 1,180 and the same. Nothing in either turns 0x20
+  on. run44 is simply the first capture that has **combat and guy-level
+  detail at once** — the earlier fights (run17, run24) were taken without
+  the clocks, and the earlier `GUYS=4` runs have no fight in them. So the
+  bit is real, it is reachable, and it is waiting for the sim to arrive at
+  the part of the game that turns it on; it is not a divergence in the
+  1,850 frames anyone is scoring.
+- **0x2 and 0x4 are still unobserved**, and 0x2 is a puzzle rather than an
+  absence: `do_turn`'s first statement is
+  `*(ushort *)&this->field_0x9a |= 2` whenever the angle actually changes,
+  and 452 turn animations means that line ran. Either the dumped
+  `guy_flags` is not the whole `ushort` at `+0x9a`, or something clears the
+  bit before the frame ends. Unread here, and named rather than guessed.
+
+Also worth keeping: 265 and 266 carry `8` and `40` — **without 0x10**,
+which every other type in the file has. Whatever 0x10 is, the siege pieces
+do not have it.
+
+## run45 — the AI moves the mirror flag, and never lays a group move order
+
+Item 23's driver-free shot, and a **negative result with a reason**, which
+is worth more than the run it cost. run39's lobby, 900 frames, run31's group
+detail; `groupfacing.py` over the whole archive:
+
+| | |
+| --- | --- |
+| `GROUPDATA` blocks | 461,824 — 902 frames × the 512-slot pool |
+| `group.facing` | 0 ×461,393, **1 ×431** |
+| formations (`GROUPDATA.form`) | none ×460,923, **Line ×901**, nothing else |
+| `GroupMoveOrder/MOVEORDER.facing` | **none at all** |
+| other `MOVEORDER.facing` | −1 ×1,522, 0 ×699, 1 ×196 |
+
+So the AI **does** form groups and its groups' mirror flag **does** flip —
+431 records carry `facing 1`, which is `Unit::set_angle@00605400` toggling
+it as a leader turns 90° or more off its heading. What the AI never does,
+in 900 frames, is lay a **`GroupMoveOrder`**: not one unit in the file
+carries one. `Unit::kill_current_order`'s hand-back reads the dying order's
+own `MoveOrder +0x28`, so with no group move order there is nothing to hand
+back and the XOR term cannot fire however long the run.
+
+**What that settles.** The trace was right that the machinery runs —
+`Group::action_move_near`, `Form::compute` and `GroupData::find_leader` are
+all entered at frame 0 of run39 — and it was the wrong question to ask of
+it. *Entering* `action_move_near` is not the same as a unit ending the frame
+holding a `GroupMoveOrder` the dump can print. Item 23 needs a **human
+right-click**, which is what run31 has and what no AI game supplies, and the
+capture is run31's three clicks **plus a fourth**: `groupfacing.py` on run31
+shows its group move orders carrying `facing 1` from frame 356 to 367 and
+the log then closing, so the mirrored order it needs is already made and
+simply never dies.
+
+**Across every capture on disk, `GroupMoveOrder` is a human-click
+artifact.** Counted rather than argued, over nine archives: run31 has
+**945**, and run20, run13, run22, run25, run26, run27, run29 and run45 have
+**none** — that set includes three `DUMP_ALL` windows taken *during* the
+AI's own fighting (`Armies::emergency`, `find_target`, `do_defending`) and
+900 frames of the group pool itself. So it is not that run45 was too short
+or too peaceful: no AI in any captured situation has ever ended a frame with
+a unit holding one, and run31, the one capture driven by right-clicks, is
+the one that has them.
+
+**And the Echelon half needs the mouse twice over.** Every group in run45 is
+a **Line**, and every group in run31 is too. `docs/GROUPS.md` §6.4's slot
+table only reads `reverse` on the Echelon rows, so the mirror is invisible
+in the positions of a Line whatever the flag does. The console's 102
+commands, re-derived from the user's own install by
+`tools/gamelog/console.py`, contain **no formation verb at all** — the chat
+half is `add`, `select`, `move`, `die`, `damage`, `tech` and the diplomacy
+pokes — so a formation can only be set through the unit panel.
+
+**A trap this run cost twice, now a check.** The first attempt dumped the
+pool **once**, in the start block: 512 `GROUPDATA` records against run31's
+111,616. `GROUPS=1` is necessary and not sufficient —
+`GroupData::log_data@0045e1d0` calls neither `set_type` nor `set_detail`, so
+its lines are accepted against whatever the previous dumper left, and
+`dump_deaths@0092fd80` ends by calling `WorldData::log_data` twice, leaving
+the type at `WORLD`; with `WORLD=0` under `[End Frame]` the whole pool fails
+`check_accept` silently. **`DEATHS` off** under `[End Frame]` is the fix, and
+it is written down in this file already — it cost run30 — which is the
+argument for a guard over prose. `groupfacing.py` now fails on `≤ 512`
+blocks and names the cause, so the next stanza to do it is told in a minute
+rather than after a twenty-minute capture.
+
+## run46 — the XOR term fires, and the formula is right
+
+Item 23's event, and the first time `Unit::kill_current_order@005e2cb0`'s
+
+    group.facing = order.facing XOR reversing(leader.angle - order.angle)
+
+has run with `order.facing` **1** in any capture. run10's lobby, 900 frames
+at run31's group detail, eight hoplites added and selected from the cheat
+channel, and three right-clicks from `clickdriver.sh` — the camera alternating
+between tiles (30, 167) and (6, 167) either side of the units, so every order
+after the first is a ~180 degree turn and `reversing` is not left to luck.
+
+| click | frame | its order appears | the order's angle | `order.facing` |
+| --- | --- | --- | --- | --- |
+| 1 | 213 | 216 | **+85.8°** | 0 |
+| 2 | 333 | 336 | **−92.8°** | **1** |
+| 3 | 453 | 456 | **+86.0°** | 0 |
+
+Read it as two hand-backs, and both come out as the formula says:
+
+- **click 1 → 2.** The leader turns +85.8° to −92.8°, which is 178.6° and
+  inside the `reversing` window, so the toggle is 1. `Form::compute` sees
+  `order.facing XOR toggle` = `0 XOR 1` = **1**, and click 2's order is laid
+  out carrying `facing 1`. That is the mirrored layout run31 also reaches.
+- **click 2 → 3, which is the one nobody had.** The dying order carries
+  `facing 1`, the leader turns −92.8° to +86.0° — 178.8°, the window again,
+  toggle 1 — and the hand-back is `1 XOR 1` = **0**. Click 3's order is laid
+  out carrying `facing 0`, which is what the dump prints from frame 456.
+
+The mirrored order lives on frames **336 to 455** and dies on the frame click
+3's replaces it; 1,509 group move orders carry `facing 1` across those 120
+frames, against **none** in run45 and none in any AI capture.
+
+**What is still owed, and it is the other half of item 23.** Every group here
+is a **Line** (`form 0`, 1,587 records, nothing else), and `docs/GROUPS.md`
+§6.4's slot table only reads `reverse` on the Echelon rows. So the mirror's
+*consequence for the positions* — the formation byte's sign — is still
+unexercised: this run proves the flag is computed as stated and not what it
+then does to a slot. A formation cannot be set from the console (its 102
+commands have no such verb, `tools/gamelog/console.py`), so that half needs
+the unit panel, which is a click on a button rather than on the map.
+
+**Two instrument lessons, both of which cost a run.**
+
+- **`!ffwd` stops the renderer.** run46's first attempt clicked three times
+  and produced no order at all, and its screenshot showed the capital still
+  selected — which read as `select hoplite who=0` having failed. It had not.
+  run47's five screenshots, taken across ninety sim frames, came back
+  **byte-for-byte identical** with the in-game clock at 00:00:00: the game
+  was simulating and not drawing, so the driver was clicking at a picture
+  minutes stale and no screenshot of that run was evidence of anything. With
+  the fast-forward dropped the shots differ, the clock runs, and `select
+  hoplite who=0` puts six hoplite portraits in the tray exactly as the
+  recipe above says. `FFWD` is an input now; **every stanza with a `driver:`
+  sets it empty.**
+- **An accepted line is not a line that did something.** `cmdsran.py` reports
+  what `ConsoleWin::parse_cmd` returned, and it returned 1 for the select
+  that changed nothing. The tick means the channel took the line, and no
+  more.
+
+## run50 — the Echelon half, and the four doors that are shut
+
+Item 23's remaining half, **not** obtained, and the value here is that the
+search is now bounded rather than open. `docs/GROUPS.md` §6.4's slot table
+reads `reverse` on the **Echelon** rows alone — Refused is `Y = Y0 - |X|`,
+with no `reverse` in it, so the queue's "Refused or an Echelon" is really
+Echelon only — and every group in every capture on disk, run46's included, is
+a **Line**. So the mirror is confirmed as a computed flag (run46) and still
+unobserved as a *displacement*.
+
+What was tried, each with its evidence:
+
+- **The console.** Its 102 commands, re-derived from the user's own install
+  by `tools/gamelog/console.py`, contain no formation verb of any kind. The
+  chat half is `add`, `select`, `move`, `die`, `damage`, `tech`, `resource`,
+  the diplomacy pokes, `finish`, `hurry`, `pack`, `deploy` and `anim`.
+- **The command card.** run48 photographed it with a group of hoplites
+  selected: move, attack, auto-explore, board, stop, garrison, and fourteen
+  empty cells. The compass-with-arrows that looked like a formation chooser
+  is **Auto Explore** — the tooltip says so, and says its key is CTRL+E.
+- **Military research**, the obvious gate, since RoN unlocks formations with
+  it and every capture is an Ancient-age nation. run49 raised it (`tech who=0
+  all on`, `military 5 0`) and photographed the same six buttons. Not the
+  gate.
+- **Binding the key.** This is the one that should have worked.
+  `data/playerprofile.xml` is the keymap `KeyMap::init@007d5a90` loads, and it
+  lists `FORM_LINE`, `FORM_REFUSED`, `FORM_ENVELOP`, `FORM_E_RIGHT` and
+  `FORM_E_LEFT` as bindable actions **with no `<INPUT>` child on any of
+  them** — the file has zero `<INPUT>` elements in total, so the formations
+  ship unbound and that is why neither a key nor a button reaches them. The
+  element's shape is fully recovered from
+  `KeyMap::save_entry@007d4220` and `KeyMap::load_entry@007d43d0`, with every
+  attribute name resolved out of `int_str_array` at stride 0x14 the way
+  `console.py` reads it:
+
+      <KEY enum="FORM_E_RIGHT" dependent="-1">
+        <INPUT key="120" mouse="0" ctrl="0" shift="0" alt="0"/>
+      </KEY>
+
+  `key` is taken whole and then `ctrl` sets bit 0x20000, `shift` 0x10000 and
+  `alt` 0x40000. `tools/gamelog/bindkey.py` writes exactly that into the
+  **profile's** `<KEYS>` — `Player.dat`, which is user state and already
+  edited with the game closed by `mapstyle.py`, never the install's shipped
+  data — and `--restore` empties it again. run50 bound `FORM_E_RIGHT` to F9,
+  pressed it twice (once with only the selection, once after the first march
+  had made a group) and marched the group back and forth. **The formations in
+  its dump are `Line x540` and nothing else.** The binding did not take, or
+  the keystroke did not reach the action.
+
+**Where the next attempt should start, and it is one question.** Is the
+profile's `<KEYS>` read at all? `KeyMap::save_entry` writes an entry only when
+its `dependent` is negative, so the profile is meant to hold the player's own
+bindings — but the loader that would read them back is `KeyMap::load`'s
+`String` overload at `007d39a0`, and **its caller has not been found**; the
+only references the export shows outside `KeyMap` itself are unwind funclets.
+Settle that and the rest follows: if the profile is read, the binding is
+wrong in some detail; if it is not, the shipped `data/playerprofile.xml` is
+the only keymap and the `<INPUT>` has to go there instead. The cheap
+experiment either way is to rebind an action whose binding is **visible** —
+`OPTION_AUTO_EXPLORE`, whose tooltip prints its key — and photograph the
+tooltip: if it stops saying CTRL+E, the profile route works.
+
+**What run50 is still good for**, and it is not a plain replication. It
+reaches the mirrored layout on its own game — **870** group move orders
+carrying `facing 1`, frames **337 to 395** — and then those orders **end with
+no successor**: frame 396 holds none at all. So this order died by
+*completing*, where run46's died by being *replaced*, and those are
+`kill_current_order`'s two different ways in. Whether the hand-back's
+arithmetic is the same on the completion path is **not** settled here: the
+`GROUPDATA.facing` a frame prints is the whole 512-slot pool's, so the live
+group's own value cannot be read off it, and run46's proof worked because the
+*next* order's `facing` showed what `Form::compute` had been handed. With no
+next order there is nothing to read it from. A capture that wants the
+completion path needs a fourth click after the arrival.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The

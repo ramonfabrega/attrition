@@ -1,0 +1,370 @@
+# captures.txt — the capture queue as a file (docs/QUEUE.md item 90,
+# docs/DECISIONS.md entry 27).
+#
+# One stanza per capture, `key: value`, blank line between stanzas, `#` for a
+# comment. Every key is a `longtrace.sh` input — the script's four positional
+# arguments and the environment hooks documented in its header — so a stanza
+# is a capture and nothing else needs writing to run one. `runqueue.sh` walks
+# this file top to bottom, **one capture at a time**, and skips any stanza
+# whose archive already exists, so it is re-runnable and a crash costs the
+# capture in flight rather than the queue.
+#
+#   run:        the run number, and the archive's name
+#   tag:        the archive's suffix
+#   item:       the queue item this capture is owed to
+#   why:        one line, for the run section this becomes in docs/ORACLE.md
+#   frames:     the `!quit` frame
+#   mapstyle:   14 Great Lakes, 18 East Indies
+#   cfg:        the `-config` argument; `-` means none, and absent means the
+#               default (`-config check.ini` on 14, none elsewhere)
+#   end:        `[End Frame]` detail, setlog.py's `end:` list
+#   start:      `[Start Game]` detail, setlog.py's `start:` list
+#   dump_all:   DUMP_ALL, default 0
+#   window:     "LO HI" for a DUMP_ALL window instead of the cheap dump
+#   cover:      rontrace.cfg's body, default `cover=1`
+#   cmd:        one `rontrace.cmd` line, repeatable, in file order
+#   driver:     a script driven while the game runs, for the right-clicks the
+#               cheat channel cannot issue — `move` is a teleport and **no
+#               console command issues an order at all**
+#   ffwd:       the `!ffwd` line; `-` means none. **Every stanza with a
+#               `driver:` needs `-`** — under `!ffwd` the game stops drawing
+#               and a click lands on a frozen picture (run47)
+#   settle_min: bytes below which the poll loop will not call a run finished
+#   check:      a command run after the capture, from the repo root, to say
+#               whether it landed; repeatable, and a non-zero exit is loud
+#
+# The order is the charter's: 108 first because it is the cheapest and fully
+# specified, and it proves the pipeline before anything costly rides on it.
+#
+# **Run numbers start at 42.** 40 and 41 are taken — two undocumented
+# `census` captures from 2026-08-30 that no run section in `docs/ORACLE.md`
+# mentions. `longtrace.sh` archives its trace as `rontrace-run$N.log`
+# unconditionally, so re-using a number silently overwrites another run's
+# trace while leaving its gamelog in place, which is the worst of both. Check
+# the Logs directory, not the documents, before picking a number.
+
+run: 42
+tag: islands-goodybucket
+item: 108
+why: the goody box's pile — bucket[2] stepping by 50 on frame 867
+frames: 900
+mapstyle: 18
+# run39's own lobby: East Indies takes the profile's, never check.ini's.
+cfg: -
+# run39's detail exactly, plus LEADERS=2. The LEADERDATA block that carries
+# `bucket`, `ages_get()` and `epoch_get(scan)` is the encrypted one, and
+# `LeaderData::log_data@006e5110` announces it at detail **2** (the
+# `this_00[1].handle = 2` before the `LeaderDataEncrypt::log_data` call at
+# line 916) — not the 9 of the census, so this costs ~55 lines a leader a
+# frame rather than 10,000.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=2
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+check: python3 tools/gamelog/samegame.py --exclude LEADERDATA gamelog-run39-islands-longtrace.txt gamelog-run42-islands-goodybucket.txt
+
+run: 43
+tag: roadterraform
+item: 57
+why: the terraform's own before and after, in one game rather than two
+# run32's scenario exactly — the same two enhancers on the same fresh ground
+# at the same frame — with the window opened four frames earlier. run32 took
+# [104, 109), which holds both roads and neither of the grids they were
+# planned on; ROADS §7.1 had to reach for run13's FRAME 100 for the
+# pre-terraform heights, and run13 is a *different game* (nothing is ever
+# placed in it). The two games are identical up to sim-frame 100 — same seed,
+# same lobby, no input before then — so the substitution is almost certainly
+# sound, and "almost certainly" is exactly what a capture is for. [100, 108)
+# holds FRAME 100 (the end of sim-frame 99, before either `add` lands) and
+# FRAME 105/106 (after the Smelter's replan on 104 and the Granary's on 105),
+# so the 128 corners `terraform_for_building` moves are one file's own
+# difference and the claim that it runs *after* `place_roads` stops resting
+# on a cross-game comparison.
+frames: 110
+mapstyle: 14
+window: 100 108
+cover: cover=1
+cover: window=99-107
+cmd: 100 add granary who=0 6,171
+cmd: 100 add smelter who=0 33,161
+# `!quit` at HI+1 returns to the Game Over screen rather than ending the
+# process, so the poll loop still does the stopping.
+settle_min: 100000000
+# Not `samegame.py` against run32: the two runs' DUMP_ALL windows differ, so
+# frames 100–103 are a full dump in one and a thin block in the other and
+# every one of them would "differ" for a reason that is not the game. What is
+# worth asserting is that both `add`s executed — an `INFO cmd` record apiece —
+# and that the window really did open at 100.
+check: python3 tools/gamelog/cmdsran.py rontrace-run43.log 100:2
+
+run: 44
+tag: islands-turners
+item: 96
+why: a turning unit, which no capture has — guy_flags & 8 and the turn override
+# `Guy::do_turn@005d97a0:15` swaps the standing walk for CHAR_TURN_LEFT/RIGHT
+# on a guy whose piece names a turn, and no guy in any capture on disk carries
+# the bit. The reading that makes this stageable is **which** call fires the
+# override: `Unit::move_step` passes 1 only on its two turn-in-place branches,
+# but `Guy::move:109` calls `turn_towards(this, des_angle, _, 1)` — and
+# `turn_towards` passes that straight through to `do_turn` — on the standing
+# arm, guarded only by `guy_flags & 2`, which every dumped guy has clear. So a
+# turner unit **turning towards a target in a fight** fires it, which is far
+# easier to stage than a 180-degree walk.
+#
+# The units are chosen off `unit_graphics.xml`: 274 of its 1,435 <UNIT> pieces
+# name a CHAR_TURN_LEFT/RIGHT, across 40 base names, and CATAPULT, TREBUCHET
+# and PIKEMEN are the three of them an Ancient-age game can be handed. Both
+# sides get some, so the capture does not depend on either the AI's response
+# or the human's units surviving.
+frames: 700
+mapstyle: 18
+cfg: -
+# GUYS=**4**, not run39's 2: `GuyData::log_data@005de6c0` announces levels 2,
+# 3 and 4 and `cur_anim` sits past the last, so at 2 a GUY block stops after
+# `ox` and the question cannot be asked of the file at all.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1
+# runwin.sh's tiles, which are known-good land beside the AI capital on this
+# lobby (the AI starts on 198-214 x 201-214). A Quick Battle already starts at
+# war, so no `war` line is needed — run23 is the null result that established
+# it.
+cmd: 150 add catapult who=1 203,207
+cmd: 152 add catapult who=1 205,207
+cmd: 154 add trebuchet who=1 203,210
+cmd: 160 add hoplite who=0 206,210
+cmd: 162 add hoplite who=0 206,208
+cmd: 164 add pikemen who=0 204,212
+cmd: 166 add catapult who=0 207,212
+check: python3 tools/gamelog/cmdsran.py rontrace-run44.log 150:1 152:1 154:1 160:1 162:1 164:1 166:1
+check: python3 tools/gamelog/turnanim.py gamelog-run44-islands-turners.txt
+
+run: 45
+tag: islands-groups
+item: 23
+why: does the AI's own play kill a mirrored group order — the XOR term, driver-free
+# `Unit::kill_current_order@005e2cb0` assigns
+# `group.facing = order.facing XOR reversing(leader.angle - order.angle)`,
+# and GROUPS §13 says no run has fired the XOR term. `groupfacing.py` on
+# run31 says why, exactly: its group move orders carry `facing 1` on frames
+# 356-367 and the capture then stops, so the mirrored order is still alive
+# when the log closes. The term needs that order to **die**.
+#
+# Before reaching for the mouse — the only path GROUPS §13 names, since the
+# console's 102 commands include no formation verb and `move` is a teleport —
+# this asks whether the AI does it unaided. run39's trace answers the half
+# that can be answered without a capture: `Group::action_move_near`,
+# `Form::compute` and `GroupData::find_leader` are all entered at frame 0 of
+# a game with **no human input at all**, and `Unit::kill_current_order` at
+# frame 1. So the machinery runs; what no dump on disk says is whether a
+# *mirrored* layout is ever among the orders it kills, because no capture of
+# an AI game has ever been taken with GROUPS=1.
+#
+# run39's lobby exactly, so `samegame.py --exclude GROUPDATA` can still say
+# it is run39's game and it inherits run39's siblings.
+mapstyle: 18
+cfg: -
+# **run31's detail exactly, and the reason is a trap that has now cost two
+# runs.** `GROUPS=1` is what `GameLog::full_dump` gates `dump_groups` on, but
+# turning it on is not enough: `GroupData::log_data@0045e1d0` never calls the
+# Log vtable's `set_type`/`set_detail`, so its lines are accepted against
+# whatever the **previous** dumper left behind — and `dump_deaths@0092fd80`
+# ends by calling `WorldData::log_data` twice, leaving the current type at
+# `WORLD`. With `WORLD=0` under `[End Frame]` the whole 512-slot pool is then
+# dropped silently: GROUPS is on, `dump_groups` runs, and not one line
+# survives `check_accept`. run30 hit it; so did this stanza's first attempt,
+# which dumped the pool once in the start block (512 records) and never
+# again. **`DEATHS` off under `[End Frame]`** is the fix — then the type
+# `dump_groups` inherits is `UNITS`, set high enough to accept anything.
+#
+# The cost is that this is no longer run39's sibling by detail, so there is
+# no `samegame.py` check here: at `UNITS=9` every frame differs for a reason
+# that is not the game. The question is the XOR term, not sibling-hood.
+end: MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1,GROUPS=1
+# run31 wrote 684 KB a frame at ~0.6 sim-frames a second, so this is seven
+# times heavier than run39's line and about a quarter the speed. 900 frames
+# rather than 1400 for that reason.
+frames: 900
+check: python3 tools/gamelog/groupfacing.py gamelog-run45-islands-groups.txt
+
+run: 46
+tag: greatlakes-fourthclick
+item: 23
+driver: tools/gamelog/clickdriver.sh
+ffwd: -
+why: a group marched back and forth, so a mirrored order is laid and then dies
+# run45 settled that no AI lays a `GroupMoveOrder` — 945 in run31 against
+# none in eight other archives, three of them DUMP_ALL windows taken during
+# the AI's own fighting — so the record item 23 needs only exists behind a
+# right-click. This is that click, three times, from `clickdriver.sh`.
+#
+# **Why three and not four.** An order of the move family dies when it is
+# replaced *or when it completes*, and `Unit::kill_current_order` hands the
+# mirror back either way. run31 stopped at frame 367 with its mirrored order
+# still alive — its group move orders carry `facing 1` from 356 to 367, the
+# last frame in the file — so what it lacked was not a fourth click but
+# **time**. Click three lays the mirrored order; the 450 frames after it are
+# what let that order die.
+#
+# **Why the destinations alternate.** `Unit::set_angle` toggles the flag when
+# the leader is set to a heading 90 degrees or more off its own, so marching
+# the group between two tiles on opposite sides of it makes every order after
+# the first a ~180 degree turn and the toggle is not left to luck.
+#
+# Great Lakes rather than the islands: run32 placed buildings at tiles
+# (6, 171) and (33, 161) on this lobby, so the corridor between them is known
+# to be land, and a right-click that lands in water issues no order at all.
+frames: 900
+mapstyle: 14
+# run31's detail, and DEATHS off under [End Frame] for the reason in run45's
+# section: `dump_deaths` leaves the current type at WORLD and the pool is
+# dropped silently.
+end: MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1,GROUPS=1
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 162 add hoplite who=0 14,170
+cmd: 164 add hoplite who=0 15,170
+cmd: 180 select hoplite who=0
+cmd: 200 camera 30,167
+cmd: 320 camera 6,167
+cmd: 440 camera 30,167
+check: python3 tools/gamelog/cmdsran.py rontrace-run46.log 180:1 200:1 320:1 440:1
+check: python3 tools/gamelog/groupfacing.py gamelog-run46-greatlakes-fourthclick.txt
+
+run: 47
+tag: greatlakes-selectprobe
+item: 23
+driver: tools/gamelog/selectprobe.sh
+ffwd: -
+why: which way of selecting units actually selects them — a diagnostic, not a capture
+# run46's lesson, and it is about evidence rather than about RoN. Its eight
+# `add hoplite` lines ran and were accepted, 4,728 `type 132` records prove
+# the hoplites existed, and `select hoplite who=0` returned 1 — and the
+# screenshot at frame 212 shows the **capital** still selected and no
+# `GroupMoveOrder` anywhere. `parse_cmd` returning 1 means the line was
+# accepted, not that it matched anything, so `cmdsran.py`'s green tick was
+# never evidence the selection took. ORACLE's "select is scriptable, so a
+# group capture needs one human click and not twelve" is the claim under
+# test.
+#
+# Cheap on purpose: 300 frames, no group detail, no DUMP_ALL. The product is
+# five screenshots, and the bottom-centre panel in each names what is
+# selected.
+frames: 300
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+start: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+settle_min: 1000000
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 170 camera 15,168
+cmd: 180 select hoplite who=0
+cmd: 200 select hoplite
+cmd: 220 select 0 0
+cmd: 240 camera 15,168
+check: python3 tools/gamelog/cmdsran.py rontrace-run47.log 180:1 200:1 220:1
+
+run: 48
+tag: greatlakes-formprobe
+item: 23
+driver: tools/gamelog/formprobe.sh
+ffwd: -
+why: where the formation buttons are — the Echelon half's missing control
+# The console has no formation verb and the profile's <KEYS/> is empty, so
+# the game is on built-in bindings that are in no data file.
+# `data/playerprofile.xml` names the actions — FORM_LINE, FORM_REFUSED,
+# FORM_ENVELOP, FORM_E_RIGHT, FORM_E_LEFT — so they are bindable commands
+# whose key and button are simply unknown. This photographs the command card
+# with hoplites selected, clicks the compass-ringed-with-arrows button that is
+# the candidate chooser, and photographs it again. Nothing here issues an
+# order, so a wrong guess costs a screenshot.
+frames: 300
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+start: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+settle_min: 1000000
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 170 camera 15,168
+cmd: 180 select hoplite who=0
+
+run: 49
+tag: greatlakes-cardprobe
+item: 23
+driver: tools/gamelog/cardprobe.sh
+ffwd: -
+why: name every card button, with military tech raised so the formation one appears
+# `data/options.xml` carries `Formation`, `Formation Back`, `Face Left`,
+# `Face Right`, `About Face` and `Forward` in the card's option table, so the
+# button exists; run48's card has only move, attack, auto-explore, board, stop
+# and garrison, so something gates the rest. The likely gate is **military
+# research** — RoN unlocks formations with it and every capture so far is an
+# Ancient-age nation with none — and the console can lift that, unlike the
+# formation itself.
+#
+# The card is mapped by **tooltip**, which run48 established works and names
+# the key as well as the command ("Auto Explore ... (Hotkey: CTRL + E)"). If a
+# formation key falls out of this, the Echelon half stops needing the mouse at
+# all.
+frames: 320
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+start: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+settle_min: 1000000
+cmd: 140 tech who=0 all on
+cmd: 145 military 5 0
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 170 camera 15,168
+cmd: 180 select hoplite who=0
+
+run: 50
+tag: greatlakes-echelon
+item: 23
+driver: tools/gamelog/echelon.sh
+ffwd: -
+why: a group in an Echelon, so the mirror reaches §6.4's `reverse` rows
+# Item 23's second half. §6.4's slot table reads `reverse` on the Echelon rows
+# only — Refused is `Y = Y0 - |X|` with no reverse in it — so run46's Line
+# proves the flag is computed and not what it does to a position.
+#
+# The formation has no console verb and no card button (run48 and run49
+# photographed the card with and without full military research). What it has
+# is a **bindable action with no default binding**: `KeyMap::init@007d5a90`
+# loads `data/playerprofile.xml` as the keymap and its FORM_* entries carry no
+# `<INPUT>` child at all. `bindkey.py` writes one into the **profile** — not
+# into the install's shipped data — so the formation becomes a keystroke.
+# Run `bindkey.py FORM_E_RIGHT 120` before this stanza and
+# `bindkey.py --restore` after.
+frames: 900
+mapstyle: 14
+end: MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1,GROUPS=1
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 162 add hoplite who=0 14,170
+cmd: 164 add hoplite who=0 15,170
+cmd: 180 select hoplite who=0
+cmd: 200 camera 30,167
+cmd: 320 camera 6,167
+cmd: 440 camera 30,167
+check: python3 tools/gamelog/groupfacing.py gamelog-run50-greatlakes-echelon.txt
