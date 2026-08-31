@@ -2479,6 +2479,68 @@ the incomplete archive was deleted rather than kept, because a
 half-happened scenario that reads as valid is precisely run23's failure
 mode.
 
+### run44 — the turn override fires, and `guy_flags` has more writers than §9 has
+
+`docs/ANIM.md` §4.6 calls `Guy::do_turn@005d97a0:15`'s override
+unfalsifiable and owes it "a capture with a vehicle or a ship turning in
+place". run44 fires it, and it needed no driver — which is a reading, not
+luck. `Unit::move_step` passes the override flag on only its two
+turn-in-place branches, but it is **not the only caller**: `Guy::move:109`
+calls `turn_towards(this, des_angle, _, 1)` on the standing arm, guarded
+only by `guy_flags & 2`, and `Guy::turn_towards@005d9720` hands its
+argument straight to `do_turn`. So a turner unit **turning towards a
+target** fires it, and a fight is enough.
+
+run39's lobby, 700 frames, `GUYS=4` — `cur_anim` sits past the last of
+`GuyData::log_data@005de6c0`'s three level announcements, so at run39's
+`GUYS=2` a `GUY` block stops after `ox` and the question cannot be asked of
+the file. Seven `add` lines from `rontrace.cmd`, all nine records accepted:
+catapults and a trebuchet for the AI on the tiles beside its capital,
+hoplites, pikemen and a catapult for the human among them.
+
+**452 guy-frames play a turn animation**, in nine distinct
+`(who, o, slot)` combinations, both `CHAR_TURN_LEFT` and
+`CHAR_TURN_RIGHT`, on **both sides** — the human's pikemen from frame 166
+and the AI's own catapults at 247 and 248, which the AI ordered unaided.
+Every capture before this one has **zero**: run13, which does carry
+clocks, has none in its whole window.
+
+**And the flag byte says why, per type.** `guy_flags` in run44:
+
+| value | bits | records |
+| --- | --- | --- |
+| 16 | 0x10 | 165,938 |
+| 48 | 0x10 0x20 | 7,984 |
+| 8 | 0x8 | 4,034 |
+| 56 | 0x8 0x10 0x20 | 3,206 |
+| 40 | 0x8 0x20 | 1,392 |
+| 24 | 0x8 0x10 | 16 |
+
+- **0x8 is exactly the three turner types** — 134 `PIKEMEN`, 265
+  `CATAPULT`, 266 `TREBUCHET` — and no others, which is
+  `Guy::init_real@005db6b0:179` setting the bit for a guy whose piece names
+  a turn, observed rather than read. §4.6's "none of the eight a `DUMP_ALL`
+  run's guys carry" is still true of those eight; it was a fact about which
+  units had been captured.
+- **0x20 is set on 12,582 records and it toggles within a type**: type 50
+  appears as both 16 (14,276) and 48 (1,534), type 132 as 16 (30) and 48
+  (6,450), type 134 as 24 and 56, type 265 as 8 and 40. So it is **state,
+  not a per-piece init bit, and it has a writer.** `docs/ANIM.md` §9 lists
+  0x20 among three bits with "no writer found", says "none of the three is
+  exercised", and leaves it off in the sim — where §9 also reads it as
+  *collapsing the idle roll*, which is a draw. This is the row of §9 most
+  worth a second look, and run44 is the capture that can carry it.
+- **0x2 and 0x4 are still unobserved**, and 0x2 is a puzzle rather than an
+  absence: `do_turn`'s first statement is
+  `*(ushort *)&this->field_0x9a |= 2` whenever the angle actually changes,
+  and 452 turn animations means that line ran. Either the dumped
+  `guy_flags` is not the whole `ushort` at `+0x9a`, or something clears the
+  bit before the frame ends. Unread here, and named rather than guessed.
+
+Also worth keeping: 265 and 266 carry `8` and `40` — **without 0x10**,
+which every other type in the file has. Whatever 0x10 is, the siege pieces
+do not have it.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
