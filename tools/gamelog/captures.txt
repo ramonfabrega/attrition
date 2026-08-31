@@ -32,8 +32,15 @@
 #
 # The order is the charter's: 108 first because it is the cheapest and fully
 # specified, and it proves the pipeline before anything costly rides on it.
+#
+# **Run numbers start at 42.** 40 and 41 are taken — two undocumented
+# `census` captures from 2026-08-30 that no run section in `docs/ORACLE.md`
+# mentions. `longtrace.sh` archives its trace as `rontrace-run$N.log`
+# unconditionally, so re-using a number silently overwrites another run's
+# trace while leaving its gamelog in place, which is the worst of both. Check
+# the Logs directory, not the documents, before picking a number.
 
-run: 40
+run: 42
 tag: islands-goodybucket
 item: 108
 why: the goody box's pile — bucket[2] stepping by 50 on frame 867
@@ -49,4 +56,38 @@ cfg: -
 # frame rather than 10,000.
 end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=2
 start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
-check: python3 tools/gamelog/samegame.py --exclude LEADERDATA gamelog-run39-islands-longtrace.txt gamelog-run40-islands-goodybucket.txt
+check: python3 tools/gamelog/samegame.py --exclude LEADERDATA gamelog-run39-islands-longtrace.txt gamelog-run42-islands-goodybucket.txt
+
+run: 43
+tag: roadterraform
+item: 57
+why: the terraform's own before and after, in one game rather than two
+# run32's scenario exactly — the same two enhancers on the same fresh ground
+# at the same frame — with the window opened four frames earlier. run32 took
+# [104, 109), which holds both roads and neither of the grids they were
+# planned on; ROADS §7.1 had to reach for run13's FRAME 100 for the
+# pre-terraform heights, and run13 is a *different game* (nothing is ever
+# placed in it). The two games are identical up to sim-frame 100 — same seed,
+# same lobby, no input before then — so the substitution is almost certainly
+# sound, and "almost certainly" is exactly what a capture is for. [100, 108)
+# holds FRAME 100 (the end of sim-frame 99, before either `add` lands) and
+# FRAME 105/106 (after the Smelter's replan on 104 and the Granary's on 105),
+# so the 128 corners `terraform_for_building` moves are one file's own
+# difference and the claim that it runs *after* `place_roads` stops resting
+# on a cross-game comparison.
+frames: 110
+mapstyle: 14
+window: 100 108
+cover: cover=1
+cover: window=99-107
+cmd: 100 add granary who=0 6,171
+cmd: 100 add smelter who=0 33,161
+# `!quit` at HI+1 returns to the Game Over screen rather than ending the
+# process, so the poll loop still does the stopping.
+settle_min: 100000000
+# Not `samegame.py` against run32: the two runs' DUMP_ALL windows differ, so
+# frames 100–103 are a full dump in one and a thin block in the other and
+# every one of them would "differ" for a reason that is not the game. What is
+# worth asserting is that both `add`s executed — an `INFO cmd` record apiece —
+# and that the window really did open at 100.
+check: python3 tools/gamelog/cmdsran.py gamelog-run43-roadterraform.txt 2

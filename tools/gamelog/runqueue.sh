@@ -18,6 +18,11 @@
 # the next capture is usually independent of it and the screen is better spent
 # than idle.
 set -e
+# Both the capture and its checks are piped into `tee`, and without this the
+# status the `||` reads is **tee's**, which is always 0 — a failed capture
+# and a failed check would both be summarised as fine. This is the same trap
+# that `[ -n "$X" ] && cmd` sets under `set -e`, one pipe further along.
+set -o pipefail
 W=$(cd "$(dirname "$0")/../.." && pwd)
 SCEN=${1:--}
 if [ "$SCEN" = "-" ]; then SCEN="$W/tools/gamelog/captures.txt"; fi
@@ -32,16 +37,16 @@ echo "scenario $SCEN -> $LOG"
 
 # --- parse. zsh has no arrays of dicts; a stanza is accumulated into scalars
 # and flushed by the blank line, or by EOF.
-typeset -a summary cmds checks
+typeset -a summary cmds checks covers
 summary=()
 run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-endd=""; startt=""; dumpall=""; window=""; cover=""; driver=""; settle=""
-cmds=(); checks=()
+endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""
+cmds=(); checks=(); covers=()
 
 reset_stanza() {
   run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-  endd=""; startt=""; dumpall=""; window=""; cover=""; driver=""; settle=""
-  cmds=(); checks=()
+  endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""
+  cmds=(); checks=(); covers=()
 }
 
 flush() {
@@ -74,7 +79,9 @@ flush() {
     if [ -n "$startt" ];  then pass+=("DETAIL_START=$startt"); fi
     if [ -n "$dumpall" ]; then pass+=("DUMP_ALL=$dumpall"); fi
     if [ -n "$window" ];  then pass+=("WINDOW=$window"); fi
-    if [ -n "$cover" ];   then pass+=("TRACE_COVER=$cover"); fi
+    # `rontrace.cfg` is a several-line file when the trace takes a window of
+    # its own, so `cover:` is repeatable and the lines are joined in order.
+    if [ ${#covers} -gt 0 ]; then pass+=("TRACE_COVER=${(j:\n:)covers}"); fi
     if [ -n "$driver" ];  then pass+=("DRIVER=$W/$driver"); fi
     if [ -n "$settle" ];  then pass+=("SETTLE_MIN=$settle"); fi
     # `cfg: -` is "no -config"; an absent cfg leaves longtrace.sh's own
@@ -126,7 +133,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     start) startt=$val ;;
     dump_all) dumpall=$val ;;
     window) window=$val ;;
-    cover) cover=$val ;;
+    cover) covers+=("$val") ;;
     driver) driver=$val ;;
     settle_min) settle=$val ;;
     cmd) cmds+=("$val") ;;
