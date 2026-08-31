@@ -209,6 +209,11 @@ impl Sim {
     ///     before the bird has been flying a hundred think-cycles.
     /// ```
     ///
+    /// The counter takes **one more step than this function gives it**:
+    /// `Unit::do_air_patrol`'s tail sets it to 1 when `do_air_physics`
+    /// leaves it at 0, which is only ever the frame the landing search
+    /// zeroed it ([`Sim::do_idle`]'s bird arm, `orders.rs`).
+    ///
     /// **Three draws a think, and only the third's modulus is state** — the
     /// two offsets decide where the bird goes and nothing reads that, which
     /// is why this models the counter exactly and the flight loosely. The

@@ -1722,9 +1722,10 @@ Two diffs stand on this section.
 sharper: every rise in a dumped `wait` over run39's 1,850 frames must be
 produced by the value the trace's draw on that frame returned, **under that
 site's own formula** — 24 rerolls, 19 at `+0x54b` and 5 at `+0xcc3`, none
-at `+0xdad` — and then the whole row against the record, 16,152 fields to
-frame 897. It needs no simulation for its first half, so it names the sites
-from the original alone.
+at `+0xdad` — and then the whole row against the record, ~~16,152 fields
+to frame 897~~ **26,094 to 1,686** (2026-08-31; items 106 and 109 each
+walked past that wait without touching it). It needs no simulation for its
+first half, so it names the sites from the original alone.
 
 The dump's woodcutter citizen (§4.8): frame 1 — `goto_build 1, wait 0`,
 adjacent, `wait → −1`, `been_there = 1`; frame 2 — a tile (`wait = 400 +

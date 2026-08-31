@@ -8998,3 +8998,102 @@ right *symptom* and its cause left no trace at all, because
 agreeing, never where they stopped doing the same thing. When the frame's
 own content is already understood and still will not come out, the question
 to ask is what the unit was doing before it.
+
+## 2026-08-31 (later, Opus) — item 109: East Indies' word 1256 → 1373, and one step in the caller
+
+Frame 1256 was a bird. Ours spent 87 draws where the original spends 27:
+eight birds thinking three draws each, and our second one falling into
+`Animal::think_bird+0x2aa`'s sixty-draw landing search on a frame no
+original bird lands.
+
+The draws going in were identical — the same stream, the same seed, the
+same value. What decides a landing is `rnd % spell_time`, so the only
+thing that could differ was the **counter**, and the counter is the one
+piece of a bird's state nothing can see: no dump prints owner 9 at all.
+
+### The step was never in `think_bird`
+
+`think_bird` was read whole in August and its arithmetic is right. The
+step it was missing belongs to its caller. `Unit::do_air_patrol@005ea620`
+runs the `+0x180` virtual, then `do_air_physics`, and then:
+
+```text
+if (do_air_physics(...) != 0) {
+    if (vtable+0x30 () == 0)   … the military plane's target search …
+    else if (spell_time == 0)  spell_time = 1
+}
+```
+
+`vtable+0x30` is `SubObjectData::is_animal` — the slot `docs/SYNC.md`
+§3.14 had already named against the map's COMDAT folding, which puts
+`Buffer::is_pending_load`'s `return 1` there — so a bird always takes the
+second arm, and `do_air_physics` returns 1 on every path a bird carrying
+its single air-patrol order takes through it. `think_bird` steps the
+counter on **every** frame it runs, so `spell_time` is 0 at that point
+only on a frame the landing search has just zeroed it. **One extra step
+per landing, and nothing else.**
+
+Which is the whole of frame 1256. run39's second bird landed on 944; 311
+frames and 38 think-frames later its counter reads 349, `think_bird`'s own
+two steps make the modulus 351, and `27127 % 351` is exactly **100** — the
+single value in the counter's range that the `== 100` arm tests for. With
+the caller's step the modulus is 352, the remainder 23, and the bird flies
+on. The original's own landings at 1368 and 1376 then fall where they
+fall.
+
+### The assertion a bird can carry
+
+Nothing dumps owner 9, so the counter is unobservable — but the frame a
+search fires on is not, thirty `+0x2aa` draws at a time, and run39's frame
+944 spends sixty because two birds land on it.
+`a_bird_s_landing_frames_are_the_trace_s_own` reads the landing frames
+straight out of the trace and holds this simulation to them up to the
+word: **576, 944, 944, 1016, 1144, 1368**, six for six. Made to fail by
+dropping the branch, which adds a seventh on 1256.
+
+### What landed
+
+The `spell_time == 0` tail in `orders.rs`'s bird arm of `do_idle`;
+`docs/SYNC.md` §3.9's new subsection and its first Coverage row; the new
+diff test.
+
+**East Indies' word and sequence: 1256 → 1373.** A hundred and seventeen
+frames with two of the original's own bird landings inside them. run10's
+headline is unmoved at 572/776 with both first divergences at 802 and 573,
+and one of its fourteen units holds longer — `1/10` 1552 → **1579** —
+which takes its collision rows 98,019 → **99,607**, its angle rows 37,450
+→ **38,104** and its first disagreeing gather tile 1,384 → **1,394**.
+run39's gaia agreement rises 190,690 → **191,173** of 192,504 with its
+first parting 1261 → **1381**, and its gather record went 24,738 fields to
+1,573 → **26,094 to 1,686** — which moves item 103 without touching it,
+from a wait a hundred long on frame 1,573 to one thirty-five short on
+1,686. Tree: 668 sim, 156 rondata.
+
+### The floor that fell
+
+Great Lakes' word and sequence hold at 780, and for the first time its two
+window totals **fell**: 986/892 → **959/876**. Every frame whose verdict
+changed is 1209 or later, 429 past the parting — 31 gained, 47 lost — and
+the cause is exactly the mechanic: a counter one higher after each landing
+moves this map's landings from 904, 936, 1080, 1136, 1152, 1288, 1416,
+1520, 1728, 1784 to 904, 936, 1080, 1136, 1152, **1184, 1232, 1456,
+1640**, 1784. Against the original's thirteen it now meets two rather than
+one.
+
+That is the noise `run33_s_long_trace_says_where_the_word_parts`'s own
+comment has described since it was written — a total past the parting is
+on a stream that is nobody's — but it had never actually moved backwards
+before, and a guard whose number only ever rises has not been tested
+either. The floors are lowered with the reason in the comment beside them.
+
+### The lesson
+
+**A function read whole can still be missing a line, and the line is in
+its caller.** §3.9 transcribed `think_bird` correctly, tested it against
+run14's frame counts, and pinned its landing search against run39's frame
+576 — and none of that could see a `+= 1` that happens two calls up the
+stack, because the counter it moves is unobservable and the landing it
+shifts was three hundred frames away. The rule the audits keep
+rediscovering is *read the loaders, not only the consumers*; this is its
+twin. **Read the caller, not only the callee** — especially where the
+callee's whole product is a piece of hidden state.

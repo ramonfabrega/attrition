@@ -6481,10 +6481,27 @@ mod tests {
         // eight more frames past the parting come out draw for draw while
         // the word and the sequence hold at 780. The other map's word goes
         // 879 -> 1256.
+        //
+        // 986 / 892 -> **959 / 876** with item 109, the bird's landing
+        // step (`docs/SYNC.md` §3.9) — **the first fall these two numbers
+        // have taken**, and it is the noise this comment's own opening
+        // paragraph names. Every frame whose verdict changed is **1209 or
+        // later**, 429 past the parting: 31 gained, 47 lost. What moved
+        // them is that a bird's counter is one higher after each landing,
+        // so this map's landings go 904, 936, 1080, 1136, 1152, 1288,
+        // 1416, 1520, 1728, 1784 to 904, 936, 1080, 1136, 1152, **1184,
+        // 1232, 1456, 1640**, 1784 — a stream that is nobody's rolling a
+        // different number, on frames where the original's own landings
+        // (816, 904, 1024, 1040, 1144, 1208, 1344, 1448, 1456, 1592,
+        // 1744, 1816, 1832) it now meets **two** of rather than one. The
+        // word and the sequence hold at 780, East Indies' word goes
+        // 1256 -> 1373, and run39's landings up to its word are the
+        // original's exactly
+        // ([`a_bird_s_landing_frames_are_the_trace_s_own`]).
         assert!(
-            words >= 986 && matched >= 892,
+            words >= 959 && matched >= 876,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 986 and 892"
+             {matched} draw for draw; the floors are 959 and 876"
         );
     }
 
@@ -7320,6 +7337,30 @@ mod tests {
     ///               `docs/GOODY.md` §7, and
     ///               [`a_scout_re_aims_its_walk_at_a_goody_box_it_has_seen`]
     ///               is the rule against the record.
+    ///   2026-08-31  word **1256 -> 1373** (item 109), **the bird's
+    ///               landing step**: frame 1256 was a bird landing that
+    ///               the original's does not, and the counter is the only
+    ///               state behind it. `Unit::do_air_patrol@005ea620`'s
+    ///               tail, after `do_air_physics` returns, branches on
+    ///               `vtable+0x30` — `SubObjectData::is_animal`, folded
+    ///               onto `Buffer::is_pending_load`'s `return 1` on all
+    ///               three `Animal` vtables — and the animal arm is
+    ///               `else if (spell_time == 0)
+    ///               spell_time = 1`. `think_bird` steps the counter on
+    ///               every frame it runs, so it is 0 there only on a
+    ///               frame the landing search has just zeroed: one extra
+    ///               step per landing, and nothing else. run39's second
+    ///               bird had landed on 944, so its counter reached 351
+    ///               rather than 352 and `27127 % 351` is exactly the
+    ///               `== 100` the branch tests for. With the step the
+    ///               original's own landings at **1368** and 1376 fall
+    ///               where they fall; 1373 is next and it is the AI
+    ///               scout, which takes an eighth `+0x436`/`+0x458` ring
+    ///               pair where the original stops at seven and goes to
+    ///               `Unit::think_scout+0x941` and five `+0xaba`.
+    ///               `docs/SYNC.md` §3.9, and
+    ///               [`a_bird_s_landing_frames_are_the_trace_s_own`] is
+    ///               the rule against the record.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7441,10 +7482,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 1256 && first_part >= 1256 && words >= 64 && matched >= 64,
+            first_count >= 1373 && first_part >= 1373 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 1256, 1256, 64 and 64"
+             {matched} draw for draw — the floor is 1373, 1373, 64 and 64"
         );
     }
 
@@ -7608,8 +7649,11 @@ mod tests {
         // the count to 190,690 and the first parting to **1261**, five
         // frames past the word, because the walk to the box put the whole
         // stream back on the original's for another four hundred frames.
+        // Item 109's bird step takes 1256 → 1373 and carries both with it:
+        // **191,173** of 192,504 and the first parting to **1381**, `8/3`
+        // a step off the original's point again.
         assert!(
-            first_bad_frame >= 1261 && agree >= 190_690 && seen == 192_504,
+            first_bad_frame >= 1381 && agree >= 191_173 && seen == 192_504,
             "run39's gaia positions fell: {agree} of {seen}, first {first_bad:?}"
         );
     }
@@ -8163,6 +8207,102 @@ mod tests {
         // right *place* as well as in the right number.
         assert_eq!(ours.len(), 118, "frame 576's draw count");
         assert_eq!(ours, tr.labels(576), "frame 576, draw for draw");
+    }
+
+    /// **A bird's counter takes one step more than its flight** — every
+    /// landing frame of a traced game, against the trace's own.
+    ///
+    /// The landing roll is `rnd % spell_time`, so the *counter* is the
+    /// only state behind it and its value is unobservable: no dump prints
+    /// owner 9 at all ([`run39_s_bird_lands_on_576_and_spends_the_search_s_sixty`]).
+    /// What is observable is the frame a search fires on, thirty `+0x2aa`
+    /// draws at a time, and a counter one step out puts a landing on a
+    /// frame the original does not have — which is what East Indies'
+    /// word saw at **1256**.
+    ///
+    /// The step is `Unit::do_air_patrol@005ea620`'s own tail. After
+    /// `do_air_physics` returns — 1 for a wild bird on every path it
+    /// takes — the caller branches on `vtable+0x30`,
+    /// `SubObjectData::is_animal` (`docs/SYNC.md` §3.14; the map folds
+    /// all three `Animal` vtables' slot onto `Buffer::is_pending_load`,
+    /// `return 1`), and the animal arm is
+    /// `else if (spell_time == 0) spell_time = 1`. `think_bird`
+    /// increments the counter on **every** frame it runs, so it is only
+    /// ever 0 there on a frame the landing search has just zeroed it:
+    /// the branch is one extra step per landing and nothing else.
+    ///
+    /// run39's original lands on 576, 944 twice over, 1016, 1144 and
+    /// 1368, and this simulation now lands on exactly those. The list is
+    /// cut at the word (`first_part`) because past it the draws are
+    /// nobody's — the original's own later landings, 1376 onward, are
+    /// rolls this stream never sees. Made to fail by dropping the branch,
+    /// which puts a seventh landing on **1256** and takes the word back
+    /// there with it.
+    #[test]
+    fn a_bird_s_landing_frames_are_the_trace_s_own() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let last = tr.frames.last().map_or(0, |(n, _)| *n);
+        for _ in 0..last {
+            built.tick();
+        }
+        // Only the frames this stream is still the original's speak to a
+        // landing: past the word both sides roll different numbers.
+        let end = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| **ours != tr.labels(*f))
+            .map_or(last, |(f, _)| *f);
+        // The original's own landings: one for every thirty `+0x2aa`
+        // draws a frame spends, and run39's frame 944 spends sixty.
+        let rounds = sim::gaia::BIRD_SEARCH_ROUNDS as usize;
+        let mut theirs: Vec<i64> = Vec::new();
+        for (f, _) in &tr.frames {
+            if *f >= end {
+                break;
+            }
+            let n = tr
+                .labels(*f)
+                .iter()
+                .filter(|l| l.as_str() == sim::gaia::SITE_BIRD_SEARCH_CELL)
+                .count();
+            for _ in 0..n / rounds {
+                theirs.push(*f);
+            }
+        }
+        let ours: Vec<i64> = built
+            .sim
+            .gaia
+            .bird_landings
+            .iter()
+            .map(|(f, _)| *f)
+            .filter(|f| *f < end)
+            .collect();
+        assert_eq!(
+            ours,
+            vec![576, 944, 944, 1016, 1144, 1368],
+            "run39's landings up to the word at {end}"
+        );
+        assert_eq!(ours, theirs, "run39's landing frames, the trace's own");
     }
 
     /// **The production queues, whole**, against run39's own record —
@@ -9462,7 +9602,7 @@ mod tests {
         // East Indies' word goes 879 → 1256.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 98_019,
+            coll_seen, 99_607,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -9570,7 +9710,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(1384),
+            Some(1394),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -9723,7 +9863,7 @@ mod tests {
         // box): 280 more, the three units that hold longer for it —
         // `1/0` at 959, `1/8` at 906, `1/10` at 1552.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 37_450, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 38_104, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -11043,14 +11183,16 @@ mod tests {
         // short of the original's — and item 106 walked straight past it:
         // the scout's walk to a goody box put the stream back on the
         // original's, and the same clock now runs true through 1,572.
-        // **1,573 is the successor and it is the same shape**: the human's
-        // `0/1` holds `(31, 22)` with a wait of 543 where the original's
-        // holds 443, a hundred frames rather than ten, on the tile and
-        // phase both sides agree on. `docs/ORDERS.md` §6.4.
+        // 1,573 was the successor after that, and item 109's bird step
+        // walked past it too: 24,738 fields to 1,573 → **26,094 to
+        // 1,686**, where the human's `0/2` holds `(32, 26)` with a wait of
+        // 445 against the original's 480 — the same clock, the same
+        // shape, thirty-five short rather than a hundred long.
+        // `docs/ORDERS.md` §6.4.
         assert!(
-            compared >= 24_738 && parted >= 1_573,
+            compared >= 26_094 && parted >= 1_686,
             "the wood machine's record fell: {compared} fields to frame {parted}, \
-             the floor is 24,738 and 1,573 — {}",
+             the floor is 26,094 and 1,686 — {}",
             first_bad.as_deref().unwrap_or("none disagreeing")
         );
     }

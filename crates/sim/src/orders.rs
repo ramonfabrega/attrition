@@ -955,6 +955,17 @@ impl Sim {
             if self.units[u].ty == self.bird_type() {
                 self.think_bird(u, frame);
                 self.set_anim(u, crate::anim::WALK, false, true);
+                // `do_air_patrol`'s own tail, after `do_air_physics`
+                // returns 1: the caller branches on `vtable+0x30`,
+                // `SubObjectData::is_animal`, and the animal arm is
+                // `else if (spell_time == 0) spell_time = 1`. The
+                // counter is only ever 0 there on a **landing** frame —
+                // `think_bird` steps it on every other — so this is one
+                // extra step per landing, and it is what run39's frame
+                // 1256 turned on (`docs/SYNC.md` §3.9).
+                if self.units[u].spell_time == 0 {
+                    self.units[u].spell_time = 1;
+                }
                 return;
             }
             self.animal_idle(u);

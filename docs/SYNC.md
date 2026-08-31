@@ -496,6 +496,45 @@ confirm because nothing dumps a bird. A region of one cell would spend
 thirty draws rather than sixty; run39's does not, so the `n <= 1` skip is
 reading-only too.
 
+#### The counter's extra step — `do_air_patrol`'s tail (2026-08-31)
+
+`Unit::do_air_patrol` is `think_bird`, then `do_air_physics`, and then one
+branch this section had not read:
+
+```text
+if (do_air_physics(...) != 0) {
+    if (vtable+0x30 () == 0)   … the military plane's target search …
+    else if (spell_time == 0)  spell_time = 1
+}
+```
+
+`vtable+0x30` is `SubObjectData::is_animal` (§3.14; the map folds all
+three `Animal` vtables' slot onto `Buffer::is_pending_load@0041e0e0`,
+`return 1`), so a bird always takes the second arm; and
+`do_air_physics` returns 1 on every path a bird carrying its single
+air-patrol order takes through it (the three `return 0`s are `check_fuel`,
+behind the same `vtable+0x30` test; `land_plane`, behind an order field
+only the `0x193` arm sets; and a `kill_current_order` behind
+`1 < UnitData+0xd8`, the queued-order count). `think_bird` steps the
+counter on **every** frame it runs, so `spell_time` is 0 there only on a
+frame the landing search has just zeroed it: **the branch is one extra
+step per landing, and nothing else.**
+
+One step, and it is the whole of East Indies' word at 1256. run39's second
+bird had landed on 944; 311 frames and 38 think-frames later its counter
+reads 349, the two steps inside `think_bird` make the modulus 351, and
+`27127 % 351` is exactly **100** — the single value in the counter's range
+the `== 100` arm tests for. With the extra step the modulus is 352, the
+remainder 23, and the bird flies on as the original's does.
+
+**The landing frames are the assertion.** Nothing dumps owner 9, so the
+counter itself is unobservable — but the frame a search fires on is not:
+thirty `+0x2aa` draws at a time, and run39's frame 944 spends sixty
+because two birds land on it. Up to the word this simulation lands on 576,
+944, 944, 1016, 1144 and **1368**, which is the trace's own list
+(`rondata::diff`, `a_bird_s_landing_frames_are_the_trace_s_own`); without
+the branch it lands a seventh time, on 1256, where the original does not.
+
 | what | run14 |
 |---|---|
 | hatchings (`Guy::init_real` under `Animal::init`) | frames **96, 192, 256** |
@@ -542,7 +581,8 @@ exactly (96 + 31 = 127, then the flip's 15 to 142); from 143 the stream has
 drifted for other reasons (§3.1) and the later coins are its own.
 
 **What the simulation has**: the hatching, the live count, `think_bird`
-whole, the patrol point as state, and the wing beat. `is_air` is the loaded
+whole, the landing search and the counter's extra step after it, the
+patrol point as state, and the wing beat. `is_air` is the loaded
 domain, so a bird does not paint the occupancy grid a citizen walks on
 (`docs/COLLISION.md` §2).
 
@@ -1817,3 +1857,19 @@ kind honest.
   woodcutter** — run39's `GATHERORDER`s all carry `build_type 418` and not
   one carries a mine's. *Capture, owed:* a mine worked for a few hundred
   frames with `UNITS=3`, which would settle both.
+
+- **The bird, §3.9 (2026-08-28, its counter 2026-08-31).** Diff-backed in
+  the only way a bird can be, since no dump prints owner 9 at all: the
+  frames a landing search fires on.
+  `a_bird_s_landing_frames_are_the_trace_s_own` holds this simulation to
+  run39's own 576, 944, 944, 1016, 1144 and 1368 up to the word, and
+  `run39_s_bird_lands_on_576_and_spends_the_search_s_sixty` holds frame
+  576 draw for draw, all 118. Both are made to fail by dropping
+  `do_air_patrol`'s `spell_time = 1` tail, which puts a seventh landing on
+  1256. Reading-only, and named as such: **which cell** the search settles
+  on, and so where the bird then flies — the score is inert (`-1 < score`
+  cannot fail), which makes the answer "the thirtieth sample" and no
+  capture can confirm it; the `n <= 1` skip, since run39's region is
+  larger; and `do_air_physics@005e86d0`'s flight, which this crate does
+  not model at all — the bird stands on its hatch cell and only the two
+  things that reach the stream, the think and the walk request, are here.
