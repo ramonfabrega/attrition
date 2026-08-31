@@ -9735,3 +9735,19 @@ above; 108, 96 and 90 deleted from the queue; 57 narrowed; 23 re-booked;
 run42's per-frame `LEADERDATA` added to the widening ledger (87). The
 headline did not move and was not booked to — the lane's items were owed
 captures, and all four were delivered.
+
+## 2026-08-31 (the capture lane, Opus — a coda) — the profile keymap is read, and run50's failure was the keyboard's
+
+Runs 51 and 52 (`docs/ORACLE.md`), booked while the lane's session was
+still warm. Rebinding `OPTION_AUTO_EXPLORE` — the one action whose
+binding its own tooltip prints — moved that tooltip from CTRL + E to F9,
+so the profile's `<KEYS>` is read and `KeyMap::load`'s String overload at
+`007d39a0` runs, whatever the export shows about its callers: a
+ten-minute behavioural check settled what the caller hunt could not. And
+run52 separated *loading* from *arriving*, which run51 alone would have
+conflated: pressing the bound key opened the chat box, so run50's Echelon
+failure was a keystroke the game received as a different key, not a bind
+that did not take. Item 23 re-booked around the real blocker, with the
+letter-key ladder from ORACLE as its next step. The trap the probe
+tripped — the game rewrites `Player.dat` on quit, so a restore while it
+runs is silently undone — is in `bindkey.py`'s docstring now.

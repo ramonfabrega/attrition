@@ -122,12 +122,14 @@ so. Numbers are stable; the journal indexed by them.
 23. **The formation byte's sign — the Echelon half.** runs 45/46 fired the
     XOR term and `kill_current_order`'s formula holds (ORACLE); `reverse`'s
     *displacement* is read only on GROUPS §6.4's Echelon rows — Refused has
-    no reverse term — and every captured group is a Line. Formations ship
-    unbound (zero `<INPUT>` in `data/playerprofile.xml`; run50's F9 bind
-    did not take). First question: is the profile's `<KEYS>` read at all?
-    `KeyMap::load`'s String overload at `007d39a0` has no found caller.
-    Cheap check: rebind `OPTION_AUTO_EXPLORE`, whose tooltip prints its
-    key, and photograph the tooltip. With it COLLISION §9.
+    no reverse term — and every captured group is a Line. The profile route
+    works — run51's tooltip says F9, so `KeyMap::load@007d39a0` runs and
+    `bindkey.py`'s element is right — and run52 names the real blocker: the
+    keystroke arrived as the chat key, which is all run50's "failure" was.
+    Next, in order (ORACLE runs 51/52): bind a plain letter, send it with
+    `osascript keystroke`; the tooltip names it; it toggles Auto Explore;
+    only then `FORM_E_RIGHT`, and `form 3` in the dump. With it
+    COLLISION §9.
 
 116. **The one `SITE` slot still wrong, and the rule that is not it.** AI
     §18: a 5×5 slide keeps its centre where the original leaves it, so
