@@ -2342,7 +2342,7 @@ before the pasture landed). What still parts at 19 is the *first* of the
 two `Animal::do_idle` draws an arrival costs — movement's and animation's
 residue, not the pasture's.
 
-## The capture lane, and run42 — the goody box's pile (2026-08-31)
+## The capture lane (2026-08-31)
 
 The second lane of `docs/DECISIONS.md` entry 27, running beside the main
 loop. Its products are logs outside the repo, so it needs no git
@@ -2383,7 +2383,7 @@ or ran and `parse_cmd` refused it: run23 is the standing example of a
 capture whose scenario did not happen and whose dump looked ordinary, and
 only a word-for-word comparison against run21 caught it.
 
-### run42 — `LEADERS=2`, and the pile is no longer unchecked
+## run42 — `LEADERS=2`, and the pile is no longer unchecked
 
 run39's lobby and seed exactly (East Indies, `MAP_STYLE 18`, seed 12345, the
 profile's lobby with no `-config`), 900 frames, at run39's detail **plus
@@ -2426,7 +2426,7 @@ fifteen frames respectively, all run long — so the record now on disk is
 enough to separate the pile's income from the box's, which it was not
 before.
 
-### run43 — the terraform's own before and after, in one game
+## run43 — the terraform's own before and after, in one game
 
 run32's scenario exactly — the same two enhancers on the same fresh ground
 at the same frame, seed 12345 and map style 14 — with the `DUMP_ALL` window
@@ -2479,7 +2479,7 @@ the incomplete archive was deleted rather than kept, because a
 half-happened scenario that reads as valid is precisely run23's failure
 mode.
 
-### run44 — the turn override fires, and `guy_flags` has more writers than §9 has
+## run44 — the turn override fires, and `guy_flags` has more writers than §9 has
 
 `docs/ANIM.md` §4.6 calls `Guy::do_turn@005d97a0:15`'s override
 unfalsifiable and owes it "a capture with a vehicle or a ship turning in
@@ -2552,7 +2552,7 @@ Also worth keeping: 265 and 266 carry `8` and `40` — **without 0x10**,
 which every other type in the file has. Whatever 0x10 is, the siege pieces
 do not have it.
 
-### run45 — the AI moves the mirror flag, and never lays a group move order
+## run45 — the AI moves the mirror flag, and never lays a group move order
 
 Item 23's driver-free shot, and a **negative result with a reason**, which
 is worth more than the run it cost. run39's lobby, 900 frames, run31's group
@@ -2584,6 +2584,16 @@ capture is run31's three clicks **plus a fourth**: `groupfacing.py` on run31
 shows its group move orders carrying `facing 1` from frame 356 to 367 and
 the log then closing, so the mirrored order it needs is already made and
 simply never dies.
+
+**Across every capture on disk, `GroupMoveOrder` is a human-click
+artifact.** Counted rather than argued, over nine archives: run31 has
+**945**, and run20, run13, run22, run25, run26, run27, run29 and run45 have
+**none** — that set includes three `DUMP_ALL` windows taken *during* the
+AI's own fighting (`Armies::emergency`, `find_target`, `do_defending`) and
+900 frames of the group pool itself. So it is not that run45 was too short
+or too peaceful: no AI in any captured situation has ever ended a frame with
+a unit holding one, and run31, the one capture driven by right-clicks, is
+the one that has them.
 
 **And the Echelon half needs the mouse twice over.** Every group in run45 is
 a **Line**, and every group in run31 is too. `docs/GROUPS.md` §6.4's slot
