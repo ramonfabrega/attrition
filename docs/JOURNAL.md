@@ -8561,3 +8561,91 @@ mechanic with no unit in it. run39's own game score holds at 167/167 with
 The new parting frame is **645**, where this crate spends a
 `Guy::set_anim+0x97a` under `Unit::do_non_flat_gather+0xb99` — the return
 stand — that the original does not, eight draws against seven.
+
+## 2026-08-31 (later, Opus) — item 101: East Indies' word 645 → 742, and two draw sites at one branch
+
+Frame 645 of run39 is seven draws and this crate spent eight. The extra one
+was a `Guy::set_anim+0x97a` under `Unit::do_non_flat_gather+0xb99` — the
+return stand — so a woodcutter of ours had decided to walk home on a frame
+the original's did not. The queue booked it as "the frame or the arm".
+
+It was neither. It was a **wait**, and the number that settled it was in
+the dump.
+
+### Grep the dump before booking a reading
+
+`GATHERORDER` is printed every frame of run39's 1,850, and the whole row
+with it. Our `0/1` reached `wait 1` on 643 and `−1` on 644; the original's
+`0/1` on 645 holds **250**. Walking its history back: the original rerolled
+once, on frame 539, from `1` to **355** — and the trace's only draw on 539
+is `Unit::do_non_flat_gather+0xcc3`, returning 30755. `30755 % 100 + 300`
+is 355. `30755 % 50 + 100` is 105, which is what this crate had.
+
+So the site this crate calls `SITE_WORK_WAIT` does not roll the formula
+this crate rolls at it.
+
+### The branch above the tile
+
+`Unit::do_non_flat_gather` reads guy 0's `cur_anim` **before** it reads the
+tile (`005f0d0f`), and each arm carries its own wait:
+
+- `CHAR_MINE_ORE` returns immediately — a miner mid-swing does nothing at
+  all, no decrement, no facing, no animation.
+- `CHAR_CHOP_WOOD` decrements, and on zero rerolls `% 100 + 300` at
+  `+0xcc3`. This is where a woodcutter spends the rest of its life: the
+  first frame at the tile is what *sets* `CHAR_CHOP_WOOD`, and every frame
+  after it takes this arm.
+- Only that first frame reaches the distance test, whose reroll is
+  `% 50 + 100` at `+0xdad`, and whose `all_gathering` arm returns at
+  `LAB_005f0ef1` before the facing and the animation.
+
+`docs/ORDERS.md` §6.4 has had all three since August. The implementation
+had one merged branch — the arrival's, marked with the chop site's name —
+so a woodcutter ran its cycle at roughly a third of the original's length
+and walked home two hundred frames early, every time.
+
+### Why six hundred frames of a matched word said nothing
+
+Both sites draw **exactly once**. The count matches, the sequence matches,
+and even a label-for-label comparison of the frame matches, because the
+label was the right one — `+0xcc3` really is the site the original spends.
+What was wrong was the arithmetic behind it, and the only thing that can
+see that is the field the roll lands in.
+
+Which the dump prints. So the first half of the new diff uses **no
+simulation at all**: every rise in a dumped `wait` over run39's 1,850
+frames is matched against the value the trace's own draw returned on that
+frame, under that site's formula. Twenty-four rerolls, nineteen at
+`+0x54b` and five at `+0xcc3`, **none at `+0xdad`** — the branch the
+implementation spent every reroll on is the one the original reaches never.
+Two records of the original, checked against each other, naming the sites
+without this crate in the room.
+
+### What landed
+
+The anim branch in `orders.rs`, the arrival's decrement moved in front of
+its facing and animation, `SITE_ARRIVE_WAIT` in `sim::orders` and in
+`rondata::trace`'s table. The diff is
+`run39_s_woodcutters_reroll_on_the_chop_branch_not_the_arrival_s`: the
+24 rerolls by site, then the whole non-flat `GATHERORDER` row against ours
+— tile, wait, phase, `been_there`, `dist_mod` — **16,152 fields to frame
+897**. Made to fail two ways, both met: the labels swapped in the naming
+table (half one panics on run39's frame 529) and the arrival's formula put
+back at the chop site (the record's floor 897 → 530).
+
+**East Indies' word and sequence: 645 → 742.** Great Lakes holds at 780 on
+both and its totals rise 964/864 → **977/866**. run10's ticks and orders
+hold at 572/776 with first divergences 802 and 573, and its two coverage
+totals **fall** — collision field-frames 97,333 → 97,118 and angle rows
+37,376 → 37,174, the third time either has fallen while a score rose. One
+of the fourteen units moved: the AI's `1/10` parts at 1522 rather than
+1579, and the other thirteen are unchanged to the frame. A woodcutter that
+now stays at its tile three times as long is a different unit on the map
+from frame 500 on. run39's own game score holds at 167/167 with 217/168
+and its queue record at 33,631 fields, one disagreeing.
+
+The new parting frame is **742**, where the original spends a
+`Guy::set_anim+0x97a` under `Unit::move_step+0x823` — the blocked stand —
+that this crate does not: seven draws against six, and the other six (a
+bird's wing-beat coin and five `Farms::inc_time`) agree. So a unit of the
+original's has its step refused on 742 and ours walks on.

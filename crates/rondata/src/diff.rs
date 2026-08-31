@@ -6462,10 +6462,16 @@ mod tests {
         // sat in front of the holes that are real. The mechanic is the
         // bird's landing search (`docs/SYNC.md` §3.9), sixty draws a
         // landing, which is what takes the *other* map's word 576 -> 645.
+        //
+        // 964 / 864 -> **977 / 866** with item 101, the chopping guy's own
+        // wait: both numbers rise while the word and the sequence hold at
+        // 780, because a woodcutter that stays at its tile three times as
+        // long is at the original's tile on hundreds of the frames past
+        // the parting. The other map's word goes 645 -> 742.
         assert!(
-            words >= 964 && matched >= 864,
+            words >= 977 && matched >= 866,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 964 and 864"
+             {matched} draw for draw; the floors are 977 and 866"
         );
     }
 
@@ -7352,10 +7358,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 645 && first_part >= 645 && words >= 64 && matched >= 64,
+            first_count >= 742 && first_part >= 742 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 645, 645, 64 and 64"
+             {matched} draw for draw — the floor is 742, 742, 64 and 64"
         );
     }
 
@@ -8835,9 +8841,18 @@ mod tests {
         // several of the thirteen hold hundreds of frames longer. The
         // headline 572/776 and both players' first divergences (802 and
         // 573) are unchanged.
+        //
+        // 97,333 -> **97,118** with item 101 (the chopping guy's own
+        // wait), the twentieth and the third fall while a score rose.
+        // **One** of the fourteen moved: the AI's `1/10` parts at 1522
+        // rather than 1579, and the other thirteen are unchanged to the
+        // frame, as are the headline 572/776 and both players' first
+        // divergences. A woodcutter that now stays at its tile three times
+        // as long is a different unit on the map from frame 500 on, and
+        // 1/10 is the unit that had been holding longest on the old one.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 97_333,
+            coll_seen, 97_118,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -9081,8 +9096,12 @@ mod tests {
         // the first time.
         // 35,742 → **37,376** with item 100 (the bird's landing search):
         // 1,634 more, the same holding-longer the collision rows show.
+        // 37,376 → **37,174** with item 101 (the chopping guy's own wait):
+        // 202 fewer, and all of them `1/10`'s, which parts at 1522 rather
+        // than 1579 (see the collision rows above). The headline is
+        // unmoved at 572/776 and East Indies' word goes 645 → 742.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 37_376, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 37_174, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
@@ -10151,6 +10170,261 @@ mod tests {
             (reached, abandoned),
             (17, 16),
             "the two captures' animal walks that arrived and that were dropped short"
+        );
+    }
+
+    /// **The chopping guy's own wait, and the two sites that look like one
+    /// branch** (2026-08-31, item 101) — the mechanic behind East Indies'
+    /// word 645 → 742.
+    ///
+    /// `Unit::do_non_flat_gather` reads guy 0's `cur_anim` **before** it
+    /// reads the tile (`005f0d0f`), and the branch it takes there is where
+    /// a woodcutter spends the rest of its life. `CHAR_CHOP_WOOD`
+    /// decrements the wait and on zero rerolls it `% 100 + 300` at
+    /// `+0xcc3`; the *arrival* frame — the one that sets `CHAR_CHOP_WOOD`
+    /// — rerolls `% 50 + 100` at `+0xdad`; and `CHAR_MINE_ORE` returns
+    /// without doing anything at all. `docs/ORDERS.md` §6.4 has carried
+    /// all three since August and the implementation had one merged
+    /// branch, rolling the arrival's formula at the chop site.
+    ///
+    /// **A count could not see it.** Both sites draw exactly once, so the
+    /// word stayed matched for six hundred frames while the AI's
+    /// woodcutter ran its clock at a third of the original's and walked
+    /// home two hundred frames early. What sees it is the record.
+    ///
+    /// Two halves, each of which fails on its own:
+    ///
+    /// - **The original's own.** Every rise in a dumped `GATHERORDER`'s
+    ///   `wait` over run39's 1,850 frames is matched against the draw the
+    ///   trace took on that frame, and the value the LCG returned must
+    ///   produce it under *that site's* formula. This half needs no
+    ///   simulation and is what names the sites; with the two formulas
+    ///   swapped it fails on the first reroll.
+    /// - **Ours.** Every non-flat `GATHERORDER` the dump prints — tile,
+    ///   wait, phase, `been_there`, `dist_mod` — against the simulation's
+    ///   own, on every frame to the floor.
+    #[test]
+    fn run39_s_woodcutters_reroll_on_the_chop_branch_not_the_arrival_s() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let frames = log.frame_states();
+
+        // The three sites, taken **through the naming table** rather than
+        // written down again, so a label put on the wrong address fails
+        // here and not silently three mechanics later.
+        let site_of = |label: &str| -> u32 {
+            crate::trace::SITES
+                .iter()
+                .find(|(_, _, l)| *l == label)
+                .map(|(a, _, _)| *a)
+                .expect("the wood machine's sites are named")
+        };
+        let tile = site_of(sim::orders::SITE_TILE_WAIT); // `+0x54b`
+        let chop = site_of(sim::orders::SITE_WORK_WAIT); // `+0xcc3`
+        let arrive = site_of(sim::orders::SITE_ARRIVE_WAIT); // `+0xdad`
+        let produced = |site: u32, v: i32| -> Vec<i64> {
+            if site == tile {
+                // A miner's tile choice draws and then overwrites the roll
+                // with the 1,000,000 that keeps it out (§6.4).
+                vec![i64::from(400 + v % 200), 1_000_000]
+            } else if site == chop {
+                vec![i64::from(300 + v % 100)]
+            } else {
+                vec![i64::from(100 + v % 50)]
+            }
+        };
+
+        // **Half one: the original against itself.** A `wait` that rises
+        // to 100 or more is a reroll — the branch constants (32 at the
+        // camp walk, 20 when no spot is free) are all below it — so every
+        // one of them owes a draw at one of the three sites on the frame
+        // it happened, and the draw's own value must produce it.
+        let mut prev: std::collections::BTreeMap<(i64, i64), i64> =
+            std::collections::BTreeMap::new();
+        let (mut rerolls, mut by_site) = (0usize, std::collections::BTreeMap::new());
+        let mut camps: std::collections::BTreeSet<i64> = std::collections::BTreeSet::new();
+        for f in &frames {
+            // `FRAME n` is the state at the end of frame n, so a rise
+            // between `n − 1` and `n` was written by frame `n − 1`'s step,
+            // which is the frame the trace counts.
+            let step = f.n - 1;
+            let mut rose: Vec<i64> = Vec::new();
+            for u in &f.units {
+                for o in &u.orders {
+                    if o.kind != "GATHERORDER" || o.non_flat_gather != Some(1) {
+                        continue;
+                    }
+                    let Some(wait) = o.wait else { continue };
+                    camps.extend(o.build_type);
+                    let was = prev.insert((u.who, u.o), wait);
+                    if was.is_some_and(|w| wait > w) && wait >= 100 {
+                        rose.push(wait);
+                    }
+                }
+            }
+            if rose.is_empty() {
+                continue;
+            }
+            let mut spent: Vec<(u32, i32)> = tr
+                .draws
+                .iter()
+                .filter(|d| {
+                    d.sync()
+                        && d.frame == step
+                        && (d.site == tile || d.site == chop || d.site == arrive)
+                })
+                .filter_map(|d| d.value().map(|v| (d.site, v)))
+                .collect();
+            for w in rose {
+                let at = spent
+                    .iter()
+                    .position(|&(site, v)| produced(site, v).contains(&w))
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "frame {step}: a wait rose to {w} and no gather draw of \
+                             {spent:?} produces it"
+                        )
+                    });
+                *by_site.entry(spent[at].0).or_insert(0usize) += 1;
+                spent.remove(at);
+                rerolls += 1;
+            }
+            assert!(
+                spent.is_empty(),
+                "frame {step}: {spent:?} drew and no order's wait rose"
+            );
+        }
+        eprintln!("run39 rerolls: {rerolls} over 1,850 frames, by site {by_site:?}");
+        // Nineteen tile choices and **five** chop rerolls, and not one
+        // arrival reroll in 1,850 frames: the branch the implementation
+        // used to spend every reroll on is the one the original reaches
+        // essentially never, which is why the sites had to be told apart
+        // by their formulas rather than by their counts.
+        assert_eq!(rerolls, 24, "run39's rerolls, all of them explained");
+        // And what the capture cannot speak to: every non-flat gatherer in
+        // it works the **same** camp type, so `CHAR_MINE_ORE`'s early
+        // return and the miner's 1,000,000 are reading-only until a
+        // capture works a mine (`docs/SYNC.md` §7).
+        assert_eq!(
+            camps.into_iter().collect::<Vec<_>>(),
+            vec![418],
+            "run39 has one non-flat camp type and no mine"
+        );
+        assert_eq!(
+            by_site.into_iter().collect::<Vec<_>>(),
+            vec![(tile, 19usize), (chop, 5usize)],
+            "the tile choice, the chopping guy, and no arrival roll at all"
+        );
+
+        // **Half two: ours against the record.** Field for field, on every
+        // frame, for as far as it holds.
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let mut last = 0i64;
+        let (mut compared, mut first_bad, mut parted) = (0usize, None, 0i64);
+        for f in &frames {
+            while last < f.n {
+                built.tick();
+                last += 1;
+            }
+            for u in &f.units {
+                let Some(link) = built.units.iter().find(|l| l.who == u.who && l.o == u.o) else {
+                    continue;
+                };
+                let theirs: Vec<&crate::gamelog::OrderDump> = u
+                    .orders
+                    .iter()
+                    .filter(|o| o.kind == "GATHERORDER" && o.non_flat_gather == Some(1))
+                    .collect();
+                let ours: Vec<sim::orders::GatherOrder> = built.sim.units[link.unit]
+                    .orders
+                    .iter()
+                    .filter_map(|o| match o.body {
+                        sim::orders::Body::Gather(g)
+                            if matches!(
+                                built.sim.building_ident(g.building),
+                                sim::build::Ident::Mine | sim::build::Ident::Woodcutter
+                            ) =>
+                        {
+                            Some(g)
+                        }
+                        _ => None,
+                    })
+                    .collect();
+                if theirs.len() != ours.len() {
+                    if first_bad.is_none() {
+                        first_bad = Some(format!(
+                            "frame {}: {}/{} has {} non-flat gather orders, the original {}",
+                            f.n,
+                            u.who,
+                            u.o,
+                            ours.len(),
+                            theirs.len()
+                        ));
+                    }
+                    continue;
+                }
+                for (t, o) in theirs.iter().zip(&ours) {
+                    let mine = (
+                        o.tile.map_or(-1, |p| i64::from(p.x)),
+                        o.tile.map_or(-1, |p| i64::from(p.y)),
+                        i64::from(o.wait),
+                        i64::from(o.goto_build),
+                        i64::from(o.been_there),
+                        i64::from(o.dist_mod),
+                    );
+                    let his = (
+                        t.tx.unwrap_or(-1),
+                        t.ty.unwrap_or(-1),
+                        t.wait.unwrap_or(0),
+                        t.goto_build.unwrap_or(0),
+                        t.been_there.unwrap_or(0),
+                        t.dist_mod.unwrap_or(0),
+                    );
+                    compared += 6;
+                    if mine != his && first_bad.is_none() {
+                        first_bad = Some(format!(
+                            "frame {}: {}/{} gather ours {mine:?} theirs {his:?}",
+                            f.n, u.who, u.o
+                        ));
+                    }
+                }
+            }
+            if first_bad.is_some() {
+                parted = f.n;
+                break;
+            }
+        }
+        eprintln!(
+            "run39 gather: {compared} fields to frame {parted}, first {}",
+            first_bad.as_deref().unwrap_or("none disagreeing")
+        );
+        // The floor, and it may only rise. Frame 897 is the successor:
+        // the human's `1/2` holds its tile with a wait ten short of the
+        // original's, so the whole record agrees for two hundred frames
+        // past the word and then parts on a clock, not on a branch.
+        assert!(
+            compared >= 16_152 && parted >= 897,
+            "the wood machine's record fell: {compared} fields to frame {parted}, \
+             the floor is 16,152 and 897 — {}",
+            first_bad.as_deref().unwrap_or("none disagreeing")
         );
     }
 }

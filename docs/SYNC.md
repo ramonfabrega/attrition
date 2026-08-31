@@ -1096,6 +1096,38 @@ where an unnamed modelled draw borrows a neighbour's name and reads as a
 *disagreement about a draw that is correct*. When a mechanic's draws land,
 its marks land with them.
 
+## 3.18 Two sites at one branch — East Indies' word 645 → 742 (2026-08-31)
+
+Frame 645 of run39 is seven draws and this crate spent eight: an extra
+`Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99`, the return stand,
+because a woodcutter of ours had decided to walk home and the original's
+had not. The wait it was counting down was **105** where the original's
+was **355**, and both numbers came out of the same draw.
+
+`Unit::do_non_flat_gather` reads guy 0's `cur_anim` before it reads the
+tile, and the branch it takes there carries its own reroll:
+`CHAR_CHOP_WOOD` is `% 100 + 300` at `+0xcc3`, the arrival frame under it
+is `% 50 + 100` at `+0xdad`, and `CHAR_MINE_ORE` returns without touching
+anything. `docs/ORDERS.md` §6.4 has had all three since August; the
+implementation had one merged branch that marked `+0xcc3` and rolled the
+arrival's formula. A woodcutter therefore ran its cycle at a third of the
+original's length from its first reroll on.
+
+**What could not see it was the count.** Both sites draw exactly once, so
+the word stayed matched for six hundred frames and the sequence with it; a
+label-for-label comparison of the frame agrees too, because the label was
+the right one. What sees it is the record: the dump prints `GATHERORDER`'s
+`wait` every frame, and every rise in it over run39's 1,850 frames is
+produced by the value the trace's own draw returned — 24 of them, 19 at
+`+0x54b` and 5 at `+0xcc3`, **none at `+0xdad`** in the whole capture. The
+branch the implementation spent every reroll on is the one the original
+reaches essentially never.
+
+**The rule.** Where two draw sites sit on branches of one predicate, the
+site is not the assertion — the *value* is. A count cannot tell them apart
+and neither can a sequence; only the field the roll lands in can, and the
+dump prints it.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):
@@ -1654,3 +1686,23 @@ kind honest.
   crate stands in for with the owner's `human` flag and no capture has a
   case that separates (an AI-driven unit of a human player, or the
   reverse).
+
+- **Two sites at one branch, §3.18 (2026-08-31).** Diff-backed, and by the
+  strongest oracle this document has: the first half of
+  `run39_s_woodcutters_reroll_on_the_chop_branch_not_the_arrival_s` uses
+  **no simulation at all**. It matches every rise in a dumped
+  `GATHERORDER`'s `wait` over run39's 1,850 frames to the value the
+  trace's own draw returned on that frame, under that site's formula — 24
+  rerolls, 19 at `+0x54b`, 5 at `+0xcc3`, none at `+0xdad` — so the sites
+  are named from the original's two records against each other. The second
+  half is the whole row against ours, 16,152 fields to frame 897. Made to
+  fail two ways, both met on the way in: the formulas swapped in the
+  naming table (half one, at run39's frame 529) and the arrival's formula
+  back at the chop site (half two, the record's floor 897 → 530); the
+  branch dropped whole is the word itself, 742 → 645. Reading-only, and
+  named as such: that `+0xdad` is `% 50 + 100` at all, since no run
+  reaches it; and `CHAR_MINE_ORE`'s early return together with the miner's
+  1,000,000, because **every non-flat gatherer in every capture here is a
+  woodcutter** — run39's `GATHERORDER`s all carry `build_type 418` and not
+  one carries a mine's. *Capture, owed:* a mine worked for a few hundred
+  frames with `UNITS=3`, which would settle both.

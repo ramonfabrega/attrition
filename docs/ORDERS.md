@@ -1627,11 +1627,12 @@ goto_build == 0:                                                   # out at / he
     if wait < 0:                                                   # "return to the camp"
         find_nearby_spot(b, d = min(x_size,y_size)*0x60+0x30, …) fails → set_anim(CHAR_CHOP_WOOD); wait = 20; return
         set_anim(CHAR_DEFAULT); move(spot); goto_build = 1; wait = 32; unit_masks |= W ? 0x8000000 : 0x20000000; return
-    a = guy0.cur_anim; a == 0x1d → return
-    a == 0x19: wait--; if wait != 0 → return;  wait = all_gathering() ? −1 : 300 + rnd % 100; return
+    a = guy0.cur_anim; a == 0x1d → return                          # mining: nothing at all
+    a == 0x19: wait--; if wait != 0 → return;  wait = all_gathering() ? −1 : 300 + rnd % 100; return   # chopping
     T = (tx*0xc0 + 0x60, ty*0xc0 + 0x60)                           # the tile centre
-    if vector_dist(u, T) < 0x140:                                  # working the tile
-        wait--; if wait == 0: wait = all_gathering() ? −1 : 100 + rnd % 50
+    if vector_dist(u, T) < 0x140:                                  # arriving at the tile
+        wait--; if wait == 0: all_gathering() → wait = −1; return  # LAB_005f0ef1, before the facing
+                             else wait = 100 + rnd % 50
         face T; add the tree/ore effect if none; set_anim(W ? CHAR_CHOP_WOOD : CHAR_MINE_ORE); return
     set_anim(CHAR_DEFAULT)
     find_nearby_spot(T, 0xc0, 0x100, 2, angle, NOT_ME, …) fails, or the spot is u.pos or avoid_x/y:
@@ -1663,17 +1664,28 @@ goto_build == 1:
 ```
 
 In plain terms: a woodcutter alternates 400–599 frames at a tile
-(re-checking every 100–149 until every peer is out) with a walk back to the
-camp for a 32-frame dump animation; a miner walks out once and stays;
-`all_gathering` staggers the return trips. **Three sync-stream draws**
-(`% 100 + 300`, `% 50 + 100`, `% 200 + 400`), taken in that order. `WorldData::has_gather_access@
+(re-rolling 300–399 on the chop branch until every peer is out) with a walk
+back to the camp for a 32-frame dump animation; a miner walks out once and
+stays; `all_gathering` staggers the return trips. **Three sync-stream
+draws** — `% 100 + 300` at `+0xcc3`, `% 50 + 100` at `+0xdad`, `% 200 + 400`
+at `+0x54b`. `WorldData::has_gather_access@
 006b4e50(tx, ty, who, 1, 0)`: the tile has `mask & 0x8000`, its `wdata` owner
 is −1/`who`/an ally, and at least one orthogonal neighbour is neither terrain
 class `(mask & 0x30) == 0x20` nor itself a resource tile (`& 0x4000`).
 
-**Four lines the implementation has drifted from, each caught by a
+**Five lines the implementation has drifted from, each caught by a
 differential check and never by a reading** (`docs/JOURNAL.md`, 2026-08-26,
-2026-08-27 and 2026-08-30). As rules:
+2026-08-27, 2026-08-30 and 2026-08-31). As rules:
+
+- **`guy0.cur_anim` is read before the tile is, and it decides the
+  frame.** The two wait branches above are not one branch: the chopping
+  guy's is `% 100 + 300` at `+0xcc3` and it is where a woodcutter spends
+  every reroll after its first frame at the tile; the arrival's is
+  `% 50 + 100` at `+0xdad` and run39 does not reach it once in 1,850
+  frames. Merging them and rolling the arrival's formula puts a
+  woodcutter's clock at a third of the original's, and **a draw count
+  cannot see it** — both sites draw exactly once. A miner's `CHAR_MINE_ORE`
+  returns before everything, so its `wait` never moves at all.
 
 - **The camp arrival** is `wait--`, `been_there`, `wait < 0 → return`, face,
   `CHAR_DUMP_*`, and no third `set_anim` — the listing at
@@ -1699,11 +1711,20 @@ differential check and never by a reading** (`docs/JOURNAL.md`, 2026-08-26,
 
 The three `CHAR_DEFAULT` sites are marked (`anim::SITE_STAND_GATHER`
 `+0x10f`, `SITE_STAND_TILE` `+0xfd4`, `SITE_STAND_RETURN` `+0xb99`) and so
-are the two draws (`SITE_TILE_WAIT` `+0x54b`, `SITE_WORK_WAIT` `+0xcc3`).
-The order's whole row — `tx`, `ty`, `wait`, `goto_build`, `been_there`,
-`dist_mod` — is diffed against the dump's on every frame
-(`OrderMismatch::Gather`), which is what makes the next drift a failure
-rather than a reading.
+are the three draws (`SITE_TILE_WAIT` `+0x54b`, `SITE_WORK_WAIT` `+0xcc3`,
+`SITE_ARRIVE_WAIT` `+0xdad`). The order's whole row — `tx`, `ty`, `wait`,
+`goto_build`, `been_there`, `dist_mod` — is diffed against the dump's on
+every frame (`OrderMismatch::Gather`), which is what makes the next drift a
+failure rather than a reading.
+
+Two diffs stand on this section.
+`run39_s_woodcutters_reroll_on_the_chop_branch_not_the_arrival_s` is the
+sharper: every rise in a dumped `wait` over run39's 1,850 frames must be
+produced by the value the trace's draw on that frame returned, **under that
+site's own formula** — 24 rerolls, 19 at `+0x54b` and 5 at `+0xcc3`, none
+at `+0xdad` — and then the whole row against the record, 16,152 fields to
+frame 897. It needs no simulation for its first half, so it names the sites
+from the original alone.
 
 The dump's woodcutter citizen (§4.8): frame 1 — `goto_build 1, wait 0`,
 adjacent, `wait → −1`, `been_there = 1`; frame 2 — a tile (`wait = 400 +

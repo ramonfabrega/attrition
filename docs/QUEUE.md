@@ -13,34 +13,35 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 100 (Opus).*
+*2026-08-31, after item 101 (Opus).*
 
-**East Indies' word and sequence moved 576 → 645**, and **Great Lakes'
-sequence 576 → 780**, so that map's two numbers are now one frame; its word
-holds at 780 with 964/864. run10 holds at ticks 572, orders 776, first
-divergences 802 and 573 — and its two coverage totals rose, 92,766 → 97,333
-collision field-frames and 35,742 → 37,376 angle rows. run39's own game
-score is unchanged at 167/167 with 217/168, and its queue record at 33,631
-fields, 1 disagreeing, first at 1851. Tree green: 653 sim, 151 rondata.
+**East Indies' word and sequence moved 645 → 742**, and Great Lakes holds
+at 780 on both with its totals rising 964/864 → 977/866. run10's headline
+holds at 572/776 with first divergences 802 and 573, and its two coverage
+totals **fall** — 97,333 → 97,118 collision field-frames and 37,376 →
+37,174 angle rows — on one unit of fourteen, the AI's `1/10`, parting at
+1522 rather than 1579. run39's game score holds at 167/167 with 217/168,
+its queue record at 33,631 fields with 1 disagreeing. Tree green: 653
+sim, 152 rondata.
 
-**Item 100 was not the AI's second city.** This crate spends every one of
-the twenty draws frame 576's five `place_city_with_cost` calls take. What it
-never did was **name** ten of them: `make_stuff`'s expiry walk carried no
-`Sim::mark`, and an unmarked draw takes the name of whatever site marked
-last — so the comparison parted on a draw that was correct and the real hole
-sat sixty draws below it, invisible. Adding the two marks changed nothing in
-the simulation and moved Great Lakes' sequence 204 frames.
+**A woodcutter's wait had the wrong formula, and no count could say so.**
+`do_non_flat_gather` reads guy 0's `cur_anim` before the tile, and each
+arm carries its own reroll: `CHAR_CHOP_WOOD` is `% 100 + 300` at `+0xcc3`
+— every reroll after a woodcutter's first frame at the tile — and the
+arrival frame under it is `% 50 + 100` at `+0xdad`, which run39 never
+reaches. This crate had one merged branch rolling the arrival's formula
+at the chop site, so its woodcutters ran at a third of the original's
+cycle. Both sites draw once, so the word, the sequence *and* the labels
+all agreed for six hundred frames. What saw it was the dump:
+`GATHERORDER`'s `wait` is printed every frame, and the original's `0/1`
+rerolled 1 → 355 on 539 where ours went 1 → 105 off the same draw. The
+new diff's first half needs no simulation at all. `docs/ORDERS.md` §6.4,
+`docs/SYNC.md` §3.18.
 
-**The mechanic was a bird landing.** `Animal::think_bird@005d79e0`'s tail is
-thirty rounds over the patrol point's region, two draws a round; `SYNC` §3.9
-had read it in August and left it unmodelled because no capture was long
-enough to reach it. run39 is, on frame 576 — and `Gaia::bird_landings`, kept
-for exactly that, had `(576, 8)` in it all along. `docs/SYNC.md` §3.9, §3.17.
-
-**Opener (Opus):** `take item 101 from @docs/QUEUE.md — East Indies' word
-at 645 is one stand this crate spends and the original does not:
-Guy::set_anim+0x97a under Unit::do_non_flat_gather+0xb99, eight draws
-against seven. docs/ORDERS.md §6.4 against run39's own trace.`
+**Opener (Opus):** `take item 102 from @docs/QUEUE.md — East Indies' word
+at 742 is a blocked stand the original spends and this crate does not:
+Guy::set_anim+0x97a under Unit::move_step+0x823, seven against six.
+docs/COLLISION.md and docs/ANIM.md §4 against run39's own trace.`
 
 ## The queue
 
@@ -48,14 +49,18 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-101. **East Indies' word at 645, and it is a return stand.** Frame 645 is
-    seven draws — an `Animal::do_idle` idle anim and six `Farms::inc_time`
-    — and this crate spends an eighth in front of the farms:
-    `Guy::set_anim+0x97a` under `Unit::do_non_flat_gather+0xb99`, the
-    non-flat machine's **return** stand (`docs/ORDERS.md` §6.4). So a
-    woodcutter or miner of ours turns for its drop-off on a frame the
-    original's does not. Find which unit, and whether it is the frame or
-    the arm. `docs/ORDERS.md` §6.4 against run39's own trace.
+102. **East Indies' word at 742, and it is a blocked stand.** Frame 742
+    is seven draws and this crate spends six: the original stands a guy
+    at `Guy::set_anim+0x97a` under `Unit::move_step+0x823` — the stand a
+    refused step makes (`docs/ANIM.md` §4, `docs/COLLISION.md`) — and
+    ours walks on. The other six agree, a bird's wing-beat coin and five
+    `Farms::inc_time`. Find which unit is blocked and what blocks it;
+    item 48's uncompared `down`/`down_who` is the near neighbour.
+
+103. **The wood machine's record parts at 897, on a clock.** After
+    16,152 agreeing fields the human's `1/2` holds a wait of 499 where
+    the original's holds 509 — ten frames, tile and phase right.
+    `docs/ORDERS.md` §6.4.
 
 69. **East Indies' order-list length at 168.** `1/4` and the original
     disagree on the order list at 168 and `1/5` at 186, and both are now

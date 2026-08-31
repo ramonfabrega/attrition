@@ -135,9 +135,13 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x005d_b34b, None, sim::anim::SITE_BIRD_COIN),
     // `Guy::init_real@005db6b0` — the creation roll.
     (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
-    // `Unit::do_non_flat_gather@005f0170` — the wood machine's own two.
+    // `Unit::do_non_flat_gather@005f0170` — the wood machine's own three.
+    // The last two are one apparent branch and two real ones: `+0xcc3` is
+    // the chopping guy's `% 100 + 300` and `+0xdad` the arrival frame's
+    // `% 50 + 100` (`docs/ORDERS.md` §6.4).
     (0x005f_06bb, None, sim::orders::SITE_TILE_WAIT),
     (0x005f_0e33, None, sim::orders::SITE_WORK_WAIT),
+    (0x005f_0f1d, None, sim::orders::SITE_ARRIVE_WAIT),
     // `GameAccess::rnd@0043cca0+0x20` — the frameless helper. Its address
     // says nothing on its own; the chain does, and `Unit::do_job+0x67` is
     // `do_gather`'s own return address (both it and `GameAccess::rnd` are

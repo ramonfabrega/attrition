@@ -292,13 +292,23 @@ pub(crate) const CARRY_TO_ORE: u32 = 0x4000_0000;
 /// The nibble `& 0x87ffffff` clears whole.
 const CARRY_ANY: u32 = CARRY_WITH_WOOD | CARRY_TO_WOOD | CARRY_WITH_ORE | CARRY_TO_ORE;
 
-/// The wood machine's two direct draw sites, under the original's own
-/// offsets from `Unit::do_non_flat_gather@005f0170` — the tile-choice wait
-/// (`% 200 + 400`) and the at-work wait (`% 50 + 100`), §6.4. [`Sim::mark`]
+/// The wood machine's **three** direct draw sites, under the original's own
+/// offsets from `Unit::do_non_flat_gather@005f0170`, §6.4. [`Sim::mark`]
 /// writes them into [`Sim::phase_marks`], which is what keeps them from
 /// being read as the stand that precedes them (`docs/SYNC.md` §5).
+///
+/// The middle one is the trap. The two waits are **not** the same branch:
+/// `+0xcc3` is the chopping guy's `% 100 + 300`, reached only through the
+/// `cur_anim == CHAR_CHOP_WOOD` test that stands in front of the tile
+/// arithmetic, and `+0xdad` is the arrival frame's `% 50 + 100`, reached
+/// only when the guy is *not* yet chopping. A woodcutter takes the first
+/// on every reroll after its first frame at the tile and the second
+/// essentially never — so a merged branch that rolls `% 50 + 100` sends it
+/// back to the camp two hundred frames early (`docs/JOURNAL.md`,
+/// 2026-08-31).
 pub const SITE_TILE_WAIT: &str = "Unit::do_non_flat_gather+0x54b";
 pub const SITE_WORK_WAIT: &str = "Unit::do_non_flat_gather+0xcc3";
+pub const SITE_ARRIVE_WAIT: &str = "Unit::do_non_flat_gather+0xdad";
 
 /// The farmer's cell re-pick — `Unit::do_gather@005ef2a0`'s two
 /// `GameAccess::rnd(4)` calls, the pair that follows the cell-state switch
@@ -2955,6 +2965,44 @@ impl Sim {
                 self.store_gather(u, g);
                 return;
             }
+            // **The guy's own animation is read before the tile is**
+            // (`do_non_flat_gather:255`, `005f0d0f`): a worker already in
+            // its resource loop never reaches the tile arithmetic below,
+            // and the branch it takes instead is where the steady-state
+            // wait lives.
+            //
+            // - `CHAR_MINE_ORE` — a miner mid-swing does *nothing*: no
+            //   decrement, no facing, no animation. Its `wait` is the
+            //   1,000,000 the tile choice gave it and it stays out.
+            // - `CHAR_CHOP_WOOD` — the decrement, and on zero the reroll,
+            //   and that is the whole frame. No facing, no `set_anim`.
+            //
+            // The reroll here is `% 100 + 300`, **not** the `% 50 + 100`
+            // of the arrival frame below. The two used to be one branch
+            // and the count could not see it: both sites draw once, so
+            // the word stayed matched for six hundred frames while the
+            // worker's clock ran at a third of the original's and sent it
+            // home two hundred frames early (§6.4, `docs/SYNC.md` §3.18).
+            let anim = self.units[u].guys.first().map_or(0, |g| g.anim);
+            if anim == crate::anim::MINE_ORE {
+                self.store_gather(u, g);
+                return;
+            }
+            if anim == crate::anim::CHOP_WOOD {
+                g.wait -= 1;
+                if g.wait != 0 {
+                    self.store_gather(u, g);
+                    return;
+                }
+                g.wait = if self.all_gathering(b) {
+                    -1
+                } else {
+                    self.mark(SITE_WORK_WAIT);
+                    300 + self.rng.roll() % 100
+                };
+                self.store_gather(u, g);
+                return;
+            }
             let Some(t) = g.tile else {
                 // A tile was never chosen: nothing to walk to.
                 self.store_gather(u, g);
@@ -2962,26 +3010,32 @@ impl Sim {
             };
             let centre = Pos::new(t.x * TILE + HALF_TILE, t.y * TILE + HALF_TILE);
             if vector_dist(centre.x - here.x, centre.y - here.y) < AT_TILE {
-                // At the tile: the work animation (`do_non_flat_gather:267`
-                // and `:271`), looping and silent.
+                // The **arrival** frame: at the tile and not yet in the
+                // loop. The decrement and its reroll come first
+                // (`do_non_flat_gather:267`), then the facing, and the
+                // work animation is the function's last statement — which
+                // is what puts every later frame on the branch above.
+                g.wait -= 1;
+                if g.wait == 0 {
+                    if self.all_gathering(b) {
+                        // `LAB_005f0ef1`: the return is immediate, so this
+                        // frame sets neither the facing nor the animation.
+                        g.wait = -1;
+                        self.store_gather(u, g);
+                        return;
+                    }
+                    self.mark(SITE_ARRIVE_WAIT);
+                    g.wait = 100 + self.rng.roll() % 50;
+                }
+                self.units[u]
+                    .movement
+                    .set_facing(find_angle(centre.x - here.x, centre.y - here.y));
                 let work = if wood {
                     crate::anim::CHOP_WOOD
                 } else {
                     crate::anim::MINE_ORE
                 };
                 self.set_anim(u, work, false, true);
-                g.wait -= 1;
-                if g.wait == 0 {
-                    g.wait = if self.all_gathering(b) {
-                        -1
-                    } else {
-                        self.mark(SITE_WORK_WAIT);
-                        100 + self.rng.roll() % 50
-                    };
-                }
-                self.units[u]
-                    .movement
-                    .set_facing(find_angle(centre.x - here.x, centre.y - here.y));
                 self.store_gather(u, g);
                 return;
             }
