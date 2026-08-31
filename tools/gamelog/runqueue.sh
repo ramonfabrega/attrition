@@ -23,6 +23,22 @@ set -e
 # and a failed check would both be summarised as fine. This is the same trap
 # that `[ -n "$X" ] && cmd` sets under `set -e`, one pipe further along.
 set -o pipefail
+
+# **Killing this script must kill the capture it started.** `longtrace.sh`
+# runs as a child, and its last acts are to `mv` the live `gamelog.txt` onto
+# the archive name and to restore the INIs. An orphan that outlives its
+# parent therefore renames whatever `gamelog.txt` happens to be there *now*
+# over a finished archive — which nearly cost run45 its 508 MB after a
+# `pkill -f runqueue.sh` matched only the wrapper. Trap and take the whole
+# process group down.
+cleanup() {
+  trap - EXIT INT TERM
+  pkill -P $$ 2>/dev/null
+  pkill -f "gamelog/longtrace.sh" 2>/dev/null
+  exit
+}
+trap cleanup INT TERM
+
 W=$(cd "$(dirname "$0")/../.." && pwd)
 SCEN=${1:--}
 if [ "$SCEN" = "-" ]; then SCEN="$W/tools/gamelog/captures.txt"; fi

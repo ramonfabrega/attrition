@@ -2552,6 +2552,61 @@ Also worth keeping: 265 and 266 carry `8` and `40` — **without 0x10**,
 which every other type in the file has. Whatever 0x10 is, the siege pieces
 do not have it.
 
+### run45 — the AI moves the mirror flag, and never lays a group move order
+
+Item 23's driver-free shot, and a **negative result with a reason**, which
+is worth more than the run it cost. run39's lobby, 900 frames, run31's group
+detail; `groupfacing.py` over the whole archive:
+
+| | |
+| --- | --- |
+| `GROUPDATA` blocks | 461,824 — 902 frames × the 512-slot pool |
+| `group.facing` | 0 ×461,393, **1 ×431** |
+| formations (`GROUPDATA.form`) | none ×460,923, **Line ×901**, nothing else |
+| `GroupMoveOrder/MOVEORDER.facing` | **none at all** |
+| other `MOVEORDER.facing` | −1 ×1,522, 0 ×699, 1 ×196 |
+
+So the AI **does** form groups and its groups' mirror flag **does** flip —
+431 records carry `facing 1`, which is `Unit::set_angle@00605400` toggling
+it as a leader turns 90° or more off its heading. What the AI never does,
+in 900 frames, is lay a **`GroupMoveOrder`**: not one unit in the file
+carries one. `Unit::kill_current_order`'s hand-back reads the dying order's
+own `MoveOrder +0x28`, so with no group move order there is nothing to hand
+back and the XOR term cannot fire however long the run.
+
+**What that settles.** The trace was right that the machinery runs —
+`Group::action_move_near`, `Form::compute` and `GroupData::find_leader` are
+all entered at frame 0 of run39 — and it was the wrong question to ask of
+it. *Entering* `action_move_near` is not the same as a unit ending the frame
+holding a `GroupMoveOrder` the dump can print. Item 23 needs a **human
+right-click**, which is what run31 has and what no AI game supplies, and the
+capture is run31's three clicks **plus a fourth**: `groupfacing.py` on run31
+shows its group move orders carrying `facing 1` from frame 356 to 367 and
+the log then closing, so the mirrored order it needs is already made and
+simply never dies.
+
+**And the Echelon half needs the mouse twice over.** Every group in run45 is
+a **Line**, and every group in run31 is too. `docs/GROUPS.md` §6.4's slot
+table only reads `reverse` on the Echelon rows, so the mirror is invisible
+in the positions of a Line whatever the flag does. The console's 102
+commands, re-derived from the user's own install by
+`tools/gamelog/console.py`, contain **no formation verb at all** — the chat
+half is `add`, `select`, `move`, `die`, `damage`, `tech` and the diplomacy
+pokes — so a formation can only be set through the unit panel.
+
+**A trap this run cost twice, now a check.** The first attempt dumped the
+pool **once**, in the start block: 512 `GROUPDATA` records against run31's
+111,616. `GROUPS=1` is necessary and not sufficient —
+`GroupData::log_data@0045e1d0` calls neither `set_type` nor `set_detail`, so
+its lines are accepted against whatever the previous dumper left, and
+`dump_deaths@0092fd80` ends by calling `WorldData::log_data` twice, leaving
+the type at `WORLD`; with `WORLD=0` under `[End Frame]` the whole pool fails
+`check_accept` silently. **`DEATHS` off** under `[End Frame]` is the fix, and
+it is written down in this file already — it cost run30 — which is the
+argument for a guard over prose. `groupfacing.py` now fails on `≤ 512`
+blocks and names the cause, so the next stanza to do it is told in a minute
+rather than after a twenty-minute capture.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
