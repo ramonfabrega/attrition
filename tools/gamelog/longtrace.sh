@@ -29,6 +29,28 @@
 # the wall-clock cap never binds; the dump is then the only speed floor
 # (~3 frames a second at UNITS=3), which is what run10 ran at too.
 #
+# **The inputs are overridable, so one implementation serves a queue of
+# captures** (item 90). Every hook below defaults to exactly what this script
+# did before they existed, so an unset environment reproduces run33/run39 byte
+# for byte; `tools/gamelog/captures.txt` is the scenario file that sets them and
+# `runqueue.sh` the driver that walks it.
+#
+#   DETAIL_END    setlog.py's `end:` list      (default run10's)
+#   DETAIL_START  setlog.py's `start:` list    (default run10's)
+#   DUMP_ALL      setlog.py's first argument   (default 0)
+#   CMD_EXTRA     newline-separated `rontrace.cmd` lines inserted before the
+#                 `!quit` — the scenario's cheats (default none)
+#   TRACE_COVER   `rontrace.cfg` body          (default `cover=1`)
+#   DRIVER        a script run in the background once the game is up, for the
+#                 right-clicks the cheat channel cannot issue (default none)
+#   CFG           the `-config` argument       (default per MAPSTYLE, above)
+#   WINDOW        "LO HI" for a DUMP_ALL window over [LO, HI) instead of the
+#                 cheap per-frame dump (default the cheap one)
+#   SETTLE_MIN    bytes of gamelog below which "stopped growing" is not yet
+#                 "finished" — the guard against calling a stalled launch a
+#                 settled run (default 10 MB, which every capture so far
+#                 passed inside a minute)
+#
 # Needs all three macOS permissions — Screen Recording, Automation and
 # **Accessibility** (`cliclick p` must answer a real cursor position, not
 # 0,0). Restores gamelog.ini/rise.ini/rise2.ini at the end.
@@ -76,14 +98,25 @@ echo "probe ok (cursor $pos)"
 # combo: `check.ini`'s `mapstyles=` and the profile's `<MULTI>` block.
 python3 "$W/tools/gamelog/mapstyle.py" "$MAPSTYLE"
 python3 "$W/tools/fuzz/seedini.py" 12345
-python3 "$W/tools/gamelog/setlog.py" 0 \
-  end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1 \
-  start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
-python3 "$W/tools/gamelog/window.py" frames 0 $((FRAMES + 50))
-printf 'cover=1\n' > "$G/rontrace.cfg"
+DETAIL_END=${DETAIL_END:-MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1}
+DETAIL_START=${DETAIL_START:-MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1}
+python3 "$W/tools/gamelog/setlog.py" "${DUMP_ALL:-0}" \
+  "end:$DETAIL_END" "start:$DETAIL_START"
+# `frames` is the cheap window — the per-frame dump at the `[End Frame]`
+# thresholds, which runs at full speed. `WINDOW="LO HI"` asks for the
+# expensive one instead: `stage` turns DUMP_ALL on across [LO, HI), which is
+# what a capture wants when the question is a whole record on three frames
+# rather than one field on nine hundred. Both are undone by `restore`.
+if [ -n "$WINDOW" ]; then
+  python3 "$W/tools/gamelog/window.py" stage ${=WINDOW}
+else
+  python3 "$W/tools/gamelog/window.py" frames 0 $((FRAMES + 50))
+fi
+printf '%s\n' "${TRACE_COVER:-cover=1}" > "$G/rontrace.cfg"
 {
-  echo "# longtrace.sh — run10's game, traced, to frame $FRAMES."
+  echo "# longtrace.sh — run$N ($TAG), map style $MAPSTYLE, to frame $FRAMES."
   echo "5 !ffwd 30"
+  if [ -n "$CMD_EXTRA" ]; then printf '%s\n' "$CMD_EXTRA"; fi
   echo "$FRAMES !quit"
 } > "$G/rontrace.cmd"
 
@@ -101,6 +134,14 @@ lobby_click solo 4 "$T/r$N-solo.png"
 lobby_click quick 8 "$T/r$N-quick.png"
 lobby_start 20 "$T/r$N-"
 
+# The cheat channel issues no orders at all (`docs/ORACLE.md`, "The channel's
+# vocabulary"), so a capture that needs one — a turn, a hand-back, a collision
+# — drives the mouse from here while the game runs.
+if [ -n "$DRIVER" ]; then
+  echo "driver: $DRIVER"
+  ( zsh "$DRIVER" "$N" "$T" > "$T/driver$N.log" 2>&1 ) &
+fi
+
 last=0; still=0
 for i in {1..160}; do
   sleep 20
@@ -109,7 +150,7 @@ for i in {1..160}; do
   if [ "$sz" = "$last" ]; then still=$((still + 1)); else still=0; fi
   last=$sz
   echo "$(date +%H:%M:%S) gamelog=$sz last='$fr' still=$still"
-  if [ $still -ge 4 ] && [ "$sz" -gt 10000000 ]; then echo settled; break; fi
+  if [ $still -ge 4 ] && [ "$sz" -gt "${SETTLE_MIN:-10000000}" ]; then echo settled; break; fi
 done
 lobby_shot "$T/r$N-end.png"
 pkill -f $P || true

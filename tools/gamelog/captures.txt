@@ -1,0 +1,52 @@
+# captures.txt — the capture queue as a file (docs/QUEUE.md item 90,
+# docs/DECISIONS.md entry 27).
+#
+# One stanza per capture, `key: value`, blank line between stanzas, `#` for a
+# comment. Every key is a `longtrace.sh` input — the script's four positional
+# arguments and the environment hooks documented in its header — so a stanza
+# is a capture and nothing else needs writing to run one. `runqueue.sh` walks
+# this file top to bottom, **one capture at a time**, and skips any stanza
+# whose archive already exists, so it is re-runnable and a crash costs the
+# capture in flight rather than the queue.
+#
+#   run:        the run number, and the archive's name
+#   tag:        the archive's suffix
+#   item:       the queue item this capture is owed to
+#   why:        one line, for the run section this becomes in docs/ORACLE.md
+#   frames:     the `!quit` frame
+#   mapstyle:   14 Great Lakes, 18 East Indies
+#   cfg:        the `-config` argument; `-` means none, and absent means the
+#               default (`-config check.ini` on 14, none elsewhere)
+#   end:        `[End Frame]` detail, setlog.py's `end:` list
+#   start:      `[Start Game]` detail, setlog.py's `start:` list
+#   dump_all:   DUMP_ALL, default 0
+#   window:     "LO HI" for a DUMP_ALL window instead of the cheap dump
+#   cover:      rontrace.cfg's body, default `cover=1`
+#   cmd:        one `rontrace.cmd` line, repeatable, in file order
+#   driver:     a script driven while the game runs, for the right-clicks the
+#               cheat channel cannot issue — `move` is a teleport and **no
+#               console command issues an order at all**
+#   settle_min: bytes below which the poll loop will not call a run finished
+#   check:      a command run after the capture, from the repo root, to say
+#               whether it landed; repeatable, and a non-zero exit is loud
+#
+# The order is the charter's: 108 first because it is the cheapest and fully
+# specified, and it proves the pipeline before anything costly rides on it.
+
+run: 40
+tag: islands-goodybucket
+item: 108
+why: the goody box's pile — bucket[2] stepping by 50 on frame 867
+frames: 900
+mapstyle: 18
+# run39's own lobby: East Indies takes the profile's, never check.ini's.
+cfg: -
+# run39's detail exactly, plus LEADERS=2. The LEADERDATA block that carries
+# `bucket`, `ages_get()` and `epoch_get(scan)` is the encrypted one, and
+# `LeaderData::log_data@006e5110` announces it at detail **2** (the
+# `this_00[1].handle = 2` before the `LeaderDataEncrypt::log_data` call at
+# line 916) — not the 9 of the census, so this costs ~55 lines a leader a
+# frame rather than 10,000.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=2
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+check: python3 tools/gamelog/samegame.py --exclude LEADERDATA gamelog-run39-islands-longtrace.txt gamelog-run40-islands-goodybucket.txt
