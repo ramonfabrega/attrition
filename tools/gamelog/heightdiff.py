@@ -127,10 +127,13 @@ def main():
     if side is None:
         return 0
 
-    # The corner-to-tile scale is **measured, not assumed**: this grid is
-    # 241 a side where the lobby's map is 180 tiles, which is not the 4:1 the
-    # field's name suggests, so the tool reports where the moved corners
-    # actually are and lets the clusters say what the mapping is.
+    # The corner-to-tile scale is **measured, not assumed** — and measuring
+    # it settled it: the grid is 241 a side, which is `4·xs + 1` for xs = 60
+    # **cells** of four tiles (`crates/rondata/src/gamelog.rs`), so 241
+    # corners span 240 tiles and the mapping is **one corner per tile**, not
+    # the 4:1 the arithmetic first suggests. run43's two clusters sit at
+    # columns 3..10 and 30..37 for buildings placed at tiles 6 and 33, which
+    # is that mapping and no other.
     coords = [(i % side, i // side) for i in moved]
     print("grid %d x %d corners" % (side, side))
     print("corner column range %d..%d, row range %d..%d"

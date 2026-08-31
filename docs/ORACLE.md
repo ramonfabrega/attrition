@@ -2426,6 +2426,59 @@ fifteen frames respectively, all run long — so the record now on disk is
 enough to separate the pile's income from the box's, which it was not
 before.
 
+### run43 — the terraform's own before and after, in one game
+
+run32's scenario exactly — the same two enhancers on the same fresh ground
+at the same frame, seed 12345 and map style 14 — with the `DUMP_ALL` window
+opened four frames earlier: **[100, 108) rather than [104, 109)**. A block
+`FRAME n` is the end of sim-frame `n − 1`, so `FRAME 100` is the grid before
+either `add` lands and `FRAME 106` the grid after the Smelter's replan on
+104 and the Granary's on 105.
+
+**Why the four frames were worth a second capture.** `docs/ROADS.md` §7.1
+reads the road search's grid as the pre-terraform one, and it had to reach
+into **run13** for that grid — a different game, in which nothing is ever
+placed. The two games are identical up to sim-frame 100 by construction, so
+the substitution was almost certainly sound; "almost certainly" is what a
+capture is for. run32's own window cannot supply it: `heightdiff.py` on
+run32's `FRAME 104` against its `FRAME 108` moves **not one corner**, because
+both are already post-terraform.
+
+**What run43 says**, `tools/gamelog/heightdiff.py` on its own two frames:
+
+- **128 corners move**, which is §7.1's number, now a single game's own
+  difference rather than a cross-game one.
+- They fall in **exactly two clusters of 64**, and nothing lies outside
+  them: columns 3..10 × rows 168..175, and columns 30..37 × rows 158..165 —
+  centres (6.5, 171.5) and (33.5, 161.5), for buildings placed at tiles
+  **(6, 171)** and **(33, 161)**. So "the two footprints' boxes and nothing
+  else" is exact, and each box is 8 × 8.
+- **The corner grid is one corner per tile.** `master_land_heights` is
+  `(4·xs + 1)²` for xs = 60 *cells* of four tiles — 58,081 corners, 241 a
+  side, spanning 240 tiles. The 4 in the formula is cells-to-tiles, not
+  tiles-to-corners, and run43's clusters are what says so: a building at
+  tile 6 moves columns 3..10, and at tile 33 columns 30..37.
+
+What this capture does **not** do is re-derive the two short node counts
+(1,046 against the original's 1,043, and 1,460 against 1,870). Those are the
+harness's arithmetic over the grid, not the dump's; what changes is that the
+grid the harness should read them on is now this game's own, at a frame the
+same file also carries the placement for.
+
+**A trap this run cost, and the guard that caught it.** run43 was captured
+twice. The first archive was 550 MB, the right map style, the right seed,
+and a full window — and held **half its scenario**: zsh's `${(j:\n:)a}`
+joins with a literal backslash-n rather than a newline, so the stanza's two
+`add` lines reached `rontrace.cmd` as one, `ConsoleWin::parse_cmd` took the
+Granary, returned 1 and dropped the rest. Nothing in the dump looked wrong.
+`cmdsran.py` read the trace's `INFO cmd` records and said "3 lines parsed,
+1 at frame 100, expected 2" — which is what it was written for one run
+earlier, and it caught the bug on its first real outing. The same join had
+silently emptied `rontrace.cfg`'s window line too. The fix is the `p` flag;
+the incomplete archive was deleted rather than kept, because a
+half-happened scenario that reads as valid is precisely run23's failure
+mode.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The
