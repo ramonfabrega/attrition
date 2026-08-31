@@ -615,6 +615,19 @@ position units (`anim::herd_centre`). The herd's own walk every 64 frames is
 animal's own type — one sheep herd on this lobby — and the fish, which are
 `HERDFISH` in twelve schools, never wander.
 
+**The far branch's bearing is a literal** (2026-08-31, item 102). Beyond
+`0x181` of that centre the wander is `UnitType::find_nearby_spot(centre,
+0xc0, −1, 0, …)` with no draw, and the angle its thirty-one bearings sweep
+out from (§10 of `docs/ORDERS.md`) is the constant **`0x55555555`** —
+`Unit::init`'s untouched-angle value, 120°, passed as the ninth argument
+where `do_gather`, `do_build` and every other call site passes a real
+heading. It is not the animal's facing and not the bearing to the centre.
+So every far wander a herd makes fans out from the same direction, and two
+animals on opposite sides of the centre try the same spots in the same
+order. Diff-backed: `docs/SYNC.md` §3.19, and
+`rondata::diff::a_far_wander_sweeps_from_the_literal_bearing` holds run39's
+`8/3` to the dump step for step.
+
 ## 8. The harness
 
 `rondata --diff`:

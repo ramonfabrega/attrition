@@ -6468,10 +6468,17 @@ mod tests {
         // 780, because a woodcutter that stays at its tile three times as
         // long is at the original's tile on hundreds of the frames past
         // the parting. The other map's word goes 645 -> 742.
+        //
+        // 977 / 866 -> **986 / 884** with item 102, the far wander's
+        // literal bearing (`docs/SYNC.md` §3.19): this map's herd takes
+        // the same branch East Indies' does, so nine more frames spend the
+        // original's number of draws and eighteen more are draw for draw,
+        // while the word and the sequence hold at 780. The other map's
+        // word goes 742 -> 867.
         assert!(
-            words >= 977 && matched >= 866,
+            words >= 986 && matched >= 884,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 977 and 866"
+             {matched} draw for draw; the floors are 986 and 884"
         );
     }
 
@@ -7237,6 +7244,33 @@ mod tests {
     ///               and the sequence appeared to part on a draw that was
     ///               in fact correct. An unnamed draw is a lie in this
     ///               comparison, not a gap.
+    ///   2026-08-31  word **742 -> 867** (item 102), **the far wander's
+    ///               literal bearing**: `Animal::do_idle@005d7460` hands
+    ///               `UnitType::find_nearby_spot` the constant
+    ///               `0x55555555` as its sweep's starting angle — the same
+    ///               120° `Unit::init` writes into a unit that has never
+    ///               turned — where every other call site in the
+    ///               executable passes a real bearing, and this crate
+    ///               passed the animal's facing. Gaia's `8/3` was 180° out,
+    ///               so on frame 736 it walked due north from the herd
+    ///               centre where the original walks east-north-east; six
+    ///               frames later the original's step is refused by its
+    ///               herd-mate `8/2` and spends the blocked stand
+    ///               (`Guy::set_anim+0x97a < Unit::move_step+0x823`,
+    ///               `docs/COLLISION.md` §5), while ours walked on into
+    ///               open ground. **The item was booked as a blocked
+    ///               stand and the blocked stand was already right**: with
+    ///               the bearing corrected the whole walk is the
+    ///               original's step for step — `(28741, 24384)`,
+    ///               `(28754, 24360)` … `(28793, 24288)` — and the
+    ///               refusal, the dropped walk and the stand all fall
+    ///               where they fall in the dump, with no change to the
+    ///               collision model at all. Frame 867 is next, and it is
+    ///               `Unit::explore_goody+0x27c < Unit::set_new_location
+    ///               +0x3cc < Unit::move_step+0x8f4`, three draws.
+    ///               `docs/SYNC.md` §3.19, and
+    ///               [`a_far_wander_sweeps_from_the_literal_bearing`] is
+    ///               the rule against the record.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7358,10 +7392,163 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 742 && first_part >= 742 && words >= 64 && matched >= 64,
+            first_count >= 867 && first_part >= 867 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 742, 742, 64 and 64"
+             {matched} draw for draw — the floor is 867, 867, 64 and 64"
+        );
+    }
+
+    /// **A far wander sweeps from a literal bearing, not the animal's own**
+    /// (2026-08-31, item 102) — the mechanic behind East Indies' word going
+    /// 742 → 867, asserted where the word's own count cannot see it.
+    ///
+    /// `Animal::do_idle@005d7460`'s far branch hands
+    /// `UnitType::find_nearby_spot` **`0x55555555`** as the angle its
+    /// thirty-one bearings sweep out from — the ninth argument, where
+    /// `do_gather`, `do_build`, `do_garrison` and every other call site in
+    /// the executable passes a real heading. It is
+    /// [`sim::movement::Angle::INITIAL`]: the 120° `Unit::init` writes into
+    /// a unit that has never turned, a literal with nothing behind it. So
+    /// every far wander any herd makes starts its sweep from the same
+    /// direction, whichever way the animal happens to be looking.
+    ///
+    /// This crate passed `Movement::facing`, and run39's `8/3` was facing
+    /// **south** (`UNITDATA angle -2147483648`) when its coin came up on
+    /// frame 736 — 180° out. Two things follow, and the second is the one
+    /// the item was booked as:
+    ///
+    /// - **The walk.** From the herd centre `(28800, 23936)` the original's
+    ///   first ring at `0xc0` refuses 120° and 142.5° and takes **97.5°**,
+    ///   `k = −1` of the sweep, which snaps to `(28968, 23976)`; this crate
+    ///   took a bearing near due north and walked to `(28728, 24120)`. The
+    ///   dump prints the walk step for step and the two share only its
+    ///   first frame.
+    /// - **The stand.** Six frames later the original's step is refused by
+    ///   the herd-mate `8/2` standing at `(28856, 24197)`, and `move_step`
+    ///   spends the blocked stand — `Guy::set_anim+0x97a <
+    ///   Unit::move_step+0x823` — before its give-up tests
+    ///   (`docs/COLLISION.md` §5). Ours was two hundred units west of that
+    ///   and walked on. **The collision model was already right**: with the
+    ///   bearing corrected the refusal, the `QUEUE_NEW` clear and the stand
+    ///   all fall on the original's own frames with nothing else changed.
+    ///
+    /// Both halves are here. The first is `8/3`'s whole walk against the
+    /// dump, frame for frame; the second is that the walk **stops** on the
+    /// frame the original's does, at the point the original's does. Made to
+    /// fail by putting `Movement::facing` back, which parts the walk on its
+    /// second frame and never reaches the stand.
+    #[test]
+    fn a_far_wander_sweeps_from_the_literal_bearing() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // **Gaia's positions, on every frame the dump prints them.** run39
+        // carries no `GUY` clocks, so `Built::tick` re-seats nothing here
+        // (`Sim::reseat_animal` needs one) and the animals free-run for the
+        // whole capture — which is what makes this a comparison at all.
+        // Owner 8 only: the pasture's five and the birds are owner 9 and no
+        // dump prints owner 9.
+        let mut walk: Vec<(i64, i32, i32)> = Vec::new();
+        let (mut agree, mut seen) = (0usize, 0usize);
+        // The first animal-frame that is not the original's: the frame, the
+        // `o`, ours and theirs. Printed rather than asserted — it is the
+        // successor item the next time the floor moves.
+        let mut first_bad: Option<String> = None;
+        let mut last = 0i64;
+        for f in log.frame_states() {
+            while last < f.n {
+                built.tick();
+                last += 1;
+            }
+            for u in f.units.iter().filter(|u| u.who == 8) {
+                let Some(unit) = i16::try_from(u.o)
+                    .ok()
+                    .and_then(|o| built.sim.unit_by_o(8, o))
+                else {
+                    continue;
+                };
+                let ours = built.sim.units[unit].pos;
+                if u.o == 3 && (730..=750).contains(&f.n) {
+                    walk.push((f.n, ours.x, ours.y));
+                }
+                seen += 1;
+                if i64::from(ours.x) == u.pos.x && i64::from(ours.y) == u.pos.y {
+                    agree += 1;
+                } else if first_bad.is_none() {
+                    first_bad = Some(format!(
+                        "frame {} 8/{}: ours ({}, {}) theirs ({}, {})",
+                        f.n, u.o, ours.x, ours.y, u.pos.x, u.pos.y
+                    ));
+                }
+            }
+        }
+        eprintln!(
+            "run39 gaia: {agree} of {seen} dumped animal-frames on the original's point, \
+             first {first_bad:?}"
+        );
+        // `8/3`'s whole walk: the coin comes up on 736, the first step
+        // lands on 737, and 742's is refused — after which the original
+        // holds the point for the rest of the capture.
+        assert_eq!(
+            walk,
+            vec![
+                (730, 28728, 24408),
+                (731, 28728, 24408),
+                (732, 28728, 24408),
+                (733, 28728, 24408),
+                (734, 28728, 24408),
+                (735, 28728, 24408),
+                (736, 28728, 24408),
+                (737, 28728, 24408),
+                (738, 28741, 24384),
+                (739, 28754, 24360),
+                (740, 28767, 24336),
+                (741, 28780, 24312),
+                (742, 28793, 24288),
+                (743, 28793, 24288),
+                (744, 28793, 24288),
+                (745, 28793, 24288),
+                (746, 28793, 24288),
+                (747, 28793, 24288),
+                (748, 28793, 24288),
+                (749, 28793, 24288),
+                (750, 28793, 24288),
+            ],
+            "run39's `8/3` walks the original's ground and is refused on 742"
+        );
+        // And the walk is dropped where it stands rather than pathed round
+        // (`docs/COLLISION.md` §6 step 0): no order, and the point held.
+        let u = built.sim.unit_by_o(8, 3).expect("run39 dumps gaia's `8/3`");
+        assert!(built.sim.units[u].orders.is_empty());
+        // **The whole-capture floor**, and it is the wider claim: gaia's
+        // animals are the one population this capture lets free-run for
+        // 1,850 frames with nothing installed, and **190,417 of 192,504
+        // dumped animal-frames stand on the original's own point**. The
+        // first that does not is `8/3` again, on frame **983** — 116
+        // frames past the word's own parting — where the original wanders
+        // off the point it was refused at and this crate has not yet. The
+        // floor may only rise.
+        assert!(
+            agree >= 190_417 && seen == 192_504,
+            "run39's gaia positions fell: {agree} of {seen}, first {first_bad:?}"
         );
     }
 
@@ -8850,9 +9037,20 @@ mod tests {
         // divergences. A woodcutter that now stays at its tile three times
         // as long is a different unit on the map from frame 500 on, and
         // 1/10 is the unit that had been holding longest on the old one.
+        //
+        // 97,118 -> **97,108** with item 102 (the far wander's literal
+        // bearing), the twenty-first and the smallest move it has ever
+        // made: ten fields, two unit-frames, and **not one** of the
+        // fourteen units parts on a different frame. Great Lakes' herd
+        // wanders to different spots from this map's, so its animals'
+        // arrivals fall on different frames deep past the parting, and two
+        // unit-frames that used to re-agree by coincidence no longer do.
+        // The headline 572/776, both players' first divergences and every
+        // by-unit parting are unchanged; East Indies' word goes 742 → 867
+        // and run33's own window totals rise 977/866 → 986/884.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 97_118,
+            coll_seen, 97_108,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -9100,8 +9298,12 @@ mod tests {
         // 202 fewer, and all of them `1/10`'s, which parts at 1522 rather
         // than 1579 (see the collision rows above). The headline is
         // unmoved at 572/776 and East Indies' word goes 645 → 742.
+        // 37,174 → **37,170** with item 102 (the far wander's literal
+        // bearing): four fewer, the same two unit-frames the collision rows
+        // lost, and no unit parts on a different frame. East Indies' word
+        // goes 742 → 867.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 37_174, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 37_170, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()

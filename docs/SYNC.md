@@ -1128,6 +1128,78 @@ site is not the assertion — the *value* is. A count cannot tell them apart
 and neither can a sequence; only the field the roll lands in can, and the
 dump prints it.
 
+## 3.19 The far wander's literal bearing — East Indies' word 742 → 867 (2026-08-31)
+
+Frame 742 of run39 is seven draws and this crate spent six. The one missing
+is at the head of the frame: `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::move_step+0x823`, the stand a unit plays when its step is refused
+(`docs/COLLISION.md` §5). The item was booked as a collision, and **the
+collision model was already right**. What was wrong was three hundred units
+of ground, six frames earlier.
+
+**Which unit.** No player unit is blocked anywhere near 742 — the dump's
+`collide_frame` is −1 on all sixteen. Gaia's `8/3` is: it walks from frame
+737, and the frame the trace calls 742 is the one whose end state the dump
+writes as `FRAME 743`, where `8/3` holds its point with `collide_o 2,
+collide_who 8` and `orders_x/orders_y` collapsed onto itself — the
+`QUEUE_NEW` clear of §3.14. Its blocker is its herd-mate `8/2`, standing
+still at `(28856, 24197)` since before the walk began.
+
+**The wander that took it there.** `Animal::do_idle`'s coin comes up on
+frame 736 (`+0x83`, `39952 % 10 = 2`), and no direction draws follow it —
+the animal is `477` from its herd centre, past the `0x181` gate, so it
+takes the **far** branch, which spends no draws at all:
+
+    UnitType::find_nearby_spot(type, cx, cy, &out_x, &out_y,
+                               0xc0, -1, 0, 0x55555555, FILTER_NOT_ME, o, who, …)
+
+The ninth argument is the bearing the sweep's thirty-one directions fan out
+from (`docs/ORDERS.md` §10). Every other call site in the executable passes
+a real heading — `do_gather` passes the angle to its camp, `do_build` the
+angle to its site. **This one passes the literal `0x55555555`**, which is
+`Unit::init@00612100`'s untouched-angle constant, 120°, and has nothing
+behind it. So a far wander's sweep starts from the same direction for every
+animal of every herd, whichever way the animal is looking.
+
+This crate passed `Movement::facing`. run39's `8/3` was facing **south**
+(`UNITDATA angle -2147483648`), 180° out, and the two answers are two
+different walks:
+
+| | bearing taken | spot |
+|---|---|---|
+| the original | `120° − 22.5°` (`k = −1`; 120° and 142.5° were refused) | `(28968, 23976)` |
+| this crate | near due north | `(28728, 24120)` |
+
+Both are the first ring, `r = 0xc0`, around the herd centre `(28800,
+23936)`; the winner is snapped to its quarter-tile centre, which is why
+`(28968, 23976)` sits at radius 173 rather than 192.
+
+With the constant in, `8/3`'s walk is the dump's step for step — `(28741,
+24384)`, `(28754, 24360)`, `(28767, 24336)`, `(28780, 24312)`, `(28793,
+24288)` — and then the refusal, the dropped walk and the stand all fall
+where the original's fall, with **no change to the collision model**.
+
+**What it is worth.** East Indies' word **742 → 867**, and Great Lakes'
+window totals **977/866 → 986/884** with its own word holding at 780 (the
+same branch, a different herd). run10's collision and angle coverage each
+lose two unit-frames past its parting — 97,118 → 97,108 and 37,174 →
+37,170 — with the headline 572/776 and every one of the fourteen by-unit
+partings unchanged. run39's game score holds at 167/167.
+
+The widening that came with it is the wider claim, and it is
+[`rondata::diff::a_far_wander_sweeps_from_the_literal_bearing`]: gaia's
+animals are the one population run39 lets free-run for its whole length
+with nothing installed — the capture prints no `GUY` clocks, so
+`Sim::reseat_animal` never fires — and **190,417 of its 192,504 dumped
+animal-frames now stand on the original's own point**. The first that does
+not is frame 983.
+
+**The rule.** A constant in an argument list is a claim about the mechanic,
+not noise to be filled in from context. Where the decompiler prints a
+literal where a variable would read naturally, it is worth one grep of the
+other call sites before assuming the natural reading — and here the natural
+reading cost 125 frames of the word.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):

@@ -23,6 +23,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use crate::movement::Angle;
 use crate::orders::{MoveKind, QueuePos};
 use crate::world::{Player, Pos, vector_dist};
 use crate::{Sim, Unit};
@@ -820,8 +821,16 @@ impl Sim {
                 self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::New, false);
             }
         } else {
-            let angle = self.units[u].movement.facing;
-            if let Some(spot) = self.find_nearby_spot(u, centre, 0xc0, -1, 0, angle, None) {
+            // **The bearing the sweep starts from is a literal, not the
+            // animal's facing.** `Animal::do_idle@005d7460` passes
+            // `0x55555555` — [`crate::movement::Angle::INITIAL`], the same
+            // 120° `Unit::init` writes into a unit that has never turned —
+            // as `find_nearby_spot`'s ninth argument, where every other
+            // call site passes a real bearing. So a herd's far wanderers
+            // all sweep from the same direction whatever way they happen
+            // to be looking (`docs/SYNC.md` §3.19, `docs/ANIM.md` §7).
+            let spot = self.find_nearby_spot(u, centre, 0xc0, -1, 0, Angle::INITIAL, None);
+            if let Some(spot) = spot {
                 self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::New, false);
             }
         }

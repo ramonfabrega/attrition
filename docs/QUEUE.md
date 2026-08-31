@@ -13,35 +13,31 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 101 (Opus).*
+*2026-08-31, after item 102 (Opus).*
 
-**East Indies' word and sequence moved 645 → 742**, and Great Lakes holds
-at 780 on both with its totals rising 964/864 → 977/866. run10's headline
-holds at 572/776 with first divergences 802 and 573, and its two coverage
-totals **fall** — 97,333 → 97,118 collision field-frames and 37,376 →
-37,174 angle rows — on one unit of fourteen, the AI's `1/10`, parting at
-1522 rather than 1579. run39's game score holds at 167/167 with 217/168,
-its queue record at 33,631 fields with 1 disagreeing. Tree green: 653
-sim, 152 rondata.
+**East Indies' word and sequence moved 742 → 867**, and Great Lakes holds
+at 780 on both with its totals rising 977/866 → 986/884. run10's headline
+holds at 572/776 with first divergences 802 and 573 and **all fourteen
+by-unit partings unchanged to the frame**; its two coverage totals fall by
+two unit-frames each, 97,118 → 97,108 and 37,174 → 37,170. run39's game
+score holds at 167/167 with 217/168, its queue record at 33,631 fields and
+its gather record at 16,152 to 897. Tree green: 653 sim, 153 rondata.
 
-**A woodcutter's wait had the wrong formula, and no count could say so.**
-`do_non_flat_gather` reads guy 0's `cur_anim` before the tile, and each
-arm carries its own reroll: `CHAR_CHOP_WOOD` is `% 100 + 300` at `+0xcc3`
-— every reroll after a woodcutter's first frame at the tile — and the
-arrival frame under it is `% 50 + 100` at `+0xdad`, which run39 never
-reaches. This crate had one merged branch rolling the arrival's formula
-at the chop site, so its woodcutters ran at a third of the original's
-cycle. Both sites draw once, so the word, the sequence *and* the labels
-all agreed for six hundred frames. What saw it was the dump:
-`GATHERORDER`'s `wait` is printed every frame, and the original's `0/1`
-rerolled 1 → 355 on 539 where ours went 1 → 105 off the same draw. The
-new diff's first half needs no simulation at all. `docs/ORDERS.md` §6.4,
-`docs/SYNC.md` §3.18.
+**The blocked stand at 742 was already right; the animal was in the wrong
+place.** `Animal::do_idle`'s far wander hands `find_nearby_spot` the
+literal `0x55555555` as the bearing its thirty-one directions sweep from —
+`Unit::init`'s untouched-angle constant, where every other call site passes
+a real heading — and this crate passed the animal's facing. run39's `8/3`
+was 180° out, so it never reached the herd-mate that refuses its step on
+742. One argument; nothing in `collide.rs` moved. With it, the first
+comparison anyone has made of gaia's positions — run39 installs no clocks,
+so its animals free-run the whole capture: **190,417 of 192,504 dumped
+animal-frames are the original's point**. `docs/SYNC.md` §3.19, `ANIM` §7.
 
-**Opener (Opus):** `take item 102 from @docs/QUEUE.md — East Indies' word
-at 742 is a blocked stand the original spends and this crate does not:
-Guy::set_anim+0x97a under Unit::move_step+0x823, seven against six.
-docs/COLLISION.md and docs/ANIM.md §4 against run39's own trace.`
+**Opener (Opus):** `take item 104 from @docs/QUEUE.md — East Indies' word
+at 867 is three draws of Unit::explore_goody+0x27c under
+set_new_location+0x3cc under move_step+0x8f4, which this crate has no
+model of. Read the goody from the decompile, diff it against run39.`
 
 ## The queue
 
@@ -49,13 +45,12 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-102. **East Indies' word at 742, and it is a blocked stand.** Frame 742
-    is seven draws and this crate spends six: the original stands a guy
-    at `Guy::set_anim+0x97a` under `Unit::move_step+0x823` — the stand a
-    refused step makes (`docs/ANIM.md` §4, `docs/COLLISION.md`) — and
-    ours walks on. The other six agree, a bird's wing-beat coin and five
-    `Farms::inc_time`. Find which unit is blocked and what blocks it;
-    item 48's uncompared `down`/`down_who` is the near neighbour.
+104. **East Indies' word at 867, and it is a goody.** Frame 867 is nine
+    draws and this crate spends five: three of
+    `Unit::explore_goody+0x27c < Unit::set_new_location+0x3cc <
+    Unit::move_step+0x8f4` — a unit stepping onto a goody and rolling what
+    is in it — which nothing here models. Read `explore_goody`; check the
+    five `Farms::inc_time` beside it are the same five.
 
 103. **The wood machine's record parts at 897, on a clock.** After
     16,152 agreeing fields the human's `1/2` holds a wait of 499 where
@@ -74,6 +69,11 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     frames after a city is founded. The extra farm is the half to chase;
     the re-target is probably downstream of it.
 
+105. **Gaia's positions, and the 2,087 that are not.** Item 102 compares
+    every dumped animal-frame of run39: 190,417 of 192,504 agree, and the
+    first that does not is **983**, `8/3` wandering off the point it was
+    refused at. Great Lakes' herd is uncompared.
+
 87. **The widening ledger.** Items 74 and 83 were closed by comparing
     dumped fields nobody had compared. Make the backlog a number:
     `rondata::diff` prints, per dumped record, the fields it parses and
@@ -89,9 +89,9 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     the original holds **0** in goods 3, 4 and 5 for both players and this
     crate **100** — inert while none is available, so a loader question.
 
-35. **`mylos` as a cache.** VISION §7: player 1 carries no `0x4000000`
-    at the end of frame 202 or 203, yet its Scout's `mylos` moves 4 → 6.
-    Ours moves at 202 too, so what is owed is the *cache*.
+35. **`mylos` as a cache.** VISION §7: player 1 carries no `0x4000000` at
+    the end of frame 202 or 203, yet its Scout's `mylos` moves 4 → 6. Ours
+    moves at 202 too, so what is owed is the *cache*.
 
 89. **Two guards for the instrument itself.** (a) The handoff's headline
     numbers equal `rondata::diff`'s pinned floors — one sat two items

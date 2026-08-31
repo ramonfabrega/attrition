@@ -8649,3 +8649,105 @@ The new parting frame is **742**, where the original spends a
 that this crate does not: seven draws against six, and the other six (a
 bird's wing-beat coin and five `Farms::inc_time`) agree. So a unit of the
 original's has its step refused on 742 and ours walks on.
+
+## 2026-08-31 (later, Opus) — item 102: East Indies' word 742 → 867, and the blocked stand was already right
+
+Frame 742 of run39 is seven draws and this crate spent six. The one missing
+sat at the **head** of the frame: `Guy::set_anim+0x97a < Unit::set_anim+0x56
+< Unit::move_step+0x823`, the stand a unit plays when its proposed step is
+refused. The queue booked it as a collision — "find which unit is blocked
+and what blocks it", with item 48's uncompared `down`/`down_who` named as
+the near neighbour.
+
+The collision model was already right. Nothing in `collide.rs` moved.
+
+### Which unit, from the dump
+
+Sixteen player units and every one of them prints `collide_frame −1` around
+742; the two that are walking (the AI's scout and its `1/9`) walk on
+undisturbed. So the blocked unit is gaia's, and the dump names it: `8/3`
+walks from frame 737 and, in the state the dump writes as `FRAME 743` —
+which is the end of the frame the trace calls 742 — it is standing at
+`(28793, 24288)` with `collide_o 2`, `collide_who 8` and its
+`orders_x`/`orders_y` collapsed onto itself. That last is `§3.14`'s
+`QUEUE_NEW` clear: a blocked animal drops its walk where it stands. Its
+blocker is its herd-mate `8/2`, which has not moved in two hundred frames.
+
+Our `8/3` was three hundred units west of all of that, walking due north.
+
+### The wander, six frames earlier
+
+`Animal::do_idle`'s coin comes up on frame 736 — `+0x83`, `39952 % 10 = 2`
+— and **no direction draws follow it**. The animal is 477 from its herd
+centre, past the `0x181` gate, so it takes the far branch, which spends no
+draws:
+
+```
+UnitType::find_nearby_spot(type, cx, cy, &out_x, &out_y,
+                           0xc0, -1, 0, 0x55555555, FILTER_NOT_ME, o, who, …)
+```
+
+The ninth argument is the bearing the sweep's thirty-one directions fan out
+from. `do_gather` passes the angle to its camp there; `do_build` the angle
+to its site; `action_swarm_around` `find_angle(me − target)`. **This one
+passes a literal**: `0x55555555`, which is `Unit::init`'s untouched-angle
+constant, 120°, with nothing behind it. Every far wander any herd makes
+starts from the same direction, whichever way the animal is looking.
+
+This crate passed `Movement::facing`. run39's `8/3` was facing south
+(`UNITDATA angle -2147483648`) — 180° out — and the two answers are two
+different walks. Around the herd centre `(28800, 23936)` at `r = 0xc0`, the
+original refuses 120° and 142.5° and takes **97.5°**, `k = −1` of the
+sweep, snapping to `(28968, 23976)`; ours took a bearing near due north and
+walked to `(28728, 24120)`.
+
+With the constant in, `8/3`'s walk is the dump's step for step — `(28741,
+24384)`, `(28754, 24360)`, `(28767, 24336)`, `(28780, 24312)`, `(28793,
+24288)` — and then the refusal, the dropped walk and the stand all fall on
+the original's own frames.
+
+### The widening it came with
+
+run39 prints no `GUY` clocks, so `Built::tick` re-seats nothing in it and
+gaia's animals free-run for the whole 1,850 frames with nothing installed.
+Nobody had ever compared them. They are now the widest population this
+capture speaks to: **190,417 of 192,504 dumped animal-frames stand on the
+original's own point**, and the first that does not is frame 983 — 116
+frames past the word's own parting, and `8/3` again, wandering off the
+point it was refused at.
+
+`a_far_wander_sweeps_from_the_literal_bearing` holds all of it: the whole
+walk frame for frame, the drop rather than a path round, and that floor.
+Made to fail by putting `Movement::facing` back, which parts the walk on
+its second frame and never reaches the stand.
+
+### What landed
+
+One argument in `sim::anim::animal_idle`, and the paperwork: `docs/SYNC.md`
+§3.19, `docs/ANIM.md` §7, `docs/ORDERS.md` §10 and its call-site table,
+`docs/MOVEMENT.md`'s far-branch note.
+
+**East Indies' word and sequence: 742 → 867.** Great Lakes holds at 780 on
+both and its totals rise 977/866 → **986/884** — the same branch, a
+different herd. run10's ticks and orders hold at 572/776 with first
+divergences 802 and 573 and **every one of its fourteen by-unit partings
+unchanged to the frame**; its two coverage totals fall by two unit-frames
+each, 97,118 → 97,108 and 37,174 → 37,170, which is a herd wandering
+elsewhere deep past the parting. run39's game score holds at 167/167 with
+217/168, its queue record at 33,631 fields and its gather record at
+16,152 to frame 897.
+
+The new parting frame is **867**, and it is three draws of
+`Unit::explore_goody+0x27c < Unit::set_new_location+0x3cc <
+Unit::move_step+0x8f4` — a unit walking onto a goody, which this crate has
+no model of at all.
+
+### The lesson
+
+A constant in an argument list is a claim about the mechanic. Where the
+decompiler prints a literal where a variable would read naturally, the
+natural reading is a guess, and one grep of the other call sites is what
+tells you whether it is the right one. At three of `find_nearby_spot`'s six
+call sites the natural reading is wrong; here it cost 125 frames of the
+word, and the item that chased it spent its budget on the wrong mechanic
+until the dump was asked which unit was blocked.

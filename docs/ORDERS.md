@@ -2512,7 +2512,13 @@ into those dead slots (R7 N13).
   gather sites): the sweep starts on the unit's own side of the target.
   `come_out` uses south (`0x80000000`), `find_path`'s teleport and `go_to`
   `0x55555555` (a third of a turn — arbitrary, not a sentinel), `init_unit`
-  the unit's own angle.
+  the unit's own angle. **`Animal::do_idle`'s far wander is `0x55555555`
+  too** (2026-08-31, item 102), which is the one place the difference has
+  been measured: reading it as the animal's facing put run39's `8/3` 180°
+  out and cost 125 frames of East Indies' word — `docs/SYNC.md` §3.19,
+  `docs/ANIM.md` §7. Where a call site's bearing is a literal it is worth
+  reading as one; the natural reading is the wrong one at three of the six
+  sites here.
 
 | caller | centre | min | max | step | `bo` |
 |---|---|---|---|---|---|
@@ -2522,6 +2528,7 @@ into those dead slots (R7 N13).
 | `do_gather` | the building | `size × 0x60 + 0x30` | −1 | 0 | — |
 | `do_non_flat_gather`: the camp; the tile | the camp; the tile centre | `d`; `0xc0` | −1; `0x100` | 0; `2` | — |
 | `come_out` | own position | `block_radius` | `block_radius + UNIT_DISEMBARK_DISTANCE` | 0 | — (then `nocoll 1`) |
+| `Animal::do_idle`, the far wander (`docs/ANIM.md` §7) | the herd centre | `0xc0` | −1 | 0 | — |
 
 **`UnitData::invalid_loc(tx, ty, terrain_only, ignore_unseen,
 ignore_buildings, pathfinder, ignore_domain)`** — the PDB's own names

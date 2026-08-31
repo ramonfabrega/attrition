@@ -735,7 +735,9 @@ modern-infantry `5/4` — still does.
 **Which walks it fires on.** `Animal::do_idle`'s **near** branch offsets the
 animal by at most `4 × 1 × 0x30 = 192` on each axis, so its `vector_dist` is
 at most 288 and a near wander never hurries. The **far** branch —
-`UnitType::find_nearby_spot` around the herd centre at `0xc0` — routinely
+`UnitType::find_nearby_spot` around the herd centre at `0xc0`, swept from
+the literal bearing `0x55555555` rather than the animal's facing
+(`docs/SYNC.md` §3.19) — routinely
 lands beyond `0x180`, so the hurry is the far branch's, and it lasts until
 the animal has closed to `0x180`. That is why an animal's walk *decelerates*
 partway through, which is what it looks like in a dump and is not what it is.
