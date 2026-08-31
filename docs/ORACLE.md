@@ -2677,6 +2677,81 @@ the unit panel, which is a click on a button rather than on the map.
   that changed nothing. The tick means the channel took the line, and no
   more.
 
+## run50 — the Echelon half, and the four doors that are shut
+
+Item 23's remaining half, **not** obtained, and the value here is that the
+search is now bounded rather than open. `docs/GROUPS.md` §6.4's slot table
+reads `reverse` on the **Echelon** rows alone — Refused is `Y = Y0 - |X|`,
+with no `reverse` in it, so the queue's "Refused or an Echelon" is really
+Echelon only — and every group in every capture on disk, run46's included, is
+a **Line**. So the mirror is confirmed as a computed flag (run46) and still
+unobserved as a *displacement*.
+
+What was tried, each with its evidence:
+
+- **The console.** Its 102 commands, re-derived from the user's own install
+  by `tools/gamelog/console.py`, contain no formation verb of any kind. The
+  chat half is `add`, `select`, `move`, `die`, `damage`, `tech`, `resource`,
+  the diplomacy pokes, `finish`, `hurry`, `pack`, `deploy` and `anim`.
+- **The command card.** run48 photographed it with a group of hoplites
+  selected: move, attack, auto-explore, board, stop, garrison, and fourteen
+  empty cells. The compass-with-arrows that looked like a formation chooser
+  is **Auto Explore** — the tooltip says so, and says its key is CTRL+E.
+- **Military research**, the obvious gate, since RoN unlocks formations with
+  it and every capture is an Ancient-age nation. run49 raised it (`tech who=0
+  all on`, `military 5 0`) and photographed the same six buttons. Not the
+  gate.
+- **Binding the key.** This is the one that should have worked.
+  `data/playerprofile.xml` is the keymap `KeyMap::init@007d5a90` loads, and it
+  lists `FORM_LINE`, `FORM_REFUSED`, `FORM_ENVELOP`, `FORM_E_RIGHT` and
+  `FORM_E_LEFT` as bindable actions **with no `<INPUT>` child on any of
+  them** — the file has zero `<INPUT>` elements in total, so the formations
+  ship unbound and that is why neither a key nor a button reaches them. The
+  element's shape is fully recovered from
+  `KeyMap::save_entry@007d4220` and `KeyMap::load_entry@007d43d0`, with every
+  attribute name resolved out of `int_str_array` at stride 0x14 the way
+  `console.py` reads it:
+
+      <KEY enum="FORM_E_RIGHT" dependent="-1">
+        <INPUT key="120" mouse="0" ctrl="0" shift="0" alt="0"/>
+      </KEY>
+
+  `key` is taken whole and then `ctrl` sets bit 0x20000, `shift` 0x10000 and
+  `alt` 0x40000. `tools/gamelog/bindkey.py` writes exactly that into the
+  **profile's** `<KEYS>` — `Player.dat`, which is user state and already
+  edited with the game closed by `mapstyle.py`, never the install's shipped
+  data — and `--restore` empties it again. run50 bound `FORM_E_RIGHT` to F9,
+  pressed it twice (once with only the selection, once after the first march
+  had made a group) and marched the group back and forth. **The formations in
+  its dump are `Line x540` and nothing else.** The binding did not take, or
+  the keystroke did not reach the action.
+
+**Where the next attempt should start, and it is one question.** Is the
+profile's `<KEYS>` read at all? `KeyMap::save_entry` writes an entry only when
+its `dependent` is negative, so the profile is meant to hold the player's own
+bindings — but the loader that would read them back is `KeyMap::load`'s
+`String` overload at `007d39a0`, and **its caller has not been found**; the
+only references the export shows outside `KeyMap` itself are unwind funclets.
+Settle that and the rest follows: if the profile is read, the binding is
+wrong in some detail; if it is not, the shipped `data/playerprofile.xml` is
+the only keymap and the `<INPUT>` has to go there instead. The cheap
+experiment either way is to rebind an action whose binding is **visible** —
+`OPTION_AUTO_EXPLORE`, whose tooltip prints its key — and photograph the
+tooltip: if it stops saying CTRL+E, the profile route works.
+
+**What run50 is still good for**, and it is not a plain replication. It
+reaches the mirrored layout on its own game — **870** group move orders
+carrying `facing 1`, frames **337 to 395** — and then those orders **end with
+no successor**: frame 396 holds none at all. So this order died by
+*completing*, where run46's died by being *replaced*, and those are
+`kill_current_order`'s two different ways in. Whether the hand-back's
+arithmetic is the same on the completion path is **not** settled here: the
+`GROUPDATA.facing` a frame prints is the whole 512-slot pool's, so the live
+group's own value cannot be read off it, and run46's proof worked because the
+*next* order's `facing` showed what `Form::compute` had been handed. With no
+next order there is nothing to read it from. A capture that wants the
+completion path needs a fourth click after the arrival.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The

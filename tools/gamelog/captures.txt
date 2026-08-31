@@ -270,3 +270,101 @@ cmd: 200 select hoplite
 cmd: 220 select 0 0
 cmd: 240 camera 15,168
 check: python3 tools/gamelog/cmdsran.py rontrace-run47.log 180:1 200:1 220:1
+
+run: 48
+tag: greatlakes-formprobe
+item: 23
+driver: tools/gamelog/formprobe.sh
+ffwd: -
+why: where the formation buttons are — the Echelon half's missing control
+# The console has no formation verb and the profile's <KEYS/> is empty, so
+# the game is on built-in bindings that are in no data file.
+# `data/playerprofile.xml` names the actions — FORM_LINE, FORM_REFUSED,
+# FORM_ENVELOP, FORM_E_RIGHT, FORM_E_LEFT — so they are bindable commands
+# whose key and button are simply unknown. This photographs the command card
+# with hoplites selected, clicks the compass-ringed-with-arrows button that is
+# the candidate chooser, and photographs it again. Nothing here issues an
+# order, so a wrong guess costs a screenshot.
+frames: 300
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+start: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+settle_min: 1000000
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 170 camera 15,168
+cmd: 180 select hoplite who=0
+
+run: 49
+tag: greatlakes-cardprobe
+item: 23
+driver: tools/gamelog/cardprobe.sh
+ffwd: -
+why: name every card button, with military tech raised so the formation one appears
+# `data/options.xml` carries `Formation`, `Formation Back`, `Face Left`,
+# `Face Right`, `About Face` and `Forward` in the card's option table, so the
+# button exists; run48's card has only move, attack, auto-explore, board, stop
+# and garrison, so something gates the rest. The likely gate is **military
+# research** — RoN unlocks formations with it and every capture so far is an
+# Ancient-age nation with none — and the console can lift that, unlike the
+# formation itself.
+#
+# The card is mapped by **tooltip**, which run48 established works and names
+# the key as well as the command ("Auto Explore ... (Hotkey: CTRL + E)"). If a
+# formation key falls out of this, the Echelon half stops needing the mouse at
+# all.
+frames: 320
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+start: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=1
+settle_min: 1000000
+cmd: 140 tech who=0 all on
+cmd: 145 military 5 0
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 170 camera 15,168
+cmd: 180 select hoplite who=0
+
+run: 50
+tag: greatlakes-echelon
+item: 23
+driver: tools/gamelog/echelon.sh
+ffwd: -
+why: a group in an Echelon, so the mirror reaches §6.4's `reverse` rows
+# Item 23's second half. §6.4's slot table reads `reverse` on the Echelon rows
+# only — Refused is `Y = Y0 - |X|` with no reverse in it — so run46's Line
+# proves the flag is computed and not what it does to a position.
+#
+# The formation has no console verb and no card button (run48 and run49
+# photographed the card with and without full military research). What it has
+# is a **bindable action with no default binding**: `KeyMap::init@007d5a90`
+# loads `data/playerprofile.xml` as the keymap and its FORM_* entries carry no
+# `<INPUT>` child at all. `bindkey.py` writes one into the **profile** — not
+# into the install's shipped data — so the formation becomes a keystroke.
+# Run `bindkey.py FORM_E_RIGHT 120` before this stanza and
+# `bindkey.py --restore` after.
+frames: 900
+mapstyle: 14
+end: MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1,GROUPS=1
+cmd: 150 add hoplite who=0 14,166
+cmd: 152 add hoplite who=0 15,166
+cmd: 154 add hoplite who=0 16,166
+cmd: 156 add hoplite who=0 14,168
+cmd: 158 add hoplite who=0 15,168
+cmd: 160 add hoplite who=0 16,168
+cmd: 162 add hoplite who=0 14,170
+cmd: 164 add hoplite who=0 15,170
+cmd: 180 select hoplite who=0
+cmd: 200 camera 30,167
+cmd: 320 camera 6,167
+cmd: 440 camera 30,167
+check: python3 tools/gamelog/groupfacing.py gamelog-run50-greatlakes-echelon.txt
