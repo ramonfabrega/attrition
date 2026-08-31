@@ -23,7 +23,7 @@ use crate::economy;
 use crate::garrison::GarrisonRefused;
 use crate::movement::{self, Angle, find_angle};
 use crate::world::{tile, vector_dist};
-use crate::{FarmAnim, Player, Pos, Sim, farms};
+use crate::{Player, Pos, Sim, farms};
 
 /// `OrderIndex` — the value the gamelog's `type` line carries.
 pub mod index {
@@ -3324,7 +3324,6 @@ impl Sim {
         // farmer's own 201st add — a hundred frames late, and on a frame
         // the original spends nothing (`docs/SYNC.md` §3.15).
         if self.buildings[b].farm.farm_type & farms::ANIMAL_FARM != 0 {
-            self.units[u].farm_anim = FarmAnim::Sow;
             self.set_anim(u, crate::anim::SOW, false, true);
             let phase = i64::from(self.units[u].index) * PASTURE_STRIDE
                 + frame
@@ -3358,23 +3357,30 @@ impl Sim {
         // own transpose — and then wrong the moment one re-picks a cell
         // (`docs/ORDERS.md` §6.5).
         let idx = (dx * 4 + dy) as usize;
-        let anim = self.units[u].farm_anim;
+        // **`guy[0].cur_anim`, live — not a flag the farm branch keeps.**
+        // The switch reads `*(char *)(**(int **)&this->field_0xf4 + 0x9c)`
+        // (`do_gather@005ef2a0:454`, `GuyData +0x9c cur_anim`), so anything
+        // that plays an animation between two farm frames — a walk, a
+        // blocked stand, an idle — is what the test sees. A sticky byte
+        // written only here and cleared only by a step is not the same
+        // thing (`docs/ORDERS.md` §6.5).
+        let anim = self.units[u]
+            .guys
+            .first()
+            .map_or(crate::anim::DEFAULT, |g| g.anim);
         let state = self.buildings[b].farm.state[idx];
         match state {
-            s if s == farms::GROWING || (s == farms::EMPTY && anim != FarmAnim::Reap) => {
-                self.units[u].farm_anim = FarmAnim::Sow;
+            s if s == farms::GROWING || (s == farms::EMPTY && anim != crate::anim::REAP) => {
                 self.set_anim(u, crate::anim::SOW, false, true);
                 self.buildings[b].farm.grow(idx);
                 return;
             }
-            farms::RIPE if anim != FarmAnim::Sow => {
-                self.units[u].farm_anim = FarmAnim::Reap;
+            farms::RIPE if anim != crate::anim::SOW => {
                 self.set_anim(u, crate::anim::REAP, false, true);
                 self.buildings[b].farm.snip(idx);
                 return;
             }
             farms::CUT => {
-                self.units[u].farm_anim = FarmAnim::Reap;
                 self.set_anim(u, crate::anim::REAP, false, true);
                 return;
             }

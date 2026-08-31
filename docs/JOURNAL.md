@@ -9309,3 +9309,87 @@ diff the whole record.** The move order's row had been parsed and
 uncompared for as long as the parser has had it. It found the swarm
 angle at frame 2, the farm tile at 167 and the collision pause at 573 in
 the same afternoon.
+
+## 2026-08-31 (later, Opus) — item 84: Great Lakes' word 780 → 986, and a byte that was not the guy's
+
+Great Lakes **781/776 → 910/776** on ticks and orders, its word **780 →
+986**, and its two window totals **953/877 → 1182/1114** — the largest
+move either total has made and the first since item 81 that is not noise,
+because the word itself carried it. Player 0's first divergence goes
+**802 → 1154** and player 1's **782 → 911**. East Indies is untouched at
+1374/1373: no farmer on that map is in the case.
+
+```
+run33: word parts at 986, sequence at 986; 1182 of 1850 frames spend the
+       original's number of draws, 1114 of them draw for draw
+run10: ticks 910, orders 776, first divergence [(0, Some(1154)), (1, Some(911))]
+```
+
+### The item's two halves were one byte
+
+The queue booked two symptoms and asked which was the half to chase: two
+`Unit::do_job+0x67` draws at 780 that the original does not spend, and a
+**seventh** `Farms::inc_time` chance a frame from 781 where the original
+ticks six. They are the same farmer.
+
+`Farms::inc_time` skips a farm with fewer than five empty cells
+(`docs/SYNC.md` §3.3), and `empty` only *falls* when something sows — the
+sprout's own draw, or a farmer's `Farms::grow`. The original's b10 drops
+to four empty on 780 and this crate's stays at five, so on 780 the
+original's farmer sowed the cell it was standing on and this one drew for
+a new tile instead. One decision, both rows.
+
+### What decides it
+
+`do_gather`'s farm switch, case 0 — an **empty** cell — reads
+`*(char *)(**(int **)&this->field_0xf4 + 0x9c)`: `UnitData::guys[0]`,
+then `GuyData +0x9c`, which the type record names `cur_anim`. Not `'$'`
+→ sow. `'$'` → a new tile, two draws.
+
+This crate kept a `Unit::farm_anim` flag instead, written only by that
+switch and cleared only by a step that actually moved the body. The
+difference is everything that plays an animation *without* moving: run33's
+AI farmer `1/4` reaps farm `b10`'s cell 7 from frame 740; `inc_time`
+decays the cell empty under it on 777; on 778 it is an empty cell under a
+reaper, so both sides draw for a new tile; on **779 its walk is blocked**
+and the stand `Unit::move_step+0x823` plays — the draw is in both traces,
+frame 779, index 0 — replacing the reap animation while the body does not
+move a unit. On 780 the original reads a byte that is no longer `'$'` and
+sows. This crate's flag still said Reap, so it re-picked the same cell,
+and then again every other frame for the rest of the capture, keeping the
+farm at five empty for ever.
+
+The fix is to delete the flag and read the guy. `docs/ORDERS.md` §6.5.
+
+### What it closed on the way
+
+Queue item 111 — run10's `1/6` taking a collision the original does not at
+797, `collide 3` against 2 and `collide_frame` 796 against 795 — is
+**gone**. It was item 69's residue and it was this: a farmer re-picking a
+tile it should have sown is a unit walking where the original stands, and
+the collision block is empty again over every comparable field-frame of
+112,447.
+
+### The new parting
+
+986, and it is a **blocked stand a frame early**: this crate spends
+`Guy::set_anim+0x97a < Unit::move_step+0x823` on 986 where the original
+spends it on 987, with the six farms equal either side and the two
+frames' remaining draws identical. Seven against six, then seven against
+eight. That is the successor.
+
+### The lesson
+
+**A model that remembers is a model that can be wrong for ever.** The
+flag was not a wrong reading of the switch — the switch's two arms were
+right, and had been since the cell index was fixed. What was wrong is
+that the byte the original reads is written by *every* animation in the
+engine and the flag was written by one function. A cached copy of a field
+somebody else owns needs the writers grepped, which is a rule this
+project already has for frozen fields and had not applied to a field it
+invented.
+
+The cheap route to it was the one the working agreement names: the trace
+said frame 780's first draw was ours and not theirs, and eight lines of
+temporary `eprintln` over the farm list and the farm switch — which farm,
+which cell, which unit, what state, what anim — said the rest in one run.

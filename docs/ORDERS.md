@@ -1797,6 +1797,28 @@ state = farms.farm_data[farm].status[dx][dy]           # NOT [dy][dx] — see be
 new tile: move((cx + GameAccess::rnd(xs)) * 0xc0 + 0x60, (cy + GameAccess::rnd(ys)) * 0xc0 + 0x60)
 ```
 
+**`guy0.cur_anim` is the guy's live byte, and it is what decides the
+switch** (2026-08-31, item 84). The test is
+`*(char *)(**(int **)&this->field_0xf4 + 0x9c)` at `005eff5e` and
+`005eff8a` — `UnitData::guys[0]`, then `GuyData +0x9c cur_anim`, named by
+the type record. It is not a flag this branch keeps: **anything at all**
+that plays an animation on the farmer between two farm frames changes what
+the switch reads. A walk, an idle, and — the case that pays — the blocked
+stand `Unit::move_step+0x823` plays before its give-up tests
+(`docs/COLLISION.md` §5), which sets the byte **without the body moving a
+unit**.
+
+That is the whole of run33's word from 780 to 986. The AI's `1/4` stands
+on farm cell 7 reaping it; `Farms::inc_time` decays the cell to empty
+under it on 777; on 778 it is an empty cell under a reaper, so the switch
+sends it to a new tile; on 779 its walk is blocked and the stand replaces
+the reap. On 780 the original's cell 0 arm reads a byte that is no longer
+`'$'` and sows. A model that remembers "this farmer was reaping" until it
+takes a step re-picks that cell for ever — two draws every other frame,
+and a farm that never falls under `Farms::inc_time`'s five-empty gate
+(`docs/SYNC.md` §3.3), so a seventh farm draw a frame on top. Both
+symptoms are one byte.
+
 **The modulus is the type's own footprint** — `ObjectType::x_size`
 (`+0x234`) and `y_size` (`+0x238`), 4 and 4 for the farm, lost by the
 decompiler because `GameAccess::rnd` takes it in `ecx`. All four loads are
@@ -1832,7 +1854,11 @@ status` at `+0xac`, and three addressings name the same byte:
 `(farm·0x30 + dx)·4 + 0xac + dy`, and `snip` the same; `inc_time` sweeps
 `4·dx + dy`, `dx` inner. The dump prints them in that order too.
 
-**Coverage**, all diff-backed. The cell index and the clock:
+**Coverage**, all diff-backed. The animation byte:
+`an_empty_farm_cell_is_sown_unless_the_guy_is_still_reaping` (two sims
+differing in that byte alone, made to fail on the flag it replaced) and
+`run33_s_long_trace_says_where_the_word_parts`, whose word moves 780 →
+986 with it. The cell index and the clock:
 `run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell` (every
 cell of run12's frames 1–3 and run13's 95–104 against `Farms::log_data`)
 and `run14_s_frames_match_the_trace_draw_for_draw` (every re-target of

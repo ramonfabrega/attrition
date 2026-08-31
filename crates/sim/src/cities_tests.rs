@@ -1271,6 +1271,91 @@ fn a_citizen_with_a_gather_order_walks_to_the_farm_and_then_counts() {
     ));
 }
 
+/// **The farm switch reads the guy's live `cur_anim`, not a flag of the
+/// farm's own** — `docs/ORDERS.md` §6.5. `do_gather@005ef2a0:454` tests
+/// `*(char *)(**(int **)&this->field_0xf4 + 0x9c)`, `GuyData +0x9c`, so
+/// an empty cell is sown by anyone *not* mid-reap and re-picked by a
+/// reaper — and anything at all that plays an animation between two farm
+/// frames decides which.
+///
+/// That is the difference between a byte and a flag, and it is worth two
+/// hundred frames of Great Lakes' word (item 84). The AI's farmer stands
+/// on a cell it has been reaping, `Farms::inc_time` decays the cell empty
+/// under it, it re-picks a tile — and is blocked on the way, so
+/// `Unit::move_step+0x823`'s stand replaces the reap **without the body
+/// moving a unit**. The next farm frame the original sows. A flag written
+/// only by this branch and cleared only by a step re-picks for ever.
+///
+/// The two sims here differ in one byte and nothing else.
+#[test]
+fn an_empty_farm_cell_is_sown_unless_the_guy_is_still_reaping() {
+    fn farmer_on_a_fresh_farm(anim: i8) -> (Sim, usize, usize) {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let farm = sim.place_building(0, t.farm, tile_pos(40, 32)).unwrap();
+        finish(&mut sim, farm);
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        // Standing on the farm, so `do_gather` arrives on the first tick
+        // and reaches the switch on the same frame.
+        let stand = sim.buildings[farm].pos;
+        let u = spawn(&mut sim, 0, citizen, stand);
+        sim.units[u].guys = vec![crate::anim::Guy::fresh(-1)];
+        sim.units[u].guys[0].anim = anim;
+        sim.add_gather_order(u, farm, QueuePos::New, false);
+        sim.trace_phases = true;
+        (sim, u, farm)
+    }
+
+    // The re-target's own draws, counted by name: the farm's sprout clock
+    // is on the same stream, so a seed is not the instrument here.
+    let re_picks = |sim: &Sim| {
+        sim.phase_marks
+            .iter()
+            .filter(|(site, _)| site == orders::SITE_FARM_CELL)
+            .count()
+    };
+
+    // Every cell of a fresh farm is empty, and the guy is playing nothing.
+    let (mut sowing, u, farm) = farmer_on_a_fresh_farm(crate::anim::DEFAULT);
+    sowing.tick();
+    assert_eq!(
+        sowing.buildings[farm]
+            .farm
+            .state
+            .iter()
+            .filter(|&&c| c == farms::GROWING)
+            .count(),
+        1,
+        "the cell under the farmer is sown"
+    );
+    assert_eq!(re_picks(&sowing), 0, "and a sow draws for no new tile");
+    assert!(matches!(
+        sowing.units[u].orders.front().map(|o| o.body),
+        Some(Body::Gather(_))
+    ));
+
+    // The same farmer, mid-reap: the cell is left alone and a new tile is
+    // drawn for — `GameAccess::rnd(x_size)` then `rnd(y_size)`, one mark.
+    let (mut reaping, v, farm2) = farmer_on_a_fresh_farm(crate::anim::REAP);
+    reaping.tick();
+    assert_eq!(
+        reaping.buildings[farm2].farm.state,
+        [farms::EMPTY; 16],
+        "a reaper sows nothing"
+    );
+    assert!(
+        matches!(
+            reaping.units[v].orders.front().map(|o| o.body),
+            Some(Body::Move(_))
+        ),
+        "it walks to the new tile instead: {:?}",
+        reaping.units[v].orders.front().map(|o| o.body)
+    );
+    assert_eq!(re_picks(&reaping), 1, "the pair, and one of it");
+}
+
 /// **A gather's walk to an occupied spot dies where it stands** —
 /// `docs/ORDERS.md` §4.4's waypoint take, the third and last call site of
 /// `Unit::detect_unit_collision`. It runs **once per leg**, on the frame

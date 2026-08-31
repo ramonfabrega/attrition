@@ -12,59 +12,52 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 69.*
+*2026-08-31, after item 84.*
 
-**Both maps' scores now sit on their own word's parting.** Phase 3's
-score is ticks before divergence: **Great Lakes 781/776** of 1,772
-(run10, was 572/776) and **East Indies 1374/1373** of 1,850 (run39, was
-167/167). The words are 780 and 1373. A capture that holds position and
-intent for exactly as long as it holds the stream is what convergence
-looks like, and that is now true of both.
+**Great Lakes' word moved two hundred frames and took the ticks with
+it.** Phase 3's score is ticks before divergence: **Great Lakes 910/776**
+of 1,772 (run10, was 781/776) and **East Indies 1374/1373** of 1,850
+(run39, unchanged). The words are **986** and 1373, and both maps' tick
+scores still sit on their own word's parting.
 
-Item 69 was not a mechanic (DECISIONS 28). `run_traced` — what every
-score is measured on — borrowed the siblings and **no pasture** while the
-word's own check borrowed one; East Indies' AI builds one, its animals
-are in no dump, and they roll an idle a frame. The scoring run and the
-word-matching run were different games, and everything the last tranche
-read off 167 was that. Two real mechanics came out of the same
-afternoon, both found by widening `OrderMismatch` to the whole
-`MOVEORDER` row: the swarm move's angle (ORDERS §5.4) and `do_move`'s
-`goto STEP` past the pause check (ORDERS §4.9), which took Great Lakes
-572 → 781.
+Item 84 was one byte. `do_gather`'s farm switch reads the guy's live
+`cur_anim` (`GuyData +0x9c`); this crate kept a flag written only by that
+switch and cleared only by a step that moved the body. A farmer whose
+reap animation had been replaced by a **blocked stand** — which plays
+without moving anything — re-picked a cell the original sows, every other
+frame for ever, and held its farm above `Farms::inc_time`'s five-empty
+gate. Both of the item's booked symptoms were that. It also emptied the
+collision block again, closing item 111.
 
-The **word** is now the headline's driver on both maps, because the ticks
-have caught it. Great Lakes is the lower, and item 84 is its word.
+Great Lakes is still the lower map, and item 112 is its word.
 
-**Opener (Opus):** `Continue — item 84: Great Lakes' word at 780, the
-lower of the two, and the score it moves is the pair. Ours spends two
-`Unit::do_job+0x67` draws the original does not and ticks a seventh
-`Farms::inc_time` from 781; the seventh farm is the half to chase.`
+**Opener (Opus):** `Continue — item 112: Great Lakes' word at 986, the
+lower of the two, and the score it moves is the pair. Ours plays the
+blocked stand `Guy::set_anim+0x97a < Unit::move_step+0x823` on 986 where
+the original plays it on 987; the farms are equal either side and the
+rest of both frames is identical, so it is one frame of a blocked unit's
+timing.`
 
 ## The queue
 
 In dependency order, headline-nearest first; the headline is the tick
-pair, and both halves now sit on their map's word, so the word is what
+pair, and both halves still sit on their map's word, so the word is what
 moves them — Great Lakes first, as the lower. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal indexed by them.
 
-84. **Great Lakes' word at 780, and a seventh farm.** Ours spends two
-    `Unit::do_job+0x67` draws the original does not — a crop re-target,
-    since run33's AI built no pasture — and from **781** on ours ticks
-    **seven** `Farms::inc_time` chances where the original ticks six. The
-    extra farm is the half to chase.
+112. **Great Lakes' word at 986, and a stand one frame early.** Ours
+    spends `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked
+    stand `Unit::move_step` plays before its three give-up tests
+    (COLLISION §5, §7) — on **986**, the original on **987**. Seven draws
+    against six, then seven against eight; the six farms and every other
+    draw of both frames agree. One frame of a blocked unit's timing.
 
 110. **East Indies' word at 1373, and a seventh ring.** The AI scout
     walks six rings on both sides; the original then leaves the loop for
     `Unit::think_scout+0x941` once and `+0xaba` five times — sites SCOUT
     §6/§7 have never named — where ours takes a seventh ring and a lone
     `+0x458`.
-
-111. **run10's `1/6` takes a collision the original does not, at 797.**
-    Item 69's residue, and the collision block's first non-empty row inside
-    the comparable window: `collide` **3** against 2, `collide_frame`
-    **796** against 795 — one more, a frame later — on the unit whose
-    position then parts at 798. Pinned as two rows; any third fails.
 
 103. **The wood machine's record parts at 1,686, on a clock.** After
     26,094 agreeing fields the human's `0/2` holds a wait of 445 where

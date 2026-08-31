@@ -6450,9 +6450,24 @@ mod tests {
         // the City State waiting in its library when Written Word lands on
         // 201 (`Build::refund_cost`, `docs/COSTS.md`). With them the city
         // is bought on 776 here too, and **the word parts at 780**.
+        //
+        // **986 with item 84**, and what was wrong at 780 was a **byte
+        // that was not the guy's**. `do_gather`'s farm switch tests
+        // `guy[0].cur_anim` — `*(char *)(**(int **)&this->field_0xf4 +
+        // 0x9c)`, `GuyData +0x9c` — and this crate kept a `farm_anim`
+        // flag written only by the farm branch and cleared only by a
+        // step. The AI's `1/4` stands on farm `b10`'s cell 7, reaps it
+        // until `inc_time` decays it empty on 777, re-picks a tile on 778
+        // and is **blocked** on 779: the blocked stand
+        // (`Unit::move_step+0x823`) replaces the guy's reap animation
+        // without moving the body, so on 780 the original sows the cell
+        // and this crate re-picked again. Two draws it does not spend, a
+        // seventh `Farms::inc_time` from 781 — the farm keeps five empty
+        // cells here and drops to four there — and what parts the word at
+        // 986 is a blocked stand of its own, seven draws against six.
         assert!(
-            first_count >= 780,
-            "the word parts at frame {first_count}; the floor is 780\n{}",
+            first_count >= 986,
+            "the word parts at frame {first_count}; the floor is 986\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         // **The sequence: 576**, and getting there was the whole of the
@@ -6472,9 +6487,12 @@ mod tests {
         // `place_city_with_cost` at 576 read as `compute_sites+0x50a`.
         // Nothing about the simulation's arithmetic changed there; what
         // changed is that the comparison stopped lying about it.
+        // **780 -> 986 with item 84**, the two still meeting: the farm
+        // stand's byte is the guy's live `cur_anim`, and nothing between
+        // 780 and 986 is a naming question.
         assert!(
-            first_part >= 780,
-            "the draw sequence parts at frame {first_part}; the floor is 780"
+            first_part >= 986,
+            "the draw sequence parts at frame {first_part}; the floor is 986"
         );
         // And the totals over the whole 1,850, which is what says whether a
         // change past the divergence helped or only moved the noise: 618
@@ -6612,10 +6630,16 @@ mod tests {
         // that is nobody's. What the item did move is the score — this
         // map's ticks 572 -> 781 and East Indies' 167 -> 1374 — which is
         // the number these two are instruments beside.
+        //
+        // 953 / 877 -> **1182 / 1114** with item 84, the largest move
+        // either has ever made and the first since item 81 that is not
+        // noise: the word itself goes 780 -> 986, so two hundred of those
+        // frames are frames both sides genuinely agree on rather than
+        // coincidences past a parting.
         assert!(
-            words >= 953 && matched >= 877,
+            words >= 1182 && matched >= 1114,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 953 and 877"
+             {matched} draw for draw; the floors are 1182 and 1114"
         );
     }
 
@@ -9457,10 +9481,20 @@ mod tests {
         // of that walk and parted the position at 573. The order score
         // holds at 776 under a **wider** comparison — the same item added
         // the whole `MOVEORDER` row — and East Indies goes to 1374/1373.
+        //
+        // 2026-08-31, item 84: ticks **781 -> 910**, player 0 **802 ->
+        // 1154** and player 1 **782 -> 911**, on the farm stand's byte
+        // (`docs/ORDERS.md` §6.5). The switch reads the guy's live
+        // `cur_anim`; this crate kept a flag of its own, so a farmer
+        // whose reap animation had been replaced by a blocked stand
+        // re-picked a tile where the original sowed. Orders hold at 776
+        // — `1/1`'s move at 777 is untouched — and every one of the
+        // thirteen units parts later, the median by three hundred
+        // frames.
         assert!(
-            ticks >= 781 && orders >= 776 && first[0] >= 802 && first[1] >= 782,
+            ticks >= 910 && orders >= 776 && first[0] >= 1154 && first[1] >= 911,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 781, orders 776, player 0 @ 802, player 1 @ 782",
+             — the floor is ticks 910, orders 776, player 0 @ 1154, player 1 @ 911",
             report.first_divergence
         );
         assert!(
@@ -9819,7 +9853,7 @@ mod tests {
         // headline; ticks 572 -> 781 is what moved it.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 99_343,
+            coll_seen, 112_447,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -9858,12 +9892,8 @@ mod tests {
                 .iter()
                 .map(|d| (d.frame, d.who, d.o, d.field, d.ours, d.theirs))
                 .collect::<Vec<_>>(),
-            vec![
-                (797, 1, 6, "collide", 3, 2),
-                (797, 1, 6, "collide_frame", 796, 795),
-            ],
-            "the collision block agrees on every comparable field-frame of {coll_seen} \
-             but `1/6`'s 797"
+            Vec::new(),
+            "the collision block agrees on every comparable field-frame of {coll_seen}"
         );
 
         // **The tile choice, asserted where it was wrong** (item 25). The
@@ -9944,7 +9974,7 @@ mod tests {
             .map(|f| f.frame);
         assert_eq!(
             first_tile,
-            Some(1394),
+            Some(1395),
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -10104,7 +10134,7 @@ mod tests {
         // sits beside rises by 209 frames. The number to read is the
         // headline.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 37_838, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 43_202, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()

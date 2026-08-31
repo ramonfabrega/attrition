@@ -218,10 +218,6 @@ pub struct Unit {
     /// unreachable, which `valid_wcoord` refuses. Cleared before each step
     /// (`docs/ORDERS.md` §4.5).
     pub avoid: Option<Pos>,
-    /// The farmer's animation, as far as the farm stand reads it
-    /// (`Guy::cur_anim`, `'#'` sowing or `'$'` reaping; `docs/ORDERS.md`
-    /// §6.5). Walking clears it.
-    pub farm_anim: FarmAnim,
     /// The figures' animation clocks — `UnitData::guys`, one `Guy` per
     /// member (`docs/ANIM.md`). Empty for a unit stood up without art,
     /// which then plays nothing and draws nothing for it.
@@ -293,15 +289,6 @@ pub struct Unit {
     /// object chain, newest first (`docs/COLLISION.md` §3).
     pub down: Option<usize>,
     pub up: Option<usize>,
-}
-
-/// The two animations `Unit::do_gather`'s farm branch tests for.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum FarmAnim {
-    #[default]
-    Other,
-    Sow,
-    Reap,
 }
 
 /// What a unit needs in order to move.
@@ -584,7 +571,6 @@ impl Unit {
             cant_reach: false,
             decoy: false,
             avoid: None,
-            farm_anim: FarmAnim::Other,
             guys: Vec::new(),
             captain: true,
             o_up: None,
@@ -2427,11 +2413,6 @@ impl Sim {
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
         unit.movement.body = follow.body;
-        // A step is a walk animation: the farm stand's sow/reap byte is
-        // whatever the guy last played, and a walk replaces it.
-        if unit.movement.body.pos != m.body.pos {
-            unit.farm_anim = FarmAnim::Other;
-        }
     }
 
     /// Sends a unit somewhere. It faces whatever way it already faces and turns
