@@ -1025,10 +1025,24 @@ impl Sim {
     /// `Unit::think_peasant(forced)` (§5.9): the idle gate, then the job
     /// search — here `find_gather_spot`; `find_build_spot`/`find_repair_spot`
     /// need the object searches and are not yet modelled.
+    ///
+    /// **The gate's threshold is 1 for an AI-driven worker**, whatever the
+    /// owner's idle-citizen option says: `think_peasant@005f5760:16` reads
+    /// the option's switch only when `unit_masks & 0x40000` is clear, and
+    /// takes 1 when it is set. So a computer player's new citizen finds a
+    /// job on the *first* frame it is idle, and a human's on the second.
+    /// That one frame is what run33's trained citizen spends: it comes out
+    /// at 99, is first visited at 100, and its walk — and the collision
+    /// that ends it at 122 — hangs off that frame (`docs/SYNC.md` §3.16).
     fn think_peasant(&mut self, u: usize, forced: bool) -> bool {
         let unit = &self.units[u];
+        let ai = self.ai_driven(unit.owner);
         if !forced {
-            let t = i32::from(unit.idle_threshold);
+            let t = if ai {
+                1
+            } else {
+                i32::from(unit.idle_threshold)
+            };
             let idle = i32::from(unit.idle);
             if idle < t {
                 return false;
@@ -1038,7 +1052,15 @@ impl Sim {
             }
         }
         let stance = unit.stance;
-        if stance <= 1 && self.find_gather_spot(u, self.tuning.unit_gather_respond_range * TILE) {
+        // The same call's other half of the AI split: an AI-driven worker
+        // searches without a range limit (§5.9's `find_gather_spot(AI ? −1
+        // : UNIT_GATHER_RESPOND_RANGE × 192)`), as a scholar does.
+        let range = if ai {
+            -1
+        } else {
+            self.tuning.unit_gather_respond_range * TILE
+        };
+        if stance <= 1 && self.find_gather_spot(u, range) {
             return true;
         }
         self.units[u].was_builder = false;

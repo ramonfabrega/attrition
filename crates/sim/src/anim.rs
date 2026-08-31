@@ -398,7 +398,6 @@ impl Sim {
             guys.push(g);
         }
         self.units[u].guys = guys;
-        self.units[u].born = self.frame;
     }
 
     /// `Unit::set_anim(anim, force, p3)`: every guy's `Guy::set_anim`.
@@ -602,14 +601,24 @@ impl Sim {
     /// every guy, then the buildings (no clock here). A garrisoned unit's
     /// clock stops (`inside_up ≥ 0`) unless it is a scholar (`TypeIndex`
     /// 52/53 — a scholar inside a university plays its teach/student
-    /// slots), and so does a **player's** unit on the frame it was
-    /// created, which the original spends inside its building. Gaia's
-    /// does not: a bird is created on open ground in the middle of
+    /// slots).
+    ///
+    /// **A unit created this frame is *not* skipped**, whoever owns it. A
+    /// bird is created on open ground in the middle of
     /// `Objects::process_all`, so the same frame's `inc_time` reaches it,
     /// and with `end_time` still `Guy::init_real`'s zero it wraps at once
     /// — run14's frame 96, the sampling frame, carries that wrap
-    /// (`docs/SYNC.md` §3.9).
-    pub(crate) fn guys_inc_time(&mut self, frame: i64) {
+    /// (`docs/SYNC.md` §3.9). So is a **trained** unit, for the same
+    /// reason and by the same clock: `Build::do_queue` runs in
+    /// `Objects::process_all`'s *second* loop, after every unit and before
+    /// `Objects::inc_time`. Run33's frame 99 is the record — the citizen's
+    /// two draws are `Guy::init_real+0x52` and
+    /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`, not the
+    /// `Unit::do_idle+0x7d` this crate rolled until 2026-08-30 — and
+    /// run13's `1/6` ends that frame at `0/232, last −1`, which is the
+    /// state the wrap's `set_anim` leaves and not the state
+    /// `Guy::init_real` does (`docs/SYNC.md` §3.16).
+    pub(crate) fn guys_inc_time(&mut self) {
         let mut visit: Vec<usize> = Vec::with_capacity(self.units.len());
         for who in 0..10u8 {
             let mut mine: Vec<usize> = (0..self.units.len())
@@ -622,8 +631,7 @@ impl Sim {
             let unit = &self.units[u];
             let inside_and_not_scholar =
                 unit.inside.is_some() && self.worker_of(u) != crate::orders::Worker::Scholar;
-            let born_indoors = unit.born == frame && !unit.is_gaia();
-            if !unit.alive() || inside_and_not_scholar || born_indoors || unit.guys.is_empty() {
+            if !unit.alive() || inside_and_not_scholar || unit.guys.is_empty() {
                 continue;
             }
             for g in 0..self.units[u].guys.len() {
@@ -980,7 +988,7 @@ mod tests {
             fish.push((o, animal(&mut s, 8, o, piece, 0, cur, end)));
         }
         s.frame = 100;
-        s.guys_inc_time(100);
+        s.guys_inc_time();
         let got: Vec<i8> = fish
             .iter()
             .filter(|(o, _)| o % 3 == 1)
@@ -1133,12 +1141,12 @@ mod tests {
         s.art.lengths.insert((6688, SOW), 47);
         let u = animal(&mut s, 0, 3, 6688, SOW, 45, 47);
         let before = s.rng.seed;
-        s.guys_inc_time(0);
+        s.guys_inc_time();
         assert_eq!(
             (s.units[u].guys[0].cur_time, s.units[u].guys[0].last_time),
             (46, 45)
         );
-        s.guys_inc_time(1);
+        s.guys_inc_time();
         let g = s.units[u].guys[0];
         assert_eq!((g.anim, g.cur_time, g.last_time), (SOW, 0, -1));
         assert_eq!(s.rng.seed, before, "the sow loops without a draw");
@@ -1161,7 +1169,7 @@ mod tests {
             stopped: true,
         });
         s.frame = 101;
-        s.guys_inc_time(101);
+        s.guys_inc_time();
         assert_eq!(s.rng.seed, stepped(0xa45f_ecaf, 1));
         let (a, b) = (s.units[u].guys[0], s.units[u].guys[1]);
         assert_eq!((a.cur_time, a.anim), (0, b.anim));

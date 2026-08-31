@@ -134,9 +134,10 @@ owner whose units go first is `frame % 10`, so at frame 0 player 0's units
 run first and at frame 1 player 1's, with gaia's animals (who 8) and birds
 (who 9) in their slots. Run12 shows it: at frame 1 the AI's woodcutter draws
 its `wait` (draw 44) *before* the human's two (45, 46). Buildings follow in a
-second, unrotated loop (`Build::process`, then walls). The sim's tick keeps
+second, unrotated loop (`Build::process`, then walls). ~~The sim's tick keeps
 its buildings-first order (`lib.rs`), which is a known divergence this
-document does not close.
+document does not close.~~ **Landed 2026-08-30, §3.16** — and the divergence
+was worth East Indies' word 219 → 274 and Great Lakes' sequence 99 → 576.
 
 Per unit, the sites that run on an ordinary frame:
 
@@ -959,6 +960,79 @@ run39's dump moves the herder on 42 frames of 1,850, in four runs, and
 every run opens the frame after a phase frame — and all seven of the
 capture's phase frames spend the pair in the trace.
 
+## 3.16 The frame is two loops — East Indies' word 219 → 274 (2026-08-30)
+
+`Objects::process_all@0065dce0` is **two loops, and the buildings are the
+second one**. The first walks the ten owner slots rotated — `(frame + i) %
+10`, each owner's objects `0..unit_mark` in object order. The second walks
+the ten leaders **unrotated**, each one's objects `2000..build_mark` (the
+buildings) and then `3000..wall_mark` (the walls). Both call the same
+vtable slot. `Objects::inc_time` — the guys' clocks, the farms — follows
+both, and so do the birds' sampling and the herd's walk, which sit in the
+tail of `process_all` itself.
+
+`Sim::tick` ran the buildings **first**, and §3.2 has said the opposite
+since the day it was written. That is the seventh time a document and its
+code have disagreed (queue item 72) and the second running where the
+document was the one that was right.
+
+**What it cost was two frames' worth of order and one whole search.** East
+Indies' frame 219 spends a citizen's `Unit::do_job+0x67` re-target and
+*then* the frame's road costs; this crate spent them the other way round.
+And the road search that looked **152 nodes against the original's 129**
+was the same search reading a world the frame's units had not yet touched:
+with the loops in their own order it costs **129**, and the frame is draw
+for draw. The count was never the residue — the order was.
+
+**Two rules came with it, and each was a compensation for the wrong
+order.**
+
+- **A unit created this frame is not skipped by `Objects::inc_time`** —
+  whoever owns it. `Sim::guys_inc_time` skipped a player's newborn
+  (`born == frame`), which was the only way to keep a trained citizen from
+  spending *two* draws on its birth frame when the crate created it before
+  the unit loop. With the loops right the citizen is created after every
+  unit, is never reached by that frame's unit loop, and it is
+  `Objects::inc_time` that finds its `Guy::init_real` clock at
+  `cur_time 0, end_time 0` and wraps it. Run33's frame 99 is the record:
+  `Guy::init_real+0x52` then `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+  where this crate had the second draw at `Unit::do_idle+0x7d` — the
+  "standing swap" §6 has carried since the first trace, which was never an
+  attribution question at all. And run13's `1/6` ends that frame at
+  `0/232, last −1`, which is the state the wrap's `set_anim` leaves and
+  not the one `Guy::init_real` does.
+- **`think_peasant`'s idle threshold is 1 for an AI-driven worker.**
+  `Unit::think_peasant@005f5760:16` reads the owner's idle-citizen option
+  — the switch 1→7, 2→12, 3→17, 4→32, 5→62, default **2** — only when
+  `unit_masks & 0x40000` is *clear*, and takes **1** when it is set. So a
+  computer player's citizen finds a job on the first frame it is idle and
+  a human's on the second. This crate used the option for both, and the
+  extra unit-loop visit the wrong loop order gave a newborn was exactly
+  the frame that hid it: run33's citizen came out on 99, was first visited
+  on 100, took its gather order on 101 instead of 100, and the collision
+  that ends its walk landed on 123 where the original has 122.
+  `docs/ORDERS.md` §5.9.
+
+**What it moved.** East Indies' word **219 → 274**, sequence with it.
+Great Lakes' word holds at 780 and its **sequence runs 99 → 576** — the
+first 576 frames of the long capture are now the original's draws in the
+original's order — with the weak totals 943/827 → **943/830**. Run14's
+whole traced window is **284 of 284, draw for draw**, where it had been
+282 since item 66. run10's ticks and orders hold at 572/776 with both
+players' first divergence at 802 and 573, and East Indies' own game score
+holds at 167/167.
+
+**Made to fail three ways**, each of them a real failure seen on the way
+in: the loops swapped with the newborn still skipped took Great Lakes'
+word 780 → **99** and run10's ticks 572 → **103**; the newborn's wrap
+restored but the AI's threshold still 2 took it to **122**; and the
+threshold alone, without the loops, is what run14's frames 99 and 100 had
+always been.
+
+What is at 274 is not either of these: the original creates a guy there —
+`Guy::init_real+0x52` and its wrap — and this crate creates none.
+
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):
@@ -1488,3 +1562,22 @@ kind honest.
   arm's second clause — the check is a capture with a unit arriving under
   an `ATTACK` or a `BUILD_AT` while a second order is queued, which no run
   has yet.
+
+- **The frame's two loops, §3.16 (2026-08-30).** Diff-backed on every
+  capture the harness has, and it is the strongest row here because the
+  order is not a parameter: the whole of run14's traced window is **284
+  of 284 frames draw for draw** with it and 282 without, Great Lakes'
+  *sequence* runs 99 → **576** and East Indies' word 219 → **274**, and
+  the two rules it uncovered are each pinned by a record the dump already
+  carried — the trained citizen's second draw at
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271` (run33's frame 99) and
+  run13's `1/6` ending that frame at `0/232, last −1`. Made to fail three
+  ways, all three met on the way in. Reading-only, and named as such:
+  that the second loop's per-owner order is by *object number* rather than
+  by the list's own order — every capture here has one building per owner
+  drawing on any frame, so nothing separates them; the **walls'** third
+  band (`3000..wall_mark`), which no capture reaches; and that
+  `unit_masks & 0x40000` is exactly "a computer player's unit", which this
+  crate stands in for with the owner's `human` flag and no capture has a
+  case that separates (an AI-driven unit of a human player, or the
+  reverse).

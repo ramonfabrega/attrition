@@ -13,33 +13,33 @@ handoff pass 32.
 
 ## Where things stand
 
-*2026-08-30, after item 97 (Opus).*
+*2026-08-30, after item 60 (Opus).*
 
-**East Indies' word is at 219, and for the first time the whole of it is
-draw for draw** — every draw of every frame before the parting, in its
-order, not a 64-frame window. run39's own score holds at 167/167 with
-player 0 at 217 and player 1 at 168. Great Lakes is untouched to the byte:
-run10 ticks **572**, orders **776**, both players' first divergence 802
-and 573, all thirteen units unchanged; run33's word at 780 and its
-sequence at 99, weak totals 943/827; collision rows 91,210, angle rows
-35,188. Tree green: 644 sim, 148 rondata.
+**East Indies' word is at 274, Great Lakes' *sequence* at 576, and run14's
+whole traced window is 284 of 284 — draw for draw, end to end.** run39's
+own score holds at 167/167 with player 0 at 217 and player 1 at 168;
+run10's ticks 572, orders 776, first divergences 802 and 573, all thirteen
+units unchanged. run33's word holds at 780, weak totals 943/827 → 943/830.
+Collision rows 91,210; angle rows 35,188. Tree green: 644 sim, 148 rondata.
 
-**The residue was a branch the document had and the code did not.**
-`Unit::do_gather`'s farm block asks `FarmsData::get_farm_type` first, and
-a **pasture** takes the whole of the function: the herder shows the sow
-animation and draws only where `(o · 7 + frame + who) % 256` is zero, then
-walks to one of the farm's inner four tiles. `docs/ORDERS.md` §6.5 has had
-that arm since it was written; `do_farm` ran the AI's `1/3` through the
-crop switch, and because `Farms::inc_time` skips a pasture its cell
-ripened on the herder's own adds alone — frame 201 instead of the
-original's 234. `docs/SYNC.md` §3.15. Pinned against run39's own record:
-42 dumped steps in four runs, seven phase frames of seven in the trace,
-made to fail three ways.
+**The residue was the frame's own shape.** `Objects::process_all@0065dce0`
+is two loops — the units rotated by owner, then a *second, unrotated* pass
+over each player's buildings and then their walls — and `Sim::tick` ran the
+buildings first. `docs/SYNC.md` §3.2 has said so since it was written. With
+the order right, frame 219's citizen re-target lands in front of the road
+search and the search that looked **152 nodes against 129** costs 129: the
+count was the same search on a world the units had not yet touched. Two
+compensations fell out with it, each of which had been cancelling the loop
+order exactly — a newborn is **not** skipped by `Objects::inc_time` (that
+was item 62's "standing swap", never an attribution question), and
+`think_peasant`'s idle threshold is **1** for an AI-driven worker, which
+`docs/ORDERS.md` §5.9 has had in its pseudocode all along. `docs/SYNC.md`
+§3.16. Made to fail three ways, all three seen on the way in.
 
-**Opener (Opus):** `take item 60 from @docs/QUEUE.md — East Indies' word
-now parts at 219 on the road search, 129 nodes against 152 and the
-citizen's re-target on the wrong side of it; docs/SYNC.md §3.15 has how
-the last one was found.`
+**Opener (Opus):** `take item 98 from @docs/QUEUE.md — East Indies' word
+now parts at 274 on a unit the original trains and this crate does not:
+Guy::init_real plus the newborn's wrap, two draws; docs/SYNC.md §3.16 has
+how the last one was found.`
 
 ## The queue
 
@@ -47,12 +47,12 @@ In dependency order, headline-nearest first — the headline is the lower
 map. Take the first unstarted one unless a different order is obviously
 better, and say so. Numbers are stable; the journal is indexed by them.
 
-60. **East Indies' word at 219, and it is the road search.** The original
-    spends that frame's citizen re-target *before* the frame's road
-    costs and this crate after it, and the two searches cost **129 nodes
-    against 152**. Great Lakes' own version of this is ROADS §7.1's
-    "the frame's second search, 1,460 against 1,870". Take the ordering
-    and the count together; the ordering is the cheaper half.
+98. **East Indies' word at 274, and it is a unit nobody trained.** The
+    original spends `Guy::init_real+0x52` and the newborn's
+    `Guy::inc_time` wrap on that frame — two draws for one guy — and
+    this crate creates none. Not an order and not an animal: a queue
+    finishing on a frame ours does not. `docs/PRODUCTION.md`'s clock
+    against run39's own `BUILDS`.
 
 69. **East Indies' order-list length at 168.** `1/4` and the original
     disagree on the order list at 168 and `1/5` at 186, and both are now
@@ -145,11 +145,10 @@ better, and say so. Numbers are stable; the journal is indexed by them.
     frames item 95 had its position wrong — and those ten frames cost the
     word twenty-two. Widen to `ANIMALDATA`: 70,960 uncompared.
 
-The rest of the road residue, all in ROADS §7.1 and SYNC §6: (57) the
-terraform, `terraform_for_building@00875210` after `place_roads`, oracle
-run13's `FRAME 100` against run32's 104; (58) the height loader's mean in
-`f32`, three of run12's tiles; (62) the standing swap at frame 99, the
-first draw *sequence* difference, costing no word.
+The rest of the road residue, all in ROADS §7.1: (57) the terraform,
+`terraform_for_building@00875210` after `place_roads`, oracle run13's
+`FRAME 100` against run32's 104; (58) the height loader's mean in `f32`,
+three of run12's tiles.
 
 91. **The final scenario, not a final dump.** One 24,000-frame game per
     map: the **trace** whole (`cover=1`, no window — cheap; the word over

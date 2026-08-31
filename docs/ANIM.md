@@ -485,10 +485,19 @@ place on both traced maps.
   gather's transit legs from `gather_walk`, which reads `Unit::carry`, the
   `unit_masks & 0x78000000` nibble `do_non_flat_gather` writes (§4.4).
 - **`Sim::guys_inc_time`** in the tick between `process_gaia` and the ammo,
-  §5 whole: leader order, the mirror, the bounded wrap loop. A unit created
+  §5 whole: leader order, the mirror, the bounded wrap loop. ~~A unit created
   this frame is skipped (`born == frame`): the original spends a trained
-  unit's first frame inside its building (`inside_up ≥ 0` — run13's `1/6`
-  ends sim-frame 99 at `0/232, last −1` after its two draws).
+  unit's first frame inside its building (`inside_up ≥ 0`).~~ **Wrong, and
+  it was a compensation for the tick's loop order (2026-08-30,
+  `docs/SYNC.md` §3.16): a unit created this frame is *not* skipped.** A
+  trained unit is created in `Objects::process_all`'s **second** loop —
+  after every unit — so the original never reaches it in that frame's unit
+  loop, and `Objects::inc_time` finds its `Guy::init_real` clock at
+  `cur_time 0, end_time 0` and wraps it. run13's `1/6` ends sim-frame 99 at
+  `0/232, last −1`, which is what the wrap's `set_anim` leaves; its two
+  draws are `Guy::init_real+0x52` and
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`, and run33's trace carries
+  them in that order.
 - **`Sim::init_guys`** at every spawn (`Trained`, `produce`):
   `Guy::init_real@005db6b0` — `cur_time 0, end_time 0, last_time −1`, one
   draw `% 100` → `DEFAULT` below 70, then `IDLE1`, `IDLE2`, `IDLE3` by tens

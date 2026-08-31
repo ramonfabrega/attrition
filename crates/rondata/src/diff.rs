@@ -5759,13 +5759,13 @@ mod tests {
             .map(|(f, _)| *f)
             .unwrap_or(last);
         assert!(
-            first_part >= 99,
-            "the stream parts at frame {first_part}; the floor is 99\n{}",
+            first_part >= 284,
+            "the stream parts at frame {first_part}; the floor is 284\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         assert!(
-            matched >= 282,
-            "the trace floor fell: {matched} of {last} frames match, the floor is 282\n{}",
+            matched >= 284,
+            "the trace floor fell: {matched} of {last} frames match, the floor is 284\n{}",
             parted.join("\n")
         );
         // **And a stricter floor beside it: the first frame whose draw
@@ -5789,10 +5789,16 @@ mod tests {
         // With item 66 — `find_nearby_spot`'s own collision half — it runs
         // to the **end of the capture**: all 284 frames spend the same
         // number of draws, and 282 of them are the original's draw for
-        // draw. The two that are not are 99, the attribution swap above,
-        // and 100. **This capture is spent**: it can no longer say where
-        // the simulation next parts from the original, and item 38 — a
-        // trace of the full 1,772 frames — is what would.
+        // draw. The two that are not were 99, the ~~attribution swap~~
+        // above, and 100 — and with the frame's two loops (item 60) they
+        // are the original's too: **284 of 284, draw for draw**. It was
+        // never an attribution question. `Objects::process_all` runs the
+        // buildings *after* the units, so the citizen trained on 99 is
+        // never reached by that frame's unit loop and it is
+        // `Objects::inc_time` that wraps its `end_time 0` clock
+        // (`docs/SYNC.md` §3.16). **This capture is spent**: it can no
+        // longer say where the simulation next parts from the original,
+        // and the long traces — run33's and run39's — are what do.
         let first_count = built
             .frame_sites
             .iter()
@@ -6343,15 +6349,20 @@ mod tests {
             "the word parts at frame {first_count}; the floor is 780\n{}",
             parted.first().cloned().unwrap_or_default()
         );
-        // **The sequence: 99**, and it is the same attribution swap run14's
-        // capture has always shown — the same address under a different
-        // caller, ours `Unit::do_idle+0x7d` where the original has
-        // `Guy::inc_time+0x271`, with the draw count equal either side
-        // (`docs/SYNC.md` §6, queue item 62). It is a floor here so that a
+        // **The sequence: 576**, and getting there was the whole of the
+        // ~~99~~ attribution swap run14's capture had always shown — the
+        // same address under a different caller, ours `Unit::do_idle+0x7d`
+        // where the original has `Guy::inc_time+0x271`, with the draw count
+        // equal either side (queue item 62). It was not an attribution
+        // question at all: the trained citizen is created in
+        // `Objects::process_all`'s **second** loop, after every unit, so
+        // the original never reaches it in the unit loop on its birth
+        // frame and `Objects::inc_time` wraps its `end_time 0` clock
+        // instead. `docs/SYNC.md` §3.16. It is a floor here so that a
         // regression that moved it would read as itself.
         assert!(
-            first_part >= 99,
-            "the draw sequence parts at frame {first_part}; the floor is 99"
+            first_part >= 576,
+            "the draw sequence parts at frame {first_part}; the floor is 576"
         );
         // And the totals over the whole 1,850, which is what says whether a
         // change past the divergence helped or only moved the noise: 618
@@ -6429,10 +6440,15 @@ mod tests {
         // holds at 780, `first_part` at 99, run10's ticks and orders at
         // 572/776, and the other map's word goes 91 -> 201
         // (`docs/SYNC.md` §3.14).
+        //
+        // 943 / 827 -> **943 / 830** with the frame's two loops (item 60),
+        // and what moved with them is the *sequence*: 99 -> 576. The word
+        // holds at 780, run10's ticks and orders at 572/776, and the other
+        // map's word goes 219 -> 274 (`docs/SYNC.md` §3.16).
         assert!(
-            words >= 943 && matched >= 827,
+            words >= 943 && matched >= 830,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 943 and 827"
+             {matched} draw for draw; the floors are 943 and 830"
         );
     }
 
@@ -7130,9 +7146,24 @@ mod tests {
     ///               re-picked a tile on 201 where the original spends its
     ///               pair on **234**, its first phase frame. **Every one
     ///               of the 219 frames is now draw for draw**, not only
-    ///               the first 64. `docs/SYNC.md` §3.15, and
+    ///               the first 64 (274 as of the next entry). `docs/SYNC.md` §3.15, and
     ///               [`a_pasture_herder_walks_only_on_its_own_256_frame_phase`]
     ///               is the rule against the record.
+    ///   2026-08-30  word **219 -> 274**, **the frame's two loops**:
+    ///               `Objects::process_all@0065dce0` is the units,
+    ///               rotated by owner, and then a *second, unrotated* pass
+    ///               over each player's buildings and then their walls.
+    ///               `docs/SYNC.md` §3.2 had said so since it was written
+    ///               and `Sim::tick` ran the buildings first, so frame
+    ///               219's citizen re-target fell behind the frame's road
+    ///               search instead of in front of it — and the search
+    ///               that looked 152 nodes against 129 was the same
+    ///               search on a different world. With the order right it
+    ///               is 129 against 129 and the frame is draw for draw.
+    ///               `docs/SYNC.md` §3.16. Two rules moved with it: a
+    ///               unit created this frame is *not* skipped by
+    ///               `Objects::inc_time`, and `think_peasant`'s idle
+    ///               threshold is **1** for an AI-driven worker.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7240,10 +7271,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 219 && first_part >= 219 && words >= 64 && matched >= 64,
+            first_count >= 274 && first_part >= 274 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 219, 219, 64 and 64"
+             {matched} draw for draw — the floor is 274, 274, 64 and 64"
         );
     }
 

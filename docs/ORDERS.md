@@ -1460,12 +1460,12 @@ AI: region/scout logic, then find_repair_spot()
 ```
 
 With the default option the gate passes at `idle == 2` — the third idle frame
-— and then at every fifth increment of the counter (every 80 frames, phased
-by `o`). `think_peasant(1)` from a `THINK` order has no gate. A citizen with
-`unit_masks & 0x40000` (AI-controlled) uses `T = 1` and an unlimited gather
-range.
+— then every fifth increment (80 frames, phased by `o`). `think_peasant(1)`
+from a `THINK` order has no gate. An AI-controlled citizen (`unit_masks &
+0x40000`) uses `T = 1` and an unlimited gather range; both landed
+2026-08-30, `docs/SYNC.md` §3.16.
 
-`Wall::process@00640450`, for completeness: every 32 frames phased by `o` a
+`Wall::process@00640450`: every 32 frames phased by `o` a
 site that is not active and whose owner is not human wants `max(4, helpers)`
 builders (more for a wonder) and recruits with `find_unit(SEARCH_FRIENDLY,
 0xf00, FILTER_TYPE PEASANTS, FILTER_NOT_BUSY)` → `add_build_order(site,

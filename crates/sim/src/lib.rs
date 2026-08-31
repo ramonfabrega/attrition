@@ -225,9 +225,6 @@ pub struct Unit {
     /// member (`docs/ANIM.md`). Empty for a unit stood up without art,
     /// which then plays nothing and draws nothing for it.
     pub guys: Vec<anim::Guy>,
-    /// The frame this unit was created on: its clocks do not step that
-    /// frame (the original spends it inside the building that made it).
-    pub born: i64,
     /// `UnitData::is_captain` — `o_up < 0`, a unit that heads its own
     /// squad; every standalone unit is one.
     pub captain: bool,
@@ -588,7 +585,6 @@ impl Unit {
             avoid: None,
             farm_anim: FarmAnim::Other,
             guys: Vec::new(),
-            born: -1,
             captain: true,
             o_up: None,
             o_down: None,
@@ -2117,31 +2113,6 @@ impl Sim {
         // (`Game::do_frame` line 272; `docs/ARMY.md` §5).
         self.armies_process_all();
 
-        self.mark("buildings");
-        // Then the buildings. `Build::process` and `Unit::process` are both
-        // reached from `Objects::process_all`, so in the original they
-        // interleave by object index rather than running in two passes. Doing
-        // buildings first is the choice that keeps a unit handed over this
-        // frame visible to this frame's unit loop, which is what the original
-        // does whenever the building's index is the lower of the two — and it
-        // is, for a building that existed before the unit it just made.
-        //
-        // `Wall::process` first — the under-attack decay, the helpers reset,
-        // the building's own attrition, ejection, the capture re-test, the
-        // assimilation tick and the city heal (`docs/CITIES.md`) — then the
-        // queue, then the tower.
-        for b in 0..self.buildings.len() {
-            self.buildings[b].gather_bumped = false;
-            self.process_building(b, frame);
-        }
-        self.process_queues();
-        // A building that shoots does so from `Build::process`, which in the
-        // original interleaves with the units by index; here the buildings
-        // go first, as they do for the queues.
-        for b in 0..self.buildings.len() {
-            self.process_building_combat(b, frame);
-        }
-
         self.mark("unit-loop");
         // `Objects::process_all` rotates the owners: slot `(frame + i) % 10`
         // goes `i`-th, so player `frame % 10`'s units run first this frame
@@ -2214,6 +2185,41 @@ impl Sim {
             }
             self.process_movement(i);
         }
+
+        self.mark("buildings");
+        // Then the buildings — **after** every unit, not before.
+        // `Objects::process_all@0065dce0` is two loops: the units, rotated by
+        // owner, and then a *second, unrotated* one over each player's
+        // buildings (object numbers from 2,000) and then their walls (from
+        // 3,000). `docs/SYNC.md` §3.2 has said so since it was written; the
+        // tick ran the buildings first until 2026-08-30, and East Indies'
+        // frame 219 is where it first showed: the original spends a farmer's
+        // `Unit::do_job+0x67` re-target and *then* the frame's road search,
+        // and this crate spent them the other way round.
+        //
+        // What the order costs is a frame of latency in both directions, and
+        // both are the original's: a unit a queue hands over this frame waits
+        // for the next one to move, and the per-frame counters `Build::process`
+        // clears — `helpers`, `gather_bumped` — are cleared *behind* the
+        // gatherers and builders that set them rather than in front, which is
+        // the same net state at the start of a frame.
+        //
+        // `Wall::process` first — the under-attack decay, the helpers reset,
+        // the building's own attrition, ejection, the capture re-test, the
+        // assimilation tick and the city heal (`docs/CITIES.md`) — then the
+        // queue, then the tower. Splitting the three into three passes over
+        // the list is still ours; the original does all three inside one
+        // `Build::process`, per building.
+        for b in 0..self.buildings.len() {
+            self.buildings[b].gather_bumped = false;
+            self.process_building(b, frame);
+        }
+        self.process_queues();
+        // A building that shoots does so from `Build::process` too.
+        for b in 0..self.buildings.len() {
+            self.process_building_combat(b, frame);
+        }
+
         self.mark("gaia");
         // The tail of `Objects::process_all`: the birds' sampling every 32
         // frames and one herd's walk every 64 (`gaia.rs`).
@@ -2224,7 +2230,7 @@ impl Sim {
         // farms' crop cells (`farms.rs`), and the sites' hit points
         // refreshed from the progress the builders just made,
         // `Wall::inc_time`.
-        self.guys_inc_time(frame);
+        self.guys_inc_time();
         self.mark("projectiles");
         self.process_projectiles(frame);
         self.mark("farms");

@@ -8112,3 +8112,93 @@ carrying the coverage list inside "what is not established"; that list is
 now `## 7`, which is also where CLAUDE.md says a coverage section belongs.
 `FARM_SPAN` is gone from `orders.rs`: the modulus is read from the type,
 where the original reads it.
+
+## 2026-08-30 (later, Opus) — item 60: East Indies' word 219 → 274, and the frame was two loops
+
+Item 60 was booked as a road search: the original spends frame 219's citizen
+re-target *before* the frame's road costs and this crate after it, and the two
+searches cost **129 nodes against 152**. The queue called the ordering the
+cheaper half. It was the whole of it, and it was not about roads.
+
+### What it was
+
+`Objects::process_all@0065dce0` is **two loops**. The first walks the ten owner
+slots rotated — `(frame + i) % 10`, each owner's objects `0..unit_mark` — and
+the second walks the ten leaders **unrotated**, each one's `2000..build_mark`
+(the buildings) and then `3000..wall_mark` (the walls). `Sim::tick` ran the
+buildings first. `docs/SYNC.md` §3.2 has said the opposite since the day it was
+written, in a sentence that ended "which is a known divergence this document
+does not close" — so nothing has read it against the code in five weeks.
+
+That is the **seventh** time a document and its code have disagreed and the
+second running where the document was the one that was right. Item 72 keeps
+earning its place.
+
+With the loops in their own order frame 219 is draw for draw, and the search
+that had looked 152 nodes costs **129** — the original's exactly. The count was
+never a residue: it was the same search reading a world the frame's units had
+not yet touched. `docs/ROADS.md` §7.1's own two counts, run32's 1,046 and
+1,460, are untouched by this and stay open.
+
+### The two compensations it uncovered
+
+Swapping the loops alone made things worse in a way worth recording, because
+both errors it exposed had been *cancelling* the loop order exactly.
+
+**Great Lakes' word fell 780 → 99 and run10's ticks 572 → 103.** Frame 99 is
+where run33's AI trains its citizen: `Guy::init_real+0x52`, then one more
+draw. This crate skipped a newborn in `guys_inc_time` (`born == frame`) and
+spent the second draw at `Unit::do_idle+0x7d` in the same frame's unit loop;
+the original spends it at `Guy::set_anim+0x97a < Guy::inc_time+0x271`. That
+disagreement is the "standing swap" the queue has carried as item 62 since the
+first trace, and it was never an attribution question. A trained unit is
+created in the *second* loop, so the original never reaches it in that frame's
+unit loop at all, and `Objects::inc_time` is what finds its
+`cur_time 0, end_time 0` clock and wraps it. run13's `1/6` ends sim-frame 99 at
+`0/232, last −1` — the state the wrap's `set_anim` leaves, not the one
+`Guy::init_real` does. The dump had been saying so for weeks beside a document
+sentence that read it the other way.
+
+With the skip gone the word ran to **122**, where the citizen's walk hit a
+collision a frame late. `Unit::think_peasant@005f5760:16` reads the owner's
+idle-citizen option only when `unit_masks & 0x40000` is *clear* and takes
+**`T = 1`** when it is set: an AI-driven worker finds a job on the first frame
+it is idle, a human's on the second. `docs/ORDERS.md` §5.9's pseudocode has
+carried `T = AI ? 1 : …` from its first writing — the eighth instance of the
+same lesson in one session's work — and the crate used the option for both. The
+extra unit-loop visit the wrong loop order gave a newborn was worth exactly the
+frame that hid it: the citizen came out on 99, was first visited on 100, took
+its gather order on 101 rather than 100, and the collision that ends its walk
+landed on 123 where the original has 122. The same line's other half — an AI
+worker searches with no range limit — landed with it and moves no traced frame.
+
+### What it moved
+
+- East Indies' word **219 → 274**, its sequence with it.
+- Great Lakes' word holds at **780** and its **sequence runs 99 → 576**: the
+  first 576 frames of the long capture are the original's draws in the
+  original's order. Weak totals 943/827 → **943/830**.
+- run14's whole traced window is **284 of 284, draw for draw**, where it had
+  stood at 282 since item 66. Both of the two frames that were not — 99 and
+  100 — were this.
+- run10's ticks and orders hold at 572/776 with both players' first divergence
+  at 802 and 573; East Indies' game score holds at 167/167 with player 0 at 217
+  and player 1 at 168.
+
+### The check
+
+Every floor moved is pinned: run39's word and sequence at 274, run33's sequence
+at 576 and its totals at 943/830, run14's `first_part` and `matched` at 284.
+Made to fail three ways, and all three were seen on the way in rather than
+staged: the loops swapped with the newborn still skipped (780 → 99, ticks
+572 → 103), the wrap restored with the AI's threshold still 2 (→ 122), and the
+threshold alone, which is what run14's frames 99 and 100 had always been.
+
+`Unit::born` is gone from the sim: nothing read it once the skip went.
+
+### Where the word goes next
+
+Frame **274**, and it is a unit this crate does not make. The original spends
+`Guy::init_real+0x52` and the newborn's wrap there — two draws for a guy — and
+this crate creates none. It is the training clock, not an order or an animal:
+the next item is which building finishes what, and when.
