@@ -121,6 +121,19 @@ def main():
         return 1
 
     print("GROUPDATA blocks: %d" % groups)
+    if groups <= 512:
+        # The pool is 512 slots, live or not. Exactly one pool means the
+        # **start** block carried it and no frame did — which is the
+        # `dump_deaths` trap, not an absence of groups: `GroupData::log_data`
+        # sets no type of its own, `dump_deaths` leaves the current type at
+        # `WORLD`, and with `WORLD=0` under `[End Frame]` every line of the
+        # pool fails `check_accept` silently. Turn `DEATHS` off there.
+        print("only %d GROUPDATA blocks — that is one 512-slot pool, so the"
+              " start block carried it and no frame did. `[End Frame]` still"
+              " has DEATHS on: `dump_deaths` leaves the type at WORLD and the"
+              " pool is dropped silently (docs/ORACLE.md, \"The group pool is"
+              " a per-frame record\")." % groups)
+        return 1
     print("group.facing:  %s"
           % ", ".join("%d x%d" % (k, n) for k, n in sorted(group_facing.items())))
     print("formations:    %s"

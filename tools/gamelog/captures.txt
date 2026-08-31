@@ -156,12 +156,28 @@ why: does the AI's own play kill a mirrored group order — the XOR term, driver
 #
 # run39's lobby exactly, so `samegame.py --exclude GROUPDATA` can still say
 # it is run39's game and it inherits run39's siblings.
-frames: 1400
 mapstyle: 18
 cfg: -
-# GROUPS=1 is what `GameLog::full_dump` gates `dump_groups` on — run30 took
-# it under the wrong section and got no GROUPDATA at all.
-end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1,GROUPS=1
+# **run31's detail exactly, and the reason is a trap that has now cost two
+# runs.** `GROUPS=1` is what `GameLog::full_dump` gates `dump_groups` on, but
+# turning it on is not enough: `GroupData::log_data@0045e1d0` never calls the
+# Log vtable's `set_type`/`set_detail`, so its lines are accepted against
+# whatever the **previous** dumper left behind — and `dump_deaths@0092fd80`
+# ends by calling `WorldData::log_data` twice, leaving the current type at
+# `WORLD`. With `WORLD=0` under `[End Frame]` the whole 512-slot pool is then
+# dropped silently: GROUPS is on, `dump_groups` runs, and not one line
+# survives `check_accept`. run30 hit it; so did this stanza's first attempt,
+# which dumped the pool once in the start block (512 records) and never
+# again. **`DEATHS` off under `[End Frame]`** is the fix — then the type
+# `dump_groups` inherits is `UNITS`, set high enough to accept anything.
+#
+# The cost is that this is no longer run39's sibling by detail, so there is
+# no `samegame.py` check here: at `UNITS=9` every frame differs for a reason
+# that is not the game. The question is the XOR term, not sibling-hood.
+end: MISC=9,UNITS=9,GROUPS=9,GUYS=9,LEADERS=1
 start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1,GROUPS=1
-check: python3 tools/gamelog/samegame.py --exclude GROUPDATA gamelog-run39-islands-longtrace.txt gamelog-run45-islands-groups.txt
+# run31 wrote 684 KB a frame at ~0.6 sim-frames a second, so this is seven
+# times heavier than run39's line and about a quarter the speed. 900 frames
+# rather than 1400 for that reason.
+frames: 900
 check: python3 tools/gamelog/groupfacing.py gamelog-run45-islands-groups.txt
