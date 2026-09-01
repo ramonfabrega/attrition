@@ -1461,7 +1461,57 @@ is reused. Nothing in the suite moved on it.
 **What is at 3687**: ten draws against seven. The first of ours is a
 `Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked walker's idle,
 `docs/ORDERS.md` §10 — that the original does not spend, and behind it we
-throw **seven** gaia wing-beat coins where the original throws five.
+throw **seven** gaia wing-beat coins where the original throws five. §3.23
+is what that was.
+
+## 3.23 The citizen offers itself to the boat — East Indies' word 3687 → 3978 (2026-09-01)
+
+Both halves of 3687 were **one unit's**, and it had left the original's
+point ninety-five frames before the word noticed. The blocked walker is the
+AI's citizen `1/11`, standing where the original's is not; the two extra
+wing beats are the coins that one extra draw re-throws, since a bird whose
+walk animation wraps keeps re-throwing while the length it picks still
+overruns its clock (§3.9).
+
+**What the citizen should have been doing.** `Unit::think_peasant@005f5760`
+opens — after its idle gate and *before* `find_build_spot` and the gather
+search — with a **colonist arm**: an AI-driven unit (`unit_masks &
+0x40000`) whose **base type** is `0x32` or `0x33` calls
+`think_civilian_transport(1)`, and a `1` back ends the think
+(`005f5809`). The test is the type itself and not the worker category, so
+a scholar never asks. This crate had `think_scout`'s tail — the
+`colonise = 0` caller — and not this one, and the whole colonise gate,
+`xport_peasants` throttle and all, therefore had no writer between
+sweeps (`docs/TRANSPORT.md` §7).
+
+**The frame it costs, in the original's own dump.** run57's `1/11`
+finishes its build on 3580 and stands with no order; on **3581** it holds
+`group 65`, a `MOVE_TO` whose `orig 38784, 24192` is the centre of cell
+**(50, 31)** — `cell × 0x300 + 0x180`, `think_civilian_transport`'s own
+arithmetic — and a twenty-four-leg path already planned. This crate sent it
+back to its gather instead, at a destination of its own, and every waypoint
+after that was a different point in the same tiles: the two paths differ
+only by `off_x/off_y`, the destination's offset inside its world cell,
+which `find_tpath` and `go_around_building` both place their points from
+(`docs/ORDERS.md` §4.1, §4.6.1).
+
+**What it moved.** East Indies' long word **3687 → 3978**, sequence with
+it. run57's four thousand frames go from **eleven** units ever off the
+original's point to **four**, its earliest parting from 3582 to 3647, and
+its comparable collision field-frames from 330,643 to **348,354** with none
+wrong. Great Lakes holds at 1802 and both scored captures hold.
+
+**The earliest parting is now before the word, and that is not a
+contradiction**: `1/13` leaves the original's point at 3647 and costs no
+draw for it. The word is what the two streams *spend*; a unit can stand a
+few units off and spend exactly what the original spends. The run57 test
+pins both numbers rather than assuming one bounds the other.
+
+**What is at 3978**: four draws against five, and the one we do not spend
+is the original's `61a1da` — inside `Unit::come_out@00617c10`'s tail
+(`+0x25ca`), unnamed in the trace. The AI's scout `1/0` leaves the
+original's point on 3979, the frame after, so the two are one thing; the
+barge cast at 3608 (§3.22) is what it came out of.
 
 ## 4. Run12 attributed
 

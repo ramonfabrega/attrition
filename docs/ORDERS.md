@@ -1340,9 +1340,7 @@ Both gather arms here — and §5.6's — are `OILPLATFORM or
 (`unit_masks & 0x40000` clear and worker_stance ∈ {0,1})`: **only a human
 builder adopts the site it has just finished.** The AI's goes back through
 `build_done`, whose own arm (§5.5) searches afresh and need not pick that
-site at all. The observation that hid it for a month is that in the logged
-run the AI builder finished its farm and *did* end up gathering there — but
-by `find_gather_spot` (§6.6), which happened to score it highest. run10's
+site at all. What hid it for a month is in the journal. run10's
 frame 167 is the case that tells the two apart: the AI's `1/1` finishes a
 farm and the original sends it to the Woodcutter's Camp instead.
 **Diff-backed 2026-08-27** (item 47) — the building, the tile `(212, 93)`
@@ -1529,7 +1527,7 @@ put into a fresh `TRANSPORTBARGE` first.
 ```
 T = AI ? 1 : by LeaderOptions[who] +0x8: 1→7, 2→12, 3→17, 4→32, 5→62, else 2       # the per-player idle-citizen option
 if idle < T: return 0;  if idle != T and (idle − 2) % 5 != 0: return 0
-AI peasant: think_civilian_transport(1) first
+AI (0x40000) and TypeIndex 0x32/0x33 — the base type, so no scholar: think_civilian_transport(1); 1 → return 1
 not a scholar and (unit_masks & 0x400 or stance ∈ {1,2}) and find_build_spot(): return 1
 stance ∈ {0,1} (or no stance type and 0): find_gather_spot(AI ? −1 : UNIT_GATHER_RESPOND_RANGE × 192) → deselect; human: group = −1; return 1
 not a scholar: human with (0x400 or stance ∈ {1,2}) and find_repair_spot(): return 1
@@ -1541,7 +1539,8 @@ With the default option the gate passes at `idle == 2` — the third idle frame
 — then every fifth increment (80 frames, phased by `o`). `think_peasant(1)`
 from a `THINK` order has no gate. An AI-controlled citizen (`unit_masks &
 0x40000`) uses `T = 1` and an unlimited gather range; both landed
-2026-08-30, `docs/SYNC.md` §3.16.
+2026-08-30, `docs/SYNC.md` §3.16. The colonist line landed
+2026-09-01, word 3978 (`docs/TRANSPORT.md` §7, SYNC §3.23).
 
 `Wall::process@00640450`: every 32 frames phased by `o` a
 site that is not active and whose owner is not human wants `max(4, helpers)`

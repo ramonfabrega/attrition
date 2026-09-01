@@ -11115,3 +11115,74 @@ throws seven gaia wing-beat coins where the original throws five. Item
 level up: grep the disk before booking a capture. The booked window would
 have cost an hour of screen and would have printed a number that only
 confirms the symptom; the trace on disk named the cause.
+## 2026-09-01 — item 137: the citizen offers itself to the boat (Opus)
+
+Item 137 was booked as two draws — a blocked walker's idle this crate
+spends and the original does not, and seven gaia wing-beat coins against
+five — and it was **one missing call**, ninety-five frames upstream of
+the frame it was booked at.
+
+**The blocked walker has a name, and the trace does not give it.** The
+site says `Unit::move_step+0x823` and nothing more, so the first move was
+to print the unit: the AI's citizen `1/11`, blocked at 3687 by `1/9` while
+walking to a waypoint of its own. The second move was the run57 position
+test, which already knew: `1/11 parts at 3582`. The two draws at 3687 were
+one unit's the whole time — the extra coins are what a wrap re-throws when
+one extra draw has shifted the stream, since a bird that picks the 23-frame
+Flap while its clock reads 24–30 wraps again and throws again (§3.9).
+
+**The original's own dump says what the citizen should have been doing.**
+run57 is 4,000 frames of full detail and 3581 is inside it. `1/11`
+finishes a build on 3580 and stands with no order; on 3581 it holds
+`group 65`, a `MOVE_TO` whose `orig 38784, 24192` is the centre of cell
+(50, 31) — `cell × 0x300 + 0x180`, which is
+`Unit::think_civilian_transport`'s own arithmetic and nothing else's — and
+a twenty-four-leg path. This crate gave it a gather order instead.
+
+**And the call is one line of `think_peasant`.** `005f5760:53`, between
+the idle gate and `find_build_spot`: an AI-driven unit
+(`unit_masks & 0x40000`) whose **base type** is `0x32` or `0x33` calls
+`think_civilian_transport(1)`, and a 1 back ends the think. The test is
+the base type rather than the worker category, so a scholar never asks.
+`docs/TRANSPORT.md` §7 had the function whole and had said for two days
+that this caller was a seam; what it did not say is that the seam was
+holding a hundred frames of the headline.
+
+**How the two paths differed, which is the pleasing part.** With the wrong
+destination the citizen still walked *the same tiles* — the pathfinder
+found the same route — but every waypoint sat 144 units off, in both axes,
+from the original's. That is `off_x/off_y`, the destination's offset inside
+its world cell, which `find_tpath` and `go_around_building` both place
+their points from (`docs/ORDERS.md` §4.1, §4.6.1). A destination two cells
+wrong shows up as a detour waypoint at `tile*0xc0 + 132` against the
+original's `tile*0xc0 + 60`, and reading that arithmetic backwards is what
+said the destination was the thing to look at, not the pathfinder.
+
+**What it moved.** East Indies' long word **3687 → 3978**, sequence with
+it. run57's four thousand frames go from **eleven** units ever off the
+original's point to **four**; the earliest parting from 3582 to 3647; the
+comparable collision field-frames from 330,643 to 348,354, none wrong; the
+buildings stay exact on all 130,326 fields. Great Lakes holds at 1802 and
+both scored floors hold. 175 rondata and 684 sim tests green in
+`--release`.
+
+**A number the run57 test had been assuming, and now pins.** Its assertion
+read "nothing parts before the word does", and with the word at 3978 and
+the earliest parting at 3647 that is simply false — a unit can leave the
+original's point without spending a draw for it. The assertion now pins
+the parting frame and the count of ever-parted units as two facts of their
+own, which is the honest shape: the word measures what the two streams
+*spend*, and the position record measures where they *are*.
+
+**What is at 3978**: four draws against five, and the one we do not spend
+is the original's `61a1da` — inside `Unit::come_out@00617c10`'s tail
+(`+0x25ca`), with no name in the trace. The AI's scout `1/0`, the unit
+that cast the barge at 3608, leaves the original's point on 3979. Item
+138.
+
+**The rule this is another instance of.** The queue says grep the dump
+before booking a capture; this one says something narrower and sharper —
+**when a draw parts, ask the position record first**. The word tells you
+which frame; `first_divergence_by_unit` tells you which unit and, more
+usefully, *how long ago*. Ninety-five frames of head start were sitting in
+a test that already ran on every commit.
