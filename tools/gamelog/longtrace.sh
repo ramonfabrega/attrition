@@ -53,7 +53,17 @@
 #   SETTLE_MIN    bytes of gamelog below which "stopped growing" is not yet
 #                 "finished" — the guard against calling a stalled launch a
 #                 settled run (default 10 MB, which every capture so far
-#                 passed inside a minute)
+#                 passed inside a minute). **A thin `[End Frame]` needs this
+#                 lowered**: a capture whose per-frame block is a few lines
+#                 may never reach 10 MB, and would then never be called
+#                 settled at all.
+#   POLL_MAX      how many 20-second polls to wait before giving up and
+#                 killing the game (default 160 — **53 minutes**, which is
+#                 every capture up to run52 and is far too short for a
+#                 24,000-frame one). The loop's end is not a graceful stop:
+#                 it `pkill`s and archives whatever has been written, so a
+#                 run that outlives its bound is silently truncated. Item 91
+#                 is the first capture to need this.
 #
 # Needs all three macOS permissions — Screen Recording, Automation and
 # **Accessibility** (`cliclick p` must answer a real cursor position, not
@@ -153,7 +163,8 @@ if [ -n "$DRIVER" ]; then
 fi
 
 last=0; still=0
-for i in {1..160}; do
+POLL_MAX=${POLL_MAX:-160}
+for i in {1..$POLL_MAX}; do
   sleep 20
   sz=$(stat -f %z "$L/gamelog.txt" 2>/dev/null || echo 0)
   fr=$(tail -c 4000000 "$L/gamelog.txt" 2>/dev/null | grep -a -o 'BEGIN FRAME [0-9]*' | tail -1)
@@ -161,6 +172,10 @@ for i in {1..160}; do
   last=$sz
   echo "$(date +%H:%M:%S) gamelog=$sz last='$fr' still=$still"
   if [ $still -ge 4 ] && [ "$sz" -gt "${SETTLE_MIN:-10000000}" ]; then echo settled; break; fi
+  if [ $i -eq $POLL_MAX ]; then
+    echo "POLL_MAX ($POLL_MAX polls, $((POLL_MAX * 20 / 60)) min) reached without settling —"
+    echo "the archive below is TRUNCATED, not a finished run. Raise POLL_MAX."
+  fi
 done
 lobby_shot "$T/r$N-end.png"
 pkill -f $P || true

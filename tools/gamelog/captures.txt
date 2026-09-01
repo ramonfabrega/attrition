@@ -29,7 +29,14 @@
 #   ffwd:       the `!ffwd` line; `-` means none. **Every stanza with a
 #               `driver:` needs `-`** — under `!ffwd` the game stops drawing
 #               and a click lands on a frozen picture (run47)
-#   settle_min: bytes below which the poll loop will not call a run finished
+#   settle_min: bytes below which the poll loop will not call a run finished.
+#               A thin `end:` needs it lowered — a per-frame block of a few
+#               lines may never reach the 10 MB default, and the run would
+#               then never be called settled
+#   poll_max:   20-second polls before the loop gives up and kills the game
+#               (default 160 = 53 minutes). **The give-up is a truncation,
+#               not a stop**, so any capture that can run longer than its
+#               bound must raise it
 #   check:      a command run after the capture, from the repo root, to say
 #               whether it landed; repeatable, and a non-zero exit is loud
 #
@@ -428,3 +435,57 @@ cmd: 152 add hoplite who=0 15,166
 cmd: 154 add hoplite who=0 16,166
 cmd: 170 camera 15,168
 cmd: 180 select hoplite who=0
+
+run: 53
+tag: greatlakes-24k-trace
+item: 91
+why: the word's ceiling on Great Lakes — the whole trace over 24,000 frames
+# **The scout, not the measurement.** run10's capture is exhausted (item 114:
+# 1772/1772, neither player parting, and run33's word past its end at 1802),
+# so the next number on this map needs a longer game. This stanza takes the
+# cheap half of item 91: the trace whole, and a `[End Frame]` thin enough that
+# the dump is not the speed floor.
+#
+# What it buys is the **word** out to 24,000 — which is what says how big the
+# expensive half has to be. run33 is 155 KB of dump per frame at frame 1,800
+# and rising with the roster, so a run10-detail dump over 24,000 is GB-scale
+# and most of its bytes would fall past wherever the word parts, where both
+# sides are on streams of nobody's and the numbers are noise. Aim that run;
+# do not guess it.
+#
+# `start:` stays run10's exactly, because `Initial` is what the harness stands
+# the simulation up from and `run33_s_long_trace_says_where_the_word_parts`
+# needs nothing else from the dump — the per-frame words are the trace's own
+# FRAME records.
+frames: 24000
+mapstyle: 14
+end: MISC
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+cover: cover=1
+# The gamelog is now the start dump plus a thin per-frame block, so it will
+# not pass the 10 MB default and would never be called settled.
+settle_min: 500000
+# 53 minutes is the default and this run is hours. The give-up path truncates
+# rather than stops, so this is the difference between a capture and a waste.
+poll_max: 900
+# The first 1,851 frames must be run33's game draw for draw — same seed, same
+# lobby, no input — which is a stronger "same game" than samegame.py can give
+# and costs nothing.
+check: python3 tools/gamelog/rngcmp.py rontrace-run33.log rontrace-run53.log
+
+run: 54
+tag: islands-24k-trace
+item: 91
+why: the same ceiling on East Indies, whose word (1373) is the number still moving
+# Second because Great Lakes is the map with nothing left to measure. East
+# Indies still has item 110 in front of it, so this one's value arrives later
+# — but it is the same cheap scout and it costs a wait rather than a session.
+frames: 24000
+mapstyle: 18
+cfg: -
+end: MISC
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+cover: cover=1
+settle_min: 500000
+poll_max: 900
+check: python3 tools/gamelog/rngcmp.py rontrace-run39.log rontrace-run54.log

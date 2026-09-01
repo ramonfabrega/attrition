@@ -29,11 +29,12 @@ and 119 died with it, both having been downstream of a stream wrong since
 1372.
 
 **So the constraint has changed shape.** One map's capture is exhausted and
-the other's word is the only number still moving. Two things follow, and the
-first is not obviously the second's junior: **91** is now due — a longer
-capture is the only way Great Lakes produces another number — and **110** is
-the last word item East Indies has. Take 110 first; 91 is a capture session
-and wants its own.
+the other's word is the only number still moving. **91** is now due — a
+longer capture is the only way Great Lakes produces another number — and it
+is *not* a session: item 90 made it two stanzas in
+`tools/gamelog/captures.txt` and an unattended wait, so it runs beside the
+next item rather than instead of it. Start it, then take **110**, the last
+word item East Indies has.
 
 **Opener (Opus):** `Continue — item 110: East Indies' word at 1373. The AI
 scout walks six rings on both sides; the original then leaves the loop for
@@ -59,8 +60,13 @@ them.
     re-captured on demand. The condition it was booked against has arrived
     on one map — Great Lakes' word (1802) is past run10's whole length
     (1,772) and no unit or order in that capture disagrees anywhere, so
-    there is no number left in it. Great Lakes first; East Indies once 110
-    lands.
+    there is no number left in it. It is a `captures.txt` stanza and a wait,
+    not a session. **The sizing is the whole of the decision**: run33 is
+    271 MB of dump for 1,850 Great Lakes frames and run39 460 MB, and the
+    roster grows, so a run10-detail dump over 24,000 is GB-scale per map
+    against the disk there is. Trace-whole is ~150 MB and gives the word;
+    the tick and order scores need dump frames, so those come from windows
+    aimed where the word parts.
 
 103. **The wood machine's record parts at 1,686, on a clock.** After 26,094
     agreeing fields the human's `0/2` holds a wait of 445 where the

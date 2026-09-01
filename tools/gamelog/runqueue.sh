@@ -100,6 +100,7 @@ flush() {
     if [ ${#covers} -gt 0 ]; then pass+=("TRACE_COVER=${(pj:\n:)covers}"); fi
     if [ -n "$driver" ];  then pass+=("DRIVER=$W/$driver"); fi
     if [ -n "$settle" ];  then pass+=("SETTLE_MIN=$settle"); fi
+    if [ -n "$pollmax" ]; then pass+=("POLL_MAX=$pollmax"); fi
     # `ffwd: -` means no fast-forward at all, which every driven stanza wants.
     if [ "$ffwd" = "-" ]; then
       pass+=("FFWD=")
@@ -163,6 +164,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     cover) covers+=("$val") ;;
     driver) driver=$val ;;
     settle_min) settle=$val ;;
+    poll_max) pollmax=$val ;;
     ffwd) ffwd=$val ;;
     cmd) cmds+=("$val") ;;
     check) checks+=("$val") ;;
