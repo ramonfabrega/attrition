@@ -106,6 +106,9 @@ crates/fixed/       fixed-point arithmetic — used by rondata's constant
 tools/ghidra/       builds and exports the decompile once; reading is grep after
 tools/gamelog/      one-line readers for a logged run
 tools/trace/        in-process draw-site trace and function coverage of the original
+tools/emu/          calls a function of the original's executable outside the game (unicorn)
+tools/fuzz/         seeded fuzz games against the original, and their ledger
+tools/guard.sh      the reflex between edits: the paperwork guards plus the item's tests
 scripts/            fetch-depot.sh
 ```
 
@@ -118,9 +121,10 @@ scripts/            fetch-depot.sh
 | `DECISIONS.md` | architectural decisions and their rationale, amended in place |
 | `FORMATS.md` | file formats, every claim evidence-backed |
 | `ORACLE.md` | running the original, its loggers, and every logged run |
+| `EMULATOR.md` | the original's functions called with chosen arguments, and what the rung costs |
 | `DATALAYER.md`, `SYNC.md` | the install into the sim; the per-frame random stream |
 | `RECGAME.md`, `COMMANDS.md`, `INPUT.md` | recorded games: the container, the command payloads, the order stream |
-| `ATTRITION.md`, `SUPPLY.md`, `MOVEMENT.md`, `ECONOMY.md`, `COSTS.md`, `PRODUCTION.md`, `TECH.md`, `COMBAT.md`, `CITIES.md`, `ORDERS.md`, `PATHFINDER.md`, `COLLISION.md`, `ANIM.md`, `AI.md` | one document per mechanic |
+| `ATTRITION.md`, `SUPPLY.md`, `MOVEMENT.md`, `ECONOMY.md`, `COSTS.md`, `PRODUCTION.md`, `TECH.md`, `COMBAT.md`, `CITIES.md`, `ORDERS.md`, `PATHFINDER.md`, `COLLISION.md`, `ANIM.md`, `AI.md`, `ARMY.md`, `GROUPS.md`, `TRANSPORT.md`, `ROADS.md`, `VISION.md`, `SCOUT.md`, `GOODY.md` | one document per mechanic |
 | `audit/` | the blind second readings and their verdicts |
 
 `CLAUDE.md` is the working agreement: thesis, hard constraints, phases, and

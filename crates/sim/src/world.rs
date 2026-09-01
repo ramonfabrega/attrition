@@ -127,11 +127,14 @@ impl Cell {
 /// of Nations' borders read as faintly octagonal rather than circular;
 /// substituting a true hypotenuse would visibly change every border.
 ///
-/// The original has a second branch, `hi + lo / 2`, guarded by `lo < 60000`.
-/// That is an overflow guard on `lo * lo`, not a shape decision: no map is
-/// sixty thousand tiles across, so the branch is unreachable in play. It is
-/// kept because it costs nothing and because leaving it out would quietly
-/// change behaviour at a size the original defined.
+/// The original has a second branch, `hi + lo / 2`, guarded by `lo < 60000`,
+/// and both are computed **unsigned**. The guard is an overflow guard on
+/// `lo * lo` — but for `unsigned`, and in world units, not tiles: 60,000
+/// units is 78 cells, and `lo²` passes `i32::MAX` from `lo = 46341`, sixty
+/// cells short of the guard. Squaring in `i32` here panicked in debug and
+/// wrapped in release for every diagonal past sixty cells, until the
+/// emulated original (`tools/emu/callfn.py`, `path::tests`) answered 89998
+/// for `(59999, 59999)` on 2026-09-01.
 ///
 /// It lives here, in world, rather than in the subsystem that needed it first,
 /// because it turned out to be shared: the territory pass inlines this
@@ -146,10 +149,11 @@ pub const fn vector_dist(dx: i32, dy: i32) -> i32 {
     if hi == 0 {
         return 0;
     }
+    let (hi, lo) = (hi as u32, lo as u32);
     if lo < 60_000 {
-        hi + (lo * lo) / (hi * 2)
+        (hi + (lo * lo) / (hi * 2)) as i32
     } else {
-        hi + lo / 2
+        (hi + lo / 2) as i32
     }
 }
 

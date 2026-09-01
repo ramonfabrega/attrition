@@ -341,13 +341,27 @@ pub(crate) fn parse<'a>(path: &Path, text: &'a str) -> Result<roxmltree::Documen
 /// `RON_INSTALL`, or the data layer is untested.
 #[cfg(test)]
 pub(crate) mod testenv {
-    /// The install: `$RON_INSTALL`, or the checkout's `game/`.
+    /// The install's root: `$RON_INSTALL`, else the checkout's `game/`, else
+    /// — from a worktree under `.claude/worktrees/<name>/` — the main
+    /// checkout's `game/`, three directories up. The last is what stops
+    /// every worktree session typing the variable by hand (2,147 times in
+    /// 120 sessions, by the transcripts, before 2026-09-01).
+    pub(crate) fn install_root() -> Option<String> {
+        if let Ok(r) = std::env::var("RON_INSTALL") {
+            return Some(r);
+        }
+        let here = env!("CARGO_MANIFEST_DIR");
+        [
+            format!("{here}/../../game"),
+            format!("{here}/../../../../../game"),
+        ]
+        .into_iter()
+        .find(|g| std::path::Path::new(g).join("riseofnations.exe").is_file())
+    }
+
+    /// The install, if this machine has one (see [`install_root`]).
     pub(crate) fn install() -> Option<crate::Install> {
-        let root = std::env::var("RON_INSTALL").ok().or_else(|| {
-            let here = env!("CARGO_MANIFEST_DIR");
-            Some(format!("{here}/../../game"))
-        })?;
-        let i = crate::Install::new(root);
+        let i = crate::Install::new(install_root()?);
         i.looks_valid().then_some(i)
     }
 

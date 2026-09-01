@@ -1075,10 +1075,10 @@ mod tests {
     /// with the histogram's load-bearing rows.
     #[test]
     fn the_sample_s_every_payload_decodes() {
-        let root = std::env::var("RON_INSTALL").ok().unwrap_or_else(|| {
-            let here = env!("CARGO_MANIFEST_DIR");
-            format!("{here}/../../game")
-        });
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
+            return;
+        };
         let dir = std::path::Path::new(&root).join("external-recgames");
         let Some(path) = std::fs::read_dir(dir).ok().and_then(|mut d| {
             d.find_map(|e| {

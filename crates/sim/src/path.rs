@@ -1884,4 +1884,60 @@ mod tests {
             "depth 10 is past the gate"
         );
     }
+
+    /// **The original's own answers, under an emulator.** `tools/emu/callfn.py`
+    /// enters `vector_dist@0046cff0` and `get_estimate@00688310` in the
+    /// executable's image under unicorn — no game, no capture — over a seeded
+    /// sweep, and prints `<name> <args…> -> <eax>`; every row is asserted
+    /// against this crate here. The table is `$RON_EMU_TABLE`, or is generated
+    /// from the install on the spot; a machine with neither says so.
+    ///
+    /// The sweep's first catch, 2026-09-01: `lo * lo` in `world::vector_dist`
+    /// overflowed `i32` above `lo = 46340`, where the original squares in
+    /// `unsigned` — 59999² is 3,599,880,001.
+    #[test]
+    fn the_emulated_original_agrees_on_every_row() {
+        let Some(table) = emu_table() else { return };
+        let mut rows = 0;
+        for line in table.lines() {
+            let (lhs, rhs) = line.split_once(" -> ").expect("a row");
+            let f: Vec<&str> = lhs.split(' ').collect();
+            let a: Vec<i32> = f[1..].iter().map(|s| s.parse().unwrap()).collect();
+            let want: i32 = rhs.parse().unwrap();
+            let got = match f[0] {
+                "vector_dist" => crate::world::vector_dist(a[0], a[1]),
+                "get_estimate" => Sim::estimate(a[0] - a[2], a[1] - a[3], a[4]),
+                other => panic!("unknown function {other}"),
+            };
+            assert_eq!(got, want, "{line}");
+            rows += 1;
+        }
+        assert!(rows > 3000, "{rows} rows");
+    }
+
+    /// The emulator's table: `$RON_EMU_TABLE` as written, else the sweep run
+    /// against the install (`testenv::install_root`) through `uv`.
+    fn emu_table() -> Option<String> {
+        if let Ok(p) = std::env::var("RON_EMU_TABLE") {
+            return Some(std::fs::read_to_string(p).expect("RON_EMU_TABLE"));
+        }
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
+        let Some(install) = crate::testenv::install_root() else {
+            eprintln!("skipping: set RON_EMU_TABLE or RON_INSTALL");
+            return None;
+        };
+        let out = std::process::Command::new("uv")
+            .args(["run", &format!("{root}/tools/emu/callfn.py")])
+            .arg(format!("{install}/riseofnations.exe"))
+            .arg("sweep")
+            .output();
+        match out {
+            Ok(o) if o.status.success() => Some(String::from_utf8(o.stdout).unwrap()),
+            Ok(o) => panic!("callfn.py failed: {}", String::from_utf8_lossy(&o.stderr)),
+            Err(e) => {
+                eprintln!("skipping: uv not runnable ({e})");
+                None
+            }
+        }
+    }
 }

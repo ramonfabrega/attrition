@@ -394,6 +394,11 @@ and makes the eventual diff mechanical rather than a translation exercise.
   `wine --bottle ron --workdir <install> <install>/riseofnations.exe`; see
   `docs/ORACLE.md` for the two loggers it ships and how they are switched on.
   `cliclick` drives it; System Events clicks do not reach it.
+- **A function of the executable can be called outside the game.**
+  `tools/emu/callfn.py` maps it under unicorn (`uv run`, dependency declared
+  in the script) and enters a function with chosen arguments; a sweep is a
+  `#[test]` in `crates/sim`. Free for a pure function, an hour of synthesized
+  state for one that reads a singleton; `docs/EMULATOR.md` has the costs.
 - Constants are not all loaded in the representation the file writes. At least
   one rational arrives scaled to 8.8 fixed point. Read the consumer before
   believing the digits.
