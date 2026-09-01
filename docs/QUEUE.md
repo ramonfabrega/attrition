@@ -13,29 +13,30 @@ lines, or lets the handoff pass 32.
 ## Where things stand
 
 *2026-09-01, Opus — the gull flew, and East Indies' word went **3579 →
-3608**.* Item 133 closed on two defects that were this crate's rather than
-the reading's, and the next seam is a different mechanic.
+3608**.* Item 133's two defects were this crate's, not the reading's.
 
-- **The roll had no `mark` and the gull had no `type_index`.**
-  `dock_open` had spawned the gull and spent both of `Dock::init`'s draws
-  in the right order since 2026-08-25; the heading roll carried no site, so
-  the sequence read a second `Guy::init_real+0x52` (item 122's shape, found
-  by the score), and the default −1 `type_index` meant `Guy::set_anim`
-  never recognised one of its three gaia bird types. TRANSPORT §5.2.1.
-- **A gull reaches `do_air_physics` by `do_strafe`, not `do_air_patrol`.**
-  `think_bird`'s `0x194` arm draws nothing, so all it spends is the tail's
+- **The roll had no `mark` and the gull had no `type_index`.** Both draws
+  were already spent in order; the unmarked roll read as a second
+  `Guy::init_real+0x52` (item 122's shape, found by the score), and the −1
+  `type_index` meant `Guy::set_anim` never saw a gaia bird. TRANSPORT
+  §5.2.1.
+- **A gull reaches `do_air_physics` by `do_strafe`.** `think_bird`'s
+  `0x194` arm draws nothing, so all it spends is the tail's
   `set_anim(CHAR_WALK, 0, 1)` — once, at birth, on 3580 — then the wing
   beat. Three counts over run54 back it: 12 birth coins, 3
   `do_air_physics+0x639` draws all a wild bird's, `Region::coast_here` off
-  the blind list. And `gull_o`, the `DOCK` record's unasserted field, is
-  run22's **15** here too.
-- **`FABLE:` run57's past-the-word assertion was luck, and is rescoped in
-  code** — building half up to the word, collision total a floor (330,643 →
+  the blind list. `gull_o` is run22's **15** here too.
+- **`FABLE:` run57's past-the-word assertion was luck, rescoped in code** —
+  building half up to the word, collision total a floor (330,643 →
   337,265, units that ever part 14 → 11). A ratchet on the count was named
   and not costed; `docs/ORACLE.md`, run57, has both sides.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w3608 of 24,000 · GreatLakes w1802 of 24,000
+
+**Steering is not owed** — six items since the last pass, the headline
+moved on every one — **until the word crosses 4,000**, which is run57's
+length and forces the capture question the other `FABLE:` marker asks.
 
 **Opener (Opus):** `The headline is East Indies' word at 3608 and item 134
 is what holds it: SpellType::cast_transport's first fire, three draws this
