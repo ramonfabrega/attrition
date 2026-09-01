@@ -446,9 +446,11 @@ settles the type without one.
   the farm is built" holds only because a *starting* pasture is placed and
   activated in the same breath inside `Setup::build_empire`. A pasture a
   player builds mid-game owes its twenty draws at the frame it **finishes**,
-  and the simulation stands its animals up only for a farm read off a dump
+  ~~and the simulation stands its animals up only for a farm read off a dump
   (`Sim::farm_add_animals` has no caller in `Sim::activate`). No capture
-  contains one.
+  contains one.~~ **run33 contains one — its frame 1372, which is where
+  Great Lakes' word had been parting — and `Sim::activate` makes the call
+  since 2026-08-31 (§3.21).**
 
 ## 3.9 The bird — `Animal::think_bird@005d79e0`, `Unit::do_air_patrol@005ea620` (2026-08-28)
 
@@ -1301,6 +1303,78 @@ and then `Unit::think_scout+0x436`/`+0x458` six times over with `+0x64c`
 twice — the region fallback's cell walk (`docs/SCOUT.md` §11), sixteen
 draws this crate does not spend.
 
+## 3.21 A pasture nothing stocked — Great Lakes' word 1372 → 1802 (2026-08-31)
+
+Frame 1372 of run33 is twenty-eight sync draws and this crate spent three.
+The three it spent were `Farms::inc_time`'s; the twenty-five it did not are
+one building finishing:
+
+```
+5×  Farms::add_animals+0x92   < Build::activate+0x1c25 < Wall::do_construct+0x199
+5×  Farms::add_animals+0x134  < …
+5×  Farms::add_animals+0x182  < …
+5×  Guy::init_real+0x52       < Unit::init+0xb97       < Animal::init+0x1a
+5×  Guy::set_anim+0x97a       < Guy::inc_time+0x271    < Unit::inc_time+0x3e
+```
+
+interleaved four at a time — coin, `y`, `x`, guy — and then the last five
+together. §3.6 and §3.11 had already read every one of those sites. What was
+missing was the **caller**: nothing in this crate ever reached
+`Farms::add_animals` except the harness's own setup, so a pasture built
+during a game stayed empty.
+
+**`Build::activate` stocks every food gather building it finishes.** The
+tail at `006259b5` switches on the *good*, not the type. `LAB_00625a36` —
+where `case 0`, `do_bonus(0, FOOD_BONUS_FOR_FARM)`, falls through — and the
+`iVar18 == 0` arm of `switchD_006259b5_caseD_2`, where every exit that pays
+*nothing* lands, are the same call. So the gate is only "is this a farm";
+whether the completion bonus was paid, whether the building was captured,
+whether the caller counted it, all of that is settled above and none of it
+reaches here. `Farms::add_animals`' own two guards are then `farm_type == 1`
+and the building's `flags & 4`, and neither is a count — **a farm activated
+twice is stocked twice**, which no capture exercises and this crate
+reproduces.
+
+**The pin is the original's own word.** run33's frame 1372 begins the block
+on `game_random == 0xc91f99f2`; twenty draws later the original's
+twenty-first draw of the frame starts from `0xafa38116`, and this crate now
+lands on it. A pasture's four-draw stride keeps every coin on one parity of
+the stream (§3.11), so all five of these are even — five **chickens** — and
+their `(dy, dx)` from the building are `(−77, −126)`, `(−89, −154)`,
+`(−165, 10)`, `(79, 110)` and `(−125, 146)`, each `rnd % 0x180 − 0xc0` and
+each snapped by `Unit::init`. `farms::tests::
+a_finished_pasture_stocks_five_animals_for_twenty_draws` asserts the word,
+the twenty labels in order and the five snapped points.
+
+The last five draws are not `add_animals`' at all and cost no new code: a
+guy fresh from `Guy::init_real` has `end_time 0`, so the same frame's
+`Objects::inc_time` wraps all five clocks (§3.16's second loop is what
+reaches a unit born mid-frame).
+
+**Where the harness parts from the original, knowingly.** The original stocks
+its *starting* pastures too — `Setup::build_empire` runs with `Game::frame`
+still 0, the same test the completion bonus is gated on one line above. The
+harness does not replay that stream; it borrows those five from the capture's
+own trace instead (§3.11, `diff::borrow_pasture`). So the drawing path is
+suppressed at frame 0, and only there.
+
+**What it is worth.** Great Lakes' word **1372 → 1802** and its sequence with
+it — past run10's whole 1,772, so this map now spends the original's draws in
+the original's order for longer than its own capture runs. The two totals go
+1467/1436 → **1832/1830** of 1,850, and the gap between them falls from 31 to
+2. run10's headline goes **1375/1374 → 1772/1772 with neither player parting
+at all**: no unit's position disagrees anywhere in the capture, no order field
+that scores disagrees anywhere, and no gather tile disagrees anywhere. The two
+residue items that had been holding it — `1/8`'s move-order `x` and `1/1`'s
+cleared `last_x/last_y` — were both downstream of a stream that had been wrong
+since 1372 and are gone. East Indies is untouched at 1374/1373: run39's AI
+builds no farm inside its capture.
+
+What parts run33 at 1802 is a single draw at
+`Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 < Unit::do_job+0xd7` —
+a gaia bird's flight physics, and the **only** time that site is reached in
+all 1,851 frames.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):
@@ -1706,9 +1780,12 @@ struck through and point there.
   frame a bird lands (2026-08-31).
   `do_air_physics` and `Guy::set_anim`'s bird branch stay open, and the
   25 phase-7 wraps they leave unspent are what still stands between the
-  simulation's stream and the original's after frame 103. And
-  `Farms::add`/`add_animals` at a farm's creation — event-driven, unread
-  past their draw sites.
+  simulation's stream and the original's after frame 103 — and
+  `do_air_physics+0x639` is what parts run33's word at **1802**, its one
+  appearance in 1,851 frames. And ~~`Farms::add`/`add_animals` at a farm's
+  creation — event-driven, unread past their draw sites.~~ **both are read
+  and modelled: `add` at placement (§3.8) and `add_animals` at activation
+  (§3.21).**
 - ~~**`Checksum Dump` / `Checksum Break`** (`gamelog.ini`; internal strings
   2849/2850, read by `GameLog::init` right after `DUMP_ALL` with default
   −1 into `log_start_frame`/`log_end_frame`, which `begin_frame`/`end_frame`
@@ -1777,6 +1854,17 @@ kind honest.
   run39, but on the rule: `add_move_order@00616ed0` takes the same
   unsnapped bearing, and run10's farmers separate the two by up to 10.5°
   on frames the dump prints.
+
+- **The pasture's stocking, §3.21 (2026-08-31).** Diff-backed, on run33:
+  `a_finished_pasture_stocks_five_animals_for_twenty_draws` re-derives the
+  twenty draws of run33's frame 1372 from the original's own word
+  (`0xc91f99f2` in, `0xafa38116` out) — the twenty labels in order, the five
+  species and the five snapped points — and the whole-game check is
+  `run33_s_long_trace_says_where_the_word_parts`, whose word runs to 1802 on
+  it. Reading-only, and named as such: that a farm activated a **second**
+  time is stocked a second time, which follows from `add_animals` guarding
+  on the type rather than on a count and which no capture exercises — a
+  captured pasture would show it, and no capture has one.
 
 - **The animal's hurry, §3.13 (2026-08-30).** Diff-backed, on both
   captures and with no free parameter:

@@ -123,6 +123,14 @@ pub const SITE_ANIMAL_DIR: &str = "Animal::think_farm_animal+0x142";
 pub const SITE_TYPE_COIN: &str = "Farms::add+0x128";
 pub const SITE_AMBIENCE_X: &str = "Farms::add+0x23f";
 pub const SITE_AMBIENCE_Y: &str = "Farms::add+0x25b";
+/// `Farms::add_animals@008d8f30`'s three, per animal and in this order —
+/// the species coin, the `y` offset and the `x` — spent only on the
+/// *drawing* path ([`Sim::farm_stock_pasture`]). The fourth of an animal's
+/// four is `Guy::init_real`'s, inside `Objects::init_unit`, and is marked
+/// by [`crate::anim::SITE_INIT_REAL`] where it is spent.
+pub const SITE_ANIMAL_COIN: &str = "Farms::add_animals+0x92";
+pub const SITE_ANIMAL_Y: &str = "Farms::add_animals+0x134";
+pub const SITE_ANIMAL_X: &str = "Farms::add_animals+0x182";
 
 impl Farm {
     /// `Farms::grow(farm, dy, dx)@008d91c0`: the farmer's add — the
@@ -388,6 +396,38 @@ impl Sim {
     /// either way, no `type_index`, and all five on the farm's centre
     /// (`docs/SYNC.md` §3.11).
     pub fn farm_add_animals(&mut self, b: usize, seeds: &[AnimalSeed]) -> Vec<usize> {
+        self.add_animals(b, Some(seeds))
+    }
+
+    /// The same function **drawing its own**, which is what a pasture
+    /// finished mid-game gets: `Build::activate`'s `LAB_00625a36` reaches
+    /// `Farms::add_animals` for every food gather building it completes, and
+    /// there the five animals cost **four draws each** in this order — the
+    /// coin at [`SITE_ANIMAL_COIN`], the `y` at [`SITE_ANIMAL_Y`], the `x` at
+    /// [`SITE_ANIMAL_X`], and `Guy::init_real`'s variant inside
+    /// `Objects::init_unit`. Twenty draws, and then the five newborns'
+    /// `end_time 0` clocks wrap on the same frame's `Objects::inc_time` for
+    /// five more (`docs/SYNC.md` §3.11).
+    ///
+    /// Nothing is borrowed here: the stream is the simulation's own, so the
+    /// species and the two offsets are whatever the coin and the two rolls
+    /// say. That is the difference between this and
+    /// [`Sim::farm_add_animals`], and it is only the *setup*'s pastures that
+    /// need the other one.
+    pub(crate) fn farm_stock_pasture(&mut self, b: usize) -> Vec<usize> {
+        self.add_animals(b, None)
+    }
+
+    /// `Farms::add_animals`' body. `borrowed` is `Some` on the setup path,
+    /// where the five come from the capture's own trace and no draw is
+    /// spent, and `None` on the drawing one.
+    fn add_animals(&mut self, b: usize, borrowed: Option<&[AnimalSeed]>) -> Vec<usize> {
+        // `Farms::add_animals`' own two guards: the record is a pasture, and
+        // the building is active (`flags & 4`). The setup path calls this
+        // having just written the type, so both hold there too.
+        if self.buildings[b].farm.farm_type & ANIMAL_FARM != ANIMAL_FARM {
+            return Vec::new();
+        }
         let chicken = self
             .unit_types
             .iter()
@@ -399,7 +439,23 @@ impl Sim {
         let pos = self.buildings[b].pos;
         let mut out = Vec::with_capacity(FARM_ANIMALS as usize);
         for slot in 0..FARM_ANIMALS {
-            let seed = seeds.get(slot as usize).copied();
+            // The three draws, in the original's order. `(rnd & 1) == 0` is
+            // the chicken — the decompile's `& 0x80000001` is the signed
+            // test on a value `Random::get(0, 0xffff)` never makes
+            // negative — and each offset is `rnd % 0x180 - 0xc0`, a whole
+            // tile either way, the `y` before the `x`.
+            let seed = match borrowed {
+                Some(seeds) => seeds.get(slot as usize).copied(),
+                None => {
+                    self.mark(SITE_ANIMAL_COIN);
+                    let chicken = self.rng.roll() & 1 == 0;
+                    self.mark(SITE_ANIMAL_Y);
+                    let dy = self.rng.roll() % ANIMAL_SPREAD - ANIMAL_SPREAD / 2;
+                    self.mark(SITE_ANIMAL_X);
+                    let dx = self.rng.roll() % ANIMAL_SPREAD - ANIMAL_SPREAD / 2;
+                    Some(AnimalSeed { chicken, dy, dx })
+                }
+            };
             let ty = match seed {
                 Some(s) if s.chicken => chicken.unwrap_or(any),
                 Some(_) => pig.unwrap_or(any),
@@ -449,11 +505,16 @@ impl Sim {
             }
             unit.farm_animal = Some(FarmAnimal { build: b, slot });
             let u = self.add_unit(unit);
-            // The guy exists so the idle roll has something to set. Its
-            // piece stays −1 — no dump prints an owner-9 object, so the
-            // piece pool cannot name one — and the gaia table is keyed by
-            // the type instead.
-            self.units[u].guys = vec![crate::anim::Guy::fresh(-1)];
+            match borrowed {
+                // The guy exists so the idle roll has something to set. Its
+                // piece stays −1 — no dump prints an owner-9 object, so the
+                // piece pool cannot name one — and the gaia table is keyed
+                // by the type instead.
+                Some(_) => self.units[u].guys = vec![crate::anim::Guy::fresh(-1)],
+                // On the drawing path the guy is `Unit::init`'s, and its
+                // variant roll is the fourth of the animal's four draws.
+                None => self.init_guys(u, Some(ty)),
+            }
             out.push(u);
         }
         out
@@ -750,6 +811,114 @@ mod tests {
             spent.push(draws(before, s.rng.seed));
         }
         assert_eq!(spent, vec![2, 1, 1, 1, 1], "the six of §3.6");
+    }
+
+    /// **A pasture finished mid-game stocks itself, and the stream is
+    /// run33's frame 1372 word for word.**
+    ///
+    /// `Build::activate` reaches `Farms::add_animals` for every food gather
+    /// building it completes, and this is what that costs: four draws an
+    /// animal — the species coin, the `y` offset, the `x` offset and
+    /// `Guy::init_real`'s variant — twenty in all, in that order.
+    ///
+    /// The pin is the original's own. run33's trace has the AI's fourth farm
+    /// activate on frame 1372 under `Wall::do_construct+0x199`, with
+    /// `game_random` on `0xc91f99f2`; twenty draws later the original's
+    /// twenty-first draw of that frame starts from `0xafa38116`. Between
+    /// them the five coins are all even — a pasture's four-draw stride keeps
+    /// every one on the same parity of the stream — so all five are chickens,
+    /// and the ten offsets are the pairs below.
+    #[test]
+    fn a_finished_pasture_stocks_five_animals_for_twenty_draws() {
+        let mut s = Sim::new(Tuning::RON, World::new(16, 16), 2);
+        let t = s.add_build_type(build::BuildType {
+            ident: Ident::Farm,
+            x_size: 3,
+            y_size: 3,
+            flags: build::flags::FLAT | build::flags::GATHER,
+            job_time: 100,
+            hits: 500,
+            ..build::BuildType::default()
+        });
+        let chicken = s.add_unit_type(crate::UnitType {
+            hits: 10,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[chicken].tree = Some(FARMCHICKEN);
+        let pig = s.add_unit_type(crate::UnitType {
+            hits: 10,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[pig].tree = Some(FARMPIG);
+
+        let pos = crate::Pos::new(5 * 192 + 96, 5 * 192 + 96);
+        let b = s.init_build(0, t, pos, false);
+        // `Farms::add`'s pick is not what is under test — the capture's own
+        // farm is a pasture because its city already held four crops — so it
+        // is written here the way the dump writes it, and the frame is moved
+        // off zero because zero is the setup's.
+        s.buildings[b].farm.farm_type = ANIMAL_FARM;
+        s.frame = 1_372;
+        s.trace_phases = true;
+
+        s.rng = Rng::new(0xc91f_99f2);
+        s.activate(b, false, true);
+
+        assert_eq!(
+            draws(0xc91f_99f2, s.rng.seed),
+            20,
+            "four draws an animal and nothing else"
+        );
+        assert_eq!(s.rng.seed, 0xafa3_8116, "run33's own word twenty draws on");
+        assert_eq!(
+            s.phase_marks
+                .iter()
+                .map(|(n, _)| n.as_str())
+                .collect::<Vec<_>>(),
+            [
+                SITE_ANIMAL_COIN,
+                SITE_ANIMAL_Y,
+                SITE_ANIMAL_X,
+                crate::anim::SITE_INIT_REAL
+            ]
+            .repeat(5),
+            "the coin, the y, the x and the guy — five times over"
+        );
+
+        let animals: Vec<usize> = (0..s.units.len())
+            .filter(|&u| s.units[u].farm_animal.is_some())
+            .collect();
+        assert_eq!(animals.len(), FARM_ANIMALS as usize, "five animals");
+        assert!(animals.iter().all(|&u| s.units[u].owner == 9), "of owner 9");
+        assert!(
+            animals.iter().all(|&u| s.units[u].ty == Some(chicken)),
+            "every coin of the five is even, so all five are chickens"
+        );
+        assert_eq!(
+            animals.iter().map(|&u| s.units[u].pos).collect::<Vec<_>>(),
+            [(-126, -77), (-154, -89), (10, -165), (110, 79), (146, -125)]
+                .iter()
+                .map(|&(dx, dy)| crate::orders::snapped(crate::Pos::new(pos.x + dx, pos.y + dy)))
+                .collect::<Vec<_>>(),
+            "each `rnd % 0x180 - 0xc0` from the farm, and snapped by `Unit::init`"
+        );
+        assert_eq!(
+            animals
+                .iter()
+                .map(|&u| s.units[u].farm_animal.unwrap().slot)
+                .collect::<Vec<_>>(),
+            vec![0, 1, 2, 3, 4],
+            "stamped with their place in the five — `think_farm_animal`'s phase"
+        );
+
+        // And a second activation of the same farm is what the *setup* path
+        // must never be handed: the guard is the type, not a count, so the
+        // harness's frame-0 farms are stocked from their trace instead
+        // (`Sim::farm_add_animals`) and `Build::activate` is not asked twice.
+        s.buildings[b].farm.farm_type = 0;
+        let word = s.rng.seed;
+        s.activate(b, false, true);
+        assert_eq!(s.rng.seed, word, "a crop farm's activation draws nothing");
     }
 
     /// `think_farm_animal`'s two gates, each made to fail: the 128-frame

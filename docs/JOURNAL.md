@@ -9751,3 +9751,51 @@ that did not take. Item 23 re-booked around the real blocker, with the
 letter-key ladder from ORACLE as its next step. The trap the probe
 tripped — the game rewrites `Player.dat` on quit, so a restore while it
 runs is silently undone — is in `bindkey.py`'s docstring now.
+
+## 2026-08-31 (item 114, Opus) — a pasture nothing stocked, and Great Lakes runs out of frames to disagree on
+
+The word parted at 1372 on twenty-five draws this crate did not spend, and
+they were one call. `Build::activate`'s gather tail switches on the *good*,
+not the type, and `LAB_00625a36` — where `do_bonus(0, FOOD_BONUS_FOR_FARM)`
+falls through — is the same call as the `iVar18 == 0` arm every unpaid exit
+lands on: a finished **farm** runs `Farms::add_animals` whatever the bonus
+did. So the AI's fourth farm, a pasture by `Farms::add`'s own rule, stocks
+five animals on the frame it completes — four draws each, coin, `y`, `x`,
+`Guy::init_real` — and five more follow that frame as the newborns'
+`end_time 0` clocks wrap.
+
+Every one of those sites had been read: §3.6 in August, §3.11 with the
+offsets and the species, §3.8 with the correction that names
+`Build::activate` as the caller and the note "no capture contains one". The
+capture did contain one. What was missing was not a reading but a **caller**
+— `Sim::farm_add_animals` had exactly one, the harness's own setup — and the
+existing function needed only a second entry point that draws its five seeds
+instead of borrowing them.
+
+The pin came free with it. run33's frame 1372 begins on `0xc91f99f2` and the
+original's twenty-first draw of that frame begins on `0xafa38116`; twenty
+draws of the same arithmetic land on it, all five coins even (five
+chickens), the ten offsets `rnd % 0x180 − 0xc0`, each snapped by
+`Unit::init`. The test asserts the word, the twenty labels in order and the
+five points, and it was made to fail by swapping the `y` draw with the `x`.
+
+**What it moved.** Great Lakes' word and sequence **1372 → 1802**, its two
+totals 1467/1436 → **1832/1830** of 1,850, and the gap between them 31 → 2.
+run10's headline **1375/1374 → 1772/1772 with neither player parting at
+all**: no position disagreement, no scoring order disagreement, no gather
+tile disagreement, anywhere in the capture. Items 118 and 119 — `1/8`'s move
+order `x` and `1/1`'s cleared `last_x/last_y` — went with it; both had been
+downstream of a stream wrong since 1372. Three coverage pins that had been
+scores became sizes: the collision rows 128,672 → 139,514, the angle rows
+49,088 → 53,402, the first disagreeing gather tile 1,598 → **never**. East
+Indies is untouched at 1374/1373; run39's AI builds no farm inside its
+capture.
+
+**What it means for the finish line, said plainly.** run10 is 1,772 frames
+of one map and it has run out of frames to disagree on. That is not the
+finish line `CLAUDE.md` names — two maps at full length — and it is not
+evidence about frame 1,800 to 24,000. The next number on this map has to
+come from a longer capture (item 91), and the map still moving is East
+Indies. What run33 says about the frames past 1772 is that its word survives
+to 1802 and parts on `Unit::do_air_physics+0x639` — a gaia bird's flight
+physics, the only time that site is reached in all 1,851 frames.

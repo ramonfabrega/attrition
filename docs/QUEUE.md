@@ -12,68 +12,65 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after the capture-lane intake (Fable; the lane ran on Opus).*
+*2026-08-31, after item 114 (Opus).*
 
-**Both maps' both scores are now past their own word.** Phase 3's score is
-ticks before divergence: **Great Lakes 1375/1374** of 1,772 (run10) and
-**East Indies 1374/1373** of 1,850 (run39). The words are **1372** and
-**1373**, and every one of the four numbers sits on or past its own.
+**Great Lakes has run out of frames to disagree on.** run10's score is
+**1772/1772 of 1,772** with *neither player parting at all* — no position
+disagreement, no scoring order disagreement, no gather tile disagreement,
+anywhere in the capture — and run33's word runs to **1802** of 1,850. East
+Indies is unmoved at **1374/1373** of 1,850 with its word at 1373.
 
-The capture lane (item 90, DECISIONS 27) came home: runs 42–50, all in
-`docs/ORACLE.md`, merged at zero cost. run42 retires 108 — the pile pays
-`epoch[3] × 25 + 25`, the `ages` reading refuted; run43 retires 57's
-capture half — 128 corners, two 8×8 boxes, one corner per tile; run44
-retires 96 — the turn override fires, and `guy_flags` 0x20 has a writer
-in no scored game; runs 45/46 fire 23's XOR term and the formula holds,
-so 23 is re-booked below as the Echelon half alone. The instrument
-survives the lane: a behavioural check is now a stanza appended to
-`tools/gamelog/captures.txt`, and `runqueue.sh` walks the file.
+Item 114 did all of it and it was one call. `Build::activate`'s gather tail
+reaches `Farms::add_animals` for every finished **food** gather building, so
+a pasture stocks five animals on the frame it completes — twenty draws, and
+five more as the newborns' clocks wrap. Every site had been read since
+August; what was missing was the caller (`docs/SYNC.md` §3.21). Items 118
+and 119 died with it, both having been downstream of a stream wrong since
+1372.
 
-**So the word is the constraint on both maps now**: Great Lakes parts at
-1372 on a pasture being stocked (114), East Indies at 1373 on a seventh
-ring (110). `1/8`, which holds Great Lakes at 1375/1376, is residue.
+**So the constraint has changed shape.** One map's capture is exhausted and
+the other's word is the only number still moving. Two things follow, and the
+first is not obviously the second's junior: **91** is now due — a longer
+capture is the only way Great Lakes produces another number — and **110** is
+the last word item East Indies has. Take 110 first; 91 is a capture session
+and wants its own.
 
-**Opener (Opus):** `Continue — item 114: Great Lakes' word at 1372. The
-original spends twenty-five draws in `Farms::add_animals` under
-`Build::activate+0x1c25` plus five `Guy::init_real` under `Animal::init` —
-the five animals a farm gets on activation. This crate spends three, and
-nothing creates a pasture mid-run.`
+**Opener (Opus):** `Continue — item 110: East Indies' word at 1373. The AI
+scout walks six rings on both sides; the original then leaves the loop for
+`Unit::think_scout+0x941` once and `+0xaba` five times — sites SCOUT §6/§7
+have never named — where ours takes a seventh ring.`
 
 ## The queue
 
 In dependency order, headline-nearest first; the headline is the tick pair.
-All four scores now sit on or past their own word, so the two word items
-lead. Take the first unstarted unless a better order is obvious — and say
-so. Numbers are stable; the journal indexed by them.
-
-114. **Great Lakes' word at 1372, and a pasture being stocked.** The
-    original spends twenty-five draws in `Farms::add_animals` — `+0x92`,
-    `+0x134`, `+0x182`, five each — under `Build::activate+0x1c25`, plus
-    five `Guy::init_real` under `Animal::init`: the five animals a farm gets
-    on activation. This crate spends three, and nothing creates a pasture
-    mid-run.
+Great Lakes' capture is exhausted, so the word item that leads is East
+Indies' — and the capture that would give Great Lakes a number of its own
+(91) is second rather than last. Take the first unstarted unless a better
+order is obvious — and say so. Numbers are stable; the journal indexed by
+them.
 
 110. **East Indies' word at 1373, and a seventh ring.** The AI scout walks
     six rings on both sides; the original then leaves the loop for
     `Unit::think_scout+0x941` once and `+0xaba` five times — sites SCOUT
     §6/§7 have never named — where ours takes a seventh ring.
 
-118. **`1/8` holds Great Lakes at 1375/1376** — its move order's `x` is
-    `40440` here against `40248`. Residue until 114 lands.
-
-119. **`1/1`'s `last_x/last_y`, cleared where the original keeps them.**
-    From run10's 778 on the original holds `(40680, 18024)` and this crate
-    `-1`: our TAKE clears `last` on every fresh waypoint (ORDERS §4.4) and
-    the original's 778 did not go through one. Non-scoring; a seam.
+91. **The final scenario, and it is due.** One 24,000-frame game per map:
+    the **trace** whole (`cover=1`, no window) and the dump in windows
+    re-captured on demand. The condition it was booked against has arrived
+    on one map — Great Lakes' word (1802) is past run10's whole length
+    (1,772) and no unit or order in that capture disagrees anywhere, so
+    there is no number left in it. Great Lakes first; East Indies once 110
+    lands.
 
 103. **The wood machine's record parts at 1,686, on a clock.** After 26,094
     agreeing fields the human's `0/2` holds a wait of 445 where the
     original's holds 480, tile and phase right. ORDERS §6.4.
 
-105/45. **Gaia's positions, and the residue on both maps.** run39: 191,173
-    of 192,504 agree, first bad **1381**; run33: 73,608 of 74,040, first bad
-    **1420**. Both pinned; `Sim::reseat_animal` still corrects them where a
-    dump carries clocks (SYNC §4.2).
+105/45. **Gaia's positions — East Indies' half is what is left.** run39:
+    191,173 of 192,504 agree, first bad **1381**. run33 is **74,040 of
+    74,040 with no first bad frame** since 114 and is pinned exactly.
+    `Sim::reseat_animal` still corrects them where a dump carries clocks
+    (SYNC §4.2).
 
 87. **The widening ledger.** Items 74, 83, 69 and **113** were closed by
     fields the parser had and nothing compared. Make the backlog a number:
@@ -156,10 +153,6 @@ its capture half landed (ORACLE run43); (58) the height loader's mean in
     `+0xe8`, so it is the **Military** level, not ARMY's glossary's "current
     age". `army.rs:769,1365` read `tech[w].ages`, so every `age < 2/3/5`
     gate in the muster caps and `find_target` fires on the wrong counter.
-
-91. **The final scenario, not a final dump.** One 24,000-frame game per
-    map: the **trace** whole (`cover=1`, no window) and the dump in windows
-    re-captured on demand. Due when a map's word matches its 1,850.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — run `zsh tools/fuzz/run.sh 424242 1000

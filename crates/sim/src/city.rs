@@ -1331,18 +1331,35 @@ impl Sim {
         let ledger = &mut self.ledgers[who];
         ledger.gather_slots[i] += slots;
         let fresh = ledger.gather_slots[i] - ledger.gather_slots_high[i];
-        if fresh <= 0 {
-            return;
+        if fresh > 0 {
+            ledger.gather_slots_high[i] = ledger.gather_slots[i];
+            if self.frame != 0 && !captured && counted {
+                let mut amount = crate::economy::completion_bonus(&self.tuning, r, fresh);
+                if self.nation[who].germans {
+                    amount = (self.tuning.german_completion_bonus + 100) * amount / 100;
+                }
+                self.ledgers[who].bucket[i] += amount;
+            }
         }
-        ledger.gather_slots_high[i] = ledger.gather_slots[i];
-        if self.frame == 0 || captured || !counted {
-            return;
+        // **And the pasture is stocked.** `LAB_00625a36` — the fall-through
+        // from `do_bonus(0, FOOD_BONUS_FOR_FARM)` — and the `iVar18 == 0`
+        // arm of `switchD_006259b5_caseD_2`, the label every *un*paid exit
+        // above jumps to, are the same call: whatever the bonus did or did
+        // not do, a finished **food** gather building runs
+        // `Farms::add_animals`, and there a pasture costs twenty draws
+        // (`crate::farms::Sim::farm_stock_pasture`).
+        //
+        // **Not at frame 0**, which is where this crate parts from the
+        // original and does so knowingly: the original's starting farms are
+        // stood up inside `Setup::build_empire` with `Game::frame` still 0 —
+        // the same test the bonus is gated on one line above — and they do
+        // stock there. The harness does not replay the setup stream, so a
+        // pasture that already exists at frame 0 is stood up from the
+        // capture's own trace instead (`Sim::farm_add_animals`, `docs/SYNC.md`
+        // §3.11) and this call would double it.
+        if matches!(r, crate::economy::Resource::Food) && self.frame != 0 {
+            self.farm_stock_pasture(b);
         }
-        let mut amount = crate::economy::completion_bonus(&self.tuning, r, fresh);
-        if self.nation[who].germans {
-            amount = (self.tuning.german_completion_bonus + 100) * amount / 100;
-        }
-        self.ledgers[who].bucket[i] += amount;
     }
 
     /// `Object::disband(full)`: the building goes back; the refund is the

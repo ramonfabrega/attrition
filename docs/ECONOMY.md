@@ -528,6 +528,13 @@ if frame == 0 or captured or not counted or <loading>:  stop
 do_bonus(good, amount)
 ```
 
+The parenthesis is not an aside. **Every** exit above lands on the same
+label as `do_bonus(0, FOOD_BONUS_FOR_FARM)`'s fall-through, so a finished
+**farm** runs `Farms::add_animals` whatever the bonus did — and a farm whose
+`farm_type` is the pasture is stocked with five animals there, twenty draws'
+worth. That call was missing here until 2026-08-31 and it was Great Lakes'
+word: `docs/SYNC.md` §3.21.
+
 `gather_slots_high` never falls, which is the whole rule: **the bonus is paid
 once per slot in the life of a player**, so a farm rebuilt where one was razed
 is worth nothing, and a camp on a richer patch pays only for the slots the last

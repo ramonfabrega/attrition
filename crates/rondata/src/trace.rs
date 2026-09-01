@@ -200,6 +200,13 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x008d_8b68, None, sim::farms::SITE_TYPE_COIN),
     (0x008d_8c7f, None, sim::farms::SITE_AMBIENCE_X),
     (0x008d_8c9b, None, sim::farms::SITE_AMBIENCE_Y),
+    // `Farms::add_animals@008d8f30` — the five animals a finished pasture
+    // is stocked with, three draws each. The same three addresses
+    // [`ADD_ANIMALS_COIN`] and its pair name for the *setup* borrow; here
+    // they are the labels the simulation's own drawing path writes.
+    (ADD_ANIMALS_COIN, None, sim::farms::SITE_ANIMAL_COIN),
+    (ADD_ANIMALS_Y, None, sim::farms::SITE_ANIMAL_Y),
+    (ADD_ANIMALS_X, None, sim::farms::SITE_ANIMAL_X),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.

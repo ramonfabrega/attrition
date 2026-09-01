@@ -6483,16 +6483,34 @@ mod tests {
         // the blocked stand fell on 986 instead of 987. Pinned step for
         // step by `run33_s_herd_centre_jitters_about_its_home_cell`.
         //
-        // What parts the word at 1372 is a **pasture being stocked**: the
-        // original spends twenty-five draws in `Farms::add_animals` —
-        // `+0x92`, `+0x134`, `+0x182`, five each — under
-        // `Build::activate+0x1c25`, and five more in `Guy::init_real` under
-        // `Animal::init`, for the five animals a farm gets on activation.
-        // This crate spends three. It is a mechanic that is not here, not a
-        // residue.
+        // **1802 with item 114**, and what was wrong at 1372 was a
+        // **pasture nothing stocked**. `Build::activate`'s gather tail
+        // reaches `Farms::add_animals` for every *food* gather building it
+        // completes — `LAB_00625a36` is the fall-through from
+        // `do_bonus(0, FOOD_BONUS_FOR_FARM)` and the `iVar18 == 0` arm of
+        // `switchD_006259b5_caseD_2` is where every unpaid exit lands, and
+        // both are the same call — so the AI's fourth farm, which
+        // `Farms::add` had already made a pasture, costs twenty draws on
+        // the frame it finishes: a species coin, a `y` and an `x` per
+        // animal (`+0x92`, `+0x134`, `+0x182`) and `Guy::init_real`'s
+        // variant inside `Objects::init_unit`. Five more follow in the
+        // same frame's `Objects::inc_time`, because a newborn guy's
+        // `end_time` is zero and its clock wraps at once. Twenty-five
+        // draws where this crate spent none, and `Farms::inc_time`'s three
+        // were all that was left. The harness had the building and the
+        // type right — its `b15` activates on 1372 with `farm_type 1` —
+        // and only the stocking was missing (`docs/SYNC.md` §3.11).
+        //
+        // The parting frame goes 1372 -> **1802**, which is past run10's
+        // whole 1,772: this map now spends the original's draws in the
+        // original's order for longer than its own capture runs. What
+        // parts it at 1802 is one draw at
+        // `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3`, a gaia
+        // bird's flight physics, and it is the **only** time that site is
+        // reached in all 1,851 frames.
         assert!(
-            first_count >= 1_372,
-            "the word parts at frame {first_count}; the floor is 1372\n{}",
+            first_count >= 1_802,
+            "the word parts at frame {first_count}; the floor is 1802\n{}",
             parted.first().cloned().unwrap_or_default()
         );
         // **The sequence: 576**, and getting there was the whole of the
@@ -6518,9 +6536,15 @@ mod tests {
         // **986 -> 1372 with item 112**, and the two meet a third time:
         // the herd's wander centre is jitter about the home cell, and
         // nothing between 986 and 1372 is a naming question either.
+        // **1372 -> 1802 with item 114**, a fourth time: the pasture's
+        // twenty draws carry names of their own from the frame they are
+        // first spent on, and nothing between 1372 and 1802 is a naming
+        // question. The two numbers have now been equal for four items
+        // running, which is what it looks like when every hole left is a
+        // mechanic rather than a label.
         assert!(
-            first_part >= 1_372,
-            "the draw sequence parts at frame {first_part}; the floor is 1372"
+            first_part >= 1_802,
+            "the draw sequence parts at frame {first_part}; the floor is 1802"
         );
         // And the totals over the whole 1,850, which is what says whether a
         // change past the divergence helped or only moved the noise: 618
@@ -6685,10 +6709,19 @@ mod tests {
         // the headline: this map's ticks go 910 -> **1375** and its orders
         // 776 -> **791**, the AI's `1/1` stops parting at all, and East
         // Indies holds at 1374/1373.
+        //
+        // 1467 / 1436 -> **1832 / 1830** with item 114, the largest move
+        // either has ever made and the last one that can be large: 1,832
+        // of the 1,850 frames spend the original's number of draws and
+        // 1,830 of them draw for draw, so what is left is eighteen frames
+        // and all of them past 1802. The gap between the two is down to
+        // **two**, from 31 — a stretch of real agreement rather than
+        // coincidence has no room for a frame that spends the right
+        // number of draws in the wrong order.
         assert!(
-            words >= 1467 && matched >= 1436,
+            words >= 1832 && matched >= 1830,
             "the trace floor fell: {words} frames on the original's word, \
-             {matched} draw for draw; the floors are 1467 and 1436"
+             {matched} draw for draw; the floors are 1832 and 1830"
         );
     }
 
@@ -8132,8 +8165,16 @@ mod tests {
         // animal-frame that is not the original's is the number with
         // meaning, and the count beside it is a floor on this word rather
         // than a score across words.
+        //
+        // 2026-08-31, item 114: 73,608 of 74,040 with a first bad frame of
+        // 1420 -> **74,040 of 74,040, and there is no first bad frame**.
+        // Great Lakes' gaia is the original's on every dumped animal-frame
+        // of the whole capture, which follows from the word running past
+        // its length: the residue at 1420 was a herd re-rolling off a
+        // stream that had been nobody's since 1372. Half of queue item
+        // 105/45 is closed on this map; run39's stands.
         assert!(
-            first_bad_frame >= 1_420 && agree >= 73_608 && seen == 74_040,
+            first_bad_frame == i64::MAX && agree == 74_040 && seen == 74_040,
             "run33's gaia positions fell: {agree} of {seen}, first {first_bad:?}"
         );
     }
@@ -9893,10 +9934,33 @@ mod tests {
         // `1/8`, whose move order's `x` is `40440` here against `40248`
         // at **1375** — the same unit that holds the tick score at 1376,
         // and both are past the word.
+        //
+        // 2026-08-31, item 114: ticks **1375 -> 1772**, orders **1374 ->
+        // 1772**, and **neither player diverges at all** — the by-unit
+        // list is empty on positions and carries nothing that scores on
+        // orders. This capture is in lockstep for its whole length.
+        //
+        // One mechanic did it, and it is one call: `Build::activate`
+        // reaches `Farms::add_animals` for every food gather building it
+        // completes, so the AI's fourth farm — a pasture — stocks five
+        // animals on frame 1372 for twenty draws, and five more follow
+        // that frame as the newborns' clocks wrap. This crate spent none
+        // of the twenty-five. run33's word goes 1372 -> **1802**, past
+        // this capture's own 1,772, and everything the two residue items
+        // were about goes with it: `1/8`'s move order `x` (item 118) and
+        // `1/1`'s cleared `last_x/last_y` (item 119) were both downstream
+        // of a stream that had been wrong since 1372.
+        //
+        // **What this is not.** run10 is 1,772 frames of one map. The
+        // finish line `CLAUDE.md` names is two maps at their full length,
+        // and East Indies still parts at 1374/1373 with its word at 1373,
+        // so the number that is still moving is that one. What Great
+        // Lakes now needs is a *longer* capture (queue item 91) — this
+        // one has run out of frames to disagree on.
         assert!(
-            ticks >= 1375 && orders >= 1374 && first[0] >= 1385 && first[1] >= 1376,
+            ticks >= 1772 && orders >= 1772 && first[0] >= 1772 && first[1] >= 1772,
             "the headline fell: ticks {ticks}, orders {orders}, first divergence {:?} \
-             — the floor is ticks 1375, orders 1374, player 0 @ 1385, player 1 @ 1376",
+             — the floor is ticks 1772, orders 1772, and neither player parting",
             report.first_divergence
         );
         assert!(
@@ -10267,9 +10331,15 @@ mod tests {
         // moves with the headline: `1/1` never parts at all now, so its
         // whole run is comparable where only nine hundred frames of it
         // were.
+        //
+        // 128,672 -> **139,514** with item 114, the twenty-seventh and the
+        // last one this capture can make: no unit parts anywhere, so every
+        // field-frame run10 holds is comparable and the number is now the
+        // capture's own size rather than a score. It moves again only when
+        // a longer capture replaces this one.
         let coll_seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         assert_eq!(
-            coll_seen, 128_672,
+            coll_seen, 139_514,
             "five fields on every agreeing unit-frame"
         );
         // **The emptiness, scoped to what the capture can speak to.**
@@ -10379,6 +10449,13 @@ mod tests {
         // word carrying it: with the herd's wander centre right the stream
         // is the original's to 1372, so the citizens re-pick on the
         // original's frames for two hundred frames more.
+        //
+        // **Never, with item 114.** The word runs past this capture's own
+        // length, so there is no frame left on which a gather tile can
+        // disagree: every citizen of both players works the original's
+        // tile for all 1,772 frames. `None` is the assertion now, and it
+        // is a stronger one than any frame number — a regression anywhere
+        // in the run fails it.
         let tile_row = |d: &&OrderDivergence| {
             matches!(
                 d.what,
@@ -10394,8 +10471,7 @@ mod tests {
             .find(|f| f.order_diverged.iter().any(|d| tile_row(&d)))
             .map(|f| f.frame);
         assert_eq!(
-            first_tile,
-            Some(1598),
+            first_tile, None,
             "the first frame on which a gather tile disagrees"
         );
         assert!(
@@ -10561,8 +10637,12 @@ mod tests {
         // 47,364 → **49,088** with item 113's two halves, and again the
         // word carries it: `1/1` never parts, so its whole 1,772 frames
         // are comparable where nine hundred were.
+        // 49,088 → **53,402** with item 114's pasture, and this is the
+        // ceiling: no unit parts anywhere, so the number is every guy-frame
+        // the capture holds. Like the collision rows it moves again only
+        // when a longer capture replaces this one.
         let angles: usize = report.frames.iter().map(|f| f.angle_compared).sum();
-        assert_eq!(angles, 49_088, "two per agreeing unit-frame that has a guy");
+        assert_eq!(angles, 53_402, "two per agreeing unit-frame that has a guy");
         let bad: Vec<AngleDivergence> = report
             .frames
             .iter()
