@@ -67,6 +67,12 @@ pub const CODE: std::ops::Range<u32> = 0x005f_6010..0x005f_6e40;
 /// The `max_ring` an AI unit uses around a **foreign** leader's city (§6).
 pub const FOREIGN_MAX_RING: i32 = 3;
 
+/// The order indices `ObjectsData::find_unit_ordered` accepts — the move
+/// family, `{1, 2, 3, 4, 0x12, 0x13, 0x15}` (`docs/ORDERS.md` §1.2), which
+/// is what makes the function's name literal: a unit with no order, or with
+/// a gather or a build, is not "ordered" anywhere and never rejects a cell.
+const MOVE_FAMILY: [u8; 7] = [1, 2, 3, 4, 0x12, 0x13, 0x15];
+
 // ----------------------------------------------------------------------
 // §4 — the circle tables, `circle_init@006817f0`
 // ----------------------------------------------------------------------
@@ -597,11 +603,25 @@ impl Sim {
     }
 
     /// `find_unit_ordered(<same type, mine, not me, within 0x600>)` (§8):
-    /// whether one of the scout's own units of the same type already stands
-    /// within two cells of the candidate, which rejects it. The original
-    /// filters on `basic_type` and adds `Search::valid_search`'s
-    /// leader-visibility layer, which for a search of one's own units is a
-    /// no-op (`docs/SCOUT.md` §13 item 5).
+    /// whether one of the scout's own units of the same type is already
+    /// **on its way** to within two cells of the candidate, which rejects
+    /// it. The original filters on `basic_type` and adds
+    /// `Search::valid_search`'s leader-visibility layer, which for a search
+    /// of one's own units is a no-op (`docs/SCOUT.md` §13 item 5).
+    ///
+    /// **The "ordered" in the name is two predicates, not a synonym for
+    /// "standing"** (`ObjectsData::find_unit_ordered@0065bc40`, read
+    /// 2026-09-01): a candidate unit must have a **non-empty order list**
+    /// (`+0xdc`), and its current order's `get_type()` must be one of
+    /// `{1, 2, 3, 4, 0x12, 0x13, 0x15}` — the move family exactly
+    /// (`docs/ORDERS.md` §1.2). A unit standing still, gathering or
+    /// building is never a reason to skip a cell.
+    ///
+    /// **And `0x200` is a flag, not a second radius**: the argument the
+    /// call passes beside `0x600` is `param_6`, and the only bit the
+    /// function reads out of it asks that the candidate unit's own cell
+    /// **region** equal the target cell's — `WData +4` on both sides, the
+    /// plain cell region rather than `get_tregion`.
     fn scout_unit_near(&self, u: usize, c: Cell) -> bool {
         let who = self.units[u].owner;
         let ty = self.units[u].ty;
@@ -610,12 +630,17 @@ impl Sim {
             c.x * crate::world::UNITS_PER_CELL + half,
             c.y * crate::world::UNITS_PER_CELL + half,
         );
-        self.units.iter().enumerate().any(|(o, other)| {
+        // `sVar1`, read once at the head under `param_6 & 0x200`.
+        let region = self.world.region_of(c);
+        (0..self.units.len()).any(|o| {
+            let other = &self.units[o];
             o != u
                 && other.alive()
                 && other.on_map
                 && other.owner == who
                 && other.ty == ty
+                && MOVE_FAMILY.contains(&self.order_type(o))
+                && self.world.region_of(other.pos.cell()) == region
                 && vector_dist(other.pos.x - at.x, other.pos.y - at.y) <= 0x600
         })
     }
@@ -1058,6 +1083,62 @@ mod tests {
             walked.contains(&m.dest.cell()),
             "the winner is one of the strided cells, not any old one: {:?}",
             m.dest.cell()
+        );
+    }
+
+    /// **`find_unit_ordered` is two predicates the crate did not have**
+    /// (`ObjectsData::find_unit_ordered@0065bc40`, read 2026-09-01): the
+    /// blocking unit must carry an order, that order must be in the move
+    /// family, and it must stand in the target cell's own region. The
+    /// crate rejected a candidate for any sibling of the same type within
+    /// two cells, standing or not — so a scout parked beside a cell
+    /// refused it to every other scout for the rest of the game.
+    #[test]
+    fn a_sibling_blocks_a_cell_only_while_it_is_ordered_into_that_region() {
+        let (mut s, ai, _) = scout_sim(true);
+        let here = s.units[ai].pos.cell();
+        let target = Cell::new(here.x + 4, here.y);
+        let at = Pos::new(target.x * 768 + 384, target.y * 768 + 384);
+        // A sibling of the scout's own type, one cell from the candidate —
+        // well inside `0x600` — and in the same region.
+        let mut sib = crate::Unit::new(1, s.units.len() as i16, Pos::new(at.x - 768, at.y), 20);
+        sib.ty = s.units[ai].ty;
+        let sib = s.add_unit(sib);
+        assert!(
+            !s.scout_unit_near(ai, target),
+            "a sibling with no order is not `ordered` anywhere"
+        );
+
+        s.add_gather_order(sib, 0, crate::orders::QueuePos::New, true);
+        assert_eq!(s.order_type(sib), crate::orders::index::GATHER);
+        assert!(
+            !s.scout_unit_near(ai, target),
+            "a gather is not in the move family"
+        );
+
+        s.units[sib].orders.clear();
+        s.add_move_facing_order(
+            sib,
+            at,
+            MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+            crate::movement::Angle(0),
+            None,
+            false,
+        );
+        assert!(
+            s.scout_unit_near(ai, target),
+            "a sibling moving within two cells of the candidate rejects it"
+        );
+
+        // And the `0x200` flag's own half: the same sibling, moved to a
+        // region of its own, stops mattering.
+        let elsewhere = s.world.add_region(Terrain::Land);
+        s.world.set_region(s.units[sib].pos.cell(), elsewhere);
+        assert!(
+            !s.scout_unit_near(ai, target),
+            "a sibling in another region never rejects the cell"
         );
     }
 

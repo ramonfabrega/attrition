@@ -435,6 +435,38 @@ this mechanic has been observed at.
 `0x600` (two cells) of the candidate's centre, rejects the candidate
 outright.
 
+### 8.1 `find_unit_ordered`, read rather than named
+
+The paragraph above stood for a fortnight on the function's *name*. Read
+out of `ObjectsData::find_unit_ordered@0065bc40` (2026-09-01) it carries
+**three** more predicates, and two of them are what the name is actually
+about:
+
+- **The unit must have an order.** `UnitData +0xdc` is the order list, and
+  a unit whose list is empty is skipped before anything else is asked of
+  it. A scout parked with nothing to do is not "ordered" anywhere.
+- **That order must be in the move family.** The accepted `get_type()`
+  values are `{1, 2, 3, 4, 0x12, 0x13, 0x15}` — `MOVE_TO`, `ATTACK_TO`,
+  `EXPLORE_TO`, `FLEE_TO`, `CHANGE_FORM`, `GROUP_MOVE`, `GROUP_ATTACK_TO`,
+  which is exactly `docs/ORDERS.md` §1.2's move family. A gather, a build
+  or a garrison never rejects a cell.
+- **`0x600` has a companion argument, and it is a flag rather than a
+  second radius.** The call passes `0x600, 0x200`; the function reads
+  `0x200` as "same region", taking `WData +4` at the *target's* cell once
+  at the head and comparing it against `WData +4` at each candidate unit's
+  own cell. It is the plain cell region, not `get_tregion`.
+
+The distance test is last and is `<= 0x600` against the running best, so
+the function answers the *nearest* qualifying unit rather than the first.
+
+Corrected in `scout_unit_near` on 2026-09-01. **It moves no number**: on
+every capture on disk the only unit that ever shares a scout's type is the
+scout, so the whole predicate is vacuous there and all 175 diff assertions
+are unchanged. What it removes is a standing-unit false positive that no
+capture has yet reached —
+`a_sibling_blocks_a_cell_only_while_it_is_ordered_into_that_region` is
+the guard, and it was made to fail first.
+
 ## 9. The order
 
 ```

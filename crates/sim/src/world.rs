@@ -805,6 +805,18 @@ impl World {
     /// one of its eight neighbouring cells — read at its **centre tile**,
     /// `× 4 + 2`, through `get_tregion` — lies in the other. The answer is
     /// that neighbour's index in [`MOVE_8`], `1..=8`, or 0.
+    ///
+    /// **The neighbour read is [`World::tregion_alt`], not
+    /// [`World::tregion`]** (2026-09-01): the original's call at `0068106a`
+    /// is `WorldData::get_tregion`, which answers a coastal cell's
+    /// `region2` — the *sea* region — when the tile it is handed lies on
+    /// ocean, and a neighbour's centre tile is exactly the tile that can.
+    /// With the plain cell region the whole function is nearly dead: a
+    /// land cell whose neighbours are all land cells never coasts anything,
+    /// so only a cell touching a wholly-ocean cell ever answered, and
+    /// `think_civilian_transport` (§7) could not see the shore it was
+    /// looking for. This is `docs/SYNC.md` §3.24's lesson a second time,
+    /// in a second caller.
     pub fn coast_here(&self, r: u16, s: u16, c: Cell) -> i32 {
         if !self.is_coast(r, s) {
             return 0;
@@ -823,7 +835,7 @@ impl World {
                 continue;
             }
             let centre = Pos::new(nx * TILES_PER_CELL + 2, ny * TILES_PER_CELL + 2);
-            if self.tregion(centre) == Some(want) {
+            if self.tregion_alt(centre) == Some(want) {
                 return i as i32 + 1;
             }
         }
@@ -1215,6 +1227,42 @@ mod tests {
         assert_eq!(Pos::new(767, 0).cell(), Cell::new(0, 0));
         assert_eq!(Pos::new(-1, -768).cell(), Cell::new(-1, -1));
         assert_eq!(Pos::new(192 * 5, 0).tile().x, 5);
+    }
+
+    /// **`coast_here`'s neighbour read is `get_tregion`, not the cell's
+    /// plain region** (`0068106a`, 2026-09-01, `docs/TRANSPORT.md` §9.3).
+    /// A coastal cell — `flags & 0x100`, `region2` the sea — is a *land*
+    /// cell in `WData.region`, and it is exactly the cell a boat's half of
+    /// the shore lies in. Asked with the plain region the function cannot
+    /// see it, and `think_civilian_transport` then never picks the shore
+    /// cell the original picks (`docs/SYNC.md` §3.25).
+    #[test]
+    fn coast_here_sees_a_shore_whose_water_half_is_a_land_cell() {
+        let mut w = World::new(8, 8);
+        let land = w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(6, 7));
+        let sea = w.fill_region(Terrain::Sea, Cell::new(7, 0), Cell::new(7, 7));
+        w.rebuild_coasts();
+        assert!(w.is_coast(land, sea), "the two touch at x = 6/7");
+
+        // (3, 3) is inland: every neighbour is a land cell by `WData.region`.
+        assert_eq!(w.coast_here(land, sea, Cell::new(3, 3)), 0);
+
+        // Make its eastern neighbour the half-water shore — still a land
+        // cell in `region`, but `HALFLAND` with `region2` the sea and an
+        // ocean tile at its centre, which is the tile `get_tregion` reads.
+        let shore = Cell::new(4, 3);
+        let mut d = w.cell_data(shore);
+        d.flags |= 0x100;
+        d.region2 = Some(sea);
+        w.set_cell_data(shore, d);
+        w.set_tile_field(shore.centre_tile(), tile::SURFACE, tile::SURFACE_OCEAN);
+        assert_eq!(w.region_of(shore), Some(land), "still a land cell");
+        assert_eq!(w.tregion(shore.centre_tile()), Some(land), "the plain read");
+        assert_eq!(w.tregion_alt(shore.centre_tile()), Some(sea), "get_tregion");
+
+        // MOVE_8[3] is (1, 0), so the answer is that neighbour's 1-based
+        // index — and with the plain read it would still be 0.
+        assert_eq!(w.coast_here(land, sea, Cell::new(3, 3)), 4);
     }
 
     #[test]

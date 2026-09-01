@@ -11268,3 +11268,103 @@ position record still parts after the draw is landed, keep going in the
 same function.** Three of the four findings here are in `come_out` and its
 caller, and none of them would have been found by reading the tail alone —
 each was forced by the next frame of the same diff.
+
+## 2026-09-01 — item 140: the colonist cannot see the shore, and the word goes 4020 → 4275 (Opus)
+
+**The item was booked on the wrong unit, and it was the trace that said
+so — before the capture taken to answer it had finished running.**
+
+Item 140 read frame 4020's unspent `Guy::set_anim+0x97a < do_cast` pair as
+the AI scout `1/0` casting its second transport, and asked why the scout's
+second leg — the one `think_scout` gives it on 4005 — went somewhere the
+original's did not. run57's dump stops at **4001**, four frames short of
+the decision, so the first move was to book run58: East Indies, run39's
+recipe, 5,200 frames, sized past the word by the standing rule that owed
+one anyway. It ran in the background for the whole session.
+
+**What the reading found while it ran.** The scout's 4005 scan is right,
+in every term. Its region is 6, `size` 151, stride `(151 + 99)/100 + 4005
+% 8 = 7`, start `60673 % 7 = 4` — and of the twenty-two cells that walk
+strides through, exactly **ten** pass the fog, the location test and the
+surface test, which is exactly the ten `+0xaba` draws the original spends.
+Sweeping the other seven phases gives 47, 32, 26, 19, 17, 11, 11: the
+count is unique to the frame's own phase, so the fog, `invalid_loc` and
+the coordinate list all agree with the original's. The winner is cell
+**(48, 30)** at score 102, three cells away — and the scout arrives there
+on **4110**, the very frame run54's trace throws its next `+0x941` and its
+next ten `+0xaba`. Two scans agreeing frame for frame after a hundred
+frames of walking is not luck.
+
+So the caster at 4020 is not the scout. The tell was one draw: the scout's
+own cast at 3608 spends **two** `Guy::set_anim` draws, `Unit::set_anim
++0x56` and `+0xb6` — a man and a dog — and 4020 spends `+0x56` alone. One
+figure. It is the AI's citizen `1/15`, three hundred frames into a
+colonise walk, and run57 has all of it.
+
+**Then two reads, and both were a field written and never read.**
+
+- **`Region::coast_here`'s neighbour probe is `WorldData::get_tregion`,
+  and this crate asked the plain cell region.** `0068106a` steps a whole
+  cell and re-reads at that neighbour's **centre tile** through
+  `get_tregion`, which answers a coastal cell's `region2` — the *sea*
+  region — when the tile it is given is ocean. A coastal cell is a land
+  cell in `WData.region`, so with the plain read the function can only see
+  a wholly-ocean neighbour, and a cell one in from the waterline coasts
+  nothing at all. `think_civilian_transport` keeps only the sampled cells
+  `coast_here` accepts, so the colonist's candidate set was the wrong one:
+  on frame 3735 the original sends `1/15` to cell **(39, 34)** and this
+  crate sent it to (37, 36) — which is *nearer* by the same scoring and
+  simply was not one of the original's candidates. With the fix the first
+  pass of region 8 accepts four cells scoring 23, 19, **15** and 18, and
+  the minimum is the original's own. `docs/TRANSPORT.md` §9.3.
+- **`Unit::move_step` reads the current waypoint's turn-in-place bit.**
+  `005fb1a5` is `(manh < slow × 0xc0) || (path.flags & 4)`: a waypoint
+  that crosses the waterline is turned to before it is walked to, however
+  far away it is. `Sim::shore_flagged` has written that bit since the
+  pathfinder landed and **nothing ever read it**, so `1/15` walked through
+  the turn the original stands still for on 3988 and reached its embark
+  point a frame early — which is why the first fix alone moved the word
+  *backwards*, 4020 → 4019. `docs/MOVEMENT.md`, "The unit step".
+
+**A third thing rode along, from the same afternoon's reading and moving
+nothing.** `ObjectsData::find_unit_ordered@0065bc40` is three predicates
+this crate did not have: the blocking unit must **have** an order, that
+order must be in the move family `{1,2,3,4,0x12,0x13,0x15}`, and it must
+stand in the target cell's own region. The name means what it says, and
+`docs/SCOUT.md` §8 had stood on the name for a fortnight. It is vacuous on
+every capture on disk — no unit ever shares a scout's type — so it is
+landed with a unit guard rather than a diff. §8.1.
+
+**What it moved.** East Indies' long word **4020 → 4275**, its count to
+4288. run57's four thousand frames go from three units ever off the
+original's point to **two** — `1/15` now stands where the original's does
+for the whole capture, having parted at 3737 before the first fix and 3988
+between the two — and its comparable collision field-frames 348,469 →
+**349,794**, none wrong, buildings exact on all 130,326. Great Lakes holds
+at 1802 and both scored captures hold. 175 rondata and 690 sim tests green
+in `--release`.
+
+**What is at 4275**: five draws against five, differing at the second —
+ours a `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` where the
+original's is `< Guy::inc_time+0x271`. A woodcutter's clock, which is
+§3.14's shape and item 103's; the count holds to 4288, where the extra
+pair is a gaia herd's. Both are past run57's own length, so run58 is what
+reads them. Item 141.
+
+**The rules this is an instance of.** Three, and they are all the working
+agreement's own:
+
+- **Grep the disk before booking a capture — but an idle screen may still
+  run the capture lane.** run58 was booked correctly (nothing on disk
+  reaches 4005) and was still not what answered the item; the trace and
+  the decompile were, while it ran. Neither the booking nor the reading
+  was wasted, and doing them concurrently is why.
+- **A draw site names a function, not a unit.** Attributing `do_cast` to
+  the scout cost the item its first framing. What un-did it was counting
+  the *figures*: two `set_anim` draws at 3608, one at 4020.
+- **Grep the writers of every field you call frozen — and the readers of
+  every field you write.** `path_flag::TURN_FIRST` was written by
+  `shore_flagged` and read by nobody, and `World::tregion` is not
+  `get_tregion` however much its name suggests it. That second one is now
+  twice in one day (item 138's `collide.rs` gate was the first), which is
+  what makes item 142 an item rather than a note.

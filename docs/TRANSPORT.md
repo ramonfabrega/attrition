@@ -686,6 +686,17 @@ though `think_peasant` serves it. Until this the colonise gate, the
 the census's sweeps, and §7's whole `colonise = 1` half was reachable only
 from a test.
 
+**And the cell it picks is diff-backed too, since 2026-09-01.** run57's
+`1/15` — the AI's second colonist — is idle on 3735 and takes a
+`MOVE_TO` to `orders 30360, 26520`, cell **(39, 34)**'s centre plus the
+order's own 24. This crate now picks that cell, on that frame, from that
+unit's position: the scan is region 8, `size` 100, stride `max(16,
+100/50) = 16`, phase `(o + frame) % 16 = 6`, and of the six cells the
+first pass samples the four `coast_here` accepts score 23, 19, **15** and
+18 — the minimum is (39, 34). It had been (37, 36) until §9.3's
+`get_tregion` correction landed, and `1/15` then stood where the
+original's does for all four thousand of run57's frames.
+
 run57's `1/11` is the diff: it finishes a build on 3580, and on **3581**
 the original holds it in a fresh `group 65` with a `MOVE_TO` whose
 `orig 38784, 24192` is cell **(50, 31)**'s centre — this function's
@@ -824,6 +835,33 @@ becomes the sought one), and one of the eight neighbouring **cells**
 (`move_x/y[1..8]`, the tile stepped a whole cell and re-read at its centre
 tile `×4 + 2`) lies in the sought region → that neighbour's index `1..8`;
 else 0. A tile on the shore between the two.
+
+**The two reads are different functions, and the crate had them the same
+way round for a fortnight** (2026-09-01). The *own* read at `00681039` is
+`WData +4` of the cell handed in — the plain cell region. The *neighbour*
+read at `0068106a` is `WorldData::get_tregion` of that neighbour's centre
+tile, and `get_tregion` answers a **coastal cell's `region2`** — the sea
+region — when the tile it is given lies on ocean (§10, `docs/AI.md` §2.3
+step 10). That is the whole point of the function: the water half of a
+coastal cell is a *land* cell in `WData.region`, so a shore read with the
+plain region can only ever see a wholly-ocean neighbour, and a land cell
+one cell inland of the waterline never coasts anything. `crates/sim` asked
+`World::tregion` — which is `region_of(cell_of_tile)` and **not**
+`get_tregion`, whatever its name suggests; the refined one is
+`World::tregion_alt`.
+
+What it cost: `think_civilian_transport` (§7) samples a region's cells and
+keeps only those `coast_here` accepts, so the colonist's destination was
+drawn from the wrong set. run57's `1/15` is the diff — the original sends
+it to cell **(39, 34)** on frame 3735 and this crate sent it to (37, 36),
+which is nearer by the same scoring and simply was not the original's
+candidate. `docs/SYNC.md` §3.25.
+
+This is `docs/SYNC.md` §3.24's lesson in a second caller, and the two
+together are worth stating as a rule: **wherever the original calls
+`get_tregion`, `region_of` is not a substitute** — the difference is
+invisible everywhere except the one case each gate exists for.
+`World::tregion`'s remaining callers are unaudited and are the queue's.
 
 ### 9.4 `Region::go_here(r, who)@006810f0` — the AI's verdict on a region
 

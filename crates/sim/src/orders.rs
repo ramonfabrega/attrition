@@ -2023,7 +2023,24 @@ impl Sim {
             m.body.avg_speed,
             movement::TurnMode::Unit,
         );
-        let step = movement::move_step(from, m.facing, mo.waypoint, speed, &m.turning, rate);
+        // `local_18 & 4` at `005fb1a5`: the **current waypoint's** own
+        // `TURN_FIRST`/`TRANSPORT` bit, which `shore_flagged` above writes
+        // and until 2026-09-01 nothing read. A waypoint that crosses the
+        // shore line is turned to before it is walked to, whatever the
+        // distance.
+        let turn_first = self.units[u]
+            .path
+            .last()
+            .is_some_and(|e| e.flags & path_flag::TURN_FIRST != 0);
+        let step = movement::move_step(
+            from,
+            m.facing,
+            mo.waypoint,
+            speed,
+            &m.turning,
+            rate,
+            turn_first,
+        );
         // `Unit::move_step`'s own `set_angle`, which is the one call of the
         // eighteen this simulation makes — and it is where a marching
         // leader's turn-around flips its group's mirror flag

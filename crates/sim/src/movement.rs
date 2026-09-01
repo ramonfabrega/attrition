@@ -474,9 +474,10 @@ pub struct Step {
 ///
 /// 1. Turn first, by the rate, snapping within it.
 /// 2. **Turn in place** — cover no ground — if still owing *any* turn within a
-///    tile of the destination (two tiles for a type slower than 20°), or if
-///    owing 45° or more further out (80° for a ship, aircraft or vehicle two
-///    tiles out or more).
+///    tile of the destination (two tiles for a type slower than 20°) **or when
+///    the current waypoint carries `path_flag::TURN_FIRST`**, or if owing 45°
+///    or more further out (80° for a ship, aircraft or vehicle two tiles out
+///    or more).
 /// 3. Otherwise **walk at half speed** while still owing 45° (22.5° for a slow
 ///    type).
 /// 4. Snap onto the destination if the Manhattan distance is within the step.
@@ -490,6 +491,15 @@ pub struct Step {
 /// through `Sim::detect_unit_collision` (`docs/COLLISION.md` §5) — which is
 /// why this returns a proposal. Arrival is exact: `UnitData::tolerance` is
 /// zero unless the unit is giving up on a collision.
+///
+/// `turn_first` is the current waypoint's `path_flag::TURN_FIRST` — the
+/// `local_18 & 4` at `005fb1a5`, read off the **top** of the path stack
+/// (`UnitData +0xb8`, length `+0xc0`). With the stack empty the original
+/// reads slot 0 of it regardless, which is whatever the last path left
+/// there; this crate passes `false`, since a unit with no path is walking
+/// straight at its destination and the near-distance arm covers the last
+/// tile anyway.
+#[allow(clippy::too_many_arguments)]
 pub fn move_step(
     from: Pos,
     facing: Angle,
@@ -497,6 +507,7 @@ pub fn move_step(
     step: i32,
     turning: &Turning,
     turn_rate: u32,
+    turn_first: bool,
 ) -> Step {
     let (dx, dy) = (dest.x - from.x, dest.y - from.y);
     let heading = find_angle(dx, dy);
@@ -516,8 +527,9 @@ pub fn move_step(
         arrived: false,
         snapped: false,
     };
-    if manh < slow * UNITS_PER_TILE {
-        // Close in, any turn still owed costs the frame.
+    if manh < slow * UNITS_PER_TILE || turn_first {
+        // Close in — or told to by the waypoint — any turn still owed
+        // costs the frame.
         if owed != 0 {
             return standing;
         }
@@ -1021,7 +1033,7 @@ mod tests {
         let mut frames = 0;
         loop {
             let rate = turn_speed(&T, &CITIZEN, 25, 25, TurnMode::Unit);
-            let step = move_step(pos, facing, dest, 25, &CITIZEN, rate);
+            let step = move_step(pos, facing, dest, 25, &CITIZEN, rate, false);
             pos = step.pos;
             facing = step.facing;
             frames += 1;
@@ -1052,6 +1064,7 @@ mod tests {
             25,
             &CITIZEN,
             rate,
+            false,
         );
         assert_eq!(s.facing, Angle::WEST);
         assert_eq!(s.owed, 0);
@@ -1073,7 +1086,7 @@ mod tests {
         let mut stood = 0;
         let s = loop {
             let rate = turn_speed(&T, &SIEGE, 0, 0, TurnMode::Unit);
-            let s = move_step(pos, facing, dest, 25, &SIEGE, rate);
+            let s = move_step(pos, facing, dest, 25, &SIEGE, rate, false);
             facing = s.facing;
             if s.pos != pos {
                 break s;
@@ -1106,6 +1119,7 @@ mod tests {
             25,
             &SIEGE,
             rate,
+            false,
         );
         assert!(near.owed != 0 && near.owed < FORTY_FIVE);
         assert_eq!(near.pos, Pos::new(0, 0));
@@ -1117,9 +1131,42 @@ mod tests {
             25,
             &SIEGE,
             rate,
+            false,
         );
         assert_eq!(far.owed, near.owed);
         assert_ne!(far.pos, Pos::new(0, 0));
+
+        // **And the waypoint's own `TURN_FIRST` puts the far case back in
+        // the near case's arm** — `(manh < slow × 0xc0) || (path.flags & 4)`
+        // at `005fb1a5`. The bit is `docs/PATHFINDER.md` §7's transport
+        // marker and `shore_flagged`'s, and until 2026-09-01 this crate
+        // wrote it and never read it: a citizen crossing the waterline
+        // walked through the turn the original stands still for, and
+        // reached its embark point a frame early (`docs/SYNC.md` §3.25).
+        let told = move_step(
+            Pos::new(0, 0),
+            Angle(0x0400_0000),
+            Pos::new(0, -1000),
+            25,
+            &SIEGE,
+            rate,
+            true,
+        );
+        assert_eq!(told.owed, near.owed);
+        assert_eq!(told.pos, Pos::new(0, 0), "the flag costs the whole frame");
+        // With nothing owed the flag costs nothing: it gates the stand, not
+        // the step.
+        let facing = move_step(
+            Pos::new(0, 0),
+            Angle::NORTH,
+            Pos::new(0, -1000),
+            25,
+            &SIEGE,
+            rate,
+            true,
+        );
+        assert_eq!(facing.owed, 0);
+        assert_ne!(facing.pos, Pos::new(0, 0));
     }
 
     #[test]
@@ -1132,7 +1179,15 @@ mod tests {
         let dest = Pos::new(100, -100);
         assert!(!arrives(100, -100, 149));
         let rate = turn_speed(&T, &CITIZEN, 0, 0, TurnMode::Unit);
-        let s = move_step(Pos::new(0, 0), Angle::NORTH, dest, 149, &CITIZEN, rate);
+        let s = move_step(
+            Pos::new(0, 0),
+            Angle::NORTH,
+            dest,
+            149,
+            &CITIZEN,
+            rate,
+            false,
+        );
         // Both clamps fire, so it lands exactly on the destination — and with
         // a zero tolerance that is arrival, even though the snap never said so.
         assert_eq!(s.pos, dest);
@@ -1144,7 +1199,15 @@ mod tests {
         assert!(!s.snapped, "the partial step, not the Manhattan snap");
         let near = Pos::new(3, -4);
         assert!(arrives(3, -4, 149));
-        let s = move_step(Pos::new(0, 0), Angle::NORTH, near, 149, &CITIZEN, rate);
+        let s = move_step(
+            Pos::new(0, 0),
+            Angle::NORTH,
+            near,
+            149,
+            &CITIZEN,
+            rate,
+            false,
+        );
         assert_eq!(s.pos, near);
         assert!(s.arrived && s.snapped);
     }

@@ -7910,12 +7910,28 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **4020** — four draws against six, and the two we do not spend are
-    /// a `Guy::set_anim+0x97a < do_cast` pair: the AI's scout `1/0`
-    /// reaching the *next* shore and casting its second transport, man and
-    /// dog. Ours does not get there — its second leg, the one
-    /// `think_scout` gives it on 4005 after it lands, goes somewhere else,
-    /// and it does not reach water until 5115.
+    /// **4275** — the sequence parts there and the count at 4288, and the
+    /// two are a woodcutter's clock and a gaia herd. 4275 is five draws
+    /// against five with the second one different: ours opens a
+    /// `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` where the
+    /// original's is `< Guy::inc_time+0x271`, the same shape as
+    /// `docs/SYNC.md` §3.14's wood machine.
+    ///
+    /// It was **4020** for one item, and that item was booked as the
+    /// scout's and was the **colonist's** (`docs/SYNC.md` §3.25). The
+    /// frame's extra `do_cast` pair is the AI's citizen `1/15` becoming
+    /// its own transport, not the scout `1/0`, and the scout is right on
+    /// both sides — it takes cell (48, 30) on 4005 and re-thinks on 4110,
+    /// which run54's own trace shows the original doing too. What was
+    /// wrong was two reads, three hundred frames earlier:
+    /// `Region::coast_here`'s neighbour probe is `WorldData::get_tregion`
+    /// and this crate asked the plain cell region, so
+    /// `think_civilian_transport` could not see the shore and sent `1/15`
+    /// to cell (37, 36) where the original sends it to **(39, 34)**; and
+    /// `Unit::move_step`'s `path.flags & 4` — the waypoint's own
+    /// turn-in-place bit, written here since the pathfinder landed and
+    /// never read — let it walk through the turn the original stands still
+    /// for, reaching its embark point a frame early.
     ///
     /// It was **3978** for one item, and that item was three things in a
     /// row, all of them `Unit::come_out@00617c10` and its caller.
@@ -8040,7 +8056,7 @@ mod tests {
     /// site would gather. `blocked_site`'s out-parameter is that number
     /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
     /// original's own frame, tile and object number.
-    const LONG_WORD_EAST_INDIES: i64 = 4020;
+    const LONG_WORD_EAST_INDIES: i64 = 4275;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

@@ -1564,12 +1564,65 @@ the whole capture — and the comparable collision field-frames go 348,354 →
 **348,469** with none wrong. Great Lakes holds at 1802 and both scored
 captures hold.
 
-**What is at 4020**: four draws against six, and the two we do not spend
+~~**What is at 4020**: four draws against six, and the two we do not spend
 are a `Guy::set_anim+0x97a < do_cast` pair — the scout reaching the *next*
-shore and casting its second transport, man and dog. Its second leg is the
-one `think_scout` gives it on 4005, the frame it lands and goes idle; ours
-takes the same eighteen draws there and then walks somewhere else, and
-does not reach water until 5115.
+shore and casting its second transport, man and dog.~~ **The `do_cast`
+pair is a citizen's, not the scout's** — §3.25 is what it was.
+
+## 3.25 The colonist cannot see the shore — East Indies' word 4020 → 4275 (2026-09-01)
+
+**The item was booked on the wrong unit, and the trace said so before any
+capture did.** 4020's unspent pair was read as the AI scout `1/0` casting
+its second transport, so the item was "the scout's second leg at 4005".
+The scout is right on both sides: it takes the region fallback (`docs/
+SCOUT.md` §11) on 4005 with the same eighteen draws, the same ten
+candidates and the same winner — cell **(48, 30)** — and arrives there on
+**4110**, which is the very frame run54's own trace throws its next
+`+0x941` and ten `+0xaba` on. Two independent scans agreeing frame for
+frame is not a coincidence, and it took the scout out of the frame.
+
+What put it there was a smaller thing: at 3608 the scout's own cast spends
+**two** `Guy::set_anim` draws, `+0x56` and `+0xb6`, and 4020's spends
+`+0x56` alone. The scout is a man and a dog; the caster at 4020 has one
+figure. It is the AI's citizen `1/15`, and it is on the other side of the
+map.
+
+**Then two reads, three hundred frames upstream.**
+
+- **`Region::coast_here`'s neighbour probe is `get_tregion`, and this
+  crate asked the plain cell region.** `0068106a` reads the neighbour
+  cell's **centre tile** through `WorldData::get_tregion`, which answers a
+  coastal cell's `region2` — the sea — when that tile is ocean. A coastal
+  cell is a *land* cell in `WData.region`, so with the plain read the
+  function can only see a wholly-ocean neighbour and a cell one in from
+  the waterline coasts nothing at all. `think_civilian_transport` keeps
+  only the cells `coast_here` accepts, so `1/15`'s destination was drawn
+  from the wrong set: this crate sent it to cell (37, 36) where the
+  original sends it to **(39, 34)** on frame 3735. Which is §3.24's lesson
+  in a second caller, and the second time in one day that `region_of`
+  stood in for `get_tregion` and made a gate vacuous for exactly the case
+  it exists for. `docs/TRANSPORT.md` §9.3.
+- **`Unit::move_step` reads the waypoint's own turn-in-place bit, and
+  nothing here read it.** `005fb1a5` is `(manh < slow × 0xc0) ||
+  (path.flags & 4)`: a waypoint that crosses the waterline is *turned to*
+  before it is walked to, whatever the distance. `Sim::shore_flagged`
+  wrote that bit and no reader existed, so `1/15` walked through the turn
+  the original stands still for on 3988 and reached its embark point a
+  frame early. `docs/MOVEMENT.md`, "The unit step".
+
+**What it moved.** East Indies' long word **4020 → 4275**, and its count
+to 4288. run57's four thousand frames go from **three** units ever off the
+original's point to **two** — `1/15` now stands where the original's does
+for the whole capture, its first parting having been 3737 before the
+first fix and 3988 between them — and the comparable collision
+field-frames go 348,469 → **349,794** with none wrong. Great Lakes holds
+at 1802 and both scored captures hold.
+
+**What is at 4275**: five draws against five, differing at the second —
+ours a `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99`, the
+original's a `< Guy::inc_time+0x271`. A woodcutter's clock, which is
+§3.14's and item 103's shape. The **count** holds to 4288, where the
+extra pair is a gaia herd's.
 
 ## 4. Run12 attributed
 

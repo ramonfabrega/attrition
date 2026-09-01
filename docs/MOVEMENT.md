@@ -412,11 +412,26 @@ the remaining Manhattan distance so the unit can give up short.
 the unit tries again next frame. (`crates/sim` asks `World::accepts`, which
 is the same bounds test.)
 
+**`path.flags & 4` is read, since 2026-09-01.** The gate above is the
+original's `(manh < slow × 0xc0) || (local_18 & 4)` at `005fb1a5`, where
+`local_18` is the fourth word of the **top** of the path stack
+(`UnitData +0xb8`, length `+0xc0`, entry `len − 1`) — the waypoint the
+step is being taken toward. The bit is `docs/PATHFINDER.md` §7's transport
+marker and `Sim::shore_flagged`'s waterline flag, one bit with two
+producers (`docs/ORDERS.md` §1.4's `path_flag`), and until this item
+`crates/sim` wrote it and nothing read it. So **a unit turns in place
+before it crosses the waterline, however far away the waypoint is**, and
+a citizen walking to its embark point reached it a frame early without
+that. `docs/SYNC.md` §3.25; the guard is
+`close_to_the_destination_any_turn_owed_costs_the_frame`'s last two
+cases. With an empty stack the original reads slot 0 of it regardless —
+whatever the last path left there — and `crates/sim` passes `false`.
+
 Not modelled, and listed at the end: the flyer branch (`unit_flags & 0x20`,
 which turns by the body's rule instead), `detect_unit_collision` /
-`resolve_unit_collision`, `UnitData::invalid_loc` on a tile change, the path
-stack and its flags, and the order angle the unit snaps to on the final
-waypoint.
+`resolve_unit_collision`, `UnitData::invalid_loc` on a tile change, the
+rest of the path stack's flags, and the order angle the unit snaps to on
+the final waypoint.
 
 ## The body step — `Guy::move`
 
