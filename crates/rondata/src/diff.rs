@@ -1278,6 +1278,16 @@ pub struct FrameResult {
     /// disagreed (`docs/COLLISION.md` §8).
     pub collide_compared: usize,
     pub collide_diverged: Vec<CollideDivergence>,
+    /// Gather-record fields compared this frame, and the ones that
+    /// disagreed. `BUILDS=7` is what writes the mining list; below it only
+    /// `gather_down` is compared, and on a capture with no `BUILDDATA` at
+    /// all the count is zero.
+    pub gather_compared: usize,
+    pub gather_diverged: Vec<GatherDivergence>,
+    /// Buildings the frame names for a player and the simulation does not
+    /// hold — the gather comparison's own blind spot, counted rather than
+    /// assumed away.
+    pub build_unlinked: usize,
 }
 
 /// Which of a unit's two angles disagreed.
@@ -1299,6 +1309,23 @@ pub struct AngleDivergence {
     pub o: i64,
     pub which: Which,
     pub ours: i32,
+    pub theirs: i64,
+}
+
+/// One field of a building's **gather record** the two sides disagree on —
+/// `BuildData::gather_from` and the `MiningList` header it is written
+/// under, plus `gather_down`'s chain head (`docs/ECONOMY.md`, "The spine";
+/// `docs/ORDERS.md` §6.1).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GatherDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    /// The field, named as the dump writes it.
+    pub field: &'static str,
+    /// The entry of the mining list this is about, or `−1` for a scalar.
+    pub at: i64,
+    pub ours: i64,
     pub theirs: i64,
 }
 
@@ -2099,6 +2126,72 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             if !frame.units.iter().any(|u| u.who == who && u.o == o) {
                 r.extra_units.push((who, o));
             }
+        }
+    }
+    // **The gather record, whole.** `BuildData::gather_from` is the one
+    // input `crates/sim/src/gather.rs` surveys the slot count out of, and
+    // until this the dump's copy of it went uncompared on every frame of
+    // every capture — the whole list, printed for every building at
+    // `BUILDS=7`, beside a `gather_down` printed at `BUILDS=1`. A camp
+    // whose list is empty here and 73 tiles long there answers no
+    // question the city record's `gather_slots` can, because the count is
+    // *derived* from the list: the derived figure is the symptom and the
+    // list is the cause (`docs/QUEUE.md` item 85).
+    //
+    // The two halves are compared independently, and the per-entry loop
+    // only runs where the lengths agree — a list one entry short would
+    // otherwise report every entry after the gap as wrong and turn one
+    // fact into seventy.
+    for b in &frame.builds {
+        if !(0..players as i64).contains(&b.who) {
+            continue;
+        }
+        let Some(handle) = built
+            .sim
+            .buildings
+            .iter()
+            .position(|x| i64::from(x.owner) == b.who && i64::from(x.index) == b.o)
+        else {
+            r.build_unlinked += 1;
+            continue;
+        };
+        let ours = &built.sim.buildings[handle];
+        let mut wrong = |field, at, ours: i64, theirs| {
+            r.gather_compared += 1;
+            if ours != theirs {
+                r.gather_diverged.push(GatherDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field,
+                    at,
+                    ours,
+                    theirs,
+                });
+            }
+        };
+        // `BuildData::gather_down` is the head of the chain of registered
+        // gatherers, by object number; this crate keeps the chain newest
+        // first, so the head is the front of the vector.
+        if let Some(theirs) = b.gather_down {
+            let head = ours
+                .gatherers
+                .first()
+                .map_or(-1, |&u| i64::from(built.sim.units[u].index));
+            wrong("gather_down", -1, head, theirs);
+        }
+        // The mining list. `mining_len` is `None` below `BUILDS=7`, which
+        // is what keeps a thin capture from reading as "every list empty".
+        let Some(len) = b.mining_len else { continue };
+        wrong("length", -1, ours.gather_from.len() as i64, len);
+        if ours.gather_from.len() as i64 != len {
+            continue;
+        }
+        for (k, theirs) in b.gather_from.iter().enumerate() {
+            let mine = ours.gather_from[k];
+            let k = k as i64;
+            wrong("tx", k, i64::from(mine.x), theirs.0);
+            wrong("ty", k, i64::from(mine.y), theirs.1);
         }
     }
     r.scores = frame.leaders.iter().map(|l| (l.who, l.score)).collect();
@@ -9662,6 +9755,190 @@ mod tests {
             "{} queue fields disagree; the ceiling is 1",
             wrong.len()
         );
+    }
+
+    /// **The gather record, whole**, against run39's own — every
+    /// building of both players, every entry of every `MiningList`, on
+    /// every frame of the capture.
+    ///
+    /// The list is the *input* `crates/sim/src/gather.rs` surveys the slot
+    /// count out of, and nothing had ever compared it: the leader record's
+    /// `gather_slots` is checked (the census windows), and the count is
+    /// derived from the list, so a wrong count and a wrong list read the
+    /// same on the only oracle there was. This is the difference —
+    /// `docs/QUEUE.md` item 85, and the working agreement's "when the
+    /// original dumps a record, diff the whole record".
+    #[test]
+    fn run39_s_mining_lists_are_the_gather_record() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let (compared, wrong, first) = gather_verdict("run39", &report);
+        assert!(
+            compared >= 594_618,
+            "the record is being read: {compared} fields"
+        );
+        // **1851 is the run's own last frame, and its block is the quit's.**
+        // The `1850 !quit` interrupts the frame the block belongs to and the
+        // end-of-game dump is written into it — 17,201 lines against 15,705
+        // on every frame before it — and in that block *the human player's*
+        // four buildings carry `gather_down −1` while the AI's carry the
+        // same heads they have held since 1845. Four buildings losing every
+        // registered gatherer on one frame, on one side only, is a teardown
+        // rather than a game, so the four rows are the ceiling and the
+        // floor is the frame they sit on: no disagreement inside the game.
+        assert!(first >= 1851, "the mining lists part at {first}");
+        assert!(
+            wrong <= 4,
+            "{wrong} gather fields disagree; the ceiling is 4, the quit's own"
+        );
+    }
+
+    /// **`Build::find_gather_tiles` re-derives the original's own list.**
+    ///
+    /// run39's two camps are pre-placed, so their `gather_from` comes
+    /// straight from the dump — 73 tiles apiece — and until now nothing in
+    /// this crate could have produced one. This clears the `0x1000` marks a
+    /// camp's own tiles carry and runs [`sim::Sim::gather_tcoords`] at its
+    /// corner: the walk has to come back with **exactly** the same tiles,
+    /// as a set, on a map neither the walk nor the survey has seen.
+    ///
+    /// The order is a separate question and this cannot answer it — the
+    /// dump's order is the shuffle's, and the shuffle needs the stream the
+    /// camp was built on, which for a pre-placed building is the map
+    /// generator's rather than the game's.
+    #[test]
+    fn find_gather_tiles_rederives_run39_s_camp_lists() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let camps: Vec<usize> = (0..built.sim.buildings.len())
+            .filter(|&b| !built.sim.buildings[b].gather_from.is_empty())
+            .collect();
+        assert_eq!(camps.len(), 2, "run39's two woodcutter's camps");
+        for b in camps {
+            let (ty, who, pos) = {
+                let bd = &built.sim.buildings[b];
+                (bd.ty.expect("a typed camp"), bd.owner, bd.pos)
+            };
+            let theirs = built.sim.buildings[b].gather_from.clone();
+            // The camp's own tiles are marked, so the walk would refuse
+            // every cell of them; unmarking is what makes this the survey
+            // the original ran before the camp existed.
+            for &t in &theirs {
+                built
+                    .sim
+                    .world
+                    .clear_tile_bits(t, sim::gather::GATHERED_FROM);
+            }
+            let corner = built.sim.tile_corner(ty, pos);
+            let ours = built.sim.gather_tcoords(ty, who, corner);
+            let (mut a, mut c) = (ours.clone(), theirs.clone());
+            a.sort_unstable_by_key(|p| (p.x, p.y));
+            c.sort_unstable_by_key(|p| (p.x, p.y));
+            assert_eq!(
+                a.len(),
+                c.len(),
+                "player {who}'s camp: the walk found {} tiles, the dump has {}",
+                a.len(),
+                c.len()
+            );
+            assert_eq!(a, c, "player {who}'s camp: the tiles themselves");
+            for &t in &theirs {
+                built.sim.world.set_tile_bits(t, sim::gather::GATHERED_FROM);
+            }
+        }
+    }
+
+    /// The same widening on **Great Lakes** — run33's own record, which has
+    /// no pasture and a different AI opening, so it is the second map's
+    /// independent word on the same claim.
+    #[test]
+    fn run33_s_mining_lists_are_the_gather_record() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run33-longtrace.txt"),
+            trace("rontrace-run33.log"),
+        ) else {
+            eprintln!("skipping: no run33 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let (compared, wrong, first) = gather_verdict("run33", &report);
+        assert!(
+            compared >= 584_712,
+            "the record is being read: {compared} fields"
+        );
+        assert!(first >= 1772, "the mining lists part at {first}");
+        assert!(wrong <= 4, "{wrong} gather fields disagree");
+    }
+
+    /// The gather record's verdict, printed the same way for either map:
+    /// how many fields were compared, how many disagreed, the first frame
+    /// one did, and the first few rows.
+    fn gather_verdict(tag: &str, report: &Report) -> (usize, usize, i64) {
+        let compared: usize = report.frames.iter().map(|f| f.gather_compared).sum();
+        let unlinked: usize = report.frames.iter().map(|f| f.build_unlinked).sum();
+        let rows: Vec<&GatherDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.gather_diverged.iter())
+            .collect();
+        let first = rows.first().map_or(report.frames.len() as i64, |d| d.frame);
+        eprintln!(
+            "{tag} gather: {compared} fields over {} frames, {} disagree, \
+             first at {first}, {unlinked} unlinked building-frames",
+            report.frames.len(),
+            rows.len()
+        );
+        for d in rows.iter().take(16) {
+            let at = if d.at < 0 {
+                String::new()
+            } else {
+                format!("[{}]", d.at)
+            };
+            eprintln!(
+                "  frame {} {}/{} {}{at}: ours {} theirs {}",
+                d.frame, d.who, d.o, d.field, d.ours, d.theirs
+            );
+        }
+        (compared, rows.len(), first)
     }
 
     /// **A pasture herder walks only on its own 256-frame phase**, and it

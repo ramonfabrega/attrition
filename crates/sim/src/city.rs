@@ -925,12 +925,31 @@ impl Sim {
         if !restore && self.build_types[ty].ident == Ident::Farm {
             self.farms_add(b);
         }
-        // `Build::init@00629740` line 275: `gather_max = max_gatherers(type,
-        // o, who, corner)` — a flat type answers 1 without looking at the
-        // map; a camp or a mine surveys it (`crates/sim/src/gather.rs`)
-        // against its own, still empty, `gather_from`, and
-        // `Build::find_gather_tiles` recomputes once the list is filled.
-        self.buildings[b].gather_max = Some(self.max_gatherers(b));
+        // `Build::init@00629740` line 256 onwards, and the order is the
+        // whole of it: the mining list is cleared, and a gather type that is
+        // **not flat and not the university** goes to
+        // `Build::find_gather_tiles` — which fills the list, marks its
+        // tiles, shuffles it off the sync stream and only then computes
+        // `gather_max` from it. Everything else takes the plain survey at
+        // line 275, where a flat type answers 1 without looking at the map.
+        //
+        // Until this branch existed every building took the second path, so
+        // a camp placed during a run surveyed its own still-empty list and
+        // activated with **zero** slots (`docs/QUEUE.md` item 85). A camp
+        // stood up from a dump was fine only because the dump handed it a
+        // list.
+        // No `restore` guard: `Build::init`'s farm arm is the one gated on
+        // its sixth argument, and this arm is not. A captured camp runs the
+        // walk again and finds every candidate cell already carrying
+        // `0x1000` — its own former tiles — so it costs no draw and lands an
+        // empty list, which is what the original leaves it with too.
+        let t = &self.build_types[ty];
+        if t.has(build::flags::GATHER) && !t.has(build::flags::FLAT) && t.ident != Ident::University
+        {
+            self.find_gather_tiles(b);
+        } else {
+            self.buildings[b].gather_max = Some(self.max_gatherers(b));
+        }
         b
     }
 

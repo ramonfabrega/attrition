@@ -57,11 +57,16 @@ typeset -a summary cmds checks covers
 summary=()
 run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
 endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""; ffwd=""
+# `poll_max` was the one key not reset between stanzas, so a stanza after
+# run53 inherited its 900 and the default was unreachable for the rest of the
+# file — a leak that can only ever make a run wait longer, but a leak.
+pollmax=""
 cmds=(); checks=(); covers=()
 
 reset_stanza() {
   run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
   endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""; ffwd=""
+  pollmax=""
   cmds=(); checks=(); covers=()
 }
 

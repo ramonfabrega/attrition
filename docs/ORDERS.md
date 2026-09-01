@@ -1579,13 +1579,12 @@ true. `gather_max` comes from `BuildTypeData::max_gatherers@0063c430` — **1 fo
 a flat type** (`build_flags & 0x10000000`), else `calc_gather`'s slot output
 (`docs/ECONOMY.md`'s open item).
 
-`Build::find_gather_tiles@00623350` (wood/ore, at building creation): fills
-`gather_from` (`BuildData+0x98`, a `MiningList`) from `BuildTypeData::
-find_gather_tcoords`, sets the world tile bit `0x1000` ("gathered at") on each,
-and **if the list grew, appends `count × 4` entries by picking `Random::get
-(game_random, 0, 0xffff) % count` and moving that entry to the back** — a
-shuffled, fourfold list, drawn from the sync stream. `do_non_flat_gather`
-ranks tiles by `i >> 2`.
+`gather_from` (`BuildData+0x98`, a `MiningList`) is filled once, at building
+creation, by `Build::find_gather_tiles@00623350` — and **shuffled off the
+sync stream** as it is. Specified, with its draw count, in
+`docs/ECONOMY.md`, "The gather list, and its shuffle";
+`do_non_flat_gather` ranks tiles by `i >> 2`, so that ordering is the order
+the ground is worked in.
 
 **`GatherPoint`/`GatherPointList` (`BuildData+0xb8`) are the rally point**, not
 gathering slots: `GatherPoint {x, y, action}`, `action 3` = an object `(o,
@@ -2987,11 +2986,15 @@ moves fall out of dispatching once on the front at the top of `work`.
   ~~`LeaderData::flags & 4` (R3 F3)~~ — **closed**, `is_human`, §5.5;
   ~~`process_all`'s network padding (R6 48)~~ — **closed, confirmed**:
   `Random::get(0,2)` padding and the seed-derived XOR only under the network
-  semaphore bit, from a local `Random`, not the sim stream. Still open:
-  `do_move`'s attack-retarget block (R2 O1, nothing in `crates/sim` depends
-  on it) and `BuildTypeData::find_gather_tcoords@0063bdc0` (R4, matters only
-  when the harness builds a camp itself) — each still marked `FABLE:` in the
-  adjudication with the check that would settle it.
+  semaphore bit, from a local `Random`, not the sim stream.
+  ~~`BuildTypeData::find_gather_tcoords@0063bdc0` (R4, matters only when the
+  harness builds a camp itself)~~ — **closed for the timber branch**, read
+  and implemented 2026-09-01: the tile list is re-derived from the map and
+  checked against run39's own (`docs/ECONOMY.md`, "The gather list, and its
+  shuffle"). Still open: `do_move`'s attack-retarget block (R2 O1, nothing
+  in `crates/sim` depends on it), and R4's **metal** branch, which walks a
+  mountain range rather than the circle — both still marked `FABLE:` in the
+  adjudication with the check that would settle them.
 - ~~`OrderIndex` 0 and 5's names; `ATTACK_TO 2` vs `FLEE_TO 4`~~ —
   **closed** (`docs/audit/2026-08-21-orders.md` R1): the enum is in the PDB,
   `--type-index=0x1E22`. `NONE = 0`, `PATROL = 5`, `NUM_UNIT_ORDERS = 28`,

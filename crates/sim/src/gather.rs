@@ -137,6 +137,12 @@ pub const GATHERED_FROM: u16 = 0x1000;
 /// requires of a tile before it counts towards the access cap.
 pub const GATHERABLE: u16 = 0x8000;
 
+/// The mining list's shuffle — `Build::find_gather_tiles@00623350+0x10a`,
+/// one `Random::get` an iteration over `4 × length` of them. It is the one
+/// draw site of a gather building's creation, and on East Indies it is 192
+/// draws on the frame the AI's second camp goes up.
+pub const SITE_SHUFFLE: &str = "Build::find_gather_tiles+0x10a";
+
 /// `orthog_x`/`orthog_y` entries 1–4, the four orthogonal neighbours.
 const ORTHOG: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
 
@@ -265,6 +271,116 @@ impl Sim {
         let cap = 2 * self.total_gather_access(list, ty, corner, who);
         slots = slots.min(cap);
         slots.max(0)
+    }
+
+    /// `BuildTypeData::find_gather_tcoords@0063bdc0`, the timber branch —
+    /// the tiles a new camp's `MiningList` is filled with, in the circle
+    /// walk's own order and before the shuffle.
+    ///
+    /// It is `calc_gather`'s survey walk again — the same ring, the same
+    /// `vector_dist`, the same owner test and the same `0x1000` skip — and
+    /// what it does inside a qualifying cell is add the cell's **tree**
+    /// tiles. The decompiler prints the inner loop with only the `0x1000`
+    /// test in it, which would make a cell worth all sixteen of its tiles;
+    /// the record says otherwise, and says it twice. run39's two camps each
+    /// list **73** tiles across **six** cells — 16, 12, 12, 12, 12, 9 — and
+    /// the same six cells hold exactly 16, 12, 12, 12, 12 and 9 forest
+    /// tiles, every listed tile among them. Sixteen-a-cell would be 96.
+    /// (`docs/ECONOMY.md`, "The gather list".)
+    ///
+    /// The **metal** branch is not this walk at all: it takes the tiles of
+    /// the nearest mountain range or cliff, and is not modelled — a mine
+    /// built during a run gets an empty list here, which is what it got
+    /// before this function existed.
+    pub fn gather_tcoords(&self, ty: usize, who: Player, corner: Pos) -> Vec<Pos> {
+        let t = &self.build_types[ty];
+        let Some(good) = gather_good(t.ident) else {
+            return Vec::new();
+        };
+        if good != Resource::Timber.index() {
+            return Vec::new();
+        }
+        let radius = WOODCUTTER_RADIUS;
+        let (anchor_tile, anchor_cell) = self.gather_anchor(ty, corner);
+        let circle = circle();
+        let ring = ((radius + 3) / 4).clamp(0, 0x40) as usize;
+        let mut out = Vec::new();
+        for i in 0..circle.radius[ring] {
+            let cell = Cell::new(anchor_cell.x + circle.x[i], anchor_cell.y + circle.y[i]);
+            if !self.world.contains(cell) {
+                continue;
+            }
+            let sample = cell.centre_tile();
+            if vector_dist(sample.x - anchor_tile.x, sample.y - anchor_tile.y) > radius {
+                continue;
+            }
+            if let Some(o) = self.world.owner(cell).player()
+                && o != who
+                && !self.is_ally(who, o)
+            {
+                continue;
+            }
+            // The cell's own centre tile carrying the bit skips the whole
+            // cell; a tile inside one that does not is skipped on its own.
+            if self.world.tile_mask(sample) & GATHERED_FROM != 0 {
+                continue;
+            }
+            let base = Pos::new(cell.x * TILES_PER_CELL, cell.y * TILES_PER_CELL);
+            for k in 0..TILES_PER_CELL * TILES_PER_CELL {
+                let p = Pos::new(base.x + (k % TILES_PER_CELL), base.y + (k / TILES_PER_CELL));
+                if self.world.tile_mask(p) & GATHERED_FROM == 0 && self.gather_tile_kind(p, true) {
+                    out.push(p);
+                }
+            }
+        }
+        out
+    }
+
+    /// `Build::find_gather_tiles@00623350` — a non-flat, non-university
+    /// gather building's list, taken at **placement**.
+    ///
+    /// Four steps, in this order, and the third is the one that costs the
+    /// stream: fill the list from [`Sim::gather_tcoords`]; mark every tile
+    /// of it `0x1000`, so the next camp cannot take the same ground;
+    /// **shuffle**, if the list grew, by `4 × length` rounds of "draw an
+    /// index, move that entry to the back"; then recompute `gather_max`
+    /// from the list that is now there.
+    ///
+    /// The shuffle is why this is a sim-visible event rather than
+    /// bookkeeping: each round is `Random::get(game_random, 0, 0xffff) %
+    /// length` off the sync stream, and a 48-tile list therefore spends
+    /// **192** draws on one frame. `Unit::do_non_flat_gather` ranks tiles by
+    /// `i >> 2`, so the order the shuffle leaves is the order citizens work
+    /// the ground in (`docs/ORDERS.md` §6.1).
+    ///
+    /// The original removes the picked entry **by value**; the list holds
+    /// each tile once — a cell is walked once and cells do not overlap — so
+    /// removing by index is the same operation.
+    pub(crate) fn find_gather_tiles(&mut self, b: usize) {
+        let (Some(ty), who, pos) = ({
+            let bd = &self.buildings[b];
+            (bd.ty, bd.owner, bd.pos)
+        }) else {
+            return;
+        };
+        let corner = self.tile_corner(ty, pos);
+        let before = self.buildings[b].gather_from.len();
+        let found = self.gather_tcoords(ty, who, corner);
+        self.buildings[b].gather_from.extend(found);
+        for i in 0..self.buildings[b].gather_from.len() {
+            let t = self.buildings[b].gather_from[i];
+            self.world.set_tile_bits(t, GATHERED_FROM);
+        }
+        let n = self.buildings[b].gather_from.len();
+        if before < n {
+            self.mark(SITE_SHUFFLE);
+            for _ in 0..4 * n {
+                let k = self.rnd(n as i32) as usize;
+                let e = self.buildings[b].gather_from.remove(k);
+                self.buildings[b].gather_from.push(e);
+            }
+        }
+        self.buildings[b].gather_max = Some(self.max_gatherers(b));
     }
 
     /// `corner_tile@006364c0`: the footprint's centre in world units, as the

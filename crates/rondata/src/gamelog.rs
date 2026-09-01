@@ -751,6 +751,24 @@ pub struct BuildDump {
     /// all at `BUILDDATA`'s own field indent. Nothing else at that level
     /// writes `tx`, so the pairs are unambiguous.
     pub gather_from: Vec<(i64, i64)>,
+    /// The `MiningList`'s own header, as `ArrayBase<TCoordData>::log_data`
+    /// writes it just before the pairs: `length` is the live entry count and
+    /// `size` the allocation. The length is carried separately from
+    /// [`BuildDump::gather_from`]`.len()` on purpose — they are the same
+    /// number on a well-formed record, and a capture where they are not is a
+    /// parse that has drifted rather than a game that has.
+    pub mining_len: Option<i64>,
+    pub mining_size: Option<i64>,
+    /// `MiningList::mtn` and `::cliff` — which mountain range or cliff the
+    /// list was taken from, `−1` on a timber list. `find_gather_tcoords`
+    /// writes one of them the first time it fills a metal building's list,
+    /// and reads them back to know the list has been filled before.
+    pub mtn: Option<i64>,
+    pub cliff: Option<i64>,
+    /// `BuildData::gather_down` — the head of the chain of units registered
+    /// as gathering here, by object number, `−1` for none
+    /// (`docs/ORDERS.md` §6.1). Written at **`BUILDS=1`**.
+    pub gather_down: Option<i64>,
     /// `BuildData::queued` (`+0x82`) — how many entries of the queue are
     /// live. Written from **`BUILDS=1`**; `None` below it.
     pub queued: Option<i64>,
@@ -1471,6 +1489,15 @@ fn build_of(b: &Block<'_>) -> Option<BuildDump> {
         orig_type: b.int("orig_type"),
         build_masks: b.int("build_masks"),
         gather_from,
+        // `length` and `size` sit at `BUILDDATA`'s own indent, between
+        // `cliff` and the first `tx`, and nothing else at that level writes
+        // either name — the build queue's own count is `queue_size` and is
+        // one block down.
+        mining_len: b.int("length"),
+        mining_size: b.int("size"),
+        mtn: b.int("mtn"),
+        cliff: b.int("cliff"),
+        gather_down: b.int("gather_down"),
         queued: b.int("queued"),
         queue: b.kid("BUILDQUEUE").map(queue_of).unwrap_or_default(),
     })

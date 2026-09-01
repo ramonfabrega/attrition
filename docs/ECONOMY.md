@@ -572,16 +572,112 @@ other twelve are `Build::refund_cost`'s (`docs/COSTS.md`). With both, the AI's
 food is the original's on every frame of the window, and run33's word runs
 776 → 780.
 
-**What it does not establish.** `gather_slots` itself is still wrong in the
+**What it does not establish.** ~~`gather_slots` itself is still wrong in the
 harness on the camps: `Build::init` surveys a camp's slots against its own
-still-empty `gather_from` and `Build::find_gather_tiles` recomputes once the
-list is filled, so a camp the harness stands up from a dump activates with
-zero. And run40's human files **one slot under good 2**, which `get_good`
+still-empty `gather_from`~~ — that is "The gather list, and its shuffle"
+below, landed 2026-09-01: `Build::find_gather_tiles` is implemented, and a
+camp placed during a run fills, marks and shuffles its own list. And run40's
+human files **one slot under good 2**, which `get_good`
 cannot produce — `Leader::plan_strategy@006b9620` line 1137 assigns the whole
 array from `City::count_gather_slots` and raises the high-water to match, and
 that second writer is unread. Both are booked in the queue; the run40 diff
 asserts the disagreement as it stands so that fixing either moves an
 assertion.
+
+## The gather list, and its shuffle
+
+`BuildData::gather_from` — the `MiningList` at `+0x98` — is the tile list a
+camp's citizens work, and the thing "What a finished gather building pays"
+surveys its slot count *out of*. It is not read from the map on demand: it is
+built once, at **placement**, and it is the one part of a building's creation
+that costs the sync stream.
+
+`Build::init@00629740` clears the list (`+0x9c = 0`) and then branches on the
+type, in this order:
+
+```
+if is_gather_type(type):                       # build_flags & 0x40
+    if not is_flat(type) and not is(0x1a4):     # not a farm/oil well, not the university
+        find_gather_tiles(this)                 # fills the list, then sets gather_max from it
+    else:
+        gather_max = max_gatherers(type, o, who, corner)
+```
+
+So a farm, an oil well, an oil platform and the university take the plain
+survey — `max_gatherers` answers 1, 1, 1 and 7 without a list — and only the
+**Woodcutter's Camp and the Mine** go the long way round.
+
+### `Build::find_gather_tiles@00623350`
+
+Four steps, and the third is the one a diff can see:
+
+1. `BuildTypeData::find_gather_tcoords` appends the tiles (below).
+2. Every tile of the list gets the world mask's `0x1000`
+   (`is_gathered_from`), so the next camp cannot take the same ground. That
+   bit is why the *second* camp on a patch is worth less than the first.
+3. **If the list grew**, `4 × length` rounds of: draw
+   `Random::get(game_random, 0, 0xffff) % length`, remove that entry, append
+   it at the back. One draw a round, off the sync stream, and the round is
+   skipped without a draw when `length ≤ 1` (`GameAccess::rnd`'s early
+   return). The list is left shuffled, and `Unit::do_non_flat_gather` ranks
+   tiles by `i >> 2`, so this ordering is the order the ground is worked in
+   (`docs/ORDERS.md` §6.1).
+4. `gather_max = max_gatherers(…)`, now against the filled list.
+
+The removal is by **value** in the original (`Array<TCoordData>::remove`);
+the list holds each tile once — a cell is walked once and cells do not
+overlap — so removing by index is the same operation.
+
+`Build::process@0061edf0` is the second caller: a region carrying `0x10`
+re-runs `find_gather_tiles`, and one carrying `0x20` runs
+`verify_gather_tiles`. Neither is modelled; the region flags are not.
+
+### `BuildTypeData::find_gather_tcoords@0063bdc0`, the timber branch
+
+The same walk `calc_gather`'s survey takes — the ring `(radius + 3) / 4` of
+the octagonal cell spiral, the `vector_dist ≤ radius` test against the
+footprint's centre tile, the owner test, and the `0x1000` skip on the cell's
+centre tile — and inside a cell that passes, it adds the cell's **tree**
+tiles that do not themselves carry `0x1000`, in `(i % 4, i / 4)` order.
+
+The decompiler prints that inner loop with only the `0x1000` test in it,
+which would make every qualifying cell worth all sixteen of its tiles. The
+record says otherwise and says it twice: run39's two camps each list **73**
+tiles across **six** cells — 16, 12, 12, 12, 12, 9 — and those six cells hold
+exactly 16, 12, 12, 12, 12 and 9 forest tiles, with every listed tile among
+them. Sixteen-a-cell would be 96.
+
+The **metal** branch is a different walk altogether — `MountainsData::
+find_nearest` / `CliffsData::find_nearest`, then the range's or the cliff's
+own tiles, skipping forest, enemy-owned and already-gathered ones, and
+stamping `MiningList::mtn`/`::cliff` so the search is not repeated. It is
+**not modelled**: a mine placed during a run gets an empty list, which is
+what it got before any of this existed.
+
+### How it is established
+
+- **The tiles.** `find_gather_tiles_rederives_run39_s_camp_lists`
+  (`rondata::diff`) clears the `0x1000` marks off each of run39's two
+  pre-placed camps and runs the walk at its corner: it returns **exactly**
+  the dump's 73 tiles, as a set, for both camps, on a map neither the walk
+  nor the survey had seen.
+- **The shuffle's count.** run54's trace spends **584** draws at
+  `Build::find_gather_tiles+0x10a < Build::init+0x55b < Objects::init_build
+  +0x82` during **setup**, where the two 73-tile camps are placed:
+  `4 × (73 + 73) = 584`, to the draw. Its four later bursts are 192, 184,
+  680 and 248 — all divisible by four — on frames 2176, 10582, 10982 and
+  16382.
+- **The list, every frame.** `run39_s_mining_lists_are_the_gather_record`
+  and its Great Lakes sibling compare `gather_from` entry for entry, plus
+  the `MiningList` header's `length` and `BuildData::gather_down`, for every
+  building of both players on every frame: 594,618 and 584,712 fields, and
+  the only disagreements are the four the quit's own last block writes.
+
+**What it does not establish.** The **order** the walk leaves before the
+shuffle — the dump only ever shows the shuffled list, and the pre-shuffle
+order can only be checked by reproducing a shuffle whose stream is the game's
+rather than the map generator's. run56's frame 2176 is that check, and it
+needs the AI to place the camp there first (`docs/QUEUE.md`).
 
 ## The commerce cap
 
@@ -851,7 +947,9 @@ far as anything read goes they are as dead as `calc_support`.
   `LEADERS=9` record carries (`docs/ORACLE.md`). Still open there:
   `LandData::num_make` (seamed to 1; every run9 cell answers 1), the mountain
   range's grouping (reconstructed as 8-connected cells; no mine on run9 to
-  check), `find_gather_tiles` (the list still comes from the dump), and
+  check), ~~`find_gather_tiles` (the list still comes from the dump)~~ — see
+  "The gather list, and its shuffle"; what is left of it is the **metal**
+  branch, which walks a mountain range rather than the circle — and
   `WOODCUTTER_RADIUS`/`MINE_RADIUS`/`MTN_*` not yet on `Tuning`. *How many a
   building has* — the assembly of `Holdings` from the live chains — is the
   remaining half, in hand.

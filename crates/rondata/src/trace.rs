@@ -210,6 +210,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (ADD_ANIMALS_COIN, None, sim::farms::SITE_ANIMAL_COIN),
     (ADD_ANIMALS_Y, None, sim::farms::SITE_ANIMAL_Y),
     (ADD_ANIMALS_X, None, sim::farms::SITE_ANIMAL_X),
+    // `Build::find_gather_tiles@00623350+0x10a` — the mining list's
+    // shuffle, one draw a round over `4 × length` of them, under
+    // `Build::init+0x55b`. Its own address, so no chain is needed.
+    (0x0062_345a, None, sim::gather::SITE_SHUFFLE),
 ];
 
 /// The header's `kind`: `RONT`, little-endian.

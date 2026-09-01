@@ -510,3 +510,38 @@ cfg: -
 cover: cover=0
 cover: callwin=1460-1490
 check: python3 tools/gamelog/rngcmp.py rontrace-run39.log rontrace-run55.log
+
+run: 56
+tag: islands-3k
+item: 85
+why: East Indies' full-detail dump out past its own word — 3,000 frames, sized to run54's 2176
+# **The capture ORACLE's own rule owes.** The standing rule is that when a
+# map's *word* crosses its newest full-detail capture, the next capture is
+# sized to the word: run54's 24,000-frame trace parts at **2176** and run39,
+# the map's only full-detail run, stops at 1,850. So every frame of item 85's
+# divergence — the camp that activates with zero `gather_slots` — falls past
+# the end of the only dump that could show it.
+#
+# run39's recipe unchanged and nothing else: same seed, same profile lobby,
+# same detail, no input. That is deliberate — `gatherers`, `gather_down` and
+# `non_flat_gather` are all already in run39's per-frame BUILDDATA block, so
+# raising a category would buy nothing and would cost the strict sibling-hood
+# that lets `rngcmp.py` and `samegame.py` both speak. The only change is
+# **length**.
+#
+# 3,000 and not 2,176: a dump that stops on the word says nothing about the
+# frames after it, and the residue either side of a parting is what item 85
+# actually reads. The margin is ~800 frames, which at run39's rate is minutes.
+frames: 3000
+mapstyle: 18
+cfg: -
+# run39's per-frame block is ~260 KB a frame by 1,800 and rising with the
+# roster, so this is a GB-scale archive and an hour-scale run. The default
+# 160 polls is 53 minutes and its give-up **truncates** — the run would look
+# finished and be short exactly where it matters.
+poll_max: 900
+# Same game, twice over: the trace word for word against run54 (the stronger
+# claim, and the one the handoff names), and the dump frame for frame against
+# run39 over the 1,850 frames they share.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run56.log
+check: python3 tools/gamelog/samegame.py gamelog-run39-islands-longtrace.txt gamelog-run56-islands-3k.txt
