@@ -1931,12 +1931,7 @@ mod tests {
             return None;
         };
         let out = std::process::Command::new("uv")
-            .args([
-                "run",
-                "--with",
-                "unicorn",
-                &format!("{root}/tools/emu/callfn.py"),
-            ])
+            .args(["run", &format!("{root}/tools/emu/callfn.py")])
             .arg(format!("{install}/riseofnations.exe"))
             .arg("sweep")
             .output();

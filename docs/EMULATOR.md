@@ -14,8 +14,10 @@ reach — the ends of a range, a sign, a width — and the first run found one.
 
 ## 1. What it is
 
-`tools/emu/callfn.py`, run as `uv run --with unicorn …` (the package is
-a wheel; six seconds, no repository dependency). It maps the executable's
+`tools/emu/callfn.py`, run as `uv run tools/emu/callfn.py …` — the one
+third-party Python package under `tools/`, `unicorn`, is declared inline in
+the script (PEP 723) and resolved by `uv` (a wheel; six seconds, nothing
+installed into the repository). It maps the executable's
 sections at their preferred base — the bottle does not relocate it either;
 `tools/trace` assumes `0x400000` throughout — resolves no import, builds a
 stack with the arguments and a sentinel return address, enters the function,

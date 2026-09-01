@@ -1,7 +1,14 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["unicorn==2.1.4"]
+# ///
 """callfn.py — call a function of the original's executable under unicorn.
 
-    uv run --with unicorn tools/emu/callfn.py <install>/riseofnations.exe sweep [SEED] [N]
+    uv run tools/emu/callfn.py <install>/riseofnations.exe sweep [SEED] [N]
+
+The dependency is declared inline (PEP 723), so `uv run` resolves it; nothing
+else under tools/ needs a package beyond the standard library.
 
 The image's sections are mapped at the preferred base (the executable is not
 relocated in the bottle either: `tools/trace` assumes 0x400000 throughout),
