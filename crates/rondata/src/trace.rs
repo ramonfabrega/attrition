@@ -160,6 +160,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x005f_6446, None, sim::scout::SITE_ROTATION),
     (0x005f_6468, None, sim::scout::SITE_PHASE),
     (0x005f_665c, None, sim::scout::SITE_CELL),
+    // …and the region fallback's two (`docs/SCOUT.md` §11).
+    (0x005f_6951, None, sim::scout::SITE_REGION_STRIDE),
+    (0x005f_6aca, None, sim::scout::SITE_REGION_CELL),
     // `Animal::do_idle@005d7460` — a herd animal's wander: the coin, then
     // the direction and the two step counts. Four addresses of its own.
     (0x005d_74e3, None, sim::gaia::SITE_WANDER_ROLL),

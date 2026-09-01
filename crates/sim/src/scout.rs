@@ -1,16 +1,19 @@
 //! The idle scout's explore target — `Unit::think_scout@005f6010`.
 //!
-//! `docs/SCOUT.md` is the mechanic; this is its city branch, the only one
-//! any capture on disk reaches. An AI scout with nothing to do walks rings
-//! of cells outward from each city it knows about, scores every cell that
-//! is inside its own region and **not really seen**, and sends itself to
-//! the cheapest one as a one-member group with an `EXPLORE_TO` move.
+//! `docs/SCOUT.md` is the mechanic; this is both its branches. An AI scout
+//! with nothing to do walks rings of cells outward from each city it knows
+//! about, scores every cell that is inside its own region and **not really
+//! seen**, and sends itself to the cheapest one as a one-member group with
+//! an `EXPLORE_TO` move — and when the rings turn up nothing at all, it
+//! strides through the whole region's coordinate list instead (§11).
 //!
-//! It is three draws a ring at most, and it is the last unattributed block
-//! of frame 0 on run20 and on the fuzzer's control map (`docs/SYNC.md`
-//! §4.2): ten draws at `+0x436` ×4, `+0x458` ×2, `+0x64c` ×4 on both. The
-//! counts fall out of the ring walk's two guards and the cell filter, and
-//! `docs/SCOUT.md` §10 is the sequence, ring by ring.
+//! The city branch is three draws a ring at most, and it is the last
+//! unattributed block of frame 0 on run20 and on the fuzzer's control map
+//! (`docs/SYNC.md` §4.2): ten draws at `+0x436` ×4, `+0x458` ×2, `+0x64c`
+//! ×4 on both. The counts fall out of the ring walk's two guards and the
+//! cell filter, and `docs/SCOUT.md` §10 is the sequence, ring by ring. The
+//! fallback is one `+0x941` and one `+0xaba` a cell, and run39's frame
+//! 1373 is the only frame in the corpus that reaches it.
 
 use crate::ai_load::role;
 use crate::attrition::Domain;
@@ -50,6 +53,10 @@ pub const FIRST_MAX_RING: i32 = 12;
 pub const SITE_ROTATION: &str = "Unit::think_scout+0x436";
 pub const SITE_PHASE: &str = "Unit::think_scout+0x458";
 pub const SITE_CELL: &str = "Unit::think_scout+0x64c";
+/// §11's two, in the region fallback: the starting offset into
+/// `Region.coords`, once a call, and the jitter, once per accepted cell.
+pub const SITE_REGION_STRIDE: &str = "Unit::think_scout+0x941";
+pub const SITE_REGION_CELL: &str = "Unit::think_scout+0xaba";
 
 /// The address range those three fall in — `Unit::think_scout` up to
 /// `Unit::think`, the next function in the export. What
@@ -222,6 +229,17 @@ impl Sim {
         false
     }
 
+    /// `UnitData::is_special@0046cea0`, which the vtable resolves to
+    /// `unit_flags2 & 0x10` — [`crate::ai_load::uflags2::SCOUT`]. Read
+    /// twice: by `Unit::think`'s human block (§2) and by §11's `local_74`.
+    pub(crate) fn unit_is_special(&self, u: usize) -> bool {
+        self.units[u].ty.is_some_and(|r| {
+            self.unit_types[r]
+                .cols
+                .flag2(crate::ai_load::uflags2::SCOUT)
+        })
+    }
+
     /// `unit_masks & 0x40000`, set at `Unit::init@00612100:586` for every
     /// unit whose leader is not a plain human — `(leader_flags & 0xc) != 4`.
     /// `Nation::human` is `leader_flags & 4` and is what
@@ -302,20 +320,30 @@ impl Sim {
             && type_index != PEASANTSKOREAN
             && !self.unit_is_spy(u)
             && domain != Domain::Sea;
-        if !city_branch {
-            self.scout_region_scan(region);
-            return false;
-        }
-
-        let scan = self.scout_city_loop(u, who, region);
-
-        // §3's tail. Above 199 the region scan runs as well and can win it;
-        // the simulation takes that scan's first draw and no more (§11).
-        if scan.score > REGION_SCAN_ABOVE {
-            self.scout_region_scan(region);
-            if scan.score >= NOTHING {
-                return false;
+        let mut scan = if city_branch {
+            self.scout_city_loop(u, who, region)
+        } else {
+            // `005f686b`: a citizen, a spy or a naval unit skips the city
+            // loop whole and takes the region scan on an untouched `best`.
+            Scan {
+                score: NOTHING,
+                tile: Pos::default(),
+                ring: 0,
+                budget: 0,
+                over: false,
+                leader: who,
             }
+        };
+
+        // §3's tail. Above 199 the region scan runs as well and can win it.
+        if !city_branch || scan.score > REGION_SCAN_ABOVE {
+            self.scout_region_scan(u, who, region, &mut scan);
+        }
+        if scan.score >= NOTHING {
+            // `005f6d74` — nothing anywhere: mark the region scouted for
+            // this leader, then `think_civilian_transport`. Both are seams
+            // (`docs/SCOUT.md` §13 item 1).
+            return false;
         }
         self.scout_issue(u, scan.tile);
         true
@@ -601,16 +629,102 @@ impl Sim {
             && (self.city_num(who) > 0 || self.units.iter().any(|u| u.owner == who && u.alive()))
     }
 
-    /// §11 — the region fallback, taken as far as it is reproducible: the
-    /// stride draw, and no further. `Region.coords`' order is the map
-    /// generator's and no dump carries it, so the cell walk (and its draw
-    /// per accepted cell) is not modelled and this issues no order.
-    fn scout_region_scan(&mut self, region: u16) {
+    /// §11 — the region fallback, whole.
+    ///
+    /// The city loop leaves `best > 199` — no city in the scout's region,
+    /// or nothing near enough — and the function scans the scout's **whole
+    /// region** instead, striding through `Region.coords`. That list's
+    /// order was carried as unrecoverable until 2026-08-31 (item 110):
+    /// `Regions::rebuild_coords@0067f800` is the last writer map load
+    /// reaches, and it is a plain row-major sweep of the cell grid, so
+    /// [`World::region_coords_strided`](crate::world::World::region_coords_strided)
+    /// is it and this branch is the original's draw for draw.
+    ///
+    /// Two draw sites: `+0x941` for the starting offset, once a call, and
+    /// `+0xaba` for every cell that passes the fog, the location and the
+    /// surface tests.
+    fn scout_region_scan(&mut self, u: usize, who: Player, region: u16, scan: &mut Scan) {
+        let Some(rec) = self.units[u].ty else { return };
+        let domain = self.unit_types[rec].kind.domain;
+
+        // `local_74`, stored at `005f68dc` and read twice in the score. The
+        // branch at `005f6888` skips the store when the leader **is**
+        // human, so what carries it is an AI leader's spy, scout or naval
+        // unit — and every scout in every capture is one.
+        let quartered = self.ai_driven(who)
+            && (self.unit_is_spy(u) || self.unit_is_special(u) || domain == Domain::Sea);
+
         let n = self.world.region_size(region);
-        let stride = n.div_euclid(100).max(0) + i32::from(n % 100 != 0);
-        let stride = stride.max(1) + (self.frame.rem_euclid(8)) as i32;
-        if stride > 1 {
-            self.rng.roll();
+        let mut stride = (n + 99) / 100;
+        if stride < 1 {
+            stride = 1;
+        }
+        stride += (self.frame.rem_euclid(8)) as i32;
+        // `+0x941`: the starting offset, skipped when the stride is 1.
+        self.mark(SITE_REGION_STRIDE);
+        let start = if stride > 1 {
+            self.rng.roll() % stride
+        } else {
+            0
+        };
+
+        let here = self.units[u].pos.cell();
+        for c in self.world.region_coords_strided(region, start, stride) {
+            // `was_really_seen`, inlined at `005f69cd` rather than called.
+            if self.was_really_seen(c, who) {
+                continue;
+            }
+            let tile = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
+            if self.invalid_loc(u, tile, false, false, false, false, false) != 0 {
+                continue;
+            }
+            // The surface test, by domain. The land arm's probe is the cell
+            // **centre** tile, the same decompiler fold §7's is: `movb
+            // 0x4(%eax,%ecx,2)` at `005f6a88` over `ecx = (4y + 2)·tile_xs
+            // + 4x`, and `TData` is two bytes wide.
+            let ocean = self.world.tile_mask(tile) & tile::SURFACE == tile::SURFACE_OCEAN;
+            let ok = match domain {
+                Domain::Air => true,
+                // `get_inside(this) >= 0` takes a carried naval unit down
+                // the land arm; it is otherwise unreachable for `Land`.
+                Domain::Land => !ocean,
+                Domain::Sea if self.units[u].inside.is_some() => !ocean,
+                Domain::Sea => self.world.is_ocean(c),
+            };
+            if !ok {
+                continue;
+            }
+
+            // `+0xaba`: the jitter, one draw per accepted cell. The
+            // distance is scaled by **16** here, not the city loop's 8.
+            self.mark(SITE_REGION_CELL);
+            let mut score = vector_dist(here.x - c.x, here.y - c.y) * 16 + self.rng.roll() % 8;
+            let owner = self.world.owner(c).player().unwrap_or(who);
+            if quartered {
+                if !self.is_ally(who, owner) {
+                    score /= 4;
+                }
+                if self.world.tile_mask(tile) & tile::CITY_RADIUS != 0 {
+                    score /= 2;
+                }
+            } else {
+                score += self.scout_danger(who, c);
+                if owner != who {
+                    score += 4;
+                }
+            }
+            // The winner is compared and stored **doubled** — `leal
+            // (%ecx,%ecx), %eax` at `005f6bb9` — so a region-scan cell has
+            // to be twice as good as a city-loop one to take the frame.
+            let score = score * 2;
+            if score >= scan.score {
+                continue;
+            }
+            if self.scout_unit_near(u, c) {
+                continue;
+            }
+            scan.score = score;
+            scan.tile = tile;
         }
     }
 
@@ -817,14 +931,98 @@ mod tests {
 
     /// §5: a leader with no city of its own walks nobody's rings — the
     /// `city_num == 0` gate at the head of the city loop. What is left is
-    /// the region fallback's stride draw, which fires because a region of
-    /// 1,600 cells gives it a stride of 16 (§11).
+    /// §11's region scan, whole: a region of 1,600 cells gives a stride of
+    /// 16, so the walk spends one `+0x941` for its starting offset and one
+    /// `+0xaba` for every one of the hundred cells it then strides through
+    /// that `invalid_loc` allows — and its winner is one of those hundred,
+    /// which is what says the coordinate list is being walked in
+    /// `Regions::rebuild_coords`' row-major order rather than some other.
     #[test]
-    fn a_leader_with_no_city_falls_through_to_the_region_stride_draw() {
+    fn a_leader_with_no_city_scans_its_whole_region() {
         let (mut s, ai, _) = scout_sim(true);
         s.cities[0].alive = false;
+        let region = s
+            .world
+            .region_of(s.units[ai].pos.cell())
+            .expect("the scout stands in the region");
+        let n = s.world.region_size(region);
+        assert_eq!(n, 1600, "the fixture's one region is the whole grid");
+        // `(n + 99) / 100`, plus frame 0's `frame % 8`.
+        let stride = (n + 99) / 100;
+        assert_eq!(stride, 16);
+        // The offset the scan is about to draw, on a copy of the stream.
+        let mut probe = crate::combat::Rng::new(s.rng.seed);
+        let start = probe.roll() % stride;
+        let walked = s.world.region_coords_strided(region, start, stride);
+        assert_eq!(walked.len(), 100, "a hundred of the sixteen hundred");
+        assert!(
+            walked
+                .windows(2)
+                .all(|w| (w[0].y, w[0].x) < (w[1].y, w[1].x)),
+            "row-major: y then x, strictly increasing"
+        );
+
         let before = s.rng.seed;
-        assert!(!s.think_scout(ai));
-        assert_eq!(draws(before, s.rng.seed), 1, "the stride draw of §11");
+        assert!(s.think_scout(ai), "an unseen region is all candidates");
+        // One draw for the offset, one for every cell the location test
+        // allows — the city's own footprint is what it refuses.
+        let taken = walked
+            .iter()
+            .filter(|&&c| {
+                s.invalid_loc(
+                    ai,
+                    Pos::new(c.x * 4 + 2, c.y * 4 + 2),
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                ) == 0
+            })
+            .count();
+        let mut r = crate::combat::Rng::new(before);
+        let mut spent = 0;
+        while r.seed != s.rng.seed && spent < 256 {
+            r.roll();
+            spent += 1;
+        }
+        assert_eq!(spent, 1 + taken, "the offset draw and one a cell");
+
+        let order = *s.units[ai].orders.front().expect("an explore order");
+        let crate::orders::Body::Move(m) = order.body else {
+            panic!("not a move: {order:?}");
+        };
+        assert_eq!(m.kind, MoveKind::ExploreTo);
+        assert!(
+            walked.contains(&m.dest.cell()),
+            "the winner is one of the strided cells, not any old one: {:?}",
+            m.dest.cell()
+        );
+    }
+
+    /// The guard on the other half of §11: with the stride at 1 the
+    /// original skips the offset draw outright (`leal -0x1(%ecx), %eax;
+    /// testl; jg` at `005f6934`), so a small region spends one draw a cell
+    /// and no more.
+    #[test]
+    fn a_region_of_under_a_hundred_cells_draws_no_offset() {
+        let (mut s, ai, _) = scout_sim(true);
+        s.cities[0].alive = false;
+        // A region of ten cells around the scout, and the rest of the grid
+        // moved to a second one so `region_size` sees only these.
+        let small = s.world.add_region(Terrain::Land);
+        let here = s.units[ai].pos.cell();
+        for x in here.x..here.x + 10 {
+            s.world.set_region(Cell::new(x, here.y), small);
+        }
+        let before = s.rng.seed;
+        assert!(s.think_scout(ai));
+        let mut r = crate::combat::Rng::new(before);
+        let mut spent = 0;
+        while r.seed != s.rng.seed && spent < 64 {
+            r.roll();
+            spent += 1;
+        }
+        assert_eq!(spent, 10, "ten cells, ten draws, and no offset");
     }
 }

@@ -7841,6 +7841,23 @@ mod tests {
     ///               `docs/SYNC.md` §3.9, and
     ///               [`a_bird_s_landing_frames_are_the_trace_s_own`] is
     ///               the rule against the record.
+    ///   2026-08-31  word **1373 -> 1570** (item 110), **the region
+    ///               fallback's cell walk**. The eighth ring pair the row
+    ///               above blames was never a ring: `scout_region_scan`
+    ///               took §11's stride draw with no `mark` of its own, so
+    ///               the stream inherited `SITE_PHASE` and the sequence
+    ///               *read* as a seventh ring. The original walks its six
+    ///               rings, finds nothing, leaves the city loop on
+    ///               `best > 199` and scans the whole region — one
+    ///               `+0x941` and one `+0xaba` per accepted cell, five of
+    ///               them here — and that walk had been called
+    ///               unreproducible because `Region.coords`' order is
+    ///               nobody's dump. It is the **cell grid's own**:
+    ///               `Regions::rebuild_coords@0067f800`, the last writer
+    ///               `Regions::find_all` reaches, refills every list by a
+    ///               row-major sweep. `docs/SCOUT.md` §11, and
+    ///               [`a_scout_with_no_city_near_scans_its_whole_region`]
+    ///               is the rule against the record.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7966,10 +7983,151 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 1373 && first_part >= 1373 && words >= 64 && matched >= 64,
+            first_count >= 1570 && first_part >= 1570 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 1373, 1373, 64 and 64"
+             {matched} draw for draw — the floor is 1570, 1570, 64 and 64"
+        );
+    }
+
+    /// **A scout whose city loop finds nothing scans its whole region**
+    /// (2026-08-31, item 110) — the mechanic behind East Indies' word going
+    /// 1373 → 1570, asserted as a sequence and as a destination.
+    ///
+    /// Run39's frame 1373 is the one frame in the corpus that reaches
+    /// `docs/SCOUT.md` §11. The AI scout `1/0` walks its own city's six
+    /// rings — `+0x436`/`+0x458` six times, and **not one `+0x64c`**,
+    /// because by 1373 every cell within twelve of that city has been seen
+    /// — so the city loop comes out with `best` still at 99,999,999, the
+    /// tail's `199 < best` sends it to the region fallback, and the
+    /// original spends one `+0x941` and five `+0xaba` there.
+    ///
+    /// That branch had been read but not implemented, on the ground that
+    /// it strides through `Region.coords` and no dump prints that list. It
+    /// does not need one. `Regions::find_all@0067eff0` appends coordinates
+    /// in its flood order, merges, sorts — and then **frees the list and
+    /// calls `Regions::rebuild_coords@0067f800`**, which refills every
+    /// region's array by a plain row-major sweep of the cell grid:
+    /// `for y { for x { coords[wdata[xs·y + x].region].push((x, y)) } }`.
+    /// So the order is the grid's own, the sim's per-cell region map from
+    /// the `WORLD` dump is enough to rebuild it, and this branch is now
+    /// the original's draw for draw.
+    ///
+    /// Two oracles, as with the two run33 re-targets: the trace's own site
+    /// sequence for the frame, and the destination the dump prints for the
+    /// order the call issues. Made to fail three ways: the scan's own
+    /// `+0x941` mark removed — which is the defect this found, the stride
+    /// draw inheriting `SITE_PHASE` and reading as a seventh ring; the
+    /// coordinate sweep transposed to column-major, which takes **one**
+    /// cell where the original takes five; and the surface probe put back
+    /// on `4x` rather than the cell centre `4x + 2` — §7's own trap, which
+    /// costs exactly one cell here as it did on run33's 361.
+    ///
+    /// What this frame does **not** separate, and what therefore stays a
+    /// reading in `docs/SCOUT.md` §13: the `× 16` distance scale (the city
+    /// loop's is `× 8`), the doubling of the winner at `005f6bb9`, and the
+    /// sense of `local_74`. Each was inverted in turn and the word held at
+    /// 1570 — the five cells are ordered the same way either way, and
+    /// `best` is still 99,999,999 when the scan starts, so nothing here
+    /// compares a region score against a city one.
+    #[test]
+    fn a_scout_with_no_city_near_scans_its_whole_region() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        for _ in 0..1375 {
+            built.tick();
+        }
+
+        // The original's side: frame 1373's draws, filtered to the ones
+        // `Unit::think_scout` took itself.
+        use sim::scout::{
+            SITE_CELL, SITE_PHASE, SITE_REGION_CELL, SITE_REGION_STRIDE, SITE_ROTATION,
+        };
+        let theirs: Vec<String> = tr
+            .run_in(1373, sim::scout::CODE.start, sim::scout::CODE.end)
+            .iter()
+            .map(|d| tr.label(d))
+            .collect();
+        let mut want: Vec<&str> = Vec::new();
+        for _ in 0..6 {
+            want.extend([SITE_ROTATION, SITE_PHASE]);
+        }
+        want.push(SITE_REGION_STRIDE);
+        want.extend(std::iter::repeat_n(SITE_REGION_CELL, 5));
+        assert_eq!(theirs, want, "the trace's own frame-1373 sequence");
+
+        // Ours: the same frame's marks, filtered the same way, on a stream
+        // this simulation **reached** rather than had installed.
+        let sites = [
+            SITE_ROTATION,
+            SITE_PHASE,
+            SITE_CELL,
+            SITE_REGION_STRIDE,
+            SITE_REGION_CELL,
+        ];
+        let ours: Vec<String> = built
+            .frame_sites
+            .iter()
+            .find(|(f, _)| *f == 1373)
+            .map(|(_, v)| v.clone())
+            .expect("frame 1373's marks")
+            .into_iter()
+            .filter(|l| sites.contains(&l.as_str()))
+            .collect();
+        assert_eq!(
+            ours, theirs,
+            "our twelve ring draws and the region scan's six, in the original's order"
+        );
+
+        // And the cell the scan chose, against the dump's own. The order
+        // reaches the unit through its group, so the first frame that
+        // prints it is 1374.
+        let dest = log
+            .frame_states()
+            .iter()
+            .find(|f| f.n == 1374)
+            .and_then(|f| f.units.iter().find(|u| u.who == 1 && u.o == 0))
+            .and_then(|u| u.orders.first())
+            .and_then(|o| Some((o.dest_x?, o.dest_y?)))
+            .expect("run39's frame-1374 order for 1/0");
+        assert_eq!(
+            dest,
+            (37_368, 33_528),
+            "cell (48, 43), whose centre tile is (194, 174) — the dump's own \
+             `orig_x/orig_y` are that centre and `dest` is it plus §13 item 8b's 24"
+        );
+        let scout = built
+            .sim
+            .unit_by_o(1, 0)
+            .expect("run39 dumps player 1's `1/0`");
+        let order = *built.sim.units[scout].orders.front().expect("an order");
+        let sim::orders::Body::Move(m) = order.body else {
+            panic!("not a move: {order:?}");
+        };
+        assert_eq!(m.kind, sim::orders::MoveKind::ExploreTo);
+        assert_eq!(
+            (i64::from(m.dest.x), i64::from(m.dest.y)),
+            dest,
+            "the region scan's winner, not the ring walk's"
         );
     }
 
@@ -8139,9 +8297,11 @@ mod tests {
         // stream back on the original's for another four hundred frames.
         // Item 109's bird step takes 1256 → 1373 and carries both with it:
         // **191,173** of 192,504 and the first parting to **1381**, `8/3`
-        // a step off the original's point again.
+        // a step off the original's point again. Item 110's region
+        // fallback takes 1373 → 1570 and both again: **191,876** and the
+        // first parting to **1658**, `8/0` seventeen units short.
         assert!(
-            first_bad_frame >= 1381 && agree >= 191_173 && seen == 192_504,
+            first_bad_frame >= 1658 && agree >= 191_876 && seen == 192_504,
             "run39's gaia positions fell: {agree} of {seen}, first {first_bad:?}"
         );
     }
@@ -8934,7 +9094,7 @@ mod tests {
             .collect();
         assert_eq!(
             ours,
-            vec![576, 944, 944, 1016, 1144, 1368],
+            vec![576, 944, 944, 1016, 1144, 1368, 1376],
             "run39's landings up to the word at {end}"
         );
         assert_eq!(ours, theirs, "run39's landing frames, the trace's own");
@@ -9489,11 +9649,20 @@ mod tests {
         //               the whole `MOVEORDER` row, of which `dest`,
         //               `facing` and `last_x/last_y` are reported and do
         //               not score (see [`OrderMismatch::scores`]).
+        //   2026-08-31  ticks **1374 -> 1477**, orders **1373 -> 1476**;
+        //               player 0 @ **1657**, player 1 @ **1478** (item
+        //               110, the region fallback's cell walk). Both
+        //               numbers stay pinned to the word, which parts at
+        //               1570 — a hundred frames of the original's stream
+        //               that nothing here reads, spent on units this
+        //               capture does not dump every frame — and both moved
+        //               by the same 103 the word moved by less its own
+        //               lead. Nothing fell.
         assert!(
-            ticks >= 1374 && orders >= 1373 && first[0] >= 1411 && first[1] >= 1375,
+            ticks >= 1477 && orders >= 1476 && first[0] >= 1657 && first[1] >= 1478,
             "the second map's score fell: ticks {ticks}, orders {orders}, first \
-             divergence {:?} — the floor is ticks 1374, orders 1373, player 0 @ 1411, \
-             player 1 @ 1375",
+             divergence {:?} — the floor is ticks 1477, orders 1476, player 0 @ 1657, \
+             player 1 @ 1478",
             report.first_divergence
         );
     }

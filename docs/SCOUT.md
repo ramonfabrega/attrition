@@ -36,9 +36,11 @@ shoreline. The score (§8) is read from the listing and is arithmetic no capture
 separates yet — the danger term is zero in every run on disk and the goods
 term needs a leader with exactly one city; medium. The target's rejection
 test (§9, `find_unit_ordered`) is read only as far as this mechanic reaches
-into it. The branch this document does **not** establish is the region
-fallback's cell walk (§11); the goody-box head it deferred is
-`docs/GOODY.md` §7 as of 2026-08-31 (§13 item 2).
+into it. ~~The branch this document does **not** establish is the region
+fallback's cell walk (§11);~~ **§11 landed 2026-08-31** (item 110) and is
+diff-backed on run39's frame 1373 — three of its constants are still
+reading-only and §13 item 1 names them. The goody-box head this document
+deferred is `docs/GOODY.md` §7 as of 2026-08-31 (§13 item 2).
 
 **Naming.** Offsets are the PDB's: `struct /rise.pdb/UnitData`,
 `LeaderData`, `WorldData`, `WData`, `Region`, `CityData`. A cell is 4 × 4
@@ -527,42 +529,94 @@ whole-frame sequence check instead (`docs/SYNC.md` §5.1), and the capture
 was never booked — the scout's own seed-anchored check is what made that
 possible, because it held while the stream reaching it was still wrong.
 
-## 11. The region fallback — read, not implemented
+## 11. The region fallback
 
 When the city loop leaves `best > 199` — no city in the scout's region, or
 nothing near enough — the function falls into a second scan over the
 scout's **whole region**, `005f68e3`:
 
 ```
-n = regions[region].size;
+n = regions[region].size;                                 // Region +0x14
 stride = max(1, (n + 99) / 100) + frame % 8;
-i = stride > 1 ? rand() % stride : 0;                     // one draw
+i = stride > 1 ? rand() % stride : 0;                     // +0x941, one draw
 for (; i < n; i += stride) {
-    (wx, wy) = regions[region].coords[i];
+    (wx, wy) = regions[region].coords[i];                 // Region +0x7c
     if (was_really_seen(2wx+1, 2wy+1, who)) continue;      // inlined, not called
     if (invalid_loc(4wx+2, 4wy+2, ...) != 0) continue;
     if (domain == 2) accept;
     else if (domain == 0 || get_inside(this) >= 0) { if (surface != 0x20) accept; }
     else if (is_ocean(wx, wy)) accept;
     accept:
-        score = vector_dist(...) * 16 + rand() % 8;        // one draw per accepted cell
-        ...
+        score = vector_dist(|ux - wx|, |uy - wy|) * 16 + rand() % 8;   // +0xaba
+        owner = wdata[xs·wy + wx].who; if (owner < 0) owner = who;
+        if (local_74 == 0) score += danger[who][(wy>>1)·reg_xs + (wx>>1)]
+                                  + (owner != who ? 4 : 0);
+        else {
+            if (!is_ally(leaders[who], owner)) score /= 4;
+            if (tdata[(4wy+2)·tile_xs + 4wx + 2].mask & 0x100) score /= 2;
+        }
+        score *= 2;                                        // 005f6bb9
+        if (score < best && find_unit_ordered(<as §8>) < 0) {
+            best = score; target = (4wx + 2, 4wy + 2);
+        }
 }
 ```
 
-with `local_74` — set just above it, and true for an AI unit that is not a
-spy, not "special" and not naval — switching the score's second half from
-"danger plus a territory penalty" to "quarter it if the owner is not an
-ally, halve it again on a `0x100` tile".
+Four things in it are not the city loop's, and each is checked below.
 
-**The cell walk is not reproducible here**, because it iterates
-`Region.coords` (`Region +0x6c`, a `WCoordList`) in the order the map
-generator's flood fill built it, and no dump carries that list. The
-`stride` draw is: `Region.size` is `World::region_size`. So the simulation
-takes the first draw and stops, and a run that reaches this branch will be
-short by one draw per accepted cell. No capture on disk reaches it — the
-AI scout's own city is always in its region at the frames observed — and
-`docs/SYNC.md` §6 carries it as an open item.
+- **The distance is scaled by 16**, not 8, so a region-scan cell is priced
+  at twice the city loop's rate before anything else happens — and then
+  **the winner is stored doubled** (`leal (%ecx,%ecx), %eax`), so it has to
+  come in at a quarter of a city-loop score to take the frame. That is what
+  makes this a fallback rather than a competitor.
+- **`local_74`** is the switch between the two halves of the score, and its
+  sense is the opposite of what it looks like. It is zeroed at the head of
+  the function and stored 1 at `005f68dc`; the branch at `005f6888` skips
+  the store when the leader **is** human, and the three tests below it each
+  jump *to* the store. So it is set for an AI leader's **spy, "special"
+  (`unit_flags2 & 0x10`, the scout bit) or naval** unit — which is every
+  scout in every capture — and it is the *danger* arm, not the quartering
+  one, that is unreachable from here.
+- **The surface probe is the cell centre**, `(4x + 2, 4y + 2)`, by the same
+  decompiler fold §7's is: `movb 0x4(%eax,%ecx,2)` at `005f6a88` over
+  `ecx = (4y + 2)·tile_xs + 4x`, and `TData` is two bytes wide. The `0x100`
+  read four lines later is a `testw` on the same tile — `CITY_RADIUS`.
+- **The fog read is inlined**, not a call to `was_really_seen`, and it is
+  the same four gates: `who < 8`, `reveal_map != 3`, `!(leader_flags &
+  0x800)`, `LeaderData +0x59e4 == 0`, then `seen2[(2wy+1)·fog_xs + 2wx+1] &
+  ally_mask`.
+
+### `Region.coords` is the cell grid's own order
+
+This branch was carried for five days as "read, not implemented", on the
+ground that it iterates `Region.coords` (`Region +0x6c`, a `WCoordList`
+whose data pointer is `Region +0x7c`) in the order the map generator's
+flood fill built it, and no dump carries that list.
+
+**It is not the flood fill's order.** `Regions::find_all@0067eff0` does
+append coordinates as it floods, and merges regions, and sorts them — and
+then, in its last four statements, **frees the list and calls
+`Regions::rebuild_coords@0067f800`**, which is the only other writer and
+the one whose result survives. That function is:
+
+```
+for (y = 0; y < world.ys; y++)
+    for (x = 0; x < world.xs; x++) {
+        r = wdata[world.xs·y + x].region;                 // WData +0x4
+        coords[r][count[r]++] = (x, y);
+    }
+```
+
+a plain **row-major sweep of the cell grid**, with a per-region counter and
+an `Error::report` if any region overruns its `size`. So the order needs no
+dump at all: it is the grid's, and the per-cell region map the `WORLD` dump
+already loads is enough to rebuild every list exactly.
+`crate::world::World::region_coords_strided` is that sweep, returning only
+the entries a strided walk will visit.
+
+The lesson is `docs/audit/README.md`'s, in a new shape: **grep the writers
+of every field you call unrecoverable.** One `grep -l rebuild_coords` over
+the export was the whole cost of five days of "no capture would help".
 
 ## 12. What the simulation carries, and what checks it
 
@@ -574,8 +628,16 @@ AI scout's own city is always in its region at the frames observed — and
   1 coming out as the eight neighbours is what says the sweep order is
   right.
 - `Sim::think_scout` — §3's head, §5's city loop, §6's ring walk, §7's
-  filter, §8's score, §9's order. Public, so the harness can drive one
-  call on a chosen seed.
+  filter, §8's score, §9's order, and since 2026-08-31 (item 110) §11's
+  region fallback and the tail that chooses between them. Public, so the
+  harness can drive one call on a chosen seed.
+- `Sim::scout_region_scan` — §11 whole, over
+  `World::region_coords_strided`. Its two draw sites are
+  `scout::SITE_REGION_STRIDE` and `SITE_REGION_CELL`; before it existed
+  the stride draw carried **no mark of its own**, so `mark_sites` gave it
+  the previous label and East Indies' frame 1373 read as a seventh ring
+  rather than a fallback. A draw without a mark is not a neutral omission:
+  it is a mislabelled draw, and it sent item 110 to the wrong mechanic.
 - `Sim::was_really_seen` — §7's fog read; the sibling of
   `crate::ai_sites`' `site_was_seen`, which is `was_seen` and is a
   different function with one word between their names. **The grid it
@@ -652,6 +714,16 @@ The checks:
   taken the frame, so only `(56, 28)` and `(58, 28)` are consistent with
   the destination the dump prints, and only `(56, 28)` was revealed on a
   frame the scout was turning. The word went 482 → **571**.
+- `rondata::diff`'s `a_scout_with_no_city_near_scans_its_whole_region`
+  (2026-08-31, item 110) — run39's frame 1373, the one frame in the corpus
+  that reaches §11. Six ring pairs and **no** `+0x64c` (every cell within
+  twelve of the AI's city has been seen by then), then `+0x941` once and
+  `+0xaba` five times; the sequence and the destination the dump prints on
+  1374, `dest 37368, 33528` for cell `(48, 43)`. Made to fail three ways:
+  the stride draw's mark removed, the coordinate sweep transposed to
+  column-major (**one** accepted cell instead of five), and the surface
+  probe put back on `4x` (four instead of five). East Indies' word went
+  1373 → **1570** and its ticks 1374 → **1477**.
 - `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six`, whose
   frame-0 row moves from 165/175 to **175/175** with this.
 - `rondata::diff`'s
@@ -669,9 +741,27 @@ The checks:
 
 ## 13. What is not established
 
-1. **The region fallback's cell walk** (§11). It needs `Region.coords` in
+1. ~~**The region fallback's cell walk** (§11). It needs `Region.coords` in
    the generator's order and no dump carries it. *Capture:* none would
-   help; a `REGIONS` dump detail that printed the coordinate list would.
+   help; a `REGIONS` dump detail that printed the coordinate list would.~~
+   **Read and implemented 2026-08-31** (item 110): the order is not the
+   generator's, it is `Regions::rebuild_coords@0067f800`'s row-major sweep
+   of the cell grid, and §11 is now diff-backed on run39's frame 1373.
+   What that frame does **not** separate, and what therefore rests on the
+   listing alone: the `× 16` distance scale, the `score *= 2` at
+   `005f6bb9`, and the sense of `local_74`. Each was inverted in turn and
+   East Indies' word held at 1570 — the five cells order the same way
+   either way, and `best` is still 99,999,999 when the scan starts, so no
+   capture yet compares a region score against a city one. *Capture:* a
+   frame where the city loop wins a cell at a score between 200 and 799
+   and the region scan then runs, which is the only shape that reads the
+   doubling; and a **human-led AI** or a naval scout for `local_74`.
+1b. **The `best > 99999998` tail** (`005f6d74`), which the region scan can
+   now leave standing: `Region.scouted |= 1 << who`, `Region +0x3c = 0`,
+   then `add_to_army` for a naval unit or `think_civilian_transport` for
+   the rest. Unread and unmodelled; the simulation returns without an
+   order, which is what every capture on disk does anyway — no frame
+   reaches the tail with nothing found.
 2. ~~**`Unit::find_goody_box`** — the very first thing `think_scout` does
    for a land unit, and it returns 1 (and skips everything here) when it
    finds a goody box to walk to. Not read; the simulation treats it as

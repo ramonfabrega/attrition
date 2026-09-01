@@ -12,35 +12,30 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after items 114 and 91 (Opus).*
+*2026-08-31, after item 110 (Opus).*
 
-**Great Lakes is in lockstep for its whole capture, and its ceiling is a
-mechanic rather than a capture length.** run10 scores **1772/1772 of 1,772**
-with neither player parting at all — no position, no scoring order, no gather
-tile disagreement anywhere — and its gaia is 74,040 of 74,040. East Indies is
-unmoved at **1374/1373**, word 1373.
+**East Indies moved on every number it has.** run39 scores **1477/1476**
+with its word at **1570**, up from 1374/1373 and 1373; its gaia positions
+are 191,876 of 192,504 with the first parting at 1658. Great Lakes is
+untouched at **1772/1772 of 1,772** and its gaia at 74,040 of 74,040 —
+run33's scout never leaves its city loop.
 
-Item 114 did that with one call: `Build::activate`'s gather tail reaches
-`Farms::add_animals` for every finished **food** gather building, so a pasture
-stocks five animals — twenty draws, five more as their clocks wrap. Every site
-had been read since August; the caller was missing (SYNC §3.21). Items 118 and
-119 died with it.
+Item 110 was booked as "the AI scout takes a seventh ring". It takes none:
+`scout_region_scan` spent §11's stride draw **with no `mark` of its own**,
+so `mark_sites` gave it the previous label and a fallback read as a ring.
+And that fallback had been "read, not implemented" because `Region.coords`
+is the map generator's flood order and no dump carries it — except that
+`Regions::find_all` ends by freeing the list and calling
+`Regions::rebuild_coords@0067f800`, which refills it by a **row-major sweep
+of the cell grid**. One `grep -l` for the writer. SCOUT §11.
 
-**Item 91 is done and answered what it was booked to answer.** runs 53/54
-(ORACLE), 24,000 frames a map, trace whole, 0-differing against run33/run39 —
-eight minutes and 70 MB, because the sim runs ~240 fps unrendered and it is
-the per-frame *dump* that costs. On thirteen times the frames **the word still
-parts at 1802**, so the long full-detail dump is not worth taking yet: ~30
-frames past run10's 1,772, then 22,000 of nobody's stream. Take it when the
-word has moved, sized to the word.
+**Each map's next number is still one mechanic.** Great Lakes: 120. East
+Indies: 121, and it leads — its headline is the only one still moving.
 
-**Each map's next number is now one mechanic.** Great Lakes: 120. East
-Indies: 110, and it leads — its headline is the only one still moving.
-
-**Opener (Opus):** `Continue — item 110: East Indies' word at 1373. The AI
-scout walks six rings on both sides; the original then leaves the loop for
-`Unit::think_scout+0x941` once and `+0xaba` five times — sites SCOUT §6/§7
-have never named — where ours takes a seventh ring.`
+**Opener (Opus):** `Continue — item 121: East Indies' word at 1570. One
+draw, `Guy::set_anim+0x97a < Guy::inc_time+0x271 < Unit::inc_time+0x3e` —
+a **unit's** animation clock wrapping, not an animal's — that this crate
+does not spend: ours 3 against theirs 4.`
 
 ## The queue
 
@@ -49,10 +44,11 @@ East Indies is the only map whose headline can still move, so its word item
 leads. Take the first unstarted unless a better order is obvious — and say
 so. Numbers are stable; the journal indexed by them.
 
-110. **East Indies' word at 1373, and a seventh ring.** The AI scout walks
-    six rings on both sides; the original then leaves the loop for
-    `Unit::think_scout+0x941` once and `+0xaba` five times — sites SCOUT
-    §6/§7 have never named — where ours takes a seventh ring.
+121. **East Indies' word at 1570, and an animation that wraps.** One draw,
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271 < Unit::inc_time+0x3e` —
+    a **unit's** clock, not an animal's, so it is not §3.9's bird — that
+    this crate does not spend: ours 3 against theirs 4. The trace does not
+    name the unit; a `GUYS=4` window over 1565–1572 would.
 
 120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
     at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <
@@ -71,6 +67,12 @@ so. Numbers are stable; the journal indexed by them.
     74,040 with no first bad frame** since 114 and is pinned exactly.
     `Sim::reseat_animal` still corrects them where a dump carries clocks
     (SYNC §4.2).
+
+122. **A draw with no mark of its own.** Item 110's day went to one:
+    `mark_sites` attributes an unmarked draw to the label still standing,
+    so the sequence reads wrong rather than short. Grep `rng.roll()` in
+    `crates/sim` for every call with no `mark` on the statement above it,
+    and either mark it or say in a comment why the caller's mark covers it.
 
 87. **The widening ledger.** Items 74, 83, 69 and **113** were closed by
     fields the parser had and nothing compared. Make the backlog a number:

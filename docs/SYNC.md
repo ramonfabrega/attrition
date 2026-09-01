@@ -1298,10 +1298,13 @@ parting does whenever the word moves: every frame after 879 draws from a
 stream that is nobody's, so the herds re-roll. The number to read there is
 983, not the total.
 
-Frame 879 is next, and it is the same scout: two `Unit::set_anim` stands
+~~Frame 879 is next, and it is the same scout: two `Unit::set_anim` stands
 and then `Unit::think_scout+0x436`/`+0x458` six times over with `+0x64c`
 twice — the region fallback's cell walk (`docs/SCOUT.md` §11), sixteen
-draws this crate does not spend.
+draws this crate does not spend.~~ **Closed 2026-08-31** (item 110):
+`Regions::rebuild_coords@0067f800` refills every region's coordinate list
+by a row-major sweep of the cell grid, so the walk needs no dump and
+`docs/SCOUT.md` §11 is implemented. East Indies' word **1373 → 1570**.
 
 ## 3.21 A pasture nothing stocked — Great Lakes' word 1372 → 1802 (2026-08-31)
 

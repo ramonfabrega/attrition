@@ -9847,3 +9847,66 @@ What the capture leaves behind is the successor made cheap: item 120, the
 one draw at `Unit::do_air_physics+0x639`, is now scoreable over 24,000
 frames without taking another capture at all.
 
+
+## 2026-08-31 (item 110, Opus) — a list nobody dumped, in the grid's own order
+
+East Indies' word at 1373, booked as "the AI scout takes a seventh ring".
+It takes no seventh ring. The queue's own description of the frame was a
+**mislabelled draw**, and finding that out was most of the item.
+
+**The mark that was not there.** `Sim::scout_region_scan` had, since the
+mechanic landed on 2026-08-26, taken §11's stride draw and nothing else —
+`self.rng.roll()` with no `self.mark(...)` beside it. `mark_sites` builds
+our side of the sequence from the marks and the words *between* them, so a
+draw with no mark of its own is not omitted: it is attributed to whatever
+label is still standing. Ours was `SITE_PHASE`, the ring walk's second
+draw. The frame therefore read as `436 458 ×6` and then a lone `458` —
+exactly what a seventh ring looks like — where what it actually was is six
+ring pairs and then the fallback. **A draw without a mark is a lie, not a
+gap**, and this one sent an item to the wrong mechanic for a day.
+
+**What frame 1373 is.** The AI scout `1/0` walks its own city's six rings
+and takes **not one** `+0x64c`: by 1373 every cell within twelve of that
+city has been seen. So the city loop comes out with `best` still at
+99,999,999, the tail's `199 < best` sends it to the region fallback, and
+the original spends `+0x941` once and `+0xaba` five times there.
+
+**The list nobody dumped.** §11 had been "read, not implemented" since the
+day it was written, because the scan strides through `Region.coords` and
+that array is built by the map generator's flood fill, which no dump
+carries. The document said so, and `docs/SYNC.md` §6 carried it as an open
+item, and the note under it read "*Capture:* none would help".
+
+It is not the flood fill's order. `Regions::find_all@0067eff0` appends as
+it floods, merges, sorts — and then, in its **last four statements**, frees
+the list and calls `Regions::rebuild_coords@0067f800`, whose whole body is
+
+```
+for (y = 0; y < ys; y++) for (x = 0; x < xs; x++)
+    coords[wdata[xs·y + x].region][count++] = (x, y);
+```
+
+a row-major sweep of the cell grid. The order is the grid's, the `WORLD`
+dump's per-cell region map is enough to rebuild every list exactly, and the
+five cells fall out draw for draw on the first run.
+
+Total cost of the thing that had been unrecoverable: one
+`grep -l rebuild_coords` over the export. The lesson is `CLAUDE.md`'s own,
+in a shape it had not been said in — **grep the writers of every field you
+call unrecoverable**, not only the ones you call frozen. A field can be
+written twice, and it is the *last* writer that decides what a reader sees.
+
+**What moved.** East Indies' word **1373 → 1570**, its ticks **1374 →
+1477** and orders **1373 → 1476**, and its gaia positions **191,173 →
+191,876** of 192,504 with the first parting 1381 → **1658**. Great Lakes is
+untouched — run33's scout never leaves its city loop. The new parting at
+1570 is an anim wrap (`Guy::set_anim+0x97a < Guy::inc_time+0x271`), a
+different mechanic and the successor.
+
+**What the frame does not settle.** Three of §11's constants — the `× 16`
+distance scale, the `score *= 2` at `005f6bb9`, and the sense of
+`local_74` — were each inverted in turn and the word held at 1570. The five
+cells order the same way either way, and `best` is still 99,999,999 when
+the scan starts, so nothing on disk compares a region score against a city
+one. They are read from the listing and §13 item 1 says so, with the shape
+of the capture that would separate them.

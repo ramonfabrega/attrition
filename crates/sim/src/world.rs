@@ -912,6 +912,41 @@ impl World {
     pub fn region_size(&self, region: u16) -> i32 {
         self.region.iter().filter(|r| **r == Some(region)).count() as i32
     }
+
+    /// `Region.coords[start], [start + stride], …` — the region's cell list
+    /// in the order `Regions::rebuild_coords@0067f800` writes it.
+    ///
+    /// That function is the **only** writer that survives map load:
+    /// `Regions::find_all` appends coordinates in its own flood order,
+    /// merges regions, sorts them, then frees the list and calls this one
+    /// last. And this one is a plain **row-major sweep of the cell grid** —
+    /// `for y in 0..ys { for x in 0..xs { coords[wdata[xs*y + x].region]
+    /// .push((x, y)) } }` — so the order needs no dump to recover: it is
+    /// the grid's own (`docs/SCOUT.md` §11).
+    ///
+    /// Returns only the entries the caller will visit, since the region
+    /// scan strides.
+    pub fn region_coords_strided(&self, region: u16, start: i32, stride: i32) -> Vec<Cell> {
+        debug_assert!(stride >= 1, "the region scan's stride is at least 1");
+        let mut out = Vec::new();
+        if start < 0 {
+            return out;
+        }
+        let mut seen = 0i32;
+        let mut want = start;
+        for (i, r) in self.region.iter().enumerate() {
+            if *r != Some(region) {
+                continue;
+            }
+            if seen == want {
+                let i = i as i32;
+                out.push(Cell::new(i % self.width, i / self.width));
+                want += stride;
+            }
+            seen += 1;
+        }
+        out
+    }
 }
 
 #[cfg(test)]
@@ -1007,5 +1042,34 @@ mod tests {
         assert_eq!(w.cells_in(sea).count(), 8);
         assert_eq!(w.terrain(land), Terrain::Land);
         assert_eq!(w.region_of(Cell::new(3, 3)), Some(sea));
+    }
+
+    /// `Region.coords` is `Regions::rebuild_coords@0067f800`'s order and
+    /// that is the grid's own: y outer, x inner. A column-major list would
+    /// hold the same eight cells and hand a strided walk a different four,
+    /// which is what `docs/SCOUT.md` §11 rides on.
+    #[test]
+    fn a_region_s_coords_are_row_major() {
+        let mut w = World::new(4, 4);
+        let land = w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(1, 3));
+        w.fill_region(Terrain::Sea, Cell::new(2, 0), Cell::new(3, 3));
+        assert_eq!(
+            w.region_coords_strided(land, 0, 1),
+            vec![
+                Cell::new(0, 0),
+                Cell::new(1, 0),
+                Cell::new(0, 1),
+                Cell::new(1, 1),
+                Cell::new(0, 2),
+                Cell::new(1, 2),
+                Cell::new(0, 3),
+                Cell::new(1, 3),
+            ]
+        );
+        // And the stride is over that list, not over the grid.
+        assert_eq!(
+            w.region_coords_strided(land, 1, 3),
+            vec![Cell::new(1, 0), Cell::new(0, 2), Cell::new(1, 3)]
+        );
     }
 }
