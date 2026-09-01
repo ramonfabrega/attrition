@@ -1112,3 +1112,48 @@ the same item: widening `OrderMismatch` to the whole `MOVEORDER` row, a
 record the parser had carried and nothing had compared. That is CLAUDE.md's
 "diff the whole record" paying for the fourth time, and it is why the
 widening ledger (queue item 87) is worth building rather than repeating.
+
+## 29. The finish line past the scored captures — what "sim done" measures
+
+**Decided 2026-09-01**, in conversation (Fable 5, with the user). Extends
+entries 24 and 26; overturns nothing.
+
+**The question.** Great Lakes already runs its whole scored capture in
+lockstep and East Indies' pair is closing on its own full length. The
+finish line phase 3 names — two maps, full capture length — was pinned
+when ~1,850 frames was what a capture was. That is two minutes of
+opening: no war between the leaders, one age, and the namesake mechanic
+never fires (the attrition census is inert until a capture holds a
+Temple or a Fort — queue item 117). Crossing it is the milestone phase 3
+promised, and it is not the sim complete.
+
+**The decision.** The project's stated goal is the sim complete before
+any phase-4 renderer work, and "complete" is three counters, each
+already built, each held by the suite rather than by prose:
+
+1. **The pair, on the long captures.** run53 and run54 are 24,001-frame
+   same-game extensions of the scored runs, verified identical over the
+   whole overlap (`docs/ORACLE.md`). When the current line closes, the
+   floors, the scoreboard and the headline re-pin to them, with
+   full-detail dumps sized to the word per ORACLE's own rule — take the
+   expensive capture when the word has moved into it.
+2. **The blind list toward zero.** The cited functions no traced run has
+   ever entered (101 of 617): a diff only checks what a run reaches, so
+   this is the counter for what any capture of the same game never
+   touches. Shrinking it takes *targeted* captures — a Temple, a Fort, a
+   war, a transport — not longer ones. Item 88 pins it as a floor;
+   whatever residue remains at the end is enumerated and accepted
+   deliberately, function by function, not left implicit.
+3. **The widening ledger to zero.** Item 87: every field the parsers
+   carry is compared, or stands on a listed, reasoned exemption.
+
+When all three stand, the sim is as done as the evidence can make it,
+and phase 4 opens. One carve-out, already in the queue as item 39: a
+read-only debug viewer over `Sim` state is a *tool*, not phase-4
+renderer work, and may come whenever it starts paying for a mechanic.
+
+**The milestone is still said out loud.** Crossing the scored-capture
+line gets its sentence in the README when it happens — the first full
+game-slice in lockstep is the proof of method, and it should read as
+one — and the re-pin lands in the same session, so the headline never
+sits at a ceiling with nothing to say.

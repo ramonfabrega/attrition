@@ -104,6 +104,9 @@ artifact is the next phase's tool.
    fixed-seed, traced human-versus-AI capture on two maps stays in lockstep
    — no position or order disagreement — for its full length. This is the
    long middle, and the number is how anyone can tell where in it we are.
+   Closing the current captures is the milestone, not the phase:
+   `docs/DECISIONS.md` entry 29 names the three counters that define the
+   sim complete, and the renderer waits on them.
 4. **Renderer** — thin client. Original assets first; they are the visual
    oracle.
 5. **AI** — hardest, least-oracled, and less bad than it looked: build order
