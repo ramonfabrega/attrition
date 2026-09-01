@@ -6725,6 +6725,100 @@ mod tests {
         );
     }
 
+    /// **run53 — the same game, thirteen times as long, and the ceiling is
+    /// the same frame** (2026-08-31, item 91).
+    ///
+    /// `run33_s_long_trace_says_where_the_word_parts` is 1,850 frames, and
+    /// once item 114 took the word to 1802 the obvious worry was that 1802
+    /// was an artifact of the capture running out rather than a mechanic
+    /// boundary. run53 is the same game — same seed, same lobby, no input —
+    /// traced whole over **24,000** frames, and `tools/gamelog/rngcmp.py`
+    /// says its `game_random` word is run33's on all 1,851 overlapping
+    /// frames with **zero** differing. So this is not a second opinion; it
+    /// is the same opinion with twelve times more of it.
+    ///
+    /// **The word still parts at 1802**, and what parts it is one draw at
+    /// `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3` — a gaia
+    /// bird's flight physics, reached **once** in 1,851 frames and, as this
+    /// capture now shows, rarely enough to stay the boundary over 24,000.
+    /// That is the successor item, and this capture is what makes it
+    /// scoreable without another one.
+    ///
+    /// **Only the two frame numbers are pinned here, deliberately.** Past
+    /// 1802 both sides run on streams that are nobody's, so of the 24,000
+    /// frames 4,231 spend the original's number of draws and 2,040 do it in
+    /// the original's order — coincidence at about one frame in six, and a
+    /// number that moves with every unrelated change. `docs/QUEUE.md` item
+    /// 89(c) is exactly this trap, and run33's own totals are only worth
+    /// pinning because most of its frames fall *before* its parting. Here
+    /// they would be a non-monotone score pinned as monotone, so they are
+    /// printed and not asserted.
+    #[test]
+    fn run53_s_24000_frames_put_the_ceiling_where_run33_did() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+        ) else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let last = trace.frames.last().map_or(0, |(n, _)| *n);
+        // The whole point of this capture is its length; a short one would
+        // pass every assertion below and mean nothing.
+        assert!(
+            last >= 23_000,
+            "run53's traced length is {last}, wanted 23,000+ — this is the \
+             long capture, and a short file here is a wrong file"
+        );
+        for _ in 0..last {
+            built.tick();
+        }
+        let first_part = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| *ours != trace.labels(*f))
+            .map(|(f, _)| *f)
+            .unwrap_or(last);
+        let first_count = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| ours.len() != trace.labels(*f).len())
+            .map(|(f, _)| *f)
+            .unwrap_or(last);
+        let words = built
+            .frame_sites
+            .iter()
+            .filter(|(f, ours)| ours.len() == trace.labels(*f).len())
+            .count();
+        let matched = built
+            .frame_sites
+            .iter()
+            .filter(|(f, ours)| *ours == trace.labels(*f))
+            .count();
+        eprintln!(
+            "run53: word parts at {first_count}, sequence at {first_part} of {last}; \
+             {words} frames on the original's count, {matched} draw for draw \
+             (both mostly past the parting — printed, not pinned)"
+        );
+        assert!(
+            first_count >= 1_802 && first_part >= 1_802,
+            "run53's ceiling fell: word {first_count}, sequence {first_part}; \
+             the floor is 1802 on both"
+        );
+    }
+
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**
     ///

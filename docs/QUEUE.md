@@ -12,29 +12,30 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 114 (Opus).*
+*2026-08-31, after items 114 and 91 (Opus).*
 
-**Great Lakes has run out of frames to disagree on.** run10's score is
-**1772/1772 of 1,772** with *neither player parting at all* — no position
-disagreement, no scoring order disagreement, no gather tile disagreement,
-anywhere in the capture — and run33's word runs to **1802** of 1,850. East
-Indies is unmoved at **1374/1373** of 1,850 with its word at 1373.
+**Great Lakes is in lockstep for its whole capture, and its ceiling is a
+mechanic rather than a capture length.** run10 scores **1772/1772 of 1,772**
+with neither player parting at all — no position, no scoring order, no gather
+tile disagreement anywhere — and its gaia is 74,040 of 74,040. East Indies is
+unmoved at **1374/1373**, word 1373.
 
-Item 114 did all of it and it was one call. `Build::activate`'s gather tail
-reaches `Farms::add_animals` for every finished **food** gather building, so
-a pasture stocks five animals on the frame it completes — twenty draws, and
-five more as the newborns' clocks wrap. Every site had been read since
-August; what was missing was the caller (`docs/SYNC.md` §3.21). Items 118
-and 119 died with it, both having been downstream of a stream wrong since
-1372.
+Item 114 did that with one call: `Build::activate`'s gather tail reaches
+`Farms::add_animals` for every finished **food** gather building, so a pasture
+stocks five animals — twenty draws, five more as their clocks wrap. Every site
+had been read since August; the caller was missing (SYNC §3.21). Items 118 and
+119 died with it.
 
-**So the constraint has changed shape.** One map's capture is exhausted and
-the other's word is the only number still moving. **91 is started** —
-run53/run54 in `tools/gamelog/captures.txt`, the trace whole over 24,000
-frames on each map, launched 2026-08-31 20:33. Look for
-`gamelog-run53-greatlakes-24k-trace.txt` and `rontrace-run53.log`; if they
-are not there, `zsh tools/gamelog/runqueue.sh - 91` resumes where it stopped.
-Take **110** meanwhile, the last word item East Indies has.
+**Item 91 is done and answered what it was booked to answer.** runs 53/54
+(ORACLE), 24,000 frames a map, trace whole, 0-differing against run33/run39 —
+eight minutes and 70 MB, because the sim runs ~240 fps unrendered and it is
+the per-frame *dump* that costs. On thirteen times the frames **the word still
+parts at 1802**, so the long full-detail dump is not worth taking yet: ~30
+frames past run10's 1,772, then 22,000 of nobody's stream. Take it when the
+word has moved, sized to the word.
+
+**Each map's next number is now one mechanic.** Great Lakes: 120. East
+Indies: 110, and it leads — its headline is the only one still moving.
 
 **Opener (Opus):** `Continue — item 110: East Indies' word at 1373. The AI
 scout walks six rings on both sides; the original then leaves the loop for
@@ -44,29 +45,22 @@ have never named — where ours takes a seventh ring.`
 ## The queue
 
 In dependency order, headline-nearest first; the headline is the tick pair.
-Great Lakes' capture is exhausted, so the word item that leads is East
-Indies' — and the capture that would give Great Lakes a number of its own
-(91) is second rather than last. Take the first unstarted unless a better
-order is obvious — and say so. Numbers are stable; the journal indexed by
-them.
+East Indies is the only map whose headline can still move, so its word item
+leads. Take the first unstarted unless a better order is obvious — and say
+so. Numbers are stable; the journal indexed by them.
 
 110. **East Indies' word at 1373, and a seventh ring.** The AI scout walks
     six rings on both sides; the original then leaves the loop for
     `Unit::think_scout+0x941` once and `+0xaba` five times — sites SCOUT
     §6/§7 have never named — where ours takes a seventh ring.
 
-91. **The final scenario, and it is due.** One 24,000-frame game per map:
-    the **trace** whole (`cover=1`, no window) and the dump in windows
-    re-captured on demand. The condition it was booked against has arrived
-    on one map — Great Lakes' word (1802) is past run10's whole length
-    (1,772) and no unit or order in that capture disagrees anywhere, so
-    there is no number left in it. It is a `captures.txt` stanza and a wait,
-    not a session. **The sizing is the whole of the decision**: run33 is
-    271 MB of dump for 1,850 Great Lakes frames and run39 460 MB, and the
-    roster grows, so a run10-detail dump over 24,000 is GB-scale per map
-    against the disk there is. Trace-whole is ~150 MB and gives the word;
-    the tick and order scores need dump frames, so those come from windows
-    aimed where the word parts.
+120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
+    at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <
+    Unit::do_job+0xd7`, reached **once** in run33's 1,851 frames and still
+    the boundary over run53's 24,000. It is the last thing between this map
+    and a word past its own capture. `docs/SYNC.md` §3.9 has the bird;
+    `do_air_physics` is named there as unread and is the one arm of it no
+    run has forced.
 
 103. **The wood machine's record parts at 1,686, on a clock.** After 26,094
     agreeing fields the human's `0/2` holds a wait of 445 where the

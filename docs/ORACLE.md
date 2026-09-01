@@ -2752,6 +2752,53 @@ group's own value cannot be read off it, and run46's proof worked because the
 next order there is nothing to read it from. A capture that wants the
 completion path needs a fourth click after the arrival.
 
+
+## runs 53/54 — the same games, thirteen times as long, for eight minutes and 70 MB
+
+Item 91's captures, and the first two stanzas to use `poll_max:`. One
+24,000-frame run per map, the trace whole (`cover=1`) and the `[End Frame]`
+detail cut to `MISC` alone, `[Start Game]` left at run10's exactly because
+that block is what the harness stands the simulation up from.
+
+| run | map | gamelog | trace | frames |
+| --- | --- | --- | --- | --- |
+| 53 | Great Lakes (14) | 10 MB | 25 MB | 24,001 |
+| 54 | East Indies (18) | 10 MB | — | 24,001 |
+
+**Both are the same games as run33 and run39**, and that is asserted rather
+than assumed: `rngcmp.py` compares the `game_random` word of every `FRAME`
+record and both pairs come back **0 differing over 1,851 overlapping
+frames**. So run53 is a drop-in longer sibling of run10/run33 and run54 of
+run38/run39.
+
+**The measurement that matters here is the cost.** run33 is 1,850 frames and
+took the better part of an hour; run53 is 24,000 and took **100 seconds**.
+The sim is not the bottleneck and never was — unrendered under `!ffwd` it
+runs at roughly 240 frames a second — it is the **per-frame dump**, 155 KB a
+frame at run33's detail and rising with the roster. Cutting `[End Frame]` to
+`MISC` removes the floor entirely. Two consequences worth writing down:
+
+- **A trace-only capture of any length is nearly free.** Where a question is
+  about the *stream* rather than a record, there is no reason to take a short
+  one.
+- **A full-detail dump over 24,000 frames would be hours and gigabytes**, and
+  run53 is what says whether it is worth taking. It is not, yet: the word
+  parts at **1802** on this capture exactly as it does on run33's 1,850, so a
+  full-detail dump buys about thirty frames of new ground past run10's own
+  1,772 and then twenty-two thousand frames of a stream that is nobody's.
+  Size that capture to the word, and take it when the word has moved.
+
+**The trap this pair found, before it cost anything.** `longtrace.sh`'s poll
+loop was `for i in {1..160}` at twenty seconds — **53 minutes** — and its end
+is not a graceful stop: it `pkill`s the game and archives whatever has been
+written, which is a truncated capture that looks exactly like a finished one.
+Every run to 52 fits inside the bound and none had reason to notice. `POLL_MAX`
+is a hook now, `poll_max:` a stanza key, the default is unchanged at 160, and
+the give-up path says out loud that its archive is truncated. `settle_min`
+needed lowering for the same captures: a `MISC`-only per-frame block never
+reaches the 10 MB the settle test defaults to, so the run would never have
+been called finished.
+
 ## runs 51 and 52 — the profile IS read, and the key that answered it opened the chat box
 
 The experiment run50's section asked for, run in two halves, and it closes the

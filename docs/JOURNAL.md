@@ -9799,3 +9799,51 @@ come from a longer capture (item 91), and the map still moving is East
 Indies. What run33 says about the frames past 1772 is that its word survives
 to 1802 and parts on `Unit::do_air_physics+0x639` — a gaia bird's flight
 physics, the only time that site is reached in all 1,851 frames.
+
+## 2026-08-31 (item 91, Opus) — the long captures, and the 20 GB they saved
+
+Booked as "due when a map's word matches its 1,850", and the handoff that
+booked it got its cost wrong twice in one paragraph. It called item 91 a
+capture session; item 90's lane had already made it two stanzas in
+`captures.txt` and an unattended wait. And it sized the trace at ~150 MB
+against an actual 35 MB.
+
+**The blocker, found before anything was spent.** `longtrace.sh` polls
+`for i in {1..160}` at twenty seconds — 53 minutes — and its end is a
+`pkill` and an archive, not a stop. Every capture to run52 fits inside it.
+A 24,000-frame run does not, and what it would have produced is a truncated
+archive indistinguishable from a finished one — a confident wrong answer,
+which is the expensive kind. `POLL_MAX` is a hook now (default 160, so
+nothing existing moves), `poll_max:` a stanza key, and the give-up path
+announces its own truncation. `settle_min` needed the same care: a
+`MISC`-only per-frame block never reaches the 10 MB the settle test wants.
+
+**What the captures cost, which is the finding.** runs 53 and 54, one per
+map, 24,000 frames each, trace whole: **eight minutes and 70 MB for both**.
+run33 is 1,850 frames and took the better part of an hour. The sim was never
+the bottleneck — unrendered under `!ffwd` it runs about 240 frames a second
+— it is the per-frame dump, 155 KB a frame at run33's detail. Cut
+`[End Frame]` to `MISC` and the floor is gone. `rngcmp.py` says both new
+traces are 0-differing against their siblings over all 1,851 overlapping
+frames, so they are the same games with twelve times more of them.
+
+**And the answer inverted the plan.** The question the capture was taken to
+settle was how big a full-detail dump to buy, with 20–30 GB authorised. On
+thirteen times the frames Great Lakes' word **still parts at 1802** — the
+same frame run33's 1,850 reported. So a full-detail 24,000-frame dump buys
+about **thirty** frames of new measurable ground past run10's own 1,772, and
+then twenty-two thousand frames of a stream that is nobody's. The budget
+would have bought thirty frames. It is not spent, and the rule that falls
+out is: **size the dump to the word, and take it after the word moves, not
+before.**
+
+`run53_s_24000_frames_put_the_ceiling_where_run33_did` pins the two frame
+numbers and **prints rather than pins the two totals** — past 1802 they are
+coincidence at about one frame in six, and item 89(c) is precisely the
+warning against pinning a non-monotone score as monotone. Made to fail by
+asking for 1803.
+
+What the capture leaves behind is the successor made cheap: item 120, the
+one draw at `Unit::do_air_physics+0x639`, is now scoreable over 24,000
+frames without taking another capture at all.
+
