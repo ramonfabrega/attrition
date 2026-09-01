@@ -29,11 +29,10 @@ the reading's, and the next seam is a different mechanic.
   `do_air_physics+0x639` draws all a wild bird's, `Region::coast_here` off
   the blind list. And `gull_o`, the `DOCK` record's unasserted field, is
   run22's **15** here too.
-- **One assertion was luck and is rescoped.** run57's "zero wrong building
-  fields over 4,000 frames" held past the parting by chance; `1/2012` on
-  3977 moved one tile the instant the word did. The building half is now
-  asserted up to the word and printed past it, and the collision total is a
-  floor — it rose 330,643 → 337,265, units that ever part 14 → 11.
+- **`FABLE:` run57's past-the-word assertion was luck, and is rescoped in
+  code** — building half up to the word, collision total a floor (330,643 →
+  337,265, units that ever part 14 → 11). A ratchet on the count was named
+  and not costed; `docs/ORACLE.md`, run57, has both sides.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w3608 of 24,000 · GreatLakes w1802 of 24,000

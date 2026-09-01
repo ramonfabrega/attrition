@@ -4250,6 +4250,14 @@ mod tests {
     /// `builds` is structural — two fields on every linked building-frame —
     /// and stays an equality. `coll` counts *agreeing* unit-frames, so it
     /// moves with the simulation's quality and is a floor.
+    ///
+    /// **The rescope is marked `FABLE:` for the next ratification pass**
+    /// (`docs/ORACLE.md`, run57, "what may be asserted past the parting").
+    /// It is a code-changing verdict rather than a proposal, the argument
+    /// against it is real — a placement defect introduced past the word now
+    /// passes quietly, and the scope shrinks with every capture longer than
+    /// the word — and a third way, a ratchet on the count rather than a cut
+    /// to the range, was named and not costed.
     #[test]
     fn run57_s_four_thousand_frames_stand_where_the_original_s_do() {
         let Some(inst) = install() else { return };

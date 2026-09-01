@@ -10897,6 +10897,20 @@ total, which counts *agreeing* unit-frames and so moves with quality, became
 a floor rather than an equality. It rose 330,643 → 337,265 on the way, and
 the units that ever leave the original's point fell from fourteen to eleven.
 
+**It is marked `FABLE:` rather than settled** (`docs/ORACLE.md`, run57),
+and the reason to re-read it is that the obvious account of the parting is
+the wrong one. The harness does not free-run: `Built::tick` installs the
+original's word at the end of every frame the dump checksums, and run57 is
+a per-frame full dump, so both sides start every frame on the same word.
+What is not reset is the position *within* a frame — from 3608 on this
+simulation spends fewer draws before the AI's own rolls, so a placement 369
+frames later is decided by a value that is nobody's. The rescope follows
+from that, but so does a third option nobody costed: a **ratchet** on the
+count rather than a cut to the range, which would fail on a new
+past-the-word defect where a scope cut cannot. That trade applies to every
+score this repo pins past a parting, which is why it is the steering
+session's and not this one's.
+
 **And the headline got a guard.** `the_handoff_s_scoreboard_is_the_floors`
 parsed the queue's `Scoreboard:` line and stopped there — but East Indies'
 scored capture is closed, so the number a session is judged by is on the

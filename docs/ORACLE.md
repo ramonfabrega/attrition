@@ -3053,6 +3053,57 @@ dock's, as this section supposed, and what is left past 3,000 is one AI
 placement and its own consequence. The word went 3021 → **3435** on the
 same pair of fixes.
 
+**And where its test stands after item 133** (2026-09-01). The building
+half is **130,326 fields with one building wrong** — `1/2012` on 3977, one
+tile of `y` — and the collision half **337,265 field-frames with none
+wrong**, eleven units ever leaving the original's point, the first on 3582.
+Both numbers moved on a change that has nothing to do with either: the
+dock's gull, which took East Indies' word 3579 → 3608 and so moved where
+the two streams part. The building assertion is now scoped to frames
+**before the word** and the collision total is a floor rather than an
+equality; see the marker below.
+
+**`FABLE:` what may be asserted past the parting.** For one item this
+capture's test asserted **zero** wrong building fields over all 4,000
+frames, and that assertion was luck. `1/2012` on 3977 came back one tile
+north the moment the word moved 3579 → 3608 on the dock's gull, a change
+with nothing to do with it, and the choice was between reverting a
+29-frame word gain and rescoping the test. **It was rescoped, in code** —
+`build_bad` is filtered to `frame < LONG_WORD_EAST_INDIES` and `coll`
+became a `>=` — so this is a code-changing verdict to re-read from its own
+citations, not a proposal to weigh.
+
+**Why a past-the-word assertion is luck, stated precisely, because the
+obvious reason is the wrong one.** The harness does *not* free-run:
+`Built::tick` installs the original's `game_random` word at the end of
+every frame the dump carries a checksum for, and run57 is a per-frame full
+dump, so both sides **start every frame on the same word**. What is not
+reset is the position *within* a frame. From the first frame whose draw
+sequence differs — 3608, `cast_transport` — this simulation spends a
+different number of draws before the AI's own rolls, so every later draw in
+that frame takes a value that is not the one the original took there, and
+the state built from it persists. A placement 369 frames on is decided by a
+roll that is nobody's. So the parting is not seed drift and cannot be fixed
+by more re-seeding; it is the missing draws themselves, which is the main
+loop's job and not a test's.
+
+What a pass should weigh: **for** — run53's and run54's tests already say
+out loud that past the parting "the totals there are coincidence that moves
+with every unrelated change", and run57's was the one place that rule was
+not applied, so this is consistency rather than new policy; the scope kept
+is the half a shared stream backs, and both residues the test was written
+around (`1/2011` on 3177) live inside it. **Against** — the strongest claim
+this project has ever made about East Indies was "nothing is wrong in
+either record over all 4,000 frames", it held for a day, and scoping to the
+word means a real placement defect introduced past it now passes quietly;
+worse, the scope *shrinks* whenever a capture is longer than the word,
+which is every capture from here on. A third way nobody costed: keep the
+whole range and make it a **ratchet** — assert `build_bad.len() <= 25` with
+the offending building named — which fails on a new past-the-word defect
+where a scope cut cannot, at the price of a number that has to be edited
+every time the word moves. Whether a ratchet is a guard or a nuisance is
+the question, and it applies to every score this repo pins past a parting.
+
 **`FABLE:` the lane's own ordering rule, proposed and not adopted.** This run
 is the first evidence that "size the capture to the word" has the *order*
 wrong rather than the size: the two records that answered item 129 were both
