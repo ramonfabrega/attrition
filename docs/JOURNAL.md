@@ -11047,3 +11047,10 @@ it stands and were left untouched.
 
 **What steering did not do**: touch item 135, the scores, or the floors.
 The word is 3608, the opener is unchanged, and the next session is Opus.
+
+*Addendum, same day.* Lore pinned the before-number so the conventions can
+be scored: output tokens per item, grind sessions only, n=63 — median
+189k, mean 216k, p90 318k, ~341 turns/item. The next steering pass asks
+lore for the re-cut (sessions after 39afef6, same spec, compare medians,
+read against the per-session distribution since item mix shifts). C1's
+correction was conceded and ledgered on lore's side.
