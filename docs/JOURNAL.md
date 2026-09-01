@@ -10683,3 +10683,83 @@ every dumped record the mechanic touches before booking a capture — is
 marked `FABLE:` in `docs/ORACLE.md`'s run57 section and argued both ways
 there. It is a working-agreement change, so it is the steering session's,
 not this one's.
+
+## 2026-09-01 (item 130, Opus) — the dock's slide, and the headline moves 3021 → 3435
+
+Item 130 asked for one arm of `Leader::produce_building` — the sub-position
+slide behind `is(0x1b0)` — and said the dumped position was the only oracle it
+would ever have. Both halves were right. What was wrong was *why* it mattered.
+
+**The slide does not place the dock.** run56 dumps `o 2010` at
+`(44160, 41856)`, which is the plain centre of cell `(57, 54)` to the unit,
+and the arm's whole reach is ±2 tiles — half a cell — so no slid position from
+any neighbouring cell can land there. Half an hour of arithmetic on the dump
+said the strongest candidate was ruled out.
+
+**It is the accepted set that matters, not the position.** The spiral steps by
+one until a candidate improves on a standing best past ring 3, and then by
+three forever. Instrumenting the crate's own walk for frame 2976 printed the
+whole thing: anchor `(51, 52)`, `start 0`, `end 145`, nothing accepted before
+**129**, the stride engaging at **135**, and the walk `138 → 141 → 144` with
+`141 = (57, 52)` the last accept. The original needs `143`, and `143 ≡ 2
+(mod 3)`. Three of the walk's cells — 117 `(47, 57)`, 119 `(48, 58)`, 131
+`(54, 58)` — are refused by `blocked_site`, and those are exactly the cells the
+slide would rescue. With the arm built, 117 and 119 are accepted, the stride
+engages at **119**, and the walk runs `122 … 140, 143`. 143 is the last index
+of ring 6, ties replace, and the dock lands on the original's own cell at the
+original's own point. `run56_s_buildings_stand_where_the_original_s_do`:
+**92,626 fields, zero wrong**, where it had been one field of one building.
+
+The arm's three readable details are in `docs/AI.md` §21: the base is the
+*unpadded* centre, `dy` starts at `−(w / 2)` rather than `−(h / 2)` because
+the compiler loaded it once, and the out-parameter is null. All three are
+invisible on a 4×4 dock, and all three are written as the listing has them.
+The same section notes that `produce_building`'s three dock tests are the
+lineage `is(0x1b0)` and not the identity, which the crate now uses.
+
+**Then the dock's new cell reached two code paths nothing had ever run.**
+
+The first announced itself as an `i32` overflow in `find_angle`. All three
+`find_*path` pull-back walks decompile to `if (angle < 0) step = -step;`
+before two `sin_table` calls, and this crate had transcribed that as a
+caller-level flip *on top of* the fold `movement::sin_component` already
+performs. Doing it twice cancels it: for every western angle the goal walked
+away from the start, the region test never matched, and the loop did not
+terminate. The listing settles it in a minute — at `0x6894c3` the cosine's
+distance is reloaded from the un-negated step and negated again only on the
+sign of `angle + 0x40000000`, which is two independent folds and no caller
+flip at all. The same two listings give `find_tpath`'s step as `0x60` and
+`find_upath`'s as `0x18`, where the crate had `0x30`. `docs/PATHFINDER.md`
+§13. **Every capture on disk broke out of that loop on its first region
+test**, which is why a determinism soak and 175 diff tests had never touched
+it: the body first executed when a dock moved onto a coastal cell whose tile
+region is not its builder's.
+
+The second was one line shorter and worse. `find_nearby_spot`'s
+terrain-class-by-domain test was **not implemented** — the crate asked
+`World::accepts`, a cell-bounds test the sweep had already made — so a land
+unit could take a spot on an ocean tile. With the dock right, the builder's
+swarm ring is drawn on a coast for the first time in any capture: `k = 0` is
+refused by the footprint and `k = +1` lands on tile `(228, 215)`, mask
+`0x420`, surface ocean. The original refuses it and takes `k = −1`. With the
+test in place this crate takes `k = −1` too. `docs/ORDERS.md` §10.
+
+**The score.** East Indies' word on the long capture goes **3021 → 3435**;
+run56's collision block goes 249,293 → **249,413 field-frames, none wrong**,
+and the only unit that ever leaves the original's point is player 0's Citizen
+`o 5` on the quit's own half-written frame. Neither of the two path fixes
+moves a number by itself, and both are kept because the listing says so.
+
+**run57 became a test the same hour, and it names item 131.** The capture
+taken for 3021 — 4,000 frames, the same game as run54 and run56 by
+`rngcmp.py` and `samegame.py` — now carries both position records:
+**130,326 building fields with two buildings wrong** (`1/2011` on frame 3177,
+one cell east in `x`; `1/2012` on 3977, one tile) and **322,683 collision
+fields with none wrong**, nothing leaving the original's point before 3177.
+Its own earlier statement — seventeen units parting from 2978 — was the
+dock's consequence, and it is gone. Both residues are asserted as they stand.
+
+The word's frame, 3435, is three draws against two: a `Farms::inc_time+0x1ae`
+this crate spends and the original does not. It is past 3177, so it is
+plausibly item 131's consequence; that is item 132, and it says to re-measure
+rather than to read.

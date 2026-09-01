@@ -2238,8 +2238,28 @@ impl Sim {
                 {
                     continue;
                 }
-                if !air && !self.world.accepts(c) {
-                    continue;
+                // **The terrain class, by domain** (`0061e3a1`..`0061e39e`):
+                // an air type takes anything; a **sea** type needs the tile's
+                // surface field to be `SURFACE_OCEAN` exactly; a **land**
+                // type needs it not to be. This crate asked
+                // `World::accepts` here — a cell-bounds test the loop's own
+                // `tile_in_bounds` has already made — so a citizen was free
+                // to stand in the sea, which is what put the AI's dock
+                // builder on the wrong point of the swarm ring
+                // (`docs/ORDERS.md` §10, "The ocean the ring could stand
+                // in").
+                //
+                // SEAM: the warship clause. A sea type with `+0x1e8` or
+                // `is(0x15f, 1)` also needs `!(mask & 0x2400)`; neither
+                // input is loaded here, so it is taken as false — a warship
+                // may stand on a bad-path ocean tile that the original
+                // would refuse.
+                if !air {
+                    let ocean =
+                        self.world.tile_mask(c.tile()) & tile::SURFACE == tile::SURFACE_OCEAN;
+                    if ocean != matches!(p.domain, crate::attrition::Domain::Sea) {
+                        continue;
+                    }
                 }
                 // The collision half, last of all: `Objects::find_collision`
                 // then `Objects::find_ordered_collision`, both against

@@ -158,7 +158,8 @@ sets `saving = 1` and `limit = 300 / repaths²`; both zero `saving` after.
   `invalid_loc(goal,0,1,1,1,0)` clears) → on to the near test and A\*;
   the remainder is smaller than the current step on **both axes** → give
   up: push the goal where it stands and **return without A\***; the walk
-  reaches the start's cell → the same push-and-return. **Human** leaders
+  reaches the start's cell → the same push-and-return. The step's *sign* is
+  the sine's own fold and not a second one — §13. **Human** leaders
   (`leaders.list[who] & 4` is literally `LeaderData::is_human` — audit
   V14) take the other variant, itself under the same guard: pop entries
   until one's world cell's centre region matches and its **half-cell**
@@ -894,3 +895,81 @@ Four of the first reading's open items were **settled by the audit**
   passes treated `WData.blocked` as a property of the map because the
   frame-0 dump it was loaded from is a map. One `grep` for the field's
   writers names `set_blocked_at` in a second.
+
+## 13. The pull-back's step, and the fold that must not be applied twice (2026-09-01)
+
+All three pull-back walks — `find_wpath@00688fc0`, `find_tpath@006897d0`,
+`find_upath@00682f30` — decompile to the same four lines:
+
+```
+angle = find_angle(dx, dy);
+if (angle < 0) step = -step;
+x += sin_table(…);
+y -= sin_table(…);
+```
+
+**That `if` is not the caller's.** It is the compiler's inline of `sinx`'s
+own sign fold — the one `movement::sin_component` already performs — and
+the decompiler prints it at the call site because `sin_table` takes the
+*folded* angle and a signed distance. The listing says so plainly. At
+`0x6894c3`, immediately after `find_angle` returns:
+
+```
+6894c3  mov  edi, [ebp-0x20]      ; edi = the step, unsigned
+6894c6  mov  ecx, eax             ; the angle
+6894cb  mov  eax, edi
+6894d2  test ecx, ecx
+6894d4  jns  6894e1
+6894d6    neg  eax                ; ← the SINE call's distance only
+6894d8    and  edx, 0x7fffffff
+6894f5  call sin_table            ; x += sin_table(folded, ±step)
+6894fa  mov  edx, [ebp-0x34]      ; the angle again, unrotated
+6894ff  add  edx, 0x40000000      ; a quarter turn
+68950b  jns  689515
+68950d    neg  edi                ; ← the COSINE call's own fold, on `edi`,
+68950f    and  edx, 0x7fffffff    ;   which was never negated
+689528  call sin_table            ; y -= sin_table(folded2, ±step)
+```
+
+The cosine's distance is reloaded from the **un-negated** step and negated
+again only on the sign of `angle + 0x40000000`. That is exactly
+`sin_component(angle, step)` and `cos_component(angle, step)` — two
+independent folds, one per call — and there is no caller-level flip at all.
+
+**Doing it twice cancels it.** This crate flipped the step *and* handed the
+flipped step to `sin_component`, which flipped it back, so for every angle
+in the western half the step ran the wrong way: the goal walked *away* from
+the start instead of toward it, the region test never matched, and the loop
+did not terminate. It surfaced as an `i32` overflow in `find_angle` after
+~200 iterations, once the goal was far enough out that `lo * 0x4000` no
+longer fitted.
+
+**Why no capture caught it.** The walk only runs when the goal's tile
+region differs from the start's, and every such call on every capture on
+disk matched on its **first** test and broke out before the body ran once.
+The body first executed on 2026-09-01, when the AI's Dock moved two cells
+south onto a coastal cell whose tile region is not its builder's
+(`docs/AI.md` §21) — and then it ran forever. With the fold removed it
+converges in one step: `(43896, 41400)` → `(43593, 41163)`, region 12,
+which is the start's.
+
+**And the step constants, from the same two listings.** The step is the
+same number as the walk's own give-up threshold, and it is not `0x30`
+everywhere:
+
+| walk | give-up test | step | where |
+|---|---|---|---|
+| `find_wpath` | `0x180` when Manhattan ≥ `0x300`, else `0x30` | the same | `0x689487`, `0x6894a8` |
+| `find_tpath` | `0x60` on both axes | **`0x60`** | `mov ebx, 0x60` at `0x6899da` |
+| `find_upath` | `0x18` on both axes | **`0x18`** | `mov edi, 0x18` at `0x68318b` |
+
+This crate had `0x30` in the last two. Neither moves any number on any
+capture on disk — for the same reason the fold did not — but both are now
+what the listing says.
+
+**Coverage.** Reading-only, and by the listing rather than the decompile:
+every claim here is a byte at a named address. No capture exercises the
+body more than once, so none of it is diff-backed; what a run *does* pin
+is the consequence — with the fold removed, run56's 3,000 frames still
+stand at zero position disagreements for every unit but the dock's builder
+(`run56_s_collision_block_agrees_past_the_scored_length`).

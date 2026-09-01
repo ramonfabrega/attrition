@@ -2611,6 +2611,21 @@ into those dead slots (R7 N13).
   (reject iff `vector_dist ≤ other.big_radius + r_coll`) and the own-player
   ordered variant. A building's `new_block_radius` is 0, so only `0x4000`
   tiles and the footprint test keep units off it.
+**The ocean the ring could stand in (2026-09-01).** The terrain-class test
+above was **not implemented** — `find_nearby_spot` asked `World::accepts`,
+which is a cell-bounds test the sweep's own bounds check has already made —
+so a land unit was free to take a spot on an ocean tile. It cost nothing
+until a swarm ring was drawn around a *coastal* site. run56 frame 2977:
+player 1's citizen `o 11` is sent to build the AI's Dock at
+`(44160, 41856)`, `R = 4 × 0x60 + 0x30 = 0x1b0`, base bearing
+`find_angle(me − site) ≈ 311°`; the sweep's `k = 0` is refused by the
+footprint and `k = +1` lands on tile `(228, 215)`, whose mask is `0x420` —
+surface `0x20`, ocean. The original refuses it and takes `k = −1`, one
+bearing later in the `0, 1, −1, 2, −2, …` order. With the test in place
+this crate takes `k = −1` too, and unit `1/11` walks the original's own
+line for the whole of run56. `docs/AI.md` §21; the reason it took until now
+is that no capture on disk had ever put a swarm ring on a coast.
+
 - **The base bearing** at every build/repair/gather/garrison call site is
   **`find_angle(me − target)`** (asm-confirmed at the swarm, garrison and
   gather sites): the sweep starts on the unit's own side of the target.

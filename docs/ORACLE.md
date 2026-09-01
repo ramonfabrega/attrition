@@ -3041,6 +3041,18 @@ in the extra thousand frames is independent evidence, which is exactly what
 makes it useful: **when the dock lands, this is the capture that says what
 is next**, and it needs no second run to do it.
 
+**And it did, the same day.** The dock landed on 2026-09-01 (`docs/AI.md`
+§21), and run57 became a test the hour after —
+`diff::tests::run57_s_four_thousand_frames_stand_where_the_original_s_do`,
+both position records over 4,000 frames. What it says now: **130,326
+building fields with two buildings wrong** — `1/2011` on 3177, one cell east
+in `x`, and `1/2012` on 3977, one tile — and **322,683 collision fields with
+none wrong**, the fourteen units that ever leave the original's point all
+leaving it at or after 3177. So the seventeen-unit consequence was the
+dock's, as this section supposed, and what is left past 3,000 is one AI
+placement and its own consequence. The word went 3021 → **3435** on the
+same pair of fixes.
+
 **`FABLE:` the lane's own ordering rule, proposed and not adopted.** This run
 is the first evidence that "size the capture to the word" has the *order*
 wrong rather than the size: the two records that answered item 129 were both

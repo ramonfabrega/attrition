@@ -12,35 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the collision block is innocent, and East Indies' word
-holds at **3021**.* Item 129 asked for a capture and was answered by the
-record already on disk; the headline did **not** move, and what holds it is
-a failing field rather than a guess.
+*2026-09-01, Opus — the dock landed, and East Indies' word went **3021 →
+3435**.* Item 130 closed on the arm §20 named, for a reason §20 had
+backwards, and it took two more defects with it.
 
-- **Two widenings, and the second names the blocker.** run56's collision
-  block is **249,293 fields, zero wrong**, so the blocked stand at 3021 was
-  never the seam. `BUILDDATA`'s `x_internal`/`y_internal` had been parsed
-  and never compared: **92,626 fields**, residue one field of one building
-  — player 1's **Dock `o 2010`**, frame 2977, cell `x 57` in both, cell `y`
-  **52** here against **54**. Its citizen then walks elsewhere and takes no
-  stand 44 frames later. AI §20.
-- **The spiral's stride is spent at the bottom** — `local_2c += iVar13` at
-  `006e25bb`, by the stride the body has just set, where this crate stepped
-  at the top by the previous one. The fuzzed map's frame 1 goes **29 → 30**
-  candidates against 30, a five-day residue; the frame is 44 of 45. It does
-  not move the dock.
-- **run57 is on disk**, same game twice over; past 3,000 all of it is the
-  dock's consequence, so it says what is next the moment 130 lands. Beside
-  it, `FABLE:` — the lane's *ordering* rule, widen the records before
-  booking a capture, argued both ways and not adopted. ORACLE, "run57".
+- **The slide is not what places the dock.** `produce_building`'s
+  `is(0x1b0)` arm slides ±2 tiles, and the original's dock sits on the
+  plain centre of cell `(57, 54)`, which no slide can reach. What it does
+  is make the spiral *accept* index 117 instead of 129, which moves the
+  stride-of-three's phase from `0` to `2 (mod 3)` and lands the walk on
+  143. run56's buildings: **92,626 fields, zero wrong**. AI §21.
+- **Two more, each first reached by the dock's new cell.** All three
+  `find_*path` pull-backs applied `sin_component`'s own sign fold twice,
+  walking the goal *away* from the start and never terminating — no
+  capture had run that body twice (PATHFINDER §13, listing-settled, with
+  `find_tpath`/`find_upath`'s steps `0x60`/`0x18`). And
+  `find_nearby_spot` had no terrain test, so a citizen could stand in the
+  sea: the swarm ring took `k = +1` where the original takes `−1` (ORDERS
+  §10).
+- **run57 is a test now, and it names the next item.** 4,000 frames, both
+  position records: **130,326 building fields, two wrong** — `1/2011` on
+  3177 one cell east, `1/2012` on 3977 one tile — and **322,683 collision
+  fields, none wrong**, nothing leaving the original's point before 3177.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w3021 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w3435 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `The headline is East Indies' word at 3021 and item 130
-is the one field holding it: the AI's dock sits on cell (57, 52) where the
-original's sits on (57, 54). docs/AI.md 20 names the three candidates and
-which is unread.`
+**Opener (Opus):** `The headline is East Indies' word at 3435 and item 131
+is what holds it: the AI's building 1/2011 goes up on frame 3177 one cell
+east of the original's. run57's diff is the oracle and docs/AI.md 21 is the
+method that closed its predecessor.`
 
 ## The queue
 
@@ -49,19 +50,22 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-130. **The AI's dock, and the two cells the spiral must part on.** The
-    one field `run56_s_buildings_stand_where_the_original_s_do` still has
-    wrong, and the whole of East Indies' word at 3021. The candidates are
-    `(57, 52)` at spiral index 141 and `(57, 54)` at 143, and this crate's
-    walk 135 → 138 → 141 → 144 never visits 143. AI §20 names the three
-    things that could put the original there; the strongest and the only
-    unread one is the **dock's sub-position slide** — where `blocked_site`
-    refuses a dock's exact cell, `produce_building`'s `is(0x1b0)` arm runs
-    a nested `local_88/2 × local_7c/2` search that this crate does not run
-    at all, and two cells of this very walk (`(57, 49)`, `(57, 53)`) are
-    refused here. No draw is spent on a dock's spiral or its slide, so the
-    dumped position is the only oracle it will ever have — and it is a
-    test. Read the arm, build it, and the diff says yes or no.
+131. **`1/2011`, one cell east, on frame 3177.** run57's own residue and
+    the whole of East Indies' word at 3435: the AI's building `o 2011`
+    goes up at `x 35712` where the original's is at `34944`, exactly one
+    cell, and every unit that leaves the original's point in the capture
+    leaves it at or after that frame. Same shape as item 130 and the same
+    oracle — a dumped position with no draw of its own — so the method is
+    §21's: instrument `produce_building`'s walk for this call, find the
+    accepted set and the stride's phase, and read the arm that differs.
+    `1/2012` on 3977 is one *tile* in `x`, a jitter or a slide rather than
+    a cell, and is probably a second thing.
+
+132. **The word's own frame, 3435.** Three draws against two: this crate
+    spends a `Farms::inc_time+0x1ae` the original does not. It is past
+    run57's building seam at 3177, so it may be that item's consequence —
+    take 131 first and re-measure. If it survives, FARMS is the document
+    and the growth clock is the suspect.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
     table at `0063bd84` cannot produce it;

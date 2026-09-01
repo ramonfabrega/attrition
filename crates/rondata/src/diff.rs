@@ -4159,19 +4159,158 @@ mod tests {
                 d.frame, d.who, d.o, d.field, d.ours, d.theirs
             );
         }
-        // **249,293 field-frames, and not one of them wrong** — where
+        // **249,413 field-frames, and not one of them wrong** — where
         // run10 pins 139,514 on the other map. The block is scoped to
         // unit-frames whose *positions* already agree, so the number is
         // this capture's own size rather than a score, and it moves when
         // a longer East Indies capture replaces this one.
+        //
+        // It was **249,293** while the AI's Dock stood two cells north of
+        // the original's and its builder walked, by luck, almost the
+        // original's own line. The dock's slide (`docs/AI.md` §21) put the
+        // dock right and the *approach* wrong — 249,288, `1/11` parting a
+        // frame earlier — and `find_nearby_spot`'s missing terrain test
+        // (`docs/ORDERS.md` §10) put that right too. **`1/11` now agrees
+        // for the whole capture**, and the only unit that parts at all is
+        // player 0's Citizen `o 5` on the quit's own half-written frame.
         assert_eq!(
-            seen, 249_293,
+            seen, 249_413,
             "five fields on every agreeing unit-frame of run56"
         );
         assert!(
             bad.is_empty(),
             "the collision block agrees on every comparable field-frame of {seen}: {bad:?}"
         );
+    }
+
+    /// **run57, the thousand frames past run56** — the same game at the
+    /// same detail carried to 4,000, asked for both position records at
+    /// once because the sim run is what costs.
+    ///
+    /// It is a drop-in longer run56 and the tools said so before it was
+    /// read: `rngcmp.py` against run54 is 4,001 frames with none
+    /// differing, `samegame.py` against run56 is 3,000 in common with none
+    /// differing (`docs/ORACLE.md`, "run57"). So it inherits run38's
+    /// siblings, and what it adds is the only independent evidence anyone
+    /// has about frames 3,000–4,000 of East Indies.
+    ///
+    /// It was captured for a divergence at 3021 that a widening of run56
+    /// answered instead, and its own statement was that everything past
+    /// 3,000 was one thing's consequence: seventeen units first parting
+    /// from 2978, and two later buildings — `1/2011` on 3177 and `1/2012`
+    /// on 3977 — going up after the citizen that builds them is already
+    /// walking somewhere else. With the dock's slide (`docs/AI.md` §21)
+    /// and the swarm ring's terrain test (`docs/ORDERS.md` §10) that
+    /// consequence is gone, and what is printed below is what is left.
+    ///
+    /// The two totals are this capture's own size rather than a score,
+    /// and they are asserted so that a change to either fails here rather
+    /// than passing quietly.
+    #[test]
+    fn run57_s_four_thousand_frames_stand_where_the_original_s_do() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run57-islands-4k.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run57.log"),
+        ) else {
+            eprintln!("skipping: no run57 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        assert!(
+            report.frames.len() >= 4_000,
+            "run57's length is {} — a short file here is a wrong file",
+            report.frames.len()
+        );
+
+        // The buildings, whole.
+        let builds: usize = report.frames.iter().map(|f| f.build_compared).sum();
+        let build_bad: Vec<BuildDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.build_diverged.iter().copied())
+            .collect();
+        let mut first_build: Vec<(i64, i64, i64, &'static str, i64, i64)> = Vec::new();
+        for d in &build_bad {
+            if !first_build.iter().any(|&(w, o, ..)| (w, o) == (d.who, d.o)) {
+                first_build.push((d.who, d.o, d.frame, d.field, d.ours, d.theirs));
+            }
+        }
+        eprintln!(
+            "run57 buildings: {builds} fields compared, {} wrong on {} building(s)",
+            build_bad.len(),
+            first_build.len()
+        );
+        for &(who, o, frame, field, ours, theirs) in &first_build {
+            eprintln!("  {who}/{o} from f{frame}: {field} ours {ours} theirs {theirs}");
+        }
+
+        // The collision block, on every unit-frame whose position agrees.
+        let coll: usize = report.frames.iter().map(|f| f.collide_compared).sum();
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let coll_bad: Vec<CollideDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.collide_diverged.iter().copied())
+            .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
+            .collect();
+        eprintln!(
+            "run57 collision: {coll} field-frames compared, {} wrong, \
+             {} unit(s) ever off position",
+            coll_bad.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+
+        // **The two residues, asserted as they stand**, so that closing
+        // either fails here rather than passing quietly. Both are the AI's
+        // own placements and both are in `x` alone: `1/2011` is **one
+        // cell** east of the original's on the frame it goes up, and
+        // `1/2012` **one tile**. Everything before 3177 — every building
+        // of both players, on every frame — is the original's own point.
+        assert_eq!(
+            first_build
+                .iter()
+                .map(|&(w, o, f, field, ..)| (w, o, f, field))
+                .collect::<Vec<_>>(),
+            vec![(1, 2011, 3177, "x_internal"), (1, 2012, 3977, "x_internal"),],
+            "the AI's two later buildings are the only ones sited elsewhere"
+        );
+        assert_eq!(
+            build_bad.len(),
+            850,
+            "one field-frame per frame they stand for"
+        );
+        // **Not one collision field wrong in 322,683**, and the fourteen
+        // units that ever leave the original's point all leave it *after*
+        // `1/2011` goes up on 3177 — `1/2` on that very frame. The block
+        // is scoped to unit-frames whose positions still agree, so this is
+        // the capture's size and not a score.
+        assert!(
+            coll_bad.is_empty(),
+            "the collision block agrees on every comparable field-frame of {coll}: {coll_bad:?}"
+        );
+        assert_eq!(
+            parted.values().copied().min(),
+            Some(3177),
+            "nothing parts before the building that causes it"
+        );
+        assert_eq!(builds, 130_326, "two fields on every linked building-frame");
+        assert_eq!(coll, 322_683, "five fields on every agreeing unit-frame");
     }
 
     /// **Where the buildings stand** — run56's `BUILDDATA` position, on
@@ -4184,12 +4323,13 @@ mod tests {
     /// still agrees on every gather field, so the whole of
     /// `docs/AI.md` §2.20 was uncheckable against a capture until this.
     ///
-    /// **92,626 fields, and the residue is one building's `y`** — player
-    /// 1's Dock `o 2010`, laid on frame 2977. It is the last thing between
-    /// this crate and East Indies' word past 3021: the citizen sent to
-    /// build it walks the original's own frames toward a different point,
-    /// and 44 frames later the original's step is blocked where this one's
-    /// is not (`docs/AI.md` §20).
+    /// **92,626 fields, and every one of them right.** The last residue
+    /// was one building's `y` — player 1's Dock `o 2010`, laid on frame
+    /// 2977 two cells north of the original's — and it closed with the
+    /// dock's own sub-position slide (`docs/AI.md` §21): the slide is not
+    /// what places this dock, it is what makes the spiral *accept* a cell
+    /// three ring-6 candidates earlier, and the stride of three that
+    /// engages there lands on the original's own index.
     #[test]
     fn run56_s_buildings_stand_where_the_original_s_do() {
         let Some(inst) = install() else { return };
@@ -4237,21 +4377,14 @@ mod tests {
             eprintln!("  {who}/{o} from f{frame}: {field} ours {ours} theirs {theirs}");
         }
         assert_eq!(seen, 92_626, "two fields on every linked building-frame");
-        // **One building, one field, and it is asserted as it stands** so
-        // that closing it fails here rather than passing quietly. Every
-        // other building of both players stands on the original's own
-        // point for all 3,000 frames — the pre-placed ones, the farms and
-        // the second city this crate sites itself, and the camp of item
-        // 85.
-        assert_eq!(
-            first
-                .iter()
-                .map(|&(w, o, f, field, ..)| (w, o, f, field))
-                .collect::<Vec<_>>(),
-            vec![(1, 2010, 2977, "y_internal")],
-            "the AI's dock is the only building sited somewhere else"
+        // **Every building of both players stands on the original's own
+        // point for all 3,000 frames** — the pre-placed ones, the farms
+        // and the second city this crate sites itself, the camp of item
+        // 85, and now the AI's Dock.
+        assert!(
+            bad.is_empty(),
+            "a building stands somewhere the original's does not: {first:?}"
         );
-        assert_eq!(bad.len(), 25, "one field-frame per frame it stands for");
     }
 
     /// **The crew's follow offsets, from the install** — `track_dx` and
@@ -7673,9 +7806,20 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **3021**, and it is past the full-detail sibling's own length: the
-    /// frame is four draws against five, and the missing one is an idle
-    /// request from `Unit::move_step` rather than from `Guy::inc_time`.
+    /// **3435**, and the frame is three draws against two: this crate
+    /// spends a `Farms::inc_time+0x1ae` the original does not.
+    ///
+    /// It was **3021** for two items — four draws against five, the
+    /// missing one an idle request from `Unit::move_step` rather than from
+    /// `Guy::inc_time` — and both of them were the AI's Dock. `o 2010`
+    /// went up two cells north of the original's because
+    /// `produce_building`'s `is(0x1b0)` slide was not modelled, and the
+    /// slide's effect is not where the dock lands but *which* candidate
+    /// the spiral accepts, and so the phase of its stride of three
+    /// (`docs/AI.md` §21). With the dock right the seam moved to the
+    /// builder's approach and `find_nearby_spot` let a citizen stand in
+    /// the sea (`docs/ORDERS.md` §10); with both, every unit of run56
+    /// stands where the original's does for the whole capture.
     ///
     /// It was **2665** twice over, and the second of those was the scout's
     /// **dog**. A unit is one or more figures, and a crew figure whose
@@ -7705,7 +7849,7 @@ mod tests {
     /// site would gather. `blocked_site`'s out-parameter is that number
     /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
     /// original's own frame, tile and object number.
-    const LONG_WORD_EAST_INDIES: i64 = 3021;
+    const LONG_WORD_EAST_INDIES: i64 = 3435;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

@@ -1010,7 +1010,7 @@ impl Sim {
             }
             let (dx, dy) = (here.x - goal.x, here.y - goal.y);
             let far = dx.abs() + dy.abs() >= 0x300;
-            let mut s = if far { 0x180 } else { 0x30 };
+            let s = if far { 0x180 } else { 0x30 };
             // The give-up exit: a remainder smaller than the step on both
             // axes takes the goal where it stands **without running A\***
             // (audit V17) — the same push-and-return as reaching the
@@ -1020,9 +1020,17 @@ impl Sim {
                 return self.units[u].path.len() as i32;
             }
             let ang = movement::find_angle(dx, dy);
-            if ang.0 < 0 {
-                s = -s;
-            }
+            // **No sign flip here.** The decompiler's `if (angle < 0) step =
+            // -step` before the two `sin_table` calls is the *inlined* fold
+            // that [`movement::sin_component`] already performs — and the
+            // listing settles it: at `0x6894c3` the cosine's distance is
+            // reloaded from the un-negated `s` and negated again only on the
+            // sign of `angle + 0x40000000`. Doing it twice cancels the fold,
+            // which sends the pull-back away from the start instead of
+            // toward it; the walk then never converges. Every capture broke
+            // out of this loop on its first region test, so nothing caught
+            // it until a dock stood one cell further out
+            // (`docs/PATHFINDER.md` §13).
             let sx = movement::sin_component(ang, s);
             let cy = movement::cos_component(ang, s);
             goal = Pos::new(goal.x + sx, goal.y - cy);
@@ -1131,7 +1139,10 @@ impl Sim {
                 break;
             }
             let ang = movement::find_angle(dx, dy);
-            let s = if ang.0 < 0 { -0x30 } else { 0x30 };
+            // `0x60`, the same constant as the give-up test above, and no
+            // caller-level fold — `mov ebx, 0x60` at `0x6899da`, negated to
+            // `0xffffffa0` only inside the sine's own fold.
+            let s = 0x60;
             let sx = movement::sin_component(ang, s);
             let cy = movement::cos_component(ang, s);
             goal = Pos::new(goal.x + sx, goal.y - cy);
@@ -1228,7 +1239,8 @@ impl Sim {
                 break;
             }
             let ang = movement::find_angle(dx, dy);
-            let s = if ang.0 < 0 { -0x30 } else { 0x30 };
+            // `0x18` here — `mov edi, 0x18` at `0x68318b`.
+            let s = 0x18;
             let sx = movement::sin_component(ang, s);
             let cy = movement::cos_component(ang, s);
             goal = Pos::new(goal.x + sx, goal.y - cy);

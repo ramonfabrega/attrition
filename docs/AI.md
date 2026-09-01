@@ -2756,5 +2756,97 @@ dumped position, which is now a test.
 
 **Coverage.** Diff-backed: the step's position, by the fuzzed map's spiral
 count; every building's position on every frame of run56, with the one
-field above as the stated residue. Reading-only: the dock slide in
-`produce_building`'s `is(0x1b0)` arm, unimplemented and unexercised.
+field above as the stated residue. ~~Reading-only: the dock slide in
+`produce_building`'s `is(0x1b0)` arm, unimplemented and unexercised.~~ —
+built and diff-backed, §21.
+
+## 21. The dock's slide, and the cell it buys three candidates earlier (2026-09-01)
+
+§20 left three candidates for the two cells the spiral must part on and
+named the **dock's own sub-position slide** as the strongest. It is the
+one, and not for the reason the section supposed.
+
+**The arm.** `blocked_site` refusing the centred position is not the end of
+a candidate for a dock. The `else` at `006e2725` asks `is(0x1b0)` — the
+lineage test, so a Shipyard or a Port answers it too — and on a yes walks a
+block of whole tiles around the refused point, taking the **first** that
+clears:
+
+```
+hx = local_88 / 2;  hy = local_7c / 2;             # 2 and 2 for a dock
+for (dx = -hx; dx <= hx; dx++)
+    for (dy = -hx; dy <= hy; dy++)                 # note: -hx, not -hy
+        if (|dx| + |dy| <= local_5c)               # 8 for a dock: never binds
+            if (blocked_site(bt, base + dx*0xc0, base + dy*0xc0, who, -1, NULL) == 0)
+                goto accept;
+```
+
+Three details the listing settles and the shape does not:
+
+- **The base is the *unpadded* centre.** The arm rebuilds it as
+  `cell·0x300 + size·0x60` rather than reusing the padded point the
+  refused call was given, so it drops the `((4 − size) · 0xc0) / 2`
+  centring that `LAB_006e1c9b` adds. A dock is 4×4 and the two agree; a
+  smaller type in this lineage would not. (For any size ≤ 4 the padded
+  centre is exactly the cell centre, `cell·0x300 + 0x180`, because
+  `size·0x60 + (4 − size)·0x60` is constant — which is why the difference
+  is invisible on the only type that runs this.)
+- **`dy` starts at `−(local_88 / 2)`**, the *x* half: `local_58` is loaded
+  from the `dx` initialiser once and never reloaded. Invisible while
+  `w == h`, and written as read.
+- **The out-parameter is null**, so `local_34` — what the site would
+  gather — keeps whatever the refused call left it. Inert: no dock is
+  gather-scored.
+
+**What it does, and it is not what §20 guessed.** The slide is *not* what
+places the dock. Run56's dumped `o 2010` sits at `(44160, 41856)`, which is
+the plain centre of cell `(57, 54)` to the unit, and the slide's whole
+reach is ±2 tiles — half a cell — so no slid position from any neighbouring
+cell can reach it. What the slide changes is **which candidates the spiral
+accepts**, and therefore the phase of the stride of three.
+
+The walk on frame 2976, anchor `(51, 52)`, `start 0`, `end 145`
+(`rings 6`), every score `588` so ties always replace:
+
+| | accepted at | first stride | thereafter | lands on |
+|---|---|---|---|---|
+| without the slide | 129 | 135 | 138, 141, 144 | 141 = `(57, 52)` |
+| with it | **117**, 119 | **119** | 122 … 140, **143** | 143 = `(57, 54)` |
+
+Indices 117 `(47, 57)`, 119 `(48, 58)` and 131 `(54, 58)` are the walk's
+`blocked_site` refusals, and all three slide clear. The stride engages on
+the first accepted index past `circle_radius[3] = 45` that already has a
+best standing — the *second* accept — so accepting one earlier moves that
+index from 135 to 119 and the phase from `0` to `2 (mod 3)`. 143 is the
+last index of ring 6, `146` is past `end`, and the last accepted candidate
+wins: the dock lands on the original's own cell, at the original's own
+point.
+
+**The diff.** `run56_s_buildings_stand_where_the_original_s_do` is
+**92,626 fields, zero wrong** — every linked building of both players on
+all 3,000 frames, where it was one field of one building. Nothing else in
+either suite moves; the fuzzed map's frame 1 and run20's frame 1 are
+untouched, because no draw is spent on a dock's spiral or its slide.
+
+**The lineage test, applied where the crate had the identity.**
+`produce_building` asks `is(0x1b0)` three times — the spiral's `start`, the
+site block's `w`/`h`/`max`, and this arm — and `is(0x1b7)` once for the
+tower. The three dock ones are now `build::is_dock`; the tower is still
+`ident == Ident::Tower` and is a residue of the same kind.
+
+**What it does not close.** East Indies' word still parts at **3021**, and
+with the dock right the seam moved *upstream*, to frame 2977 and to a
+different mechanic: the builder's approach. The original's `o 11` carries a
+four-deep `PATHDATA` chain to `(43704, 41688)` — cell `(56, 54)` plus the
+order's own `off 696, 216` — and this crate sends it to `(43896, 41400)`.
+Both are points of the swarm ring of `min(x_size, y_size)·0x60 + 0x30`
+around a 4×4 site, `0x30` outward; they are ~25° apart on it, so the ring's
+sweep, not its radius, is what differs. `docs/ORDERS.md` §5.4 and
+`docs/QUEUE.md` item 131.
+
+**Coverage.** Diff-backed: the arm's existence, its base, and its
+first-clear rule, all by run56's building positions — the slide has no
+draw of its own, so the dumped position is the only oracle it can have,
+and it is now a test. Reading-only: the `dy`-starts-at-`−hx` quirk and the
+unpadded base, both invisible on a 4×4 dock and both taken from the
+listing.

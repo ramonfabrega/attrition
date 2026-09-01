@@ -346,6 +346,11 @@ impl Sim {
         let mut rings = ((self.city_radius(who, self.buildings[near].ty) + 2) / 4).max(0) as usize;
         let nocity = frame != 0 && bt.has(flags::NO_CITY);
         let gather = bt.has(flags::GATHER);
+        // `is(0x1b0)`, the dock **lineage** test, not `ident == Dock`: a
+        // Shipyard or a Port answers it too (`docs/TRANSPORT.md`, "The
+        // slot"). It gates three things here — the spiral's start, the
+        // site block's extent, and the slide below.
+        let is_dock = crate::build::is_dock(&self.build_types, rec);
         let tower = ident == Ident::Tower;
         let is_fort = ident == Ident::Fort;
         let circle = circle();
@@ -353,7 +358,7 @@ impl Sim {
         let mut fortlike = false;
         if nocity {
             rings += 1;
-            if !gather && ident != Ident::Dock && !tower {
+            if !gather && !is_dock && !tower {
                 start = if is_fort { 1 } else { circle.radius[3] };
             }
             fortlike = is_fort;
@@ -367,7 +372,7 @@ impl Sim {
         }
 
         // 4.3 The spiral.
-        let (w, h, max) = if ident != Ident::Dock {
+        let (w, h, max) = if !is_dock {
             let w = if bt.x_size < 4 { 5 - bt.x_size } else { 1 };
             let h = if bt.y_size < 4 { 5 - bt.y_size } else { 1 };
             let max = if bt.x_size < 4 || bt.y_size < 4 {
@@ -450,10 +455,55 @@ impl Sim {
                 // would gather. It is zero for every type but a non-flat gather
                 // one, and it is what the woodcutter's branch below scores by.
                 let (block, slots) = self.blocked_site_slots(Some(who), rec, cand, None);
+                let mut cand = cand;
                 if block != crate::place::Blocked::Clear {
-                    // A dock would try the sub-positions around it; docks are
-                    // not placed by this path yet.
-                    break 'cand;
+                    // **The dock's slide** (`docs/AI.md` §21). Where
+                    // `blocked_site` refuses the centred position, the
+                    // `is(0x1b0)` arm at `006e2725` walks a block of whole
+                    // tiles around it and takes the **first** that clears —
+                    // `dx` outer, `dy` inner, both inclusive, under the same
+                    // `|dx| + |dy| <= max` the extent carries. Nothing else
+                    // may slide.
+                    if !is_dock {
+                        break 'cand;
+                    }
+                    // The base is the **unpadded** centre — the arm rebuilds
+                    // it from the cell rather than reusing the padded `cand`.
+                    // A dock is 4×4, so the two agree; a smaller type in this
+                    // lineage would not, and this is what the listing does.
+                    let base = Pos::new(
+                        cell.x * UNITS_PER_CELL + bt.x_size * (UNITS_PER_TILE / 2),
+                        cell.y * UNITS_PER_CELL + bt.y_size * (UNITS_PER_TILE / 2),
+                    );
+                    // `dy` starts at `-(w / 2)`, not `-(h / 2)`: `local_58`
+                    // is loaded from the `dx` initialiser once and never
+                    // reloaded. It is invisible while `w == h`.
+                    let (hx, hy) = (w / 2, h / 2);
+                    let mut slid = None;
+                    'slide: for dx in -hx..=hx {
+                        for dy in -hx..=hy {
+                            if dx.abs() + dy.abs() > max {
+                                continue;
+                            }
+                            let p = Pos::new(
+                                base.x + dx * UNITS_PER_TILE,
+                                base.y + dy * UNITS_PER_TILE,
+                            );
+                            // The out-parameter is null here, so `slots`
+                            // keeps what the refused call left it — inert,
+                            // because no dock is gather-scored.
+                            if self.blocked_site(Some(who), rec, p, None)
+                                == crate::place::Blocked::Clear
+                            {
+                                slid = Some(p);
+                                break 'slide;
+                            }
+                        }
+                    }
+                    match slid {
+                        Some(p) => cand = p,
+                        None => break 'cand,
+                    }
                 }
                 if self.world.owner(cell).player().is_some_and(|o| o != who) {
                     break 'cand;
@@ -649,7 +699,7 @@ impl Sim {
         } else {
             ((4 - bt.x_size).max(0), (4 - bt.y_size).max(0))
         };
-        if ident != Ident::Dock && (ex > 0 && ey > 0) {
+        if !is_dock && (ex > 0 && ey > 0) {
             if ident != Ident::Woodcutter {
                 let mut best_r = -1;
                 // Both bounds are **inclusive** in the original
