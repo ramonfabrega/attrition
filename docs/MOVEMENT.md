@@ -510,6 +510,37 @@ constant behind it. `track_dx`/`track_dy` are what the branch is gated on;
 what sets them is unread, and the simulation has only guy 0, so the branch is
 read and not modelled.
 
+**And that unmodelled branch is now the headline's own divergence** — East
+Indies' word, 2665 of run54/run56 (2026-09-01). A scout is **two guys**: the
+man and his dog, `Unit::set_anim`'s two loops (`0..guy_mark` at `+0x56`,
+`squad_size..num_guys` at `+0xb6`), and the trace tells them apart by that
+offset. run56's per-frame `UNITDATA` prints each `GUY`'s own `x`, `y` and
+`angle`, and around the scout's arrival they are **not the unit's**:
+
+| frame | guy 0 | dog | `+0x56` draw | `+0xb6` draw |
+| --- | --- | --- | --- | --- |
+| 2663 | (40431, 34293), turning | (40382, 34388), turning | — | — |
+| 2664 | (40416, 34272) — **arrived** | (40365, 34367), still walking | yes | yes |
+| 2665 | angle == `des_angle` at last | (40352, 34323) | yes | — |
+| 2666 | standing | (40339, 34279) | — | — |
+| 2667 | standing | (40326, 34235) | — | — |
+| 2668 | standing | (40322, 34217) — **arrived** | — | yes |
+| 2669 | standing | angle == `des_angle` at last | — | yes |
+
+So the dog walks four frames past the unit's own arrival, on its own body,
+at its own speed, and comes round to its own angle four frames after guy 0
+does. Every one of those frames is a `Guy::set_anim` decision the unit's body
+cannot make: `set_anim`'s early return for a walking guy tests **that guy's**
+`des` against **that guy's** position, and the turn arm above tests that
+guy's `angle` against that guy's `des_angle`.
+
+This crate gives every guy of a unit the *unit's* body — `guys_follow` runs
+one arm and applies it to all of them — so on 2665 the dog re-rolls its idle
+where the original's is still walking, and the frame comes out eleven draws
+against nine. What it needs is a `Body` per guy and this branch; what is
+still unread for it is the writer of `track_dx`/`track_dy` (`Guy +0x92` /
+`+0x94`) and of a follower's `des_x`/`des_y` (`+0x5c`/`+0x60`).
+
 **The idle body's turn.** Standing on its destination and not turned this
 frame by the unit step (`guy_flags & 2`, which `do_turn` sets), guy 0 turns
 its own facing toward `des_angle` — the heading, which `Unit::set_angle` last

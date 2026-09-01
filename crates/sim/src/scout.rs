@@ -910,6 +910,50 @@ mod tests {
         );
     }
 
+    /// **The tail's cadence** (`docs/ORDERS.md` §2.4 step 5): an idle
+    /// scout thinks on its **first** idle frame and then only when
+    /// `(o + frame) % 32 == 0`.
+    ///
+    /// `Unit::think@005f6e40` carries two gates, not one. The mod-16 gate
+    /// above the auto-attack decides whether the function does anything at
+    /// all; the second, between the human block's `unit_masks & 0x40000`
+    /// exit and `think_fish`, decides the whole tail —
+    /// `idle != 1 && ((o + frame) & 31) != 0` returns. The crate had only
+    /// the first, so a scout on its second idle frame — `idle == 2`, which
+    /// the mod-16 gate lets through — ran a whole second `think_scout`.
+    /// That was East Indies' word: run56's AI scout arrives on 2664 with
+    /// `idle == 1`, thinks, and the original then thinks on 2688, 2720,
+    /// 2752 … exactly, its `o` being 0.
+    #[test]
+    fn an_idle_scout_thinks_on_its_first_frame_and_then_once_in_thirty_two() {
+        let (mut s, ai, _) = scout_sim(false);
+        s.trace_phases = true;
+        let o = i64::from(s.units[ai].index);
+        // Nothing is unseen, so `think_scout` never issues an order and
+        // the scout stays idle for the whole run. `do_idle` is the whole
+        // of an idle unit's frame — the anim request, `check_idle`,
+        // `think` — so the loop is the tick as this unit sees it.
+        let mut thought = Vec::new();
+        for frame in 0..96 {
+            s.phase_marks.clear();
+            s.do_idle(ai, frame);
+            let marks = &s.phase_marks;
+            let drew = marks.iter().enumerate().any(|(i, (label, from))| {
+                label == SITE_ROTATION && marks.get(i + 1).map_or(s.rng.seed, |m| m.1) != *from
+            });
+            if drew {
+                thought.push(frame);
+            }
+        }
+        let want: Vec<i64> = std::iter::once(0)
+            .chain((1..96).filter(|f| (f + o) % 32 == 0))
+            .collect();
+        assert_eq!(
+            thought, want,
+            "the first idle frame, then `(o + frame) % 32 == 0` and nothing else"
+        );
+    }
+
     /// §2's gate, from both sides: a human's scout never reaches
     /// `think_scout` (its `unit_masks & 0x40000` is clear), and neither
     /// does a unit without the scout bit.

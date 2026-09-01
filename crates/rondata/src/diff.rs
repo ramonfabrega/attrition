@@ -7278,15 +7278,18 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **2665**, and its successor is named by its own frame: the original
-    /// takes nine draws there and this simulation takes thirty. The first
-    /// three agree — a step's `set_anim`, the new camp's
-    /// `Unit::do_non_flat_gather+0x54b`, an idle `set_anim` — and then this
-    /// simulation idles **one unit more**, and runs a whole
-    /// `Unit::think_scout` (ten `+0x436`, ten `+0x458`, one `+0x941`) that
-    /// the original does not: the original's scout thought on **2664**,
-    /// which both agree on, and then stopped. From 2664 the original's
-    /// scout thinks every 32 frames exactly.
+    /// **2665**, and it has been the same frame twice. It was thirty draws
+    /// against nine: this simulation ran a second whole `Unit::think_scout`
+    /// there, because it carried only the mod-16 gate at the head of
+    /// `Unit::think` and not the mod-32 one in front of the tail
+    /// (`docs/ORDERS.md` §2.4 step 5). With that gate landed the frame is
+    /// **eleven** against nine and what is left is the scout's **dog**: the
+    /// original's second guy is still walking on its own body four frames
+    /// past the unit's arrival, so its idle request takes `set_anim`'s
+    /// walking-guy early return, while this crate — which gives every guy
+    /// the unit's body — re-rolls it. `docs/MOVEMENT.md`, "The body step",
+    /// has run56's per-guy frame table; the successor is a `Body` per guy
+    /// and `Guy::move`'s tracked branch.
     ///
     /// The floor before this was **2176**, item 126's — the frame the
     /// original placed player 1's second Woodcutter's Camp and this

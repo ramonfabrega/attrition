@@ -939,7 +939,7 @@ impl Sim {
     /// `Unit::do_idle`: `set_anim(CHAR_DEFAULT, 0, 1)`, `collide = 0`,
     /// `check_idle`, `think`. An animal's is `Animal::do_idle`, which
     /// replaces the whole of it (`anim.rs`).
-    fn do_idle(&mut self, u: usize, frame: i64) {
+    pub(crate) fn do_idle(&mut self, u: usize, frame: i64) {
         if self.units[u].is_gaia() {
             // A bird is never idle in the original: it carries the
             // `AirOrder` `Objects::process_all` gave it at birth, and
@@ -1060,6 +1060,26 @@ impl Sim {
         // citizen that had just been given a gather job through the tail
         // below on the same frame.
         if self.worker_of(u) != Worker::None && self.think_peasant(u, false) {
+            return;
+        }
+        // **The tail's own cadence gate** (§2.4 step 5), the second of the
+        // two in this function and the one the code was missing: after the
+        // human block's `unit_masks & 0x40000` exit, `think@005f6e40`
+        // returns when
+        //
+        //     idle != 1 && ((o + frame) & 31) != 0
+        //
+        // — so everything from `think_fish` down, the tail included, runs
+        // on a unit's **first** idle frame and then once in thirty-two,
+        // phased by `o`. The mod-16 gate above only lets the function be
+        // entered; this one is what decides the tail.
+        //
+        // run56's scout is the diff: it arrives on 2664 with `idle == 1`,
+        // thinks, and then — with `o == 0` — thinks again on 2688, 2720,
+        // 2752, … exactly. Without this gate the simulation ran a whole
+        // second `think_scout` on 2665, where `idle == 2` still passes the
+        // mod-16 gate, and that was East Indies' word.
+        if self.units[u].idle != 1 && phase & 31 != 0 {
             return;
         }
         // The tail (`docs/SCOUT.md` §2): a scout or a spy not in an army

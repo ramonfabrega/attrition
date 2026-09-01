@@ -137,6 +137,15 @@ the first time in the frame at 798, which is what rules the human's scout
 out: an `int 3` is one-shot per arming, so a *first* entry that late is
 proof the earlier unit never called it.)
 
+**And a gate this document did not carry until 2026-09-01: how *often*.**
+Between the human block's `unit_masks & 0x40000` exit and the tail sits
+`idle != 1 && ((o + frame) & 31) != 0 → return`, so a standing scout runs
+this whole mechanic on its **first** idle frame and then once in thirty-two,
+phased by `o` — not once in sixteen, which is the *other* gate, the one at
+the head of `think`. `docs/ORDERS.md` §2.4 step 5 has both and which is
+which. run56's scout is the observation: it goes idle on 2664, thinks, and
+thinks next on 2688, 2720, 2752, … to the end of the capture.
+
 ## 3. `Unit::think_scout(this, param_1)` — the four branches
 
 The call site passes `param_1 = 0`, so the **region-index branch** at the

@@ -10459,3 +10459,59 @@ takes thirty, and twenty-one of them are a *second* whole `think_scout`. The
 ten — which is exactly what the two lists hold. The walk is right; the unit
 is still idle when the original's has left `do_idle` with its order, and from
 2664 the original's scout thinks every 32 frames exactly. That is item 127.
+
+## 2026-09-01 — `Unit::think` has two cadence gates, and the second one is the tail's (item 127)
+
+**The premise was wrong and the frame was right.** Item 127 read 2665 as "the
+unit is still idle when the original's has left `do_idle` with its order".
+run56's own `UNITDATA` says otherwise on the first look: player 1's `o 0` is
+`idle 0` through 2664, `idle 1` at 2665, `idle 2` from 2666, `3` from 2673 and
+`4` from 2689 — it never leaves `do_idle` at all. The original's scout
+*stays* idle and simply does not think, and the 2673/2689 pair (sixteen
+apart, `o == 0`) is what says the dump row labelled `F` is the state at the
+**start** of frame `F`, which is worth more than the item was.
+
+**So the gate was the question, and `Unit::think` has two.** The one this
+crate had is at the head — `(flags & 0x10) == 0 && idle > 2 && ((o + frame) &
+15) != 0` returns — and a unit on its *second* idle frame passes it, because
+`idle > 2` is false. The one it did not have sits after the human block's
+`unit_masks & 0x40000` exit and in front of `think_fish`:
+
+```
+if (idle != 1 && ((o + frame) & 31) != 0) return;
+```
+
+Everything from there down is the tail — `think_fish`, `think_merchant`,
+`think_carry`, `add_to_army`, `think_scout` — so a standing scout thinks on
+its **first** idle frame and then once in thirty-two, phased by `o`. run56's
+scout arrives on 2664 with `idle == 1`, thinks, and thinks next on 2688,
+2720, 2752 … to the end of the capture, and `report.py … draws` counts
+exactly those frames under `Unit::do_idle+0x94`. `think_peasant` sits above
+the gate, at `LAB_005f7179`, which is why a citizen keeps its own cadence
+and the scout does not.
+
+**`docs/ORDERS.md` had the gate written down since the second reading** —
+step 5's "everyone on `idle == 1`/32" — and the code had never carried it.
+That is item 72's shape exactly: a document and its code disagreeing is a
+diff waiting to be run, and this one was worth nineteen draws a frame.
+`scout::tests::an_idle_scout_thinks_on_its_first_frame_and_then_once_in_
+thirty_two` is the guard; made to fail first, it reports the old behaviour
+verbatim — every frame of `idle <= 2`, then every sixteenth.
+
+**The word did not move.** 2665 went from thirty draws against nine to
+eleven against nine, and the same frame carries a second divergence
+underneath: **the dog**. A scout is two guys — `Unit::set_anim`'s two loops,
+`0..guy_mark` at `+0x56` and `squad_size..num_guys` at `+0xb6`, which is how
+the trace tells them apart — and run56's per-frame `GUY` records carry `x`,
+`y` and `angle` per guy. Guy 0 arrives on 2664; the dog is at (40365, 34367)
+and walks to (40352, 34323), (40339, 34279), (40326, 34235) and (40322,
+34217), arriving on 2668 and settling its angle on 2669. The original's
+`+0xb6` draws land on exactly 2664, 2668 and 2669 and nowhere between,
+because `Guy::set_anim`'s walking-guy early return tests **that guy's** `des`
+against **that guy's** position. This crate has one body per unit and hands
+it to every guy, so the dog re-rolls on 2665 and the frame runs long.
+
+That is item 128, and it is `Guy::move`'s tracked branch — read whole in
+MOVEMENT's "The body step" since 2026-08-27 and never built, because until
+now the simulation only ever had guy 0. ANIM §9's "the every-frame re-roll of
+a dog under a shorter idle" is closed onto it: the re-roll was never a clock.

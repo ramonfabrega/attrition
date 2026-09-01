@@ -523,11 +523,36 @@ soldier runs its target search, and it was a live divergence in
    scout or spy with no army → `think_scout`, anything else returns
    (`docs/SCOUT.md` §2).
 
+**The "everyone on `idle == 1`/32" in step 5 is a gate of its own, and it is
+the second of two.** It stands between the human block's `unit_masks &
+0x40000` exit and `think_fish`, and it returns:
+
+```
+if (idle != 1 && ((o + frame) & 31) != 0) return;
+```
+
+So the whole of step 5 from `think_fish` down — the tail included — runs on a
+unit's **first** idle frame and then once in thirty-two, phased by `o`. The
+mod-16 gate above only decides whether the function is entered at all; this
+one decides the tail, and the two are not the same period. A unit on its
+*second* idle frame passes the first (`idle > 2` is false) and fails this one.
+
+**That one frame was East Indies' word.** This crate carried only the mod-16
+gate until 2026-09-01, so run56's AI scout — which arrives, goes idle on 2664
+with `idle == 1` and takes a whole `think_scout` both sides agree on — ran a
+*second* whole `think_scout` on 2665, where the original runs none: with
+`o == 0` the original's next think is 2688, and then 2720, 2752, … exactly.
+Nineteen draws that were nobody's. `scout::tests::an_idle_scout_thinks_on_
+its_first_frame_and_then_once_in_thirty_two` is the guard, and it fails on the
+old code with the scout thinking on every frame of `idle <= 2` and then every
+sixteenth.
+
 So an idle soldier does its target search on its first idle frame and every
 32 frames after, phased by `o`; an idle citizen runs `think_peasant(0)` every
-frame, with its own gate on `idle` (§5.9). For a unit nobody orders and
-nothing approaches, the observable per-frame writes are `idle` and `collide =
-0`.
+frame, with its own gate on `idle` (§5.9) — `think_peasant` sits at
+`LAB_005f7179`, **above** the tail's gate, which is why the citizen keeps its
+own cadence and the scout does not. For a unit nobody orders and nothing
+approaches, the observable per-frame writes are `idle` and `collide = 0`.
 
 **`ThinkOrder`** exists for one reason: `Unit::do_gather` queues one (three
 sites) when a gather order cannot proceed — `kill_current_order(0);

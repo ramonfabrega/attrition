@@ -808,7 +808,15 @@ two passes.
 - ~~**Whether a scout's dog draws on the unit's idle request.**~~ Settled by
   the second reading from the dump's own `end_time` (§5); the sim's reading
   stands. What is unobserved is the drawn *value* for a dog (the mirror
-  hides it) and the every-frame re-roll of a dog under a shorter idle.
+  hides it). ~~And the every-frame re-roll of a dog under a shorter idle.~~
+  **Observed, and it is the headline** (2026-09-01): the re-roll is not a
+  clock at all, it is the dog's **own body**. run56's `GUY` records carry a
+  position and an angle per guy, and the scout's dog walks four frames past
+  the unit's arrival on its own — so `set_anim`'s walking-guy early return
+  (§4.1, `des != x − off_x`) holds it silent on exactly the frames this
+  crate re-rolls it, guy 0's body being the only one the crate has.
+  `docs/MOVEMENT.md`, "The body step", has the frame table and what the
+  branch still needs.
 - **`guy_flags` bits 0x2, 0x4 and 0x20**: 0x4 doubles the attack step,
   0x20 collapses the idle roll, 0x2 skips `turn_towards`. Every guy in both
   *scored* dumps carries `guy_flags 16` — run13's 2,288 records and run38's

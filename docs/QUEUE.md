@@ -12,36 +12,33 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — a camp's site is scored by what it would gather.* East
-Indies' word moved **2176 → 2665**.
+*2026-09-01, Opus — `Unit::think` has two cadence gates, not one.* East
+Indies' word **did not move**: it is still 2665, and it is the same frame
+for a different reason.
 
-- **Item 126 is closed, and it was one number in the wrong place.**
-  `Leader::produce_building` scores a woodcutter's camp site by the **cube**
-  of `blocked_site`'s own out-parameter — `calc_gather`'s count, the same
-  one `max_gatherers` reads — and refuses a site under three. This crate
-  counted the forest tiles in a **one-tile ring**, which is zero at every
-  site a camp can stand on: the score went to zero, the gate refused every
-  candidate, and **the AI placed no camp at all after frame 0**. Frame 0 hid
-  it — it skips the gate, and a uniformly-zero score takes the spiral's
-  *last* candidate. AI §19, CITIES §2.6.7.
-- **The out-parameter is modelled whole now** (`blocked_site_slots`,
-  `gather_verdict`): a non-flat gather type with nothing under it is refused
-  — `NoForest`, `NoMountain`, `NoResources`, the two `Taken` verdicts — a
-  rule `blocked_location` had never carried here. Seven flat-world unit
-  tests failed on it at once, each standing a camp on a treeless map; they
-  plant trees now (`Sim::plant_camp_forest`).
-- **run56's frame 2176 is the diff.** The AI reaches it at script step 13 —
-  `place_woodcutter`'s `num_cities > 1` arm — and places `o 2009` at tile
-  (198, 190) on the original's frame, with its 192 shuffle draws. run56's
-  gather comparison is **1,048,118 fields and nothing but the quit's four**.
+- **Item 127 is closed, and it was the gate nobody had.** Between the human
+  block's `unit_masks & 0x40000` exit and the tail, `think@005f6e40` returns
+  when `idle != 1 && ((o + frame) & 31) != 0` — so `think_fish`,
+  `think_merchant`, `think_carry`, `add_to_army` and `think_scout` run on a
+  unit's **first** idle frame and then once in **thirty-two**. The crate had
+  only the mod-16 gate at the head of the function, which a scout on its
+  second idle frame passes (`idle > 2` is false), so run56's scout ran a
+  whole second `think_scout` on 2665. Nineteen draws gone; 2665 is eleven
+  against nine now, not thirty. ORDERS §2.4 step 5, SCOUT §2.
+- **What 2665 is now is the dog, and it is a body.** A scout is two guys and
+  run56's `GUY` records carry a position and an angle **per guy**: guy 0
+  arrives on 2664, the dog walks four more frames on its own body and comes
+  round four frames later. So the dog's idle request takes `set_anim`'s
+  walking-guy early return where this crate — which hands every guy the
+  unit's body — re-rolls it. MOVEMENT, "The body step", has the frame table.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w2665 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `The headline is East Indies' word at 2665 and item 127
-is its divergence: this simulation's scout thinks a second time on 2665
-where the original thought once, on 2664, and stopped. run54 and run56 are
-the captures; docs/SCOUT.md is the document.`
+**Opener (Opus):** `The headline is East Indies' word at 2665 and item 128
+is its divergence: a scout's dog has its own body, and this crate gives
+every guy the unit's. docs/MOVEMENT.md "The body step" is the document and
+run56 is the capture.`
 
 ## The queue
 
@@ -50,22 +47,22 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-127. **The scout thinks twice, and the headline's own divergence at 2665.**
-    On 2664 both take a whole `Unit::think_scout` — ten `+0x436`, six
-    `+0x458`, one `+0x941` — and agree on every draw of the frame. On 2665
-    the original takes nine draws and this simulation takes **thirty**: the
-    first three agree (a step's `set_anim`, the new camp's
-    `Unit::do_non_flat_gather+0x54b`, an idle `set_anim`), then this one
-    idles **one unit more** and runs a *second* whole `think_scout` — ten
-    `+0x436`, **ten** `+0x458`, one `+0x941` — that the original does not.
-    The `+0x458` count is the tell and it is `frame % 8`: SCOUT §6 skips the
-    phase draw when `ring / 4 + frame % 8 == 0`, which is rings 1–3 on 2664
-    (`2664 % 8 == 0`) and no ring at all on 2665. So the question is not the
-    walk, it is **why the unit is still idle**: the original's scout took its
-    order on 2664 and left `do_idle`, and from there thinks every 32 frames
-    exactly (2688, 2720, 2752, …, 2976). Start at SCOUT §9's order and what
-    `do_idle` does with it. run54 is the word's capture, run56 the
-    full-detail sibling.
+128. **A guy is a body, and the scout's dog is the headline's divergence
+    at 2665.** run56's per-frame `GUY` records carry `x`, `y` and `angle`
+    per guy: guy 0 arrives on 2664, the dog is still walking on 2665, 2666
+    and 2667, arrives on 2668 and settles its angle on 2669. So the dog
+    spends four frames where `Guy::set_anim`'s walking-guy early return
+    holds it silent (`des != x − off_x`, ANIM §4.1) and two where it draws
+    at `Unit::set_anim+0xb6`; this crate hands every guy the *unit's* body
+    in `guys_follow`, so the dog re-rolls on 2665 and the frame comes out
+    eleven draws against nine. What to build is a [`Body`] per guy and
+    `Guy::move`'s **tracked** branch, which MOVEMENT's "The body step"
+    already has whole — turn, the `2 × turn_speed` give-up, `speed × 11/8`,
+    the Manhattan snap, the per-axis `sinx`/`cosx` clamp. What is unread is
+    the writer of `track_dx`/`track_dy` (`Guy +0x92`/`+0x94`) and of a
+    follower's `des_x`/`des_y` (`+0x5c`/`+0x60`) — grep the writers before
+    building, per the audit README. run54 is the word's capture, run56 the
+    full-detail sibling and the only one with the `GUY` records.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
     table at `0063bd84` cannot produce it;
