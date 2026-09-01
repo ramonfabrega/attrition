@@ -10607,3 +10607,73 @@ The new word, 3021, is four draws against five, and the missing one is an idle
 request from `Unit::move_step` rather than from `Guy::inc_time`. It is past
 run56's own 3,000 frames, so the next item on it needs a longer full-detail
 capture or run54's trace alone.
+
+## 2026-09-01 (item 129, Opus) — the collision was innocent, and the last building on the wrong cell is a dock
+
+Item 129 asked for a capture: East Indies' word is 3021, the frame is four
+draws against five, and the missing one is a blocked stand
+(`Guy::set_anim+0x97a < Unit::move_step+0x823`) that only a full-detail dump
+past 3,000 frames could explain. run56 stops at 3,000. So run57 was queued —
+run56's recipe, only longer, 4,000 frames and a gigabyte — and while it ran,
+the queue's own rule was applied to the capture already on disk: **diff the
+whole record before booking a reading.** The answer was there.
+
+**The collision block, first, because it is what the divergence is made of.**
+`UnitData::log_data` writes `collide`, `collide_o`, `collide_who`,
+`collide_guy` and `safe` at every detail level, and `run_traced` has compared
+them on every capture since item 64 — but nothing on East Indies ever
+*asserted* them. `run56_s_collision_block_agrees_past_the_scored_length` does:
+**249,293 agreeing unit-frames, zero disagreements**, over three thousand
+frames, where run10's own number is 139,514 over 1,772. So the collision model
+is not what parts at 3021, and the seam is upstream.
+
+**The seam is a building, and the field that names it had never been
+compared.** `BuildDump::pos` has been parsed since the record existed;
+`compare_frame` linked buildings by `(who, o)` and then looked only at
+`gather_down` and the mining list. A building the AI sites sixteen tiles away
+therefore links cleanly, agrees on every gather field, and reads as agreement.
+`run56_s_buildings_stand_where_the_original_s_do` compares `x_internal` and
+`y_internal` on every linked building of every frame — **92,626 fields** — and
+the residue is one field of one building: player 1's **Dock `o 2010`**, laid
+on frame 2977 at cell `x 57` in both and cell `y 52` here against the
+original's **54**. Everything else stands where the original stands it: the
+pre-placed buildings, both farms, the second city, and item 126's camp.
+
+Frame 2977 is forty-four frames before 3021, and the chain is direct. The
+citizen `1/11` — waiting out a gather order's `wait 282` — takes a
+`BUILDORDER` for `o 2010` and an `EXPLORETOORDER` toward it. The original's
+walks toward `(43704, 41688)` and steps `(24, 7)` a frame at `myspeed 25`;
+this one walks toward `(43704, 38856)`. Twenty-one frames later the original's
+step is refused and it plays the stand. There was never anything wrong with
+the stand.
+
+**One fix landed, and its oracle is a different map.** Reading
+`produce_building` for the site scan turned up a timing error one layer under
+§2.20's third defect: the spiral's index is stepped at the **bottom** of the
+iteration by the stride the body has just set — `local_2c = local_2c + iVar13`
+at `006e25bb` — and this crate stepped it at the top by the stride as it stood
+*before*. That spends the old stride once more, so the first strided hop
+starts one cell late and the whole tail of the walk is offset by one. §2.20
+had said of its own fix that it "moved no measured number on any capture",
+which was the tell: on a call that finds its site inside ring 2 the condition
+is unobservable, and only the timing shows.
+
+The check that catches it was already written and already failing at a number:
+`the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well` had asserted
+`produce_building+0xc99` at **29 against the original's 30** for five days, as
+its own stated residue. With the step at the bottom it is **30 against 30**
+and the frame is 44 of 45. Nothing else in either suite moves.
+
+**The word does not move**, and that is the honest score: the dock is still on
+the wrong cell — `(57, 52)` rather than `(57, 54)` — so 3021 stands. `docs/AI.md`
+§20 names the three candidates and which is unread. The strongest is the
+dock's own **sub-position slide**: where `blocked_site` refuses a dock's exact
+cell, `produce_building` runs a nested search over `local_88/2 × local_7c/2`
+that this crate does not run at all, and two of the cells in this very walk
+are refused here. No draw is spent anywhere on a dock's spiral or its slide —
+the jitter is fenced behind `ident != Dock` — so the dumped position is the
+*only* oracle any of it will ever have, and it is a test now.
+
+**run57 was taken anyway**, and it is not wasted: East Indies at full detail
+to 4,000 frames, sized to the word by the capture lane's standing rule. The
+frames past 3,000 are what the successor reads once the dock lands.

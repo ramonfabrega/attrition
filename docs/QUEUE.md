@@ -12,34 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — a guy is a body, and East Indies' word moves 2665 →
-**3021**.* Item 128 is closed; the headline moved for the second session
-running.
+*2026-09-01, Opus — the collision block is innocent, and East Indies' word
+holds at **3021**.* Item 129 asked for a longer capture and was answered by
+the one already on disk; the headline did **not** move, and what holds it
+is a failing field rather than a guess.
 
-- **A crew figure walks its own body.** `track_dx`/`track_dy` are
-  `+0x54`/`+0x58` (not `+0x92`, which is `off_x`) and come from **art** —
-  `unit_graphics.xml`'s `trackoffsetx` × `scale` × the executable's
-  `guy_scale` of 4.8, so a dog's pair is `(-96, 48)`. Its destination is
-  rewritten by `Guy::set_new_location` when guy 0 moves and by
-  `Guy::set_angle` when guy 0 turns, and by **neither** when guy 0 stands
-  settled — which is why the dog walks four frames past the man. And
-  `GuyData::turn_speed` fences its whole first half behind `guy_num <
-  squad_size`: a tracked crew guy turns a flat quarter turn and can never
-  give a frame up to turning. MOVEMENT, "The follower's destination".
-- **The check is the whole record, and it was made to fail first.** run56's
-  per-frame `GUY` blocks carry `x`, `y` and `angle` per figure, and
-  `run56_s_figures_stand_where_the_original_s_do` compares all three for
-  every figure of every unit over 3,000 frames — 1,062,354 fields, nothing
-  installed. Every player figure agrees on every frame; the residue is
-  301,810 rows of gaia's spawn **bearing** and one on the half-written last
-  frame.
+- **Two widenings, and the second names the blocker.** run56's collision
+  block is **249,293 fields, zero wrong**, so the blocked stand at 3021 was
+  never the seam. `BUILDDATA`'s own `x_internal`/`y_internal` had been
+  parsed and never compared: **92,626 fields**, residue one field of one
+  building — player 1's **Dock `o 2010`**, frame 2977, cell `x 57` in both,
+  cell `y` **52** here against **54**. Its citizen then walks somewhere
+  else and takes no stand 44 frames later. AI §20.
+- **The spiral's stride is spent at the bottom** — `local_2c += iVar13` at
+  `006e25bb`, by the stride the body has just set, where this crate stepped
+  at the top by the previous one. §2.20 had the condition and not the
+  timing, and its "moved no measured number" was the tell. The fuzzed map's
+  frame 1 goes **29 → 30** candidates against 30, a five-day residue; the
+  frame is 44 of 45. It does not move the dock.
+- **run57 is on disk**, same game twice over (rngcmp v run54: 4,001 frames,
+  0 differing; samegame v run56: 0 over 3,000). Past 3,000 all of it is the
+  dock's consequence, so it is the capture that says what is next the moment
+  item 130 lands. ORACLE, "run57".
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w3021 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `The headline is East Indies' word at 3021, and item 129
-is what it needs first: a full-detail East Indies capture past 3,000 frames,
-because run56 ends before the frame. docs/ORACLE.md has the recipe.`
+**Opener (Opus):** `The headline is East Indies' word at 3021 and item 130
+is the one field holding it: the AI's dock sits on cell (57, 52) where the
+original's sits on (57, 54). docs/AI.md 20 names the three candidates and
+which is unread.`
 
 ## The queue
 
@@ -48,17 +50,19 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-129. **The word is past the full-detail capture, so the capture has to
-    grow.** 3021 is four draws against five, and the missing one is
-    `Guy::set_anim+0x97a < Unit::move_step+0x823` where this crate spends
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271`: an idle request the
-    original makes from the *step* and this one makes from the clock's
-    wrap. run54's trace scores the frame and carries no record; run56 —
-    the sibling that carries the per-frame `GUY`, `UNITDATA` and
-    `BUILDDATA` — stops at 3,000. So the item is a run56 at ~4,000 frames
-    (`docs/ORACLE.md`, last section; 790 MB at 3,000, so budget the disk),
-    and then the frame reads itself. Everything the last two sessions
-    landed was found that way.
+130. **The AI's dock, and the two cells the spiral must part on.** The
+    one field `run56_s_buildings_stand_where_the_original_s_do` still has
+    wrong, and the whole of East Indies' word at 3021. The candidates are
+    `(57, 52)` at spiral index 141 and `(57, 54)` at 143, and this crate's
+    walk 135 → 138 → 141 → 144 never visits 143. AI §20 names the three
+    things that could put the original there; the strongest and the only
+    unread one is the **dock's sub-position slide** — where `blocked_site`
+    refuses a dock's exact cell, `produce_building`'s `is(0x1b0)` arm runs
+    a nested `local_88/2 × local_7c/2` search that this crate does not run
+    at all, and two cells of this very walk (`(57, 49)`, `(57, 53)`) are
+    refused here. No draw is spent on a dock's spiral or its slide, so the
+    dumped position is the only oracle it will ever have — and it is a
+    test. Read the arm, build it, and the diff says yes or no.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
     table at `0063bd84` cannot produce it;

@@ -3006,3 +3006,43 @@ Indies' long word went 2176 → **2665** on it.
   seen, so the reader presumably runs to end of file. Unconfirmed.~~ End of
   file, confirmed by the sample: the package stream parses to exactly EOF
   (`docs/RECGAME.md` §4.3).
+
+## run57 — East Indies at 4,000 frames, and the capture the word did not need (2026-09-01)
+
+run56's successor by the same standing rule that owed run56: East Indies'
+word crossed the map's newest full-detail capture again — 2665 → **3021** on
+item 128 — so the next one is sized to the word. run39's recipe unchanged and
+nothing else (`MAP_STYLE 18`, seed 12345, the profile's lobby with no
+`-config`, run39's `[Start Game]` and `[End Frame]` detail, no input),
+carried to **4,000**. Forty-eight minutes, **1.07 GB** of dump and 12.8 MB of
+trace, at about 1.4 sim-frames a second.
+
+**It is the same game, twice over, and the tools said so before it was read.**
+`rngcmp.py` against run54: **4,001 frames, zero differing**. `samegame.py`
+against run56: 3,000 frames in common, **zero differing**. So it inherits
+run39's siblings and run54's word, and it is a drop-in longer run56.
+
+**And the frame it was taken for was answered without it.** Item 129's
+divergence at 3021 is a blocked stand, and the first thing asked of run56 —
+already on disk — was the collision block it is made of: 249,293 agreeing
+unit-frames, zero disagreements. The seam turned out to be forty-four frames
+upstream and in a record nothing had ever compared, `BUILDDATA`'s own
+`x_internal`/`y_internal`: the AI's Dock `o 2010`, laid on frame 2977 two
+cells south of the original's (`docs/AI.md` §20). The capture cost an hour of
+screen and the answer cost a widening, which is the queue's own rule about
+grepping the dump before booking a reading, one level up.
+
+**What run57 does say, and it is worth having.** Past 3,000 the two games
+have parted, and the parting is all one thing's consequence: seventeen units
+first diverge from **2978** on, and the two later buildings — `1/2011` on
+3177 (one tile of `y`) and `1/2012` on 3977 (eight tiles of `x`) — go up
+after the citizen that builds them is already walking somewhere else. Nothing
+in the extra thousand frames is independent evidence, which is exactly what
+makes it useful: **when the dock lands, this is the capture that says what
+is next**, and it needs no second run to do it.
+
+**The lesson for the lane.** "Size the capture to the word" is still right,
+but the *order* is not: widen every dumped record the mechanic touches first,
+and take the capture only for what no record on disk can answer. run57 would
+have been the right capture had the collision block been wrong; it was the
+second-best use of an hour because nobody had asked the record.
