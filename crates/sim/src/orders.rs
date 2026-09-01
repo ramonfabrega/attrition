@@ -941,19 +941,25 @@ impl Sim {
     /// replaces the whole of it (`anim.rs`).
     pub(crate) fn do_idle(&mut self, u: usize, frame: i64) {
         if self.units[u].is_gaia() {
-            // A bird is never idle in the original: it carries the
-            // `AirOrder` `Objects::process_all` gave it at birth, and
-            // `do_job` runs `Unit::do_air_patrol` on it every frame —
-            // first the `+0x180` virtual, `Animal::think_bird`, then
+            // A gaia bird is never idle in the original: it carries an air
+            // order from birth, and `do_job` dispatches on that order
+            // rather than reaching `do_idle` at all. Both orders end in
             // `Unit::do_air_physics`, which ends in `set_anim(CHAR_WALK,
             // 0, 1)` on every frame the bird is not a flock's
             // (`field_0xae`, only ever set for `FLOCKBIRD`). SEAM: this
-            // crate has no `AirOrder`, so the bird stands here instead and
-            // the *flight* is unmodelled — but the two things that reach
-            // the stream, the think and that walk request, are both here
-            // (`docs/SYNC.md` §3.9).
-            if self.units[u].ty == self.bird_type() {
-                self.think_bird(u, frame);
+            // crate has no air order, so the bird stands here instead and
+            // the *flight* is unmodelled — but what reaches the stream is
+            // here (`docs/SYNC.md` §3.9, `docs/TRANSPORT.md` §5.2).
+            let t = self.units[u].type_index;
+            if crate::anim::is_air_gaia(t) {
+                // `Animal::think_bird`'s `0x192` arm, under
+                // `Unit::do_air_patrol+0x28`. A **gull** is on a
+                // `StrafeOrder`, so `Unit::do_strafe` calls the same
+                // `+0x180` virtual — and `think_bird`'s `0x194` arm
+                // returns after an `order_type` call and draws nothing.
+                if t == crate::anim::BIRD_TYPE {
+                    self.think_bird(u, frame);
+                }
                 self.set_anim(u, crate::anim::WALK, false, true);
                 // `do_air_patrol`'s own tail, after `do_air_physics`
                 // returns 1: the caller branches on `vtable+0x30`,
@@ -962,8 +968,10 @@ impl Sim {
                 // counter is only ever 0 there on a **landing** frame —
                 // `think_bird` steps it on every other — so this is one
                 // extra step per landing, and it is what run39's frame
-                // 1256 turned on (`docs/SYNC.md` §3.9).
-                if self.units[u].spell_time == 0 {
+                // 1256 turned on (`docs/SYNC.md` §3.9). The tail is
+                // `do_air_patrol`'s; `do_strafe` has none, so the gull
+                // does not take it.
+                if t == crate::anim::BIRD_TYPE && self.units[u].spell_time == 0 {
                     self.units[u].spell_time = 1;
                 }
                 return;

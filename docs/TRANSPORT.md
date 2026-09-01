@@ -237,6 +237,64 @@ creation — and draw 1 `Dock::init+0x125 < Docks::init_dock+0x128 <
 Build::activate+0xcbf`. This is a per-frame site `docs/SYNC.md` §3 does not
 list; it is added there with this document.
 
+**And `gull_o` is 15** in run22's block 3580, which is the one field of the
+`DOCK` record nothing compared for a week. Owner 9 is absent from a dump, so
+the gull's own record is not there — but its *object number* is, and it is
+what says this crate hands gaia its slots where the original does: the
+pasture's five plus ten birds are allocated before it, and
+`rondata::diff`'s run54 test asserts the 15 at the end of 24,000 frames.
+
+### 5.2.1 The gull, flying (2026-09-01)
+
+`Dock::init` is not the end of the gull. It is a **bird** — `Animal`, one of
+`Guy::set_anim`'s three gaia bird types — and from the frame after its
+birth it is in the unit loop with a `StrafeOrder`, which is East Indies'
+word at 3579 and the whole of item 133.
+
+- **`do_job` never reaches `do_idle` for it.** `Unit::do_job@00617a10`
+  dispatches on the order: `STRAFE → Unit::do_strafe@005eab00`, where a
+  wild bird's `AIR_PATROL → Unit::do_air_patrol@005ea620`. Both call the
+  `+0x180` virtual (`Animal::think_bird`) and then
+  `Unit::do_air_physics@005e86d0`. `think_bird`'s `0x194` arm returns after
+  an `order_type` call and **draws nothing**, so the gull's think is free
+  where the wild bird's is three draws every eighth frame (`docs/SYNC.md`
+  §3.9).
+- **`do_air_physics`'s tail is `set_anim(CHAR_WALK, 0, 1)`**, and for the
+  gull that is one draw at birth and nothing after: `Guy::set_anim`'s
+  gaia-walker early return (`set_anim:141` — `who >= 8`, the request is
+  `CHAR_WALK`, the guy's category already is, and it is inside its length)
+  catches every later frame. run54's is frame **3580**, `Guy::set_anim+
+  0x104b < Unit::set_anim+0x56 < Unit::do_air_physics+0x683`, and the
+  chain occurs exactly **12 times in 24,000 frames** — ten wild-bird
+  births, this gull, and one at 15458.
+- **After that the gull is on the wing beat**, `Guy::set_anim+0x104b <
+  Guy::inc_time+0x271`, like any gaia bird: `set_anim:620` throws the coin
+  for `0x192`, `0x193` **and** `0x194`, and `rnd % 100 > 0x31` takes
+  *Bird Flap* over *Bird Soar*. The two identity tests in `set_anim` are
+  **different sets** and that is not a slip — `set_anim:221`'s
+  same-category early return names `0x192` alone — but a gull never reaches
+  221, because 141 returns first.
+- **`do_air_physics` spends no draw of its own** on either bird here. Its
+  one draw site, `+0x639` (the `piVar2[4] == 0` re-bank after
+  `UnitData::invalid_loc` refuses the projected point), fires **three times
+  in run54's 24,000 frames** — 5437, 5732, 5919 — and all three are under
+  `do_air_patrol`, never under `do_strafe`. That draw is queue item 120,
+  Great Lakes' word at 1802.
+
+**What this crate models, and what it does not.** `Sim::do_idle`'s gaia arm
+stands in for both air orders (the seam `docs/SYNC.md` §3.9 already named
+for the wild bird): the gull is parked on the tile it was born on, and what
+reaches the stream — the walk request at birth and the wraps after it — is
+spent where the original spends it. The **flight** is not modelled:
+`bank_aircraft`, `pitch_aircraft`, the `project`/`invalid_loc`/
+`set_new_location` step, and `do_strafe`'s own sixteen-frame
+`find_new_air_target` are all unwritten. Nothing dumps owner 9, so the
+gull's position has no oracle but the draw stream — and the draw stream is
+matched. `Guy::move`'s body follow is skipped for all three bird types
+(`anim.rs::is_air_gaia`), because a bird has no ground body: without that
+the standing body asks it to idle every frame and spends draws the original
+never spends.
+
 ### 5.3 `Dock::close@007409f0`, `Docks::close_dock@00740f50`
 
 `close`: if `o ≥ 0`, the building is still active, and `reg < 0x40`,
@@ -636,7 +694,9 @@ Under `DUMP_ALL` (run20, every frame block; `docs/ORACLE.md`):
 
 `crates/sim/src/transport.rs`: the level (§2, §4), the three unit
 predicates (§3), `needs_transport` (§6), the dock registry as `reg_docks`
-plus the two draws at activation and the decrement at close (§5),
+plus the two draws at activation and the decrement at close (§5), the gull
+as a bird whose walk request and wing beat are on the stream (§5.2.1, with
+`orders.rs`'s gaia arm and `anim.rs::is_air_gaia`),
 `is_dock_tile` replacing the census's seam (§5.6), and the region coast
 masks with `is_coast` / `num_coasts` computed from the cells (§9.1–§9.2).
 `think_civilian_transport` is documented here and **not implemented**: it
@@ -656,9 +716,18 @@ Checks, cheapest first:
    same region, and leaves `reg_docks` at 0 as the original's guard does;
    the `UNITDATA` masks show `0x800000` clear on every AI unit in block
    3579 and set on every one in 3580, and clear on the human's in both.
-3. The boarding and the sailing: a `UNITS=3` window over frames 3600–3640
+3. **run54, on disk** (`rondata::diff::tests::run54_s_24000…`): the word
+   stands to **3608** with the gull spawned, angled at its own marked site
+   and flying — 3579 and 3580 were the roll's missing mark and the birth
+   walk request (§5.2.1) — and the dock's `gull_o` is run22's 15.
+4. The boarding and the sailing: a `UNITS=3` window over frames 3600–3640
    of the same game, where `cast_transport` fires — the boat's type,
    position and the moved orders (§6); not this document's to assert.
+   **This is now the word**: run54's frame 3608 is
+   `SpellType::cast_transport`'s first, and the three draws it spends —
+   two `Guy::set_anim+0x97a < Unit::set_anim < Unit::do_cast+0xc89` and
+   the cast unit's `Guy::init_real+0x52 < Unit::init+0xb97 <
+   Objects::init_unit+0xbd` — are what East Indies parts on.
 
 ## 13. What is not established
 
@@ -699,9 +768,23 @@ Checks, cheapest first:
   target in a transported citizen's `UNITDATA` orders against the
   `WORLD` records — run22's window past frame 3608.
 - The **`coastal`** closure (§9.1) and `find_target`'s use of it.
+- **Where the gull flies** (§5.2.1). `do_air_physics`'s step —
+  `bank_aircraft`, `pitch_aircraft`, `project`, `UnitData::invalid_loc`,
+  `set_new_location` — and `do_strafe`'s sixteen-frame
+  `find_new_air_target` are read in outline and not implemented, and no
+  dump prints owner 9, so the position has no oracle. What *is* asserted
+  is that neither spends a draw: `do_air_physics+0x639` fires three times
+  in run54's 24,000 frames and all three are a wild bird's, under
+  `do_air_patrol`. *Capture:* none available — the falsifier would be a
+  `do_strafe`-chained draw anywhere in a trace, and there is none.
+- **Whether a second dock's gull reuses a slot.** Every capture there is
+  has exactly one dock; `Dock::close` leaves `gull_o` stale (§5.3) and
+  `Unit::close` frees the object number, so the second gull should take the
+  first's. *Capture:* a game with two docks and a `DOCKS` block.
 - The blind list after run21: `Docks::remask_docks`, `ObjectsData::
-  find_dock`, `Armies::send_navy`, `Region::coast_here`, `Group::action_
-  set_transport` have not executed in any traced game.
+  find_dock`, `Armies::send_navy`, `Group::action_set_transport` have not
+  executed in any traced game. ~~`Region::coast_here`~~ — entered on run54's
+  frame 3580, under the gull's first `do_strafe`.
 
 ## 14. Second reading — landed, 2026-08-25
 

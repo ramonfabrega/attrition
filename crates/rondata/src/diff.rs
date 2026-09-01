@@ -2562,6 +2562,38 @@ mod tests {
             "the handoff's scoreboard is not the pinned floors: left is the \
              queue's line, right is rondata::diff::FLOORS"
         );
+
+        // **And the line below it, which is the headline.** East Indies'
+        // scored capture is closed, so the number a session is judged by
+        // lives on the `Long captures:` line — and nothing checked it. Same
+        // shape, one word a map, against the two long tests' own floors.
+        let long = q.lines().find(|l| l.starts_with("Long captures:")).expect(
+            "docs/QUEUE.md has no `Long captures:` line in the handoff; write \
+             `Long captures: <map> w<word> of <length> ...`, one part per row \
+             of rondata::diff::FLOORS, in order",
+        );
+        let mut said = Vec::new();
+        for part in long.trim_start_matches("Long captures:").split('\u{b7}') {
+            let t: Vec<&str> = part.split_whitespace().collect();
+            let word = t
+                .get(1)
+                .and_then(|w| w.strip_prefix('w'))
+                .unwrap_or_else(|| panic!("unreadable long-capture part {part:?}"));
+            said.push((
+                t[0].to_string(),
+                word.parse::<i64>().expect("the long capture's word"),
+            ));
+        }
+        assert_eq!(
+            said,
+            vec![
+                ("EastIndies".to_string(), LONG_WORD_EAST_INDIES),
+                ("GreatLakes".to_string(), FLOORS[1].word),
+            ],
+            "the handoff's long-capture words are not the long tests' floors: \
+             left is the queue's line, right is LONG_WORD_EAST_INDIES and \
+             run53's own floor"
+        );
     }
 
     fn initial() -> Initial<'static> {
@@ -4203,10 +4235,21 @@ mod tests {
     /// that was two of the AI's farms sited in `x` alone, and those were
     /// the FARM/MINE arm's own distance (`docs/AI.md` §22).
     ///
-    /// **Nothing is wrong in either record now**, over both position
-    /// blocks and all 4,000 frames. The two totals are this capture's own
-    /// size rather than a score, and they are asserted so that a change to
-    /// either fails here rather than passing quietly.
+    /// **Nothing is wrong in the collision record, and nothing is wrong in
+    /// the building record up to the word.** The building half is scoped
+    /// there deliberately, and item 133 is why: for one item this test
+    /// asserted every one of the 4,000 frames, and the assertion was
+    /// **luck past the parting**. A building the AI sites after the two
+    /// streams have parted is sited from draws that are nobody's, so it
+    /// stands wherever this stream puts it — `1/2012` on 3977 came back
+    /// one tile north the moment the word moved 3579 → 3608 on a change
+    /// that has nothing to do with it (the dock's gull). What has teeth is
+    /// the half a shared stream backs; the rest is printed, and named
+    /// here, rather than pinned.
+    ///
+    /// `builds` is structural — two fields on every linked building-frame —
+    /// and stays an equality. `coll` counts *agreeing* unit-frames, so it
+    /// moves with the simulation's quality and is a floor.
     #[test]
     fn run57_s_four_thousand_frames_stand_where_the_original_s_do() {
         let Some(inst) = install() else { return };
@@ -4277,14 +4320,20 @@ mod tests {
             eprintln!("  {who}/{o} parts at {frame}");
         }
 
-        // **Every building of both players, on every frame, at the
-        // original's own point.** The two residues this test was written
-        // around — `1/2011` one cell east on 3177 and `1/2012` one tile on
-        // 3977 — were one defect, and it was the FARM/MINE arm's own
-        // distance (`docs/AI.md` §22).
+        // **Every building of both players, on every frame up to the word,
+        // at the original's own point.** The two residues this test was
+        // written around — `1/2011` one cell east on 3177 and `1/2012` one
+        // tile on 3977 — were one defect, and it was the FARM/MINE arm's
+        // own distance (`docs/AI.md` §22); 3177 is inside the scope and is
+        // what this still guards.
+        let build_early: Vec<&BuildDivergence> = build_bad
+            .iter()
+            .filter(|d| d.frame < LONG_WORD_EAST_INDIES)
+            .collect();
         assert!(
-            build_bad.is_empty(),
-            "the AI's buildings stand where the original's do: {first_build:?}"
+            build_early.is_empty(),
+            "the AI's buildings stand where the original's do up to the word \
+             ({LONG_WORD_EAST_INDIES}): {build_early:?}"
         );
         // **Not one collision field wrong in 330,643**, and nothing leaves
         // the original's point before 3582 — past the word. The block is
@@ -4300,7 +4349,11 @@ mod tests {
             "nothing parts before the word does"
         );
         assert_eq!(builds, 130_326, "two fields on every linked building-frame");
-        assert_eq!(coll, 330_643, "five fields on every agreeing unit-frame");
+        assert!(
+            coll >= 330_643,
+            "five fields on every agreeing unit-frame, and the count only \
+             grows: {coll}"
+        );
     }
 
     /// **Where the buildings stand** — run56's `BUILDDATA` position, on
@@ -7783,6 +7836,22 @@ mod tests {
                 theirs.get(at)
             );
         }
+        // **`gull_o` is the one field of the `DOCK` record nothing has ever
+        // compared**, and this capture is where it can be. run22 is this
+        // same game with a `DUMP_ALL` window on `[3579, 3582)`
+        // (`docs/ORACLE.md`), and its block 3580 reads `DOCK dock 0, o
+        // 2010, reg 65, gull_o 15, who 1, dock_flags 1`. Owner 9 is absent
+        // from a dump, so the gull's own record is not there to compare —
+        // its **object number** is, and it is what says this crate hands
+        // gaia its slots where the original does.
+        let gull = built.sim.docks[1].slots[0]
+            .gull
+            .expect("the AI's dock spawned its gull");
+        assert_eq!(built.sim.units[gull].owner, 9, "the gull is gaia's");
+        assert_eq!(
+            built.sim.units[gull].index, 15,
+            "run22's block 3580: `DOCK … gull_o 15`"
+        );
         assert!(
             first_count >= LONG_WORD_EAST_INDIES && first_part >= LONG_WORD_EAST_INDIES,
             "run54's ceiling fell: word {first_count}, sequence {first_part}; \
@@ -7796,15 +7865,23 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **3579** — the frame the *sequence* parts; the count holds one
-    /// frame longer and parts at 3580. Both frames are one thing: the
-    /// original's second draw of 3579 is `Dock::init+0x125` and this
-    /// crate's is a second `Guy::init_real+0x52`. A finished Dock spawns
-    /// a **`GULLBIRD` of owner 9** a tile north-west of itself
-    /// (`Dock::init@00740a80`: `Objects::init_unit(9, GULLBIRD, x − 0xc0,
-    /// y − 0xc0)`), rolls its facing as `(r % 7) × 0xaaaaaaa − 0x40000000`
-    /// on a turn of 7, and gives it a strafe order around the dock — and
-    /// nothing here spawns it.
+    /// **3608** — the frame `SpellType::cast_transport` first runs, and it
+    /// is the dock's own shadow: the level granted at 3579 is what lets a
+    /// unit become its own transport at the shore. The original spends
+    /// three draws this crate does not — two `Guy::set_anim+0x97a <
+    /// Unit::set_anim < Unit::do_cast+0xc89` and the cast unit's
+    /// `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
+    /// (`docs/TRANSPORT.md` §6).
+    ///
+    /// It was **3579** for one item, and the frame was the dock's gull.
+    /// A finished Dock spawns a **`GULLBIRD` of owner 9** a tile
+    /// north-west of itself (`Dock::init@00740a80`: `Objects::init_unit(9,
+    /// GULLBIRD, x − 0xc0, y − 0xc0)`) and rolls its facing as `(r % 7) ×
+    /// 0xaaaaaaa − 0x40000000`; this crate spawned it and left the roll
+    /// unmarked, so the sequence read a second `Guy::init_real+0x52`, and
+    /// the gull carried no `type_index`, so it never flew: the count parted
+    /// a frame later on `do_air_physics`'s own `set_anim(CHAR_WALK, 0, 1)`
+    /// (`docs/TRANSPORT.md` §5.2, `docs/SYNC.md` §3.4).
     ///
     /// It was **3435** for one item, and the frame was three draws against
     /// two: a `Farms::inc_time+0x1ae` this crate spent and the original did
@@ -7861,7 +7938,7 @@ mod tests {
     /// site would gather. `blocked_site`'s out-parameter is that number
     /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
     /// original's own frame, tile and object number.
-    const LONG_WORD_EAST_INDIES: i64 = 3579;
+    const LONG_WORD_EAST_INDIES: i64 = 3608;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

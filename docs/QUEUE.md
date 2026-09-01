@@ -12,35 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the farm landed, and East Indies' word went **3435 →
-3579**.* Item 131 closed on `produce_building`'s FARM/MINE arm, which does
-not reuse the spiral's own distance, and it took item 132 with it.
+*2026-09-01, Opus — the gull flew, and East Indies' word went **3579 →
+3608**.* Item 133 closed on two defects that were this crate's rather than
+the reading's, and the next seam is a different mechanic.
 
-- **A farm's distance is in tiles, from the anchor's own point.** The
-  general arm at `006e1f9a` subtracts the anchor's *cell*; the
-  `0x1a1`/`0x1a3` arm at `006e2004` rebuilds both sides in **tiles** —
-  `cell·4 + 2` against `div_3_table[(anchor.pos ^ 0x63637) >> 6]`. In
-  cells every neighbour of the anchor is `4000 / 1` and the roll is the
-  whole score; in tiles the far diagonal is `4000 / 9` against the rest's
-  `4000 / 6`. Beside it, `0xff` is `0xff − WData.val`, and the map's
-  value byte is **not** zero — 20, 31, 6, 21, 27 on the five cells this
-  call parts on. AI §22.
-- **run57 is clean.** **130,326 building fields, zero wrong** over 4,000
-  frames, where it was two buildings and 850 field-frames; the collision
-  block grows to **330,643 field-frames, none wrong**, and nothing leaves
-  the original's point before 3582 — past the word. Item 132 was the
-  word's own `Farms::inc_time+0x1ae`, and it was this farm's shadow.
-- **The new seam is a bird.** run54 parts its *sequence* at 3579 and its
-  *count* at 3580, and the second draw of 3579 is `Dock::init+0x125`
-  where this crate spends a second `Guy::init_real+0x52`.
+- **The roll had no `mark` and the gull had no `type_index`.**
+  `dock_open` had spawned the gull and spent both of `Dock::init`'s draws
+  in the right order since 2026-08-25; the heading roll carried no site, so
+  the sequence read a second `Guy::init_real+0x52` (item 122's shape, found
+  by the score), and the default −1 `type_index` meant `Guy::set_anim`
+  never recognised one of its three gaia bird types. TRANSPORT §5.2.1.
+- **A gull reaches `do_air_physics` by `do_strafe`, not `do_air_patrol`.**
+  `think_bird`'s `0x194` arm draws nothing, so all it spends is the tail's
+  `set_anim(CHAR_WALK, 0, 1)` — once, at birth, on 3580 — then the wing
+  beat. Three counts over run54 back it: 12 birth coins, 3
+  `do_air_physics+0x639` draws all a wild bird's, `Region::coast_here` off
+  the blind list. And `gull_o`, the `DOCK` record's unasserted field, is
+  run22's **15** here too.
+- **One assertion was luck and is rescoped.** run57's "zero wrong building
+  fields over 4,000 frames" held past the parting by chance; `1/2012` on
+  3977 moved one tile the instant the word did. The building half is now
+  asserted up to the word and printed past it, and the collision total is a
+  floor — it rose 330,643 → 337,265, units that ever part 14 → 11.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w3579 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w3608 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `The headline is East Indies' word at 3579 and item 133
-is what holds it: a finished Dock spawns a GULLBIRD of owner 9 and rolls
-its facing, and nothing here does. Dock::init@00740a80 is four lines and
-run54's frame 3579 is the oracle.`
+**Opener (Opus):** `The headline is East Indies' word at 3608 and item 134
+is what holds it: SpellType::cast_transport's first fire, three draws this
+crate does not spend. docs/TRANSPORT.md §6 has the mechanic and §12 has
+had the capture booked since it was written.`
 
 ## The queue
 
@@ -49,17 +50,17 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-133. **A finished Dock spawns a bird, and this crate does not.**
-    `Dock::init@00740a80` is the whole item: it counts the dock into
-    `leaders[who]+0x135e + region·2`, then
-    `Objects::init_unit(9, GULLBIRD, x − 0xc0, y − 0xc0)`, then
-    `Unit::set_angle(gull, (r % 7) · 0xaaaaaaa − 0x40000000, 7, 0)` —
-    that roll is the `Dock::init+0x125` of run54's frame 3579 — and
-    `add_strafe_order(gull, dock_o, who, …, QUEUE_NEW)`. Owner 9 is the
-    pasture's owner and no dump prints it (SYNC §3.11), so the oracle is
-    the draw stream, not a record. `Dock::init` runs when the dock
-    *finishes*, not when it is placed: run57's dock is laid on 2977 and
-    this fires on 3579.
+134. **A unit casts its own transport at 3608, and this crate does not.**
+    run54's frame 3608 is `SpellType::cast_transport@00670db0`'s first,
+    and the three draws are two `Guy::set_anim+0x97a < Unit::set_anim <
+    Unit::do_cast+0xc89` and the cast unit's `Guy::init_real+0x52 <
+    Unit::init+0xb97 < Objects::init_unit+0xbd`. It is the dock's shadow:
+    the level granted at 3579 is what lets a unit board.
+    `docs/TRANSPORT.md` §6 is the mechanic, §12's check 4 is the capture
+    it wants — a `UNITS=3` window over 3600–3640 of this same game — and
+    `Unit::do_cast@005ebfe0`, `SpellType::cast@00676ce0`,
+    `pay_cast_costs@00676c40` and `SpellTypeData::get_job_time@00675800`
+    all first execute on that frame, so none of them is blind any more.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
     table at `0063bd84` cannot produce it;
@@ -88,8 +89,11 @@ indexed by them.
 
 122. **A draw with no mark of its own.** `mark_sites` attributes an
     unmarked draw to the label still standing, so the sequence reads wrong
-    rather than short (item 110's day went to one). Grep `rng.roll()` in
-    `crates/sim` for calls with no `mark` above them; mark or explain each.
+    rather than short (item 110's day went to one, item 133's frame 3579 to
+    another). **16 of the 61** `rng.roll()`/`rng.get()` calls in
+    `crates/sim` have no `self.mark(` in the six lines above them — some
+    are marked by their caller, and the point is that nothing says which.
+    Mark or explain each, then make the list a guard.
 
 124. **The loop flag is per animation file** (ANIM §3.3): by slot it is
     not a constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a

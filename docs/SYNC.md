@@ -245,6 +245,24 @@ are `Guy::init_real+0x52 < Unit::init < Animal::init` and `Dock::init+0x125
 < Docks::init_dock+0x128 < Build::activate+0xcbf`. `docs/TRANSPORT.md`
 §5.2; landed in `crates/sim/src/transport.rs` (`dock_open`).
 
+**The dock's own frame is not the end of it, and that was East Indies'
+word at 3579** (2026-09-01). Two things stood in the way and both were
+this crate's, not the reading's: the heading roll carried **no `mark`**, so
+the sequence read the standing label — a second `Guy::init_real+0x52` —
+where the original reads `Dock::init+0x125` (queue item 122's shape,
+found by the score); and the gull was created with **no `type_index`**, so
+nothing recognised it as one of `Guy::set_anim`'s three gaia bird types and
+it never flew. A gull is a bird: the frame after its birth
+`Unit::do_strafe` runs `Unit::do_air_physics`, whose tail is
+`set_anim(CHAR_WALK, 0, 1)` and whose one draw that is — run54's frame
+**3580**, `Guy::set_anim+0x104b < Unit::set_anim+0x56 <
+Unit::do_air_physics+0x683` — and after that it is on the wing beat like
+any other (§3.9). `docs/TRANSPORT.md` §5.2.1 has the whole of it, including
+the four `set_anim` and `do_air_physics` arms a gull does *not* take. The
+word went 3579 → **3608**, where `SpellType::cast_transport` first fires —
+the dock's own shadow, since the level it granted at 3579 is what lets a
+unit board (`docs/TRANSPORT.md` §6).
+
 ## 3.5 The armies — `Army::find_target@006f69b0`, `Unit::come_out@00617c10` (2026-08-25)
 
 `Army::find_target` draws `Random::get(game_random, 0, 0xffff)` **once per
@@ -598,6 +616,17 @@ phase-7 wraps under `Guy::inc_time+0x271` and 3 under
   `FLOCKBIRD`); it draws once per bird, at birth, because from the frame
   after the guy is walk-category and inside its length and
   `set_anim:169`'s gaia early return takes it.
+
+**A dock's gull is the third type on the same coin** (2026-09-01).
+`set_anim:620` names `0x192`, `0x193` and `0x194`, so a `GULLBIRD` beats
+its wings exactly as a `WILDBIRD` does — and reaches `do_air_physics` the
+same way, by a different order: `Unit::do_strafe` rather than
+`Unit::do_air_patrol`. Everything in this section that is about *the bird*
+rather than about `think_bird` applies to it. run54's birth coin is frame
+3580; the chain `Guy::set_anim+0x104b < Unit::set_anim+0x56 <
+Unit::do_air_physics+0x683` occurs **12 times in 24,000 frames** — ten wild
+birds, the gull, and one at 15458 — which is the count that says the coin
+is a birth and not a per-frame draw. §3.4 and `docs/TRANSPORT.md` §5.2.1.
 
 Run14's coin frames: 97, 127 (×2), 142, 150 (×3), 181, 193, 212, 223 (×2),
 238, 243 (×9), 257, 261, 274 (×2), 279, 284. The first four are reproduced

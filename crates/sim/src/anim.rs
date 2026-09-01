@@ -115,7 +115,28 @@ pub const SITE_BIRD_COIN: &str = "Guy::set_anim+0x104b";
 /// `TypeIndex::BIRD` = `BASE_GAIATYPES`, the wild bird — the one type
 /// `set_anim` names by identity twice: in the walk coin's guard and in the
 /// same-category early return it is exempt from.
+///
+/// **The two identities are different sets, and that is not a slip.**
+/// `set_anim:221`'s early return names `0x192` alone; the walk arm's coin
+/// at `set_anim:620` names `0x192`, `0x193` and `0x194`. So a gull asked
+/// to walk while already walking does not take the `0x192` exemption —
+/// but it never reaches that test either, because `set_anim:141`'s
+/// gaia-walker return (`who >= 8`, `CHAR_WALK`, inside its length) catches
+/// it first. Only a **wrap** re-throws its coin.
 pub const BIRD_TYPE: i32 = crate::gaia::BIRD_TYPE_INDEX;
+
+/// The last of the three gaia bird types — `GULLBIRD`, which a finished
+/// dock spawns (`docs/TRANSPORT.md` §5.2). `FLOCKBIRD` (`0x193`) sits
+/// between them and no capture has one.
+pub const GULL_TYPE: i32 = crate::transport::ty::GULLBIRD as i32;
+
+/// The three types `Guy::set_anim`'s walk arm throws the wing-beat coin
+/// for (`set_anim:620`), which is also the set that flies: a bird is
+/// carried by `Unit::do_air_physics` rather than by a ground body, so
+/// `Guy::move`'s follow never runs for one.
+pub const fn is_air_gaia(type_index: i32) -> bool {
+    BIRD_TYPE <= type_index && type_index <= GULL_TYPE
+}
 
 /// `UnitAnimCat` — the category of each animation, 38 dwords at
 /// `.rdata+0x2f370` of the shipped executable (`docs/ANIM.md` §2). The
@@ -766,10 +787,11 @@ impl Sim {
         // A bird has no ground body to follow: `Unit::do_air_physics`
         // moves it with `set_new_location` and asks for `CHAR_WALK`
         // itself, and `Guy::move`'s arrival half never runs for it. This
-        // crate parks the bird on its hatch cell (`orders.rs`), so without
-        // this the standing body would ask it to idle every frame and
-        // spend a draw the original never spends.
-        if self.units[u].type_index == BIRD_TYPE {
+        // crate parks the bird on its hatch cell — and the dock's gull on
+        // the tile it was born on (`orders.rs`) — so without this the
+        // standing body would ask it to idle every frame and spend a draw
+        // the original never spends.
+        if is_air_gaia(self.units[u].type_index) {
             return;
         }
         let unit = &self.units[u];

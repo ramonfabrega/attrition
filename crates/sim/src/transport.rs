@@ -155,6 +155,11 @@ impl Default for Docks {
 /// y − 0xc0` in position units.
 pub const GULL_OFFSET: i32 = 0xc0;
 
+/// `Dock::init@00740a80+0x125` — the gull's heading roll, the **second**
+/// of the two draws a finished dock spends (§5.2). The first is the gull's
+/// own `Guy::init_real`, marked where `init_guys` spends it.
+pub const SITE_GULL_ANGLE: &str = "Dock::init+0x125";
+
 /// `needs_transport`'s answers (§6).
 pub const DISEMBARK: i32 = 1;
 pub const EMBARK: i32 = 2;
@@ -410,12 +415,24 @@ impl Sim {
             let mut unit = Unit::new(9, index, at, self.unit_types[gt].hits);
             unit.kind = self.unit_types[gt].kind;
             unit.ty = Some(gt);
+            // `TypeIndex::GULLBIRD`. `Guy::set_anim` names the three gaia
+            // bird types by identity in its walk arm (`set_anim:620`), so a
+            // gull that carried the default −1 could never throw the wing
+            // beat's coin — the pasture's own bug, one type over
+            // (`docs/SYNC.md` §3.11).
+            unit.type_index = self.unit_types[gt].type_index;
+            unit.movement.speed = self.unit_types[gt].moves;
+            unit.movement.turning = self.turning_for(gt);
             let u = self.add_unit(unit);
             self.init_guys(u, Some(gt));
-            // `(get(0, 0xffff) % 7) × 0x0aaaaaaa − 0x40000000`: the heading.
-            // The strafe order and the heading itself are not modelled; the
-            // draw is.
-            let _angle = (self.rng.get(0, 0xffff) % 7).wrapping_mul(0x0aaa_aaaa) - 0x4000_0000;
+            // `Unit::set_angle(gull, (r % 7) × 0x0aaaaaaa − 0x40000000, 7,
+            // 0)`. The third argument is 0, so `Guy::set_angle` writes the
+            // guy's `des_angle` alone — and `do_air_physics` forces the
+            // guy's own angle from the unit's on every later frame, which
+            // is why nothing here turns it.
+            self.mark(SITE_GULL_ANGLE);
+            let angle = (self.rng.get(0, 0xffff) % 7).wrapping_mul(0x0aaa_aaaa) - 0x4000_0000;
+            self.unit_set_angle(u, crate::movement::Angle(angle));
             gull = Some(u);
         }
         self.docks[w].slots[slot] = DockSlot {

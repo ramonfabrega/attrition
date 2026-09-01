@@ -138,6 +138,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (0x005d_b34b, None, sim::anim::SITE_BIRD_COIN),
     // `Guy::init_real@005db6b0` — the creation roll.
     (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
+    // `Dock::init@00740a80+0x125` — a finished dock's gull, the second of
+    // its two draws (`docs/TRANSPORT.md` §5.2).
+    (0x0074_0ba5, None, sim::transport::SITE_GULL_ANGLE),
     // `Unit::do_non_flat_gather@005f0170` — the wood machine's own three.
     // The last two are one apparent branch and two real ones: `+0xcc3` is
     // the chopping guy's `% 100 + 300` and `+0xdad` the arrival frame's

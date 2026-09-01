@@ -10827,3 +10827,89 @@ a tile north-west of the dock, rolls its facing as
 order around the dock. Nothing here spawns it. It fires when the dock
 *finishes*, not when it is placed: run57's dock is laid on 2977 and this is
 600 frames later. That is item 133.
+
+## 2026-09-01 (item 133, Opus) — the dock's gull is a bird, and the headline moves 3579 → 3608
+
+Item 133 was booked as "a finished Dock spawns a bird, and this crate does
+not". The booking was half wrong in a way worth writing down: `dock_open`
+had spawned the gull since 2026-08-25, and had spent both of `Dock::init`'s
+draws in the right order. What it had not done was **say** which site the
+second one was, or give the gull anything that made it a bird.
+
+**Two defects, both this crate's rather than the reading's.**
+
+The heading roll was `let _angle = (self.rng.get(0, 0xffff) % 7)…` with no
+`self.mark(…)` above it, so `mark_sites` attributed it to the label still
+standing — a second `Guy::init_real+0x52` — which is exactly queue item
+122's shape, found here by the score rather than by the grep. One `mark`, one
+row in `rondata::trace::SITES` at `0x0074_0ba5`, and frame 3579's sequence
+agrees.
+
+The gull was created with **no `type_index`**. That is the pasture's own bug
+of 2026-08-30 one type over (`docs/SYNC.md` §3.11): `Guy::set_anim` names the
+three gaia bird types by identity in its walk arm (`set_anim:620` —
+`0x192`, `0x193`, `0x194`), so a gull carrying the default −1 could never
+throw the wing beat's coin, and `Sim::do_idle`'s gaia arm — keyed on the
+wild bird alone — sent it to `animal_idle` instead. So it never flew.
+
+**A gull reaches `do_air_physics` by a different order, and that is the
+whole of the modelling.** `Unit::do_job` dispatches `STRAFE` to
+`Unit::do_strafe@005eab00` where a wild bird's `AIR_PATROL` goes to
+`Unit::do_air_patrol@005ea620`; both call the `+0x180` virtual and then
+`Unit::do_air_physics@005e86d0`. `think_bird`'s `0x194` arm returns after an
+`order_type` call and draws nothing, and `do_air_patrol`'s counter tail is
+`do_air_patrol`'s alone — so the gull's think is free, and what reaches the
+stream is `do_air_physics`'s tail, `set_anim(CHAR_WALK, 0, 1)`. That is one
+draw at birth (run54's frame 3580) and nothing after, because
+`Guy::set_anim:141`'s gaia-walker early return catches every later frame;
+then the gull is on `Guy::inc_time`'s wing beat like any other bird.
+
+**Three readings became assertions instead of prose.** The chain
+`Guy::set_anim+0x104b < Unit::set_anim+0x56 < Unit::do_air_physics+0x683`
+occurs **12 times in run54's 24,000 frames** — ten wild-bird births, this
+gull, and one at 15458 — which is what says the coin is a birth and not a
+per-frame draw. `do_air_physics`'s own draw site `+0x639` fires **three
+times** in the same 24,000 and all three are under `do_air_patrol`, never
+under `do_strafe`, so the flight this crate does not model spends nothing.
+And `Region::coast_here` leaves the blind list on frame 3580, under the
+gull's first `do_strafe`.
+
+**The widening.** `gull_o` was the one field of the `DOCK` record nothing
+had ever compared, and run22 is this same game with a `DUMP_ALL` window on
+`[3579, 3582)`: block 3580 reads `gull_o 15`. Owner 9 is absent from a dump
+so the gull's own record is not there — but its object number is, and this
+crate's gull comes out **15** at the end of 24,000 frames. Made to fail on 14
+before it was landed.
+
+**The score.** East Indies' word on the long capture goes **3579 → 3608**.
+Great Lakes is unmoved at 1802 and the scored captures are unmoved at
+1851/1850 and 1772/1772. 175 rondata tests and 680 sim tests green.
+
+**And one assertion had to be rescoped, which is the lesson.**
+`run57_s_four_thousand_frames_stand_where_the_original_s_do` asserted zero
+wrong building fields over all 4,000 frames. That claim was **luck past the
+parting**: a building the AI sites after the two streams have parted is
+sited from draws that are nobody's, and `1/2012` on 3977 came back one tile
+north the moment the word moved on a change that has nothing to do with it.
+The building half is now asserted up to the word and printed past it — the
+same rule run53/54's own tests carry and say out loud — and the collision
+total, which counts *agreeing* unit-frames and so moves with quality, became
+a floor rather than an equality. It rose 330,643 → 337,265 on the way, and
+the units that ever leave the original's point fell from fourteen to eleven.
+
+**And the headline got a guard.** `the_handoff_s_scoreboard_is_the_floors`
+parsed the queue's `Scoreboard:` line and stopped there — but East Indies'
+scored capture is closed, so the number a session is judged by is on the
+`Long captures:` line below it and nothing checked that one. It does now,
+against `LONG_WORD_EAST_INDIES` and run53's own floor, and it was made to
+fail on 3579 before it was landed.
+
+**What is next is not a bird.** run54's frame 3608 is
+`SpellType::cast_transport`'s first, and the three draws this crate does not
+spend are two `Guy::set_anim+0x97a < Unit::set_anim < Unit::do_cast+0xc89`
+and the cast unit's own `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd`. It is the dock's shadow twice over: the transport
+level granted at 3579 is what lets a unit board at all.
+`docs/TRANSPORT.md` §6 has the mechanic and §12 has had the capture booked
+since it was written — "a `UNITS=3` window over frames 3600–3640, where
+`cast_transport` fires". That is item 134.
