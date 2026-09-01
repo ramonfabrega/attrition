@@ -1,0 +1,11 @@
+--target=i686-pc-windows-msvc
+-ffreestanding
+-nostdlib
+-fno-builtin
+-fno-stack-protector
+-fno-unwind-tables
+-fno-asynchronous-unwind-tables
+-mno-sse
+-mno-mmx
+-Wall
+-Wextra

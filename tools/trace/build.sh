@@ -24,9 +24,10 @@ RLLD=$(rustc --print sysroot)/lib/rustlib/$HOST/bin/rust-lld
 OUT=${TMPDIR:-/tmp}/rontrace-build
 mkdir -p $OUT
 
-$LLVM/clang --target=i686-pc-windows-msvc -ffreestanding -nostdlib -fno-builtin \
-    -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables \
-    -mno-sse -mno-mmx -O2 -Wall -Wextra -c $HERE/tracer.c -o $OUT/tracer.obj
+# Compile flags live in compile_flags.txt, one per line: clang expands it as a
+# response file, and clangd reads the same file, so editors analyze this file as
+# the freestanding 32-bit Windows target it is rather than as host macOS code.
+$LLVM/clang @$HERE/compile_flags.txt -O2 -c $HERE/tracer.c -o $OUT/tracer.obj
 # stdcall: the .def carries the @N decoration for the symbol, -k strips it from the import name
 $LLVM/llvm-dlltool -m i386 -k -d $HERE/kernel32.def -l $OUT/kernel32.lib
 $RLLD -flavor link /dll /machine:x86 /entry:DllMain /nodefaultlib /subsystem:windows \
