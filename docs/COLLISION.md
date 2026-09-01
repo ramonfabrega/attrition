@@ -501,6 +501,13 @@ buildings join the chain, which is why §8 does not claim it.
   for the rest of the run. The fence in §6 step 2 is what stopped that
   collision happening, and with it the whole record. Pinned as emptiness
   in `run10_s_opening_…`, so one field on one unit-frame fails it.
+- **The whole block on the second map too, over three thousand frames.**
+  `run56_s_collision_block_agrees_past_the_scored_length` asks the same
+  five fields of East Indies' longest full-detail capture — **249,293
+  agreeing unit-frames, zero disagreements** — where run10's own number is
+  139,514 and its capture is 1,772 frames. It was the first thing checked
+  when East Indies' word reached 3021 and it came back empty, which is
+  what sent that item to the *building* record instead (`docs/AI.md` §20).
 - **`coll_x`/`coll_y`** on every dumped move order, as a scoring order
   mismatch — and since item 115 it is what carries Great Lakes' order
   score. §4.3's write-into-the-order was the last thing between that

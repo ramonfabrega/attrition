@@ -390,159 +390,176 @@ impl Sim {
         let mut best = 0i32;
         let mut best_sp = 0;
         let mut best_cand: Option<Pos> = None;
-        let mut i = start;
-        while i < end {
-            let idx = i;
-            i += step;
-            let cell = Cell::new(anchor.x + circle.x[idx], anchor.y + circle.y[idx]);
-            if !(0..xs).contains(&cell.x)
-                || !(0..ys).contains(&cell.y)
-                || self.cell_has_centre(cell)
-            {
-                continue;
-            }
-            let sp = self.check_building_wcoord(who, cell, w, h, max, !nocity);
-            if sp <= 1 {
-                continue;
-            }
-            if big < 5 {
-                if sp < big || cell.x == 0 || cell.x == xs - 1 || cell.y == 0 || cell.y == ys - 1 {
-                    continue;
+        // **The index steps at the *bottom* of the iteration**, by the
+        // stride as it stands *then* — `local_2c = local_2c + iVar13` at
+        // `006e25bb`, after the body that may have set `iVar13` to 3. An
+        // increment at the top spends the old stride once more, so the
+        // first strided hop starts one cell late and the whole tail of the
+        // spiral is offset by one. That one cell is East Indies' dock
+        // (`docs/AI.md` §20). The body is a labelled block so that every
+        // arm that used to `continue` still reaches the step.
+        let mut idx = start;
+        while idx < end {
+            'cand: {
+                let cell = Cell::new(anchor.x + circle.x[idx], anchor.y + circle.y[idx]);
+                if !(0..xs).contains(&cell.x)
+                    || !(0..ys).contains(&cell.y)
+                    || self.cell_has_centre(cell)
+                {
+                    break 'cand;
                 }
-            } else if !(frame < 1
-                || (1 < cell.x && cell.x < xs - 2 && 1 < cell.y && cell.y < ys - 2))
-            {
-                continue;
-            }
-            // `WorldData::buildings_allowed` — rock, mountain, forest and
-            // the unnamed `0x40` take no building; an oil platform (0x1a6)
-            // is the one type that skips the test.
-            if ident != Ident::OilPlatform && !self.world.buildings_allowed(cell) {
-                continue;
-            }
-            if self.cell_is_ocean(cell) != (bt.has(flags::WATER)) {
-                continue;
-            }
-            let pad = |size: i32| {
-                if size < 4 {
-                    (4 - size) * (UNITS_PER_TILE / 2)
-                } else {
-                    0
+                let sp = self.check_building_wcoord(who, cell, w, h, max, !nocity);
+                if sp <= 1 {
+                    break 'cand;
                 }
-            };
-            let cand = Pos::new(
-                cell.x * UNITS_PER_CELL + bt.x_size * (UNITS_PER_TILE / 2) + pad(bt.x_size),
-                cell.y * UNITS_PER_CELL + bt.y_size * (UNITS_PER_TILE / 2) + pad(bt.y_size),
-            );
-            // `local_34`, the out-parameter of this very call: what the site
-            // would gather. It is zero for every type but a non-flat gather
-            // one, and it is what the woodcutter's branch below scores by.
-            let (block, slots) = self.blocked_site_slots(Some(who), rec, cand, None);
-            if block != crate::place::Blocked::Clear {
-                // A dock would try the sub-positions around it; docks are
-                // not placed by this path yet.
-                continue;
-            }
-            if self.world.owner(cell).player().is_some_and(|o| o != who) {
-                continue;
-            }
-            let d = vector_dist(cell.x - anchor.x, cell.y - anchor.y);
-            let mut score = 1000;
-            if !nocity || unlimited || !fortlike {
-                let f = self.find_friends(rec, cell, city, who);
-                if f == 0 {
-                    match ident {
-                        Ident::Farm | Ident::Mine => {
-                            let d = d.max(1);
-                            self.mark(SITE_SPIRAL);
-                            let r = self.rng.roll();
-                            score = 4000 / d + r % 500;
-                        }
-                        Ident::Woodcutter if frame == 0 => {
-                            score = if d > 3 { 500 } else { 1000 };
-                            if d > 4 {
-                                score /= 2;
+                if big < 5 {
+                    if sp < big
+                        || cell.x == 0
+                        || cell.x == xs - 1
+                        || cell.y == 0
+                        || cell.y == ys - 1
+                    {
+                        break 'cand;
+                    }
+                } else if !(frame < 1
+                    || (1 < cell.x && cell.x < xs - 2 && 1 < cell.y && cell.y < ys - 2))
+                {
+                    break 'cand;
+                }
+                // `WorldData::buildings_allowed` — rock, mountain, forest and
+                // the unnamed `0x40` take no building; an oil platform (0x1a6)
+                // is the one type that skips the test.
+                if ident != Ident::OilPlatform && !self.world.buildings_allowed(cell) {
+                    break 'cand;
+                }
+                if self.cell_is_ocean(cell) != (bt.has(flags::WATER)) {
+                    break 'cand;
+                }
+                let pad = |size: i32| {
+                    if size < 4 {
+                        (4 - size) * (UNITS_PER_TILE / 2)
+                    } else {
+                        0
+                    }
+                };
+                let cand = Pos::new(
+                    cell.x * UNITS_PER_CELL + bt.x_size * (UNITS_PER_TILE / 2) + pad(bt.x_size),
+                    cell.y * UNITS_PER_CELL + bt.y_size * (UNITS_PER_TILE / 2) + pad(bt.y_size),
+                );
+                // `local_34`, the out-parameter of this very call: what the site
+                // would gather. It is zero for every type but a non-flat gather
+                // one, and it is what the woodcutter's branch below scores by.
+                let (block, slots) = self.blocked_site_slots(Some(who), rec, cand, None);
+                if block != crate::place::Blocked::Clear {
+                    // A dock would try the sub-positions around it; docks are
+                    // not placed by this path yet.
+                    break 'cand;
+                }
+                if self.world.owner(cell).player().is_some_and(|o| o != who) {
+                    break 'cand;
+                }
+                let d = vector_dist(cell.x - anchor.x, cell.y - anchor.y);
+                let mut score = 1000;
+                if !nocity || unlimited || !fortlike {
+                    let f = self.find_friends(rec, cell, city, who);
+                    if f == 0 {
+                        match ident {
+                            Ident::Farm | Ident::Mine => {
+                                let d = d.max(1);
+                                self.mark(SITE_SPIRAL);
+                                let r = self.rng.roll();
+                                score = 4000 / d + r % 500;
+                            }
+                            Ident::Woodcutter if frame == 0 => {
+                                score = if d > 3 { 500 } else { 1000 };
+                                if d > 4 {
+                                    score /= 2;
+                                }
+                            }
+                            _ => {
+                                if d > 4 {
+                                    score = 333;
+                                }
                             }
                         }
-                        _ => {
-                            if d > 4 {
-                                score = 333;
-                            }
+                    } else {
+                        score = (f + 2) * 1000;
+                        if tower {
+                            score *= f + 2;
                         }
                     }
+                    if is_enhancer(ident) && city.is_none() {
+                        // `get_town(cand) == city_o`: an enhancer stays in the
+                        // city it is placed for; with no city there is none.
+                        break 'cand;
+                    }
                 } else {
-                    score = (f + 2) * 1000;
+                    score = d * 1000;
+                    if self.world.tile_mask(cand.tile()) & tile::CITY_RADIUS != 0 {
+                        score /= 2;
+                    }
+                }
+                if !is_fort {
                     if tower {
-                        score *= f + 2;
+                        let near_tower = self.buildings.iter().any(|b| {
+                            b.alive
+                                && b.ty
+                                    .is_some_and(|t| self.build_types[t].ident == Ident::Tower)
+                                && vector_dist(b.pos.x - cand.x, b.pos.y - cand.y) <= 0x600
+                        });
+                        if near_tower {
+                            score /= 8;
+                        }
+                    }
+                } else {
+                    // `danger[]` is not kept: nothing added.
+                    let o2 = self.world.second(cell).player();
+                    match o2 {
+                        Some(p) if p != who && !self.is_ally(who, p) => {
+                            score *= if self.lobby.team_style == 2 { 4 } else { 8 };
+                        }
+                        _ => score /= 2,
                     }
                 }
-                if is_enhancer(ident) && city.is_none() {
-                    // `get_town(cand) == city_o`: an enhancer stays in the
-                    // city it is placed for; with no city there is none.
-                    continue;
-                }
-            } else {
-                score = d * 1000;
-                if self.world.tile_mask(cand.tile()) & tile::CITY_RADIUS != 0 {
-                    score /= 2;
-                }
-            }
-            if !is_fort {
-                if tower {
-                    let near_tower = self.buildings.iter().any(|b| {
-                        b.alive
-                            && b.ty
-                                .is_some_and(|t| self.build_types[t].ident == Ident::Tower)
-                            && vector_dist(b.pos.x - cand.x, b.pos.y - cand.y) <= 0x600
-                    });
-                    if near_tower {
-                        score /= 8;
+                // `w1` and `plenty` are the gather-amount weights; with no
+                // `gather_at` amounts they stay at their initial values.
+                let (w1, plenty) = (1, 0);
+                if !scored_by_gather {
+                    // `0xff − val`: the cell's value byte, 0 on this world.
+                    score += 0xff;
+                } else if ident == Ident::Woodcutter {
+                    score *= slots * slots * slots;
+                    if !(slots > 2 || frame == 0) {
+                        break 'cand;
                     }
-                }
-            } else {
-                // `danger[]` is not kept: nothing added.
-                let o2 = self.world.second(cell).player();
-                match o2 {
-                    Some(p) if p != who && !self.is_ally(who, p) => {
-                        score *= if self.lobby.team_style == 2 { 4 } else { 8 };
+                    score = (score + plenty) * w1;
+                } else {
+                    // `World::gather_at` for an oil platform: no amounts here.
+                    let found = false;
+                    if !found {
+                        break 'cand;
                     }
-                    _ => score /= 2,
+                    score = (score + plenty) * w1;
                 }
-            }
-            // `w1` and `plenty` are the gather-amount weights; with no
-            // `gather_at` amounts they stay at their initial values.
-            let (w1, plenty) = (1, 0);
-            if !scored_by_gather {
-                // `0xff − val`: the cell's value byte, 0 on this world.
-                score += 0xff;
-            } else if ident == Ident::Woodcutter {
-                score *= slots * slots * slots;
-                if !(slots > 2 || frame == 0) {
-                    continue;
+                if score < best {
+                    break 'cand;
                 }
-                score = (score + plenty) * w1;
-            } else {
-                // `World::gather_at` for an oil platform: no amounts here.
-                let found = false;
-                if !found {
-                    continue;
+                // `circle_radius[3] < local_2c` — the **current** index, not
+                // the loop's start: once a second candidate has improved on a
+                // best beyond ring 3, the spiral strides by three. Comparing
+                // `start` here (which is 0, 1 or exactly `radius[3]`) meant it
+                // never engaged, and the extra cells were extra draws. The
+                // stride set here is spent by the step at the **bottom** of
+                // this iteration, not the next one's top (`docs/AI.md` §20);
+                // that one cell is the fuzzed map's thirtieth candidate.
+                if !scored_by_gather && best != 0 && !tower && idx > circle.radius[3] {
+                    step = 3;
                 }
-                score = (score + plenty) * w1;
+                best = score;
+                best_sp = sp;
+                best_cand = Some(cand);
             }
-            if score < best {
-                continue;
-            }
-            // `circle_radius[3] < local_2c` — the **current** index, not
-            // the loop's start: once a second candidate has improved on a
-            // best beyond ring 3, the spiral strides by three. Comparing
-            // `start` here (which is 0, 1 or exactly `radius[3]`) meant it
-            // never engaged, and the extra cells were extra draws.
-            if !scored_by_gather && best != 0 && !tower && idx > circle.radius[3] {
-                step = 3;
-            }
-            best = score;
-            best_sp = sp;
-            best_cand = Some(cand);
+            idx += step;
         }
         let Some(mut cand) = best_cand else {
             return false;

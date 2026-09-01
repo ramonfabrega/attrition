@@ -2699,3 +2699,62 @@ every gather field of all 3,001 frames of run56 —
 game builds and no divergence before the quit's own frame. Reading-only:
 the `frame == 0` arm of the gate (no capture simulates `Setup`), and the
 `0x1a5`/`0x1a6` oil arm of §2.6.7 that sits beside it.
+
+## 20. Where the spiral's stride is spent, and the dock it moves (2026-09-01)
+
+`produce_building`'s index steps at the **bottom** of the iteration, by the
+stride as it stands *then*:
+
+```
+local_2c = start
+do {
+    … body; may set local_10 = 3 …
+    local_2c = local_2c + iVar13          # 006e25bb, iVar13 = local_10
+} while (local_2c < circle_radius[local_c])
+```
+
+This crate stepped it at the **top**, by the stride as it stood before the
+body ran (`let idx = i; i += step;`), which spends the old stride one more
+time: the first strided hop starts one cell late and the whole tail of the
+spiral is offset by one. §2.20's third defect had put the stride's
+*condition* right and left its *timing* wrong, and the note there — "fixing
+it moved no measured number on any capture" — was the tell, because the
+condition alone is unobservable on a call that finds its site inside ring 2.
+
+**The oracle is the fuzzed map's frame 1**, and it is one this crate already
+had: `the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well` asserted
+`Leader::produce_building+0xc99` at **29 against the original's 30** for five
+days as its own open residue. With the step at the bottom it is **30 against
+30**, and the frame goes 43 → 44 of 45. Nothing else in either suite moves;
+run20's frame 1, whose farm is found inside ring 2, is untouched by
+construction.
+
+**What it does not close, and what that names.** East Indies' word still
+parts at 3021, and the reason is now a record rather than a guess.
+`run56_s_buildings_stand_where_the_original_s_do` compares every linked
+building's `x_internal` and `y_internal` on every frame — 92,626 fields —
+and the residue is **one field of one building**: player 1's Dock `o 2010`,
+laid on frame 2977 at cell x 57 in both, at cell y **52** here against the
+original's **54**. Its citizen then walks the original's own frames toward a
+different point, and 44 frames later the original's step is blocked where
+this one's is not: that blocked stand is the whole of the 3021 divergence
+(`Guy::set_anim+0x97a < Unit::move_step+0x823`, `docs/COLLISION.md` §5).
+
+The two candidates the spiral must part on are `(57, 52)` (index 141) and
+`(57, 54)` (index 143), and this crate's strided walk 135 → 138 → 141 → 144
+never visits 143. Three things could put the original on it and none is
+settled: the **dock's own sub-position slide** — `blocked_site` refusing a
+dock's exact cell sends `produce_building` into the nested
+`local_88/2 × local_7c/2` search in its `is(0x1b0)` arm, which this crate
+does not run at all, and two of the cells in this walk (`(57, 49)` and `(57, 53)`) are
+refused here; a different **accepted set** earlier in the ring, which would
+engage the stride at an index congruent to 143 rather than to 141; or a
+`local_40` that is not the running best at the point the stride tests it.
+No draw is spent anywhere on a dock's spiral or its slide — the jitter is
+fenced behind `ident != Dock` — so the *only* oracle for any of this is the
+dumped position, which is now a test.
+
+**Coverage.** Diff-backed: the step's position, by the fuzzed map's spiral
+count; every building's position on every frame of run56, with the one
+field above as the stated residue. Reading-only: the dock slide in
+`produce_building`'s `is(0x1b0)` arm, unimplemented and unexercised.

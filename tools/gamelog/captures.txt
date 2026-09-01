@@ -545,3 +545,39 @@ poll_max: 900
 # run39 over the 1,850 frames they share.
 check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run56.log
 check: python3 tools/gamelog/samegame.py gamelog-run39-islands-longtrace.txt gamelog-run56-islands-3k.txt
+
+run: 57
+tag: islands-4k
+item: 129
+why: East Indies' full-detail dump out past its new word — 4,000 frames, sized to the word at 3021
+# **run56's own successor, by the same standing rule.** run56 was sized to
+# run54's word of 2176; closing item 128 moved the word to **3021**, which is
+# past run56's last frame, so once again every frame of the divergence falls
+# beyond the end of the only dump that could show it. Item 129's draw is
+# `Guy::set_anim+0x97a < Unit::move_step+0x823` against this crate's
+# `Guy::set_anim+0x97a < Guy::inc_time+0x271` — an idle animation request the
+# original makes from the step and this one makes from the clock's wrap — and
+# reading it needs the GUY, UNITDATA and BUILDDATA records of frame 3021,
+# which only a full-detail capture carries.
+#
+# run39's recipe unchanged and nothing else, exactly as run56: same seed, same
+# profile lobby, same detail, no input. Only the **length** changes, so this
+# stays a strict sibling of run39/run56 (dump) and run54 (trace) and both
+# same-game tools still speak.
+#
+# 4,000 and not 3,021: the residue either side of a parting is what gets read,
+# and ~1,000 frames of margin is the same shape of headroom run56 took.
+frames: 4000
+mapstyle: 18
+cfg: -
+# run56 was 789 MB and 36 minutes for 3,000 frames at ~1.5 sim-frames a
+# second, and the per-frame block rises with the roster: budget ~1.1 GB and
+# the better part of an hour. The default 160 polls is 53 minutes and its
+# give-up **truncates**, which would look finished and be short exactly where
+# it matters.
+poll_max: 900
+# Same game, twice over: the trace word for word against run54 (the stronger
+# claim), and the dump frame for frame against run56 over the 3,000 frames
+# they share.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run57.log
+check: python3 tools/gamelog/samegame.py gamelog-run56-islands-3k.txt gamelog-run57-islands-4k.txt

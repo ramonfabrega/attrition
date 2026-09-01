@@ -1308,6 +1308,25 @@ pub struct FrameResult {
     /// hold — the gather comparison's own blind spot, counted rather than
     /// assumed away.
     pub build_unlinked: usize,
+    /// A building's own `x_internal`/`y_internal` and `orig_type`, compared
+    /// on every linked building of every frame — the half of `BUILDDATA`
+    /// that says *where the AI put it*, which nothing compared until the
+    /// word reached 3021.
+    pub build_compared: usize,
+    pub build_diverged: Vec<BuildDivergence>,
+}
+
+/// One field of a building's identity the two sides disagree on — its
+/// position, or the type it was created as.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BuildDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    /// The field, named as `BuildData::log_data` writes it.
+    pub field: &'static str,
+    pub ours: i64,
+    pub theirs: i64,
 }
 
 /// Which of a unit's two angles disagreed.
@@ -2176,6 +2195,28 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             continue;
         };
         let ours = &built.sim.buildings[handle];
+        // **Where it stands, and what it was made as.** The dump writes
+        // `x_internal`/`y_internal` at every detail level and `orig_type`
+        // from `BUILDS=6`; both were parsed and neither compared, so an AI
+        // that chose a different *site* for the same object number linked
+        // cleanly and read as agreement. That is what East Indies' word at
+        // 3021 turned out to be.
+        for (field, mine, theirs) in [
+            ("x_internal", i64::from(ours.pos.x), b.pos.x),
+            ("y_internal", i64::from(ours.pos.y), b.pos.y),
+        ] {
+            r.build_compared += 1;
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field,
+                    ours: mine,
+                    theirs,
+                });
+            }
+        }
         let mut wrong = |field, at, ours: i64, theirs| {
             r.gather_compared += 1;
             if ours != theirs {
@@ -4062,6 +4103,157 @@ mod tests {
         );
     }
 
+    /// **run56's collision block, over three thousand frames** — the
+    /// same five fields run10 pins on Great Lakes, asked of East Indies'
+    /// longest full-detail capture.
+    ///
+    /// The scored East Indies run is run39's 1,850 frames; run56 is the
+    /// same game at the same detail carried to 3,000, and until now the
+    /// only halves of its `UNITDATA` anything compared were the figures
+    /// and the gather record. The collision block is compared on every
+    /// frame the harness reads — `UnitData::log_data` writes all five at
+    /// every detail level — and nothing asserted it here.
+    #[test]
+    fn run56_s_collision_block_agrees_past_the_scored_length() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run56-islands-3k.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run56.log"),
+        ) else {
+            eprintln!("skipping: no run56 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        assert!(
+            report.frames.len() >= 3_000,
+            "run56's length is {} — a short file here is a wrong file",
+            report.frames.len()
+        );
+        let seen: usize = report.frames.iter().map(|f| f.collide_compared).sum();
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let bad: Vec<CollideDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.collide_diverged.iter().copied())
+            .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
+            .collect();
+        eprintln!(
+            "run56 collision: {seen} field-frames compared, {} wrong",
+            bad.len()
+        );
+        for d in bad.iter().take(16) {
+            eprintln!(
+                "  frame {} {}/{} {} ours {} theirs {}",
+                d.frame, d.who, d.o, d.field, d.ours, d.theirs
+            );
+        }
+        // **249,293 field-frames, and not one of them wrong** — where
+        // run10 pins 139,514 on the other map. The block is scoped to
+        // unit-frames whose *positions* already agree, so the number is
+        // this capture's own size rather than a score, and it moves when
+        // a longer East Indies capture replaces this one.
+        assert_eq!(
+            seen, 249_293,
+            "five fields on every agreeing unit-frame of run56"
+        );
+        assert!(
+            bad.is_empty(),
+            "the collision block agrees on every comparable field-frame of {seen}: {bad:?}"
+        );
+    }
+
+    /// **Where the buildings stand** — run56's `BUILDDATA` position, on
+    /// every linked building of every frame.
+    ///
+    /// `x_internal` and `y_internal` are written at every detail level and
+    /// the parser has carried them since the record existed; nothing ever
+    /// compared them. What they say is *where the AI put it*, and a
+    /// building the AI sites 16 tiles away still links by `(who, o)` and
+    /// still agrees on every gather field, so the whole of
+    /// `docs/AI.md` §2.20 was uncheckable against a capture until this.
+    ///
+    /// **92,626 fields, and the residue is one building's `y`** — player
+    /// 1's Dock `o 2010`, laid on frame 2977. It is the last thing between
+    /// this crate and East Indies' word past 3021: the citizen sent to
+    /// build it walks the original's own frames toward a different point,
+    /// and 44 frames later the original's step is blocked where this one's
+    /// is not (`docs/AI.md` §20).
+    #[test]
+    fn run56_s_buildings_stand_where_the_original_s_do() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run56-islands-3k.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run56.log"),
+        ) else {
+            eprintln!("skipping: no run56 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        assert!(
+            report.frames.len() >= 3_000,
+            "run56's length is {} — a short file here is a wrong file",
+            report.frames.len()
+        );
+        let seen: usize = report.frames.iter().map(|f| f.build_compared).sum();
+        let bad: Vec<BuildDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.build_diverged.iter().copied())
+            .collect();
+        // Which buildings, and from which frame — the successor's own
+        // statement, printed whether or not the assertion below fails.
+        let mut first: Vec<(i64, i64, i64, &'static str, i64, i64)> = Vec::new();
+        for d in &bad {
+            if !first.iter().any(|&(w, o, ..)| (w, o) == (d.who, d.o)) {
+                first.push((d.who, d.o, d.frame, d.field, d.ours, d.theirs));
+            }
+        }
+        eprintln!(
+            "run56 buildings: {seen} fields compared, {} wrong on {} building(s)",
+            bad.len(),
+            first.len()
+        );
+        for &(who, o, frame, field, ours, theirs) in &first {
+            eprintln!("  {who}/{o} from f{frame}: {field} ours {ours} theirs {theirs}");
+        }
+        assert_eq!(seen, 92_626, "two fields on every linked building-frame");
+        // **One building, one field, and it is asserted as it stands** so
+        // that closing it fails here rather than passing quietly. Every
+        // other building of both players stands on the original's own
+        // point for all 3,000 frames — the pre-placed ones, the farms and
+        // the second city this crate sites itself, and the camp of item
+        // 85.
+        assert_eq!(
+            first
+                .iter()
+                .map(|&(w, o, f, field, ..)| (w, o, f, field))
+                .collect::<Vec<_>>(),
+            vec![(1, 2010, 2977, "y_internal")],
+            "the AI's dock is the only building sited somewhere else"
+        );
+        assert_eq!(bad.len(), 25, "one field-frame per frame it stands for");
+    }
+
     /// **The crew's follow offsets, from the install** — `track_dx` and
     /// `track_dy`, which decide whether a unit's second figure stands on
     /// the first or walks its own body behind it
@@ -5009,11 +5201,15 @@ mod tests {
     /// refuses one of the sub-positions. A one-draw-per-call reading
     /// cannot produce either number.
     ///
-    /// What is still open here is the row above it — the spiral is one
-    /// draw *short* of the original's thirty, and a
-    /// `Unit::do_non_flat_gather+0x54b` is short too, so the frame reads
-    /// 43 against 45. Those are this map's own residues, and they are
-    /// asserted as they stand so that closing one shows up as a failure.
+    /// The row above it was one draw *short* of the original's thirty for
+    /// five days, and it is **30 against 30** since 2026-09-01: the
+    /// stride-by-three stepped the spiral's index at the *top* of the
+    /// iteration, by the stride as it stood before the body ran, where
+    /// the original steps it at the bottom by the stride the body has
+    /// just set (`docs/AI.md` §20). One cell, one candidate, one draw.
+    /// A `Unit::do_non_flat_gather+0x54b` is still short, so the frame
+    /// reads 44 against 45; that residue is asserted as it stands so that
+    /// closing it shows up as a failure.
     #[test]
     fn the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well() {
         let Some(inst) = install() else { return };
@@ -5050,8 +5246,8 @@ mod tests {
                 count(&theirs, sim::ai_place::SITE_SPIRAL),
                 count(&ours, sim::ai_place::SITE_SPIRAL),
             ),
-            (30, 29),
-            "the spiral is one candidate short — still open"
+            (30, 30),
+            "the spiral walks the original's own candidates"
         );
         assert_eq!(
             (
@@ -5061,7 +5257,7 @@ mod tests {
             (5, 4),
             "and one citizen picks no tile — still open"
         );
-        assert_eq!(ours.len(), 43, "so the frame is 43 against 45");
+        assert_eq!(ours.len(), 44, "so the frame is 44 against 45");
     }
 
     /// Run20's AI scout at frame 0 — `Unit::think_scout`'s ten draws, on
