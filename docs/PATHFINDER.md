@@ -551,7 +551,14 @@ each node push one `PathData`:
   the `− 0x180` included, is inside the `is_move` arm;
 - tolerance: `0x180` (world) / `0` (unit grid) / tile: `0` if the unit can
   transport and `anti_unit == 0`, else `0x60`; forced 0 on a
-  transport-flagged node;
+  transport-flagged node. The tile arm's own test is at `00684bfc` and it
+  is the unit's, not the type's alone: `unit_masks & 0x800000` without
+  `unit_masks2 & 0x2000`, **or** `unit_flags & 0x10` (`+0x2b4` bit `e`,
+  the sea transport). So the same type walks with two different
+  tolerances over one game — a citizen is granted `0x800000` the frame
+  after its side's Dock finishes — and the difference is worth three
+  frames a leg at speed 25, because the caller's arrival test is
+  `manhattan(waypoint − step) <= tolerance` (`docs/ORDERS.md` §4.5);
 - flags: `2` if `anti_unit` or unit grid; `| 0x10` if **this node**
   carries `building`; `| 4` if **this node** carries `transport` — both
   per emitted node, not from the walk-back root (audit V23);
@@ -687,6 +694,18 @@ way. (`docs/ORDERS.md` §4.6 amended in place, pointing here.)
   `BLOCK_RADIUS 1` type in the corpus — which this crate already models
   (`orders.rs`, the waypoint block). The counts are the dump's own, so
   they are pinned exactly rather than as a ceiling.
+- **And the row that census could not hold was the tile grid's own**
+  (2026-09-01, item 141). run39 is 1,850 frames and East Indies' AI Dock
+  finishes on 3579, so no unit in that capture ever satisfies §7's
+  transport test and every tile waypoint it plans is `0x60` on both
+  sides — the check was right and the capture was short. On run58 the
+  same comparison opens **1,750 rows**, the first at frame 3644,
+  `tolerance ours 96 theirs 0` on the AI's citizen `1/13`; it is now
+  asserted **empty before the word** in
+  `diff::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do`.
+  The lesson is the capture, not the comparison: a widening's census is
+  only as wide as the frames it ran over, and a rule that switches on a
+  mid-game grant needs a capture that reaches the grant.
 
 ## 11. What the sim implements
 

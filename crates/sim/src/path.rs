@@ -959,11 +959,29 @@ impl Sim {
             if n.parent.is_none() && step != STEP_UNIT {
                 break;
             }
+            // **The tile grid's tolerance is not a constant** (`00684bfc`):
+            // a unit that can transport is given an *exact* waypoint, and
+            // everything else is allowed to call a waypoint reached within
+            // half a tile. The test is `anti_unit == 0` and either
+            // `unit_masks & 0x800000` without `unit_masks2 & 0x2000` — the
+            // auto-transport pair — or a type carrying `unit_flags & 0x10`,
+            // the sea transport's own bit.
+            //
+            // It costs three frames a leg. East Indies' AI citizen `1/13`
+            // is granted `0x800000` on frame 3580, the frame after its
+            // Dock finishes (`docs/TRANSPORT.md` §3), and from there every
+            // tile-grid waypoint it takes is one the original walks onto
+            // and this crate cut the corner of — thirteen frames by the
+            // time it reached its wood tile, and the sync word thirteen
+            // frames early with it.
+            let can_transport = (self.units[u].auto_transport && !self.units[u].never_transport)
+                || self.units[u].ty.is_some_and(|t| {
+                    self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+                });
             let mut tolerance = match step {
                 STEP_WORLD => 0x180,
                 STEP_UNIT => 0,
-                // `0` for a transporter outside anti mode; SEAM: no
-                // transporters, so always 0x60.
+                _ if !m.anti_unit && can_transport => 0,
                 _ => 0x60,
             };
             let mut flags: u8 = if m.anti_unit || step == STEP_UNIT {
@@ -1587,6 +1605,48 @@ mod tests {
                 p.to
             );
         }
+    }
+
+    /// **The tile grid's tolerance is the unit's, not a constant**
+    /// (`00684bfc`). A unit that may auto-transport is given the waypoint
+    /// exactly; everything else may call it reached within `0x60`.
+    ///
+    /// The difference is three frames a leg at speed 25, and thirteen by
+    /// the time East Indies' AI citizen `1/13` reaches its wood tile —
+    /// which is what put the long capture's word at 4275 rather than
+    /// 4313 (`docs/PATHFINDER.md` §7).
+    #[test]
+    fn a_unit_that_can_transport_gets_its_tile_waypoints_exactly() {
+        let mut sim = flat_sim(12);
+        let u = walker(&mut sim, Pos::new(4 * 0xc0 + 0x60, 4 * 0xc0 + 0x60));
+        let goal = Pos::new(20 * 0xc0 + 0x60, 12 * 0xc0 + 0x60);
+        push_goal(&mut sim, u, goal);
+        assert!(sim.find_tpath(u) > 1, "expected a tile route");
+        let plain: Vec<i32> = sim.units[u].path[1..].iter().map(|p| p.tolerance).collect();
+        assert!(
+            !plain.is_empty() && plain.iter().all(|&t| t == 0x60),
+            "a unit that cannot transport takes the half-tile tolerance: {plain:?}"
+        );
+
+        // The same walk with `unit_masks & 0x800000` set.
+        sim.units[u].path.clear();
+        sim.units[u].auto_transport = true;
+        push_goal(&mut sim, u, goal);
+        assert!(sim.find_tpath(u) > 1, "expected a tile route");
+        let exact: Vec<i32> = sim.units[u].path[1..].iter().map(|p| p.tolerance).collect();
+        assert_eq!(exact.len(), plain.len(), "the same route, twice");
+        assert!(
+            exact.iter().all(|&t| t == 0),
+            "and it walks onto each waypoint: {exact:?}"
+        );
+
+        // `unit_masks2 & 0x2000` is the scenario's veto and takes it back.
+        sim.units[u].path.clear();
+        sim.units[u].never_transport = true;
+        push_goal(&mut sim, u, goal);
+        assert!(sim.find_tpath(u) > 1, "expected a tile route");
+        let vetoed: Vec<i32> = sim.units[u].path[1..].iter().map(|p| p.tolerance).collect();
+        assert_eq!(vetoed, plain, "the veto puts the half-tile back");
     }
 
     #[test]

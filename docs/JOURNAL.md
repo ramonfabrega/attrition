@@ -11368,3 +11368,88 @@ agreement's own:
   `get_tregion` however much its name suggests it. That second one is now
   twice in one day (item 138's `collide.rs` gate was the first), which is
   what makes item 142 an item rather than a note.
+
+## 2026-09-01 — item 141: the tile grid's tolerance, and the word goes 4275 → 4313 (Opus)
+
+Booked as a woodcutter's clock. The clock was real and it was a symptom.
+
+**What the trace said.** East Indies' long word parted at 4275 on five
+draws against five, differing at the second: ours opened a
+`Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` — ORDERS §6.4's
+`SITE_STAND_RETURN`, the tile-choosing branch — where the original spent a
+`< Guy::inc_time+0x271`, an animation still running. The count parted at
+4288 on a gaia herd. So: a gatherer thirteen frames ahead of its
+counterpart, and 4288 the frame the original caught up.
+
+**What the dump said, in one run.** run58 carries the gather order's whole
+row on every frame (ORDERS §6.4's `OrderMismatch::Gather`), and its
+earliest disagreement is **frame 3836**: the AI's citizen `1/13` holds
+`wait 439` where the original holds **452**. Same roll — the streams still
+agree — so not a different draw: thirteen frames of counting down that the
+original had not started. `wait` only falls inside `0x140` of the tile
+centre, so `1/13` had *arrived* thirteen frames early. And `1/13` is the
+one unit in run57 or run58 that left the original's point before the word,
+at 3647 — item 139, sitting three items down the queue as its own thing.
+It was the same thing.
+
+**Where the thirteen frames came from.** Three a leg, over the walk out.
+At 3646 both sides stand on (40107, 38862) with the waypoint (40152,
+38904) forty-five and forty-two away — and this crate called it reached,
+popped the stack, and turned for the next one, while the original walked
+the remaining two frames onto it exactly. The arrival test is
+`manhattan(waypoint − step) <= UnitData::tolerance`, and the tolerance
+comes off the waypoint the pathfinder wrote.
+
+**And the tolerance is the unit's, not a constant.** `astar_path`'s
+reconstruction at `00684bfc` (PATHFINDER §7): on the **tile** grid the
+waypoint's tolerance is `0` when `anti_unit == 0` and either `unit_masks &
+0x800000` without `unit_masks2 & 0x2000` — the auto-transport pair — or
+the type carries `unit_flags & 0x10`; `0x60` otherwise. This crate wrote
+`0x60` always, under a comment reading "SEAM: no transporters, so always
+`0x60`" — true when it was written and false since the transport mechanic
+landed. `1/13` is granted `0x800000` on frame **3580**, the frame after
+its side's Dock finishes, and cut the corner off every leg from there.
+
+**What moved.** East Indies' long word **4275 → 4313**. run57: two units
+ever off the original's point → **one**, and that one is `0/5` on 4001,
+the capture's last frame — nothing parts inside the capture at all now,
+where the earliest parting had been 3647. Its comparable collision
+field-frames 349,794 → **350,928**, none wrong. run58: nineteen units ever
+off point → eighteen, and **none before the word**, which is what
+`RUN58_PARTED` now pins at 0; its collision field-frames 435,399 →
+**443,748**, none wrong, and buildings exact on all 178,326. Great Lakes
+holds at 1802 and both scored captures hold. 176 rondata and 691 sim tests
+green in `--release`.
+
+**The widening that would have found it, and why it did not.** run39's
+`a_path_stack_s_rows_are_compared_whole` has scored `tolerance` and
+`flags` on every waypoint since 2026-08-31 and passed every day since —
+because run39 is 1,850 frames and East Indies' Dock finishes on 3579, so
+no unit in that capture ever satisfies the transport test and every tile
+waypoint is `0x60` on both sides. The comparison was right and the capture
+was short. Run the same filter over run58 and it opens **1,750 rows**, the
+first at 3644, `tolerance ours 96 theirs 0`. That filter is now asserted
+empty before the word in run58's own test, and it fails on purpose with
+the fix backed out.
+
+**What is at 4313**: the AI scout. The original opens the frame with 28
+`Unit::think_scout` draws — one `+0x941` and 27 `+0xaba` — and this crate
+spends none. The four re-thinks before it agree exactly (4005, 4110, 4229,
+4282, same draw counts), and both sides turn the scout onto (41112, 20376)
+on 4305 without drawing for it; then the original re-thinks eight frames
+later and this crate waits until 4367. Item 143.
+
+**The rules this is an instance of.**
+
+- **A widening's census is only as wide as the frames it ran over.** A
+  comparison that passes is evidence about the capture, not about the
+  crate. A rule that switches on a mid-game grant needs a capture that
+  reaches the grant — and when a longer one arrives, the standing
+  widenings are re-run over it before anything new is written.
+- **Grep the writers of every field you call frozen** — and re-read every
+  `SEAM:` whose premise a later mechanic has retired. This one said "no
+  transporters" and had been false for three items.
+- **Two queue items can be one defect.** 139 was booked as `1/13`'s
+  parting and 141 as a woodcutter's clock; the parting was the cause and
+  the clock the symptom, 189 frames apart. What linked them was diffing
+  the *whole* gather row rather than the field the item named.

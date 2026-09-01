@@ -4380,23 +4380,28 @@ mod tests {
             coll_bad.is_empty(),
             "the collision block agrees on every comparable field-frame of {coll}: {coll_bad:?}"
         );
-        // The earliest parting, and it is **before** the word rather than
-        // after: a unit can walk off the original's point without spending
-        // a draw for it, and `1/13` at 3647 does. It was 3582 and eleven
-        // units until the colonist arm landed (`docs/SYNC.md` §3.23), and
-        // four until the shore reads did (§3.25).
-        assert_eq!(
-            parted.values().copied().min(),
-            Some(3647),
-            "the earliest parting is 1/13's"
+        // **Nothing leaves the original's point inside the capture.** It
+        // was 3647 and two units until the tile grid's own tolerance
+        // landed (`docs/PATHFINDER.md` §7): a unit that can transport is
+        // given an *exact* waypoint, and `1/13` — granted `unit_masks &
+        // 0x800000` on 3580, the frame after its Dock finished — had been
+        // cutting three frames off every leg since. The one parting left
+        // is `0/5` on **4001**, the capture's last frame and run57's own
+        // word. Before that: 3582 and eleven units until the colonist arm
+        // landed (`docs/SYNC.md` §3.23), four until the shore reads did
+        // (§3.25).
+        assert!(
+            parted.values().copied().min().is_none_or(|f| f >= 4_001),
+            "no unit leaves the original's point before the capture's last \
+             frame: {parted:?}"
         );
         assert!(
-            parted.len() <= 2,
-            "two units ever leave the original's point in 4,000 frames: {parted:?}"
+            parted.len() <= 1,
+            "one unit ever leaves the original's point in 4,000 frames: {parted:?}"
         );
         assert_eq!(builds, 130_326, "two fields on every linked building-frame");
         assert!(
-            coll >= 349_794,
+            coll >= 350_928,
             "five fields on every agreeing unit-frame, and the count only \
              grows: {coll}"
         );
@@ -4515,6 +4520,34 @@ mod tests {
             "the collision block agrees on every comparable field-frame up \
              to the word: {coll_early:?}"
         );
+        // **The path stack's own rows, before the word.** run39's
+        // widening (`run39_s_path_stack_agrees_row_for_row`) scores
+        // `tolerance` and `flags` beside each waypoint's point, and it
+        // passed for a week: run39 is 1,850 frames and the tile grid's
+        // tolerance only stops being `0x60` for a unit that can transport
+        // — which on East Indies is frame **3580**, past the end of that
+        // capture. So the check was right and the capture was short. Here
+        // it is on the long one, where a `tolerance` row is what the
+        // thirteen-frame lead of item 141 actually was.
+        let path_rows: Vec<&OrderDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| {
+                d.frame < LONG_WORD_EAST_INDIES
+                    && matches!(
+                        d.what,
+                        OrderMismatch::PathField { .. } | OrderMismatch::PathTo { .. }
+                    )
+            })
+            .collect();
+        assert!(
+            path_rows.is_empty(),
+            "every waypoint agrees row for row up to the word: {} rows, \
+             first {:?}",
+            path_rows.len(),
+            path_rows.first()
+        );
         let early: std::collections::BTreeMap<_, _> = parted
             .iter()
             .filter(|(_, f)| **f < LONG_WORD_EAST_INDIES)
@@ -4522,12 +4555,7 @@ mod tests {
         assert_eq!(
             early.len(),
             RUN58_PARTED,
-            "before the word, only 1/13 ever leaves the original's point: {early:?}"
-        );
-        assert_eq!(
-            early.values().map(|f| **f).min(),
-            Some(3647),
-            "and it is 1/13's own parting at 3647"
+            "before the word, no unit leaves the original's point: {early:?}"
         );
         assert_eq!(
             builds, RUN58_BUILD_FIELDS,
@@ -8049,12 +8077,24 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **4275** — the sequence parts there and the count at 4288, and the
-    /// two are a woodcutter's clock and a gaia herd. 4275 is five draws
-    /// against five with the second one different: ours opens a
-    /// `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99` where the
-    /// original's is `< Guy::inc_time+0x271`, the same shape as
-    /// `docs/SYNC.md` §3.14's wood machine.
+    /// **4313** — the sequence and the count part on the same frame, and
+    /// it is the AI scout's: theirs opens 33 draws with a
+    /// `Unit::think_scout+0x941` where ours spends five and no re-think.
+    ///
+    /// It was **4275** for one item, and that item was booked as a
+    /// woodcutter's clock and was **the tile grid's own tolerance**
+    /// (`docs/PATHFINDER.md` §7). The clock was real — the AI's citizen
+    /// `1/13` reached its wood tile thirteen frames early and started its
+    /// `wait` down from 452 there — but the thirteen frames were three a
+    /// leg of the walk out, and the walk was wrong because
+    /// `astar_path`'s reconstruction gives a unit that **can transport**
+    /// an exact waypoint (`00684bfc`: tolerance 0, not `0x60`) and this
+    /// crate gave every tile-grid waypoint `0x60`. `1/13` is granted
+    /// `unit_masks & 0x800000` on frame **3580**, the frame after its
+    /// Dock finishes, and had been cutting the corner off every leg
+    /// since — which is also the whole of `1/13`'s parting at 3647, the
+    /// last unit in run57 or run58 to leave the original's point before
+    /// the word.
     ///
     /// It was **4020** for one item, and that item was booked as the
     /// scout's and was the **colonist's** (`docs/SYNC.md` §3.25). The
@@ -8198,12 +8238,14 @@ mod tests {
     /// run58's own three numbers (`run58_s_five_thousand_frames_stand_
     /// where_the_original_s_do`). The two field counts are structural —
     /// what a 5,200-frame capture holds — and `RUN58_PARTED` is the score:
-    /// how many of its units ever walk off the original's point.
-    const RUN58_PARTED: usize = 1;
+    /// how many of its units ever walk off the original's point **before
+    /// the word**. It was 1 — `1/13`, from 3647 — until the tile grid's
+    /// tolerance landed, and it is **0** now.
+    const RUN58_PARTED: usize = 0;
     const RUN58_BUILD_FIELDS: usize = 178_326;
-    const RUN58_COLL_FIELDS: usize = 435_399;
+    const RUN58_COLL_FIELDS: usize = 443_748;
 
-    const LONG_WORD_EAST_INDIES: i64 = 4275;
+    const LONG_WORD_EAST_INDIES: i64 = 4313;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

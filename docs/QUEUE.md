@@ -12,36 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the colonist could not see the shore, and East Indies'
-word is **4275**.* Item 140 was booked on the scout and was the citizen's.
+*2026-09-01, Opus — the tile grid's tolerance is the unit's, and East
+Indies' word is **4313**.* Item 141 was booked as a woodcutter's clock and
+was item 139's parting, 189 frames upstream.
 
-- **The scout is right on both sides** — §11's fallback on 4005, ten
-  candidates, cell (48, 30), arriving on **4110**, the frame run54's trace
-  throws its next `+0x941`. What un-booked it: the scout's own cast at
-  3608 spends two `set_anim` draws (man and dog) and 4020 spends one.
-- **`coast_here`'s neighbour probe is `get_tregion`** (`0068106a`) and
-  this crate asked the plain cell region, so a cell one in from the
-  waterline coasted nothing and `think_civilian_transport` drew from the
-  wrong candidates: `1/15` went to cell (37, 36) where the original sends
-  it to **(39, 34)** on 3735. §3.24's lesson, second caller, same day.
-- **`move_step` reads `path.flags & 4`** (`005fb1a5`) — the waypoint's own
-  turn-in-place bit, which `shore_flagged` has written since the
-  pathfinder landed and nothing read. Without it `1/15` walked through a
-  turn the original stands still for and embarked a frame early.
-- run57: **three units ever off the original's point → two**, and its
-  collision field-frames 348,469 → **349,794**, none wrong. **run58** (East
-  Indies, 5,200, same game as run54 and run57 to the frame) landed with it
-  and is a test: 178,326 building fields and 435,399 collision field-frames,
-  none wrong *before the word* and only `1/13` off point there. Steering
-  last ran 2026-09-01 (Fable); this is the second item since.
+- **`astar_path`'s tile reconstruction gives a unit that can transport an
+  exact waypoint** (`00684bfc`, PATHFINDER §7): tolerance **0**, not
+  `0x60`, when `anti_unit == 0` and either `unit_masks & 0x800000` without
+  `unit_masks2 & 0x2000`, or `unit_flags & 0x10`. This crate wrote `0x60`
+  always, under a `SEAM: no transporters` a later mechanic had retired.
+- **Three a leg, thirteen by the tile.** `1/13` is granted `0x800000` on
+  3580, the frame after its Dock finishes, and called every waypoint
+  reached forty-odd units short. That is its parting at 3647 (139) *and*
+  its `wait 439` against 452 at 3836 (141), one defect.
+- **The widening was right and the capture was short.** run39's whole-row
+  path check has scored `tolerance` since 2026-08-31 and passes — run39
+  ends 1,729 frames before the Dock. Over run58 the same filter opens
+  1,750 rows, first at 3644; now asserted empty before the word.
+- run57: **one** unit ever off point, `0/5` on 4001, its last frame;
+  collision 349,794 → **350,928**, none wrong. run58: **none** off point
+  before the word (`RUN58_PARTED` 1 → 0); 443,748 collision and 178,326
+  building fields, none wrong. Steering last ran 2026-09-01 (Fable).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w4275 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w4313 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 4275 and item 141 holds it: five
-draws against five, differing at the second — ours opens a
-Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99 where the original's
-is < Guy::inc_time+0x271. A woodcutter's clock; item 103's shape.`
+**Opener (Opus):** `East Indies' word is 4313 and item 143 holds it: the
+original opens the frame with 28 Unit::think_scout draws and this crate
+spends none. The four re-thinks before it agree exactly and both sides
+turn the scout on 4305 without drawing; ours then waits until 4367.
+SCOUT §11.`
 
 ## The queue
 
@@ -50,14 +50,18 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-141/103. **A woodcutter's clock, at 4275.** Five draws against five and
-    the second differs: ours `Guy::set_anim+0x97a < Unit::do_non_flat
-    _gather+0xb99`, theirs `< Guy::inc_time+0x271`. The count holds to
-    **4288**, where the extra pair is a gaia herd's. Both are past run57's
-    4,001; **run58** is the dump that reaches them (ORACLE run58, a test
-    already). Item 103 is the same machine at 1,686: after 26,094 agreeing
-    fields the human's `0/2` holds a wait of 445 where the original's
-    holds 480, tile and phase right. ORDERS §6.4.
+143. **The scout re-thinks at 4313 and this crate does not.** 28
+    `Unit::think_scout` draws — one `+0x941`, 27 `+0xaba` — where ours
+    spends none, and ours waits until **4367**. The four before it agree
+    draw for draw (4005, 4110, 4229, 4282), and on **4305** both sides
+    turn the scout onto (41112, 20376) with *no* draw either side — so
+    4313 is a second re-think eight frames after a course change neither
+    drew for. What triggers it is the question. run58 is the dump (its
+    `1/0` holds the original's point to 4369); SCOUT §11.
+
+103. **A woodcutter's clock at 1,686.** The same machine one map down:
+    after 26,094 agreeing fields the human's `0/2` holds a wait of 445
+    where the original's holds 480, tile and phase right. ORDERS §6.4.
 
 142. **`World::tregion` is not `get_tregion`, and its callers are
     unaudited.** Two items in one day were a gate asking `region_of` where
@@ -66,11 +70,6 @@ indexed by them.
     `tregion_alt`. Nineteen call sites across `orders`, `scout`,
     `transport`, `roads`, `army`, `place`, `group` and `path` are unchecked
     against which the original calls. Grep each; then try for a guard.
-
-139. **`1/13` parts at 3647 and costs no draw** — run57's only remaining
-    parting. Its object-chain `down` goes **2000 → 3** on 3581, off the
-    city and onto a unit, while its gather order and destination stay put;
-    this crate never makes that link.
 
 136. **The danger grid has no writer, and four readers index it wrongly.**
     `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution
