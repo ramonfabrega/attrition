@@ -1086,6 +1086,115 @@ mod tests {
         );
     }
 
+    /// §11.1 — the **second call site**, `Unit::think_peasant`'s AI tail.
+    /// An AI worker standing in a region where its leader has no city and
+    /// which none of the ten `Sites` claims gives up and explores; one
+    /// standing where a site *is* claimed waits, but only while `idle` is
+    /// six or under. East Indies' word at 4313 was this arm missing.
+    #[test]
+    fn an_ai_worker_explores_out_of_a_region_no_city_and_no_site_wants() {
+        let citizen = |s: &mut Sim, u: usize| {
+            let t = s.units[u].ty.expect("the fixture's type");
+            s.unit_types[t].cols.role = 0;
+            s.unit_types[t].worker = crate::orders::Worker::Citizen;
+            s.units[u].type_index = 0x32;
+            // `stance > 1` is what skips the job search, so the tail is
+            // what this test reaches (`005f5920`).
+            s.units[u].stance = 2;
+            s.units[u].idle = 1;
+        };
+        let region = |s: &Sim, u: usize| {
+            s.world
+                .tregion_alt(s.units[u].pos.tile())
+                .expect("the worker stands in the region")
+        };
+        let explored = |s: &Sim, u: usize| {
+            s.units[u].orders.front().is_some_and(
+                |o| matches!(o.body, crate::orders::Body::Move(m) if m.kind == MoveKind::ExploreTo),
+            )
+        };
+
+        // No city in the region, and no site: it explores.
+        let (mut s, ai, _) = scout_sim(true);
+        citizen(&mut s, ai);
+        let r = region(&s, ai);
+        s.ai[1].census.resize(64, 8);
+        s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITES];
+        assert!(s.think_peasant(ai, false), "the tail issued the explore");
+        assert!(explored(&s, ai), "and it is an EXPLORE_TO");
+
+        // A site claims the region: it waits instead.
+        let (mut s, ai, _) = scout_sim(true);
+        citizen(&mut s, ai);
+        s.ai[1].census.resize(64, 8);
+        s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITES];
+        s.ai[1].sites[3] = crate::ai::Site {
+            val: 1,
+            reg: i32::from(r),
+            ..crate::ai::Site::default()
+        };
+        assert!(
+            !s.think_peasant(ai, false),
+            "a claimed region is worth waiting in"
+        );
+        assert!(!explored(&s, ai));
+
+        // …for six idle frames, and no longer.
+        s.units[ai].idle = 7;
+        assert!(s.think_peasant(ai, false), "seven is one too many");
+        assert!(explored(&s, ai));
+
+        // A `val` of zero claims nothing, whatever its `reg` says.
+        let (mut s, ai, _) = scout_sim(true);
+        citizen(&mut s, ai);
+        s.ai[1].census.resize(64, 8);
+        s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITES];
+        s.ai[1].sites[3] = crate::ai::Site {
+            val: 0,
+            reg: i32::from(r),
+            ..crate::ai::Site::default()
+        };
+        assert!(s.think_peasant(ai, false));
+
+        // And the leader's own city in the region ends the question before
+        // the sites are read at all.
+        let (mut s, ai, _) = scout_sim(true);
+        citizen(&mut s, ai);
+        s.ai[1].census.resize(64, 8);
+        s.ai[1].census.reg_cities[r as usize] = 1;
+        s.ai[1].sites = [crate::ai::Site::default(); crate::ai::SITES];
+        assert!(!s.think_peasant(ai, false), "a city in the region: stay");
+        assert!(!explored(&s, ai));
+    }
+
+    /// A **scholar** skips the whole tail, `unit_masks & 0x400` included —
+    /// the one worker that keeps "has been a builder" across a failed
+    /// search (`think_peasant@005f5760:111`).
+    #[test]
+    fn a_scholar_keeps_its_builder_bit_where_a_citizen_loses_it() {
+        let (mut s, ai, _) = scout_sim(true);
+        let t = s.units[ai].ty.expect("the fixture's type");
+        s.unit_types[t].cols.role = 0;
+        s.unit_types[t].worker = crate::orders::Worker::Scholar;
+        s.units[ai].type_index = 0x34;
+        s.units[ai].stance = 2;
+        s.units[ai].idle = 1;
+        s.units[ai].was_builder = true;
+        assert!(!s.think_peasant(ai, false));
+        assert!(s.units[ai].was_builder, "a scholar never reaches the clear");
+
+        s.units[ai].type_index = 0x32;
+        s.unit_types[t].worker = crate::orders::Worker::Citizen;
+        let r = s
+            .world
+            .tregion_alt(s.units[ai].pos.tile())
+            .expect("the worker stands in the region");
+        s.ai[1].census.resize(64, 8);
+        s.ai[1].census.reg_cities[r as usize] = 1;
+        assert!(!s.think_peasant(ai, false));
+        assert!(!s.units[ai].was_builder, "a citizen does");
+    }
+
     /// **`find_unit_ordered` is two predicates the crate did not have**
     /// (`ObjectsData::find_unit_ordered@0065bc40`, read 2026-09-01): the
     /// blocking unit must carry an order, that order must be in the move

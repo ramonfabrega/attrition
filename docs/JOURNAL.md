@@ -11453,3 +11453,88 @@ later and this crate waits until 4367. Item 143.
   parting and 141 as a woodcutter's clock; the parting was the cause and
   the clock the symptom, 189 frames apart. What linked them was diffing
   the *whole* gather row rather than the field the item named.
+
+## 2026-09-01 — `think_scout` has a second caller, and it is a citizen's (item 143)
+
+Opus, in the main thread. East Indies' long word **4313 → 4461**.
+
+**The item was booked wrong, and the trace had said so.** The queue read
+"the scout re-thinks at 4313 and this crate does not", on the strength of
+28 `Unit::think_scout` draws — one `+0x941`, 27 `+0xaba` — that this crate
+does not spend. The first `report.py … sites 4313` prints the whole caller
+chain, and it is not the scout's:
+
+```
+f4313  27  Unit::think_scout+0xaba < Unit::think_peasant+0x2ac < Unit::think+0x362
+f4313   1  Unit::think_scout+0x941 < Unit::think_peasant+0x2ac < Unit::think+0x362
+```
+
+The four re-thinks the item cited as agreeing — 4005, 4110, 4229, 4282 —
+are all `Unit::think_scout < Unit::think+0x7da < Unit::do_idle+0x94`, the
+tail SCOUT §2 documents. 4313's is a different function entirely, and the
+two draw sites name the branch: `+0x941` and `+0xaba` are §11's **region
+scan**, which §3 routes a citizen to. Both facts were in the fold; the
+item's name had been written from the frame number and the site addresses
+alone.
+
+**`Unit::think_peasant@005f5760`'s tail** (SCOUT §11.1, `LAB_005f5920`) is
+what was missing. Below the job search, for a non-scholar of an AI leader:
+the region under the unit's tile by `get_tregion`; if the leader's
+`reg_cities[region]` is zero, a walk over the **ten `Sites`** for one with
+`val != 0 && reg == region`; none, or `idle > 6` with one, and the worker
+calls `think_scout(0)`. `docs/ORDERS.md` §5.9 had carried the arm as the
+single line "AI: region/scout logic, then find_repair_spot()" since the
+mechanic landed — a transcription stub nobody had gone back for.
+
+Three readings the decompiler does not hand over. `LeaderData +0x6e34` is
+a `Sites`, which the type record gives as `Array<Site>` whose `+0x10` is
+the `Site *`; the listing walks from `*(+0x6e44) + 0xc` at stride six
+ints, so the fields read are `Site.val` and `Site.reg`, and the walk stops
+at ten with no length test. `div_3_table[(x ^ 0x63637) >> 6]` is `x /
+0xc0`, the tile — `get_tregion@006b52e0` shifts its own arguments right by
+two to index `wdata`, which settles the scale. And the scholar test wraps
+the `unit_masks &= ~0x400` clear as well as the region arm, so a scholar
+is the one worker that keeps "has been a builder" across a failed search.
+
+**What the frame turns out to be.** The AI's citizen `1/15` finishes a
+walk on 4312 at tile (158, 138) — cell (39, 34), region 8, a region where
+leader 1 has no city and none of whose ten sites carries `reg 8`. It goes
+idle on 4313, and with `frame % 8 == 1` over a hundred-cell region the
+stride is 2: fifty cells visited, twenty-seven passing the fog and
+location tests and scored, and the winner is tile (162, 138) — which
+run58's block 4314 holds as the unit's new `EXPLORE_TO`, and its
+`PATHDATA to_x 31200, to_y 26592` is that tile's centre exactly. With the
+arm in, the whole scan reproduces seed for seed on the frame's own stream.
+
+**What moved.** East Indies' long word **4313 → 4461**. run58's earliest
+parting of any kind moved 4300 → **4479** and its count nineteen →
+seventeen, so the arm was holding two other units off the original's point
+as well; comparable collision field-frames 443,748 → **447,024**, none
+wrong, buildings exact on all 178,326, and nothing parts before the word.
+Great Lakes holds at 1802 and both scored captures hold. 176 rondata and
+693 sim tests green in `--release`.
+
+**What is at 4461**: the AI's Dock. The original opens the frame with
+`Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd` — the
+birth of the ship `1/14`. `1/2010` queues the type-317 job on frame
+**4376** and its `job_counter` climbs 100 a frame to **8481**, landing on
+4461; this crate builds the same unit on **4489**, twenty-eight frames —
+2,800 counter units — late. Both counters are in run58's per-frame
+`BUILDQUEUE`, so whether it is a late decision or a slow counter is a
+grep. Item 144.
+
+**The rules this is an instance of.**
+
+- **A draw site names a function; the ebp chain names the mechanic.** The
+  item was booked off `Unit::think_scout+0x941` and cost a wrong frame of
+  reasoning about a scout that was never involved. `report.py … sites`
+  prints three frames of chain for exactly this reason, and reading the
+  second one is free.
+- **A transcription stub is a finding waiting to be found.** "AI:
+  region/scout logic" was written when the mechanic landed and read as
+  prose ever since; the arm behind it was two predicates and a ten-entry
+  walk, and it was the headline.
+- **A function's call sites are part of its specification.** SCOUT had
+  read `think_scout` line by line and named one caller. There are three,
+  and the one no capture reaches is the one the document called "the
+  second".

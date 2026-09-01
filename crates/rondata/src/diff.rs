@@ -8077,9 +8077,26 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **4313** — the sequence and the count part on the same frame, and
-    /// it is the AI scout's: theirs opens 33 draws with a
-    /// `Unit::think_scout+0x941` where ours spends five and no re-think.
+    /// **4461** — the sequence and the count part on the same frame, and
+    /// it is the AI's Dock: theirs opens with `Guy::init_real+0x52 <
+    /// Unit::init+0xb97 < Objects::init_unit+0xbd`, the birth of the ship
+    /// `1/14`. `1/2010` queued the type-317 job on frame **4376** and its
+    /// `job_counter` climbs 100 a frame to **8481**, which lands on 4461;
+    /// this crate builds the same unit on **4489**, twenty-eight frames —
+    /// 2,800 counter units — late.
+    ///
+    /// It was **4313** for one item, and that item was booked as the
+    /// scout's re-think and was a **citizen's** (`docs/SCOUT.md` §11.1).
+    /// The 28 draws are one `Unit::think_scout+0x941` and 27 `+0xaba` —
+    /// §11's region scan, not the city loop — and the caller is
+    /// `Unit::think_peasant+0x2ac`, `think_scout`'s **second** call site,
+    /// not `Unit::think`'s tail. `think_peasant`'s AI tail was
+    /// untranscribed below `find_gather_spot`: a worker standing in a
+    /// region where its leader has no city and which none of the ten
+    /// `Sites` claims explores instead. The AI's citizen `1/15` reached
+    /// cell (39, 34) on 4312, went idle on 4313, and took the whole
+    /// hundred-cell region scan of region 8 at stride 2 — 50 cells
+    /// visited, 27 scored, the winner tile (162, 138).
     ///
     /// It was **4275** for one item, and that item was booked as a
     /// woodcutter's clock and was **the tile grid's own tolerance**
@@ -8243,9 +8260,9 @@ mod tests {
     /// tolerance landed, and it is **0** now.
     const RUN58_PARTED: usize = 0;
     const RUN58_BUILD_FIELDS: usize = 178_326;
-    const RUN58_COLL_FIELDS: usize = 443_748;
+    const RUN58_COLL_FIELDS: usize = 447_024;
 
-    const LONG_WORD_EAST_INDIES: i64 = 4313;
+    const LONG_WORD_EAST_INDIES: i64 = 4461;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

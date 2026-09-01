@@ -1169,7 +1169,7 @@ impl Sim {
     /// That one frame is what run33's trained citizen spends: it comes out
     /// at 99, is first visited at 100, and its walk — and the collision
     /// that ends it at 122 — hangs off that frame (`docs/SYNC.md` §3.16).
-    fn think_peasant(&mut self, u: usize, forced: bool) -> bool {
+    pub(crate) fn think_peasant(&mut self, u: usize, forced: bool) -> bool {
         let unit = &self.units[u];
         let ai = self.ai_driven(unit.owner);
         if !forced {
@@ -1212,7 +1212,47 @@ impl Sim {
         if stance <= 1 && self.find_gather_spot(u, range) {
             return true;
         }
+
+        // **The tail, `LAB_005f5920`** — everything below the job search,
+        // and the arm East Indies' word at 4313 was (`docs/SCOUT.md`
+        // §11.1). A **scholar** (`0x34`/`0x35`) skips the whole of it,
+        // `unit_masks & 0x400` included, so it is the one worker that
+        // keeps "has been a builder" across a failed search.
+        if matches!(self.units[u].type_index, 0x34 | 0x35) {
+            return false;
+        }
+        // SEAM: a **human's** arm here is `(was_builder or stance ∈
+        // {1, 2}) and find_repair_spot()`, and `find_repair_spot` is not
+        // modelled (`docs/ORDERS.md` §5.9).
         self.units[u].was_builder = false;
+        if !ai {
+            return false;
+        }
+
+        // The AI's: a worker standing in a region where its leader has no
+        // city, and which none of the leader's ten sites claims, gives up
+        // on the region and **explores** — `think_scout(0)` from here, the
+        // second of that function's three call sites and the only one a
+        // citizen ever reaches (`docs/SCOUT.md` §11.1). A region a site
+        // does claim is worth waiting in, but only for six idle frames.
+        //
+        // The region is `get_tregion@006b52e0`, the coastal-refined one
+        // (`World::tregion_alt`), as the listing calls it.
+        let who = self.units[u].owner as usize;
+        let t = self.units[u].pos.tile();
+        let Some(region) = self.world.tregion_alt(t) else {
+            return false;
+        };
+        if crate::ai::Census::reg(&self.ai[who].census.reg_cities, region) == 0 {
+            let claimed = self.ai[who]
+                .sites
+                .iter()
+                .any(|s| s.val != 0 && s.reg == i32::from(region));
+            if !claimed || self.units[u].idle > 6 {
+                return self.think_scout(u);
+            }
+        }
+        // SEAM: `find_repair_spot` again, the AI's own.
         false
     }
 

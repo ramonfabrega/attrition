@@ -1532,7 +1532,7 @@ not a scholar and (unit_masks & 0x400 or stance ∈ {1,2}) and find_build_spot()
 stance ∈ {0,1} (or no stance type and 0): find_gather_spot(AI ? −1 : UNIT_GATHER_RESPOND_RANGE × 192) → deselect; human: group = −1; return 1
 not a scholar: human with (0x400 or stance ∈ {1,2}) and find_repair_spot(): return 1
 unit_masks &= ~0x400
-AI: region/scout logic, then find_repair_spot()
+AI: SCOUT §11.1's tail; find_repair_spot()
 ```
 
 With the default option the gate passes at `idle == 2` — the third idle frame

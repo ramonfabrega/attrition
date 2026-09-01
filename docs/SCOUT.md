@@ -40,7 +40,9 @@ into it. ~~The branch this document does **not** establish is the region
 fallback's cell walk (§11);~~ **§11 landed 2026-08-31** (item 110) and is
 diff-backed on run39's frame 1373 — three of its constants are still
 reading-only and §13 item 1 names them. The goody-box head this document
-deferred is `docs/GOODY.md` §7 as of 2026-08-31 (§13 item 2).
+deferred is `docs/GOODY.md` §7 as of 2026-08-31 (§13 item 2). **§11.1**,
+the second caller, landed 2026-09-01 and is diff-backed on run54/run58's
+frame 4313 — the whole 28-draw region scan, seed for seed.
 
 **Naming.** Offsets are the PDB's: `struct /rise.pdb/UnitData`,
 `LeaderData`, `WorldData`, `WData`, `Region`, `CityData`. A cell is 4 × 4
@@ -659,6 +661,67 @@ The lesson is `docs/audit/README.md`'s, in a new shape: **grep the writers
 of every field you call unrecoverable.** One `grep -l rebuild_coords` over
 the export was the whole cost of five days of "no capture would help".
 
+### 11.1 The second caller — `Unit::think_peasant`'s AI tail
+
+`think_scout` has more than one caller, and until 2026-09-01 this document
+carried only `Unit::think`'s tail (§2). The other live one is
+**`Unit::think_peasant@005f5760`**, and its draws are this section's, not
+§5's: a citizen takes the region scan by §3's branch, so a `think_peasant`
+frame spends `+0x941` once and `+0xaba` once a scored cell and never the
+city loop's `+0x436`/`+0x458`/`+0x64c`.
+
+Below the job search, at `LAB_005f5920`:
+
+```
+if (type_index != 0x34 && type_index != 0x35) {            // not a scholar
+    if ((unit_masks & 0x40000) == 0                        // a human's
+        && ((unit_masks & 0x400) || stance == 2 || stance == 1)
+        && find_repair_spot(this)) return 1;
+    unit_masks &= ~0x400;
+    if ((unit_masks & 0x40000) != 0) {                     // an AI's
+        region = get_tregion(unit.tile);                   // 006b52e0
+        if (leaders[who].reg_cities[region] == 0) {        // LeaderData +0x125e
+            for (i = 0; i < 10; i++)
+                if (sites[i].val != 0 && sites[i].reg == region) break;
+            if (i == 10) return think_scout(this, 0);      // no site wants it
+            if (idle > 6) return think_scout(this, 0);     // waited long enough
+        }
+        if (find_repair_spot(this)) return 1;
+    }
+}
+return 0;
+```
+
+Four readings that the decompiler does not hand over:
+
+- **`sites`** is `LeaderData +0x6e34`, a `Sites` — which the type record
+  gives as `Array<Site>`, whose `+0x10` is the `Site *`. The listing walks
+  from `*(LeaderData +0x6e44) + 0xc`, which is `list[0].reg`, and steps
+  six ints; `Site` is `{wx, wy, val, reg, dist, rank}` at `0x18` bytes, so
+  the two fields read are **`val` and `reg`**. These are the ten of
+  `docs/AI.md` §2.7. The walk stops at **ten** whether or not the array
+  holds that many — there is no length test.
+- **The tile.** The decompiler prints `div_3_table[(x ^ 0x63637) >> 6]`
+  (the same fold `ObjectData::count_inside@0064dda0:187` prints); it is
+  `x / 0xc0`, the unit's tile, and `get_tregion@006b52e0` proves the scale
+  by shifting its own arguments right by 2 to index `wdata`.
+- **`idle` is `UnitData +0xb0`**, the same byte the function's head gates
+  on — so the six is six *idle frames*, not six thinks.
+- **A scholar skips the `unit_masks &= ~0x400` clear**, because the whole
+  tail sits inside the `!= 0x34 && != 0x35` test. It is the one worker
+  that keeps "has been a builder" across a failed search.
+
+**The diff.** East Indies' word stood at **4313** for one item, booked as
+the scout's re-think. It is not the scout's: the trace's caller chain on
+that frame is `Unit::think_scout+0xaba < Unit::think_peasant+0x2ac <
+Unit::think+0x362`, twenty-eight draws where this crate spent none. The AI's
+citizen `1/15` finished its walk on 4312 at tile (158, 138) — cell (39, 34),
+region 8, where leader 1 has no city and none of its ten sites has `reg 8` —
+went idle on 4313 and scanned the region: 100 cells, `frame % 8 == 1` so
+`stride = 2`, 50 visited, 27 scored, and the winner is tile (162, 138), which
+run58's block 4314 holds as its `EXPLORE_TO`. With this arm the word is
+**4461**, and the 27-draw scan agrees seed for seed.
+
 ## 12. What the simulation carries, and what checks it
 
 `crates/sim/src/scout.rs`:
@@ -685,6 +748,12 @@ the export was the whole cost of five days of "no capture would help".
   reads is no longer frozen** (2026-08-27): `crate::vision` writes `seen2`
   as units move, so a scout that has walked for a hundred frames filters
   its candidate cells against what it has actually seen. `docs/VISION.md`.
+- `Sim::think_peasant`'s tail, in `crates/sim/src/orders.rs` — §11.1's
+  second call site, landed 2026-09-01 (item 143), which took East Indies'
+  word 4313 → 4461. `find_repair_spot` is a seam on both of its arms, so
+  what the crate carries is the scholar exemption, the `was_builder`
+  clear, the `reg_cities` gate, the ten-site walk and the `idle > 6`
+  cut-off.
 - `Sim::scout_thinks` and `Sim::unit_is_scout` — §2's gate, wired into
   `Sim::think`'s tail in `crates/sim/src/orders.rs`, where it is exclusive
   with `think_join_army` as it is in the original. **The other arm caught
@@ -856,9 +925,11 @@ The checks:
    Unnamed in the type record; the simulation reads it as the cell's
    first field and the harness's worlds leave it 0, so the escape never
    fires there.
-8. **The second `think_scout` call site** (§2), the one inside the human
-   block gated on `unit_masks & 0x100`. Not modelled — no capture reaches
-   it, since `0x100` is clear on every scout in every run on disk.
+8. **The `think_scout` call site inside the human block** (§2), gated on
+   `unit_masks & 0x100`. Not modelled — no capture reaches it, since
+   `0x100` is clear on every scout in every run on disk. (It was "the
+   second call site" here until 2026-09-01; there are **three**, and the
+   one a capture does reach is §11.1's.)
 8b. **The order's destination is refined a frame later, and by what is
    not read.** §9 issues the move at the **tile centre**, `4·cell + 2`
    scaled to `tile·0xc0 + 0x60`. Run33's dump prints `1/0`'s new order

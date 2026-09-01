@@ -12,36 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the tile grid's tolerance is the unit's, and East
-Indies' word is **4313**.* Item 141 was booked as a woodcutter's clock and
-was item 139's parting, 189 frames upstream.
+*2026-09-01, Opus — `think_peasant` calls `think_scout` too, and East
+Indies' word is **4461**.* Item 143 was booked as the scout's re-think and was a
+**citizen's**; the score moved 148 frames.
 
-- **`astar_path`'s tile reconstruction gives a unit that can transport an
-  exact waypoint** (`00684bfc`, PATHFINDER §7): tolerance **0**, not
-  `0x60`, when `anti_unit == 0` and either `unit_masks & 0x800000` without
-  `unit_masks2 & 0x2000`, or `unit_flags & 0x10`. This crate wrote `0x60`
-  always, under a `SEAM: no transporters` a later mechanic had retired.
-- **Three a leg, thirteen by the tile.** `1/13` is granted `0x800000` on
-  3580, the frame after its Dock finishes, and called every waypoint
-  reached forty-odd units short. That is its parting at 3647 (139) *and*
-  its `wait 439` against 452 at 3836 (141), one defect.
-- **The widening was right and the capture was short.** run39's whole-row
-  path check has scored `tolerance` since 2026-08-31 and passes — run39
-  ends 1,729 frames before the Dock. Over run58 the same filter opens
-  1,750 rows, first at 3644; now asserted empty before the word.
-- run57: **one** unit ever off point, `0/5` on 4001, its last frame;
-  collision 349,794 → **350,928**, none wrong. run58: **none** off point
-  before the word (`RUN58_PARTED` 1 → 0); 443,748 collision and 178,326
-  building fields, none wrong. Steering last ran 2026-09-01 (Fable).
+- **`Unit::think_peasant`'s AI tail calls `think_scout`** (SCOUT §11.1,
+  `005f5920`): a worker in a region where its leader has no city and which
+  none of the ten `Sites` claims explores; a claimed region is worth
+  waiting in, but only while `idle <= 6`. A **scholar** skips the whole
+  tail, `unit_masks &= ~0x400` included. This crate had nothing below
+  `find_gather_spot`.
+- **The frame named its caller and the item's name did not.** 4313's chain
+  is `think_scout+0xaba < think_peasant+0x2ac < think+0x362`, and its 28
+  draws are §11's region scan (`+0x941` once, `+0xaba` 27) — never the
+  city loop's three sites, because a citizen takes the region scan by §3.
+- **The AI's citizen `1/15`**, tile (158, 138) in region 8 on 4312, went
+  idle on 4313 and scanned 100 cells at stride 2 — 50 visited, 27 scored,
+  winner tile (162, 138), which run58's block 4314 holds. Seed for seed.
+- run58: **none** off point before the word, and the earliest parting of
+  any kind moved 4300 → **4479** (seventeen units, was nineteen); 447,024
+  collision and 178,326 building fields, none wrong. Steering last ran
+  2026-09-01 (Fable).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w4313 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w4461 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 4313 and item 143 holds it: the
-original opens the frame with 28 Unit::think_scout draws and this crate
-spends none. The four re-thinks before it agree exactly and both sides
-turn the scout on 4305 without drawing; ours then waits until 4367.
-SCOUT §11.`
+**Opener (Opus):** `East Indies' word is 4461 and item 144 holds it: the
+AI's Dock 1/2010 queues its type-317 job on 4376 and finishes it on 4461 —
+job_counter 100 a frame to 8481 — where this crate builds the same 1/14 on
+4489. run58's per-frame BUILDQUEUE carries both counters.`
 
 ## The queue
 
@@ -50,14 +49,12 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-143. **The scout re-thinks at 4313 and this crate does not.** 28
-    `Unit::think_scout` draws — one `+0x941`, 27 `+0xaba` — where ours
-    spends none, and ours waits until **4367**. The four before it agree
-    draw for draw (4005, 4110, 4229, 4282), and on **4305** both sides
-    turn the scout onto (41112, 20376) with *no* draw either side — so
-    4313 is a second re-think eight frames after a course change neither
-    drew for. What triggers it is the question. run58 is the dump (its
-    `1/0` holds the original's point to 4369); SCOUT §11.
+144. **The Dock is twenty-eight frames slow, and it is the word.** The
+    AI's Dock `1/2010` queues a type-317 job on frame **4376** and its
+    `job_counter` climbs 100 a frame to **8481**, finishing on **4461**;
+    this crate builds the same `1/14` on **4489**. Both numbers are in
+    run58's per-frame `BUILDQUEUE`, so the question — a late *decision* or
+    a slow *counter* — is a grep, not a capture. AI §2, PRODUCTION.
 
 103. **A woodcutter's clock at 1,686.** The same machine one map down:
     after 26,094 agreeing fields the human's `0/2` holds a wait of 445
