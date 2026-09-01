@@ -380,6 +380,11 @@ impl Sim {
         {
             self.cities[c].alarm = false;
         }
+        // The function's own tail: the army coin, thrown once the unit is
+        // out and by the scout lines alone ([`Sim::come_out_join_army`],
+        // `docs/ARMY.md` §4). A trained unit reaches it through
+        // `Build::train`, which is what run54's two `+0x25b0` draws are.
+        self.come_out_join_army(captain);
         true
     }
 

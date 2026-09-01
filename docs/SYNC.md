@@ -1511,7 +1511,65 @@ pins both numbers rather than assuming one bounds the other.
 is the original's `61a1da` — inside `Unit::come_out@00617c10`'s tail
 (`+0x25ca`), unnamed in the trace. The AI's scout `1/0` leaves the
 original's point on 3979, the frame after, so the two are one thing; the
-barge cast at 3608 (§3.22) is what it came out of.
+barge cast at 3608 (§3.22) is what it came out of. §3.24 is what that was.
+
+## 3.24 The passenger comes ashore — East Indies' word 3978 → 4020 (2026-09-01)
+
+The item was booked as one draw and was **three** things, in the order the
+original does them, all inside `Unit::come_out` and its caller.
+
+**The draw is an army coin, and only two lineages throw it.**
+`come_out`'s tail (`0061a0c5`..`0061a1fb`) is `add_to_army`'s fifth caller:
+an AI-driven, non-caravan, non-merchant unit leaving whatever carried it
+joins an army unless a coin says otherwise — and the coin is only thrown
+when the unit `is_special()` or `is(BARK)`. `is_special` is `is(SCOUT)` by
+the loader, so the two arms are the scout line (`% 2`, `+0x25ca`) and the
+naval-scout line (`% 3`, `+0x25b0`); everything else takes a draw-free
+`is(SPY)` test. That is why a site reached eleven times in run54's 24,000
+frames had gone unseen for 3,977: the AI trains citizens and soldiers, and
+neither asks. `docs/ARMY.md` §4.1 has the listing and both addresses.
+
+**The spot is `come_out`'s host arm, and every term of it is the boat's.**
+Centre, bearing (`host->angle`, `+0x50`) and inner radius (the **host's**
+`block_radius`) all come off the host object in `eax` at
+`61845c`..`618483`, while the fallback-arm test at `618490` reads the
+*passenger's*. The decompiler folds the two into one local, which is the
+easy thing to misread. run57 block 3979 pins all three at once: the barge at `(35740,
+26706)`, `angle -13303808`, `BLOCK_RADIUS 3` → the ring `[144, 720]` step
+72, whose first candidate snaps to the scout's own `(35736, 26568)`.
+Then `set_angle(passenger, host->angle, ·, 1)` and a crew seated **on** its
+track offset, which is block 3979's second `GUY` at `(35640, 26616)`.
+
+**And the ring only reaches land because the barge marks nothing.**
+`docs/COLLISION.md` §2's region gate compares the cell's `region` against
+`WorldData::get_tregion` of the marking figure's *tile* — and
+`get_tregion` answers a coastal cell's **`region2`** for an ocean tile. A
+boat on the water half of a coastal cell therefore marks no collision
+cells there at all. This crate asked the plain `region_of`, which made the
+gate vacuous for exactly the case it exists for: the barge filled its own
+world cell, the first three rings were refused, and the scout landed four
+hundred units inland.
+
+**`Object::eject_contents` is `cast_transport` run backwards.** For a
+passenger of `uber_size` 1 the boat's whole order list moves back onto it,
+and the boat's path stack is inverted and popped onto its own — which
+restores the order it was in — with the top's embark flag cleared. Block
+3979's `MOVEORDER` and both `PATHDATA` entries are block 3978's barge's,
+field for field, with `flags 4 → 0`. `docs/TRANSPORT.md` §6.4.
+
+**What it moved.** East Indies' long word **3978 → 4020**, sequence with
+it. run57's four thousand frames go from **four** units ever off the
+original's point to three — `1/0` now stands where the original's does for
+the whole capture — and the comparable collision field-frames go 348,354 →
+**348,469** with none wrong. Great Lakes holds at 1802 and both scored
+captures hold.
+
+**What is at 4020**: four draws against six, and the two we do not spend
+are a `Guy::set_anim+0x97a < do_cast` pair — the scout reaching the *next*
+shore and casting its second transport, man and dog. Its second leg is the
+one `think_scout` gives it on 4005, the frame it lands and goes idle; ours
+takes the same eighteen draws there and then walks somewhere else, and
+does not reach water until 5115.
 
 ## 4. Run12 attributed
 

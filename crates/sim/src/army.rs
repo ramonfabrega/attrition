@@ -40,12 +40,25 @@ use crate::{Player, Sim};
 /// | `is(SUPPLYWAGON)` | the lineage test behind `num_standard` and the caps | `unit_flags2 & 0x40` without `0x20` — the supply-or-hero bit less the generals, which also admits the government patriots |
 /// | `Game::war_allowed` under rush rules | §7's pre-war gate | always allowed |
 /// | `leader_flags & 8`, `leader_flags2 & 8` | the two stop bits (§18) | never set |
-/// | `come_out`'s draw | §4's coin on a unit leaving a building | no unit reaches `add_to_army` that way yet |
 /// | `Region::flags & 8` | `go_here`'s resource-region bit | bit 1 never set; `do_transporting` does not read it |
 /// | `use_generals` / `use_spies` / `use_scouts` | the 128-frame spellcaster turn (§5) | no spells |
 pub mod seams {}
 
 pub const SLOTS: usize = 16;
+
+/// `Unit::come_out+0x25ca` — the scout arm's coin, `% 2`.
+pub const SITE_COME_OUT: &str = "Unit::come_out+0x25ca";
+/// `Unit::come_out+0x25b0` — the naval-scout arm's coin, `% 3`.
+pub const SITE_COME_OUT_BARK: &str = "Unit::come_out+0x25b0";
+
+/// The three `TypeIndex` values [`Sim::come_out_join_army`] compares
+/// against **exactly** — `MERCHANT`, `MERCHANTDUTCH`, `FURTRAPPER`. The
+/// same three `Unit::think_attack` and the census exclude.
+const MERCHANTS: [crate::tech::TypeId; 3] = [0x3d, 0x3e, 0x190];
+/// `BARK` — the naval scout, and the lineage test `is(0x143, 0)`.
+const BARK: crate::tech::TypeId = 0x143;
+/// `SPY` — the lineage test `is(0x3a, 0)`.
+const SPY: crate::tech::TypeId = 0x3a;
 
 /// `ArmyData::status` bits (§1).
 pub mod status {
@@ -485,6 +498,71 @@ impl Sim {
         let Some(t) = unit.ty else { return };
         let cols = self.unit_types[t].cols;
         if cols.flag2(uflags2::SUPPLY_OR_HERO) || cols.flag2(uflags2::GENERAL) {
+            self.add_to_army(u);
+        }
+    }
+
+    /// `Unit::come_out@00617c10`'s tail (`0061a0c5`..`0061a1fb`) — the coin
+    /// a unit throws as it steps out of whatever was carrying it, and the
+    /// **fifth** of §4's callers.
+    ///
+    /// It is the last thing the function does, after the exit spot is taken,
+    /// and the listing is five gates and two arms
+    /// (`llvm-objdump 0x61a0a0..0x61a230`; the decompile merges the two
+    /// `is` calls into one unnamed slot and the type arguments are only in
+    /// the listing):
+    ///
+    /// ```text
+    /// options->rebuild = 1
+    /// if !(unit_masks & 0x40000):                      return   # not AI-driven
+    /// if is_caravan():                                 return   # unit_flags2 & 8
+    /// if type_index in {MERCHANT 0x3d, MERCHANTDUTCH 0x3e, FURTRAPPER 0x190}: return
+    /// if !is_special() and !is(BARK, 0):                         # 0x2b8 & 0x10, 0x143
+    ///     join = is(SPY, 0) != 0                                 # 0x3a — no draw
+    /// else:
+    ///     r    = Random::get(game_random, 0, 0xffff) % (is(BARK) ? 3 : 2)
+    ///     join = (game->frame & r) != 0
+    /// if join: add_to_army(this)
+    /// ```
+    ///
+    /// `is_special` is `is(SCOUT)` by the loader
+    /// (`docs/DATALAYER.md`, `unit_flags2`), so the two coin arms are **the
+    /// scout line and the naval-scout line** and nothing else: a citizen, a
+    /// soldier or a boat leaves a building spending nothing, which is why
+    /// the site is rare enough to have gone unnoticed for 3,977 frames.
+    /// The `% 2` arm is written `& 0x80000001` with a sign fixup the draw's
+    /// own range makes dead.
+    ///
+    /// **Both arms are diff-backed on the same capture.** run54's 24,000
+    /// frames reach the site eleven times: nine `+0x25ca` under
+    /// `Object::eject_contents < Unit::set_new_location` — a passenger put
+    /// ashore — and two `+0x25b0` under `Build::train < Build::finished`,
+    /// which is the AI's Bark being trained on frames 10323 and 10465. The
+    /// two addresses are the two arms, and that is what names them.
+    pub(crate) fn come_out_join_army(&mut self, u: usize) {
+        if !self.ai_driven(self.units[u].owner) {
+            return;
+        }
+        let Some(t) = self.units[u].ty else { return };
+        if self.unit_types[t].cols.flag2(uflags2::CARAVAN) {
+            return;
+        }
+        if self.unit_tree(u).is_some_and(|ti| MERCHANTS.contains(&ti)) {
+            return;
+        }
+        let bark = self.unit_line_is(u, BARK);
+        let join = if !self.unit_types[t].cols.flag2(uflags2::SCOUT) && !bark {
+            self.unit_line_is(u, SPY)
+        } else {
+            self.mark(if bark {
+                SITE_COME_OUT_BARK
+            } else {
+                SITE_COME_OUT
+            });
+            let r = i64::from(self.rnd(if bark { 3 } else { 2 }));
+            self.frame & r != 0
+        };
+        if join {
             self.add_to_army(u);
         }
     }
@@ -2427,6 +2505,85 @@ impl Sim {
 
 #[cfg(test)]
 mod tests {
+    /// §4.1's coin, all four outcomes: a citizen leaving a building spends
+    /// nothing, a **scout** spends one draw on the `% 2` arm, a **Bark**
+    /// one on the `% 3` arm, and a **spy** joins with no draw at all.
+    ///
+    /// The whole point of the predicate is that the site is *rare*: it is
+    /// reached eleven times in run54's 24,000 frames, and the citizen row
+    /// here is why. A version that threw the coin for every AI unit passes
+    /// the scout and Bark rows and fails the other two.
+    #[test]
+    fn come_out_s_army_coin_is_thrown_by_the_two_scout_lineages_alone() {
+        use crate::ai_load::uflags2;
+
+        let mut sim = crate::Sim::new(crate::Tuning::RON, crate::world::World::new(8, 8), 2);
+        sim.world.fill_region(
+            crate::world::Terrain::Land,
+            crate::world::Cell::new(0, 0),
+            crate::world::Cell::new(7, 7),
+        );
+        sim.nation[1].human = false;
+
+        let make = |sim: &mut crate::Sim, flags2: u32, tree: Option<crate::tech::TypeId>| {
+            let t = sim.add_unit_type(crate::UnitType {
+                hits: 40,
+                ..crate::UnitType::default()
+            });
+            sim.unit_types[t].cols.unit_flags2 = flags2;
+            sim.unit_types[t].tree = tree;
+            let index = sim
+                .find_free(1, crate::UNIT_BASE, crate::BUILD_BASE)
+                .unwrap();
+            let mut u = crate::Unit::new(1, index, crate::world::Pos::new(384, 384), 40);
+            u.ty = Some(t);
+            sim.add_unit(u)
+        };
+
+        // A plain citizen: neither `is_special` nor `is(BARK)`, and no
+        // draw — this is the row that keeps the site rare.
+        let citizen = make(&mut sim, 0, None);
+        let before = sim.rng.seed;
+        sim.come_out_join_army(citizen);
+        assert_eq!(sim.rng.seed, before, "a citizen throws no coin");
+        assert!(sim.army_of(citizen).is_none());
+
+        // A scout: `is_special` is `is(SCOUT)` folded into `unit_flags2`.
+        let scout = make(&mut sim, uflags2::SCOUT, None);
+        let before = sim.rng.seed;
+        sim.come_out_join_army(scout);
+        assert_ne!(sim.rng.seed, before, "the scout arm's `% 2`");
+
+        // A Bark: the naval-scout lineage, the `% 3` arm, and no
+        // `unit_flags2` bit of its own.
+        let bark = make(&mut sim, 0, Some(0x143));
+        let before = sim.rng.seed;
+        sim.come_out_join_army(bark);
+        assert_ne!(sim.rng.seed, before, "the Bark arm's `% 3`");
+
+        // A spy: the draw-free arm, and the only one that always joins.
+        let spy = make(&mut sim, 0, Some(0x3a));
+        let before = sim.rng.seed;
+        sim.come_out_join_army(spy);
+        assert_eq!(sim.rng.seed, before, "the `is(SPY)` arm spends nothing");
+        // It reaches `add_to_army` unconditionally; whether a slot comes
+        // back is that function's own business, and this bare world has no
+        // city to seed one at (§4).
+        assert!(sim.army_of(spy).is_none(), "no city, so no army to seed");
+
+        // The human's own units never reach any of it.
+        let index = sim
+            .find_free(0, crate::UNIT_BASE, crate::BUILD_BASE)
+            .unwrap();
+        let t = sim.units[scout].ty.unwrap();
+        let mut h = crate::Unit::new(0, index, crate::world::Pos::new(384, 384), 40);
+        h.ty = Some(t);
+        let h = sim.add_unit(h);
+        let before = sim.rng.seed;
+        sim.come_out_join_army(h);
+        assert_eq!(sim.rng.seed, before, "`unit_masks & 0x40000` gates it");
+    }
+
     use super::*;
 
     fn sim_with_city() -> (Sim, usize) {

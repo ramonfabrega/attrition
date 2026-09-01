@@ -632,6 +632,11 @@ pub struct Tuning {
     /// for the water its transport is born on (`docs/TRANSPORT.md` §6).
     /// `3/1 tile`.
     pub unit_board_distance: i32,
+    /// Position units: how far past its own `block_radius` a passenger put
+    /// ashore looks for its spot, swept from the boat's own heading
+    /// (`docs/TRANSPORT.md` §6.4). `3/1 tile`, the same as the boarding
+    /// distance and a different constant.
+    pub unit_disembark_distance: i32,
     /// Whether Lakota razing is charged — when non-zero, a Lakota disband refunds in full and a Lakota kill of its own building plunders nothing.
     pub lakota_raze_price: i32,
 }
@@ -909,6 +914,7 @@ impl Tuning {
         unit_train_distance: 288,
         unit_train_max_distance: 480,
         unit_board_distance: 576,
+        unit_disembark_distance: 576,
         lakota_raze_price: 0,
     };
 
@@ -918,7 +924,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 255] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 256] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1436,6 +1442,10 @@ impl Tuning {
                 Slot::Ratio192(T.unit_train_max_distance),
             ),
             ("UNIT_BOARD_DISTANCE", Slot::Ratio192(T.unit_board_distance)),
+            (
+                "UNIT_DISEMBARK_DISTANCE",
+                Slot::Ratio192(T.unit_disembark_distance),
+            ),
             ("LAKOTA_RAZE_PRICE", Slot::Value(T.lakota_raze_price)),
         ]
     }

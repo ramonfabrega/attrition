@@ -2652,7 +2652,9 @@ is that no capture on disk had ever put a swarm ring on a coast.
 | `do_garrison` | the target | `size × 0x60 + 0x30` (a wider `+0x1b0..+0x330` ring for one type — the `is(…)` literal is lost) | −1 | 0 | — (then retried with `nocoll 1`) |
 | `do_gather` | the building | `size × 0x60 + 0x30` | −1 | 0 | — |
 | `do_non_flat_gather`: the camp; the tile | the camp; the tile centre | `d`; `0xc0` | −1; `0x100` | 0; `2` | — |
-| `come_out` | own position | `block_radius` | `block_radius + UNIT_DISEMBARK_DISTANCE` | 0 | — (then `nocoll 1`) |
+| `come_out`, no host | own position | `block_radius` | `block_radius + UNIT_DISEMBARK_DISTANCE` | 0 | — (then `nocoll 1`) |
+| `come_out`, **unit** host | the host's position | the **host's** `block_radius` | that `+ UNIT_DISEMBARK_DISTANCE` | 0 | — (then `nocoll 1`); bearing is the **host's** `angle`, not south (`docs/TRANSPORT.md` §6.4) |
+| `come_out`, building host | the host's position | the training ring, `0` while it dies | `+ (MAX − ) DISTANCE` | 0 | — (`docs/CITIES.md` §11) |
 | `Animal::do_idle`, the far wander (`docs/ANIM.md` §7) | the herd centre | `0xc0` | −1 | 0 | — |
 
 **`UnitData::invalid_loc(tx, ty, terrain_only, ignore_unseen,

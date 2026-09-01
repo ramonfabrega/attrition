@@ -724,6 +724,14 @@ impl TechTree {
         if t == x {
             return true;
         }
+        // A type the tree does not carry — every hand-built fixture, and
+        // any install whose tables this crate has not loaded — can only
+        // answer the equality above. The original indexes a real table and
+        // has no such case; here the alternative is a panic in a caller
+        // that has no business knowing whether a tree was loaded.
+        if self.types.get(t).is_none() {
+            return false;
+        }
         if strict {
             // Strict: units only, the graft, and not a unique target.
             let Some(u) = self.kind(x).unit() else {

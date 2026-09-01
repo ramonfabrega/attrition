@@ -497,6 +497,85 @@ Three predicates, and none of them is `can_transport` alone:
   the unit's own island, and the search then plans a route to the shore
   and stops. `docs/PATHFINDER.md` §14.
 
+### 6.4 Coming ashore — `eject_contents` and `come_out`, the cast run backwards (2026-09-01)
+
+`set_new_location`'s sea arm calls `Object::eject_contents(0, -1, 1, 1)`
+(`5f8fc8`: the four pushes are `param_4 = 1, param_3 = 1, param_2 = -1,
+param_1 = 0`) and then dies if `num_inside(1)` is 0. For each contained
+object, in order:
+
+1. **`param_4 != 0`** — `unit_masks &= ~0x4000000`, `path.length = 0`,
+   `close_orders(0)`, `clear_partial_path`, `update_action` on the
+   *passenger*. Vacuous after a `cast_transport`, which emptied both;
+   kept because it is the arm the call passes.
+2. **`Unit::come_out(passenger, 0)`** — the spot, and §4.1's army coin at
+   its tail.
+3. **`Unit::same_damage(passenger, boat)`** — the mirror of §6.2's line 2.
+4. **`param_3 != 0`**, and then the passenger's type's `uber_size`
+   (`+0x308`) splits it:
+   - **`== 1`**: the boat's whole order list is moved onto the passenger,
+     one `remove_current`/`add` at a time; then `Stack<PathData>::invert`
+     on the **boat's** path and a pop-and-push of the whole stack onto the
+     passenger's, which restores the order it was in; then the passenger's
+     **top** waypoint is popped, `flags &= ~4`, and pushed back — the
+     embark flag cleared unconditionally, where §6.2 step 7 clears it only
+     on a region match.
+   - **`> 1`**: `Unit::reset_move_orders(boat)` instead, and — for a
+     passenger that is not AI-driven or has no army — a `Group` insert that
+     moves the boat's group membership onto the passenger
+     (`Group::set_up_insert` / `push_group` / `finish_insert`). **Not
+     modelled**; no capture disembarks a squad.
+5. The transport bit back: with `transport_type(passenger) <= ` the
+   leader's level, and unless `is(0x45)` without `leader_options.+0x1c &
+   2`, `passenger.unit_masks |= 0x800000`. Then the selection swap and
+   `replace_hotunit`.
+
+**`come_out`'s host arm — every term of the spot is the boat's.** The
+function splits on the host's vslot `0x1c` (a unit, or a building). For a
+**unit** host:
+
+| term | value |
+|---|---|
+| centre | the host's position |
+| bearing | the **host's** `angle` (`+0x50`) |
+| inner | the **host's** type `block_radius` (`+0x240`) |
+| outer | inner `+ UNIT_DISEMBARK_DISTANCE` (`3/1 tile` = 576) |
+| arms | on the **passenger's** `block_radius`: `0` → `FILTER_ALL`, the doubled ring, then the host's own point; non-zero → `FILTER_NOT_ME`, then the same ring with `nocoll 1`, then **refuse** (the passenger stays aboard) |
+
+All three come off the host object in `eax` at `61845c`..`618483`
+(`0x50(%eax)`, then `0x240` off `0x18(%eax)`, then `constants->+0x9c`
+added); the arm test at `618490` reads `0x240` off `0x18(%ebx)`, and `ebx`
+is `this`. The decompiler folds the two into one local, which is the easy
+thing to misread — and the two answers differ by a whole ring. Then
+`set_angle(passenger, host->angle, ·, 1)` at `6191f4`,
+the snapping form, which turns the crew with it; and
+`set_new_location(passenger, spot, 1, 1)`, whose `param_3` seats each crew
+guy **on** its track offset rather than letting it walk there.
+
+**run57 pins the whole of it on one frame.** The barge `1/14` stands at
+`(35740, 26706)` with `angle -13303808`, a degree and a quarter west of
+due north, and `BLOCK_RADIUS 3` makes the ring `[144, 720]` with the
+sweep's own step of `(720 − 144) / 8 = 72`. The first ring at the first
+bearing projects to `(35737, 26562)`, which snaps to **`(35736, 26568)`** —
+block 3979's scout, exactly; and its second `GUY` sits at `(35640,
+26616)`, the track offset `(−96, 48)` at that facing. Block 3979's
+`MOVEORDER` and both `PATHDATA` entries are block 3978's barge's, field
+for field, with the top's `flags` `4 → 0`.
+
+**And the ring only reaches land because the barge marks no collision
+cells.** `docs/COLLISION.md` §2's region gate is `get_tregion` of the
+figure's *tile* against the cell's `region`, and for a boat on the water
+half of a coastal cell those differ — so the boat's `BLOCK_RADIUS 3` disc
+marks nothing at all. With the crate's earlier plain `region_of` the barge
+filled its own cell and the first three rings were refused.
+
+`crates/sim/src/transport.rs`'s `disembark` is steps 1–4 in the original's
+own order. What is **not** established: step 5's `is(0x45)` clause and the
+`leader_options` bit (the crate's `auto_transport` is never cleared by
+boarding, so the passenger keeps the flag either way and no capture
+separates them); the `uber_size > 1` arm; and the placement's own
+fallbacks, which no capture has forced.
+
 
 ## 7. The civilian's island — `Unit::think_civilian_transport(colonise)@005f40d0`
 
@@ -853,7 +932,11 @@ as a bird whose walk request and wing beat are on the stream (§5.2.1, with
 `is_dock_tile` replacing the census's seam (§5.6), and the region coast
 masks with `is_coast` / `num_coasts` computed from the cells (§9.1–§9.2).
 
-**The boarding half landed 2026-09-01** and is `transport.rs` too:
+**The boarding half landed 2026-09-01** and is `transport.rs` too, and the
+**landing** half with it the same day (§6.4: `disembark` is
+`eject_contents`' four steps, `come_out`'s host-arm ring and bearing, the
+crew seated on its track offset, and the order list and inverted path
+stack moving back):
 `do_cast` and `cast_transport` (§6.1, §6.2), `board` and `disembark`,
 `same_damage`, and `think_civilian_transport` (§7) with **both** of its
 callers — the `think_scout` tail (`scout.rs`) and, since later the same

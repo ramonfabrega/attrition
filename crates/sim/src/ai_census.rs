@@ -180,12 +180,12 @@ impl Sim {
     }
 
     /// The unit's `TypeIndex`, when the tree knows it.
-    fn unit_tree(&self, u: usize) -> Option<crate::tech::TypeId> {
+    pub(crate) fn unit_tree(&self, u: usize) -> Option<crate::tech::TypeId> {
         self.units[u].ty.and_then(|t| self.unit_types[t].tree)
     }
 
     /// `ObjectData::is(t, 0)` on a unit — the lineage test.
-    fn unit_line_is(&self, u: usize, t: crate::tech::TypeId) -> bool {
+    pub(crate) fn unit_line_is(&self, u: usize, t: crate::tech::TypeId) -> bool {
         self.unit_tree(u)
             .is_some_and(|ut| self.tech_tree.is(ut, t, false))
     }

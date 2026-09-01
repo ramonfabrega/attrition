@@ -195,7 +195,16 @@ impl Sim {
             return;
         }
         let c = ucell(at);
-        let region = self.world.tregion(at.tile());
+        // **`get_tregion`, not `region_of`.** `WorldData::get_tregion@006b52e0`
+        // answers a coastal cell's `region2` for an **ocean** tile of it and
+        // its `region` otherwise, and §2's gate is the figure's own
+        // `get_tregion` against the cell's plain `region`. For a boat lying
+        // on the water half of a coastal cell the two differ, so the boat's
+        // block marks **nothing** there — which is what lets a passenger it
+        // puts ashore stand a hundred units away rather than four hundred
+        // (`docs/TRANSPORT.md` §6.4). The plain form made a barge fill its
+        // own cell, and only a land unit was ever near enough to notice.
+        let region = self.world.tregion_alt(at.tile());
         for (dx, dy) in spiral(size) {
             let p = Pos::new(c.x + dx, c.y + dy);
             if self.coll_region_ok(region, p) {
@@ -218,7 +227,7 @@ impl Sim {
             return;
         }
         let disc = spiral(size);
-        let ra = self.world.tregion(from.tile());
+        let ra = self.world.tregion_alt(from.tile());
         for (dx, dy) in &disc {
             let p = Pos::new(a.x + dx, a.y + dy);
             if ((p.x - b.x).abs() > size || (p.y - b.y).abs() > size) && self.coll_region_ok(ra, p)
@@ -226,7 +235,7 @@ impl Sim {
                 self.coll.set(p.x, p.y, false);
             }
         }
-        let rb = self.world.tregion(to.tile());
+        let rb = self.world.tregion_alt(to.tile());
         for (dx, dy) in &disc {
             let p = Pos::new(b.x + dx, b.y + dy);
             if ((p.x - a.x).abs() > size || (p.y - a.y).abs() > size) && self.coll_region_ok(rb, p)
@@ -978,6 +987,79 @@ mod tests {
         let x = make(&mut sim, 0, a);
         let y = make(&mut sim, 1, b);
         (sim, x, y)
+    }
+
+    /// §2's region gate is `get_tregion` of the *figure's tile*, and for
+    /// a boat lying on the water half of a coastal cell that is the cell's
+    /// **`region2`** — which never equals the cell's own `region`, so the
+    /// boat marks nothing there.
+    ///
+    /// This is the whole gate: with the plain `region_of` the two agree,
+    /// every cell of the disc is written, and a `BLOCK_RADIUS 3` barge
+    /// fills its own world cell — which is what pushed a disembarking
+    /// passenger four hundred units inland (`docs/TRANSPORT.md` §6.4).
+    /// Put `tregion` back in `coll_paint` and the second half fails.
+    #[test]
+    fn a_boat_on_a_coastal_cell_s_water_marks_no_collision_cells() {
+        let mut world = World::new(8, 8);
+        let land = world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+        // One coastal cell: land by `region`, with `region2` naming a sea
+        // region and every tile of it surfaced as ocean — the shape a map
+        // maker leaves where a shore cuts a cell.
+        let sea = land + 1;
+        let c = Cell::new(4, 4);
+        let mut d = world.cell_data(c);
+        d.flags |= crate::world::cell::HALFLAND;
+        d.region2 = Some(sea);
+        world.set_cell_data(c, d);
+        for tx in 16..20 {
+            for ty in 16..20 {
+                world.set_tile_field(
+                    Pos::new(tx, ty),
+                    crate::world::tile::SURFACE,
+                    crate::world::tile::SURFACE_OCEAN,
+                );
+            }
+        }
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let ty = sim.add_unit_type(UnitType {
+            hits: 40,
+            combat: crate::combat::Profile {
+                block_radius: 48,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        let centre = Pos::new(4 * 768 + 384, 4 * 768 + 384);
+
+        // A land unit on a dry cell marks its disc, which is the control:
+        // the gate is not simply refusing everything.
+        let dry = Pos::new(384, 384);
+        let mut a = Unit::new(0, 0, dry, 40);
+        a.ty = Some(ty);
+        let a = sim.add_unit(a);
+        sim.coll_add(a);
+        assert!(
+            sim.coll.get(ucell(dry).x, ucell(dry).y),
+            "a land unit on its own region's cell is in the index"
+        );
+
+        // The boat, on the ocean tile of the coastal cell: `get_tregion` is
+        // `region2` and the cell's `region` is the land one, so nothing.
+        let mut b = Unit::new(0, 1, centre, 40);
+        b.ty = Some(ty);
+        let b = sim.add_unit(b);
+        sim.coll_add(b);
+        let uc = ucell(centre);
+        for dy in -1..=1 {
+            for dx in -1..=1 {
+                assert!(
+                    !sim.coll.get(uc.x + dx, uc.y + dy),
+                    "the coastal cell's water marks nothing at ({dx}, {dy})"
+                );
+            }
+        }
     }
 
     /// The index is written when a unit is added and moved when it walks —

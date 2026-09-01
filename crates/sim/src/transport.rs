@@ -16,7 +16,7 @@
 
 use crate::attrition::Domain;
 use crate::build;
-use crate::orders::Worker;
+use crate::orders::{Coll, Worker};
 use crate::tech::TypeId;
 use crate::world::{Cell, Pos, TILES_PER_CELL, tile};
 use crate::{BUILD_BASE, Player, Sim, UNIT_BASE, Unit};
@@ -906,22 +906,157 @@ impl Sim {
     /// off the water puts its passengers out where it stands, and dies if
     /// that leaves it carrying nothing.
     ///
-    /// SEAM: the original places each passenger with a `find_nearby_spot`
-    /// of its own around the boat and gives it `UNIT_DISEMBARK_DISTANCE`;
-    /// this puts them on the boat's own point, which is the land the step
-    /// was refused for.
+    /// **It is `cast_transport` run backwards** (§6.4), and the four steps
+    /// are in the original's own order:
+    ///
+    /// 1. `param_4 = 1`: the passenger's own list and partial path are
+    ///    closed before it comes out — vacuous here, because the cast
+    ///    emptied them, and kept because the arm is the one the call
+    ///    passes;
+    /// 2. `Unit::come_out` — the spot, and the army coin at its tail
+    ///    ([`Sim::come_out_join_army`], `docs/ARMY.md` §4);
+    /// 3. `Unit::same_damage(passenger, boat)` — the mirror of the boarding
+    ///    line, the passenger taking the boat's damage in 256ths;
+    /// 4. `param_3 = 1`: for a passenger whose type's `uber_size` is
+    ///    **1**, the boat's whole order list moves back onto it and the
+    ///    boat's path stack is inverted and popped onto its own, which
+    ///    restores the order it was in; then the top waypoint's embark flag
+    ///    (`4`) is cleared — unconditionally here, where the boarding line
+    ///    clears it only on a region match.
+    ///
+    /// **Step 2's spot is `come_out`'s host arm, and every term of it is
+    /// the boat's.** `Unit::come_out@00617c10` splits on whether the host
+    /// is a unit or a building (the host's vslot `0x1c`): a building gives
+    /// the training ring `docs/CITIES.md` §11 has, and a **unit** gives
+    /// `angle = host->angle` (`+0x50`), an inner radius of the **host's**
+    /// `block_radius` (`+0x240`) and an outer of that plus
+    /// `UNIT_DISEMBARK_DISTANCE` — all three read off the host object in
+    /// `eax` at `61845c`..`618483`, which the decompiler folds into the
+    /// same local it used for the passenger. Only the choice of fallback
+    /// arm is the passenger's — `618490` reads `0x240` off `0x18(%ebx)`,
+    /// and `ebx` is `this`: its own `block_radius == 0` sweeps
+    /// `FILTER_ALL`, then the doubled ring, then the host's own point;
+    /// non-zero sweeps `FILTER_NOT_ME` and then the same ring with
+    /// collision off, and **refuses** — the passenger stays aboard — if
+    /// that finds nothing.
+    ///
+    /// **run57 pins all three terms at once.** The barge stands at
+    /// `(35740, 26706)` with `angle -13303808` — a degree and a quarter
+    /// west of due north — and its `BLOCK_RADIUS 3` makes the ring
+    /// `[144, 720]` with the sweep's own step of `(720 − 144) / 8 = 72`.
+    /// The first ring at the first bearing projects to `(35737, 26562)`,
+    /// which snaps to **`(35736, 26568)`** — the scout's own point in
+    /// block 3979, exactly. A ring taken from the *passenger's* radius
+    /// starts at 48 and lands a quarter-tile short; a bearing of due
+    /// south lands nowhere near.
+    ///
+    /// SEAM: the `uber_size > 1` arm of step 4, which instead calls
+    /// `Unit::reset_move_orders` on the boat and moves the boat's **group**
+    /// membership to the passenger through a `push_group` insert. No
+    /// capture disembarks a squad.
     pub(crate) fn disembark(&mut self, boat: usize) {
-        let at = self.units[boat].pos;
+        let centre = self.units[boat].pos;
+        let bearing = self.units[boat].movement.heading;
         let riders: Vec<usize> = (0..self.units.len())
             .filter(|&i| self.units[i].inside_unit == Some(boat))
             .collect();
         for r in riders {
+            // 1. the `param_4` arm.
+            self.units[r].path.clear();
+            self.close_orders(r);
+            self.clear_partial_path(r);
+            // 2. `come_out`.
+            // **The ring is the boat's and the arm is the passenger's.**
+            // `come_out`'s host branch reads `+0x240` off the *host's* type
+            // for the inner radius: at `61845c`..`61846a` the host object
+            // is in `eax`, and `0x50(%eax)` and `0x240(host->type)` are the
+            // bearing and the ring. The `FILTER_ALL`/`FILTER_NOT_ME` split
+            // is a different register — `618490` reads `0x240` off
+            // `0x18(%ebx)`, and `ebx` is `this`, the passenger.
+            let ring = self.profile(crate::combat::Obj::Unit(boat)).block_radius;
+            let max = ring + self.tuning.unit_disembark_distance;
+            let block = self.profile(crate::combat::Obj::Unit(r)).block_radius;
+            let spot = if block == 0 {
+                self.find_nearby_spot_coll(r, centre, ring, max, 0, bearing, None, Coll::None)
+                    .or_else(|| {
+                        self.find_nearby_spot_coll(
+                            r,
+                            centre,
+                            ring * 2,
+                            max * 2,
+                            0,
+                            bearing,
+                            None,
+                            Coll::None,
+                        )
+                    })
+                    .unwrap_or(centre)
+            } else {
+                match self
+                    .find_nearby_spot(r, centre, ring, max, 0, bearing, None)
+                    .or_else(|| {
+                        self.find_nearby_spot_coll(
+                            r,
+                            centre,
+                            ring,
+                            max,
+                            0,
+                            bearing,
+                            None,
+                            Coll::None,
+                        )
+                    }) {
+                    Some(spot) => spot,
+                    // The refusal: the passenger stays inside, and the boat
+                    // is left carrying it.
+                    None => continue,
+                }
+            };
+            let at = spot;
             self.units[r].inside_unit = None;
             self.units[r].pos = at;
-            self.units[r].movement = crate::Movement::at(at);
+            // `Movement::at` alone would zero the speed and the turn rate,
+            // and a unit put ashore with no speed stands there for ever;
+            // `come_out`'s building arm carries the same two across.
+            self.units[r].movement = crate::Movement {
+                speed: self.units[r].movement.speed,
+                turning: self.units[r].movement.turning,
+                ..crate::Movement::at(at)
+            };
             self.units[r].on_map = true;
             self.coll_add(r);
             self.chain_add(r);
+            // `come_out@6191f4`: with a **unit** for a host the passenger is
+            // turned to the host's own `angle` (`+0x50`) in `set_angle`'s
+            // snapping form, guys included — which is what puts the scout's
+            // dog on the track offset the original prints. run57 block 3979
+            // reads `angle -13303808` on the scout, the barge's own heading
+            // at the frame it ejects.
+            self.units[r].movement.set_facing(bearing);
+            // `set_new_location`'s `param_3` reaches `Guy::set_new_location(0,
+            // pos, 1)`, which seats the crew **on** its track offset rather
+            // than letting it walk there from wherever it boarded. Without
+            // it the scout's dog spends the next hundred frames chasing the
+            // sea, and a walking guy takes no idle roll — which is the
+            // second of the two `Unit::set_anim` draws the original spends
+            // when the scout arrives.
+            self.seat_guys(r);
+            self.come_out_join_army(r);
+            // 3. the damage, back the way it came.
+            self.same_damage(r, boat);
+            // 4. the order list and the path, back the way they came.
+            if self.units[r]
+                .ty
+                .is_some_and(|t| self.unit_types[t].combat.uber_size == 1)
+            {
+                self.units[r].orders = std::mem::take(&mut self.units[boat].orders);
+                let mut path = std::mem::take(&mut self.units[boat].path);
+                if let Some(top) = path.last_mut() {
+                    top.flags &= !crate::orders::path_flag::TRANSPORT;
+                }
+                self.units[r].path = path;
+                self.update_action(r);
+            }
         }
         self.units[boat].health = 0;
         self.units[boat].on_map = false;
@@ -1364,6 +1499,91 @@ mod tests {
         assert!(!f.sim.units[boat].alive(), "an empty boat on land dies");
         assert_eq!(f.sim.units[rider].inside_unit, None);
         assert!(f.sim.units[rider].on_map);
+    }
+
+    /// §6.4 whole: the passenger comes out on `come_out`'s **host** ring —
+    /// the boat's `block_radius` out to `+ UNIT_DISEMBARK_DISTANCE`, swept
+    /// from the boat's own angle — keeps its speed, throws the scout arm's
+    /// army coin, and takes the boat's order list and inverted path stack
+    /// back with the top's embark flag cleared.
+    ///
+    /// It fails on the code this replaced at four separate lines, which is
+    /// why it is one test: the passenger landed on the boat's own point,
+    /// with no orders, at zero speed, and spending no draw.
+    #[test]
+    fn a_passenger_put_ashore_takes_the_boat_s_ring_and_the_boat_s_orders() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        f.sim.unit_types[f.scout].combat.uber_size = 1;
+        f.sim.unit_types[f.scout].combat.block_radius = 48;
+        // `is_special` is `is(SCOUT)` folded into `unit_flags2` by the
+        // loader, and it is what puts this unit on the coin's `% 2` arm.
+        f.sim.unit_types[f.scout].cols.unit_flags2 |= crate::ai_load::uflags2::SCOUT;
+        let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
+        f.sim.units[rider].movement.speed = 34;
+        let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
+        f.sim.units[boat].auto_transport = true;
+        // The boat is heading due west, at the land: the sweep's first
+        // bearing is that, and the ring starts at the **boat's** 48.
+        let west = crate::movement::Angle::WEST;
+        f.sim.units[boat].movement.set_facing(west);
+        f.sim.add_move_order(
+            boat,
+            tile_pos(20, 14),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        f.sim.units[boat].path.push(crate::orders::PathData {
+            to: tile_pos(20, 14),
+            tolerance: 0,
+            flags: 1,
+        });
+        f.sim.units[boat].path.push(crate::orders::PathData {
+            to: tile_pos(30, 14),
+            tolerance: 0,
+            flags: crate::orders::path_flag::TRANSPORT,
+        });
+        f.sim.board(rider, boat);
+
+        let before = f.sim.rng.seed;
+        assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
+
+        // The coin: an AI-driven scout takes the `% 2` arm and spends one
+        // draw (`docs/ARMY.md` §4.1).
+        assert_ne!(f.sim.rng.seed, before, "the scout arm's army coin");
+
+        // The ring: on the boat's own heading, at least the boat's
+        // `block_radius` away and no further than that plus the disembark
+        // distance — never the boat's own point.
+        let (at, spot) = (f.sim.units[boat].pos, f.sim.units[rider].pos);
+        assert_ne!(spot, at, "not the boat's own point");
+        assert!(
+            (spot.y - at.y).abs() <= 48,
+            "due west of it, on the boat's heading, within the quarter-tile snap"
+        );
+        let d = at.x - spot.x;
+        assert!(
+            (48..=48 + f.sim.tuning.unit_disembark_distance).contains(&d),
+            "the ring is the boat's `[48, 624]`, and this is {d}"
+        );
+
+        // The speed survives, or the passenger stands there for ever.
+        assert_eq!(f.sim.units[rider].movement.speed, 34);
+        // And the whole order list and path came back, top flag cleared.
+        assert!(f.sim.units[boat].orders.is_empty());
+        assert_eq!(f.sim.units[rider].orders.len(), 1);
+        assert!(f.sim.units[rider].orders[0].is_move());
+        assert_eq!(
+            f.sim.units[rider]
+                .path
+                .iter()
+                .map(|p| (p.to, p.flags))
+                .collect::<Vec<_>>(),
+            vec![(tile_pos(20, 14), 1), (tile_pos(30, 14), 0)],
+            "the boat's stack, in order, with the top's `flags & 4` gone"
+        );
+        assert!(!f.sim.units[boat].alive());
     }
 
     /// §7: the island search picks a coastal cell of another region that

@@ -272,12 +272,58 @@ special (`unit_flags2 & 0x10`), when its city is not one the census
 marks weak — behind its city search, unreached by any trace;
 `think_supply` and `think_hero`, unconditionally;
 `think_scout@005f6010:571`, a **sea** unit whose region is scouted;
-`Unit::come_out@00617c10:1614`, a unit leaving a building, **unless a
-draw says otherwise**: `Random::get(game_random, 0, 0xffff)` — `frame &
-(draw & 1) == 0` for a non-`is` type, `frame & (draw % 3) == 0` for the
-other — skips the join. A `game_random` site the sync accounting
-(`docs/SYNC.md` §3) now lists. Run21's first `add_to_army` is 5823,
-`add_group`/`add_unit` 10187; run33's 1,850 enter **neither**.
+and `Unit::come_out@00617c10:1614`, below.
+
+### 4.1 `come_out`'s tail — the army coin (2026-09-01)
+
+The fifth caller, and the only one with a draw in it. It is the last thing
+`come_out` does, after the exit spot is taken, and the two `is` calls the
+decompiler leaves unnamed are settled in the listing
+(`llvm-objdump 0x61a0a0..0x61a230`):
+
+```
+options->rebuild = 1
+if !(unit_masks & 0x40000):                        return   # not AI-driven
+if is_caravan():                                   return   # unit_flags2 & 8
+if type_index in {MERCHANT 0x3d, MERCHANTDUTCH 0x3e, FURTRAPPER 0x190}: return
+if !is_special() and !is(BARK, 0):                          # 0x2b8 & 0x10, 0x143
+    join = is(SPY, 0) != 0                                  # 0x3a — no draw
+else:
+    r    = Random::get(game_random, 0, 0xffff) % (is(BARK) ? 3 : 2)
+    join = (game->frame & r) != 0
+if join: add_to_army(this)
+```
+
+`is_special` is `is(SCOUT)` by the loader (`docs/DATALAYER.md`,
+`unit_flags2`), so **the two coin arms are the scout line and the
+naval-scout line and nothing else**: a citizen, a soldier or a boat leaves
+a building spending nothing, which is why the site went unnoticed for
+3,977 frames of East Indies. The `% 2` arm is written `& 0x80000001` with
+a sign fixup the draw's own range makes dead. Note the sense: the coin
+**joins** when `frame & r` is non-zero, so `r == 0` — half the throws on
+one arm, a third on the other — never joins.
+
+**Both arms are diff-backed on run54.** Its 24,000 frames reach the site
+eleven times: nine `+0x25ca` (`61a1da`, the `% 2`) under `Object::
+eject_contents < Unit::set_new_location`, a passenger put ashore; and two
+`+0x25b0` (`61a1c0`, the `% 3`) under `Build::train < Build::finished`,
+which is the AI's Bark being trained on frames 10323 and 10465. The two
+addresses are the two arms, and that is what names them. Run21's first
+`add_to_army` is 5823 — the second of the nine, where `12357 & 1 = 1` and
+the frame is odd; run33's 1,850 frames enter neither this nor
+`Army::add_unit`.
+
+`crates/sim/src/army.rs`'s `come_out_join_army` is the tail, called from
+`garrison::come_out` (the trained unit's way in) and from
+`transport::disembark` (the passenger's).
+
+**What is diff-backed and what is not.** The `% 2` arm is: East Indies'
+word runs through frame 3978, where the site is spent and named. The `%
+3` arm's first appearance is frame 10323, well past the word, so the
+*label* `+0x25b0` and the modulus behind it rest on the trace's own
+addresses and the listing — not on a run the diff reaches. The predicate
+that separates the arms (`unit_flags2 & 0x10`, `is(BARK)`, `is(SPY)`) is a
+unit test, `come_out_s_army_coin_is_thrown_by_the_two_scout_lineages_alone`.
 
 **`SpellType::cast_create_decoy@00674370:157`** adds the decoy it creates
 to the caster's army; **`Unit::fight@005fd4d0:293`** and

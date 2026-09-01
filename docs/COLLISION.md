@@ -74,6 +74,19 @@ Marking is gated three ways, all in `Object::add_to_world` and
   or the figure's tile has no region. So a block does not spill across a
   coastline into another region's cells.
 
+  **`get_tregion` is not `region_of`, and the difference is the whole gate**
+  (2026-09-01). `WorldData::get_tregion@006b52e0` answers a coastal cell's
+  `region2` when the *tile* is ocean (`flags & 0x100` and `mask & 0x30 ==
+  0x20`) and its `region` otherwise, so for a **boat lying on the water
+  half of a coastal cell** the figure's `get_tregion` is the sea region and
+  the cell's own `region` is the land one: the two differ, and the boat
+  marks **nothing at all** in that cell. `crates/sim` asked the plain
+  `World::tregion` here until this was found, which made the gate vacuous
+  for exactly the case it exists for — a `BLOCK_RADIUS 3` barge filled its
+  own world cell and the passenger it put ashore was pushed four hundred
+  units inland (`docs/TRANSPORT.md` §6.4, `docs/SYNC.md` §3.24). The crate's
+  own name for `get_tregion` is `World::tregion_alt`.
+
 `Object::add_to_world` sets the bits for figures `0 .. guy_mark`;
 `Guy::set_new_location` calls `CollCheck::move_unit(from, to, coll_size)`
 whenever a figure changes unit cell, and that **clears** the cells around

@@ -12,35 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the citizen offers itself to the boat, and East
-Indies' word is **3978**.* Item 137 was booked as two draws and was one
-missing call: `Unit::think_peasant@005f5760:53` opens with a **colonist
-arm** — an AI-driven unit whose *base type* is `0x32`/`0x33` asks
-`think_civilian_transport(1)` before it looks for work — and this crate
-had only `think_scout`'s `colonise = 0` caller.
+*2026-09-01, Opus — the passenger comes ashore, and East Indies' word is
+**4020**.* Item 138 was booked as one draw and was three things, all
+inside `Unit::come_out` and its caller, and all three landed.
 
-- **Both halves of 3687 were one unit's** — the AI's citizen `1/11`, off
-  the original's point since 3582; the two extra wing beats are coins one
-  extra draw re-throws. run57's 3581 was the oracle and already on disk:
-  a fresh `group 65`, a `MOVE_TO` to cell (50, 31)'s centre, a
-  twenty-four-leg path. This crate sent it back to its gather.
-- **run57: eleven units ever off the original's point → four**, earliest
-  parting 3582 → 3647, comparable collision field-frames 330,643 →
-  348,354, none wrong. **A parting can be earlier than the word** —
-  `1/13`'s costs no draw — so the test pins both numbers.
+- **The draw is an army coin, and only two lineages throw it** —
+  `is_special()` is `is(SCOUT)` by the loader, the other arm is
+  `is(BARK)`, and everything else takes a draw-free `is(SPY)`. Two arms,
+  two addresses, both reached by run54. ARMY §4.1.
+- **The spot is `come_out`'s host arm, and every term of it is the
+  boat's** — centre, bearing (`host->angle`) and inner radius (the
+  *host's* `block_radius`, read after the local is reassigned). run57
+  block 3979 pins all three at once. TRANSPORT §6.4.
+- **The ring only reaches land because the barge marks nothing.**
+  COLLISION §2's gate is `get_tregion` of the figure's *tile* — a coastal
+  cell's **`region2`** for an ocean tile — and this crate asked the plain
+  `region_of`, so the gate was vacuous for the one case it exists for.
+- **`eject_contents` is `cast_transport` run backwards**: the boat's
+  order list and inverted path stack move back onto the passenger, the
+  top's embark flag cleared, field for field with block 3979.
+- run57: **four units ever off the original's point → three**, and its
+  collision field-frames 348,354 → **348,469**, none wrong. Steering last
+  ran 2026-09-01 (Fable); this is the first item since.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w3978 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w4020 of 24,000 · GreatLakes w1802 of 24,000
 
-**Steering ran 2026-09-01 (Fable); the clock resets.** run57's rescope
-ratified, its ratchet declined, four conventions into `CLAUDE.md`,
-`tools/guard.sh` the new reflex. Journal has the story.
-
-**Opener (Opus):** `East Indies' word is 3978 and item 138 is what holds
-it: four draws against five, and the one we do not spend is the
-original's own 61a1da — inside Unit::come_out's tail, unnamed in the
-trace. The AI's scout 1/0 leaves the original's point on the frame after.
-docs/SYNC.md §3.23 has the frame.`
+**Opener (Opus):** `East Indies' word is 4020 and item 140 holds it: the
+AI's scout 1/0 lands on 3979, thinks on 4005 — eighteen draws both sides
+agree on — then walks somewhere the original does not, casting its second
+transport at 5115 where the original casts at 4019. docs/SYNC.md §3.24.`
 
 ## The queue
 
@@ -49,20 +50,21 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-138. **The passenger comes out, at 3978.** East Indies' word, one draw:
-    the original spends a `61a1da` ahead of the frame's four
-    `Farms::inc_time` and this crate spends nothing. The address is inside
-    `Unit::come_out@00617c10`'s tail (`+0x25ca`), unnamed in the trace, so
-    name it from the listing first. The AI's scout `1/0` — which cast the
-    barge at 3608 — leaves the original's point on **3979**, so the two
-    are one thing; run57's blocks 3975–3985 have both sides.
-    `docs/SYNC.md` §3.23, `docs/TRANSPORT.md` §6.
+140. **The scout's second leg, at 4020.** The AI's scout `1/0` lands on
+    3979 and goes idle at its waypoint on **4005**, where both sides spend
+    the same eighteen draws — two arrival idles and a `think_scout` region
+    fallback (`+0x941`, then eleven `+0xaba`). The original's answer takes
+    it back to the water and it casts its second transport on 4019; ours
+    walks elsewhere and reaches no water until 5115. The draws agree and
+    the *destination* does not, which is §3.23's shape again — likely an
+    offset inside the chosen cell. `docs/SCOUT.md` §11, `docs/SYNC.md`
+    §3.24.
 
 139. **`1/13` parts at 3647 and costs no draw** — run57's earliest, and
-    the one residue there the colonist arm did not move. Its object-chain
-    `down` goes **2000 → 3** on 3581, off the city and onto a unit, while
-    its gather order and destination stay put; this crate never makes that
-    link. The only run57 residue before the word.
+    the one residue the colonist arm did not move. Its object-chain `down`
+    goes **2000 → 3** on 3581, off the city and onto a unit, while its
+    gather order and destination stay put; this crate never makes that
+    link.
 
 136. **The danger grid has no writer, and four readers index it wrongly.**
     `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution
@@ -72,24 +74,22 @@ indexed by them.
     `ai_units` were written to; both answer 0 while nothing writes it, so
     nothing has told them apart. `think_civilian_transport`'s score is
     `dist × max(1, danger)` and picks the original's cell with the term at
-    1, which is evidence the grid was empty there, not that it never
-    matters. Find the writer.
+    1 — evidence the grid was empty there, not that it never matters.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
-    table at `0063bd84` cannot produce it;
-    `Leader::plan_strategy@006b9620` line 1137 assigns the whole array from
-    `City::count_gather_slots` and raises the high-water to match, and that
-    second writer is unread. Beside it: the original holds **0** in goods
-    3–5 where this crate holds **100** — inert while none is available, so
-    a loader question. The run40 diff asserts both as they stand.
+    table at `0063bd84` cannot produce it; `Leader::plan_strategy@006b9620`
+    line 1137 assigns the whole array from `City::count_gather_slots` and
+    raises the high-water to match, and that second writer is unread.
+    Beside it: the original holds **0** in goods 3–5 where this crate holds
+    **100** — inert while none is available, so a loader question. The
+    run40 diff asserts both as they stand.
 
 120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
     at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <
     Unit::do_job+0xd7`, reached **once** in run33's 1,851 frames and still
-    the boundary over run53's 24,000. It is the last thing between this map
-    and a word past its own capture. `docs/SYNC.md` §3.9 has the bird;
-    `do_air_physics` is named there as unread and is the one arm of it no
-    run has forced.
+    the boundary over run53's 24,000 — the last thing between this map and
+    a word past its own capture. `docs/SYNC.md` §3.9 has the bird, and
+    names `do_air_physics` as the one arm of it no run has forced.
 
 103. **The wood machine's record parts at 1,686, on a clock.** After 26,094
     agreeing fields the human's `0/2` holds a wait of 445 where the

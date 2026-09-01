@@ -146,6 +146,13 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Dock::init@00740a80+0x125` — a finished dock's gull, the second of
     // its two draws (`docs/TRANSPORT.md` §5.2).
     (0x0074_0ba5, None, sim::transport::SITE_GULL_ANGLE),
+    // `Unit::come_out@00617c10`'s tail — the army coin, two arms and two
+    // addresses of their own: `+0x25b0` is `is(BARK)`'s `% 3` and
+    // `+0x25ca` the scout's `% 2` (`docs/ARMY.md` §4). No chain is needed;
+    // the *caller* is what tells a trained unit from a disembarking one,
+    // and that is a distinction neither arm makes.
+    (0x0061_a1c0, None, sim::army::SITE_COME_OUT_BARK),
+    (0x0061_a1da, None, sim::army::SITE_COME_OUT),
     // `Unit::do_non_flat_gather@005f0170` — the wood machine's own three.
     // The last two are one apparent branch and two real ones: `+0xcc3` is
     // the chopping guy's `% 100 + 300` and `+0xdad` the arrival frame's

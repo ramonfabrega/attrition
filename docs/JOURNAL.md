@@ -11186,3 +11186,85 @@ before booking a capture; this one says something narrower and sharper —
 which frame; `first_divergence_by_unit` tells you which unit and, more
 usefully, *how long ago*. Ninety-five frames of head start were sitting in
 a test that already ran on every commit.
+
+
+## 2026-09-01 — item 138: the passenger comes ashore, and the word goes 3978 → 4020 (Opus)
+
+The item was booked as one draw — `61a1da`, unnamed in the trace, inside
+`Unit::come_out@00617c10`'s tail. It was three things, in the order the
+original does them, and all three landed.
+
+**The draw is an army coin, and only two lineages throw it.** The listing
+(`llvm-objdump 0x61a0a0..0x61a230`) makes `come_out`'s tail
+`Unit::add_to_army`'s fifth caller: an AI-driven, non-caravan,
+non-merchant unit leaving whatever carried it joins an army unless a coin
+says otherwise — and the coin is thrown only when the unit `is_special()`
+or `is(BARK)`. `is_special` is `is(SCOUT)` by the loader, so the two arms
+are the scout line (`% 2`, `+0x25ca`) and the naval-scout line (`% 3`,
+`+0x25b0`); every other type takes a draw-free `is(SPY)` test and spends
+nothing. That is why a site reached **eleven times** in run54's 24,000
+frames had gone unseen for 3,977: the AI trains citizens and soldiers, and
+neither asks. Both arms are on disk — nine `+0x25ca` under
+`Object::eject_contents < Unit::set_new_location`, and two `+0x25b0` under
+`Build::train < Build::finished`, which is the AI's Bark being trained on
+10323 and 10465. The decompiler prints both `is` calls with their type
+arguments dropped; only the listing names `0x143` and `0x3a`.
+
+That moved the word by exactly one frame, to 3979, where the scout stood
+in the wrong place and ran a whole `think_scout` the original does not.
+
+**The spot is `come_out`'s host arm, and every term of it is the boat's.**
+The function splits on the host's vslot `0x1c`. For a unit host the
+bearing is `host->angle` (`+0x50`) and the ring runs from the **host's**
+`block_radius` out to that plus `UNIT_DISEMBARK_DISTANCE` — and the radius
+is read off a local that was reassigned to the host two lines above, which
+is the easy thing to misread and is worth a whole ring. run57 block 3979
+pins all three at once: the barge at `(35740, 26706)`, `angle -13303808`,
+`BLOCK_RADIUS 3` → the ring `[144, 720]`, step `(720 − 144) / 8 = 72`,
+whose first candidate at the first bearing snaps to `(35736, 26568)` —
+the scout's own point, exactly.
+
+**And the ring only reaches land because the barge marks nothing.** With
+the ring right the sweep still refused its first three rings, because the
+boat sat in the collision bitmask. `docs/COLLISION.md` §2 has said since
+it was written that the marking gate compares the cell's `region` against
+**`get_tregion`** of the marking figure's tile — and
+`WorldData::get_tregion@006b52e0` answers a coastal cell's `region2` for
+an *ocean* tile. A boat on the water half of a coastal cell therefore
+marks no cells there at all. This crate asked the plain `region_of`, which
+made the gate vacuous for exactly the case it exists for. Ninth instance
+of a document and its code disagreeing, and the document was right.
+
+**`Object::eject_contents` is `cast_transport` run backwards.** For a
+passenger whose `uber_size` is 1 the boat's whole order list moves back
+onto it and the boat's path stack is inverted and popped onto its own —
+which restores the order it was in — with the top's embark flag cleared.
+Block 3979's `MOVEORDER` and both `PATHDATA` entries are block 3978's
+barge's, field for field, `flags 4 → 0`. Two smaller things rode with it:
+`Movement::at` zeroes the speed, so a passenger put ashore stood there for
+ever until the speed and turn rate were carried across (`come_out`'s
+building arm has done that all along); and the crew has to be **seated**
+on its track offset rather than left to walk there, because a walking guy
+takes no idle roll — which is the second of the two `Unit::set_anim` draws
+the original spends when the scout arrives at 4005.
+
+**What it moved.** East Indies' long word **3978 → 4020**, sequence with
+it. run57 goes from four units ever off the original's point to **three**
+— `1/0` now stands where the original's does for the whole capture — and
+its comparable collision field-frames 348,354 → **348,469**, none wrong,
+buildings exact on all 130,326 fields. Great Lakes holds at 1802 and both
+scored captures hold. 175 rondata and 684 sim tests green in `--release`.
+
+**What is at 4020**: four draws against six, and the two we do not spend
+are a `Guy::set_anim+0x97a < do_cast` pair — the scout reaching the *next*
+shore and casting its second transport, man and dog. Its second leg is the
+one `think_scout` gives it on 4005, the frame it lands and goes idle: both
+sides spend the same eighteen draws there and then walk to different
+places, and this crate reaches no water until 5115. Item 140.
+
+**The rule this is another instance of.** Last session's was *when a draw
+parts, ask the position record first*. This one is its sequel: **when the
+position record still parts after the draw is landed, keep going in the
+same function.** Three of the four findings here are in `come_out` and its
+caller, and none of them would have been found by reading the tail alone —
+each was forced by the next frame of the same diff.

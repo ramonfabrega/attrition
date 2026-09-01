@@ -7910,10 +7910,43 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **3978** — four draws against five, and the missing one is the
-    /// original's own `61a1da`, inside `Unit::come_out@00617c10`'s tail
-    /// (`+0x25ca`) and unnamed in the trace. The AI's scout `1/0` leaves
-    /// the original's point on the frame after, so the two are one thing.
+    /// **4020** — four draws against six, and the two we do not spend are
+    /// a `Guy::set_anim+0x97a < do_cast` pair: the AI's scout `1/0`
+    /// reaching the *next* shore and casting its second transport, man and
+    /// dog. Ours does not get there — its second leg, the one
+    /// `think_scout` gives it on 4005 after it lands, goes somewhere else,
+    /// and it does not reach water until 5115.
+    ///
+    /// It was **3978** for one item, and that item was three things in a
+    /// row, all of them `Unit::come_out@00617c10` and its caller.
+    ///
+    /// The draw is the **army coin** at `come_out`'s tail (`+0x25ca`,
+    /// `61a1da`), unnamed in the trace and named here from the listing: an
+    /// AI unit leaving whatever carried it joins an army unless a coin says
+    /// otherwise, and only the **scout** and **naval-scout** lineages throw
+    /// one — `is_special` is `is(SCOUT)` by the loader, and the other arm is
+    /// `is(BARK)`, `% 3` at `+0x25b0`. run54 reaches the site eleven times
+    /// in 24,000 frames and both arms are there (`docs/ARMY.md` §4).
+    ///
+    /// Then the scout had to come out where the original's does, and that
+    /// is `come_out`'s **host** arm — a ring of the *boat's* `block_radius`
+    /// out to `+ UNIT_DISEMBARK_DISTANCE`, swept from the *boat's* own
+    /// angle, and the passenger turned to that angle with its crew seated
+    /// on the track offset. And the ring only reaches land because a boat
+    /// lying on the water half of a coastal cell **marks no collision
+    /// cells there**: `docs/COLLISION.md` §2's region gate is
+    /// `WorldData::get_tregion` of the figure's own tile, which answers a
+    /// coastal cell's `region2` for an ocean tile, and this crate asked the
+    /// plain `region_of` — so the barge filled its own cell and pushed its
+    /// passenger four hundred units inland.
+    ///
+    /// Then it had to keep walking, and `Object::eject_contents@0064cd20`
+    /// is `cast_transport` run backwards: for a passenger of `uber_size`
+    /// 1 the boat's whole order list moves back onto it and the boat's
+    /// path stack is inverted and popped onto its own, the top's embark
+    /// flag cleared. run57 block 3979 has the scout's order and both
+    /// waypoints field for field against the barge's in block 3978
+    /// (`docs/TRANSPORT.md` §6.4).
     ///
     /// It was **3687** for one item, and the frame was the AI's citizen
     /// `1/11` — three draws against seven, ours opening with a
@@ -8007,7 +8040,7 @@ mod tests {
     /// site would gather. `blocked_site`'s out-parameter is that number
     /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
     /// original's own frame, tile and object number.
-    const LONG_WORD_EAST_INDIES: i64 = 3978;
+    const LONG_WORD_EAST_INDIES: i64 = 4020;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**
