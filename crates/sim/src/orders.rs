@@ -1156,9 +1156,10 @@ impl Sim {
         self.think_join_army(u);
     }
 
-    /// `Unit::think_peasant(forced)` (§5.9): the idle gate, then the job
-    /// search — here `find_gather_spot`; `find_build_spot`/`find_repair_spot`
-    /// need the object searches and are not yet modelled.
+    /// `Unit::think_peasant(forced)` (§5.9): the idle gate, the colonist
+    /// arm, then the job search — here `find_gather_spot`;
+    /// `find_build_spot`/`find_repair_spot` need the object searches and are
+    /// not yet modelled.
     ///
     /// **The gate's threshold is 1 for an AI-driven worker**, whatever the
     /// owner's idle-citizen option says: `think_peasant@005f5760:16` reads
@@ -1185,6 +1186,20 @@ impl Sim {
                 return false;
             }
         }
+        // **The colonist arm** (`think_peasant@005f5760:53`,
+        // `docs/TRANSPORT.md` §7): an AI-driven **citizen** — the base type
+        // itself, `0x32` or `0x33`, not the worker category, so a scholar
+        // never asks — offers itself for the boat *before* it looks for a
+        // job, and a `1` back ends the think. It is the only caller with
+        // `colonise = 1`, and so the only writer of the census's
+        // `xport_peasants` throttle between sweeps.
+        if ai
+            && matches!(self.units[u].type_index, 0x32 | 0x33)
+            && self.think_civilian_transport(u, true)
+        {
+            return true;
+        }
+        let unit = &self.units[u];
         let stance = unit.stance;
         // The same call's other half of the AI split: an AI-driven worker
         // searches without a range limit (§5.9's `find_gather_spot(AI ? −1

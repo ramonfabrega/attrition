@@ -12,34 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the loop's bound is re-read, and East Indies' word is
-**3687**.* Item 135 was booked as a clock and was the frame loop:
-`Objects::process_all` tests `o < unit_mark[who]` at the *bottom* of its
-inner loop, out of the array, so a unit created inside the loop above the
-slot being walked takes its turn on the frame it is born.
+*2026-09-01, Opus — the citizen offers itself to the boat, and East
+Indies' word is **3978**.* Item 137 was booked as two draws and was one
+missing call: `Unit::think_peasant@005f5760:53` opens with a **colonist
+arm** — an AI-driven unit whose *base type* is `0x32`/`0x33` asks
+`think_civilian_transport(1)` before it looks for work — and this crate
+had only `think_scout`'s `colonise = 0` caller.
 
-- **The barge is the only unit in the capture on that side of it.** Cast
-  at `o 14` by the scout at `o 0`, it steps its inherited move order the
-  same frame, `move_step` sets its guy to `CHAR_WALK`, and the clock never
-  wraps. Ten other newborns in run57 are *trained* — second loop, after
-  every unit — and every one of them does wrap.
-- **No capture was needed.** The booked `GUYS=4` window was answered by
-  the trace already on disk: eleven `Guy::init_real` births over 4,000
-  frames, ten with a wrap behind them and 3608 the only one without.
-- **The visit order inside an owner's band is object order now**, which
-  is what §3.2 always said; nothing else in the suite moved.
+- **Both halves of 3687 were one unit's** — the AI's citizen `1/11`, off
+  the original's point since 3582; the two extra wing beats are coins one
+  extra draw re-throws. run57's 3581 was the oracle and already on disk:
+  a fresh `group 65`, a `MOVE_TO` to cell (50, 31)'s centre, a
+  twenty-four-leg path. This crate sent it back to its gather.
+- **run57: eleven units ever off the original's point → four**, earliest
+  parting 3582 → 3647, comparable collision field-frames 330,643 →
+  348,354, none wrong. **A parting can be earlier than the word** —
+  `1/13`'s costs no draw — so the test pins both numbers.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w3687 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w3978 of 24,000 · GreatLakes w1802 of 24,000
 
 **Steering ran 2026-09-01 (Fable); the clock resets.** run57's rescope
 ratified, its ratchet declined, four conventions into `CLAUDE.md`,
 `tools/guard.sh` the new reflex. Journal has the story.
 
-**Opener (Opus):** `East Indies' word is 3687 and item 137 is what holds
-it: ten draws against seven, ours opening with a blocked walker's idle
-the original does not spend and then throwing seven gaia wing-beat coins
-where the original throws five. docs/SYNC.md §3.22 has the frame.`
+**Opener (Opus):** `East Indies' word is 3978 and item 138 is what holds
+it: four draws against five, and the one we do not spend is the
+original's own 61a1da — inside Unit::come_out's tail, unnamed in the
+trace. The AI's scout 1/0 leaves the original's point on the frame after.
+docs/SYNC.md §3.23 has the frame.`
 
 ## The queue
 
@@ -48,18 +49,20 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-137. **A blocked walker and two wing beats, at 3687.** East Indies' word,
-    and it is three draws: this crate opens the frame with a
-    `Guy::set_anim+0x97a < Unit::move_step+0x823` — a walker whose step is
-    refused asking for its idle (`docs/ORDERS.md` §10) — that the original
-    does not spend, and then throws **seven** `Guy::set_anim+0x104b` gaia
-    wing-beat coins where the original throws five. The original's whole
-    frame is five coins and two `Farms::inc_time`. The barge and its
-    passenger are the only things new on the water, so the blocked walker
-    is the first suspect and the two extra coins are the second: a bird
-    beats its wings when its walk animation wraps, so one of gaia's is on
-    a different clock here. `docs/SYNC.md` §3.22 has the frame and the
-    two lists.
+138. **The passenger comes out, at 3978.** East Indies' word, one draw:
+    the original spends a `61a1da` ahead of the frame's four
+    `Farms::inc_time` and this crate spends nothing. The address is inside
+    `Unit::come_out@00617c10`'s tail (`+0x25ca`), unnamed in the trace, so
+    name it from the listing first. The AI's scout `1/0` — which cast the
+    barge at 3608 — leaves the original's point on **3979**, so the two
+    are one thing; run57's blocks 3975–3985 have both sides.
+    `docs/SYNC.md` §3.23, `docs/TRANSPORT.md` §6.
+
+139. **`1/13` parts at 3647 and costs no draw** — run57's earliest, and
+    the one residue there the colonist arm did not move. Its object-chain
+    `down` goes **2000 → 3** on 3581, off the city and onto a unit, while
+    its gather order and destination stay put; this crate never makes that
+    link. The only run57 residue before the word.
 
 136. **The danger grid has no writer, and four readers index it wrongly.**
     `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution

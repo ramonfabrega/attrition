@@ -596,6 +596,24 @@ is the AI scout `1/0`'s: this crate picks cell **(46, 33)** and issues a
 run57's block 3585 prints, and the eleven-waypoint route the pathfinder
 then plans is that block's `PATHDATA` list entry for entry.
 
+**And the `colonise = 1` caller landed with it (2026-09-01, later the same
+day).** `Unit::think_peasant@005f5760`'s head, at `005f5809`, after the
+idle gate and **before** `find_build_spot` and the gather search: an
+AI-driven unit (`unit_masks & 0x40000`) whose **base type** is `0x32` or
+`0x33` asks, and a `1` back ends the think. The test is the base type and
+not the worker category, so a scholar (`0x34`/`0x35`) never asks even
+though `think_peasant` serves it. Until this the colonise gate, the
+`xport_peasants` throttle and `reg_xport_peasants` had no writer between
+the census's sweeps, and §7's whole `colonise = 1` half was reachable only
+from a test.
+
+run57's `1/11` is the diff: it finishes a build on 3580, and on **3581**
+the original holds it in a fresh `group 65` with a `MOVE_TO` whose
+`orig 38784, 24192` is cell **(50, 31)**'s centre — this function's
+`cell × 0x300 + 0x180`. With the arm in place this crate sends the same
+citizen to the same cell on the same frame, and East Indies' long word went
+**3687 → 3978** on it (`docs/SYNC.md` §3.23).
+
 ## 8. The army's transporting — `Army::do_transporting@006f4690`
 
 `ArmyData`'s fields, for the reader (`types.txt`): `+0x0 valid`, `+0x2
@@ -837,8 +855,10 @@ masks with `is_coast` / `num_coasts` computed from the cells (§9.1–§9.2).
 
 **The boarding half landed 2026-09-01** and is `transport.rs` too:
 `do_cast` and `cast_transport` (§6.1, §6.2), `board` and `disembark`,
-`same_damage`, and `think_civilian_transport` (§7) with the
-`think_scout` tail that calls it (`scout.rs`). Around them:
+`same_damage`, and `think_civilian_transport` (§7) with **both** of its
+callers — the `think_scout` tail (`scout.rs`) and, since later the same
+day, `think_peasant`'s colonist arm (`orders.rs`), which is what gives the
+`colonise = 1` half a live writer. Around them:
 `collide.rs::shore_step` is `set_new_location`'s conversion,
 `orders.rs` carries a `CAST_SPELL` order and
 `find_nearby_spot_type` (the `(not_o, not_who) = (-1, -1)` form),
@@ -879,10 +899,19 @@ Checks, cheapest first:
    run54's frame 3608 spends the three draws §6.1 names and this crate
    spends all three at the same sites.
 
-   The frame still parts, and by **one draw**: this crate spends a
+   ~~The frame still parts, and by **one draw**: this crate spends a
    `Guy::set_anim+0x97a < Guy::inc_time+0x271` for the barge's brand-new
-   guy and the original spends none, on 3608 or on any later frame. §13
-   has it.
+   guy and the original spends none, on 3608 or on any later frame.~~
+   Settled by `docs/SYNC.md` §3.22 — the loop's bound is re-read, so the
+   barge takes its own turn on the frame it is born and its guy is already
+   walking when the clocks are stepped.
+
+5. **run57's 3581, on disk**: `1/11`'s colonist dispatch — the group, the
+   `MOVE_TO` to cell (50, 31)'s centre, and the twenty-four-leg path —
+   which is what §7's `colonise = 1` half is now checked by. With it East
+   Indies' word is **3978**, and run57's four thousand frames have four
+   units ever off the original's point rather than eleven
+   (`rondata::diff::tests::run57_s_four_thousand…`).
 
 ## 13. What is not established
 

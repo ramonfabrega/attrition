@@ -4261,7 +4261,11 @@ mod tests {
     /// the FARM/MINE arm's own distance (`docs/AI.md` §22).
     ///
     /// **Nothing is wrong in the collision record, and nothing is wrong in
-    /// the building record up to the word.** The building half is scoped
+    /// the building record up to the word.** Four of the capture's units
+    /// ever leave the original's point at all, the earliest at 3647 —
+    /// which is *before* the word, and not a contradiction: a unit can
+    /// drift without spending a draw for it, so the two numbers are pinned
+    /// separately (`docs/SYNC.md` §3.23). The building half is scoped
     /// there deliberately, and item 133 is why: for one item this test
     /// asserted every one of the 4,000 frames, and the assertion was
     /// **luck past the parting**. A building the AI sites after the two
@@ -4368,22 +4372,30 @@ mod tests {
             "the AI's buildings stand where the original's do up to the word \
              ({LONG_WORD_EAST_INDIES}): {build_early:?}"
         );
-        // **Not one collision field wrong in 330,643**, and nothing leaves
-        // the original's point before 3582 — past the word. The block is
-        // scoped to unit-frames whose positions still agree, so this is
-        // the capture's size and not a score.
+        // **Not one collision field wrong in 348,354**, and only four of
+        // the capture's units ever leave the original's point at all. The
+        // block is scoped to unit-frames whose positions still agree, so
+        // this is the capture's size and not a score.
         assert!(
             coll_bad.is_empty(),
             "the collision block agrees on every comparable field-frame of {coll}: {coll_bad:?}"
         );
+        // The earliest parting, and it is **before** the word rather than
+        // after: a unit can walk off the original's point without spending
+        // a draw for it, and `1/13` at 3647 does. It was 3582 and eleven
+        // units until the colonist arm landed (`docs/SYNC.md` §3.23).
         assert_eq!(
             parted.values().copied().min(),
-            Some(3582),
-            "nothing parts before the word does"
+            Some(3647),
+            "the earliest parting is 1/13's"
+        );
+        assert!(
+            parted.len() <= 4,
+            "four units ever leave the original's point in 4,000 frames: {parted:?}"
         );
         assert_eq!(builds, 130_326, "two fields on every linked building-frame");
         assert!(
-            coll >= 330_643,
+            coll >= 348_354,
             "five fields on every agreeing unit-frame, and the count only \
              grows: {coll}"
         );
@@ -7898,9 +7910,23 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **3687** — three draws against seven, and the first of ours is a
+    /// **3978** — four draws against five, and the missing one is the
+    /// original's own `61a1da`, inside `Unit::come_out@00617c10`'s tail
+    /// (`+0x25ca`) and unnamed in the trace. The AI's scout `1/0` leaves
+    /// the original's point on the frame after, so the two are one thing.
+    ///
+    /// It was **3687** for one item, and the frame was the AI's citizen
+    /// `1/11` — three draws against seven, ours opening with a
     /// `Guy::set_anim+0x97a < Unit::move_step+0x823` the original does not
-    /// spend, with two gaia wing-beat coins beyond its five behind it.
+    /// spend and then throwing seven gaia wing-beat coins where the
+    /// original throws five. Both were one unit's, and it had left the
+    /// original's point ninety-five frames earlier: `Unit::think_peasant`
+    /// offers an AI **citizen** to the boat before it looks for work
+    /// (`005f5760:53`, `think_civilian_transport(1)`), and this crate had
+    /// only the scout's `colonise = 0` caller, so the citizen that the
+    /// original sends north to colonise cell (50, 31) on frame 3581 went
+    /// back to its gather instead (`docs/TRANSPORT.md` §7,
+    /// `docs/SYNC.md` §3.23).
     ///
     /// It was **3608** for one item, and the frame was the transport
     /// barge's own guy. `SpellType::cast_transport` first runs there — the
@@ -7981,7 +8007,7 @@ mod tests {
     /// site would gather. `blocked_site`'s out-parameter is that number
     /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
     /// original's own frame, tile and object number.
-    const LONG_WORD_EAST_INDIES: i64 = 3687;
+    const LONG_WORD_EAST_INDIES: i64 = 3978;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

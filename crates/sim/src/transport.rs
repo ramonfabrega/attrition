@@ -519,11 +519,13 @@ impl Sim {
     /// `Unit::think_civilian_transport(colonise)@005f40d0` (§7) — the AI's
     /// "there is nothing left for me here, and there is an island".
     ///
-    /// `Unit::think_scout`'s tail is the caller this crate has: a scout
-    /// whose own search came back empty asks with `colonise = 0`, and what
-    /// it wants is a **region it has not scouted** that its own region
-    /// coasts a sea with. A citizen asks with `colonise = 1` from
-    /// `think_peasant`, which is still a seam here.
+    /// Two callers, and this crate has both. `Unit::think_scout`'s tail
+    /// asks with `colonise = 0` when its own search came back empty, and
+    /// what it wants is a **region it has not scouted** that its own region
+    /// coasts a sea with. `Unit::think_peasant`'s head asks with
+    /// `colonise = 1` — an AI citizen offers itself for the boat before it
+    /// looks for work — and that arm is the only writer of the census's
+    /// `xport_peasants` throttle between sweeps.
     ///
     /// The search: every land region `1..=0x3f` with cells, accepted by
     /// [`Sim::go_here`] (§9.4) and by the colonise/scouted test; then the
