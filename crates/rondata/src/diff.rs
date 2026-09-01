@@ -122,6 +122,10 @@ fn guy_of(g: &crate::gamelog::Guy) -> Option<sim::anim::Guy> {
         anim: g.cur_anim? as i8,
         gpiece: g.gpiece.unwrap_or(-1) as i32,
         stopped: g.stopped.unwrap_or(1) != 0,
+        // A crew guy's own body is derived, not read: `Sim::seat_guys`
+        // installs it from the piece's track offset once the whole unit
+        // is in.
+        follow: None,
     })
 }
 
@@ -570,6 +574,16 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             loaded.piece_lengths.len()
         ));
     }
+    // And every piece's crew-follow offset, from the same file — which is
+    // what gives a scout's dog a body of its own instead of the man's
+    // (`docs/MOVEMENT.md`, "The follower's destination").
+    sim.art.tracks = loaded.piece_tracks.clone();
+    if !loaded.piece_tracks.is_empty() {
+        notes.push(format!(
+            "anim: {} unit pieces' crew track offsets from the install",
+            loaded.piece_tracks.len()
+        ));
+    }
 
     for l in &init.leaders {
         if (0..players as i64).contains(&l.who) {
@@ -738,6 +752,12 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 clocks += 1;
             }
         }
+        // `Unit::set_new_location`'s placement snap, once the pieces are
+        // in: a crew guy whose piece names a track offset is put on it
+        // rather than on its leader. Deriving the position rather than
+        // reading the dump's `GUY x/y` is deliberate — it is what lets
+        // `run56_s_scout_dog_walks_its_own_body` compare the two.
+        sim.seat_guys(idx);
         // `Unit::init`'s tally — `num_units`, the group count, `control` —
         // which the price ramp and `population()` read. A unit stood up
         // from the dump counts exactly as a trained one does.
@@ -3902,6 +3922,185 @@ mod tests {
             ],
             "the mirrored rows, all on the two dogs"
         );
+    }
+
+    /// **run56's figures, frame for frame** — every `GUY` block's own
+    /// `x`, `y` and `angle`, over East Indies' 3,000-frame capture.
+    ///
+    /// This is the record behind item 128. A unit is a `Unit` and one or
+    /// more `Guy`s; guy 0's body is the unit's own, and a **crew** guy
+    /// whose piece names a track offset walks a second body toward a
+    /// destination of its own. A scout is the pair that shows it: the man
+    /// arrives and the dog is still walking four frames later, which is
+    /// four frames on which the two figures answer `Guy::set_anim`'s
+    /// walking-guy early return differently (`docs/MOVEMENT.md`, "The
+    /// follower's destination").
+    ///
+    /// Nothing here is installed. The bodies are **derived** — the crew's
+    /// from `Sim::seat_guys` at the start and from guy 0's own
+    /// `Guy::set_new_location` and `Guy::set_angle` after that — so every
+    /// row is a prediction the dump can refuse. The whole record is
+    /// compared, both figures of every unit gaia's included, because nine
+    /// tenths of a dumped record once went uncompared for a month.
+    #[test]
+    fn run56_s_figures_stand_where_the_original_s_do() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run56-islands-3k.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run56.log"),
+        ) else {
+            eprintln!("skipping: no run56 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        let theirs = std::mem::take(&mut init.frame_bodies);
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let last = theirs.last().map_or(0, |(n, _)| *n);
+        assert!(
+            last >= 2_990,
+            "run56's body table reaches frame {last}, wanted 2,990+ — this \
+             is the long East Indies capture at full detail, and a short \
+             file here is a wrong file"
+        );
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut compared = 0usize;
+        // Three tallies, because the rows fall into three kinds and only
+        // one of them is this mechanic's.
+        let mut gaia_bearings = 0usize;
+        let mut on_the_quit = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for f in 0..=last {
+            built.tick();
+            let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
+                continue;
+            };
+            for state in units {
+                let Some(u) = built
+                    .units
+                    .iter()
+                    .find(|l| l.who == state.who && l.o == state.o)
+                    .map(|l| l.unit)
+                else {
+                    continue;
+                };
+                let unit = &built.sim.units[u];
+                for (n, g) in state.guys.iter().enumerate() {
+                    let (Some(pos), Some(angle)) = (g.pos, g.angle) else {
+                        continue;
+                    };
+                    let (ours, facing) = match unit.guys.get(n).and_then(|x| x.follow) {
+                        Some(b) => (b.body.pos, b.facing),
+                        None => (unit.movement.body.pos, unit.movement.facing),
+                    };
+                    compared += 3;
+                    let placed = ours.x == pos.x as i32 && ours.y == pos.y as i32;
+                    let aimed = i64::from(facing.0) == angle;
+                    if placed && aimed {
+                        continue;
+                    }
+                    // **Gaia's bearing is not modelled**, and it is not the
+                    // body: `Sim::reseat_animal` puts an animal back on the
+                    // original's own position every traced frame, so the
+                    // place agrees and the angle never does. Counted, not
+                    // asserted away.
+                    if state.who >= 8 && placed {
+                        gaia_bearings += 1;
+                        continue;
+                    }
+                    // The quit's own frame is the capture's last and is
+                    // half a frame: the dump is written before the rest of
+                    // it runs. Every widening on this capture carries the
+                    // same exemption.
+                    if f == last {
+                        on_the_quit += 1;
+                        continue;
+                    }
+                    if wrong.len() < 8 {
+                        wrong.push(format!(
+                            "frame {f}: {}/{} guy {n} ours ({}, {}) angle {} \
+                             theirs ({}, {}) angle {}",
+                            state.who, state.o, ours.x, ours.y, facing.0, pos.x, pos.y, angle
+                        ));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run56 bodies: {compared} fields compared, {} rows wrong \
+             ({gaia_bearings} gaia bearings, {on_the_quit} on the quit's frame)",
+            wrong.len()
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 1_060_000,
+            "the record is being read: {compared} fields"
+        );
+        // **Every figure of every player's unit stands where the
+        // original's does, on all 3,000 frames** — guy 0 and the crew
+        // alike, and the crew's position is derived rather than read.
+        assert!(
+            wrong.is_empty(),
+            "a figure stands somewhere the original's does not: {wrong:?}"
+        );
+        // Asserted as they stand, so that closing either moves the number
+        // rather than passing quietly. The one on the quit's frame is
+        // player 0's Citizen `o 5`, eighteen units short on both axes.
+        assert_eq!(gaia_bearings, 301_810, "gaia's unmodelled bearings");
+        assert_eq!(
+            on_the_quit, 1,
+            "rows on the capture's half-written last frame"
+        );
+    }
+
+    /// **The crew's follow offsets, from the install** — `track_dx` and
+    /// `track_dy`, which decide whether a unit's second figure stands on
+    /// the first or walks its own body behind it
+    /// (`docs/MOVEMENT.md`, "The follower's destination").
+    ///
+    /// The two scout dogs are the pair that matters, because they are the
+    /// headline's own divergence: both nations' `-CREW1` entry writes
+    /// `trackoffsetx="-20" trackoffsety="10" scale="1"`, and `guy_scale`
+    /// is the executable's 4.8, so the stored pair is `(-96, 48)`. A
+    /// citizen has one figure and no entry here at all.
+    /// **The crew's follow offsets, from the install** — `track_dx` and
+    /// `track_dy`, which decide whether a unit's second figure stands on
+    /// the first or walks its own body behind it
+    /// (`docs/MOVEMENT.md`, "The follower's destination").
+    ///
+    /// The two scout dogs are the pair that matters, because they are the
+    /// headline's own divergence: both nations' `-CREW1` entry writes
+    /// `trackoffsetx="-20" trackoffsety="10" scale="1"`, and `guy_scale`
+    /// is the executable's 4.8, so the stored pair is `(-96, 48)`. A
+    /// citizen has one figure and no entry here at all.
+    #[test]
+    fn the_install_s_crew_tracks_are_the_scout_dog_s() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        for dog in [13043, 12691] {
+            assert_eq!(
+                loaded.piece_tracks.get(&dog).copied(),
+                Some((-96, 48)),
+                "piece {dog} is a scout's dog and carries the -20/10 offset"
+            );
+        }
+        // A guy-0 piece has no offset: the scouts themselves, and the
+        // citizens, which are one figure each.
+        for lone in [371, 19, 352, 6688] {
+            assert!(
+                !loaded.piece_tracks.contains_key(&lone),
+                "piece {lone} is a guy 0 and names no track offset"
+            );
+        }
     }
 
     /// Run12's per-frame words, read straight from the dump (`docs/SYNC.md`
@@ -7278,27 +7477,39 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **2665**, and it has been the same frame twice. It was thirty draws
-    /// against nine: this simulation ran a second whole `Unit::think_scout`
-    /// there, because it carried only the mod-16 gate at the head of
-    /// `Unit::think` and not the mod-32 one in front of the tail
-    /// (`docs/ORDERS.md` §2.4 step 5). With that gate landed the frame is
-    /// **eleven** against nine and what is left is the scout's **dog**: the
-    /// original's second guy is still walking on its own body four frames
-    /// past the unit's arrival, so its idle request takes `set_anim`'s
-    /// walking-guy early return, while this crate — which gives every guy
-    /// the unit's body — re-rolls it. `docs/MOVEMENT.md`, "The body step",
-    /// has run56's per-guy frame table; the successor is a `Body` per guy
-    /// and `Guy::move`'s tracked branch.
+    /// **3021**, and it is past the full-detail sibling's own length: the
+    /// frame is four draws against five, and the missing one is an idle
+    /// request from `Unit::move_step` rather than from `Guy::inc_time`.
     ///
-    /// The floor before this was **2176**, item 126's — the frame the
+    /// It was **2665** twice over, and the second of those was the scout's
+    /// **dog**. A unit is one or more figures, and a crew figure whose
+    /// piece names a track offset does not stand on the guy it follows: it
+    /// walks a body of its own toward a destination its leader rewrites,
+    /// and it is still walking four frames after the man has arrived. Those
+    /// are four frames on which the two figures answer `Guy::set_anim`'s
+    /// walking-guy early return differently, and this crate — which handed
+    /// every guy the unit's body — re-rolled the dog's idle where the
+    /// original did not. With the second body landed the frame agrees, and
+    /// so does every figure of every player's unit on all 3,000 frames of
+    /// run56 ([`run56_s_figures_stand_where_the_original_s_do`]).
+    ///
+    /// Two readings carried it, and both are in `docs/MOVEMENT.md` under
+    /// "The follower's destination": `Guy::set_new_location` and
+    /// `Guy::set_angle` both rewrite the crew's `des` — the first from guy
+    /// 0's new position when it moves, the second from the angle it has
+    /// just turned to when it stands — and `GuyData::turn_speed@005de340`
+    /// fences its whole first half behind `guy_num < squad_size`, so a
+    /// tracked crew guy turns a flat quarter turn a frame and can never
+    /// give a frame up to turning.
+    ///
+    /// The floor before that was **2176**, item 126's — the frame the
     /// original placed player 1's second Woodcutter's Camp and this
     /// simulation placed nothing, because `produce_building` scored a camp
     /// site by the forest tiles in a one-tile ring rather than by what the
     /// site would gather. `blocked_site`'s out-parameter is that number
     /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
     /// original's own frame, tile and object number.
-    const LONG_WORD_EAST_INDIES: i64 = 2665;
+    const LONG_WORD_EAST_INDIES: i64 = 3021;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

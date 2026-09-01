@@ -10515,3 +10515,95 @@ That is item 128, and it is `Guy::move`'s tracked branch — read whole in
 MOVEMENT's "The body step" since 2026-08-27 and never built, because until
 now the simulation only ever had guy 0. ANIM §9's "the every-frame re-roll of
 a dog under a shorter idle" is closed onto it: the re-roll was never a clock.
+
+
+## 2026-09-01 (item 128, Opus) — a guy is a body, and the headline moves 2665 → 3021
+
+East Indies' long-capture word is **3021**. It was 2665 twice over, and the
+second time it was the scout's dog.
+
+**A unit is one or more figures, and a crew figure walks a body of its own.**
+`Unit::process` runs `Guy::process` for the squad (`0..guy_mark`) and then for
+the crew (`type->squad_size..num_guys`), and `Guy::move`'s third branch — the
+one guy 0 never takes, gated on `guy_num != 0 && (track_dx || track_dy)` — is
+a whole second integration: turn toward the point, give the frame up if the
+turn is too large, step `floor(speed × 11 / 8)`, snap by Manhattan or clamp
+each axis. It has been read since 2026-08-27 and never built, because until
+now this simulation only ever had guy 0.
+
+Three things had to be found before it could be.
+
+**Where the offset comes from.** `track_dx`/`track_dy` are `+0x54`/`+0x58`,
+and the queue had them at `+0x92`/`+0x94` — which are `off_x`/`off_y`, a
+different field. The type record settled it, as the audit README says it
+always does. The single writer is `Guy::update_gpiece@005d8530`, and it is
+**art**: `trackoffsetx` and `trackoffsety` from `unit_graphics.xml`, times the
+entry's `scale`, times `guy_scale` — a `float` in `.data` at `00c06244` that
+`rise_z.map` attributes to `Guy.obj` and nothing but three console commands
+ever writes. 4.8. Every scout's dog in the shipped data is
+`trackoffsetx="-20" trackoffsety="10" scale="1"`, so the pair is `(-96, 48)`,
+and the multiply happens once at load in `rondata::artdata::piece_tracks`.
+
+The first thing that pair did was reproduce run56's frame-0 dump to the unit:
+the human scout at (5784, 8088) facing `Unit::init`'s 120°, its dog at (5790,
+7979). That was before a line of the mechanic existed.
+
+**Where the point is written, and when.** Two functions, and the decompiler
+prints both as `sin_table(unaff_ESI, unaff_EDI)` — so the listing again.
+`Guy::set_new_location@005d86f0`'s crew loop rewrites it from guy 0's **new**
+position and facing, and `Guy::set_angle@005d9010`'s from guy 0's current
+position and whatever angle is being set. `Guy::do_turn` calls the second on
+every turn, whether or not the angle moved; `Guy::move`'s settled arm
+(`des_angle == angle`) jumps past the turn altogether and calls **neither**.
+That last row is the whole of item 128: a standing, settled guy 0 stops
+rewriting the point, and the crew walks on toward the last one it was given.
+
+Four frames of it, in run56: guy 0 arrives on 2664 at (40416, 34272) and the
+dog is told (40365, 34367); on 2665 the man turns where he stands, the point
+rotates to (40322, 34217) and the dog sets off; it gets there on 2668 and
+settles its angle on 2669. Every frame of that is a `Guy::set_anim` decision
+the unit's body cannot make.
+
+**And the turn rate that made it work.** The first attempt regressed the word
+from 2665 to **413**, because the dog kept giving frames up to turning.
+`GuyData::turn_speed@005de340` is not one formula but two: its whole first
+half — the type's `TURN_SPEED`, the pack bonus, everything `docs/MOVEMENT.md`
+"Turning" describes — is fenced behind `guy_num < squad_size`, and a crew guy
+with a track offset returns a flat `0x40000000` **before** the
+instant-from-a-stop test and before either mode. Ninety degrees a frame. The
+give-up wants `|delta| > 3 × rate`, which at ninety degrees does not exist, so
+a tracked crew guy always steps. run54's frame 412 is the proof: the dog turns
+`1681129472 → -1540096000`, exactly a quarter, where the man manages the
+scout's twenty-seven degrees.
+
+**The check is the whole record.** run56's per-frame `GUY` blocks carry `x`,
+`y` and `angle` for every figure and `Initial::frame_guys` was dropping them,
+because it filters on the animation clock and this capture prints positions
+without one. `Initial::frame_bodies` keeps them, and
+`run56_s_figures_stand_where_the_original_s_do` compares all three fields for
+every figure of every unit over 3,000 frames — **1,062,354 fields**. Nothing
+in it is installed: guy 0's body is the unit's own and a crew guy's is derived
+from the art and the two writers, so every row is a prediction.
+
+Every player figure agrees on every frame. What is left is 301,810 rows of
+gaia's spawn **bearing** — position right, angle wrong, because
+`Sim::reseat_animal` puts an animal back and nothing derives its initial angle
+— and one row on the capture's own last frame, which is half-written. Both
+asserted at their numbers.
+
+Made to fail first, by handing the crew no track: two figures part on **frame
+0**, before a single tick, because a dog seated on its man is already 109
+units from where the original's stands.
+
+**A grep closed a second question on the way.** `off_x`/`off_y` — the pair
+`Guy::set_anim`'s walking-guy early return subtracts, and the pair
+`Guy::move`'s tracked branch subtracts before adding its step — are written
+**once in the executable**, by `Guy::clear`, as one `undefined4` of zero. They
+are not the formation's offsets. So `des_x != x − off_x` is `des != pos`, and
+ANIM §9's two-line puzzle about `Guy::move:52` and `set_anim:163` disagreeing
+was never a disagreement.
+
+The new word, 3021, is four draws against five, and the missing one is an idle
+request from `Unit::move_step` rather than from `Guy::inc_time`. It is past
+run56's own 3,000 frames, so the next item on it needs a longer full-detail
+capture or run54's trace alone.

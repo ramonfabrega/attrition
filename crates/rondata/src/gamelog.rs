@@ -1161,6 +1161,16 @@ pub struct Initial<'a> {
     /// guys)` at the end of that frame — the clocks the harness installs
     /// beside the frame's word. Empty for any other dump.
     pub frame_guys: FrameGuys,
+    /// Per engine frame, every unit whose `GUY` blocks carry a **position**
+    /// — the figures' own `x`, `y` and `angle`, which a dump writes at a
+    /// lower detail than the clock and which [`Initial::frame_guys`]
+    /// therefore filters out.
+    ///
+    /// This is the oracle for the body: guy 0's is the unit's own, and a
+    /// crew guy's is a second body walking its own destination
+    /// (`docs/MOVEMENT.md`, "The follower's destination"). Nothing is
+    /// installed from it — it is compared.
+    pub frame_bodies: FrameGuys,
     /// **The one field no dump fills.** Each pasture's five animals as
     /// `Farms::add_animals` created them, borrowed from the run's own
     /// *trace* ([`crate::trace::Trace::add_animals`]) because owner 9 is in
@@ -1850,35 +1860,49 @@ impl<'a> Log<'a> {
         init.farms = farms_of(body);
         init.frame_seeds = self.frame_seeds();
         init.anim_lengths = self.anim_lengths();
-        init.frame_guys = self
-            .frames()
-            .into_iter()
-            .filter_map(|(n, b)| {
-                let (units, _, _) = records(b, false);
-                let guys: Vec<FrameUnit> = units
-                    .into_iter()
-                    .filter(|u| u.guys.iter().any(Guy::has_clock))
-                    .map(|u| {
-                        let goal = u.orders_front_first().next().and_then(|o| {
-                            Some(Pos {
-                                x: o.x?,
-                                y: o.y?,
-                                z: 0,
-                            })
-                        });
-                        FrameUnit {
-                            who: u.who,
-                            o: u.o,
-                            orderless: u.orders.is_empty(),
-                            pos: u.pos,
-                            goal,
-                            guys: u.guys,
-                        }
-                    })
-                    .collect();
-                (!guys.is_empty()).then_some((n - 1, guys))
-            })
-            .collect();
+        // One walk of the frames, two products: the clocks the harness
+        // installs, and the figures' own positions, which it compares.
+        // The two filters are different — a dump can print a `GUY` block's
+        // position without its clock — and the walk is expensive enough on
+        // a 790 MB capture to be worth doing once.
+        for (n, b) in self.frames() {
+            let (units, _, _) = records(b, false);
+            let rows: Vec<FrameUnit> = units
+                .into_iter()
+                .map(|u| {
+                    let goal = u.orders_front_first().next().and_then(|o| {
+                        Some(Pos {
+                            x: o.x?,
+                            y: o.y?,
+                            z: 0,
+                        })
+                    });
+                    FrameUnit {
+                        who: u.who,
+                        o: u.o,
+                        orderless: u.orders.is_empty(),
+                        pos: u.pos,
+                        goal,
+                        guys: u.guys,
+                    }
+                })
+                .collect();
+            let clocked: Vec<FrameUnit> = rows
+                .iter()
+                .filter(|u| u.guys.iter().any(Guy::has_clock))
+                .cloned()
+                .collect();
+            if !clocked.is_empty() {
+                init.frame_guys.push((n - 1, clocked));
+            }
+            let bodied: Vec<FrameUnit> = rows
+                .into_iter()
+                .filter(|u| u.guys.iter().any(|g| g.pos.is_some()))
+                .collect();
+            if !bodied.is_empty() {
+                init.frame_bodies.push((n - 1, bodied));
+            }
+        }
         Some(init)
     }
 

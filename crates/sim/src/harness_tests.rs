@@ -1861,3 +1861,93 @@ fn siege_fires_at_the_ground_under_a_unit_and_hits_whoever_stands_there() {
     // It found the unit standing there.
     assert_eq!(hits_on(&sim, t0).len(), 1);
 }
+
+/// **A crew guy walks a body of its own**, end to end through `Sim::tick`
+/// — the mechanic item 128 is, on a scenario built here rather than
+/// borrowed from a capture.
+///
+/// The unit gets two figures, the second with a scout dog's own track
+/// offset, and is sent due east. While it walks the crew keeps up: its
+/// destination is rewritten every frame from guy 0's new position, and the
+/// destination moves by the unit's step where the crew may take eleven
+/// eighths of one, so it lands on it every frame.
+///
+/// Then the unit stands and **turns**, which is the other writer: guy 0's
+/// `Guy::move` reaches `turn_towards → do_turn → Guy::set_angle`, and that
+/// rotates the crew's destination about a stationary leader. A half turn
+/// throws it the whole width of the offset, and the crew walks there on
+/// its own over several frames while the unit does not move at all.
+///
+/// The two figures part in `stopped` as they do it, which is what decides
+/// whether the *next* frame's idle request draws.
+#[test]
+fn a_crew_guy_walks_on_after_its_unit_has_arrived() {
+    let mut sim = skirmish(0);
+    let start = Pos::new(4000, 400);
+    let mut u = Unit::new(0, 0, start, 100);
+    u.guys = vec![anim::Guy::fresh(1), anim::Guy::fresh(2)];
+    let unit = sim.add_unit(u);
+    // A scout dog's pair, as `rondata::artdata::piece_tracks` reads it.
+    sim.art.tracks.insert(2, (-96, 48));
+    make_mobile(&mut sim, unit, movement::Angle::EAST);
+    sim.seat_guys(unit);
+    let seated = sim.units[unit].guys[1].follow.expect("the crew has a body");
+    assert_ne!(seated.body.pos, start, "the crew stands off its leader");
+
+    sim.order_move(unit, Pos::new(4000 + 40 * 25, 400));
+    let (mut walking, mut still) = (0, 0);
+    while still < 4 {
+        let before = sim.units[unit].pos;
+        sim.tick();
+        if sim.units[unit].pos == before {
+            still += 1;
+            continue;
+        }
+        still = 0;
+        walking += 1;
+        assert!(walking < 200, "the unit never arrived");
+        let f = sim.units[unit].guys[1].follow.unwrap();
+        assert_eq!(f.body.pos, f.des, "the crew keeps up while the unit moves");
+    }
+    assert!(walking > 20, "the unit walked for {walking} frames");
+    let arrived = sim.units[unit].pos;
+
+    // Now turn the unit where it stands — `Unit::set_angle(a, a, 0)`, the
+    // heading without the snap, which is what every ordinary order does.
+    sim.units[unit].movement.set_heading(movement::Angle::WEST);
+    sim.tick();
+    let lagging = sim.units[unit].guys[1].follow.unwrap();
+    assert_ne!(lagging.body.pos, lagging.des, "the crew is still coming");
+    // Neither figure is stopped on the frame of the turn itself — guy 0
+    // takes `Guy::move`'s turn arm, which marks it unstopped and puts it
+    // back on the walk. On the next frame it is settled and stops, and the
+    // crew, which is still walking, does not.
+    assert!(!sim.units[unit].guys[0].stopped);
+    assert!(!sim.units[unit].guys[1].stopped);
+    sim.tick();
+    assert!(sim.units[unit].guys[0].stopped, "guy 0 has settled");
+    assert!(!sim.units[unit].guys[1].stopped, "the crew has not");
+
+    // And it gets there on its own, with the unit standing still.
+    let mut frames = 0;
+    while sim.units[unit].guys[1].follow.unwrap().body.pos
+        != sim.units[unit].guys[1].follow.unwrap().des
+    {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 30, "the crew never arrived");
+    }
+    assert!(
+        frames >= 2,
+        "the crew arrived in one frame, so nothing lagged"
+    );
+    assert_eq!(
+        sim.units[unit].pos, arrived,
+        "and the unit never moved again"
+    );
+    assert!(
+        sim.units[unit].guys[1].follow.unwrap().facing == movement::Angle::WEST.quarter_turn()
+            || sim.units[unit].guys[1].follow.unwrap().body.pos
+                == sim.units[unit].guys[1].follow.unwrap().des
+    );
+}

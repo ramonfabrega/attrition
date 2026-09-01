@@ -363,6 +363,26 @@ pub const fn turn_speed(
     }
 }
 
+/// A **crew** guy's turn rate: a flat quarter turn a frame.
+///
+/// `GuyData::turn_speed@005de340` is not one formula but two. Its whole
+/// first half is fenced behind `guy_num < type->squad_size` — the type's
+/// `TURN_SPEED`, the pack bonus, and with them everything [`turn_speed`]
+/// computes. A guy past the squad falls to the `else`, and one with a
+/// **track offset** returns `0x40000000` outright, ahead of the
+/// instant-from-a-stop test and ahead of both modes.
+///
+/// Two consequences, and both are visible:
+///
+/// - a scout's dog comes round ninety degrees in a frame where the man
+///   it follows manages twenty-seven — run54's frame 412 turns it from
+///   `1681129472` to `-1540096000`, which is exactly a quarter turn;
+/// - and it **never gives up a frame turning**. `Guy::move`'s tracked
+///   branch abandons the step when `2 × rate < owed` and `owed` is
+///   `|delta| − rate`, so the give-up wants `|delta| > 3 × rate` — 270°,
+///   which no shortest turn can reach.
+pub const CREW_TURN_SPEED: u32 = 0x4000_0000;
+
 /// A heading below this much from its target counts as already facing, and
 /// snaps. Three degrees.
 pub const FACING_TOLERANCE: u32 = 0x0222_2220;
@@ -656,6 +676,106 @@ pub fn body_follow(
     }
     next.avg_speed = (next.avg_speed * 3 + next.last_speed) / 4;
     BodyStep { body: next, facing }
+}
+
+/// Where a crew guy is *told* to be — `Guy::set_new_location@005d86f0`'s
+/// follower loop, which its leader runs every frame the leader's own body
+/// moves.
+///
+/// `leader` is guy 0's new position and `facing` is guy 0's own `angle`
+/// (`+0x18`), not the unit's heading. The track pair is rotated by it:
+/// `track.0` sideways, `track.1` a quarter turn further round, each as one
+/// [`sin_component`] per axis, and the axes are **not** the step's — the
+/// listing at `005d88f3–005d894d` adds the first component to `y` and the
+/// second to `x`, where a movement step does the opposite and negates.
+///
+/// `bound` is the world in position units, `(width, height) × 768`: the
+/// original clamps the result into `0 ..= bound − 1` on each axis, and
+/// does so only when at least one track component is non-zero, which is
+/// the only case this function is called for.
+///
+/// Diff-backed: run56's start dump has the human scout's man at
+/// `(5784, 8088)` facing `Angle::INITIAL` and its dog at `(5790, 7979)`,
+/// which is this to the unit for the dog's `(-96, 48)`.
+pub fn follower_des(leader: Pos, facing: Angle, track: (i32, i32), bound: Pos) -> Pos {
+    let (dx, dy) = track;
+    let mut x = leader.x;
+    let mut y = leader.y;
+    if dx != 0 {
+        y += sin_component(facing, dx);
+        x += sin_component(facing.quarter_turn(), dx);
+    }
+    if dy != 0 {
+        y += sin_component(facing.quarter_turn(), dy);
+        x += sin_component(facing.quarter_turn().quarter_turn(), dy);
+    }
+    Pos::new(x.clamp(0, bound.x - 1), y.clamp(0, bound.y - 1))
+}
+
+/// One frame of a crew guy's own body — `Guy::move@005d9240`'s **third**
+/// branch, the one guy 0 never takes.
+///
+/// The facing always comes back, because the turn is taken before the
+/// give-up test. The body comes back only when the frame was not spent
+/// turning: the original *returns* from `Guy::move` there, past the
+/// `last_speed`, `avg_speed` and `stopped` writes alike, so a guy that
+/// gives up leaves all three as they stood. Where a body does come back
+/// its `pos` is a proposal the caller checks against the world — the
+/// original's `WorldData::is_valid` — and a refused step leaves the guy
+/// where it was without rewriting anything else.
+///
+/// The arithmetic, in the original's order:
+///
+/// - the heading is `find_angle` of the remainder, and the turn toward it
+///   is `Guy::turn_towards` at the body rate (`turn_speed` mode 1);
+/// - `2 × rate < owed` gives the frame up, and the doubling is a 32-bit
+///   multiply: an instant turn's `0x80000000` doubles to **zero**, which
+///   is only ever compared against an `owed` the snap has already made
+///   zero;
+/// - the step is `floor(speed × 11 / 8)` — a literal, with no constant
+///   behind it, and the one place the eleven-eighths is real. The
+///   original scales it again by `GameAccess::ai_speed` where that is
+///   above one, and `last_speed` keeps the **unscaled** figure; the game
+///   speed is not modelled here, so the two are the same number;
+/// - `last_speed` is that step, and then the Manhattan snap overwrites it
+///   with `vector_dist` of the true remainder;
+/// - otherwise each axis is clamped so the component cannot overshoot the
+///   remainder on that axis.
+pub fn follower_step(
+    body: Body,
+    facing: Angle,
+    des: Pos,
+    turn_rate: u32,
+    speed: i32,
+) -> (Angle, Option<Body>) {
+    let (dx, dy) = (des.x - body.pos.x, des.y - body.pos.y);
+    let heading = find_angle(dx, dy);
+    let (facing, owed) = turn_towards(facing, heading, turn_rate);
+    if turn_rate.wrapping_mul(2) < owed {
+        return (facing, None);
+    }
+    let mut next = body;
+    // `(speed * 11) >> 3` with the sign correction the compiler emits for
+    // a signed divide by eight — a truncation toward zero, and the speed
+    // is never negative.
+    let step = (speed * 11) / 8;
+    next.last_speed = step;
+    if arrives(dx, dy, step) {
+        next.last_speed = vector_dist(dx, dy);
+        next.pos = des;
+    } else {
+        let mut sx = sin_component(facing, step);
+        let mut cy = cos_component(facing, step);
+        if sx.abs() > dx.abs() {
+            sx = dx;
+        }
+        if cy.abs() > dy.abs() {
+            cy = -dy;
+        }
+        next.pos = Pos::new(body.pos.x + sx, body.pos.y - cy);
+    }
+    next.avg_speed = (next.avg_speed * 3 + next.last_speed) / 4;
+    (facing, Some(next))
 }
 
 #[cfg(test)]
@@ -1114,5 +1234,91 @@ mod tests {
         // body leaves it alone.
         let b = body_follow(at, Angle::NORTH, Pos::new(0, 0), Angle::EAST, true, rate);
         assert_eq!(b.facing, Angle::NORTH);
+    }
+
+    /// A scout's dog, in the three positions run56 prints for it.
+    ///
+    /// The pair is `(-96, 48)` — `unit_graphics.xml`'s `trackoffsetx=-20`
+    /// and `trackoffsety=10` through the executable's `guy_scale` of 4.8
+    /// (`rondata::artdata::piece_tracks`). Each row here is a `GUY` block
+    /// the capture writes, so a rotation with its axes swapped, its signs
+    /// flipped or its quarter turn dropped fails on one of them.
+    #[test]
+    fn a_crew_guy_stands_where_its_leader_s_facing_puts_it() {
+        let bound = Pos::new(200 * 768, 200 * 768);
+        let dog = (-96, 48);
+        // The human scout at frame 0, facing `Unit::init`'s 120°.
+        assert_eq!(
+            follower_des(Pos::new(5784, 8088), Angle::INITIAL, dog, bound),
+            Pos::new(5790, 7979)
+        );
+        // The AI's, on the frame its man arrives and on the frame after —
+        // the same leader position, a different facing, and a destination
+        // 150 units away because of it. That second point is where the dog
+        // finally arrives, four frames later.
+        let arrived = Pos::new(40416, 34272);
+        assert_eq!(
+            follower_des(arrived, Angle(-424673280), dog, bound),
+            Pos::new(40365, 34367)
+        );
+        assert_eq!(
+            follower_des(arrived, Angle(683016192), dog, bound),
+            Pos::new(40322, 34217)
+        );
+        // And the clamp is the world's own edge, in position units: a
+        // leader in the corner facing north puts its dog 96 to the west,
+        // which is off the map, so the x is pinned at zero and the y —
+        // 48 south of the corner, and on the map — is left alone.
+        let corner = follower_des(Pos::new(0, 0), Angle::NORTH, dog, Pos::new(768, 768));
+        assert_eq!(corner, Pos::new(0, 48));
+        let far = follower_des(Pos::new(767, 767), Angle::SOUTH, dog, Pos::new(768, 768));
+        assert_eq!(far, Pos::new(767, 719));
+    }
+
+    /// The crew's rate is a quarter turn, and the give-up can never fire.
+    ///
+    /// `Guy::move` abandons the step when `2 × rate < owed`, and
+    /// [`turn_towards`] returns `|delta| − rate`; with the rate at
+    /// [`CREW_TURN_SPEED`] that wants a shortest turn of more than 270°,
+    /// which does not exist. So a tracked crew guy always steps.
+    #[test]
+    fn a_crew_guy_turns_a_quarter_at_a_time_and_never_gives_the_frame_up() {
+        let body = Body::at(Pos::new(1000, 1000));
+        // Facing north, told to walk due south: a half turn owed, of which
+        // a quarter is taken this frame — and the step is taken anyway.
+        let (facing, next) = follower_step(
+            body,
+            Angle::NORTH,
+            Pos::new(1000, 2000),
+            CREW_TURN_SPEED,
+            32,
+        );
+        assert_eq!(facing, Angle::EAST);
+        let next = next.expect("a crew guy never spends the whole frame turning");
+        assert_eq!(next.last_speed, 44, "floor(32 * 11 / 8)");
+        // Half a turn is the worst case there is, and the doubling that
+        // guards the give-up is a 32-bit multiply — so the constant's own
+        // arithmetic is what makes the branch dead.
+        let (_, owed) = turn_towards(Angle::NORTH, Angle::SOUTH, CREW_TURN_SPEED);
+        assert!(CREW_TURN_SPEED.wrapping_mul(2) >= owed);
+    }
+
+    /// The Manhattan snap, and the per-axis clamp that stands in for it
+    /// when the step is short.
+    #[test]
+    fn a_crew_guy_snaps_inside_a_step_and_is_clamped_outside_one() {
+        let body = Body::at(Pos::new(1000, 1000));
+        // Twelve away with a step of 44: inside, so it lands exactly and
+        // reports the octagonal distance rather than the step.
+        let (_, next) = follower_step(body, Angle::EAST, Pos::new(1008, 1004), CREW_TURN_SPEED, 32);
+        let next = next.unwrap();
+        assert_eq!(next.pos, Pos::new(1008, 1004));
+        assert_eq!(next.last_speed, vector_dist(8, 4));
+        // Far away on x and one unit away on y: the y component is clamped
+        // to the remainder so the guy cannot overshoot that axis.
+        let (_, next) = follower_step(body, Angle::EAST, Pos::new(9000, 1001), CREW_TURN_SPEED, 32);
+        let next = next.unwrap();
+        assert_eq!(next.pos.y, 1001);
+        assert_eq!(next.last_speed, 44);
     }
 }

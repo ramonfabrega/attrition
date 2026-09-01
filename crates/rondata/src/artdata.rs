@@ -341,6 +341,106 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
     out
 }
 
+/// `guy_scale`, the executable's own `float` at `00c06244` — `Guy.obj`'s
+/// only exported datum in `rise_z.map`, initialised in `.data` to
+/// **4.8** and written nowhere but three `ConsoleWin::run_cmd` arms.
+///
+/// It is a *drawing* scale everywhere else, and it would not be here at
+/// all except that `Guy::update_gpiece@005d8530:61` multiplies the crew
+/// guy's follow offset by it before truncating to an integer. So the
+/// number a follower stands at is 4.8 times what the graphics file says,
+/// and the fraction is what makes the truncation matter.
+const GUY_SCALE: f32 = 4.8;
+
+/// `gpiece → (track_dx, track_dy)`: the offset a **crew** guy stands at
+/// behind and beside the guy it follows, in position units.
+///
+/// `Guy::update_gpiece@005d8530` computes it for a guy whose `guy_num` is
+/// non-zero, from the piece's `RData`:
+///
+/// ```text
+/// track_dx = (int)(track_offsetx * guy_scale * scale)
+/// track_dy = (int)(guy_scale * track_offsety * scale)
+/// ```
+///
+/// — `RData::scale` (`+0x88`) is the `<UNIT scale=>` attribute and
+/// `UnitRDataStruct::track_offsetx / track_offsety` (`+0xc` / `+0x10`) are
+/// `trackoffsetx` / `trackoffsety`. A guy whose piece names neither stands
+/// on its leader, and both branches of `Guy::move` that read the pair test
+/// it against zero, so an absent attribute is a real answer rather than a
+/// gap: `0` means "no track", and the guy is carried rather than walked.
+///
+/// The floats are the install's own decimals and the multiply is done
+/// here, once, at load — the sim is handed integers (`CLAUDE.md`, "no
+/// floating point in the sim").
+pub type PieceTracks = BTreeMap<i32, (i32, i32)>;
+
+/// Every unit piece's [`PieceTracks`] entry, read from the install.
+///
+/// `graphs` is the same `GRAPH` column [`piece_lengths`] takes, and the
+/// name walk is the same: record `i` is `TypeIndex 0x32 + i`, and a
+/// `<UNIT>` name that `get_unit_gpiece` can never build is skipped.
+///
+/// Diff-backed: run56's start dump puts the human scout's dog at
+/// `(5790, 7979)` with its man at `(5784, 8088)`, and the pair
+/// `(-96, 48)` this reads for piece `13043` reproduces that to the unit
+/// through `Guy::set_new_location`'s rotation (`docs/MOVEMENT.md`, "The
+/// follower's destination").
+pub fn piece_tracks(install: &Install, graphs: &[String]) -> PieceTracks {
+    let upath = install.data("unit_graphics.xml");
+    let Ok(utext) = crate::read(&upath) else {
+        return PieceTracks::new();
+    };
+    let Ok(udoc) = crate::parse(&upath, &utext) else {
+        return PieceTracks::new();
+    };
+    let mut by_graph: BTreeMap<&str, Vec<i32>> = BTreeMap::new();
+    for (i, g) in graphs.iter().enumerate() {
+        let ty = 0x32 + i as i32;
+        if ty >= 0x192 {
+            break;
+        }
+        by_graph.entry(g.trim()).or_default().push(ty);
+    }
+    let mut out = PieceTracks::new();
+    for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
+        let Some(name) = u.attribute("name") else {
+            continue;
+        };
+        let Some(p) = PieceName::parse(name.trim()) else {
+            continue;
+        };
+        let Some(types) = by_graph.get(p.graph) else {
+            continue;
+        };
+        let attr = |k: &str| -> f32 {
+            u.attribute(k)
+                .and_then(|v| v.trim().parse().ok())
+                .unwrap_or(0.0)
+        };
+        // `scale` is the one attribute that defaults to one rather than
+        // zero: `RData::scale` is written by the loader for every piece,
+        // and a `<UNIT>` without it draws at its model's own size.
+        let scale: f32 = u
+            .attribute("scale")
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or(1.0);
+        let (ox, oy) = (attr("trackoffsetx"), attr("trackoffsety"));
+        if ox == 0.0 && oy == 0.0 {
+            continue;
+        }
+        // The two multiplies in the original's own order — the x one folds
+        // `guy_scale` into the offset first, the y one leads with it — so
+        // the roundings land where they land.
+        let dx = (ox * GUY_SCALE * scale) as i32;
+        let dy = (GUY_SCALE * oy * scale) as i32;
+        for &ty in types {
+            out.insert(p.piece(ty), (dx, dy));
+        }
+    }
+    out
+}
+
 /// `anim_graphics.xml`'s `<ANIM name= file=>`: the animation's name as a
 /// `<UNIT>` cites it, the file it resolves to (`.\art\x.bha` kept as the
 /// install-relative path it is), and **whether it loops**.

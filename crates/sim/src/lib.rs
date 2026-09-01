@@ -2469,6 +2469,11 @@ impl Sim {
         // the follow: a body away from its destination starts the walk, one
         // standing on it a frame after arriving goes idle (`anim.rs`).
         let was_at_des = m.body.pos == pos;
+        // `Guy::move:55`'s `des_angle == angle` — the heading against the
+        // facing, read before this frame's turn. It decides both the
+        // arrival's animation arm and whether the crew's destination is
+        // rewritten below.
+        let facing_settled = facing == heading;
         // The body's rate is mode 1: the base, always. It reads `last_speed`
         // — but **a body already standing on its unit reads a zero**, because
         // `Guy::move@005d9240:53` writes `last_speed = 0` at the head of its
@@ -2496,6 +2501,93 @@ impl Sim {
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
         unit.movement.body = follow.body;
+        // **Where a crew guy is told to be**, and it is written twice
+        // over — the two arms of `Guy::move` reach it by different
+        // functions and both end in the same rotation:
+        //
+        // - **moving**: `Guy::set_new_location(des, 0)`, whose crew loop
+        //   (`005d88da–005d89cc`) rewrites `des_angle` and `des` from guy
+        //   0's own **new** position and facing. The snap flag is zero, so
+        //   the crew is told where to be and not put there.
+        // - **standing but still owed a turn**: `Guy::turn_towards →
+        //   do_turn → Guy::set_angle(new facing, 0)`, whose crew loop
+        //   (`005d90ad–005d9192`) is the same rotation about guy 0's
+        //   position, with the angle it has just turned to. `do_turn` is
+        //   called whether or not the facing actually moved.
+        //
+        // And **not written at all** on the third: a standing guy 0 whose
+        // facing has reached the heading takes `Guy::move:55`'s settled
+        // arm straight to the average, past the turn — so the crew keeps
+        // the point it was last given and walks on toward it. That is the
+        // whole of why a scout's dog is still walking four frames after
+        // the man has stopped.
+        //
+        // Guy 0's position after either arm is the unit's own, so the two
+        // are one expression here.
+        if !was_at_des || !facing_settled {
+            let bound = Pos::new(
+                self.world.width() * world::UNITS_PER_CELL,
+                self.world.height() * world::UNITS_PER_CELL,
+            );
+            let (pos, facing) = (self.units[i].pos, follow.facing);
+            for g in 0..self.units[i].guys.len() {
+                let Some(f) = &mut self.units[i].guys[g].follow else {
+                    continue;
+                };
+                let track = f.track;
+                f.des_angle = facing;
+                f.des = movement::follower_des(pos, facing, track, bound);
+            }
+        }
+        for g in 0..self.units[i].guys.len() {
+            if self.units[i].guys[g].follow.is_some() {
+                self.process_follower(i, g);
+            }
+        }
+    }
+
+    /// One crew guy's own frame — `Guy::process → Guy::move` for a guy
+    /// with a track offset, which runs after guy 0's and reads the `des`
+    /// guy 0 has just written.
+    ///
+    /// The two arms are `Guy::move`'s own. Standing on its destination it
+    /// writes `last_speed = 0` and turns toward `des_angle` — its
+    /// `guy_flags & 2` is never set by anything else, because
+    /// `Guy::do_turn@005d97a0:37` recurses only into the crew that has
+    /// *no* track, so the turn is never skipped. Walking, it is
+    /// [`movement::follower_step`]. `docs/MOVEMENT.md`, "The follower's
+    /// destination".
+    fn process_follower(&mut self, i: usize, g: usize) {
+        let Some(f) = self.units[i].guys[g].follow else {
+            return;
+        };
+        let speed = self.units[i].movement.speed;
+        let at_des = f.body.pos == f.des;
+        self.guy_follow_anim(i, g, at_des, f.facing == f.des_angle);
+        // A tracked crew guy's rate is [`movement::CREW_TURN_SPEED`] and
+        // nothing else: `GuyData::turn_speed` returns it before the
+        // instant-from-a-stop test, so neither the type's `TURN_SPEED`
+        // nor a zero `last_speed` is read for this guy at all.
+        let rate = movement::CREW_TURN_SPEED;
+        let mut next = f;
+        if at_des {
+            next.body.last_speed = 0;
+            if next.facing != next.des_angle {
+                next.facing = movement::turn_towards(next.facing, next.des_angle, rate).0;
+            }
+            next.body.avg_speed = (next.body.avg_speed * 3 + next.body.last_speed) / 4;
+        } else {
+            let (facing, body) = movement::follower_step(f.body, f.facing, f.des, rate, speed);
+            next.facing = facing;
+            if let Some(mut body) = body {
+                if !self.world.accepts(body.pos) {
+                    body.pos = f.body.pos;
+                }
+                next.body = body;
+                self.units[i].guys[g].stopped = false;
+            }
+        }
+        self.units[i].guys[g].follow = Some(next);
     }
 
     /// Sends a unit somewhere. It faces whatever way it already faces and turns

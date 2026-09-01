@@ -12,33 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — `Unit::think` has two cadence gates, not one.* East
-Indies' word **did not move**: it is still 2665, and it is the same frame
-for a different reason.
+*2026-09-01, Opus — a guy is a body, and East Indies' word moves 2665 →
+**3021**.* Item 128 is closed; the headline moved for the second session
+running.
 
-- **Item 127 is closed, and it was the gate nobody had.** Between the human
-  block's `unit_masks & 0x40000` exit and the tail, `think@005f6e40` returns
-  when `idle != 1 && ((o + frame) & 31) != 0` — so `think_fish`,
-  `think_merchant`, `think_carry`, `add_to_army` and `think_scout` run on a
-  unit's **first** idle frame and then once in **thirty-two**. The crate had
-  only the mod-16 gate at the head of the function, which a scout on its
-  second idle frame passes (`idle > 2` is false), so run56's scout ran a
-  whole second `think_scout` on 2665. Nineteen draws gone; 2665 is eleven
-  against nine now, not thirty. ORDERS §2.4 step 5, SCOUT §2.
-- **What 2665 is now is the dog, and it is a body.** A scout is two guys and
-  run56's `GUY` records carry a position and an angle **per guy**: guy 0
-  arrives on 2664, the dog walks four more frames on its own body and comes
-  round four frames later. So the dog's idle request takes `set_anim`'s
-  walking-guy early return where this crate — which hands every guy the
-  unit's body — re-rolls it. MOVEMENT, "The body step", has the frame table.
+- **A crew figure walks its own body.** `track_dx`/`track_dy` are
+  `+0x54`/`+0x58` (not `+0x92`, which is `off_x`) and come from **art** —
+  `unit_graphics.xml`'s `trackoffsetx` × `scale` × the executable's
+  `guy_scale` of 4.8, so a dog's pair is `(-96, 48)`. Its destination is
+  rewritten by `Guy::set_new_location` when guy 0 moves and by
+  `Guy::set_angle` when guy 0 turns, and by **neither** when guy 0 stands
+  settled — which is why the dog walks four frames past the man. And
+  `GuyData::turn_speed` fences its whole first half behind `guy_num <
+  squad_size`: a tracked crew guy turns a flat quarter turn and can never
+  give a frame up to turning. MOVEMENT, "The follower's destination".
+- **The check is the whole record, and it was made to fail first.** run56's
+  per-frame `GUY` blocks carry `x`, `y` and `angle` per figure, and
+  `run56_s_figures_stand_where_the_original_s_do` compares all three for
+  every figure of every unit over 3,000 frames — 1,062,354 fields, nothing
+  installed. Every player figure agrees on every frame; the residue is
+  301,810 rows of gaia's spawn **bearing** and one on the half-written last
+  frame.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w2665 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w3021 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `The headline is East Indies' word at 2665 and item 128
-is its divergence: a scout's dog has its own body, and this crate gives
-every guy the unit's. docs/MOVEMENT.md "The body step" is the document and
-run56 is the capture.`
+**Opener (Opus):** `The headline is East Indies' word at 3021, and item 129
+is what it needs first: a full-detail East Indies capture past 3,000 frames,
+because run56 ends before the frame. docs/ORACLE.md has the recipe.`
 
 ## The queue
 
@@ -47,22 +48,17 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-128. **A guy is a body, and the scout's dog is the headline's divergence
-    at 2665.** run56's per-frame `GUY` records carry `x`, `y` and `angle`
-    per guy: guy 0 arrives on 2664, the dog is still walking on 2665, 2666
-    and 2667, arrives on 2668 and settles its angle on 2669. So the dog
-    spends four frames where `Guy::set_anim`'s walking-guy early return
-    holds it silent (`des != x − off_x`, ANIM §4.1) and two where it draws
-    at `Unit::set_anim+0xb6`; this crate hands every guy the *unit's* body
-    in `guys_follow`, so the dog re-rolls on 2665 and the frame comes out
-    eleven draws against nine. What to build is a [`Body`] per guy and
-    `Guy::move`'s **tracked** branch, which MOVEMENT's "The body step"
-    already has whole — turn, the `2 × turn_speed` give-up, `speed × 11/8`,
-    the Manhattan snap, the per-axis `sinx`/`cosx` clamp. What is unread is
-    the writer of `track_dx`/`track_dy` (`Guy +0x92`/`+0x94`) and of a
-    follower's `des_x`/`des_y` (`+0x5c`/`+0x60`) — grep the writers before
-    building, per the audit README. run54 is the word's capture, run56 the
-    full-detail sibling and the only one with the `GUY` records.
+129. **The word is past the full-detail capture, so the capture has to
+    grow.** 3021 is four draws against five, and the missing one is
+    `Guy::set_anim+0x97a < Unit::move_step+0x823` where this crate spends
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271`: an idle request the
+    original makes from the *step* and this one makes from the clock's
+    wrap. run54's trace scores the frame and carries no record; run56 —
+    the sibling that carries the per-frame `GUY`, `UNITDATA` and
+    `BUILDDATA` — stops at 3,000. So the item is a run56 at ~4,000 frames
+    (`docs/ORACLE.md`, last section; 790 MB at 3,000, so budget the disk),
+    and then the frame reads itself. Everything the last two sessions
+    landed was found that way.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
     table at `0063bd84` cannot produce it;

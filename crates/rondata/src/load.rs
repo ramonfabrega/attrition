@@ -126,6 +126,14 @@ pub struct Loaded {
     /// between an idle variant with its own length and one silently
     /// played as the default (`docs/ANIM.md` §3.2).
     pub piece_lengths: crate::artdata::PieceLengths,
+    /// Every unit graphic piece's follow offset, `gpiece → (track_dx,
+    /// track_dy)`, read from `unit_graphics.xml`'s `trackoffsetx` /
+    /// `trackoffsety` / `scale` (`crate::artdata::piece_tracks`). Empty
+    /// when loaded from tables alone. It is what tells a crew guy — a
+    /// scout's dog, a machine gunner's loader — that it walks its own body
+    /// behind its leader rather than standing on it (`docs/MOVEMENT.md`,
+    /// "The follower's destination").
+    pub piece_tracks: crate::artdata::PieceTracks,
 }
 
 impl Loaded {
@@ -417,6 +425,7 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
         .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
         .collect();
     loaded.piece_lengths = crate::artdata::piece_lengths(install, &graphs);
+    loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs);
     // The opening scripts — `Leaders::prod_script_path` is `.\ai\scripts\`.
     // A missing file is not an error: a game without scripts is a game whose
     // AI skips to step 2, which is what the original does when
@@ -1419,6 +1428,7 @@ pub fn load_tables(
         scripts: Vec::new(),
         gaia_lengths: Default::default(),
         piece_lengths: Default::default(),
+        piece_tracks: Default::default(),
     }
 }
 
@@ -2001,6 +2011,7 @@ mod tests {
             scripts: vec![],
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),
+            piece_tracks: Default::default(),
         };
         assert_eq!(l.type_index(0), 0);
         assert_eq!(l.type_index(6), BASE_UNITTYPES);

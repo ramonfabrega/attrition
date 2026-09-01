@@ -815,8 +815,8 @@ two passes.
   the unit's arrival on its own — so `set_anim`'s walking-guy early return
   (§4.1, `des != x − off_x`) holds it silent on exactly the frames this
   crate re-rolls it, guy 0's body being the only one the crate has.
-  `docs/MOVEMENT.md`, "The body step", has the frame table and what the
-  branch still needs.
+  **Closed 2026-09-01**: the crew guy has its own body now, and the word
+  moved 2665 → 3021. `docs/MOVEMENT.md`, "The follower's destination".
 - **`guy_flags` bits 0x2, 0x4 and 0x20**: 0x4 doubles the attack step,
   0x20 collapses the idle roll, 0x2 skips `turn_towards`. Every guy in both
   *scored* dumps carries `guy_flags 16` — run13's 2,288 records and run38's
@@ -831,9 +831,14 @@ two passes.
   at `+0x9a`, or something clears it before the frame ends. And 265/266
   carry `8`/`40` **without 0x10**, which every other type has; whatever
   0x10 is, the siege pieces lack it.
-- **`Guy::move:52` tests `des_x == x` without the formation offset** while
-  `set_anim:163` tests `des_x == x − off_x`; the same for guy 0 (`off` 0)
-  and for every unit in the dumps. Unsettled for a formation with offsets.
+- ~~**`Guy::move:52` tests `des_x == x` without the formation offset** while
+  `set_anim:163` tests `des_x == x − off_x`.~~ **Settled 2026-09-01 by a
+  grep, not a capture**: `GuyData::off_x`/`off_y` (`+0x92`/`+0x94`) are
+  written **once in the whole executable**, by `Guy::clear@005db590:49`, as
+  one `undefined4` of zero. They are not the formation's offsets — those are
+  `Form::off_x[]` (`docs/GROUPS.md` §6) and live on the group. So both tests
+  are `des == pos` and the two lines agree by construction.
+  `docs/MOVEMENT.md`, "`off_x` and `off_y` are always zero".
 - ~~**Lengths the dumps have not shown**, for a **player's** unit:
   `DUMP_WOOD`, `REAP`, `FARM`, the scout's `IDLE1/3`, most citizen variants
   on most pieces.~~ **Settled 2026-08-29, §3.2**: the whole table is

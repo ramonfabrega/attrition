@@ -167,6 +167,40 @@ pub struct Guy {
     pub gpiece: i32,
     /// `stopped`: the body stood on its destination at the last follow.
     pub stopped: bool,
+    /// A **crew** guy's own body, or `None` for one that has none.
+    ///
+    /// Guy 0's body is the unit's — `Movement::body` and
+    /// `Movement::facing`, which the unit step's turn rate reads — so it
+    /// is never held here. A crew guy whose piece names a track offset
+    /// (`Art::tracks`) has a second body that walks its own destination,
+    /// and this is it; one without stands on its leader and is turned by
+    /// it, so it has none either (`Guy::do_turn@005d97a0:37` recurses only
+    /// into the trackless crew).
+    pub follow: Option<Follow>,
+}
+
+/// A crew guy's own body — `GuyData`'s second half, for the guys
+/// `Guy::move`'s third branch walks.
+///
+/// `docs/MOVEMENT.md`, "The follower's destination". Everything here is a
+/// field of the same `GuyData` the clock above is; they are split only
+/// because guy 0's live on [`crate::Movement`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Follow {
+    /// `x` / `y` (`+0xc` / `+0x10`), with `last_speed` and `avg_speed`
+    /// (`+0x80` / `+0x84`) — this guy's own [`crate::movement::Body`].
+    pub body: crate::movement::Body,
+    /// `des_x` / `des_y` (`+0x5c` / `+0x60`): where it is trying to be,
+    /// written by its leader's `Guy::set_new_location` on every frame the
+    /// leader moves and left alone on every frame it does not.
+    pub des: Pos,
+    /// `angle` (`+0x18`): its own facing, turned by its own `Guy::move`.
+    pub facing: Angle,
+    /// `des_angle` (`+0x64`): its leader's facing, as of the last frame
+    /// the leader moved.
+    pub des_angle: Angle,
+    /// `track_dx` / `track_dy` (`+0x54` / `+0x58`), from [`Art::tracks`].
+    pub track: (i32, i32),
 }
 
 /// The length a guy takes when the table has none for its piece and slot:
@@ -195,6 +229,7 @@ impl Guy {
             anim: DEFAULT,
             gpiece,
             stopped: true,
+            follow: None,
         }
     }
 }
@@ -238,6 +273,19 @@ pub struct Art {
     /// install says `WILDBIRD` plays *Bird Soar* for `CHAR_WALK` and
     /// *Bird Flap* for `CHAR_JOG`, 31 frames and 23 (`docs/SYNC.md` §3.9).
     pub gaia_lengths: BTreeMap<(i32, u8, i8), u32>,
+    /// `gpiece → (track_dx, track_dy)`: the offset a **crew** guy is held
+    /// at behind and beside the guy it follows —
+    /// `GuyData::track_dx / track_dy` (`+0x54` / `+0x58`), which
+    /// `Guy::update_gpiece@005d8530` reads out of the piece's own art
+    /// (`rondata::artdata::piece_tracks`).
+    ///
+    /// A piece absent here has no track, which is the answer for every
+    /// guy 0 and for a crew guy that stands on its leader: both branches
+    /// of `Guy::move` that read the pair test it against zero. A guy with
+    /// a track walks its own body toward its own destination and makes its
+    /// own `set_anim` decisions — `docs/MOVEMENT.md`, "The follower's
+    /// destination".
+    pub tracks: BTreeMap<i32, (i32, i32)>,
 }
 
 impl Art {
@@ -417,12 +465,25 @@ impl Sim {
         self.set_anim(u, DEFAULT, false, true);
     }
 
-    /// Whether the body stands on the unit — `Guy::set_anim`'s `des == pos`
-    /// test on guy 0, which is what turns an idle request on a walking guy
-    /// into the arrival draw.
-    fn body_at_des(&self, u: usize) -> bool {
+    /// Whether **this guy's** body stands on its destination —
+    /// `Guy::set_anim@005da300:111` and `:163`, which is what turns an idle
+    /// request on a walking guy into the arrival draw.
+    ///
+    /// The test the original writes is `des_x != x - off_x || des_y != y -
+    /// off_y`, and `GuyData::off_x / off_y` (`+0x92` / `+0x94`) are
+    /// **always zero**: `Guy::clear@005db590:49` writes the pair once at
+    /// construction and nothing in the executable writes them again — the
+    /// only other mentions are the two readers, here and in `Guy::move`.
+    /// So it is `des == pos`, and the subtraction is dropped.
+    ///
+    /// Guy 0's destination is the unit's own position; a crew guy with a
+    /// track offset has its own ([`Follow::des`]).
+    fn body_at_des(&self, u: usize, g: usize) -> bool {
         let unit = &self.units[u];
-        unit.movement.body.pos == unit.pos
+        match unit.guys.get(g).and_then(|g| g.follow) {
+            Some(f) => f.body.pos == f.des,
+            None => unit.movement.body.pos == unit.pos,
+        }
     }
 
     /// `Guy::set_anim@005da300`, the paths a unit on open ground reaches
@@ -433,7 +494,7 @@ impl Sim {
         let cur_cat = category(guy.anim);
         let end_at_entry = guy.end_time;
         let who = self.units[u].owner;
-        let at_des = self.body_at_des(u);
+        let at_des = self.body_at_des(u, g);
 
         // The early returns (`set_anim:155–224`).
         if anim == DEFAULT && !force {
@@ -692,8 +753,12 @@ impl Sim {
     }
 
     /// The walk's start and the arrival, as the body follow sees them —
-    /// `Guy::move@005d9240:52–90` for guy 0. Called with the body as it
-    /// stood before this frame's follow.
+    /// `Guy::move@005d9240:52–90`, for every guy whose body **is** guy 0's.
+    /// Called with the body as it stood before this frame's follow.
+    ///
+    /// A crew guy with a track offset has a body of its own and is left
+    /// out here: [`Sim::process_follower`] runs the same arm on its own
+    /// `des` and its own angles.
     pub(crate) fn guys_follow(&mut self, u: usize, was_at_des: bool) {
         if self.units[u].guys.is_empty() {
             return;
@@ -708,17 +773,38 @@ impl Sim {
             return;
         }
         let unit = &self.units[u];
-        let facing_settled = unit.movement.facing == unit.movement.heading;
-        let anim = unit.guys[0].anim;
-        if was_at_des {
-            if facing_settled {
-                if anim == WALK && unit.guys[0].stopped {
+        let settled = unit.movement.facing == unit.movement.heading;
+        for g in 0..self.units[u].guys.len() {
+            if self.units[u].guys[g].follow.is_some() {
+                continue;
+            }
+            self.guy_follow_anim(u, g, was_at_des, settled);
+            if !was_at_des {
+                self.units[u].guys[g].stopped = false;
+            }
+        }
+    }
+
+    /// `Guy::move`'s animation half for **one** guy, on that guy's own
+    /// `des` and its own pair of angles.
+    ///
+    /// `at_des` is `des == pos` for this guy and `settled` is
+    /// `des_angle == angle` for it; for every guy but a tracked crew one
+    /// both are guy 0's, because every other guy shares guy 0's body.
+    ///
+    /// The moving arm does **not** write `stopped`: `Guy::move` writes it
+    /// at the foot of the function, past the tracked branch's turn-gate
+    /// `return`, so a crew guy that spends its frame turning keeps the
+    /// flag it had. The caller writes it where the original reaches it.
+    pub(crate) fn guy_follow_anim(&mut self, u: usize, g: usize, at_des: bool, settled: bool) {
+        let anim = self.units[u].guys[g].anim;
+        if at_des {
+            if settled {
+                if anim == WALK && self.units[u].guys[g].stopped {
                     self.mark(SITE_ARRIVE);
-                    self.set_default_anim(u);
+                    self.guy_set_anim(u, g, DEFAULT, false, true);
                 }
-                for g in &mut self.units[u].guys {
-                    g.stopped = true;
-                }
+                self.units[u].guys[g].stopped = true;
                 return;
             }
             // **Standing but still owed a turn**: `Guy::move:73–89` puts the
@@ -734,25 +820,18 @@ impl Sim {
             // stopped. `SPECIAL_ANIM` is not modelled in this crate at all
             // (`docs/ORDERS.md` §3), so only the first is tested.
             if self.units[u].kind.domain == crate::attrition::Domain::Sea {
-                for g in &mut self.units[u].guys {
-                    g.stopped = true;
-                }
+                self.units[u].guys[g].stopped = true;
                 return;
             }
             if anim != TURN_LEFT && anim != TURN_RIGHT && anim != ATTACKWALK {
-                self.set_anim(u, WALK, false, true);
+                self.guy_set_anim(u, g, WALK, false, true);
             }
-            for g in &mut self.units[u].guys {
-                g.stopped = false;
-            }
+            self.units[u].guys[g].stopped = false;
             return;
         }
         if anim != TURN_LEFT && anim != TURN_RIGHT && anim != ATTACKWALK {
             let walk = self.walk_for(u);
-            self.set_anim(u, walk, false, true);
-        }
-        for g in &mut self.units[u].guys {
-            g.stopped = false;
+            self.guy_set_anim(u, g, walk, false, true);
         }
     }
 
@@ -836,13 +915,58 @@ impl Sim {
         }
     }
 
-    /// Installs a guy's clock from outside — the harness, from a dump.
+    /// Installs a guy's **clock** from outside — the harness, from a dump.
+    ///
+    /// Only the clock: a crew guy's own body ([`Guy::follow`]) is derived
+    /// rather than read, so it survives a reinstall. The harness re-seats
+    /// clocks on every traced frame, and a body cleared there would put
+    /// the crew back on its leader every time the dump spoke.
     pub fn set_guy(&mut self, u: usize, g: usize, guy: Guy) {
         let guys = &mut self.units[u].guys;
         while guys.len() <= g {
             guys.push(Guy::fresh(-1));
         }
-        guys[g] = guy;
+        let follow = guys[g].follow;
+        guys[g] = Guy { follow, ..guy };
+    }
+
+    /// Seats every crew guy on its offset — `Unit::set_new_location`'s
+    /// placement path, whose `param_3` reaches `Guy::set_new_location(guy
+    /// 0, pos, 1)` and puts the crew *on* its destination rather than
+    /// letting it walk there.
+    ///
+    /// This is also where a crew guy's track offset is read: it is a
+    /// property of the graphic piece `get_unit_gpiece` handed it, which
+    /// `Guy::update_gpiece@005d8530` turns into `track_dx / track_dy`
+    /// ([`Art::tracks`]). Guy 0 never has one — the function's first test
+    /// is `guy_num != 0` — and a crew guy whose piece names none keeps
+    /// [`Guy::follow`] `None` and goes on sharing guy 0's body, which is
+    /// exactly what the original's trackless crew does.
+    ///
+    /// Idempotent, and the harness calls it once the dump's guys and their
+    /// pieces are in.
+    pub fn seat_guys(&mut self, u: usize) {
+        let unit = &self.units[u];
+        let (pos, facing) = (unit.pos, unit.movement.facing);
+        let bound = Pos::new(
+            self.world.width() * crate::world::UNITS_PER_CELL,
+            self.world.height() * crate::world::UNITS_PER_CELL,
+        );
+        for g in 1..self.units[u].guys.len() {
+            let piece = self.units[u].guys[g].gpiece;
+            let track = self.art.tracks.get(&piece).copied();
+            let follow = track.map(|track| {
+                let des = crate::movement::follower_des(pos, facing, track, bound);
+                Follow {
+                    body: crate::movement::Body::at(des),
+                    des,
+                    facing,
+                    des_angle: facing,
+                    track,
+                }
+            });
+            self.units[u].guys[g].follow = follow;
+        }
     }
 }
 
@@ -886,6 +1010,7 @@ mod tests {
             anim,
             gpiece: piece,
             stopped: true,
+            follow: None,
         }];
         s.add_unit(u)
     }
@@ -1176,6 +1301,7 @@ mod tests {
             anim: DEFAULT,
             gpiece: 13043,
             stopped: true,
+            follow: None,
         });
         s.frame = 101;
         s.guys_inc_time();
@@ -1253,6 +1379,7 @@ mod tests {
                 anim: DEFAULT,
                 gpiece: 60063,
                 stopped: true,
+                follow: None,
             }];
             let a = s.add_unit(u);
             if let Some(p) = blocker {

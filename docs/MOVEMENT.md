@@ -534,12 +534,151 @@ cannot make: `set_anim`'s early return for a walking guy tests **that guy's**
 `des` against **that guy's** position, and the turn arm above tests that
 guy's `angle` against that guy's `des_angle`.
 
-This crate gives every guy of a unit the *unit's* body — `guys_follow` runs
-one arm and applies it to all of them — so on 2665 the dog re-rolls its idle
-where the original's is still walking, and the frame comes out eleven draws
-against nine. What it needs is a `Body` per guy and this branch; what is
-still unread for it is the writer of `track_dx`/`track_dy` (`Guy +0x92` /
-`+0x94`) and of a follower's `des_x`/`des_y` (`+0x5c`/`+0x60`).
+**Landed 2026-09-01, and the word moved 2665 → 3021.** `crates/sim` gives a
+tracked crew guy a body of its own — `anim::Follow`, `movement::follower_des`
+and `movement::follower_step` — and the section below is what it is built
+from. Every figure of every player's unit in run56 now stands where the
+original's does on all 3,000 frames, guy 0 and dog alike
+(`rondata::diff`'s `run56_s_figures_stand_where_the_original_s_do`,
+1,062,354 fields).
+
+## The follower's destination
+
+A crew guy does not chase its leader: it is **told** a point, and the point is
+rewritten by the leader. Three things about it were unread until now, and each
+was load-bearing.
+
+### Where the track offset comes from
+
+`GuyData::track_dx / track_dy` are `+0x54` and `+0x58` — not `+0x92`/`+0x94`,
+which are `off_x`/`off_y` and are a different field entirely (below). They are
+**art data**, and the only writer is `Guy::update_gpiece@005d8530`:
+
+```
+if guy_num != 0 and piece.unit_data != null:
+    track_dx = (int)(unit_data.track_offsetx * guy_scale * piece.scale)
+    track_dy = (int)(guy_scale * unit_data.track_offsety * piece.scale)
+else:
+    track_dx = track_dy = 0
+```
+
+`UnitRDataStruct::track_offsetx / track_offsety` (`+0xc` / `+0x10`) and
+`RData::scale` (`+0x88`) are `unit_graphics.xml`'s own `trackoffsetx`,
+`trackoffsety` and `scale`, and `guy_scale` is the executable's `float` at
+`00c06244` — `Guy.obj`'s only exported datum in `rise_z.map`, **4.8** in
+`.data`, written nowhere but three `ConsoleWin::run_cmd` arms. Every scout's
+dog in the shipped data writes `trackoffsetx="-20" trackoffsety="10"
+scale="1"`, so its pair is `(-96, 48)`.
+
+**Guy 0 never has one**, because the function's first test is `guy_num != 0`.
+Neither does a crew guy whose entry names no offset: `ADVMACHINEGUN`'s loader
+carries `trackoffsetx="0"` in its unpacked entry and `-25`/`-2` in its packed
+one, which is the same pair of branches by another name. 203 of the install's
+pieces name one at all.
+
+The multiply is floating point in the original and floating point at **load**
+here — `rondata::artdata::piece_tracks`, which hands the simulation integers
+(`CLAUDE.md`, "no floating point in the sim"; `DECISIONS.md` entry 16's
+"pinned table" arm).
+
+### The rotation, and its axes
+
+Two functions write a crew guy's `des_x`/`des_y` (`+0x5c`/`+0x60`), and both
+end in the same arithmetic. Given a leader position `(lx, ly)` and an angle
+`a`:
+
+```
+des_y = ly + sinx(a, track_dx) + sinx(a + 0x40000000, track_dy)
+des_x = lx + sinx(a + 0x40000000, track_dx) + sinx(a + 0x80000000, track_dy)
+then clamp each axis into 0 ..= world_dimension * 0x300 - 1
+```
+
+with `sinx(a, d)` the folded quarter-wave of "The sine table" above. **The
+axes are not the step's.** A movement step adds `sinx` to `x` and subtracts
+`cosx` from `y`; this adds the first component to `y` and the second to `x`,
+which is the same vector turned a quarter further round. So `track_dx` is a
+*lateral* offset and `track_dy` a *longitudinal* one — the field names are the
+ground-track art's, and the follow reuses them.
+
+The decompiler prints both call pairs as `sin_table(unaff_ESI, unaff_EDI)`,
+so this was read from the listing (`005d88f3–005d894d` and
+`005d90bc–005d9192`) — the audit README's rule about `unaff_`, again.
+
+The clamp runs only when at least one component is non-zero, which is the only
+case either writer is reached for.
+
+### Who writes it, and when
+
+| writer | reached from | leader position | angle |
+| --- | --- | --- | --- |
+| `Guy::set_new_location@005d86f0` | `Guy::move`'s guy-0 snap | guy 0's **new** position | guy 0's `angle` (the facing) |
+| `Guy::set_angle@005d9010` | `Guy::do_turn`, and so from every `turn_towards` | guy 0's current position | the angle just turned to |
+| `Guy::set_angle@005d9010` | `Unit::set_angle@00605400` | guy 0's current position | the **heading** |
+
+The last writer before the crew's own `Guy::move` is the one that counts, and
+`Unit::process` runs `Guy::process` for the squad first and the crew after
+(`00610bc0:540–551`), so:
+
+- **guy 0 moved**: `Guy::set_new_location`, from the new position and the
+  facing.
+- **guy 0 stood and was still owed a turn**: `Guy::do_turn`'s, from the same
+  position and the facing it has just reached. `turn_towards` calls `do_turn`
+  whether or not the angle actually moved, so this fires every such frame.
+- **guy 0 stood and was settled**: *nothing*. `Guy::move:55`'s `des_angle ==
+  angle` arm jumps straight to the average, past the turn — so the crew keeps
+  the point it was last given and walks on toward it.
+
+That third row is the whole of item 128. Guy 0's position is the unit's own in
+both live cases, so `crates/sim` writes it as one expression gated on
+`!was_at_des || !facing_settled`.
+
+`Unit::set_angle`'s row is the residue: it rewrites the crew's point with the
+*heading* rather than the facing, and on the frames that matter one of the
+other two overwrites it. Not modelled; see "What is not established".
+
+### A crew guy's turn rate is a quarter turn, flat
+
+`GuyData::turn_speed@005de340` is not one formula but two, and the whole of
+"Turning" below is the **first** half:
+
+```
+rate = 0x40000000
+if guy_num < type.squad_size:
+    rate = (type.turn_speed >> 8) * UNIT_TURN_SPEED
+    if packed:  rate *= UNIT_PACK_TURN_BONUS
+else:
+    if track_dx != 0:  return 0x40000000
+    if track_dy != 0:  return 0x40000000
+if last_speed == 0 and (guy_flags & 0x10):  return 0x80000000
+...
+```
+
+So a tracked crew guy returns **ninety degrees** before the instant-from-a-stop
+test and before either mode. Two consequences, and run54's frame 412 shows
+both: the dog comes round from `1681129472` to `-1540096000` in one frame —
+exactly a quarter turn — where the man it follows manages the scout type's
+twenty-seven degrees; and it **never gives a frame up to turning**, because
+`Guy::move` abandons the step when `2 × rate < owed` and `owed` is
+`|delta| − rate`, which wants a shortest turn past 270°.
+
+### `off_x` and `off_y` are always zero
+
+`Guy::set_anim`'s walking-guy early return tests `des_x != x - off_x || des_y
+!= y - off_y` (`005da300:111`, `:163`), and `Guy::move`'s tracked branch
+subtracts the same pair from the position before adding the step
+(`005d9680–5d9691`). Both are `GuyData +0x92` / `+0x94`, and
+**`Guy::clear@005db590:49` is the only writer in the executable** — one
+`undefined4` of zero, at construction. Grepped, per the audit README's "grep
+the writers of every field you call frozen". So the test is `des == pos` and
+the subtraction is a no-op, which is what `crates/sim` implements.
+
+### And the crew that has no track
+
+`Guy::do_turn@005d97a0:37` recurses into the crew **only** where both track
+components are zero, and such a guy's destination is its leader's position
+exactly. So a trackless crew guy has guy 0's position, guy 0's angle and guy
+0's arrival test on every frame: it *is* guy 0's body, and `crates/sim` leaves
+it sharing one rather than modelling a second that could only ever agree.
 
 **The idle body's turn.** Standing on its destination and not turned this
 frame by the unit step (`guy_flags & 2`, which `do_turn` sets), guy 0 turns
@@ -866,13 +1005,29 @@ the checks below.
   sit above all of this and decide what the destination is — and the angle the
   unit and its body snap to on the last waypoint.
 - **The body's `+9`.** `GuyData::get_speed` adds nine when the current order's
-  vslot `0x2c` is non-zero. Which orders, and why nine, is unread. Note that
-  after item 34 nothing in the simulation reads `GuyData::get_speed` at all:
-  guy 0 never takes a step of its own.
-- **`track_dx` / `track_dy`.** The two fields that decide whether a guy walks
-  or is written onto its destination. Nothing has been read about what sets
-  them; the name suggests a tracked vehicle's treads. Guy 0 takes the write
-  either way, so the simulation does not need the answer yet.
+  vslot `0x2c` is non-zero. Which orders, and why nine, is unread. It is a
+  *crew* guy's speed now that one takes steps of its own, so this is no
+  longer inert — run56 does not reach it, and the day a capture does the
+  crew's step will be nine short.
+- ~~**`track_dx` / `track_dy`.**~~ **Closed 2026-09-01.** They are `+0x54` and
+  `+0x58`, they are art (`Guy::update_gpiece`), and the follow they drive is
+  "The follower's destination" above.
+- **`Unit::set_angle`'s own crew write.** `Guy::set_angle` is reached from
+  `Unit::set_angle@00605400` as well as from `do_turn`, and rewrites the crew's
+  destination with the **heading** rather than the facing. On every frame run56
+  reaches, one of the other two writers overwrites it, so it is not modelled;
+  a capture where a standing settled unit has its heading set by an order
+  alone would tell the two apart.
+- **The crew's own `stopped` and animation, past the walk.** `Guy::move`'s
+  moving arm asks for `UVar4` — the carrying walks, `CHAR_ATTACKWALK` for a
+  guy whose unit has a `cavarch_o` — under a guard on `guy_flags & 0x40` and
+  `type+0x2b8 & 4`. `crates/sim` applies the unit's walk to the crew
+  unconditionally. Nothing in the corpus separates them yet.
+- **How many figures a unit is made of.** `Sim::init_guys` still makes one,
+  so a unit this simulation *trains* has no crew and spends one
+  `Guy::init_real` draw where the original spends `num_guys`. Every crew guy
+  in the corpus comes from a dump. `UnitType +0x304` is `squad_size` and
+  `UnitData +0xe8` the total; what fills the gap between them is unread.
 
 ---
 
@@ -931,3 +1086,29 @@ count falls, and the unit test on the fixpoint fails outright), the initial
 angle put back to north (run20's zero becomes 64), the heading compared
 against the facing, and the step's `set_angle` given the facing instead of the
 heading (both raise run10's count).
+
+## The fourth check (2026-09-01, item 128) — every figure, every frame
+
+`run56_s_figures_stand_where_the_original_s_do` compares the whole of the
+per-frame `GUY` record — each figure's own `x`, `y` and `angle` — over East
+Indies' 3,000-frame capture, for every unit of every owner and every figure of
+every unit. **1,062,354 fields.** Nothing in it is installed: guy 0's body is
+the unit's own, and a crew guy's is derived from its piece's track offset and
+from the two writers above, so every row is a prediction the dump can refuse.
+
+Three tallies come out, and only one is a residue of this mechanic:
+
+- **Every player figure agrees, on every frame.** Man and dog alike.
+- 301,810 rows are gaia's, and all of them are the **angle alone** — an
+  animal's spawn bearing, which this simulation does not derive.
+  `Sim::reseat_animal` puts the position back every traced frame, so the place
+  agrees and the angle never does. Asserted at its number.
+- One row is on the capture's own last frame, which every widening here
+  exempts: the dump is written before the rest of that frame runs.
+
+It was made to fail on purpose first, by handing the crew guy no track: two
+figures part on **frame 0**, before a single tick, because a dog seated on its
+man is already 109 units from where the original's stands.
+
+The score it moved is East Indies' long-capture word, **2665 → 3021**
+(`rondata::diff::tests::LONG_WORD_EAST_INDIES`).
