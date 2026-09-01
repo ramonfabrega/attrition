@@ -10265,3 +10265,36 @@ anything — is read now, and it names the successor by its own frame: at
 surveying its tiles, and this simulation spends none of them. That is item
 85, booked off run40 a day earlier, now the leading map's first
 divergence.
+
+## 2026-09-01 (Fable steering) — the re-pin ratified, and one map earns the expensive capture
+
+The steering pass the morning's Opus session called for, taken the same
+day. Its questions and their answers, in order:
+
+**Is the tranche real?** Yes, and it is the milestone: both scored
+captures at their ceiling under the suite's own asserts, the sentence in
+the README, the headline moved to `LONG_WORD_EAST_INDIES = 2176` with
+run54's assert behind it. Nothing about the re-pin's shape needed
+changing — `FLOORS` stays the scored captures' scoreboard (a fall there
+is a regression, not a score) and the long word is a separate pin, which
+is the right split.
+
+**Entry 29's open half — which full-detail captures to size to the new
+word — is decided.** East Indies takes one, 3,000 frames, as item 85's
+first act: its word crossed the scored capture's 1,851, which is ORACLE's
+own trigger, and item 85 (a camp's gather survey) changes exactly what
+the new records would check, so diff-first says take the records before
+reading. Great Lakes takes none yet — its word (1802) still sits inside
+run33's 1,850 full-detail frames, and item 120's bird is what moves it.
+The rule as ratified: a map earns its next expensive capture when its
+word crosses the newest one it has, sized to the word with headroom.
+
+**No ratification batch is due.** The accrued set is two rows: orders R4,
+which travels with item 85 and is settled by its implementation; and R2
+O1, on which nothing in `crates/sim` depends. The last pass was
+2026-08-28 and the marker discipline has kept the set near zero since.
+
+The queue was reordered to lead with 85/82 — the headline's first
+divergence is the default item, and the list now says so — and the next
+opener written for Opus: capture first, rngcmp against run54, then the
+mechanic.

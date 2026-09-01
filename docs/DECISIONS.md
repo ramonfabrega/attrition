@@ -1157,3 +1157,15 @@ line gets its sentence in the README when it happens — the first full
 game-slice in lockstep is the proof of method, and it should read as
 one — and the re-pin lands in the same session, so the headline never
 sits at a ceiling with nothing to say.
+
+**Ratified and completed 2026-09-01, Fable steering, the same day.** The
+line closed (item 125), the sentence is in the README, and the headline
+is `LONG_WORD_EAST_INDIES = 2176` with run54's own assert behind it. The
+open half — which full-detail captures to size to the new word — is
+decided: **East Indies takes one, 3,000 frames**, because its word
+crossed its scored capture's 1,851 and item 85 changes exactly what the
+new records would check; **Great Lakes takes none yet**, its word (1802)
+still inside run33's 1,850 full-detail frames. The general rule stands as
+ORACLE wrote it: a map earns its next expensive capture when its word
+crosses the newest one it has, and the capture is sized to the word with
+headroom, not to the trace's 24,000.

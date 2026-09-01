@@ -12,36 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus, item 125 — **the scored line is closed.***
+*2026-09-01, Fable steering — the re-pin is ratified and the capture is
+sized.*
 
-**Both captures now run end to end in lockstep.** East Indies went
-1477/1476 to **1851/1850 of 1,851**, **no player diverging anywhere**, its
-word to the end of run39; Great Lakes was already 1772/1772 of 1,772. That
-is phase 3's stated finish line, and `docs/DECISIONS.md` entry 29 says what
-follows: re-pin to the **long** captures.
+The scored line closed this morning (item 125, the journal has its story):
+both captures at their ceiling under the suite's own asserts, the
+milestone in the README, the headline re-pinned to **East Indies' word on
+run54: 2176** of 24,000. This pass ratifies that shape and closes what
+`docs/DECISIONS.md` entry 29 left open — which full-detail captures to
+size to the new word:
 
-**The headline is now East Indies' word on run54: 2176** of 24,000, and its
-first divergence names its own successor — 192 draws at
-`Build::find_gather_tiles+0x10a < Build::init+0x55b`, a gathering building
-surveying its tiles, none of them here. That is item **85**.
+- **East Indies: take one, 3,000 frames, as item 85's first act.** The
+  word crossed the scored capture's 1,851 — ORACLE's own trigger for the
+  expensive capture. run38's recipe and detail, `3000 !quit`; assert
+  same-game with `rngcmp.py` against run54 before reading a line. Item 85
+  changes exactly what the new records check (a camp's gather state).
+- **Great Lakes: none yet.** Its word (1802) still sits inside run33's
+  1,850 full-detail frames; item 120 is what moves it. The standing rule:
+  when a word crosses its newest full-detail capture, size the next
+  capture to the word.
+
+No ratification batch is due: two `FABLE:` rows stand, orders R4 (item
+85's implementation settles it) and R2 O1 (nothing depends on it).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w2176 of 24,000 · GreatLakes w1802 of 24,000
 
-Line one is the scored captures against `FLOORS`; both sit at their
-capture's ceiling, so a fall is a regression, not a score. Line two is the
-headline (`LONG_WORD_EAST_INDIES`, and run53's assert). Item 125 was `WData.blocked`: a running **count of a cell's blocked
-tiles**, written only by `World::set_blocked_at@006b4900`. A city went up
-and the cells under it kept zero, so the scout walked through the
-building. **Grep the writers of every field you call frozen.** What found
-it is general: `tools/trace` now proxies a function and logs its
-**arguments and its return value**, which no logger, dump or `int 3` can
-give (`rontrace.cfg`'s `callwin`; run55 in `docs/ORACLE.md`).
-
-**Opener (Fable — steering):** `The scored line closed 2026-09-01. Read
-DECISIONS entry 29, then decide the re-pin: headline EastIndies w2176 of
-run54's 24,000, successor item 85; entry 29 leaves open which full-detail
-captures to size to the new word. Say the milestone out loud in the README.`
+**Opener (Opus):** `The headline is East Indies' word at 2176 of run54's
+24,000, and item 85 is its divergence. First take the capture the handoff
+sizes (East Indies full-detail, 3,000 frames, run38's recipe), rngcmp it
+against run54, then work 85 diff-first: widen the gather records first.`
 
 ## The queue
 
@@ -49,6 +49,17 @@ In dependency order, headline-nearest first; **the headline is now the long
 captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
+
+85/82. **run40's 360 disagreeing good-frames, in two halves — and now the
+    headline's own divergence at 2176.** (85) `Build::init` surveys a camp
+    against its still-empty `gather_from`, so a harness camp activates with
+    zero `gather_slots`; run40's *human* files one under good 2
+    (`get_good@0063bd50`'s table at `0063bd84`), and run54 spends 192 draws
+    at `Build::find_gather_tiles+0x10a < Build::init+0x55b` where this
+    simulation spends none. First act: the 3,000-frame East Indies capture
+    the handoff sizes. (82) the original holds **0** in goods 3–5 and this
+    crate **100** — inert while none is available, so a loader question.
+    The orders audit's parked `FABLE:` R4 row travels here.
 
 120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
     at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <
@@ -81,14 +92,6 @@ indexed by them.
     sharpened by fields the parser had and nothing compared. Make the
     backlog a number: per dumped record, the fields `rondata::diff` parses
     and never compares. run42 adds the per-frame `LEADERDATA` to that pool.
-
-85/82. **run40's 360 disagreeing good-frames, in two halves.** (85)
-    `Build::init` surveys a camp against its still-empty `gather_from`, so
-    a harness camp activates with zero `gather_slots`; run40's *human* files
-    one under good 2 (`get_good@0063bd50`'s table at `0063bd84`). (82) the
-    original holds **0** in goods 3–5 and this crate **100** — inert while
-    none is available, so a loader question. The orders audit's parked
-    `FABLE:` R4 row travels here.
 
 35. **`mylos` as a cache.** VISION §7: player 1 carries no `0x4000000` at
     the end of 202 or 203, yet its Scout's `mylos` moves 4 → 6; ours moves
