@@ -390,9 +390,113 @@ land unit is now cargo. Run21 enters `cast_transport` at frame 3608, 29
 frames after the dock, with `detect_boat_collision` the same frame: the
 AI's first citizen sailing.
 
-Who casts it — the order-side path that reaches `SpellType::cast` with
-`0x28a` — is `docs/ORDERS.md` §4.6's (`unit_masks & 0x800000` is what lets
-`find_path` cross ocean). Not re-read here.
+### 6.1 Who casts it, and where the order comes from (2026-09-01)
+
+**`Unit::set_new_location@005f8d20` is the adder**, and it is the only one:
+a step that would put a unit across the waterline is *converted* rather
+than taken. The arm sits behind two gates and answers `0` — which is what
+makes `move_step` end the unit's frame there (`005fb3a3`: `if
+(set_new_location(...) == 0) return 1`, after the walk's own
+`set_anim`).
+
+```
+local_10 = on_map and the step changes world cell
+bVar2    = on_map and the step changes tile
+if !local_10:
+    if !bVar2: just move                       # inside one cell of dry land: never asks
+    if !(WData(old cell).flags & 0x100): just move      # HALFLAND — the shore itself
+if can_transport(this):                        # §3.2's predicate, inlined
+    domain 0 and the new tile's surface == 0x20 → add_cast_order(-1, -1, -1, -1,
+        0x28a, QUEUE_FIRST, 0); return 0       # embark
+    domain 1 and it != 0x20 → eject_contents(0, -1, 1, 1); die if nothing is
+        left inside; return 0                  # disembark
+```
+
+`add_cast_order@005e4a60` with `param_7 = 0` **clears** the action bit
+rather than setting it, and `QUEUE_FIRST` rotates the list head onto the
+new order, so the cast is stepped on the *next* frame and the move it
+interrupted is still behind it.
+
+**`Unit::do_cast@005ebfe0`**, along the untargeted arm (`spell_flags &
+0xe == 0`, which the transport craft has — `craftrules.xml`'s `Transport`
+row is empty of `FLAGS`, `COST`, `COST2` and `MANA`, and its `JOB_TIME` is
+**0**):
+
+1. `pay_cast_costs` once per order (`+0x1c`), which an empty cost never
+   refuses;
+2. on the first frame only (`spell_time == 0`) `set_anim(CHAR_DEFAULT, 0,
+   1)` — **one draw a figure**, and `Unit::set_anim@00616f40` walks the
+   squad guys (`0..UnitData+0xb5`) and then the crew (`type->squad_size
+   ..UnitData+0xe8`), so a scout and its dog spend two;
+3. still on that frame, `find_nearby_spot` on `unittypes[TRANSPORTBARGE]`
+   within `constants.unit_board_distance` (`UNIT_BOARD_DISTANCE`, `3/1
+   tile` = 576) — nothing → `kill_current_order`;
+4. `spell_time += 1`; below `get_job_time` it returns and waits. Transport's
+   is 0, so it casts on its first frame;
+5. `SpellType::cast`, whose `is_castable@00675bc0` for `0x28a` is
+   `ObjectData::is_cargo` (vslot `+0x110`) **and nothing else** — an on-map
+   unit of a land type in `0x32..=0x19d`; the head's "who may cast this"
+   test exempts `0x28a` by name.
+
+`cast_transport` then **does not kill the order**: it has already moved the
+whole list onto the boat, and the boat's own `kill_current_order` throws
+this cast away there.
+
+The three draws are frame 3608 of run54/run57 exactly: two
+`Guy::set_anim+0x97a < Unit::set_anim < Unit::do_cast+0xc89` and the boat's
+`Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`.
+
+### 6.2 What `cast_transport` does, in order
+
+The boat is born at the **caster's own** (48-snapped) position and walked
+to the water; the caster never enters it.
+
+1. `Objects::init_unit(who, boat, unit.x, unit.y)` — one `Guy::init_real`;
+2. `same_damage` — the boat takes the caster's damage as a fraction of its
+   own hit points, in 256ths;
+3. `set_new_location(boat, spot, 1, 1)` — onto the water the spot search
+   found. run57 block 3609: the barge `1/14` at `(41112, 33695)`, whose
+   `los_x/los_y` `(40872, 33720)` is the snapped birth point it was moved
+   from;
+4. `set_angle(boat, caster.angle, ·, 1)` — the snapping form, guy included;
+5. the caster's **whole order list** moves onto the boat, in order, and the
+   boat `kill_current_order`s the cast at its head;
+6. the caster's **path stack** is inverted and popped onto the boat, which
+   restores the order it was in, so the boat inherits the route whole; the
+   boat's `unit_masks |= 0x800000`;
+7. the top waypoint's embark flag (`4`) is cleared when
+   `get_tregion(top)` equals `get_tregion(spot)` — the boat is already on
+   that side of the shore and must not board a transport of its own;
+8. `clear_orders(caster)`, the selection swap, `replace_hotunit`, and
+   `go_inside(caster, boat)`.
+
+run57 block 3609 backs 5–7 field for field: the barge's eleven `PATHDATA`
+entries are the scout's, and the top's `flags` is `0` where the scout's
+was `4`.
+
+### 6.3 What lets the path cross water at all
+
+Three predicates, and none of them is `can_transport` alone:
+
+- **`UnitData::invalid_loc@00607c30`** splits on the type's domain. The
+  land arm refuses `surface == 0x20` unless `(param_6 || param_7)` **and**
+  the raw `unit_masks & 0x800000` — not `can_transport`, which would also
+  read the veto and the type flag. Its head is the other half: a path stack
+  whose **top** carries `flags & 4` forces `param_6 = 1`, which is what
+  lets `move_step`'s all-zero call step onto the water at all. The sea arm
+  is the mirror — dry land refuses a boat unless the caller asked, the boat
+  `can_transport`, and the cell is not `WData.flags & 0x70` — and that is
+  the **disembark**.
+- **`PathFinder::calc_cost`**'s embark tail (`docs/PATHFINDER.md` §5) is
+  gated on `can_transport`.
+- **`PathFinder::find_wpath@00688fc0`'s pull-back is skipped entirely for
+  a unit that can board** (`00689375`: the walk runs only when `domain < 2
+  && (!is_on_map() || !can_transport())`). This is the load-bearing one,
+  and it is easy to miss: without it the goal is dragged toward the unit
+  until its tile region matches, which for an island target means back onto
+  the unit's own island, and the search then plans a route to the shore
+  and stops. `docs/PATHFINDER.md` §14.
+
 
 ## 7. The civilian's island — `Unit::think_civilian_transport(colonise)@005f40d0`
 
@@ -415,9 +519,10 @@ capability gate altogether** — the `domain != 2` test wraps only the gate,
 not the search (audit A.23), so a plane reaching this from `think_scout`
 goes straight to the region search. For a land unit: `leader level <
 transport_type(u)`, or
-`!can_transport(u)` (§3.2), or `!is_cargo(u)` (`ObjectData::is_cargo`: an
-on-map unit of a land type) → **no**: return 0, or `think_scout(1)` when
-`unit_masks & 0x100` (an exploring unit).
+`!can_transport(u)` (§3.2), or `!is_cargo(u)`
+(`ObjectData::is_cargo@00653600`: on the map, a unit type in
+`0x32..=0x19d`, `type->domain == 0`) → **no**: return 0, or
+`think_scout(1)` when `unit_masks & 0x100` (an exploring unit).
 
 **The colonise gate**, `colonise = 1` only: `xport_peasants < city_num`
 (`LeaderData +0x9c0` / `+0x3f8`), the unit's cell is **mine** (`WData.who
@@ -425,7 +530,10 @@ on-map unit of a land type) → **no**: return 0, or `think_scout(1)` when
 the scout tail (return 0 / `think_scout(1)`).
 
 **The candidate regions.** For every land region `r` in `1..=0x3f` with
-`size != 0` and `r != mine`, let `g = Region::go_here(r, who)` (§9.4):
+`size != 0` — ~~and `r != mine`~~ **the loop makes no such test**
+(`005f4283` gates on `Region.size` alone, 2026-09-01); what keeps a scout
+from choosing home is the `scouted` bit its own tail has just set — let
+`g = Region::go_here(r, who)` (§9.4):
 
 - `colonise = 1`: `g & 1` (a free resource region) and my
   `reg_xport_peasants[r] == 0` — nobody already sent there; or, failing
@@ -471,6 +579,22 @@ name this writer; amended.
 **This is not the pathfinder's `go_here`.** The tile chosen is on `r`'s
 coast; the walk there crosses `s` by the ordinary path with `0x800000`
 set, boarding at the near shore (§6).
+
+**Its caller, and the tail that reaches it (2026-09-01).**
+`Unit::think_scout@005f6010`'s own tail, at `005f6d74`, when the whole
+search came back above `99,999,998`: a non-air unit sets
+`Region.scouted`'s bit for its leader on **its own region** (`+0x40 +
+who/8`, the `BitMask<8>` at `+0x34`) and clears the mask's `flags`; a sea
+unit goes to `add_to_army` instead; a citizen (`0x32`/`0x33`) that is not
+exploring and has no city in its region returns 0; everything else calls
+this with `colonise = 0`. So the mark and the read are one mechanism, and
+a scout gives up on home exactly once.
+
+**Landed 2026-09-01, and the diff backs the choice.** run54's frame 3584
+is the AI scout `1/0`'s: this crate picks cell **(46, 33)** and issues a
+`MOVE_TO` to its centre `(35712, 25728)`, which is the destination
+run57's block 3585 prints, and the eleven-waypoint route the pathfinder
+then plans is that block's `PATHDATA` list entry for entry.
 
 ## 8. The army's transporting — `Army::do_transporting@006f4690`
 
@@ -611,6 +735,17 @@ Bit 1, **free to settle**: `r.flags & 8` (a resource region) and my
 *other* active leader (`leader_flags & 2`) has `reg_cities[r] × 200 >
 size` — i.e. nobody has settled it densely enough to call it theirs.
 
+**`Region.flags` is not derivable from the cells**, and until 2026-09-01
+this bit was a seam because of it: the word is the map generator's
+(`Map::region_flags`), and nothing in `WData` implies it. It is read from
+the dump instead — `Regions::log_data@00681280` writes a `REGIONS` block
+with every slot's `flags`, an `InitialDump` carries it, and the harness
+installs it through the same map the cells were numbered by. East Indies:
+`0xa8` on the eight middle islands (bit 8 set), `0xa4` on the two the
+players start in, `0xa0` on the two smallest. Without the block a world's
+regions keep `flags == 0` and `go_here` answers as it did before, so a
+capture that lacks one simply never colonises.
+
 Then over every other active leader `i` at war with me on either side
 (`diplos[who][i] == 0 || diplos[i][who] == 0`, `+0x74 int[8]`) with
 `reg_cities[i][r] != 0`: bit 2 if my `reg_cities[r] == 0` or my
@@ -699,8 +834,18 @@ as a bird whose walk request and wing beat are on the stream (§5.2.1, with
 `orders.rs`'s gaia arm and `anim.rs::is_air_gaia`),
 `is_dock_tile` replacing the census's seam (§5.6), and the region coast
 masks with `is_coast` / `num_coasts` computed from the cells (§9.1–§9.2).
-`think_civilian_transport` is documented here and **not implemented**: it
-needs the unit AI's `think` and the danger grid's writers.
+
+**The boarding half landed 2026-09-01** and is `transport.rs` too:
+`do_cast` and `cast_transport` (§6.1, §6.2), `board` and `disembark`,
+`same_damage`, and `think_civilian_transport` (§7) with the
+`think_scout` tail that calls it (`scout.rs`). Around them:
+`collide.rs::shore_step` is `set_new_location`'s conversion,
+`orders.rs` carries a `CAST_SPELL` order and
+`find_nearby_spot_type` (the `(not_o, not_who) = (-1, -1)` form),
+`path.rs` has `invalid_loc`'s three domain arms, `calc_cost`'s live
+embark tail and `find_wpath`'s pull-back gate, `world.rs` has
+`coast_here`, `num_waterhalf`, `Region.scouted` and `Region.flags`, and
+`army.rs::go_here` answers bit 1.
 `do_transporting` (§8.2) is `army.rs::do_transporting` since `docs/ARMY.md`
 (2026-08-25), with the region-first-cell distance of B.55a; `init_navy`
 on `create_units`' sea branch and `send_navy` are still seams there.
@@ -720,14 +865,24 @@ Checks, cheapest first:
    stands to **3608** with the gull spawned, angled at its own marked site
    and flying — 3579 and 3580 were the roll's missing mark and the birth
    walk request (§5.2.1) — and the dock's `gull_o` is run22's 15.
-4. The boarding and the sailing: a `UNITS=3` window over frames 3600–3640
-   of the same game, where `cast_transport` fires — the boat's type,
-   position and the moved orders (§6); not this document's to assert.
-   **This is now the word**: run54's frame 3608 is
-   `SpellType::cast_transport`'s first, and the three draws it spends —
-   two `Guy::set_anim+0x97a < Unit::set_anim < Unit::do_cast+0xc89` and
-   the cast unit's `Guy::init_real+0x52 < Unit::init+0xb97 <
-   Objects::init_unit+0xbd` — are what East Indies parts on.
+4. ~~The boarding and the sailing: a `UNITS=3` window over frames
+   3600–3640 of the same game.~~ **Answered from run57, which was already
+   on disk** (2026-09-01, and it is the queue's own "grep the dump before
+   booking a capture" one level up): run57 is the same game at run39's
+   detail for 4,000 frames, so blocks 3585–3609 carry the whole mechanic.
+   What they say, and what this crate now reproduces: the caster is the AI
+   **scout `1/0`**, not a citizen; its order list at block 3608 is
+   `[CASTORDER spell 650 paid 0, MOVEORDER dest (41112, 33432)]` with an
+   eleven-entry path whose top carries `flags 4`; the boat is `1/14`, guy
+   `type 320` = `TRANSPORTBARGE`, at `(41112, 33695)` with the scout's
+   path, the scout's orders minus the cast, and the top's flag cleared.
+   run54's frame 3608 spends the three draws §6.1 names and this crate
+   spends all three at the same sites.
+
+   The frame still parts, and by **one draw**: this crate spends a
+   `Guy::set_anim+0x97a < Guy::inc_time+0x271` for the barge's brand-new
+   guy and the original spends none, on 3608 or on any later frame. §13
+   has it.
 
 ## 13. What is not established
 
@@ -746,6 +901,21 @@ Checks, cheapest first:
   strip's two rows are as §5.6 says, doubly read.
 - ~~**What clears the water apron** (§5.4) when a dock dies.~~ `mask_me`'s
   unmask, with `remask_docks` restoring overlaps (audit B.18).
+- **The barge's own guy does not wrap, and every other new unit's does.**
+  A guy comes out of `Guy::init_real@005db6b0` with `cur_time` and
+  `end_time` both 0, so the same frame's `Objects::inc_time` finds
+  `end_time <= cur_time` and `Guy::inc_time@005d9e10`'s wrap re-rolls the
+  idle — one draw. The dock's gull does it on run54's 3579 and run33's
+  trained citizen on its frame 99, and this crate reproduces both. The
+  **transport barge born on 3608 does not**, on that frame or on any of
+  the next fifty. Nothing read so far separates them: `squad_size` is a
+  literal 1 for every type (`UnitType::init@0061ab50:723`), so
+  `Guy::inc_time`'s `guy_num < squad_size` gate passes; `init_real` writes
+  no `end_time`; and `Guy::set_anim`'s early returns all want
+  `cur_time < end_time`. It is the one draw East Indies' word still parts
+  on. *Capture:* a `GUYS=4` window over frames 3606–3612 of this game —
+  `Guy::log_data` prints every guy's `cur_anim` and clock, so the barge's
+  `end_time` on the frame it is born settles it outright.
 - **`reg_xport_peasants` booked against a sea index** (§7, audit A.36):
   whether `coast_here` + `num_waterhalf == 0` can ever admit a cell whose
   `WData.region` is the sea's. If it can, the write lands in `reg_cities`,
@@ -781,10 +951,32 @@ Checks, cheapest first:
   has exactly one dock; `Dock::close` leaves `gull_o` stale (§5.3) and
   `Unit::close` frees the object number, so the second gull should take the
   first's. *Capture:* a game with two docks and a `DOCKS` block.
+- **The scoring term this crate cannot compute**: `think_civilian_transport`
+  weighs a candidate cell by `vector_dist × max(1, danger)`, and `danger`
+  is `WorldData::danger[who]@+0x13c` — an `int[reg_size]` **half-resolution
+  cell** grid (`danger[who][reg_xs × div3(y >> 9) + div3(x >> 9)]`, as
+  `Leader::produce_unit@006cb9e0:142` and four others index it). Nothing in
+  this crate writes it, so every score here is its distance. Two things
+  ride on that: the AI's four other readers index the same field **by
+  region**, which is wrong and inert only because the grid is empty; and
+  East Indies' frame 3584 picks the cell the original picks with the term
+  at 1, which is evidence the grid was empty there too and not that the
+  term does not matter. *Capture:* any dump with a `danger` block, if one
+  exists; otherwise the writer has to be read.
+- **The order of the region loops.** The original walks region *slots* —
+  land `1..=0x3f`, sea `0x41..=0x7e` — and this crate walks its own dense
+  numbering filtered by terrain, because the two bands do not exist here.
+  The order decides a tie, `score < best` keeping the first. On East Indies
+  the dump's land regions and the sweep's come out in the same order, one
+  apart, so nothing has told them apart. *Capture:* a map whose regions the
+  cell sweep meets out of the original's order.
 - The blind list after run21: `Docks::remask_docks`, `ObjectsData::
   find_dock`, `Armies::send_navy`, `Group::action_set_transport` have not
   executed in any traced game. ~~`Region::coast_here`~~ — entered on run54's
-  frame 3580, under the gull's first `do_strafe`.
+  frame 3580, under the gull's first `do_strafe`. ~~`Unit::do_cast`,
+  `SpellType::cast`, `SpellType::cast_transport`, `pay_cast_costs`,
+  `SpellTypeData::get_job_time`~~ — all first entered on run54's frame
+  3608, and all five are implemented from that frame's own draws.
 
 ## 14. Second reading — landed, 2026-08-25
 

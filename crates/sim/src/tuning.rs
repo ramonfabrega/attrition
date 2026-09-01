@@ -628,6 +628,10 @@ pub struct Tuning {
     pub unit_train_distance: i32,
     /// Position units: the far edge of that ring. `5/2 tile`.
     pub unit_train_max_distance: i32,
+    /// Position units: how far from a boarding unit `cast_transport` looks
+    /// for the water its transport is born on (`docs/TRANSPORT.md` §6).
+    /// `3/1 tile`.
+    pub unit_board_distance: i32,
     /// Whether Lakota razing is charged — when non-zero, a Lakota disband refunds in full and a Lakota kill of its own building plunders nothing.
     pub lakota_raze_price: i32,
 }
@@ -904,6 +908,7 @@ impl Tuning {
         red_fort_heal: 500,
         unit_train_distance: 288,
         unit_train_max_distance: 480,
+        unit_board_distance: 576,
         lakota_raze_price: 0,
     };
 
@@ -913,7 +918,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 254] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 255] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1430,6 +1435,7 @@ impl Tuning {
                 "UNIT_TRAIN_MAX_DISTANCE",
                 Slot::Ratio192(T.unit_train_max_distance),
             ),
+            ("UNIT_BOARD_DISTANCE", Slot::Ratio192(T.unit_board_distance)),
             ("LAKOTA_RAZE_PRICE", Slot::Value(T.lakota_raze_price)),
         ]
     }

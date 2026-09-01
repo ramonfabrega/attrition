@@ -340,10 +340,27 @@ impl Sim {
             self.scout_region_scan(u, who, region, &mut scan);
         }
         if scan.score >= NOTHING {
-            // `005f6d74` — nothing anywhere: mark the region scouted for
-            // this leader, then `think_civilian_transport`. Both are seams
-            // (`docs/SCOUT.md` §13 item 1).
-            return false;
+            // §3's own tail, at `005f6d74`: nothing anywhere.
+            //
+            // A non-air unit **marks its region scouted** for this leader
+            // — `Region.scouted`, the bit `think_civilian_transport` then
+            // reads, and the reason a scout that has given up on home does
+            // not choose home again (`docs/TRANSPORT.md` §7). A sea unit
+            // joins an army instead (a seam, `docs/ARMY.md`). A citizen
+            // that is not exploring and has no city in its region stops
+            // here. Everything else asks for an island.
+            if domain != Domain::Air {
+                self.world.mark_region_scouted(region, who);
+            }
+            if domain == Domain::Sea {
+                // SEAM: `Unit::add_to_army` (`docs/SCOUT.md` §13 item 1).
+                return false;
+            }
+            let citizen = type_index == PEASANTS || type_index == PEASANTSKOREAN;
+            if citizen && self.reg_cities(who, region) == 0 {
+                return false;
+            }
+            return self.think_civilian_transport(u, false);
         }
         self.scout_issue(u, scan.tile);
         true

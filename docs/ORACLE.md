@@ -3063,6 +3063,20 @@ the two streams part. The building assertion is now scoped to frames
 **before the word** and the collision total is a floor rather than an
 equality; see the marker below.
 
+**And it answered a capture that had been booked against it** (2026-09-01).
+`docs/TRANSPORT.md` §12's fourth check wanted a new `UNITS=3` window over
+frames 3600–3640 to see the first boarding. run57 *is* that window: same
+game, run39's detail, 4,000 frames. Blocks 3585–3609 hold the whole
+mechanic — the AI scout `1/0` idle at `(40416, 34272)` through 3583, an
+eleven-waypoint path and a `MOVE_TO` to `(35712, 25728)` on 3584, an order
+list of `[CASTORDER spell 650 paid 0, MOVEORDER]` with a path top carrying
+`flags 4` on 3608, and on 3609 the barge `1/14` at `(41112, 33695)`, guy
+`type 320`, holding the scout's path with that flag cleared and the
+scout's orders minus the cast, the scout itself `inside_up 14`. No screen
+time; a `sed` range. The rule it illustrates is the queue's own, one level
+up: **grep the dump before booking a capture, not only before booking a
+reading.**
+
 **`FABLE:` what may be asserted past the parting.** For one item this
 capture's test asserted **zero** wrong building fields over all 4,000
 frames, and that assertion was luck. `1/2012` on 3977 came back one tile

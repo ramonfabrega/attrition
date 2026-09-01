@@ -12,36 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the gull flew, and East Indies' word went **3579 →
-3608**.* Item 133's two defects were this crate's, not the reading's.
+*2026-09-01, Opus — the scout sails, and East Indies' word **holds at
+3608**.* Item 134 was three missing draws and turned out to be the AI's
+whole sea half; it spends all three now and parts one draw later.
 
-- **The roll had no `mark` and the gull had no `type_index`.** Both draws
-  were already spent in order; the unmarked roll read as a second
-  `Guy::init_real+0x52` (item 122's shape, found by the score), and the −1
-  `type_index` meant `Guy::set_anim` never saw a gaia bird. TRANSPORT
-  §5.2.1.
-- **A gull reaches `do_air_physics` by `do_strafe`.** `think_bird`'s
-  `0x194` arm draws nothing, so all it spends is the tail's
-  `set_anim(CHAR_WALK, 0, 1)` — once, at birth, on 3580 — then the wing
-  beat. Three counts over run54 back it: 12 birth coins, 3
-  `do_air_physics+0x639` draws all a wild bird's, `Region::coast_here` off
-  the blind list. `gull_o` is run22's **15** here too.
-- **`FABLE:` run57's past-the-word assertion was luck, rescoped in code** —
-  building half up to the word, collision total a floor (330,643 →
-  337,265, units that ever part 14 → 11). A ratchet on the count was named
-  and not costed; `docs/ORACLE.md`, run57, has both sides.
+- **The caster is the scout, and run57 said so without a new capture** —
+  §12's check 4 wanted a `UNITS=3` window over 3600–3640 and run57 is
+  that game at that detail already. Blocks 3585–3609 carry the cast
+  order, the eleven waypoints, the barge `1/14`, `inside_up 14`.
+- **Five pieces for one frame**: §6's boarding, §7's island choice and
+  `think_scout`'s tail, `Region.flags` from the dump's `REGIONS` block
+  (`go_here`'s bit 1, a seam because no cell implies it),
+  `invalid_loc`'s sea and air arms, and **`find_wpath`'s pull-back gate**
+  — `00689375` walks the goal only for a unit that cannot board, and
+  without it the word fell 3608 → 3585. With it the route is the dump's
+  entry for entry and the cell chosen is the original's.
+- **One draw is left** (item 135): the barge's new guy wraps its clock
+  here and never in the original, where the gull and every trained unit
+  do. TRANSPORT §13 names the capture.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w3608 of 24,000 · GreatLakes w1802 of 24,000
 
-**Steering is not owed** — six items since the last pass, the headline
-moved on every one — **until the word crosses 4,000**, which is run57's
-length and forces the capture question the other `FABLE:` marker asks.
+**Steering is owed if 135 does not move it** — this item did not, which
+is one of the two the rule counts.
 
-**Opener (Opus):** `The headline is East Indies' word at 3608 and item 134
-is what holds it: SpellType::cast_transport's first fire, three draws this
-crate does not spend. docs/TRANSPORT.md §6 has the mechanic and §12 has
-had the capture booked since it was written.`
+**Opener (Opus):** `East Indies' word is 3608 and item 135 is the one
+draw holding it: the transport barge's own guy wraps its animation clock
+on the frame it is born and the original's never does, on that frame or
+any later. docs/TRANSPORT.md §13 has the evidence and the capture.`
 
 ## The queue
 
@@ -50,17 +49,26 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-134. **A unit casts its own transport at 3608, and this crate does not.**
-    run54's frame 3608 is `SpellType::cast_transport@00670db0`'s first,
-    and the three draws are two `Guy::set_anim+0x97a < Unit::set_anim <
-    Unit::do_cast+0xc89` and the cast unit's `Guy::init_real+0x52 <
-    Unit::init+0xb97 < Objects::init_unit+0xbd`. It is the dock's shadow:
-    the level granted at 3579 is what lets a unit board.
-    `docs/TRANSPORT.md` §6 is the mechanic, §12's check 4 is the capture
-    it wants — a `UNITS=3` window over 3600–3640 of this same game — and
-    `Unit::do_cast@005ebfe0`, `SpellType::cast@00676ce0`,
-    `pay_cast_costs@00676c40` and `SpellTypeData::get_job_time@00675800`
-    all first execute on that frame, so none of them is blind any more.
+135. **The barge's own guy wraps, and nobody else's new one doesn't.**
+    East Indies' word is 3608 and this is the whole of what holds it: one
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271` this crate spends for the
+    transport born that frame and the original spends on no frame at all.
+    The dock's gull (3579) and run33's trained citizen (99) both wrap and
+    both agree here, and nothing read separates them — `squad_size` is a
+    literal 1 for every type, `Guy::init_real` writes `end_time` 0.
+    `docs/TRANSPORT.md` §13 names the capture: a `GUYS=4` window over
+    3606–3612 prints every guy's clock.
+
+136. **The danger grid has no writer, and four readers index it wrongly.**
+    `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution
+    **cell** grid — `danger[who][reg_xs × div3(y >> 9) + div3(x >> 9)]` in
+    `Leader::produce_unit@006cb9e0` and four others. `World::danger` here
+    indexes it by *region*, as `ai_build`, `ai_make`, `ai_research` and
+    `ai_units` were written to; both answer 0 while nothing writes it, so
+    nothing has told them apart. `think_civilian_transport`'s score is
+    `dist × max(1, danger)` and picks the original's cell with the term at
+    1, which is evidence the grid was empty there, not that it never
+    matters. Find the writer.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
     table at `0063bd84` cannot produce it;

@@ -158,20 +158,27 @@ mod loc {
     pub const BUILDING: i32 = 4;
 }
 
+/// The cell flags a boat's disembark tile may not carry —
+/// `invalid_loc@00607c30`'s `WData.flags & 0x70` on the sea arm: mountain
+/// (`0x10`), forest (`0x20`) and the unnamed `0x40` beside them.
+const SEA_REFUSES: u16 = 0x70;
+
 impl Sim {
     /// `UnitData::invalid_loc(t, ignore_buildings, fog_relax,
     /// enemy_builds_only, transport_a, transport_b)` — the world's refusal
     /// of a tile, for this unit. `t` is in tile coordinates.
     ///
-    /// The domain is taken as land for every unit — the simulation has no
-    /// ships or aircraft yet — and the cliff and per-cell hazard layers do
-    /// not exist, so those refusals never fire. SEAM: fog_relax's
-    /// flag-4-leader branch (stand in the unseen) is a no-op with no fog
-    /// model; `transport_forced` (`unit_masks & 0x800000`) is left clear
-    /// here — the bit itself exists now (`Unit::auto_transport`,
-    /// `docs/TRANSPORT.md` §3) but the shore conversion (§6) is not
-    /// modelled, so a unit let onto water would walk on it; water refuses
-    /// every unit until boarding lands.
+    /// The original splits on the type's **domain** and this does too:
+    /// land refuses forest, mountain, cliff and — unless the unit carries
+    /// `unit_masks & 0x800000` and the caller asked — water; **sea**
+    /// refuses everything that is *not* water, unless the same pair holds,
+    /// which is the disembark; **air** refuses nothing.
+    ///
+    /// SEAM: fog_relax's flag-4-leader branch (stand in the unseen) is a
+    /// no-op with no fog model; the cliff and per-cell hazard layers do not
+    /// exist, so those refusals never fire; and the land arm's own cell
+    /// test — `WData.flags & 0x70` under `ignore_buildings && transport_a`
+    /// — is not modelled either.
     #[allow(clippy::too_many_arguments)] // the original's five flags, kept by name
     pub(crate) fn invalid_loc(
         &self,
@@ -195,22 +202,57 @@ impl Sim {
         let mask = self.world.tile_mask(t);
         let surface = mask & tile::SURFACE;
         let forest_walker = false; // SEAM: `unit_masks2 & 0x4000` (Iroquois).
-        // SEAM, deliberate: `self.units[u].auto_transport` is the bit, kept
-        // out of the water test until the boarding path exists.
-        let transport_forced = false;
-        // Land domain: forest, mountain, cliff, then water. The original
-        // tests the three together and only forest reaches the walker
-        // exemption: `if (surface == 0x30 || (mask & 3) == 2 ||
-        // is_cliff_at(t)) { if (surface != 0x30) return 2; if
-        // (!forest_walker) return 2; }`.
-        if (surface == tile::SURFACE_FOREST && !forest_walker)
-            || mask & tile::OBJECT == tile::OBJECT_MOUNTAIN
-            || mask & tile::OBJECT == tile::OBJECT_CLIFF
-        {
-            return loc::TERRAIN;
-        }
-        if surface == tile::SURFACE_OCEAN && !((transport_a || transport_b) && transport_forced) {
-            return loc::TERRAIN;
+        // ~~SEAM, deliberate: kept out of the water test until the boarding
+        // path exists.~~ It exists (`docs/TRANSPORT.md` §6), and this is the
+        // original's own predicate: the **raw bit**, not `can_transport` —
+        // `invalid_loc@00607c30`'s land arm reads `unit_masks & 0x800000`
+        // and neither the veto nor the type flag.
+        let transport_forced = self.units[u].auto_transport;
+        let ocean = surface == tile::SURFACE_OCEAN;
+        match self.unit_domain_of(u) {
+            // Air takes anything (`param_4 == 2` → `return 0`), and takes
+            // it before the building test too.
+            crate::attrition::Domain::Air => return loc::VALID,
+            // Land: forest, mountain, cliff, then water. The original
+            // tests the three together and only forest reaches the walker
+            // exemption: `if (surface == 0x30 || (mask & 3) == 2 ||
+            // is_cliff_at(t)) { if (surface != 0x30) return 2; if
+            // (!forest_walker) return 2; }`.
+            crate::attrition::Domain::Land => {
+                if (surface == tile::SURFACE_FOREST && !forest_walker)
+                    || mask & tile::OBJECT == tile::OBJECT_MOUNTAIN
+                    || mask & tile::OBJECT == tile::OBJECT_CLIFF
+                {
+                    return loc::TERRAIN;
+                }
+                if ocean && !((transport_a || transport_b) && transport_forced) {
+                    return loc::TERRAIN;
+                }
+            }
+            // Sea, and it is the land arm's mirror: dry land refuses a boat
+            // unless the caller asked for the shore *and* the boat
+            // `can_transport` — the predicate here is the whole one, not
+            // the raw bit — *and* the cell is not mountain, forest or
+            // `0x40`. That is the **disembark**, and it is what walks a
+            // barge onto the tile `set_new_location` then converts (§6).
+            //
+            // SEAM: the ocean side's hazard arm — `type +0x1e8` or
+            // `is(AIRCRAFTCARRIER)` and then `mask & 0x2400` → 3 — reads a
+            // type column this crate does not load.
+            crate::attrition::Domain::Sea => {
+                if !ocean {
+                    if !(transport_a || transport_b) || !self.unit_can_transport(u) {
+                        return loc::TERRAIN;
+                    }
+                    let c = crate::world::Cell::new(
+                        t.x.div_euclid(crate::world::TILES_PER_CELL),
+                        t.y.div_euclid(crate::world::TILES_PER_CELL),
+                    );
+                    if self.world.cell_data(c).flags & SEA_REFUSES != 0 {
+                        return loc::TERRAIN;
+                    }
+                }
+            }
         }
         // The building check: a blocked tile refuses, unless the unit is
         // itself standing on one (it may leave), or the caller asked to
@@ -426,12 +468,12 @@ impl Sim {
             // wall (+5000) read game rules the simulation does not carry.
         }
 
-        // The transport tail. SEAM, deliberate: `Sim::unit_can_transport(u)`
-        // is the predicate (`docs/TRANSPORT.md` §3.2), held at false here
-        // until the boarding path exists, so the embark penalties and
-        // refusals stay dormant; the water itself was priced above.
+        // The transport tail. `Sim::unit_can_transport(u)` is the predicate
+        // (`docs/TRANSPORT.md` §3.2); it was held at false until the
+        // boarding path existed, and §6 is that path, so the embark
+        // penalties and refusals are live.
         let crossing = self.needs_transport(from.tile(), to.tile());
-        let can_transport = false;
+        let can_transport = self.unit_can_transport(u);
         // The value the shoreline test **last** answered with, which is
         // what the halfland multiplier below is gated on: at `depth == 1`
         // the second probe overwrites the first (`00685773`–`006858b9`).
@@ -1002,12 +1044,24 @@ impl Sim {
         // The pull-back walk: step the goal toward the start until its
         // tile region matches the start's. On one-region maps this exits
         // immediately.
+        //
+        // **A unit that can board skips it whole**, and that gate is the
+        // whole of transport pathing: `00689375` runs the walk only for
+        // `domain < 2 && (!is_on_map() || !can_transport())`, so a land
+        // unit with `unit_masks & 0x800000` keeps the goal it was given and
+        // the search is asked to cross the water. Without the gate the goal
+        // is dragged back onto the unit's own island and the route ends at
+        // the shore — which is what this crate did on the day `go_here`
+        // first pointed a scout at another one (`docs/TRANSPORT.md` §7).
+        //
+        // SEAM: the walk's own break test has a second clause for a **sea**
+        // unit — the matched region must also pass `invalid_loc(t, 0, 1, 1,
+        // 1, 0)` — that this crate does not make.
         let mut goal_e = goal_e;
         let mut goal = goal_e.to;
-        loop {
-            if self.world.tregion(goal.tile()) == self.world.tregion(here.tile()) {
-                break;
-            }
+        let walks = self.unit_domain_of(u) != crate::attrition::Domain::Air
+            && (!self.units[u].on_map || !self.unit_can_transport(u));
+        while walks && self.world.tregion(goal.tile()) != self.world.tregion(here.tile()) {
             let (dx, dy) = (here.x - goal.x, here.y - goal.y);
             let far = dx.abs() + dy.abs() >= 0x300;
             let s = if far { 0x180 } else { 0x30 };

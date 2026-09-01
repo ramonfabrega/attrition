@@ -102,6 +102,11 @@ pub const SITE_BLOCKED: &str = "Guy::set_anim+0x97a < Unit::move_step+0x823";
 /// (`docs/ANIM.md` §4, `docs/SYNC.md` §3.10).
 pub const SITE_ARRIVE: &str = "Guy::set_anim+0x97a < Guy::move+0x19f";
 
+/// `Guy::set_anim+0x97a` under `Unit::do_cast+0xc89` — the casting unit's
+/// `set_anim(CHAR_DEFAULT, 0, 1)` on the first frame of a cast, **one draw
+/// a figure** (`docs/TRANSPORT.md` §6).
+pub const SITE_CAST: &str = "Guy::set_anim+0x97a < do_cast";
+
 /// `Guy::init_real@005db6b0`'s variant roll, one per guy created.
 pub const SITE_INIT_REAL: &str = "Guy::init_real+0x52";
 
@@ -712,8 +717,11 @@ impl Sim {
         }
         for u in visit {
             let unit = &self.units[u];
-            let inside_and_not_scholar =
-                unit.inside.is_some() && self.worker_of(u) != crate::orders::Worker::Scholar;
+            // `inside_up >= 0` is one field, and it points at a boat as
+            // readily as at a building (`docs/TRANSPORT.md` §6): a
+            // passenger's clock stops the same way a garrison's does.
+            let inside_and_not_scholar = (unit.inside.is_some() || unit.inside_unit.is_some())
+                && self.worker_of(u) != crate::orders::Worker::Scholar;
             if !unit.alive() || inside_and_not_scholar || unit.guys.is_empty() {
                 continue;
             }

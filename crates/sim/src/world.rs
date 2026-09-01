@@ -248,6 +248,18 @@ pub struct World {
     /// regions because it stores the set in a `BitMask<64>`; we do not.
     region: Vec<Option<u16>>,
     regions: Vec<Terrain>,
+    /// `Region +0x8 flags`, by region — the map generator's own word
+    /// (`Map::region_flags`). Bit `8` is the **resource-region** flag, and
+    /// it is the whole of `Region::go_here`'s first arm
+    /// (`docs/TRANSPORT.md` §9.4). Nothing in the cells implies it, so it
+    /// arrives from a dump's `REGIONS` block or not at all; a world without
+    /// one has every region at 0, and `go_here` never answers bit 1.
+    region_flags: Vec<i32>,
+    /// `Region +0x34 BitMask<8> scouted`, one bit a leader, by region —
+    /// "this leader's scout has looked here and found nothing".
+    /// `Unit::think_scout`'s tail is the only writer and
+    /// `think_civilian_transport` the only reader (`docs/TRANSPORT.md` §7).
+    scouted: Vec<u8>,
     /// One mask per **tile** — four by four per cell — the original's `TData`
     /// (`World +0x138`, one `ushort` each). Placement reads it, buildings mark
     /// it; see `docs/CITIES.md` §2.3 for the bit legend, and [`tile`] for the
@@ -256,9 +268,19 @@ pub struct World {
     /// The rest of each cell's `WData` record — [`CellData`]; all zero until
     /// a map is loaded.
     cells: Vec<CellData>,
-    /// `WorldData::danger[who][region]` — the per-player danger figure the
-    /// AI's trainers and placement read. Empty until something writes it;
-    /// [`World::danger`] answers 0 then.
+    /// `WorldData::danger[who]@+0x13c` — the per-player danger grid. Empty
+    /// until something writes it, and nothing does: the writer is a seam,
+    /// so every reader here answers 0.
+    ///
+    /// **It is indexed two ways in this crate and only one of them is the
+    /// original's.** `danger[who]` is `int[reg_size]`, a **half-resolution
+    /// cell** grid — every consumer in the executable indexes it
+    /// `reg_xs × div3(y >> 9) + div3(x >> 9)` (`Leader::produce_unit@
+    /// 006cb9e0:142`, `produce_tech`, `produce_building`, `found_cities`,
+    /// `check_orphaned_buildings`) — which is what [`World::danger_half`]
+    /// does. [`World::danger`] indexes it by *region* instead, as the AI's
+    /// four readers here were written to; both answer 0 while there is no
+    /// writer, so nothing has ever told them apart.
     danger: Vec<Vec<i32>>,
     /// One height per **tile** — what `TerrainOut::find_tcoord_z@008544a0`
     /// answers for it: the truncated mean of two corners of the terrain's
@@ -447,6 +469,8 @@ impl World {
             who2: vec![Owner::None; n],
             region: vec![None; n],
             regions: Vec::new(),
+            region_flags: Vec::new(),
+            scouted: Vec::new(),
             tiles: vec![0; n * (TILES_PER_CELL as usize) * (TILES_PER_CELL as usize)],
             cells: vec![CellData::default(); n],
             danger: Vec::new(),
@@ -698,6 +722,108 @@ impl World {
             .and_then(|d| d.get(region as usize))
             .copied()
             .unwrap_or(0)
+    }
+
+    /// `danger[who][reg_xs × (cy / 2) + (cx / 2)]` — the read every
+    /// consumer in the original makes (see the field's own note). 0 when
+    /// never written, which is always.
+    pub fn danger_half(&self, who: Player, c: Cell) -> i32 {
+        if c.x < 0 || c.y < 0 {
+            return 0;
+        }
+        let half_w = self.width.div_euclid(2) + self.width % 2;
+        let i = (c.y / 2) * half_w + (c.x / 2);
+        self.danger
+            .get(who as usize)
+            .and_then(|d| usize::try_from(i).ok().and_then(|i| d.get(i)))
+            .copied()
+            .unwrap_or(0)
+    }
+
+    /// `Region.flags` — 0 for a region nothing has installed one for.
+    pub fn region_flags(&self, region: u16) -> i32 {
+        self.region_flags
+            .get(region as usize)
+            .copied()
+            .unwrap_or_default()
+    }
+
+    /// Installs `Region.flags` for one region, from a dump.
+    pub fn set_region_flags(&mut self, region: u16, flags: i32) {
+        let r = region as usize;
+        if self.region_flags.len() <= r {
+            self.region_flags.resize(r + 1, 0);
+        }
+        self.region_flags[r] = flags;
+    }
+
+    /// `Region.scouted`'s bit for one leader (`docs/TRANSPORT.md` §7).
+    pub fn region_scouted(&self, region: u16, who: Player) -> bool {
+        self.scouted
+            .get(region as usize)
+            .is_some_and(|b| b & (1 << (who & 7)) != 0)
+    }
+
+    /// `Unit::think_scout@005f6010:566` — the tail's mark, set when a
+    /// scout's whole search has come back empty.
+    pub fn mark_region_scouted(&mut self, region: u16, who: Player) {
+        let r = region as usize;
+        if self.scouted.len() <= r {
+            self.scouted.resize(r + 1, 0);
+        }
+        self.scouted[r] |= 1 << (who & 7);
+    }
+
+    /// `WorldData::num_waterhalf(cx, cy)@006b4db0`: 0 for a cell that is
+    /// not `HALFLAND`, else how many of its sixteen tiles are ocean.
+    ///
+    /// `think_civilian_transport` wants **zero** of them, which is the
+    /// land side of a shore cell (`docs/TRANSPORT.md` §7).
+    pub fn num_waterhalf(&self, c: Cell) -> i32 {
+        if self.cell_data(c).flags & cell::HALFLAND == 0 {
+            return 0;
+        }
+        let mut n = 0;
+        for i in 0..16 {
+            let t = Pos::new(
+                c.x * TILES_PER_CELL + (i & 3),
+                c.y * TILES_PER_CELL + (i >> 2),
+            );
+            if self.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN {
+                n += 1;
+            }
+        }
+        n
+    }
+
+    /// `Region::coast_here(r, s, cx, cy)@00681020` (`docs/TRANSPORT.md`
+    /// §9.3): the cell sits in `r` or in `s`, the two coast each other, and
+    /// one of its eight neighbouring cells — read at its **centre tile**,
+    /// `× 4 + 2`, through `get_tregion` — lies in the other. The answer is
+    /// that neighbour's index in [`MOVE_8`], `1..=8`, or 0.
+    pub fn coast_here(&self, r: u16, s: u16, c: Cell) -> i32 {
+        if !self.is_coast(r, s) {
+            return 0;
+        }
+        let here = self.region_of(c);
+        let want = if here == Some(r) {
+            s
+        } else if here == Some(s) {
+            r
+        } else {
+            return 0;
+        };
+        for (i, (dx, dy)) in MOVE_8.iter().enumerate() {
+            let (nx, ny) = (c.x + dx, c.y + dy);
+            if nx < 0 || ny < 0 || nx >= self.width || ny >= self.height {
+                continue;
+            }
+            let centre = Pos::new(nx * TILES_PER_CELL + 2, ny * TILES_PER_CELL + 2);
+            if self.tregion(centre) == Some(want) {
+                return i as i32 + 1;
+            }
+        }
+        0
     }
 
     /// Writes a danger figure, growing the table as needed.

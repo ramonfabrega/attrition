@@ -1999,8 +1999,10 @@ impl Sim {
 
     // ---- transporting (docs/TRANSPORT.md §8.2) ----
 
-    /// `Region::go_here(r, who)` (`docs/TRANSPORT.md` §9.4), bits 2 and 4;
-    /// bit 1 is a seam (the resource-region flag).
+    /// `Region::go_here(r, who)` (`docs/TRANSPORT.md` §9.4) — all three
+    /// bits since 2026-09-01, when `Region.flags` started arriving from the
+    /// dump's `REGIONS` block: bit 1 is "free to settle", and it is what
+    /// `think_civilian_transport` (§7) needs to find an island at all.
     pub fn go_here(&self, r: u16, who: Player) -> i32 {
         let w = who as usize;
         let mine = self.ai[w]
@@ -2011,6 +2013,34 @@ impl Sim {
             .unwrap_or(0);
         let weak = self.strategy_of(who, Some(r)) & 4 != 0;
         let mut g = 0;
+        // Bit 1: a resource region nobody of mine is in, that no *other*
+        // active leader holds densely — `size < cities × 200`.
+        if self.world.region_flags(r) & 8 != 0
+            && mine == 0
+            && self.ai[w]
+                .census
+                .reg_peasants
+                .get(r as usize)
+                .copied()
+                .unwrap_or(0)
+                == 0
+        {
+            let size = self.world.region_size(r);
+            let dense = (0..self.players.len()).any(|i| {
+                i != w && !self.defeated[i] && {
+                    let theirs = self.ai[i]
+                        .census
+                        .reg_cities
+                        .get(r as usize)
+                        .copied()
+                        .unwrap_or(0);
+                    theirs != 0 && size < theirs * 200
+                }
+            });
+            if !dense {
+                g |= 1;
+            }
+        }
         for i in 0..self.players.len() {
             if i == w || self.defeated[i] || !self.is_enemy(who, i as Player) {
                 continue;

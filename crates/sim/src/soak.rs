@@ -91,6 +91,7 @@ fn digest(sim: &Sim) -> u64 {
         h.eat(i64::from(u.combat.recharging));
         h.eat(i64::from(u.combat.targeted));
         h.eat(u.inside.map_or(-1, |b| b as i64));
+        h.eat(u.inside_unit.map_or(-1, |b| b as i64));
         // The order list, in order: kind, flags, and what each targets.
         h.eat(u.orders.len() as i64);
         for o in &u.orders {
@@ -101,6 +102,7 @@ fn digest(sim: &Sim) -> u64 {
                 orders::Body::Garrison { building, .. } => building as i64,
                 orders::Body::Gather(g) => g.building as i64,
                 orders::Body::Move(m) => i64::from(m.dest.x) * 65_536 + i64::from(m.dest.y),
+                orders::Body::Cast(c) => i64::from(c.spell) * 2 + i64::from(c.paid),
                 orders::Body::Attack(_) | orders::Body::Think => -1,
             });
         }

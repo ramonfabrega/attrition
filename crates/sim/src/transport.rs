@@ -32,9 +32,25 @@ pub mod ty {
     pub const MERCHANTS: [TypeId; 3] = [0x3d, 0x3e, 0x190];
     /// `AIRCRAFTCARRIER` — the one carrier that can never transport.
     pub const AIRCRAFTCARRIER: TypeId = 0x15f;
+    /// `TRANSPORTBARGE` — the boat a land unit becomes at the shore (§6).
+    pub const TRANSPORTBARGE: TypeId = 0x140;
+    /// `MERCHANTFLEET` — a caravan's own boat.
+    pub const MERCHANTFLEET: TypeId = 0x13e;
     /// `GULLBIRD` — what a finished dock spawns.
     pub const GULLBIRD: TypeId = 0x194;
 }
+
+/// `craftrules.xml`'s `JOB_TIME` for the `Transport` craft — **0**, so the
+/// spell casts on the frame it is first stepped (§6). It is a literal
+/// rather than a [`crate::tuning::Tuning`] slot because the spell table is
+/// not loaded: `rondata`'s `crafts()` reads the file for its `FROM` columns
+/// alone (`docs/DATALAYER.md`).
+const TRANSPORT_JOB_TIME: i16 = 0;
+
+/// The bias angle `Unit::do_cast` and `SpellType::cast_transport` both hand
+/// `find_nearby_spot` — `0x55555555`, a third of a turn, which
+/// `docs/ORDERS.md` §10 records as arbitrary rather than a sentinel.
+const BOARD_BEARING: crate::movement::Angle = crate::movement::Angle(0x5555_5555);
 
 /// `TransportType` — the ladder a unit's kind sits on and a leader's level
 /// climbs (§2). A unit may auto-transport when its kind is at or below the
@@ -191,7 +207,7 @@ impl Sim {
     }
 
     /// The unit type's domain; a typeless unit is what its kind says.
-    fn unit_domain_of(&self, u: usize) -> Domain {
+    pub(crate) fn unit_domain_of(&self, u: usize) -> Domain {
         self.units[u].ty.map_or(self.units[u].kind.domain, |t| {
             self.unit_types[t].combat.domain
         })
@@ -485,6 +501,430 @@ impl Sim {
         while docks.mark > 0 && !docks.slots[docks.mark - 1].active() {
             docks.mark -= 1;
         }
+    }
+
+    // ------------------------------------------------------------------
+    // §7: the civilian's island
+    // ------------------------------------------------------------------
+
+    /// `ObjectData::is_cargo@00653600`: an on-map unit whose type is a unit
+    /// type in `0x32..=0x19d` of the **land** domain. What can ride a boat.
+    fn is_cargo(&self, u: usize) -> bool {
+        let ti = self.units[u].type_index;
+        self.units[u].on_map
+            && (0x32..=0x19d).contains(&ti)
+            && self.unit_domain_of(u) == Domain::Land
+    }
+
+    /// `Unit::think_civilian_transport(colonise)@005f40d0` (§7) — the AI's
+    /// "there is nothing left for me here, and there is an island".
+    ///
+    /// `Unit::think_scout`'s tail is the caller this crate has: a scout
+    /// whose own search came back empty asks with `colonise = 0`, and what
+    /// it wants is a **region it has not scouted** that its own region
+    /// coasts a sea with. A citizen asks with `colonise = 1` from
+    /// `think_peasant`, which is still a seam here.
+    ///
+    /// The search: every land region `1..=0x3f` with cells, accepted by
+    /// [`Sim::go_here`] (§9.4) and by the colonise/scouted test; then the
+    /// first sea region `0x41..=0x7e` coasting both mine and it; then that
+    /// region's cell list, **strided** — `max(16, size / 50)`, phased by
+    /// `o + frame`, one pass per phase until a pass finds anything — for a
+    /// shore cell on the land side (`coast_here` and no water tile in it).
+    /// The nearest by `vector_dist × max(1, danger)` wins, and the unit is
+    /// put in a group of one and sent to the cell's centre.
+    ///
+    /// SEAMS: `unit_masks & 0x100` (an exploring unit) is clear on every
+    /// unit in every capture, so the three arms that re-enter
+    /// `think_scout(1)` are unreachable and the order is always `MOVE_TO`;
+    /// the danger grid has no writer, so [`World::danger_half`] answers 0
+    /// and every score is its distance.
+    ///
+    /// The document says the region loop skips the unit's own region. It
+    /// does not — `005f4283` gates on `Region.size` alone — and what keeps
+    /// a scout from choosing home is the `scouted` bit its own tail has
+    /// just set. Amended in §7.
+    pub(crate) fn think_civilian_transport(&mut self, u: usize, colonise: bool) -> bool {
+        let who = self.units[u].owner;
+        let w = who as usize;
+        let domain = self.unit_domain_of(u);
+        let always = self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.unit_flags & 0x10 != 0);
+        if domain == Domain::Sea && !always {
+            return false;
+        }
+        if domain != Domain::Air
+            && (self.transport_level(who) < self.unit_transport_type(u)
+                || !self.unit_can_transport(u)
+                || !self.is_cargo(u))
+        {
+            return false;
+        }
+        let my_cell = self.units[u].pos.cell();
+        let Some(my_region) = self.world.tregion(self.units[u].pos.tile()) else {
+            return false;
+        };
+        if colonise {
+            let census = &self.ai[w].census;
+            let sent = census.xport_peasants;
+            if sent >= self.city_num(who)
+                || self.world.owner(my_cell).player() != Some(who)
+                || self.reg_cities(who, my_region) == 0
+            {
+                return false;
+            }
+        }
+        // `Region.size` for every region at once: the loop below asks for
+        // sixty-three of them and each answer is a sweep of the grid.
+        let sizes: Vec<i32> = (0..self.world.region_count() as u16)
+            .map(|r| self.world.region_size(r))
+            .collect();
+        let size = |r: u16| sizes.get(r as usize).copied().unwrap_or(0);
+
+        let mut best = 99_999_999;
+        let mut best_cell: Option<Cell> = None;
+        // The original walks region **slots** — land `1..=0x3f`, sea
+        // `0x41..=0x7e` — because its own numbering puts the two kinds in
+        // those bands. This crate numbers its regions densely in order of
+        // first appearance, so the band is the terrain instead.
+        //
+        // SEAM: that also makes the *order* this crate's rather than the
+        // original's, and the order decides a tie — `score < best` keeps
+        // the first. On every capture so far the two agree: the dump's land
+        // regions come out in the same order as the sweep's, one apart.
+        let lands: Vec<u16> = self
+            .world
+            .regions()
+            .filter(|&(_, t)| t == crate::world::Terrain::Land)
+            .map(|(r, _)| r)
+            .collect();
+        let seas: Vec<u16> = self
+            .world
+            .regions()
+            .filter(|&(_, t)| t == crate::world::Terrain::Sea)
+            .map(|(r, _)| r)
+            .collect();
+        for r in lands {
+            if size(r) == 0 {
+                continue;
+            }
+            let g = self.go_here(r, who);
+            let accept = if g & 1 != 0 {
+                if colonise {
+                    self.ai[w].census.reg_xport_peasants.get(r as usize) == Some(&0)
+                } else {
+                    !self.world.region_scouted(r, who)
+                }
+            } else if colonise || g & 2 == 0 {
+                false
+            } else {
+                !self.world.region_scouted(r, who)
+            };
+            if !accept {
+                continue;
+            }
+            let Some(s) = seas.iter().copied().find(|&s| {
+                size(s) != 0 && self.world.is_coast(s, my_region) && self.world.is_coast(s, r)
+            }) else {
+                continue;
+            };
+            let stride = (size(r) / 0x32).max(0x10);
+            let len = size(r);
+            let mut phase = i32::from(self.units[u].index)
+                .wrapping_add(i32::try_from(self.frame).unwrap_or(i32::MAX));
+            for _ in 0..stride {
+                let start = phase.rem_euclid(stride);
+                if start < len {
+                    let mut found = false;
+                    for c in self.world.region_coords_strided(r, start, stride) {
+                        if self.world.coast_here(r, s, c) == 0 || self.world.num_waterhalf(c) != 0 {
+                            continue;
+                        }
+                        found = true;
+                        let danger = self.world.danger_half(who, c);
+                        let dist = crate::world::vector_dist(c.x - my_cell.x, c.y - my_cell.y);
+                        let score = dist * danger.max(1);
+                        if score >= 0 && score < best {
+                            best = score;
+                            best_cell = Some(c);
+                        }
+                    }
+                    if found {
+                        break;
+                    }
+                }
+                phase += 1;
+            }
+        }
+        let Some(cell) = best_cell else {
+            return false;
+        };
+        let mut g = crate::group::Group::stack(who);
+        self.group_add(&mut g, u);
+        if !self.push_group(&g, true) {
+            return false;
+        }
+        let to = Pos::new(cell.x * 0x300 + 0x180, cell.y * 0x300 + 0x180);
+        self.group_action_move_to(
+            &g,
+            to,
+            crate::orders::QueuePos::New,
+            false,
+            crate::movement::Angle(0),
+            crate::orders::MoveKind::MoveTo,
+            false,
+        );
+        if colonise {
+            self.ai[w].census.xport_peasants += 1;
+            // **The destination cell's own region**, not `r` — audit A.36's
+            // open question is whether that can ever be a sea index.
+            if let Some(dr) = self.world.region_of(cell)
+                && let Some(n) = self.ai[w].census.reg_xport_peasants.get_mut(dr as usize)
+            {
+                *n += 1;
+            }
+        }
+        true
+    }
+
+    // ------------------------------------------------------------------
+    // §6: boarding — the cast order, and the shore conversion
+    // ------------------------------------------------------------------
+
+    /// `Unit::do_cast(order)@005ebfe0`, along the **untargeted** arm the
+    /// transport spell takes (`docs/TRANSPORT.md` §6).
+    ///
+    /// The whole of the targeted half — a spell with `spell_flags & 0xe`,
+    /// which is every spy craft — is a stated seam: nothing in this crate
+    /// issues one. What is modelled is the path `0x28a` walks, and the
+    /// order it walks it in, because that order is the frame's draws:
+    ///
+    /// 1. the cost, once per order (`pay_cast_costs`); the transport craft's
+    ///    `COST`, `COST2` and `MANA` are all empty, so it never refuses;
+    /// 2. on the first frame only (`spell_time == 0`) the caster's
+    ///    animation — `set_anim(CHAR_DEFAULT, 0, 1)`, **one draw a figure**,
+    ///    which is two for a unit with a crew;
+    /// 3. on that same frame, the shore test: no water within
+    ///    `unit_board_distance` and the order dies here;
+    /// 4. the clock — `spell_time += 1`, and a `JOB_TIME` above it returns.
+    ///    Transport's is **0**, so it casts on its first frame;
+    /// 5. `SpellType::cast`, whose `is_castable` for `0x28a` is
+    ///    `can_transport` and nothing else, then [`Sim::cast_transport`].
+    ///
+    /// The order is **not** killed after a transport cast: `cast_transport`
+    /// has already moved the whole list onto the boat, and the boat kills
+    /// this order there.
+    ///
+    /// SEAM: the captain check between 4 and 5 — a figure whose captain is
+    /// itself casting gives its frame back — is not modelled; every unit
+    /// here is its own captain.
+    pub(crate) fn do_cast(&mut self, u: usize, order: crate::orders::CastOrder) {
+        if order.spell != crate::orders::spell::TRANSPORT {
+            // Nothing else is castable here; the order would spin.
+            self.kill_current_order(u);
+            return;
+        }
+        if !order.paid
+            && let Some(front) = self.units[u].orders.front_mut()
+            && let crate::orders::Body::Cast(c) = &mut front.body
+        {
+            c.paid = true;
+        }
+        if self.units[u].spell_time == 0 {
+            self.mark(crate::anim::SITE_CAST);
+            self.set_default_anim(u);
+            let barge = self.transport_type_for(u);
+            let spot = barge.and_then(|b| {
+                self.find_nearby_spot_type(
+                    b,
+                    self.units[u].pos,
+                    0,
+                    self.tuning.unit_board_distance,
+                    0,
+                    BOARD_BEARING,
+                )
+            });
+            if spot.is_none() {
+                self.kill_current_order(u);
+                return;
+            }
+        }
+        self.units[u].spell_time += 1;
+        // `JOB_TIME` is 0 for the transport craft, so the wait is never
+        // taken; a spell with a job time would return here.
+        if self.units[u].spell_time < TRANSPORT_JOB_TIME {
+            return;
+        }
+        self.units[u].spell_time = 0;
+        if !self.unit_can_transport(u) {
+            // `SpellTypeData::is_castable`'s `0x28a` case, the only test it
+            // makes for this spell; a cast that fails it falls out of
+            // `SpellType::cast` doing nothing at all.
+            return;
+        }
+        self.cast_transport(u);
+    }
+
+    /// The boat a unit becomes: `current_upgrade(MERCHANTFLEET)` for a
+    /// caravan, `current_upgrade(TRANSPORTBARGE)` for everything else, each
+    /// falling back to its base type — which `TechTree::current_upgrade`
+    /// already does by returning what it was given.
+    fn transport_type_for(&self, u: usize) -> Option<usize> {
+        let base = if self.unit_is(u, ty::CARAVAN) {
+            ty::MERCHANTFLEET
+        } else {
+            ty::TRANSPORTBARGE
+        };
+        let who = self.units[u].owner as usize;
+        // A tree that does not carry the base type — the harness's small
+        // fixtures — has no upgrade to offer, and the base is the answer.
+        let id = match self.tech.get(who) {
+            Some(p) if base < self.tech_tree.types.len() => {
+                self.tech_tree.current_upgrade(&self.setup, p, base)
+            }
+            _ => base,
+        };
+        self.unit_types.iter().position(|t| t.tree == Some(id))
+    }
+
+    /// `SpellType::cast_transport(o, who)@00670db0` (§6) — the shore
+    /// conversion itself.
+    ///
+    /// A land unit that has reached the waterline is not moved onto it: a
+    /// boat is created at the unit's own position, walked to the water
+    /// [`Sim::find_nearby_spot_type`] found, given the unit's damage, angle,
+    /// **order list and path stack**, and the unit goes inside it. The
+    /// order list arrives with this very cast at its head, which is why the
+    /// boat's first act is `kill_current_order`: it throws the cast away and
+    /// keeps the move that was being walked.
+    ///
+    /// The path is handed over whole — the original inverts the stack and
+    /// then pops it onto the boat, which restores the order it was in — and
+    /// then its **top** waypoint has the embark flag cleared when its region
+    /// is the boat's own, so the boat does not try to board a transport of
+    /// its own on the first step.
+    ///
+    /// SEAMS, all stated: the `MARINES` arm (`unit_masks2 & 0x200` and
+    /// `update_speed`), the caravan's slot hand-over, the console sound, the
+    /// selection group's swap and `replace_hotunit` — none of them is state
+    /// this crate keeps.
+    pub(crate) fn cast_transport(&mut self, u: usize) {
+        if !self.units[u].alive() || !self.units[u].on_map {
+            return;
+        }
+        if self.unit_domain_of(u) != Domain::Land {
+            return;
+        }
+        let Some(ty) = self.transport_type_for(u) else {
+            return;
+        };
+        let at = self.units[u].pos;
+        let Some(spot) = self.find_nearby_spot_type(
+            ty,
+            at,
+            0,
+            self.tuning.unit_board_distance,
+            0,
+            BOARD_BEARING,
+        ) else {
+            return;
+        };
+        let who = self.units[u].owner;
+        let Some(index) = self.find_free(who, UNIT_BASE, BUILD_BASE) else {
+            return;
+        };
+        let mut boat = Unit::new(who, index, at, self.unit_types[ty].hits);
+        boat.kind = self.unit_types[ty].kind;
+        boat.ty = Some(ty);
+        boat.type_index = self.unit_types[ty].type_index;
+        boat.movement.speed = self.unit_types[ty].moves;
+        boat.movement.turning = self.turning_for(ty);
+        let b = self.add_unit(boat);
+        // `Unit::init` → `Guy::init_real`: the boat's one figure, one draw.
+        self.init_guys(b, Some(ty));
+        self.same_damage(b, u);
+        // The boat is born on the caster's land tile and walked to the
+        // water; it is a sea unit crossing the shore the other way, so the
+        // step is taken while the caster still holds the land.
+        self.set_new_location(b, spot, true);
+        let angle = self.units[u].movement.heading;
+        self.units[b].movement.set_facing(angle);
+        // The orders, in order, then the boat throws away the cast at the
+        // head of them.
+        let list = std::mem::take(&mut self.units[u].orders);
+        self.units[b].orders = list;
+        self.kill_current_order(b);
+        // The path stack, whole, with the top's embark flag dropped when it
+        // is already on the boat's own side of the shore.
+        let mut path = std::mem::take(&mut self.units[u].path);
+        if let Some(top) = path.last_mut()
+            && self.world.region_of(top.to.cell()) == self.world.region_of(spot.cell())
+        {
+            top.flags &= !crate::orders::path_flag::TRANSPORT;
+        }
+        self.units[b].path = path;
+        self.units[b].auto_transport = true;
+        self.clear_orders(u);
+        self.board(u, b);
+    }
+
+    /// `Unit::same_damage(o, who)@005f9400`: the boat comes out of the
+    /// conversion as damaged, in 256ths of its own hit points, as the unit
+    /// that cast it.
+    ///
+    /// SEAM: the original walks both squads and spreads the damage figure by
+    /// figure, killing whole figures off a squad too hurt to carry it. Every
+    /// unit that boards in a capture so far is a single figure at full
+    /// health, where the walk and this line agree on zero.
+    fn same_damage(&mut self, boat: usize, u: usize) {
+        let hits = self.units[u].max_health.max(1);
+        let frac = ((hits - self.units[u].health).max(0) << 8) / hits;
+        let boat_hits = self.units[boat].max_health;
+        self.units[boat].health = boat_hits - ((boat_hits * frac) >> 8);
+    }
+
+    /// `Unit::go_inside(o, who, 0)` with a **unit** for a host — the
+    /// boarding half of `docs/CITIES.md` §6's garrison, and the reason a
+    /// passenger stops being stepped: `Unit::process` runs no order for a
+    /// unit that is inside something.
+    fn board(&mut self, u: usize, boat: usize) {
+        self.coll_remove(u);
+        self.chain_remove(u);
+        let unit = &mut self.units[u];
+        unit.inside_unit = Some(boat);
+        unit.on_map = false;
+        unit.movement.dest = None;
+        unit.combat.target = None;
+        unit.combat.mandatory = false;
+    }
+
+    /// `Object::eject_contents(0, -1, 1, 1)` and the death behind it —
+    /// `set_new_location`'s other shore arm (§6): a **sea** unit that steps
+    /// off the water puts its passengers out where it stands, and dies if
+    /// that leaves it carrying nothing.
+    ///
+    /// SEAM: the original places each passenger with a `find_nearby_spot`
+    /// of its own around the boat and gives it `UNIT_DISEMBARK_DISTANCE`;
+    /// this puts them on the boat's own point, which is the land the step
+    /// was refused for.
+    pub(crate) fn disembark(&mut self, boat: usize) {
+        let at = self.units[boat].pos;
+        let riders: Vec<usize> = (0..self.units.len())
+            .filter(|&i| self.units[i].inside_unit == Some(boat))
+            .collect();
+        for r in riders {
+            self.units[r].inside_unit = None;
+            self.units[r].pos = at;
+            self.units[r].movement = crate::Movement::at(at);
+            self.units[r].on_map = true;
+            self.coll_add(r);
+            self.chain_add(r);
+        }
+        self.units[boat].health = 0;
+        self.units[boat].on_map = false;
+        self.coll_remove(boat);
+        self.chain_remove(boat);
     }
 
     // ------------------------------------------------------------------
@@ -797,6 +1237,182 @@ mod tests {
         assert!(!f.sim.units[g].alive());
         assert!(!f.sim.docks[1].slots[0].active());
         assert_eq!(f.sim.docks[1].slots[0].gull, Some(g));
+    }
+
+    /// A barge type, so `cast_transport` has something to build.
+    fn barge(sim: &mut Sim) -> usize {
+        let mut t = UnitType {
+            hits: 50,
+            moves: 25,
+            ..UnitType::default()
+        };
+        t.combat.domain = Domain::Sea;
+        t.combat.block_radius = 48;
+        let b = sim.add_unit_type(t);
+        sim.unit_types[b].tree = Some(ty::TRANSPORTBARGE);
+        sim.unit_types[b].type_index = ty::TRANSPORTBARGE as i32;
+        b
+    }
+
+    /// §9.3 and `num_waterhalf`: the shore column is the land side of the
+    /// waterline, and the sea column is the water side.
+    #[test]
+    fn coast_here_names_the_shore_and_waterhalf_counts_the_water() {
+        let f = fix();
+        let w = &f.sim.world;
+        // Cell (7, 3) is land, flagged `HALFLAND`, with the sea next door.
+        assert_ne!(w.coast_here(f.land, f.sea, Cell::new(7, 3)), 0);
+        // Read from the sea side the answer is the same pair, and non-zero.
+        assert_ne!(w.coast_here(f.land, f.sea, Cell::new(8, 3)), 0);
+        // A cell in neither, and a cell with no shore next to it.
+        assert_eq!(w.coast_here(f.land, f.sea, Cell::new(3, 3)), 0);
+        // `num_waterhalf` is 0 off a `HALFLAND` cell whatever its tiles
+        // say, and counts the sixteen otherwise. The fixture's shore cells
+        // are dry land flagged coastal, so the count is 0 — which is what
+        // `think_civilian_transport` wants.
+        assert_eq!(w.num_waterhalf(Cell::new(8, 3)), 0, "not HALFLAND");
+        assert_eq!(w.num_waterhalf(Cell::new(7, 3)), 0, "no water tile in it");
+    }
+
+    /// §6.1 and §6.2 end to end: a land unit with the bit that steps onto
+    /// an ocean tile is not moved — it queues the transport spell, and the
+    /// next frame's `do_cast` converts it.
+    #[test]
+    fn a_step_into_the_sea_becomes_a_boat_with_the_walker_inside() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        let u = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        f.sim.init_guys(u, Some(f.citizen));
+        f.sim.units[u].auto_transport = true;
+        // A queued move, so the boat has something to inherit, and a path
+        // whose top is the water it is about to step onto.
+        f.sim.add_move_order(
+            u,
+            tile_pos(40, 14),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        let top = crate::orders::PathData {
+            to: tile_pos(33, 14),
+            tolerance: 0,
+            flags: crate::orders::path_flag::TRANSPORT,
+        };
+        f.sim.units[u].path.push(top);
+
+        // The step itself: refused, and a cast is in front of the move.
+        let before = f.sim.rng.seed;
+        assert!(
+            !f.sim.set_new_location(u, tile_pos(33, 14), false),
+            "a land unit does not walk onto the sea"
+        );
+        assert_eq!(f.sim.units[u].pos, tile_pos(30, 14), "and it does not move");
+        assert_eq!(f.sim.rng.seed, before, "the conversion spends no draw");
+        assert!(matches!(
+            f.sim.units[u].orders.front().map(|o| o.body),
+            Some(crate::orders::Body::Cast(c)) if c.spell == crate::orders::spell::TRANSPORT
+        ));
+        assert_eq!(
+            f.sim.units[u].orders.len(),
+            2,
+            "the move is still behind it"
+        );
+
+        // The cast: one `set_anim` draw a figure, then the boat's own.
+        let units_before = f.sim.units.len();
+        f.sim.work(u, 1);
+        assert_eq!(f.sim.units.len(), units_before + 1, "a boat");
+        let boat = units_before;
+        assert_eq!(f.sim.units[boat].ty, Some(b));
+        assert_eq!(f.sim.units[boat].owner, 1);
+        assert!(
+            f.sim.world.tile_mask(f.sim.units[boat].pos.tile()) & tile::SURFACE
+                == tile::SURFACE_OCEAN,
+            "the boat is born on the water"
+        );
+        assert!(f.sim.units[boat].auto_transport, "`unit_masks |= 0x800000`");
+        // The order list moved and the cast at its head was thrown away.
+        assert!(f.sim.units[u].orders.is_empty());
+        assert_eq!(f.sim.units[boat].orders.len(), 1);
+        assert!(f.sim.units[boat].orders[0].is_move());
+        // The path moved whole, and the top's embark flag is gone: the
+        // boat is on the sea side already.
+        assert!(f.sim.units[u].path.is_empty());
+        assert_eq!(
+            f.sim.units[boat].path.last().map(|p| p.flags),
+            Some(0),
+            "the top is re-pushed with `flags & 4` cleared"
+        );
+        // And the walker is cargo: off the map, its clock stopped.
+        assert_eq!(f.sim.units[u].inside_unit, Some(boat));
+        assert!(!f.sim.units[u].on_map);
+    }
+
+    /// The other arm of the same test: a boat that steps off the water
+    /// puts its passenger out and dies.
+    #[test]
+    fn a_boat_that_steps_ashore_ejects_and_dies() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
+        f.sim.units[boat].auto_transport = true;
+        f.sim.board(rider, boat);
+        assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
+        assert!(!f.sim.units[boat].alive(), "an empty boat on land dies");
+        assert_eq!(f.sim.units[rider].inside_unit, None);
+        assert!(f.sim.units[rider].on_map);
+    }
+
+    /// §7: the island search picks a coastal cell of another region that
+    /// a sea region coasts with mine, and issues the move.
+    #[test]
+    fn the_island_search_sends_a_scout_to_another_region_s_shore() {
+        let mut f = fix();
+        barge(&mut f.sim);
+        // A second island on the far side of the sea, flagged as a
+        // resource region so `go_here` answers bit 1.
+        let far = f
+            .sim
+            .world
+            .fill_region(Terrain::Land, Cell::new(11, 0), Cell::new(11, 7));
+        for y in 0..8 {
+            let c = Cell::new(11, y);
+            let mut d = f.sim.world.cell_data(c);
+            d.land = 0;
+            d.flags |= 0x100;
+            d.region2 = Some(f.sea);
+            f.sim.world.set_cell_data(c, d);
+            for tx in 44..48 {
+                for ty in y * 4..y * 4 + 4 {
+                    f.sim
+                        .world
+                        .set_tile_field(Pos::new(tx, ty), tile::SURFACE, 0);
+                }
+            }
+        }
+        f.sim.world.rebuild_coasts();
+        f.sim.world.set_region_flags(far, 8);
+        let u = unit(&mut f.sim, 1, f.scout, tile_pos(10, 14));
+        f.sim.units[u].auto_transport = true;
+        f.sim.units[u].type_index = ty::SCOUT as i32;
+        f.sim.transport.resize_with(2, LeaderTransport::default);
+        f.sim.transport[1].set_all();
+        assert!(
+            f.sim.think_civilian_transport(u, false),
+            "a resource region across the water, and nothing scouted"
+        );
+        let dest = f.sim.units[u].orders.front().and_then(|o| o.move_dest());
+        let cell = dest.expect("a move order").cell();
+        assert_eq!(cell.x, 11, "the far island's own column");
+        // And once its own region is marked, the same region is still
+        // fair game — the mark is on *mine*, not on the candidate.
+        f.sim.world.mark_region_scouted(far, 1);
+        f.sim.units[u].orders.clear();
+        assert!(
+            !f.sim.think_civilian_transport(u, false),
+            "a region this leader has scouted is not a candidate"
+        );
     }
 
     #[test]

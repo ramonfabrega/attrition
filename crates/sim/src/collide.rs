@@ -303,13 +303,16 @@ impl Sim {
     ///
     /// The fog reveal that hangs off the same call stays with its caller
     /// ([`Sim::moved_to`], `docs/VISION.md` §6).
-    pub(crate) fn set_new_location(&mut self, u: usize, to: Pos, move_guys: bool) {
+    pub(crate) fn set_new_location(&mut self, u: usize, to: Pos, move_guys: bool) -> bool {
         let from = self.units[u].pos;
         if from == to {
-            return;
+            return true;
         }
         let on_map = self.units[u].on_map && self.units[u].alive();
         let cell_change = on_map && from.cell() != to.cell();
+        if !self.shore_step(u, from, to, on_map, cell_change) {
+            return false;
+        }
         if cell_change {
             self.chain_remove(u);
         }
@@ -337,6 +340,58 @@ impl Sim {
         }
         if move_guys {
             self.units[u].movement.body.pos = to;
+        }
+        true
+    }
+
+    /// The shore half of `Unit::set_new_location@005f8d20`, and the whole
+    /// reason it returns an `int`: a step that crosses the waterline is not
+    /// taken, it is **converted** (`docs/TRANSPORT.md` §6).
+    ///
+    /// It is gated first — the step has to change world cell, or change
+    /// tile *out of a `HALFLAND` cell*, which is the shore itself; a walk
+    /// inside one cell of dry land never asks. Then, for a unit that
+    /// `can_transport` (§3.2): a **land** unit stepping onto ocean queues
+    /// the transport spell `QUEUE_FIRST` and stays where it is, and a
+    /// **sea** unit stepping off ocean ejects what it carries and dies if
+    /// that leaves it empty. Both return 0 to the caller, which is what
+    /// makes `move_step` end the unit's frame there.
+    ///
+    /// Answers `true` when the step may go on.
+    ///
+    /// SEAM: the Iroquois arm between the gate and the test —
+    /// `has_tribe_bonus(0x12)` with a `SURFACE_FOREST` destination writing
+    /// `unit_masks & 0x800` — is not modelled; nothing reads that bit here.
+    fn shore_step(
+        &mut self,
+        u: usize,
+        from: Pos,
+        to: Pos,
+        on_map: bool,
+        cell_change: bool,
+    ) -> bool {
+        let tile_change = on_map && from.tile() != to.tile();
+        if !cell_change
+            && (!tile_change
+                || self.world.cell_data(from.cell()).flags & crate::world::cell::HALFLAND == 0)
+        {
+            return true;
+        }
+        if !self.unit_can_transport(u) {
+            return true;
+        }
+        let ocean = self.world.tile_mask(to.tile()) & crate::world::tile::SURFACE
+            == crate::world::tile::SURFACE_OCEAN;
+        match self.profile(crate::combat::Obj::Unit(u)).domain {
+            crate::attrition::Domain::Land if ocean => {
+                self.add_cast_order(u, crate::orders::spell::TRANSPORT);
+                false
+            }
+            crate::attrition::Domain::Sea if !ocean => {
+                self.disembark(u);
+                false
+            }
+            _ => true,
         }
     }
 
@@ -560,6 +615,21 @@ impl Sim {
         self.chain_hit(u, at, |s, o| ucell(s.units[o].pos))
     }
 
+    /// The same two queries with **no unit behind them** — the shape
+    /// `UnitType::find_nearby_spot` asks when its `not_o`/`not_who` are
+    /// `(-1, -1)`, which is `cast_transport`'s call for the water its barge
+    /// is born on (`docs/TRANSPORT.md` §6). Nothing is excluded, and the
+    /// block is the *type's*.
+    ///
+    /// Only the non-land branch is offered: the caller is a boat's type,
+    /// and a land type with no unit behind it has no block of its own for
+    /// `collide_here`'s "my own cells are mine" exemption to name.
+    pub(crate) fn find_collision_for(&self, block_radius: i32, at: Pos) -> bool {
+        let size = block_radius / UNIT_BLOCK_RADIUS;
+        self.chain_hit_size(size, None, at, |s, o| ucell(s.units[o].pos))
+            || self.chain_hit_size(size, None, at, |s, o| ucell(s.units[o].orders_pos))
+    }
+
     /// `Objects::find_ordered_collision(x, y, o, who)@0065b440` — "is
     /// anything *walking to* this point". The same 3×3 chain walk for
     /// every domain, but against each other unit's `orders_x`/`orders_y`
@@ -581,7 +651,18 @@ impl Sim {
     /// has a block; a hit is Chebyshev `<= my coll_size + its coll_size`
     /// in unit cells against whichever position `of` names.
     fn chain_hit(&self, u: usize, at: Pos, of: impl Fn(&Sim, usize) -> Pos) -> bool {
-        let mine = self.coll_size(u);
+        self.chain_hit_size(self.coll_size(u), Some(u), at, of)
+    }
+
+    /// [`Sim::chain_hit`] with the block and the exemption given rather
+    /// than read off a unit, so a *type* can ask it.
+    fn chain_hit_size(
+        &self,
+        mine: i32,
+        me: Option<usize>,
+        at: Pos,
+        of: impl Fn(&Sim, usize) -> Pos,
+    ) -> bool {
         if mine == 0 {
             return false;
         }
@@ -594,7 +675,7 @@ impl Sim {
             let mut next = self.chain_heads[s];
             while let Some(o) = next {
                 next = self.units[o].down;
-                if o == u || self.units[o].owner >= 8 {
+                if Some(o) == me || self.units[o].owner >= 8 {
                     continue;
                 }
                 if !self.units[o].alive() || !self.units[o].on_map {

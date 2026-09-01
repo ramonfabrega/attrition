@@ -136,6 +136,11 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // Its own address, so no chain is needed to tell it from the other
     // four (`docs/SYNC.md` §3.9).
     (0x005d_b34b, None, sim::anim::SITE_BIRD_COIN),
+    (
+        0x005d_ac7a,
+        Some(0x005e_cc69), // `Unit::do_cast+0xc89`, through `Unit::set_anim`
+        sim::anim::SITE_CAST,
+    ),
     // `Guy::init_real@005db6b0` — the creation roll.
     (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
     // `Dock::init@00740a80+0x125` — a finished dock's gull, the second of

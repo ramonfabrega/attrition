@@ -1144,6 +1144,10 @@ pub struct Initial<'a> {
     /// The `HERDS` block's `HERD` records — only a `DUMP_ALL` dump prints
     /// them (`docs/SYNC.md` §3.2); empty otherwise.
     pub herds: Vec<HerdDump>,
+    /// The `REGIONS` block's `REGION` records, in the original's own region
+    /// order. Only an `InitialDump` prints them; empty otherwise, and a
+    /// world stood up without them has every region's `flags` at 0.
+    pub regions: Vec<RegionDump>,
     /// `Farms::log_data`'s list, in the order `Farms::inc_time` walks it —
     /// the order the sprout draw is spent in (`docs/SYNC.md` §4.1). Only a
     /// `DUMP_ALL` dump prints it; empty otherwise.
@@ -1202,6 +1206,23 @@ pub struct FrameUnit {
     /// one — what [`crate::diff::Built::tick`] re-seats gaia's animals from.
     pub pos: Pos,
     pub goal: Option<Pos>,
+}
+
+/// One `REGION` record of the `REGIONS` block — `Regions::log_data@
+/// 00681280` walks every slot, so the list is index-aligned with the
+/// original's own region numbering and includes the empty ones.
+///
+/// Only the three fields a consumer has needed so far. `flags` is the one
+/// that matters: **bit `8` is the resource-region flag**, which is
+/// `Region::go_here@006810f0`'s whole first arm and so the gate on the AI
+/// ever sending anyone to another island (`docs/TRANSPORT.md` §7, §9.4).
+/// Nothing in the world's own cells carries it — it is the map generator's
+/// (`Map::region_flags`), and this record is where it can be read.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct RegionDump {
+    pub region: i64,
+    pub flags: i64,
+    pub size: i64,
 }
 
 /// One `HERD` record: the home cell, the wander centre, the animal type
@@ -1844,6 +1865,16 @@ impl<'a> Log<'a> {
         init.leaders = leaders;
         init.checksums = self.checksums();
         init.heights = self.terrain_heights();
+        if let Some(r) = game.find("REGIONS") {
+            init.regions = r
+                .kids("REGION")
+                .map(|b| RegionDump {
+                    region: b.int("region").unwrap_or(-1),
+                    flags: b.int("flags").unwrap_or(0),
+                    size: b.int("size").unwrap_or(0),
+                })
+                .collect();
+        }
         if let Some(h) = game.find("HERDS") {
             init.herds = h
                 .kids("HERD")

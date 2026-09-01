@@ -160,6 +160,11 @@ pub struct Unit {
     /// it points at a building. `Some` implies `on_map == false`. See
     /// `docs/CITIES.md` §6.
     pub inside: Option<usize>,
+    /// The **boat** this unit is riding — `UnitData::inside_up` when it
+    /// points at a unit rather than a building. `Some` implies
+    /// `on_map == false`, and it is the whole reason a passenger's orders
+    /// stop being stepped (`docs/TRANSPORT.md` §6).
+    pub inside_unit: Option<usize>,
     /// The hit points a whole figure carries, what the garrison heal repairs
     /// up to.
     pub max_health: i32,
@@ -580,6 +585,7 @@ impl Unit {
                 ..combat::State::default()
             },
             inside: None,
+            inside_unit: None,
             max_health: health,
             orders: std::collections::VecDeque::new(),
             path: Vec::new(),

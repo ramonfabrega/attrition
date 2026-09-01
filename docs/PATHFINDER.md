@@ -973,3 +973,38 @@ body more than once, so none of it is diff-backed; what a run *does* pin
 is the consequence — with the fold removed, run56's 3,000 frames still
 stand at zero position disagreements for every unit but the dock's builder
 (`run56_s_collision_block_agrees_past_the_scored_length`).
+
+## 14. The pull-back's gate — who is allowed to keep the goal (2026-09-01)
+
+§13 settled how the pull-back *steps*. This is the test in front of it,
+and it is the whole of transport pathing.
+
+`PathFinder::find_wpath@00688fc0` reaches the walk at `00689375` only for
+
+```
+type->domain < 2  and  (!is_on_map()  or  !UnitData::can_transport(this))
+```
+
+so **a unit that can board skips the pull-back entirely** and hands
+`astar_path` the goal it was given. The human branch above it (`leaders &
+4`) guards its own, different walk with the same `is_on_map &&
+can_transport` pair.
+
+Why it is load-bearing: the walk steps the goal toward the unit until
+`get_tregion(goal) == get_tregion(here)`, and for an island target the
+first region it matches is the unit's **own island**. A land unit that
+cannot board is then asked for a route to a point on its own coast, which
+is right — there is nowhere else it can go. A unit that *can* board and is
+put through the same walk is asked for the same thing, plans a route to
+its own shore, and never crosses. That is exactly what this crate did on
+the day the AI first pointed a scout at another island: `find_wpath`
+returned a one-entry partial at the near shore, `do_move` re-planned on
+the tile grid the next frame and spent the grid draw
+(`Unit::do_move+0xe84`) the original does not, and East Indies' word fell
+3608 → 3585. With the gate the eleven-waypoint route this crate plans is
+the original's, entry for entry (`docs/TRANSPORT.md` §7).
+
+**Not modelled**, and stated here rather than in the code: the walk's own
+break test has a second clause for a **sea** unit — the matched region
+must also pass `invalid_loc(t, 0, 1, 1, 1, 0)` — which this crate does
+not make. No boat in any capture has re-planned from inside the pull-back.

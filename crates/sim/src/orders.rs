@@ -36,8 +36,18 @@ pub mod index {
     pub const GATHER: u8 = 7;
     pub const ATTACK: u8 = 10;
     pub const REPAIR: u8 = 13;
+    pub const CAST_SPELL: u8 = 14;
     pub const GARRISON: u8 = 26;
     pub const THINK: u8 = 27;
+}
+
+/// The `TypeIndex` of a spell, the value a `CastOrder` carries at `+0x20`
+/// and `SpellType::cast` switches on. The spell rows are `0x275..=0x2ab`,
+/// in `craftrules.xml`'s own order (`docs/DATALAYER.md`).
+pub mod spell {
+    /// `TRANSPORT` — the shore conversion (`docs/TRANSPORT.md` §6), and
+    /// the only one this crate casts.
+    pub const TRANSPORT: i32 = 0x28a;
 }
 
 /// How far above the commerce cap `find_gather_spot` believes the Dutch
@@ -169,6 +179,21 @@ pub struct AttackOrder {
     pub new_ord: bool,
 }
 
+/// The fields of `CastOrder` this crate keeps (§1.2's value 14).
+///
+/// The target half — `+0x8`/`+0xc` the object and its owner, `+0x10` its
+/// `uid`, `+0x14`/`+0x18` the ground point — is absent because the one
+/// spell modelled is untargeted: `set_new_location` queues it with
+/// `(-1, -1, -1, -1)`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CastOrder {
+    /// `+0x20` — the spell's `TypeIndex` (see [`spell`]).
+    pub spell: i32,
+    /// `+0x1c` — "the cost has been taken", so a cast that waits out a
+    /// job time pays once rather than once a frame.
+    pub paid: bool,
+}
+
 /// The order kinds this crate implements.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Body {
@@ -178,6 +203,7 @@ pub enum Body {
     Garrison { building: usize, search: bool },
     Gather(GatherOrder),
     Attack(AttackOrder),
+    Cast(CastOrder),
     Think,
 }
 
@@ -203,6 +229,7 @@ impl Order {
             Body::Garrison { .. } => index::GARRISON,
             Body::Gather(_) => index::GATHER,
             Body::Attack(_) => index::ATTACK,
+            Body::Cast(_) => index::CAST_SPELL,
             Body::Think => index::THINK,
         }
     }
@@ -347,6 +374,16 @@ pub enum Coll {
     /// squad placement go through `ObjectsData::find_unit_with_radius`,
     /// whose `big_radius + r_coll` circle this crate does not model.
     None,
+}
+
+/// Who is asking `find_nearby_spot` — `this` is always the unit **type**,
+/// but every call site but one hands it a `(not_o, not_who)` pair as well,
+/// and the pair is what the collision half exempts. `cast_transport` passes
+/// `(-1, -1)` (`docs/TRANSPORT.md` §6), and that is [`Seeker::Type`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Seeker {
+    Unit(usize),
+    Type(usize),
 }
 
 /// Which worker kind a unit type is, for the gather chain and `think_peasant`.
@@ -824,6 +861,23 @@ impl Sim {
         )
     }
 
+    /// `Unit::add_cast_order(o, who, x, y, spell, QUEUE_FIRST, 0)@005e4a60`,
+    /// in the one shape this crate issues it: `set_new_location`'s
+    /// transport conversion, untargeted, `QUEUE_FIRST`, and **without** the
+    /// action bit — `param_7` is 0, which clears [`flag::ACTION`] rather
+    /// than setting it (`docs/TRANSPORT.md` §6).
+    ///
+    /// The pack/unpack rewrite at the head of the original — `0x28b`/`0x28c`
+    /// re-aimed at a siege type's or a merchant's own spell — cannot reach
+    /// this caller, and is not modelled.
+    pub fn add_cast_order(&mut self, u: usize, spell: i32) {
+        let order = Order {
+            flags: 0,
+            body: Body::Cast(CastOrder { spell, paid: false }),
+        };
+        self.enqueue(u, order, QueuePos::First);
+    }
+
     /// `Unit::add_think_order`: the argument is ignored — it is always
     /// rotated to the front, with the action bit.
     pub fn add_think_order(&mut self, u: usize) {
@@ -893,6 +947,7 @@ impl Sim {
             Some(Body::Garrison { .. }) => self.do_garrison_order(u),
             Some(Body::Gather(_)) => self.do_gather(u, frame),
             Some(Body::Attack(_)) => self.do_attack(u, frame),
+            Some(Body::Cast(c)) => self.do_cast(u, c),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
     }
@@ -1479,9 +1534,18 @@ impl Sim {
 
     /// Writes a move order's fields back to the front of the list.
     fn store_move(&mut self, u: usize, mo: MoveOrder, flags: u8) {
-        if let Some(front) = self.units[u].orders.front_mut() {
-            front.flags = flags;
-            if let Some(m) = front.move_mut() {
+        // The order being stepped is the front one — **unless**
+        // `set_new_location` has just pushed a transport cast in front of
+        // it (`docs/TRANSPORT.md` §6). The original writes through a
+        // pointer to the move and so does not care; here the write has to
+        // find it again, one place back.
+        let i = usize::from(matches!(
+            self.units[u].orders.front().map(|o| o.body),
+            Some(Body::Cast(_))
+        ));
+        if let Some(order) = self.units[u].orders.get_mut(i) {
+            order.flags = flags;
+            if let Some(m) = order.move_mut() {
                 *m = mo;
             }
         }
@@ -2023,7 +2087,16 @@ impl Sim {
         let mut arrived = false;
         let mut snapped_in = false;
         if self.world.accepts(target) {
-            self.set_new_location(u, target, false);
+            let flags = self.current_order(u).map_or(0, |o| o.flags);
+            if !self.set_new_location(u, target, false) {
+                // The step crossed the waterline and was converted rather
+                // than taken (`docs/TRANSPORT.md` §6): `move_step` returns
+                // 1 on the spot, so the waypoint, the arrival test and the
+                // reveal all wait for the boat. The flags are the move's
+                // own, read before the cast went in front of it.
+                self.store_move(u, mo, flags);
+                return Did::Something;
+            }
             // `Unit::set_new_location`'s half-cell test and the reveal
             // behind it (`docs/VISION.md` §6). `move_step` is the caller
             // that passes `param_3 = 0`, so this is the **ring** pass.
@@ -2177,7 +2250,62 @@ impl Sim {
         footprint_of: Option<usize>,
         coll: Coll,
     ) -> Option<Pos> {
-        let p = self.profile(Obj::Unit(u));
+        self.spot_sweep(
+            Seeker::Unit(u),
+            centre,
+            min,
+            max,
+            step,
+            angle,
+            footprint_of,
+            coll,
+        )
+    }
+
+    /// The same sweep asked by a **type** rather than by a unit — the
+    /// original's `not_o`/`not_who` of `(-1, -1)`, which is what
+    /// `Unit::do_cast` and `SpellType::cast_transport` pass when they look
+    /// for the water a barge is born on (`docs/TRANSPORT.md` §6).
+    ///
+    /// Nothing is exempt from the collision half, and the block, the domain
+    /// and the radius defaults are the type's.
+    pub fn find_nearby_spot_type(
+        &self,
+        ty: usize,
+        centre: Pos,
+        min: i32,
+        max: i32,
+        step: i32,
+        angle: Angle,
+    ) -> Option<Pos> {
+        self.spot_sweep(
+            Seeker::Type(ty),
+            centre,
+            min,
+            max,
+            step,
+            angle,
+            None,
+            Coll::Pairwise,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)] // as `find_nearby_spot_coll`
+    fn spot_sweep(
+        &self,
+        who: Seeker,
+        centre: Pos,
+        min: i32,
+        max: i32,
+        step: i32,
+        angle: Angle,
+        footprint_of: Option<usize>,
+        coll: Coll,
+    ) -> Option<Pos> {
+        let p = match who {
+            Seeker::Unit(u) => self.profile(Obj::Unit(u)),
+            Seeker::Type(t) => self.unit_types[t].combat,
+        };
         let mut max = max;
         if (min > 0 && max == 0) || max < 0 {
             // `find_nearby_spot@0061de70:45`: the default is
@@ -2205,7 +2333,7 @@ impl Sim {
             step
         };
         let farm_ok = footprint_of.is_some_and(|b| self.building_ident(b) == Ident::Farm)
-            && self.worker_of(u) == Worker::Citizen;
+            && matches!(who, Seeker::Unit(u) if self.worker_of(u) == Worker::Citizen);
         let air = matches!(p.domain, crate::attrition::Domain::Air);
         let mut r = min;
         loop {
@@ -2274,9 +2402,14 @@ impl Sim {
                 // `(u)` as "me" (`docs/COLLISION.md` §5.2). A spot another
                 // unit is standing on — or has already been sent to — is
                 // taken.
-                if coll == Coll::Pairwise
-                    && (self.find_collision(u, c) || self.find_ordered_collision(u, c))
-                {
+                let hit = coll == Coll::Pairwise
+                    && match who {
+                        Seeker::Unit(u) => {
+                            self.find_collision(u, c) || self.find_ordered_collision(u, c)
+                        }
+                        Seeker::Type(_) => self.find_collision_for(p.block_radius, c),
+                    };
+                if hit {
                     continue;
                 }
                 return Some(c);

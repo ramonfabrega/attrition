@@ -10927,3 +10927,79 @@ level granted at 3579 is what lets a unit board at all.
 `docs/TRANSPORT.md` §6 has the mechanic and §12 has had the capture booked
 since it was written — "a `UNITS=3` window over frames 3600–3640, where
 `cast_transport` fires". That is item 134.
+
+## 2026-09-01 — item 134: a scout sails, and the word does not move
+
+**The item was booked as three missing draws and turned out to be a whole
+half of the AI.** run54's frame 3608 is `SpellType::cast_transport`'s
+first; this crate spent none of its three draws, and the reason was not
+that boarding was unimplemented. It was that **nothing in this simulation
+had ever wanted to cross water**. The unit that boards is the AI's
+**scout `1/0`**, not the citizen §6 supposed, and what sends it is
+`Unit::think_civilian_transport@005f40d0` — `docs/TRANSPORT.md` §7, read
+last month, documented in full, and marked "not implemented: it needs the
+unit AI's `think` and the danger grid's writers".
+
+**The capture was already on disk, and reading it first saved a screen
+hour.** §12's check 4 asked for a new `UNITS=3` window over 3600–3640.
+run57 is the same game at run39's detail for 4,000 frames, so blocks
+3585–3609 carry the whole mechanic outright: the scout idle at
+`(40416, 34272)` with `idle 60` through 3583; on 3584 an eleven-waypoint
+path and a `MOVE_TO` to `(35712, 25728)`; on 3608 an order list of
+`[CASTORDER spell 650 paid 0, MOVEORDER]` and a path top carrying
+`flags 4`; on 3609 the barge `1/14`, guy `type 320`, holding the scout's
+path with that flag cleared, the scout's orders minus the cast, and
+`inside_up 14` on the scout. That is the queue's own "grep the dump before
+booking a reading" one level up — the answer cost a `sed` range.
+
+**Five things had to land for one frame.**
+
+- **§6, the boarding.** `set_new_location`'s shore arm (a land unit
+  stepping onto ocean queues `0x28a` `QUEUE_FIRST` and does **not** move;
+  a boat stepping off ejects and dies), a `CAST_SPELL` order,
+  `do_cast`'s untargeted arm, and `cast_transport` — the boat born at the
+  caster's own point, walked to the water, given the damage, the angle,
+  the order list and the path stack, with the top waypoint's embark flag
+  cleared when its region is the boat's.
+- **§7, the island.** `think_scout`'s `005f6d74` tail — `Region.scouted`
+  marked on the unit's own region — then the region search, the sea that
+  coasts both, the strided cell walk with `coast_here` and
+  `num_waterhalf`, and the group move to the cell's centre.
+- **`Region.flags`, which no cell implies.** `go_here`'s first arm is
+  `flags & 8`, the map generator's resource-region bit, and it had been a
+  seam for that reason. `Regions::log_data` writes it: the harness now
+  reads the `REGIONS` block out of an `InitialDump` and installs it
+  through the same map the cells were numbered by. East Indies' eight
+  middle islands carry `0xa8`, the two the players start in `0xa4`.
+- **`invalid_loc`'s three domain arms**, where this crate had only the
+  land one.
+- **`find_wpath`'s pull-back gate**, and this is the one that would have
+  been hard to find from a reading. `00689375` runs the goal walk only
+  for a unit that **cannot** board. Without the gate the goal is dragged
+  back until its region matches the unit's, which for an island target
+  means back onto the unit's own island; the search then plans a route to
+  the near shore and stops. That is exactly what happened: with §7 landed
+  and the gate missing, East Indies' word fell **3608 → 3585** on a
+  `Unit::do_move+0xe84` grid draw the original never spends. With the
+  gate the eleven waypoints this crate plans are the dump's, entry for
+  entry, and the destination cell `(46, 33)` is the original's own.
+
+**The score did not move, and the reason is one draw.** The three cast
+draws now match at their sites; the frame parts one draw later, on a
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` this crate spends for the
+barge's brand-new guy and the original spends on no frame at all. Every
+other new unit wraps on its birth frame — the dock's gull on 3579,
+run33's trained citizen on 99, both reproduced — and nothing read so far
+separates the barge from them: `squad_size` is a literal 1 for every type,
+`Guy::init_real` writes `end_time` 0, and `Guy::set_anim`'s early returns
+all want `cur_time < end_time`. It is booked with the capture that settles
+it outright, a `GUYS=4` window over 3606–3612, and it is the only thing
+between here and the sailing.
+
+**Everything else held.** 175 rondata tests and 684 sim tests green;
+Great Lakes unmoved at 1802, the scored captures at 1851/1850 and
+1772/1772, run56's 249,413 collision field-frames and 92,626 building
+fields still exact. run57's collision floor moved 337,265 → 334,258 and
+the units ever off position eleven → fourteen, both past the word and
+both printed rather than pinned, which is what the `FABLE:` marker of
+2026-09-01 says they are.

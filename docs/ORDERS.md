@@ -2626,6 +2626,13 @@ this crate takes `k = −1` too, and unit `1/11` walks the original's own
 line for the whole of run56. `docs/AI.md` §21; the reason it took until now
 is that no capture on disk had ever put a swarm ring on a coast.
 
+- **The `(-1, -1)` form** (2026-09-01): `Unit::do_cast` and
+  `SpellType::cast_transport` are the two sites that pass `FILTER_NOT_ME`
+  with `not_o = not_who = -1` — nobody is exempt, and the block, the
+  domain and the radius defaults are the **type's** rather than a unit's.
+  The bias is `0x55555555` and the radius `constants.unit_board_distance`,
+  and what they are asking is "is there water a barge could be born on"
+  (`docs/TRANSPORT.md` §6.1). `find_nearby_spot_type` in `orders.rs`.
 - **The base bearing** at every build/repair/gather/garrison call site is
   **`find_angle(me − target)`** (asm-confirmed at the swarm, garrison and
   gather sites): the sweep starts on the unit's own side of the target.

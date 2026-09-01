@@ -765,12 +765,16 @@ The checks:
    frame where the city loop wins a cell at a score between 200 and 799
    and the region scan then runs, which is the only shape that reads the
    doubling; and a **human-led AI** or a naval scout for `local_74`.
-1b. **The `best > 99999998` tail** (`005f6d74`), which the region scan can
-   now leave standing: `Region.scouted |= 1 << who`, `Region +0x3c = 0`,
-   then `add_to_army` for a naval unit or `think_civilian_transport` for
-   the rest. Unread and unmodelled; the simulation returns without an
-   order, which is what every capture on disk does anyway — no frame
-   reaches the tail with nothing found.
+1b. ~~**The `best > 99999998` tail** (`005f6d74`) … unread and
+   unmodelled.~~ **Read and implemented 2026-09-01** (item 134): a
+   non-air unit sets `Region.scouted`'s bit for its leader on its own
+   region and clears `Region +0x3c`; a naval unit goes to `add_to_army`
+   (still a seam); a citizen (`0x32`/`0x33`) that is not exploring and
+   has no city in its region returns 0; everything else calls
+   `Unit::think_civilian_transport(0)`, which is `docs/TRANSPORT.md` §7.
+   East Indies **does** reach the tail with nothing found — run54's frame
+   3584, the AI scout `1/0`, and the island it then sails to is what the
+   word parts on at 3608.
 2. ~~**`Unit::find_goody_box`** — the very first thing `think_scout` does
    for a land unit, and it returns 1 (and skips everything here) when it
    finds a goody box to walk to. Not read; the simulation treats it as

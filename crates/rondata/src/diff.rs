@@ -525,7 +525,23 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             .and_then(|(_, v)| v.trim().parse().ok())
     };
     let players = player_count(init).max(1);
-    let (world, region_map) = world_from(&init.world, &init.heights, &mut notes);
+    let (mut world, region_map) = world_from(&init.world, &init.heights, &mut notes);
+    // `Region.flags`, from the dump's own `REGIONS` block, through the same
+    // map the cells were numbered by. Bit 8 is the resource-region flag —
+    // the gate on `Region::go_here`'s "free to settle" and so on the AI
+    // sending a scout to another island at all (`docs/TRANSPORT.md` §7,
+    // §9.4). Only an `InitialDump` carries the block; without it every
+    // region's flags stay 0 and `go_here` answers as it did before.
+    let mut flagged = 0;
+    for rec in &init.regions {
+        if let Some(&(_, sim_r)) = region_map.iter().find(|(d, _)| *d == rec.region) {
+            world.set_region_flags(sim_r, rec.flags as i32);
+            flagged += 1;
+        }
+    }
+    if flagged > 0 {
+        notes.push(format!("regions: {flagged} carry the dump's own flags"));
+    }
     let mut sim = loaded.sim(tuning, world, players);
     // The harness is where the per-phase fold is wanted: it is what the
     // sim's own draws are lined up against the trace's sites with
@@ -1743,7 +1759,9 @@ impl Built {
                 sim::combat::Obj::Unit(u) => self.unit_ids(u),
                 sim::combat::Obj::Building(b) => self.build_ids(b),
             },
-            Body::Move(_) | Body::Think => None,
+            // A `CastOrder` for the transport spell is untargeted
+            // (`docs/TRANSPORT.md` §6): its `(o, who)` are `(-1, -1)`.
+            Body::Move(_) | Body::Cast(_) | Body::Think => None,
         }
     }
 }
@@ -2375,6 +2393,13 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
             .find(|s| !s.heights.is_empty() && same_start(init, s))
     {
         init.heights = s.heights.clone();
+    }
+    // The `REGIONS` block travels with the map, on the map's own terms:
+    // a sibling whose world block is ours generated the same regions.
+    if init.regions.is_empty()
+        && let Some(s) = siblings.iter().find(|s| !s.regions.is_empty())
+    {
+        init.regions = s.regions.clone();
     }
     if init.herds.is_empty()
         && let Some(s) = siblings.iter().find(|s| !s.herds.is_empty())
@@ -7875,11 +7900,20 @@ mod tests {
     ///
     /// **3608** — the frame `SpellType::cast_transport` first runs, and it
     /// is the dock's own shadow: the level granted at 3579 is what lets a
-    /// unit become its own transport at the shore. The original spends
-    /// three draws this crate does not — two `Guy::set_anim+0x97a <
-    /// Unit::set_anim < Unit::do_cast+0xc89` and the cast unit's
+    /// unit become its own transport at the shore. The caster is the AI's
+    /// **scout `1/0`**, and reaching it took the whole sea half of the AI:
+    /// `think_civilian_transport`'s island choice, `Region.flags` out of
+    /// the dump's `REGIONS` block, `invalid_loc`'s sea arm and
+    /// `find_wpath`'s pull-back gate (`docs/TRANSPORT.md` §6, §7,
+    /// `docs/PATHFINDER.md` §14).
+    ///
+    /// The three draws the frame is named for — two `Guy::set_anim+0x97a <
+    /// Unit::set_anim < Unit::do_cast+0xc89` and the boat's
     /// `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
-    /// (`docs/TRANSPORT.md` §6).
+    /// — are spent at their sites since 2026-09-01. What parts the frame
+    /// now is **one draw the other way**: this crate wraps the barge's
+    /// brand-new guy's animation clock and the original wraps no barge's,
+    /// on 3608 or after (`docs/TRANSPORT.md` §13).
     ///
     /// It was **3579** for one item, and the frame was the dock's gull.
     /// A finished Dock spawns a **`GULLBIRD` of owner 9** a tile
