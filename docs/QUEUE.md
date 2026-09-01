@@ -166,6 +166,9 @@ a `find_target` block; run7's order stream; a mounted attacker; a caravan;
   headline first, and whether it moved. Delete finished items; their story
   goes to the journal. Run `cargo test -p sim docs_guard`.
 - **Start of session:** "Where things stand", the item, then its document.
+- **Run the diff suite with `--release`.** run53's 24,000 frames tripled
+  `cargo test -p rondata` in debug — 114 s to 285 s — where `--release` is
+  92 s including the build. The five-minute wait is the capture, not a hang.
 - **Before a blind fan-out:** `grep -n <mechanic> CLAUDE.md`, and the memory
   index — a subagent inherits both. **Never** quote this file or the journal
   into `CLAUDE.md`, a subagent brief, an agent definition, or a memory hook.
