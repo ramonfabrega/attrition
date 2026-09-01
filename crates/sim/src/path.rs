@@ -52,7 +52,52 @@ const MOVE_X: [i32; 9] = [0, -1, 0, 1, 1, 1, 0, -1, -1];
 const MOVE_Y: [i32; 9] = [0, -1, -1, -1, 0, 1, 1, 1, 0];
 
 /// A step the cost function refuses.
-const REFUSED: i32 = 0x7fff_ffff;
+pub const REFUSED: i32 = 0x7fff_ffff;
+
+/// One `calc_cost` the search asked for, recorded while [`Sim::trace_costs`]
+/// is set — this side's answer to a `CALL`/`RET` pair from the original's own
+/// proxy (`tools/trace/tracer.c`, `rondata::trace::Call`).
+///
+/// The sequence is what makes it an oracle rather than a spot check: two
+/// searches that agree on every step's price and still return different
+/// routes part somewhere, and the first row where the argument *lists*
+/// differ says the validity filter parted, while the first where the answers
+/// differ says §5 did.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CostMark {
+    /// The unit whose search asked.
+    pub unit: usize,
+    pub from: (i32, i32),
+    pub to: (i32, i32),
+    /// The wheel index, 1–8, as the original's `dir`.
+    pub dir: i32,
+    /// [`STEP_WORLD`], [`STEP_TILE`] or [`STEP_UNIT`].
+    pub step: i32,
+    /// The node's depth from the start, which is the original's `depth`.
+    pub depth: i32,
+    /// What the function answered; [`REFUSED`] for a refusal.
+    pub cost: i32,
+}
+
+/// A priced step's whole argument list — `(from.x, from.y, to.x, to.y, dir,
+/// step, depth)`. Two sides that answer the same key differently disagree
+/// about §5; two sides that never share a key disagree about the search.
+pub type CostKey = (i32, i32, i32, i32, i32, i32, i32);
+
+impl CostMark {
+    /// This step's [`CostKey`].
+    pub fn key(&self) -> CostKey {
+        (
+            self.from.0,
+            self.from.1,
+            self.to.0,
+            self.to.1,
+            self.dir,
+            self.step,
+            self.depth,
+        )
+    }
+}
 
 /// One search node — `PathNode`, minus the allocator.
 #[derive(Clone, Copy, Debug)]
@@ -752,6 +797,17 @@ impl Sim {
                     avoid_land,
                     avoid_sea,
                 );
+                if self.trace_costs {
+                    self.cost_marks.push(CostMark {
+                        unit: u,
+                        from: (cur.x, cur.y),
+                        to: (nx, ny),
+                        dir: d as i32,
+                        step,
+                        depth: cur.timeout + 1,
+                        cost,
+                    });
+                }
                 if cost == REFUSED {
                     k += dinc;
                     c += dinc;

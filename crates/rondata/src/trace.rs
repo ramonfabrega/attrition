@@ -218,6 +218,17 @@ const MAGIC: u32 = 0x544e_4f52;
 /// The record kinds that step a generator.
 const DRAW_KINDS: [u32; 4] = [1, 3, 4, 6];
 
+/// The proxied call sites, by the id their records carry (`tracer.c`'s
+/// `CALLS`). A proxy logs a function's **arguments and its answer**, which
+/// is the one thing neither a draw hook nor the gamelog can give.
+pub mod call_site {
+    /// `PathFinder::astar_path@00683770(stack, step, anti)`.
+    pub const ASTAR_PATH: u32 = 0;
+    /// `PathFinder::calc_cost@00684e50(from.x, from.y, to.x, to.y, dir,
+    /// step, depth, uchar *transport)` — `docs/PATHFINDER.md` §5.
+    pub const CALC_COST: u32 = 1;
+}
+
 /// One draw, as the trace records it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Draw {
@@ -276,6 +287,48 @@ pub const ADD_ANIMALS_COIN: u32 = 0x008d_8fc2;
 pub const ADD_ANIMALS_Y: u32 = 0x008d_9064;
 pub const ADD_ANIMALS_X: u32 = 0x008d_90b2;
 
+/// One proxied call and the answer it came back with — a `CALL` record
+/// paired with its `RET`.
+///
+/// This is the only oracle in the project that reports a **function's
+/// return value**. The gamelog prints state; a draw hook prints a seed; an
+/// `int 3` prints that something ran. A cost function's answer appears in
+/// none of them, which is why `docs/PATHFINDER.md` §10 recorded that there
+/// is no numeric per-search oracle to switch on.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Call {
+    /// Which proxy — see [`call_site`].
+    pub site: u32,
+    /// The `this` pointer, unnormalised. Two searches on one finder share
+    /// it; it is the finder's identity, not the caller's.
+    pub this: u32,
+    /// The eight stack arguments, zero-padded for a site with fewer.
+    pub args: [i32; 8],
+    /// What the function returned in `eax`.
+    pub ret: i32,
+    /// The byte behind an out-argument, where the site names one.
+    pub out: Option<u8>,
+    /// How many proxied calls were open when this one was entered — 0 for
+    /// a call nobody proxied the caller of, 1 for a `calc_cost` inside an
+    /// `astar_path`.
+    pub depth: usize,
+    /// The sim-frame.
+    pub frame: i64,
+}
+
+impl Call {
+    /// This call's [`sim::path::CostKey`] — the seven arguments §5 prices
+    /// a step by — for a [`call_site::CALC_COST`] record, so the
+    /// original's answer can be looked up beside the simulation's.
+    pub fn cost_key(&self) -> Option<sim::path::CostKey> {
+        if self.site != call_site::CALC_COST {
+            return None;
+        }
+        let a = self.args;
+        Some((a[0], a[1], a[2], a[3], a[4], a[5], a[6]))
+    }
+}
+
 /// A parsed `rontrace.log`.
 #[derive(Clone, Debug)]
 pub struct Trace {
@@ -287,6 +340,9 @@ pub struct Trace {
     /// `do_frame` entry — the same pairing `gamelog::Log::frame_seeds`
     /// gives from a `DUMP_ALL` dump, from the other side.
     pub frames: Vec<(i64, u32)>,
+    /// Every proxied call, in the order each **returned** — so a callee
+    /// precedes the caller it was nested in.
+    pub calls: Vec<Call>,
 }
 
 impl Trace {
@@ -315,7 +371,14 @@ impl Trace {
             base,
             draws: Vec::new(),
             frames: Vec::new(),
+            calls: Vec::new(),
         };
+        // CALL and RET nest, so one stack pairs them: a RET belongs to the
+        // innermost open CALL of the same site. A window that opens mid
+        // search leaves a RET with no CALL and one that closes mid search
+        // leaves a CALL with no RET; both are dropped rather than half
+        // reported.
+        let mut open: Vec<(u32, u32, [i32; 4], i64)> = Vec::new();
         let mut off = 32;
         // `emit` writes the frame counter into slot 7, and it is `-1`
         // before the first `do_frame`.
@@ -324,6 +387,35 @@ impl Trace {
             let frame = i64::from(r[7] as i32);
             if r[0] == 2 {
                 t.frames.push((i64::from(r[1] as i32), r[2]));
+            } else if r[0] == 7 {
+                open.push((
+                    r[1],
+                    r[2],
+                    [r[3] as i32, r[4] as i32, r[5] as i32, r[6] as i32],
+                    frame,
+                ));
+            } else if r[0] == 8 {
+                if let Some(i) = open.iter().rposition(|c| c.0 == r[1]) {
+                    let (site, this, lo, cframe) = open.remove(i);
+                    t.calls.push(Call {
+                        site,
+                        this,
+                        args: [
+                            lo[0],
+                            lo[1],
+                            lo[2],
+                            lo[3],
+                            r[3] as i32,
+                            r[4] as i32,
+                            r[5] as i32,
+                            0,
+                        ],
+                        ret: r[2] as i32,
+                        out: (r[6] != u32::MAX).then_some(r[6] as u8),
+                        depth: i,
+                        frame: cframe,
+                    });
+                }
             } else if DRAW_KINDS.contains(&r[0]) {
                 t.draws.push(Draw {
                     site: norm(r[1]),
@@ -388,6 +480,16 @@ impl Trace {
             .chunks(sim::farms::FARM_ANIMALS as usize)
             .filter(|c| c.len() == sim::farms::FARM_ANIMALS as usize)
             .map(<[sim::farms::AnimalSeed]>::to_vec)
+            .collect()
+    }
+
+    /// One site's proxied calls on one sim-frame, in the order they
+    /// returned.
+    pub fn calls_in(&self, frame: i64, site: u32) -> Vec<Call> {
+        self.calls
+            .iter()
+            .filter(|c| c.frame == frame && c.site == site)
+            .copied()
             .collect()
     }
 

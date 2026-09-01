@@ -10155,3 +10155,113 @@ now runs a full human-versus-AI capture in lockstep for its whole 1,772
 frames — that sentence was nowhere outward-facing before this session.
 Entry 27's capture-lane ledger was checked and owes nothing; the only
 open `FABLE:` row (orders R4) already travels with item 85.
+
+## 2026-09-01 (item 125, Opus) — a function's own answer, and the field nobody grepped the writers of
+
+**The scored line closed today.** East Indies went from 1477/1476 to
+**1851/1850 of 1,851** with **neither player diverging anywhere in the
+capture**, and its word ran to the end of run39. Great Lakes has stood at
+1772/1772 of its own 1,772 since item 114. That is phase 3's stated finish
+line — a fixed-seed, traced human-versus-AI capture on two maps, no
+position or order disagreement, for its full length — and the headline
+re-pins tomorrow to the long captures, where East Indies' word is **2176**
+of 24,000.
+
+### The instrument came first, and it is the reusable half
+
+Item 125 had been booked with its own check written down: an `int 3` on
+`calc_cost@00684e50` recording `(from, to, dir, return)`, because
+`docs/PATHFINDER.md` §10 had established — correctly, and at the cost of a
+full Opus survey — that the game prints no per-search number anywhere. The
+`PATHFINDER` gamelog category emits one line at map generation. The two
+`dbg_*` printers are gated on a flag nothing in the binary writes.
+`PathFinderData::log_data` needs the `DUMP_ALL=1` that hangs the game.
+
+What the question actually wanted was not a breakpoint but a **proxy**. A
+draw hook logs and falls through, which can never give a return value; an
+`int 3` says a function was entered and nothing more. So `tools/trace`
+grew a third instrument: `rontrace.cfg`'s `callwin=LO-HI` replaces a listed
+function with a stub of its own signature that logs the arguments, calls
+the original through the displaced-prologue trampoline, and logs `eax`.
+The arguments live in the proxy's own frame, so recursion and re-entrancy
+cost nothing. Two sites are proxied — `PathFinder::astar_path`, whose
+entry and return **delimit one search**, and `calc_cost` itself. Without a
+`callwin` nothing is patched, so every earlier capture still reproduces.
+
+Three things kept the cost of that down and are worth repeating. The
+machine code was written out by hand and **disassembled with
+`llvm-mc --disassemble` before the game was ever launched** — the encoding
+was right first time. A **sixty-frame smoke run** proved the proxies did
+not crash the game before the seventeen-minute capture was committed to.
+And the callee-clean `ret <imm>` for each site came from the **PE bytes**,
+not from the decompiler's argument list.
+
+run55 is run39's game exactly — same lobby, seed and detail, 1,500 frames,
+`cover=0` and `callwin=1460-1490` — and `rngcmp.py` says its `game_random`
+word is run39's on all 1,501 overlapping frames with **zero** differing.
+The proxies cost the simulation nothing, and that is asserted rather than
+assumed.
+
+### What it found, in one reading
+
+Over the whole thirty-one-frame window the game ran **one** search: the AI
+scout's, 110 `calc_cost` calls on sim-frame **1476**. (Every document
+before today called it 1477, from the dump block it lands in; the trace
+counts `Game::frame`. The first `calls` listing came back empty because of
+it.)
+
+Of the 110, **103 already agreed** with this crate's own answer for the
+same argument list. All seven that did not were steps into the same four
+cells, and they said one thing twice: `+176` on each, and one outright
+refusal. `176` is `20 × 9 − 4` — the terrain term for a cell nine of whose
+sixteen tiles are blocked, less the own-territory discount. Player 1's
+second city stands on tile (180, 188), which is cell (45, 47), and its
+footprint covers nine tiles of each of `(44,46) (45,46) (44,47) (45,47)`.
+
+So **`WData.blocked` is a running count of the cell's blocked tiles**, and
+`World::set_blocked_at@006b4900` is its only writer — the same function
+that keeps `WData.solid` beside it, clears the tile's own `BAD_PATH` and
+road, and spreads `BAD_PATH` onto all eight neighbours (with `WData.bad`
+counting that per cell). Every caller in the executable goes through it:
+`BuildType::mask_me` for a footprint, the mountains, the cliffs, a
+`Good`'s own tiles, a packed siege engine. This crate set the tile bit by
+hand and left the count at zero, so the pathfinder charged an empty field
+where the original charges nine sixteenths of one — and the scout walked
+**through** the city and arrived six frames early.
+
+### The lesson, which is the audit README's own
+
+§12 had ruled out six candidates against the original's record — the fog,
+the danger map, the buildings' positions, the cell records, the estimate,
+the stop test — and every one of those exclusions was correct. The
+seventh, which nobody named, is that **a cell record can change**. The
+terrain cost had been read, implemented, audited, and diffed, and each of
+those passes treated `WData.blocked` as a property of the map, because the
+frame-0 dump it is loaded from *is* a map. One `grep` for the field's
+writers names `set_blocked_at` in a second.
+
+§12 had also carried a reading that turned out to be wrong in its premise:
+that under this crate's own costs the original's route was the *cheaper*
+one (661 against 672), so two sides could agree on every step's price and
+still return different routes. They did not agree on every step's price.
+That entry is struck and replaced with what run55 says.
+
+### What it cost elsewhere
+
+Two floors moved forward rather than back, which is what a real convergence
+looks like. run39's bird-landing list gained four entries (1736, 1776,
+1784, 1800) because the frame the two streams still agree to moved, not
+because a bird changed. And one synthetic road test was measuring a
+*column* where the mechanic produces a *path*: the `BAD_PATH` halo a
+blocked tile now spreads costs `weight::GROUND` and pushes a road a tile
+off the straight line, so the assertion was rewritten to check that the
+road runs rather than where.
+
+`run54` — East Indies at 24,000 frames, taken with run53 and unread for a
+day because while run39's word parted at 1647 no longer capture could say
+anything — is read now, and it names the successor by its own frame: at
+2176 the original spends **192 draws** at
+`Build::find_gather_tiles+0x10a < Build::init+0x55b`, a gathering building
+surveying its tiles, and this simulation spends none of them. That is item
+85, booked off run40 a day earlier, now the leading map's first
+divergence.

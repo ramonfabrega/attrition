@@ -12,45 +12,43 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after a Fable meta session — guards, not a mechanic, so **no
-number moved**; the tranche verified green first (162 rondata, release,
-zero `skipping` lines).*
+*2026-09-01, Opus, item 125 — **the scored line is closed.***
 
-**East Indies' word is 1647**, ticks and orders 1477/1476 of 1,850. Great
-Lakes: word **1802**, ticks and orders **1772/1772 of 1,772** — its whole
-capture, gaia exact. Each map's next number is one mechanic: East Indies
-**125** (it leads), Great Lakes **120**.
+**Both captures now run end to end in lockstep.** East Indies went
+1477/1476 to **1851/1850 of 1,851**, **no player diverging anywhere**, its
+word to the end of run39; Great Lakes was already 1772/1772 of 1,772. That
+is phase 3's stated finish line, and `docs/DECISIONS.md` entry 29 says what
+follows: re-pin to the **long** captures.
 
-Scoreboard: EastIndies 1477/1476 w1647 · GreatLakes 1772/1772 w1802
+**The headline is now East Indies' word on run54: 2176** of 24,000, and its
+first divergence names its own successor — 192 draws at
+`Build::find_gather_tiles+0x10a < Build::init+0x55b`, a gathering building
+surveying its tiles, none of them here. That is item **85**.
 
-That line is parsed by `rondata::diff` against the floors the scoring
-tests themselves read (`FLOORS`), and every `name@00xxxxxx` a spec cites
-is now checked against the export's `INDEX.tsv` (`docs_guard`) — items
-89a/b, built failing-first. A floor that moves now moves `FLOORS`, the
-assert beside it, and the line above, or the suite says which one lagged.
+Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
+Long captures: EastIndies w2176 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `Continue — item 125: run39's frame-1477 scout path.
-PATHFINDER §12 has the two routes, the one-line reproduction and the six
-things already ruled out; what is left is a per-step cost dump from the
-original, an int 3 on calc_cost@00684e50 in tools/trace.`
+Line one is the scored captures against `FLOORS`; both sit at their
+capture's ceiling, so a fall is a regression, not a score. Line two is the
+headline (`LONG_WORD_EAST_INDIES`, and run53's assert). Item 125 was `WData.blocked`: a running **count of a cell's blocked
+tiles**, written only by `World::set_blocked_at@006b4900`. A city went up
+and the cells under it kept zero, so the scout walked through the
+building. **Grep the writers of every field you call frozen.** What found
+it is general: `tools/trace` now proxies a function and logs its
+**arguments and its return value**, which no logger, dump or `int 3` can
+give (`rontrace.cfg`'s `callwin`; run55 in `docs/ORACLE.md`).
+
+**Opener (Fable — steering):** `The scored line closed 2026-09-01. Read
+DECISIONS entry 29, then decide the re-pin: headline EastIndies w2176 of
+run54's 24,000, successor item 85; entry 29 leaves open which full-detail
+captures to size to the new word. Say the milestone out loud in the README.`
 
 ## The queue
 
-In dependency order, headline-nearest first; the headline is the tick pair.
-East Indies is the only map whose headline can still move, so its word item
-leads. Take the first unstarted unless a better order is obvious — and say
-so. Numbers are stable; the journal indexed by them.
-
-125. **The scout's frame-1477 world path — East Indies' word, ticks and
-    orders, all three.** The original goes north in seven steps, this
-    crate south in five, so the scout arrives on 1647 and not 1653.
-    PATHFINDER §12 has both stacks, the one-step reproduction and the six
-    candidates ruled out against the record; under this crate's own costs
-    the original's route is the *cheaper* one (661 v 672). **The check:**
-    an `int 3` on `calc_cost@00684e50` in `tools/trace` for
-    `(from, to, dir, return)` — the per-step cost dump the gamelog cannot
-    give (§10). With it: run39's 24 unexplained `PathField` rows, and the
-    §10 census taken on run33 and run20 too.
+In dependency order, headline-nearest first; **the headline is now the long
+captures' word**, and East Indies leads it. Take the first unstarted unless a
+better order is obvious — and say so. Numbers are stable; the journal is
+indexed by them.
 
 120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
     at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <

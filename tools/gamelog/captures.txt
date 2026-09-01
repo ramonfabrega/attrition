@@ -489,3 +489,24 @@ cover: cover=1
 settle_min: 500000
 poll_max: 900
 check: python3 tools/gamelog/rngcmp.py rontrace-run39.log rontrace-run54.log
+
+run: 55
+tag: islands-calccost
+item: 125
+why: the original's own per-step path costs — calc_cost's arguments and its answer
+# **The first capture to use the call proxies.** `cover=` carries a
+# `callwin`, which replaces `PathFinder::calc_cost` and
+# `PathFinder::astar_path` with proxies that log each call's arguments *and
+# its return value* (`tools/trace/README.md`, "The call proxies"). The
+# gamelog has no category that prints a cost — `docs/PATHFINDER.md` §10 —
+# so this is the only instrument that can answer item 125's question.
+#
+# run39's lobby and detail exactly, so `samegame.py` and `rngcmp.py` can
+# both say it is run39's game; the window is the scout's frame 1477 with
+# room either side.
+frames: 1500
+mapstyle: 18
+cfg: -
+cover: cover=0
+cover: callwin=1460-1490
+check: python3 tools/gamelog/rngcmp.py rontrace-run39.log rontrace-run55.log

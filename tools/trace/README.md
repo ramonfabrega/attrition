@@ -1,7 +1,7 @@
 # `tools/trace/` — the draw-site trace and function coverage of the original
 
 An in-process instrument for `riseofnations.exe` under CrossOver. It answers
-two questions the loggers cannot:
+three questions the loggers cannot:
 
 - **Which function drew?** Every step of the game's LCG, with the caller's
   return address and two more frames of the `ebp` chain, the RNG it hit, the
@@ -13,6 +13,13 @@ two questions the loggers cannot:
   the run, and per frame inside a chosen window. Against the addresses the
   documents cite, that is the list of **mechanics no run has ever
   exercised**, i.e. the claims that rest on the reading alone.
+- **What did a function answer?** A chosen function's arguments *and its
+  return value*, over a window of frames. The dumps print state, a draw
+  record prints a seed, an `int 3` prints that something ran; a function
+  that computes a number and hands it back leaves none of the three.
+  `PathFinder::calc_cost` is the first, and the reason this exists: a
+  per-step cost dump the `PATHFINDER` gamelog category has no line for
+  (`docs/PATHFINDER.md` §10).
 
 How it is established, how it works and what it found is in
 `docs/ORACLE.md`, "The draw-site trace and function coverage"; this file is
@@ -22,7 +29,7 @@ the how-to.
 
 | file | role |
 | --- | --- |
-| `tracer.c` | `rontrace.dll`: freestanding 32-bit, kernel32 only, no CRT, no floats. Trampolines `Random::get` (both), `MathUtilFuncSet::rand_real`, `Random::reseed` and `Game::do_frame`; plants `int 3` on every function entry and catches them in a vectored exception handler; runs `rontrace.cmd`'s cheat lines at the top of their frames through `ConsoleWin::parse_cmd`. |
+| `tracer.c` | `rontrace.dll`: freestanding 32-bit, kernel32 only, no CRT, no floats. Trampolines `Random::get` (both), `MathUtilFuncSet::rand_real`, `Random::reseed` and `Game::do_frame`; plants `int 3` on every function entry and catches them in a vectored exception handler; **proxies** the `CALLS` sites so their arguments and answers are logged; runs `rontrace.cmd`'s cheat lines at the top of their frames through `ConsoleWin::parse_cmd`. |
 | `kernel32.def` | the fourteen imports, stdcall-decorated for `llvm-dlltool -k` |
 | `build.sh <install>` | clang (Homebrew LLVM) → `llvm-dlltool` → the pinned toolchain's `rust-lld -flavor link`; then `funcs.py` and `patch_exe.py`. Nothing to install. |
 | `funcs.py` | `INDEX.tsv` → `rontrace.funcs`, the function entries as u32 RVAs |
@@ -56,6 +63,36 @@ loses at most the current frame.
   each function's record carries the frame it was first entered on.
 - `cover=0` — draws only, no `int 3`s. Fast; use it when the question is only
   the stream.
+- `callwin=LO-HI` — sim-frames over which the **proxied** sites log a record
+  a call. Absent, nothing is patched and the run is byte-for-byte the
+  instrument every capture up to run54 used, so leaving it out is how an
+  earlier capture is reproduced.
+
+## The call proxies
+
+`tracer.c`'s `CALLS` table names functions whose *answer* is the question.
+Each is replaced by a proxy that logs the arguments, calls the original
+through the displaced-prologue trampoline, and logs `eax` — so the record is
+`(arguments, return)` rather than "this ran". The arguments live in the
+proxy's own frame, so recursion and re-entrancy cost nothing.
+
+Two are proxied today, both `docs/PATHFINDER.md`'s:
+`PathFinder::astar_path@00683770`, whose entry and return **delimit one
+search**, and `PathFinder::calc_cost@00684e50`, which is §5's per-step price.
+`report.py … calls` prints them nested, with each world coordinate's cell
+beside it; `rondata::trace::Call` is the Rust reader, so a `#[test]` can put
+the original's price beside the simulation's for the same step.
+
+Adding a site needs three things from the listing, and getting any of them
+wrong corrupts the stack rather than failing loudly: the **prologue bytes**
+(at least five, whole instructions, no rel-relative operand), the **argument
+count**, and the fact that it is `__thiscall` and callee-clean — read the
+`ret <imm>` at the end of the function and divide by four. The table carries
+the prologue it expects and refuses on a mismatch, which catches a wrong
+address but not a wrong arity.
+
+A proxied entry carries no `int 3`, so a proxied function has **no HIT
+record**; `report.py blind` counts a `CALL` record as its entry instead.
 
 ## Staging a scenario from a file: `rontrace.cmd`
 
@@ -103,6 +140,7 @@ tools/trace/report.py game/rontrace.log summary
 tools/trace/report.py game/rontrace.log draws 0          # every draw of sim-frame 0, named
 tools/trace/report.py game/rontrace.log sites setup 0 1  # folded by site, with counts
 tools/trace/report.py game/rontrace.log coverage 0 1 2 3 # functions entered per frame
+tools/trace/report.py game/rontrace.log calls 1477       # the proxied calls of one frame
 tools/trace/report.py game/rontrace.log functions        # every function, first frame
 tools/trace/report.py game/rontrace.log blind docs/ [more logs...]
 ```
@@ -134,6 +172,8 @@ with a dump's checksum trace (`tools/gamelog/rngtrace.py`).
 | kind | a | b | c | d | e | f | g |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 HIT | function VA | thread id | | | | | frame |
+| 7 CALL | site id | `this` | arg0 | arg1 | arg2 | arg3 | frame |
+| 8 RET | site id | `eax` | arg4 | arg5 | arg6 | the byte behind arg7, or ~0 | frame |
 | 1 `get()`, 3 `get(a,b)`, 4 `rand_real`, 6 `reseed` | caller (return address) | `Random*` | seed before | caller's caller | and its caller | arg0 (`a` for `get(a,b)`, the new seed for `reseed`) | frame |
 | 2 FRAME | frame | `game_random` word | functions re-armed | `do_frame`'s caller | | | frame |
 | 5 INFO | code | … | | | | | frame |
@@ -141,7 +181,9 @@ with a dump's checksum trace (`tools/gamelog/rngtrace.py`).
 The header is `RONT`, version, image base, `.text` RVA and size, functions
 listed, window lo, window hi. INFO codes: 1 attach, 2 hook-mismatch (the
 prologue bytes were not the expected ones — the hook was refused), 3 hooked,
-4 no function list, 5 VirtualProtect failed, 6 armed, 7 detach.
+4 no function list, 5 VirtualProtect failed, 6 armed, 7 detach, 8 declined,
+9 cmd, 10 cmd-noconsole, 11 cmds, 12 proxied (a call site was replaced:
+rva, stub, argument count).
 
 ## Traps
 

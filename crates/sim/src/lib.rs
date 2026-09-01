@@ -693,6 +693,15 @@ pub struct Sim {
     /// Whether [`Sim::tick`] records [`Sim::phase_marks`]. Off by default:
     /// the harness turns it on, the soak pays nothing.
     pub trace_phases: bool,
+    /// Whether the search records [`Sim::cost_marks`]. Off by default, and
+    /// the reason it exists is that the original can now answer the same
+    /// question: `rontrace.cfg`'s `callwin` proxies
+    /// `PathFinder::calc_cost` and logs its arguments **and its answer**
+    /// (`docs/PATHFINDER.md` §10).
+    pub trace_costs: bool,
+    /// Every step the search priced, in order, while [`Sim::trace_costs`]
+    /// is set. Nothing in the simulation reads it.
+    pub cost_marks: Vec<path::CostMark>,
     /// Whether a building replans the road to its city — `crate::roads` §5.
     /// **On**, as of run32: the search's expansion count is the original's
     /// exactly on every capture that feeds it the map's *own* terraformed
@@ -991,6 +1000,8 @@ impl Sim {
             trace_phases: false,
             plan_roads: true,
             phase_marks: Vec::new(),
+            trace_costs: false,
+            cost_marks: Vec::new(),
             players: vec![attrition::PlayerState::default(); players],
             sources: Vec::new(),
             units: Vec::new(),

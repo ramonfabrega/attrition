@@ -703,9 +703,17 @@ mod tests {
             sim.rng.seed != before,
             "and the search has drawn its jitter a node"
         );
-        let road: Vec<i32> = (44..52).filter(|&y| is_road(&sim, 40, y)).collect();
+        // The road is a *path* between the two rings, not a column: since
+        // 2026-09-01 a blocked tile puts `BAD_PATH` on its eight
+        // neighbours (`World::set_blocked_at`, `docs/PATHFINDER.md` §5),
+        // which costs `weight::GROUND` and pushes the route a tile off the
+        // straight line it used to take. What is asserted is that it runs.
+        let road: Vec<(i32, i32)> = (44..52)
+            .flat_map(|y| (37..44).map(move |x| (x, y)))
+            .filter(|&(x, y)| is_road(&sim, x, y))
+            .collect();
         assert!(
-            road.len() >= 4,
+            road.len() >= 4 && road.iter().any(|&(_, y)| y <= 46),
             "a road runs back towards the city: {road:?}"
         );
     }

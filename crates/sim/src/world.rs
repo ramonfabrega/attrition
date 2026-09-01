@@ -221,9 +221,16 @@ pub struct CellData {
     pub val: u8,
     /// `WData.goods`: a bit per good gatherable near this cell.
     pub goods: u8,
-    /// `WData.blocked`, `WData.solid`.
+    /// `WData.blocked`, `WData.solid` — **counts, not flags**: how many of
+    /// the cell's sixteen tiles carry [`tile::BLOCKED`], and how many of
+    /// those a forest-walker is stopped by too.
+    /// [`World::set_blocked_at`] is what keeps them.
     pub blocked: u8,
     pub solid: i8,
+    /// `WData.bad`: how many of the cell's tiles carry [`tile::BAD_PATH`],
+    /// kept by the same function. Nothing reads it here yet; it is loaded
+    /// and maintained so the dump's own column can be compared.
+    pub bad: u8,
     /// `WData.down`, `WData.down_who`: the object chained at this cell.
     pub down: i16,
     pub down_who: i8,
@@ -864,6 +871,108 @@ impl World {
     /// The mask of a tile coordinate (see [`tile`]); zero off the map.
     pub fn tile_mask(&self, t: Pos) -> u16 {
         self.tile_index(t).map_or(0, |i| self.tiles[i])
+    }
+
+    /// `WorldData::has_blocked_neighbors@006b2990` — whether any of the
+    /// eight neighbouring tiles carries [`tile::BLOCKED`]. Off-map
+    /// neighbours count as clear.
+    pub fn has_blocked_neighbors(&self, t: Pos) -> bool {
+        MOVE_8
+            .iter()
+            .any(|(dx, dy)| self.tile_mask(Pos::new(t.x + dx, t.y + dy)) & tile::BLOCKED != 0)
+    }
+
+    /// Sets or clears one tile's [`tile::BAD_PATH`], keeping the containing
+    /// cell's [`CellData::bad`] count.
+    fn set_bad_path_bit(&mut self, t: Pos, on: bool) {
+        let Some(i) = self.tile_index(t) else { return };
+        let had = self.tiles[i] & tile::BAD_PATH != 0;
+        if had == on {
+            return;
+        }
+        let c = Self::cell_of_tile(t);
+        let mut d = self.cell_data(c);
+        d.bad = if on {
+            d.bad.saturating_add(1)
+        } else {
+            d.bad.saturating_sub(1)
+        };
+        self.set_cell_data(c, d);
+        if on {
+            self.tiles[i] |= tile::BAD_PATH;
+        } else {
+            self.tiles[i] &= !tile::BAD_PATH;
+        }
+    }
+
+    /// **`World::set_blocked_at@006b4900` — the writer of the pathfinder's
+    /// terrain cost.**
+    ///
+    /// `WData.blocked` is not a property of the ground: it is a running
+    /// count of the cell's blocked *tiles*, and this is the only function
+    /// that moves it. Every caller in the original goes through here —
+    /// `BuildType::mask_me`, the mountains, the cliffs, a `Good`'s own
+    /// footprint, a packed siege engine — so a tile that becomes blocked
+    /// without it leaves `docs/PATHFINDER.md` §5's `+ 20 × tcost` and
+    /// §5.1's corner-cutting gate reading a stale zero. That is exactly
+    /// what item 125 was: a city went up on East Indies and the four cells
+    /// under it stayed free to walk (`docs/PATHFINDER.md` §12).
+    ///
+    /// It keeps three things at once, each guarded so that setting an
+    /// already-set bit costs nothing — which is what makes it safe to run
+    /// over a footprint the map dump has already blocked:
+    ///
+    /// - the cell's `blocked` **and** `solid` counts, which move together
+    ///   here (a building stops a forest-walker as surely as anyone; the
+    ///   forest's own `blocked > 0, solid == 0` is written elsewhere);
+    /// - the tile's own [`tile::BAD_PATH`], cleared when it becomes
+    ///   blocked and restored on unblocking if it still has a blocked
+    ///   neighbour;
+    /// - that bit on all eight neighbours — set when this tile blocks,
+    ///   cleared when it unblocks and the neighbour has no other blocked
+    ///   neighbour left — with the cell's `bad` count beside it.
+    ///
+    /// **SEAM**: the original also clears the tile's road
+    /// (`set_road_at(t, 0, 0, 0)`) when a tile becomes blocked. Only the
+    /// laying half of `set_road_at` is modelled (`crate::roads`), so the
+    /// clearing half is left out here rather than guessed at.
+    pub fn set_blocked_at(&mut self, t: Pos, on: bool) {
+        let Some(i) = self.tile_index(t) else { return };
+        let had = self.tiles[i] & tile::BLOCKED != 0;
+        if had != on {
+            let c = Self::cell_of_tile(t);
+            let mut d = self.cell_data(c);
+            if on {
+                d.blocked = d.blocked.saturating_add(1);
+                d.solid = d.solid.saturating_add(1);
+            } else {
+                d.blocked = d.blocked.saturating_sub(1);
+                d.solid = d.solid.saturating_sub(1);
+            }
+            self.set_cell_data(c, d);
+        }
+        if on {
+            self.tiles[i] |= tile::BLOCKED;
+            self.set_bad_path_bit(t, false);
+        } else {
+            self.tiles[i] &= !tile::BLOCKED;
+        }
+        for (dx, dy) in MOVE_8 {
+            let n = Pos::new(t.x + dx, t.y + dy);
+            if !self.tile_in_bounds(n) {
+                continue;
+            }
+            if on {
+                self.set_bad_path_bit(n, true);
+            } else if !self.has_blocked_neighbors(n) {
+                self.set_bad_path_bit(n, false);
+            }
+        }
+        // Unblocking restores the tile's own halo bit when something else
+        // beside it is still blocked.
+        if !on && self.has_blocked_neighbors(t) {
+            self.set_bad_path_bit(t, true);
+        }
     }
 
     /// Sets bits of a tile's mask.

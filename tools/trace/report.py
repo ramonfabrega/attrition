@@ -9,6 +9,9 @@
     report.py <log> sites [FRAME ...]          the same, folded by caller site with counts
     report.py <log> coverage [FRAME ...]       functions entered, per frame (re-armed
                                                frames) — names, counts
+    report.py <log> calls [FRAME ...]          every proxied call of the given sim-frames
+                                               — the arguments, the answer, and the byte
+                                               an out-argument came back with, nested
     report.py <log> blind <docs dir> [<log>...] every `name@00xxxxxx` cited in the docs
                                                that no given trace entered
     report.py <log> functions                  every function ever entered, with the
@@ -29,12 +32,21 @@ import sys
 from collections import Counter, OrderedDict, defaultdict
 
 BASE = 0x400000
-KINDS = {0: "HIT", 1: "get()", 2: "FRAME", 3: "get(a,b)", 4: "rand_real", 5: "INFO", 6: "reseed"}
+KINDS = {0: "HIT", 1: "get()", 2: "FRAME", 3: "get(a,b)", 4: "rand_real", 5: "INFO", 6: "reseed",
+         7: "CALL", 8: "RET"}
 INFO = {1: "attach", 2: "hook-mismatch", 3: "hooked", 4: "no-funcs", 5: "protect-fail",
-        6: "armed", 7: "detach", 8: "declined", 9: "cmd", 10: "cmd-noconsole", 11: "cmds"}
+        6: "armed", 7: "detach", 8: "declined", 9: "cmd", 10: "cmd-noconsole", 11: "cmds",
+        12: "proxied"}
 RVA_GAME_RANDOM = 0xA37A8C  # VA 0xE37A8C
 # the trampolined functions (tracer.c HOOKS): rva -> the record kind they emit
 HOOKS = {0x191ef0: 2, 0x639cf0: 1, 0x639d70: 3, 0x5e18b0: 4, 0x639d30: 6}
+# the proxied functions (tracer.c CALLS), by the site id their records carry.
+# `args` names the arguments in order; a site with fewer is padded with zeros.
+PROXIES = {
+    0: (0x283770, "astar_path", ("stack", "step", "anti")),
+    1: (0x284e50, "calc_cost",
+        ("from.x", "from.y", "to.x", "to.y", "dir", "step", "depth", "transport")),
+}
 
 
 class Index:
@@ -180,6 +192,47 @@ def main():
                 print(f"f{f:<5} {n:>6}  {kind:<10} {g:<5} {chain}")
         return
 
+    if cmd == "calls":
+        # CALL and RET nest, so one stack pairs them: a RET belongs to the
+        # innermost open CALL. A trace killed mid-search leaves CALLs open;
+        # they print with `= ?` rather than being dropped.
+        stack = []
+        for r in recs:
+            if r[0] not in (7, 8):
+                continue
+            f = frame_of(r)
+            if want is not None and f not in want:
+                continue
+            site = r[1]
+            name = PROXIES.get(site, (0, f"site{site}", ()))[1]
+            names = PROXIES.get(site, (0, "", ()))[2]
+            if r[0] == 7:
+                stack.append((f, site, r[2], list(r[3:7])))
+                continue
+            if not stack:
+                print(f"f{f:<5} {'  ' * 0}{name} = {s32(r[2])}  (no matching CALL)")
+                continue
+            cf, csite, this, a03 = stack.pop()
+            if csite != site:  # a proxy whose CALL was outside the window
+                stack.append((cf, csite, this, a03))
+                continue
+            depth = len(stack)
+            args = (a03 + list(r[3:6]) + [0])[:max(len(names), 1)]
+            parts = [f"this={this:#x}"]
+            for n, v in zip(names, args):
+                parts.append(f"{n}={s32(v)}")
+            if name == "calc_cost":
+                step = args[5] or 1
+                parts = [f"from {args[0]},{args[1]} (c{args[0] // step},{args[1] // step})",
+                         f"to {args[2]},{args[3]} (c{args[2] // step},{args[3] // step})",
+                         f"dir {args[4]} step {args[5]} depth {args[6]}"]
+            out = "" if r[6] == 0xFFFFFFFF else f"  out {r[6]}"
+            print(f"f{cf:<5} {'  ' * depth}{name}  {'  '.join(parts)} = {s32(r[2])}{out}")
+        for cf, csite, this, a03 in stack:
+            name = PROXIES.get(csite, (0, f"site{csite}", ()))[1]
+            print(f"f{cf:<5} {name}  this={this:#x} {a03} = ?")
+        return
+
     if cmd == "coverage":
         per_frame = OrderedDict()
         for r in recs:
@@ -220,6 +273,10 @@ def main():
             for rva, kind in HOOKS.items():
                 if kind in kinds:
                     entered.add(rva + BASE)
+            # nor do the proxied ones — a CALL record is their entry
+            for r in rs:
+                if r[0] == 7 and r[1] in PROXIES:
+                    entered.add(PROXIES[r[1]][0] + BASE)
         cited = defaultdict(set)
         pat = re.compile(r"([A-Za-z_][A-Za-z0-9_:~<>]*)@(00[0-9a-f]{6})")
         for root, _, files in os.walk(docs):

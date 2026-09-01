@@ -31,6 +31,15 @@
  *      executed line is an INFO record. The line does NOT travel the order
  *      stream, so a recording of the run does not carry it.
  *
+ *   4. The call proxies. `rontrace.cfg`'s `callwin=LO-HI` replaces each
+ *      listed function with a proxy that logs its arguments, calls the
+ *      original, and logs its **answer** — the one thing neither a draw hook
+ *      nor an `int 3` can give, and the one thing the gamelog has no
+ *      category for. `PathFinder::calc_cost` is why it exists: a per-step
+ *      cost dump over one frame's searches, delimited by
+ *      `PathFinder::astar_path`'s own entry and return. Without a `callwin`
+ *      nothing is patched, so every earlier capture is reproduced exactly.
+ *
  * Freestanding: no CRT, kernel32 only, no floating point (the hooked
  * functions' callers may have live x87/SSE state; the stubs save only the
  * integer registers and flags). Built by `build.sh` with clang, llvm-dlltool
@@ -136,6 +145,9 @@ enum {
     K_REAL = 4, /* MathUtilFuncSet::rand_real — game_random, inlined */
     K_INFO = 5,
     K_RESEED = 6, /* Random::reseed(seed)   this = ecx, arg0 = new seed */
+    K_CALL = 7, /* a proxied call's entry:  a = site, b = this, c..f = args 0..3 */
+    K_RET = 8, /* and its return:          a = site, b = eax,  c..e = args 4..6,
+                * f = the byte behind arg7 where the site names one, else ~0 */
 };
 
 enum {
@@ -150,6 +162,7 @@ enum {
     I_CMD = 9, /* a cheat line ran: a = frame, b = line index, c = from_chat, d = parse_cmd's return */
     I_CMD_NOCONSOLE = 10, /* a line was due but MiscAccess::console_win is null: a = frame, b = index */
     I_CMDS = 11, /* attach: a = lines parsed from rontrace.cmd */
+    I_PROXIED = 12, /* a call site is proxied: a = rva, b = stub, c = nargs */
 };
 
 typedef struct {
@@ -173,6 +186,46 @@ static const HookSite HOOKS[] = {
 };
 #define NHOOKS (sizeof(HOOKS) / sizeof(HOOKS[0]))
 
+/*
+ * The call proxies — the third instrument, and the only one that reads a
+ * function's *answer*.
+ *
+ * A draw hook logs and falls through; that cannot give a return value. A
+ * proxy instead **replaces** the function: it logs the arguments, calls the
+ * original through the displaced-prologue trampoline, logs `eax`, and
+ * returns to the caller cleaning the same bytes the original would. The
+ * arguments are read out of the proxy's own frame, so recursion and
+ * re-entrancy cost nothing — the shadow stack is the real one.
+ *
+ * Every proxied site is `__thiscall` and callee-clean (`ret 4*nargs`), which
+ * is checked against the listing before it is entered here. `out7` says the
+ * eighth argument is a `uchar *` the callee writes; its byte is logged on the
+ * return record, so the whole record is compared rather than the number the
+ * question happens to want.
+ *
+ * They are installed **only when `rontrace.cfg` carries a `callwin`**, so an
+ * unset configuration is the instrument every capture up to run54 ran.
+ */
+typedef struct {
+    u32 rva;
+    u32 len; /* displaced prologue bytes (>= 5, whole instructions, no rel) */
+    u32 nargs; /* stack dwords; the callee cleans 4*nargs */
+    u32 out7; /* the eighth argument is a uchar* the callee writes */
+    u8 expect[10];
+} CallSite;
+
+static const CallSite CALLS[] = {
+    /* PathFinder::astar_path@00683770(Stack<PathData>*, step, anti) — the
+     * search itself, so its entry and return delimit one plan.
+     * push ebp; mov ebp,esp; push -1; push 0xa8b801 */
+    {0x283770, 10, 3, 0, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x01, 0xb8, 0xa8, 0x00}},
+    /* PathFinder::calc_cost@00684e50(from.x, from.y, to.x, to.y, dir, step,
+     * depth, uchar *transport) — §5's per-step price, `ret 0x20`.
+     * push ebp; mov ebp,esp; sub esp,0x50 */
+    {0x284e50, 6, 8, 1, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x50, 0, 0, 0, 0}},
+};
+#define NCALLS (sizeof(CALLS) / sizeof(CALLS[0]))
+
 /* ---- state ------------------------------------------------------------- */
 
 static u32 g_base;
@@ -182,6 +235,8 @@ static volatile i32 g_lock;
 static i32 g_frame = -1; /* -1 until the first do_frame */
 static i32 g_win_lo = -1, g_win_hi = -2; /* re-arm when lo <= frame <= hi */
 static i32 g_cover = 1;
+static i32 g_cw_lo = -1, g_cw_hi = -2; /* the call proxies log when lo <= frame <= hi */
+static i32 g_calls = 0; /* proxies installed (only when a callwin was given) */
 
 static u32 g_funcs[65536];
 static u32 g_nfuncs;
@@ -307,9 +362,16 @@ static void flush(void) {
 
 /* ---- coverage ---------------------------------------------------------- */
 
+/* A patched entry must never also carry an int3: the coverage byte would land
+ * on the `jmp` and the handler would restore it, unhooking the site. A
+ * proxied function therefore has no HIT record — its CALL/RET records are
+ * the stronger evidence anyway. */
 static int is_hook_site(u32 rva) {
     for (u32 i = 0; i < NHOOKS; i++)
         if (rva >= HOOKS[i].rva && rva < HOOKS[i].rva + HOOKS[i].len) return 1;
+    if (g_calls)
+        for (u32 i = 0; i < NCALLS; i++)
+            if (rva >= CALLS[i].rva && rva < CALLS[i].rva + CALLS[i].len) return 1;
     return 0;
 }
 
@@ -444,6 +506,149 @@ static u32 build_stub(u8 *s, const HookSite *h) {
     return n;
 }
 
+/* ---- the call proxies -------------------------------------------------- */
+
+static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) {
+    if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
+    emit(K_CALL, site, self, a0, a1, a2, a3);
+}
+
+static void __cdecl on_ret(u32 site, u32 ret, u32 a4, u32 a5, u32 a6, u32 a7) {
+    if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
+    u32 out = 0xffffffffu;
+    if (site < NCALLS && CALLS[site].out7 && a7 > 0x10000u) out = *(u8 *)a7;
+    emit(K_RET, site, ret, a4, a5, a6, out);
+}
+
+/*
+ * The proxy, per call site (built at attach in an RWX page). It is a whole
+ * function with the site's own signature, not a hook that falls through:
+ *
+ *   55                  push ebp
+ *   8B EC               mov ebp,esp        ; [ebp+8 + 4i] = arg i
+ *   53                  push ebx
+ *   8B D9               mov ebx,ecx        ; this, across both calls
+ *   <push arg3..arg0, or 0>                ; cdecl, right to left
+ *   53                  push ebx
+ *   68 ss ss ss ss      push site
+ *   B8 hh hh hh hh      mov eax, on_call
+ *   FF D0               call eax
+ *   83 C4 18            add esp, 24
+ *   <push arg n-1 .. arg 0>                ; the original's own arguments
+ *   8B CB               mov ecx,ebx
+ *   B8 tt tt tt tt      mov eax, trampoline
+ *   FF D0               call eax           ; callee-clean: esp is restored
+ *   50                  push eax           ; the answer, saved
+ *   <push arg7..arg4, or 0>
+ *   50                  push eax
+ *   68 ss ss ss ss      push site
+ *   B8 hh hh hh hh      mov eax, on_ret
+ *   FF D0               call eax
+ *   83 C4 18            add esp, 24
+ *   58                  pop eax
+ *   8D 65 FC            lea esp,[ebp-4]
+ *   5B                  pop ebx
+ *   5D                  pop ebp
+ *   C2 nn 00            ret 4*nargs
+ *
+ * followed by the trampoline: the displaced prologue and a jump back to
+ * `rva + len`, which is a callable copy of the original.
+ */
+static u32 emit_arg(u8 *s, u32 n, const CallSite *h, u32 i) {
+    if (i >= h->nargs) { /* 6A 00  push 0 */
+        s[n++] = 0x6A;
+        s[n++] = 0x00;
+        return n;
+    }
+    s[n++] = 0xFF; /* FF 75 dd  push [ebp+dd] */
+    s[n++] = 0x75;
+    s[n++] = (u8)(8 + 4 * i);
+    return n;
+}
+
+static u32 emit_logcall(u8 *s, u32 n, u32 site, void *fn) {
+    s[n++] = 0x68; /* push site */
+    *(u32 *)(s + n) = site;
+    n += 4;
+    s[n++] = 0xB8; /* mov eax, fn */
+    *(u32 *)(s + n) = (u32)fn;
+    n += 4;
+    s[n++] = 0xFF; /* call eax */
+    s[n++] = 0xD0;
+    s[n++] = 0x83; /* add esp, 24 */
+    s[n++] = 0xC4;
+    s[n++] = 0x18;
+    return n;
+}
+
+static u32 build_proxy(u8 *s, const CallSite *h, u32 site) {
+    u32 n = 0;
+    static const u8 head[] = {0x55, 0x8B, 0xEC, 0x53, 0x8B, 0xD9};
+    memcpy(s, head, sizeof head);
+    n = sizeof head;
+    for (i32 i = 3; i >= 0; i--) n = emit_arg(s, n, h, (u32)i);
+    s[n++] = 0x53; /* push ebx (this) */
+    n = emit_logcall(s, n, site, (void *)on_call);
+
+    for (i32 i = (i32)h->nargs - 1; i >= 0; i--) n = emit_arg(s, n, h, (u32)i);
+    s[n++] = 0x8B; /* mov ecx, ebx */
+    s[n++] = 0xCB;
+    s[n++] = 0xB8; /* mov eax, trampoline — patched below */
+    u32 tramp_imm = n;
+    n += 4;
+    s[n++] = 0xFF; /* call eax */
+    s[n++] = 0xD0;
+
+    s[n++] = 0x50; /* push eax — the answer, saved under our arguments */
+    for (i32 i = 7; i >= 4; i--) n = emit_arg(s, n, h, (u32)i);
+    s[n++] = 0x50; /* push eax — the answer, as an argument */
+    n = emit_logcall(s, n, site, (void *)on_ret);
+    s[n++] = 0x58; /* pop eax */
+    s[n++] = 0x8D; /* lea esp, [ebp-4] */
+    s[n++] = 0x65;
+    s[n++] = 0xFC;
+    s[n++] = 0x5B; /* pop ebx */
+    s[n++] = 0x5D; /* pop ebp */
+    s[n++] = 0xC2; /* ret 4*nargs */
+    *(u16 *)(s + n) = (u16)(4 * h->nargs);
+    n += 2;
+
+    n = (n + 15) & ~15u;
+    *(u32 *)(s + tramp_imm) = (u32)(s + n);
+    memcpy(s + n, (void *)(g_base + h->rva), h->len);
+    n += h->len;
+    s[n++] = 0xE9; /* jmp rva + len */
+    u32 back = g_base + h->rva + h->len;
+    *(u32 *)(s + n) = back - ((u32)(s + n) + 4);
+    n += 4;
+    return n;
+}
+
+static void install_calls(void) {
+    u8 *page = (u8 *)VirtualAlloc(0, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    if (!page) return;
+    u32 used = 0;
+    for (u32 i = 0; i < NCALLS; i++) {
+        const CallSite *h = &CALLS[i];
+        u8 *t = (u8 *)(g_base + h->rva);
+        int ok = 1;
+        for (u32 j = 0; j < h->len; j++)
+            if (t[j] != h->expect[j]) ok = 0;
+        if (!ok) {
+            emit(K_INFO, I_HOOK_MISMATCH, h->rva, *(u32 *)t, *(u32 *)(t + 4), *(u32 *)(t + 8),
+                 *(u32 *)(t + 12));
+            continue;
+        }
+        u8 *stub = page + used;
+        used += (build_proxy(stub, h, i) + 15) & ~15u;
+        t[0] = 0xE9;
+        *(u32 *)(t + 1) = (u32)stub - ((u32)t + 5);
+        for (u32 j = 5; j < h->len; j++) t[j] = 0xCC; /* never executed */
+        emit(K_INFO, I_PROXIED, h->rva, (u32)stub, h->nargs, 0, 0);
+    }
+    FlushInstructionCache(g_proc, (void *)(g_base + TEXT_RVA), TEXT_SIZE);
+}
+
 static void install_hooks(void) {
     u8 *page = (u8 *)VirtualAlloc(0, 4096, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (!page) return;
@@ -503,7 +708,10 @@ static int key_is(const char *p, const char *k) {
 }
 
 /* rontrace.cfg: lines `window=LO-HI` (frames to re-arm at, inclusive; default
- * none) and `cover=0|1` (default 1). Anything else is ignored. */
+ * none), `cover=0|1` (default 1) and `callwin=LO-HI` (frames over which the
+ * proxied call sites log their arguments and answers; **absent means the
+ * proxies are not installed at all**, which is what every capture before
+ * run55 ran). Anything else is ignored. */
 static void read_cfg(void) {
     static char cfg[1024];
     u32 n = read_file("rontrace.cfg", cfg, sizeof cfg - 1);
@@ -515,6 +723,11 @@ static void read_cfg(void) {
             g_win_lo = parse_int(&p);
             if (*p == '-') p++;
             g_win_hi = parse_int(&p);
+        } else if (key_is(p, "callwin")) {
+            p += 8;
+            g_cw_lo = parse_int(&p);
+            if (*p == '-') p++;
+            g_cw_hi = parse_int(&p);
         } else if (key_is(p, "cover")) {
             p += 6;
             g_cover = parse_int(&p);
@@ -605,6 +818,10 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
             return 1;
         }
         install_hooks();
+        if (g_cw_hi >= g_cw_lo) {
+            g_calls = 1;
+            install_calls();
+        }
         if (g_cover) {
             if (!g_nfuncs) emit(K_INFO, I_NOFUNCS, 0, 0, 0, 0, 0);
             AddVectoredExceptionHandler(1, (void *)veh);

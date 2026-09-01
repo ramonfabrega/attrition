@@ -1111,15 +1111,17 @@ impl Sim {
                     .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
                 self.world
                     .set_tile_field(t, tile::OBJECT, tile::OBJECT_BUILDING);
-                if self.build_types[ty].blocks(u, v) {
-                    self.world.set_tile_bits(t, tile::BLOCKED);
-                } else {
-                    self.world.clear_tile_bits(t, tile::BLOCKED);
-                }
+                // Through `set_blocked_at`, never by hand: the bit is only
+                // half of it — the containing cell's `blocked`/`solid`
+                // counts are the pathfinder's terrain cost
+                // (`docs/PATHFINDER.md` §5), and they move nowhere else.
+                self.world
+                    .set_blocked_at(t, self.build_types[ty].blocks(u, v));
             } else {
                 self.world.set_tile_field(t, tile::OBJECT, 0);
+                self.world.set_blocked_at(t, false);
                 self.world
-                    .clear_tile_bits(t, tile::BLOCKED | tile::PLACED | tile::PLACED_TWICE);
+                    .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
             }
         }
         if build::is_city(&self.build_types, ty) {

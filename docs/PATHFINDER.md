@@ -388,7 +388,7 @@ read** — fog hides them.
 | enemy territory | `+ 4` | owner ≥ 0 and `is_enemy`; non-ocean cells only |
 | ocean cell | `+ 200` | `is_ocean(to)` and `avoid_sea ≠ 0` |
 | land cell | `+ 200` | not ocean and `avoid_land` |
-| terrain | `+ 20 × tcost` | `tcost` = cell byte `+0x11` (the PDB's `WData.blocked`), or `+0x13` (`WData.solid`, signed) if `iroquois` — audit V13 |
+| terrain | `+ 20 × tcost` | `tcost` = cell byte `+0x11` (the PDB's `WData.blocked`), or `+0x13` (`WData.solid`, signed) if `iroquois` — audit V13. **It is a count, and it has a writer**: see below |
 | impassable terrain | `+ 100000` | `tcost ≥ 13` |
 | army, rough | `+ 10000` | `army` and `tcost ≥ 5` |
 | army, flagged cell | `base <<= 5` | `army` and cell flags `& 0x200` |
@@ -407,6 +407,36 @@ to **0**, nine waypoints reproduced entry for entry. The reason is in the
 numbers: a scout's base is `8` unseen against `0x400` seen, a factor of
 128, so *whether a cell is known* and *what it costs once known* multiply
 rather than add. Pricing one without the other prices nothing.
+
+**`tcost` is a running count of the cell's blocked tiles, and one function
+keeps it** (2026-09-01, run55; the queue's item 125). `WData.blocked`
+(`+0x11`) is not a property the map generator writes once: it is *how many
+of the cell's sixteen tiles carry `TData.mask & 0x4000`*, and
+**`World::set_blocked_at@006b4900`** is the only writer. Every caller in
+the executable goes through it — `BuildType::mask_me@006312a0` for a
+building's footprint, `Mountains::add_mountain`, `World::set_cliff_at`,
+`Good::init`, `TerrainGroup::drop_tile`, `SpellType::cast_pack` — and it
+does three things at once, each guarded so that setting an already-set bit
+costs nothing:
+
+- when the tile's `0x4000` actually changes, the cell's `blocked`
+  **and** `solid` (`+0x13`) step together — a building stops a
+  forest-walker as surely as anyone, so the forest's own
+  `blocked > 0, solid == 0` is written elsewhere;
+- the tile's own `0x2000` is cleared as it becomes blocked (and its road
+  cleared, `set_road_at(t, 0, 0, 0)`), restored on unblocking if
+  `WorldData::has_blocked_neighbors@006b2990` still says yes;
+- all eight neighbours take `0x2000` — the "next to something blocked"
+  bit the tile grid charges `0x400` for, three rows down — and lose it on
+  unblocking only when they have no other blocked neighbour left.
+  `WData.bad` (`+0x12`) counts that bit per cell the same way.
+
+So a building raises the *pathfinder's terrain cost* of every cell it
+stands on, by the number of tiles of that cell it covers. That is the whole
+of §12's frame-1476 scout: a city with nine of a cell's sixteen tiles under
+it charges `20 × 9 − 4 = 176` on top of a scout's 128, and opens §5.1's
+corner-cutting gate, and a simulation that keeps the bit without the count
+charges nothing and walks through the city.
 
 **Tiles (`0xc0`)** read the tile mask instead: `base = 0x100`, `0x400` if
 the tile has `0x2000` (rough); danger and the ±4 owner terms as above (the
@@ -609,14 +639,33 @@ way. (`docs/ORDERS.md` §4.6 amended in place, pointing here.)
   real forest under it — so what remains there is the pathfinder's (the
   open items in §11), not the map's. Run10 (run7's length, the map) is the
   next measurement.
-- **There is no numeric per-search oracle to switch on** (Opus survey,
-  verified conclusions): the `PATHFINDER` gamelog category (index 29,
-  threshold ≥ 10) emits exactly one line — `astar_river`'s seed at map
-  generation. `dbg_tree_depth` computes node counts but prints to an
+- ~~**There is no numeric per-search oracle to switch on**~~ — **there is
+  one now, and it is not a logger** (2026-09-01, run55). The survey below
+  stands as a statement about the *game*: the `PATHFINDER` gamelog category
+  (index 29, threshold ≥ 10) emits exactly one line — `astar_river`'s seed
+  at map generation; `dbg_tree_depth` computes node counts but prints to an
   on-screen window gated on `show_debug`, which nothing writes;
   `dbg_draw_failures` is an empty function; `PathFinderData::log_data` (17
   mode flags) is reachable only via `DUMP_ALL=1`, which hangs the game
-  (`docs/ORACLE.md`).
+  (`docs/ORACLE.md`). What changed is the instrument: `tools/trace` now
+  **proxies** a chosen function — logs its arguments, calls the original
+  through the displaced-prologue trampoline, and logs `eax` — so
+  `calc_cost`'s answer is readable even though nothing prints it.
+  `rontrace.cfg`'s `callwin=LO-HI` switches it on;
+  `PathFinder::astar_path`'s own entry and return delimit one search;
+  `report.py … calls` and `rondata::trace::Call` read it.
+  **run55 is the first**: run39's lobby and seed, `callwin=1460-1490`,
+  and `rngcmp.py` says its word is run39's on all 1,501 overlapping frames
+  with zero differing — so the proxies cost the simulation nothing.
+  In that whole thirty-one-frame window the game ran **one** search, the
+  scout's, 110 `calc_cost` calls on sim-frame 1476. 103 of them already
+  agreed with this crate; the seven that did not were all steps into the
+  four cells under a city, and are §5's `tcost` note above. With that
+  landed the two searches are **identical call for call** — same
+  arguments, same answers, nothing extra on either side
+  (`diff::tests::run55_s_frame_1477_prices_are_the_originals`, which
+  compares by argument list rather than by position, so a disagreement
+  there is the formula and never the search order).
 - **One free number**: `UNITS=3` already prints `start_dist` — §4.1's
   start-to-goal Manhattan, stashed on the unit — so every logged search
   hands over one checkable value with no new capture.
@@ -806,57 +855,42 @@ Four of the first reading's open items were **settled by the audit**
   and the step toward it differs, which points at the movement layer
   (`docs/MOVEMENT.md`'s step/turn interplay), not the planner. Pre-existing,
   unchanged by this landing.
-- **The AI scout's `EXPLORE_TO` world path on run39's frame 1477, which
-  is East Indies' word at 1647** (2026-08-31, the queue's item 123). The
-  scout `1/0` stands in cell `(47, 45)` and is sent to `(31992, 33528)`
-  in cell `(41, 43)`. The original's stack is the goal and **six** world
-  nodes — `(47,44) (46,43) (45,43) (44,43) (43,43) (42,42)`, north
-  around the mountain band at `(45..46, 44..45)`, with the arrival node
-  `(41,43)` dropped by §7. This crate's is the goal and **four** —
-  `(46,46) (45,46) (44,45) (43,44)`, south around the same band, its
-  arrival `(42,43)` dropped. Five steps against seven, so the scout
-  reaches the target on frame **1647** where the original reaches it on
-  **1653** and spends `think_scout`'s ring draws six frames early. That
-  is the whole of the word's parting *and* of player 1's position
-  parting at 1478, one frame after the order
-  (`diff::tests::run39_s_islands_game_is_the_second_map_s_score`).
+- ~~**The AI scout's `EXPLORE_TO` world path on run39's frame 1477**~~
+  **Closed 2026-09-01** (the queue's item 125), and it was neither the
+  heuristic nor a tie: it was **`WData.blocked` — a count of the cell's
+  blocked tiles — that nothing in this crate was keeping**. §5's note on
+  `tcost` has the mechanic and `World::set_blocked_at@006b4900`;
+  `crates/sim/src/world.rs` has the implementation and
+  `Sim::mask_building` is its only caller so far.
 
-  **Reproduced in one line**: refusing the step `(47,45) → (46,46)` — or
-  the one after it, `(46,46) → (45,46)` — makes this crate's search
-  return the original's seven entries **exactly**, position for
-  position. So the whole difference is the southern corridor's entrance,
-  and nothing downstream of it.
+  The reading that had been carried into this entry — that the original's
+  route was the *cheaper* one under this crate's own costs, 661 against
+  672, so two sides could agree on every step's price and still return
+  different routes — was **wrong in its premise**. They did not agree on
+  every step's price. run55's per-step dump (§10) put the two side by
+  side on the frame itself, and of the original's 110 `calc_cost` calls
+  103 already matched; every one of the seven that did not was a step
+  into one of the four cells under player 1's second city at tile
+  (180, 188) — `(44,46) (45,46) (44,47) (45,47)`, nine of each cell's
+  sixteen tiles built over. The original charges `128 + 20×9 − 4 = 304`
+  to enter one and refuses `(45,46) → (44,47)` outright, §5.1's
+  corner-cutting having a non-zero `tcost` to open on at last; this crate
+  charged 128 and refused nothing, so its search went **through** the
+  city. The six things §12 had ruled out were all correctly ruled out —
+  fog, danger, the buildings' positions, the cell records, the estimate,
+  the stop test — and the seventh, the one nobody had thought to name,
+  was that a cell record can *change*.
 
-  **What it is not**, each measured against the original's own record
-  rather than reasoned about: the **fog** — the scout walked cells
-  `(43,44)` through `(47,44)` itself between frames 1285 and 1476, so
-  both sides have them lit, and forcing `(43,43)` dark yields a *third*
-  route rather than the original's; the **danger map** — run38's
-  `danger[8][900]` is zero everywhere but the two bases, blocks
-  `(2..5, 2..5)` and `(24..27, 24..27)`, and neither route touches one;
-  the **buildings** — this crate's fourteen at frame 1477 are the dump's,
-  position for position, player 1's second city at tile `(180, 188)`
-  included; the **terrain and cell records**, which are the dump's;
-  `PathFinderData::get_estimate@00688310`, which is `d × 0x3c / step`
-  as transcribed; the stop test at `00684086`, which is
-  `manh <= tolerance/2 + stride` with the tolerance read from the entry
-  *below* the search goal; the node key, which is `length + estimate`;
-  and §5.1's corner-cutting, whose gate is the **destination cell's**
-  `tcost` and which is therefore never entered here — every cell on
-  either route has `WData.blocked == 0`.
+  With the count kept, the frame-1476 search is the original's **call for
+  call**, and run39 as a whole is matched end to end: 1,851 ticks of
+  1,851, 1,850 order-frames of 1,850, **neither player diverging
+  anywhere**, and the word running to the end of the capture. The
+  successor is the long capture: run54 puts East Indies' word at
+  **2176**, on a gathering building's own survey (the queue's item 85).
 
-  **What is odd about it, and worth carrying into the next reading.**
-  Under this crate's *own* cost model the original's route is the
-  cheaper of the two — 661 against 672 — and the search still misses it,
-  because the two unseen cells at its end make the heuristic an
-  **over**-estimate there: a dark cell costs a scout 1 (`base = 8`,
-  §5) where the heuristic charges 60 a cell, so the northern route's
-  `(43,43)` carries `value` 768 while this crate's arrival `(42,43)`
-  carries 732 and pops first. Two sides can therefore agree on every
-  step's price and still return different routes, and the difference
-  will be a handful of points on one step. The check that would settle
-  it is a **per-step cost dump from the original**: the `PATHFINDER`
-  gamelog category emits nothing (§10), so it is an `int 3` on
-  `calc_cost@00684e50` in `tools/trace` recording `(from, to, dir,
-  return)` — the same instrument the draw sites use, pointed at a
-  function that returns a number.
+  **The lesson, which is the audit README's own and cost a month here:
+  grep the writers of every field you call frozen.** The terrain cost had
+  been read, implemented, audited and diffed, and every one of those
+  passes treated `WData.blocked` as a property of the map because the
+  frame-0 dump it was loaded from is a map. One `grep` for the field's
+  writers names `set_blocked_at` in a second.

@@ -12,10 +12,12 @@ health inside hostile national borders.
 > clock, the per-frame random stream, and the AI — its scripted opening through an interpreter of
 > our own, and its C++ producers behind it. All of it headless, integer-only,
 > and diffed frame for frame against the original's own per-frame log — and
-> on one of the two scored maps, a full human-versus-AI capture now runs in
-> lockstep for its whole 1,772 frames: every unit position, every order
-> list, every animal, and the game's RNG placed draw for draw by call site.
-> The second map holds to frame 1,477 of 1,850. No renderer yet.
+> **on both scored maps a full human-versus-AI capture now runs in lockstep
+> for its whole length**, 1,772 frames on one and 1,851 on the other: every
+> unit position, every order list, every animal, and the game's RNG placed
+> draw for draw by call site, with no disagreement anywhere in either. The
+> measurement moves on to the same two games at 24,000 frames, where the
+> first divergence is now at frame 2,176. No renderer yet.
 > `docs/QUEUE.md` says exactly where things stand.
 
 ## What this is

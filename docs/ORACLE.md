@@ -2860,6 +2860,65 @@ after is not: (1) the tooltip says the letter, so the game loaded the bind;
 rebind `FORM_E_RIGHT` to the same letter and look for `form 3` in the dump.
 Steps 1 and 2 are a 250-frame run apiece and would have saved run50.
 
+## run55 — the call proxies, and a function's own answer (2026-09-01)
+
+The third instrument's third question. `tools/trace` could say **which
+function drew** and **which functions ran**; it could not say **what a
+function answered**, and no logger can: the dumps print state, a draw record
+prints a seed, an `int 3` prints that something was entered. A function that
+computes a number and hands it back leaves nothing behind.
+
+`docs/PATHFINDER.md` §10 had recorded exactly that as a dead end — the
+`PATHFINDER` gamelog category emits one line at map generation, the two
+`dbg_*` printers are gated on a flag nothing writes, and
+`PathFinderData::log_data` needs the `DUMP_ALL=1` that hangs the game. So
+item 125's check was written down as an `int 3` on `calc_cost` and left.
+
+**What it wanted was not a breakpoint but a proxy.** `rontrace.cfg`'s new
+`callwin=LO-HI` replaces each listed function with a stub of its own
+signature that logs the arguments, calls the original through the
+displaced-prologue trampoline, and logs `eax`. The arguments live in the
+proxy's own frame, so recursion and re-entrancy cost nothing, and the
+callee-clean `ret <imm>` is copied from the listing. Two are proxied:
+`PathFinder::astar_path@00683770`, whose entry and return **delimit one
+search**, and `PathFinder::calc_cost@00684e50`. Without a `callwin` nothing
+is patched at all, which is how every earlier capture stays reproducible.
+`tools/trace/README.md` has the how-to and the three things a new site needs
+from the listing.
+
+**run55 is run39's game**: East Indies, `MAP_STYLE 18`, seed 12345, the
+profile's lobby, run39's own `[End Frame]` detail, 1,500 frames, seventeen
+minutes and 391 MB — with `cover=0` and `callwin=1460-1490`.
+`tools/gamelog/rngcmp.py` says its `game_random` word is run39's on **all
+1,501 overlapping frames, zero differing**, so the proxies cost the
+simulation nothing and the capture inherits run39's siblings.
+
+**What it found, in one reading.** Over the whole thirty-one-frame window
+the game ran **one** search — the AI scout's, 110 `calc_cost` calls on
+sim-frame **1476** — which made identification free. 103 of the 110 already
+agreed with this crate's own answers for the same arguments. All seven that
+did not were steps into the four cells under player 1's second city, and
+they said the same thing twice: `+176` on each, and one refusal. `176` is
+`20 × 9 − 4`, the terrain term for a cell nine of whose sixteen tiles are
+built over, less the own-territory discount — so `WData.blocked` is a
+**count of blocked tiles that a building raises**, not a property of the
+map, and `World::set_blocked_at@006b4900` is its only writer. With that
+kept, the two searches are identical call for call, and East Indies' whole
+capture is matched: 1,851 ticks of 1,851, 1,850 order-frames of 1,850, no
+player diverging anywhere.
+
+**Two things worth carrying.**
+
+- **The frame label bit again.** Every document before this one called the
+  scout's search "frame 1477", from the dump block it lands in. The trace
+  counts `Game::frame`, and the search is on **1476**. The first `calls`
+  listing came back empty because of it.
+- **A proxy is cheaper than it sounds and more general than it looks.** The
+  encoding was verified against `llvm-mc --disassemble` before the game was
+  ever launched, and a sixty-frame smoke run proved it before the
+  seventeen-minute one. Any function whose *answer* is the question — a
+  score, a predicate, a chosen index — is now one table row away.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The

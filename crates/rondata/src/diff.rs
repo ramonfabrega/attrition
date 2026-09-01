@@ -51,9 +51,9 @@ pub struct MapFloors {
 pub const FLOORS: [MapFloors; 2] = [
     MapFloors {
         map: "EastIndies",
-        ticks: 1477,
-        orders: 1476,
-        word: 1647,
+        ticks: 1851,
+        orders: 1850,
+        word: 1850,
     },
     MapFloors {
         map: "GreatLakes",
@@ -301,6 +301,7 @@ pub fn world_from(
                     goods: c.goods as u8,
                     blocked: c.blocked as u8,
                     solid: c.solid as i8,
+                    bad: c.bad as u8,
                     down: c.down as i16,
                     down_who: c.down_who as i8,
                 },
@@ -7084,6 +7085,115 @@ mod tests {
         );
     }
 
+    /// **run54 — East Indies at thirteen times the scored length, read at
+    /// last** (2026-09-01).
+    ///
+    /// run54 was taken with run53 and sat unread for a day: while run39's
+    /// own word parted at 1647 there was no question a longer capture could
+    /// answer. Item 125 took that word to the end of run39, so the scored
+    /// capture stopped being the boundary and this one became the only
+    /// thing that says where the boundary is.
+    ///
+    /// It is the same game as run38/run39 — `tools/gamelog/rngcmp.py` says
+    /// its `game_random` word is run39's on all 1,851 overlapping frames,
+    /// zero differing — traced whole over **24,000**, and its `[End Frame]`
+    /// is `MISC` alone, so it carries the stream and no per-frame record.
+    /// That is what it is for: the word is scoreable from the trace, and
+    /// ticks and orders are not scoreable here at all.
+    ///
+    /// **The pasture is a source here too** — run54's own trace reached the
+    /// setup, so the five owner-9 animals come from it rather than from
+    /// run39's (`docs/SYNC.md` §3.11). Without them this is a different
+    /// game within a few hundred frames and every number below is nobody's.
+    ///
+    /// Only the two frame numbers are pinned, for run53's reason: past the
+    /// parting both sides are on streams that are nobody's, and the totals
+    /// there are coincidence that moves with every unrelated change.
+    #[test]
+    fn run54_s_24000_frames_are_where_the_second_map_s_word_now_parts() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(trace)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+        ) else {
+            eprintln!("skipping: no run54 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &trace);
+        assert_eq!(
+            init.pasture.len(),
+            1,
+            "run54's trace reached the setup and East Indies' AI has one pasture"
+        );
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let last = trace.frames.last().map_or(0, |(n, _)| *n);
+        assert!(
+            last >= 23_000,
+            "run54's traced length is {last}, wanted 23,000+ — this is the \
+             long capture, and a short file here is a wrong file"
+        );
+        for _ in 0..last {
+            built.tick();
+        }
+        let first_part = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| *ours != trace.labels(*f))
+            .map_or(last, |(f, _)| *f);
+        let first_count = built
+            .frame_sites
+            .iter()
+            .find(|(f, ours)| ours.len() != trace.labels(*f).len())
+            .map_or(last, |(f, _)| *f);
+        eprintln!("run54: word parts at {first_count}, sequence at {first_part} of {last}");
+        for (f, ours) in built.frame_sites.iter() {
+            if *f != first_count && *f != first_part {
+                continue;
+            }
+            let theirs = trace.labels(*f);
+            let at = (0..ours.len().max(theirs.len()))
+                .find(|&i| ours.get(i) != theirs.get(i))
+                .unwrap_or(0);
+            eprintln!(
+                "  frame {f}: ours {} theirs {} — at {at}, ours {:?} theirs {:?}",
+                ours.len(),
+                theirs.len(),
+                ours.get(at),
+                theirs.get(at)
+            );
+        }
+        assert!(
+            first_count >= LONG_WORD_EAST_INDIES && first_part >= LONG_WORD_EAST_INDIES,
+            "run54's ceiling fell: word {first_count}, sequence {first_part}; \
+             the floor is {LONG_WORD_EAST_INDIES} on both"
+        );
+    }
+
+    /// East Indies' word on the **long** capture — the number that took
+    /// over as the headline when run39's own length stopped bounding it
+    /// (`docs/DECISIONS.md` entry 29's first counter). It is not in
+    /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
+    /// this map's scored capture is closed; the queue states both.
+    ///
+    /// **2176**, and its successor is named by its own frame: the original
+    /// spends **192** draws there at
+    /// `Build::find_gather_tiles+0x10a < Build::init+0x55b <
+    /// Objects::init_build+0x82` — a gathering building going up and
+    /// surveying its tiles — and this simulation spends none of them. That
+    /// is the queue's item 85, which was booked off run40 and is now the
+    /// leading map's first divergence.
+    const LONG_WORD_EAST_INDIES: i64 = 2176;
+
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**
     ///
@@ -9385,9 +9495,15 @@ mod tests {
             .map(|(f, _)| *f)
             .filter(|f| *f < end)
             .collect();
+        // 2026-09-01: four more (1736, 1776, 1784, 1800) arrived with item
+        // 125 — not because a bird changed, but because `end` did. The
+        // list runs to wherever the two streams still agree, and East
+        // Indies' now agrees for the whole capture.
         assert_eq!(
             ours,
-            vec![576, 944, 944, 1016, 1144, 1368, 1376],
+            vec![
+                576, 944, 944, 1016, 1144, 1368, 1376, 1736, 1776, 1784, 1800
+            ],
             "run39's landings up to the word at {end}"
         );
         assert_eq!(ours, theirs, "run39's landing frames, the trace's own");
@@ -9770,6 +9886,109 @@ mod tests {
     /// nobody's, and moving them by chasing frame 168 moves nothing. The
     /// floor stays where it is so that nothing falls through it by
     /// accident; the number to steer this map by is the word.
+    /// **The original's own per-step prices, against ours.**
+    ///
+    /// run55 is run39's game — same lobby, same seed, same detail — taken
+    /// with `rontrace.cfg`'s `callwin` over frames 1460–1490, which
+    /// **proxies** `PathFinder::calc_cost` and `PathFinder::astar_path` and
+    /// logs each call's arguments *and its answer* (`tools/trace/tracer.c`,
+    /// instrument 4). `docs/PATHFINDER.md` §10 recorded that there is no
+    /// numeric per-search oracle to switch on; there is one now, and this
+    /// is the check it exists for.
+    ///
+    /// The comparison is **by argument, not by position**. Two searches
+    /// that price differently expand differently, so their call sequences
+    /// cannot be lined up entry for entry — but every step *both* sides
+    /// priced is a row of §5 with the original's answer beside ours, and a
+    /// disagreement there is a bug in the formula rather than in the
+    /// search. What the sequences do beyond that is the queue's item 125.
+    #[test]
+    fn run55_s_frame_1477_prices_are_the_originals() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(costs)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+            trace("rontrace-run55.log"),
+        ) else {
+            eprintln!("skipping: no East Indies cost trace (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let theirs = costs.calls_in(FRAME, crate::trace::call_site::CALC_COST);
+        assert!(
+            !theirs.is_empty(),
+            "run55's callwin covers frame {FRAME}; it priced nothing there"
+        );
+
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().expect("run39 is a dump");
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..FRAME {
+            built.tick();
+        }
+        built.sim.trace_costs = true;
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.cost_marks);
+
+        // The original's answers, keyed by the whole argument list.
+        let mut theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> =
+            std::collections::BTreeMap::new();
+        for c in &theirs {
+            theirs_by_key.insert(c.cost_key().expect("a calc_cost call"), c.ret);
+        }
+        let mut shared = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for m in &ours {
+            let Some(&t) = theirs_by_key.get(&m.key()) else {
+                continue;
+            };
+            shared += 1;
+            if t != m.cost {
+                let cell = |v: i32| v.div_euclid(m.step);
+                wrong.push(format!(
+                    "({},{}) -> ({},{}) dir {} depth {}: ours {} theirs {}",
+                    cell(m.from.0),
+                    cell(m.from.1),
+                    cell(m.to.0),
+                    cell(m.to.1),
+                    m.dir,
+                    m.depth,
+                    m.cost,
+                    t
+                ));
+            }
+        }
+        assert!(
+            shared > 0,
+            "frame {FRAME}: {} of the original's steps and {} of ours, and not one \
+             argument list in common — the searches did not start from the same place",
+            theirs.len(),
+            ours.len()
+        );
+        assert!(
+            wrong.is_empty(),
+            "frame {FRAME}: {} of {shared} shared steps priced differently:\n  {}",
+            wrong.len(),
+            wrong.join("\n  ")
+        );
+    }
+
+    /// The **sim-frame** the scout plans on — `docs/PATHFINDER.md` §12's
+    /// search, which every document before this one called frame 1477
+    /// because that is the label of the dump block it lands in, and a
+    /// block `FRAME n` is the end of sim-frame `n − 1` (`docs/ORACLE.md`,
+    /// "The frame label, settled"). run55's trace counts `Game::frame` and
+    /// puts the whole search on **1476**, which is also the only search in
+    /// its thirty-one-frame window.
+    const FRAME: i64 = 1476;
+
     #[test]
     fn run39_s_islands_game_is_the_second_map_s_score() {
         let Some(inst) = install() else { return };
@@ -9885,11 +10104,6 @@ mod tests {
         //               unmoved at 167/167.
         let ticks = report.ticks_before_divergence();
         let orders = report.order_ticks_before_divergence();
-        let first: Vec<i64> = report
-            .first_divergence
-            .iter()
-            .map(|&(_, f)| f.unwrap_or(i64::MAX))
-            .collect();
         eprintln!(
             "run39: ticks {ticks}, orders {orders}, first divergence {:?}",
             report.first_divergence
@@ -9951,14 +10165,34 @@ mod tests {
         //               capture does not dump every frame — and both moved
         //               by the same 103 the word moved by less its own
         //               lead. Nothing fell.
+        //   2026-09-01  ticks **1477 -> 1851**, orders **1476 -> 1850**,
+        //               and **neither player diverges at all** (item 125:
+        //               `WData.blocked` is a count of the cell's blocked
+        //               tiles and nothing here was keeping it). The whole
+        //               of run39 — every frame of the capture, every unit,
+        //               position and order list — is the original's. It is
+        //               the first capture on either map to be matched end
+        //               to end, and with Great Lakes already exact over
+        //               its own 1,772 it closes both.
+        //
+        //               What it was: player 1's second city went up on
+        //               tile (180, 188), and the four cells under it kept
+        //               a `blocked` of zero, so `calc_cost` charged an
+        //               empty field where the original charges nine
+        //               sixteenths of one — 304 against 128 — and §5.1's
+        //               corner-cutting never even opened. The AI scout
+        //               therefore walked *through* the city on frame 1476
+        //               and arrived six frames early. run55's per-step
+        //               cost dump is what said so, in one reading: 103 of
+        //               110 steps already agreed, and all seven that did
+        //               not were steps into those four cells
+        //               ([`run55_s_frame_1477_prices_are_the_originals`]).
+        let none = report.first_divergence.iter().all(|&(_, f)| f.is_none());
         assert!(
-            ticks >= FLOORS[0].ticks
-                && orders >= FLOORS[0].orders
-                && first[0] >= 1657
-                && first[1] >= 1478,
+            ticks >= FLOORS[0].ticks && orders >= FLOORS[0].orders && none,
             "the second map's score fell: ticks {ticks}, orders {orders}, first \
-             divergence {:?} — the floor is ticks {}, orders {}, player 0 @ 1657, \
-             player 1 @ 1478",
+             divergence {:?} — the floor is ticks {}, orders {}, and **no player \
+             diverging anywhere in the capture**",
             report.first_divergence,
             FLOORS[0].ticks,
             FLOORS[0].orders
