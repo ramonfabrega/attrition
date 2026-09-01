@@ -2221,3 +2221,95 @@ fn a_finished_farm_pays_once_and_a_rebuilt_one_pays_nothing() {
         "a slot the player has held before pays nothing"
     );
 }
+
+/// **The British arm of `train_time`'s tail** — `docs/PRODUCTION.md`,
+/// "The tail's first caller".
+///
+/// Three tests inside one `has_tribe_bonus(0xb)`, and each is its own
+/// `t * 100 / (K + 100)`: the sea domain at `BRITISH_SHIP_SPEED`, the
+/// Bowmen root at `BRITISH_ARCHER_SPEED`, the anti-air root at
+/// `BRITISH_AA_SPEED`. The shipped file makes the middle one **0**, so the
+/// arm is live and inert at once — the assertion below is that a British
+/// archer costs exactly what everyone else's does, which is the sort of
+/// thing an implementation gets wrong by leaving the test out and looking
+/// right.
+///
+/// The numbers are run58's own: a Fisherman is `JOB_TIME 94`, so the base
+/// is 9,400, `UNIT_RATE_BASE` is 120 and the ramp's first step puts a
+/// British player's target at **11,280 × 100 / 133 = 8,481** — the value
+/// the AI's Dock `1/2010` caps at on frame 4461.
+#[test]
+fn the_british_ship_bonus_is_a_third_off_the_clock() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    // A Fisherman as the shipped row has it, and two land types beside it
+    // that differ only in which lineage bit they carry.
+    let mut fisher = citizen_type(t.barracks);
+    fisher.times.job_time = 94;
+    fisher.combat.domain = attrition::Domain::Sea;
+    let fisher = sim.add_unit_type(fisher);
+    let mut archer = citizen_type(t.barracks);
+    archer.times.job_time = 94;
+    archer.archer = true;
+    let archer = sim.add_unit_type(archer);
+    let mut aa = citizen_type(t.barracks);
+    aa.times.job_time = 94;
+    aa.anti_air = true;
+    let aa = sim.add_unit_type(aa);
+
+    // The nation power needs a city — `has_tribe_bonus`' own gate — and the
+    // three types are made at the barracks beside it.
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.init_build(0, t.barracks, tile_pos(38, 32), false);
+    finish(&mut sim, b);
+    // Train jobs, not research ones: the availability bit is what puts a
+    // type on the national side of the tail's partition at all.
+    for ty in [fisher, archer, aa] {
+        sim.muster[0].researched[ty] = true;
+    }
+    // Each type is read on its own and put back: the target is recomputed
+    // every frame, and the ramp has to see nothing of the type owned.
+    let target = |sim: &mut Sim, ty: usize| {
+        let slot = sim.queue_up(b, ty).expect("the barracks takes the order");
+        let t = sim.queue_target(b, slot);
+        sim.cancel(b, slot);
+        t
+    };
+
+    // No nation: `JOB_TIME × 100`, through `UNIT_RATE_BASE` and a ramp with
+    // nothing owned. All three types are the same row but for one bit.
+    let plain = target(&mut sim, fisher);
+    assert_eq!(plain, 11_280, "94 × 100 × UNIT_RATE_BASE / 100");
+    assert_eq!(target(&mut sim, archer), plain);
+    assert_eq!(target(&mut sim, aa), plain);
+
+    // `tribe 11` is the British, and it is player 0 that gets it.
+    sim.set_tribe(0, 11);
+    assert!(
+        sim.nation[0].british,
+        "the power needs a city, and there is one"
+    );
+    assert_eq!(
+        target(&mut sim, fisher),
+        8_481,
+        "11280 × 100 / 133 — run58's frame 4461, to the hundredth"
+    );
+    assert_eq!(
+        target(&mut sim, archer),
+        plain,
+        "BRITISH_ARCHER_SPEED ships as 0: the arm runs and changes nothing"
+    );
+    assert_eq!(
+        target(&mut sim, aa),
+        8_481,
+        "BRITISH_AA_SPEED is 33 like the ship one"
+    );
+
+    // And it is the *nation*, not the player: nobody else is sped up.
+    sim.set_tribe(0, 2);
+    assert_eq!(
+        target(&mut sim, fisher),
+        plain,
+        "the Inca build ships at cost"
+    );
+}

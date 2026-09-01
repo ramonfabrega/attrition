@@ -541,6 +541,17 @@ records at a stride of 0x5f0 — and `rules.xml`'s `<TRIBE>` entries carry only
 gates the nation powers that `docs/SUPPLY.md` and `docs/ATTRITION.md` both
 have to name indirectly.
 
+**What the id *is*, in the shipped roster, now has a diff behind it**
+(2026-09-01). Every `has_tribe_bonus` call site in the executable passes the
+nation's own roster index — `0xb` guards the British arm of
+`ObjectData::train_time`, `0xf` the Japanese, `0xe` the Chinese, `0xa` the
+French, `0xc` the German, `6` the Roman, `0x11` the Mongol, `5` the Greek —
+so `tribes[n] + 0x54` is `n` for at least those eight. One of them is now
+measured rather than read: run58's AI is `tribe 11`, and its Dock's clock
+takes `BRITISH_SHIP_SPEED` to the hundredth on the frame the original does
+(`docs/PRODUCTION.md`, "The tail's first caller"). The *loader* that writes
+`+0x54` is still unlocated; what is settled is what it must be writing.
+
 ### Some constants are loaded as 8.8 fixed point
 
 `PARMENIO_RADIUS_ADJUST` is written `3/2` in `rules.xml` and consumed by

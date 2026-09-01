@@ -11538,3 +11538,85 @@ grep. Item 144.
   read `think_scout` line by line and named one caller. There are three,
   and the one no capture reaches is the one the document called "the
   second".
+
+## 2026-09-01 — item 144: the Dock was neither late nor slow, and the word goes 4461 → 4462 (Opus)
+
+The item was booked as a question with two answers in it — "a late
+*decision* or a slow *counter*" — and it was neither. The AI's Dock
+`1/2010` queues its type-317 job on frame **4376** on both sides, and the
+`job_counter` agrees on every hundredth of every frame from there. What
+parts is the **target**: theirs caps at **8481** and this crate ran on to
+**11,280**. And 11280 × 100 / 133 = 8481.2, which truncates to 8481.
+
+**The 33 is `BRITISH_SHIP_SPEED`, and player 1 is British.** run38's
+`PLAYER` block gives `who 1` `tribe 11`, and the roster's eleventh entry
+is the British. `ObjectData::train_time@006508c0` runs a block of ten
+national arms after the ramp; the British one is a single
+`has_tribe_bonus(0xb)` around three tests — the type's domain being the
+sea, `is(0xaa)` (Bowmen, the Archers root) and `is(0x119)` (the
+Anti-Aircraft Gun) — each `t = t * 100 / (K + 100)`. `BRITISH_SHIP_SPEED`
+and `BRITISH_AA_SPEED` ship as 33; `BRITISH_ARCHER_SPEED` ships as **0**,
+so the middle test is live and inert at once. The unit being built is a
+**Fisherman**, whose domain is the sea, and the AI had been paying a third
+too much for it since the capture began.
+
+The arm is checked twice over rather than once. The Dock's *second*
+Fisherman has one of the type already owned, so the ramp puts our target at
+12,030 where the original's is 9,045 — the same 100/133, on a different
+number, four hundred frames later.
+
+**Only the British arm is built, and that is the finding's shape rather
+than a shortcut.** The other nine arms are other nations' powers, inert in
+every capture on disk, so each would be a predicate no diff could falsify —
+and the audit's standing lesson is that the predicates are where a reading
+goes wrong. Everything the original applies *before* the British arm is
+absent from this game too: the lobby handicap is `0` on both players, and
+The President, the Mongol stable, the Japanese barracks and carrier and the
+Chinese citizen are all gated by the same `has_tribe_bonus` this player
+fails. So starting the tail here is exact, not approximate. What follows it
+— `TROOPS_FASTER`, the speed-upgrade counts, the rares, the governments,
+the unit wonders — is the queue's own item.
+
+**It was found by widening, and the widening is the whole lesson.** The
+queue record has been parsed since 2026-08-30 and compared in exactly one
+test, against run39 — a capture 2,600 frames too short to reach the AI's
+first ship. Moving that loop out of the test and into `diff::compare` put
+it on every capture the harness reads, and run58's twenty-eight frames of
+`queued ours 1 theirs 0` at `1/2010` printed the same minute. The record
+had been on disk since the run was taken. This is `CLAUDE.md`'s "when the
+original dumps a record, diff the whole record" with the emphasis moved one
+word to the left: on **every capture**, not on the one whose test happened
+to be written.
+
+**What moved.** East Indies' long word **4461 → 4462**, one frame, and the
+frame is the point: the ship is now born when the original births it, and
+what stands behind it is the ship's first think. run58 now compares
+**109,435 queue fields** (238 wrong, all of them past the word and
+downstream of the same thing) and 449,279 collision field-frames, four
+wrong, none before the word; all 178,326 building fields exact; no unit off
+the original's point before the word. run39's own queue test keeps its
+floor of 1851 and its ceiling of one, now reading the shared loop's
+numbers. Great Lakes holds at 1802 and both scored captures hold. 176
+rondata and 693 sim tests green in `--release`.
+
+**What is at 4462**: `Unit::think_fish`. The original makes **55** draws on
+that frame opening at `Unit::think_fish+0x27a` (`5f4eda`); this crate makes
+2. The fishing AI has no counterpart here at all — `docs/ORDERS.md` §5 has
+named it as the head of `think`'s tail since the mechanic landed and
+nothing has ever been built below it. Item 145.
+
+**The rules this is an instance of.**
+
+- **A record parsed on one capture is a record not being diffed.** The
+  widening's cost was forty lines moved between two functions; its yield
+  was the headline, on a dump that had been sitting on disk for hours. The
+  ledger item 87 asks for — per dumped record, the fields the parser has
+  and nothing compares — should count *captures* as well as fields.
+- **A booking's two candidate answers can both be wrong, and the diff says
+  so faster than either.** "Late decision or slow counter" was a good
+  question; the queue record answered a third thing — the target — before
+  anyone had to choose between them.
+- **A nation is a modifier, and a capture has one.** Twenty-four nation
+  powers have been inert in this crate since `crates/sim/src/nations.rs`
+  wired `has_tribe_bonus`, and it took a ship to notice that the AI has
+  been playing a nation the whole time.

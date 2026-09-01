@@ -31,8 +31,10 @@ the time formula's base and ramp, which are confirmed against the designers'
 own column comments in `unitrules.xml`. High for the four loading scales, each
 read at its own loader line. **Lower for the modifier tail** on `train_time`,
 which is one expression repeated about thirty times; the individual predicates
-are enumerated rather than each separately derived. What remains open is listed
-at the end.
+are enumerated rather than each separately derived. The one arm of it that is
+**built** is the British — and that one is diff-backed twice over on run58's
+Dock clock, which is a different standard from the rest of the tail. What
+remains open is listed at the end.
 
 A blind second reading (`docs/audit/2026-08-20-production.md`) doubly
 confirmed every number above and overturned several of the *predicates* around
@@ -403,9 +405,50 @@ national unit bonuses, `TROOPS_FASTER`, the speed-upgrade counts, cotton, wool,
 Kremlin and `INSTANT_UNIT_BONUS` — is reached only with the bit set. Since
 `crates/sim/src/production.rs` takes the tail as an ordered input, **the
 caller must never feed a research-only modifier to a train job or a train-only
-one to a research job.** No caller builds a tail yet; when one does, this is
-its first rule. The full order, spot-checked against the decompile, is in
-`docs/audit/2026-08-20-production.md` §3 O7.
+one to a research job.** The full order, spot-checked against the decompile, is
+in `docs/audit/2026-08-20-production.md` §3 O7.
+
+### The tail's first caller: the British arm (2026-09-01)
+
+`Sim::queue_target` now builds a train tail as well as a research one, and
+the partition above is what it obeys — a researched type gets the national
+block and no science speedup, a research entry the reverse.
+
+**Only the British arm of the national block is built**, and that is a scope
+claim rather than an omission. `ObjectData::train_time@006508c0` runs ten
+national arms in a fixed order; nine of them belong to nations no capture on
+disk plays, so each would be a predicate nothing could falsify — and the
+audit's standing lesson is that the predicates, not the arithmetic, are
+where a reading goes wrong. The British arm is the exception: **player 1 is
+British on both East Indies captures** (`tribe 11` in run38's `PLAYER`
+block), and it is what the AI's Dock clock is measured against.
+
+The arm is three tests inside one `has_tribe_bonus(0xb)`, in this order:
+
+```
+if domain == 1 (sea):    t = t * 100 / (BRITISH_SHIP_SPEED + 100)
+if is(0xaa)   (Bowmen):  t = t * 100 / (BRITISH_ARCHER_SPEED + 100)
+if is(0x119)  (AA gun):  t = t * 100 / (BRITISH_AA_SPEED + 100)
+```
+
+`domain` is `UnitTypeData +0x218` — the same field the German air arm reads
+as 2 and `LeaderData::get_ships_speed_upgrade` reads as 1. The two lineage
+roots are `TypeIndex` ids, not names: `0xaa` is **Bowmen**, the Archers
+line's root, and `0x119` the **Anti-Aircraft Gun**. `BRITISH_SHIP_SPEED` and
+`BRITISH_AA_SPEED` both ship as **33**; `BRITISH_ARCHER_SPEED` ships as
+**0**, so that middle test is live and inert at once — `t * 100 / 100`. The
+anti-air constant is one constant with two readers: this one and
+`Wall::update_construct_time@0063d560`, which `crates/sim/src/build.rs`
+already had.
+
+**Starting the tail at the British arm is exact here rather than
+approximate.** Everything the original applies before it is absent from this
+game: the lobby handicap is `0` on both players in run38's dump, and The
+President, the Mongol stable, the Japanese barracks and carrier and the
+Chinese citizen are all other nations' powers, gated by the same
+`has_tribe_bonus` this player fails. What comes *after* it — `TROOPS_FASTER`,
+the speed-upgrade counts, the rares, the governments, the unit wonders — is
+unbuilt and listed under what is not established.
 
 ---
 
@@ -637,7 +680,42 @@ frame 1851 — the capture's last — at `1/2000`, and is unrelated.
 
 The floor is pinned in `rondata::diff`: `first >= 1851`, `wrong.len() <= 1`.
 
+### On every capture (2026-09-01)
+
+The loop above lived inside its own test for two days, so the record was
+compared against **one** dump — run39's, which is 1,851 frames. It is
+`diff::compare`'s now, which means every capture the harness reads gets the
+queue, and the ledger `docs/QUEUE.md` item 87 asks for should count captures
+as well as fields.
+
+The first thing that bought was the headline. run58 is the same game at
+5,200 frames and had never had its queues looked at: **109,435 fields**, of
+which the earliest wrong one is the AI Dock `1/2010`'s `job_counter` on
+frame 4461 — ours 8,500 where the original caps at 8,481, followed by
+twenty-eight frames of `queued ours 1 theirs 0`. Everything before it
+agrees, hundredth for hundredth, from the frame the job is queued. That is
+what says the divergence is the **target** and not the decision or the
+accelerator, and it is the whole of what "diff the whole record" is for:
+nobody had to guess which of the three it was.
+
+The assertion is scoped to before the word, as run58's other two are —
+past it the two streams are running on draws that are nobody's, and the
+238 fields that disagree there are all `1/2010`'s and all downstream of
+`Unit::think_fish`.
+
 ## What is not established
+
+- **Nine of `train_time`'s ten national arms**, and everything after them.
+  The British arm is built and diff-backed (see "The tail's first caller");
+  the handicap, The President, the Mongol stable, the Japanese barracks and
+  carrier, the Chinese citizen, the French siege and special, the German air
+  and submarine and the Roman legion are read here and implemented nowhere,
+  as are `TROOPS_FASTER`, the ship/troop/vehicle speed-upgrade counts, the
+  rares, Monarchy, Socialism, the unit wonders, the Kremlin and
+  `INSTANT_UNIT_BONUS`. Each is inert in every capture on disk. The Chinese
+  arm is the one whose *predicate* is not settled: the decompiler prints its
+  final test as `extraout_ECX[0xae] & 8` on a pointer it lost, and the
+  listing is what would settle which flag of which record that is.
 
 - ~~**`BuildQueue::init` and where `queue_size` comes from.**~~ Closed by the
   second reading: `Build::init` chooses 20, 10 or 2 from the building type's

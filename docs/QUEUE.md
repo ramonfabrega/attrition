@@ -12,35 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — `think_peasant` calls `think_scout` too, and East
-Indies' word is **4461**.* Item 143 was booked as the scout's re-think and was a
-**citizen's**; the score moved 148 frames.
+*2026-09-01, Opus — the AI has been British all along, and East Indies'
+word is **4462**.* Item 144 was booked as "a late decision or a slow
+counter" and was neither; the score moved one frame, onto the thing behind
+it.
 
-- **`Unit::think_peasant`'s AI tail calls `think_scout`** (SCOUT §11.1,
-  `005f5920`): a worker in a region where its leader has no city and which
-  none of the ten `Sites` claims explores; a claimed region is worth
-  waiting in, but only while `idle <= 6`. A **scholar** skips the whole
-  tail, `unit_masks &= ~0x400` included. This crate had nothing below
-  `find_gather_spot`.
-- **The frame named its caller and the item's name did not.** 4313's chain
-  is `think_scout+0xaba < think_peasant+0x2ac < think+0x362`, and its 28
-  draws are §11's region scan (`+0x941` once, `+0xaba` 27) — never the
-  city loop's three sites, because a citizen takes the region scan by §3.
-- **The AI's citizen `1/15`**, tile (158, 138) in region 8 on 4312, went
-  idle on 4313 and scanned 100 cells at stride 2 — 50 visited, 27 scored,
-  winner tile (162, 138), which run58's block 4314 holds. Seed for seed.
-- run58: **none** off point before the word, and the earliest parting of
-  any kind moved 4300 → **4479** (seventeen units, was nineteen); 447,024
-  collision and 178,326 building fields, none wrong. Steering last ran
-  2026-09-01 (Fable).
+- **`ObjectData::train_time`'s British arm** (PRODUCTION, "The tail's
+  first caller"): `has_tribe_bonus(0xb)` around three tests — sea domain,
+  `is(0xaa)` Bowmen, `is(0x119)` anti-air — each `t*100/(K+100)`.
+  `BRITISH_SHIP_SPEED` and `BRITISH_AA_SPEED` are 33, the archer one **0**.
+  Player 1 is `tribe 11` and the Dock builds a **Fisherman**.
+- **It parted on the *target*.** `1/2010` queues on 4376 on both sides and
+  every hundredth agrees to 4460; theirs caps at 8481, ours ran to 11,280,
+  and 11280 × 100/133 is 8481. The second Fisherman checks it again on the
+  ramp's next step: 12,030 → 9,045.
+- **It was found by moving a loop.** The queue record was parsed on every
+  capture and compared on run39 alone — 2,600 frames short of the AI's
+  first ship. `diff::compare` owns it now: run58 went 0 → **109,435** queue
+  fields, 238 wrong and all past the word.
+- run58: no unit off point before the word, 178,326 building fields exact,
+  449,279 collision field-frames, four wrong and none early. Steering last
+  ran 2026-09-01 (Fable).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w4461 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w4462 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 4461 and item 144 holds it: the
-AI's Dock 1/2010 queues its type-317 job on 4376 and finishes it on 4461 —
-job_counter 100 a frame to 8481 — where this crate builds the same 1/14 on
-4489. run58's per-frame BUILDQUEUE carries both counters.`
+**Opener (Opus):** `East Indies' word is 4462 and item 145 holds it:
+frame 4462 is the new Fisherman's first think, 55 draws opening at
+`Unit::think_fish+0x27a` where this crate makes 2. Nothing below
+ORDERS §5's `think_fish` has ever been built.`
 
 ## The queue
 
@@ -49,12 +49,22 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-144. **The Dock is twenty-eight frames slow, and it is the word.** The
-    AI's Dock `1/2010` queues a type-317 job on frame **4376** and its
-    `job_counter` climbs 100 a frame to **8481**, finishing on **4461**;
-    this crate builds the same `1/14` on **4489**. Both numbers are in
-    run58's per-frame `BUILDQUEUE`, so the question — a late *decision* or
-    a slow *counter* — is a grep, not a capture. AI §2, PRODUCTION.
+145. **`Unit::think_fish`, which does not exist here.** Frame 4462 is the
+    AI's new Fisherman's first think: **55** draws opening at
+    `Unit::think_fish+0x27a` (`5f4eda`) against this crate's 2. ORDERS §5
+    names it as the head of `think`'s tail and nothing below it was ever
+    built. The ship that reaches it is now born on the original's frame.
+
+146. **The other nine national arms of `train_time`.** `006508c0` runs a
+    fixed order after the ramp — handicap, The President, Mongol stable,
+    Japanese barracks and carrier, Chinese citizen, then British, French,
+    German, Roman — and only the British is built (PRODUCTION, "The tail's
+    first caller"). The rest are inert in every capture, so each wants a
+    nation the captures play or a reading naming the run that falsifies it;
+    the Chinese predicate is the one the decompiler mangles
+    (`extraout_ECX[0xae] & 8`) and the listing settles it. Behind them:
+    `TROOPS_FASTER`, the three speed-upgrade counts, the rares, Monarchy,
+    Socialism and the unit wonders.
 
 103. **A woodcutter's clock at 1,686.** The same machine one map down:
     after 26,094 agreeing fields the human's `0/2` holds a wait of 445
@@ -62,11 +72,10 @@ indexed by them.
 
 142. **`World::tregion` is not `get_tregion`, and its callers are
     unaudited.** Two items in one day were a gate asking `region_of` where
-    the original asks `get_tregion` — COLLISION §2's (138) and TRANSPORT
-    §9.3's (140). `tregion` is `region_of(cell_of_tile)`; the real one is
-    `tregion_alt`. Nineteen call sites across `orders`, `scout`,
-    `transport`, `roads`, `army`, `place`, `group` and `path` are unchecked
-    against which the original calls. Grep each; then try for a guard.
+    the original asks `get_tregion` (138, 140). `tregion` is
+    `region_of(cell_of_tile)`; the real one is `tregion_alt`. Nineteen call
+    sites across `orders`, `scout`, `transport`, `roads`, `army`, `place`,
+    `group` and `path` are unchecked. Grep each; then try for a guard.
 
 136. **The danger grid has no writer, and four readers index it wrongly.**
     `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution
@@ -75,9 +84,8 @@ indexed by them.
     indexes it by *region*, as `ai_build`, `ai_make`, `ai_research` and
     `ai_units` were written to; both answer 0 while nothing writes it, so
     nothing has told them apart. `think_civilian_transport`'s score is
-    `dist × max(1, danger)` and picks the original's cell twice over with
-    the term at 1 — evidence the grid is empty there, not that it never
-    matters.
+    `dist × max(1, danger)` and picks the original's cell twice with the
+    term at 1 — the grid is empty there, not irrelevant.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
     table at `0063bd84` cannot produce it; `Leader::plan_strategy@006b9620`
@@ -100,32 +108,30 @@ indexed by them.
 
 122. **A draw with no mark of its own.** `mark_sites` attributes an
     unmarked draw to the label still standing, so the sequence reads wrong
-    rather than short (110's day went to one, 133's frame 3579 to another).
-    **16 of the 61** `rng.roll()`/`rng.get()` calls in `crates/sim` have no
-    `self.mark(` above them — some are marked by their caller, and nothing
-    says which. Mark or explain each, then make the list a guard.
+    rather than short (110's day, 133's frame 3579). **16 of the 61**
+    `rng.roll()`/`rng.get()` calls in `crates/sim` have no `self.mark(`
+    above them, and nothing says which are marked by a caller. Mark or
+    explain each, then make the list a guard.
 
 124. **The loop flag is per animation file** (ANIM §3.3): by slot it is no
     constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a non-looping file
     and 38 a looping one. Carry it beside `Art::piece_lengths`.
 
-87. **The widening ledger.** Items 74, 83, 69, 113 and 123 were closed or
-    sharpened by fields the parser had and nothing compared. Make the
-    backlog a number: per dumped record, the fields `rondata::diff` parses
-    and never compares. run42 adds the per-frame `LEADERDATA` to that pool.
+87. **The widening ledger.** Items 74, 83, 69, 113, 123 and now 144 were
+    closed or sharpened by fields the parser had and nothing compared. Make
+    it a number: per record, the fields `rondata::diff` parses and never
+    compares — and, since 144, per *capture* as well as per field.
 
 35. **`mylos` as a cache.** VISION §7: player 1 carries no `0x4000000` at
     the end of 202 or 203, yet its Scout's `mylos` moves 4 → 6; ours moves
     at 202 too, so what is owed is the *cache*.
 
 89. **The instrument's last guard.** (a) and (b) are built (2026-08-31);
-    left is (c): run33's floor pins totals mostly past its parting —
-    fallen three times (109, 69, 113).
+    left is (c): run33's floor pins totals mostly past its parting.
 
 72. **A document and its code disagreeing is a diff waiting to be run.**
     The `name@00xxxxxx` half is a guard (`docs_guard`). Left: every `+0xNN`
-    a document pins, checked against its module, and every
-    "halved"/"every frame"/"cleared" verb.
+    a document pins, checked against its module, and every verb.
 
 88. **The blind list is the ledger.** `report.py … blind docs/` lists the
     cited functions no traced run has entered (101 of 617). Pin it as a
@@ -152,15 +158,15 @@ indexed by them.
 116. **The one `SITE` slot still wrong, and the rule that is not it.** AI
     §18: a 5×5 slide keeps its centre where the original leaves it, so
     `blocked_town` refuses a cell `site_clear` allows. `blocked_site`'s
-    fog-majority `0x24` (CITIES §11) was run once and moves **no** number,
-    so the slide wants a second reading, not that rule.
+    fog-majority `0x24` (CITIES §11) moves **no** number, so the slide
+    wants a second reading, not that rule.
 
 117. **Two seams the census windows now measure.** (a) ATTRITION,
     "Territory": the temple and fort border levels, the Colosseum, the
     Eiffel Tower, a gem rare, the handicap and `was_seen`'s `reg_forts`
-    arm — all inert until a capture has a Temple or a Fort. (b) AI §2.1's
-    `check_explore` answers the whole region grid — `explored` is 900 here
-    against the dump's 36 and 19 on every frame of both windows.
+    arm — inert until a capture has a Temple or a Fort. (b) AI §2.1's
+    `check_explore` answers the whole region grid — 900 here against the
+    dump's 36 and 19 on every frame of both windows.
 
 The road residue, both in ROADS §7.1: (57) the node counts — 1,046 v
 1,043 and 1,460 v 1,870 — re-read on run43's own before-grid (ORACLE
@@ -168,7 +174,7 @@ run43); (58) the height loader's mean in `f32`, three tiles.
 
 107. **`epoch[0]` is the Military level, and `army.rs` reads `ages`.**
     `get_epoch_base(0)` is `BASE_MILITARYTYPES` and the army family reads
-    `+0xe8`, so it is **Military**, not ARMY's glossary's "current age".
+    `+0xe8`, so it is **Military**, not ARMY's "current age".
     `army.rs:769,1365` read `tech[w].ages`, so every `age < 2/3/5` gate in
     the muster caps and `find_target` fires on the wrong counter.
 

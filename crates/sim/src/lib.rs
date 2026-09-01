@@ -488,6 +488,12 @@ pub struct UnitType {
     /// `CARRY` and the `role` the loader derives from them. Every producer
     /// reads them; `docs/DATALAYER.md`, "The derived words no column
     /// carries", is the derivation and [`ai_load`] the code.
+    /// The two lineage roots `ObjectData::train_time`'s **British** arm
+    /// tests, precomputed the way [`ai_load::RoleFacts`]' are: `is(0xaa)`
+    /// — the Bowmen root, which is the Archers line — and `is(0x119)`, the
+    /// Anti-Aircraft Gun. `docs/PRODUCTION.md`, "The tail".
+    pub archer: bool,
+    pub anti_air: bool,
     pub cols: ai_load::UnitCols,
     /// One of the twelve gaia types (`BASE_GAIATYPES..END_GAIATYPES`, record
     /// `352..`). The animals are unit types with a `WHERE` of Large City, and
@@ -1621,34 +1627,77 @@ impl Sim {
         }
         let muster = &self.muster[who as usize];
         let researched = muster.researched[item.ty];
+        // **The tail is partitioned and the two halves never mix**
+        // (`docs/PRODUCTION.md`, "The tail"): a train job takes the national
+        // block and jumps over the science speedup, a research job the
+        // reverse.
+        //
         // A unit type whose availability bit is *clear* is a research job, and
         // it reaches `train_time`'s research block — so it takes the science
         // speedup and a trained unit does not. Its level is its first
         // prerequisite's `AGE` (`TypeData +0x30`, then `TechTypeData +0x1c8`);
         // a prerequisite that is not a technology has no `AGE` column, and
         // reads as zero here.
-        let tail = (!researched)
-            .then(|| {
-                let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
-                let level = match self.unit_types[item.ty]
-                    .tree
-                    .map(|id| self.tech_tree.types[id].preq[0])
-                {
-                    Some(tech::Preq::Of(p)) if self.tech_tree.kind(p).is_tech() => {
-                        self.tech_tree.types[p].age
-                    }
-                    _ => 0,
-                };
-                production::science_speedup(&self.tuning, science, level)
-            })
-            .flatten();
+        let tail = if researched {
+            self.train_tail(who, item.ty)
+        } else {
+            let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
+            let level = match self.unit_types[item.ty]
+                .tree
+                .map(|id| self.tech_tree.types[id].preq[0])
+            {
+                Some(tech::Preq::Of(p)) if self.tech_tree.kind(p).is_tech() => {
+                    self.tech_tree.types[p].age
+                }
+                _ => 0,
+            };
+            production::science_speedup(&self.tuning, science, level)
+                .into_iter()
+                .collect()
+        };
         production::train_time(
             &self.tuning,
             &self.unit_types[item.ty].times,
             researched,
             muster.by_type[item.ty],
-            tail.as_slice(),
+            &tail,
         )
+    }
+
+    /// The national block of `ObjectData::train_time`'s tail, in the
+    /// original's own order — as far as it is built.
+    ///
+    /// **Only the British arm is here**, and that is a scope claim rather
+    /// than an oversight: the block's nine other arms are inert in every
+    /// capture on disk, so each would be a predicate no diff could check,
+    /// and the audit's standing lesson is that predicates are exactly where
+    /// a reading goes wrong. The British arm is different — player 1 is
+    /// British on both East Indies captures, and `BRITISH_SHIP_SPEED` is
+    /// what the AI's Dock clock is measured against.
+    ///
+    /// The arms that come *before* it in the original — the lobby handicap,
+    /// The President, the Mongol stable, the Japanese barracks and carrier,
+    /// the Chinese citizen — are all absent from this game: the handicap is
+    /// zero on both players and the rest are other nations' powers, so
+    /// starting the tail here is exact rather than approximate. The ones
+    /// after it are the queue's own item.
+    fn train_tail(&self, who: Player, ty: usize) -> Vec<production::Adjust> {
+        let mut tail = Vec::new();
+        // `has_tribe_bonus(0xb)`, cached — the lobby's "No Nation Powers"
+        // and the no-city gate apply through it (`crate::nations`).
+        if self.nation[who as usize].british {
+            let t = &self.unit_types[ty];
+            if t.combat.domain == attrition::Domain::Sea {
+                tail.push(production::Adjust::Faster(self.tuning.british_ship_speed));
+            }
+            if t.archer {
+                tail.push(production::Adjust::Faster(self.tuning.british_archer_speed));
+            }
+            if t.anti_air {
+                tail.push(production::Adjust::Faster(self.tuning.british_aa_speed));
+            }
+        }
+        tail
     }
 
     /// Advances every building's queue by one frame — `Build::do_queue`.

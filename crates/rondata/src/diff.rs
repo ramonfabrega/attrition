@@ -104,6 +104,14 @@ pub struct Built {
     /// [`crate::trace::Trace::labels`] frame for frame rather than one
     /// hand-seeded frame at a time.
     pub frame_sites: Vec<(i64, Vec<String>)>,
+    /// The `TypeIndex` of every loaded id, in `Loaded::type_index` order —
+    /// what the dump writes as a queue entry's `type`. Carried here so the
+    /// per-frame comparison can read the production queue without the
+    /// whole [`Loaded`] (`docs/PRODUCTION.md`, "The queue record").
+    pub type_index: Vec<i32>,
+    /// Each simulation unit type's own id, so a queue entry holding a unit
+    /// can be turned into a `TypeIndex` through `type_index` above.
+    pub unit_tree: Vec<usize>,
 }
 
 /// A sim guy from a dump's `GUY` record, when the record carries the
@@ -892,6 +900,13 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
         rng_frames: Vec::new(),
         frame_guys: init.frame_guys.clone(),
         frame_sites: Vec::new(),
+        type_index: (0..loaded.good_tree.len()
+            + loaded.unit_tree.len()
+            + loaded.build_tree.len()
+            + loaded.tech_tree.len())
+            .map(|id| loaded.type_index(id))
+            .collect(),
+        unit_tree: loaded.unit_tree.clone(),
     }
 }
 
@@ -1330,6 +1345,30 @@ pub struct FrameResult {
     /// word reached 3021.
     pub build_compared: usize,
     pub build_diverged: Vec<BuildDivergence>,
+    /// **The production queue, whole** — `queued` and, for each live slot,
+    /// its `type`, `job_counter` and the three `(good, cost)` pairs
+    /// (`docs/PRODUCTION.md`, "The queue record"). Written from
+    /// `BUILDS=1`; a capture below it compares nothing here.
+    ///
+    /// Only the first `queued` slots are read: the tail of the array holds
+    /// whatever it was last left with — `type −1` on a queue never used,
+    /// `type 0` on one that has been — which is not state either side owns.
+    pub queue_compared: usize,
+    pub queue_diverged: Vec<QueueDivergence>,
+}
+
+/// One field of a building's **production queue** the two sides disagree
+/// on — `BuildQueue::log_data`'s own record.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct QueueDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    /// The field, named as the dump writes it: `queued`, or
+    /// `queue[k].<field>` for a slot's.
+    pub field: String,
+    pub ours: i64,
+    pub theirs: i64,
 }
 
 /// One field of a building's identity the two sides disagree on — its
@@ -2233,6 +2272,58 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     ours: mine,
                     theirs,
                 });
+            }
+        }
+        // **The production queue, whole.** `BuildQueue::log_data` writes
+        // it for every building on every frame from `BUILDS=1`, and until
+        // this it was compared in one test against one capture — so a
+        // queue that filled a frame late, or a clock that ran a hundredth
+        // slow, read as agreement on every other run the harness makes.
+        // `docs/PRODUCTION.md`, "The queue record"; `docs/QUEUE.md` item
+        // 87's ledger.
+        if let Some(q) = b.queued {
+            let mut off = |field: String, ours: i64, theirs: i64| {
+                r.queue_compared += 1;
+                if ours != theirs {
+                    r.queue_diverged.push(QueueDivergence {
+                        frame: frame.n,
+                        who: b.who,
+                        o: b.o,
+                        field,
+                        ours,
+                        theirs,
+                    });
+                }
+            };
+            let mine = ours.queue.items.len() as i64;
+            off("queued".into(), mine, q);
+            // Only where the depths agree: a queue one entry short would
+            // otherwise report every slot after the gap and turn one fact
+            // into a page of them — the same rule the mining list keeps.
+            if mine == q {
+                for (k, theirs) in b.queue.iter().take(q as usize).enumerate() {
+                    let item = &ours.queue.items[k];
+                    let id = item.tech.unwrap_or_else(|| built.unit_tree[item.ty]);
+                    let ty = built.type_index.get(id).copied().unwrap_or(-1);
+                    off(format!("queue[{k}].type"), i64::from(ty), theirs.ty);
+                    off(
+                        format!("queue[{k}].job_counter"),
+                        i64::from(item.job_counter),
+                        theirs.job_counter,
+                    );
+                    for j in 0..3 {
+                        off(
+                            format!("queue[{k}].cost[{j}]"),
+                            i64::from(item.cost[j]),
+                            theirs.cost[j],
+                        );
+                        off(
+                            format!("queue[{k}].good[{j}]"),
+                            i64::from(item.good[j]),
+                            theirs.good[j],
+                        );
+                    }
+                }
             }
         }
         let mut wrong = |field, at, ours: i64, theirs| {
@@ -4472,6 +4563,24 @@ mod tests {
             eprintln!("  {who}/{o} from f{frame}: {field} ours {ours} theirs {theirs}");
         }
 
+        // The production queues, whole — every building, every live slot.
+        let queues: usize = report.frames.iter().map(|f| f.queue_compared).sum();
+        let queue_bad: Vec<&QueueDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.queue_diverged.iter())
+            .collect();
+        eprintln!(
+            "run58 queues: {queues} fields compared, {} wrong",
+            queue_bad.len()
+        );
+        for d in queue_bad.iter().take(24) {
+            eprintln!(
+                "  f{} {}/{} {}: ours {} theirs {}",
+                d.frame, d.who, d.o, d.field, d.ours, d.theirs
+            );
+        }
+
         // The collision block, on every unit-frame whose position agrees.
         let coll: usize = report.frames.iter().map(|f| f.collide_compared).sum();
         let parted: std::collections::BTreeMap<(i64, i64), i64> = report
@@ -4519,6 +4628,27 @@ mod tests {
             coll_early.is_empty(),
             "the collision block agrees on every comparable field-frame up \
              to the word: {coll_early:?}"
+        );
+        // **And the production queues, whole** — the widening that found
+        // the word itself. Before it, the queue record was compared in
+        // `run39_s_build_queues_are_the_original_s_clock` alone, on a
+        // capture 2,600 frames too short to reach the AI's first ship; the
+        // twenty-eight frames of `queued ours 1 theirs 0` at `1/2010` were
+        // sitting in this dump the whole time (`docs/PRODUCTION.md`, "The
+        // tail's first caller").
+        let queue_early: Vec<&QueueDivergence> = queue_bad
+            .iter()
+            .filter(|d| d.frame < LONG_WORD_EAST_INDIES)
+            .copied()
+            .collect();
+        assert!(
+            queue_early.is_empty(),
+            "the AI's queues run the original's clock up to the word \
+             ({LONG_WORD_EAST_INDIES}): {queue_early:?}"
+        );
+        assert!(
+            queues >= 109_435,
+            "the queue record is being read: {queues} fields"
         );
         // **The path stack's own rows, before the word.** run39's
         // widening (`run39_s_path_stack_agrees_row_for_row`) scores
@@ -8077,13 +8207,30 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **4461** — the sequence and the count part on the same frame, and
-    /// it is the AI's Dock: theirs opens with `Guy::init_real+0x52 <
-    /// Unit::init+0xb97 < Objects::init_unit+0xbd`, the birth of the ship
-    /// `1/14`. `1/2010` queued the type-317 job on frame **4376** and its
-    /// `job_counter` climbs 100 a frame to **8481**, which lands on 4461;
-    /// this crate builds the same unit on **4489**, twenty-eight frames —
-    /// 2,800 counter units — late.
+    /// **4462** — the sequence and the count part on the same frame, and
+    /// the frame is the new ship's first think: theirs makes 55 draws
+    /// opening at `Unit::think_fish+0x27a` (`5f4eda`) where this crate
+    /// makes 2. `think_fish` has no counterpart here at all.
+    ///
+    /// It was **4461** for one item, and that item was the AI's Dock —
+    /// booked as "a late *decision* or a slow *counter*", and it was
+    /// neither: the queue record agrees field for field from the frame the
+    /// job is queued (**4376**) to the frame before it lands, and parts on
+    /// the **target**. Theirs caps at `job_counter` **8481**, this crate
+    /// ran on to 11,280, and 11280 × 100 / 133 is 8481 to the unit — the
+    /// **British ship bonus**. Player 1 is British (`tribe 11`),
+    /// `BRITISH_SHIP_SPEED` is 33, and `ObjectData::train_time@006508c0`'s
+    /// national block applies it to every type whose domain is the sea.
+    /// The unit is a **Fisherman** (`TypeIndex` 317), which is why the
+    /// frame after it is `think_fish`. `docs/PRODUCTION.md`, "The tail's
+    /// first caller"; the second job's 12,030 → 9,045 is the same ratio on
+    /// the ramp's next step, so the arm is checked twice over.
+    ///
+    /// **And it was found by widening, not by reading.** The queue record
+    /// was parsed on every capture and compared on one — run39's, which is
+    /// 2,600 frames too short to reach the AI's first ship. Moving the loop
+    /// into [`compare`] put it on run58 and the twenty-eight frames of
+    /// `queued ours 1 theirs 0` were there the same minute.
     ///
     /// It was **4313** for one item, and that item was booked as the
     /// scout's re-think and was a **citizen's** (`docs/SCOUT.md` §11.1).
@@ -8260,9 +8407,9 @@ mod tests {
     /// tolerance landed, and it is **0** now.
     const RUN58_PARTED: usize = 0;
     const RUN58_BUILD_FIELDS: usize = 178_326;
-    const RUN58_COLL_FIELDS: usize = 447_024;
+    const RUN58_COLL_FIELDS: usize = 449_279;
 
-    const LONG_WORD_EAST_INDIES: i64 = 4461;
+    const LONG_WORD_EAST_INDIES: i64 = 4462;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**
@@ -10617,17 +10764,21 @@ mod tests {
     /// holds whatever it was last left with (`type −1` on a queue never
     /// used, `type 0` on one that has been), which is not state either
     /// side owns.
+    ///
+    /// **The loop this test used to own is now [`compare`]'s** (2026-09-01),
+    /// so every capture the harness reads gets the queue rather than this
+    /// one — which is how the AI Dock's twenty-eight late frames on run58
+    /// were found. This test keeps the numbers: run39's own floor, its
+    /// ceiling of one, and the field count, which changed only because the
+    /// shared loop counts a slot's eight fields singly where this counted
+    /// four groups.
     #[test]
     fn run39_s_build_queues_are_the_original_s_clock() {
         let Some(inst) = install() else { return };
         let (Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run39-islands-longtrace.txt"),
             dump("gamelog-run38-islands-start.txt"),
-            dump("rontrace-run39.log").and_then(|p| {
-                crate::trace::Trace::read(std::path::Path::new(&p))
-                    .ok()
-                    .flatten()
-            }),
+            trace("rontrace-run39.log"),
         ) else {
             eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
             return;
@@ -10639,88 +10790,31 @@ mod tests {
         let sib_log = Log::parse(&sib_text);
         let sib_init = sib_log.initial().expect("run38 is a start dump");
         let refs: Vec<&Initial> = vec![&sib_init];
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &refs);
-        borrow_pasture(&mut init, &tr);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
-        // The `TypeIndex` of one of this simulation's queue entries, which
-        // is what the dump writes: a tech entry is its tree id, a unit
-        // entry its record's.
-        let type_index = |item: &sim::production::Item| -> i64 {
-            let id = match item.tech {
-                Some(t) => t,
-                None => loaded.unit_tree[item.ty],
-            };
-            i64::from(loaded.type_index(id))
-        };
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
 
-        let mut compared = 0usize;
-        let mut wrong: Vec<String> = Vec::new();
-        let mut frames = 0usize;
-        for (n, block) in log.frames() {
-            while built.sim.frame < n {
-                built.tick();
-            }
-            if built.sim.frame != n {
-                continue;
-            }
-            frames += 1;
-            for b in crate::gamelog::records(block, false).1 {
-                let Some(q) = b.queued else { continue };
-                let ours = built
-                    .sim
-                    .buildings
-                    .iter()
-                    .find(|x| i64::from(x.owner) == b.who && i64::from(x.index) == b.o);
-                let Some(ours) = ours else {
-                    wrong.push(format!("frame {n}: no building {}/{}", b.who, b.o));
-                    continue;
-                };
-                compared += 1;
-                if ours.queue.items.len() as i64 != q {
-                    wrong.push(format!(
-                        "frame {n} {}/{}: queued ours {} theirs {q}",
-                        b.who,
-                        b.o,
-                        ours.queue.items.len()
-                    ));
-                    continue;
-                }
-                for (k, theirs) in b.queue.iter().take(q as usize).enumerate() {
-                    let item = &ours.queue.items[k];
-                    compared += 4;
-                    let mine = (
-                        type_index(item),
-                        i64::from(item.job_counter),
-                        item.cost.map(i64::from),
-                        item.good.map(i64::from),
-                    );
-                    let yours = (theirs.ty, theirs.job_counter, theirs.cost, theirs.good);
-                    if mine != yours {
-                        wrong.push(format!(
-                            "frame {n} {}/{} slot {k}: ours {mine:?} theirs {yours:?}",
-                            b.who, b.o
-                        ));
-                    }
-                }
-            }
-        }
+        let compared: usize = report.frames.iter().map(|f| f.queue_compared).sum();
+        let wrong: Vec<&QueueDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.queue_diverged.iter())
+            .collect();
+        let frames = report.frames.len();
         let first = wrong
             .first()
-            .and_then(|w| w.strip_prefix("frame "))
-            .and_then(|w| w.split(&[' ', ':'][..]).next())
-            .and_then(|w| w.parse::<i64>().ok())
-            .unwrap_or(built.sim.frame);
+            .map_or(report.frames.len() as i64, |d| d.frame);
         eprintln!(
             "run39 queues: {compared} fields over {frames} frames, \
              {} disagree, first at {first}",
             wrong.len()
         );
-        for w in wrong.iter().take(24) {
-            eprintln!("  {w}");
+        for d in wrong.iter().take(24) {
+            eprintln!(
+                "  f{} {}/{} {}: ours {} theirs {}",
+                d.frame, d.who, d.o, d.field, d.ours, d.theirs
+            );
         }
         assert!(
-            compared >= 33_631,
+            compared >= 40_199,
             "the record is being read: {compared} fields"
         );
         assert!(

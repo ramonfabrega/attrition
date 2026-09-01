@@ -575,6 +575,11 @@ pub fn load_tables(
     const TRANSPORTBARGE: usize = 0x140 - 0x32;
     /// `BASE_GAIATYPES − BASE_UNITTYPES`: the first of the twelve animals.
     const GAIA: usize = 0x192 - 0x32;
+    /// The Archers line's root, and the anti-air one's — the two lineages
+    /// `ObjectData::train_time`'s British block tests beside the sea
+    /// domain (`docs/PRODUCTION.md`, "The tail").
+    const BOWMEN: usize = 0xaa - 0x32;
+    const ANTIAIRCRAFTGUN: usize = 0x119 - 0x32;
 
     let mut cols: Vec<ai_load::UnitCols> = Vec::with_capacity(unit_cols.len());
     for (i, c) in unit_cols.iter().enumerate() {
@@ -1009,6 +1014,10 @@ pub fn load_tables(
                 2 | 3 => sim::orders::Worker::Scholar,
                 _ => sim::orders::Worker::None,
             },
+            // `ObjectData::train_time`'s British arm, by root id as the
+            // original writes it — a display name is not a key here.
+            archer: unit_is(i, BOWMEN),
+            anti_air: unit_is(i, ANTIAIRCRAFTGUN),
             cols: cols[i],
             gaia: i >= GAIA,
         });
