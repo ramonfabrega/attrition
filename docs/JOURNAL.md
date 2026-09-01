@@ -10763,3 +10763,67 @@ The word's frame, 3435, is three draws against two: a `Farms::inc_time+0x1ae`
 this crate spends and the original does not. It is past 3177, so it is
 plausibly item 131's consequence; that is item 132, and it says to re-measure
 rather than to read.
+
+## 2026-09-01 (item 131, Opus) — a farm's distance is in tiles, and the headline moves 3435 → 3579
+
+Item 131 was run57's whole residue: the AI's farm `1/2011` going up on frame
+3177 one cell east of the original's, with `1/2012` on 3977 one tile behind
+it and flagged in the queue as "probably a second thing". It was one thing,
+and the queue's method — instrument `produce_building`'s walk for the call —
+found it in twenty minutes.
+
+**The walk was not the problem.** Frame 3176, anchor cell `(45, 47)`,
+`start 0`, `end 105`, and the stride never engages because nothing past ring
+1 can reach the standing best. Every candidate that scores, scores in both;
+every roll is spent in both. That is why the word held to 3435 with the farm
+on the wrong cell — a draw diff *cannot* see this, and never could have.
+
+**The problem was the score.** `produce_building` computes the candidate's
+distance from the anchor twice, in two different units, and only the general
+arm at `006e1f9a` is the one §2.20 described. The FARM/MINE arm at
+`006e2004` rebuilds both sides in **tiles** — the candidate as `cell·4 + 2`,
+the anchor as `div_3_table[(pos ^ 0x63637) >> 6]`, its *exact* position
+rather than its cell's centre. Four times the resolution is the whole
+finding: in cells all eight neighbours of the anchor are `4000 / 1` and the
+random part is the entire score, so the last one drawn with the best roll
+wins; in tiles, from an anchor that stands at `(34656, 36192)` and not at its
+cell's centre, the far diagonal is `4000 / 9` against everyone else's
+`4000 / 6`, which is 222 — a spread the roll's 500 does not close. Index 5
+`(45, 48)` wins by 20 points where index 8 `(46, 48)` had won by 25.
+
+Beside it, a constant that is not one. The `local_60 == 0` arm adds
+`0xff − WData.val`, the map maker's own city-site value for the cell, so a
+*better* site scores **lower** here. §2.20 had read it as "0 on this world",
+which was true of the flat harness world and false of the islands map:
+run38's dump gives the five cells this call parts on `val` 20, 31, 6, 21 and
+27. It does not flip this call by itself — with the cell distance it still
+lands on index 8 — and it is kept because the listing says so.
+
+Both are in `docs/AI.md` §22, and both are settled by `llvm-objdump` over
+`006e1f9a`–`006e2073`, where the decompiler prints `vector_dist(unaff_EDI,
+unaff_ESI)` twice and says nothing about either.
+
+**The score.** `run57_s_four_thousand_frames_stand_where_the_original_s_do`
+is **130,326 building fields, zero wrong** over 4,000 frames, where it was
+two buildings and 850 field-frames; its collision block grows to **330,643
+field-frames, none wrong**, and the first unit to leave the original's point
+now does so on 3582 rather than 3177. East Indies' word on the long capture
+goes **3435 → 3579**. Nothing else in either suite moves: 175 rondata tests
+and 680 sim tests green.
+
+**Item 132 went with it.** The word's own frame at 3435 was three draws
+against two, an extra `Farms::inc_time+0x1ae` this crate spent. It was this
+farm's shadow — with player 1's farms on the original's own cells the extra
+growth tick is gone — and the queue's instruction to re-measure rather than
+read was the right one.
+
+**What is next is a bird.** run54 now parts its *sequence* at 3579 and its
+*count* at 3580, and both frames are one thing: the original's second draw
+of 3579 is `Dock::init+0x125` where this crate spends a second
+`Guy::init_real+0x52`. `Dock::init@00740a80` is four lines — it counts the
+dock into the leader's per-region tally, spawns a **`GULLBIRD` of owner 9**
+a tile north-west of the dock, rolls its facing as
+`(r % 7) · 0xaaaaaaa − 0x40000000` on a turn of 7, and gives it a strafe
+order around the dock. Nothing here spawns it. It fires when the dock
+*finishes*, not when it is placed: run57's dock is laid on 2977 and this is
+600 frames later. That is item 133.

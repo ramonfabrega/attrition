@@ -2850,3 +2850,89 @@ draw of its own, so the dumped position is the only oracle it can have,
 and it is now a test. Reading-only: the `dy`-starts-at-`−hx` quirk and the
 unpadded base, both invisible on a 4×4 dock and both taken from the
 listing.
+
+## 22. A farm's distance is in tiles, and the cell's value is not zero (2026-09-01)
+
+`produce_building`'s spiral computes the candidate's distance from the
+anchor **twice**, in two different units, and only the general arm at
+`006e1f9a` is the one §2.20 described:
+
+```
+006e1f9a  eax = cand_cell_x − anchor_cell_x        # cells
+          esi = cand_cell_y − anchor_cell_y
+          d   = vector_dist(|eax|, |esi|)          # the Woodcutter's, and the d > 4 arm's
+006e2004  esi = cand_cell_y * 4 + 2                # tiles, the cell's centre tile
+          eax = cand_cell_x * 4 + 2
+          eax −= div_3_table[(anchor->x ^ 0x63637) >> 6]     # the anchor's *exact* tile
+          esi −= div_3_table[(anchor->y ^ 0x63637) >> 6]
+          d   = vector_dist(|eax|, |esi|)          # FARM (0x1a1) and MINE (0x1a3) only
+          score = 4000 / max(d, 1) + rand % 500
+```
+
+Two differences, and both matter:
+
+- **Tiles, not cells.** `vector_dist` is `max + min² / (2·max)`, so in
+  cells a straight neighbour and a diagonal one are both `1` and the
+  `4000 / d` term cannot tell them apart. In tiles they are `4` and `6`,
+  and the term is **1000 against 666** — a third of the whole score, where
+  the random part spans 500.
+- **The anchor's own position, not its cell.** `>> 6` then `div_3_table`
+  is units → tiles (a tile is `3 × 64`); the general arm's `>> 8` is
+  units → cells. The two agree only for a building centred in its cell,
+  and the anchor of the call below is not one: it stands at
+  `(34656, 36192)`, tile `(180, 188)`, where its cell `(45, 47)` would
+  centre at tile `(182, 190)`. Both halves of this are load-bearing.
+
+And the constant beside it is not a constant. `local_60 == 0` — not a
+gather-scored type — adds `0xff − WData.val`, the **cell's value byte**,
+so a cell the map maker rated a *better* city site scores **lower** here.
+§2.20's note that it is "0 on this world" was read off the flat harness
+world; run38's own dump gives the three cells East Indies' second farm
+parts on `val 20`, `31` and `27`.
+
+**The call this decides.** Frame 3176, player 1's Farm, anchor cell
+`(45, 47)` at `(34656, 36192)`, `start 0`, `end 105` (`rings 5`). The
+stride never engages — nothing past ring 1 can reach the standing best —
+so the walk is 105 cells either way and every candidate that reaches the
+score is drawn for either way. What changes is only which of them wins.
+Every candidate below is one of the anchor cell's eight neighbours, so in
+cells `d` is 1 for all of them; in tiles, measured from the anchor's own
+point, they are not:
+
+| idx | cell | tile Δ | `d` cells | `d` tiles | `r % 500` | `val` | cells + `0xff` | tiles − `val` |
+|---|---|---|---|---|---|---|---|---|
+| 3 | `(44, 48)` | `(−2, 6)` | 1 | 6 | 367 | 20 | 4622 | 1268 |
+| 5 | `(45, 48)` | `(2, 6)` | 1 | 6 | 398 | 31 | 4653 | **1288** |
+| 6 | `(46, 46)` | `(6, −2)` | 1 | 6 | 337 | 6 | 4592 | 1252 |
+| 7 | `(46, 47)` | `(6, 2)` | 1 | 6 | 112 | 21 | 4367 | 1012 |
+| 8 | `(46, 48)` | `(6, 6)` | 1 | 9 | 423 | 27 | **4678** | 1095 |
+
+In cells all five are `4000 / 1`, the roll is the whole score, and the
+last one drawn with the best roll wins — index 8, one cell east of the
+original's. In tiles the far diagonal is `4000 / 9` against everything
+else's `4000 / 6`, 222 less than the spread of a roll, and index 5 is the
+original's own `x_internal 34944`. Nothing in ring 2 or beyond comes
+within 200 of it.
+
+**Why no earlier capture could see it.** Every farm and mine placed before
+this one either had a friend (`find_friends != 0`, which skips the arm
+entirely) or had one candidate so far ahead that the `4000 / d` term could
+not overturn it. The arm is *drawn* on every one of them — that is what
+`SITE_SPIRAL` counts, and the counts have agreed since §2.20 — so a draw
+diff can never reach it. **Only the dumped position can**, and it took a
+capture long enough to contain a second farm sited among equals.
+
+**The diff.** `run57_s_four_thousand_frames_stand_where_the_original_s_do`
+is **130,326 building fields, zero wrong** over 4,000 frames — it was two
+buildings and 850 field-frames — and its collision block grows to
+**330,643 field-frames, none wrong**, with nothing leaving the original's
+point before 3582. East Indies' word on the long capture goes **3435 →
+3579**. Nothing else in either suite moves.
+
+**Coverage.** Diff-backed: the arm's unit (tiles), its origin (the
+anchor's own point rather than its cell's centre) and the `− val` term,
+all three by run57's building positions on the frame the readings
+disagree — the call above separates every one of them. Reading-only: the
+`div_3_table` shifts themselves, `>> 6` here against `>> 8` at `006e15b7`,
+taken from `llvm-objdump` over `006e2004`–`006e2073`; and that the same
+arm runs for a **MINE** (`0x1a3`), which no capture has placed.

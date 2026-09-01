@@ -30,7 +30,7 @@ use std::sync::OnceLock;
 
 use crate::build::{Ident, flags};
 use crate::orders::{Body, QueuePos, index};
-use crate::world::{Cell, Terrain, UNITS_PER_TILE, tile, vector_dist};
+use crate::world::{Cell, TILES_PER_CELL, Terrain, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Player, Pos, Sim, cost};
 
 /// The two draw sites of `Leader::produce_building@006e1400`, under the
@@ -515,7 +515,24 @@ impl Sim {
                     if f == 0 {
                         match ident {
                             Ident::Farm | Ident::Mine => {
-                                let d = d.max(1);
+                                // **A farm's own distance is not the
+                                // spiral's.** The general arm subtracts the
+                                // anchor's *cell* (`006e1f9a`, `>> 8`); the
+                                // `0x1a1`/`0x1a3` arm at `006e2004` builds
+                                // both sides again in **tiles** — the
+                                // candidate as `cell * 4 + 2`, the anchor as
+                                // `div_3_table[(pos ^ 0x63637) >> 6]`, which
+                                // is its exact position and not its cell's
+                                // centre. Four times the resolution is what
+                                // separates the anchor's near neighbours
+                                // from its far ones: in cells all eight are
+                                // 1 (`docs/AI.md` §22).
+                                let a = self.buildings[near].pos.tile();
+                                let d = vector_dist(
+                                    cell.x * TILES_PER_CELL + 2 - a.x,
+                                    cell.y * TILES_PER_CELL + 2 - a.y,
+                                )
+                                .max(1);
                                 self.mark(SITE_SPIRAL);
                                 let r = self.rng.roll();
                                 score = 4000 / d + r % 500;
@@ -575,8 +592,12 @@ impl Sim {
                 // `gather_at` amounts they stay at their initial values.
                 let (w1, plenty) = (1, 0);
                 if !scored_by_gather {
-                    // `0xff − val`: the cell's value byte, 0 on this world.
-                    score += 0xff;
+                    // `0xff − val`, `WData.val` — the map maker's own
+                    // city-site value for the cell, so a *better* site
+                    // scores **lower** here. It is not zero on the islands
+                    // map: run38's own world dump gives the cells East
+                    // Indies' second farm parts on 20, 31, 6, 21 and 27.
+                    score += 0xff - self.world.cell_data(cell).val as i32;
                 } else if ident == Ident::Woodcutter {
                     score *= slots * slots * slots;
                     if !(slots > 2 || frame == 0) {

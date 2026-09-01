@@ -12,36 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the dock landed, and East Indies' word went **3021 →
-3435**.* Item 130 closed on the arm §20 named, for a reason §20 had
-backwards, and it took two more defects with it.
+*2026-09-01, Opus — the farm landed, and East Indies' word went **3435 →
+3579**.* Item 131 closed on `produce_building`'s FARM/MINE arm, which does
+not reuse the spiral's own distance, and it took item 132 with it.
 
-- **The slide is not what places the dock.** `produce_building`'s
-  `is(0x1b0)` arm slides ±2 tiles, and the original's dock sits on the
-  plain centre of cell `(57, 54)`, which no slide can reach. What it does
-  is make the spiral *accept* index 117 instead of 129, which moves the
-  stride-of-three's phase from `0` to `2 (mod 3)` and lands the walk on
-  143. run56's buildings: **92,626 fields, zero wrong**. AI §21.
-- **Two more, each first reached by the dock's new cell.** All three
-  `find_*path` pull-backs applied `sin_component`'s own sign fold twice,
-  walking the goal *away* from the start and never terminating — no
-  capture had run that body twice (PATHFINDER §13, listing-settled, with
-  `find_tpath`/`find_upath`'s steps `0x60`/`0x18`). And
-  `find_nearby_spot` had no terrain test, so a citizen could stand in the
-  sea: the swarm ring took `k = +1` where the original takes `−1` (ORDERS
-  §10).
-- **run57 is a test now, and it names the next item.** 4,000 frames, both
-  position records: **130,326 building fields, two wrong** — `1/2011` on
-  3177 one cell east, `1/2012` on 3977 one tile — and **322,683 collision
-  fields, none wrong**, nothing leaving the original's point before 3177.
+- **A farm's distance is in tiles, from the anchor's own point.** The
+  general arm at `006e1f9a` subtracts the anchor's *cell*; the
+  `0x1a1`/`0x1a3` arm at `006e2004` rebuilds both sides in **tiles** —
+  `cell·4 + 2` against `div_3_table[(anchor.pos ^ 0x63637) >> 6]`. In
+  cells every neighbour of the anchor is `4000 / 1` and the roll is the
+  whole score; in tiles the far diagonal is `4000 / 9` against the rest's
+  `4000 / 6`. Beside it, `0xff` is `0xff − WData.val`, and the map's
+  value byte is **not** zero — 20, 31, 6, 21, 27 on the five cells this
+  call parts on. AI §22.
+- **run57 is clean.** **130,326 building fields, zero wrong** over 4,000
+  frames, where it was two buildings and 850 field-frames; the collision
+  block grows to **330,643 field-frames, none wrong**, and nothing leaves
+  the original's point before 3582 — past the word. Item 132 was the
+  word's own `Farms::inc_time+0x1ae`, and it was this farm's shadow.
+- **The new seam is a bird.** run54 parts its *sequence* at 3579 and its
+  *count* at 3580, and the second draw of 3579 is `Dock::init+0x125`
+  where this crate spends a second `Guy::init_real+0x52`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w3435 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w3579 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `The headline is East Indies' word at 3435 and item 131
-is what holds it: the AI's building 1/2011 goes up on frame 3177 one cell
-east of the original's. run57's diff is the oracle and docs/AI.md 21 is the
-method that closed its predecessor.`
+**Opener (Opus):** `The headline is East Indies' word at 3579 and item 133
+is what holds it: a finished Dock spawns a GULLBIRD of owner 9 and rolls
+its facing, and nothing here does. Dock::init@00740a80 is four lines and
+run54's frame 3579 is the oracle.`
 
 ## The queue
 
@@ -50,22 +49,17 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-131. **`1/2011`, one cell east, on frame 3177.** run57's own residue and
-    the whole of East Indies' word at 3435: the AI's building `o 2011`
-    goes up at `x 35712` where the original's is at `34944`, exactly one
-    cell, and every unit that leaves the original's point in the capture
-    leaves it at or after that frame. Same shape as item 130 and the same
-    oracle — a dumped position with no draw of its own — so the method is
-    §21's: instrument `produce_building`'s walk for this call, find the
-    accepted set and the stride's phase, and read the arm that differs.
-    `1/2012` on 3977 is one *tile* in `x`, a jitter or a slide rather than
-    a cell, and is probably a second thing.
-
-132. **The word's own frame, 3435.** Three draws against two: this crate
-    spends a `Farms::inc_time+0x1ae` the original does not. It is past
-    run57's building seam at 3177, so it may be that item's consequence —
-    take 131 first and re-measure. If it survives, FARMS is the document
-    and the growth clock is the suspect.
+133. **A finished Dock spawns a bird, and this crate does not.**
+    `Dock::init@00740a80` is the whole item: it counts the dock into
+    `leaders[who]+0x135e + region·2`, then
+    `Objects::init_unit(9, GULLBIRD, x − 0xc0, y − 0xc0)`, then
+    `Unit::set_angle(gull, (r % 7) · 0xaaaaaaa − 0x40000000, 7, 0)` —
+    that roll is the `Dock::init+0x125` of run54's frame 3579 — and
+    `add_strafe_order(gull, dock_o, who, …, QUEUE_NEW)`. Owner 9 is the
+    pasture's owner and no dump prints it (SYNC §3.11), so the oracle is
+    the draw stream, not a record. `Dock::init` runs when the dock
+    *finishes*, not when it is placed: run57's dock is laid on 2977 and
+    this fires on 3579.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
     table at `0063bd84` cannot produce it;

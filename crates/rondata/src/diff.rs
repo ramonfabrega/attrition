@@ -4195,17 +4195,18 @@ mod tests {
     /// has about frames 3,000–4,000 of East Indies.
     ///
     /// It was captured for a divergence at 3021 that a widening of run56
-    /// answered instead, and its own statement was that everything past
-    /// 3,000 was one thing's consequence: seventeen units first parting
-    /// from 2978, and two later buildings — `1/2011` on 3177 and `1/2012`
-    /// on 3977 — going up after the citizen that builds them is already
-    /// walking somewhere else. With the dock's slide (`docs/AI.md` §21)
-    /// and the swarm ring's terrain test (`docs/ORDERS.md` §10) that
-    /// consequence is gone, and what is printed below is what is left.
+    /// answered instead, and it has since named and then closed two more
+    /// items. Its own statement was that everything past 3,000 was one
+    /// thing's consequence — seventeen units first parting from 2978 —
+    /// which the dock's slide (`docs/AI.md` §21) and the swarm ring's
+    /// terrain test (`docs/ORDERS.md` §10) settled; what was left after
+    /// that was two of the AI's farms sited in `x` alone, and those were
+    /// the FARM/MINE arm's own distance (`docs/AI.md` §22).
     ///
-    /// The two totals are this capture's own size rather than a score,
-    /// and they are asserted so that a change to either fails here rather
-    /// than passing quietly.
+    /// **Nothing is wrong in either record now**, over both position
+    /// blocks and all 4,000 frames. The two totals are this capture's own
+    /// size rather than a score, and they are asserted so that a change to
+    /// either fails here rather than passing quietly.
     #[test]
     fn run57_s_four_thousand_frames_stand_where_the_original_s_do() {
         let Some(inst) = install() else { return };
@@ -4276,29 +4277,18 @@ mod tests {
             eprintln!("  {who}/{o} parts at {frame}");
         }
 
-        // **The two residues, asserted as they stand**, so that closing
-        // either fails here rather than passing quietly. Both are the AI's
-        // own placements and both are in `x` alone: `1/2011` is **one
-        // cell** east of the original's on the frame it goes up, and
-        // `1/2012` **one tile**. Everything before 3177 — every building
-        // of both players, on every frame — is the original's own point.
-        assert_eq!(
-            first_build
-                .iter()
-                .map(|&(w, o, f, field, ..)| (w, o, f, field))
-                .collect::<Vec<_>>(),
-            vec![(1, 2011, 3177, "x_internal"), (1, 2012, 3977, "x_internal"),],
-            "the AI's two later buildings are the only ones sited elsewhere"
+        // **Every building of both players, on every frame, at the
+        // original's own point.** The two residues this test was written
+        // around — `1/2011` one cell east on 3177 and `1/2012` one tile on
+        // 3977 — were one defect, and it was the FARM/MINE arm's own
+        // distance (`docs/AI.md` §22).
+        assert!(
+            build_bad.is_empty(),
+            "the AI's buildings stand where the original's do: {first_build:?}"
         );
-        assert_eq!(
-            build_bad.len(),
-            850,
-            "one field-frame per frame they stand for"
-        );
-        // **Not one collision field wrong in 322,683**, and the fourteen
-        // units that ever leave the original's point all leave it *after*
-        // `1/2011` goes up on 3177 — `1/2` on that very frame. The block
-        // is scoped to unit-frames whose positions still agree, so this is
+        // **Not one collision field wrong in 330,643**, and nothing leaves
+        // the original's point before 3582 — past the word. The block is
+        // scoped to unit-frames whose positions still agree, so this is
         // the capture's size and not a score.
         assert!(
             coll_bad.is_empty(),
@@ -4306,11 +4296,11 @@ mod tests {
         );
         assert_eq!(
             parted.values().copied().min(),
-            Some(3177),
-            "nothing parts before the building that causes it"
+            Some(3582),
+            "nothing parts before the word does"
         );
         assert_eq!(builds, 130_326, "two fields on every linked building-frame");
-        assert_eq!(coll, 322_683, "five fields on every agreeing unit-frame");
+        assert_eq!(coll, 330_643, "five fields on every agreeing unit-frame");
     }
 
     /// **Where the buildings stand** — run56's `BUILDDATA` position, on
@@ -7806,8 +7796,30 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **3435**, and the frame is three draws against two: this crate
-    /// spends a `Farms::inc_time+0x1ae` the original does not.
+    /// **3579** — the frame the *sequence* parts; the count holds one
+    /// frame longer and parts at 3580. Both frames are one thing: the
+    /// original's second draw of 3579 is `Dock::init+0x125` and this
+    /// crate's is a second `Guy::init_real+0x52`. A finished Dock spawns
+    /// a **`GULLBIRD` of owner 9** a tile north-west of itself
+    /// (`Dock::init@00740a80`: `Objects::init_unit(9, GULLBIRD, x − 0xc0,
+    /// y − 0xc0)`), rolls its facing as `(r % 7) × 0xaaaaaaa − 0x40000000`
+    /// on a turn of 7, and gives it a strafe order around the dock — and
+    /// nothing here spawns it.
+    ///
+    /// It was **3435** for one item, and the frame was three draws against
+    /// two: a `Farms::inc_time+0x1ae` this crate spent and the original did
+    /// not. That was a symptom of the farm below rather than a clock: with
+    /// player 1's farms on the original's own cells the extra growth tick
+    /// is gone.
+    ///
+    /// It was **3177** for the length of one item — the AI's farm `1/2011`
+    /// going up one cell east of the original's, and `1/2012` one tile.
+    /// `produce_building`'s FARM/MINE arm does not reuse the spiral's own
+    /// distance: it rebuilds both sides in **tiles** and measures from the
+    /// anchor's exact position, so a straight neighbour and a diagonal one
+    /// score `4000/4` against `4000/6` where in cells both are `4000/1`.
+    /// The same arm's `0xff` is `0xff − WData.val`, and the map's value
+    /// byte is not zero (`docs/AI.md` §22).
     ///
     /// It was **3021** for two items — four draws against five, the
     /// missing one an idle request from `Unit::move_step` rather than from
@@ -7849,7 +7861,7 @@ mod tests {
     /// site would gather. `blocked_site`'s out-parameter is that number
     /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
     /// original's own frame, tile and object number.
-    const LONG_WORD_EAST_INDIES: i64 = 3435;
+    const LONG_WORD_EAST_INDIES: i64 = 3579;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**
