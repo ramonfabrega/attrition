@@ -13,27 +13,26 @@ lines, or lets the handoff pass 32.
 ## Where things stand
 
 *2026-09-01, Opus — the collision block is innocent, and East Indies' word
-holds at **3021**.* Item 129 asked for a longer capture and was answered by
-the one already on disk; the headline did **not** move, and what holds it
-is a failing field rather than a guess.
+holds at **3021**.* Item 129 asked for a capture and was answered by the
+record already on disk; the headline did **not** move, and what holds it is
+a failing field rather than a guess.
 
 - **Two widenings, and the second names the blocker.** run56's collision
   block is **249,293 fields, zero wrong**, so the blocked stand at 3021 was
-  never the seam. `BUILDDATA`'s own `x_internal`/`y_internal` had been
-  parsed and never compared: **92,626 fields**, residue one field of one
-  building — player 1's **Dock `o 2010`**, frame 2977, cell `x 57` in both,
-  cell `y` **52** here against **54**. Its citizen then walks somewhere
-  else and takes no stand 44 frames later. AI §20.
+  never the seam. `BUILDDATA`'s `x_internal`/`y_internal` had been parsed
+  and never compared: **92,626 fields**, residue one field of one building
+  — player 1's **Dock `o 2010`**, frame 2977, cell `x 57` in both, cell `y`
+  **52** here against **54**. Its citizen then walks elsewhere and takes no
+  stand 44 frames later. AI §20.
 - **The spiral's stride is spent at the bottom** — `local_2c += iVar13` at
   `006e25bb`, by the stride the body has just set, where this crate stepped
-  at the top by the previous one. §2.20 had the condition and not the
-  timing, and its "moved no measured number" was the tell. The fuzzed map's
-  frame 1 goes **29 → 30** candidates against 30, a five-day residue; the
-  frame is 44 of 45. It does not move the dock.
-- **run57 is on disk**, same game twice over (rngcmp v run54: 4,001 frames,
-  0 differing; samegame v run56: 0 over 3,000). Past 3,000 all of it is the
-  dock's consequence, so it is the capture that says what is next the moment
-  item 130 lands. ORACLE, "run57".
+  at the top by the previous one. The fuzzed map's frame 1 goes **29 → 30**
+  candidates against 30, a five-day residue; the frame is 44 of 45. It does
+  not move the dock.
+- **run57 is on disk**, same game twice over; past 3,000 all of it is the
+  dock's consequence, so it says what is next the moment 130 lands. Beside
+  it, `FABLE:` — the lane's *ordering* rule, widen the records before
+  booking a capture, argued both ways and not adopted. ORACLE, "run57".
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w3021 of 24,000 · GreatLakes w1802 of 24,000

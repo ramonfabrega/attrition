@@ -3041,8 +3041,24 @@ in the extra thousand frames is independent evidence, which is exactly what
 makes it useful: **when the dock lands, this is the capture that says what
 is next**, and it needs no second run to do it.
 
-**The lesson for the lane.** "Size the capture to the word" is still right,
-but the *order* is not: widen every dumped record the mechanic touches first,
-and take the capture only for what no record on disk can answer. run57 would
-have been the right capture had the collision block been wrong; it was the
-second-best use of an hour because nobody had asked the record.
+**`FABLE:` the lane's own ordering rule, proposed and not adopted.** This run
+is the first evidence that "size the capture to the word" has the *order*
+wrong rather than the size: the two records that answered item 129 were both
+on disk, both parsed, and neither had ever been asserted, so the hour of
+screen bought frames nobody needed yet. The proposal is a clause — **widen
+every dumped record the mechanic touches before booking a capture, and take
+the capture only for what no record on disk can answer** — and it belongs in
+`CLAUDE.md`'s working agreement beside "Grep the dump before booking a
+reading", which is the same rule one level down.
+
+It is marked rather than written because it is a working-agreement change,
+and those are the steering session's (`docs/DECISIONS.md` entry 22: Fable
+writes `CLAUDE.md` and the queue). What a pass should weigh: **for** — item
+129 is a clean instance, and item 128's own predecessor was found the same
+way (`docs/QUEUE.md` item 87, the widening ledger, is the standing count of
+records parsed and never compared); **against** — one instance is not a
+rule, and the lane's value is that it runs *beside* the main loop and costs
+it nothing, so an ordering clause that makes a capture wait on a widening
+may spend the screen's idle hours rather than save them. run57 was not
+wasted; it was second-best. Whether "second-best" is worth a rule is the
+question.

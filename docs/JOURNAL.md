@@ -10677,3 +10677,9 @@ the jitter is fenced behind `ident != Dock` — so the dumped position is the
 **run57 was taken anyway**, and it is not wasted: East Indies at full detail
 to 4,000 frames, sized to the word by the capture lane's standing rule. The
 frames past 3,000 are what the successor reads once the dock lands.
+
+Whether the lane's rule should have an *ordering* clause under it — widen
+every dumped record the mechanic touches before booking a capture — is
+marked `FABLE:` in `docs/ORACLE.md`'s run57 section and argued both ways
+there. It is a working-agreement change, so it is the steering session's,
+not this one's.
