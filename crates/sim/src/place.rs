@@ -251,6 +251,25 @@ impl Sim {
         pos: Pos,
         exclude: Option<usize>,
     ) -> Blocked {
+        self.blocked_site_slots(who, ty, pos, exclude).0
+    }
+
+    /// `blocked_site`'s `param_5` beside its verdict: the gather count
+    /// `blocked_location` fills in for a non-flat gather type, clamped at
+    /// zero. Every other type leaves it at the zero the original's callers
+    /// initialise it to, because the original only ever writes it on that
+    /// one path.
+    ///
+    /// `Leader::produce_building` is the reader that matters — it scores a
+    /// woodcutter's camp by the cube of this number and refuses a site under
+    /// three (`ai_place.rs`).
+    pub fn blocked_site_slots(
+        &self,
+        who: Option<Player>,
+        ty: usize,
+        pos: Pos,
+        exclude: Option<usize>,
+    ) -> (Blocked, i32) {
         let b = &self.build_types[ty];
         let corner = self.tile_corner(ty, pos);
         // A human who, or whose ally, lost a city in the last 75 frames may
@@ -264,7 +283,7 @@ impl Sim {
                     && self.player_alive(i)
                     && self.lost_city_stamp[i as usize].is_some_and(|s| self.frame - 75 < s)
                 {
-                    return Blocked::LostCity;
+                    return (Blocked::LostCity, 0);
                 }
             }
         }
@@ -272,21 +291,21 @@ impl Sim {
         for t in self.footprint(ty, corner) {
             let r = self.blocked_tcoord(who, ty, t, exclude);
             if r == Blocked::OffMap {
-                return r;
+                return (r, 0);
             }
             if r != Blocked::Clear && (first == Blocked::Clear || r == Blocked::Territory) {
                 first = r;
             }
         }
         if first == Blocked::Water {
-            return first;
+            return (first, 0);
         }
-        let r = self.blocked_location(who, ty, pos, corner, exclude);
+        let (r, slots) = self.blocked_location(who, ty, pos, corner, exclude);
         if r != Blocked::Clear {
-            return r;
+            return (r, slots);
         }
         let _ = b;
-        first
+        (first, slots)
     }
 
     /// `BuildTypeData::blocked_tcoord`: one tile. Visibility is taken as
@@ -413,8 +432,74 @@ impl Sim {
         })
     }
 
-    /// `BuildTypeData::blocked_location`: the site.
+    /// `BuildTypeData::blocked_location`: the site, and the gather count its
+    /// tail hands back through `param_7`.
     pub fn blocked_location(
+        &self,
+        who: Option<Player>,
+        ty: usize,
+        pos: Pos,
+        corner: Pos,
+        exclude: Option<usize>,
+    ) -> (Blocked, i32) {
+        let r = self.blocked_location_verdict(who, ty, pos, corner, exclude);
+        if r != Blocked::Clear {
+            return (r, 0);
+        }
+        self.gather_verdict(who, ty, corner, exclude)
+    }
+
+    /// 2.6.7, `blocked_location@006375b0:679–716` — the last thing the
+    /// function does, and the only place it writes `param_7`.
+    ///
+    /// A **non-flat gather type** surveys what its site would gather, by
+    /// the same `calc_gather` count `max_gatherers` reads
+    /// ([`Sim::site_gather_count`]), and a site with nothing under it is
+    /// refused outright: `NoMountain` for a mine, `NoForest` for a camp,
+    /// `NoResources` for anything else, and the `Taken` pair when the count
+    /// came back negative because every candidate cell was already being
+    /// gathered from. The flat types — farm, oil well, oil platform — and
+    /// every non-gather building skip it and leave the count at zero.
+    ///
+    /// **A seam.** The player-less form (`who == None`, the cursor's) skips
+    /// the survey: the walk's cell-owner test wants a player, and the
+    /// original's `who = −1` behaviour there has no oracle. No caller in
+    /// this crate passes it.
+    fn gather_verdict(
+        &self,
+        who: Option<Player>,
+        ty: usize,
+        corner: Pos,
+        exclude: Option<usize>,
+    ) -> (Blocked, i32) {
+        let b = &self.build_types[ty];
+        if !b.has(flags::GATHER) || b.has(flags::FLAT) {
+            return (Blocked::Clear, 0);
+        }
+        let Some(w) = who else {
+            return (Blocked::Clear, 0);
+        };
+        let n = self.site_gather_count(ty, w, corner, exclude);
+        let camp = b.ident == Ident::Woodcutter;
+        let verdict = if n == 0 {
+            match b.ident {
+                Ident::Mine => Blocked::NoMountain,
+                Ident::Woodcutter => Blocked::NoForest,
+                _ => Blocked::NoResources,
+            }
+        } else if n < 0 {
+            if camp {
+                Blocked::ForestTaken
+            } else {
+                Blocked::MountainTaken
+            }
+        } else {
+            Blocked::Clear
+        };
+        (verdict, n.max(0))
+    }
+
+    fn blocked_location_verdict(
         &self,
         who: Option<Player>,
         ty: usize,

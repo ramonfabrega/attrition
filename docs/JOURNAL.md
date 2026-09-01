@@ -10377,3 +10377,85 @@ Also fixed: `runqueue.sh` never reset `poll_max` between stanzas, so every
 stanza after run53 silently inherited its 900. Harmless in effect — it can
 only make a run wait longer — and exactly the kind of thing that is
 invisible until a capture needs the default.
+
+## 2026-09-01 (item 126, Opus) — a camp is scored by what it would gather, and the headline moves 2176 → 2665
+
+Yesterday's session left East Indies' word at 2176 with the divergence
+named precisely: the original places player 1's second Woodcutter's Camp
+there — `o 2009`, tile (198, 190) — and this simulation places nothing,
+though it puts that player's three earlier buildings up at the original's
+own frames, tiles and object numbers. The queue's guess was `make_stuff`
+slot 4's gather exception. It was not that at all.
+
+**The script says so in one line.** Tracing every `ScenarioFuncSet` call at
+frame 2176 shows the AI arriving at exactly the right place: script step 13,
+`place_woodcutter` in `aibestbuildlibrary.bhs`, the `num_cities > 1` arm,
+`place_building_with_cost(who, "Woodcutter's Camp", "City 2")` — and it
+comes back **0**. Then the capital, also 0, then `can_pay_cost` says yes and
+the step advances. So the AI wants the camp, can afford it, asks for it at
+the right city, and `Leader::produce_building` refuses every site on the map.
+
+**Every candidate scored zero, and the reason was a name.**
+`produce_building`'s woodcutter branch is
+
+```
+score = score · n³;   if not (n > 2 or frame == 0): continue
+```
+
+and `n` is `local_34`, filled by the `blocked_site` call the spiral has
+*already made* for that candidate. Follow it down: `blocked_site` passes it
+to `blocked_location`, which writes it once, at the very end, from
+`BuildTypeData::calc_gather`'s count out-parameter — **the same number
+`max_gatherers` reads**, which this crate has had for a fortnight. This
+crate had a one-tile ring of forest tiles there instead, `forest_around`,
+plausible from the `count_trees_adjacent` sitting two branches above in the
+same function and wrong: a camp stands on *clear ground next to* a forest
+whose gather radius is eight tiles, so the ring of width one is empty at
+every site a camp can actually occupy. Score zero, gate refuses, no camp.
+
+Frame 0 is why nobody noticed. `frame == 0` skips the gate, and a
+uniformly-zero score makes `score < best` false for every candidate, so the
+spiral accepts its *last* candidate rather than its best — which is a
+perfectly deterministic wrong answer that the setup path does not exercise,
+because `Setup::small_city_buildings` is not modelled and the initial camps
+are loaded from the dump. The AI has been unable to build a woodcutter's
+camp for the whole life of the crate, and no capture was long enough to say
+so until run56.
+
+**What landed.** `blocked_location`'s tail whole, not just the number:
+`Sim::gather_verdict` refuses a non-flat gather type with nothing under it
+— `NoForest` for a camp, `NoMountain` for a mine, `NoResources` otherwise,
+and the two `Taken` verdicts when the count comes back negative because
+every candidate cell was already gathered from. `Sim::blocked_site_slots` is
+the form that hands the count back, and `produce_building` reads it in the
+two places the original does: the spiral's score, and the camp's compass-ring
+jitter, which picks its sub-position on a strict improvement in the same
+number. `Sim::site_gather_count` is the unclamped count; `gather_slots` and
+`max_gatherers` keep the clamp, because `blocked_location` reads the sign
+and `max_gatherers` does not.
+
+**The guard fired on its own tests first.** Seven flat-world unit tests
+failed on the first run — every one of them standing a woodcutter's camp on
+a map with no trees, which is now correctly `Blocked::NoForest`. That is the
+rule working. They plant a cell's centre tile of gatherable forest in the
+eight cells around the camp now (`Sim::plant_camp_forest`, one tile a cell,
+because the survey qualifies a cell on its centre tile and nothing else), and
+`ai_make`'s fixture farm gained the `FLAT` flag the shipped data gives it —
+without which a farm is a non-flat gather type and gets refused too.
+
+**The result.** The AI reaches run56's frame 2176 and places `o 2009` at
+tile (198, 190) — the original's frame, the original's tile, the original's
+object number — and spends the original's own 192 shuffle draws. run56's
+gather widening goes from 967,268 fields with fifty rows on the missing camp
+to **1,048,118 fields with nothing but the quit's own four**, and East
+Indies' long word moves **2176 → 2665**.
+
+**And 2665 is a scout that will not stop thinking.** Both take a whole
+`Unit::think_scout` on 2664 — ten `+0x436`, six `+0x458`, one `+0x941` — and
+agree on the frame. On 2665 the original takes nine draws; this simulation
+takes thirty, and twenty-one of them are a *second* whole `think_scout`. The
+`+0x458` count is the fingerprint: SCOUT §6 skips the phase draw when
+`ring / 4 + frame % 8 == 0`, so 2664 (`% 8 == 0`) spends six and 2665 spends
+ten — which is exactly what the two lists hold. The walk is right; the unit
+is still idle when the original's has left `do_idle` with its order, and from
+2664 the original's scout thinks every 32 frames exactly. That is item 127.

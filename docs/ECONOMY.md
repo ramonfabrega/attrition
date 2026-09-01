@@ -672,8 +672,9 @@ what it got before any of this existed.
   the `MiningList` header's `length` and `BuildData::gather_down`, for every
   building of both players on every frame: 594,618 and 584,712 fields, and
   the only disagreements are the four the quit's own last block writes.
-  run56 carries the same comparison to 3,001 frames and 967,268 fields,
-  where the only rows are the camp below and the quit's own four.
+  run56 carries the same comparison to 3,001 frames and **1,048,118**
+  fields, and since 2026-09-01 the only rows are the quit's own four:
+  the camp below is a camp this crate's AI builds too.
 - **The order, seed-anchored.** `run56_s_new_camp_is_this_crate_s_own_shuffle`
   is the whole of it against the one camp the *game* built. run56's frame
   2176 places player 1's `o 2009`, 48 tiles, 192 draws; step there, install
@@ -683,6 +684,14 @@ what it got before any of this existed.
   in the original's shuffled order, for exactly `4 × 48` draws. That is the
   walk's order, the marking, the round count and the modulus in one
   assertion, and it is the half the re-derivation above cannot reach.
+
+**A second reader of the count.** `BuildTypeData::blocked_location` runs the
+same survey and hands the count out through `blocked_site`'s last parameter
+(`docs/CITIES.md` §2.6.7). That is what refuses a camp with nothing under it,
+and it is what `Leader::produce_building` scores a camp *site* by — the cube
+of it (`docs/AI.md` §19). So the count is no longer only `gather_max`'s: it
+decides where the AI's camps go, and run56's frame 2176 is the diff that says
+so.
 
 **What it does not establish.** The **metal** branch, above. And
 `Build::process`'s two re-entries — `verify_gather_tiles` on a region's

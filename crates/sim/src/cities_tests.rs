@@ -1975,6 +1975,7 @@ fn a_citizen_gathers_where_the_cap_has_the_most_room_left() {
         // Six tiles either way: `vector_dist` is 1,152 to both, and
         // `1152 / 0xc0 + 2` is 8 for both. The distance term cancels.
         let farm = sim.place_building(0, t.farm, tile_pos(36, 30)).unwrap();
+        sim.plant_camp_forest(tile_pos(24, 30));
         let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
         for b in [farm, wood] {
             finish(&mut sim, b);
@@ -2063,6 +2064,7 @@ fn the_return_walk_goes_in_front_of_the_gather_order_it_updates() {
     let citizen = sim.add_unit_type(citizen_type(t.village));
     sim.unit_types[citizen].worker = Worker::Citizen;
     city_at(&mut sim, &t, 0, 30, 30);
+    sim.plant_camp_forest(tile_pos(24, 30));
     let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
     finish(&mut sim, wood);
     sim.buildings[wood].gather_max = Some(4);
@@ -2123,6 +2125,7 @@ fn the_carrying_walk_comes_off_the_mask_and_not_off_goto_build() {
     let citizen = sim.add_unit_type(citizen_type(t.village));
     sim.unit_types[citizen].worker = Worker::Citizen;
     city_at(&mut sim, &t, 0, 30, 30);
+    sim.plant_camp_forest(tile_pos(24, 30));
     let wood = sim.place_building(0, camp, tile_pos(24, 30)).unwrap();
     finish(&mut sim, wood);
     sim.buildings[wood].gather_max = Some(4);

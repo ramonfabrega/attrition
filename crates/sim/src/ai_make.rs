@@ -765,7 +765,12 @@ mod tests {
         sim.add_build_type(bt(Ident::Tower, tower, 2, 2, 30));
         sim.add_build_type(bt(Ident::Wonder, wonder, 5, 5, 0));
         let mut f = bt(Ident::Farm, farm, 4, 4, 60);
-        f.flags |= flags::GATHER;
+        // A farm is a gather type *and* a flat one — `init_final_flags`
+        // makes the FARM, OILWELL and OILPLATFORM lineages flat, and the
+        // flat half is what keeps `blocked_location`'s gather tail off it
+        // (`docs/CITIES.md` §2.6.7). Without it a farm on this bare test
+        // world is refused for having nothing to gather.
+        f.flags |= flags::GATHER | flags::FLAT;
         let farm_rec = sim.add_build_type(f);
         // The barracks costs two goods, so that `need`'s mean has something
         // to average.

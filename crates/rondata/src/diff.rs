@@ -7278,14 +7278,24 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **2176**, and its successor is named by its own frame: the original
-    /// spends **192** draws there at
-    /// `Build::find_gather_tiles+0x10a < Build::init+0x55b <
-    /// Objects::init_build+0x82` — a gathering building going up and
-    /// surveying its tiles — and this simulation spends none of them. That
-    /// is the queue's item 85, which was booked off run40 and is now the
-    /// leading map's first divergence.
-    const LONG_WORD_EAST_INDIES: i64 = 2176;
+    /// **2665**, and its successor is named by its own frame: the original
+    /// takes nine draws there and this simulation takes thirty. The first
+    /// three agree — a step's `set_anim`, the new camp's
+    /// `Unit::do_non_flat_gather+0x54b`, an idle `set_anim` — and then this
+    /// simulation idles **one unit more**, and runs a whole
+    /// `Unit::think_scout` (ten `+0x436`, ten `+0x458`, one `+0x941`) that
+    /// the original does not: the original's scout thought on **2664**,
+    /// which both agree on, and then stopped. From 2664 the original's
+    /// scout thinks every 32 frames exactly.
+    ///
+    /// The floor before this was **2176**, item 126's — the frame the
+    /// original placed player 1's second Woodcutter's Camp and this
+    /// simulation placed nothing, because `produce_building` scored a camp
+    /// site by the forest tiles in a one-tile ring rather than by what the
+    /// site would gather. `blocked_site`'s out-parameter is that number
+    /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
+    /// original's own frame, tile and object number.
+    const LONG_WORD_EAST_INDIES: i64 = 2665;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**
@@ -9891,6 +9901,10 @@ mod tests {
     /// whether `Build::find_gather_tiles` produces the original's list rather
     /// than merely the original's *tiles* (`docs/ECONOMY.md`, "The gather
     /// list, and its shuffle").
+    ///
+    /// **Closed 2026-09-01**: this simulation now builds that camp too, on
+    /// the original's own frame and tile, so every gather record of the
+    /// capture agrees except the four the quit's own frame carries.
     #[test]
     fn run56_s_mining_lists_reach_past_the_word() {
         let Some(inst) = install() else { return };
@@ -9937,37 +9951,35 @@ mod tests {
         }
         let (compared, wrong, first) = gather_verdict("run56", &report);
         assert!(
-            compared >= 967_268,
+            compared >= 1_048_118,
             "the record is being read: {compared} fields"
         );
-        // **Every disagreement is one building, and it is the one this
-        // simulation never places.** The original's `1/2009` stands from
-        // 2176; the comparison cannot see it until frame 2977, when this
-        // simulation's own placements finally reach that object number and
-        // the two link — which is why the first row is at 2977 and not at
-        // 2176. Before it, the frames are counted as unlinked instead.
-        assert_eq!(
-            missing.iter().map(|&(w, o, _)| (w, o)).collect::<Vec<_>>(),
-            vec![(1, 2009)],
-            "the only list the original has and this one does not"
+        // **Nothing is missing.** The camp `1/2009` used to stand here as
+        // the one list the original had and this simulation did not; item
+        // 126 closed it, and the count above rose by the 80,850 fields the
+        // camp's own frames contribute.
+        assert!(
+            missing.is_empty(),
+            "the original has a list this one does not: {missing:?}"
         );
         let strays: Vec<&GatherDivergence> = report
             .frames
             .iter()
             .flat_map(|f| f.gather_diverged.iter())
-            .filter(|d| (d.who, d.o) != (1, 2009) && d.frame < report.frames.len() as i64)
+            .filter(|d| d.frame < report.frames.len() as i64)
             .collect();
         assert!(
             strays.is_empty(),
-            "{} gather rows are neither the missing camp nor the quit's own: {:?}",
+            "{} gather rows before the quit's own frame: {:?}",
             strays.len(),
             &strays[..strays.len().min(4)]
         );
-        assert!(first >= 2977, "the mining lists part at {first}");
+        assert!(first >= 3001, "the mining lists part at {first}");
         assert!(
-            wrong <= 54,
-            "{wrong} gather fields disagree; the ceiling is 54 — fifty on the \
-             camp this simulation does not build, and the quit's own four"
+            wrong <= 4,
+            "{wrong} gather fields disagree; the ceiling is 4 — the quit's \
+             own frame, where four farms hold a `gather_down` the dump has \
+             as −1"
         );
     }
 
@@ -9976,9 +9988,13 @@ mod tests {
     ///
     /// run56's frame 2176 is where the original places player 1's second
     /// Woodcutter's Camp, `o 2009`, and spends 192 draws shuffling its
-    /// 48-tile list. This crate's AI does not place it (that is the
-    /// successor, and the queue holds it) — but the mechanic can still be
-    /// checked whole, because the stream is knowable: run56's trace gives
+    /// 48-tile list. ~~This crate's AI does not place it (that is the
+    /// successor, and the queue holds it)~~ — item 126 closed that on
+    /// 2026-09-01 and this crate's AI now places it in the tick, which is
+    /// what [`run56_s_mining_lists_reach_past_the_word`] checks. This test
+    /// keeps the *seed-anchored* form, which is stronger: it does not
+    /// depend on the AI reaching the frame at all, because the stream is
+    /// knowable on its own — run56's trace gives
     /// `game_random`'s word at `do_frame` entry of 2176, and
     /// `find_gather_tiles` is the **first** thing that frame draws.
     ///

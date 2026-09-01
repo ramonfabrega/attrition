@@ -12,32 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the gather list is a mechanic, and item 85's second half
-is the AI.* The headline has **not** moved: East Indies' word is still 2176.
+*2026-09-01, Opus — a camp's site is scored by what it would gather.* East
+Indies' word moved **2176 → 2665**.
 
-- **run56 is taken**: East Indies, 3,000 frames, run39's recipe and detail
-  unchanged, 789 MB. `rngcmp.py` calls it run54's game on all 3,001 frames
-  and `samegame.py` calls it run39's on all 1,850 they share — the first
-  full-detail capture on either map past its own word (ORACLE, "run56").
-- **`Build::find_gather_tiles` is landed and checked whole**
-  (`docs/ECONOMY.md`, "The gather list, and its shuffle"): the walk
-  re-derives both run39 camps' 73-tile lists exactly, the shuffle's
-  `4 × length` is run54's setup 584 to the draw, and run56's frame 2176
-  gives the **order** seed-anchored. `Frame.builds` had been parsed on every
-  frame of every capture and compared on none; its gather half is compared
-  now, 967,268 fields over run56. Orders R4's timber branch is settled by
-  it; R4's **metal** branch and R2 O1 stand `FABLE:`, and no batch is due.
-- **What is left at 2176 is an AI build decision** — item 126. The frame's
-  227 draws are ours 35 plus exactly the shuffle's 192.
+- **Item 126 is closed, and it was one number in the wrong place.**
+  `Leader::produce_building` scores a woodcutter's camp site by the **cube**
+  of `blocked_site`'s own out-parameter — `calc_gather`'s count, the same
+  one `max_gatherers` reads — and refuses a site under three. This crate
+  counted the forest tiles in a **one-tile ring**, which is zero at every
+  site a camp can stand on: the score went to zero, the gate refused every
+  candidate, and **the AI placed no camp at all after frame 0**. Frame 0 hid
+  it — it skips the gate, and a uniformly-zero score takes the spiral's
+  *last* candidate. AI §19, CITIES §2.6.7.
+- **The out-parameter is modelled whole now** (`blocked_site_slots`,
+  `gather_verdict`): a non-flat gather type with nothing under it is refused
+  — `NoForest`, `NoMountain`, `NoResources`, the two `Taken` verdicts — a
+  rule `blocked_location` had never carried here. Seven flat-world unit
+  tests failed on it at once, each standing a camp on a treeless map; they
+  plant trees now (`Sim::plant_camp_forest`).
+- **run56's frame 2176 is the diff.** The AI reaches it at script step 13 —
+  `place_woodcutter`'s `num_cities > 1` arm — and places `o 2009` at tile
+  (198, 190) on the original's frame, with its 192 shuffle draws. run56's
+  gather comparison is **1,048,118 fields and nothing but the quit's four**.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w2176 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w2665 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `The headline is East Indies' word at 2176 and item 126
-is its divergence: the original places player 1's Woodcutter's Camp o 2009
-at tile (198, 190) there and this simulation places nothing, though it puts
-that player's three earlier buildings up at the original's own frames,
-tiles and object numbers. Read what refuses the fourth; run56 holds it.`
+**Opener (Opus):** `The headline is East Indies' word at 2665 and item 127
+is its divergence: this simulation's scout thinks a second time on 2665
+where the original thought once, on 2664, and stopped. run54 and run56 are
+the captures; docs/SCOUT.md is the document.`
 
 ## The queue
 
@@ -46,18 +50,22 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-126. **The fourth building East Indies' AI puts up, and the headline's own
-    divergence at 2176.** The original places player 1's second
-    Woodcutter's Camp — `o 2009`, tile (198, 190) — on frame 2176 and
-    spends the 192 draws its 48-tile list costs; this simulation places
-    nothing. It is not the gather mechanic: that is landed and checked
-    against this very camp. And the path is nearly there — player 1's farm
-    on frame 2, its second city on 977 and its second farm on 1577 all go
-    up here at the original's own frame, tile and object number. No
-    `produce_building` draw is spent on any of the four, so the site is not
-    a spiral search. Start at `make_stuff` slot 4's gather exception
-    (`ai_make.rs`, `gather_exception`) and `econ[1] & 4` — timber under
-    `hi` — and diff the leader census across 2176. run56 is the capture.
+127. **The scout thinks twice, and the headline's own divergence at 2665.**
+    On 2664 both take a whole `Unit::think_scout` — ten `+0x436`, six
+    `+0x458`, one `+0x941` — and agree on every draw of the frame. On 2665
+    the original takes nine draws and this simulation takes **thirty**: the
+    first three agree (a step's `set_anim`, the new camp's
+    `Unit::do_non_flat_gather+0x54b`, an idle `set_anim`), then this one
+    idles **one unit more** and runs a *second* whole `think_scout` — ten
+    `+0x436`, **ten** `+0x458`, one `+0x941` — that the original does not.
+    The `+0x458` count is the tell and it is `frame % 8`: SCOUT §6 skips the
+    phase draw when `ring / 4 + frame % 8 == 0`, which is rings 1–3 on 2664
+    (`2664 % 8 == 0`) and no ring at all on 2665. So the question is not the
+    walk, it is **why the unit is still idle**: the original's scout took its
+    order on 2664 and left `do_idle`, and from there thinks every 32 frames
+    exactly (2688, 2720, 2752, …, 2976). Start at SCOUT §9's order and what
+    `do_idle` does with it. run54 is the word's capture, run56 the
+    full-detail sibling.
 
 82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
     table at `0063bd84` cannot produce it;

@@ -831,6 +831,7 @@ mod tests {
         let t = install(&mut sim);
         // No city anywhere near: `find_city` leaves the link empty.
         build(&mut sim, 0, t.village, 4, 4);
+        sim.plant_camp_forest(tile_pos(56, 56));
         let camp = build(&mut sim, 0, t.camp, 56, 56);
         assert_eq!(sim.buildings[camp].city, None);
 

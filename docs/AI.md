@@ -2641,3 +2641,61 @@ both windows; the ten sites' `wx`, `wy`, `val` and `dist` on every slot but
 the one above. Reading-only: `was_seen`'s `reg_forts` arm (`+0x12de`), which
 `was_seen_fog` does not implement and no capture reaches — no player in the
 corpus owns a fort.
+
+## 19. What a camp's site is worth — `produce_building`'s gather score (2026-09-01)
+
+`Leader::produce_building` scores a **woodcutter's camp** site by nothing
+but what the site would gather, and the number is not the trees around it.
+It is `blocked_site`'s out-parameter — `docs/CITIES.md` §2.6.7, filled from
+`calc_gather`'s count, the same one `max_gatherers` reads — and the call
+that fills it is the very site test the spiral already runs:
+
+```
+local_34 = 0
+r = blocked_site(type, cand.x, cand.y, who, -1, &local_34)   # line 412
+if r != 0: continue
+…
+else if type == 0x1a2:                                       # lines 658-663
+    score = score · local_34³
+    if not (local_34 > 2 or frame == 0): continue
+    score = (score + plenty) · w1
+```
+
+and the camp's jitter — the `move_x`/`move_y` compass ring, not the 2×2 —
+picks its sub-position the same way, on a strict improvement:
+
+```
+best = -1
+for k in 0 .. circle_radius[ex]:                             # lines 981-999
+    local_34 = 0
+    c = corner + (move_x[k], move_y[k])
+    if blocked_site(type, c.x, c.y, who, -1, &local_34) == 0 and best < local_34:
+        best = local_34; cand = c
+if best < 0: return 1
+```
+
+**This crate had a one-tile ring of forest tiles there instead**, from the
+first reading of §2.20 — plausible from the name `count_trees_adjacent`
+sitting two branches above in `blocked_location`, and wrong. A camp stands
+on clear ground *next to* a forest whose gather radius is eight tiles, so a
+ring of width one is empty at every site a camp can actually occupy: the
+score went to zero, the `> 2` gate refused every candidate, and **the AI
+placed no woodcutter's camp at all after frame 0**. Frame 0 hid it, because
+`frame == 0` skips the gate and a uniformly-zero score accepts the spiral's
+last candidate rather than its best.
+
+**The oracle is run56's frame 2176** (`docs/ORACLE.md`, "run56"), where the
+original places player 1's second camp — `o 2009`, tile `(198, 190)`, 48
+tiles, `4 × 48 = 192` shuffle draws. With the count in place this crate's
+AI reaches that frame at script step 13 (`place_woodcutter` in
+`aibestbuildlibrary.bhs`, the `num_cities > 1` arm, `place_building_with_cost`
+at City 2) and places it at the original's own frame, tile and object number,
+spending the original's own 192 draws. East Indies' long word moved **2176 →
+2665** on it.
+
+**Coverage.** Diff-backed: the site, the frame and the object number, and
+every gather field of all 3,001 frames of run56 —
+`diff::tests::run56_s_mining_lists_reach_past_the_word` has one camp the
+game builds and no divergence before the quit's own frame. Reading-only:
+the `frame == 0` arm of the gate (no capture simulates `Setup`), and the
+`0x1a5`/`0x1a6` oil arm of §2.6.7 that sits beside it.

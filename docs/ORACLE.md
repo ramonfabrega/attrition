@@ -2950,13 +2950,18 @@ rather than merely its count. Seed-anchored on the trace's own word at the
 entry of 2176, this crate's camp comes back with the original's list entry
 for entry.
 
-**And what it names.** The gather half of the record is now compared on
-every frame — 967,268 fields over 3,001 — and the *only* rows are that one
-camp and the quit's own four. This simulation places player 1's farm on
-frame 2, its second city on 977 and its second farm on 1577, each at the
-original's own tile and object number; then the original places `o 2009` and
-this one places nothing. The successor is an AI build decision, and
-`docs/QUEUE.md` holds it.
+**And what it named, and how long it lasted.** The gather half of the record
+is now compared on every frame — and the *only* rows were that one camp and
+the quit's own four. This simulation placed player 1's farm on frame 2, its
+second city on 977 and its second farm on 1577, each at the original's own
+tile and object number; then the original placed `o 2009` and this one placed
+nothing. ~~The successor is an AI build decision.~~ **Closed the same day**
+(`docs/AI.md` §19): `produce_building` scored a camp site by the forest tiles
+in a one-tile ring rather than by what the site would gather, which is zero at
+every site a camp can stand on. With `blocked_site`'s own out-parameter there
+the camp goes up on frame 2176 at tile `(198, 190)` as `o 2009`, and run56's
+gather comparison is 1,048,118 fields with nothing but the quit's four. East
+Indies' long word went 2176 → **2665** on it.
 
 ## What is not established
 

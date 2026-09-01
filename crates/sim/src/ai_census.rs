@@ -1215,6 +1215,7 @@ mod tests {
         let c = f.sim.buildings[city_b].city.expect("a city record");
         let farm_b = build(&mut f.sim, 1, f.farm, 26, 20);
         f.sim.buildings[farm_b].gather_max = Some(3);
+        f.sim.plant_camp_forest(tile_pos(20, 26));
         let wood_b = build(&mut f.sim, 1, f.woodcutter, 20, 26);
         f.sim.buildings[wood_b].gather_max = Some(5);
 
@@ -1272,6 +1273,7 @@ mod tests {
         let c = f.sim.buildings[city_b].city.unwrap();
         let farm_b = build(&mut f.sim, 1, f.farm, 26, 20);
         f.sim.buildings[farm_b].gather_max = Some(3);
+        f.sim.plant_camp_forest(tile_pos(20, 26));
         let wood_b = build(&mut f.sim, 1, f.woodcutter, 20, 26);
         f.sim.buildings[wood_b].gather_max = Some(5);
         let uni_b = build(&mut f.sim, 1, f.university, 26, 26);

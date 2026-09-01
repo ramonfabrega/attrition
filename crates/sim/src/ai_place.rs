@@ -321,28 +321,6 @@ impl Sim {
         n
     }
 
-    /// Forest tiles in the ring of width one around a footprint at `corner`
-    /// — what `blocked_site`'s out-parameter counts for a woodcutter.
-    fn forest_around(&self, rec: usize, corner: Pos) -> i32 {
-        let b = &self.build_types[rec];
-        let mut n = 0;
-        for v in -1..=b.y_size {
-            for u in -1..=b.x_size {
-                let inside = (0..b.x_size).contains(&u) && (0..b.y_size).contains(&v);
-                if inside {
-                    continue;
-                }
-                let t = Pos::new(corner.x + u, corner.y + v);
-                if self.world.tile_in_bounds(t)
-                    && self.world.tile_mask(t) & tile::SURFACE == tile::SURFACE_FOREST
-                {
-                    n += 1;
-                }
-            }
-        }
-        n
-    }
-
     /// `Leader::produce_building(t, near, escrow)`: `true` when a site was
     /// placed (the original's 0). `near` is the reference building — a city
     /// centre for `place_building_with_cost`, any building for the orphan
@@ -456,7 +434,11 @@ impl Sim {
                 cell.x * UNITS_PER_CELL + bt.x_size * (UNITS_PER_TILE / 2) + pad(bt.x_size),
                 cell.y * UNITS_PER_CELL + bt.y_size * (UNITS_PER_TILE / 2) + pad(bt.y_size),
             );
-            if self.blocked_site(Some(who), rec, cand, None) != crate::place::Blocked::Clear {
+            // `local_34`, the out-parameter of this very call: what the site
+            // would gather. It is zero for every type but a non-flat gather
+            // one, and it is what the woodcutter's branch below scores by.
+            let (block, slots) = self.blocked_site_slots(Some(who), rec, cand, None);
+            if block != crate::place::Blocked::Clear {
                 // A dock would try the sub-positions around it; docks are
                 // not placed by this path yet.
                 continue;
@@ -534,9 +516,8 @@ impl Sim {
                 // `0xff − val`: the cell's value byte, 0 on this world.
                 score += 0xff;
             } else if ident == Ident::Woodcutter {
-                let forest = self.forest_around(rec, self.tile_corner(rec, cand));
-                score *= forest * forest * forest;
-                if !(forest > 2 || frame == 0) {
+                score *= slots * slots * slots;
+                if !(slots > 2 || frame == 0) {
                     continue;
                 }
                 score = (score + plenty) * w1;
@@ -690,12 +671,13 @@ impl Sim {
                         (bt.x_size + (MOVE_X[k] + corner.x) * 2) * (UNITS_PER_TILE / 2),
                         (bt.y_size + (MOVE_Y[k] + corner.y) * 2) * (UNITS_PER_TILE / 2),
                     );
-                    if self.blocked_site(Some(who), rec, c, None) == crate::place::Blocked::Clear {
-                        let f = self.forest_around(rec, self.tile_corner(rec, c));
-                        if f > best_f {
-                            best_f = f;
-                            cand = c;
-                        }
+                    // The same out-parameter again (`produce_building:988`):
+                    // the ring's best sub-position is the one that would
+                    // gather most, on a strict improvement.
+                    let (block, f) = self.blocked_site_slots(Some(who), rec, c, None);
+                    if block == crate::place::Blocked::Clear && f > best_f {
+                        best_f = f;
+                        cand = c;
                     }
                 }
                 if best_f < 0 {

@@ -330,7 +330,9 @@ return r != 0 ? r : first
 
 So the site-level verdict wins; the tile-level one is used only when the site
 is otherwise clean. (The scenario editor relaxes a fixed set of reasons; not
-modelled.)
+modelled.) `gather_out` is written by `blocked_location` alone and only on
+its last path — §2.6.7; `Sim::blocked_site_slots` is the form that hands it
+back, and `Sim::blocked_site` is that form's first half.
 
 ### 2.5 `blocked_tcoord` — one tile
 
@@ -488,10 +490,31 @@ land tile inside friendly territory** — the only territory rule a dock obeys.
 any mountain (`(T & 3) == 2`) in the ring → `MOUNTAIN 2`; any forest (`(T &
 0x30) == 0x30`) → `FOREST 6`. Corners excluded.
 
-**2.6.7 Oil and gather slots**: an oil type must be `was_seen`; a non-flat
-gather type (woodcutter, mine, university) with `calc_gather == 0` →
-`NO_MOUNTAIN 0xc` / `NO_FOREST 0xa` / `NO_RESOURCES 9`, `< 0` → `FOREST_TAKEN
-0xb` / `MOUNTAIN_TAKEN 0xd` (economy's; not modelled).
+**2.6.7 Oil and gather slots** (`blocked_location@006375b0:679–716`, the last
+thing the function does): an oil type must be `was_seen`; a non-flat gather
+type (woodcutter, mine, university) surveys what its site would gather and is
+refused when there is nothing there — `calc_gather == 0` → `NO_MOUNTAIN 0xc`
+for a mine, `NO_FOREST 0xa` for a camp, `NO_RESOURCES 9` for anything else;
+`< 0` → `FOREST_TAKEN 0xb` for a camp, `MOUNTAIN_TAKEN 0xd` otherwise. The
+`was_seen` half is visibility and stays unmodelled (§11); the gather half is
+`Sim::gather_verdict`.
+
+**The count is `blocked_site`'s out-parameter, and it is the whole reason
+the parameter exists.** `*param_7 = max(count, 0)` is written here and
+nowhere else in the function, so a non-gather type leaves the caller's own
+zero standing. The count is `calc_gather`'s, the same number
+`max_gatherers` reads (`docs/ECONOMY.md`, "How many citizens"), taken from
+the *survey* when `exclude_o` or `who` is negative and from the named
+object's own `MiningList` otherwise. The reader that matters is
+`Leader::produce_building`, which scores a woodcutter's camp site by the
+**cube** of it and refuses a site under three (`docs/AI.md` §4.4); a
+one-tile ring of forest tiles, which is what this crate counted until
+2026-09-01, is zero at every site a camp can actually stand on, so the AI
+built no camp at all after frame 0.
+
+The player-less form (`who < 0`) runs the survey in the original and skips
+it here — the walk's cell-owner test wants a player and there is no oracle
+for `who = −1`. No caller in this crate passes it.
 
 Never returned by anything read: `BLOCKED_NEARBY 8`, `CITY_RADIUS 0x13`,
 `PEACEFUL_TERRITORY 0x1b`, `ROAD 0x25`, `NEED_ROAD 0x26`.

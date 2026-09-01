@@ -192,6 +192,36 @@ impl Sim {
         self.gather_slots(ty, who, corner, &Source::Survey)
     }
 
+    /// Test support: the trees a woodcutter's camp needs before
+    /// `blocked_location`'s gather tail will let one stand at `at`
+    /// (`docs/CITIES.md` §2.6.7). The bare test worlds have none, and a
+    /// camp with nothing to gather is `Blocked::NoForest`.
+    ///
+    /// The survey qualifies a **cell** on its centre tile, so one gatherable
+    /// forest tile per neighbouring cell is the whole of what it wants: the
+    /// eight cells around the camp's own, each centre tile that is neither
+    /// under the footprint nor off the map. That leaves the footprint clear,
+    /// which matters because a `BLOCKED` forest tile under a building is a
+    /// different refusal.
+    #[cfg(test)]
+    pub(crate) fn plant_camp_forest(&mut self, at: Pos) {
+        let c = at.cell();
+        for dy in -1..=1 {
+            for dx in -1..=1 {
+                if (dx, dy) == (0, 0) {
+                    continue;
+                }
+                let t = Cell::new(c.x + dx, c.y + dy).centre_tile();
+                if !self.world.tile_in_bounds(t) {
+                    continue;
+                }
+                self.world
+                    .set_tile_field(t, tile::SURFACE, tile::SURFACE_FOREST);
+                self.world.set_tile_bits(t, GATHERABLE);
+            }
+        }
+    }
+
     /// `LandData::num_make[good]` for the land under a tile — how much of a
     /// good one cell of that land is worth.
     ///
@@ -202,9 +232,40 @@ impl Sim {
         1
     }
 
+    /// `calc_gather`'s count out-parameter as
+    /// [`Sim::blocked_location`](crate::Sim::blocked_location) reads it —
+    /// **unclamped**, so the `−1` of step 9 (nothing found, and something
+    /// was skipped as already gathered from) is still distinguishable from
+    /// a plain zero. `blocked_location` reads the sign and
+    /// [`Sim::max_gatherers`] does not, which is the whole reason the two
+    /// forms are separate.
+    ///
+    /// `exclude` is `blocked_site`'s `exclude_o`: with one, the walk reads
+    /// that building's own `MiningList` instead of surveying the map
+    /// (`blocked_location@006375b0:693`, which nulls the list pointer when
+    /// either the object or the player is negative).
+    pub(crate) fn site_gather_count(
+        &self,
+        ty: usize,
+        who: Player,
+        corner: Pos,
+        exclude: Option<usize>,
+    ) -> i32 {
+        match exclude.and_then(|b| self.buildings.get(b)) {
+            Some(bd) => self.gather_slots_raw(ty, who, corner, &Source::List(&bd.gather_from)),
+            None => self.gather_slots_raw(ty, who, corner, &Source::Survey),
+        }
+    }
+
     /// The count out-parameter of `calc_gather`, clamped at zero the way
     /// `max_gatherers` clamps it.
     fn gather_slots(&self, ty: usize, who: Player, corner: Pos, from: &Source) -> i32 {
+        self.gather_slots_raw(ty, who, corner, from).max(0)
+    }
+
+    /// The same count before the clamp: [`Sim::site_gather_count`] and
+    /// [`Sim::max_gatherers`] are its two readers.
+    fn gather_slots_raw(&self, ty: usize, who: Player, corner: Pos, from: &Source) -> i32 {
         let t = &self.build_types[ty];
         if t.has(flags::FLAT) {
             return MAX_FLAT_GATHERERS;
@@ -260,7 +321,7 @@ impl Sim {
         walk.accum += (walk.accum * rivers) >> 4;
         let mut slots = (walk.accum + 8) >> 4;
         if slots == 0 && walk.taken {
-            return 0;
+            return -1;
         }
         // The nation and wonder additions (`french_woodies`, `taj_farms`,
         // `kremlin_farms`) belong here and are not modelled.
