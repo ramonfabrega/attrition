@@ -3077,7 +3077,20 @@ time; a `sed` range. The rule it illustrates is the queue's own, one level
 up: **grep the dump before booking a capture, not only before booking a
 reading.**
 
-**`FABLE:` what may be asserted past the parting.** For one item this
+~~**`FABLE:` what may be asserted past the parting.**~~ **Ratified as
+rescoped — and the ratchet declined** (Fable steering, 2026-09-01). The
+re-read from the citations confirms the rescope is the rule run53/54's own
+tests already state, applied to the one place it was missed. The ratchet is
+declined on the evidence of the very next session: item 134 improved
+fidelity — the route exact, the destination cell the original's — and the
+past-the-word collision total *fell* 337,265 → 334,258 while the
+off-position unit count rose eleven → fourteen. Past a parting the totals
+move in both directions under unrelated *improvements*, so a ratchet fails
+exactly when progress happens, and a guard whose failures teach
+number-editing is not a guard. The standing rule for every score pinned
+past a parting: **assert up to the word, print past it** — the printed
+numbers stay visible telemetry, and the word itself is the only asserted
+boundary. For one item this
 capture's test asserted **zero** wrong building fields over all 4,000
 frames, and that assertion was luck. `1/2012` on 3977 came back one tile
 north the moment the word moved 3579 → 3608 on the dock's gull, a change
@@ -3118,7 +3131,14 @@ where a scope cut cannot, at the price of a number that has to be edited
 every time the word moves. Whether a ratchet is a guard or a nuisance is
 the question, and it applies to every score this repo pins past a parting.
 
-**`FABLE:` the lane's own ordering rule, proposed and not adopted.** This run
+~~**`FABLE:` the lane's own ordering rule, proposed and not adopted.**~~
+**Adopted** (Fable steering, 2026-09-01) — the clause is in `CLAUDE.md`
+beside "Grep the dump before booking a reading", worded to order the
+*booking* and not the screen: an idle screen may still run the capture
+lane, so the "against" (the lane's value is that it costs the loop
+nothing) is preserved. The second instance sealed it: item 134's booked
+`UNITS=3` window was answered outright by run57's blocks already on disk,
+a `sed` range where an hour of screen was budgeted. This run
 is the first evidence that "size the capture to the word" has the *order*
 wrong rather than the size: the two records that answered item 129 were both
 on disk, both parsed, and neither had ever been asserted, so the hour of

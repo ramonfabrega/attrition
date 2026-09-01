@@ -34,8 +34,9 @@ whole sea half; it spends all three now and parts one draw later.
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w3608 of 24,000 · GreatLakes w1802 of 24,000
 
-**Steering is owed if 135 does not move it** — this item did not, which
-is one of the two the rule counts.
+**Steering ran 2026-09-01 (Fable); the clock resets.** run57's rescope
+ratified, its ratchet declined, four conventions into `CLAUDE.md`,
+`tools/guard.sh` the new reflex. Journal has the story; 135 stands.
 
 **Opener (Opus):** `East Indies' word is 3608 and item 135 is the one
 draw holding it: the transport barge's own guy wraps its animation clock

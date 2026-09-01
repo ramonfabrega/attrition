@@ -251,6 +251,11 @@ rules follow:
 - **Grep the dump before booking a reading.** An open question whose
   answer is a field the original already prints costs a `grep` and has
   more than once cost a reading instead.
+- **And grep the disk before booking a capture.** Widen every dumped
+  record the mechanic touches first; book the capture only for what no
+  record already on disk can answer. The same rule one level up, and it
+  orders the *booking*, not the screen — an idle screen may still run
+  the capture lane.
 - **Where a reading's product is a formula, the implementation is a pass
   of the audit — so build before ratifying, or alongside.** Prose can cite
   every address correctly and still have the arithmetic wrong, and an
@@ -343,6 +348,22 @@ and makes the eventual diff mechanical rather than a translation exercise.
 
 - **Earn every dependency.** Crates appear in this workspace when they have
   real code, not in anticipation. Same for third-party deps.
+- **A probe shape reached for a third time graduates into `tools/`.** The
+  recurring dump probes — a slicer, a draw tracker, an entity scanner —
+  are authored once and invoked thereafter; one-off hypothesis probes
+  stay scratch scripts, because a wrong abstraction costs more than the
+  typing it saves.
+- **`tools/guard.sh [filter …]` is the reflex between edits** — the
+  paperwork guards plus the current item's tests, debug, seconds. The
+  full `--release` diff suite remains the gate: before a commit and
+  after a document rewrite.
+- **A wait on an external process is backgrounded** (`run_in_background`,
+  Monitor), never a foreground sleep-and-grep loop — every poll turn
+  re-bills the whole context.
+- **A multi-line Rust patch from Bash rides the python-heredoc pattern**
+  (`python3 - <<'PYEOF'` with `old="""…"""`/`new="""…"""`), chained with
+  its test run in the same call — edit and verify in one turn, and safer
+  than `sed` across lines.
 - Toolchain is pinned in `rust-toolchain.toml` so the Solana toolchain on this
   machine can never leak in.
 - Format recon notes live in `docs/FORMATS.md`; decisions and their rationale

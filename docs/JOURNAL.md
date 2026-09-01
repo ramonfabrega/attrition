@@ -11003,3 +11003,47 @@ fields still exact. run57's collision floor moved 337,265 → 334,258 and
 the units ever off position eleven → fourteen, both past the word and
 both printed rather than pinned, which is what the `FABLE:` marker of
 2026-09-01 says they are.
+
+## 2026-09-01 — Fable steering: the loop itself on the table
+
+**The occasion was double**: the queue's own rule (134 held the word at
+3608, one of the two sessions the rule counts) and a first-of-its-kind
+brief from lore, the user's telemetry project, which metered ~70 sessions
+of this loop and sent steering candidates by cross-session message. The
+calibration mattered more than the candidates: none of them move the word.
+They move **token cost per item at unchanged output**, and the user is
+token-bound, not time-bound — a different axis than this queue has ever
+scored, and the right one for a steering session to weigh.
+
+**The marked rows first.** run57's two `FABLE:` markers are settled in
+place (`docs/ORACLE.md`): the past-the-parting **rescope is ratified** and
+the ratchet **declined** — item 134 itself is the evidence, a
+fidelity-improving session under which the past-the-word collision total
+*fell* 337,265 → 334,258, so a ratchet fails on progress and trains
+number-editing. The standing rule: assert up to the word, print past it.
+The **capture-ordering clause is adopted** into `CLAUDE.md` — widen the
+records on disk before booking a capture — worded to order the booking and
+not the screen, so the capture lane keeps its idle hours. The two old
+ORDERS rows stay open as marked; nothing depends on them.
+
+**Lore's candidates, weighed.** (1) The test-lane split: **landed**, as
+`tools/guard.sh` — the paperwork guards plus the item's tests, 0.2 s warm
+against the 15 s average and the 92 s suite — with the honest caveat sent
+back that this moves wall-clock, not tokens; the `--release` suite remains
+the pre-commit gate. (2) Promoting the recurring probe shapes into
+`tools/`: **adopted as a convention, not a booked item** — a shape reached
+for a third time graduates, one-off hypothesis probes stay scratch — so
+the tool is built on next use rather than speculatively, per "earn every
+dependency". This is the genuinely token-moving lever (~1.5 M output
+tokens a window in scratch authoring). (3) The foreground sleep-and-grep
+capture waits: **a convention now** — background the wait; every poll turn
+re-bills the whole context. (4) The python-heredoc edit+test fusion lore
+asked about: emergent, not designed — consistent with the worktree's
+compound-command friction — and kept, as a named convention rather than a
+wrapper script, since the wrapper would save ~80 tokens an invocation and
+add an abstraction. Lore's own validations (bare "continue" openers,
+orientation ramp, grep speed — all noise) confirm the handoff protocol as
+it stands and were left untouched.
+
+**What steering did not do**: touch item 135, the scores, or the floors.
+The word is 3608, the opener is unchanged, and the next session is Opus.
