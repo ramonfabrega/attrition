@@ -139,6 +139,12 @@ its buildings-first order (`lib.rs`), which is a known divergence this
 document does not close.~~ **Landed 2026-08-30, §3.16** — and the divergence
 was worth East Indies' word 219 → 274 and Great Lakes' sequence 99 → 576.
 
+**And the bound is re-read, every iteration.** Both inner loops test
+`o < unit_mark[who]` (and `< build_mark[who]`, `< wall_mark[who]`) at the
+*bottom*, out of the `ObjectsData` array rather than out of a local, so an
+object created inside the loop with a number above the one being walked is
+processed on the frame it is born. §3.22 is what that is worth.
+
 Per unit, the sites that run on an ordinary frame:
 
 | site | when | draws |
@@ -1406,6 +1412,56 @@ What parts run33 at 1802 is a single draw at
 `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 < Unit::do_job+0xd7` —
 a gaia bird's flight physics, and the **only** time that site is reached in
 all 1,851 frames.
+
+## 3.22 The loop's bound is re-read — East Indies' word 3608 → 3687 (2026-09-01)
+
+`Objects::process_all@0065dce0`'s unit loop does not walk a list it took
+before it started. Its `do { … } while (iVar9 < *(int *)(&this_01->field_0x15c
++ iVar5 * 4))` re-reads `ObjectsData::unit_mark[who]@+0x15c` on every turn, so
+**a unit created inside the loop, in an object slot above the one being
+walked, takes its own turn on the frame it is born**. `Sim::tick` fixed its
+visit list before the loop and said so in a comment; that was the eighth time
+a document's own reading and the code disagreed, and this time the code was
+carrying an assumption nothing had ever tested.
+
+**One unit in the whole capture is on the wrong side of it, and it is the
+transport barge.** `SpellType::cast_transport` runs inside the unit loop —
+the caster is the AI's scout `1/0` — and gives its boat object `1/14`, so the
+walk that is at `o 0` reaches `o 14` before it ends. The barge takes the
+scout's move order, steps, and `Unit::move_step` sets its guy to `CHAR_WALK`;
+`Objects::inc_time` then finds `cur_time 1 < end_time` and the brand-new
+clock never wraps. This crate deferred the barge to the next frame, so its
+guy still stood at `Guy::init_real`'s `cur_time 0, end_time 0` when the
+clocks were stepped, and spent a `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+the original spends on no frame at all.
+
+**The trace says it in one table, and the table is why this needed no
+capture.** Over run57's 4,000 frames eleven frames create a guy through
+`Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`. Ten of
+them — 274, 380, 494, 615, 1704, 1911, 3319, 3526, 3734 and the setup — are
+**trained** units, born in `Build::do_queue` in `process_all`'s *second*
+loop, after every unit has had its turn; every one of those spends its wrap
+on its birth frame, exactly as §3.16 established. The eleventh is 3608, and
+it is the only birth in the whole run with no wrap behind it. `docs/QUEUE.md`
+item 135 had a `GUYS=4` window booked against it; the trace already on disk
+answered it, which is the queue's own rule about grepping the disk before
+booking a capture, one more level up.
+
+**What it moved.** East Indies' long word **3608 → 3687**, sequence with it —
+seventy-nine frames, and every one of them draw for draw. Great Lakes holds
+at 1802, both scored captures hold, and run57's own four-thousand-frame
+position test holds at one wrong building and no wrong collision field.
+
+**A second change rode with it, and it is the same reading.** The visit
+order inside an owner's band is now the object order the loop actually walks
+rather than the order the units happen to sit in `Sim::units`; §3.2 has said
+"in object order" since it was written, and the two only differ once a slot
+is reused. Nothing in the suite moved on it.
+
+**What is at 3687**: ten draws against seven. The first of ours is a
+`Guy::set_anim+0x97a < Unit::move_step+0x823` — the blocked walker's idle,
+`docs/ORDERS.md` §10 — that the original does not spend, and behind it we
+throw **seven** gaia wing-beat coins where the original throws five.
 
 ## 4. Run12 attributed
 

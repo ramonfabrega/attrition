@@ -11054,3 +11054,64 @@ be scored: output tokens per item, grind sessions only, n=63 — median
 lore for the re-cut (sessions after 39afef6, same spec, compare medians,
 read against the per-session distribution since item mix shifts). C1's
 correction was conceded and ledgered on lore's side.
+
+## 2026-09-01 — item 135: the barge's clock was the frame loop (Opus)
+
+**The item was booked as an animation question and it was a loop
+question.** East Indies' long word had stood at 3608, the frame
+`SpellType::cast_transport` first runs, on one draw: this crate wrapped
+the transport barge's brand-new guy's clock and the original wrapped no
+barge's, on that frame or any later. `docs/TRANSPORT.md` §13 had a
+`GUYS=4` window over 3606–3612 booked against it — `Guy::log_data` prints
+every guy's `cur_time`/`end_time` at detail 4, and run57 carries `GUYS=2`,
+so the field genuinely is not on disk.
+
+**The disk answered it anyway, and not with the field.** Eleven frames in
+run57's 4,000 create a guy through `Guy::init_real+0x52 < Unit::init+0xb97
+< Objects::init_unit+0xbd`. Ten of them spend a
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` on the same frame — 274, 380,
+494, 615, 1704, 1911, 3319, 3526, 3734 and the setup — and **3608 is the
+only birth in the run with no wrap behind it**. That table is one pass
+over the trace, it costs a minute, and it turns "why does this one not
+wrap" into "what is different about this one birth". The answer is that
+the other ten are *trained*, born in `Build::do_queue` in
+`Objects::process_all`'s second loop after every unit has had its turn,
+and the barge is cast from inside the **first** loop.
+
+**Which matters because the loop's bound is re-read.**
+`Objects::process_all@0065dce0`'s inner loop tests `o < unit_mark[who]` at
+the bottom, out of `ObjectsData+0x15c` rather than out of a local. So a
+unit created inside the loop, in a slot above the one being walked, takes
+its own turn on the frame it is born. The barge is `1/14` and its caster
+is the scout `1/0`; it inherits the scout's move order, steps,
+`Unit::move_step` asks its guy for `CHAR_WALK`, and by the time
+`Objects::inc_time` reaches it the clock reads `cur_time 1 < end_time`.
+`Sim::tick` fixed its visit list before the loop and said so in a comment
+— the eighth time the code carried an assumption the reading did not.
+
+**What it moved.** East Indies' long word **3608 → 3687**, sequence with
+it: seventy-nine more frames, every one draw for draw. Great Lakes holds
+at 1802, the scored floors hold at 1851/1850 and 1772/1772, run57's
+four-thousand-frame position test holds, and 175 rondata plus 684 sim
+tests are green. A second change rode along, from the same reading: the
+visit order inside an owner's band is the object order the loop walks
+rather than `Sim::units`' storage order, which is what `docs/SYNC.md` §3.2
+has said since it was written. Nothing moved on it.
+
+**Made to fail on the way in.** Seven sim tests went red the first time,
+all of them harnesses that seat a unit by pushing it onto `Sim::units`
+without going through `find_free` — so `unit_mark` stayed 0 and the new
+loop walked nobody. The bound is `max(unit_mark, highest slot filled)`
+now, which is the same number in a real game and the honest one in a
+hand-built scenario.
+
+**What is at 3687**: ten draws against seven. Ours opens with a
+`Guy::set_anim+0x97a < Unit::move_step+0x823` — a walker whose step was
+refused asking for its idle — that the original does not spend, and then
+throws seven gaia wing-beat coins where the original throws five. Item
+137, and `docs/SYNC.md` §3.22 has both lists.
+
+**The rule this is another instance of**, and it is the queue's own one
+level up: grep the disk before booking a capture. The booked window would
+have cost an hour of screen and would have printed a number that only
+confirms the symptom; the trace on disk named the cause.

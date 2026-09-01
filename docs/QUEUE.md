@@ -12,36 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the scout sails, and East Indies' word **holds at
-3608**.* Item 134 was three missing draws and turned out to be the AI's
-whole sea half; it spends all three now and parts one draw later.
+*2026-09-01, Opus — the loop's bound is re-read, and East Indies' word is
+**3687**.* Item 135 was booked as a clock and was the frame loop:
+`Objects::process_all` tests `o < unit_mark[who]` at the *bottom* of its
+inner loop, out of the array, so a unit created inside the loop above the
+slot being walked takes its turn on the frame it is born.
 
-- **The caster is the scout, and run57 said so without a new capture** —
-  §12's check 4 wanted a `UNITS=3` window over 3600–3640 and run57 is
-  that game at that detail already. Blocks 3585–3609 carry the cast
-  order, the eleven waypoints, the barge `1/14`, `inside_up 14`.
-- **Five pieces for one frame**: §6's boarding, §7's island choice and
-  `think_scout`'s tail, `Region.flags` from the dump's `REGIONS` block
-  (`go_here`'s bit 1, a seam because no cell implies it),
-  `invalid_loc`'s sea and air arms, and **`find_wpath`'s pull-back gate**
-  — `00689375` walks the goal only for a unit that cannot board, and
-  without it the word fell 3608 → 3585. With it the route is the dump's
-  entry for entry and the cell chosen is the original's.
-- **One draw is left** (item 135): the barge's new guy wraps its clock
-  here and never in the original, where the gull and every trained unit
-  do. TRANSPORT §13 names the capture.
+- **The barge is the only unit in the capture on that side of it.** Cast
+  at `o 14` by the scout at `o 0`, it steps its inherited move order the
+  same frame, `move_step` sets its guy to `CHAR_WALK`, and the clock never
+  wraps. Ten other newborns in run57 are *trained* — second loop, after
+  every unit — and every one of them does wrap.
+- **No capture was needed.** The booked `GUYS=4` window was answered by
+  the trace already on disk: eleven `Guy::init_real` births over 4,000
+  frames, ten with a wrap behind them and 3608 the only one without.
+- **The visit order inside an owner's band is object order now**, which
+  is what §3.2 always said; nothing else in the suite moved.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w3608 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w3687 of 24,000 · GreatLakes w1802 of 24,000
 
 **Steering ran 2026-09-01 (Fable); the clock resets.** run57's rescope
 ratified, its ratchet declined, four conventions into `CLAUDE.md`,
-`tools/guard.sh` the new reflex. Journal has the story; 135 stands.
+`tools/guard.sh` the new reflex. Journal has the story.
 
-**Opener (Opus):** `East Indies' word is 3608 and item 135 is the one
-draw holding it: the transport barge's own guy wraps its animation clock
-on the frame it is born and the original's never does, on that frame or
-any later. docs/TRANSPORT.md §13 has the evidence and the capture.`
+**Opener (Opus):** `East Indies' word is 3687 and item 137 is what holds
+it: ten draws against seven, ours opening with a blocked walker's idle
+the original does not spend and then throwing seven gaia wing-beat coins
+where the original throws five. docs/SYNC.md §3.22 has the frame.`
 
 ## The queue
 
@@ -50,15 +48,18 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-135. **The barge's own guy wraps, and nobody else's new one doesn't.**
-    East Indies' word is 3608 and this is the whole of what holds it: one
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271` this crate spends for the
-    transport born that frame and the original spends on no frame at all.
-    The dock's gull (3579) and run33's trained citizen (99) both wrap and
-    both agree here, and nothing read separates them — `squad_size` is a
-    literal 1 for every type, `Guy::init_real` writes `end_time` 0.
-    `docs/TRANSPORT.md` §13 names the capture: a `GUYS=4` window over
-    3606–3612 prints every guy's clock.
+137. **A blocked walker and two wing beats, at 3687.** East Indies' word,
+    and it is three draws: this crate opens the frame with a
+    `Guy::set_anim+0x97a < Unit::move_step+0x823` — a walker whose step is
+    refused asking for its idle (`docs/ORDERS.md` §10) — that the original
+    does not spend, and then throws **seven** `Guy::set_anim+0x104b` gaia
+    wing-beat coins where the original throws five. The original's whole
+    frame is five coins and two `Farms::inc_time`. The barge and its
+    passenger are the only things new on the water, so the blocked walker
+    is the first suspect and the two extra coins are the second: a bird
+    beats its wings when its walk animation wraps, so one of gaia's is on
+    a different clock here. `docs/SYNC.md` §3.22 has the frame and the
+    two lists.
 
 136. **The danger grid has no writer, and four readers index it wrongly.**
     `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution

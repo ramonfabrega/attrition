@@ -901,21 +901,18 @@ Checks, cheapest first:
   strip's two rows are as §5.6 says, doubly read.
 - ~~**What clears the water apron** (§5.4) when a dock dies.~~ `mask_me`'s
   unmask, with `remask_docks` restoring overlaps (audit B.18).
-- **The barge's own guy does not wrap, and every other new unit's does.**
-  A guy comes out of `Guy::init_real@005db6b0` with `cur_time` and
-  `end_time` both 0, so the same frame's `Objects::inc_time` finds
-  `end_time <= cur_time` and `Guy::inc_time@005d9e10`'s wrap re-rolls the
-  idle — one draw. The dock's gull does it on run54's 3579 and run33's
-  trained citizen on its frame 99, and this crate reproduces both. The
-  **transport barge born on 3608 does not**, on that frame or on any of
-  the next fifty. Nothing read so far separates them: `squad_size` is a
-  literal 1 for every type (`UnitType::init@0061ab50:723`), so
-  `Guy::inc_time`'s `guy_num < squad_size` gate passes; `init_real` writes
-  no `end_time`; and `Guy::set_anim`'s early returns all want
-  `cur_time < end_time`. It is the one draw East Indies' word still parts
-  on. *Capture:* a `GUYS=4` window over frames 3606–3612 of this game —
-  `Guy::log_data` prints every guy's `cur_anim` and clock, so the barge's
-  `end_time` on the frame it is born settles it outright.
+- ~~**The barge's own guy does not wrap, and every other new unit's
+  does.**~~ **Settled from the trace already on disk, 2026-09-01, and the
+  booked `GUYS=4` window was not needed.** It is the loop, not the clock:
+  `Objects::process_all@0065dce0` re-reads `unit_mark[who]` at the bottom
+  of its inner loop, so the barge — cast at `o 14` by a scout at `o 0` —
+  takes its own turn on the frame it is born. It steps the move order it
+  has just inherited, `Unit::move_step` sets its guy to `CHAR_WALK`, and
+  `Objects::inc_time` then finds `cur_time 1 < end_time`. Every other
+  newborn in run57 is a **trained** unit, born in `Build::do_queue` in
+  `process_all`'s second loop after every unit has moved, and each of the
+  ten does wrap on its birth frame. `docs/SYNC.md` §3.22; East Indies'
+  word 3608 → 3687.
 - **`reg_xport_peasants` booked against a sea index** (§7, audit A.36):
   whether `coast_here` + `num_waterhalf == 0` can ever admit a cell whose
   `WData.region` is the sea's. If it can, the write lands in `reg_cities`,

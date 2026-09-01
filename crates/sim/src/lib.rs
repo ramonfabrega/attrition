@@ -2253,74 +2253,76 @@ impl Sim {
         self.mark("unit-loop");
         // `Objects::process_all` rotates the owners: slot `(frame + i) % 10`
         // goes `i`-th, so player `frame % 10`'s units run first this frame
-        // and, within an owner, in object order (`docs/SYNC.md` §3.2). The
-        // sync stream sees the rotation — at frame 101 the AI's farmers
+        // and, within an owner, in **object** order (`docs/SYNC.md` §3.2).
+        // The sync stream sees the rotation — at frame 101 the AI's farmers
         // draw their re-targets before the human's (§4.1) — so the order of
-        // the visits is the order of the draws. The list is fixed before
-        // the loop, as the index range was: a unit created inside it waits
-        // for the next frame. An owner outside the ten slots (none today)
-        // would go last, in index order.
-        let mut visit: Vec<usize> = Vec::with_capacity(self.units.len());
+        // the visits is the order of the draws. An owner outside the ten
+        // slots (none today) would go last, in index order.
+        //
+        // **The bound is re-read every iteration, and that is observable.**
+        // `Objects::process_all@0065dce0`'s inner loop tests
+        // `o < unit_mark[who]` at the bottom out of the array rather than
+        // out of a local, so a unit created *inside* the loop with an
+        // object number above the one being walked is processed on the
+        // frame it is born. The transport barge is exactly that unit: it is
+        // cast by `Unit::do_cast` from a unit whose `o` is lower, takes the
+        // caster's move order and steps — which sets its guy's animation to
+        // the walk before `Objects::inc_time` reaches it, so its clock
+        // never wraps. Every other newborn in run57 is a **trained** unit,
+        // born in `Build::do_queue` in the second loop, and every one of
+        // them does wrap on its birth frame (`docs/TRANSPORT.md` §13).
+        let mut slots: Vec<std::collections::BTreeMap<i16, usize>> =
+            vec![std::collections::BTreeMap::new(); 10];
+        // `unit_mark[who]`, and the highest slot actually filled — a test
+        // that seats a unit by hand does not go through [`Sim::find_free`],
+        // so the mark alone would leave it unwalked.
+        let mut bound = [0i16; 10];
+        for (w, b) in bound.iter_mut().enumerate() {
+            *b = self.marks[w].unit;
+        }
+        for i in 0..self.units.len() {
+            let u = &self.units[i];
+            if u.owner < 10 {
+                let w = u.owner as usize;
+                bound[w] = bound[w].max(u.index.saturating_add(1));
+                if u.alive() {
+                    slots[w].insert(u.index, i);
+                }
+            }
+        }
+        let mut seen = self.units.len();
         for slot in 0..10 {
             let who = u8::try_from((frame + slot).rem_euclid(10)).expect("a slot");
-            visit.extend(
-                self.units
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, u)| u.owner == who)
-                    .map(|(i, _)| i),
-            );
-        }
-        visit.extend((0..self.units.len()).filter(|&i| self.units[i].owner >= 10));
-        for i in visit {
-            self.mark(&format!("unit {}/{}", self.units[i].owner, i));
-            if !self.units[i].alive() {
-                continue;
-            }
-            self.units[i].movement.frame_facing = self.units[i].movement.facing;
-            // Gaia's animals: `Animal::process` is `Unit::process` without
-            // a player behind it — no heal, no attrition, no reload; the
-            // order step (`Animal::do_idle` when idle) and the body follow.
-            if self.units[i].is_gaia() {
-                if self.units[i].on_map {
-                    self.work(i, frame);
-                    if self.units[i].alive() && self.units[i].on_map {
-                        self.process_movement(i);
-                    }
+            let w = who as usize;
+            let mut o: i16 = 0;
+            while o < bound[w] {
+                if let Some(&i) = slots[w].get(&o) {
+                    self.process_unit(i, frame, &mut events);
                 }
-                continue;
+                // The re-read: anything the step just created joins the
+                // walk, in its own owner's band and at its own slot.
+                if self.units.len() > seen {
+                    for j in seen..self.units.len() {
+                        let u = &self.units[j];
+                        if u.owner < 10 {
+                            let b = u.owner as usize;
+                            bound[b] = bound[b].max(u.index.saturating_add(1));
+                            if u.alive() {
+                                slots[b].insert(u.index, j);
+                            }
+                        }
+                    }
+                    seen = self.units.len();
+                }
+                bound[w] = bound[w].max(self.marks[w].unit);
+                o += 1;
             }
-            // `process_healing` runs for every unit, inside or out; the
-            // garrison branch is the only heal this mechanic owns.
-            self.garrison_heal(i, frame);
-            if !self.units[i].on_map {
-                continue;
-            }
-            // `Unit::process` begins by counting the reload down, before
-            // anything else the unit does this frame.
-            if self.units[i].combat.recharging > 0 {
-                self.units[i].combat.recharging -= 1;
-            }
-            // Attrition first, movement second. That is the order inside
-            // `Unit::process`, and it is observable: a unit that steps over a
-            // border this frame is not standing there when this frame's
-            // attrition looks, so it cannot bleed for the crossing until the
-            // next one — and, because the period is only refreshed every 32
-            // frames, usually not for a good while after that.
-            if let Some(tick) = self.process_attrition(i, frame) {
-                events.push(tick);
-            }
-            if !self.units[i].alive() {
-                continue;
-            }
-            // Then the order step — `Unit::work` → `do_job` on the front
-            // order (`docs/ORDERS.md` §2.3): a move steps the unit, a build
-            // runs the clock, an attack runs `fight`, an idle unit thinks.
-            self.work(i, frame);
-            if !self.units[i].alive() || !self.units[i].on_map {
-                continue;
-            }
-            self.process_movement(i);
+        }
+        for i in (0..self.units.len())
+            .filter(|&i| self.units[i].owner >= 10)
+            .collect::<Vec<_>>()
+        {
+            self.process_unit(i, frame, &mut events);
         }
 
         self.mark("buildings");
@@ -2389,6 +2391,59 @@ impl Sim {
     /// issues it.
     pub fn order_repair(&mut self, unit: usize, at: usize) {
         self.add_repair_order(unit, at, orders::QueuePos::New, true);
+    }
+
+    /// One unit's turn inside `Objects::process_all`'s first loop —
+    /// `Unit::process@00610bc0`, or `Animal::process` for gaia's.
+    fn process_unit(&mut self, i: usize, frame: i64, events: &mut Vec<Tick>) {
+        self.mark(&format!("unit {}/{}", self.units[i].owner, i));
+        if !self.units[i].alive() {
+            return;
+        }
+        self.units[i].movement.frame_facing = self.units[i].movement.facing;
+        // Gaia's animals: `Animal::process` is `Unit::process` without
+        // a player behind it — no heal, no attrition, no reload; the
+        // order step (`Animal::do_idle` when idle) and the body follow.
+        if self.units[i].is_gaia() {
+            if self.units[i].on_map {
+                self.work(i, frame);
+                if self.units[i].alive() && self.units[i].on_map {
+                    self.process_movement(i);
+                }
+            }
+            return;
+        }
+        // `process_healing` runs for every unit, inside or out; the
+        // garrison branch is the only heal this mechanic owns.
+        self.garrison_heal(i, frame);
+        if !self.units[i].on_map {
+            return;
+        }
+        // `Unit::process` begins by counting the reload down, before
+        // anything else the unit does this frame.
+        if self.units[i].combat.recharging > 0 {
+            self.units[i].combat.recharging -= 1;
+        }
+        // Attrition first, movement second. That is the order inside
+        // `Unit::process`, and it is observable: a unit that steps over a
+        // border this frame is not standing there when this frame's
+        // attrition looks, so it cannot bleed for the crossing until the
+        // next one — and, because the period is only refreshed every 32
+        // frames, usually not for a good while after that.
+        if let Some(tick) = self.process_attrition(i, frame) {
+            events.push(tick);
+        }
+        if !self.units[i].alive() {
+            return;
+        }
+        // Then the order step — `Unit::work` → `do_job` on the front
+        // order (`docs/ORDERS.md` §2.3): a move steps the unit, a build
+        // runs the clock, an attack runs `fight`, an idle unit thinks.
+        self.work(i, frame);
+        if !self.units[i].alive() || !self.units[i].on_map {
+            return;
+        }
+        self.process_movement(i);
     }
 
     /// One unit's attrition for one frame — the refresh, the supply veto, and

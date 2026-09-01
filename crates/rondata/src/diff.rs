@@ -7898,22 +7898,23 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **3608** — the frame `SpellType::cast_transport` first runs, and it
-    /// is the dock's own shadow: the level granted at 3579 is what lets a
-    /// unit become its own transport at the shore. The caster is the AI's
-    /// **scout `1/0`**, and reaching it took the whole sea half of the AI:
-    /// `think_civilian_transport`'s island choice, `Region.flags` out of
-    /// the dump's `REGIONS` block, `invalid_loc`'s sea arm and
-    /// `find_wpath`'s pull-back gate (`docs/TRANSPORT.md` §6, §7,
-    /// `docs/PATHFINDER.md` §14).
+    /// **3687** — three draws against seven, and the first of ours is a
+    /// `Guy::set_anim+0x97a < Unit::move_step+0x823` the original does not
+    /// spend, with two gaia wing-beat coins beyond its five behind it.
     ///
-    /// The three draws the frame is named for — two `Guy::set_anim+0x97a <
-    /// Unit::set_anim < Unit::do_cast+0xc89` and the boat's
-    /// `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`
-    /// — are spent at their sites since 2026-09-01. What parts the frame
-    /// now is **one draw the other way**: this crate wraps the barge's
-    /// brand-new guy's animation clock and the original wraps no barge's,
-    /// on 3608 or after (`docs/TRANSPORT.md` §13).
+    /// It was **3608** for one item, and the frame was the transport
+    /// barge's own guy. `SpellType::cast_transport` first runs there — the
+    /// dock's own shadow, the level granted at 3579 being what lets a unit
+    /// become its own transport at the shore — and this crate wrapped the
+    /// barge's brand-new animation clock where the original wrapped no
+    /// barge's, on that frame or any after. The reason is the loop, not the
+    /// clock: `Objects::process_all@0065dce0` re-reads `unit_mark[who]` at
+    /// the bottom of its inner loop, so the barge — cast by a unit whose
+    /// `o` is lower — takes its first step on the frame it is born, and
+    /// that step sets its guy to the walk before `Objects::inc_time` gets
+    /// there. Every other newborn in run57 is a *trained* unit, born in the
+    /// second loop, and every one of those does wrap on its birth frame
+    /// (`docs/SYNC.md` §3.22, `docs/TRANSPORT.md` §13).
     ///
     /// It was **3579** for one item, and the frame was the dock's gull.
     /// A finished Dock spawns a **`GULLBIRD` of owner 9** a tile
@@ -7980,7 +7981,7 @@ mod tests {
     /// site would gather. `blocked_site`'s out-parameter is that number
     /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
     /// original's own frame, tile and object number.
-    const LONG_WORD_EAST_INDIES: i64 = 3608;
+    const LONG_WORD_EAST_INDIES: i64 = 3687;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**
