@@ -10014,3 +10014,90 @@ had failed twice before, and still let a wrong length stand for a month
 because the eight slots that would have caught it were in dumps the list
 did not name. *Widen the list before trusting the guard* — and the cost of
 widening it was three strings and four seconds of test time.
+
+## 2026-08-31 (item 123, Opus) — the scout's frame-1477 path, and the two columns of the record nobody compared
+
+**The item, and what it turned out to be.** East Indies' word parts at
+1647, where this crate spends nineteen draws — two `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d` and a whole AI scout pass — against the original's
+four farm draws. It was booked as a cadence question. It is a **route**
+question, and the whole of it happens 170 frames earlier.
+
+Run39's AI scout `1/0` arrives at its explore target on frame 1476,
+`think_scout` picks the next one on 1477, and `Group::action_move_near`
+plans one world path for it. The original's stack is the goal and **six**
+nodes — `(47,44) (46,43) (45,43) (44,43) (43,43) (42,42)` — north around
+the mountain band at `(45..46, 44..45)`. This crate's is the goal and
+**four** — `(46,46) (45,46) (44,45) (43,44)` — south around the same band.
+Five steps against seven. So the scout arrives on **1647** where the
+original arrives on **1653**, and spends its ring draws six frames early;
+that is the word's parting, and it is also player 1's position parting at
+**1478**, one frame after the order. One search, three numbers.
+
+**Reproduced in one line.** Refusing the step `(47,45) → (46,46)` — or the
+one after it — makes this crate's search return the original's seven
+entries **exactly**, position for position. The whole difference is the
+southern corridor's entrance and nothing downstream of it.
+
+**What it is not, and this is the expensive half.** Each of these was
+measured against the original's own record rather than argued about, and
+each is now written into `docs/PATHFINDER.md` §12 so nobody pays for it
+twice:
+
+- the **fog** — the scout walked cells `(43,44)` through `(47,44)` itself
+  between frames 1285 and 1476, so both sides have them lit; forcing
+  `(43,43)` dark yields a *third* route, not the original's;
+- the **danger map** — run38's `danger[8][900]` is zero everywhere but the
+  two bases, blocks `(2..5, 2..5)` and `(24..27, 24..27)`;
+- the **buildings** — this crate's fourteen at 1477 are the dump's,
+  position for position, player 1's second city at tile `(180, 188)`
+  included;
+- `get_estimate@00688310`, the stop test at `00684086`, the node key
+  `length + estimate`, and §5.1's corner-cutting, whose gate is the
+  destination cell's `tcost` and which no cell on either route reaches.
+
+What is odd, and worth carrying: under this crate's **own** cost model the
+original's route is the cheaper of the two — 661 against 672 — and the
+search still misses it, because the two unseen cells at its end make the
+heuristic an over-estimate there (a dark cell costs a scout 1 where the
+heuristic charges 60 a cell), so the northern `(43,43)` carries `value` 768
+while this crate's arrival `(42,43)` carries 732 and pops first. Two sides
+can agree on every step's price and still return different routes. The
+check that settles it is a per-step cost dump from the original — an
+`int 3` on `calc_cost@00684e50` in `tools/trace`, recording
+`(from, to, dir, return)`.
+
+**What landed instead, and it is the working agreement's own rule.**
+`PATHDATA` prints four numbers per row and `rondata::diff` compared two of
+them. `OrderMismatch::PathField` now scores `tolerance` and `flags` beside
+`PathTo`'s point. No floor moved — of run39's 24 disagreeing rows the first
+is frame **1518**, past that capture's score — but the census the guard
+prints is an oracle in itself. Over run39's **1,724** multi-entry stacks:
+
+| where | shape | count |
+|---|---|---|
+| bottom | `(0, FINAL)` — the order's own goal | 1,724, no exception |
+| top | `(384, 0)` — §7's world reconstruction | 1,408 |
+| top | `(0, 0)` — §4.4's collision rewrite, `big_radius × 3` | 243 |
+| top | `(0, SIDESTEP)` — the unit grid | 73 |
+| middle | `(384, 0)` / `(0, SIDESTEP)` | 2,325 / 54 |
+
+Three shapes and no others, and all three are already modelled. The counts
+are the dump's own, so `diff::tests::a_path_stack_s_rows_are_compared_whole`
+pins them exactly rather than as a ceiling.
+
+**A methodological cost worth recording.** The shape above was first read
+off a hand-written Python pass over the dump, which said every stack top was
+`(0, FINAL)` — and built an hour of theory on it about a second goal entry
+and a search that started a cell further north. It was a parser bug: the
+`MOVEORDER` block that follows a `STACK<TYPE>` carries its own `tolerance`
+and `flags`, and the scratch parser was still writing into the last
+`PATHDATA` when it reached them. The crate's own parser, which is asserted
+against run20's nine-entry chain, said `(384, 0)`. **Use the harness's
+parser, or assert the scratch one against a case the harness already
+pins.**
+
+**What moved.** Nothing. East Indies' word stays 1647, ticks 1477, orders
+1476; Great Lakes 1802 and 1772/1772; gaia unchanged. The item bought a
+diagnosis, a widening, and a list of six things the next session does not
+have to rule out.

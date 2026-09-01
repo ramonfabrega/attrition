@@ -620,6 +620,23 @@ way. (`docs/ORDERS.md` §4.6 amended in place, pointing here.)
 - **One free number**: `UNITS=3` already prints `start_dist` — §4.1's
   start-to-goal Manhattan, stashed on the unit — so every logged search
   hands over one checkable value with no new capture.
+- **The record is diffed whole as of 2026-08-31.** `PATHDATA` prints four
+  numbers and the comparison read two of them: `OrderMismatch::PathField`
+  now scores `tolerance` and `flags` beside `PathTo`'s point, and
+  `diff::tests::a_path_stack_s_rows_are_compared_whole` is the guard. No
+  floor moved when it landed — of run39's 24 disagreeing rows the first is
+  frame **1518**, past that capture's score — but the census it prints is
+  itself an oracle. Over run39's 1,724 multi-entry stacks the bottom is
+  `(tolerance 0, FINAL)` **every time** (`Unit::do_move` pushes
+  `{mo->x, mo->y, 0, 1}` before it plans, `docs/ORDERS.md` §4.4; the
+  group's own push is `docs/GROUPS.md` §6.7), and above it there are
+  exactly three shapes and no others: `(384, 0)` 1,408 tops and 2,325
+  middles, §7's world reconstruction; `(0, 2)` 73 and 54, the unit grid's
+  `SIDESTEP`; and `(0, 0)` 243 tops, §4.4's collision rewrite —
+  `tolerance = collider.big_radius × 3`, which is zero for every
+  `BLOCK_RADIUS 1` type in the corpus — which this crate already models
+  (`orders.rs`, the waypoint block). The counts are the dump's own, so
+  they are pinned exactly rather than as a ceiling.
 
 ## 11. What the sim implements
 
@@ -789,3 +806,57 @@ Four of the first reading's open items were **settled by the audit**
   and the step toward it differs, which points at the movement layer
   (`docs/MOVEMENT.md`'s step/turn interplay), not the planner. Pre-existing,
   unchanged by this landing.
+- **The AI scout's `EXPLORE_TO` world path on run39's frame 1477, which
+  is East Indies' word at 1647** (2026-08-31, the queue's item 123). The
+  scout `1/0` stands in cell `(47, 45)` and is sent to `(31992, 33528)`
+  in cell `(41, 43)`. The original's stack is the goal and **six** world
+  nodes — `(47,44) (46,43) (45,43) (44,43) (43,43) (42,42)`, north
+  around the mountain band at `(45..46, 44..45)`, with the arrival node
+  `(41,43)` dropped by §7. This crate's is the goal and **four** —
+  `(46,46) (45,46) (44,45) (43,44)`, south around the same band, its
+  arrival `(42,43)` dropped. Five steps against seven, so the scout
+  reaches the target on frame **1647** where the original reaches it on
+  **1653** and spends `think_scout`'s ring draws six frames early. That
+  is the whole of the word's parting *and* of player 1's position
+  parting at 1478, one frame after the order
+  (`diff::tests::run39_s_islands_game_is_the_second_map_s_score`).
+
+  **Reproduced in one line**: refusing the step `(47,45) → (46,46)` — or
+  the one after it, `(46,46) → (45,46)` — makes this crate's search
+  return the original's seven entries **exactly**, position for
+  position. So the whole difference is the southern corridor's entrance,
+  and nothing downstream of it.
+
+  **What it is not**, each measured against the original's own record
+  rather than reasoned about: the **fog** — the scout walked cells
+  `(43,44)` through `(47,44)` itself between frames 1285 and 1476, so
+  both sides have them lit, and forcing `(43,43)` dark yields a *third*
+  route rather than the original's; the **danger map** — run38's
+  `danger[8][900]` is zero everywhere but the two bases, blocks
+  `(2..5, 2..5)` and `(24..27, 24..27)`, and neither route touches one;
+  the **buildings** — this crate's fourteen at frame 1477 are the dump's,
+  position for position, player 1's second city at tile `(180, 188)`
+  included; the **terrain and cell records**, which are the dump's;
+  `PathFinderData::get_estimate@00688310`, which is `d × 0x3c / step`
+  as transcribed; the stop test at `00684086`, which is
+  `manh <= tolerance/2 + stride` with the tolerance read from the entry
+  *below* the search goal; the node key, which is `length + estimate`;
+  and §5.1's corner-cutting, whose gate is the **destination cell's**
+  `tcost` and which is therefore never entered here — every cell on
+  either route has `WData.blocked == 0`.
+
+  **What is odd about it, and worth carrying into the next reading.**
+  Under this crate's *own* cost model the original's route is the
+  cheaper of the two — 661 against 672 — and the search still misses it,
+  because the two unseen cells at its end make the heuristic an
+  **over**-estimate there: a dark cell costs a scout 1 (`base = 8`,
+  §5) where the heuristic charges 60 a cell, so the northern route's
+  `(43,43)` carries `value` 768 while this crate's arrival `(42,43)`
+  carries 732 and pops first. Two sides can therefore agree on every
+  step's price and still return different routes, and the difference
+  will be a handful of points on one step. The check that would settle
+  it is a **per-step cost dump from the original**: the `PATHFINDER`
+  gamelog category emits nothing (§10), so it is an `int 3` on
+  `calc_cost@00684e50` in `tools/trace` recording `(from, to, dir,
+  return)` — the same instrument the draw sites use, pointed at a
+  function that returns a number.

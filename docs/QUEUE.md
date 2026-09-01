@@ -12,28 +12,29 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 121 (Opus).*
+*2026-08-31, after item 123 (Opus). **No number moved** — the item bought a
+diagnosis and a widening.*
 
-**East Indies' word is 1647**, up from 1570; its ticks and orders are
-unchanged at 1477/1476 and its gaia positions 191,876 of 192,504 with the
-first parting at 1658. Great Lakes is untouched — word **1802**, ticks and
-orders **1772/1772 of 1,772**, gaia 74,040 of 74,040.
+**East Indies' word is 1647**, ticks and orders 1477/1476, gaia 191,876 of
+192,504. Great Lakes: word **1802**, ticks and orders **1772/1772 of
+1,772**, gaia 74,040 of 74,040.
 
-Item 121 was two frames of one citizen's wood dump, hiding each other.
-`AnimMgr::force_load` drops a **non-looping** animation's last key, so
-`CHAR_DUMP_WOOD` is 32 and not 33 — which every `GUY` block prints and no
-dump the lengths guard read had been asked. And `Unit::set_angle`'s third
-argument is a **snap flag** every order passes as zero, so `Guy::move`'s
-turn arm overwrites the animation an order sets on the frame it turns.
-ANIM §3.3, §4.7.
+Item 123 is not a cadence question. The scout's whole six-frame lead comes
+from **one search, on frame 1477**: the original's `EXPLORE_TO` world path
+goes north around a mountain band in seven steps, this crate's south in
+five. Fog, danger, buildings, terrain, the heuristic, the stop test and the
+corner-cut gate are each ruled out **against the record** in PATHFINDER
+§12, and refusing one step reproduces the original's seven entries exactly.
+What landed instead: `PATHDATA`'s `tolerance` and `flags` are compared now
+(PATHFINDER §10), with the original's own shape census pinned.
 
 **Each map's next number is still one mechanic.** Great Lakes: 120. East
-Indies: 123, and it leads — its headline is the only one still moving.
+Indies: 125, and it leads.
 
-**Opener (Opus):** `Continue — item 123: East Indies' word at 1647. Ours
-nineteen draws against theirs four: two `Guy::set_anim+0x97a <
-Unit::do_idle+0x7d` and a whole AI scout pass the original does not run on
-that frame.`
+**Opener (Opus):** `Continue — item 125: run39's frame-1477 scout path.
+PATHFINDER §12 has the two routes, the one-line reproduction and the six
+things already ruled out; what is left is a per-step cost dump from the
+original, an int 3 on calc_cost@00684e50 in tools/trace.`
 
 ## The queue
 
@@ -42,12 +43,18 @@ East Indies is the only map whose headline can still move, so its word item
 leads. Take the first unstarted unless a better order is obvious — and say
 so. Numbers are stable; the journal indexed by them.
 
-123. **East Indies' word at 1647, and a scout that thinks a frame early.**
-    Ours nineteen draws against theirs four: the original spends nothing
-    on 1647 but its four `Farms::inc_time+0x1ae`, this crate two
-    `Guy::set_anim+0x97a < Unit::do_idle+0x7d` and a whole scout pass —
-    `+0x436`/`+0x458` six times, one `+0x64c`. 1644–1646 and 1648–1650
-    agree draw for draw, so it is the *cadence*: SCOUT §11, AI §2.
+125. **The scout's frame-1477 world path — East Indies' word, ticks and
+    orders, all three.** The original goes north in seven steps, this
+    crate south in five, so the scout arrives on 1647 and not 1653.
+    PATHFINDER §12 has both stacks, the one-step reproduction and the six
+    candidates ruled out against the record; under this crate's own costs
+    the original's route is the *cheaper* one (661 v 672) and the search
+    still misses it, so it is a handful of points on one step. **The
+    check:** an `int 3` on `calc_cost@00684e50` in `tools/trace` for
+    `(from, to, dir, return)` — the per-step cost dump the gamelog cannot
+    give (§10). With it: run39's 24 unexplained `PathField` rows, all the
+    scout's and all past its score, and the §10 census taken on run33 and
+    run20 too.
 
 120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
     at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <
@@ -62,8 +69,7 @@ so. Numbers are stable; the journal indexed by them.
     original's holds 480, tile and phase right. ORDERS §6.4.
 
 105/45. **Gaia's positions — East Indies' half is what is left.** run39:
-    191,173 of 192,504 agree, first bad **1381**. run33 is **74,040 of
-    74,040 with no first bad frame** since 114 and is pinned exactly.
+    191,876 of 192,504, first bad **1658**; run33 is exact at 74,040.
     `Sim::reseat_animal` still corrects them where a dump carries clocks
     (SYNC §4.2).
 
@@ -72,16 +78,16 @@ so. Numbers are stable; the journal indexed by them.
     rather than short (item 110's day went to one). Grep `rng.roll()` in
     `crates/sim` for calls with no `mark` above them; mark or explain each.
 
-124. **The loop flag is per animation file; `anim::non_looping` is a
-    rule.** `rondata::artdata` already reads it (ANIM §3.3), and by slot
-    it is not a constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a
+124. **The loop flag is per animation file** (ANIM §3.3): by slot it is
+    not a constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a
     non-looping file and 38 a looping one. Carry it beside
-    `Art::piece_lengths`. Moves no number until a capture disagrees.
+    `Art::piece_lengths`.
 
-87. **The widening ledger.** Items 74, 83, 69 and **113** were closed by
-    fields the parser had and nothing compared. Make the backlog a number:
-    per dumped record, the fields `rondata::diff` parses and never compares.
-    run42 adds the per-frame `LEADERDATA` — buckets, epochs — to that pool.
+87. **The widening ledger.** Items 74, 83, 69, 113 and now **123** were
+    closed or sharpened by fields the parser had and nothing compared.
+    Make the backlog a number: per dumped record, the fields
+    `rondata::diff` parses and never compares. run42 adds the per-frame
+    `LEADERDATA` to that pool.
 
 85/82. **run40's 360 disagreeing good-frames, in two halves.** (85)
     `Build::init` surveys a camp against its still-empty `gather_from`, so
@@ -98,8 +104,7 @@ so. Numbers are stable; the journal indexed by them.
 89. **Three guards for the instrument itself.** (a) The handoff's numbers
     equal `rondata::diff`'s pinned floors. (b) Every `name@00xxxxxx` a
     document cites names a function in `INDEX.tsv`. (c) run33's floor pins
-    totals mostly past its parting — a non-monotone score pinned as
-    monotone, fallen three times (109, 69, 113).
+    totals mostly past its parting — fallen three times (109, 69, 113).
 
 72. **A document and its code disagreeing is a diff waiting to be run.**
     Items 68, 79, 80, 74, **36 twice over**, 107, 112's `wx'` and 113's
@@ -122,17 +127,13 @@ so. Numbers are stable; the journal indexed by them.
     frame-95 world carries it on `(52, 22)` and this does not; `army`'s
     muster search reads it (ARMY §13). Find the *tile* mask's writer.
 
-23. **The formation byte's sign — the Echelon half.** runs 45/46 fired the
-    XOR term and `kill_current_order`'s formula holds (ORACLE); `reverse`'s
-    *displacement* is read only on GROUPS §6.4's Echelon rows — Refused has
-    no reverse term — and every captured group is a Line. The profile route
-    works — run51's tooltip says F9, so `KeyMap::load@007d39a0` runs and
-    `bindkey.py`'s element is right — and run52 names the real blocker: the
-    keystroke arrived as the chat key, which is all run50's "failure" was.
-    Next, in order (ORACLE runs 51/52): bind a plain letter, send it with
-    `osascript keystroke`; the tooltip names it; it toggles Auto Explore;
-    only then `FORM_E_RIGHT`, and `form 3` in the dump. With it
-    COLLISION §9.
+23. **The formation byte's sign — the Echelon half.** `reverse`'s
+    *displacement* is read only on GROUPS §6.4's Echelon rows and every
+    captured group is a Line. The profile route works (run51's tooltip
+    says F9); run52 names the blocker — the keystroke arrived as the chat
+    key. Next, in order (ORACLE runs 51/52): bind a plain letter, send it
+    with `osascript keystroke`, confirm by tooltip, then `FORM_E_RIGHT`
+    and `form 3` in the dump. With it COLLISION §9.
 
 116. **The one `SITE` slot still wrong, and the rule that is not it.** AI
     §18: a 5×5 slide keeps its centre where the original leaves it, so
@@ -149,10 +150,9 @@ so. Numbers are stable; the journal indexed by them.
     `check_explore` answers the whole region grid — `explored` is 900 here
     against the dump's 36 and 19 on every frame of both windows.
 
-The rest of the road residue, both in ROADS §7.1: (57) the two node counts
-— 1,046 v 1,043 and 1,460 v 1,870 — re-read on run43's own before-grid,
-its capture half landed (ORACLE run43); (58) the height loader's mean in
-`f32`, three tiles.
+The road residue, both in ROADS §7.1: (57) the node counts — 1,046 v
+1,043 and 1,460 v 1,870 — re-read on run43's own before-grid (ORACLE
+run43); (58) the height loader's mean in `f32`, three tiles.
 
 107. **`epoch[0]` is the Military level, and `army.rs` reads `ages`.**
     `get_epoch_base(0)` is `BASE_MILITARYTYPES` and the army family reads

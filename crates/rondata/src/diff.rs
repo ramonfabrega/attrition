@@ -1106,12 +1106,29 @@ pub enum OrderMismatch {
         ours: (i32, i32),
         theirs: (i64, i64),
     },
+    /// The **rest** of a `PATHDATA` row — `tolerance` and `flags`, the two
+    /// fields the dump prints beside the point and which nothing compared
+    /// for as long as the path stack has been an oracle
+    /// (`docs/PATHFINDER.md` §10). The working agreement's "diff the whole
+    /// record": a stack whose points are the original's can still carry a
+    /// waypoint the original marked final and this crate did not, and that
+    /// difference is what says *who built the stack*, not merely where it
+    /// goes.
+    PathField {
+        slot: usize,
+        field: &'static str,
+        ours: i64,
+        theirs: i64,
+    },
 }
 
 impl OrderMismatch {
     /// Whether this is about the path stack rather than the order list.
     pub const fn is_path(&self) -> bool {
-        matches!(self, Self::PathLength { .. } | Self::PathTo { .. })
+        matches!(
+            self,
+            Self::PathLength { .. } | Self::PathTo { .. } | Self::PathField { .. }
+        )
     }
 
     /// Whether it counts against the order score. Everything does except
@@ -1154,6 +1171,7 @@ impl OrderMismatch {
             Self::Move { .. } => "move",
             Self::PathLength { .. } => "path-length",
             Self::PathTo { .. } => "path-to",
+            Self::PathField { .. } => "path-field",
         }
     }
 }
@@ -1842,6 +1860,25 @@ fn compare_orders(
                     theirs: theirs.to,
                 },
             );
+        }
+        // The rest of the row. `PATHDATA` prints four numbers and this
+        // compared two of them for as long as the stack has been an
+        // oracle.
+        for (field, mine, logged) in [
+            ("tolerance", i64::from(ours.tolerance), theirs.tolerance),
+            ("flags", i64::from(ours.flags), theirs.flags),
+        ] {
+            if mine != logged {
+                at(
+                    slot,
+                    OrderMismatch::PathField {
+                        slot,
+                        field,
+                        ours: mine,
+                        theirs: logged,
+                    },
+                );
+            }
         }
     }
     out
@@ -4350,6 +4387,126 @@ mod tests {
         assert!(
             shared >= 3,
             "shared with the original: {shared} of {ours:?}"
+        );
+    }
+
+    /// **The path stack's other two columns** (2026-08-31) — `tolerance`
+    /// and `flags`, which every `PATHDATA` row prints beside the point and
+    /// which nothing compared for the eight days the stack has been an
+    /// oracle (`docs/PATHFINDER.md` §10). The working agreement's "diff the
+    /// whole record", applied to the record it had been applied to least.
+    ///
+    /// Two halves. The first is the **census of the original's own
+    /// shapes** over run39's whole capture — 1,724 multi-entry stacks —
+    /// which is an oracle in its own right and cost one pass: the bottom
+    /// is the order's goal every time, and above it there are exactly
+    /// three shapes, one of which this crate never writes (see the counts
+    /// below). The second is the harness's own disagreement count on the
+    /// same capture, as a ceiling.
+    ///
+    /// `UnitData::tolerance` is read straight off the top entry
+    /// (`docs/ORDERS.md` §4.4, the waypoint block), so a wrong tolerance is
+    /// not cosmetic: it is the radius at which a unit calls a waypoint
+    /// reached.
+    #[test]
+    fn a_path_stack_s_rows_are_compared_whole() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run39-islands-longtrace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run39.log"),
+        ) else {
+            eprintln!("skipping: no East Indies capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+
+        // Half one: the original's own shape, read straight off the dump —
+        // `(tolerance, flags)` of every multi-entry stack's top and bottom,
+        // tallied rather than asserted one by one, because the tally is the
+        // finding.
+        let mut tops: std::collections::BTreeMap<(i64, i64), usize> = Default::default();
+        let mut bottoms: std::collections::BTreeMap<(i64, i64), usize> = Default::default();
+        let mut middles: std::collections::BTreeMap<(i64, i64), usize> = Default::default();
+        for f in log.frame_states() {
+            for u in &f.units {
+                if u.path.len() < 2 {
+                    continue;
+                }
+                *bottoms
+                    .entry((u.path[0].tolerance, u.path[0].flags))
+                    .or_default() += 1;
+                let top = &u.path[u.path.len() - 1];
+                *tops.entry((top.tolerance, top.flags)).or_default() += 1;
+                for e in &u.path[1..u.path.len() - 1] {
+                    *middles.entry((e.tolerance, e.flags)).or_default() += 1;
+                }
+            }
+        }
+        eprintln!("run39 stacks: tops {tops:?} bottoms {bottoms:?} middles {middles:?}");
+        // The bottom is the order's own goal, always — `Unit::do_move`
+        // pushes `{mo->x, mo->y, 0, 1}` before it plans (`docs/ORDERS.md`
+        // §4.4) and `Group::action_move_near` the leader's raw slot with
+        // the same pair (`docs/GROUPS.md` §6.7). 1,724 stacks, no
+        // exception.
+        assert_eq!(
+            bottoms,
+            [((0, 1), 1_724)].into_iter().collect(),
+            "a stack bottom that is not the order's goal"
+        );
+        // Above it, three shapes and only three, and the counts are the
+        // dump's own so they are exact rather than a ceiling:
+        //
+        // - `(384, 0)` is `astar_path`'s world reconstruction
+        //   (`docs/PATHFINDER.md` §7), and it is what this crate writes;
+        // - `(0, 2)` is the **unit grid**'s, `SIDESTEP` and no tolerance —
+        //   `find_upath`'s 48-cell plan round a blocker;
+        // - `(0, 0)` is a top the collision arm has rewritten: §4.4 pops
+        //   the waypoint and pushes it back with `tolerance =
+        //   collider.big_radius × 3`, which is **zero** for every
+        //   `BLOCK_RADIUS 1` type in the corpus, and leaves the flags —
+        //   so a world node the unit has been blocked at reads `(0, 0)`
+        //   rather than `(384, 0)`. That rewrite is not modelled here
+        //   (`docs/ORDERS.md` §4.4), and these 243 tops are its record.
+        assert_eq!(
+            tops,
+            [((0, 0), 243), ((0, 2), 73), ((384, 0), 1_408)]
+                .into_iter()
+                .collect(),
+            "the stack-top shapes moved"
+        );
+        assert_eq!(
+            middles,
+            [((0, 2), 54), ((384, 0), 2_325)].into_iter().collect(),
+            "the stack-middle shapes moved"
+        );
+
+        // Half two: what this crate writes instead, as a ceiling. Every one
+        // of these is a row the old comparison could not see.
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let rows: Vec<&OrderDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| matches!(d.what, OrderMismatch::PathField { .. }))
+            .collect();
+        let first = rows.first().copied().copied();
+        eprintln!("run39 path-field rows: {}, first {first:?}", rows.len());
+        // 24 rows, the first at frame **1518** — past this capture's score
+        // (ticks 1477, orders 1476), and all of them the AI scout `1/0`'s,
+        // whose stack has been its own since the order at 1477. Nothing the
+        // widening found lies before a parting, which is why no floor moved
+        // when it landed.
+        assert!(
+            rows.len() <= 24,
+            "path-field disagreements grew: {} — first {first:?}",
+            rows.len()
         );
     }
 
