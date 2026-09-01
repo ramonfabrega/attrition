@@ -29,12 +29,12 @@ and 119 died with it, both having been downstream of a stream wrong since
 1372.
 
 **So the constraint has changed shape.** One map's capture is exhausted and
-the other's word is the only number still moving. **91** is now due — a
-longer capture is the only way Great Lakes produces another number — and it
-is *not* a session: item 90 made it two stanzas in
-`tools/gamelog/captures.txt` and an unattended wait, so it runs beside the
-next item rather than instead of it. Start it, then take **110**, the last
-word item East Indies has.
+the other's word is the only number still moving. **91 is started** —
+run53/run54 in `tools/gamelog/captures.txt`, the trace whole over 24,000
+frames on each map, launched 2026-08-31 20:33. Look for
+`gamelog-run53-greatlakes-24k-trace.txt` and `rontrace-run53.log`; if they
+are not there, `zsh tools/gamelog/runqueue.sh - 91` resumes where it stopped.
+Take **110** meanwhile, the last word item East Indies has.
 
 **Opener (Opus):** `Continue — item 110: East Indies' word at 1373. The AI
 scout walks six rings on both sides; the original then leaves the loop for
