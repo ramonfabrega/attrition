@@ -400,10 +400,7 @@ mod tests {
     /// 00.2017.08.2100), kept under the gitignored install directory so it
     /// never enters the repository. A machine without it skips, loudly.
     fn sample() -> Option<String> {
-        let root = std::env::var("RON_INSTALL").ok().or_else(|| {
-            let here = env!("CARGO_MANIFEST_DIR");
-            Some(format!("{here}/../../game"))
-        })?;
+        let root = crate::testenv::install_root()?;
         let dir = std::path::Path::new(&root).join("external-recgames");
         let rcx = std::fs::read_dir(dir).ok()?.find_map(|e| {
             let p = e.ok()?.path();
@@ -481,10 +478,9 @@ mod tests {
     #[test]
     fn the_embedded_combat_table_is_the_composed_one() {
         let Some(path) = sample() else { return };
-        let root = std::env::var("RON_INSTALL").ok().unwrap_or_else(|| {
-            let here = env!("CARGO_MANIFEST_DIR");
-            format!("{here}/../../game")
-        });
+        let Some(root) = crate::testenv::install_root() else {
+            return;
+        };
         let data = decompress(&path).unwrap();
         let rec = parse(&data, &path).unwrap();
         let loaded = crate::load::load(&crate::Install::new(&root)).unwrap();

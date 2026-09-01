@@ -1916,17 +1916,13 @@ mod tests {
     }
 
     /// The emulator's table: `$RON_EMU_TABLE` as written, else the sweep run
-    /// against `$RON_INSTALL` (or the checkout's `game/`) through `uv`.
+    /// against the install (`testenv::install_root`) through `uv`.
     fn emu_table() -> Option<String> {
         if let Ok(p) = std::env::var("RON_EMU_TABLE") {
             return Some(std::fs::read_to_string(p).expect("RON_EMU_TABLE"));
         }
         let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
-        let install = std::env::var("RON_INSTALL").ok().or_else(|| {
-            let g = format!("{root}/game");
-            std::path::Path::new(&g).is_dir().then_some(g)
-        });
-        let Some(install) = install else {
+        let Some(install) = crate::testenv::install_root() else {
             eprintln!("skipping: set RON_EMU_TABLE or RON_INSTALL");
             return None;
         };

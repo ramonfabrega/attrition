@@ -2431,8 +2431,8 @@ mod tests {
     /// the install, as every install-backed test is.
     #[test]
     fn the_shipped_scripts_load_and_run_a_first_call() {
-        let Ok(install) = std::env::var("RON_INSTALL") else {
-            eprintln!("skipping: set RON_INSTALL");
+        let Some(install) = crate::testenv::install_root() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
             return;
         };
         let dir = std::path::Path::new(&install).join("ai").join("scripts");
