@@ -765,6 +765,21 @@ The checks:
   column-major (**one** accepted cell instead of five), and the surface
   probe put back on `4x` (four instead of five). East Indies' word went
   1373 → **1570** and its ticks 1374 → **1477**.
+- **§11 has a second corroboration, and it is not a test** (2026-09-01,
+  item 140). On run54's frame **4005** the AI scout `1/0` — just ashore on
+  a new island — runs the fallback on region 6: `size` 151, stride
+  `(151 + 99)/100 + 4005 % 8 = 7`, start `60673 % 7 = 4`, and of the
+  twenty-two cells that walk strides through **ten** pass the fog, the
+  location test and the surface test. Ten is exactly what the original
+  spends. Sweeping the other seven phases of the same walk gives 47, 32,
+  26, 19, 17, 11 and 11, so the count is unique to the frame's own phase —
+  which says the fog map, `invalid_loc` and the coordinate list all agree
+  with the original's, not merely their total. The winner is cell
+  `(48, 30)`, and the scout arrives there on **4110** — the very frame
+  run54's trace throws its next `+0x941` and its next ten `+0xaba`. It is
+  not pinned as an assertion because the frame is past the newest
+  full-detail dump's own length; item 141's capture is where it can
+  become one.
 - `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six`, whose
   frame-0 row moves from 165/175 to **175/175** with this.
 - `rondata::diff`'s

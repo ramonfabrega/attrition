@@ -3159,3 +3159,62 @@ it nothing, so an ordering clause that makes a capture wait on a widening
 may spend the screen's idle hours rather than save them. run57 was not
 wasted; it was second-best. Whether "second-best" is worth a rule is the
 question.
+
+## run58 — East Indies at 5,200 frames, and the lane running beside the work (2026-09-01)
+
+run57's successor by the standing rule that owed it: East Indies' long word
+had reached **4020** and run57's own dump stops at **4001**, so nothing on
+disk reached the frame item 140 was about. run39's recipe unchanged
+(`MAP_STYLE 18`, seed 12345, the profile's lobby with no `-config`, run39's
+`[Start Game]` and `[End Frame]` detail, no input), carried to **5,200**.
+Sixty-one minutes, **1.41 GB** of dump and 13.0 MB of trace, at about 1.4
+sim-frames a second.
+
+    POLL_MAX=260 zsh tools/gamelog/longtrace.sh 58 5200 islands-5k2 18
+
+**It is the same game, twice over, and the tools said so before it was
+read.** `rngcmp.py` against run54: **5,201 frames, zero differing**.
+`samegame.py` against run57: 4,000 frames in common, **zero differing**. So
+it inherits run39's siblings and run54's word, and it is a drop-in longer
+run57.
+
+**And the frame it was taken for was answered without it — while it ran.**
+Item 140's divergence at 4020 was booked as the AI scout's second leg, and
+it was the AI *citizen* `1/15`'s transport cast three hundred frames
+downstream of two misread gates. What settled it was `rontrace-run54.log`
+(the scout's own cast at 3608 spends two `Guy::set_anim` draws and 4020
+spends one — one figure, so not the scout) and the decompile
+(`Region::coast_here`, `Unit::move_step`), both of which cost minutes.
+`docs/SYNC.md` §3.25.
+
+**Which is the second capture in a row to be second-best, and the first to
+say what the clause should be.** run57's `FABLE:` note above proposes
+"widen every dumped record before booking a capture". run58 was booked
+*correctly* by that clause — no record on disk reaches frame 4005 — and was
+still not what answered the item. What both runs actually show is not an
+ordering rule about the screen but one about the **model's attention**: the
+capture lane is worth its wall-clock precisely because it does not consume
+any, and the mistake would be to *wait* on it. run58 was launched in the
+first five minutes of the session and read in the last ten; everything
+between was reading and diffing. `CLAUDE.md` already says as much — "an
+idle screen may still run the capture lane" — and this run is the evidence
+for that half of the sentence rather than against it.
+
+**What run58 says, and it is a test the same hour.**
+`diff::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do`:
+**178,326 building fields, none wrong**, and **435,399 collision
+field-frames** of which four are wrong — one unit-frame, `1/7` on 5084,
+eight hundred frames past the word. Nineteen units first leave the
+original's point between 4300 and 5085; **before the word only `1/13`
+does**, at 3647, which is run57's own remaining residue (item 139).
+
+**So its assertions are scoped to before the word, and this is the first
+capture long enough for that to be the honest shape.** run57's test scopes
+only its building half that way and says so under a `FABLE:` marker; run58
+scopes all three — buildings, collision and the parting list — because past
+4275 both sides are running on draws that are nobody's and a unit standing
+somewhere else there is not a defect. The whole-capture numbers are printed
+rather than pinned, so a reader can see the drift without the test pretending
+to measure it. That widens the marked question rather than answering it: the
+same third way is still available and still uncosted — a **ratchet on the
+count** past the word instead of a cut to the range.

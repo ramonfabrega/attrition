@@ -4372,7 +4372,7 @@ mod tests {
             "the AI's buildings stand where the original's do up to the word \
              ({LONG_WORD_EAST_INDIES}): {build_early:?}"
         );
-        // **Not one collision field wrong in 348,354**, and only four of
+        // **Not one collision field wrong in 349,794**, and only two of
         // the capture's units ever leave the original's point at all. The
         // block is scoped to unit-frames whose positions still agree, so
         // this is the capture's size and not a score.
@@ -4383,19 +4383,158 @@ mod tests {
         // The earliest parting, and it is **before** the word rather than
         // after: a unit can walk off the original's point without spending
         // a draw for it, and `1/13` at 3647 does. It was 3582 and eleven
-        // units until the colonist arm landed (`docs/SYNC.md` §3.23).
+        // units until the colonist arm landed (`docs/SYNC.md` §3.23), and
+        // four until the shore reads did (§3.25).
         assert_eq!(
             parted.values().copied().min(),
             Some(3647),
             "the earliest parting is 1/13's"
         );
         assert!(
-            parted.len() <= 4,
-            "four units ever leave the original's point in 4,000 frames: {parted:?}"
+            parted.len() <= 2,
+            "two units ever leave the original's point in 4,000 frames: {parted:?}"
         );
         assert_eq!(builds, 130_326, "two fields on every linked building-frame");
         assert!(
-            coll >= 348_354,
+            coll >= 349_794,
+            "five fields on every agreeing unit-frame, and the count only \
+             grows: {coll}"
+        );
+    }
+
+    /// **run58 — East Indies at 5,200 frames, the successor sized past the
+    /// word** (2026-09-01, item 140). run57 stops at 4,001 and East
+    /// Indies' long word had reached 4020, so the standing rule owed a
+    /// longer one: run39's recipe unchanged, `MAP_STYLE 18`, seed 12345,
+    /// no input, carried to 5,200. Forty-eight minutes and 1.41 GB.
+    ///
+    /// **It is the same game twice over, and the tools said so before it
+    /// was read**: `rngcmp.py` against run54 is 5,201 frames with **zero**
+    /// differing, and `samegame.py` against run57 is 4,000 frames in
+    /// common with **zero** differing. So it inherits run39's siblings and
+    /// run54's word, and it is a drop-in longer run57 — which is why the
+    /// two tests stand side by side rather than one replacing the other:
+    /// run57's is the shorter, tighter floor and this one is the reach.
+    ///
+    /// The item it was booked for was answered without it, by the trace
+    /// and the decompile while it ran (`docs/SYNC.md` §3.25). What it is
+    /// *for* is item 141: the frames the word now parts on, 4275 and 4288,
+    /// are past every other dump on disk.
+    #[test]
+    fn run58_s_five_thousand_frames_stand_where_the_original_s_do() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run58-islands-5k2.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run58.log"),
+        ) else {
+            eprintln!("skipping: no run58 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        assert!(
+            report.frames.len() >= 5_000,
+            "run58's length is {} — a short file here is a wrong file",
+            report.frames.len()
+        );
+
+        // The buildings, whole.
+        let builds: usize = report.frames.iter().map(|f| f.build_compared).sum();
+        let build_bad: Vec<BuildDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.build_diverged.iter().copied())
+            .collect();
+        let mut first_build: Vec<(i64, i64, i64, &'static str, i64, i64)> = Vec::new();
+        for d in &build_bad {
+            if !first_build.iter().any(|&(w, o, ..)| (w, o) == (d.who, d.o)) {
+                first_build.push((d.who, d.o, d.frame, d.field, d.ours, d.theirs));
+            }
+        }
+        eprintln!(
+            "run58 buildings: {builds} fields compared, {} wrong on {} building(s)",
+            build_bad.len(),
+            first_build.len()
+        );
+        for &(who, o, frame, field, ours, theirs) in &first_build {
+            eprintln!("  {who}/{o} from f{frame}: {field} ours {ours} theirs {theirs}");
+        }
+
+        // The collision block, on every unit-frame whose position agrees.
+        let coll: usize = report.frames.iter().map(|f| f.collide_compared).sum();
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let coll_bad: Vec<CollideDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.collide_diverged.iter().copied())
+            .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
+            .collect();
+        eprintln!(
+            "run58 collision: {coll} field-frames compared, {} wrong, \
+             {} unit(s) ever off position",
+            coll_bad.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+
+        // **Everything this asserts is scoped to before the word**, and
+        // run58 is the first capture long enough for that to matter. Past
+        // 4275 the two streams are running on draws that are nobody's, so
+        // a unit standing somewhere else there is not a defect — nineteen
+        // of them do, all first parting between 4300 and 5085, and the
+        // list is printed above rather than pinned. Before the word the
+        // capture is evidence, and there it is exact.
+        let build_early: Vec<&BuildDivergence> = build_bad
+            .iter()
+            .filter(|d| d.frame < LONG_WORD_EAST_INDIES)
+            .collect();
+        assert!(
+            build_early.is_empty(),
+            "the AI's buildings stand where the original's do up to the word \
+             ({LONG_WORD_EAST_INDIES}): {build_early:?}"
+        );
+        let coll_early: Vec<&CollideDivergence> = coll_bad
+            .iter()
+            .filter(|d| d.frame < LONG_WORD_EAST_INDIES)
+            .collect();
+        assert!(
+            coll_early.is_empty(),
+            "the collision block agrees on every comparable field-frame up \
+             to the word: {coll_early:?}"
+        );
+        let early: std::collections::BTreeMap<_, _> = parted
+            .iter()
+            .filter(|(_, f)| **f < LONG_WORD_EAST_INDIES)
+            .collect();
+        assert_eq!(
+            early.len(),
+            RUN58_PARTED,
+            "before the word, only 1/13 ever leaves the original's point: {early:?}"
+        );
+        assert_eq!(
+            early.values().map(|f| **f).min(),
+            Some(3647),
+            "and it is 1/13's own parting at 3647"
+        );
+        assert_eq!(
+            builds, RUN58_BUILD_FIELDS,
+            "two fields on every linked building-frame"
+        );
+        assert!(
+            coll >= RUN58_COLL_FIELDS,
             "five fields on every agreeing unit-frame, and the count only \
              grows: {coll}"
         );
@@ -8056,6 +8195,14 @@ mod tests {
     /// site would gather. `blocked_site`'s out-parameter is that number
     /// (`docs/CITIES.md` §2.6.7), and with it the camp goes up at the
     /// original's own frame, tile and object number.
+    /// run58's own three numbers (`run58_s_five_thousand_frames_stand_
+    /// where_the_original_s_do`). The two field counts are structural —
+    /// what a 5,200-frame capture holds — and `RUN58_PARTED` is the score:
+    /// how many of its units ever walk off the original's point.
+    const RUN58_PARTED: usize = 1;
+    const RUN58_BUILD_FIELDS: usize = 178_326;
+    const RUN58_COLL_FIELDS: usize = 435_399;
+
     const LONG_WORD_EAST_INDIES: i64 = 4275;
 
     /// **run40 and run41 — the leader census over a window, and what the

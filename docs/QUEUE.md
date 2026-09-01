@@ -15,11 +15,10 @@ lines, or lets the handoff pass 32.
 *2026-09-01, Opus — the colonist could not see the shore, and East Indies'
 word is **4275**.* Item 140 was booked on the scout and was the citizen's.
 
-- **The scout is right on both sides.** It takes §11's fallback on 4005,
-  ten candidates, winner cell (48, 30), and arrives on **4110** — the
-  frame run54's trace throws its next `+0x941`. What un-booked it: the
-  scout's own cast at 3608 spends two `set_anim` draws (`+0x56`, `+0xb6`
-  — man and dog) and 4020 spends one. One figure.
+- **The scout is right on both sides** — §11's fallback on 4005, ten
+  candidates, cell (48, 30), arriving on **4110**, the frame run54's trace
+  throws its next `+0x941`. What un-booked it: the scout's own cast at
+  3608 spends two `set_anim` draws (man and dog) and 4020 spends one.
 - **`coast_here`'s neighbour probe is `get_tregion`** (`0068106a`) and
   this crate asked the plain cell region, so a cell one in from the
   waterline coasted nothing and `think_civilian_transport` drew from the
@@ -30,10 +29,11 @@ word is **4275**.* Item 140 was booked on the scout and was the citizen's.
   pathfinder landed and nothing read. Without it `1/15` walked through a
   turn the original stands still for and embarked a frame early.
 - run57: **three units ever off the original's point → two**, and its
-  collision field-frames 348,469 → **349,794**, none wrong. run58 (East
-  Indies, 5,200) is on disk, the successor sized past the word; it was not
-  needed here and item 141 is its first use. Steering last ran 2026-09-01
-  (Fable); this is the second item since.
+  collision field-frames 348,469 → **349,794**, none wrong. **run58** (East
+  Indies, 5,200, same game as run54 and run57 to the frame) landed with it
+  and is a test: 178,326 building fields and 435,399 collision field-frames,
+  none wrong *before the word* and only `1/13` off point there. Steering
+  last ran 2026-09-01 (Fable); this is the second item since.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w4275 of 24,000 · GreatLakes w1802 of 24,000
@@ -54,12 +54,10 @@ indexed by them.
     the second differs: ours `Guy::set_anim+0x97a < Unit::do_non_flat
     _gather+0xb99`, theirs `< Guy::inc_time+0x271`. The count holds to
     **4288**, where the extra pair is a gaia herd's. Both are past run57's
-    4,001, so **run58** (East Indies, 5,200 frames,
-    `gamelog-run58-islands-5k2.txt`) is the dump — check it is the same
-    game first (`rngcmp.py` v run54, `samegame.py` v run57). Item 103 is
-    the same machine at 1,686: after 26,094 agreeing fields the human's
-    `0/2` holds a wait of 445 where the original's holds 480, tile and
-    phase right. ORDERS §6.4.
+    4,001; **run58** is the dump that reaches them (ORACLE run58, a test
+    already). Item 103 is the same machine at 1,686: after 26,094 agreeing
+    fields the human's `0/2` holds a wait of 445 where the original's
+    holds 480, tile and phase right. ORDERS §6.4.
 
 142. **`World::tregion` is not `get_tregion`, and its callers are
     unaudited.** Two items in one day were a gate asking `region_of` where
