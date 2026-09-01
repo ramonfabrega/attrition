@@ -10298,3 +10298,82 @@ The queue was reordered to lead with 85/82 — the headline's first
 divergence is the default item, and the list now says so — and the next
 opener written for Opus: capture first, rngcmp against run54, then the
 mechanic.
+
+## 2026-09-01 (Opus) — the gather list is a mechanic, and item 85 splits in two
+
+The morning's steering pass sized a capture and named an item; both are
+done, and the item turned out to be two.
+
+**run56.** East Indies, 3,000 frames, run39's recipe and detail unchanged —
+the first full-detail capture on either map that reaches past its own
+word. It cost thirty-five minutes and 789 MB. `rngcmp.py` calls it
+run54's game on all 3,001 frames and `samegame.py` calls it run39's on all
+1,850 they share, so it inherits both.
+
+**The widening came first, and it was a whole record.** `Frame.builds` has
+been parsed on every frame of every capture since the parser existed and
+compared on *none*: `compare` walked units and only units. `gather_from`
+— the tile list the slot count is surveyed out of — went past 594,618
+times on run39 alone without anyone looking at it. It is compared now,
+entry for entry, beside the `MiningList` header's `length` and
+`BuildData::gather_down`, for every building of both players on every
+frame. run39 and run33 both come back clean: the only disagreements are
+four, on each run's own last frame, where the `!quit`'s end-of-game block
+clears the human player's four `gather_down`s and leaves the AI's
+untouched. That is a teardown, and the tests say so rather than pinning a
+number they do not understand.
+
+That both maps agree is the expected answer rather than a null one. Both
+maps' camps are pre-placed and their lists come from the dump, so agreeing
+costs the simulation nothing — which is exactly why the capture had to be
+longer than either.
+
+**`Build::find_gather_tiles@00623350` is implemented.** `Build::init`
+branches the way the original's does: a gather type that is neither flat
+nor the university fills its list, marks every tile `0x1000`, shuffles
+it, and only then computes `gather_max`; everything else takes the plain
+survey. Before this, a camp placed during a run surveyed its own still
+empty list and activated with zero slots — `docs/ECONOMY.md` had it as an
+open item and the queue as item 85.
+
+Three things establish it, and none of them is a reading:
+
+- **The tiles.** Clearing the `0x1000` marks off run39's two pre-placed
+  camps and running the walk at each corner returns *exactly* the dump's
+  73 tiles, both times, on a map the code had never seen. It also settles
+  what the decompiler dropped. Ghidra prints the inner loop with only the
+  `0x1000` test in it, which would make a qualifying cell worth all
+  sixteen of its tiles; the record disagrees twice over — six cells
+  holding 16, 12, 12, 12, 12 and 9 forest tiles list 16, 12, 12, 12, 12
+  and 9 — so the loop takes the cell's **trees**, as `calc_gather`'s own
+  survey does.
+- **The shuffle's arithmetic.** `4 × length` rounds, one draw each.
+  run54's trace spends **584** draws at `Build::find_gather_tiles+0x10a`
+  during setup, where those two 73-tile camps are placed: 4 × (73 + 73),
+  to the draw.
+- **The order, seed-anchored.** run56's frame 2176 is the one camp the
+  *game* built — player 1's `o 2009`, a Woodcutter's Camp at tile
+  (198, 190), 48 tiles, 192 draws. Step to 2176, install the original's own
+  word from the trace (`find_gather_tiles` is the first thing that frame
+  draws, so the anchor is exact), place a camp where the original placed it,
+  and the list comes back **entry for entry** in the original's shuffled
+  order for exactly `4 × 48` draws. That is the walk's order, the marking,
+  the round count and the modulus in one assertion, and it is the half the
+  re-derivation cannot reach.
+
+**And what is left at 2176 is not the list.** The frame's 227 draws are
+this simulation's 35 plus exactly the 192 the shuffle costs, and the
+simulation places no building there at all. What it does place is
+uncanny: player 1's farm on frame 2, its second city on 977 and its
+second farm on 1577, each at the original's own tile and object number,
+frame for frame — the widening now compares 967,268 gather fields over
+run56's 3,001 frames and the *only* rows are that one camp and the quit's
+own four. Then the original places `o 2009` and this one does not. So item 85's second half is an
+**AI build decision**, not a gather mechanic, and it is booked as its own
+item with the three placements it already gets right as the evidence that
+the path is nearly there.
+
+Also fixed: `runqueue.sh` never reset `poll_max` between stanzas, so every
+stanza after run53 silently inherited its 900. Harmless in effect — it can
+only make a run wait longer — and exactly the kind of thing that is
+invisible until a capture needs the default.

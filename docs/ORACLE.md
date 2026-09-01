@@ -2919,6 +2919,45 @@ player diverging anywhere.
   seventeen-minute one. Any function whose *answer* is the question — a
   score, a predicate, a chosen index — is now one table row away.
 
+## run56 — East Indies past its own word (2026-09-01)
+
+The capture "The capture lane"'s standing rule owes: **when a map's word
+crosses the newest full-detail capture it has, the next one is sized to the
+word.** East Indies' word is run54's 2176 and its only full-detail run was
+run39's 1,850, so every frame of item 85's divergence fell past the end of
+the only dump that could show it.
+
+run39's recipe unchanged and nothing else — East Indies, `MAP_STYLE 18`,
+seed 12345, the profile's lobby with no `-config`, run39's `[Start Game]`
+and `[End Frame]` detail, no input — carried to **3,000** frames. Thirty-six
+minutes, **789 MB** of dump and 12 MB of trace, at about 1.5 sim-frames a
+second; the per-frame block runs ~260 KB and rises with the roster. Only the
+*length* changed, deliberately: `gatherers`, `gather_down` and
+`non_flat_gather` are all already in run39's `BUILDDATA` at `BUILDS=7`, so
+raising a category would have bought nothing and cost the sibling-hood that
+lets both same-game tools speak.
+
+**It is the same game twice over.** `rngcmp.py` against run54: **3,001
+frames, zero differing**. `samegame.py` against run39: 1,850 frames in
+common, **zero differing**. So it inherits run39's siblings and run54's word.
+
+**What it settles.** The whole of `Build::find_gather_tiles`
+(`docs/ECONOMY.md`, "The gather list, and its shuffle"). Frame 2176 is the
+one camp the *game* builds in either capture — player 1's `o 2009`, a
+Woodcutter's Camp at tile (198, 190), 48 tiles, `4 × 48 = 192` draws — and
+its `BUILDDATA` record is what makes the shuffle's **order** checkable
+rather than merely its count. Seed-anchored on the trace's own word at the
+entry of 2176, this crate's camp comes back with the original's list entry
+for entry.
+
+**And what it names.** The gather half of the record is now compared on
+every frame — 967,268 fields over 3,001 — and the *only* rows are that one
+camp and the quit's own four. This simulation places player 1's farm on
+frame 2, its second city on 977 and its second farm on 1577, each at the
+original's own tile and object number; then the original places `o 2009` and
+this one places nothing. The successor is an AI build decision, and
+`docs/QUEUE.md` holds it.
+
 ## What is not established
 
 - ~~**Everything, empirically.** None of this has been run.~~ **Run.** The

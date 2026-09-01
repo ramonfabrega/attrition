@@ -9879,6 +9879,208 @@ mod tests {
         }
     }
 
+    /// The same widening on **run56**, East Indies' 3,000-frame capture —
+    /// the first one long enough to hold a camp the *game* built.
+    ///
+    /// run39 and run33 both stop at 1,851, and both maps' camps are
+    /// pre-placed, so their lists are the dump's own by construction and
+    /// agreeing costs the simulation nothing. run54's word parts at **2176**,
+    /// on a frame the original spends 192 draws filling a new camp's list,
+    /// and this capture is run39's game carried past it at run39's detail —
+    /// which makes the frame's `BUILDDATA` the first record that can say
+    /// whether `Build::find_gather_tiles` produces the original's list rather
+    /// than merely the original's *tiles* (`docs/ECONOMY.md`, "The gather
+    /// list, and its shuffle").
+    #[test]
+    fn run56_s_mining_lists_reach_past_the_word() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run56-islands-3k.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run56.log"),
+        ) else {
+            eprintln!("skipping: no run56 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        assert!(
+            report.frames.len() >= 3_000,
+            "run56's length is {} — this is the long East Indies capture, \
+             and a short file here is a wrong file",
+            report.frames.len()
+        );
+        // What the original holds and this simulation does not, building by
+        // building — the successor's own statement, printed whether or not
+        // the assertion below is what fails.
+        let mut missing: Vec<(i64, i64, i64)> = Vec::new();
+        for f in &report.frames {
+            for (who, o) in f
+                .gather_diverged
+                .iter()
+                .filter(|d| d.field == "length" && d.ours == 0 && d.theirs > 0)
+                .map(|d| (d.who, d.o))
+            {
+                if !missing.iter().any(|&(w, b, _)| (w, b) == (who, o)) {
+                    missing.push((who, o, f.frame));
+                }
+            }
+        }
+        for (who, o, frame) in &missing {
+            eprintln!("  run56: {who}/{o} has a list from frame {frame}; this one has none");
+        }
+        let (compared, wrong, first) = gather_verdict("run56", &report);
+        assert!(
+            compared >= 967_268,
+            "the record is being read: {compared} fields"
+        );
+        // **Every disagreement is one building, and it is the one this
+        // simulation never places.** The original's `1/2009` stands from
+        // 2176; the comparison cannot see it until frame 2977, when this
+        // simulation's own placements finally reach that object number and
+        // the two link — which is why the first row is at 2977 and not at
+        // 2176. Before it, the frames are counted as unlinked instead.
+        assert_eq!(
+            missing.iter().map(|&(w, o, _)| (w, o)).collect::<Vec<_>>(),
+            vec![(1, 2009)],
+            "the only list the original has and this one does not"
+        );
+        let strays: Vec<&GatherDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.gather_diverged.iter())
+            .filter(|d| (d.who, d.o) != (1, 2009) && d.frame < report.frames.len() as i64)
+            .collect();
+        assert!(
+            strays.is_empty(),
+            "{} gather rows are neither the missing camp nor the quit's own: {:?}",
+            strays.len(),
+            &strays[..strays.len().min(4)]
+        );
+        assert!(first >= 2977, "the mining lists part at {first}");
+        assert!(
+            wrong <= 54,
+            "{wrong} gather fields disagree; the ceiling is 54 — fifty on the \
+             camp this simulation does not build, and the quit's own four"
+        );
+    }
+
+    /// **The shuffle, seed-anchored** — the whole of
+    /// `Build::find_gather_tiles` against the one camp the *game* built.
+    ///
+    /// run56's frame 2176 is where the original places player 1's second
+    /// Woodcutter's Camp, `o 2009`, and spends 192 draws shuffling its
+    /// 48-tile list. This crate's AI does not place it (that is the
+    /// successor, and the queue holds it) — but the mechanic can still be
+    /// checked whole, because the stream is knowable: run56's trace gives
+    /// `game_random`'s word at `do_frame` entry of 2176, and
+    /// `find_gather_tiles` is the **first** thing that frame draws.
+    ///
+    /// So: step to 2176, install the original's word, place the camp where
+    /// the original placed it, and compare the list it comes back with —
+    /// **in order**, entry for entry — against the dump's. That is the walk,
+    /// the marking, the shuffle's round count and the shuffle's arithmetic
+    /// in one assertion, and the order is the half
+    /// [`find_gather_tiles_rederives_run39_s_camp_lists`] cannot reach.
+    #[test]
+    fn run56_s_new_camp_is_this_crate_s_own_shuffle() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run56-islands-3k.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run56.log"),
+        ) else {
+            eprintln!("skipping: no run56 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        const FRAME: i64 = 2176;
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        // The original's own record for the camp, from the first frame that
+        // carries it — its position, its type and its list.
+        let theirs = log
+            .frames()
+            .into_iter()
+            .filter(|(n, _)| *n > FRAME)
+            .find_map(|(_, b)| {
+                crate::gamelog::records(b, false)
+                    .1
+                    .into_iter()
+                    .find(|d| d.who == 1 && d.o == 2009)
+            })
+            .expect("run56 carries player 1's o 2009");
+        assert_eq!(
+            theirs.gather_from.len(),
+            48,
+            "the camp's list is 48 tiles, and 4 × 48 is the frame's 192 draws"
+        );
+        let word = tr
+            .frames
+            .iter()
+            .find(|(n, _)| *n == FRAME)
+            .map(|&(_, w)| w)
+            .expect("run56's trace carries frame 2176");
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        while built.sim.frame < FRAME {
+            built.tick();
+        }
+        built.sim.rng.seed = word;
+        let ty = loaded
+            .build_of_type_index(theirs.orig_type.expect("orig_type") as i32)
+            .expect("the camp's build type");
+        let b = built.sim.init_build(1, ty, pos_of(theirs.pos), false);
+        assert_eq!(
+            i64::from(built.sim.buildings[b].index),
+            2009,
+            "find_free hands out the original's own object number"
+        );
+        let ours: Vec<(i64, i64)> = built.sim.buildings[b]
+            .gather_from
+            .iter()
+            .map(|p| (i64::from(p.x), i64::from(p.y)))
+            .collect();
+        eprintln!(
+            "run56 camp 1/2009: ours {} tiles, theirs {}; draws {:?}",
+            ours.len(),
+            theirs.gather_from.len(),
+            draws_between(word, built.sim.rng.seed)
+        );
+        assert_eq!(
+            draws_between(word, built.sim.rng.seed),
+            Some(4 * theirs.gather_from.len() as u32),
+            "the shuffle is four rounds a tile, one draw each"
+        );
+        assert_eq!(
+            ours.len(),
+            theirs.gather_from.len(),
+            "the walk found {} tiles, the original {}",
+            ours.len(),
+            theirs.gather_from.len()
+        );
+        assert_eq!(
+            ours, theirs.gather_from,
+            "the shuffled list, entry for entry"
+        );
+        assert_eq!(
+            built.sim.buildings[b].gather_max,
+            Some(built.sim.max_gatherers(b)),
+            "gather_max was recomputed from the filled list"
+        );
+    }
+
     /// The same widening on **Great Lakes** — run33's own record, which has
     /// no pasture and a different AI opening, so it is the second map's
     /// independent word on the same claim.

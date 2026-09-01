@@ -672,12 +672,22 @@ what it got before any of this existed.
   the `MiningList` header's `length` and `BuildData::gather_down`, for every
   building of both players on every frame: 594,618 and 584,712 fields, and
   the only disagreements are the four the quit's own last block writes.
+  run56 carries the same comparison to 3,001 frames and 967,268 fields,
+  where the only rows are the camp below and the quit's own four.
+- **The order, seed-anchored.** `run56_s_new_camp_is_this_crate_s_own_shuffle`
+  is the whole of it against the one camp the *game* built. run56's frame
+  2176 places player 1's `o 2009`, 48 tiles, 192 draws; step there, install
+  the original's own word from the trace — `find_gather_tiles` is the
+  **first** thing that frame draws, so the anchor is exact — place the camp
+  where the original placed it, and the list comes back **entry for entry**
+  in the original's shuffled order, for exactly `4 × 48` draws. That is the
+  walk's order, the marking, the round count and the modulus in one
+  assertion, and it is the half the re-derivation above cannot reach.
 
-**What it does not establish.** The **order** the walk leaves before the
-shuffle — the dump only ever shows the shuffled list, and the pre-shuffle
-order can only be checked by reproducing a shuffle whose stream is the game's
-rather than the map generator's. run56's frame 2176 is that check, and it
-needs the AI to place the camp there first (`docs/QUEUE.md`).
+**What it does not establish.** The **metal** branch, above. And
+`Build::process`'s two re-entries — `verify_gather_tiles` on a region's
+`0x20`, `find_gather_tiles` again on its `0x10` — which no run has been
+seen to take, because the region flags are not modelled at all.
 
 ## The commerce cap
 

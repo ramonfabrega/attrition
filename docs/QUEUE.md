@@ -12,36 +12,32 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Fable steering — the re-pin is ratified and the capture is
-sized.*
+*2026-09-01, Opus — the gather list is a mechanic, and item 85's second half
+is the AI.* The headline has **not** moved: East Indies' word is still 2176.
 
-The scored line closed this morning (item 125, the journal has its story):
-both captures at their ceiling under the suite's own asserts, the
-milestone in the README, the headline re-pinned to **East Indies' word on
-run54: 2176** of 24,000. This pass ratifies that shape and closes what
-`docs/DECISIONS.md` entry 29 left open — which full-detail captures to
-size to the new word:
-
-- **East Indies: take one, 3,000 frames, as item 85's first act.** The
-  word crossed the scored capture's 1,851 — ORACLE's own trigger for the
-  expensive capture. run38's recipe and detail, `3000 !quit`; assert
-  same-game with `rngcmp.py` against run54 before reading a line. Item 85
-  changes exactly what the new records check (a camp's gather state).
-- **Great Lakes: none yet.** Its word (1802) still sits inside run33's
-  1,850 full-detail frames; item 120 is what moves it. The standing rule:
-  when a word crosses its newest full-detail capture, size the next
-  capture to the word.
-
-No ratification batch is due: two `FABLE:` rows stand, orders R4 (item
-85's implementation settles it) and R2 O1 (nothing depends on it).
+- **run56 is taken**: East Indies, 3,000 frames, run39's recipe and detail
+  unchanged, 789 MB. `rngcmp.py` calls it run54's game on all 3,001 frames
+  and `samegame.py` calls it run39's on all 1,850 they share — the first
+  full-detail capture on either map past its own word (ORACLE, "run56").
+- **`Build::find_gather_tiles` is landed and checked whole**
+  (`docs/ECONOMY.md`, "The gather list, and its shuffle"): the walk
+  re-derives both run39 camps' 73-tile lists exactly, the shuffle's
+  `4 × length` is run54's setup 584 to the draw, and run56's frame 2176
+  gives the **order** seed-anchored. `Frame.builds` had been parsed on every
+  frame of every capture and compared on none; its gather half is compared
+  now, 967,268 fields over run56. Orders R4's timber branch is settled by
+  it; R4's **metal** branch and R2 O1 stand `FABLE:`, and no batch is due.
+- **What is left at 2176 is an AI build decision** — item 126. The frame's
+  227 draws are ours 35 plus exactly the shuffle's 192.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w2176 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `The headline is East Indies' word at 2176 of run54's
-24,000, and item 85 is its divergence. First take the capture the handoff
-sizes (East Indies full-detail, 3,000 frames, run38's recipe), rngcmp it
-against run54, then work 85 diff-first: widen the gather records first.`
+**Opener (Opus):** `The headline is East Indies' word at 2176 and item 126
+is its divergence: the original places player 1's Woodcutter's Camp o 2009
+at tile (198, 190) there and this simulation places nothing, though it puts
+that player's three earlier buildings up at the original's own frames,
+tiles and object numbers. Read what refuses the fourth; run56 holds it.`
 
 ## The queue
 
@@ -50,16 +46,26 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-85/82. **run40's 360 disagreeing good-frames, in two halves — and now the
-    headline's own divergence at 2176.** (85) `Build::init` surveys a camp
-    against its still-empty `gather_from`, so a harness camp activates with
-    zero `gather_slots`; run40's *human* files one under good 2
-    (`get_good@0063bd50`'s table at `0063bd84`), and run54 spends 192 draws
-    at `Build::find_gather_tiles+0x10a < Build::init+0x55b` where this
-    simulation spends none. First act: the 3,000-frame East Indies capture
-    the handoff sizes. (82) the original holds **0** in goods 3–5 and this
-    crate **100** — inert while none is available, so a loader question.
-    The orders audit's parked `FABLE:` R4 row travels here.
+126. **The fourth building East Indies' AI puts up, and the headline's own
+    divergence at 2176.** The original places player 1's second
+    Woodcutter's Camp — `o 2009`, tile (198, 190) — on frame 2176 and
+    spends the 192 draws its 48-tile list costs; this simulation places
+    nothing. It is not the gather mechanic: that is landed and checked
+    against this very camp. And the path is nearly there — player 1's farm
+    on frame 2, its second city on 977 and its second farm on 1577 all go
+    up here at the original's own frame, tile and object number. No
+    `produce_building` draw is spent on any of the four, so the site is not
+    a spiral search. Start at `make_stuff` slot 4's gather exception
+    (`ai_make.rs`, `gather_exception`) and `econ[1] & 4` — timber under
+    `hi` — and diff the leader census across 2176. run56 is the capture.
+
+82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
+    table at `0063bd84` cannot produce it;
+    `Leader::plan_strategy@006b9620` line 1137 assigns the whole array from
+    `City::count_gather_slots` and raises the high-water to match, and that
+    second writer is unread. Beside it: the original holds **0** in goods
+    3–5 where this crate holds **100** — inert while none is available, so
+    a loader question. The run40 diff asserts both as they stand.
 
 120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
     at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <
