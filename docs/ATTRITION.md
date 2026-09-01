@@ -587,10 +587,16 @@ inlines and `Supplies::find_supply` calls. Supply radii are octagonal in
 exactly the way borders are. `crates/sim` therefore keeps one copy, in `world`,
 under the engine's own name.
 
-The original has a second branch, `hi + lo / 2`, selected by `lo < 60000`. That
-is an overflow guard on `lo * lo`, not a shape decision — no map is sixty
-thousand tiles across, so the branch never runs in play. An earlier draft of
-this document read the test as a choice between two approximations; it is not.
+The original has a second branch, `hi + lo / 2`, selected by `lo < 60000`, and
+computes both **unsigned**. The guard is an overflow guard on `lo * lo` — for
+`unsigned`, and in world units, not tiles: 60,000 units is 78 cells, and
+`lo²` passes `i32::MAX` from `lo = 46341`, sixty cells short of it. The
+captured maps are 60 cells square, so their longest diagonal leg is 46,080
+and neither the guard nor the overflow is reached in them; a larger map
+reaches both. `crates/sim` squared in `i32` until the emulated original
+(`docs/EMULATOR.md`) answered 89998 for `(59999, 59999)` on 2026-09-01. An
+earlier draft of this document read the test as a choice between two
+approximations; it is not.
 
 The truncation in `lo² / (2·hi)` means the result can also land one *below* the
 true distance — `60, 30` gives 67 where the true answer is 67.08. It is never
