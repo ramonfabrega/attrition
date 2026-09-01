@@ -7,29 +7,27 @@ the state; `docs/JOURNAL.md` is the story.
 This file **deletes**. A finished item leaves it for the journal, which
 carries every number that has ever been here — items keep their numbers for
 that reason, and new ones continue the count. `docs_guard.rs` fails the
-build if this file strikes an entry instead of deleting it, passes 180
+build if this file strikes an entry instead of deleting it, passes 200
 lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 123 (Opus). **No number moved** — the item bought a
-diagnosis and a widening.*
+*2026-08-31, after a Fable meta session — guards, not a mechanic, so **no
+number moved**; the tranche verified green first (162 rondata, release,
+zero `skipping` lines).*
 
-**East Indies' word is 1647**, ticks and orders 1477/1476, gaia 191,876 of
-192,504. Great Lakes: word **1802**, ticks and orders **1772/1772 of
-1,772**, gaia 74,040 of 74,040.
+**East Indies' word is 1647**, ticks and orders 1477/1476 of 1,850. Great
+Lakes: word **1802**, ticks and orders **1772/1772 of 1,772** — its whole
+capture, gaia exact. Each map's next number is one mechanic: East Indies
+**125** (it leads), Great Lakes **120**.
 
-Item 123 is not a cadence question. The scout's whole six-frame lead comes
-from **one search, on frame 1477**: the original's `EXPLORE_TO` world path
-goes north around a mountain band in seven steps, this crate's south in
-five. Fog, danger, buildings, terrain, the heuristic, the stop test and the
-corner-cut gate are each ruled out **against the record** in PATHFINDER
-§12, and refusing one step reproduces the original's seven entries exactly.
-What landed instead: `PATHDATA`'s `tolerance` and `flags` are compared now
-(PATHFINDER §10), with the original's own shape census pinned.
+Scoreboard: EastIndies 1477/1476 w1647 · GreatLakes 1772/1772 w1802
 
-**Each map's next number is still one mechanic.** Great Lakes: 120. East
-Indies: 125, and it leads.
+That line is parsed by `rondata::diff` against the floors the scoring
+tests themselves read (`FLOORS`), and every `name@00xxxxxx` a spec cites
+is now checked against the export's `INDEX.tsv` (`docs_guard`) — items
+89a/b, built failing-first. A floor that moves now moves `FLOORS`, the
+assert beside it, and the line above, or the suite says which one lagged.
 
 **Opener (Opus):** `Continue — item 125: run39's frame-1477 scout path.
 PATHFINDER §12 has the two routes, the one-line reproduction and the six
@@ -48,13 +46,11 @@ so. Numbers are stable; the journal indexed by them.
     crate south in five, so the scout arrives on 1647 and not 1653.
     PATHFINDER §12 has both stacks, the one-step reproduction and the six
     candidates ruled out against the record; under this crate's own costs
-    the original's route is the *cheaper* one (661 v 672) and the search
-    still misses it, so it is a handful of points on one step. **The
-    check:** an `int 3` on `calc_cost@00684e50` in `tools/trace` for
+    the original's route is the *cheaper* one (661 v 672). **The check:**
+    an `int 3` on `calc_cost@00684e50` in `tools/trace` for
     `(from, to, dir, return)` — the per-step cost dump the gamelog cannot
-    give (§10). With it: run39's 24 unexplained `PathField` rows, all the
-    scout's and all past its score, and the §10 census taken on run33 and
-    run20 too.
+    give (§10). With it: run39's 24 unexplained `PathField` rows, and the
+    §10 census taken on run33 and run20 too.
 
 120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
     at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <
@@ -83,11 +79,10 @@ so. Numbers are stable; the journal indexed by them.
     non-looping file and 38 a looping one. Carry it beside
     `Art::piece_lengths`.
 
-87. **The widening ledger.** Items 74, 83, 69, 113 and now **123** were
-    closed or sharpened by fields the parser had and nothing compared.
-    Make the backlog a number: per dumped record, the fields
-    `rondata::diff` parses and never compares. run42 adds the per-frame
-    `LEADERDATA` to that pool.
+87. **The widening ledger.** Items 74, 83, 69, 113 and 123 were closed or
+    sharpened by fields the parser had and nothing compared. Make the
+    backlog a number: per dumped record, the fields `rondata::diff` parses
+    and never compares. run42 adds the per-frame `LEADERDATA` to that pool.
 
 85/82. **run40's 360 disagreeing good-frames, in two halves.** (85)
     `Build::init` surveys a camp against its still-empty `gather_from`, so
@@ -101,15 +96,14 @@ so. Numbers are stable; the journal indexed by them.
     the end of 202 or 203, yet its Scout's `mylos` moves 4 → 6; ours moves
     at 202 too, so what is owed is the *cache*.
 
-89. **Three guards for the instrument itself.** (a) The handoff's numbers
-    equal `rondata::diff`'s pinned floors. (b) Every `name@00xxxxxx` a
-    document cites names a function in `INDEX.tsv`. (c) run33's floor pins
-    totals mostly past its parting — fallen three times (109, 69, 113).
+89. **The instrument's last guard.** (a) and (b) are built (2026-08-31);
+    what is left is (c): run33's floor pins totals mostly past its
+    parting — fallen three times (109, 69, 113).
 
 72. **A document and its code disagreeing is a diff waiting to be run.**
-    Items 68, 79, 80, 74, **36 twice over**, 107, 112's `wx'` and 113's
-    `+0x2c8`. Every `name@00xxxxxx` and `+0xNN` a document pins, checked
-    against its module, and every "halved"/"every frame"/"cleared" verb.
+    The `name@00xxxxxx` half is a guard now (`docs_guard`, 2026-08-31).
+    Left: every `+0xNN` a document pins, checked against its module, and
+    every "halved"/"every frame"/"cleared" verb.
 
 88. **The blind list is the ledger.** `report.py … blind docs/` lists the
     cited functions no traced run has entered (101 of 617). Print it, pin
@@ -129,11 +123,10 @@ so. Numbers are stable; the journal indexed by them.
 
 23. **The formation byte's sign — the Echelon half.** `reverse`'s
     *displacement* is read only on GROUPS §6.4's Echelon rows and every
-    captured group is a Line. The profile route works (run51's tooltip
-    says F9); run52 names the blocker — the keystroke arrived as the chat
-    key. Next, in order (ORACLE runs 51/52): bind a plain letter, send it
-    with `osascript keystroke`, confirm by tooltip, then `FORM_E_RIGHT`
-    and `form 3` in the dump. With it COLLISION §9.
+    captured group is a Line. run52 names the blocker — the keystroke
+    arrived as the chat key; ORACLE runs 51/52 name the next steps (bind a
+    plain letter, `osascript keystroke`, confirm by tooltip, then
+    `FORM_E_RIGHT` and `form 3` in the dump). With it COLLISION §9.
 
 116. **The one `SITE` slot still wrong, and the rule that is not it.** AI
     §18: a 5×5 slide keeps its centre where the original leaves it, so
@@ -142,13 +135,12 @@ so. Numbers are stable; the journal indexed by them.
     so the slide wants a second reading, not that rule.
 
 117. **Two seams the census windows now measure.** (a) ATTRITION,
-    "Territory": the temple and fort border levels
-    (`has_preq(TEMPLEBORDERS2..4)`, `FORTBORDERS2..4` — bonus types the
-    loader reads as `bonus_preqs` and does not expose), the Colosseum, the
+    "Territory": the temple and fort border levels, the Colosseum, the
     Eiffel Tower, a gem rare, the handicap, and `was_seen`'s `reg_forts`
-    arm; all inert until a capture has a Temple or a Fort. (b) AI §2.1's
-    `check_explore` answers the whole region grid — `explored` is 900 here
-    against the dump's 36 and 19 on every frame of both windows.
+    arm — all inert until a capture has a Temple or a Fort; the bonus-preq
+    detail is in that section. (b) AI §2.1's `check_explore` answers the
+    whole region grid — `explored` is 900 here against the dump's 36 and
+    19 on every frame of both windows.
 
 The road residue, both in ROADS §7.1: (57) the node counts — 1,046 v
 1,043 and 1,460 v 1,870 — re-read on run43's own before-grid (ORACLE
@@ -171,6 +163,8 @@ a `find_target` block; run7's order stream; a mounted attacker; a caravan;
 - **End of session:** rewrite "Where things stand" from scratch — the
   headline first, and whether it moved. Delete finished items; their story
   goes to the journal. Run `cargo test -p sim docs_guard`.
+- **A floor that moves** moves three things together: `FLOORS` in
+  `rondata::diff`, the assert that reads it, and the `Scoreboard:` line.
 - **Start of session:** "Where things stand", the item, then its document.
 - **Run the diff suite with `--release`.** run53's 24,000 frames tripled
   `cargo test -p rondata` in debug — 114 s to 285 s — where `--release` is

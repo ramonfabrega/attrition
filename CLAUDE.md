@@ -214,9 +214,12 @@ outside the per-mechanic tests, and each was written by first making it fail:
   a commit message. The dumps live outside the repo; a machine without them
   says so rather than passing quietly.
 - `crates/sim/src/docs_guard.rs` reads the paperwork: the queue deletes
-  rather than strikes and stays short, this file names no finding, and a
-  document *section* over the size ceiling may only shrink — the unit is
-  the section because that is what a session reads.
+  rather than strikes and stays short, this file names no finding, every
+  function address a specification cites is checked against the decompile
+  export's index, and a document *section* over the size ceiling may only
+  shrink — the unit is the section because that is what a session reads.
+  Its sibling in `rondata::diff` parses the queue's scoreboard line
+  against the pinned floors, so the handoff cannot drift from the score.
 
 A guard that has never failed has not been tested; make it fail on purpose
 once, then land it. A rule that could be a guard and is only prose will be

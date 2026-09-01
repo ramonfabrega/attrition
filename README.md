@@ -11,12 +11,12 @@ health inside hostile national borders.
 > tree, combat, cities and buildings, orders, the pathfinder, the animation
 > clock, the per-frame random stream, and the AI — its scripted opening through an interpreter of
 > our own, and its C++ producers behind it. All of it headless, integer-only,
-> and diffed frame for frame against the original's own per-frame log: a
-> citizen walks the original's walk for every logged frame, the AI's first
-> city lands on the original's tile, the composed 493 × 493 combat table
-> matches cell for cell, and every draw of the game's RNG in the traced
-> windows is placed by site. No renderer yet. `docs/QUEUE.md` says exactly
-> where things stand.
+> and diffed frame for frame against the original's own per-frame log — and
+> on one of the two scored maps, a full human-versus-AI capture now runs in
+> lockstep for its whole 1,772 frames: every unit position, every order
+> list, every animal, and the game's RNG placed draw for draw by call site.
+> The second map holds to frame 1,477 of 1,850. No renderer yet.
+> `docs/QUEUE.md` says exactly where things stand.
 
 ## What this is
 

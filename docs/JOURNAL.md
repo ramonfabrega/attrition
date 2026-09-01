@@ -10101,3 +10101,57 @@ pins.**
 1476; Great Lakes 1802 and 1772/1772; gaia unchanged. The item bought a
 diagnosis, a widening, and a list of six things the next session does not
 have to rule out.
+
+## 2026-08-31 (a Fable meta session) — items 89a and 89b become guards, and the queue stops golfing
+
+Not a mechanic and not a steering pass — the fourth ran this morning and
+the headline has moved every session since, so nothing was owed. This was
+the other half of the working agreement's split: Opus runs the loop, this
+session improved the loop. **No number moved**, and the tranche verified
+green before anything was touched: 162 rondata tests in release with the
+install and the bottle's dumps attached, zero `skipping` lines.
+
+**Item 89a — the handoff's numbers are now parsed against the floors.**
+`rondata::diff` gains `FLOORS`: the two maps' ticks, orders and word as
+named constants, and the six scoring asserts (both pairs, both words,
+run53's ceiling) now read them instead of their own literals. Beside it,
+`the_handoff_s_scoreboard_is_the_floors` — a static test, no dump needed —
+parses a fixed-format `Scoreboard:` line in the queue's handoff and
+requires equality. Landed failing-first: the test ran red against the
+line-less queue before the line existed. The error class it closes is the
+one that cost the most this week: item 69's two numbers describing two
+different simulations sharing a file for seven days, and the fourth pass
+finding the handoff calling the wrong number the headline. A floor that
+moves now moves three things together or the suite names the laggard.
+
+**Item 89b — every `name@00xxxxxx` a spec cites is checked against the
+export.** `docs_guard` gains `every_cited_address_names_its_function`: 474
+distinct citations across the specs, each address looked up in
+`INDEX.tsv`, the export's name (templates stripped) required to match the
+cited one as a suffix in either direction. Addresses past the last
+function (00ac4226) are data, which a function index cannot check — the
+four `PATHDATA` tables live there. `JOURNAL.md` and `docs/audit/` are
+deliberately unread: both tell stories *about* wrong citations. Skips
+loudly without the export. Landed failing-first on two planted cites — a
+typo'd address and a wrong name — and the calibration run taught the two
+extraction truths worth keeping: a cite whose `@` follows an argument
+list or a line wrap carries no adjacent name (the address half still
+checks), and the export is sometimes *less* qualified than the document
+(`get_new_order` is a bare global there). This is item 72's
+`name@00xxxxxx` half made permanent; the `+0xNN` half stays booked.
+
+**The queue's cap moved 180 → 200.** The file sat at exactly 180 and the
+sessions were golfing lines to add an item. The board holds ~20 live
+items whose booked shape is five or six lines each, plus a 32-line
+handoff and the maintenance rules — that saturates 180 with no bloat
+anywhere in it. The bound should bite on stories and changelogs, not on
+the working agreement's own item size; the guard's comment carries the
+reasoning. The queue was also trimmed where it duplicated cited doc
+sections (items 23, 117, 125's diagnosis now lives only in PATHFINDER
+§12 and ORACLE's run notes).
+
+**The README's status paragraph caught up with the day**: one scored map
+now runs a full human-versus-AI capture in lockstep for its whole 1,772
+frames — that sentence was nowhere outward-facing before this session.
+Entry 27's capture-lane ledger was checked and owes nothing; the only
+open `FABLE:` row (orders R4) already travels with item 85.
