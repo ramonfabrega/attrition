@@ -201,16 +201,18 @@ them, and it **wins over the dump's table** wherever it speaks; a piece it
 names at all has its whole slot list, so a slot it omits is the packet's own
 and gets [`anim::MISSING`], three frames.
 
-*The check.* `the_install_s_piece_lengths_match_the_dumps` takes the 88
-`(gpiece, cur_anim) → end_time` rows five dumps print over six pieces of two
+*The check.* `the_install_s_piece_lengths_match_the_dumps` takes the
+`(gpiece, cur_anim) → end_time` rows the dumps print over six pieces of two
 nations and asserts every one against the install — which checks the
 addressing, where §3.1's check checked the `.bha` arithmetic. It had teeth
-on its first run: fourteen rows failed, and both families were real.
+on its first run: fourteen rows failed, and both families were real. **Its
+dump list is the assertion**, and it was five dumps and 88 rows until
+2026-08-31; it is eight and 187 now (§3.3).
 
-**The five that still fail are the mirror, and that is the second half of
+**The six that still fail are the mirror, and that is the second half of
 the check.** A crew member past the squad's size copies guy 0's `cur_anim`
 and keeps its **own** `end_time` (§5), so the pair a dump prints for a
-scout's dog is one animation's slot beside another's length. All five are on
+scout's dog is one animation's slot beside another's length. All six are on
 the two dogs, and each is a length the *same piece* carries at another slot,
 which is what says they are the mirror rather than a mis-addressed piece.
 **A dump is not a reliable source of lengths for a mirrored guy at all**, and
@@ -227,6 +229,50 @@ with them `Man Ouch` and the deaths. The test is `28 + 36n ≤ 16 + size` now.
 of 1,337 `<UNIT>` entries — so `set_anim`'s captain gate (§4.2, the one frame
 in sixteen that skips the idle roll) can never fire. That was `Art::group_idle`,
 empty for want of a dump; it is now a fact, and the gate reads the packet.
+
+### 3.3 A non-looping animation drops its last key (2026-08-31)
+
+`AnimMgr::force_load@0053ade0` does not convert the root node's last key
+time. It converts the last key time **of a looping animation** and the
+*second to last* of every other one:
+
+```text
+ms = key_times[n − 1]
+if loopings[i] == 0 and ms != 0:
+    ms = key_times[n − 2]            # and it is written back into the node
+frames[i] = round(ms · 3 / 200)      # half up, as before
+```
+
+`loopings[i]` is the section the row sits in.
+`GraphicPieces::init_anims_pool@008fca40` reads `anim_graphics.xml` in four
+passes — `AnimMgr::add(name, 1)` under `<LOOPING>` and `add(name, 0)` under
+`<NONLOOPING>`, `<BUILDING>` and `<PATH>` alike — and `AnimMgr::add@0053ac00`
+writes `loopings[i] = param_2 != 0`. So **three of the four sections are
+non-looping**, and a section this reader does not know must be too.
+
+The shape says why: a looping animation's last key is the frame that returns
+to the first and is part of the cycle; a non-looping one's is the pose it
+ends on, and it is not played through. In the shipped data it is always
+worth exactly one frame.
+
+*What it moved.* `lumberjack_dump.bha` carries 26 keys ending 2157, 2190, so
+`CHAR_DUMP_WOOD` is `round(2157·3/200) = 32` and not
+`round(2190·3/200) = 33` — and 32 is what **every** `GUY` block in the
+corpus prints for `cur_anim 27`, 756 of them over the four citizen pieces
+`0`, `352`, `6336` and `6688`. The crate had 33 for a month because none of
+the five dumps §3.2's check read prints a `cur_anim 27` at all: five starts
+and short windows between them reach only the idles, the walks, the chop,
+the sow and the reap. The list is eight dumps now — run25 brings the three
+attacks, both dumps and the ore half, run44 the turns and pack/unpack, run27
+`CHAR_WALK_WITH_ORE` — 187 rows over sixteen slots, and it fails on the old
+arithmetic (`gamelog-run44-islands-turners.txt: piece 352 slot 27 says 32`).
+
+Every length the rule changes shrinks by one, and they are the non-looping
+slots: the three attacks, the six deaths, the turns, pack/unpack and the two
+dumps. Two of gaia's are in it — `HERDHORSES` and `HERDBISON`'s
+`CHAR_DEATH_STAB2` and `CHAR_DEATH_SHOT1`, 28 → 27 — and no capture has
+played either. The bird's 31 and 23 are looping and stand (`docs/SYNC.md`
+§3.9).
 
 ## 4. `Guy::set_anim@005da300` — the draw
 
@@ -321,7 +367,7 @@ variant on the unit's idle request (§5 says why that never shows).
 | `Unit::do_repair@005ee420:1`, ahead of every gate | `CHAR_REPAIR` | never, and unconditionally — even on the frame the order dies |
 | `Guy::move@005d9240:86`, `Unit::move_step@005faf30:304` | the walk | never (a bird's coin aside) |
 | `Guy::move:59` (`+0x19f`), the frame after a walking guy stops with the plain `WALK` slot and nothing else changed it | `(DEFAULT, 0, 1)` | the arrival, when no order made the request first. **The one caller that reaches `Guy::set_anim` directly** rather than through `Unit::set_anim+0x56`, so its chain is a frame shorter and the trace's disambiguator sits at `up[0]` (`sim::anim::SITE_ARRIVE`, `docs/SYNC.md` §3.10) |
-| `Guy::move:78` (`+0x14f`), the **turn arm** — a body standing on its unit whose angle has not reached `des_angle`, every frame it is still turning | `(CHAR_WALK, 0, 1)` | never itself, but it puts the guy back on the walk category, so the *next* frame's idle request rolls again. That is the second draw of an arrival pair (`docs/SYNC.md` §3.11). **Unmodelled**, and what it costs is there too |
+| `Guy::move:78` (`+0x14f`), the **turn arm** — a body standing on its unit whose angle has not reached `des_angle`, every frame it is still turning | `(CHAR_WALK, 0, 1)` | never itself, but it puts the guy back on the walk category, so the *next* frame's idle request rolls again. That is the second draw of an arrival pair (`docs/SYNC.md` §3.11). ~~**Unmodelled**, and what it costs is there too~~ **Modelled 2026-08-31, §4.7**: what it cost was a frame of every work animation an order sets on the frame it turns |
 | `Unit::move_step:281` (`+0x823`), a unit whose step is blocked, before the three give-up tests | `(DEFAULT, 0, 1)` | the same conditions as any idle request — three times on run14 (frames 122, 184, 256), and this crate takes the first two on the original's own frames (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5, §8) |
 | `Guy::inc_time` (§5) | the wrap | an idle running out |
 
@@ -352,6 +398,58 @@ again, before `Guy::move`'s arrival test reads the slot. Either way the test
 never sees a walk, which is why no capture has an arrival stand for a builder.
 That arm is the table's new row above, and the builder is the one caller whose
 answer does not depend on modelling it.
+
+### 4.7 An order that turns loses that frame's animation (2026-08-31)
+
+§4.6's last paragraph read the rule and left it unmodelled, because for a
+builder it cancels. For everybody else it does not, and it is worth a frame
+of every work animation.
+
+`Unit::set_angle@00605400` writes the unit's own `+0x50` and then
+`Guy::set_angle@005d9010`, whose **third argument is a snap flag**: with it
+zero the guy takes `des_angle` (`+0x64`) alone and its own `angle`
+(`+0x18`) stands, to be turned by `Guy::move`. Every `set_angle` in the
+ordinary order path passes **0** — `do_non_flat_gather:208` and `:402`,
+`do_build:155`, `do_gather:382`, `fight:725`, `move_step`'s three,
+`do_group_attack`'s two, `do_attack_ground`, `do_form_change`, `check_idle`.
+The flag is set in five places this crate does not reach: `do_move`'s
+re-face, `go_inside`, `do_spec_anim`, `dbg_jump_to_action` and the scenario
+loader.
+
+So on the frame an order turns its unit, `Guy::move` finds the body **at its
+destination and owed a turn** and takes the turn arm: `set_anim(CHAR_WALK,
+0, 1)`, on top of whatever the order asked for a moment earlier. The work
+animation takes hold on the *next* frame, when the angle has arrived — for a
+foot type that is one frame, because a standing body's `last_speed` is zero
+and `GuyData::turn_speed` returns instant for it (`docs/SYNC.md` §3.11).
+
+*The record.* Run44's citizen `0/2`, piece 352, frames 528–543 of its
+`DUMP_ALL` window:
+
+| frame | `wait` | guy |
+|---|---|---|
+| 539–541 | 32 | `26` 12/15, 13/15, 14/15 — the carrying walk, clock running |
+| **542** | 32 → **31** | `26` **1/15** — at the camp, `wait` decremented, and the walk *restarted* |
+| **543** | 30 | `27` **1/32** — the wood dump |
+
+Frame 542 is the whole of it: the order ran its at-camp branch — `wait`
+proves it — and asked for `CHAR_DUMP_WOOD`, and the turn arm overwrote it
+with the carrying walk in the same frame. This crate's `Movement::set_facing`
+snapped facing, heading and `des_angle` together, so the arm never fired and
+the dump landed a frame early; `Movement::set_heading` is the zero-flag call
+and every order site uses it now.
+
+*What it moved.* East Indies' word `1570 → 1647` together with §3.3 — the
+two are one item, because the length was one frame long and the dump one
+frame early, and each had been hiding the other. Great Lakes is unchanged at
+1802.
+
+*What is not established.* That every one of the twelve zero-flag call sites
+above wants this in *this* crate: the evidence is run44's camp arrival, and
+the other five sites the crate reaches (`do_build`, the oil well's stand,
+`fight`, the reload turn, the tile arrival) were changed with it because the
+original's argument is the same. None of them moved a number either way on
+the two traced maps.
 
 **The arm itself, modelled 2026-08-30** (`Guy::move@005d9240:73–89`,
 `crates/sim/src/anim.rs`'s `guys_follow`). A body standing on its unit with
@@ -740,7 +838,26 @@ two passes.
   `0x840` stride is arithmetic rather than an observation.
 - **The loop flags by slot** (`anim::non_looping`): from the XML's names,
   not from the packets' slot-to-file mapping. Only the dumps and the
-  attacks depend on it.
+  attacks depend on it. **And the mapping is now readable** (§3.3): the
+  flag is `anim_graphics.xml`'s own section, per animation *file*, and
+  `rondata::artdata` reads it for the lengths. By slot it is not a
+  constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a non-looping file
+  and 38 give it a looping one, the same for `CHAR_DUMP_ORE` (28 / 38),
+  and two entries even have a non-looping `CHAR_WALK`. So `non_looping`
+  should be a per-piece table beside [`Art::piece_lengths`] rather than a
+  rule; every piece a capture has reached agrees with the rule, which is
+  why nothing has failed on it.
+- **A walking guy's clock.** run44's citizen counts its carrying walk
+  1…14 while it moves and restarts it on the frame it arrives; this crate
+  re-issues the walk from `guys_follow` every frame, so the clock sits at
+  1. `Guy::move`'s moving arm does call `set_anim(UVar4, 0, 1)` every
+  frame — behind a guard this crate has not read, `(type+0x2b8 & 4) == 0
+  || unit_masks & 0x80000` — and a walk request never takes the
+  same-category early return, so on the reading it should zero the clock
+  and it does not. Nothing observable turns on it: a looping walk's wrap
+  re-requests its own category and draws nothing for anyone but a bird,
+  and a bird never reaches `guys_follow` (§6). It would matter to the
+  first mechanic that reads a walk's `cur_time`.
 - **The walk's speed ratio** is `f32` in the original; cross-multiplied
   here. ~~Unobservable while every piece's three walks share a length.~~
   **Observable since 2026-08-29** — the install gives the scout's
@@ -763,11 +880,17 @@ two passes.
   install has them (§3.2): both are `Construction Saw`, fourteen frames on
   the citizen pieces. A wrap of either re-requests its own category and
   draws nothing, so nothing observable turned on it either way.
-- **`Guy::move`'s `des_angle != angle` arm** — the walk a guy plays standing
+- ~~**`Guy::move`'s `des_angle != angle` arm** — the walk a guy plays standing
   still while it turns, and the `field_0x218 == 1` / `SPECIAL_ANIM` exemption
   in front of it (§4.6) — is read and not modelled: this crate's `do_build`
   faces the site with the snap, so the arm's frame does not arise. It would
-  for any caller that moves the heading without the facing.
+  for any caller that moves the heading without the facing.~~ **Modelled
+  2026-08-31, §4.7**: every order in the ordinary path passes `set_angle`'s
+  snap flag as **zero**, so the arm's frame arises at all of them, and the
+  crate's `Movement::set_heading` is that call. What it cost was a frame of
+  every work animation an order sets on the frame it turns — East Indies'
+  word `1570 → 1647` with §3.3. The `SPECIAL_ANIM` half of the exemption is
+  still unmodelled (`docs/ORDERS.md` §3); the sea half is.
 - **`num_guys` per type**: one guy per spawned unit; the start dump's units
   carry as many as it prints.
 - ~~**`think_farm_animal`**~~ — read, `docs/SYNC.md` §3.6; what is still

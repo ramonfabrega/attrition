@@ -2385,7 +2385,7 @@ impl Sim {
         let here = self.units[u].pos;
         self.units[u]
             .movement
-            .set_facing(find_angle(bpos.x - here.x, bpos.y - here.y));
+            .set_heading(find_angle(bpos.x - here.x, bpos.y - here.y));
         let amount = build::builder_amount(
             &self.tuning,
             self.buildings[b].is_under_attack(),
@@ -2951,7 +2951,7 @@ impl Sim {
                 self.buildings[b].recharging += 1;
                 self.buildings[b].gather_bumped = true;
             }
-            self.units[u].movement.set_facing(Angle(0x4000_0000));
+            self.units[u].movement.set_heading(Angle(0x4000_0000));
             let stand = Pos::new(bpos.x + OILWELL_OFFSET, bpos.y);
             if self.world.accepts(stand) {
                 let from = self.units[u].pos;
@@ -3117,7 +3117,7 @@ impl Sim {
                 }
                 self.units[u]
                     .movement
-                    .set_facing(find_angle(centre.x - here.x, centre.y - here.y));
+                    .set_heading(find_angle(centre.x - here.x, centre.y - here.y));
                 let work = if wood {
                     crate::anim::CHOP_WOOD
                 } else {
@@ -3186,7 +3186,7 @@ impl Sim {
                 if g.wait >= 0 {
                     self.units[u]
                         .movement
-                        .set_facing(find_angle(bpos.x - here.x, bpos.y - here.y));
+                        .set_heading(find_angle(bpos.x - here.x, bpos.y - here.y));
                     let dump = if wood {
                         crate::anim::DUMP_WOOD
                     } else {
@@ -3578,7 +3578,7 @@ impl Sim {
                 let (from, to) = (self.units[u].pos, self.pos_of(target));
                 self.units[u]
                     .movement
-                    .set_facing(find_angle(to.x - from.x, to.y - from.y));
+                    .set_heading(find_angle(to.x - from.x, to.y - from.y));
             }
             return;
         }

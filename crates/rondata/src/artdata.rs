@@ -19,7 +19,9 @@
 //!   slot cites, resolved to a file.
 //! - `art/*.bha` — the animation itself, whose root node's key times give
 //!   `AnimMgr::force_load`'s `times[]`, and with it `frames[] = round(times
-//!   · 3 / 200)` — fifteen frames a second.
+//!   · 3 / 200)` — fifteen frames a second, **with a non-looping
+//!   animation's last key dropped first** ([`game_frames`]). Which is why
+//!   the section a row sits in is read alongside its file.
 //!
 //! Only the **gaia** types are read here. A player's unit needs
 //! `GraphicPieces::get_unit_gpiece`'s tribe, age and gender walk to know
@@ -195,13 +197,13 @@ pub fn gaia_lengths(install: &Install) -> GaiaLengths {
                 .or_else(|| units.get(&format!("{prefix}-TYPE0")));
             let Some(rows) = rows else { continue };
             for (slot, anim) in rows {
-                let Some(file) = files.get(anim) else {
+                let Some((file, looping)) = files.get(anim) else {
                     continue;
                 };
                 let n = match frames.get(file) {
                     Some(&n) => n,
                     None => {
-                        let Some(n) = file_frames(install.root(), file) else {
+                        let Some(n) = file_frames(install.root(), file, *looping) else {
                             continue;
                         };
                         frames.insert(file.clone(), n);
@@ -317,13 +319,13 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
         };
         let mut lengths: BTreeMap<i8, u32> = BTreeMap::new();
         for (slot, anim) in rows {
-            let Some(file) = files.get(anim) else {
+            let Some((file, looping)) = files.get(anim) else {
                 continue;
             };
             let n = match frames.get(file.as_str()) {
                 Some(&n) => n,
                 None => {
-                    let Some(n) = file_frames(install.root(), file) else {
+                    let Some(n) = file_frames(install.root(), file, *looping) else {
                         continue;
                     };
                     frames.insert(file, n);
@@ -340,15 +342,26 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
 }
 
 /// `anim_graphics.xml`'s `<ANIM name= file=>`: the animation's name as a
-/// `<UNIT>` cites it, and the file it resolves to (`.\art\x.bha` kept as
-/// the install-relative path it is).
-fn anim_files(doc: &roxmltree::Document<'_>) -> BTreeMap<String, String> {
+/// `<UNIT>` cites it, the file it resolves to (`.\art\x.bha` kept as the
+/// install-relative path it is), and **whether it loops**.
+///
+/// The looping flag is the section the row sits in, and it is
+/// `GraphicPieces::init_anims_pool@008fca40`'s own reading: four passes,
+/// `AnimMgr::add(name, 1)` under `<LOOPING>` and `AnimMgr::add(name, 0)`
+/// under `<NONLOOPING>`, `<BUILDING>` and `<PATH>` alike — `AnimMgr::add
+/// @0053ac00` writes `loopings[i] = param_2 != 0`. So a section this
+/// reader does not know is not looping, which is what the original does
+/// with the two it has beyond the pair the name suggests.
+///
+/// It is not a decoration: [`game_frames`] reads it (§3.1).
+fn anim_files(doc: &roxmltree::Document<'_>) -> BTreeMap<String, (String, bool)> {
     let mut out = BTreeMap::new();
     for n in doc.descendants().filter(|n| n.has_tag_name("ANIM")) {
         let (Some(name), Some(file)) = (n.attribute("name"), n.attribute("file")) else {
             continue;
         };
-        out.insert(name.trim().to_string(), file.trim().to_string());
+        let looping = n.parent().is_some_and(|p| p.has_tag_name("LOOPING"));
+        out.insert(name.trim().to_string(), (file.trim().to_string(), looping));
     }
     out
 }
@@ -382,9 +395,9 @@ fn unit_anims(doc: &roxmltree::Document<'_>) -> BTreeMap<String, Vec<(i8, String
 
 /// `AnimMgr::force_load`'s `frames[]` for one animation file: the root
 /// node's last key time in milliseconds, at fifteen frames a second.
-pub fn file_frames(root: &Path, rel: &str) -> Option<u32> {
+pub fn file_frames(root: &Path, rel: &str, looping: bool) -> Option<u32> {
     let bytes = std::fs::read(resolve(root, rel)?).ok()?;
-    Some(game_frames(&key_times(&bytes)?))
+    Some(game_frames(&key_times(&bytes)?, looping))
 }
 
 /// `.\art\bird_flap.bha` as a path in this install, tolerating the case
@@ -448,12 +461,31 @@ pub fn key_times(bytes: &[u8]) -> Option<Vec<u16>> {
     Some(out)
 }
 
-/// `AnimMgr::force_load`'s `frames[] = round(times · 3 / 200)` — the whole
-/// of the conversion from the file's milliseconds to the animation clock's
+/// `AnimMgr::force_load@0053ade0`'s `frames[]` — the whole of the
+/// conversion from the file's milliseconds to the animation clock's
 /// frames, and the reason a length is what it is. Fifteen frames a second,
 /// rounded half up.
-pub fn game_frames(times: &[u16]) -> u32 {
-    let ms = u32::from(*times.last().unwrap_or(&0));
+///
+/// **A non-looping animation drops its last key.** `force_load` reads the
+/// root node's last key time and then, when `loopings[i] == 0` and that
+/// time is not zero, replaces it with the **second to last** — writing it
+/// back into the node's own array — before the conversion. A looping
+/// animation's last key is the frame that returns to the first, so it is
+/// part of the cycle; a non-looping one's is the pose it ends on and is
+/// not played through.
+///
+/// One frame, and it is the whole of East Indies' word at 1570:
+/// `lumberjack_dump.bha`'s keys end 2157, 2190, so the citizen's
+/// `CHAR_DUMP_WOOD` is 32 rather than 33 and its wrap falls a frame
+/// earlier. Every `GUY` block in the corpus agrees — see
+/// `crate::diff::tests::the_install_s_piece_lengths_match_every_dumped_
+/// clock`.
+pub fn game_frames(times: &[u16], looping: bool) -> u32 {
+    let last = u32::from(*times.last().unwrap_or(&0));
+    let ms = match times.len() {
+        n if !looping && last != 0 && n >= 2 => u32::from(times[n - 2]),
+        _ => last,
+    };
     // `(int)(ms · 3 / 200.0f)`, then `+1` when the remainder is at least a
     // half — integer arithmetic for the same answer.
     let n = ms * 3;
@@ -523,7 +555,10 @@ mod tests {
         b[64..68].copy_from_slice(&(1.0f32 / 3.0).to_bits().to_le_bytes());
         let t = key_times(&b).expect("two keys");
         assert_eq!(t, vec![333, 666]);
-        assert_eq!(game_frames(&t), 10);
+        assert_eq!(game_frames(&t, true), 10);
+        // The same node, non-looping: the last key is dropped and 333 ms
+        // is five frames.
+        assert_eq!(game_frames(&t, false), 5);
     }
 
     /// A chunk whose key count does not fill it is not a node this reader
@@ -540,10 +575,24 @@ mod tests {
     /// 6033 is still 90 because the third of a frame rounds down.
     #[test]
     fn the_frame_count_rounds_half_up() {
-        assert_eq!(game_frames(&[6000]), 90);
-        assert_eq!(game_frames(&[6033]), 90);
-        assert_eq!(game_frames(&[6066]), 91);
-        assert_eq!(game_frames(&[1056]), 16);
-        assert_eq!(game_frames(&[1023]), 15);
+        assert_eq!(game_frames(&[6000], true), 90);
+        assert_eq!(game_frames(&[6033], true), 90);
+        assert_eq!(game_frames(&[6066], true), 91);
+        assert_eq!(game_frames(&[1056], true), 16);
+        assert_eq!(game_frames(&[1023], true), 15);
+    }
+
+    /// `force_load`'s non-looping arm, on the shipped numbers that made it
+    /// visible: `lumberjack_dump.bha` ends 2157, 2190 and its slot is 32
+    /// frames rather than 33 — which is what every `GUY` block in the
+    /// corpus prints for `cur_anim 27`. The guards are the original's own:
+    /// a last key of zero is left alone, and a single-key node has no
+    /// second-to-last to take.
+    #[test]
+    fn a_non_looping_animation_drops_its_last_key() {
+        assert_eq!(game_frames(&[2157, 2190], true), 33);
+        assert_eq!(game_frames(&[2157, 2190], false), 32);
+        assert_eq!(game_frames(&[900, 0], false), 0);
+        assert_eq!(game_frames(&[2190], false), 33);
     }
 }

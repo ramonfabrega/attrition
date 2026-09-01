@@ -12,30 +12,28 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-08-31, after item 110 (Opus).*
+*2026-08-31, after item 121 (Opus).*
 
-**East Indies moved on every number it has.** run39 scores **1477/1476**
-with its word at **1570**, up from 1374/1373 and 1373; its gaia positions
-are 191,876 of 192,504 with the first parting at 1658. Great Lakes is
-untouched at **1772/1772 of 1,772** and its gaia at 74,040 of 74,040 —
-run33's scout never leaves its city loop.
+**East Indies' word is 1647**, up from 1570; its ticks and orders are
+unchanged at 1477/1476 and its gaia positions 191,876 of 192,504 with the
+first parting at 1658. Great Lakes is untouched — word **1802**, ticks and
+orders **1772/1772 of 1,772**, gaia 74,040 of 74,040.
 
-Item 110 was booked as "the AI scout takes a seventh ring". It takes none:
-`scout_region_scan` spent §11's stride draw **with no `mark` of its own**,
-so `mark_sites` gave it the previous label and a fallback read as a ring.
-And that fallback had been "read, not implemented" because `Region.coords`
-is the map generator's flood order and no dump carries it — except that
-`Regions::find_all` ends by freeing the list and calling
-`Regions::rebuild_coords@0067f800`, which refills it by a **row-major sweep
-of the cell grid**. One `grep -l` for the writer. SCOUT §11.
+Item 121 was two frames of one citizen's wood dump, hiding each other.
+`AnimMgr::force_load` drops a **non-looping** animation's last key, so
+`CHAR_DUMP_WOOD` is 32 and not 33 — which every `GUY` block prints and no
+dump the lengths guard read had been asked. And `Unit::set_angle`'s third
+argument is a **snap flag** every order passes as zero, so `Guy::move`'s
+turn arm overwrites the animation an order sets on the frame it turns.
+ANIM §3.3, §4.7.
 
 **Each map's next number is still one mechanic.** Great Lakes: 120. East
-Indies: 121, and it leads — its headline is the only one still moving.
+Indies: 123, and it leads — its headline is the only one still moving.
 
-**Opener (Opus):** `Continue — item 121: East Indies' word at 1570. One
-draw, `Guy::set_anim+0x97a < Guy::inc_time+0x271 < Unit::inc_time+0x3e` —
-a **unit's** animation clock wrapping, not an animal's — that this crate
-does not spend: ours 3 against theirs 4.`
+**Opener (Opus):** `Continue — item 123: East Indies' word at 1647. Ours
+nineteen draws against theirs four: two `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d` and a whole AI scout pass the original does not run on
+that frame.`
 
 ## The queue
 
@@ -44,11 +42,12 @@ East Indies is the only map whose headline can still move, so its word item
 leads. Take the first unstarted unless a better order is obvious — and say
 so. Numbers are stable; the journal indexed by them.
 
-121. **East Indies' word at 1570, and an animation that wraps.** One draw,
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271 < Unit::inc_time+0x3e` —
-    a **unit's** clock, not an animal's, so it is not §3.9's bird — that
-    this crate does not spend: ours 3 against theirs 4. The trace does not
-    name the unit; a `GUYS=4` window over 1565–1572 would.
+123. **East Indies' word at 1647, and a scout that thinks a frame early.**
+    Ours nineteen draws against theirs four: the original spends nothing
+    on 1647 but its four `Farms::inc_time+0x1ae`, this crate two
+    `Guy::set_anim+0x97a < Unit::do_idle+0x7d` and a whole scout pass —
+    `+0x436`/`+0x458` six times, one `+0x64c`. 1644–1646 and 1648–1650
+    agree draw for draw, so it is the *cadence*: SCOUT §11, AI §2.
 
 120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
     at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <
@@ -68,11 +67,16 @@ so. Numbers are stable; the journal indexed by them.
     `Sim::reseat_animal` still corrects them where a dump carries clocks
     (SYNC §4.2).
 
-122. **A draw with no mark of its own.** Item 110's day went to one:
-    `mark_sites` attributes an unmarked draw to the label still standing,
-    so the sequence reads wrong rather than short. Grep `rng.roll()` in
-    `crates/sim` for every call with no `mark` on the statement above it,
-    and either mark it or say in a comment why the caller's mark covers it.
+122. **A draw with no mark of its own.** `mark_sites` attributes an
+    unmarked draw to the label still standing, so the sequence reads wrong
+    rather than short (item 110's day went to one). Grep `rng.roll()` in
+    `crates/sim` for calls with no `mark` above them; mark or explain each.
+
+124. **The loop flag is per animation file; `anim::non_looping` is a
+    rule.** `rondata::artdata` already reads it (ANIM §3.3), and by slot
+    it is not a constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a
+    non-looping file and 38 a looping one. Carry it beside
+    `Art::piece_lengths`. Moves no number until a capture disagrees.
 
 87. **The widening ledger.** Items 74, 83, 69 and **113** were closed by
     fields the parser had and nothing compared. Make the backlog a number:

@@ -348,7 +348,7 @@ impl Sim {
         // Facing: toward the target.
         let (from, to) = (self.units[i].pos, self.pos_of(target));
         let angle = find_angle(to.x - from.x, to.y - from.y);
-        self.units[i].movement.set_facing(angle);
+        self.units[i].movement.set_heading(angle);
         if self.max_range_of(me) == 0 {
             // Melee lands now, once per figure of this `UnitData` — one here.
             if p.fires() {

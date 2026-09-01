@@ -373,6 +373,31 @@ impl Movement {
         self.heading = facing;
         self.des_angle = facing;
     }
+
+    /// Points the unit a given way and **leaves the body to turn** —
+    /// `Unit::set_angle(a, a, 0)`, which is what every order in the
+    /// ordinary path calls. `Unit::set_angle@00605400` writes the unit's
+    /// own `+0x50` and then `Guy::set_angle@005d9010`, whose snap flag is
+    /// that third argument: with it zero the guy takes `des_angle`
+    /// (`+0x64`) alone and its `angle` (`+0x18`) stands.
+    ///
+    /// One frame, and it is visible: a body owed a turn is a body
+    /// `Guy::move` finds at its destination with `des_angle != angle`,
+    /// which is the **turn arm** — `set_anim(CHAR_WALK, 0, 1)`, on top of
+    /// whatever the order just asked for. So the work animation an order
+    /// sets on the frame it also turns the unit is overwritten by the walk
+    /// for that frame and takes hold on the next. Run44's citizen `0/2` is
+    /// the record: at the camp on frame 542 its `wait` steps 32 → 31 and
+    /// its guy plays `26 1/15`, the carrying walk restarted; `27 1/32`,
+    /// the wood dump, is frame 543 (`docs/ANIM.md` §4.7).
+    ///
+    /// The snapping [`Movement::set_facing`] is the other arm — the flag
+    /// set — and its callers are `do_move`'s re-face, `go_inside`,
+    /// `do_spec_anim` and the scenario loader, none of which this crate
+    /// reaches yet.
+    pub const fn set_heading(&mut self, heading: movement::Angle) {
+        self.heading = heading;
+    }
 }
 
 /// The type-level facts the turn rate and the turn-in-place limits read —

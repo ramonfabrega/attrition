@@ -9910,3 +9910,107 @@ cells order the same way either way, and `best` is still 99,999,999 when
 the scan starts, so nothing on disk compares a region score against a city
 one. They are read from the listing and §13 item 1 says so, with the shape
 of the capture that would separate them.
+
+## 2026-08-31 (item 121, Opus) — one frame in the art loader, one in the order, and they had been hiding each other
+
+Item 121 was booked as "East Indies' word at 1570, and an animation that
+wraps": one draw at `Guy::set_anim+0x97a < Guy::inc_time+0x271 <
+Unit::inc_time+0x3e`, ours three against theirs four, with the note that a
+`GUYS=4` window over 1565–1572 would name the unit. No capture was needed.
+The frame is a *citizen's* wood-dump animation running out, and it ran out
+a frame late for two reasons that cancel almost everywhere.
+
+**The first frame: a non-looping animation drops its last key.**
+`AnimMgr::force_load@0053ade0` does not convert the root node's last key
+time. It converts the last key of a **looping** animation and the *second
+to last* of every other one:
+
+```
+ms = key_times[n − 1]
+if loopings[i] == 0 and ms != 0: ms = key_times[n − 2]
+frames[i] = round(ms · 3 / 200)
+```
+
+`loopings[i]` is the section of `anim_graphics.xml` the row sits in —
+`GraphicPieces::init_anims_pool@008fca40` calls `AnimMgr::add(name, 1)`
+under `<LOOPING>` and `add(name, 0)` under `<NONLOOPING>`, `<BUILDING>`
+and `<PATH>` alike, and `AnimMgr::add@0053ac00` writes
+`loopings[i] = param_2 != 0`. `lumberjack_dump.bha`'s keys end 2157, 2190,
+so `CHAR_DUMP_WOOD` is 32 frames and not 33.
+
+**And the corpus had said 32 all along.** Every `GUY` block in every dump
+prints `end_time 32` for `cur_anim 27` — 756 of them over the four citizen
+pieces `0`, `352`, `6336` and `6688`. The widening test that should have
+caught it, `the_install_s_piece_lengths_match_the_dumps`, read five dumps,
+and all five are starts or short windows: between them they print only the
+idles, the walks, the chop, the sow and the reap. **The list was the
+assertion, and it was five dumps too short.** It is eight now — run25 for
+the attacks, both dumps and the ore half, run44 for the turns and
+pack/unpack, run27 for `CHAR_WALK_WITH_ORE` — 187 rows over sixteen slots,
+and it fails on the old arithmetic with
+`gamelog-run44-islands-turners.txt: piece 352 slot 27 says 32`. That is
+item 87's ledger paying for itself a fifth time.
+
+**The second frame: an order that turns loses that frame's animation.**
+With the length fixed the word fell to **572** — seven earlier wood dumps
+now wrapped a frame early. run44's `DUMP_ALL` window says why, in three
+rows of one citizen:
+
+| frame | `wait` | guy |
+|---|---|---|
+| 541 | 32 | `26` 14/15 — the carrying walk |
+| 542 | 32 → **31** | `26` **1/15** — at the camp, and the walk *restarted* |
+| 543 | 30 | `27` 1/32 — the wood dump |
+
+The order ran its at-camp branch on 542 — the `wait` proves it — and asked
+for `CHAR_DUMP_WOOD`, and something overwrote it with the walk in the same
+frame. That something is `Guy::move`'s turn arm, and the reason it fires is
+the third argument of `Unit::set_angle`: a **snap flag**, which
+`Guy::set_angle@005d9010` uses to decide whether the guy's own `angle`
+follows its new `des_angle` or is left for the turn. **Every `set_angle` in
+the ordinary order path passes zero** — the two in `do_non_flat_gather`,
+`do_build`, `do_gather`, `fight`, `move_step`'s three, both in
+`do_group_attack`, `do_attack_ground`, `do_form_change`, `check_idle`. Only
+`do_move`'s re-face, `go_inside`, `do_spec_anim`, the debug jump and the
+scenario loader set it.
+
+So on the frame an order turns its unit, `Guy::move` finds the body at its
+destination and owed a turn, and spends `set_anim(CHAR_WALK, 0, 1)` on top
+of whatever the order asked for a moment earlier. This crate's
+`Movement::set_facing` snapped facing, heading and `des_angle` together, so
+the arm never fired anywhere. `Movement::set_heading` is the zero-flag call
+and the six order sites use it now.
+
+`docs/ANIM.md` §4.6 had *read* this arm on 2026-08-28 and left it
+unmodelled, on the grounds that for a builder it cancels — the next frame's
+`do_build` puts the animation back before anything reads the slot. It does
+cancel there. It does not cancel for anything whose animation is a clock.
+
+**What moved.** East Indies' word and its sequence **1570 → 1647**; ticks
+1477 and orders 1476 unchanged; gaia 191,876 of 192,504, first parting
+1658. Great Lakes is untouched — word 1802, ticks and orders 1772 of
+1,772, gaia 74,040 of 74,040.
+
+**The successor is not this family.** Frame 1647 is nineteen draws against
+four: two `Guy::set_anim+0x97a < Unit::do_idle+0x7d` and then a whole AI
+scout pass — `Unit::think_scout+0x436`/`+0x458` six times with one
+`+0x64c` — that the original does not run on that frame at all. The
+original spends nothing there but its four farm draws. A scout thinking on
+a frame the original does not is a cadence question, not an animation one.
+
+**Two things left open, both in `docs/ANIM.md` §9.** The install now gives
+the loop flag per animation *file*, and by slot it is not a constant: 42
+`<UNIT>` entries give `CHAR_DUMP_WOOD` a non-looping file and 38 a looping
+one. `anim::non_looping` is still a rule by slot, and it agrees with every
+piece a capture has reached. And a walking guy's clock: run44's citizen
+counts its carrying walk 1…14 and restarts it on arrival, where this crate
+re-issues the walk every frame and the clock sits at 1. Nothing observable
+turns on it — a looping walk's wrap draws for nobody but a bird, and a bird
+never reaches `guys_follow`.
+
+**The lesson, and it is the working agreement's own.** A guard that reads a
+corpus is only as good as the corpus it is pointed at. This one had teeth,
+had failed twice before, and still let a wrong length stand for a month
+because the eight slots that would have caught it were in dumps the list
+did not name. *Widen the list before trusting the guard* — and the cost of
+widening it was three strings and four seconds of test time.

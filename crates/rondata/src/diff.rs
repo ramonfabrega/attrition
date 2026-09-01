@@ -3522,9 +3522,17 @@ mod tests {
     /// says the *addressing* is — that
     /// `GraphicPieces::init_piece_ranges@008f70e0`'s strides and
     /// `get_unit_gpiece@0090c030`'s sum put each `<UNIT name="…">` entry at
-    /// the piece number the original hands out. Five dumps between them
-    /// print 88 `(gpiece, cur_anim) → end_time` rows over six pieces of two
-    /// nations, and every one of them has to be the install's own.
+    /// the piece number the original hands out. Eight dumps between them
+    /// print 187 `(gpiece, cur_anim) → end_time` rows over six pieces of
+    /// two nations, and every one of them has to be the install's own.
+    ///
+    /// **The list is the assertion, and it was five dumps too short.**
+    /// Five starts and short windows print only the idles, the walks, the
+    /// chop, the sow and the reap; the wood dump — `CHAR_DUMP_WOOD`,
+    /// **32** frames on every citizen piece the corpus names — was in no
+    /// dump this test read, and the install's table said 33 for a month
+    /// (item 121, `docs/ANIM.md` §3.1). Item 87's ledger, one row of it
+    /// paid: a slot the parser had and nothing compared.
     ///
     /// **Except a mirrored guy's, and that is the check's other half.** A
     /// crew member past the squad's size copies guy 0's `cur_anim` and
@@ -3609,6 +3617,7 @@ mod tests {
         );
 
         let mut rows = 0usize;
+        let mut slots: std::collections::BTreeSet<i8> = std::collections::BTreeSet::new();
         let mut mirrored = Vec::new();
         for name in [
             "gamelog-run12-dumpall-seeds.txt",
@@ -3616,6 +3625,16 @@ mod tests {
             "gamelog-run20-islands-dumpall.txt",
             "gamelog-run3-fulldump-types.txt",
             "gamelog-run22-islands-dock-window.txt",
+            // The three the list wanted and did not have (2026-08-31,
+            // item 121). The five above are starts and short windows, so
+            // between them they print only the idles, the walks, the chop,
+            // the sow and the reap — and the eight slots they never reach
+            // are where the install's table was wrong. run25 brings the
+            // three attacks, the two dumps and the ore half; run44 the
+            // turns and pack/unpack; run27 `CHAR_WALK_WITH_ORE`.
+            "gamelog-run25-islands-emergency-window.txt",
+            "gamelog-run44-islands-turners.txt",
+            "gamelog-run27-islands-defending-window.txt",
         ] {
             let Some(path) = dump(name) else { continue };
             let text = std::fs::read_to_string(&path).unwrap();
@@ -3637,6 +3656,7 @@ mod tests {
                         continue;
                     }
                     rows += 1;
+                    slots.insert(slot);
                     if theirs.get(&slot) == Some(&n) {
                         continue;
                     }
@@ -3652,7 +3672,14 @@ mod tests {
                 }
             }
         }
-        assert_eq!(rows, 88, "the rows five dumps between them print");
+        eprintln!(
+            "piece lengths: {rows} rows over slots {:?}",
+            slots.iter().collect::<Vec<_>>()
+        );
+        assert!(
+            rows >= 88,
+            "the rows eight dumps between them print: {rows}, the floor is 88"
+        );
         mirrored.sort_unstable();
         mirrored.dedup();
         assert_eq!(
@@ -3661,6 +3688,7 @@ mod tests {
                 (12691, sim::anim::DEFAULT, 76),
                 (12691, sim::anim::IDLE1, 190),
                 (12691, sim::anim::IDLE3, 41),
+                (13043, sim::anim::IDLE1, 190),
                 (13043, sim::anim::IDLE2, 61),
                 (13043, sim::anim::IDLE2, 190),
             ],
@@ -7858,6 +7886,29 @@ mod tests {
     ///               row-major sweep. `docs/SCOUT.md` §11, and
     ///               [`a_scout_with_no_city_near_scans_its_whole_region`]
     ///               is the rule against the record.
+    ///   2026-08-31  word **1570 -> 1647** (item 121), **two frames of the
+    ///               wood dump**, one in the art loader and one in the
+    ///               order. `AnimMgr::force_load@0053ade0` drops a
+    ///               **non-looping** animation's last key before the
+    ///               conversion — `times = key_times[n-2]` when
+    ///               `loopings[i] == 0` — so `lumberjack_dump.bha`'s 2157,
+    ///               2190 is 32 frames and not 33, which is what every
+    ///               `GUY` block in the corpus prints for `cur_anim 27`
+    ///               and what no dump this suite read had ever been asked
+    ///               ([`the_install_s_piece_lengths_match_the_dumps`],
+    ///               five dumps too short). And the frame that gave back:
+    ///               `Unit::set_angle(a, a, **0**)` is what every order in
+    ///               the ordinary path calls, so the guy takes `des_angle`
+    ///               and its own `angle` stands — `Guy::move` finds a body
+    ///               at its destination owed a turn and spends the **turn
+    ///               arm**, `set_anim(CHAR_WALK, 0, 1)`, over whatever the
+    ///               order just asked for. run44's citizen `0/2` is the
+    ///               record: at the camp on 542 its `wait` steps 32 → 31
+    ///               and its guy plays the carrying walk restarted; the
+    ///               dump is 543. `docs/ANIM.md` §3.1 and §4.7. Next is
+    ///               frame 1647, and it is not this family: nineteen draws
+    ///               against four, opening `Guy::set_anim+0x97a <
+    ///               Unit::do_idle+0x7d`.
 
     #[test]
     fn run39_s_long_trace_says_where_the_second_map_s_word_parts() {
@@ -7983,10 +8034,10 @@ mod tests {
             }
         }
         assert!(
-            first_count >= 1570 && first_part >= 1570 && words >= 64 && matched >= 64,
+            first_count >= 1647 && first_part >= 1647 && words >= 64 && matched >= 64,
             "the second map's word fell: parts at {first_count}, its sequence at \
              {first_part}, {words} of the first {WINDOW} frames on the count, \
-             {matched} draw for draw — the floor is 1570, 1570, 64 and 64"
+             {matched} draw for draw — the floor is 1647, 1647, 64 and 64"
         );
     }
 
