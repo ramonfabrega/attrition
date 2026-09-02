@@ -700,6 +700,12 @@ pub struct Sim {
     /// The combat table — `docs/COMBAT.md` §5 — over [`Sim::unit_types`]
     /// ids. [`combat::Table::uniform`] until something builds one.
     pub table: combat::Table,
+    /// The craft table — `craftrules.xml`'s 55 rows in file order, which
+    /// is `TypeIndex` [`orders::spell::FIRST`]`..=`[`orders::spell::LAST`]
+    /// (`docs/ORDERS.md` §6.9). Empty until the loader fills it, and
+    /// [`Sim::spell_job_time`] then answers 0 — the transport craft's own
+    /// number, which is what every fixture that casts wants.
+    pub spells: Vec<orders::SpellType>,
     /// The game's random stream, `game_random`. Combat draws from it for
     /// projectile scatter and the one-in-five retarget roll.
     pub rng: combat::Rng,
@@ -1028,6 +1034,7 @@ impl Sim {
             buildings: Vec::new(),
             farm_order: Vec::new(),
             table: combat::Table::uniform(0),
+            spells: Vec::new(),
             rng: combat::Rng::new(0),
             projectiles: Vec::new(),
             market: market::Market::default(),
@@ -2208,6 +2215,33 @@ impl Sim {
         if self.trace_phases {
             self.phase_marks.push((phase.to_string(), self.rng.seed));
         }
+    }
+
+    /// `GameAccess::spelltypes[spell]` — the craft's row, or `None` when
+    /// the index is not a craft or the table was never loaded.
+    pub fn spell(&self, spell: i32) -> Option<orders::SpellType> {
+        let i = usize::try_from(spell - orders::spell::FIRST).ok()?;
+        self.spells.get(i).copied()
+    }
+
+    /// `SpellTypeData::get_job_time(o, who)@00675800` — the row's own
+    /// `JOB_TIME`, which is the whole answer for every craft this crate
+    /// casts.
+    ///
+    /// SEAM, and it is a list rather than a shrug: the function adjusts
+    /// nine of the fifty-five rows and **none of them is one this crate
+    /// issues**. `0x27d` Entrench takes the French tribe bonus and
+    /// Antipater's rate; `0x275` Bribe and `0x27f` Informer halve under
+    /// `SPIES_CRAFT_FASTER`; `0x28b`/`0x28c`, the siege pack pair, take
+    /// the Turkish bonus, Napoleon's, a half for two type masks and a
+    /// quarter for a third; `0x28d`/`0x28e`, the machine gun's, halve for
+    /// one; `0x280`/`0x281`, Sabotage and Sniper, halve under a tribe
+    /// bonus and flatten to 10 for one mask. The fishing boat's `0x292`
+    /// and the transport `0x28a` are named by no arm, so the record's
+    /// field is the number — run58's forty frames between the queue on
+    /// 4948 and the unpack on 4989 (`docs/ORDERS.md` §6.9).
+    pub fn spell_job_time(&self, spell: i32) -> i16 {
+        self.spell(spell).map_or(0, |s| s.job_time)
     }
 
     /// `GameAccess::rnd(n)@0043cca0` — `Random::get(game_random, 0, 0xffff)

@@ -112,6 +112,11 @@ pub struct Sweep {
     pub end: usize,
 }
 
+/// The ceiling `Unit::update_los` puts on a **packed** unit's `mylos`:
+/// four tiles, applied as `if (mylos > 3) mylos = 4` and so a clamp
+/// rather than an assignment (`0060e638`).
+pub const PACKED_LOS: i32 = 4;
+
 /// `p >> 7` through `div_3_table` — the fog cell a position lies in,
 /// `p / 0x180` floored. The same read `PathFinder::calc_cost` makes
 /// (`docs/PATHFINDER.md` §5).
@@ -153,17 +158,38 @@ impl Sim {
             .get(who)
             .map_or(0, |t| t.epoch[crate::tech::Line::Science.index()]);
         los += epoch * ty.science_los;
-        // Term 5: a packed siege engine sees four tiles at most. This
-        // simulation has no packing state, so the branch is the type test
-        // alone and it is a seam — `docs/VISION.md` §7.
-        if !ty.cols.flag2(uflags2::PACKS) {
+        // Term 5: **a packed unit sees four tiles at most**
+        // (`Unit::update_los@0060e4d0:0060e610`). The gate is the type's
+        // `unit_flags2 & 4` *and* the state — `unit_masks & 0x80000`, or a
+        // current order that is a pack cast (`UnitData::is_packing`) — and
+        // a caster that fails it falls through to term 5b rather than
+        // skipping both.
+        //
+        // Diff-backed on the AI Fisherman of run58, which carries
+        // `mylos 4` from the Dock at 4461 through to the frame its `0x292`
+        // casts and `mylos 6` — `LOS 4` plus one Science epoch's
+        // `SCIENCE_LOS 2` — from 4989 on (`docs/ORDERS.md` §6.9).
+        if ty.cols.flag2(uflags2::PACKS) && (unit.combat.packed || self.is_packing(u)) {
+            los = los.min(PACKED_LOS);
+        } else if matches!(unit.type_index, 0x3d | 0x3e | 0x190) {
             // Term 5b: the two merchants and the fur trapper see a fixed
             // radius that ignores everything above.
-            if matches!(unit.type_index, 0x3d | 0x3e | 0x190) {
-                los = epoch + 4;
-            }
+            los = epoch + 4;
         }
         los
+    }
+
+    /// `UnitData::is_packing@0060aa60` — the unit's **current** order is a
+    /// cast whose spell `TypeData::is_pack` accepts
+    /// ([`crate::orders::spell::is_pack`]). Not "is it packed": a unit
+    /// halfway through the eighty frames of a `Pack` still has
+    /// `unit_masks & 0x80000` clear, and this is what makes it see four
+    /// tiles anyway.
+    pub fn is_packing(&self, u: usize) -> bool {
+        matches!(
+            self.current_order(u).map(|o| o.body),
+            Some(crate::orders::Body::Cast(c)) if crate::orders::spell::is_pack(c.spell)
+        )
     }
 
     // ------------------------------------------------------------------

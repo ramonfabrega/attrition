@@ -84,10 +84,15 @@ record *i* is `TypeIndex 0x32 + i`), so `0x32`/`0x33` are Citizen and
 Korean Citizen, `0x3a` Spy, `0x3d`/`0x3e` Merchant and Armed Merchant,
 `0x45` Scout, `0x190` Fur Trapper.
 
-**What this simulation computes** is 1–5b and 12, and of those only the
-type's own `los`, the citizen terms and the science term can be nonzero in
-any capture on disk: no run has furs, dogs, a militia upgrade, a nomad
-start, a packed siege engine or a merchant. Terms 6–11 are read and not
+**What this simulation computes** is 1–5b and 12, and of those the type's
+own `los`, the citizen terms, the science term and **term 5** can be
+nonzero in a capture on disk: no run has furs, dogs, a militia upgrade, a
+nomad start or a merchant, but run58 has two packed Fishermen and term 5
+is where their `mylos 4` comes from — and `4 → 6` on the frame `1/14`
+deploys, which is the clamp lifting (`docs/ORDERS.md` §6.9). It was a
+seam here until 2026-09-01, written as the type test alone because this
+crate kept no packing state; the state is `combat.packed` now and
+`is_packing` is the current order. Terms 6–11 are read and not
 implemented; each is an addition to a value whose consumer divides it by
 two, so a term is worth a *fog* cell only when it reaches 2.
 

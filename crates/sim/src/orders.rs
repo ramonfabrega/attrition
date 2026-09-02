@@ -45,9 +45,71 @@ pub mod index {
 /// and `SpellType::cast` switches on. The spell rows are `0x275..=0x2ab`,
 /// in `craftrules.xml`'s own order (`docs/DATALAYER.md`).
 pub mod spell {
-    /// `TRANSPORT` — the shore conversion (`docs/TRANSPORT.md` §6), and
-    /// the only one this crate casts.
+    /// The first row of `craftrules.xml`, `Bribe` — the base `SpellType`
+    /// index and the offset [`crate::Sim::spell`] subtracts.
+    pub const FIRST: i32 = 0x275;
+    /// The last, the eighth `Cancel Alliance`. `TypeData::is_spell_type`
+    /// is `FIRST <= i <= LAST` and nothing else (`Unit::do_cast`'s head).
+    pub const LAST: i32 = 0x2ab;
+
+    /// `TRANSPORT` — the shore conversion (`docs/TRANSPORT.md` §6).
     pub const TRANSPORT: i32 = 0x28a;
+
+    /// The four **pack** rows and the four **unpack** ones, in the pairs
+    /// `add_cast_order` rewrites `PACK`/`UNPACK` into: the siege engine's
+    /// (the generic pair, and the one the file names `Catapult`), the
+    /// machine gun's, the merchants' and the fishing boat's
+    /// (`docs/ORDERS.md` §6.9).
+    pub const PACK: i32 = 0x28b;
+    pub const UNPACK: i32 = 0x28c;
+    pub const PACK_MACHINEGUN: i32 = 0x28d;
+    pub const UNPACK_MACHINEGUN: i32 = 0x28e;
+    pub const PACK_MERCHANT: i32 = 0x28f;
+    pub const UNPACK_MERCHANT: i32 = 0x290;
+    pub const PACK_FISHERMEN: i32 = 0x291;
+    pub const UNPACK_FISHERMEN: i32 = 0x292;
+
+    /// `TypeData::is_pack` — the vtable slot `+0x50`, which `Unit::do_cast`
+    /// inlines as these four identities and nothing else.
+    pub fn is_pack(spell: i32) -> bool {
+        matches!(
+            spell,
+            PACK | PACK_MACHINEGUN | PACK_MERCHANT | PACK_FISHERMEN
+        )
+    }
+
+    /// `TypeData::is_unpack` — the slot `+0x54`, the mirror four.
+    pub fn is_unpack(spell: i32) -> bool {
+        matches!(
+            spell,
+            UNPACK | UNPACK_MACHINEGUN | UNPACK_MERCHANT | UNPACK_FISHERMEN
+        )
+    }
+}
+
+/// One row of `craftrules.xml` — `SpellTypeData`, as much of it as
+/// `Unit::do_cast` reads (`docs/ORDERS.md` §6.9). The rows are `TypeIndex`
+/// [`spell::FIRST`]`..=`[`spell::LAST`] in file order, which is how
+/// [`crate::Sim::spells`] is keyed.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct SpellType {
+    /// `JOB_TIME`, in frames: how many `do_cast` steps the cast waits
+    /// before `SpellType::cast` runs. `SpellTypeData::get_job_time@00675800`
+    /// hands this back untouched for every row but the nine its national
+    /// and general arms name (§6.9).
+    pub job_time: i16,
+    /// `FLAGS`, the letters `a`..`m` of the file's own legend as bits
+    /// `0..12`. `do_cast` splits on `& 0xe` — `b` units, `c` buildings,
+    /// `d` an area — which is what makes a craft *targeted*.
+    pub flags: u32,
+}
+
+impl SpellType {
+    /// `spell_flags & 0xe`: this craft takes a target, so `do_cast` walks
+    /// its other half.
+    pub fn targeted(&self) -> bool {
+        self.flags & 0xe != 0
+    }
 }
 
 /// How far above the commerce cap `find_gather_spot` believes the Dutch

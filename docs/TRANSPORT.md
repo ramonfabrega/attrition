@@ -440,7 +440,12 @@ row is empty of `FLAGS`, `COST`, `COST2` and `MANA`, and its `JOB_TIME` is
 
 `cast_transport` then **does not kill the order**: it has already moved the
 whole list onto the boat, and the boat's own `kill_current_order` throws
-this cast away there.
+this cast away there. `0x28a` is the *only* index that gets that; every
+other craft is killed at the tail of `do_cast` once it has cast, which is
+what a fishing boat's deploy needs and used not to get
+(`docs/ORDERS.md` §6.9, the same arm read whole). The `JOB_TIME` here is
+no longer a literal either — the craft table is loaded, and `Transport`'s
+own row is where the 0 comes from.
 
 The three draws are frame 3608 of run54/run57 exactly: two
 `Guy::set_anim+0x97a < Unit::set_anim < Unit::do_cast+0xc89` and the boat's

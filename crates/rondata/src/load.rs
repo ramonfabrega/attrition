@@ -134,6 +134,11 @@ pub struct Loaded {
     /// behind its leader rather than standing on it (`docs/MOVEMENT.md`,
     /// "The follower's destination").
     pub piece_tracks: crate::artdata::PieceTracks,
+    /// `craftrules.xml`'s 55 `CRAFT` records in file order — `TypeIndex`
+    /// `0x275..=0x2ab`, the `SpellTypeData` table `Unit::do_cast` and
+    /// `SpellTypeData::get_job_time` read (`docs/ORDERS.md` §6.9). Empty
+    /// when the file is absent.
+    pub spells: Vec<sim::orders::SpellType>,
 }
 
 impl Loaded {
@@ -622,6 +627,18 @@ pub fn load_tables(
     // `SpellType::init` seeds the caster bit on each craft's `FROM`/`FROM2`,
     // and `init_spellcasters` walks it down the graft/from chains.
     let craft_records = crafts.map(|t| t.records.as_slice()).unwrap_or_default();
+    // …and the record itself, which `Unit::do_cast` reads: the cast time
+    // and the targeting letters (`docs/ORDERS.md` §6.9). The rows land in
+    // file order, which is `TypeIndex` `0x275` upward.
+    let spells: Vec<sim::orders::SpellType> = craft_records
+        .iter()
+        .map(|r| sim::orders::SpellType {
+            job_time: int(r, "JOB_TIME")
+                .and_then(|n| i16::try_from(n).ok())
+                .unwrap_or(0),
+            flags: craft_flags(r.text("FLAGS").unwrap_or("")),
+        })
+        .collect();
     let mut caster_seed = vec![false; unit_cols.len()];
     let mut craft_at: Vec<usize> = Vec::new();
     for r in craft_records {
@@ -1445,7 +1462,23 @@ pub fn load_tables(
         gaia_lengths: Default::default(),
         piece_lengths: Default::default(),
         piece_tracks: Default::default(),
+        spells,
     }
+}
+
+/// `craftrules.xml`'s `FLAGS` column: the file's own legend runs `a`
+/// through `m` — researched, targets units, buildings, an area, friendly,
+/// enemy, no-cancel, allied, vehicles, non-vehicles, at-peace, no-cloak-
+/// blow, group-preference — and a letter is bit `letter - 'a'`. `do_cast`
+/// reads `& 0xe` (units, buildings, area) to tell a targeted craft from an
+/// untargeted one, and `& 0x800` for the cloak.
+///
+/// A letter outside `a..=m` would be a column this reading does not know,
+/// so it is dropped rather than folded in; the shipped file has none.
+fn craft_flags(text: &str) -> u32 {
+    text.bytes()
+        .filter(|c| c.is_ascii_lowercase() && *c <= b'm')
+        .fold(0u32, |f, c| f | 1 << (c - b'a'))
 }
 
 /// `unit_flags` letter `y`, "a non-standard or unique unit": `is_slow(x, 1)`
@@ -2028,6 +2061,7 @@ mod tests {
             gaia_lengths: Default::default(),
             piece_lengths: Default::default(),
             piece_tracks: Default::default(),
+            spells: vec![],
         };
         assert_eq!(l.type_index(0), 0);
         assert_eq!(l.type_index(6), BASE_UNITTYPES);

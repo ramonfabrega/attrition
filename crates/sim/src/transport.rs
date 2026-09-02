@@ -40,13 +40,6 @@ pub mod ty {
     pub const GULLBIRD: TypeId = 0x194;
 }
 
-/// `craftrules.xml`'s `JOB_TIME` for the `Transport` craft — **0**, so the
-/// spell casts on the frame it is first stepped (§6). It is a literal
-/// rather than a [`crate::tuning::Tuning`] slot because the spell table is
-/// not loaded: `rondata`'s `crafts()` reads the file for its `FROM` columns
-/// alone (`docs/DATALAYER.md`).
-const TRANSPORT_JOB_TIME: i16 = 0;
-
 /// The bias angle `Unit::do_cast` and `SpellType::cast_transport` both hand
 /// `find_nearby_spot` — `0x55555555`, a third of a turn, which
 /// `docs/ORDERS.md` §10 records as arbitrary rather than a sentinel.
@@ -694,36 +687,49 @@ impl Sim {
     // §6: boarding — the cast order, and the shore conversion
     // ------------------------------------------------------------------
 
-    /// `Unit::do_cast(order)@005ebfe0`, along the **untargeted** arm the
-    /// transport spell takes (`docs/TRANSPORT.md` §6).
+    /// `Unit::do_cast(order)@005ebfe0`, along the **untargeted** arm — the
+    /// half a craft with no `b`/`c`/`d` in its `FLAGS` takes
+    /// (`docs/TRANSPORT.md` §6, `docs/ORDERS.md` §6.9).
     ///
     /// The whole of the targeted half — a spell with `spell_flags & 0xe`,
     /// which is every spy craft — is a stated seam: nothing in this crate
-    /// issues one. What is modelled is the path `0x28a` walks, and the
-    /// order it walks it in, because that order is the frame's draws:
+    /// issues one. What is modelled is the path the transport `0x28a` and
+    /// the pack/unpack family walk, and the order they walk it in, because
+    /// that order is the frame's draws:
     ///
-    /// 1. the cost, once per order (`pay_cast_costs`); the transport craft's
-    ///    `COST`, `COST2` and `MANA` are all empty, so it never refuses;
+    /// 1. the cost, once per order (`pay_cast_costs`); the crafts issued
+    ///    here have empty `COST`, `COST2` and `MANA`, so it never refuses;
     /// 2. on the first frame only (`spell_time == 0`) the caster's
-    ///    animation — `set_anim(CHAR_DEFAULT, 0, 1)`, **one draw a figure**,
-    ///    which is two for a unit with a crew;
-    /// 3. on that same frame, the shore test: no water within
-    ///    `unit_board_distance` and the order dies here;
-    /// 4. the clock — `spell_time += 1`, and a `JOB_TIME` above it returns.
-    ///    Transport's is **0**, so it casts on its first frame;
-    /// 5. `SpellType::cast`, whose `is_castable` for `0x28a` is
-    ///    `can_transport` and nothing else, then [`Sim::cast_transport`].
+    ///    animation. `CHAR_PACK` for a pack craft, `CHAR_UNPACK` for an
+    ///    unpack one, `CHAR_DEFAULT` for everything else — and the state
+    ///    test that goes with it: a pack whose caster is **already** packed
+    ///    and an unpack whose caster is **not** both die here, before the
+    ///    clock starts;
+    /// 3. on that same frame, and for `0x28a` alone, the shore test: no
+    ///    water within `unit_board_distance` and the order dies here;
+    /// 4. the clock — `spell_time += 1`, then a `JOB_TIME` above it
+    ///    returns. Transport's is **0**, so it casts on its first frame;
+    ///    the fishing boat's `0x292` is **40**, so it casts on its
+    ///    fortieth;
+    /// 5. `SpellType::cast`, and then — for **every craft but `0x28a`** —
+    ///    `kill_current_order`. The transport is the exception because
+    ///    `cast_transport` has already moved the whole list onto the boat,
+    ///    and the boat kills this order there.
     ///
-    /// The order is **not** killed after a transport cast: `cast_transport`
-    /// has already moved the whole list onto the boat, and the boat kills
-    /// this order there.
-    ///
-    /// SEAM: the captain check between 4 and 5 — a figure whose captain is
-    /// itself casting gives its frame back — is not modelled; every unit
-    /// here is its own captain.
+    /// SEAMS, all stated: the captain check between 4 and 5 — a figure
+    /// whose captain is itself casting gives its frame back — is not
+    /// modelled, since every unit here is its own captain; nor is the
+    /// general's `has_general(0, 0x162)` extra `spell_time` step, nor
+    /// `is_rare_collector`'s merchant re-seat on the first frame of an
+    /// unpack (`docs/ORDERS.md` §6.9), and nor is the whole non-spell-type
+    /// arm, which is `LeaderData::current_upgrade` + `set_type` and reaches
+    /// no craft index at all.
     pub(crate) fn do_cast(&mut self, u: usize, order: crate::orders::CastOrder) {
-        if order.spell != crate::orders::spell::TRANSPORT {
-            // Nothing else is castable here; the order would spin.
+        use crate::orders::spell;
+        let s = order.spell;
+        if self.spell(s).is_some_and(|d| d.targeted()) {
+            // The targeted half. Nothing here issues one, and letting it
+            // fall through the untargeted arm would be a fiction.
             self.kill_current_order(u);
             return;
         }
@@ -734,38 +740,90 @@ impl Sim {
             c.paid = true;
         }
         if self.units[u].spell_time == 0 {
+            let packed = self.units[u].combat.packed;
+            let anim = if spell::is_pack(s) {
+                if packed {
+                    self.kill_current_order(u);
+                    return;
+                }
+                crate::anim::PACK
+            } else if spell::is_unpack(s) {
+                if !packed {
+                    self.kill_current_order(u);
+                    return;
+                }
+                crate::anim::UNPACK
+            } else {
+                crate::anim::DEFAULT
+            };
             self.mark(crate::anim::SITE_CAST);
-            self.set_default_anim(u);
-            let barge = self.transport_type_for(u);
-            let spot = barge.and_then(|b| {
-                self.find_nearby_spot_type(
-                    b,
-                    self.units[u].pos,
-                    0,
-                    self.tuning.unit_board_distance,
-                    0,
-                    BOARD_BEARING,
-                )
-            });
-            if spot.is_none() {
-                self.kill_current_order(u);
-                return;
+            self.set_anim(u, anim, false, true);
+            if s == spell::TRANSPORT {
+                let barge = self.transport_type_for(u);
+                let spot = barge.and_then(|b| {
+                    self.find_nearby_spot_type(
+                        b,
+                        self.units[u].pos,
+                        0,
+                        self.tuning.unit_board_distance,
+                        0,
+                        BOARD_BEARING,
+                    )
+                });
+                if spot.is_none() {
+                    self.kill_current_order(u);
+                    return;
+                }
             }
         }
         self.units[u].spell_time += 1;
-        // `JOB_TIME` is 0 for the transport craft, so the wait is never
-        // taken; a spell with a job time would return here.
-        if self.units[u].spell_time < TRANSPORT_JOB_TIME {
+        if self.units[u].spell_time < self.spell_job_time(s) {
             return;
         }
         self.units[u].spell_time = 0;
-        if !self.unit_can_transport(u) {
-            // `SpellTypeData::is_castable`'s `0x28a` case, the only test it
-            // makes for this spell; a cast that fails it falls out of
-            // `SpellType::cast` doing nothing at all.
+        // `SpellType::cast@00676ce0` — the switch, behind an `is_castable`
+        // that has to answer **3**. The two arms this crate reaches:
+        if s == spell::TRANSPORT {
+            if self.unit_can_transport(u) {
+                // `is_castable`'s `0x28a` case, the only test it makes for
+                // this spell; a cast that fails it falls out of
+                // `SpellType::cast` doing nothing at all.
+                self.cast_transport(u);
+            }
+            // …and the transport order is not killed here: see step 5.
             return;
         }
-        self.cast_transport(u);
+        if spell::is_unpack(s) && self.units[u].combat.packed {
+            // `is_castable`'s `0x28c`/`0x28e`/`0x290`/`0x292` case: a map
+            // unit that is still packed.
+            self.cast_unpack(u);
+        }
+        self.kill_current_order(u);
+    }
+
+    /// `SpellType::cast_unpack(o, who)@006709c0` — what the fishing boat's
+    /// `0x292` and the siege engine's `0x28c` actually do
+    /// (`docs/ORDERS.md` §6.9).
+    ///
+    /// For everything but the two merchants and the fur trapper the only
+    /// state it changes is the **packed bit**. What follows the bit here
+    /// is derived rather than stored: `Unit::update_los` (`+0x160`) is
+    /// what run58's `mylos 4 → 6` on frame 4989 records, and it is the
+    /// packed clamp lifting — [`Sim::unit_los`] recomputes on every read,
+    /// so clearing the bit *is* the update.
+    ///
+    /// SEAMS: the merchant arm (`TypeIndex` `0x3d`/`0x3e`/`0x190`), which
+    /// snaps the trader onto its tile corner, blocks the four tiles under
+    /// it and raises the leader's `0x2000000`; the `set_new_location` at
+    /// the tail, which re-seats the unit on its own position; and
+    /// `Guy::update_gpiece`, which swaps the `-PACKED` art for the plain
+    /// piece — no capture on disk names either piece, so both sides of
+    /// the swap are `-1` here.
+    pub(crate) fn cast_unpack(&mut self, u: usize) {
+        if !self.units[u].alive() || !self.units[u].on_map {
+            return;
+        }
+        self.units[u].combat.packed = false;
     }
 
     /// The boat a unit becomes: `current_upgrade(MERCHANTFLEET)` for a

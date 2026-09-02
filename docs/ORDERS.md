@@ -2071,18 +2071,8 @@ than two.
   **no draw** there either way, so nothing on disk separates the two
   answers. *Capture:* a run long enough for a deployed Fisherman to be idle
   across two of its 1,024-frame marks, with `UNITS` detail on it.
-- **What the cast does**, and it is the word (item 149, 2026-09-01).
-  `SpellType::cast` for `0x292` is not modelled, and worse: `do_cast`
-  (`transport.rs`) `kill_current_order`s **every** spell but `0x28a`, so
-  the Fisherman's unpack dies on the frame after it is queued. The boat is
-  therefore idle again two frames later and — still packed, so the
-  1,024-frame gate does not hold it — runs the whole 17 × 17 search a
-  second time: East Indies' word parts at **4950**, where this crate spends
-  165 `think_fish` draws and the original spends none. The original keeps
-  the order for `SpellTypeData::get_job_time@00675800`, which for `0x292`
-  is the record's own field with none of its adjustments applying; the
-  spell table is not in the data layer at all. run58's `1/14` casts on 4948
-  and is unpacked by 4989.
+- ~~**What the cast does.**~~ §6.9, and it moved East Indies' word from
+  4950 to 4988.
 - **The chain, whole.** `find_good_at` walks the cell's object chain in the
   original; here the terminator is a field, which is exact only because
   `Objects::init_good` is the only writer of one (`docs/COLLISION.md` §3
@@ -2092,6 +2082,140 @@ than two.
   north over the first half of a nineteen-cell staircase. That is the
   pathfinder, not this; `run58_s_five_thousand_frames_stand_where_the_
   original_s_do` pins both frames.
+
+---
+
+## 6.9 `Unit::do_cast@005ebfe0` — the craft table, and the deploy
+
+Established 2026-09-01 from the decompile and `craftrules.xml`, and
+**diff-backed on run58's whole 5,200 frames**: the AI Fisherman `1/14`'s
+`spell_time` climbing 1 … 39 on frames 4950 … 4988, its `unit_masks`
+`786440 → 262152` on 4989, and its `mylos` `4 → 6` on the same frame. It is
+what East Indies' word sat on at 4950; §6.8 is what queues the order.
+
+### The table
+
+`craftrules.xml` is `GameAccess::spelltypes`: **55 `CRAFT` records**, in
+file order, at `TypeIndex` `0x275 … 0x2ab`. `TypeData::is_spell_type` is
+that range and nothing else, and a craft index outside it makes `do_cast`
+substitute `0x296` (`Morph`) for the *job time* while keeping the real one
+for the cast. The columns this crate reads:
+
+| column | what reads it |
+| --- | --- |
+| `JOB_TIME` | `SpellTypeData::get_job_time@00675800`, in frames |
+| `FLAGS` | letters `a`..`m` as bits `0..12`; `& 0xe` (`b` units, `c` buildings, `d` an area) is what makes a craft **targeted** |
+| `FROM` / `FROM2` | the caster lineages, already read for `is_castable`'s head and for the caster bit (`docs/DATALAYER.md`) |
+
+The four pack rows and the four unpack rows are the pairs `add_cast_order`
+rewrites into (§6.8, "The unpack is renamed on the way in"), and their job
+times are the deploy's whole cost:
+
+| pair | `FROM` | `JOB_TIME` |
+| --- | --- | --- |
+| `0x28b` / `0x28c` | Catapult | 80 |
+| `0x28d` / `0x28e` | Machine Gun | 50 |
+| `0x28f` / `0x290` | Merchant | 148 |
+| `0x291` / **`0x292`** | Fishermen | **40** |
+
+`get_job_time` adjusts **nine** of the fifty-five and none of them is one
+this crate issues: `0x27d` Entrench takes the French tribe bonus and
+Antipater's rate; `0x275` Bribe and `0x27f` Informer halve under
+`SPIES_CRAFT_FASTER`; `0x28b`/`0x28c` take the Turkish bonus, Napoleon's, a
+half for two type masks and a quarter for a third; `0x28d`/`0x28e` halve
+for one mask; `0x280`/`0x281` halve under a tribe bonus and flatten to 10
+for one. `0x28a` and `0x292` are named by no arm, so the record's own field
+is the answer — which is why run58's deploy is exactly forty frames.
+
+### The untargeted arm, in the order it spends its frame
+
+`do_cast`'s first branch is `spell_flags & 0xe`; a craft that carries none
+of the three takes this half. Then:
+
+1. `SpellType::pay_cast_costs`, once per order, on the order's own `+0x1c`
+   ("paid"). Refused, the order dies. Every craft issued here has empty
+   `COST`, `COST2` and `MANA`.
+2. **On the first frame only** (`spell_time == 0`) the animation, and the
+   state test that goes with it. `is_pack` → the caster must **not** be
+   packed (`unit_masks & 0x80000`) or the order dies here, then
+   `set_anim(CHAR_PACK, 0, 1)`; `is_unpack` → it must **be** packed, then
+   `set_anim(CHAR_UNPACK, 0, 1)`; anything else → `CHAR_DEFAULT`, which is
+   the transport's. One call site, so all three chains are the trace's
+   `Guy::set_anim+0x97a < Unit::do_cast+0xc89`.
+3. On that same frame, and **for `0x28a` alone**, the shore test:
+   `find_nearby_spot` for a barge within `unit_board_distance`, and no
+   water means the order dies (`docs/TRANSPORT.md` §6).
+4. `spell_time += 1`; below `get_job_time` it returns and the order stands.
+5. `SpellType::cast@00676ce0` — a switch behind an `is_castable` that has
+   to answer **3**. For `0x28c`/`0x28e`/`0x290`/`0x292` that is
+   `is_map_unit` and the packed bit still set; for `0x28a` it is
+   `can_transport`.
+6. `kill_current_order` — **for every craft but `0x28a`**. The transport is
+   the exception because `cast_transport` has already moved the order list
+   onto the new boat, and the boat kills the cast there.
+
+### `SpellType::cast_unpack@006709c0`
+
+For a caster whose `TypeIndex` is not `0x3d`, `0x3e` or `400` — the two
+merchants and the fur trapper — it is one state change and its
+consequences: `unit_masks &= ~0x80000`, then `update_los` (`+0x160`),
+`update_speed` (`+0x174`), `Unit::update_gpiece` and a `set_new_location`
+on the unit's own position. The merchant arm ahead of it is a different
+thing: `good_merchant_spot`, a snap to the tile corner, `set_blocked_at` on
+the four tiles under the trader and `leader_flags |= 0x2000000`.
+
+**The line of sight is the visible half.** `Unit::update_los@0060e4d0`
+clamps a packed unit to four tiles — `if (mylos > 3) mylos = 4` at
+`0060e638`, gated on the type's `unit_flags2 & 4` **and** either
+`unit_masks & 0x80000` or `UnitData::is_packing@0060aa60` (the current
+order is a cast whose spell `is_pack`). A caster that fails that gate falls
+through to the merchants' fixed `epoch + 4` rather than skipping both. This
+crate recomputes `mylos` on every read, so clearing the bit *is* the
+update, and run58's `4 → 6` on frame 4989 is `LOS 4` plus one Science
+epoch's `SCIENCE_LOS 2` with the clamp lifted.
+
+### 6.9.1 Coverage
+
+| claim | backed by |
+| --- | --- |
+| `0x292`'s `JOB_TIME` is 40, and the clock is one step a frame | **diff** — run58's `spell_time` 1 … 39 on 4950 … 4988, and `unit_masks 786440 → 262152` on 4989 |
+| the order survives the wait, and dies after the cast | **diff** — the same forty frames, and `1/14` idle again from 4990 |
+| `cast_unpack` clears `0x80000` | **diff** — `run58_s_five_thousand_frames_stand_where_the_original_s_do` compares the bit on **94,935** unit-frames, none wrong |
+| the packed `mylos` clamp | **diff** — the same test, 94,338 unit-frames with the one known cache row (item 35) |
+| the 55 rows are `0x275 … 0x2ab` in file order | the file, and `0x292`'s `FROM Fishermen` against §6.8's `add_cast_order` rewrite |
+| `is_castable` must answer 3, and its pack/unpack cases | reading (`00675bc0`) — and the 4989 cast is what a wrong answer would have moved |
+| the pack arm, and `CHAR_PACK` | reading; nothing in any capture packs |
+
+**What is not established.**
+
+- **The targeted half**, everything behind `spell_flags & 0xe`: the range
+  walk, `is_valid_target`, the `find_nearby_spot` approach and the
+  `add_move_order(QUEUE_FIRST)` it issues, the cloak and the message
+  window. Nothing here issues one, and `do_cast` kills such an order rather
+  than pretending. *Capture:* a spy craft, which needs a Spy.
+- **`pay_cast_costs`**, which is modelled as "never refuses". True for
+  every craft with empty `COST2` and `MANA`, which is the two this crate
+  issues; a `MANA` craft would need the mana pool, and nothing keeps one.
+- **The general's step.** Between 4 and 5 a caster whose type answers
+  `+0x10c` and which `has_general(0, 0x162)` takes an **extra**
+  `spell_time += 1` and bumps every guy's `+0x74` against its `+0x78`. It
+  halves a pack's wait in practice and no capture has a general.
+- **The captain give-back** for `0x28a`: a figure whose captain is itself
+  casting hands the frame back. Every unit here is its own captain.
+- **`update_speed` and `update_gpiece`.** The first moves no number on
+  run58 (`myspeed 38` on both sides of the deploy); the second is item 152
+  — the boat's guy carries no piece at all, so the `-PACKED` art it should
+  be playing while packed, and the plain art it should swap to here, are
+  the same `-1`. That is what the word now sits on, one frame earlier than
+  the deploy.
+- **The merchant arm of `cast_unpack`**, and with it `good_merchant_spot`
+  and the four `set_blocked_at` calls. *Capture:* a Merchant on a rare,
+  which needs a rare in reach of the AI.
+- **The non-spell-type arm** of `do_cast` — `LeaderData::current_upgrade`
+  then `set_type`, and a `go_inside`/`come_out` pair when the unit stands
+  on a `tile_mask & 3 == 3` cell with a friendly building. No craft index
+  reaches it; it is what an order carrying a *unit* type in its spell slot
+  would do, and nothing issues one.
 
 ---
 

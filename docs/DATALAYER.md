@@ -285,6 +285,9 @@ is the Small City's), and then `UnitType::init_spellcasters@0061aae0` walks
 self → `graft` → `from` and marks anything with a marked ancestor. 14 seeds
 become exactly the 77 marked types.
 
+The records themselves are loaded too: `Loaded::spells` is each `CRAFT`'s
+`JOB_TIME` and `FLAGS`, in file order — `docs/ORDERS.md` §6.9.
+
 **3. The five derived `build_flags` bits.** No shipped `BUILD_FLAGS` string
 contains a digit — the alphabet is `abcdeg ijmn` — so **every bit above 25 is
 derived**, and the first reading's conclusion that they are therefore dead
@@ -443,11 +446,6 @@ draft omitted the +1 and the dump's per-type `age` caught it,
 production group's identity for "factory units" (whether the Auto Plant,
 Factory and Siege Factory share one count) is taken as the `WHERE` building
 itself.
-
-### The `balance.rs` domain
-
-`rondata::balance::unit_kind` read a `TYPE` column that does not exist and
-called every unit a land unit; the column is `DOMAIN`. Fixed.
 
 ### A building's blocked tiles are art, not rules (2026-08-27)
 

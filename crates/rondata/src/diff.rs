@@ -598,6 +598,17 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             loaded.piece_lengths.len()
         ));
     }
+    // The craft table — `craftrules.xml`'s own rows, which is what tells a
+    // cast how long it takes (`docs/ORDERS.md` §6.9). Without it every
+    // `JOB_TIME` reads 0 and the fishing boat's deploy would land on the
+    // frame it is queued instead of forty frames later.
+    sim.spells = loaded.spells.clone();
+    if !loaded.spells.is_empty() {
+        notes.push(format!(
+            "crafts: {} rows from the install",
+            loaded.spells.len()
+        ));
+    }
     // And every piece's crew-follow offset, from the same file — which is
     // what gives a scout's dog a body of its own instead of the man's
     // (`docs/MOVEMENT.md`, "The follower's destination").
@@ -1354,6 +1365,13 @@ pub struct FrameResult {
     /// Every one that disagreed — `docs/VISION.md` §2. The dump writes
     /// `mylos` at every detail level, so this is compared on every capture.
     pub los_diverged: Vec<LosDivergence>,
+    /// Unit-frames whose `UnitData::unit_masks` the log carried, so the
+    /// **packed** bit (`0x80000`) could be checked against
+    /// [`sim::combat::Combat::packed`] — `docs/ORDERS.md` §6.9. Written at
+    /// every detail level, like `mylos`, so it too is on every capture.
+    pub packed_compared: usize,
+    /// Every unit-frame whose packed bit disagreed: `(frame, who, o, ours)`.
+    pub packed_diverged: Vec<PackedDivergence>,
     /// Angle comparisons made this frame — `UnitData::angle` for every unit
     /// record, and guy 0's `angle` for every record that carries a guy
     /// (`GUYS` at 1 or above). Two per unit-frame where both are present.
@@ -1480,6 +1498,17 @@ pub struct LosDivergence {
     pub o: i64,
     pub ours: i32,
     pub theirs: i64,
+}
+
+/// One unit-frame whose `unit_masks & 0x80000` disagreed — the packed bit
+/// `Unit::init` sets, `SpellType::cast_pack` sets again and
+/// `SpellType::cast_unpack` clears (`docs/ORDERS.md` §6.9).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct PackedDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    pub ours: bool,
 }
 
 impl FrameResult {
@@ -2142,6 +2171,23 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     o: u.o,
                     ours: ours_los,
                     theirs: theirs_los,
+                });
+            }
+        }
+        // `unit_masks & 0x80000`, the **packed** bit, beside it. It is the
+        // one bit of that word this crate keeps, and it is the whole state
+        // the pack/unpack crafts change (`docs/ORDERS.md` §6.9): a type
+        // that packs is born with it, `cast_unpack` clears it, and
+        // `think_fish`'s cadence gate and `unit_los`'s clamp both read it.
+        if let Some(masks) = u.unit_masks {
+            r.packed_compared += 1;
+            let ours_packed = built.sim.units[link.unit].combat.packed;
+            if ours_packed != (masks & 0x8_0000 != 0) {
+                r.packed_diverged.push(PackedDivergence {
+                    frame: frame.n,
+                    who: u.who,
+                    o: u.o,
+                    ours: ours_packed,
                 });
             }
         }
@@ -4730,6 +4776,80 @@ mod tests {
             path_rows.len(),
             path_rows.first()
         );
+        // **The packed bit and the line of sight, whole and everywhere.**
+        // Both are written at every detail level and both are what the
+        // fishing boat's deploy moves: `unit_masks 786440 → 262152` and
+        // `mylos 4 → 6` on the same frame, 4989. The AI's two Fishermen
+        // are the only units on this capture that carry the bit at all,
+        // and before item 149 neither ever lost it — the deploy died the
+        // frame after it was queued, so the pair here is the item's own
+        // oracle (`docs/ORDERS.md` §6.9).
+        let packed_seen: usize = report.frames.iter().map(|f| f.packed_compared).sum();
+        let packed_bad: Vec<PackedDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.packed_diverged.iter().copied())
+            .collect();
+        let los_seen: usize = report.frames.iter().map(|f| f.los_compared).sum();
+        let los_bad: Vec<LosDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.los_diverged.iter().copied())
+            .collect();
+        eprintln!(
+            "run58 packed: {packed_seen} unit-frames, {} wrong; \
+             los: {los_seen} unit-frames, {} wrong",
+            packed_bad.len(),
+            los_bad.len()
+        );
+        for d in packed_bad.iter().take(4) {
+            eprintln!("  packed f{} {}/{}: ours {}", d.frame, d.who, d.o, d.ours);
+        }
+        for d in los_bad.iter().take(4) {
+            eprintln!(
+                "  los f{} {}/{}: ours {} theirs {}",
+                d.frame, d.who, d.o, d.ours, d.theirs
+            );
+        }
+        // **The packed bit is asserted over the whole capture, not up to
+        // the word**, and deliberately: the boat deploys on 4989, one
+        // frame *past* it, so an assertion fenced to the word could not
+        // see the thing the item is about. It is exact on all 94,935
+        // unit-frames, and it is what fails the minute `do_cast` stops
+        // waiting out the forty.
+        assert!(
+            packed_bad.is_empty(),
+            "the packed bit is the original's on every unit-frame: {:?}",
+            packed_bad.first()
+        );
+        // …and `mylos` has exactly the one disagreement run39 pins on its
+        // own 1,850 frames — the AI scout's Science level, which this
+        // crate's pure function reports on the frame the level lands and
+        // the original's cached field reports one level later (item 35,
+        // `docs/VISION.md` §7). Over 94,338 unit-frames here it is still
+        // the only one, and the AI's two Fishermen — the only units on
+        // this capture that are ever packed — are not among them.
+        let los_early: Vec<LosDivergence> = los_bad
+            .iter()
+            .copied()
+            .filter(|d| d.frame < LONG_WORD_EAST_INDIES)
+            .collect();
+        assert_eq!(
+            los_early,
+            vec![LosDivergence {
+                frame: 202,
+                who: 1,
+                o: 0,
+                ours: 6,
+                theirs: 4,
+            }],
+            "mylos is the original's up to the word but for the cache"
+        );
+        assert!(
+            packed_seen >= RUN58_PACKED_FRAMES && los_seen >= RUN58_PACKED_FRAMES,
+            "both are read on every linked unit-frame: {packed_seen} / {los_seen}"
+        );
+
         let early: std::collections::BTreeMap<_, _> = parted
             .iter()
             .filter(|(_, f)| **f < LONG_WORD_EAST_INDIES)
@@ -8259,10 +8379,22 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **4950** — and this frame is the AI Fisherman's fish search running
-    /// twice where the original runs it once: theirs opens frame 4950 with
-    /// `Animal::do_idle`'s coin, this crate spends 165 more
-    /// `Unit::think_fish+0x27a` after the 161 both spent on 4948.
+    /// **4988** — and the frame is the last of the fishing boat's deploy:
+    /// the original's guy finishes `CHAR_UNPACK` there and pays the wrap's
+    /// idle roll (`Guy::set_anim+0x97a < Guy::inc_time+0x271`), where this
+    /// crate spends a farm's. The boat's guy carries **no piece** — the
+    /// piece table is seeded from the start dump's own `GUY` blocks and no
+    /// Fisherman is in one — so its `end_time` is [`sim::anim::UNKNOWN`]
+    /// and no animation of its ever wraps (item 152).
+    ///
+    /// It was **4950** for one item, and that item was the deploy itself.
+    /// `Unit::do_cast` killed every craft but the transport on the frame
+    /// after it was queued, so the boat came back idle on 4950, still
+    /// packed, and searched its 17 × 17 a second time — 165 draws to none.
+    /// The craft table is now loaded (`craftrules.xml`, 55 rows), `0x292`
+    /// waits out its `JOB_TIME` of **40**, and `SpellType::cast_unpack`
+    /// clears `unit_masks & 0x80000` on frame 4989 exactly as run58's own
+    /// `unit_masks 786440 → 262152` does (`docs/ORDERS.md` §6.9).
     ///
     /// It was **4945** for one item, and that item was the **turning
     /// stand** (`docs/ANIM.md` §4.8). `Guy::do_turn` asks a guy with
@@ -8481,8 +8613,13 @@ mod tests {
     const RUN58_PARTED: usize = 0;
     const RUN58_BUILD_FIELDS: usize = 178_326;
     const RUN58_COLL_FIELDS: usize = 449_279;
+    /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
+    /// linked unit-frame, which is every one, so the floor only grows.
+    /// 94,935 and 94,338 as this was pinned; `mylos` is the smaller
+    /// because a garrisoned unit's is not compared.
+    const RUN58_PACKED_FRAMES: usize = 94_338;
 
-    const LONG_WORD_EAST_INDIES: i64 = 4950;
+    const LONG_WORD_EAST_INDIES: i64 = 4988;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

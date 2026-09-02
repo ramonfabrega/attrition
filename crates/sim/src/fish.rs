@@ -25,10 +25,10 @@ pub const FISHERMEN: TypeId = 0x13d;
 /// The spell `Unit::add_cast_order` rewrites the generic **unpack**
 /// (`0x28c`) into for a unit in the `FISHERMEN` lineage, and the value
 /// run58's block 4949 prints as `spell 658`.
-pub const UNPACK_FISHERMEN: i32 = 0x292;
+pub const UNPACK_FISHERMEN: i32 = crate::orders::spell::UNPACK_FISHERMEN;
 
 /// The generic unpack, as `think_fish` asks for it.
-pub const UNPACK: i32 = 0x28c;
+pub const UNPACK: i32 = crate::orders::spell::UNPACK;
 
 /// The numerator a cell that holds a gatherable good scores before the
 /// distance divides it (`005f4e2e`: `0xf4240`).
@@ -367,6 +367,65 @@ mod tests {
             panic!("a cast order")
         };
         assert_eq!(c.spell, UNPACK_FISHERMEN, "run58 block 4949: `spell 658`");
+    }
+
+    /// **And the cast survives to run**, which is item 149 end to end
+    /// (`docs/ORDERS.md` §6.9). run58's `1/14` queues `0x292` on frame
+    /// 4948, and its dump then prints `spell_time` climbing 1 … 39 on
+    /// 4950 … 4988 and `unit_masks 786440 → 262152` on 4989 — forty
+    /// `do_cast` steps, because `craftrules.xml` gives `Deploy`
+    /// (`Fishermen`) a `JOB_TIME` of 40. Nothing is drawn in any of them,
+    /// and the boat is still packed until the last.
+    #[test]
+    fn the_deploy_waits_out_its_job_time_and_then_clears_the_packed_bit() {
+        let (mut s, u) = fish_sim();
+        // The craft table as the install has it: 55 rows, and `0x292` is
+        // the thirtieth.
+        s.spells = vec![crate::orders::SpellType::default(); 55];
+        let row = usize::try_from(UNPACK_FISHERMEN - crate::orders::spell::FIRST).unwrap();
+        s.spells[row].job_time = 40;
+        assert_eq!(s.spell_job_time(UNPACK_FISHERMEN), 40);
+        let at = s.units[u].pos;
+        s.world.add_good(crate::world::Good {
+            pos: at,
+            ty: A_GOOD,
+            alive: true,
+        });
+        s.units[u].idle = 1;
+        assert!(s.think_fish(u, 0));
+        let seed = s.rng.seed;
+        for step in 1..40 {
+            s.work(u, i64::from(step));
+            assert_eq!(s.units[u].spell_time, step, "one step a frame");
+            assert!(s.units[u].combat.packed, "still packed on step {step}");
+            assert!(
+                matches!(
+                    s.units[u].orders.front().map(|o| o.body),
+                    Some(Body::Cast(_))
+                ),
+                "and the order is still the cast on step {step}"
+            );
+        }
+        s.work(u, 40);
+        assert!(!s.units[u].combat.packed, "the fortieth step deploys it");
+        assert_eq!(s.units[u].spell_time, 0, "and the clock is put back");
+        assert!(
+            s.units[u].orders.is_empty(),
+            "`do_cast` kills every craft but the transport once it has cast"
+        );
+        assert_eq!(s.rng.seed, seed, "and the whole deploy spends no draw");
+    }
+
+    /// The other half of the same frame: a `JOB_TIME` the table does not
+    /// carry is **0**, and a cast with one lands on its first step. That is
+    /// the transport craft's own number, and it is why the fixtures that
+    /// board a barge need no table at all.
+    #[test]
+    fn a_craft_with_no_row_casts_on_its_first_step() {
+        let (s, _) = fish_sim();
+        assert!(s.spells.is_empty());
+        assert_eq!(s.spell_job_time(crate::orders::spell::TRANSPORT), 0);
+        assert_eq!(s.spell_job_time(UNPACK_FISHERMEN), 0);
     }
 
     /// An **oil** patch is in the goods list and in no cell's chain

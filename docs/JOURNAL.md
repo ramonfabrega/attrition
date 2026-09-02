@@ -11875,3 +11875,88 @@ unit is what a session reads.
 - **When the decompiler prints an order, the listing prints the addresses.**
   Source order and address order are not the same thing, and a site table is
   indexed by address.
+
+## 2026-09-01 — item 149: the fishing boat deploys, and the word goes 4950 → 4988 (Opus)
+
+The cause was named at the end of item 148 and it was right: `Unit::do_cast`
+in `transport.rs` opened with
+
+```rust
+if order.spell != spell::TRANSPORT { self.kill_current_order(u); return; }
+```
+
+so the Fisherman's `0x292` died on the frame after `think_fish` queued it.
+The boat came back idle on 4950, still packed — which means
+`think_fish`'s 1,024-frame head gate does not hold it — and searched its
+17 × 17 a second time: 165 draws where the original spends none.
+
+**What was actually owed was the whole untargeted arm**, read once rather
+than the one spell it had been written for. `docs/ORDERS.md` §6.9 is that
+reading. In order: `pay_cast_costs` once per order; on the first frame the
+animation, which is `CHAR_PACK` for a pack craft, `CHAR_UNPACK` for an
+unpack one and `CHAR_DEFAULT` for everything else — with the state test
+beside it, so a pack whose caster is already packed and an unpack whose
+caster is not both die there; the transport's shore test, which belongs to
+`0x28a` alone; `spell_time += 1` against `get_job_time`; `SpellType::cast`;
+and **then `kill_current_order`, for every craft but the transport**. The
+transport is the exception for a reason that reads as an accident and is
+not: `cast_transport` has already moved the order list onto the new boat,
+and the boat kills the cast at its own head.
+
+**The craft table is in the data layer now.** `craftrules.xml`'s 55 `CRAFT`
+records are `GameAccess::spelltypes`, at `TypeIndex 0x275 … 0x2ab` in file
+order, and the loader already read the file — for `FROM`/`FROM2` and the
+caster bit alone (`docs/DATALAYER.md` §2). Two more columns were all this
+needed: `JOB_TIME`, and the `FLAGS` letters as bits, because `& 0xe` is
+what makes a craft targeted. `Deploy (Fishermen)` is **40**, and
+`SpellTypeData::get_job_time@00675800` adjusts nine of the fifty-five rows
+without touching it. `TRANSPORT_JOB_TIME`, a literal `0` with a comment
+apologising for the table not being loaded, is gone.
+
+**The dump had the whole answer and nothing had ever asked it.** run58
+prints `spell_time` on every unit record at every detail level: `1/14`
+climbs 1 … 39 on frames 4950 … 4988 and drops to 0 on 4989, which is forty
+`do_cast` steps and the `JOB_TIME` to the frame. Beside it `unit_masks`
+goes `786440 → 262152` — `0x80000` out — and `mylos` goes `4 → 6`. Three
+fields, one grep, no reading needed to confirm any of it.
+
+**So two of them became assertions.** `rondata::diff` now compares
+`unit_masks & 0x80000` against `Combat::packed` on every unit-frame of
+every capture, beside the `mylos` comparison that was already there.
+run58: **94,935 unit-frames, none wrong** — and asserted over the *whole*
+capture rather than up to the word, deliberately, because the deploy is on
+4989 and a check fenced to 4988 could not see the thing the item is about.
+Stubbing `cast_unpack` out fails it at 4989 on both counters, which is how
+it was tested.
+
+**And the LOS clamp stopped being a seam.** `Unit::update_los@0060e4d0`
+caps a packed unit at four tiles — `if (mylos > 3) mylos = 4` — gated on
+the type's `unit_flags2 & 4` *and* either `unit_masks & 0x80000` or
+`UnitData::is_packing` (the current order is a cast whose spell is a pack).
+`docs/VISION.md` §7 had it as the type test alone, written that way because
+this crate kept no packing state; it keeps one now. A caster that fails the
+gate falls **through** to the merchants' fixed `epoch + 4` rather than
+skipping both, which the old shape had wrong as well — inert, since no
+capture has a merchant.
+
+**What it moved.** East Indies' word `4950 → 4988`; Great Lakes unchanged
+at 1802, and every scored capture unchanged. The new boundary is one draw
+on 4988 and it is the deploy's own animation: the original's guy finishes
+`CHAR_UNPACK` there and pays the wrap's idle roll, where this crate spends
+a farm's. The boat's guy carries **gpiece −1** — `Art::pieces` is seeded
+from the start dump's `GUY` blocks alone, and no Fisherman is in one — so
+every length lookup misses, every `end_time` is `UNKNOWN`, and no animation
+of its ever wraps. That is item 152, and it is bigger than one boat: every
+type absent from the opening is in the same position.
+
+**The rules this is an instance of.**
+
+- **Read the arm, not the case.** `do_cast` had been written for the one
+  spell that reached it, and the shape that made the transport work — "kill
+  everything else" — was the bug. The whole untargeted half is forty lines.
+- **Grep the dump before booking anything.** `spell_time`, `unit_masks` and
+  `mylos` were on disk at every detail level and none of the three had ever
+  been compared. The forty-frame clock was a `track.py` invocation.
+- **A finding that can become an assertion must become one.** The packed
+  bit is the item's whole state; it is now 94,935 field-frames of guard
+  that fails on the exact frame.
