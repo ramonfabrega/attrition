@@ -220,6 +220,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // …and the landing search it opens, thirty rounds of two.
     (0x005d_7c8a, None, sim::gaia::SITE_BIRD_SEARCH_CELL),
     (0x005d_7cb3, None, sim::gaia::SITE_BIRD_SEARCH_SCORE),
+    // `Unit::do_air_physics@005e86d0` — the edge coin, thrown on the frame
+    // a bird's step first leaves the world and not again until one lands
+    // inside (`docs/SYNC.md` §3.9). run54's is at 5437.
+    (0x005e_8d09, None, sim::air::SITE_AIR_TURN),
     // `Herd::process@00741760` — one herd's walk.
     (0x0074_1777, None, sim::gaia::SITE_HERD_X),
     (0x0074_1796, None, sim::gaia::SITE_HERD_Y),
@@ -269,6 +273,20 @@ pub mod call_site {
     /// `PathFinder::calc_cost@00684e50(from.x, from.y, to.x, to.y, dir,
     /// step, depth, uchar *transport)` — `docs/PATHFINDER.md` §5.
     pub const CALC_COST: u32 = 1;
+    /// `Unit::do_air_physics@005e86d0(UnitOrder *, goal.x, goal.y)` —
+    /// `docs/SYNC.md` §3.9. Its entry and return **bracket** a bird's
+    /// frame, so a [`CALC_COST`]-style flat filter is not how these are
+    /// read: [`Trace::air_frames`] folds a bracket and everything nested
+    /// inside it into one record, which is the only way owner 9 is told
+    /// apart from every other unit that moved.
+    pub const DO_AIR_PHYSICS: u32 = 2;
+    /// `Unit::air_turn_speed@005ea390(sign, 0)` — the frame's turn rate,
+    /// and thereby the bank angle no dump prints.
+    pub const AIR_TURN_SPEED: u32 = 3;
+    /// `Unit::set_new_location@005f8d20(x, y, 0, 1)` — where the step
+    /// landed. Called by every moving unit, so only the nested ones are a
+    /// bird's.
+    pub const SET_NEW_LOCATION: u32 = 4;
 }
 
 /// One draw, as the trace records it.
@@ -369,6 +387,40 @@ impl Call {
         let a = self.args;
         Some((a[0], a[1], a[2], a[3], a[4], a[5], a[6]))
     }
+}
+
+/// One unit's whole air frame, folded out of the three proxies
+/// `docs/SYNC.md` §3.9 needs — **the oracle owner 9 has never had.**
+///
+/// A wild bird is dumped by nothing: it is not a leader's unit, so no
+/// `UNITS` record carries it, and its only observable was the coin at
+/// `Unit::do_air_physics+0x639`. This is the record that replaces the
+/// coin: the goal the frame steered at, the turn rate the bank produced,
+/// and where the step landed — per frame, per bird.
+///
+/// [`Trace::air_frames`] builds it. The three proxies are matched by
+/// their **`this`**, which is the same `Unit *` in all three
+/// (`bank_aircraft` and `set_new_location` are both called on the unit
+/// `do_air_physics` was), so no reliance on record order is needed.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AirFrame {
+    /// The sim-frame `do_air_physics` was entered on.
+    pub frame: i64,
+    /// The `Unit *`, unnormalised — a bird's identity across the window.
+    pub unit: u32,
+    /// `do_air_physics`' two coords: the patrol point, already clamped by
+    /// `WorldData::restrict` at the caller.
+    pub goal: (i32, i32),
+    /// What `do_air_physics` answered.
+    pub ret: i32,
+    /// Each `air_turn_speed(sign, 0)` of the frame as `(sign, answer)`,
+    /// in the order they returned. Empty when the bank was settled and
+    /// `bank_aircraft` took neither turning arm.
+    pub turn_speed: Vec<(i32, i32)>,
+    /// `set_new_location`'s `(x, y)` — where the step landed, after
+    /// `WorldData::restrict` clamped a refused one. `None` only if the
+    /// window closed inside the frame.
+    pub to: Option<(i32, i32)>,
 }
 
 /// A parsed `rontrace.log`.
@@ -562,6 +614,78 @@ impl Trace {
             .filter(|c| c.frame == frame && c.site == site)
             .copied()
             .collect()
+    }
+
+    /// Every air frame in the trace, ordered by `(frame, unit)` — the
+    /// per-frame flight record of every unit that flew inside the
+    /// `callwin`.
+    ///
+    /// `do_air_physics` brackets the frame and the other two proxies are
+    /// matched to it by `this`, so a `set_new_location` taken by a
+    /// walking villager on the same frame is left out: the fold keeps
+    /// only the calls whose unit flew.
+    pub fn air_frames(&self) -> Vec<AirFrame> {
+        let mut out: Vec<AirFrame> = self
+            .calls
+            .iter()
+            .filter(|c| c.site == call_site::DO_AIR_PHYSICS)
+            .map(|c| AirFrame {
+                frame: c.frame,
+                unit: c.this,
+                goal: (c.args[1], c.args[2]),
+                ret: c.ret,
+                turn_speed: Vec::new(),
+                to: None,
+            })
+            .collect();
+        out.sort_by_key(|a| (a.frame, a.unit));
+        for c in &self.calls {
+            let key = (c.frame, c.this);
+            let Ok(i) = out.binary_search_by_key(&key, |a| (a.frame, a.unit)) else {
+                continue;
+            };
+            match c.site {
+                call_site::AIR_TURN_SPEED => out[i].turn_speed.push((c.args[0], c.ret)),
+                call_site::SET_NEW_LOCATION => out[i].to = Some((c.args[0], c.args[1])),
+                _ => {}
+            }
+        }
+        out
+    }
+
+    /// Where each flying unit was **put down**, and on which frame: the
+    /// last `set_new_location(x, y, 1, 1)` it took before its first air
+    /// frame, which no `do_air_physics` brackets.
+    ///
+    /// That call is `Unit::init@00612100`'s own, and the position it
+    /// carries is already snapped — `div_3_table[p >> 4] · 0x30 + 0x18`,
+    /// the centre of the unit's 48-unit tile. For a wild bird, whose
+    /// patrol point is the cell centre it hatched on, that is the cell
+    /// centre plus twenty-four on each axis; `docs/SYNC.md` §3.9.
+    pub fn air_births(&self) -> std::collections::BTreeMap<u32, (i64, (i32, i32))> {
+        let mut first: std::collections::BTreeMap<u32, i64> = Default::default();
+        for a in self.air_frames() {
+            first.entry(a.unit).or_insert(a.frame);
+        }
+        let mut out = std::collections::BTreeMap::new();
+        for c in &self.calls {
+            if c.site != call_site::SET_NEW_LOCATION || (c.args[2], c.args[3]) != (1, 1) {
+                continue;
+            }
+            let Some(&f0) = first.get(&c.this) else {
+                continue;
+            };
+            if c.frame > f0 {
+                continue;
+            }
+            let e = out
+                .entry(c.this)
+                .or_insert((c.frame, (c.args[0], c.args[1])));
+            if c.frame >= e.0 {
+                *e = (c.frame, (c.args[0], c.args[1]));
+            }
+        }
+        out
     }
 
     /// The sync-stream draws of one sim-frame, in the order they were

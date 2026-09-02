@@ -46,6 +46,9 @@ PROXIES = {
     0: (0x283770, "astar_path", ("stack", "step", "anti")),
     1: (0x284e50, "calc_cost",
         ("from.x", "from.y", "to.x", "to.y", "dir", "step", "depth", "transport")),
+    2: (0x1e86d0, "do_air_physics", ("order", "goal.x", "goal.y")),
+    3: (0x1ea390, "air_turn_speed", ("sign", "alt")),
+    4: (0x1f8d20, "set_new_location", ("x", "y", "arg2", "arg3")),
 }
 
 

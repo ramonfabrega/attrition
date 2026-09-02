@@ -12766,3 +12766,76 @@ seeded at its hatch cell rather than read back off the bird's own position
 frames of a flight otherwise — and a bird now carries the `MOVES` and
 `TURN_SPEED` its type gives every other unit.
 
+## 2026-09-02 — item 120, closed: the bird flies, and both words move (Opus)
+
+The last session left the flight read, implemented and **not called**,
+because calling it took East Indies' word from 5437 to 5404. It named the
+next move exactly right and then stopped: build the oracle. This session
+built it, and the whole thing — proxies, capture, diff, fix, wiring — took
+under two hours.
+
+**The capture.** Three entries added to `tracer.c`'s `CALLS`, each needing
+three things off the listing and nothing else: `Unit::do_air_physics@
+005e86d0` (`ret 0xc`, three args, prologue `55 8b ec 83 ec 28`),
+`Unit::air_turn_speed@005ea390` (`ret 8`, two, `55 8b ec a1 f0 61 c0 00` —
+the absolute `mov eax,[0xc061f0]` displaces safely), and
+`Unit::set_new_location@005f8d20` (`ret 0x10`, four, `55 8b ec 83 ec 20`).
+Then run60's own recipe with `callwin=0-5400`: five minutes, 23 MB, and
+`rngcmp.py` against run60 says **5,401 frames, zero differing**. A proxy
+costs the stream nothing, which is the fact that makes this instrument
+usable at all.
+
+**The idea worth keeping is the bracket.** `set_new_location` is taken by
+every unit that moves, so its records alone cannot say which are a bird's.
+Proxying the *dispatcher* as well makes the nesting the identity: a step is
+a bird's exactly when a `do_air_physics` on the same `this` is still open.
+No guess about a pointer, no correlation by position. Any mechanic whose
+state is private to a class of unit can be read this way — proxy the
+dispatcher and the mutator together — and it costs a five-minute capture
+rather than a reading. `Trace::air_frames` and `Trace::air_births` are the
+readers; `report.py … calls` prints them nested.
+
+**What the record said.** 47,533 air frames, eleven flyers, born at 128,
+160, 224, 480, 576, 576, 960, 1120, 1440, 2624 — every one a multiple of
+32, which is `Objects::process_all`'s sampling cadence, so the hatching
+already agreed. Fed the original's own goal and seeded from its own birth
+state, `air.rs` reproduced **all ten wild birds exactly to frame 5,400** —
+45,712 frames, every position and every zero-crossing of the bank. The
+reading had been right in every arm.
+
+**The error was twenty-four position units.** Every bird was put down at
+its patrol point plus exactly `(24, 24)`, which is not a wander: it is
+`Unit::init@00612100`'s first two lines snapping the requested position
+onto the centre of its 48-unit tile, `div_3_table[p >> 4] · 0x30 + 0x18`.
+`Object::init` is handed the snapped point and `add_air_patrol_order` keeps
+the unsnapped one, so the two differ from birth. `Gaia::spawn_bird` had
+handed the cell centre to both. One line.
+
+The initial heading turned out to be already right, and pleasingly so:
+`Unit::init` writes `0x55555555` into `UnitData::angle`, a fill pattern
+that happens to be a third of a turn, and a bird is the one unit whose
+first frames never overwrite it — so the fill pattern *is* its heading.
+`movement::Angle::INITIAL` had carried it since the movement work. The
+eleventh flyer is the dock's gull, born on a `StrafeOrder` at 3579 and
+pointed due west before its first physics frame; it is the exception that
+shows the rule, and it stays unmodelled.
+
+**The score.** With the snap in and `do_air_physics` called from
+`Sim::do_idle`, East Indies' long word goes **5437 → 5466** (the next cause
+is `PathFinder::calc_road_cost+0x46`, item 57's) and Great Lakes' **1802 →
+2419**. Great Lakes' *scored* capture, run33, now runs out its own 1,850
+frames without parting, so the scored floor and the long word are two
+numbers again and `LONG_WORD_GREAT_LAKES` exists to hold the second.
+
+One label was missing on the way: at 5437 both sides threw the same coin
+and the sequence still failed, because `rondata::trace::SITES` had no name
+for `0x005e8d09`. A site the simulation marks and the table does not name
+reads as a disagreement, which is worth remembering — the word moved to
+5466 on the arithmetic and the *sequence* only followed once the name was
+added.
+
+**The lesson for the queue.** The previous session's verdict — "the residue
+is a phase error, and no reading will settle it" — was correct, and its
+successor was correctly booked as a capture rather than a reading. That is
+the rule working: when a mechanic's product is arithmetic and the diff has
+nothing to compare, build the field before booking anyone to read.

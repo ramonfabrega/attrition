@@ -1209,3 +1209,14 @@ logs a chosen function's arguments; `Unit::set_new_location` carries the new
 position, and a window of it is a per-frame record of where a bird actually
 is. Reach for the instrument before reaching for another reading — entry 23's
 rule, one level up: when a diff has no field to compare, build the field.
+
+**Outcome (2026-09-02, run61): the corollary paid, and the decision holds.**
+The field was built the next session — three proxies, a five-minute capture,
+47,533 air frames — and against it `air.rs` reproduced ten birds *exactly*
+for the whole capture. The residue was not in the flight at all but in
+`Unit::init@00612100`'s tile snap, twenty-four position units at birth
+(`docs/SYNC.md` §3.9, "The birth"). With that fixed the module is wired and
+both long words rose: East Indies 5437 → 5466, Great Lakes 1802 → 2419. So
+the unwired landing cost nothing and bought the reading; what it did not do
+is let a defensible number be replaced by an indefensible one while the
+oracle was missing.

@@ -3310,3 +3310,39 @@ Indies' word.
   visible only because it had never run before. A coverage listing answers
   "has this ever run", never "did it run here".
 
+## run61 — the record owner 9 never had (2026-09-02)
+
+**A capture whose whole product is three call proxies.** run60's game
+again — East Indies, seed 12345, map style 18, `[End Frame]` cut to
+`MISC,LEADERS=2` — with `rontrace.cfg` carrying `callwin=0-5400` and three
+new entries in `tracer.c`'s `CALLS`:
+
+| proxy | what its record is |
+| --- | --- |
+| `Unit::do_air_physics@005e86d0(order, goal.x, goal.y)` | one flying unit's frame, **bracketed**: everything between its `CALL` and its `RET` is that unit's |
+| `Unit::air_turn_speed@005ea390(sign, 0)` | the frame's turn rate, and so the bank angle — `bank_aircraft` is its only caller |
+| `Unit::set_new_location@005f8d20(x, y, 0, 1)` | where the step landed |
+
+    DETAIL_END="MISC,LEADERS=2" POLL_MAX=150 \
+    TRACE_COVER=$'cover=1\ncallwin=0-5400' \
+    zsh tools/gamelog/longtrace.sh 61 5400 islands-air 18
+
+Under five minutes and 23 MB of trace, the same as run60. `rngcmp.py
+rontrace-run60.log rontrace-run61.log`: **5,401 frames, zero differing** —
+so a proxy costs the stream nothing and this is still run54's game.
+
+**It is the oracle a whole class of question was waiting on.** A wild bird
+belongs to owner 9, which no dump prints; before this, the only observable
+its flight had was a single coin. run61 folds to **47,533 air frames** over
+eleven flyers — goal, turn rate and landing position, per bird per frame —
+and what it settled is in `docs/SYNC.md` §3.9, "The birth": `air.rs`
+reproduces every wild bird exactly and the error was twenty-four position
+units in the constructor. Both long words moved (East Indies 5437 → 5466,
+Great Lakes 1802 → 2419).
+
+**The general lesson is the bracket.** `set_new_location` is taken by every
+unit that moves, so its records alone could not say which were a bird's;
+proxying the *caller* as well makes the nesting the identity, and no guess
+about `this` is needed. Any mechanic whose state is private to a class of
+unit can be read this way — proxy the dispatcher and the mutator together —
+and the cost is a five-minute capture rather than a reading.

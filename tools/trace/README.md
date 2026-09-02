@@ -76,12 +76,23 @@ through the displaced-prologue trampoline, and logs `eax` — so the record is
 `(arguments, return)` rather than "this ran". The arguments live in the
 proxy's own frame, so recursion and re-entrancy cost nothing.
 
-Two are proxied today, both `docs/PATHFINDER.md`'s:
+Five are proxied today. Two are `docs/PATHFINDER.md`'s:
 `PathFinder::astar_path@00683770`, whose entry and return **delimit one
 search**, and `PathFinder::calc_cost@00684e50`, which is §5's per-step price.
+Three are `docs/SYNC.md` §3.9's, and together they are **the record owner 9
+never had**: `Unit::do_air_physics@005e86d0` brackets one flying unit's
+frame and carries the patrol point it steers at, `Unit::air_turn_speed@
+005ea390` answers the frame's turn rate (and so the bank angle nothing
+dumps), and `Unit::set_new_location@005f8d20` is where the step landed.
 `report.py … calls` prints them nested, with each world coordinate's cell
 beside it; `rondata::trace::Call` is the Rust reader, so a `#[test]` can put
 the original's price beside the simulation's for the same step.
+
+**The bracket is the identity.** `set_new_location` is taken by every unit
+that moves, so what makes a record a *bird's* is that a `do_air_physics` on
+the same `this` is still open when it returns — `Trace::air_frames` folds on
+that, and `Trace::air_births` picks out the `(x, y, 1, 1)` call that put the
+unit down before it ever flew.
 
 Adding a site needs three things from the listing, and getting any of them
 wrong corrupts the stack rather than failing loudly: the **prologue bytes**

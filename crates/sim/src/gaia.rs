@@ -100,6 +100,19 @@ pub const BIRD_OWNER: crate::Player = 9;
 /// live units of exactly this type.
 pub const BIRD_TYPE_INDEX: i32 = 0x192;
 
+/// `Unit::init@00612100`'s own first two lines — the centre of the 48-unit
+/// tile a position falls in, `div_3_table[p >> 4] · 0x30 + 0x18`.
+///
+/// Every unit the original creates is put down here rather than where the
+/// caller asked, and for a bird that twenty-four units is the whole of the
+/// difference between a coin at 5404 and one at 5437 (`docs/SYNC.md` §3.9).
+/// The tile is a quarter of [`crate::world::UNITS_PER_TILE`]; it is the
+/// grid `PathFinder` steps a foot unit on, not the terrain's.
+pub const fn init_snap(p: i32) -> i32 {
+    let t = crate::world::UNITS_PER_TILE / 4;
+    p / t * t + t / 2
+}
+
 impl Sim {
     /// The tail of `Objects::process_all`, after the unit and building
     /// loops.
@@ -179,10 +192,19 @@ impl Sim {
             c.x * crate::world::UNITS_PER_CELL + crate::world::UNITS_PER_CELL / 2,
             c.y * crate::world::UNITS_PER_CELL + crate::world::UNITS_PER_CELL / 2,
         );
+        // **`Unit::init@00612100` snaps a new unit onto its own tile.** The
+        // first two lines of the constructor are
+        // `div_3_table[p >> 4] · 0x30 + 0x18` on each axis — the centre of
+        // the 48-unit tile the requested position falls in — and it is
+        // *that* which `Object::init` is handed, not the caller's point.
+        // For a cell centre the snap is `+24`, and the order keeps the
+        // unsnapped point: run61 has every bird put down at its patrol
+        // point plus twenty-four (`docs/SYNC.md` §3.9, "The birth").
+        let at = Pos::new(init_snap(pos.x), init_snap(pos.y));
         let index = self
             .find_free(BIRD_OWNER, crate::UNIT_BASE, crate::BUILD_BASE)
             .unwrap_or(i16::MAX);
-        let mut unit = crate::Unit::new(BIRD_OWNER, index, pos, self.unit_types[ty].hits);
+        let mut unit = crate::Unit::new(BIRD_OWNER, index, at, self.unit_types[ty].hits);
         unit.kind = self.unit_types[ty].kind;
         unit.ty = Some(ty);
         // `TypeIndex::BIRD`. `set_anim` names it by identity twice — the
@@ -194,16 +216,16 @@ impl Sim {
         // units a frame, and `TURN_SPEED` is what scales the bank's rate.
         unit.movement.speed = self.unit_types[ty].moves;
         unit.movement.turning = self.turning_for(ty);
-        let at = self.add_unit(unit);
-        self.init_guys(at, Some(ty));
+        let u = self.add_unit(unit);
+        self.init_guys(u, Some(ty));
         // `add_air_patrol_order` on the hatch point: the patrol point is
         // the **cell centre the bird was created on** and stays a field of
         // the order, not a reading of where the bird now is. That
         // distinction did not exist while the bird stood still, and it is
         // the whole of the first seven frames of a flight
         // (`docs/SYNC.md` §3.9).
-        self.gaia.bird_goals.push((at, pos));
-        Some(at)
+        self.gaia.bird_goals.push((u, pos));
+        Some(u)
     }
 
     /// `Animal::think_bird@005d79e0`, the `0x192` arm — what

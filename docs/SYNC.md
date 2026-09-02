@@ -641,20 +641,14 @@ drifted for other reasons (§3.1) and the later coins are its own.
 
 **What the simulation has**: the hatching, the live count, `think_bird`
 whole, the landing search and the counter's extra step after it, the
-patrol point as state, and the wing beat. `is_air` is the loaded
-domain, so a bird does not paint the occupancy grid a citizen walks on
-(`docs/COLLISION.md` §2).
-
-**What it does not**: fly. ~~`do_air_physics@005e86d0`'s flight — the bird
-is parked on its hatch cell~~ — read whole on 2026-09-02 and implemented in
-`crates/sim/src/air.rs`, but **not called**: see "The flight" below, which
-says why and what is left. `Guy::move`'s arrival half is skipped for a bird
-either way, there being no ground body to follow. That function's own draw
-(`+0x3b`, `rnd % 7 + 0xd`) sits behind a vtable test the wild bird fails on
-every traced frame, and run14 confirms it: three `think_bird` draws an
-eighth frame per bird and no fourth. ~~**The landing search** is unreachable
-on every capture~~ — run39 reaches it on frame 576 and it is modelled above;
-every bird that fires it is still recorded in `Gaia::bird_landings`.
+patrol point as state, the wing beat, and — since 2026-09-02 — the flight
+itself ("The flight", "The birth"). `is_air` is the loaded domain, so a
+bird does not paint the occupancy grid a citizen walks on
+(`docs/COLLISION.md` §2). `Guy::move`'s arrival half is skipped for a bird,
+there being no ground body to follow, and its own draw (`+0x3b`,
+`rnd % 7 + 0xd`) sits behind a vtable test the wild bird fails on every
+traced frame — run14 confirms it: three `think_bird` draws an eighth frame
+per bird and no fourth.
 
 #### The flight — `Unit::do_air_physics@005e86d0` (2026-09-02)
 
@@ -731,26 +725,40 @@ against the host's own float over random bit patterns. The constants are
 `0xb69680` = 55, `0xb69490` = 0.33, `0xb694c0` = 0.5, `0xb695c0` = 2,
 `0xb69628` = 10, `0xb697c4` = −55, read from the PE.
 
-**What the flight has not established: the frames.** Wired into
-`Sim::do_idle`, the module puts coins in the original's *epochs* and not on
-its frames — 20 against run53's 55 over 24,000, the first at 2781 where the
-original's is 1802 — and on East Indies it throws one at **5404**, thirty-
-three frames before the original's 5437, which takes that map's word down
-with it. So it is read, implemented, tested against itself, and **not
-called**; `orders.rs` says so at the site. The residue is a *phase* error in
-the orbit, not a wrong branch: every arm above is checked against the
-listing, the turn rates the implementation produces are exactly
-`(rate/55)·|roll|` frame for frame, and a bird flies its limit cycle with a
-period near a hundred frames, so a few frames of error anywhere compounds
-into a different place at the next landing search — which then chooses a
-different cell, because the search reads the *patrol point's* region.
+#### The birth — `Unit::init@00612100` (2026-09-02, run61)
 
-**What would settle it is a capture, and a cheap one.** `tools/trace/`
-already proxies chosen call sites (`CALLS` in `tracer.c`) and logs their
-arguments; `Unit::set_new_location@005f8d20` takes `(x, y, 0, 1)` with the
-unit as `this`, so proxying it over a window turns **a bird's position, per
-frame** into a record — the oracle owner 9 has never had. Against that the
-residue is arithmetic rather than search. Queue item 120.
+**The flight was never the residue; the birth was.** run61 proxies
+`do_air_physics`, `air_turn_speed` and `set_new_location` over all 5,400
+frames of run54's game and folds them per bird per frame — goal, turn rate,
+landing position (`docs/ORACLE.md`, "run61"). Seeded with nothing but the
+birth state and fed the original's own goal, `air.rs` reproduces **every
+one of the ten wild birds exactly, to the last frame** — 45,712 air frames,
+every position and every one of the bank's zero-crossings, runs up to 5,272
+long (`diff::tests::run61_s_birds_fly_where_the_original_s_do`). The arms,
+the constants, the bank and the coin were all right.
+
+What was wrong was twenty-four position units, in the constructor.
+`Unit::init@00612100`'s first two lines snap the requested position onto the
+centre of its 48-unit tile — `div_3_table[p >> 4] · 0x30 + 0x18`, i.e.
+`(p / 48) · 48 + 24` — and *that* is what `Object::init` is handed, while
+`add_air_patrol_order` keeps the unsnapped point. So a bird asked for at a
+cell centre is put down **twenty-four units into its tile** on each axis;
+run61 has all ten born at exactly `goal + (24, 24)`, and `Gaia::spawn_bird`
+had handed the cell centre through to both.
+
+The same constructor writes `UnitData::angle = 0x55555555` — a third of a
+turn, `movement::Angle::INITIAL` — and a bird is the one unit whose first
+frames never overwrite it, so the fill pattern *is* its initial heading.
+The dock's gull is the exception that shows it: born on a `StrafeOrder` at
+3579, `Unit::do_strafe` points it due west first.
+
+With the snap the flight is called from `Sim::do_idle` and both long words
+move: East Indies **5437 → 5466**, Great Lakes **1802 → 2419**.
+
+**Still not established**: the landing search's *outcome* (the sixty draws
+agree, no capture puts the chosen cell beside the original's — a `callwin`
+over `think_bird`'s tail would), and `Unit::do_strafe`, so the gull is
+unmodelled.
 
 ## 3.10 The residue's other names (2026-08-28)
 
@@ -2325,16 +2333,16 @@ kind honest.
   `run39_s_bird_lands_on_576_and_spends_the_search_s_sixty` holds frame
   576 draw for draw, all 118. Both are made to fail by dropping
   `do_air_patrol`'s `spell_time = 1` tail, which puts a seventh landing on
-  1256. Reading-only, and named as such: **which cell** the search settles
-  on, and so where the bird then flies — the score is inert (`-1 < score`
-  cannot fail), which makes the answer "the thirtieth sample" and no
-  capture can confirm it; the `n <= 1` skip, since run39's region is
-  larger; and `do_air_physics@005e86d0`'s flight, read whole on 2026-09-02
-  and implemented in `crates/sim/src/air.rs` but **not called** — the bird
-  still stands on its hatch cell, and only the two things that reach the
-  stream, the think and the walk request, are flown. The flight's own
-  tests (`air::tests`) hold the module to the reading — the bank's ramp of
-  ten, the heading lagging it by a frame, one coin per departure — and
-  `single::tests` holds its single-precision arithmetic to the host's, but
-  nothing yet holds either to the *original*: §3.9's "What the flight has
-  not established" is the whole of what a capture would close.
+  1256. **The flight is diff-backed too, since run61**: proxying
+  `do_air_physics` and the two functions it calls turns a bird's position,
+  goal and bank into a per-frame record, and
+  `run61_s_birds_fly_where_the_original_s_do` holds `crates/sim/src/air.rs`
+  to 45,712 of them — ten birds, birth to frame 5,400, every position and
+  every bank zero-crossing (§3.9, "The birth"). `air::tests` and
+  `single::tests` still hold the module and its arithmetic to the reading
+  and to the host's floats; run61 is what holds it to the original.
+  Reading-only, and named as such: **which cell** the landing search
+  settles on — the score is inert (`-1 < score` cannot fail), which makes
+  the answer "the thirtieth sample" and no capture yet confirms it; the
+  `n <= 1` skip, since run39's region is larger; and `Unit::do_strafe`,
+  which is the gull's.

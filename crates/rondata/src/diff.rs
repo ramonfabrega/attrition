@@ -59,7 +59,7 @@ pub const FLOORS: [MapFloors; 2] = [
         map: "GreatLakes",
         ticks: 1772,
         orders: 1772,
-        word: 1802,
+        word: 1850,
     },
 ];
 
@@ -2991,11 +2991,11 @@ mod tests {
             said,
             vec![
                 ("EastIndies".to_string(), LONG_WORD_EAST_INDIES),
-                ("GreatLakes".to_string(), FLOORS[1].word),
+                ("GreatLakes".to_string(), LONG_WORD_GREAT_LAKES),
             ],
             "the handoff's long-capture words are not the long tests' floors: \
              left is the queue's line, right is LONG_WORD_EAST_INDIES and \
-             run53's own floor"
+             LONG_WORD_GREAT_LAKES"
         );
     }
 
@@ -8676,10 +8676,9 @@ mod tests {
              (both mostly past the parting — printed, not pinned)"
         );
         assert!(
-            first_count >= FLOORS[1].word && first_part >= FLOORS[1].word,
+            first_count >= LONG_WORD_GREAT_LAKES && first_part >= LONG_WORD_GREAT_LAKES,
             "run53's ceiling fell: word {first_count}, sequence {first_part}; \
-             the floor is {} on both",
-            FLOORS[1].word
+             the floor is {LONG_WORD_GREAT_LAKES} on both"
         );
     }
 
@@ -9128,6 +9127,128 @@ mod tests {
                 last = row;
             }
         }
+    }
+
+    /// **run61 — a bird's flight, against the oracle owner 9 never had**
+    /// (`docs/SYNC.md` §3.9, queue item 120).
+    ///
+    /// run60's game with three more call proxies open across all 5,400
+    /// frames: `Unit::do_air_physics`, whose entry and return **bracket** a
+    /// bird's frame and whose two arguments are the patrol point it steers
+    /// at; `Unit::air_turn_speed`, whose answer is the bank angle scaled
+    /// onto the type's rate; and `Unit::set_new_location`, which is where
+    /// the step landed. Eleven flying units, **47,533 air frames**.
+    /// `rngcmp.py` against run60: 5,401 frames, **zero differing**, so the
+    /// proxies cost the stream nothing and this is run54's game.
+    ///
+    /// **What it settles.** Seeded only with `Unit::init`'s own birth state
+    /// — the patrol point's tile centre, and `Angle::INITIAL` — and fed the
+    /// original's own goal each frame, `crates/sim/src/air.rs` reproduces
+    /// every one of the ten wild birds' flights **exactly, to the last
+    /// frame of the capture**: up to 5,272 consecutive frames, position for
+    /// position. The bank's zero-crossings agree too, frame for frame,
+    /// which is what the `air_turn_speed` records are: the original calls
+    /// it once on a frame its bank is turning the heading and not at all on
+    /// a frame the bank is zero.
+    ///
+    /// So the flight was never the residue. **The birth was**, and it is
+    /// one line: `Unit::init@00612100` snaps a new unit onto the centre of
+    /// its 48-unit tile — `div_3_table[p >> 4] · 0x30 + 0x18`, which for a
+    /// cell centre is `+24` on each axis — and `Gaia::spawn_bird` handed
+    /// the cell centre straight through. Twenty-four position units at
+    /// birth is what put the coin at 5404 instead of 5437.
+    ///
+    /// The eleventh flyer is the dock's gull, born at 3579 on a
+    /// `StrafeOrder` rather than a patrol: `Unit::do_strafe` points it
+    /// before the first physics frame, so its heading is due west and not
+    /// `Angle::INITIAL`, and it is not what this asserts.
+    #[test]
+    fn run61_s_birds_fly_where_the_original_s_do() {
+        let Some(tr) = trace("rontrace-run61.log") else {
+            eprintln!("skipping: no run61 trace (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let air = tr.air_frames();
+        let mut by_unit: std::collections::BTreeMap<u32, Vec<&crate::trace::AirFrame>> =
+            std::collections::BTreeMap::new();
+        for a in &air {
+            by_unit.entry(a.unit).or_default().push(a);
+        }
+        assert!(air.len() > 47_000, "run61 folds 47,533 air frames");
+
+        // `Unit::init`'s snap: the centre of the unit's 48-unit tile.
+        let tile = sim::world::UNITS_PER_TILE / 4;
+        let births = tr.air_births();
+        let mut birds = 0;
+        let mut frames = 0usize;
+        for (unit, rows) in &by_unit {
+            let goal = rows[0].goal;
+            let Some(&(_, birth)) = births.get(unit) else {
+                panic!("{unit:#x} flew without ever being put down")
+            };
+            // **The wild bird's discriminator is its own birth.** Hatched on
+            // a cell, its patrol point is that cell's centre and `Unit::init`
+            // puts it twenty-four units into the tile — so `birth == goal +
+            // 24` on both axes is exactly "this one was born flying a
+            // patrol". The gull is put down 168 short of its dock and
+            // `Unit::do_strafe` points it before the first physics frame.
+            if birth != (goal.0 + tile / 2, goal.1 + tile / 2) {
+                assert_eq!(*unit, 0x1478_729c, "run61's one non-patrol flyer");
+                continue;
+            }
+            birds += 1;
+            let mut s = sim::Sim::new(sim::tuning::Tuning::RON, sim::world::World::new(64, 64), 2);
+            let ty = s.add_unit_type(sim::UnitType {
+                hits: 1,
+                moves: 35,
+                turn_speed: sim::movement::degrees_to_angle(5).0,
+                kind: sim::attrition::UnitKind {
+                    domain: sim::attrition::Domain::Air,
+                    ..sim::attrition::UnitKind::default()
+                },
+                ..sim::UnitType::default()
+            });
+            // `Unit::init`'s snap, and its `0x55555555` — the whole of the
+            // birth state a bird's flight is downstream of.
+            let at = sim::world::Pos::new(birth.0, birth.1);
+            let mut u = sim::Unit::new(sim::gaia::BIRD_OWNER, 0, at, 1);
+            u.ty = Some(ty);
+            u.kind = s.unit_types[ty].kind;
+            u.movement.speed = 35;
+            u.movement.turning = sim::turning_of(&s.unit_types[ty]);
+            let b = s.add_unit(u);
+            assert_eq!(s.units[b].movement.heading, sim::movement::Angle::INITIAL);
+            s.gaia
+                .bird_goals
+                .push((b, sim::world::Pos::new(goal.0, goal.1)));
+
+            for r in rows {
+                let Some(want) = r.to else { continue };
+                s.do_air_physics(b, sim::world::Pos::new(r.goal.0, r.goal.1), r.frame);
+                let got = s.units[b].pos;
+                assert_eq!(
+                    (got.x, got.y),
+                    want,
+                    "{unit:#x} f{}: the step, against run61's own",
+                    r.frame
+                );
+                // `bank_aircraft` reaches `air_turn_speed` on exactly the
+                // frames its bank is not zero — and the bank is stored
+                // **negated**, so a settled one is `-0.0` and a bitwise
+                // test against `ZERO` calls it turning.
+                let banked = s.flight(b).roll.bits() & 0x7fff_ffff != 0;
+                assert_eq!(
+                    !r.turn_speed.is_empty(),
+                    banked,
+                    "{unit:#x} f{}: the bank's zero-crossing",
+                    r.frame
+                );
+                frames += 1;
+            }
+        }
+        assert_eq!(birds, 10, "run61's ten wild birds");
+        eprintln!("run61: {frames} air frames of {birds} birds reproduced exactly");
+        assert!(frames > 45_000);
     }
 
     /// **The production step machine's ladder, against the original's own
@@ -9686,7 +9807,15 @@ mod tests {
     /// cells and this crate counted it for one, so the Market at 5376 was
     /// sited one cell south of the original's — against the Library, whose
     /// tiles cost the 2×2 jitter two of its four draws.
-    const LONG_WORD_EAST_INDIES: i64 = 5437;
+    const LONG_WORD_EAST_INDIES: i64 = 5466;
+
+    /// Great Lakes' word on the **long** capture (run53), the second of
+    /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the
+    /// bird's birth right, no longer the same number as the scored
+    /// capture's. It was **1802** for as long as the flight was unmodelled;
+    /// `Gaia::spawn_bird`'s tile snap took it to **2419**, and the scored
+    /// run33 to the end of its own 1,850 frames.
+    const LONG_WORD_GREAT_LAKES: i64 = 2419;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

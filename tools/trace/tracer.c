@@ -223,6 +223,24 @@ static const CallSite CALLS[] = {
      * depth, uchar *transport) — §5's per-step price, `ret 0x20`.
      * push ebp; mov ebp,esp; sub esp,0x50 */
     {0x284e50, 6, 8, 1, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x50, 0, 0, 0, 0}},
+    /* Unit::do_air_physics@005e86d0(UnitOrder *, Coord to.x, Coord to.y) —
+     * the bird's frame, and its entry and return **bracket** the two below,
+     * so a nested record is a bird's and no other unit's. The two coords
+     * are the patrol point already clamped by `WorldData::restrict`, which
+     * is the goal `docs/SYNC.md` 3.9 measures the heading against.
+     * `ret 0xc`. push ebp; mov ebp,esp; sub esp,0x28 */
+    {0x1e86d0, 6, 3, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x28, 0, 0, 0, 0}},
+    /* Unit::air_turn_speed@005ea390(sign, 0) — how far the heading may move
+     * this frame. `bank_aircraft` is its only caller, and the answer is the
+     * **bank angle** scaled onto the type's rate, so this is the one way to
+     * read a bird's hidden accumulator from outside. `ret 8`.
+     * push ebp; mov ebp,esp; mov eax,[0xc061f0] (absolute, so it moves) */
+    {0x1ea390, 8, 2, 0, {0x55, 0x8b, 0xec, 0xa1, 0xf0, 0x61, 0xc0, 0x00, 0, 0}},
+    /* Unit::set_new_location@005f8d20(Coord x, Coord y, int, int) — where
+     * the step landed. Every moving unit calls it; a bird's are the ones
+     * nested inside a `do_air_physics` bracket, with `0, 1` for the last
+     * two. `ret 0x10`. push ebp; mov ebp,esp; sub esp,0x20 */
+    {0x1f8d20, 6, 4, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x20, 0, 0, 0, 0}},
 };
 #define NCALLS (sizeof(CALLS) / sizeof(CALLS[0]))
 
