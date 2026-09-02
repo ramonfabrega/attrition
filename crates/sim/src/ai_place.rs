@@ -250,12 +250,34 @@ impl Sim {
         best
     }
 
-    /// A live building of `who` whose centre is in `cell` —
-    /// `ObjectsData::find_building_placed_at(tile·4 + 2, who)`.
+    /// `ObjectsData::find_building_placed_at@00658c80(cell·4 + 2, who)`: the
+    /// live building of `who` whose **footprint covers** the cell's centre
+    /// tile — not one whose own centre is in the cell.
+    ///
+    /// The original walks the nine cells around `tile >> 2`, follows each
+    /// one's object chain, and takes the first whose
+    /// `corner ≤ tile < corner + size` on both axes; the filter on the
+    /// object is `vtable[0xc]`, which `vtables.txt` names
+    /// `SubObjectData::is_active`. It refuses without looking unless the
+    /// tile's own mask carries `(mask & 3) == 3` or `PLACED`, so a tile no
+    /// building has ever masked answers `None` for free.
+    ///
+    /// A five-tile Library reaches four cells; the cell it is *centred* in
+    /// is one of them. That is the whole of the difference, and it is what
+    /// [`Sim::find_friends`] counts (`docs/AI.md` §26).
     pub(crate) fn building_placed_at(&self, who: Player, cell: Cell) -> Option<usize> {
+        let t = Pos::new(cell.x * TILES_PER_CELL + 2, cell.y * TILES_PER_CELL + 2);
+        if !self.world.tile_in_bounds(t) {
+            return None;
+        }
+        let mask = self.world.tile_mask(t);
+        if mask & tile::OBJECT != tile::OBJECT_BUILDING && mask & tile::PLACED == 0 {
+            return None;
+        }
         self.buildings
             .iter()
-            .position(|b| b.alive && b.owner == who && b.pos.cell() == cell)
+            .enumerate()
+            .position(|(i, b)| b.alive && b.owner == who && self.build_covers_tile(i, t))
     }
 
     /// `BuildTypeData::find_friends(x, y, city, who)`: neighbours of the
@@ -967,5 +989,67 @@ mod tests {
         sim.world
             .set_owner(cell, crate::Owner::Player(0), crate::Owner::None);
         assert_eq!(sim.check_building_wcoord(1, cell, 0, 0, 1, false), 0);
+    }
+
+    /// **`find_friends` asks whose footprint covers a cell's centre tile,
+    /// not whose centre is in the cell** (`docs/AI.md` §26).
+    ///
+    /// The geometry is East Indies' AI Village, off run58's own dump: 7×7
+    /// at `(39264, 40032)`, corner tiles `201..207 × 205..211`. Centre
+    /// tiles are four apart, so a seven-tile footprint covers two of them
+    /// on each axis — the city is the neighbour of **four** cells, and its
+    /// own is one of them. Every ordinary building is four tiles or fewer
+    /// and covers exactly one, which is why the two readings agree
+    /// everywhere else.
+    #[test]
+    fn the_city_centre_is_the_friend_of_four_cells() {
+        let mut sim = Sim::new(crate::Tuning::RON, crate::World::new(60, 60), 2);
+        let rec = sim.build_types.len();
+        sim.build_types.push(crate::build::BuildType {
+            ident: Ident::Village,
+            x_size: 7,
+            y_size: 7,
+            hits: 100,
+            ..crate::build::BuildType::default()
+        });
+        let pos = Pos::new(39264, 40032);
+        let b = sim.add_building(1, pos, 8);
+        sim.buildings[b].ty = Some(rec);
+        assert_eq!(
+            (pos.cell().x, pos.cell().y),
+            (51, 52),
+            "the Village's own cell — what this crate used to answer, alone"
+        );
+        let corner = sim.tile_corner(rec, pos);
+        assert_eq!((corner.x, corner.y), (201, 205), "run58's `1/2000`");
+        // The mask is the callee's first gate: a tile no building has
+        // masked answers `None` before any footprint is looked at.
+        for t in sim.footprint(rec, corner) {
+            sim.world
+                .set_tile_field(t, tile::OBJECT, tile::OBJECT_BUILDING);
+        }
+        let friend_of: Vec<(i32, i32)> = (50..53)
+            .flat_map(|x| (51..54).map(move |y| (x, y)))
+            .filter(|&(x, y)| sim.building_placed_at(1, Cell::new(x, y)) == Some(b))
+            .collect();
+        assert_eq!(
+            friend_of,
+            [(50, 51), (50, 52), (51, 51), (51, 52)],
+            "the four cells whose centre tile (cell·4 + 2) the 7×7 covers"
+        );
+        assert_eq!(
+            sim.building_placed_at(0, Cell::new(51, 52)),
+            None,
+            "`param_3` filters by owner"
+        );
+        // Four tiles or fewer: exactly one cell, and the two readings agree.
+        sim.build_types[rec].x_size = 4;
+        sim.build_types[rec].y_size = 4;
+        sim.buildings[b].pos = Pos::new(51 * 768 + 384, 52 * 768 + 384);
+        let small: Vec<(i32, i32)> = (50..53)
+            .flat_map(|x| (51..54).map(move |y| (x, y)))
+            .filter(|&(x, y)| sim.building_placed_at(1, Cell::new(x, y)) == Some(b))
+            .collect();
+        assert_eq!(small, [(51, 52)]);
     }
 }

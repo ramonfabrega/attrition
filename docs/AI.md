@@ -3254,3 +3254,91 @@ run18b's `LEADERS=9` window covers sim-frame 6376 and prints
 `LEADERS=9` window, and the map's script is `economic.bhs` rather than
 run10's `defensive.bhs`, so the *frame* is this map's own and only the
 coverage says where it is.
+
+## 26. A friend is a footprint, not a centre — the city is four cells' neighbour (2026-09-02)
+
+Item 164. `Leader::produce_building`'s spiral scores a candidate cell by
+`BuildTypeData::find_friends` (§2.20), and `find_friends` asks each of the
+eight neighbouring cells *which building of mine is there*. This crate read
+that as **a building whose centre is in the cell**. It is not: it is
+`ObjectsData::find_building_placed_at@00658c80`, and that function answers
+by **footprint**.
+
+### 26.1 What the function does
+
+`find_friends@00639270` probes the neighbour cell at its **centre tile** —
+`find_building_placed_at(cell.x·4 + 2, cell.y·4 + 2, who, −1, −1)`. The
+callee:
+
+- refuses without looking unless that tile's own mask carries
+  `(mask & 3) == 3` or `PLACED` (`0x80`) — so a tile no building has ever
+  masked is free;
+- walks the **nine cells** around `tile >> 2`, following each one's object
+  chain (`WData` `+0x8`/`+0xa`, the head pair `collide.rs` already keeps);
+- takes the first object that is `vtable[0xc]` — `SubObjectData::is_active`
+  by `vtables.txt`, *not* "placed and unstarted" — whose owner passes the
+  `param_3` filter, and whose own corner satisfies
+  `corner ≤ tile < corner + size` on both axes.
+
+The last line is the whole of it. A building is the neighbour of every cell
+whose centre tile its footprint covers.
+
+### 26.2 Why it is a four-cell difference for the one building that matters
+
+Centre tiles are four tiles apart, so how many of them a building covers is
+decided by its size alone:
+
+| `X_SIZE` | tiles spanned | centre tiles covered |
+| --- | --- | --- |
+| ≤ 4 | 4 | exactly 1 |
+| 5–7 | 5–7 | 1 **or** 2, by where its corner falls |
+
+So for every ordinary building the two readings agree, which is why this
+survived twenty-two items — and the exception is the **city centre**.
+East Indies' AI Village is 7×7 at `(39264, 40032)`, corner tiles
+`201..207 × 205..211`, and it covers the centre tiles of cells `(50, 51)`,
+`(50, 52)`, `(51, 51)` and `(51, 52)`. Its own cell is `(51, 52)`. Every
+site the AI ever scores is next to its city, so the friend it was missing
+was the one the score exists to find.
+
+### 26.3 The frame it moves, and the market it moves there
+
+East Indies' word was **5376**, `produce_building`'s jitter spending
+**two** draws against the original's four (§2.20: one per unblocked
+sub-position of the 2×2). The frame is the AI's Market, and the two are the
+same defect:
+
+| cell | friends, by centre | score | friends, by footprint | score |
+| --- | --- | --- | --- | --- |
+| `(49, 51)` | 0 | 1244 | Village E +2, SE +1 = 3 | 5244 |
+| `(49, 52)` | Library SE +1 | 3252 | Village NE +1, E +2, Library SE +1 = 4 | **6252** |
+| `(49, 53)` | Library E +2 | **4251** | Village NE +1, Library E +2 = 3 | 5251 |
+
+The old winner `(49, 53)` puts the Market's 4×4 corner on tile 196, and
+the jitter's `+1` column runs into the Library at tile 200 — two
+sub-positions refused, two draws. The new winner `(49, 52)` is four rows
+north of the Library, and all four sub-positions clear. Four draws, and
+**the word goes to 5437**.
+
+### 26.4 Coverage
+
+**Diff-backed.** `LONG_WORD_EAST_INDIES` is 5437, and
+`run54_s_24000_frames_are_where_the_second_map_s_word_now_parts` fails if
+it falls; nothing else on the board moved (Great Lakes stays 1802, run59's
+census stays 3500 of 18,000, run58's 178,326 building fields stay 0 wrong).
+`the_city_centre_is_the_friend_of_four_cells` pins the geometry directly
+against the Village's own dumped position.
+
+**Not established.** The nine-cell chain walk is not modelled — this crate
+scans its building list and filters by footprint, which is the same answer
+whenever no building's footprint reaches more than one cell away, and every
+type in `buildingrules.xml` is at most 7 tiles. **Order** under a tie is
+therefore this crate's list order rather than the chain's, and no capture
+has yet put two of one leader's buildings on one centre tile — which
+`mask_me` makes impossible for live buildings anyway, since a second
+placement on a masked tile is refused.
+
+`place.rs`'s own `find_building_placed_at` still filters `!b.started` where
+the original filters `is_active`. Its one caller is gated on the tile's
+`PLACED` bit, which `mask_me` clears the moment a building starts, so the
+two agree there; the general form is the one above.

@@ -12640,3 +12640,49 @@ capital, and it is the new opener.
   block was thirteen minutes for 250 frames; a wide window on a cheap block
   was five for 5,400. Ask what the block costs before asking what the window
   should be.
+
+## 2026-09-02 — a friend is a footprint, and the city is four cells' neighbour (item 164)
+
+*Opus.* The opener asked which of the Market's four sub-positions
+`blocked_site` refuses here and clears there. The answer was neither: both
+sides refuse the same two, and the disagreement is a cell earlier.
+
+**The elimination came off the disk, not off a reading.** The frame spends
+two `produce_building+0x1805` draws against four, and four could be one call
+with four clear sub-positions *or two calls of two* — the AI placing a second
+building this crate never places. run60's timber curve settles it in one
+line: `(1, "bucket", 1)` never appears in its shapes, so the AI's timber
+agrees on every one of 5,400 frames including the eighty paid at 5376. One
+building, one call, four draws.
+
+**So the cell is wrong, and `find_friends` is why.** The spiral scores a
+candidate by its neighbours, and this crate asked *which building's centre
+is in that cell*. `ObjectsData::find_building_placed_at@00658c80` asks
+*whose footprint covers the cell's centre tile* — it walks the nine cells
+around `tile >> 2`, follows each object chain, and tests
+`corner ≤ tile < corner + size`. Centre tiles are four apart, so a building
+of four tiles or fewer covers exactly one and the two readings agree; five
+to seven tiles can cover two on an axis. The exception is therefore the
+**7×7 city centre**, which is the neighbour of four cells — and it is the
+building every site is scored against.
+
+With the Village counted, the Market's cell goes from `(49, 53)` at 4251 to
+`(49, 52)` at 6252, four rows clear of the Library the old corner ran into,
+and the jitter spends the original's four draws. **East Indies' word:
+5376 → 5437.** Nothing else moved.
+
+**And 5437 is Great Lakes' frame.** The site there is `5e8d09` —
+`Unit::do_air_physics+0x639`, the bird that has bounded 1802 since run33.
+One unmodelled draw now stands in front of both headlines, which is the
+first time the two maps have wanted the same item.
+
+**The rules this is an instance of.**
+
+- **Diff before reading, and the diff was already on disk.** The whole
+  "is it one call or two" branch closed on a `grep` of a test's own output.
+- **A predicate is where the error is.** The arithmetic of `find_friends`
+  — `+1` diagonal, `+2` cardinal, `(f + 2) × 1000` — was right from the
+  first reading. *Which building is a neighbour* was not, and no test
+  written from that reading could have caught it.
+- **The size that breaks the rule is the one that matters.** Twenty-two
+  items lived with this because every ordinary building is four tiles wide.

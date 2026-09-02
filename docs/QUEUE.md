@@ -12,36 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — the fifty timber was a goody box, and a dock's thirty
-wealth is why it picked the wrong good.* **The word did not move: 5376 —
-but what blocks it has changed.** The AI now pays its eighty and places the
-Market; the frame parts on `Leader::produce_building+0x1805`, **two draws
-against four**. Items 162 and 82 are closed together.
+*2026-09-02, Opus — a friend is a footprint, and the 7×7 city is the
+neighbour of four cells.* **East Indies' word moved 5376 → 5437, and the
+frame it now parts on is Great Lakes'.** Item 164 is closed, and both
+headlines are behind one draw site.
 
-- **162's premise was wrong and building it is what showed that.** The camp
-  slots were a real defect — a dump-stood camp surveyed an empty list — and
-  closing it moved 500 good-frames and **no timber**. An unpaid slot costs
-  nothing; the human, six short all window, had an exact bucket.
-- **run42 was on disk and unread.** Its `LEADERS=2` block prints both
-  leaders' six goods on 900 frames; 54,000 fields, only item 156 wrong.
-- **run60 is the recipe to reuse** (ORACLE): `DETAIL_END="MISC,LEADERS=2"`,
-  no window — 5,400 frames, 67 MB, **under five minutes**. The AI's bucket
-  curve parts on **three** frames in 5,400: 1, 3579, 4988.
-- **`Build::activate` line 590**: a dock, market or temple is a *wealth*
-  gather slot and the first past the mark pays thirty. `+0x8ac`/`+0x8dc`
-  are `gather_slots[2]` and `gather_slots_high[2]`, not a separate pair.
-  That thirty is why the goody at 4988 tied timber against wealth here and
-  paid the wrong one. run59: 4,798 wrong good-frames → **3,500**.
-- **Trace coverage fires once.** `HIT` says "has this ever run", never "did
-  it run here" — which is why a *second* goody box was invisible.
+- **`find_friends` asked the wrong question.** It matched a neighbouring
+  cell's building by *centre-in-cell*;
+  `ObjectsData::find_building_placed_at@00658c80` matches by **footprint
+  covering the cell's centre tile** (AI §26). Centre tiles are four apart,
+  so every building of four tiles or fewer answers the same either way —
+  and the **Village is 7×7**, a friend of four cells, counted here as one.
+- **That is why the Market was sited one cell south.** Its old cell scored
+  4251 on two friends against 3252; with the Village counted it is 6252
+  against 5251, the corner clears the Library, and the 2×2 jitter spends
+  the original's four draws instead of two.
+- **The rest of the board did not move**: Great Lakes 1802, run59 3,500 of
+  18,000, run58's 178,326 building fields still 0 wrong.
+- **The new blocker is `5e8d09` = `Unit::do_air_physics+0x639`** — item
+  120, which has bounded Great Lakes since run33. One bird, both maps.
+- **The dumps answered this without a capture.** run60's timber curve is
+  exact on all 5,400 frames, which is what ruled out "the original places a
+  second building here" before any reading started.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w5376 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w5437 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 5376 for a new reason: the AI
-places the Market now, and the frame spends two placement-jitter draws
-against the original's four. Item 164 — two of the 2x2's sub-positions are
-blocked here and clear there, and RON_DEBUG_SITES prints the frame.`
+**Opener (Opus):** `One draw now bounds both maps: East Indies at 5437 and
+Great Lakes at 1802 both part on Unit::do_air_physics+0x639. Item 120 — a
+bird's flight physics, SYNC §3.9 — is the headline twice over.`
 
 ## The queue
 
@@ -50,13 +49,11 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-164. **The word's own frame, and it is `blocked_site` now — the
-    headline.** run54's 5376 parts at `Leader::produce_building+0x1805`,
-    the placement jitter: one draw per **unblocked sub-position** of the
-    2x2 (AI §2.20), **2 here against 4**. The AI's Market at its capital,
-    on ground the original takes and this crate refuses twice.
-    `RON_DEBUG_SITES=1 cargo test --release -p rondata run54_s_24000`
-    prints both sides' sites. Sibling of 116.
+120. **A bird's flight physics, and it is now both maps' word.**
+    One draw at `Unit::do_air_physics+0x639 < do_air_patrol+0xf3 <
+    do_job+0xd7` (SYNC §3.9), reached **once** in run33's 1,851 frames.
+    It bounds Great Lakes at 1802 and, since item 164, East Indies at
+    5437: on both the original draws where this crate does not.
 
 165. **A merchant on a rare, and it is the whole of what run60 leaves.**
     `income[food]` **1440 against 1600** and `income[wealth]` **0 against
@@ -98,11 +95,6 @@ indexed by them.
     **cell** grid — `danger[who][reg_xs × div3(y >> 9) + div3(x >> 9)]` in
     `produce_unit@006cb9e0` and four others; `World::danger` reads it by
     *region*, both answering 0.
-
-120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
-    at `Unit::do_air_physics+0x639 < do_air_patrol+0xf3 < do_job+0xd7`,
-    reached **once** in run33's 1,851 frames and still the boundary over
-    run53's 24,000 (SYNC §3.9).
 
 122. **A draw with no mark of its own.** `mark_sites` attributes an
     unmarked draw to the label still standing, so a sequence reads wrong

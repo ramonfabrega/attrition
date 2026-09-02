@@ -9677,7 +9677,16 @@ mod tests {
     /// because a garrisoned unit's is not compared.
     const RUN58_PACKED_FRAMES: usize = 94_338;
 
-    const LONG_WORD_EAST_INDIES: i64 = 5376;
+    /// East Indies' word on run54, the headline.
+    ///
+    /// **5437**, and it was **5376** until `find_friends` stopped asking
+    /// which building's *centre* is in a neighbouring cell and started
+    /// asking whose *footprint* covers the cell's centre tile
+    /// (`docs/AI.md` §26). The AI's 7×7 Village is the neighbour of four
+    /// cells and this crate counted it for one, so the Market at 5376 was
+    /// sited one cell south of the original's — against the Library, whose
+    /// tiles cost the 2×2 jitter two of its four draws.
+    const LONG_WORD_EAST_INDIES: i64 = 5437;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of
