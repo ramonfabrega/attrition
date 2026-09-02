@@ -12035,3 +12035,93 @@ well-kept queue is for.
 - **Grep the dump before booking a reading.** `unit_continent` was printed
   in every `DUMP_ALL` dump on disk, and so is the rest of the `TRIBE`
   record that TECH still calls unsourced.
+
+## 2026-09-01 — item 151: a deployed boat stays on its fish, and the word goes 5106 → 5376 (Opus)
+
+`UnitData::calc_gather@00609180` was the last thing between `think_fish` and
+a fishing boat that behaves. The queue had it as "the head's *can I still
+gather where I stand* test — unmodelled, so this crate answers no", and the
+consequence was exact: on frame **5106** run54's `1/14` is sitting on its
+fish, the original spends four draws on the whole frame, and this crate sent
+the boat back through the 17 × 17 for 165.
+
+**The scales are the mechanic.** The function has two searches and both walk
+the octagonal spiral `circle_x`/`circle_y` in **tiles** — `div_3_table[v >>
+6]`, not the `>> 8` the rest of `think_fish` uses — out to
+`circle_radius[r]`, where `r` comes from `ObjectTypeData::upgrade_level@
+00661090`: the `FROM` chain's length while each ancestor is still in the
+starting type's lineage, `× 4 + 4` for a merchant by id or the `FISHERMEN`
+lineage and `+ 2` for anything else. `<FROM>none</FROM>` on the shipped
+Fishermen makes that **4** tiles, one cell.
+
+A tile qualifies on its surface field — `(TData & 0x30) == 0x20`, ocean, for
+everything that is not a merchant by id, and `!= 0x20` for one that is — and
+on `TData & 0x200`. Then the good is looked up in that tile's **cell**. That
+mismatch is the whole of why run58's dump prints `good_obj 1` and not 0: the
+fish's object marks its own tiles, the boat is standing on a different tile
+of the same cell, so ring 0 fails the `0x200` test and ring 1 carries it.
+Reading the walk as cells would have produced a function that answered the
+right question with the wrong index, and only the dumped field would ever
+have said so.
+
+**The return value is a crowd test, not a search result.** Having found a
+good the function walks the object chains of the `circle_radius[2]` cells
+around the unit — cells now, not tiles — and counts the owner's other live,
+on-map, unpacked units of its own lineage inside `(their r + mine) × 192`.
+The six gather rates are divided by `count + 1`, and with `param_7` set —
+which is both gameplay callers — **any** competition returns 0. So a crowded
+boat is told to move; only a boat alone on its fish stays. The distance test
+came off the listing at `609761`..`609824`, where the decompiler had lost the
+arguments to `vector_dist` entirely.
+
+**Two fields nothing had ever compared.** `UnitData::rare` (`+0x54`, the
+union with `air_alt` and `former_type`) and `UnitData::good_obj` (`+0x94`)
+are in every `UNIT` record the log prints, and `grep -rn good_obj crates`
+returned nothing. Reading them was what settled the ring index — 210 frames
+of `rare 6, good_obj 1` from 4992 — and it also settled that they cannot yet
+be *asserted*: the same trace shows `rare −1` arriving on 4872 from
+`Unit::think@005f6e40:179`'s rare-collector arm and `rare 6` on 4992 from the
+gather job, and this crate models neither. That is item 155, and the
+widening is booked with it rather than added half-true.
+
+**`unit_masks & 0x20` cannot be set by either gameplay caller.** `*param_2`
+is zeroed at the top and written `1` only past a `param_7 != 0` test that
+both callers fail. The grep confirms it independently: no `unit_masks` value
+in run33, run39, run53, run54 or run58 carries the bit. A seam the queue had
+carried as an open question turned out to have a one-line answer and a
+dump-wide check.
+
+**And then the second half, which the diff found for free.** With the head
+landed the word moved to **5285**, where the AI's *second* Fisherman accepted
+178 cells against the original's 177. `Object::add_to_world` pushes every
+object onto the head of its cell's list, so a boat that has deployed onto its
+fish **is** that cell's `WData.down` — and `think_fish`'s claim test was
+reading the snapshot a start dump had loaded, which still held the good's own
+terminator. Preferring the live unit chain, and keeping the snapshot only as
+the fallback for the buildings and goodies this crate does not thread, moved
+it to **5376**. One reader of item 48's chain, landed by a single frame's
+draw count.
+
+**What it moved.** East Indies' word `5106 → 5285 → 5376`; Great Lakes
+unchanged at 1802 and every scored capture unchanged. 5376 is the first
+divergence on this map in five sessions that is not a fishing boat's:
+`Leader::produce_building+0x1805`, 37 draws to 33, the AI siting a building
+this crate never scores a site for.
+
+**The rules this is an instance of.**
+
+- **The listing settles what the decompiler loses.** Ghidra printed
+  `vector_dist(unaff_EDI, unaff_ESI)` — two registers it had no value for —
+  and `llvm-objdump` gave the two operands, the `× 0xc0` and the `jge` in
+  ninety seconds.
+- **Grep the dump before booking a reading.** `good_obj` and `rare` were in
+  every record on disk. One `grep` said the ring index was 1, which is the
+  single fact that would have been easiest to get wrong and hardest to
+  notice.
+- **A finding that can become an assertion must become one — or say why it
+  cannot.** The two fields are dump-comparable and are *not* compared, and
+  the reason is written down with the item that unblocks it rather than left
+  as a gap in the ledger.
+- **The queue predicted its own next boundary twice.** 5106 was item 151's
+  own frame, named a session before it was taken; 5285 was item 48's chain,
+  named months ago. Neither cost a search.

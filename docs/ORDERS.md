@@ -1970,7 +1970,8 @@ think. Everything below (`think_merchant`, `think_carry`, `add_to_army`,
 the scout tail) is therefore unreachable for a fishing boat.
 
 **The head, and who skips it.** If the type packs (`unit_flags2 & 4`) and
-the unit is **not** packed (`unit_masks & 0x80000`):
+the unit is **not** packed (`unit_masks & 0x80000`) — `calc_gather` is
+§6.10:
 
 ```
 if ((o + frame) & 0x3ff) != 0: return 0            # once in 1,024, phased by o
@@ -2056,6 +2057,8 @@ than two.
 | claim | backed by |
 | --- | --- |
 | the cadence gates, the accept predicates, the score, `+ i`, the winner | **diff** — run58 frames 4462 (54 draws, `Unit::think_fish+0x27a`), 4871 (177) and 4948 (161), and the move orders and cast the dump prints on 4463, 4872 and 4949 |
+| the head's `calc_gather` gate | **diff** — run54's frame 5106, four draws to this crate's 165 before it landed (§6.10) |
+| `WData.down` is the live chain's head, not a snapshot | **diff** — run54's frame 5285, 177 accepted cells against this crate's 178 |
 | `move_x`/`move_y[0 .. 0x121]`, the typo at 288 | **the PE**, checked on every run (`rondata::pe::tests`) |
 | a packing type is born packed | reading (`Unit::init:376`) — and the 4462 search is only possible with it |
 | `0x28c` → `0x292` | **diff** — run58 block 4949, `spell 658` |
@@ -2064,19 +2067,25 @@ than two.
 
 **What is not established.**
 
-- **`UnitData::calc_gather@00609180`** — the head's "can I still gather
-  where I stand" test. Unmodelled; this crate answers "no", which sends an
-  unpacked boat back through the search, and `unit_masks & 0x20` is not
-  kept. run58 reaches the head exactly once, on frame **5106**, and spends
-  **no draw** there either way, so nothing on disk separates the two
-  answers. *Capture:* a run long enough for a deployed Fisherman to be idle
-  across two of its 1,024-frame marks, with `UNITS` detail on it.
+- ~~**`UnitData::calc_gather@00609180`**~~ — the head's "can I still gather
+  where I stand" test. **§6.10 since 2026-09-01.** run54's boat reaches the
+  head on frame **5106**, standing on its fish: the original spends four
+  draws there and this crate spent 165, walking a 17 × 17 it had no business
+  walking. With the head answering the word went **5106 → 5285**, and with
+  the claim test below it **5285 → 5376**.
 - ~~**What the cast does.**~~ §6.9, and it moved East Indies' word from
   4950 to 4988.
 - **The chain, whole.** `find_good_at` walks the cell's object chain in the
   original; here the terminator is a field, which is exact only because
   `Objects::init_good` is the only writer of one (`docs/COLLISION.md` §3
-  and item 48's chain remain the general case).
+  and item 48's chain remain the general case). The **claim** half of the
+  same chain is landed: `WData.down`/`down_who` is now the live unit chain's
+  head, falling back to the loaded snapshot for the buildings and goodies
+  this crate does not thread. run54's frame **5285** is what named it — a
+  deployed boat *is* its cell's `down`, so the second Fisherman's search
+  must refuse the fish the first is sitting on, and with the snapshot alone
+  it accepted 178 cells where the original accepted 177. The word went
+  **5285 → 5376**.
 - **The second Fisherman's route.** Both boats' *sea* paths part from the
   original's on the frame they are planned — 4464 and 4870 — two cells
   north over the first half of a nineteen-cell staircase. That is the
@@ -2219,6 +2228,161 @@ epoch's `SCIENCE_LOS 2` with the clamp lifted.
   on a `tile_mask & 3 == 3` cell with a friendly building. No craft index
   reaches it; it is what an order carrying a *unit* type in its spell slot
   would do, and nothing issues one.
+
+---
+
+## 6.10 `UnitData::calc_gather@00609180` — may I stay where I am?
+
+Established 2026-09-01 from the decompile and the listing, and **diff-backed
+on run54/run58's own word**: it is the head of §6.8 and the whole of
+`Unit::do_gather@005fce20`, and it is what East Indies' long capture parted
+on at **5106**.
+
+It answers three things at once. Two are fields of the unit and both are in
+every `UNIT` record the log prints:
+
+- **`UnitData::rare`** (`+0x54`, the union with `air_alt` and
+  `former_type`) — the `TypeIndex` of the good it found, `−1` when it looked
+  and found none. `Unit::init@00612100:90` starts it at **0**, so "never
+  asked" and "asked and failed" are different values.
+- **`UnitData::good_obj`** (`+0x94`) — the `circle_x`/`circle_y` index the
+  good was found at, in **tiles** from the unit's own. `Unit::init:281`
+  starts it at `−1`.
+
+The third is the return value, and it is not "there is a good": it is
+**"there is a good and nobody else of my kind is sharing it"**.
+
+**Who calls it.** Two gameplay callers, and they are exclusive on the packed
+bit:
+
+- `Unit::think_fish@005f4c60`'s head — an **unpacked** packing type, once in
+  1,024 frames (§6.8). A `1` back ends the think where it stands.
+- `Unit::think@005f6e40:179` → `Unit::do_gather@005fce20` — a **packed** AI
+  `is_rare_collector@0046fae0` (a merchant by id, or the `FISHERMEN`
+  lineage), on `idle == 1` or once in 32. `do_gather` is nothing but this
+  function plus the `unit_masks & 0x20` write, and its arm also bumps
+  `idle` and, on a `1`, tries `unpack_merchant(4)`.
+
+Both pass `param_7 = 1`, `param_8 = 1` and `(−1, −1)` for the position, so
+what follows is that call and no other. (`Unit::find_merchant_spot@00603ab0`
+passes a *probe* position; `Options::describe` and
+`IFaceSelected::draw_unit_text` pass `param_7 = 0` and are the interface.)
+
+**The radius.** `ObjectTypeData::upgrade_level@00661090` walks the type's
+`FROM` chain and counts the ancestors still in the starting type's own
+lineage — equality, then the `is_list`, then `is_slow`, which is
+`TechTree::is`. Then
+
+```
+r = merchant-by-id or is(FISHERMEN) ? level * 4 + 4 : level + 2
+```
+
+in **tiles**. The shipped `Fishermen` has `<FROM>none</FROM>`, so a fishing
+boat searches `circle_radius[4]` — one cell each way.
+
+**The two walks, both in tiles.** Both use the octagonal spiral
+`circle_x`/`circle_y` (`circle_init@006817f0`, [`crate::ai_place::circle`])
+around the unit's own **tile**, and both take the **first** tile that
+answers rather than the nearest good — which is the same thing, since the
+spiral is ordered by ring.
+
+A tile qualifies on two tests and nothing else:
+
+- the **surface field**: `(TData & 0x30) == 0x20` (ocean) for anything that
+  is not a merchant by id, and `!= 0x20` for one that is. There is no third
+  arm — the only non-merchant caller is the fishing boat, and fish are in
+  the sea.
+- `TData & 0x200`, [`crate::world::tile::AS_BUILDING`] — the bit the good's
+  own object sets on the tiles it covers.
+
+The good is then looked up in that tile's **cell**,
+`ObjectsData::find_good_at@0065bec0(tx >> 2, ty >> 2, who, 0, 0)`. **That
+mismatch of scales is why a boat standing on its fish answers ring 1 rather
+than ring 0**: the fish marks its own tiles, the boat is on a different tile
+of the same cell, so index 0 fails the `0x200` test and index 1 — the
+spiral's first neighbour — carries it. run58's `1/14` prints `good_obj 1`
+on every frame from 4992 to the end of the capture.
+
+- **Block A** (`00609289`..`0060934e`) retries the remembered `good_obj`, on
+  its own, before anything else. A hit keeps the index; a miss on a tile
+  that passed the surface test clears it to `−1`; a tile of the *wrong*
+  surface leaves it alone.
+- **Block B** (`0060937d`..`00609585`) is the spiral, and it writes the
+  index it stopped at.
+
+**The crowd count, and the return value** (`LAB_00609573`, `006095b0`..
+`0060985a`). Having found a good it walks the object chains of the
+`circle_radius[2]` cells — **cells** now, not tiles — around the unit, and
+counts the owner's other objects that are all of: live (`is_active`, vtable
+`+0x8`), on the map (`is_on_map`, `+0xbc`), in the unit's own lineage
+(`ObjectData::is` falls through to the type's `is(this->type, 0)`), not the
+unit itself, and **not packed** — except that with `param_8 = 1` a packed
+unit that `UnitData::is_unpacking@0060a4b0` accepts (its head order is a
+craft whose spell `is_unpack`) counts anyway. The distance test is
+
+```
+vector_dist(|dx|, |dy|) < (their r + my r) * 0xc0
+```
+
+— the listing at `609761`..`609824`, where `0xc0` is 192, the tile.
+
+Then:
+
+```
+if count == 0: return 1
+n = count + 1
+for i in 0..6: rates[i] /= n
+if param_7 != 0: return 0        # both gameplay callers
+*param_2 = 1; return 1
+```
+
+So the six gather rates `LeaderData::calc_rare@006e08d0` filled are shared
+out among everyone standing on the good, and **a crowded gatherer is told to
+move**: one other boat within eight tiles turns "stay" into "go", and
+`think_fish` walks its 17 × 17 again.
+
+**`unit_masks & 0x20` can never be set by either gameplay caller.**
+`*param_2` is zeroed at the top and written `1` only after the `param_7`
+test, which both callers fail. `think_fish` clears the bit outright;
+`do_gather`'s wrapper sets it from the same always-zero out-parameter. No
+`unit_masks` value in run33, run39, run53, run54 or run58 carries the bit,
+which is what a grep of every dumped record says.
+
+### 6.10.1 Coverage
+
+| claim | backed by |
+| --- | --- |
+| the head's return value, and that a boat on its fish stays | **diff** — run54's long word: frame 5106 spends 165 draws here and **4** in the original, and with this the word passes it |
+| the tile walk's scale, and `good_obj 1` for a boat on its own fish | **diff** — run58's `UNIT` record, `good_obj 1` on 210 frames from 4992 |
+| `rare` is the good's `TypeIndex`, `−1` for a failed look | **diff** — the same 210 frames at `rare 6`, and 120 at `rare −1` from 4872 |
+| `unit_masks & 0x20` is never set | **the dumps** — no `unit_masks` in any of the five long captures carries it |
+| the radius, `upgrade_level × 4 + 4` | reading (`00661090`), and the file's `<FROM>none</FROM>` on Fishermen |
+| the crowd count and its distance test | the listing (`609761`..`609824`); no capture has two boats on one fish |
+| `param_8`'s unpacking arm | reading (`0060a4b0`) |
+
+**What is not established.**
+
+- **The rates.** `LeaderData::calc_rare@006e08d0` and the ally-territory
+  flag that scales them (block A takes `LeaderData::is_ally@006edb50`; block
+  B inlines a team comparison) fill `param_4`, and **both gameplay callers
+  discard the array**. Nothing here computes them; the division by
+  `count + 1` is modelled only through its effect on the return value.
+  *Needed by:* the gather job's income, not by either caller here.
+- **The other two writers of `rare` and `good_obj`.** run58's `1/14` gets
+  `rare −1` on **4872** — `Unit::think`'s rare-collector arm, which this
+  crate does not model at all, including its `idle += 1` — and `rare 6,
+  good_obj 1` on **4992**, which is the gather job (`Unit::do_job@00617a10`
+  → `Unit::do_gather@005ef2a0`) and not this call. So the two fields are
+  right *here* and cannot yet be compared against the dump end to end; the
+  widening is booked with the arm.
+- **The chain, whole.** The crowd count walks this crate's unit chain, where
+  the original threads buildings and goodies through the same list
+  (`docs/COLLISION.md` §3, item 48). Neither can be counted — the walk keeps
+  only the owner's units of its own lineage — so the shape differs and the
+  answer does not.
+- **The `0x200` writer.** The tile bit arrives from a start dump's own
+  `TData` and nothing in this simulation sets it when a good is placed by
+  hand; a fixture must mark the tile itself.
 
 ---
 

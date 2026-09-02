@@ -12,36 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — a unit trained mid-game has a graphic piece, and East
-Indies' word is **5106**.* Item 152 was `get_unit_gpiece`'s walk, and it
-moved a hundred and eighteen frames onto the frame item 151 already named.
+*2026-09-01, Opus — a deployed fishing boat stays on its fish, and East
+Indies' word is **5376**.* Item 151 was `UnitData::calc_gather`, and it
+moved 270 frames in two halves.
 
-- **The piece is derived now, not looked up.** `Sim::unit_gpiece` is
-  `get_unit_gpiece@0090c030`'s four walks — style, age bracket, gender and
-  crew, each stepping the bracket down and taking the first piece the
-  install's `<UNIT>` entries have (ANIM §3.4). `Art::pieces` stays only
-  for gaia, whose pieces come off a runtime pointer no file states.
-- **`-PACKED` is the gender coordinate, and the swap is the mechanic.**
-  `FISHERMEN-…-AGE0-PACKED` carries `CHAR_UNPACK` and no `CHAR_PACK`; the
-  plain entry carries `CHAR_PACK` and no `CHAR_UNPACK`. A type that packs
-  is born on the packed piece and `Unit::update_gpiece` moves it off when
-  `cast_unpack` clears the bit (ORDERS §6.9).
-- **The nation's art style is loaded.** `<UNIT_CONTINENT>` out of
-  `tribes/<n>.xml` — six styles — is `tech_tree.tribes[t].unit_continent`
-  and a survey check re-derives the link. The dump prints it too, beside
-  `graft[352]` and `barbarian`, which are still identity and false.
-- **The check is every dumped guy** — 126 of them over 12 pieces, four
-  nations, both genders, both crews, ten dumps of two maps, asserted to
-  the number. Every row is bracket 0; no capture ages a player up.
-- Great Lakes unchanged at 1802. run58 otherwise as it was.
+- **`calc_gather` is modelled** (`crates/sim/src/calc_gather.rs`, ORDERS
+  §6.10): the two tile spirals, the surface-and-`0x200` predicate, the
+  cell lookup under it, and the crowd count that turns "there is a good"
+  into "and it is mine alone". A boat on its fish answers **yes** on 5106
+  and stays, where this crate walked a 17 × 17 for 165 draws to four.
+- **The scales are the mechanic.** The spirals are in **tiles** and
+  `find_good_at` is in **cells**, so a boat on a fish answers ring **1**,
+  not 0 — the fish marks its own tiles and the boat is on another. run58
+  prints `good_obj 1` on 210 frames, `rare 6` beside it.
+- **The claim test is the live chain, not the snapshot.** A deployed boat
+  *is* its cell's `WData.down`, so the second Fisherman must refuse the
+  fish the first sits on; `think_fish` read the start dump's `WData` and
+  accepted 178 cells to 177. That is 5285, and one reader of item 48.
+- **`unit_masks & 0x20` can never be set by either gameplay caller** —
+  `*param_2` is written only past a `param_7` test both fail, and no
+  `unit_masks` in run33/39/53/54/58 carries it. Great Lakes is unchanged
+  at 1802; run58's own three numbers as they were.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w5106 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w5376 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 5106 and item 151 holds it, cause
-already named: UnitData::calc_gather@00609180 is think_fish's head — "can I
-still gather where I stand" — and it is unmodelled, so a deployed boat is
-sent back through the 17 x 17 where the original may keep it still.`
+**Opener (Opus):** `East Indies' word is 5376 and item 154 holds it: the
+AI sites a building there and this crate sites nothing — 37 draws to 33,
+opening on Leader::produce_building+0x1805.`
 
 ## The queue
 
@@ -50,21 +48,22 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-151. **`calc_gather`, and the `unit_masks & 0x20` it writes — the
-    headline.** `UnitData::calc_gather@00609180` is `think_fish`'s head —
-    "can I still gather where I stand" — unmodelled, so a deployed boat is
-    sent back through the 17 × 17 every 1,024 frames where the original may
-    keep it still. run58 reaches it once, on **5106**, and that is now
-    where the word parts. ORDERS §6.8; the capture wants a deployed
-    Fisherman idle across two of its marks, `UNITS` on.
+154. **`Leader::produce_building`'s jitter on 5376 — the headline.** The
+    AI draws 37 where this crate draws 33, opening on
+    `Leader::produce_building+0x1805` against `Animal::think_farm_animal+
+    0x142`: the original sites a building and this one never scores a
+    site. AI §2.20 and §21; the first East Indies divergence not a boat's.
+    run58's last 25 frames are the same family and now inside the word —
+    the AI holds a job in `1/2005` from **5177** and this crate none;
+    `RUN58_QUEUE_TAIL` asserts those rows as they stand.
 
 146. **The other nine national arms of `train_time`.** `006508c0` runs a
     fixed order after the ramp — handicap, The President, Mongol stable,
     Japanese barracks and carrier, Chinese citizen, then British, French,
-    German, Roman — and only the British is built (PRODUCTION, "The tail's
-    first caller"). The rest are inert in every capture: each wants a
-    nation the captures play, or a reading naming the run that falsifies
-    it. The Chinese predicate is the one the decompiler mangles
+    German, Roman — and only the British is built (PRODUCTION, "The
+    tail's first caller"). The rest are inert in every capture: each
+    wants a nation the captures play, or a reading naming the run that
+    falsifies it. The Chinese predicate is the one the decompiler mangles
     (`extraout_ECX[0xae] & 8`); the listing settles it. Behind them:
     `TROOPS_FASTER`, the speed-upgrade counts, the rares, Monarchy,
     Socialism, the unit wonders.
@@ -100,8 +99,7 @@ indexed by them.
 
 105/45. **Gaia's positions — East Indies' half is what is left.** run39:
     191,876 of 192,504, first bad **1658**; run33 exact at 74,040.
-    `Sim::reseat_animal` still corrects them where a dump has clocks
-    (SYNC §4.2).
+    `Sim::reseat_animal` corrects them where a dump has clocks (SYNC §4.2).
 
 122. **A draw with no mark of its own.** `mark_sites` attributes an
     unmarked draw to the label still standing, so the sequence reads wrong
@@ -110,15 +108,14 @@ indexed by them.
     above them. Mark or explain each, then make the list a guard.
 
 124. **The loop flag is per animation file** (ANIM §3.3): by slot it is no
-    constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a non-looping file
-    and 38 a looping one. Carry it beside `Art::piece_lengths`.
+    constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a non-looping and
+    38 a looping file. Carry it beside `Art::piece_lengths`.
 
 153. **The `TRIBE` record, whole.** `Tribe::log_data@006f0d70` prints
     `graft[352]`, `barbarian`, `build_continent`, `people` and
-    `text_substitute` in every `DUMP_ALL` dump, and this crate parses none
-    of them: the graft table is identity and `barbarian` false by
-    assumption (TECH, "Where a player's nation comes from"). One parser and
-    one comparison settle both — item 87's rule, one level up from a field.
+    `text_substitute` in every `DUMP_ALL` dump and this crate parses none:
+    the graft table is identity and `barbarian` false by assumption (TECH,
+    "Where a player's nation comes from"). One parser, one comparison.
 
 The ledgers, each a number nothing yet counts: (87) **the widening
 ledger** — items 74, 83, 69, 113, 123 and 144 were closed or sharpened by
@@ -159,8 +156,7 @@ mask's writer.
     "Territory": the temple and fort border levels, the Colosseum, the
     Eiffel Tower, a gem rare, the handicap and `was_seen`'s `reg_forts`
     arm — inert until a capture has a Temple or a Fort. (b) AI §2.1's
-    `check_explore` answers the whole region grid — 900 against 36 and 19
-    on every frame of both windows.
+    `check_explore` answers the whole region grid — 900 against 36 and 19.
 
 The road residue, both in ROADS §7.1: (57) the node counts — 1,046 v 1,043
 and 1,460 v 1,870 — re-read on run43's own before-grid (ORACLE run43); (58)
@@ -171,6 +167,16 @@ the height loader's mean in `f32`, three tiles.
     `+0xe8` — **Military**, not ARMY's "current age". `army.rs:769,1365`
     read `tech[w].ages`, so every `age < 2/3/5` gate in the muster caps
     and `find_target` fires on the wrong counter.
+
+155. **The other two writers of `rare` and `good_obj`, and the widening
+    that waits on them.** Both fields are in every `UNIT` record and
+    nothing compares them (item 87). run58's `1/14` takes `rare −1` on
+    4872 from `Unit::think@005f6e40:179`'s rare-collector arm — a
+    **packed** AI `is_rare_collector` on `idle == 1`/32 takes
+    `Unit::do_gather@005fce20`, and the arm also bumps `idle` and tries
+    `unpack_merchant(4)` — and `rare 6, good_obj 1` on 4992 from the
+    gather job (`Unit::do_job@00617a10` → `Unit::do_gather@005ef2a0`).
+    ORDERS §6.10; land both and the two fields become a diff.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — `zsh tools/fuzz/run.sh 424242 1000

@@ -85,20 +85,26 @@ impl Sim {
         let o = i64::from(self.units[u].index);
 
         // The head, and it is only for a boat that has already deployed:
-        // once in 1,024 frames it asks whether it can still gather where it
-        // stands, records the answer in `unit_masks & 0x20`, and gives up
-        // for this frame if it can. A **packed** fisherman skips the whole
-        // thing and searches every time it is called.
+        // once in 1,024 frames it asks `UnitData::calc_gather` whether it
+        // can still gather where it stands, records the answer in
+        // `unit_masks & 0x20`, and gives up for this frame if it can. A
+        // **packed** fisherman skips the whole thing and searches every
+        // time it is called.
         //
-        // SEAM: `UnitData::calc_gather@00609180` is not modelled, so the
-        // answer taken here is "no, it cannot gather here", which sends the
-        // boat back through the search, and `unit_masks & 0x20` — the bit
-        // the original records the answer in — is not kept. run58 reaches
-        // this on frame 5106 and spends **no draw** either way, so no
-        // capture on disk tells the two apart (§6.8, "What is not
-        // established").
-        if packs && !packed && (o + frame) % RECHECK_PERIOD != 0 {
-            return false;
+        // `calc_gather` is `docs/ORDERS.md` §6.10 and
+        // [`crate::calc_gather`]; with `param_7` set it never writes the
+        // `0x20` bit, so the head's only visible effect on a fishing boat
+        // is `rare`, `good_obj` and this early return. run58's `1/14`
+        // reaches it once, on frame **5106**, where it is standing on its
+        // fish — and the whole of East Indies' long word sat on this
+        // return.
+        if packs && !packed {
+            if (o + frame) % RECHECK_PERIOD != 0 {
+                return false;
+            }
+            if self.calc_gather(u) {
+                return false;
+            }
         }
 
         let here = self.units[u].pos.cell();
@@ -175,7 +181,28 @@ impl Sim {
 
     /// `WData.down` / `down_who` as `think_fish` reads them: the object at
     /// the head of the cell's chain, when there is one.
-    fn claim_of(&self, c: Cell) -> Option<(i16, i8)> {
+    ///
+    /// **The live chain first, and the loaded snapshot only behind it.**
+    /// `Object::add_to_world` pushes every object onto the head of its
+    /// cell's list, so once a boat has deployed onto its fish it *is* that
+    /// cell's `down` — and the next boat's search must refuse the cell.
+    /// This crate chains units and nothing else (`docs/COLLISION.md` §3,
+    /// item 48), so the buildings and goodies the original threads through
+    /// the same list can only come from the snapshot a start dump loaded,
+    /// which is what the fallback is for. run54's frame **5285** is the
+    /// diff: with the snapshot alone the AI's second Fisherman accepted
+    /// 178 cells where the original accepted 177, and the extra one was
+    /// the fish the first boat is sitting on.
+    pub(crate) fn claim_of(&self, c: Cell) -> Option<(i16, i8)> {
+        if c.x >= 0
+            && c.y >= 0
+            && c.x < self.world.width()
+            && c.y < self.world.height()
+            && let Some(o) =
+                self.chain_heads[(c.y as usize) * (self.world.width() as usize) + (c.x as usize)]
+        {
+            return Some((self.units[o].index, self.units[o].owner as i8));
+        }
         let d = self.world.cell_data(c);
         (d.down >= 0).then_some((d.down, d.down_who))
     }
@@ -485,6 +512,44 @@ mod tests {
             m.dest.cell(),
             Cell::new(17, 18),
             "somebody else's claim takes the cell out of the walk"
+        );
+    }
+
+    /// And the claim is the **live** chain, not the snapshot a start dump
+    /// loaded: a boat that has deployed onto its fish is that cell's
+    /// `WData.down`, and the next boat's search must refuse the cell. That
+    /// is run54's frame 5285 — 178 accepted cells against the original's
+    /// 177 — and the second half of item 151.
+    #[test]
+    fn a_deployed_boat_is_its_own_cell_s_claim() {
+        let (mut s, u) = fish_sim();
+        let at = Pos::new(17 * 768 + 384, 18 * 768 + 384);
+        s.world.add_good(crate::world::Good {
+            pos: at,
+            ty: A_GOOD,
+            alive: true,
+        });
+        // Nothing in the snapshot: the fish's cell still reads `down −1`.
+        assert_eq!(s.world.cell_data(at.cell()).down, -1);
+        let ty = s.units[u].ty;
+        let mut other = crate::Unit::new(1, 15, at, 20);
+        other.ty = ty;
+        let o = s.add_unit(other);
+        s.units[o].combat.packed = false;
+        assert_eq!(
+            s.claim_of(at.cell()),
+            Some((15, 1)),
+            "`Object::add_to_world` put it at the head of the cell's chain"
+        );
+        s.units[u].idle = 1;
+        assert!(s.think_fish(u, 0));
+        let Some(Body::Move(m)) = s.units[u].orders.front().map(|o| o.body) else {
+            panic!("a move order")
+        };
+        assert_ne!(
+            m.dest.cell(),
+            Cell::new(17, 18),
+            "the deployed boat's fish is not a candidate for the second boat"
         );
     }
 }

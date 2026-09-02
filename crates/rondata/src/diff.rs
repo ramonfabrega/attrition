@@ -4802,15 +4802,39 @@ mod tests {
         // twenty-eight frames of `queued ours 1 theirs 0` at `1/2010` were
         // sitting in this dump the whole time (`docs/PRODUCTION.md`, "The
         // tail's first caller").
+        //
+        // **And the word has now outrun this capture.** run54's word is
+        // 5376 and run58 is 5,201 frames, so "before the word" is the
+        // whole file — and the last twenty-five frames of it do not
+        // agree. `RUN58_QUEUE_TAIL` is where they start, and the rows are
+        // asserted **as they stand** rather than filtered out, so the day
+        // item 154 lands the assertion moves rather than passing quietly
+        // (the `gather_slots` precedent, `run40_s_census_…`).
         let queue_early: Vec<&QueueDivergence> = queue_bad
             .iter()
-            .filter(|d| d.frame < LONG_WORD_EAST_INDIES)
+            .filter(|d| d.frame < RUN58_QUEUE_TAIL)
             .copied()
             .collect();
         assert!(
             queue_early.is_empty(),
-            "the AI's queues run the original's clock up to the word \
-             ({LONG_WORD_EAST_INDIES}): {queue_early:?}"
+            "the AI's queues run the original's clock up to \
+             {RUN58_QUEUE_TAIL}: {queue_early:?}"
+        );
+        let queue_tail: Vec<(i64, i64, &str, i64, i64)> = queue_bad
+            .iter()
+            .filter(|d| d.frame >= RUN58_QUEUE_TAIL && d.frame < LONG_WORD_EAST_INDIES)
+            .map(|d| (d.frame, d.o, d.field.as_str(), d.ours, d.theirs))
+            .collect();
+        let mut want: Vec<(i64, i64, &str, i64, i64)> = (RUN58_QUEUE_TAIL..5201)
+            .map(|f| (f, 2005, "queued", 0, 1))
+            .collect();
+        want.push((5201, 2010, "queued", 1, 0));
+        assert_eq!(
+            queue_tail, want,
+            "run58's tail is item 154's, and it is exactly these rows: the \
+             AI holds a job in `1/2005` from {RUN58_QUEUE_TAIL} that this \
+             crate never queues, and puts one in `1/2010` on the last frame \
+             where this crate already has one"
         );
         assert!(
             queues >= 109_435,
@@ -8456,7 +8480,32 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
-    /// **4988** — and the frame is the last of the fishing boat's deploy:
+    /// **5376** — and the frame is `Leader::produce_building`'s jitter,
+    /// not a boat's: the AI sites something and this crate does not, and
+    /// the whole of the fishing lineage now agrees for 5,375 frames.
+    ///
+    /// It was **5285** for the second half of one item, and that half was
+    /// **`WData.down`** (`docs/ORDERS.md` §6.8). A deployed boat is the
+    /// head of its cell's object chain, so the *second* Fisherman's search
+    /// must refuse the fish the first is sitting on — and
+    /// `think_fish`'s claim test read the start dump's snapshot, which
+    /// still held the good's own terminator. One extra accepted cell, one
+    /// extra draw: 178 against the original's 177 (item 48's chain, one
+    /// reader at a time).
+    ///
+    /// It was **5106** for one item, and that item was
+    /// `UnitData::calc_gather@00609180` (`docs/ORDERS.md` §6.10) — the
+    /// head of `think_fish`, which asks a deployed boat once in 1,024
+    /// frames whether it may stay where it is. run54's `1/14` is standing
+    /// on its fish there and the original answers yes and spends four
+    /// draws; this crate had no answer at all, sent it back through the
+    /// 17 × 17 and spent 165. The **first** tile of the spiral to carry
+    /// `TData & 0x200` is what the search takes, and the fish is not under
+    /// the boat's own tile — which is why run58's dump prints `good_obj 1`
+    /// and not 0.
+    ///
+    /// It was **4988** for one item, and the frame is the last of the
+    /// fishing boat's deploy:
     /// the original's guy finishes `CHAR_UNPACK` there and pays the wrap's
     /// idle roll (`Guy::set_anim+0x97a < Guy::inc_time+0x271`), where this
     /// crate spends a farm's. The boat's guy carries **no piece** — the
@@ -8464,7 +8513,8 @@ mod tests {
     /// Fisherman is in one — so its `end_time` is [`sim::anim::UNKNOWN`]
     /// and no animation of its ever wraps (item 152).
     ///
-    /// It was **4950** for one item, and that item was the deploy itself.
+    /// It was **4950** for one item before that, and that item was the
+    /// deploy itself.
     /// `Unit::do_cast` killed every craft but the transport on the frame
     /// after it was queued, so the boat came back idle on 4950, still
     /// packed, and searched its 17 × 17 a second time — 165 draws to none.
@@ -8696,7 +8746,15 @@ mod tests {
     /// because a garrisoned unit's is not compared.
     const RUN58_PACKED_FRAMES: usize = 94_338;
 
-    const LONG_WORD_EAST_INDIES: i64 = 5106;
+    const LONG_WORD_EAST_INDIES: i64 = 5376;
+
+    /// The frame run58's `QUEUE` record parts on, and the first number
+    /// this capture has ever carried that the word does not bound: the AI
+    /// holds a job in its building `1/2005` from here to the end of the
+    /// file (frame 5,201) and this crate holds none. Same family as the
+    /// word itself — `Leader::produce_building` on run54's 5376 — and
+    /// booked with it as item 154.
+    const RUN58_QUEUE_TAIL: i64 = 5177;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

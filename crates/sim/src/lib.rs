@@ -53,6 +53,7 @@ pub mod attrition;
 pub mod balance;
 pub mod bhs;
 pub mod build;
+pub mod calc_gather;
 pub mod city;
 pub mod collide;
 pub mod combat;
@@ -295,6 +296,25 @@ pub struct Unit {
     /// object chain, newest first (`docs/COLLISION.md` §3).
     pub down: Option<usize>,
     pub up: Option<usize>,
+    /// `UnitData::rare` (`+0x54`, the union with `air_alt` and
+    /// `former_type`): the `TypeIndex` of the good `UnitData::calc_gather`
+    /// last found for this unit, `-1` when it looked and found none.
+    /// `Unit::init@00612100:90` starts it at **0**, so a unit that has
+    /// never asked is not the same as one that asked and failed
+    /// (`docs/ORDERS.md` §6.10).
+    pub rare: i32,
+    /// `UnitData::good_obj` (`+0x94`): the `circle_x`/`circle_y` index, in
+    /// tiles from the unit's own, that `calc_gather` found that good at —
+    /// the one index its next call retries before walking the spiral
+    /// again. `Unit::init:281` starts it at `-1`.
+    pub good_obj: i16,
+    /// `unit_masks & 0x20`: `calc_gather`'s "and I may go on gathering
+    /// here", which `Unit::do_gather@005fce20` records and `think_fish`
+    /// clears. Both of the original's gameplay callers pass `param_7 = 1`,
+    /// which is the arm that never sets it, so nothing here has ever seen
+    /// it true — and no `unit_masks` in any capture on disk carries the bit
+    /// (`docs/ORDERS.md` §6.10).
+    pub gather_here: bool,
 }
 
 /// What a unit needs in order to move.
@@ -631,6 +651,12 @@ impl Unit {
             half_step: false,
             down: None,
             up: None,
+            // `Unit::init@00612100` lines 90 and 281: `rare` is **0** and
+            // `good_obj` is `-1`, and the two starts are not the same
+            // sentinel.
+            rare: 0,
+            good_obj: -1,
+            gather_here: false,
         }
     }
 
