@@ -12995,3 +12995,99 @@ which turned "why is the walk different" (it was not) into "which site
 claims that region", and made the capture a confirmation rather than a
 search.
 
+## 2026-09-02 — the whale under the word (items 168, 165 and half of 170; Opus)
+
+The opener booked item 168: East Indies' word at **5669**, where the original
+spends **175 draws** at `Unit::think_fish+0x27a` off `Unit::do_idle`'s tail and
+this crate spends none. run63's `[5430, 5700)` window already covered the frame,
+so no capture was owed.
+
+**It was not a `think_fish` bug, and the boat was not even late by its own
+doing.** The 175 draws are `1/17`'s — the AI's third Fisherman, arriving at
+`(38040, 30360)` on 5668, going idle on 5669 and searching. This crate's `1/17`
+arrived on **5691**, twenty-three frames later. Item 170 had that as "turns
+three frames late at 5552", read off the step deltas; the step deltas were the
+answer and nobody had divided them. The original's boat steps `(-6, -44)` from
+5552 and `(-28, -36)` after the turn — magnitude ~45. This crate's stepped
+`(-5, -37)` and `(-24, -30)` — magnitude ~38. **The original's boat was faster
+from 5552, and the turn came later here because a slower boat reaches its
+waypoint later.**
+
+`UNITDATA myspeed` says it in one line: on run63's block 5552 all three of
+leader 1's Fishermen go **38 → 45** and its Transport Barge **25 → 30**, and
+its citizens and its scout do not move. `38 × 120 / 100` is 45; `25 × 120 / 100`
+is 30. `Unit::update_speed@006055c0` has exactly one arm that scales a naval
+type by a percentage, and it is **Whales**: `WHALES_SHIPS_MOVE`, `20%` in
+`rules.xml`, gated on rare bit 25 of `LeaderData::rare`.
+
+**So the item was the economy's.** On block 5552 the AI's `1/16` — the second
+Fisherman, deployed on 5543 and idle since 5544 — takes `rare 31, good_obj 1`.
+Good 31 is `WHALES`. The writer is `Leader::calc_gather@006ceee0` **step 6**:
+walk the player's units, hand every `is(FISHERMEN)` or `is_merchant` whose
+`order_type` is `NONE` to `Unit::do_gather@005fce20`, add what each is standing
+on and light its bit in `rare_owned`. `holdings.rs` has listed that step as
+"not modelled" since the module existed.
+
+**And item 165 was the same step from the other side.** run59's census had the
+AI's `income[food]` at 1440 against 1600 and `income[wealth]` at 0 against 160,
+on all 250 frames, since its `1/14` settled on a fish at 4992. `160` is
+`10 × 16`, and `10` is both of Fish's `BONUS_NUM`s in `resourcerules.xml` —
+which is where `LeaderData::calc_rare@006e08d0` reads a rare's payout from, not
+from any constant in `rules.xml` as ECONOMY's open list had it. One mechanic,
+two booked items, and the headline.
+
+**What landed** (`crates/sim/src/rares.rs`, `docs/ECONOMY.md` step 6):
+
+- `UnitData::calc_gather`'s **`param_7 = 0`** form, which is a different
+  function from the one `docs/ORDERS.md` §6.10 specified: a packed fisherman or
+  merchant is refused before anything else happens, the crowd count has no
+  mid-unpack exemption, and the three outputs — rates, the `BitMask<44>`, the
+  per-good tally — are live where `think_fish` passes null for all three.
+- `calc_rare`: the good's two `(BONUS_TYPE, BONUS_NUM)` pairs times sixteen,
+  then `MERCHANTS_BONUS[level]` **replacing** the 100 on a resource the unit
+  stands on friendly ground for, or on the non-food half of Fish and Whales;
+  then `FISHERMEN_BONUS[level]` **added**, to the food slot of those same two
+  goods alone. Both ship inert at level 0, which is why the census's number was
+  the raw `10 × 16` twice.
+- The two upgrade ladders as `rules.xml` `TECHBONUSES` rows 19–21 and 99–102.
+- `Leader::gather`'s tail — `rare = rare_owned | rare_conquest`, and
+  `0x4000000` when it moves — and `Leader::calc_unit_stats@006cf970`, which
+  `Leader::process` runs in the **same frame**, before any unit steps.
+- `Unit::update_speed`'s whales arm, and nothing else of that function: no part
+  of the rest of the pipeline is modelled anywhere in this crate, so recomputing
+  a cached speed from `MOVES` loses nothing.
+
+**The piece that was nearly missed.** With all of the above, the whale was
+still claimed nowhere near 5551: `should_recompute` never fired in the window.
+The dirty flag is what makes the 512-frame refresh an 8-frame one, and its
+writer here is `Unit::check_idle@006032c0`'s **tail** — a per-unit latch
+(`ObjectData +0x8 & 8`) taken the first frame a unit is idle, raising
+`0x2000000` when the unit `is(0x13d)` or is one of the three merchant ids, with
+`Unit::work@0060d180:268` clearing the latch and raising the same flag when the
+unit has an order again. `holdings.rs` had listed that writer as "the same three
+kinds" — peasant, scholar, merchant. It is fishermen too, and step 6's
+membership is exactly what those two transitions change. With the latch the
+recompute lands on 5551, seven frames after the boat went idle, which is where
+the dump has it.
+
+**The score.** East Indies **5669 → 5819**; Great Lakes unchanged at 2419.
+run59's census went from 3,500 wrong good-frames of 18,000 to **1,500**, and
+every one of the remainder is item 156's three unavailable goods — both
+players' six rates and six incomes now agree on every frame of that window.
+run63's two position residues are down to one: `1/17` is exact, and `1/18` is
+what is left.
+
+**The new frame is `1/18`'s.** At 5819 this crate spends one draw the original
+does not — `Unit::come_out+0x25ca < Object::eject_contents+0x292 <
+Unit::set_new_location+0x2b7`, a transport putting its passengers down — and
+run54's trace has the original's on **5823**. `1/18` is the Transport Barge,
+and run63 has it running ahead of the original on the same order and the same
+row from the window's first frame. Whatever cost the original those frames is
+in `(5202, 5430)`, which nothing on disk measures.
+
+**The lesson.** *Diff the whole record* has a corollary about **which** record:
+`myspeed` is in every `UNITDATA` block of every capture on disk and nothing had
+ever compared it. One `track.py --changes` over eleven frames turned an item
+booked as a turn-model residue into a rare-resource bonus, and took a second
+booked item with it. The step deltas were on the screen for the whole of the
+previous session's write-up; the ratio 38 : 45 was not computed.

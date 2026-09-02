@@ -305,6 +305,19 @@ pub struct Roles {
     /// (`docs/CITIES.md` §2.6.1). `None` leaves the bonus granted, the
     /// tree's rule for a role it does not know.
     pub colonize_preq: Option<TypeId>,
+    /// `FISHERMEN1`–`FISHERMEN3`' prerequisites, in level order — the
+    /// twentieth, twenty-first and twenty-second of `rules.xml`'s
+    /// `TECHBONUSES` (`0x2bf`–`0x2c1`; Agriculture, Crop Rotation and Food
+    /// Industry as shipped). `LeaderData::get_fishermen@006d6e80` answers
+    /// the highest one held, and that indexes `FISHERMEN_BONUS`
+    /// (`docs/ECONOMY.md`, step 6). An unknown entry is simply not held.
+    pub fishermen_preq: [Option<TypeId>; 3],
+    /// `MERCHANTS_1`–`MERCHANTS_4`' prerequisites, in level order —
+    /// `0x30f`–`0x312`, Taxation through Income Tax.
+    /// `LeaderData::get_merchants_level@006d6dc0` indexes `MERCHANTS_BONUS`
+    /// with the highest held, and **level 0 is 100%**, so the whole term is
+    /// inert until Taxation.
+    pub merchants_preq: [Option<TypeId>; 4],
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,

@@ -12,36 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — the opener's item, closed by the trace and confirmed by
-a capture.* **East Indies 5592 → 5669**; Great Lakes unchanged at 2419.
+*2026-09-02, Opus — the opener's item, and it was two other items.* **East
+Indies 5669 → 5819**; Great Lakes unchanged at 2419.
 
-- **A draw's caller offset is a predicate's answer.** `think_peasant` has
-  two `think_scout` calls — `+0x2ac` (no site claims this region) and
-  `+0x2ca` (one does, and I have been idle seven frames). The original
-  spends `+0x2ac` on 5455 and `+0x2ca` on 5666, so what changed between
-  them was its **site list**, not the walk — read off the trace before
-  anything was booked.
-- **run63** is run58's recipe with `[End Frame]` narrowed to `[5430, 5700)`
-  and `LEADERS=9` in it: 16 min, 482 MB, zero differing on 5,701 frames.
-  The AI citizen `1/15` walks the original's own 137 frames and arrives on
-  5592; the original stands there seventy-three more, and on 5577 its tenth
-  site becomes `(34, 33) val 9728` — the citizen's own cell.
-- **`COLONIZE_BONUS` is a technology's, not a nation's**: the fourth of
-  `rules.xml`'s `TECHBONUSES`, `preq0 = Coinage`. Carried here as a
-  `Nation` flag nothing set, so `blocked_location` refused every first city
-  in an unsettled region with `COLONIZE 0x1c` and `compute_site_stats`
-  scored the whole region zero. The AI takes Coinage on 5177, which is why
-  no earlier capture reached it. CITIES §2.6.1 question 4 closed.
-- **The free half came first**: run59's census had printed `Leader::sites`
-  uncompared for a day, and it said the site *values* were wrong before the
-  capture was booked (item 169).
+- **The 175 `think_fish` draws were never a `think_fish` bug.** They are the
+  AI's third Fisherman arriving on 5668 and searching; this crate's arrived
+  on 5691. `UNITDATA myspeed` says why: on 5552 all three of leader 1's
+  Fishermen go **38 → 45** and its barge **25 → 30**, its land units none.
+- **`Unit::update_speed`'s one rare arm is Whales**, `WHALES_SHIPS_MOVE 20%`
+  on an objmask `0x2000` type. `1/16` takes `rare 31` on 5552, and the
+  writer is `Leader::calc_gather` **step 6** — the idle fisherman/merchant
+  walk `holdings.rs` had as not modelled. Item 165 was the same step from
+  the other side: `160` food and `160` wealth is `10 × 16` twice, and `10`
+  is Fish's two `BONUS_NUM`s in `resourcerules.xml`.
+- **The piece that nearly did not land**: `Unit::check_idle`'s tail latches
+  the first idle frame and marks a **fisherman's** owner's economy dirty —
+  the 512-frame refresh becomes 8, and the whale lands on 5551 rather than
+  130 frames later. `holdings.rs` had that writer as peasant/scholar/merchant.
+- run59's census: **3,500 → 1,500** wrong good-frames of 18,000, the rest
+  item 156. run63's position residues: two → one.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w5669 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w5819 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `East Indies' next cause is Unit::think_fish+0x27a at
-5669 — one frame of 175 draws off Unit::think's idle tail where this crate
-spends none. run63's window covers it, so the dump is already on disk.`
+**Opener (Opus):** `East Indies' next cause is 1/18, the AI's Transport
+Barge: at 5819 this crate ejects its passengers (Unit::come_out+0x25ca <
+Object::eject_contents+0x292) and the original does it on 5823. run63 has
+1/18 running ahead on the same order and the same row from 5430; what cost
+the original those frames is in (5202, 5430), which nothing on disk
+measures.`
 
 ## The queue
 
@@ -50,10 +49,14 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-168. **`Unit::think_fish+0x27a` — 175 draws in one frame, and the word.**
-    East Indies 5669: the original spends them off `Unit::think+0x6a6 <
-    Unit::do_idle+0x94` and this spends none. run63's `[5430, 5700)` window
-    holds the frame in full detail, so no capture is owed.
+171. **`1/18` runs ahead, and it is the word.** The AI's Transport Barge
+    ejects its passengers on 5819 here and 5823 there
+    (`Unit::come_out+0x25ca < Object::eject_contents+0x292 <
+    Unit::set_new_location+0x2b7`, run54's trace), and run63 has it ahead of
+    the original on the same `MoveOrder` and the same row from the window's
+    first frame. The cause is in **(5202, 5430)**, which nothing on disk
+    measures — run58 ends at 5201 and run63 opens at 5430. A `LEADERS=9`
+    window over that gap is the capture; grep the disk first.
 
 169. **`compute_site_stats`' arithmetic, on 7,122 of run63's 27,000 site
     fields.** Four of leader 1's sites predate the window: `(45, 52)` scores
@@ -62,18 +65,12 @@ indexed by them.
     slot order with it. run59's census has the same shape 250 frames
     earlier — two oracles on disk. AI §2.13 steps 6–12 hold the factors.
 
-170. **Two position residues run63 found on new ground**, both on the
-    original's own order and line: `1/18` **five frames ahead** from 5430 at
-    `myspeed 25`; `1/17` **turns three frames late** at 5552 (`(-5,-37)` held
-    to 5555 where the original goes `(-6,-44)`, `(-28,-36)`).
-
-165. **A merchant on a rare, and it is the whole of what run60 leaves.**
-    `income[food]` **1440 against 1600** and `income[wealth]` **0 against
-    160** from **4992**, `bucket` one apart from 5002 and 5061. The AI's
-    merchant unpacks at 4988 — `SpellType::cast_unpack@006709c0` →
-    `UnitData::good_merchant_spot@006068a0`, family `0x3d`, `0x3e`, `0x190`
-    — and run58's `1/14` takes `rare 6, good_obj 1` on 4992. The AI earns no
-    wealth at all after it. **Takes 155's `rare`/`good_obj` writers along.**
+172. **The `bucket` pair 165 leaves behind.** With step 6 landed the AI's
+    six rates and six incomes are the original's on every frame of run59's
+    window; `bucket` was one apart on 5002 and 5061 in run60's curve and
+    nothing has re-measured it. Cheap: run60 is on disk. **Takes 155's
+    `rare`/`good_obj` writers along** — `Unit::think`'s rare-collector arm
+    (ORDERS §6.10) is still unmodelled, `idle += 1` and all.
 
 166. **`resource_cap` on five goods, two frames from 2958** — 1392 here,
     2000 there, and right again on 2960. ECONOMY, "The commerce cap": a
@@ -115,7 +112,8 @@ indexed by them.
     `text_substitute` in every `DUMP_ALL` dump; none parsed (TECH).
 
 The ledgers, each a number nothing yet counts: (87) **the widening
-ledger** — items 74, 83, 69, 113, 123, 144, 154 and now 169 were closed or
+ledger** — items 74, 83, 69, 113, 123, 144, 154, 169 and now 168/165 (one
+`track.py --changes` over `myspeed`) were closed or
 sharpened by fields the parser had and nothing compared, so count, per
 record *and* per capture, the fields `rondata::diff` parses and never
 compares; (88) **the blind list** — `report.py … blind docs/` lists the

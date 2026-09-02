@@ -90,7 +90,7 @@ impl Sim {
     }
 
     /// `UnitData::is_merchant@0046d370`.
-    fn is_merchant(&self, u: usize) -> bool {
+    pub(crate) fn is_merchant(&self, u: usize) -> bool {
         self.unit_tree(u).is_some_and(|t| MERCHANTS.contains(&t))
     }
 
@@ -106,28 +106,62 @@ impl Sim {
         m & tile::AS_BUILDING != 0
     }
 
-    /// `UnitData::calc_gather@00609180`, as both of its gameplay callers
-    /// reach it — `param_7 = 1`, `param_8 = 1`, and the position defaulted
-    /// to the unit's own.
+    /// `UnitData::calc_gather@00609180` as **`Unit::think_fish`** reaches
+    /// it — `param_7 = 1`, `param_8 = 1`, and the position defaulted to the
+    /// unit's own.
     ///
     /// Answers the original's return value: `true` is its `1`, "there is a
     /// good here and it is mine alone".
     ///
-    /// **What is left out, and why it cannot move a number here.** The six
-    /// gather rates (`param_4`) and the ally-territory flag that scales
-    /// them are `LeaderData::calc_rare`'s, and both of the original's
-    /// gameplay callers discard the array; the `BitMask<44>` and the
-    /// per-good tally (`param_5`, `param_6`) are the census's and are null
-    /// at both sites. What survives is the search, the two fields it writes
-    /// and the crowd count — which is the whole of the return value.
+    /// The six gather rates (`param_4`), the `BitMask<44>` and the per-good
+    /// tally (`param_5`, `param_6`) are null at this site; the caller that
+    /// wants them is [`Sim::do_gather_rates`], below.
     pub(crate) fn calc_gather(&mut self, u: usize) -> bool {
         // `*param_1 = -1` and `*param_2 = 0`, unconditionally and before
         // every other test — so a caller that asks and finds nothing is
         // left with `rare == -1`, and `unit_masks & 0x20` is **cleared** on
-        // every call with `param_7` set, which is both of them.
+        // every call with `param_7` set, which is this one.
         self.units[u].rare = -1;
         self.units[u].gather_here = false;
+        if self.gather_search(u).is_none() {
+            return false;
+        }
+        // `if (count == 0) return 1;` — and otherwise the rates are divided
+        // by `count + 1` and, with `param_7` set, the answer is 0.
+        self.gather_crowd(u, true) == 0
+    }
 
+    /// `Unit::do_gather@005fce20` — `UnitData::calc_gather` as
+    /// **`Leader::calc_gather` step 6** reaches it: `param_7 = 0`,
+    /// `param_8 = 0`, the rate array and the two rare outputs live.
+    ///
+    /// Answers the good the unit is standing on and how many others of its
+    /// own lineage share it, so the caller can pay
+    /// [`crate::economy::calc_rare`] divided by `crowd + 1` and light the
+    /// good's bit in `rare_owned`. `None` is the original's "no good here",
+    /// which includes its **first** test: a packed fisherman or merchant
+    /// answers nothing at all, and only this caller has that test.
+    ///
+    /// `Unit::do_gather`'s own tail is the `unit_masks & 0x20` write, and
+    /// through this path the bit means "**sharing** a deposit": the
+    /// original sets it only where the crowd count came out non-zero.
+    pub(crate) fn do_gather_rates(&mut self, u: usize) -> Option<(TypeId, i32)> {
+        self.units[u].rare = -1;
+        self.units[u].gather_here = false;
+        // `00609200`: the head, and it is only in the `param_7 == 0` form.
+        if self.units[u].combat.packed
+            && (self.is_merchant(u) || self.unit_line_is(u, crate::fish::FISHERMEN))
+        {
+            return None;
+        }
+        let good = self.gather_search(u)?;
+        let crowd = self.gather_crowd(u, false);
+        self.units[u].gather_here = crowd > 0;
+        Some((good, crowd))
+    }
+
+    /// Blocks A and B — the search, and the two fields it writes.
+    fn gather_search(&mut self, u: usize) -> Option<TypeId> {
         let who = self.units[u].owner;
         let merchant = self.is_merchant(u);
         let radius = self.gather_radius(u);
@@ -148,7 +182,10 @@ impl Sim {
             let t = Pos::new(t0.x + circle.x[i], t0.y + circle.y[i]);
             if self.world.tile_in_bounds(t) && self.gather_tile_ok(merchant, t) {
                 match self.find_good_at(tile_cell(t), who) {
-                    Some(g) => return self.gather_alone(u, g),
+                    Some(g) => {
+                        self.units[u].rare = i32::try_from(g).unwrap_or(-1);
+                        return Some(g);
+                    }
                     None => self.units[u].good_obj = -1,
                 }
             }
@@ -165,18 +202,19 @@ impl Sim {
             }
             if let Some(g) = self.find_good_at(tile_cell(t), who) {
                 self.units[u].good_obj = i16::try_from(i).unwrap_or(-1);
-                return self.gather_alone(u, g);
+                self.units[u].rare = i32::try_from(g).unwrap_or(-1);
+                return Some(g);
             }
         }
-        false
+        None
     }
 
-    /// `LAB_00609573`'s tail: record the good, then count who else is on
-    /// it. `true` — the original's `1` — when nobody is.
-    fn gather_alone(&mut self, u: usize, good: TypeId) -> bool {
-        self.units[u].rare = i32::try_from(good).unwrap_or(-1);
+    /// `LAB_00609573`'s tail: how many other units of the finder's own
+    /// lineage are close enough to be sharing the deposit. `packed_exempt`
+    /// is `param_8`.
+    fn gather_crowd(&self, u: usize, packed_exempt: bool) -> i32 {
         let Some(mine_ty) = self.unit_tree(u) else {
-            return true;
+            return 0;
         };
         let who = self.units[u].owner;
         let mine = self.gather_radius(u);
@@ -208,7 +246,7 @@ impl Sim {
                 // `param_8 == 1`: a packed unit is skipped **unless it is
                 // in the middle of unpacking**, which is the arm the zero
                 // form has not got.
-                if self.units[o].combat.packed && !self.is_unpacking(o) {
+                if self.units[o].combat.packed && !(packed_exempt && self.is_unpacking(o)) {
                     continue;
                 }
                 let d = vector_dist(self.units[o].pos.x - at.x, self.units[o].pos.y - at.y);
@@ -217,9 +255,7 @@ impl Sim {
                 }
             }
         }
-        // `if (count == 0) return 1;` — and otherwise the rates are divided
-        // by `count + 1` and, with `param_7` set, the answer is 0.
-        count == 0
+        count
     }
 
     /// `UnitData::is_unpacking@0060a4b0`: the order at the head of the list

@@ -807,8 +807,14 @@ as an input.
 
 ### 1. `Unit::update_speed` — the cached base
 
-Runs when something changes, and writes a cached value on the unit. From the
-type's move value: the transport bonus (`MILITARY_TRANSPORT_BONUS`, 0) and the
+Runs when something changes — `Leader::calc_unit_stats@006cf970`, off
+`LeaderData`'s `0x4000000`, which `Leader::process` clears in the same frame it
+is raised — and writes a cached value on the unit. One arm of it is landed
+(2026-09-02): the **whales** bonus, `+WHALES_SHIPS_MOVE%` for an objmask
+`0x2000` (`NAVAL`) type whose owner holds rare bit 25, which run63 measures as
+`myspeed` 38 → 45 on three Fishermen and 25 → 30 on a Transport Barge in one
+frame (`docs/ECONOMY.md`, "What an owned rare does"; `crates/sim/src/rares.rs`).
+The rest of the pipeline below is still an input. From the type's move value: the transport bonus (`MILITARY_TRANSPORT_BONUS`, 0) and the
 American marine bonus (`AMERICANS_MARINE_SPEED_BONUS`, 2) scaled by
 `LeaderDataEncrypt::epoch[0]` — the owner's **Military library level**, not
 the age (an earlier draft said age); then a multiply by `UNIT_MOVE_SPEED`,

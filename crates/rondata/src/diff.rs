@@ -8836,11 +8836,13 @@ mod tests {
         );
         assert_eq!(
             wrong.len(),
-            3_500,
+            1_500,
             "the census's own count. run59 measured 4,798; item 162 took 500 \
              with the pre-placed camp's six timber slots and 798 more with \
              the wealth slot a dock claims — which is the whole timber \
-             lineage, bucket and income both"
+             lineage, bucket and income both — and item 165 took the last \
+             2,000 with `Leader::calc_gather` step 6, the AI's Fisherman on \
+             its fish. What is left is item 156's three hundreds"
         );
 
         // **The record, and every shape in it is a standing state.** Each row
@@ -8901,24 +8903,23 @@ mod tests {
         // the other side — six slots short and its timber bucket exact on
         // all 250 frames.
 
-        // **Two rate seams, both the AI's alone.** Every one of the human's
-        // six incomes is exact on every frame; the AI's food is ten short
-        // (in sixteenths) and its wealth is missing entirely.
-        assert_eq!(row(1, "income", 0), Some((250, 1440, 1600)));
-        assert_eq!(row(1, "income", 2), Some((250, 0, 160)));
-        assert_eq!(row(1, "resources", 2), Some((250, 0, 160)));
+        // **The two rate seams are closed, and they were one thing.** The
+        // AI's food used to be ten short in sixteenths and its wealth
+        // missing entirely — `160` and `160` exactly, which is `10 × 16`
+        // twice, and `10` is both of Fish's `BONUS_NUM`s in
+        // `resourcerules.xml`. `Leader::calc_gather` **step 6** is what
+        // pays them: the AI's `1/14` has been standing on its fish since
+        // frame 4992 and nothing here walked the idle fishermen
+        // (`crates/sim/src/rares.rs`, item 165). Every one of both players'
+        // six rates and six incomes is now the original's on every frame of
+        // the window.
         for g in 0..sim::economy::RESOURCES {
+            assert_eq!(n(1, "income", g), 0, "the AI's income, good {g}");
+            assert_eq!(n(1, "resources", g), 0, "the AI's rate, good {g}");
             assert_eq!(n(0, "income", g), 0, "the human's income, good {g}");
             assert_eq!(n(0, "resources", g), 0, "the human's rate, good {g}");
             assert_eq!(n(0, "leftover", g), 0, "the human's leftover, good {g}");
         }
-        // The AI's timber *rate* parted on 5384 too — the original's
-        // dropping 1280 → 1120 sixteen frames from the end of the window
-        // while this crate's stood. It was downstream of the same fifty:
-        // with the timber spent on the Market the gatherer leaves the wood
-        // here as well, and the row is gone.
-        assert_eq!(n(1, "income", 1), 0, "the AI's timber rate, across 5384");
-
         // **And the hundred in goods 3, 4 and 5 is item 156**, unchanged
         // since run40 measured it: `STARTING_GOODS` arrives with the age, so
         // the original holds none of the three in the Ancient age. Inert —
@@ -9928,24 +9929,28 @@ mod tests {
         for (&(who, o), &frame) in &parted {
             eprintln!("  {who}/{o} parts at {frame}");
         }
-        // **Two units part before the word, and both are new** — run58
-        // ends at 5201 and nothing on disk had ever measured a frame
-        // between there and 5669. Neither is a route: both hold the
-        // original's own order and walk the original's own line, a few
-        // frames out of step with it.
+        // **One unit parts before the word** — run58 ends at 5201 and
+        // nothing on disk had ever measured a frame between there and
+        // 5669. It is not a route: it holds the original's own order and
+        // walks the original's own line, a few frames out of step with it.
         //
         // - **`1/18` is five frames ahead**, from the window's first frame
         //   — this crate's position on 5430 is the original's on 5435, the
         //   same `MoveOrder` to `(20376, 21144)` at the same `myspeed 25`
         //   along the same row. Something between 5202 and 5430 cost the
         //   original five frames and cost this crate none.
-        // - **`1/17` turns three frames late.** Both walk the same line to
-        //   `(38040, 30360)` at `(-5, -37)` a frame; the original's step
-        //   goes to `(-6, -44)` on 5552 and then to `(-28, -36)` on 5554,
-        //   and this crate holds `(-5, -37)` until 5555. It is the turn
-        //   model, not the path.
+        // - ~~**`1/17` turns three frames late.**~~ Closed 2026-09-02, and
+        //   it was never the turn model: the original's boat is **faster**
+        //   from 5552, because leader 1's second Fisherman settles on a
+        //   **whale** that frame and `Unit::update_speed`'s one rare arm
+        //   puts every naval type at `(WHALES_SHIPS_MOVE + 100)%` —
+        //   `myspeed` 38 → 45 on all three boats and 25 → 30 on the barge,
+        //   in the dump and now here (`crates/sim/src/rares.rs`). The
+        //   apparent late turn was a slower boat reaching its waypoint
+        //   later; the twenty-three frames it lost afterwards were East
+        //   Indies' word.
         //
-        // Pinned as they stand rather than filtered out, so the day either
+        // Pinned as it stands rather than filtered out, so the day it
         // moves the assertion moves with it.
         let early: Vec<(i64, i64, i64)> = parted
             .iter()
@@ -9954,8 +9959,8 @@ mod tests {
             .collect();
         assert_eq!(
             early,
-            vec![(1, 17, 5552), (1, 18, 5430)],
-            "the window's two standing position residues"
+            vec![(1, 18, 5430)],
+            "the window's one standing position residue"
         );
 
         // **The `SITE` record, whole.** Ten slots a leader a frame, five
@@ -10062,7 +10067,19 @@ mod tests {
     /// centre tile rather than whose centre is in the cell (`docs/AI.md`
     /// §26).
     ///
-    /// **5669** since 2026-09-02, and 5592 was one AI citizen's first idle
+    /// **5819** since 2026-09-02, and 5669 was a **whale**. The AI's
+    /// second Fisherman settles on one on frame 5551; `Leader::calc_gather`
+    /// step 6 walks the idle fishermen, lights the rare's bit in
+    /// `rare_owned`, and `Leader::calc_unit_stats` hands every naval type
+    /// `WHALES_SHIPS_MOVE` — `myspeed` 38 → 45 on the same frame, in the
+    /// dump and now here. The third Fisherman, still walking to its own
+    /// deposit, then arrived twenty-three frames late and did not spend
+    /// `think_fish`'s 175 draws on 5669 (`crates/sim/src/rares.rs`,
+    /// `docs/ECONOMY.md` step 6; run63 is the capture, and run59's census
+    /// had the same finding as an income of 160 food and 160 wealth the AI
+    /// was not earning).
+    ///
+    /// It was **5669** for one item, and 5592 was one AI citizen's first idle
     /// frame: `think_peasant`'s tail sends a worker off to explore the
     /// moment it stands in a region none of its leader's ten sites claims,
     /// and waits six idle frames when one does (`docs/SCOUT.md` §11.1).
@@ -10073,7 +10090,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 5669;
+    const LONG_WORD_EAST_INDIES: i64 = 5819;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

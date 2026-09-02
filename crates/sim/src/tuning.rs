@@ -196,6 +196,21 @@ pub struct Tuning {
     pub oil_rate: i32,
     /// One scholar's rate by university level, as 8.8 fixed point.
     pub scholar_rate: [i32; 6],
+    /// Percentage a **fisherman** adds to the food half of the rare it
+    /// stands on, by Fishermen upgrade level — `LeaderData::calc_rare`'s
+    /// one addition, and the reason a level-0 fisherman on a fish pays the
+    /// raw `BONUS_NUM0` (`docs/ECONOMY.md`, step 6). Level 0 ships as 0%.
+    pub fishermen_bonus: [i32; 5],
+    /// Percentage a **merchant** scales its rare's payout by, by Merchants
+    /// upgrade level. It *replaces* the 100 rather than adding to it, and
+    /// it reaches the non-food half of a fish or a whale as well as
+    /// everything a merchant stands on in friendly ground. Level 0 ships as
+    /// 100%, so it is inert until Taxation.
+    pub merchants_bonus: [i32; 5],
+    /// Percentage the **Whales** rare adds to every naval type's cached
+    /// speed — `Unit::update_speed@006055c0`'s one rare arm
+    /// (`docs/ECONOMY.md`, "What an owned rare does").
+    pub whales_ships_move: i32,
     /// Percentage bonus to a city's food by granary level.
     ///
     /// The original reaches this array, and the two below it, by indexing
@@ -730,6 +745,9 @@ impl Tuning {
         peasant_rate: 2560,
         oil_rate: 8960,
         scholar_rate: [1280, 1792, 2560, 3840, 5120, 6400],
+        fishermen_bonus: [0, 50, 100, 200, 200],
+        merchants_bonus: [100, 120, 150, 200, 300],
+        whales_ships_move: 20,
         granary_bonus: [20, 50, 100, 200, 250],
         lumbermill_bonus: [20, 50, 100, 200, 250],
         smelter_bonus: [50, 100, 150, 200, 250],
@@ -944,7 +962,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 260] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 263] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1089,6 +1107,9 @@ impl Tuning {
             ("STARTING_GOODS", Slot::Entries(&T.starting_goods)),
             ("BASIC_GATHER", Slot::Entries(&T.basic_gather)),
             ("CITY_GATHER", Slot::Entries(&T.city_gather)),
+            ("FISHERMEN_BONUS", Slot::Entries(&T.fishermen_bonus)),
+            ("MERCHANTS_BONUS", Slot::Entries(&T.merchants_bonus)),
+            ("WHALES_SHIPS_MOVE", Slot::Value(T.whales_ships_move)),
             ("GRANARY_BONUS", Slot::Entries(&T.granary_bonus)),
             ("LUMBERMILL_BONUS", Slot::Entries(&T.lumbermill_bonus)),
             ("SMELTER_BONUS", Slot::Entries(&T.smelter_bonus)),

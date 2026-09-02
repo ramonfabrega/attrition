@@ -120,6 +120,33 @@ pub enum OverCap {
     Uncapped,
 }
 
+/// The forty-four rare resources, `TypeIndex` `0x06`–`0x31` —
+/// `BitMask<44>`'s width, and the bit a good's index takes in
+/// `LeaderData::rare` is `good - `[`BASE_RARE`].
+pub const RARES: usize = 44;
+/// `TypeIndex::BASE_RARE`: the first good that is a rare, and the offset
+/// between a good's type index and its bit in the rare masks.
+pub const BASE_RARE: usize = 6;
+/// `TypeIndex::FISH`.
+pub const FISH: usize = 6;
+/// `TypeIndex::WHALES` — the rare `Unit::update_speed` reads, and the
+/// second of the two `LeaderData::calc_rare` treats as a **fisherman's**
+/// rather than a merchant's.
+pub const WHALES: usize = 31;
+
+/// What one `resourcerules.xml` record pays whoever stands on it —
+/// `GoodTypeData`'s two `(BONUS_TYPE, BONUS_NUM)` pairs, which is the whole
+/// of what `LeaderData::calc_rare@006e08d0` reads off the good.
+///
+/// A pair whose `BONUS_TYPE` is not one of the six resources is skipped;
+/// the original's test is `(unsigned)index < 6`, so `none` (`-1`) falls out
+/// the same way. The amount is in **whole resources per period**, as the
+/// file writes it — the `× 16` into sixteenths is `calc_rare`'s.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct GoodType {
+    pub bonus: [(Option<Resource>, i32); 2],
+}
+
 /// A building that people gather at, as income sees one.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Site {
@@ -268,6 +295,16 @@ pub struct Holdings {
     /// `Leader::calc_gather` steps 4 and 5, which take no city enhancer
     /// and no `CITY_GATHER` (`crates/sim/src/holdings.rs`).
     pub outside: Vec<Site>,
+    /// **Step 6**, already summed: what the player's idle fishermen and
+    /// merchants pay, in sixteenths, each one's `LeaderData::calc_rare`
+    /// divided by the crowd sharing its deposit
+    /// (`crates/sim/src/holdings.rs`).
+    pub rares: [i32; RESOURCES],
+    /// `LeaderData::rare_owned` (`+0x6dac`): a bit per rare a unit of this
+    /// player's was standing on when step 6 last ran. Cleared and rebuilt
+    /// on every recompute, which is why a rare with nobody on it pays
+    /// nothing and grants nothing.
+    pub rare_owned: u64,
 }
 
 impl Holdings {
@@ -324,6 +361,14 @@ pub struct Ledger {
     /// completed gather building pays its bonus, and rebuilding a razed farm
     /// therefore pays nothing.
     pub gather_slots_high: [i32; RESOURCES],
+    /// `LeaderData::rare` (`+0x6d98`): `rare_owned | rare_conquest`, as
+    /// `Leader::gather` recomputes it every frame. This is what the rest of
+    /// the game asks — `Unit::update_speed`'s whales arm, the pop cap, the
+    /// border colours — and it changes only on a recompute frame, because
+    /// that is when `rare_owned` is rebuilt.
+    ///
+    /// `rare_conquest` is Conquer-the-World's and is always empty here.
+    pub rare: u64,
     /// Frame of the last reassembly.
     pub gather_stamp: i64,
     /// Whether something changed since the last reassembly.
@@ -469,11 +514,80 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
         out[i] += per_gatherer(t, site.resource, site.level) * site.gatherers;
     }
 
+    // Step 6: every idle fisherman and merchant, and with them every rare
+    // anyone is standing on. `crates/sim/src/holdings.rs` is the walk; the
+    // sum arrives here already in sixteenths and already divided by each
+    // deposit's crowd.
+    for r in Resource::ALL {
+        out[r.index()] += h.rares[r.index()];
+    }
+
     // Refineries scale oil at the player level rather than per city.
     let oil = Resource::Oil.index();
     out[oil] = (h.refineries * t.refinery_bonus + 100) * out[oil] / 100;
 
     out[Resource::Wealth.index()] += territory_tax(t, h);
+    out
+}
+
+/// `LeaderData::calc_rare@006e08d0` — what one deposit pays the player
+/// standing on it, in sixteenths.
+///
+/// The good gives at most two `(resource, amount)` pairs
+/// ([`GoodType`]), each `× 16`. Two percentages then sit on them, and
+/// which one reaches which half is the part a reader gets wrong:
+///
+/// - **`MERCHANTS_BONUS` replaces the 100**, and it reaches a resource
+///   only when the unit stands in friendly ground (`ally`) *or* when the
+///   good is [`FISH`] or [`WHALES`] **and the resource is not food**. So a
+///   fish's wealth half is a merchant's business and its food half is not.
+/// - **`FISHERMEN_BONUS` is added**, to the **food slot only**, and only
+///   for those same two water goods.
+///
+/// Both are inert as shipped at level zero — `MERCHANTS_BONUS` entry 0 is
+/// 100% and `FISHERMEN_BONUS` entry 0 is 0% — which is why a level-0
+/// fisherman on a fish pays exactly `BONUS_NUM × 16` and nothing else.
+///
+/// **Seam.** `extra` — the Japanese fishing-boat bonus on the two water
+/// goods, and the Porcelain Tower and Nubian terms on everything else —
+/// is the nation and wonder layer and is always zero here. It is the only
+/// term that would scale slots 1–5 without a merchant level.
+pub fn calc_rare(
+    t: &Tuning,
+    good_index: usize,
+    good: &GoodType,
+    fishermen: usize,
+    merchants: usize,
+    ally: bool,
+) -> [i32; RESOURCES] {
+    let mut out = [0; RESOURCES];
+    let mut scale = [100; RESOURCES];
+    let water = good_index == FISH || good_index == WHALES;
+    let merchant_pct = t.merchants_bonus[merchants.min(t.merchants_bonus.len() - 1)];
+    for (res, num) in good.bonus {
+        let Some(res) = res else { continue };
+        let i = res.index();
+        out[i] += num * RATE_SCALE;
+        if ally || (water && res != Resource::Food) {
+            scale[i] = merchant_pct;
+        }
+    }
+    // The fishermen level is read for the two water goods and nowhere
+    // else; the `else` arm is where Porcelain and Nubian would go.
+    let fish_pct = if water {
+        t.fishermen_bonus[fishermen.min(t.fishermen_bonus.len() - 1)]
+    } else {
+        0
+    };
+    let extra = 0;
+    if fish_pct + extra != 0 || scale[0] > 100 {
+        out[0] = (fish_pct + extra + scale[0]) * out[0] / 100;
+    }
+    for i in 1..RESOURCES {
+        if extra != 0 || scale[i] > 100 {
+            out[i] = (scale[i] + extra) * out[i] / 100;
+        }
+    }
     out
 }
 

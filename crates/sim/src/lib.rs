@@ -78,6 +78,7 @@ pub mod orders;
 pub mod path;
 pub mod place;
 pub mod production;
+pub mod rares;
 pub mod roads;
 pub mod scout;
 pub mod single;
@@ -318,6 +319,15 @@ pub struct Unit {
     /// it true — and no `unit_masks` in any capture on disk carries the bit
     /// (`docs/ORDERS.md` §6.10).
     pub gather_here: bool,
+    /// `ObjectData + 0x8 & 8`: "this unit has gone idle and nothing has
+    /// given it an order since". `Unit::check_idle` sets it and
+    /// `Unit::work` clears it, and for a **fisherman or a merchant** each
+    /// of those two transitions marks the owner's economy dirty — because
+    /// each of them changes who `Leader::calc_gather` step 6 will walk
+    /// ([`crate::rares`]). It is the reason a boat that finishes its
+    /// journey has its deposit counted within eight frames rather than at
+    /// the next 512-frame refresh.
+    pub idle_latch: bool,
 }
 
 /// What a unit needs in order to move.
@@ -660,6 +670,7 @@ impl Unit {
             rare: 0,
             good_obj: -1,
             gather_here: false,
+            idle_latch: false,
         }
     }
 
@@ -703,6 +714,17 @@ pub struct Sim {
     /// way the original's tables are index-keyed; see `docs/DECISIONS.md`
     /// entry 9.
     pub unit_types: Vec<UnitType>,
+    /// The fifty `resourcerules.xml` goods' payouts, record index as id —
+    /// the six basics first and then the forty-four rares
+    /// (`crates/rondata/src/load.rs`). Only `LeaderData::calc_rare` reads
+    /// them, so an empty table simply means no deposit pays anything.
+    pub good_types: Vec<economy::GoodType>,
+    /// One per player: whether `Leader::calc_unit_stats` is owed — the
+    /// `LeaderData` flag `0x4000000`, which `Leader::process` acts on
+    /// **the frame it is raised**, before any unit moves. The one writer
+    /// modelled here is a change in the player's rare mask
+    /// (`Sim::calc_unit_stats`).
+    pub unit_stats_dirty: Vec<bool>,
     /// One per player: what they have built, and the population it occupies.
     pub muster: Vec<Muster>,
     /// Where an unavailable resource's price is charged instead.
@@ -1063,6 +1085,8 @@ impl Sim {
             holdings: vec![economy::Holdings::new(); players],
             ledgers: vec![economy::Ledger::starting(&tuning); players],
             unit_types: Vec::new(),
+            good_types: Vec::new(),
+            unit_stats_dirty: vec![false; players],
             muster: vec![Muster::new(&tuning); players],
             redirects: cost::Redirects::RON,
             buildings: Vec::new(),
@@ -1125,6 +1149,7 @@ impl Sim {
         self.tech.push(tech::PlayerTech::new(&self.tech_tree));
         self.supply.push(supply::Network::default());
         self.holdings.push(economy::Holdings::new());
+        self.unit_stats_dirty.push(false);
         self.ledgers.push(economy::Ledger::starting(&self.tuning));
         self.muster.push(Muster::new(&self.tuning));
         self.mods.push(combat::Modifiers::default());
@@ -1904,7 +1929,7 @@ impl Sim {
                 unit.kind = self.unit_types[ty].kind;
                 unit.ty = Some(ty);
                 unit.type_index = self.unit_types[ty].type_index;
-                unit.movement.speed = self.unit_types[ty].moves;
+                unit.movement.speed = self.type_speed(who, ty);
                 unit.movement.turning = self.turning_for(ty);
                 let unit = self.add_unit(unit);
                 // `Unit::init` → `Guy::init_real`: the figure's one draw.
@@ -2379,10 +2404,30 @@ impl Sim {
                 player,
                 frame,
             );
+            // `Leader::gather`'s own tail, every frame: `rare = rare_owned |
+            // rare_conquest`, and a change raises `0x4000000` for the
+            // unit-stats pass below. `rare_owned` only moves on a recompute
+            // frame, so this can only fire on one — but the original tests
+            // it every frame and so does this ([`crate::rares`]).
+            let rare = self.holdings[who].rare_owned;
+            if self.ledgers[who].rare != rare {
+                self.ledgers[who].rare = rare;
+                self.unit_stats_dirty[who] = true;
+            }
             // `Leader::process` also answers the wall-stats dirty flag here,
             // before any building is touched.
             if self.wall_stats_dirty[who] {
                 self.calc_wall_stats(player);
+            }
+            // And then `0x4000000` — `Leader::calc_unit_stats`, which is
+            // where a rare that appeared in this frame's `Leader::gather`
+            // reaches the units. `Leaders::process_all` runs before
+            // `Objects::process_all`, so the new speed is the one the
+            // frame's own step uses (`docs/ECONOMY.md`, "What an owned
+            // rare does").
+            if self.unit_stats_dirty[who] {
+                self.unit_stats_dirty[who] = false;
+                self.calc_unit_stats(player);
             }
         }
 

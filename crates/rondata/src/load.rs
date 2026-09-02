@@ -85,6 +85,10 @@ pub struct Loaded {
     pub build_names: Vec<String>,
     pub tech_names: Vec<String>,
     pub good_names: Vec<String>,
+    /// Each `resourcerules.xml` record's `BONUS_TYPE0/NUM0` and
+    /// `BONUS_TYPE1/NUM1` — what standing on that good pays, before
+    /// `LeaderData::calc_rare`'s two percentages (`sim::economy::GoodType`).
+    pub good_types: Vec<sim::economy::GoodType>,
     /// `TypeData::type_name`: the `TYPENAME` column, or `NAME` when the
     /// record has none or leaves it empty. This is what `Types::unit_key`,
     /// `build_key` and `tech_key` compare a `FROM`/`JUMP`/`GRAFT`/`WHERE`/
@@ -206,6 +210,7 @@ impl Loaded {
             sim.add_build_type(ty.clone());
         }
         sim.table = self.table.clone();
+        sim.good_types.clone_from(&self.good_types);
     }
 
     /// A simulation with the loaded data and `players` players, each holding
@@ -678,6 +683,29 @@ pub fn load_tables(
             },
         }
     };
+    // `GoodType::init`'s two bonus pairs. The column is a resource word or
+    // `none`; the number is whole resources per period, which
+    // `sim::economy::calc_rare` puts into sixteenths.
+    let good_types: Vec<sim::economy::GoodType> = goods
+        .records
+        .iter()
+        .map(|r| {
+            let pair = |t: &str, n: &str| {
+                (
+                    r.text(t).and_then(resource_word),
+                    r.text(n)
+                        .and_then(|v| v.trim().parse::<i32>().ok())
+                        .unwrap_or(0),
+                )
+            };
+            sim::economy::GoodType {
+                bonus: [
+                    pair("BONUS_TYPE0", "BONUS_NUM0"),
+                    pair("BONUS_TYPE1", "BONUS_NUM1"),
+                ],
+            }
+        })
+        .collect();
     for (i, r) in goods.records.iter().enumerate() {
         let mut d = TypeDef::good(&good_names[i]);
         d.preq[0] = tech_key(r.text("PREQ0"), &mut warnings);
@@ -1333,6 +1361,16 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // `FISHERMEN1..3` are bonuses 19–21 (`0x2bf`–`0x2c1`) and
+    // `MERCHANTS_1..4` are 99–102 (`0x30f`–`0x312`) — the two upgrade
+    // ladders `LeaderData::calc_rare` indexes its percentages with
+    // (`docs/ECONOMY.md`, step 6).
+    let bonus_at = |i: usize| match bonus_preqs.get(i) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
+    tree.roles.fishermen_preq = [bonus_at(19), bonus_at(20), bonus_at(21)];
+    tree.roles.merchants_preq = [bonus_at(99), bonus_at(100), bonus_at(101), bonus_at(102)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,
@@ -1444,6 +1482,7 @@ pub fn load_tables(
         build_names,
         tech_names,
         good_names,
+        good_types,
         unit_type_names,
         build_type_names,
         unit_tree,
@@ -2059,6 +2098,7 @@ mod tests {
             build_names: vec![],
             tech_names: vec![],
             good_names: vec![],
+            good_types: vec![],
             unit_type_names: vec![],
             build_type_names: vec![],
             unit_tree: vec![6, 7, 8],

@@ -1,0 +1,509 @@
+//! `Leader::calc_gather`'s **step 6** — every idle fisherman and merchant —
+//! and the one thing owning a rare does to a unit.
+//!
+//! The specification is `docs/ECONOMY.md`, step 6 and "What an owned rare
+//! does". Three pieces, and they are one mechanic because the middle one is
+//! the only reason the first has a visible effect this early in a game:
+//!
+//! 1. **The walk.** `Leader::calc_gather@006ceee0` clears `rare_owned`, then
+//!    walks the player's objects in `o` order and hands every `is(FISHERMEN)`
+//!    or `UnitData::is_merchant` whose `order_type` is `NONE` to
+//!    `Unit::do_gather@005fce20`. Each answers the good it stands on; the
+//!    good's payout ([`economy::calc_rare`]) is divided by the crowd sharing
+//!    it and added to the player's rate, and the good's bit goes into
+//!    `rare_owned`.
+//! 2. **The mask.** `Leader::gather@006ce280` then sets `rare =
+//!    rare_owned | rare_conquest` and, when that differs from last frame's,
+//!    raises `LeaderData`'s `0x4000000`.
+//! 3. **`Leader::calc_unit_stats@006cf970`**, which `Leader::process` runs on
+//!    the same frame the flag goes up, calls `Unit::update_speed@006055c0` on
+//!    every one of that player's units. Its one rare arm is **Whales**:
+//!    a naval type's cached speed becomes `(WHALES_SHIPS_MOVE + 100) / 100`
+//!    of itself.
+//!
+//! That third step is what makes this measurable rather than merely correct.
+//! East Indies' AI puts a second Fisherman on a whale on frame 5551 and every
+//! ship it owns goes from 38 to 45 in the same frame — the Fisherman walking
+//! to its own deposit then arrives twenty-three frames earlier, and the word
+//! is where that arrival is.
+//!
+//! # What is not modelled
+//!
+//! - **The Porcelain Tower's pass**, which sets `rare_owned` bits for every
+//!   rare inside the player's own territory whether anyone stands on it or
+//!   not. It is the one exception to "a rare pays only through a merchant"
+//!   and it is the wonder layer's.
+//! - **`rare_conquest`**, Conquer-the-World's own mask; always empty here.
+//! - **Everything else `update_speed` does** — the transport and marine
+//!   bonuses, the gunpowder foot line's corrections, Bantu, French siege,
+//!   Versailles, aluminium, the spy/general/supply upgrade counts and the two
+//!   Aztec types (`docs/MOVEMENT.md`, "The speed pipeline"). None of them is
+//!   modelled anywhere in this crate, so recomputing a unit's cached speed
+//!   from its type's `MOVES` loses nothing that was ever there.
+//! - **`calc_unit_stats`' other three calls** — `calc_attrition`,
+//!   `calc_anti_attrition` and `Unit::update_armor`.
+
+use crate::economy::{self, RESOURCES};
+use crate::tech::TypeId;
+use crate::world::Player;
+use crate::{Sim, orders};
+
+impl Sim {
+    /// `LeaderData::get_fishermen@006d6e80` — the highest `FISHERMEN`
+    /// bonus row whose prerequisite the player holds, 0 for none.
+    pub(crate) fn fishermen_level(&self, who: Player) -> usize {
+        self.bonus_level(who, &self.tech_tree.roles.fishermen_preq)
+    }
+
+    /// `LeaderData::get_merchants_level@006d6dc0`.
+    pub(crate) fn merchants_level(&self, who: Player) -> usize {
+        self.bonus_level(who, &self.tech_tree.roles.merchants_preq)
+    }
+
+    /// The shared shape of the two: the rows are tested most advanced
+    /// first and the answer is that row's one-based position. A row the
+    /// tree does not know is not held — the opposite of the *bonus* rule
+    /// ([`crate::tech::Roles::colonize_preq`]), because here a missing
+    /// name must not invent an upgrade the player never bought.
+    fn bonus_level(&self, who: Player, rows: &[Option<TypeId>]) -> usize {
+        for (i, row) in rows.iter().enumerate().rev() {
+            let Some(t) = *row else { continue };
+            if self
+                .tech_tree
+                .has_tech(&self.setup, &self.tech[who as usize], t)
+            {
+                return i + 1;
+            }
+        }
+        0
+    }
+
+    /// Step 6 whole: the rates it adds and the `rare_owned` it rebuilds.
+    ///
+    /// Called from [`Sim::assemble_holdings`], which runs inside the same
+    /// cadence gate the original's recompute does — so a rare appears on
+    /// exactly the frame it appears there.
+    pub(crate) fn gather_rares(&mut self, who: Player) -> ([i32; RESOURCES], u64) {
+        let mut out = [0; RESOURCES];
+        let mut owned = 0u64;
+        let candidates: Vec<usize> = (0..self.units.len())
+            .filter(|&u| {
+                let unit = &self.units[u];
+                unit.owner == who && unit.alive() && unit.on_map
+            })
+            .collect();
+        for u in candidates {
+            // `is(0x13d, 0) || is_merchant`, then `order_type() == NONE`.
+            // A merchant walking somewhere earns nothing, which is also
+            // why a boat only ever pays between two `think_fish` searches.
+            if !(self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u)) {
+                continue;
+            }
+            if self.order_type(u) != orders::index::NONE {
+                continue;
+            }
+            let Some((good, crowd)) = self.do_gather_rates(u) else {
+                continue;
+            };
+            let Some(g) = self.good_types.get(good).copied() else {
+                continue;
+            };
+            // The ally test the good's own cell answers — `is_ally` in the
+            // cached arm and the two-sided diplomacy compare in the
+            // spiral's, which are the same predicate.
+            let ally = self.gather_cell_friendly(u, who);
+            let rate = economy::calc_rare(
+                &self.tuning,
+                good,
+                &g,
+                self.fishermen_level(who),
+                self.merchants_level(who),
+                ally,
+            );
+            let share = crowd + 1;
+            for (i, r) in rate.iter().enumerate() {
+                out[i] += r / share;
+            }
+            if good >= economy::BASE_RARE && good - economy::BASE_RARE < economy::RARES {
+                owned |= 1 << (good - economy::BASE_RARE);
+            }
+        }
+        (out, owned)
+    }
+
+    /// Whether the tile the unit found its good on is the finder's own
+    /// ground or an ally's — `local_20` in `UnitData::calc_gather`.
+    ///
+    /// The original reads the **good's** cell rather than the unit's; both
+    /// walks record the index they accepted, so the cell is the one
+    /// `good_obj` names.
+    fn gather_cell_friendly(&self, u: usize, who: Player) -> bool {
+        let i = self.units[u].good_obj;
+        let Ok(i) = usize::try_from(i) else {
+            return false;
+        };
+        let circle = crate::ai_place::circle();
+        let (Some(&dx), Some(&dy)) = (circle.x.get(i), circle.y.get(i)) else {
+            return false;
+        };
+        let t = self.units[u].pos.tile();
+        let c = crate::world::Cell::new(
+            (t.x + dx).div_euclid(crate::world::TILES_PER_CELL),
+            (t.y + dy).div_euclid(crate::world::TILES_PER_CELL),
+        );
+        let Some(owner) = self.world.owner(c).player() else {
+            return false;
+        };
+        owner == who
+            || (self.allied_both_ways(who as usize, owner as usize)
+                && self.allied_both_ways(owner as usize, who as usize))
+    }
+
+    fn allied_both_ways(&self, a: usize, b: usize) -> bool {
+        self.allied
+            .get(a)
+            .and_then(|r| r.get(b))
+            .copied()
+            .unwrap_or(false)
+    }
+
+    /// `Unit::update_speed@006055c0`, as much of it as this crate models:
+    /// the type's `MOVES` and the **Whales** arm.
+    pub(crate) fn type_speed(&self, who: Player, ty: usize) -> i32 {
+        let mut speed = self.unit_types[ty].moves;
+        let naval = self.unit_types[ty].combat.obj_masks & crate::combat::mask::NAVAL != 0;
+        if naval && self.has_rare(who, economy::WHALES) {
+            speed = (self.tuning.whales_ships_move + 100) * speed / 100;
+        }
+        speed
+    }
+
+    /// `LeaderData::has_rare(good)` — a good's bit in the player's `rare`
+    /// mask. A good below [`economy::BASE_RARE`] is not a rare and is never
+    /// in it.
+    pub fn has_rare(&self, who: Player, good: usize) -> bool {
+        let Some(l) = self.ledgers.get(who as usize) else {
+            return false;
+        };
+        good >= economy::BASE_RARE
+            && good - economy::BASE_RARE < economy::RARES
+            && l.rare >> (good - economy::BASE_RARE) & 1 != 0
+    }
+
+    /// `Leader::calc_unit_stats@006cf970`, the speed third of it: every one
+    /// of the player's live units takes its cached speed again.
+    pub(crate) fn calc_unit_stats(&mut self, who: Player) {
+        for u in 0..self.units.len() {
+            let unit = &self.units[u];
+            if unit.owner != who || !unit.alive() {
+                continue;
+            }
+            let Some(ty) = unit.ty else { continue };
+            self.units[u].movement.speed = self.type_speed(who, ty);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::economy::{RATE_SCALE, Resource};
+    use crate::world::{
+        Cell, CellData, Good, Pos, TILES_PER_CELL, Terrain, UNITS_PER_TILE, World, tile,
+    };
+    use crate::{Tuning, tech};
+
+    /// The fifty `resourcerules.xml` goods as this install writes the two
+    /// this mechanic reads: Fish pays Food 10 and Wealth 10, Whales pays
+    /// Food 10 and Metal 10.
+    fn good_table() -> Vec<economy::GoodType> {
+        let mut v = vec![economy::GoodType::default(); 50];
+        v[economy::FISH].bonus = [(Some(Resource::Food), 10), (Some(Resource::Wealth), 10)];
+        v[economy::WHALES].bonus = [(Some(Resource::Food), 10), (Some(Resource::Metal), 10)];
+        v
+    }
+
+    /// A 40 × 40 all-ocean world with a human and an AI, the fifty goods in
+    /// the tree, and one deployed AI Fisherman at the centre of cell
+    /// `(20, 20)` — `calc_gather.rs`'s fixture with the good table and a
+    /// naval `obj_masks` on the boat.
+    fn sea_sim() -> (Sim, usize) {
+        let mut world = World::new(40, 40);
+        world.fill_region(Terrain::Sea, Cell::new(0, 0), Cell::new(39, 39));
+        for y in 0..40 {
+            for x in 0..40 {
+                world.set_cell_data(
+                    Cell::new(x, y),
+                    CellData {
+                        land: 2,
+                        down: -1,
+                        ..CellData::default()
+                    },
+                );
+                for ty in 0..TILES_PER_CELL {
+                    for tx in 0..TILES_PER_CELL {
+                        world.set_tile_mask(
+                            Pos::new(x * TILES_PER_CELL + tx, y * TILES_PER_CELL + ty),
+                            tile::SURFACE_OCEAN,
+                        );
+                    }
+                }
+            }
+        }
+        let mut s = Sim::new(Tuning::RON, world, 2);
+        s.nation[0].human = true;
+        s.nation[1].human = false;
+        s.good_types = good_table();
+        {
+            let t = &mut s.tech_tree;
+            for i in 0..50 {
+                t.add(tech::TypeDef::good(&format!("good{i}")));
+            }
+            while t.types.len() < crate::fish::FISHERMEN {
+                t.add(tech::TypeDef::plain("filler", -1));
+            }
+            let boat = t.add(tech::TypeDef::unit(
+                "Fishing Boat",
+                tech::UnitTraits::default(),
+            ));
+            assert_eq!(boat, crate::fish::FISHERMEN);
+        }
+        s.tech = (0..2)
+            .map(|_| tech::PlayerTech::new(&s.tech_tree))
+            .collect();
+        let t = s.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            tree: Some(crate::fish::FISHERMEN),
+            ..crate::UnitType::default()
+        });
+        s.unit_types[t].combat.packs = true;
+        s.unit_types[t].combat.obj_masks |= crate::combat::mask::NAVAL;
+        s.unit_types[t].combat.domain = crate::attrition::Domain::Sea;
+        let at = Pos::new(20 * 768 + 384, 20 * 768 + 384);
+        let mut u = crate::Unit::new(1, 14, at, 20);
+        u.ty = Some(t);
+        let i = s.add_unit(u);
+        // A packing type is born packed, and a packed boat is step 6's
+        // very first refusal — this one has deployed.
+        s.units[i].combat.packed = false;
+        (s, i)
+    }
+
+    /// Ring 1 of the boat's own spiral, where a good the boat is "standing
+    /// on" actually sits (`docs/ORDERS.md` §6.10).
+    fn put_good_beside(s: &mut Sim, u: usize, ty: crate::tech::TypeId) {
+        let t0 = s.units[u].pos.tile();
+        let circle = crate::ai_place::circle();
+        let t = Pos::new(t0.x + circle.x[1], t0.y + circle.y[1]);
+        s.world.add_good(Good {
+            pos: Pos::new(t.x * UNITS_PER_TILE + 96, t.y * UNITS_PER_TILE + 96),
+            ty,
+            alive: true,
+        });
+        let m = s.world.tile_mask(t);
+        s.world.set_tile_mask(t, m | tile::AS_BUILDING);
+    }
+
+    /// **The two numbers run59's census measured.** A level-0 fisherman
+    /// standing on a fish in nobody's territory pays exactly `10 × 16` food
+    /// and `10 × 16` wealth — `FISHERMEN_BONUS` entry 0 is 0% and
+    /// `MERCHANTS_BONUS` entry 0 is 100%, so neither percentage moves
+    /// anything. The AI's income was 1440 against 1600 and its wealth 0
+    /// against 160 for exactly this reason.
+    #[test]
+    fn a_fish_pays_ten_of_each_of_its_two_goods() {
+        let t = Tuning::RON;
+        let g = good_table();
+        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 0, false);
+        assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE);
+        assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE);
+        assert_eq!(out[Resource::Timber.index()], 0);
+    }
+
+    /// **The fishermen bonus is added, and only to food.** At level 2 it is
+    /// 100%, so the food half doubles and the wealth half stands.
+    #[test]
+    fn the_fishermen_bonus_reaches_the_food_half_alone() {
+        let t = Tuning::RON;
+        let g = good_table();
+        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 2, 0, false);
+        assert_eq!(t.fishermen_bonus[2], 100);
+        assert_eq!(out[Resource::Food.index()], 20 * RATE_SCALE);
+        assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE);
+    }
+
+    /// **The merchants bonus replaces the 100, and on a water good it
+    /// reaches everything but food.** At level 1 it is 120%.
+    #[test]
+    fn the_merchants_bonus_reaches_a_fish_s_other_half() {
+        let t = Tuning::RON;
+        let g = good_table();
+        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 1, false);
+        assert_eq!(t.merchants_bonus[1], 120);
+        assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE);
+        assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE * 120 / 100);
+    }
+
+    /// In **friendly ground** the same bonus reaches the food half too —
+    /// the `local_20` flag, which is the difference between "a merchant in
+    /// your own borders" and one abroad.
+    #[test]
+    fn friendly_ground_lets_the_merchants_bonus_reach_food() {
+        let t = Tuning::RON;
+        let g = good_table();
+        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 1, true);
+        assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE * 120 / 100);
+        assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE * 120 / 100);
+    }
+
+    /// A good that is **not** one of the two water ones takes no fishermen
+    /// bonus at all, however many upgrades the player holds.
+    #[test]
+    fn a_land_rare_never_takes_the_fishermen_bonus() {
+        let t = Tuning::RON;
+        let mut g = good_table();
+        g[20].bonus = [(Some(Resource::Metal), 10), (None, 0)];
+        let out = economy::calc_rare(&t, 20, &g[20], 3, 0, false);
+        assert_eq!(out[Resource::Metal.index()], 10 * RATE_SCALE);
+    }
+
+    /// **The walk, end to end.** One idle Fisherman on a fish: the rate is
+    /// the good's, the mask carries the fish's bit, and nothing else does.
+    #[test]
+    fn an_idle_fisherman_on_a_fish_pays_and_claims_it() {
+        let (mut s, u) = sea_sim();
+        put_good_beside(&mut s, u, economy::FISH);
+        let (rate, owned) = s.gather_rares(1);
+        assert_eq!(rate[Resource::Food.index()], 10 * RATE_SCALE);
+        assert_eq!(rate[Resource::Wealth.index()], 10 * RATE_SCALE);
+        assert_eq!(owned, 1 << (economy::FISH - economy::BASE_RARE));
+        assert_eq!(s.units[u].rare, i32::try_from(economy::FISH).unwrap());
+    }
+
+    /// **A packed boat is not in the walk at all** — `calc_gather`'s very
+    /// first test, and the only caller that has it. It is why the third
+    /// Fisherman of run63, still packed and still sailing, claims nothing
+    /// while the two deployed ones do.
+    #[test]
+    fn a_packed_fisherman_claims_nothing() {
+        let (mut s, u) = sea_sim();
+        put_good_beside(&mut s, u, economy::FISH);
+        s.units[u].combat.packed = true;
+        let (rate, owned) = s.gather_rares(1);
+        assert_eq!(rate, [0; RESOURCES]);
+        assert_eq!(owned, 0);
+        assert_eq!(s.units[u].rare, -1, "and the field is cleared on the way");
+    }
+
+    /// **A boat with an order earns nothing.** `order_type() == NONE` is
+    /// step 6's whole membership test, so a fisherman between two
+    /// `think_fish` searches pays and one walking does not.
+    #[test]
+    fn a_fisherman_under_orders_is_not_walked() {
+        let (mut s, u) = sea_sim();
+        put_good_beside(&mut s, u, economy::FISH);
+        let dest = Pos::new(30 * 768, 30 * 768);
+        s.add_move_order(
+            u,
+            dest,
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        let (rate, owned) = s.gather_rares(1);
+        assert_eq!(rate, [0; RESOURCES]);
+        assert_eq!(owned, 0);
+    }
+
+    /// **The crowd divides the payout, and it divides per unit.** Three
+    /// boats of the same lineage close enough to share one deposit each pay
+    /// `160 / 3` — and the truncation is each unit's own, so the deposit
+    /// pays **159** rather than 160. Without the division it would pay 480,
+    /// which is why a second fisherman on the same fish is worth nothing.
+    #[test]
+    fn a_shared_deposit_is_divided_per_boat_and_truncated() {
+        let (mut s, u) = sea_sim();
+        put_good_beside(&mut s, u, economy::FISH);
+        let ty = s.units[u].ty;
+        let at = s.units[u].pos;
+        for o in 15..17 {
+            let mut other = crate::Unit::new(1, o, at, 20);
+            other.ty = ty;
+            let i = s.add_unit(other);
+            s.units[i].combat.packed = false;
+        }
+        let (rate, _) = s.gather_rares(1);
+        assert_eq!(rate[Resource::Food.index()], 10 * RATE_SCALE / 3 * 3);
+        assert_eq!(rate[Resource::Food.index()], 159);
+        assert!(s.units[u].gather_here, "and each knows it is sharing");
+    }
+
+    /// **The whale, and the whole of what owning one does to a unit.**
+    /// A naval type's cached speed takes `WHALES_SHIPS_MOVE`; a land type's
+    /// does not; and neither moves until the mask actually carries the bit.
+    #[test]
+    fn a_whale_speeds_the_ships_and_nothing_else() {
+        let (mut s, u) = sea_sim();
+        let boat_ty = s.units[u].ty.unwrap();
+        let foot_ty = s.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 25,
+            ..crate::UnitType::default()
+        });
+        assert_eq!(s.type_speed(1, boat_ty), 40, "no whale, no bonus");
+        s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+        assert!(s.has_rare(1, economy::WHALES));
+        assert_eq!(s.type_speed(1, boat_ty), 40 * 120 / 100);
+        assert_eq!(s.type_speed(1, foot_ty), 25, "a foot type is not naval");
+        assert_eq!(s.type_speed(0, boat_ty), 40, "and it is the owner's rare");
+    }
+
+    /// The truncation is the original's: `38 × 120 / 100` is **45**, which
+    /// is what run63's dump prints for all three of the AI's Fishermen from
+    /// frame 5552 — and 25 becomes 30 for its Transport Barge.
+    #[test]
+    fn the_whales_bonus_truncates_where_the_dump_does() {
+        let (mut s, u) = sea_sim();
+        let boat_ty = s.units[u].ty.unwrap();
+        s.unit_types[boat_ty].moves = 38;
+        s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+        assert_eq!(s.type_speed(1, boat_ty), 45);
+        s.unit_types[boat_ty].moves = 25;
+        assert_eq!(s.type_speed(1, boat_ty), 30);
+    }
+
+    /// **`calc_unit_stats` reaches every live unit of the player**, which
+    /// is how a boat already on the water gets the new speed on the frame
+    /// the whale is claimed rather than the next time it is built.
+    #[test]
+    fn calc_unit_stats_re_caches_every_unit_s_speed() {
+        let (mut s, u) = sea_sim();
+        assert_eq!(s.units[u].movement.speed, 0, "the fixture never set one");
+        s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+        s.calc_unit_stats(1);
+        assert_eq!(s.units[u].movement.speed, 40 * 120 / 100);
+    }
+
+    /// **A fisherman going idle drops the economy's period to eight
+    /// frames.** `Unit::check_idle`'s latch is what puts a boat that has
+    /// just arrived into step 6's walk within a handful of frames instead
+    /// of at the next 512-frame refresh — and without it run63's whale
+    /// would have been claimed 130 frames late.
+    #[test]
+    fn a_fisherman_going_idle_marks_the_economy_dirty() {
+        let (mut s, u) = sea_sim();
+        s.ledgers[1].dirty = false;
+        s.units[u].idle_latch = false;
+        s.tick();
+        assert!(
+            s.units[u].idle_latch,
+            "the latch is taken on the idle frame"
+        );
+        assert!(s.ledgers[1].dirty, "and it is what marks the economy");
+        // And it is a **latch**: standing there does not mark it again.
+        s.ledgers[1].dirty = false;
+        s.tick();
+        assert!(!s.ledgers[1].dirty, "one transition, one mark");
+    }
+}

@@ -2252,8 +2252,9 @@ every `UNIT` record the log prints:
 The third is the return value, and it is not "there is a good": it is
 **"there is a good and nobody else of my kind is sharing it"**.
 
-**Who calls it.** Two gameplay callers, and they are exclusive on the packed
-bit:
+**Who calls it.** Three gameplay callers. The first two are exclusive on the
+packed bit and pass `param_7 = 1`; the third is the economy's and passes
+**zero**, which turns on three things the other two never see (below):
 
 - `Unit::think_fish@005f4c60`'s head — an **unpacked** packing type, once in
   1,024 frames (§6.8). A `1` back ends the think where it stands.
@@ -2263,10 +2264,19 @@ bit:
   function plus the `unit_masks & 0x20` write, and its arm also bumps
   `idle` and, on a `1`, tries `unpack_merchant(4)`.
 
-Both pass `param_7 = 1`, `param_8 = 1` and `(−1, −1)` for the position, so
-what follows is that call and no other. (`Unit::find_merchant_spot@00603ab0`
-passes a *probe* position; `Options::describe` and
-`IFaceSelected::draw_unit_text` pass `param_7 = 0` and are the interface.)
+- `Leader::calc_gather@006ceee0` **step 6** → the same
+  `Unit::do_gather@005fce20`, with `param_7 = 0`, `param_8 = 0` and the three
+  outputs live: the six rates, the `BitMask<44>` of rares owned and a per-good
+  tally. This is the income path, and it is specified in `docs/ECONOMY.md`
+  (step 6, whole). `param_7 = 0` also turns on `calc_gather`'s **first** test,
+  which the other two do not have: a packed fisherman or merchant answers 0
+  before anything else happens.
+
+The first two pass `param_7 = 1`, `param_8 = 1` and `(−1, −1)` for the
+position, so what follows is that call and no other.
+(`Unit::find_merchant_spot@00603ab0` passes a *probe* position;
+`Options::describe` and `IFaceSelected::draw_unit_text` pass `param_7 = 0` and
+are the interface.)
 
 **The radius.** `ObjectTypeData::upgrade_level@00661090` walks the type's
 `FROM` chain and counts the ancestors still in the starting type's own
@@ -2355,19 +2365,22 @@ which is what a grep of every dumped record says.
 | the head's return value, and that a boat on its fish stays | **diff** — run54's long word: frame 5106 spends 165 draws here and **4** in the original, and with this the word passes it |
 | the tile walk's scale, and `good_obj 1` for a boat on its own fish | **diff** — run58's `UNIT` record, `good_obj 1` on 210 frames from 4992 |
 | `rare` is the good's `TypeIndex`, `−1` for a failed look | **diff** — the same 210 frames at `rare 6`, and 120 at `rare −1` from 4872 |
-| `unit_masks & 0x20` is never set | **the dumps** — no `unit_masks` in any of the five long captures carries it |
+| `unit_masks & 0x20` is never set **by the `param_7 = 1` callers** | **the dumps** — no `unit_masks` in any of the five long captures carries it |
+| the `param_7 = 0` form: the packed refusal, the rates, the rare mask | **diff** — run63's `myspeed 38 → 45` on frame 5552 and run59's two incomes (`docs/ECONOMY.md`, step 6) |
 | the radius, `upgrade_level × 4 + 4` | reading (`00661090`), and the file's `<FROM>none</FROM>` on Fishermen |
 | the crowd count and its distance test | the listing (`609761`..`609824`); no capture has two boats on one fish |
 | `param_8`'s unpacking arm | reading (`0060a4b0`) |
 
 **What is not established.**
 
-- **The rates.** `LeaderData::calc_rare@006e08d0` and the ally-territory
-  flag that scales them (block A takes `LeaderData::is_ally@006edb50`; block
-  B inlines a team comparison) fill `param_4`, and **both gameplay callers
-  discard the array**. Nothing here computes them; the division by
-  `count + 1` is modelled only through its effect on the return value.
-  *Needed by:* the gather job's income, not by either caller here.
+- ~~**The rates.**~~ Landed 2026-09-02: `LeaderData::calc_rare@006e08d0`, the
+  ally-territory flag that scales them (block A takes
+  `LeaderData::is_ally@006edb50`; block B inlines a team comparison) and the
+  division by `count + 1` are all in `crates/sim/src/rares.rs`, reached by the
+  third caller above — the two named here really do discard the array.
+  `docs/ECONOMY.md` step 6 is the specification, and run59's census is the
+  diff: the AI's `income[food]` and `income[wealth]` were 160 sixteenths short
+  apiece for 250 frames, and 160 is `10 × 16` — Fish's own two `BONUS_NUM`s.
 - **The other two writers of `rare` and `good_obj`.** run58's `1/14` gets
   `rare −1` on **4872** — `Unit::think`'s rare-collector arm, which this
   crate does not model at all, including its `idle += 1` — and `rare 6,

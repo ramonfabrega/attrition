@@ -32,7 +32,10 @@ handicap applies to, which enhancer bytes are ever non-zero. **No number
 changed.** Those corrections are landed below and marked where they changed
 what an earlier draft said.
 
-**Where the implementation is.** `crates/sim/src/economy.rs`. Every constant
+**Where the implementation is.** `crates/sim/src/economy.rs` for the
+arithmetic, `crates/sim/src/holdings.rs` for the walk that fills its inputs,
+and `crates/sim/src/rares.rs` for step 6 and what an owned rare does to a
+unit. Every constant
 below is re-read from the user's own install by
 `cargo run -p rondata -- <install>`, which fails if any has drifted.
 
@@ -221,9 +224,9 @@ sixteenths.
    `city` link is negative, it is not neutralized, and its type is one of those
    two.
 6. **Every idle fisherman and merchant**, via `Unit::do_gather`. The test is
-   `type == 0x13d` (Fisherman) *or* `UnitData::is_merchant`, and
+   `is(0x13d)` (the Fisherman lineage) *or* `UnitData::is_merchant`, and
    `UnitData::order_type == NONE` — a merchant walking somewhere earns nothing.
-   **This is also where every owned rare resource pays**; see step 9.
+   **This is also where every owned rare resource pays**; see below.
 7. **Refineries**: `oil = oil * (refineries * REFINERY_BONUS + 100) / 100`.
    `REFINERY_BONUS` is `33% per refinery` and this is where "per refinery"
    lives; every other enhancer is a per-city percentage.
@@ -262,6 +265,91 @@ After the rare terms, `rare_owned | rare_conquest` is compared against the
 previous frame's `rare` mask; when it differs the player's population cap is
 recomputed, the borders are marked for a redraw if the rare that changed is
 one of the territory-affecting ones, and two more dirty bits go up.
+
+### Step 6, whole (2026-09-02)
+
+`Unit::do_gather@005fce20` is `UnitData::calc_gather@00609180` with its
+`param_7` **zero** — the other form of the same search `docs/ORDERS.md` §6.10
+specifies for `think_fish`. Three things differ at this site, and all three
+matter:
+
+- **A packed fisherman or merchant answers nothing at all.** It is the
+  function's *first* test — `(is(0x13d) || type ∈ {0x3d, 0x3e, 0x190}) &&
+  unit_masks & 0x80000 && param_7 == 0` — and `think_fish`'s call, which
+  passes 1, does not have it. A boat still sailing to its deposit claims
+  nothing on the way.
+- **The crowd count skips a packed unit outright** (`param_8 == 0`), where
+  `think_fish`'s form exempts one that is mid-unpack.
+- **The three outputs are live**: the six rates, the `BitMask<44>` the good's
+  bit goes into, and a per-good tally. `think_fish` passes null for all three,
+  which is why the search itself was readable long before this was.
+
+Each unit's rates are `LeaderData::calc_rare@006e08d0` for the good it found,
+**divided by `crowd + 1`** — each unit's own truncation, so three boats on one
+fish pay 159 sixteenths between them and not 160.
+
+`calc_rare` reads the good's own two `(BONUS_TYPE, BONUS_NUM)` pairs out of
+`resourcerules.xml` — Fish is `Food 10` and `Wealth 10`, Whales is `Food 10`
+and `Metal 10` — times sixteen. Two percentages then sit on them, and *which
+one reaches which half* is the part a reader gets wrong:
+
+- **`MERCHANTS_BONUS[level]` replaces the 100**, and it reaches a resource only
+  when the unit stands in its own or an ally's ground, **or** when the good is
+  Fish or Whales and the resource is **not food**. So a fish's wealth half is a
+  merchant's business and its food half is not.
+- **`FISHERMEN_BONUS[level]` is added**, to the **food slot only**, and only
+  for those same two water goods.
+
+Both ship inert at level zero — `MERCHANTS_BONUS` entry 0 is 100% and
+`FISHERMEN_BONUS` entry 0 is 0% — so a level-0 fisherman on a fish pays exactly
+`10 × 16` food and `10 × 16` wealth and nothing else. That is the number run59's
+census measured from the other side: the AI's `income[food]` was 1440 against
+1600 and its `income[wealth]` 0 against 160, from frame 4992, which is the frame
+its `1/14` settled on its fish.
+
+The upgrade ladders are `rules.xml`'s `TECHBONUSES`: `FISHERMEN1`–`3` are rows
+19–21 (`0x2bf`–`0x2c1`, Agriculture / Crop Rotation / Food Industry) and
+`MERCHANTS_1`–`4` are rows 99–102 (`0x30f`–`0x312`, Taxation / Vassalage /
+Social Contract / Income Tax). `LeaderData::get_fishermen@006d6e80` and
+`get_merchants_level@006d6dc0` answer the highest row held.
+
+### The membership changes are what set the dirty flag
+
+Step 6's walk is over units whose `order_type` is `NONE`, so its membership
+changes every time a fisherman or a merchant goes idle or is given an order —
+and **each of those two transitions marks the owner's economy dirty**, dropping
+the refresh period from 512 frames to 8:
+
+- `Unit::check_idle@006032c0`'s tail takes a per-unit latch (`ObjectData +0x8 &
+  8`) the first frame a unit is idle, and raises `0x2000000` if the unit
+  `is(0x13d)` or is one of the three merchant ids.
+- `Unit::work@0060d180:268` clears the same latch when the unit has an order
+  again, and raises the same flag for the same kinds.
+
+Without that pair a deposit a boat has just arrived at waits up to 512 frames
+to be counted. With it, run63's whale is claimed on frame 5551 — seven frames
+after the boat went idle — which is exactly where the dump has it.
+
+### What an owned rare does
+
+The mask is what the rest of the game asks, and it is read in a dozen places.
+Only one of them is modelled here, because only one has ever moved a number:
+**Whales**, rare bit 25 (`TypeIndex` 31). `Unit::update_speed@006055c0` scales
+a type with objmask `0x2000` (`NAVAL`) by `(WHALES_SHIPS_MOVE + 100) / 100`,
+which as shipped is `+20%`.
+
+The cached speed is not recomputed on demand: `Leader::calc_gather`'s tail
+raises `LeaderData`'s `0x4000000`, `Leader::process@006b88b0` acts on it in the
+**same frame**, and `Leader::calc_unit_stats@006cf970` walks every one of that
+player's units calling `Unit::update_speed` and `Unit::update_armor`. Because
+`Leaders::process_all` runs before `Objects::process_all`, the new speed is the
+one that frame's own step uses.
+
+run63 is the capture: on frame 5551 East Indies' AI settles its second
+Fisherman on a whale, and on 5552 all three of its Fishermen read `myspeed 45`
+where they read 38, and its Transport Barge reads 30 where it read 25. Its
+citizens and its scout do not move — they are not naval. `38 × 120 / 100` is
+**45**, and the truncation is the original's.
 
 ### The territory tax
 
@@ -1079,13 +1167,18 @@ far as anything read goes they are as dead as `calc_support`.
   gathering buildings that are placed on terrain rather than in a city.
 - ~~**Merchants and caravans.**~~ Both are read: merchants pay in the idle-unit
   loop and are what makes an owned rare pay at all; caravans pay through their
-  cities' `trade_val`. What is still unread is `UnitData::calc_gather`'s own
-  body — `MERCHANTS_BONUS`, `FISHERMEN_BONUS` and the Porcelain/Nubian terms
-  appear in `calc_rare`, in the `((pct + extra) * out) / 100` shape, but the
-  chain has not been followed end to end.
-- **Rare resources.** `LeaderData::calc_rare`, forty-four of them, each with
-  its own constant in `rules.xml`. *Where* they pay is settled (above); what
-  each one pays is not.
+  cities' `trade_val`. ~~What is still unread is `UnitData::calc_gather`'s own
+  body~~ — read and landed 2026-09-02 (step 6, above; `crates/sim/src/rares.rs`).
+- ~~**Rare resources.** `LeaderData::calc_rare`, forty-four of them, each with
+  its own constant in `rules.xml`.~~ **What each one pays is `resourcerules.xml`'s
+  own two `BONUS_TYPE`/`BONUS_NUM` pairs**, not a constant in `rules.xml`, and
+  `calc_rare` reads nothing else off the good (step 6, above). What a rare
+  *does* beyond paying is a per-rare rule scattered across the executable —
+  `WHALES_SHIPS_MOVE` is read and landed, and the other forty-three are not.
+  The **Porcelain Tower** and **Nubian** terms in `calc_rare`, and the
+  **Japanese** fishing-boat one, are the nation and wonder layer and are always
+  zero here; so is the Porcelain Tower's pass at the top of `calc_gather`,
+  which is the one thing that makes a rare pay with nobody standing on it.
 - **The market.** `MARKET_BASEMENT`, `MARKET_EQUILIBRIUM`, `MARKET_CYCLE_RATE`
   and the rest describe a price simulation with supply and demand. ~~Entirely
   unread, and the only part of the economy that is not a sum of rates.~~
@@ -1156,9 +1249,10 @@ the only `LEADERS=9` windows were run40's `[560, 600)` and run41's
 run59 is that window moved (`docs/ORACLE.md`, "run59"): run58's own game,
 `LEADERS=9` at `[End Frame]`, and the dump narrowed to 250 frames around the
 word. **18,000 good-frames** — 250 frames, two players, six goods, six
-fields — and 4,798 of them disagree, in nine shapes. Every one is a
+fields — and 4,798 of them disagreed, in nine shapes. Every one is a
 **standing state**: each is wrong on all 250 frames, which is what says it
-is a level rather than anything the window does.
+is a level rather than anything the window does. **1,500 are left**, all of
+them item 156's.
 
 ### The item: fifty timber, and it was a lump — closed 2026-09-02
 
@@ -1231,19 +1325,24 @@ table cannot produce a wealth-gathering building, and this crate's
 `Sim::gather_good` answers `None` for wealth by construction, so the one slot
 has no writer here at all.
 
-### Two rate seams beside it, both the AI's
+### Two rate seams beside it — one thing, closed 2026-09-02
 
-Every one of the **human's** six incomes is exact on every frame of the
-window. The AI's are not:
+Every one of the **human's** six incomes was exact on every frame of the
+window. The AI's were not:
 
 - `income[food]` **1440 against 1600** (sixteenths, so ninety against a
   hundred) on all 250;
 - `income[wealth]` **0 against 160** on all 250, with `leftover[wealth]` 0
-  against 2136 — this crate gives the AI no wealth income at all, and yet its
-  `bucket[wealth]` is eighteen *ahead*, so something else is paying it;
-- `income[timber]` agrees until **5384**, where the original's drops 1280 →
-  1120 and this crate's stays — a gatherer that leaves the wood sixteen
-  frames from the end of the window.
+  against 2136 — this crate gave the AI no wealth income at all;
+- ~~`income[timber]` agrees until **5384**~~ — that one went with the fifty.
+
+**Both are one deposit.** `160` is `10 × 16`, and `10` is both of Fish's
+`BONUS_NUM`s in `resourcerules.xml`: the AI's Fisherman `1/14` has been
+standing on its fish since frame 4992 and nothing here walked the idle
+fishermen. That is `Leader::calc_gather` **step 6** (above), landed with the
+rest of it; run59's census is now 1,500 wrong good-frames of 18,000, and
+every one of the remaining is item 156's three hundreds. Both players' six
+rates and six incomes agree on every frame of the window.
 
 ## The census before the word — run42's nine hundred frames (2026-09-02)
 

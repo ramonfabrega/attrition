@@ -20,7 +20,7 @@
 //! | 3 | every **city** — `City::calc_gather@00737c60` → `LeaderData::calc_city_resources@006d5530` | [`Sim::city_holdings`] |
 //! | 4 | every **oil well**, the `oil_wells` list | [`Sim::gather_sites_outside_cities`] |
 //! | 5 | every **camp/mine outside a city** (`0x1a2`, `0x1a3`, `city < 0`) | [`Sim::gather_sites_outside_cities`] |
-//! | 6 | every idle fisherman and merchant, `Unit::do_gather` | not modelled |
+//! | 6 | every idle fisherman and merchant, `Unit::do_gather` | [`Sim::gather_rares`] ([`crate::rares`]) |
 //! | 7 | refineries — `get_buildings(REFINERY)` | [`economy::Holdings::refineries`] |
 //! | 11 | the territory tax | `Sim::update_territory_holdings` (untouched) |
 //!
@@ -47,9 +47,14 @@
 //!   — **a gatherer arriving**, on the same statement that sets `been_there`.
 //!   This is the one that answers "does a citizen arriving at a farm set it":
 //!   it does, and the income appears within eight frames of the arrival.
-//! - `Unit::work@0060d180:274` — an order change on a peasant, a scholar or a
-//!   merchant (`type ∈ {0x3d, 0x3e, 0x190}` or `is_merchant`).
-//! - `Unit::check_idle@006032c0:74` — the same three kinds going idle.
+//! - `Unit::work@0060d180:268` — a unit that has an order again dropping the
+//!   idle latch (`ObjectData + 0x8 & 8`), for a **fisherman** (`is(0x13d)`) or
+//!   a merchant (`type ∈ {0x3d, 0x3e, 0x190}`).
+//! - `Unit::check_idle@006032c0:74` — the same kinds *taking* that latch, on
+//!   their first idle frame. The pair is what step 6's membership turns on, so
+//!   both are modelled ([`crate::rares`]); an earlier draft of this list had
+//!   them as "a peasant, a scholar or a merchant" and missed the fisherman,
+//!   which is the one that matters — it is the whole of the fishing economy.
 //! - `Unit::kill_current_order@005e2cb0:82` — a `GATHER` order (`type == 7`)
 //!   being killed.
 //! - `Unit::init@00612100:626,639`, `Unit::close@0060ee50:154,168,174`,
@@ -69,8 +74,9 @@
 //!
 //! So it is **both**: a building finishing sets it and a citizen arriving sets
 //! it. [`Sim::economy_changed`] is this crate's name for the flag, and
-//! `crates/sim/src/orders.rs` already raises it on the arrival; the building
-//! half is listed as an open edit in this module's notes.
+//! `crates/sim/src/orders.rs` raises it on the arrival and on both halves of
+//! the idle latch; the building half is listed as an open edit in this
+//! module's notes.
 //!
 //! # Arithmetic
 //!
@@ -368,9 +374,13 @@ impl Sim {
         };
 
         let outside = self.gather_sites_outside_cities(who);
+        // Step 6, and the `rare_owned` it rebuilds ([`crate::rares`]).
+        let (rares, rare_owned) = self.gather_rares(who);
         let h = &mut self.holdings[w];
         h.cities = cities;
         h.outside = outside;
+        h.rares = rares;
+        h.rare_owned = rare_owned;
         h.refineries = refineries;
         h.commerce = commerce;
         h.handicap = handicap;

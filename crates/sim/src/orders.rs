@@ -1010,6 +1010,16 @@ impl Sim {
         if !self.units[u].orders.is_empty() {
             self.units[u].idle = 0;
         }
+        // `Unit::work@0060d180:268`: a unit that has an order and is still
+        // carrying the idle latch drops it, and a **fisherman or merchant**
+        // marks its owner's economy dirty on the way — it has just left
+        // `Leader::calc_gather` step 6's walk ([`crate::rares`]).
+        if self.order_type(u) != index::NONE && self.units[u].idle_latch {
+            self.units[u].idle_latch = false;
+            if self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u) {
+                self.economy_changed(self.units[u].owner);
+            }
+        }
         match self.current_order(u).map(|o| o.body) {
             None => self.do_idle(u, frame),
             Some(Body::Move(m)) => {
@@ -1165,12 +1175,22 @@ impl Sim {
         let unit = &mut self.units[u];
         if unit.idle == 0xff {
             unit.idle = 1;
-            return;
+        } else if unit.idle <= 1 || (frame + i64::from(unit.index)) & 15 == 0 {
+            unit.idle += 1;
         }
-        if unit.idle > 1 && (frame + i64::from(unit.index)) & 15 != 0 {
-            return;
+        // `check_idle@006032c0`'s **tail**, which runs whatever the counter
+        // did: the first frame a unit is idle it takes the latch, and a
+        // fisherman or a merchant marks its owner's economy dirty — it has
+        // just joined `Leader::calc_gather` step 6's walk. That is what
+        // drops the recompute period from 512 frames to 8 and puts a
+        // newly-arrived boat's deposit on the books within the same
+        // handful of frames ([`crate::rares`]).
+        if !self.units[u].idle_latch {
+            self.units[u].idle_latch = true;
+            if self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u) {
+                self.economy_changed(self.units[u].owner);
+            }
         }
-        unit.idle += 1;
     }
 
     /// `Unit::think` (§2.4): the auto-attack on the first idle frame and
