@@ -386,7 +386,7 @@ read** — fog hides them.
 | term | amount | condition |
 |---|---|---|
 | base | `0x100`; **`0x400` if `scouting`** | seen ground is 32× dearer than unseen to a scout |
-| danger | `+ danger[who][to >> 9 block] / 8` (arithmetic, rounded toward 0) | unless `no_danger` |
+| danger | `+ danger[who][to >> 9 block] / 8` (arithmetic, rounded toward 0) | unless `no_danger`; **`docs/DANGER.md` is the writer, and it is negative around your own city** — the tile grid takes the same number *unshifted* |
 | own territory | `− 4` | cell owner == who; **non-ocean cells only** (audit V18). **The whole additive column is clamped at zero after the army terms** (audit V19 — the conclusion is unchanged since those terms are positive): on clean ground the discount only ever offsets danger, never the base |
 | enemy territory | `+ 4` | owner ≥ 0 and `is_enemy`; non-ocean cells only |
 | ocean cell | `+ 200` | `is_ocean(to)` and `avoid_sea ≠ 0` |
@@ -723,8 +723,10 @@ with LIFO ties** and metric-keyed dedup; the world read through the layers
 the sim has (tile mask bits via `place.rs`, cell owner via `territory`,
 `tregion`, the `WData` records and the `seen2` fog plane via the `WORLD`
 dump), with named seams returning the open-ground answer for the layers it
-does not (danger: 0; diplomacy: none; rush rules: off) — each seam marked
-in the code with the §5 term it stubs.
+does not (rush rules: off) — each seam marked in the code with the §5 term
+it stubs. **Two of those seams closed 2026-09-02**: `danger` has a writer
+(`crate::danger`, `docs/DANGER.md`) and `diplos` is installed from the dump,
+so the danger term and the enemy-territory `+4` are both live.
 **The cliff seam closed 2026-08-26** with `docs/SCOUT.md`:
 `WorldData::is_cliff_at@0046f8c0` is one line, `(TData.mask & 3) == 1`, so
 the two-bit terrain-object field's third value is named

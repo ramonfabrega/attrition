@@ -123,13 +123,11 @@ impl Sim {
     // ------------------------------------------------------------------
 
     /// `WorldData::danger[who]` at a site's cell — `world+0x13c`, an `int`
-    /// grid at half the cell resolution (`(wy >> 1) * reg_xs + (wx >> 1)`).
-    /// Nothing writes it here, so it answers 0, which makes the divisor of
-    /// §2.13 step 8 one and the `> 0` test of §2.12 false. Named as a seam
-    /// rather than routed to [`crate::world::World::danger`], which is
-    /// keyed by region and is a different grid.
-    fn site_danger(&self, _who: Player, _wx: i32, _wy: i32) -> i32 {
-        0
+    /// grid at half the cell resolution (`(wy >> 1) * reg_xs + (wx >> 1)`),
+    /// which is the divisor of §2.13 step 8 and the `> 0` test of §2.12.
+    /// [`crate::danger`] writes it.
+    fn site_danger(&self, who: Player, wx: i32, wy: i32) -> i32 {
+        self.world.danger_half(who, crate::world::Cell::new(wx, wy))
     }
 
     /// `WorldData::was_seen@006b53f0(2wx + 1, 2wy + 1, who)`, read whole:

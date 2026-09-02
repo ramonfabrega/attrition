@@ -289,15 +289,20 @@ two cities, `TradeOrder +0x20 loaded`, the wealth a completed trip pays
 route falls. A caravan in this crate plans its road, walks to the near
 city and stops.
 
-**And it does not walk there the original's way** — the standing seam, and
-`docs/QUEUE.md` item 177's first half. §4.1's move goes in with
-`QUEUE_FIRST`, and this crate's carries a **waypoint** at `(37752, 41592)`,
-so from run64's frame 6167 `1/18` sets off south-west while the original
-heads straight at `(39288, 40056)`. Thirty-four fields of the window are
-that — the body and the heading of all three figures from 6167, and the two
-crew figures' `cur_anim` and `stopped` on 6168, where a walk that starts a
-frame late leaves them standing — and they are pinned so they can only
-shrink. Downstream it is East Indies' word twice over: **6189**, where this
-crate's caravan reaches its waypoint and its crew pays arrival draws the
-original does not, and **6198**, where the original's reaches a *city* and
-spends three `Unit::do_trade+0x40` draws over the three figures.
+~~**And it does not walk there the original's way**~~ — closed 2026-09-02,
+and the walk was never the bug. §4.1's move goes in with `QUEUE_FIRST` and
+this crate's carried a **waypoint** at `(37752, 41592)`, so from run64's
+frame 6167 `1/18` set off south-west while the original heads straight at
+`(39288, 40056)` — but the waypoint was `find_wpath`'s answer, and that
+answer was wrong because **`calc_cost` was missing the danger map**.
+`WorldData::danger[who]` is 65 to 135 negative around a leader's own city,
+the world grid prices a step by `danger / 8`, and eight of the caravan's own
+steps were 8 to 16 too dear: the search took a seventh expansion the
+original does not and came back with a route where the original's stops at
+the goal's own neighbour and pushes nothing. All 2,061 fields of run64's
+window are the original's now (`docs/DANGER.md` §6, `crate::danger`).
+
+What is left of item 177 is its second half, and it is East Indies' word at
+**6198**: the original's caravan reaches a *city* and spends three
+`Unit::do_trade+0x40` draws over its three figures — `Unit::set_anim` once
+through `+0x56` and twice through `+0xb6`. Nothing here models arriving.

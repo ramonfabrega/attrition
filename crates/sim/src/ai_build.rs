@@ -40,7 +40,8 @@
 //!   a wonder type's value factor (vslot `+0x118`): 0, −1, 0, absent, 1.
 //! - `TERRACOTTA` / `STATUEOFLIBERTY` / `SPACEPROGRAM` have no [`Ident`], so
 //!   the tech-race lobby's ÷1000 never fires.
-//! - `WorldData::danger` is per region here, not per half-cell.
+//! - ~~`WorldData::danger` is per region here, not per half-cell.~~ It is
+//!   the half-cell grid now, and [`crate::danger`] writes it.
 //! - ~~`build_flags & 0x8000000` is `DEEP_QUEUE` and no shipped row carries
 //!   it, so the civic block is dead code.~~ **Wrong, corrected 2026-08-25**
 //!   (`docs/DATALAYER.md`, "The derived words no column carries"): the bit is
@@ -1330,11 +1331,7 @@ impl Sim {
             if self.building_unassimilated(b) {
                 score /= 2;
             }
-            let danger = self
-                .world
-                .region_of(bd.pos.cell())
-                .map_or(0, |r| self.world.danger(who, r))
-                .max(0);
+            let danger = self.world.danger_at(who, bd.pos).max(0);
             score /= danger + 1;
             if best.is_none_or(|(v, _)| v < score) {
                 best = Some((score, b));

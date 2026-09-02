@@ -531,11 +531,10 @@ Read whole (294 lines). Computer leaders only. For every building of mine
   0`) that is in danger skips the recruit scan entirely and only takes the
   `0x2000` mark.**
 
-**"My territory at the site" was a misreading, here and in three other
-places.** `world+0x13c` is **`WorldData::danger[8]`**, indexed
-`(y>>9)/3 × reg_xs + (x>>9)/3` (lines 196–199, 228–232) — a per-leader
-coarse danger grid, not a territory map. The same substitution applies in
-§2.12, §2.13 step 8 and §2.17's `produce_tech`, all corrected below.
+**"My territory at the site" was a misreading, here and in §2.12, §2.13
+step 8 and §2.17.** `world+0x13c` is **`WorldData::danger[8]`**;
+`docs/DANGER.md` has the writer, the index, and the one thing these
+readers do differently from `calc_cost` — they take the grid **whole**.
 
 ### 2.9 What the driver leaves to the producers
 
@@ -763,9 +762,9 @@ Read whole (506 lines). `compute_site_stats(wx, wy, city, unit, reg, &val,
    3` cities, `wx` outside `[w/5, 4w/5]` → `/4`, `wy` outside `[h/5,
    4h/5]` → `/4`; with `≥ 3`, the bands are `1/10 .. 9/10`.
 8. `v /= max(1, d)` where **`d` is the danger at the site's cell**
-   (`WorldData::danger`, §2.8 — not territory; its writer is
-   `GameDaemon::calc_danger`, from enemy military units — second reading,
-   B7-a); then `WData+0x10`, which is **`who2`, the *second-strongest*
+   (`WorldData::danger`, §2.8; `docs/DANGER.md` is the writer, and a
+   building weighs for every viewer including the owner, so the grid goes
+   negative on one's own ground. Second reading, B7-a); then `WData+0x10`, which is **`who2`, the *second-strongest*
    territorial claimant** — written beside `who` in
    `World::compute_reg_territory@006b0bb0`, not "the territory owner" as the
    first reading had it (B4-d): unowned → `×2`, a non-ally → `×4`, an ally →

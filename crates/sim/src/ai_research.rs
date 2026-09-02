@@ -27,7 +27,7 @@
 //! human-alive predicates; `village_num`; `get_mod_resource_cap`;
 //! `types[0x2ae]`'s many-landmasses predicate; `get_gov`'s bonus test; the
 //! `starting_resources == 7 && starting_technology == 8` lobby's hard-coded
-//! branch; `danger[]`; a building's "is upgrading" vslot; and
+//! branch; a building's "is upgrading" vslot; and
 //! `Build::queue_up`'s escrow argument.
 
 use crate::build::Ident;
@@ -296,14 +296,11 @@ impl Sim {
             == 0
     }
 
-    /// **Seam** — `WorldData::danger[who][reg]`, which divides a candidate
-    /// producer's score in `produce_tech`. Nothing writes the table yet, so
-    /// it answers zero and the divisor is 1.
+    /// `danger[who][half-cell of the building]`, clamped at zero, which
+    /// divides a candidate producer's score in `produce_tech@006ca980:138`
+    /// and `:236`. [`crate::danger`] writes it.
     fn danger_at(&self, who: Player, b: usize) -> i32 {
-        self.world
-            .region_of(self.buildings[b].pos.cell())
-            .map_or(0, |r| self.world.danger(who, r))
-            .max(0)
+        self.world.danger_at(who, self.buildings[b].pos).max(0)
     }
 
     // ---- the small readings ----

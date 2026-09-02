@@ -623,6 +623,19 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
             // picks `find_wpath`'s pull-back variant and withholds the
             // `army`/`worker` cost modes (`docs/PATHFINDER.md` §3).
             sim.nation[who].human = l.leader_flags & 4 != 0;
+            // **`diplos`, which nothing installed until 2026-09-02.** The
+            // harness built every capture with an all-peace matrix while
+            // every one of them opens at war, so `is_enemy` was false for
+            // forty-six readers and `do_danger`'s enemy arm halved twice
+            // (`crates/sim/src/danger.rs`). The diagonal is the leader's
+            // own 2 and is skipped; a dump below `LEADERS=1` carries no
+            // `diplos` at all and leaves the matrix alone.
+            for (other, &d) in l.diplos.iter().enumerate().take(players) {
+                if other != who {
+                    sim.at_war[who][other] = d == 0;
+                    sim.allied[who][other] = d == 2;
+                }
+            }
         }
     }
 
@@ -9898,6 +9911,185 @@ mod tests {
         );
     }
 
+    /// **The danger map, whole** — `GameDaemon::calc_danger`'s eight rows
+    /// against run64's own `danger[who][scan]`, 7,200 values.
+    ///
+    /// Item 87's ledger again, and this row was the expensive one: the
+    /// `WORLD` block has printed the map since the first `DUMP_ALL`
+    /// capture and nothing ever read the field, because this crate had no
+    /// writer and every reader answered zero. It is not a decoration —
+    /// `calc_cost`'s world arm prices a step by `danger / 8`, and around a
+    /// leader's own city the map is 65 to 135 *negative*, which is 8 to 16
+    /// off every expensive step there. That is what sent East Indies'
+    /// caravan south-west on frame 6167 where the original walks straight
+    /// at its city (`docs/CARAVAN.md` §4.1, `docs/DANGER.md`).
+    ///
+    /// The map is rebuilt every two hundredth frame and nothing decays it,
+    /// so run64's window (6163–6170) shows the frame-6000 build unchanged
+    /// — which makes the eight dumped frames one assertion repeated, and
+    /// the check is against the first.
+    #[test]
+    fn run64_s_danger_map_is_the_original_s() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r64)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run64-islands-caravanroad.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run64 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+
+        let text64 = std::fs::read_to_string(&r64).unwrap();
+        let l64 = Log::parse(&text64);
+        let theirs = l64
+            .dumps()
+            .into_iter()
+            .find_map(|(n, body)| {
+                (n == 6168).then(|| {
+                    let w = body.kid("WORLD")?;
+                    let d = crate::gamelog::world_danger(&w.fields);
+                    (!d.is_empty()).then_some(d)
+                })?
+            })
+            .expect("run64's frame-6168 block carries the danger map");
+        assert_eq!(
+            theirs.len(),
+            8 * 900,
+            "eight rows of a 60x60 map's reg_size"
+        );
+
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..6167 {
+            built.tick();
+        }
+        let reg_xs = built.sim.world.reg_xs();
+        assert_eq!(
+            (reg_xs, built.sim.world.reg_ys()),
+            (30, 30),
+            "East Indies' half-cell grid"
+        );
+
+        let mut wrong: Vec<String> = Vec::new();
+        let mut nonzero = 0usize;
+        for who in 0..8u8 {
+            let ours = built.sim.world.danger_row(who);
+            for i in 0..900usize {
+                let t = theirs[who as usize * 900 + i];
+                let o = i64::from(ours.get(i).copied().unwrap_or(0));
+                if t != 0 {
+                    nonzero += 1;
+                }
+                if t != o && wrong.len() < 20 {
+                    wrong.push(format!(
+                        "leader {who} half-cell ({},{}): ours {o} theirs {t}",
+                        i % 30,
+                        i / 30
+                    ));
+                }
+            }
+        }
+        assert!(
+            nonzero >= 100,
+            "the dump's own map is nearly empty ({nonzero} nonzero) — wrong capture"
+        );
+        assert!(wrong.is_empty(), "the danger map parted: {wrong:#?}");
+    }
+
+    /// **run64's frame-6167 world-path prices**, the caravan's own search,
+    /// against the original's proxied `calc_cost`.
+    ///
+    /// The sibling of [`run55_s_frame_1477_prices_are_the_originals`] on
+    /// the other map and the other search, and the reason it exists is the
+    /// danger map: eleven of the forty-seven steps the original priced here
+    /// were 8, 10 or 16 too dear in this crate, every one of them a cell
+    /// whose half-cell carries a negative danger, and the expansion order
+    /// parted on the seventh pop because of it.
+    #[test]
+    fn run64_s_frame_6167_prices_are_the_originals() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(t64)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            trace("rontrace-run64.log"),
+        ) else {
+            eprintln!("skipping: no run54/run64 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let theirs = t64.calls_in(6167, crate::trace::call_site::CALC_COST);
+        assert!(
+            theirs.len() >= 40,
+            "run64's callwin covers 6167; it priced {} steps there",
+            theirs.len()
+        );
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..6167 {
+            built.tick();
+        }
+        built.sim.trace_costs = true;
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.cost_marks);
+
+        let mut theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> =
+            std::collections::BTreeMap::new();
+        for c in &theirs {
+            theirs_by_key.insert(c.cost_key().expect("a calc_cost call"), c.ret);
+        }
+        let mut shared = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for m in &ours {
+            let Some(&t) = theirs_by_key.get(&m.key()) else {
+                continue;
+            };
+            shared += 1;
+            if t != m.cost {
+                wrong.push(format!(
+                    "({},{}) -> ({},{}) dir {} depth {}: ours {} theirs {t}",
+                    m.from.0 / m.step,
+                    m.from.1 / m.step,
+                    m.to.0 / m.step,
+                    m.to.1 / m.step,
+                    m.dir,
+                    m.depth,
+                    m.cost,
+                ));
+            }
+        }
+        assert!(
+            shared >= 40,
+            "frame 6167: {} of the original's steps and {} of ours, {shared} shared \
+             — the searches did not start from the same place",
+            theirs.len(),
+            ours.len()
+        );
+        assert!(
+            wrong.is_empty(),
+            "frame 6167: {} of {shared} shared steps priced differently:\n  {}",
+            wrong.len(),
+            wrong.join("\n  ")
+        );
+    }
+
     /// **run64's animation clocks, frame for frame** — every `GUY`
     /// block's `cur_anim`, `cur_time`, `end_time`, `last_time`, `gpiece`
     /// and `stopped`, over the eight frames of the `DUMP_ALL` window.
@@ -9960,7 +10152,6 @@ mod tests {
         built.frame_guys.clear();
         let mut compared = 0usize;
         let mut wrong: Vec<String> = Vec::new();
-        let mut seam: Vec<String> = Vec::new();
         let mut crew_rows = 0usize;
         let mut unmatched = 0usize;
         for f in 0..=last {
@@ -10025,9 +10216,7 @@ mod tests {
                             "frame {f}: {}/{} guy {n} {name} ours {ours} theirs {theirs}",
                             state.who, state.o
                         );
-                        if (state.who, state.o) == (1, 18) {
-                            seam.push(row);
-                        } else if wrong.len() < 12 {
+                        if wrong.len() < 12 {
                             wrong.push(row);
                         }
                     }
@@ -10038,7 +10227,7 @@ mod tests {
             "run64 clocks: {compared} fields compared over {crew_rows} crew rows, \
              {unmatched} of the dump's units this crate has no unit for"
         );
-        for w in wrong.iter().chain(seam.iter().take(6)) {
+        for w in &wrong {
             eprintln!("  {w}");
         }
         assert!(
@@ -10046,24 +10235,18 @@ mod tests {
             "the window's own rows: {compared} fields, {crew_rows} of them a \
              crew figure's — a capture with neither is the wrong file"
         );
+        // **The caravan's own rows used to be thirty-four of these**, and
+        // they were the walk rather than the clock: `do_trade`'s move to
+        // the near city went in with a waypoint at `(37752, 41592)`, so
+        // `1/18` set off south-west where the original heads straight at
+        // `(39288, 40056)`. The waypoint was never the bug — the danger
+        // map was. Without it `calc_cost` priced eight of the caravan's
+        // own world-grid steps 8 to 16 too dear, the search took a seventh
+        // expansion the original does not, and a route came back where the
+        // original's search stops at the goal's own neighbour and pushes
+        // nothing (`crates/sim/src/danger.rs`, `docs/DANGER.md` §6). All
+        // 2,061 fields are the original's since 2026-09-02.
         assert!(wrong.is_empty(), "run64's clocks parted: {wrong:?}");
-        // **The caravan's own rows are `docs/QUEUE.md` item 177's**, and
-        // they are the walk rather than the clock: `do_trade`'s move to
-        // the near city is queued here with a **waypoint** at
-        // `(37752, 41592)`, so `1/18` sets off south-west while the
-        // original heads straight at `(39288, 40056)`. Thirty-four
-        // fields: the body and the heading of all three figures from
-        // 6167, and — one frame of it — the two crew figures' `cur_anim`
-        // and `stopped` on 6168, because a walk that starts a frame late
-        // leaves them standing for that frame. Every other clock field of
-        // the caravan's, the crew's `end_time 3` and its every-third-frame
-        // wrap included, is the original's. Pinned so it can only shrink.
-        assert_eq!(
-            seam.len(),
-            34,
-            "the caravan's walk parted from the original's by more than \
-             item 177's thirty-four fields: {seam:?}"
-        );
     }
 
     /// East Indies' word on the **long** capture — the number that took
@@ -10557,8 +10740,31 @@ mod tests {
 
     /// East Indies' word on run54, the headline.
     ///
-    /// **6189** since 2026-09-02 — the *sequence*; the count reaches
-    /// **6197** — and 6169 was **an empty animation packet**. Sixty of the shipped `<UNIT>` entries in
+    /// **6198** since 2026-09-02, and it is `Unit::do_trade+0x40` — three
+    /// `Guy::set_anim+0x97a` draws, one through `Unit::set_anim+0x56` and
+    /// two through `+0xb6`, over the caravan's three figures as it reaches
+    /// the near city. `docs/QUEUE.md` item 177's second half, and the
+    /// first mechanic past the road: what a caravan does when it arrives.
+    ///
+    /// **6189 was the danger map**, and the whole of item 177's first half
+    /// with it. `WorldData::danger[who]` is a half-resolution `int` grid
+    /// `GameDaemon::calc_danger` rebuilds every two hundredth frame, and
+    /// `calc_cost`'s world arm prices a step by `danger / 8`. Around a
+    /// leader's own city the map is 65 to 135 **negative** — its own
+    /// buildings subtract — so eight of the caravan's own steps were 8 to
+    /// 16 too dear here, the search took a seventh expansion the original
+    /// does not, and a route came back where the original's stops at the
+    /// goal's own neighbour and pushes nothing. That is why `do_trade`'s
+    /// move went in with a waypoint at `(37752, 41592)` and the caravan
+    /// set off south-west where the original heads straight at
+    /// `(39288, 40056)` (`crates/sim/src/danger.rs`, `docs/DANGER.md`).
+    /// The map itself is now diffed whole against run64's own
+    /// `danger[who][scan]`, 7,200 values
+    /// (`run64_s_danger_map_is_the_original_s`), and so are the
+    /// forty-seven prices of the search it broke
+    /// (`run64_s_frame_6167_prices_are_the_originals`).
+    ///
+    /// It was **6189** for one item, and 6169 was **an empty animation packet**. Sixty of the shipped `<UNIT>` entries in
     /// `unit_graphics.xml` have no `<ANIM>` child at all and every one of
     /// them is a `-CREW{k}`: the piece loads a model, so
     /// `get_unit_gpiece` hands it out, and its packet names nothing — so
@@ -10573,19 +10779,6 @@ mod tests {
     /// dropped the animation-less entry outright, so the walk fell to
     /// `first_unit_piece` and the crew played the citizen's looping art
     /// (`docs/ANIM.md` §3.6).
-    ///
-    /// **What it leaves is one thing wearing three faces, and it is
-    /// `docs/QUEUE.md` item 177.** `do_trade`'s move to the near city is
-    /// queued here with a **waypoint** at `(37752, 41592)`, so the caravan
-    /// sets off south-west from 6167 where the original heads straight at
-    /// `(39288, 40056)`. That shows up as run64's thirty-four pinned
-    /// fields (`run64_s_window_clocks_are_the_original_s`), then as the
-    /// crew figures' arrival draws when this crate's caravan reaches its
-    /// waypoint on **6189**, and finally on **6198**, where the original
-    /// spends three `Unit::do_trade+0x40` draws — one through
-    /// `Unit::set_anim+0x56` and two through `+0xb6`, `Unit::set_anim`
-    /// over the three figures — arriving at a city this crate's caravan is
-    /// nowhere near.
     ///
     /// It was **5592** for one item, and it was **5466** until a building
     /// started flattening
@@ -10656,7 +10849,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6189;
+    const LONG_WORD_EAST_INDIES: i64 = 6198;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

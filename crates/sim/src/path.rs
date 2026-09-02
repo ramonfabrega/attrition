@@ -390,9 +390,13 @@ impl Sim {
                 } else {
                     0x100
                 };
-                // SEAM: the danger map (read here unless `no_danger`) is
-                // zero.
-                let mut e = 0;
+                // The danger map again, and the tile grid takes it
+                // **whole** — no shift (`006850a0`).
+                let mut e = if m.no_danger {
+                    0
+                } else {
+                    self.world.danger_half(who, to_cell)
+                };
                 if mask & tile::OBJECT == tile::OBJECT_BUILDING && mask & tile::BLOCKED != 0 {
                     e += 4000; // a gate tile
                 }
@@ -403,8 +407,21 @@ impl Sim {
                 }
                 extra = e.max(0);
             } else {
-                // SEAM: the danger map is zero.
-                let mut e = 0;
+                // **The danger map, eighthed** (`00684fd2`): `danger[who]
+                // [reg_xs × div3(y >> 9) + div3(x >> 9)] / 8`, truncated
+                // toward zero, and it is the *first* term of `extra` — so
+                // it is what the owner adjustment and the terrain cost are
+                // added to, and what the `max(0)` at the end clamps.
+                //
+                // The sign is the point: around your own city the map is
+                // negative, and this is 8 to 16 off every expensive step
+                // there (`crate::danger`, `docs/DANGER.md` §5).
+                let mut e = if m.no_danger {
+                    0
+                } else {
+                    let d = self.world.danger_half(who, to_cell);
+                    (d + ((d >> 31) & 7)) >> 3
+                };
                 if self.world.is_ocean(to_cell) {
                     if avoid_sea != 0 {
                         e += 200;

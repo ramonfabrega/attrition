@@ -12,36 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — sixty pieces that play nothing.* **East Indies 6169 →
-6189** (the count reaches 6197); Great Lakes unchanged at 2419.
+*2026-09-02, Opus — the map has no danger on it.* **East Indies 6189 →
+6198**; Great Lakes 2419. Items 177(a) and **136** closed together:
+177(a) *was* 136.
 
-- **A crew figure's animation packet is empty.** Sixty `<UNIT>` entries
-  have no `<ANIM>` child and every one is a `-CREW{k}`: three frames a
-  slot, none of them looping, so a walking crew figure wraps to the idle
-  and rolls every third frame. ANIM §3.6.
-- **It was 11,872 draws, not two** — 5,936 frames, two apiece, from 6169
-  to the end. Folding `Unit::inc_time+0x6e` over run54 first said so.
-- **`unit_anims` dropped the entry**, so `get_unit_gpiece` fell to
-  `first_unit_piece` and every crew figure played the citizen's looping
-  art. 1,359 pieces → 1,440.
-- **The window's clocks are compared now**, not installed: 2,061 fields
-  of run64's eight frames, which found the walk fallback reading guy 0's
-  packet and a carried crew figure being owed a turn it never is.
+- **The walk was a cost function.** `add_move_order` writes no waypoint;
+  `find_wpath` did, because `calc_cost`'s world arm was missing
+  `danger[who][half-cell] / 8` — 65 to 135 **negative** around a leader's
+  own city, so eight steps were 8–16 too dear. DANGER §6.
+- **The trace and the dump named it, not a reading**: run64's proxied
+  `calc_cost` gave the eleven wrong prices, their deltas grouped by
+  *half-cell*, and `log_data` has printed the whole map all along.
+- **`calc_danger`, every 200th frame**: buildings write for every viewer
+  *including the owner*, which is what makes it negative. DANGER §3–§5.
+- **Nothing installed `diplos`** — every capture ran at peace where the
+  dump says war, 46 readers of `is_enemy` answering wrong. Installed.
+- **Two new diffs**: the map whole (7,200 values) and the 47 prices of the
+  search it broke. run64's window is whole, 34 pinned fields → 0.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6189 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6198 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `Item 177 is the whole residue and it is one bug wearing
-three faces: `do_trade`'s move to the near city goes in with a **waypoint**
-at `(37752, 41592)`, so from run64's 6167 the caravan sets off south-west
-where the original heads straight at `(39288, 40056)`. That is the
-thirty-four fields `run64_s_window_clocks_are_the_original_s` pins, it is
-6189 (the crew's arrival draws at the waypoint), and it is 6197/6198 (the
-original arriving at a *city*, three `Unit::do_trade+0x40` draws over the
-three figures). Start at `add_move_order`'s `QUEUE_FIRST` arm and ask why
-this crate gives that order a waypoint at all — CARAVAN §4.1 says the
-original passes `find_angle(1, 0)` where a direction is read, and nothing
-about a route.`
+**Opener (Opus):** `Item 177's second half is the word: 6198 is
+`Unit::do_trade+0x40`, three `Guy::set_anim` draws over the caravan's three
+figures as it **arrives** at the near city — one through
+`Unit::set_anim+0x56` and two through `+0xb6`. Nothing past the road is
+modelled at all (CARAVAN §7), so this is a mechanic rather than a residue:
+read `do_trade` past its `build_road` arm and `Unit::work`'s §6 block, and
+give the arrival its `set_anim`. run64's window and run54's 24,000 frames
+are on disk; CARAVAN §7 names what a *new* capture would have to hold.`
 
 ## The queue
 
@@ -50,14 +49,13 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-177. **The caravan's legs, and its wealth.** (a) The walk is wrong
-    *first*: §4.1's move carries a waypoint here and the original's does
-    not, which is the word at 6189 and 6197 and run64's thirty-four
-    pinned fields. (b) Then `do_trade` past the road — `TradeOrder +0x20
-    loaded`, the trade income (`docs/ECONOMY.md`'s `trade_val`), and what
-    a fallen city does to a route. CARAVAN §7 lists what a capture would
-    have to hold to separate the destination loop's arms — three cities of
-    one leader.
+177. **The caravan's legs, and its wealth** — (a) closed, and it was
+    item 136. What is left is the arrival and everything past it:
+    `Unit::do_trade+0x40`'s three `set_anim` draws (the word, 6198),
+    `TradeOrder +0x20 loaded`, the trade income (`docs/ECONOMY.md`'s
+    `trade_val`), and what a fallen city does to a route. CARAVAN §7 lists
+    what a capture would have to hold to separate the destination loop's
+    arms — three cities of one leader.
 
 169. **`compute_site_stats`' arithmetic, on 7,122 of run63's 27,000 site
     fields.** `(45, 52)` scores twice the original's, `(44, 52)` four
@@ -92,12 +90,6 @@ indexed by them.
 142. **`World::tregion` is not `get_tregion`.** Four items were a gate
     asking the wrong one (PATHFINDER §15, §16). Eleven callers, unaudited.
 
-136. **The danger grid has no writer, and four readers index it wrongly.**
-    `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution
-    **cell** grid — `danger[who][reg_xs × div3(y >> 9) + div3(x >> 9)]` in
-    `produce_unit@006cb9e0` and four others; `World::danger` reads it by
-    region. Both answer 0.
-
 122. **A draw with no mark of its own.** `mark_sites` gives an unmarked
     draw the label still standing, so a sequence reads wrong rather than
     short. **16 of 61** `rng.roll`/`get` calls have no `self.mark(`.
@@ -105,6 +97,14 @@ indexed by them.
 153. **The `TRIBE` record, whole.** `Tribe::log_data@006f0d70` prints
     `graft[352]`, `barbarian`, `build_continent`, `people` and
     `text_substitute` in every `DUMP_ALL` dump; none parsed (TECH).
+
+178. **The danger map's unit pass, unexercised.** DANGER §8: run64's two
+    leaders have no military unit on the map on any frame divisible by
+    200, so `role & 0x10000`, `(attack · 5) / 10` and the war gate rest on
+    the reading alone. A `DUMP_ALL` `WORLD` block on a 200-frame boundary
+    after either side has an army settles it; run16's scenario is one and
+    its window is cheap. Takes `UnitData::is_seen` with it — this crate
+    answers it with the building's ever-seen fog bit.
 
 The ledgers, each a number nothing yet counts: (87) **the widening
 ledger** — items 74, 83, 69, 113, 123, 144, 154, 169 and now 168/165 (one

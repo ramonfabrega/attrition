@@ -1841,7 +1841,7 @@ impl Sim {
 
     /// The trainer score both walks share: the city level or a flat million,
     /// halved (city) or fifthed (fort) when unassimilated, divided by the
-    /// queue depth, the damage and the region's danger.
+    /// queue depth, the damage and the danger at its own half-cell.
     fn trainer_score(&self, b: usize, base: i32, city: bool) -> i32 {
         let mut s = base;
         if self.building_unassimilated(b) {
@@ -1850,11 +1850,7 @@ impl Sim {
         let bd = &self.buildings[b];
         let queued = bd.queue.items.len() as i32;
         let damage = if city { bd.damage / 50 } else { bd.damage };
-        let danger = self
-            .world
-            .region_of(bd.pos.cell())
-            .map_or(0, |r| self.world.danger(bd.owner, r))
-            .max(0);
+        let danger = self.world.danger_at(bd.owner, bd.pos).max(0);
         s / (queued + 1) / (damage + 1) / (danger + 1)
     }
 

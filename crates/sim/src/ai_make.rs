@@ -580,14 +580,11 @@ impl Sim {
             // at the site". `check_orphaned_buildings@006c9f20:196–199` and
             // `:228–232` read `world+0x13c`, which the PDB names
             // `WorldData::danger[8]` (`int *[8]`), indexed `(y >> 9)/3 *
-            // reg_xs + (x >> 9)/3` — the same grid and the same shift
-            // `calc_cost` uses for its danger term (`docs/PATHFINDER.md` §5).
+            // reg_xs + (x >> 9)/3` — the same grid `calc_cost` reads for its
+            // danger term, though **not** the same shift: the world grid
+            // eighths it and the AI takes it whole (`docs/DANGER.md` §5).
             // It is the danger map, not territory.
-            //
-            // SEAM: the danger map is zero everywhere here (`path.rs:264`),
-            // so the disband arm never fires in a live game and every
-            // builder-less site takes the recruit arm.
-            let danger = site_reg.map_or(0, |r| self.world.danger(who, r));
+            let danger = self.world.danger_at(who, self.buildings[b].pos);
             if self.buildings[b].job_counter == 0 && danger > 0 {
                 self.disband_building(b, false);
                 continue;
@@ -1227,8 +1224,7 @@ mod tests {
         let s = &mut f.sim;
         let b = s.init_build(1, f.farm_rec, at, false);
         assert!(!s.buildings[b].active && s.buildings[b].job_counter == 0);
-        let reg = s.world.region_of(at.cell()).expect("a region");
-        s.world.set_danger(1, reg, 5);
+        s.world.set_danger_at(1, at.cell(), 5);
         s.check_orphaned_buildings(1);
         assert!(!s.buildings[b].alive, "disbanded: no builder, danger > 0");
 
@@ -1263,8 +1259,7 @@ mod tests {
         let mut f = fx();
         let s = &mut f.sim;
         let b = s.init_build(0, f.farm_rec, at, false);
-        let reg = s.world.region_of(at.cell()).expect("a region");
-        s.world.set_danger(0, reg, 5);
+        s.world.set_danger_at(0, at.cell(), 5);
         s.nation[0].human = true;
         s.check_orphaned_buildings(0);
         assert!(s.buildings[b].alive);

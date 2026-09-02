@@ -272,19 +272,15 @@ pub struct World {
     /// The rest of each cell's `WData` record — [`CellData`]; all zero until
     /// a map is loaded.
     cells: Vec<CellData>,
-    /// `WorldData::danger[who]@+0x13c` — the per-player danger grid. Empty
-    /// until something writes it, and nothing does: the writer is a seam,
-    /// so every reader here answers 0.
+    /// `WorldData::danger[who]@+0x13c` — the per-player danger grid,
+    /// `int[reg_size]` per leader over a **half-resolution cell** grid
+    /// (`reg_xs × reg_ys`, each entry two cells square).
     ///
-    /// **It is indexed two ways in this crate and only one of them is the
-    /// original's.** `danger[who]` is `int[reg_size]`, a **half-resolution
-    /// cell** grid — every consumer in the executable indexes it
-    /// `reg_xs × div3(y >> 9) + div3(x >> 9)` (`Leader::produce_unit@
-    /// 006cb9e0:142`, `produce_tech`, `produce_building`, `found_cities`,
-    /// `check_orphaned_buildings`) — which is what [`World::danger_half`]
-    /// does. [`World::danger`] indexes it by *region* instead, as the AI's
-    /// four readers here were written to; both answer 0 while there is no
-    /// writer, so nothing has ever told them apart.
+    /// [`crate::danger`] is the writer (`GameDaemon::calc_danger`, every
+    /// two hundredth frame) and every consumer indexes it the one way the
+    /// executable does — `reg_xs × div3(y >> 9) + div3(x >> 9)`, which is
+    /// [`World::danger_half`] at the position's cell. Eight rows, one per
+    /// leader; Gaia has none.
     danger: Vec<Vec<i32>>,
     /// One height per **tile** — what `TerrainOut::find_tcoord_z@008544a0`
     /// answers for it: the truncated mean of two corners of the terrain's
@@ -1112,29 +1108,81 @@ impl World {
         }
     }
 
-    /// `WorldData::danger[who][region]`; 0 when never written.
-    pub fn danger(&self, who: Player, region: u16) -> i32 {
-        self.danger
-            .get(who as usize)
-            .and_then(|d| d.get(region as usize))
-            .copied()
-            .unwrap_or(0)
+    /// `reg_xs` — `World::init@006b76f0:49`: `(xs · 4) >> 3`, the tile
+    /// width halved. Not `xs / 2`: an odd cell width rounds *down* here
+    /// and up there.
+    pub const fn reg_xs(&self) -> i32 {
+        (self.width * 4) >> 3
+    }
+
+    /// `reg_ys`, the same from the height.
+    pub const fn reg_ys(&self) -> i32 {
+        (self.height * 4) >> 3
+    }
+
+    /// `reg_size` — the length of one leader's danger row.
+    pub const fn reg_size(&self) -> i32 {
+        self.reg_xs() * self.reg_ys()
     }
 
     /// `danger[who][reg_xs × (cy / 2) + (cx / 2)]` — the read every
     /// consumer in the original makes (see the field's own note). 0 when
-    /// never written, which is always.
+    /// never written.
     pub fn danger_half(&self, who: Player, c: Cell) -> i32 {
-        if c.x < 0 || c.y < 0 {
+        if c.x < 0 || c.y < 0 || c.x / 2 >= self.reg_xs() || c.y / 2 >= self.reg_ys() {
             return 0;
         }
-        let half_w = self.width.div_euclid(2) + self.width % 2;
-        let i = (c.y / 2) * half_w + (c.x / 2);
+        self.danger_at_index((c.y / 2) * self.reg_xs() + (c.x / 2), who)
+    }
+
+    /// The same read at a **position**, which is how every caller in the
+    /// original spells it: `div3(y >> 9)` and `div3(x >> 9)`.
+    pub fn danger_at(&self, who: Player, p: Pos) -> i32 {
+        self.danger_half(who, p.cell())
+    }
+
+    fn danger_at_index(&self, i: i32, who: Player) -> i32 {
         self.danger
             .get(who as usize)
             .and_then(|d| usize::try_from(i).ok().and_then(|i| d.get(i)))
             .copied()
             .unwrap_or(0)
+    }
+
+    /// `GameDaemon::calc_danger`'s opening `memset`: one leader's row, back
+    /// to zero and sized to the map.
+    pub fn clear_danger(&mut self, who: Player) {
+        let n = usize::try_from(self.reg_size()).unwrap_or(0);
+        let w = who as usize;
+        if self.danger.len() <= w {
+            self.danger.resize_with(w + 1, Vec::new);
+        }
+        self.danger[w].clear();
+        self.danger[w].resize(n, 0);
+    }
+
+    /// `GameDaemon::do_danger`'s one write: `danger[who][index] += delta`,
+    /// with the index already bounds-checked by the caller.
+    pub fn add_danger(&mut self, who: Player, index: i32, delta: i32) {
+        let w = who as usize;
+        let Ok(i) = usize::try_from(index) else {
+            return;
+        };
+        if self.danger.len() <= w {
+            self.danger.resize_with(w + 1, Vec::new);
+        }
+        let n = usize::try_from(self.reg_size()).unwrap_or(0);
+        if self.danger[w].len() < n {
+            self.danger[w].resize(n, 0);
+        }
+        if let Some(v) = self.danger[w].get_mut(i) {
+            *v += delta;
+        }
+    }
+
+    /// One leader's whole row, for the diff.
+    pub fn danger_row(&self, who: Player) -> &[i32] {
+        self.danger.get(who as usize).map_or(&[], Vec::as_slice)
     }
 
     /// `Region.flags` — 0 for a region nothing has installed one for.
@@ -1235,17 +1283,15 @@ impl World {
         0
     }
 
-    /// Writes a danger figure, growing the table as needed.
-    pub fn set_danger(&mut self, who: Player, region: u16, value: i32) {
-        let w = who as usize;
-        if self.danger.len() <= w {
-            self.danger.resize_with(w + 1, Vec::new);
+    /// Writes a danger figure at a cell, for a test that wants one without
+    /// building the objects that would earn it.
+    pub fn set_danger_at(&mut self, who: Player, c: Cell, value: i32) {
+        if c.x < 0 || c.y < 0 {
+            return;
         }
-        let r = region as usize;
-        if self.danger[w].len() <= r {
-            self.danger[w].resize(r + 1, 0);
-        }
-        self.danger[w][r] = value;
+        let i = (c.y / 2) * self.reg_xs() + (c.x / 2);
+        let cur = self.danger_at_index(i, who);
+        self.add_danger(who, i, value - cur);
     }
 
     /// How many regions the world has, land and sea — the length every

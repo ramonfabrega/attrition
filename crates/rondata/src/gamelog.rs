@@ -804,6 +804,12 @@ pub struct LeaderDump {
     pub score: i64,
     pub leader_flags: i64,
     pub leader_flags2: i64,
+    /// `LeaderData::diplos` (`+0x74`, `int[8]`) — 0 war, 1 peace, 2
+    /// alliance, and the diagonal is 2 (`docs/ARMY.md` §1). Every capture
+    /// so far opens with the whole off-diagonal at **0**, which is what a
+    /// Quick Battle is; the harness read none of it until `crate::danger`
+    /// needed `do_danger`'s three arms told apart.
+    pub diplos: Vec<i64>,
 }
 
 /// One slot of a leader's make list — the `MAKEOBJECT` block
@@ -1174,6 +1180,22 @@ pub fn world_fog(fields: &[(&str, &str)]) -> Vec<u8> {
         .iter()
         .filter(|(k, _)| *k == "seen2[scan]")
         .map(|(_, v)| v.trim().parse::<u32>().unwrap_or(0) as u8)
+        .collect()
+}
+
+/// The danger map — `WorldData::danger[8]` (`world+0x13c`), printed by
+/// `WorldData::log_data@006b6080:628` as `danger[who][scan]`, eight rows of
+/// `reg_size` `int`s back to back in leader order.
+///
+/// `reg_size` is `reg_xs × reg_ys` and the block does not say what it is, so
+/// the caller divides by eight: the whole run is `8 × reg_size` long, and a
+/// 60×60 map's is 7,200. It is the one AI-visible grid a `WORLD` dump
+/// carries, and nothing compared it until `crate::danger` had a writer.
+pub fn world_danger(fields: &[(&str, &str)]) -> Vec<i64> {
+    fields
+        .iter()
+        .filter(|(k, _)| *k == "danger[who][scan]")
+        .filter_map(|(_, v)| v.trim().parse::<i64>().ok())
         .collect()
 }
 
@@ -1808,6 +1830,11 @@ fn leader_of(b: &Block<'_>) -> LeaderDump {
         score: i("score"),
         leader_flags: i("leader_flags"),
         leader_flags2: i("leader_flags2"),
+        diplos: b
+            .all("diplos[scan]")
+            .iter()
+            .filter_map(|v| v.trim().parse().ok())
+            .collect(),
     }
 }
 

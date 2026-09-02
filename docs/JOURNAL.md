@@ -13405,3 +13405,76 @@ named two draws on one frame. Folding the trace first said it was 11,872 on
 frame's accident. And the check that found the two residual bugs was not a
 reading: it was nine fields of a record the parser had held all along and
 nobody had put a `!=` against.
+
+## 2026-09-02 — items 177(a) and 136, closed: the caravan walked wrong because the map has no danger on it (Opus)
+
+The opener said to start at `add_move_order`'s `QUEUE_FIRST` arm and ask why
+this crate gives `do_trade`'s move a waypoint at all. The answer is that it
+does not: `add_move_order` writes `has_waypoint: false`, and the waypoint at
+`(37752, 41592)` was `find_wpath`'s. So the question became why the world
+grid planned a route at all where the original plans none.
+
+**The trace already had the answer, and it took twenty minutes.** run64's
+`callwin` proxies `PathFinder::calc_cost`, so the original's own price for
+every one of the forty-seven steps of that search is on disk. Eleven of them
+were wrong here, and the deltas were 8, 10 and 16 — not a multiple of the
+formula's own 20 or 4, so not a terrain or an owner term. They grouped by
+**half-cell**: `(50, 51)` and `(51, 51)` both off by 10, `(50, 52)` and
+`(50, 53)` both by 16. A half-cell grid with a `/8` on it is
+`WorldData::danger`, which `docs/QUEUE.md` item 136 had been sitting on for
+a fortnight as "no writer, and four readers index it wrongly".
+
+**Then grep the dump.** `WorldData::log_data@006b6080:628` prints the whole
+map — `danger[who][scan]`, eight rows of `reg_size` — and every `DUMP_ALL`
+capture in the corpus has carried it since the first one. run64's leader 1
+holds −65, −135, −80 and −65 at exactly those four half-cells, and
+`−65/8 = −8`, `−135/8 = −16`, `−80/8 = −10`. Every delta, exactly, before a
+line of `calc_danger` had been read.
+
+**The map is a balance of force, and the sign is the mechanic.**
+`GameDaemon::calc_danger` runs on `frame % 200 == 0` and rebuilds from
+scratch: military units add for the leaders they are at war with, and
+**every finished building writes for every viewer including its owner** —
+so your own ground goes negative. A city is 100, a fort or tower is half its
+hit points, a military trainer 50, anything else 10, spread `value / 2` over
+the eight neighbouring half-cells and `value` at its own. The two offset
+tables are the executable's own `move_x + 4` and `move_y + 4`, read out of
+the PE at `0xadcaf4` and `0xadc404`. `docs/DANGER.md` is the specification.
+
+**Two halvings, and a third mechanic between them.** `do_danger`'s enemy arm
+halves for unseen and again for peace, and on run64 the original halves
+exactly once. Two readings fit. The dump settles it — `ever_seen 1` and
+`ever_seen 2`, neither leader has seen the other; `diplos` 0 both ways since
+the start block — so it is *unseen, at war*. This crate had it the other way
+round, because **nothing installed `diplos`**: `LeaderDump` carried
+`leader_flags` and not the diplomacy table, so `build_sim` left `at_war` all
+false and every capture ran with two leaders at peace who have been at war
+since frame 0. Forty-six readers of `is_enemy`/`at_war_with` were answering
+the wrong way. It is installed now, and the full suite is unchanged by it.
+
+**What the missing term did to the search.** With the danger in, the seventh
+node the caravan's A\* pops is `(50, 52)`, whose Manhattan distance to the
+goal is 768 — the arrival tolerance — so the search stops there. Its parent
+is the start, and the reconstruction drops both the arrival node and the
+start, so it pushes **nothing**: `find_wpath` answers a stack of one, and
+`do_move` takes the move's own destination as its waypoint and walks
+straight at the city. That is what the original's dumped path stack says it
+does, one `PATHDATA` at `(38775, 40515)` — the destination `find_path`'s
+pull-back walked back out of the city's own tile.
+
+**The score.** East Indies **6189 → 6198**, and 6198 is
+`Unit::do_trade+0x40`: three `Guy::set_anim` draws over the caravan's three
+figures as it *arrives*, which is item 177's second half and the first
+mechanic past the road. Great Lakes unchanged at 2419. run64's window is
+whole — all 2,061 fields, where thirty-four were pinned this morning — and
+two new diffs stand behind it: the danger map itself, 7,200 values, and the
+forty-seven prices of the search it broke.
+
+**The lesson is the diff-first rule, twice in one item.** The item was
+booked as a walk and was a cost function; the cost function was named by a
+*trace* the capture already held, and the mechanic behind it by a *dump
+field* every capture had printed for a fortnight and nothing had ever put a
+`!=` against. Neither needed a reading to find — only to write down. And the
+third bug, the diplomacy table, was found by refusing to accept a green
+test: the map matched with `is_seen` forced true, and it matched for the
+wrong reason.

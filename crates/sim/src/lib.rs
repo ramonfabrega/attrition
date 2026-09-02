@@ -60,6 +60,7 @@ pub mod city;
 pub mod collide;
 pub mod combat;
 pub mod cost;
+pub mod danger;
 pub mod economy;
 pub mod farms;
 pub mod fight;
@@ -2476,6 +2477,14 @@ impl Sim {
             if *r < 3 {
                 *r = 0;
             }
+        }
+
+        // `GameDaemon::process_all` → `calc_danger`, the third thing that
+        // function does: the danger map, rebuilt from scratch every two
+        // hundredth frame (`crate::danger`). It draws nothing, so it takes
+        // no mark.
+        if frame % crate::danger::PERIOD == 0 {
+            self.calc_danger();
         }
 
         // `GameDaemon::process_all` → `update_all_seen`, the fourth thing
