@@ -12,36 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — the road behind the word turned out to be nobody's, and
-the census found the fifty timber.* **The word did not move: 5376.** Item
-160 is closed and it was not a defect: the original does not reach
-`create_buildings` either. Its ladder cannot leave step 1 while the AI
-script is live, so step 7 first runs on frame **9982** of East Indies and
-**6382** of Great Lakes — 4,606 and 4,580 frames past their words, and past
-every dump on disk (AI §25).
+*2026-09-02, Opus — the fifty timber was a goody box, and a dock's thirty
+wealth is why it picked the wrong good.* **The word did not move: 5376 —
+but what blocks it has changed.** The AI now pays its eighty and places the
+Market; the frame parts on `Leader::produce_building+0x1805`, **two draws
+against four**. Items 162 and 82 are closed together.
 
-- **The instrument was on disk and unread.** The trace's HIT records are
-  function coverage and `rondata::trace` dropped them at parse; nine lines
-  to keep, and twelve frame numbers on two maps are a test now. run18b's
-  `LEADERS=9` window dates the same ladder from the dump side, so
-  `SCRIPT_DONE` is behavioural rather than a reading.
-- **run59 measured the headline for the first time** (ORACLE, ECONOMY "The
-  census at the word"): a `LEADERS=9` window at [5150, 5400) on run58's own
-  game, thirteen minutes, `rngcmp` zero differing. The AI is **fifty timber
-  short and its `leftover` agrees**, so it is a lump; both players are short
-  **six timber gather slots**; ten slots × `TIMBER_BONUS_PER_WOOD_SLOT`
-  **is** fifty. Item 162.
-- **`longtrace.sh` takes `FRAME_WINDOW`** — the cheap per-frame dump
-  narrowed to a late window, which makes a census 5,000 frames in cost
-  minutes instead of an hour. `settle_min` above the start dump is the trap.
+- **162's premise was wrong and building it is what showed that.** The camp
+  slots were a real defect — a dump-stood camp surveyed an empty list — and
+  closing it moved 500 good-frames and **no timber**. An unpaid slot costs
+  nothing; the human, six short all window, had an exact bucket.
+- **run42 was on disk and unread.** Its `LEADERS=2` block prints both
+  leaders' six goods on 900 frames; 54,000 fields, only item 156 wrong.
+- **run60 is the recipe to reuse** (ORACLE): `DETAIL_END="MISC,LEADERS=2"`,
+  no window — 5,400 frames, 67 MB, **under five minutes**. The AI's bucket
+  curve parts on **three** frames in 5,400: 1, 3579, 4988.
+- **`Build::activate` line 590**: a dock, market or temple is a *wealth*
+  gather slot and the first past the mark pays thirty. `+0x8ac`/`+0x8dc`
+  are `gather_slots[2]` and `gather_slots_high[2]`, not a separate pair.
+  That thirty is why the goody at 4988 tied timber against wealth here and
+  paid the wrong one. run59: 4,798 wrong good-frames → **3,500**.
+- **Trace coverage fires once.** `HIT` says "has this ever run", never "did
+  it run here" — which is why a *second* goody box was invisible.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w5376 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 5376 and it has not moved for two
-sessions. Item 162 first — the starting woodcutter's camp claims no gather
-slots here, the human's 0 against 6 says so with nothing else in the way,
-and fifty timber is exactly the Market the word is.`
+**Opener (Opus):** `East Indies' word is 5376 for a new reason: the AI
+places the Market now, and the frame spends two placement-jitter draws
+against the original's four. Item 164 — two of the 2x2's sub-positions are
+blocked here and clear there, and RON_DEBUG_SITES prints the frame.`
 
 ## The queue
 
@@ -50,23 +50,26 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-162. **The starting camp's six gather slots, and the fifty timber they
-    are — the headline's nearest.** run59's census (ECONOMY, "The census at
-    the word"): the human, which builds nothing all game, holds
-    `gather_slots[timber]` **0 against 6**; the AI 4 against 10, the same
-    six plus its camps' four. Food slots are exact on both, so it is one
-    lineage. Five timber a slot past the high-water mark, ten slots,
-    **fifty** — the AI's standing shortfall to the Market's own frame. Why
-    does a dump-stood camp claim nothing where a farm does
-    (`claim_gather_slots`, `find_gather_tiles`, item 85)?
+164. **The word's own frame, and it is `blocked_site` now — the
+    headline.** run54's 5376 parts at `Leader::produce_building+0x1805`,
+    the placement jitter: one draw per **unblocked sub-position** of the
+    2x2 (AI §2.20), **2 here against 4**. The AI's Market at its capital,
+    on ground the original takes and this crate refuses twice.
+    `RON_DEBUG_SITES=1 cargo test --release -p rondata run54_s_24000`
+    prints both sides' sites. Sibling of 116.
 
-163/82. **The AI's food and wealth rates, on the same record.**
+165. **A merchant on a rare, and it is the whole of what run60 leaves.**
     `income[food]` **1440 against 1600** and `income[wealth]` **0 against
-    160** on all 250, `bucket[wealth]` eighteen *ahead* anyway; every one of
-    the human's six is exact. The wealth half is **82**: a slot under good 2
-    that `get_good@0063bd50`'s table cannot produce, on run40's human and now
-    both of run59's — `plan_strategy@006b9620` line 1137 assigns the array
-    from `City::count_gather_slots`, unread.
+    160** from frame **4992**, with `bucket` one apart from 5002 and 5061.
+    The AI's merchant unpacks at 4988 — `SpellType::cast_unpack@006709c0`
+    → `UnitData::good_merchant_spot@006068a0`, the family being `0x3d`,
+    `0x3e`, `0x190` — and run58's `1/14` takes `rare 6, good_obj 1` on
+    4992. Nothing here models it, so the AI earns no wealth at all after
+    4992. **Takes item 155's `rare`/`good_obj` writers with it.**
+
+166. **`resource_cap` on five goods, two frames from 2958** — 1392 here,
+    2000 there, and right again on 2960. ECONOMY, "The commerce cap": a
+    transient nothing else in 324,000 good-frames does.
 
 158. **The sweep runs for a human leader; this crate skips it.** AI §23.1,
     decompile and dump agreeing. Move the gate from `Sim::strategy_all` into
@@ -164,12 +167,6 @@ mean in `f32`, three tiles.
     `building_value`, `gather_value`, §24.4's neighbourhood arm,
     `oil_patches.count` and `compute_largest_gather@0066e920` are
     unreachable by any capture. Kept here until the word passes 9982.
-
-155. **The other two writers of `rare` and `good_obj`.** Both are in every
-    `UNIT` record and nothing compares them (item 87). run58's `1/14` takes
-    `rare −1` on 4872 from `Unit::think@005f6e40:179`'s rare-collector arm,
-    and `rare 6, good_obj 1` on 4992 from the gather job
-    (`Unit::do_job@00617a10` → `…@005ef2a0`). ORDERS §6.10; land both.
 
 156. **`STARTING_GOODS` arrives with the age.** `Leader::init@006e3930`
     zeroes all six; `Leader::gain_tech@006dcb60` pays `bucket_add(g,

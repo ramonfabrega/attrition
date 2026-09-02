@@ -3262,3 +3262,51 @@ exact. It also carries `production_step`, `script_step` and
 `prod_script_run` on 250 frames 5,400 into the game — the AI's script is
 still live, the machine never leaves step 1, and `economic.bhs` walks cases
 23 → 15 → 18 (`docs/AI.md` §25).
+
+## run60 — the census made cheap, and the whole curve at once (2026-09-02)
+
+**The lesson is the recipe, not the run.** run59 narrowed an *expensive*
+`[End Frame]` to a 250-frame window and cost thirteen minutes. run60 does the
+opposite and it is better: keep the window open for all 5,400 frames and make
+the **block** cheap instead.
+
+    DETAIL_END="MISC,LEADERS=2" POLL_MAX=150 \
+    zsh tools/gamelog/longtrace.sh 60 5400 islands-census-thin 18
+
+`LEADERS=2` is where `LeaderData::log_data@006e5110` announces the encrypted
+block — `bucket`, `leftover`, `resources`, `income`, `rate` and
+`resource_cap`, per good — and `LEADERS=9` is where the ten-thousand-line
+census sits. Dropping `UNITS`, `BUILDS`, `CITIES`, `GUYS` and `DEATHS` from
+the end-frame list and keeping `LEADERS=2` leaves a per-frame block of a few
+hundred lines:
+
+| capture | frames | end-frame detail | wall clock | size |
+| --- | --- | --- | --- | --- |
+| run58 | 5,201 | run39's, `LEADERS=1` | 61 min | 1.41 GB |
+| run59 | 250 of 5,400 | run39's, `LEADERS=9` | 13 min | 446 MB |
+| **run60** | **5,400** | `MISC,LEADERS=2` | **under 5 min** | **67 MB** |
+
+The start dump is unchanged (`DETAIL_START` defaults to run10's), so the
+harness builds the same world from it and the run is a drop-in sibling.
+`rngcmp.py rontrace-run59.log rontrace-run60.log` is 5,401 frames with
+**zero differing**.
+
+**What it says** is in `docs/ECONOMY.md`, "run60": 324,000 good-frames, and
+the AI's whole bucket curve parts on exactly **three** frames in 5,400 —
+frame 1 (item 156), 3579 and 4988. Those two were the dock's thirty wealth
+and the goody box the thirty made pick the wrong good, and they were East
+Indies' word.
+
+**Two things this makes routine.**
+
+- **A per-frame census is now cheaper than a window.** Where a question is
+  about a *level* rather than a whole record, this is the capture to book —
+  and its output is a curve, so the answer is a frame number rather than a
+  standing gap.
+- **Trace coverage fires once.** `report.py`'s `HIT` records mark a
+  function's **first** entry, so a repeat of an event the trace already saw
+  leaves no record at all. run60's box on 4988 is invisible to the trace for
+  exactly that reason; the neighbouring `SpellType::cast_unpack` on 4988 is
+  visible only because it had never run before. A coverage listing answers
+  "has this ever run", never "did it run here".
+

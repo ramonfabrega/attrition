@@ -2105,6 +2105,85 @@ fn the_return_walk_goes_in_front_of_the_gather_order_it_updates() {
     assert_eq!(g.wait, 32, "wait was written to the walk instead");
 }
 
+/// **A dock, a market or a temple is a wealth gather slot, and the first of
+/// them past the mark pays thirty** (`docs/ECONOMY.md`, "The wealth slot,
+/// and the thirty it pays" — `Build::activate@00623e20` line 590).
+///
+/// The block reads and writes `gather_slots[2]` and `gather_slots_high[2]`
+/// — `LeaderData +0x8ac` and `+0x8dc`, which are those two array entries
+/// and not the separate counters they were once read as. So the shape is
+/// the gather block's: claim always, pay only past the high-water mark, and
+/// never at frame 0.
+#[test]
+fn a_dock_a_market_and_a_temple_each_claim_a_wealth_slot() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let dock = sim.add_build_type(bt(Ident::Dock, None, "jam", 4, 4, 420, 1200, 0));
+    city_at(&mut sim, &t, 0, 32, 32);
+    let w = economy::Resource::Wealth.index();
+    sim.ledgers[0].bucket[w] = 0;
+    sim.frame = 1;
+
+    // The market is the first: one slot, and thirty wealth for it.
+    let m = sim.place_building(0, t.market, tile_pos(20, 20)).unwrap();
+    finish(&mut sim, m);
+    assert_eq!(sim.ledgers[0].gather_slots[w], 1);
+    assert_eq!(sim.ledgers[0].gather_slots_high[w], 1);
+    assert_eq!(sim.ledgers[0].bucket[w], 30);
+
+    // A temple and a dock are the same kind, and each is past the mark.
+    let te = sim.place_building(0, t.temple, tile_pos(20, 28)).unwrap();
+    finish(&mut sim, te);
+    // A dock wants water under it, which this bare world has none of, so
+    // it is stood up the way the diff harness stands a dump's own
+    // buildings: `Build::init` then `Build::activate`.
+    let d = sim.init_build(0, dock, tile_pos(44, 20), false);
+    sim.activate(d, false, true);
+    assert_eq!(sim.ledgers[0].gather_slots[w], 3);
+    assert_eq!(sim.ledgers[0].bucket[w], 90);
+
+    // A library is not, and neither is a farm.
+    let l = sim.place_building(0, t.library, tile_pos(44, 28)).unwrap();
+    finish(&mut sim, l);
+    assert_eq!(sim.ledgers[0].gather_slots[w], 3, "a library is not a slot");
+    assert_eq!(sim.ledgers[0].bucket[w], 90);
+
+    // `Build::close` gives the slot back; the mark stands, so the rebuild
+    // is free of bonus. That is the whole point of the high-water pair.
+    sim.disband_building(te, true);
+    assert_eq!(sim.ledgers[0].gather_slots[w], 2);
+    assert_eq!(sim.ledgers[0].gather_slots_high[w], 3);
+    sim.ledgers[0].bucket[w] = 0;
+    let te2 = sim.place_building(0, t.temple, tile_pos(20, 28)).unwrap();
+    finish(&mut sim, te2);
+    assert_eq!(sim.ledgers[0].gather_slots[w], 3);
+    assert_eq!(sim.ledgers[0].bucket[w], 0, "a rebuild is not a new slot");
+}
+
+/// **And at frame 0 the slot is claimed and nothing is paid** — the same
+/// gate the gather bonuses take, which is what keeps a dump's own starting
+/// market from paying. run59's human is the record: a Market it was handed
+/// at setup, `gather_slots[wealth]` 1, and a wealth bucket that never saw
+/// the thirty.
+#[test]
+fn a_market_stood_up_at_frame_zero_claims_its_slot_and_pays_nothing() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    city_at(&mut sim, &t, 0, 32, 32);
+    let w = economy::Resource::Wealth.index();
+    sim.ledgers[0].bucket[w] = 0;
+    assert_eq!(sim.frame, 0);
+
+    let m = sim.place_building(0, t.market, tile_pos(20, 20)).unwrap();
+    finish(&mut sim, m);
+    assert_eq!(sim.ledgers[0].gather_slots[w], 1);
+    assert_eq!(
+        sim.ledgers[0].gather_slots_high[w], 1,
+        "the mark still rises"
+    );
+    assert_eq!(sim.ledgers[0].bucket[w], 0);
+}
+
 /// **The carrying walk is `unit_masks & 0x78000000`, not the order.**
 ///
 /// `Guy::set_anim`'s walk arm reads four bits off the unit and nothing else

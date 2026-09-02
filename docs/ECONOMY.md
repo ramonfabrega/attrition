@@ -601,10 +601,61 @@ Germans (`has_tribe_bonus(0xc)`) scale the amount by
 `(GERMAN_COMPLETION_BONUS + 100) / 100`, and then `bucket[good] += amount`.
 
 There is a **third** `do_bonus`, earlier in `activate` and not part of this
-block: thirty wealth (`do_bonus(2, 0x1e)`) the first time a player finishes a
-kind of building they have never finished before, off a separate pair of
-counters at `+0x8ac`/`+0x8dc`. It is unread and unimplemented; no traced game
-has reached it, since both players start with every building they own.
+block. It is the section below — and the "separate pair of counters at
+`+0x8ac`/`+0x8dc`" this document used to describe it by are not separate at
+all.
+
+## The wealth slot, and the thirty it pays
+
+`Build::activate@00623e20` **line 590**, before everything above:
+
+```
+if is_dock(type) or is(MARKET) or is(TEMPLE):
+    gather_slots[WEALTH] += 1
+    if gather_slots[WEALTH] > gather_slots_high[WEALTH]:
+        gather_slots_high[WEALTH] = gather_slots[WEALTH]
+        if frame != 0 and not captured and counted and <not a fenced scenario>:
+            do_bonus(2, 0x1e)                       # thirty wealth
+```
+
+**`+0x8ac` is `gather_slots[2]` and `+0x8dc` is `gather_slots_high[2]`.**
+`LeaderData +0x8a4` is `gather_slots` and `+0x8d4` is `gather_slots_high`, so
+the two addresses are the third entry of each — the type record says so and
+the arithmetic agrees. The wealth slot no writer here could produce
+(`get_good`'s table has no wealth arm, and never will) and the thirty wealth
+nobody paid were one line all along.
+
+The first of the three kinds is the vtable call the decompiler leaves as
+`(**(code **)(**(int **)&this->field_0x18 + 0x108))()`. It is settled
+without the PDB's vtable records: `ObjectData::is_dock@004711e0` is that
+call and nothing else, so slot `+0x108` on the type is `is_dock`. The other
+two are spelled out — `is(0x1b4)` is MARKET, `is(0x1b5)` is TEMPLE.
+
+`Build::close@00628980` line 107 is the mirror, three lines below the gather
+slots' and inside the same `flags & 4` guard: the slot goes back, the mark
+does not follow it down, and a rebuild is therefore free of bonus.
+
+**How it is established.** The block is read; both halves are diff-backed.
+
+- **The slot.** run59's census at `[5150, 5400)` has `gather_slots[wealth]`
+  **1** on both players against this crate's 0, for every one of its 250
+  frames. The human's is its **starting Market**, stood up at frame 0; the
+  AI's is the **Dock** it finishes on sim-frame 3579. Both are exact now.
+- **The thirty, on its own frame.** run60's per-frame census (below) has the
+  AI's `bucket[wealth]` step by thirty more than this crate's between the
+  blocks labelled `FRAME 3580` and `FRAME 3579` — the end of sim-frame 3579,
+  which is the frame its Dock activates and the only frame in 5,400 on which
+  the two sides' wealth parted at all.
+- **Frame 0 pays nothing.** The human's Market claims the slot and its wealth
+  bucket is the original's on all 250 of run59's frames, which is the same
+  gate the gather bonuses take.
+
+**What it does not establish.** The German multiplier is applied here by
+analogy with `Build::do_bonus`'s other callers — `do_bonus` is one function
+and the multiplier is inside it, so this is a reading of the call rather
+than of the arm. The scenario fence (`Game::is_scenario` and
+`ScenarioData::building_resource_bonus`) is read and not modelled; no
+capture is a scenario.
 
 **How it is established.** The block is read; the *amount* is diff-backed.
 run40's census has the AI's food thirty-two behind the original's on every
@@ -1109,7 +1160,7 @@ fields — and 4,798 of them disagree, in nine shapes. Every one is a
 **standing state**: each is wrong on all 250 frames, which is what says it
 is a level rather than anything the window does.
 
-### The item: fifty timber, and it is a lump
+### The item: fifty timber, and it was a lump — closed 2026-09-02
 
 | | ours | theirs |
 | --- | --- | --- |
@@ -1117,18 +1168,24 @@ is a level rather than anything the window does.
 | at 5376, the Market's own frame | 34 | **84** |
 
 Fifty short on every frame before the purchase — and `leftover[timber]`, the
-fractional accumulator, **agrees on 234 of the 250**. The two sides are
-therefore paid the same amount of timber every frame in this window, so the
-fifty was banked before it opened: a lump, not a rate. On 5377 the gap flips
-to **thirty ahead**, because the original is eighty poorer and this crate is
-not. That flip is the whole of East Indies' word in one field.
+fractional accumulator, **agreed on 234 of the 250**. The two sides were
+therefore paid the same amount of timber every frame *in this window*, so
+whatever banked the fifty was older than the window. On 5377 the gap flipped
+to **thirty ahead**, because the original was eighty poorer and this crate
+was not.
 
-### Where the fifty comes from: `gather_slots`
+It is a **goody box on sim-frame 4988**, and the good it paid was wrong here
+because a dock's thirty wealth was missing 1,409 frames earlier. The chain is
+under "run60" below; the AI's timber is now the original's on every frame of
+this window and across the Market.
+
+### The six timber slots the same census found, and why they are not the fifty
 
 `gather_slots` is the running inventory `Build::activate` adds a finished
 gather building's `gather_max` to ("What a finished gather building pays"),
 and the dump prints it per good beside its own high-water mark — which is
-what decides the per-slot bonus. Both players are short the same rows:
+what decides the per-slot bonus. The census found both players short the same
+rows:
 
 | | ours | theirs |
 | --- | --- | --- |
@@ -1138,11 +1195,36 @@ what decides the per-slot bonus. Both players are short the same rows:
 | both players' `gather_slots[food]` | — exact — | |
 
 The human builds nothing at all in this game, so its six are its **starting**
-camp's and this crate claims none of them; the AI's ten are the same six plus
-the four its own camps add, which are the four this crate has. The food slots
-are exact on both players, which is what makes this a defect in one lineage
-rather than an array nobody writes. And `TIMBER_BONUS_PER_WOOD_SLOT` is
-**5**, paid per slot past the high-water mark: ten slots is fifty timber.
+camp's; the AI's ten are the same six plus the four its own camps add. The
+food slots were exact on both players, which is what said this was one
+lineage rather than an array nobody writes.
+
+**It was a harness defect, and it is closed (2026-09-02).** `Build::init`
+fills a camp's `gather_from` at placement and `Build::activate` then adds the
+`gather_max` surveyed *from that list* to `gather_slots`. A camp stood up
+from a dump could never survey anything: `build_sim` loads the dump's own
+tile masks into the world verbatim, so the camp's tiles already carry
+`0x1000` (`is_gathered_from`) before the camp exists, `find_gather_tiles`
+skips every cell that does, and the walk comes back empty. The list was then
+installed from the dump **after** `activate` had already surveyed the empty
+one. Installing it — and the count with it — before `activate` is the whole
+fix, and it closes 500 of run59's 4,798 wrong good-frames: both players'
+timber slots are now exact on all 250.
+
+**And it moved the timber not at all**, which is the measurement that refutes
+the first reading of the fifty. The arithmetic is why. The bonus is
+`TIMBER_BONUS_PER_WOOD_SLOT` = 5 per slot **past the high-water mark**, and
+`Build::activate` pays nothing at frame 0 — so in the original the starting
+six arrive during `Setup::build_empire`, raise the mark to six, and are never
+paid for; the one camp the AI builds in the run (frame 2424, four slots) then
+pays for `6 → 10`. This crate used to pay for `0 → 4`. **Twenty timber
+either way**, and now it is the same twenty on the same frame. Ten slots
+times five is a true sentence about a number that was never paid.
+
+The **human is the control that says so from the other side**: it held six
+fewer timber slots than the original for the whole window and its
+`bucket[timber]` was exact on every one of the 250 frames. An unpaid slot
+costs nothing, and the six were unpaid.
 
 The wealth slot is item 82's, open since run40 — `BuildTypeData::get_good`'s
 table cannot produce a wealth-gathering building, and this crate's
@@ -1163,18 +1245,121 @@ window. The AI's are not:
   1120 and this crate's stays — a gatherer that leaves the wood sixteen
   frames from the end of the window.
 
+## The census before the word — run42's nine hundred frames (2026-09-02)
+
+The census above could not say *when* the fifty was banked, and the note it
+left said localising it needed a second capture. It did not: **run42 was
+already on disk and nothing had ever read its leader block.**
+
+run42 is run39's game — the same game as run54, run56, run57, run58 and
+run59, by `samegame.py` and by `rngcmp.py` in turn — captured at run39's
+detail plus `LEADERS=2`, which is where `LeaderData::log_data` announces the
+encrypted block. So it prints `bucket`, `leftover`, `resources`, `income`,
+`rate` and `resource_cap`, per good, on every one of its **900** frames
+(`docs/ORACLE.md`, "run42").
+
+`diff::tests::run42_s_nine_hundred_frames_are_the_census_before_the_word`
+compares five of those six fields for both players on all 900 frames —
+**54,000 good-frames** — and the *only* disagreement is item 156's three
+unavailable goods, on both players, from frame 1.
+
+That is a stronger statement than the count suggests:
+
+- The AI's `income[food]` and `income[wealth]`, both wrong on all 250 frames
+  of run59's window, are **exact for the first 900 frames**. Both seams
+  therefore open somewhere in (900, 5150) — they are not standing errors in
+  the rate arithmetic.
+- The goody box the AI opens on frame 867 pays fifty **wealth**, and this
+  crate pays the same fifty to the same good on the same frame
+  (`docs/GOODY.md` §6). The one lump on the map that is worth fifty is not
+  the fifty.
+- Every purchase, refund and completion bonus either side makes in its first
+  900 frames nets to the same six buckets.
+
+**So the fifty is banked in (900, 5150)**, and the AI's timber gap is
+`0` for the whole of run42's record — the test prints every frame the gap
+steps on, and the list is empty.
+
+## run60 — the whole curve, and the two frames it names (2026-09-02)
+
+run42 pinned frames 1–900 and run59 measured a standing fifty at 5,150.
+Between them nothing on disk carried a resource level at all, and that is
+what run60 is: run58's game with `[End Frame]` cut to `MISC,LEADERS=2` and
+nothing else. Every one of its 5,400 frames prints both leaders' six goods,
+and the run took **under five minutes** and 67 MB — against run58's
+sixty-one minutes for two hundred fewer frames — because the per-frame block
+is a few hundred lines rather than ten thousand. `rngcmp.py` against run59 is
+5,401 frames with **zero** differing.
+
+`diff::tests::run60_s_whole_curve_is_where_the_ai_s_timber_parts` compares
+five fields, six goods, two players, 5,400 frames — **324,000 good-frames** —
+and prints every frame the AI's bucket gap *steps* on. Before the two fixes
+below there were exactly **three** steps in 5,400 frames, and two of them
+were the items:
+
+| frame | what stepped |
+| --- | --- |
+| 1 | goods 3, 4 and 5 at 100 here and 0 there — item 156 |
+| **3579** | the AI's `bucket[wealth]`, thirty behind |
+| **4988** | the AI's `bucket[timber]`, fifty behind — and its wealth fifty *ahead* |
+
+### The chain, end to end
+
+**4988 is a goody box, and the lottery picked the wrong good.** The pile
+goes to one good (`docs/GOODY.md` §3): `score = draw % 25 + bucket[good]`,
+lowest wins, over the available goods. The AI's buckets going into it were
+
+| | food | timber | wealth |
+| --- | --- | --- | --- |
+| theirs | 208 | **99** | 130 |
+| ours | 208 | **100** | 100 |
+
+Theirs: timber is thirty-one clear of the field and the jitter is at most 24,
+so **timber wins outright**. Ours: timber and wealth **tie at 100**, and the
+jitter decided it — wealth. Same fifty, same frame, same draw count, and a
+different bucket. That is why the fifty was invisible to every count-based
+check, and it is exactly the open question `docs/GOODY.md` §6 left standing:
+"whether a box's *good* is right … answerable from disk and still
+unanswered".
+
+**And the thirty at 3579 is why the buckets tied.** The AI finishes its
+**Dock** there, and the original pays it thirty wealth — "The wealth slot,
+and the thirty it pays", above. With the thirty paid, this crate's wealth is
+130 like the original's, timber wins the lottery by thirty-one, and the fifty
+timber lands where the original puts it.
+
+**So one unread block at frame 3579 cost fifty timber at 4988 and the Market
+at 5376.** Both are closed, and run59's census falls from 4,798 wrong
+good-frames to **3,500** — the whole timber lineage, bucket and rate.
+
+### What run60 leaves
+
+- `income[food]` 1440 against 1600 and `income[wealth]` **0 against 160**,
+  from frame **4992** — three frames after `SpellType::cast_unpack` is first
+  entered, which is the AI's **merchant** unpacking on a rare
+  (`UnitData::good_merchant_spot@006068a0`; the merchant family is `0x3d`,
+  `0x3e` and `0x190`). run58's `UNIT` record has the other half: `1/14` takes
+  `rare 6, good_obj 1` on 4992. Nothing here models a merchant on a rare, so
+  the AI earns no wealth at all from 4992 on.
+- `bucket[food]` and `bucket[wealth]` one apart from 5002 and 5061 — the
+  accumulator downstream of that same rate.
+- `resource_cap` on five goods, **two frames** from 2958: 1392 against 2000.
+- Item 156's three goods, from frame 1.
+
 ### Coverage
 
 **Diff-backed**: all of the above, by
-`diff::tests::run59_s_census_is_where_the_ai_s_timber_goes`, which pins each
-shape as `(frames wrong, ours, theirs)` rather than filtering it out, and
-pins the timber gap frame by frame across the Market.
+`diff::tests::run59_s_census_is_where_the_ai_s_timber_goes` — which pins each
+remaining shape as `(frames wrong, ours, theirs)` rather than filtering it
+out, pins the total at 3,500, and pins the timber gap frame by frame across
+the Market — by
+`diff::tests::run42_s_nine_hundred_frames_are_the_census_before_the_word`,
+which pins the 900 frames before it, and by
+`diff::tests::run60_s_whole_curve_is_where_the_ai_s_timber_parts`, which
+carries the same comparison over all 5,400.
 
-**Not established**: *when* the fifty was banked. The window is 250 frames
-wide and the lump is older than it; nothing on disk carries a resource level
-between frame 800 and 5150 on this map, so localising it needs either a
-second window or an argument from the AI's own purchases, every one of which
-this crate already matches (run58's `QUEUE` record, `docs/AI.md` §25).
+**Not established**: the merchant on a rare — the whole of it — and the
+`resource_cap` pair at 2958.
 
 **Also on the record and already booked**: `bucket` on goods 3, 4 and 5 is
 100 here and 0 in the original, on both players, every frame — item 156,

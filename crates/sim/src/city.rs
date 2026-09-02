@@ -1325,6 +1325,10 @@ impl Sim {
         {
             self.city_regen_roads(c);
         }
+        // `Build::activate@00623e20` line 590, and it comes *before* the
+        // gather block: a dock, a market or a temple is a wealth slot
+        // (`docs/ECONOMY.md`, "The wealth slot, and the thirty it pays").
+        self.claim_commerce_slot(b, captured, counted);
         // `Build::activate@00623e20` lines 1151–1205: the gather slots, and
         // the bonus for the ones the player has never held.
         self.claim_gather_slots(b, captured, counted);
@@ -1332,6 +1336,56 @@ impl Sim {
         // 0`: the finished building lights its whole fog disc
         // (`docs/VISION.md` §2.1, §6).
         self.update_seen_build(b);
+    }
+
+    /// **`Build::activate@00623e20` line 590 — the wealth slot, and the
+    /// thirty it pays.** This is the block `docs/ECONOMY.md` used to call a
+    /// third `do_bonus` "off a separate pair of counters at `+0x8ac` and
+    /// `+0x8dc`". They are not a separate pair: `LeaderData +0x8a4` is
+    /// `gather_slots` and `+0x8d4` is `gather_slots_high`, so `+0x8ac` is
+    /// `gather_slots[2]` and `+0x8dc` its high-water mark. **The wealth slot
+    /// nothing here wrote and the thirty wealth nobody paid are one line.**
+    ///
+    /// The kinds are three, and the first is a vtable call the decompiler
+    /// leaves as `(**(code **)(**(int **)&this->field_0x18 + 0x108))()`:
+    /// `ObjectData::is_dock@004711e0` is that call and nothing else, so slot
+    /// `+0x108` on the type is `is_dock`. Then `is(MARKET)` and
+    /// `is(TEMPLE)`, spelled out.
+    ///
+    /// The shape is the gather block's exactly — claim always, pay only past
+    /// the mark and only away from frame 0 — and `Build::close@00628980`
+    /// line 107 is the mirror, inside the same guard as the gather slots'.
+    fn claim_commerce_slot(&mut self, b: usize, captured: bool, counted: bool) {
+        if !self.commerce_slot(b) {
+            return;
+        }
+        let who = self.buildings[b].owner as usize;
+        let i = crate::economy::Resource::Wealth.index();
+        let ledger = &mut self.ledgers[who];
+        ledger.gather_slots[i] += 1;
+        if ledger.gather_slots[i] > ledger.gather_slots_high[i] {
+            ledger.gather_slots_high[i] = ledger.gather_slots[i];
+            if self.frame != 0 && !captured && counted {
+                // `do_bonus(this, 2, 0x1e)` — a literal thirty, not a
+                // `Constants` slot, through the same German multiplier the
+                // gather bonuses take.
+                let mut amount = 30;
+                if self.nation[who].germans {
+                    amount = (self.tuning.german_completion_bonus + 100) * amount / 100;
+                }
+                self.ledgers[who].bucket[i] += amount;
+            }
+        }
+    }
+
+    /// The three kinds `claim_commerce_slot` counts: a dock, a market or a
+    /// temple.
+    fn commerce_slot(&self, b: usize) -> bool {
+        let Some(ty) = self.buildings[b].ty else {
+            return false;
+        };
+        build::is_dock(&self.build_types, ty)
+            || matches!(self.build_types[ty].ident, Ident::Market | Ident::Temple)
     }
 
     /// `Build::activate`'s tail: a finished gather building's slots join the
@@ -1472,6 +1526,13 @@ impl Sim {
         {
             let slots = self.buildings[b].gather_max.unwrap_or(0);
             self.ledgers[who as usize].gather_slots[r.index()] -= slots;
+        }
+        // `Build::close@00628980` line 107, three lines below the gather
+        // slots and inside the same guard: a dock, a market or a temple
+        // gives its wealth slot back too, and the mark stays where it is.
+        if self.buildings[b].active && self.commerce_slot(b) {
+            let i = crate::economy::Resource::Wealth.index();
+            self.ledgers[who as usize].gather_slots[i] -= 1;
         }
         self.buildings[b].alive = false;
         self.buildings[b].damage = self.buildings[b].hits_now();

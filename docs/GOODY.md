@@ -177,7 +177,7 @@ unit taking the same ruins, since step 2 leaves the item linked.
 | One draw per candidate good | diff — three draws on each of those three frames, and East Indies' word runs to 879 only with three |
 | Knowledge is never a candidate; metal and oil are not available in the Ancient age | diff — the same three, indirectly: any other reading of the loop gives a different count |
 | The seven `GOODY` cells of run39, and `(45, 49)` taken on 867 | diff — the `WORLD` record's cells and the dumped position of `1/0` on 868 |
-| `score = draw % 25 + bucket`, lowest wins, strict `<` | reading (listing at `5f99f7`–`5f9a12`) |
+| `score = draw % 25 + bucket`, lowest wins, strict `<` | reading (listing at `5f99f7`–`5f9a12`), **and diff** — run60's sim-frame 4988, where the winner is timber by thirty-one and this crate's tie went the other way (`docs/ECONOMY.md`, "run60") |
 | The fallback to `WEALTH` | reading (`cmovnsl` at `5f9a7c`) |
 | `epoch[3] × GOODY_BOX_AGE + GOODY_BOX` | diff — run42 frame 867 (`docs/ORACLE.md`): `bucket[2]` 50 → 100, `epoch_get(scan)` `0 1 0 1`, and `1 × 25 + 25` is the observed pay; an `ages` reading would pay 25 |
 | The Spanish pair replaces both halves | reading (listing in §3); the branch has never run |
@@ -206,11 +206,23 @@ unit taking the same ruins, since step 2 leaves the item linked.
   re-checked against the 2003 build.
 - **The Spanish branch has never run.** `has_tribe_bonus(9)` is false in
   every capture on disk.
-- **Whether a box's *good* is right.** The lottery's winner depends on the
-  finder's buckets, ~~which no capture prints at the moment a box opens~~ —
-  run42 prints every leader's buckets every frame now — but the frame's
-  draw count is identical whichever good won, so the question is
-  answerable from disk and still unanswered.
+- ~~**Whether a box's *good* is right.**~~ **Answered 2026-09-02, and it
+  was wrong** (`docs/ECONOMY.md`, "run60"). run60 is run58's game with
+  `[End Frame]` cut to `MISC,LEADERS=2`, so both leaders' six buckets are
+  printed on all 5,400 frames. The AI opens a **second** box on sim-frame
+  **4988** — the trace cannot show it, because its coverage records fire on
+  a function's *first* entry and `explore_goody` had already fired on 867 —
+  and the fifty goes to **timber** there. It went to wealth here.
+
+  The lottery is the reason and the arithmetic is §3's, unchanged: the
+  AI's buckets going in were food 208, timber **99**, wealth 130 in the
+  original and food 208, timber **100**, wealth **100** here. Thirty-one
+  clear of the field, timber wins outright against a jitter of at most 24;
+  tied at 100, the jitter picks. The thirty wealth this crate was missing —
+  a dock's, `Build::activate` line 590, 1,409 frames earlier — is what made
+  it a tie. **So §3's formula was right and the input was wrong**, which is
+  the only shape of error a draw count can never see: the frame spends
+  three draws whichever good wins.
 
 ## 7. The approach — `Unit::find_goody_box@005f2540`
 

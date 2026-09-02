@@ -1090,11 +1090,7 @@ fn start_of_game(
             // outside a city, which is what the order diff caught when the
             // harness went through `place_building` and it was refused.
             let handle = match ty {
-                Some(t) => {
-                    let h = sim.init_build(who, t, pos, false);
-                    sim.activate(h, false, true);
-                    h
-                }
+                Some(t) => sim.init_build(who, t, pos, false),
                 None => {
                     let h = sim.add_building(who, pos, 8);
                     sim.buildings[h].active = true;
@@ -1108,6 +1104,20 @@ fn start_of_game(
             // (`Build::find_gather_tiles`), which no dump carries, and
             // without it §6.4's machine has nowhere to send a woodcutter's
             // citizen and the citizen never leaves the camp.
+            //
+            // **Before `activate`, and that is the whole of item 162.**
+            // `Build::init` fills the list at placement and `Build::activate`
+            // then adds the `gather_max` surveyed from it to the leader's
+            // `gather_slots`. `init_build` above runs the walk itself, but on
+            // a *pre-placed* camp it can only come back empty: the dump's own
+            // tile masks are loaded into the world verbatim, the camp's
+            // tiles already carry `0x1000` (`is_gathered_from`), and the walk
+            // skips every cell that does. So the list has to be installed
+            // from the dump — and the count with it — while `activate` can
+            // still see it, or the starting camp joins the game claiming
+            // nothing. run59's census is what caught it: the human, which
+            // builds nothing all game, held `gather_slots[timber]` 0 against
+            // the original's 6 (`docs/ECONOMY.md`, "The census at the word").
             if !b.gather_from.is_empty() {
                 sim.buildings[handle].gather_from = b
                     .gather_from
@@ -1117,6 +1127,9 @@ fn start_of_game(
                 // `Build::find_gather_tiles` line 88: the list is what the
                 // slot count is surveyed from (`crates/sim/src/gather.rs`).
                 sim.buildings[handle].gather_max = Some(sim.max_gatherers(handle));
+            }
+            if ty.is_some() {
+                sim.activate(handle, false, true);
             }
             // `find_free` numbers the building as it is placed; the dump's
             // `o` is the original's own numbering of the same placement
@@ -8785,6 +8798,14 @@ mod tests {
             compared, 18_000,
             "250 frames, two players, six goods, six fields"
         );
+        assert_eq!(
+            wrong.len(),
+            3_500,
+            "the census's own count. run59 measured 4,798; item 162 took 500 \
+             with the pre-placed camp's six timber slots and 798 more with \
+             the wealth slot a dock claims — which is the whole timber \
+             lineage, bucket and income both"
+        );
 
         // **The record, and every shape in it is a standing state.** Each row
         // is (who, field, good) to (frames wrong, ours and theirs on 5150).
@@ -8793,50 +8814,56 @@ mod tests {
         let row = |who: i64, key: &str, g: usize| shapes.get(&(who, key.to_string(), g)).copied();
         let n = |who: i64, key: &str, g: usize| row(who, key, g).map_or(0, |(n, _, _)| n);
 
-        // **The item.** The AI's timber is fifty short on all 250 frames and
-        // its `leftover` — the fractional accumulator — agrees on 234 of
-        // them, which can only be true if the two sides are paid the same
-        // amount every frame. So the fifty is a **lump**, banked before this
-        // window opens, and the Market at 5376 is eighty timber: the
-        // original holds 84 there and pays, this crate holds 34.
-        assert_eq!(
-            row(1, "bucket", 1),
-            Some((250, 118, 168)),
-            "the AI's timber, fifty short on every frame of the window"
-        );
+        // **The item, closed.** run59 measured the AI fifty timber short on
+        // every one of these frames, with `leftover` agreeing on 234 of
+        // them — a lump, banked before the window. run60 found the frame it
+        // was banked on (sim-frame 4988, a goody box) and run42 the reason
+        // the good was wrong (the dock's thirty wealth, 1,409 frames
+        // earlier). Both landed 2026-09-02, and the AI's timber is now the
+        // original's on every frame of this window — including 5377, where
+        // it used to flip to thirty ahead because the original could pay
+        // eighty for the Market and this crate could not.
+        assert_eq!(n(1, "bucket", 1), 0, "the AI's timber, across the Market");
         assert!(
-            timber_gap
-                .iter()
-                .filter(|&&(f, _)| f < 5377)
-                .all(|&(_, d)| d == 50),
-            "and the gap is the same fifty on every frame before the Market: {:?}",
-            timber_gap.iter().find(|&&(f, d)| f < 5377 && d != 50)
-        );
-        // **And the frame the gap changes is the item.** A `FRAME n` block
-        // is the end of sim-frame `n − 1`, so 5377 is the record written
-        // after the Market goes up: the original is eighty poorer and this
-        // crate is not, so fifty short becomes thirty ahead. That flip is
-        // the whole of East Indies' word in one field.
-        assert_eq!(
-            timber_gap.iter().find(|&&(f, _)| f == 5377),
-            Some(&(5377, -30)),
-            "the original pays eighty for the Market on 5376 and this crate does not"
+            timber_gap.iter().all(|&(_, d)| d == 0),
+            "and the gap is zero on every frame: {:?}",
+            timber_gap.iter().find(|&&(_, d)| d != 0)
         );
 
-        // **Where it comes from is the slot count.** `gather_slots` is the
-        // running inventory `Build::activate` adds a finished gather
-        // building's `gather_max` to, and the dump prints it per good beside
-        // its own high-water mark. Both players are short the same six
-        // timber slots and the same one wealth slot — the human, who builds
-        // nothing at all in this game, is short six of six.
-        assert_eq!(row(0, "gather_slots[scan]", 1), Some((250, 0, 6)));
-        assert_eq!(row(1, "gather_slots[scan]", 1), Some((250, 4, 10)));
-        assert_eq!(row(0, "gather_slots[scan]", 2), Some((250, 0, 1)));
-        assert_eq!(row(1, "gather_slots[scan]", 2), Some((250, 0, 1)));
-        // and the food slots agree on both, which is what makes the timber a
-        // defect rather than the whole array being unwritten.
+        // **And the slot count is no longer where it comes from.**
+        // `gather_slots` is the running inventory `Build::activate` adds a
+        // finished gather building's `gather_max` to, and the dump prints it
+        // per good beside its own high-water mark. This census is what
+        // caught the pre-placed camp claiming nothing — the human, which
+        // builds nothing at all in this game, held 0 against 6 — and since
+        // 2026-09-02 the harness hands a dump-stood camp its list *before*
+        // `activate` surveys it, so **both players' timber slots are now
+        // exact** and so are their food slots.
+        assert_eq!(
+            n(0, "gather_slots[scan]", 1),
+            0,
+            "the human's starting camp"
+        );
+        assert_eq!(n(1, "gather_slots[scan]", 1), 0, "the AI's six plus four");
         assert_eq!(n(0, "gather_slots[scan]", 0), 0, "the human's farms");
         assert_eq!(n(1, "gather_slots[scan]", 0), 0, "and the AI's");
+        // The one wealth slot was item 82's, and it is closed too:
+        // `BuildTypeData::get_good`'s table indeed cannot produce a
+        // wealth-gathering building, because that is not where the slot
+        // comes from — `Build::activate` line 590 gives one to a dock, a
+        // market or a temple, off the same array (`Sim::claim_commerce_slot`).
+        assert_eq!(n(0, "gather_slots[scan]", 2), 0, "the human's market");
+        assert_eq!(n(1, "gather_slots[scan]", 2), 0, "the AI's dock");
+        // **And fixing the timber slots moved the timber not at all**,
+        // which is the measurement that refuted the fifty's first
+        // explanation. The bonus is `TIMBER_BONUS_PER_WOOD_SLOT` per slot
+        // *past the high-water mark*, and `Build::activate` pays nothing at
+        // frame 0: the six arrive during setup, raise the mark to six
+        // unpaid, and the one camp the AI builds in the run (frame 2424,
+        // four slots) then pays 6 → 10 where it used to pay 0 → 4. Twenty
+        // timber either way. The human was the control that said so from
+        // the other side — six slots short and its timber bucket exact on
+        // all 250 frames.
 
         // **Two rate seams, both the AI's alone.** Every one of the human's
         // six incomes is exact on every frame; the AI's food is ten short
@@ -8849,10 +8876,12 @@ mod tests {
             assert_eq!(n(0, "resources", g), 0, "the human's rate, good {g}");
             assert_eq!(n(0, "leftover", g), 0, "the human's leftover, good {g}");
         }
-        // The AI's timber rate agrees until **5384**, where the original's
-        // drops to 1120 and this crate's stays at 1280 — a gatherer that
-        // leaves the wood, sixteen frames from the end of the window.
-        assert_eq!(row(1, "income", 1), Some((16, 1280, 1120)));
+        // The AI's timber *rate* parted on 5384 too — the original's
+        // dropping 1280 → 1120 sixteen frames from the end of the window
+        // while this crate's stood. It was downstream of the same fifty:
+        // with the timber spent on the Market the gatherer leaves the wood
+        // here as well, and the row is gone.
+        assert_eq!(n(1, "income", 1), 0, "the AI's timber rate, across 5384");
 
         // **And the hundred in goods 3, 4 and 5 is item 156**, unchanged
         // since run40 measured it: `STARTING_GOODS` arrives with the age, so
@@ -8881,6 +8910,224 @@ mod tests {
             v
         };
         assert_eq!(script_steps, vec![23, 15, 18], "economic.bhs's cases");
+    }
+
+    /// One census's disagreements, folded: `(who, field, good)` to the
+    /// number of frames it was wrong on, the first such frame, and what the
+    /// two sides read there. A shape wrong on *every* frame of a window is a
+    /// standing level; one that starts partway through names its own event.
+    type Shapes = std::collections::BTreeMap<(i64, String, usize), (usize, i64, i64, i64)>;
+
+    /// **run42's nine hundred frames, and where the fifty is not**
+    /// (item 162, 2026-09-02).
+    ///
+    /// run59's census measured the AI fifty timber short at frame 5,150 and
+    /// could not say when the fifty was banked: nothing on disk carried a
+    /// resource level between frame 800 and 5,150. Nothing *had to* be
+    /// captured to narrow it, though — **run42 was already on disk**. It is
+    /// run39's game (`samegame.py --exclude LEADERDATA`: 900 frames in
+    /// common, not one differing) at run39's detail plus `LEADERS=2`, which
+    /// is the detail `LeaderData::log_data` announces the encrypted block
+    /// at: `bucket`, `leftover`, `resources`, `income`, `rate` and
+    /// `resource_cap`, per good, on every one of its 900 frames. run39's
+    /// game is run54's is run58's is run59's, so this is the same AI walking
+    /// the same script — the census before the word, for the cost of a
+    /// parser.
+    ///
+    /// Five fields, six goods, two players, 900 frames.
+    #[test]
+    fn run42_s_nine_hundred_frames_are_the_census_before_the_word() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run42-islands-goodybucket.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run42.log"),
+        ) else {
+            eprintln!("skipping: no run42 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+        let mut compared = 0usize;
+        let mut shapes = Shapes::new();
+        // The AI's timber, frame by frame, so the *step* can be found rather
+        // than the level.
+        let mut timber: Vec<(i64, i64, i64)> = Vec::new();
+        for n in 1..=900 {
+            built.tick();
+            for who in 0..2i64 {
+                let Some(block) = log.leader_block(n, who) else {
+                    continue;
+                };
+                let field = |k: &str| -> Vec<i64> {
+                    block
+                        .all(k)
+                        .iter()
+                        .map(|v| v.trim().parse().unwrap_or(i64::MIN))
+                        .collect()
+                };
+                let l = &built.sim.ledgers[who as usize];
+                let rows: [(&str, [i32; sim::economy::RESOURCES]); 5] = [
+                    ("bucket", l.bucket),
+                    ("leftover", l.leftover),
+                    ("resources", l.rate),
+                    ("income", l.income),
+                    ("resource_cap", l.cap),
+                ];
+                for (key, ours) in rows {
+                    let theirs = field(key);
+                    if theirs.len() < sim::economy::RESOURCES {
+                        continue;
+                    }
+                    for g in 0..sim::economy::RESOURCES {
+                        compared += 1;
+                        if who == 1 && key == "bucket" && g == 1 {
+                            timber.push((n, i64::from(ours[g]), theirs[g]));
+                        }
+                        if i64::from(ours[g]) != theirs[g] {
+                            let e = shapes.entry((who, key.to_string(), g)).or_insert((
+                                0,
+                                n,
+                                i64::from(ours[g]),
+                                theirs[g],
+                            ));
+                            e.0 += 1;
+                        }
+                    }
+                }
+            }
+        }
+        for (k, (n, f, o, t)) in &shapes {
+            eprintln!("  {k:?}: {n} frames, from {f}: ours {o} theirs {t}");
+        }
+        // The AI's timber gap, and every frame it changes on.
+        let mut steps: Vec<(i64, i64)> = Vec::new();
+        let mut last = 0i64;
+        for &(n, o, t) in &timber {
+            let d = t - o;
+            if d != last {
+                steps.push((n, d));
+                last = d;
+            }
+        }
+        eprintln!("run42: the AI's timber gap steps at {steps:?}");
+        assert_eq!(
+            compared, 54_000,
+            "900 frames, two players, six goods, five fields"
+        );
+    }
+
+    /// **run60 — the whole timber curve, and the frame the fifty is banked
+    /// on** (item 162, 2026-09-02).
+    ///
+    /// run42 pins frames 1–900 of this game exact and run59 measures a
+    /// standing fifty at 5,150; between them nothing on disk carried a
+    /// resource level at all. run60 closes that: run58's game with
+    /// `[End Frame]` cut to `MISC,LEADERS=2` — the detail
+    /// `LeaderData::log_data` announces the encrypted block at, and nothing
+    /// else — so every one of its 5,400 frames prints `bucket`, `leftover`,
+    /// `resources`, `income`, `rate` and `resource_cap` per good and the run
+    /// costs minutes rather than the hour a full-detail one does.
+    ///
+    /// Five fields, six goods, two players, 5,400 frames.
+    #[test]
+    fn run60_s_whole_curve_is_where_the_ai_s_timber_parts() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run60-islands-census-thin.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run60.log"),
+        ) else {
+            eprintln!("skipping: no run60 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+        let mut compared = 0usize;
+        let mut shapes = Shapes::new();
+        // Every good's gap, frame by frame, so the *step* can be found —
+        // and the AI's own bucket beside it, so a step can be read as *this
+        // crate spent* or *the original was paid*.
+        let mut gaps: Vec<(
+            i64,
+            [i64; sim::economy::RESOURCES],
+            [i32; sim::economy::RESOURCES],
+        )> = Vec::new();
+        for n in 1..=5400 {
+            built.tick();
+            let mut row = [0i64; sim::economy::RESOURCES];
+            for who in 0..2i64 {
+                let Some(block) = log.leader_block(n, who) else {
+                    continue;
+                };
+                let field = |k: &str| -> Vec<i64> {
+                    block
+                        .all(k)
+                        .iter()
+                        .map(|v| v.trim().parse().unwrap_or(i64::MIN))
+                        .collect()
+                };
+                let l = &built.sim.ledgers[who as usize];
+                let rows: [(&str, [i32; sim::economy::RESOURCES]); 5] = [
+                    ("bucket", l.bucket),
+                    ("leftover", l.leftover),
+                    ("resources", l.rate),
+                    ("income", l.income),
+                    ("resource_cap", l.cap),
+                ];
+                for (key, ours) in rows {
+                    let theirs = field(key);
+                    if theirs.len() < sim::economy::RESOURCES {
+                        continue;
+                    }
+                    for g in 0..sim::economy::RESOURCES {
+                        compared += 1;
+                        if who == 1 && key == "bucket" {
+                            row[g] = theirs[g] - i64::from(ours[g]);
+                        }
+                        if i64::from(ours[g]) != theirs[g] {
+                            let e = shapes.entry((who, key.to_string(), g)).or_insert((
+                                0,
+                                n,
+                                i64::from(ours[g]),
+                                theirs[g],
+                            ));
+                            e.0 += 1;
+                        }
+                    }
+                }
+            }
+            gaps.push((n, row, built.sim.ledgers[1].bucket));
+        }
+        eprintln!("run60: {compared} good-frames compared");
+        for (k, (n, f, o, t)) in &shapes {
+            eprintln!("  {k:?}: {n} frames, from {f}: ours {o} theirs {t}");
+        }
+        let mut last = [0i64; sim::economy::RESOURCES];
+        for &(n, row, mine) in &gaps {
+            if row != last {
+                eprintln!("  f{n}: the AI's bucket gap {row:?}, ours {mine:?}");
+                last = row;
+            }
+        }
     }
 
     /// **The production step machine's ladder, against the original's own

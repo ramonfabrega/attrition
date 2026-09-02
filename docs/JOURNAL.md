@@ -12547,3 +12547,96 @@ a search.
   shapes, nine standing states, and the one with an agreeing `leftover`
   beside it is the one that names a lump. That test — rate or lump — cost
   nothing and pointed straight at `Build::activate`'s tail.
+
+## 2026-09-02 (Opus) — the fifty was a goody box, and a dock's thirty is why it picked wrong
+
+Item 162 said the fifty timber was ten gather slots' bonus. It was not, and
+the arithmetic said so before any capture did: the bonus is paid per slot
+*past the high-water mark*, `Build::activate` pays nothing at frame 0, and
+so the starting camp's six raise the mark unpaid on both sides — twenty
+timber for the AI's own camp either way. **The human was the control**: six
+slots short here for the whole of run59's window, and its timber bucket
+exact on all 250 frames. An unpaid slot costs nothing.
+
+**The slots were still a real defect, and closing them cost twenty minutes.**
+`Build::init` fills a camp's tile list at placement and `Build::activate`
+surveys `gather_max` out of it; a camp stood up from a dump could never
+survey anything, because the dump's own tile masks go into the world
+verbatim and the camp's tiles already carry `0x1000`, so the walk skips every
+cell. The harness installed the dump's list *after* `activate` had already
+counted the empty one. Moving two statements closes 500 of run59's 4,798
+wrong good-frames — and moves the timber not at all, which is the
+measurement that refuted the item.
+
+**Then the disk answered the question the item could not.** "When was the
+fifty banked" had been booked as needing a second capture. It did not:
+**run42 had been on disk for two days and nothing had ever read its leader
+block.** It is run39's game at `LEADERS=2` — the detail the encrypted block
+is announced at — so it prints both leaders' six goods on all 900 of its
+frames. 54,000 good-frames compared, and the only rows are item 156's three
+unavailable goods. The AI's food and wealth *rates*, wrong on all 250 frames
+of run59's window, are exact for the first 900.
+
+**And then the capture, which was five minutes.** run59 narrowed an
+expensive `[End Frame]` to 250 frames. run60 does the opposite and it is
+strictly better: keep the window open for all 5,400 frames and make the
+*block* cheap — `DETAIL_END="MISC,LEADERS=2"` and nothing else. 67 MB, under
+five minutes, `rngcmp` zero differing. 324,000 good-frames, and the AI's
+whole bucket curve parts on exactly **three** frames in 5,400.
+
+- Frame 1: item 156.
+- **Frame 3579**, wealth thirty behind. The AI's **Dock**.
+- **Frame 4988**, timber fifty behind — and wealth fifty *ahead*.
+
+**One event, one good, wrong.** 4988 is a second goody box. The trace cannot
+show it: its coverage records fire on a function's *first* entry, and
+`explore_goody` had already fired on 867. The pile is fifty either way and
+the frame spends three draws either way — the lottery's *winner* is what
+differs. Going in, the original held food 208, timber **99**, wealth 130;
+this crate held food 208, timber **100**, wealth **100**. Thirty-one clear
+of the field, timber wins outright against a jitter of at most 24; tied at
+100, the jitter picks — and it picked wealth. `docs/GOODY.md` §6 had left
+"whether a box's good is right" as answerable from disk and unanswered. It
+was answerable, and the answer was no.
+
+**And 3579 is why they tied.** `Build::activate` line 590, which this
+document had called "a third `do_bonus` off a separate pair of counters at
+`+0x8ac`/`+0x8dc`". They are not separate: `LeaderData +0x8a4` is
+`gather_slots` and `+0x8d4` is `gather_slots_high`, so those two addresses
+are the **third entry of each**. A dock, a market or a temple is a *wealth
+gather slot*, and the first past the mark pays thirty. The wealth slot item
+82 had been chasing since run40 — "a slot under good 2 that `get_good`'s
+table cannot produce" — and the thirty nobody paid are the same line. The
+`is_dock` half is a vtable call the decompiler leaves as
+`(**(code **)(... + 0x108))()`, and it is settled without the PDB's vtable
+records: `ObjectData::is_dock@004711e0` is that call and nothing else.
+
+**So one unread block at 3579 cost fifty timber at 4988 and the Market at
+5376.** Implemented, mirrored in `Build::close`, tested, and run59's census
+falls 4,798 → **3,500** — the whole timber lineage, bucket and rate. Items
+162 and 82 close together.
+
+**The word did not move, and what blocks it has changed.** East Indies is
+still 5376, but not for the old reason: the AI now pays its eighty and
+places the Market, and the two sides' timber agrees across the purchase. The
+frame parts on `Leader::produce_building+0x1805` — the placement jitter,
+once per unblocked sub-position of the 2×2 — **two draws here against the
+original's four**. That is a `blocked_site` disagreement at the AI's
+capital, and it is the new opener.
+
+**The rules this is an instance of.**
+
+- **Grep the disk before booking a capture** — and then grep it again. run42
+  answered half the question for the cost of a parser, after a document had
+  written down that a capture was needed.
+- **Build before ratifying.** The item's prose cited every address
+  correctly and had the arithmetic wrong. Nothing but doing the work found
+  it: the fix landed, the number did not move, and that was the finding.
+- **An instrument's shape is part of its evidence.** The trace says "has
+  this function ever run", never "did it run here", and a *second* goody box
+  is exactly the event that shape hides. Two hours went into the frame's
+  function coverage before the buckets were simply read off the dump.
+- **The cheap capture beat the clever one.** A narrow window on an expensive
+  block was thirteen minutes for 250 frames; a wide window on a cheap block
+  was five for 5,400. Ask what the block costs before asking what the window
+  should be.
