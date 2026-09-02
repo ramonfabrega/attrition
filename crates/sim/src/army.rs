@@ -1967,22 +1967,11 @@ impl Sim {
                         out = true;
                         break;
                     }
-                    let d = self.world.cell_data(n);
-                    let f = d.flags;
+                    let f = self.world.cell_data(n).flags;
                     let water = self.world.is_ocean(n);
-                    let class = if f & cell::COAST != 0 {
-                        3
-                    } else if f & cell::FOREST != 0 {
-                        4
-                    } else if f & (cell::MOUNTAIN | 0x40) != 0 {
-                        5
-                    } else if f & cell::ROCK != 0 {
-                        i32::from((f & 0x800) | 0x3000) >> 11
-                    } else if water && f & 0x800 != 0 {
-                        7
-                    } else {
-                        i32::from(d.land)
-                    };
+                    // The same five tests `WorldData::get_land` runs, which
+                    // is what `World::land_class` is.
+                    let class = self.world.land_class(n);
                     let admissible = if navy {
                         water
                     } else {

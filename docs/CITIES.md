@@ -1038,12 +1038,13 @@ position; the two starting cities of a two-player game are both `city 0`.
 **Coverage.** Diff-backed on run58's 5,201 frames, every field of every live
 city, 606,540 comparisons —
 `diff::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do`.
-Everything agrees except four seams, each pinned there as it stands:
+Everything agrees except three seams, each pinned there as it stands —
+`ter[6]` was a fourth until `World::gather_at` landed, and now agrees on
+both of the AI's cities on all 5,201 frames:
 
 | open | why | where |
 | --- | --- | --- |
-| the human's whole site picture, 13 fields, every frame | `Sim::strategy_all` skips a human leader; the original does not | `docs/AI.md` §23 |
-| `ter[6]`, both players, both cities | `World::gather_at` is a seam answering zero | `docs/AI.md` §23 |
+| the human's whole site picture, 13 fields (`ter` among them), every frame | `Sim::strategy_all` skips a human leader; the original does not | `docs/AI.md` §23.1 |
 | `1/2007`'s `land`, `filled`, `space[3]`, one apart | the second city's circle sweep | open |
 | a gatherer and a free citizen filed under the wrong city | the totals agree, the attribution does not | open |
 

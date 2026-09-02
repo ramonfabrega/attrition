@@ -86,7 +86,6 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// is computed from the cells (`World::rebuild_coasts`) and
 /// `BuildTypeData::is_dock_tile` is `Sim::is_dock_tile`; `carry` and
 /// `unit_flags2 & 4` come from the type's columns.
-/// | `World::gather_at` | zeroes | so `CityAi::ter` stays 0. |
 /// | region flags `& 8` | clear | step 15's two-landmass expand probe never fires. |
 /// | `Armies::init_navy` | never seeded | step 16 is `Sim::census_seed_army` (`docs/ARMY.md`); the sea branch of `create_units` still seeds nothing. |
 /// | `check_explore`'s visibility | every region cell counts | no fog: the leader has seen the map. |
@@ -106,20 +105,6 @@ impl Sim {
     /// active leader — otherwise steps 14 and 15 could never count anything.
     fn met(&self, who: Player, other: usize) -> bool {
         other != who as usize && !self.defeated[other]
-    }
-
-    /// Seam: `World::gather_at@006b07f0` — what a citizen would take off
-    /// this cell, per good.
-    ///
-    /// **It now has an oracle.** `CityData::ter[6]` is what step 13 writes
-    /// out of this, and the `CITY` record carries it on every live city of
-    /// every frame; `rondata::diff` compares it (`docs/CITIES.md` §5.7), so
-    /// filling this in is checked per good, per city, per frame rather than
-    /// argued. And it is not inert while it answers zero: `gather_value`
-    /// refuses every good whose `ter` is zero, so the make list can never
-    /// ask for a farm, a camp, a mine or a university (`docs/AI.md` §23.2).
-    fn gather_at(&self, _c: Cell) -> [i32; RESOURCES] {
-        [0; RESOURCES]
     }
 
     // ------------------------------------------------------------------
@@ -860,10 +845,12 @@ impl Sim {
         self.ai[w].city_ai[c].filled += 1;
     }
 
-    /// `World::gather_at` into `CityAi::ter` — a seam, so a no-op that is
-    /// kept for its shape.
+    /// `World::gather_at` into `CityAi::ter`, per good, as the maximum
+    /// over the circle's cells. Step 13 is the `centre_only` caller
+    /// (`docs/AI.md` §24), so each cell answers out of its own land class
+    /// alone.
     fn census_site_gather(&mut self, who: Player, c: usize, cell: Cell) {
-        let amounts = self.gather_at(cell);
+        let amounts = self.world.gather_at(cell, true);
         let rec = &mut self.ai[who as usize].city_ai[c];
         for (t, a) in rec.ter.iter_mut().zip(amounts) {
             *t = (*t).max(a);

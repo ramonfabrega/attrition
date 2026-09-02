@@ -3682,7 +3682,7 @@ mod tests {
         // `filled`, `dock_tile` (`Sim::is_dock_tile`, `docs/TRANSPORT.md`
         // §5.6; 1 for the AI's city, 0 for the human's), `space[3]` — and
         // steps 2/10's `free`, `busy`, `gatherers`, `peasant_dist`,
-        // `in_port`. `ter[6]` is the `gather_at` seam and is not compared.
+        // `in_port`, and `ter[6]` out of `World::gather_at`.
         let mut wrong = Vec::new();
         let mut matched = 0;
         let frame1 = log
@@ -3737,6 +3737,19 @@ mod tests {
                 let t = space.get(i).copied();
                 if t != Some(i64::from(*o)) {
                     wrong.push(format!("space[{i}]: ours {o} theirs {t:?}"));
+                }
+            }
+            // `ter[0..6]`, the per-good best over the circle
+            // (`docs/AI.md` §24).
+            let ter: Vec<i64> = rec
+                .all("ter[scan]")
+                .iter()
+                .map(|v| v.trim().parse().unwrap_or(0))
+                .collect();
+            for (i, o) in ours.ter.iter().enumerate() {
+                let t = ter.get(i).copied();
+                if t != Some(i64::from(*o)) {
+                    wrong.push(format!("ter[{i}]: ours {o} theirs {t:?}"));
                 }
             }
         }
@@ -4975,8 +4988,10 @@ mod tests {
         assert_eq!(unlinked, 0, "every city links to a building of ours");
         // **What is left, pinned as it stands** rather than filtered out,
         // so a change that moves any of it fails rather than passing
-        // quietly (the `gather_slots` precedent). Four open seams, and
-        // nothing else in the record parts on any of the 5,201 frames:
+        // quietly (the `gather_slots` precedent). Three open seams, and
+        // nothing else in the record parts on any of the 5,201 frames —
+        // `ter[6]` included, on both of the AI's cities, since
+        // `World::gather_at` landed (`docs/AI.md` §24):
         //
         // 1. **`who 0`, the human's city — thirteen fields, every frame.**
         //    `Leaders::strategy_all@006ed430`'s gate is `leader_flags & 3
@@ -4989,17 +5004,10 @@ mod tests {
         //    whole site picture stays zero. The dump says the same as the
         //    decompile: the human's `peasant_dist` moves on frame 401, and
         //    leader 0's phase is `frame % 200 == 0` (`docs/AI.md` §2.2).
-        // 2. **`ter[6]`, on every city of both players.** `World::gather_at`
-        //    is a declared seam here (`ai_census.rs`) that answers zero, so
-        //    the per-good best of the city's occupied tiles is never
-        //    written. `ter[1]` at `1/2000` parts on 2,375 of the 5,201
-        //    frames and agrees on the other 2,826, which is the seam's
-        //    shape exactly: answering zero is right on every frame no tile
-        //    in the city's circle is worth anything for that good.
-        // 3. **The AI's second city, `1/2007`** — `land`, `filled` and the
+        // 2. **The AI's second city, `1/2007`** — `land`, `filled` and the
         //    three `space` counts, one apart, from the frame its circle is
         //    first swept.
-        // 4. **A gatherer filed under the wrong city** from 2576, and a
+        // 3. **A gatherer filed under the wrong city** from 2576, and a
         //    free citizen from 4176 — the totals agree, the attribution
         //    does not.
         let city_want = vec![
@@ -5016,20 +5024,11 @@ mod tests {
             "0/2000 ter[0] f1 x5201",
             "0/2000 ter[1] f1 x5201",
             "0/2000 ter[3] f1 x5201",
-            "1/2000 ter[0] f1 x5201",
-            "1/2000 ter[1] f1 x2375",
-            "1/2000 ter[3] f1 x5201",
-            "1/2000 ter[5] f1 x5201",
             "1/2007 land f1819 x157",
             "1/2007 filled f1819 x3383",
             "1/2007 space[0] f1976 x3226",
             "1/2007 space[1] f1976 x3226",
             "1/2007 space[2] f1976 x3226",
-            "1/2007 ter[0] f1976 x3226",
-            "1/2007 ter[1] f1976 x3226",
-            "1/2007 ter[3] f1976 x3226",
-            "1/2007 ter[4] f1976 x3226",
-            "1/2007 ter[5] f1976 x3226",
             "1/2000 gatherers f2576 x800",
             "1/2007 peasant_dist f2576 x800",
             "1/2007 gatherers f2576 x800",

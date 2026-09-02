@@ -333,12 +333,13 @@ pub struct World {
 /// run20's 3,600 cells (`docs/ORACLE.md`, "The map is a dump too";
 /// 2026-08-25). `0x1`, `0x400`, `0x800`, `0x1000` and `0x2000` have no word
 /// in that dump: the writer tests `0x1000` and `0x2000` and run20 never
-/// sets them; `0x400` and `0x800` are set on the islands map and not
-/// tested, so their names are not established here.
+/// sets them; `0x400` has no name here. `0x800` is **`OIL`**, settled by
+/// `WorldData::is_oil_at@00472af0`, which is that bit and nothing else.
 pub mod cell {
     /// `COAST` — a land cell of the shore; the muster search's class 3.
     pub const COAST: u16 = 0x4;
-    /// `ROCK` — the muster search's class 6, or 7 with `0x800`.
+    /// `ROCK` — `WorldData::is_rocks@006b4380`; the land class 6, or 7
+    /// with [`OIL`].
     pub const ROCK: u16 = 0x8;
     /// `MOUNTAIN` — with the unnamed `0x40`, the muster search's class 5.
     pub const MOUNTAIN: u16 = 0x10;
@@ -351,6 +352,11 @@ pub mod cell {
     pub const HALFLAND: u16 = 0x100;
     /// `NEARBLOCK`.
     pub const NEARBLOCK: u16 = 0x200;
+    /// `WorldData::is_oil_at@00472af0` is `flags & 0x800`, and nothing
+    /// else — so the bit the map dump prints no word for is oil. It is
+    /// what turns a rock cell into land class 7 and a water cell into an
+    /// offshore oil patch ([`World::land_class`]).
+    pub const OIL: u16 = 0x800;
     /// `BUILDING` — a cell holding a building's centre.
     pub const BUILDING: u16 = 0x4000;
     /// `GOODY`.
@@ -546,10 +552,110 @@ pub mod tile {
     pub const AS_BUILDING: u16 = 0x200;
     /// River.
     pub const RIVER: u16 = 0x800;
+    /// Some building already gathers from this tile —
+    /// `WorldData::is_gathered_from@00472ac0` reads it and
+    /// `World::set_gathered_at@006b46b0` is its only writer. Re-exported as
+    /// [`crate::gather::GATHERED_FROM`], which is where the gather-site pass
+    /// that sets it lives; [`World::gather_at`] is the other reader.
+    pub const GATHERED_FROM: u16 = 0x1000;
     /// Next to something blocked (`set_bad_path`).
     pub const BAD_PATH: u16 = 0x2000;
     /// Blocked (`set_blocked_at`).
     pub const BLOCKED: u16 = 0x4000;
+}
+
+/// How many `<LAND>` records `rules.xml` carries — `NUM_GATHER_LAND`, which
+/// `Lands::init@0067e730` refuses to start without.
+pub const NUM_GATHER_LAND: usize = 9;
+/// How many `<MAKE>` children each carries — `NUM_MAKE`, likewise asserted.
+pub const MAKES_PER_LAND: usize = 4;
+
+/// One `<LAND>` of `rules.xml` — what a citizen takes off a tile of that
+/// kind, per good.
+///
+/// `Lands::init@0067e730` reads the nine records into a `0x138`-stride
+/// array: the four `<MAKE type>` names through `Types::good_key@006691c0`
+/// at `+0x04..+0x10`, the four `<MAKE num>` amounts at `+0x14..+0x20`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Land {
+    /// The `<MAKE type>` good indices. `-1` is `TYPE_NONE`, what
+    /// `Types::good_key` answers for the file's `"none"` — and the
+    /// original's gate on it is **unsigned** `< 6`, so it is rejected
+    /// rather than indexing backwards.
+    pub good: [i32; MAKES_PER_LAND],
+    /// The `<MAKE num>` amounts. Zero is the other half of the gate.
+    pub amount: [i32; MAKES_PER_LAND],
+}
+
+/// The shipped `LANDS` block, in file order — the index
+/// [`World::land_class`] answers.
+///
+/// Five of the nine make anything at all: plain land gives a knowledge and
+/// a food, forest a timber, mountains and cliffs a metal, an oil cell an
+/// oil. Sand, ocean, coast and bare rock make nothing, which is why a city
+/// ringed by them scores no gathering building at all.
+///
+/// `cargo run -p rondata -- <install>` re-derives this from the install's
+/// own `rules.xml` and fails if it has drifted.
+pub const LANDS: [Land; NUM_GATHER_LAND] = [
+    // 0 Land
+    Land {
+        good: [3, 0, -1, -1],
+        amount: [1, 1, 0, 0],
+    },
+    // 1 Sandy
+    Land {
+        good: [-1, -1, -1, -1],
+        amount: [0, 0, 0, 0],
+    },
+    // 2 Ocean
+    Land {
+        good: [-1, -1, -1, -1],
+        amount: [0, 0, 0, 0],
+    },
+    // 3 Coast
+    Land {
+        good: [-1, -1, -1, -1],
+        amount: [0, 0, 0, 0],
+    },
+    // 4 Forest
+    Land {
+        good: [1, -1, -1, -1],
+        amount: [1, 0, 0, 0],
+    },
+    // 5 Mountains
+    Land {
+        good: [4, -1, -1, -1],
+        amount: [1, 0, 0, 0],
+    },
+    // 6 Rocks
+    Land {
+        good: [-1, -1, -1, -1],
+        amount: [0, 0, 0, 0],
+    },
+    // 7 Oil
+    Land {
+        good: [5, -1, -1, -1],
+        amount: [1, 0, 0, 0],
+    },
+    // 8 Cliffs
+    Land {
+        good: [4, -1, -1, -1],
+        amount: [1, 0, 0, 0],
+    },
+];
+
+/// `GoodTypeData::is_flat@004780c0` — vtable slot `+0x94` of `GoodType`,
+/// which the base `Type` leaves as the engine's return-zero stub.
+///
+/// It is `!(is(TIMBER) || is(METAL) || is(OIL))`: food, wealth and
+/// knowledge are flat, and the three the ground actually holds are not.
+/// The whole shape of [`World::gather_at`] is this predicate — a flat good
+/// is taken from the cell you stand on at its face amount, a non-flat one
+/// is summed over the neighbourhood and doubled.
+pub const fn good_is_flat(g: usize) -> bool {
+    use crate::economy::Resource::{Metal, Oil, Timber};
+    g != Timber as usize && g != Metal as usize && g != Oil as usize
 }
 
 impl World {
@@ -811,6 +917,105 @@ impl World {
     pub fn is_ocean(&self, c: Cell) -> bool {
         let d = self.cell_data(c);
         d.flags & cell::HALFLAND == 0 && (d.land == 1 || d.land == 2)
+    }
+
+    /// `WorldData::get_land@006b4730` with its third argument 1 — the
+    /// land class of a cell, the index [`LANDS`] is read at.
+    ///
+    /// The stored `WData.land` (`land_key[]`: `BASELAND`, `SANDY`,
+    /// `OCEAN`, `NONE`) is only the fall-through; five flag tests, in this
+    /// order, override it with the classes the file calls Coast, Forest,
+    /// Mountains, Rocks and Oil. `Leader::plan_strategy`'s muster search
+    /// (`docs/ARMY.md` §13) computes exactly this inline, which is what
+    /// says the two are one function.
+    pub fn land_class(&self, c: Cell) -> i32 {
+        let d = self.cell_data(c);
+        let f = d.flags;
+        if f & cell::COAST != 0 {
+            3
+        } else if f & cell::FOREST != 0 {
+            4
+        } else if f & (cell::MOUNTAIN | 0x40) != 0 {
+            5
+        } else if f & cell::ROCK != 0 {
+            // `is_rocks` then `is_oil_at`: 6, or 7 where the oil is.
+            6 + i32::from(f & cell::OIL != 0)
+        } else if self.is_ocean(c) && f & cell::OIL != 0 {
+            7
+        } else {
+            i32::from(d.land)
+        }
+    }
+
+    /// `World::gather_at@006b07f0` — what a citizen would take off this
+    /// cell, per good, and the only writer of `CityData::ter`.
+    ///
+    /// `centre_only` is the original's fifth argument, and the two callers
+    /// disagree on it. `Leader::plan_strategy`'s step 13 passes **1**: read
+    /// the cell's own land class, give each flat good its face amount, and
+    /// give a non-flat good twice its amount unless the tile is already
+    /// gathered from. `Leader::produce_building`'s gather score passes
+    /// **0**: the flat goods still come from the centre alone, but a
+    /// non-flat good is summed over the cell and its eight neighbours —
+    /// each skipped if off the map or already gathered from — and the
+    /// total doubled at the end.
+    ///
+    /// The neighbour pass does not re-test `amount != 0`: a `"none"` slot
+    /// carries good `-1`, which matches no good, so the two gates come to
+    /// the same thing.
+    pub fn gather_at(&self, c: Cell, centre_only: bool) -> [i32; crate::economy::RESOURCES] {
+        let mut out = [0; crate::economy::RESOURCES];
+        let taken = |w: &World, n: Cell| w.tile_mask(n.centre_tile()) & tile::GATHERED_FROM != 0;
+        if let Some(land) = usize::try_from(self.land_class(c))
+            .ok()
+            .and_then(|i| LANDS.get(i))
+        {
+            for k in 0..MAKES_PER_LAND {
+                let amount = land.amount[k];
+                let Ok(g) = usize::try_from(land.good[k]) else {
+                    continue;
+                };
+                if amount == 0 || g >= crate::economy::RESOURCES {
+                    continue;
+                }
+                if good_is_flat(g) {
+                    out[g] += amount;
+                } else if centre_only && !taken(self, c) {
+                    out[g] += amount * 2;
+                }
+            }
+        }
+        if centre_only {
+            return out;
+        }
+        for (dx, dy) in std::iter::once((0, 0)).chain(MOVE_8) {
+            let n = Cell::new(c.x + dx, c.y + dy);
+            if !self.contains(n) || taken(self, n) {
+                continue;
+            }
+            let Some(land) = usize::try_from(self.land_class(n))
+                .ok()
+                .and_then(|i| LANDS.get(i))
+            else {
+                continue;
+            };
+            for (g, o) in out.iter_mut().enumerate() {
+                if good_is_flat(g) {
+                    continue;
+                }
+                for k in 0..MAKES_PER_LAND {
+                    if land.good[k] == g as i32 {
+                        *o += land.amount[k];
+                    }
+                }
+            }
+        }
+        for (g, o) in out.iter_mut().enumerate() {
+            if !good_is_flat(g) {
+                *o *= 2;
+            }
+        }
+        out
     }
 
     /// `WData.val` of the cell under a tile — the site value.
@@ -1476,5 +1681,115 @@ mod tests {
             w.region_coords_strided(land, 1, 3),
             vec![Cell::new(1, 0), Cell::new(0, 2), Cell::new(1, 3)]
         );
+    }
+
+    /// A world of plain land with one forest cell, one mountain and one
+    /// offshore oil patch — enough to exercise every arm of
+    /// [`World::land_class`].
+    fn lands_world() -> World {
+        let mut w = World::new(6, 6);
+        let land = w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(5, 5));
+        assert_eq!(w.terrain(land), Terrain::Land);
+        let set = |w: &mut World, c: Cell, flags: u16, l: i8| {
+            let mut d = w.cell_data(c);
+            d.flags = flags;
+            d.land = l;
+            w.set_cell_data(c, d);
+        };
+        // The whole grid is BASELAND, land class 0.
+        for y in 0..6 {
+            for x in 0..6 {
+                set(&mut w, Cell::new(x, y), 0, 0);
+            }
+        }
+        set(&mut w, Cell::new(2, 2), cell::FOREST, 0);
+        set(&mut w, Cell::new(3, 2), cell::MOUNTAIN, 0);
+        set(&mut w, Cell::new(4, 2), cell::ROCK | cell::OIL, 0);
+        // An ocean cell carrying oil: not rock, so the `is_ocean` arm.
+        set(&mut w, Cell::new(0, 5), cell::OIL, 2);
+        w
+    }
+
+    /// `WorldData::get_land@006b4730`'s five flag tests, in order.
+    #[test]
+    fn a_cell_s_land_class_is_its_flags_before_its_stored_kind() {
+        let w = lands_world();
+        assert_eq!(w.land_class(Cell::new(1, 1)), 0, "BASELAND");
+        assert_eq!(w.land_class(Cell::new(2, 2)), 4, "Forest");
+        assert_eq!(w.land_class(Cell::new(3, 2)), 5, "Mountains");
+        assert_eq!(w.land_class(Cell::new(4, 2)), 7, "Rocks with oil");
+        assert_eq!(w.land_class(Cell::new(0, 5)), 7, "ocean with oil");
+    }
+
+    /// Step 13's caller — `centre_only`. A flat good comes off the cell at
+    /// its face amount; a non-flat one is doubled, and only if nothing
+    /// already gathers the cell's centre tile.
+    #[test]
+    fn the_centre_only_gather_doubles_the_goods_the_ground_holds() {
+        use crate::economy::Resource::{Food, Knowledge, Metal, Oil, Timber};
+        let mut w = lands_world();
+        let mut want = [0; crate::economy::RESOURCES];
+        want[Knowledge as usize] = 1;
+        want[Food as usize] = 1;
+        assert_eq!(w.gather_at(Cell::new(1, 1), true), want, "plain land");
+
+        let mut want = [0; crate::economy::RESOURCES];
+        want[Timber as usize] = 2;
+        assert_eq!(w.gather_at(Cell::new(2, 2), true), want, "forest");
+        let mut want = [0; crate::economy::RESOURCES];
+        want[Metal as usize] = 2;
+        assert_eq!(w.gather_at(Cell::new(3, 2), true), want, "mountains");
+        let mut want = [0; crate::economy::RESOURCES];
+        want[Oil as usize] = 2;
+        assert_eq!(w.gather_at(Cell::new(4, 2), true), want, "an oil cell");
+
+        // A tile some building already gathers is worth nothing — and only
+        // to the non-flat half, which is the whole of a forest cell's
+        // value and none of plain land's.
+        w.set_tile_bits(Cell::new(2, 2).centre_tile(), tile::GATHERED_FROM);
+        w.set_tile_bits(Cell::new(1, 1).centre_tile(), tile::GATHERED_FROM);
+        assert_eq!(w.gather_at(Cell::new(2, 2), true), [0; 6]);
+        let mut want = [0; crate::economy::RESOURCES];
+        want[Knowledge as usize] = 1;
+        want[Food as usize] = 1;
+        assert_eq!(w.gather_at(Cell::new(1, 1), true), want);
+    }
+
+    /// `produce_building`'s caller — the neighbourhood sum. The flat goods
+    /// still come from the centre alone; a non-flat good is summed over
+    /// the nine cells and doubled once at the end.
+    #[test]
+    fn the_full_gather_sums_the_nine_cells_and_doubles_once() {
+        use crate::economy::Resource::{Food, Knowledge, Metal, Timber};
+        let mut w = lands_world();
+        // (3, 2) is mountains; its ring holds the forest at (2, 2) and the
+        // oiled rock at (4, 2), neither of which makes metal.
+        let got = w.gather_at(Cell::new(3, 2), false);
+        assert_eq!(got[Timber as usize], 2, "one forest neighbour, doubled");
+        assert_eq!(got[Metal as usize], 2, "the centre's own mountain");
+        assert_eq!(got[Knowledge as usize], 0, "mountains make no knowledge");
+
+        // Standing on plain land beside the forest: the flat pair comes
+        // from the centre, the timber from the neighbour.
+        let got = w.gather_at(Cell::new(1, 1), false);
+        assert_eq!(got[Knowledge as usize], 1);
+        assert_eq!(got[Food as usize], 1);
+        assert_eq!(got[Timber as usize], 2);
+
+        // And a gathered-from neighbour drops out of the sum.
+        w.set_tile_bits(Cell::new(2, 2).centre_tile(), tile::GATHERED_FROM);
+        assert_eq!(w.gather_at(Cell::new(1, 1), false)[Timber as usize], 0);
+    }
+
+    /// The nine are the centre and [`MOVE_8`], so a cell two away never
+    /// counts and the map's edge is not walked off.
+    #[test]
+    fn the_full_gather_reaches_one_cell_and_stays_on_the_map() {
+        use crate::economy::Resource::Timber;
+        let w = lands_world();
+        assert_eq!(w.gather_at(Cell::new(0, 0), false)[Timber as usize], 0);
+        assert_eq!(w.gather_at(Cell::new(1, 1), false)[Timber as usize], 2);
+        // (5, 5) is the far corner: three of its nine are off the map.
+        assert_eq!(w.gather_at(Cell::new(5, 5), false)[Timber as usize], 0);
     }
 }

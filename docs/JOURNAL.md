@@ -12309,3 +12309,100 @@ run step 16, which seeds an army, and no capture has a human one.
 - **Check the checker before believing it.** The first run reported 131,324
   wrong fields; 13,785 of them were `reg` asking the wrong numbering. A
   widening's first output is a claim about the comparison, not about the sim.
+
+---
+
+## 2026-09-02 — `World::gather_at`, and a gate on a road nobody drives
+
+*Opus. Item 157. The word did not move: East Indies 5376, Great Lakes 1802.*
+
+The seam yesterday's widening found is closed, and it took a morning rather
+than a session, because everything it needed was already on disk.
+
+`World::gather_at@006b07f0` is thirty lines of the original and three pieces:
+a table, a class, and a predicate.
+
+**The table** is `rules.xml`'s `LANDS` — nine records, four `<MAKE num type>`
+each, read by `Lands::init@0067e730` into a `0x138`-stride array with the good
+indices at `+0x04` and the amounts at `+0x14`. Five of the nine make anything:
+plain land a knowledge and a food, forest a timber, mountains and cliffs a
+metal, an oil cell an oil, all of them **one**. `"none"` becomes `TYPE_NONE`,
+−1, which the consumer's *unsigned* `< 6` test rejects — one of those places
+where the sign of a comparison is the whole safety of an array index.
+
+**The class** is `WorldData::get_land@006b4730` with its third argument 1:
+five flag tests ahead of the stored `WData.land`, which is only four names
+deep (`land_key[]`: `BASELAND`, `SANDY`, `OCEAN`, `NONE`). The same five tests
+were already sitting inline in `army.rs`'s muster search, written from
+`docs/ARMY.md` §13 without either reading knowing it was the other's — so the
+implementation is one function now and the muster search calls it.
+
+The class also settled a name. `WData.flags & 0x800` had been unnamed since
+run20, because the map dump prints no word for it and run20 never sets it.
+`WorldData::is_oil_at@00472af0` is that bit and nothing else. It is **`OIL`**.
+
+**The predicate** is where the reading actually took work.
+`GoodTypeData::is_flat@004780c0` sits at vtable slot `+0x94` of `GoodType`,
+which the base `Type` leaves as the engine's return-zero stub — so the
+decompiler prints, at both call sites, an *inlined* body calling a
+devirtualised `ObjectTypeData::is` at slot `+0x60`, with the sense apparently
+inverted between the two arms of the same `if`. Reading it as written gives a
+contradiction. What resolves it is the map file: `??_7GoodType@@6BType@@@` is
+at `00b44b70`, slot `+0x94` is `004780c0`, and that function is
+
+```
+!(is(TIMBER) || is(METAL) || is(OIL))
+```
+
+Food, wealth and knowledge are **flat**; the three the ground actually holds
+are not. That split is the whole shape of `gather_at`: a flat good comes off
+the cell you stand on at its face amount, a non-flat one is doubled — and, in
+the neighbourhood arm, summed over nine cells first.
+
+Sixty seconds with `xxd` over the PE beat an hour of arguing with a
+decompiled `if`. That is the export README's own lesson and it keeps being
+right.
+
+**Step 13 passes `centre_only = 1`**, which is why every `ter` in every
+capture is 0, 1 or 2 and never more, and why a tile some building already
+gathers (`TData.mask & 0x1000`) is worth nothing at all to the non-flat half.
+run58 frame 1: the AI's `ter` is `1/2/0/1/0/2` — a knowledge, a doubled
+timber, a food, a doubled oil — exactly what the table gives.
+
+The diff agreed on the first run. Nine pinned rows went — `1/2000`'s `ter[0]`,
+`[1]`, `[3]`, `[5]` and `1/2007`'s `ter[0]`, `[1]`, `[3]`, `[4]`, `[5]` —
+**39,309 field-frames** that had disagreed, first frame to last, per good.
+`ter[2]` and `1/2000`'s `ter[4]` had never disagreed, because on that map
+neither city's circle holds a mountain or anything that makes wealth.
+
+### And then the score did not move
+
+5376, unchanged. So the honest question is what item 157's premise was worth,
+and a probe answers it in one run: `gather_value` is never called in run58.
+Nor is `Sim::building_value`, on either pass, on any of the 5,201 frames. The
+AI's camps and farms there all come off the script path (§19).
+
+`ter` was a hard gate — on a road no capture drives down. The gate is open
+now and diff-exact where the sweep runs, and what stands between the AI and a
+make list is somewhere above it, in the step machine. Booked as item 160, the
+new headline-nearest, and the two remaining zero-readers of the same block
+(`GoodType::compute_largest_gather@0066e920`, `oil_patches.count`) go behind
+it rather than in front.
+
+**The rules this is an instance of.**
+
+- **The item nearest the headline is a guess until the run says so.** Item
+  157 was booked as "why the AI is poor" on a reading of `gather_value`'s
+  first `continue`. It was a true reading of a function nothing calls. One
+  `eprintln!` in a `--release` diff run would have said so before the work,
+  and cost less than a minute — check that the path executes before booking
+  the thing that gates it.
+- **A session that moved no score says so in the handoff.** This one did not,
+  and the queue's first line is the number that did not move.
+- **The listing settles what the decompiler cannot.** Three call sites
+  printed a predicate with two opposite senses; the vtable slot read straight
+  out of the PE printed one function with one sense.
+- **Two readings of one function are one implementation.** `army.rs` had
+  `get_land` inline and `world.rs` needed it; nobody had noticed because
+  neither document cited the other's address.
+

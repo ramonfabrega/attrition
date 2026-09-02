@@ -2989,7 +2989,7 @@ between step 13 and step 16. `Sim::check_orphaned_buildings` already has
 its own human bail; `check_explore` here only writes `census.explored` and
 issues nothing.
 
-### 23.2 `ter[6]` has no writer, and it is a hard gate on the gather families
+### 23.2 ~~`ter[6]` has no writer~~ — written, 2026-09-02: §24
 
 `CityData::ter[6]` is the best per-good gather amount over the city's
 occupied tiles, written by step 13's circle sweep out of
@@ -3016,10 +3016,134 @@ good indices at `+0x04..+0x10` and four amounts at `+0x14..+0x20`, stride
 `0x138`, written by `Lands::init@0067e730` — plus the nine-neighbour tile
 pass and the `GoodType` predicate behind its `×2`.
 
-**Coverage.** Diff-backed: that `ter` disagrees, per good, per city, on
-every frame of run58 — 5,201 frames for the AI's first city and 3,226 for
-its second, and `1/2000`'s `ter[1]` agrees on 2,826 of them, which is the
-seam's own shape (zero is right whenever nothing in the circle is worth
-anything). Reading-only: everything in `gather_at`'s body above, and the
-claim in §23.1 about step 16 — no capture has a human army to falsify it
-with, because no capture has a human army at all.
+**Coverage.** The seam is closed: §24 is `World::gather_at` read whole and
+implemented, and `ter` now agrees per good, per city, on every frame of
+run58. Reading-only: the claim in §23.1 about step 16 — no capture has a
+human army to falsify it with, because no capture has a human army at all.
+
+**And the gate was not the whole gate.** With `ter` written, the make list
+still asks for no gathering building anywhere in run58 — because
+`Sim::building_value` is not reached **at all** in that capture, on either
+pass, so `gather_value` never runs. The AI's camps and farms there come off
+the script path (§19). What §23.2 called a hard gate is a gate on a road
+run58 never drives down; the road itself is the open question, and the
+headline did not move for closing the gate. See the queue's successors.
+
+## 24. `World::gather_at`, whole — the lands table and the flat predicate (2026-09-02)
+
+§23.2's seam, read and landed. `World::gather_at@006b07f0` is the only
+writer of `CityData::ter`, and the only reader of the `lands` table.
+
+### 24.1 The table — `Lands::init@0067e730`
+
+Nine `<LAND>` records out of `rules.xml`, four `<MAKE num type>` each, into
+a `0x138`-stride array: the good indices at `+0x04..+0x10` through
+`Types::good_key@006691c0`, the amounts at `+0x14..+0x20`. The loader
+refuses to start unless the counts are exactly `NUM_GATHER_LAND` (9) and
+`NUM_MAKE` (4), so both are facts about the engine and not about the file.
+`"none"` resolves to `TYPE_NONE` = −1, which the consumer's **unsigned**
+`< 6` test rejects rather than indexing backwards.
+
+Five of the nine make anything:
+
+| class | name | makes |
+| --- | --- | --- |
+| 0 | Land | knowledge 1, food 1 |
+| 1 | Sandy | — |
+| 2 | Ocean | — |
+| 3 | Coast | — |
+| 4 | Forest | timber 1 |
+| 5 | Mountains | metal 1 |
+| 6 | Rocks | — |
+| 7 | Oil | oil 1 |
+| 8 | Cliffs | metal 1 |
+
+`sim::world::LANDS` is this table and `cargo run -p rondata -- <install>`
+re-derives it from the install's own `rules.xml`.
+
+The tail of `Lands::init` calls `GoodType::compute_largest_gather@0066e920`
+on all six goods. Nothing here has read it, and `ai_build.rs` still notes
+`largest_gather` as reading zero.
+
+### 24.2 The class — `WorldData::get_land@006b4730` with its third argument 1
+
+`WData.land` — `land_key[]`, four names, `BASELAND`/`SANDY`/`OCEAN`/`NONE`
+— is only the fall-through. Five flag tests come first, in this order:
+
+```
+flags & 0x004        -> 3   Coast
+flags & 0x020        -> 4   Forest
+flags & 0x050        -> 5   Mountains   (MOUNTAIN and the unnamed 0x40)
+flags & 0x008        -> 6, or 7 with 0x800     is_rocks, then is_oil_at
+is_ocean && 0x800    -> 7   Oil
+else                 -> WData.land
+```
+
+**`WData.flags & 0x800` is `OIL`**, and this is what settles it:
+`WorldData::is_oil_at@00472af0` is that bit and nothing else. The map dump
+prints no word for it (`docs/ORACLE.md`, "The map is a dump too"), so it had
+stayed unnamed since run20.
+
+`Leaders::plan_strategy`'s muster search computes exactly these five tests
+inline (`docs/ARMY.md` §13), which is what says the two are one function;
+`sim::world::World::land_class` is now both.
+
+### 24.3 The predicate — `GoodTypeData::is_flat@004780c0`
+
+Vtable slot `+0x94` of `GoodType`, which the base `Type` leaves as the
+engine's return-zero stub (`GoodType::vftable_for_Type_@00b44b70+0x94`,
+read out of the PE against `rise_z.map`; the decompiler inlines it at both
+call sites and prints the devirtualised `ObjectTypeData::is` at slot
+`+0x60` in its place). The body is
+
+```
+!(is(TIMBER) || is(METAL) || is(OIL))
+```
+
+so **food, wealth and knowledge are flat and timber, metal and oil are
+not**, and the whole shape of `gather_at` is that split.
+
+### 24.4 The two arms
+
+The fifth argument decides, and the two callers disagree on it.
+
+**`plan_strategy`'s step 13 passes 1** — the centre-only arm. Read the
+cell's own class, then over its four makes with a non-zero amount and a
+good `< 6`:
+
+- a **flat** good adds its face amount;
+- a **non-flat** good adds *twice* its amount, and only if the cell's
+  centre tile is not already gathered from (`TData.mask & 0x1000`,
+  `WorldData::is_gathered_from@00472ac0` — the tile bit `docs/` already
+  named for the gather-site pass).
+
+That is the whole of what `CityData::ter` is: `ter[g] = max(ter[g], …)` over
+the circle's occupied and wide-open cells. It is why every `ter` in the
+captures is 0, 1 or 2 and never more.
+
+**`produce_building`'s gather score passes 0** — the neighbourhood arm. The
+flat goods still come off the centre alone; a non-flat good takes *nothing*
+there, is summed over the cell and its eight neighbours (`move_x[0..8]`, the
+centre first), each skipped if off the map or already gathered from, and the
+whole non-flat half is doubled once at the end. The neighbour pass does not
+re-test `amount != 0`; a `"none"` slot's good is −1, which matches no good,
+so the two gates come to the same thing.
+
+### 24.5 Coverage
+
+**Diff-backed**, and this is the centre-only arm entire: run58's `CITY`
+record carries `ter[6]` on every live city of every frame, and the nine
+rows that were pinned as wrong — `1/2000`'s `ter[0]`, `[1]`, `[3]`, `[5]`
+and `1/2007`'s `ter[0]`, `[1]`, `[3]`, `[4]`, `[5]` — are gone: **39,309
+field-frames** that disagreed now agree, first frame to last. `run20`'s
+frame-1 `CITY` check compares the same six.
+
+**Reading-only**: the neighbourhood arm. Its only caller is
+`produce_building`'s gather score, whose own consumers (`w1`, `plenty`,
+`type_avail`, `get_need`) are still seams in `ai_place.rs`, so no capture
+reaches it. It has unit tests and no oracle.
+
+**Not established**: `GoodType::compute_largest_gather`, and where
+`World::set_gathered_at@006b46b0` is called from — no caller of it survives
+in the decompile export, so the writer of the bit `gather_at` reads is known
+here only through this crate's own gather-site pass.

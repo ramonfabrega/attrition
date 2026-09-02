@@ -131,8 +131,10 @@ pub const MOUNTAIN_GATHER: [(i32, i32); 5] =
     [(100, 3), (210, 5), (275, 6), (400, 8), (i32::MAX, 10)];
 
 /// `TData.mask & 0x1000` — some building already gathers from this tile
-/// (`WorldData::is_gathered_from@00472ac0`).
-pub const GATHERED_FROM: u16 = 0x1000;
+/// (`WorldData::is_gathered_from@00472ac0`). Named with the rest of the
+/// tile bits; the site pass below is its only writer, and
+/// [`crate::world::World::gather_at`] the other reader.
+pub use crate::world::tile::GATHERED_FROM;
 /// `TData.mask & 0x8000` — the bit `WorldData::has_gather_access@006b4e50`
 /// requires of a tile before it counts towards the access cap.
 pub const GATHERABLE: u16 = 0x8000;

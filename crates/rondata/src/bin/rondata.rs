@@ -672,6 +672,61 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
     let mut failures = 0;
     println!("\nstructural checks");
 
+    // The `LANDS` block, which `sim::world::LANDS` hardcodes because
+    // `World::gather_at` indexes it by land class and a row that moved
+    // would hand one terrain's yield to its neighbour. Nine records, four
+    // `<MAKE>` each, `num` the amount and `type` a good name resolved the
+    // way `Types::good_key@006691c0` resolves it: the six basic goods by
+    // name, `"none"` to `TYPE_NONE` (−1).
+    {
+        let good_key = |name: &str| -> i32 {
+            if name.eq_ignore_ascii_case("none") {
+                return -1;
+            }
+            sim::economy::Resource::ALL
+                .iter()
+                .position(|r| sim_name_of(*r).eq_ignore_ascii_case(name))
+                .map_or(-2, |i| i as i32)
+        };
+        let mut drift: Vec<String> = Vec::new();
+        for (i, want) in sim::world::LANDS.iter().enumerate() {
+            let Some(rec) = rules.lands.get(i) else {
+                drift.push(format!("{i} absent"));
+                continue;
+            };
+            let makes: Vec<&rondata::Field> =
+                rec.fields.iter().filter(|f| f.tag == "MAKE").collect();
+            if makes.len() != sim::world::MAKES_PER_LAND {
+                drift.push(format!("{i} has {} MAKEs", makes.len()));
+                continue;
+            }
+            for (k, m) in makes.iter().enumerate() {
+                let good = good_key(m.attr("type").unwrap_or("none").trim());
+                let amount: i32 = m.attr("num").unwrap_or("0").trim().parse().unwrap_or(-1);
+                if (good, amount) != (want.good[k], want.amount[k]) {
+                    drift.push(format!(
+                        "{i}/{k} is ({good}, {amount}), not ({}, {})",
+                        want.good[k], want.amount[k]
+                    ));
+                }
+            }
+        }
+        failures += check(
+            "the LANDS table is what World::gather_at indexes",
+            rules.lands.len() == sim::world::NUM_GATHER_LAND && drift.is_empty(),
+            &format!(
+                "{} lands x {} makes{}",
+                rules.lands.len(),
+                sim::world::MAKES_PER_LAND,
+                if drift.is_empty() {
+                    String::new()
+                } else {
+                    format!("; {}", join(drift.iter().cloned()))
+                }
+            ),
+        );
+    }
+
     // The animation art, read out of the install's own graphics tables and
     // the `.bha` headers they name (`docs/FORMATS.md`, "The animation file
     // (`.BHa`)"). The claim is the header arithmetic: a node's chunk ends
