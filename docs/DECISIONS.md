@@ -1169,3 +1169,43 @@ still inside run33's 1,850 full-detail frames. The general rule stands as
 ORACLE wrote it: a map earns its next expensive capture when its word
 crosses the newest one it has, and the capture is sized to the word with
 headroom, not to the trace's 24,000.
+
+## 30. A mechanic that is read, built and *worse than nothing* is landed unwired
+
+The bird's flight (`Unit::do_air_physics`, `docs/SYNC.md` §3.9) is the
+first thing this project has read whole, implemented faithfully, and then
+**not called**. The rule it settles is worth writing down, because the case
+will recur.
+
+`crates/sim/src/air.rs` reproduces the function arm for arm against the
+listing, and `crates/sim/src/single.rs` reproduces the single-precision
+arithmetic its bank angle is written in, exactly, in integers. Wired into
+the unit loop it flies a bird the way the original flies one — the same
+orbit, the same overshoot, the same edge coin — and it moves East Indies'
+word from **5437 to 5404**, because the bird it flies reaches that map's
+north edge thirty-three frames before the original's does and spends a draw
+where the original spends none.
+
+**A floor does not fall for a mechanic that is only nearer than the one it
+replaces.** "The bird stands still" is plainly wrong and "the bird flies,
+with the wrong phase" is plainly less wrong, and it does not matter: the
+score is the number of frames the stream is the original's, and a mechanic
+that shortens it has made the port worse *at the only thing being measured*.
+The temptation to take the better model and lower the floor is exactly the
+trap `CLAUDE.md`'s "the score is how anyone can tell where in it we are"
+exists to close.
+
+So the module lands, with its own tests, and the call site does not — and
+the call site carries the comment saying why, so nobody re-derives it. What
+is banked is the expensive half: the reading, the arithmetic, and a
+falsifiable statement of the residue. What is not banked is a number nobody
+can defend.
+
+**The corollary is the interesting one.** An implementation that cannot be
+wired is a *reading whose oracle is missing*, and that names the next move
+precisely: the bird has no observable but one draw because nothing dumps
+owner 9, so the work is to make one. `tools/trace/`'s `CALLS` proxy already
+logs a chosen function's arguments; `Unit::set_new_location` carries the new
+position, and a window of it is a per-frame record of where a bird actually
+is. Reach for the instrument before reaching for another reading — entry 23's
+rule, one level up: when a diff has no field to compare, build the field.

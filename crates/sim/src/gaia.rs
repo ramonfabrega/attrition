@@ -44,6 +44,10 @@ pub struct Gaia {
     /// search ran (`docs/SYNC.md` §3.9). run39's frame 576 is the first
     /// capture to reach one.
     pub bird_landings: Vec<(i64, i16)>,
+    /// Each live bird's bank angle and edge turn — the two fields
+    /// `Unit::do_air_physics` reads back a frame later
+    /// ([`crate::air::Flight`]).
+    pub bird_flight: Vec<(usize, crate::air::Flight)>,
 }
 
 /// The flag a bird's cell must carry — `WData.flags & 0x20`, a mountain
@@ -186,8 +190,19 @@ impl Sim {
         // bird that carried the default −1 was a bird whose animation
         // could never resolve (`docs/SYNC.md` §3.9).
         unit.type_index = self.unit_types[ty].type_index;
+        // The flight reads both (`crate::air`): `MOVES` is already position
+        // units a frame, and `TURN_SPEED` is what scales the bank's rate.
+        unit.movement.speed = self.unit_types[ty].moves;
+        unit.movement.turning = self.turning_for(ty);
         let at = self.add_unit(unit);
         self.init_guys(at, Some(ty));
+        // `add_air_patrol_order` on the hatch point: the patrol point is
+        // the **cell centre the bird was created on** and stays a field of
+        // the order, not a reading of where the bird now is. That
+        // distinction did not exist while the bird stood still, and it is
+        // the whole of the first seven frames of a flight
+        // (`docs/SYNC.md` §3.9).
+        self.gaia.bird_goals.push((at, pos));
         Some(at)
     }
 
@@ -318,7 +333,7 @@ impl Sim {
     }
 
     /// The patrol point of a bird, which starts on the cell it hatched in.
-    fn bird_goal(&self, u: usize) -> Pos {
+    pub fn bird_goal(&self, u: usize) -> Pos {
         self.gaia
             .bird_goals
             .iter()

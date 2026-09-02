@@ -12686,3 +12686,83 @@ first time the two maps have wanted the same item.
   written from that reading could have caught it.
 - **The size that breaks the rule is the one that matters.** Twenty-two
   items lived with this because every ordinary building is four tiles wide.
+
+## 2026-09-02, Opus — the bird flies, in a module nobody calls
+
+*Item 120. `docs/SYNC.md` §3.9 "The flight", `docs/DECISIONS.md` 30,
+`crates/sim/src/air.rs`, `crates/sim/src/single.rs`. **The score did not
+move**: EastIndies 5437, GreatLakes 1802, both still parted by
+`Unit::do_air_physics+0x639`.*
+
+One draw bounded both maps, so the item was the headline twice over, and
+the first two thirds of it went exactly to plan. `do_air_physics` is a
+wide function written for the game's aircraft, and a wild bird answers
+almost every question in it the same way every frame: `is_animal` excuses
+`check_fuel` and the landing approach; `AirOrder::returning` being zero for
+a patrol excuses `land_plane`, the bank's doubling arm and both of the
+places the speed is cut; owner **9** being over eight excuses the
+ground-clearance test that would otherwise make altitude matter, which is
+why `pitch_aircraft` — a monster — turns out to be irrelevant to where a
+bird goes. What is left is a heading, a bank, a step and one coin.
+
+**The coin is thrown when the step leaves the map, and that is all.**
+`UnitData::invalid_loc` on an air type (`type +0x218 == 2`) returns valid
+before every terrain test, and the caller passes zero for all five flags
+that reach the rest, so the whole of `+0x639` is the world's rectangle.
+`AirOrder::sharp_turn` — the type record's own name, at `+0x10`, beside
+`cruising_alt` and `returning` — takes the coin's ±1 and stands until a
+step lands inside again, which is why run53's 55 coins come in clusters a
+hundred frames apart rather than one a frame.
+
+**The bank is the state and the heading is downstream of it**, and that is
+the finding worth keeping. A bird cannot turn until it has banked into the
+turn: `bank_aircraft` moves a single-precision accumulator by at most ten a
+frame toward ±55, and `air_turn_speed` returns `(TURN_SPEED/55)·|bank|`
+floored at half a degree — reading the bank the *previous* frame left, so
+the first frame of every turn is at the floor and a reversal costs a frame.
+A bird therefore overshoots its patrol point, flies straight past it while
+more than 45° is owed inside `0x300`, releases at `0x300` and comes round on
+a radius near 400. That orbit is a limit cycle: perturbing a bird's initial
+heading by one unit leaves its position 1,700 frames later unchanged to the
+unit.
+
+**`single.rs` is the second software float, and the first algebra.**
+`combat::f32_sqrt` reproduces one expression; the banking is a dozen
+operations with branches on their results, so this reproduces `addss`,
+`subss`, `mulss`, `divss`, the two conversions and `cvttss2si` as exact
+integer arithmetic with one round-to-nearest-even, checked against the
+host's own float over thousands of random bit patterns. The constants came
+out of the PE: 55, 0.33, 0.5, 2, 10, −55.
+
+**And then it did not work, and the honest thing was not to land it.**
+Wired into the unit loop the flight puts coins in the original's *epochs*
+and not on its frames — 20 against 55 over run53's 24,000, the first at
+2781 where the original's is 1802 — and on East Indies it throws one at
+**5404**, thirty-three frames before the original's 5437, taking that map's
+word down with it. Every arm was re-checked against the listing; the turn
+rates the implementation produces are exactly `(rate/55)·|roll|` frame for
+frame; a one-unit perturbation changes nothing. The residue is a *phase*
+error in an orbit whose period is near a hundred frames, and it compounds
+through the landing search, which reads the patrol point's region and so
+picks a different cell once the bird is anywhere else.
+
+So the module lands with its own tests and the call site does not. That is
+`docs/DECISIONS.md` 30: a floor does not fall for a mechanic that is only
+*nearer* than the one it replaces, because the score is the only thing
+measuring us.
+
+**What the session actually bought.** The reading, whole and cited, so the
+next session does not redo it. The arithmetic, exact and tested. A
+falsifiable statement of the residue. And the next move, which is not
+another reading: the bird has one observable because nothing dumps owner 9,
+and `tools/trace/`'s `CALLS` proxy already logs a chosen function's
+arguments — `Unit::set_new_location@005f8d20` takes the new position, and a
+window of it is a per-frame record of where a bird is. Build the field the
+diff is missing, then the residue is arithmetic rather than search.
+
+**Two smaller things fixed on the way.** A bird's patrol point is now
+seeded at its hatch cell rather than read back off the bird's own position
+— which was harmless while the bird stood still and is the first seven
+frames of a flight otherwise — and a bird now carries the `MOVES` and
+`TURN_SPEED` its type gives every other unit.
+

@@ -645,14 +645,112 @@ patrol point as state, and the wing beat. `is_air` is the loaded
 domain, so a bird does not paint the occupancy grid a citizen walks on
 (`docs/COLLISION.md` §2).
 
-**What it does not**: `do_air_physics@005e86d0`'s flight — the bird is
-parked on its hatch cell and `Guy::move`'s arrival half is skipped for it,
-there being no ground body to follow. That function's own draw (`+0x3b`,
-`rnd % 7 + 0xd`) sits behind a vtable test the wild bird fails on every
-traced frame, and run14 confirms it: three `think_bird` draws an eighth
-frame per bird and no fourth. ~~**The landing search** is unreachable on
-every capture~~ — run39 reaches it on frame 576 and it is modelled above;
+**What it does not**: fly. ~~`do_air_physics@005e86d0`'s flight — the bird
+is parked on its hatch cell~~ — read whole on 2026-09-02 and implemented in
+`crates/sim/src/air.rs`, but **not called**: see "The flight" below, which
+says why and what is left. `Guy::move`'s arrival half is skipped for a bird
+either way, there being no ground body to follow. That function's own draw
+(`+0x3b`, `rnd % 7 + 0xd`) sits behind a vtable test the wild bird fails on
+every traced frame, and run14 confirms it: three `think_bird` draws an
+eighth frame per bird and no fourth. ~~**The landing search** is unreachable
+on every capture~~ — run39 reaches it on frame 576 and it is modelled above;
 every bird that fires it is still recorded in `Gaia::bird_landings`.
+
+#### The flight — `Unit::do_air_physics@005e86d0` (2026-09-02)
+
+A wild bird takes a narrow path through a function written for the game's
+aircraft. Everything below is `crates/sim/src/air.rs`; the addresses are the
+whole of the argument, because **nothing dumps owner 9 and the flight has
+exactly one observable** — the coin at `+0x639`.
+
+```text
+speed  = AnimalData::get_speed(dx, dy, 1)      # air animal: UnitData::speed,
+         × ai_speed when that exceeds one      #   which for domain 2 is MOVES
+goal   = the air order's one waypoint, clamped into [0, xs·0x300)
+des    = find_angle(goal − pos)
+         owed more than 45° and vector_dist < min_range·0xc0 + 0x300
+             → des = the heading it has                       # fly past
+         AirOrder::sharp_turn ≠ 0 → des = heading + turn·0x40000000
+bank_aircraft(des, &speed, 0)                  # below
+Guy::set_angle(heading, 1)                     # the figure snaps
+(nx, ny) = (x + sin(heading)·speed, y − cos(heading)·speed)
+UnitData::invalid_loc(tile of nx, ny, 0,0,0,0,0)
+    valid   → sharp_turn = 0
+    invalid → WorldData::restrict clamps (nx, ny), and when sharp_turn is 0:
+                  rnd = get(0, 0xffff)                        # +0x639
+                  sharp_turn = (rnd & 0x80000001) ? +1 : −1
+set_new_location(nx, ny, 0, 1)
+```
+
+**`invalid_loc` on an air type is the world's rectangle and nothing else.**
+Its domain arm — `type +0x218 == 2` — returns valid before every terrain
+test, and `do_air_physics` passes zero for all five flags that would reach
+the rest. So the only step a bird is refused is one that leaves the map, and
+the coin is thrown once per departure rather than once per frame out:
+`sharp_turn` stands until a step lands inside again, which is why run53's
+coins come in clusters a hundred frames apart. The field's name is the type
+record's (`AirOrder +0x10`, beside `cruising_alt` at `+0xc` and `returning`
+at `+0x18`), and `returning` being zero for a patrol is what excuses
+`land_plane`, the landing approach and the bank's doubling arm.
+
+`Unit::bank_aircraft@005e9520`, with `roll` the negation of `GuyData +0x44`:
+
+```text
+roll = 0, spell_time ≥ 0 and frame & 7 == 0 → return, before the store
+d      = des − heading;  a = d > 0x80000000 ? ~d : d
+sign   = d > 0x80000000 ? −1 : +1                    # the caller's, when it has one
+rate   = (TURN_SPEED >> 8) · UNIT_TURN_SPEED, floored at 0x5b05b0
+want   = (float)(unsigned)a / (float)rate × 55 × 0.33 ; halved when under 5
+         ; then min(want, 55)                        # owner ≥ 8 skips the rest
+step   = sign·want − roll
+    |step| ≥ 2 → roll moves toward want by min(|step|, 10), inside ±55
+    |step| < 2 and |roll| < 2 → roll = 0
+roll > 0 → heading += air_turn_speed(+1)
+roll < 0 → heading −= air_turn_speed(−1)
+roll = 0 → heading = des, but only when a < 5°
+guy.roll = −roll
+```
+
+and `Unit::air_turn_speed@005ea390` is `(rate / 55) · |trunc(guy.roll)|`,
+floored at `0x5b05b0` and **read before this frame's bank is stored**, so a
+frame that reverses the bank turns at the floor. Half a degree is that floor
+and the `WILDBIRD`'s own `TURN_SPEED 5` is the ceiling.
+
+**The bank is the state and the heading is downstream of it**, which is the
+finding: a bird cannot turn until it has banked into the turn, and the bank
+takes six frames to reach 55. So a bird overshoots its patrol point, flies
+straight past it while more than 45° is owed inside `0x300`, releases at
+`0x300`, and comes round on a radius of about 400 position units. That is
+the orbit, and it is a limit cycle — perturbing a bird's initial heading by
+one unit leaves its position 1,700 frames later unchanged to the unit.
+
+**The arithmetic is single-precision, and is done in integers.**
+`crates/sim/src/single.rs` reproduces `addss`/`subss`/`mulss`/`divss`,
+`cvtdq2ps`, `cvtdq2pd`+`cvtpd2ps` and `cvttss2si` exactly, each checked
+against the host's own float over random bit patterns. The constants are
+`0xb69680` = 55, `0xb69490` = 0.33, `0xb694c0` = 0.5, `0xb695c0` = 2,
+`0xb69628` = 10, `0xb697c4` = −55, read from the PE.
+
+**What the flight has not established: the frames.** Wired into
+`Sim::do_idle`, the module puts coins in the original's *epochs* and not on
+its frames — 20 against run53's 55 over 24,000, the first at 2781 where the
+original's is 1802 — and on East Indies it throws one at **5404**, thirty-
+three frames before the original's 5437, which takes that map's word down
+with it. So it is read, implemented, tested against itself, and **not
+called**; `orders.rs` says so at the site. The residue is a *phase* error in
+the orbit, not a wrong branch: every arm above is checked against the
+listing, the turn rates the implementation produces are exactly
+`(rate/55)·|roll|` frame for frame, and a bird flies its limit cycle with a
+period near a hundred frames, so a few frames of error anywhere compounds
+into a different place at the next landing search — which then chooses a
+different cell, because the search reads the *patrol point's* region.
+
+**What would settle it is a capture, and a cheap one.** `tools/trace/`
+already proxies chosen call sites (`CALLS` in `tracer.c`) and logs their
+arguments; `Unit::set_new_location@005f8d20` takes `(x, y, 0, 1)` with the
+unit as `this`, so proxying it over a window turns **a bird's position, per
+frame** into a record — the oracle owner 9 has never had. Against that the
+residue is arithmetic rather than search. Queue item 120.
 
 ## 3.10 The residue's other names (2026-08-28)
 
@@ -2027,11 +2125,13 @@ struck through and point there.
   and modelled 2026-08-28, §3.9**: `think_bird` is three draws every
   eighth frame per live bird, and its landing search is sixty more on the
   frame a bird lands (2026-08-31).
-  `do_air_physics` and `Guy::set_anim`'s bird branch stay open, and the
-  25 phase-7 wraps they leave unspent are what still stands between the
-  simulation's stream and the original's after frame 103 — and
-  `do_air_physics+0x639` is what parts run33's word at **1802**, its one
-  appearance in 1,851 frames. And ~~`Farms::add`/`add_animals` at a farm's
+  ~~`do_air_physics` stays open~~ — **read whole 2026-09-02**, §3.9 "The
+  flight", and implemented in `crates/sim/src/air.rs`; what stays open is
+  the *phase* of the orbit it flies, which is why the module is not called.
+  `Guy::set_anim`'s bird branch stays open, and the 25 phase-7 wraps it
+  leaves unspent are what still stands between the simulation's stream and
+  the original's after frame 103 — and `do_air_physics+0x639` is what parts
+  run33's word at **1802**, its one appearance in 1,851 frames. And ~~`Farms::add`/`add_animals` at a farm's
   creation — event-driven, unread past their draw sites.~~ **both are read
   and modelled: `add` at placement (§3.8) and `add_animals` at activation
   (§3.21).**
@@ -2229,6 +2329,12 @@ kind honest.
   on, and so where the bird then flies — the score is inert (`-1 < score`
   cannot fail), which makes the answer "the thirtieth sample" and no
   capture can confirm it; the `n <= 1` skip, since run39's region is
-  larger; and `do_air_physics@005e86d0`'s flight, which this crate does
-  not model at all — the bird stands on its hatch cell and only the two
-  things that reach the stream, the think and the walk request, are here.
+  larger; and `do_air_physics@005e86d0`'s flight, read whole on 2026-09-02
+  and implemented in `crates/sim/src/air.rs` but **not called** — the bird
+  still stands on its hatch cell, and only the two things that reach the
+  stream, the think and the walk request, are flown. The flight's own
+  tests (`air::tests`) hold the module to the reading — the bank's ramp of
+  ten, the heading lagging it by a frame, one coin per departure — and
+  `single::tests` holds its single-precision arithmetic to the host's, but
+  nothing yet holds either to the *original*: §3.9's "What the flight has
+  not established" is the whole of what a capture would close.

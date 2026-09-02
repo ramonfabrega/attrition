@@ -12,35 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — a friend is a footprint, and the 7×7 city is the
-neighbour of four cells.* **East Indies' word moved 5376 → 5437, and the
-frame it now parts on is Great Lakes'.** Item 164 is closed, and both
-headlines are behind one draw site.
+*2026-09-02, Opus — the bird flies, in a module nobody calls.* **Neither
+headline moved.** Item 120's reading is done and its implementation is in
+`crates/sim/src/air.rs`; wiring it in costs East Indies 33 frames, so it is
+not wired.
 
-- **`find_friends` asked the wrong question.** It matched a neighbouring
-  cell's building by *centre-in-cell*;
-  `ObjectsData::find_building_placed_at@00658c80` matches by **footprint
-  covering the cell's centre tile** (AI §26). Centre tiles are four apart,
-  so every building of four tiles or fewer answers the same either way —
-  and the **Village is 7×7**, a friend of four cells, counted here as one.
-- **That is why the Market was sited one cell south.** Its old cell scored
-  4251 on two friends against 3252; with the Village counted it is 6252
-  against 5251, the corner clears the Library, and the 2×2 jitter spends
-  the original's four draws instead of two.
-- **The rest of the board did not move**: Great Lakes 1802, run59 3,500 of
-  18,000, run58's 178,326 building fields still 0 wrong.
-- **The new blocker is `5e8d09` = `Unit::do_air_physics+0x639`** — item
-  120, which has bounded Great Lakes since run33. One bird, both maps.
-- **The dumps answered this without a capture.** run60's timber curve is
-  exact on all 5,400 frames, which is what ruled out "the original places a
-  second building here" before any reading started.
+- **`do_air_physics` is narrow for a bird.** `is_animal`, `AirOrder::
+  returning == 0` and **owner 9 being over eight** excuse `check_fuel`, the
+  landing approach, `land_plane`, both speed cuts and the whole of
+  altitude. What is left is a heading, a bank, a step and the coin (SYNC
+  §3.9, "The flight").
+- **The coin is the world's rectangle and nothing else.** `invalid_loc` on
+  an air type returns valid before every terrain test; `AirOrder::
+  sharp_turn` stands until a step lands inside again, which is why run53's
+  55 coins cluster a hundred frames apart.
+- **The bank is the state.** Ten a frame toward ±55, and
+  `air_turn_speed` reads the *previous* frame's bank — so a bird orbits its
+  patrol point on a radius near 400, and the orbit is a limit cycle.
+- **`single.rs` is the second software float**: `addss`/`subss`/`mulss`/
+  `divss` and the conversions, exact, checked against the host's.
+- **Why it is not called**: it throws `+0x639` on East Indies at **5404**
+  against the original's 5437, and 20 coins against run53's 55. The residue
+  is the orbit's *phase*, and no reading will settle it — DECISIONS 30.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w5437 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `One draw now bounds both maps: East Indies at 5437 and
-Great Lakes at 1802 both part on Unit::do_air_physics+0x639. Item 120 — a
-bird's flight physics, SYNC §3.9 — is the headline twice over.`
+**Opener (Opus):** `Item 120 is a missing oracle, not a missing reading.
+Nothing dumps owner 9, so build the field: proxy Unit::set_new_location
+in tools/trace's CALLS over a window and a bird's position becomes a
+per-frame record — then air.rs's residue is arithmetic.`
 
 ## The queue
 
@@ -49,11 +50,18 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-120. **A bird's flight physics, and it is now both maps' word.**
-    One draw at `Unit::do_air_physics+0x639 < do_air_patrol+0xf3 <
-    do_job+0xd7` (SYNC §3.9), reached **once** in run33's 1,851 frames.
-    It bounds Great Lakes at 1802 and, since item 164, East Indies at
-    5437: on both the original draws where this crate does not.
+120. **A bird's flight is read and built; what is missing is its
+    oracle.** `crates/sim/src/air.rs` reproduces `do_air_physics`,
+    `bank_aircraft` and `air_turn_speed` (SYNC §3.9, "The flight"), and
+    `orders.rs` does not call it: wired in it throws `+0x639` on East
+    Indies at **5404** against 5437, and 20 coins against run53's 55.
+    Every arm is checked against the listing and the turn rates are exact
+    frame for frame, so the residue is the orbit's *phase*. **Next move is
+    a capture, not a reading**: `tools/trace/`'s `CALLS` proxy logs a
+    chosen function's arguments, and `Unit::set_new_location@005f8d20`
+    carries the new position — a window of it over a Great Lakes run is
+    the per-frame record owner 9 has never had. Then wire the module in
+    and the floors move: one draw still bounds both maps.
 
 165. **A merchant on a rare, and it is the whole of what run60 leaves.**
     `income[food]` **1440 against 1600** and `income[wealth]` **0 against

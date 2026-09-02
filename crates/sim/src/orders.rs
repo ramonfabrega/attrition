@@ -1092,6 +1092,20 @@ impl Sim {
                     self.think_bird(u, frame);
                 }
                 self.set_anim(u, crate::anim::WALK, false, true);
+                // **The flight itself is read but not flown from here.**
+                // `Unit::do_air_patrol`'s second half is
+                // `Unit::do_air_physics`, and [`crate::air`] implements
+                // it — the bank, the step and the edge coin. Calling it
+                // here takes East Indies' word from 5437 to **5404**: the
+                // bird crosses that map's north edge thirty-three frames
+                // before the original's does and throws
+                // `do_air_physics+0x639` where the original throws
+                // nothing. A floor does not fall for a mechanic that is
+                // only *nearer* than the one it replaces, so the module
+                // stands and this call does not — `docs/SYNC.md` §3.9,
+                // "What the flight has not established", and queue item
+                // 120.
+                //
                 // `do_air_patrol`'s own tail, after `do_air_physics`
                 // returns 1: the caller branches on `vtable+0x30`,
                 // `SubObjectData::is_animal`, and the animal arm is
