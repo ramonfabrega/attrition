@@ -261,13 +261,15 @@ entry's tolerance** (0 when the stack emptied). Derived once:
   (`0x30` with `anti ≠ 0`: 2 — **only the four cardinals are expanded**).
 - Arrival radius **`arrive = tol/2 + stride`** (`tol` = the *final* goal
   entry's tolerance — 0 for a plain move, so `0x300` on the world grid).
-- `avoid_land`/`avoid_sea` from the start's terrain: same `tregion` for
-  start and goal → on ocean (`0x300`: `is_ocean`; else tile `& 0x30 ==
-  0x20`) → `avoid_land = 1, avoid_sea = 0` (a ship); on land → `avoid_sea =
+- `avoid_land`/`avoid_sea` from the start's terrain: **same region** for
+  start and goal (§16 — the world grid compares the raw `WData.region`, the
+  tile and unit grids call `get_tregion`) → on ocean (`0x300`:
+  `WorldData::is_ocean` of the *cell*; else tile `& 0x30 == 0x20`) →
+  `avoid_land = 1, avoid_sea = 0` (a ship); on land → `avoid_sea =
   1, avoid_land = 0`, and `avoid_sea = 2` when the action is an attack
   (vfunc `+0x10` == 10) — a fighting land unit refuses water. A type with
   `unit_flags & 0x10` whose `unit_masks & 0x40000` is set → both 0.
-  Different `tregion`s → both 0 (the crossing is the point), except
+  Different regions → both 0 (the crossing is the point), except
   `avoid_land = 1` when the order has `flags & 0x20`.
 - The root's `metric` = its grid-cell index; `estimate = value = h(start)`;
   inserted into open + refs. Start-to-goal Manhattan is kept (the PDB's
@@ -398,6 +400,12 @@ read** — fog hides them.
 | no-rush timer | `+ 500` | `rr = rush_rules age ≠ 0`, current age < `rr`, (`rr < 9` **or** `frame < rush_rules[rr].+0x3c × 900` — the once-garbled clause, settled in the listing, audit V6), owner ≥ 0, not an ally; same two branches as fleeing |
 | diplomacy | `+ 5000` | (`army` or `worker`) and team-style rules: peace with the owner (styles 0/8/11), or style 2 and the owner is neither `who` nor `get_target(who)`; `0x300` only, and reachable from the **fog branch too** (audit V5) |
 | river cell | `base ×= 3` | `0x300` only, cell flags `& 0x100`, **skipped whenever `needs_transport > 0`** — a shoreline crossed in either direction, transporter or not (audit V20) |
+
+The `is_ocean` of the ocean and land rows — and of the entry block's
+water test in §4.1 — is **`WorldData::is_ocean@006b4830`**, the `WData`
+test: `flags & 0x100` clear *and* `land` 1 or 2. It is not "the cell's
+region is a sea region", and a `HALFLAND` cell is where the two part
+(§16).
 
 The fog branch and the terrain row below are **one term, not two**, and
 2026-08-26 is where that stopped being a guess. Both had been seams; each
@@ -1030,6 +1038,11 @@ not make. No boat in any capture has re-planned from inside the pull-back.
 
 ## 15. The pull-back asks `get_tregion`, and the sim was asking the other one (2026-09-01)
 
+**Amended by §16 the same day.** The fourth site is *half* a site: line
+395 is `astar_path`'s `param_2 ≠ 0x300` arm alone, and the world grid
+takes an inlined arm that reads `WData.region` and calls nothing. The
+three pull-back walks below are unaffected.
+
 All four region reads in the pathfinder — the three pull-back walks
 (`find_wpath@00688fc0:104`, `find_tpath@006897d0:90`,
 `find_upath@00682f30:116`) and `astar_path@00683770:395`'s
@@ -1054,4 +1067,55 @@ The remaining `World::tregion` callers — `army`, `group`, `orders`,
 `roads`, `place`, `scout`, `transport` — are still unchecked; the queue
 carries them.
 
+## 16. The same-region test is two functions, and the world grid's is the raw field (2026-09-01)
 
+§15 read `astar_path@00683770:395`'s `get_tregion` pair and took it for
+the whole `avoid_land`/`avoid_sea` derivation. It is one of two arms. The
+prologue branches on the grid before it asks anything:
+
+- **`param_2 == 0x300`** (line 378): no call at all. Two `short`s are read
+  straight out of the `WData` array — `world+0x134 + (width × cy + cx) ×
+  0x1c + 4`, which `types.txt` names **`WData.region`** — one for the start
+  cell and one for the goal cell, and compared. No coastal refinement, no
+  `region2`, no tile.
+- **otherwise** (lines 391–398): `div_3_table[x >> 6]` on both axes — the
+  *tile* — and two **`WorldData::get_tregion`** calls, §15's pair. The tile
+  and unit grids take the refinement; the world grid never sees it.
+
+The water test the `same` branch then makes is
+**`WorldData::is_ocean@006b4830`** of the start **cell** on `0x300`
+(`flags & 0x100` clear and `land` 1 or 2), and the tile-mask surface test
+elsewhere — not "the cell's region is a sea region", which is what this
+crate had been asking in both `astar_path` and `calc_cost`'s ocean row.
+The two answers part on exactly the cells `HALFLAND` marks.
+
+**Why it is load-bearing, and what it moved.** The AI's Fisherman `1/14`
+stands on East Indies' cell (57, 55) — `flags 0x104`, `region 11` (land),
+`region2 65` (sea) — and is sent to the fish at (49, 39), region 65. §15's
+`tregion_alt` answers 65 for the start, so this crate said *same region*,
+read the start as water, and set `avoid_land = 1`; the original compares
+`region` 11 against 65, says **different**, and leaves both avoids at 0.
+The boat's whole sea route is downstream of that one bit: every coastal
+`HALFLAND` cell along the channel was costing this crate an extra 200 it
+costs the original nothing, and the 3,200-probe budget ran out somewhere
+else, with a different node nearest the goal to reconstruct from.
+
+The two pull-back sites and the tile grids are unaffected — §15's fix
+stands where §15 made it. The world grid was simply never one of the four.
+
+**What a diff backs.** run58's `PATHDATA` rows: both AI Fishermen's sea
+stacks — `1/14` planned on frame 4464 and `1/16` on 4870, sixteen rows
+each from (57, 55) to (49, 39), and `1/16`'s two rows that step around the
+boat already sitting on `1/14`'s cells — agree with the original **row for
+row, point, tolerance and flag**, where before every slot from 1 up was
+two cells north. The boats had a pin of their own in the run58 test;
+they no longer need one, and no unit leaves the original's point before
+the word. East Indies' long word: **4871 → 4945**.
+
+**What this has not established.** Whether the two tests ever disagree on
+a cell that is *not* `HALFLAND` — nothing in either capture forces it, and
+the reading says they cannot (`is_ocean` refuses `HALFLAND` outright,
+`region2` is only consulted for it). And the world grid's raw read is off
+the array with no bounds test: a start or goal cell off the map would read
+whatever lies there, which no capture has reached and this crate answers
+`None` for.

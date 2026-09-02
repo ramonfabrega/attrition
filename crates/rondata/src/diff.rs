@@ -4703,17 +4703,16 @@ mod tests {
         // it is on the long one, where a `tolerance` row is what the
         // thirteen-frame lead of item 141 actually was.
         //
-        // **And the boat is the one exception, pinned rather than
-        // excused.** The AI's Fisherman `1/14` is new to this check —
-        // before `Unit::think_fish` existed it never moved, so it
-        // contributed no rows at all — and its **sea route** parts from the
-        // original's on the frame it is planned, 4464: the same nineteen
-        // cells from (57, 55) to the fish at (49, 39), staircased two cells
-        // further north over the first half. Every other unit's rows are
-        // asserted; this one's first frame is pinned, so the residue cannot
-        // grow quietly and cannot be fixed without the test noticing.
-        let boats = [(1, 14), (1, 16)];
-        let (boat_rows, path_rows): (Vec<&OrderDivergence>, Vec<&OrderDivergence>) = report
+        // **And the two AI Fishermen are inside it now.** Their sea
+        // routes were the one exception this check carried: `1/14` from
+        // 4464 and `1/16` from 4870 planned the same nineteen cells from
+        // (57, 55) to the fish at (49, 39) staircased two cells north of
+        // the original's, because the world grid's same-region test was
+        // asking `get_tregion` where the original reads `WData.region`
+        // (`docs/PATHFINDER.md` §16). With the raw field both stacks agree
+        // row for row on the frame each is planned, so there is no
+        // partition and no pin — every waypoint of every unit is asserted.
+        let path_rows: Vec<&OrderDivergence> = report
             .frames
             .iter()
             .flat_map(|f| f.order_diverged.iter())
@@ -4724,25 +4723,12 @@ mod tests {
                         OrderMismatch::PathField { .. } | OrderMismatch::PathTo { .. }
                     )
             })
-            .partition(|d| boats.contains(&(d.who, d.o)));
+            .collect();
         assert!(
             path_rows.is_empty(),
-            "every waypoint but the two AI Fishermen's agrees row for row up \
-             to the word: {} rows, first {:?}",
+            "every waypoint agrees row for row up to the word: {} rows,              first {:?}",
             path_rows.len(),
             path_rows.first()
-        );
-        let mut boat_first: Vec<(i64, i64, i64)> = Vec::new();
-        for d in &boat_rows {
-            if !boat_first.iter().any(|&(w, o, _)| (w, o) == (d.who, d.o)) {
-                boat_first.push((d.who, d.o, d.frame));
-            }
-        }
-        assert_eq!(
-            boat_first,
-            vec![(1, 14, 4464), (1, 16, 4870)],
-            "each AI Fisherman's sea route parts on the frame it is planned, \
-             and no third unit joins them"
         );
         let early: std::collections::BTreeMap<_, _> = parted
             .iter()
@@ -4751,14 +4737,7 @@ mod tests {
         assert_eq!(
             early.len(),
             RUN58_PARTED,
-            "before the word, only the AI's first Fisherman leaves the \
-             original's point, and only because its route parts: {early:?}"
-        );
-        assert_eq!(
-            early.get(&(1, 14)).copied().copied(),
-            Some(4507),
-            "and it leaves it on the frame its route's first wrong waypoint \
-             becomes the one it is steering at"
+            "before the word, no unit leaves the original's point: {early:?}"
         );
         assert_eq!(
             builds, RUN58_BUILD_FIELDS,
@@ -8477,16 +8456,18 @@ mod tests {
     /// what a 5,200-frame capture holds — and `RUN58_PARTED` is the score:
     /// how many of its units ever walk off the original's point **before
     /// the word**. It was 1 — `1/13`, from 3647 — until the tile grid's
-    /// tolerance landed; it was **0**; and it is **1** again now that the
-    /// word is 4,871 and the AI's first Fisherman is inside it, walking a
-    /// sea route this crate plans two cells north of the original's from
-    /// frame 4464 (`docs/PATHFINDER.md`, and the boats' own pin above).
-    /// That row is a consequence of the route, not a second defect.
-    const RUN58_PARTED: usize = 1;
+    /// tolerance landed; it was **0**; it was **1** while the AI's first
+    /// Fisherman walked a sea route this crate planned two cells north of
+    /// the original's; and it is **0** again now that the world grid's
+    /// same-region test reads `WData.region` rather than `get_tregion`
+    /// (`docs/PATHFINDER.md` §16). Both Fishermen's routes now agree row
+    /// for row on the frame each is planned, so the boats have no pin of
+    /// their own any more — they are inside the ordinary assert.
+    const RUN58_PARTED: usize = 0;
     const RUN58_BUILD_FIELDS: usize = 178_326;
     const RUN58_COLL_FIELDS: usize = 449_279;
 
-    const LONG_WORD_EAST_INDIES: i64 = 4871;
+    const LONG_WORD_EAST_INDIES: i64 = 4945;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

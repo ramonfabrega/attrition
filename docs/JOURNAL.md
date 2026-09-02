@@ -11722,3 +11722,70 @@ That is the third probe of this shape (`docs/FORMATS.md`'s constants, the
   three arms they exercise, are what makes this mechanic diff-backed rather
   than plausible. Nothing about `think_fish` needed a capture that was not
   already on disk.
+
+## 2026-09-01 — item 147: the world grid reads the raw region, and the word goes 4871 → 4945 (Opus)
+
+The item was the two AI Fishermen's sea routes, pinned the day before:
+`1/14` planned on frame 4464 and `1/16` on 4870, both the same staircase
+from (57, 55) to the fish at (49, 39), both two cells north of the
+original's over the first half. The queue booked it as
+`avoid_land`/`avoid_sea` and `calc_cost`'s ocean terms, and that is exactly
+where it was — one line earlier than expected.
+
+**§15 was right about three sites and half right about the fourth.** The
+day before, item 142's first payoff had found that all four of the
+pathfinder's region reads call `WorldData::get_tregion` — the coastal
+refinement that answers a `HALFLAND` cell's `region2` when its tile is
+water — and switching the pull-backs to it fixed the boat's *goal*. The
+fourth site, `astar_path`'s `avoid_land`/`avoid_sea` derivation, was read
+at line 395 of the decompile. Line 395 is inside an `else`. The prologue
+branches on the grid first, and the `param_2 == 0x300` arm calls nothing at
+all: it reads two `short`s straight out of the `WData` array at
+`world+0x134 + (width × cy + cx) × 0x1c + 4` — `types.txt` names the field
+`region` — one for the start cell, one for the goal, and compares them.
+Only the tile and unit grids get `get_tregion`.
+
+Beside it, the water test the `same` branch then makes is
+`WorldData::is_ocean@006b4830` — `flags & 0x100` clear *and* `land` 1 or 2
+— where this crate had been asking whether the cell's region was a sea
+region, in `astar_path` and in `calc_cost`'s ocean row both. The two
+answers part on exactly the cells `HALFLAND` marks, which is precisely
+where a boat sails.
+
+**One bit, and the whole route.** The Fisherman stands on cell (57, 55):
+`flags 0x104`, `region 11` (land), `region2 65` (sea). `get_tregion` says
+65, the fish's cell says 65, so this crate said *same region*, then read
+the start as not-ocean (`HALFLAND` never is) and set `avoid_land = 1`. The
+original compares 11 against 65, says **different**, and leaves both avoids
+at 0. Every coastal cell along East Indies' channel was then costing this
+crate 200 the original charges nothing for; the search — which ends on its
+3,200-probe budget, not on arrival, and reconstructs from whichever open
+node is nearest the goal — ran out somewhere else, with a different node to
+walk back from.
+
+With the raw field both stacks agree with the original **row for row**,
+point, tolerance and flag: sixteen entries each, `1/16`'s two rows stepping
+around the boat already sitting on `1/14`'s cells included. The boats had a
+pin of their own in run58's test and no longer need one; `RUN58_PARTED` is
+**0** again — no unit leaves the original's point before the word — and the
+word is **4871 → 4945**.
+
+**What the new boundary is.** Frame 4945: the original makes three draws
+and this crate two, and the extra one is `Guy::set_anim+0x97a` under a
+chain the trace's site table has no entry for —
+`Guy::do_turn+0x4a < Unit::move_step+0x3b6`. A **ninth caller** of the
+animation coin, and a turning stand rather than any of the eight
+`crates/sim/src/anim.rs` names. The frame after, the original's
+`Animal::do_idle` spends one draw where this crate spends four: the same
+guy, re-anchored.
+
+**The rules this is an instance of.**
+
+- **A line number is not a site.** §15 cited `astar_path@00683770:395`
+  correctly and generalised it to a function that branches above it. The
+  cheap guard is the one the audit README already names — read the
+  *loaders*, and read what is above the line you are quoting.
+- **Grep the writers of every field you call the same.** `tregion` and
+  `get_tregion` are one letter apart and this project has now been bitten
+  by the pair twice in two days, in opposite directions.
+

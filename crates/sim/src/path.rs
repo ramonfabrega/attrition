@@ -37,7 +37,7 @@
 use std::collections::BTreeMap;
 
 use crate::orders::{self, Body, MoveKind, PathData, Worker, path_flag};
-use crate::world::{Owner, Pos, TILES_PER_CELL, Terrain, UNITS_PER_CELL, cell, tile, vector_dist};
+use crate::world::{Owner, Pos, TILES_PER_CELL, UNITS_PER_CELL, cell, tile, vector_dist};
 use crate::{Sim, movement};
 
 /// The three grids' steps, in position units.
@@ -338,14 +338,6 @@ impl Sim {
     // `UnitData::needs_transport` is `Sim::needs_transport` in `transport.rs`
     // (`docs/TRANSPORT.md` §6).
 
-    /// Whether a cell is ocean — `WorldData::is_ocean`, through the region
-    /// layer.
-    fn is_ocean_cell(&self, c: crate::world::Cell) -> bool {
-        self.world
-            .region_of(c)
-            .is_some_and(|r| self.world.terrain(r) == Terrain::Sea)
-    }
-
     /// `PathFinder::calc_cost` (`docs/PATHFINDER.md` §5): the cost of one
     /// step, or [`REFUSED`]. Returns `(cost, embarks)`.
     #[allow(clippy::too_many_arguments)]
@@ -413,7 +405,7 @@ impl Sim {
             } else {
                 // SEAM: the danger map is zero.
                 let mut e = 0;
-                if self.is_ocean_cell(to_cell) {
+                if self.world.is_ocean(to_cell) {
                     if avoid_sea != 0 {
                         e += 200;
                     }
@@ -657,13 +649,21 @@ impl Sim {
         // which is exactly what the probe's `− 0x180` then means.
         let toff = self.toff(u).unwrap_or((0, 0));
 
-        // avoid_land / avoid_sea from the start's terrain (§4.1).
-        let same_region =
-            self.world.tregion_alt(start.tile()) == self.world.tregion_alt(goal.tile());
+        // avoid_land / avoid_sea from the start's terrain (§4.1). **The
+        // world grid does not ask `get_tregion`** — it reads `WData.region`
+        // (`+0x4`) of the two cells straight out of the array and compares
+        // the shorts (§4.1, "The same-region test is two functions"); only
+        // the tile and unit grids call `get_tregion`, and only they take
+        // the coastal refinement.
+        let same_region = if step == STEP_WORLD {
+            self.world.region_of(start.cell()) == self.world.region_of(goal.cell())
+        } else {
+            self.world.tregion_alt(start.tile()) == self.world.tregion_alt(goal.tile())
+        };
         let (mut avoid_land, mut avoid_sea) = (0, 0);
         if same_region {
             let on_water = if step == STEP_WORLD {
-                self.is_ocean_cell(start.cell())
+                self.world.is_ocean(start.cell())
             } else {
                 self.world.tile_mask(start.tile()) & tile::SURFACE == tile::SURFACE_OCEAN
             };
@@ -1451,7 +1451,7 @@ impl Sim {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::Cell;
+    use crate::world::{Cell, Terrain};
     use crate::{Tuning, Unit, World};
 
     fn flat_sim(cells: i32) -> Sim {
@@ -1860,6 +1860,112 @@ mod tests {
         assert_eq!(
             sim.calc_cost(u, &m, from, se, 5, STEP_WORLD, 2, 0, 1).0,
             104
+        );
+    }
+
+    /// §16 — `calc_cost`'s water row is **`WorldData::is_ocean`**, the
+    /// `WData` test, and not "the cell's region is a sea region". The two
+    /// answers part on a `HALFLAND` cell, which is where a boat actually
+    /// sails: the coastal cells of East Indies' channel were costing this
+    /// crate the `avoid_land` 200 the original never charges.
+    #[test]
+    fn a_halfland_cell_in_a_sea_region_is_land_to_the_cost_function() {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let from = Pos::new(0x180, 0x180);
+        let to = Pos::new(0x180 + 0x300, 0x180);
+        let m = Modes::default();
+        // A cell the region layer calls sea and `WData` calls land: ocean's
+        // own `land` kind, and `HALFLAND` set.
+        let sea = sim.world.add_region(Terrain::Sea);
+        sim.world.set_region(to.cell(), sea);
+        let mut d = sim.world.cell_data(to.cell());
+        d.land = 1;
+        d.flags |= crate::world::cell::HALFLAND;
+        sim.world.set_cell_data(to.cell(), d);
+        assert_eq!(sim.world.region_of(to.cell()), Some(sea));
+        assert!(!sim.world.is_ocean(to.cell()), "HALFLAND is never ocean");
+        // The halfland base is 0x300 × 32 / 256 = 96. `avoid_land` charges
+        // its 200 on top; `avoid_sea` charges nothing, because the cell is
+        // not ocean.
+        assert_eq!(
+            sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 1, 0).0,
+            296
+        );
+        assert_eq!(sim.calc_cost(u, &m, from, to, 4, STEP_WORLD, 2, 0, 1).0, 96);
+    }
+
+    /// §16 — the world grid's same-region test reads `WData.region` raw.
+    /// A boat standing on a `HALFLAND` cell is in the **land** region by
+    /// that field and in the sea region by `get_tregion`, so the two rules
+    /// disagree about whether it is crossing: `get_tregion` says "same
+    /// region, and the start is not ocean" and hands the boat
+    /// `avoid_sea = 1`, which prices every cell of its own sea at 232.
+    #[test]
+    fn a_boat_leaving_a_halfland_cell_is_crossing_regions_on_the_world_grid() {
+        let mut sim = flat_sim(12);
+        let sea = sim.world.add_region(Terrain::Sea);
+        for x in 5..12 {
+            for y in 0..12 {
+                let c = Cell::new(x, y);
+                sim.world.set_region(c, sea);
+                let mut d = sim.world.cell_data(c);
+                d.land = 1;
+                sim.world.set_cell_data(c, d);
+                for ty in 0..TILES_PER_CELL {
+                    for tx in 0..TILES_PER_CELL {
+                        let t = Pos::new(x * TILES_PER_CELL + tx, y * TILES_PER_CELL + ty);
+                        sim.world.set_tile_mask(t, tile::SURFACE_OCEAN);
+                    }
+                }
+            }
+        }
+        // The berth: a coastal cell whose `region` is the land it belongs
+        // to and whose `region2` is the water beside it — and whose tiles
+        // are water, so `get_tregion` answers the sea.
+        let berth = Cell::new(4, 4);
+        let mut d = sim.world.cell_data(berth);
+        d.flags |= crate::world::cell::HALFLAND;
+        d.region2 = Some(sea);
+        sim.world.set_cell_data(berth, d);
+        for ty in 0..TILES_PER_CELL {
+            for tx in 0..TILES_PER_CELL {
+                let t = Pos::new(berth.x * TILES_PER_CELL + tx, berth.y * TILES_PER_CELL + ty);
+                sim.world.set_tile_mask(t, tile::SURFACE_OCEAN);
+            }
+        }
+        assert_ne!(
+            sim.world.region_of(berth),
+            sim.world
+                .tregion_alt(Pos::new(berth.x * TILES_PER_CELL, berth.y * TILES_PER_CELL)),
+            "the berth is the cell the two rules disagree about"
+        );
+
+        let u = walker(
+            &mut sim,
+            Pos::new(berth.x * 0x300 + 0x180, berth.y * 0x300 + 0x180),
+        );
+        sim.units[u].kind.domain = crate::attrition::Domain::Sea;
+        push_goal(&mut sim, u, Pos::new(10 * 0x300 + 0x180, 4 * 0x300 + 0x180));
+        sim.trace_costs = true;
+        assert!(sim.find_wpath(u) >= 1, "the boat found its way out");
+
+        // Every step the search priced into open water cost the plain 32
+        // (or 40 on a diagonal). With `avoid_sea` derived they would all
+        // carry 200 more.
+        let open: Vec<i32> = sim
+            .cost_marks
+            .iter()
+            .filter(|c| {
+                let cell = Pos::new(c.to.0, c.to.1).cell();
+                cell.x >= 5 && sim.world.is_ocean(cell)
+            })
+            .map(|c| c.cost)
+            .collect();
+        assert!(!open.is_empty(), "the search priced some open water");
+        assert!(
+            open.iter().all(|&c| c == 32 || c == 40),
+            "open water is free to a boat that is crossing regions: {open:?}"
         );
     }
 

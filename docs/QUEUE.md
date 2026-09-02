@@ -12,33 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the fishing boat exists, and East Indies' word is
-**4871**.* Item 145 was `Unit::think_fish` and it was exactly that; the
-409 frames it bought are one AI Fisherman's walk from its Dock to a shoal.
+*2026-09-01, Opus — the boats sail the original's route, and East Indies'
+word is **4945**.* Item 147 was one bit in `astar_path`'s prologue, and it
+moved 74 frames.
 
-- **`Unit::think_fish`** (ORDERS §6.8, `crates/sim/src/fish.rs`): the 289
-  cells of the 17 × 17, `1_000_000 / manhattan` for a gatherable good,
-  `+ rnd(60) + i`. Diff-backed on 4462 (54 draws), 4871 (177) and 4948
-  (161) — the three arms, one each.
-- **The shipped move table has a typo, and it is load-bearing.**
-  `move_y[288]` is `−16` where the square wants `−7`, so an empty sea
-  sends a boat sixteen cells north. `rondata::pe` now reads `move_x`/
-  `move_y` out of the executable and checks all 289.
-- **Four things underneath it**: a packing type is born packed; the goods
-  are a layer (66 on East Indies, 46 linked); `come_out`'s sea ring is
-  `BOAT_TRAIN_* + big_radius`, itself `block_radius`; and the pathfinder's
-  four region reads are `get_tregion` — item 142's first payoff.
-- run58: 178,326 building fields exact, 473,950 collision field-frames
-  none wrong, 109,435 queue fields 25 wrong and all past the word.
-  Steering last ran 2026-09-01 (Fable).
+- **The world grid's same-region test is the raw `WData.region`**
+  (PATHFINDER §16). `astar_path@00683770` branches on the grid *before*
+  §15's `get_tregion` pair: the `0x300` arm reads two `short`s out of the
+  array and calls nothing; only the tile and unit grids take the coastal
+  refinement. Beside it, the water test is `WorldData::is_ocean` — `flags
+  & 0x100` clear and `land` 1 or 2 — not "the region is a sea region", in
+  `astar_path` and in `calc_cost`'s ocean row both.
+- **One bit, and the whole route.** The berth (57, 55) is `region 11`
+  land, `region2 65` sea; `get_tregion` matched the fish's 65 and handed
+  the boat `avoid_land = 1`, so every coastal cell of the channel cost 200
+  the original never charges. Both boats' sixteen-row stacks now agree
+  point, tolerance and flag on the frame each is planned, `RUN58_PARTED`
+  is **0**, and the boats have no pin of their own any more.
+- run58: 178,326 building fields exact, 481,530 collision field-frames
+  none wrong. Steering last ran 2026-09-01 (Fable).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w4871 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w4945 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 4871 and item 147 holds it: both
-AI Fishermen's sea routes part on the frame they are planned — 4464 and
-4870 — two cells north over the first half of a nineteen-cell staircase.
-run58's test pins both, and 1/14's own parting at 4507.`
+**Opener (Opus):** `East Indies' word is 4945 and item 148 holds it: a
+ninth caller of the animation coin. On 4945 the original draws
+`Guy::set_anim+0x97a` under `Guy::do_turn+0x4a < Unit::move_step+0x3b6`
+and this crate does not; on 4946 its `Animal::do_idle` spends one where
+this spends four.`
 
 ## The queue
 
@@ -47,14 +48,13 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-147. **The AI Fishermen's sea route, two cells north of the original's.**
-    Both boats plan the same nineteen-cell staircase from (57, 55) to the
-    fish at (49, 39) and both part on the frame they are planned — `1/14`
-    on 4464, `1/16` on 4870 — slots 1–5 two cells high, rejoining at slot
-    6; `1/14` leaves the original's point at 4507 as a consequence. The
-    first sea route any capture has diffed: read PATHFINDER §5's
-    `avoid_land`/`avoid_sea` and `calc_cost`'s ocean terms. run58's test
-    pins all three frames.
+148. **A ninth caller of the animation coin — the turning stand.** On
+    4945 the original draws `Guy::set_anim+0x97a` under
+    `Guy::do_turn+0x4a < Unit::move_step+0x3b6`, a chain
+    `crates/rondata/src/trace.rs`'s `SITES` has no entry for and
+    `crates/sim/src/anim.rs` no name for; this crate draws nothing. On
+    4946 the original's `Animal::do_idle` spends one draw where this
+    spends four — the same guy, re-anchored. ANIM §3, SYNC §3.
 
 146. **The other nine national arms of `train_time`.** `006508c0` runs a
     fixed order after the ramp — handicap, The President, Mongol stable,
@@ -72,8 +72,8 @@ indexed by them.
     where the original's holds 480, tile and phase right. ORDERS §6.4.
 
 142. **`World::tregion` is not `get_tregion`, and its callers are
-    unaudited.** Three items so far were a gate asking `region_of` where
-    the original asks `get_tregion` (138, 140, 145 — PATHFINDER §15).
+    unaudited.** Four items so far were a gate asking the wrong one of the
+    two (138, 140, 145 — PATHFINDER §15; 147 the other way, §16).
     `path`'s four are done; eleven in `orders`, `scout`, `transport`,
     `roads`, `army`, `place` and `group` are not. Grep each, then guard.
 
