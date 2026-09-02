@@ -49,11 +49,12 @@ pub struct Nation {
     pub taj_mahal: bool,
     pub red_fort: bool,
     pub tikal: bool,
-    /// The Tobacco rare; `BUILDINGS_CREATED_FASTER`; `COLONIZE_BONUS`;
-    /// `GLOBAL_GOVERNMENT_BONUS`.
+    /// The Tobacco rare; `BUILDINGS_CREATED_FASTER`;
+    /// `GLOBAL_GOVERNMENT_BONUS`. `COLONIZE_BONUS` was here too until
+    /// 2026-09-02 and is not a nation's at all — it is a technology's
+    /// prerequisite, and lives in `Roles::colonize_preq`.
     pub tobacco: bool,
     pub created_faster: bool,
-    pub colonize_bonus: bool,
     pub global_government: bool,
     /// `get_building_speed_upgrade`, `get_building_hp_upgrade`, 0..3.
     pub speed_upgrade: i32,
@@ -99,7 +100,6 @@ impl Default for Nation {
             tikal: false,
             tobacco: false,
             created_faster: false,
-            colonize_bonus: false,
             global_government: false,
             speed_upgrade: 0,
             hp_upgrade: 0,

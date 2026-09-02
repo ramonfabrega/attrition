@@ -9835,6 +9835,216 @@ mod tests {
     /// because a garrisoned unit's is not compared.
     const RUN58_PACKED_FRAMES: usize = 94_338;
 
+    /// **run63 — the frame the AI's colony site appears, and the citizen
+    /// that was waiting for it** (2026-09-02).
+    ///
+    /// East Indies' word stood at **5592** and the frame was one citizen's:
+    /// `1/15` walks to the explore target `think_scout` gave it on 5455,
+    /// arrives on 5592 — position for position with the original, all 137
+    /// frames of it — and then, on its very first idle frame, re-targets
+    /// and walks off. The original's stands there for **seventy-three
+    /// frames** and re-targets on 5666.
+    ///
+    /// The trace said which arm: `Unit::think_scout+0xaba <
+    /// Unit::think_peasant+0x2ac` is `think_peasant`'s **no-site** call and
+    /// `+0x2ca` its `idle > 6` one (`docs/SCOUT.md` §11.1; the listing at
+    /// `005f5a07`/`005f5a25` settles which is which). The original spends
+    /// `+0x2ac` on 5455 and `+0x2ca` on 5666 — so between those two frames
+    /// one of leader 1's ten sites came to claim the citizen's region, and
+    /// a claimed region is worth waiting six idle frames in.
+    ///
+    /// run63 is the capture that could say so: run58's recipe with the
+    /// `[End Frame]` narrowed to `[5430, 5700)` and `LEADERS=9` in it, so
+    /// the `SITE` record is on the record for every frame either side of
+    /// the parting. Sixteen minutes and 482 MB, and `rngcmp.py` against
+    /// run54 is **5,701 frames, zero differing**.
+    ///
+    /// **What it says.** On 5550 leader 1's tenth site is `(44, 52) val
+    /// 403` and on 5593 it is `(34, 33) val 9728 reg 7 dist 2` — the
+    /// citizen's own cell, scored the moment it stands there. This crate
+    /// scored every cell of that region **zero**, because
+    /// `compute_site_stats`' step 2 zeroes the base when
+    /// `blocked_site(TOWN, …)` refuses, and `blocked_location` refused
+    /// every one of them with `COLONIZE 0x1c`: a first city in a region
+    /// where the leader has none is gated on `has_preq(COLONIZE_BONUS
+    /// 0x2af)`, which this crate carried as a **nation** flag that nothing
+    /// ever set. It is a technology's — the fourth of `rules.xml`'s
+    /// `TECHBONUSES`, `preq0 = Coinage` — and the AI's library takes its
+    /// Coinage job on 5177 (`RUN58_QUEUE_TAIL`). The bonus lands inside
+    /// this window and nowhere earlier, which is why no capture before
+    /// this one could have found it. `docs/CITIES.md` §2.6.1's open
+    /// question 4 is what it closes.
+    ///
+    /// With the gate on the technology the word is **5669**.
+    ///
+    /// What is asserted here is the whole window: every dumped unit stands
+    /// where the original's does on every one of its frames, and the ten
+    /// `SITE`s of both leaders are compared field for field — the widening
+    /// the ledger wanted (`docs/QUEUE.md` item 87), and the record that
+    /// carries the finding.
+    #[test]
+    fn run63_s_window_is_where_the_ai_s_colony_site_appears() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run63-islands-scoutwalk.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run63.log"),
+        ) else {
+            eprintln!("skipping: no run63 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        let frames = report.frames.len();
+        assert!(
+            frames >= 260,
+            "run63's window is [5430, 5700) — {frames} frames is a wrong file"
+        );
+        assert_eq!(
+            report.frames.first().map(|f| f.frame),
+            Some(5430),
+            "the window opens where the stanza says"
+        );
+
+        // **Every unit, every frame of the window.** The citizen the item
+        // is about is `1/15`, and its seventy-three idle frames are in
+        // here: nothing may leave the original's point before the word.
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let compared: usize = report.frames.iter().map(|f| f.compared).sum();
+        eprintln!(
+            "run63: {compared} unit-frames over {frames} frames, {} ever off position",
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+        // **Two units part before the word, and both are new** — run58
+        // ends at 5201 and nothing on disk had ever measured a frame
+        // between there and 5669. Neither is a route: both hold the
+        // original's own order and walk the original's own line, a few
+        // frames out of step with it.
+        //
+        // - **`1/18` is five frames ahead**, from the window's first frame
+        //   — this crate's position on 5430 is the original's on 5435, the
+        //   same `MoveOrder` to `(20376, 21144)` at the same `myspeed 25`
+        //   along the same row. Something between 5202 and 5430 cost the
+        //   original five frames and cost this crate none.
+        // - **`1/17` turns three frames late.** Both walk the same line to
+        //   `(38040, 30360)` at `(-5, -37)` a frame; the original's step
+        //   goes to `(-6, -44)` on 5552 and then to `(-28, -36)` on 5554,
+        //   and this crate holds `(-5, -37)` until 5555. It is the turn
+        //   model, not the path.
+        //
+        // Pinned as they stand rather than filtered out, so the day either
+        // moves the assertion moves with it.
+        let early: Vec<(i64, i64, i64)> = parted
+            .iter()
+            .filter(|(_, f)| **f < LONG_WORD_EAST_INDIES)
+            .map(|(&(w, o), &f)| (w, o, f))
+            .collect();
+        assert_eq!(
+            early,
+            vec![(1, 17, 5552), (1, 18, 5430)],
+            "the window's two standing position residues"
+        );
+
+        // **The `SITE` record, whole.** Ten slots a leader a frame, five
+        // fields apiece — `reg` is left out because the dump's region
+        // numbers are the generator's and this crate's are its own
+        // (`Built::region_map` is the translation, and this record is
+        // keyed by slot rather than by region).
+        let mut built = {
+            let mut init = log.initial().unwrap();
+            borrow_from_siblings(&mut init, &refs);
+            borrow_pasture(&mut init, &tr);
+            build_sim(&loaded, &init, Tuning::RON)
+        };
+        let last = report.frames.last().map_or(0, |f| f.frame);
+        let mut site_compared = 0usize;
+        // (who, slot, field) → (frames wrong, ours and theirs on the first).
+        let mut site_bad: std::collections::BTreeMap<(i64, usize, &str), (usize, i64, i64)> =
+            std::collections::BTreeMap::new();
+        for n in 1..=last {
+            built.tick();
+            for who in 0..2i64 {
+                let Some(block) = log.leader_block(n, who) else {
+                    continue;
+                };
+                let theirs: Vec<&Block> = block.kids("SITE").collect();
+                if theirs.len() != sim::ai::SITES {
+                    continue;
+                }
+                for (i, t) in theirs.iter().enumerate() {
+                    let o = built.sim.ai[who as usize].sites[i];
+                    for (field, ours, theirs) in [
+                        ("wx", i64::from(o.wx), t.int("wx")),
+                        ("wy", i64::from(o.wy), t.int("wy")),
+                        ("val", i64::from(o.val), t.int("val")),
+                        ("dist", i64::from(o.dist), t.int("dist")),
+                        ("rank", i64::from(o.rank), t.int("rank")),
+                    ] {
+                        let Some(theirs) = theirs else { continue };
+                        site_compared += 1;
+                        if ours != theirs {
+                            let e = site_bad.entry((who, i, field)).or_insert((0, ours, theirs));
+                            e.0 += 1;
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run63 sites: {site_compared} fields compared, {} shapes wrong",
+            site_bad.len()
+        );
+        for ((who, i, field), (n, ours, theirs)) in &site_bad {
+            eprintln!("  who {who} slot {i} {field}: {n} frames, ours {ours} theirs {theirs}");
+        }
+        assert_eq!(
+            site_compared, RUN63_SITE_FIELDS,
+            "ten slots, two leaders, five fields, every frame of the window"
+        );
+        // **The residue, pinned as it stands** rather than filtered out —
+        // 7,122 of 27,000, on leader 1 alone (the human's ten slots are
+        // empty on both sides and agree on every frame).
+        //
+        // The slot the item is about is the **tenth**, and it agrees: from
+        // 5577 the original holds `(34, 33) val 9728 dist 2` and so does
+        // this crate, the same cell at the same score on the same frame.
+        // What is left is the four sites the AI has been carrying since
+        // long before this window, and their shape is old: run59's census
+        // has it 250 frames earlier and nothing compared it until now —
+        // `(45, 52)` and `(44, 52)` score twice and four times the
+        // original's, and one extra site takes an empty slot the original
+        // leaves alone, which drags every `rank` and every slot *order*
+        // with it. That is `compute_site_stats`' arithmetic, and it is
+        // booked (`docs/QUEUE.md`); this run moved the **region**, not the
+        // score.
+        let wrong: usize = site_bad.values().map(|(n, _, _)| n).sum();
+        assert_eq!(
+            wrong, RUN63_SITE_WRONG,
+            "the site record's standing residue, and it only moves deliberately"
+        );
+    }
+
+    /// run63's two site counts: what the window holds, and what is still
+    /// wrong in it. The first is structural — ten slots, two leaders, five
+    /// fields, every frame the `LEADERS=9` window wrote — and the second is
+    /// `compute_site_stats`' own residue, which
+    /// `run63_s_window_is_where_the_ai_s_colony_site_appears` names.
+    const RUN63_SITE_FIELDS: usize = 27_000;
+    const RUN63_SITE_WRONG: usize = 7_122;
+
     /// East Indies' word on run54, the headline.
     ///
     /// **5592**, and it was **5466** until a building started flattening
@@ -9851,7 +10061,19 @@ mod tests {
     /// `find_friends` started asking whose *footprint* covers a cell's
     /// centre tile rather than whose centre is in the cell (`docs/AI.md`
     /// §26).
-    const LONG_WORD_EAST_INDIES: i64 = 5592;
+    ///
+    /// **5669** since 2026-09-02, and 5592 was one AI citizen's first idle
+    /// frame: `think_peasant`'s tail sends a worker off to explore the
+    /// moment it stands in a region none of its leader's ten sites claims,
+    /// and waits six idle frames when one does (`docs/SCOUT.md` §11.1).
+    /// The original's site list gains the citizen's own cell on 5577 and
+    /// this crate's could not, because `blocked_location` refused every
+    /// city site in a region the leader had none in: `COLONIZE_BONUS` is a
+    /// **technology's** prerequisite — the fourth of `rules.xml`'s
+    /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
+    /// nothing set. run63 is the capture that says so
+    /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
+    const LONG_WORD_EAST_INDIES: i64 = 5669;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

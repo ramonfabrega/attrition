@@ -12923,3 +12923,75 @@ number the mechanic computes, proxy it.** Item 57 was booked as a reading
 three times and closed by a thirteen-minute capture, because the reading
 never had anything to be wrong about — the arithmetic was right, and the
 world it was fed was not.
+
+## 2026-09-02 — the citizen that would not stand still (Opus)
+
+**The item.** East Indies' word at **5592**, the opener's, and its name was
+`Unit::think_scout+0xaba`: forty-six draws here against thirty-three there,
+parting at index 31, where this crate ran a whole region scan the original
+did not run at all.
+
+**Which arm, from the caller offset.** The original's own `think_scout`
+frames near it are 5455 and 5665, and the trace prints the caller: 5455 is
+`Unit::think_peasant+0x2ac` and 5665 is `+0x2ca`. Those are the *two* call
+sites of `docs/SCOUT.md` §11.1 — `005f5a07`, taken when the ten-site walk
+runs off the end, and `005f5a25`, taken when a site does claim the region
+and the worker has been idle seven frames. The listing settles which is
+which in a minute. So before anything was captured, the record said the
+original's **site list** had changed between 5455 and 5665, and that the
+walk had not.
+
+**The capture.** run63: run58's recipe with the `[End Frame]` narrowed to
+`[5430, 5700)` and `LEADERS=9` in it, so `Leader::sites` and every unit's
+position are both on the record either side of the parting. Sixteen minutes,
+482 MB, `rngcmp.py` against run54 zero differing on 5,701 frames
+(`docs/ORACLE.md`, run63).
+
+**What it said.** The citizen `1/15` walks 137 frames to the target §11's
+scan gave it on 5455 and arrives on 5592 — and this crate's walks it
+*exactly*, position for position, arrival frame included. Then the original
+stands there for seventy-three frames while its `idle` byte climbs one step
+every sixteen, and re-targets on 5666 at `idle 7`. On 5577 its tenth site
+becomes `(34, 33) val 9728 reg 7 dist 2`: the citizen's own cell, scored the
+moment it stands there.
+
+**The cause, and it is one flag.** This crate scored every cell of that
+region zero. `compute_site_stats`' step 2 zeroes the base when
+`blocked_site(TOWN, …)` refuses, and `blocked_location` refused every cell
+of an unsettled region with `COLONIZE 0x1c`. The gate is
+`has_preq(COLONIZE_BONUS 0x2af)` — and `COLONIZE_BONUS` is not a nation's
+bonus at all. It is the **fourth of `rules.xml`'s 122 `TECHBONUSES`**, whose
+one `PREQ` is `preq0="Coinage"` and whose `DESC` reads "Can colonize new
+continents". `crates/sim` carried it as a `Nation` field nothing ever set,
+so no AI in any capture could ever put a city on a second island. It is
+`Roles::colonize_preq` now, loaded exactly as `TRANSPORT_BONUS`'s
+prerequisite already was. `docs/CITIES.md` §2.6.1's open question 4 is
+closed by the data.
+
+**Why no earlier capture could have found it.** East Indies' AI takes its
+Coinage job on frame **5177** — the same frame `RUN58_QUEUE_TAIL` names —
+and run58, the longest full-detail dump on disk, ends at 5201. The bonus
+lands inside run63's window and nowhere earlier.
+
+**A widening that was free, and half the answer.** run59's census has been
+printing `Leader::sites` whole since the day before and nothing had ever
+compared it: ten slots, six fields, 250 frames. Fifteen minutes with it said
+the site *values* were wrong — `(45, 52)` scoring 996 against 240, `(44, 52)`
+1625 against 403, and one extra site taking an empty slot the original
+leaves alone — before the capture was booked. That is now pinned in run63's
+test rather than found twice.
+
+**The score.** East Indies **5592 → 5669**; Great Lakes unchanged at 2419.
+Two new position residues came out of the window, both on ground no capture
+had ever reached: `1/18` runs five frames ahead of the original on the same
+order and the same row from 5430, and `1/17` turns three frames late on the
+same line at 5552. Both are pinned rather than filtered.
+
+**The lesson.** *Grep the dump before booking a reading* has a sibling one
+level down: **a draw's caller offset is a predicate's answer**. Two call
+sites eighteen bytes apart told which branch of `think_peasant` the original
+took, and therefore what its site list held, on a frame no dump covered —
+which turned "why is the walk different" (it was not) into "which site
+claims that region", and made the capture a confirmation rather than a
+search.
+

@@ -399,6 +399,20 @@ that region) or (that owner really sees the tile) → 1. `check_enemy_adjacent`
 is dead to placement (it is the dock's territory probe for the building-side
 attrition, §9.5).
 
+**`COLONIZE_BONUS` is a technology's, not a nation's** (2026-09-02, run63).
+`has_preq(0x2af)` reads the **fourth** of `rules.xml`'s 122 `TECHBONUSES`
+(`0x2ac` is the first, `docs/TECH.md`'s type map), whose one `PREQ` is
+`preq0="Coinage"` — "Can colonize new continents" in its own `DESC`. So a
+leader may not put its first city or fort in a region until it has Coinage,
+and until then every cell of an unsettled region scores **zero** in
+`compute_site_stats` (`docs/AI.md` §2.13 step 2 zeroes the base on a refused
+`blocked_site(TOWN, …)`). `crates/sim` carried it as a `Nation` flag nothing
+ever set, which made the refusal permanent; it is `Roles::colonize_preq` now,
+loaded the way `TRANSPORT_BONUS`'s prerequisite already was
+(`docs/TRANSPORT.md` §4). East Indies' AI takes its Coinage job on frame
+5177, so no capture before run63's window reached the difference — and the
+frame it moved is East Indies' word, 5592 → 5669 (`docs/SCOUT.md` §11.1).
+
 **2.6.2 City spacing** (`is_city`): for every active leader `i`:
 
 ```
@@ -1756,8 +1770,10 @@ heal, ejection), then the sites' `construct_hits` refresh.
    must exist). All inferred from use.
 3. **The editor-only verdicts and `TData 0x200`**, **`WData 0x100`/`region2`**,
    **`WData.who == −2`**: read `World::set_territory` and the terrain writers.
-4. **`COLONIZE_BONUS` (0x2af)** — which tech grants it (`docs/TECH.md`'s
-   loaders).
+4. ~~**`COLONIZE_BONUS` (0x2af)** — which tech grants it (`docs/TECH.md`'s
+   loaders).~~ **Coinage**, and the answer was in the data: it is the fourth
+   `TECHBONUS` of `rules.xml` and its `preq0` names the tech (§2.6.1's own
+   paragraph, 2026-09-02, run63).
 5. **`has_wonder`'s bit 1** in the Hanging Gardens clause.
 6. **The `elimination` byte's values → lobby strings**, and the `mode 3`
    condition the decompiler lost; **the seeding of `lost_capital_stamp`**

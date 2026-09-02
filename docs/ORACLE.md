@@ -3388,3 +3388,58 @@ did not had survived three readings, a height-grid chase and five
 measurements — because nothing on the record could say *which node*. The
 twenty-minute widening beats the reading again, and the shape of the
 widening is now a table row.
+
+## run63 — the site list either side of the word (2026-09-02)
+
+**run58's recipe with the `[End Frame]` narrowed to a window, and
+`LEADERS=9` in it.** East Indies, seed 12345, map style 18, the profile's
+lobby, no input:
+
+    DETAIL_END="MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=9" \
+    FRAME_WINDOW="5430 5700" SETTLE_MIN=250000000 POLL_MAX=200 \
+    zsh tools/gamelog/longtrace.sh 63 5700 islands-scoutwalk 18
+
+Sixteen minutes, 482 MB of dump, 14 MB of trace, 271 frame blocks. `rngcmp.py
+rontrace-run54.log rontrace-run63.log`: **5,701 frames, zero differing**, so
+it is run54's game and run38's start dump stands it up.
+
+| capture | frames dumped | end-frame detail | wall clock | size |
+| --- | --- | --- | --- | --- |
+| run58 | 5,201 | run39's, `LEADERS=1` | 61 min | 1.41 GB |
+| run59 | 250 of 5,400 | run39's, `LEADERS=9` | 13 min | 446 MB |
+| run60 | 5,400 | `MISC,LEADERS=2` | under 5 min | 67 MB |
+| **run63** | **271 of 5,700** | **run39's, `LEADERS=9`** | **16 min** | **482 MB** |
+
+**Why the window and not run60's thin per-frame block.** The question was
+not a level but a **record**: which of `Leader::sites`' ten slots claimed
+the region an AI citizen was standing in, and where every unit stood while
+it did. That wants `UNITS=3` and `LEADERS=9` together, which is only
+affordable over a few hundred frames. The frames before the window cost
+nothing at all — the run reached 5,430 in under a minute, exactly as run59
+reached 5,150.
+
+**What it settled.** East Indies' word, 5592 → **5669**, and the item is
+`docs/SCOUT.md` §11.1: `think_peasant`'s tail sends an idle AI worker off to
+explore the instant it stands in a region none of its leader's ten sites
+claims, and makes it wait six idle frames when one does. The original's list
+gains the citizen's own cell on 5577 at `val 9728`; this crate scored every
+cell of that region zero because `blocked_location` refused a first city
+there with `COLONIZE 0x1c`. `COLONIZE_BONUS` is a technology's prerequisite
+— `rules.xml`'s fourth `TECHBONUS`, Coinage — and the AI takes its Coinage
+job on 5177, which is why the window is the earliest place on disk the
+difference could have shown (`docs/CITIES.md` §2.6.1).
+
+**Two lessons, and the second is the cheaper one.**
+
+- **A caller offset in the trace is a predicate's answer.** The two
+  `think_scout` call sites in `think_peasant` are `+0x2ac` and `+0x2ca`, and
+  which one a frame spends says whether a site claimed that region —
+  a fact about the AI's state read out of a *draw's return address*. Before
+  booking the capture, that is what said the answer was the site list and
+  not the walk.
+- **Grep the disk first, and it half-answered this one for free.** run59's
+  census has printed `Leader::sites` since 2026-09-02 and nothing had ever
+  compared it: ten slots, six fields, 250 frames, sitting on disk. Fifteen
+  minutes with it said the site *values* were wrong before the capture was
+  booked, and that residue is now pinned rather than discovered twice.
+

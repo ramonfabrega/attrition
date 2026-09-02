@@ -1326,6 +1326,13 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // `COLONIZE_BONUS` is the fourth (`0x2af`), and Coinage is its `preq0`
+    // in the shipped file — the gate on a leader's **first city in a new
+    // region** (`docs/CITIES.md` §2.6.1).
+    tree.roles.colonize_preq = match bonus_preqs.get(3) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,

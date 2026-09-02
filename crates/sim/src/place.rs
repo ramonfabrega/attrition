@@ -499,6 +499,20 @@ impl Sim {
         (verdict, n.max(0))
     }
 
+    /// `has_preq(COLONIZE_BONUS)`: the bonus row's one prerequisite — the
+    /// tree names it in `roles.colonize_preq`; a tree that does not know it
+    /// grants it, the way every type outside the tree is ungated
+    /// ([`crate::transport`]'s `transport_preq_held` is the same rule for
+    /// the third bonus).
+    fn colonize_preq_held(&self, who: Player) -> bool {
+        match self.tech_tree.roles.colonize_preq {
+            Some(t) => self
+                .tech_tree
+                .has_tech(&self.setup, &self.tech[who as usize], t),
+            None => true,
+        }
+    }
+
     fn blocked_location_verdict(
         &self,
         who: Option<Player>,
@@ -542,7 +556,14 @@ impl Sim {
                     && self.city_num(w) != 0
                     && self.tuning.first_city_near_coast != 0
                 {
-                    if !n.colonize_bonus {
+                    // `has_preq(COLONIZE_BONUS 0x2af)`, and it is a
+                    // **technology's** prerequisite rather than a nation's
+                    // bonus: the fourth of `rules.xml`'s `TECHBONUSES`,
+                    // whose `preq0` is Coinage. Carried as a nation flag
+                    // nothing ever set until 2026-09-02, which is why no
+                    // AI in any capture could put a city on a second
+                    // island (`docs/CITIES.md` §2.6.1).
+                    if !self.colonize_preq_held(w) {
                         return Blocked::Colonize;
                     }
                     let r = self.tuning.first_city_near_coast / 4;

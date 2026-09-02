@@ -299,6 +299,12 @@ pub struct Roles {
     /// Written Word in the shipped `rules.xml`). `None` leaves the bonus
     /// granted, the tree's rule for a role it does not know.
     pub transport_preq: Option<TypeId>,
+    /// `COLONIZE_BONUS`'s one prerequisite — the technology whose ownership
+    /// is `has_preq(COLONIZE_BONUS)`, the fourth of `rules.xml`'s
+    /// `TECHBONUSES` and **Coinage** in the shipped file
+    /// (`docs/CITIES.md` §2.6.1). `None` leaves the bonus granted, the
+    /// tree's rule for a role it does not know.
+    pub colonize_preq: Option<TypeId>,
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,

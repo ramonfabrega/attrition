@@ -711,6 +711,38 @@ Four readings that the decompiler does not hand over:
   tail sits inside the `!= 0x34 && != 0x35` test. It is the one worker
   that keeps "has been a builder" across a failed search.
 
+**The two call sites are distinguishable in a trace, and which one fires is
+the whole of the mechanic** (2026-09-02). `Unit::think_peasant+0x2ac` is the
+loop-exhausted call at `005f5a07` — *no site claims this region* — and
+`+0x2ca` is the one at `005f5a25`, behind `testl %edx,%edx; js` and `cmpb
+$0x7, 0xb0(%esi); jb`, i.e. *a site does claim it and I have been idle seven
+frames*. So the caller offset in a `report.py … sites` line says which of the
+two the original took, and therefore what its **site list** held at that
+moment — a fact no dump on disk carried until run63.
+
+That is what East Indies' word at **5592** turned out to be. The AI citizen
+`1/15` walks to the target this section's scan gave it on 5455 and arrives on
+5592, position for position with the original for all 137 frames. The
+original then stands there for **seventy-three** and re-targets on 5666 with
+`+0x2ca`; this crate re-targeted on its first idle frame with `+0x2ac`. The
+difference is one site: on 5577 the original's tenth slot becomes
+`(34, 33) val 9728 dist 2` — the citizen's own cell, scored the moment it
+stands there — and this crate scored every cell of that region zero, because
+`compute_site_stats`' step 2 zeroes the base on a refused
+`blocked_site(TOWN, …)` and `blocked_location` refused every one of them with
+`COLONIZE 0x1c`. `COLONIZE_BONUS` is a **technology's** prerequisite —
+`rules.xml`'s fourth `TECHBONUS`, Coinage — and this crate had it as a nation
+flag nothing ever set (`docs/CITIES.md` §2.6.1). The AI's library takes its
+Coinage job on 5177, so the bonus lands inside run63's window and nowhere
+earlier. With the gate on the technology the word is **5669**.
+
+**The `idle` byte is not a per-frame counter, and run63 is where that shows.**
+The original's `1/15` reads `idle 1` on 5593, `2` from 5594, then `3` from
+5602, `4` from 5618, `5` from 5634, `6` from 5650 and `7` on 5666 — one step
+every sixteen frames after the first two. `crate::orders`' clock already
+agrees with it frame for frame over the whole wait; what it had never been
+measured against is a wait this long.
+
 **The diff.** East Indies' word stood at **4313** for one item, booked as
 the scout's re-think. It is not the scout's: the trace's caller chain on
 that frame is `Unit::think_scout+0xaba < Unit::think_peasant+0x2ac <
@@ -849,6 +881,18 @@ The checks:
   not pinned as an assertion because the frame is past the newest
   full-detail dump's own length; item 141's capture is where it can
   become one.
+- `rondata::diff`'s
+  `run63_s_window_is_where_the_ai_s_colony_site_appears` (2026-09-02) —
+  §11.1's **gate**, over the 271 frames either side of East Indies' word.
+  It compares every dumped unit's position on every frame of the window and
+  the ten `SITE`s of both leaders field for field, 27,000 of them, which is
+  the first time that record has been compared on this map at all. The
+  tenth slot — `(34, 33) val 9728 dist 2` from 5577 — now agrees; 7,122
+  fields do not, and they are the four sites the AI has carried since long
+  before the window (`compute_site_stats`' arithmetic, booked). Two units
+  part on position before the word and both are new ground: `1/18` is five
+  frames ahead of the original on the same order and the same row, and
+  `1/17` turns three frames late on the same line. Both are pinned.
 - `run20_s_pasture_grows_nothing_and_its_five_animals_draw_six`, whose
   frame-0 row moves from 165/175 to **175/175** with this.
 - `rondata::diff`'s
