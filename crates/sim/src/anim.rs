@@ -878,6 +878,22 @@ impl Sim {
         } else if guy.anim != target {
             guy.anim = target;
             guy.cur_time = 0;
+        } else if target_cat == 8 {
+            // **The walk category's same-slot arm is not the others'.**
+            // `set_anim:667` is `if (cur_time < len) goto <past the
+            // write>` — a walk still inside its animation keeps the clock
+            // it has, and only one that has run past takes the length off.
+            // Everything else takes `cur − min(cur, len)`, which is the
+            // same thing for an overrun and **zero** for a clock still
+            // running; applying that to a walk froze every walking guy at
+            // `cur_time == 1`, because `Guy::move` asks for the walk again
+            // on every frame and `Guy::inc_time` stepped it straight back.
+            // No guy walking for longer than its cycle could then wrap,
+            // and a wrap is a draw: run54's frame 6169 is two of them,
+            // the caravan's crew figures (`docs/CARAVAN.md` §4.1).
+            if guy.cur_time >= end_at_entry {
+                guy.cur_time -= end_at_entry;
+            }
         } else {
             guy.cur_time -= guy.cur_time.min(end_at_entry);
         }

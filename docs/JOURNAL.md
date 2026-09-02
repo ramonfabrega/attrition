@@ -13231,3 +13231,93 @@ harness copied it faithfully, and that faithful copy is exactly what hid a
 hardcoded 1 from every test for a month. Where the harness can seed a value
 from the original, the assertion that the install would have produced the
 same value is the one worth writing.
+
+## 2026-09-02 — item 174, closed: the road was the caravan's, and the estimate was wrong on purpose (Opus)
+
+Item 174 was booked as one road: on East Indies' frame 6166 the original
+spends 3,207 `PathFinder::calc_road_cost+0x46` draws and this crate spends
+none, two frames after the Caravan item 173 gave its figures to was born.
+The queue's opener guessed the gap was `find_road`'s *caller*. It was — and
+the caller turned out to be a whole object nothing here modelled.
+
+**`docs/CARAVAN.md` is the new document.** `docs/ROADS.md` opens by saying
+its search's name was wrong, that `astar_caravan_road` runs for a
+*building* and no caravan is ever in the game. On 6166 one is, and the arm
+a building never takes is four things at once: a `CaravanData` per route,
+twenty a leader, whose whole 0x44-byte layout the PDB's type record names;
+`think_caravan`'s idle gate and its `FILTER_CAN_TRADE` city search;
+`do_trade`'s destination loop; and `build_road`, which is the road search
+with the caravan arm on.
+
+**run64 is the capture, and it was designed as two halves.** run54's game
+to 6,180 frames with a `DUMP_ALL` window on `[6164, 6172)` *and*
+`callwin=6163-6172` for run62's three road proxies: the *sequence* the
+proxies carry, and the *state the sequence reads*. Twenty minutes, 563 MB,
+`rngcmp.py` against run54 zero differing over 6,181 frames. Four separate
+findings came out of it inside an afternoon, and three of them were only
+visible because both halves were taken together.
+
+**One: the heuristic is wrong, and that is the mechanic.** Every non-root
+node's estimate has two arms on `param_6 < 0`, and the decompiler prints
+both as `vector_dist(dx, dy)`. The listing at `00685fd9` does not: the
+caravan's arm loads `ecx = node.x − goal.x` and `edx = −goal.y` and calls
+with those. **The goal's own `y` coordinate stands where the `y`
+difference belongs.** The estimate is then all but constant — it varies
+only as `dx²/(2·goal.y)` — so two nodes in the same column score
+identically whatever their `y`, and the search floods breadth-first along
+that axis. It is why a trade route costs 12,965 nodes where a building's
+road costs three hundred, and why one plan takes five frames.
+
+The measurement that caught it is the search's **second pop**. The root's
+eight neighbours are priced 86 west and 135 north-west; an honest `× 2.5`
+puts north-west first and the original pops west. West and north-west
+share nothing but their `x`.
+
+**Two: `can_transport` comes from the caravan unit.** `find_road` sets
+`pathfinder+0x98` from `UnitData::can_transport`, and East Indies' caravan
+has the bit — so ocean tiles stop being refused and `calc_road_cost`'s
+ocean arm, dead for every building road ever measured, prices them. The
+node that said so is `(36384, 43488)` on frame 6167, at 231.
+
+**Three: the search stops at the budget and carries on.** A caravan's
+`traversed >= 0xc80` puts the popped node back on the open list and moves
+the three containers into the `CaravanData` with the wheel preference and
+the goal. `traversed` goes with them and is **never read back** — the
+restore arm reads `+0x34`, `+0x38`, `+0x3c` and stops — so every resumed
+frame starts its budget again at 3,200. 3,204 + 3,204 + 3,204 + 3,202 +
+151, and the last one arrives.
+
+**Four, and it is the capture-design lesson: a farm never terraforms.**
+The `DUMP_ALL` block carries `master_land_heights`, and comparing the
+whole grid rather than the tile the road argued about said that **182
+tiles** of it were this crate's own. `docs/ROADS.md` §7.4 had the
+terraform in `Wall::start`; `Wall::start`'s call there is
+`Terrain::object_placed`, which is the *renderer's*. The terraform is
+`Wall::init@0063e9b0:70`, under `param_6 == 0` **and `type != FARM`** —
+an identity on the type, not a lineage. run62 could not have told the two
+call sites apart, because a cheat-placed enhancer inits and starts on one
+frame and is not a farm.
+
+**The score.** East Indies **6166 → 6169**; Great Lakes unchanged at 2419.
+The three frames are the whole of the budgeted search: 6166, 6167 and 6168
+now agree draw for draw, and 6169's 3,202 road nodes do too — the frame
+parts on two `Guy::inc_time` wraps that are a different mechanic, booked as
+item 176.
+
+**A fifth thing landed on the way there and moved no score.** Chasing
+those two wraps found that every walking guy in this crate was frozen at
+`cur_time == 1`: `set_anim`'s walk arm is `if (cur_time < len) goto <past
+the write>` and this had the *other* arm's `cur − min(cur, len)`, which is
+zero for a clock still running. `Guy::move` asks for the walk again every
+frame, so no guy walking longer than its cycle could ever wrap. Read off
+the listing, landed, and the whole suite is unchanged by it — which is
+worth saying plainly: it is a correction with no measurement behind it
+yet, and the two wraps it was chased for are still missing.
+
+**The lesson, and it is the widening rule again one level up.** The item
+was booked against one frame's draw count. What closed it was comparing
+*whole records*: every node the original priced, all 57,600 tile masks,
+the whole height grid, all 3,600 cell owners. Three of the four findings
+were in fields the road never read — the farms' heights are nowhere near
+the route's own tiles — and none of them could have been reached by
+reading harder about the one number the item named.

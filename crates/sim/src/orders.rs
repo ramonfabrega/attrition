@@ -37,6 +37,7 @@ pub mod index {
     pub const ATTACK: u8 = 10;
     pub const REPAIR: u8 = 13;
     pub const CAST_SPELL: u8 = 14;
+    pub const TRADE_ROUTE: u8 = 15;
     pub const GARRISON: u8 = 26;
     pub const THINK: u8 = 27;
 }
@@ -256,10 +257,26 @@ pub struct CastOrder {
     pub paid: bool,
 }
 
+/// The fields of `TradeOrder` the road half of a trade route reads
+/// (`docs/CARAVAN.md` §3). The **legs** — `+0x20 loaded`, the walk between
+/// the two cities, the wealth it pays — are not modelled.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TradeOrder {
+    /// `+0x8`/`+0xc` — the city the order was issued against: the nearest
+    /// allied city that could take another route (`think_caravan`).
+    pub home: usize,
+    /// `+0x14`/`+0x18` — the far city, `-1` until `do_trade` picks one.
+    pub dest: Option<usize>,
+    /// `+0x1c` — the route has been established, so the selection loop is
+    /// not run again.
+    pub started: bool,
+}
+
 /// The order kinds this crate implements.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Body {
     Move(MoveOrder),
+    Trade(TradeOrder),
     Build(usize),
     Repair(usize),
     Garrison { building: usize, search: bool },
@@ -286,6 +303,7 @@ impl Order {
                 MoveKind::ExploreTo => index::EXPLORE_TO,
                 MoveKind::FleeTo => index::FLEE_TO,
             },
+            Body::Trade(_) => index::TRADE_ROUTE,
             Body::Build(_) => index::BUILD_AT,
             Body::Repair(_) => index::REPAIR,
             Body::Garrison { .. } => index::GARRISON,
@@ -569,6 +587,10 @@ impl Sim {
 
     /// The generic enqueue (§3.1): `QUEUE_NEW` clears first, then the order
     /// is appended (`Last`, `New`) or rotated to the front (`First`).
+    pub(crate) fn enqueue_order(&mut self, u: usize, order: Order, pos: QueuePos) {
+        self.enqueue(u, order, pos);
+    }
+
     fn enqueue(&mut self, u: usize, order: Order, pos: QueuePos) {
         match pos {
             QueuePos::New => {
@@ -1020,6 +1042,11 @@ impl Sim {
                 self.economy_changed(self.units[u].owner);
             }
         }
+        // `Unit::work@0060d180:97` — the caravan block, ahead of the
+        // dispatch: a linked trade route runs another frame of its road
+        // plan, or is ended when the order under it is no longer one
+        // (`crate::caravan` §6).
+        self.caravan_work(u);
         match self.current_order(u).map(|o| o.body) {
             None => self.do_idle(u, frame),
             Some(Body::Move(m)) => {
@@ -1028,6 +1055,7 @@ impl Sim {
                     self.do_explore_to_tail(u, frame, m.dest);
                 }
             }
+            Some(Body::Trade(_)) => self.do_trade(u),
             Some(Body::Build(_)) => self.do_build(u, frame),
             Some(Body::Repair(_)) => self.do_repair(u, frame),
             Some(Body::Garrison { .. }) => self.do_garrison_order(u),
@@ -1233,6 +1261,12 @@ impl Sim {
         // citizen that had just been given a gather job through the tail
         // below on the same frame.
         if self.worker_of(u) != Worker::None && self.think_peasant(u, false) {
+            return;
+        }
+        // Step 5's first arm, and it sits **above** the tail's gate: a
+        // caravan takes `think_caravan`, whose own idle threshold is its
+        // only cadence (`crate::caravan` §3).
+        if self.units[u].caravan.is_some() && self.think_caravan(u) {
             return;
         }
         // **The tail's own cadence gate** (§2.4 step 5), the second of the

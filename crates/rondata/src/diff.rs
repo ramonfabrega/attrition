@@ -1901,6 +1901,11 @@ impl Built {
                 sim::combat::Obj::Unit(u) => self.unit_ids(u),
                 sim::combat::Obj::Building(b) => self.build_ids(b),
             },
+            // A `TradeOrder`'s `(o, who)` at `+0x8` name a **city**, not
+            // an object of the unit lists this compares — and the dump
+            // prints the city's own centre object there, which
+            // `build_ids` cannot resolve from a city index.
+            Body::Trade(_) => None,
             // A `CastOrder` for the transport spell is untargeted
             // (`docs/TRANSPORT.md` §6): its `(o, who)` are `(-1, -1)`.
             Body::Move(_) | Body::Cast(_) | Body::Think => None,
@@ -9701,6 +9706,182 @@ mod tests {
         );
     }
 
+    /// **run64 — the caravan's road, node for node, and the world it
+    /// reads** (2026-09-02).
+    ///
+    /// run54's game to 6,180 frames with a `DUMP_ALL` window on
+    /// `[6164, 6172)` and the three `docs/ROADS.md` §7.2 proxies over
+    /// `[6163, 6172]`. `rngcmp.py rontrace-run54.log rontrace-run64.log`:
+    /// **6,181 frames, zero differing**, so it is run54's game and the
+    /// window and the proxies cost the stream nothing — the fourth capture
+    /// in a row of which that is true.
+    ///
+    /// What it is for: East Indies' word had parted at 6166 on 3,204 road
+    /// draws this crate spent none of (`docs/QUEUE.md` item 174), and a
+    /// count is not a sequence. This asks the original for every one of
+    /// them.
+    ///
+    /// The five frames are **one search**: `astar_caravan_road` answers −1
+    /// on 6166, 6167, 6168 and 6169, parking its three containers in the
+    /// `CaravanData` each time, and 1 on 6170. Its bracket names the
+    /// endpoints — `oA 2000`, `whoA 1`, `oB 2007`, `caravan 0` — which is
+    /// leader 1's two cities, and its `caravan >= 0` is what opens the four
+    /// diagonals and swaps the heuristic (`docs/CARAVAN.md` §5).
+    #[test]
+    fn run64_s_caravan_road_is_the_original_s_node_for_node() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(trace), Some(r64)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run64-islands-caravanroad.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run64 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some(t64) = crate::diff::tests::trace("rontrace-run64.log") else {
+            eprintln!("skipping: no run64 trace");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &trace);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..6166 {
+            built.tick();
+        }
+
+        // **The world the search reads, whole.** run64's `FRAME 6166`
+        // block is the end of sim-frame 6165, and the tile masks and the
+        // height grid it carries are what `valid_roadcoord` and
+        // `calc_road_cost` are about to read. The heights are the harder
+        // half: a mid-game building re-terraforms them
+        // (`crate::terrain`), and the AI's three **farms** had moved 182
+        // tiles of them here until `Wall::init`'s `!= FARM` gate landed.
+        let text64 = std::fs::read_to_string(&r64).unwrap();
+        let l64 = Log::parse(&text64);
+        let block = l64
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == 6166)
+            .map(|(_, b)| b)
+            .expect("run64 dumped frame 6166");
+        let w = block
+            .kid("FULL DUMP")
+            .unwrap_or(block)
+            .kid("WORLD")
+            .expect("a WORLD block");
+        let mut notes = Vec::new();
+        let heights = l64.frame_heights(6166);
+        assert!(
+            heights.len() > 1000,
+            "run64's block carries the height grid"
+        );
+        let (theirs, _) = world_from(&w.fields, &heights, &mut notes);
+        let (xs, ys) = (theirs.width(), theirs.height());
+        let mut z_off = Vec::new();
+        for ty in 0..ys * 4 {
+            for tx in 0..xs * 4 {
+                let q = Pos::new(tx, ty);
+                if built.sim.world.tile_z(q) != theirs.tile_z(q) && z_off.len() < 8 {
+                    z_off.push(format!(
+                        "t({tx},{ty}) ours {} theirs {}",
+                        built.sim.world.tile_z(q),
+                        theirs.tile_z(q)
+                    ));
+                }
+            }
+        }
+        assert!(
+            z_off.is_empty(),
+            "the height grid parted from the original's by 6165: {z_off:?}"
+        );
+        let owners: Vec<String> = (0..ys)
+            .flat_map(|y| (0..xs).map(move |x| sim::world::Cell::new(x, y)))
+            .filter(|&c| built.sim.world.owner(c) != theirs.owner(c))
+            .map(|c| format!("cell ({}, {})", c.x, c.y))
+            .collect();
+        assert!(owners.is_empty(), "the borders parted by 6165: {owners:?}");
+
+        // The five frames of the search, each against the original's own
+        // priced nodes: the tile, the direction it was reached from, and
+        // the price. Frame 6170 is the one that arrives.
+        let mut counts = Vec::new();
+        for f in 6166..=6170 {
+            built.sim.trace_costs = true;
+            built.sim.road_marks.clear();
+            built.tick();
+            let ours = built.sim.road_marks.clone();
+            let theirs = t64.road_nodes(f);
+            counts.push((f, ours.len(), theirs.len()));
+            // **6170's prices are the stream's, not the search's.** East
+            // Indies' word parts on 6169, where the original spends two
+            // `Guy::set_anim+0x97a < Guy::inc_time+0x271` draws this crate
+            // does not (`docs/QUEUE.md` item 176), so by 6170 the jitter is
+            // two draws out of phase and every price is shifted. What the
+            // frame can still say is the **expansion** — which tile, from
+            // which, in which direction — and it says it exactly.
+            let key = |m: &sim::roads::RoadCostMark| (m.to, m.from, m.dir);
+            let at = (0..ours.len().max(theirs.len())).find(|&i| {
+                if f >= 6170 {
+                    ours.get(i).map(key) != theirs.get(i).map(key)
+                } else {
+                    ours.get(i) != theirs.get(i)
+                }
+            });
+            assert_eq!(
+                at,
+                None,
+                "frame {f}: the search parts at node {at:?} — ours {:?}, theirs {:?} \
+                 (ours {} nodes, theirs {})",
+                at.and_then(|i| ours.get(i)),
+                at.and_then(|i| theirs.get(i)),
+                ours.len(),
+                theirs.len()
+            );
+        }
+        eprintln!("run64 road nodes: {counts:?}");
+        assert_eq!(
+            counts,
+            vec![
+                (6166, 3204, 3204),
+                (6167, 3204, 3204),
+                (6168, 3204, 3204),
+                (6169, 3202, 3202),
+                (6170, 151, 151),
+            ],
+            "the five frames' node counts — four budgets of 0xc80 and the \
+             arrival"
+        );
+        // The route itself, from the `astar_caravan_road` bracket.
+        let brackets = t64.calls_in(6166, 5);
+        assert_eq!(brackets.len(), 1, "one road plan on 6166");
+        assert_eq!(
+            (
+                brackets[0].args[1],
+                brackets[0].args[2],
+                brackets[0].args[3]
+            ),
+            (2000, 1, 2007),
+            "the endpoints are leader 1's two cities"
+        );
+        let van = &built.sim.caravans[1].slots[0];
+        assert!(
+            !van.making_road && van.search.is_none(),
+            "the plan finished on 6170 and the parked search went with it"
+        );
+        assert!(
+            !van.road.is_empty(),
+            "and it laid a road between the two cities"
+        );
+    }
+
     /// East Indies' word on the **long** capture — the number that took
     /// over as the headline when run39's own length stopped bounding it
     /// (`docs/DECISIONS.md` entry 29's first counter). It is not in
@@ -10260,7 +10441,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6166;
+    const LONG_WORD_EAST_INDIES: i64 = 6169;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

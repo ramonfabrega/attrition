@@ -55,6 +55,7 @@ pub mod balance;
 pub mod bhs;
 pub mod build;
 pub mod calc_gather;
+pub mod caravan;
 pub mod city;
 pub mod collide;
 pub mod combat;
@@ -144,6 +145,10 @@ pub struct Unit {
     /// type is a supply source. The original caches the same index in the
     /// unit and gives it back when the unit dies.
     pub supply_slot: Option<usize>,
+    /// `UnitData +0x86` for a **caravan**: its slot in the owner's
+    /// [`caravan::Caravans`] list. The same field carries a hero's or a
+    /// special's slot in the original; this is the caravan half alone.
+    pub caravan: Option<usize>,
     /// The period the last refresh wrote, in frames. Zero means not bleeding.
     /// Public because it is observable state, not a private counter — the
     /// original keeps it in `UnitData::attrition` and the interface shows it.
@@ -615,6 +620,7 @@ impl Unit {
             kind: attrition::UnitKind::default(),
             on_map: true,
             supply_slot: None,
+            caravan: None,
             attrition: 0,
             ignores_supply: false,
             sheltered: false,
@@ -848,6 +854,8 @@ pub struct Sim {
     pub transport: Vec<transport::LeaderTransport>,
     /// One per player: the docks registry (`docs/TRANSPORT.md` §5).
     pub docks: Vec<transport::Docks>,
+    /// One `Caravans` list a player — the trade routes (`crate::caravan`).
+    pub caravans: Vec<caravan::Caravans>,
     /// One per player: the sixteen army slots (`docs/ARMY.md`).
     pub armies: Vec<army::Armies>,
     /// The market's price cycle (`market.rs`).
@@ -1063,6 +1071,7 @@ impl Sim {
         Sim {
             transport: vec![transport::LeaderTransport::default(); players],
             docks: vec![transport::Docks::default(); players],
+            caravans: vec![caravan::Caravans::default(); players],
             armies: (0..players)
                 .map(|w| army::Armies::new(w as Player))
                 .collect(),
@@ -1265,6 +1274,19 @@ impl Sim {
         }
         if source {
             self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
+        }
+        // `Unit::init@00612100:436` — a **land** caravan takes a slot in its
+        // leader's `Caravans` list. `is_caravan` is `unit_flags2 & 8` and
+        // the domain test is `UnitTypeData +0x218 == 0`, which is what
+        // keeps the sea-domain Merchant Fleet out (`crate::caravan` §2).
+        if self.units[i].ty.is_some_and(|ty| {
+            self.unit_types[ty]
+                .cols
+                .flag2(crate::ai_load::uflags2::CARAVAN)
+                && self.unit_types[ty].combat.domain == attrition::Domain::Land
+        }) {
+            let who = self.units[i].owner;
+            self.units[i].caravan = self.init_caravan(who, i);
         }
         // `Object::add_to_world`: both collision indices
         // (`docs/COLLISION.md` §2, §3).
@@ -2185,6 +2207,11 @@ impl Sim {
         let owner = self.units[unit].owner as usize;
         if let Some(slot) = self.units[unit].supply_slot.take() {
             self.supply[owner].list.close(slot);
+        }
+        // `Unit::close@0060ee50`'s own: the route goes back with the unit.
+        if let Some(slot) = self.units[unit].caravan.take() {
+            let who = self.units[unit].owner;
+            self.close_caravan(who, slot);
         }
         self.coll_remove(unit);
         self.chain_remove(unit);

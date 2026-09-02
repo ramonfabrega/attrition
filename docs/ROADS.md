@@ -302,13 +302,12 @@ tree's LIFO tie-break among equal `value`s, `first_open_node`'s leftmost
 pop, the closed set's tombstone semantics, and the heuristic's two
 arguments — which the decompiler prints with the goal's `x` and `y`
 crossed and the listing settles at `vector_dist(|node.x − goal.x|,
-|node.y − goal.y|)`.
+|node.y − goal.y|)` **for a building's arm**. The caravan's arm crosses
+them for real; §8.2.
 
 **Unmodelled, and stated as such:** `place_roads`' `REGEN_TOTAL` arm and its
-`set == 0` teardown; `BuildType::mask_me`'s call; the caravan itself — the
-resumable search that stashes its containers on the caravan, its eight-way
-wheel, its `× 40 / 16` heuristic and the `× 7 / 5` a diagonal pays; the
-ocean arm of the cost; the alliance arm of the territory test; and
+`set == 0` teardown; `BuildType::mask_me`'s call; ~~the caravan itself~~
+(§8, 2026-09-02); the alliance arm of the territory test; and
 ~~`was_seen`'s ally-territory shortcut, which on every capture so far agrees
 with the fog bit because the search never leaves its own ground.~~ **It does
 not agree** — §7.3.
@@ -427,21 +426,45 @@ this is. `Sim::leader_reg_cities` answers from the census where there is one
 and from the same recount where there is not, which is the number the
 original's array would hold.
 
-### 7.4 A building flattens its ground **before** it plans its road
+### 7.4 A building flattens its ground **before** it plans its road — and a farm never does
 
 `Wall::start@0063e810` is five statements, and the order is the finding:
 
 ```
 kill_competing_buildings(this)
 WallData::tile_corner(&cx, &cy)
-Terrain::object_placed(cx, cy, x_size, y_size, 1)   ← the terraform
+Terrain::object_placed(cx, cy, x_size, y_size, 1)   ← the refresh, not the terraform
 mask_me(this, 1, REGEN_FORCE)                        ← whose tail is place_roads
 … the footprint's own fog cells, check_ever_seen, mark_behind_tiles
 ```
 
-So `TerrainOut::terraform_for_building@00875210` runs **before**
-`place_roads`, and the road search prices its climbs off the *flattened*
-grid. §7.1 had concluded the opposite, from the one experiment available to
+The flattening runs before `place_roads`, and the road search prices its
+climbs off the *flattened* grid. **The call is not the one named above.**
+`Terrain::object_placed@00850c40` is the renderer's — `spot_update_land`
+and `invalidate_wcoord` over the footprint's cells — and moves no height
+at all. `TerrainOut::terraform_for_building@00875210` is called one step
+earlier in the building's life, from `Wall::init@0063e9b0:70`, under two
+gates:
+
+```
+if (param_6 == 0 and type != FARM):
+    tile_corner(&cx, &cy)
+    terraform_for_building(cx, cy, x_size, y_size)
+    Terrain::refresh_good_z()
+    Farms::recalc_heights(cx, cy, who)
+```
+
+Both land on the same frame for a building placed and started at once —
+run32's two enhancers, which is why run62 could not tell them apart —
+so §7.1's counts are unaffected either way.
+
+**A farm never terraforms**, and the test is an identity on the type
+(`TVar10 != FARM`), not a lineage. run64's frame-6166 block is the
+measurement: the AI's three farms had moved **182 tiles of height** that
+the original leaves exactly where the map generator put them, and one of
+those tiles — a nine-unit climb, priced `× 3` — was where East Indies'
+caravan road parted from the original on frame 6168
+(`docs/CARAVAN.md` §7). §7.1 had concluded the opposite, from the one experiment available to
 it — run32's frame-104 heights make the Granary's search cost 967 — and the
 experiment was right about its own grid and wrong about the mechanic: frame
 104 carries **both** footprints' terraforms plus the four scheduled replans
@@ -505,3 +528,67 @@ to the scores on 2026-08-28:
 - `orders` 180 → 168 and the ledger 198 → 173, both of which are past that
   first divergence, where two streams have parted and which of them happens
   to label a frame the same way is chance. `docs/JOURNAL.md`, 2026-08-28.
+
+## 8. The caravan's arm
+
+`docs/CARAVAN.md` is the mechanic — the object, the order and the
+schedule. Three things in *this* module change when `astar_caravan_road`
+is handed a caravan slot rather than −1, and they are what make a trade
+route's road cost thirteen thousand nodes where a building's costs three
+hundred. All three are diff-backed against run64, node for node.
+
+### 8.1 Eight directions, and the diagonal's two rules
+
+`local_18 = param_6 >> 31` is 1 for −1 and 0 otherwise, and it gates the
+**odd** wheel indices out. A caravan therefore expands all eight, in the
+same `pref + 1 … pref + 8` order, and the two rules a diagonal carries
+come alive with them:
+
+- `calc_road_cost`'s tail, `total = total × 7 / 5`;
+- `valid_roadcoord@00688740`'s own tail, which was dead prose until now.
+  A candidate whose `x` **and** `y` both differ from its parent's is
+  admitted only if at least one of the two tiles that share a side with
+  both — `(cand.x, parent.y)` and `(parent.x, cand.y)` — is itself
+  admissible. The recursion is one deep: each corner call shares an axis
+  with the parent, so its own diagonal test is false.
+
+### 8.2 The heuristic is wrong, and that is the mechanic
+
+Every non-root node's estimate is one of two arms, on `param_6 < 0`:
+
+```
+building:  vector_dist(node.x − goal.x, node.y − goal.y) × 60 / 0x180
+caravan:   vector_dist(node.x − goal.x, goal.y)          × 40 / 16
+```
+
+The second is the listing's at `00685fd9`: `ecx = node.x − goal.x`, then
+`edx = −goal.y`, then the call. **The goal's own `y` coordinate stands
+where the `y` difference belongs**, and `vector_dist` takes the absolute
+value of both, so even the sign is lost. Read from the disassembly rather
+than the decompiler, which prints both arms as `vector_dist(dx, dy)`.
+
+The estimate is therefore all but constant — it varies only as
+`dx² / (2·goal.y)` — so two nodes in the same column score identically
+whatever their `y`, and the search is a breadth-first flood along that
+axis. That is the whole difference between a road that costs 400 nodes
+and one that costs 12,965.
+
+**The measurement that says so** is run64's frame 6166. The root is city
+2000's tile and its eight neighbours are priced 86 (W), 135 (NW), 96 (N),
+133 (NE), 86 (E), 124 (SE), 92 (S), 116 (SW). With the building's
+heuristic the second node popped is the **west** one; with an honest
+`× 2.5` it is the **north-west** one, 120 units nearer the goal and 49
+dearer. The original pops west — which it can only do if west and
+north-west carry the same estimate, and they share nothing but their `x`.
+
+### 8.3 The search stops at the budget and carries on
+
+`docs/CARAVAN.md` §5.2. The parked containers, the wheel preference and
+the goal go into the `CaravanData`; `traversed` goes with them and is
+never read back, so each resumed frame starts its budget again at
+`0xc80`. `crate::roads::RoadSearch` is the parked half and
+`Sim::step_road` the loop that takes it.
+
+`can_transport` comes alive with the caravan too (`docs/CARAVAN.md`
+§5.1): an ocean tile stops being refused, and §5.2's ocean arm — dead for
+every building road — prices one at `jitter + 55 + 100`.

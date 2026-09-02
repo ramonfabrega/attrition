@@ -12,34 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — a unit is not one figure.* **East Indies 6164 → 6166**;
-Great Lakes unchanged at 2419.
+*2026-09-02, Opus — the road was the caravan's.* **East Indies 6166 →
+6169**; Great Lakes unchanged at 2419.
 
-- **The guy stack is `CREW_SIZE + 1`.** `Unit::init@00612100:471`–`508`
-  sizes it to `crew_size (+0x30c) + squad_size (+0x304)`, and
-  `UnitType::init@0061ab50:723` writes the literal **1** into `+0x304` for
-  every type, on the line before it reads `UBER_SIZE` and `CREW_SIZE`. So a
-  Citizen has 1 figure, a Scout 2 (the dog), a Caravan 3, a Trebuchet 4.
-  `guy_mark` is `Unit::init`'s copy of `squad_size`, not the length.
-- **A dump-seeded unit never had it**: `build_sim` hands a unit the `GUY`
-  blocks the file prints, so the crew machinery was right on twenty scout
-  dogs while `Sim::init_guys` — the path a unit *born in the sim* takes —
-  held `let count = 1usize`.
-- The reading is a diff: `CREW_SIZE + 1` is asserted against every player
-  unit of every `DUMP_ALL` capture — 120 units, 20 two-figure.
+- **A caravan owns a `Caravan`** and the road is its first act —
+  `docs/CARAVAN.md`, the new document.
+- **The estimate is wrong on purpose.** `astar_caravan_road`'s caravan
+  arm calls `vector_dist(node.x − goal.x, **goal.y**)` (listing
+  `00685fd9`; the decompiler prints both arms alike), so it floods along
+  `y`: 12,965 nodes over five frames. ROADS §8.
+- **A farm never terraforms** (`Wall::init`, `type != FARM`), and the
+  terraform is `Wall::init`'s, not `Wall::start`'s — **182 tiles** of
+  run64's height grid were this crate's own.
+- run64 is a `DUMP_ALL` window *and* the road proxies: the sequence and
+  the state it reads, together. Zero differing over 6,181 frames.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6166 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6169 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `East Indies' next cause is a road. On 6166 the original
-spends 3,207 `PathFinder::calc_road_cost+0x46` draws and this crate spends
-none — a whole `astar_caravan_road` search, two frames after the Caravan
-that owns them was born (item 173 gave it its figures). `roads.rs` models
-the search and run62 pinned it node for node, so the question is the
-*caller*: which of `find_road`'s conditions fires on 6166 here and does not
-there. Start by counting road draws per frame on both sides across run54 —
-whether this is one road the crate skips or the first of many is the whole
-shape of the item.`
+**Opener (Opus):** `East Indies parts on 6169's tail, not its road: the
+search's 3,202 nodes agree and the frame then spends two
+`Guy::set_anim+0x97a < Guy::inc_time+0x271` draws this crate does not
+(item 176). Both come from `Unit::inc_time+0x6e` — the **crew** loop,
+`[squad_size, guy_count)` — so they are two figures of a multi-figure
+unit wrapping. A wrap draws only when `set_anim` is asked for the idle,
+so the question is which animation those figures were in: the mirror
+gate (`Guy::inc_time`'s `index < squad_size || cat == CHAR_WALK`) says
+they stepped, and a looping walk re-set would not roll. Start by
+counting `Unit::inc_time+0x6e` draws per frame across run54 — whether
+6169 is one frame or the first of many is the shape of the item.`
 
 ## The queue
 
@@ -48,59 +49,62 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-174. **The Caravan's road, and East Indies' word.** On 6166 the original
-    spends 3,207 `PathFinder::calc_road_cost+0x46` draws — an
-    `astar_caravan_road` — and this crate none, two frames after the
-    Caravan was born. run62 pinned the search node for node; the gap is
-    the caller. ROADS.
+176. **The crew's two clocks, and East Indies' word.** 6169 spends two
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271` from `Unit::inc_time+0x6e`
+    — the crew loop — that this crate does not. ANIM §4 step 5 and §5;
+    run64 and run54 are both on disk. **Takes the walk-clock correction's
+    proof with it**: `set_anim`'s walk arm was landed from the listing
+    this session and moved nothing.
+
+177. **The caravan's legs, and its wealth.** `do_trade` past the road is
+    unmodelled: the walk between the two cities, `TradeOrder +0x20
+    loaded`, the trade income (`docs/ECONOMY.md`'s `trade_val`), and what
+    a fallen city does to a route. CARAVAN §7 lists what a capture would
+    have to hold to separate the destination loop's arms — three cities of
+    one leader.
 
 169. **`compute_site_stats`' arithmetic, on 7,122 of run63's 27,000 site
-    fields.** Four of leader 1's sites predate the window: `(45, 52)` scores
-    twice the original's, `(44, 52)` four times, and one extra site takes a
-    slot the original leaves alone, dragging every `rank` and the order with
-    it. run59's census has the same shape 250 frames earlier — two oracles
-    on disk. AI §2.13 steps 6–12 hold the factors.
+    fields.** `(45, 52)` scores twice the original's, `(44, 52)` four
+    times, and an extra site drags every `rank`; run59's census has the
+    same shape 250 frames earlier. AI §2.13 steps 6–12.
 
-172. **The `bucket` pair 165 leaves behind.** The AI's six rates and six
-    incomes are the original's on every frame of run59's window; `bucket`
-    was one apart on 5002 and 5061 in run60's curve and nothing has
-    re-measured it. Cheap: run60 is on disk. **Takes 155's `rare`/`good_obj`
-    writers along** — `Unit::think`'s rare-collector arm (ORDERS §6.10) is
-    unmodelled, `idle += 1` and all.
+172. **The `bucket` pair 165 leaves behind.** The six rates and incomes
+    are the original's on every frame of run59's window; `bucket` was one
+    apart on 5002 and 5061 in run60's curve. Cheap: run60 is on disk.
+    **Takes 155's `rare`/`good_obj` writers along** — `Unit::think`'s
+    rare-collector arm (ORDERS §6.10) is unmodelled.
 
 166. **`resource_cap` on five goods, two frames from 2958** — 1392 here,
     2000 there, right again on 2960. ECONOMY, "The commerce cap": a
     transient nothing else in 324,000 good-frames does.
 
-158. **The sweep runs for a human leader; this crate skips it.** AI §23.1,
-    decompile and dump agreeing. Move the gate from `Sim::strategy_all` into
-    `production_ai` and step 16 seeds a **human army**, which no capture has
-    — find the gate between steps 13 and 16 first.
+158. **The sweep runs for a human leader; this crate skips it.** AI §23.1.
+    Move the gate from `Sim::strategy_all` into `production_ai` and step 16
+    seeds a **human army**, which no capture has — find the gate between
+    steps 13 and 16 first.
 
 159. **The `CITY` record's two smaller seams**, on run58, both pinned. (a)
     `1/2007`'s `land`/`filled` from 1819 and `space[0..2]` from 1976, each
-    one apart — the circle sweep at a mid-game city. (b) From 2576 `1/2000`
-    holds 11 gatherers and `1/2007` none against 10 and 1 — step 2/10.
+    one apart. (b) From 2576 `1/2000` holds 11 gatherers and `1/2007` none
+    against 10 and 1 — step 2/10.
 
 146. **The other nine national arms of `train_time`.** `006508c0`'s fixed
     order after the ramp, only the British built (PRODUCTION, "The tail's
-    first caller"). Behind them: `TROOPS_FASTER`, the speed upgrades, the
+    first caller"); behind them `TROOPS_FASTER`, the speed upgrades, the
     rares, Monarchy, Socialism, the wonders.
 
 142. **`World::tregion` is not `get_tregion`.** Four items were a gate
-    asking the wrong one (138, 140, 145 — PATHFINDER §15; 147 the other
-    way, §16). Eleven callers are left, unaudited.
+    asking the wrong one (PATHFINDER §15, §16). Eleven callers, unaudited.
 
 136. **The danger grid has no writer, and four readers index it wrongly.**
     `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution
     **cell** grid — `danger[who][reg_xs × div3(y >> 9) + div3(x >> 9)]` in
     `produce_unit@006cb9e0` and four others; `World::danger` reads it by
-    *region*. Both answer 0.
+    region. Both answer 0.
 
 122. **A draw with no mark of its own.** `mark_sites` gives an unmarked
     draw the label still standing, so a sequence reads wrong rather than
-    short (110's day, 133's 3579). **16 of 61** `rng.roll`/`get` calls have
-    no `self.mark(`; mark each, then guard.
+    short. **16 of 61** `rng.roll`/`get` calls have no `self.mark(`.
 
 153. **The `TRIBE` record, whole.** `Tribe::log_data@006f0d70` prints
     `graft[352]`, `barbarian`, `build_continent`, `people` and
@@ -134,13 +138,12 @@ carries it on `(52, 22)` and this does not (ARMY §13's muster search).
 
 23. **The formation byte's sign — the Echelon half.** `reverse`'s
     *displacement* is read only on GROUPS §6.4's Echelon rows and every
-    captured group is a Line. run52 names the blocker; ORACLE 51/52 the
-    next steps.
+    captured group is a Line. run52 names the blocker.
 
 117. **Two seams the census windows now measure.** (a) ATTRITION,
     "Territory": the temple and fort border levels, the Colosseum, the
     Eiffel Tower, a gem rare, the handicap, `was_seen`'s `reg_forts` arm.
-    (b) AI §2.1's `check_explore` answers the whole region grid, 900 v 36/19.
+    (b) AI §2.1's `check_explore` answers the whole grid, 900 v 36/19.
 
 Four measured one-liners: (103) a woodcutter's clock at **1,686** — after
 26,094 agreeing fields the human's `0/2` waits 445 against 480, ORDERS §6.4;
@@ -153,29 +156,26 @@ centre where the original leaves it (`blocked_town` v `site_clear`).
 
 107. **`epoch[0]` is the Military level, and `army.rs` reads `ages`.**
     `get_epoch_base(0)` is `BASE_MILITARYTYPES` and the army family reads
-    `+0xe8`; `army.rs:769,1365` read `tech[w].ages`, so the muster caps
-    fire on the wrong counter.
+    `+0xe8`; `army.rs:769,1365` read `tech[w].ages`.
 
-161. **The whole make-list block is 4,300 frames behind the word.**
+161. **The whole make-list block is 3,800 frames behind the word.**
     `create_buildings` first runs on East Indies frame 9982 (AI §25), so
     `building_value`, `gather_value`, §24.4's neighbourhood arm,
-    `oil_patches.count` and `compute_largest_gather@0066e920` are unreachable
-    until the word passes 9982.
+    `oil_patches.count` and `compute_largest_gather@0066e920` are
+    unreachable until the word passes 9982.
 
 156. **`STARTING_GOODS` arrives with the age.** `Leader::init@006e3930`
     zeroes all six; `Leader::gain_tech@006dcb60` pays `bucket_add(g,
-    game->starting[g])` for a good whose bucket is zero and whose prerequisite
-    is the tech just gained — so the original holds 0 knowledge, metal and oil
-    through Ancient where this holds 100. Unread: where food, timber and
-    wealth are paid (COSTS).
+    game->starting[g])` for a good whose bucket is zero and whose
+    prerequisite is the tech just gained — so the original holds 0
+    knowledge, metal and oil through Ancient where this holds 100. Unread:
+    where food, timber and wealth are paid (COSTS).
 
 167. **Two of run61's leavings.** (a) §3.9's reading-only pair: the
-    landing search's *cell* (the thirtieth sampled, only its sixty draws
-    checked; a `callwin` over `think_bird`'s tail settles it) and
-    `Unit::do_strafe`, so the dock's gull is unmodelled. (b) **`Unit::init`'s
-    tile snap is every unit's**: `(p / 48) · 48 + 24`, and only `spawn_bird`
-    has it. It cannot go in `Unit::new` (dump-loaded positions are mid-step),
-    so it goes site by site.
+    landing search's *cell* and `Unit::do_strafe`, so the dock's gull is
+    unmodelled; a `callwin` over `think_bird`'s tail settles it. (b)
+    **`Unit::init`'s tile snap is every unit's**: `(p / 48) · 48 + 24`, and
+    only `spawn_bird` has it — it goes site by site.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — `zsh tools/fuzz/run.sh 424242 1000

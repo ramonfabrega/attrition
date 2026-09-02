@@ -3443,3 +3443,47 @@ difference could have shown (`docs/CITIES.md` §2.6.1).
   minutes with it said the site *values* were wrong before the capture was
   booked, and that residue is now pinned rather than discovered twice.
 
+
+## run64 — a caravan's road, and the world it reads (2026-09-02)
+
+**run54's game with a `DUMP_ALL` window and the three road proxies.** East
+Indies, seed 12345, map style 18, the profile's lobby, no input:
+
+    DETAIL_END=MISC WINDOW="6164 6172" POLL_MAX=200 \
+    TRACE_COVER=$'cover=1\nwindow=6163-6171\ncallwin=6163-6172' \
+    zsh tools/gamelog/longtrace.sh 64 6180 islands-caravanroad 18
+
+Twenty minutes, 563 MB of dump, 17 MB of trace, ten frame blocks.
+`rngcmp.py rontrace-run54.log rontrace-run64.log`: **6,181 frames, zero
+differing** — so it is run54's game, and a `DUMP_ALL` window and three
+proxies together still cost the stream nothing. That is the fourth capture
+in a row of which that is true, and it is now the assumption a capture is
+designed on rather than a result each one re-earns.
+
+**Why both halves.** The question was a road the crate spent no draws on at
+all, and it needed two different things at once: the *sequence* — every
+node the original priced, which only the `callwin` proxies carry — and the
+*state the sequence reads*, which is the world at the frame before it. The
+window is eight frames because that is the whole plan: `astar_caravan_road`
+answers −1 on 6166–6169, parking its containers in the caravan each time,
+and 1 on 6170.
+
+| capture | frames dumped | end-frame detail | wall clock | size |
+| --- | --- | --- | --- | --- |
+| run62 | 5 of 110 | `DUMP_ALL` window | 13 min | 366 MB |
+| **run64** | **10 of 6,181** | **`DUMP_ALL` window** | **20 min** | **563 MB** |
+
+**What it settled**, in one afternoon: East Indies' word 6166 → **6169**,
+and four separate things (`docs/CARAVAN.md`, `docs/ROADS.md` §7.4, §8).
+The one worth naming here is the **height grid**, because it is the
+capture-design lesson: a `DUMP_ALL` block carries
+`master_land_heights` (`Log::frame_heights`), and comparing it whole said
+in one run that 182 tiles of it were this crate's own — the AI's farms
+terraforming ground the original leaves alone. Nothing shorter than the
+whole record would have found it; the road only reached one of the 182.
+
+**And a trap that cost the archive.** The capture was launched
+`run_in_background` through `| head -20`, which closed the pipe after the
+lobby lines and killed `longtrace.sh` mid-poll — the game ran on to its
+own `!quit` and finished, but nothing archived it. A capture's driver must
+not be piped into anything that exits early; redirect to a file.

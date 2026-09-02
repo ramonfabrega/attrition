@@ -21,10 +21,11 @@
 //!    `docs/SYNC.md`'s stream, and its count is the search's expansion
 //!    count, so the road is either reproduced exactly or not at all.
 //!
-//! **The search is off by default** ([`crate::Sim::plan_roads`]): it expands
-//! about six per cent fewer nodes than the original's, and a wrong count is
-//! worse for the stream than no count at all. `docs/ROADS.md` §7 has the
-//! measurement and the list of what the gap has been ruled out against.
+//! A **caravan's** road is the same search with three things turned on
+//! (§8): all eight directions rather than the four cardinals, a heuristic
+//! sixteen times larger, and — because a trade route is long — the right to
+//! **stop at the budget and carry on next frame**. `crate::caravan` is the
+//! caller; this module owns the search.
 
 use crate::ai_place::{MOVE_X, MOVE_Y};
 use crate::build::{self, Ident, flags};
@@ -102,6 +103,40 @@ struct Node {
     /// to tell "my parent was already on the road" from "my parent was not".
     z_val: i32,
     parent: Option<u32>,
+}
+
+/// The half of one road plan that survives a frame — `docs/ROADS.md` §8.3.
+///
+/// `astar_caravan_road@00685990` parks its three containers in the
+/// `CaravanData` when the budget trips (`+0x28` open, `+0x2c` its refs,
+/// `+0x30` closed), together with `offset` (+0x34, the wheel preference)
+/// and `endx`/`endy` (+0x38, +0x3c). It writes `traversed` (+0x40) too and
+/// **never reads it back**, so every resumed frame starts the budget again
+/// at zero — which is why one plan costs 3,200-odd nodes a frame for as
+/// many frames as it takes.
+#[derive(Clone, Debug, Default)]
+pub struct RoadSearch {
+    nodes: Vec<Node>,
+    open: BTreeMap<(i32, Reverse<u64>), u32>,
+    open_by_metric: BTreeMap<i64, (u64, i32, u32)>,
+    closed: BTreeMap<i64, u32>,
+    seq: u64,
+    /// `offset` (+0x34): the wheel index the expansion starts one past.
+    pref: i32,
+    /// `endx`/`endy` (+0x38, +0x3c), in world units.
+    goal: (i32, i32),
+}
+
+/// What one call of the search came back with.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum RoadPlan {
+    /// The goal tile was popped: the tiles to lay, near-goal end first.
+    Road(Vec<Pos>),
+    /// `traversed >= 0xc80`. A building's road is simply not laid; a
+    /// caravan's [`RoadSearch`] is kept and resumed next frame.
+    Budget,
+    /// The open list ran dry — there is no road between these two.
+    None,
 }
 
 impl Sim {
@@ -246,30 +281,38 @@ impl Sim {
 
     /// The endpoints, and the search between them. Returns the road's tiles
     /// as positions, empty when there is no road to lay.
+    ///
+    /// This is `find_road` with `param_6 < 0` — a building's, cardinal-only
+    /// and unresumable. [`Sim::find_caravan_road`] is the other arm.
     pub fn find_road(&mut self, from: usize, to: usize) -> Vec<Pos> {
-        let (Some(fty), Some(tty)) = (self.buildings[from].ty, self.buildings[to].ty) else {
+        let Some(mut st) = self.start_road(from, to) else {
             return Vec::new();
+        };
+        match self.step_road(&mut st, (from, to), false, false) {
+            RoadPlan::Road(r) => r,
+            _ => Vec::new(),
+        }
+    }
+
+    /// `find_road`'s setup, both arms: the two endpoint tiles, the map and
+    /// coincidence guards, and the root node. `None` is the `-1` the
+    /// original returns without searching.
+    ///
+    /// `PathFinder::find_road_restore@00685950` is this step **skipped** —
+    /// it sets `pathfinder+0x84` so that neither endpoint is pushed and the
+    /// parked search is picked up where it stopped.
+    pub(crate) fn start_road(&mut self, from: usize, to: usize) -> Option<RoadSearch> {
+        let (Some(fty), Some(tty)) = (self.buildings[from].ty, self.buildings[to].ty) else {
+            return None;
         };
         let start = self.road_end(from, fty);
         let goal = self.road_end(to, tty);
         let (tw, th) = (self.world.width() * 4, self.world.height() * 4);
         let inside = |p: Pos| p.x >= 0 && p.y >= 0 && p.x < tw && p.y < th;
         if !inside(start) || !inside(goal) || start == goal {
-            return Vec::new();
+            return None;
         }
-        // `avoid_sea` here is "both ends are in the same region", which the
-        // cost function reads only on an ocean tile — and `can_transport` is
-        // zero for a building's road, so no ocean tile is ever valid.
-        let avoid_sea = self.world.tregion(start).is_some()
-            && self.world.tregion(start) == self.world.tregion(goal);
-        let who = (self.buildings[from].owner, self.buildings[to].owner);
-        self.astar_road(
-            centre_of(start),
-            centre_of(goal),
-            who,
-            (from, to),
-            avoid_sea,
-        )
+        Some(self.road_root(centre_of(start), centre_of(goal)))
     }
 
     /// One endpoint's tile: a **city**'s own tile, and for anything else the
@@ -289,85 +332,122 @@ impl Sim {
     // §5 — `PathFinder::astar_caravan_road@00685990`
     // ------------------------------------------------------------------
 
-    /// The search. Positions are in world units, the stride is one tile, and
-    /// with no caravan the wheel turns **cardinals only** — the `param_6 < 0`
-    /// arm, which is the only one a building takes.
-    fn astar_road(
-        &mut self,
-        start: Pos,
-        goal: Pos,
-        who: (Player, Player),
-        ends: (usize, usize),
-        avoid_sea: bool,
-    ) -> Vec<Pos> {
+    /// The root node, the wheel preference and the goal — everything the
+    /// search needs before its first pop. The original builds these in
+    /// `astar_caravan_road`'s **fresh** arm, off the two `PathData` it pops
+    /// from the stack `find_road` pushed.
+    fn road_root(&self, start: Pos, goal: Pos) -> RoadSearch {
         let row = i64::from(self.world.width()) * 4;
-        let metric_of = |p: Pos| {
-            i64::from(p.x.div_euclid(UNITS_PER_TILE))
-                + i64::from(p.y.div_euclid(UNITS_PER_TILE)) * row
+        let mut st = RoadSearch {
+            goal: (goal.x, goal.y),
+            ..RoadSearch::default()
         };
-
-        let mut nodes: Vec<Node> = Vec::new();
-        let mut open: BTreeMap<(i32, Reverse<u64>), u32> = BTreeMap::new();
-        let mut open_by_metric: BTreeMap<i64, (u64, i32, u32)> = BTreeMap::new();
-        let mut closed: BTreeMap<i64, u32> = BTreeMap::new();
-        let mut seq: u64 = 0;
-
         // The root's estimate is the shared `get_estimate` at the tile
         // stride — `d × 60 / 0xc0` — where every later node's is
-        // `d × 60 / 0x180`. The inconsistency is real (both were read off
-        // the listing's two divide-by-magic sequences) and harmless: the
-        // root is the only node in the open list when it is popped.
+        // `d × 60 / 0x180` (or, for a caravan, `d × 40 / 16`). The
+        // inconsistency is real (both were read off the listing's two
+        // divide-by-magic sequences) and harmless: the root is the only
+        // node in the open list when it is popped.
         let root_h = vector_dist(start.x - goal.x, start.y - goal.y) * 60 / 0xc0;
-        nodes.push(Node {
+        st.nodes.push(Node {
             x: start.x,
             y: start.y,
             length: 0,
             value: root_h,
-            metric: metric_of(start),
+            metric: i64::from(start.x.div_euclid(UNITS_PER_TILE))
+                + i64::from(start.y.div_euclid(UNITS_PER_TILE)) * row,
             // Unclamped and never negated: a search that starts on a road
             // does not get the road bonus on its first step.
             z_val: self.world.tile_z(start.tile()),
             parent: None,
         });
-        open.insert((root_h, Reverse(seq)), 0);
-        open_by_metric.insert(nodes[0].metric, (seq, root_h, 0));
-        seq += 1;
-
+        st.open.insert((root_h, Reverse(st.seq)), 0);
+        st.open_by_metric
+            .insert(st.nodes[0].metric, (st.seq, root_h, 0));
+        st.seq += 1;
         // The wheel's preference — a diagonal index, so `pref + 1` is the
-        // cardinal facing the goal (`docs/PATHFINDER.md` §4.2). Only the
-        // cardinals are expanded, so the order is `pref+1, +3, +5, +7`.
+        // cardinal facing the goal (`docs/PATHFINDER.md` §4.2). A building
+        // expands only the cardinals, so its order is `pref+1, +3, +5, +7`;
+        // a caravan takes all eight.
         let (dx0, dy0) = (start.x - goal.x, start.y - goal.y);
-        let pref: i32 = if dy0.abs() < dx0.abs() {
+        st.pref = if dy0.abs() < dx0.abs() {
             if goal.x < start.x { 7 } else { 3 }
         } else if goal.y < start.y {
             1
         } else {
             5
         };
+        st
+    }
+
+    /// One frame's worth of the search — `astar_caravan_road`'s loop, from
+    /// the first pop to the goal, the budget or an empty open list.
+    ///
+    /// `caravan` is `param_6 >= 0`: it opens the four diagonals
+    /// (`local_18 = param_6 >> 31` gates the odd wheel indices out for a
+    /// building and not for a caravan) and swaps the heuristic. Positions
+    /// are in world units and the stride is one tile.
+    fn step_road(
+        &mut self,
+        st: &mut RoadSearch,
+        ends: (usize, usize),
+        caravan: bool,
+        can_transport: bool,
+    ) -> RoadPlan {
+        let row = i64::from(self.world.width()) * 4;
+        let goal = Pos::new(st.goal.0, st.goal.1);
+        let who = (self.buildings[ends.0].owner, self.buildings[ends.1].owner);
+        // `pathfinder+0x8c`: both endpoints in one region. The cost
+        // function reads it on an ocean tile only, and no ocean tile is
+        // valid while `can_transport` is zero — so this is recomputed
+        // rather than parked, exactly as the original recomputes it on
+        // every call including a restore.
+        let ea = self.buildings[ends.0]
+            .ty
+            .map(|ty| self.road_end(ends.0, ty));
+        let eb = self.buildings[ends.1]
+            .ty
+            .map(|ty| self.road_end(ends.1, ty));
+        let avoid_sea = match (ea, eb) {
+            (Some(a), Some(b)) => {
+                self.world.tregion(a).is_some() && self.world.tregion(a) == self.world.tregion(b)
+            }
+            _ => false,
+        };
 
         let mut traversed: i32 = 0;
-        while let Some((&key, &cur_id)) = open.first_key_value() {
-            open.remove(&key);
-            let cur = nodes[cur_id as usize];
+        while let Some((&key, &cur_id)) = st.open.first_key_value() {
+            st.open.remove(&key);
+            let cur = st.nodes[cur_id as usize];
             // `first_open_node` tombstones the refs entry for the popped
             // node's metric; removing it is the same thing.
-            if open_by_metric
+            if st
+                .open_by_metric
                 .get(&cur.metric)
                 .is_some_and(|&(s, _, _)| s == key.1.0)
             {
-                open_by_metric.remove(&cur.metric);
+                st.open_by_metric.remove(&cur.metric);
             }
             if (cur.x - goal.x).abs() + (cur.y - goal.y).abs() < 1 {
-                return reconstruct(&nodes, cur_id);
+                return RoadPlan::Road(reconstruct(&st.nodes, cur_id));
             }
             if traversed >= WORK_CAP {
-                // The budget: the road is simply not laid.
-                return Vec::new();
+                // The budget. A **caravan's** popped node goes back on the
+                // open list before the search is parked, which is what
+                // makes a resumed frame carry on rather than lose a node;
+                // a building's is recycled and the road is simply not laid.
+                if caravan {
+                    st.open.insert((cur.value, Reverse(st.seq)), cur_id);
+                    st.open_by_metric
+                        .insert(cur.metric, (st.seq, cur.value, cur_id));
+                    st.seq += 1;
+                }
+                return RoadPlan::Budget;
             }
 
-            for k in (pref + 1..).take(8) {
+            for k in (st.pref + 1..).take(8) {
                 let d = if k < 9 { k } else { k - 8 };
-                if d % 2 != 0 {
+                if !caravan && d % 2 != 0 {
                     continue;
                 }
                 let d = usize::try_from(d).expect("wheel index");
@@ -375,7 +455,7 @@ impl Sim {
                 let ny = cur.y + MOVE_Y[d] * UNITS_PER_TILE;
                 let metric = cur.metric + i64::from(MOVE_X[d]) + i64::from(MOVE_Y[d]) * row;
                 let p = Pos::new(nx, ny);
-                if !self.valid_roadcoord(p, ends) {
+                if !self.valid_roadcoord(p, Pos::new(cur.x, cur.y), ends, can_transport) {
                     continue;
                 }
                 traversed += 1;
@@ -392,17 +472,45 @@ impl Sim {
                     cost /= 2;
                 }
                 let g = cur.length + cost;
-                if closed.contains_key(&metric) {
+                if st.closed.contains_key(&metric) {
                     continue;
                 }
-                if let Some(&(old_seq, old_value, old_id)) = open_by_metric.get(&metric) {
-                    if nodes[old_id as usize].length <= g {
+                if let Some(&(old_seq, old_value, old_id)) = st.open_by_metric.get(&metric) {
+                    if st.nodes[old_id as usize].length <= g {
                         continue;
                     }
-                    open.remove(&(old_value, Reverse(old_seq)));
-                    open_by_metric.remove(&metric);
+                    st.open.remove(&(old_value, Reverse(old_seq)));
+                    st.open_by_metric.remove(&metric);
                 }
-                let h = vector_dist(nx - goal.x, ny - goal.y) * 60 / 0x180;
+                // **The two heuristics, and the caravan's is wrong on
+                // purpose — the original's purpose, not ours.** A building's
+                // is `vector_dist(dx, dy) × 60 / 0x180`. A caravan's is the
+                // listing's other arm at `00685fd9`, and it calls
+                // `vector_dist` with `ecx = node.x − goal.x` and
+                // `edx = −goal.y`: the goal's **own y coordinate** stands
+                // where the y *difference* belongs, and `vector_dist` takes
+                // the absolute value of both, so the sign is lost too. The
+                // estimate is therefore all but constant — it varies only
+                // with `dx²/(2·goal.y)` — and two nodes in the same column
+                // score identically whatever their y.
+                //
+                // That is the whole reason a trade route costs thirteen
+                // thousand nodes where a building's road costs three
+                // hundred: with no pull along y the search is a breadth-
+                // first flood in that axis. run64's frame 6166 is the
+                // measurement — the second node popped is the **west**
+                // neighbour at cost 86, not the north-west one at 135,
+                // and it can only be if the two carry the same estimate.
+                let dist = if caravan {
+                    vector_dist(nx - goal.x, goal.y)
+                } else {
+                    vector_dist(nx - goal.x, ny - goal.y)
+                };
+                let h = if caravan {
+                    dist * 40 / 16
+                } else {
+                    dist * 60 / 0x180
+                };
                 let node = Node {
                     x: nx,
                     y: ny,
@@ -412,29 +520,70 @@ impl Sim {
                     z_val,
                     parent: Some(cur_id),
                 };
-                let id = u32::try_from(nodes.len()).expect("road nodes");
-                nodes.push(node);
-                open.insert((node.value, Reverse(seq)), id);
-                open_by_metric.insert(metric, (seq, node.value, id));
-                seq += 1;
+                let id = u32::try_from(st.nodes.len()).expect("road nodes");
+                st.nodes.push(node);
+                st.open.insert((node.value, Reverse(st.seq)), id);
+                st.open_by_metric.insert(metric, (st.seq, node.value, id));
+                st.seq += 1;
             }
-            closed.insert(cur.metric, cur_id);
+            st.closed.insert(cur.metric, cur_id);
         }
-        Vec::new()
+        RoadPlan::None
     }
 
-    /// `PathFinderData::valid_roadcoord@00688740`, with `can_transport`
-    /// zero — which it always is for a building's road, so ocean is refused
-    /// outright. The diagonal corner recursion is dead here for the same
-    /// reason the diagonals are: only cardinals are expanded.
-    fn valid_roadcoord(&self, p: Pos, ends: (usize, usize)) -> bool {
+    /// The caravan arm of the search, for `crate::caravan`: eight
+    /// directions and the larger heuristic, resumable across frames.
+    pub(crate) fn step_road_caravan(
+        &mut self,
+        st: &mut RoadSearch,
+        ends: (usize, usize),
+        can_transport: bool,
+    ) -> RoadPlan {
+        self.step_road(st, ends, true, can_transport)
+    }
+
+    /// `PathFinderData::valid_roadcoord@00688740`: the tile test, and then
+    /// — for a **diagonal** step — the corner rule at its tail.
+    ///
+    /// A diagonal candidate is admitted only if at least one of the two
+    /// tiles that share a side with both it and its parent is itself
+    /// admissible, so a road never cuts between two blocked corners. The
+    /// recursion is one deep: each corner call has an axis in common with
+    /// its parent, so its own diagonal test is false. It was dead until the
+    /// caravan arm existed, the four cardinals being all a building expands.
+    ///
+    /// `can_transport` is `pathfinder+0x98`, which `find_road` sets from
+    /// the **caravan unit's** own `UnitData::can_transport@0046f960` and
+    /// leaves at zero for a building. With it an ocean tile is admitted,
+    /// which is the only thing that makes `calc_road_cost`'s ocean arm
+    /// reachable — and East Indies' caravan has it, so its route walks
+    /// straight over the water between two coasts.
+    fn valid_roadcoord(
+        &self,
+        p: Pos,
+        from: Pos,
+        ends: (usize, usize),
+        can_transport: bool,
+    ) -> bool {
+        if !self.roadcoord_tile(p, ends, can_transport) {
+            return false;
+        }
+        if p.x != from.x && p.y != from.y {
+            return self.valid_roadcoord(Pos::new(p.x, from.y), from, ends, can_transport)
+                || self.valid_roadcoord(Pos::new(from.x, p.y), from, ends, can_transport);
+        }
+        true
+    }
+
+    /// The tile half of `valid_roadcoord`, above its diagonal tail.
+    fn roadcoord_tile(&self, p: Pos, ends: (usize, usize), can_transport: bool) -> bool {
         let (tw, th) = (self.world.width() * 4, self.world.height() * 4);
         if p.x < 0 || p.y < 0 || p.x >= tw * UNITS_PER_TILE || p.y >= th * UNITS_PER_TILE {
             return false;
         }
         let t = p.tile();
         let m = self.world.tile_mask(t);
-        if m & tile::SURFACE == tile::SURFACE_OCEAN {
+        if !can_transport && m & tile::SURFACE == tile::SURFACE_OCEAN {
             return false;
         }
         let blocked = m & tile::BLOCKED != 0;
@@ -485,8 +634,9 @@ impl Sim {
         let mut z_val = 0;
 
         if m & tile::SURFACE == tile::SURFACE_OCEAN {
-            // SEAM: unreachable while `can_transport` is zero — every ocean
-            // tile is refused by `valid_roadcoord` before this is called.
+            // Reachable only for a caravan whose `can_transport` admitted
+            // the tile. `avoid_sea` is "both endpoints in one region", and
+            // it is what run64's ocean nodes price at 155 + jitter.
             total += if avoid_sea {
                 weight::SEA_AVOIDED
             } else {
@@ -831,6 +981,84 @@ mod tests {
         // It runs between the two endpoints, exclusive of both.
         let s = sim.road_end(lib, lib_ty);
         assert!(!tiles.contains(&s) && !tiles.contains(&Pos::new(40, 40)));
+    }
+
+    /// §8.1: `param_6 < 0` gates the odd wheel indices out, and a caravan
+    /// does not have it.
+    #[test]
+    fn a_caravan_expands_the_diagonals_and_a_building_does_not() {
+        let (mut sim, city, _, lib_ty) = town(Pos::new(40, 40));
+        sim.plan_roads = true;
+        let lib = library_at(&mut sim, lib_ty, Pos::new(33, 33));
+        let dirs = |sim: &mut Sim, caravan: bool| -> Vec<i32> {
+            sim.trace_costs = true;
+            sim.road_marks.clear();
+            let mut st = sim.start_road(lib, city).expect("two endpoints");
+            let _ = sim.step_road(&mut st, (lib, city), caravan, false);
+            let mut d: Vec<i32> = sim.road_marks.iter().map(|m| m.dir).collect();
+            d.sort_unstable();
+            d.dedup();
+            d
+        };
+        let building = dirs(&mut sim, false);
+        assert!(
+            building.iter().all(|d| d % 2 == 0),
+            "a building's road is cardinal-only: {building:?}"
+        );
+        let caravan = dirs(&mut sim, true);
+        assert!(
+            caravan.iter().any(|d| d % 2 != 0),
+            "a caravan's takes the diagonals too: {caravan:?}"
+        );
+    }
+
+    /// §8.3: the budget parks the search rather than throwing it away, and
+    /// the frame after carries on from it. Made to fail by returning
+    /// [`RoadPlan::None`] instead of `Budget`.
+    #[test]
+    fn a_caravan_s_search_stops_at_the_budget_and_the_next_frame_resumes_it() {
+        // A world wide enough that 3,200 nodes do not reach the goal.
+        let mut w = World::new(60, 60);
+        w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
+        let mut sim = Sim::new(Tuning::RON, w, 2);
+        for l in &mut sim.ledgers {
+            l.bucket = [10_000; crate::economy::RESOURCES];
+        }
+        let ty = sim.add_build_type(BuildType {
+            ident: Ident::Library,
+            flags: flags::parse("a"),
+            x_size: 1,
+            y_size: 1,
+            job_time: 1,
+            hits: 100,
+            ..BuildType::default()
+        });
+        let a = sim.init_build(0, ty, centre_of(Pos::new(8, 8)), false);
+        let b = sim.init_build(0, ty, centre_of(Pos::new(200, 200)), false);
+        sim.trace_costs = true;
+        let mut st = sim.start_road(a, b).expect("two endpoints");
+        let plan = sim.step_road(&mut st, (a, b), true, false);
+        assert_eq!(plan, RoadPlan::Budget, "3,200 nodes do not span the map");
+        let first = sim.road_marks.len();
+        assert!(
+            (WORK_CAP as usize..=WORK_CAP as usize + 8).contains(&first),
+            "the budget trips one pop past 0xc80: {first}"
+        );
+        let seen: std::collections::BTreeSet<(i32, i32)> =
+            sim.road_marks.iter().map(|m| m.from).collect();
+        sim.road_marks.clear();
+        let plan = sim.step_road(&mut st, (a, b), true, false);
+        assert_eq!(plan, RoadPlan::Budget, "and the second frame is another");
+        let then: std::collections::BTreeSet<(i32, i32)> =
+            sim.road_marks.iter().map(|m| m.from).collect();
+        assert!(
+            sim.road_marks.len() >= WORK_CAP as usize,
+            "the resumed frame gets the whole budget again, not the rest of one"
+        );
+        assert!(
+            then.intersection(&seen).count() < then.len(),
+            "and it expands nodes the first frame did not"
+        );
     }
 
     #[test]

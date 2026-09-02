@@ -464,6 +464,19 @@ unit on open ground reaches, in the order the function tests them:
    0`; the same slot keeps what ran past its end, `cur_time −= min(cur_time,
    end_time)`. Then `last_time = −1` (set at `:253`) and `end_time` from the
    table.
+   **The walk category's same-slot arm is not that one** (2026-09-02).
+   `:667` is `if (cur_time < len) goto <past the write>` — a walk still
+   inside its animation keeps the clock it has untouched, and only one
+   that has run past takes `cur_time −= len`. The other arm's
+   `cur − min(cur, len)` is the same thing for an overrun and **zero**
+   for a clock still running, and applying it to a walk froze every
+   walking guy at `cur_time == 1`: `Guy::move` asks for the walk again on
+   every frame and `Guy::inc_time` stepped it straight back. No guy
+   walking for longer than its cycle could then wrap, and a wrap is a
+   draw. Found from run64's frame 6169, where the original spends two
+   `Guy::set_anim+0x97a < Guy::inc_time+0x271` this crate spent none of
+   (`docs/CARAVAN.md` §4.1); the two are still missing for a second
+   reason and `docs/QUEUE.md` item 176 is that.
 
 `Unit::set_anim@00616f40` runs `Guy::set_anim` for guys `0..guy_mark` and
 `squad_size..num_guys` — every member, so a scout's dog rolls its own
