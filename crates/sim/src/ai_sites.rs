@@ -147,6 +147,24 @@ impl Sim {
     /// always had. Not modelled: the three leader exits (no flags, no
     /// `0x141` in any run) and `reg_forts` (the census does not keep it;
     /// no fort stands in any capture at the sweep).
+    /// `LeaderData +0x125e[region]` — a **leader's** count of cities in a
+    /// region, which is what `was_seen`'s territory shortcut reads.
+    ///
+    /// The census recounts it from the four city types at step 8
+    /// (`census_zero_regions`) and the original runs the census for a human
+    /// leader too (`docs/AI.md` §23.1); this crate does not yet, so a
+    /// leader whose census has never run is answered by the same recount
+    /// rather than by a zero that is only an artefact of the gate. run62 is
+    /// where that showed: six nodes of the human's road search stand on the
+    /// human's own land with `seen2` clear, and the original prices them
+    /// **undoubled** (`docs/ROADS.md` §7.3).
+    pub(crate) fn leader_reg_cities(&self, who: Player, r: u16) -> i32 {
+        match self.ai.get(who as usize) {
+            Some(a) if !a.census.reg_cities.is_empty() => Census::reg(&a.census.reg_cities, r),
+            _ => self.reg_city_buildings_pub(who, r),
+        }
+    }
+
     fn site_was_seen(&self, wx: i32, wy: i32, who: Player) -> bool {
         self.was_seen_fog(2 * wx + 1, 2 * wy + 1, who)
     }
@@ -167,10 +185,7 @@ impl Sim {
         if let Owner::Player(o) = self.world.owner(cell)
             && self.is_ally(who, o)
             && let Some(r) = self.world.region_of(cell)
-            && self
-                .ai
-                .get(o as usize)
-                .is_some_and(|a| Census::reg(&a.census.reg_cities, r) != 0)
+            && self.leader_reg_cities(o, r) != 0
         {
             return true;
         }

@@ -12,36 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — the bird flies, and both headlines moved.* **East
-Indies 5437 → 5466, Great Lakes 1802 → 2419.** Item 120 was never a
-missing reading but a missing oracle, and building it took five minutes.
+*2026-09-02, Opus — item 57 closed, and East Indies moved.* **East Indies
+5466 → 5592**; Great Lakes unchanged at 2419. The item had stood a month
+because a count is not a sequence, and the fix was an oracle, not a reading.
 
-- **run61 is the record owner 9 never had.** Three new `CALLS` proxies —
-  `do_air_physics`, `air_turn_speed`, `set_new_location` — over run60's
-  5,400 frames: 47,533 air frames of eleven flyers, goal, turn rate and
-  landing position per bird per frame. `rngcmp.py` against run60 is **zero
-  differing**, so a proxy costs the stream nothing.
-- **The bracket is the identity.** `set_new_location` is every moving
-  unit's; what makes a record a bird's is a `do_air_physics` still open on
-  the same `this` — proxy the dispatcher *and* the mutator and no guess
-  about a pointer is needed (`Trace::air_frames`).
-- **`air.rs` was right all along.** Seeded only with the birth state and
-  fed the original's goal it reproduces **all ten wild birds exactly to
-  the last frame** — 45,712 frames, every position and bank
-  zero-crossing. The error was twenty-four position units:
-  `Unit::init@00612100` snaps a new unit onto its 48-unit tile's centre
-  (`(p / 48) · 48 + 24`) while the patrol order keeps the unsnapped point,
-  and `spawn_bird` handed the cell centre to both (SYNC §3.9, "The
-  birth"). Great Lakes' *scored* capture is clean end to end now, so its
-  floor and its long word are two numbers again.
+- **run62 is the road search's own prices.** run32's recipe with
+  `RON_CALLWIN=99-101` and three new `CALLS` rows — `astar_caravan_road`
+  (the bracket), `valid_roadcoord` (the gate, and the **only** record
+  carrying a candidate's coordinate) and `calc_road_cost` (the price).
+  Thirteen minutes; `rngcmp.py` against run32 zero differing on 111 frames.
+  Its first run named the term: 19 nodes agreed in coordinate, eleven
+  prices differed, and **every difference was a multiple of three** —
+  `climb × 3`, and nothing else in the cost function is one.
+- **Two mechanics.** ROADS §7.4: `Wall::start` runs
+  `Terrain::object_placed` **before** `mask_me`, so a building flattens its
+  ground before it plans its road (`crate::terrain`; `World` carries the
+  corner grid now). ROADS §7.3: `calc_road_cost` calls `was_seen@006b53f0`,
+  not `was_really_seen@006b54f0` — and that shortcut needs a **leader's**
+  `reg_cities`, which item 158's missing human census left empty.
+- run32's two searches are the original's **node for node** — 2,913 prices,
+  1,043 and 1,870. A loader replaying the original's own state must not
+  re-run the side effects that state contains: `start_of_game` puts the
+  dump's grid back.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w5466 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w5592 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `East Indies' next cause is named: 5466 is
-PathFinder::calc_road_cost+0x46, item 57's road residue. Take it — and
-run61's recipe generalises: proxy a mechanic's dispatcher and its mutator
-together and it becomes a per-frame record.`
+**Opener (Opus):** `East Indies' next cause is Unit::think_scout+0xaba at
+5592 — 46 draws against 33, first parting at index 31. run62's recipe
+generalises: where a mechanic's answer is a number, proxy the function that
+computes it and the predicate that chose its argument.`
 
 ## The queue
 
@@ -140,9 +140,9 @@ loop flag is per animation file**, ANIM §3.3 — 42 `<UNIT>` entries give
 centre where the original leaves it, so `blocked_town` refuses a cell
 `site_clear` allows.
 
-The road residue, both ROADS §7.1: (57) the node counts — 1,046 v 1,043
-and 1,460 v 1,870 — on run43's own before-grid; (58) the height loader's
-mean in `f32`, three tiles.
+(58) **The height loader's mean in `f32`, three tiles** — ROADS §7.4's
+stated residue, now that `crate::terrain` does the arithmetic in
+millionths. None of the three is near a search any capture has measured.
 
 107. **`epoch[0]` is the Military level, and `army.rs` reads `ages`.**
     `get_epoch_base(0)` is `BASE_MILITARYTYPES` and the army family reads

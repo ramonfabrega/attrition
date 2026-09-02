@@ -241,6 +241,25 @@ static const CallSite CALLS[] = {
      * nested inside a `do_air_physics` bracket, with `0, 1` for the last
      * two. `ret 0x10`. push ebp; mov ebp,esp; sub esp,0x20 */
     {0x1f8d20, 6, 4, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x20, 0, 0, 0, 0}},
+    /* PathFinder::astar_caravan_road@00685990(Stack<PathData>*, whoA, whoB,
+     * p4, p5, caravan, p7) — the road search, so its entry and return
+     * **bracket** one plan the way `do_air_physics` brackets a bird's
+     * frame. `ret 0x1c`.
+     * push ebp; mov ebp,esp; push -1; push 0xa8b81b */
+    {0x285990, 10, 7, 0, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x1b, 0xb8, 0xa8, 0x00}},
+    /* PathFinderData::valid_roadcoord@00688740(x, y, from.x, from.y, p5,
+     * p6, p7, p8) — the gate, and the only record that carries a road
+     * candidate's **coordinate**: `calc_road_cost` is handed a pooled
+     * `PathNode *`, so the tile it prices is the one the call before it
+     * admitted. `ret 0x20`. push ebp; mov ebp,esp; sub esp,0x18 */
+    {0x288740, 6, 8, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0, 0, 0, 0}},
+    /* PathFinder::calc_road_cost@00686300(PathNode *, whoA, whoB, dir,
+     * this) — `docs/ROADS.md` §5.2's price, and the answer is the whole
+     * question: a road search's node sequence is comparable term by term
+     * only if the original's own costs are on the record. `ret 0x14`.
+     * push ebx; mov ebx,esp; sub esp,8 — not the usual frame, so the
+     * displaced prologue is `53 8b dc 83 ec 08`. */
+    {0x286300, 6, 5, 0, {0x53, 0x8b, 0xdc, 0x83, 0xec, 0x08, 0, 0, 0, 0}},
 };
 #define NCALLS (sizeof(CALLS) / sizeof(CALLS[0]))
 

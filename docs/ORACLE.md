@@ -3346,3 +3346,45 @@ proxying the *caller* as well makes the nesting the identity, and no guess
 about `this` is needed. Any mechanic whose state is private to a class of
 unit can be read this way — proxy the dispatcher and the mutator together —
 and the cost is a five-minute capture rather than a reading.
+
+## run62 — the road search's own prices (2026-09-02)
+
+**run32's recipe unchanged, and three more proxies.** `roadcapture.sh` with
+`RON_CALLWIN=99-101`: run10–14's game (Great Lakes, seed 12345), a Granary
+dropped at tile (6, 171) and a Smelter at (33, 161) from the cheat channel
+at sim-frame 100, the `DUMP_ALL` window still on [104, 109). Thirteen
+minutes, 366 MB of dump, 9.4 MB of trace. `rngcmp.py` against run32: **111
+frames, zero differing** — the third capture in a row where the proxies cost
+the stream nothing.
+
+| proxy | what its record is |
+| --- | --- |
+| `PathFinder::astar_caravan_road@00685990` | one road plan, entry to return |
+| `PathFinderData::valid_roadcoord@00688740` | a candidate's **world coordinate**, and whether it was admitted |
+| `PathFinder::calc_road_cost@00686300` | the node's **price** |
+
+**The pairing is the instrument, not either half.** `calc_road_cost` takes a
+pooled `PathNode *`, so its own record names an address out of
+`Recycler<PathNode>::temp_pool` and no tile at all; the tile it prices is
+the one the `valid_roadcoord` immediately before it admitted. That is
+run61's lesson one map over — *proxy the dispatcher and the mutator
+together* — and here the dispatcher is a predicate rather than a mutator.
+
+Frame 100 carries 2 bracket calls, 3,028 gates and **2,913** prices, the
+last exactly the frame's road-draw count.
+
+**What it settled, inside an hour.** `docs/QUEUE.md` item 57 — two counts
+that had stood 3 and 410 out since 2026-08-28, with every hypothesis a
+reading could reach already ruled out by measurement. The first run said the
+answer was the climb term and nothing else: the coordinates agreed for 19
+nodes and eleven of the prices differed, **every difference a multiple of
+three**. Three is `climb × 3`'s multiplier and nothing else in the cost is a
+multiple of it. Two mechanics came out of that (`docs/ROADS.md` §7.3, §7.4)
+and East Indies' word went **5466 → 5592**.
+
+**The lesson, and it is the count's.** A count is not a sequence. Six
+searches had matched the original's node *count* exactly, and the two that
+did not had survived three readings, a height-grid chase and five
+measurements — because nothing on the record could say *which node*. The
+twenty-minute widening beats the reading again, and the shape of the
+widening is now a table row.

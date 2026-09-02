@@ -66,7 +66,14 @@ print("map style 14 (Great Lakes) in check.ini and the profile")
 PY
 python3 "$W/tools/fuzz/seedini.py" 12345
 python3 "$W/tools/gamelog/window.py" stage 104 109
+# `RON_CALLWIN=99-101 roadcapture.sh 62` adds the three road proxies
+# (`tools/trace/README.md`, "The call proxies"): every candidate's
+# coordinate, every node's price, and the bracket that delimits the two
+# searches. Without it the capture is run32's instrument exactly.
 printf 'cover=1\nwindow=103-108\n' > "$G/rontrace.cfg"
+if [ -n "$RON_CALLWIN" ]; then
+  printf 'callwin=%s\n' "$RON_CALLWIN" >> "$G/rontrace.cfg"
+fi
 cat > "$G/rontrace.cmd" <<'EOF'
 # roadcapture.sh - two enhancers on fresh ground; see docs/ROADS.md §7.
 5 !ffwd 30

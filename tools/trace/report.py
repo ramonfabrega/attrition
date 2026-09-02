@@ -49,6 +49,11 @@ PROXIES = {
     2: (0x1e86d0, "do_air_physics", ("order", "goal.x", "goal.y")),
     3: (0x1ea390, "air_turn_speed", ("sign", "alt")),
     4: (0x1f8d20, "set_new_location", ("x", "y", "arg2", "arg3")),
+    5: (0x285990, "astar_caravan_road",
+        ("stack", "whoA", "whoB", "p4", "p5", "caravan", "p7")),
+    6: (0x288740, "valid_roadcoord",
+        ("x", "y", "from.x", "from.y", "p5", "p6", "p7", "p8")),
+    7: (0x286300, "calc_road_cost", ("node", "whoA", "whoB", "dir", "p5")),
 }
 
 
@@ -224,6 +229,9 @@ def main():
             parts = [f"this={this:#x}"]
             for n, v in zip(names, args):
                 parts.append(f"{n}={s32(v)}")
+            if name == "valid_roadcoord":
+                parts = [f"tile {args[0] // 0xc0},{args[1] // 0xc0}",
+                         f"from {args[2] // 0xc0},{args[3] // 0xc0}"]
             if name == "calc_cost":
                 step = args[5] or 1
                 parts = [f"from {args[0]},{args[1]} (c{args[0] // step},{args[1] // step})",

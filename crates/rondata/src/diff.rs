@@ -345,23 +345,13 @@ pub fn world_from(
             notes.push("fog: seen2 loaded from the WORLD dump".to_string());
         }
         let hw = tw + 1;
-        let heights_loaded = tiles_loaded && heights.len() == hw * (th + 1);
-        if heights_loaded {
-            let h = &heights;
-            for ty in 0..th {
-                for tx in 0..tw {
-                    let t = Pos::new(tx as i32, ty as i32);
-                    let ocean = world.tile_mask(t) & sim::world::tile::SURFACE
-                        == sim::world::tile::SURFACE_OCEAN;
-                    let z = if ocean {
-                        0
-                    } else {
-                        ((h[(ty + 1) * hw + tx] + h[ty * hw + tx + 1]) / 2_000_000) as i32
-                    };
-                    world.set_tile_z(t, z);
-                }
-            }
-        }
+        // The **corner** grid goes into the world whole, and every tile's
+        // height is derived from it: a building re-terraforms it when it is
+        // placed (`sim::terrain`), so this is no longer a table the loader
+        // pins once and nothing writes.
+        let heights_loaded = tiles_loaded
+            && heights.len() == hw * (th + 1)
+            && world.set_corner_grid(heights.to_vec());
         notes.push(format!(
             "world: {} cells from the WORLD dump, {} regions, land kinds {:?}, {} tile masks{}, {}",
             cells.len(),
@@ -1187,6 +1177,16 @@ fn start_of_game(
     let owners: Vec<sim::Player> = sim.buildings.iter().map(|b| b.owner).collect();
     sim.farm_order
         .sort_by_key(|&h| std::cmp::Reverse(owners[h]));
+    // **The dump's height grid is already terraformed for every building
+    // the dump lists** — run12's frame-0 heights have p0's city standing on
+    // its own plateau — so standing the roster up through `Wall::start`
+    // flattens ground that is flat already, and a second pass over a box
+    // whose border was blended is not the identity. The grid the dump
+    // printed is the truth at frame 0; put it back
+    // (`sim::terrain`, `docs/ROADS.md` §7.4).
+    if !init.heights.is_empty() {
+        sim.world.set_corner_grid(init.heights.clone());
+    }
     all_builds
 }
 
@@ -7288,6 +7288,15 @@ mod tests {
         sim.world = before.clone();
         sim.plan_roads = true;
 
+        // run62 is this same capture with the three road proxies on
+        // (`tools/trace/README.md`): every candidate's coordinate, every
+        // node's price, and the bracket delimiting the two searches. With
+        // it the two counts stop being a score and become a sequence.
+        let theirs_nodes = trace("rontrace-run62.log")
+            .map(|t| t.road_nodes(100))
+            .unwrap_or_default();
+        sim.trace_costs = !theirs_nodes.is_empty();
+
         let mut laid: std::collections::BTreeSet<(i32, i32)> = std::collections::BTreeSet::new();
         let mut costed: Vec<u32> = Vec::new();
         for (id, tile, seed) in [
@@ -7327,14 +7336,42 @@ mod tests {
             laid.extend(roads(&sim.world).difference(&mine).copied());
         }
 
+        // **The whole record, node for node.** The count was all this
+        // could compare until run62: `calc_road_cost` is handed a pooled
+        // `PathNode *`, so its own proxy record carries no coordinate, and
+        // `valid_roadcoord` -- the gate that admitted the tile -- is
+        // proxied beside it for that. What the pair gives is the original's
+        // own sequence of `(tile, from, dir, price)`, which is what turned
+        // two numbers that were 3 and 410 out into two mechanics
+        // (`docs/ROADS.md` 7.3, 7.4).
+        if !theirs_nodes.is_empty() {
+            let ours = &sim.road_marks;
+            let at = (0..ours.len().max(theirs_nodes.len()))
+                .find(|&i| ours.get(i) != theirs_nodes.get(i));
+            if let Some(i) = at {
+                for j in i.saturating_sub(4)..(i + 5).min(ours.len().max(theirs_nodes.len())) {
+                    eprintln!(
+                        "  {j:>5} ours   {:?}\n        theirs {:?}",
+                        ours.get(j),
+                        theirs_nodes.get(j)
+                    );
+                }
+            }
+            assert_eq!(
+                (at, ours.len()),
+                (None, theirs_nodes.len()),
+                "run62's 2,913 priced nodes: the first index that parts, and the count"
+            );
+        }
         assert_eq!(
             laid, theirs,
             "the two roads and their rings are not the original's, tile for tile"
         );
         assert_eq!(
             costed,
-            vec![1046, 1460],
-            "the nodes costed — the original's are 1043 and 1870 (`docs/ROADS.md` §7)"
+            vec![1043, 1870],
+            "the nodes costed, and they are the original's since run62 \
+             (`docs/ROADS.md` §7.3, §7.4)"
         );
     }
 
@@ -9800,14 +9837,21 @@ mod tests {
 
     /// East Indies' word on run54, the headline.
     ///
-    /// **5437**, and it was **5376** until `find_friends` stopped asking
-    /// which building's *centre* is in a neighbouring cell and started
-    /// asking whose *footprint* covers the cell's centre tile
-    /// (`docs/AI.md` §26). The AI's 7×7 Village is the neighbour of four
-    /// cells and this crate counted it for one, so the Market at 5376 was
-    /// sited one cell south of the original's — against the Library, whose
-    /// tiles cost the 2×2 jitter two of its four draws.
-    const LONG_WORD_EAST_INDIES: i64 = 5466;
+    /// **5592**, and it was **5466** until a building started flattening
+    /// the ground under it before it planned its road. 5466 was the AI
+    /// Market's own placement frame, one road search of 184 nodes against
+    /// the original's 205, and the cause was two mechanics at once:
+    /// `calc_road_cost` calls `was_seen` and not `was_really_seen`, and
+    /// `Wall::start` runs `TerrainOut::terraform_for_building` **before**
+    /// `mask_me`. run62 is the capture that could say so — the road
+    /// search's gate and its price proxied together, so the original's own
+    /// 2,913 node prices are on the record (`docs/ROADS.md` §7.2–§7.4).
+    ///
+    /// It was **5437** before that, and **5376** before *that*, when
+    /// `find_friends` started asking whose *footprint* covers a cell's
+    /// centre tile rather than whose centre is in the cell (`docs/AI.md`
+    /// §26).
+    const LONG_WORD_EAST_INDIES: i64 = 5592;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

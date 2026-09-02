@@ -67,6 +67,26 @@ const WORK_CAP: i32 = 0xc80;
 /// `(frame + o) % ROTATION == 0`.
 pub const ROTATION: i64 = 16;
 
+/// One node the road search priced, in the order it priced them —
+/// `PathFinder::calc_road_cost`'s own arguments and its answer. The
+/// original can be asked the same question since run62:
+/// `rontrace.cfg`'s `callwin` proxies `calc_road_cost` and the
+/// `valid_roadcoord` that admitted the tile, so the sequence is
+/// comparable node for node (`docs/ROADS.md` §7.2).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RoadCostMark {
+    /// The candidate tile, in world units — the `PathNode` the original
+    /// hands the function, whose coordinate only the gate's record has.
+    pub to: (i32, i32),
+    /// The node it was expanded from, likewise.
+    pub from: (i32, i32),
+    /// The wheel index, as the original's `dir`.
+    pub dir: i32,
+    /// What the function answered, **before** the goal neighbour's halving
+    /// — which the search does, not the cost.
+    pub cost: i32,
+}
+
 /// One node of the road search — the original's `PathNode`, minus the fields
 /// only the unit grid writes.
 #[derive(Clone, Copy, Debug)]
@@ -360,6 +380,14 @@ impl Sim {
                 }
                 traversed += 1;
                 let (mut cost, z_val) = self.calc_road_cost(p, cur.z_val, who, d, avoid_sea);
+                if self.trace_costs {
+                    self.road_marks.push(RoadCostMark {
+                        to: (nx, ny),
+                        from: (cur.x, cur.y),
+                        dir: i32::try_from(d).expect("wheel index"),
+                        cost,
+                    });
+                }
                 if nx == goal.x && ny == goal.y {
                     cost /= 2;
                 }
@@ -531,12 +559,16 @@ impl Sim {
         (total, z_val)
     }
 
-    /// `WorldData::was_seen@006b53f0` at the tile's fog cell. SEAM: the
-    /// ally-territory shortcut and the two `leader_flags` arms are unread —
-    /// on every capture so far they and the fog bit agree, because the
-    /// search never leaves the searcher's own territory.
+    /// `WorldData::was_seen@006b53f0` at the tile's fog cell — the one
+    /// **with** the ally-territory shortcut, which is a different function
+    /// from `was_really_seen@006b54f0` with one letter between their names
+    /// (`crate::scout`). This read the bare one until run62, and the six
+    /// nodes it doubled that the original did not are what said so
+    /// (`docs/ROADS.md` §7.3): every one is a cell of the searcher's own
+    /// territory whose `seen2` bit is clear, and the original calls it
+    /// seen because the owner holds a city in the cell's region.
     fn road_was_seen(&self, t: Pos, who: Player) -> bool {
-        self.was_really_seen_fog(t.x >> 1, t.y >> 1, who)
+        self.was_seen_fog(t.x >> 1, t.y >> 1, who)
     }
 }
 

@@ -1092,6 +1092,13 @@ impl Sim {
         for o in victims {
             self.disband_building(o, true);
         }
+        // `Wall::start@0063e810`'s next statement, and it comes **before**
+        // `mask_me`: `Terrain::object_placed` flattens the ground the
+        // footprint stands on. The road planned four lines below prices its
+        // climbs off the flattened grid, which is what run62 settled
+        // (`crate::terrain`, `docs/ROADS.md` §7.4).
+        let (bw, bh) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        self.terraform_for_building(corner, bw, bh);
         self.mask_building(b, true);
         // `Wall::start@0063e810` passes **`REGEN_FORCE`** to `mask_me`, and
         // `BuildType::mask_me@006312a0`'s tail is `place_roads` — so a

@@ -151,6 +151,13 @@ impl Sim {
     /// `reg_buildings[r][0] + [1] + [2] + [0x75]` — the four city types, as
     /// the building lifecycle keeps them: active city buildings of `who`
     /// whose cell is in `r`.
+    /// [`Sim::reg_city_buildings`] for the one caller outside the sweep —
+    /// `was_seen`'s territory shortcut, which asks about a leader whose
+    /// census may never have run.
+    pub(crate) fn reg_city_buildings_pub(&self, who: Player, r: u16) -> i32 {
+        self.reg_city_buildings(who, r)
+    }
+
     fn reg_city_buildings(&self, who: Player, r: u16) -> i32 {
         self.buildings
             .iter()

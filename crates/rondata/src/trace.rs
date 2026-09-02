@@ -287,6 +287,18 @@ pub mod call_site {
     /// landed. Called by every moving unit, so only the nested ones are a
     /// bird's.
     pub const SET_NEW_LOCATION: u32 = 4;
+    /// `PathFinder::astar_caravan_road@00685990(stack, whoA, whoB, p4, p5,
+    /// caravan, p7)` — one road plan, bracketed by its entry and return
+    /// (`docs/ROADS.md` §5).
+    pub const ASTAR_ROAD: u32 = 5;
+    /// `PathFinderData::valid_roadcoord@00688740(x, y, from.x, from.y, …)`
+    /// — the gate, and the record that carries a candidate's **world
+    /// coordinate**; [`CALC_ROAD_COST`] is handed a pooled `PathNode *`,
+    /// so the tile a price belongs to is the one admitted just before it.
+    pub const VALID_ROADCOORD: u32 = 6;
+    /// `PathFinder::calc_road_cost@00686300(node, whoA, whoB, dir, this)` —
+    /// `docs/ROADS.md` §5.2's per-node price, answer and all.
+    pub const CALC_ROAD_COST: u32 = 7;
 }
 
 /// One draw, as the trace records it.
@@ -614,6 +626,36 @@ impl Trace {
             .filter(|c| c.frame == frame && c.site == site)
             .copied()
             .collect()
+    }
+
+    /// The road search's priced nodes on one sim-frame, in the order the
+    /// original priced them (`docs/ROADS.md` §7.2).
+    ///
+    /// `calc_road_cost` is handed a pooled `PathNode *`, so its own record
+    /// carries no coordinate at all; the tile it prices is the one the
+    /// `valid_roadcoord` that returned just before it admitted. That is
+    /// why both are proxied — the gate is where a candidate's world
+    /// coordinate is, and the price is where the answer is.
+    pub fn road_nodes(&self, frame: i64) -> Vec<sim::roads::RoadCostMark> {
+        let mut out = Vec::new();
+        let mut gate: Option<Call> = None;
+        for c in self.calls.iter().filter(|c| c.frame == frame) {
+            match c.site {
+                call_site::VALID_ROADCOORD => gate = Some(*c),
+                call_site::CALC_ROAD_COST => {
+                    if let Some(g) = gate.take() {
+                        out.push(sim::roads::RoadCostMark {
+                            to: (g.args[0], g.args[1]),
+                            from: (g.args[2], g.args[3]),
+                            dir: c.args[3],
+                            cost: c.ret,
+                        });
+                    }
+                }
+                _ => {}
+            }
+        }
+        out
     }
 
     /// Every air frame in the trace, ordered by `(frame, unit)` — the

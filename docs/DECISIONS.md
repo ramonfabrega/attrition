@@ -1220,3 +1220,38 @@ both long words rose: East Indies 5437 → 5466, Great Lakes 1802 → 2419. So
 the unwired landing cost nothing and bought the reading; what it did not do
 is let a defensible number be replaced by an indefensible one while the
 oracle was missing.
+
+## 31. Where a mechanic's answer is a number, proxy it — and the terrain grid keeps millionths
+
+**2026-09-02.** Two decisions from item 57, which stood a month and closed
+in an afternoon.
+
+**The instrument.** `docs/DECISIONS.md` entry 26 says the word is the
+instrument. The word is a *count*, and a count is not a sequence: six road
+searches matched the original's node count exactly while two stood 3 and 410
+out, and no reading could say **which node**, because `calc_road_cost`
+computes a number and hands it back. run55 built the proxy for exactly this
+and run61 found the general shape — bracket the dispatcher, log the mutator.
+run62 completes it: **where the mechanic's answer is a number, proxy the
+function that computes it *and* the predicate that chose its argument.** The
+gate is what carries the coordinate a pooled-argument function cannot. The
+rule now stands beside "diff the whole record" (`CLAUDE.md`): before booking
+a third reading of a function whose arithmetic is already doubly confirmed,
+ask what the *record* is missing, and whether a `CALLS` row would supply it.
+Cost of a row: twenty minutes of listing work — the prologue bytes, the
+argument count, the `ret <imm>` — and a capture.
+
+**The scale.** `TerrainOut::terraform_for_building` is `f32` in the
+original: a mean over a box of corner heights, then `(h + mean) × 0.5` on
+the box's border. `crate::terrain` does it in **millionths**, the scale the
+dump prints, and `World` carries the corner grid at that scale. This is
+entry 16's clause read as it was written — "an exact rational where it keeps
+the one `f32` it has, and a pinned table where it builds one with doubles
+before the first frame" — with the difference that the table now has a
+writer, so it is kept rather than pinned. The residue is stated and
+measured: the exact-millionths mean and the `f32` mean truncate differently
+on **three corners of 58,081** (`docs/QUEUE.md` item 58), and none of the
+three is near any search yet measured. Should a divergence ever land on one,
+the sim already carries a software float (`combat::F32`, an integer
+mantissa) and the upgrade is local to one module — which is the reason not
+to pay for it now.

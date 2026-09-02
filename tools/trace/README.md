@@ -76,7 +76,7 @@ through the displaced-prologue trampoline, and logs `eax` — so the record is
 `(arguments, return)` rather than "this ran". The arguments live in the
 proxy's own frame, so recursion and re-entrancy cost nothing.
 
-Five are proxied today. Two are `docs/PATHFINDER.md`'s:
+Eight are proxied today. Two are `docs/PATHFINDER.md`'s:
 `PathFinder::astar_path@00683770`, whose entry and return **delimit one
 search**, and `PathFinder::calc_cost@00684e50`, which is §5's per-step price.
 Three are `docs/SYNC.md` §3.9's, and together they are **the record owner 9
@@ -87,6 +87,15 @@ dumps), and `Unit::set_new_location@005f8d20` is where the step landed.
 `report.py … calls` prints them nested, with each world coordinate's cell
 beside it; `rondata::trace::Call` is the Rust reader, so a `#[test]` can put
 the original's price beside the simulation's for the same step.
+
+Three more are `docs/ROADS.md` §7.2's, and they are the same trick with a
+predicate where the mutator was: `PathFinder::astar_caravan_road@00685990`
+brackets one road plan, `PathFinderData::valid_roadcoord@00688740` is the
+gate — **the only record that carries a candidate's coordinate** — and
+`PathFinder::calc_road_cost@00686300` is the price.
+`rondata::trace::Trace::road_nodes` pairs each price with the gate that
+returned just before it, because `calc_road_cost` is handed a pooled
+`PathNode *` and its own arguments name no tile at all.
 
 **The bracket is the identity.** `set_new_location` is taken by every unit
 that moves, so what makes a record a *bird's* is that a `do_air_physics` on

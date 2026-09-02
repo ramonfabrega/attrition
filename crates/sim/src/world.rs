@@ -293,6 +293,17 @@ pub struct World {
     /// `master_land_heights` before the first frame (`docs/DECISIONS.md`
     /// entry 16's clause); empty on a flat world, where every tile is 0.
     tile_z: Vec<i32>,
+    /// `TerrainData::master_land_heights` — the **corner** grid
+    /// `find_tcoord_z` reads, `4·xs + 1` columns by `4·ys + 1` rows, in
+    /// exact millionths of a world unit (the scale the dump prints, and
+    /// the one `crate::terrain` does its arithmetic at).
+    ///
+    /// [`World::tile_z`] is the pinned per-tile table derived from it; this
+    /// is here because a building **re-terraforms** the grid when it is
+    /// placed (`TerrainOut::terraform_for_building@00875210`,
+    /// `docs/ROADS.md` §7.4), so the table is no longer built once before
+    /// the first frame. Empty on a flat world.
+    corner_z: Vec<i64>,
     /// The map's goods, in the original's own `goods` list order — the
     /// index `WData.down_who` carries when `down` is `−2`.
     goods: Vec<Good>,
@@ -678,6 +689,7 @@ impl World {
             cell_good: vec![-1; n],
             danger: Vec::new(),
             tile_z: Vec::new(),
+            corner_z: Vec::new(),
             sea_map: 0,
             fog: Vec::new(),
             fog_now: Vec::new(),
@@ -851,6 +863,64 @@ impl World {
             .and_then(|i| self.tile_z.get(i))
             .copied()
             .unwrap_or(0)
+    }
+
+    /// The corner grid's stride, `4·xs + 1`.
+    pub const fn corner_stride(&self) -> i32 {
+        self.width * TILES_PER_CELL + 1
+    }
+
+    /// One corner of `master_land_heights`, in millionths; `None` off the
+    /// grid or on a world with no height table.
+    pub fn corner_z(&self, x: i32, y: i32) -> Option<i64> {
+        let (w, h) = (self.corner_stride(), self.height * TILES_PER_CELL + 1);
+        if self.corner_z.is_empty() || x < 0 || y < 0 || x >= w || y >= h {
+            return None;
+        }
+        self.corner_z.get((y * w + x) as usize).copied()
+    }
+
+    /// Writes one corner, and nothing else — [`World::retile_z`] is what
+    /// carries the change into [`World::tile_z`].
+    pub fn set_corner_z(&mut self, x: i32, y: i32, z: i64) {
+        let (w, h) = (self.corner_stride(), self.height * TILES_PER_CELL + 1);
+        if self.corner_z.is_empty() || x < 0 || y < 0 || x >= w || y >= h {
+            return;
+        }
+        self.corner_z[(y * w + x) as usize] = z;
+    }
+
+    /// Installs the corner grid and derives every tile's height from it.
+    /// The grid is `(4·xs + 1) × (4·ys + 1)` millionths, row-major.
+    pub fn set_corner_grid(&mut self, h: Vec<i64>) -> bool {
+        let (w, ht) = (self.corner_stride(), self.height * TILES_PER_CELL + 1);
+        if h.len() != (w * ht) as usize {
+            return false;
+        }
+        self.corner_z = h;
+        let (tw, th) = (self.width * TILES_PER_CELL, self.height * TILES_PER_CELL);
+        for ty in 0..th {
+            for tx in 0..tw {
+                self.retile_z(Pos::new(tx, ty));
+            }
+        }
+        true
+    }
+
+    /// `TerrainOut::find_tcoord_z@008544a0` for one tile, from the corner
+    /// grid: the truncated mean of the two **anti-diagonal** corners, and 0
+    /// where the tile's surface bits say ocean.
+    pub fn retile_z(&mut self, t: Pos) {
+        let (Some(a), Some(b)) = (self.corner_z(t.x, t.y + 1), self.corner_z(t.x + 1, t.y)) else {
+            return;
+        };
+        let ocean = self.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN;
+        let z = if ocean {
+            0
+        } else {
+            ((a + b) / 2_000_000) as i32
+        };
+        self.set_tile_z(t, z);
     }
 
     /// Writes a tile's height (the map loader's).

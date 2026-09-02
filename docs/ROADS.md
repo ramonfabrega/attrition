@@ -1,14 +1,18 @@
 # Roads
 
 *Established 2026-08-28 from the decompile (`tools/ghidra/`), the PE listing
-(`llvm-objdump`) for every arithmetic step, and four oracles: run14's
+(`llvm-objdump`) for every arithmetic step, and five oracles: run14's
 draw-site trace, run10's start-of-game `WORLD=6` block, run13's `DUMP_ALL`
-window at sim-frame 95, and **run32**, which drops two buildings on fresh
-ground and catches the road they lay. Confidence: **high** throughout. The
-search costs the original's nodes exactly on every capture that shows it a
-frame's own world, and the road it lays on ground the map has never had one
-on is the original's tile for tile; the "six per cent" §7 chased for a
-session was the harness feeding it another game's terraformed heights.*
+window at sim-frame 95, **run32**, which drops two buildings on fresh ground
+and catches the road they lay, and — since 2026-09-02 — **run62**, which is
+run32 again with the search's gate and its price proxied, so the original's
+own price for every node it costed is on the record. Confidence: **high**
+throughout, and the last two counts that were not exact are exact: the
+search now costs the original's nodes on every capture, **node for node**,
+and lays the original's road tile for tile. The two mechanics that stood
+between are §7.3's `was_seen` and §7.4's terraform; the "six per cent" §7
+chased for a session before them was the harness feeding it another game's
+terraformed heights.*
 
 The mechanic is `docs/QUEUE.md`'s item 54, and its name was wrong. The draws
 appear under `PathFinder::calc_road_cost+0x46 < astar_caravan_road+0x52b <
@@ -242,7 +246,7 @@ else:
     off a road:
         total += friendly ? 25 : 800
 
-was_seen(tile >> 1, whoA) == 0    → total × 2
+was_seen(tile >> 1, whoA) == 0    → total × 2   (§7.3: the shortcut one)
 direction is odd (a diagonal)     → total = total × 7 / 5
 ```
 
@@ -266,6 +270,11 @@ begins on a road does not get the bonus on its first step.
   on: run32's Granary at (6, 171) and Smelter at (33, 161), 62 tiles
   including both rings (§7).
 - **The placement-time plan** (§1), against those same 2,913 draws.
+- **Every node those 2,913 draws priced**, since run62: tile, direction and
+  cost, for both of run32's placement searches, against
+  `calc_road_cost`'s own proxied answers (§7.2). This is the record the
+  count was standing in for, and it is what closed §7.1 and found
+  `crate::terrain`.
 
 - The schedule, object for object, against `build_masks` on run14's frames
   0 to 172 (§1).
@@ -300,10 +309,11 @@ crossed and the listing settles at `vector_dist(|node.x − goal.x|,
 resumable search that stashes its containers on the caravan, its eight-way
 wheel, its `× 40 / 16` heuristic and the `× 7 / 5` a diagonal pays; the
 ocean arm of the cost; the alliance arm of the territory test; and
-`was_seen`'s ally-territory shortcut, which on every capture so far agrees
-with the fog bit because the search never leaves its own ground.
+~~`was_seen`'s ally-territory shortcut, which on every capture so far agrees
+with the fog bit because the search never leaves its own ground.~~ **It does
+not agree** — §7.3.
 
-## 7. What is not established — two counts on a placement frame
+## 7. The placement frame, and the two mechanics behind its two counts
 
 **The twelve nodes a search was short were never the search's.** For a
 session §7 read: 208, 222 and 178 costed nodes against the original's 220,
@@ -324,55 +334,163 @@ when every starting building matches by owner, object number and position.
 
 `Sim::plan_roads` is therefore **on**.
 
-### 7.1 The two counts that are still short
+### 7.1 The two counts on a placement frame, and the day they closed
 
 run32 (`docs/ORACLE.md`) places a Granary at tile (6, 171) and a Smelter at
-(33, 161) from the cheat channel at sim-frame 100. Both roads come out
-**tile for tile the original's** — 62 tiles with the rings — and both counts
-do not:
+(33, 161) from the cheat channel at sim-frame 100. Both roads came out
+**tile for tile the original's** — 62 tiles with the rings — and for a month
+neither count did:
 
-| the search | ours | the original's |
+| the search | ours, before | the original's |
 | --- | --- | --- |
-| Granary → centre, on the pre-terraform grid | 1,046 | **1,043** |
-| Smelter → centre, likewise | 1,460 | **1,870** |
+| Granary → centre | 1,046 | **1,043** |
+| Smelter → centre | 1,460 | **1,870** |
 
 The split is the trace's, not an inference: `Wall::activate` plays a sound
 off a *different* generator, so the one non-sync draw inside frame 100 falls
-between the two searches.
+between the two searches, at 1,043 of 2,913.
 
-**What the same capture settles about the terraform.** The grid the search
-reads on a placement frame is the **pre**-terraform one: under run32's
-frame-104 heights, which have both new footprints flattened, the Granary's
-search costs 967 nodes and lays a *different* Smelter road; under run13's
-frame-100 heights it costs 1,046 and both roads are exact. So
-`terraform_for_building` runs after `place_roads`, and the 128 corners it
-moves — the two footprints' boxes and nothing else — are that capture's own
-before-and-after (`docs/QUEUE.md` item 57).
+Every hypothesis §7 could reach was ruled out by measurement — the cost
+function's terms and the endpoints (six other searches of the same code, on
+the same map, cost the original's nodes exactly); the territory arm (forcing
+every unowned cell friendly changes neither count); the fog *as the dump
+carries it* (forcing `was_seen` true moved the Smelter to 1,624 and a
+different road); the route (a coin flip in this cost model, and ours took
+the original's); and a boundary elsewhere in the 2,913 (no split `B + n =
+2913` is consistent with our own second search from the word before draw
+`B`). What no reading could reach was **which node** was priced wrong,
+because a count is not a sequence.
 
-**What has been ruled out for the remaining two**, each by measurement:
+**Both counts are exact as of run62, and they were two different mechanics:
+§7.3's fog and §7.4's terraform.** 1,043 and 1,870, every one of the 2,913
+nodes agreeing in tile, direction and price, and the roads still tile for
+tile.
 
-- The cost function's terms and the endpoints: six other searches of the
-  same code, on the same map, cost the original's nodes exactly (§6).
-- The territory arm: forcing every unowned cell friendly changes neither
-  count — no cell either search touches is unowned.
-- The fog: forcing `was_seen` true moves the Smelter to 1,624 **and a
-  different road**, so the fog as the dump carries it is the one being used.
-- The route: the north/south choice west of the Smelter's ring is a coin
-  flip in this cost model (fifty other words: north 20, south 19), and with
-  the pre-terraform grid ours takes the original's.
-- A boundary elsewhere in the 2,913: no split `B + n = 2913` is consistent
-  with our own second search from the word before draw `B`, scanned one by
-  one over 600–2,200.
+### 7.2 The oracle: proxy the gate and the price together
 
-**Where a next session would look.** The two searches that are short are
-both on the frame a building is *placed*, and the one that is short by 410
-is the **second** of that frame — which is where `PathFinder`'s own state
-between two searches would show up (the `Recycler<PathNode>` pool, the
-containers' reuse). The first is short by three, which is the size of a
-rounding difference: `rondata::diff` means the heights in exact millionths
-and the original does `(f32 + f32) × 0.5f` and truncates (item 58). Neither
-is on the stream's critical path any more — the road frames of the traced
-games are exact — so this is a residue, not a blocker.
+run62 is run32's own recipe with `RON_CALLWIN=99-101` and three more sites
+in `tools/trace/tracer.c`'s `CALLS` table:
+
+| site | what it gives |
+| --- | --- |
+| `PathFinder::astar_caravan_road@00685990` | the bracket — one plan, entry to return |
+| `PathFinderData::valid_roadcoord@00688740` | the candidate's **world coordinate**, and whether it was admitted |
+| `PathFinder::calc_road_cost@00686300` | the **price**, which is the answer nothing else records |
+
+The pairing is the point, and it is run61's recipe one map over. A
+`calc_road_cost` record cannot name its own tile: the function is handed a
+pooled `PathNode *`, so the argument is an address out of
+`Recycler<PathNode>::temp_pool`. The tile it prices is the one the
+`valid_roadcoord` that returned immediately before it admitted — the two
+calls are adjacent in `astar_caravan_road`'s expansion loop with nothing
+between them — so proxying the gate *and* the price turns a count into a
+per-node record. `rondata::trace::Trace::road_nodes` is the fold and
+`sim::roads::RoadCostMark` is the row.
+
+`tools/gamelog/rngcmp.py` says run62's `game_random` word is run32's on all
+111 frames, **zero differing**: three more proxies cost the stream nothing,
+as run55's two did.
+
+Frame 100 carries 2 `astar_caravan_road` calls, 3,028 `valid_roadcoord` and
+**2,913** `calc_road_cost` — the last exactly the draw count, which is what
+says the draw is the function's first statement and the count is the count
+of nodes costed.
+
+**What it found, in the first run.** The sequences agreed in *coordinate*
+for 19 nodes and in *price* for 8 of those 19, and every one of the eleven
+differences was **a multiple of three**. Three is the climb's multiplier and
+nothing else in §5.2 is a multiple of it, so the disagreement was the
+heights and only the heights — a conclusion no count could have reached and
+no reading had.
+
+### 7.3 `calc_road_cost` calls `was_seen`, not `was_really_seen`
+
+With the heights corrected (§7.4) the sequence ran to 460 nodes and six
+prices differed, each **exactly twice** the original's. Doubling is
+`was_seen(tile >> 1, whoA) == 0`, the last line of §5.2, and the six tiles
+are all in the searcher's own territory with the `seen2` bit clear.
+
+`WorldData::was_seen@006b53f0` and `WorldData::was_really_seen@006b54f0`
+are two functions with one letter between their names, and this called the
+bare one. The one `calc_road_cost` calls has a **territory shortcut** ahead
+of the fog read: a cell whose owner is an ally — oneself included, `is_ally`
+being reflexive — is seen outright when that owner's `reg_cities` or
+`reg_forts` for the cell's *region* is non-zero (`LeaderData +0x125e` /
+`+0x12de`). `crate::ai_sites`' `was_seen_fog` already had it, from run20's
+site census; the road cost now calls that.
+
+**And the shortcut needed a leader-level count.** `reg_cities` is recounted
+from the four city types at the census sweep's step 8, and this crate runs
+the sweep for AI leaders only (`docs/QUEUE.md` item 158) — so the human's
+array is empty and the shortcut could never fire for the player whose road
+this is. `Sim::leader_reg_cities` answers from the census where there is one
+and from the same recount where there is not, which is the number the
+original's array would hold.
+
+### 7.4 A building flattens its ground **before** it plans its road
+
+`Wall::start@0063e810` is five statements, and the order is the finding:
+
+```
+kill_competing_buildings(this)
+WallData::tile_corner(&cx, &cy)
+Terrain::object_placed(cx, cy, x_size, y_size, 1)   ← the terraform
+mask_me(this, 1, REGEN_FORCE)                        ← whose tail is place_roads
+… the footprint's own fog cells, check_ever_seen, mark_behind_tiles
+```
+
+So `TerrainOut::terraform_for_building@00875210` runs **before**
+`place_roads`, and the road search prices its climbs off the *flattened*
+grid. §7.1 had concluded the opposite, from the one experiment available to
+it — run32's frame-104 heights make the Granary's search cost 967 — and the
+experiment was right about its own grid and wrong about the mechanic: frame
+104 carries **both** footprints' terraforms plus the four scheduled replans
+behind them, and the Granary's search must see only its own.
+
+`crate::terrain` is the implementation. The box is the footprint grown by
+one corner on the near side and two on the far —
+`[cx − 1, cx + w + 2) × [cy − 1, cy + h + 2)`, clamped to the corner grid —
+and it is walked twice:
+
+- **the mean**, over every corner of the box plus the column and row that
+  close it; a corner at or below zero anywhere in that sweep abandons the
+  whole terraform, which is how a building on the shore leaves the water
+  alone;
+- **the write**: the interior takes the mean outright, the box's own border
+  takes `(h + mean) / 2`, and three predicates hold a corner back — the cell
+  is water by `is_ocean`'s own predicate (`flags & 0x100 == 0` and land 1 or
+  2), a mountain or cliff tile stands in the corner's own 3×3
+  (`mask & 3` is 1 or 2), or the cell carries a good
+  (`mask & 0x200` and `find_good_at(…, −1) ≥ 0`).
+
+`World` therefore carries the **corner** grid now, not only the per-tile
+table `find_tcoord_z` derives from it: the table was pinned once by the
+loader on the reading that nothing ever wrote it, and a building writes it.
+`World::retile_z` is the derivation, run over the box and one further out
+each way because a tile reads the corner above it and the one to its right.
+
+**The dump's grid is already terraformed for every building the dump
+lists** — run12's frame-0 heights have p0's city on its own plateau — so the
+harness puts it back after standing the roster up (`start_of_game`'s tail);
+flattening flat ground is not the identity when the border blends.
+
+The arithmetic is in **millionths**, the scale the dump prints, not the
+original's `f32`. The two part on a truncation on three tiles in 58,081
+(`docs/QUEUE.md` item 58), none of them near any search measured so far.
+
+### 7.5 What is still not established here
+
+- The `f32` residue above: the exact-millionths mean and the original's
+  `f32` mean differ on three corners of run13's grid.
+- `Terrain::object_placed`'s other arms — this models the
+  `terraform_for_building` call it makes for a building being placed;
+  `prep_terrain_lighting`, `calculate_norms`, `calculate_tangents` and
+  `TerrainVis::invalidate_wcoord` are visual and unmodelled by design.
+- The terraform's own callers other than `Wall::start`: map generation and
+  the scenario editor, neither of which a traced game reaches.
+- `find_good_at`'s `who = −1` arm is modelled as "a live good that is not
+  oil", which is the fast path with the availability test dropped; no
+  capture has put a good inside a terraform box.
 
 ## 8. What the road costs the stream
 

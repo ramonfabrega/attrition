@@ -12839,3 +12839,87 @@ is a phase error, and no reading will settle it" — was correct, and its
 successor was correctly booked as a capture rather than a reading. That is
 the rule working: when a mechanic's product is arithmetic and the diff has
 nothing to compare, build the field before booking anyone to read.
+
+## 2026-09-02 — item 57, closed: a count is not a sequence (Opus)
+
+**East Indies 5466 → 5592.** The opener named the cause and it was right
+about the site and wrong about the size: 5466 is one road search — the AI
+Market's own placement frame, 184 nodes against the original's 205, every
+draw at `PathFinder::calc_road_cost+0x46` — and it is the *third* instance
+of item 57's residue, after run32's Granary (1,046 v 1,043) and Smelter
+(1,460 v 1,870). All three are on the frame a building is **placed**.
+
+**The item had been stuck for a month because a count is not a sequence.**
+Six searches matched the original's node count exactly; the two that did not
+had survived three readings of §4–§5, a height-grid chase that cost a
+session, and five separate measurements that each ruled a hypothesis out.
+Nothing on the record could say *which node* — `calc_road_cost` computes a
+number and hands it back, and the dumps print state.
+
+**So the missing thing was an oracle, and run61's recipe built it in an
+hour.** `tools/trace/tracer.c` gained three `CALLS` rows —
+`astar_caravan_road` (the bracket), `valid_roadcoord` (the gate) and
+`calc_road_cost` (the price) — and run62 is run32's own capture with
+`RON_CALLWIN=99-101`. Thirteen minutes; `rngcmp.py` against run32 says zero
+differing frames on all 111. **The pairing is the instrument**:
+`calc_road_cost` takes a pooled `PathNode *`, so its record names an address
+and no tile; the tile is the one the `valid_roadcoord` before it admitted.
+Frame 100: 2 brackets, 3,028 gates, **2,913** prices — the road-draw count
+exactly.
+
+**The first run named the term.** The two sequences agreed in coordinate for
+19 nodes; eleven of those nineteen prices differed, and **every difference
+was a multiple of three**. `climb × 3` is the only multiple of three in
+§5.2. So: the heights, and nothing else.
+
+Two mechanics were behind it.
+
+**§7.4 — a building flattens its ground before it plans its road.**
+`Wall::start@0063e810` is five statements and the order is the whole
+finding: `kill_competing_buildings`, `tile_corner`, **`Terrain::object_
+placed`**, `mask_me` (whose tail is `place_roads`). §7.1 had concluded the
+opposite from the one experiment it had — run32's frame-104 grid makes the
+Granary cost 967 — and that experiment was right about its grid and wrong
+about the mechanic, because frame 104 carries *both* footprints' terraforms
+and the Granary must see only its own. Priced against the frame-104 grid the
+sequence went from 19 nodes to **460**, which is what said it.
+`crate::terrain` is the implementation: the mean of a box one corner wider
+on the near side and two on the far, abandoned outright if any corner is at
+or below zero; the interior takes the mean and the border `(h + mean) / 2`;
+three refusals — a water cell, a mountain or cliff in the corner's own 3×3,
+a good on the cell. `World` carries the **corner** grid now, because the
+per-tile table the loader pinned once turns out to have a writer.
+
+**§7.3 — `calc_road_cost` calls `was_seen`, not `was_really_seen`.** With
+the heights right, six prices remained and each was *exactly twice* the
+original's — the fog doubling. The two functions are one letter apart
+(`006b53f0` and `006b54f0`) and this called the bare one; the one the cost
+function calls has the ally-territory shortcut ahead of the fog read.
+`crate::ai_sites` already had that shortcut from run20, and it still could
+not fire: it reads `reg_cities`, the census fills `reg_cities`, and this
+crate runs the census for AI leaders only — so the human, whose road this
+is, had an empty array. `Sim::leader_reg_cities` answers from the census
+where there is one and from step 8's own recount where there is not.
+
+With both, run32's two searches are the original's **node for node**: 2,913
+prices, every tile, direction and cost, and 1,043 and 1,870 exactly. The
+test asserts the sequence now, not the count.
+
+**One regression on the way, and it is worth writing down.** The first
+run54 with the terraform on parted at frame **10** — worse than 5466. The
+dump's height grid is *already* terraformed for every building the dump
+lists, so standing the roster up through `Wall::start` flattened flat ground
+a second time, and a second pass over a box whose border was blended is not
+the identity. `start_of_game`'s tail puts the dump's grid back. The general
+shape: **a loader that replays the original's own state must not re-run the
+side effects that state already contains.**
+
+**The score.** East Indies **5466 → 5592**; Great Lakes unchanged at 2419
+(no regression); run32's counts exact for the first time. The next cause on
+East Indies is `Unit::think_scout+0xaba` at 5592.
+
+**The lesson.** *Diff the whole record* has a sibling: **when the record is a
+number the mechanic computes, proxy it.** Item 57 was booked as a reading
+three times and closed by a thirteen-minute capture, because the reading
+never had anything to be wrong about — the arithmetic was right, and the
+world it was fed was not.

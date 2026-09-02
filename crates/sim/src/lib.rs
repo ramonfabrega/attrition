@@ -83,6 +83,7 @@ pub mod scout;
 pub mod single;
 pub mod supply;
 pub mod tech;
+pub mod terrain;
 pub mod territory;
 pub mod transport;
 pub mod tuning;
@@ -749,6 +750,10 @@ pub struct Sim {
     /// Every step the search priced, in order, while [`Sim::trace_costs`]
     /// is set. Nothing in the simulation reads it.
     pub cost_marks: Vec<path::CostMark>,
+    /// The same for the **road** search, filled under the same flag:
+    /// `PathFinder::calc_road_cost`'s arguments and answer, node for node
+    /// (`docs/ROADS.md` §7.2). Nothing in the simulation reads it.
+    pub road_marks: Vec<roads::RoadCostMark>,
     /// Whether a building replans the road to its city — `crate::roads` §5.
     /// **On**, as of run32: the search's expansion count is the original's
     /// exactly on every capture that feeds it the map's *own* terraformed
@@ -1049,6 +1054,7 @@ impl Sim {
             phase_marks: Vec::new(),
             trace_costs: false,
             cost_marks: Vec::new(),
+            road_marks: Vec::new(),
             players: vec![attrition::PlayerState::default(); players],
             sources: Vec::new(),
             units: Vec::new(),
