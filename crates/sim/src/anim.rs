@@ -195,6 +195,13 @@ pub fn category(anim: i8) -> i8 {
 /// For a category-0 animation the flag changes nothing — both restarts
 /// go through the idle roll (§4) — so it matters only for the dumps and
 /// the attacks (§6).
+///
+/// **This is only the third of `Guy::inc_time`'s three tests.** The
+/// original reads `loopings[packet->ids[slot]]` behind `slot <
+/// packet->count` and `ids[slot] >= 0`, and those two are
+/// [`Sim::packet_has`]: a slot the piece's packet does not name has no
+/// animation id and is non-looping whatever this rule says. The caller
+/// asks both (§3.6).
 pub fn non_looping(anim: i8) -> bool {
     (ATTACKWALK..=24).contains(&anim) || anim == DUMP_WOOD || anim == DUMP_ORE
 }
@@ -858,7 +865,7 @@ impl Sim {
                 anim
             }
         } else if target_cat == 8 {
-            self.walk_variant(u, anim)
+            self.walk_variant(u, g)
         } else {
             anim
         };
@@ -914,7 +921,7 @@ impl Sim {
     /// `set_anim(CHAR_JOG)` therefore re-throws the bird's coin and can
     /// hand it back `CHAR_WALK`, which is what makes run14's bird alternate
     /// its two wing beats (`docs/SYNC.md` §3.9).
-    fn walk_variant(&mut self, u: usize, _anim: i8) -> i8 {
+    fn walk_variant(&mut self, u: usize, g: usize) -> i8 {
         let unit = &self.units[u];
         let mut v = WALK;
         if unit.owner == 9 {
@@ -941,12 +948,17 @@ impl Sim {
             v = w;
         }
         // `set_anim:596` — a slot the packet lacks falls back to
-        // `CHAR_WALK`, the category's own.
-        let guy = self.units[u].guys.first().copied();
-        if let Some(g) = guy
-            && g.gpiece >= 0
+        // `CHAR_WALK`, the category's own. **It is the asked guy's own
+        // packet**, not guy 0's: a crew figure whose `<UNIT>` entry names
+        // no animation at all has neither `CHAR_SLOG` nor `CHAR_JOG`, so a
+        // caravan whose driver slogs has two crew figures walking beside
+        // it (run64's frames 6168 and 6170, `docs/ANIM.md` §3.6). Reading
+        // guy 0's was invisible while every crew figure shared its piece.
+        let guy = self.units[u].guys.get(g).copied();
+        if let Some(guy) = guy
+            && guy.gpiece >= 0
             && v != WALK
-            && !self.packet_has(u, g.gpiece, v)
+            && !self.packet_has(u, guy.gpiece, v)
         {
             v = WALK;
         }
@@ -1046,7 +1058,14 @@ impl Sim {
             }
             let cat = category(guy.anim);
             self.mark(SITE_WRAP);
-            if !non_looping(guy.anim) {
+            // `Guy::inc_time`'s own test is `slot < packet->count &&
+            // packet->ids[slot] >= 0 && loopings[id]`: a slot the packet
+            // does not name has **no animation id**, so the flag is false
+            // whatever the slot's name would say. That is what makes a
+            // crew figure's walk fall to the idle and roll (§3.6); for a
+            // category-0 slot both arms make the same call, which is why
+            // it was invisible until a piece with an empty packet walked.
+            if self.packet_has(u, guy.gpiece, guy.anim) && !non_looping(guy.anim) {
                 self.guy_set_anim(u, g, guy.anim, false, true);
             } else if cat != 12 {
                 let next = if guy.anim == ATTACKWALK {
@@ -1088,6 +1107,19 @@ impl Sim {
             if self.units[u].guys[g].follow.is_some() {
                 continue;
             }
+            // **A carried crew figure is never owed a turn.**
+            // `Guy::do_turn@005d97a0` writes the frame's new angle into
+            // guy 0's `angle`, calls `Guy::set_angle` with it — which
+            // hands *that* angle to every crew figure as its `des_angle`
+            // — and then puts guy 0's own `des_angle` back from the local
+            // it saved. Only guy 0 keeps the heading; an untracked crew
+            // figure is recursed into with the same pair and ends every
+            // turn with `angle == des_angle`. So it takes `Guy::move`'s
+            // standing arm while guy 0 takes the turning one, which is
+            // the frame a caravan starts moving: the driver is put back
+            // on the walk and the crew is left alone to be mirrored
+            // (run64's frame 6167, `docs/ANIM.md` §4.7).
+            let settled = settled || g >= SQUAD_SIZE;
             self.guy_follow_anim(u, g, was_at_des, settled);
             if !was_at_des {
                 self.units[u].guys[g].stopped = false;

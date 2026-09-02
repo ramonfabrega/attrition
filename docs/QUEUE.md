@@ -12,35 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — the road was the caravan's.* **East Indies 6166 →
-6169**; Great Lakes unchanged at 2419.
+*2026-09-02, Opus — sixty pieces that play nothing.* **East Indies 6169 →
+6189** (the count reaches 6197); Great Lakes unchanged at 2419.
 
-- **A caravan owns a `Caravan`** and the road is its first act —
-  `docs/CARAVAN.md`, the new document.
-- **The estimate is wrong on purpose.** `astar_caravan_road`'s caravan
-  arm calls `vector_dist(node.x − goal.x, **goal.y**)` (listing
-  `00685fd9`; the decompiler prints both arms alike), so it floods along
-  `y`: 12,965 nodes over five frames. ROADS §8.
-- **A farm never terraforms** (`Wall::init`, `type != FARM`), and the
-  terraform is `Wall::init`'s, not `Wall::start`'s — **182 tiles** of
-  run64's height grid were this crate's own.
-- run64 is a `DUMP_ALL` window *and* the road proxies: the sequence and
-  the state it reads, together. Zero differing over 6,181 frames.
+- **A crew figure's animation packet is empty.** Sixty `<UNIT>` entries
+  have no `<ANIM>` child and every one is a `-CREW{k}`: three frames a
+  slot, none of them looping, so a walking crew figure wraps to the idle
+  and rolls every third frame. ANIM §3.6.
+- **It was 11,872 draws, not two** — 5,936 frames, two apiece, from 6169
+  to the end. Folding `Unit::inc_time+0x6e` over run54 first said so.
+- **`unit_anims` dropped the entry**, so `get_unit_gpiece` fell to
+  `first_unit_piece` and every crew figure played the citizen's looping
+  art. 1,359 pieces → 1,440.
+- **The window's clocks are compared now**, not installed: 2,061 fields
+  of run64's eight frames, which found the walk fallback reading guy 0's
+  packet and a carried crew figure being owed a turn it never is.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6169 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6189 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `East Indies parts on 6169's tail, not its road: the
-search's 3,202 nodes agree and the frame then spends two
-`Guy::set_anim+0x97a < Guy::inc_time+0x271` draws this crate does not
-(item 176). Both come from `Unit::inc_time+0x6e` — the **crew** loop,
-`[squad_size, guy_count)` — so they are two figures of a multi-figure
-unit wrapping. A wrap draws only when `set_anim` is asked for the idle,
-so the question is which animation those figures were in: the mirror
-gate (`Guy::inc_time`'s `index < squad_size || cat == CHAR_WALK`) says
-they stepped, and a looping walk re-set would not roll. Start by
-counting `Unit::inc_time+0x6e` draws per frame across run54 — whether
-6169 is one frame or the first of many is the shape of the item.`
+**Opener (Opus):** `Item 177 is the whole residue and it is one bug wearing
+three faces: `do_trade`'s move to the near city goes in with a **waypoint**
+at `(37752, 41592)`, so from run64's 6167 the caravan sets off south-west
+where the original heads straight at `(39288, 40056)`. That is the
+thirty-four fields `run64_s_window_clocks_are_the_original_s` pins, it is
+6189 (the crew's arrival draws at the waypoint), and it is 6197/6198 (the
+original arriving at a *city*, three `Unit::do_trade+0x40` draws over the
+three figures). Start at `add_move_order`'s `QUEUE_FIRST` arm and ask why
+this crate gives that order a waypoint at all — CARAVAN §4.1 says the
+original passes `find_angle(1, 0)` where a direction is read, and nothing
+about a route.`
 
 ## The queue
 
@@ -49,15 +50,10 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-176. **The crew's two clocks, and East Indies' word.** 6169 spends two
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271` from `Unit::inc_time+0x6e`
-    — the crew loop — that this crate does not. ANIM §4 step 5 and §5;
-    run64 and run54 are both on disk. **Takes the walk-clock correction's
-    proof with it**: `set_anim`'s walk arm was landed from the listing
-    this session and moved nothing.
-
-177. **The caravan's legs, and its wealth.** `do_trade` past the road is
-    unmodelled: the walk between the two cities, `TradeOrder +0x20
+177. **The caravan's legs, and its wealth.** (a) The walk is wrong
+    *first*: §4.1's move carries a waypoint here and the original's does
+    not, which is the word at 6189 and 6197 and run64's thirty-four
+    pinned fields. (b) Then `do_trade` past the road — `TradeOrder +0x20
     loaded`, the trade income (`docs/ECONOMY.md`'s `trade_val`), and what
     a fallen city does to a route. CARAVAN §7 lists what a capture would
     have to hold to separate the destination loop's arms — three cities of
@@ -150,7 +146,9 @@ Four measured one-liners: (103) a woodcutter's clock at **1,686** — after
 (105/45) **Gaia's positions**, East Indies' half left — run39 191,876 of
 192,504, first bad **1658**, run33 exact at 74,040, SYNC §4.2; (124) **the
 loop flag is per animation file**, ANIM §3.3 — 42 `<UNIT>` entries give
-`CHAR_DUMP_WOOD` a non-looping file and 38 a looping one, carry it on `Art`;
+`CHAR_DUMP_WOOD` a non-looping file and 38 a looping one, carry it on
+`Art`; the two index tests in front of it landed with 176 and this is the
+flag itself;
 (116) **the one `SITE` slot still wrong**, AI §18 — a 5×5 slide keeps its
 centre where the original leaves it (`blocked_town` v `site_clear`).
 

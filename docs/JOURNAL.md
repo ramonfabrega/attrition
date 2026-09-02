@@ -13321,3 +13321,87 @@ the whole height grid, all 3,600 cell owners. Three of the four findings
 were in fields the road never read — the farms' heights are nowhere near
 the route's own tiles — and none of them could have been reached by
 reading harder about the one number the item named.
+
+## 2026-09-02 — item 176, closed: sixty pieces that play nothing (Opus)
+
+The item was two draws on one frame. It is 11,872 of them on 5,936 frames,
+and it was booked as one because nobody had counted.
+
+**The first thing done was the count.** The opener said to fold
+`Unit::inc_time+0x6e` — the crew loop, `[squad_size, guy_count)` — over the
+whole of run54's trace before touching anything. Every one of the 11,872
+crew-loop draws in a 24,000-frame game is `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`, they start on **6169**, and from there they come two
+at a time on one frame in three until the capture ends. So the item was
+never a frame; it was a metronome that had been silent since the map was
+first traced, and East Indies' word had parted on its first tick.
+
+**And what it is is a `<UNIT>` entry with nothing in it.**
+
+```xml
+<UNIT name="CARAVAN-DEFAULT-AGE0-CREW1" model=".\art\artillery_crew_driver.bh3"
+      texture=".\art\caravan0.tga" cache="1" scale="1" .../>
+```
+
+Sixty of `unit_graphics.xml`'s 1,435 entries are self-closing, and every
+one of them is a `-CREW{k}`. The piece loads — it names a model — and its
+`AnimationPacket` is empty. `AnimationPacket::get_game_frames` answers 3
+for a slot no packet names, which is the `end_time 3` beside the driver's
+27 in run64's dump; and `Guy::inc_time`'s loop test is
+`slot < packet->count && ids[slot] >= 0 && loopings[id]`, whose first two
+conjuncts fail before the flag is reached. So the walk of a crew figure is
+non-looping, wraps to `CHAR_DEFAULT`, rolls, and `Guy::move` puts it back
+on the walk the next frame: three frames, one draw, forever.
+
+`rondata::artdata::unit_anims` had dropped an entry with no `<ANIM>` row
+since the day it was written — `if !rows.is_empty()` — so
+`Art::piece_lengths` did not hold the piece, `get_unit_gpiece`'s existence
+walk fell through all four loops to `first_unit_piece`, and every crew
+figure in the game had been playing **the citizen's** art. Looping, so it
+never wrapped, so it never drew. One line, and 1,359 pieces became 1,440.
+
+**Then the widening, and it had teeth on its first run.** run64 is a
+`DUMP_ALL` window and `Initial::frame_guys` has been parsed since the
+animation clock was first read — and nothing has ever *compared* it.
+`Built::tick` **installs** it, which is the opposite of a check. So every
+capture that carried the field said nothing about it, and this is item 87's
+ledger again: the field the parser had. Eight frames, three figures, nine
+fields apiece — `cur_anim`, `cur_time`, `end_time`, `last_time`, `gpiece`,
+`stopped`, the position and the angle — 2,061 fields, and eight of them
+wrong on the first run. Both were real:
+
+- **The walk fallback is the asked guy's own packet.** `set_anim:596` falls
+  a slot the packet lacks back to `CHAR_WALK`, and this crate read *guy
+  0's* piece for it — invisible while every crew figure shared guy 0's
+  piece. run64's 6168 is `g0 anim 7` beside `g1 anim 8`: the driver slogs
+  and its crew, having no `CHAR_SLOG`, walks.
+- **A carried crew figure is never owed a turn.** `Guy::do_turn` writes
+  guy 0's new angle, hands it to the crew as `des_angle` through
+  `Guy::set_angle`, and then restores **guy 0's own** `des_angle` from the
+  local it saved — so only guy 0 keeps a heading, and the untracked crew it
+  recurses into ends every turn settled. On the frame a caravan starts
+  moving the driver takes `Guy::move`'s turning arm and the crew takes the
+  standing one and is left for the mirror: run64's 6167, `last_time −1,
+  stopped 1`, which this crate had stepped.
+
+**The score.** East Indies **6169 → 6189**, and the count reaches 6197;
+Great Lakes unchanged at 2419. And the widening bought a tightening beside
+it: run64's frame 6170 was compared by tile and direction only, because the
+two missing draws put every price two jitters out of phase. It is compared
+whole now.
+
+**What it leaves is one thing wearing three faces**, and all three are item
+177. `do_trade`'s move to the near city is queued here with a **waypoint**
+at `(37752, 41592)`, so from 6167 the caravan sets off south-west where the
+original heads straight at `(39288, 40056)`. That is the window's thirty-
+four remaining fields, pinned; it is 6189, where this crate's caravan
+reaches its waypoint and its crew pays arrival draws; and it is 6198, where
+the original's reaches a *city* and spends three `Unit::do_trade+0x40`
+draws over the three figures.
+
+**The lesson is the widening rule with the ledger's name on it.** The item
+named two draws on one frame. Folding the trace first said it was 11,872 on
+5,936, which is what said the mechanism had to be structural rather than a
+frame's accident. And the check that found the two residual bugs was not a
+reading: it was nine fields of a record the parser had held all along and
+nobody had put a `!=` against.

@@ -4436,9 +4436,30 @@ mod tests {
         let loaded = crate::load::load(&inst).unwrap();
         assert_eq!(
             loaded.piece_lengths.len(),
-            1359,
+            1440,
             "every `<UNIT>` entry the unit path can name"
         );
+        // **And an entry with no `<ANIM>` child is one of them.** All
+        // sixty animation-less `<UNIT>`s in the shipped file are
+        // `-CREW{k}`, and they are eighty-one pieces here because a
+        // `GRAPH` is shared. The piece exists — it loads a model — and
+        // its packet is *empty*, so every slot is the three frames
+        // `AnimationPacket::get_game_frames` returns and none of them
+        // loops: that is what makes a caravan's two crew figures fall to
+        // the idle and roll every third frame (`docs/ANIM.md` §3.6).
+        // Until 2026-09-02 the reader dropped the entry, `get_unit_gpiece`
+        // fell to `first_unit_piece` and the crew walked on the citizen's
+        // art.
+        for p in [12681, 25353] {
+            assert_eq!(
+                loaded
+                    .piece_lengths
+                    .get(&p)
+                    .map(std::collections::BTreeMap::len),
+                Some(0),
+                "the caravan's crew piece {p} is an entry with an empty packet"
+            );
+        }
         // The pieces run12's guys name, by the arithmetic
         // (`artdata::tests::a_unit_graphic_s_name_gives_its_piece`): player
         // 0 is Nubian (`UNIT_CONTINENT 1 Arab`, one style stride of
@@ -9820,21 +9841,16 @@ mod tests {
             let ours = built.sim.road_marks.clone();
             let theirs = t64.road_nodes(f);
             counts.push((f, ours.len(), theirs.len()));
-            // **6170's prices are the stream's, not the search's.** East
-            // Indies' word parts on 6169, where the original spends two
-            // `Guy::set_anim+0x97a < Guy::inc_time+0x271` draws this crate
-            // does not (`docs/QUEUE.md` item 176), so by 6170 the jitter is
-            // two draws out of phase and every price is shifted. What the
-            // frame can still say is the **expansion** — which tile, from
-            // which, in which direction — and it says it exactly.
-            let key = |m: &sim::roads::RoadCostMark| (m.to, m.from, m.dir);
-            let at = (0..ours.len().max(theirs.len())).find(|&i| {
-                if f >= 6170 {
-                    ours.get(i).map(key) != theirs.get(i).map(key)
-                } else {
-                    ours.get(i) != theirs.get(i)
-                }
-            });
+            // **And 6170's prices are the search's again.** They were the
+            // stream's for one item: East Indies' word parted on 6169,
+            // where the original spent two `Guy::set_anim+0x97a <
+            // Guy::inc_time+0x271` draws this crate did not, so by 6170 the
+            // jitter was two draws out of phase and every price shifted.
+            // Those two are the caravan's own crew figures wrapping their
+            // empty packet (`docs/ANIM.md` §3.6), and with them spent the
+            // whole node — tile, direction **and** price — is the
+            // original's on all five frames.
+            let at = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i));
             assert_eq!(
                 at,
                 None,
@@ -9879,6 +9895,174 @@ mod tests {
         assert!(
             !van.road.is_empty(),
             "and it laid a road between the two cities"
+        );
+    }
+
+    /// **run64's animation clocks, frame for frame** — every `GUY`
+    /// block's `cur_anim`, `cur_time`, `end_time`, `last_time`, `gpiece`
+    /// and `stopped`, over the eight frames of the `DUMP_ALL` window.
+    ///
+    /// Item 87's ledger, one more row of it paid: `Initial::frame_guys`
+    /// has been parsed since the animation clock was first read and
+    /// nothing ever *compared* it — [`Built::tick`] **installs** it, which
+    /// is the opposite of a check. Every capture that carries the field
+    /// therefore said nothing about it, and the caravan's two crew
+    /// figures walked on the citizen's art for as long as the window has
+    /// existed.
+    ///
+    /// Nothing here is installed: run64's own `frame_guys` never reach the
+    /// simulation, which is built from run54's start and driven forward
+    /// 6,163 frames. Every row is a prediction the dump can refuse.
+    ///
+    /// The window holds the caravan, and the caravan is why this exists.
+    /// `CARAVAN-DEFAULT-AGE0-CREW1` and `-CREW2` are two of the sixty
+    /// shipped `<UNIT>` entries with **no `<ANIM>` child at all**: the
+    /// piece loads, its packet is empty, so every slot is
+    /// `AnimationPacket::get_game_frames`' three frames and none of them
+    /// loops. Its crew walks three frames, falls to the idle, rolls, and
+    /// is put back on the walk by `Guy::move` the next frame — two draws
+    /// every third frame for the rest of the game (`docs/ANIM.md` §3.6).
+    #[test]
+    fn run64_s_window_clocks_are_the_original_s() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r64)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run64-islands-caravanroad.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run64 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let text64 = std::fs::read_to_string(&r64).unwrap();
+        let theirs = Log::parse(&text64)
+            .initial()
+            .expect("run64 carries a start block")
+            .frame_guys;
+        let window: Vec<i64> = theirs.iter().map(|(n, _)| *n).collect();
+        assert_eq!(
+            window,
+            vec![6163, 6164, 6165, 6166, 6167, 6168, 6169, 6170],
+            "run64's `DUMP_ALL` window, as sim-frames"
+        );
+        let last = *window.last().unwrap();
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // The window's own clocks are never installed: this is the check.
+        built.frame_guys.clear();
+        let mut compared = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        let mut seam: Vec<String> = Vec::new();
+        let mut crew_rows = 0usize;
+        let mut unmatched = 0usize;
+        for f in 0..=last {
+            built.tick();
+            let Some((_, units)) = theirs.iter().find(|(n, _)| *n == f) else {
+                continue;
+            };
+            for state in units {
+                // Gaia's animals are re-seated from the dump every traced
+                // frame (`Sim::reseat_animal`), so their clocks are not a
+                // prediction of this crate's; the players' are.
+                if !(0..8).contains(&state.who) {
+                    continue;
+                }
+                // Matched on the simulation's own `(owner, o)` rather than
+                // through [`UnitLink`], which only knows the start dump's
+                // units: by 6,163 frames most of the AI's economy was
+                // trained mid-game and a link table would compare a
+                // fourteenth of the window.
+                let Some(u) = (0..built.sim.units.len()).find(|&i| {
+                    let x = &built.sim.units[i];
+                    x.alive() && i64::from(x.owner) == state.who && i64::from(x.index) == state.o
+                }) else {
+                    unmatched += 1;
+                    continue;
+                };
+                for (n, g) in state.guys.iter().enumerate() {
+                    if !g.has_clock() {
+                        continue;
+                    }
+                    let Some(ours) = built.sim.units[u].guys.get(n) else {
+                        continue;
+                    };
+                    if n >= sim::anim::SQUAD_SIZE {
+                        crew_rows += 1;
+                    }
+                    let (body, facing) = match ours.follow {
+                        Some(b) => (b.body.pos, b.facing),
+                        None => (
+                            built.sim.units[u].movement.body.pos,
+                            built.sim.units[u].movement.facing,
+                        ),
+                    };
+                    let rows: [(&str, i64, Option<i64>); 9] = [
+                        ("x", i64::from(body.x), g.pos.map(|p| p.x)),
+                        ("y", i64::from(body.y), g.pos.map(|p| p.y)),
+                        ("angle", i64::from(facing.0), g.angle),
+                        ("cur_anim", i64::from(ours.anim), g.cur_anim),
+                        ("cur_time", i64::from(ours.cur_time), g.cur_time),
+                        ("end_time", i64::from(ours.end_time), g.end_time),
+                        ("last_time", i64::from(ours.last_time), g.last_time),
+                        ("gpiece", i64::from(ours.gpiece), g.gpiece),
+                        ("stopped", i64::from(ours.stopped), g.stopped),
+                    ];
+                    for (name, ours, theirs) in rows {
+                        let Some(theirs) = theirs else { continue };
+                        compared += 1;
+                        if ours == theirs {
+                            continue;
+                        }
+                        let row = format!(
+                            "frame {f}: {}/{} guy {n} {name} ours {ours} theirs {theirs}",
+                            state.who, state.o
+                        );
+                        if (state.who, state.o) == (1, 18) {
+                            seam.push(row);
+                        } else if wrong.len() < 12 {
+                            wrong.push(row);
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run64 clocks: {compared} fields compared over {crew_rows} crew rows, \
+             {unmatched} of the dump's units this crate has no unit for"
+        );
+        for w in wrong.iter().chain(seam.iter().take(6)) {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 2_000 && crew_rows >= 24,
+            "the window's own rows: {compared} fields, {crew_rows} of them a \
+             crew figure's — a capture with neither is the wrong file"
+        );
+        assert!(wrong.is_empty(), "run64's clocks parted: {wrong:?}");
+        // **The caravan's own rows are `docs/QUEUE.md` item 177's**, and
+        // they are the walk rather than the clock: `do_trade`'s move to
+        // the near city is queued here with a **waypoint** at
+        // `(37752, 41592)`, so `1/18` sets off south-west while the
+        // original heads straight at `(39288, 40056)`. Thirty-four
+        // fields: the body and the heading of all three figures from
+        // 6167, and — one frame of it — the two crew figures' `cur_anim`
+        // and `stopped` on 6168, because a walk that starts a frame late
+        // leaves them standing for that frame. Every other clock field of
+        // the caravan's, the crew's `end_time 3` and its every-third-frame
+        // wrap included, is the original's. Pinned so it can only shrink.
+        assert_eq!(
+            seam.len(),
+            34,
+            "the caravan's walk parted from the original's by more than \
+             item 177's thirty-four fields: {seam:?}"
         );
     }
 
@@ -10373,7 +10557,38 @@ mod tests {
 
     /// East Indies' word on run54, the headline.
     ///
-    /// **5592**, and it was **5466** until a building started flattening
+    /// **6189** since 2026-09-02 — the *sequence*; the count reaches
+    /// **6197** — and 6169 was **an empty animation packet**. Sixty of the shipped `<UNIT>` entries in
+    /// `unit_graphics.xml` have no `<ANIM>` child at all and every one of
+    /// them is a `-CREW{k}`: the piece loads a model, so
+    /// `get_unit_gpiece` hands it out, and its packet names nothing — so
+    /// every slot is `AnimationPacket::get_game_frames`' three frames and
+    /// `Guy::inc_time`'s `packet->ids[slot] >= 0 && loopings[id]` is false
+    /// for all of them. A caravan's two crew figures therefore walk three
+    /// frames, fall to `CHAR_DEFAULT`, roll, and are put back on the walk
+    /// by `Guy::move` the next frame: **two draws every third frame, for
+    /// the rest of the game** — 11,872 of them over run54's remaining
+    /// 17,800 frames, which is why one item moved the word by only
+    /// twenty-nine and would have blocked every later one. This reader
+    /// dropped the animation-less entry outright, so the walk fell to
+    /// `first_unit_piece` and the crew played the citizen's looping art
+    /// (`docs/ANIM.md` §3.6).
+    ///
+    /// **What it leaves is one thing wearing three faces, and it is
+    /// `docs/QUEUE.md` item 177.** `do_trade`'s move to the near city is
+    /// queued here with a **waypoint** at `(37752, 41592)`, so the caravan
+    /// sets off south-west from 6167 where the original heads straight at
+    /// `(39288, 40056)`. That shows up as run64's thirty-four pinned
+    /// fields (`run64_s_window_clocks_are_the_original_s`), then as the
+    /// crew figures' arrival draws when this crate's caravan reaches its
+    /// waypoint on **6189**, and finally on **6198**, where the original
+    /// spends three `Unit::do_trade+0x40` draws — one through
+    /// `Unit::set_anim+0x56` and two through `+0xb6`, `Unit::set_anim`
+    /// over the three figures — arriving at a city this crate's caravan is
+    /// nowhere near.
+    ///
+    /// It was **5592** for one item, and it was **5466** until a building
+    /// started flattening
     /// the ground under it before it planned its road. 5466 was the AI
     /// Market's own placement frame, one road search of 184 nodes against
     /// the original's 205, and the cause was two mechanics at once:
@@ -10441,7 +10656,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6169;
+    const LONG_WORD_EAST_INDIES: i64 = 6189;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

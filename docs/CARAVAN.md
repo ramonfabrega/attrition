@@ -247,8 +247,9 @@ original_s_node_for_node`):
   3,204 + 3,202 prices of run64's frames 6166 to 6169 — the tile, the
   direction it was reached from and the price — against the original's
   own proxied `calc_road_cost` answers, and the 151 of 6170 by tile and
-  direction (its jitters are two draws out of phase; `docs/QUEUE.md`
-  item 176).
+  direction — **and 6170's prices too since 2026-09-02**, when the two
+  draws the stream was out of phase by turned out to be the caravan's own
+  crew figures wrapping an empty animation packet (`docs/ANIM.md` §3.6).
 - **The five frames' node counts**, which is the budget rule and the
   never-restored `traversed` together.
 - **The endpoints**, from the `astar_caravan_road` bracket: `oA 2000`,
@@ -258,7 +259,15 @@ original_s_node_for_node`):
   sharp half — `Wall::init`'s farm gate (`docs/ROADS.md` §7.4) was found
   by 182 of them.
 - The order and the schedule, indirectly: East Indies' word, which is a
-  per-frame draw *sequence*, now passes 6166 to 6168 whole.
+  per-frame draw *sequence*, now passes 6166 to 6188 whole.
+- **The three figures' clocks, frame by frame**
+  (`run64_s_window_clocks_are_the_original_s`): every `GUY` block of
+  run64's eight-frame `DUMP_ALL` window, 2,061 fields, of which the only
+  ones that part are the caravan's own walk below. `CREW_SIZE 2` means
+  three figures, the two crew ones are carried (no `trackoffset` on
+  `CARAVAN-DEFAULT-AGE0-CREW1`/`-CREW2`), their packets are empty, and
+  they pay two idle rolls every third frame from the moment the unit
+  starts moving.
 
 **Reading-only, and each names the capture that would falsify it:**
 
@@ -279,3 +288,16 @@ two cities, `TradeOrder +0x20 loaded`, the wealth a completed trip pays
 (`docs/ECONOMY.md`'s `trade_val`), and what happens when a city on the
 route falls. A caravan in this crate plans its road, walks to the near
 city and stops.
+
+**And it does not walk there the original's way** — the standing seam, and
+`docs/QUEUE.md` item 177's first half. §4.1's move goes in with
+`QUEUE_FIRST`, and this crate's carries a **waypoint** at `(37752, 41592)`,
+so from run64's frame 6167 `1/18` sets off south-west while the original
+heads straight at `(39288, 40056)`. Thirty-four fields of the window are
+that — the body and the heading of all three figures from 6167, and the two
+crew figures' `cur_anim` and `stopped` on 6168, where a walk that starts a
+frame late leaves them standing — and they are pinned so they can only
+shrink. Downstream it is East Indies' word twice over: **6189**, where this
+crate's caravan reaches its waypoint and its crew pays arrival draws the
+original does not, and **6198**, where the original's reaches a *city* and
+spends three `Unit::do_trade+0x40` draws over the three figures.

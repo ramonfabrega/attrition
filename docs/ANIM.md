@@ -389,6 +389,71 @@ SEAM: no capture holds a three- or four-figure unit — every crewed unit on
 disk is a Scout or a General at `CREW_SIZE 1`, and the Caravan at East
 Indies 6164 is in a trace, which counts draws and prints no `GUY` block.
 
+## 3.6 A crew figure's packet is empty, and every slot of it costs a draw (2026-09-02)
+
+`CARAVAN-DEFAULT-AGE0-CREW1` is a whole `<UNIT>` entry:
+
+```xml
+<UNIT name="CARAVAN-DEFAULT-AGE0-CREW1" model=".\art\artillery_crew_driver.bh3"
+      texture=".\art\caravan0.tga" cache="1" scale="1" .../>
+```
+
+Self-closing. **Sixty of the shipped file's 1,435 entries have no `<ANIM>`
+child at all, and every one of them is a `-CREW{k}`.** The piece is real —
+it names a model, so `GraphicPieces` loads it and `data_pieces[p] != 0` —
+and its `AnimationPacket` is *empty*. Three things follow, and they are one
+mechanism:
+
+- **Every slot is three frames.** `AnimationPacket::get_game_frames@00918cc0`
+  answers `3` for a slot the packet does not name ([`anim::MISSING`]), so a
+  crew figure's `end_time` is 3 whatever it plays. Run64's caravan prints
+  exactly that: `g1 piece 12681 anim 8 t 2/3`, beside its driver's `27`.
+- **No slot of it loops.** `Guy::inc_time`'s test is
+  `slot < packet->count && packet->ids[slot] >= 0 && loopings[id]` — three
+  conjuncts, and the first two fail before the flag is read. So the wrap
+  takes the *other* arm, `set_anim(cur_anim == 10 ? WALK : DEFAULT, 0, 1)`,
+  and a `DEFAULT` request is §4's idle roll: **one draw**. For a
+  category-0 animation the two arms make the same call, which is why the
+  empty packet was invisible until one walked.
+- **And a walk request resolves to `CHAR_WALK`.** The slot the speed picks
+  is checked against the *asked guy's own* packet (`set_anim:596`), so a
+  caravan whose driver slogs has two crew figures walking beside it —
+  run64's frames 6168 and 6170, `g0 anim 7` against `g1 anim 8`.
+
+Put together, a walking crew figure is a **three-frame metronome**: three
+frames of walk, a wrap that falls to the idle and rolls, and `Guy::move`
+putting it back on the walk the next frame. Two figures, so **two draws
+every third frame, for as long as the unit lives** — 11,872 of them over
+run54's last 17,800 frames, on 5,936 frames of which exactly two apiece.
+East Indies' word had parted on the first of them.
+
+The figure is *carried*, not walked: its `<UNIT>` names no `trackoffset`,
+so `Guy::update_gpiece` leaves `track_dx`/`track_dy` zero and the guy has no
+body of its own (§6). One consequence is its own: `Guy::do_turn@005d97a0`
+writes guy 0's new angle, hands it to every crew figure as `des_angle`
+through `Guy::set_angle`, then restores **guy 0's** `des_angle` from the
+local it saved — and recurses into the untracked crew with the same pair.
+So an untracked crew figure ends every turn with `angle == des_angle` and is
+never owed one: on the frame a caravan starts moving, its driver takes
+`Guy::move`'s turning arm and its crew takes the standing arm and is left
+for the mirror. Run64's 6167, `g1 last_time −1, stopped 1`.
+
+*Established* by `unit_graphics.xml` for the entries, the decompile for the
+three tests, and **a diff for all of it**:
+`run64_s_window_clocks_are_the_original_s` puts every `GUY` block's
+`cur_anim`, `cur_time`, `end_time`, `last_time`, `gpiece`, `stopped`,
+position and angle against this crate's over the eight frames of run64's
+`DUMP_ALL` window — 2,061 fields, of which the only ones that part are the
+caravan's own walk (`docs/QUEUE.md` item 177, thirty-four fields, pinned).
+East Indies' long word 6169 → 6189.
+
+SEAM: `unit_anims` had dropped an entry with no `<ANIM>` row since it was
+written, so `Art::piece_lengths` did not hold the piece,
+`get_unit_gpiece`'s existence walk missed it and fell to
+`first_unit_piece`, and every crew figure in the game played **the
+citizen's** art — looping, so it never wrapped and never drew. The count is
+1,440 pieces now, not 1,359.
+
 ## 4. `Guy::set_anim@005da300` — the draw
 
 Every request goes through the early returns, then the apply. The paths a
@@ -452,7 +517,9 @@ unit on open ground reaches, in the order the function tests them:
    one and cost the stand; it was invisible while the carrying slots had no
    length, because the packet fallback turned every one of them back into
    `CHAR_WALK`. A
-   slot the packet lacks falls back to `CHAR_WALK` (`:596`).
+   slot the packet lacks falls back to `CHAR_WALK` (`:596`) — **the asked
+   guy's own packet**, which is how a caravan's driver slogs while its two
+   crew figures walk (§3.6).
    A walk already playing keeps
    its time, and so does a walk-to-walk slot change: ~~rescales `cur_time
    · len_new / len_old`~~ the rescale at `:691` passes the **old** slot to
@@ -720,12 +787,18 @@ Three things follow.
   0,0,0` from `0x60032f25`, which are the dump's new `cur_anim`s, each with
   `cur_time 0` and `last_time −1`. Pinned: `anim::tests::run13_s_fish_wrap_
   together`.
-- **A walk or a work animation running out is silent.** `Man Walk`, `Farmer
+- **A walk or a work animation running out is silent — unless the packet
+  does not name it.** The flag `Guy::inc_time` reads is `loopings[packet->
+  ids[slot]]`, and both of the indices in front of it are tested first, so a
+  slot the piece's packet lacks is non-looping whatever its name says: that
+  is the whole of §3.6, and it is what makes a crew figure's walk pay a roll
+  every third frame. Where the packet *does* name it: `Man Walk`, `Farmer
   Sow`, `Farmer Reap`, `Lumberjack Chop3/Carry`, `Miner Dig3/Walk` are
   looping and restart through the walk branch or the same-category apply,
   neither of which draws; a non-looping one (`Lumberjack Dump`, `Miner
   Dump`, the attacks, the deaths, pack/unpack) falls to `DEFAULT` and draws
-  — `anim::non_looping` is the rule by slot, from the XML's names (§9).
+  — `anim::non_looping` is the rule by slot, from the XML's names (§9), and
+  `Sim::packet_has` is the pair of index tests in front of it.
 - **The mirror.** A member past the squad's size that is not walking copies
   guy 0's slot and time and never steps or draws itself: the scout's dog.
   Run13's sim-frame 101: the human scout's two guys go `60/61 → 0/61` on
@@ -1063,7 +1136,13 @@ two passes.
   and two entries even have a non-looping `CHAR_WALK`. So `non_looping`
   should be a per-piece table beside [`Art::piece_lengths`] rather than a
   rule; every piece a capture has reached agrees with the rule, which is
-  why nothing has failed on it.
+  why nothing has failed on it. **Half of it landed 2026-09-02** and it
+  was not the halves the rule differs on: the two index tests *in front*
+  of the flag — `slot < packet->count` and `ids[slot] >= 0` — are
+  `Sim::packet_has` now, so a slot the packet does not name is non-looping
+  however the rule reads it (§3.6). What is still a rule rather than a
+  table is the flag itself, for the slots a packet *does* name, and the
+  `CHAR_DUMP_WOOD` split above is what a table would settle.
 - **A walking guy's clock.** run44's citizen counts its carrying walk
   1…14 while it moves and restarts it on the frame it arrives; this crate
   re-issues the walk from `guys_follow` every frame, so the clock sits at

@@ -486,9 +486,16 @@ fn unit_anims(doc: &roxmltree::Document<'_>) -> BTreeMap<String, Vec<(i8, String
             };
             rows.push((i, file.trim().to_string()));
         }
-        if !rows.is_empty() {
-            out.insert(name.trim().to_string(), rows);
-        }
+        // **An entry with no `<ANIM>` child is still an entry**, and it is
+        // the answer for a crew figure: all sixty of the shipped
+        // animation-less `<UNIT>`s are `-CREW{k}`, and each of them loads a
+        // model and so a piece — an *empty* `AnimationPacket`. Dropping it
+        // cost twice over: `get_unit_gpiece`'s existence walk missed the
+        // piece and fell to `first_unit_piece`, and every slot then read
+        // the wrong art's length instead of the three frames
+        // `get_game_frames` returns for a slot no packet names
+        // (`docs/ANIM.md` §3.6).
+        out.insert(name.trim().to_string(), rows);
     }
     out
 }
