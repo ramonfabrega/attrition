@@ -13091,3 +13091,79 @@ ever compared it. One `track.py --changes` over eleven frames turned an item
 booked as a turn-model residue into a rare-resource bonus, and took a second
 booked item with it. The step deltas were on the screen for the whole of the
 previous session's write-up; the ratio 38 : 45 was not computed.
+
+---
+
+## 2026-09-02 — item 171, closed: the barge was not late, it was born in the wrong water (Opus)
+
+**The opener booked a capture, and the capture was already on disk.** Item 171
+said `1/18` — the AI's Transport Barge — ran five frames ahead of the original
+from the first frame of run63's window, that the cause lay in `(5202, 5430)`,
+and that nothing on disk measured a frame in there. A `LEADERS=9` window over
+the gap was the named next step.
+
+**run59's census covers `[5150, 5400)`**, and it is a `UNITS=3` window like
+run58's frames and run63's: every dumped unit's point is in it. The census
+test read six goods a leader and compared nothing else in the file. One
+`track.py UNITDATA … --where who=1,o=18` said the rest in a minute: `1/18`
+does not exist before **5342** and it is born already loaded, already moving,
+at `(33551, 21378)`. This crate bears it on the same frame at
+`(33456, 21424)` — ninety-five units further down its own route. There were
+never five lost frames; there was a birth cell two tiles wrong, and the gap
+grew to five frames only because the two boats then walked slightly different
+first legs onto the same row.
+
+**Where the cell comes from.** A land unit that walks into the water does not
+step onto it: `Unit::set_new_location` converts the step into a `0x28a` cast,
+and `SpellType::cast_transport` builds a barge at the caster's snapped tile
+and walks it to the water `UnitType::find_nearby_spot` found (TRANSPORT §6.1,
+§6.2). Both boats' sweeps agree ring for ring — `r = 216`, bearings from
+`0x55555555` in the order `0, +1, −1, +2, …` — and they part on one bearing:
+the original takes `k = +1`, tile `(699, 445)`; this crate refused it and took
+`k = +2`.
+
+**Why it refused it.** `find_nearby_spot@0061de70` has two collision halves,
+and `0061deb0` chooses between them: the pairwise pair —
+`Objects::find_collision` and `find_ordered_collision`, Chebyshev in unit
+cells against the sum of two `coll_size`s — is selected only when the filter
+is `FILTER_NOT_ME`/`CAN_COLLIDE` **and `not_o` and `not_who` are both
+non-negative**. `Unit::find_nearby_spot@00617010` fills those from `+0xa` and
+`+0x9`, so every unit call site gets the pair and the crate was right
+everywhere it had been checked. `Unit::do_cast` and `cast_transport` pass
+`(-1, -1)`. They get `ObjectsData::find_unit_with_radius@00659890` instead:
+a **distance**, `vector_dist(spot − it) <= its big_radius + r_coll`, over
+players' live on-map units, with `r_coll` the asking type's own `+0x240` —
+and its ordered sibling is skipped outright, because that one is guarded on
+`not_who >= 0`.
+
+The two disagree on exactly this bearing. The caster is the AI's scout: block
+1, `big_radius 48`. The barge is block 3, `r_coll 144`. The radius test's
+reach is **192** and the scout is `vector_dist(140, 172) = 228` from the
+candidate — free. The Chebyshev test reads the same pair as offsets of 3 and 4
+cells against `3 + 1`, and refuses. One bearing, one boat, three hundred
+frames of the word.
+
+**What landed.** `Sim::find_unit_with_radius` in `collide.rs` replaces
+`find_collision_for`, and `find_nearby_spot_type` is its only caller —
+`docs/COLLISION.md` §5.2.1 has the predicate, both arms of the original's
+search and why the whole-array one answers the same, `docs/ORDERS.md` §10 and
+`docs/TRANSPORT.md` §6.1 point at it.
+
+**The score.** East Indies **5819 → 6164**; Great Lakes unchanged at 2419.
+The sequence parts at 6164 and the count holds to 6165, so the floor is the
+lower of the two, as it has always been.
+run63's window went from one standing position residue to **none** — 6,775
+unit-frames, nothing ever off point — and run59's 5,959 unit-frames are now
+asserted alongside its goods, which is where the finding came from and where
+it stays checked. run59's dump ends with the quit block, headed 5401 while it
+holds 5400's state (the file goes 5399, then it); the test names that and
+leaves it out rather than pretending the capture is a frame longer than it is.
+
+**The lesson, and it is the same one twice in two days.** "Grep the disk
+before booking a capture" is not a preference; it is the first step. run63's
+own write-up said run59 had been printing `Leader::sites` for a day with
+nothing comparing it. This session's item was booked on the sentence "nothing
+on disk measures (5202, 5430)" — and the capture that measures it had been on
+disk since 02:11 the same morning, with 5,959 unit positions in it that no
+test read. The widening cost twenty minutes; the capture it replaced would
+have cost sixteen and produced a file nobody needed.

@@ -2617,7 +2617,7 @@ impl Sim {
                         Seeker::Unit(u) => {
                             self.find_collision(u, c) || self.find_ordered_collision(u, c)
                         }
-                        Seeker::Type(_) => self.find_collision_for(p.block_radius, c),
+                        Seeker::Type(_) => self.find_unit_with_radius(p.block_radius, c),
                     };
                 if hit {
                     continue;

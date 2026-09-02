@@ -3075,6 +3075,15 @@ is that no capture on disk had ever put a swarm ring on a coast.
   The bias is `0x55555555` and the radius `constants.unit_board_distance`,
   and what they are asking is "is there water a barge could be born on"
   (`docs/TRANSPORT.md` §6.1). `find_nearby_spot_type` in `orders.rs`.
+  **And its collision half is not the pairwise pair** (2026-09-02): the
+  flag that selects `find_collision`/`find_ordered_collision` is set at
+  `0061deb0` only when `not_o` and `not_who` are *both* non-negative, so
+  this form falls to `find_unit_with_radius` — reject iff `vector_dist <=
+  other.big_radius + r_coll`, with `r_coll` the asking type's `+0x240` —
+  and its ordered sibling is skipped outright because that one is guarded
+  on `not_who >= 0`. `docs/COLLISION.md` §5.2.1 has the predicate and what
+  reading it as the pairwise pair cost: East Indies' long word, 5819 →
+  **6164**.
 - **The base bearing** at every build/repair/gather/garrison call site is
   **`find_angle(me − target)`** (asm-confirmed at the swarm, garrison and
   gather sites): the sweep starts on the unit's own side of the target.

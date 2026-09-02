@@ -8947,6 +8947,56 @@ mod tests {
             v
         };
         assert_eq!(script_steps, vec![23, 15, 18], "economic.bhs's cases");
+
+        // **And the positions, which this capture carried for a day before
+        // anything compared them** (item 87's ledger, 2026-09-02). run59 is
+        // a `UNITS=3` window like run58's frames and run63's, so every
+        // dumped unit's point is in it; the census read six goods a leader
+        // and left the other nine tenths of the file alone.
+        //
+        // What the widening found on its first run was the item the queue
+        // had booked a *capture* for: `1/18`, the AI's Transport Barge, is
+        // born on **5342** — inside this window, 88 frames before run63's
+        // opens — and this crate bore it two tiles closer to its
+        // destination, which is the whole of the "five frames ahead" run63
+        // measured at 5430. `docs/TRANSPORT.md` §6.1: the spot search's
+        // `(-1, -1)` form takes `find_unit_with_radius`, not the pairwise
+        // pair, and the pairwise pair was refusing the bearing the original
+        // takes because the caster stands three cells and four cells away.
+        let refs: Vec<&Initial> = vec![&sib_init];
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        // **The window, and not the shutdown block after it.** The file's
+        // last block is the quit dump — `GameInfo closing` is the next line
+        // — and its header is a frame ahead of the state it holds: the
+        // blocks run 5150…5399, then this one at 5401, and 5400 is never
+        // written. So every unit still walking reads one step behind in it,
+        // which is a property of the capture and not of the simulation.
+        let tail = report.frames.last().map_or(0, |f| f.frame);
+        assert_eq!(tail, 5401, "run59's last block is the shutdown dump");
+        assert!(
+            !report.frames.iter().any(|f| f.frame == 5400),
+            "…and 5400 is the frame it stands in for"
+        );
+        let parted: Vec<(i64, i64, i64)> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .filter(|&(_, _, f)| f < tail)
+            .collect();
+        let unit_frames: usize = report.frames.iter().map(|f| f.compared).sum();
+        eprintln!(
+            "run59: {unit_frames} unit-frames over {} frames, {} ever off position",
+            report.frames.len(),
+            parted.len()
+        );
+        assert!(
+            unit_frames > 5_000,
+            "run59's window is a UNITS=3 one — {unit_frames} points is a wrong file"
+        );
+        assert_eq!(
+            parted,
+            vec![],
+            "the census window stands where the original's does too"
+        );
     }
 
     /// One census's disagreements, folded: `(who, field, good)` to the
@@ -9929,16 +9979,19 @@ mod tests {
         for (&(who, o), &frame) in &parted {
             eprintln!("  {who}/{o} parts at {frame}");
         }
-        // **One unit parts before the word** — run58 ends at 5201 and
-        // nothing on disk had ever measured a frame between there and
-        // 5669. It is not a route: it holds the original's own order and
-        // walks the original's own line, a few frames out of step with it.
+        // **Nothing parts, on any frame of the window.** Both of the
+        // residues this capture opened with are closed, and each was a
+        // mechanic rather than a route:
         //
-        // - **`1/18` is five frames ahead**, from the window's first frame
-        //   — this crate's position on 5430 is the original's on 5435, the
-        //   same `MoveOrder` to `(20376, 21144)` at the same `myspeed 25`
-        //   along the same row. Something between 5202 and 5430 cost the
-        //   original five frames and cost this crate none.
+        // - ~~**`1/18` is five frames ahead.**~~ Closed 2026-09-02. It was
+        //   never five lost frames: the AI's Transport Barge is *born* on
+        //   5342, two tiles closer to its destination than the original's,
+        //   and stayed that far ahead for the rest of its life. The water
+        //   it is born on is `UnitType::find_nearby_spot`'s `(-1, -1)`
+        //   form, whose collision half is `find_unit_with_radius` and not
+        //   the pairwise pair — `docs/ORDERS.md` §10, `docs/TRANSPORT.md`
+        //   §6.1, and `run59_s_census_is_where_the_ai_s_timber_goes` is
+        //   where it was measured, 88 frames before this window opens.
         // - ~~**`1/17` turns three frames late.**~~ Closed 2026-09-02, and
         //   it was never the turn model: the original's boat is **faster**
         //   from 5552, because leader 1's second Fisherman settles on a
@@ -9950,8 +10003,8 @@ mod tests {
         //   later; the twenty-three frames it lost afterwards were East
         //   Indies' word.
         //
-        // Pinned as it stands rather than filtered out, so the day it
-        // moves the assertion moves with it.
+        // Pinned at empty, so the day anything parts here the assertion
+        // says which unit and on what frame.
         let early: Vec<(i64, i64, i64)> = parted
             .iter()
             .filter(|(_, f)| **f < LONG_WORD_EAST_INDIES)
@@ -9959,8 +10012,8 @@ mod tests {
             .collect();
         assert_eq!(
             early,
-            vec![(1, 18, 5430)],
-            "the window's one standing position residue"
+            vec![],
+            "the window stands where the original's does, on every frame"
         );
 
         // **The `SITE` record, whole.** Ten slots a leader a frame, five
@@ -10067,7 +10120,22 @@ mod tests {
     /// centre tile rather than whose centre is in the cell (`docs/AI.md`
     /// §26).
     ///
-    /// **5819** since 2026-09-02, and 5669 was a **whale**. The AI's
+    /// **6164** since 2026-09-02 — the sequence's frame; the count holds
+    /// one longer, to 6165 — and 5819 was the water a transport barge
+    /// is born on. `UnitType::find_nearby_spot`'s `(-1, -1)` form — the one
+    /// `Unit::do_cast` and `SpellType::cast_transport` ask for that water —
+    /// does **not** take the pairwise collision pair: `0061deb0` sets the
+    /// flag that selects it only when `not_o` and `not_who` are both
+    /// non-negative, so the sweep falls to `find_unit_with_radius`, whose
+    /// predicate is `vector_dist <= other.big_radius + r_coll` and whose
+    /// ordered sibling is skipped outright. The Chebyshev pair refused the
+    /// bearing the original takes — the caster itself, three cells and four
+    /// cells away, is inside `3 + 1` cells but 228 units from a reach of
+    /// 192 — so `1/18` was born two tiles closer to its destination and ran
+    /// ahead of the original for the rest of its life
+    /// (`docs/ORDERS.md` §10, `docs/TRANSPORT.md` §6.1).
+    ///
+    /// It was **5819** before that, and 5669 was a **whale**. The AI's
     /// second Fisherman settles on one on frame 5551; `Leader::calc_gather`
     /// step 6 walks the idle fishermen, lights the rare's bit in
     /// `rare_owned`, and `Leader::calc_unit_stats` hands every naval type
@@ -10090,7 +10158,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 5819;
+    const LONG_WORD_EAST_INDIES: i64 = 6164;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

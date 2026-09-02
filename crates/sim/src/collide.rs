@@ -624,19 +624,42 @@ impl Sim {
         self.chain_hit(u, at, |s, o| ucell(s.units[o].pos))
     }
 
-    /// The same two queries with **no unit behind them** — the shape
+    /// `ObjectsData::find_unit_with_radius(x, y, ·, -1, r_coll, ·,
+    /// FILTER_NOT_ME, -1, -1)@00659890` — the query
     /// `UnitType::find_nearby_spot` asks when its `not_o`/`not_who` are
-    /// `(-1, -1)`, which is `cast_transport`'s call for the water its barge
-    /// is born on (`docs/TRANSPORT.md` §6). Nothing is excluded, and the
-    /// block is the *type's*.
+    /// `(-1, -1)`, which is `do_cast`'s and `cast_transport`'s call for the
+    /// water a barge is born on (`docs/TRANSPORT.md` §6.1).
     ///
-    /// Only the non-land branch is offered: the caller is a boat's type,
-    /// and a land type with no unit behind it has no block of its own for
-    /// `collide_here`'s "my own cells are mine" exemption to name.
-    pub(crate) fn find_collision_for(&self, block_radius: i32, at: Pos) -> bool {
-        let size = block_radius / UNIT_BLOCK_RADIUS;
-        self.chain_hit_size(size, None, at, |s, o| ucell(s.units[o].pos))
-            || self.chain_hit_size(size, None, at, |s, o| ucell(s.units[o].orders_pos))
+    /// **It is not the pairwise pair.** `find_nearby_spot@0061de70`'s
+    /// `bVar17` — the flag that selects `Objects::find_collision` plus
+    /// `find_ordered_collision` — is set only when the filter is
+    /// `FILTER_NOT_ME`/`CAN_COLLIDE` **and both `not_o` and `not_who` are
+    /// non-negative** (`0061deb0`). The `(-1, -1)` form fails it, so the
+    /// sweep takes the general path instead: one radius query, and the
+    /// *ordered* variant beside it is skipped outright because its guard is
+    /// `not_who >= 0`.
+    ///
+    /// The predicate is a distance rather than a Chebyshev cell overlap:
+    /// a spot is taken when some **player's** live, on-map unit answers
+    /// `vector_dist(spot − it) <= its big_radius + r_coll`, where `r_coll`
+    /// is the asking *type's* own block (`UnitType +0x240`). Gaia is
+    /// invisible to it — the cell arm gates on `who < 8` and the whole-array
+    /// arm loops the eight players — as it is to the pairwise pair.
+    ///
+    /// The original picks between a disc of 768-unit blocks around the spot
+    /// and a walk of every player's object array, on whether the disc holds
+    /// fewer cells than the game has units; this takes the second, which
+    /// answers the same because the predicate's reach — a block plus a
+    /// block, under 400 units — never leaves the disc.
+    pub(crate) fn find_unit_with_radius(&self, r_coll: i32, at: Pos) -> bool {
+        (0..self.units.len()).any(|o| {
+            let u = &self.units[o];
+            u.owner < 8
+                && u.alive()
+                && u.on_map
+                && crate::world::vector_dist(at.x - u.pos.x, at.y - u.pos.y)
+                    <= self.profile(Obj::Unit(o)).big_radius + r_coll
+        })
     }
 
     /// `Objects::find_ordered_collision(x, y, o, who)@0065b440` — "is

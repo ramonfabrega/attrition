@@ -312,6 +312,51 @@ if I am in a group whose `+0x49` byte is clear, every other active member
 with `inside_up < 0` and a block is tested against its ordered position
 regardless of where it stands. §9 carries it.
 
+#### 5.2.1 The pair is not always the pair — `find_unit_with_radius` (2026-09-02)
+
+**The flag that selects the pairwise pair needs a real object behind it.**
+`find_nearby_spot@0061de70` sets its `bVar17` at `0061deb0` only when the
+filter is `FILTER_NOT_ME` or `FILTER_CAN_COLLIDE` **and** `not_o >= 0`
+**and** `not_who >= 0`. Every unit call site passes its own `(o, who)` —
+`Unit::find_nearby_spot@00617010` fills those two slots from `+0xa` and
+`+0x9` before it forwards — so the pair above is right for all of them.
+The two sites that do not are `Unit::do_cast` and
+`SpellType::cast_transport`, which ask the *type* for the water a
+transport barge is born on with `not_o = not_who = -1`
+(`docs/TRANSPORT.md` §6.1). They take the general path instead:
+
+**`ObjectsData::find_unit_with_radius(x, y, ·, -1, r_coll, ·, filter,
+not_o, not_who)@00659890`** — a **distance** test, not a cell overlap. For
+each live, on-map object of a **player** (`who < 8`, so gaia is invisible
+here too), with `r_coll` the asking type's own `+0x240`:
+
+- `vector_dist(cand − it) <= its big_radius` → found, returned at once;
+- otherwise `vector_dist − its big_radius <= r_coll` → found, and the
+  nearest such is the one returned.
+
+The two clauses are one predicate: **a spot is taken when some player's
+unit is within `its big_radius + r_coll` of it**, by the engine's own
+octagonal `vector_dist`. Its ordered sibling
+(`find_unit_ordered_with_radius@00658ef0`) is guarded by `not_who >= 0` in
+the caller, so the `(-1, -1)` form never asks it at all — a spot another
+unit is only *walking* to is free for a barge.
+
+The original picks between a disc of 768-unit blocks around the candidate
+and a walk of all eight players' object arrays, on whether the disc holds
+fewer cells than the game has units. The two answer the same here: the
+predicate's reach is a block plus a block, under 400 units, and never
+leaves the disc. `Sim::find_unit_with_radius` takes the second.
+
+**What it cost.** For a Transport Barge (`BLOCK_RADIUS 3`, so `r_coll =
+144`) cast by a scout (`BLOCK_RADIUS 1`, `big_radius = 48`) the reach is
+**192** and the caster is 228 units from the bearing the original takes —
+free. The Chebyshev pair reads the same pair as `3 + 1` cells against
+offsets of 3 and 4 and refuses it. That one refusal moved the AI's barge
+two tiles along its own route at birth, and it stayed there: East Indies'
+long word was **5819** with the pairwise pair and **6164** with the radius
+one (and its draw *count* holds to 6165) (`run59_s_census_is_where_the_ai_s_timber_goes`,
+`run63_s_window_is_where_the_ai_s_colony_site_appears`).
+
 ## 6. `Unit::resolve_unit_collision`
 
 In order, with the first that fires winning:

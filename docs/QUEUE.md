@@ -12,35 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — the opener's item, and it was two other items.* **East
-Indies 5669 → 5819**; Great Lakes unchanged at 2419.
+*2026-09-02, Opus — the booked capture was already on disk.* **East Indies
+5819 → 6164**; Great Lakes unchanged at 2419.
 
-- **The 175 `think_fish` draws were never a `think_fish` bug.** They are the
-  AI's third Fisherman arriving on 5668 and searching; this crate's arrived
-  on 5691. `UNITDATA myspeed` says why: on 5552 all three of leader 1's
-  Fishermen go **38 → 45** and its barge **25 → 30**, its land units none.
-- **`Unit::update_speed`'s one rare arm is Whales**, `WHALES_SHIPS_MOVE 20%`
-  on an objmask `0x2000` type. `1/16` takes `rare 31` on 5552, and the
-  writer is `Leader::calc_gather` **step 6** — the idle fisherman/merchant
-  walk `holdings.rs` had as not modelled. Item 165 was the same step from
-  the other side: `160` food and `160` wealth is `10 × 16` twice, and `10`
-  is Fish's two `BONUS_NUM`s in `resourcerules.xml`.
-- **The piece that nearly did not land**: `Unit::check_idle`'s tail latches
-  the first idle frame and marks a **fisherman's** owner's economy dirty —
-  the 512-frame refresh becomes 8, and the whale lands on 5551 rather than
-  130 frames later. `holdings.rs` had that writer as peasant/scholar/merchant.
-- run59's census: **3,500 → 1,500** wrong good-frames of 18,000, the rest
-  item 156. run63's position residues: two → one.
+- **`1/18` was never five frames late; it was born in the wrong water.**
+  run59's census covers `[5150, 5400)` at `UNITS=3` and nothing had ever
+  compared a position in it. One `track.py` said the AI's Transport Barge
+  first exists on **5342**, at `(33551, 21378)` there and `(33456, 21424)`
+  here — a birth cell two tiles along its own route, not five lost frames.
+- **`find_nearby_spot`'s collision half depends on `not_o`/`not_who`.**
+  `0061deb0` selects the pairwise pair only when both are non-negative.
+  `do_cast` and `cast_transport` pass `(-1, -1)` and get
+  `find_unit_with_radius` — `vector_dist <= other.big_radius + r_coll` —
+  with the *ordered* sibling skipped outright. Reach 192, caster at 228:
+  free there, refused by a Chebyshev `3 + 1` cells here.
+- run63's window is now **6,775 unit-frames with nothing ever off point**,
+  and run59's 5,959 are asserted beside its goods. run59's last block is
+  the quit dump, headed 5401 over 5400's state; the test names it.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w5819 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6164 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `East Indies' next cause is 1/18, the AI's Transport
-Barge: at 5819 this crate ejects its passengers (Unit::come_out+0x25ca <
-Object::eject_contents+0x292) and the original does it on 5823. run63 has
-1/18 running ahead on the same order and the same row from 5430; what cost
-the original those frames is in (5202, 5430), which nothing on disk
-measures.`
+**Opener (Opus):** `East Indies' next cause is a Caravan's figures. On 6164
+the original spends three `Guy::init_real+0x52 < Unit::init+0xb97` and this
+crate spends one, and on 6165 it spends the two `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d` the missing figures owe. `Unit::init@00612100:531` loops
+to `guys.field_0x4` — the stack's own length, filled earlier in the same
+function — while `guy_mark` is `UnitTypeData +0x304`, which `load.rs` reads
+as the literal 1 for every type and the dump prints as 1 on all 128 units of
+run59's window. `anim.rs:623` hardcodes `let count = 1usize`. Find where the
+stack is sized, and which `unitrules.xml` column feeds it.`
 
 ## The queue
 
@@ -49,14 +50,15 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-171. **`1/18` runs ahead, and it is the word.** The AI's Transport Barge
-    ejects its passengers on 5819 here and 5823 there
-    (`Unit::come_out+0x25ca < Object::eject_contents+0x292 <
-    Unit::set_new_location+0x2b7`, run54's trace), and run63 has it ahead of
-    the original on the same `MoveOrder` and the same row from the window's
-    first frame. The cause is in **(5202, 5430)**, which nothing on disk
-    measures — run58 ends at 5201 and run63 opens at 5430. A `LEADERS=9`
-    window over that gap is the capture; grep the disk first.
+173. **A unit's figures are not always one, and the Caravan is the word.**
+    `Unit::init`'s guy loop runs to `guys.field_0x4` and `anim.rs` runs to
+    a hardcoded 1, so every unit here has a single figure. run54 frame 6164
+    is the first place that costs the stream: three `Guy::init_real` draws
+    against one, and two `Unit::do_idle` `set_anim` draws on 6165 behind
+    them. `guy_mark` (`UnitTypeData +0x304`) is in every `UNITDATA` block
+    and is 1 on all 128 units run59 dumps — the multi-figure types are all
+    military, and no capture has one yet. ANIM, and item 87's ledger takes
+    `guy_mark` with it.
 
 169. **`compute_site_stats`' arithmetic, on 7,122 of run63's 27,000 site
     fields.** Four of leader 1's sites predate the window: `(45, 52)` scores

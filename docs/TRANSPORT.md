@@ -430,7 +430,18 @@ row is empty of `FLAGS`, `COST`, `COST2` and `MANA`, and its `JOB_TIME` is
    ..UnitData+0xe8`), so a scout and its dog spend two;
 3. still on that frame, `find_nearby_spot` on `unittypes[TRANSPORTBARGE]`
    within `constants.unit_board_distance` (`UNIT_BOARD_DISTANCE`, `3/1
-   tile` = 576) — nothing → `kill_current_order`;
+   tile` = 576) — nothing → `kill_current_order`. Both this call and
+   `cast_transport`'s pass `FILTER_NOT_ME` with `not_o = not_who = -1`, and
+   **that pair is what decides which collision test the sweep makes**: the
+   pairwise `find_collision`/`find_ordered_collision` needs both to be
+   non-negative, so these two sites take `find_unit_with_radius` instead —
+   reject iff `vector_dist(spot − it) <= its big_radius + r_coll`, with
+   `r_coll` the barge type's own `+0x240` — and never ask the ordered
+   variant at all (`docs/COLLISION.md` §5.2.1). Reading it as the pairwise
+   pair puts the barge's birth cell two tiles wrong, because a Chebyshev
+   `3 + 1` cells refuses the caster at offsets the 192-unit reach clears;
+   run59's frame 5342 is where that was measured, and East Indies' long
+   word went 5819 → **6164** when it was put right;
 4. `spell_time += 1`; below `get_job_time` it returns and waits. Transport's
    is 0, so it casts on its first frame;
 5. `SpellType::cast`, whose `is_castable@00675bc0` for `0x28a` is
@@ -987,7 +998,8 @@ day, `think_peasant`'s colonist arm (`orders.rs`), which is what gives the
 `colonise = 1` half a live writer. Around them:
 `collide.rs::shore_step` is `set_new_location`'s conversion,
 `orders.rs` carries a `CAST_SPELL` order and
-`find_nearby_spot_type` (the `(not_o, not_who) = (-1, -1)` form),
+`find_nearby_spot_type` (the `(not_o, not_who) = (-1, -1)` form, whose
+collision half is `collide.rs::find_unit_with_radius` since 2026-09-02),
 `path.rs` has `invalid_loc`'s three domain arms, `calc_cost`'s live
 embark tail and `find_wpath`'s pull-back gate, `world.rs` has
 `coast_here`, `num_waterhalf`, `Region.scouted` and `Region.flags`, and
@@ -1032,7 +1044,16 @@ Checks, cheapest first:
    barge takes its own turn on the frame it is born and its guy is already
    walking when the clocks are stepped.
 
-5. **run57's 3581, on disk**: `1/11`'s colonist dispatch — the group, the
+5. **run59's 5342, on disk** (2026-09-02,
+   `rondata::diff::tests::run59_s_census…`): the barge `1/18` is born on
+   the frame the original bears it and on the original's own cell, and the
+   census window's 5,959 unit-frames all stand where the original's do.
+   The capture had carried those positions for a day with nothing
+   comparing them — the census read six goods a leader and left the rest
+   of the file alone — and the widening is what found step 3's predicate.
+   run63's window then stands whole too, 6,775 unit-frames with nothing
+   ever off point.
+6. **run57's 3581, on disk**: `1/11`'s colonist dispatch — the group, the
    `MOVE_TO` to cell (50, 31)'s centre, and the twenty-four-leg path —
    which is what §7's `colonise = 1` half is now checked by. With it East
    Indies' word is **3978**, and run57's four thousand frames have four
