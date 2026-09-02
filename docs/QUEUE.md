@@ -36,10 +36,10 @@ five frames.
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w4950 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 4950 and item 149 holds it: the
-fish search runs twice. Both sides spend 161 `Unit::think_fish+0x27a` on
-4948; on 4950 this crate spends 165 more and the original spends none,
-opening the frame with `Animal::do_idle`'s coin instead.`
+**Opener (Opus):** `East Indies' word is 4950 and item 149 holds it, cause
+already named: `transport.rs`'s `do_cast` kills the Fisherman's unpack
+spell the frame after `think_fish` queues it, so the boat is idle and
+still packed on 4950 and searches its 17 x 17 a second time.`
 
 ## The queue
 
@@ -48,13 +48,13 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-149. **The AI Fisherman searches its fish twice.** Both sides spend 161
-    `Unit::think_fish+0x27a` on 4948 — one draw an accepted cell (ORDERS
-    §6.8) — and on **4950** this crate spends 165 more where the original
-    spends none. So either the original's boat is no longer idle there
-    (`think_fish` is reached from `Unit::think < do_idle`) or its re-check
-    gate is longer than `fish.rs`'s `RECHECK_PERIOD`; the four extra draws
-    say the second search also starts somewhere else.
+149. **The unpack cast dies on the frame after it is queued.**
+    `transport.rs`'s `do_cast` kills every spell but `0x28a`, so the
+    Fisherman's `0x292` never runs; the boat is idle again on **4950**,
+    still packed, and searches the 17 × 17 twice — 165 draws to none.
+    Owed: the spell table (`SpellTypeData::get_job_time@00675800`, the
+    record's own field for `0x292`), the order surviving it, and what
+    `SpellType::cast` does. ORDERS §6.8; run58's `1/14` casts on 4948.
 
 146. **The other nine national arms of `train_time`.** `006508c0` runs a
     fixed order after the ramp — handicap, The President, Mongol stable,

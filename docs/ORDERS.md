@@ -2071,9 +2071,18 @@ than two.
   **no draw** there either way, so nothing on disk separates the two
   answers. *Capture:* a run long enough for a deployed Fisherman to be idle
   across two of its 1,024-frame marks, with `UNITS` detail on it.
-- **What the cast does.** `SpellType::cast` for `0x292` is not modelled:
-  run58's `1/14` casts on 4948 and is unpacked by 4989, and this crate
-  queues the order and nothing steps it. Forty frames.
+- **What the cast does**, and it is the word (item 149, 2026-09-01).
+  `SpellType::cast` for `0x292` is not modelled, and worse: `do_cast`
+  (`transport.rs`) `kill_current_order`s **every** spell but `0x28a`, so
+  the Fisherman's unpack dies on the frame after it is queued. The boat is
+  therefore idle again two frames later and — still packed, so the
+  1,024-frame gate does not hold it — runs the whole 17 × 17 search a
+  second time: East Indies' word parts at **4950**, where this crate spends
+  165 `think_fish` draws and the original spends none. The original keeps
+  the order for `SpellTypeData::get_job_time@00675800`, which for `0x292`
+  is the record's own field with none of its adjustments applying; the
+  spell table is not in the data layer at all. run58's `1/14` casts on 4948
+  and is unpacked by 4989.
 - **The chain, whole.** `find_good_at` walks the cell's object chain in the
   original; here the terminator is a field, which is exact only because
   `Objects::init_good` is the only writer of one (`docs/COLLISION.md` §3

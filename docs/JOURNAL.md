@@ -11850,6 +11850,15 @@ asks for an animation it lacks is that one boat. The new boundary is the fish
 search: both sides spend 161 `Unit::think_fish+0x27a` on frame 4948, and on
 4950 this crate spends 165 more where the original spends none (item 149).
 
+**And the new boundary was diagnosed while the context was warm**, which
+belongs to item 149 rather than to this one: `transport.rs`'s `do_cast`
+`kill_current_order`s every spell but the transport craft's `0x28a`, so the
+Fisherman's `0x292` unpack dies the frame after `think_fish` queues it. The
+boat is idle again on 4950 and — still packed, so `think_fish`'s
+1,024-frame gate does not hold it — searches its 17 × 17 a second time. The
+original keeps the order for `SpellTypeData::get_job_time@00675800`, and
+the spell table is not in the data layer at all.
+
 `docs/ANIM.md` §4 was over the guard's section ceiling by the time §4.8 was
 written, so §§4.6–4.8 now sit under a heading of their own. They keep their
 numbers — the code cites them — and the split is what the guard asks for: the
