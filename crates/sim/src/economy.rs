@@ -200,6 +200,10 @@ pub struct City {
     pub temple: bool,
     pub university: bool,
     pub library: bool,
+    /// `CityData::trade_val` (+0x52) — what the trade routes ending here
+    /// pay, already in sixteenths, and `calc_city_resources`' very first
+    /// line (`docs/CARAVAN.md` §7.2).
+    pub trade_val: i32,
     pub sites: Vec<Site>,
 }
 
@@ -420,14 +424,15 @@ pub fn per_gatherer(t: &Tuning, r: Resource, level: i32) -> i32 {
 
 /// What one city contributes, in sixteenths — `LeaderData::calc_city_resources`.
 ///
-/// One term of the original's is missing: its very first line adds the city's
-/// `trade_val` (`CityData + 0x52`) to wealth, which is where **caravan income
-/// arrives** — recomputed by `City::compute_trade` when a route starts or ends
-/// rather than every recompute. Trade routes are not modelled yet; see
-/// `docs/ECONOMY.md`. The Forbidden City's percentage and the CEO hero's are
-/// missing for the same reason the rest of the wonder layer is.
+/// The very first line is the city's `trade_val` (`CityData + 0x52`), which
+/// is where **caravan income arrives**: `City::compute_trade` recomputes it
+/// when a route starts, ends or first delivers rather than on every
+/// recompute, and it is already in sixteenths (`docs/CARAVAN.md` §7.2). The
+/// Forbidden City's percentage and the CEO hero's are still missing, for the
+/// same reason the rest of the wonder layer is.
 pub fn city_rates(t: &Tuning, city: &City) -> [i32; RESOURCES] {
     let mut out = [0; RESOURCES];
+    out[Resource::Wealth.index()] += city.trade_val;
 
     // The gathering buildings. The enhancer scales the *per-gatherer* rate and
     // truncates there, before the multiply by how many are working — so a

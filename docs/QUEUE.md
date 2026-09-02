@@ -12,35 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — the map has no danger on it.* **East Indies 6189 →
-6198**; Great Lakes 2419. Items 177(a) and **136** closed together:
-177(a) *was* 136.
+*2026-09-02, Opus — a caravan walks its road, and the road was never
+laid.* **East Indies 6198 → 6207**; Great Lakes 2419. Item **177 closed
+whole**; CARAVAN is now §5.3, §7, §7.1–§7.3 and §8.
 
-- **The walk was a cost function.** `add_move_order` writes no waypoint;
-  `find_wpath` did, because `calc_cost`'s world arm was missing
-  `danger[who][half-cell] / 8` — 65 to 135 **negative** around a leader's
-  own city, so eight steps were 8–16 too dear. DANGER §6.
-- **The trace and the dump named it, not a reading**: run64's proxied
-  `calc_cost` gave the eleven wrong prices, their deltas grouped by
-  *half-cell*, and `log_data` has printed the whole map all along.
-- **`calc_danger`, every 200th frame**: buildings write for every viewer
-  *including the owner*, which is what makes it negative. DANGER §3–§5.
-- **Nothing installed `diplos`** — every capture ran at peace where the
-  dump says war, 46 readers of `is_enemy` answering wrong. Installed.
-- **Two new diffs**: the map whole (7,200 values) and the 47 prices of the
-  search it broke. run64's window is whole, 34 pinned fields → 0.
+- **The word's frame was one instruction.** `do_trade`'s *first*, at
+  `+0x40`: `set_anim(CHAR_DEFAULT, 0, 1)`, ahead of every return. Silent
+  while the unit walks, so it marks **arrivals** — a leg queues
+  `QUEUE_FIRST` and `do_trade` never runs under one.
+- **`build_road`'s road is a `Stack<PathData>`**, world units with a
+  tolerance and a flag byte — this crate kept *tiles*, so `set_road_at`
+  ran 30,000 tiles off the map and **no trade road had ever been laid**.
+  The `CARAVAN` record prints the whole stack and nothing compared it;
+  26 nodes, right first run (item 87's widening ledger).
+- **The legs** (§7): shuttle, `loaded`, `caravan_flags & 4`, `trade_val`
+  into wealth, `new_caravan`'s one-off. The walk is the route's own stack,
+  displaced a third of a step **perpendicular** — the listing, not the
+  decompiler, says `x / −3`. Two probes came with it:
+  `RON_DEBUG_SITES=<lo>-<hi>` and `RON_DEBUG_UNIT=<who>/<o>@<lo>-<hi>`.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6198 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6207 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `Item 177's second half is the word: 6198 is
-`Unit::do_trade+0x40`, three `Guy::set_anim` draws over the caravan's three
-figures as it **arrives** at the near city — one through
-`Unit::set_anim+0x56` and two through `+0xb6`. Nothing past the road is
-modelled at all (CARAVAN §7), so this is a mechanic rather than a residue:
-read `do_trade` past its `build_road` arm and `Unit::work`'s §6 block, and
-give the arrival its `set_anim`. run64's window and run54's 24,000 frames
-are on disk; CARAVAN §7 names what a *new* capture would have to hold.`
+**Opener (Opus):** `6207 is the caravan's turn out of its own city, two
+frames: the original stands at home from 6197 and walks on 6208 where this
+crate walks on 6206 — one wrap of the crew's three-frame packets. The route
+is right (it reaches the far city within a dozen frames of the original's
+next `do_trade` at 6511), so what is out is the turn, or the detour
+`do_move` plans around the footprint. **Nothing on disk covers 6198–6210**:
+book run54's game with `DUMP_ALL` on `[6196, 6212)` and read the unit's
+position, path and clocks. Item 179; `RON_DEBUG_UNIT=1/18@6196-6212`.`
 
 ## The queue
 
@@ -49,13 +50,13 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-177. **The caravan's legs, and its wealth** — (a) closed, and it was
-    item 136. What is left is the arrival and everything past it:
-    `Unit::do_trade+0x40`'s three `set_anim` draws (the word, 6198),
-    `TradeOrder +0x20 loaded`, the trade income (`docs/ECONOMY.md`'s
-    `trade_val`), and what a fallen city does to a route. CARAVAN §7 lists
-    what a capture would have to hold to separate the destination loop's
-    arms — three cities of one leader.
+179. **The caravan's turn out of its city, and the two frames it is
+    out.** The word, 6207. Book the capture: run54's game, `DUMP_ALL` on
+    `[6196, 6212)`, nothing on disk covers it. CARAVAN §8. Takes with it
+    §7's unreached arithmetic — the arrival box, `compute_trade`'s
+    `× 16 / 2` and `new_caravan`'s `(epoch[1] + 1) · 10` all fire around
+    6511 and 6766, and a `LEADERS=9` census over `[6760, 6790)` is what
+    would assert them.
 
 169. **`compute_site_stats`' arithmetic, on 7,122 of run63's 27,000 site
     fields.** `(45, 52)` scores twice the original's, `(44, 52)` four

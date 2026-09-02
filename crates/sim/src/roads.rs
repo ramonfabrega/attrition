@@ -29,7 +29,7 @@
 
 use crate::ai_place::{MOVE_X, MOVE_Y};
 use crate::build::{self, Ident, flags};
-use crate::world::{Cell, Owner, Pos, UNITS_PER_TILE, cell, tile, vector_dist};
+use crate::world::{Cell, Owner, Pos, UNITS_PER_TILE, World, cell, tile, vector_dist};
 use crate::{Player, Sim};
 use std::cmp::Reverse;
 use std::collections::BTreeMap;
@@ -429,7 +429,7 @@ impl Sim {
                 st.open_by_metric.remove(&cur.metric);
             }
             if (cur.x - goal.x).abs() + (cur.y - goal.y).abs() < 1 {
-                return RoadPlan::Road(reconstruct(&st.nodes, cur_id));
+                return RoadPlan::Road(reconstruct(&self.world, &st.nodes, cur_id));
             }
             if traversed >= WORK_CAP {
                 // The budget. A **caravan's** popped node goes back on the
@@ -743,7 +743,14 @@ fn centre_of(t: Pos) -> Pos {
 /// The walk back up the parent chain. The original starts at the arrived
 /// node's **parent** and stops before the root, so neither endpoint's own
 /// tile is laid — the ring already covers those.
-fn reconstruct(nodes: &[Node], end: u32) -> Vec<Pos> {
+///
+/// **A blocked tile never enters the stack** (`astar_caravan_road@00685990`
+/// `+0x996`: `mask & 0x4000` skips the push). It made no difference while
+/// the answer was only ever laid — `place_roads` refuses a blocked tile on
+/// the way out — but a caravan *walks* its own road, and a waypoint it
+/// cannot stand on is not the same thing as one that simply carries no
+/// tarmac (`docs/CARAVAN.md` §5.3).
+fn reconstruct(world: &World, nodes: &[Node], end: u32) -> Vec<Pos> {
     let mut out = Vec::new();
     let mut cur = nodes[end as usize].parent;
     while let Some(id) = cur {
@@ -751,7 +758,10 @@ fn reconstruct(nodes: &[Node], end: u32) -> Vec<Pos> {
         if n.parent.is_none() {
             break;
         }
-        out.push(Pos::new(n.x, n.y));
+        let p = Pos::new(n.x, n.y);
+        if world.tile_mask(p.tile()) & tile::BLOCKED == 0 {
+            out.push(p);
+        }
         cur = n.parent;
     }
     out

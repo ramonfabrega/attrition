@@ -464,7 +464,7 @@ measurement: the AI's three farms had moved **182 tiles of height** that
 the original leaves exactly where the map generator put them, and one of
 those tiles — a nine-unit climb, priced `× 3` — was where East Indies'
 caravan road parted from the original on frame 6168
-(`docs/CARAVAN.md` §7). §7.1 had concluded the opposite, from the one experiment available to
+(`docs/CARAVAN.md` §8). §7.1 had concluded the opposite, from the one experiment available to
 it — run32's frame-104 heights make the Granary's search cost 967 — and the
 experiment was right about its own grid and wrong about the mechanic: frame
 104 carries **both** footprints' terraforms plus the four scheduled replans

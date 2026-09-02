@@ -1579,7 +1579,7 @@ fn orders_of(b: &Block<'_>) -> Vec<OrderDump> {
 /// `length/size/increment` are flat lines on `UNITDATA` itself. An empty
 /// stack writes its `BEGIN` and nothing under it, which reads back as no
 /// `PATHDATA` children.
-fn path_of(b: &Block<'_>) -> Vec<PathDump> {
+pub fn path_of(b: &Block<'_>) -> Vec<PathDump> {
     let Some(stack) = b.kid("STACK<TYPE>") else {
         return Vec::new();
     };

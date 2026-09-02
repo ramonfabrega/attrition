@@ -164,6 +164,17 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005e_cc69), // `Unit::do_cast+0xc89`, through `Unit::set_anim`
         sim::anim::SITE_CAST,
     ),
+    // `Unit::do_trade@005ed270+0x40` — the trade step's own opening
+    // `set_anim(CHAR_DEFAULT, 0, 1)`. The frame between it and
+    // `Guy::set_anim` is `Unit::set_anim`, at `+0x56` for the guys below
+    // `field_0xb5` and `+0xb6` for the crew above `type+0x304`, so the
+    // *caller* is the disambiguator and not the intermediate frame: run54's
+    // 6198 is one draw through the first and two through the second.
+    (
+        0x005d_ac7a,
+        Some(0x005e_d2b0), // `Unit::do_trade+0x40`, through `Unit::set_anim`
+        sim::anim::SITE_TRADE,
+    ),
     // `Guy::init_real@005db6b0` — the creation roll.
     (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
     // `Dock::init@00740a80+0x125` — a finished dock's gull, the second of

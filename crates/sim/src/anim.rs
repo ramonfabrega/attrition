@@ -129,6 +129,15 @@ pub const SITE_TURN_STAND: &str =
 /// a figure** (`docs/TRANSPORT.md` §6).
 pub const SITE_CAST: &str = "Guy::set_anim+0x97a < do_cast";
 
+/// `Guy::set_anim+0x97a` under `Unit::do_trade+0x40` — the caravan's own
+/// `set_anim(CHAR_DEFAULT, 0, 1)`, the **first instruction of the trade
+/// order's step**, ahead of every one of its returns. It is silent while
+/// the unit is walking (a walk category whose body has not arrived returns
+/// without a roll), so the site only appears on the frames the caravan is
+/// standing at one of its two cities — which is what makes it the arrival's
+/// own mark (`docs/CARAVAN.md` §7.1).
+pub const SITE_TRADE: &str = "Guy::set_anim+0x97a < do_trade";
+
 /// `Guy::init_real@005db6b0`'s variant roll, one per guy created.
 pub const SITE_INIT_REAL: &str = "Guy::init_real+0x52";
 

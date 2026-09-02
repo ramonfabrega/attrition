@@ -226,6 +226,10 @@ impl Sim {
         // the head of the chain, so it counts.
         out.buildings = i32::try_from(chain.len()).unwrap_or(i32::MAX);
 
+        // The caravan income the city already carries — a field, not a
+        // survey: `City::compute_trade` writes it when a route changes.
+        out.trade_val = self.cities[c].trade_val;
+
         // `CityData::get_taxes` and `get_literacy`, which are
         // `count_buildings(MARKET | TEMPLE)` and
         // `count_buildings(UNIVERSITY | LIBRARY)`.

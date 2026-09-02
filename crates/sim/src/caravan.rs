@@ -1,7 +1,7 @@
 //! Trade routes — the `Caravan` object a caravan unit owns, and the road it
 //! plans between two cities.
 //!
-//! `docs/CARAVAN.md`. The mechanic is one object and four callers:
+//! `docs/CARAVAN.md`. The mechanic is one object and five callers:
 //!
 //! 1. **Birth** (§2). `Unit::init` gives every **land** caravan a slot in its
 //!    leader's twenty-slot `Caravans` list; the unit remembers the slot and
@@ -17,14 +17,19 @@
 //!    larger, and the right to **stop at the budget and carry on next
 //!    frame**. A plan that stops is parked in the `Caravan`; `Unit::work`
 //!    calls `build_road` again on every later frame until it finishes.
+//!    What it leaves behind is a stack of world-unit waypoints, not a list
+//!    of tiles (§5.3), and that stack is the route.
+//! 5. **The legs** (§7). `do_trade`'s tail copies the route's stack onto the
+//!    unit, offsets it a third of a step sideways, and issues a `pathed`
+//!    move to its far end — then inverts the route so the next leg reads
+//!    the other way. The caravan shuttles: it loads at the far city,
+//!    unloads at the home one, and the round trip is what makes the route
+//!    worth anything (§7.2).
 //!
-//! The **legs** — the walk between the two cities, the cargo, the wealth a
-//! completed trip pays — are not modelled. What is here is what the stream
-//! sees: a trade route between two of East Indies' cities costs 12,965 road
-//! draws over five frames, and until 2026-09-02 this crate spent none of
-//! them.
+//! A trade route between two of East Indies' cities costs 12,965 road draws
+//! over five frames, and until 2026-09-02 this crate spent none of them.
 
-use crate::orders::{Body, QueuePos, TradeOrder, flag, index};
+use crate::orders::{Body, PathData, QueuePos, TradeOrder, flag, index, path_flag};
 use crate::roads::{RoadPlan, RoadSearch};
 use crate::world::Pos;
 use crate::{Player, Sim};
@@ -39,8 +44,14 @@ pub struct Caravan {
     /// `caravan_flags & 1`: the slot is in use.
     pub alive: bool,
     /// `caravan_flags & 2`: `do_trade` has written the pair. `Unit::work`'s
-    /// gate is `& 6`, and `& 4` is `restart_trade_route`'s — unset here.
+    /// gate is `& 6`.
     pub linked: bool,
+    /// `caravan_flags & 4`: the route has completed a round trip — written
+    /// where the caravan unloads at the **home** city, and the bit
+    /// `City::compute_trade` counts, so a route that has not returned once
+    /// is worth nothing (§7). `Caravan::restart_trade_route@0073d070` is
+    /// its other writer and no traced game enters it.
+    pub delivered: bool,
     /// `city2`/`whom` (+0x0, +0x2) — the **home** city, and the search's
     /// start.
     pub city_a: Option<usize>,
@@ -48,8 +59,11 @@ pub struct Caravan {
     pub city_b: Option<usize>,
     /// `o` (+0xa) — the caravan unit.
     pub unit: Option<usize>,
-    /// `road` (+0x10): the plan, near-goal end first.
-    pub road: Vec<Pos>,
+    /// `road` (+0x10): the plan as `Stack<PathData>` — **world** positions,
+    /// near-goal end at index 0, which is the stack's own bottom. Its
+    /// tolerances and flags are `build_road`'s, not the search's (§5.3), and
+    /// it is what the legs walk (§7.1).
+    pub road: Vec<PathData>,
     /// `making_road` (+0x20): a search is parked and wants another frame.
     pub making_road: bool,
     /// `reset_road` (+0x24): somebody else's road changed the map, so throw
@@ -237,6 +251,7 @@ impl Sim {
                 home,
                 dest: None,
                 started: false,
+                loaded: false,
             }),
         };
         self.enqueue_order(u, order, QueuePos::New);
@@ -247,12 +262,18 @@ impl Sim {
     // ------------------------------------------------------------------
 
     /// The order's own step. While a road is being planned the function
-    /// returns at its head, which is why the retry lives in `Unit::work`.
-    ///
-    /// SEAM: everything past the road — the legs between the two cities, the
-    /// cargo, the wealth a completed trip pays — is unmodelled, so a caravan
-    /// whose road is laid stands still. `docs/CARAVAN.md` §7.
+    /// returns at its head, which is why the retry lives in `Unit::work`;
+    /// once one is laid, every later call is an **arrival** (§7).
     pub(crate) fn do_trade(&mut self, u: usize) {
+        // **The first instruction of the step**, ahead of the caravan-slot
+        // test and every one of the returns below: `do_trade@005ed270+0x40`
+        // is the return address of `Unit::set_anim(CHAR_DEFAULT, 0, 1)`.
+        // It draws nothing while the caravan is walking — a walk-category
+        // guy whose body has not arrived leaves `Guy::set_anim` without a
+        // roll — so its draws are the frames the unit is *standing* at a
+        // city, which is why run54's word parted at 6198 and not at 6166.
+        self.mark(crate::anim::SITE_TRADE);
+        self.set_default_anim(u);
         let Some(v) = self.units[u].caravan else {
             return;
         };
@@ -278,10 +299,11 @@ impl Sim {
             ord.dest = Some(dest);
             self.set_trade_order(u, ord);
         }
+        let Some(dest) = ord.dest else { return };
         if ord.started {
+            self.trade_legs(u, v, ord);
             return;
         }
-        let Some(dest) = ord.dest else { return };
         // The nearer city becomes the route's `city2` — the search's start —
         // and the further its `city3`.
         let here = self.units[u].pos;
@@ -313,20 +335,267 @@ impl Sim {
         // walking animation, and their clocks are two of run54's frame
         // 6169 draws (`docs/CARAVAN.md` §4.1).
         //
-        // SEAM: the original's arrival facing is `find_angle(1, 0)` — the
-        // literal `1, 0` it passes where `add_move_order` reads a
-        // direction — where this crate's adder takes the bearing to the
-        // destination. Nothing reads it until the unit arrives.
+        // **The facing is the literal pair, not a bearing.**
+        // `Unit::add_move_order@00616ed0` opens with
+        // `find_angle(param_3, param_4)` — the two arguments that are the
+        // *order kind* and the pathed flag, not a direction — so every
+        // caller's arrival angle is a constant. `do_trade`'s failure arm
+        // passes `(1, 0)`, which is due east; its leg passes `(1, 1)`.
         if self.caravan_build_road(who, v) < 0 {
             let to = self.cities[a].pos;
-            self.add_move_order(
+            self.add_move_facing_order(
                 u,
                 to,
                 crate::orders::MoveKind::MoveTo,
                 QueuePos::First,
                 false,
+                crate::movement::find_angle(1, 0),
+                None,
+                false,
             );
+            return;
         }
+        self.trade_legs(u, v, ord);
+    }
+
+    // ------------------------------------------------------------------
+    // §7 — the legs, `do_trade@005ed270+0xae6` and `+0xdaa`
+    // ------------------------------------------------------------------
+
+    /// The tail of `do_trade`, reached on the frame the route is
+    /// established and on every later frame the order is current again —
+    /// which is every frame the caravan **arrives**, because the move a leg
+    /// queues goes in with `QUEUE_FIRST` and `do_trade` does not run under
+    /// it.
+    ///
+    /// Two halves. The first is the arrival test, made against **one** of
+    /// the two cities — the far one while the caravan is empty and the home
+    /// one while it is carrying — and it is what turns `loaded` over, marks
+    /// the route as having delivered, and pays. The second is the leg
+    /// itself (§7.1).
+    fn trade_legs(&mut self, u: usize, v: usize, mut ord: TradeOrder) {
+        let who = self.units[u].owner;
+        let home = ord.home;
+        let Some(dest) = ord.dest else { return };
+        // The preamble's refusals: both ends are still cities, and alive.
+        //
+        // SEAM: the original re-reads each end through its **object** and
+        // checks `is_active_wallbuild` and the vtable's own "am I a city",
+        // which is how a route survives its city being replaced in the
+        // slot; this crate holds the city index and asks the city.
+        if !self.cities[home].alive || !self.cities[dest].alive {
+            self.kill_current_order(u);
+            if self.current_order(u).is_none() {
+                self.think_caravan(u);
+            }
+            return;
+        }
+        let target = if ord.loaded { home } else { dest };
+        let span = self.city_span(target);
+        let here = self.units[u].pos;
+        let c = self.cities[target].pos;
+        if (here.x - c.x).abs() <= span + 0x306 && (here.y - c.y).abs() <= span + 0x306 {
+            ord.loaded = !ord.loaded;
+            self.set_trade_order(u, ord);
+            // `unit_masks |= 0x200` goes with the unload, and nothing in
+            // the export reads the bit back — `do_trade` is its only
+            // mention — so it is not modelled.
+            //
+            // A **decoy** does none of the rest: `unit_masks & 1`.
+            if !self.units[u].decoy {
+                if ord.loaded {
+                    self.city_new_caravan(dest, self.cities[home].owner, home);
+                } else {
+                    // The home city is where a round trip closes, and the
+                    // only place `caravan_flags & 4` is written — which is
+                    // the bit `City::compute_trade` counts, so a route pays
+                    // nothing at all until its first full return.
+                    self.caravans[who as usize].slots[v].delivered = true;
+                    self.compute_trade(home);
+                    self.compute_trade(dest);
+                    self.city_new_caravan(home, self.cities[dest].owner, dest);
+                }
+            }
+        }
+        self.trade_walk(u, v, if ord.loaded { dest } else { home }, span);
+    }
+
+    /// §7.1 — `LAB_005ee01a`, the leg.
+    ///
+    /// With a road planned the caravan walks **the route's own stack**: it
+    /// is oriented so the end nearest the unit is on top, copied whole onto
+    /// the unit's path, smoothed, and then the top — the node under the
+    /// unit's feet — is popped off and a `QUEUE_FIRST` move issued to the
+    /// stack's *bottom*, which is the far end. The move carries
+    /// [`flag::PATHED`], so `do_move` walks what is already there rather
+    /// than planning; and the route's stack is inverted on the way out, so
+    /// the next leg reads the other way.
+    ///
+    /// The smoothing is a **perpendicular** offset, not a shortening: each
+    /// node past the first takes `+dy/3` on x and `−dx/3` on y, where
+    /// `(dx, dy)` is the step from the node before it and both are read
+    /// before either is written. It applies only where the step is inside
+    /// `0xc0` on both axes — one tile — so a leg that jumps a sampled water
+    /// run is left alone. The listing settles the arithmetic
+    /// (`5ee174`–`5ee1a1`): the second half's magic is `0x55555555` with a
+    /// `sub`/`sar`, which is `x / −3` and not `x / 3`.
+    ///
+    /// `fallback` is the city the walk aims at when there is no road, and
+    /// `span` the footprint of the city the arrival test above used — the
+    /// original's `local_38`, which is deliberately the **other** city's.
+    fn trade_walk(&mut self, u: usize, v: usize, fallback: usize, span: i32) {
+        let who = self.units[u].owner as usize;
+        if self.caravans[who].slots[v].road.is_empty() {
+            self.trade_walk_no_road(u, fallback, span);
+            return;
+        }
+        let here = self.units[u].pos;
+        let road = &self.caravans[who].slots[v].road;
+        let (first, last) = (road[0].to, road[road.len() - 1].to);
+        let d_bottom =
+            crate::world::vector_dist((first.x - here.x).abs(), (first.y - here.y).abs());
+        let d_top = crate::world::vector_dist((last.x - here.x).abs(), (last.y - here.y).abs());
+        if d_bottom < d_top {
+            self.caravans[who].slots[v].road.reverse();
+        }
+        let mut path = self.caravans[who].slots[v].road.clone();
+        offset_road(&mut path);
+        self.units[u].path = path;
+        self.units[u].path.pop();
+        let goal = self.units[u].path[0].to;
+        self.add_move_facing_order(
+            u,
+            goal,
+            crate::orders::MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+            crate::movement::find_angle(1, 1),
+            None,
+            true,
+        );
+        // The next waypoint in another region is a **transport** waypoint:
+        // the same `path_flag::TRANSPORT` the tile grid writes, popped and
+        // pushed back rather than edited in place (`docs/PATHFINDER.md` §7).
+        if let Some(top) = self.units[u].path.last().copied() {
+            let mine = self.world.tregion(here.tile());
+            if self.world.tregion(top.to.tile()) != mine {
+                self.units[u].path.pop();
+                self.units[u].path.push(PathData {
+                    flags: top.flags | path_flag::TRANSPORT,
+                    ..top
+                });
+            }
+        }
+        self.caravans[who].slots[v].road.reverse();
+    }
+
+    /// The no-road arm of §7.1: a spot beside the target city, and a move
+    /// to it if one was found close enough.
+    ///
+    /// SEAM: `UnitType::find_nearby_spot@0067d0d0`'s ring — between `span`
+    /// and `span + 0xc0` of the city, swept from `find_angle(1, 0)`,
+    /// `FILTER_NOT_ME` — is not modelled; this crate walks to the city's
+    /// own point. No traced game reaches the arm: a route whose `build_road`
+    /// answered 0 has no caravan on it.
+    fn trade_walk_no_road(&mut self, u: usize, city: usize, span: i32) {
+        let to = self.cities[city].pos;
+        let here = self.units[u].pos;
+        if crate::world::vector_dist((to.x - here.x).abs(), (to.y - here.y).abs()) > span + 0xc6 {
+            return;
+        }
+        self.add_move_facing_order(
+            u,
+            to,
+            crate::orders::MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+            crate::movement::find_angle(1, 0),
+            None,
+            false,
+        );
+    }
+
+    /// `max(x_size, y_size) · 0x60` of a city's own building type — the
+    /// original's `local_38`, half a footprint in world units, and what the
+    /// arrival box is measured out from.
+    fn city_span(&self, city: usize) -> i32 {
+        let b = self.cities[city].building;
+        self.buildings[b].ty.map_or(0, |ty| {
+            let t = &self.build_types[ty];
+            if t.x_size > t.y_size {
+                t.x_size * 0x60
+            } else {
+                t.y_size * 0x60
+            }
+        })
+    }
+
+    /// `City::compute_trade@00739640`: `trade_val` is the sum, over every
+    /// route this city is an end of that has **delivered at least once**
+    /// and whose other end is still alive, of `trade_value(other) · 16 / 2`.
+    ///
+    /// It is what a city contributes to its owner's wealth rate on top of
+    /// its gatherers (`crate::economy::city_rates`), and a change marks the
+    /// leader's economy dirty.
+    pub(crate) fn compute_trade(&mut self, city: usize) {
+        let was = self.cities[city].trade_val;
+        let mut val = 0;
+        for w in 0..self.caravans.len() {
+            for s in 0..self.caravans[w].mark {
+                let van = &self.caravans[w].slots[s];
+                if !van.delivered {
+                    continue;
+                }
+                let (Some(a), Some(b)) = (van.city_a, van.city_b) else {
+                    continue;
+                };
+                if !self.cities[a].alive || !self.cities[b].alive {
+                    continue;
+                }
+                let other = if a == city {
+                    b
+                } else if b == city {
+                    a
+                } else {
+                    continue;
+                };
+                val += self.trade_value(other, city) * 16 / 2;
+            }
+        }
+        self.cities[city].trade_val = val;
+        if was != val {
+            let owner = self.cities[city].owner;
+            self.economy_changed(owner);
+        }
+    }
+
+    /// `City::new_caravan@00739750`: the **one-off** a leader is paid the
+    /// first time one of its caravans reaches this city from a given
+    /// partner.
+    ///
+    /// `traded_with[who]` is a bit per partner city, so the bonus is paid
+    /// once per (city, leader, partner). The amount is the leader's Civic
+    /// level plus one, times ten — times **twenty** when the leader is not
+    /// this city's owner — and it lands in wealth.
+    ///
+    /// SEAM: the feedback line and its sound are the console player's only.
+    fn city_new_caravan(&mut self, city: usize, who: Player, partner: usize) {
+        let w = who as usize;
+        let Some(bit) = u32::try_from(partner).ok().filter(|b| *b < 32) else {
+            return;
+        };
+        let mask = 1u32 << bit;
+        if self.cities[city].traded_with[w] & mask != 0 {
+            return;
+        }
+        self.cities[city].traded_with[w] |= mask;
+        let level = self.tech[w].epoch[crate::tech::Line::Civic.index()] + 1;
+        let pay = if who == self.cities[city].owner {
+            level * 10
+        } else {
+            level * 20
+        };
+        self.ledgers[w].bucket[crate::economy::Resource::Wealth as usize] += pay;
     }
 
     /// Rewrite the current order's body in place.
@@ -483,15 +752,10 @@ impl Sim {
                 self.caravans[w].slots[v].road.clear();
                 0
             }
-            RoadPlan::Road(tiles) => {
-                for t in &tiles {
-                    if self.world.tile_mask(*t) & crate::world::tile::BLOCKED != 0 {
-                        continue;
-                    }
-                    self.set_road_at(*t);
-                }
+            RoadPlan::Road(nodes) => {
+                let road = self.lay_caravan_road(&nodes);
                 let van = &mut self.caravans[w].slots[v];
-                van.road = tiles;
+                van.road = road;
                 van.reset_road = false;
                 van.making_road = false;
                 van.search = None;
@@ -501,6 +765,59 @@ impl Sim {
                 1
             }
         }
+    }
+
+    /// `Caravan::build_road@0073db10:82` — the loop that turns the search's
+    /// answer into the route's own stack, and the only place a trade road
+    /// is written to the map.
+    ///
+    /// It walks the search's stack **from the top down**, which is the
+    /// near-*start* end first, into a scratch stack that is then popped
+    /// back on — so the orientation survives and the decisions inside are
+    /// made in walking order.
+    ///
+    /// Two things happen per node. A node on **open water** lays nothing
+    /// and is *sampled*: the first of a run is kept with a tolerance of
+    /// `0x180` and sets a countdown of four, and the next four are dropped
+    /// outright — unless fewer than five nodes have been written or fewer
+    /// than five are left, at the two ends, where every one is kept.
+    /// Everything else lays a road tile and takes [`path_flag::ROAD`]. Both
+    /// ends of what survives take [`path_flag::FINAL`].
+    ///
+    /// The tolerance is the search's own `0x60` (`astar_caravan_road`
+    /// `+0x9a6`) everywhere else.
+    fn lay_caravan_road(&mut self, nodes: &[Pos]) -> Vec<PathData> {
+        let mut out: Vec<PathData> = Vec::with_capacity(nodes.len());
+        let mut run: i32 = 0;
+        for i in (0..nodes.len()).rev() {
+            let p = nodes[i];
+            let t = p.tile();
+            let mut e = PathData {
+                to: p,
+                tolerance: 0x60,
+                flags: 0,
+            };
+            if self.world.tile_mask(t) & crate::world::tile::SURFACE
+                == crate::world::tile::SURFACE_OCEAN
+            {
+                if run != 0 && i >= 5 && out.len() >= 5 {
+                    run -= 1;
+                    continue;
+                }
+                run = 4;
+                e.tolerance = 0x180;
+            } else {
+                self.set_road_at(t);
+                e.flags |= path_flag::ROAD;
+                run = 0;
+            }
+            if out.is_empty() || i == 0 {
+                e.flags |= path_flag::FINAL;
+            }
+            out.push(e);
+        }
+        out.reverse();
+        out
     }
 
     /// `Caravan::clear_temp_road@0073de80`: the parked search is freed and
@@ -578,6 +895,31 @@ impl Sim {
     }
 }
 
+/// §7.1's smoothing pass, in place: every node past the first is displaced
+/// a third of the step that reaches it, **turned a quarter turn** — `+dy/3`
+/// on x and `−dx/3` on y — so the caravan walks beside its road rather than
+/// down the middle of it. A step longer than `0xc0` on either axis, which
+/// is what a sampled water run leaves, is left alone.
+///
+/// Both deltas are measured against the previous node **before** it was
+/// displaced, so the offsets do not compound.
+fn offset_road(path: &mut [PathData]) {
+    let Some(first) = path.first().map(|p| p.to) else {
+        return;
+    };
+    let mut prev = first;
+    for e in path.iter_mut().skip(1) {
+        let here = e.to;
+        let (dx, dy) = (here.x - prev.x, here.y - prev.y);
+        prev = here;
+        if dx.abs() > 0xc0 || dy.abs() > 0xc0 {
+            continue;
+        }
+        e.to.x += dy / 3;
+        e.to.y -= dx / 3;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -609,5 +951,111 @@ mod tests {
             assert_eq!(sim.init_caravan(0, i), Some(i));
         }
         assert_eq!(sim.init_caravan(0, 99), None, "the list is twenty long");
+    }
+
+    fn node(x: i32, y: i32) -> PathData {
+        PathData {
+            to: Pos::new(x, y),
+            tolerance: 0x60,
+            flags: 0,
+        }
+    }
+
+    /// §7.1: the displacement is the step turned a quarter turn, and the
+    /// step is measured from where the *search* left the node before.
+    ///
+    /// Written from run64's own road, whose last three nodes are the
+    /// straight north run `(38496, 39264)`, `(38496, 39456)`,
+    /// `(38496, 39648)`: a step of `(0, 192)` puts `+64` on x and nothing
+    /// on y, twice over, and the second `+64` is off `38496` and not off
+    /// the `38560` the first one wrote.
+    #[test]
+    fn the_offset_is_perpendicular_and_does_not_compound() {
+        let mut p = vec![node(38496, 39264), node(38496, 39456), node(38496, 39648)];
+        offset_road(&mut p);
+        assert_eq!(p[0].to, Pos::new(38496, 39264), "the first node is fixed");
+        assert_eq!(p[1].to, Pos::new(38560, 39456));
+        assert_eq!(p[2].to, Pos::new(38560, 39648));
+
+        // The other axis, and the sign: a step due **east** displaces
+        // south by `−dx/3`, which is negative y.
+        let mut q = vec![node(0, 0), node(192, 0)];
+        offset_road(&mut q);
+        assert_eq!(q[1].to, Pos::new(192, -64));
+
+        // Truncation is toward zero, as the original's two divisions are.
+        let mut r = vec![node(0, 0), node(-100, -100)];
+        offset_road(&mut r);
+        assert_eq!(r[1].to, Pos::new(-100 - 33, -100 + 33));
+    }
+
+    /// A step wider than one tile on either axis is left where it is —
+    /// which is the arm a sampled water run takes, since the sampling
+    /// leaves gaps of five tiles.
+    #[test]
+    fn a_step_past_one_tile_is_not_displaced() {
+        let mut p = vec![node(0, 0), node(0, 0xc0), node(0, 0xc0 + 0xc1)];
+        offset_road(&mut p);
+        assert_eq!(p[1].to, Pos::new(0x40, 0xc0), "0xc0 exactly is inside");
+        assert_eq!(p[2].to, Pos::new(0, 0xc0 + 0xc1), "0xc1 is not");
+    }
+
+    /// §7.3: the one-off is paid once per (city, leader, partner), and it
+    /// is `(epoch[1] + 1) · 10` — twenty when the payee is not the city's
+    /// own owner.
+    #[test]
+    fn the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner() {
+        let mut sim = bare();
+        sim.cities.push(crate::city::City {
+            alive: true,
+            owner: 0,
+            race: Some(0),
+            founder: 0,
+            building: 0,
+            members: Vec::new(),
+            reg: None,
+            pos: Pos::new(0, 0),
+            capital: false,
+            founding_capital: false,
+            was_founding_capital: false,
+            unassimilated: false,
+            no_heal: false,
+            alarm: false,
+            no_muster: false,
+            was_capital: 0,
+            capture_stamp: 0,
+            assimilation_timer: 0,
+            attack_stamp: 0,
+            capture_strength: 0,
+            pop: 0,
+            has_citizen: false,
+            source: None,
+            trade_val: 0,
+            traded_with: [0; 8],
+        });
+        let wealth = crate::economy::Resource::Wealth as usize;
+        for l in &mut sim.ledgers {
+            l.bucket[wealth] = 0;
+        }
+        sim.tech[0].epoch[crate::tech::Line::Civic.index()] = 2;
+        sim.tech[1].epoch[crate::tech::Line::Civic.index()] = 2;
+
+        sim.city_new_caravan(0, 0, 5);
+        assert_eq!(
+            sim.ledgers[0].bucket[wealth], 30,
+            "(2 + 1) × 10, the owner's"
+        );
+        sim.city_new_caravan(0, 0, 5);
+        assert_eq!(sim.ledgers[0].bucket[wealth], 30, "the bit is already set");
+        sim.city_new_caravan(0, 0, 6);
+        assert_eq!(
+            sim.ledgers[0].bucket[wealth], 60,
+            "a different partner pays"
+        );
+        sim.city_new_caravan(0, 1, 5);
+        assert_eq!(
+            sim.ledgers[1].bucket[wealth], 60,
+            "(2 + 1) × 20 for a leader who does not own the city"
+        );
     }
 }

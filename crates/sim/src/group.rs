@@ -1654,6 +1654,8 @@ mod tests {
             pop: 1,
             has_citizen: false,
             source: None,
+            trade_val: 0,
+            traded_with: [0; 8],
         });
         let slot = s.init_army(1, Some(c));
         let f = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));

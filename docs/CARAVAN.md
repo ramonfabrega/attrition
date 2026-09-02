@@ -8,14 +8,17 @@ a `DUMP_ALL` window on `[6164, 6172)` and `docs/ROADS.md` §7.2's three
 road proxies over the frames a caravan's road is planned on. Confidence:
 **high** for the object, the schedule and the search — every one of the
 12,965 nodes the original priced over five frames is asserted against its
-own record — and **medium** for the destination choice, which one capture
-with two cities cannot separate from several simpler rules. The legs of
-the route are not established at all: nothing here moves cargo or pays
-wealth.*
+own record, and its whole twenty-six-node stack against the `CARAVAN`
+block that prints it — and **medium** for the destination choice, which
+one capture with two cities cannot separate from several simpler rules,
+and for the legs (§7), whose shape the word confirms for nine frames and
+whose arithmetic no capture yet reaches.*
 
-The mechanic is `docs/QUEUE.md`'s item 174. It was booked as a road and
-turned out to be a whole object: **a caravan unit owns a `Caravan`**, the
-route between two cities, and the road is the route's first act.
+The mechanic is `docs/QUEUE.md`'s items 174 and 177. It was booked as a
+road and turned out to be a whole object: **a caravan unit owns a
+`Caravan`**, the route between two cities, and the road is the route's
+first act — and then the route's stack is what the caravan walks, back and
+forth, for the rest of the game.
 
 `docs/ROADS.md` opens by saying its search's name was wrong — that
 `astar_caravan_road` runs for a *building* and no caravan is in the game.
@@ -216,6 +219,40 @@ nodes, which is why one trade route costs 3,204 + 3,204 + 3,204 + 3,202 +
 `docs/ROADS.md` §8 has the search's own three differences — the eight
 directions, the heuristic, and the diagonal corner rule.
 
+### 5.3 What the answer becomes, and the stack it leaves behind
+
+The search's answer is not the route. `build_road@0073db10:82` empties the
+stack `find_road` filled and rebuilds it, and what it builds is what the
+**legs** walk — so the loop is a mechanic and not bookkeeping.
+
+`astar_caravan_road`'s own reconstruction (`+0x986`) walks from the arrived
+node's parent up to but not including the root, **skips any tile carrying
+`mask & 0x4000`**, and pushes `PathData { to, tolerance: 0x60, flags: 0 }`.
+The goal end is therefore `list[0]` and the start end the top.
+
+Then `build_road` pops that stack down to nothing, top first — the *start*
+end first — into a scratch stack, and pops the scratch back on, which
+restores the orientation. Per node:
+
+- **open water** (`mask & 0x30 == 0x20`) lays nothing and is *sampled*.
+  The first of a run is kept with `tolerance = 0x180` and arms a countdown
+  of four; the next four are dropped outright. The countdown is bypassed —
+  every node kept — while fewer than five have been written or fewer than
+  five are left, so both ends of a crossing are dense and its middle is
+  every fifth tile.
+- **anything else** calls `World::set_road_at` on the tile and takes
+  `flags |= 0x20`.
+- either way, the first node written and the last take `flags |= 1`.
+
+`Caravans::reset_paths` follows, and `reset_road`/`making_road` are cleared.
+
+**The stack is the diff.** A `DUMP_ALL` block prints the whole of it under
+`CARAVAN`/`STACK<TYPE>`, and run64's `FRAME 6171` block — the end of the
+sim-frame `build_road` answered 1 on — carries all twenty-six of East
+Indies' route: `(35232, 36384)` to `(38496, 39648)`, `tolerance 96`
+throughout, `flags 33` at the two ends and `32` between. None of it is
+water, so the sampling arm above is still a reading.
+
 ## 6. `Unit::work@0060d180`'s block
 
 Ahead of the order dispatch, for a unit that `is_caravan` whose route has
@@ -238,7 +275,124 @@ a plain move is current.
 SEAM: the tail's second test cannot fire while the only two orders are
 that pair, and is not modelled.
 
-## 7. Coverage
+## 7. The legs — `do_trade`'s tail
+
+Everything above the road is reached on the frame the route is established
+and then never again while it walks: §4.1's move and §7.1's both go in with
+`QUEUE_FIRST`, so the *move* is the current order and `do_trade` does not
+run under it. **`do_trade`'s later frames are its arrivals**, and that is
+what makes the head's `set_anim(CHAR_DEFAULT, 0, 1)` — the very first
+instruction of the function, ahead of the caravan-slot test and every
+return — a mark of arrival rather than of the order: a walking figure
+leaves `Guy::set_anim` without a roll, a standing one rolls. East Indies'
+word at **6198** is those three draws, one through `Unit::set_anim+0x56`
+and two through `+0xb6`, and the same site fires on every arrival
+afterwards — 6511, 6766, 7021 — one draw or three depending on what the
+figures were playing.
+
+The tail proper is two halves.
+
+**The arrival test** is made against exactly one of the two cities: the
+**far** one while the caravan is empty, the **home** one while it is
+carrying. `local_38` is that city's own footprint, `max(x_size, y_size) ·
+0x60` off `ObjectTypeData`, and the box is `± (local_38 + 0x306)` on each
+axis independently — not a radius. Inside it:
+
+- empty at the far city → `loaded = 1`, and `City::new_caravan` on the far
+  city naming the home one;
+- carrying at the home city → `loaded = 0`, `unit_masks |= 0x200`,
+  `caravan_flags |= 4`, `City::compute_trade` on **both** cities, and
+  `City::new_caravan` on the home city naming the far one.
+
+A **decoy** (`unit_masks & 1`) turns `loaded` over and does none of the
+rest. `unit_masks & 0x200` has no reader anywhere in the export — this is
+its only mention — so it is not modelled.
+
+### 7.1 `LAB_005ee01a` — walking the route
+
+With a road planned the caravan does not path at all: it walks the route's
+own stack.
+
+```
+if road.length:
+    if dist(me, road.list[0]) < dist(me, road.top): road.invert()
+    path = road                                   ← the whole stack, copied
+    for i in 1 .. path.length:                    ← the smoothing, below
+        dx, dy = path[i] − path[i−1]              (both read before either is written)
+        if |dx| <= 0xc0 and |dy| <= 0xc0:
+            path[i].to_x += dy / 3
+            path[i].to_y -= dx / 3
+    path.pop()                                    ← the node under my feet
+    add_move_order(path.list[0], 1, 1, QUEUE_FIRST, 0, …)
+    if tregion(path.top) != tregion(me):
+        path.push(path.pop() with flags | 4)
+    road.invert()
+```
+
+Three things in that are easy to get wrong and each is settled off the
+listing rather than the decompiler.
+
+**The invert is an orientation, not a reversal of intent.** The two
+`vector_dist` calls at `5ee08e` and `5ee0cc` measure the unit against
+`list[0]` and against `list[length−1]`; the invert runs when the *bottom*
+is nearer, so the invariant afterwards is **the top of the stack is the end
+I am standing at**. The pop then throws that end away and the move order's
+destination is `list[0]`, the far end. The trailing `road.invert()` leaves
+the route pointing the other way for the leg after this one.
+
+**The move is `pathed`.** `Unit::add_move_order`'s fourth argument becomes
+`add_move_facing_order`'s fifth, which is the order flag `1` — "the top
+segment of the unit's path stack is this move's" — so `do_move` walks what
+is already on the stack instead of planning. §4.1's arm passes `0` there
+and this one passes `1`. The same two arguments are also what
+`add_move_order` hands `find_angle`, so the arrival facing of each is a
+literal: `find_angle(1, 0)` for §4.1 and `find_angle(1, 1)` here.
+
+**The smoothing is perpendicular.** `to_x += dy/3` and `to_y −= dx/3` is
+the step vector turned a quarter turn, so the route is walked *beside*
+itself rather than along it — a third of a tile off the road, on one side.
+The decompiler prints the second half as an unfolded multiply; the listing
+at `5ee18f` is the magic `0x55555555` with a `sub`/`sar`, which is `x / −3`
+and not `x / 3`. Both deltas are measured from the previous node **as the
+search left it**: `5ee14e` and `5ee151` save `to_x` and `to_y` before
+either is written, and the loop tail reads those, so the offsets do not
+compound down the chain.
+
+With no road — `build_road` answered 0 — the arm instead asks
+`UnitType::find_nearby_spot` for a point between `local_38` and `local_38 +
+0xc0` of the *other* city, swept from `find_angle(1, 0)` under
+`FILTER_NOT_ME`, and moves there only if it came back inside `local_38 +
+0xc6`. `local_38` is deliberately the footprint of the city the arrival
+test used, not of the one being walked to.
+
+### 7.2 `City::compute_trade@00739640` — what a route is worth
+
+```
+trade_val = 0
+for link in city.vans:
+    van = caravans[link.who][link.cara]
+    if van.caravan_flags & 4 and both cities alive:
+        other = the end that is not me
+        trade_val += trade_value(other, me) · 16 / 2
+if trade_val changed: leader_flags |= 0x2000000     ← the economy is dirty
+```
+
+`trade_val` is `CityData +0x52` and it is the **first** line of
+`LeaderData::calc_city_resources`, added to wealth ahead of everything a
+city gathers — so a trade route's income is a city rate in sixteenths, not
+a lump. The `& 4` gate is why it is worth nothing until the caravan has
+completed a **round trip**: the bit is written only where a carrying
+caravan reaches the home city.
+
+### 7.3 `City::new_caravan@00739750` — the one-off
+
+`traded_with[who]` (`CityData +0x2c`, `int[8]`) is a bit per partner city.
+The first time a leader's caravan reaches this city from a given partner
+the bit is set and the leader is paid, into **wealth**, `(epoch[1] + 1) ·
+10` — times **twenty** instead when the leader is not this city's owner.
+`epoch[1]` is the Civic library level. Nothing is paid the second time.
+
+## 8. Coverage
 
 **Diff-backed** (`rondata::diff::tests::run64_s_caravan_road_is_the_
 original_s_node_for_node`):
@@ -258,8 +412,16 @@ original_s_node_for_node`):
   3,600 cell owners of run64's frame-6166 block. The heights are the
   sharp half — `Wall::init`'s farm gate (`docs/ROADS.md` §7.4) was found
   by 182 of them.
+- **The route's own stack, all twenty-six nodes** — position, tolerance
+  and flag byte, against run64's `FRAME 6171` `CARAVAN`/`STACK<TYPE>`
+  block, which is the only block in the capture that carries a laid road
+  (§5.3). It is what pins `build_road`'s loop rather than the search, and
+  it found that this crate had been keeping the road as a list of *tiles*:
+  `set_road_at` was handed world coordinates thirty thousand tiles off the
+  map and **every trade road in the port went unlaid**.
 - The order and the schedule, indirectly: East Indies' word, which is a
-  per-frame draw *sequence*, now passes 6166 to 6188 whole.
+  per-frame draw *sequence*, now passes 6166 to 6206 whole — through
+  §7's arrival at 6198 and the first eight frames of its leg.
 - **The three figures' clocks, frame by frame**
   (`run64_s_window_clocks_are_the_original_s`): every `GUY` block of
   run64's eight-frame `DUMP_ALL` window, 2,061 fields, of which the only
@@ -280,14 +442,38 @@ original_s_node_for_node`):
 - `CityData::is_seen`, taken here as "the owner has seen the tile"; the
   original keeps a per-leader bit on the city.
 - §5's `reset_road` path, which needs two routes planning at once.
+- §5.3's **water sampling**: run64's road has no ocean node, so the
+  countdown of four, the `0x180` tolerance and the two end exemptions rest
+  on the loop alone. A route between two coasts of one region would show
+  them; East Indies' caravan has `can_transport` and its search prices
+  ocean, so a capture of a longer route on the same map would do it.
+- §7's **arithmetic past the word**. The arrival box, the `loaded`
+  turnover, `compute_trade`'s `× 16 / 2` and `new_caravan`'s
+  `(epoch[1] + 1) · 10` are all reachable in run54 — the caravan loads at
+  the far city around frame 6511 and unloads at home around 6766 — but the
+  word parts at 6207, so no assertion reaches them. The `LEADERS=9` census
+  over `[6760, 6790)` is the capture: it prints `bucket` and `income` per
+  good per leader, and both halves of §7.2 and §7.3 land in wealth on the
+  frame the caravan comes home.
 - `Caravan::restart_trade_route@0073d070`, `Caravans::new_danger@0073e0c0`
   and `Caravan::verify_road@0073d950` — no traced game enters any of them.
+- §7.1's **no-road arm**, and `UnitType::find_nearby_spot`'s ring inside
+  it: a route whose `build_road` answers 0 has no caravan on it in any
+  capture, and this crate walks to the city's own point instead.
 
-**Not established at all:** everything past the road. The legs between the
-two cities, `TradeOrder +0x20 loaded`, the wealth a completed trip pays
-(`docs/ECONOMY.md`'s `trade_val`), and what happens when a city on the
-route falls. A caravan in this crate plans its road, walks to the near
-city and stops.
+**Not established at all:** what a fallen city does to a route mid-trip —
+`Caravan::verify_road` and `restart_trade_route` are the functions and
+nothing enters them — and the arrival's own **one-frame residue**. From
+run54's 6207 the original's crew figures wrap twice more before the walk
+settles and this crate's do not: the caravan stands at the home city from
+6197, turns in place while `do_move` plans its way out of the footprint,
+and starts walking on 6206 where the original starts on 6208. The route
+itself is right — the leg walks the road's own waypoints and reaches the
+far city within a dozen frames of the original's `do_trade` at 6511 — so
+what is one frame out is the turn, or the detour the plan takes around the
+city. **A `DUMP_ALL` window on `[6196, 6212)` of run54's game settles it**:
+nothing on disk covers those frames, and the block carries the unit's
+position, its path stack and its figures' clocks.
 
 ~~**And it does not walk there the original's way**~~ — closed 2026-09-02,
 and the walk was never the bug. §4.1's move goes in with `QUEUE_FIRST` and
@@ -302,7 +488,7 @@ original does not and came back with a route where the original's stops at
 the goal's own neighbour and pushes nothing. All 2,061 fields of run64's
 window are the original's now (`docs/DANGER.md` §6, `crate::danger`).
 
-What is left of item 177 is its second half, and it is East Indies' word at
-**6198**: the original's caravan reaches a *city* and spends three
-`Unit::do_trade+0x40` draws over its three figures — `Unit::set_anim` once
-through `+0x56` and twice through `+0xb6`. Nothing here models arriving.
+~~What is left of item 177 is its second half~~ — closed 2026-09-02. The
+arrival, the legs, `loaded`, the income and the one-off are §7; the word
+went **6198 → 6207**, and the two things that carried it were a `set_anim`
+at the head of a function and a `.tile()` that was never there.

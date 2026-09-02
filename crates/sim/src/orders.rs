@@ -214,6 +214,12 @@ pub mod path_flag {
     /// the lane the unit is in and the one it is stepping into. It
     /// suppresses the collision test entirely (`docs/ORDERS.md` §4.1).
     pub const DETOUR: u8 = 0x8;
+    /// **A road was laid on this waypoint's tile.** Only
+    /// `Caravan::build_road@0073db10` writes it, on every node of a trade
+    /// route's plan that is not open water, and nothing in the executable
+    /// reads it back — the road stack carries it into the unit's own path
+    /// when a leg starts (`docs/CARAVAN.md` §5.3).
+    pub const ROAD: u8 = 0x20;
 }
 
 /// The fields of `GatherOrder` (§1.1, §6).
@@ -270,6 +276,10 @@ pub struct TradeOrder {
     /// `+0x1c` — the route has been established, so the selection loop is
     /// not run again.
     pub started: bool,
+    /// `+0x20 loaded` — the caravan is carrying, so the leg it is on runs
+    /// to the **home** city; cleared there, and set again at the far one
+    /// (`docs/CARAVAN.md` §7.1).
+    pub loaded: bool,
 }
 
 /// The order kinds this crate implements.

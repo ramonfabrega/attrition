@@ -169,6 +169,15 @@ pub struct City {
     pub has_citizen: bool,
     /// This city's entry in [`Sim::sources`], while it projects territory.
     pub source: Option<usize>,
+    /// `trade_val` (+0x52): what the trade routes ending here add to the
+    /// owner's **wealth** rate, in sixteenths.
+    /// `City::compute_trade@00739640` is its only writer
+    /// (`docs/CARAVAN.md` §7.2).
+    pub trade_val: i32,
+    /// `traded_with[8]` (+0x2c): a bit per partner city, per leader — the
+    /// mark that stops `City::new_caravan`'s one-off being paid twice
+    /// (`docs/CARAVAN.md` §7.3).
+    pub traded_with: [u32; 8],
 }
 
 /// Why a placement order was refused — `Group::action_build`'s three gates.
@@ -391,6 +400,8 @@ impl Sim {
             pop: 0,
             has_citizen: false,
             source: None,
+            trade_val: 0,
+            traded_with: [0; 8],
         };
         let c = match self.cities.iter().position(|c| !c.alive) {
             Some(i) => {

@@ -13478,3 +13478,105 @@ field* every capture had printed for a fortnight and nothing had ever put a
 third bug, the diplomacy table, was found by refusing to accept a green
 test: the map matched with `is_seen` forced true, and it matched for the
 wrong reason.
+
+## 2026-09-02 — item 177, closed: a caravan walks its road, and the road was never laid (Opus)
+
+**The word's frame was one instruction.** East Indies parted at 6198 on
+three `Guy::set_anim+0x97a` draws under `Unit::do_trade+0x40`, and `+0x40`
+is the return address of the *first* call the function makes:
+`set_anim(CHAR_DEFAULT, 0, 1)`, above the caravan-slot test and above every
+one of its returns. It draws nothing while the unit is walking — a
+walk-category figure whose body has not caught up leaves `Guy::set_anim`
+without a roll — so the site is silent for the thirty frames the caravan
+spends reaching its city and spends three draws on the frame it stands
+still.
+
+That is not a decoration: it is what says `do_trade`'s later frames are its
+**arrivals**. Each leg queues its move with `QUEUE_FIRST`, so the move is
+the current order and `do_trade` does not run under it; the trace agrees,
+with the site firing at 6198, 6511, 6766, 7021 and every 255 frames after
+— one arrival per leg, three draws or one depending on what the three
+figures were playing.
+
+**And then the road turned out never to have been laid.** `do_trade`'s tail
+copies `CaravanData::road` onto the unit and walks it, so the leg needed
+the road as the original keeps it — a `Stack<PathData>` of **world**
+positions with a tolerance and a flag byte. This crate had been keeping a
+`Vec<Pos>` of *tiles*: `caravan_build_road` handed `set_road_at` the
+search's own world coordinates without `.tile()`, thirty thousand tiles off
+a two-hundred-tile map, where `tile_index` bounds-checked them into
+silence. Every trade road in the port, from the day the search landed, was
+a no-op.
+
+**The `CARAVAN` record has printed the whole stack all along.** Item 87's
+ledger again, and this is the fourth row of it to pay: `Caravans::log_data`
+writes six fields and the road under `BEGIN STACK<TYPE>`, and run64's
+`FRAME 6171` block — the end of the sim-frame `build_road` answered 1 on,
+and the only block in the capture with a laid road — carries twenty-six
+`PATHDATA`. `(35232, 36384)` to `(38496, 39648)`, `tolerance 96`
+throughout, `flags 33` at the ends and `32` between. Writing
+`build_road@0073db10:82` out of the decompile and asserting against them
+was right on the first run, which is what `flags 32` on every node buys:
+`0x20` means *a road was laid here*, and it is set in the same arm that
+calls `World::set_road_at`.
+
+That loop is a mechanic and not bookkeeping (`docs/CARAVAN.md` §5.3). It
+empties the search's stack top-first — the near-*start* end first — into a
+scratch stack and pops the scratch back, which restores the orientation;
+open water lays nothing and is **sampled**, the first of a run kept at
+`tolerance 0x180` and the next four dropped, with both ends of a crossing
+exempt; everything else lays tarmac. The reconstruction above it drops any
+tile carrying `mask & 0x4000` outright, which had not mattered while the
+answer was only ever laid and matters now that it is walked.
+
+**The legs** (§7). The caravan shuttles. `TradeOrder +0x20 loaded` is which
+way it is pointing, and the arrival test is made against exactly one city —
+the far one while empty, the home one while carrying — inside a box of
+`± (max(x_size, y_size) · 0x60 + 0x306)` on each axis independently.
+Loading at the far city pays `City::new_caravan`'s one-off; unloading at
+home pays it again, sets `caravan_flags & 4`, and runs `City::compute_trade`
+on both. That last bit is the gate on the whole economy of the thing:
+`trade_val` — `CityData +0x52`, and the *first* line of
+`calc_city_resources`, ahead of everything a city gathers — sums
+`trade_value(other) · 16 / 2` over the routes that carry `& 4`, so a trade
+route is worth **nothing** until its caravan has come home once.
+
+**Three things in the walk were settled off the listing.** The two
+`vector_dist` calls at `5ee08e` and `5ee0cc` measure the unit against the
+stack's bottom and its top and invert when the bottom is nearer, so the
+invariant is *the top is the end I am standing on*; the pop throws that end
+away and the move order's destination is the far end. The move goes in with
+`add_move_order`'s fourth argument set, which is the order flag `1` —
+"the path stack is already mine" — so `do_move` walks it instead of
+planning; §4.1's arm passes `0` there, and since those same two arguments
+are what `add_move_order` hands `find_angle`, each caller's arrival facing
+is a literal: `find_angle(1, 0)` for the failure arm and `find_angle(1, 1)`
+for the leg. And the smoothing is **perpendicular** — `to_x += dy/3`,
+`to_y −= dx/3` — so the caravan walks a third of a tile beside its road
+rather than down the middle of it. Ghidra prints the second half as an
+unfolded multiply; `5ee18f` is the magic `0x55555555` with a `sub`/`sar`,
+which is `x / −3`.
+
+The first version of that loop compounded: it measured each step against
+the *displaced* previous node, where `5ee14e` saves `to_x` and `to_y`
+before either is written. The probe caught it in one line — the first
+waypoint read `(38553, 39477)` where the hand calculation says
+`(38560, 39456)`.
+
+**The probes.** Neither of these existed this morning and neither residue
+was findable without them. `RON_DEBUG_SITES=<lo>-<hi>` widens the word
+test's print from the two parting frames to a window;
+`RON_DEBUG_UNIT=<who>/<o>@<lo>-<hi>` prints one unit's position, angle,
+path stack and figure clocks, frame by frame. The bug that is left is a
+*cadence* — a crew figure wrapping every second frame instead of every
+third — which is invisible at the frame it finally parts on and obvious
+over a dozen either side.
+
+**The score.** East Indies **6198 → 6207**; Great Lakes unchanged at 2419.
+190 rondata tests and 755 sim tests green, and one new diff: the route's
+stack, whole. What is left at 6207 is two frames of the caravan's turn out
+of its own city — the original stands there from 6197 and starts walking on
+6208 where this crate starts on 6206 — and the route past it is right, so
+this is a residue and not a mechanic. **Nothing on disk covers frames
+6198 to 6210**, which is the first time in a while that the answer is a
+capture rather than a widening; item 179 books it.

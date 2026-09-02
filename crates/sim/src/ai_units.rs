@@ -2262,6 +2262,8 @@ mod tests {
             pop: 1,
             has_citizen: false,
             source: None,
+            trade_val: 0,
+            traded_with: [0; 8],
         });
         sim.buildings[b].city = Some(sim.cities.len() - 1);
         sim.ai[0]

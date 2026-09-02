@@ -9673,8 +9673,59 @@ mod tests {
             "run54's traced length is {last}, wanted 23,000+ — this is the \
              long capture, and a short file here is a wrong file"
         );
-        for _ in 0..last {
+        // `RON_DEBUG_UNIT=<who>/<o>@<lo>-<hi>` prints one unit's position,
+        // order and figure clocks over a window of frames. The word says
+        // *that* a frame parted; a cadence — a crew figure wrapping every
+        // second frame rather than every third — needs the clock itself,
+        // and past the last `DUMP_ALL` window there is nothing else to
+        // read it from.
+        let watch: Option<(i64, i64, i64, i64)> =
+            std::env::var("RON_DEBUG_UNIT").ok().and_then(|v| {
+                let (u, w) = v.split_once('@')?;
+                let (who, o) = u.split_once('/')?;
+                let (lo, hi) = w.split_once('-')?;
+                Some((
+                    who.trim().parse().ok()?,
+                    o.trim().parse().ok()?,
+                    lo.trim().parse().ok()?,
+                    hi.trim().parse().ok()?,
+                ))
+            });
+        for f in 0..last {
             built.tick();
+            let Some((who, o, lo, hi)) = watch else {
+                continue;
+            };
+            if !(lo..=hi).contains(&f) {
+                continue;
+            }
+            let Some(u) = (0..built.sim.units.len()).find(|&i| {
+                let x = &built.sim.units[i];
+                x.alive() && i64::from(x.owner) == who && i64::from(x.index) == o
+            }) else {
+                continue;
+            };
+            let x = &built.sim.units[u];
+            let clocks: Vec<String> = x
+                .guys
+                .iter()
+                .map(|g| {
+                    format!(
+                        "[a{} t{}/{} l{}]",
+                        g.anim, g.cur_time, g.end_time, g.last_time
+                    )
+                })
+                .collect();
+            eprintln!(
+                "  f{f} {who}/{o} at ({}, {}) ang {} path {} top {:?} order {:?} {}",
+                x.pos.x,
+                x.pos.y,
+                x.movement.facing.0,
+                x.path.len(),
+                x.path.last().map(|p| (p.to.x, p.to.y, p.flags)),
+                x.orders.front().map(|ord| ord.index()),
+                clocks.join(" ")
+            );
         }
         let first_part = built
             .frame_sites
@@ -9687,8 +9738,20 @@ mod tests {
             .find(|(f, ours)| ours.len() != trace.labels(*f).len())
             .map_or(last, |(f, _)| *f);
         eprintln!("run54: word parts at {first_count}, sequence at {first_part} of {last}");
+        // `RON_DEBUG_SITES=<lo>-<hi>` widens the two printed frames to a
+        // window. A residue in a *cadence* — a figure's clock wrapping every
+        // second frame rather than every third — is invisible at the frame
+        // it finally parts on and obvious over a dozen either side.
+        let window = std::env::var("RON_DEBUG_SITES").ok().and_then(|v| {
+            let (lo, hi) = v.split_once('-')?;
+            Some((
+                lo.trim().parse::<i64>().ok()?,
+                hi.trim().parse::<i64>().ok()?,
+            ))
+        });
         for (f, ours) in built.frame_sites.iter() {
-            if *f != first_count && *f != first_part {
+            let named = *f == first_count || *f == first_part;
+            if !named && !window.is_some_and(|(lo, hi)| (lo..=hi).contains(f)) {
                 continue;
             }
             let theirs = trace.labels(*f);
@@ -9905,9 +9968,65 @@ mod tests {
             !van.making_road && van.search.is_none(),
             "the plan finished on 6170 and the parked search went with it"
         );
-        assert!(
-            !van.road.is_empty(),
-            "and it laid a road between the two cities"
+        // **The route's own stack, whole** — twenty-six `PATHDATA`, and
+        // the record has printed them since the first `DUMP_ALL`
+        // (item 87's ledger again). run64's `FRAME 6171` block is the end
+        // of sim-frame 6170, the frame `build_road` answered 1 on, and the
+        // eight window frames before it all read an empty stack: this is
+        // the only block in the capture that carries a laid road.
+        //
+        // What it pins is `build_road`'s own loop rather than the search:
+        // the world coordinates the crate had been throwing away (its road
+        // was a list of *tiles*, so `set_road_at` was handed numbers thirty
+        // thousand tiles off the map and every trade road went unlaid), the
+        // `0x60` tolerance, and the flag byte — `0x20` on every node that
+        // laid tarmac and `1` on the two ends. A water node would carry
+        // `0x180` and no `0x20`; this road has none, so the sampling arm
+        // is still reading-only.
+        let van_road = van.road.clone();
+        let frame71 = l64
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == 6171)
+            .map(|(_, b)| b)
+            .expect("run64 dumped frame 6171");
+        // The record sits under the leader's own block, which sits under
+        // `FULL DUMP`; walk the subtree rather than pin the depth.
+        fn vans_of<'a, 'b>(b: &'a Block<'b>, out: &mut Vec<&'a Block<'b>>) {
+            for c in &b.children {
+                if c.name == "CARAVAN" {
+                    out.push(c);
+                }
+                vans_of(c, out);
+            }
+        }
+        let mut vans = Vec::new();
+        vans_of(frame71, &mut vans);
+        let theirs_road: Vec<sim::orders::PathData> = vans
+            .into_iter()
+            .find(|c| c.int("o") == Some(18))
+            .map(|c| {
+                crate::gamelog::path_of(c)
+                    .into_iter()
+                    .map(|p| sim::orders::PathData {
+                        to: Pos::new(
+                            i32::try_from(p.to.0).expect("to_x"),
+                            i32::try_from(p.to.1).expect("to_y"),
+                        ),
+                        tolerance: i32::try_from(p.tolerance).expect("tolerance"),
+                        flags: u8::try_from(p.flags).expect("flags"),
+                    })
+                    .collect()
+            })
+            .expect("the AI caravan's own CARAVAN record");
+        assert_eq!(
+            theirs_road.len(),
+            26,
+            "run64's frame-6171 block: `length 26`"
+        );
+        assert_eq!(
+            van_road, theirs_road,
+            "the route's stack parted from the original's"
         );
     }
 
@@ -10740,11 +10859,37 @@ mod tests {
 
     /// East Indies' word on run54, the headline.
     ///
-    /// **6198** since 2026-09-02, and it is `Unit::do_trade+0x40` — three
-    /// `Guy::set_anim+0x97a` draws, one through `Unit::set_anim+0x56` and
-    /// two through `+0xb6`, over the caravan's three figures as it reaches
-    /// the near city. `docs/QUEUE.md` item 177's second half, and the
-    /// first mechanic past the road: what a caravan does when it arrives.
+    /// **6207** since 2026-09-02, and it is the **turn out of the city**:
+    /// the original's caravan stands at its home city from 6197, turns in
+    /// place while it plans its way clear of the footprint, and starts
+    /// walking on 6208 where this crate starts on 6206 — two frames, which
+    /// is one wrap of its crew figures' three-frame packets. The route is
+    /// right either way: the leg walks the road's own waypoints and reaches
+    /// the far city within a dozen frames of the original's next
+    /// `do_trade` at 6511. A `DUMP_ALL` window on `[6196, 6212)` is what
+    /// would settle whether the frame is the turn or the detour
+    /// (`docs/CARAVAN.md` §8).
+    ///
+    /// It was **6198** for one item, and that item was `Unit::do_trade`'s
+    /// **first instruction**: `set_anim(CHAR_DEFAULT, 0, 1)` at `+0x40`,
+    /// ahead of the caravan-slot test and every one of the function's
+    /// returns. It draws nothing while the unit is walking — a walk-
+    /// category figure whose body has not arrived leaves `Guy::set_anim`
+    /// without a roll — so the site is silent for the thirty frames the
+    /// caravan spends reaching its city and then spends three draws, one
+    /// through `Unit::set_anim+0x56` and two through `+0xb6`, on the frame
+    /// it stands still. The order queues its next leg with `QUEUE_FIRST`,
+    /// so `do_trade` never runs while the walk does: **its later frames
+    /// are its arrivals**, and 6511, 6766 and 7021 are the next three.
+    ///
+    /// The nine frames after it are the legs (`docs/CARAVAN.md` §7), and
+    /// what carried them was not the reading: `Caravan::build_road`'s road
+    /// is a stack of **world** positions with a tolerance and a flag byte,
+    /// and this crate had been keeping tile coordinates — so `set_road_at`
+    /// was handed numbers thirty thousand tiles off the map and no trade
+    /// road in the port had ever been laid. The `CARAVAN` record prints
+    /// the whole stack and nothing had compared it (item 87's ledger);
+    /// twenty-six nodes, right on the first run.
     ///
     /// **6189 was the danger map**, and the whole of item 177's first half
     /// with it. `WorldData::danger[who]` is a half-resolution `int` grid
@@ -10849,7 +10994,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6198;
+    const LONG_WORD_EAST_INDIES: i64 = 6207;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the
