@@ -108,8 +108,16 @@ impl Sim {
         other != who as usize && !self.defeated[other]
     }
 
-    /// Seam: `World::gather_at` — what a citizen would take off this cell,
-    /// per good.
+    /// Seam: `World::gather_at@006b07f0` — what a citizen would take off
+    /// this cell, per good.
+    ///
+    /// **It now has an oracle.** `CityData::ter[6]` is what step 13 writes
+    /// out of this, and the `CITY` record carries it on every live city of
+    /// every frame; `rondata::diff` compares it (`docs/CITIES.md` §5.7), so
+    /// filling this in is checked per good, per city, per frame rather than
+    /// argued. And it is not inert while it answers zero: `gather_value`
+    /// refuses every good whose `ter` is zero, so the make list can never
+    /// ask for a farm, a camp, a mine or a university (`docs/AI.md` §23.2).
     fn gather_at(&self, _c: Cell) -> [i32; RESOURCES] {
         [0; RESOURCES]
     }

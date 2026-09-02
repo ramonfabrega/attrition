@@ -849,13 +849,131 @@ impl<'a> Block<'a> {
     }
 }
 
-/// One city from the `CITIES` list.
+/// One `CITY` record, whole — every field `CityData::log_data@004895c0`
+/// writes, in the order it writes them.
+///
+/// The record is unconditional past its own gate: a slot is printed only
+/// when `city_flags & 1` is set, and then **every** field below is written,
+/// with no detail level and no per-field test. So a missing key here is a
+/// hand-written sample, not a capture — which is why each parses
+/// `unwrap_or(0)` rather than carrying an `Option`.
+///
+/// The two strings are not carried. `name` and `id` are written bare, with
+/// no key, and `id` is written only when it is non-empty; a bare line is
+/// not a field the block parser can address, and the name is drawn from
+/// `City::generate_name`'s table rather than being sim state this crate
+/// holds.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CityDump {
+    /// `(this->x).value` / `(this->y).value` — the city point in internal
+    /// units, the same scale a `SUBOBJECT`'s `x_internal` is written in.
     pub x: i64,
     pub y: i64,
     pub pop: i64,
     pub who: i64,
+    /// The nation the city is assimilated to; `-1` on a slot never founded.
+    pub race: i64,
+    /// `docs/CITIES.md` §1.4 — the bit table.
+    pub city_flags: i64,
+    /// The slot number **within the owner's own city array**, which is what
+    /// an `ARMYDATA`'s `city` indexes (`docs/ARMY.md` §13).
+    pub city: i64,
+    pub attack_stamp: i64,
+    pub raid_stamp: i64,
+    pub reduce_stamp: i64,
+    pub capture_stamp: i64,
+    pub assimilation_timer: i64,
+    pub capture_strength: i64,
+    /// `Array<CaravanLink>::log_data(&this->vans)`: the array header —
+    /// `length`, `size`, `increment`, `flags` — and then one nested block
+    /// per link, each carrying `cara` and `who`. Only the links are
+    /// carried; the header's capacity is the container's, not the city's.
+    pub vans: Vec<(i64, i64)>,
+    /// The city building's object number, and its region.
+    pub o: i64,
+    pub reg: i64,
+    pub scouted: i64,
+    pub in_port: i64,
+    pub peasant_dist: i64,
+    pub trade_val: i64,
+    pub free: i64,
+    pub busy: i64,
+    pub gatherers: i64,
+    pub ocean: i64,
+    pub land: i64,
+    pub filled: i64,
+    pub bordering: i64,
+    pub ocean_filled: i64,
+    pub dock_tile: i64,
+    pub was_capital_flags: i64,
+    pub space: [i64; 3],
+    pub ter: [i64; 6],
+}
+
+/// One `CITY` block, typed.
+///
+/// The four container fields between `capture_strength` and `o` —
+/// `length`, `size`, `increment`, `flags` — belong to the **caravan
+/// array**, not to the city, which is why nothing here reads them; the
+/// enclosing `CITIES` array writes its own three a level up, and a `Block`
+/// keeps only the first value under a key anyway.
+pub(crate) fn city_of(b: &Block<'_>) -> CityDump {
+    let i = |k: &str| b.int(k).unwrap_or(0);
+    let arr = |k: &str| -> Vec<i64> {
+        b.all(k)
+            .iter()
+            .map(|v| v.trim().parse().unwrap_or(0))
+            .collect()
+    };
+    let at = |v: &[i64], n: usize| v.get(n).copied().unwrap_or(0);
+    let space = arr("space[scan]");
+    let ter = arr("ter[scan]");
+    CityDump {
+        x: i("x"),
+        y: i("y"),
+        pop: i("pop"),
+        who: i("who"),
+        race: b.int("race").unwrap_or(-1),
+        city_flags: i("city_flags"),
+        city: i("city"),
+        attack_stamp: i("attack_stamp"),
+        raid_stamp: i("raid_stamp"),
+        reduce_stamp: i("reduce_stamp"),
+        capture_stamp: i("capture_stamp"),
+        assimilation_timer: i("assimilation_timer"),
+        capture_strength: i("capture_strength"),
+        vans: b
+            .children
+            .iter()
+            .filter(|c| c.get("cara").is_some())
+            .map(|c| (c.int("cara").unwrap_or(-1), c.int("who").unwrap_or(-1)))
+            .collect(),
+        o: b.int("o").unwrap_or(-1),
+        reg: b.int("reg").unwrap_or(-1),
+        scouted: i("scouted"),
+        in_port: i("in_port"),
+        peasant_dist: i("peasant_dist"),
+        trade_val: i("trade_val"),
+        free: i("free"),
+        busy: i("busy"),
+        gatherers: i("gatherers"),
+        ocean: i("ocean"),
+        land: i("land"),
+        filled: i("filled"),
+        bordering: i("bordering"),
+        ocean_filled: i("ocean_filled"),
+        dock_tile: i("dock_tile"),
+        was_capital_flags: i("was_capital_flags"),
+        space: [at(&space, 0), at(&space, 1), at(&space, 2)],
+        ter: [
+            at(&ter, 0),
+            at(&ter, 1),
+            at(&ter, 2),
+            at(&ter, 3),
+            at(&ter, 4),
+            at(&ter, 5),
+        ],
+    }
 }
 
 /// One member's row of a `GROUPDATA` record — the six parallel arrays
@@ -1295,6 +1413,11 @@ pub struct Frame {
     pub units: Vec<UnitDump>,
     pub builds: Vec<BuildDump>,
     pub leaders: Vec<LeaderDump>,
+    /// The frame's `CITIES` list, whole. `CityData::log_data` is called
+    /// from `Cities::log_data` at every detail level a frame block is
+    /// written at, so this is populated on every capture that dumps
+    /// anything per frame — which nothing compared until item 154.
+    pub cities: Vec<CityDump>,
 }
 
 fn pos_of(b: &Block<'_>) -> Pos {
@@ -1868,15 +1991,7 @@ impl<'a> Log<'a> {
             init.world = w.fields.clone();
         }
         if let Some(c) = body.kid("CITIES") {
-            init.cities = c
-                .kids("CITY")
-                .map(|c| CityDump {
-                    x: c.int("x").unwrap_or(0),
-                    y: c.int("y").unwrap_or(0),
-                    pop: c.int("pop").unwrap_or(0),
-                    who: c.int("who").unwrap_or(0),
-                })
-                .collect();
+            init.cities = c.kids("CITY").map(city_of).collect();
         }
         if let Some(k) = body.kid("CONSTANTS") {
             init.constants = constants_of(k);
@@ -2015,11 +2130,18 @@ impl<'a> Log<'a> {
             .into_iter()
             .map(|(n, b)| {
                 let (units, builds, leaders) = records(b, false);
+                // `find`, not `kid`: a `DUMP_ALL` frame nests its state
+                // under `FULL DUMP` exactly as the initial block does.
+                let cities = b
+                    .find("CITIES")
+                    .map(|c| c.kids("CITY").map(city_of).collect())
+                    .unwrap_or_default();
                 Frame {
                     n,
                     units,
                     builds,
                     leaders,
+                    cities,
                 }
             })
             .collect()
@@ -2317,7 +2439,15 @@ BEGIN GAME
                 x: 3168,
                 y: 30816,
                 pop: 1,
-                who: 0
+                who: 0,
+                // The sample's block carries the four fields the parser
+                // used to read and nothing else, so every widened field is
+                // its own default — `race` and the two identities at their
+                // "no record" sentinel, the rest at zero.
+                race: -1,
+                o: -1,
+                reg: -1,
+                ..CityDump::default()
             }]
         );
         // One building, not two: the end-of-game dump's `2007` sits at the

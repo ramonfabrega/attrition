@@ -12228,3 +12228,84 @@ the array.
   `economic.bhs` and `aibestbuildlibrary.bhs` rather than the decompile: that
   case 23 jumps to case 15 on a sea map, and that case 15 is the Market. The
   shipped scripts are readable and they are the opening.
+
+## 2026-09-02 — item 154(a): the `CITY` record, four fields to forty, and the reason the AI is poor (Opus)
+
+The opener said to widen the `CITY` record before booking a capture, because
+run58 dumps it every frame and `rondata` read four of its forty fields — at
+frame 1, on one capture. That is what this session did, and the widening
+answered the item it was booked under.
+
+**The record.** `CityData::log_data@004895c0` writes one block per **live**
+city — the whole body is behind `if ((city_flags & 1) == 0) return` — at
+every detail level, on every frame a block exists. Forty fields, catalogued
+in `docs/CITIES.md` §5.7. Two traps in it, both cheap once seen: the
+`length`/`size`/`increment`/`flags` between `capture_strength` and `o` are
+`Array<CaravanLink>::log_data@00489390`'s header and not the city's, and
+`city` is the slot **within the owner's own array** — both starting cities
+of a two-player game are `city 0`.
+
+The comparison went into `compare`, so it now runs on every capture the
+harness reads, and `run58_s_five_thousand_frames_stand_where_the_original_s_do`
+pins it: **606,540 fields compared, 489,001 of them new agreement**, with
+every open row pinned by `(who, o, field, first frame, count)` rather than
+filtered out.
+
+Two artifacts of the check itself had to go first, and both are worth
+writing down. `reg` read as one wrong on every city of every capture, because
+the simulation numbers its regions as it finds them and the dump numbers them
+as the generator wrote them — `Built::region_map` is the translation, and the
+census check had been going through it for a fortnight. And `city_flags` is
+compared **bit by bit**, not as a word: four of its bits are the "an active
+TEMPLE / GRANARY / LUMBERMILL / MARKET stands here" marks, which this crate
+keeps on the economy's city record instead, so a whole-word compare would
+have reported every frame of every game and hidden the bit that moved.
+
+**What was left, and the one that matters.** `ter[6]` — the best per-good
+gather amount over the city's occupied tiles — is zero on every city of
+every frame, because `World::gather_at@006b07f0` is a declared seam that
+answers `[0; 6]`. It is not inert while it does. `gather_value`, the gather
+families' half of the make-list score, reads it per good and refuses the
+good outright:
+
+```
+let ter = f.ter[g];
+if !(ter != 0 || oil_ok) { continue; }
+```
+
+`oil_ok` needs `oil_patches.count`, which reads 0. So with `ter` zero the
+loop admits **no good at all**: the AI's make list can never ask for a farm,
+a camp, a mine or a university. Item 154 was "the AI is 46 timber short of
+the Market it sites on 5376" and this is the shape of an answer to it —
+booked as item 157, with the oracle already running, per good, per city, per
+frame.
+
+**And the original sweeps for the human leader.** `Leaders::strategy_all@
+006ed430`'s gate is `leader_flags & 3 == 3` — in play, not defeated — with no
+human test, and `Leader::plan_strategy@006b9620` has none either. The human is
+filtered one level down, in `Leader::production_ai@006c1960`, whose first
+statement sends a human without computer assist to the switch's `default` —
+which **clears the step machine**, so the sweep re-arms and runs again on the
+leader's next phase frame, forever. `Sim::strategy_all` skips the human
+outright, so thirteen fields of the human's city are zero on all 5,201 frames.
+
+The dump had said so twice over and nobody had looked: the human's city
+carries a full site picture from frame 1 (`busy 5`, `land 84`, `filled 40`,
+`space 50/50/44`, `ter 1/2/0/1/0/0`), and its `peasant_dist` moves on frame
+**401** — leader 0's own phase, `frame % 200 == 0`, one frame late in the log
+exactly as leader 1's 175-phase changes show at 376, 576, 776. Booked as 158,
+not fixed, and the reason is in the item: this crate's sweep would then also
+run step 16, which seeds an army, and no capture has a human one.
+
+**The rules this is an instance of.**
+
+- **Diff the whole record.** Nine tenths of this one had gone uncompared for
+  a month; the first widening found a hard gate on the AI's whole economy.
+  The unit of a widening is the record, not the field the mechanic wants.
+- **A seam that answers zero is not neutral.** `gather_at` was written as a
+  no-op "kept for its shape", and its zero silently disabled every gathering
+  building the make list could ever want. A seam is only honest while
+  something measures what it costs — which is what the record now does.
+- **Check the checker before believing it.** The first run reported 131,324
+  wrong fields; 13,785 of them were `reg` asking the wrong numbering. A
+  widening's first output is a claim about the comparison, not about the sim.

@@ -1408,6 +1408,32 @@ pub struct FrameResult {
     /// `type 0` on one that has been — which is not state either side owns.
     pub queue_compared: usize,
     pub queue_diverged: Vec<QueueDivergence>,
+    /// **The `CITY` record, whole** — every field
+    /// `CityData::log_data@004895c0` writes, on every city of every frame
+    /// (`docs/CITIES.md` §5.7). Written at every detail level, like `mylos`
+    /// and the packed bit, so this is compared on every capture that dumps
+    /// frames at all.
+    pub city_compared: usize,
+    pub city_diverged: Vec<CityDivergence>,
+    /// Cities the frame names and the simulation cannot link to a building
+    /// of its own — the city comparison's blind spot, counted rather than
+    /// assumed away, exactly as [`FrameReport::build_unlinked`] is.
+    pub city_unlinked: usize,
+}
+
+/// One field of a `CITY` record the two sides disagree on.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CityDivergence {
+    pub frame: i64,
+    pub who: i64,
+    /// The city building's object number — the identity the link is made
+    /// on, and the one a `BUILDDATA` row shares.
+    pub o: i64,
+    /// The field, named as `CityData::log_data` writes it; an array element
+    /// as `space[k]` / `ter[k]`.
+    pub field: String,
+    pub ours: i64,
+    pub theirs: i64,
 }
 
 /// One field of a building's **production queue** the two sides disagree
@@ -2445,6 +2471,165 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             wrong("ty", k, i64::from(mine.y), theirs.1);
         }
     }
+    // **The `CITY` record, whole.** `CityData::log_data` runs for every
+    // live city on every frame a dump writes, at every detail level, and
+    // forty fields of it went uncompared on every capture until item 154 —
+    // one test read four of them, at frame 1, on one run. The rate's own
+    // inputs are in here (`gatherers`, `busy`, `free`, `filled`,
+    // `space[3]`, `ter[6]`), and so is every stamp the capture and
+    // assimilation clocks keep.
+    //
+    // The link is the city **building**: `CityData::o` is the centre's
+    // object number, which is the same identity a `BUILDDATA` row carries,
+    // so a city is matched the way a building is rather than by position.
+    for c in &frame.cities {
+        if !(0..players as i64).contains(&c.who) {
+            continue;
+        }
+        let Some(ci) = built
+            .sim
+            .buildings
+            .iter()
+            .position(|b| i64::from(b.owner) == c.who && i64::from(b.index) == c.o)
+            .and_then(|b| built.sim.buildings[b].city)
+        else {
+            r.city_unlinked += 1;
+            continue;
+        };
+        let ours = &built.sim.cities[ci];
+        let w = c.who as usize;
+        // The AI's half of the record. The original keeps these on
+        // `CityData` itself, where one leader's sweep writes them for its
+        // own cities; this crate keeps a copy per leader, so the owner's is
+        // the one the dump is showing.
+        let ai = built.sim.ai[w].city_ai.get(ci).copied().unwrap_or_default();
+        // `city_flags`, bit by bit rather than as a word: four of its bits
+        // are the "an active TEMPLE / GRANARY / LUMBERMILL / MARKET stands
+        // here" marks of §1.4, which this crate keeps on the economy's own
+        // city record instead, and a whole-word compare would report every
+        // frame of every game rather than the bit that moved.
+        let flags = [
+            ("city_flags[0x1]", 0x1, ours.alive),
+            ("city_flags[0x2]", 0x2, ours.no_heal),
+            ("city_flags[0x10]", 0x10, ours.capital),
+            ("city_flags[0x40]", 0x40, ours.alarm),
+            ("city_flags[0x100]", 0x100, ours.unassimilated),
+            ("city_flags[0x2000]", 0x2000, ours.no_muster),
+            ("city_flags[0x4000]", 0x4000, ours.founding_capital),
+            ("city_flags[0x8000]", 0x8000, ours.was_founding_capital),
+        ];
+        let mut fields: Vec<(String, i64, i64)> = vec![
+            ("x".into(), i64::from(ours.pos.x), c.x),
+            ("y".into(), i64::from(ours.pos.y), c.y),
+            ("pop".into(), i64::from(ours.pop), c.pop),
+            ("race".into(), ours.race.map_or(-1, i64::from), c.race),
+            (
+                "city".into(),
+                built
+                    .sim
+                    .cities_of(c.who as sim::Player)
+                    .iter()
+                    .position(|&i| i == ci)
+                    .map_or(-1, |i| i as i64),
+                c.city,
+            ),
+            ("attack_stamp".into(), ours.attack_stamp, c.attack_stamp),
+            ("capture_stamp".into(), ours.capture_stamp, c.capture_stamp),
+            (
+                "assimilation_timer".into(),
+                ours.assimilation_timer,
+                c.assimilation_timer,
+            ),
+            (
+                "capture_strength".into(),
+                i64::from(ours.capture_strength),
+                c.capture_strength,
+            ),
+            // **Through the region map, not raw.** The simulation numbers
+            // its regions as it finds them and the dump numbers them as the
+            // generator wrote them; `Built::region_map` is the translation
+            // the census check already goes through, and without it every
+            // city on every capture reads as one region wrong.
+            (
+                "reg".into(),
+                ours.reg.map_or(-1, |r| {
+                    built
+                        .region_map
+                        .iter()
+                        .find(|&&(_, s)| s == r)
+                        .map_or(-1, |&(d, _)| d)
+                }),
+                c.reg,
+            ),
+            (
+                "was_capital_flags".into(),
+                ours.was_capital as i64,
+                c.was_capital_flags,
+            ),
+            ("in_port".into(), i64::from(ai.in_port), c.in_port),
+            (
+                "peasant_dist".into(),
+                i64::from(ai.peasant_dist),
+                c.peasant_dist,
+            ),
+            ("free".into(), i64::from(ai.free), c.free),
+            ("busy".into(), i64::from(ai.busy), c.busy),
+            ("gatherers".into(), i64::from(ai.gatherers), c.gatherers),
+            ("ocean".into(), i64::from(ai.ocean), c.ocean),
+            ("land".into(), i64::from(ai.land), c.land),
+            ("filled".into(), i64::from(ai.filled), c.filled),
+            ("bordering".into(), i64::from(ai.bordering), c.bordering),
+            (
+                "ocean_filled".into(),
+                i64::from(ai.ocean_filled),
+                c.ocean_filled,
+            ),
+            ("dock_tile".into(), i64::from(ai.dock_tile), c.dock_tile),
+        ];
+        for (name, bit, mine) in flags {
+            fields.push((
+                name.to_string(),
+                i64::from(mine),
+                i64::from(c.city_flags & bit != 0),
+            ));
+        }
+        for (k, &theirs) in c.space.iter().enumerate() {
+            fields.push((format!("space[{k}]"), i64::from(ai.space[k]), theirs));
+        }
+        for (k, &theirs) in c.ter.iter().enumerate() {
+            fields.push((format!("ter[{k}]"), i64::from(ai.ter[k]), theirs));
+        }
+        // **The four fields nothing here holds**, asserted against the
+        // zero this crate answers with rather than dropped: `raid_stamp`
+        // and `reduce_stamp` are `Leader::raid`'s and the reduce order's
+        // clocks, `scouted` is the AI's "a scout has seen this city" mark
+        // and `trade_val` is `City::compute_trade`'s output. None has a
+        // writer in this crate, so each row is a claim that the original
+        // never writes one either on the captures on disk — a claim a
+        // capture can falsify, which is the point of leaving it in.
+        for (name, theirs) in [
+            ("raid_stamp", c.raid_stamp),
+            ("reduce_stamp", c.reduce_stamp),
+            ("scouted", c.scouted),
+            ("trade_val", c.trade_val),
+            ("vans.length", c.vans.len() as i64),
+        ] {
+            fields.push((name.into(), 0, theirs));
+        }
+        for (field, ours, theirs) in fields {
+            r.city_compared += 1;
+            if ours != theirs {
+                r.city_diverged.push(CityDivergence {
+                    frame: frame.n,
+                    who: c.who,
+                    o: c.o,
+                    field,
+                    ours,
+                    theirs,
+                });
+            }
+        }
+    }
     r.scores = frame.leaders.iter().map(|l| (l.who, l.score)).collect();
     r
 }
@@ -2809,6 +2994,7 @@ mod tests {
                 y: 30816,
                 pop: 1,
                 who: 0,
+                ..CityDump::default()
             }],
             units: vec![
                 UnitDump {
@@ -4746,6 +4932,114 @@ mod tests {
                 d.frame, d.who, d.o, d.field, d.ours, d.theirs
             );
         }
+
+        // **The `CITY` record, whole** — item 154(a), and the widest
+        // widening the ledger has taken: forty fields on every live city of
+        // every frame, where one test read four of them at frame 1
+        // (`docs/CITIES.md` §5.7).
+        let cities: usize = report.frames.iter().map(|f| f.city_compared).sum();
+        let unlinked: usize = report.frames.iter().map(|f| f.city_unlinked).sum();
+        let city_bad: Vec<&CityDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.city_diverged.iter())
+            .collect();
+        // One row per `(who, o, field)`, in the order each first parted,
+        // with the frame it parted on and how many frames it stayed parted.
+        let mut city_rows: Vec<(i64, i64, &str, i64, usize)> = Vec::new();
+        for d in &city_bad {
+            if let Some(row) = city_rows
+                .iter_mut()
+                .find(|r| (r.0, r.1, r.2) == (d.who, d.o, d.field.as_str()))
+            {
+                row.4 += 1;
+            } else {
+                city_rows.push((d.who, d.o, &d.field, d.frame, 1));
+            }
+        }
+        let city_said: Vec<String> = city_rows
+            .iter()
+            .map(|&(who, o, field, frame, n)| format!("{who}/{o} {field} f{frame} x{n}"))
+            .collect();
+        eprintln!(
+            "run58 cities: {cities} fields compared, {} wrong, {unlinked} unlinked",
+            city_bad.len()
+        );
+        for r in &city_said {
+            eprintln!("  {r}");
+        }
+        assert!(
+            cities >= 600_000,
+            "the city record is being read: {cities} fields"
+        );
+        assert_eq!(unlinked, 0, "every city links to a building of ours");
+        // **What is left, pinned as it stands** rather than filtered out,
+        // so a change that moves any of it fails rather than passing
+        // quietly (the `gather_slots` precedent). Four open seams, and
+        // nothing else in the record parts on any of the 5,201 frames:
+        //
+        // 1. **`who 0`, the human's city — thirteen fields, every frame.**
+        //    `Leaders::strategy_all@006ed430`'s gate is `leader_flags & 3
+        //    == 3`: in play and not defeated, with **no** test for a human,
+        //    and `Leader::production_ai@006c1960` is where a human without
+        //    computer assist bails — to the switch's `default`, which
+        //    clears the step machine, so the sweep re-arms and runs again on
+        //    the leader's next phase frame. This crate skips the human in
+        //    `Sim::strategy_all` instead, so its census never runs and the
+        //    whole site picture stays zero. The dump says the same as the
+        //    decompile: the human's `peasant_dist` moves on frame 401, and
+        //    leader 0's phase is `frame % 200 == 0` (`docs/AI.md` §2.2).
+        // 2. **`ter[6]`, on every city of both players.** `World::gather_at`
+        //    is a declared seam here (`ai_census.rs`) that answers zero, so
+        //    the per-good best of the city's occupied tiles is never
+        //    written. `ter[1]` at `1/2000` parts on 2,375 of the 5,201
+        //    frames and agrees on the other 2,826, which is the seam's
+        //    shape exactly: answering zero is right on every frame no tile
+        //    in the city's circle is worth anything for that good.
+        // 3. **The AI's second city, `1/2007`** — `land`, `filled` and the
+        //    three `space` counts, one apart, from the frame its circle is
+        //    first swept.
+        // 4. **A gatherer filed under the wrong city** from 2576, and a
+        //    free citizen from 4176 — the totals agree, the attribution
+        //    does not.
+        let city_want = vec![
+            "0/2000 peasant_dist f1 x5201",
+            "0/2000 busy f1 x5201",
+            "0/2000 gatherers f1 x5201",
+            "0/2000 ocean f1 x5201",
+            "0/2000 land f1 x5201",
+            "0/2000 filled f1 x5201",
+            "0/2000 dock_tile f1 x5201",
+            "0/2000 space[0] f1 x5201",
+            "0/2000 space[1] f1 x5201",
+            "0/2000 space[2] f1 x5201",
+            "0/2000 ter[0] f1 x5201",
+            "0/2000 ter[1] f1 x5201",
+            "0/2000 ter[3] f1 x5201",
+            "1/2000 ter[0] f1 x5201",
+            "1/2000 ter[1] f1 x2375",
+            "1/2000 ter[3] f1 x5201",
+            "1/2000 ter[5] f1 x5201",
+            "1/2007 land f1819 x157",
+            "1/2007 filled f1819 x3383",
+            "1/2007 space[0] f1976 x3226",
+            "1/2007 space[1] f1976 x3226",
+            "1/2007 space[2] f1976 x3226",
+            "1/2007 ter[0] f1976 x3226",
+            "1/2007 ter[1] f1976 x3226",
+            "1/2007 ter[3] f1976 x3226",
+            "1/2007 ter[4] f1976 x3226",
+            "1/2007 ter[5] f1976 x3226",
+            "1/2000 gatherers f2576 x800",
+            "1/2007 peasant_dist f2576 x800",
+            "1/2007 gatherers f2576 x800",
+            "1/2007 free f4176 x200",
+        ];
+        assert_eq!(
+            city_said, city_want,
+            "the `CITY` record's open rows moved; every other field of every \
+             city of every frame agrees"
+        );
 
         // The collision block, on every unit-frame whose position agrees.
         let coll: usize = report.frames.iter().map(|f| f.collide_compared).sum();

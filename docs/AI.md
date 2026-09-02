@@ -2936,3 +2936,90 @@ disagree — the call above separates every one of them. Reading-only: the
 `div_3_table` shifts themselves, `>> 6` here against `>> 8` at `006e15b7`,
 taken from `llvm-objdump` over `006e2004`–`006e2073`; and that the same
 arm runs for a **MINE** (`0x1a3`), which no capture has placed.
+
+## 23. The sweep runs for a human leader too, and `ter` is never written (2026-09-02)
+
+Both come from the same place: the `CITY` record, widened from four fields
+to forty and compared on every frame of run58 (`docs/CITIES.md` §5.7).
+
+### 23.1 `strategy_all`'s gate has no test for a human
+
+`Leaders::strategy_all@006ed430` walks the leader array and admits every one
+whose `leader_flags & 3 == 3` — in play and not defeated. There is **no**
+human test:
+
+```
+for L in leaders:
+    if (L.flags & 3) != 3: continue
+    Leader::check_explore(L); Leader::plan_strategy(L)
+    Leader::compute_score(L, 0); Leader::diplomacy(L)
+```
+
+and `Leader::plan_strategy@006b9620` has none either, at its head or
+anywhere in its body. The human is filtered one level *down*, in
+`Leader::production_ai@006c1960`, whose first statement is
+
+```
+if ((flags & 4) and not (flags & 8)) or ai_off or (field_0x4 & 4):
+    goto default          # `field_0x788 = 0; return`
+```
+
+— human (`0x4`) without computer assist (`0x8`) falls to the switch's
+`default`, and the default **clears the step machine**. So the human
+leader's cycle is: sweep on its phase frame, arm the machine, produce
+nothing on the next frame and disarm it, sweep again on the next phase
+frame — forever. Everything `plan_strategy`'s sweep computes is computed
+for a human; only what `production_ai` would *do* with it is skipped.
+
+**The dump says the same thing twice.** In run58 the human's city carries a
+full site picture from frame 1 — `busy 5`, `gatherers 5`, `ocean 25`,
+`land 84`, `filled 40`, `dock_tile 1`, `space 50/50/44`, `ter 1/2/0/1/0/0` —
+where a leader whose sweep never ran would carry zeros; and its
+`peasant_dist` moves 1 → 2 on frame **401**, which is leader 0's own phase
+(`(who·0x19 + frame) % 200 == 0` → frame ≡ 0, and the log reports the
+change one frame late, exactly as leader 1's 175-phase changes show at 376,
+576, 776).
+
+`Sim::strategy_all` skips a human outright instead, so the human's census
+never runs and its thirteen site fields stay zero on all 5,201 frames.
+**Not yet fixed, and not a one-liner**: this crate's sweep would then also
+run step 16, which seeds an army — and the original's human has no
+`ARMYDATA` record on any capture, so a gate this crate does not model sits
+between step 13 and step 16. `Sim::check_orphaned_buildings` already has
+its own human bail; `check_explore` here only writes `census.explored` and
+issues nothing.
+
+### 23.2 `ter[6]` has no writer, and it is a hard gate on the gather families
+
+`CityData::ter[6]` is the best per-good gather amount over the city's
+occupied tiles, written by step 13's circle sweep out of
+`World::gather_at@006b07f0`. `World::gather_at` is a **declared seam** in
+`crates/sim/src/ai_census.rs` that answers `[0; 6]`, so `CityAi::ter` is
+zero everywhere, for every player, on every frame.
+
+It is not inert. `gather_value` — §3.2, the gather families' half of the
+make-list score — reads it per good:
+
+```
+let ter = f.ter[g];
+if !(ter != 0 || oil_ok) { continue; }      // ai_build.rs
+```
+
+`oil_ok` needs `oil_patches.count`, which reads 0. So with `ter` zero the
+loop admits **no good at all** and `gather_value` returns `None` for every
+gathering building of every city — the AI's make list can never ask for a
+farm, a camp, a mine or a university. (The script path is separate: §19's
+`place_woodcutter` sites camps without going through this.)
+
+`World::gather_at` needs the `lands` table — `lands[class]` carries four
+good indices at `+0x04..+0x10` and four amounts at `+0x14..+0x20`, stride
+`0x138`, written by `Lands::init@0067e730` — plus the nine-neighbour tile
+pass and the `GoodType` predicate behind its `×2`.
+
+**Coverage.** Diff-backed: that `ter` disagrees, per good, per city, on
+every frame of run58 — 5,201 frames for the AI's first city and 3,226 for
+its second, and `1/2000`'s `ter[1]` agrees on 2,826 of them, which is the
+seam's own shape (zero is right whenever nothing in the circle is worth
+anything). Reading-only: everything in `gather_at`'s body above, and the
+claim in §23.1 about step 16 — no capture has a human army to falsify it
+with, because no capture has a human army at all.

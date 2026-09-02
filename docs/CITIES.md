@@ -1007,6 +1007,49 @@ live city with `0x10`; else another player's live city whose
 case. `has_capital` is true outright unless `elimination == 1`. What losing
 it does is §8.5.
 
+### 5.7 The `CITY` record, whole — `CityData::log_data@004895c0` (2026-09-02)
+
+The dump writes one `CITY` block per **live** city — the whole function is
+behind `if ((this->city_flags & 1) == 0) return` — at every detail level, on
+every frame a block is written at all. Forty fields, in this order:
+
+`x`, `y`, `pop`, `who`; the two bare strings `name` and `id` (`id` only when
+non-empty, and neither carries a key, so neither is parsed); `race`,
+`city_flags` (§1.4), `city`, `attack_stamp`, `raid_stamp`, `reduce_stamp`,
+`capture_stamp`, `assimilation_timer`, `capture_strength`; then
+`Array<CaravanLink>::log_data(&vans)` — its own `length`/`size`/`increment`/
+`flags` header and one nested block per link, each `cara` and `who`; then
+`o`, `reg`, `scouted`, `in_port`, `peasant_dist`, `trade_val`, `free`,
+`busy`, `gatherers`, `ocean`, `land`, `filled`, `bordering`, `ocean_filled`,
+`dock_tile`, `was_capital_flags`, `space[3]`, `ter[6]`.
+
+**The four container fields between `capture_strength` and `o` are the
+caravan array's, not the city's** — `Array<CaravanLink>::log_data@00489390`
+writes them before its entries, and the enclosing `CITIES` array writes its
+own three a level up. Reading `length` here as a field of `CityData` gives
+the caravan count.
+
+`city` is the slot **within the owner's own city array** — what an
+`ARMYDATA`'s `city` indexes (`docs/ARMY.md` §13), not the global `CITIES`
+position; the two starting cities of a two-player game are both `city 0`.
+`o` is the centre building's object number, which is the identity
+`rondata::diff` links a city on, the same one a `BUILDDATA` row carries.
+
+**Coverage.** Diff-backed on run58's 5,201 frames, every field of every live
+city, 606,540 comparisons —
+`diff::tests::run58_s_five_thousand_frames_stand_where_the_original_s_do`.
+Everything agrees except four seams, each pinned there as it stands:
+
+| open | why | where |
+| --- | --- | --- |
+| the human's whole site picture, 13 fields, every frame | `Sim::strategy_all` skips a human leader; the original does not | `docs/AI.md` §23 |
+| `ter[6]`, both players, both cities | `World::gather_at` is a seam answering zero | `docs/AI.md` §23 |
+| `1/2007`'s `land`, `filled`, `space[3]`, one apart | the second city's circle sweep | open |
+| a gatherer and a free citizen filed under the wrong city | the totals agree, the attribution does not | open |
+
+Before this the record was read four fields deep (`x`, `y`, `pop`, `who`)
+and compared only at frame 1 of one capture.
+
 ---
 
 ## 6. Garrisons

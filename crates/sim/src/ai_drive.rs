@@ -52,6 +52,16 @@ impl Sim {
     /// frame — `check_explore`, `plan_strategy`, `compute_score`,
     /// `diplomacy`. Only `plan_strategy` decides anything the simulation
     /// models; the other three are recounts and the diplomacy pass.
+    ///
+    /// **The human filter here is this crate's, not the original's**
+    /// (`docs/AI.md` §23.1). `strategy_all`'s gate is `leader_flags & 3 ==
+    /// 3` and nothing more, and `Leader::production_ai` is where a human
+    /// without computer assist bails — to a `default` that clears the step
+    /// machine, so the sweep re-arms and runs on every phase frame. run58's
+    /// `CITY` record shows the human's site picture filled from frame 1 and
+    /// its `peasant_dist` moving on leader 0's own phase frame. Moving the
+    /// gate down is not a one-liner: the sweep's step 16 seeds an army, and
+    /// no capture shows a human one.
     pub fn strategy_all(&mut self) {
         for w in 0..self.players.len() {
             if self.nation[w].human || self.defeated[w] {
