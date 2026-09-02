@@ -1089,3 +1089,94 @@ the `bucket` XOR mask comes off — not 66750; and the enhancer reaches
 `BuildTypeData::calc_gather` as the rational pair
 `(enhancer_amount(t, 100), 100)`, applied to the per-gatherer value before the
 multiply by gatherers, which is what this document already said.
+
+---
+
+## The census at the word — run59, East Indies `[5150, 5400)` (2026-09-02)
+
+East Indies' word is **5376**, and the frame is a purchase: `economic.bhs`
+case 15 asks for a Market at the AI's capital, the original places it, and
+this crate cannot pay. A Market is eighty timber. That made the headline a
+**resource level**, and until run59 no capture on disk carried one past
+frame 800 — `LEADERS=1` at `[End Frame]` is five scalars and no goods, and
+the only `LEADERS=9` windows were run40's `[560, 600)` and run41's
+`[770, 800)`, both on Great Lakes.
+
+run59 is that window moved (`docs/ORACLE.md`, "run59"): run58's own game,
+`LEADERS=9` at `[End Frame]`, and the dump narrowed to 250 frames around the
+word. **18,000 good-frames** — 250 frames, two players, six goods, six
+fields — and 4,798 of them disagree, in nine shapes. Every one is a
+**standing state**: each is wrong on all 250 frames, which is what says it
+is a level rather than anything the window does.
+
+### The item: fifty timber, and it is a lump
+
+| | ours | theirs |
+| --- | --- | --- |
+| the AI's `bucket[timber]` at 5150 | 118 | **168** |
+| at 5376, the Market's own frame | 34 | **84** |
+
+Fifty short on every frame before the purchase — and `leftover[timber]`, the
+fractional accumulator, **agrees on 234 of the 250**. The two sides are
+therefore paid the same amount of timber every frame in this window, so the
+fifty was banked before it opened: a lump, not a rate. On 5377 the gap flips
+to **thirty ahead**, because the original is eighty poorer and this crate is
+not. That flip is the whole of East Indies' word in one field.
+
+### Where the fifty comes from: `gather_slots`
+
+`gather_slots` is the running inventory `Build::activate` adds a finished
+gather building's `gather_max` to ("What a finished gather building pays"),
+and the dump prints it per good beside its own high-water mark — which is
+what decides the per-slot bonus. Both players are short the same rows:
+
+| | ours | theirs |
+| --- | --- | --- |
+| human `gather_slots[timber]` | **0** | 6 |
+| AI `gather_slots[timber]` | 4 | **10** |
+| both players' `gather_slots[wealth]` | 0 | **1** |
+| both players' `gather_slots[food]` | — exact — | |
+
+The human builds nothing at all in this game, so its six are its **starting**
+camp's and this crate claims none of them; the AI's ten are the same six plus
+the four its own camps add, which are the four this crate has. The food slots
+are exact on both players, which is what makes this a defect in one lineage
+rather than an array nobody writes. And `TIMBER_BONUS_PER_WOOD_SLOT` is
+**5**, paid per slot past the high-water mark: ten slots is fifty timber.
+
+The wealth slot is item 82's, open since run40 — `BuildTypeData::get_good`'s
+table cannot produce a wealth-gathering building, and this crate's
+`Sim::gather_good` answers `None` for wealth by construction, so the one slot
+has no writer here at all.
+
+### Two rate seams beside it, both the AI's
+
+Every one of the **human's** six incomes is exact on every frame of the
+window. The AI's are not:
+
+- `income[food]` **1440 against 1600** (sixteenths, so ninety against a
+  hundred) on all 250;
+- `income[wealth]` **0 against 160** on all 250, with `leftover[wealth]` 0
+  against 2136 — this crate gives the AI no wealth income at all, and yet its
+  `bucket[wealth]` is eighteen *ahead*, so something else is paying it;
+- `income[timber]` agrees until **5384**, where the original's drops 1280 →
+  1120 and this crate's stays — a gatherer that leaves the wood sixteen
+  frames from the end of the window.
+
+### Coverage
+
+**Diff-backed**: all of the above, by
+`diff::tests::run59_s_census_is_where_the_ai_s_timber_goes`, which pins each
+shape as `(frames wrong, ours, theirs)` rather than filtering it out, and
+pins the timber gap frame by frame across the Market.
+
+**Not established**: *when* the fifty was banked. The window is 250 frames
+wide and the lump is older than it; nothing on disk carries a resource level
+between frame 800 and 5150 on this map, so localising it needs either a
+second window or an argument from the AI's own purchases, every one of which
+this crate already matches (run58's `QUEUE` record, `docs/AI.md` §25).
+
+**Also on the record and already booked**: `bucket` on goods 3, 4 and 5 is
+100 here and 0 in the original, on both players, every frame — item 156,
+`STARTING_GOODS` arrives with the age. Inert: an unavailable good is never
+charged and never accrues.

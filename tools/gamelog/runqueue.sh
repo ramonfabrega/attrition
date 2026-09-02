@@ -56,7 +56,7 @@ echo "scenario $SCEN -> $LOG"
 typeset -a summary cmds checks covers
 summary=()
 run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""; ffwd=""
+endd=""; startt=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""
 # `poll_max` was the one key not reset between stanzas, so a stanza after
 # run53 inherited its 900 and the default was unreachable for the rest of the
 # file — a leak that can only ever make a run wait longer, but a leak.
@@ -65,7 +65,7 @@ cmds=(); checks=(); covers=()
 
 reset_stanza() {
   run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-  endd=""; startt=""; dumpall=""; window=""; driver=""; settle=""; ffwd=""
+  endd=""; startt=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""
   pollmax=""
   cmds=(); checks=(); covers=()
 }
@@ -100,6 +100,7 @@ flush() {
     if [ -n "$startt" ];  then pass+=("DETAIL_START=$startt"); fi
     if [ -n "$dumpall" ]; then pass+=("DUMP_ALL=$dumpall"); fi
     if [ -n "$window" ];  then pass+=("WINDOW=$window"); fi
+    if [ -n "$fwindow" ]; then pass+=("FRAME_WINDOW=$fwindow"); fi
     # `rontrace.cfg` is a several-line file when the trace takes a window of
     # its own, so `cover:` is repeatable and the lines are joined in order.
     if [ ${#covers} -gt 0 ]; then pass+=("TRACE_COVER=${(pj:\n:)covers}"); fi
@@ -166,6 +167,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     start) startt=$val ;;
     dump_all) dumpall=$val ;;
     window) window=$val ;;
+    frame_window) fwindow=$val ;;
     cover) covers+=("$val") ;;
     driver) driver=$val ;;
     settle_min) settle=$val ;;

@@ -50,6 +50,15 @@
 #   CFG           the `-config` argument       (default per MAPSTYLE, above)
 #   WINDOW        "LO HI" for a DUMP_ALL window over [LO, HI) instead of the
 #                 cheap per-frame dump (default the cheap one)
+#   FRAME_WINDOW  "LO HI" for the **cheap** window narrowed to [LO, HI) — the
+#                 `[End Frame]` detail is written only there, so an expensive
+#                 `DETAIL_END` (`LEADERS=9`, ~10k lines a leader) can be
+#                 afforded on a run thousands of frames long. `censuswindow.sh`
+#                 is this with run10's game hardcoded; use this hook for any
+#                 other map or window. **Set `SETTLE_MIN` above the start
+#                 dump's own size** — the log does not grow at all between
+#                 frame 0 and LO, and the poll would otherwise call that
+#                 quiet stretch a finished run.
 #   SETTLE_MIN    bytes of gamelog below which "stopped growing" is not yet
 #                 "finished" — the guard against calling a stalled launch a
 #                 settled run (default 10 MB, which every capture so far
@@ -123,6 +132,8 @@ python3 "$W/tools/gamelog/setlog.py" "${DUMP_ALL:-0}" \
 # rather than one field on nine hundred. Both are undone by `restore`.
 if [ -n "$WINDOW" ]; then
   python3 "$W/tools/gamelog/window.py" stage ${=WINDOW}
+elif [ -n "$FRAME_WINDOW" ]; then
+  python3 "$W/tools/gamelog/window.py" frames ${=FRAME_WINDOW}
 else
   python3 "$W/tools/gamelog/window.py" frames 0 $((FRAMES + 50))
 fi

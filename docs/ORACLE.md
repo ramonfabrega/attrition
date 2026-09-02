@@ -3218,3 +3218,47 @@ rather than pinned, so a reader can see the drift without the test pretending
 to measure it. That widens the marked question rather than answering it: the
 same third way is still available and still uncosted — a **ratchet on the
 count** past the word instead of a cut to the range.
+
+## run59 — the census window at East Indies' own word (2026-09-02)
+
+The first `LEADERS=9` census that is not run10's game, and the first
+resource level on disk past frame 800. East Indies' word is 5376 and the
+frame is the AI's Market — eighty timber the original can pay and this crate
+cannot — so the headline had become a number no capture measured.
+
+    DETAIL_END="MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=9" \
+    FRAME_WINDOW="5150 5400" SETTLE_MIN=250000000 POLL_MAX=200 \
+    zsh tools/gamelog/longtrace.sh 59 5400 islands-census-5150 18
+
+run58's recipe with two changes: `LEADERS=9` in the `[End Frame]` list, and
+the **frame window** narrowing the per-frame dump to [5150, 5400).
+`FRAME_WINDOW` is new — `censuswindow.sh` had the shape with run10's game
+hardcoded, and `longtrace.sh` could only take the expensive `DUMP_ALL`
+window, which at 250 frames would be tens of gigabytes.
+
+**And the narrow window is what makes a late census cheap.** The frames
+before 5,150 write no `[End Frame]` block at all, so the game reaches the
+window in **under a minute** where run58, dumping every frame, took fifty.
+Thirteen minutes and 446 MB, against run58's sixty-one minutes and 1.41 GB
+for two hundred fewer frames.
+
+One trap comes with it, and it is in the script's own comments now: the
+start dump is ~150 MB and then **nothing grows until the window opens**, so
+the poll's "stopped growing" test would call that quiet stretch a finished
+run and kill the game two minutes in. `SETTLE_MIN` above the start dump's
+own size is the guard.
+
+**It is the same game.** `rngcmp.py rontrace-run54.log rontrace-run59.log`:
+5,401 frames, **zero differing**. So it inherits run39's siblings and
+run54's word, and its 251 blocks are a drop-in late window on run58's game.
+`samegame.py` cannot speak here — no other capture dumps these frames.
+
+**What it says** is in `docs/ECONOMY.md`, "The census at the word": 18,000
+good-frames, 4,798 wrong in nine shapes, every one of them a standing level;
+the AI is fifty timber short and its `leftover` agrees, so the fifty is a
+lump; both players are short six timber gather slots and one wealth slot;
+and the AI's food and wealth *rates* are wrong where the human's six are
+exact. It also carries `production_step`, `script_step` and
+`prod_script_run` on 250 frames 5,400 into the game — the AI's script is
+still live, the machine never leaves step 1, and `economic.bhs` walks cases
+23 → 15 → 18 (`docs/AI.md` §25).

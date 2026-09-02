@@ -385,6 +385,19 @@ pub struct Trace {
     /// Every proxied call, in the order each **returned** — so a callee
     /// precedes the caller it was nested in.
     pub calls: Vec<Call>,
+    /// Every `HIT`: a function's virtual address, folded to the Ghidra
+    /// export's numbering, and the sim-frame it was entered on. **A
+    /// function appears at most once per arming** — outside
+    /// `rontrace.cfg`'s `window=` the arming is one-shot from attach, so
+    /// on a whole-run capture this is one record per function, carrying
+    /// the frame it was *first* reached on; inside a window every listed
+    /// function is re-armed at the head of each frame and hits again.
+    /// `-1` is the setup path, before the first `do_frame`.
+    ///
+    /// This is the coverage half of the instrument
+    /// (`tools/trace/README.md`), and what makes "no run has ever entered
+    /// this function" an assertion rather than a reading.
+    pub hits: Vec<(u32, i64)>,
 }
 
 impl Trace {
@@ -414,6 +427,7 @@ impl Trace {
             draws: Vec::new(),
             frames: Vec::new(),
             calls: Vec::new(),
+            hits: Vec::new(),
         };
         // CALL and RET nest, so one stack pairs them: a RET belongs to the
         // innermost open CALL of the same site. A window that opens mid
@@ -427,7 +441,9 @@ impl Trace {
         while off + 32 <= bytes.len() {
             let r: Vec<u32> = (0..8).map(|i| word(off + i * 4)).collect();
             let frame = i64::from(r[7] as i32);
-            if r[0] == 2 {
+            if r[0] == 0 {
+                t.hits.push((norm(r[1]), frame));
+            } else if r[0] == 2 {
                 t.frames.push((i64::from(r[1] as i32), r[2]));
             } else if r[0] == 7 {
                 open.push((
@@ -523,6 +539,19 @@ impl Trace {
             .filter(|c| c.len() == sim::farms::FARM_ANIMALS as usize)
             .map(<[sim::farms::AnimalSeed]>::to_vec)
             .collect()
+    }
+
+    /// The sim-frame a function was **first entered** on, or `None` if no
+    /// frame of this capture entered it at all. `-1` is the setup path.
+    ///
+    /// The address is the Ghidra export's — [`Trace::parse`] folds a run
+    /// that loaded elsewhere back onto [`IMAGE_BASE`].
+    pub fn first_entry(&self, va: u32) -> Option<i64> {
+        self.hits
+            .iter()
+            .filter(|(a, _)| *a == va)
+            .map(|(_, f)| *f)
+            .min()
     }
 
     /// One site's proxied calls on one sim-frame, in the order they
@@ -651,6 +680,10 @@ mod tests {
         assert_eq!(f0.len(), 2, "the renderer's is not the sync stream");
         assert_eq!(f0[0].seed, 0x9c59_1b2b);
         assert_eq!(f0[1].site, 0x005f_6468);
+        // …but the HIT is kept as coverage, on the frame it was entered.
+        assert_eq!(t.hits, vec![(0x005f_6010, 0)]);
+        assert_eq!(t.first_entry(0x005f_6010), Some(0));
+        assert_eq!(t.first_entry(0x005f_6446), None, "a draw site is not a hit");
     }
 
     /// A run that loaded somewhere other than `0x400000` folds back, so a
@@ -665,6 +698,22 @@ mod tests {
         let t = Trace::parse(&log).expect("a trace");
         assert_eq!(t.draws[0].site, 0x005f_6446);
         assert!(t.draws[0].sync(), "and it is still the sync stream");
+    }
+
+    /// A hit's address folds back the same way a draw's does, and
+    /// `first_entry` answers the **earliest** arming — a windowed capture
+    /// re-arms every function at the head of every frame in the window.
+    #[test]
+    fn first_entry_is_the_earliest_arming_of_a_relocated_hit() {
+        let base = 0x0100_0000;
+        let log = bytes(&[
+            [MAGIC, 1, base, 0x1000, 0x2000, 1, 0, 0xffff_ffff],
+            [0, base + 0x002c_1be0, 7, 0, 0, 0, 0, 12],
+            [0, base + 0x002c_1be0, 7, 0, 0, 0, 0, 13],
+        ]);
+        let t = Trace::parse(&log).expect("a trace");
+        assert_eq!(t.hits.len(), 2);
+        assert_eq!(t.first_entry(0x006c_1be0), Some(12));
     }
 
     /// `run_in` isolates one function's own draws, and `site_fold` reads

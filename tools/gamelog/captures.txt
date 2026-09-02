@@ -581,3 +581,35 @@ poll_max: 900
 # they share.
 check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run57.log
 check: python3 tools/gamelog/samegame.py gamelog-run56-islands-3k.txt gamelog-run57-islands-4k.txt
+
+run: 59
+tag: islands-census-5150
+item: 154
+why: East Indies' resource level at its own word — a LEADERS=9 census over [5150, 5400)
+# **The first census window that is not run10's game.** East Indies' word is
+# 5376 and the frame is the AI's Market: `economic.bhs` case 15 asks for it,
+# the original places it, and this crate cannot pay. That is a resource
+# level, and until this run no capture on disk carried one past frame 800 —
+# `LEADERS=1` at `[End Frame]` is five scalars and no goods, and the only
+# `LEADERS=9` windows were run40's `[560, 600)` and run41's `[770, 800)`,
+# both on Great Lakes.
+#
+# run58's recipe with two changes: `LEADERS=9` in the `[End Frame]` list, and
+# the **frame window** narrowing the whole per-frame dump to [5150, 5400).
+# That second one is what makes it affordable — a `LEADERS=9` record is ~10k
+# lines a leader, and the dump is written on 250 frames rather than 5,400.
+# The frames before the window cost nothing at all, so the run reaches 5,150
+# in under a minute where run58 took fifty.
+frames: 5400
+mapstyle: 18
+cfg: -
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=9
+frame_window: 5150 5400
+# **The start dump alone is ~150 MB and then nothing grows until 5,150**, so
+# the poll's "stopped growing" would call the quiet stretch a finished run.
+# `settle_min` above the start dump's own size is what stops it.
+settle_min: 250000000
+poll_max: 200
+# Same game: the trace word for word against run54. `samegame.py` cannot
+# speak here — the dump's frames do not overlap any other capture's.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run59.log

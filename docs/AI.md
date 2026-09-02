@@ -3026,8 +3026,12 @@ still asks for no gathering building anywhere in run58 — because
 `Sim::building_value` is not reached **at all** in that capture, on either
 pass, so `gather_value` never runs. The AI's camps and farms there come off
 the script path (§19). What §23.2 called a hard gate is a gate on a road
-run58 never drives down; the road itself is the open question, and the
-headline did not move for closing the gate. See the queue's successors.
+run58 never drives down; ~~the road itself is the open question~~ —
+**answered 2026-09-02, §25: the original does not drive it either.** The
+step machine cannot leave step 1 while the script is live, and
+`create_buildings` is first entered on frame **9982** of East Indies and
+**6382** of Great Lakes, thousands of frames past both words and past the
+end of every dump.
 
 ## 24. `World::gather_at`, whole — the lands table and the flat predicate (2026-09-02)
 
@@ -3147,3 +3151,106 @@ reaches it. It has unit tests and no oracle.
 `World::set_gathered_at@006b46b0` is called from — no caller of it survives
 in the decompile export, so the writer of the bit `gather_at` reads is known
 here only through this crate's own gather-site pass.
+
+## 25. When the step machine leaves step 1 — the ladder, dated (2026-09-02)
+
+§23.2 ended on an open question: with `ter` written, the make list still
+asks for no gathering building anywhere in run58, because
+`Sim::building_value` is not entered on any of its 5,201 frames. The item
+was booked as "find where the step machine stops short of
+`create_buildings`". **It does not stop short. It has not got there yet, and
+neither has the original.**
+
+### 25.1 What the coverage says
+
+The trace's HIT records are function-entry coverage
+(`tools/trace/README.md`): outside a `window=` every listed function is
+armed once from attach, so a whole-run capture carries **one record per
+function, on the frame it was first entered**. The two 24,000-frame traces
+answer the question outright:
+
+| step | function | East Indies (run54) | Great Lakes (run53) |
+| --- | --- | --- | --- |
+| — | `Leaders::strategy_all`, `Leader::plan_strategy` | 0 | 0 |
+| — | `Leader::production_ai` | 1 | 1 |
+| 2 | `production_ai_setup@006c83e0` | 9977 | 6377 |
+| 3 | `found_cities@006c7a60` | *(576)* | *(576)* |
+| 4 | `research_techs@006c6ba0` | 9979 | 6379 |
+| 5 | `upgrade_units@006c6430` | 9980 | 6380 |
+| 6 | `create_units@006c40a0` | 9981 | 6381 |
+| 7 | `create_buildings@006c1be0` | **9982** | **6382** |
+
+Five consecutive frames with one gap, and the gap is step 3: `found_cities`
+was entered at **576** already and a one-shot arming does not fire twice. So
+this is §2.4's ladder read straight off the original — `production_ai_setup`
+at step 2, then one producer a frame — dated on two maps.
+
+**Why it waits.** The script at step 1 answers `BLOCK_ON_THIS` on every
+sweep for as long as it is live, and `BLOCK_ON_THIS` clears the machine
+(§2.4). So the ladder cannot leave step 1 until the script *ends*, and the
+shipped opening runs for around two and a half hours of game time.
+
+**And the dump says it from the other side, on the same game.** run18b is
+run10's `LEADERS=9` window and run53 is run10's game traced whole, so the
+two instruments can be laid on each other frame for frame. §15.6 read
+run18b's ladder as one sweep among many; with the coverage beside it, it is
+the **first**, and every number lines up once the label is taken off (a
+`FRAME n` block is the end of sim-frame `n − 1`):
+
+| sim-frame | run18b's record at the end of it | run53's HIT |
+| --- | --- | --- |
+| 6375 | `step 1`, `script_step 28`, `prod_script_run 1` — the sweep arms | |
+| 6376 | `step 2`, `script_step 29`, **`prod_script_run 0`** — the script's last call | |
+| 6377 | `step 3` | `production_ai_setup` |
+| 6378 | `step 4` | *(`found_cities`, hit at 576)* |
+| 6379 | `step 5` | `research_techs` |
+
+So `SCRIPT_DONE` is not an inference: `prod_script_run` falls 1 → 0 on the
+frame the script last runs, which is the only arm of §2.4's switch that
+writes it, and the ladder starts on the next frame. Two instruments, two
+captures, one frame apart from nothing.
+
+**And the 576 is the second half of the finding.** `found_cities` and
+`make_stuff` are entered on frame 576 of every East Indies and Great Lakes
+capture, thousands of frames before step 3 or step 8 can run. Their caller
+is `ScenarioFuncSet::place_city_with_cost@009f5860` — entered on 576 too —
+which is the **script's** host function, not the machine's. `found_cities`
+calls `make_stuff` itself. Every producer entry before the script ends is
+the script's, which is §3's "the skirmish opening is the shipped script"
+stated as coverage rather than as a reading.
+
+### 25.2 What it means for the make list
+
+`create_buildings` is first driven at **9982** on East Indies and **6382**
+on Great Lakes. Those are 4,606 and 4,580 frames past each map's word
+(5376 and 1802), and past the end of every dump on disk — run58, the
+longest, stops at 5,201. So:
+
+- `Sim::building_value` answering nothing in run58 is **agreement**, not a
+  defect, and nothing in §3.1/§3.2 — `gather_value`, the `ter` gate,
+  `oil_patches.count`, `GoodType::compute_largest_gather` — can move either
+  headline until the word reaches those frames.
+- §23.2's "the AI's camps and farms come off the script path" is now the
+  whole story rather than an observation about one capture: on this game
+  there **is** no other path for the first two and a half hours.
+- The make list's own machinery is not idle in the meantime — `make_me`,
+  the expiry and `make_stuff` all run under `found_cities` — but nothing
+  ever *fills* it from a producer step before 9977.
+
+### 25.3 Coverage
+
+**Diff-backed**, on the original's own coverage records:
+`diff::tests::the_producers_are_not_reached_until_the_ai_script_ends` pins
+all twelve frame numbers above, on both maps, plus run58's two absences.
+`rondata::trace` keeps the HIT records now (it dropped them until
+2026-09-02), so "which functions has the original ever entered, and when"
+is a `#[test]` fact here rather than a `report.py` reading.
+
+`SCRIPT_DONE` on the last call is diff-backed too, on Great Lakes:
+run18b's `LEADERS=9` window covers sim-frame 6376 and prints
+`prod_script_run` falling 1 → 0 there.
+
+**Not established**: the same for East Indies. 9976 is inside no capture's
+`LEADERS=9` window, and the map's script is `economic.bhs` rather than
+run10's `defensive.bhs`, so the *frame* is this map's own and only the
+coverage says where it is.

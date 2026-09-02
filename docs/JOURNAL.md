@@ -12406,3 +12406,144 @@ it rather than in front.
   `get_land` inline and `world.rs` needed it; nobody had noticed because
   neither document cited the other's address.
 
+
+## 2026-09-02 — item 160: the make-list road is not driven for another 4,600 frames (Opus)
+
+The opener said to find out what reaches `create_buildings` in run58, because
+the make list never does. **Nothing does, and nothing is supposed to.** The
+original does not reach it either — not in run58's 5,201 frames, not in the
+whole of East Indies' word, not for another four and a half thousand frames
+after it.
+
+**The instrument was already on disk and this crate could not read it.** The
+trace's HIT records are function-entry coverage, and outside a `window=` the
+arming is one-shot from attach — so a whole-run capture carries one record
+per function, on the frame the original first entered it. `report.py` has
+printed them since the instrument existed; `rondata::trace` **dropped** them
+at parse. Keeping them is nine lines, and it turns "which functions has the
+original ever run, and when" into a `#[test]` fact.
+
+What the two 24,000-frame traces then say, in one grep:
+
+| step | function | East Indies (run54) | Great Lakes (run53) |
+| --- | --- | --- | --- |
+| 2 | `production_ai_setup` | 9977 | 6377 |
+| 4 | `research_techs` | 9979 | 6379 |
+| 5 | `upgrade_units` | 9980 | 6380 |
+| 6 | `create_units` | 9981 | 6381 |
+| 7 | `create_buildings` | **9982** | **6382** |
+
+Five consecutive frames with one gap, and the gap is step 3 —
+`found_cities`, entered at frame **576** already, where a one-shot arming
+does not fire twice. That is `docs/AI.md` §2.4's step machine read straight
+off the original: the script at step 1 answers `BLOCK_ON_THIS` on every
+sweep while it is live, `BLOCK_ON_THIS` clears the machine, and so the
+ladder cannot start until the script *ends*. The shipped opening runs for
+two and a half hours of game time.
+
+**And the 576 is the other half.** `found_cities` and `make_stuff` are
+entered there on every East Indies and Great Lakes capture, thousands of
+frames before steps 3 and 8 can run, and their caller is
+`ScenarioFuncSet::place_city_with_cost` — the **script's** host function.
+Every producer entry before the script ends is the script's. §3's "the
+skirmish opening is the shipped script" was a reading of two `.bhs` files;
+this is the same sentence as coverage.
+
+**Two instruments, one game, no daylight.** run18b is run53's own game with a
+`LEADERS=9` window over exactly those frames, and it had been read (§15.6) as
+one sweep among many. Laid against the coverage it dates the same ladder to
+the frame: `prod_script_run` falls **1 → 0** at the end of sim-frame 6376 —
+`SCRIPT_DONE`, the only arm of the switch that writes it — and
+`production_ai_setup` runs on 6377, which is run53's HIT. So the transition
+is confirmed twice from two sides, and `docs/AI.md` §25 records both.
+
+**What it means for the queue.** `create_buildings` is first driven 4,606
+frames past East Indies' word and 4,580 past Great Lakes'. So
+`building_value`, `gather_value`, the `ter` gate, `oil_patches.count` and
+`GoodType::compute_largest_gather` — the whole block item 157 opened and
+items 160 and 161 sat behind — cannot move either headline until the word
+reaches those frames, and no dump on disk is long enough to compare them.
+They go to the back.
+
+**The rules this is an instance of.**
+
+- **Grep the disk before booking a reading — and the disk includes the
+  trace.** The question "does the original reach this function" had an
+  answer in a file that had been sitting there since run53 was taken. It
+  cost one `report.py functions | grep`, and it retired an item booked as
+  the headline's nearest.
+- **A finding that can become an assertion must become one.** The answer was
+  a grep; the assertion is twelve frame numbers on two maps plus five rows
+  of run18b's dump, and it fails on any of them.
+- **The previous session's own rule, applied one level up.** Item 157's
+  lesson was "check that the path executes before booking the thing that
+  gates it". Item 160 was booked to find *why* it does not execute. The
+  cheaper question was whether the original executes it at all.
+
+## 2026-09-02 — item 154(b): fifty timber, measured at last, and it is a lump (Opus)
+
+Item 154 left the headline as a number nobody had measured. East Indies'
+word is 5376, the frame is `economic.bhs` case 15 asking for a Market at the
+AI's capital, and a Market is eighty timber: the original places it and this
+crate holds thirty-four. The item's own note booked two moves in order —
+widen the `CITY` record, which the last session did, and then, only for what
+that could not answer, a `LEADERS=9` census window on East Indies at
+5150–5400. This is that window.
+
+**It ran beside the work and cost none of it.** Launched in the first
+minutes, read in the last, with item 160 done in between. Thirteen minutes,
+446 MB, and `rngcmp.py` against run54 says 5,401 frames with **zero**
+differing, so it is run58's game exactly.
+
+**And it is cheap in a way the older census was not.** `censuswindow.sh` had
+the shape with run10's game hardcoded and a poll that could not survive a
+late window; `longtrace.sh` could only take the expensive `DUMP_ALL` kind,
+which at 250 frames would be tens of gigabytes. A `FRAME_WINDOW` hook —
+narrow the *cheap* per-frame dump instead — is nine lines, and it makes a
+late census cost minutes: with no `[End Frame]` block written before 5,150
+the game reaches the window in under a minute, where run58 spent fifty
+getting there.
+
+**What it measures.** 18,000 good-frames, two players, six goods, six
+fields. 4,798 disagree, in nine shapes, and **every shape is wrong on all
+250 frames** — a level, not an event.
+
+- **The AI is fifty timber short, and `leftover` agrees on 234 of 250.** The
+  fractional accumulator can only agree if both sides are paid the same
+  amount every frame, so the fifty was banked before the window opened: a
+  lump. On 5377 it flips to thirty *ahead*, because the original has spent
+  eighty on the Market and this crate has not. That flip is the whole of
+  East Indies' word in one field.
+- **`gather_slots` is short by exactly the right amount.** The human, who
+  builds nothing at all in this game, has **0** timber slots here against
+  the original's 6 — its starting camp's, and this crate claims none of
+  them. The AI has 4 against 10, which is the same six plus the four its own
+  camps add. `TIMBER_BONUS_PER_WOOD_SLOT` is 5, paid per slot past the
+  high-water mark, and ten slots is fifty timber.
+- **The food slots are exact on both players**, which is what makes this one
+  lineage rather than an array nobody writes.
+- **Two rate seams beside it, and both are the AI's alone**: `income[food]`
+  1440 against 1600, `income[wealth]` **0 against 160** with the AI's
+  `bucket[wealth]` eighteen *ahead* anyway. Every one of the human's six
+  incomes is exact on every frame.
+- The wealth *slot* — 1 on both players, 0 here — is item 82, open since
+  run40 and now measured on a second map.
+
+**What it did not move.** The word is still 5376: this session measured the
+cause and did not fix it. The successors are booked with what each is worth,
+and the first of them is a lineage — the starting camp's slots — rather than
+a search.
+
+**The rules this is an instance of.**
+
+- **The capture lane costs wall-clock, not attention.** run57 and run58 were
+  each "second-best" because they were booked well and read late. This one
+  was booked for the item the headline actually rests on, launched before
+  the session's real work started, and answered it the same hour.
+- **Widen the record, then read the residue.** The `CITY` widening was the
+  move the item named first, and it is what cleared the field of everything
+  that was *not* the cause. The census then had one thing left to say.
+- **A shape that is wrong on every frame of a window is a level.** Nine
+  shapes, nine standing states, and the one with an agreeing `leftover`
+  beside it is the one that names a lump. That test — rate or lump — cost
+  nothing and pointed straight at `Build::activate`'s tail.

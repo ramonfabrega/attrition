@@ -12,28 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — `World::gather_at` is written, and the gate it opened
-leads nowhere yet.* **The word did not move: 5376.** Item 157 is closed —
-the lands table, the land class and `is_flat`, exact per good, per city, on
-every frame of run58 (AI §24). 39,309 field-frames that disagreed now
-agree, and nine pinned rows are gone.
+*2026-09-02, Opus — the road behind the word turned out to be nobody's, and
+the census found the fifty timber.* **The word did not move: 5376.** Item
+160 is closed and it was not a defect: the original does not reach
+`create_buildings` either. Its ladder cannot leave step 1 while the AI
+script is live, so step 7 first runs on frame **9982** of East Indies and
+**6382** of Great Lakes — 4,606 and 4,580 frames past their words, and past
+every dump on disk (AI §25).
 
-- **The finding is the one that cost the score.** With `ter` written the
-  make list still asks for no gathering building anywhere in run58, because
-  `Sim::building_value` is **not reached at all** in that capture, on
-  either pass. AI §23.2 called `ter` a hard gate; it is a gate on a road no
-  capture drives down. The road is item 160.
-- **`WData.flags & 0x800` is `OIL`**, settled by `is_oil_at` (AI §24.2) —
-  unnamed since run20.
-- **The original sweeps for the human leader too**, and this crate does
-  not: item 158, now the only `CITY` rows left on the human's city.
+- **The instrument was on disk and unread.** The trace's HIT records are
+  function coverage and `rondata::trace` dropped them at parse; nine lines
+  to keep, and twelve frame numbers on two maps are a test now. run18b's
+  `LEADERS=9` window dates the same ladder from the dump side, so
+  `SCRIPT_DONE` is behavioural rather than a reading.
+- **run59 measured the headline for the first time** (ORACLE, ECONOMY "The
+  census at the word"): a `LEADERS=9` window at [5150, 5400) on run58's own
+  game, thirteen minutes, `rngcmp` zero differing. The AI is **fifty timber
+  short and its `leftover` agrees**, so it is a lump; both players are short
+  **six timber gather slots**; ten slots × `TIMBER_BONUS_PER_WOOD_SLOT`
+  **is** fifty. Item 162.
+- **`longtrace.sh` takes `FRAME_WINDOW`** — the cheap per-frame dump
+  narrowed to a late window, which makes a census 5,000 frames in cost
+  minutes instead of an hour. `settle_min` above the start dump is the trap.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
 Long captures: EastIndies w5376 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 5376 and it has not moved for a
-session. Item 160 first: find out what actually reaches `create_buildings`
-in run58, because the make list never does — then item 158.`
+**Opener (Opus):** `East Indies' word is 5376 and it has not moved for two
+sessions. Item 162 first — the starting woodcutter's camp claims no gather
+slots here, the human's 0 against 6 says so with nothing else in the way,
+and fifty timber is exactly the Market the word is.`
 
 ## The queue
 
@@ -42,89 +50,76 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-160. **Nothing reaches `building_value` in run58 — the headline's
-    nearest.** Item 157 opened `ter` and the make list still asks for no
-    gathering building, because neither pass of `Sim::building_value` is
-    entered on any of the 5,201 frames; the AI's camps and farms all come
-    off the script path (AI §19). Find where the step machine stops short
-    of `create_buildings` — §2.4's steps against run58's own `LEADERS`
-    record — before reading any more of §3.2. Behind it, two more readers
-    of that block still answer zero: `GoodType::compute_largest_gather@
-    0066e920` (which `Lands::init` calls and nothing here does) and
-    `oil_patches.count`.
+162. **The starting camp's six gather slots, and the fifty timber they
+    are — the headline's nearest.** run59's census (ECONOMY, "The census at
+    the word"): the human, which builds nothing all game, holds
+    `gather_slots[timber]` **0 against 6**; the AI 4 against 10, the same
+    six plus its camps' four. Food slots are exact on both, so it is one
+    lineage. Five timber a slot past the high-water mark, ten slots,
+    **fifty** — the AI's standing shortfall to the Market's own frame. Why
+    does a dump-stood camp claim nothing where a farm does
+    (`claim_gather_slots`, `find_gather_tiles`, item 85)?
+
+163/82. **The AI's food and wealth rates, on the same record.**
+    `income[food]` **1440 against 1600** and `income[wealth]` **0 against
+    160** on all 250, `bucket[wealth]` eighteen *ahead* anyway; every one of
+    the human's six is exact. The wealth half is **82**: a slot under good 2
+    that `get_good@0063bd50`'s table cannot produce, on run40's human and now
+    both of run59's — `plan_strategy@006b9620` line 1137 assigns the array
+    from `City::count_gather_slots`, unread.
 
 158. **The sweep runs for a human leader; this crate skips it.** AI §23.1,
-    decompile and dump agreeing. Move the gate from `Sim::strategy_all`
-    down into `production_ai` (clearing the step, as its `default` does)
-    and step 16 seeds a **human army**, which no capture has — find the
-    gate between steps 13 and 16 first.
+    decompile and dump agreeing. Move the gate from `Sim::strategy_all` into
+    `production_ai` and step 16 seeds a **human army**, which no capture
+    has — find the gate between steps 13 and 16 first.
 
 159. **The `CITY` record's two smaller seams**, on run58, both pinned.
-    (a) `1/2007`'s `land` and `filled` from 1819 and `space[0..2]` from
-    1976, each one apart — the circle sweep at a mid-game city, where
-    §15.9's walk order answered the first one's. (b) From 2576 `1/2000`
-    holds 11 gatherers and `1/2007` none against the original's 10 and 1,
-    and from 4176 its `free` is 1 against 0 — step 2/10's attribution.
+    (a) `1/2007`'s `land`/`filled` from 1819 and `space[0..2]` from 1976,
+    each one apart — the circle sweep at a mid-game city. (b) From 2576
+    `1/2000` holds 11 gatherers and `1/2007` none against 10 and 1, and from
+    4176 its `free` is 1 against 0 — step 2/10's attribution.
 
 146. **The other nine national arms of `train_time`.** `006508c0`'s fixed
-    order after the ramp — handicap, The President, Mongol stable, Japanese
-    barracks and carrier, Chinese citizen, British, French, German, Roman —
-    and only the British is built (PRODUCTION, "The tail's first caller").
-    The rest want a nation the captures play, or a run that falsifies them.
+    order after the ramp, of which only the British is built (PRODUCTION,
+    "The tail's first caller"); the rest want a nation the captures play.
     Behind them: `TROOPS_FASTER`, the speed upgrades, the rares, Monarchy,
     Socialism, the unit wonders.
 
-103. **A woodcutter's clock at 1,686.** After 26,094 agreeing fields the
-    human's `0/2` waits 445 against the original's 480 (ORDERS §6.4).
-
 142. **`World::tregion` is not `get_tregion`, and its callers are
-    unaudited.** Four items were a gate asking the wrong one (138, 140, 145
-    — PATHFINDER §15; 147 the other way, §16). `path`'s four are done;
-    eleven elsewhere are not. Grep each, then guard.
+    unaudited.** Four items were a gate asking the wrong one (138, 140,
+    145 — PATHFINDER §15; 147 the other way, §16). `path`'s four are done;
+    eleven elsewhere are not.
 
 136. **The danger grid has no writer, and four readers index it wrongly.**
     `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution
     **cell** grid — `danger[who][reg_xs × div3(y >> 9) + div3(x >> 9)]` in
-    `Leader::produce_unit@006cb9e0` and four others; `World::danger` here
-    indexes it by *region*, and both answer 0.
-
-82. **run40's human files one slot under good 2.** `get_good@0063bd50`'s
-    table at `0063bd84` cannot produce it; `Leader::plan_strategy@006b9620`
-    line 1137 assigns the array from `City::count_gather_slots` — unread.
+    `produce_unit@006cb9e0` and four others; `World::danger` reads it by
+    *region*, both answering 0.
 
 120. **Great Lakes' word at 1802, and a bird's flight physics.** One draw
-    at `Unit::do_air_physics+0x639 < Unit::do_air_patrol+0xf3 <
-    Unit::do_job+0xd7`, reached **once** in run33's 1,851 frames and still
-    the boundary over run53's 24,000 (SYNC §3.9).
-
-105/45. **Gaia's positions — East Indies' half is left.** run39: 191,876
-    of 192,504, first bad **1658**; run33 exact at 74,040 (SYNC §4.2).
+    at `Unit::do_air_physics+0x639 < do_air_patrol+0xf3 < do_job+0xd7`,
+    reached **once** in run33's 1,851 frames and still the boundary over
+    run53's 24,000 (SYNC §3.9).
 
 122. **A draw with no mark of its own.** `mark_sites` attributes an
-    unmarked draw to the label still standing, so the sequence reads wrong
-    rather than short (110's day, 133's 3579). **16 of 61** `rng.roll`/
-    `rng.get` calls have no `self.mark(`; mark each, then guard.
-
-124. **The loop flag is per animation file** (ANIM §3.3): by slot it is no
-    constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a non-looping file
-    and 38 a looping one. Carry it on `Art`.
+    unmarked draw to the label still standing, so a sequence reads wrong
+    rather than short (110's day, 133's 3579). **16 of 61** `rng.roll`/`get`
+    calls have no `self.mark(`; mark each, then guard.
 
 153. **The `TRIBE` record, whole.** `Tribe::log_data@006f0d70` prints
     `graft[352]`, `barbarian`, `build_continent`, `people` and
-    `text_substitute` in every `DUMP_ALL` dump and this crate parses none
-    (TECH).
+    `text_substitute` in every `DUMP_ALL` dump; this crate parses none (TECH).
 
 The ledgers, each a number nothing yet counts: (87) **the widening
-ledger** — items 74, 83, 69, 113, 123, 144 and now 154 (the `CITY` record,
-four fields to forty) were closed or sharpened by fields the parser had and
-nothing compared, so count, per record *and* per capture, the fields
-`rondata::diff` parses and never compares; (88) **the blind list** —
-`report.py … blind docs/` lists the cited functions no traced run has
-entered (101 of 617), pin it as a floor and put it in each Coverage; (72) every `+0xNN` a document pins,
-checked against its module (the `name@00xxxxxx` half is `docs_guard`
-already); (89) the instrument's last guard, (c) alone; (35) **`mylos` as a
-cache** — VISION §7: player 1 carries no `0x4000000` at the end of 202 or
-203, yet its Scout's `mylos` moves 4 → 6 and ours moves at 202.
+ledger** — items 74, 83, 69, 113, 123, 144 and 154 were closed or sharpened
+by fields the parser had and nothing compared, so count, per record *and*
+per capture, the fields `rondata::diff` parses and never compares; (88)
+**the blind list** — `report.py … blind docs/` lists the cited functions no
+traced run has entered (101 of 617), pin it as a floor and put it in each
+Coverage; (72) every `+0xNN` a document pins, checked against its module;
+(89) the instrument's last guard, (c) alone; (35) **`mylos` as a cache** —
+VISION §7: player 1 carries no `0x4000000` at the end of 202 or 203, yet its
+Scout's `mylos` moves 4 → 6 and ours moves at 202.
 
 Three fields nothing here writes: (48) **the object chain, whole** —
 `collide.rs` chains units only where the original threads buildings and
@@ -132,23 +127,28 @@ goodies through it too (COLLISION §3, §7, GOODY §1), and `down`/`down_who`
 go uncompared; (73) **`UnitData::group`** — no unit holds the back-pointer,
 so `Group::normalize`'s cull (GROUPS §4.3) is unmodelled and run33's scout
 goes 65 → 64 on 96; (56) **the cell's `BUILDING` bit** — run13's frame-95
-world carries it on `(52, 22)` and this does not, and `army`'s muster
-search reads it (ARMY §13); find the *tile* mask's writer.
+world carries it on `(52, 22)` and this does not, and `army`'s muster search
+reads it (ARMY §13).
 
 23. **The formation byte's sign — the Echelon half.** `reverse`'s
     *displacement* is read only on GROUPS §6.4's Echelon rows and every
-    captured group is a Line. run52 names the blocker: the keystroke
-    arrived as the chat key; ORACLE 51/52 name the next steps.
-
-116. **The one `SITE` slot still wrong.** AI §18: a 5×5 slide keeps its
-    centre where the original leaves it, so `blocked_town` refuses a cell
-    `site_clear` allows; `blocked_site`'s `0x24` (CITIES §11) moves none.
+    captured group is a Line. run52 names the blocker (the keystroke arrived
+    as the chat key); ORACLE 51/52 name the next steps.
 
 117. **Two seams the census windows now measure.** (a) ATTRITION,
     "Territory": the temple and fort border levels, the Colosseum, the
     Eiffel Tower, a gem rare, the handicap and `was_seen`'s `reg_forts` arm.
-    (b) AI §2.1's `check_explore` answers the whole region grid, 900
-    against 36 and 19.
+    (b) AI §2.1's `check_explore` answers the whole region grid, 900 v 36/19.
+
+Four measured one-liners: (103) a woodcutter's clock at **1,686** — after
+26,094 agreeing fields the human's `0/2` waits 445 against 480, ORDERS §6.4;
+(105/45) **Gaia's positions**, East Indies' half left — run39 191,876 of
+192,504, first bad **1658**, run33 exact at 74,040, SYNC §4.2; (124) **the
+loop flag is per animation file**, ANIM §3.3 — 42 `<UNIT>` entries give
+`CHAR_DUMP_WOOD` a non-looping file and 38 a looping one, carry it on `Art`;
+(116) **the one `SITE` slot still wrong**, AI §18 — a 5×5 slide keeps its
+centre where the original leaves it, so `blocked_town` refuses a cell
+`site_clear` allows.
 
 The road residue, both ROADS §7.1: (57) the node counts — 1,046 v 1,043
 and 1,460 v 1,870 — on run43's own before-grid; (58) the height loader's
@@ -156,14 +156,14 @@ mean in `f32`, three tiles.
 
 107. **`epoch[0]` is the Military level, and `army.rs` reads `ages`.**
     `get_epoch_base(0)` is `BASE_MILITARYTYPES` and the army family reads
-    `+0xe8`; `army.rs:769,1365` read `tech[w].ages`, so the muster caps
-    fire on the wrong counter.
+    `+0xe8`; `army.rs:769,1365` read `tech[w].ages`, so the muster caps fire
+    on the wrong counter.
 
-161. **`gather_at`'s neighbourhood arm has no oracle.** AI §24.4's
-    `centre_only == 0` half is implemented and unit-tested and no capture
-    reaches it: its one caller is `produce_building`'s gather score, whose
-    `w1` and `plenty` are still seams in `ai_place.rs` (§19). Land those
-    two and the arm is diff-backed for free.
+161. **The whole make-list block is 4,606 frames behind the word.**
+    `create_buildings` first runs on East Indies frame 9982 (AI §25), so
+    `building_value`, `gather_value`, §24.4's neighbourhood arm,
+    `oil_patches.count` and `compute_largest_gather@0066e920` are
+    unreachable by any capture. Kept here until the word passes 9982.
 
 155. **The other two writers of `rare` and `good_obj`.** Both are in every
     `UNIT` record and nothing compares them (item 87). run58's `1/14` takes

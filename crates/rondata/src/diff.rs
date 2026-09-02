@@ -8670,6 +8670,370 @@ mod tests {
         );
     }
 
+    /// **run59 — the census window East Indies' word has been asking for**
+    /// (2026-09-02, item 154's second half).
+    ///
+    /// The word is 5376 and the frame is the AI's Market: `economic.bhs`
+    /// case 15 calls `place_building_with_cost(who, "Market", my_capital)`
+    /// on it, the original places it, and this crate cannot pay — a Market
+    /// is eighty timber and the AI holds thirty-four. That is a resource
+    /// level, and no capture on disk carried one past frame 800:
+    /// `LEADERS=1` at `[End Frame]` is five scalars and no goods, and the
+    /// only `LEADERS=9` windows were run40's `[560, 600)` and run41's
+    /// `[770, 800)`, both on Great Lakes.
+    ///
+    /// run59 is that window moved: run58's recipe (`MAP_STYLE 18`, seed
+    /// 12345, the profile's lobby, no input) with `LEADERS=9` at
+    /// `[End Frame]` and the frame window `[5150, 5400)` — the dump is
+    /// written only there, so the run costs minutes rather than the hour a
+    /// per-frame one does.
+    #[test]
+    fn run59_s_census_is_where_the_ai_s_timber_goes() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run59-islands-census-5150.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run59.log"),
+        ) else {
+            eprintln!("skipping: no run59 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        assert_eq!(init.pasture.len(), 1, "run59's trace reached the setup");
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+
+        let mut compared = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        let mut steps: Vec<(i64, i64, i64, i64)> = Vec::new();
+        // (who, field, good) keyed to (frames wrong, ours and theirs first).
+        let mut shapes: std::collections::BTreeMap<(i64, String, usize), (usize, i64, i64)> =
+            std::collections::BTreeMap::new();
+        // The AI's timber shortfall, frame by frame.
+        let mut timber_gap: Vec<(i64, i64)> = Vec::new();
+        for n in 1..=5399 {
+            built.tick();
+            if n < 5150 {
+                continue;
+            }
+            for who in 0..2i64 {
+                let Some(block) = log.leader_block(n, who) else {
+                    continue;
+                };
+                if who == 1 {
+                    steps.push((
+                        n,
+                        block.int("production_step").unwrap_or(-1),
+                        block.int("script_step").unwrap_or(-1),
+                        block.int("prod_script_run").unwrap_or(-1),
+                    ));
+                }
+                let field = |k: &str| -> Vec<i64> {
+                    block
+                        .all(k)
+                        .iter()
+                        .map(|v| v.trim().parse().unwrap_or(i64::MIN))
+                        .collect()
+                };
+                let l = &built.sim.ledgers[who as usize];
+                let rows: [(&str, [i32; sim::economy::RESOURCES]); 6] = [
+                    ("bucket", l.bucket),
+                    ("leftover", l.leftover),
+                    ("resources", l.rate),
+                    ("income", l.income),
+                    ("resource_cap", l.cap),
+                    ("gather_slots[scan]", l.gather_slots),
+                ];
+                for (key, ours) in rows {
+                    let theirs = field(key);
+                    if theirs.len() < sim::economy::RESOURCES {
+                        continue;
+                    }
+                    for g in 0..sim::economy::RESOURCES {
+                        compared += 1;
+                        if who == 1 && key == "bucket" && g == 1 {
+                            timber_gap.push((n, theirs[g] - i64::from(ours[g])));
+                        }
+                        if i64::from(ours[g]) != theirs[g] {
+                            wrong.push(format!(
+                                "frame {n} who {who} {key} good {g}: ours {} theirs {}",
+                                ours[g], theirs[g]
+                            ));
+                            let e = shapes.entry((who, key.to_string(), g)).or_insert((
+                                0,
+                                i64::from(ours[g]),
+                                theirs[g],
+                            ));
+                            e.0 += 1;
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!("run59: {} of {compared} good-frames disagree", wrong.len());
+        for (k, (n, o, t)) in &shapes {
+            eprintln!("  {k:?}: {n} frames, ours {o} theirs {t} on the first");
+        }
+        assert_eq!(
+            compared, 18_000,
+            "250 frames, two players, six goods, six fields"
+        );
+
+        // **The record, and every shape in it is a standing state.** Each row
+        // is (who, field, good) to (frames wrong, ours and theirs on 5150).
+        // 250 is "every frame of the window", which is what says a shape is
+        // a level rather than an event.
+        let row = |who: i64, key: &str, g: usize| shapes.get(&(who, key.to_string(), g)).copied();
+        let n = |who: i64, key: &str, g: usize| row(who, key, g).map_or(0, |(n, _, _)| n);
+
+        // **The item.** The AI's timber is fifty short on all 250 frames and
+        // its `leftover` — the fractional accumulator — agrees on 234 of
+        // them, which can only be true if the two sides are paid the same
+        // amount every frame. So the fifty is a **lump**, banked before this
+        // window opens, and the Market at 5376 is eighty timber: the
+        // original holds 84 there and pays, this crate holds 34.
+        assert_eq!(
+            row(1, "bucket", 1),
+            Some((250, 118, 168)),
+            "the AI's timber, fifty short on every frame of the window"
+        );
+        assert!(
+            timber_gap
+                .iter()
+                .filter(|&&(f, _)| f < 5377)
+                .all(|&(_, d)| d == 50),
+            "and the gap is the same fifty on every frame before the Market: {:?}",
+            timber_gap.iter().find(|&&(f, d)| f < 5377 && d != 50)
+        );
+        // **And the frame the gap changes is the item.** A `FRAME n` block
+        // is the end of sim-frame `n − 1`, so 5377 is the record written
+        // after the Market goes up: the original is eighty poorer and this
+        // crate is not, so fifty short becomes thirty ahead. That flip is
+        // the whole of East Indies' word in one field.
+        assert_eq!(
+            timber_gap.iter().find(|&&(f, _)| f == 5377),
+            Some(&(5377, -30)),
+            "the original pays eighty for the Market on 5376 and this crate does not"
+        );
+
+        // **Where it comes from is the slot count.** `gather_slots` is the
+        // running inventory `Build::activate` adds a finished gather
+        // building's `gather_max` to, and the dump prints it per good beside
+        // its own high-water mark. Both players are short the same six
+        // timber slots and the same one wealth slot — the human, who builds
+        // nothing at all in this game, is short six of six.
+        assert_eq!(row(0, "gather_slots[scan]", 1), Some((250, 0, 6)));
+        assert_eq!(row(1, "gather_slots[scan]", 1), Some((250, 4, 10)));
+        assert_eq!(row(0, "gather_slots[scan]", 2), Some((250, 0, 1)));
+        assert_eq!(row(1, "gather_slots[scan]", 2), Some((250, 0, 1)));
+        // and the food slots agree on both, which is what makes the timber a
+        // defect rather than the whole array being unwritten.
+        assert_eq!(n(0, "gather_slots[scan]", 0), 0, "the human's farms");
+        assert_eq!(n(1, "gather_slots[scan]", 0), 0, "and the AI's");
+
+        // **Two rate seams, both the AI's alone.** Every one of the human's
+        // six incomes is exact on every frame; the AI's food is ten short
+        // (in sixteenths) and its wealth is missing entirely.
+        assert_eq!(row(1, "income", 0), Some((250, 1440, 1600)));
+        assert_eq!(row(1, "income", 2), Some((250, 0, 160)));
+        assert_eq!(row(1, "resources", 2), Some((250, 0, 160)));
+        for g in 0..sim::economy::RESOURCES {
+            assert_eq!(n(0, "income", g), 0, "the human's income, good {g}");
+            assert_eq!(n(0, "resources", g), 0, "the human's rate, good {g}");
+            assert_eq!(n(0, "leftover", g), 0, "the human's leftover, good {g}");
+        }
+        // The AI's timber rate agrees until **5384**, where the original's
+        // drops to 1120 and this crate's stays at 1280 — a gatherer that
+        // leaves the wood, sixteen frames from the end of the window.
+        assert_eq!(row(1, "income", 1), Some((16, 1280, 1120)));
+
+        // **And the hundred in goods 3, 4 and 5 is item 156**, unchanged
+        // since run40 measured it: `STARTING_GOODS` arrives with the age, so
+        // the original holds none of the three in the Ancient age. Inert —
+        // an unavailable good is never charged and never accrues.
+        for g in 3..sim::economy::RESOURCES {
+            assert_eq!(row(0, "bucket", g), Some((250, 100, 0)));
+            assert_eq!(row(1, "bucket", g), Some((250, 100, 0)));
+        }
+
+        // **The step machine, at the other end of the same record**
+        // (`docs/AI.md` §25). run58 stops at 5,201 and could not show this:
+        // the AI's script is still live 5,400 frames in, the machine is
+        // armed on its phase frames and cleared again, and `script_step`
+        // moves 23, 15, 18 as `economic.bhs` walks its cases.
+        assert!(
+            steps.iter().all(|&(_, step, _, run)| step <= 1 && run == 1),
+            "the ladder never leaves step 1 while the script lives: {:?}",
+            steps
+                .iter()
+                .find(|&&(_, step, _, run)| step > 1 || run != 1)
+        );
+        let script_steps: Vec<i64> = {
+            let mut v: Vec<i64> = steps.iter().map(|&(_, _, s, _)| s).collect();
+            v.dedup();
+            v
+        };
+        assert_eq!(script_steps, vec![23, 15, 18], "economic.bhs's cases");
+    }
+
+    /// **The production step machine's ladder, against the original's own
+    /// function coverage** (`docs/AI.md` §2.4, §25 — item 160, 2026-09-02).
+    ///
+    /// `Leader::production_ai`'s switch runs one step a frame and steps 3–7
+    /// are the five producers. Nothing on this side had ever said *when*
+    /// the original reaches them, and the question came up as a defect
+    /// report: `Sim::building_value` is not entered on any of run58's 5,201
+    /// frames, so the AI's make list can never ask for a gathering
+    /// building there.
+    ///
+    /// **It is not a defect. The original does not reach them either.**
+    /// The script at step 1 answers `BLOCK_ON_THIS` on every sweep for as
+    /// long as it is live, and `BLOCK_ON_THIS` clears the machine — so the
+    /// ladder never leaves step 1 until the script *ends*, and the shipped
+    /// opening runs for two hours of game time. The trace's HIT records
+    /// say so exactly: a whole-run capture arms every function once, so
+    /// each of these addresses carries the frame the original first entered
+    /// it on, and there is one for every producer.
+    ///
+    /// | | East Indies (run54) | Great Lakes (run53) |
+    /// | --- | --- | --- |
+    /// | `production_ai_setup` (step 2) | 9977 | 6377 |
+    /// | `found_cities` (step 3) | — already 576 — | — |
+    /// | `research_techs` (step 4) | 9979 | 6379 |
+    /// | `upgrade_units` (step 5) | 9980 | 6380 |
+    /// | `create_units` (step 6) | 9981 | 6381 |
+    /// | `create_buildings` (step 7) | **9982** | **6382** |
+    ///
+    /// Five consecutive frames with **one gap**, and the gap is step 3 —
+    /// `found_cities`, which was entered at frame 576 already and so has no
+    /// second HIT. That is §2.4's ladder read straight off the original,
+    /// and the 576 is the second half of the finding: `found_cities` and
+    /// `make_stuff` are reached there by
+    /// `ScenarioFuncSet::place_city_with_cost`, the **script's** own host
+    /// function, not by steps 3 and 8. Every producer entry before the
+    /// script ends is the script's.
+    ///
+    /// **What it means for the queue.** `create_buildings` — and with it
+    /// the whole make-list road, `building_value`, `gather_value`, the
+    /// `ter` gate and `oil_patches` — is first driven at 9982 on East
+    /// Indies and 6382 on Great Lakes, which is 4,606 and 4,580 frames past
+    /// each map's word. Nothing in that block can move either headline
+    /// until the word reaches it, and no dump on disk is long enough to
+    /// compare it: run58, the longest, stops at 5,201.
+    #[test]
+    fn the_producers_are_not_reached_until_the_ai_script_ends() {
+        let (Some(east), Some(lakes)) = (trace("rontrace-run54.log"), trace("rontrace-run53.log"))
+        else {
+            eprintln!("skipping: no run53/run54 trace (set RON_GAMELOG_DIR)");
+            return;
+        };
+        // `Leader::` unless said otherwise; the export's own addresses.
+        const PRODUCTION_AI: u32 = 0x006c_1960;
+        const PRODUCTION_AI_SETUP: u32 = 0x006c_83e0;
+        const FOUND_CITIES: u32 = 0x006c_7a60;
+        const RESEARCH_TECHS: u32 = 0x006c_6ba0;
+        const UPGRADE_UNITS: u32 = 0x006c_6430;
+        const CREATE_UNITS: u32 = 0x006c_40a0;
+        const CREATE_BUILDINGS: u32 = 0x006c_1be0;
+        const MAKE_STUFF: u32 = 0x006c_8af0;
+        const PLAN_STRATEGY: u32 = 0x006b_9620;
+        const STRATEGY_ALL: u32 = 0x006e_d430;
+        /// `ScenarioFuncSet::place_city_with_cost` — the script's.
+        const PLACE_CITY: u32 = 0x009f_5860;
+
+        for (name, t, ladder) in [
+            ("run54", &east, [9977, 9979, 9980, 9981, 9982]),
+            ("run53", &lakes, [6377, 6379, 6380, 6381, 6382]),
+        ] {
+            let at = |va: u32| t.first_entry(va);
+            assert_eq!(at(STRATEGY_ALL), Some(0), "{name}: the sweep is frame 0's");
+            assert_eq!(at(PLAN_STRATEGY), Some(0), "{name}: and so is its caller");
+            assert_eq!(
+                at(PRODUCTION_AI),
+                Some(1),
+                "{name}: the machine is armed on frame 0 and runs on frame 1"
+            );
+            // The script's own producer calls, long before the ladder.
+            assert_eq!(at(PLACE_CITY), Some(576), "{name}: the script's city");
+            assert_eq!(
+                (at(FOUND_CITIES), at(MAKE_STUFF)),
+                (Some(576), Some(576)),
+                "{name}: reached by `place_city_with_cost`, not by steps 3 and 8"
+            );
+            // And the ladder itself, one step a frame.
+            let steps = [
+                ("production_ai_setup", PRODUCTION_AI_SETUP),
+                ("research_techs", RESEARCH_TECHS),
+                ("upgrade_units", UPGRADE_UNITS),
+                ("create_units", CREATE_UNITS),
+                ("create_buildings", CREATE_BUILDINGS),
+            ];
+            for (i, (label, va)) in steps.iter().enumerate() {
+                assert_eq!(
+                    at(*va),
+                    Some(ladder[i]),
+                    "{name}: {label} is first entered on frame {}",
+                    ladder[i]
+                );
+            }
+        }
+
+        // And the capture the report came from is a third of the way there.
+        let Some(run58) = trace("rontrace-run58.log") else {
+            return;
+        };
+        assert_eq!(
+            run58.first_entry(CREATE_BUILDINGS),
+            None,
+            "run58 is 5,201 frames and the ladder does not leave step 1 until 9977"
+        );
+        assert_eq!(run58.first_entry(PRODUCTION_AI_SETUP), None, "nor step 2");
+        assert_eq!(
+            (
+                run58.first_entry(FOUND_CITIES),
+                run58.first_entry(MAKE_STUFF)
+            ),
+            (Some(576), Some(576)),
+            "run58 is run54's game, and its script buys a city on the same frame"
+        );
+
+        // **And the dump says it from the other side.** run18b is run53's
+        // own game with a `LEADERS=9` window over the very frames the
+        // coverage dates, so the two instruments lie on each other: a
+        // `FRAME n` block is the end of sim-frame n − 1, and the ladder
+        // starts on the frame after `prod_script_run` falls.
+        let Some(run18b) = dump("gamelog-run18b-window-6374-6590.txt") else {
+            return;
+        };
+        let text = std::fs::read_to_string(&run18b).unwrap();
+        let log = Log::parse(&text);
+        let at = |sim_frame: i64| -> (i64, i64) {
+            let b = log
+                .leader_block(sim_frame + 1, 1)
+                .expect("run18b's window covers it");
+            (
+                b.int("production_step").expect("production_step"),
+                b.int("prod_script_run").expect("prod_script_run"),
+            )
+        };
+        assert_eq!(at(6375), (1, 1), "the sweep arms the machine, script live");
+        assert_eq!(at(6376), (2, 0), "SCRIPT_DONE: the script is dropped here");
+        assert_eq!(at(6377), (3, 0), "and step 2 — production_ai_setup — ran");
+        assert_eq!(at(6378), (4, 0));
+        assert_eq!(
+            at(6379),
+            (5, 0),
+            "one producer a frame, as run53's HITs date"
+        );
+    }
+
     /// **run54 — East Indies at thirteen times the scored length, read at
     /// last** (2026-09-01).
     ///
@@ -8756,6 +9120,20 @@ mod tests {
                 ours.get(at),
                 theirs.get(at)
             );
+            // `RON_DEBUG_SITES=1` prints both sequences whole. The line
+            // above names the first *index* that parts, which is enough
+            // when the two sides are the same length and useless when
+            // they are not: the four draws East Indies' word is missing
+            // are at the **head** of the original's frame, so every later
+            // entry reads as a mismatch and the first one names a bird.
+            if std::env::var("RON_DEBUG_SITES").is_ok() {
+                for (i, l) in ours.iter().enumerate() {
+                    eprintln!("    ours  {i}: {l}");
+                }
+                for (i, l) in theirs.iter().enumerate() {
+                    eprintln!("    thrs  {i}: {l}");
+                }
+            }
         }
         // **`gull_o` is the one field of the `DOCK` record nothing has ever
         // compared**, and this capture is where it can be. run22 is this
