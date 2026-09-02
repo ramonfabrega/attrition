@@ -85,7 +85,7 @@ const OVER: &[(&str, &str, usize)] = &[
     (
         "DATALAYER.md",
         "2. The loader — the tables into the sim's types",
-        20_324,
+        20_298,
     ),
     (
         "GROUPS.md",

@@ -190,6 +190,13 @@ pub struct Profile {
     pub obj_masks: u32,
     pub roles: u32,
     pub uber_size: i32,
+    /// `+0x30c crew_size`, the `CREW_SIZE` column — the figures a unit has
+    /// **beyond** the one its `squad_size` gives it. `UnitType::init@0061ab50`
+    /// stores `squad_size` as the literal 1 and reads `UBER_SIZE` and
+    /// `CREW_SIZE` from the record; `Unit::init@00612100:471`-`508` sizes the
+    /// guy stack to `crew_size + squad_size` and gives every slot a
+    /// `Guy::init_real`. `docs/ANIM.md` section 3.5.
+    pub crew_size: i32,
     pub target_size: i32,
     pub guy_radius: i32,
     pub domain: Domain,

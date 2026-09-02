@@ -1005,6 +1005,7 @@ pub fn load_tables(
             obj_masks: c.obj_masks,
             roles,
             uber_size: c.uber_size,
+            crew_size: c.crew_size,
             target_size: c.target_size,
             guy_radius: 0,
             domain: c.domain,
@@ -1217,6 +1218,7 @@ pub fn load_tables(
             obj_masks: c.obj_masks,
             roles,
             uber_size: 0,
+            crew_size: 0,
             target_size: 0,
             guy_radius: 0,
             // `BuildType::set_domain`: `BUILD_FLAGS b` is a sea building.
@@ -1807,6 +1809,7 @@ struct UnitCols {
     armor: i32,
     proj_speed: i32,
     uber_size: i32,
+    crew_size: i32,
     target_size: i32,
     block_radius: i32,
     x_spacing: i32,
@@ -1898,6 +1901,12 @@ impl UnitCols {
             armor: int(l, "ARMOR").unwrap_or(0),
             proj_speed,
             uber_size: int(l, "UBER_SIZE").unwrap_or(1),
+            // `UnitType::init@0061ab50:723`-`730`: `squad_size` is the
+            // literal 1 and these two are `get_text_num(..., -1)`, so a
+            // record with no `CREW_SIZE` would leave a unit with no
+            // figures at all. Every one of `unitrules.xml`'s 364 records
+            // carries the column.
+            crew_size: int(l, "CREW_SIZE").unwrap_or(-1),
             target_size: int(l, "TARGET_SIZE").unwrap_or(0) * UNIT_BLOCK_RADIUS,
             block_radius: int(l, "BLOCK_RADIUS").unwrap_or(0) * UNIT_BLOCK_RADIUS,
             x_spacing: int(l, "X_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,

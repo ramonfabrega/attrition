@@ -28,6 +28,16 @@ use crate::orders::{MoveKind, QueuePos};
 use crate::world::{Player, Pos, vector_dist};
 use crate::{Sim, Unit};
 
+/// `UnitTypeData +0x304 squad_size` — the figures of a unit that keep their
+/// own clock, the rest of the stack mirroring guy 0 (§5).
+///
+/// It is a **constant of the executable, not a column**:
+/// `UnitType::init@0061ab50:723` writes the literal 1 into every type before
+/// it reads `UBER_SIZE` and `CREW_SIZE` beside it, and no other writer
+/// exists. Every `UNITDATA` block of every capture prints `guy_mark 1`,
+/// which is `Unit::init`'s copy of it.
+pub const SQUAD_SIZE: usize = 1;
+
 // The `UnitAnim` enum (`rise.pdb`, type 0x46B1).
 pub const DEFAULT: i8 = 0;
 pub const IDLE1: i8 = 1;
@@ -610,8 +620,14 @@ impl Sim {
     }
 
     /// `Unit::init`'s guys: one [`Guy::fresh`] per member, each with
-    /// `Guy::init_real`'s one draw (`% 100`, [`init_variant`]). The count
-    /// is the type's — one, until the loader carries `num_guys`.
+    /// `Guy::init_real`'s one draw (`% 100`, [`init_variant`]).
+    ///
+    /// The count is `crew_size + squad_size` (SQUAD_SIZE, §3.5):
+    /// `Unit::init@00612100:471`-`508` grows the stack to that sum, fills
+    /// every slot from a `Recycler<Guy>::pop`, then walks `0..len` giving
+    /// each one `Guy::init_real`. `squad_size` is the literal 1 for every
+    /// type, so the count is the `CREW_SIZE` column plus one: 1 for a
+    /// Citizen, 3 for a Caravan, 4 for a Trebuchet.
     pub fn init_guys(&mut self, u: usize, ty: Option<usize>) {
         let unit = &self.units[u];
         let (who, o) = (unit.owner, unit.index);
@@ -620,7 +636,9 @@ impl Sim {
         // packed asks for the `-PACKED` art on its very first frame.
         let packed = unit.combat.packed;
         let ty = ty.or(unit.ty);
-        let count = 1usize;
+        let count = ty.map_or(SQUAD_SIZE, |t| {
+            usize::try_from(self.unit_types[t].combat.crew_size + SQUAD_SIZE as i32).unwrap_or(0)
+        });
         let mut guys = Vec::with_capacity(count);
         for n in 0..count {
             let piece = ty
@@ -984,8 +1002,7 @@ impl Sim {
     /// walking mirrors guy 0 instead of stepping (§5).
     fn guy_inc_time(&mut self, u: usize, g: usize) {
         let guy = self.units[u].guys[g];
-        let squad = 1usize;
-        if g >= squad && category(guy.anim) != 8 {
+        if g >= SQUAD_SIZE && category(guy.anim) != 8 {
             let lead = self.units[u].guys[0];
             let mine = &mut self.units[u].guys[g];
             mine.anim = lead.anim;

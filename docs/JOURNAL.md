@@ -13167,3 +13167,67 @@ on disk measures (5202, 5430)" — and the capture that measures it had been on
 disk since 02:11 the same morning, with 5,959 unit positions in it that no
 test read. The widening cost twenty minutes; the capture it replaced would
 have cost sixteen and produced a file nobody needed.
+
+
+## 2026-09-02 — item 173, closed: a unit is not one figure, and the Caravan is the word (Opus)
+
+**The item.** East Indies' long word stood at 6164 on a draw the original
+spends three times and this crate once: `Guy::init_real+0x52`, the idle
+variant every figure of a new unit rolls. On 6165 the original spends two
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d` at the head of the frame that this
+crate does not. The unit is the AI's first Caravan, and the opener asked two
+questions — where the guy stack is sized, and which `unitrules.xml` column
+feeds it.
+
+**The answer, and it is two fields rather than one.**
+`Unit::init@00612100:471`–`508` sizes the stack to
+`crew_size (+0x30c) + squad_size (+0x304)`, pops a `Recycler<Guy>` into every
+slot, and then walks `0..length` giving each figure a `Guy::init_real`.
+`UnitType::init@0061ab50:723` writes the literal **1** into `+0x304` for
+every type — unconditionally, on the line before it reads `UBER_SIZE` into
+`+0x308` and `CREW_SIZE` into `+0x30c` — and nothing else in the image writes
+it. So the count is `CREW_SIZE + 1`: 1 for a Citizen, 2 for a Scout (the
+dog), 3 for a Caravan, 4 for a Trebuchet. `docs/ANIM.md` §3.5.
+
+The field the queue had been calling the count, `guy_mark`, is `Unit::init`'s
+**copy of `squad_size`** — which is why it reads 1 on all 128 units of run59's
+window, and why it is not the length. It is what shrinks as figures die.
+
+**What made this survive a month.** A unit stood up *from* a dump never had
+the bug: `build_sim` hands it the `GUY` blocks the file prints, so twenty
+scout dogs in the corpus walked their own bodies correctly the whole time,
+and the crew machinery in `anim.rs` — the track offsets, `guys_follow`, the
+mirror past `squad_size` — was written, tested and right. Only
+`Sim::init_guys`, the path a unit **born in the sim** takes, had
+`let count = 1usize`. The oracle and the defect never met until a capture ran
+long enough for the AI to train a crewed unit.
+
+**What landed.** `Profile::crew_size` carried from `unitrules.xml` through
+`load.rs`; `sim::anim::SQUAD_SIZE`, the executable's literal, replacing two
+hardcoded ones; and the widening that makes it a diff rather than a reading —
+`every_dumped_unit_has_crew_size_plus_one_figures` asserts `CREW_SIZE + 1`
+against the `GUY` blocks of every player unit of every `DUMP_ALL` capture on
+disk. 120 units, 20 of them two-figure, and it was made to fail first.
+
+**The score.** East Indies **6164 → 6166**; Great Lakes unchanged at 2419.
+Two frames — the smallest move any item has booked — and the frame it leaves
+is a different mechanic entirely: 3,207 `PathFinder::calc_road_cost+0x46`
+draws on 6166 that this crate does not spend, two frames after the Caravan
+that owns them was born.
+
+**A seam the widening opened.** `build_sim` sets `Unit::squad_size` from
+`u.guys.len()`, and `Unit::squad_size` is documented as the original's
+`curr_uber_size` — which `0060a760` computes by walking the `o_up`/`o_down`
+chain of `UnitData`, not by counting figures. The two are disjoint in the
+data: all 109 `UBER_SIZE 3` types (the foot infantry) have `CREW_SIZE 0`, and
+every crewed type has `UBER_SIZE 1`. So a scout is dealt attrition as a squad
+of two and an infantry squad as a squad of one. It is booked, not fixed — no
+capture on disk measures attrition on either.
+
+**The lesson.** The widening rule has a corollary this item is the proof of:
+*a field the harness reads from the dump is a field the simulation is not
+being asked to derive.* Ten `DUMP_ALL` captures printed the guy count, the
+harness copied it faithfully, and that faithful copy is exactly what hid a
+hardcoded 1 from every test for a month. Where the harness can seed a value
+from the original, the assertion that the install would have produced the
+same value is the one worth writing.

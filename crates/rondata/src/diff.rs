@@ -4234,6 +4234,93 @@ mod tests {
         }
     }
 
+    /// **The guy stack's *length*, against every dump that names one.**
+    ///
+    /// `Unit::init@00612100:471`-`508` sizes a unit's figures to
+    /// `crew_size + squad_size` and gives every slot its own
+    /// `Guy::init_real`. `squad_size` is not a column: `UnitType::init@
+    /// 0061ab50:723` writes the literal 1 into every type before it reads
+    /// `UBER_SIZE` and `CREW_SIZE` beside it. So the count is
+    /// [`sim::anim::SQUAD_SIZE`] plus `unitrules.xml`'s `CREW_SIZE` — one
+    /// for a Citizen, two for a Scout (the dog), three for a Caravan, four
+    /// for a Trebuchet.
+    ///
+    /// The count was a hardcoded 1 in [`sim::Sim::init_guys`] until item
+    /// 173, which cost East Indies' long word frame **6164**: the AI's
+    /// first Caravan spent one `Guy::init_real+0x52` where the original
+    /// spent three, and the two figures' first idles were the two
+    /// `Guy::set_anim+0x97a < Unit::do_idle+0x7d` missing from 6165. A
+    /// unit stood up *from* a dump never had the bug — `build_sim` gives
+    /// it the `GUY` blocks the file prints — which is why nothing caught
+    /// it for a month and why this assertion is worth having: it checks
+    /// the **install's** answer against the dump's on every unit of every
+    /// capture, born or stood up.
+    #[test]
+    fn every_dumped_unit_has_crew_size_plus_one_figures() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut rows = 0usize;
+        let mut counts: std::collections::BTreeMap<usize, usize> =
+            std::collections::BTreeMap::new();
+        for name in [
+            "gamelog-run12-dumpall-seeds.txt",
+            "gamelog-run13-window-95-105.txt",
+            "gamelog-run20-islands-dumpall.txt",
+            "gamelog-run3-fulldump-types.txt",
+            "gamelog-run22-islands-dock-window.txt",
+            "gamelog-run25-islands-emergency-window.txt",
+            "gamelog-run44-islands-turners.txt",
+            "gamelog-run27-islands-defending-window.txt",
+            "gamelog-run34-greatlakes-dumpall-start.txt",
+            "gamelog-run58-islands-5k2.txt",
+        ] {
+            let Some(path) = dump(name) else { continue };
+            let text = std::fs::read_to_string(&path).unwrap();
+            let log = Log::parse(&text);
+            let Some(init) = log.initial() else { continue };
+            let built = build_sim(&loaded, &init, Tuning::RON);
+            for u in &init.units {
+                // A `GUY` block is what states the count; a dump below
+                // `DUMP_ALL` prints none and its units arrive empty.
+                if u.guys.is_empty() {
+                    continue;
+                }
+                // Gaia's animals are not `Unit::init`'s: `Gaia::spawn_*`
+                // builds them, and their crew is the herd's own business
+                // (`docs/ANIM.md` section 7).
+                if !(0..8).contains(&u.who) {
+                    continue;
+                }
+                let Some(link) = built.units.iter().find(|l| l.who == u.who && l.o == u.o) else {
+                    continue;
+                };
+                let Some(ty) = link.kind else { continue };
+                let crew = built.sim.unit_types[ty].combat.crew_size;
+                let ours = usize::try_from(crew + sim::anim::SQUAD_SIZE as i32).unwrap_or(0);
+                rows += 1;
+                *counts.entry(u.guys.len()).or_default() += 1;
+                assert_eq!(
+                    ours,
+                    u.guys.len(),
+                    "{name}: unit {}/{} (type {:?}) has {} figures in the \
+                     dump; CREW_SIZE {crew} + SQUAD_SIZE says {ours}",
+                    u.who,
+                    u.o,
+                    u.guys.first().and_then(|g| g.kind),
+                    u.guys.len(),
+                );
+            }
+        }
+        eprintln!("guy-count walk: {rows} units, lengths {counts:?}");
+        // The floor is the walk's own: a run with no multi-figure unit in
+        // it would pass on ones alone and say nothing.
+        assert!(
+            rows >= 60 && counts.keys().any(|&n| n > 1),
+            "the units those dumps name between them: {rows} over {counts:?} \
+             — the floor is 60, at least one of them crewed"
+        );
+    }
+
     /// **`get_unit_gpiece`'s walk, against every piece a dump names.**
     ///
     /// [`sim::Sim::unit_gpiece`] derives a guy's graphic piece from four
@@ -10120,9 +10207,24 @@ mod tests {
     /// centre tile rather than whose centre is in the cell (`docs/AI.md`
     /// §26).
     ///
-    /// **6164** since 2026-09-02 — the sequence's frame; the count holds
-    /// one longer, to 6165 — and 5819 was the water a transport barge
-    /// is born on. `UnitType::find_nearby_spot`'s `(-1, -1)` form — the one
+    /// **6166** since 2026-09-02, and 6164 was **a Caravan's figures**.
+    /// `Unit::init@00612100:471`–`508` sizes the guy stack to `crew_size +
+    /// squad_size`, and `squad_size` is the literal 1 `UnitType::init@
+    /// 0061ab50:723` writes into every type — so a unit has
+    /// `unitrules.xml`'s `CREW_SIZE` figures plus one, and the Caravan's
+    /// column is 2. `Sim::init_guys` made one figure for every unit it
+    /// built, so 6164 spent one `Guy::init_real+0x52` against three and
+    /// 6165 was missing the two `Guy::set_anim+0x97a < Unit::do_idle+0x7d`
+    /// the absent figures owe. A unit stood up *from* a dump never had it —
+    /// `build_sim` gives it the file's own `GUY` blocks — which is why
+    /// twenty scout dogs walked correctly throughout
+    /// (`docs/ANIM.md` §3.5,
+    /// `every_dumped_unit_has_crew_size_plus_one_figures`). The frame it
+    /// leaves is a road: 3,207 `PathFinder::calc_road_cost+0x46` draws on
+    /// 6166 that this crate does not spend.
+    ///
+    /// It was **6164** for one item, and 5819 was the water a transport
+    /// barge is born on. `UnitType::find_nearby_spot`'s `(-1, -1)` form — the one
     /// `Unit::do_cast` and `SpellType::cast_transport` ask for that water —
     /// does **not** take the pairwise collision pair: `0061deb0` sets the
     /// flag that selects it only when `not_o` and `not_who` are both
@@ -10158,7 +10260,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6164;
+    const LONG_WORD_EAST_INDIES: i64 = 6166;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

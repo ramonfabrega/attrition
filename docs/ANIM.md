@@ -20,6 +20,11 @@ is asserted in `rondata::diff` or `sim::anim`'s tests against a capture.
 idle, the attack and death animations, the age brackets above `AGE0`, and
 `Guy::move`'s `des_angle != angle` arm; §9 lists them.*
 
+*Amended 2026-09-02 (item 173): the **count** is no longer a guess. §3.5 is
+`crew_size + squad_size`, the `CREW_SIZE` column plus the literal 1 every
+type gets, and it is **diff-backed** — asserted against the `GUY` blocks of
+every unit of every `DUMP_ALL` capture on disk.*
+
 Every figure (`Guy`) of every unit plays an animation, `cur_time` frames into
 one of `end_time`. `Objects::inc_time` steps every clock once a frame, and a
 clock that runs out restarts its animation through `Guy::set_anim` — which,
@@ -255,17 +260,14 @@ to the first and is part of the cycle; a non-looping one's is the pose it
 ends on, and it is not played through. In the shipped data it is always
 worth exactly one frame.
 
-*What it moved.* `lumberjack_dump.bha` carries 26 keys ending 2157, 2190, so
-`CHAR_DUMP_WOOD` is `round(2157·3/200) = 32` and not
-`round(2190·3/200) = 33` — and 32 is what **every** `GUY` block in the
-corpus prints for `cur_anim 27`, 756 of them over the four citizen pieces
-`0`, `352`, `6336` and `6688`. The crate had 33 for a month because none of
-the five dumps §3.2's check read prints a `cur_anim 27` at all: five starts
-and short windows between them reach only the idles, the walks, the chop,
-the sow and the reap. The list is eight dumps now — run25 brings the three
-attacks, both dumps and the ore half, run44 the turns and pack/unpack, run27
-`CHAR_WALK_WITH_ORE` — 187 rows over sixteen slots, and it fails on the old
-arithmetic (`gamelog-run44-islands-turners.txt: piece 352 slot 27 says 32`).
+*What it moved.* `lumberjack_dump.bha` ends 2157, 2190, so
+`CHAR_DUMP_WOOD` is `round(2157·3/200) = 32` and not 33 — and 32 is what
+every `GUY` block in the corpus prints for `cur_anim 27`, 756 of them over
+the four citizen pieces `0`, `352`, `6336`, `6688`. The crate had 33 for a
+month because none of §3.2's five dumps prints a `cur_anim 27`; the list is
+eight now — run25 the three attacks, both dumps and the ore half, run44 the
+turns and pack/unpack, run27 `CHAR_WALK_WITH_ORE` — 187 rows over sixteen
+slots, and it fails on the old arithmetic.
 
 Every length the rule changes shrinks by one, and they are the non-looping
 slots: the three attacks, the six deaths, the turns, pack/unpack and the two
@@ -276,12 +278,11 @@ played either. The bird's 31 and 23 are looping and stand (`docs/SYNC.md`
 
 ### 3.4 And the walk that hands a piece out, so a unit trained mid-game has one (2026-09-01)
 
-§3.2 inverted the `<UNIT>` names to place every piece. What it did not do
-is *pick* one, and picking is what a unit the opening dump does not hold
-needs: `Art::pieces` is seeded from the start dump's own `GUY` blocks, so a
-Fisherman the AI trains on frame 4,376 carried **gpiece −1** — every length
-lookup missed, every `end_time` was [`anim::UNKNOWN`], and no animation of
-its ever wrapped.
+§3.2 inverted the `<UNIT>` names to place every piece; it did not *pick*
+one, which a unit the opening dump does not hold needs. `Art::pieces` is
+seeded from the start dump's `GUY` blocks, so a Fisherman the AI trains on
+frame 4,376 carried **gpiece −1**: every length lookup missed, every
+`end_time` was [`anim::UNKNOWN`], and no animation of its ever wrapped.
 
 `GraphicPieces::get_unit_gpiece@0090c030(type, who, o, guy_num, packing, …)`
 picks it, and the sum is §3.2's:
@@ -295,7 +296,7 @@ piece = (TypeIndex − 0x32)
 ```
 
 with `ages` read out of `LeaderDataEncrypt::ages` (`+0xdc`) through its
-`^ 0x62766`, and `who == −1` meaning style 0 and bracket 0.
+`^ 0x62766`; `who == −1` means style 0 and bracket 0.
 
 **The function does not return that sum. It walks down from it**, four
 loops, each stepping the age bracket down to 0 and taking the first piece
@@ -309,10 +310,9 @@ the art pool actually has (`data_pieces[p] != 0`, after a `verify_load`):
 | 4 | no | no |
 
 — and `first_unit_piece`, zero, when none of the four finds anything. The
-crew coordinate is in every one of them: `guy_num` is never dropped. Loops
-1 and 2 are skipped entirely unless the gender coordinate applies, which is
-`LAB_0090c2ff`: the type is not `unit_flags2 & 4`, `o` is not −1, and
-`o & 1`.
+crew coordinate is in every one: `guy_num` is never dropped. Loops 1 and 2
+are skipped unless the gender coordinate applies (`LAB_0090c2ff`: the type
+is not `unit_flags2 & 4`, `o` is not −1, and `o & 1`).
 
 **`packing` overrides that test, and the two are the same coordinate.**
 Pass it non-zero and the gender loops run whatever the object number says —
@@ -322,28 +322,22 @@ packs is born on its packed piece (`Unit::init` sets the bit at `:376` and
 makes its guys at `:540`) and moves off it when `SpellType::cast_unpack`
 clears the bit and calls `Unit::update_gpiece@005e2920`.
 
-That swap is the whole reason the piece matters to the simulation rather
-than to a renderer. `FISHERMEN-DEFAULT-AGE0-PACKED` names a `CHAR_UNPACK`
-and no `CHAR_PACK`; `FISHERMEN-DEFAULT-AGE0` names a `CHAR_PACK` and no
-`CHAR_UNPACK`. The deploy's animation lives on the piece the boat is *on*
-when it plays it, and its length is what decides the frame the clock wraps
-and pays an idle roll.
+That swap is why the piece matters to the simulation rather than to a
+renderer. `FISHERMEN-DEFAULT-AGE0-PACKED` names a `CHAR_UNPACK` and no
+`CHAR_PACK`; `FISHERMEN-DEFAULT-AGE0` the reverse. The deploy's animation
+lives on the piece the boat is *on* when it plays it, and its length
+decides the frame the clock wraps and pays an idle roll.
 
-The existence test here is [`Art::piece_lengths`] — a piece the install's
-`<UNIT>` entries name at all is one that loads — and the whole walk is
-[`Sim::unit_gpiece`]. It is used for every player unit wherever the install
-table was read; gaia keeps the dump's table, because its pieces come off
+The existence test is [`Art::piece_lengths`] — a piece the install's
+`<UNIT>` entries name at all is one that loads — and the walk is
+[`Sim::unit_gpiece`], used for every player unit wherever the install table
+was read; gaia keeps the dump's table, its pieces coming off
 `first_bird_piece`, a runtime pointer no file states.
 
 *The check.* `the_walk_gives_every_dumped_guy_its_own_piece` runs the walk
-against **every** `GUY` block that carries a `gpiece` in ten dumps of two
-maps — 126 guys over 12 distinct pieces, four nations, both genders, both
-crews — and asserts the number. The original printed the answer; this
-re-derives it.
-
-*What it moved.* East Indies' word **4988 → 5106**. The AI's Fisherman
-`1/14` finishes `CHAR_UNPACK` on 4988 in the original and pays the wrap's
-idle roll, which this crate could not spend without a length.
+against every `GUY` block carrying a `gpiece` in ten dumps of two maps —
+126 guys over 12 pieces, four nations, both genders, both crews — and
+asserts the number. East Indies' word 4988 → 5106.
 
 SEAM: the merchant family. `TypeIndex` `0x3d`, `0x3e` and `0x190` reach six
 "over time" pieces at `total_num_unit_pieces − 6 … − 1` before any of the
@@ -352,6 +346,48 @@ four loops, selected by the nation's **`build_continent`** (`+0x64`, not
 `-IROQUOIS-`, `-COLONIAL-` and `-EINDIAN-` entries whose names the piece
 arithmetic cannot build. No capture on disk holds a merchant, and the arm
 is unmodelled.
+
+## 3.5 How many figures a unit has: `CREW_SIZE + 1` (2026-09-02)
+
+`Unit::init@00612100:471`–`508` grows the guy stack to `n`, pops a
+`Recycler<Guy>::pop@0046de80` into every slot from the unit's **old**
+`guy_mark` up to `n`, sets `guys.length = n`, returns every slot past `n`,
+and then walks `0..length` giving each figure its `Guy::init_real@005db6b0`
+— one `game_random` draw apiece (§4). `n` is two `UnitTypeData` fields:
+
+```
+n = crew_size (+0x30c) + squad_size (+0x304)
+```
+
+**`squad_size` is not a column.** `UnitType::init@0061ab50:723` writes the
+literal `1` into `+0x304`, unconditionally, for every type, immediately
+before it reads `UBER_SIZE` into `+0x308` and `CREW_SIZE` into `+0x30c` with
+`get_text_num(…, −1)`. Nothing else in the image writes `+0x304`;
+`sim::anim::SQUAD_SIZE` is that literal. So the count is `CREW_SIZE + 1`: 1
+for a Citizen, 2 for a Scout (the dog), 3 for a Caravan, 4 for a Trebuchet.
+All 364 `<UNIT>` records carry the column, so the −1 default is never taken
+— 304 zeros, 29 ones, 20 twos, 11 threes.
+
+`Unit::init` then copies `+0x304` into `UnitData::guy_mark`, which is why
+every `UNITDATA` block prints `guy_mark 1` and why that field is **not** the
+stack's length: it is what shrinks as figures die, and §4's and §5's loops —
+`0..guy_mark` and `squad_size..num_guys` — are the whole stack while none has.
+
+`crew_size` is disjoint from `uber_size`, loaded on the line between: all
+109 types with `UBER_SIZE 3` (the foot infantry) have `CREW_SIZE 0`, and
+every crewed type has `UBER_SIZE 1`. An uber squad is three chained
+`UnitData` (`UnitData::curr_uber_size@0060a760` walks `o_up`/`o_down`); a
+crew is extra `Guy`s inside one.
+
+*Established* by the decompile for the arithmetic, `types.txt` for the
+names, `unitrules.xml` for the column, and **a diff for the number**:
+`every_dumped_unit_has_crew_size_plus_one_figures` asserts `CREW_SIZE + 1`
+against the `GUY` blocks of every unit of every `DUMP_ALL` capture — 120
+units, 20 of them two-figure. East Indies' long word 6164 → 6166.
+
+SEAM: no capture holds a three- or four-figure unit — every crewed unit on
+disk is a Scout or a General at `CREW_SIZE 1`, and the Caravan at East
+Indies 6164 is in a trace, which counts draws and prints no `GUY` block.
 
 ## 4. `Guy::set_anim@005da300` — the draw
 
