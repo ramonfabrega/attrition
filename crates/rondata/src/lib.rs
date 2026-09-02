@@ -75,6 +75,20 @@ pub struct Rules {
     pub categories: Vec<(String, Table)>,
 }
 
+/// One nation, as its own file under `tribes/` states it — the half of
+/// `Tribe` that is not in `rules.xml`.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct TribeDef {
+    /// `<TRIBE name>`: the display name `ScenarioFuncSet::find_nation`
+    /// answers and the scripts compare.
+    pub name: String,
+    /// `<UNIT_CONTINENT>`, `Tribe +0x68` — which of the six unit art
+    /// styles this nation's units are drawn in, and one of the four
+    /// coordinates `GraphicPieces::get_unit_gpiece` sums
+    /// (`sim::anim::PIECES_PER_STYLE`).
+    pub unit_continent: i32,
+}
+
 impl Install {
     /// Points at an install root — the directory holding `riseofnations.exe`.
     pub fn new(root: impl AsRef<Path>) -> Install {
@@ -162,25 +176,42 @@ impl Install {
         Ok(rules)
     }
 
-    /// The nations' display names, in `rules.tribes` order: each `TRIBE`
-    /// record's `FILE` under `tribes/`, whose root is `<TRIBE name="…">`.
-    /// A file that cannot be read gives an empty name rather than an error —
-    /// the roster's *order* is what the tree needs, and the name is only for
-    /// the scripts' `find_nation`.
-    pub fn tribe_names(&self, rules: &Rules) -> Result<Vec<String>, Error> {
+    /// The two things a nation's own file says that the tree needs, in
+    /// `rules.tribes` order: each `TRIBE` record's `FILE` under `tribes/`,
+    /// whose root is `<TRIBE name="…">` and whose `<UNIT_CONTINENT>` is the
+    /// art style `GraphicPieces::get_unit_gpiece` places a unit by
+    /// (`docs/ANIM.md` §3.4). A file that cannot be read gives an empty
+    /// name and style 0 rather than an error — the roster's *order* is what
+    /// the tree needs, and the name is only for the scripts' `find_nation`.
+    pub fn tribe_defs(&self, rules: &Rules) -> Result<Vec<TribeDef>, Error> {
         let mut out = Vec::with_capacity(rules.tribes.len());
         for r in &rules.tribes.records {
             let file = r.text("FILE").unwrap_or("").trim();
             let path = self.root.join("tribes").join(file.to_ascii_lowercase());
-            let name = read(&path)
+            let def = read(&path)
                 .ok()
                 .and_then(|text| {
-                    parse(&path, &text)
-                        .ok()
-                        .and_then(|doc| doc.root_element().attribute("name").map(String::from))
+                    let doc = parse(&path, &text).ok()?;
+                    let root = doc.root_element();
+                    let name = root.attribute("name").unwrap_or_default().to_string();
+                    // `<UNIT_CONTINENT>0 European</UNIT_CONTINENT>`: the
+                    // number is the value and the word beside it is the
+                    // designers' own note, which the loader's `atoi` stops
+                    // at.
+                    let unit_continent = root
+                        .descendants()
+                        .find(|n| n.has_tag_name("UNIT_CONTINENT"))
+                        .and_then(|n| n.text())
+                        .and_then(|t| t.split_whitespace().next())
+                        .and_then(|t| t.parse().ok())
+                        .unwrap_or(0);
+                    Some(TribeDef {
+                        name,
+                        unit_continent,
+                    })
                 })
                 .unwrap_or_default();
-            out.push(name);
+            out.push(def);
         }
         Ok(out)
     }

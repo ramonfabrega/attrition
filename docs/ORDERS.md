@@ -2202,12 +2202,15 @@ epoch's `SCIENCE_LOS 2` with the clamp lifted.
   halves a pack's wait in practice and no capture has a general.
 - **The captain give-back** for `0x28a`: a figure whose captain is itself
   casting hands the frame back. Every unit here is its own captain.
-- **`update_speed` and `update_gpiece`.** The first moves no number on
-  run58 (`myspeed 38` on both sides of the deploy); the second is item 152
-  — the boat's guy carries no piece at all, so the `-PACKED` art it should
-  be playing while packed, and the plain art it should swap to here, are
-  the same `-1`. That is what the word now sits on, one frame earlier than
-  the deploy.
+- **`update_speed`** moves no number on run58 (`myspeed 38` on both sides
+  of the deploy). ~~And `update_gpiece` is item 152 — the boat's guy
+  carries no piece at all.~~ **`update_gpiece` is modelled since
+  2026-09-01** (`docs/ANIM.md` §3.4): the boat is born on its `-PACKED`
+  piece, which is the entry carrying `CHAR_UNPACK`, and
+  `Unit::update_gpiece@005e2920` swaps it for the plain one — the entry
+  carrying `CHAR_PACK` — the moment `cast_unpack` clears the bit. Giving
+  the deploy's animation a length is what let the wrap on 4988 be spent,
+  and the word went **4988 → 5106**.
 - **The merchant arm of `cast_unpack`**, and with it `good_merchant_spot`
   and the four `set_blocked_at` calls. *Capture:* a Merchant on a rare,
   which needs a rare in reach of the AI.

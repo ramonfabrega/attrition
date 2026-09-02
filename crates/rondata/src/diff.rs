@@ -4022,6 +4022,83 @@ mod tests {
         }
     }
 
+    /// **`get_unit_gpiece`'s walk, against every piece a dump names.**
+    ///
+    /// [`sim::Sim::unit_gpiece`] derives a guy's graphic piece from four
+    /// coordinates — the nation's `UNIT_CONTINENT`, the leader's age
+    /// bracket, the gender bit (or the packed bit, which sits in the same
+    /// slot) and the crew index — and then walks *down* from it until the
+    /// install's own `<UNIT>` entries have one. Every dump that carries a
+    /// `GUY` block prints the answer the original reached, per guy, so the
+    /// walk is checkable to the **number** rather than to the arithmetic:
+    /// this asserts it over every one of them.
+    ///
+    /// It is what makes the derivation worth having. [`sim::anim::Art`]'s
+    /// `pieces` is seeded from the opening dump alone, so a type absent
+    /// from the opening — a Fisherman the AI trains on frame 4,376 — had
+    /// **no** piece at all, an `end_time` of [`sim::anim::UNKNOWN`], and no
+    /// animation of its ever wrapped (item 152).
+    #[test]
+    fn the_walk_gives_every_dumped_guy_its_own_piece() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut rows = 0usize;
+        let mut pieces: std::collections::BTreeSet<i64> = std::collections::BTreeSet::new();
+        for name in [
+            "gamelog-run12-dumpall-seeds.txt",
+            "gamelog-run13-window-95-105.txt",
+            "gamelog-run20-islands-dumpall.txt",
+            "gamelog-run3-fulldump-types.txt",
+            "gamelog-run22-islands-dock-window.txt",
+            "gamelog-run25-islands-emergency-window.txt",
+            "gamelog-run44-islands-turners.txt",
+            "gamelog-run27-islands-defending-window.txt",
+            "gamelog-run34-greatlakes-dumpall-start.txt",
+            "gamelog-run58-islands-5k2.txt",
+        ] {
+            let Some(path) = dump(name) else { continue };
+            let text = std::fs::read_to_string(&path).unwrap();
+            let log = Log::parse(&text);
+            let Some(init) = log.initial() else { continue };
+            let built = build_sim(&loaded, &init, Tuning::RON);
+            for u in &init.units {
+                // Gaia's pieces come off `first_bird_piece`, a runtime
+                // pointer no file states — the dump stays their source.
+                if !(0..8).contains(&u.who) {
+                    continue;
+                }
+                let Some(link) = built.units.iter().find(|l| l.who == u.who && l.o == u.o) else {
+                    continue;
+                };
+                let Some(ty) = link.kind else { continue };
+                let packed = built.sim.units[link.unit].combat.packed;
+                for (n, g) in u.guys.iter().enumerate() {
+                    let Some(theirs) = g.gpiece else { continue };
+                    rows += 1;
+                    pieces.insert(theirs);
+                    assert_eq!(
+                        built
+                            .sim
+                            .unit_gpiece(u.who as u8, ty, u.o as i16, n as u8, packed),
+                        Some(theirs as i32),
+                        "{name}: unit {}/{} guy {n} (type {:?}, packed {packed})",
+                        u.who,
+                        u.o,
+                        g.kind
+                    );
+                }
+            }
+        }
+        eprintln!(
+            "gpiece walk: {rows} guys over {} distinct pieces",
+            pieces.len()
+        );
+        assert!(
+            rows >= 60,
+            "the guys those dumps name between them: {rows}, the floor is 60"
+        );
+    }
+
     /// **The player units' lengths, from the install against the dumps.**
     ///
     /// The gaia check above says the `.bha` arithmetic is right; this one
@@ -8619,7 +8696,7 @@ mod tests {
     /// because a garrisoned unit's is not compared.
     const RUN58_PACKED_FRAMES: usize = 94_338;
 
-    const LONG_WORD_EAST_INDIES: i64 = 4988;
+    const LONG_WORD_EAST_INDIES: i64 = 5106;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

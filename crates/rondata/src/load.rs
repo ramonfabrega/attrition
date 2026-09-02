@@ -411,10 +411,12 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
         }
         b.block_mask.clone_from(&m.cells);
     }
-    // The nations' names, from the per-nation files rules.xml points at.
-    let names = install.tribe_names(&rules)?;
-    for (tribe, name) in loaded.tree.tribes.iter_mut().zip(names) {
-        tribe.name = name;
+    // The nations' names and art styles, from the per-nation files
+    // rules.xml points at.
+    let defs = install.tribe_defs(&rules)?;
+    for (tribe, def) in loaded.tree.tribes.iter_mut().zip(defs) {
+        tribe.name = def.name;
+        tribe.unit_continent = def.unit_continent;
     }
     // The gaia types' animation lengths, straight from the install's own
     // graphics tables and the `.bha` files they name. It is the only art
@@ -772,6 +774,7 @@ pub fn load_tables(
             graft: vec![None; unit_names.len()],
             barbarian: false,
             name: String::new(),
+            unit_continent: 0,
         });
     }
     // The roles, by the shipped names. A name that does not resolve leaves

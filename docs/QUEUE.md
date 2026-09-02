@@ -12,34 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the fishing boat deploys, and East Indies' word is
-**4988**.* Item 149 was the craft table and the deploy, and it moved
-thirty-eight frames.
+*2026-09-01, Opus — a unit trained mid-game has a graphic piece, and East
+Indies' word is **5106**.* Item 152 was `get_unit_gpiece`'s walk, and it
+moved a hundred and eighteen frames onto the frame item 151 already named.
 
-- **`do_cast` killed every craft but the transport.** Read whole
-  (ORDERS §6.9): the untargeted arm pays once, plays `CHAR_PACK` /
-  `CHAR_UNPACK` / `CHAR_DEFAULT` on the first frame with the state test
-  beside it, waits out `get_job_time`, casts, and *then* kills the order.
-  `0x28a` alone is exempt — `cast_transport` has already moved the list.
-- **The craft table is in the data layer.** 55 rows at `0x275 … 0x2ab`;
-  `JOB_TIME` and the `FLAGS` letters are what `do_cast` reads, and
-  `Deploy (Fishermen)` is **40**. `get_job_time` adjusts nine rows and
-  none is one this crate issues.
-- **The packed bit is compared everywhere now** — 94,935 run58
-  unit-frames, none wrong, and it fails at 4989 the minute the deploy is
-  taken out; `mylos` beside it, 94,338 with the one cache row (item 35).
-  `update_los` term 5, a packed unit clamped to four tiles, was a
-  VISION §7 seam and is diff-backed: `4 → 6` on the deploy.
-- Great Lakes unchanged at 1802. run58: 178,326 building fields exact,
-  485,181 collision field-frames none wrong. Steering 2026-09-01 (Fable).
+- **The piece is derived now, not looked up.** `Sim::unit_gpiece` is
+  `get_unit_gpiece@0090c030`'s four walks — style, age bracket, gender and
+  crew, each stepping the bracket down and taking the first piece the
+  install's `<UNIT>` entries have (ANIM §3.4). `Art::pieces` stays only
+  for gaia, whose pieces come off a runtime pointer no file states.
+- **`-PACKED` is the gender coordinate, and the swap is the mechanic.**
+  `FISHERMEN-…-AGE0-PACKED` carries `CHAR_UNPACK` and no `CHAR_PACK`; the
+  plain entry carries `CHAR_PACK` and no `CHAR_UNPACK`. A type that packs
+  is born on the packed piece and `Unit::update_gpiece` moves it off when
+  `cast_unpack` clears the bit (ORDERS §6.9).
+- **The nation's art style is loaded.** `<UNIT_CONTINENT>` out of
+  `tribes/<n>.xml` — six styles — is `tech_tree.tribes[t].unit_continent`
+  and a survey check re-derives the link. The dump prints it too, beside
+  `graft[352]` and `barbarian`, which are still identity and false.
+- **The check is every dumped guy** — 126 of them over 12 pieces, four
+  nations, both genders, both crews, ten dumps of two maps, asserted to
+  the number. Every row is bracket 0; no capture ages a player up.
+- Great Lakes unchanged at 1802. run58 otherwise as it was.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w4988 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w5106 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 4988 and item 152 holds it, cause
-already named: the AI Fisherman's guy carries gpiece -1, because Art::pieces
-is seeded from the start dump's GUY blocks alone, so its CHAR_UNPACK never
-wraps and the original's idle roll on 4988 goes unspent here.`
+**Opener (Opus):** `East Indies' word is 5106 and item 151 holds it, cause
+already named: UnitData::calc_gather@00609180 is think_fish's head — "can I
+still gather where I stand" — and it is unmodelled, so a deployed boat is
+sent back through the 17 x 17 where the original may keep it still.`
 
 ## The queue
 
@@ -48,27 +50,13 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-152. **A unit trained mid-game has no graphic piece.** `Art::pieces` is
-    seeded from the start dump's `GUY` blocks alone, so a type absent from
-    the opening — a Fisherman — carries **gpiece −1**: every length misses,
-    every `end_time` is `UNKNOWN`, no animation of its ever wraps. The
-    original's `1/14` finishes `CHAR_UNPACK` on **4988** and pays the
-    wrap's idle roll where this crate spends a farm's. The arithmetic is
-    read and diff-backed (`rondata::artdata`, run12's six pieces);
-    `get_unit_gpiece@0090c030` walks *down* from the leader's age bracket,
-    then again without the style, then without the gender — four loops.
-    Owed: `UNIT_CONTINENT` out of `tribes/<n>.xml`, the age bracket off
-    `LeaderData`, and `update_gpiece` on the deploy — `-PACKED` is
-    `-FEMALE`'s coordinate and a **packing** type is refused it unless it
-    is packed. ANIM §3; ORDERS §6.9's last seam.
-
-151. **`calc_gather`, and the `unit_masks & 0x20` it writes.**
-    `UnitData::calc_gather@00609180` is `think_fish`'s head — "can I still
-    gather where I stand" — unmodelled, so a deployed boat is sent back
-    through the 17 × 17 every 1,024 frames where the original may keep it
-    still. run58 reaches it once, on **5106**, and spends no draw either
-    way. ORDERS §6.8; the capture wants a deployed Fisherman idle across
-    two of its marks, `UNITS` on.
+151. **`calc_gather`, and the `unit_masks & 0x20` it writes — the
+    headline.** `UnitData::calc_gather@00609180` is `think_fish`'s head —
+    "can I still gather where I stand" — unmodelled, so a deployed boat is
+    sent back through the 17 × 17 every 1,024 frames where the original may
+    keep it still. run58 reaches it once, on **5106**, and that is now
+    where the word parts. ORDERS §6.8; the capture wants a deployed
+    Fisherman idle across two of its marks, `UNITS` on.
 
 146. **The other nine national arms of `train_time`.** `006508c0` runs a
     fixed order after the ramp — handicap, The President, Mongol stable,
@@ -124,6 +112,13 @@ indexed by them.
 124. **The loop flag is per animation file** (ANIM §3.3): by slot it is no
     constant — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a non-looping file
     and 38 a looping one. Carry it beside `Art::piece_lengths`.
+
+153. **The `TRIBE` record, whole.** `Tribe::log_data@006f0d70` prints
+    `graft[352]`, `barbarian`, `build_continent`, `people` and
+    `text_substitute` in every `DUMP_ALL` dump, and this crate parses none
+    of them: the graft table is identity and `barbarian` false by
+    assumption (TECH, "Where a player's nation comes from"). One parser and
+    one comparison settle both — item 87's rule, one level up from a field.
 
 The ledgers, each a number nothing yet counts: (87) **the widening
 ledger** — items 74, 83, 69, 113, 123 and 144 were closed or sharpened by

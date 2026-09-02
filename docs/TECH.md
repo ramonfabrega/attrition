@@ -411,6 +411,17 @@ every traced game, which is what hid the British commerce cap for a month
 (`docs/ECONOMY.md`, "The commerce cap"). `leader_flags2 & 0x40` is still not
 modelled.
 
+**And what the nation's own file says.** `Tribe` is `rules.xml`'s `TRIBES`
+row plus the file it points at, and two of that file's fields are loaded
+here: `<TRIBE name>` and `<UNIT_CONTINENT>` (`+0x68`), the unit **art
+style** — six of them, and one of the four coordinates
+`GraphicPieces::get_unit_gpiece` sums, so it decides which animation packet
+every unit of that nation plays and therefore how long every animation of
+theirs runs (`docs/ANIM.md` §3.4). `Install::tribe_defs` reads both.
+`graft[352]` and `barbarian` are still identity and false — and both are in
+every `DUMP_ALL` dump, under `Tribe::log_data@006f0d70`'s own names, beside
+`build_continent` and `text_substitute`.
+
 **The four finals** (`0x243–0x246`) ignore their data prerequisites: they
 require `INFORMATION_AGE`, `COMPUTERIZATION`, `GLOBALIZATION`,
 `INTERNATIONAL_LAW` and `SELECTIVE_SERVICE`, and return 1 on those alone.

@@ -275,6 +275,15 @@ pub struct Tribe {
     /// `ScenarioFuncSet::find_nation` returns and the scripts compare
     /// (`"Egyptians"`, `"Lakota"`, …). Empty when unloaded.
     pub name: String,
+    /// `Tribe::unit_continent` (`+0x68`), the tribe file's
+    /// `<UNIT_CONTINENT>`: which of the six unit art styles this nation's
+    /// units are drawn in. `GraphicPieces::get_unit_gpiece` multiplies it
+    /// by [`crate::anim::PIECES_PER_STYLE`], so it is a *simulation* input
+    /// and not a drawing one — the piece decides which animation packet a
+    /// guy plays and therefore how long every animation of its runs
+    /// (`docs/ANIM.md` §3.4). Zero — Europe — when unloaded, which is what
+    /// `Tribe::Tribe` initialises it to.
+    pub unit_continent: i32,
 }
 
 /// The types the rules name by role. Each is optional: a tree without the

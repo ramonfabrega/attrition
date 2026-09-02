@@ -812,18 +812,22 @@ impl Sim {
     /// packed clamp lifting — [`Sim::unit_los`] recomputes on every read,
     /// so clearing the bit *is* the update.
     ///
+    /// `Unit::update_gpiece` follows the bit, and it is the second half of
+    /// the deploy: the `-PACKED` art and the plain piece are two entries of
+    /// `unit_graphics.xml` — one carrying `CHAR_UNPACK` and the other
+    /// `CHAR_PACK` — so clearing the bit is what puts the boat's guy on the
+    /// piece it will play everything else from (`docs/ANIM.md` §3.4).
+    ///
     /// SEAMS: the merchant arm (`TypeIndex` `0x3d`/`0x3e`/`0x190`), which
     /// snaps the trader onto its tile corner, blocks the four tiles under
-    /// it and raises the leader's `0x2000000`; the `set_new_location` at
-    /// the tail, which re-seats the unit on its own position; and
-    /// `Guy::update_gpiece`, which swaps the `-PACKED` art for the plain
-    /// piece — no capture on disk names either piece, so both sides of
-    /// the swap are `-1` here.
+    /// it and raises the leader's `0x2000000`; and the `set_new_location`
+    /// at the tail, which re-seats the unit on its own position.
     pub(crate) fn cast_unpack(&mut self, u: usize) {
         if !self.units[u].alive() || !self.units[u].on_map {
             return;
         }
         self.units[u].combat.packed = false;
+        self.update_gpiece(u);
     }
 
     /// The boat a unit becomes: `current_upgrade(MERCHANTFLEET)` for a

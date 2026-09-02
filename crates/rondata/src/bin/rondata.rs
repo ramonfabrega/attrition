@@ -808,7 +808,8 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
     // moved would silently hand its power to its neighbour. `sim::nations`
     // names the twenty-four in order; this re-derives them from `rules.xml`'s
     // own `TRIBES` block and each nation file's `<TRIBE name>`.
-    let roster = install.tribe_names(&rules).unwrap_or_default();
+    let defs = install.tribe_defs(&rules).unwrap_or_default();
+    let roster: Vec<String> = defs.iter().map(|d| d.name.clone()).collect();
     let drift: Vec<String> = sim::nations::ROSTER
         .iter()
         .enumerate()
@@ -830,6 +831,39 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
                 String::new()
             } else {
                 format!("; {}", join(drift.iter().cloned()))
+            }
+        ),
+    );
+
+    // And each nation's `<UNIT_CONTINENT>`, which is the art style
+    // `GraphicPieces::get_unit_gpiece` multiplies by `num_unit_pieces` —
+    // a simulation input, because the piece decides the packet and the
+    // packet decides every animation's length. The claim being re-derived
+    // is the *link*: style `n` is `rondata::artdata::STYLES[n]`, so every
+    // style a nation names must be one `unit_graphics.xml` writes a
+    // citizen for.
+    let citizens =
+        std::fs::read_to_string(install.root().join("Data/unit_graphics.xml")).unwrap_or_default();
+    let unstyled: Vec<String> = defs
+        .iter()
+        .enumerate()
+        .filter(|(_, d)| {
+            rondata::artdata::STYLES
+                .get(d.unit_continent as usize)
+                .is_none_or(|s| !citizens.contains(&format!("\"CITIZENS-{s}-AGE0\"")))
+        })
+        .map(|(i, d)| format!("{i} {:?} names style {}", d.name, d.unit_continent))
+        .collect();
+    failures += check(
+        "every nation's UNIT_CONTINENT is one of the six unit art styles",
+        !defs.is_empty() && unstyled.is_empty(),
+        &format!(
+            "{} nations{}",
+            defs.len(),
+            if unstyled.is_empty() {
+                String::new()
+            } else {
+                format!("; {}", join(unstyled.iter().cloned()))
             }
         ),
     );

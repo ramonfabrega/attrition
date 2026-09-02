@@ -274,6 +274,85 @@ dumps. Two of gaia's are in it — `HERDHORSES` and `HERDBISON`'s
 played either. The bird's 31 and 23 are looping and stand (`docs/SYNC.md`
 §3.9).
 
+### 3.4 And the walk that hands a piece out, so a unit trained mid-game has one (2026-09-01)
+
+§3.2 inverted the `<UNIT>` names to place every piece. What it did not do
+is *pick* one, and picking is what a unit the opening dump does not hold
+needs: `Art::pieces` is seeded from the start dump's own `GUY` blocks, so a
+Fisherman the AI trains on frame 4,376 carried **gpiece −1** — every length
+lookup missed, every `end_time` was [`anim::UNKNOWN`], and no animation of
+its ever wrapped.
+
+`GraphicPieces::get_unit_gpiece@0090c030(type, who, o, guy_num, packing, …)`
+picks it, and the sum is §3.2's:
+
+```
+piece = (TypeIndex − 0x32)
+      + 0x160  · style     # tribes[leader.tribe].unit_continent (+0x68)
+      + 0x840  · bracket   # ages < 5 ? ages / 3 : 2
+      + 0x18c0 · gender
+      + 0x3180 · guy_num
+```
+
+with `ages` read out of `LeaderDataEncrypt::ages` (`+0xdc`) through its
+`^ 0x62766`, and `who == −1` meaning style 0 and bracket 0.
+
+**The function does not return that sum. It walks down from it**, four
+loops, each stepping the age bracket down to 0 and taking the first piece
+the art pool actually has (`data_pieces[p] != 0`, after a `verify_load`):
+
+| loop | style | gender |
+|---|---|---|
+| 1 | yes | yes |
+| 2 | **no** | yes |
+| 3 | yes | no |
+| 4 | no | no |
+
+— and `first_unit_piece`, zero, when none of the four finds anything. The
+crew coordinate is in every one of them: `guy_num` is never dropped. Loops
+1 and 2 are skipped entirely unless the gender coordinate applies, which is
+`LAB_0090c2ff`: the type is not `unit_flags2 & 4`, `o` is not −1, and
+`o & 1`.
+
+**`packing` overrides that test, and the two are the same coordinate.**
+Pass it non-zero and the gender loops run whatever the object number says —
+`-PACKED` and `-FEMALE` are one slot, and no shipped entry carries both.
+`Guy::update_gpiece@005d8530` passes `unit_masks & 0x80000`, so a type that
+packs is born on its packed piece (`Unit::init` sets the bit at `:376` and
+makes its guys at `:540`) and moves off it when `SpellType::cast_unpack`
+clears the bit and calls `Unit::update_gpiece@005e2920`.
+
+That swap is the whole reason the piece matters to the simulation rather
+than to a renderer. `FISHERMEN-DEFAULT-AGE0-PACKED` names a `CHAR_UNPACK`
+and no `CHAR_PACK`; `FISHERMEN-DEFAULT-AGE0` names a `CHAR_PACK` and no
+`CHAR_UNPACK`. The deploy's animation lives on the piece the boat is *on*
+when it plays it, and its length is what decides the frame the clock wraps
+and pays an idle roll.
+
+The existence test here is [`Art::piece_lengths`] — a piece the install's
+`<UNIT>` entries name at all is one that loads — and the whole walk is
+[`Sim::unit_gpiece`]. It is used for every player unit wherever the install
+table was read; gaia keeps the dump's table, because its pieces come off
+`first_bird_piece`, a runtime pointer no file states.
+
+*The check.* `the_walk_gives_every_dumped_guy_its_own_piece` runs the walk
+against **every** `GUY` block that carries a `gpiece` in ten dumps of two
+maps — 126 guys over 12 distinct pieces, four nations, both genders, both
+crews — and asserts the number. The original printed the answer; this
+re-derives it.
+
+*What it moved.* East Indies' word **4988 → 5106**. The AI's Fisherman
+`1/14` finishes `CHAR_UNPACK` on 4988 in the original and pays the wrap's
+idle roll, which this crate could not spend without a length.
+
+SEAM: the merchant family. `TypeIndex` `0x3d`, `0x3e` and `0x190` reach six
+"over time" pieces at `total_num_unit_pieces − 6 … − 1` before any of the
+four loops, selected by the nation's **`build_continent`** (`+0x64`, not
+`+0x68`) and the age bracket; those six are the `-NEUROPE-`, `-KOREAN-`,
+`-IROQUOIS-`, `-COLONIAL-` and `-EINDIAN-` entries whose names the piece
+arithmetic cannot build. No capture on disk holds a merchant, and the arm
+is unmodelled.
+
 ## 4. `Guy::set_anim@005da300` — the draw
 
 Every request goes through the early returns, then the apply. The paths a
@@ -918,7 +997,13 @@ two passes.
   roll fell back to `CHAR_DEFAULT` and the clock wrapped fifteen frames
   early. What is left open is the **age brackets**: no capture ages a
   player up, so only `AGE0`'s pieces have ever been read back, and the
-  `0x840` stride is arithmetic rather than an observation.
+  `0x840` stride is arithmetic rather than an observation. ~~And picking
+  the piece is not modelled at all, so a type absent from the opening dump
+  has none.~~ **Settled 2026-09-01, §3.4**: `get_unit_gpiece`'s four walks
+  are modelled and checked against every dumped guy's own `gpiece`. What
+  the check cannot reach is the same age bracket — every row it asserts is
+  bracket 0 — and the merchant family's six "over time" pieces, which no
+  capture holds.
 - **The loop flags by slot** (`anim::non_looping`): from the XML's names,
   not from the packets' slot-to-file mapping. Only the dumps and the
   attacks depend on it. **And the mapping is now readable** (§3.3): the

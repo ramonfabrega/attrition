@@ -84,7 +84,7 @@ const PER_CREW: i32 = 0x3180;
 /// entries written `-NEUROPE-`, `-KOREAN-`, `-IROQUOIS-`, `-COLONIAL-`,
 /// `-EINDIAN-` — is a name `get_unit_gpiece` can never build, so it holds
 /// no piece and is skipped.
-const STYLES: [&str; 6] = ["DEFAULT", "ARAB", "AMERICAN", "ASIAN", "NA", "INDIA"];
+pub const STYLES: [&str; 6] = ["DEFAULT", "ARAB", "AMERICAN", "ASIAN", "NA", "INDIA"];
 
 /// The `UnitAnim` slot each `<ANIM name="CHAR_…">` names. The indices are
 /// `sim::anim`'s, which are the enum's (`rise.pdb`, type 0x46B1); a name

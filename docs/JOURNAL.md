@@ -11960,3 +11960,78 @@ type absent from the opening is in the same position.
 - **A finding that can become an assertion must become one.** The packed
   bit is the item's whole state; it is now 94,935 field-frames of guard
   that fails on the exact frame.
+
+## 2026-09-01 — item 152: a unit trained mid-game has a piece, and the word goes 4988 → 5106 (Opus)
+
+**The boat's guy carried `gpiece −1`, and every animation of its was three
+frames of nothing.** `Art::pieces` is seeded from the start dump's own
+`GUY` blocks, so the table knows exactly the units the opening held. A
+Fisherman the AI trains on frame 4,376 is not one of them: every length
+lookup missed, every `end_time` was `UNKNOWN`, and the clock never wrapped.
+The original's `1/14` finishes `CHAR_UNPACK` on 4988 and pays the wrap's
+idle roll; this crate spent a farm's.
+
+**What was owed was not the arithmetic — it was the walk.** §3.2 had
+already inverted every `<UNIT name="…">` in `unit_graphics.xml` onto the
+piece `init_piece_ranges`' four strides put it at, 1,359 of them, and that
+was diff-backed against six pieces of two nations. What it never did was
+*pick* one. `GraphicPieces::get_unit_gpiece@0090c030` picks it, and the
+function is four nested walks rather than a sum: style, age bracket, gender
+and crew give a starting piece, and then it steps the bracket down to zero
+looking for a piece the art pool actually has — first with style and
+gender, then with gender alone, then with style alone, then with neither,
+and `first_unit_piece` if none of the four finds anything. `guy_num` is in
+every one of them and is never dropped.
+
+**The gender coordinate is where the mechanic lives.** `-PACKED` and
+`-FEMALE` are the *same* slot — no shipped entry carries both — and
+`Guy::update_gpiece@005d8530` passes `unit_masks & 0x80000` in the gender
+argument's place. So a type that packs is born on its packed piece
+(`Unit::init` sets the bit at `:376` and makes its guys at `:540`) and is
+moved off it the moment `SpellType::cast_unpack` clears the bit and calls
+`Unit::update_gpiece@005e2920`. The two entries are not cosmetic variants:
+`FISHERMEN-DEFAULT-AGE0-PACKED` names a `CHAR_UNPACK` and no `CHAR_PACK`,
+and the plain entry names a `CHAR_PACK` and no `CHAR_UNPACK`. The deploy's
+animation lives on the piece the boat is standing on when it plays it.
+
+**The nation's art style came out of the install and the dump agreed.**
+`Tribe::unit_continent` (`+0x68`) is the tribe file's `<UNIT_CONTINENT>`,
+written `0 European`, `1 Arab`, `2 American`, `3 Asian`, `4 Iroquois`,
+`5 EIndian` — the six arms of `say_unit_art_style_name@006f02e0`.
+`Install::tribe_defs` reads it beside the name the roster check already
+used, and `cargo run -p rondata` re-derives the link by requiring each
+style to name a citizen entry in `unit_graphics.xml`. `Tribe::log_data@
+006f0d70` prints the field too, so the dumps state it independently — and
+they print `graft[352]`, `barbarian`, `build_continent`, `people` and
+`text_substitute` beside it, none of which this crate parses. That is item
+153.
+
+**The check is every guy any dump has ever named.**
+`the_walk_gives_every_dumped_guy_its_own_piece` runs the walk against every
+`GUY` block carrying a `gpiece` in ten dumps of two maps — 126 guys, 12
+distinct pieces, four nations, both genders, both crews — and asserts the
+number the original printed. Zeroing the style term fails it on the first
+unit of the first dump (`left: Some(19)`, `right: Some(371)`), which is how
+it was tested. What no row reaches is a second age bracket: no capture ages
+a player up, so the `0x840` stride is still arithmetic.
+
+**What it moved.** East Indies' word `4988 → 5106`; Great Lakes unchanged
+at 1802 and every scored capture unchanged. 5106 is not a new frame — it is
+the one item 151 already named, the single frame run58 reaches
+`UnitData::calc_gather@00609180`, `think_fish`'s "can I still gather where
+I stand". The queue predicted its own next boundary, which is what a
+well-kept queue is for.
+
+**The rules this is an instance of.**
+
+- **The table was not the mechanism.** A month of piece work had produced a
+  correct table and no function to consult it, and the gap was invisible
+  because every unit the harness stood up came from a dump that already
+  carried the answer. It only showed the day a unit was *trained*.
+- **Prefer a diff to a reading.** The walk is a hundred lines of
+  decompiled control flow with four near-identical loops; nothing about
+  reading it was going to say whether it had been transcribed right. 126
+  dumped guys said so in eleven seconds.
+- **Grep the dump before booking a reading.** `unit_continent` was printed
+  in every `DUMP_ALL` dump on disk, and so is the rest of the `TRIBE`
+  record that TECH still calls unsourced.

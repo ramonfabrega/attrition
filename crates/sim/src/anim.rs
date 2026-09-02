@@ -388,17 +388,166 @@ pub fn herd_centre(cx: i32, cy: i32, wx: i32, wy: i32) -> Pos {
 /// The animals' wander radius around the herd centre.
 pub const WANDER_NEAR: i32 = 0x181;
 
+/// `GraphicPieces::init_piece_ranges@008f70e0`'s four nested strides —
+/// literals in the executable, and the coordinates
+/// `GraphicPieces::get_unit_gpiece` sums (`docs/ANIM.md` §3.2, §3.4).
+///
+/// `first_unit_piece` is zero, `num_unit_pieces` is one art style's worth
+/// of unit records, and `total_num_unit_pieces` is `0xc606` — four crews
+/// of [`PIECES_PER_CREW`] plus the six "over time" merchant pieces.
+pub const PIECES_PER_STYLE: i32 = 0x160;
+/// Six art styles: one step of the **age bracket** coordinate.
+pub const PIECES_PER_AGE: i32 = 0x840;
+/// Three age brackets: one step of the **gender** coordinate, which is
+/// the same slot the `-PACKED` art sits in.
+pub const PIECES_PER_GENDER: i32 = 0x18c0;
+/// Two genders: one step of the **crew** coordinate, `guy_num`.
+pub const PIECES_PER_CREW: i32 = 0x3180;
+/// `GraphicPieces::first_unit_piece` — zero, and the answer
+/// `get_unit_gpiece` falls back to when its four walks find nothing.
+pub const FIRST_UNIT_PIECE: i32 = 0;
+
 impl Sim {
-    /// The piece a guy of `ty` owned by `who` plays — [`Art::pieces`] by
-    /// the gender bit or the gaia variant. `None` when the table has no
-    /// entry; the guy then carries −1 and every length lookup fails.
-    pub fn piece_of(&self, who: Player, ty: usize, o: i16, guy_num: u8) -> Option<i32> {
-        let sub = if self.art.gaia_types.contains(&ty) {
-            (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8
-        } else {
-            (o & 1) as u8
+    /// The two coordinates a **leader** contributes to
+    /// `get_unit_gpiece`'s sum: the nation's art style
+    /// (`Tribe::unit_continent`) and the age bracket
+    /// `age < 5 ? age / 3 : 2` off `LeaderDataEncrypt::ages` (`+0xdc`,
+    /// which the function reads through its `^ 0x62766`).
+    ///
+    /// A `who` this simulation keeps no leader for is the function's own
+    /// `param_2 == −1`: style 0 and bracket 0, and no gender walk.
+    fn leader_art(&self, who: Player) -> (i32, i32) {
+        let Some(p) = self.tech.get(who as usize) else {
+            return (0, 0);
         };
-        self.art.pieces.get(&(who, ty, sub, guy_num)).copied()
+        let style = self
+            .tech_tree
+            .tribes
+            .get(p.tribe)
+            .map_or(0, |t| t.unit_continent);
+        let age = p.ages;
+        (style, if age < 5 { age / 3 } else { 2 })
+    }
+
+    /// `GraphicPieces::get_unit_gpiece@0090c030`'s **unit** arm: the piece
+    /// a guy of `ty` owned by `who` plays, derived rather than looked up
+    /// (`docs/ANIM.md` §3.4).
+    ///
+    /// The sum is `(TypeIndex − 0x32)` plus the four strides above times
+    /// the four coordinates — style, age bracket, gender and crew — and
+    /// the function then *walks down* from it: for each of four
+    /// combinations, the age bracket down to 0, taking the first piece the
+    /// art actually has. The four are (style, gender), (no style, gender),
+    /// (style, no gender) and (no style, no gender), and the first two are
+    /// skipped unless the gender coordinate applies at all. Nothing found
+    /// is [`FIRST_UNIT_PIECE`].
+    ///
+    /// The gender coordinate is the `-FEMALE` art, and the `-PACKED` art
+    /// is the **same slot**: `packed` takes it whatever the object number
+    /// says, and a type that packs (`unit_flags2 & 4`) is refused it
+    /// otherwise — which is why a fishing boat's `CHAR_UNPACK` is on one
+    /// piece and its `CHAR_PACK` on the other.
+    ///
+    /// The existence test is [`Art::piece_lengths`], the install's own
+    /// `<UNIT>` entries: the original asks `data_pieces[piece] != 0` after
+    /// a `verify_load`, and a piece the graphics file names at all is one
+    /// that loads.
+    ///
+    /// SEAM: the merchant family's "over time" pieces — `TypeIndex`
+    /// `0x3d`, `0x3e` and `0x190` reach `total_num_unit_pieces − 6 … − 1`
+    /// by the nation's `build_continent` before any of this, and those six
+    /// are the `-NEUROPE-`/`-KOREAN-`/`-IROQUOIS-`/`-COLONIAL-`/
+    /// `-EINDIAN-` entries whose names the piece arithmetic cannot build.
+    /// No capture holds a merchant.
+    pub fn unit_gpiece(
+        &self,
+        who: Player,
+        ty: usize,
+        o: i16,
+        guy_num: u8,
+        packed: bool,
+    ) -> Option<i32> {
+        let t = self.unit_types.get(ty)?.type_index;
+        if t < 0x32 {
+            return None;
+        }
+        let (style, bracket) = self.leader_art(who);
+        let base = t - 0x32 + FIRST_UNIT_PIECE + PIECES_PER_CREW * i32::from(guy_num);
+        // `LAB_0090c2ff`: the gender bit is the object number's low bit,
+        // and a type the packet exempts (`unit_flags2 & 4`) or an object
+        // number of −1 never takes it. `packed` overrides all three.
+        let gender = packed || (!self.unit_types[ty].combat.packs && o >= 0 && o & 1 == 1);
+        let walk = |style: i32, gender: bool| {
+            (0..=bracket)
+                .rev()
+                .map(|age| {
+                    base + PIECES_PER_AGE * age
+                        + PIECES_PER_STYLE * style
+                        + if gender { PIECES_PER_GENDER } else { 0 }
+                })
+                .find(|p| self.art.piece_lengths.contains_key(p))
+        };
+        let found = gender
+            .then(|| walk(style, true).or_else(|| walk(0, true)))
+            .flatten()
+            .or_else(|| walk(style, false))
+            .or_else(|| walk(0, false));
+        Some(found.unwrap_or(FIRST_UNIT_PIECE))
+    }
+
+    /// The piece a guy of `ty` owned by `who` plays.
+    ///
+    /// A gaia type's comes off `first_bird_piece`, a runtime pointer no
+    /// file states, so it stays [`Art::pieces`]' — the start dump's own
+    /// answer, keyed by the variant `(seed + o) % 3`. A player's unit is
+    /// **derived** by [`Sim::unit_gpiece`] wherever the install's piece
+    /// table was read, and only falls back to the dump's where it was not
+    /// (a fixture with no install behind it). That is the difference
+    /// between a unit the opening dump happened to hold and one trained
+    /// mid-game: the table knows only the first.
+    pub fn piece_of(
+        &self,
+        who: Player,
+        ty: usize,
+        o: i16,
+        guy_num: u8,
+        packed: bool,
+    ) -> Option<i32> {
+        if self.art.gaia_types.contains(&ty) {
+            let sub = (self.game_seed.wrapping_add(i32::from(o))).rem_euclid(3) as u8;
+            return self.art.pieces.get(&(who, ty, sub, guy_num)).copied();
+        }
+        if !self.art.piece_lengths.is_empty() {
+            return self.unit_gpiece(who, ty, o, guy_num, packed);
+        }
+        self.art
+            .pieces
+            .get(&(who, ty, (o & 1) as u8, guy_num))
+            .copied()
+    }
+
+    /// `Unit::update_gpiece@005e2920` — every guy's piece recomputed from
+    /// the unit's *current* state, which is what a pack or an unpack is
+    /// for: `SpellType::cast_unpack` clears `unit_masks & 0x80000` and
+    /// then calls this, and the `-PACKED` art is swapped for the plain
+    /// piece (`docs/ORDERS.md` §6.9).
+    ///
+    /// The clock is not touched. `Guy::update_gpiece` writes `gpiece` and
+    /// nothing else about the animation, so a guy mid-`CHAR_UNPACK` keeps
+    /// its `cur_time` and its `end_time` — the length it was given when
+    /// the animation was set — and the next `set_anim` picks up the new
+    /// piece's lengths.
+    pub fn update_gpiece(&mut self, u: usize) {
+        let (who, o, ty) = {
+            let unit = &self.units[u];
+            (unit.owner, unit.index, unit.ty)
+        };
+        let packed = self.units[u].combat.packed;
+        let Some(ty) = ty else { return };
+        for n in 0..self.units[u].guys.len() {
+            let piece = self.piece_of(who, ty, o, n as u8, packed).unwrap_or(-1);
+            self.units[u].guys[n].gpiece = piece;
+        }
     }
 
     /// The gaia variant of a unit — `(seed + o) % 3`, the index into the
@@ -466,12 +615,16 @@ impl Sim {
     pub fn init_guys(&mut self, u: usize, ty: Option<usize>) {
         let unit = &self.units[u];
         let (who, o) = (unit.owner, unit.index);
+        // `Unit::init` sets `unit_masks |= 0x80000` for a type that packs
+        // at `:376` and only makes its guys at `:540`, so a boat born
+        // packed asks for the `-PACKED` art on its very first frame.
+        let packed = unit.combat.packed;
         let ty = ty.or(unit.ty);
         let count = 1usize;
         let mut guys = Vec::with_capacity(count);
         for n in 0..count {
             let piece = ty
-                .and_then(|t| self.piece_of(who, t, o, n as u8))
+                .and_then(|t| self.piece_of(who, t, o, n as u8, packed))
                 .unwrap_or(-1);
             let mut g = Guy::fresh(piece);
             self.mark(SITE_INIT_REAL);
