@@ -1951,3 +1951,97 @@ fn a_crew_guy_walks_on_after_its_unit_has_arrived() {
                 == sim.units[unit].guys[1].follow.unwrap().des
     );
 }
+
+/// **Three of the six resources are not available from the start, and until
+/// they are, a price written in one of them is charged somewhere else**
+/// (`docs/COSTS.md`, "Three of the six resources are not available from the
+/// start"; `docs/ECONOMY.md`, "Availability, and where a price lands
+/// instead").
+///
+/// `economy::Holdings::available` had been all-true from frame 0 since it
+/// existed, so the whole undiscovered-redirect layer under it — read,
+/// tabled, and tested against hand-built arrays — never fired in a played
+/// game. This is the wiring: [`Sim::sync_goods_available`] writes the two
+/// arrays from `type_avail`, and `apply_gained` keeps them there.
+///
+/// Coinage is the case that found it. It costs `14k/6t`, and an Ancient-age
+/// player is charged `(140 × 384) >> 8` = **210 food** and the sixty timber,
+/// not a hundred and forty knowledge they have no way to hold.
+#[test]
+fn a_knowledge_price_lands_in_food_until_the_classical_age() {
+    use crate::economy::Resource;
+    use crate::tech::{self, TypeDef};
+
+    let mut tree = tech::TechTree::new().with_tuning(&Tuning::RON);
+    let ancient = tree.add(TypeDef::age("Ancient Age", 0));
+    let classical = tree.add(TypeDef::age("Classical Age", 1).needs(0, ancient));
+    // The six goods in `goodrules.xml` order; the last three carry the
+    // prerequisite `resourcerules.xml` gives them.
+    for (i, name) in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"]
+        .iter()
+        .enumerate()
+    {
+        let mut d = TypeDef::good(name);
+        d.tribe_mask = u32::MAX;
+        if i >= 3 {
+            d = d.needs(0, classical);
+        }
+        tree.add(d);
+    }
+    let library = tree.add(TypeDef::building("Library"));
+    let mut coinage = TypeDef::plain("Coinage", 1).at(library);
+    coinage.cost[Resource::Knowledge.index()] = 140;
+    coinage.cost[Resource::Timber.index()] = 60;
+    coinage.tribe_mask = u32::MAX;
+    let coinage = tree.add(coinage);
+
+    let mut sim = skirmish(0);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+
+    // Ancient: knowledge, metal and oil are none of the player's business.
+    assert_eq!(
+        sim.holdings[0].available,
+        [true, true, true, false, false, false],
+        "knowledge, metal and oil wait for their age"
+    );
+    assert_eq!(
+        sim.holdings[1].available, sim.holdings[0].available,
+        "and a player whose `start_techs` was never called has it from \
+         `set_tech_tree`, not from a gain"
+    );
+    assert_eq!(
+        sim.holdings[0].discovered, sim.holdings[0].available,
+        "for a good the two tests are the same one, which is why the \
+         obsolete table never fires in a stock game"
+    );
+    // Nothing lands in the knowledge slot, and the food slot carries the
+    // knowledge price at three halves. The Science penalty this player takes
+    // for a tech two levels ahead of its own line (`docs/COSTS.md`, "The
+    // discounts") scales both sides alike, so the ratio is the assertion and
+    // the two arrays are printed beside it.
+    let ancient = sim.tech_price(0, coinage);
+    sim.gain_tech(0, classical);
+    assert_eq!(sim.holdings[0].available, [true; 6]);
+    let classical_price = sim.tech_price(0, coinage);
+    let k = Resource::Knowledge.index();
+    let f = Resource::Food.index();
+    let ti = Resource::Timber.index();
+    assert_eq!(
+        (ancient[k], classical_price[f]),
+        (0, 0),
+        "the two slots swap whole: {ancient:?} then {classical_price:?}"
+    );
+    assert!(classical_price[k] > 0 && ancient[f] > 0);
+    assert_eq!(
+        ancient[f],
+        (classical_price[k] * 384) >> 8,
+        "UNDISC_COST_GOOD Food at UNDISC_COST_RATE 3/2: {ancient:?} then \
+         {classical_price:?}"
+    );
+    assert_eq!(
+        (ancient[ti], classical_price[ti]),
+        (classical_price[ti], ancient[ti]),
+        "and the timber half of the price is untouched by either"
+    );
+}

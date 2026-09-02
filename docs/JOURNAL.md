@@ -12125,3 +12125,106 @@ this crate never scores a site for.
 - **The queue predicted its own next boundary twice.** 5106 was item 151's
   own frame, named a session before it was taken; 5285 was item 48's chain,
   named months ago. Neither cost a search.
+
+## 2026-09-02 — item 154: three of the six resources were available from frame 0, and the AI's Coinage lands on 5177 (Opus)
+
+Item 154 was the headline — `Leader::produce_building+0x1805` on East Indies
+frame **5376**, the AI siting a building this crate never scores a site for.
+It is two defects deep. The first is landed and it is a general one; the
+second is measured and named, and the word has not moved.
+
+**What the frame actually is.** The trace names the caller chain, and it is
+the script: `Leader::produce_building+0x1805 <
+ScenarioFuncSet::place_orphan_building_with_cost+0x136 <
+ScenarioFuncSet::place_building_with_cost+0x6a`, four draws, the 2×2 jitter,
+no `+0xc99` — so the type is not gather-scored. `economic.bhs` case 15 is
+"Build Market #1", and case 23 ("Commerce II") jumps to it with `step = 15`
+on a sea map when `research_tech_with_cost(who, "Coinage")` succeeds. The
+harness's own host log said this crate was stuck in case 23, spending all
+five of the script's loops on a Coinage that would not start.
+
+**Why it would not start, and what that turned out to be.**
+`research_tech_with_cost` refused on price: `charges = [0, 60, 0, 140, 0, 0]`
+against a bucket of `[258, 94, 150, 100, 100, 100]` — a hundred and forty
+knowledge against a hundred held. Coinage is `14k/6t` in `techrules.xml`, and
+Knowledge's `PREQ0` in `resourcerules.xml` is the **Classical Age**. The AI
+is in the Ancient age, so the original never asks it for knowledge at all: it
+pays `UNDISC_COST_GOOD Food` at `UNDISC_COST_RATE 3/2`, `(140 × 384) >> 8` =
+two hundred and ten food, and the sixty timber.
+
+`economy::Holdings::available` and `discovered` were **all-true from frame 0
+for as long as they had existed** — `holdings.rs` said so in a doc comment,
+"the tech layer", and no tech layer ever wrote them. So the whole
+undiscovered-redirect layer beneath them — read in the 2026-08-20 audit,
+tabled in `cost::Redirects::RON`, unit-tested against hand-built arrays,
+corrected once when it turned out to be reading the `*_SUPPORT_*` columns —
+had never fired in a played game. `Sim::sync_goods_available` writes both
+arrays now, from `type_avail`, out of `set_tech_tree` and `apply_gained`.
+`TypeData::can_pay_cost@00667570` is the confirmation that it is the right
+test: its loop over the six goods opens with `LeaderData::type_avail(good,
+1)` before it asks `get_cost` anything, and `docs/TECH.md` had already
+settled what that comes to for a good.
+
+**What it moved.** run58's queue tail: twenty-four rows of `1/2005 queued
+ours 0 theirs 1` — the AI's library holding a Coinage job from frame 5177
+that this crate never started — are gone, and both sides now take it on
+**5177 exactly**. That is the sub-score item 154 named, and it is the item's
+first half. 178,326 building fields, 488,303 collision field-frames and
+109,627 queue fields still compare clean; what is left of run58's tail is
+frame **5201** alone, where the original prints `queued 0` for both buildings
+that held a job on 5200 and prints the whole `BUILDDATA` list a second time,
+truncated — the run was quitting. Both rows are asserted as they stand.
+
+**What it did not move, and what the number is.** The word is still 5376. The
+AI now reaches case 15 and calls `place_building_with_cost(who, "Market",
+my_capital)` on that exact frame, as the original does — and `affordable`
+answers **0**. A Market is `8t`, eighty timber; the AI holds thirty-four,
+having paid the sixty for Coinage on 5177. Its timber income is `1280`
+sixteenths and it accrues about three timber every twenty-five frames, so it
+would place the Market around frame 5760. The original places it on 5376,
+which means the original holds at least eighty there and this crate is
+**about forty-six timber short by 5376**.
+
+That is a resource level, and no capture on disk carries one past frame 800:
+`LEADERS=1` at `[End Frame]` is five scalars and no goods, and the only
+`LEADERS=9` windows are run40's `[560, 600)` and run41's `[770, 800)`, both
+on run10's game rather than this one.
+`run40_s_census_…` is the instrument that exists — it compares `bucket`,
+`leftover`, `resources`, `income`, `resource_cap` and `gather_slots` per good
+per player per frame — and it says food, timber and wealth are exact there,
+so whatever is short arrives later. Two moves are booked with the item, in
+order: **widen the `CITY` record**, which run58 dumps every frame and which
+`rondata` parses four fields of, for the initial dump only — `gatherers`,
+`busy`, `free`, `filled`, `space[scan]` and `ter[scan]` are the rate's own
+inputs and nothing has ever compared them; then, only for what that cannot
+answer, a `LEADERS=9` census window on East Indies at 5150–5400.
+
+**And a second finding, inert, from the same reading.**
+`Leader::init@006e3930` zeroes all six resources; `Leader::gain_tech@
+006dcb60` walks the six on every gain and, for one whose bucket is zero and
+whose `goodtypes[g] + 0x30` prerequisite is the tech just gained, calls
+`bucket_add(g, game->starting[g])`. **`STARTING_GOODS` arrives with the age.**
+That is why run40's dump holds `200 200 100 0 0 0` where this crate holds
+`200 200 100 100 100 100` — the 240 rows that test has booked as inert since
+it was written, now explained. It stays inert (an unavailable good is never
+charged and never accrues) and it is booked as its own item, because where
+the three that need no age are paid is not read: the loop in `gain_tech`
+cannot pay them, and `Game::init_starting_resources@0058a500` only computes
+the array.
+
+**The rules this is an instance of.**
+
+- **A field nothing writes is a layer nothing runs.** The redirect had a
+  table, a recursion, a cycle guard, a `rondata` check and its own tests. All
+  of it was correct and none of it executed, because one array upstream was
+  a default. The tell was in `holdings.rs`'s own doc comment, which named
+  `available` as somebody else's job for months.
+- **Grep the dump before booking a capture** — and grep the *harness* before
+  grepping the dump. `run40_s_census_…` had already measured the 100 in
+  goods 3, 4 and 5 and written down that it was inert "because none of the
+  three is available in the Ancient age". The sentence that explains the
+  bug was sitting in the assertion that measured it.
+- **The script is the AI.** Two of this item's three facts came out of
+  `economic.bhs` and `aibestbuildlibrary.bhs` rather than the decompile: that
+  case 23 jumps to case 15 on a sea map, and that case 15 is the Market. The
+  shipped scripts are readable and they are the opening.

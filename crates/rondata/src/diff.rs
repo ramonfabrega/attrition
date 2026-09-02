@@ -4805,11 +4805,28 @@ mod tests {
         //
         // **And the word has now outrun this capture.** run54's word is
         // 5376 and run58 is 5,201 frames, so "before the word" is the
-        // whole file — and the last twenty-five frames of it do not
-        // agree. `RUN58_QUEUE_TAIL` is where they start, and the rows are
-        // asserted **as they stand** rather than filtered out, so the day
-        // item 154 lands the assertion moves rather than passing quietly
-        // (the `gather_slots` precedent, `run40_s_census_…`).
+        // whole file.
+        //
+        // The tail used to be twenty-four frames of `1/2005 queued ours 0
+        // theirs 1` — the AI's library holding a **Coinage** job from
+        // frame 5177 that this crate never started. It was
+        // `economy::Holdings::available`, all-true from frame 0 since it
+        // existed: knowledge is not available before the Classical Age, so
+        // the original charges Coinage's `14k` as two hundred and ten food
+        // and this crate asked for a hundred and forty knowledge nobody
+        // can hold (`docs/COSTS.md`, "Three of the six resources are not
+        // available from the start"; `docs/ECONOMY.md`, "Availability, and
+        // where a price lands instead"). Those rows are gone.
+        //
+        // What is left is the capture's **last frame and nothing else**.
+        // On 5201 the original prints `queued 0` for both buildings that
+        // held a job on 5200 — `1/2005`'s research and `1/2010`'s
+        // Fisherman — and prints the whole `BUILDDATA` list a second time,
+        // truncated; the run was quitting. Frames 5195..=5200 are stable
+        // and agree. The two rows are asserted **as they stand** rather
+        // than filtered out, so a change that moves them fails rather than
+        // passing quietly (the `gather_slots` precedent,
+        // `run40_s_census_…`).
         let queue_early: Vec<&QueueDivergence> = queue_bad
             .iter()
             .filter(|d| d.frame < RUN58_QUEUE_TAIL)
@@ -4825,16 +4842,12 @@ mod tests {
             .filter(|d| d.frame >= RUN58_QUEUE_TAIL && d.frame < LONG_WORD_EAST_INDIES)
             .map(|d| (d.frame, d.o, d.field.as_str(), d.ours, d.theirs))
             .collect();
-        let mut want: Vec<(i64, i64, &str, i64, i64)> = (RUN58_QUEUE_TAIL..5201)
-            .map(|f| (f, 2005, "queued", 0, 1))
-            .collect();
-        want.push((5201, 2010, "queued", 1, 0));
+        let want: Vec<(i64, i64, &str, i64, i64)> =
+            vec![(5201, 2005, "queued", 1, 0), (5201, 2010, "queued", 1, 0)];
         assert_eq!(
             queue_tail, want,
-            "run58's tail is item 154's, and it is exactly these rows: the \
-             AI holds a job in `1/2005` from {RUN58_QUEUE_TAIL} that this \
-             crate never queues, and puts one in `1/2010` on the last frame \
-             where this crate already has one"
+            "run58's queues are the original's on every frame it dumps \
+             whole; only 5201, the truncated last one, disagrees"
         );
         assert!(
             queues >= 109_435,
@@ -8748,12 +8761,17 @@ mod tests {
 
     const LONG_WORD_EAST_INDIES: i64 = 5376;
 
-    /// The frame run58's `QUEUE` record parts on, and the first number
-    /// this capture has ever carried that the word does not bound: the AI
-    /// holds a job in its building `1/2005` from here to the end of the
-    /// file (frame 5,201) and this crate holds none. Same family as the
-    /// word itself — `Leader::produce_building` on run54's 5376 — and
-    /// booked with it as item 154.
+    /// The frame the AI's library takes its **Coinage** job on, and the
+    /// frame run58's `QUEUE` record used to part on: twenty-four rows of
+    /// `1/2005 queued ours 0 theirs 1` running to the end of the file.
+    /// Item 154's first half, and it was
+    /// `economy::Holdings::available` — knowledge is not available before
+    /// the Classical Age, so the original charges Coinage's `14k` as two
+    /// hundred and ten food and this crate asked for knowledge the AI had
+    /// no way to hold. Both sides now start the job here, and this
+    /// constant is what says so: the filter below still splits the file
+    /// at it, and the tail it leaves is empty but for the truncated last
+    /// frame.
     const RUN58_QUEUE_TAIL: i64 = 5177;
 
     /// **run40 and run41 — the leader census over a window, and what the

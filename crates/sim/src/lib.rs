@@ -1933,6 +1933,12 @@ impl Sim {
             t.team = team;
         }
         self.sync_researched();
+        // Availability is a fact about the tree, so it is wrong until there
+        // is one: every player's two arrays are laid down here and then
+        // maintained by [`Sim::apply_gained`].
+        for who in 0..self.holdings.len().min(self.tech.len()) {
+            self.sync_goods_available(u8::try_from(who).expect("too many players"));
+        }
     }
 
     /// `Leader::init`'s tech block for one player: the ages below the
@@ -2025,6 +2031,7 @@ impl Sim {
     fn apply_gained(&mut self, who: Player) {
         self.wall_stats_dirty[who as usize] = true;
         self.sync_researched();
+        self.sync_goods_available(who);
         let level = self.tech[who as usize].military_level();
         if self.muster[who as usize].military_level != level {
             self.muster[who as usize].military_level = level;
@@ -2036,6 +2043,44 @@ impl Sim {
         // changing so an ordinary tech does not repaint 3,600 cells.
         if self.borders[who as usize] != self.player_borders(who) {
             self.sync_territory();
+        }
+    }
+
+    /// Which of the six basic resources this player may spend, and which they
+    /// hold the prerequisite for — the two arrays `crates/sim/src/cost.rs`
+    /// steers its redirect tables by.
+    ///
+    /// `docs/COSTS.md`, "Three of the six resources are not available from
+    /// the start": `resourcerules.xml` gives Knowledge and Metal the
+    /// Classical Age as their prerequisite and Oil the Industrial Age, so a
+    /// price written in one of those is charged somewhere else until the age
+    /// arrives — Knowledge in food at three halves, Metal in timber at five
+    /// quarters, Oil in metal at three halves and then on into timber. The
+    /// test is `type_avail`, which `docs/TECH.md` ("Two questions this
+    /// answers") settles for a good: `has_preq` — slot 0 is the unlocking
+    /// age, slot 1 nothing, `obs` never — and a `type_eligible` that is
+    /// always 4. So `available` and `discovered` agree for a good, which is
+    /// why the obsolete table never fires in a stock game.
+    ///
+    /// The goods come out of the tree in `resourcerules.xml` order, and the
+    /// first six of them are [`economy::Resource`]'s own.
+    fn sync_goods_available(&mut self, who: Player) {
+        let w = who as usize;
+        let goods: Vec<tech::TypeId> = self
+            .tech_tree
+            .types
+            .iter()
+            .enumerate()
+            .filter(|(_, d)| matches!(d.kind, tech::Kind::Good))
+            .map(|(i, _)| i)
+            .take(economy::RESOURCES)
+            .collect();
+        for (g, t) in goods.into_iter().enumerate() {
+            let p = &self.tech[w];
+            let discovered = self.tech_tree.has_preq(&self.setup, p, t);
+            let available = self.tech_tree.type_avail(&self.setup, p, t, true) == tech::AVAILABLE;
+            self.holdings[w].discovered[g] = discovered;
+            self.holdings[w].available[g] = available;
         }
     }
 

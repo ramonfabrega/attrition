@@ -310,6 +310,49 @@ in normal play. It is recorded because it closes a data claim with its
 consumer, which is the only way this project is willing to assert a field's
 meaning.
 
+### Availability, and where a price lands instead (2026-09-02)
+
+`Holdings::available[6]` and `Holdings::discovered[6]` are the two arrays the
+whole cost layer steers by — `pay` accrues nothing into a good that is not
+available, and `cost::charges` writes a zero there and redirects the price
+(`docs/COSTS.md`, "Three of the six resources are not available from the
+start"). **Both were all-true from frame 0 for as long as they existed**, so
+the redirect layer under them — read, tabled and unit-tested against
+hand-built arrays — never fired in a played game.
+
+The test is `LeaderData::type_avail(good, 1)`, and `TypeData::can_pay_cost@
+00667570` is where to read it: its loop over the six goods opens with exactly
+that call before it asks `get_cost` anything. `docs/TECH.md` ("Two questions
+this answers for the other documents") settles what it comes to for a good —
+`has_preq`, whose slot 0 is the unlocking age and whose slot 1 is nothing,
+with `obs` never set, and a `type_eligible` that is always 4. **So
+`available` and `discovered` are the same test for a good**, which is why
+`Redirects::of` never reaches the obsolete table in a stock game.
+
+`Sim::sync_goods_available` writes them, from `set_tech_tree` for a player
+who never starts and from `apply_gained` on every gain after that; the goods
+are the first six `Kind::Good` entries of the tree, in `resourcerules.xml`
+order.
+
+What it costs the AI: Knowledge and Metal carry the Classical Age and Oil the
+Industrial, so through the whole Ancient age a knowledge price is charged as
+food at three halves. **Coinage** is `14k/6t`, and the East Indies AI takes it
+in its library on frame **5177** — two hundred and ten food and sixty timber,
+where this crate had been asking for a hundred and forty knowledge it could
+not hold and refusing the job on every frame to the end of the capture. The
+twenty-four rows of `1/2005 queued ours 0 theirs 1` in
+`diff::tests::run58_s_five_thousand_frames…` are what that was, and they are
+gone.
+
+**What this does not close.** A leader still *starts* with a hundred of each
+of the three, where the original starts with none: `Leader::gain_tech@
+006dcb60` walks the six goods on every gain and, for one whose bucket is zero
+and whose `goodtypes[g] + 0x30` prerequisite is the tech just gained, calls
+`bucket_add(g, game->starting[g])` — the starting grant arrives **with the
+age**, not at `Leader::init`, which zeroes all six. It is inert while the
+good is unavailable (nothing accrues into it and nothing is charged from it)
+and it is the 240 rows `run40_s_census_…` books.
+
 ## What a city gives
 
 `LeaderData::calc_city_resources` sums five things for one city.

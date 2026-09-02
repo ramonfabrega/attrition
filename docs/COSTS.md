@@ -335,6 +335,21 @@ Metal, and it does chain. Nothing shipped is priced in oil that early, so it is
 a correctness note rather than a stock-game effect — but the implementation
 recurses now, and `charges()` is tested on the chain.)
 
+**Who answers "is it available", and when this crate started asking**
+(2026-09-02). The test is `LeaderData::type_avail(good, 1)` — the first thing
+`TypeData::can_pay_cost@00667570`'s loop over the six goods does, before it
+asks `get_cost` anything — and `docs/TECH.md` settles what it comes to for a
+good: `has_preq` and a `type_eligible` of 4, so `available` and `discovered`
+are one test and the obsolete table is unreachable in a stock game.
+`economy::Holdings::available` was **all-true from frame 0** until
+2026-09-02, so everything above this line was true of the original and of
+nothing this crate ran: the loop found no unavailable good and never
+redirected. `Sim::sync_goods_available` writes both arrays now
+(`docs/ECONOMY.md`, "Availability, and where a price lands instead"), and
+the first thing it bought was the AI's **Coinage** — `14k/6t`, two hundred
+and ten food and sixty timber, taken in its library on East Indies frame
+**5177** exactly as the original does.
+
 Two notes on the arithmetic. The redirected amount is the source good's own
 full price — base, ramp and all its discounts — and it is added *after* the
 target good's discounts, so it is not discounted twice. And Wealth's redirect
@@ -822,6 +837,19 @@ a capture has one.
   `Leader::gain_tech` grants prerequisites and auto-types on its own account,
   and whether those re-enter it — and so re-price the library a second time
   in a frame — is unread. No traced game reaches a Science epoch by cascade.
+- **The starting grant of an unavailable good.** `Leader::init@006e3930`
+  zeroes all six resources, and `Leader::gain_tech@006dcb60` walks the six on
+  every gain: for one whose bucket is zero and whose `goodtypes[g] + 0x30`
+  prerequisite is the tech just gained it calls `bucket_add(g,
+  game->starting[g])`, scaled by the lobby's starting-resources setting and
+  by `ctw_nomad_starting_res_x` in Conquer the World. So **`STARTING_GOODS`
+  arrives with the age, not at init**, and the original holds 0 knowledge, 0
+  metal and 0 oil through the Ancient age where this crate holds a hundred of
+  each — the 240 rows `run40_s_census_…` books. What is *not* read is where
+  the three that need no age (food, timber, wealth) are paid, since that loop
+  cannot pay them; `Game::init_starting_resources@0058a500` only computes
+  `game->starting[]`. Inert while the good is unavailable: nothing accrues
+  into it and nothing is charged from it.
 - **What writes `escrow_rate`.**
 - **Whether the maximum in `can_pay_cost` is visible in play**, which needs
   phase 2.
