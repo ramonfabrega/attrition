@@ -867,10 +867,24 @@ impl Sim {
     /// action bit — `param_7` is 0, which clears [`flag::ACTION`] rather
     /// than setting it (`docs/TRANSPORT.md` §6).
     ///
-    /// The pack/unpack rewrite at the head of the original — `0x28b`/`0x28c`
-    /// re-aimed at a siege type's or a merchant's own spell — cannot reach
-    /// this caller, and is not modelled.
+    /// **The pack/unpack rewrite at the head of the original is here**, and
+    /// `Unit::think_fish` is what reaches it: `add_cast_order@005e4a60`
+    /// re-aims the two generic spells at the caster's own before it builds
+    /// the order, so a Fisherman asking for `UNPACK` (`0x28c`) gets
+    /// `0x292` — which is the `spell 658` run58's block 4949 prints
+    /// (`docs/ORDERS.md` §6.8).
+    ///
+    /// SEAM: only the `FISHERMEN` arm is modelled. The other two — a
+    /// `MACHINEGUN` lineage's `0x28d`/`0x28e` and the three merchant ids'
+    /// `0x28f`/`0x290` — have no caller here, and `0x28b` (pack) none at
+    /// all.
     pub fn add_cast_order(&mut self, u: usize, spell: i32) {
+        let spell = if spell == crate::fish::UNPACK && self.unit_line_is(u, crate::fish::FISHERMEN)
+        {
+            crate::fish::UNPACK_FISHERMEN
+        } else {
+            spell
+        };
         let order = Order {
             flags: 0,
             body: Body::Cast(CastOrder { spell, paid: false }),
@@ -1143,6 +1157,13 @@ impl Sim {
         // second `think_scout` on 2665, where `idle == 2` still passes the
         // mod-16 gate, and that was East Indies' word.
         if self.units[u].idle != 1 && phase & 31 != 0 {
+            return;
+        }
+        // `is(0x13d, 0)` — the `FISHERMEN` lineage — takes `think_fish`,
+        // and a `1` back ends the think (`docs/ORDERS.md` §6.8). It sits
+        // above the scout/army tail and below everything else, which is
+        // why a fishing boat never joins an army.
+        if self.unit_line_is(u, crate::fish::FISHERMEN) && self.think_fish(u, frame) {
             return;
         }
         // The tail (`docs/SCOUT.md` §2): a scout or a spy not in an army
@@ -2056,9 +2077,17 @@ impl Sim {
         let unit = &self.units[u];
         let m = unit.movement;
         let from = unit.pos;
+        // `GuyData::turn_speed@005de340` reads `unit_masks & 0x80000` on the
+        // **unit**, not a copy taken when the type was assigned, so the
+        // pack bonus follows the boat rather than the record
+        // (`docs/ORDERS.md` §6.8).
+        let turning = movement::Turning {
+            packed: unit.combat.packed,
+            ..m.turning
+        };
         let rate = movement::turn_speed(
             &self.tuning,
-            &m.turning,
+            &turning,
             m.body.last_speed,
             m.body.avg_speed,
             movement::TurnMode::Unit,

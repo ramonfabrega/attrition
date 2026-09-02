@@ -637,6 +637,13 @@ pub struct Tuning {
     pub unit_train_distance: i32,
     /// Position units: the far edge of that ring. `5/2 tile`.
     pub unit_train_max_distance: i32,
+    /// Position units: the same pair for a unit whose **domain is the
+    /// sea** — `Unit::come_out@00617c10`'s other arm (`6183dd`), which
+    /// also adds the type's own `big_radius`. `3/2 tile`.
+    pub boat_train_distance: i32,
+    /// Position units: the far edge of a boat's exit ring. `8 tiles`, more
+    /// than three times a land unit's, because a dock's water may be.
+    pub boat_train_max_distance: i32,
     /// Position units: how far from a boarding unit `cast_transport` looks
     /// for the water its transport is born on (`docs/TRANSPORT.md` §6).
     /// `3/1 tile`.
@@ -924,6 +931,8 @@ impl Tuning {
         red_fort_heal: 500,
         unit_train_distance: 288,
         unit_train_max_distance: 480,
+        boat_train_distance: 288,
+        boat_train_max_distance: 1536,
         unit_board_distance: 576,
         unit_disembark_distance: 576,
         lakota_raze_price: 0,
@@ -935,7 +944,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 258] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 260] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1453,6 +1462,11 @@ impl Tuning {
             (
                 "UNIT_TRAIN_MAX_DISTANCE",
                 Slot::Ratio192(T.unit_train_max_distance),
+            ),
+            ("BOAT_TRAIN_DISTANCE", Slot::Ratio192(T.boat_train_distance)),
+            (
+                "BOAT_TRAIN_MAX_DISTANCE",
+                Slot::Ratio192(T.boat_train_max_distance),
             ),
             ("UNIT_BOARD_DISTANCE", Slot::Ratio192(T.unit_board_distance)),
             (

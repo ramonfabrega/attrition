@@ -1027,3 +1027,31 @@ the original's, entry for entry (`docs/TRANSPORT.md` §7).
 break test has a second clause for a **sea** unit — the matched region
 must also pass `invalid_loc(t, 0, 1, 1, 1, 0)` — which this crate does
 not make. No boat in any capture has re-planned from inside the pull-back.
+
+## 15. The pull-back asks `get_tregion`, and the sim was asking the other one (2026-09-01)
+
+All four region reads in the pathfinder — the three pull-back walks
+(`find_wpath@00688fc0:104`, `find_tpath@006897d0:90`,
+`find_upath@00682f30:116`) and `astar_path@00683770:395`'s
+`avoid_land`/`avoid_sea` derivation — call **`WorldData::get_tregion`**,
+which is `crate::world::World::tregion_alt`: a cell with `flags & 0x100`
+whose *tile* is ocean answers its `region2`, the sea region, and only
+otherwise its `region`. `crate::world::World::tregion` is the plain
+`region_of(cell_of_tile)` and is a different function.
+
+This crate asked the plain one at all four sites until 2026-09-01, and it
+cost the score the day a boat first pathed. The AI's Fisherman `1/14`
+stands on cell (57, 55) of East Indies — `SANDY`, `flags 0x104`,
+`region 11` (land), `region2 65` (sea) — and is sent to (49, 39), which is
+region 65. With `tregion` the start answered **11**, the pull-back's break
+test never matched, and the walk dragged the goal three quarters of the way
+back to the boat before the give-up exit fired; the whole route was
+planned to a point the boat had not been asked to go to. With
+`tregion_alt` the loop exits on its first test, as it does for every unit
+that stands where it looks.
+
+The remaining `World::tregion` callers — `army`, `group`, `orders`,
+`roads`, `place`, `scout`, `transport` — are still unchecked; the queue
+carries them.
+
+

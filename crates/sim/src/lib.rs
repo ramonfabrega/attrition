@@ -60,6 +60,7 @@ pub mod cost;
 pub mod economy;
 pub mod farms;
 pub mod fight;
+pub mod fish;
 pub mod form;
 pub mod gaia;
 pub mod garrison;
@@ -1185,6 +1186,17 @@ impl Sim {
         self.units.push(unit);
         // `Unit::init`'s transport clause (`docs/TRANSPORT.md` §3.4).
         self.transport_init_unit(i);
+        // `Unit::init@00612100:376` — a type that packs is **born packed**:
+        // `unit_flags2 & 4` sets `unit_masks |= 0x80000` there and nothing
+        // else in the function touches the bit. It is what makes a freshly
+        // trained Fisherman skip `think_fish`'s 1,024-frame head and search
+        // on its first idle frame (`docs/ORDERS.md` §6.8).
+        if self.units[i]
+            .ty
+            .is_some_and(|t| self.unit_types[t].combat.packs)
+        {
+            self.units[i].combat.packed = true;
+        }
         if source {
             self.units[i].supply_slot = Some(self.supply[owner].list.register(i));
         }
@@ -2596,9 +2608,13 @@ impl Sim {
         // frame and not two: `docs/SYNC.md` §3.11's arrival pair, whose second
         // draw the third frame would have made a third.
         let turned = facing != m.frame_facing;
+        let turning = movement::Turning {
+            packed: self.units[i].combat.packed,
+            ..m.turning
+        };
         let rate = movement::turn_speed(
             &self.tuning,
-            &m.turning,
+            &turning,
             if was_at_des { 0 } else { m.body.last_speed },
             m.body.avg_speed,
             movement::TurnMode::Body,

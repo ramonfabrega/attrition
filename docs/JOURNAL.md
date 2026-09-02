@@ -11620,3 +11620,105 @@ nothing has ever been built below it. Item 145.
   powers have been inert in this crate since `crates/sim/src/nations.rs`
   wired `has_tribe_bonus`, and it took a ship to notice that the AI has
   been playing a nation the whole time.
+
+## 2026-09-01 — item 145: the fishing boat, and the word goes 4462 → 4871 (Opus)
+
+`Unit::think_fish` exists now, and with it the whole of `think`'s tail from
+step 5 down that nothing had ever built. East Indies' long word moves
+**4462 → 4871**, count and sequence together, and the 409 frames in between
+are one AI Fisherman's walk from its Dock to a shoal of fish.
+
+**The mechanic**, in `docs/ORDERS.md` §6.8 and `crates/sim/src/fish.rs`: an
+idle fishing boat scores the 289 cells of the 17 × 17 around its own, keeps
+the ones that are water in its own `get_tregion` and not coastal
+half-land, and takes the best of `1_000_000 / manhattan` — a million if the
+cell holds a good it may gather, nothing if it does not — plus `rnd(60)`
+**plus the ring index itself**. Standing on the winner, a packed boat
+unpacks; otherwise it walks there.
+
+**Three arms, three frames, and each one needed a different fact.**
+
+- **4462 — nothing anywhere.** 54 accepted cells, 54 draws, every numerator
+  zero, so the `+ i` term alone decides it and the last index wins. The
+  last index is 288, and **`move_y[288]` is `−16` where a clean 17 × 17
+  wants `−7`**: a single wrong nibble in the shipped `.rdata`, inside an
+  `int[441]` the PDB types, that sends an idle fishing boat sixteen cells
+  north out of the square it just searched. The boat's move order goes to
+  cell (49, 39) and the dump agrees field for field.
+- **4871 — a Fish five cells off, and an Oil five cells off too.** The Oil
+  sits at a *higher* ring index, so with `+ i` it would have won on a tie;
+  it does not, because `find_good_at` refuses `TypeIndex::OIL` and
+  `Objects::init_good@00653f30` never wrote an oil patch into a cell's
+  object chain in the first place. It returns before the terminator write,
+  which is why every non-oil good on run38's map has `WData.down == −2` and
+  every one of the twenty oils has `−1`.
+- **4948 — standing on it.** `dist` floors at 1, a million beats every
+  jitter, index 0 wins, and the boat casts. `add_cast_order@005e4a60`
+  rewrites the generic unpack `0x28c` into the Fisherman lineage's own
+  `0x292` on the way in — which is the `spell 658` run58's block 4949
+  prints.
+
+**Four things had to be built underneath it**, and each moved a number of
+its own:
+
+1. **A packing type is born packed** (`Unit::init:376`). Without that bit
+   the 1,024-frame head gate refuses the search and 4462 spends nothing.
+   Nothing unpacks yet; `GuyData::turn_speed` now reads the live bit rather
+   than a copy taken from the type, which is what the pack turn bonus hangs
+   off.
+2. **The goods are a layer.** `rondata` parses the `FULL DUMP`'s `GOOD`
+   records, `borrow_from_siblings` carries them the way it carries the
+   cells, and `World` keeps the terminator `Objects::init_good` writes.
+   Sixty-six goods on East Indies; forty-six of them linked.
+3. **`come_out`'s sea arm** (`6183b6`): a boat's exit ring is
+   `BOAT_TRAIN_*` plus the type's own `big_radius`, chosen on the *unit's*
+   domain, not the building's. And `big_radius` — `ObjectType +0x244` — is
+   `block_radius` for every type in the shipped build, because
+   `UnitType::init` computes `(num_guys − 1) × guy_spacing / 2 +
+   block_radius` thirty instructions after storing `num_guys = 1` and
+   nothing else writes the field. With it the Fisherman is born on the
+   original's point rather than 192 units short of it.
+4. **The pathfinder was asking the wrong region function.** All four region
+   reads in `astar_path` and the three pull-back walks call
+   `WorldData::get_tregion`; this crate called `World::tregion`, which is
+   the plain `region_of(cell_of_tile)`. A boat standing on a coastal
+   half-land cell therefore answered its *land* region, the pull-back never
+   matched, and the goal was dragged three quarters of the way home before
+   the give-up exit fired. That is item 142's first payoff, and
+   `docs/PATHFINDER.md` §15 has it.
+
+**And a latent crash, 19,000 frames out.** `find_wpath` read
+`self.nation[owner].human` and gaia is owner 8, which no `nation` row
+covers. run58's own dump settles what the answer should be — leader 8
+carries `leader_flags 33554439`, the same `0x2000007` the AI player has,
+`& 4` set, against the human's `0x800113` — so an owner with no row is not
+human and a wandering animal takes the AI's mode block.
+
+**What is left, and it is now a pathfinder item.** Both AI Fishermen's
+*sea* routes part from the original's on the frame they are planned, 4464
+and 4870: the same nineteen-cell staircase from (57, 55) to the fish at
+(49, 39), two cells north over the first half. run58's test pins both
+frames and the boat's own parting at 4507 rather than excusing them, so the
+residue cannot grow quietly and cannot be fixed without the test noticing.
+
+**A reading became a check.** `crates/rondata/src/pe.rs` is 80 lines of PE
+container — the section table and nothing else — and it reads `move_x` and
+`move_y` out of the user's own executable and compares all 289 entries with
+`sim::world::MOVE_289`, the typo included. Made to fail on purpose first.
+That is the third probe of this shape (`docs/FORMATS.md`'s constants, the
+`radius` table, this), so it graduated out of a scratch script.
+
+**The rules this is an instance of.**
+
+- **A table with a typo in it is a table you cannot generate.** Ring 2's
+  corner reordering was already known; ring 8's last entry is a different
+  kind of thing — not a quirk with a reason but a wrong byte — and it is
+  the one the mechanic's very first frame reads.
+- **The implementation is a pass of the audit.** Every one of the four
+  supporting facts above was found by *building* `think_fish` and running
+  the diff, not by reading it: three of them are in functions a reader
+  would have had no reason to open.
+- **Widen, then read.** 54, 177 and 161 draws on three frames, and the
+  three arms they exercise, are what makes this mechanic diff-backed rather
+  than plausible. Nothing about `think_fish` needed a capture that was not
+  already on disk.

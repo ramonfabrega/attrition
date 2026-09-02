@@ -1124,6 +1124,17 @@ logic (`docs/PRODUCTION.md`). A land citizen leaving an oil platform is
 auto-loaded into a fresh transport barge. The **Eject** button is
 `Unit::action_come_out` → `come_out(0)`.
 
+**The sea arm is built and diff-backed (2026-09-01).** It is chosen on the
+*unit's* own `domain == 1` (`6183b6`), not the building's, and the
+`big_radius` term is `ObjectType +0x244` — which
+`UnitType::init@0061ab50` computes as
+`(num_guys − 1) × guy_spacing / 2 + block_radius` at `61ba93`, thirty
+instructions after storing `num_guys = 1` (`61b9de`) and with nothing
+between, so in the shipped build **`big_radius` is `block_radius` for every
+unit type** and nothing else in the export writes the field. run58's
+Fisherman `1/14` is born 192 units further from its Dock than the land ring
+would put it, which is that term exactly.
+
 ### 6.6 Ejecting a building — `eject_contents`, `process_ejection`
 
 `Object::eject_contents(kill_if_stuck, only_type, keep_orders, clear_first)`:

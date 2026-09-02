@@ -1144,6 +1144,12 @@ pub struct Initial<'a> {
     /// The `HERDS` block's `HERD` records — only a `DUMP_ALL` dump prints
     /// them (`docs/SYNC.md` §3.2); empty otherwise.
     pub herds: Vec<HerdDump>,
+    /// The `FULL DUMP` block's `GOOD` records, in the original's own
+    /// `goods` order — the fish, whales, oil and rares the map generator
+    /// laid down. Only an initial `FULL DUMP` prints them; empty
+    /// otherwise, and a world stood up without them has no goods, so
+    /// `find_good_at` answers nothing everywhere.
+    pub goods: Vec<GoodDump<'a>>,
     /// The `REGIONS` block's `REGION` records, in the original's own region
     /// order. Only an `InitialDump` prints them; empty otherwise, and a
     /// world stood up without them has every region's `flags` at 0.
@@ -1223,6 +1229,22 @@ pub struct RegionDump {
     pub region: i64,
     pub flags: i64,
     pub size: i64,
+}
+
+/// One `GOOD` record of a `FULL DUMP`: the good type's **name** (the
+/// record's one valueless field, `Type::get_name`), its object number and
+/// its position in the original's own units.
+///
+/// The list is in `goods` order, which is what `WData.down_who` indexes
+/// when `down` is `−2` (`Objects::init_good@00653f30`).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct GoodDump<'a> {
+    pub name: &'a str,
+    pub o: i64,
+    pub x: i64,
+    pub y: i64,
+    /// `SubObjectData::flags` — bit 0 is "live".
+    pub flags: i64,
 }
 
 /// One `HERD` record: the home cell, the wander centre, the animal type
@@ -1885,6 +1907,28 @@ impl<'a> Log<'a> {
                     wy: b.int("wy").unwrap_or(0),
                     t: b.int("t").unwrap_or(0),
                     herd_flags: b.int("herd_flags").unwrap_or(0),
+                })
+                .collect();
+        }
+        // `Good::log_data@0066e610` writes the type's name as a bare line
+        // and then the `SubObject` base, so the name is the record's one
+        // field with no value.
+        if let Some(d) = game.find("FULL DUMP") {
+            init.goods = d
+                .kids("GOOD")
+                .map(|b| {
+                    let sub = b.kid("SUBOBJECT");
+                    GoodDump {
+                        name: b
+                            .fields
+                            .iter()
+                            .find(|(_, v)| v.is_empty())
+                            .map_or("", |(k, _)| *k),
+                        o: sub.and_then(|s| s.int("o")).unwrap_or(-1),
+                        x: sub.and_then(|s| s.int("x_internal")).unwrap_or(0),
+                        y: sub.and_then(|s| s.int("y_internal")).unwrap_or(0),
+                        flags: sub.and_then(|s| s.int("flags")).unwrap_or(0),
+                    }
                 })
                 .collect();
         }

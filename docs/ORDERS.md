@@ -1956,6 +1956,136 @@ refuses; `do_gather` kills and queues `THINK` → `think_peasant(1)` →
 
 ---
 
+## 6.8 `Unit::think_fish@005f4c60` — where an idle fishing boat goes
+
+Established 2026-09-01 from the decompile, the listing and the PE, and
+**diff-backed on three frames of run54/run58** — 4462, 4871 and 4948, the
+whole life of the AI's first Fisherman `1/14`. It is the head of `think`'s
+tail (§2.4 step 5) and nothing below it had ever been built; it is what
+East Indies' word sat on at 4462.
+
+`Unit::think` reaches it at `+0x6a6` behind `is(0x13d, 0)` — the
+`FISHERMEN` lineage — after the mod-32 tail gate, and a `1` back ends the
+think. Everything below (`think_merchant`, `think_carry`, `add_to_army`,
+the scout tail) is therefore unreachable for a fishing boat.
+
+**The head, and who skips it.** If the type packs (`unit_flags2 & 4`) and
+the unit is **not** packed (`unit_masks & 0x80000`):
+
+```
+if ((o + frame) & 0x3ff) != 0: return 0            # once in 1,024, phased by o
+r = calc_gather(…, &n, …)
+unit_masks = n ? unit_masks | 0x20 : unit_masks & ~0x20
+if r != 0: return 0                                # it can still gather here
+```
+
+A **packed** boat skips the whole block and searches every time it is
+called. That matters more than it looks: `Unit::init@00612100:376` gives
+`unit_masks |= 0x80000` to every type with `unit_flags2 & 4`, so a
+Fisherman is **born packed** and searches on its first idle frame — run58's
+`1/14` comes out of the Dock on 4461 and searches on 4462, where the
+1,024-frame gate would have refused it (`14 + 4462` is not a multiple of
+1,024).
+
+**The walk.** `region = get_tregion(unit.tile)` — the *alternate* one, so a
+boat on a coastal half-land cell answers its **sea** region — then the 289
+offsets of `move_x/move_y[0 .. 0x121]` around the unit's own **cell**
+([`crate::world::MOVE_289`]), in table order. A candidate is kept when all
+three hold:
+
+- `WData.flags & 0x100 == 0` — not a coastal half-land cell;
+- `WData.land` is 1 or 2 (`SANDY` or `OCEAN`);
+- `WData.region == region` — the raw field, against the unit's `get_tregion`.
+
+Then, per kept cell, in this order:
+
+```
+good = find_good_at(cell, who, 0, 0)               # the cell's chain terminator
+if good >= 0 and WData.down >= 0 and WData.down_who < 8 and WData.down != o:
+    continue                                       # somebody else's claim; no draw
+num  = good >= 0 ? 1_000_000 : 0
+dist = max(1, |cx − x| + |cy − y|)                 # Manhattan, in cells
+score = num / dist + rnd(60) + i                   # `i` is the ring index itself
+if best_score < score: best, best_score = i, score
+```
+
+Three things in that line are load-bearing and all three are diff-backed:
+
+- **`+ i`.** With no good anywhere every numerator is zero, so the score is
+  `rnd(60) + i` and the *last* accepted index all but always wins. That is
+  frame 4462: 54 accepted cells, 54 draws, and the winner is index **288**.
+- **`move_y[288]` is `−16`.** The last entry of ring 8 is stored with the
+  wrong `y` — `(−8, −16)` where the square wants `(−8, −7)` — so an empty
+  sea sends a fishing boat sixteen cells north, out of the square it just
+  searched. `1/14` is at cell (57, 55) on 4462 and its move order is to
+  (49, 39). `rondata::pe` checks the whole table against the executable.
+- **`OIL` is excluded, twice.** `find_good_at` refuses `TypeIndex::OIL` by
+  name, and `Objects::init_good@00653f30` never wrote an oil patch into a
+  cell's chain in the first place — it returns before the terminator write.
+  On 4871 the boat is at (49, 39) with a Fish at (46, 37), distance 5, and
+  an **Oil** at (44, 39), distance 5 too and at a *higher* ring index; if
+  oil counted, the `+ i` term would have sent it to the oil. It goes to the
+  fish.
+
+**The answer.** `(dx, dy) = move[best]`. If it is `(0, 0)` — the unit's own
+cell, which wins whenever the unit is standing on a good, since `dist`
+floors at 1 and `1_000_000` beats every jitter — then a packed boat casts
+`add_cast_order(−1, −1, −1, −1, 0x28c, QUEUE_FIRST, 0)` and returns 1, and
+an unpacked one returns 0. Otherwise it is a **`QUEUE_NEW` move** to the
+target cell's centre, exactly `add_move_order`'s shape: the angle from the
+unsnapped centre, the destination snapped to the quarter-tile
+(`cell × 768 + 408`), `tolerance 0`, `facing −1`, and the `PATHED`/`ACTION`
+flags cleared. run58's block 4463 prints it field for field.
+
+**The unpack is renamed on the way in.** `add_cast_order@005e4a60` rewrites
+`0x28c` before it builds the order: `is(MACHINEGUN)` → `0x28e`; the exact
+ids `MERCHANT`/`MERCHANTDUTCH`/`FURTRAPPER` → `0x290`; `is(FISHERMEN)` →
+**`0x292`**; otherwise it stands. run58's block 4949 prints `spell 658`,
+which is `0x292`. (`0x28b`, the pack, has the mirror-image rewrite to
+`0x28d`/`0x28f`/`0x291` and no caller here.)
+
+**The unreachable half.** After the loop the listing tests
+`cmp edx, 0x121` on the best *index* and, if it is greater, replaces it
+with `rnd(0x79) + 0x19`. `edx` is initialised to **0** at `5f4d2b` and only
+ever assigned a loop index, so nothing can reach that draw. It is dead code
+in the shipped build, and it is why `think_fish` has one draw site rather
+than two.
+
+### 6.8.1 Coverage
+
+| claim | backed by |
+| --- | --- |
+| the cadence gates, the accept predicates, the score, `+ i`, the winner | **diff** — run58 frames 4462 (54 draws, `Unit::think_fish+0x27a`), 4871 (177) and 4948 (161), and the move orders and cast the dump prints on 4463, 4872 and 4949 |
+| `move_x`/`move_y[0 .. 0x121]`, the typo at 288 | **the PE**, checked on every run (`rondata::pe::tests`) |
+| a packing type is born packed | reading (`Unit::init:376`) — and the 4462 search is only possible with it |
+| `0x28c` → `0x292` | **diff** — run58 block 4949, `spell 658` |
+| oil is in no cell's chain | reading (`Objects::init_good`), and the 4871 choice is what a wrong answer would have moved |
+| the `best > 0x120` fallback is dead | the listing (`5f4d2b`, `5f4f0f`) |
+
+**What is not established.**
+
+- **`UnitData::calc_gather@00609180`** — the head's "can I still gather
+  where I stand" test. Unmodelled; this crate answers "no", which sends an
+  unpacked boat back through the search, and `unit_masks & 0x20` is not
+  kept. run58 reaches the head exactly once, on frame **5106**, and spends
+  **no draw** there either way, so nothing on disk separates the two
+  answers. *Capture:* a run long enough for a deployed Fisherman to be idle
+  across two of its 1,024-frame marks, with `UNITS` detail on it.
+- **What the cast does.** `SpellType::cast` for `0x292` is not modelled:
+  run58's `1/14` casts on 4948 and is unpacked by 4989, and this crate
+  queues the order and nothing steps it. Forty frames.
+- **The chain, whole.** `find_good_at` walks the cell's object chain in the
+  original; here the terminator is a field, which is exact only because
+  `Objects::init_good` is the only writer of one (`docs/COLLISION.md` §3
+  and item 48's chain remain the general case).
+- **The second Fisherman's route.** Both boats' *sea* paths part from the
+  original's on the frame they are planned — 4464 and 4870 — two cells
+  north over the first half of a nineteen-cell staircase. That is the
+  pathfinder, not this; `run58_s_five_thousand_frames_stand_where_the_
+  original_s_do` pins both frames.
+
+---
+
 ## 7. The attack order, and the other combat orders
 
 ### 7.1 `AttackOrder` — the fields, what writes them

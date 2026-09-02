@@ -293,6 +293,17 @@ pub struct World {
     /// `master_land_heights` before the first frame (`docs/DECISIONS.md`
     /// entry 16's clause); empty on a flat world, where every tile is 0.
     tile_z: Vec<i32>,
+    /// The map's goods, in the original's own `goods` list order — the
+    /// index `WData.down_who` carries when `down` is `−2`.
+    goods: Vec<Good>,
+    /// Per cell, the good its object chain **terminates** in, or `-1`.
+    ///
+    /// `Objects::init_good@00653f30` writes `wdata[cell].down = −2` and
+    /// `down_who = <goods index>` for every good whose type is not `OIL`,
+    /// and `Object::add_to_world` only ever pushes onto the *head*, so the
+    /// terminator a chain walk reaches is this and stays this. That is the
+    /// whole of `ObjectsData::find_good_at`'s fast path, without the chain.
+    cell_good: Vec<i32>,
     /// `world+0x34` — see [`World::sea_map`].
     sea_map: i32,
     /// `WorldData::seen2` (`World +0x160`) — the fog grid, two entries per
@@ -429,6 +440,86 @@ pub const MOVE_49: [(i32, i32); 49] = [
     (-3, -2),
 ];
 
+/// `move_x[0 .. 0x121]` / `move_y[0 .. 0x121]` — the whole 17 × 17 the
+/// original's widest neighbourhood walk covers, of which [`MOVE_49`] is the
+/// first 49. `Unit::think_fish` is the caller that reads all of it
+/// (`docs/ORDERS.md` §6.8).
+///
+/// Rings 4–8 are the plain clockwise walk from the ring's north-west
+/// corner, so they are generated rather than typed; ring 2's corner quirk
+/// lives in [`MOVE_49`], which is copied in.
+///
+/// **`move_y[288]` is `−16`, not `−7`.** The very last entry of ring 8 —
+/// the one cell that closes the square, `(−8, −7)` — is stored with the
+/// wrong `y`: `.rdata 0x00adc880` holds `f0 ff ff ff`, and the neighbours
+/// either side are the `−6` and the `−9` a clean table wants (`rise.pdb`
+/// types both arrays `int[441]`, so this is inside the array, not past it).
+/// It is a typo in the shipped data, and it is **load-bearing**: run58's
+/// Fisherman `1/14` takes exactly this offset out of `think_fish` on frame
+/// 4462 and walks sixteen cells north, which no 17 × 17 could reach.
+pub const MOVE_289: [(i32, i32); 289] = move_289();
+
+const fn move_289() -> [(i32, i32); 289] {
+    let mut out = [(0, 0); 289];
+    let mut i = 0;
+    while i < MOVE_49.len() {
+        out[i] = MOVE_49[i];
+        i += 1;
+    }
+    let mut r = 3;
+    while r < 8 {
+        r += 1;
+        let mut x = -r;
+        while x <= r {
+            out[i] = (x, -r);
+            i += 1;
+            x += 1;
+        }
+        let mut y = -r + 1;
+        while y <= r {
+            out[i] = (r, y);
+            i += 1;
+            y += 1;
+        }
+        let mut x = r - 1;
+        while x >= -r {
+            out[i] = (x, r);
+            i += 1;
+            x -= 1;
+        }
+        let mut y = r - 1;
+        while y > -r {
+            out[i] = (-r, y);
+            i += 1;
+            y -= 1;
+        }
+    }
+    // The typo, last.
+    out[288] = (-8, -16);
+    out
+}
+
+/// One of the map's **goods** — a Fish, a Whale, an Oil patch, a rare —
+/// as `Objects::init_good@00653f30` lays them out before the first frame.
+///
+/// Nothing here consumes one yet: the list exists because
+/// `ObjectsData::find_good_at` is what tells an idle fisherman which water
+/// is worth standing in (`docs/ORDERS.md` §6.8), and that answer is the
+/// difference between the original's Fisherman and a boat that wanders.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Good {
+    pub pos: Pos,
+    /// The good type's `TypeIndex` — `OIL` is 5, `FISH` 6.
+    pub ty: usize,
+    /// `SubObjectData::flags & 1`. Nothing clears it here.
+    pub alive: bool,
+}
+
+/// `TypeIndex::OIL`. `Objects::init_good` skips **every** world-side effect
+/// for it — the cell's terminator included — so an oil patch is in the
+/// goods list and in no cell's chain.
+pub const OIL: usize = 5;
+
 /// The bits of a tile mask, as the placement code names them — `TData.mask`
 /// in the original. Two-bit fields are tested as `(mask & field) == value`.
 pub mod tile {
@@ -477,6 +568,8 @@ impl World {
             scouted: Vec::new(),
             tiles: vec![0; n * (TILES_PER_CELL as usize) * (TILES_PER_CELL as usize)],
             cells: vec![CellData::default(); n],
+            goods: Vec::new(),
+            cell_good: vec![-1; n],
             danger: Vec::new(),
             tile_z: Vec::new(),
             sea_map: 0,
@@ -668,6 +761,31 @@ impl World {
     pub fn cell_data(&self, c: Cell) -> CellData {
         self.index(c)
             .map_or_else(CellData::default, |i| self.cells[i])
+    }
+
+    /// Adds a good, and — unless it is oil — makes it its cell's chain
+    /// terminator, exactly as `Objects::init_good@00653f30` does.
+    pub fn add_good(&mut self, g: Good) -> usize {
+        let i = self.goods.len();
+        self.goods.push(g);
+        if g.ty != OIL
+            && let Some(c) = self.index(g.pos.cell())
+        {
+            self.cell_good[c] = i as i32;
+        }
+        i
+    }
+
+    /// The goods list, in the original's own order.
+    pub fn goods(&self) -> &[Good] {
+        &self.goods
+    }
+
+    /// The good this cell's object chain ends at, if any.
+    pub fn good_at(&self, c: Cell) -> Option<(usize, Good)> {
+        let i = self.index(c)?;
+        let g = self.cell_good[i];
+        (g >= 0).then(|| (g as usize, self.goods[g as usize]))
     }
 
     /// Writes a cell's record (the map loader's, and a test's).

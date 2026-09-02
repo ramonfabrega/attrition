@@ -286,8 +286,8 @@ impl Sim {
     /// `Unit::come_out@00617c10`: the squad leaves onto the exit ring.
     ///
     /// The ring is `(x_size + y_size) × 0x30 + UNIT_TRAIN_DISTANCE` out to
-    /// `… + UNIT_TRAIN_MAX_DISTANCE` (`618411`; the boat arm's
-    /// `BOAT_TRAIN_*` pair and its `+0x244` type term are not modelled), and
+    /// `… + UNIT_TRAIN_MAX_DISTANCE` on land and the `BOAT_TRAIN_*` pair
+    /// plus the type's own `big_radius` at sea (`6183b6`..`618411`), and
     /// the inner radius the search is *given* is that ring only while the
     /// building is alive — a dying one lets its garrison out from zero
     /// (`618437`, `flags & 1`). Then `find_nearby_spot` sweeps it from due
@@ -316,8 +316,35 @@ impl Sim {
         let (xs, ys) = bd.ty.map_or((0, 0), |t| {
             (self.build_types[t].x_size, self.build_types[t].y_size)
         });
-        let ring = (xs + ys) * 0x30 + self.tuning.unit_train_distance;
-        let max = ring + (self.tuning.unit_train_max_distance - self.tuning.unit_train_distance);
+        // **The boat arm** (`6183b6`: `type->domain == 1`, the unit's own
+        // type, not the building's). A sea unit's ring is the same
+        // footprint term plus its own `big_radius` (`ObjectType +0x244`)
+        // and `BOAT_TRAIN_DISTANCE`, and it runs out to
+        // `BOAT_TRAIN_MAX_DISTANCE` — eight tiles rather than five halves,
+        // because the water a dock has may be that far off. run58's
+        // Fisherman `1/14` is born 192 units further south than a land
+        // unit's ring would put it, which is the `big_radius` term
+        // exactly.
+        let sea = self.unit_domain_of(captain) == crate::attrition::Domain::Sea;
+        let (near, far) = if sea {
+            (
+                self.tuning.boat_train_distance + self.profile(Obj::Unit(captain)).big_radius,
+                self.tuning.boat_train_max_distance,
+            )
+        } else {
+            (
+                self.tuning.unit_train_distance,
+                self.tuning.unit_train_max_distance,
+            )
+        };
+        let ring = (xs + ys) * 0x30 + near;
+        let max = ring
+            + (far
+                - if sea {
+                    self.tuning.boat_train_distance
+                } else {
+                    near
+                });
         let min = if bd.alive { ring } else { 0 };
         let pos = bd.pos;
         let south = crate::movement::Angle(i32::MIN);

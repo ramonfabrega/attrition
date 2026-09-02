@@ -974,7 +974,14 @@ pub fn load_tables(
             base_arrows: 0,
             most_shots: 0,
             block_radius: c.block_radius,
-            big_radius: 0,
+            // `ObjectType +0x244` — `UnitType::init@0061ab50` computes it
+            // as `(num_guys − 1) × guy_spacing / 2 + block_radius`
+            // (`61ba93`..`61baac`), and `num_guys` (`+0x304`) is stored as
+            // the literal **1** thirty instructions earlier (`61b9de`) with
+            // nothing between, so in the shipped build the first term is
+            // always zero and `big_radius` is `block_radius` for every unit
+            // type. Nothing else in the export writes `+0x244`.
+            big_radius: c.block_radius,
             // `role & 0x10000`, exactly — the `CIVILIAN` mask was the first
             // reading's stand-in and disagrees on two of the 364 (the Armed
             // Supply Wagon, which the `Civilian` *category* refuses, and

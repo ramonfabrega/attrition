@@ -128,6 +128,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     ),
     // `Unit::resolve_unit_collision@005f9d30+0xb52` — the head-on pair's
     // stagger, the collision mechanic's only draw.
+    // `Unit::think_fish@005f4c60` — the jitter each accepted cell spends
+    // (`docs/ORDERS.md` §6.8).
+    (0x005f_4eda, None, sim::fish::SITE_JITTER),
     (0x005f_a882, None, sim::collide::SITE_PAUSE),
     // `Unit::explore_goody@005f9780+0x27c` — the goody box's lottery, one
     // draw a candidate good (`docs/GOODY.md` §3).

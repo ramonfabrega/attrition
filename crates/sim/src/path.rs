@@ -658,7 +658,8 @@ impl Sim {
         let toff = self.toff(u).unwrap_or((0, 0));
 
         // avoid_land / avoid_sea from the start's terrain (§4.1).
-        let same_region = self.world.tregion(start.tile()) == self.world.tregion(goal.tile());
+        let same_region =
+            self.world.tregion_alt(start.tile()) == self.world.tregion_alt(goal.tile());
         let (mut avoid_land, mut avoid_sea) = (0, 0);
         if same_region {
             let on_water = if step == STEP_WORLD {
@@ -1079,7 +1080,7 @@ impl Sim {
         let mut goal = goal_e.to;
         let walks = self.unit_domain_of(u) != crate::attrition::Domain::Air
             && (!self.units[u].on_map || !self.unit_can_transport(u));
-        while walks && self.world.tregion(goal.tile()) != self.world.tregion(here.tile()) {
+        while walks && self.world.tregion_alt(goal.tile()) != self.world.tregion_alt(here.tile()) {
             let (dx, dy) = (here.x - goal.x, here.y - goal.y);
             let far = dx.abs() + dy.abs() >= 0x300;
             let s = if far { 0x180 } else { 0x30 };
@@ -1124,7 +1125,18 @@ impl Sim {
         // `army`/`worker` are **AI-only**: `leaders.flags & 4` is
         // `is_human`, and a human's `find_wpath` jumps straight to the
         // search past the whole mode block (audit V14).
-        let human = self.nation[self.units[u].owner as usize].human;
+        // **Gaia is a leader and it is a computer one.** `self.nation` has
+        // a row per *player*; the original's `leaders.list` has ten, and
+        // run58's own dump prints owner 8 with `leader_flags 33554439` —
+        // the same `0x2000007` the AI player carries, `& 4` set — against
+        // the human's `0x800113`. So an owner with no row here is not
+        // human, and a wandering animal takes the AI's mode block, which
+        // is what it took in the original. Before this read panicked on
+        // owner 8, 19,000 frames past East Indies' word.
+        let human = self
+            .nation
+            .get(self.units[u].owner as usize)
+            .is_some_and(|n| n.human);
         let modes = Modes {
             // `scouting = 1` iff the **type** is a scout — `role & 0x10`,
             // `is(SCOUT)` on land and `is(BARK)` at sea
@@ -1198,7 +1210,7 @@ impl Sim {
         // The pull-back walk on tiles.
         let mut goal = goal_e.to;
         loop {
-            if self.world.tregion(goal.tile()) == self.world.tregion(here.tile())
+            if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
                 && self.valid_tcoord(u, goal)
             {
                 break;
@@ -1298,7 +1310,7 @@ impl Sim {
         loop {
             let gg = g48(goal);
             let metric = i64::from(gg.x) + i64::from(gg.y) * i64::from(self.world.width()) * 16;
-            if self.world.tregion(goal.tile()) == self.world.tregion(here.tile())
+            if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
                 && self.valid_ucoord(u, goal, metric, &mut memo)
             {
                 break;

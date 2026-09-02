@@ -12,35 +12,33 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the AI has been British all along, and East Indies'
-word is **4462**.* Item 144 was booked as "a late decision or a slow
-counter" and was neither; the score moved one frame, onto the thing behind
-it.
+*2026-09-01, Opus — the fishing boat exists, and East Indies' word is
+**4871**.* Item 145 was `Unit::think_fish` and it was exactly that; the
+409 frames it bought are one AI Fisherman's walk from its Dock to a shoal.
 
-- **`ObjectData::train_time`'s British arm** (PRODUCTION, "The tail's
-  first caller"): `has_tribe_bonus(0xb)` around three tests — sea domain,
-  `is(0xaa)` Bowmen, `is(0x119)` anti-air — each `t*100/(K+100)`.
-  `BRITISH_SHIP_SPEED` and `BRITISH_AA_SPEED` are 33, the archer one **0**.
-  Player 1 is `tribe 11` and the Dock builds a **Fisherman**.
-- **It parted on the *target*.** `1/2010` queues on 4376 on both sides and
-  every hundredth agrees to 4460; theirs caps at 8481, ours ran to 11,280,
-  and 11280 × 100/133 is 8481. The second Fisherman checks it again on the
-  ramp's next step: 12,030 → 9,045.
-- **It was found by moving a loop.** The queue record was parsed on every
-  capture and compared on run39 alone — 2,600 frames short of the AI's
-  first ship. `diff::compare` owns it now: run58 went 0 → **109,435** queue
-  fields, 238 wrong and all past the word.
-- run58: no unit off point before the word, 178,326 building fields exact,
-  449,279 collision field-frames, four wrong and none early. Steering last
-  ran 2026-09-01 (Fable).
+- **`Unit::think_fish`** (ORDERS §6.8, `crates/sim/src/fish.rs`): the 289
+  cells of the 17 × 17, `1_000_000 / manhattan` for a gatherable good,
+  `+ rnd(60) + i`. Diff-backed on 4462 (54 draws), 4871 (177) and 4948
+  (161) — the three arms, one each.
+- **The shipped move table has a typo, and it is load-bearing.**
+  `move_y[288]` is `−16` where the square wants `−7`, so an empty sea
+  sends a boat sixteen cells north. `rondata::pe` now reads `move_x`/
+  `move_y` out of the executable and checks all 289.
+- **Four things underneath it**: a packing type is born packed; the goods
+  are a layer (66 on East Indies, 46 linked); `come_out`'s sea ring is
+  `BOAT_TRAIN_* + big_radius`, itself `block_radius`; and the pathfinder's
+  four region reads are `get_tregion` — item 142's first payoff.
+- run58: 178,326 building fields exact, 473,950 collision field-frames
+  none wrong, 109,435 queue fields 25 wrong and all past the word.
+  Steering last ran 2026-09-01 (Fable).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w4462 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w4871 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 4462 and item 145 holds it:
-frame 4462 is the new Fisherman's first think, 55 draws opening at
-`Unit::think_fish+0x27a` where this crate makes 2. Nothing below
-ORDERS §5's `think_fish` has ever been built.`
+**Opener (Opus):** `East Indies' word is 4871 and item 147 holds it: both
+AI Fishermen's sea routes part on the frame they are planned — 4464 and
+4870 — two cells north over the first half of a nineteen-cell staircase.
+run58's test pins both, and 1/14's own parting at 4507.`
 
 ## The queue
 
@@ -49,11 +47,14 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-145. **`Unit::think_fish`, which does not exist here.** Frame 4462 is the
-    AI's new Fisherman's first think: **55** draws opening at
-    `Unit::think_fish+0x27a` (`5f4eda`) against this crate's 2. ORDERS §5
-    names it as the head of `think`'s tail and nothing below it was ever
-    built. The ship that reaches it is now born on the original's frame.
+147. **The AI Fishermen's sea route, two cells north of the original's.**
+    Both boats plan the same nineteen-cell staircase from (57, 55) to the
+    fish at (49, 39) and both part on the frame they are planned — `1/14`
+    on 4464, `1/16` on 4870 — slots 1–5 two cells high, rejoining at slot
+    6; `1/14` leaves the original's point at 4507 as a consequence. The
+    first sea route any capture has diffed: read PATHFINDER §5's
+    `avoid_land`/`avoid_sea` and `calc_cost`'s ocean terms. run58's test
+    pins all three frames.
 
 146. **The other nine national arms of `train_time`.** `006508c0` runs a
     fixed order after the ramp — handicap, The President, Mongol stable,
@@ -71,11 +72,10 @@ indexed by them.
     where the original's holds 480, tile and phase right. ORDERS §6.4.
 
 142. **`World::tregion` is not `get_tregion`, and its callers are
-    unaudited.** Two items in one day were a gate asking `region_of` where
-    the original asks `get_tregion` (138, 140). `tregion` is
-    `region_of(cell_of_tile)`; the real one is `tregion_alt`. Nineteen call
-    sites across `orders`, `scout`, `transport`, `roads`, `army`, `place`,
-    `group` and `path` are unchecked. Grep each; then try for a guard.
+    unaudited.** Three items so far were a gate asking `region_of` where
+    the original asks `get_tregion` (138, 140, 145 — PATHFINDER §15).
+    `path`'s four are done; eleven in `orders`, `scout`, `transport`,
+    `roads`, `army`, `place` and `group` are not. Grep each, then guard.
 
 136. **The danger grid has no writer, and four readers index it wrongly.**
     `WorldData::danger[who]@+0x13c` is `int[reg_size]`, a half-resolution
