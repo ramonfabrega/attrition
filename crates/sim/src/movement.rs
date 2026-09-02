@@ -461,6 +461,27 @@ pub struct Step {
     /// arm it lands on decides whether it ends facing the order's angle or
     /// the bearing of its own last step.
     pub snapped: bool,
+    /// Which of `move_step`'s two **turn-in-place** arms took the frame, if
+    /// either — the arms that cover no ground and hand `Guy::do_turn` its
+    /// animation override (`docs/ANIM.md` §4.8).
+    pub turned_in_place: Option<TurnArm>,
+}
+
+/// The two arms of `Unit::move_step` that spend the frame turning, told
+/// apart because the trace tells them apart: they are two `Guy::do_turn`
+/// call sites and so two `ebp` chains.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TurnArm {
+    /// `move_step:148`, the call at `005fb2e1` — within a tile of the
+    /// destination, or told to turn first by the waypoint, and owing any
+    /// turn at all. **The near arm is the later address**: the compiler
+    /// laid the source's first arm out second (`005fb24c`/`005fb256` both
+    /// jump forward to it), so it returns to `move_step+0x3b6` and the far
+    /// arm to `+0x389`.
+    Near,
+    /// `move_step:170`, the call at `005fb2b4` — further out and owing 45°
+    /// or more (80° for a ship, aircraft or vehicle two tiles out).
+    Far,
 }
 
 /// One frame of the unit's movement toward a destination — the original's
@@ -526,12 +547,16 @@ pub fn move_step(
         owed,
         arrived: false,
         snapped: false,
+        turned_in_place: None,
     };
     if manh < slow * UNITS_PER_TILE || turn_first {
         // Close in — or told to by the waypoint — any turn still owed
         // costs the frame.
         if owed != 0 {
-            return standing;
+            return Step {
+                turned_in_place: Some(TurnArm::Near),
+                ..standing
+            };
         }
     } else {
         let limit = if turning.wide_limit && manh >= slow * 2 * UNITS_PER_TILE {
@@ -540,7 +565,10 @@ pub fn move_step(
             FORTY_FIVE
         };
         if owed >= limit {
-            return standing;
+            return Step {
+                turned_in_place: Some(TurnArm::Far),
+                ..standing
+            };
         }
     }
 
@@ -561,6 +589,7 @@ pub fn move_step(
             owed,
             arrived: true,
             snapped: true,
+            turned_in_place: None,
         };
     }
 
@@ -586,6 +615,7 @@ pub fn move_step(
         owed,
         arrived: pos == dest,
         snapped: false,
+        turned_in_place: None,
     }
 }
 

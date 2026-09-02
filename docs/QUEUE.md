@@ -12,34 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-01, Opus — the boats sail the original's route, and East Indies'
-word is **4945**.* Item 147 was one bit in `astar_path`'s prologue, and it
-moved 74 frames.
+*2026-09-01, Opus — the fishing boat asks for a turn it cannot play, and
+East Indies' word is **4950**.* Item 148 was `guy_flags & 8`, and it moved
+five frames.
 
-- **The world grid's same-region test is the raw `WData.region`**
-  (PATHFINDER §16). `astar_path@00683770` branches on the grid *before*
-  §15's `get_tregion` pair: the `0x300` arm reads two `short`s out of the
-  array and calls nothing; only the tile and unit grids take the coastal
-  refinement. Beside it, the water test is `WorldData::is_ocean` — `flags
-  & 0x100` clear and `land` 1 or 2 — not "the region is a sea region", in
-  `astar_path` and in `calc_cost`'s ocean row both.
-- **One bit, and the whole route.** The berth (57, 55) is `region 11`
-  land, `region2 65` sea; `get_tregion` matched the fish's 65 and handed
-  the boat `avoid_land = 1`, so every coastal cell of the channel cost 200
-  the original never charges. Both boats' sixteen-row stacks now agree
-  point, tolerance and flag on the frame each is planned, `RUN58_PARTED`
-  is **0**, and the boats have no pin of their own any more.
+- **`guy_flags & 8` does not mean "has a turn animation"** (ANIM §4.8).
+  `Guy::init_real` sets it at `:179` for a piece whose packet names
+  `CHAR_TURN_RIGHT`, and again at `:215` for **every type that packs**.
+  `Guy::do_turn` then asks such a guy for `CHAR_TURN_LEFT`/`RIGHT`,
+  `Guy::set_anim:225` rewrites a request the packet cannot play to
+  `CHAR_DEFAULT`, and a guy on the **walk** category — a sailing boat's —
+  falls through to the idle roll and spends a draw. Run26's dump states
+  the flag by type, so both writers are diff-backed.
+- **The near arm is the later address.** `move_step`'s two turn-in-place
+  calls were laid out in the reverse of the source's order, so `+0x3b6`
+  is the near one and `+0x389` the far one; the other way round leaves
+  the count right and the label wrong. All three chains that reach the
+  override fire in a traced game and all three are modelled — 52 / 17 / 8
+  on run54, 75 / 23 / 6 on run53. Great Lakes is unchanged at 1802.
 - run58: 178,326 building fields exact, 481,530 collision field-frames
   none wrong. Steering last ran 2026-09-01 (Fable).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1802
-Long captures: EastIndies w4945 of 24,000 · GreatLakes w1802 of 24,000
+Long captures: EastIndies w4950 of 24,000 · GreatLakes w1802 of 24,000
 
-**Opener (Opus):** `East Indies' word is 4945 and item 148 holds it: a
-ninth caller of the animation coin. On 4945 the original draws
-`Guy::set_anim+0x97a` under `Guy::do_turn+0x4a < Unit::move_step+0x3b6`
-and this crate does not; on 4946 its `Animal::do_idle` spends one where
-this spends four.`
+**Opener (Opus):** `East Indies' word is 4950 and item 149 holds it: the
+fish search runs twice. Both sides spend 161 `Unit::think_fish+0x27a` on
+4948; on 4950 this crate spends 165 more and the original spends none,
+opening the frame with `Animal::do_idle`'s coin instead.`
 
 ## The queue
 
@@ -48,13 +48,13 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-148. **A ninth caller of the animation coin — the turning stand.** On
-    4945 the original draws `Guy::set_anim+0x97a` under
-    `Guy::do_turn+0x4a < Unit::move_step+0x3b6`, a chain
-    `crates/rondata/src/trace.rs`'s `SITES` has no entry for and
-    `crates/sim/src/anim.rs` no name for; this crate draws nothing. On
-    4946 the original's `Animal::do_idle` spends one draw where this
-    spends four — the same guy, re-anchored. ANIM §3, SYNC §3.
+149. **The AI Fisherman searches its fish twice.** Both sides spend 161
+    `Unit::think_fish+0x27a` on 4948 — one draw an accepted cell (ORDERS
+    §6.8) — and on **4950** this crate spends 165 more where the original
+    spends none. So either the original's boat is no longer idle there
+    (`think_fish` is reached from `Unit::think < do_idle`) or its re-check
+    gate is longer than `fish.rs`'s `RECHECK_PERIOD`; the four extra draws
+    say the second search also starts somewhere else.
 
 146. **The other nine national arms of `train_time`.** `006508c0` runs a
     fixed order after the ramp — handicap, The President, Mongol stable,

@@ -97,7 +97,7 @@ const OVER: &[(&str, &str, usize)] = &[
     (
         "ORDERS.md",
         "5. Build, repair, garrison — and what a citizen does next",
-        16_431,
+        16_419,
     ),
 ];
 

@@ -2624,6 +2624,16 @@ impl Sim {
             follow.body.pos = m.body.pos;
         }
         self.guys_follow(i, was_at_des);
+        // `Guy::move:109`'s `turn_towards(des_angle, …, 1)`, which hands
+        // `Guy::do_turn` the same override `move_step`'s two turn-in-place
+        // arms do — so a standing guy owed a turn asks for its turn
+        // animation here as well, and pays the idle roll if it has none
+        // (`docs/ANIM.md` §4.8). The gate is the original's own: `guy_flags
+        // & 2` clear, which is `turned`, and the body on its unit.
+        if was_at_des && !turned && !facing_settled {
+            self.mark(anim::SITE_TURN_STAND);
+            self.do_turn_anim(i, facing, follow.facing, heading);
+        }
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
         unit.movement.body = follow.body;

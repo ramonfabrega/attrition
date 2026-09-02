@@ -102,6 +102,18 @@ pub const SITE_BLOCKED: &str = "Guy::set_anim+0x97a < Unit::move_step+0x823";
 /// (`docs/ANIM.md` §4, `docs/SYNC.md` §3.10).
 pub const SITE_ARRIVE: &str = "Guy::set_anim+0x97a < Guy::move+0x19f";
 
+/// The **turning stand** — `Guy::set_anim+0x97a` under `Guy::do_turn+0x4a`,
+/// which is `do_turn`'s own `set_anim(CHAR_TURN_LEFT/RIGHT, 0, 1)` falling
+/// back to the idle because the piece has no turn animation to play
+/// (`docs/ANIM.md` §4.8). Three chains, because `do_turn` is reached with
+/// its override enabled from three call sites: `Unit::move_step`'s two
+/// turn-in-place arms and `Guy::turn_towards`, which `Guy::move`'s
+/// standing arm calls.
+pub const SITE_TURN_NEAR: &str = "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6";
+pub const SITE_TURN_FAR: &str = "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389";
+pub const SITE_TURN_STAND: &str =
+    "Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69";
+
 /// `Guy::set_anim+0x97a` under `Unit::do_cast+0xc89` — the casting unit's
 /// `set_anim(CHAR_DEFAULT, 0, 1)` on the first frame of a cast, **one draw
 /// a figure** (`docs/TRANSPORT.md` §6).
@@ -475,6 +487,74 @@ impl Sim {
         self.units[u].guys = guys;
     }
 
+    /// `guy_flags & 8` — whether `Guy::do_turn` asks this guy for a turn
+    /// animation at all.
+    ///
+    /// `Guy::init_real@005db6b0` has **two** writers of the bit and they
+    /// are independent:
+    ///
+    /// - `:179`, the piece's own packet naming `CHAR_TURN_RIGHT` — slot
+    ///   22, `action_ids[0x16]`, and only that one — with a file that
+    ///   loads;
+    /// - `:215`, the `else` of `(type+0x2b8 & 4) == 0`, which sets the bit
+    ///   for **every type that packs** whatever its art says.
+    ///
+    /// So the bit does not mean "has a turn animation", and the second
+    /// writer is what makes it visible in a game with no siege in it: a
+    /// fishing boat packs, so it asks for a turn it cannot play and pays
+    /// the idle roll instead (`docs/ANIM.md` §4.8). Run26's dump is the
+    /// evidence for both halves — `FISHERMEN` and `MERCHANT`, which pack
+    /// and name no turn, carry `guy_flags 8`; `PIKEMEN`, which names the
+    /// turn and does not pack, carries `24`; `TRIREME`, neither, carries
+    /// `0`.
+    ///
+    /// Derived rather than stored: neither the type nor the piece changes
+    /// under a guy, so the answer is the one `init_real` would have
+    /// written.
+    pub(crate) fn guy_turns(&self, u: usize, g: usize) -> bool {
+        let unit = &self.units[u];
+        if unit.ty.is_some_and(|t| self.unit_types[t].combat.packs) {
+            return true;
+        }
+        let Some(guy) = unit.guys.get(g).copied() else {
+            return false;
+        };
+        self.packet_has(u, guy.gpiece, TURN_RIGHT)
+    }
+
+    /// `Guy::do_turn@005d97a0`'s animation half — the override a caller
+    /// asks for with a non-zero fifth argument.
+    ///
+    /// `to` is the angle the turn lands on this frame and `heading` the
+    /// bearing it is turning towards; the guard is `to != angle`, read
+    /// **before** the turn is applied, and the direction is the sign of
+    /// `heading − angle` as an unsigned wrap: at or below half a turn it
+    /// is `CHAR_TURN_RIGHT`, above it `CHAR_TURN_LEFT` (`005d97cd`–
+    /// `005d97e5`).
+    ///
+    /// The set is guy 0 and the trackless crew — `do_turn` recurses into
+    /// exactly the guys that share guy 0's body, the same set
+    /// [`Sim::guys_follow`] walks.
+    pub(crate) fn do_turn_anim(&mut self, u: usize, was: Angle, to: Angle, heading: Angle) {
+        if to == was {
+            return;
+        }
+        let anim = if heading.0.wrapping_sub(was.0) as u32 <= 0x8000_0000 {
+            TURN_RIGHT
+        } else {
+            TURN_LEFT
+        };
+        for g in 0..self.units[u].guys.len() {
+            if self.units[u].guys[g].follow.is_some() {
+                continue;
+            }
+            if !self.guy_turns(u, g) {
+                continue;
+            }
+            self.guy_set_anim(u, g, anim, false, true);
+        }
+    }
+
     /// `Unit::set_anim(anim, force, p3)`: every guy's `Guy::set_anim`.
     /// `force` is the original's second argument (a non-zero one skips the
     /// "already playing" early returns), `p3` the third (an idle request
@@ -540,6 +620,20 @@ impl Sim {
             // Gaia's walkers: a walk already playing is left alone.
             return;
         }
+        // `set_anim:225–252` — **a turn the packet cannot play becomes the
+        // idle.** `Guy::do_turn` asks for `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`
+        // on the strength of `guy_flags & 8` alone, and that bit is set for
+        // a type that *packs* as well as for a piece that names the turn
+        // ([`Sim::guy_turns`]), so a fishing boat asks for an animation it
+        // does not have. The request is rewritten to `CHAR_DEFAULT` here —
+        // past the `param_1 == CHAR_DEFAULT` early returns above, which is
+        // why a boat on the walk category then rolls (`docs/ANIM.md` §4.8).
+        let anim =
+            if (anim == TURN_LEFT || anim == TURN_RIGHT) && !self.packet_has(u, guy.gpiece, anim) {
+                DEFAULT
+            } else {
+                anim
+            };
         let target_cat = category(anim);
         // `set_anim:219` — the same category, already inside its length,
         // is left alone. The walk category is the exception, because a

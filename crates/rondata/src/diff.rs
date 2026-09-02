@@ -8259,6 +8259,21 @@ mod tests {
     /// [`FLOORS`] because `FLOORS` is the scored captures' scoreboard and
     /// this map's scored capture is closed; the queue states both.
     ///
+    /// **4950** — and this frame is the AI Fisherman's fish search running
+    /// twice where the original runs it once: theirs opens frame 4950 with
+    /// `Animal::do_idle`'s coin, this crate spends 165 more
+    /// `Unit::think_fish+0x27a` after the 161 both spent on 4948.
+    ///
+    /// It was **4945** for one item, and that item was the **turning
+    /// stand** (`docs/ANIM.md` §4.8). `Guy::do_turn` asks a guy with
+    /// `guy_flags & 8` for `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, and
+    /// `Guy::init_real` sets that bit for every type that **packs** as well
+    /// as for a piece that names the turn — so the AI's Fisherman asks for
+    /// an animation `unit_graphics.xml` never gives it, `Guy::set_anim`
+    /// rewrites the request to `CHAR_DEFAULT`, and a boat on the walk
+    /// category pays an idle roll. Run26's dump states the flag by type and
+    /// is what makes the two writers a diff rather than a reading.
+    ///
     /// **4462** — the sequence and the count part on the same frame, and
     /// the frame is the new ship's first think: theirs makes 55 draws
     /// opening at `Unit::think_fish+0x27a` (`5f4eda`) where this crate
@@ -8467,7 +8482,7 @@ mod tests {
     const RUN58_BUILD_FIELDS: usize = 178_326;
     const RUN58_COLL_FIELDS: usize = 449_279;
 
-    const LONG_WORD_EAST_INDIES: i64 = 4945;
+    const LONG_WORD_EAST_INDIES: i64 = 4950;
 
     /// **run40 and run41 — the leader census over a window, and what the
     /// AI's second city actually costs.**

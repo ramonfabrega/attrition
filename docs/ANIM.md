@@ -368,8 +368,17 @@ variant on the unit's idle request (§5 says why that never shows).
 | `Guy::move@005d9240:86`, `Unit::move_step@005faf30:304` | the walk | never (a bird's coin aside) |
 | `Guy::move:59` (`+0x19f`), the frame after a walking guy stops with the plain `WALK` slot and nothing else changed it | `(DEFAULT, 0, 1)` | the arrival, when no order made the request first. **The one caller that reaches `Guy::set_anim` directly** rather than through `Unit::set_anim+0x56`, so its chain is a frame shorter and the trace's disambiguator sits at `up[0]` (`sim::anim::SITE_ARRIVE`, `docs/SYNC.md` §3.10) |
 | `Guy::move:78` (`+0x14f`), the **turn arm** — a body standing on its unit whose angle has not reached `des_angle`, every frame it is still turning | `(CHAR_WALK, 0, 1)` | never itself, but it puts the guy back on the walk category, so the *next* frame's idle request rolls again. That is the second draw of an arrival pair (`docs/SYNC.md` §3.11). ~~**Unmodelled**, and what it costs is there too~~ **Modelled 2026-08-31, §4.7**: what it cost was a frame of every work animation an order sets on the frame it turns |
+| `Unit::move_step:148` (`+0x3b6`) and `:170` (`+0x389`), the two **turn-in-place** arms, and `Guy::turn_towards+0x69` under `Guy::move:109` | `(CHAR_TURN_LEFT/RIGHT, 0, 1)`, on `guy_flags & 8` | when the piece has no such slot: the request becomes `CHAR_DEFAULT` and a guy on the walk category rolls — §4.8, the AI's fishing boat |
 | `Unit::move_step:281` (`+0x823`), a unit whose step is blocked, before the three give-up tests | `(DEFAULT, 0, 1)` | the same conditions as any idle request — three times on run14 (frames 122, 184, 256), and this crate takes the first two on the original's own frames (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5, §8) |
 | `Guy::inc_time` (§5) | the wrap | an idle running out |
+
+## 4.6–4.8 What a turn costs the animation
+
+Three findings that share a mechanism: an order, a step or an idle frame
+moves the unit's *heading* without its *facing*, and `Guy::move` spends the
+frame turning instead of playing what was asked for. They keep their `4.x`
+numbers — the code cites them — and sit under a heading of their own because
+§4 had outgrown what a session reads.
 
 ### 4.6 The work animation is what keeps a worker off the arrival stand
 
@@ -423,26 +432,13 @@ animation takes hold on the *next* frame, when the angle has arrived — for a
 foot type that is one frame, because a standing body's `last_speed` is zero
 and `GuyData::turn_speed` returns instant for it (`docs/SYNC.md` §3.11).
 
-*The record.* Run44's citizen `0/2`, piece 352, frames 528–543 of its
-`DUMP_ALL` window:
-
-| frame | `wait` | guy |
-|---|---|---|
-| 539–541 | 32 | `26` 12/15, 13/15, 14/15 — the carrying walk, clock running |
-| **542** | 32 → **31** | `26` **1/15** — at the camp, `wait` decremented, and the walk *restarted* |
-| **543** | 30 | `27` **1/32** — the wood dump |
-
-Frame 542 is the whole of it: the order ran its at-camp branch — `wait`
-proves it — and asked for `CHAR_DUMP_WOOD`, and the turn arm overwrote it
-with the carrying walk in the same frame. This crate's `Movement::set_facing`
-snapped facing, heading and `des_angle` together, so the arm never fired and
-the dump landed a frame early; `Movement::set_heading` is the zero-flag call
-and every order site uses it now.
-
-*What it moved.* East Indies' word `1570 → 1647` together with §3.3 — the
-two are one item, because the length was one frame long and the dump one
-frame early, and each had been hiding the other. Great Lakes is unchanged at
-1802.
+*The record* is run44's citizen `0/2`, piece 352, frame 542 — the order ran
+its at-camp branch and asked for `CHAR_DUMP_WOOD`, and the turn arm overwrote
+it with the carrying walk in the same frame, so the dump landed a frame late
+(`docs/JOURNAL.md`, 2026-08-31). This crate's `Movement::set_facing` snapped
+facing, heading and `des_angle` together, so the arm never fired and the dump
+landed a frame *early*; `Movement::set_heading` is the zero-flag call and
+every order site uses it now.
 
 *What is not established.* That every one of the twelve zero-flag call sites
 above wants this in *this* crate: the evidence is run44's camp arrival, and
@@ -465,27 +461,101 @@ all.
 capture — until run44, below.**
 With `guy_flags & 8` the turn replaces that walk with
 `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, which `Guy::move`'s own slot exclusions
-then keep, so such a guy spends no arrival draw. `Guy::init_real@005db6b0:179`
-sets the bit only for a guy whose piece names a turn animation: 273 of the
-install's 1,359 unit pieces do, and **none of the eight a `DUMP_ALL` run's
-guys carry** — 0, 19, 352, 371, 6336, 6688, 12691, 13043 — while gaia's
-60063–60074 are not `<UNIT>` entries at all. Asserted in `rondata::diff`'s
+then keep, so such a guy spends no arrival draw. ~~`Guy::init_real@005db6b0:179`
+sets the bit only for a guy whose piece names a turn animation~~ — **`:179`
+is one of two writers, and §4.8 is the other**: a type that packs carries the
+bit with no turn animation at all, and pays an idle roll for it. Of the
+animation half: 273 of the install's 1,359 unit pieces name a turn, and
+**none of the eight a `DUMP_ALL` run's guys carry** — 0, 19, 352, 371, 6336,
+6688, 12691, 13043 — while gaia's 60063–60074 are not `<UNIT>` entries at
+all. Asserted in `rondata::diff`'s
 `the_install_s_piece_lengths_match_the_dumps`, beside the `GROUP_IDLE2`
-finding of §3.2, and unmodelled deliberately: the check that would make it
-matter is a capture with a vehicle or a ship turning in place.
+finding of §3.2.
 
 **Fired 2026-08-31** (`docs/ORACLE.md`, run44): 452 guy-frames play
-`CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`, nine `(who, o, slot)` combinations,
-both sides, once a capture had combat and `GUYS=4` at once — and no driver
-was needed, because `move_step`'s turn-in-place branches are not the only
-path: `Guy::move:109`'s standing arm hands the override through
-`Guy::turn_towards@005d9720` to `do_turn`, so a turner unit turning
-towards a target is enough, and a fight supplies one. The paragraph above
-stays true of the *scored* games — run13's 2,288 guy records and run38's
-1,180 all carry 16 — so the override stays unmodelled and moves no score;
-what changed is that the row is diff-backed (`tools/gamelog/turnanim.py`
-counts the 452) rather than unfalsifiable, and `guy_flags & 8` is
-observed as exactly the three turner types 134, 265 and 266.
+`CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` — nine `(who, o, slot)` combinations,
+counted by `tools/gamelog/turnanim.py` — once a capture had combat and
+`GUYS=4` at once, and no driver was needed: `Guy::move:109`'s standing arm
+hands the override through `Guy::turn_towards@005d9720` to `do_turn`, so a
+turner turning towards a target is enough. The guys that actually *play* a
+turn are the three types 134, 265 and 266, which is **not** the set carrying
+`guy_flags & 8` (§4.8); the scored games have none of them — run13's 2,288
+guy records and run38's 1,180 all carry 16 — so playing one is still
+unmodelled and moves no score.
+
+### 4.8 The turning stand — a turn animation the boat does not have (2026-09-01)
+
+§4.7 read `Guy::do_turn`'s override and left it unmodelled, on the strength
+of "none of the eight pieces a `DUMP_ALL` run's guys carry names a turn
+animation". That is still true, and the conclusion drawn from it was still
+wrong: **`guy_flags & 8` does not mean the guy has a turn animation.**
+
+*The bit has two writers, and they are independent.*
+`Guy::init_real@005db6b0` sets it at `:179` when the piece's packet names
+`CHAR_TURN_RIGHT` — slot 22, `action_ids[0x16]`, and only that one — with a
+file that loads; and again at `:215`, which is the `else` of `(type+0x2b8 &
+4) == 0`, so **every type that packs gets the bit whatever its art says**.
+The same flag is `needs_packing`, the one `get_unit_gpiece:155` reads to
+suppress the gender bit (§3).
+
+*What the packing writer costs.* `Guy::set_anim@005da300:225–252` opens the
+non-idle path by testing the request: a `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`
+whose packet has no `get_animobj` for that exact slot is rewritten to
+**`CHAR_DEFAULT`** — past the `param_1 == CHAR_DEFAULT` early returns, which
+are the `else` arm above it and are not re-entered. So the request lands in
+the common tail as an idle request, and a guy whose current category is the
+**walk** — which a sailing boat's is, from `Unit::move_step:304`'s
+`set_anim(CHAR_WALK, 0, 1)` — falls straight through to the roll and **spends
+a draw**. Its variant is `CHAR_DEFAULT` regardless (§4.2: the variant is
+picked only when the guy was already idle), and the next frame of the same
+turn returns early on the clock, so it is one draw an episode, not one a
+frame.
+
+*The record.* run26's `DUMP_ALL` window states the flag by type, which is
+what makes this diff-backed rather than a reading:
+
+| type | packs | names a turn | `guy_flags` |
+|---|---|---|---|
+| `FISHERMEN` (317), `MERCHANT` (61) | yes | no | **8** |
+| `CATAPULT` (265), `TREBUCHET` (266) | yes | yes | **8** |
+| `PIKEMEN` (134) | no | yes | **24** (`8 \| 0x10`) |
+| `TRIREME` (340), `GALLEY` (341), `DROMON` (324) | no | no | **0** |
+
+`MERCHANT` is the row that settles it: it packs (`trader_id`, `docs/AI.md`'s
+`flags2`), names no turn animation in `unit_graphics.xml`, and carries the
+bit anyway.
+
+*Where the override is asked for.* Four callers pass `do_turn` a non-zero
+fifth argument, and three of them fire in a traced game (run54 / run53
+counts):
+
+| caller | `via` | fires |
+|---|---|---|
+| `Unit::move_step:148`, the **near** arm — within a tile, or `TURN_FIRST`, and owing any turn | `move_step+0x3b6` | 52 / 75 |
+| `Unit::move_step:170`, the **far** arm — 45° owed (80° for a ship two tiles out) | `move_step+0x389` | 17 / 23 |
+| `Guy::turn_towards:41`, which `Guy::move:109`'s standing arm calls while `guy_flags & 2` is clear | `turn_towards+0x69` | 8 / 6 |
+| `Unit::detect_boat_collision@005fa8b0:267` | — | 0 / 0 |
+
+**The near arm is the later address.** The compiler laid the source's first
+arm out second — `005fb24c` and `005fb256` both jump *forward* to it — so
+`move_step+0x3b6` is the near call and `+0x389` the far one, the opposite of
+what the decompile's line order suggests. Reading it the other way round
+costs a frame: the count agrees and the label does not.
+`crate::anim::SITE_TURN_NEAR`, `SITE_TURN_FAR`, `SITE_TURN_STAND`.
+
+*What it moved.* East Indies' word **4945 → 4950**; every other capture is
+unchanged, which is the expected shape — the only unit in these games that
+asks for an animation it lacks is the AI's fishing boat.
+
+*What is not established.* `Unit::detect_boat_collision`'s call is not
+modelled and no capture reaches it. The set `do_turn` recurses into is read
+here as "guy 0 and the trackless crew", which is the set `Guy::move`'s follow
+walks; the original starts its loop at the type's `+0x304` rather than at 1,
+and no capture has a unit whose guys differ between the two readings. And the
+bit is **derived** here rather than stored at `init_real`: neither the type
+nor the piece changes under a guy, so the answer is the one `init_real` would
+have written — but a piece that changes on packing (`get_unit_gpiece`'s fifth
+argument) would break that, and nothing checks it.
 
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 
@@ -885,9 +955,12 @@ two passes.
   already pointed at it — `o` 2, 18 and 34 were on the gate frame and rolled
   anyway — and the install says it outright.
 - **The attack animations, the deaths, pack/unpack, the boat crews'
-  offsets, the turn animations, the squad's synchronised group idle** —
+  offsets, ~~the turn animations~~, the squad's synchronised group idle** —
   read as far as the table in §4 and not modelled: the harness's runs have
-  no fights.
+  no fights. The turn animations' **request** is modelled since 2026-09-01
+  (§4.8), because the fishing boat asks for one and pays a draw when it
+  cannot play it; a guy that actually *plays* `CHAR_TURN_LEFT`/`RIGHT` still
+  is not modelled, and no scored capture has one.
 - ~~**The build and repair animations' lengths** are not in any dump for a
   player's citizen, so their clocks take `UNKNOWN` and never wrap.~~ The
   install has them (§3.2): both are `Construction Saw`, fourteen frames on

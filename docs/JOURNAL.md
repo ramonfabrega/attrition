@@ -11789,3 +11789,80 @@ guy, re-anchored.
   `get_tregion` are one letter apart and this project has now been bitten
   by the pair twice in two days, in opposite directions.
 
+
+## 2026-09-01 — item 148: the turning stand, and the word goes 4945 → 4950 (Opus)
+
+Frame 4945 was one draw the original made and this crate did not, under a
+chain the site table had no name for: `Guy::set_anim+0x97a < Guy::do_turn+0x4a
+< Unit::move_step+0x3b6`. `docs/ANIM.md` §4.7 had already read
+`Guy::do_turn`'s override — with `guy_flags & 8` a turn replaces the walk
+with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` — and then argued it could not fire
+in a scored game, because "`Guy::init_real@005db6b0:179` sets the bit only
+for a guy whose piece names a turn animation" and none of the eight pieces a
+`DUMP_ALL` run's guys carry does.
+
+**The word "only" was the whole error.** `init_real` has *two* writers of the
+bit and they are independent: `:179`, the packet's `CHAR_TURN_RIGHT` — slot
+22, `action_ids[0x16]`, and only that slot — and `:215`, which is the `else`
+arm of `(type+0x2b8 & 4) == 0` and therefore sets the bit for **every type
+that packs**, whatever its art says. The first reading found one writer, saw
+that it explained the flag on every guy it had looked at, and stopped.
+
+So the bit is on the AI's Fisherman, which packs to fish and has no turn
+animation at all. `Guy::do_turn` asks it for one; `Guy::set_anim:225–252`
+tests `get_animobj` for that exact slot, finds nothing, and rewrites the
+request to `CHAR_DEFAULT` — **past** the `param_1 == CHAR_DEFAULT` early
+returns, which are the sibling arm and are not re-entered. The request lands
+in the common tail as an idle one, and a guy on the **walk** category (which
+a sailing boat's is, from `Unit::move_step:304`) has no same-category early
+return to take. It rolls. One draw an episode, because the next frame of the
+same turn finds the guy idle with its clock running.
+
+**What made it a diff rather than a reading.** `guy_flags` is a dumped field,
+and run26's `DUMP_ALL` window has a Fisherman in it. Folding the window's guy
+blocks by `(type, gpiece, guy_flags)` states the rule outright: `FISHERMEN`
+(317) and `MERCHANT` (61) pack, name no turn, and carry **8**; `CATAPULT`
+(265) and `TREBUCHET` (266) do both and carry **8**; `PIKEMEN` (134) names
+the turn and does not pack and carries **24**; `TRIREME`, `GALLEY` and
+`DROMON` carry **0**. `MERCHANT` is the row that settles it — the packing
+writer is the only thing that can explain its bit. Ten minutes of `grep` over
+a dump that had been on disk for a week.
+
+**And the arms were laid out backwards.** The first run of the new code put
+the count right and the *label* wrong: this crate marked
+`Unit::move_step+0x389` where the original's chain said `+0x3b6`. The
+decompile lists the near arm first (`:148`) and the far arm second (`:170`),
+and the compiler emitted them in the opposite order — `005fb24c` and
+`005fb256` both jump **forward** past the far arm's body to the near one — so
+`+0x3b6` is the near call and `+0x389` the far one. The listing settles in a
+minute what the decompile's line order suggests wrongly, again.
+
+Three call sites reach `do_turn` with the override enabled and all three fire
+in a traced game: the two `move_step` arms and `Guy::turn_towards+0x69`,
+which `Guy::move:109`'s standing arm calls while `guy_flags & 2` is clear —
+52 / 17 / 8 on run54 and 75 / 23 / 6 on run53. All three are modelled and all
+three have a site name. `Unit::detect_boat_collision:267` is the fourth and
+no capture reaches it.
+
+**What it moved.** East Indies' word `4945 → 4950`; every other capture is
+unchanged, which is the expected shape — the only unit in these games that
+asks for an animation it lacks is that one boat. The new boundary is the fish
+search: both sides spend 161 `Unit::think_fish+0x27a` on frame 4948, and on
+4950 this crate spends 165 more where the original spends none (item 149).
+
+`docs/ANIM.md` §4 was over the guard's section ceiling by the time §4.8 was
+written, so §§4.6–4.8 now sit under a heading of their own. They keep their
+numbers — the code cites them — and the split is what the guard asks for: the
+unit is what a session reads.
+
+**The rules this is an instance of.**
+
+- **Grep the writers of every field you call frozen** — the audit README's
+  standing lesson, and this is the same failure one level down: a *flag* with
+  two writers, read as if it had one. The tell was in the decompile the whole
+  time, eleven lines below the writer that was found.
+- **Grep the dump before booking a reading.** The flag is printed per guy in
+  every `DUMP_ALL` capture. Nothing had ever compared it.
+- **When the decompiler prints an order, the listing prints the addresses.**
+  Source order and address order are not the same thing, and a site table is
+  indexed by address.

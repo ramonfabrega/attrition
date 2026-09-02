@@ -126,6 +126,26 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005f_b753), // `Unit::move_step+0x823`, the blocked stand
         sim::anim::SITE_BLOCKED,
     ),
+    // …and the **turning** stand, three chains of `Guy::do_turn+0x4a`
+    // (`005d97ea`). The `via` is the frame above `do_turn`, which is what
+    // tells the three callers of the override apart: `Unit::move_step`'s
+    // near arm, its far arm, and `Guy::turn_towards`, which `Guy::move`'s
+    // standing arm calls (`docs/ANIM.md` §4.8).
+    (
+        0x005d_ac7a,
+        Some(0x005f_b2e6), // `Unit::move_step+0x3b6`, the near arm
+        sim::anim::SITE_TURN_NEAR,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x005f_b2b9), // `Unit::move_step+0x389`, the far arm
+        sim::anim::SITE_TURN_FAR,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x005d_9789), // `Guy::turn_towards+0x69`
+        sim::anim::SITE_TURN_STAND,
+    ),
     // `Unit::resolve_unit_collision@005f9d30+0xb52` — the head-on pair's
     // stagger, the collision mechanic's only draw.
     // `Unit::think_fish@005f4c60` — the jitter each accepted cell spends

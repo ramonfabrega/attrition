@@ -2118,6 +2118,19 @@ impl Sim {
         // bearing `find_angle` just returned. The facing that the step is
         // actually taken along is guy 0's, and only `Guy::do_turn` moves it.
         self.unit_set_angle(u, step.heading);
+        // **The turning stand** (`docs/ANIM.md` §4.8). Both turn-in-place
+        // arms hand `Guy::do_turn` a non-zero fifth argument, so a guy
+        // with `guy_flags & 8` is asked for a turn animation — and a
+        // packing type that has none takes the idle roll instead. The two
+        // arms are two `do_turn` call sites and so two `ebp` chains.
+        match step.turned_in_place {
+            Some(movement::TurnArm::Near) => self.mark(crate::anim::SITE_TURN_NEAR),
+            Some(movement::TurnArm::Far) => self.mark(crate::anim::SITE_TURN_FAR),
+            None => {}
+        }
+        if step.turned_in_place.is_some() {
+            self.do_turn_anim(u, m.facing, step.facing, step.heading);
+        }
         let unit = &mut self.units[u];
         unit.movement.facing = step.facing;
 
