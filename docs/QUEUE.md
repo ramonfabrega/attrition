@@ -22,9 +22,11 @@ Indies 6739; Great Lakes 4241 by draw, 4177 by position.**
   bundle, so TCC keys on the raw path and the path carries the version.
   Every update revokes all three grants, and adding `ClaudeCode.app` does
   nothing because macOS never evaluates it. `~/bin/RonDriver.app`
-  (`rondriver/`, `viadriver.sh`) is the fixed-path owner; **it still needs
-  its one manual Accessibility grant.** ORACLE, "The grant is keyed to a
-  path".
+  (`rondriver/`, `viadriver.sh`) is the fixed-path owner, and **all three
+  grants are on it and verified end to end** — `windows of ccc` answers
+  through it, which is the call that hung run71. Launch captures with
+  `viadriver.sh` and updates stop mattering. ORACLE, "The grant is keyed
+  to a path".
 - **Two probes had been defeated the same way** — `cliclick p` needs no
   privilege, and `Finder` has no windows, so an empty list and rc=0 look
   exactly like a grant. `perm_probe` posts a move and reads back where the
