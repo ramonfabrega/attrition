@@ -3487,3 +3487,47 @@ whole record would have found it; the road only reached one of the 182.
 lobby lines and killed `longtrace.sh` mid-poll — the game ran on to its
 own `!quit` and finished, but nothing archived it. A capture's driver must
 not be piped into anything that exits early; redirect to a file.
+
+## run65 — the caravan's turn out of its own city (2026-09-02)
+
+**run54's game with an eighteen-frame `DUMP_ALL` window.** East Indies,
+seed 12345, map style 18, the profile's lobby, no input:
+
+    DETAIL_END=MISC WINDOW="6196 6214" POLL_MAX=250 \
+    TRACE_COVER=$'cover=1\nwindow=6195-6212\ncallwin=6195-6213' \
+    zsh tools/gamelog/longtrace.sh 65 6220 islands-caravanturn 18
+
+Thirty-seven minutes, 1.19 GB of dump, 15 MB of trace, twenty frame
+blocks. `rngcmp.py rontrace-run54.log rontrace-run65.log`: **6,221
+frames, zero differing** — the fifth capture in a row for which a window,
+a coverage window and the eight call proxies together cost the stream
+nothing.
+
+**The window is two frames wider than the question.** The queue asked for
+`[6196, 6212)`; a `FRAME n` block is the end of sim-frame `n − 1`, and the
+two sides' *first walking frames* are the whole point, so the window has
+to reach past the later of them rather than stop on it. `[6196, 6214)`
+puts both inside with a frame to spare, for 108 MB and four minutes.
+
+**What it settled.** East Indies' word 6207 → **6353**, and the answer was
+in `docs/MOVEMENT.md` rather than in `docs/CARAVAN.md`: `Unit::move_step`
+asks `UnitData::invalid_loc` about any step that changes tile and drops
+the step whole when it is refused. Both `docs/CARAVAN.md` §8's guesses —
+the turn, and the detour `do_move` plans — were wrong, and the window
+refuted them in one reading by showing the *same* detour node, the same
+bearings and the same computed step on both sides.
+
+**The capture-design lesson is the one field that carried it.** The unit's
+`angle` and guy 0's `angle` are two different things — the heading
+`set_angle` writes, and the facing `Guy::do_turn` chases it with — and a
+reader that takes the first for the second concludes the original turns
+instantly. The `GUY` block's own `last_speed`/`avg_speed` are what make
+the turn rate checkable frame by frame, and they are why the eight
+bearings could be shown to agree before the step was looked at.
+
+**And a probe trap worth naming.** A flat key/value sweep of a `UNITDATA`
+block reads `angle` three times — the unit's, the `MOVEORDER`'s and every
+`GUY`'s — and the last one written wins. Nesting in these dumps is
+**indentation**, and a probe that ignores it will silently answer with the
+wrong field; the first reading of this capture did, and said the original
+snapped its facing in one frame.

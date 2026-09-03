@@ -12,36 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — a caravan walks its road, and the road was never
-laid.* **East Indies 6198 → 6207**; Great Lakes 2419. Item **177 closed
-whole**; CARAVAN is now §5.3, §7, §7.1–§7.3 and §8.
+*2026-09-02, Opus — the caravan was never the bug; the step was.* **East
+Indies 6207 → 6353**; Great Lakes 2419. Item **179 closed**, against a
+different document than the one that booked it.
 
-- **The word's frame was one instruction.** `do_trade`'s *first*, at
-  `+0x40`: `set_anim(CHAR_DEFAULT, 0, 1)`, ahead of every return. Silent
-  while the unit walks, so it marks **arrivals** — a leg queues
-  `QUEUE_FIRST` and `do_trade` never runs under one.
-- **`build_road`'s road is a `Stack<PathData>`**, world units with a
-  tolerance and a flag byte — this crate kept *tiles*, so `set_road_at`
-  ran 30,000 tiles off the map and **no trade road had ever been laid**.
-  The `CARAVAN` record prints the whole stack and nothing compared it;
-  26 nodes, right first run (item 87's widening ledger).
-- **The legs** (§7): shuttle, `loaded`, `caravan_flags & 4`, `trade_val`
-  into wealth, `new_caravan`'s one-off. The walk is the route's own stack,
-  displaced a third of a step **perpendicular** — the listing, not the
-  decompiler, says `x / −3`. Two probes came with it:
-  `RON_DEBUG_SITES=<lo>-<hi>` and `RON_DEBUG_UNIT=<who>/<o>@<lo>-<hi>`.
+- **run65** is run54's game with an eighteen-frame `DUMP_ALL` window over
+  the leg — 1.19 GB, `rngcmp` **6,221 frames, zero differing**. It refuted
+  both of `docs/CARAVAN.md` §8's guesses at once: the two sides push the
+  same detour node on the same frame, turn through the same eight bearings
+  at the same rate, and compute the **same step to the same point**.
+- **The original does not take that step.** `Unit::move_step@005faf30`
+  (`005fb7c1`) compares the step's tile against the one the unit stands on
+  and, where they differ, asks `UnitData::invalid_loc` with all five flags
+  clear; a refusal drops the step whole — no `set_anim`, no
+  `set_new_location`, waypoint kept — so the unit turns a frame more and
+  goes through a tile it may have. Last of MOVEMENT's four unmodelled
+  `move_step` arms; one line in `unit_step`.
+- **The window is an assertion now:** 5,186 fields of run65's twenty
+  blocks — position, `angle`, `orders_x/y`, `tolerance` and every slot of
+  every path stack — all the original's. Found on the way, unfixed:
+  `caravan.rs` asks `World::tregion` where `do_trade` asks
+  **`get_tregion`**, at both sites. Item 142.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6207 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6353 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `6207 is the caravan's turn out of its own city, two
-frames: the original stands at home from 6197 and walks on 6208 where this
-crate walks on 6206 — one wrap of the crew's three-frame packets. The route
-is right (it reaches the far city within a dozen frames of the original's
-next `do_trade` at 6511), so what is out is the turn, or the detour
-`do_move` plans around the footprint. **Nothing on disk covers 6198–6210**:
-book run54's game with `DUMP_ALL` on `[6196, 6212)` and read the unit's
-position, path and clocks. Item 179; `RON_DEBUG_UNIT=1/18@6196-6212`.`
+**Opener (Opus):** `6353 is a unit the original trains and this crate does
+not — two `Guy::init_real+0x52` at the head of the frame, nothing else in
+it parting. Production, not movement. Item 180: name the leader and the
+type from run54's trace alone (`report.py … draws`, `[6350, 6356)`).`
 
 ## The queue
 
@@ -50,23 +49,20 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-179. **The caravan's turn out of its city, and the two frames it is
-    out.** The word, 6207. Book the capture: run54's game, `DUMP_ALL` on
-    `[6196, 6212)`, nothing on disk covers it. CARAVAN §8. Takes with it
-    §7's unreached arithmetic — the arrival box, `compute_trade`'s
-    `× 16 / 2` and `new_caravan`'s `(epoch[1] + 1) · 10` all fire around
-    6511 and 6766, and a `LEADERS=9` census over `[6760, 6790)` is what
-    would assert them.
+180. **The unit the original trains on 6353 and this crate does not.**
+    The word, and the whole of it: two `Guy::init_real+0x52` at the head
+    of the frame. `report.py … draws` over run54's `[6350, 6356)` names
+    the callers and the type; a `BUILDDATA` on disk may name the building.
 
 169. **`compute_site_stats`' arithmetic, on 7,122 of run63's 27,000 site
     fields.** `(45, 52)` scores twice the original's, `(44, 52)` four
-    times, and an extra site drags every `rank`; run59's census has the
-    same shape 250 frames earlier. AI §2.13 steps 6–12.
+    times, an extra site drags every `rank`; run59 has the same shape 250
+    frames earlier. AI §2.13 steps 6–12.
 
 172. **The `bucket` pair 165 leaves behind.** The six rates and incomes
     are the original's on every frame of run59's window; `bucket` was one
     apart on 5002 and 5061 in run60's curve. Cheap: run60 is on disk.
-    **Takes 155's `rare`/`good_obj` writers along** — `Unit::think`'s
+    **Takes 155's `rare`/`good_obj` writers** — `Unit::think`'s
     rare-collector arm (ORDERS §6.10) is unmodelled.
 
 166. **`resource_cap` on five goods, two frames from 2958** — 1392 here,
@@ -89,7 +85,8 @@ indexed by them.
     rares, Monarchy, Socialism, the wonders.
 
 142. **`World::tregion` is not `get_tregion`.** Four items were a gate
-    asking the wrong one (PATHFINDER §15, §16). Eleven callers, unaudited.
+    asking the wrong one (PATHFINDER §15, §16). Eleven callers, unaudited;
+    `caravan.rs`'s two are known wrong (item 179's by-catch).
 
 122. **A draw with no mark of its own.** `mark_sites` gives an unmarked
     draw the label still standing, so a sequence reads wrong rather than
@@ -103,20 +100,24 @@ indexed by them.
     leaders have no military unit on the map on any frame divisible by
     200, so `role & 0x10000`, `(attack · 5) / 10` and the war gate rest on
     the reading alone. A `DUMP_ALL` `WORLD` block on a 200-frame boundary
-    after either side has an army settles it; run16's scenario is one and
-    its window is cheap. Takes `UnitData::is_seen` with it — this crate
-    answers it with the building's ever-seen fog bit.
+    after either side has an army settles it; run16's scenario is one.
+    Takes `UnitData::is_seen` with it — answered here with the building's
+    ever-seen fog bit.
+
+181. **§7's unreached arithmetic, which 179 did not take.** The arrival
+    box, `compute_trade`'s `× 16 / 2` and `new_caravan`'s
+    `(epoch[1] + 1) · 10` fire at 6511 and 6766, inside the word now and
+    unasserted. CARAVAN §7.2–§7.3; a `LEADERS=9` census over `[6760, 6790)`.
 
 The ledgers, each a number nothing yet counts: (87) **the widening
-ledger** — items 74, 83, 69, 113, 123, 144, 154, 169 and now 168/165 (one
-`track.py --changes` over `myspeed`) were closed or
-sharpened by fields the parser had and nothing compared, so count, per
-record *and* per capture, the fields `rondata::diff` parses and never
-compares; (88) **the blind list** — `report.py … blind docs/` lists the
-cited functions no traced run has entered (101 of 617), pin it as a floor
-and put it in each Coverage; (72) every `+0xNN` a document pins, checked
-against its module; (89) the instrument's last guard, (c) alone; (35)
-**`mylos` as a cache** — VISION §7, whose Scout moves 4 → 6 a frame early.
+ledger** — items 74, 83, 69, 113, 123, 144, 154, 169, 168/165 and now 179
+were closed or sharpened by fields the parser had and nothing compared, so
+count, per record *and* per capture, the fields `rondata::diff` parses and
+never compares; (88) **the blind list** — `report.py … blind docs/` lists
+the cited functions no traced run has entered (101 of 617), pin it as a
+floor and put it in each Coverage; (72) every `+0xNN` a document pins,
+checked against its module; (89) the instrument's last guard, (c) alone;
+(35) **`mylos` as a cache** — VISION §7, whose Scout moves 4 → 6 early.
 
 175. **`Unit::squad_size` is the guy count and should be the uber chain.**
     `build_sim` sets it from `u.guys.len()`; its doc calls it
@@ -129,9 +130,9 @@ Three fields nothing here writes: (48) **the object chain, whole** —
 `collide.rs` chains units only where the original threads buildings and
 goodies through it too (COLLISION §3, §7, GOODY §1), `down`/`down_who`
 uncompared; (73) **`UnitData::group`** — no back-pointer, so
-`Group::normalize`'s cull (GROUPS §4.3) is unmodelled and run33's scout goes
-65 → 64 on 96; (56) **the cell's `BUILDING` bit** — run13's frame-95 world
-carries it on `(52, 22)` and this does not (ARMY §13's muster search).
+`Group::normalize`'s cull (GROUPS §4.3) is unmodelled and run33's scout
+goes 65 → 64 on 96; (56) **the cell's `BUILDING` bit** — run13's frame-95
+world has it on `(52, 22)` and this does not (ARMY §13's muster search).
 
 23. **The formation byte's sign — the Echelon half.** `reverse`'s
     *displacement* is read only on GROUPS §6.4's Echelon rows and every

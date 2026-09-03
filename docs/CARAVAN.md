@@ -420,8 +420,16 @@ original_s_node_for_node`):
   `set_road_at` was handed world coordinates thirty thousand tiles off the
   map and **every trade road in the port went unlaid**.
 - The order and the schedule, indirectly: East Indies' word, which is a
-  per-frame draw *sequence*, now passes 6166 to 6206 whole — through
-  §7's arrival at 6198 and the first eight frames of its leg.
+  per-frame draw *sequence*, now passes 6166 to 6352 whole — through
+  §7's arrival at 6198, the leg's first turn and a hundred and forty
+  frames of the walk that follows.
+- **The whole leg, unit for unit** (`run65_s_window_is_the_original_s_
+  unit_for_unit`): every dumped unit of run65's eighteen-frame window —
+  position, `UnitData::angle`, `orders_x/y`, `tolerance` and every slot
+  of every path stack, 5,186 fields — over the frames the caravan
+  arrives, is given its road, turns out of its city and walks. It is
+  what pins §7.1's leg against the original rather than against the
+  reading.
 - **The three figures' clocks, frame by frame**
   (`run64_s_window_clocks_are_the_original_s`): every `GUY` block of
   run64's eight-frame `DUMP_ALL` window, 2,061 fields, of which the only
@@ -463,17 +471,21 @@ original_s_node_for_node`):
 
 **Not established at all:** what a fallen city does to a route mid-trip —
 `Caravan::verify_road` and `restart_trade_route` are the functions and
-nothing enters them — and the arrival's own **one-frame residue**. From
-run54's 6207 the original's crew figures wrap twice more before the walk
-settles and this crate's do not: the caravan stands at the home city from
-6197, turns in place while `do_move` plans its way out of the footprint,
-and starts walking on 6206 where the original starts on 6208. The route
-itself is right — the leg walks the road's own waypoints and reaches the
-far city within a dozen frames of the original's `do_trade` at 6511 — so
-what is one frame out is the turn, or the detour the plan takes around the
-city. **A `DUMP_ALL` window on `[6196, 6212)` of run54's game settles it**:
-nothing on disk covers those frames, and the block carries the unit's
-position, its path stack and its figures' clocks.
+nothing enters them.
+
+~~And the arrival's own **one-frame residue**~~ — closed 2026-09-02 by
+run65, and **it was not the caravan's at all**. The window said so in one
+reading: both sides push the same detour node `(38508, 40620)` on the same
+frame, turn through the same eight bearings at the same rate, and on
+sim-frame 6206 compute the same step to the same point. The original
+simply does not take it — `move_step` asks `UnitData::invalid_loc` about
+any step that changes tile, and that point is a tile inside the caravan's
+own city's footprint. The answer is `docs/MOVEMENT.md`'s, under "The unit
+step", and it is the last of the four things that section listed as read
+and not modelled; the whole eighteen-frame window is now
+`run65_s_window_is_the_original_s_unit_for_unit`, 5,186 fields including
+every slot of the twenty-six-node stack. East Indies' word: **6207 →
+6353**.
 
 ~~**And it does not walk there the original's way**~~ — closed 2026-09-02,
 and the walk was never the bug. §4.1's move goes in with `QUEUE_FIRST` and

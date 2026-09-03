@@ -368,7 +368,10 @@ else:
     if manh < 2 * step:                                  # only then:
         if |sx| > |dx|:  sx =  dx                        # clamp each axis
         if |cy| > |dy|:  cy = -dy
-    if (x + sx, y - cy) is inside the world:  move there
+    if (x + sx, y - cy) is outside the world:  return    # try again next frame
+    if it lands on another tile and invalid_loc(that tile) != 0:
+        unit_masks &= ~8; return                         # the world refuses the step
+    move there
     arrived if |dest - pos| <= tolerance                 # 0 unless colliding
 ```
 
@@ -427,11 +430,37 @@ that. `docs/SYNC.md` §3.25; the guard is
 cases. With an empty stack the original reads slot 0 of it regardless —
 whatever the last path left there — and `crates/sim` passes `false`.
 
+**A step that changes tile is asked permission, and a refusal costs the
+whole frame** (2026-09-02, run65). `005fb7c1`–`005fb7fd`: the proposed
+point's tile is compared against the one the unit is standing on — both
+through `div_3_table[v >> 6]`, the same conversion `do_trade` uses — and
+where they differ `UnitData::invalid_loc` is called with **all five flags
+clear**, the same call `find_path` and `go_around_building` make. A
+non-zero answer drops the step entire: no `set_anim`, so the walk is not
+even requested; no `set_new_location`, so no move and no reveal; the move
+order keeps its waypoint, and `move_step` returns 0 where every other
+refusal returns 1. The unit therefore stands where it is, turns another
+frame's worth on the next one, and tries the step again from a bearing it
+has turned further round.
+
+The consequence is a **turn that costs more frames than the turn rate
+says**, and it is what East Indies' word parted on for one item. run65's
+caravan owes 38.9° on sim-frame 6206 — inside the 45° gate — so both the
+original and this crate compute the same full step to `(38750, 40508)`,
+which is one tile north of the tile the caravan is standing on and inside
+its own city's footprint. The original drops it, turns 24° more, and
+walks on 6207 through a tile it may have. Nothing about the *turn* was
+ever wrong: the two sides' bearings, rates and `avg_speed` decay agree
+frame for frame either side of it (`docs/CARAVAN.md` §8,
+`run65_s_window_is_the_original_s_unit_for_unit`).
+
+SEAM: the original also clears `unit_masks & 8` on the refusal. The bit
+has no reader this crate models.
+
 Not modelled, and listed at the end: the flyer branch (`unit_flags & 0x20`,
 which turns by the body's rule instead), `detect_unit_collision` /
-`resolve_unit_collision`, `UnitData::invalid_loc` on a tile change, the
-rest of the path stack's flags, and the order angle the unit snaps to on
-the final waypoint.
+`resolve_unit_collision`, the rest of the path stack's flags, and the
+order angle the unit snaps to on the final waypoint.
 
 ## The body step — `Guy::move`
 

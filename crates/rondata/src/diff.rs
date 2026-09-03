@@ -10368,6 +10368,181 @@ mod tests {
         assert!(wrong.is_empty(), "run64's clocks parted: {wrong:?}");
     }
 
+    /// **run65 — the caravan's turn out of its own city, every unit, every
+    /// frame** (2026-09-02).
+    ///
+    /// run54's game to 6,220 frames with a `DUMP_ALL` window on
+    /// `[6196, 6214)` — the eighteen `FRAME` blocks either side of the
+    /// word's own parting — at `MISC` alone otherwise.
+    /// `rngcmp.py rontrace-run54.log rontrace-run65.log`: **6,221 frames,
+    /// zero differing**, so it is run54's game and the fifth capture in a
+    /// row for which a window costs the stream nothing.
+    ///
+    /// **What it was booked for.** East Indies' word parted at 6207 on the
+    /// caravan's first leg: the original stood at its home city and walked
+    /// on sim-frame 6207 where this crate walked on 6206, one frame, and
+    /// nothing on disk covered the window. `docs/CARAVAN.md` §8 guessed the
+    /// turn or a detour; the capture says **neither**. Both sides push the
+    /// same detour node, `(38508, 40620)`, on the same frame; both turn
+    /// through the same eight bearings at the same rate, because
+    /// `avg_speed` decays 3/4 a frame on both. On sim-frame 6206 the turn
+    /// leaves 38.9° owed on both, under `move_step`'s 45° gate, so both
+    /// compute the same step and the same landing point — `(38750, 40508)`
+    /// — and the original **does not take it**. That point is a tile north
+    /// of the one the caravan stands on, and `move_step@005faf30`
+    /// (`005fb7c1`–`005fb7fd`) asks `UnitData::invalid_loc` about any step
+    /// that changes tile: the city's own footprint refuses it, the step is
+    /// dropped whole, and the unit turns another 24° and goes on
+    /// sim-frame 6207 through a tile it may have.
+    ///
+    /// It is the last of the four things `docs/MOVEMENT.md`'s `move_step`
+    /// section listed as read and not modelled, and it is the whole of the
+    /// residue: every field below is the original's, and East Indies' word
+    /// went **6207 → 6353**.
+    ///
+    /// Nothing here is installed. The simulation is built from run54's
+    /// start and driven forward 6,213 frames; run65's own blocks are only
+    /// ever read.
+    #[test]
+    fn run65_s_window_is_the_original_s_unit_for_unit() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r65)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run65-islands-caravanturn.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run65 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+
+        let text65 = std::fs::read_to_string(&r65).unwrap();
+        let l65 = Log::parse(&text65);
+        let frames = l65.frame_states();
+        let window: Vec<i64> = frames.iter().map(|f| f.n).collect();
+        // The window, and then the **quit's own two blocks**: the log
+        // writes a frame at `!quit` and one behind it, so 6220 and 6221
+        // come free — seven frames past anything the window paid for.
+        // They are read like the rest, but only as far as they parse: the
+        // log is cut where the process went, so the caravan's eighteen
+        // rows below are the window's own and nothing is owed by the tail.
+        assert_eq!(
+            window,
+            (6196..=6213).chain([6220, 6221]).collect::<Vec<i64>>(),
+            "run65's `DUMP_ALL` window, plus the two blocks the quit writes"
+        );
+        let last = *window.last().expect("the window");
+
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let mut compared = 0usize;
+        let mut caravan_rows = 0usize;
+        let mut unmatched = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        // `Built::tick` stamps the frame it is about to run, so after the
+        // tick with `f` the counter reads `f + 1` and the state is that
+        // `FRAME` block's — the same alignment run39's scout test uses.
+        for f in 0..last {
+            built.tick();
+            let Some(fr) = frames.iter().find(|fr| fr.n == f + 1) else {
+                continue;
+            };
+            for them in &fr.units {
+                // Gaia's animals are re-seated from the dump every traced
+                // frame (`Sim::reseat_animal`), so they are not this
+                // crate's prediction; the players' units are.
+                if !(0..8).contains(&them.who) {
+                    continue;
+                }
+                let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                    continue;
+                };
+                let Some(u) = built.sim.unit_by_o(who, o) else {
+                    unmatched += 1;
+                    continue;
+                };
+                let un = &built.sim.units[u];
+                if (them.who, them.o) == (1, 18) {
+                    caravan_rows += 1;
+                }
+                let mut row = |name: &str, ours: i64, theirs: Option<i64>| {
+                    let Some(theirs) = theirs else { return };
+                    compared += 1;
+                    if ours != theirs && wrong.len() < 12 {
+                        wrong.push(format!(
+                            "frame {}: {}/{} {name} ours {ours} theirs {theirs}",
+                            f + 1,
+                            them.who,
+                            them.o
+                        ));
+                    }
+                };
+                row("x", i64::from(un.pos.x), Some(them.pos.x));
+                row("y", i64::from(un.pos.y), Some(them.pos.y));
+                // `UnitData::angle` is the **heading** `set_angle` writes,
+                // not the facing: `move_step` hands it the bearing at the
+                // top of the function and only `Guy::do_turn` moves guy 0
+                // toward it. The facing is run64's test's business.
+                row("angle", i64::from(un.movement.heading.0), them.angle);
+                row("orders_x", i64::from(un.orders_pos.x), them.orders_x);
+                row("orders_y", i64::from(un.orders_pos.y), them.orders_y);
+                row("tolerance", i64::from(un.tolerance), them.tolerance);
+                row(
+                    "path length",
+                    un.path.len() as i64,
+                    Some(them.path.len() as i64),
+                );
+                // The stack whole — point, tolerance and flag byte, every
+                // slot. It is what says the caravan walks the road's own
+                // twenty-six nodes and not a plan of its own.
+                for (slot, (ours, theirs)) in un.path.iter().zip(them.path.iter()).enumerate() {
+                    row(
+                        &format!("path[{slot}].x"),
+                        i64::from(ours.to.x),
+                        Some(theirs.to.0),
+                    );
+                    row(
+                        &format!("path[{slot}].y"),
+                        i64::from(ours.to.y),
+                        Some(theirs.to.1),
+                    );
+                    row(
+                        &format!("path[{slot}].tolerance"),
+                        i64::from(ours.tolerance),
+                        Some(theirs.tolerance),
+                    );
+                    row(
+                        &format!("path[{slot}].flags"),
+                        i64::from(ours.flags),
+                        Some(theirs.flags),
+                    );
+                }
+            }
+        }
+        eprintln!(
+            "run65 window: {compared} fields over 20 blocks, {caravan_rows} of them \
+             the caravan's, {unmatched} of the dump's units this crate has no unit for"
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 4_000 && caravan_rows >= 18,
+            "the window's own rows: {compared} fields and {caravan_rows} caravan \
+             frames — a capture with neither is the wrong file"
+        );
+        assert!(wrong.is_empty(), "run65's window parted: {wrong:?}");
+    }
+
     /// East Indies' word on the **long** capture — the number that took
     /// over as the headline when run39's own length stopped bounding it
     /// (`docs/DECISIONS.md` entry 29's first counter). It is not in
@@ -10859,16 +11034,27 @@ mod tests {
 
     /// East Indies' word on run54, the headline.
     ///
-    /// **6207** since 2026-09-02, and it is the **turn out of the city**:
-    /// the original's caravan stands at its home city from 6197, turns in
-    /// place while it plans its way clear of the footprint, and starts
-    /// walking on 6208 where this crate starts on 6206 — two frames, which
-    /// is one wrap of its crew figures' three-frame packets. The route is
-    /// right either way: the leg walks the road's own waypoints and reaches
-    /// the far city within a dozen frames of the original's next
-    /// `do_trade` at 6511. A `DUMP_ALL` window on `[6196, 6212)` is what
-    /// would settle whether the frame is the turn or the detour
-    /// (`docs/CARAVAN.md` §8).
+    /// **6353** since 2026-09-02, and the frame is a **unit the original
+    /// trains and this crate does not**: two `Guy::init_real+0x52` at the
+    /// head of the original's frame that nothing here spends.
+    ///
+    /// It was **6207** for one item, and that item was neither the caravan
+    /// nor its turn. run65 is the capture — an eighteen-frame `DUMP_ALL`
+    /// window over the leg — and what it shows is both sides pushing the
+    /// same detour node `(38508, 40620)` on the same frame, turning
+    /// through the same eight bearings at the same rate, and computing the
+    /// same full step on sim-frame 6206 to the same point,
+    /// `(38750, 40508)`. The original does not take it:
+    /// `move_step@005faf30` at `005fb7c1` compares the step's tile against
+    /// the one the unit stands on and, where they differ, asks
+    /// `UnitData::invalid_loc` with all five flags clear — and that point
+    /// is a tile inside the caravan's own city's footprint. The step is
+    /// dropped whole, with no `set_anim` and no `set_new_location`, the
+    /// waypoint is kept, and the unit walks a frame later through a tile
+    /// it may have. It is the last of the four things `docs/MOVEMENT.md`'s
+    /// `move_step` section listed as read and not modelled, and the whole
+    /// window is now an assertion
+    /// (`run65_s_window_is_the_original_s_unit_for_unit`, 5,186 fields).
     ///
     /// It was **6198** for one item, and that item was `Unit::do_trade`'s
     /// **first instruction**: `set_anim(CHAR_DEFAULT, 0, 1)` at `+0x40`,
@@ -10994,7 +11180,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6207;
+    const LONG_WORD_EAST_INDIES: i64 = 6353;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

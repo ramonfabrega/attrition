@@ -2341,6 +2341,27 @@ impl Sim {
         let mut arrived = false;
         let mut snapped_in = false;
         if self.world.accepts(target) {
+            // **The step that changes tile is asked permission**
+            // (`move_step@005faf30`, `005fb7c1`–`005fb7fd`). The original
+            // compares the tile of the proposed point against the tile it
+            // is standing on, and where they differ calls
+            // `UnitData::invalid_loc` with all five flags clear — the same
+            // call `find_path` and `go_around_building` make. A refusal
+            // drops the step whole: no `set_anim`, no `set_new_location`,
+            // no reveal, and the order keeps its waypoint, so the unit
+            // stands where it is, turns another frame's worth, and tries
+            // the step again next frame from a bearing it has turned
+            // further round. It is the last of the four things
+            // `docs/MOVEMENT.md`'s `move_step` section listed as not
+            // modelled.
+            //
+            // SEAM: the original also clears `unit_masks & 8` here; the
+            // bit has no reader this crate models.
+            if target.tile() != from.tile()
+                && self.invalid_loc(u, target.tile(), false, false, false, false, false) != 0
+            {
+                return Did::Nothing;
+            }
             let flags = self.current_order(u).map_or(0, |o| o.flags);
             if !self.set_new_location(u, target, false) {
                 // The step crossed the waterline and was converted rather

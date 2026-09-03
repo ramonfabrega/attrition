@@ -13580,3 +13580,74 @@ of its own city — the original stands there from 6197 and starts walking on
 this is a residue and not a mechanic. **Nothing on disk covers frames
 6198 to 6210**, which is the first time in a while that the answer is a
 capture rather than a widening; item 179 books it.
+
+## 2026-09-02 — item 179: the caravan was never the bug, the step was
+
+Yesterday's entry ended by booking a capture, and the capture was the
+right call for the wrong reason. Item 179 said the two frames were "the
+turn, or the detour `do_move` plans around the footprint". They were
+neither, and the window said so before it had been read twice.
+
+**run65** is run54's game with a `DUMP_ALL` window on `[6196, 6214)` —
+eighteen `FRAME` blocks — at `MISC` alone otherwise. 1.19 GB, thirty-seven
+minutes, and `rngcmp.py rontrace-run54.log rontrace-run65.log` answers
+**6,221 frames, zero differing**: the fifth capture in a row for which a
+window, a coverage window and eight call proxies together cost the stream
+nothing. The queue asked for `[6196, 6212)`; the window went two frames
+wider because a `FRAME n` block is the end of sim-frame `n − 1` and the
+two sides' *first walking frames* were the whole question — a question
+you cannot answer from a window that stops on the later of them.
+
+**What the window shows.** Both sides push the same detour node,
+`(38508, 40620)`, on the same frame. Both turn through the same eight
+bearings — 6°, 8°, 8°, 12°, 12°, 24°, 24°, 24° — because `avg_speed`
+decays a quarter a frame on both and the turn rate is the base over
+`avg / 4 + 1`. On sim-frame 6206 both are left owing 38.9°, inside
+`move_step`'s 45° gate, and both compute the same full step to the same
+point: `(38750, 40508)`. The original does not take it.
+
+`Unit::move_step@005faf30` at `005fb7c1` compares the step's tile against
+the tile the unit is standing on and, where they differ, asks
+`UnitData::invalid_loc` with all five flags clear. `(38750, 40508)` is one
+tile north of the caravan and inside its own city's footprint, so the
+answer is a refusal and the step is dropped **whole**: no `set_anim`, so
+the walk is not even requested; no `set_new_location`, so no move and no
+reveal; the waypoint kept, and `move_step` returning 0 where every other
+refusal returns 1. The unit turns 24° more and walks on 6207 through a
+tile it may have. It is the last of the four things `docs/MOVEMENT.md`'s
+`move_step` section listed as read and not modelled, and the fix is one
+`if` in `Sim::unit_step`.
+
+**Two hours went to a probe that read the wrong field.** A `UNITDATA`
+block prints `angle` three times — the unit's, the `MOVEORDER`'s, and
+every `GUY`'s — and a flat key/value sweep keeps the last one. The first
+reading therefore had the original snapping its facing in one frame and
+then standing eight frames for no reason at all, which is exactly the kind
+of finding that gets written up. Nesting in these dumps is **indentation**;
+the Rust parser has always known it and the scratch probe did not. The
+second reading, with the indentation respected, showed the two sides'
+bearings agreeing frame for frame, which is what made the step the only
+place left to look.
+
+**What is now an assertion.** `run65_s_window_is_the_original_s_unit_for_
+unit` compares every dumped unit of every one of run65's twenty blocks —
+position, `UnitData::angle`, `orders_x/y`, `tolerance`, the path stack's
+length and every slot's point, tolerance and flag byte. **5,186 fields,
+all the original's.** That is item 87's ledger paid again: the path stack
+has been parsed for months and only the caravan's own top was ever
+compared.
+
+**By-catch, unfixed.** `do_trade@005ed270` calls `WorldData::get_tregion`
+at all four of its region sites; `crates/sim/src/caravan.rs` asks the
+plain `World::tregion` at both of its. It changes nothing on this cell —
+`(50, 52)` has `flags 0x80`, so the coastal refinement never fires — and
+it is two more of item 142's eleven unaudited callers. It was checked
+because it was the *first* hypothesis for the missing `TURN_FIRST` bit,
+and the run64 dump's own `WORLD` block killed that hypothesis in a
+minute: grep the disk before believing a mechanism.
+
+**The score.** East Indies **6207 → 6353**; Great Lakes unchanged at 2419.
+191 rondata tests and 758 sim tests green. 6353 is two
+`Guy::init_real+0x52` at the head of the original's frame — a unit it
+trains and this crate does not — and nothing else in that frame parts, so
+the next item is production and item 180 books it.
