@@ -14544,3 +14544,93 @@ one arm of it cost one `llvm-objdump` window and one neighbour to check
 the polarity against. `docs/CARAVAN.md` had already paid for the table's
 address a week earlier — the note that recorded it is what made this
 five minutes.
+
+## 2026-09-03 (Opus) — item 196: the citizen was still walking (Great Lakes 2930 → 4241)
+
+Great Lakes' word stood at run53's **2930**, and the queue had already
+named the frame: the sequence there is the original's with one
+`Animal::think_farm_animal+0x142` **prepended** — first in the frame,
+every other label identical, 2929 and 2931 draw for draw. FARMS gave it
+three gates that could drop the draw. The probe said which.
+
+### The gate, and it was the one nobody suspected
+
+A scratch fold over run53's trace printed every pasture animal beside its
+phase and its gates:
+
+```
+animal o14 slot0 build17 gatherers[78] refTile(217,132) covers false   phase hits 2930
+animal o9  slot0 build15 gatherers[8]  refTile(210,85)  covers true    phase hits 2935
+```
+
+The phase was right — 2930 is exactly where `(o · (slot + 1) + frame) %
+128` lands for the pasture `2007`'s slot-0 animal. `build_covers_tile` was
+right too. What was wrong is the **object it was handed**: the citizen
+`78`, standing on tile `(217, 132)`, five tiles off a pasture whose own
+animals sit around `(222, 127)`. A farm does not cover a tile five away,
+so the draw was dropped.
+
+Five tiles is not where a gatherer stands, and that was the tell.
+`think_farm_animal@005d7700` picks its reference on
+
+```
+iVar12 = BuildData::num_gatherers(this_00, 1, 0);
+sVar9  = iVar12 == 0 ? this->field_0x150          // the farm's own o
+                     : *(short *)(iVar12 + 0x70); // gather_down, the head
+```
+
+and that first argument is `is_gathering_at`'s third — **`arrived`**,
+which is `been_there`. `docs/ORDERS.md` §6.1 has had this since it was
+written: a citizen joins the chain the moment `add_gather_order` issues
+it, and sets `been_there` only when it gets there. So through the whole
+walk out the count is **zero**, the measured object is the farm, the farm
+covers its own tile, and the draw is spent. This crate read the chain's
+*length* — `gatherers.first()` — and measured a citizen that was still
+three hundred units from arriving.
+
+One line, and both halves of it were already in the repo: `docs/ORDERS.md`
+knew what `been_there` was for, and `Sim::num_gatherers(b, arrived,
+skip_decoys)` had existed since the economy needed `(1, 1)`. What was
+missing was the connection, and `docs/ORDERS.md` §6.1 had actively
+asserted against it — "**every** UI/AI caller uses `num_gatherers(0, 0)`".
+That sentence is now struck: there are three call shapes, not two.
+
+### What it moved
+
+- **Great Lakes' long word 2930 → 4241**, 1,311 frames on one draw. East
+  Indies unmoved at 6739.
+- run53's frames on the original's count 4,231 → **6,514**; draw for draw
+  2,040 → **4,582**.
+- run69's collision record 253,874 → **254,924 field-frames, none wrong**
+  — and **no unit anywhere in its 3,000 frames ever stands where the
+  original's does not**. Six parted between 2935 and 2996 yesterday; one
+  draw took all six, because a pasture animal that does not walk is a
+  pasture animal whose neighbours' collision arithmetic is a different
+  game's. That is now asserted outright rather than only before the word,
+  so run69 has nothing left to say about position.
+- The word is past the whole of run69, so Great Lakes is owed a longer
+  full-detail capture (`docs/DECISIONS.md` 29) — the successor item, and
+  it is the same debt run69 itself was created to pay.
+
+### What is worth carrying
+
+**A gate with three inputs is three suspects, and the cheap probe names
+one.** The queue booked this as "three gates can drop it" and listed all
+three. Printing the three side by side for every animal in the capture
+cost one scratch test and two minutes, and it eliminated two of them
+before a single line of the decompile was read. The reading that followed
+was one function and one call site.
+
+**The predicate was wrong where the arithmetic was right, again.**
+`docs/audit/README.md`'s most-recurrent lesson has now claimed the
+pasture: the phase formula, the corner table, the `192·T + {24, 120, 168}`
+destination and the snap were all exact, and had been for a week. What
+was wrong was *which object* — the same shape as "which array a level
+indexes" and "which step a multiplier belongs to".
+
+**And a document that asserts a universal is a document that can be
+falsified.** §6.1's "every UI/AI caller uses `(0, 0)`" was written from
+reading the callers that mattered at the time; it is what made
+`gatherers.first()` look safe. The correction is in place with its
+successor named, per the amend-in-place rule — and the assertion that now
+holds the rule was made to fail on the old code first.

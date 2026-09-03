@@ -524,8 +524,10 @@ impl Sim {
     /// what a herdless animal's `do_idle` falls through to. On its own
     /// 128-frame phase — `(o · (slot + 1) + frame) % 128 == 0` — it takes
     /// **one draw** when the farm covers the tile it is measuring: the
-    /// farm's own while nobody gathers there, and `gather_down`'s first
-    /// gatherer's once somebody does.
+    /// farm's own while nobody **has arrived** to gather there
+    /// (`num_gatherers(1, 0)`, so a citizen still walking to the farm
+    /// leaves the reference on the farm), and `gather_down`'s head once
+    /// somebody has.
     ///
     /// Then it walks, and the one draw is the whole of where to
     /// (`docs/SYNC.md` §3.11). Let `T` be the reference object's tile plus
@@ -550,15 +552,29 @@ impl Sim {
         if (o * i64::from(fa.slot + 1) + self.frame).rem_euclid(THINK_PERIOD) != 0 {
             return;
         }
-        let Some(bd) = self.buildings.get(fa.build) else {
+        if self.buildings.get(fa.build).is_none() {
             return;
-        };
-        let at = match bd.gatherers.first() {
-            Some(&g) => match self.units.get(g) {
+        }
+        // `BuildData::num_gatherers(this, 1, 0)` — the **arrived** count,
+        // decoys included, not the chain's length. A citizen joins the
+        // chain the moment `add_gather_order` issues (`docs/ORDERS.md`
+        // §6.1) and only sets `been_there` when it arrives, so while it is
+        // still walking the count is zero and the reference object is the
+        // farm. Once it is non-zero the reference is `gather_down`'s head
+        // **unfiltered** — whoever is at the front of the chain, arrived
+        // or not (`docs/SYNC.md` §3.6).
+        let at = if self.num_gatherers(fa.build, true, false) == 0 {
+            self.buildings[fa.build].pos
+        } else {
+            match self.buildings[fa.build]
+                .gatherers
+                .first()
+                .copied()
+                .and_then(|g| self.units.get(g))
+            {
                 Some(unit) => unit.pos,
                 None => return,
-            },
-            None => bd.pos,
+            }
         };
         let t = at.tile();
         if !self.build_covers_tile(fa.build, t) {
@@ -923,8 +939,17 @@ mod tests {
 
     /// `think_farm_animal`'s two gates, each made to fail: the 128-frame
     /// phase, and the farm covering the tile it measures — the farm's own
-    /// while nobody gathers there, and the first gatherer's once somebody
-    /// does.
+    /// while nobody **has arrived** to gather there, and `gather_down`'s
+    /// head once somebody has.
+    ///
+    /// **The middle case is the one that carried a word.** The count is
+    /// `BuildData::num_gatherers(this, 1, 0)`, which is `is_gathering_at`
+    /// with `arrived = 1` — `been_there` (`docs/ORDERS.md` §6.1) — and a
+    /// citizen joins the chain at *issue*, frames before it gets there.
+    /// Reading the chain's length instead put the reference on a citizen
+    /// still walking, five tiles off the farm, and dropped the draw:
+    /// Great Lakes' word stopped at run53's 2930 for exactly that
+    /// (`docs/SYNC.md` §3.6).
     #[test]
     fn think_farm_animal_s_phase_and_its_covers_tile() {
         let (mut s, b) = farm_sim();
@@ -945,12 +970,45 @@ mod tests {
         s.think_farm_animal(animals[1]);
         assert_ne!(s.rng.seed, seed, "on phase");
 
-        // The covers test. With a gatherer registered far away the farm
-        // does not cover its tile, and nothing is drawn.
+        // The covers test, and the arrival that decides which object it
+        // measures. A citizen on the chain but still walking — far off the
+        // farm, `been_there` clear — leaves the reference on the **farm**,
+        // which covers its own tile, so the draw is spent.
         s.frame = 0;
-        let far = crate::Unit::new(0, 99, Pos::new(0, 0), 10);
-        let g = s.add_unit(far);
-        s.buildings[b].gatherers.push(g);
+        s.build_types[s.buildings[b].ty.unwrap()].flags |= build::flags::GATHER;
+        let citizen = s.add_unit_type(crate::UnitType {
+            hits: 10,
+            worker: crate::orders::Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        let mut walker = crate::Unit::new(0, 99, Pos::new(0, 0), 10);
+        walker.ty = Some(citizen);
+        let g = s.add_unit(walker);
+        s.add_gather_order(g, b, crate::orders::QueuePos::New, false);
+        assert!(
+            s.is_gathered_by(b, g),
+            "on the chain from the moment of issue"
+        );
+        assert_eq!(s.num_gatherers(b, false, false), 1, "and one by length");
+        assert_eq!(s.num_gatherers(b, true, false), 0, "but none arrived");
+        let seed = s.rng.seed;
+        s.think_farm_animal(animals[0]);
+        assert_ne!(
+            s.rng.seed, seed,
+            "a gatherer that has not arrived leaves the reference on the farm"
+        );
+
+        // Arrived and off the farm: now it *is* the reference, the farm
+        // does not cover its tile, and nothing is drawn.
+        let Some(crate::orders::Body::Gather(mut go)) =
+            s.action_of(g).map(|i| s.units[g].orders[i].body)
+        else {
+            panic!("the gather order is the action")
+        };
+        go.been_there = true;
+        let i = s.action_of(g).unwrap();
+        s.units[g].orders[i].body = crate::orders::Body::Gather(go);
+        assert_eq!(s.num_gatherers(b, true, false), 1, "arrived");
         let seed = s.rng.seed;
         s.think_farm_animal(animals[0]);
         assert_eq!(s.rng.seed, seed, "the gatherer is off the farm");

@@ -5608,20 +5608,26 @@ mod tests {
              {coll}: {coll_bad:?}"
         );
         // **Nothing leaves the original's point before the word**, and it
-        // took two items to say so. A unit used to part on **1993**, and
+        // took three items to say so. A unit used to part on **1993**, and
         // that was item 191: the woodcutter `1/9`'s two middle waypoints,
         // one 48-grid step each, and the sixty-fourth-frame repaint of a
         // standing guy's collision disc behind them
         // (`docs/COLLISION.md` §2.2). Another parted on **2804** — the AI
         // citizen `1/1`, which finishes building `2010` on 2803 and, in
         // the original, walks to the next site rather than gathering at
-        // the one it just built (`docs/ORDERS.md` §5.5, item 194).
+        // the one it just built (`docs/ORDERS.md` §5.5, item 194). Six
+        // more parted between **2935** and 2996, and one draw took all
+        // six: the pasture animal's reference object, which this crate
+        // read off the chain's length rather than off
+        // `num_gatherers(1, 0)`'s arrived count (`docs/SYNC.md` §3.6,
+        // item 196).
         //
-        // Six units part in the capture's last seventy frames — 2935 …
-        // 2996 against a word of 2930 — so all of them are past it and
-        // the list below is empty. This capture is 3,000 frames long and
-        // the word is now 70 short of its end: the next full-detail Great
-        // Lakes run is owed a longer one (`docs/DECISIONS.md` 29).
+        // So the list below is not merely empty before the word — **no
+        // unit in this capture's 3,000 frames ever stands where the
+        // original's does not**, and `parted` is empty outright. The word
+        // is now 4241, past the capture's whole length, so Great Lakes is
+        // owed a longer full-detail run (`docs/DECISIONS.md` 29) and this
+        // one has nothing left to say about position.
         let early: Vec<(i64, i64, i64)> = parted
             .iter()
             .filter(|&(_, &f)| f < LONG_WORD_GREAT_LAKES)
@@ -5652,9 +5658,16 @@ mod tests {
              whole capture, not only to the word: {build_bad:?}"
         );
         assert!(
-            coll >= 253_874,
+            coll >= 254_924,
             "five fields on every agreeing unit-frame, and the count only \
              grows: {coll}"
+        );
+        // And the stronger form, which only became true with item 196:
+        // the whole capture, not only the stretch before the word.
+        assert!(
+            parted.is_empty(),
+            "no unit leaves the original's point in run69's 3,000 frames: \
+             {parted:?}"
         );
     }
 
@@ -12274,8 +12287,27 @@ mod tests {
     /// find_gather_spot(range)` and only the last of the three was
     /// modelled (`docs/ORDERS.md` §5.5). With the search in, `1/1` takes
     /// the original's move order on 2803 and its point on 2804, and the
-    /// word runs to **2930**.
-    const LONG_WORD_GREAT_LAKES: i64 = 2930;
+    /// word runs to 2930.
+    ///
+    /// It was **2930** for a session, and that frame was a **farm
+    /// animal's**: the pasture `2007`'s slot-0 animal, whose
+    /// `(o · (slot + 1) + frame) % 128` phase lands on 2930, takes
+    /// `Animal::think_farm_animal`'s one draw in the original and none
+    /// here. Neither the phase nor `build_covers_tile` was wrong — the
+    /// **reference object** was. `think_farm_animal@005d7700` picks it on
+    /// `BuildData::num_gatherers(this, 1, 0)`, and that first argument is
+    /// `is_gathering_at`'s `arrived`: a citizen joins the chain the moment
+    /// `add_gather_order` issues and sets `been_there` only when it gets
+    /// there (`docs/ORDERS.md` §6.1). This crate read the chain's
+    /// *length*, so a citizen still walking — five tiles off the pasture —
+    /// became the measured object, the farm did not cover its tile, and
+    /// the draw was dropped. With the arrived count in, the word runs to
+    /// **4241**, and run69's 3,000 frames go from six units ever off the
+    /// original's point to **none** (`docs/SYNC.md` §3.6).
+    ///
+    /// The word is now past the whole of run69, so Great Lakes is owed a
+    /// longer full-detail capture (`docs/DECISIONS.md` 29).
+    const LONG_WORD_GREAT_LAKES: i64 = 4241;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

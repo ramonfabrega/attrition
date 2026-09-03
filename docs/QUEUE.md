@@ -12,35 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — item 194 closed, and the headline moved.* **East Indies
-6739; Great Lakes 2808 → 2930.** The parting field was in the dump, and the
-job the citizen took next was the whole of it.
+*2026-09-03, Opus — item 196 closed, and the headline moved 1,311 frames.*
+**East Indies 6739; Great Lakes 2930 → 4241.** One draw, one argument, and
+both halves were already in the repo.
 
-- **`1/1` finishes building `2010` on 2803 and the original re-targets its
-  build order to `2011`**, pushing the move this crate did not make. Four
-  `track.py` folds over run69 — no reading, no capture.
-- **`Unit::build_done`'s AI arm is three searches and one was modelled.**
-  `find_build_spot() or find_repair_spot() or find_gather_spot(range)`: the
-  citizen reached the third correctly and the original takes the first.
-  ORDERS §5.5, and §5.10 is the two object searches underneath it — the
-  circle-vs-list gate, `FILTER_CONSTRUCT` off the PE jump table, the
-  `FilterIndex` enum off the PDB.
-- **What one function moved.** Great Lakes' word 2808 → **2930**; run69's
-  collision 247,543 → **253,874** field-frames none wrong; units ever off
-  position 11 → **6**, earliest 2804 → **2935**. East Indies unmoved.
-- **§5.9's copy of the same search did not land** — 190's business now:
-  `worker_stance` decides who asks, run69's `1/6` carries 0 where this
-  crate writes 1, and with the arm in it parts on **103**.
+- **A pasture animal measures its farm until a gatherer has *arrived*.**
+  `think_farm_animal` asks `num_gatherers(this, 1, 0)`, and that `1` is
+  `is_gathering_at`'s `arrived` — `been_there`. This crate read the
+  chain's *length*, so a citizen still walking, five tiles off the
+  pasture, became the measured object and `covers_tile` dropped the draw.
+  SYNC §3.6; ORDERS §6.1's "every UI/AI caller uses `(0, 0)`" is struck.
+- **What one argument moved.** Great Lakes 2930 → **4241**; run53's frames
+  on the original's count 4,231 → **6,514**, draw for draw 2,040 →
+  **4,582**; run69's collision 253,874 → **254,924** field-frames none
+  wrong. East Indies unmoved.
+- **run69 is exhausted, and cleanly.** No unit anywhere in its 3,000
+  frames now stands where the original's does not — six parted between
+  2935 and 2996 before this, and one draw took all six. The word is past
+  the capture's end, so Great Lakes is owed a 5,000-frame run: item 197.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6739 of 24,000 · GreatLakes w2930 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w4241 of 24,000
 
-**Opener (Opus):** `196 is the default and it is one draw: Great Lakes'
-new word 2930 is a single missing `Animal::think_farm_animal+0x142`,
-first in the frame, and run69 has that frame at full detail. Three gates
-can drop it — the phase, `gather_down`'s first gatherer, `covers_tile` —
-and FARMS names all three. 190 is second and no longer cosmetic: it now
-blocks a written function.`
+**Opener (Opus):** `197 is the default: Great Lakes' word 4241 is 1,241
+frames past run69's end, so no full-detail dump on disk prints the
+parting frame. run33's recipe carried to 5,000 is the whole item —
+ORACLE's last section, `longtrace.sh` — and run53's trace already names
+the draw, so the capture is the only thing missing. 190 is second and
+still blocks a written function.`
 
 ## The queue
 
@@ -49,14 +48,12 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted unle
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-196. **Great Lakes' word 2930 is one draw, and it is a farm animal's.**
-    run53's sequence at 2930 is the original's with
-    `Animal::think_farm_animal+0x142` **prepended** — first in the frame,
-    every other label identical, 2929 and 2931 draw for draw. FARMS gives
-    it three gates that can drop it: the `(o · (slot + 1) + frame) % 128`
-    phase, the reference point (`gather_down`'s first gatherer while one
-    gathers, else the farm), `build_covers_tile`. run69 has 2930 at full
-    detail; its six position partings are all after the word (2935 … 2996).
+197. **Great Lakes' word is 1,241 frames past its longest full-detail
+    capture.** run69 is 3,000 and the word is 4241, so nothing on disk
+    prints the parting frame's units, buildings or orders — the same debt
+    run69 itself was made to pay, one map later. run33's recipe carried to
+    5,000 (`docs/ORACLE.md`, `longtrace.sh`); run53's trace already names
+    the draw, so the dump is the only thing missing.
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
     frames short of `1/19`'s deploy spot (MERCHANT §7): nothing on disk

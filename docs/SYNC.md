@@ -158,7 +158,7 @@ Per unit, the sites that run on an ordinary frame:
 | `do_gather` at a farm | a **new tile** (`docs/ORDERS.md` §6.5) | 2 (`GameAccess::rnd(4)` twice, x then y — **4, measured on run13**: the six farmers' twelve draws on sim-frame 101 give the dump's new tiles under `% 4` and no other modulus, §4; the target is `(corner + r) · 0xc0 + 0x60`, then `add_move_order`'s 48-cell snap puts it at `corner·192 + 120 + 192r`) |
 | `Unit::think_scout@005f6010` | a scout with no orders (`think`, the bottom branch: not supply, not hero, `is(0x3a)` or `type+0xb2 & 0x10`, `get_army < 0`) — the human's too | 1 for the scan start (`% (ceil(count/100) + frame&7)`) + **1 per candidate cell** that is unseen, `invalid_loc`-clean and of the right domain (`& 7`, a score jitter); the `param_1 != 0` entry draws `% count` for a region pick and re-draws while the cell has `& 0x70` |
 | `Animal::do_idle@005d7460` | an idle animal, every frame: `Unit::set_anim(CHAR_DEFAULT, 0, 1)` first (a draw only on an arrival — run13: sheep 0 at sim-frame 101), then, for a type with `+0x218 == 0`, **a herd member** (`+0x86 ≥ 0`) rolls, a herdless one goes to `think_farm_animal` | when `guy.cur_time == guy.end_time − 1`, 1 (`% 10 < 3` → wander) and, near its herd's centre (`< 0x181`), 3 more (`& 7`, `& 3`, `& 3` → a step along `move_x/y`); else `find_nearby_spot` (0). **This lobby's forty animals are four `HERDSHEEP` (408, herd 0) and thirty-six `HERDFISH` (411) in twelve schools of three at one spot each**; the fish never reach the roll — run13's twelve `end_time 101` fish drew exactly their twelve wraps at sim-frame 100 and nothing else |
-| `Animal::think_farm_animal@005d7700` | a **pasture's** animal (owner 9, five per farm — §3.6), every 128 frames phased by `o · (slot + 1)`, where `slot` is `Animal+0x154`, its place in the five — ~~`scale`~~ | 1 (`& 7`) when the farm covers the tile of the object it measures: the farm itself while nobody gathers there, `gather_down`'s first gatherer once somebody does |
+| `Animal::think_farm_animal@005d7700` | a **pasture's** animal (owner 9, five per farm — §3.6), every 128 frames phased by `o · (slot + 1)`, where `slot` is `Animal+0x154`, its place in the five — ~~`scale`~~ | 1 (`& 7`) when the farm covers the tile of the object it measures: the farm itself while `num_gatherers(1, 0)` is zero — nobody has **arrived** — and `gather_down`'s head once somebody has (§3.6, corrected 2026-09-03) |
 | `Animal::think_bird@005d79e0` | who 9, every 8 frames | 2 (`% 0x51`/`% 0xf` offsets), then a landing roll `% n` and a 30-round `% count`, `% 50 + 1` search |
 | `resolve_unit_collision@005f9d30:499` | a mutual collision | 1 (`pause = % 9 + 1`) |
 | `do_group_move@005e79a0:376`, `do_guard:288`, `do_spec_anim` (2), `think_fish` (2), `think_spellcaster` (2), `do_air_physics` (2) | their situations | as named |
@@ -321,11 +321,32 @@ herdless one goes to `think_farm_animal` **with no clock gate of its own**.
 There:
 
 ```
-if (o · (slot + 1) + game->frame) % 128 != 0: return          # its phase
-target = num_gatherers(farm) == 0 ? farm : farm->gather_down  # BuildData+0x70
+if (o · (slot + 1) + game->frame) % 128 != 0: return           # its phase
+target = num_gatherers(farm, 1, 0) == 0 ? farm                 # arrived only
+                                        : farm->gather_down    # BuildData+0x70
 if not farm->covers_tile(target.tile):        return
-ONE DRAW: dir = rand & 7                                      # then a move
+ONE DRAW: dir = rand & 7                                       # then a move
 ```
+
+**The count is `num_gatherers(this, 1, 0)`, and the `1` is the whole of
+it** (2026-09-03, item 196). That first argument is `is_gathering_at`'s
+third — `arrived` — so the count is chain members whose *action* is a
+`GATHER` on this farm **with `been_there` set**, decoys included
+(`docs/ORDERS.md` §6.1). A citizen joins the chain the moment
+`add_gather_order` issues it and sets `been_there` only on arrival, so
+through the whole walk out the count is zero and the measured object is
+**the farm**, which covers its own tile — the draw is spent. Read as the
+chain's *length* instead, a citizen still five tiles away becomes the
+measured object, `covers_tile` fails, and the draw is dropped: that was
+Great Lakes' word at run53's **2930**, and with the arrived count in it
+runs to **4241**. run69's 3,000 frames went from six units ever off the
+original's point to **none**.
+
+Note the asymmetry, which is in the listing and not a simplification: the
+*count* is filtered by arrival, and the object it then reads is
+`gather_down` — the chain's **head, unfiltered**. Whoever is at the front
+of the chain is measured, arrived or not; the arrived count only decides
+*whether* the head is consulted at all.
 
 So a pasture costs, per frame: **five idle rolls in the unit loop, plus one
 `think_farm_animal` draw for each animal whose 128-frame phase lands and
@@ -2259,6 +2280,21 @@ kind honest.
   run39, but on the rule: `add_move_order@00616ed0` takes the same
   unsnapped bearing, and run10's farmers separate the two by up to 10.5°
   on frames the dump prints.
+
+- **The pasture's reference object, §3.6 (2026-09-03).** Diff-backed, on
+  run53 and run69: the arrived count is what decides whether an animal
+  measures its farm or its farm's gatherer, and reading the chain's length
+  instead cost Great Lakes' word 1,311 frames — `run53_s_24000_frames_put_
+  the_ceiling_where_run33_did` runs 2930 → **4241**, and
+  `run69_s_three_thousand_frames_stand_where_the_original_s_do` goes from
+  six units ever off the original's point to **none** over its whole 3,000,
+  which is now asserted outright rather than only before the word. The
+  sim's half, `think_farm_animal_s_phase_and_its_covers_tile`, makes all
+  three states fail on purpose: off phase, on the chain but not arrived,
+  and arrived off the footprint. Reading-only, and named as such: that the
+  head `gather_down` names is measured **unfiltered** once the count is
+  non-zero — no capture has a pasture whose chain head is not also its one
+  arrived gatherer, so a chain of two would be needed to separate them.
 
 - **The pasture's stocking, §3.21 (2026-08-31).** Diff-backed, on run33:
   `a_finished_pasture_stocks_five_animals_for_twenty_draws` re-derives the

@@ -1629,8 +1629,9 @@ G17), and `num_gatherers`' second argument is both the decoy filter **and** a
 `count_inside` mode selector, `COUNT_TYPE + 2` (G13). This is `Site::gatherers`' real
 source in `docs/ECONOMY.md`; the count is **`|{u in chain : u.first_order is
 GATHER(this) and u.been_there and not a decoy}| + inside(PEASANTS on a
-platform / SCHOLARS in a university)`**. Every UI/AI caller uses `num_gatherers
-(0, 0)` — chain members regardless of arrival.
+platform / SCHOLARS in a university)`**. ~~Every UI/AI caller uses
+`num_gatherers(0, 0)`.~~ — **corrected 2026-09-03 (196): all but
+`Animal::think_farm_animal`, which asks `(1, 0)`** (`docs/SYNC.md` §3.6).
 
 The chain: `Build::add_gatherer@0062f640(o, who)` — same owner;
 `num_gatherers(0,0) < gather_max` (`BuildData+0x80`); the unit exists, is on
