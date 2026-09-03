@@ -2864,6 +2864,48 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
     init.anim_lengths.dedup();
 }
 
+/// `RON_DEBUG_UNIT=<who>/<o>@<lo>-<hi>` — one unit's position, orders and
+/// path over a window of frames, on **any** capture [`run_traced`] drives.
+///
+/// The shape is run54's own probe (`docs/JOURNAL.md`, item 175), which was
+/// welded into that one test's hand-rolled tick loop; the third capture
+/// to want it graduates it here. run54's keeps its own copy because it
+/// also prints the figure clocks and does not go through
+/// [`run_traced`]. Costs nothing when the variable is unset, and exists
+/// only in test builds.
+#[cfg(test)]
+fn debug_watch(built: &Built, frame: i64) {
+    let Some((who, o, lo, hi)) = std::env::var("RON_DEBUG_UNIT").ok().and_then(|v| {
+        let (u, w) = v.split_once('@')?;
+        let (who, o) = u.split_once('/')?;
+        let (lo, hi) = w.split_once('-')?;
+        Some((
+            who.trim().parse::<i64>().ok()?,
+            o.trim().parse::<i64>().ok()?,
+            lo.trim().parse::<i64>().ok()?,
+            hi.trim().parse::<i64>().ok()?,
+        ))
+    }) else {
+        return;
+    };
+    if !(lo..=hi).contains(&frame) {
+        return;
+    }
+    let Some(u) = built
+        .sim
+        .units
+        .iter()
+        .find(|x| x.alive() && i64::from(x.owner) == who && i64::from(x.index) == o)
+    else {
+        eprintln!("  f{frame} {who}/{o} absent");
+        return;
+    };
+    eprintln!(
+        "  f{frame} {who}/{o} at ({}, {}) ang {} hdg {} path {:?} orders {:?}",
+        u.pos.x, u.pos.y, u.movement.facing.0, u.movement.heading.0, u.path, u.orders,
+    );
+}
+
 /// [`run_with`], with what this dump lacks borrowed from **siblings** —
 /// other dumps of the same lobby and seed, hence the same map and the same
 /// setup stream: the setup path's checksum trace (run11 has it; run9 and
@@ -2916,6 +2958,8 @@ pub fn run_traced<'a, 'b: 'a>(
             }
             built.tick();
             last += 1;
+            #[cfg(test)]
+            debug_watch(&built, last);
         }
         report.frames.push(compare(&built, f, players));
     }
@@ -5563,20 +5607,21 @@ mod tests {
             "the collision block agrees on every comparable field-frame of \
              {coll}: {coll_bad:?}"
         );
-        // **Nothing leaves the original's point before the word except
-        // `1/9`, and `1/9` is item 191.** Thirteen of the capture's
-        // eleven partings, and they now run 2804 … 2930 against a word of
-        // 2808. A fourteenth unit used to part on **1993**, 474 frames
-        // ahead of any of them, and it was item 191: the woodcutter's two
-        // middle waypoints, one 48-grid step each. Its route is the
-        // original's now (`docs/COLLISION.md` §2.2) and the word moved
-        // 2419 → 2808 with it.
+        // **Nothing leaves the original's point before the word**, and it
+        // took two items to say so. A unit used to part on **1993**, and
+        // that was item 191: the woodcutter `1/9`'s two middle waypoints,
+        // one 48-grid step each, and the sixty-fourth-frame repaint of a
+        // standing guy's collision disc behind them
+        // (`docs/COLLISION.md` §2.2). Another parted on **2804** — the AI
+        // citizen `1/1`, which finishes building `2010` on 2803 and, in
+        // the original, walks to the next site rather than gathering at
+        // the one it just built (`docs/ORDERS.md` §5.5, item 194).
         //
-        // **One unit is still four frames in front of the word**, and it
-        // is pinned as it stands rather than filtered out: `1/1` leaves
-        // the original's point on **2804**. That is the whole of the next
-        // item on this map, and the day it is right this fails rather than
-        // passing quietly.
+        // Six units part in the capture's last seventy frames — 2935 …
+        // 2996 against a word of 2930 — so all of them are past it and
+        // the list below is empty. This capture is 3,000 frames long and
+        // the word is now 70 short of its end: the next full-detail Great
+        // Lakes run is owed a longer one (`docs/DECISIONS.md` 29).
         let early: Vec<(i64, i64, i64)> = parted
             .iter()
             .filter(|&(_, &f)| f < LONG_WORD_GREAT_LAKES)
@@ -5584,9 +5629,9 @@ mod tests {
             .collect();
         assert_eq!(
             early,
-            vec![(1, 1, 2804)],
-            "one unit leaves the original's point before the word, four \
-             frames in front of it"
+            Vec::new(),
+            "no unit leaves the original's point before the word \
+             ({LONG_WORD_GREAT_LAKES})"
         );
         // And no waypoint disagrees before the word either. `1/9`'s two
         // slots — `dest_x` from 1993 and `dest_y` from 2000 — were pinned
@@ -5607,7 +5652,7 @@ mod tests {
              whole capture, not only to the word: {build_bad:?}"
         );
         assert!(
-            coll >= 247_543,
+            coll >= 253_874,
             "five fields on every agreeing unit-frame, and the count only \
              grows: {coll}"
         );
@@ -12220,7 +12265,17 @@ mod tests {
     /// **grid** did not — and `Guy::process@005e0230`'s sixty-fourth-frame
     /// repaint of the collision block is what this crate was missing
     /// (`docs/COLLISION.md` §2.2, `docs/PATHFINDER.md` §17).
-    const LONG_WORD_GREAT_LAKES: i64 = 2808;
+    ///
+    /// It was **2808** for a day, and that frame was a **job**: the AI's
+    /// citizen `1/1` finishes building `2010` on 2803 and the original
+    /// sends it straight to the next site, `2011`, where this crate sent
+    /// it to gather at the one it had just put up. `Unit::build_done`'s
+    /// AI arm is `find_build_spot() or find_repair_spot() or
+    /// find_gather_spot(range)` and only the last of the three was
+    /// modelled (`docs/ORDERS.md` §5.5). With the search in, `1/1` takes
+    /// the original's move order on 2803 and its point on 2804, and the
+    /// word runs to **2930**.
+    const LONG_WORD_GREAT_LAKES: i64 = 2930;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

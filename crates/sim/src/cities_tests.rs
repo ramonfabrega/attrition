@@ -1513,6 +1513,127 @@ fn only_a_human_builder_adopts_the_site_it_has_just_finished() {
     );
 }
 
+/// **`Unit::find_build_spot@00603e20`** — where a builder with nothing left
+/// to do goes, and the first of `build_done`'s three searches
+/// (`docs/ORDERS.md` §5.5).
+///
+/// Four things at once, because they are one walk: an AI citizen that has
+/// just finished a site takes the **next** one rather than gathering at
+/// the one it raised; a site out of `UNIT_BUILD_RESPOND_RANGE` is not a
+/// candidate; among candidates the **nearest ring** wins a tie on builder
+/// count, because the found list is the circle's own order and the
+/// min-search is a strict `<` from index 0; and a site that already has
+/// builders loses to one that has none however much further out it is.
+///
+/// Great Lakes' 2803 is the capture behind it: `1/1` finishes building
+/// `2010` and walks to `2011`, which is the whole of the map's word going
+/// 2808 → 2930.
+#[test]
+fn an_ai_builder_takes_the_next_site_nearest_first_and_least_crowded() {
+    use crate::tech::{TechTree, TypeDef};
+
+    /// An AI player 0 with a city, a citizen type and the six goods its
+    /// research sweep indexes.
+    fn ground() -> (Sim, Types, usize) {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        sim.nation[0].human = false;
+        sim.lobby.starting_resources = 1;
+        let mut tree = TechTree::new();
+        for name in ["Food", "Timber", "Metal", "Wealth", "Knowledge", "Oil"] {
+            tree.add(TypeDef::good(name));
+        }
+        sim.set_tech_tree(tree);
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        (sim, t, citizen)
+    }
+
+    // 1. The end-to-end shape: two sites, the builder finishes one and is
+    //    left holding a `BUILD_AT` on the other — not a `GATHER` on its
+    //    own farm, which is what a **human** builder would take.
+    let (mut sim, t, citizen) = ground();
+    let mine = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
+    let next = sim.place_building(0, t.farm, tile_pos(50, 32)).unwrap();
+    let builder = spawn(&mut sim, 0, citizen, tile_pos(44, 32));
+    sim.add_build_order(builder, mine, QueuePos::New, true);
+    let mut frames = 0;
+    while !sim.buildings[mine].active {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 4_000, "the farm should go up");
+    }
+    let held: Vec<Body> = sim.units[builder].orders.iter().map(|o| o.body).collect();
+    assert!(
+        held.contains(&Body::Build(next)),
+        "the AI's builder walks to the site it has not built: {held:?}"
+    );
+
+    // 2. Range. `UNIT_BUILD_RESPOND_RANGE` is 12 tiles, doubled to 24 on
+    //    worker stance 1, and the search is over **cells** — so a site 40
+    //    tiles away is not a candidate and the citizen finds nothing.
+    let (mut sim, t, citizen) = ground();
+    let far = sim.place_building(0, t.farm, tile_pos(20, 32)).unwrap();
+    let u = spawn(&mut sim, 0, citizen, tile_pos(60, 32));
+    assert!(
+        !sim.find_build_spot(u),
+        "a site 40 tiles out is past the doubled respond range"
+    );
+    assert!(sim.units[u].orders.is_empty());
+    // And in range it is found.
+    let u2 = spawn(&mut sim, 0, citizen, tile_pos(30, 32));
+    assert!(sim.find_build_spot(u2));
+    assert!(
+        sim.units[u2]
+            .orders
+            .iter()
+            .any(|o| o.body == Body::Build(far)),
+        "the same site ten tiles out is one"
+    );
+
+    // 3. The tie goes to the **nearer** ring: both sites are empty, and
+    //    the circle reaches the closer cell first.
+    let (mut sim, t, citizen) = ground();
+    let close = sim.place_building(0, t.farm, tile_pos(38, 32)).unwrap();
+    let further = sim.place_building(0, t.farm, tile_pos(48, 32)).unwrap();
+    let u = spawn(&mut sim, 0, citizen, tile_pos(36, 32));
+    assert!(sim.find_build_spot(u));
+    let held: Vec<Body> = sim.units[u].orders.iter().map(|o| o.body).collect();
+    assert!(
+        held.contains(&Body::Build(close)) && !held.contains(&Body::Build(further)),
+        "an empty tie goes to the nearer site: {held:?}"
+    );
+
+    // 4. …and one builder on the near site is enough to lose it, because
+    //    the choice is the count and only then the order.
+    let (mut sim, t, citizen) = ground();
+    let close = sim.place_building(0, t.farm, tile_pos(38, 32)).unwrap();
+    let further = sim.place_building(0, t.farm, tile_pos(48, 32)).unwrap();
+    let busy = spawn(&mut sim, 0, citizen, tile_pos(38, 34));
+    sim.add_build_order(busy, close, QueuePos::New, false);
+    let u = spawn(&mut sim, 0, citizen, tile_pos(36, 32));
+    assert!(sim.find_build_spot(u));
+    assert!(
+        sim.units[u]
+            .orders
+            .iter()
+            .any(|o| o.body == Body::Build(further)),
+        "the crowded near site loses to the empty far one"
+    );
+
+    // 5. `build_masks & 0x20` — a site under attack is no candidate at
+    //    all, whoever is free.
+    let (mut sim, t, citizen) = ground();
+    let hot = sim.place_building(0, t.farm, tile_pos(38, 32)).unwrap();
+    sim.buildings[hot].under_attack |= 0x2;
+    let u = spawn(&mut sim, 0, citizen, tile_pos(36, 32));
+    assert!(
+        !sim.find_build_spot(u),
+        "a site under attack is not offered to a free builder"
+    );
+}
+
 /// On open ground no move draws from the sync stream: a near one never
 /// asks the pathfinder, and a far one is planned by `find_wpath` at order
 /// time — before the RNG-thresholded re-plan branch, which only runs when

@@ -368,6 +368,10 @@ const SNAP_CENTRE: i32 = 0x18;
 const HALF_TILE: i32 = 0x60;
 const TILE: i32 = 0xc0;
 const CELL: i32 = 0x300;
+/// `Game::init_data@0058dca0`: `num_def_builds = 200`, the per-player
+/// building slot count, and the threshold `Objects::find_builds` compares
+/// its circle against.
+const NUM_DEF_BUILDS: usize = 200;
 /// The 48-unit snap, `div_3_table[v >> 4] * 0x30 + 0x18`.
 ///
 /// Two callers in the original and they are the same arithmetic: every move
@@ -1396,6 +1400,17 @@ impl Sim {
         } else {
             self.tuning.unit_gather_respond_range * TILE
         };
+        // SEAM: §5.9's build arm belongs **here**, ahead of the gather
+        // search — `not a scholar and (unit_masks & 0x400 or worker_stance
+        // ∈ {1, 2}) and find_build_spot()`. [`Sim::find_build_spot`]
+        // exists and `build_done`'s two arms take it; this one cannot land
+        // until `stance` does. It is `worker_stance` that decides who
+        // asks, and this crate writes a flat 1 where the original computes
+        // it per unit (`docs/QUEUE.md` 190): on run69's frame 110 the
+        // original's `1/6` carries **0** and its four siblings 1, and with
+        // the arm in, `1/6` is born on 100, walks to a build site on 101
+        // and leaves the original's point on **103** — 2,800 frames in
+        // front of the word. Measured 2026-09-03.
         if stance <= 1 && self.find_gather_spot(u, range) {
             return true;
         }
@@ -2995,13 +3010,25 @@ impl Sim {
         }
         let who = self.units[u].owner;
         if self.ai_driven(who) {
-            // `find_build_spot`/`find_repair_spot` — seams (§5.5).
+            // **The AI's first question is where to build next**, and it is
+            // what an AI citizen that has just finished a site does instead
+            // of adopting it (§5.2 step 6). Great Lakes' `1/1` finishes
+            // building `2010` on frame 2803 and walks to `2011` on 2804;
+            // this crate sent it to gather until [`Self::find_build_spot`]
+            // landed. `find_repair_spot` is still a seam, and it only ever
+            // runs when the build search comes back empty.
+            if self.find_build_spot(u) {
+                return;
+            }
             if !self.lobby.resources_unlimited() {
                 self.find_gather_spot(u, self.tuning.unit_gather_respond_range * TILE);
             }
             return;
         }
         let stance = self.units[u].stance;
+        if (stance == 1 || stance == 2) && self.find_build_spot(u) {
+            return;
+        }
         if stance <= 1 && self.find_gather_spot(u, self.tuning.unit_gather_respond_range * TILE) {
             return;
         }
@@ -3019,6 +3046,180 @@ impl Sim {
         {
             self.add_gather_order(u, b, QueuePos::New, false);
         }
+    }
+
+    /// `Objects::find_builds`/`Objects::find_units`' ring index:
+    /// `(range + 0x2ff) / 0x300`, the range in **cells** rounded up, and a
+    /// cell is four tiles. Both searches take their cheap circle walk only
+    /// while that ring holds no more points than the thing being counted
+    /// (`num_def_builds`, a flat **200** from `Game::init_data@0058dca0`,
+    /// and `total_units`, the live unit count); past it they walk the
+    /// object lists instead.
+    fn ring_index(range: i32) -> usize {
+        ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize
+    }
+
+    /// `Objects::find_builds(SEARCH_FRIENDLY, who, range, 0x200,
+    /// FILTER_CONSTRUCT)` as `find_build_spot` uses it, with that caller's
+    /// own two extra tests folded in: **my** sites, and not under attack
+    /// (`build_masks & 0x20`).
+    ///
+    /// `FILTER_CONSTRUCT` is arm 5 of `Search::valid_filter@0067dbb0`'s
+    /// jump table — the table is at `0067e57c` and the arm at `0067dd54`,
+    /// read from the PE because the decompiler prints the dispatch as an
+    /// indirect jump. It is `vtable+0xc` (the object exists) and then a
+    /// **negated** `vtable+0x4c` on what `vtable+0x40` hands back: an
+    /// object that is not active, which for a building is a site still
+    /// under construction. Arm 6 next door is `FILTER_DAMAGED` and is the
+    /// same pair un-negated plus `+0x24 damage != 0`, which is how the
+    /// polarity is settled.
+    ///
+    /// The `0x200` flag is the region gate: only cells whose region is the
+    /// searcher's own. Order is the circle's, then — because
+    /// `Object::add_to_world` pushes onto the head of the cell's chain —
+    /// the **newest** object of a cell first. Nothing threads a building
+    /// into `chain_heads` here (`docs/QUEUE.md` 48), so the within-cell
+    /// half is descending slot order rather than a chain walk.
+    fn find_construct_sites(&self, u: usize, range: i32) -> Vec<usize> {
+        let who = self.units[u].owner;
+        let here = self.units[u].pos;
+        let Some(region) = self.world.region_of(here.cell()) else {
+            return Vec::new();
+        };
+        let mine: Vec<usize> = (0..self.buildings.len())
+            .filter(|&b| {
+                let bd = &self.buildings[b];
+                bd.alive && !bd.active && bd.owner == who && !bd.is_under_attack()
+            })
+            .collect();
+        if mine.is_empty() {
+            return Vec::new();
+        }
+        let circle = crate::ai_place::circle();
+        let ring = Self::ring_index(range);
+        // The list path, when the circle is dearer than the object arrays.
+        if circle.radius[ring] > NUM_DEF_BUILDS {
+            return mine
+                .into_iter()
+                .filter(|&b| {
+                    let p = self.buildings[b].pos;
+                    self.world.region_of(p.cell()) == Some(region)
+                        && vector_dist(p.x - here.x, p.y - here.y) <= range
+                })
+                .collect();
+        }
+        let c0 = here.cell();
+        let mut out = Vec::new();
+        for i in 0..circle.radius[ring] {
+            let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+            if !self.world.contains(c) || self.world.region_of(c) != Some(region) {
+                continue;
+            }
+            out.extend(
+                mine.iter()
+                    .rev()
+                    .filter(|&&b| self.buildings[b].pos.cell() == c)
+                    .copied(),
+            );
+        }
+        out
+    }
+
+    /// The builder tally `find_build_spot` takes over
+    /// `Objects::find_units(SEARCH_FRIENDLY, who, range, 0x200,
+    /// FILTER_BUILDREPAIR)`: for every friendly unit the search returns
+    /// whose **action** is a `BUILD_AT` on a site of mine, one on that
+    /// site's slot — and the scan stops at the first slot it matches, so a
+    /// unit is counted once.
+    ///
+    /// The filter itself is subsumed: a unit with a `BUILD_AT` action is
+    /// one `FILTER_BUILDREPAIR` keeps. What is *not* subsumed is the
+    /// search's own reach, so the two paths are both here — and the list
+    /// path's region test is the searcher's cell region against the
+    /// candidate's, where the original indexes its cell grid with **tile**
+    /// coordinates (`div_3_table[pos >> 6]`, a `>> 8` everywhere else).
+    /// That arithmetic is not reproduced; it is a count that breaks ties.
+    fn build_crowd(&self, u: usize, range: i32, sites: &[usize]) -> Vec<i32> {
+        let who = self.units[u].owner;
+        let here = self.units[u].pos;
+        let mut counts = vec![0i32; sites.len()];
+        let circle = crate::ai_place::circle();
+        let ring = Self::ring_index(range);
+        let live = self.units.iter().filter(|x| x.alive()).count();
+        let tally = |sim: &Self, o: usize, counts: &mut Vec<i32>| {
+            let unit = &sim.units[o];
+            if !unit.alive() || (unit.owner != who && !sim.is_ally(who, unit.owner)) {
+                return;
+            }
+            let Some(i) = sim.action_of(o) else { return };
+            let Body::Build(b) = sim.units[o].orders[i].body else {
+                return;
+            };
+            if sim.buildings.get(b).is_none_or(|bd| bd.owner != who) {
+                return;
+            }
+            if let Some(k) = sites.iter().position(|&s| s == b) {
+                counts[k] += 1;
+            }
+        };
+        if circle.radius[ring] <= live {
+            let c0 = here.cell();
+            let region = self.world.region_of(c0);
+            for i in 0..circle.radius[ring] {
+                let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+                if !self.world.contains(c) || self.world.region_of(c) != region {
+                    continue;
+                }
+                let slot = (c.y as usize) * (self.world.width() as usize) + (c.x as usize);
+                let mut next = self.chain_heads[slot];
+                while let Some(o) = next {
+                    next = self.units[o].down;
+                    tally(self, o, &mut counts);
+                }
+            }
+        } else {
+            for o in 0..self.units.len() {
+                let p = self.units[o].pos;
+                if vector_dist(p.x - here.x, p.y - here.y) > range {
+                    continue;
+                }
+                tally(self, o, &mut counts);
+            }
+        }
+        counts
+    }
+
+    /// `Unit::find_build_spot@00603e20` (§5.5) — the search an AI builder
+    /// takes the moment a site is finished, and the one an idle builder
+    /// takes ahead of the gather search.
+    ///
+    /// Range is `UNIT_BUILD_RESPOND_RANGE × 0xc0`, **doubled** on worker
+    /// stance 1 or 2. The candidates are [`Self::find_construct_sites`];
+    /// the choice is the fewest builders already on one, and the first of
+    /// a tie, because the original's min-search is a strict `<` walking up
+    /// from index 0. The winner is a `swarm_around` with `BUILD_AT` and no
+    /// action bit.
+    ///
+    /// The original wraps the swarm in a one-member `Group`; every other
+    /// swarm call site here is the same single-unit shape (§10).
+    pub(crate) fn find_build_spot(&mut self, u: usize) -> bool {
+        let stance = self.units[u].stance;
+        let wide = stance == 1 || stance == 2;
+        let range = self.tuning.unit_build_respond_range * if wide { TILE * 2 } else { TILE };
+        let sites = self.find_construct_sites(u, range);
+        if sites.is_empty() {
+            return false;
+        }
+        let counts = self.build_crowd(u, range, &sites);
+        let mut best = 0;
+        for i in 1..sites.len() {
+            if counts[i] < counts[best] {
+                best = i;
+            }
+        }
+        let site = sites[best];
+        self.swarm_around(u, site, Body::Build(site), false);
+        true
     }
 
     /// `Unit::do_repair` (§5.6), on the existing repair step.

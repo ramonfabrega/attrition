@@ -1432,22 +1432,18 @@ if o ≥ 0 and who == me and T is a gather building, not UNIVERSITY, not OILPLAT
     add_gather_order(o, QUEUE_NEW, 0)
 ```
 
-**`find_build_spot@00603e20`**: range `UNIT_BUILD_RESPOND_RANGE × 192` (`× 384`
-for stance 1 or 2); `Objects::find_builds(SEARCH_FRIENDLY, range,
-FILTER_CONSTRUCT)`; keep own sites whose `build_masks & 0x20` is clear; if
-any: count builders per site (friendly units whose action is `BUILD_AT` on
-it), pick the fewest (ties → first), `swarm_around(site, QUEUE_LAST, BUILD_AT,
-0)`; return 1. **`find_repair_spot@00604320`**: a human
-(`leader_flags & 4` set — `LeaderData::is_human@006ec170` is literally
-`return leader_flags & 4`, which also settles §14's flag question) always
-searches, at `UNIT_BUILD_RESPOND_RANGE × 192`, doubled to `× 384` on worker
-stance 1 or 2; an AI searches at `× 192` flat and **only when its effective
-difficulty ≥ 2** (per-leader in network mode, the lobby's otherwise), else
-return 0 — the gate and the branch shape per audit R3 F3, third pass
-2026-08-23. Then `find_any_building(SEARCH_FRIENDLY, range, FILTER_DAMAGED,
-FILTER_NOT_UNDER_ATTACK)` whose tile's territory owner is nobody, me or a
-mutual ally; `swarm_around(b, QUEUE_LAST, REPAIR, 0)`. `find_gather_spot` is
-§6.6.
+**`find_build_spot@00603e20`** (§5.10 is the two searches it makes): range
+`UNIT_BUILD_RESPOND_RANGE × 192`, `× 384` on `get_worker_stance` 1 or 2 —
+a type with no worker stance type reads 0 and never doubles;
+`find_builds(SEARCH_FRIENDLY, range, 0x200, FILTER_CONSTRUCT)`; keep own
+sites whose `build_masks & 0x20` is clear; if any: count the builders on
+each from a second search, `find_units(…, range, 0x200,
+FILTER_BUILDREPAIR)`, keeping a unit whose **action** is a `BUILD_AT` on
+one of them and counting it once (the scan `break`s on its first match);
+take the fewest — ties → first, the min-search being a strict `<` up from
+index 0 — and `swarm_around(site, QUEUE_LAST, BUILD_AT, 0)`; return 1.
+
+`find_repair_spot@00604320` is §5.10 too; `find_gather_spot` is §6.6.
 
 ### 5.6 `Unit::do_repair(order)@005ee420`
 
@@ -1552,6 +1548,56 @@ builders (more for a wonder) and recruits with `find_unit(SEARCH_FRIENDLY,
 0xf00, FILTER_TYPE PEASANTS, FILTER_NOT_BUSY)` → `add_build_order(site,
 QUEUE_NEW, 0)`. The same function resets `helpers` and `build_masks & 0x800`
 every frame (`docs/CITIES.md` §3.3).
+
+---
+
+## 5.10 The searches a builder makes — `find_builds`, `find_units`, `find_repair_spot`
+
+**The two searches, read 2026-09-03** (item 194).
+`Objects::find_builds@0065a120` and `Objects::find_units@0065a620` each have
+two paths and pick between them on cost: `n = (range + 0x2ff) / 0x300` — the
+range in **cells**, rounded up, a cell being four tiles — and the circle path
+runs while `circle_radius[n]` is no more than `game->num_def_builds` for the
+one and `game->total_units` for the other. `num_def_builds` is a flat **200**
+(`Game::init_data@0058dca0`, beside `num_def_units = 200`; it is the
+per-player object-array size, which is why a building's `o` is `2000 + i`),
+and `total_units` is the live count `Unit::init`/`Unit::close` keep. So the
+build search is always the circle for any range a citizen uses, and the unit
+search is not: `circle_radius[3]` is 45 and `circle_radius[6]` is 145, against
+59 live units on run69's frame 2803.
+
+The circle path walks `circle_x`/`circle_y` out to `circle_radius[n]` around
+the searcher's own cell, takes each cell's object chain (`+8`/`+10` the head's
+`(o, who)`, then `+0x2c`/`+0x2e` — the same `down`/`down_who` the dump
+prints), and applies `Search::valid_search` and `Search::valid_filter`. **It
+has no distance test at all**; the list path, which walks the per-leader
+object arrays instead, has `vector_dist <= range`. The `0x200` flag is the
+region gate — the cell's `+4` against the query point's — and on the list path
+`find_units` computes the query cell as `div_3_table[pos >> 6]`, a **tile**
+coordinate indexed into the cell grid, where every other site uses `>> 8`.
+That is the original's own arithmetic and is not reproduced here.
+
+`FILTER_CONSTRUCT` is arm 5 of `Search::valid_filter@0067dbb0`'s jump table
+(the index is `filter − FILTER_TYPE`; the table is at `0067e57c` and the arm
+at `0067dd54`, read from the PE because the decompiler prints the dispatch as
+an indirect jump): `vtable+0xc` on the object, then `vtable+0x40` for what
+`vtable+0x4c` is asked, **negated** — an object that is not active, which for
+a building is a site still under construction. The polarity is settled by arm
+6 next door, `FILTER_DAMAGED`, which is the same pair un-negated plus
+`+0x24 damage != 0`. The `FilterIndex` enum is the PDB's:
+`FILTER_ALL = 0`, `FILTER_TYPE = 1`, … `FILTER_CONSTRUCT = 6`,
+`FILTER_DAMAGED = 7`, … `FILTER_BUILDREPAIR = 10`, … `NUM_FILTER = 24`.
+
+**`find_repair_spot@00604320`**: a human
+(`leader_flags & 4` set — `LeaderData::is_human@006ec170` is literally
+`return leader_flags & 4`, which also settles §14's flag question) always
+searches, at `UNIT_BUILD_RESPOND_RANGE × 192`, doubled to `× 384` on worker
+stance 1 or 2; an AI searches at `× 192` flat and **only when its effective
+difficulty ≥ 2** (per-leader in network mode, the lobby's otherwise), else
+return 0 — the gate and the branch shape per audit R3 F3, third pass
+2026-08-23. Then `find_any_building(SEARCH_FRIENDLY, range, FILTER_DAMAGED,
+FILTER_NOT_UNDER_ATTACK)` whose tile's territory owner is nobody, me or a
+mutual ally; `swarm_around(b, QUEUE_LAST, REPAIR, 0)`.
 
 ---
 
@@ -3378,9 +3424,12 @@ what is listed as an input is stated as such in the code):
   `do_construct`/`repair_*`/`garrison` seams, with adjacency = `attack_dist <
   96` (replacing the tile-based stand-in), the swarm ring (`ExploreTo` to the
   §10 spot, re-queued in front with the same action bit), `check_build_order`,
-  `build_done` with **its own AI arm** and the stance rules (§5.2's note;
-  `find_build_spot`/`find_repair_spot` are the seams inside it),
-  `come_out`'s citizen/scholar rally rules.
+  `build_done` with **its own AI arm** and the stance rules (§5.2's note)
+  and **`find_build_spot` whole** (§5.5, 2026-09-03: the doubled range on
+  worker stance 1/2, `find_builds`' circle over cells with the `0x200`
+  region gate, `FILTER_CONSTRUCT`, the caller's own-and-not-under-attack
+  pair, the builder tally and the strict-`<` minimum) — `find_repair_spot`
+  is the seam left inside it — `come_out`'s citizen/scholar rally rules.
 - **`do_gather`** — the chain on the building (`gatherers: Vec<usize>`,
   push-front, the prune), `num_gatherers(arrived, skip_decoys)` — the count
   the economy should read; **`economy::Site::gatherers` is still an input**,
@@ -3412,8 +3461,15 @@ what is listed as an input is stated as such in the code):
   becomes an attack order in front of what it was doing.
 - **Idle** — `idle`'s counter, `think`'s auto-attack on `idle == 1`/32 through
   the existing `find_melee_target`, `think_peasant`'s gate and
-  `find_gather_spot` (`find_build_spot`/`find_repair_spot` need the object
-  searches: not yet).
+  `find_gather_spot`. §5.9's **build arm** — `not a scholar and
+  (unit_masks & 0x400 or worker_stance ∈ {1,2}) and find_build_spot()`,
+  ahead of the gather search — is written but **not landed**: it is
+  `worker_stance` that decides who asks, and this crate writes a flat 1
+  where the original computes it per unit. Measured on run69 (2026-09-03):
+  the original's `1/6` carries `stance 0` on frame 110 and its four
+  siblings 1, and with the arm in, `1/6` is born on 100, walks to a build
+  site on 101 and leaves the original's point on **103**. `find_repair_spot`
+  needs `FILTER_DAMAGED` and the difficulty gate and is still absent.
 - **The group orders** — **landed 2026-08-25** as `crates/sim/src/group.rs`
   (`docs/GROUPS.md`), which reads the layer §8 only entered: the record and
   the pool, membership, and `action_move_to`/`action_move_near`,
@@ -3468,6 +3524,22 @@ moves fall out of dispatching once on the front at the top of `work`.
 ---
 
 ## 14. What is not established, and the checks
+
+- **§5.10's list paths, and the chain's order inside a cell.** The build
+  search always takes the circle at a citizen's ranges and the unit search
+  need not, so `find_units`' list path — all units, `vector_dist <= range`,
+  and the `div_3_table[pos >> 6]` region compare that indexes the cell grid
+  with tile coordinates — is modelled as a plain distance-and-region scan
+  rather than reproduced. It feeds a **count that breaks ties** between
+  build sites, nothing else. And the circle path's within-cell order is the
+  object chain's, which is push-front by `Object::add_to_world`: this crate
+  threads only units into `chain_heads` (`docs/QUEUE.md` 48), so
+  `find_construct_sites` takes descending slot order there instead. Neither
+  has a capture behind it; two of a player's sites in one four-tile cell,
+  with equal builder counts, is what would tell them apart.
+- **`find_repair_spot` is still absent**, on all four of its arms
+  (§5.5, §5.6, §5.9). It needs `FILTER_DAMAGED` and the difficulty gate,
+  and it only ever runs when the build search comes back empty.
 
 **Not established — the order system**
 

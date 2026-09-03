@@ -14448,3 +14448,99 @@ run55 was seventeen minutes because it kept run39's full detail to stay a
 sibling. Nothing about a call proxy needs the dump at all: `end: MISC` and
 `cover=0` make a 2,000-frame Great Lakes run cost three minutes, and
 `rngcmp` against run53 still proves it is the same game.
+
+
+## 2026-09-03 (Opus) — item 194: the builder that finished a farm and stayed (Great Lakes 2808 → 2930)
+
+Item 191 left Great Lakes with one unit in front of the word: `1/1`, the
+AI's citizen, leaving the original's point on **2804** against a word of
+2808. The item was booked to read which field parted first, because run69
+is at run33's full detail and holds `1/1` whole either side of it.
+
+### The dump answered it without a reading
+
+`1/1` stands still on `(42984, 24600)` from 2653 to 2802 with one order —
+a `BUILDORDER` on `2011`'s predecessor `2010` — and on **2803** three
+things happen at once: `2010`'s flags go `3 → 7` (finished), the build
+order's target goes `2010 → 2011` with its `flags 4 → 0`, and an
+`EXPLORETOORDER` to `(42888, 23880)` is pushed on top. On 2804 it walks.
+
+This crate's `1/1` was holding a `Gather` on the building it had just put
+up, standing until 2809 and then walking somewhere else entirely. The line
+is `Unit::build_done@00603bf0` (`docs/ORDERS.md` §5.5), whose AI arm is
+
+```
+find_build_spot() or find_repair_spot() or (starting_resources != 8 and find_gather_spot(range))
+```
+
+and of the three only the last was modelled. §5.2's step 6 had been right
+since item 47 — an AI builder never adopts its own site — so the citizen
+was reaching `build_done` correctly and `build_done` was sending it to
+gather, which is the *third* thing the original tries.
+
+### What `find_build_spot` turned out to be
+
+`Unit::find_build_spot@00603e20` is short and its two searches are not.
+Both `Objects::find_builds@0065a120` and `Objects::find_units@0065a620`
+carry two implementations and choose on cost: `n = (range + 0x2ff) /
+0x300`, the range in cells, and the circle path runs while
+`circle_radius[n]` is no more than `game->num_def_builds` (a flat **200**
+from `Game::init_data`, the per-player object-array size — which is why a
+building's `o` is `2000 + i`) or `game->total_units` (the live count). The
+build search is therefore always the circle at a citizen's ranges;
+`circle_radius[3]` is 45 and `circle_radius[6]` is 145, against 59 live
+units on run69's frame 2803, so the unit search is not.
+
+`FILTER_CONSTRUCT` took the PE. `Search::valid_filter@0067dbb0` is one
+indirect jump; the table is at `0067e57c`, the index is `filter −
+FILTER_TYPE`, and `llvm-objdump` over six dwords names arm 5 at `0067dd54`
+— `vtable+0xc`, then a **negated** `vtable+0x4c` — with arm 6 next door,
+`FILTER_DAMAGED`, the same pair un-negated plus `+0x24 damage != 0`. That
+neighbour is what settles the polarity: `FILTER_CONSTRUCT` is "exists and
+is **not** active". The enum itself came off `llvm-pdbutil dump --types`
+in one grep. `docs/ORDERS.md` §5.10 is the whole reading.
+
+### What it moved
+
+- **Great Lakes' long word 2808 → 2930.** East Indies unmoved at 6739.
+- run69's collision record **247,543 → 253,874 field-frames, none wrong**;
+  buildings 95,476 fields, none wrong, over the whole capture.
+- Eleven units ever off position → **six**, and the earliest **2804 →
+  2935**. Nothing parts before the word now, so the run69 assertion that
+  was pinned to `[(1, 1, 2804)]` is the empty list — it failed on its
+  first run after the change, which is what it was written for.
+- run69 is 3,000 frames and the word is now 70 short of its end: the next
+  full-detail Great Lakes capture is owed a longer one
+  (`docs/DECISIONS.md` 29).
+
+### The half that did not land, and why
+
+§5.9 puts the same search in `think_peasant`, ahead of the gather one:
+`not a scholar and (unit_masks & 0x400 or worker_stance ∈ {1,2}) and
+find_build_spot()`. Written, measured, and taken back out. It is
+`worker_stance` that decides who asks, and this crate writes a flat 1
+where the original computes it per unit — item 190, which had been a
+2,700-row curiosity on East Indies and is now load-bearing. On run69's
+frame 110 the original's `1/6` carries `stance 0` and its four siblings
+1; with the arm in, `1/6` is born on 100, walks to a build site on 101 and
+leaves the original's point on **103**, 2,800 frames in front of the word.
+Sixteen units parted instead of six.
+
+That is the honest shape of it: a correctly-read predicate cannot land
+while a field it reads is wrong, and the diff says which of the two to fix
+first. Item 190 now has a dependent.
+
+### What is worth carrying
+
+**The dump is a reading of last resort's replacement, again.** The whole
+of "which field parts first" was four `track.py` invocations over a
+capture that already existed — the order stack whole, the two buildings'
+flags, and a `--changes` fold that put 2803 on the screen with nothing
+else on it. No emulator, no capture, no reader.
+
+**And a jump table is six dwords.** `Search::valid_filter` has been "an
+indirect jump the decompiler cannot recover" in three documents; naming
+one arm of it cost one `llvm-objdump` window and one neighbour to check
+the polarity against. `docs/CARAVAN.md` had already paid for the table's
+address a week earlier — the note that recorded it is what made this
+five minutes.
