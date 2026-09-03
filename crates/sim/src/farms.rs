@@ -503,6 +503,9 @@ impl Sim {
             if seed.is_some() {
                 unit.type_index = self.unit_types[ty].type_index;
             }
+            // `Unit::init@00612100:282–309` (`crate::stance`); a pasture
+            // animal is not a worker type and takes the `default:` 0.
+            unit.stance = self.init_stance(9, ty);
             unit.farm_animal = Some(FarmAnimal { build: b, slot });
             let u = self.add_unit(unit);
             match borrowed {

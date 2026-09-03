@@ -769,6 +769,16 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 .iter()
                 .position(|h| Some(h.t) == u.guys.first().and_then(|g| g.kind));
         }
+        // `UnitData::stance` (`sim::stance`). A unit stood up from a dump
+        // takes the dump's, which is the stronger seed: it carries whatever
+        // a player's clicks have done to the byte since the unit was born.
+        // Where the dump is thin enough not to print it, the crate computes
+        // the born value — `Unit::init`'s, since a **seeded** unit is a
+        // starting one and never came out of `Build::train`.
+        unit.stance = match u.stance {
+            Some(v) => u8::try_from(v).unwrap_or(0),
+            None => kind.map_or(0, |t| sim.init_stance(u.who as sim::Player, t)),
+        };
         let idx = sim.add_unit(unit);
         // The figures' clocks and pieces (`docs/ANIM.md` §1, §3). A
         // `DUMP_ALL` start dump carries both; any other carries neither,
@@ -5816,6 +5826,96 @@ mod tests {
         assert_eq!(draws_between(0xb619_4ba1, 0x4554_ec0f), Some(54));
         assert_eq!(draws_between(0x4554_ec0f, 0xab3b_035d), Some(6));
         assert_eq!(draws_between(0xab3b_035d, 0xc242_06bb), Some(6));
+    }
+
+    /// **`Unit::init`'s stance, re-derived and checked against two maps'
+    /// first blocks** — item 190.
+    ///
+    /// `UnitData::stance` is one byte that means four things, and this crate
+    /// wrote a flat 1 into it on every unit it created until 2026-09-03.
+    /// `Unit::init@00612100:282–309` asks the *type* which of the four kinds
+    /// it carries (`UnitTypeData::get_stance_type@0061d350`) and then reads a
+    /// different place for each — the player's options, the leader's flags,
+    /// the lobby (`sim::stance`).
+    ///
+    /// Two captures print the whole table at their start block, and they
+    /// agree object for object across two maps and two lobbies:
+    ///
+    /// | who | type | stance | why |
+    /// | --- | --- | --- | --- |
+    /// | 0 (human) | citizen, `0x32` | **0** | `Worker` → `leader_options.peasants`, and `init` leaves it 0 |
+    /// | 1 (AI) | citizen, `0x32` | **1** | `Worker` → `(starting_resources == 8) + 1`, and the lobby is 1 |
+    /// | 0 and 1 | scout, `0x45` | **1** | `Caster` → `!bit4`, and `init` leaves bit 4 clear |
+    /// | 8 (gaia) | `407`/`411`/`412` | **0** | `None` → the `default:` arm |
+    ///
+    /// The human/AI split is the half that is easy to get backwards:
+    /// `leader_flags & 4` is the **human** bit and it is the human that takes
+    /// the option, so the branch a name would put on the player is the AI's.
+    /// The leaders' own flags say so — run69's leader 0 is `176160775`
+    /// (`… 111`, bit 2 set) and its leader 1 `176160787` (`… 10011`, clear).
+    ///
+    /// This asserts the derivation, not the seed: [`build_sim`] takes the
+    /// dump's byte where the dump prints one, so a wrong rule cannot hide
+    /// behind a right seed.
+    #[test]
+    fn init_stance_is_the_original_s_on_both_maps_first_blocks() {
+        let Some(inst) = install() else { return };
+        let loaded = crate::load::load(&inst).unwrap();
+        let mut checked = 0usize;
+        let mut seen_zero = 0usize;
+        let mut seen_one = 0usize;
+        for name in [
+            "gamelog-run68-islands-citizenword.txt",
+            "gamelog-run69-greatlakes-3k.txt",
+        ] {
+            let Some(path) = dump(name) else {
+                eprintln!("skipping {name} (set RON_GAMELOG_DIR)");
+                continue;
+            };
+            let text = std::fs::read_to_string(&path).unwrap();
+            let log = Log::parse(&text);
+            let init = log.initial().unwrap();
+            let built = build_sim(&loaded, &init, Tuning::RON);
+            for link in &built.units {
+                // Gaia's two bands are `who` 8 and 9; the rule answers 0 for
+                // them through the `None` arm, and the dump agrees, but the
+                // leader table has no row for them.
+                let Some(ty) = link.kind else { continue };
+                let Some(them) = init
+                    .units
+                    .iter()
+                    .find(|u| u.who == link.who && u.o == link.o)
+                    .and_then(|u| u.stance)
+                else {
+                    continue;
+                };
+                let who = u8::try_from(link.who).unwrap_or(0);
+                let ours = built.sim.init_stance(who, ty);
+                assert_eq!(
+                    i64::from(ours),
+                    them,
+                    "{name}: {}/{} (type_index {}) stance",
+                    link.who,
+                    link.o,
+                    built.sim.unit_types[ty].type_index
+                );
+                checked += 1;
+                match them {
+                    0 => seen_zero += 1,
+                    1 => seen_one += 1,
+                    _ => {}
+                }
+            }
+        }
+        if checked == 0 {
+            eprintln!("skipping: no capture with a start block");
+            return;
+        }
+        assert!(
+            seen_zero > 0 && seen_one > 0,
+            "a check that only ever sees one value is not checking the switch \
+             ({checked} units, {seen_zero} at 0, {seen_one} at 1)"
+        );
     }
 
     /// A trace beside the dumps — `RON_GAMELOG_DIR`, where `archive.sh`
@@ -11174,11 +11274,13 @@ mod tests {
                     continue;
                 };
                 let un = &built.sim.units[u];
-                // `stance` is item 190 and is excepted whole: `Unit::new`
-                // writes 1 where `Unit::init` switches five ways on the
-                // unit's stance type and the leader's options.
                 let mut rows: Vec<(&str, i64, Option<i64>)> = vec![
                     ("x", i64::from(un.pos.x), Some(them.pos.x)),
+                    // Item 190: `Unit::init@00612100:282–309` switches five
+                    // ways on the type's stance kind and reads the leader's
+                    // options (`sim::stance`). It was excepted here while
+                    // `Unit::new`'s flat 1 stood.
+                    ("stance", i64::from(un.stance), them.stance),
                     ("y", i64::from(un.pos.y), Some(them.pos.y)),
                     ("angle", i64::from(un.movement.heading.0), them.angle),
                     ("orders_x", i64::from(un.orders_pos.x), them.orders_x),

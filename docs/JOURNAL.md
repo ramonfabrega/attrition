@@ -14634,3 +14634,79 @@ reading the callers that mattered at the time; it is what made
 `gatherers.first()` look safe. The correction is in place with its
 successor named, per the amend-in-place rule — and the assertion that now
 holds the rule was made to fail on the old code first.
+
+## 2026-09-03 (Opus) — item 190: one byte, four meanings, and the trainer that overwrites it
+
+`UnitData::stance` was 1 on every unit this crate created and 0 on 2,700 of
+run68's rows. It is not one quantity: `GroupData::get_stance_option@0070bab0`
+sizes the option array from `StanceTypes` — six for a combat unit, four for a
+worker, two each for a caster and a packer — so the byte is an index into a
+list whose length its *type* fixes, and `Unit::init@00612100:282–309` reads a
+different place for each. `docs/ORDERS.md` §5.10 is the whole switch;
+`crates/sim/src/stance.rs` is the code.
+
+**The worker arm is inverted from what its field name says.** `leader_flags &
+4` is `LeaderData::is_human@006ec170`, and it is the *human* that takes
+`leader_options[who].peasants` while the **AI** takes the lobby's
+`(starting_resources == 8) + 1`. That is what makes the human's starting
+citizens 0 and the AI's 1 — which is exactly what two captures print, on two
+maps, at their first block. run69's leaders say which is which without a
+reading: leader 0's flags are `176160775` (`…111`, bit 2 set) and leader 1's
+`176160787` (`…10011`, clear).
+
+**And then the trainer overwrites it.** The first fix got the AI's *starting*
+citizens right and left `1/6..1/15` — the ones it trained — wrong in the
+other direction. `Build::train@0062f9b0:86–101` calls `Unit::set_stance` with
+the **building's** own byte whenever the two stance kinds match, and a
+building's byte comes from `Build::init@00629740:92–113`, which is the same
+switch with two arms rewritten: its worker arm is
+`(!human && starting_resources == 8) ? 2 : peasants`, so a city is 0 for
+everybody. A citizen out of a city takes the city's 0; an AI's five starting
+citizens, which never went through `train`, keep the 1 they were born with.
+One capture prints both populations in one block.
+
+**What it bought.** run68's window is now **138,769 fields over 135 blocks
+with none differing**, against 122,752 over 123 with `stance` excepted by
+name — the last exception in that test is gone. Neither word moved:
+East Indies 6739, Great Lakes 4241. The widening ledger's single-capture
+count fell 43 → 42; it had named `stance` as a one-capture field the day
+before run68 found it wrong, and this is the same field leaving by the other
+door.
+
+**194's other half landed with it.** §5.9's build arm — `not a scholar and
+(unit_masks & 0x400 or worker_stance ∈ {1,2}) and find_build_spot()` — had
+been written and taken back out twice, because with a flat 1 every citizen
+asked and run69's `1/6` left the original's point on 103. With the stance
+right it asks who the original asks, and both words held.
+
+### What it cost, and what the method says
+
+**Four grep-sized reads beat a capture, and the dump had the answer twice
+over.** The whole derivation is `Unit::init`, `Build::init`, two
+`get_stance_type`s and `LeaderOptions::init`; the *check* is two start blocks
+already on disk. The queue had booked this as blocked on a reading of
+`LeaderOptions +0x4/+0xc/+0x1c`, and the names came out of the executable's
+own UTF-16 literals at `0xae1628`, `0xae1630`, `0xae156c` and `0xae1668`,
+which `LeaderOptions::log_data@006f1480` passes to the logger — the PE-global
+trick, one level down from a struct.
+
+**The first fix was right and the diff still failed, which is the argument
+for diffing a whole window rather than a block.** `init_stance` alone
+reproduces both maps' frame 0 exactly and would have been called done on that
+evidence. It was run68's 6595 that showed the trained population going the
+other way, and `Build::train` is not reachable from `Unit::init` by reading —
+only by asking who else calls `set_stance`.
+
+**A seed and a rule are different claims, so they are now different tests.**
+`build_sim` takes the dump's `stance` where the dump prints one, which is the
+stronger seed; `init_stance_is_the_original_s_on_both_maps_first_blocks`
+asserts the *derivation* against the same blocks, so a wrong rule cannot hide
+behind a right seed. It was made to fail first, by inverting the human
+branch: `0/1 (type_index 50) stance left: 1 right: 0`.
+
+**Not established**, and in §5.10's coverage: what `buildings +0xc` is named
+for, given `Unit::init` reads it for a combat unit; the option bits beyond 3
+and 4; both `starting_resources == 8` arms, which no lobby on disk reaches;
+and the two writers — a player's click and `set_auto_peasant_level` — neither
+of which is modelled, which is why `Sim::build_stance` computes the
+building's byte instead of storing it.

@@ -679,3 +679,34 @@ settle_min: 500000
 # The stream must be run53's — same seed, same lobby, no input — or the
 # window is not the frame it claims to be.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run70.log
+
+run: 71
+tag: greatlakes-5k
+item: 197
+why: Great Lakes' word is 1,241 frames past its longest full-detail capture — 5,000 frames, sized to run70's 2808 and run53's 4241
+# **The standing rule owes this map again** (DECISIONS 29), one map and one
+# item later. run70 moved Great Lakes' long word to **2808** and item 196's
+# `num_gatherers` argument moved it to **4241**; run69, the only full-detail
+# Great Lakes dump past run33, stops at **3,000**. So the parting frame's
+# units, buildings and orders are once more past the end of every dump that
+# could print them — the same debt run69 itself was made to pay.
+#
+# run33/run69's recipe unchanged and nothing else: same seed, same `-config
+# check.ini` lobby, same detail, no input. Only the **length** changes, so it
+# stays a strict sibling of run33 and run69 (dump) and run53 (trace), and
+# both same-game tools still speak.
+#
+# 5,000 and not 4,241: ~760 frames of margin on the word, which is the
+# headroom run56 and run69 each took, and it buys the residue either side.
+frames: 5000
+mapstyle: 14
+# run69 cost 468 MB and twenty minutes for 3,000 frames, and the per-frame
+# block grows with the roster: budget well over a gigabyte and an hour. 900
+# polls is five hours, which is run69's setting and not the 53-minute default
+# whose give-up silently truncates.
+poll_max: 900
+# Same game three ways: the trace word for word against run53 (the strongest
+# claim and the one the handoff names), and the dump frame for frame against
+# run69 over the 3,000 frames they share.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run71.log
+check: python3 tools/gamelog/samegame.py gamelog-run69-greatlakes-3k.txt gamelog-run71-greatlakes-5k.txt

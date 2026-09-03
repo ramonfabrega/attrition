@@ -1400,17 +1400,20 @@ impl Sim {
         } else {
             self.tuning.unit_gather_respond_range * TILE
         };
-        // SEAM: §5.9's build arm belongs **here**, ahead of the gather
-        // search — `not a scholar and (unit_masks & 0x400 or worker_stance
-        // ∈ {1, 2}) and find_build_spot()`. [`Sim::find_build_spot`]
-        // exists and `build_done`'s two arms take it; this one cannot land
-        // until `stance` does. It is `worker_stance` that decides who
-        // asks, and this crate writes a flat 1 where the original computes
-        // it per unit (`docs/QUEUE.md` 190): on run69's frame 110 the
-        // original's `1/6` carries **0** and its four siblings 1, and with
-        // the arm in, `1/6` is born on 100, walks to a build site on 101
-        // and leaves the original's point on **103** — 2,800 frames in
-        // front of the word. Measured 2026-09-03.
+        // §5.9's **build arm**, ahead of the gather search: `not a scholar
+        // and (unit_masks & 0x400 or worker_stance ∈ {1, 2}) and
+        // find_build_spot()`. It waited on `stance` (item 190) and could
+        // not land while this crate wrote a flat 1 — with that, every
+        // citizen asked, and run69's `1/6` left the original's point on
+        // **103**. `Unit::init` and `Build::train` between them make an
+        // AI's trained citizen **0**, so the arm now asks who the original
+        // asks (`crate::stance`, §5.10).
+        if !matches!(self.units[u].type_index, 0x34 | 0x35)
+            && (self.units[u].was_builder || stance == 1 || stance == 2)
+            && self.find_build_spot(u)
+        {
+            return true;
+        }
         if stance <= 1 && self.find_gather_spot(u, range) {
             return true;
         }

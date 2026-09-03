@@ -85,6 +85,7 @@ pub mod rares;
 pub mod roads;
 pub mod scout;
 pub mod single;
+pub mod stance;
 pub mod supply;
 pub mod tech;
 pub mod terrain;
@@ -839,6 +840,10 @@ pub struct Sim {
     pub marks: Vec<Marks>,
     /// The lobby's option block, as the AI reads it — `docs/AI.md` §12.1.
     pub lobby: ai::Lobby,
+    /// One per player: `GameAccess::leader_options->list[who]`, the four
+    /// per-player option words `Unit::init` reads to give a new unit its
+    /// stance — `docs/ORDERS.md` §5.10.
+    pub leader_options: Vec<stance::LeaderOptions>,
     /// `ScenarioData::find_counters[]` and `ScriptTimers` — the global
     /// state the script host functions keep between calls.
     pub script_env: ai_host::ScriptEnv,
@@ -1126,6 +1131,7 @@ impl Sim {
             // of owners 8 and 9 and take numbers from their own bands.
             marks: vec![Marks::default(); players.max(10)],
             lobby: ai::Lobby::default(),
+            leader_options: vec![stance::LeaderOptions::default(); players.max(10)],
             script_env: ai_host::ScriptEnv::default(),
             scripts: None,
             ai: vec![ai::Leader::new(); players],
@@ -1953,6 +1959,12 @@ impl Sim {
                 unit.kind = self.unit_types[ty].kind;
                 unit.ty = Some(ty);
                 unit.type_index = self.unit_types[ty].type_index;
+                // The stance is a switch on the *type's* stance kind and
+                // then, when the trainer shares that kind, the trainer's own
+                // byte — `Unit::init@00612100:282–309` and
+                // `Build::train@0062f9b0:86–101` (`crate::stance`,
+                // `docs/ORDERS.md` §5.10).
+                unit.stance = self.trained_stance(who, ty, at);
                 unit.movement.speed = self.type_speed(who, ty);
                 unit.movement.turning = self.turning_for(ty);
                 let unit = self.add_unit(unit);

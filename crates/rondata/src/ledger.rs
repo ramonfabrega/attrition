@@ -162,12 +162,15 @@ mod tests {
     const UNCOMPARED: usize = 23;
 
     /// Fields exactly one test function names — the per-capture half.
-    /// **43 on 2026-09-03**, down from 51 when run68's window widened
+    /// **42 on 2026-09-03**, down from 51 when run68's window widened
     /// `idle`, `path_recursion`, `safe`, the collision block and the crew
-    /// track onto a second capture. This one is a *ceiling on fragility*, not a
-    /// target of zero: a field a single window can see is not a defect,
-    /// it is a field whose next capture should be asked to carry it too.
-    const SINGLE_CAPTURE: usize = 43;
+    /// track onto a second capture, and one more when item 190 gave
+    /// `stance` a second reader — this ledger had named it as a
+    /// single-capture field the day before run68 found it wrong. This one
+    /// is a *ceiling on fragility*, not a target of zero: a field a single
+    /// window can see is not a defect, it is a field whose next capture
+    /// should be asked to carry it too.
+    const SINGLE_CAPTURE: usize = 42;
 
     #[test]
     fn the_widening_ledger_counts_what_nothing_compares() {

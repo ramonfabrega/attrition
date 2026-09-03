@@ -432,6 +432,8 @@ impl Sim {
             unit.type_index = self.unit_types[gt].type_index;
             unit.movement.speed = self.unit_types[gt].moves;
             unit.movement.turning = self.turning_for(gt);
+            // `Unit::init@00612100:282–309` (`crate::stance`).
+            unit.stance = self.init_stance(9, gt);
             let u = self.add_unit(unit);
             self.init_guys(u, Some(gt));
             // `Unit::set_angle(gull, (r % 7) × 0x0aaaaaaa − 0x40000000, 7,
@@ -904,6 +906,8 @@ impl Sim {
         boat.type_index = self.unit_types[ty].type_index;
         boat.movement.speed = self.unit_types[ty].moves;
         boat.movement.turning = self.turning_for(ty);
+        // `Unit::init@00612100:282–309` (`crate::stance`).
+        boat.stance = self.init_stance(who, ty);
         let b = self.add_unit(boat);
         // `Unit::init` → `Guy::init_real`: the boat's one figure, one draw.
         self.init_guys(b, Some(ty));

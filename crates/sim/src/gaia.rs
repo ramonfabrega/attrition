@@ -216,6 +216,9 @@ impl Sim {
         // units a frame, and `TURN_SPEED` is what scales the bank's rate.
         unit.movement.speed = self.unit_types[ty].moves;
         unit.movement.turning = self.turning_for(ty);
+        // `Unit::init@00612100:282–309` — a bird's type answers
+        // `STANCE_NONE`, so this is the `default:` arm (`crate::stance`).
+        unit.stance = self.init_stance(BIRD_OWNER, ty);
         let u = self.add_unit(unit);
         self.init_guys(u, Some(ty));
         // `add_air_patrol_order` on the hatch point: the patrol point is

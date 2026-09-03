@@ -1599,6 +1599,123 @@ return 0 — the gate and the branch shape per audit R3 F3, third pass
 FILTER_NOT_UNDER_ATTACK)` whose tile's territory owner is nobody, me or a
 mutual ally; `swarm_around(b, QUEUE_LAST, REPAIR, 0)`.
 
+### 5.10 `UnitData::stance` — the byte that means four things
+
+`UnitData +0xb1` is one signed byte and §5.5, §5.9 and §6.6 all gate on it,
+but it is not one quantity: **what it indexes depends on the type carrying
+it**. `GroupData::get_stance_option@0070bab0` sizes the option array from the
+same enum — six options for a combat unit, four for a worker, two each for a
+caster and a packer — so a stance is always an index into a list whose length
+its type fixes, and comparing the byte across two types is meaningless.
+
+`StanceTypes` is the PDB's enum, whole:
+
+```
+STANCE_COMBAT = 0   STANCE_WORKER = 1   STANCE_CASTER = 2
+STANCE_PACKER = 3   NUM_STANCE_TYPES = 4   STANCE_NONE = -1
+```
+
+**Which kind a type carries** — `UnitTypeData::get_stance_type@0061d350`.
+The order is the whole of it, and it is not the order the names suggest:
+
+```
+role & 0x10000 (military):  unit_flags2 & 4 ? PACKER : COMBAT
+TypeIndex 0x32..0x35:       WORKER          # the citizen/scholar four
+(unit_flags2 & 6) == 2:     CASTER
+otherwise:                  NONE
+```
+
+The military arm's return is written as arithmetic —
+`-(uint)((unit_flags2 & 4) != 0) & STANCE_PACKER` — which is a **mask, not a
+conditional**: a military type that does not pack falls out at `0`,
+`STANCE_COMBAT`, and never reaches `NONE`. And because the military test is
+first, the caster arm only ever sees civilians.
+
+**The byte a new unit is born with** — `Unit::init@00612100:282–309`:
+
+```
+COMBAT:  leader_options[who].buildings
+WORKER:  (leader_flags & 4) == 0 ? (game.info.starting_resources == 8) + 1
+                                 : leader_options[who].peasants
+CASTER:  ~(leader_options[who].flags[0] >> 4) & 1
+PACKER:  ~(leader_options[who].flags[0] >> 3) & 1
+NONE:    0
+```
+
+`leader_flags & 4` is `LeaderData::is_human@006ec170`, which this document
+already leans on above. So the worker arm is **inverted from what the name
+suggests**: the human takes their own `peasants` option and the *AI* takes
+the lobby's `(starting_resources == 8) + 1`. `Unit::init` reads
+`game->info.starting_resources` raw and not `get_starting_resources(who)`, so
+the asymmetric-teams row under `GAME_RULES == 8` never reaches it.
+
+**`LeaderOption`** is `LeaderOptions::list[who]`, 0x20 bytes, ten slots, and
+`LeaderOptions::log_data@006f1480` prints four of its fields under the
+executable's own names (`0xae1628`, `0xae1630`, `0xae156c`, `0xae1668`, all
+UTF-16): `who +0x0`, `peasants +0x4`, `peasants_wait +0x8` (the idle option
+this document tabulates below), `buildings +0xc`, then a `BitMask` whose
+inline storage is `+0x1c`. `LeaderOptions::init@006f1d40` lays down
+`peasants 0`, `peasants_wait 2`, `buildings 0`, and a mask cleared and then
+given **bits 1 and 3**. Bit 4 stays clear, which is why a caster is born at 1
+and a packer at 0 out of two adjacent bits of one byte. The only writers are
+`CommandPackage::process_leader_options@009441d0` — a player's click — and
+`ScenarioFuncSet::set_auto_peasant_level@009ff620`, which bounds the value to
+`0..3`, writes `peasants`, and pushes it onto every `0x32`/`0x33` unit and
+every `WORKER`-kind building the player already owns.
+
+**And then the trainer overwrites it** — `Build::train@0062f9b0:86–101`:
+
+```
+if get_stance_type(new unit) == get_stance_type(this building):
+    Unit::set_stance(new unit, this->stance, 0)
+```
+
+A building carries its own stance at `Build +0x7e`, from
+`Build::init@00629740:92–113`, which is the switch above with two arms
+rewritten:
+
+```
+WORKER:  ((leader_flags & 4) == 0 && starting_resources == 8) ? 2
+                                                             : leader_options[who].peasants
+CASTER:  1                       # flat, not the complemented bit
+```
+
+`BuildTypeData::get_stance_type@006396c0` gives the building's kind: a
+building that trains nothing is `NONE`; a city is `WORKER`, a fort `CASTER`,
+`SIEGEFACTORY`/`FACTORY` (`0x1ae`/`0x1af`) `PACKER`, `MARKET`/`UNIVERSITY`/
+`AIRBASE` (`0x1b4`/`0x1a4`/`0x1bf`) and `MISSILESILO` (`0x208`) `NONE`, and
+every other trainer `COMBAT`. The city and fort tests walk `FROM`
+(`is_city` = `is(VILLAGE, 0)`, `is_fort` = `is(FORTX, 0)`); the five type
+indices are tested by **identity** and do not.
+
+**That one difference between the two worker arms is the whole finding.** An
+AI's *starting* citizens go through `Unit::init` alone and are born at **1**;
+every citizen it *trains* comes out of a city, whose kind is also `WORKER`,
+and takes the city's **0**. A human's are 0 either way. Two captures print
+exactly that, on two maps:
+
+| block | `0/1..0/5` | `1/1..1/5` | `0/0`, `1/0` | `who 8` |
+| --- | --- | --- | --- | --- |
+| run68 and run69, frame 0 | 0 | **1** | 1 | 0 |
+| run68, frame 6595 (`1/6..1/15` trained) | 0 | 1 | 1 | 0 → and the trained ones **0** |
+
+The scouts at `0/0` and `1/0` are the caster arm (`TypeIndex 0x45`,
+`unit_flags2 & 6 == 2`) and gaia's objects are the `NONE` arm. run69's leader
+flags say which player is which: leader 0 is `176160775` (`…111`, bit 2 set)
+and leader 1 `176160787` (`…10011`, clear).
+
+**Coverage.** The unit and building switches, the two stance-type functions
+and `Build::train`'s override are **diff-backed**: `init_stance` is asserted
+against every unit of both maps' first blocks
+(`init_stance_is_the_original_s_on_both_maps_first_blocks`) and the trained
+half against run68's 135-block window, where `stance` is now one of the
+compared fields. Not established: what `buildings +0xc` is named for, since
+`Unit::init` reads it for a **combat unit**; which option bit is which beyond
+3 and 4; the `starting_resources == 8` arms of both switches, which no lobby
+on disk reaches; and the two writers, neither of which is modelled — give the
+sim either one and `Sim::build_stance`'s computed byte must become a stored
+field.
+
 ---
 
 ## 6. The gather order
@@ -3348,7 +3465,8 @@ harness needs without a recorded-game parser.
 | `americans_marine_entrench`, `aircraft_heal_rate`, `memnon_regen_rate`, `decoy_time` | `Unit::process`'s upkeep | §2.2 |
 | `starting_goods[6]`, `starting_resources.list[].lo/hi`, `ctw_starting_res_x` | §9.4 | |
 | `AMERICANS_STARTING_FARMS`, `KOREAN_CITIZENS`, `SPANISH_EXTRA_SCOUT`, `GREEK_START_SCHOLARS`, `GREEK_UNIVERSITY_EARLY`, `KOREAN_TEMPLE_UPGRADES`, `EGYPTIAN_GRANARY_EARLY`, `FRENCH_LUMBERMILL_EARLY`, `IROQUOIS_SENATE` | §9.2–§9.3 | |
-| `LeaderOptions +0x8` | the idle-citizen delay option (1–5 → 7, 12, 17, 32, 62; default 2) | §5.9 |
+| `LeaderOptions +0x8` `peasants_wait` | the idle-citizen delay option (1–5 → 7, 12, 17, 32, 62; default 2) | §5.9 |
+| `LeaderOptions +0x4` `peasants`, `+0xc` `buildings`, `+0x1c` the mask | the stance options, all 0 at `init` bar the mask's bits 1 and 3 | §5.10 |
 | `MTN_TINY_SIZE` | the miner's `dist_mod` cap | §6.4 |
 
 Literals, all position units unless said: the 48-unit snap (`0x30`, centre
@@ -3464,13 +3582,14 @@ what is listed as an input is stated as such in the code):
   the existing `find_melee_target`, `think_peasant`'s gate and
   `find_gather_spot`. §5.9's **build arm** — `not a scholar and
   (unit_masks & 0x400 or worker_stance ∈ {1,2}) and find_build_spot()`,
-  ahead of the gather search — is written but **not landed**: it is
-  `worker_stance` that decides who asks, and this crate writes a flat 1
-  where the original computes it per unit. Measured on run69 (2026-09-03):
-  the original's `1/6` carries `stance 0` on frame 110 and its four
-  siblings 1, and with the arm in, `1/6` is born on 100, walks to a build
-  site on 101 and leaves the original's point on **103**. `find_repair_spot`
-  needs `FILTER_DAMAGED` and the difficulty gate and is still absent.
+  ahead of the gather search — **landed 2026-09-03**, with §5.10. It had
+  been written and taken back out twice: it is `worker_stance` that decides
+  who asks, and while this crate wrote a flat 1 every citizen asked, which
+  put run69's `1/6` off the original's point on **103**. `Unit::init` and
+  `Build::train` between them make an AI's *trained* citizen 0, so the arm
+  now asks who the original asks and neither map's word moved.
+  `find_repair_spot` needs `FILTER_DAMAGED` and the difficulty gate and is
+  still absent.
 - **The group orders** — **landed 2026-08-25** as `crates/sim/src/group.rs`
   (`docs/GROUPS.md`), which reads the layer §8 only entered: the record and
   the pool, membership, and `action_move_to`/`action_move_near`,
