@@ -178,17 +178,58 @@ unpack_merchant(this, ring):
     if t is none: return 0
     unit_masks &= ~0x100
     add_cast_order(-1, -1, …, UNPACK 0x28c, QUEUE_NEW, 0)
-    add_move_order-shaped MOVE_TO at (t.x * 0xc0, t.y * 0xc0), appended
-    clear_partial_path; update_action
+    a = find_angle(t.x * 0xc0 - x, t.y * 0xc0 - y)          # the raw point
+    MOVE_TO at snap(t.x * 0xc0), snap(t.y * 0xc0), angle a  # built inline
+    orderlist.add; clear_partial_path; head = head->next
+    update_action
     return 1
 ```
 
 `Unit::add_cast_order@005e4a60`'s head rewrites the generic `0x28c` by the
 caster: a machine gun's `0x28e`, the **three merchant ids'** `0x290`, the
-`FISHERMEN` lineage's `0x292`. And the `MOVE_TO` goes on with
-`LinkListBase::add`, which is the **back** of the queue
-(`docs/ORDERS.md` §1.5) — so the cast is the current order and the walk is
-behind it.
+`FISHERMEN` lineage's `0x292`.
+
+### 3.1 The walk goes in front of the cast (2026-09-03)
+
+`LinkListBase::add` is the back of the queue, but the line after it is
+**`head = head->next`** — the identical statement `add_cast_order`'s
+`QUEUE_FIRST` arm runs, and `docs/ORDERS.md` §1.5 already names its effect:
+the new order becomes the current one. So the two orders are
+**`[MOVE_TO, CAST]`**: the merchant walks to the spot and casts on arrival,
+which is the only reading that makes sense of a spot search that can answer
+a tile the merchant is not standing on.
+
+This document said "appended behind it" for a day, and run68 is what
+settled it. Its block 6714 is `1/19`'s arrival:
+
+| field | dump |
+|---|---|
+| `x_internal`, `y_internal` | 32076, 37188 — where the walk to the `CITRUS` ended |
+| `orders_x`, `orders_y` | **32280, 36888** |
+| `dest_angle` | 346619904 |
+| order list, as printed | `CASTORDER` (`type 14`, `spell 656` = `0x290`), then `MOVEORDER` (`type 1`, `x 32280 y 36888 angle 346619904`) |
+
+The dump's print order is the **reverse** of the execution order, and both
+walks are in the export: `OrderList::log_data@00730070` sets
+`node = head->prev` and then advances by `next`, so it prints `head` first,
+while `Unit::update_action@0060a870` sets the same `node = head->prev` and
+advances by `prev`. `UnitDump::orders_front_first` in `rondata::gamelog`
+has always reversed it. So `[CAST, MOVE]` printed is `[MOVE, CAST]` run,
+and the three fields agree with that and with nothing else:
+`update_action` stops on the first order that is neither a plain move nor a
+`CHANGE_FORM` (§3.3 of `docs/ORDERS.md`), so a cast in front would have
+left `orders_x/y` at the unit's own position — which is exactly what this
+crate had. The unit then turns for three frames and steps at (32280, 36888)
+on 6718.
+
+The destination and the angle are two different points. The order is built
+inline rather than through `Unit::add_move_order`, but the arithmetic is
+that adder's: `x = (t.x · 0xc0 / 0x30) · 0x30 + 0x18`, and the angle is
+`find_angle` of the delta to the **unsnapped** `t · 0xc0`. Tile
+`(168, 192)` gives `(32280, 36888)` and 346619904 — the dump's two numbers,
+and the snapped point is 408616960 away from the angle it would have given.
+`add_move_order` already splits them the same way (`docs/ORDERS.md` §4.3),
+so `add_move_order(u, t · 0xc0, MoveTo, First, false)` is the whole of it.
 
 `Unit::find_merchant_spot@00603ab0` is a gate and a ring:
 
@@ -294,8 +335,9 @@ merchant's first turn.
 
 **Diff-backed on run54** — the 24,000-frame East Indies capture, whose word
 went from 6356 to 6570 when this landed, to 6571 with the collision probe
-behind it (`docs/COLLISION.md` §4.2), and to **6715** when §2.2.1 put the
-second merchant on its own rare — and **on run66**, 260 blocks of the same
+behind it (`docs/COLLISION.md` §4.2), to 6715 when §2.2.1 put the second
+merchant on its own rare, and to **6739** when §3.1 put the deploy walk in
+front of the unpack cast — and **on run66**, 260 blocks of the same
 game over `[6340, 6600)`, which holds this merchant's walk from its birth
 to its arrival stand: **every position of it is the original's**, frame for
 frame, and so is every other unit's as far as the word
@@ -322,6 +364,11 @@ that ends it and the recovery after:
   a 22-entry path where `1/19`'s rare is seven away. `do_move`'s
   `length > 10` arm then holds its first step back to 6575, which is how
   the divergence showed — as a frame, not a destination.
+- **the arrival, and the whole of §3** — run68's 123 blocks over
+  `[6595, 6718)`, every unit's whole record, 122,752 fields
+  (`run68_s_window_is_every_unit_s_whole_record_to_the_word`). §3.1 is
+  the entry above; the ring's answer, the destination's snap and the
+  angle's unsnapped point are all in the same block.
 
 **Reading only** — no run on disk separates these:
 
@@ -343,14 +390,17 @@ that ends it and the recovery after:
   at, the ordered search alone decides, and a list that was never rotated
   would pick the same rare.
 - ~~the whole of §3 past its gate … nothing on disk reaches a ring walk~~
-  — **run68 reaches it** (2026-09-03). `1/19` arrives at its `CITRUS` on
-  block 6714 and `orders_x/y` becomes `(32280, 36888)`; this crate takes
-  `(32076, 37188)`. That is `find_merchant_spot`'s ring answering a
-  different tile, and it is the first field of the whole record to part in
-  the window — a frame *ahead* of the draw stream's own 6715. So
-  `good_merchant_spot`'s four tiles, the `MOVE_289` order and the
-  cast-then-walk pair now all have an oracle, and §7's missing
-  `detect_unit_collision` is the first suspect. Queue item 189.
+  — **run68 reaches it, and §3 is diff-backed** (2026-09-03). `1/19`
+  arrives at its `CITRUS` on block 6714, runs the ring, and both sides
+  take tile **(168, 192)** — `MOVE_49`'s fourth entry, with entries 0, 1
+  and 2 refused. So the gate, `good_merchant_spot`'s two-by-two, the
+  `MOVE_289` walk order and `radius[3]` all have an oracle, and so do the
+  order the two orders run in (§3.1), the 48-snap of the destination and
+  the angle to the unsnapped point. What parted was §3.1 alone, and the
+  window now holds to 6718 — a unit that is item 191's, not this
+  mechanic's. **The ring is still one candidate deep**: the winner was the
+  fourth entry of forty-nine, so nothing on disk exercises the walk past
+  ring 1, and `detect_unit_collision` (§7) still refused nothing.
 
 ## 7. What is not established
 
@@ -373,10 +423,18 @@ that ends it and the recovery after:
 - **`unit_masks &= ~0x100`**, which `unpack_merchant` clears before the
   cast. The bit is `Unit::work` step 3's ("this unit was ordered
   recently"), and nothing here keeps it.
-- **The walk's own end.** run66 follows `1/19` to sim-frame 6620 and it is
-  still walking; the `CITRUS` is further than any capture goes.
-- **What happens at the good.** The arrival, the cast, the deployed
-  merchant's two-by-two footprint and the `rare`/`good_obj` pair
-  `Unit::do_gather@005fce20` writes for it are `docs/ECONOMY.md` step 6's,
-  and the frame East Indies' merchant reaches its `CITRUS` is past the
-  current word.
+- ~~**The walk's own end.**~~ — run68 has it: `1/19` stops at
+  (32076, 37188) on block 6713, is idle on 6714, and turns for three
+  frames before stepping at its deploy spot on 6718 (§3.1).
+- **What happens at the good.** The **cast** — the deployed merchant's
+  two-by-two footprint and the `rare`/`good_obj` pair
+  `Unit::do_gather@005fce20` writes for it (`docs/ECONOMY.md` step 6) —
+  is still past every capture. run68's window ends at 6730 with the
+  merchant eleven frames into a walk it has not finished, so nothing on
+  disk has ever seen a `MERCHANT` unpack: `unit_masks & 0x80000` clearing,
+  the two-by-two `PLACED`, and whatever the cast order does when the walk
+  in front of it dies. The capture's *closing* block, 6746, does carry the
+  merchant standing on (32280, 36888) with its `SubObjectData.flags` 9 → 1
+  — but at the `MISC` detail the quit writes, which is the object base and
+  nothing else, and a closing block is not a frame state
+  (`docs/ORACLE.md`, run68). The next window is `[6730, 6800)`.

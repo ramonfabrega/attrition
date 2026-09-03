@@ -10823,12 +10823,15 @@ mod tests {
     ///   Two independent captures, the same single unit — so the harness
     ///   does not compare the closing block, and `docs/ORACLE.md` carries
     ///   the fact.
-    /// - **Item 189 is the merchant's arrival.** The first field to part is
-    ///   `1/19`'s `orders_x/y` on **6714**, a frame ahead of the draw
-    ///   stream's own 6715: the merchant reaches its `CITRUS` and runs
-    ///   `find_merchant_spot`'s ring, which no capture had ever reached
-    ///   (`docs/MERCHANT.md` §3, §6). Ours picks `(32076, 37188)` where the
-    ///   original picks `(32280, 36888)`.
+    /// - **Item 189 was the merchant's arrival**, and it is closed. The
+    ///   first field to part was `1/19`'s `orders_x/y` on **6714**, a
+    ///   frame ahead of the draw stream's own 6715: the merchant reaches
+    ///   its `CITRUS` and runs `find_merchant_spot`'s ring, which no
+    ///   capture had ever reached (`docs/MERCHANT.md` §3, §6). The ring
+    ///   agreed — both sides take tile `(168, 192)` — and what did not was
+    ///   the queue position of the walk it orders; see
+    ///   [`LONG_WORD_EAST_INDIES`]. With it in front of the cast the whole
+    ///   window holds to **6718**, which is item 191's unit.
     /// - **`stance` is 1 on every unit here and 0 on every unit there**,
     ///   from the first block of the window — 2,700 rows, and no capture
     ///   had ever compared it on a unit this crate created. `Unit::init`
@@ -10871,15 +10874,17 @@ mod tests {
             (6595..6730).chain([6746]).collect::<Vec<i64>>(),
             "run68's frame window, plus the block the quit writes"
         );
-        // The first field to part, a frame ahead of the draw stream's own
-        // [`LONG_WORD_EAST_INDIES`]: `1/19`'s `orders_x/y` when the
-        // merchant arrives. Everything before it is compared with no
-        // exception but `stance`.
-        const FIRST_FIELD_PARTING: i64 = 6714;
+        // The first field to part: `1/13`'s own position, thirty-two
+        // frames after the two middle waypoints of item 191 (excepted
+        // below). It was 6714 — `1/19`'s `orders_x/y` on the merchant's
+        // arrival — until [`LONG_WORD_EAST_INDIES`]'s own entry put the
+        // deploy walk in front of the unpack cast. Everything before it is
+        // compared with no exception but `stance`.
+        const FIRST_FIELD_PARTING: i64 = 6718;
         const {
             assert!(
                 FIRST_FIELD_PARTING < LONG_WORD_EAST_INDIES,
-                "a field diff sees the arrival before the draw stream does"
+                "a field diff sees the divergence before the draw stream does"
             )
         };
 
@@ -11759,7 +11764,24 @@ mod tests {
 
     /// East Indies' word on run54, the headline.
     ///
-    /// **6570** since 2026-09-02, and the frame is a **collision the
+    /// **6739 since 2026-09-03, and 6715 was one line of
+    /// `Unit::unpack_merchant@006038e0`'s tail.** After the `MOVE_TO` goes
+    /// on the list comes `clear_partial_path`, then **`head = head->next`**
+    /// — the same rotation `add_cast_order`'s `QUEUE_FIRST` arm runs
+    /// (`docs/ORDERS.md` §1.5) — and only then `update_action`. So the walk
+    /// to the deploy spot sits in **front** of the unpack cast: the
+    /// merchant walks, and casts on arrival. This crate appended it
+    /// instead, so the cast stayed current, `update_action` stopped on it
+    /// (a cast is neither a plain move nor a `CHANGE_FORM`), and `1/19`'s
+    /// `orders_x/y` held the merchant's own position where the original's
+    /// names the spot. The spot itself was never wrong — run68's block
+    /// 6714 is the first capture ever to reach `find_merchant_spot`'s ring
+    /// (`docs/MERCHANT.md` §3, §6) and both sides pick tile `(168, 192)`,
+    /// the fourth entry of `MOVE_49`. It is also the first field of the
+    /// whole record to part, a frame ahead of the draw stream, which is
+    /// the argument for diffing fields and not only draws.
+    ///
+    /// It was **6570** for one item, and the frame is a **collision the
     /// original does not have**: `Guy::set_anim+0x97a <
     /// Unit::move_step+0x823`, the blocked stand (`docs/COLLISION.md` §5),
     /// twice — once per figure — on the AI Merchant two hundred frames
@@ -11987,7 +12009,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6715;
+    const LONG_WORD_EAST_INDIES: i64 = 6739;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

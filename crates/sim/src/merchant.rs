@@ -247,11 +247,16 @@ impl Sim {
         };
         // `add_cast_order(-1, -1, …, 0x28c, QUEUE_NEW, 0)` — the unpack,
         // rewritten to the merchant family's `0x290` — and then the walk
-        // to the spot, **appended behind it**: `LinkListBase::add` is the
-        // back of the queue (`docs/ORDERS.md` §1.5).
+        // to the spot, **in front of it**: the line after the list `add`
+        // is `head = head->next`, which is exactly what
+        // `add_cast_order`'s own `QUEUE_FIRST` arm runs
+        // (`docs/ORDERS.md` §1.5). So the merchant walks to the spot and
+        // casts on arrival, and run68's block 6714 is the oracle —
+        // `orders_x/y` and `dest_angle` are the move's, and the unit
+        // steps at it (`docs/MERCHANT.md` §3.1).
         self.add_cast_order_at(u, crate::orders::spell::UNPACK, QueuePos::New);
         let to = Pos::new(t.x * UNITS_PER_TILE, t.y * UNITS_PER_TILE);
-        self.add_move_order(u, to, MoveKind::MoveTo, QueuePos::Last, false);
+        self.add_move_order(u, to, MoveKind::MoveTo, QueuePos::First, false);
         true
     }
 

@@ -12,34 +12,32 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — the second merchant was walking at the first one's rare,
-and then a capture answered three things.* **East Indies 6574 → 6715**;
-Great Lakes 2419. Items **186, 187, 188 and 87 closed**.
+*2026-09-03, Opus — the ring was right and the queue position was not.*
+**East Indies 6715 → 6739**; Great Lakes 2419. Item **189 closed**.
 
-- **186 was a destination, not a frame.** `find_unit_ordered` measures a
-  sibling's `orders_x`/`orders_y` (`UnitData +0x70/+0x74`, `0065be35`)
-  where its twin `find_unit` measures the body (`0065cd0f`) — the
-  decompiler names neither operand, the listing does. So a merchant far
-  from its rare still holds it, this crate sent the second merchant at a
-  good already taken, and the 22-entry path it never planned is what
-  `do_move`'s `length > 10` arm would have held a frame. 187 went with it.
-- **The widening ledger is built** (87, DATALAYER §4) and named `stance`
-  and the collision block as fields a single capture carried. run68 landed
-  the next day and `stance` was wrong on every unit of every frame.
-- **run68 answered two items and raised two** (ORACLE, 2026-09-03). 188 was
-  never a divergence: the **quit block is not a frame state** — run66's and
-  run67's closing blocks are run68's ordinary 6621 for 130 of 131 units and
-  one tick behind for `0/5` alone. **118,948 fields now assert 119 blocks**,
-  and the first to part is `1/19`'s `orders_x/y` on **6714**, a frame ahead
-  of the draw stream.
+- **`unpack_merchant`'s walk goes in front of its cast.** After the list
+  `add` comes `head = head->next` — the same rotation `add_cast_order`'s
+  `QUEUE_FIRST` arm runs (ORDERS §1.5) — so the merchant walks to the
+  deploy spot and casts on arrival. This crate appended it, `update_action`
+  stopped on the cast, and `orders_x/y` held the unit's own position.
+  MERCHANT §3.1.
+- **The ring itself was never wrong.** run68's 6714 is the first capture
+  ever to enter `find_merchant_spot`, and both sides take `MOVE_49`'s
+  fourth entry, tile (168, 192). The whole of §3 is diff-backed now — the
+  gate, the two-by-two, the 48-snap, and the angle taken to the
+  *unsnapped* point. `detect_unit_collision` still refused nothing.
+- **122,752 fields now assert 123 blocks** of run68, and the first to part
+  is `1/13`'s own position on **6718** — item 191's unit, thirty-two
+  frames after its two middle waypoints.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6715 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `189 is the merchant's arrival and run68 has it whole:
-1/19 reaches its CITRUS on 6714 and runs find_merchant_spot's ring — MERCHANT
-§3, which the coverage section still calls unreachable and which no capture
-had ever entered. Ours takes (32076, 37188), the original (32280, 36888).`
+**Opener (Opus):** `191 is the frontier: 1/13's path[2].y and path[3].x are
+one 48-grid step off from run68's 6686 and its body parts on 6718, which is
+now the first field of the whole window to go. PATHFINDER §3, find_tpath /
+find_upath; its stack alone is excepted and everything else about the unit
+already agrees.`
 
 ## The queue
 
@@ -48,27 +46,29 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-189. **The merchant's arrival, and `find_merchant_spot`'s ring.** `1/19`
-    reaches its `CITRUS` on run68's block 6714 and `orders_x/y` goes to
-    (32280, 36888) where this takes (32076, 37188); the draw stream parts a
-    frame later on `Guy::do_turn < move_step+0x389`. MERCHANT §3 is the
-    mechanic — the `calc_gather` gate, `MOVE_289`'s ring,
-    `good_merchant_spot`'s two-by-two — and §6 still calls it unreachable.
-    **Takes 184's `&self` `detect_unit_collision`**, the ring's third test.
+191. **`1/13`'s route differs by one 48-grid step, in two middle slots, and
+    its body now parts too.** From run68's 6686, `path[2].y` 38712 against
+    38760 and `path[3].x` 40584 against 40536 — length, both ends and every
+    flag agree — and on **6718** the unit's own `x` goes 40584 against
+    40580 and its stack gains a fourth entry the original has. A
+    `find_tpath`/`find_upath` detail (PATHFINDER §3); its stack alone is
+    excepted, and it is the whole window's frontier.
 
 190. **`stance` is 1 on every unit this crate creates and 0 on the
-    original's.** 2,700 rows from run68's first block. `Unit::init`
+    original's**, 2,700 rows from run68's first block. `Unit::init`
     switches five ways on `get_stance_type` and reads the leader's options
     (`00612100:282–309`); `Unit::new` writes a flat 1, and a unit stood up
-    from a dump takes the dump's value — which is why every earlier capture
-    agreed. Unread: `LeaderOptions +0x4/+0xc/+0x1c`, and which types answer
-    which case.
+    from a dump takes the dump's — which is why every earlier capture
+    agreed. Unread: `LeaderOptions +0x4/+0xc/+0x1c`, and which types
+    answer which case.
 
-191. **`1/13`'s route differs by one 48-grid step, in two middle slots.**
-    From run68's 6686, `path[2].y` 38712 against 38760 and `path[3].x`
-    40584 against 40536 — length, both ends and every flag agree, and the
-    unit walks them without parting until 6718. A `find_tpath`/`find_upath`
-    detail (PATHFINDER §3); its stack alone is excepted.
+192. **A merchant has never been seen to unpack.** run68 ends eleven frames
+    short of `1/19`'s deploy spot (MERCHANT §7): nothing on disk has the
+    cast firing, the two-by-two going `PLACED`, `unit_masks & 0x80000`
+    clearing, or what `Unit::do_gather` writes into `rare`/`good_obj`
+    (ECONOMY step 6). A `[6730, 6800)` window buys all of it, right at the
+    word. **Takes 184's `&self` `detect_unit_collision`**,
+    `find_merchant_spot`'s untested third test.
 
 169. **`compute_site_stats`' arithmetic**, 7,122 of run63's 27,000 site
     fields: `(45, 52)` scores twice, `(44, 52)` four times, an extra site

@@ -14142,3 +14142,68 @@ thirty-two more frames. Item 191.
 
 **118,948 fields over 119 blocks, zero differing**, with `stance` and that
 one stack excepted by name.
+
+---
+
+## 2026-09-03 — the ring was right and the queue position was not (item 189, Opus)
+
+**East Indies' long word 6715 → 6739.** Great Lakes unchanged at 2419.
+
+run68's block 6714 was the first field of the whole record to part, a frame
+ahead of the draw stream, and it was booked as `find_merchant_spot`'s ring
+answering a different tile. It was not. The ring answers **(168, 192)** on
+both sides — `MOVE_49`'s fourth entry, with entries 0, 1 and 2 refused —
+and that is the first time any capture has entered the function at all.
+What parted was the line after the ring.
+
+**`Unit::unpack_merchant@006038e0`'s tail rotates.** It builds the
+`MOVE_TO` inline, puts it on the list with `LinkListBase::add`, calls
+`clear_partial_path`, and then runs **`head = head->next`** before
+`update_action`. That statement is not decoration: it is character for
+character what `Unit::add_cast_order`'s own `QUEUE_FIRST` arm runs, and
+`docs/ORDERS.md` §1.5 has named its effect since the order document was
+written — the new order becomes the current one. So the merchant's two
+orders are `[MOVE_TO, CAST]`: it walks to the deploy spot and casts on
+arrival. This crate appended the walk behind the cast, `update_action`
+stopped on the cast (which is neither a plain move nor a `CHANGE_FORM`),
+and `orders_x/y` stayed at the unit's own position.
+
+**The dump prints an order list backwards, and three fields of one block
+say so.** Block 6714's `STACK<TYPE>` reads `CASTORDER` then `MOVEORDER`,
+while `orders_x/y` is 32280/36888, `dest_angle` is the `MOVEORDER`'s own
+346619904, and the unit steps at that point four frames later. Both walks
+are in the export: `OrderList::log_data@00730070` sets `node = head->prev`
+and advances by `next`, so it prints `head` first;
+`Unit::update_action@0060a870` sets the same node and advances by `prev`.
+`UnitDump::orders_front_first` in `rondata::gamelog` has reversed the
+printed list since it was written, so nothing in the harness had to change
+— but until this block nothing had ever *pinned* which end was which.
+
+**Two points, not one.** The destination is `t · 0xc0` snapped to the
+48-grid — `(168, 192)` gives `(32280, 36888)` — and the angle is
+`find_angle` of the delta to the **unsnapped** `t · 0xc0`, which is
+346619904 where the snapped point would give 408616960. That split is
+already `Unit::add_move_order`'s (`docs/ORDERS.md` §4.3), so the whole
+correction is one argument: `QueuePos::Last` → `QueuePos::First`.
+
+**What the capture cost, and what it bought.** Nothing — the run was
+already on disk, booked the day before for two other items. The reading
+that closed this one was a `grep` over the decompile export and one slice
+of a dump; the diff that keeps it closed is the same run68 window, widened
+from 119 blocks to **123** and from 118,948 fields to **122,752**. The
+whole of `docs/MERCHANT.md` §3 is diff-backed now: the `calc_gather` gate,
+`good_merchant_spot`'s two-by-two, the `MOVE_289` walk order, `radius[3]`,
+the snap, the angle and the queue position. `detect_unit_collision`, the
+ring's third test, still refused nothing — the winner was the fourth
+candidate of forty-nine — so §7's seam stands.
+
+**The frontier moved to a unit already on the queue.** With the merchant
+right, run68's first parting is `1/13`'s own position on **6718**: item
+191, whose two middle waypoints have been one 48-grid step off since block
+6686 and which walks them for thirty-two frames before its body goes with
+them. And a new item behind it: **no capture has ever seen a merchant
+unpack.** run68 ends eleven frames short of the deploy spot, and its
+closing block carries only the object base — enough to say the merchant
+stands on (32280, 36888) with its `SubObjectData.flags` gone 9 → 1, and
+nothing about the cast, the footprint or the `rare`/`good_obj` pair. Item
+192, and a `[6730, 6800)` window buys the lot.

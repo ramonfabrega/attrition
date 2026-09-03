@@ -3685,12 +3685,19 @@ number the closing block had no business supplying.
 `1/19`'s `orders_x/y` on block **6714** — a frame *ahead* of the draw
 stream's own 6715, which is the argument for diffing fields and not only
 draws. The merchant reaches its `CITRUS` and runs `find_merchant_spot`'s
-ring, which no capture had ever reached (`docs/MERCHANT.md` §3). And
+ring, which no capture had ever reached (`docs/MERCHANT.md` §3). **Closed
+the next day**: both sides pick the same tile, and what parted was the
+*queue position* of the walk that ring orders — `unpack_merchant`'s tail
+rotates it in front of the unpack cast (`docs/MERCHANT.md` §3.1). The
+block's order list is what says so, and it says it three ways at once:
+`orders_x/y`, `dest_angle` and the `MOVEORDER`'s own row. With it right
+the window holds to **6718** and the word to 6739. And
 `stance` is 1 on every unit here against 0 on every unit there, from the
 window's first block — a field no capture had compared on a unit this crate
 created, and the widening ledger (`docs/DATALAYER.md` §4) is what named it
 as a single-capture field the day before the capture landed.
 
-**118,948 fields over the window's first 119 blocks, zero differing**, with
+**122,752 fields over the window's first 123 blocks, zero differing**, with
 `stance` and one unit's two path waypoints excepted by name
-(`run68_s_window_is_every_unit_s_whole_record_to_the_word`).
+(`run68_s_window_is_every_unit_s_whole_record_to_the_word`). It was 118,948
+over 119 while the merchant's arrival was open.
