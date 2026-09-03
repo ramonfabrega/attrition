@@ -3745,3 +3745,56 @@ that ever leave the original's point, thirteen part between 2467 and 2930
 with nothing wrong before the word and one row after it — `1/2010`'s
 `y_internal`, this crate's four tiles south of the original's from 2577,
 which is an AI placement past the parting and not this capture's business.
+
+## run70 — the woodcutter's own search, and the cell the original refuses (2026-09-03)
+
+The check `docs/PATHFINDER.md` §17 named and could not run off disk, and
+the second capture to use the call proxies after run55. run69 had said that
+Great Lakes' word was a **route** — the AI woodcutter `1/9` turning one
+48-grid step early and reaching its tree a frame ahead of the original's —
+and a day of reading said the search that builds it was right in every part
+a decompile can check: `get_estimate@00688310` is `vector_dist × 10`, the
+unit grid's `calc_cost@00684e50` is a flat 32/40 (the `param_6 == 0x30` arm
+returns before every terrain term), `Tree::ordered_insert@004796f0` puts an
+equal `value` left and `remove_current@00479770` keeps the in-order, and
+the wheel is `pref + 1 … pref + 8`. Either the original refused a cell this
+crate accepted, or something no reading had found.
+
+**`calc_cost` is called only for a neighbour that passed `valid_ucoord`**,
+so the proxy's argument list *is* the validity filter's answer, one row a
+cell — and that is what makes a `callwin` the instrument here rather than a
+breakpoint. run53's recipe with the trace cheap (`cover=0`) and the dump
+thin (`end: MISC`), `callwin=1955-1985`, 2,000 frames: **three minutes and
+10 MB**, against the twenty and 468 MB run69 cost. `rngcmp.py` against
+run53: 2,001 frames, **zero differing**, so it is run53's game to the frame
+and the window is the frame it claims to be.
+
+**One cell.** Laid side by side, the original's twenty-one expansions and
+this crate's twenty-two agree on every cell either probed but
+`(849, 366)` — `(40776, 17592)`, the node this crate turned south onto,
+which the original refuses from all three neighbours that reach it and
+never prices at all. Nothing else: not a price, not an order, not a
+direction.
+
+The refusal turns on `(848, 367)`, a corner of the *standing* gatherer
+`1/10`'s block that `1/9`'s own diagonal step had cleared eighty-one frames
+earlier — the occupancy index is not refcounted and never has been. What
+puts it back is `Guy::process@005e0230`: every guy standing still
+(`avg_speed == 0`) re-marks its whole disc on the frames where
+`(game->frame + o) % 64 == 0`, so `1/10` healed the hole on frame 1910 and
+the original's search saw a wall where this crate saw a gap
+(`docs/COLLISION.md` §2.2).
+
+**What it bought.** Great Lakes' long word **2419 → 2808**; run69's
+collision record 228,821 → **247,543 field-frames with none wrong**; its
+buildings 650 rows wrong → **none, over the whole three thousand frames**;
+eleven units ever off position instead of fourteen, and the earliest at
+2804 instead of 1993. On East Indies the same one line closed item 191's
+other half: run68's window compares `1/13`'s stack whole with the exception
+deleted, and holds to **6730**, the last block that capture carries.
+
+**Three minutes.** That is the number worth carrying beside run69's twenty
+minutes: a question about *what a function answered* does not need a
+full-detail dump at all, and the thin-`end:` recipe runs 2,000 frames in
+the time a settle poll takes. The capture lane's cheapest instrument is the
+one that had been used once.

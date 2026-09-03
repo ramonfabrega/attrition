@@ -1765,9 +1765,18 @@ still unread.
 **So the lower map's seam and the higher map's frontier are one defect.**
 run68's `1/13` on East Indies parts on exactly the same two middle slots
 of its own path stack from block 6686 (item 191); this is that, on a map
-with no islands, no barge and no merchant. The word did not move today —
-what moved is that one item now stands in front of both numbers instead of
-one.
+with no islands, no barge and no merchant. The word did not move that day —
+what moved is that one item stood in front of both numbers instead of one.
+
+**Closed the same day** (item 191). The route was not the search's: run70's
+`callwin` over `PathFinder::calc_cost` — which runs only for a cell that
+passed `valid_ucoord` — puts the original's expansions beside this crate's
+and they differ on exactly **one** cell, `(40776, 17592)`, which the
+original refuses. The refusal turns on a corner of the standing gatherer
+`1/10`'s collision block that `1/9`'s own step had cleared and
+`Guy::process@005e0230`'s sixty-fourth-frame repaint had put back
+(`docs/COLLISION.md` §2.2, `docs/PATHFINDER.md` §17). **The word moved 2419
+→ 2808**, and the map's earliest unit parting 1993 → 2804.
 
 ## 4. Run12 attributed
 

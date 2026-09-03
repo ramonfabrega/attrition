@@ -14340,3 +14340,111 @@ and Great Lakes frame 1960 is where to point it.
 2419. No number moved, and the session says so: what moved is that the two
 frontiers became one item, and the map that had been standing still for two
 days now has a capture that can see past its own word.
+
+## 2026-09-03 (Opus) — item 191: the search was right, one bit of the grid was not
+
+**Great Lakes 2419 → 2808, and both maps' frontier closed by one line.**
+
+### The reading said the search was right
+
+Item 191 came in as a tie-break question: two routes, legal, equal-length,
+on the same grid, and the queue's opener said to read `astar_path`'s wheel
+and its `<`/`<=` on an equal `f` before anything else. So that is what was
+read — and every part of it came back confirmed. `get_estimate@00688310` is
+`vector_dist × 10` on the unit grid and `vector_dist@0046cff0` is this
+crate's function line for line. The unit grid's `calc_cost@00684e50` takes
+the `param_6 == 0x30` arm and returns before every terrain, danger, owner
+and fog term: a flat **32 cardinal, 40 diagonal**, which makes `h` about
+fifteen times the true cost and the search a near-greedy beeline.
+`Tree::ordered_insert@004796f0` descends right only on a strict `<`, so an
+equal `value` goes left and the newest equal is expanded first;
+`Tree::remove_current@00479770` is the textbook no-copy delete and keeps
+the in-order, so the LIFO survives every removal; `find_node_open` reseats
+`current_parent` from the node itself, so the decrease-key unlinks the node
+it means to.
+
+And then the arithmetic said the branch was not a tie at all. At the node
+where the two routes part, this crate's diagonal child has `f = 2816` and
+the original's cardinal one `f = 2958` — 142 apart. **No ordering rule
+reaches a node 142 worse.** Either the original refused the cell, or
+something no reading had found.
+
+### The capture that answered it in three minutes
+
+`calc_cost` is called **only for a neighbour that passed `valid_ucoord`**,
+so a `callwin` over it does not merely price the steps — its argument list
+*is* the validity filter's answer, one row a cell. run70: run53's game,
+`cover=0`, `callwin=1955-1985`, `end: MISC`, 2,000 frames. Three minutes
+and 10 MB, against run69's twenty minutes and 468 MB, and `rngcmp.py` says
+2,001 frames zero differing.
+
+Laid side by side, the original's twenty-one expansions and this crate's
+twenty-two agree on **every cell either probed but one**:
+
+```
+ours valid, theirs invalid : [(849, 366)]
+ours invalid, theirs valid : []
+```
+
+`(849, 366)` is `(40776, 17592)`, the node this crate turned south onto.
+The original refuses it from all three neighbours that reach it and never
+prices it at all. With it gone, the wheel and the heuristic put the route
+exactly where the original's is — same nodes, same order, same waypoints.
+
+### The bit, and the mechanism that puts it back
+
+The refusal turns on `(848, 367)`, a diagonal of `(849, 366)` and a corner
+of the **standing** gatherer `1/10`'s block. `1/9` had walked west through
+`(849, 366)` on frame 1885 and left it diagonally for `(848, 365)` on 1889;
+`CollCheck::move_unit`'s clear pass takes every cell of the old disc more
+than `coll_size` from the new one, and `(848, 367)` is two rows from
+`(848, 365)`. The index is **not refcounted** — `docs/COLLISION.md` §2 has
+said so since the mechanic was written — so a walker punches holes in a
+stander's block and nothing in `move_unit` or `add_to_world` ever fills
+them.
+
+`Guy::process@005e0230` fills them. After `Guy::move`, on the frames where
+`(game->frame + o) % 64 == 0`, a guy whose `GuyData::avg_speed` is **zero**
+re-marks its whole disc — `radius[coll_size]`, set-only, with §2's region
+gate — allocating the `CollBlock` if the cell has none. `1/10` is object
+10, so `(1910 + 10) % 64 == 0`: the original healed the hole on frame 1910
+and its search saw a wall on 1970 where this crate saw a gap. The four
+gates are the original's in its order — not air, `guy_num < squad_size`
+(`UnitType +0x304`, not `UnitData::guy_mark`), `coll_size != 0`, the phase,
+and the standing test. `docs/COLLISION.md` §2.2.
+
+Eleven lines in `collide.rs` and one call in `process_movement`.
+
+### What one line moved
+
+- **Great Lakes' long word 2419 → 2808.**
+- run69's collision record **228,821 → 247,543 field-frames, none wrong**;
+  its buildings **650 rows wrong → none**, over the whole three thousand
+  frames — the `1/2010` Dock placement at 2577 went with the route.
+- Fourteen units ever off position → **eleven**, and the earliest **1993 →
+  2804**. The word is 2808, so exactly one unit is now in front of it, by
+  four frames, and it is pinned as it stands.
+- On East Indies the same line closed item 191's other half: run68's window
+  compares `1/13`'s stack whole with its exception **deleted**, and the
+  window's clean run went 6718 → **6730**, the last block that capture
+  carries. Every field of every unit, no exception but `stance`.
+- East Indies' own word is unmoved at 6739 — the residue there is the
+  merchant's unpack, which was already the next item.
+
+### What is worth carrying
+
+**"Prefer a diff to a reading" is not only about prose being wrong.** The
+reading here was right in every particular and still could not answer the
+question, because the question was about *state* and a decompile only
+carries *code*. What settled it was a three-minute capture whose whole
+product was a list of cells. The rule that found it is the one already
+written down — grep the disk, then widen, then book the capture — and the
+new part is which capture: a `callwin` over a **filtered** callee turns
+that callee's caller into an oracle for the filter, which is a general
+trick and had been used once.
+
+**And the cheapest capture on the lane was the one nobody had repeated.**
+run55 was seventeen minutes because it kept run39's full detail to stay a
+sibling. Nothing about a call proxy needs the dump at all: `end: MISC` and
+`cover=0` make a 2,000-frame Great Lakes run cost three minutes, and
+`rngcmp` against run53 still proves it is the same game.

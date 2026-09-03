@@ -12,36 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — item 193: the two maps' frontiers turned out to be one
-defect.* **East Indies 6739; Great Lakes 2419.** No score moved; 193 is
-closed into 191, which now stands in front of both numbers.
+*2026-09-03, Opus — item 191 closed, and the headline moved.* **East Indies
+6739; Great Lakes 2419 → 2808.** The search was right in every part; one
+bit of the collision index was not.
 
-- **Great Lakes parts at 2419 on a route, not a clock.** One draw — the AI
-  woodcutter `1/9`'s return-to-camp stand — spent here on 2419 and there on
-  2420. The 404-frame chop clock behind it is exact on both sides (the
-  tile choice's own draw on 1959 returns 4 either way), so the frame is the
-  frame the walk ended: 2015 here, 2016 there. `1/9`'s two middle waypoints
-  are each one 48-grid step short in x. That is **item 191's signature**,
-  on a map with no islands, barge or merchant (SYNC §3.26, PATHFINDER §17).
-- **run69 is on disk**: Great Lakes at run33's detail out to 3,000 frames,
-  the capture DECISIONS 29 had owed since 09-01. 468 MB, twenty minutes,
-  zero differing against run53 and against run33. Launched in the first
-  five minutes, read in the last — the lane, not a second agent.
-- **The map's own widening came with it.** `1/9` is the only one of
-  fourteen units to leave the original's point before the word — 1993
-  against the next-earliest 2467 — and the collision block is 228,821
-  field-frames with none wrong.
+- **The reading confirmed `astar_path` and could not answer it.**
+  `get_estimate`, `vector_dist`, the flat 32/40 unit-grid `calc_cost`, the
+  tree's equal-goes-left, `remove_current`'s in-order and the wheel are all
+  this crate's, and the parting node's two children are **142 apart in
+  `f`** — no ordering rule reaches the original's route. It was **state**.
+- **run70 answered it in three minutes.** `callwin` over `calc_cost`, which
+  runs only for a cell that passed `valid_ucoord`, so its argument list is
+  the validity filter's answer, one row a cell. Of every cell the two
+  searches probed on frame 1970, **one** differed: `(849, 366)`.
+- **`Guy::process` re-marks a standing guy's whole collision disc every 64
+  frames** (`(frame + o) % 64 == 0`, `avg_speed == 0`): the index is not
+  refcounted, and this fills the holes a walker punches. COLLISION §2.2.
+- **What one line moved.** Great Lakes' word 2419 → **2808**; run69's
+  collision 228,821 → **247,543 field-frames none wrong**; buildings 650
+  rows wrong → **none**; earliest parting **1993 → 2804**. East Indies:
+  run68 takes `1/13`'s stack with the exception **deleted**, to 6730.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6739 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w2808 of 24,000
 
-**Opener (Opus):** `191 is the default and it is now both maps: the same
-two-middle-slot, one-48-grid-step route difference parts run68's 1/13 on
-East Indies at 6686 and run69's 1/9 on Great Lakes at 1993. Both routes are
-legal, equal-length and on the same grid, so read astar_path's tie-break
-(PATHFINDER §4.2) before anything else, and run55's callwin over
-astar_path/calc_cost on Great Lakes frame 1960 is the check that settles
-whether it is a price or a tie. 190 is second.`
+**Opener (Opus):** `194 is the default: run69's 1/1 leaves the original's
+point on 2804, four frames in front of Great Lakes' new word of 2808, and
+run69's test pins it as it stands. Read which field parts first — the dump
+has 1/1 whole at run33's detail — and remember run70: a callwin over a
+filtered callee is an oracle for the filter, and at end:MISC it is three
+minutes. 192 is second.`
 
 ## The queue
 
@@ -50,24 +50,12 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted unle
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-191. **The middle nodes are one 48-grid step short, and it is both maps'
-    frontier** (PATHFINDER §17). East Indies: run68's `1/13` from 6686,
-    `path[2].y` 38712 against 38760 and `path[3].x` 40584 against 40536,
-    the body following on 6718. Great Lakes: run69's `1/9` from **1993**,
-    the same two middle slots 48 short in x, arriving a frame early and
-    putting the word on 2419. Ends, length, flags and switch frames all
-    agree either way, so it is a **tie-break and not a price** — read
-    `astar_path`'s wheel and its `<`/`<=` on an equal `f` (§4.2), then a
-    run55-style `callwin` over `astar_path`/`calc_cost` on Great Lakes
-    frame 1960 to settle it.
-
-190. **`stance` is 1 on every unit this crate creates and 0 on the
-    original's**, 2,700 rows from run68's first block. `Unit::init`
-    switches five ways on `get_stance_type` and reads the leader's options
-    (`00612100:282–309`); `Unit::new` writes a flat 1, and a unit stood up
-    from a dump takes the dump's — which is why every earlier capture
-    agreed. Unread: `LeaderOptions +0x4/+0xc/+0x1c`, and which types
-    answer which case.
+194. **`1/1` leaves the original's point on 2804, four frames in front of
+    Great Lakes' word** (2808). run69's only parting before the word now
+    that 191 is closed, and the map's nearest divergence. run69 is at
+    run33's full detail for 3,000 frames, so every field of `1/1` is on
+    disk either side of it — read which one parts first before booking
+    anything.
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven frames
     short of `1/19`'s deploy spot (MERCHANT §7): nothing on disk has the
@@ -76,6 +64,14 @@ indexed by them.
     (ECONOMY step 6). A `[6730, 6800)` window buys all of it, right at the
     word. **Takes 184's `&self` `detect_unit_collision`**,
     `find_merchant_spot`'s untested third test.
+
+190. **`stance` is 1 on every unit this crate creates and 0 on the
+    original's**, 2,700 rows from run68's first block. `Unit::init`
+    switches five ways on `get_stance_type` and reads the leader's options
+    (`00612100:282–309`); `Unit::new` writes a flat 1, and a unit stood up
+    from a dump takes the dump's — which is why every earlier capture
+    agreed. Unread: `LeaderOptions +0x4/+0xc/+0x1c`, and which types
+    answer which case.
 
 169. **`compute_site_stats`' arithmetic**, 7,122 of run63's 27,000 site
     fields: `(45, 52)` scores twice, `(44, 52)` four times, an extra site

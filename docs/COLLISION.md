@@ -97,7 +97,9 @@ whenever a figure changes unit cell, and that **clears** the cells around
 > when one unit leaves it clears bits the other still stands on. The
 > original has this and we keep it: an index rebuilt from the unit list
 > each frame would answer differently the moment two blocks overlap, which
-> for `coll_size 1` is most of the time.
+> for `coll_size 1` is most of the time. **The hole it leaves is not
+> permanent** — §2.2 is the repaint that closes it, and this crate did not
+> have it until 2026-09-03.
 
 ### 2.1 `move_x` / `move_y` / `radius`
 
@@ -114,6 +116,62 @@ to left, the left column bottom to top. **Ring 2 is the exception** — the
 same ring with its four corners moved to the end, in the order NW, NE, SE,
 SW. Rings 1 and 3–7 are the plain clockwise walk. (Verified entry for entry
 against the PE bytes; the quirk is in the table, not in a generator.)
+
+### 2.2 The sixty-fourth frame, which puts the holes back (2026-09-03)
+
+The bits are not refcounted, and the paragraph above says what that costs:
+a unit leaving a cell clears the cells another unit is still standing on.
+Nothing in `move_unit` or `add_to_world` ever restores them, so a standing
+unit's block would rot away one corner at a time as its neighbours walked
+past — and the pathfinder, which reads this index through `valid_ucoord`,
+would walk through the holes.
+
+**`Guy::process@005e0230` is what puts them back.** After `Guy::move`, on
+the frames where
+
+    (game->frame + o) % 64 == 0
+
+— `o` is the guy's own object number (`GuyData +0x8c`), so the map's units
+repaint on sixty-four different frames rather than all at once — a guy
+re-marks its **whole disc**: `move_x[0 .. radius[coll_size])` around its
+unit cell, set-only, allocating the `CollBlock` if the cell has none, with
+§2's region gate (`get_tregion` of the guy's own tile against each cell's
+`WData::region`). It is `add_to_world`'s walk exactly, minus the chain half.
+
+Four gates, and they are the original's in its order:
+
+- `type::domain != 2` — aircraft still occupy nothing;
+- `guy_num < UnitType::squad_size` (`+0x304`) — the **squad** figures, so
+  the crew a track offset carries never marks. (`add_to_world` uses
+  `UnitData::guy_mark` at `+0xb5` for the same loop; the two are not the
+  same field.)
+- `coll_size != 0`;
+- **`GuyData::avg_speed == 0`** (`+0x84`) — the guy is standing still.
+  `Guy::move`'s tail folds `last_speed` into it a quarter at a time
+  (`avg = (avg * 3 + last) / 4`), so it reaches zero a few frames after a
+  unit stops and is non-zero for every frame of a walk. A moving guy needs
+  no repaint: `move_unit`'s set pass has just written its whole new disc.
+
+So a hole lives for at most sixty-four frames, and the index is
+self-healing rather than exact.
+
+**How it was found, and what it cost while it was missing.** run69's AI
+woodcutter `1/9` walked west through unit cell `(849, 366)` on frame 1885
+and left it for `(848, 365)` on 1889; the diagonal step's clear pass took
+`(848, 367)` with it, which is a corner of the *stationary* gatherer
+`1/10`'s block. Eighty-one frames later `1/9` planned its walk to a tree,
+and the cell that should have been refused was free: two middle waypoints
+one 48-grid step from the original's, an arrival a frame early, and Great
+Lakes' word at **2419** (`docs/PATHFINDER.md` §17). In the original,
+`1/10`'s own repaint on frame **1910** — `(1910 + 10) % 64 == 0` — had put
+the corner back. run70's `callwin` is what proved the search itself agreed:
+of every cell the two searches probed on frame 1970, `(849, 366)` is the
+**only** one they answered differently.
+
+`crates/sim/src/collide.rs`'s `Sim::coll_repaint`, called from
+`process_movement` as `Guy::process` calls it. SEAM: this crate marks one
+figure a unit (§2), so it repaints guy 0's disc and no other's, and the
+`squad_size` gate is thereby always satisfied.
 
 ## 3. The object chain
 
@@ -698,10 +756,26 @@ buildings join the chain, which is why §8 does not claim it.
   the hit cell, and the whole disc could not have produced them. East
   Indies' word 6570 → **6571**
   (`run66_s_window_is_the_original_s_unit_for_unit`).
+- **§2.2's sixty-fourth-frame repaint, by the hole it fills** (item 191,
+  2026-09-03). run70 is a `callwin` over `PathFinder::calc_cost` on Great
+  Lakes frames 1955–1985, and `calc_cost` runs only for a cell that passed
+  `valid_ucoord` — so the proxy's argument list *is* the index's answer,
+  one row a cell. Of every cell the original's search and this crate's
+  probed on frame 1970, exactly **one** was answered differently:
+  `(849, 366)`, whose refusal turns on `(848, 367)` — a corner of the
+  standing gatherer `1/10`'s block that the walking `1/9` had cleared
+  eighty-one frames earlier and that `1/10`'s own repaint on frame 1910
+  had put back. With the repaint the two searches are twenty-one
+  expansions in the same order, and the routes they build are the same.
+  Great Lakes' long word **2419 → 2808**, its collision record 228,821 →
+  **247,543 field-frames with none wrong**, its buildings 650 wrong →
+  **none**, and East Indies' run68 window clean to its last block with no
+  exception but `stance` (`docs/PATHFINDER.md` §17).
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
-- §2's clear-on-move, §4's naming and §6's snap-and-replan end to end, in
-  `crates/sim/src/collide.rs`'s own tests, each written to fail first.
+- §2's clear-on-move, §2.2's repaint, §4's naming and §6's snap-and-replan
+  end to end, in `crates/sim/src/collide.rs`'s own tests, each written to
+  fail first.
 
 **Reading-only** — no capture has executed these:
 

@@ -183,6 +183,45 @@ impl Sim {
         self.coll_paint(u, self.units[u].pos, true);
     }
 
+    /// **`Guy::process@005e0230`'s sixty-fourth frame** — the repaint that
+    /// heals the holes the index's own design punches
+    /// (`docs/COLLISION.md` §2.2).
+    ///
+    /// The bits are not refcounted: when a unit leaves a cell its
+    /// [`Sim::coll_move`] clears every cell of its old disc that its new one
+    /// does not cover, **including the cells another unit is still standing
+    /// on**. Nothing in `move_unit` or `add_to_world` ever puts those back,
+    /// so a standing unit's block would rot away one corner at a time as its
+    /// neighbours walked past. This is what puts them back: after
+    /// `Guy::move`, on the frames where `(game->frame + o) % 64 == 0`, a guy
+    /// whose `avg_speed` is **zero** re-marks its whole disc —
+    /// `radius[coll_size]`, the same walk `add_to_world` takes, set-only and
+    /// with the same region gate.
+    ///
+    /// The gates are the original's, in its order: not air, `guy_num <
+    /// squad_size`, `coll_size != 0`, the phase, and the standing test. The
+    /// phase is per **object number**, so the map's units repaint on
+    /// sixty-four different frames rather than all at once, and a hole lives
+    /// for at most sixty-four frames.
+    ///
+    /// SEAM: `crates/sim` marks one figure a unit (§2), so this repaints guy
+    /// 0's disc and no other's; `squad_size` is thereby always satisfied.
+    pub(crate) fn coll_repaint(&mut self, u: usize) {
+        if !(self.units[u].alive() && self.units[u].on_map) {
+            return;
+        }
+        // `avg_speed` (`GuyData +0x84`) is `Guy::move`'s running quarter of
+        // `last_speed`, so it reaches zero a few frames after the unit stops
+        // and is non-zero for every frame of a walk.
+        if self.units[u].movement.body.avg_speed != 0 {
+            return;
+        }
+        if (self.frame + i64::from(self.units[u].index)).rem_euclid(64) != 0 {
+            return;
+        }
+        self.coll_paint(u, self.units[u].pos, true);
+    }
+
     /// `Object::remove_from_world`'s half — the clear pass with nowhere to
     /// move to.
     pub(crate) fn coll_remove(&mut self, u: usize) {
@@ -1190,6 +1229,60 @@ mod tests {
             .expect("the refused point survives the blocked stand's own store");
         assert_eq!(coll, Pos::new(1497, 1431), "the point the step proposed");
         assert_ne!(ucell(coll), ucell(a), "and it is not the unit's own cell");
+    }
+
+    /// **§2.2 — the sixty-fourth frame puts back what the walker took.**
+    ///
+    /// The index is not refcounted, so a unit leaving a cell clears the
+    /// bits another unit is still standing on: `A` stands at unit cell
+    /// `(10, 10)` with a block of `9..=11` square, `B` steps from
+    /// `(11, 11)` to `(12, 12)`, and its clear pass erases `(10, 10)`,
+    /// `(10, 11)` and `(11, 10)` — three corners of a block whose owner
+    /// never moved. `Guy::process@005e0230` is what puts them back, on the
+    /// frames where `(frame + o) % 64 == 0`.
+    ///
+    /// Both halves are asserted, because the first is what makes the
+    /// second a check rather than a tautology: **the hole is real** on the
+    /// frame after the step, and **gone** by the repaint. Delete the call
+    /// in `process_movement` and the second half fails; the run69 diff
+    /// fails with it, which is where this was found (`docs/PATHFINDER.md`
+    /// §17).
+    #[test]
+    fn the_sixty_fourth_frame_puts_back_the_block_a_walker_cleared() {
+        let a = ucell_centre(Pos::new(10, 10));
+        let b = ucell_centre(Pos::new(11, 11));
+        let (mut sim, x, y) = pair(a, b);
+        assert_eq!(sim.units[x].index, 0, "A's object number sets the phase");
+        for c in [Pos::new(10, 10), Pos::new(10, 11), Pos::new(11, 10)] {
+            assert!(sim.coll.get(c.x, c.y), "A's block starts whole at {c:?}");
+        }
+
+        // Off the phase, so the repaint cannot run before the hole is
+        // looked at: A repaints on frames divisible by 64.
+        while (sim.frame + i64::from(sim.units[x].index)).rem_euclid(64) == 0 {
+            sim.tick();
+        }
+        sim.set_new_location(y, ucell_centre(Pos::new(12, 12)), true);
+        let holes = [Pos::new(10, 10), Pos::new(10, 11), Pos::new(11, 10)];
+        for c in holes {
+            assert!(
+                !sim.coll.get(c.x, c.y),
+                "B's clear pass took {c:?} out of A's block — the index is not \
+                 refcounted, and this is the hole the repaint exists for"
+            );
+        }
+
+        // A stood still throughout, so its `avg_speed` is zero and the
+        // next phase frame re-marks the whole disc.
+        for _ in 0..64 {
+            sim.tick();
+        }
+        for c in holes {
+            assert!(
+                sim.coll.get(c.x, c.y),
+                "the sixty-fourth frame put {c:?} back"
+            );
+        }
     }
 
     /// §4: a unit walking into another one detects it, names it, and

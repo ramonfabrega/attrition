@@ -642,3 +642,40 @@ poll_max: 900
 # run33 over the 1,850 frames they share.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run69.log
 check: python3 tools/gamelog/samegame.py gamelog-run33-longtrace.txt gamelog-run69-greatlakes-3k.txt
+
+run: 70
+tag: greatlakes-astarwin
+item: 191
+why: the woodcutter's own search — astar_path's bracket and every calc_cost it asked for, on the frame the two routes part
+# **The check §17 named and could not run off disk.** run69 says `1/9`'s
+# route parts from the original's on two middle nodes; the reading says the
+# search that builds it is right in every part this crate can check —
+# `get_estimate` is `vector_dist × 10` (`00688310`), the unit grid's
+# `calc_cost` is a flat 32/40 (`00684e50`, the `param_6 == 0x30` arm),
+# `ordered_insert` puts an equal `value` left, `remove_current` keeps the
+# in-order, and the wheel is `pref + 1 … pref + 8`. So either the original
+# refuses a cell this crate accepts, or something no reading has found.
+#
+# `calc_cost` is called **only for a neighbour that passed `valid_ucoord`**,
+# so the proxy's argument list *is* the validity filter's answer, one row a
+# cell (`docs/PATHFINDER.md` §4.2, the `CostMark` note). The prediction is
+# sharp: this crate expands `(40728, 17544)` on sim-frame 1970 and prices
+# `(40776, 17592)` there at depth 11. If the original's window has no such
+# row, the search is right and the **state** is wrong; if it has one, the
+# reading is wrong and the row after it says where.
+#
+# run53's recipe — the trace cheap and the dump thin — so this is minutes,
+# not the hour run69 cost. `start:` stays run10's because that block is what
+# the harness stands the simulation up from.
+frames: 2000
+mapstyle: 14
+end: MISC
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+cover: cover=0
+cover: callwin=1955-1985
+# A `MISC`-only per-frame block never reaches the 10 MB the settle test
+# defaults to (run53's lesson).
+settle_min: 500000
+# The stream must be run53's — same seed, same lobby, no input — or the
+# window is not the frame it claims to be.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run70.log

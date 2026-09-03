@@ -2864,6 +2864,11 @@ impl Sim {
                 self.process_follower(i, g);
             }
         }
+        // `Guy::process`'s own tail: the sixty-fourth-frame repaint of the
+        // collision block (`docs/COLLISION.md` §2.2). It reads the body as
+        // `Guy::move` has just left it, which for guy 0 is the unit's own
+        // position.
+        self.coll_repaint(i);
     }
 
     /// **The crew loop**, which is the same eight lines in three places

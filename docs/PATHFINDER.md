@@ -14,6 +14,14 @@ dumped from the PE at the linker map's addresses. Confidence: **high** on the
 search, the cost function's structure, the wrappers, and the march
 correction; each stated exception is under §12.
 
+**And the search is diff-backed since 2026-09-03.** run70's `callwin`
+proxies `astar_path` and `calc_cost` over a Great Lakes window and puts the
+original's own expansion beside this crate's, cell for cell: twenty-one
+expansions in the same order, every priced step's arguments and answer the
+same, and the whole of §4's ordering — the wheel, the LIFO on an equal
+`value`, the `<=` that lets a tie's first arrival keep it — confirmed by a
+run rather than a reading (§17).
+
 This document replaces the brief of 2026-08-22 (git has it). **The blind
 second reading ran the same day**: two Opus readers re-derived the search
 and the cost/wrappers halves from the export alone, an adjudicator took all
@@ -1122,63 +1130,58 @@ the array with no bounds test: a start or goal cell off the map would read
 whatever lies there, which no capture has reached and this crate answers
 `None` for.
 
-## 17. The middle nodes are one 48-grid step short, on both maps (2026-09-03)
+## 17. The middle nodes were one 48-grid step short, and the search was right (2026-09-03)
 
 Two captures, two maps, two units, one signature: a route whose **ends,
 length, flags and switch frames are the original's** and whose **middle
 waypoints sit one 48-grid step away**.
 
 - **East Indies, run68, `1/13`.** From the `[6660, 6740)` window's block
-  6686 the unit's `PATHDATA` stack reads `path[2].y` **38712** here
-  against 38760 and `path[3].x` **40584** against 40536. Everything else
-  about the stack agrees — its depth, both ends, every `tolerance` and
-  every `flags` byte. The unit walks the parted legs for thirty-two more
-  frames before its own position goes with them, on 6718.
+  6686 the unit's `PATHDATA` stack read `path[2].y` **38712** here against
+  38760 and `path[3].x` **40584** against 40536, and its own position went
+  with them on 6718.
 - **Great Lakes, run69, `1/9`.** The AI's woodcutter walks from its camp
-  to the tree it chose on frame 1959. The dump prints the *current* step
-  rather than the stack at this detail — `MOVEORDER`'s `dest_x`/`dest_y`,
-  live while `dest` is 1 — so the route reads off as a sequence:
+  to the tree it chose on frame 1959, and the dump prints the *current*
+  step rather than the stack — `MOVEORDER`'s `dest_x`/`dest_y`, live while
+  `dest` is 1 — so the route read off as a sequence whose slots 2 and 3
+  were `(40728, 17544)`/`(40824, 17640)` here against `(40776, 17544)`/
+  `(40872, 17640)`. Both sides took slot 2 on the **same frame**, 1993, and
+  the two routes were the same total length: ours 144 + diagonal + 144, the
+  original's 192 + diagonal + 96. It cost a frame of arrival — 2015 against
+  **2016** — and that frame was the whole of Great Lakes' word, because the
+  woodcutter's 404-frame chop clock starts when it reaches the tile.
 
-  | slot | ours | the original's |
-  |---|---|---|
-  | 0 | (40536, 17592) | (40536, 17592) |
-  | 1 | (40584, 17544) | (40584, 17544) |
-  | 2 | **(40728, 17544)** | **(40776, 17544)** |
-  | 3 | **(40824, 17640)** | **(40872, 17640)** |
-  | 4 | (40968, 17640) | (40968, 17640) |
-  | 5 | (41016, 17640) | (41016, 17640) |
+**The search was right and the grid was wrong.** run70 is a `callwin` over
+`PathFinder::astar_path` and `PathFinder::calc_cost` on Great Lakes frames
+1955–1985, run53's game to the frame (`rngcmp.py`: 2,001 frames, zero
+differing). `calc_cost` is called **only for a neighbour that passed
+`valid_ucoord`**, so the proxy's argument list is the validity filter's own
+answer, one row a cell — and the two searches' expansions can be laid side
+by side. They agree on **every cell either probed but one**:
 
-  Two middle slots, 48 short in x apiece, and the same dog-leg either
-  way: east, then the diagonal, then east. Both sides take slot 2 on the
-  **same frame**, 1993, and the two routes are the same total length —
-  ours 144 + diagonal + 144, the original's 192 + diagonal + 96.
+    ours valid, theirs invalid : [(849, 366)]
+    ours invalid, theirs valid : []
 
-**What it costs is a frame of arrival.** The legs are the same length but
-they are not the same walk: the turn between them falls on a different
-frame, and this crate reaches the walk's end on **2015** where the
-original reaches it on **2016**. That one frame is the whole of Great
-Lakes' word (`docs/SYNC.md` §3.26) — the woodcutter's 404-frame chop
-clock starts on arrival, so a frame early at the tile is a frame early on
-the walk home four hundred frames later.
+`(849, 366)` is `(40776, 17592)`, the node this crate turned south onto.
+The original refuses it from all three of its neighbours that reach it —
+`(848, 365)` dir 5, `(849, 365)` dir 6, `(850, 366)` dir 8 — and never
+prices it at all; with it gone the wheel and the heuristic put the route
+exactly where the original's is. Twenty-one expansions here, twenty-one
+there, in the same order.
 
-**What this has not established.** *Which* step of the search puts the
-node there. Both routes are legal, equal-length and on the same grid, so
-this is a tie-break rather than a cost: `astar_path`'s direction wheel
-(§4.2), its `<` versus `<=` on an equal `f`, or the order the open list
-is walked. Nothing here has been read against the listing, and neither
-capture carries the search's own probe count — the call proxies
-(`tools/trace/README.md`, "The call proxies") are what would, and run55
-is the recipe. A `callwin` over `astar_path` on Great Lakes frame 1960,
-with `calc_cost` beside it, would say whether the two candidates are
-priced the same and the tie broken differently, or priced differently at
-all.
+So nothing in §4 was wrong: the wheel, `first_open_node`'s LIFO on an equal
+`value`, the `<=` that lets the first arrival keep a tie, the flat 32/40 of
+the unit grid's `calc_cost`, and `get_estimate`'s `vector_dist × 10` were
+all confirmed by a run rather than a reading. What was missing was one bit
+of the **collision index**: `(848, 367)`, a corner of the stationary
+gatherer `1/10`'s block, which `1/9`'s own diagonal step had cleared
+eighty-one frames earlier and which the original's sixty-fourth-frame
+repaint had put back (`docs/COLLISION.md` §2.2).
 
-**What a diff backs.** Both halves.
-`run68_s_window_is_every_unit_s_whole_record_to_the_word` excepts `1/13`'s
-stack alone and compares everything else about it;
+**What a diff backs.** All of it, on both maps.
 `run69_s_three_thousand_frames_stand_where_the_original_s_do` asserts that
-`1/9` is the **only** unit of fourteen to leave the original's point
-before Great Lakes' word — 1993 against the next-earliest 2467 — and pins
-the waypoint rows as they stand, thirteen `dest_x` from 1993 and two
-`dest_y` from 2000. The day the route is right, both fail rather than
-passing quietly.
+no unit leaves the original's point before the word and no move order's
+waypoint parts before it; the word moved **2419 → 2808** with the fix.
+`run68_s_window_is_every_unit_s_whole_record_to_the_word` compares `1/13`'s
+stack whole — the exception is deleted rather than kept — and its window now
+runs to 6730 with no field of any unit parting but `stance`.

@@ -397,8 +397,10 @@ that ends it and the recovery after:
   `MOVE_289` walk order and `radius[3]` all have an oracle, and so do the
   order the two orders run in (§3.1), the 48-snap of the destination and
   the angle to the unsnapped point. What parted was §3.1 alone, and the
-  window now holds to 6718 — a unit that is item 191's, not this
-  mechanic's. **The ring is still one candidate deep**: the winner was the
+  window ~~holds to 6718 — a unit that is item 191's, not this
+  mechanic's~~ **now holds to 6730, the last block run68 carries**: item
+  191 closed on 2026-09-03 (`docs/COLLISION.md` §2.2) and took `1/13`'s
+  position with it, so no field of any unit parts inside the window. **The ring is still one candidate deep**: the winner was the
   fourth entry of forty-nine, so nothing on disk exercises the walk past
   ring 1, and `detect_unit_collision` (§7) still refused nothing.
 

@@ -5565,10 +5565,18 @@ mod tests {
         );
         // **Nothing leaves the original's point before the word except
         // `1/9`, and `1/9` is item 191.** Thirteen of the capture's
-        // fourteen partings fall between 2467 and 2930, all past 2419,
-        // where both streams are on draws that are nobody's. The
-        // fourteenth is 474 frames earlier and is the whole of item 193:
-        // the woodcutter's two middle waypoints, one 48-grid step each.
+        // eleven partings, and they now run 2804 … 2930 against a word of
+        // 2808. A fourteenth unit used to part on **1993**, 474 frames
+        // ahead of any of them, and it was item 191: the woodcutter's two
+        // middle waypoints, one 48-grid step each. Its route is the
+        // original's now (`docs/COLLISION.md` §2.2) and the word moved
+        // 2419 → 2808 with it.
+        //
+        // **One unit is still four frames in front of the word**, and it
+        // is pinned as it stands rather than filtered out: `1/1` leaves
+        // the original's point on **2804**. That is the whole of the next
+        // item on this map, and the day it is right this fails rather than
+        // passing quietly.
         let early: Vec<(i64, i64, i64)> = parted
             .iter()
             .filter(|&(_, &f)| f < LONG_WORD_GREAT_LAKES)
@@ -5576,30 +5584,30 @@ mod tests {
             .collect();
         assert_eq!(
             early,
-            vec![(1, 9, 1993)],
-            "one unit leaves the original's point before the word, and it is \
-             the woodcutter of item 191's own defect"
+            vec![(1, 1, 2804)],
+            "one unit leaves the original's point before the word, four \
+             frames in front of it"
         );
-        // The two slots, as they stand: `1/9` holds the original's
-        // waypoint on every frame of the game until **1993**, and then
-        // walks a route 48 short in x for the fifteen frames the two
-        // middle legs last — `dest_y` joining it on 2000, where this
-        // crate has already turned for the diagonal leg and the original
-        // is still running east. Asserted as it stands rather than
-        // filtered out, so the day the route is right this fails rather
-        // than passing quietly (the `gather_slots` precedent).
+        // And no waypoint disagrees before the word either. `1/9`'s two
+        // slots — `dest_x` from 1993 and `dest_y` from 2000 — were pinned
+        // here **as they stood** so that the day the route was right this
+        // would fail rather than pass quietly. It did.
         assert_eq!(
             waypoints,
-            vec![(1, 9, "dest_x", 1993, 13), (1, 9, "dest_y", 2000, 2)],
-            "the only waypoints the capture disagrees on before the word \
-             are `1/9`'s"
+            Vec::new(),
+            "no move order's current waypoint parts before the word"
         );
         assert!(
             builds >= 95_476,
             "two fields on every linked building-frame: {builds}"
         );
         assert!(
-            coll >= 228_821,
+            build_bad.is_empty(),
+            "and the AI's buildings stand where the original's do for the \
+             whole capture, not only to the word: {build_bad:?}"
+        );
+        assert!(
+            coll >= 247_543,
             "five fields on every agreeing unit-frame, and the count only \
              grows: {coll}"
         );
@@ -11063,13 +11071,15 @@ mod tests {
             (6595..6730).chain([6746]).collect::<Vec<i64>>(),
             "run68's frame window, plus the block the quit writes"
         );
-        // The first field to part: `1/13`'s own position, thirty-two
-        // frames after the two middle waypoints of item 191 (excepted
-        // below). It was 6714 — `1/19`'s `orders_x/y` on the merchant's
-        // arrival — until [`LONG_WORD_EAST_INDIES`]'s own entry put the
-        // deploy walk in front of the unpack cast. Everything before it is
-        // compared with no exception but `stance`.
-        const FIRST_FIELD_PARTING: i64 = 6718;
+        // The first field to part, and there is none inside the window
+        // any more: every unit's whole record agrees on all 135 blocks up
+        // to the last one this dump carries, with no exception but
+        // `stance`. It was 6714 — `1/19`'s `orders_x/y` on the merchant's
+        // arrival — then **6718**, `1/13`'s own position thirty-two frames
+        // after item 191's two middle waypoints. The waypoints were the
+        // collision index's missing repaint (`docs/COLLISION.md` §2.2) and
+        // the position went with them, so this is now the window's end.
+        const FIRST_FIELD_PARTING: i64 = 6730;
         const {
             assert!(
                 FIRST_FIELD_PARTING < LONG_WORD_EAST_INDIES,
@@ -11137,15 +11147,15 @@ mod tests {
                 // slot, labelled by index so a parted waypoint names
                 // itself.
                 //
-                // **`1/13` is item 191 and only its stack is excepted.**
-                // From block 6686 its `path[2].y` reads 38712 here against
-                // 38760 and its `path[3].x` 40584 against 40536 — two
-                // middle waypoints, one 48-grid step each, on a route
-                // whose length, ends and flags all agree. The unit walks
-                // them without parting for thirty-two more frames: its
-                // own position holds until 6718, past this window's
-                // assertion. Everything else about `1/13` is compared.
-                let stack_excepted = (them.who, them.o) == (1, 13) && f + 1 >= 6686;
+                // **The stack is compared whole, and nothing is
+                // excepted.** `1/13` was, until 2026-09-03: from block
+                // 6686 its `path[2].y` read 38712 here against 38760 and
+                // its `path[3].x` 40584 against 40536, two middle
+                // waypoints one 48-grid step each. That was item 191 on
+                // this map, and it closed with Great Lakes' — the
+                // collision index's sixty-fourth-frame repaint
+                // (`docs/COLLISION.md` §2.2). The exception is gone rather
+                // than kept, so a route that parts again fails here.
                 let labels: Vec<String> = (0..un.path.len().min(them.path.len()))
                     .flat_map(|slot| {
                         ["x", "y", "tol", "flags"]
@@ -11153,13 +11163,7 @@ mod tests {
                             .into_iter()
                     })
                     .collect();
-                for (slot, (ours, theirs)) in un
-                    .path
-                    .iter()
-                    .zip(them.path.iter())
-                    .enumerate()
-                    .filter(|_| !stack_excepted)
-                {
+                for (slot, (ours, theirs)) in un.path.iter().zip(them.path.iter()).enumerate() {
                     rows.push((&labels[slot * 4], i64::from(ours.to.x), Some(theirs.to.0)));
                     rows.push((
                         &labels[slot * 4 + 1],
@@ -12206,7 +12210,17 @@ mod tests {
     /// capture's. It was **1802** for as long as the flight was unmodelled;
     /// `Gaia::spawn_bird`'s tile snap took it to **2419**, and the scored
     /// run33 to the end of its own 1,850 frames.
-    const LONG_WORD_GREAT_LAKES: i64 = 2419;
+    ///
+    /// It was **2419** for two days, and the frame was a **route**: the AI
+    /// woodcutter `1/9` turned one 48-grid step early on its walk to a
+    /// tree, arrived a frame early, and spent its chop clock's own draw a
+    /// frame early four hundred frames later. run70's `callwin` over
+    /// `PathFinder::calc_cost` settled it in one window — the original
+    /// never prices `(40776, 17592)` at all, so the search agreed and the
+    /// **grid** did not — and `Guy::process@005e0230`'s sixty-fourth-frame
+    /// repaint of the collision block is what this crate was missing
+    /// (`docs/COLLISION.md` §2.2, `docs/PATHFINDER.md` §17).
+    const LONG_WORD_GREAT_LAKES: i64 = 2808;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of
