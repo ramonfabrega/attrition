@@ -672,6 +672,17 @@ impl Sim {
             guys.push(g);
         }
         self.units[u].guys = guys;
+        // `Unit::init@00612100:548`-`549`, which follow the guy loop:
+        // `update_gpiece`, then `set_new_location(x, y, 1, 1)`. The
+        // `param_3 = 1` is what reaches `Guy::set_new_location(crew, des,
+        // 1)` and puts a **tracked** crew figure straight onto its offset
+        // instead of leaving it to walk there from the leader's own
+        // point. This crate seated only the guys a dump handed it and the
+        // ones a transport put ashore, so every unit it *trained* kept a
+        // trackless crew — and a trackless crew is one `Guy::do_turn`
+        // recurses into (§4.8), so East Indies' Merchant turned twice a
+        // frame where the original turns once.
+        self.seat_guys(u);
     }
 
     /// `guy_flags & 8` — whether `Guy::do_turn` asks this guy for a turn

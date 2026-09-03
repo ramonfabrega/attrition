@@ -13733,3 +13733,86 @@ the handoff says so — but the zero it replaced was every AI on every map,
 and 6356 is the same unit's *next* frame: `Guy::set_anim < Guy::do_turn <
 Unit::move_step`, the Merchant's first step, three frames after its birth.
 `Unit::think_merchant@005f4740` is what sends it, and item 182 books it.
+
+## 2026-09-02 — item 182, closed: the merchant walks, and its crew was never seated (Opus)
+
+**East Indies 6356 → 6570.** `docs/MERCHANT.md` is the new document, and
+the item took two things rather than one.
+
+**The first was the order.** `Unit::think_merchant@005f4740` is the whole
+of an idle merchant's decision, and it has no draws in it at all — which is
+why the trace could say *when* it ran but never *what it chose*. Its head
+is `unit_masks & 0x80000`, packed, and the arm behind a clear bit is a
+`return 1`: a merchant that has already deployed onto a rare never searches
+again and never falls through to `Unit::think`'s tail either. Behind that,
+`Unit::unpack_merchant@006038e0` asks whether here will do — and its own
+head is `UnitData::calc_gather@00609180` **where the unit already stands**,
+so a merchant crossing the map pays one gather search a think and walks no
+candidates. Only then the score, over `LeaderData::new_rares`:
+
+    base = 200 − 10·i, decremented at the loop tail whatever the slot did
+    + 100 where the good's cell region equals my get_tregion
+    − danger[who][cell >> 1], floored at 1
+
+with three object searches that refuse a good outright — a sibling of my
+**exact** type within `0x300` of the good's *cell centre*, a sibling of my
+exact type ordered there (`find_unit_ordered`'s move-family test, which is
+literal), an enemy that can shoot within `0xc00` — and the winner taken
+**out of the list and appended**. That rotation is the whole of the "two
+merchants do not go to the same rare" design, and it is cheaper than the
+searches beside it: `num_rare_resources_seen` reads the same length
+afterwards, and the next merchant to think scores the taken good last.
+
+That landed, and the word did not move. It stayed on 6356.
+
+**The second was the crew.** With the order in, the merchant turned on the
+right frame — and spent **two** `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Unit::move_step+0x389` draws a frame where the original spends one, for the
+three frames of its first turn. `Guy::do_turn@005d97a0` recurses into the
+crew figures whose `track_dx`/`track_dy` are **zero** and no others; a
+merchant packs, so every one of its figures carries `guy_flags & 8`
+(`docs/ANIM.md` §4.8) and asks for a turn animation the merchant's art has
+not got, falls to the idle and rolls. The Merchant's `<UNIT>` entries all
+carry `trackdist="10"`, so the original's crew figure has an offset and is
+never recursed into.
+
+This crate's had none — not because the offset was missing but because
+nothing had ever *seated* it. `Unit::init@00612100:548`–`549` is
+`update_gpiece` and then `set_new_location(x, y, 1, 1)`, and that
+`param_3 = 1` reaches `Guy::set_new_location@005d86f0` on every crew figure
+with its own `des`: the figure is **placed** on its track offset at birth.
+`Sim::seat_guys` had two callers — the dump loader and the transport's
+disembark — and every unit the simulation *trained* kept a trackless crew.
+It had never shown because the merchant is the first trained unit with a
+tracked crew figure that has ever turned in a capture. `Sim::init_guys` now
+ends where `Unit::init` does, and the 191 rondata tests — the dumped-guy
+piece walk and run53's Great Lakes ceiling included — are unchanged by it.
+
+**What the run backs, and what it does not.** run54 now agrees draw for
+draw through the merchant's think on 6354, its turn on 6356 and 214 frames
+of its walk. It cannot check the arithmetic: East Indies' AI has two goods
+in `new_rares`, one of them in its own region, so the pick is `300 > 190`
+and each of the three terms could be wrong on its own. The `−10` step needs
+a third good, the danger term needs a war, the floor needs both, and the
+rotation needs the **second** merchant — which the original trains on 6571,
+one frame past the new word. Twelve tests in `crates/sim/src/merchant.rs`
+carry what the capture cannot, including an eleven-deep list where the step
+and the bonus finally separate.
+
+**And `docs/ORDERS.md` §6 step 5 had a gate backwards.** The
+`do_gather` + `unpack_merchant(4)` arm was written as "(AI only)"; its gate
+is `leader_flags & 4`, which is **human** — the same bit
+`Leader::new_rare@006d9e70` tests to refuse a plain human's reveals. The
+trace agrees with the flag rather than the prose: `Unit::unpack_merchant`
+is first entered on frame 6354, the AI merchant's first idle frame, and
+never in the four thousand frames the AI's fishing boats spend idle before
+it. Amended in place.
+
+**The score.** East Indies **6356 → 6570**, Great Lakes unchanged at 2419;
+191 rondata tests and 772 sim tests green. 6570 is a **collision**: the
+blocked stand `Unit::move_step+0x823`, twice, on the merchant two hundred
+frames into its walk, with the AI's own citizen `1/2` standing still on a
+gather order 180 units away and this crate's exemption ladder refusing to
+let the two past. The original enters `PathFinder::find_wpath` for the
+first time on 6602, so its merchant meets something of its own thirty
+frames later; whether it is that citizen is what the next item asks.

@@ -117,18 +117,27 @@ impl Sim {
     /// tally (`param_5`, `param_6`) are null at this site; the caller that
     /// wants them is [`Sim::do_gather_rates`], below.
     pub(crate) fn calc_gather(&mut self, u: usize) -> bool {
+        self.calc_gather_at(u, self.units[u].pos)
+    }
+
+    /// The same with the position the original's `param_9`/`param_10`
+    /// carry, which `UnitData::good_merchant_spot@006068a0` uses to ask
+    /// the question at a **candidate tile** rather than at the unit
+    /// ([`crate::merchant`] §3). The two `UnitData` fields it writes are
+    /// written from wherever it was asked, exactly as there.
+    pub(crate) fn calc_gather_at(&mut self, u: usize, at: Pos) -> bool {
         // `*param_1 = -1` and `*param_2 = 0`, unconditionally and before
         // every other test — so a caller that asks and finds nothing is
         // left with `rare == -1`, and `unit_masks & 0x20` is **cleared** on
         // every call with `param_7` set, which is this one.
         self.units[u].rare = -1;
         self.units[u].gather_here = false;
-        if self.gather_search(u).is_none() {
+        if self.gather_search(u, at).is_none() {
             return false;
         }
         // `if (count == 0) return 1;` — and otherwise the rates are divided
         // by `count + 1` and, with `param_7` set, the answer is 0.
-        self.gather_crowd(u, true) == 0
+        self.gather_crowd(u, at, true) == 0
     }
 
     /// `Unit::do_gather@005fce20` — `UnitData::calc_gather` as
@@ -154,14 +163,15 @@ impl Sim {
         {
             return None;
         }
-        let good = self.gather_search(u)?;
-        let crowd = self.gather_crowd(u, false);
+        let at = self.units[u].pos;
+        let good = self.gather_search(u, at)?;
+        let crowd = self.gather_crowd(u, at, false);
         self.units[u].gather_here = crowd > 0;
         Some((good, crowd))
     }
 
     /// Blocks A and B — the search, and the two fields it writes.
-    fn gather_search(&mut self, u: usize) -> Option<TypeId> {
+    fn gather_search(&mut self, u: usize, at: Pos) -> Option<TypeId> {
         let who = self.units[u].owner;
         let merchant = self.is_merchant(u);
         let radius = self.gather_radius(u);
@@ -170,7 +180,7 @@ impl Sim {
             .ok()
             .and_then(|r| circle.radius.get(r).copied())
             .unwrap_or(0);
-        let t0 = self.units[u].pos.tile();
+        let t0 = at.tile();
 
         // **Block A** (`00609289`..`0060934e`): the remembered index, tried
         // first and on its own. A hit keeps `good_obj` where it is; a miss
@@ -212,13 +222,12 @@ impl Sim {
     /// `LAB_00609573`'s tail: how many other units of the finder's own
     /// lineage are close enough to be sharing the deposit. `packed_exempt`
     /// is `param_8`.
-    fn gather_crowd(&self, u: usize, packed_exempt: bool) -> i32 {
+    fn gather_crowd(&self, u: usize, at: Pos, packed_exempt: bool) -> i32 {
         let Some(mine_ty) = self.unit_tree(u) else {
             return 0;
         };
         let who = self.units[u].owner;
         let mine = self.gather_radius(u);
-        let at = self.units[u].pos;
         let c0 = at.cell();
         let circle = crate::ai_place::circle();
         let mut count = 0;

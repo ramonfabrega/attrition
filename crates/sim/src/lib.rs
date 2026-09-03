@@ -74,6 +74,7 @@ pub mod group;
 pub mod grouppath;
 pub mod holdings;
 pub mod market;
+pub mod merchant;
 pub mod movement;
 pub mod nations;
 pub mod orders;

@@ -515,10 +515,14 @@ soldier runs its target search, and it was a live divergence in
 4. **Workers** (`ObjectData::is_worker`): **`think_peasant(0)`** — §5.9;
    nonzero **ends the think** (`005f7195`), so a citizen just given a job
    never reaches 5.
-5. Caravans → `think_caravan`; rare-goods merchants (AI only) on `idle == 1`
-   or every 32 frames → `do_gather(search)`; AI specials → `think_spellcaster`,
+5. Caravans → `think_caravan`; rare collectors — merchants *and* fishing
+   boats — ~~(AI only)~~ **for a human** (`leader_flags & 4`, the same bit
+   `Leader::new_rare@006d9e70` reads; `docs/MERCHANT.md` §4) on `idle == 1`
+   or every 32 frames → `do_gather(search)` and then
+   `unpack_merchant(this, 4)`; AI specials → `think_spellcaster`,
    `think_scout`; everyone on `idle == 1`/32: fishermen → `think_fish`;
-   merchants on `idle == 1`/128 → `think_merchant`; carriers → `think_carry`;
+   merchants on `idle == 1`/128 → `think_merchant` (`docs/MERCHANT.md`);
+   carriers → `think_carry`;
    then the tail (`005f7615`): a supply wagon or hero → `add_to_army`, a
    scout or spy with no army → `think_scout`, anything else returns
    (`docs/SCOUT.md` §2).

@@ -71,7 +71,7 @@ pub const FOREIGN_MAX_RING: i32 = 3;
 /// family, `{1, 2, 3, 4, 0x12, 0x13, 0x15}` (`docs/ORDERS.md` §1.2), which
 /// is what makes the function's name literal: a unit with no order, or with
 /// a gather or a build, is not "ordered" anywhere and never rejects a cell.
-const MOVE_FAMILY: [u8; 7] = [1, 2, 3, 4, 0x12, 0x13, 0x15];
+pub(crate) const MOVE_FAMILY: [u8; 7] = [1, 2, 3, 4, 0x12, 0x13, 0x15];
 
 // ----------------------------------------------------------------------
 // §4 — the circle tables, `circle_init@006817f0`

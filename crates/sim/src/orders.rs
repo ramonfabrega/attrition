@@ -968,13 +968,28 @@ impl Sim {
     /// `0x292` — which is the `spell 658` run58's block 4949 prints
     /// (`docs/ORDERS.md` §6.8).
     ///
-    /// SEAM: only the `FISHERMEN` arm is modelled. The other two — a
-    /// `MACHINEGUN` lineage's `0x28d`/`0x28e` and the three merchant ids'
-    /// `0x28f`/`0x290` — have no caller here, and `0x28b` (pack) none at
-    /// all.
+    /// SEAM: only the `FISHERMEN` and merchant arms are modelled. The
+    /// third — a `MACHINEGUN` lineage's `0x28d`/`0x28e` — has no caller
+    /// here, and `0x28b` (pack) none at all.
     pub fn add_cast_order(&mut self, u: usize, spell: i32) {
-        let spell = if spell == crate::fish::UNPACK && self.unit_line_is(u, crate::fish::FISHERMEN)
-        {
+        self.add_cast_order_at(u, spell, QueuePos::First);
+    }
+
+    /// The same with the original's `param_6`. `Unit::unpack_merchant`
+    /// is the one caller that passes `QUEUE_NEW`
+    /// ([`crate::merchant`] §3); every other one this crate reaches
+    /// passes `QUEUE_FIRST`.
+    pub fn add_cast_order_at(&mut self, u: usize, spell: i32, pos: QueuePos) {
+        // The rewrite at `add_cast_order@005e4a60`'s head, in the
+        // original's own order: the machine-gun lineage (`is(0x7b, 0)`)
+        // first, then the three **exact** merchant ids, then the
+        // `FISHERMEN` lineage. The first of the three is the one still
+        // unmodelled — no caller here reaches a machine gun's pack.
+        let spell = if spell != crate::fish::UNPACK {
+            spell
+        } else if self.is_merchant(u) {
+            spell::UNPACK_MERCHANT
+        } else if self.unit_line_is(u, crate::fish::FISHERMEN) {
             crate::fish::UNPACK_FISHERMEN
         } else {
             spell
@@ -983,7 +998,7 @@ impl Sim {
             flags: 0,
             body: Body::Cast(CastOrder { spell, paid: false }),
         };
-        self.enqueue(u, order, QueuePos::First);
+        self.enqueue(u, order, pos);
     }
 
     /// `Unit::add_think_order`: the argument is ignored — it is always
@@ -1304,6 +1319,17 @@ impl Sim {
         // above the scout/army tail and below everything else, which is
         // why a fishing boat never joins an army.
         if self.unit_line_is(u, crate::fish::FISHERMEN) && self.think_fish(u, frame) {
+            return;
+        }
+        // `is_merchant` — the three exact ids — takes `think_merchant`
+        // (`crate::merchant`), and it has a **cadence of its own** on top
+        // of the tail's: `think@005f7515` runs it on the first idle frame
+        // and then one frame in a hundred and twenty-eight, phased by
+        // `o`, where everything either side of it runs one in thirty-two.
+        if self.is_merchant(u)
+            && (self.units[u].idle == 1 || phase & 127 == 0)
+            && self.think_merchant(u)
+        {
             return;
         }
         // The tail (`docs/SCOUT.md` §2): a scout or a spy not in an army

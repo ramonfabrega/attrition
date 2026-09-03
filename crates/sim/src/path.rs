@@ -147,7 +147,7 @@ struct Modes {
 }
 
 /// What `invalid_loc` answers (`docs/PATHFINDER.md` §6).
-mod loc {
+pub(crate) mod loc {
     pub const VALID: i32 = 0;
     pub const OFF_MAP: i32 = 1;
     pub const TERRAIN: i32 = 2;

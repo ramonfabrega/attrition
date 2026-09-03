@@ -552,6 +552,9 @@ word had been parked on
 - **The second merchant.** The original trains another on **6571**; the
   script's `j` bound is three and the leader has seen two rares, so
   whichever call queues it is past the window every capture on disk covers.
+  It is also the only thing that can check `Unit::think_merchant`'s
+  rotation of this list (`docs/MERCHANT.md` §2.3), and it sits one frame
+  past the word.
 
 ## What a city gives
 
@@ -1569,8 +1572,9 @@ which pins the 900 frames before it, and by
 `diff::tests::run60_s_whole_curve_is_where_the_ai_s_timber_parts`, which
 carries the same comparison over all 5,400.
 
-**Not established**: the merchant on a rare — the whole of it — and the
-`resource_cap` pair at 2958.
+**Not established**: the merchant on a rare — ~~the whole of it~~ the
+*arrival* half of it; the order that sends one there is
+`docs/MERCHANT.md` — and the `resource_cap` pair at 2958.
 
 **Also on the record and already booked**: `bucket` on goods 3, 4 and 5 is
 100 here and 0 in the original, on both players, every frame — item 156,

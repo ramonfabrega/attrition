@@ -11094,13 +11094,34 @@ mod tests {
 
     /// East Indies' word on run54, the headline.
     ///
-    /// **6356** since 2026-09-02, and the frame is the **Merchant's first
-    /// step**: `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step`
-    /// at the head of the original's frame, three frames after the unit
-    /// was born. `Unit::think_merchant@005f4740` is what sends it — it
-    /// scores the leader's `new_rares` list, moves the winner to the back
-    /// of that list and issues a `MOVE_TO` at the good — and nothing here
-    /// reaches it.
+    /// **6570** since 2026-09-02, and the frame is a **collision the
+    /// original does not have**: `Guy::set_anim+0x97a <
+    /// Unit::move_step+0x823`, the blocked stand (`docs/COLLISION.md` §5),
+    /// twice — once per figure — on the AI Merchant two hundred frames
+    /// into its walk. The unit in its way is the AI's own citizen `1/2`,
+    /// standing still on a gather order 180 units off, and this crate's
+    /// exemption ladder does not let the two past. `PathFinder::find_wpath`
+    /// is first entered on the original's frame 6602, so the original's
+    /// merchant meets something of its own thirty frames later; whether it
+    /// is this citizen is not settled.
+    ///
+    /// It was **6356** for one item, and the frame was the **Merchant's
+    /// first step**: `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+    /// Unit::move_step` at the head of the original's frame, three frames
+    /// after the unit was born. `Unit::think_merchant@005f4740` is what
+    /// sends it — it scores the leader's `new_rares` list, moves the
+    /// winner to the back of that list and issues a `MOVE_TO` at the good
+    /// — and nothing here reached it (`docs/MERCHANT.md`). Landing it
+    /// alone was not enough: the merchant then turned **twice** a frame
+    /// where the original turns once, because `Unit::init@00612100:549`'s
+    /// `set_new_location(·, ·, 1, 1)` seats a **tracked** crew figure on
+    /// its offset at birth and this crate seated only the figures a dump
+    /// or a disembark handed it. A trackless crew figure is one
+    /// `Guy::do_turn@005d97a0` recurses into, and a merchant's figures all
+    /// carry `guy_flags & 8` because the type packs — so it asked for a
+    /// turn its art has not got and paid the idle roll beside its driver
+    /// (`docs/MERCHANT.md` §5). `Sim::init_guys` now ends where
+    /// `Unit::init` does.
     ///
     /// It was **6353** for one item, and the frame was a **unit the
     /// original trains and this crate did not**: two `Guy::init_real+0x52`
@@ -11262,7 +11283,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6356;
+    const LONG_WORD_EAST_INDIES: i64 = 6570;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

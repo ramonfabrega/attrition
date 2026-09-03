@@ -344,8 +344,25 @@ SEAM: the merchant family. `TypeIndex` `0x3d`, `0x3e` and `0x190` reach six
 four loops, selected by the nation's **`build_continent`** (`+0x64`, not
 `+0x68`) and the age bracket; those six are the `-NEUROPE-`, `-KOREAN-`,
 `-IROQUOIS-`, `-COLONIAL-` and `-EINDIAN-` entries whose names the piece
-arithmetic cannot build. No capture on disk holds a merchant, and the arm
-is unmodelled.
+arithmetic cannot build. The arm is unmodelled, and ~~no capture on disk
+holds a merchant~~ **run54 holds one from frame 6353** — but the arm is
+still not reached by it: `get_unit_gpiece@0090c030` takes the over-time
+branch only when its `param_5`, the **packed** flag, is zero, and a
+merchant walks packed. So the art a merchant uses on its way to a rare is
+the ordinary arithmetic's `-PACKED` slot, which this crate computes, and
+the seam bites only once one has deployed (`docs/MERCHANT.md` §7).
+
+**And a trained unit's tracked crew figure is seated at birth.**
+`Unit::init@00612100:549` is `set_new_location(x, y, 1, 1)`, whose
+`param_3 = 1` reaches `Guy::set_new_location@005d86f0` on every crew figure
+with its own `des` — so the figure is *placed* on its track offset rather
+than left to walk there. This crate seated only the figures a dump or a
+disembark handed it until 2026-09-02; `Sim::init_guys` now ends where
+`Unit::init` does. It matters through §4.8: `Guy::do_turn@005d97a0`
+recurses into the **trackless** crew only, so an unseated figure asks for a
+turn animation its art has not got and pays the idle roll beside its
+driver. East Indies' Merchant turned twice a frame for it
+(`docs/MERCHANT.md` §5).
 
 ## 3.5 How many figures a unit has: `CREW_SIZE + 1` (2026-09-02)
 
