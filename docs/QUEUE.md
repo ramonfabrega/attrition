@@ -12,36 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — the crew figure was never told where to stand.* **East
-Indies 6571 → 6574**; Great Lakes 2419. Item **185 closed**, three ways.
+*2026-09-02, Opus — the second merchant was walking at the first one's
+rare.* **East Indies 6574 → 6715**; Great Lakes 2419. Items **186 and 187
+closed**, by one operand.
 
-- **`GUYS=4` is the whole `GuyData`, and it is not `DUMP_ALL`.**
-  `GuyData::log_data` switches detail four times; the fourth prints
-  `des_x`, `des_angle`, the clock and the track. run67 — 60 blocks, 43 MB,
-  **four minutes** — against run65's eighteen frames for 1.19 GB. A third
-  arm: narrow the *window* for a whole record, cheapen the *block* for a
-  field over time, **raise a category's detail for one record's fields**.
-- **One loop, three findings** (`docs/MOVEMENT.md`, "Who writes it").
-  `Unit::set_angle` rewrites the crew's `des` from the **heading** at the
-  top of every `move_step` — the row that document called a residue — so a
-  figure is one unit off its destination before the blocked stand asks it
-  to idle, and the early return takes it. The cell-centre snap **teleports**
-  the crew. And the walk slot reads the **asked guy's own** average, so a
-  figure paid `(speed · 11) / 8` to keep station **jogs** where its leader
-  walks: `cur_anim 9` against 8, every block.
-- **14,910 fields now assert it** — every `GuyData` the dump prints, both
-  figures, sixty frames, zero wrong — and found a fourth on its first run:
-  `come_out` placed the squad by hand where the original calls
-  `set_new_location(·, ·, 1, 1)`, so a **trained** figure kept the seat
-  `Unit::init` gave it at the trainer's centre, 696 units off, for life.
+- **The frame was a destination.** 186 was booked as "leaves its Market a
+  frame early", because a `GUYS=4` block prints a figure's clock and not
+  its unit's order. `1/20`'s `UNITDATA` at block 6573 reads `orders_x/y
+  28728/24120`; this crate's read `31800/37176`, which is `1/19`'s rare.
+  The path is 22 entries against seven, and `do_move`'s `if (length > 10)
+  return 1` is the whole of the missing frame.
+- **`find_unit_ordered` measures where a unit is *going*.**
+  `UnitData +0x70/+0x74` — `orders_x`/`orders_y` — where its twin
+  `find_unit` measures the body (`0065be35` against `0065cd0f`; the
+  decompiler names neither operand, the listing does). So a merchant
+  2,800 units clear of its rare still holds it, and §2.3's rotation is
+  the cheap half of "two merchants, two rares", not the half with teeth.
+- **187 went with it**: the five `Guy::set_anim+0x104b` coins read as
+  gaia's birds were the second merchant's own crew. A fold by site and
+  not by unit is what made them look like birds (item 122).
+- **28,890 fields now assert it**, against 14,910: run67's window excepts
+  nobody, and run66's stops excepting every non-merchant past 6574.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6574 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6715 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `6574 is item 186, and run67 shows it whole: 1/20 stands
-idle there in the original (cur_anim 0, cur_time 3/60, stopped 1) and steps
-on 6575, where this crate slogs — the frame's own extra Guy::do_turn <
-move_step+0x389. Its other half is item 187, five bird coins against one.`
+**Opener (Opus):** `Both live items want the same capture and nothing on
+disk covers either: a GUYS=4 window over [6595, 6730) of run54's game,
+~135 blocks, ~10 minutes by run67's rate. It answers 188 (0/5 is one step
+ahead in the quit block) and 189 (6715's extra move_step turn) at once.
+Ask before driving the game — the screen is the user's.`
 
 ## The queue
 
@@ -50,18 +50,21 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-186. **The second Merchant leaves its Market a frame early — and it is
-    the word.** Born 6571, `1/20` stands idle through 6574 in the original
-    (`cur_anim 0`, `cur_time 3/60`, `stopped 1`) and steps on 6575; here it
-    slogs on 6574, which is that frame's own extra `Guy::do_turn+0x4a <
-    Unit::move_step+0x389`. run67 excepts it by name; the exception is the
-    item.
+189. **6715 is a turn this crate does not take.** The original spends
+    `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389` at
+    the head of 6715 and again on 6716, plus a third
+    `Guy::set_anim+0x104b`; and on 6716 its gaia animal leaves
+    `Animal::do_idle` after two draws where this spends five. **Takes
+    122's unit mark** — the fold is by site.
 
-187. **Five bird wing-beat coins where the original throws one.** East
-    Indies 6574: `Guy::set_anim+0x104b` five times against one, and two
-    against three on 6575 — a count, not a shift, and it moved when
-    6571's draw did. Owner 9 is in no dump, so the trace is the only
-    oracle; `Built::phase_fold` folds by *site* and loses the unit mark.
+188. **`0/5` is one step ahead in run66's quit block.** Both sides
+    re-think on sim-frame 6606 (four `GameAccess::rnd+0x20 <
+    Unit::do_job+0x67` draws) and walk the same `(-18, +18)`; by block
+    6621 this has taken fourteen steps and the original thirteen. The
+    block is an ordinary `n`-tick one — 26 of 27 units agree there and
+    none at 6620 — so the step is real, and
+    `run66_s_window_is_the_original_s_unit_for_unit` excepts the row.
+    Nothing on disk covers `[6600, 6620]`.
 
 169. **`compute_site_stats`' arithmetic**, 7,122 of run63's 27,000 site
     fields: `(45, 52)` scores twice, `(44, 52)` four times, an extra site

@@ -102,17 +102,48 @@ Six things worth saying about that:
 - **The type filter is exact.** `FILTER_TYPE` compares `TypeData.type`, the
   `TypeIndex` the three ids above name, so a Fur Trapper does not keep a
   Merchant off a good and a Dutch Merchant does not keep a Fur Trapper.
-- **"Ordered" is literal.** `ObjectsData::find_unit_ordered@0065bc40`
-  requires the candidate to hold a **move-family** order (`{1, 2, 3, 4,
-  0x12, 0x13, 0x15}`, `docs/ORDERS.md` §1.2), so a sibling standing at the
-  good is caught by the first search and a sibling walking to it by the
-  second; a sibling gathering somewhere else is caught by neither.
+- **"Ordered" is literal, twice over** — §2.2.1.
+  `ObjectsData::find_unit_ordered@0065bc40` requires the candidate to hold
+  a **move-family** order (`{1, 2, 3, 4, 0x12, 0x13, 0x15}`,
+  `docs/ORDERS.md` §1.2), *and* it measures the distance to the
+  candidate's `orders_x`/`orders_y` rather than to its body. So a sibling
+  standing at the good is caught by the first search and a sibling walking
+  at it — from anywhere on the map — by the second; a sibling gathering
+  somewhere else is caught by neither.
 - **The floor is 1, and it is only reachable through danger.** With
   `base ≥ 200 − 10·(list length)` and the bonus non-negative, the `max(·,
   1)` matters exactly where the danger map is large — which is the war
   case, and no capture on disk has one.
 
 Ties keep the **earlier** good: the compare is `best < score`, strict.
+
+### 2.2.1 The two searches measure two different points (2026-09-02)
+
+`find_unit` and `find_unit_ordered` take the same twelve arguments and read
+as the same sweep. They are not. Both fold over the eight leaders' unit
+arrays, apply the same two `Search::valid_filter` gates, and finish with
+`vector_dist(|dx|, |dy|) <= param_5`; what differs is where the delta comes
+from:
+
+| function | the point it measures | listing |
+| --- | --- | --- |
+| `find_unit@0065ca80` | the **object's** own position, `SubObject +0x10/+0x14`, un-XOR-ed with `0x63637` | `0065cd0f`, `0065cf24` |
+| `find_unit_ordered@0065bc40` | the **unit's** `orders_x`/`orders_y`, `UnitData +0x70/+0x74` | `0065be35` |
+
+The decompiler prints both as `vector_dist(unaff_EDI, unaff_ESI)` and names
+neither, so this is a listing reading — the audit README's `unaff_` rule
+again, and the two functions sitting a page apart is what makes it safe: the
+same shape with one operand swapped.
+
+So the second search does not ask "is one of mine standing near this good"
+— the first already did — it asks **"is one of mine on its way here"**, and
+a merchant halfway across the map with a `MOVE_TO` at the good answers yes.
+That is what makes §2.3's rotation a *design* rather than a tie-breaker:
+the list rotation is the cheap half, and this is the half with teeth.
+
+The one gate `find_unit_ordered` does apply to the body is the region test
+behind `param_6 & 0x200`, which reads the object's cell like `find_unit`
+does — and `think_merchant` passes `param_6 = 0`, so it never runs here.
 
 ### 2.3 The rotation, and the order
 
@@ -262,15 +293,18 @@ merchant's first turn.
 ## 6. Coverage
 
 **Diff-backed on run54** — the 24,000-frame East Indies capture, whose word
-went from 6356 to 6570 when this landed and to 6571 with the collision
-probe behind it (`docs/COLLISION.md` §4.2) — and **on run66**, 260 blocks
-of the same game over `[6340, 6600)`, which holds this merchant's walk
-from its birth to its arrival stand: **every position of it is the
-original's**, frame for frame, and so is every other unit's as far as the
-word (`run66_s_window_is_the_original_s_unit_for_unit`, 12,094 fields).
-The two together agree draw for draw through the merchant's think, its
-first turn, 214 frames of its walk, the collision that ends it and the
-recovery after:
+went from 6356 to 6570 when this landed, to 6571 with the collision probe
+behind it (`docs/COLLISION.md` §4.2), and to **6715** when §2.2.1 put the
+second merchant on its own rare — and **on run66**, 260 blocks of the same
+game over `[6340, 6600)`, which holds this merchant's walk from its birth
+to its arrival stand: **every position of it is the original's**, frame for
+frame, and so is every other unit's as far as the word
+(`run66_s_window_is_the_original_s_unit_for_unit`, 13,600 fields). run67
+adds sixty blocks of **every figure's whole record**, both merchants
+included (`run67_s_window_is_every_figure_s_whole_record`, 28,890 fields,
+zero differing). The three together agree draw for draw through the
+merchant's think, its first turn, 214 frames of its walk, the collision
+that ends it and the recovery after:
 
 - the head's `unpack_merchant(3)` refusing at the Market (the trace enters
   `Unit::unpack_merchant` and `Unit::find_merchant_spot` on frame 6354 and
@@ -280,7 +314,14 @@ recovery after:
 - the order, and that it is a `QUEUE_NEW` `MOVE_TO`: the turn begins on
   6356, three frames after birth, at `Unit::move_step+0x389`;
 - §5's crew seat, which is the difference between one turn draw a frame
-  and two.
+  and two;
+- **the second merchant's whole choice** — §2.2.1's ordered search, §2.3's
+  rotation and the destination they produce. `1/20` is born on 6571 and
+  the two rares it scores are the AI's only ones, so the pick is binary
+  and the dump names it: `orders_x/y 28728/24120`, the *other* good, with
+  a 22-entry path where `1/19`'s rare is seven away. `do_move`'s
+  `length > 10` arm then holds its first step back to 6575, which is how
+  the divergence showed — as a frame, not a destination.
 
 **Reading only** — no run on disk separates these:
 
@@ -289,16 +330,18 @@ recovery after:
   `300 > 190` and any of the three terms could be wrong without moving it.
   The `−10` step needs a third good; the danger term needs a war; the
   floor needs both.
-- the three object searches. All three answer "nothing" on run54's frame
-  6354, so the reading is what says they are searches at the cell centre
-  rather than at the good, and what says the type filter is exact.
+- the three object searches' *shape*. The second's `orders_x/y` measure is
+  diff-backed (§2.2.1) — it is the whole of the second merchant's pick —
+  but all three answer "nothing" on run54's frame 6354, so the reading is
+  still what says they are asked at the cell centre rather than at the
+  good, and what says the type filter is exact.
 - the ally test on the good's cell, and the ocean-bit equality. East
   Indies' two rares are unowned land.
-- the rotation. It is observable only through a **second** merchant
-  choosing differently; the original trains one on 6571 and run66 has its
-  walk, but not the `new_rares` list a `LEADERS=9` block would show. This
-  crate's second merchant leaves its Market a frame early (run66's blocks
-  6578 onward), which is downstream of the word and its own item.
+- ~~the rotation~~ — **diff-backed since 2026-09-02**, through the second
+  merchant's destination (above). What is still reading-only is the
+  rotation's *arithmetic*: with two goods and one of them already ordered
+  at, the ordered search alone decides, and a list that was never rotated
+  would pick the same rare.
 - the whole of §3 past its gate: `good_merchant_spot`'s four tiles, the
   ring order, and the cast-then-walk order pair. Nothing on disk reaches a
   ring walk, because a merchant that reaches its good is a merchant that

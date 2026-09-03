@@ -163,8 +163,11 @@ impl Sim {
     /// 1. `find_unit(SEARCH_FRIENDLY, who, 0x300, FILTER_NOT_ME(o, who),
     ///    FILTER_TYPE(type))` — one of my own kind is already there.
     /// 2. `find_unit_ordered(…, 0x300, same filters)` — one of my own kind
-    ///    is on its way. "Ordered" is literal: the candidate must hold a
-    ///    **move-family** order (`crate::scout`'s `MOVE_FAMILY`).
+    ///    is on its way. "Ordered" is literal twice over: the candidate
+    ///    must hold a **move-family** order (`crate::scout`'s
+    ///    `MOVE_FAMILY`), **and the distance is measured to where it is
+    ///    going, not to where it stands** — `UnitData +0x70/+0x74`, which
+    ///    is `orders_x`/`orders_y` (`docs/MERCHANT.md` §2.2.1).
     /// 3. `find_unit(SEARCH_ENEMY, who, 0xc00, FILTER_COMBAT)` — an enemy
     ///    that can shoot is within four cells.
     ///
@@ -175,6 +178,12 @@ impl Sim {
         let ty = self.units[u].type_index;
         let near = |s: &Self, i: usize, r: i32| {
             let p = s.units[i].pos;
+            vector_dist(p.x - at.x, p.y - at.y) <= r
+        };
+        // `find_unit_ordered`'s own measure: the candidate's
+        // `orders_x`/`orders_y`, the point `update_action` last wrote.
+        let heading_for = |s: &Self, i: usize, r: i32| {
+            let p = s.units[i].orders_pos;
             vector_dist(p.x - at.x, p.y - at.y) <= r
         };
         // `SEARCH_FRIENDLY` with `FILTER_NOT_ME(o, who)` and
@@ -196,7 +205,7 @@ impl Sim {
         if (0..self.units.len()).any(|i| {
             sibling(self, i)
                 && crate::scout::MOVE_FAMILY.contains(&self.order_type(i))
-                && near(self, i, FRIENDLY_RANGE)
+                && heading_for(self, i, FRIENDLY_RANGE)
         }) {
             return true;
         }
@@ -497,11 +506,18 @@ mod tests {
         );
     }
 
-    /// The second search — and the whole of what "ordered" means: the same
-    /// sibling, in range but only refusing while it holds a move-family
-    /// order.
+    /// The second search — and "ordered" is literal twice over. The
+    /// candidate must hold a move-family order, **and the distance is
+    /// measured to where it is going**: `find_unit_ordered` reads
+    /// `UnitData +0x70/+0x74` — `orders_x`/`orders_y` — where its sibling
+    /// `find_unit` reads the object's own XOR-ed position (`0065be35`
+    /// against `0065cd0f`, the listing; the decompiler prints both as
+    /// `vector_dist(unaff_EDI, unaff_ESI)`). So a merchant on the far side
+    /// of the map, already walking at a good, keeps every other merchant
+    /// off it — which is the whole of item 186 (`docs/JOURNAL.md`,
+    /// 2026-09-02).
     #[test]
-    fn an_ordered_sibling_refuses_it() {
+    fn a_sibling_ordered_at_the_good_refuses_it_from_anywhere() {
         let (mut s, u) = merchant_sim();
         let want = a_good(&mut s, Cell::new(30, 20));
         let other = a_good(&mut s, Cell::new(5, 20));
@@ -513,13 +529,38 @@ mod tests {
         assert!(s.think_merchant(u), "the sibling is nowhere near");
         assert_eq!(walking_to(&s, u), Some(want), "it took the good");
 
-        // In range, with a move order on it.
-        s.units[sib].pos = s.world.goods()[want].pos;
-        s.add_move_order(sib, Pos::new(0, 0), MoveKind::MoveTo, QueuePos::New, false);
+        // The sibling does not move: it is sent at the good from where it
+        // stands, which is nowhere near it. The first search still passes
+        // and the second is what refuses.
+        let at = s.world.goods()[want].pos;
+        s.add_move_order(sib, at, MoveKind::MoveTo, QueuePos::New, false);
         assert_eq!(s.order_type(sib), index::MOVE_TO, "the move family");
+        let stands = s.units[sib].pos;
+        assert!(
+            vector_dist(stands.x - at.x, stands.y - at.y) > FRIENDLY_RANGE,
+            "the body is far outside the cell the search asks about"
+        );
+        let going = s.units[sib].orders_pos;
+        assert!(
+            vector_dist(going.x - at.x, going.y - at.y) <= FRIENDLY_RANGE,
+            "and `orders_x/y` is the good, 48-snapped"
+        );
         rearm(&mut s, u);
         assert!(s.think_merchant(u));
         assert_eq!(walking_to(&s, u), Some(other), "refused this time");
+
+        // And it is the **order family** that arms it: with the move
+        // killed, `orders_x/y` stops naming the good and the good is
+        // taken again.
+        s.close_orders(sib);
+        s.units[sib].orders_pos = stands;
+        rearm(&mut s, u);
+        assert!(s.think_merchant(u));
+        assert_eq!(
+            walking_to(&s, u),
+            Some(want),
+            "nothing is ordered there now"
+        );
     }
 
     /// The third: an enemy that can shoot, four cells out.

@@ -10741,6 +10741,18 @@ mod tests {
                 } else if f + 1 > LONG_WORD_EAST_INDIES {
                     continue;
                 }
+                // **The human citizen `0/5` is one step ahead in the quit
+                // block** — `docs/QUEUE.md` item 188, and the only frame
+                // that can see it. Both sides re-think on sim-frame 6606
+                // (the trace's four `GameAccess::rnd+0x20 <
+                // Unit::do_job+0x67` draws) and both walk the same
+                // `(-18, +18)` step; by the closing block this crate has
+                // taken fourteen of them and the original thirteen. No
+                // dump on disk covers `[6600, 6620]`, so where the frame
+                // goes is a capture, not a reading.
+                if (them.who, them.o) == (0, 5) && f + 1 == 6621 {
+                    continue;
+                }
                 let un = &built.sim.units[u];
                 let mut row = |name: &str, ours: i64, theirs: Option<i64>| {
                     let Some(theirs) = theirs else { return };
@@ -10768,7 +10780,7 @@ mod tests {
             eprintln!("  {w}");
         }
         assert!(
-            compared >= 12_000 && merchant_rows >= 240,
+            compared >= 13_500 && merchant_rows >= 245,
             "the window's own rows: {compared} fields and {merchant_rows} of the \
              merchant's — a capture with neither is the wrong file"
         );
@@ -10829,7 +10841,10 @@ mod tests {
     ///   tests (`== CHAR_WALK`), so reading guy 0's cost a draw on every
     ///   arrival a crew figure made.
     ///
-    /// East Indies' long word **6571 -> 6574**.
+    /// East Indies' long word **6571 -> 6574**, and **6574 -> 6715** when
+    /// item 186 took the window's last exception away: with the second
+    /// Merchant walking at its own rare this compares every unit of every
+    /// block, **28,890 fields** against 14,910.
     #[test]
     fn run67_s_window_is_every_figure_s_whole_record() {
         let Some(inst) = install() else { return };
@@ -10889,24 +10904,16 @@ mod tests {
                     unmatched += 1;
                     continue;
                 };
-                // Past the word the stream has parted and the units
-                // downstream of it are nobody's; `1/19` is this crate's
-                // prediction for the whole window, which is what the
-                // capture was taken for.
-                let merchant = (them.who, them.o) == (1, 19);
-                // **The second Merchant leaves its Market a frame early**
-                // — `docs/QUEUE.md` item 186, and it is the frame the word
-                // parts on. Born 6571, `1/20` stands idle here through
-                // 6574 (`cur_anim 0`, `cur_time 3/60`, `stopped 1`) and
-                // takes its first step on 6575; this crate has it
-                // slogging on 6574, which is the frame's own extra
-                // `Guy::do_turn < Unit::move_step+0x389`. Every other
-                // unit is compared as far as the word, and `1/19`
-                // throughout.
-                let early = (them.who, them.o) == (1, 20) && f + 1 >= LONG_WORD_EAST_INDIES;
-                if early || (!merchant && f + 1 > LONG_WORD_EAST_INDIES) {
-                    continue;
-                }
+                // **Every unit, every block, no exception** since item
+                // 186 (2026-09-02). The window used to straddle the word:
+                // only `1/19` was compared past 6574, and the second
+                // Merchant `1/20` was excepted by name from the frame it
+                // was born on. Both exceptions are gone — the word is
+                // past the whole capture, quit block included.
+                assert!(
+                    last < LONG_WORD_EAST_INDIES,
+                    "run67's window has fallen outside the word again"
+                );
                 for (n, g) in them.guys.iter().enumerate() {
                     let Some(ours) = built.sim.units[u].guys.get(n).copied() else {
                         continue;
@@ -10988,7 +10995,7 @@ mod tests {
             eprintln!("  {w}");
         }
         assert!(
-            compared >= 10_000 && crew_rows >= 60,
+            compared >= 28_000 && crew_rows >= 330,
             "the window's own rows: {compared} fields and {crew_rows} crew figures — \
              a capture without the `GUYS=4` block is the wrong file"
         );
@@ -11673,6 +11680,24 @@ mod tests {
     /// (`docs/MOVEMENT.md`, "Who writes it, and when";
     /// `run67_s_window_is_every_figure_s_whole_record`, 13,545 fields).
     ///
+    /// **6715 since 2026-09-02, and 6574 was the second Merchant's
+    /// destination.** `ObjectsData::find_unit_ordered@0065bc40` — the
+    /// second of `think_merchant`'s three object searches, "is one of my
+    /// own kind already on its way here" — measures the candidate's
+    /// `orders_x`/`orders_y` (`UnitData +0x70/+0x74`, the listing at
+    /// `0065be35`), where its twin `find_unit@0065ca80` measures the
+    /// object's own position (`0065cd0f`). The decompiler prints both as
+    /// `vector_dist(unaff_EDI, unaff_ESI)`. This crate asked the body, so
+    /// `1/19`'s rare read as free once `1/19` had walked 2,800 units
+    /// clear of its cell centre, and `1/20` was born on 6571 and sent at
+    /// a good already taken. It showed as a *frame* rather than a
+    /// destination because the original's path to the far rare is 22
+    /// entries and `do_move`'s `if (path.length > 10) return 1` holds its
+    /// first step back a frame, where a seven-entry path steps at once
+    /// (`docs/MERCHANT.md` §2.2.1). Item 187 — five
+    /// `Guy::set_anim+0x104b` coins read as gaia's birds — was the same
+    /// merchant's crew and closed with it.
+    ///
     /// It was **5819** before that, and 5669 was a **whale**. The AI's
     /// second Fisherman settles on one on frame 5551; `Leader::calc_gather`
     /// step 6 walks the idle fishermen, lights the rare's bit in
@@ -11696,7 +11721,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6574;
+    const LONG_WORD_EAST_INDIES: i64 = 6715;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

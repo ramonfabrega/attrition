@@ -14011,3 +14011,63 @@ booked. The extra `Guy::do_turn+0x4a < Unit::move_step+0x389` is item 186:
 crate slogs. run67 excepts that one unit by name, so the exception is the
 item. The other half is item 187: five gaia bird wing-beat coins against
 the original's one, and two against three on 6575.
+
+## 2026-09-02 — the second merchant was walking at the first one's rare (item 186, Opus)
+
+**East Indies 6574 → 6715.** Item 186 was booked as a frame — "the second
+Merchant leaves its Market a frame early" — and the frame was a symptom of
+a destination.
+
+**What the item said.** run67's window had `1/20` excepted by name: born on
+6571, the original has it standing through block 6574 (`cur_anim 0`,
+`cur_time 3/60`, `stopped 1`) and stepping on 6575, where this crate
+slogged a frame sooner. That is all a `GUYS=4` block can show, because the
+block prints a figure's clock and not its unit's order.
+
+**What the dump said the moment it was asked the other question.** `1/20`'s
+`UNITDATA` at block 6573 carries `orders_x/y 28728/24120`; this crate's
+carries `31800/37176`, which is `1/19`'s — the *first* merchant's rare,
+already taken and already being walked at. The block after that is the
+whole of the frame: the original's `STACK<PathData>` is **22 entries**
+long, this crate's seven, and `Unit::do_move`'s `if (path.length > 10)
+return 1` is what holds the original's first step back to 6575. The
+one-frame stand was never the mechanic. It was the tail of a 22-waypoint
+path this crate never planned because it was walking somewhere nearer.
+
+**The cause, and it is one operand.** `Unit::think_merchant` refuses a good
+on three object searches, and the second is
+`ObjectsData::find_unit_ordered@0065bc40` — "is one of my own kind already
+on its way here". This crate asked it of the sibling's **body**. The
+original asks it of `UnitData +0x70/+0x74`, `orders_x`/`orders_y`: where
+the sibling is *going*. `1/19` had walked 2,800 units clear of its rare's
+cell centre by 6572, so the body test passed and the good was free; its
+`orders_x/y` had named that cell since 6355.
+
+The decompiler prints the distance in both functions as
+`vector_dist(unaff_EDI, unaff_ESI)` and names neither operand, so this is a
+listing reading — but a cheap and safe one, because the two functions sit a
+page apart and are otherwise the same twelve arguments and the same sweep:
+`find_unit@0065ca80` at `0065cd0f` un-XORs `SubObject +0x10/+0x14`;
+`find_unit_ordered` at `0065be35` loads `UnitData +0x70/+0x74`. One operand,
+swapped. `docs/MERCHANT.md` §2.2.1 carries the pair.
+
+That also settles what §2.3's rotation is *for*. The list rotation is the
+cheap half of "two merchants do not go to the same rare"; the ordered search
+is the half with teeth, and it works from anywhere on the map.
+
+**What it moved.** The word went 6574 → **6715**, and the widening it paid
+for is larger than the item. run67's window no longer excepts anybody: every
+unit, every block, every `GuyData` field the dump prints — **28,890 fields**
+against 14,910, zero differing. run66's stops excepting every non-merchant
+past 6574 and now compares its whole window too.
+
+**And it left one.** With the word past the whole of run66's capture, the
+quit block came into the comparison for the first time and the human citizen
+`0/5` is one step ahead in it: both sides re-think on sim-frame 6606 — the
+trace's four `GameAccess::rnd+0x20 < Unit::do_job+0x67` draws — both walk the
+same `(-18, +18)` step, and by the closing block this crate has taken
+fourteen and the original thirteen. Twenty-seven units were checked at 6620,
+6621 and 6622 to be sure the closing block is an ordinary `n`-tick block and
+not an off-by-one: at 6621 twenty-six of them agree and only `0/5` does not.
+No dump on disk covers `[6600, 6620]`, so it is item 188 and it is a
+capture, not a reading.
