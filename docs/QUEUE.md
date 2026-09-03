@@ -12,39 +12,47 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — the ring was right and the queue position was not.*
-**East Indies 6715 → 6739**; Great Lakes 2419. Item **189 closed**.
+*2026-09-03, Fable steering — the lower map has been standing still for
+two days and nobody had booked it.* **East Indies 6739; Great Lakes
+2419.** No score moved; item 193 booked at the front.
 
-- **`unpack_merchant`'s walk goes in front of its cast.** After the list
-  `add` comes `head = head->next` — the same rotation `add_cast_order`'s
-  `QUEUE_FIRST` arm runs (ORDERS §1.5) — so the merchant walks to the
-  deploy spot and casts on arrival. This crate appended it, `update_action`
-  stopped on the cast, and `orders_x/y` held the unit's own position.
-  MERCHANT §3.1.
-- **The ring itself was never wrong.** run68's 6714 is the first capture
-  ever to enter `find_merchant_spot`, and both sides take `MOVE_49`'s
-  fourth entry, tile (168, 192). The whole of §3 is diff-backed now — the
-  gate, the two-by-two, the 48-snap, and the angle taken to the
-  *unsnapped* point. `detect_unit_collision` still refused nothing.
-- **122,752 fields now assert 123 blocks** of run68, and the first to part
-  is `1/13`'s own position on **6718** — item 191's unit, thirty-two
-  frames after its two middle waypoints.
+- **Great Lakes' word has sat at 2419 since run61's bird fix**, through
+  every session since, and no item named its cause. DECISIONS 25 says the
+  default item is the *lower* map's nearest divergence and the queue had
+  been saying East Indies leads. run53's test says word and sequence both
+  part at 2419 — a draw-count seam, the cheap kind, and its labels are
+  already on disk.
+- **Great Lakes has earned its full-detail capture** (DECISIONS 29): the
+  word crossed run33's 1,850 two days ago and no capture followed. It
+  goes in the capture lane at the next session's first five minutes,
+  in the same session as the diagnosis — not a second agent (JOURNAL).
+- **The conventions bought wall-clock, not tokens** (lore's re-cut): per
+  grind session 113k → 120k median output, out/req 516 → 533; throughput
+  17.9 → 37.6 items a day. The 09-01 addendum's 189k was hand-summed.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w6739 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `191 is the frontier: 1/13's path[2].y and path[3].x are
-one 48-grid step off from run68's 6686 and its body parts on 6718, which is
-now the first field of the whole window to go. PATHFINDER §3, find_tpath /
-find_upath; its stack alone is excepted and everything else about the unit
-already agrees.`
+**Opener (Opus):** `193 is the default: Great Lakes is the lower map and
+its word has stood at 2419 since run61. Launch its full-detail capture in
+the background first (longtrace.sh's default game, sized to ~3,000), then
+read what parts at 2419 out of run53's trace on disk — the labels are
+there and no capture is needed for the count. 191 is second.`
 
 ## The queue
 
 In dependency order, headline-nearest first; **the headline is now the long
-captures' word**, and East Indies leads it. Take the first unstarted unless a
+captures' word**, lower map first — Great Lakes. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
+
+193. **Great Lakes parts at 2419, and nobody has looked.** run53's word and
+    sequence both go on 2419 (`run53_s_24000_frames_put_the_ceiling_where_run33_did`),
+    4,320 frames behind East Indies, and the queue chased the higher map
+    for two days against DECISIONS 25. Diagnose from run53's trace on
+    disk, and take the map's full-detail capture the same session —
+    run56's recipe on `longtrace.sh`'s default game (style 14), sized to
+    the word with headroom. This map has no islands, barge or merchant.
 
 191. **`1/13`'s route differs by one 48-grid step, in two middle slots, and
     its body now parts too.** From run68's 6686, `path[2].y` 38712 against
@@ -74,9 +82,8 @@ indexed by them.
     fields: `(45, 52)` scores twice, `(44, 52)` four times, an extra site
     drags every `rank`; run59 the same 250 frames earlier (AI §2.13 6–12).
 
-172. **The `bucket` pair 165 leaves behind.** The six rates and incomes are
-    the original's on every frame of run59's window; `bucket` was one apart on
-    5002 and 5061 in run60's curve. run60 is on disk. **Takes 155's
+172. **The `bucket` pair 165 leaves behind**: one apart on 5002 and 5061 in
+    run60's curve, every rate and income exact. **Takes 155's
     `rare`/`good_obj` writers** (ORDERS §6.10).
 
 158. **The sweep runs for a human leader; this crate skips it.** AI §23.1.
@@ -88,11 +95,10 @@ indexed by them.
     apart each; and from 2576 `1/2000` holds 11 gatherers and `1/2007` none
     against 10 and 1 — step 2/10.
 
-146. **The other nine national arms of `train_time`.** `006508c0`'s fixed
-    order after the ramp, only the British built (PRODUCTION, "The tail's
-    first caller"); behind them `TROOPS_FASTER`, the speed upgrades, the
-    rares, Monarchy, Socialism, the wonders. East Indies has only ever
-    measured the ramp.
+146. **The other nine national arms of `train_time`** after the ramp,
+    `006508c0`'s fixed order (PRODUCTION, "The tail's first caller"):
+    `TROOPS_FASTER`, the speed upgrades, the rares, Monarchy, Socialism,
+    the wonders. Only the ramp has ever been measured.
 
 142. **`World::tregion` is not `get_tregion`.** Four items were a gate
     asking the wrong one (PATHFINDER §15, §16); eleven callers unaudited.
@@ -115,10 +121,9 @@ record, whole** — `Tribe::log_data@006f0d70` prints `graft[352]`,
     `(epoch[1] + 1) · 10` fire at 6511 and 6766, inside the word and
     unasserted (CARAVAN §7.2–§7.3).
 
-**The widening ledger is built** (87, DATALAYER §4) and its output is the
-queue for cheap widenings: **23** parsed fields nothing in `diff.rs` names
-and **43** that one capture names, both pinned and falling only. It named
-`stance` the day before run68 found it wrong on every unit.
+**The widening ledger is built** (87, DATALAYER §4): **23** parsed fields
+nothing in `diff.rs` names and **43** one capture names, pinned, falling
+only — it named `stance` the day before run68 found it wrong.
 
 The ledgers still uncounted: (88) **the blind list** — `report.py … blind
 docs/` lists the cited functions no traced run has entered (101 of 617), pin
@@ -127,17 +132,15 @@ pins, checked against its module; (89) the instrument's last guard, (c)
 alone; (35) **`mylos` as a cache** — VISION §7, whose Scout moves 4 → 6
 early.
 
-175. **`Unit::squad_size` is the guy count and should be the uber chain.**
-    `build_sim` sets it from `u.guys.len()`; `curr_uber_size@0060a760` walks
-    `o_up`/`o_down` over chained `UnitData`. Disjoint in `unitrules.xml`:
-    the 109 `UBER_SIZE 3` types have `CREW_SIZE 0`. **Takes 48's chain.**
+175. **`Unit::squad_size` is the guy count and should be the uber chain**:
+    `curr_uber_size@0060a760` walks `o_up`/`o_down`; the 109 `UBER_SIZE 3`
+    types have `CREW_SIZE 0`. **Takes 48's chain.**
 
 Three fields nothing here writes: (48) **the object chain, whole** — only
-units are threaded, not buildings and goodies (COLLISION §3, §7, GOODY §1),
-`down`/`down_who` uncompared; (73) **`UnitData::group`** — no back-pointer,
-so `Group::normalize`'s cull (GROUPS §4.3) is unmodelled and run33's scout
-goes 65 → 64 on 96; (56) **the cell's `BUILDING` bit** — run13's frame-95
-world has it on `(52, 22)` and this does not (ARMY §13).
+units are threaded (COLLISION §3, §7, GOODY §1), `down`/`down_who`
+uncompared; (73) **`UnitData::group`** — no back-pointer, so
+`Group::normalize`'s cull (GROUPS §4.3) is unmodelled, run33's scout 65 →
+64 on 96; (56) **the cell's `BUILDING` bit** on `(52, 22)`, ARMY §13.
 
 117. **Two seams the census windows now measure.** ATTRITION, "Territory":
     the temple and fort border levels, the Colosseum, the Eiffel Tower, a
@@ -146,20 +149,17 @@ world has it on `(52, 22)` and this does not (ARMY §13).
 
 Five measured one-liners: (23) **the formation byte's sign, the Echelon
 half** — `reverse`'s *displacement* is read only on GROUPS §6.4's Echelon
-rows and every captured group is a Line, run52 naming the blocker; (103) a
-woodcutter's clock at **1,686** — after 26,094 agreeing fields the human's
-`0/2` waits 445 against 480, ORDERS §6.4; (105/45) **Gaia's positions**,
-East Indies' half left — run39 191,876 of 192,504, first bad **1658**,
-run33 exact at 74,040, SYNC §4.2; (124) **the loop flag is per animation
-file**, ANIM §3.3 — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a
-non-looping file and 38 a looping one, carry it on `Art`; (116) **the one
-`SITE` slot still wrong**, AI §18 — a 5×5 slide keeps its centre where the
-original leaves it (`blocked_town` v `site_clear`).
+rows, every captured group a Line, run52 the blocker; (103) a woodcutter's
+clock at **1,686** — the human's `0/2` waits 445 against 480, ORDERS §6.4;
+(105/45) **Gaia's positions**, East Indies' half — run39 191,876 of
+192,504, first bad **1658**, SYNC §4.2; (124) **the loop flag is per
+animation file**, ANIM §3.3 — 42 `<UNIT>` entries non-looping, 38 looping,
+carry it on `Art`; (116) **the one `SITE` slot still wrong**, AI §18 — a
+5×5 slide keeps its centre (`blocked_town` v `site_clear`).
 
-Two one-field reads: (166) **`resource_cap` on five goods, two frames from
-2958** — 1392 here, 2000 there, right on 2960 (ECONOMY, "The commerce cap");
-(107) **`epoch[0]` is the Military level and `army.rs` reads `ages`** —
-`get_epoch_base(0)` is `BASE_MILITARYTYPES`, `army.rs:769,1365`.
+Two one-field reads: (166) **`resource_cap` on five goods, 2958–2959** —
+1392 here, 2000 there (ECONOMY, "The commerce cap"); (107) **`epoch[0]` is
+the Military level and `army.rs` reads `ages`**, `army.rs:769,1365`.
 
 161. **The whole make-list block is 3,200 frames behind the word.**
     `create_buildings` first runs on East Indies frame 9982 (AI §25), so
@@ -173,10 +173,10 @@ Two one-field reads: (166) **`resource_cap` on five goods, two frames from
     original holds 0 knowledge, metal and oil through Ancient where this
     holds 100. Unread: food, timber and wealth (COSTS).
 
-167. **Two of run61's leavings.** (a) §3.9's reading-only pair: the
-    landing search's *cell* and `Unit::do_strafe` — a `callwin` over
-    `think_bird`'s tail settles it. (b) `Unit::init`'s tile snap
-    `(p / 48) · 48 + 24` is every unit's; only `spawn_bird` has it.
+167. **Two of run61's leavings.** (a) the landing search's *cell* and
+    `Unit::do_strafe`, SYNC §3.9, reading-only — a `callwin` over
+    `think_bird`'s tail; (b) `Unit::init`'s tile snap is every unit's and
+    only `spawn_bird` has it.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — `zsh tools/fuzz/run.sh 424242 1000 1300`

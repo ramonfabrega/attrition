@@ -11050,7 +11050,8 @@ The word is 3608, the opener is unchanged, and the next session is Opus.
 
 *Addendum, same day.* Lore pinned the before-number so the conventions can
 be scored: output tokens per item, grind sessions only, n=63 — median
-189k, mean 216k, p90 318k, ~341 turns/item. The next steering pass asks
+189k, mean 216k, p90 318k, ~341 turns/item. *(Corrected 2026-09-03: hand-summed
+over streaming snapshots, ~1.9× high; the deduped baseline is 113k median.)* The next steering pass asks
 lore for the re-cut (sessions after 39afef6, same spec, compare medians,
 read against the per-session distribution since item mix shifts). C1's
 correction was conceded and ledgered on lore's side.
@@ -14207,3 +14208,57 @@ closing block carries only the object base — enough to say the merchant
 stands on (32280, 36888) with its `SubObjectData.flags` gone 9 → 1, and
 nothing about the cast, the footprint or the `rare`/`good_obj` pair. Item
 192, and a `[6730, 6800)` window buys the lot.
+
+## 2026-09-03 — Fable steering: the lower map was standing still
+
+**The occasion was the count**, not a stall: about forty-five items and
+3,131 frames of East Indies since the 09-01 pass, the headline moving on
+nearly every session. A steer by count over a tranche that is moving
+mostly confirms the tranche, and this one did — with one exception the
+count rule found and the stall rule could not have.
+
+**Great Lakes had sat at 2419 for two days with no item on it.** Every
+handoff since run61 said "Great Lakes unchanged at 2419" and the queue
+said "East Indies leads". DECISIONS 25 says the headline is the pair,
+lower map first, and the default item is the lower map's nearest
+divergence; East Indies is 4,320 frames ahead. Nobody decided to chase
+the higher map — the East Indies items kept landing, each one booked
+against the score it moved, and the lower map slipped out of the
+handoff's first line. The rule's own rationale is the reason it matters:
+a residue that shows on one map only is what a single-map chase cannot
+find, and Great Lakes has no islands, no barge and no merchant walk, so
+whatever parts at 2419 is a mechanic East Indies reaches later or never.
+`run53_s_24000_frames_put_the_ceiling_where_run33_did`, run in release
+today: word and sequence both part at 2419, the draw-count kind, and the
+labels are on disk. Item 193, at the front; 191 second.
+
+**And the map had earned a capture nobody took.** Entry 29's rule — a
+map earns its next full-detail capture when its word crosses the newest
+one it has — fired on 2026-09-02 and did not run. Amended in place.
+
+**On a second lane for captures**, which the user raised: no. The screen
+is one resource — one window, one bottle, one `Logs\` — and the capture
+needs no judgment; a background shell from the session's first five
+minutes is the lane, as run58 showed (launched in the first five, read in
+the last ten). A second agent would boot a full context to babysit a
+wait, on a token-bound loop, and the failures that need attention need a
+human either way. The case for an agent is a capture whose *recipe* is
+unwritten; Great Lakes' is `longtrace.sh`'s default game.
+
+**Lore's re-cut, and the number it corrects.** The conventions adopted
+on 09-01 are invisible on the token axis: per grind session, output
+median 113k → 120k, mean 122k both sides, p90 flat, out/req 516 → 533,
+n=58 and 38. Per item closed, median 90k → 88k; the pooled drop (100k →
+83k) is the batch-close mix — four sweeps closing 23 of 56 items inside
+ordinary-cost sessions. What did move is throughput, 17.9 → 37.6 items a
+calendar day, and session-hours per item 0.58 → 0.49: wall-clock, as C1
+was conceded to buy. The 09-01 addendum's 189k median was hand-summed
+over streaming snapshots and ~1.9× high; the baseline re-pins at 113k /
+231 requests, and "one item ≈ one session" retires (0.72 → 0.69
+sessions per item). Lore writes both onto its page. The instrument for
+any future convention claim is out/req, not per-item anything.
+
+**What steering did not do**: touch the scores, the floors or the code.
+The cadence rule stays as written; note for the next count-triggered
+pass that this one found a direction error, not a stall, which is the
+case for keeping it.

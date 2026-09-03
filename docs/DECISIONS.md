@@ -1170,6 +1170,14 @@ ORACLE wrote it: a map earns its next expensive capture when its word
 crosses the newest one it has, and the capture is sized to the word with
 headroom, not to the trace's 24,000.
 
+**Amended 2026-09-03, Fable steering.** Great Lakes' word crossed run33's
+1,850 on 2026-09-02 (run61, 1802 → 2419) and the rule above then owed it
+a capture that two days of sessions did not take, because the queue had
+quietly let the higher map lead. Queue item 193 books both the capture
+and the diagnosis. The rule stands; what was missing was the check that
+the *lower* map is the one being chased (entry 25), and the handoff now
+says which map leads in so many words.
+
 ## 30. A mechanic that is read, built and *worse than nothing* is landed unwired
 
 The bird's flight (`Unit::do_air_physics`, `docs/SYNC.md` §3.9) is the
