@@ -3636,3 +3636,61 @@ own numbers rather than copied: the start dump is 11 MB and a sixty-block
 window at `GUYS=4` was never going to be under 20. The poll settled four
 polls after the last frame, as designed. That is the second half of run66's
 lesson working.
+
+## run68 — the window either side of the word, and what the quit block is not (2026-09-03)
+
+**run54's game with the cheap window over `[6595, 6730)` and `GUYS=4`** —
+run67's recipe with the window moved and widened. East Indies, seed 12345,
+map style 18, the profile's lobby, no input:
+
+    DETAIL_END="MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1" \
+    FRAME_WINDOW="6595 6730" SETTLE_MIN=20000000 POLL_MAX=60 \
+    zsh tools/gamelog/longtrace.sh 68 6745 islands-citizenword 18
+
+**Five minutes and 83 MB**, 136 blocks. `rngcmp.py rontrace-run54.log
+rontrace-run68.log`: **6,746 frames, zero differing** — the eighth capture in
+a row for which a window costs the stream nothing.
+
+**One capture for two items, which is the booking lesson.** Items 188 and
+189 wanted `[6600, 6620]` and `[6710, 6720]`; 135 blocks covers both and
+costs a minute more than sixty would. A window is priced by its *blocks*,
+and the frames before it are free — so when two open items sit within a few
+hundred frames of each other, the span between them is nearly free to buy.
+
+**The quit block is not a frame state, and two captures say so.** The
+`GameInfo closing` dump is written at shutdown and labelled with
+`game->frame`, and until this run nothing could check it, because no capture
+carried an *ordinary* block with the same label. run68 does. Dump against
+dump, with no simulation involved:
+
+| compared | units | differ |
+| --- | --- | --- |
+| run66's closing 6621 vs run68's ordinary **6620** | 131 | 5 |
+| run66's closing 6621 vs run68's ordinary **6621** | 131 | **1** |
+| run67's closing 6621 vs run68's ordinary **6621** | 131 | **1** |
+
+The single disagreement is the same unit in both — `0/5`, the human's one
+*moving* citizen, which the closing block holds at its 6620 position while
+every other unit, five of them mid-step, is at 6621. Two independent
+captures, one unit. So a closing block is block `n` for almost everything
+and one tick behind for at least one unit, and the harness scores no unit
+position in it. Why that unit is the exception is unread; the fix does not
+need it.
+
+It had cost something already: `run66_s_window_is_the_original_s_unit_for_unit`
+excepted `0/5` by name for a day as queue item 188, on the strength of a
+number the closing block had no business supplying.
+
+**What else it settled.** The first field of the whole record to part is
+`1/19`'s `orders_x/y` on block **6714** — a frame *ahead* of the draw
+stream's own 6715, which is the argument for diffing fields and not only
+draws. The merchant reaches its `CITRUS` and runs `find_merchant_spot`'s
+ring, which no capture had ever reached (`docs/MERCHANT.md` §3). And
+`stance` is 1 on every unit here against 0 on every unit there, from the
+window's first block — a field no capture had compared on a unit this crate
+created, and the widening ledger (`docs/DATALAYER.md` §4) is what named it
+as a single-capture field the day before the capture landed.
+
+**118,948 fields over the window's first 119 blocks, zero differing**, with
+`stance` and one unit's two path waypoints excepted by name
+(`run68_s_window_is_every_unit_s_whole_record_to_the_word`).

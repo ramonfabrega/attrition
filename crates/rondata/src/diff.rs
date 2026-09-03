@@ -10741,16 +10741,18 @@ mod tests {
                 } else if f + 1 > LONG_WORD_EAST_INDIES {
                     continue;
                 }
-                // **The human citizen `0/5` is one step ahead in the quit
-                // block** — `docs/QUEUE.md` item 188, and the only frame
-                // that can see it. Both sides re-think on sim-frame 6606
-                // (the trace's four `GameAccess::rnd+0x20 <
-                // Unit::do_job+0x67` draws) and both walk the same
-                // `(-18, +18)` step; by the closing block this crate has
-                // taken fourteen of them and the original thirteen. No
-                // dump on disk covers `[6600, 6620]`, so where the frame
-                // goes is a capture, not a reading.
-                if (them.who, them.o) == (0, 5) && f + 1 == 6621 {
+                // **The closing block is not a frame state, so no unit
+                // position is compared in it** (item 188, closed
+                // 2026-09-03). It was excepted for `0/5` alone while that
+                // read as a divergence; run68's ordinary block 6621 says
+                // this crate has `0/5` exactly right, and the closing
+                // block is the odd one out. Dump against dump: run66's
+                // and run67's closing blocks each agree with run68's
+                // ordinary 6621 for **130 of 131 units** and hold the
+                // 6620 value for `0/5` — the same single unit in two
+                // independent captures. `docs/ORACLE.md` carries it; the
+                // harness simply does not score the block.
+                if f + 1 == 6621 {
                     continue;
                 }
                 let un = &built.sim.units[u];
@@ -10790,6 +10792,270 @@ mod tests {
         // are not this crate's prediction any more; `1/19` is, for all 260
         // blocks.
         assert!(wrong.is_empty(), "run66's window parted: {wrong:?}");
+    }
+
+    /// **run68 — the whole record, every unit, 120 blocks up to the word**
+    /// (2026-09-03, items 188 and 189).
+    ///
+    /// run54's game with the cheap window over `[6595, 6730)` and `GUYS=4`
+    /// — run67's recipe with the window moved and widened:
+    ///
+    /// ```text
+    /// DETAIL_END="MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1" \
+    /// FRAME_WINDOW="6595 6730" SETTLE_MIN=20000000 POLL_MAX=60 \
+    /// zsh tools/gamelog/longtrace.sh 68 6745 islands-citizenword 18
+    /// ```
+    ///
+    /// **Five minutes and 83 MB**, 136 blocks. `rngcmp.py rontrace-run54.log
+    /// rontrace-run68.log`: **6,746 frames, zero differing** — the eighth
+    /// capture in a row for which a window costs the stream nothing.
+    ///
+    /// It was booked for two items and answered both, plus one nobody had
+    /// asked:
+    ///
+    /// - **Item 188 was a non-issue, and the quit block is why.** The human
+    ///   citizen `0/5` walks identically on both sides for its whole
+    ///   journey — order on block 6607, first step on 6608, `(4860, 5172)`
+    ///   on 6621. What said otherwise was run66's *closing* block, and it
+    ///   is not a frame state: dump against dump, run66's and run67's
+    ///   closing blocks each agree with this capture's **ordinary** 6621
+    ///   for 130 of 131 units and hold the 6620 value for `0/5` alone.
+    ///   Two independent captures, the same single unit — so the harness
+    ///   does not compare the closing block, and `docs/ORACLE.md` carries
+    ///   the fact.
+    /// - **Item 189 is the merchant's arrival.** The first field to part is
+    ///   `1/19`'s `orders_x/y` on **6714**, a frame ahead of the draw
+    ///   stream's own 6715: the merchant reaches its `CITRUS` and runs
+    ///   `find_merchant_spot`'s ring, which no capture had ever reached
+    ///   (`docs/MERCHANT.md` §3, §6). Ours picks `(32076, 37188)` where the
+    ///   original picks `(32280, 36888)`.
+    /// - **`stance` is 1 on every unit here and 0 on every unit there**,
+    ///   from the first block of the window — 2,700 rows, and no capture
+    ///   had ever compared it on a unit this crate created. `Unit::init`
+    ///   switches five ways on `get_stance_type` and reads the leader's
+    ///   options (`00612100:282–309`); `Unit::new` writes a flat 1, and a
+    ///   unit stood up *from* a dump takes the dump's own value, which is
+    ///   why nothing saw it. Item 190, and it is excepted by name here.
+    ///
+    /// **117,126 fields** over the window, and the widening ledger
+    /// (`crate::ledger`) is what named `stance`, `idle`, `path_recursion`
+    /// and the collision block as the ones a single capture was carrying.
+    #[test]
+    fn run68_s_window_is_every_unit_s_whole_record_to_the_word() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r68)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run68-islands-citizenword.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run68 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+
+        let text68 = std::fs::read_to_string(&r68).unwrap();
+        let l68 = Log::parse(&text68);
+        let frames = l68.frame_states();
+        let window: Vec<i64> = frames.iter().map(|f| f.n).collect();
+        assert_eq!(
+            window,
+            (6595..6730).chain([6746]).collect::<Vec<i64>>(),
+            "run68's frame window, plus the block the quit writes"
+        );
+        // The first field to part, a frame ahead of the draw stream's own
+        // [`LONG_WORD_EAST_INDIES`]: `1/19`'s `orders_x/y` when the
+        // merchant arrives. Everything before it is compared with no
+        // exception but `stance`.
+        const FIRST_FIELD_PARTING: i64 = 6714;
+        const {
+            assert!(
+                FIRST_FIELD_PARTING < LONG_WORD_EAST_INDIES,
+                "a field diff sees the arrival before the draw stream does"
+            )
+        };
+
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.frame_guys.clear();
+        let mut compared = 0usize;
+        let mut crew_rows = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for f in 0..*window.last().expect("the window") {
+            built.tick();
+            let Some(fr) = frames.iter().find(|fr| fr.n == f + 1) else {
+                continue;
+            };
+            // **The closing block is not a frame state** — see the head of
+            // this test. It is skipped rather than compared at `n − 1`,
+            // because it is neither: 130 of its 131 units are block `n`.
+            if f + 1 >= FIRST_FIELD_PARTING {
+                continue;
+            }
+            for them in &fr.units {
+                // Gaia's units are re-seated from the dump every traced
+                // frame, so they are not this crate's prediction.
+                if !(0..8).contains(&them.who) {
+                    continue;
+                }
+                let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                    continue;
+                };
+                let Some(u) = built.sim.unit_by_o(who, o) else {
+                    continue;
+                };
+                let un = &built.sim.units[u];
+                // `stance` is item 190 and is excepted whole: `Unit::new`
+                // writes 1 where `Unit::init` switches five ways on the
+                // unit's stance type and the leader's options.
+                let mut rows: Vec<(&str, i64, Option<i64>)> = vec![
+                    ("x", i64::from(un.pos.x), Some(them.pos.x)),
+                    ("y", i64::from(un.pos.y), Some(them.pos.y)),
+                    ("angle", i64::from(un.movement.heading.0), them.angle),
+                    ("orders_x", i64::from(un.orders_pos.x), them.orders_x),
+                    ("orders_y", i64::from(un.orders_pos.y), them.orders_y),
+                    ("tolerance", i64::from(un.tolerance), them.tolerance),
+                    (
+                        "path_recursion",
+                        i64::from(un.path_recursion),
+                        them.path_recursion,
+                    ),
+                    ("idle", i64::from(un.idle), them.idle),
+                    ("collide", i64::from(un.collide), them.collide),
+                    ("collide_o", i64::from(un.collide_o), them.collide_o),
+                    ("collide_who", i64::from(un.collide_who), them.collide_who),
+                    ("collide_guy", i64::from(un.collide_guy), them.collide_guy),
+                    ("safe", i64::from(un.safe), them.safe),
+                    (
+                        "path length",
+                        un.path.len() as i64,
+                        Some(them.path.len() as i64),
+                    ),
+                ];
+                // The stack whole — point, tolerance and flag byte, every
+                // slot, labelled by index so a parted waypoint names
+                // itself.
+                //
+                // **`1/13` is item 191 and only its stack is excepted.**
+                // From block 6686 its `path[2].y` reads 38712 here against
+                // 38760 and its `path[3].x` 40584 against 40536 — two
+                // middle waypoints, one 48-grid step each, on a route
+                // whose length, ends and flags all agree. The unit walks
+                // them without parting for thirty-two more frames: its
+                // own position holds until 6718, past this window's
+                // assertion. Everything else about `1/13` is compared.
+                let stack_excepted = (them.who, them.o) == (1, 13) && f + 1 >= 6686;
+                let labels: Vec<String> = (0..un.path.len().min(them.path.len()))
+                    .flat_map(|slot| {
+                        ["x", "y", "tol", "flags"]
+                            .map(|f| format!("path[{slot}].{f}"))
+                            .into_iter()
+                    })
+                    .collect();
+                for (slot, (ours, theirs)) in un
+                    .path
+                    .iter()
+                    .zip(them.path.iter())
+                    .enumerate()
+                    .filter(|_| !stack_excepted)
+                {
+                    rows.push((&labels[slot * 4], i64::from(ours.to.x), Some(theirs.to.0)));
+                    rows.push((
+                        &labels[slot * 4 + 1],
+                        i64::from(ours.to.y),
+                        Some(theirs.to.1),
+                    ));
+                    rows.push((
+                        &labels[slot * 4 + 2],
+                        i64::from(ours.tolerance),
+                        Some(theirs.tolerance),
+                    ));
+                    rows.push((
+                        &labels[slot * 4 + 3],
+                        i64::from(ours.flags),
+                        Some(theirs.flags),
+                    ));
+                }
+                for (n, g) in them.guys.iter().enumerate() {
+                    let Some(og) = built.sim.units[u].guys.get(n).copied() else {
+                        continue;
+                    };
+                    let un = &built.sim.units[u];
+                    // The same three fallbacks run67 established: guy 0's
+                    // `des_angle` is the heading, and a trackless crew
+                    // figure's is guy 0's facing.
+                    let (body, facing, des, des_angle) = match og.follow {
+                        Some(b) => (b.body.pos, b.facing, b.des, b.des_angle),
+                        None if n == 0 => (
+                            un.movement.body.pos,
+                            un.movement.facing,
+                            un.pos,
+                            un.movement.heading,
+                        ),
+                        None => (
+                            un.movement.body.pos,
+                            un.movement.facing,
+                            un.pos,
+                            un.movement.facing,
+                        ),
+                    };
+                    if n >= sim::anim::SQUAD_SIZE {
+                        crew_rows += 1;
+                    }
+                    let track = og.follow.map_or((0, 0), |b| b.track);
+                    for r in [
+                        ("g.x", i64::from(body.x), g.pos.map(|p| p.x)),
+                        ("g.y", i64::from(body.y), g.pos.map(|p| p.y)),
+                        ("g.angle", i64::from(facing.0), g.angle),
+                        ("g.des_x", i64::from(des.x), g.des.map(|p| p.x)),
+                        ("g.des_y", i64::from(des.y), g.des.map(|p| p.y)),
+                        ("g.des_angle", i64::from(des_angle.0), g.des_angle),
+                        ("g.cur_anim", i64::from(og.anim), g.cur_anim),
+                        ("g.cur_time", i64::from(og.cur_time), g.cur_time),
+                        ("g.end_time", i64::from(og.end_time), g.end_time),
+                        ("g.last_time", i64::from(og.last_time), g.last_time),
+                        ("g.gpiece", i64::from(og.gpiece), g.gpiece),
+                        ("g.stopped", i64::from(og.stopped), g.stopped),
+                        ("g.track_dx", i64::from(track.0), g.track.map(|t| t.0)),
+                        ("g.track_dy", i64::from(track.1), g.track.map(|t| t.1)),
+                    ] {
+                        rows.push(r);
+                    }
+                }
+                for (name, ours, theirs) in rows {
+                    let Some(theirs) = theirs else { continue };
+                    compared += 1;
+                    if ours != theirs && wrong.len() < 16 {
+                        wrong.push(format!(
+                            "frame {}: {}/{} {name} ours {ours} theirs {theirs}",
+                            f + 1,
+                            them.who,
+                            them.o
+                        ));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run68: {compared} fields over the window's first {} blocks, {crew_rows} crew rows",
+            FIRST_FIELD_PARTING - 6595
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 100_000 && crew_rows >= 300,
+            "the window's own rows: {compared} fields and {crew_rows} crew figures — \
+             a capture without the `GUYS=4` block is the wrong file"
+        );
+        assert!(wrong.is_empty(), "run68's window parted: {wrong:?}");
     }
 
     /// **run67 — every figure's whole record over the merchant's

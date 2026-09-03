@@ -700,6 +700,49 @@ position diff could not show:**
 
 ---
 
+## 4. The widening ledger — what nothing compares (2026-09-03)
+
+`crates/rondata/src/ledger.rs`, and it is a guard rather than a report: it
+reads the parser's own source and the differ's, and counts the fields the
+one fills that the other never names.
+
+The rule it serves is "when the original dumps a record, diff the whole
+record", which has closed or sharpened twelve queue items on its own. The
+twelfth is why the ledger exists. `UnitDump::orders_x` had been parsed since
+the `UNITDATA` reader was written; the merchant window that needed it
+compared positions and clocks, so a merchant walking at the **wrong rare**
+read as a merchant one frame late, and the item was booked as a timing bug
+for a day (`docs/MERCHANT.md` §2.2.1).
+
+Two numbers, both pinned and both allowed only to fall:
+
+| list | meaning | 2026-09-03 |
+| --- | --- | --- |
+| **uncompared** | the field's identifier appears nowhere in `diff.rs` | **23** of 281 |
+| **single-capture** | exactly one test function names it | **51** |
+
+The second is the sharper one, and it is item 87's "per capture" half. A
+field that only one window can see is one capture away from an unnoticed
+divergence — `UnitData`'s whole collision block (`collide`, `collide_frame`,
+`collide_o`, `collide_who`, `collide_guy`), `safe`, `idle`,
+`path_recursion`, `dest_angle` and `stance` are all in that state today, and
+so is every `CityData` stamp.
+
+**It is a lower bound with no false alarms.** A field counts as "named" if
+its identifier appears as `.field` or as a `row("…")` label anywhere in
+`diff.rs` — an appearance is not proof of a comparison, only that somebody
+touched it. So everything on the list is certainly uncompared and some
+fields off it may be too. For a queue that is the useful direction: it never
+sends a session chasing a field that is already pinned. Four parser
+containers — `Block`, `Log`, `Initial`, `ConstantDump` — are excluded by
+name, because they hold the reader's own state rather than anything the
+original writes.
+
+Read it with `cargo test -p rondata the_widening_ledger -- --nocapture`; the
+per-record breakdown is the output, and it is the queue of cheap widenings.
+
+---
+
 ## What is not established
 
 - **`DUMP_ALL=1`.** Presumably the detail-level-1 fields — goods per leader,

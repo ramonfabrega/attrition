@@ -33,6 +33,7 @@ pub mod diff;
 pub mod dump;
 pub mod gamelog;
 pub mod input;
+pub mod ledger;
 pub mod load;
 pub mod pe;
 pub mod recgame;

@@ -342,10 +342,15 @@ that ends it and the recovery after:
   rotation's *arithmetic*: with two goods and one of them already ordered
   at, the ordered search alone decides, and a list that was never rotated
   would pick the same rare.
-- the whole of §3 past its gate: `good_merchant_spot`'s four tiles, the
-  ring order, and the cast-then-walk order pair. Nothing on disk reaches a
-  ring walk, because a merchant that reaches its good is a merchant that
-  has walked further than any capture follows one.
+- ~~the whole of §3 past its gate … nothing on disk reaches a ring walk~~
+  — **run68 reaches it** (2026-09-03). `1/19` arrives at its `CITRUS` on
+  block 6714 and `orders_x/y` becomes `(32280, 36888)`; this crate takes
+  `(32076, 37188)`. That is `find_merchant_spot`'s ring answering a
+  different tile, and it is the first field of the whole record to part in
+  the window — a frame *ahead* of the draw stream's own 6715. So
+  `good_merchant_spot`'s four tiles, the `MOVE_289` order and the
+  cast-then-walk pair now all have an oracle, and §7's missing
+  `detect_unit_collision` is the first suspect. Queue item 189.
 
 ## 7. What is not established
 

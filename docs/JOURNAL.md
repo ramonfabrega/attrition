@@ -14071,3 +14071,74 @@ fourteen and the original thirteen. Twenty-seven units were checked at 6620,
 not an off-by-one: at 6621 twenty-six of them agree and only `0/5` does not.
 No dump on disk covers `[6600, 6620]`, so it is item 188 and it is a
 capture, not a reading.
+
+## 2026-09-03 — the ledger, and a capture that answered three questions (items 87, 188, Opus)
+
+Two things after item 186 closed, in the order they happened, because the
+second is what the first predicted.
+
+**The widening ledger** (item 87, `crates/rondata/src/ledger.rs`,
+`docs/DATALAYER.md` §4). Item 186 was the twelfth queue item closed by a
+field the parser had been filling and nothing had compared, so the count is
+now a guard rather than a hope. It reads `gamelog.rs` and `diff.rs` at
+compile time and prints two lists: **uncompared** — the field's identifier
+appears nowhere in the differ — and **single-capture**, exactly one test
+function names it. Both are pinned and may only fall.
+
+The second list is the sharper one and it is item 87's "per capture" half.
+On the day it was written it named `stance`, `idle`, `path_recursion`,
+`safe`, `dest_angle` and the whole `UnitData` collision block as fields one
+window was carrying alone.
+
+**Then run68 landed and `stance` was wrong on every unit of every frame.**
+2,700 rows, from the first block of the window. `Unit::init` switches five
+ways on `get_stance_type` and reads the leader's own options
+(`00612100:282–309`); `Unit::new` writes a flat 1, and a unit stood up
+*from* a dump takes the dump's own value — which is exactly why every
+earlier capture agreed and no reading had ever been asked. It is item 190.
+The ledger predicted the shape of the finding a day before the capture
+found it, which is the whole argument for counting.
+
+---
+
+**run68 itself** (`docs/ORACLE.md`, 2026-09-03): run54's game, the cheap
+window over `[6595, 6730)`, `GUYS=4`. Five minutes, 83 MB, 136 blocks,
+`rngcmp` 6,746 frames zero differing — the eighth window in a row that costs
+the stream nothing.
+
+**One capture for two items.** 188 wanted `[6600, 6620]` and 189 wanted
+`[6710, 6720]`. A window is priced by its blocks and the frames before it
+are free, so the span between two items a hundred frames apart is nearly
+free to buy. Booking them separately would have cost two launches.
+
+**Item 188 was never a divergence, and the quit block is why.** The human
+citizen `0/5` walks identically on both sides — order on 6607, first step on
+6608, `(4860, 5172)` on 6621. What said otherwise was run66's *closing*
+block. Dump against dump, with no simulation in the loop: run66's and
+run67's closing blocks each agree with run68's **ordinary** 6621 for 130 of
+131 units, and hold the 6620 value for `0/5` alone — the same single unit,
+in two independent captures, while five other units sit mid-step at 6621.
+So a closing block is block `n` for almost everything and one tick behind
+for at least one unit. It is not a frame state, the harness no longer scores
+one, and `docs/ORACLE.md` carries the table. The cost of not knowing was a
+day of item 188 and an exception written on a number the block had no
+business supplying.
+
+**Item 189 is the merchant's arrival.** The first field of the whole record
+to part is `1/19`'s `orders_x/y` on **6714** — a frame *ahead* of the draw
+stream's own 6715, which is the argument for diffing fields as well as
+draws. `1/19` reaches its `CITRUS` and runs `find_merchant_spot`'s ring;
+ours answers `(32076, 37188)` and the original `(32280, 36888)`.
+`docs/MERCHANT.md` §6 had called that ring unreachable — "a merchant that
+reaches its good is a merchant that has walked further than any capture
+follows one" — and this capture follows one.
+
+**And the whole-record rule paid on its first run again.** Comparing the
+path *stack* and not only its length found `1/13` holding `path[2].y`
+38712 against 38760 and `path[3].x` 40584 against 40536 from block 6686 —
+two middle waypoints, one 48-grid step each, on a route whose length, ends
+and flags all agree, and which the unit walks without parting for
+thirty-two more frames. Item 191.
+
+**118,948 fields over 119 blocks, zero differing**, with `stance` and that
+one stack excepted by name.
