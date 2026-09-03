@@ -3798,3 +3798,55 @@ minutes: a question about *what a function answered* does not need a
 full-detail dump at all, and the thin-`end:` recipe runs 2,000 frames in
 the time a settle poll takes. The capture lane's cheapest instrument is the
 one that had been used once.
+
+## The fourth permission, and the probe that did not test it (2026-09-03)
+
+Every capture script says it needs three macOS permissions — Screen
+Recording, Automation and Accessibility — and probed all three before doing
+anything. On 2026-09-03 a Claude Code update to 2.1.259 replaced
+`~/.local/share/claude/ClaudeCode.app`, and the grants, which are keyed to
+the bundle, went with it. Two came back with the obvious symptom:
+`screencapture -x` wrote nothing and said `could not create image from
+display`, and `osascript -e 'tell application "System Events" to get name of
+first process'` hung at 0 % CPU and returned `AppleEvent timed out. (-1712)`.
+
+The third did not. **`cliclick p` needs no privilege at all** — reading the
+cursor position is not an Accessibility operation — so the Accessibility
+probe answered a real `1649,0` while every `System Events` *UI-scripting*
+call was still refused. `longtrace.sh` therefore passed its own probe,
+staged the INIs, launched the game, and handed off to `waitwin.sh`, whose
+loop asks
+
+```
+tell application "System Events" to get name of every window of process "riseofnations_trace.exe"
+```
+
+every three seconds. That call is the privilege, and it answers
+`osascript is not allowed assistive access. (-1728)` — a *different* error
+from the Automation timeout, and one the script never saw because the loop
+swallows it and sleeps. The capture sat there with the game running fine and
+no dump ever started.
+
+**The fix is a probe that asks the same question before the launch.**
+`Finder` always exists, so the four capture scripts now run
+
+```
+osascript -e 'tell application "System Events" to get name of every window of process "Finder"'
+```
+
+and exit on `-1728` with the bundle to re-grant. It was made to fail on
+purpose first, which was free: the grant was still missing when it was
+written.
+
+**What to check when a capture stalls with the game up and no `gamelog.txt`.**
+The three errors are distinguishable and each names its own toggle:
+
+| symptom | permission | toggle |
+| --- | --- | --- |
+| `could not create image from display` | Screen Recording | Privacy & Security → Screen Recording |
+| `AppleEvent timed out. (-1712)`, 0 % CPU | Automation | Privacy & Security → Automation → System Events |
+| `not allowed assistive access. (-1728)` | Accessibility | Privacy & Security → Accessibility |
+
+All three are granted to **`ClaudeCode.app`**, not to the terminal, and an
+in-place update invalidates them — if the bundle is already listed, toggle
+it off and on. `cliclick p` answering a position proves none of them.

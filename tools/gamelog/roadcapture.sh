@@ -46,6 +46,25 @@ if [ "$pos" = "0,0" ]; then
   echo "Privacy & Security -> Accessibility, for the terminal this runs in."
   exit 1
 fi
+# **`cliclick p` is not the Accessibility test the capture needs.** Reading
+# the cursor takes no privilege at all, so the check above passed on
+# 2026-09-03 while every `System Events` *UI-scripting* call was refused —
+# and `waitwin.sh`, whose loop asks for a process's windows, then span for
+# an hour on a game that had launched fine. That call is the privilege:
+# ask it of `Finder`, which always exists, before anything is started.
+# `osascript is not allowed assistive access. (-1728)` is what a reset
+# Accessibility grant says, and a Claude Code update resets it.
+ui=$(osascript -e 'with timeout of 20 seconds
+tell application "System Events" to get name of every window of process "Finder"
+end timeout' 2>&1) || true
+case "$ui" in
+  *"not allowed assistive access"*|*"-1728"*)
+    echo "Accessibility is off for UI scripting: $ui"
+    echo "System Settings -> Privacy & Security -> Accessibility, for"
+    echo "ClaudeCode.app (toggle it off and on if it is already listed —"
+    echo "an update replaces the bundle and the grant goes with it)."
+    exit 1 ;;
+esac
 source "$W/tools/gamelog/lobby.sh"
 lobby_init "$T/probe$N.png" || exit 1
 echo "probe ok (cursor $pos)"
