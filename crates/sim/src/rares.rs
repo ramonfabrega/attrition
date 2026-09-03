@@ -190,6 +190,82 @@ impl Sim {
             && l.rare >> (good - economy::BASE_RARE) & 1 != 0
     }
 
+    /// `World::reveal_fog@006b3d30`'s rare arm — the only part of that
+    /// function this simulation has (`docs/ECONOMY.md`, "The rares a leader
+    /// has seen").
+    ///
+    /// `(fx, fy)` is a **fog** cell, and the call happens exactly where
+    /// `World::set_seen` answered that `seen2` changed, so a cell is offered
+    /// once per player for the life of a game. The original's own gate is a
+    /// tile-mask read at `(2fx + 1, 2fy + 1)` — [`crate::world::tile`]'s
+    /// `0x200`, which `Objects::init_good` sets over a good's footprint —
+    /// and only then the cell's `find_good_at`.
+    pub(crate) fn reveal_fog(&mut self, fx: i32, fy: i32, who: Player) {
+        let t = crate::Pos::new(2 * fx + 1, 2 * fy + 1);
+        if self.world.tile_mask(t) & crate::world::tile::AS_BUILDING == 0 {
+            return;
+        }
+        // `find_good_at(x, y, who, 1, 0)` — the **index** form, which
+        // answers before `type_avail` and so hands `new_rare` goods the
+        // caller could not yet build with. The alive and non-`OIL` tests
+        // are the same two [`Sim::find_good_at`] makes.
+        let c = crate::world::Cell::new(fx >> 1, fy >> 1);
+        let Some((gi, g)) = self.world.good_at(c) else {
+            return;
+        };
+        if !g.alive || g.ty == crate::world::OIL {
+            return;
+        }
+        self.new_rare(who, gi);
+    }
+
+    /// `Leader::new_rare@006d9e70`: record a seen good on this leader and
+    /// on every ally that can still be told about it.
+    ///
+    /// The four gates, in the original's order:
+    ///
+    /// * the **caller** is not a plain human — `leader_flags & 0xc != 4`,
+    ///   so a human's own reveals record nothing unless the AI is driving
+    ///   it (`& 8`, never set here);
+    /// * the recipient is in the game, is this leader or a mutual ally, and
+    ///   is not a human (`leader_flags & 4`) unless the caller is that
+    ///   AI-driven human;
+    /// * the good is not already in the list — a linear scan, which is why
+    ///   the list stays short and ordered;
+    /// * `type_avail(good, strict)` is non-zero, and the good is neither
+    ///   `FISH` nor `WHALES`. Those two are the **fisherman's** rares
+    ///   (`LeaderData::calc_rare` pays them to a boat, not to a merchant),
+    ///   so a coast full of fish never buys a merchant.
+    pub(crate) fn new_rare(&mut self, who: Player, gi: usize) {
+        if self.nation[who as usize].human {
+            return;
+        }
+        let Some(ty) = self.world.goods().get(gi).map(|g| g.ty) else {
+            return;
+        };
+        if self.tech_tree.is(ty, economy::FISH, false)
+            || self.tech_tree.is(ty, economy::WHALES, false)
+        {
+            return;
+        }
+        for w in 0..self.players.len() {
+            if self.defeated[w] || self.nation[w].human {
+                continue;
+            }
+            if w != who as usize && !(self.allied[who as usize][w] && self.allied[w][who as usize])
+            {
+                continue;
+            }
+            if self.ai[w].new_rares.contains(&gi) {
+                continue;
+            }
+            if self.type_avail(w as Player, ty) == crate::tech::NOT_AVAILABLE {
+                continue;
+            }
+            self.ai[w].new_rares.push(gi);
+        }
+    }
+
     /// `Leader::calc_unit_stats@006cf970`, the speed third of it: every one
     /// of the player's live units takes its cached speed again.
     pub(crate) fn calc_unit_stats(&mut self, who: Player) {
@@ -303,6 +379,111 @@ mod tests {
         });
         let m = s.world.tile_mask(t);
         s.world.set_tile_mask(t, m | tile::AS_BUILDING);
+    }
+
+    /// Puts a good on the boat's own tile and lights the tile's `0x200`,
+    /// which is what [`Sim::reveal_fog`] reads before it looks for one.
+    fn good_under(s: &mut Sim, u: usize, ty: crate::tech::TypeId) -> usize {
+        let t = s.units[u].pos.tile();
+        s.world.add_good(Good {
+            pos: Pos::new(t.x * UNITS_PER_TILE + 96, t.y * UNITS_PER_TILE + 96),
+            ty,
+            alive: true,
+        });
+        // The footprint, not the tile: the original's gate reads the
+        // **odd** tile `(2fx + 1, 2fy + 1)` of a fog cell, so a mark on one
+        // even tile is a mark no fog cell can see.
+        for dy in 0..2 {
+            for dx in 0..2 {
+                let at = Pos::new(t.x + dx, t.y + dy);
+                let m = s.world.tile_mask(at);
+                s.world.set_tile_mask(at, m | tile::AS_BUILDING);
+            }
+        }
+        s.world.goods().len() - 1
+    }
+
+    /// The fog cell whose `(2fx + 1, 2fy + 1)` tile is one [`good_under`]
+    /// marked.
+    fn fog_of_unit(s: &Sim, u: usize) -> (i32, i32) {
+        let t = s.units[u].pos.tile();
+        (t.x / 2, t.y / 2)
+    }
+
+    /// **`FISH` and `WHALES` are not merchant rares**, and
+    /// `Leader::new_rare` is where they are dropped: they pay a fishing
+    /// boat, so a coast full of them must not buy the AI a Merchant.
+    /// Anything else the leader can build with is kept, once.
+    #[test]
+    fn a_fish_and_a_whale_are_never_a_seen_rare() {
+        let (mut s, u) = sea_sim();
+        let fish = good_under(&mut s, u, economy::FISH);
+        let whale = good_under(&mut s, u, economy::WHALES);
+        let citrus = good_under(&mut s, u, 26);
+        s.new_rare(1, fish);
+        s.new_rare(1, whale);
+        assert!(s.ai[1].new_rares.is_empty(), "the fisherman's two rares");
+        s.new_rare(1, citrus);
+        s.new_rare(1, citrus);
+        assert_eq!(
+            s.ai[1].new_rares,
+            vec![citrus],
+            "recorded once, and once only"
+        );
+    }
+
+    /// **A plain human records nothing** — `leader_flags & 0xc == 4` is the
+    /// caller's own gate and `& 4` the recipient's, so neither the human's
+    /// own reveals nor an ally's on its behalf reach its list.
+    #[test]
+    fn a_human_s_reveal_records_nothing_on_either_side() {
+        let (mut s, u) = sea_sim();
+        let citrus = good_under(&mut s, u, 26);
+        s.new_rare(0, citrus);
+        assert!(s.ai[0].new_rares.is_empty(), "the human's own reveal");
+        assert!(s.ai[1].new_rares.is_empty(), "and it told nobody");
+        s.allied[0][1] = true;
+        s.allied[1][0] = true;
+        s.new_rare(1, citrus);
+        assert_eq!(s.ai[1].new_rares, vec![citrus]);
+        assert!(
+            s.ai[0].new_rares.is_empty(),
+            "an ally that is a human is skipped"
+        );
+    }
+
+    /// **An oil patch is never seen**, because `Objects::init_good` never
+    /// puts one in a cell's chain — which is why East Indies' unreplayed
+    /// start fog costs that capture nothing: the one good under its AI at
+    /// frame 0 is oil.
+    #[test]
+    fn an_oil_patch_is_not_in_the_chain_to_be_seen() {
+        let (mut s, u) = sea_sim();
+        assert_eq!(good_under(&mut s, u, crate::world::OIL), 0);
+        let (fx, fy) = fog_of_unit(&s, u);
+        assert_eq!(Cell::new(fx >> 1, fy >> 1), s.units[u].pos.cell());
+        s.reveal_fog(fx, fy, 1);
+        assert!(s.ai[1].new_rares.is_empty(), "an oil patch is not a rare");
+    }
+
+    /// **The tile mark is the gate.** `reveal_fog` looks for a good only
+    /// where `Objects::init_good` marked the ground `0x200`; with the mark
+    /// off, the cell's own good is never reached.
+    #[test]
+    fn reveal_fog_looks_only_where_the_ground_is_marked() {
+        let (mut s, u) = sea_sim();
+        assert_eq!(good_under(&mut s, u, 26), 0);
+        let (fx, fy) = fog_of_unit(&s, u);
+        s.reveal_fog(fx, fy, 1);
+        assert_eq!(s.ai[1].new_rares, vec![0]);
+
+        let (mut s, u) = sea_sim();
+        assert_eq!(good_under(&mut s, u, 26), 0);
+        let mark = Pos::new(2 * fx + 1, 2 * fy + 1);
+        let was = s.world.tile_mask(mark);
+        s.world.set_tile_mask(mark, was & !tile::AS_BUILDING);
+        s.reveal_fog(fx, fy, 1);
+        assert!(s.ai[1].new_rares.is_empty(), "no mark, no look");
     }
 
     /// **The two numbers run59's census measured.** A level-0 fisherman

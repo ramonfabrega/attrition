@@ -663,6 +663,13 @@ pub struct Leader {
     /// a target of this leader's, and whose (`docs/ARMY.md` §12).
     pub frame_attacked: i64,
     pub attacked_by: i32,
+    /// `new_rares` (`LeaderData +0x6e6c`) — the **goods-list indices** of
+    /// every merchant rare this leader has ever had a fog cell lifted over,
+    /// in the order they were seen and never removed.
+    /// `Leader::new_rare@006d9e70` is the only writer and
+    /// `ScenarioFuncSet::num_rare_resources_seen@009ea010` returns its
+    /// length: `docs/ECONOMY.md`, "The rares a leader has seen".
+    pub new_rares: Vec<usize>,
 }
 
 impl Default for Leader {
@@ -812,6 +819,7 @@ impl Leader {
             frame_attacked: 0,
             attacked_by: -1,
             tech_cat_frame: [0; 4],
+            new_rares: Vec::new(),
         }
     }
 

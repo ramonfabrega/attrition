@@ -10446,6 +10446,7 @@ mod tests {
         built.sim.trace_phases = true;
         let mut compared = 0usize;
         let mut caravan_rows = 0usize;
+        let mut queue_rows = 0usize;
         let mut unmatched = 0usize;
         let mut wrong: Vec<String> = Vec::new();
         // `Built::tick` stamps the frame it is about to run, so after the
@@ -10527,10 +10528,64 @@ mod tests {
                     );
                 }
             }
+            // **And the build queues, whole** — the widening this window
+            // was re-read for. The AI's Market `1/2013` is one `MERCHANT`
+            // deep on every block of the window, and its `job_counter`
+            // climbs a hundred a frame from the caravan's own hand-over on
+            // 6164 to the merchant's on 6353; nothing in this crate
+            // trained one until `num_rare_resources_seen` stopped
+            // answering zero (`docs/ECONOMY.md`, "The rares a leader has
+            // seen"), so this is what says the *count* the script asked
+            // for was right and not merely non-zero.
+            //
+            // The record's own trap is in the slot behind it: `queued` is
+            // 1 and slot 1 reads `type 61` too, because `unqueue` shifts
+            // the array down over the caravan and leaves the vacated tail
+            // standing. Only the first `queued` slots are read, for
+            // [`compare`]'s reason — the tail is not state either side
+            // owns.
+            for them in &fr.builds {
+                let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                    continue;
+                };
+                let (Some(b), Some(q)) = (built.sim.building_by_o(who, o), them.queued) else {
+                    continue;
+                };
+                let ours = &built.sim.buildings[b].queue;
+                let mut row = |name: String, ours: i64, theirs: i64| {
+                    compared += 1;
+                    if ours != theirs && wrong.len() < 12 {
+                        wrong.push(format!(
+                            "frame {}: {}/{} {name} ours {ours} theirs {theirs}",
+                            f + 1,
+                            them.who,
+                            them.o
+                        ));
+                    }
+                };
+                let mine = ours.items.len() as i64;
+                row("queued".into(), mine, q);
+                if mine != q {
+                    continue;
+                }
+                for (k, theirs) in them.queue.iter().take(q as usize).enumerate() {
+                    let item = &ours.items[k];
+                    let id = item.tech.unwrap_or_else(|| built.unit_tree[item.ty]);
+                    let ty = built.type_index.get(id).copied().unwrap_or(-1);
+                    row(format!("queue[{k}].type"), i64::from(ty), theirs.ty);
+                    row(
+                        format!("queue[{k}].job_counter"),
+                        i64::from(item.job_counter),
+                        theirs.job_counter,
+                    );
+                    queue_rows += 1;
+                }
+            }
         }
         eprintln!(
             "run65 window: {compared} fields over 20 blocks, {caravan_rows} of them \
-             the caravan's, {unmatched} of the dump's units this crate has no unit for"
+             the caravan's, {queue_rows} queue entries, {unmatched} of the dump's \
+             units this crate has no unit for"
         );
         for w in &wrong {
             eprintln!("  {w}");
@@ -10539,6 +10594,11 @@ mod tests {
             compared >= 4_000 && caravan_rows >= 18,
             "the window's own rows: {compared} fields and {caravan_rows} caravan \
              frames — a capture with neither is the wrong file"
+        );
+        assert!(
+            queue_rows >= 18,
+            "the Market's merchant over the window's eighteen blocks: \
+             {queue_rows} queue entries"
         );
         assert!(wrong.is_empty(), "run65's window parted: {wrong:?}");
     }
@@ -11034,9 +11094,31 @@ mod tests {
 
     /// East Indies' word on run54, the headline.
     ///
-    /// **6353** since 2026-09-02, and the frame is a **unit the original
-    /// trains and this crate does not**: two `Guy::init_real+0x52` at the
-    /// head of the original's frame that nothing here spends.
+    /// **6356** since 2026-09-02, and the frame is the **Merchant's first
+    /// step**: `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step`
+    /// at the head of the original's frame, three frames after the unit
+    /// was born. `Unit::think_merchant@005f4740` is what sends it — it
+    /// scores the leader's `new_rares` list, moves the winner to the back
+    /// of that list and issues a `MOVE_TO` at the good — and nothing here
+    /// reaches it.
+    ///
+    /// It was **6353** for one item, and the frame was a **unit the
+    /// original trains and this crate did not**: two `Guy::init_real+0x52`
+    /// under `Objects::init_unit`, a two-figure unit, and run65's window
+    /// names it — the AI Market `1/2013` is one `MERCHANT` deep on all
+    /// eighteen of its blocks, with a `job_counter` climbing a hundred a
+    /// frame from the caravan's hand-over on 6164 to 18,720 (`JOB_TIME`
+    /// 156 at `UNIT_RATE_BASE` 120) on 6353. The cause was one host
+    /// function: `economic.bhs` trains merchants only up to
+    /// `num_rare_resources_seen(who)`, and this crate's script host
+    /// answered a flat zero because rares were not in the simulation when
+    /// it was written. `Leader::new_rare@006d9e70` is the list's writer,
+    /// `World::reveal_fog` its caller, and `FISH`/`WHALES` are excluded
+    /// because they pay a fishing boat rather than a merchant
+    /// (`docs/ECONOMY.md`, "The rares a leader has seen"). East Indies'
+    /// AI has seen `CITRUS` and `HORSES` by frame 5000; the queue and its
+    /// clock are now an assertion
+    /// (`run65_s_window_is_the_original_s_unit_for_unit`).
     ///
     /// It was **6207** for one item, and that item was neither the caravan
     /// nor its turn. run65 is the capture — an eighteen-frame `DUMP_ALL`
@@ -11180,7 +11262,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6353;
+    const LONG_WORD_EAST_INDIES: i64 = 6356;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

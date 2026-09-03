@@ -298,8 +298,14 @@ impl Host for ScriptHost<'_> {
                 }
                 None => BAD,
             },
-            // Rares are not in the simulation: none seen.
-            "num_rare_resources_seen" => self.leader(a(0)).map_or(BAD, |_| NO),
+            // `ScenarioFuncSet::num_rare_resources_seen@009ea010`: the
+            // length of the leader's `new_rares` list, and −1 for a slot
+            // that is not a live leader. `docs/ECONOMY.md`, "The rares a
+            // leader has seen" — and `economic.bhs` divides its merchant
+            // count by it, so a stub of zero trained none at all.
+            "num_rare_resources_seen" => self
+                .leader(a(0))
+                .map_or(BAD, |w| int(self.sim.ai[w as usize].new_rares.len() as i32)),
             "find_build_at_city" => self.find_build_at_city(a(0), &s(1), &s(2), a(3) != 0),
             "num_city_buildings" => self.num_city_buildings(a(0), &s(1), &s(2), a(3) != 0),
             "find_idle_citizen" => self.find_idle_citizen(a(0)),

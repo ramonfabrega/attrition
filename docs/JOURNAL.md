@@ -13651,3 +13651,85 @@ minute: grep the disk before believing a mechanism.
 `Guy::init_real+0x52` at the head of the original's frame — a unit it
 trains and this crate does not — and nothing else in that frame parts, so
 the next item is production and item 180 books it.
+
+## 2026-09-02 — item 180: the AI had never trained a merchant, on any map
+
+**The frame said "production" and the record said which one.** East Indies'
+word had been parked on 6353, whose whole content was two
+`Guy::init_real+0x52` under `Objects::init_unit` that this crate did not
+spend. Two `Guy::init_real` calls is a **two-figure unit** — `Unit::init`
+sizes the guy stack to `crew_size + squad_size`, and `unitrules.xml` gives
+`CREW_SIZE 1` to twenty-nine types — and the caravan born on 6164 with
+three figures was the Market's, so the Market was where to look.
+
+**run65 already had it.** The capture taken for the caravan's turn carries
+a `DUMP_ALL` window on `[6196, 6214)`, and in every one of its eighteen
+blocks the AI Market `1/2013` (`orig_type 436`) reads `queued 1` with
+`queue[scan].type 61` — `MERCHANT` — and a `job_counter` climbing exactly
+a hundred a frame: 3100 at the block labelled 6196, 4800 at 6213. Walk it
+back and the entry starts ticking on **6165**, the frame after the caravan
+was handed over, and forward and it lands on **18,720** at 6353. `JOB_TIME`
+156 × 100 × `UNIT_RATE_BASE` 120 / 100 is 18,720 on the nose, with no ramp
+and no tail — the first Merchant, so `owned` is zero — and
+`Sim::queue_target` already computed it. **The grep-the-disk rule again:**
+the answer to "what unit" was a `BUILDDATA` block already on the disk, not
+a capture and not a reading.
+
+**The cause was one host function returning zero.** `game/ai/scripts/
+economic.bhs` builds merchants inside a loop bounded by
+`num_rare_resources_seen(who)`, and `crates/sim/src/ai_host.rs` answered a
+flat `0` with the comment "Rares are not in the simulation: none seen" —
+true when it was written and false since `rares.rs` landed. So no AI on any
+map had ever trained a Merchant.
+
+**What the function actually is.**
+`ScenarioFuncSet::num_rare_resources_seen@009ea010` is the length of
+`LeaderData +0x6e6c`, `SimpleArray<int> new_rares` — the goods-list indices
+of the rares this leader has seen. `Leader::new_rare@006d9e70` is its
+writer and `World::reveal_fog@006b3d30` its caller, on exactly the fog
+cells `World::set_seen` answered *changed* for; the gate is the tile mask
+`0x200` at `(2fx + 1, 2fy + 1)` and then `find_good_at` on the cell. The
+recording skips a plain human on both sides of the call
+(`leader_flags & 0xc == 4` for the caller, `& 4` for the recipient), spreads
+to mutual allies, refuses a duplicate and a type the recipient cannot yet
+build with — and **refuses `FISH` and `WHALES`**, which is the whole design:
+those two pay a *fishing boat*, so a coastline buys no merchants.
+
+Those last two tests are `SubObject::is`, and the decompiler prints them as
+`(*(code *)ppuVar1[0x2e])(6, 0)` and `(0x1f, 0)`. `0x2e` is a pointer index,
+so the byte offset is `0xb8`, and `vtables.txt` says `Good::vftable +0xb8` is
+`SubObject::is`. That is the export's second half earning its place: the
+decompiler will not name a slot, and `vtables.txt` will.
+
+**The widening is what makes it an assertion.** run65's test compared units
+only. It now compares the **build queues** as well — `queued`, and every
+live slot's type and `job_counter` — so the Market's single merchant and
+its 18,720 are checked on all eighteen blocks rather than inferred from a
+frame number that happened to land. The record's own trap is in the slot
+behind: `queued` is 1 and slot 1 also reads `type 61`, because `unqueue`
+shifts the array down over the caravan and leaves the vacated tail
+standing. Reading the tail would have said "two merchants" and sent the
+session looking for a second one that is not there.
+
+**The count is right, not merely non-zero.** East Indies' AI has seen
+`CITRUS` (good 20) and `HORSES` (good 23) by frame 5000, so
+`num_rare_resources_seen` answers 2; the script's loop tries twice and the
+second `train_unit_with_cost` refuses, which is why one Merchant is queued
+and not two. Had the count been wrong the window would have shown `queued`
+2 against 1 on all eighteen blocks.
+
+**What is left standing.** The start fog is **not replayed**: a rare under
+a leader's fog at frame 0 was recorded by the original's `Setup` and is not
+recorded here, because this simulation begins from an installed grid rather
+than from the reveals that built it. On East Indies it costs nothing — the
+one good under the AI's start fog is an oil patch, which `Objects::init_good`
+never puts in a cell's chain — but a map where it is not oil would part.
+`World::compute_reg_territory`'s call, the second way a rare is learned, is
+not carried either.
+
+**The score.** East Indies **6353 → 6356**; Great Lakes unchanged at 2419.
+191 rondata tests and 761 sim tests green. Three frames is a thin move and
+the handoff says so — but the zero it replaced was every AI on every map,
+and 6356 is the same unit's *next* frame: `Guy::set_anim < Guy::do_turn <
+Unit::move_step`, the Merchant's first step, three frames after its birth.
+`Unit::think_merchant@005f4740` is what sends it, and item 182 books it.

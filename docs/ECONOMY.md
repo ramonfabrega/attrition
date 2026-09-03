@@ -441,6 +441,118 @@ age**, not at `Leader::init`, which zeroes all six. It is inert while the
 good is unavailable (nothing accrues into it and nothing is charged from it)
 and it is the 240 rows `run40_s_census_…` books.
 
+## The rares a leader has seen (2026-09-02)
+
+A rare pays nothing until a merchant stands on it, and a merchant is not
+built until the AI knows a rare exists. That knowledge is a list, and it is
+the reason East Indies' AI trains a Merchant on frame **6353**.
+
+**The list.** `LeaderData +0x6e6c` is `SimpleArray<int> new_rares` — the
+**goods-list indices** of the rares this leader has seen, in the order it
+saw them. `+0x6e70` is its length. Nothing ever shortens it except
+`Unit::think_merchant`, which takes an entry out and puts it back on the
+end.
+
+**The writer.** `Leader::new_rare@006d9e70`, and its only two callers are
+`World::reveal_fog@006b3d30` and `World::compute_reg_territory@006b0bb0`.
+
+`reveal_fog(fx, fy, who)` runs on exactly the fog cells `World::set_seen`
+answered *changed* for — so a cell is offered once per player for the life
+of a game, and a rare under the **start** fog is recorded during `Setup`,
+before frame 0. Its rare arm is two tests and a call:
+
+```
+if (tile_mask[2fy + 1][2fx + 1] & 0x200) == 0:   return   # a good's footprint
+g = find_good_at(fx >> 1, fy >> 1, who, index = 1)         # alive, not OIL
+if g >= 0: Leader::new_rare(leaders[who], g)
+```
+
+`find_good_at`'s **index** form is the one taken here, and it answers ahead
+of `type_avail` — the availability test that would refuse the good is
+`new_rare`'s own, applied per recipient.
+
+`new_rare(this, g)` then walks every leader:
+
+```
+if (this.leader_flags & 0xc) == 4:  return          # a plain human records nothing
+for L in leaders:
+    if not (L.leader_flags & 1):            continue
+    if L is not this and not (L allied this and this allied L): continue
+    if (L.leader_flags & 4) and not (this.leader_flags & 8):    continue
+    if g in L.new_rares:                    continue
+    if not L.type_avail(good_type, strict): continue
+    if good.is(FISH) or good.is(WHALES):    continue
+    L.new_rares.add(g)
+```
+
+**`FISH` and `WHALES` are excluded, and that is the whole design.** They are
+the two rares `LeaderData::calc_rare` pays to a *fishing boat* rather than a
+merchant (this document, step 6), so a coastline full of fish buys no
+merchants at all. The two tests are `SubObject::is` — vtable slot `0xb8`,
+which the decompiler prints as `ppuVar1[0x2e]` with arguments `(6, 0)` and
+`(0x1f, 0)`.
+
+**The reader.** `ScenarioFuncSet::num_rare_resources_seen@009ea010` is the
+script function, and it is nothing but the length:
+
+```
+w = who - 1                                   # the script's who is 1-based
+if (unsigned)w < 8 and (leaders[w].flags & 1) and (leaders[w].flags & 2):
+    return leaders[w].new_rares.length
+return -1
+```
+
+Its base register reads as `Window::key_states + who * 0x6eec + 0xe4` in the
+decompile, which is `&leaders.list[who - 1]` — the same leader the return
+indexes, and the reason the two look inconsistent.
+
+**What it buys.** `economic.bhs`, the AI's opening script, gates its whole
+merchant block on it:
+
+```
+if (num_type(who, "Market") >= 1) {
+  if (num_type_with_queued(who, "Caravan") < caravan_lim)
+      train_unit_with_cost(who, 1, "Caravan");
+  if (at_least_type(who, 100, "Wealth"))
+    for (j = num_type_with_queued(who, "Merchant");
+         (j < 3) && (j < num_rare_resources_seen(who)); j++)
+      if (train_unit_with_cost(who, 1, "Merchant") < 1) break;
+}
+```
+
+so a host that answers zero — which this crate's did, on the grounds that
+rares were not in the simulation — trains **no merchant ever**, on any map,
+for any AI.
+
+**How it is established, and how confident it is.** The list, its writer and
+its reader are read from the decompile; the exclusion of `FISH` and
+`WHALES` is a vtable-slot resolution rather than a guess at a name
+(`vtables.txt`, `Good::vftable +0xb8`). The consequence is **diff-backed on
+run65**: East Indies' AI leader has seen `CITRUS` (good 20) and `HORSES`
+(good 23) by frame 5000, its Market's queue is one `MERCHANT` deep on all
+eighteen blocks of `[6196, 6214)`, its `job_counter` is the original's on
+every one of them, and the unit comes out on 6353 — the frame East Indies'
+word had been parked on
+(`run65_s_window_is_the_original_s_unit_for_unit`).
+
+**What is not established.**
+
+- **The start fog is not replayed.** A rare already under a leader's fog at
+  frame 0 was recorded by the original's `Setup` and is not recorded here,
+  because this simulation begins from an installed fog grid rather than
+  from the reveals that built it. On East Indies it costs nothing: the one
+  good under the AI's start fog is an **oil patch**, which `find_good_at`
+  refuses on both sides. A map where it is not oil would part.
+- **`World::compute_reg_territory`'s call is not carried.** Territory
+  changing hands is the second way a rare is learned, and nothing here
+  reaches it.
+- **`leader_flags & 8`**, the AI-driven human, is never set here, so the
+  human's own reveals record nothing — which is what the original does for
+  a human without computer assist and is a seam for one with it.
+- **The second merchant.** The original trains another on **6571**; the
+  script's `j` bound is three and the leader has seen two rares, so
+  whichever call queues it is past the window every capture on disk covers.
+
 ## What a city gives
 
 `LeaderData::calc_city_resources` sums five things for one city.

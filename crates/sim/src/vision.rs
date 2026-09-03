@@ -419,6 +419,11 @@ impl Sim {
             if (whole || (x >= 0 && y >= 0 && x < fw && y < fh)) && self.world.set_seen(x, y, mask)
             {
                 revealed += 1;
+                // `World::set_seen`'s **return value is the gate**: the
+                // original calls `reveal_fog` on exactly the cells this
+                // answered true for, which is how a good is offered to a
+                // leader once and only once ([`Sim::reveal_fog`]).
+                self.reveal_fog(x, y, who);
             }
         }
         revealed
