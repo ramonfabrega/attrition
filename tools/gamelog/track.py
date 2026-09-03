@@ -90,8 +90,17 @@ def records(fh, kind):
         key = parts[0]; val = " ".join(parts[1:]) if len(parts) > 1 else ""
         if named:
             key = named[-1].lower() + "." + key
+        # A record can hold several blocks of the same name — a unit's two
+        # GUY entries, say. The first keeps the bare key, so every existing
+        # caller is unchanged; the repeats get `key#1`, `key#2`, … and are
+        # how a crew figure is read at all.
         if key not in rec:
             rec[key] = val
+        else:
+            n = 1
+            while "%s#%d" % (key, n) in rec:
+                n += 1
+            rec["%s#%d" % (key, n)] = val
     r = close()
     if r is not None: yield frame, r
 

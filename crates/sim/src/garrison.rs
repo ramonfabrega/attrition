@@ -399,6 +399,17 @@ impl Sim {
             self.coll_add(f);
             self.chain_add(f);
             self.update_seen(f, false);
+            // **And the crew comes out with it.** The original places the
+            // unit with `set_new_location(·, ·, 1, 1)` (`00617c10:518`),
+            // whose snap flag reaches `Guy::set_new_location(guy 0, spot,
+            // 1)` and *puts* every tracked figure on its rotated offset
+            // (`docs/MOVEMENT.md`, "Who writes it, and when"). Without it
+            // a trained figure keeps the seat `Unit::init` gave it at the
+            // trainer's own centre and stands there for the rest of its
+            // life: run67's block 6572 has the second Merchant's figure
+            // 696 units from where this crate left it.
+            let facing = self.units[f].movement.facing;
+            self.crew_des(f, spot, facing, true);
         }
         // The city alarm clears when the city empties.
         if self.building_is_city(b)

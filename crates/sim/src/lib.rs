@@ -2856,23 +2856,51 @@ impl Sim {
         // Guy 0's position after either arm is the unit's own, so the two
         // are one expression here.
         if !was_at_des || !facing_settled {
-            let bound = Pos::new(
-                self.world.width() * world::UNITS_PER_CELL,
-                self.world.height() * world::UNITS_PER_CELL,
-            );
             let (pos, facing) = (self.units[i].pos, follow.facing);
-            for g in 0..self.units[i].guys.len() {
-                let Some(f) = &mut self.units[i].guys[g].follow else {
-                    continue;
-                };
-                let track = f.track;
-                f.des_angle = facing;
-                f.des = movement::follower_des(pos, facing, track, bound);
-            }
+            self.crew_des(i, pos, facing, false);
         }
         for g in 0..self.units[i].guys.len() {
             if self.units[i].guys[g].follow.is_some() {
                 self.process_follower(i, g);
+            }
+        }
+    }
+
+    /// **The crew loop**, which is the same eight lines in three places
+    /// and belongs to guy 0 in all of them: `Guy::set_angle@005d9010`
+    /// (`005d90ad`–`005d9192`), `Guy::set_new_location@005d86f0`
+    /// (`005d88da`–`005d89cc`) and `Unit::init`'s seating. Every guy past
+    /// `squad_size` is told an angle and a point — `des_angle = angle`,
+    /// `des = from + rotate(track, angle)`, each axis clamped into the
+    /// world — and nothing else about it is touched.
+    ///
+    /// `from` is guy 0's own `x` / `y`, which is the unit's position on
+    /// every frame the unit's step was taken.
+    ///
+    /// **`snap` is the callers' `param_3`**, and where it is set the crew
+    /// is not told the point but *put* on it: the loop then runs
+    /// `set_angle(crew, des_angle, 1)` and `set_new_location(crew, des,
+    /// 1)`, which write the figure's facing and its body outright. Only
+    /// the two teleporting callers carry it —
+    /// `Unit::set_new_location(…, 1, …)`, which is `Unit::init`'s seating
+    /// and `resolve_unit_collision`'s cell-centre snap
+    /// (`docs/COLLISION.md` §6 step 6). `Unit::set_angle`'s call and
+    /// `Guy::move`'s both pass zero.
+    fn crew_des(&mut self, u: usize, from: Pos, angle: movement::Angle, snap: bool) {
+        let bound = Pos::new(
+            self.world.width() * world::UNITS_PER_CELL,
+            self.world.height() * world::UNITS_PER_CELL,
+        );
+        for g in 0..self.units[u].guys.len() {
+            let Some(f) = &mut self.units[u].guys[g].follow else {
+                continue;
+            };
+            let track = f.track;
+            f.des_angle = angle;
+            f.des = movement::follower_des(from, angle, track, bound);
+            if snap {
+                f.facing = angle;
+                f.body.pos = f.des;
             }
         }
     }

@@ -13906,3 +13906,108 @@ run59's 250 MB without thinking; run66's whole log is 89 MB, so the poll
 could never call it settled and would have sat out its full 200 polls — 66
 minutes — after a four-minute capture. It is a ceiling as well as a floor:
 above the start dump, below the finished log.
+
+
+## 2026-09-02 — the crew figure was never told where to stand (item 185)
+
+**East Indies 6571 → 6574.** Three frames, and the item behind them turned
+out to be one loop of eight lines that this crate had never run.
+
+**The question run66 left.** On sim-frame 6571 the AI Merchant `1/19`
+collides, and `Unit::move_step`'s blocked stand asks both of its figures to
+idle (`set_anim(CHAR_DEFAULT, 0, 1)` at `+0x823`, before the three give-up
+tests). The original spends **one** draw; this crate spent two. And the
+original's crew figure then *walks* — `(34442, 37613)` → `(34464, 37595)`,
+the leader's own displacement — where this crate's stood still.
+
+**The reading ran out, and said so.** `Unit::set_anim` loops guy 0 and every
+guy past `squad_size`, so both figures are asked on both sides.
+`Guy::set_anim`'s early return for a walking guy is `des != pos`, and the
+figure's position at the end of 6570 is `(34442, 37613)` on both sides —
+which is exactly what `follower_des` gives for the leader's point and
+facing, so it was standing on its destination and had no reason to return.
+Every hypothesis that survived an hour — a suspended `openlist`, a
+different blocked unit, a category that was not the walk — was refuted by
+something already on disk. What the dump did not carry was the figure's own
+`des`: `GUYS=2`, which every capture since run10 has used, prints nine
+lines and none of them is it.
+
+**The capture, and the shape it added.** `GuyData::log_data@005de6c0`
+switches the log's detail four times, and the fourth block is the whole
+record — `des_x`, `des_y`, `des_angle`, the clock, `stopped`, `guy_num`,
+`gpiece`, `track_dx`, `track_dy`. So the question needed **`GUYS=4`**, not
+`DUMP_ALL`: run67 is run54's game with the cheap per-frame window narrowed
+to `[6545, 6605)` and that one category raised, and it cost **four minutes
+and 43 MB** for sixty blocks — against run65's thirty-seven minutes and
+1.19 GB for eighteen. `rngcmp.py` against run54: 6,621 frames, zero
+differing, the seventh in a row.
+
+That is a third arm on run60's rule, and it is the cheapest of the three:
+narrow the *window* when the question is a whole record; cheapen the
+*block* when it is a field over time; **raise one category's detail when it
+is one record's own fields.** `grep -n '0x28))(' ` over a record's
+`log_data` is how to find out whether the arm is available.
+
+**What it settled: one loop, three findings.** `Guy::set_angle@005d9010`
+and `Guy::set_new_location@005d86f0` end in the same crew loop, and its
+`track != 0` test gates only the rotation — `des_angle` and the base `des`
+are written for every figure past `squad_size`.
+
+- **`Unit::set_angle` writes it, from the heading.** `move_step` opens with
+  `set_angle(this, find_angle(…), …, 0)`, whose tail is
+  `Guy::set_angle(guy 0, heading, 0)` — so on every frame the bearing moves
+  at all, a figure that walked exactly onto its destination last frame is
+  off it again *before* the collision block. One frame's turn here is
+  720,896, which moves a `(-48, -192)` track one unit on each axis, and the
+  early return then takes it. `docs/MOVEMENT.md` had this as the third row
+  of its writer table with "Not modelled" beside it since the table was
+  written; it is not a residue, it is the row a collision reads.
+- **The cell-centre snap teleports the crew.**
+  `Unit::set_new_location(·, ·, 1, 0)` — `resolve_unit_collision`'s — hands
+  its `param_3` on as `Guy::set_new_location(guy 0, pos, 1)`, and the crew
+  loop finishes each figure with `set_angle(crew, des_angle, 1)` and
+  `set_new_location(crew, des, 1)`. The figure is *put* on its rotated
+  offset with the leader's angle. Block 6572 is the record, to the digit.
+- **The walk slot is the asked guy's own average speed.** `set_anim`'s walk
+  arm divides `this->field_0x84` — not guy 0's — by `moves ·
+  UNIT_MOVE_SPEED`, and `Guy::move`'s tracked branch pays a figure
+  `(get_speed · 11) / 8` a frame to keep station. Eleven eighths is above
+  the eleven tenths that jogs, so a tracked crew figure plays `CHAR_JOG`
+  beside a walking leader: `cur_anim 9` against 8 on all sixty blocks. Not
+  cosmetic — `Guy::move`'s arrival arm tests the **slot**, so reading guy
+  0's cost a draw on every arrival a crew figure made.
+
+**What is pinned.** `run67_s_window_is_every_figure_s_whole_record`:
+**13,545 fields** over 61 blocks and 169 crew rows, zero disagreements —
+position, angle, destination, destination angle, slot, clock, end time,
+last time, piece, `stopped`, `guy_num` and both track components, for every
+figure of every unit as far as the word and for `1/19` throughout. The
+parser gained `des`, `des_angle` and `track` to carry it. Two fallbacks in
+the harness are findings of their own: guy 0's `des_angle` is the
+**heading** and a *trackless* crew figure's is guy 0's **facing**, because
+`Unit::set_angle`'s write is overwritten by both of the other two.
+
+**And a tool the dump had been hiding half of.** `tools/gamelog/track.py`
+kept only the first of a repeated key, so a two-figure unit's crew was
+invisible to it — `guy.x` was always guy 0's. Repeats now get `key#1`,
+`key#2`, and the crew figure is readable at all.
+
+**And the widening found a fourth finding on its first run**, which is the
+rule working. Raising the floor to 6574 brought three more frames of every
+unit into the comparison, and the *second* Merchant's crew figure was 696
+units from where the original has it — a distance no rotation of a
+`(-48, -192)` track can produce. `come_out@00617c10` places its squad with
+`set_new_location(·, ·, 1, 1)`; this crate wrote `u.pos` and a fresh
+`Movement` by hand and left `guys[].follow` alone, so a **trained** figure
+kept the seat `Unit::init` gave it at the trainer's own centre and stood
+there for life. Every unit a dump handed us was seated correctly, and every
+unit trained mid-game was not — which is why nothing before a capture that
+printed `des_x` could see it.
+
+**What 6574 leaves.** Two draws in one frame, and one of them is already
+booked. The extra `Guy::do_turn+0x4a < Unit::move_step+0x389` is item 186:
+`1/20` stands idle through 6574 in the original — `cur_anim 0`,
+`cur_time 3/60`, `stopped 1` — and takes its first step on 6575, where this
+crate slogs. run67 excepts that one unit by name, so the exception is the
+item. The other half is item 187: five gaia bird wing-beat coins against
+the original's one, and two against three on 6575.

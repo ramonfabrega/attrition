@@ -503,6 +503,22 @@ pub struct Guy {
     pub stopped: Option<i64>,
     /// `GuyData::guy_num`: the member's index in its unit.
     pub guy_num: Option<i64>,
+    /// `GuyData::des_x` / `des_y` (`+0x5c` / `+0x60`) — **where this
+    /// figure is told to be**, which for a tracked crew figure is its
+    /// leader's point rotated by its track offset and rewritten several
+    /// times a frame (`docs/MOVEMENT.md`, "Who writes it, and when").
+    /// `Guy::set_anim`'s walking-guy early return is `des != pos`, so
+    /// this is the field that decides whether an idle request on a
+    /// walking figure costs a draw.
+    pub des: Option<Pos>,
+    /// `GuyData::des_angle` (`+0x64`) — the angle the same writers hand
+    /// it, and what `Guy::move`'s arrival arm tests the facing against.
+    pub des_angle: Option<i64>,
+    /// `GuyData::track_dx` / `track_dy` (`+0x54` / `+0x58`), the art's
+    /// ground-track offset: non-zero is exactly what gives a crew figure
+    /// a body of its own (`docs/MOVEMENT.md`, "Where the track offset
+    /// comes from").
+    pub track: Option<(i64, i64)>,
 }
 
 impl Guy {
@@ -1614,6 +1630,17 @@ fn unit_of(b: &Block<'_>) -> Option<UnitDump> {
             guy_flags: g.int("guy_flags"),
             stopped: g.int("stopped"),
             guy_num: g.int("guy_num"),
+            // `des_x`/`des_y` carry no `z`, so the third slot is the
+            // figure's own — a `Pos` here is a point, not a placement.
+            des: match (g.int("des_x"), g.int("des_y")) {
+                (Some(x), Some(y)) => Some(Pos { x, y, z: 0 }),
+                _ => None,
+            },
+            des_angle: g.int("des_angle"),
+            track: match (g.int("track_dx"), g.int("track_dy")) {
+                (Some(x), Some(y)) => Some((x, y)),
+                _ => None,
+            },
         })
         .collect();
     // `myhits` and `damage` sit on the `OBJECT` level, one in from

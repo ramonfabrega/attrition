@@ -657,7 +657,15 @@ case either writer is reached for.
 | --- | --- | --- | --- |
 | `Guy::set_new_location@005d86f0` | `Guy::move`'s guy-0 snap | guy 0's **new** position | guy 0's `angle` (the facing) |
 | `Guy::set_angle@005d9010` | `Guy::do_turn`, and so from every `turn_towards` | guy 0's current position | the angle just turned to |
-| `Guy::set_angle@005d9010` | `Unit::set_angle@00605400` | guy 0's current position | the **heading** |
+| `Guy::set_angle@005d9010` | `Unit::set_angle@00605400`, at the **top** of every `move_step` | guy 0's current position | the **heading** |
+| `Guy::set_new_location@005d86f0`, with the **snap flag** | `Unit::set_new_location(·, ·, 1, ·)` — `Unit::init`'s seating and `resolve_unit_collision`'s cell-centre snap | the point being snapped to | the facing — and the crew is *put* there |
+
+The loop is the same eight lines in both functions, and the `track != 0` test
+inside it gates only the **rotation**: `des_angle` and the base `des` are
+written for every figure past `squad_size`, tracked or not. So a trackless
+crew figure carries guy 0's own point and guy 0's facing, and guy 0 itself
+carries the heading — which is what `docs/MOVEMENT.md`'s "Two angles" calls
+"the same value again".
 
 The last writer before the crew's own `Guy::move` is the one that counts, and
 `Unit::process` runs `Guy::process` for the squad first and the crew after
@@ -676,9 +684,31 @@ That third row is the whole of item 128. Guy 0's position is the unit's own in
 both live cases, so `crates/sim` writes it as one expression gated on
 `!was_at_des || !facing_settled`.
 
-`Unit::set_angle`'s row is the residue: it rewrites the crew's point with the
-*heading* rather than the facing, and on the frames that matter one of the
-other two overwrites it. Not modelled; see "What is not established".
+~~`Unit::set_angle`'s row is the residue: it rewrites the crew's point with
+the *heading* rather than the facing, and on the frames that matter one of
+the other two overwrites it. Not modelled.~~ **Modelled 2026-09-02, and it
+was not a residue** — it is the row a collision reads. `move_step` calls
+`Unit::set_angle` at its **top**, before the collision block, so on every
+frame the bearing moves at all, a crew figure that walked exactly onto its
+destination last frame is off it again by the time the blocked stand asks it
+to idle. `Guy::set_anim`'s walking-guy early return (`des != pos`,
+`docs/ANIM.md` §4 step 1) then takes it and it does not roll. East Indies
+6571 is the measurement: 720,896 of a turn — one frame's worth of bearing —
+moves a `(-48, -192)` track by one unit on each axis, and the merchant's
+crew figure spent a draw here that the original does not.
+
+**And the snap teleports the crew.** `Unit::set_new_location`'s `param_3`
+does not stop at guy 0: it is handed on as `Guy::set_new_location(guy 0, pos,
+1)`, whose crew loop finishes each figure with `set_angle(crew, des_angle,
+1)` and `set_new_location(crew, des, 1)` — the facing written outright and
+the body placed on the offset, rather than left to walk after the leader.
+run67's block 6572 is the record: the merchant is snapped to its cell centre
+and its figure is on (34464, 37595), the rotation of its track about that
+centre, with `angle` equal to the driver's to the digit.
+
+Both are `Sim::crew_des`, whose `snap` argument is the callers' `param_3`,
+and both are pinned by `run67_s_window_is_every_figure_s_whole_record` —
+13,545 fields, every `GuyData` the dump prints, over sixty frames.
 
 ### A crew guy's turn rate is a quarter turn, flat
 
@@ -736,6 +766,18 @@ order's angle.
 tile, and **flag 1, so the group cap never applies to the body** — plus nine
 when the current order's vslot `0x2c` is set. `crates/sim` feeds the body the
 same speed input as the unit; the `+9` and the cap difference are not modelled.
+
+**And the crew jogs.** `Guy::move`'s tracked branch pays a figure
+`(get_speed * 11) / 8` a frame — the sign-corrected `>> 3` at `005d9600` —
+so a figure keeping station behind a leader that walks at its base speed
+averages eleven eighths of it. `Guy::set_anim`'s walk arm divides **the
+asked guy's own** `avg_speed` (`this->field_0x84` at `005db438`, not guy
+0's) by `moves * UNIT_MOVE_SPEED` and jogs above eleven tenths, so a tracked
+crew figure plays `CHAR_JOG` where its own leader plays `CHAR_WALK`.
+run67's merchant is `cur_anim 9` beside its driver's 8 on every block of the
+window. It is not cosmetic: `Guy::move`'s arrival arm tests the **slot**
+(`cur_anim == CHAR_WALK`, `docs/ANIM.md` §4.6), so a figure read as walking
+spends an idle roll on every arrival that a jogging one does not.
 
 ## Where movement sits in the frame
 

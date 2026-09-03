@@ -1228,11 +1228,27 @@ impl Sim {
     /// `do_gather`, `fight`, `come_out`, …) are turns this simulation does
     /// not yet make, and each is a place a group's flag would move that
     /// this one leaves still.
+    ///
+    /// **And the tail of it is `Guy::set_angle(guy 0, angle, 0)`**, whose
+    /// crew loop rewrites every tracked figure's `des_angle` and `des`
+    /// from guy 0's own point and *this* angle — the **heading**, which is
+    /// the bearing `find_angle` has just returned and not the facing the
+    /// step is taken along ([`Sim::crew_des`],
+    /// `docs/MOVEMENT.md`, "Who writes it, and when", third row). It
+    /// fires at the **top** of `move_step`, ahead of the collision block,
+    /// so a crew figure that walked exactly onto its destination last
+    /// frame is one unit off it again before the blocked stand's
+    /// `set_anim` asks: `Guy::set_anim`'s walking-guy early return then
+    /// takes it, and it does not roll. That was East Indies 6571 — the
+    /// crew's second `Unit::move_step+0x823` draw, and the difference is
+    /// 720,896 of a turn, one unit on each axis of a (−48, −192) track.
     pub fn unit_set_angle(&mut self, u: usize, angle: Angle) {
         let turned = reversing(Angle(
             angle.0.wrapping_sub(self.units[u].movement.heading.0),
         ));
         self.units[u].movement.heading = angle;
+        let from = self.units[u].movement.body.pos;
+        self.crew_des(u, from, angle, false);
         if !turned {
             return;
         }

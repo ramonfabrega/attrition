@@ -349,6 +349,18 @@ impl Sim {
         }
         if move_guys {
             self.units[u].movement.body.pos = to;
+            // `Unit::set_new_location`'s `param_3` does not stop at guy 0.
+            // It is handed on as `Guy::set_new_location(guy 0, pos, 1)`,
+            // whose crew loop **puts** every tracked figure on its new
+            // offset and snaps its facing onto guy 0's — `set_angle(crew,
+            // des_angle, 1)` then `set_new_location(crew, des, 1)`. So a
+            // caravan that is teleported does not leave its crew behind to
+            // walk after it: run67's block 6572 has the merchant's figure
+            // on (34464, 37595), the rotation of its (−48, −192) track
+            // about the cell centre it was just snapped to, and its own
+            // angle equal to the leader's to the digit.
+            let facing = self.units[u].movement.facing;
+            self.crew_des(u, to, facing, true);
         }
         true
     }

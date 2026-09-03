@@ -3581,3 +3581,58 @@ fields).
   frame after the collision picked one, and the geometry of that one is
   what the fast path had to explain. A record's own field beat two hours
   of listing.
+
+## run67 — the whole `GuyData`, without `DUMP_ALL` (2026-09-02)
+
+**run54's game with the cheap window narrowed to `[6545, 6605)` and `GUYS`
+raised from 2 to 4.** East Indies, seed 12345, map style 18, the profile's
+lobby, no input:
+
+    DETAIL_END="MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=1" \
+    FRAME_WINDOW="6545 6605" SETTLE_MIN=20000000 POLL_MAX=60 \
+    zsh tools/gamelog/longtrace.sh 67 6620 islands-crewclocks 18
+
+**Four minutes and 43 MB**, 61 blocks. `rngcmp.py rontrace-run54.log
+rontrace-run67.log`: **6,621 frames, zero differing** — the seventh capture
+in a row for which a window costs the stream nothing.
+
+**The third capture shape, and it is a category rather than a window.** Every
+`[End Frame]` category carries its own detail, and `GuyData::log_data`
+(`005de6c0`) switches detail four times — the calls to the log's vslot
+`0x28`. `GUYS=2` is the nine lines every capture since run10 has taken;
+**`GUYS=4` is the whole record**: `des_x`, `des_y`, `des_angle`, `cur_time`,
+`end_time`, `last_time`, `cur_anim`, `stopped`, `guy_flags`, `guy_num`,
+`gpiece`, `track_dx` and `track_dy`. Until this run, a figure's clock had
+only ever been read inside a `DUMP_ALL` window — and `DUMP_ALL` is what
+run65 paid thirty-seven minutes and 1.19 GB for eighteen frames of. Sixty
+frames of the same fields cost four minutes here.
+
+So the rule now has three arms, not two: **narrow the window when the
+question is a whole record; cheapen the block when the question is a field
+over time; and raise one category's detail when the question is one
+record's own fields.** The third is far cheaper than the first, and
+`grep -n "0x28))(" ` over a record's `log_data` is how to find out whether
+it is available.
+
+**What it was booked for.** East Indies' word parted at 6571 on the merchant
+crew's second `Unit::move_step+0x823` draw, and nothing on disk carried a
+crew figure's `des` or its clock. The reading had run out: the geometry said
+the figure was standing on its destination and therefore had to roll, and
+the original did not.
+
+**What it settled** is three findings that are one mechanism — the crew loop
+`Guy::set_angle` and `Guy::set_new_location` share (`docs/MOVEMENT.md`, "Who
+writes it, and when"): `Unit::set_angle` rewrites the crew's `des` from the
+**heading** at the top of every `move_step`, which is what keeps a figure
+off its destination on the frame a bearing moves; the cell-centre snap
+*teleports* the crew rather than leaving it to walk; and the walk slot is
+resolved from the **asked guy's own** average speed, so a tracked figure
+jogs where its leader walks. Word 6571 → **6574**, and every `GuyData` field
+of every figure over sixty frames is now an assertion
+(`run67_s_window_is_every_figure_s_whole_record`, 13,545 fields).
+
+**One capture-design note.** `SETTLE_MIN=20000000` was chosen from run66's
+own numbers rather than copied: the start dump is 11 MB and a sixty-block
+window at `GUYS=4` was never going to be under 20. The poll settled four
+polls after the last frame, as designed. That is the second half of run66's
+lesson working.

@@ -487,7 +487,13 @@ In order, with the first that fires winning:
      `collide_here` says is clear. Push the last popped back.
    - **snap the unit onto its own 48-cell centre** — `set_new_location(ucell
      centre)`. This is the visible signature of the whole mechanic: a unit
-     that collides jumps to the middle of its cell.
+     that collides jumps to the middle of its cell. **And it takes its crew
+     with it**: the call is `set_new_location(·, ·, 1, 0)`, whose `param_3`
+     reaches `Guy::set_new_location(guy 0, pos, 1)` and, in that function's
+     crew loop, `set_angle(crew, des_angle, 1)` and `set_new_location(crew,
+     des, 1)` — every tracked figure is *put* on its rotated offset with
+     the leader's own angle rather than left to walk after it
+     (`docs/MOVEMENT.md`, "Who writes it, and when"; run67's block 6572).
    - `find_upath(anti = my action is ATTACK and its action is ATTACK)`
      (`docs/PATHFINDER.md` §3).
    - clear the order's `+0x10`;

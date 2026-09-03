@@ -513,7 +513,14 @@ unit on open ground reaches, in the order the function tests them:
    base (`avg_speed / (moves · UNIT_MOVE_SPEED)` below `0.6f` slogs, above
    `1.1f` jogs — a float in the original, cross-multiplied here; the
    lengths are equal on every piece observed so the boundary is
-   unobservable); an **owner-9** bird's is a coin instead (`% 100 > 49 →
+   unobservable). **It is the asked guy's own average** — `this->field_0x84`
+   at `005db438`, not guy 0's — and that is what makes a *tracked* crew
+   figure jog beside a walking leader: `Guy::move`'s tracked branch pays it
+   `(get_speed · 11) / 8` a frame to keep station, eleven eighths of the
+   leader's base (`docs/MOVEMENT.md`, "`off_x` and `off_y`"'s section, last
+   paragraph). run67's merchant crew is `cur_anim 9` against its driver's 8
+   on all sixty blocks, and the cost of reading guy 0's was a draw on every
+   arrival, because §4.6's arrival test is on the **slot**; an **owner-9** bird's is a coin instead (`% 100 > 49 →
    JOG`, `docs/SYNC.md` §3.9); then the carrying walks override, from
    `unit_masks & 0x78000000` rather than from what the caller named —
    `0x10000000` `WALK_TO_WOOD`, then `0x8000000` `WALK_WITH_WOOD`,

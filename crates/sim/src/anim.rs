@@ -953,7 +953,20 @@ impl Sim {
             }
         } else {
             let base = unit.ty.map_or(0, |t| self.unit_types[t].moves);
-            let avg = unit.movement.body.avg_speed;
+            // **The asked guy's own average**, `this->field_0x84` at
+            // `005db438` — not guy 0's. A tracked crew figure keeps its
+            // own `avg_speed`, and `Guy::move`'s tracked branch pays it
+            // `(get_speed · 11) / 8`, so a figure that keeps station
+            // behind a leader travelling at its base speed averages
+            // eleven eighths of it and **jogs where its leader walks**.
+            // run67's merchant crew is `cur_anim 9` on every frame of the
+            // window against its driver's 8, and the slot is what
+            // `Guy::move`'s arrival arm tests for (`== CHAR_WALK`, the
+            // slot and not the category), so reading guy 0's cost a draw
+            // on every arrival a crew figure made.
+            let avg = self.units[u].guys[g]
+                .follow
+                .map_or(unit.movement.body.avg_speed, |f| f.body.avg_speed);
             if base > 0 {
                 if avg * 10 < base * 6 {
                     v = SLOG;

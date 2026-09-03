@@ -9693,6 +9693,20 @@ mod tests {
             });
         for f in 0..last {
             built.tick();
+            // `RON_DEBUG_FOLD=<lo>-<hi>` prints [`Built::phase_fold`] over
+            // a window: the frame's draws attributed to the mark that was
+            // standing when each was spent. It answers a question the site
+            // list cannot — whether two draws at one site are two units or
+            // **one unit's two figures**, which is what East Indies 6571
+            // turned on. It folds by *site*, so the unit mark is lost
+            // wherever a site mark stands inside it (`docs/QUEUE.md` 187).
+            if let Ok(w) = std::env::var("RON_DEBUG_FOLD")
+                && let Some((lo, hi)) = w.split_once('-')
+                && let (Ok(lo), Ok(hi)) = (lo.trim().parse::<i64>(), hi.trim().parse::<i64>())
+                && (lo..=hi).contains(&f)
+            {
+                eprintln!("  fold {f}: {:?}", built.phase_fold());
+            }
             let Some((who, o, lo, hi)) = watch else {
                 continue;
             };
@@ -9734,10 +9748,11 @@ mod tests {
                 })
                 .collect();
             eprintln!(
-                "  f{f} {who}/{o} at ({}, {}) ang {} path {} top {:?} order {:?} {}",
+                "  f{f} {who}/{o} at ({}, {}) ang {} hdg {} path {} top {:?} order {:?} {}",
                 x.pos.x,
                 x.pos.y,
                 x.movement.facing.0,
+                x.movement.heading.0,
                 x.path.len(),
                 x.path.last().map(|p| (p.to.x, p.to.y, p.flags)),
                 x.orders.front().map(|ord| ord.index()),
@@ -10765,6 +10780,221 @@ mod tests {
         assert!(wrong.is_empty(), "run66's window parted: {wrong:?}");
     }
 
+    /// **run67 — every figure's whole record over the merchant's
+    /// collision** (2026-09-02, item 185).
+    ///
+    /// run54's game to 6,620 frames with the cheap per-frame dump narrowed
+    /// to `[6545, 6605)` and its `GUYS` detail raised from 2 to **4** —
+    /// 61 blocks, 43 MB, four minutes. `rngcmp.py rontrace-run54.log
+    /// rontrace-run67.log`: **6,621 frames, zero differing**, the seventh
+    /// capture in a row for which a window costs the stream nothing.
+    ///
+    /// **`GUYS=4` is the finding that booked it.** `GuyData::log_data`
+    /// switches detail four times (`005de6c0`, the calls to the log's
+    /// vslot `0x28`), and the fourth block is the whole of the record:
+    /// `des_x`, `des_y`, `des_angle`, `cur_time`, `end_time`, `last_time`,
+    /// `cur_anim`, `stopped`, `guy_flags`, `guy_num`, `gpiece`, `track_dx`
+    /// and `track_dy`. Nothing before this had read a crew figure's clock
+    /// outside a `DUMP_ALL` window, and `DUMP_ALL` is what run65 paid
+    /// thirty-seven minutes and 1.19 GB for eighteen frames of. A whole
+    /// record over sixty frames is a **category**, not a window — the
+    /// third shape, beside run60's narrow window and run66's cheap block.
+    ///
+    /// **What it settled**, and all three are one mechanism — the crew
+    /// loop that `Guy::set_angle` and `Guy::set_new_location` share:
+    ///
+    /// - **`Unit::set_angle` rewrites the crew's `des`**, from guy 0's own
+    ///   point and the **heading** `find_angle` has just returned. It is
+    ///   the third row of `docs/MOVEMENT.md`'s writer table and had stood
+    ///   "not modelled" since the table was written. It fires at the *top*
+    ///   of `move_step`, ahead of the collision block, so a figure that
+    ///   walked exactly onto its destination last frame is off it again
+    ///   before the blocked stand asks it to idle: 720,896 of a turn moves
+    ///   a (-48, -192) track by one unit on each axis, `Guy::set_anim`'s
+    ///   walking-guy early return takes it, and it does not roll.
+    /// - **The cell-centre snap teleports the crew.**
+    ///   `Unit::set_new_location`'s `param_3` is handed on as
+    ///   `Guy::set_new_location(guy 0, pos, 1)`, whose crew loop runs
+    ///   `set_angle(crew, des_angle, 1)` and `set_new_location(crew, des,
+    ///   1)` — the figure is *put* on its new offset with its leader's
+    ///   angle rather than left to walk after it. Block 6572 is the
+    ///   record: `1/19`'s figure on (34464, 37595) with `angle` equal to
+    ///   its driver's to the digit.
+    /// - **The walk slot is the asked guy's own average speed**
+    ///   (`005db438`, `this->field_0x84`). A tracked figure is paid
+    ///   `(get_speed * 11) / 8` a frame to keep station, so it averages
+    ///   eleven eighths of its leader's base and **jogs where its leader
+    ///   walks**: `cur_anim 9` against 8 on every block of this window.
+    ///   The slot, not the category, is what `Guy::move`'s arrival arm
+    ///   tests (`== CHAR_WALK`), so reading guy 0's cost a draw on every
+    ///   arrival a crew figure made.
+    ///
+    /// East Indies' long word **6571 -> 6574**.
+    #[test]
+    fn run67_s_window_is_every_figure_s_whole_record() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r67)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run67-islands-crewclocks.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run67 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+
+        let text67 = std::fs::read_to_string(&r67).unwrap();
+        let l67 = Log::parse(&text67);
+        let frames = l67.frame_states();
+        let window: Vec<i64> = frames.iter().map(|f| f.n).collect();
+        assert_eq!(
+            window,
+            (6545..6605).chain([6621]).collect::<Vec<i64>>(),
+            "run67's frame window, plus the block the quit writes"
+        );
+        let last = *window.last().expect("the window");
+
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // The window's own clocks are never installed: this is the check.
+        built.frame_guys.clear();
+        let mut compared = 0usize;
+        let mut crew_rows = 0usize;
+        let mut unmatched = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for f in 0..last {
+            built.tick();
+            let Some(fr) = frames.iter().find(|fr| fr.n == f + 1) else {
+                continue;
+            };
+            for them in &fr.units {
+                // Gaia's are re-seated from the dump every traced frame
+                // (`Sim::reseat_animal`), so their figures are not this
+                // crate's prediction; the players' are.
+                if !(0..8).contains(&them.who) {
+                    continue;
+                }
+                let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                    continue;
+                };
+                let Some(u) = built.sim.unit_by_o(who, o) else {
+                    unmatched += 1;
+                    continue;
+                };
+                // Past the word the stream has parted and the units
+                // downstream of it are nobody's; `1/19` is this crate's
+                // prediction for the whole window, which is what the
+                // capture was taken for.
+                let merchant = (them.who, them.o) == (1, 19);
+                // **The second Merchant leaves its Market a frame early**
+                // — `docs/QUEUE.md` item 186, and it is the frame the word
+                // parts on. Born 6571, `1/20` stands idle here through
+                // 6574 (`cur_anim 0`, `cur_time 3/60`, `stopped 1`) and
+                // takes its first step on 6575; this crate has it
+                // slogging on 6574, which is the frame's own extra
+                // `Guy::do_turn < Unit::move_step+0x389`. Every other
+                // unit is compared as far as the word, and `1/19`
+                // throughout.
+                let early = (them.who, them.o) == (1, 20) && f + 1 >= LONG_WORD_EAST_INDIES;
+                if early || (!merchant && f + 1 > LONG_WORD_EAST_INDIES) {
+                    continue;
+                }
+                for (n, g) in them.guys.iter().enumerate() {
+                    let Some(ours) = built.sim.units[u].guys.get(n).copied() else {
+                        continue;
+                    };
+                    let un = &built.sim.units[u];
+                    let (body, facing, des, des_angle) = match ours.follow {
+                        Some(b) => (b.body.pos, b.facing, b.des, b.des_angle),
+                        // A **trackless** crew figure has no body of its
+                        // own, and this crate keeps none — but the original
+                        // still writes it a `des` and a `des_angle`, because
+                        // the crew loop's `track != 0` test gates only the
+                        // rotation. Its point is guy 0's own, and its angle
+                        // is guy 0's **facing**: the last of the three
+                        // writers to run on a walking frame is
+                        // `Guy::set_new_location`, which passes
+                        // `guy0->angle`, and `Guy::do_turn`'s recursion
+                        // passes the same. `Unit::set_angle`'s heading is
+                        // overwritten by both.
+                        None if n == 0 => (
+                            un.movement.body.pos,
+                            un.movement.facing,
+                            un.pos,
+                            // Guy 0's own `des_angle` is the **heading**:
+                            // `Unit::set_angle` writes `UnitData::angle`
+                            // and hands the same value straight to
+                            // `Guy::set_angle(guy 0, …)`, which is
+                            // `docs/MOVEMENT.md`'s "the same value again".
+                            un.movement.heading,
+                        ),
+                        None => (
+                            un.movement.body.pos,
+                            un.movement.facing,
+                            un.pos,
+                            un.movement.facing,
+                        ),
+                    };
+                    if n >= sim::anim::SQUAD_SIZE {
+                        crew_rows += 1;
+                    }
+                    let track = ours.follow.map_or((0, 0), |b| b.track);
+                    let rows: [(&str, i64, Option<i64>); 15] = [
+                        ("x", i64::from(body.x), g.pos.map(|p| p.x)),
+                        ("y", i64::from(body.y), g.pos.map(|p| p.y)),
+                        ("angle", i64::from(facing.0), g.angle),
+                        ("des_x", i64::from(des.x), g.des.map(|p| p.x)),
+                        ("des_y", i64::from(des.y), g.des.map(|p| p.y)),
+                        ("des_angle", i64::from(des_angle.0), g.des_angle),
+                        ("cur_anim", i64::from(ours.anim), g.cur_anim),
+                        ("cur_time", i64::from(ours.cur_time), g.cur_time),
+                        ("end_time", i64::from(ours.end_time), g.end_time),
+                        ("last_time", i64::from(ours.last_time), g.last_time),
+                        ("gpiece", i64::from(ours.gpiece), g.gpiece),
+                        ("stopped", i64::from(ours.stopped), g.stopped),
+                        ("guy_num", i64::try_from(n).unwrap_or(-1), g.guy_num),
+                        ("track_dx", i64::from(track.0), g.track.map(|t| t.0)),
+                        ("track_dy", i64::from(track.1), g.track.map(|t| t.1)),
+                    ];
+                    for (name, ours, theirs) in rows {
+                        let Some(theirs) = theirs else { continue };
+                        compared += 1;
+                        if ours != theirs && wrong.len() < 16 {
+                            wrong.push(format!(
+                                "frame {}: {}/{} guy {n} {name} ours {ours} theirs {theirs}",
+                                f + 1,
+                                them.who,
+                                them.o
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run67 figures: {compared} fields over {} blocks, {crew_rows} crew rows, \
+             {unmatched} of the dump's units this crate has no unit for",
+            window.len()
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 10_000 && crew_rows >= 60,
+            "the window's own rows: {compared} fields and {crew_rows} crew figures — \
+             a capture without the `GUYS=4` block is the wrong file"
+        );
+        assert!(wrong.is_empty(), "run67's window parted: {wrong:?}");
+    }
+
     /// East Indies' word on the **long** capture — the number that took
     /// over as the headline when run39's own length stopped bounding it
     /// (`docs/DECISIONS.md` entry 29's first counter). It is not in
@@ -11422,6 +11652,27 @@ mod tests {
     /// ahead of the original for the rest of its life
     /// (`docs/ORDERS.md` §10, `docs/TRANSPORT.md` §6.1).
     ///
+    /// It was **6571** for one item, and the frame was one crew figure's.
+    /// The AI Merchant `1/19` collides on 6571, and `Unit::set_anim`'s
+    /// blocked stand (`move_step+0x823`) asks both its figures to idle:
+    /// the original spends one draw and this crate spent two. The figure
+    /// was standing exactly on its destination on both sides, so the
+    /// walking-guy early return had no reason to fire — until run67's
+    /// `GUYS=4` window printed `des_x`/`des_y` and the answer turned out
+    /// to be a writer nobody had modelled. `move_step` opens with
+    /// `Unit::set_angle(heading)`, whose `Guy::set_angle` tail rewrites
+    /// every crew figure's `des` from guy 0's point and *that* angle —
+    /// the bearing, not the facing — so one frame's worth of turn,
+    /// 720,896, moves a `(-48, -192)` track one unit on each axis and the
+    /// figure is off its destination again before the stand asks.
+    /// Two siblings came with it: the cell-centre snap **teleports** the
+    /// crew (`Unit::set_new_location`'s `param_3` reaches
+    /// `set_new_location(crew, des, 1)`), and the walk slot is resolved
+    /// from the **asked guy's own** average speed, so a figure paid
+    /// `(speed * 11) / 8` to keep station jogs where its leader walks
+    /// (`docs/MOVEMENT.md`, "Who writes it, and when";
+    /// `run67_s_window_is_every_figure_s_whole_record`, 13,545 fields).
+    ///
     /// It was **5819** before that, and 5669 was a **whale**. The AI's
     /// second Fisherman settles on one on frame 5551; `Leader::calc_gather`
     /// step 6 walks the idle fishermen, lights the rare's bit in
@@ -11445,7 +11696,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6571;
+    const LONG_WORD_EAST_INDIES: i64 = 6574;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the
