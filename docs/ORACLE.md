@@ -3847,6 +3847,74 @@ The three errors are distinguishable and each names its own toggle:
 | `AppleEvent timed out. (-1712)`, 0 % CPU | Automation | Privacy & Security → Automation → System Events |
 | `not allowed assistive access. (-1728)` | Accessibility | Privacy & Security → Accessibility |
 
-All three are granted to **`ClaudeCode.app`**, not to the terminal, and an
+~~All three are granted to **`ClaudeCode.app`**, not to the terminal, and an
 in-place update invalidates them — if the bundle is already listed, toggle
-it off and on. `cliclick p` answering a position proves none of them.
+it off and on.~~ **Both halves of that are wrong**, and the second cost an
+afternoon on 2026-09-03 before `tccd`'s own log was read; the truth and the
+fix are below. `cliclick p` answering a position still proves none of them.
+
+### The grant is keyed to a path with a version number in it (2026-09-03)
+
+`tccd` names the process it blames, and it is not the bundle:
+
+```
+AUTHREQ_ATTRIBUTION: responsible={identifier=com.anthropic.claude-code,
+  responsible_path=/Users/…/.local/share/claude/versions/2.1.259,
+  binary_path=/Users/…/.local/share/claude/versions/2.1.259}
+AUTHREQ_SUBJECT:     subject=/Users/…/.local/share/claude/versions/2.1.259
+```
+
+The responsible process is the **bare versioned binary**, not
+`ClaudeCode.app`. It has no bundle, so TCC has nothing to key on but the
+absolute path — and that path carries the version number. Two consequences,
+both of which look like something else:
+
+- **Every update revokes all three grants**, because every update writes a
+  new path. This is not a stale checkbox and re-ticking does not fix it.
+- **Adding `ClaudeCode.app` in System Settings does nothing at all**, because
+  macOS never evaluates that path. The row appears, stays ticked, and is
+  never consulted. Only a live prompt — or `+` pointed at
+  `versions/<VERSION>` itself via ⇧⌘G — records a row that matches.
+
+Read the verdict rather than guessing at it. `TCC.db` needs Full Disk Access
+and its mtime is not evidence (a *denial* updates it too), but the log is
+open:
+
+```
+/usr/bin/log show --last 3m --predicate 'subsystem == "com.apple.TCC"' --style compact
+```
+
+— the absolute path matters, a `log` shell function shadows it here — then
+filter for `kTCCServiceAccessibility` or `kTCCServicePostEvent` and read
+`AUTHREQ_SUBJECT`. It names the exact path being judged.
+
+### `RonDriver.app`, which ends the tax (2026-09-03)
+
+`tools/gamelog/rondriver/` builds `~/bin/RonDriver.app`: a fixed-path bundle
+whose only job is to be the responsible process for a capture.
+`tools/gamelog/viadriver.sh` runs one through it —
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 197
+```
+
+— and `open -a` is what makes it work: LaunchServices launches the bundle,
+so the bundle, rather than whatever spawned the script, is responsible, and
+every child inherits that. The launcher **spawns and waits**; an `exec`
+would replace its image with `/bin/zsh` and hand the attribution back to the
+interpreter, which is the whole bug it exists to escape.
+
+Under it the subject is an identifier rather than a path, which is the
+stable thing the native install never had:
+
+```
+responsible = {identifier=com.ramonfabrega.rondriver,
+  responsible_path=/Users/…/bin/RonDriver.app/Contents/MacOS/RonDriver}
+AUTHREQ_SUBJECT: subject=com.ramonfabrega.rondriver
+```
+
+Grant that bundle Accessibility once (`+`, ⇧⌘G, `~/bin/RonDriver.app`) and
+approve the Screen Recording and Automation prompts on the first capture.
+Nothing in the path is version-numbered, so the three survive every Claude
+Code update. **Do not rebuild it casually** — a new cdhash costs a re-grant,
+which is the tax being abolished; `build.sh` refuses without `--force`.
