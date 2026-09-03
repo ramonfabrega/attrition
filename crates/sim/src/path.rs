@@ -330,7 +330,7 @@ impl Sim {
             return v;
         }
         let v = self.invalid_loc(u, p.tile(), false, true, false, true, false) == loc::VALID
-            && !self.detect_quick(u, p);
+            && !self.detect_quick(u, p, true);
         memo.insert(metric, v);
         v
     }

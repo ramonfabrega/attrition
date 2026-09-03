@@ -3531,3 +3531,53 @@ block reads `angle` three times — the unit's, the `MOVEORDER`'s and every
 **indentation**, and a probe that ignores it will silently answer with the
 wrong field; the first reading of this capture did, and said the original
 snapped its facing in one frame.
+
+## run66 — the merchant's whole walk, and the cheap window's day (2026-09-02)
+
+**run54's game with the cheap per-frame dump narrowed to `[6340, 6600)`.**
+East Indies, seed 12345, map style 18, the profile's lobby, no input:
+
+    DETAIL_END="MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1" \
+    FRAME_WINDOW="6340 6600" SETTLE_MIN=250000000 POLL_MAX=200 \
+    zsh tools/gamelog/longtrace.sh 66 6620 islands-merchantwalk 18
+
+**Four minutes and 89 MB**, 261 blocks. `rngcmp.py rontrace-run54.log
+rontrace-run66.log`: **6,621 frames, zero differing** — the sixth capture in
+a row for which a window costs the stream nothing.
+
+**Compare the shapes.** run65 asked for eighteen frames at `DUMP_ALL` and
+paid 37 minutes and 1.19 GB for them. run66 asked for **260** frames at
+run39's `[End Frame]` detail and paid four minutes and 89 MB. The rule that
+falls out is run60's, one level up: **narrow the window when the question is
+a whole record, cheapen the block when the question is a field over time** —
+and a *walk* is a field over time. Positions, angles, path stacks, order
+stacks and both guys of every unit are all in the cheap block; only the
+animation clocks are not.
+
+**What it was booked for.** East Indies' word parted at 6570 on a collision
+the original does not have, and nothing on disk covered the frame — run64
+and run65's windows both end at 6221. The geometry was a knife edge (the
+merchant clears the citizen by 160 units against a 144-unit block sum), so
+reading was never going to settle it.
+
+**What it settled** is `docs/COLLISION.md` §4.2's **fast path**: with
+`nocoll` clear and a proposal exactly one cell away on one axis,
+`CollCheck::collide_here` sweeps the leading edge alone, which is a strict
+subset of the disc and therefore stops at a *different* first hit cell — and
+the corner rule is decided on the cell. Word 6570 → **6571**, and the
+merchant's whole walk, its collision, its centre snap and its recovery are
+now an assertion (`run66_s_window_is_the_original_s_unit_for_unit`, 12,094
+fields).
+
+**Two capture-design notes.**
+
+- **`SETTLE_MIN` is a ceiling as well as a floor.** run59's 250 MB was
+  copied without thinking; run66's whole log is 89 MB, so the poll could
+  never call it settled and would have run its full 200 polls — 66 minutes
+  — after a four-minute capture. Set it above the *start dump* and below
+  the finished log, not to the last run's number.
+- **The dump's own `collide_o` is what named the cell.** The reading had
+  three candidate colliders and no way to choose; `collide_o 11` on the
+  frame after the collision picked one, and the geometry of that one is
+  what the fast path had to explain. A record's own field beat two hours
+  of listing.

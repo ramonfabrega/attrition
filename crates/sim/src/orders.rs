@@ -2321,7 +2321,7 @@ impl Sim {
         if let Some(other) = hit {
             let (dx, dy) = (mo.waypoint.x - from.x, mo.waypoint.y - from.y);
             let through = top.is_some_and(|t| t.flags & path_flag::SIDESTEP != 0)
-                && !self.detect_quick(u, top.expect("tested").to)
+                && !self.detect_quick(u, top.expect("tested").to, false)
                 && dx.abs() < 0x61
                 && dy.abs() < 0x61;
             if through {

@@ -1258,7 +1258,7 @@ impl Sim {
             // where the original's has not moved a unit in 120 frames.
             // `boats` is asked for, but a herd animal is neither
             // sea-domain nor a hero nor supply, so the arm never fires.
-            if self.world.accepts(dest) && !self.detect_quick(u, dest) {
+            if self.world.accepts(dest) && !self.detect_quick(u, dest, false) {
                 self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::New, false);
             }
         } else {

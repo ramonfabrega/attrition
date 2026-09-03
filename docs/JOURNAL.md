@@ -13816,3 +13816,93 @@ gather order 180 units away and this crate's exemption ladder refusing to
 let the two past. The original enters `PathFinder::find_wpath` for the
 first time on 6602, so its merchant meets something of its own thirty
 frames later; whether it is that citizen is what the next item asks.
+
+---
+
+## 2026-09-02 — the merchant walks past, and the probe was never the disc (item 183, Opus)
+
+**East Indies 6570 → 6571**, Great Lakes unchanged at 2419. A one-frame
+move for a finding that is larger than the number: the merchant's *whole*
+walk — birth, turn, 214 frames, the collision that stops it, the centre
+snap and the recovery — is now the original's position for position, and
+the probe every unit in the game steps through was being asked the wrong
+question.
+
+**The word was a collision the original does not have.** On sim-frame 6570
+the AI Merchant `1/19`, two hundred frames into its walk to a `CITRUS`,
+stood blocked twice where the original walked on. It is the first
+`BLOCK_RADIUS 2` unit any capture has ever collided, and the geometry was a
+knife edge: the merchant passes the two standing citizens with 160 units of
+clearance against a 144-unit block sum, so cell quantisation decides it and
+a few units either way flips the answer. Reading was never going to settle
+that, and nothing on disk covered the frame — run64's and run65's windows
+both end at 6221.
+
+**run66 is the capture, and its shape is the lesson.** 260 blocks of
+run54's game over `[6340, 6600)` at run39's `[End Frame]` detail: **four
+minutes and 89 MB**, against run65's eighteen `DUMP_ALL` frames for
+thirty-seven minutes and 1.19 GB. `rngcmp.py` says 6,621 frames, zero
+differing — the sixth in a row for which a window costs the stream nothing.
+The rule that falls out is run60's one level up: **narrow the window when
+the question is a whole record, cheapen the block when the question is a
+field over time** — and a walk is a field over time. Positions, angles,
+path stacks, order stacks and *both guys* of every unit are all in the
+cheap block.
+
+The capture killed three hypotheses in one reading. The citizens are where
+this crate has them, on every frame. The merchant is where this crate has
+it, on every frame — 197 of them, exact — so it was never a step gained or
+a bearing lost. And the collision *does* happen: one frame later, at 6571,
+against a **different citizen**, `collide_o 11` where this crate had named
+`1/2`.
+
+**That field is what named the mechanism.** `CollCheck::collide_here` has a
+second sweep ahead of the disc, and `docs/COLLISION.md` §4.2 had it in one
+sentence as a fast path. It is not an optimisation. With `nocoll` clear and
+a proposal exactly one cell away on one axis it tests the **leading edge** —
+the row or column the block is entering — and nothing else: a strict subset
+of the parity-filtered disc, so it stops at a *different* first hit cell.
+And §4.3's corner rule is decided **on the cell**, so the two probes
+disagree about whether there is a collision at all, not merely about which
+unit is named.
+
+Sim-frame 6570: the merchant's cell is `(721, 786)`, its proposal
+`(721, 785)`, so the sweep is the row `y = 783` from `x = 719`. The first
+cell is `1/11`'s north-east corner, and the merchant's own north-west
+corner meets it — `will_be_corner 1` against `is_corner 5`, a difference of
+exactly 4 — so the two slip past and the step is taken. The whole disc's
+first parity cell is `(721, 783)`, two to the right, inside `1/2`'s block
+and no corner of the merchant's at all: a hard collision the original never
+had. Sim-frame 6571: the proposal is one cell **west**, the sweep is the
+column `x = 718`, `1/11` sits square on it rather than cornered, and the
+original collides. The dump's `collide 1`, `collide_o 11`, `collide_who 1`,
+`collide_guy 0`, `collide_frame 6571` all follow.
+
+**`nocoll` is the argument that selects it**, and it is not uniform:
+0 at every `detect_unit_collision` call site and at
+`Objects::find_collision`'s, **1** at `PathFinder::valid_ucoord`'s and at
+`resolve_unit_collision`'s own direct probe. So a *step* takes the edge and
+a *path search* takes the disc, and threading that flag through this
+crate's four call sites was the whole change.
+
+**What is pinned.** `run66_s_window_is_the_original_s_unit_for_unit` —
+12,094 position fields, zero disagreements: every unit on every block as
+far as the word, and `1/19` alone for all 261 blocks, so its walk, its
+collision, its snap and its recovery are asserted *past* the frame the
+stream parts on. `docs/COLLISION.md` §9's `coll_size ≥ 2` row is struck.
+
+**Two things the capture leaves.** The first is the new word: on 6571
+`move_step`'s `set_anim(CHAR_DEFAULT, 0, 1)` rolls **once** in the original
+and twice here, and the original's crew figure then *walks* — `1/19`'s `g1`
+goes `(34442, 37613)` → `(34464, 37595)` on the frame the resolve snaps its
+leader — where this crate's stands still and moves a frame late. Both
+halves are one question about `Guy::set_anim`'s walking-guy early return and
+who rewrites `Follow::des`, and run66 has both guys' positions on all 261
+blocks to check it against. The second is the **second** Merchant, born
+6571, which leaves its Market a frame early here (blocks 6578 onward).
+
+**And a capture-design note worth the ink.** `SETTLE_MIN` was copied from
+run59's 250 MB without thinking; run66's whole log is 89 MB, so the poll
+could never call it settled and would have sat out its full 200 polls — 66
+minutes — after a four-minute capture. It is a ceiling as well as a floor:
+above the start dump, below the finished log.

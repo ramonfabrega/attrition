@@ -9710,8 +9710,25 @@ mod tests {
                 .guys
                 .iter()
                 .map(|g| {
+                    // The **body** and its destination beside the clock:
+                    // `Guy::set_anim`'s idle request returns without a
+                    // roll while a walking guy's body has not arrived
+                    // (`docs/ANIM.md` §4 step 1), so a draw this crate
+                    // spends and the original does not is read here or
+                    // nowhere.
+                    let (bx, by, dx, dy) = g.follow.map_or_else(
+                        || {
+                            (
+                                x.movement.body.pos.x,
+                                x.movement.body.pos.y,
+                                x.pos.x,
+                                x.pos.y,
+                            )
+                        },
+                        |f| (f.body.pos.x, f.body.pos.y, f.des.x, f.des.y),
+                    );
                     format!(
-                        "[a{} t{}/{} l{}]",
+                        "[a{} t{}/{} l{} b({bx},{by})->({dx},{dy})]",
                         g.anim, g.cur_time, g.end_time, g.last_time
                     )
                 })
@@ -10603,6 +10620,151 @@ mod tests {
         assert!(wrong.is_empty(), "run65's window parted: {wrong:?}");
     }
 
+    /// **run66 — the merchant's whole walk, every unit, every frame**
+    /// (2026-09-02, item 183).
+    ///
+    /// run54's game to 6,620 frames with the **cheap** per-frame dump
+    /// narrowed to `[6340, 6600)` — 260 blocks at run39's `[End Frame]`
+    /// detail, 89 MB, four minutes, against run59's thirteen for a window
+    /// a tenth the size. `rngcmp.py rontrace-run54.log rontrace-run66.log`:
+    /// **6,621 frames, zero differing**, so it is run54's game and the
+    /// sixth capture in a row for which a window costs the stream nothing.
+    ///
+    /// **What it was booked for.** East Indies' word parted at 6570 on a
+    /// collision the original does not have: the AI Merchant `1/19`,
+    /// two hundred frames into its walk to a `CITRUS`, stood blocked
+    /// twice where the original walked on. Nothing on disk covered the
+    /// frame — run64 and run65's windows end at 6221 — and the geometry
+    /// was a knife edge: the merchant's `BLOCK_RADIUS 2` block passes two
+    /// standing citizens with 160 units of clearance against a 144-unit
+    /// block sum, so a few units either way decides it.
+    ///
+    /// **What it settled** is `docs/COLLISION.md` §4.2's fast path, and
+    /// the lesson is that it is not an optimisation. With `nocoll` clear
+    /// and a proposal exactly one cell away on one axis,
+    /// `CollCheck::collide_here@00682540` sweeps the **leading edge** —
+    /// the row or column the block is entering — and nothing else: a
+    /// strict subset of the parity-filtered disc, so it stops at a
+    /// *different* first hit cell. On sim-frame 6570 the merchant's own
+    /// cell is `(721, 786)` and its proposal `(721, 785)`, so the sweep
+    /// is the row `y = 783` from `x = 719`: the first cell is `1/11`'s
+    /// north-east corner, the disc probe's is `1/2`'s two to the right,
+    /// and §4.3's corner rule is decided on the cell. Against `1/11` the
+    /// merchant's own north-west corner is the opposite diagonal —
+    /// `will_be_corner 1` against `is_corner 5`, a difference of exactly
+    /// 4 — and the two slip past; against `1/2` the merchant's corner is
+    /// 0 and the collision is hard. One frame later the proposal is one
+    /// cell **west**, the sweep is the column `x = 718`, `1/11` is
+    /// square on it rather than cornered, and the original collides —
+    /// with `collide_o 11`, which is what named the cell.
+    ///
+    /// Every row below is the original's: 12,094 position fields — every
+    /// unit on every block as far as the word, and `1/19` alone for all
+    /// 261, so its walk, its collision, its centre snap and its recovery
+    /// are pinned past the frame the stream parts on. East Indies' word
+    /// went **6570 → 6571**.
+    #[test]
+    fn run66_s_window_is_the_original_s_unit_for_unit() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r66)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run66-islands-merchantwalk.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run66 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let sib_text = std::fs::read_to_string(&sib).unwrap();
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+
+        let text66 = std::fs::read_to_string(&r66).unwrap();
+        let l66 = Log::parse(&text66);
+        let frames = l66.frame_states();
+        let window: Vec<i64> = frames.iter().map(|f| f.n).collect();
+        // `[6340, 6600)` plus the two blocks the `!quit` writes — the same
+        // free tail run65's window has.
+        assert_eq!(
+            window,
+            (6340..6600).chain([6621]).collect::<Vec<i64>>(),
+            "run66's frame window, plus the block the quit writes"
+        );
+        let last = *window.last().expect("the window");
+
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        built.sim.trace_phases = true;
+        let mut compared = 0usize;
+        let mut merchant_rows = 0usize;
+        let mut unmatched = 0usize;
+        let mut wrong: Vec<String> = Vec::new();
+        for f in 0..last {
+            built.tick();
+            let Some(fr) = frames.iter().find(|fr| fr.n == f + 1) else {
+                continue;
+            };
+            for them in &fr.units {
+                if !(0..8).contains(&them.who) {
+                    continue;
+                }
+                let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                    continue;
+                };
+                let Some(u) = built.sim.unit_by_o(who, o) else {
+                    unmatched += 1;
+                    continue;
+                };
+                let merchant = (them.who, them.o) == (1, 19);
+                if merchant {
+                    merchant_rows += 1;
+                } else if f + 1 > LONG_WORD_EAST_INDIES {
+                    continue;
+                }
+                let un = &built.sim.units[u];
+                let mut row = |name: &str, ours: i64, theirs: Option<i64>| {
+                    let Some(theirs) = theirs else { return };
+                    compared += 1;
+                    if ours != theirs && wrong.len() < 24 {
+                        wrong.push(format!(
+                            "frame {}: {}/{} {name} ours {ours} theirs {theirs}",
+                            f + 1,
+                            them.who,
+                            them.o
+                        ));
+                    }
+                };
+                row("x", i64::from(un.pos.x), Some(them.pos.x));
+                row("y", i64::from(un.pos.y), Some(them.pos.y));
+            }
+        }
+        eprintln!(
+            "run66 window: {compared} fields over {} blocks, {merchant_rows} of \
+             them the merchant's, {unmatched} of the dump's units this crate has \
+             no unit for",
+            window.len()
+        );
+        for w in &wrong {
+            eprintln!("  {w}");
+        }
+        assert!(
+            compared >= 12_000 && merchant_rows >= 240,
+            "the window's own rows: {compared} fields and {merchant_rows} of the \
+             merchant's — a capture with neither is the wrong file"
+        );
+        // **The merchant's own walk, whole**, and everything else as far as
+        // the word. Past the word the stream has parted — the crew figure's
+        // draw `docs/COLLISION.md` §9 names — so the units downstream of it
+        // are not this crate's prediction any more; `1/19` is, for all 260
+        // blocks.
+        assert!(wrong.is_empty(), "run66's window parted: {wrong:?}");
+    }
+
     /// East Indies' word on the **long** capture — the number that took
     /// over as the headline when run39's own length stopped bounding it
     /// (`docs/DECISIONS.md` entry 29's first counter). It is not in
@@ -11283,7 +11445,7 @@ mod tests {
     /// `TECHBONUSES`, Coinage — and was carried here as a nation flag
     /// nothing set. run63 is the capture that says so
     /// (`run63_s_window_is_where_the_ai_s_colony_site_appears`).
-    const LONG_WORD_EAST_INDIES: i64 = 6570;
+    const LONG_WORD_EAST_INDIES: i64 = 6571;
 
     /// Great Lakes' word on the **long** capture (run53), the second of
     /// `docs/DECISIONS.md` entry 29's counters — and, since run61 put the

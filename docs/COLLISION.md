@@ -171,9 +171,47 @@ For `coll_size = 1` that is exactly the four diagonals `(±1, ±1)` — which
 is sufficient, because two discs of radius 1 overlap iff their centres are
 within Chebyshev 2, and that is iff one covers a diagonal of the other.
 
-`collide_here` also has a fast path for a proposal exactly one cell away on
-one axis, which sweeps the leading edge instead of the whole disc; and it
-returns 0 immediately for `coll_size == 0`.
+`collide_here` returns 0 immediately for `coll_size == 0`.
+
+#### The fast path is not an optimisation (2026-09-02, item 183)
+
+Ahead of the disc, and **only when `nocoll` is 0**, `collide_here` has a
+second sweep. Let `(dx, dy)` be the proposed cell minus the caller's own:
+when one of them is zero and the other is exactly ±1, the probe tests the
+**leading edge** — the row or column the block is entering — and nothing
+else.
+
+    |dx| == 1, dy == 0:  x = ucx + dx·coll_size,  y = ucy − coll_size + 2k
+    dx == 0, |dy| == 1:  y = ucy + dy·coll_size,  x = ucx − coll_size + 2k
+
+for `k = 0 ..= coll_size`, in that order, the first occupied cell winning.
+The loop is written as `2·coll_size + 1` iterations testing on the even
+ones and advancing the swept axis by one on every other, which is the
+parity filter by another route; it asks no own-block exemption and needs
+none, because the edge is always one cell beyond the caller's own block.
+
+**It is a strict subset of the disc, so it stops at a different cell** —
+and §4.3's corner rule is decided *on the cell*, so the two probes can
+disagree about whether there is a collision at all, not merely about which
+unit is named. run66's sim-frame 6570 is the case. East Indies' AI
+Merchant, `BLOCK_RADIUS 2`, walks north-west past two standing citizens;
+its own cell is `(721, 786)` and its proposal `(721, 785)`, so the sweep is
+the row `y = 783` from `x = 719`. The first cell is `1/11`'s north-east
+corner — and the merchant's own north-west corner meets it, `will_be_corner
+1` against `is_corner 5`, a difference of exactly 4, so the two slip past
+and the step is taken. The whole disc's first parity cell is `(721, 783)`,
+two to the right, inside `1/2`'s block and no corner of the merchant's at
+all (`will_be_corner 0`): a hard collision the original does not have. One
+frame later the proposal is one cell **west**, the sweep is the column
+`x = 718`, `1/11` sits square on it rather than cornered, and the original
+collides — `collide_o 11`, `collide_frame 6571`, which is what named the
+cell.
+
+`nocoll` is 0 at every `detect_unit_collision` call site and at
+`Objects::find_collision`'s, and **1** at `PathFinder::valid_ucoord`'s
+(`00687c80:24`) and at `resolve_unit_collision`'s own direct probe
+(`005f9d30:453`) — so a path search and the stack unwind take the disc and
+a step takes the edge.
 
 ### 4.3 Naming the other unit, and the exemptions
 
@@ -475,8 +513,9 @@ In order, with the first that fires winning:
 
 Modelled: the bitmask with its clear-on-move semantics and the region gate;
 the object chain over units; the probe with its parity filter and disc
-order; the `safe`, `DETOUR`, same-cell and `coll_size 0` gates; the corner
-rule; the same-player-attack exemption; `move_step`'s block, **including its
+order, **and its leading-edge fast path with the `nocoll` argument that
+selects it** (§4.2, item 183); the `safe`, `DETOUR`, same-cell and
+`coll_size 0` gates; the corner rule; the same-player-attack exemption; `move_step`'s block, **including its
 `set_anim(CHAR_DEFAULT)`** (§5) **and the probe's write back into the
 order** (§4.3, item 115); **`do_move`'s waypoint test with both of
 its arms** (§5.1, item 63); and `resolve`'s steps **0** — the animal's
@@ -639,6 +678,20 @@ buildings join the chain, which is why §8 does not claim it.
   `an_animal_drops_its_walk_where_it_stands_and_takes_no_step`, written to
   fail first. It took East Indies' word 91 → **201**
   (`docs/SYNC.md` §3.14).
+- **§4.2's fast path, and a `coll_size 2` unit's collision, both for the
+  first time** (item 183, 2026-09-02). run66 is 260 blocks of run54's game
+  over `[6340, 6600)` at run39's detail, and it holds East Indies' AI
+  Merchant walking two hundred frames to its `CITRUS` past two standing
+  citizens, colliding with one of them, snapping to its cell centre and
+  pathing around. Every position of it is this crate's since the leading
+  edge was modelled — **12,094 fields, zero disagreements**: every unit on
+  every block as far as the word, and `1/19` alone for all 261, so its
+  walk, its collision, its snap and its recovery are pinned past the frame
+  the stream parts on. The dump's `collide 1`, `collide_o 11`,
+  `collide_who 1`, `collide_guy 0`, `collide_frame 6571` are what named
+  the hit cell, and the whole disc could not have produced them. East
+  Indies' word 6570 → **6571**
+  (`run66_s_window_is_the_original_s_unit_for_unit`).
 - The path stack's length and every waypoint — the headline's own order
   score, which the recovery's output now feeds.
 - §2's clear-on-move, §4's naming and §6's snap-and-replan end to end, in
@@ -681,7 +734,22 @@ buildings join the chain, which is why §8 does not claim it.
 - **Squads.** `Unit::set_new_location` spreads figures `0 .. guy_mark` over
   a formation and each marks its own disc. *Capture:* `UNITS=3` +
   `GUYS=2` over a four-figure squad walking into another unit.
-- **`coll_size ≥ 2`.** *Capture:* the same, with siege or a ship.
+- ~~**`coll_size ≥ 2`.**~~ **Settled by run66** (item 183): the Merchant's
+  `BLOCK_RADIUS 2` block is the first a capture has ever collided, and
+  §4.2's fast path was found by it. What is still owed is the *paint* of
+  a block that spans two `CollBlock`s on both axes, which a `coll_size 3`
+  siege unit would give.
+- **The crew figure's draw on a blocked stand, and its walk on the same
+  frame** — the residue run66 leaves and East Indies' word since. On
+  sim-frame 6571 `move_step`'s `set_anim(CHAR_DEFAULT, 0, 1)` rolls once
+  in the original (`Unit::set_anim+0x56`, the first loop, guy 0) and
+  twice here; and the original's crew figure then *walks* — `1/19`'s
+  `g1` goes `(34442, 37613)` → `(34464, 37595)` on the frame the
+  resolve snaps its leader — where this crate's stands still and moves
+  a frame late. Both halves are one question about `Guy::set_anim`'s
+  walking-guy early return and `Follow::des`
+  (`docs/ANIM.md` §4 step 1, `docs/MOVEMENT.md`, "Who writes it, and
+  when"), and run66 has both guys' positions on all 261 blocks.
 - ~~**The `pause` draw.**~~ **Settled by a run** (item 80, 2026-08-30):
   run33's frame 571 spends it, and §8 has the frame. What the capture
   named in this row would still add is the *value* — no dump in hand

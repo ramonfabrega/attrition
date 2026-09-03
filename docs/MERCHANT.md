@@ -262,8 +262,15 @@ merchant's first turn.
 ## 6. Coverage
 
 **Diff-backed on run54** — the 24,000-frame East Indies capture, whose word
-went from 6356 to 6570 when this landed, and which now agrees draw for draw
-through the merchant's think, its first turn and 214 frames of its walk:
+went from 6356 to 6570 when this landed and to 6571 with the collision
+probe behind it (`docs/COLLISION.md` §4.2) — and **on run66**, 260 blocks
+of the same game over `[6340, 6600)`, which holds this merchant's walk
+from its birth to its arrival stand: **every position of it is the
+original's**, frame for frame, and so is every other unit's as far as the
+word (`run66_s_window_is_the_original_s_unit_for_unit`, 12,094 fields).
+The two together agree draw for draw through the merchant's think, its
+first turn, 214 frames of its walk, the collision that ends it and the
+recovery after:
 
 - the head's `unpack_merchant(3)` refusing at the Market (the trace enters
   `Unit::unpack_merchant` and `Unit::find_merchant_spot` on frame 6354 and
@@ -288,8 +295,10 @@ through the merchant's think, its first turn and 214 frames of its walk:
 - the ally test on the good's cell, and the ocean-bit equality. East
   Indies' two rares are unowned land.
 - the rotation. It is observable only through a **second** merchant
-  choosing differently, and the original trains one on 6571 — past the
-  frame this crate now parts on.
+  choosing differently; the original trains one on 6571 and run66 has its
+  walk, but not the `new_rares` list a `LEADERS=9` block would show. This
+  crate's second merchant leaves its Market a frame early (run66's blocks
+  6578 onward), which is downstream of the word and its own item.
 - the whole of §3 past its gate: `good_merchant_spot`'s four tiles, the
   ring order, and the cast-then-walk order pair. Nothing on disk reaches a
   ring walk, because a merchant that reaches its good is a merchant that
@@ -316,6 +325,8 @@ through the merchant's think, its first turn and 214 frames of its walk:
 - **`unit_masks &= ~0x100`**, which `unpack_merchant` clears before the
   cast. The bit is `Unit::work` step 3's ("this unit was ordered
   recently"), and nothing here keeps it.
+- **The walk's own end.** run66 follows `1/19` to sim-frame 6620 and it is
+  still walking; the `CITRUS` is further than any capture goes.
 - **What happens at the good.** The arrival, the cast, the deployed
   merchant's two-by-two footprint and the `rare`/`good_obj` pair
   `Unit::do_gather@005fce20` writes for it are `docs/ECONOMY.md` step 6's,

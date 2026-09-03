@@ -12,35 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-02, Opus — the merchant walks, and its crew was never seated.*
-**East Indies 6356 → 6570**; Great Lakes 2419. Item **182 closed**, and it
-took two things.
+*2026-09-02, Opus — the probe was never the disc.* **East Indies 6570 →
+6571**; Great Lakes 2419. Item **183 closed**; the number is small because
+the finding is not.
 
-- **The order.** `Unit::think_merchant@005f4740` is `docs/MERCHANT.md`:
-  a packed merchant asks `unpack_merchant(3)` whether here will do —
-  whose own head is `calc_gather` where it stands — then scores
-  `new_rares` as `200 − 10·i`, `+100` for its own `get_tregion`, minus
-  danger, floored at 1, behind three object searches, and moves the
-  winner to the **back** of the list under a `QUEUE_NEW` `MOVE_TO`.
-- **That alone did not move the word.** The merchant then turned **twice**
-  a frame where the original turns once: `Unit::init@00612100:549`'s
-  `set_new_location(·, ·, 1, 1)` seats a *tracked* crew figure on its
-  offset at birth, this crate seated only the figures a dump or a
-  disembark handed it, and `Guy::do_turn` recurses into the trackless
-  ones. `Sim::init_guys` now ends where `Unit::init` does — and every
-  trained unit in the game had been carrying it.
-- **`docs/ORDERS.md` §6 step 5 had a gate backwards** — the
-  `do_gather`/`unpack_merchant(4)` arm is **human**-only
-  (`leader_flags & 4`), not AI-only. Amended in place.
+- **run66 is the capture** (`docs/ORACLE.md`): 260 blocks of run54's game
+  over `[6340, 6600)` at run39's `[End Frame]` detail — **four minutes and
+  89 MB** against run65's thirty-seven and 1.19 GB. Narrow the *window* for
+  a whole record; cheapen the *block* for a field over time, and a walk is
+  a field over time.
+- **`collide_here`'s fast path is not an optimisation.** With `nocoll`
+  clear and a proposal one cell away on one axis it sweeps the **leading
+  edge** alone — a strict subset of the parity disc — so it stops at a
+  *different* first hit cell, and §4.3's corner rule is decided on the
+  cell. At 6570 the edge finds `1/11`'s corner against the merchant's
+  opposite one and the two slip past; the disc found `1/2` two cells right
+  and refused the step. `nocoll` is 0 for every step and **1** for
+  `valid_ucoord` and the stack unwind (COLLISION §4.2).
+- **Three guesses died at once**: both citizens and the merchant are where
+  this crate has them on every frame, the collision is real one frame later
+  against a *different* citizen, and `collide_o 11` named the cell.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6570 of 24,000 · GreatLakes w2419 of 24,000
+Long captures: EastIndies w6571 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `6570 is a collision the original does not have — the
-blocked stand `Unit::move_step+0x823`, twice, on the AI Merchant two
-hundred frames into its walk, refused by its own citizen `1/2` standing
-still on a gather order 180 units off. Item 183: the exemption ladder, or
-the two units' `coll_size`, or the road.`
+**Opener (Opus):** `6571 is one crew figure. move_step's
+set_anim(CHAR_DEFAULT, 0, 1) rolls once in the original and twice here, and
+the original's crew then walks — 1/19's g1 (34442,37613) → (34464,37595) on
+the frame the resolve snaps its leader — where this crate's stands still.
+Item 185: Guy::set_anim's walking-guy early return, and who rewrites
+Follow::des; run66 has both guys on all 261 blocks.`
 
 ## The queue
 
@@ -49,107 +50,108 @@ captures' word**, and East Indies leads it. Take the first unstarted unless a
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-169. **`compute_site_stats`' arithmetic, on 7,122 of run63's 27,000 site
-    fields.** `(45, 52)` scores twice the original's, `(44, 52)` four times, an
-    extra site drags every `rank`; run59 the same 250 frames earlier (AI §2.13
-    steps 6–12).
+169. **`compute_site_stats`' arithmetic**, 7,122 of run63's 27,000 site
+    fields: `(45, 52)` scores twice, `(44, 52)` four times, an extra site
+    drags every `rank`; run59 the same 250 frames earlier (AI §2.13 6–12).
 
 172. **The `bucket` pair 165 leaves behind.** The six rates and incomes are
-    the original's on every frame of run59's window; `bucket` was one apart
-    on 5002 and 5061 in run60's curve. Cheap: run60 is on disk. **Takes
-    155's `rare`/`good_obj` writers** (ORDERS §6.10).
+    the original's on every frame of run59's window; `bucket` was one apart on
+    5002 and 5061 in run60's curve. run60 is on disk. **Takes 155's
+    `rare`/`good_obj` writers** (ORDERS §6.10).
 
 158. **The sweep runs for a human leader; this crate skips it.** AI §23.1.
-    Moving the gate from `Sim::strategy_all` into `production_ai` makes step
-    16 seed a **human army**; find the gate between steps 13 and 16 first.
+    Moving the gate from `Sim::strategy_all` into `production_ai` makes step 16
+    seed a **human army**; find the gate between steps 13 and 16 first.
 
-159. **The `CITY` record's two smaller seams**, on run58, both pinned. (a)
+159. **The `CITY` record's two smaller seams**, on run58, both pinned:
     `1/2007`'s `land`/`filled` from 1819 and `space[0..2]` from 1976, one
-    apart each. (b) from 2576 `1/2000` holds 11 gatherers and `1/2007` none
+    apart each; and from 2576 `1/2000` holds 11 gatherers and `1/2007` none
     against 10 and 1 — step 2/10.
 
 146. **The other nine national arms of `train_time`.** `006508c0`'s fixed
-    order after the ramp, only the British built (PRODUCTION, "The tail's first
-    caller"); behind them `TROOPS_FASTER`, the speed upgrades, the rares,
-    Monarchy, Socialism, the wonders. The Merchant's 18,720 is the ramp alone,
-    so East Indies has never measured the tail.
+    order after the ramp, only the British built (PRODUCTION, "The tail's
+    first caller"); behind them `TROOPS_FASTER`, the speed upgrades, the
+    rares, Monarchy, Socialism, the wonders. The Merchant's 18,720 is the
+    ramp alone, so East Indies has never measured the tail.
 
 142. **`World::tregion` is not `get_tregion`.** Four items were a gate asking
-    the wrong one (PATHFINDER §15, §16); eleven callers unaudited, and
+    the wrong one (PATHFINDER §15, §16); eleven callers unaudited and
     `caravan.rs`'s two known wrong (179's by-catch).
+
+186. **The second Merchant leaves its Market a frame early.** Born 6571, it
+    steps on run66's block 6578 against the original's 6579; downstream of 185.
 
 One probe nothing has: (184) **a `&self` `detect_unit_collision`** — the
 merchant ring's third test, skipped because this crate's writes the
-`collide_o` bookkeeping the move step needs (MERCHANT §7), and what 183
-wants. Two records with no reader: (122) **a draw with no mark of its own**
-— `mark_sites` labels an unmarked draw with the one still standing, and
-**16 of 61** `rng.roll`/`get` calls have no `self.mark(`; (153) **the
-`TRIBE` record, whole** — `Tribe::log_data@006f0d70` prints `graft[352]`,
-`barbarian`, `build_continent`, `people` and `text_substitute` in every
-`DUMP_ALL` dump, none parsed (TECH).
+`collide_o` bookkeeping the move step needs (MERCHANT §7). Two records with
+no reader: (122) **a draw with no mark of its own** — `mark_sites` labels an
+unmarked draw with the one still standing, and **16 of 61** `rng.roll`/`get`
+calls have no `self.mark(`; (153) **the `TRIBE` record, whole** —
+`Tribe::log_data@006f0d70` prints `graft[352]`, `barbarian`,
+`build_continent`, `people` and `text_substitute` in every `DUMP_ALL` dump,
+none parsed (TECH).
 
 178. **The danger map's unit pass, unexercised.** DANGER §8: run64's two
     leaders have no military unit on the map on any frame divisible by 200,
     so `role & 0x10000`, `(attack · 5) / 10` and the war gate rest on the
-    reading alone. A `DUMP_ALL` `WORLD` block on a 200-frame boundary after
-    either side has an army settles it (run16's scenario is one). Takes
+    reading. A `DUMP_ALL` `WORLD` block on a 200-frame boundary after either
+    side has an army settles it (run16's scenario is one). Takes
     `UnitData::is_seen`; MERCHANT §2.2 reads the same map.
 
 181. **§7's unreached arithmetic, which 179 did not take.** The arrival box,
-    `compute_trade`'s `× 16 / 2` and `new_caravan`'s `(epoch[1] + 1) · 10` fire
-    at 6511 and 6766, inside the word now and unasserted. CARAVAN §7.2–§7.3.
-    A `LEADERS=9` census over `[6560, 6600)` also names the **second
-    Merchant** (6571), the only thing that can check MERCHANT §2.3's
-    rotation of `new_rares`, and it sits one frame past the word.
+    `compute_trade`'s `× 16 / 2` and `new_caravan`'s `(epoch[1] + 1) · 10`
+    fire at 6511 and 6766, inside the word and unasserted (CARAVAN
+    §7.2–§7.3). MERCHANT §2.3's rotation still wants a `LEADERS=9` block
+    past 6571 — run66's is `LEADERS=1`.
 
-183. **The merchant's road meets a standing citizen; the original's does
-    not.** The word: 6570, `Unit::move_step+0x823` twice, `1/19` at
-    (34627, 37737) refused by `1/2`, a citizen 180 units off that has been
-    on a gather order for ages. The original's first `find_wpath` is
-    **6602**, so its merchant meets *something* thirty frames later.
-    Cheapest first: the two `coll_size`s, COLLISION §4.3's ladder (three
-    of four arms unmodelled), the road. Takes 184's read-only probe.
+185. **The crew figure's draw, and its walk, on the blocked stand.** The
+    word: 6571. `move_step`'s `set_anim(CHAR_DEFAULT, 0, 1)` rolls **once**
+    in the original (`Unit::set_anim+0x56`, guy 0) and twice here; and the
+    original's crew then *walks* — `1/19`'s `g1` (34442, 37613) →
+    (34464, 37595) on the frame the resolve snaps its leader — where this
+    crate's stands still and moves a frame late. One question:
+    `Guy::set_anim`'s walking-guy early return (`des != pos`, ANIM §4 step
+    1) and who rewrites `Follow::des` (MOVEMENT, "Who writes it, and when"
+    — does the resolve's `set_new_location(·, ·, 1, …)`?). run66 has both
+    guys on 261 blocks; their clocks would need `DUMP_ALL`, so grep first.
 
 The ledgers, each a number nothing yet counts: (87) **the widening ledger** —
-items 74, 83, 69, 113, 123, 144, 154, 169, 168/165, 179, 180 were
-closed or sharpened by fields the parser had and nothing compared, so count,
-per record *and* per capture, the fields `rondata::diff` parses and never
-compares; (88) **the blind list** — `report.py … blind docs/` lists the cited
-functions no traced run has entered (101 of 617), pin it as a floor and put it
-in each Coverage; (72) every `+0xNN` a document pins, checked against its
-module; (89) the instrument's last guard, (c) alone; (35) **`mylos` as a
+items 74, 83, 69, 113, 123, 144, 154, 169, 168/165, 179, 180 were closed or
+sharpened by fields the parser had and nothing compared, so count, per record
+*and* per capture, the fields `rondata::diff` parses and never compares;
+(88) **the blind list** — `report.py … blind docs/` lists the cited functions
+no traced run has entered (101 of 617), pin it as a floor and put it in each
+Coverage; (72) every `+0xNN` a document pins, checked against its module;
+(89) the instrument's last guard, (c) alone; (35) **`mylos` as a
 cache** — VISION §7, whose Scout moves 4 → 6 early.
 
 175. **`Unit::squad_size` is the guy count and should be the uber chain.**
     `build_sim` sets it from `u.guys.len()`; its doc calls it
     `curr_uber_size@0060a760`, which walks `o_up`/`o_down` over chained
     `UnitData`. Disjoint in `unitrules.xml`: the 109 `UBER_SIZE 3` types have
-    `CREW_SIZE 0` and every crewed type `UBER_SIZE 1`, so a scout bleeds as a
-    squad of two. **Takes 48's chain.**
+    `CREW_SIZE 0` and every crewed type `UBER_SIZE 1`. **Takes 48's chain.**
 
-Three fields nothing here writes: (48) **the object chain, whole** —
-`collide.rs` chains units only where the original threads buildings and
-goodies through it too (COLLISION §3, §7, GOODY §1), `down`/`down_who`
-uncompared; (73) **`UnitData::group`** — no back-pointer, so
-`Group::normalize`'s cull (GROUPS §4.3) is unmodelled and run33's scout goes
-65 → 64 on 96; (56) **the cell's `BUILDING` bit** — run13's frame-95 world
-has it on `(52, 22)` and this does not (ARMY §13's muster search).
+Three fields nothing here writes: (48) **the object chain, whole** — only
+units are threaded, not buildings and goodies (COLLISION §3, §7, GOODY §1),
+`down`/`down_who` uncompared; (73) **`UnitData::group`** — no back-pointer,
+so `Group::normalize`'s cull (GROUPS §4.3) is unmodelled and run33's scout
+goes 65 → 64 on 96; (56) **the cell's `BUILDING` bit** — run13's frame-95
+world has it on `(52, 22)` and this does not (ARMY §13).
 
-117. **Two seams the census windows now measure.** (a) ATTRITION,
-    "Territory": the temple and fort border levels, the Colosseum, the
-    Eiffel Tower, a gem rare, the handicap, `was_seen`'s `reg_forts` arm.
-    (b) AI §2.1's `check_explore` answers the whole grid, 900 v 36/19.
+117. **Two seams the census windows now measure.** ATTRITION, "Territory":
+    the temple and fort border levels, the Colosseum, the Eiffel Tower, a
+    gem rare, the handicap, `was_seen`'s `reg_forts` arm. And AI §2.1's
+    `check_explore` answers the whole grid, 900 v 36/19.
 
 Five measured one-liners: (23) **the formation byte's sign, the Echelon
-half** — `reverse`'s *displacement* is read only on GROUPS §6.4's Echelon rows
-and every captured group is a Line, run52 naming the blocker; (103) a
-woodcutter's clock at **1,686** — after
-26,094 agreeing fields the human's `0/2` waits 445 against 480, ORDERS §6.4;
-(105/45) **Gaia's positions**, East Indies' half left — run39 191,876 of
-192,504, first bad **1658**, run33 exact at 74,040, SYNC §4.2; (124) **the
-loop flag is per animation file**, ANIM §3.3 — 42 `<UNIT>` entries give
-`CHAR_DUMP_WOOD` a non-looping file and 38 a looping one, carry it on `Art`
-(the two index tests in front of it landed with 176); (116) **the one
+half** — `reverse`'s *displacement* is read only on GROUPS §6.4's Echelon
+rows and every captured group is a Line, run52 naming the blocker; (103) a
+woodcutter's clock at **1,686** — after 26,094 agreeing fields the human's
+`0/2` waits 445 against 480, ORDERS §6.4; (105/45) **Gaia's positions**,
+East Indies' half left — run39 191,876 of 192,504, first bad **1658**,
+run33 exact at 74,040, SYNC §4.2; (124) **the loop flag is per animation
+file**, ANIM §3.3 — 42 `<UNIT>` entries give `CHAR_DUMP_WOOD` a
+non-looping file and 38 a looping one, carry it on `Art`; (116) **the one
 `SITE` slot still wrong**, AI §18 — a 5×5 slide keeps its centre where the
 original leaves it (`blocked_town` v `site_clear`).
 
@@ -157,31 +159,29 @@ Two one-field reads: (166) **`resource_cap` on five goods, two frames from
 2958** — 1392 here, 2000 there, right on 2960 (ECONOMY, "The commerce cap"),
 a transient nothing else in 324,000 good-frames does; (107) **`epoch[0]` is
 the Military level and `army.rs` reads `ages`** — `get_epoch_base(0)` is
-`BASE_MILITARYTYPES`, the army family reads `+0xe8`, `army.rs:769,1365`
-read `tech[w].ages`.
+`BASE_MILITARYTYPES`, the army family reads `+0xe8`, `army.rs:769,1365`.
 
 161. **The whole make-list block is 3,400 frames behind the word.**
     `create_buildings` first runs on East Indies frame 9982 (AI §25), so
     `building_value`, `gather_value`, §24.4's neighbourhood arm,
-    `oil_patches.count` and `compute_largest_gather@0066e920` are
-    unreachable until the word passes it.
+    `oil_patches.count` and `compute_largest_gather@0066e920` are unreachable
+    until the word passes it.
 
 156. **`STARTING_GOODS` arrives with the age.** `Leader::gain_tech@006dcb60`
     pays `bucket_add(g, game->starting[g])` for a zero bucket whose preq is
-    the tech just gained, and `Leader::init@006e3930` zeroes all six — so the
+    the tech just gained and `Leader::init@006e3930` zeroes all six, so the
     original holds 0 knowledge, metal and oil through Ancient where this
     holds 100. Unread: where food, timber and wealth are paid (COSTS).
 
 167. **Two of run61's leavings.** (a) §3.9's reading-only pair: the landing
     search's *cell* and `Unit::do_strafe`, so the dock's gull is unmodelled;
-    a `callwin` over `think_bird`'s tail settles it. (b) **`Unit::init`'s
-    tile snap is every unit's** — `(p / 48) · 48 + 24`, and only
-    `spawn_bird` has it.
+    a `callwin` over `think_bird`'s tail settles it. (b) `Unit::init`'s tile
+    snap `(p / 48) · 48 + 24` is every unit's; only `spawn_bird` has it.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — `zsh tools/fuzz/run.sh 424242 1000 1300`
 then `report.py … blind docs/` before deleting it; a `find_target` block;
-run7's order stream; a mounted attacker; a caravan; `calc_gather` non-flat;
+run7's order stream; a mounted attacker; `calc_gather` non-flat;
 `Leader::diplomacy`; (77) ANIM §3.2's rows; (58) ROADS §7.4's `f32` heights.
 
 ## How to maintain this file

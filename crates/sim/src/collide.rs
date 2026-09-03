@@ -415,12 +415,31 @@ impl Sim {
     /// SEAM: `collide_here`'s two leading-edge fast paths — taken when the
     /// proposal is exactly one cell away on one axis — sweep a different
     /// set of cells and are not modelled; the disc is always walked.
-    pub(crate) fn collide_here(&self, u: usize, at: Pos) -> Option<Pos> {
+    pub(crate) fn collide_here(&self, u: usize, at: Pos, nocoll: bool) -> Option<Pos> {
         let size = self.coll_size(u);
         if size == 0 {
             return None;
         }
         let mine = ucell(self.units[u].pos);
+        // **The fast path, and it is not an optimisation** (§4.2, item 183).
+        // With `nocoll` clear and the proposal exactly one cell away on one
+        // axis, the original sweeps the **leading edge** — the row or column
+        // the block is entering — and nothing else. That is a strict subset
+        // of the parity-filtered disc, so it can name a *different* first
+        // hit cell, and §4.3's corner rule is decided on the cell.
+        if !nocoll {
+            let (dx, dy) = (at.x - mine.x, at.y - mine.y);
+            if dx == 0 || dy == 0 {
+                if dx.abs() == 1 {
+                    return self
+                        .leading_edge(size, |k| Pos::new(at.x + dx * size, at.y - size + k));
+                }
+                if dy.abs() == 1 {
+                    return self
+                        .leading_edge(size, |k| Pos::new(at.x - size + k, at.y + dy * size));
+                }
+            }
+        }
         let on_map = self.units[u].on_map;
         for (dx, dy) in spiral(size) {
             if (dx + size) % 2 != 0 || (dy + size) % 2 != 0 {
@@ -436,6 +455,17 @@ impl Sim {
             }
         }
         None
+    }
+
+    /// The fast path's sweep: the `size + 1` cells of the leading edge its
+    /// loop's own parity leaves, in order, the first occupied one winning.
+    /// The disc's own-block exemption is not asked and does not have to be
+    /// — the edge is a cell beyond the caller's own block on every step
+    /// that reaches here.
+    fn leading_edge(&self, size: i32, cell: impl Fn(i32) -> Pos) -> Option<Pos> {
+        (0..=size)
+            .map(|k| cell(k * 2))
+            .find(|p| self.coll.get(p.x, p.y))
     }
 
     /// `UnitData::is_here`: does this unit's block cover that unit cell?
@@ -485,12 +515,12 @@ impl Sim {
     /// The quick form: any occupied cell is a collision and nothing is
     /// recorded — `move_step`'s second call and all four of
     /// `resolve_unit_collision`'s.
-    pub(crate) fn detect_quick(&self, u: usize, at: Pos) -> bool {
+    pub(crate) fn detect_quick(&self, u: usize, at: Pos, nocoll: bool) -> bool {
         if !self.detect_gates(u) {
             return false;
         }
         let c = ucell(at);
-        c != ucell(self.units[u].pos) && self.collide_here(u, c).is_some()
+        c != ucell(self.units[u].pos) && self.collide_here(u, c, nocoll).is_some()
     }
 
     /// The full form: find the cell, name the unit, apply the exemption
@@ -504,7 +534,7 @@ impl Sim {
         if self.detect_gates(u) {
             let c = ucell(at);
             if c != ucell(self.units[u].pos)
-                && let Some(cell) = self.collide_here(u, c)
+                && let Some(cell) = self.collide_here(u, c, false)
                 && let Some(other) = self.name_collider(u, at, c, cell)
             {
                 self.units[u].collide_o = self.units[other].index;
@@ -619,7 +649,7 @@ impl Sim {
     /// cells, Chebyshev, against the sum of the two `coll_size`s.
     pub(crate) fn find_collision(&self, u: usize, at: Pos) -> bool {
         if self.units[u].kind.domain == crate::attrition::Domain::Land {
-            return self.collide_here(u, ucell(at)).is_some();
+            return self.collide_here(u, ucell(at), false).is_some();
         }
         self.chain_hit(u, at, |s, o| ucell(s.units[o].pos))
     }
@@ -860,7 +890,7 @@ impl Sim {
             if self.invalid_loc(u, p.tile(), false, false, false, false, false) != 0 {
                 continue;
             }
-            if self.detect_quick(u, p) {
+            if self.detect_quick(u, p, false) {
                 continue;
             }
             self.units[u].path.push(PathData {
@@ -913,7 +943,8 @@ impl Sim {
             let mut blocked = false;
             if e.tolerance >= 0x60 || e.flags & path_flag::SIDESTEP == 0 {
                 let mask = self.world.tile_mask(e.to.tile());
-                blocked = mask & UNWIND_REFUSES != 0 || self.collide_here(u, ucell(e.to)).is_some();
+                blocked =
+                    mask & UNWIND_REFUSES != 0 || self.collide_here(u, ucell(e.to), true).is_some();
             }
             let keep = e.flags & path_flag::FINAL != 0
                 || (e.tolerance >= 0x60 && e.flags & path_flag::SIDESTEP == 0 && !blocked);
@@ -1402,9 +1433,12 @@ mod tests {
         let b = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
         let (mut sim, x, _y) = pair(a, b);
         let into = Pos::new(28 * 0x30 + 0x18, 30 * 0x30 + 0x18);
-        assert!(sim.detect_quick(x, into), "blocked with `safe` clear");
+        assert!(
+            sim.detect_quick(x, into, false),
+            "blocked with `safe` clear"
+        );
         sim.units[x].safe = 3;
-        assert!(!sim.detect_quick(x, into), "and clear with it set");
+        assert!(!sim.detect_quick(x, into, false), "and clear with it set");
         sim.order_move(x, Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18));
         for _ in 0..3 {
             sim.tick();
@@ -1630,6 +1664,77 @@ mod tests {
             &[(-2, -2), (2, -2), (2, 2), (-2, 2)],
             "ring 2 keeps its corners for last"
         );
+    }
+
+    /// §4.2's fast path, and **the reason it is not an optimisation**: it
+    /// sweeps the leading edge alone, so it stops at a different first hit
+    /// cell than the disc — and §4.3's corner rule is decided on the cell,
+    /// so the two probes disagree about whether there is a collision at
+    /// all. run66's sim-frame 6570 is the shape, rebuilt here at the
+    /// origin: a `coll_size 2` walker stepping one cell north between two
+    /// `coll_size 1` neighbours, one of them corner to corner with it and
+    /// the other square on its leading edge.
+    ///
+    /// Written to fail first: with the whole disc the walker names the
+    /// square neighbour and refuses the step, which is exactly what East
+    /// Indies' word parted on.
+    #[test]
+    fn the_leading_edge_finds_the_corner_the_disc_walks_past() {
+        let mut world = World::new(40, 40);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let ty = |sim: &mut Sim, block: i32| {
+            sim.add_unit_type(UnitType {
+                hits: 40,
+                moves: 25,
+                combat: crate::combat::Profile {
+                    block_radius: block,
+                    big_radius: block,
+                    uber_size: 1,
+                    ..crate::combat::Profile::default()
+                },
+                ..UnitType::default()
+            })
+        };
+        let (wide, narrow) = (ty(&mut sim, 96), ty(&mut sim, 48));
+        let put = |sim: &mut Sim, o: i16, cell: Pos, t| {
+            let mut u = Unit::new(0, o, ucell_centre(cell), 40);
+            u.ty = Some(t);
+            sim.add_unit(u)
+        };
+        // The walker's own cell is `(20, 20)` and it proposes `(20, 19)`,
+        // so its leading edge is the row `y = 17` at `x` 18, 20 and 22.
+        let big = put(&mut sim, 0, Pos::new(20, 20), wide);
+        // `(16..=18, 15..=17)` — the corner cell `(18, 17)` and no more.
+        let corner = put(&mut sim, 1, Pos::new(17, 16), narrow);
+        // `(20..=22, 15..=17)` — the edge's middle cell, and the one the
+        // disc reaches first.
+        let square = put(&mut sim, 2, Pos::new(21, 16), narrow);
+        assert_eq!((sim.coll_size(big), sim.coll_size(corner)), (2, 1));
+        assert_eq!(sim.coll_size(square), 1);
+
+        let at = ucell_centre(Pos::new(20, 19));
+        assert_eq!(
+            sim.collide_here(big, ucell(at), false),
+            Some(Pos::new(18, 17)),
+            "the leading edge stops at the corner cell"
+        );
+        // The disc — which `valid_ucoord` and the stack unwind still ask —
+        // takes the ring's edge cells before its corners.
+        assert_eq!(
+            sim.collide_here(big, ucell(at), true),
+            Some(Pos::new(20, 17)),
+            "the whole disc's first parity cell is the middle of the edge"
+        );
+        // And the corner rule turns the first into no collision at all:
+        // `will_be_corner 1` against `is_corner 5` is the two opposite
+        // diagonals, and they pass.
+        assert_eq!(
+            sim.detect_unit_collision(big, at),
+            None,
+            "corner to opposite corner: the two slip past"
+        );
+        assert_eq!(sim.units[big].collide_o, -1, "and nothing is recorded");
     }
 
     /// §4.2: for a `coll_size 1` unit the parity filter leaves exactly the
