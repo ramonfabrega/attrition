@@ -5681,6 +5681,207 @@ mod tests {
         );
     }
 
+    /// **run71 — Great Lakes at 5,000 frames, the first dump that reaches
+    /// past the map's word** (2026-09-03, item 197).
+    ///
+    /// run69 is 3,000 frames and the word is 4241, so every frame of the
+    /// parting fell past the end of the only full-detail dump Great Lakes
+    /// had — `docs/DECISIONS.md` 29's standing rule, one map later than
+    /// run56 and run69 answered it for East Indies.
+    ///
+    /// run33's recipe unchanged and only the *length* changed: `MAP_STYLE
+    /// 14`, seed 12345, run10's `-config check.ini` lobby, run10's detail,
+    /// no input, carried to **5,000**. The capture checks itself before it
+    /// is believed — `rngcmp` against run53 is 5,001 identical frames and
+    /// 0 differing, and `samegame` against run69 differs on none of their
+    /// 3,000 common frames — so it is a drop-in longer run69 and both
+    /// same-game tools speak.
+    ///
+    /// What it is for is the **word's own frame**: 4241 is where run53's
+    /// trace says the draws part, and until this capture nothing on disk
+    /// printed that frame's units, buildings or orders at all.
+    #[test]
+    fn run71_s_five_thousand_frames_reach_past_the_word() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run71-greatlakes-5k.txt"),
+            trace("rontrace-run71.log"),
+        ) else {
+            eprintln!("skipping: no run71 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        assert!(
+            report.frames.len() >= 5_000,
+            "run71's length is {} — a short file here is a wrong file",
+            report.frames.len()
+        );
+
+        // The buildings, whole.
+        let builds: usize = report.frames.iter().map(|f| f.build_compared).sum();
+        let build_bad: Vec<BuildDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.build_diverged.iter().copied())
+            .collect();
+        eprintln!(
+            "run71 buildings: {builds} fields compared, {} wrong",
+            build_bad.len()
+        );
+        for d in build_bad.iter().take(12) {
+            eprintln!(
+                "  {}/{} f{}: {} ours {} theirs {}",
+                d.who, d.o, d.frame, d.field, d.ours, d.theirs
+            );
+        }
+
+        // The collision block, on every unit-frame whose position agrees.
+        let coll: usize = report.frames.iter().map(|f| f.collide_compared).sum();
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let coll_bad: Vec<CollideDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.collide_diverged.iter().copied())
+            .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
+            .collect();
+        eprintln!(
+            "run71 collision: {coll} field-frames compared, {} wrong, \
+             {} unit(s) ever off position",
+            coll_bad.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+        // The parting itself, at the earliest frames, with both sides.
+        let mut rows: Vec<&Divergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.diverged.iter())
+            .collect();
+        rows.sort_by_key(|d| (d.frame, d.who, d.o));
+        for d in rows.iter().take(24) {
+            eprintln!(
+                "  f{} {}/{}: ours ({},{}) theirs ({},{})",
+                d.frame, d.who, d.o, d.ours.x, d.ours.y, d.theirs.x, d.theirs.y
+            );
+        }
+
+        // The waypoints, folded to one row a unit and a field.
+        let mut waypoints: Vec<(i64, i64, &str, i64, usize)> = Vec::new();
+        for d in report.frames.iter().flat_map(|f| f.order_diverged.iter()) {
+            let OrderMismatch::Move { field, .. } = d.what else {
+                continue;
+            };
+            if field != "dest_x" && field != "dest_y" {
+                continue;
+            }
+            match waypoints
+                .iter_mut()
+                .find(|r| (r.0, r.1, r.2) == (d.who, d.o, field))
+            {
+                Some(r) => r.4 += 1,
+                None => waypoints.push((d.who, d.o, field, d.frame, 1)),
+            }
+        }
+        eprintln!("run71 waypoint rows, whole capture: {waypoints:?}");
+
+        // **Everything run69 proved still holds**, and it has to: run71 is
+        // the same game, so its first 3,000 frames are run69's.
+        let early: Vec<(i64, i64, i64)> = parted
+            .iter()
+            .filter(|&(_, &f)| f < 3_000)
+            .map(|(&(w, o), &f)| (w, o, f))
+            .collect();
+        assert_eq!(
+            early,
+            Vec::new(),
+            "run69's 3,000 frames are clean, so run71's first 3,000 are too"
+        );
+        let build_early: Vec<&BuildDivergence> =
+            build_bad.iter().filter(|d| d.frame < 3_000).collect();
+        assert!(
+            build_early.is_empty(),
+            "and so are its buildings over the same stretch: {build_early:?}"
+        );
+
+        // **The position parting is 4177, and it is 64 frames earlier than
+        // the draw word.** This is what the capture was taken to find out
+        // and it is not what was expected: `LONG_WORD_GREAT_LAKES` is 4241,
+        // measured off run53's *draw* stream, and nothing had ever compared
+        // a position past run69's 3,000. Two units go at the same instant
+        // and they go differently —
+        //
+        //   `1/11` **stops**: ours holds (40824,19032) for frame after frame
+        //   while the original walks (40831,19056), (40838,19080),
+        //   (40845,19104) — a clean +7,+24 a frame.
+        //
+        //   `1/19` **turns wrong**: ours steps +14,-20 a frame against the
+        //   original's +25,0. Both carry `myspeed 25`, and ours moves
+        //   sqrt(14² + 20²) ≈ 24.4 of it — so the speed is right and the
+        //   *heading* is not, with `angle` 1073741824 against a `dest_angle`
+        //   of 1353318400 mid-turn.
+        //
+        // Pinned as a floor and as the list it is, so that the day either
+        // one is fixed this fails rather than quietly passing.
+        let first_part = parted.values().copied().min().unwrap_or(i64::MAX);
+        assert_eq!(
+            first_part, 4177,
+            "Great Lakes parts on position at 4177 — a change here is the \
+             score moving, and it moves the queue's Scoreboard line with it"
+        );
+        let at_first: Vec<(i64, i64)> = parted
+            .iter()
+            .filter(|&(_, &f)| f == first_part)
+            .map(|(&(w, o), _)| (w, o))
+            .collect();
+        assert_eq!(
+            at_first,
+            vec![(1, 11), (1, 19)],
+            "and two units go at that instant, one stopping and one turning"
+        );
+
+        // The counts only grow; a fall here is a capture that got shorter or
+        // a link that stopped being made.
+        assert!(
+            builds >= 180_076,
+            "two fields on every linked building-frame: {builds}"
+        );
+        assert!(
+            coll >= 475_556,
+            "five fields on every agreeing unit-frame: {coll}"
+        );
+        assert!(
+            coll_bad.is_empty(),
+            "the collision block agrees on every comparable field-frame of \
+             {coll}: {coll_bad:?}"
+        );
+        // **The one building that moves is downstream of the parting.** All
+        // 425 wrong fields are `1/2015`'s `y_internal`, 15936 here against
+        // 15744 — four cells of 48 — and none of them before 4577, which is
+        // four hundred frames after the units part. Nothing is claimed about
+        // its cause; it is pinned so it cannot spread unnoticed.
+        assert!(
+            build_bad
+                .iter()
+                .all(|d| d.field == "y_internal" && (d.who, d.o) == (1, 2015) && d.frame >= 4_577),
+            "every wrong building field is 1/2015's y_internal from 4577: \
+             {:?}",
+            &build_bad[..build_bad.len().min(4)]
+        );
+    }
+
     /// **Where the buildings stand** — run56's `BUILDDATA` position, on
     /// every linked building of every frame.
     ///

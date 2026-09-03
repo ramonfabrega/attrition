@@ -14710,3 +14710,104 @@ and 4; both `starting_resources == 8` arms, which no lobby on disk reaches;
 and the two writers — a player's click and `set_auto_peasant_level` — neither
 of which is modelled, which is why `Sim::build_stance` computes the
 building's byte instead of storing it.
+
+## 2026-09-03 (Opus) — item 197: the capture that took two sessions to launch, and the 64 frames it found underneath the word
+
+**The item was one capture and it was blocked on a checkbox.** Great Lakes'
+word is 4241 and its longest full-detail dump was run69's 3,000, so every
+frame of the parting fell past the end of the only file that could show it —
+`docs/DECISIONS.md` 29's standing rule, one map later than run56 and run69
+answered it for East Indies. The capture had been launched and parked twice.
+Both times the diagnosis was "a Claude Code update reset macOS
+Accessibility; toggle `ClaudeCode.app` off and on". Both times that was done,
+and both times it did nothing, because **both halves of that sentence are
+wrong**.
+
+`tccd` says so in one line, and reading it took a minute where guessing had
+taken two sessions:
+
+```
+AUTHREQ_SUBJECT: subject=/Users/…/.local/share/claude/versions/2.1.259
+```
+
+The responsible process is the **bare versioned binary**, not the bundle. It
+has no `Info.plist`, so TCC has nothing to key on but the absolute path — and
+that path carries the version number. So every update writes a new path and
+revokes Accessibility, Screen Recording and Automation together; and adding
+`ClaudeCode.app` in System Settings does nothing whatever, because macOS
+never evaluates that path. The row appears, stays ticked, and is never
+consulted. `TCC.db` needs Full Disk Access and its mtime is not evidence — a
+*denial* updates it too — but `/usr/bin/log show --predicate 'subsystem ==
+"com.apple.TCC"'` is open to anyone, and it names the exact path being
+judged. That is now the first thing ORACLE tells the next session to do.
+
+**`~/bin/RonDriver.app` ends the tax** (`tools/gamelog/rondriver/`,
+`viadriver.sh`). `open -a` launches it through LaunchServices, so the bundle
+is the responsible process and every child inherits that; under it the
+subject is `com.ramonfabrega.rondriver`, an *identifier* rather than a path,
+which is the stable thing the native install never had. It spawns and waits
+rather than exec'ing — an exec would replace its image with `/bin/zsh` and
+hand the attribution straight back to the interpreter, which is the bug it
+exists to escape. The attribution was read back out of `tccd`'s log before
+any of this was believed.
+
+**The probe that let it through had already been rewritten once, and the
+rewrite lied the same way.** `cliclick p` reads the cursor without needing
+Accessibility, so it passed while every synthetic event was being dropped;
+its replacement asked System Events for `every window of process "Finder"`,
+on the reasoning that Finder always exists. Finder is usually running with
+**no windows open**, and an empty list needs no accessibility call to
+produce, so the question returns the empty string and rc=0 either way. It
+printed `probe ok (cursor 1649,0)` on the very run it was written to catch,
+and that run then clicked Solo, Quick and Start into a dead menu and sat in
+its poll loop reporting `gamelog=0 still=8`. The same call against the game,
+which does have a window, refuses with -1728; the probe simply never asked
+anything that had to be answered.
+
+Two probes, both defeated the same way: each asked a question whose answer
+looks identical granted and refused. `perm_probe` (`tools/gamelog/probe.sh`,
+now shared by all four capture scripts) asks one that cannot be — post a
+synthetic move, read back where the cursor actually went, twice so a cursor
+already on the target cannot pass by luck. Made to fail first against a stub
+`cliclick` that behaves exactly like a denied one, which is also the trap
+underneath all of this: **denied, `cliclick` exits 0 and prints a plausible
+position, warning only on stderr.** A script's own log line is not evidence
+that a click landed. `screencapture` is.
+
+**run71 is clean and it checks itself.** 832 MB, 5,001 frame blocks,
+`MAP_STYLE 14`, seed 12345, run33's recipe with only the length changed;
+`rngcmp` against run53 is 5,001 identical frames and 0 differing, and
+`samegame` against run69 differs on none of their 3,000 common frames.
+
+**And what it found is 64 frames below the word.** The word is 4241,
+measured off run53's *draw* stream, and nothing had ever compared a position
+past run69's 3,000. Positions part at **4177**, and two units go at the same
+instant, differently:
+
+- `1/11` **stops**. Ours holds (40824,19032) frame after frame while the
+  original walks (40831,19056), (40838,19080), (40845,19104) — a clean
+  +7,+24 a frame toward a `to_x`/`to_y` of (41736,22584) that ours never
+  resumes for.
+- `1/19` **turns wrong**. Ours steps +14,-20 a frame against the original's
+  +25,0. Both carry `myspeed 25`, and ours moves sqrt(14² + 20²) ≈ 24.4 of
+  it — so the speed is right and the *heading* is not, with `angle`
+  1073741824 against a `dest_angle` of 1353318400, mid-turn.
+
+Whether one cause or two is not established; that they fire on the same
+frame is the only reason to suspect one. Both are pinned in
+`run71_s_five_thousand_frames_reach_past_the_word` as the list they are, so
+the day either is fixed the test fails rather than passing quietly.
+
+**The collision block is perfect over the whole capture** — 475,556
+field-frames compared, none wrong — and the buildings have exactly one
+residue: 425 fields, all `1/2015`'s `y_internal`, 15936 here against 15744,
+four cells of 48, and none of them before 4577. That is four hundred frames
+downstream of the parting, so nothing is claimed about its cause; it is
+pinned so it cannot spread unnoticed.
+
+**The cost, stated plainly, because it is the lesson.** Roughly three hours
+across two sessions went to a permission dialog, of which the diagnostic that
+actually settled it was one `log show`. The rule it earns: when a permission
+is refused, read the system's own verdict before touching a checkbox — and
+when a run reports progress, confirm it against something the run does not
+write.

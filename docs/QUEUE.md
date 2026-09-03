@@ -12,35 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — item 190 closed; neither word moved, and the last
-exception in run68's window died.* **East Indies 6739; Great Lakes 4241.**
-The window is **138,769 fields over 135 blocks, none differing** (122,752
-over 123 before).
+*2026-09-03, Opus — item 197 closed; run71 landed and the lower map's
+position parting turned out to be 64 frames **below** the word.* **East
+Indies 6739; Great Lakes 4241 by draw, 4177 by position.**
 
-- **One byte means four things, and the trainer overwrites it.**
-  `Unit::init` switches on the type's stance kind; then `Build::train`
-  calls `set_stance` with the **building's** byte when the kinds match. So
-  an AI's *starting* citizens are 1 and every one it *trains* is 0, and one
-  block prints both. The worker arm is inverted from its field name: the
-  **human** takes `leader_options.peasants`, the AI the lobby. ORDERS
-  §5.10; the check was two start blocks already on disk.
-- **194's other half landed with it.** §5.9's build arm, written and taken
-  back out twice, now asks who the original asks. Both words held.
-
-**197 is launched and parked.** run71 — Great Lakes, 5,000 frames — is up
-with the game running, stopped in `waitwin.sh` on a macOS **Accessibility**
-grant for `ClaudeCode.app` that the 2.1.259 update reset (−1728; Screen
-Recording and Automation went with it and are back). The loop retries every
-three seconds, so the grant alone restarts it. `longtrace.sh`'s probe
-passes `cliclick p`, which does not test this.
+- **The capture was blocked on a checkbox for two sessions, and the advice
+  in ORACLE was wrong twice over.** `tccd` names the responsible process as
+  `~/.local/share/claude/versions/<VERSION>` — a bare binary with no
+  bundle, so TCC keys on the raw path and the path carries the version.
+  Every update revokes all three grants, and adding `ClaudeCode.app` does
+  nothing because macOS never evaluates it. `~/bin/RonDriver.app`
+  (`rondriver/`, `viadriver.sh`) is the fixed-path owner; **it still needs
+  its one manual Accessibility grant.** ORACLE, "The grant is keyed to a
+  path".
+- **Two probes had been defeated the same way** — `cliclick p` needs no
+  privilege, and `Finder` has no windows, so an empty list and rc=0 look
+  exactly like a grant. `perm_probe` posts a move and reads back where the
+  cursor went. All four capture scripts share it.
+- **run71: 5,001 frames, `rngcmp` 0 differing against run53, `samegame` 0
+  against run69.** Collision perfect over 475,556 field-frames; buildings
+  one residue, `1/2015`'s `y_internal` from 4577.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w6739 of 24,000 · GreatLakes w4241 of 24,000
 
-**Opener (Opus):** `197 is still the default and still the block: check
-Accessibility for ClaudeCode.app, relaunch with \`zsh
-tools/gamelog/runqueue.sh - 197\` if the game is gone. 192 is second and
-needs no capture.`
+**Opener (Opus):** `198 is the default and it is the lower map's own first
+divergence: 1/11 stops at 4177 where the original walks on. 199 is its
+twin on the same frame and may be the same defect. Neither needs a
+capture — run71 is on disk.`
 
 ## The queue
 
@@ -49,12 +48,24 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted unle
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-197. **Great Lakes' word is 1,241 frames past its longest full-detail
-    capture.** run69 is 3,000 and the word is 4241, so nothing on disk
-    prints the parting frame's units, buildings or orders — the same debt
-    run69 itself was made to pay, one map later. run33's recipe carried to
-    5,000 (`docs/ORACLE.md`, `longtrace.sh`); run53's trace already names
-    the draw, so the dump is the only thing missing.
+198. **`1/11` stops at 4177 and the original walks on.** run71, the lower
+    map's first position parting: ours holds (40824,19032) frame after
+    frame while the original steps +7,+24 toward a `to_x`/`to_y` of
+    (41736,22584) it never resumes for. `ox 2014`, `gather_down -1`,
+    `dest 1`, `myspeed 25`. Pinned in
+    `run71_s_five_thousand_frames_reach_past_the_word`.
+
+199. **`1/19` turns wrong on the same frame.** Right speed, wrong heading:
+    ours steps +14,-20 against the original's +25,0, and sqrt(14²+20²) is
+    24.4 of a `myspeed` 25. `angle` 1073741824, `dest_angle` 1353318400,
+    mid-turn, `gather_down 18`, `ox 2009`. Whether 198 and this are one
+    defect is unestablished — the shared frame is the only reason to think
+    so, and settling that is the first move on either.
+
+200. **`1/2015`'s `y_internal` is four cells south from 4577**, 15936 here
+    against 15744, 425 fields, and nothing before it. Four hundred frames
+    downstream of the parting, so it may be a consequence rather than a
+    cause; pinned so it cannot spread unnoticed.
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
     frames short of `1/19`'s deploy spot (MERCHANT §7): nothing on disk
