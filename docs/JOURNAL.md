@@ -14262,3 +14262,81 @@ any future convention claim is out/req, not per-item anything.
 The cadence rule stays as written; note for the next count-triggered
 pass that this one found a direction error, not a stall, which is the
 case for keeping it.
+
+## 2026-09-03 (Opus) — item 193: Great Lakes' 2419 is item 191's route, on the other map
+
+**The steering pass booked the look and the capture in one session, and
+that is how it went.** run69 — Great Lakes at run33's detail out to 3,000
+frames — launched in the first five minutes as a background shell, and the
+diagnosis was done off run53's trace while it ran. Twenty minutes, 468 MB,
+`rngcmp` against run53 zero differing over 3,001 frames and `samegame`
+against run33 zero differing over their 1,850 in common. The lane works;
+it did not need an agent.
+
+### One draw, and it is a frame and not a thing
+
+Frames 2416–2418 and 2421–2422 agree label for label. 2419 is one draw
+here and none there; 2420 is one there and none here; the draw is the same
+site on both sides — `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0xb99`,
+the return-to-camp stand — and the unit is the AI's woodcutter `1/9`.
+
+The clock behind it never disagreed. `1/9` chose its tree on frame 1959 and
+the tile choice's own draw, `+0x54b`, returns **4** in the trace: `400 + 4 %
+200` is 404 on both sides. The countdown does not start at the choice — the
+walk goes in front of the gather order and the order is only reached again
+when the walk ends — so 404 frames later is the walk's end plus 404, and
+the parting says the walk ended a frame early.
+
+### The walk, and the two nodes
+
+run69's `MOVEORDER` rows are the first Great Lakes dump that carries it.
+`1/9`'s waypoints are the original's on every frame of the game until
+**1993**, and then:
+
+```
+slot 2   ours (40728, 17544)   theirs (40776, 17544)
+slot 3   ours (40824, 17640)   theirs (40872, 17640)
+```
+
+Two middle slots, 48 short in x apiece. Same ends, same dog-leg, same
+switch frame, same total length — ours 144 + diagonal + 144, theirs 192 +
+diagonal + 96 — and this crate reaches the tree on **2015** where the
+original reaches it on 2016.
+
+That is item 191's signature exactly: run68's `1/13` on East Indies parts
+on the same two middle slots of its own `PATHDATA` stack from block 6686.
+**So the lower map's seam and the higher map's frontier are one defect**,
+and the queue now has one item in front of both numbers instead of two.
+Which is the argument for DECISIONS 25's own rule, made by the rule: a
+residue that shows on one map only is what a single-map chase cannot find,
+and Great Lakes — no islands, no barge, no merchant — reached the same
+node difference through a woodcutter's walk to a tree.
+
+### What the capture bought beside the answer
+
+`run69_s_three_thousand_frames_stand_where_the_original_s_do`, in run57's
+shape. Of fourteen units that ever leave the original's point, thirteen
+part between 2467 and 2930 — all past the word, where both streams are on
+draws that are nobody's. `1/9` parts 474 frames earlier than any of them,
+and that gap is what makes "one unit before the word, and it is 191's" an
+assertion rather than a coincidence. Collision: **228,821 field-frames,
+none wrong**. Buildings: 95,476 fields, nothing wrong before the word and
+one row after it (`1/2010`'s `y_internal` from 2577, an AI placement past
+the parting). The waypoint rows are pinned **as they stand** — thirteen
+`dest_x` from 1993 and two `dest_y` from 2000 — so the day the route is
+right the test fails rather than passing quietly.
+
+### What is not established
+
+Which step of the search puts the node there. Both routes are legal,
+equal-length and on the same grid, so this is a **tie-break rather than a
+price**: `astar_path`'s direction wheel, its comparison on an equal `f`, or
+the order the open list is walked. Nothing was read against the listing
+today, and neither capture carries the search's own probe count — run55's
+`callwin` over `astar_path` and `calc_cost` is the instrument that would,
+and Great Lakes frame 1960 is where to point it.
+
+**The score.** East Indies unchanged at 6739; Great Lakes unchanged at
+2419. No number moved, and the session says so: what moved is that the two
+frontiers became one item, and the map that had been standing still for two
+days now has a capture that can see past its own word.

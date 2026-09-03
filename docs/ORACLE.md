@@ -3701,3 +3701,47 @@ as a single-capture field the day before the capture landed.
 `stance` and one unit's two path waypoints excepted by name
 (`run68_s_window_is_every_unit_s_whole_record_to_the_word`). It was 118,948
 over 119 while the merchant's arrival was open.
+
+## run69 — Great Lakes past its own word, and the map that had been standing still (2026-09-03)
+
+The capture lane's standing rule (`docs/DECISIONS.md` 29) owed this one two
+days before it was taken: **when a map's word crosses the newest
+full-detail capture it has, the next one is sized to the word.** Great
+Lakes' word is run53's **2419** and its only full-detail run was run33's
+1,850, so every frame of the parting fell past the end of the only dump
+that could show it — the same shape that owed run56 on East Indies.
+
+run33's recipe unchanged and nothing else: `MAP_STYLE 14`, seed 12345,
+run10's `-config check.ini` lobby, run10's `[Start Game]` and `[End Frame]`
+detail, no input, carried to **3,000** frames. Twenty minutes, **468 MB**
+of dump and 10 MB of trace, at about 2.5 sim-frames a second. Only the
+*length* changed, so it is a drop-in longer run33 and both same-game tools
+speak.
+
+**It is the same game twice over.** `rngcmp.py` against run53: **3,001
+frames, zero differing**. `samegame.py` against run33: 1,850 frames in
+common, **zero differing**. So it inherits run10's siblings and run53's
+word.
+
+**It was launched in the session's first five minutes and read in its
+last** — the lane the 09-03 steering pass named, a background shell rather
+than a second agent, and the diagnosis was done off run53's trace while it
+ran.
+
+**What it settles**, and it is the whole of item 193. The word parts at
+2419 on one draw, the AI woodcutter `1/9`'s return-to-camp stand, and the
+clock behind it is exact on both sides — so the frame is a **walk**, and
+this capture is the first Great Lakes dump that carries the walk. `1/9`'s
+`MOVEORDER` waypoints are the original's on every frame of the game until
+**1993** and then run 48 short in x for two middle legs; it reaches its
+tree on 2015 where the original reaches it on 2016
+(`docs/PATHFINDER.md` §17, `docs/SYNC.md` §3.26).
+
+**And what the widening said beside it.** Of the capture's fourteen units
+that ever leave the original's point, thirteen part between 2467 and 2930
+— all past the word, where both streams are on draws that are nobody's.
+`1/9` parts 474 frames earlier than any of them. The collision block is
+**228,821 field-frames with none wrong**; the buildings are 95,476 fields
+with nothing wrong before the word and one row after it — `1/2010`'s
+`y_internal`, this crate's four tiles south of the original's from 2577,
+which is an AI placement past the parting and not this capture's business.

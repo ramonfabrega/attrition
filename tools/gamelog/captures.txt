@@ -613,3 +613,32 @@ poll_max: 200
 # Same game: the trace word for word against run54. `samegame.py` cannot
 # speak here — the dump's frames do not overlap any other capture's.
 check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run59.log
+
+run: 69
+tag: greatlakes-3k
+item: 193
+why: Great Lakes' full-detail dump out past its own word — 3,000 frames, sized to run53's 2419
+# **The standing rule owes this map now** (DECISIONS 29). run53's 24,000-frame
+# trace parts at **2419** and run33, Great Lakes' only full-detail run, stops
+# at 1,850 — so every frame of the divergence falls past the end of the only
+# dump that could show it, exactly the shape that owed run56 on East Indies.
+# The word crossed run33's ceiling two days ago and no capture followed.
+#
+# run33's recipe unchanged and nothing else: same seed, same `-config
+# check.ini` lobby, same detail, no input. Only the **length** changes, so
+# this stays a strict sibling of run33 (dump) and run53 (trace) and both
+# same-game tools still speak.
+#
+# 3,000 and not 2,419: the residue either side of a parting is what gets read,
+# and ~600 frames of margin is the same headroom run56 took.
+frames: 3000
+mapstyle: 14
+# run33's per-frame block is ~155 KB a frame by 1,800 and rising with the
+# roster: budget ~700 MB and the better part of an hour. The default 160
+# polls is 53 minutes and its give-up **truncates**.
+poll_max: 900
+# Same game, twice over: the trace word for word against run53 (the stronger
+# claim, and the one the handoff names), and the dump frame for frame against
+# run33 over the 1,850 frames they share.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run69.log
+check: python3 tools/gamelog/samegame.py gamelog-run33-longtrace.txt gamelog-run69-greatlakes-3k.txt

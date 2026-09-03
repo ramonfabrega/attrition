@@ -1730,6 +1730,45 @@ original's a `< Guy::inc_time+0x271`. A woodcutter's clock, which is
 §3.14's and item 103's shape. The **count** holds to 4288, where the
 extra pair is a gaia herd's.
 
+## 3.26 Great Lakes parts at 2419 on a route, not a clock (2026-09-03)
+
+**The map had stood still for two days and no item named it.** Great
+Lakes' long word has been 2419 since run61 put the bird's birth right,
+through every session since; DECISIONS 25 makes the *lower* map's nearest
+divergence the default item and the queue had been chasing the higher one.
+Item 193 is the look, and it took a trace already on disk plus the capture
+the map had earned (run69, `docs/ORACLE.md`).
+
+**What parts is one draw.** Frames 2416–2418 and 2421–2422 agree label for
+label; 2419 is one draw here and none in the original, and 2420 is one in
+the original and none here. The draw is the same on both sides —
+`Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_non_flat_gather+0xb99`,
+the return-to-camp stand of §6.4's wood machine — and the unit is the AI's
+woodcutter `1/9`. So the word does not part on *what* happens; it parts on
+**which frame**, by one.
+
+**The clock behind it is exact on both sides.** `1/9` chose its tree on
+frame 1959, and the tile choice's own draw — `+0x54b`, `400 + rnd % 200` —
+returns **4** in run53's trace, so the wait is **404** here and there. The
+countdown does not start at the choice: the walk goes in front of the
+gather order, and the order is only reached again when the walk ends. 404
+frames later is the return stand, and the frame it lands on is therefore
+the frame the walk ended.
+
+**The walk ended a frame early**, and run69's own `MOVEORDER` rows say why:
+`1/9`'s two middle waypoints are each one 48-grid step short in x of the
+original's. Same ends, same total length, same switch frame, different
+dog-leg — and this crate reaches the tree on 2015 where the original
+reaches it on 2016. `docs/PATHFINDER.md` §17 has the table and what is
+still unread.
+
+**So the lower map's seam and the higher map's frontier are one defect.**
+run68's `1/13` on East Indies parts on exactly the same two middle slots
+of its own path stack from block 6686 (item 191); this is that, on a map
+with no islands, no barge and no merchant. The word did not move today —
+what moved is that one item now stands in front of both numbers instead of
+one.
+
 ## 4. Run12 attributed
 
 Frame 0, draws 0–119 (the LCG from `0x3bd39ae9`):

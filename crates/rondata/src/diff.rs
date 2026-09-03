@@ -5416,6 +5416,195 @@ mod tests {
         );
     }
 
+    /// **run69 — Great Lakes at 3,000 frames, the capture the map had
+    /// earned and nobody had taken** (2026-09-03, item 193).
+    ///
+    /// The standing rule (`docs/DECISIONS.md` 29): when a map's word
+    /// crosses the newest full-detail capture it has, the next one is
+    /// sized to the word. Great Lakes' word is run53's **2419** and its
+    /// only full-detail run was run33's 1,850, so every frame of the
+    /// parting fell past the end of the only dump that could show it —
+    /// the same shape that owed run56 on East Indies two days earlier.
+    ///
+    /// run33's recipe unchanged and nothing else: `MAP_STYLE 14`, seed
+    /// 12345, run10's `-config check.ini` lobby, run10's detail, no
+    /// input, carried to **3,000**. Only the *length* changed, so it is a
+    /// drop-in longer run33 and both same-game tools speak.
+    ///
+    /// **What it settles**, and it is the whole of item 193: the word
+    /// parts at 2419 on one draw, a `Guy::set_anim+0x97a <
+    /// Unit::do_non_flat_gather+0xb99` — the AI woodcutter `1/9`'s
+    /// return-to-camp stand — which this crate spends on 2419 and the
+    /// original on 2420. The clock behind it is the same on both sides:
+    /// the tile choice's `+0x54b` draw on frame **1959** returns 4 on
+    /// both, `400 + 4 % 200` is **404**, and 404 frames of chopping put
+    /// the walk home wherever the *countdown starts*. It starts on
+    /// arrival at the tile, and this crate's woodcutter arrives on 2015
+    /// where the original's arrives on **2016**.
+    ///
+    /// The frame is a **route**, and this capture prints it. `1/9`'s
+    /// `MOVEORDER` waypoints (`dest_x`/`dest_y`, live while `dest` is 1)
+    /// go `(40536, 17592)`, `(40584, 17544)`, **`(40728, 17544)`**,
+    /// **`(40824, 17640)`**, `(40968, 17640)`, `(41016, 17640)` here and
+    /// `…, (40776, 17544), (40872, 17640), …` in the original: two middle
+    /// slots, each one **48-grid step** short, on a route whose ends,
+    /// total length and switch frame all agree. That is item 191's
+    /// signature exactly — run68's `1/13` on East Indies parts on the
+    /// same two middle slots of its own stack from block 6686 — so the
+    /// lower map's seam and the higher map's frontier are one defect
+    /// (`docs/PATHFINDER.md`, "The middle nodes"). The rows are asserted
+    /// **as they stand** rather than filtered out, so the day the route
+    /// is right this fails rather than passing quietly.
+    #[test]
+    fn run69_s_three_thousand_frames_stand_where_the_original_s_do() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(tr)) = (
+            dump("gamelog-run69-greatlakes-3k.txt"),
+            trace("rontrace-run69.log"),
+        ) else {
+            eprintln!("skipping: no run69 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let report = run_traced(&loaded, &log, Tuning::RON, None, None, &refs, Some(&tr)).unwrap();
+        assert!(
+            report.frames.len() >= 3_000,
+            "run69's length is {} — a short file here is a wrong file",
+            report.frames.len()
+        );
+
+        // The buildings, whole.
+        let builds: usize = report.frames.iter().map(|f| f.build_compared).sum();
+        let build_bad: Vec<BuildDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.build_diverged.iter().copied())
+            .collect();
+        eprintln!(
+            "run69 buildings: {builds} fields compared, {} wrong",
+            build_bad.len()
+        );
+        for d in build_bad.iter().take(8) {
+            eprintln!(
+                "  {}/{} f{}: {} ours {} theirs {}",
+                d.who, d.o, d.frame, d.field, d.ours, d.theirs
+            );
+        }
+
+        // The collision block, on every unit-frame whose position agrees.
+        let coll: usize = report.frames.iter().map(|f| f.collide_compared).sum();
+        let parted: std::collections::BTreeMap<(i64, i64), i64> = report
+            .first_divergence_by_unit()
+            .into_iter()
+            .map(|(w, o, f)| ((w, o), f))
+            .collect();
+        let coll_bad: Vec<CollideDivergence> = report
+            .frames
+            .iter()
+            .flat_map(|f| f.collide_diverged.iter().copied())
+            .filter(|d| parted.get(&(d.who, d.o)).is_none_or(|&f| d.frame < f))
+            .collect();
+        eprintln!(
+            "run69 collision: {coll} field-frames compared, {} wrong, \
+             {} unit(s) ever off position",
+            coll_bad.len(),
+            parted.len()
+        );
+        for (&(who, o), &frame) in &parted {
+            eprintln!("  {who}/{o} parts at {frame}");
+        }
+
+        // **The waypoint, before the word.** `dest_x`/`dest_y` is the
+        // move order's *current* step (§4.1), and it is the record item
+        // 193 turned out to be. Folded to one row a unit and a field —
+        // who, what, the first frame and how many — because a route that
+        // parts stays parted for the rest of its walk and the count is
+        // the walk's length, not a second finding.
+        let mut waypoints: Vec<(i64, i64, &str, i64, usize)> = Vec::new();
+        for d in report
+            .frames
+            .iter()
+            .flat_map(|f| f.order_diverged.iter())
+            .filter(|d| d.frame < LONG_WORD_GREAT_LAKES)
+        {
+            let OrderMismatch::Move { field, .. } = d.what else {
+                continue;
+            };
+            if field != "dest_x" && field != "dest_y" {
+                continue;
+            }
+            match waypoints
+                .iter_mut()
+                .find(|r| (r.0, r.1, r.2) == (d.who, d.o, field))
+            {
+                Some(r) => r.4 += 1,
+                None => waypoints.push((d.who, d.o, field, d.frame, 1)),
+            }
+        }
+        eprintln!("run69 waypoint rows before the word: {waypoints:?}");
+
+        let build_early: Vec<&BuildDivergence> = build_bad
+            .iter()
+            .filter(|d| d.frame < LONG_WORD_GREAT_LAKES)
+            .collect();
+        assert!(
+            build_early.is_empty(),
+            "the AI's buildings stand where the original's do up to the word \
+             ({LONG_WORD_GREAT_LAKES}): {build_early:?}"
+        );
+        assert!(
+            coll_bad.is_empty(),
+            "the collision block agrees on every comparable field-frame of \
+             {coll}: {coll_bad:?}"
+        );
+        // **Nothing leaves the original's point before the word except
+        // `1/9`, and `1/9` is item 191.** Thirteen of the capture's
+        // fourteen partings fall between 2467 and 2930, all past 2419,
+        // where both streams are on draws that are nobody's. The
+        // fourteenth is 474 frames earlier and is the whole of item 193:
+        // the woodcutter's two middle waypoints, one 48-grid step each.
+        let early: Vec<(i64, i64, i64)> = parted
+            .iter()
+            .filter(|&(_, &f)| f < LONG_WORD_GREAT_LAKES)
+            .map(|(&(w, o), &f)| (w, o, f))
+            .collect();
+        assert_eq!(
+            early,
+            vec![(1, 9, 1993)],
+            "one unit leaves the original's point before the word, and it is \
+             the woodcutter of item 191's own defect"
+        );
+        // The two slots, as they stand: `1/9` holds the original's
+        // waypoint on every frame of the game until **1993**, and then
+        // walks a route 48 short in x for the fifteen frames the two
+        // middle legs last — `dest_y` joining it on 2000, where this
+        // crate has already turned for the diagonal leg and the original
+        // is still running east. Asserted as it stands rather than
+        // filtered out, so the day the route is right this fails rather
+        // than passing quietly (the `gather_slots` precedent).
+        assert_eq!(
+            waypoints,
+            vec![(1, 9, "dest_x", 1993, 13), (1, 9, "dest_y", 2000, 2)],
+            "the only waypoints the capture disagrees on before the word \
+             are `1/9`'s"
+        );
+        assert!(
+            builds >= 95_476,
+            "two fields on every linked building-frame: {builds}"
+        );
+        assert!(
+            coll >= 228_821,
+            "five fields on every agreeing unit-frame, and the count only \
+             grows: {coll}"
+        );
+    }
+
     /// **Where the buildings stand** — run56's `BUILDDATA` position, on
     /// every linked building of every frame.
     ///

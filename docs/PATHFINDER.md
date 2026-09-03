@@ -1121,3 +1121,64 @@ the reading says they cannot (`is_ocean` refuses `HALFLAND` outright,
 the array with no bounds test: a start or goal cell off the map would read
 whatever lies there, which no capture has reached and this crate answers
 `None` for.
+
+## 17. The middle nodes are one 48-grid step short, on both maps (2026-09-03)
+
+Two captures, two maps, two units, one signature: a route whose **ends,
+length, flags and switch frames are the original's** and whose **middle
+waypoints sit one 48-grid step away**.
+
+- **East Indies, run68, `1/13`.** From the `[6660, 6740)` window's block
+  6686 the unit's `PATHDATA` stack reads `path[2].y` **38712** here
+  against 38760 and `path[3].x` **40584** against 40536. Everything else
+  about the stack agrees — its depth, both ends, every `tolerance` and
+  every `flags` byte. The unit walks the parted legs for thirty-two more
+  frames before its own position goes with them, on 6718.
+- **Great Lakes, run69, `1/9`.** The AI's woodcutter walks from its camp
+  to the tree it chose on frame 1959. The dump prints the *current* step
+  rather than the stack at this detail — `MOVEORDER`'s `dest_x`/`dest_y`,
+  live while `dest` is 1 — so the route reads off as a sequence:
+
+  | slot | ours | the original's |
+  |---|---|---|
+  | 0 | (40536, 17592) | (40536, 17592) |
+  | 1 | (40584, 17544) | (40584, 17544) |
+  | 2 | **(40728, 17544)** | **(40776, 17544)** |
+  | 3 | **(40824, 17640)** | **(40872, 17640)** |
+  | 4 | (40968, 17640) | (40968, 17640) |
+  | 5 | (41016, 17640) | (41016, 17640) |
+
+  Two middle slots, 48 short in x apiece, and the same dog-leg either
+  way: east, then the diagonal, then east. Both sides take slot 2 on the
+  **same frame**, 1993, and the two routes are the same total length —
+  ours 144 + diagonal + 144, the original's 192 + diagonal + 96.
+
+**What it costs is a frame of arrival.** The legs are the same length but
+they are not the same walk: the turn between them falls on a different
+frame, and this crate reaches the walk's end on **2015** where the
+original reaches it on **2016**. That one frame is the whole of Great
+Lakes' word (`docs/SYNC.md` §3.26) — the woodcutter's 404-frame chop
+clock starts on arrival, so a frame early at the tile is a frame early on
+the walk home four hundred frames later.
+
+**What this has not established.** *Which* step of the search puts the
+node there. Both routes are legal, equal-length and on the same grid, so
+this is a tie-break rather than a cost: `astar_path`'s direction wheel
+(§4.2), its `<` versus `<=` on an equal `f`, or the order the open list
+is walked. Nothing here has been read against the listing, and neither
+capture carries the search's own probe count — the call proxies
+(`tools/trace/README.md`, "The call proxies") are what would, and run55
+is the recipe. A `callwin` over `astar_path` on Great Lakes frame 1960,
+with `calc_cost` beside it, would say whether the two candidates are
+priced the same and the tie broken differently, or priced differently at
+all.
+
+**What a diff backs.** Both halves.
+`run68_s_window_is_every_unit_s_whole_record_to_the_word` excepts `1/13`'s
+stack alone and compares everything else about it;
+`run69_s_three_thousand_frames_stand_where_the_original_s_do` asserts that
+`1/9` is the **only** unit of fourteen to leave the original's point
+before Great Lakes' word — 1993 against the next-earliest 2467 — and pins
+the waypoint rows as they stand, thirteen `dest_x` from 1993 and two
+`dest_y` from 2000. The day the route is right, both fail rather than
+passing quietly.

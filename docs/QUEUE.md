@@ -12,32 +12,36 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Fable steering — the lower map has been standing still for
-two days and nobody had booked it.* **East Indies 6739; Great Lakes
-2419.** No score moved; item 193 booked at the front.
+*2026-09-03, Opus — item 193: the two maps' frontiers turned out to be one
+defect.* **East Indies 6739; Great Lakes 2419.** No score moved; 193 is
+closed into 191, which now stands in front of both numbers.
 
-- **Great Lakes' word has sat at 2419 since run61's bird fix**, through
-  every session since, and no item named its cause. DECISIONS 25 says the
-  default item is the *lower* map's nearest divergence and the queue had
-  been saying East Indies leads. run53's test says word and sequence both
-  part at 2419 — a draw-count seam, the cheap kind, and its labels are
-  already on disk.
-- **Great Lakes has earned its full-detail capture** (DECISIONS 29): the
-  word crossed run33's 1,850 two days ago and no capture followed. It
-  goes in the capture lane at the next session's first five minutes,
-  in the same session as the diagnosis — not a second agent (JOURNAL).
-- **The conventions bought wall-clock, not tokens** (lore's re-cut): per
-  grind session 113k → 120k median output, out/req 516 → 533; throughput
-  17.9 → 37.6 items a day. The 09-01 addendum's 189k was hand-summed.
+- **Great Lakes parts at 2419 on a route, not a clock.** One draw — the AI
+  woodcutter `1/9`'s return-to-camp stand — spent here on 2419 and there on
+  2420. The 404-frame chop clock behind it is exact on both sides (the
+  tile choice's own draw on 1959 returns 4 either way), so the frame is the
+  frame the walk ended: 2015 here, 2016 there. `1/9`'s two middle waypoints
+  are each one 48-grid step short in x. That is **item 191's signature**,
+  on a map with no islands, barge or merchant (SYNC §3.26, PATHFINDER §17).
+- **run69 is on disk**: Great Lakes at run33's detail out to 3,000 frames,
+  the capture DECISIONS 29 had owed since 09-01. 468 MB, twenty minutes,
+  zero differing against run53 and against run33. Launched in the first
+  five minutes, read in the last — the lane, not a second agent.
+- **The map's own widening came with it.** `1/9` is the only one of
+  fourteen units to leave the original's point before the word — 1993
+  against the next-earliest 2467 — and the collision block is 228,821
+  field-frames with none wrong.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w6739 of 24,000 · GreatLakes w2419 of 24,000
 
-**Opener (Opus):** `193 is the default: Great Lakes is the lower map and
-its word has stood at 2419 since run61. Launch its full-detail capture in
-the background first (longtrace.sh's default game, sized to ~3,000), then
-read what parts at 2419 out of run53's trace on disk — the labels are
-there and no capture is needed for the count. 191 is second.`
+**Opener (Opus):** `191 is the default and it is now both maps: the same
+two-middle-slot, one-48-grid-step route difference parts run68's 1/13 on
+East Indies at 6686 and run69's 1/9 on Great Lakes at 1993. Both routes are
+legal, equal-length and on the same grid, so read astar_path's tie-break
+(PATHFINDER §4.2) before anything else, and run55's callwin over
+astar_path/calc_cost on Great Lakes frame 1960 is the check that settles
+whether it is a price or a tie. 190 is second.`
 
 ## The queue
 
@@ -46,21 +50,16 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted unle
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-193. **Great Lakes parts at 2419, and nobody has looked.** run53's word and
-    sequence both go on 2419 (`run53_s_24000_frames_put_the_ceiling_where_run33_did`),
-    4,320 frames behind East Indies, and the queue chased the higher map
-    for two days against DECISIONS 25. Diagnose from run53's trace on
-    disk, and take the map's full-detail capture the same session —
-    run56's recipe on `longtrace.sh`'s default game (style 14), sized to
-    the word with headroom. This map has no islands, barge or merchant.
-
-191. **`1/13`'s route differs by one 48-grid step, in two middle slots, and
-    its body now parts too.** From run68's 6686, `path[2].y` 38712 against
-    38760 and `path[3].x` 40584 against 40536 — length, both ends and every
-    flag agree — and on **6718** the unit's own `x` goes 40584 against
-    40580 and its stack gains a fourth entry the original has. A
-    `find_tpath`/`find_upath` detail (PATHFINDER §3); its stack alone is
-    excepted, and it is the whole window's frontier.
+191. **The middle nodes are one 48-grid step short, and it is both maps'
+    frontier** (PATHFINDER §17). East Indies: run68's `1/13` from 6686,
+    `path[2].y` 38712 against 38760 and `path[3].x` 40584 against 40536,
+    the body following on 6718. Great Lakes: run69's `1/9` from **1993**,
+    the same two middle slots 48 short in x, arriving a frame early and
+    putting the word on 2419. Ends, length, flags and switch frames all
+    agree either way, so it is a **tie-break and not a price** — read
+    `astar_path`'s wheel and its `<`/`<=` on an equal `f` (§4.2), then a
+    run55-style `callwin` over `astar_path`/`calc_cost` on Great Lakes
+    frame 1960 to settle it.
 
 190. **`stance` is 1 on every unit this crate creates and 0 on the
     original's**, 2,700 rows from run68's first block. `Unit::init`
