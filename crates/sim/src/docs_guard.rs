@@ -75,7 +75,7 @@ const SECTION_CEILING: usize = 16_000;
 /// A section that wants to grow past its pin splits — a `## ` heading is
 /// the split, and it costs nothing a reader needs.
 const OVER: &[(&str, &str, usize)] = &[
-    ("AI.md", "2. The production AI — read", 71_929),
+    ("AI.md", "2. The production AI — read", 71_928),
     (
         "AI.md",
         "15. The behavioural run — run18, 2026-08-25",

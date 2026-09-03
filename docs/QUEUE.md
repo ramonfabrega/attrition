@@ -12,35 +12,31 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — item 197 closed; run71 landed and the lower map's
-position parting turned out to be 64 frames **below** the word.* **East
-Indies 6739; Great Lakes 4241 by draw, 4177 by position.**
+*2026-09-03, Opus — items 198, 199 and 200 closed together: they were one
+defect, and it was the builder pick.* **East Indies 6739; Great Lakes
+4803 by draw, 4827 by position.**
 
-- **The capture was blocked on a checkbox for two sessions, and the advice
-  in ORACLE was wrong twice over.** `tccd` names the responsible process as
-  `~/.local/share/claude/versions/<VERSION>` — a bare binary with no
-  bundle, so TCC keys on the raw path and the path carries the version.
-  Every update revokes all three grants, and adding `ClaudeCode.app` does
-  nothing because macOS never evaluates it. `~/bin/RonDriver.app`
-  (`rondriver/`, `viadriver.sh`) is the fixed-path owner; **all three
-  grants are on it and verified** — `windows of ccc` answers through it,
-  the call that hung run71. Launch with `viadriver.sh` and updates stop
-  mattering. ORACLE, "The grant is keyed to a path".
-- **Two probes had been defeated the same way** — `cliclick p` needs no
-  privilege, and `Finder` has no windows, so an empty list and rc=0 look
-  exactly like a grant. `perm_probe` posts a move and reads back where the
-  cursor went. All four capture scripts share it.
-- **run71: 5,001 frames, `rngcmp` 0 differing against run53, `samegame` 0
-  against run69.** Collision perfect over 475,556 field-frames; buildings
-  one residue, `1/2015`'s `y_internal` from 4577.
+- **Frame 4177 was a farm being placed, not two units mis-moving.** The
+  AI puts up `1/2014` and pulls a citizen onto it; both sides place the
+  same farm on the same tile and pull a **different citizen**. `1/11`
+  "stopping" was the one never given the job and `1/19` "turning wrong"
+  was walking to a job that was not its.
+- **`produce_building`'s builder distance is corner-tile to unit-tile,
+  each coordinate floored on its own** (`006e28b2`–`006e28ec`), not the
+  world-unit difference divided once. `1/11` and `1/19` tie at 27 and the
+  earlier unit keeps the tie; the wrong form read 28 against 25. AI §2.20.
+- **run71 is now 0 wrong buildings in 180,076 fields and 0 wrong
+  collision fields in 513,465**, and 11 units ever off position where
+  there were 19. Item 200's `1/2015` came right untouched.
+- **The paperwork tax was paid in §2.20's old prose**, which is in the
+  journal; the AI.md section pin came down 71,929 → 71,928.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w6739 of 24,000 · GreatLakes w4241 of 24,000
+Long captures: EastIndies w6739 of 24,000 · GreatLakes w4803 of 24,000
 
-**Opener (Opus):** `198 is the default and it is the lower map's own first
-divergence: 1/11 stops at 4177 where the original walks on. 199 is its
-twin on the same frame and may be the same defect. Neither needs a
-capture — run71 is on disk.`
+**Opener (Opus):** `201 is the default and it is the lower map's own first
+divergence: 1/15 leaves the original's point at 4827 over which tile of
+farm 2013 it walks to. No capture needed — run71 is on disk.`
 
 ## The queue
 
@@ -49,24 +45,14 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted unle
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-198. **`1/11` stops at 4177 and the original walks on.** run71, the lower
-    map's first position parting: ours holds (40824,19032) frame after
-    frame while the original steps +7,+24 toward a `to_x`/`to_y` of
-    (41736,22584) it never resumes for. `ox 2014`, `gather_down -1`,
-    `dest 1`, `myspeed 25`. Pinned in
+201. **`1/15` walks to a different tile of its own farm at 4827.** run71,
+    the lower map's first position parting now. The citizen has been at
+    farm `2013` (centre (42624,22656)) with `been_there 1`; on 4826 the
+    original gives it a move to **(42936,22776)** where this crate gives
+    it a move to its own point, and on 4828 one to **(42360,22968)**.
+    Same farm, same two-frame cadence, different tile — so it is the farm
+    work-spot pick, not a route. Pinned in
     `run71_s_five_thousand_frames_reach_past_the_word`.
-
-199. **`1/19` turns wrong on the same frame.** Right speed, wrong heading:
-    ours steps +14,-20 against the original's +25,0, and sqrt(14²+20²) is
-    24.4 of a `myspeed` 25. `angle` 1073741824, `dest_angle` 1353318400,
-    mid-turn, `gather_down 18`, `ox 2009`. Whether 198 and this are one
-    defect is unestablished — the shared frame is the only reason to think
-    so, and settling that is the first move on either.
-
-200. **`1/2015`'s `y_internal` is four cells south from 4577**, 15936 here
-    against 15744, 425 fields, and nothing before it. Four hundred frames
-    downstream of the parting, so it may be a consequence rather than a
-    cause; pinned so it cannot spread unnoticed.
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
     frames short of `1/19`'s deploy spot (MERCHANT §7): nothing on disk

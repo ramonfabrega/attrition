@@ -1144,9 +1144,9 @@ the frame the AI places its farm.
 
 #### Its two draw sites, and the three defects they found (2026-08-26)
 
-`produce_building` steps `game_random` at exactly two places, and both are
-now marked under the original's own offsets so the harness's fold and the
-trace's line up by name (`docs/SYNC.md` §5.1; `sim::ai_place::SITE_SPIRAL`,
+`produce_building` steps `game_random` at exactly two places, both marked
+under the original's own offsets so the harness's fold and the trace's
+line up by name (`docs/SYNC.md` §5.1; `sim::ai_place::SITE_SPIRAL`,
 `SITE_JITTER`):
 
 | site | where | when |
@@ -1154,57 +1154,64 @@ trace's line up by name (`docs/SYNC.md` §5.1; `sim::ai_place::SITE_SPIRAL`,
 | `+0xc99` (`0x006e2099`) | the spiral's scoring loop | once per **friendless FARM/MINE candidate** that passes every site test — `score = 4000 / max(d, 1) + r % 500` |
 | `+0x1805` (`0x006e2c05`) | the placement jitter | once per **unblocked sub-position**, `best = max(r % 100)` |
 
-Both offsets are settled by the listing rather than by the decompiler's
-line numbers: `llvm-objdump` shows `0x006e2099` followed by
-`cltd; mov ecx, 0x1f4; idiv` (the `% 500`) and `0x006e2c05` by
-`cltd; mov ecx, 0x64; idiv` (the `% 100`). The decompile even prints the
-first of them as a stray local (`TVar31.value = 0x6e2099`) — a spilled
-return address, and a free confirmation.
+Both offsets are settled by the listing, not the decompiler's line
+numbers: `llvm-objdump` puts `cltd; mov ecx, 0x1f4; idiv` (the `% 500`)
+after `0x006e2099` and `cltd; mov ecx, 0x64; idiv` (the `% 100`) after
+`0x006e2c05`.
 
-Marking them turned run20's frame 1 from *“one `produce_building` draw
-short”* into two rows — `+0xc99` 39 against our **41**, `+0x1805` 4 against
-our **1** — and the two rows are three separate defects. A count had hidden
-all three: the frame read 53 against 53.
+Marking them split run20's frame 1 into two rows, and the rows are three
+separate defects.
 
 1. **The jitter walks a 2×2, not a single sub-position.** Both of its
    loops at `006e2a78` are **inclusive** — `while ((int)uVar11 <= (int)uVar19)`
    over `corner.x ..= corner.x + ex` and `while ((int)local_1c <= (int)local_58)`
    over `corner.y ..= corner.y + ey` — so an ordinary building, whose
    `ex == ey == 1`, tries **four** positions and draws once for each that
-   `blocked_site` clears. Run20 spends four; the fuzzed map spends
-   **three**, one sub-position being blocked, which is what makes the
-   inclusive reading a rule rather than a coincidence.
+   `blocked_site` clears. Run20 spends four, the fuzzed map three.
 2. **The stride-by-three tested the wrong index.** `local_10 = 3` is set
    when a candidate improves on an existing best beyond ring 3
    (`local_60 == 0 && local_40 != 0 && local_84 == 0 && circle_radius[3] <
    local_2c` — not a gather-scored type, a best already standing, not a
-   tower, and the **current** index past `circle_radius[3]`). The
-   implementation compared the loop's *start* index, which is 0, 1 or
-   exactly `circle_radius[3]`, so the stride could never engage. Fixing it
-   moved no measured number on any capture — the AI's frame-1 farm accepts
-   its best inside ring 2 and nothing later improves on it — but it is the
-   difference between a spiral that walks 105 cells and one that walks
-   ~40 on a call that does find something early.
-3. **`WorldData::buildings_allowed` was not modelled at all.** It is a
-   *predicate*, not the `0x78` field its name suggests
+   tower, and the **current** index past `circle_radius[3]`). Comparing
+   the loop's *start* index instead — 0, 1 or exactly `circle_radius[3]` —
+   never engaged the stride. Worth 105 cells against ~40, and no measured
+   number yet.
+3. **`WorldData::buildings_allowed` is a *predicate***, not the `0x78`
+   field its name suggests
    (`006b2340`: `return (flags & 0x78) == 0`), so a cell carrying `ROCK`,
    `MOUNTAIN`, `FOREST` or the unnamed `0x40` takes no building. Only an
-   oil platform (`0x1a6`) skips the test. The world dump has carried those
-   flags since the map became a dump, and the simulation was scoring
-   forest cells as candidates and drawing for them.
+   oil platform (`0x1a6`) skips the test.
 
-With all three, run20's frame 1 is `+0xc99` **39/39** and `+0x1805`
-**4/4**, and the farm the call places lands at `(41856, 39552)` — the
-`who 1, o 2006` record of the run's own `BUILDDATA`, to the unit. It had
-been landing one sub-position away, which is what a jitter fed the wrong
-stream does. `diff::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair`
-and `the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well` pin both.
+With all three, run20's frame 1 is `+0xc99` **39/39**, `+0x1805` **4/4**,
+and the farm lands at `(41856, 39552)` — the run's own `BUILDDATA`
+`who 1, o 2006`, to the unit.
+`diff::tests::run20_s_frame_1_spends_the_farm_s_ambience_pair` and
+`the_fuzzed_map_s_frame_1_jitters_over_a_two_by_two_as_well` pin both.
 
 **What this leaves open on the fuzzed map**: its spiral is one candidate
 *short* (29 against 30) and a `Unit::do_non_flat_gather+0x54b` short too,
-so its frame 1 reads 43 against 45 — down from 48. The second test asserts
-those two residues as they stand, so closing either shows up as a failure
-rather than as silence.
+so its frame 1 reads 43 against 45. The second test asserts both residues
+as they stand.
+
+#### The builder's distance is corner-to-tile, floored twice (2026-09-03)
+
+`006e28b2`–`006e28ec` takes the candidate's **corner tile**
+(`local_5c`/`local_70`, set at `006e2656`) and converts the unit's own
+`x`/`y` to tiles through `div_3_table` — a floor, **one coordinate at a
+time** — before handing both absolute differences to `vector_dist`.
+Dividing the world-unit difference once is a different function, and the
+two part wherever the floors do. On run71's frame 4176 the AI places farm
+`2014` and pulls a citizen onto it: `1/11` (tile 212,99) and `1/19`
+(218,133) both score **27** against the corner (216,116) — 17 of distance
+and 10 of the timber penalty — so the **earlier unit keeps the tie**
+(`jge` at `006e2a57`). Difference-then-divide read 28 against 25 and sent
+`1/19`. Great Lakes' word ran 4241 → 4803 and its position parting
+4177 → 4827.
+
+`BuildTypeData::get_good@0063bd50` is `[this+4] − 417` into a jump table
+and writes only `eax`, so the second call at `006e29a0` — Ghidra's
+uninitialised `this_03` — is the **same object**: the penalty ladder
+reads one good, not two.
 
 ## 3. The finding: the skirmish opening is the shipped script
 

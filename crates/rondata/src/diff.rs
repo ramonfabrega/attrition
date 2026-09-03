@@ -5816,29 +5816,31 @@ mod tests {
             "and so are its buildings over the same stretch: {build_early:?}"
         );
 
-        // **The position parting is 4177, and it is 64 frames earlier than
-        // the draw word.** This is what the capture was taken to find out
-        // and it is not what was expected: `LONG_WORD_GREAT_LAKES` is 4241,
-        // measured off run53's *draw* stream, and nothing had ever compared
-        // a position past run69's 3,000. Two units go at the same instant
-        // and they go differently —
+        // **The position parting is 4827, and the draw word is 4803.** It
+        // was 4177 for a session, and the two units that went there —
+        // `1/11` stopping dead where the original walked +7,+24, `1/19`
+        // turning +14,-20 against the original's +25,0 — were **one
+        // defect**, not two. Frame 4176 is where the AI places its farm
+        // `2014` and pulls a citizen off gathering to build it, and the two
+        // sides pulled a **different citizen**: the original's `1/11` takes
+        // the `BUILDORDER` and the walk to (41736,22584), while this crate
+        // handed both to `1/19`. `produce_building`'s builder loop measures
+        // the tile distance from the **corner tile** to the unit's own
+        // tile, each coordinate floored on its own; this crate divided the
+        // world-unit difference once, and the two functions part wherever
+        // the floors do. `1/11` and `1/19` tie at 27 under the original's
+        // arithmetic and the earlier unit keeps the tie (`docs/AI.md`
+        // §2.20).
         //
-        //   `1/11` **stops**: ours holds (40824,19032) for frame after frame
-        //   while the original walks (40831,19056), (40838,19080),
-        //   (40845,19104) — a clean +7,+24 a frame.
+        // What is left on 4827 is `1/15`, one unit and a route: ours steps
+        // -8,+24 where the original steps +17,+18, both off the same point.
         //
-        //   `1/19` **turns wrong**: ours steps +14,-20 a frame against the
-        //   original's +25,0. Both carry `myspeed 25`, and ours moves
-        //   sqrt(14² + 20²) ≈ 24.4 of it — so the speed is right and the
-        //   *heading* is not, with `angle` 1073741824 against a `dest_angle`
-        //   of 1353318400 mid-turn.
-        //
-        // Pinned as a floor and as the list it is, so that the day either
-        // one is fixed this fails rather than quietly passing.
+        // Pinned as a floor and as the list it is, so that the day it is
+        // fixed this fails rather than quietly passing.
         let first_part = parted.values().copied().min().unwrap_or(i64::MAX);
         assert_eq!(
-            first_part, 4177,
-            "Great Lakes parts on position at 4177 — a change here is the \
+            first_part, 4827,
+            "Great Lakes parts on position at 4827 — a change here is the \
              score moving, and it moves the queue's Scoreboard line with it"
         );
         let at_first: Vec<(i64, i64)> = parted
@@ -5848,8 +5850,8 @@ mod tests {
             .collect();
         assert_eq!(
             at_first,
-            vec![(1, 11), (1, 19)],
-            "and two units go at that instant, one stopping and one turning"
+            vec![(1, 15)],
+            "and one unit goes at that instant, on a route"
         );
 
         // The counts only grow; a fall here is a capture that got shorter or
@@ -5859,7 +5861,7 @@ mod tests {
             "two fields on every linked building-frame: {builds}"
         );
         assert!(
-            coll >= 475_556,
+            coll >= 513_465,
             "five fields on every agreeing unit-frame: {coll}"
         );
         assert!(
@@ -5867,17 +5869,15 @@ mod tests {
             "the collision block agrees on every comparable field-frame of \
              {coll}: {coll_bad:?}"
         );
-        // **The one building that moves is downstream of the parting.** All
-        // 425 wrong fields are `1/2015`'s `y_internal`, 15936 here against
-        // 15744 — four cells of 48 — and none of them before 4577, which is
-        // four hundred frames after the units part. Nothing is claimed about
-        // its cause; it is pinned so it cannot spread unnoticed.
+        // **Every building of both players stands on the original's own
+        // point for the whole 5,000 frames.** The one that used to move —
+        // `1/2015`'s `y_internal`, 425 fields from 4577, 15936 here against
+        // 15744 — was downstream of the builder pick after all: it came
+        // right the moment the right citizen was sent, without being
+        // touched.
         assert!(
-            build_bad
-                .iter()
-                .all(|d| d.field == "y_internal" && (d.who, d.o) == (1, 2015) && d.frame >= 4_577),
-            "every wrong building field is 1/2015's y_internal from 4577: \
-             {:?}",
+            build_bad.is_empty(),
+            "a building stands somewhere the original's does not: {:?}",
             &build_bad[..build_bad.len().min(4)]
         );
     }
@@ -12610,7 +12610,23 @@ mod tests {
     ///
     /// The word is now past the whole of run69, so Great Lakes is owed a
     /// longer full-detail capture (`docs/DECISIONS.md` 29).
-    const LONG_WORD_GREAT_LAKES: i64 = 4241;
+    ///
+    /// It was **4241** for a session, and run71 — the capture that owed
+    /// answer — put the *position* parting 64 frames below it, at 4177,
+    /// where **two** units left the original's point on one frame. They
+    /// were one defect: on that frame the AI places its farm `2014` and
+    /// pulls a citizen off gathering to build it, and the two sides pull a
+    /// **different citizen**. `produce_building`'s builder loop measures
+    /// the distance from the **corner tile** to the unit's own tile, each
+    /// coordinate floored on its own (`006e28b2`–`006e28ec`); this crate
+    /// took the difference in world units and divided once. `1/11` and
+    /// `1/19` **tie at 27** under the original's arithmetic and the earlier
+    /// unit keeps the tie, where difference-then-divide read 28 against 25
+    /// and sent `1/19`. With the floors in, the word runs to **4803**, the
+    /// position parting to **4827**, and run71's buildings — the 425 fields
+    /// of `1/2015`'s `y_internal` from 4577 — come right on their own
+    /// (`docs/AI.md` §2.20).
+    const LONG_WORD_GREAT_LAKES: i64 = 4803;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

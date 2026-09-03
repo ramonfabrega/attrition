@@ -14811,3 +14811,82 @@ actually settled it was one `log show`. The rule it earns: when a permission
 is refused, read the system's own verdict before touching a checkbox — and
 when a run reports progress, confirm it against something the run does not
 write.
+
+## 2026-09-03 (Opus) — items 198/199/200: one defect wearing three faces (Great Lakes 4241 → 4803)
+
+The queue booked three items off run71 and asked, as the first move on any
+of them, whether 198 and 199 were one defect. They were — and 200 was the
+same one, four hundred frames downstream.
+
+**What frame 4177 actually is.** `1/11` did not stop and `1/19` did not
+mis-steer. On the game frame the dump calls 4177 the AI **places a farm**:
+`BUILDDATA 1/2014`, `orig_type 417`, at (41856, 22848), with a `BUILDORDER`
+and a walk inserted ahead of it — the frame-1 shape of `docs/AI.md` §2.20's
+own table, eight ages later. The record count says so before any field
+does: 4176's block is 10,933 lines and 4177's is 11,056, and the inventory
+diff is one `BUILDDATA`, one `BUILDORDER`, one `SUBOBJECT`, one `MOVEORDER`
+and one `GATHERORDER` fewer.
+
+Both sides place that farm, on that frame, on that tile — run71's buildings
+never disagreed about *where*. Both sides pull a citizen off gathering to
+build it. **They pull a different citizen.** The original's `1/11` takes
+`[ExploreTo (41736,22584), Build ox 2014]`; this crate handed the identical
+pair to `1/19`. So the unit that "stopped" was the one that was never given
+the job, and the unit that "turned wrong" was turning correctly toward a
+job that was not its. One event, two symptoms, and the third — `1/2015`'s
+`y_internal` four cells south from 4577 — was the AI siting a later
+building around a citizen standing in the wrong place.
+
+**The rule the original uses.** `produce_building`'s builder loop scores
+every citizen of the leader by tile distance to the site plus a penalty for
+what it is doing (`docs/AI.md` §2.20). The decompile prints the distance as
+`vector_dist(unaff_EDI, unaff_ESI)` — Ghidra lost both arguments, because
+both are set outside the loop — so the listing had to settle it, and it is
+not what was implemented. `006e28b2`–`006e28ec` reads the unit's own `x`
+and `y`, converts **each** through `div_3_table` (a floor, one coordinate
+at a time), and subtracts the results from the candidate's **corner tile**
+(`local_5c`/`local_70`, built at `006e2656` — the same value the jitter
+starts from). This crate took the difference in world units and divided
+once. Truncating a difference and differencing two floors are the same
+function only when the two floors do not straddle a tile boundary, which is
+most of the time and was not this time.
+
+The arithmetic, on the frame: corner (216, 116); `1/11` at (40824, 19032),
+tile (212, 99), so |4|,|17| → `vector_dist` 17; `1/19` at (42017, 25656),
+tile (218, 133), so |2|,|17| → 17. Both gather at a woodcutter, so both
+take the same +10 timber penalty against a city radius of 20. **27 each,
+and `jge` at `006e2a57` keeps the earlier unit.** Difference-then-divide
+read 18+10 = 28 for `1/11` and 15+10 = 25 for `1/19`, and sent the wrong
+one. The whole defect is a tie the wrong arithmetic could not produce.
+
+**A second reading the listing paid for, and cost nothing.** The penalty
+ladder calls `BuildTypeData::get_good` twice, and Ghidra prints the second
+call's `this` as an uninitialised `this_03` — which reads exactly like the
+ladder testing the *placed* type after testing the *gathered* one, a
+predicate bug of precisely the kind the audit README says to expect. It is
+not one: `get_good@0063bd50` is `[this+4] − 417` into a six-way jump table
+and writes only `eax`, so `ecx` survives and the second call is the same
+object as the first. Thirty seconds of `llvm-objdump` against a plausible
+wrong answer.
+
+**What it moved.** Great Lakes' word **4241 → 4803**; its position parting
+**4177 → 4827**; units ever off the original's point in run71's 5,000
+frames **19 → 11**; the collision block from 475,556 field-frames to
+**513,465**, still none wrong; and the buildings from 425 wrong fields to
+**zero**, untouched. `LONG_WORD_GREAT_LAKES`, the run71 test's floor and
+its unit list all move together, and the queue's `Long captures:` line with
+them.
+
+**What is now first.** 4827 is `1/15`, alone, and it is a farm's work
+spot rather than a route: the citizen has been at farm `2013` (centre
+(42624, 22656)) with `been_there 1` since long before, and on 4826 the
+original gives it a move to **(42936, 22776)** where this crate gives it a
+move to its own point, then on 4828 one to **(42360, 22968)**. Same farm,
+same cadence, different tile. That is item 201.
+
+**The paperwork tax, paid as designed.** `## 2. The production AI — read`
+sits over the 16 KB section ceiling and is pinned at its own size, so the
+new subsection was paid for by compressing §2.20's older prose — the
+run20 draw-count history, the stride's consequence paragraph, and
+`buildings_allowed`'s closing story, all of which are here now. The pin
+came down 71,929 → 71,928 with it.

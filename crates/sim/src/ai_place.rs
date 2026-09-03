@@ -694,10 +694,20 @@ impl Sim {
                 }
                 // The distance in tiles, with the penalties in tiles of
                 // radius (`docs/AI.md` §13 — the listing settles the scale).
-                let mut d = vector_dist(
-                    (unit.pos.x - cand.x) / UNITS_PER_TILE,
-                    (unit.pos.y - cand.y) / UNITS_PER_TILE,
-                );
+                //
+                // **From the corner tile, and each coordinate floored on its
+                // own.** `006e28b2`–`006e28ec` reads the unit's own `x`/`y`,
+                // converts each to a tile through `div_3_table` (a floor),
+                // and subtracts it from `local_5c`/`local_70` — the corner
+                // tile computed at `006e2656`, not the candidate's centre.
+                // Taking the difference in world units and dividing once is
+                // a different function wherever the two floors part, and
+                // that is what run71's frame 4176 turns on: `1/11` and
+                // `1/19` **tie at 27** under the original's arithmetic and
+                // the earlier unit keeps the tie, where difference-then-
+                // divide gave 28 against 25 and sent the wrong citizen.
+                let tile = unit.pos.tile();
+                let mut d = vector_dist(corner.x - tile.x, corner.y - tile.y);
                 match kind {
                     index::GATHER => {
                         let target = self.action_of(u).and_then(|i| match unit.orders[i].body {
