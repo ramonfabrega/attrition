@@ -1026,6 +1026,22 @@ why: East Indies' first three-at-once birth, 15782 — the real analogue of Grea
 # 15782 is the analogue of 6612. The window opens 82 frames ahead of it and
 # closes far enough past to see the squad settle; the labels are FRAME
 # labels, one ahead of the sim-frame, so the birth lands in `FRAME 15783`.
+#
+# TAKEN 2026-09-04, 201 blocks, 92,005,065 bytes, rngcmp 15951/15951 against
+# run54. **And it says the reasoning above is wrong.** Across all 200 frames
+# the object counts change exactly once — units 170 -> 171 at FRAME 15783 —
+# and by `(who, o, uid)` that is one new unit, `1/60` uid 91 guy 353, with
+# nothing gone. Three draws, ONE unit: the site fires per `Guy`, and a unit
+# has one or more. Great Lakes 6762 is the other half (one draw, and run76's
+# own window shows 76 -> 77 units), so a `3` is a three-Archer squad on one
+# map and a single three-model unit on the other. `report.py … when` dates a
+# birth and does not count one; only a dump counts one.
+#
+# So 227's second sample is STILL NOT TAKEN. East Indies' remaining
+# candidates are 6164, 6353, 6571, 17112, 17362, 17574, 17793, 18785 and
+# 20249, and nothing on disk says which of them is a squad rather than one
+# multi-guy unit. See `docs/ORACLE.md`, "run78 — the counter that counts
+# guys".
 frames: 15950
 mapstyle: 18
 end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1

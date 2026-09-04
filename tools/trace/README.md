@@ -182,13 +182,21 @@ that needs `INDEX.tsv`, which is outside the repo — so `report.py` stays
 the reader for anything a human is reading.
 
 `when` is the verb for **dating an event across a whole run**, and it is
-cheaper than any capture: a draw made from `Guy::init_real` is one unit
-created, so `when Guy::init_real 2` lists every frame on which two or more
-units were born. On Great Lakes that is three at 6612 — run76's Archer
-squad — and running it over East Indies' own 24,000-frame trace named 15782
-without taking anything. Grep the trace before booking a run
-(`docs/ORACLE.md`, run77, which was booked off function coverage and missed
-by five thousand frames).
+cheaper than any capture — `when 'Guy::init_real<Unit::init<Objects::init_unit'`
+lists every frame on which something was created. Two things about it were
+measured against dumps rather than assumed, and both cost a capture to learn
+(`docs/ORACLE.md`, run77 and run78):
+
+- **Give it the chain, not the site.** `Guy::init_real` alone fires three
+  times on Great Lakes 6736, where no object count moves at all — an
+  existing unit's guy being re-initialised. The two callers are what make
+  the count mean a birth.
+- **It counts guys, not units.** One draw at Great Lakes 6762 is one unit;
+  three draws at East Indies 15782 are *also* one unit, with three models.
+  So a count of three is a three-Archer squad on one map and a single unit
+  on the other. The verb dates a birth; only a dump counts one.
+
+Grep the trace before booking a run — and then check what the number means.
 
 `blind` collects every `name@00xxxxxx` the documents cite, and lists the
 ones no given trace entered. A cited function that no run has driven is a

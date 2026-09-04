@@ -4165,15 +4165,18 @@ Great Lakes at 6612 and on East Indies at **12794**. A singleton group never
 asks for a captain, so the gap between those two numbers is exactly the
 distinction the nine functions cannot draw.
 
-**The instrument that does date a birth is the draw stream.** A unit's
-creation draws once, at `Guy::init_real+0x52 < Unit::init+0xb97 <
-Objects::init_unit+0xbd`. `rontrace-run53.log` carries exactly **three** of
-them on Great Lakes 6612 — run76's Archer squad, independently confirmed —
-so counting that one site per frame over a 24,000-frame trace dates every
-birth in the game without taking a capture at all. On East Indies: a pair on
-**11652** (whose group order is the 12794 `get_captain`), then three at once
-on **15782**, 17112, 17362, 17574, 17793, 18064, three on 20249 and five on
-23420. **15782 is the analogue of 6612**, and run78's stanza is that window.
+**The instrument that does date a birth is the draw stream.** A creation
+draws at `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`,
+and `report.py <log> when` counts one named chain per frame across a whole
+24,000-frame trace — the verb went into the reader rather than a scratch
+script because it reuses the same log parse and `INDEX.tsv` naming every
+other verb uses. ~~`rontrace-run53.log` carries exactly three of them on
+Great Lakes 6612, so a count of three is a three-unit squad, and East Indies'
+is 15782.~~ **That inference is wrong, and run78 is what measured it — see
+the next section.** The site fires once per **`Guy`**, and a unit has one or
+more of them, so the per-frame count is guys created: an upper bound on
+units, equal to units only for single-guy types. The verb dates a birth; it
+does not count one.
 
 Two rules earned their keep here and one was nearly broken. Grepping the
 disk before booking a capture is what found 15782, and it cost a minute
@@ -4183,6 +4186,53 @@ never prints `otype` and every building came back `otype= -`. The
 no-Barracks statement above is from run77's own `BUILDS=7` dump and is only
 about `FRAME 10188`. A field that is not in the dump reads exactly like a
 field that is zero.
+
+## run78 — the counter that counts guys, and East Indies still has no squad birth (2026-09-04)
+
+**What it is.** East Indies, seed 12345, 201 frame blocks over `[15700,
+15900)`, 92,005,065 bytes, `cover=0`. Same game: `rngcmp.py
+rontrace-run54.log rontrace-run78.log` → **differing frames: 0, identical
+frames: 15951**.
+
+**What it was for.** run77's section booked this window on a count of three
+draws at `Guy::init_real < Unit::init < Objects::init_unit` on East Indies
+15782, read as three units born — the analogue of Great Lakes 6612's Archer
+squad. It is not.
+
+**What the dump says, and it is unambiguous.** Across all 200 frames of the
+window the object counts change **exactly once**: units 170 → 171 at `FRAME
+15783`, animals and buildings never. Comparing the two frames by `(who, o,
+uid)` — so a slot reused by a new unit could not hide — gives one new unit
+and nothing gone: `1/60`, uid 91, `guy 353`, 109 hits, at internal
+`(38040, 42408)`. **Three draws, one unit.**
+
+**So the site is per-`Guy`, not per-unit**, and the count is guys created.
+Great Lakes 6762 is the other half of the calibration: one draw there, and
+run76's own window shows units 76 → 77 on `FRAME 6763`. One draw, one unit;
+three draws, one unit. The multiplier is the unit's model count, so a `3` is
+a three-Archer squad on one map and a single three-guy unit on the other.
+
+**The chain matters as much as the site, and that was measured too.**
+Matching `Guy::init_real` alone counts three draws on Great Lakes **6736**,
+where the dump's unit, animal and building counts do not move at all — the
+guy of an existing unit being re-initialised. Requiring
+`< Unit::init < Objects::init_unit` drops 6736 and keeps 6612 and 6762, so
+`when` takes the whole chain rather than a name. Two more sites were tried as
+per-unit signals and neither survives: `Unit::set_anim < Unit::do_idle` fires
+three times at Great Lakes 6612 and not at all at East Indies 15782, which
+looks decisive until you count it over a whole run and find it firing on
+frames with no birth at all.
+
+**Where 227 stands after two captures.** Neither East Indies window holds a
+multi-unit birth: run77's `[10150, 10400)` holds none at all, and run78's is
+one single unit. The map's multi-member groups — `66` with `1/32` as captain
+and `1/34`, `1/35` at `flags 73`, and `68` with nine units in a lattice
+around internal `(34000, 41000)` — are on the map *before* 15782 and were
+assembled, not born together. So the second sample the item needs is still
+not taken, and the disk cannot say which of East Indies' remaining candidate
+frames (6164, 6353, 6571, 17112, 17362, 17574, 17793, 18785, 20249) is a
+squad rather than one multi-guy unit. Only a dump distinguishes them, which
+is the cost the next booking has to weigh.
 
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
