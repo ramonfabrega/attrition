@@ -18,9 +18,11 @@
 //!
 //! [`compared_fields_have_writers`] reads two sources and joins them:
 //!
-//! - **`diff.rs`'s labelled comparison rows** — the `("name", ours, theirs)`
-//!   idiom, ~270 of them. Inside each row it collects every `.field` whose
-//!   name is declared by a struct in `crates/sim`.
+//! - **the diff harness's labelled comparison rows** — the
+//!   `("name", ours, theirs)` idiom, ~270 of them, read from `src/diff.rs`
+//!   *and* every `.rs` under `src/diff/`, so the split into per-record
+//!   modules cannot blind the scanner. Inside each row it collects every
+//!   `.field` whose name is declared by a struct in `crates/sim`.
 //! - **`crates/sim`'s own source**, with `#[cfg(test)]` and `#[test]` bodies
 //!   blanked, and with the struct *definitions* blanked so a declaration
 //!   (`pub pop: i32,`) is never mistaken for an initialiser (`pop: n,`).
@@ -106,8 +108,52 @@ fn sim_dir() -> PathBuf {
     PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../sim/src"))
 }
 
-fn diff_path() -> PathBuf {
-    PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff.rs"))
+/// Every source file the diff harness is spread across: `src/diff.rs`, and
+/// every `.rs` under `src/diff/` however deeply nested.
+///
+/// The harness is being split into per-record modules, and a scanner that
+/// only ever read `diff.rs` would go quietly blind the day the split landed
+/// — the exact failure [`MIN_ROWS`] exists to catch, arriving as a test
+/// failure nobody could explain. Either shape is read, and both together.
+fn diff_sources() -> Vec<(String, String)> {
+    diff_sources_under(&PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/src")))
+}
+
+/// [`diff_sources`] over an arbitrary `src` directory, so the walker can be
+/// tested against a tree that is not this crate's.
+fn diff_sources_under(src: &std::path::Path) -> Vec<(String, String)> {
+    fn walk(dir: &std::path::Path, out: &mut Vec<(String, String)>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        let mut paths: Vec<PathBuf> = entries.map(|e| e.expect("entry").path()).collect();
+        paths.sort();
+        for path in paths {
+            if path.is_dir() {
+                walk(&path, out);
+            } else if path.extension().and_then(|e| e.to_str()) == Some("rs") {
+                let text = std::fs::read_to_string(&path).expect("read");
+                out.push((path.display().to_string(), text));
+            }
+        }
+    }
+    let mut out = Vec::new();
+    let flat = src.join("diff.rs");
+    if flat.is_file() {
+        out.push((
+            flat.display().to_string(),
+            std::fs::read_to_string(&flat).expect("diff.rs"),
+        ));
+    }
+    walk(&src.join("diff"), &mut out);
+    assert!(
+        !out.is_empty(),
+        "neither {}/diff.rs nor {}/diff/ exists — the diff harness moved and this \
+         guard is reading nothing",
+        src.display(),
+        src.display()
+    );
+    out
 }
 
 /// The index of the `}` that closes the `{` at `i`.
@@ -622,19 +668,30 @@ fn comparison_rows(src: &str) -> Vec<(String, usize, String)> {
 #[test]
 fn compared_fields_have_writers() {
     let sim = read_sim();
-    let diff = std::fs::read_to_string(diff_path()).expect("diff.rs");
-    let rows = comparison_rows(&diff);
+    let sources = diff_sources();
+    let mut rows: Vec<(String, String, usize, String)> = Vec::new();
+    for (path, text) in &sources {
+        let short = path
+            .rsplit_once("/src/")
+            .map_or(path.as_str(), |(_, r)| r)
+            .to_string();
+        for (label, line, body) in comparison_rows(text) {
+            rows.push((label, short.clone(), line, body));
+        }
+    }
     assert!(
         rows.len() >= MIN_ROWS,
-        "found {} labelled comparison rows in diff.rs, expected at least {MIN_ROWS} — \
-         the `(\"name\", ours, theirs)` idiom changed and this guard is now checking \
-         nothing. Fix the scanner before lowering the floor",
-        rows.len()
+        "found {} labelled comparison rows across {} diff source(s), expected at least \
+         {MIN_ROWS} — the `(\"name\", ours, theirs)` idiom changed, or the harness moved \
+         somewhere `diff_sources` does not look, and this guard is now checking nothing. \
+         Fix the scanner before lowering the floor",
+        rows.len(),
+        sources.len()
     );
 
     // field name → the rows that name it
-    let mut touched: BTreeMap<&str, Vec<(&str, usize)>> = BTreeMap::new();
-    for (label, line, body) in &rows {
+    let mut touched: BTreeMap<&str, Vec<(&str, &str, usize)>> = BTreeMap::new();
+    for (label, file, line, body) in &rows {
         let bytes = body.as_bytes();
         for (at, _) in body.match_indices('.') {
             let (field, _) = ident_at(bytes, at + 1);
@@ -642,10 +699,11 @@ fn compared_fields_have_writers() {
                 continue;
             }
             if let Some((name, _)) = sim.declared.get_key_value(field) {
-                touched
-                    .entry(name.as_str())
-                    .or_default()
-                    .push((label.as_str(), *line));
+                touched.entry(name.as_str()).or_default().push((
+                    label.as_str(),
+                    file.as_str(),
+                    *line,
+                ));
             }
         }
     }
@@ -670,9 +728,9 @@ fn compared_fields_have_writers() {
         {
             continue;
         }
-        let (label, line) = rows[0];
+        let (label, file, line) = rows[0];
         failures.push(format!(
-            "`{field}` ({}) is compared by diff.rs:{line} as \"{label}\" and no code in \
+            "`{field}` ({}) is compared by {file}:{line} as \"{label}\" and no code in \
              crates/sim writes it outside its tests — the row holds a constant against a \
              constant and passes whatever the original does. Implement the writer, or add \
              it to writers::EXEMPT with the capture that shows the original does not write \
@@ -704,4 +762,46 @@ fn every_exemption_still_names_a_field() {
         );
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+/// The scanner follows the harness into a directory.
+///
+/// `diff.rs` is being split into per-record modules under `src/diff/`, and a
+/// scanner that only read the flat file would find zero rows and fail
+/// [`MIN_ROWS`] with a message about the *idiom* — a day lost chasing the
+/// wrong thing. This builds the split shape in a scratch tree and checks the
+/// walker reaches a row two directories down, then the flat shape, then both
+/// together, which is what a half-finished split looks like. Made to fail
+/// first: with the `walk` call gone, the nested case finds nothing.
+#[test]
+fn the_scanner_follows_the_harness_into_a_directory() {
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.as_nanos());
+    let root = std::env::temp_dir().join(format!("rondata-writers-{}-{stamp}", std::process::id()));
+    let deep = root.join("diff").join("city");
+    std::fs::create_dir_all(&deep).expect("scratch tree");
+    std::fs::write(deep.join("pop.rs"), "(\"pop\".into(), ours.pop, c.pop),\n").expect("write");
+
+    let split = diff_sources_under(&root);
+    assert_eq!(split.len(), 1, "the walker found {split:?}");
+    let rows = comparison_rows(&split[0].1);
+    assert_eq!(rows.len(), 1, "the row under src/diff/city/ is not read");
+    assert_eq!(rows[0].0, "pop");
+
+    std::fs::write(root.join("diff.rs"), "(\"race\", ours.race, c.race),\n").expect("write");
+    let both = diff_sources_under(&root);
+    assert_eq!(
+        both.len(),
+        2,
+        "the flat file and the split are read together"
+    );
+    let labels: Vec<String> = both
+        .iter()
+        .flat_map(|(_, t)| comparison_rows(t))
+        .map(|(l, _, _)| l)
+        .collect();
+    assert_eq!(labels, vec!["race".to_string(), "pop".to_string()]);
+
+    std::fs::remove_dir_all(&root).ok();
 }
