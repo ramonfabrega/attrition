@@ -4306,8 +4306,20 @@ names it breaks. Re-verified the way everything else here is:
 401/401, and the 207-test diff suite reads its dumps through the new path.
 
 `$RON_GAMELOG_DIR` still overrides, as it always did. The shim at the
-CrossOver path can be deleted the day CrossOver is uninstalled; nothing
-reads it.
+CrossOver path went with CrossOver, the same afternoon; nothing read it.
+
+**And then the corpus got a second copy** (steering, Fable, the same day).
+The move had left one copy of 21 GB on a disk 95 % full with no Time
+Machine destination — the floors in `rondata::diff` are assertions against
+files a dead SSD deletes, and the long human-driven runs cannot be re-taken
+by script. `tools/gamelog/backup.sh` mirrors the corpus, the recordings
+under `~/Documents/My Games` and `~/ghidra-projects` into a private R2
+bucket (`ron-data`; credentials from passage at run time, nothing on disk).
+`sync` after a capture session pushes what is new; `restore` is the
+new-machine line. The bucket is insurance, not the working copy: nothing in
+the lane reads it. `~/ron-data` was also pruned to `AppData/Roaming` — the
+moved folder had carried Wine's `Documents`/`Downloads`/… symlinks into the
+real home, which a backup following links would have uploaded.
 
 ### What is not established
 

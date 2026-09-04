@@ -6,8 +6,11 @@ and is what the diff harness uses; these are for driving a check by hand
 and reading the answer out in one line. See `docs/ORACLE.md`, "The detail level
 is the knob", for what the log contains and how to make it contain it.
 
-The readers default to this machine's bottle path:
-`~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/`.
+The readers default to this machine's corpus path:
+`~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/`. Its only
+other copy is the R2 bucket `backup.sh` mirrors it into — `zsh
+tools/gamelog/backup.sh sync` after a capture session, `restore` on a new
+machine, `ls` to see what is there.
 
 ## `setlog.py` — write `gamelog.ini`
 

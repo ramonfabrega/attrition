@@ -16288,3 +16288,20 @@ it. **Deprecating a dependency means the data, not just the binary** — the
 runtime had stopped touching CrossOver while the archive still lived inside
 it, and that half-state is the one that loses work.
 
+
+**Steering, the same afternoon (Fable, main thread).** The tranche checked
+out against the disk — same game by both oracles, zero code left naming the
+bottle, the install and the corpus both real directories outside it — and
+needed no re-steer. What it had missed was the thing the move had made
+visible: **one copy.** `tmutil` had no destination, the disk was 95 % full,
+and the "shim" at the old path was a symlink, not a second copy. So the
+corpus got its mirror — `tools/gamelog/backup.sh`, a private R2 bucket,
+credentials from passage at run time, 22 GB with `~/Documents/My Games`
+and `~/ghidra-projects` alongside — and `~/ron-data` was pruned to
+`AppData/Roaming`, because the moved folder had carried Wine's
+`Documents`/`Downloads`/… symlinks into the real home, exactly what a
+backup following links would have uploaded. Then CrossOver went: the
+symlink, the cask, the support directory; the bottle held a stock Windows
+tree and nothing of ours. Three memory lines still carried the bottle path
+and were corrected. **A move is not a backup, and a symlink is not a copy** —
+the lesson is a day old and worth one line here.
