@@ -20,12 +20,14 @@ and steers (DECISIONS 33).
 - **`att-loop`**, 227 (Great Lakes): the squad member's exit spot.
 - **`att-loop-ei`**, 7448 (East Indies): the collision gate and wait
   guard (231), then `line_ok`'s lifecycle (230), both audit-verified.
+- **`att-loop-anim`**, 234: the turn animation's early return and rewind.
 - **`att-capture`**: 226 answered — `cover=1` dies in the wow64 bop,
-  Rosetta by inference, falsifier built and costed (ORACLE); run77, the
-  East Indies squad birth at FRAME 10188, in flight; the corpus is its.
-- **`att-audit`**: 34 rows adjudicated (ROADS, MOVEMENT, COLLISION,
-  MERCHANT, ANIM R1), zero struck; the no-writer guard is in
-  (`rondata/src/writers.rs`); CITIES, ORDERS, ECONOMY next.
+  Rosetta by inference, falsifier built and costed (ORACLE). run77 held
+  no birth (a singleton group); the draw stream dates East Indies' first
+  squad at **15782**; run78 `[15700, 15900)` in flight; the corpus is its.
+- **`att-audit`**: wave 1 closed — 101 rows, **101 confirmed, zero
+  struck** (audit README); the no-writer guard is in; next the no-reader
+  guard, then the nine documents with no blind second reading.
 - **Only this seat writes this file**; a worker's prompt is its item's
   text plus the five gates, it deletes its item and writes the journal;
   lanes write audit files, coverage lines and tests. The harness is
@@ -65,6 +67,16 @@ journal is indexed by them.
     (`diff/unit.rs`); cleared on a refused step (`move_step@005faf30`),
     set on standing units; gates `do_move`'s re-path. **With `att-loop-ei`.**
 
+233. **A building's periodic phase is its object number**, not its slot:
+    `Build::process@0061edf0:728` keys the 32-frame phase on `o`;
+    `process_building` uses `frame + b`, the `Vec` index — right until a
+    slot is reused, then wrong for the game (CITIES §5). **After 227.**
+
+234. **Five rules of the turn/idle animation neither side has** (ANIM audit
+    R4–R9): a guy *playing* `CHAR_TURN_LEFT`/`RIGHT` returns early and
+    rewinds without a draw — run44's 452 guy-frames reach it; the packet
+    and variant fallbacks, the scholar remap, `+0xae`. **With `att-loop-anim`.**
+
 232. **`Levels::for_player` ignores its player**, answering a constant
     whose `taxation` is 0: `territory_tax` is 0 % for the life of every game
     and the granary, mill, smelter and university ladders sit at level 1
@@ -75,10 +87,8 @@ journal is indexed by them.
     and reproduced by `tools/trace/wow64bop.c` (ORACLE, "The falsifier for
     226, costed"); Rosetta is the inference, an x86 host the falsifier.
 
-220. **§13's twenty range blocks.** Every free-upgrade row whose candidates
-    are a run of tech indices — Chinese herbal lore, the Red Fort's two, the
-    four `TwoPreq` blocks, the temple and taxation lines, the wonders — is
-    unloaded, and no capture reaches one (TECH §13).
+220. **§13's twenty range blocks** are unloaded — every free-upgrade row
+    whose candidates are a run of tech indices (TECH §13); no capture reaches one.
 
 209. **The other once-per-game events a dump install swallows** (207's
     general half): a `set_*` whose **return value** drives an irreversible
@@ -97,28 +107,15 @@ journal is indexed by them.
     gather building the original does not**: 6582's slots 1 and 4 carry
     `t 418 cat 4 val 41500` against empty; inert, so the *list* differs.
 
-169. **`compute_site_stats`' arithmetic**, 7,122 of run63's 27,000 site
-    fields: an extra site drags every `rank` (AI §2.13 6–12); run59 says it
-    250 frames earlier. (172) **The `bucket` pair 165 leaves behind**: one
-    apart on 5002 and 5061 in run60's curve, rates and income exact; takes
-    155.
-
-158. **The sweep runs for a human leader; this crate skips it** (AI §23.1).
-    Moving the gate from `Sim::strategy_all` into `production_ai` seeds a
-    **human army** at 16; find the gate between steps 13 and 16 first.
-
-159. **The `CITY` record's two smaller seams**, on run58, both pinned:
-    `1/2007`'s `land`/`filled` from 1819 and `space[0..2]` from 1976, one
-    apart; from 2576 the gatherers, 11/0 against 10/1 — step 2/10.
-
-146. **The other nine national arms of `train_time`** after the ramp, in
-    `006508c0`'s order (PRODUCTION, "The tail's first caller"); only the ramp
-    is measured. (142) **`World::tregion` is not `get_tregion`** — PATHFINDER
-    §15, §16; eleven callers unaudited.
-
-Two records with no reader: (122) **a draw with no mark of its own**, 16 of
-61 `rng.roll`/`get` calls without `self.mark(`; (153) **the `TRIBE` record,
-whole** — `Tribe::log_data@006f0d70`'s five fields (TECH).
+AI residues, measured, none near a word: (169) `compute_site_stats`'
+arithmetic — an extra site drags every `rank` (AI §2.13), 7,122 of run63's
+27,000 site fields, (172) the `bucket` pair one apart on 5002/5061 (run60);
+(158) the sweep runs for a human leader, here it is skipped (AI §23.1), the
+gate is between steps 13 and 16; (159) the `CITY` record's two seams on
+run58, `1/2007`'s `land`/`filled` from 1819 and the gatherers from 2576;
+(146) `train_time`'s nine national arms after the ramp (PRODUCTION), (142)
+`World::tregion` is not `get_tregion`, eleven callers (PATHFINDER §15–16);
+(122) 16 of 61 draws without a `self.mark(`; (153) the `TRIBE` record, whole.
 
 178. **The danger map's unit pass, unexercised** (DANGER §8): no capture has
     a military unit on a frame divisible by 200, so `role & 0x10000`,
