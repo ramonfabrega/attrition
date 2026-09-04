@@ -224,10 +224,13 @@ impl Sim {
         }
         let centre = self.cities[c].building;
         let road = self.find_road(b, centre);
-        // The original walks the stack down from the top, which is the
-        // near-goal end; the order does not reach the world. A blocked tile
-        // is on the path but is not laid.
-        for p in road {
+        // `reconstruct` appends goal-end first, as `astar_caravan_road`
+        // does (`00685990`), and `place_roads@0063c580` pops that stack from
+        // the top: the road is laid near-*start* end first, and since §9's
+        // mesh the order reaches the world (`docs/ROADS.md` §5; the
+        // docs-versus-code pass of 2026-09-05 found this walking the other
+        // way). Blocked tiles were never pushed.
+        for p in road.into_iter().rev() {
             let t = p.tile();
             if self.world.tile_mask(t) & tile::BLOCKED == 0 {
                 self.set_road_at(t);

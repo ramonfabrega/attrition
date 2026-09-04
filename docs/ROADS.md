@@ -195,7 +195,12 @@ What is its own:
   (`mask & 0x4000`) is **not pushed** onto the chain at all
   (`astar_caravan_road+0x996`; `roads.rs`'s `reconstruct`). *Corrected
   2026-09-05 from the docs-versus-code pass; this sentence used to say the
-  tile stayed on the chain and took no road.*
+  tile stayed on the chain and took no road.* The list is appended
+  **goal-end first** (`astar_caravan_road@00685990`, lines 316–342) and
+  `place_roads@0063c580` pops it from the top, so the road is laid
+  **near-start end first**, outward from the building; `roads.rs`'s
+  `place_roads` walked it the other way until 2026-09-05, unobserved
+  because no capture has two road tiles diagonal to *different* roads.
 
 ### 5.1 `PathFinderData::valid_roadcoord@00688740`
 

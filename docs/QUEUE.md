@@ -24,11 +24,9 @@ two finish-line counters it starves now have lanes (DECISIONS 33):
   over the eight documents amended this week, the no-writer guard (87),
   then the nine documents with no second reading, then 72. Verdicts
   arrive by message; this loop files them.
-- **Only this loop writes this file.** Merge both lane branches at session
-  start and read their messages before choosing an item.
+- **Only this loop writes this file**; merge both lane branches at start.
 - 227 stands as opened: the squad is apart on 6640, the captain exact,
   `1/28`/`1/29` not candidates of the sweep (CITIES §6.5.1, ORDERS §10).
-- Corpus mirror short: re-run `backup.sh sync`, check `ls` (~212 / ~22 GB).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
@@ -62,9 +60,9 @@ journal is indexed by them.
     adds (**one sync draw**, the one with teeth), `cavarch_fight`, the
     attack hand-offs. 7448 (214) is the same shape.
 
-226. **`cover=1` page-faults under free Wine** at `7BF21139` (ORACLE, "Off
-    CrossOver"); function coverage, and so the blind list, waits on it.
-    **With `att-capture`**: the discriminator run first (DECISIONS 33).
+226. **`cover=1` dies in the wow64 bop at the exe's entry**, layout-sensitive
+    and reproduced by `tools/trace/wow64bop.c` (ORACLE, "The falsifier for
+    226, costed"); Rosetta is the inference, an x86 host the falsifier.
 
 220. **§13's twenty range blocks.** Every free-upgrade row whose candidates
     are a run of tech indices — Chinese herbal lore, the Red Fort's two, the
@@ -113,12 +111,11 @@ Two records with no reader: (122) **a draw with no mark of its own** — 16 of
 whole** — `Tribe::log_data@006f0d70`'s `graft[352]`, `barbarian`,
 `build_continent`, `people`, `text_substitute` (TECH).
 
-178. **The danger map's unit pass, unexercised.** DANGER §8: no capture has
+178. **The danger map's unit pass, unexercised** (DANGER §8): no capture has
     a military unit on a frame divisible by 200, so `role & 0x10000`,
     `(attack · 5) / 10` and the war gate rest on the reading; a `DUMP_ALL`
-    `WORLD` block on such a boundary settles it. (181) **§7's unreached
-    arithmetic** (CARAVAN §7.2–§7.3): the arrival box, `compute_trade`'s
-    `× 16 / 2`, `new_caravan`'s `(epoch[1] + 1) · 10`.
+    `WORLD` block on such a boundary settles it. (181) **CARAVAN §7.2–§7.3's
+    unreached arithmetic**: the arrival box, `× 16 / 2`, `(epoch[1] + 1) · 10`.
 
 **The widening ledger is built** (87, DATALAYER §4): **23** parsed fields
 `diff.rs` names nowhere and **41** one capture names, pinned and falling only;
@@ -143,17 +140,16 @@ instrument's last guard, (c) alone; (35) **`mylos` as a cache**, VISION §7.
     `reg_forts`; and AI §2.1's `check_explore` answers the grid whole,
     900 v 36/19.
 
-Seven measured one-liners: (23) **the formation byte's sign, the Echelon
-half** — `reverse`'s *displacement* is read only on GROUPS §6.4's Echelon
-rows, every captured group a Line, run52 the blocker; (103) a woodcutter's
-clock at **1,686** — `0/2` waits 445 against 480, ORDERS §6.4; (105/45)
-**Gaia's positions**, East Indies' half — run39 191,876 of 192,504, first bad
-**1658**, SYNC §4.2; (124) **the loop flag is per animation file**, ANIM §3.3
-— 42 `<UNIT>` entries non-looping, 38 looping, carry it on `Art`; (116) **the
-one `SITE` slot still wrong**, AI §18 — a 5×5 slide keeps its centre; (166)
-**`resource_cap` on five goods, 2958–2959** — 1392 here, 2000 there (ECONOMY,
-"The commerce cap"); (107) **`epoch[0]` is the Military level and `army.rs`
-reads `ages`**, `army.rs:769,1365`.
+Seven measured one-liners: (23) **the formation byte's sign, Echelon half**
+— `reverse`'s displacement is read only on GROUPS §6.4's Echelon rows, run52
+the blocker; (103) a woodcutter's clock at **1,686**, `0/2` waits 445 against
+480 (ORDERS §6.4); (105/45) **Gaia's positions**, East Indies — run39 191,876
+of 192,504, first bad **1658** (SYNC §4.2); (124) **the loop flag is per
+animation file** (ANIM §3.3), 42 non-looping, 38 looping, carry it on `Art`;
+(116) **the one `SITE` slot still wrong** (AI §18), a 5×5 slide keeps its
+centre; (166) **`resource_cap` on five goods, 2958–2959** — 1392 here, 2000
+there (ECONOMY, "The commerce cap"); (107) **`epoch[0]` is the Military level
+and `army.rs` reads `ages`**, `army.rs:769,1365`.
 
 161. **The make-list block is 2,500 frames behind the word.**
     `create_buildings` first runs on East Indies 9982 (AI §25), so
@@ -173,13 +169,14 @@ reads `ages`**, `army.rs:769,1365`.
     0x162)`'s siege doubling; the group cap, whose `movement::group_capped`
     is uncalled — now 219's second half.
 
-228. **Split the diff harness by record.** `rondata/src/diff.rs` is
-    23,243 lines, touched in 121 of the last 197 commits, and both lanes
-    land in it. Mechanical, one commit, test count identical (DECISIONS 33).
+229. **A figure in melee does not step its clock** — `unit_masks2 & 0x10`
+    freezes `Guy::inc_time` (ANIM §5), pinned off run17/run44's own
+    `last_time`, 26 of 26. `unit_masks2` has no field here; the arm in
+    `Sim::guy_inc_time` waits on a word that reaches a melee frame.
 
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
-overlaid; (41) `scenario.py`'s fate — `zsh tools/fuzz/run.sh 424242 1000 1300`
-then `report.py … blind docs/` before deleting it; a `find_target` block;
+overlaid; (41) `scenario.py`'s fate — fuzz `424242 1000 1300`, the blind report,
+then delete; a `find_target` block;
 run7's order stream; a mounted attacker; `calc_gather` non-flat;
 `Leader::diplomacy`; (77) ANIM §3.2; (58) ROADS §7.4's `f32` heights.
 
