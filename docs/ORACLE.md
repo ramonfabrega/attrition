@@ -4212,16 +4212,22 @@ three-directory layout. The dependency we thought we had is upstream.
   under free Wine reaches its own startup and writes
   `Logs/connectionlog.txt` — `CrossplayNetLibSys INIT` — through that
   symlink. It is not a compatibility failure.
-- **No window appeared** on a plain launch or inside
-  `explorer /desktop=ron,1920x1080`, in ninety seconds, with the process
-  alive at ~0 % CPU — **but that result is not clean and must be re-taken.**
-  The screenshot at the end of the run shows a macOS consent dialog,
-  *"RonDriver would like to access files in your Desktop folder"*, modal and
-  holding focus for the whole of both tests. A game creating a fullscreen
-  surface behind a modal system dialog is not a fair trial, and the dialog
-  also sat in front of `screencapture`. It is run74's signature again
-  ("The fourth permission"): a prompt nobody was looking at, which prints
-  nothing to any log.
+- **The game refuses to start, and it says so itself.** Re-taken with the
+  screen clear — the first two attempts ran behind a macOS consent dialog
+  and were void — the window never appears because the game puts up its own
+  modal error instead:
+
+      BHG RTS run time FATAL
+      Could not initialize DirectX! Please make sure your system
+      supports DirectX 10 or higher!
+      [Click RETRY to debug, IGNORE to turn this message off and continue]
+      Safe to Ignore: NO
+
+  So it is **not** a Wine incompatibility, a window-manager problem or a
+  translation failure — the 32-bit code runs, the game reaches its own
+  startup, and its D3D feature check fails. That is precisely the job
+  D3DMetal was doing under CrossOver, and it makes the fix a *named*
+  problem rather than a hunt.
 - **The traced copy page-faults**: `riseofnations_trace.exe` dies with
   `Unhandled page fault on read access to 00004ECD at address 7BF21139`
   where the stock copy does not — a near-null read from inside Wine's own
@@ -4229,7 +4235,16 @@ three-directory layout. The dependency we thought we had is upstream.
   `rontrace.cmd` were both in place and `rontrace.log` carries its `RONT`
   header, so the DLL loaded and initialised before the fault.
 
-  **Where to look, and it is one line of config.** The instrument plants
+  **And it may not be an independent problem at all.** The fault is
+  deterministic — the same address on two runs — and the stock exe reaches
+  its DirectX dialog while the traced one dies before showing anything. If
+  the fault is on the game's own *error* path (the one the stock copy
+  survives by putting up a message box), then fixing DirectX fixes both,
+  and there is nothing here to debug. **So do not chase this until the
+  renderer works**; re-take it afterwards and see whether it is still
+  there.
+
+  **If it is, it is one line of config.** The instrument plants
   `int 3` on all 48,233 function entries and catches them in a **vectored
   exception handler** (`tools/trace/README.md`), which is precisely the
   path on which Wine forks differ most. `cover=1` is what turns that forest
@@ -4241,19 +4256,23 @@ three-directory layout. The dependency we thought we had is upstream.
 
 ### What is not established
 
-Whether the window can be made to appear at all — the one test that matters,
-and the one the consent dialog spoiled. **Re-run it first**, with the screen
-clear. Then, in order of cost:
+**Which DirectX the game actually wants, and what can provide it.** The
+message asks for "DirectX 10 or higher", which is a surprise for a 2003
+title and is the Extended Edition's own renderer talking. The levers, in
+order of cost:
 
 - **`rise.ini`'s `GraphicsDLL=d3dgl.dll`.** RoN:EE selects its renderer by
-  name and ships `d3dgl.dll`, its own D3D-to-OpenGL wrapper, which is what
-  CrossOver was driving into D3DMetal. Whether free Wine's `opengl32` can
-  carry it is the first question, and clearing or repointing the key is the
-  first experiment.
-- `WINEDEBUG=+d3d,+win` to see where initialisation stops.
-- **Apple's Game Porting Toolkit** — free with a developer account, and the
-  closest thing to CrossOver's working configuration, since it carries the
-  same D3DMetal.
+  name and ships `d3dgl.dll`, its own D3D-to-OpenGL wrapper — the thing
+  CrossOver was driving into D3DMetal. Clearing or repointing the key is
+  one edit; `tools/gamelog/`'s scratch `gfx.sh` does both variants and
+  restores the ini on the way out.
+- The prefix's own D3D: free Wine's `d3d10`/`d3d11` under wow64, and
+  whether `winetricks` has to supply `d3dcompiler_47` (which the install
+  also ships beside the exe).
+- `WINEDEBUG=+d3d,+win` for where the check fails.
+- **Apple's Game Porting Toolkit** — free with a developer account, and now
+  the *most likely* answer rather than a fallback: it carries the same
+  D3DMetal that satisfied this check under CrossOver.
 
 None of that was reached today.
 

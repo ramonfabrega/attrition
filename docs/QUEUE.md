@@ -28,9 +28,8 @@ run 76, and the whole capture lane is down.
   `GuyData::x/y` where `is_here` four lines earlier reads the unit's
   `x_internal`. `Sim::guy_corner`, COLLISION §4.3; neither word moved.
 - **The lane is down: CrossOver's trial expired** (`Expired Bottle: ron`).
-  The free path is half-proved (ORACLE, "Off CrossOver") — Wine 11.0 has
-  the wow64 the 32-bit exe needs, runs the stock game and writes its logs;
-  its window test was spoiled by a consent dialog. Item 225.
+  Free Wine 11.0 runs the 32-bit exe and writes its logs but dies on the
+  game's own *"Could not initialize DirectX"* — D3DMetal's job. Item 225.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
@@ -47,24 +46,26 @@ unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
 225. **Get the capture lane off CrossOver** (ORACLE, "Off CrossOver").
-    Free Wine 11.0 runs the stock game and writes its logs already; the
-    **window** is unproved — re-run with the screen clear, then
-    `rise.ini`'s `GraphicsDLL=d3dgl.dll`, then Apple's GPTK. The traced
-    exe's page fault at `7BF21139` is the second half. **Blocks 223.**
+    Free Wine 11.0 runs the 32-bit exe and writes its logs; it dies on the
+    game's **own** dialog — *"Could not initialize DirectX! … DirectX 10
+    or higher"* — which is the job D3DMetal was doing. Levers:
+    `rise.ini`'s `GraphicsDLL=d3dgl.dll` (`tools/gamelog/gfx.sh`), the
+    prefix's `d3d10`/`d3d11`, then **Apple's GPTK**, now the likeliest
+    answer. The traced exe's fault at `7BF21139` — VEH dispatch, try
+    `cover=0` — is the second half. **Blocks 223.**
 
 223. **Great Lakes 6848 is the marching squad, twelve frames ahead of the
     original's** — not the predicate (COLLISION §9). **Run 76 is the
-    capture**, booked, read-out written, waiting on 225. 7448 (214) is
-    the same shape. **Takes 219**, `do_group_move`'s four seams (ORDERS
-    §15): the group's speed pair and its cap — which 223 now points at —
-    the flock an invalid slot near an ocean cell adds (**one sync draw**,
-    the one with teeth), `cavarch_fight`, and the attack hand-offs.
+    capture**, booked, read-out written, waiting on 225. 7448 (214) is the
+    same shape. **Takes 219**, `do_group_move`'s four seams (ORDERS §15):
+    the group's speed pair and its cap — which 223 points at — the flock
+    an invalid slot near an ocean cell adds (**one sync draw**, the one
+    with teeth), `cavarch_fight`, the attack hand-offs.
 
-220. **§13's twenty range blocks.** Every free-upgrade row whose
-    candidates are a run of tech indices — Chinese herbal lore, the Red
-    Fort's two, the four `TwoPreq` unit-line blocks, the temple and
-    taxation lines, the wonders — is unloaded, and no capture reaches
-    one (TECH §13).
+220. **§13's twenty range blocks.** Every free-upgrade row whose candidates
+    are a run of tech indices — Chinese herbal lore, the Red Fort's two,
+    the four `TwoPreq` unit-line blocks, the temple and taxation lines, the
+    wonders — is unloaded, and no capture reaches one (TECH §13).
 
 209. **The other once-per-game events a dump install swallows.** 207's
     general half: grep the gates of that shape — a `set_*` whose **return
@@ -108,7 +109,7 @@ journal is indexed by them.
 Two records with no reader: (122) **a draw with no mark of its own** — 16 of
 61 `rng.roll`/`get` calls have no `self.mark(`; (153) **the `TRIBE` record,
 whole** — `Tribe::log_data@006f0d70`'s `graft[352]`, `barbarian`,
-`build_continent`, `people`, `text_substitute`, none parsed (TECH).
+`build_continent`, `people`, `text_substitute` (TECH).
 
 178. **The danger map's unit pass, unexercised.** DANGER §8: no capture
     has a military unit on a frame divisible by 200, so `role & 0x10000`,
@@ -116,18 +117,17 @@ whole** — `Tribe::log_data@006f0d70`'s `graft[352]`, `barbarian`,
     `WORLD` block on such a boundary settles it.
 
 181. **§7's unreached arithmetic** (CARAVAN §7.2–§7.3): the arrival box,
-    `compute_trade`'s `× 16 / 2` and `new_caravan`'s `(epoch[1] + 1) · 10`
-    fire at 6511 and 6766, unasserted.
+    `compute_trade`'s `× 16 / 2`, `new_caravan`'s `(epoch[1] + 1) · 10`.
 
 **The widening ledger is built** (87, DATALAYER §4): **23** parsed fields
 `diff.rs` names nowhere and **41** one capture names, pinned and falling
 only. Its blind spot is a field the parser never had — `avg_speed` (210).
 
 The ledgers still uncounted: (88) **the blind list** — `report.py … blind
-docs/` lists the cited functions no traced run has entered (101 of 617), pin it
-as a floor and put it in each Coverage; (72) every `+0xNN` a document pins,
-checked against its module; (89) the instrument's last guard, (c) alone; (35)
-**`mylos` as a cache**, VISION §7 (Scout 4 → 6 early).
+docs/` lists the cited functions no traced run has entered (101 of 617), pin
+it as a floor and put it in each Coverage; (72) every `+0xNN` a document
+pins, checked against its module; (89) the instrument's last guard, (c)
+alone; (35) **`mylos` as a cache**, VISION §7 (Scout 4 → 6 early).
 
 175. **The uber chain past its birth.** `Objects::init_unit` threads
     `uber_size` objects (CITIES §4.3) and nothing else reads the chain:
