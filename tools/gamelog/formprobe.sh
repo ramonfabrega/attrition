@@ -29,7 +29,7 @@ RON_TOOLS=${0:A:h}
 set -e
 N=${1:-48}
 T=${2:-/tmp/ron-runs}
-L="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
+L="$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
 
 # The card's buttons, measured off run47's 1920x1080 shot: the grid starts at
 # about x 5 and each cell is ~57 wide and ~38 tall, the rows at y 916, 954,

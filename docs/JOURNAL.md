@@ -16276,3 +16276,15 @@ run53 clean at **6871/6871**. So the free lane is not merely equivalent, it
 is fast enough that the run-up to frame 6,870 is three minutes of wall
 clock. The next session opens on data rather than on a runner.
 
+**And the last thing CrossOver owned was the corpus.** The runner was free
+an hour before the data was: 21 GB of `gamelog-run*` and `rontrace-run*` —
+everything `rondata::diff` is pinned against — still sat inside the expired
+bottle, with 37 files in the repo naming that path, one uninstall away from
+gone. Moved to `~/ron-data` (a rename, same volume), the prefix's `AppData`
+repointed straight at it, a shim symlink left behind, and re-verified rather
+than assumed: run904 through the new paths is 400/400 against run10 and
+401/401 against run53, and the 207-test diff suite reads its dumps through
+it. **Deprecating a dependency means the data, not just the binary** — the
+runtime had stopped touching CrossOver while the archive still lived inside
+it, and that half-state is the one that loses work.
+

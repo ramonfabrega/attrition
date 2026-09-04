@@ -1,6 +1,6 @@
 """armyrecs.py <dump-name>... — the ARMY records of each frame block's first FULL DUMP, one line each."""
 import sys
-L = '/Users/rf-studio/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/'
+L = '/Users/rf-studio/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/'
 KEYS = ('army ', 'who ', 'status ', 'reg ', 'num_units ', 'num_captains ', 'num_standard ', 'city ',
         'hurry ', 'target_o ', 'target_who ', 'x ', 'y ', 'muster_x ', 'muster_y ', 'human_frame ', 'muster_angle ')
 for name in sys.argv[1:]:

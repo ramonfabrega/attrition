@@ -47,7 +47,7 @@ STAGE=${FUZZ_STAGE:-1}
 T=${RON_TMP:-/tmp/ron-runs}; mkdir -p "$T"
 G=/Users/rf-studio/code/fun/attrition/game
 W=$(cd "$(dirname "$0")/../.." && pwd)
-R="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations"
+R="$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations"
 L="$R/Logs"
 P=riseofnations_trace.exe
 source "$W/tools/gamelog/lobby.sh"

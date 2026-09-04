@@ -7,7 +7,7 @@ and reading the answer out in one line. See `docs/ORACLE.md`, "The detail level
 is the knob", for what the log contains and how to make it contain it.
 
 The readers default to this machine's bottle path:
-`~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/`.
+`~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/`.
 
 ## `setlog.py` — write `gamelog.ini`
 

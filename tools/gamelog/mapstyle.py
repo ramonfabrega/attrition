@@ -32,7 +32,7 @@ import sys
 
 G = os.environ.get("RON_INSTALL", "/Users/rf-studio/code/fun/attrition/game")
 B = os.path.expanduser(
-    "~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover"
+    "~/ron-data"
     "/AppData/Roaming/Microsoft Games/Rise of Nations")
 
 

@@ -8,7 +8,7 @@ gl.py grep <regex> [max] [file]       grep with line numbers
 gl.py lines <a> <b> [file]            print lines a..b
 """
 import sys, os, re
-LOGS = os.path.expanduser("~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
+LOGS = os.path.expanduser("~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
 DEFAULT = os.path.join(LOGS, "gamelog.txt")
 
 def path(a):

@@ -10,7 +10,7 @@ FIELDS: comma list of keys; nested GUY fields as guy.x etc.
 Prints: frame <n> | <key=val ...> per matching record.
 """
 import sys, os, re
-LOGS = os.path.expanduser("~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
+LOGS = os.path.expanduser("~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
 DEFAULT = os.path.join(LOGS, "gamelog.txt")
 RECORD_KINDS = {"UNITDATA", "BUILDDATA", "CITYDATA", "LEADERDATA", "WALLDATA_TOP", "GUYDATA"}
 TRANSPARENT = {"OBJECT", "SUBOBJECT", "WALLDATA"}

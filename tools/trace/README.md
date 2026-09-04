@@ -1,6 +1,6 @@
 # `tools/trace/` — the draw-site trace and function coverage of the original
 
-An in-process instrument for `riseofnations.exe` under CrossOver. It answers
+An in-process instrument for `riseofnations.exe` under Wine. It answers
 three questions the loggers cannot:
 
 - **Which function drew?** Every step of the game's LCG, with the caller's

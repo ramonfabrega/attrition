@@ -33,8 +33,7 @@ import sys
 ARCHIVE = os.environ.get(
     "RON_GAMELOG_DIR",
     os.path.expanduser(
-        "~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users"
-        "/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"))
+        "~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"))
 
 
 def micro(v):

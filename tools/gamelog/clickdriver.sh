@@ -33,7 +33,7 @@ set -e
 N=${1:-46}
 T=${2:-/tmp/ron-runs}
 W=$(cd "$(dirname "$0")/../.." && pwd)
-L="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
+L="$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
 
 # The viewport centre. On the 1920-wide desktop the game is full-screen at
 # (0, 0); the map's centre sits above the command bar, not at the screen's

@@ -19520,7 +19520,7 @@ mod tests {
     ///
     /// `$RON_RECGAME_DIR`, or the profile's own `Recorded Games` directory —
     /// `PlayerProfile::get_record_game_directory` builds it under
-    /// `CSIDL_PERSONAL`, which CrossOver maps to the Mac's `~/Documents`.
+    /// `CSIDL_PERSONAL`, which the Wine prefix maps to the Mac's `~/Documents`.
     fn recording(name: &str) -> Option<String> {
         if let Ok(dir) = std::env::var("RON_RECGAME_DIR") {
             let path = format!("{dir}/{name}");
@@ -19528,9 +19528,9 @@ mod tests {
         }
         // **The kept corpus first, the game's own output directory second.**
         // A recording is a capture like a gamelog or a trace, so it belongs
-        // with them — `dump`'s directory, which is `$RON_GAMELOG_DIR` or the
-        // bottle's `Logs\`. The original writes new ones to
-        // `PlayerProfile::get_record_game_directory`, which CrossOver maps
+        // with them — `dump`'s directory, which is `$RON_GAMELOG_DIR` or
+        // `~/ron-data`'s `Logs\`. The original writes new ones to
+        // `PlayerProfile::get_record_game_directory`, which the prefix maps
         // to the Mac's `~/Documents`, and that path is **gated by macOS
         // consent**: the first `open` under it blocks until a human at the
         // machine clicks Allow, which over SSH is nobody. A background run

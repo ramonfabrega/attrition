@@ -28,7 +28,7 @@ RON_TOOLS=${0:A:h}
 set -e
 N=${1:-49}
 T=${2:-/tmp/ron-runs}
-L="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
+L="$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
 
 COLS=(32 89 146 203 260)
 ROWS=(935 976 1017 1058)

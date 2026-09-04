@@ -18,7 +18,7 @@ the effects of sim-frames LO-1 .. HI-2; run22 (docs/ORACLE.md) used
 after staging if the run wants more than the quit.
 """
 import os, re, sys
-B = os.path.expanduser("~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations")
+B = os.path.expanduser("~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations")
 G = "/Users/rf-studio/code/fun/attrition/game"
 
 def edit(path, fn):

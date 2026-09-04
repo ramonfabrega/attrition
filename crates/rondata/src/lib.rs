@@ -404,8 +404,7 @@ pub(crate) mod testenv {
         let dir = std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
             let home = std::env::var("HOME").unwrap_or_default();
             format!(
-                "{home}/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/\
-                 crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
+                "{home}/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
             )
         });
         let path = format!("{dir}/{name}");

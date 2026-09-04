@@ -20,7 +20,7 @@ import re
 import sys
 
 DEFAULT = os.path.expanduser(
-    "~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/"
+    "~/ron-data/"
     "AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog.txt"
 )
 

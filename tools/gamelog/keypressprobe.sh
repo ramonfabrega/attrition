@@ -32,7 +32,7 @@ RON_TOOLS=${0:A:h}
 set -e
 N=${1:-52}
 T=${2:-/tmp/ron-runs}
-L="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
+L="$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
 
 BX=${BUTTON_X:-32}
 BY=${BUTTON_Y:-1017}

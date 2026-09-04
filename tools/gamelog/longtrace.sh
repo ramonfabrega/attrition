@@ -96,7 +96,7 @@ if [ -z "${CFG+set}" ]; then
 fi
 W=$(cd "$(dirname "$0")/../.." && pwd)
 G=${RON_INSTALL:-/Users/rf-studio/code/fun/attrition/game}
-B="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations"
+B="$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations"
 L="$B/Logs"
 T=${RON_TMP:-/tmp/ron-runs}
 P=riseofnations_trace.exe

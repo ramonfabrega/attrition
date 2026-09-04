@@ -16,7 +16,7 @@ import re
 import sys
 
 DEFAULT = os.path.expanduser(
-    "~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/"
+    "~/ron-data/"
     "AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog.txt")
 path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT
 CAP = int(sys.argv[2]) if len(sys.argv) > 2 else 3_000_000

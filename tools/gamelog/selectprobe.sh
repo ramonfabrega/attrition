@@ -30,7 +30,7 @@ RON_TOOLS=${0:A:h}
 set -e
 N=${1:-47}
 T=${2:-/tmp/ron-runs}
-L="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
+L="$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
 
 shot() {
   screencapture -x "$T/r$N-$1.png" 2>/dev/null || true

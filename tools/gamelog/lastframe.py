@@ -11,8 +11,7 @@ import os
 import sys
 
 LOGS = os.path.expanduser(
-    "~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/"
-    "crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
+    "~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
 DEFAULT_OUT = os.path.join(os.environ.get("TMPDIR", "/tmp"), "ron-last.txt")
 
 src = os.path.join(LOGS, "gamelog.txt")

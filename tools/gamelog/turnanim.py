@@ -27,8 +27,7 @@ TURN = {21: "CHAR_TURN_LEFT", 22: "CHAR_TURN_RIGHT"}
 ARCHIVE = os.environ.get(
     "RON_GAMELOG_DIR",
     os.path.expanduser(
-        "~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users"
-        "/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"))
+        "~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"))
 
 
 def main():

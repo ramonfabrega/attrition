@@ -89,9 +89,9 @@ artifact is the next phase's tool.
    and no open-source RTS has it. If this comes out exactly right, the method
    is proven and the rest is repetition. **Done**: `docs/ATTRITION.md` and
    `docs/SUPPLY.md`.
-2. **Run the original** — 32-bit x86 Windows on Apple Silicon. **Done**, via
-   CrossOver's D3DMetal; `docs/ORACLE.md` has the exact path, the loggers the
-   executable ships, and every run captured so far. What it unlocks is bigger
+2. **Run the original** — 32-bit x86 Windows on Apple Silicon. **Done**, on
+   free Wine, owned end to end; `docs/ORACLE.md` has the exact path, the
+   loggers the executable ships, and every run captured so far. What it unlocks is bigger
    than recorded games: the engine's own logger dumps chosen subsystems' state
    **every frame** to a text file, and a fixed seed makes a run reproducible.
    That file, not a recording, is the per-frame ground truth the sim is diffed
@@ -389,11 +389,14 @@ and makes the eventual diff mechanical rather than a translation exercise.
   name the field behind a `field_0xNN`, name the method behind
   `(*(code **)(*this + 0xcc))()` — are `types.txt` and `vtables.txt` in the
   export.
-- **The original runs on this machine.** CrossOver (D3DMetal) in a bottle
-  named `ron`, launched with
-  `wine --bottle ron --workdir <install> <install>/riseofnations.exe`; see
-  `docs/ORACLE.md` for the two loggers it ships and how they are switched on.
-  `cliclick` drives it; System Events clicks do not reach it.
+- **The original runs on this machine, on nothing we do not control.**
+  Free WineHQ Stable 11.0 in the prefix `~/wine-ron`, with DXVK-macOS for
+  the one D3D11 device the game asks for. `tools/gamelog/prefix.sh` builds
+  the prefix, `winelaunch.sh` is the single launch line every capture script
+  sources, and `focus.sh` the single window query; see `docs/ORACLE.md`,
+  "Off CrossOver", for why each is needed and `docs/DECISIONS.md` 32 for why
+  it is not a licence. `cliclick` drives it; System Events clicks do not
+  reach it.
 - **A function of the executable can be called outside the game.**
   `tools/emu/callfn.py` maps it under unicorn (`uv run`, dependency declared
   in the script) and enters a function with chosen arguments; a sweep is a

@@ -52,7 +52,7 @@ import re
 import sys
 
 PROFILE = os.path.expanduser(
-    "~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover"
+    "~/ron-data"
     "/AppData/Roaming/Microsoft Games/Rise of Nations/PlayerProfile/Player.dat")
 SHIPPED = "data/playerprofile.xml"
 

@@ -1,6 +1,6 @@
 """rngcmp.py A B — first sim-frame at which the game_random word (FRAME record) differs."""
 import struct, sys
-L = "/Users/rf-studio/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/"
+L = "/Users/rf-studio/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/"
 def words(p):
     d = {}
     with open(p, "rb") as f:

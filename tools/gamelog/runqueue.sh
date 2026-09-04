@@ -44,7 +44,7 @@ SCEN=${1:--}
 if [ "$SCEN" = "-" ]; then SCEN="$W/tools/gamelog/captures.txt"; fi
 if [ $# -gt 0 ]; then shift; fi
 WANT=("$@")
-B="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations"
+B="$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations"
 L="$B/Logs"
 T=${RON_TMP:-/tmp/ron-runs}
 mkdir -p "$T"

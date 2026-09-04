@@ -12,7 +12,7 @@ which `GameLog::full_dump` gates `dump_groups` on, so the whole 512-slot
 group pool is a per-frame record without DUMP_ALL.
 """
 import sys, os
-D = os.path.expanduser("~/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/gamelog.ini")
+D = os.path.expanduser("~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/gamelog.ini")
 dump_all = sys.argv[1]
 SECTIONS = {"end": "[End Frame]", "start": "[Start Game]", "misc": "[Misc Logging]",
             "endgame": "[End Game]", "startframe": "[Start Frame]"}

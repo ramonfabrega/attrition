@@ -14,7 +14,7 @@ N=$1
 T=${RON_TMP:-/tmp/ron-runs}; mkdir -p "$T"
 G=/Users/rf-studio/code/fun/attrition/game
 W=$(cd "$(dirname "$0")/../.." && pwd)
-L="$HOME/Library/Application Support/CrossOver/Bottles/ron/drive_c/users/crossover/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
+L="$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
 P=riseofnations_trace.exe
 source "$W/tools/gamelog/lobby.sh"
 lobby_init || exit 1

@@ -4292,6 +4292,23 @@ taken from here on.**
   is what a wrong path looks like here. `tools/gamelog/prefix.sh` makes the
   symlink.
 
+### The corpus moved too, and that was the last thing CrossOver owned
+
+The runner was free before the *data* was. 21 GB of capture corpus — every
+`gamelog-run*.txt` and `rontrace-run*.log` the diffs are pinned against —
+still lived inside the expired bottle, at
+`…/CrossOver/Bottles/ron/drive_c/users/crossover/`, and 37 files in this
+repo named that path. **An uninstall would have taken the archive with
+it.** It now lives at `~/ron-data`, the prefix's `AppData` points straight
+there, and a symlink is left at the old location so nothing that still
+names it breaks. Re-verified the way everything else here is:
+`samegame.py` run904 against run10 is 400/400, `rngcmp.py` against run53
+401/401, and the 207-test diff suite reads its dumps through the new path.
+
+`$RON_GAMELOG_DIR` still overrides, as it always did. The shim at the
+CrossOver path can be deleted the day CrossOver is uninstalled; nothing
+reads it.
+
 ### What is not established
 
 - **Why VEH dispatch faults.** `7BF21139` sits between kernel32 and ntdll in
