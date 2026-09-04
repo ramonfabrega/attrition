@@ -649,3 +649,70 @@ Two lessons, and the second is the larger.
   the write that covers it, not a property of the store.** The same
   ten-frame diff was exact throughout, because no building finishes
   inside its window.
+
+## The docs-versus-code wave, 2026-09-05 — a different reading, and what it caught
+
+Eight documents, one Opus reader each, in two waves of four; the audit lane
+adjudicated every row against the source itself. Files:
+`2026-09-05-<doc>-vs-code.md` for roads, cities, orders, economy, collision,
+anim, movement and merchant.
+
+**It is not a second reading and it is not blind.** Each reader saw the
+document *and* the implementation, and nothing else: for every stated rule,
+formula, predicate and order of steps, find the code that implements it and
+write down the places they disagree. It exists because four times in one
+week a document stated a rule the code did not have and the code lagged its
+own document by 70 to 312 frames until somebody noticed by hand. A blind
+second reading cannot catch that — it never sees the code — and a test
+written from the document cannot either, because it encodes the same
+sentence.
+
+**The numbers.** About 1,140 stated rules traced to their implementing code.
+**101 rows, all 101 confirmed, none struck.** Every code citation the lane
+re-checked was accurate, across eight independent readers.
+
+**What the shape of the yield turned out to be**, which was not what the
+wave was designed for:
+
+- **A document can teach the code its error, and then nothing can find it.**
+  COLLISION §4.3 is the case. `Unit::detect_unit_collision@00617060`
+  short-circuits two order kinds *before* an action test, so the gated set
+  is seven kinds and not four; the document names "the last four", and
+  `Sim::same_group_soft` implements exactly that — plus a `GroupMove` gate
+  the original never consults. Document, code and original are three
+  different rules. This is the wave's argument in one row.
+- **Rules that neither side carries.** Five of ANIM's nine rows are rules of
+  the original that are in neither the document nor the code — visible only
+  because one reader held both against the same function. A document-only
+  or code-only pass shows nothing there.
+- **A row is worth more as a widening than as prose.** Three of the wave's
+  rows became assertions the same day. MOVEMENT's verified-line bit was
+  booked as "the refusal does not clear `unit_masks & 8`"; comparing the
+  bit against `Unit::line_ok` over run65's window — a field the dump had
+  printed all along and nobody compared — gave **335 disagreements in 450
+  unit-frames**, and not on the refusal path at all. ANIM's frozen clock
+  was booked as unreachable; `GuyData::log_data` prints `last_time` beside
+  `cur_time`, so the *step the original took* was already on disk, and it
+  is 0 on all 26 frames with the bit and 1 on all 89,522 without. ROADS'
+  reconstruction order could not be separated by any capture and was
+  settled by reading instead — and the widening written to test it found a
+  different finding, thirteen tiles of `World::set_behind`'s `0x4`.
+- **Two documents reached the same missing call from opposite ends.**
+  `Build::remove_from_city` not regenerating its city's roads is ROADS' R4
+  and CITIES' R15, from two readers who never saw each other's work.
+- **A stale comment at the code site is worse than a stale document.** Four
+  doc-comments in `economy.rs` carry claims ECONOMY.md has retracted, one
+  contradicting four pinned diff tests; MOVEMENT's SEAM says a bit "has no
+  reader this crate models" when the crate has one on the hot path. Both
+  are what the next session reads *while editing*.
+- **Grep the dump before booking anything, again.** ANIM's row and
+  MOVEMENT's both turned on a field the original had been printing since
+  August. Neither needed a capture; both had been written up as needing one.
+
+**What it cost, and the one brief error.** Eight readers, no drops, no
+quota wall. One reader was briefed that a function was on the blind list
+when it was not — the lane had built that list from a single trace before
+building the 68-trace union and carried the stale fact forward. The reader
+checked rather than believing it and said so in its report, which is the
+behaviour the brief asks for and the reason the error cost nothing.
+

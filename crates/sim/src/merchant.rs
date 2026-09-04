@@ -186,18 +186,17 @@ impl Sim {
             let p = s.units[i].orders_pos;
             vector_dist(p.x - at.x, p.y - at.y) <= r
         };
-        // `SEARCH_FRIENDLY` with `FILTER_NOT_ME(o, who)` and
-        // `FILTER_TYPE(type)` — mine and my allies', never me, of exactly
-        // my `TypeData.type`. The leader loop stops at eight, so gaia is
-        // not in the search space.
+        // `SEARCH_FRIENDLY` (`SearchIndexBH` 1, the PDB's own record) with
+        // `FILTER_NOT_ME(o, who)` and `FILTER_TYPE(type)` — and case 1 of
+        // `Search::valid_search@0067daa0` is `param_2 != this → 0`: the
+        // iterated leader must *be* the asker, so this is **my own**
+        // units, never me, of exactly my `TypeData.type` — not my allies'
+        // (`docs/MERCHANT.md` §6.1; the docs-versus-code pass of
+        // 2026-09-05 found `is_ally` here). The leader loop stops at
+        // eight, so gaia is not in the search space.
         let sibling = |s: &Self, i: usize| {
             let x = &s.units[i];
-            i != u
-                && x.alive()
-                && x.on_map
-                && !x.is_gaia()
-                && s.is_ally(who, x.owner)
-                && x.type_index == ty
+            i != u && x.alive() && x.on_map && !x.is_gaia() && x.owner == who && x.type_index == ty
         };
         if (0..self.units.len()).any(|i| sibling(self, i) && near(self, i, FRIENDLY_RANGE)) {
             return true;

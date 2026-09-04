@@ -359,3 +359,55 @@ transcribed pseudocode block). A comment that states what the original does
 is doing the same job as the document and is not checked against it by
 anything; where the two disagree, nothing fails. That is the same gap this
 pass exists to cover, one level down.
+
+
+## Adjudication — 2026-09-05, Opus
+
+**Eighteen confirmed, none struck.** Every row's code citation re-checked
+against the source; R1, R6 and R9 read at the site.
+
+**R6 is the mirror of the wave's own guard, and worth naming as a class.**
+`AttackOrder::ever_in_range` is written once (`orders.rs:4818`) and **read
+nowhere** in `crates/sim`: every other mention is a constructor setting it
+false (`orders.rs:1040`, `collide.rs:1866`), the dump parser, or
+`crate::diff`'s scene builder. The packer's drop rule that consumes it is
+not implemented. `rondata::writers` catches a field the diff *compares*
+that the sim never *writes*; this is the same vacuity turned around — a
+field the sim writes that nothing reads — and it is the cheaper half to
+check, because it needs no dump at all.
+
+**Three rows are the document lagging the code** and are the main lane's:
+§13's "not implemented" list is stale (`GroupMoveOrder`, cast and trade are
+all implemented — `orders.rs:207`, `:288`, `:300` with their `do_` arms);
+§12 calls the group follower's cone 60° where §15 and the code both make it
+120°; and §7.2's 1-in-5 re-search predicate is stated inverted, which the
+reader settled in the export.
+
+**Two are blind and rest on the reading alone** — `think`'s
+squad-member-follows-captain's-fight arm and its remembered
+`near_o`/`near_who` auto-attack — with a third, the garrison approach
+ring's `DOCK` case and relaxed retry, likewise blind. Those three are
+exactly the surface `docs/DECISIONS.md` 25 says a ratification pass takes:
+cited, implemented-around, and never entered by any of the 68 traces.
+
+**R1 is the one with the plainest consequence.** `work`'s target-liveness
+gate matches `Build`, `Repair`, `Garrison` and `Gather` and falls through
+on everything else, so an `ATTACK` action whose target is already dead is
+not killed before the step. The original kills it first.
+
+The remaining rows are stated, unimplemented and reached-as-function:
+the chase move's missing `0x481` distance gate and its ungated kill;
+`invalid_loc`'s refusal not clearing the verified-line bit (the same bit
+MOVEMENT's R6 measured at 335 wrong in 450); a swarm's approach move always
+`EXPLORE_TO` where the original makes it `MOVE_TO` for a human builder and
+every repairer; the arrived gatherer's AI repair arm; the tile approach
+ignoring `avoid_x/y`; the tile score's `MTN_TINY_SIZE` clamp;
+`add_gather_order` not clearing the "has been a builder" bit;
+`adjacent_to`'s missing sea arm with `BOAT_GARRISON_MAX_DISTANCE` unused;
+and a re-plan returning 0 with an empty stack killing the order instead of
+taking the top (marked `UNSURE:`, left marked).
+
+§9 and §11 got a lighter pass because both live in `crates/rondata`, and
+the reader said so in the file rather than letting the count imply
+coverage it did not have. That is the right disclosure and it is why this
+document's count is not directly comparable with the others'.

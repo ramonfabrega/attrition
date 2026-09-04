@@ -1393,6 +1393,29 @@ unit is in melee, so no diff can fail on the gap today. The arm belongs in
 `guy_inc_time`; until it lands the rule cannot drift, and the day it lands
 this is the check that says what it should do.
 
+## 9.2 The other eight rows of that pass
+
+All confirmed, none struck, and the shape is unlike the wave's other seven
+documents. Only three of the nine rows are document-versus-code in the
+ordinary sense: §4.2's group-idle gate names three conditions where the code
+and the original both have five (the document is short, and the gate is dead
+in every capture); the gaia-walker early return — `who >= 8`, `CHAR_WALK`,
+inside its length — is implemented and appears in no section here, only in
+the function's own doc-comment; and R1's freeze, above.
+
+**Five are rules of the original that neither this document nor the code
+carries**, which a document-only or a code-only reading could not have
+surfaced: a guy on `CHAR_TURN_LEFT`/`RIGHT` with `des_angle != angle` has
+its own early return and no-draw rewind — run44 has 452 such guy-frames, so
+this one is *reached* and merely unmeasured; the attack roll's packet
+fallback to `CHAR_ATTACK2`; `CHAR_ATTACKWALK`'s non-looping mark (left
+`UNSURE:` — `anim_graphics.xml` settles it with a grep); the idle variant's
+sixth fallback term, `unit_masks & 0x2000000`; the scholar's
+`guy_flags & 0x80` remap of every slot above `CHAR_UNPACK`, on both sides of
+the same-category test; and `set_anim`'s `CHAR_ATTACKWALK` head arm with its
+`UnitData+0xae` counter — the same counter §5's freeze reads. §4.9 disclaims
+*passing* that slot, not receiving it.
+
 ## 10. Second reading — landed
 
 The blind reader's report is `docs/audit/2026-08-24-anim-reading.md`

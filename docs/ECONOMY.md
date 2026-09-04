@@ -1331,6 +1331,53 @@ far as anything read goes they are as dead as `calc_support`.
 
 ---
 
+## The docs-versus-code pass, 2026-09-05
+
+`docs/audit/2026-09-05-economy-vs-code.md` (Opus reader, Opus
+adjudication). 112 stated rules traced to the code that implements them;
+twenty-one disagree, all twenty-one confirmed, none struck.
+
+**The sharpest is that this document's five indexed ladders never move.**
+`Levels::for_player` ignores its player and answers a constant whose
+`taxation` is 0, so "The territory tax"'s `TERRITORY_TAXES[taxation_level]`
+is `TERRITORY_TAXES[0]` — zero per cent — for the life of every game, and
+"The enhancers"' granary, lumber mill and smelter and "What a city gives"'
+university are all pinned at level 1. `crates/sim/src/holdings.rs` carries
+the seam; **this document does not**, and states the five as live
+arithmetic. The territory tax is the one that matters: it is not a level too
+low, it is a whole income line that can never be non-zero. No capture
+separates them — run60's 5,400 frames leave no territory-tax row — but
+run60's own `resource_cap` step at 2958 says the commerce line is being
+researched there, and the taxation ladder sits beside it.
+
+Two rows are deliberate negatives and are not bugs. The `over_cap == 2`
+threshold is `999 × 16 − 16` in the code and `999 × 16 − 1` here, and the
+two predicates agree on **every** value the pipeline can produce, because
+`commerce_cap` returns only multiples of sixteen; the row stays because a
+`bonus_cap` added after the shift would part them silently. The obsolete
+redirect is a dead path.
+
+The remaining eighteen are **stated, unimplemented and unreached**, and
+most are whole clauses rather than constants: Dutch interest; the knowledge
+tech-cost penalty; the fast-economy option and `ai_speed` in the income
+multiplier chain, where `pay` scales by the handicap and nothing else; the
+infinite-resources short-circuit; `base_rate`, which has no representation
+at all and is blind (`ScenarioFuncSet::set_base_rate@009fbb80`); the
+territory tax's three modifiers; the slot bound on the rate path; the flat
+branch's per-gatherer rate, a constant where this document has a footprint
+survey; the Forbidden City and the CEO hero; six nation terms inside the
+city and branch arithmetic; five of the thirteen assembly steps; four terms
+of the commerce cap; the Porcelain Tower's market-tax modifier and its
+`rare_owned` pass; a rare-mask change recomputing nothing but unit stats;
+and a player starting with all six goods where the original grants three
+with the age.
+
+And one row is not about this document at all: **four doc-comments in
+`economy.rs` still carry claims this document has retracted**, one of them
+contradicting four pinned diff tests. That is the cheapest to fix and the
+most misleading to leave, because a stale comment at the site is what the
+next session reads while editing.
+
 ## Second reading (2026-08-20) — landed
 
 A blind second derivation and its adjudication are in
