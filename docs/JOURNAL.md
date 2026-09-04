@@ -15972,3 +15972,68 @@ state the dump does not carry, the order it computes it in is a fact
 nobody is checking** — and this is the second such ordering (the first
 was `diplos`, installed 2026-09-02 after forty-six readers had run
 against an all-peace matrix).
+
+## 2026-09-04 — item 222: the list a Barracks joins (Great Lakes 6782 → 6848, Opus)
+
+**One frame, three functions, no reading and no capture.** The word stood
+at 6782 on a building this crate bought and the original did not: both
+sides spent `make_stuff`'s two `+0x221` expiry draws over the head's type,
+and only this crate went on to `produce_building`'s two `+0x1805` jitter
+draws and to the two `+0x63d` expiries over the slot it had just bought.
+The queue booked it as "an affordability or a `make_this` gate".
+
+**The draws said where it was not.** `make_stuff`'s slot loop runs the
+expiry *after* the buy and regardless of whether the producer succeeded,
+so a slot the original had reached at all would have cost it at least one
+`+0x63d`. Zero of them means the original bought **nothing** from slots
+1..10 — which rules out the producer and puts the whole question on the
+gate. Printing this crate's list at 6782 gave slot 1 as a **University**,
+60 timber and 30 metal, against a bucket of 113 and 127 and a head cost of
+31 and 51: `113 ≥ 31 + 60` and `127 ≥ 51 + 30`, so of course it bought. The
+gate is right. The **bucket** is not.
+
+**The head is what pays.** Slot 0 is two **Longbowmen** — the British
+unique archer, and the AI is British — bought by `make_this(0)` two lines
+earlier, which charges. The bucket had not moved. `Leader::produce_unit`'s
+military-trainer arm walks **`mil_trainers`**, `LeaderData+0x6e50`, and a
+one-line probe said it was empty. `grep` said it had always been empty:
+`Leader::new` sets `Vec::new()` and the only pushes in the crate are in
+two unit tests. **The AI in this harness had never queued a military unit
+in 24,000 frames**, on either map, since the AI landed a fortnight ago.
+
+**Two writers, and they were not where the reading looked.** Neither
+`plan_strategy`'s census nor any producer writes the list.
+`Wall::increment_stats@00643270` and `Wall::decrement_stats@00642da0` do —
+the same pair that keeps `reg_buildings`, which §2.3 step 8 already cited
+for that and not for this. Each splits on `is_active`; the active arm
+files or removes the trainer, and the removal is
+`SimpleArray<int>::remove@00462e70`, which finds the first slot holding
+the value and **shifts the tail down**, so the list is in activation order
+and stays in it. Four call sites, all in the building lifecycle
+(`Wall::activate`, `Build::close`, `add_to_city`/`remove_from_city`,
+`Wall::set_type`); this crate implements the first two, beside the dock
+registry's own calls, which are the same shape one field over.
+
+**What it moved.** Great Lakes **6782 → 6848**, count and sequence
+together. East Indies unmoved at 7448. The original queues both
+Longbowmen and pays 62 timber and 102 metal for them, and 51 timber is
+not 91, so the University never comes up.
+
+**The lesson, and it is the same one as 221's with a different face.**
+The wrong thing was not in the mechanic the word pointed at. 221 was a
+starting state nothing checks; this is a **field with no writer** — the
+crate had the reader, the test fixture and the doc paragraph, and the
+production path that fills it did not exist. `docs/QUEUE.md` has carried
+a standing section for exactly this ("Three fields nothing here writes",
+items 48, 73, 56) and `mil_trainers` was not in it, because nobody had
+grepped for its writers. **A field a producer reads and no lifecycle
+writes is silent by construction**: it produces no divergence of its own,
+only a resource level four hundred frames later. The grep that finds them
+is cheap and is now worth running as a sweep rather than one field at a
+time.
+
+**What stands at 6848** is one extra `Guy::set_anim+0x97a <
+Unit::move_step+0x823` — the blocked walker's stand, `sim::anim::
+SITE_BLOCKED` — a step this crate refuses and the original takes. East
+Indies' 7448 is two of the same site with the sign the other way round,
+so for the first time both maps' words are the same predicate (item 223).

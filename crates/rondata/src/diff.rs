@@ -14287,13 +14287,30 @@ mod tests {
     /// and `create_buildings`' wonder pair
     /// ([`sim::ai_build::SITE_WONDER_MOD`], [`sim::ai_build::SITE_WONDER_SCALE`]).
     ///
-    /// **6782**, and it is a building this crate buys and the original
-    /// does not. Both sides spend `make_stuff`'s two `+0x221` expiry draws
-    /// over the head's type; the original then stops, and this crate goes
-    /// on to `produce_building` — two `+0x1805` jitter draws — and to the
-    /// two `+0x63d` expiries over the slot it just bought. So the head of
-    /// the make list is the same and the *buy* is not.
-    const LONG_WORD_GREAT_LAKES: i64 = 6782;
+    /// **6782 until 2026-09-04**, and it was a building this crate bought
+    /// and the original did not: both sides spent `make_stuff`'s two
+    /// `+0x221` expiry draws over the head's type, and only this crate went
+    /// on to `produce_building`'s two `+0x1805` jitter draws and to the two
+    /// `+0x63d` expiries over the slot it had just bought. The head was the
+    /// same and the *buy* was not — because the head's own buy never
+    /// happened here. The head was two **Longbowmen**, and
+    /// `Leader::produce_unit`'s military-trainer arm searches
+    /// `mil_trainers` (`LeaderData+0x6e50`), a list **nothing in this crate
+    /// ever wrote**: it was `Vec::new()` at `Leader::new` and stayed empty
+    /// for the whole game, so the AI's Barracks was invisible and the two
+    /// Longbowmen were never queued or paid for. The original paid 62
+    /// timber and 102 metal for them, which is exactly what puts the
+    /// University in slot 1 out of reach on the next line of the same
+    /// function. `Wall::increment_stats@00643270` files an active military
+    /// trainer and `Wall::decrement_stats@00642da0` takes it out again
+    /// ([`sim::Sim::mil_trainer_open`], `docs/AI.md` §29).
+    ///
+    /// **6848**, and it is one extra `Guy::set_anim+0x97a <
+    /// Unit::move_step+0x823` — the blocked walker's stand
+    /// (`sim::anim::SITE_BLOCKED`, `docs/COLLISION.md` §5). A unit's step is
+    /// refused here and taken there, which is the same site East Indies
+    /// parts on at 7448 with the sign the other way round (item 214).
+    const LONG_WORD_GREAT_LAKES: i64 = 6848;
 
     /// The frame the AI's library takes its **Coinage** job on, and the
     /// frame run58's `QUEUE` record used to part on: twenty-four rows of

@@ -12,32 +12,34 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 221 landed.* **Great Lakes 6779 → 6782; East
-Indies unmoved at 7448.** No capture, no reading: the two draws named a
-step, the step named two unit types, and the types named an ordering bug
-in this harness.
+*2026-09-04, Opus — item 222 landed.* **Great Lakes 6782 → 6848; East
+Indies unmoved at 7448.** No capture and no blind reading: the draw
+sequence named the buy, the buy named the head it followed, and the head
+named a field with no writer.
 
-- **6779 is step 5, `upgrade_units`, one roll per eligible type**, and
-  the two were **Slingers** and **Javelineers** — eligible the moment the
-  Barracks finished, because Slingers read RESEARCHABLE not AVAILABLE.
-- **The starting position is a function of the nation, and it was laid
-  for the wrong one.** `Leader::init` sets the tribe first and its unit
-  arm is `has_preq && tribe_can_type` (TECH, "The starting position");
-  `build_sim` called `Loaded::sim` — which calls `start_techs` — before
-  reading a `LEADER` record, so **every capture ever built here opened
-  with its leaders' tech computed for `tribe = 0`**: the British AI owned
-  `Atl-Atls` (mask `0x1`), not Slingers. Re-laid after; `scene_at` too.
-- **Three sites named in the same pass**, since every AI draw read as the
-  coarse `strategy_all` mark: the matchup bias in `create_units`
-  (`+0x642`) and `upgrade_units` (`+0x5a4`), and the wonder pair.
+- **`mil_trainers` (`LeaderData+0x6e50`) was never written here.**
+  `Leader::new` set it to `Vec::new()` and only the unit tests pushed to
+  it, so `produce_unit`'s military-trainer arm and `produce_tech`'s found
+  no Barracks for the whole 24,000 frames. **The AI has never queued a
+  military unit in this crate.**
+- **The symptom was one slot down.** At 6782 the head is two Longbowmen,
+  which the original queues and pays 62 timber / 102 metal for; this crate
+  queued nothing, kept the money, and could afford the University in slot
+  1 — the two `+0x1805` and two `+0x63d` the original never spends.
+- **Two writers, the pair that keeps `reg_buildings`:**
+  `Wall::increment_stats@00643270`'s active arm and
+  `Wall::decrement_stats@00642da0` through `SimpleArray<int>::remove`,
+  which shifts rather than swaps — the list is in activation order
+  (AI §29).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w7448 of 24,000 · GreatLakes w6782 of 24,000
+Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
 
-**Opener (Opus):** `222 is the default: run53 frame 6782, a building this
-crate buys and the original does not. Both spend make_stuff's two +0x221
-expiries over the head's type; only this crate goes on to
-produce_building. The head is the same, the buy is not. AI §2.6, §2.11.`
+**Opener (Opus):** `223 is the default, and it is 214 on the other map:
+Great Lakes 6848 is one extra Guy::set_anim+0x97a < Unit::move_step+0x823,
+a step this crate refuses and the original takes; East Indies 7448 is two
+of the same site with the sign reversed. COLLISION §5 — the predicate,
+not the site.`
 
 ## The queue
 
@@ -46,36 +48,34 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-222. **Great Lakes' word is a building bought at 6782 the original does
-    not buy.** Both spend `make_stuff`'s two `+0x221` expiries over the
-    head's type; only this crate reaches `produce_building` (`+0x1805`
-    ×2) and the two `+0x63d` over the slot. The head agrees; the **buy**
-    does not — an affordability or a `make_this` gate (AI §2.6, §2.11).
+223. **Both words are now `Unit::move_step+0x823`, and they disagree in
+    opposite directions.** Great Lakes 6848 spends one blocked stand this
+    crate takes and the original does not; East Indies 7448 spends two the
+    original takes and this crate does not (214). The site fires 347 times
+    in run54, so it is the **predicate** — COLLISION §5, and the two signs
+    together are what one reading has to explain.
 
 220. **§13's twenty range blocks.** Every free-upgrade row whose
     candidates are a run of tech indices — Chinese herbal lore, the Red
     Fort's two, the four `TwoPreq` unit-line blocks, the temple and
-    taxation lines, the wonders — is unloaded; each endpoint its own
-    reading, and no capture reaches one (TECH §13).
+    taxation lines, the wonders — is unloaded, and no capture reaches
+    one (TECH §13).
 
 219. **`do_group_move`'s four remaining seams** (ORDERS §15): the flock
     an invalid slot near an ocean cell adds — **one sync draw**, so it is
     the one with teeth — `cavarch_fight`, the group's speed pair and its
     cap, and the attack hand-offs.
 
-214. **East Indies' word is two blocked stands, at 7448.** Two
-    `Unit::move_step+0x823` (`SITE_BLOCKED`, COLLISION §5) where this crate
-    steps both units; the site fires 347 times in run54, so it is the
-    *predicate*. Nothing on disk covers 7448.
-
 209. **The other once-per-game events a dump install swallows.** 207's
     general half: grep the gates of that shape — a `set_*` whose **return
     value** drives an irreversible record — and seed each from the
-    installed state, as `Sim::seed_new_rares_from_fog` does.
+    installed state, as `Sim::seed_new_rares_from_fog` does. **Takes
+    224**, `mil_trainers`' other three writers (AI §29.4): a trainer that
+    changes city, upgrades in place or is captured is filed by neither.
 
-203. **`Wall::mark_behind_tiles`' `0x4`, and nothing else.** The residue
-    is **32** at 4802 and **45** at 5565, every bit `0x4` —
-    `World::set_behind@006b4230`'s low arm, which nothing reads (ROADS §9.5).
+203. **`Wall::mark_behind_tiles`' `0x4`.** The residue is **32** at 4802
+    and **45** at 5565, every bit `0x4` — `World::set_behind@006b4230`'s
+    low arm, which nothing reads (ROADS §9.5).
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
     frames short of `1/19`'s deploy spot (MERCHANT §7) — the cast, the

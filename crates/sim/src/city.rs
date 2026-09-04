@@ -1381,6 +1381,11 @@ impl Sim {
             bd.job_counter = 0;
             bd.job_counter_2 = 0;
         }
+        // `Wall::activate@0063e4b0` line 62, immediately after the active
+        // flag: an active military trainer joins the leader's own list
+        // (`docs/AI.md` §29). The guard the original spells at the call site
+        // — `NO_CITY`, or complete and in a city — is inside.
+        self.mil_trainer_open(b);
         // `leader_flags |= 0x2000000 | 0x8000000`: the wall stats go stale —
         // which is how a nomad's other sites lose the ×3 once the first city
         // stands.
@@ -1633,6 +1638,12 @@ impl Sim {
         // `Build::close` line 227: a dock leaves the registry while the
         // object is still flagged in use (`docs/TRANSPORT.md` §5.3).
         self.dock_close(b);
+        // `Build::close@00628980` line 99, inside the same `flags & 4` guard:
+        // an active military trainer leaves the leader's list
+        // (`docs/AI.md` §29).
+        if self.buildings[b].active {
+            self.mil_trainer_close(b);
+        }
         // `Build::close@00628980` line 104, inside the same `flags & 4`
         // guard that gates the wall stats: an **active** gather building
         // gives its slots back. The high-water mark does not follow it

@@ -1525,6 +1525,13 @@ mod tests {
         let bar = building(&mut sim, 1, t.barracks, 12, 5);
         let bt_id = sim.build_types[t.barracks].tree.expect("the tree entry");
         sim.tech_tree.types[t.military1].where_ = Some(bt_id);
+        // Activating it filed it — `Wall::increment_stats`, `docs/AI.md` §29.
+        assert_eq!(
+            sim.ai[1].mil_trainers,
+            vec![bar],
+            "an active trainer joins the list when it activates"
+        );
+        sim.ai[1].mil_trainers.clear();
         assert!(
             !sim.produce_tech(1, t.military1, 1),
             "a trainer not in `mil_trainers` is invisible"

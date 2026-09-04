@@ -25,7 +25,7 @@
 
 use crate::ai::Census;
 use crate::ai_load::{role, uflags, uflags2};
-use crate::build::Ident;
+use crate::build::{self, Ident, flags};
 use crate::economy::RESOURCES;
 use crate::orders::Worker;
 use crate::tech::{self, TypeId};
@@ -1740,6 +1740,55 @@ impl Sim {
             .unwrap_or(0)
     }
 
+    // ------------------------------------------------------------------
+    // The military-trainer registry — `docs/AI.md` §29
+    // ------------------------------------------------------------------
+
+    /// `Wall::increment_stats@00643270`'s military-trainer arm: an **active**
+    /// building whose type `is_military_trainer` joins its leader's
+    /// `mil_trainers` (`LeaderData+0x6e50`), appended in activation order.
+    ///
+    /// The outer guard is the caller's — `Wall::activate@0063e4b0` line 62
+    /// calls it only when the type carries `NO_CITY` or the building is
+    /// complete and in a city — and `increment_stats` itself takes this arm
+    /// only on the `is_active` side of its own split, which is why
+    /// [`Sim::activate`] calls this *after* setting the flag.
+    ///
+    /// The predicate is [`build::is_military_trainer`], read on the root of
+    /// the `FROM` chain, not the placement code's `Ident` list: an upgraded
+    /// trainer is still one.
+    pub(crate) fn mil_trainer_open(&mut self, b: usize) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let bt = &self.build_types[ty];
+        if !bt.has(flags::NO_CITY) && self.buildings[b].city.is_none() {
+            return;
+        }
+        if !build::is_military_trainer(&self.build_types, ty) {
+            return;
+        }
+        let w = self.buildings[b].owner as usize;
+        if w >= self.ai.len() || self.ai[w].mil_trainers.contains(&b) {
+            return;
+        }
+        self.ai[w].mil_trainers.push(b);
+    }
+
+    /// `Wall::decrement_stats@00642da0`'s arm, through
+    /// `SimpleArray<int>::remove@00462e70` — which finds the first slot
+    /// holding the value and **shifts the tail down**, so the list keeps its
+    /// order rather than swapping with the last.
+    pub(crate) fn mil_trainer_close(&mut self, b: usize) {
+        let w = self.buildings[b].owner as usize;
+        if w >= self.ai.len() {
+            return;
+        }
+        if let Some(i) = self.ai[w].mil_trainers.iter().position(|&x| x == b) {
+            self.ai[w].mil_trainers.remove(i);
+        }
+    }
+
     /// `produce_unit(t, city, num, escrow)`: `true` when queued (the
     /// original's 0). `city` is a sim city index, `None` for −1.
     pub fn produce_unit(
@@ -2289,6 +2338,75 @@ mod tests {
         }
         sim.holdings[0].available = [true; RESOURCES];
         (sim, Barracks { unit, rec, brec, b })
+    }
+
+    /// The registry `produce_unit` and `produce_tech` both read, and which
+    /// nothing in this crate wrote until 2026-09-04 — `docs/AI.md` §29.
+    #[test]
+    fn a_trainer_joins_the_leader_s_list_on_activation_and_leaves_on_close() {
+        let (mut sim, ids) = barracks_sim(false);
+        let city = sim.buildings[ids.b].city;
+        // The fixture files its own barracks by hand; this is about the
+        // registry the building lifecycle keeps.
+        sim.ai[0].mil_trainers.clear();
+        sim.buildings[ids.b].active = false;
+
+        // A second trainer, to make the order and the removal observable.
+        let trainer = |sim: &mut Sim, x: i32| {
+            let b = sim.add_building(0, crate::Pos::new(x * 256, 4 * 256), 8);
+            sim.buildings[b].ty = Some(ids.brec);
+            sim.buildings[b].city = city;
+            b
+        };
+        let b2 = trainer(&mut sim, 8);
+        let b3 = trainer(&mut sim, 12);
+        let b4 = trainer(&mut sim, 12);
+
+        // `Wall::increment_stats` files an *active* trainer, in activation
+        // order, and `SimpleArray::add` never checks for a duplicate — but
+        // `Wall::activate` only reaches it on the transition.
+        sim.activate(ids.b, false, true);
+        assert_eq!(sim.ai[0].mil_trainers, vec![ids.b]);
+        sim.activate(b2, false, true);
+        sim.activate(b3, false, true);
+        sim.activate(b4, false, true);
+        assert_eq!(sim.ai[0].mil_trainers, vec![ids.b, b2, b3, b4]);
+
+        // `SimpleArray<int>::remove@00462e70` finds the first slot holding
+        // the value and shifts the tail down, so closing one from the middle
+        // leaves the order of the rest — it is not a swap with the last.
+        sim.close_building(b2, false);
+        assert_eq!(sim.ai[0].mil_trainers, vec![ids.b, b3, b4]);
+        sim.close_building(b4, false);
+        assert_eq!(sim.ai[0].mil_trainers, vec![ids.b, b3]);
+
+        // Not a military trainer: never filed. `bare`'s type table has one
+        // record with no flags at all.
+        let plain = sim.add_build_type(crate::build::BuildType {
+            ident: Ident::Granary,
+            x_size: 2,
+            y_size: 2,
+            hits: 100,
+            ..crate::build::BuildType::default()
+        });
+        let g = sim.add_building(0, crate::Pos::new(4 * 256, 12 * 256), 8);
+        sim.buildings[g].ty = Some(plain);
+        sim.buildings[g].city = city;
+        sim.activate(g, false, true);
+        assert_eq!(sim.ai[0].mil_trainers, vec![ids.b, b3]);
+
+        // A trainer outside a city, with no `NO_CITY` on its type, is what
+        // `Wall::activate`'s own guard refuses.
+        let out = trainer(&mut sim, 4);
+        sim.buildings[out].city = None;
+        sim.activate(out, false, true);
+        assert_eq!(sim.ai[0].mil_trainers, vec![ids.b, b3]);
+        // With `NO_CITY` the same building would have joined.
+        sim.build_types[ids.brec].flags |= crate::build::flags::NO_CITY;
+        let free = trainer(&mut sim, 6);
+        sim.buildings[free].city = None;
+        sim.activate(free, false, true);
+        assert_eq!(sim.ai[0].mil_trainers, vec![ids.b, b3, free]);
     }
 
     #[test]

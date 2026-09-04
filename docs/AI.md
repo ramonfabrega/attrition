@@ -3499,3 +3499,108 @@ original on any capture here — it is named against the listing, and the
 frame that would exercise it is the frame this crate stopped spending it
 on (`docs/TECH.md`, "The starting position is a function of the
 nation"). If it ever fires on both sides, the label is what will say so.
+
+---
+
+## 29. `mil_trainers`, the list a Barracks joins (2026-09-04)
+
+`Leader::produce_unit`'s military-trainer arm and `produce_tech`'s (§2.17)
+both search **`mil_trainers`** — `LeaderData+0x6e50`, a `SimpleArray<int>`
+whose count is `+0x6e54`, capacity `+0x6e58` and list `+0x6e60`. Neither
+walks the leader's buildings: a trainer that is not in this list is
+invisible to both, and every unit the AI trains at a Barracks, Stable,
+Siege Factory, Factory or Auto Plant is trained through it.
+
+Nothing in this crate wrote it. `Leader::new` set it to `Vec::new()` and
+only the unit tests ever pushed to it, so from frame 0 to frame 24,000 the
+AI's `produce_unit` found no trainer and queued nothing military. That is
+the whole of item 222.
+
+### 29.1 The two writers
+
+`grep` says there are exactly two, and they are the same pair that keeps
+`reg_buildings` (§2.3 step 8):
+
+- **`Wall::increment_stats@00643270`** — the function splits on
+  `is_active` (`flags & 4`). The **active** arm counts the building's type
+  into `reg_buildings[type]` and `reg_buildings[region][type]`, and then,
+  if `BuildTypeData::is_military_trainer`, **appends the object's `o`** to
+  `mil_trainers`. There is no duplicate test. The inactive arm is the
+  *sites* counter and touches nothing here.
+- **`Wall::decrement_stats@00642da0`** — the mirror, through
+  `SimpleArray<int>::remove@00462e70`, which finds the **first** slot
+  holding the value and shifts the tail down. The order of the survivors is
+  preserved; it is not a swap with the last. So `mil_trainers` is in
+  activation order, and `produce_unit`/`produce_tech`'s `>` tie-break gives
+  the earliest-activated trainer among equals.
+
+`is_military_trainer` is the **derived** `BUILD_FLAGS 5` read on the root
+of the `FROM` chain (`docs/DATALAYER.md`), not a list of idents: an
+upgraded trainer is still one.
+
+### 29.2 Where they are called from
+
+Four call sites, all in the building lifecycle:
+
+| caller | which | guard at the call site |
+| --- | --- | --- |
+| `Wall::activate@0063e4b0:62` | increment | the type has `NO_CITY` (`build_flags & 0x10`), **or** the building is complete and in a city (`+0x72 ≥ 0`) — and `flags |= 4` is set two lines above, so the active arm is the one taken |
+| `Build::close@00628980:99` | decrement | `flags & 4` (active), and the same `NO_CITY`-or-in-a-city test |
+| `Build::add_to_city@00622380:43` | increment | **not** `NO_CITY`, and active |
+| `Build::remove_from_city@00622030:124` | decrement | the same |
+| `Wall::set_type@00640da0` | both | an upgrade in place: out, then in again |
+
+The first two are what this crate implements —
+[`sim::Sim::mil_trainer_open`] from `Sim::activate` and
+[`sim::Sim::mil_trainer_close`] from `Sim::close_building`, each beside the
+dock registry's own call, which is the same shape one field over
+(`docs/TRANSPORT.md` §5.2–§5.3).
+
+### 29.3 What it moved
+
+Great Lakes' word, **6782 → 6848**. At 6782 the make list's head is two
+**Longbowmen** — the British unique archer, `t 177`, `city 1`, `escrow 1` —
+and `make_stuff` finds `can_pay` true and calls `make_this(0)`. With no
+trainer to queue at, this crate's `produce_unit` returned "not queued"
+without paying; the original queued both and paid `2 × (31 timber,
+51 metal)`. Six lines later the same function tests slot 1 — a
+**University**, 60 timber and 30 metal — against
+`bucket[g] ≥ head_cost[g] + slot_cost[g] + need`, and 113 timber against
+91 passes only on the side that never paid for the Longbowmen. So the
+symptom was a building bought at slot 1 (`produce_building`'s two
+`+0x1805` jitter draws and the two `+0x63d` expiries over its type) and
+the cause was a unit *not* bought at slot 0, which spends no draw at all.
+
+### 29.4 Coverage
+
+**Diff-backed.** run53's long capture, which now runs 66 frames further.
+The list's *contents* are not dumped by any capture on disk — no `LEADERS`
+record prints `mil_trainers` — so what the diff checks is the consequence:
+the frame the AI's resources stop agreeing.
+
+**Established by reading, and asserted by
+`a_trainer_joins_the_leader_s_list_on_activation_and_leaves_on_close`**:
+the activation order, the order-preserving removal, the
+`is_military_trainer` predicate on the root of the chain, and the
+`NO_CITY`-or-in-a-city guard. Each of the four was made to fail once
+before the test was kept.
+
+**Not established.**
+
+- **The two city call sites.** `add_to_city`/`remove_from_city` are
+  unimplemented, so a trainer that changes city here keeps its position in
+  the list where the original's would move to the end. No capture has a
+  building change city.
+- **`Wall::set_type`'s pair.** A trainer upgraded in place is removed and
+  re-appended by the original, moving it to the end; this crate leaves it
+  where it is. A Barracks does not upgrade in the shipped tree, but a
+  Stable → Auto Plant line does.
+- **Capture.** `Wall::swap_team@00640c00` copies the flag byte straight
+  across and calls neither `activate` nor `increment_stats`, so the new
+  owner's list does **not** gain the building until it joins a city — and
+  this crate's `Sim::swap_team` copies `active` the same way, so the two
+  agree by accident rather than by construction. No capture on disk has a
+  captured building.
+- **The original stores `o`, this crate stores the building index.** The
+  two coincide in ordering but not in value, and a dump comparison would
+  have to translate.
