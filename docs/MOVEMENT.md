@@ -521,7 +521,9 @@ if pos == des:                                   # the unit did not move
         if cur_anim == CHAR_WALK and stopped:  set_anim(DEFAULT, 0, 1)
         stopped = 1
     elif domain == sea or order is SPECIAL_ANIM:
-        stopped = 0                              # turn, but leave the animation
+        stopped = 1                              # turn, but leave the animation
+                                                 # (Guy::move@005d9240 SETS it;
+                                                 # this line read 0 until 2026-09-05)
     else:                                        # still coming round: the arm
         if cur_anim not in (TURN_LEFT, TURN_RIGHT, ATTACKWALK):
             set_anim(CHAR_WALK, 0, 1)
@@ -585,7 +587,8 @@ gone and the compared population grew from 33,992 to 35,868
 (`rondata::diff`'s `run10_s_opening_trains_the_original_s_citizens_on_its_frames`).
 
 **The two arms above the turn are `Guy::move`'s own `set_anim` callers**, and
-the second of them — the **turn arm** — is not modelled yet. A body that has
+the second of them — the **turn arm** — is modelled by `Sim::guy_follow_anim`
+(*this sentence said "not modelled yet" until 2026-09-05*). A body that has
 arrived but has not yet come round to the order's angle is put *back on the
 walk* and marked unstopped, every frame it is still turning, so the next
 frame's idle request sees the walk category and rolls again. That is the
@@ -593,7 +596,8 @@ second draw of `docs/SYNC.md` §3.11's arrival pair. What it costs to land is
 in the queue: the arm reads `des_angle != angle` on every standing unit, and
 `Guy::do_turn` overrides the walk with `CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT`
 whenever the guy's piece has a turn animation (`guy_flags & 8`,
-`Guy::init_real@005db6b0:179`), which this crate does not model at all.
+`Guy::init_real@005db6b0:179`) — `Sim::guy_do_turn_anim` carries both the
+override and the gate (*"does not model at all" was stale by 2026-09-05*).
 
 **The 11/8 is the tracked guy's**, and nothing else's. A literal, with no
 constant behind it. `track_dx`/`track_dy` are what the branch is gated on;
