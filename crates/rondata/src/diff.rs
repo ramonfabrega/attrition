@@ -12388,6 +12388,21 @@ mod tests {
     /// the longest, stops at 6160. A walk spends no draws, so the trace
     /// cannot place them either.
     ///
+    /// **What it found** (2026-09-04). Not the march: the squad is already
+    /// apart on 6640, the window's own first frame, twenty-eight frames
+    /// after its birth and ten before the group order. This crate stacked
+    /// all three Archers on the captain's spot, because `come_out` searched
+    /// once and placed the squad; the original recurses on `o_down` and
+    /// each member searches for itself (`00617c10:535`, `docs/CITIES.md`
+    /// §6.5.1). That is now built, and it is not the whole answer: the
+    /// **captain is exact** — bearing 0 at `r = min = 672` off Barracks
+    /// `1/2016`, snapping to `(45144, 26424)` — while the original's `1/29`
+    /// stands at `(45288, 26520)`, a bearing of 11.25° from the trainer,
+    /// which `find_nearby_spot`'s counter cannot produce (`docs/ORDERS.md`
+    /// §10, verified against the listing at `61e017`–`61e3dc`). So the
+    /// members' spots come from a mechanism not yet found, and the twelve
+    /// frames are still owed. Queue item 227.
+    ///
     /// Driven through [`run_traced`], so this is the whole record and not
     /// the squad's.
     #[test]

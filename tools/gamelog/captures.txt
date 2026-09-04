@@ -935,3 +935,14 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run76.log
 # above — five minutes, 62 MB, 231 frame blocks over [6640, 6870), and the
 # check came back 6871/6871 identical against run53. 77 unit records a
 # frame carry `orders_x`, `collide_o/who/frame`.
+# READ 2026-09-04, and it answered a different question than it asked.
+# The squad is already apart on 6640 — the window's own first frame, ten
+# before the group order — so the twelve frames are a *birth* placement,
+# not a march. This crate stacked all three Archers on the captain's spot;
+# the original recurses on `o_down` and each member searches for itself
+# (docs/CITIES.md 6.5.1). The captain is now exact. The members are not
+# candidates of the building's ring from either centre, and 1/29's 11.25
+# degree bearing is one find_nearby_spot never makes — queue item 227.
+# WHAT WOULD KILL 227: this stanza's shape on a *second* map, a Barracks
+# squad born inside a UNITS=3 frame_window. One sample of two offsets is
+# all there is, and two samples separate a formation from a search.

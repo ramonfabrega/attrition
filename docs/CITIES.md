@@ -1286,6 +1286,60 @@ unit type** and nothing else in the export writes the field. run58's
 Fisherman `1/14` is born 192 units further from its Dock than the land ring
 would put it, which is that term exactly.
 
+#### 6.5.1 A squad's members each search for themselves — and not on the ring
+
+**Diff-backed, and the residue is named** (2026-09-04, run76, queue item 223).
+Every trained unit is born inside its trainer and walks out, and a squad is
+`uber_size` **objects**, not one object with three figures (§4.3). The
+original does not place them together: after `set_new_location`, `come_out`
+re-enters on `o_down` with the "already the captain" flag set —
+`00617c10:535` calls `come_out(member, 1)`, and `param_1` at `:172` is what
+stops a member bouncing back up to its captain. So each member repeats the
+whole exit search with its siblings already standing on the map.
+
+This crate placed every member on the captain's own spot, which is what put
+the AI's three Archers of run76 on one point. The per-member search is built
+(`Sim::come_out_spot`, `Sim::come_out_place`).
+
+**What the capture confirms.** run76's window opens at 6640, twenty-eight
+frames after the squad is born, and the three Archers `1/27`, `1/28`, `1/29`
+stand still until the group order on 6650 — so the block is their birth
+placement, read directly. The trainer is Barracks `1/2016` at
+`(45120, 25728)`, `x_size = y_size = 4`, so the ring is
+`8 × 0x30 + 288 = 672` out to `672 + (480 − 288) = 864`, step `24`. The
+**captain is exact**: bearing 0 (due south) at `r = 672` projects to
+`(45120, 26400)`, snaps to `(45144, 26424)`, and that is where the original's
+`1/27` stands. Ring, centre, bearing origin, snap and step are all confirmed
+by this one row.
+
+**And the two members are not candidates of that sweep at all.** The
+original has `1/28` at `(45144, 26568)` and `1/29` at `(45288, 26520)`.
+`1/29` sits at `dx ∈ [144, 192)`, `dy ∈ [768, 816)` from the building — a
+bearing of `atan(168/792) ≈ 11.25°`, one **thirty-second** of a turn east of
+south. The sweep cannot produce it. Its bearing is
+`base + k × 0x1000_0000 + (0x0800_0000 if |k| > 7)` for `k` in
+`0, ±1 … ±15` — verified instruction by instruction at `61e017`–`61e023`
+(the `sbb`/`and` that adds the half turn) and `61e02a`–`61e033` (the
+`shl $0x1c` and the two adds) — so an 11.25° bearing needs `k ≡ 0 (mod 16)`,
+which the counter never reaches. Nor does the captain's own position serve as
+the centre: from `(45144, 26424)`, `1/29` needs a bearing whose tangent is in
+`[1.0, 2.33]`, and neither 45° nor 67.5° lands in both coordinate windows.
+
+**So a squad member's exit spot comes from somewhere this crate has not
+found.** The three are packed at 144, 152 and 173 units — 144 is one tile and
+the closest the original ever puts two of them — where the ring's own second
+candidate is 258 away. Queue item 227.
+
+**What is not established.** Which mechanism it is. The candidates are
+`find_nearby_spot`'s squad flag (`param_13`, which inflates the block radius
+by `((uber_size − 1) × guy_spacing) / 2 + 0x30` at `61deb8`–`61ded7` and is
+passed **0** by both of `come_out`'s calls), the local `Group` that
+`come_out` clears at its head, and a formation offset applied by
+`set_new_location`. Nothing on disk separates them: no other capture has a
+squad born inside a `DUMP_ALL` window. The falsifying capture is a
+`frame_window` over any Barracks squad's birth on a **second** map with
+`UNITS=3`, which turns one sample of two offsets into two.
+
 ### 6.6 Ejecting a building — `eject_contents`, `process_ejection`
 
 `Object::eject_contents(kill_if_stuck, only_type, keep_orders, clear_first)`:
@@ -1828,7 +1882,11 @@ heal, ejection), then the sites' `construct_hits` refresh.
   south of London. `train`'s own arms before the exit — a gather-inside
   building that keeps its worker, the dock's boat count, the owner's text
   bubble — are not modelled either; every trainer here lets its unit out.
-  The one-squad-a-frame cadence and the FIFO order are kept.
+  The one-squad-a-frame cadence and the FIFO order are kept. **A squad's
+  members each run the search for themselves** since run76 (§6.5.1) — the
+  `o_down` recursion at `00617c10:535` — but where the original's members
+  actually land is **not** a candidate of that sweep, and is unexplained;
+  the captain's spot is exact.
 - **`valid_filter(8)`** in the capture count is taken as "alive and on the
   map" — what every other filter the combat document read reduces to.
 - **The capture attempt inside `Object::valid_target`** (§7.1's fourth caller)

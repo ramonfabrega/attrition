@@ -775,6 +775,56 @@ fn hoplites_fill_a_barracks_to_its_limit_and_leave_one_squad_a_frame() {
     assert_eq!((u.x - bp.x, u.y - bp.y), (24, 8 * 0x30 + 288 + 24));
 }
 
+/// `Unit::come_out@00617c10:535` recurses on `o_down` with the "already the
+/// captain" flag, so **every member of a squad runs the exit search for
+/// itself**, with the siblings already placed standing in it
+/// (`docs/CITIES.md` §6.5.1). This crate placed the whole squad on the
+/// captain's spot, which is what stacked run76's three Archers on one point.
+///
+/// The captain still takes the ring's first candidate — due south at
+/// `(4 + 4) * 0x30 + 288`, snapped — which run76 confirms to the unit.
+#[test]
+fn a_squad_comes_out_one_member_at_a_time_and_no_two_share_a_spot() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut squad = hoplite_type(t.barracks);
+    squad.combat.uber_size = 3;
+    // `coll_size` is `block_radius / 48`, so a radius of 1 occupies no cell
+    // at all and no sibling could ever block another.
+    squad.combat.block_radius = 48;
+    let squad = sim.add_unit_type(squad);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+
+    let produced = sim.build_train(b, squad);
+    let members = sim.squad_members(produced.unit);
+    assert_eq!(members.len(), 3, "uber_size 3 is three objects");
+
+    let spots: Vec<Pos> = members.iter().map(|&m| sim.units[m].pos).collect();
+    for &m in &members {
+        assert!(sim.units[m].on_map && sim.units[m].inside.is_none());
+    }
+    // The whole point: three searches, three answers.
+    let mut seen = spots.clone();
+    seen.sort_by_key(|p| (p.x, p.y));
+    seen.dedup();
+    assert_eq!(
+        seen.len(),
+        3,
+        "each member searches for itself, so no two share a spot: {spots:?}"
+    );
+    // And the captain is still on the ring's own first candidate, due south
+    // of the trainer at the inner radius, snapped to its quarter-tile centre.
+    let bp = sim.buildings[b].pos;
+    let hp = sim.units[produced.unit].pos;
+    assert_eq!(
+        (hp.x - bp.x, hp.y - bp.y),
+        (24, 8 * 0x30 + 288 + 24),
+        "the captain keeps the ring's own first candidate"
+    );
+}
+
 #[test]
 fn the_garrison_heal_runs_every_twenty_frames_where_the_unit_was_trained() {
     let mut sim = world_sim();

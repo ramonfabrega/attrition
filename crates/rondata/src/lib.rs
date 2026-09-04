@@ -403,9 +403,7 @@ pub(crate) mod testenv {
     pub(crate) fn dump(name: &str) -> Option<String> {
         let dir = std::env::var("RON_GAMELOG_DIR").unwrap_or_else(|_| {
             let home = std::env::var("HOME").unwrap_or_default();
-            format!(
-                "{home}/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"
-            )
+            format!("{home}/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs")
         });
         let path = format!("{dir}/{name}");
         std::path::Path::new(&path).is_file().then_some(path)

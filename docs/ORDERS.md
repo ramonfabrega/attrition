@@ -3232,6 +3232,17 @@ into those dead slots (R7 N13).
   (`docs/MOVEMENT.md`'s table), **snapped to the centre of its 48-unit
   quarter-tile** (`div3(v >> 4) × 0x30 + 0x18`). A ring with `r == 0` has the
   one candidate `(x, y)`. The first candidate that passes wins.
+  **Read off the listing, not the decompiler** (2026-09-04, item 223): the
+  bearing counter's own feedback — `k ← 1 − k` for `k ≤ 0` and `k ← −k`
+  otherwise, at `61e085`–`61e094`, then the tail's `inc`/`cmp $0x10` at
+  `61e3ab`–`61e3ba` — is what generates `0, 1, −1, 2, −2, …, 15, −15` and
+  ends the ring at 16; the tail's radius arm at `61e3c0`–`61e3dc` is what
+  makes the sweep **radius-major**, all 31 bearings before `r` advances. The
+  half turn is `61e017`–`61e023`: `lea 0x7(%ecx)`, `cmp`, `sbb`, `and
+  $0x8000000` — set for `k > 7` *and* for `k < −7`, since `k + 7` goes
+  unsigned-huge. The decompiler prints the counter's post-mutation value
+  and reorders the `project` call, which reads as a different list; the
+  listing settles it, and it is the list above.
 - **The test, in order**: on the map; `region` (if asked) — the cell's
   `WData.region`, or `region2` for an ocean tile of a coastal cell; not a
   `0x4000` tile (air exempt); **not on `bo`'s footprint** (the corner exactly

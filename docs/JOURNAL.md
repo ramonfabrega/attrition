@@ -16305,3 +16305,85 @@ symlink, the cask, the support directory; the bottle held a stock Windows
 tree and nothing of ours. Three memory lines still carried the bottle path
 and were corrected. **A move is not a backup, and a symlink is not a copy** —
 the lesson is a day old and worth one line here.
+
+
+## 2026-09-04 — item 223: the archers were never marching, they were born apart (Opus)
+
+**The item was booked as a march and it is a birth.** Great Lakes' word
+parts at 6848 on one `Guy::set_anim+0x97a < Unit::move_step+0x823` — the
+AI's Archer `1/28` refusing a step twelve frames before the original's own
+first refusal at 6860 — and the last session, having proved it was not the
+collision predicate, booked run76 to find out whether the squad marched
+faster, started later or walked a different line. It is none of them.
+
+**run76's first frame answers it.** The window opens at 6640, twenty-eight
+frames after the three Archers are born and ten before `Army::do_forming`
+issues the group order, and they are standing still. They are also already
+in the wrong place — `1/28` and `1/29` both part at **6640**, the window's
+own first row, before a single step is taken. Reading their positions took
+one `track.py` call and one diff run, and it retired the whole
+speed-versus-path question the stanza was written for.
+
+**What was wrong: this crate placed a squad on one point.** A squad is
+`uber_size` **objects** (CITIES §4.3), and `Unit::come_out` searched the
+exit ring once and wrote that spot to every member — so all three Archers
+stood on `(45144, 26424)` where the original's `1/27` alone does. The
+original does not do that: at `00617c10:535`, after `set_new_location` and
+after adding itself to the world, `come_out` re-enters on `o_down` with
+`param_1 = 1`, the flag whose only other use (`:172`) is to stop a
+non-captain bouncing up to its captain. Each member therefore repeats the
+whole search with its siblings standing in it. That is built —
+`Sim::come_out_spot` and `Sim::come_out_place` — and
+`a_squad_comes_out_one_member_at_a_time_and_no_two_share_a_spot` was made to
+fail against the old form before it was kept.
+
+**And the capture confirms the ring to the unit.** Barracks `1/2016` at
+`(45120, 25728)`, `x_size = y_size = 4`: the ring is `8 × 0x30 + 288 = 672`
+out to `864`, step `24`, and bearing 0 — due south — projects to
+`(45120, 26400)`, snapping to `(45144, 26424)`. That is the original's
+`1/27` exactly. Centre, ring, bearing origin, snap and step all pass on one
+row, and the diff-backed "due south" claim that rested on run10's five
+citizens now has a second, independent map behind it.
+
+**What is still owed, and it is a sharper question than the one booked.**
+The members' spots are **not candidates of that sweep at all**. The
+original's `1/29` stands at `(45288, 26520)`, which is `dx ∈ [144, 192)`,
+`dy ∈ [768, 816)` from the trainer — a bearing of about **11.25°**, one
+thirty-second of a turn. The sweep's bearings are
+`base + k × 0x1000_0000 + (0x0800_0000 if |k| > 7)`, so 11.25° needs
+`k ≡ 0 (mod 16)` and the counter runs `0, ±1 … ±15`. Taking the captain's
+own spot as the centre does not rescue it either: from there `1/29` needs a
+bearing whose tangent is in `[1.0, 2.33]`, and neither 45° nor 67.5° lands
+in both coordinate windows. So a squad member's exit spot comes from
+something not yet found — queue item **227**, with three named suspects and
+a falsifying capture.
+
+**The listing was worth its minute, twice.** The decompiler's rendering of
+`find_nearby_spot@0061de70` puts the `project` call before the bearing
+counter's own mutation, which reads as the list `0, −2, 1, −3, …` — a
+different sweep from the one this crate implements. `llvm-objdump` settles
+it in one screen: `61e085`–`61e094` is the feedback (`k ← 1 − k` for
+`k ≤ 0`, `k ← −k` otherwise), `61e3ab`–`61e3ba` the increment and the
+`cmp $0x10` that ends a ring at 31 bearings, `61e3c0`–`61e3dc` the radius
+arm that makes the sweep **radius-major**, and `61e017`–`61e023` the
+`lea`/`cmp`/`sbb`/`and $0x8000000` that adds the half turn for `k > 7` *and*
+for `k < −7`, since `k + 7` goes unsigned-huge. Every one of those confirms
+what `crates/sim` already had. Without the listing the session would have
+"fixed" a correct sweep to match a decompiler artefact, and it would have
+been a plausible-looking regression across every build, repair, gather and
+garrison call site.
+
+**The lesson, and it is the sibling of last session's.** Last session's was
+*print the two operands before theorising about the operator*; this one is
+its complement — **when the operands rule out the operator you have,
+believe them, and do not invent a new operator to fit two points**. Three
+hypotheses fitted `1/28` and none fitted `1/29`; the honest answer was to
+name what the sweep cannot produce, write it down, and hand on a question
+that a second map's capture can kill. The score did not move, and the
+handoff says so.
+
+**What it cost, and what it did not.** No capture was taken: run76 was on
+disk and checked, and the whole session ran off one file plus one
+disassembly. The word is unmoved on both maps — Great Lakes 6848, East
+Indies 7448 — and the 207 diff tests and 807 sim tests are green, so the
+per-member placement is a structural gain with no regression behind it.

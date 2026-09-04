@@ -312,6 +312,48 @@ impl Sim {
         let Some(b) = self.units[captain].inside else {
             return false;
         };
+        // **The captain first, then the chain, and each member searches for
+        // itself** (`00617c10:535`). See [`Sim::come_out_spot`].
+        let Some(spot) = self.come_out_spot(captain, b) else {
+            return false;
+        };
+        self.buildings[b].garrison.retain(|&c| c != captain);
+        self.come_out_place(captain, spot);
+        for f in self.squad_of(captain) {
+            if f == captain || self.units[f].inside != Some(b) {
+                continue;
+            }
+            // A member that finds nothing stays inside: the recursion's own
+            // refusal is per unit, and the captain is out either way.
+            if let Some(s) = self.come_out_spot(f, b) {
+                self.come_out_place(f, s);
+            }
+        }
+        // The city alarm clears when the city empties.
+        if self.building_is_city(b)
+            && self.buildings[b].garrison.is_empty()
+            && let Some(c) = self.buildings[b].city
+        {
+            self.cities[c].alarm = false;
+        }
+        // The function's own tail: the army coin, thrown once the unit is
+        // out and by the scout lines alone ([`Sim::come_out_join_army`],
+        // `docs/ARMY.md` §4). A trained unit reaches it through
+        // `Build::train`, which is what run54's two `+0x25b0` draws are.
+        self.come_out_join_army(captain);
+        true
+    }
+
+    /// One unit's exit spot: the ring around its trainer, swept from due
+    /// south, with everything already on the map in the way.
+    ///
+    /// This is the body of `Unit::come_out` up to `set_new_location`, and it
+    /// is per **unit** rather than per squad because the original's own
+    /// recursion is: after placing itself and adding itself to the world,
+    /// `come_out` re-enters on `o_down` with the "already the captain" flag
+    /// set (`00617c10:535`, `param_1` at `:172`), so every member repeats
+    /// the whole search with its siblings now standing in it.
+    fn come_out_spot(&mut self, captain: usize, b: usize) -> Option<crate::Pos> {
         let bd = &self.buildings[b];
         let (xs, ys) = bd.ty.map_or((0, 0), |t| {
             (self.build_types[t].x_size, self.build_types[t].y_size)
@@ -358,7 +400,7 @@ impl Sim {
         // the ring and falls back to the building's own position, and its
         // filter is `FILTER_ALL`, whose general test is a seam
         // (`docs/CITIES.md` §11, `docs/ORDERS.md` §10).
-        let spot = if self.profile(Obj::Unit(captain)).block_radius == 0 {
+        let spot: Option<crate::Pos> = if self.profile(Obj::Unit(captain)).block_radius == 0 {
             self.find_nearby_spot_coll(captain, pos, min, max, 0, south, None, Coll::None)
                 .or_else(|| {
                     self.find_nearby_spot_coll(
@@ -373,57 +415,45 @@ impl Sim {
                     )
                 })
                 .unwrap_or(pos)
+                .into()
         } else {
             let free = self.find_nearby_spot(captain, pos, min, max, 0, south, None);
-            match free.or_else(|| {
+            free.or_else(|| {
                 self.find_nearby_spot_coll(captain, pos, min, max, 0, south, None, Coll::None)
-            }) {
-                Some(spot) => spot,
-                None => return false,
-            }
+            })
         };
-        self.buildings[b].garrison.retain(|&c| c != captain);
-        for f in self.squad_of(captain) {
-            let u = &mut self.units[f];
-            u.inside = None;
-            u.on_map = true;
-            u.pos = spot;
-            u.movement = crate::Movement {
-                speed: u.movement.speed,
-                turning: u.movement.turning,
-                ..crate::Movement::at(spot)
-            };
-            // `Object::add_to_world` reaches `update_seen(0)` — the whole
-            // disc, not the ring (`docs/VISION.md` §6) — and both
-            // collision indices (`docs/COLLISION.md` §2, §3).
-            self.coll_add(f);
-            self.chain_add(f);
-            self.update_seen(f, false);
-            // **And the crew comes out with it.** The original places the
-            // unit with `set_new_location(·, ·, 1, 1)` (`00617c10:518`),
-            // whose snap flag reaches `Guy::set_new_location(guy 0, spot,
-            // 1)` and *puts* every tracked figure on its rotated offset
-            // (`docs/MOVEMENT.md`, "Who writes it, and when"). Without it
-            // a trained figure keeps the seat `Unit::init` gave it at the
-            // trainer's own centre and stands there for the rest of its
-            // life: run67's block 6572 has the second Merchant's figure
-            // 696 units from where this crate left it.
-            let facing = self.units[f].movement.facing;
-            self.crew_des(f, spot, facing, true);
-        }
-        // The city alarm clears when the city empties.
-        if self.building_is_city(b)
-            && self.buildings[b].garrison.is_empty()
-            && let Some(c) = self.buildings[b].city
-        {
-            self.cities[c].alarm = false;
-        }
-        // The function's own tail: the army coin, thrown once the unit is
-        // out and by the scout lines alone ([`Sim::come_out_join_army`],
-        // `docs/ARMY.md` §4). A trained unit reaches it through
-        // `Build::train`, which is what run54's two `+0x25b0` draws are.
-        self.come_out_join_army(captain);
-        true
+        spot
+    }
+
+    /// The rest of `Unit::come_out` for one unit: out of the building, onto
+    /// the spot, into both collision indices and the vision map.
+    fn come_out_place(&mut self, f: usize, spot: crate::Pos) {
+        let u = &mut self.units[f];
+        u.inside = None;
+        u.on_map = true;
+        u.pos = spot;
+        u.movement = crate::Movement {
+            speed: u.movement.speed,
+            turning: u.movement.turning,
+            ..crate::Movement::at(spot)
+        };
+        // `Object::add_to_world` reaches `update_seen(0)` — the whole
+        // disc, not the ring (`docs/VISION.md` §6) — and both
+        // collision indices (`docs/COLLISION.md` §2, §3).
+        self.coll_add(f);
+        self.chain_add(f);
+        self.update_seen(f, false);
+        // **And the crew comes out with it.** The original places the
+        // unit with `set_new_location(·, ·, 1, 1)` (`00617c10:518`),
+        // whose snap flag reaches `Guy::set_new_location(guy 0, spot,
+        // 1)` and *puts* every tracked figure on its rotated offset
+        // (`docs/MOVEMENT.md`, "Who writes it, and when"). Without it
+        // a trained figure keeps the seat `Unit::init` gave it at the
+        // trainer's own centre and stands there for the rest of its
+        // life: run67's block 6572 has the second Merchant's figure
+        // 696 units from where this crate left it.
+        let facing = self.units[f].movement.facing;
+        self.crew_des(f, spot, facing, true);
     }
 
     /// `Object::eject_contents` on a building: deferred — one squad a frame
