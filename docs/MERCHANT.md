@@ -460,6 +460,48 @@ that ends it and the recovery after:
   fourth entry of forty-nine, so nothing on disk exercises the walk past
   ring 1, and `detect_unit_collision` (§7) still refused nothing.
 
+## 6.1 The docs-versus-code pass, 2026-09-05
+
+`docs/audit/2026-09-05-merchant-vs-code.md` (Opus reader, Opus
+adjudication). 68 stated rules traced to the code that implements them;
+seven disagree, all seven confirmed, none struck, and **all seven
+unreached** — both maps are 1-v-1 with fog, every capture is AI-side, and no
+leader in any of them has an ally holding merchants.
+
+Three are already carried as seams here or at the code site: §3's
+`detect_unit_collision` ring test, §3's `unit_masks &= ~0x100` clear, and §4
+row 1's Dutch auto-attack arm. Three were not, and are **stated,
+unimplemented, unreached**:
+
+- **§2.2's `g.ever_seen & (1 << who)`** is substituted in `crate::merchant`
+  by a fog read (`was_really_seen_fog`) that is masked with `ally_mask | (1
+  << who)` and answers true outright for `who >= 8`, `reveal_map == 3` and
+  an off-grid cell. A rare an ally saw and this leader never did passes
+  here and would be refused there.
+- **§4 row 2's human rare-collector arm** — `is_rare_collector` and
+  `leader_flags & 4` and packed, `do_gather` then a ring-4
+  `unpack_merchant` — is absent. `Sim::unpack_merchant` has exactly one
+  caller and it asks with ring 3, so ring 4 is never asked. §7 lists the
+  Dutch arm as unmodelled and not this one.
+- **§2's `think_merchant` tail** does not clear `unit_masks & 0x4000000`.
+  The `0x4000000` this crate does model is a `LeaderData` flag, a different
+  bit entirely.
+
+**§2.2's `SEARCH_FRIENDLY` is half settled, and the settled half is a real
+error.** `crate::merchant`'s two friendly searches both test `is_ally`, and
+its comment states the gloss outright ("mine and my allies', never me").
+For the **second** search that is wrong on evidence that needs no
+enumerator: `ObjectsData::find_unit_ordered@0065bc40` passes the literal
+`1` to `Search::valid_search@0067daa0` where `find_unit@0065ca80` passes its
+own argument, and case 1 is `param_2 != this → 0` — the iterated leader must
+*be* the asker. So an ally's merchant is admitted here and is not there.
+
+For the **first** search the same conclusion needs `SEARCH_FRIENDLY` to be
+case 1, and that is a *name*, which the surrounding code does not settle
+(`CLAUDE.md`). The export carries no `SearchIndexBH` record. Marked
+`FABLE:` in the audit file rather than asserted; the enumerator's own record
+via the PDB field-list type index would close it.
+
 ## 7. What is not established
 
 - **The order two goods first seen in the *same* start-of-game reveal take
