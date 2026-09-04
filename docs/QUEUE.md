@@ -117,8 +117,8 @@ whole** — `Tribe::log_data@006f0d70`'s `graft[352]`, `barbarian`,
     `WORLD` block on such a boundary settles it. (181) **CARAVAN §7.2–§7.3's
     unreached arithmetic**: the arrival box, `× 16 / 2`, `(epoch[1] + 1) · 10`.
 
-**The widening ledger is built** (87, DATALAYER §4): **23** parsed fields
-`diff.rs` names nowhere and **41** one capture names, pinned and falling only;
+**The widening ledger is built** (87, DATALAYER §4): **22** parsed fields
+the harness names nowhere and **42** one capture names, each pinned one way;
 its blind spot is a field the parser never had — `avg_speed` (210).
 
 The ledgers still uncounted: (88) **the blind list** — 101 of 617 cited

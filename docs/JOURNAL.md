@@ -16426,3 +16426,71 @@ branches and a pre-rebase worktree were still on both sides of origin. All
 gone. The marked-row batch was empty — every `FABLE:` marker is struck or
 a deliberate pointer — and the audit README now says the lane is the
 ledger's feeder.
+
+## 2026-09-04 — item 228: the diff harness split by record (Opus)
+
+**One file of 23,243 lines became a spine of 55 and eleven modules.**
+`crates/rondata/src/diff.rs` was where every widening landed and where both
+new lanes would have collided (`docs/DECISIONS.md` 33, point 4). It is now
+`mod` declarations and eight `pub use` globs; the code lives under
+`crates/rondata/src/diff/`, one module per dumped record family, each
+carrying its own tests:
+
+| module | what it holds | lines |
+|---|---|---|
+| `floors.rs` | `MapFloors`, `FLOORS`, the handoff's `Scoreboard:` parser | 117 |
+| `setup.rs` | `build_sim`, `world_from`, `start_of_game`, `Built`, `AtFrame` | 2,736 |
+| `unit.rs` | the `UNIT` record: position, figures, collision, angle, sight, packed | 1,587 |
+| `order.rs` | the order list and the path stack, and `check_start_orders` | 1,683 |
+| `build.rs` | `BUILDDATA`: identity, production queue, gather list | 3,153 |
+| `city.rs` | the `CITY` record, and the census and prices read beside it | 1,026 |
+| `world.rs` | the `WORLD` record: terrain, roads, fog, farms, gaia's walks | 3,874 |
+| `army.rs` | the `ARMY` and `GROUP` records | 2,795 |
+| `report.rs` | `FrameResult`, `Report`, `draws_between`, `mark_sites` | 231 |
+| `harness.rs` | `compare`, `run`, `run_with`, `run_traced`, the whole-capture runs | 5,385 |
+| `testkit.rs` | the fixtures every record's tests are built from | 721 |
+
+**Mechanical means mechanical, and it was verified rather than asserted.**
+The split was done by a line-range extractor over the parsed item index,
+not by hand: every top-level item and every item inside the two test
+modules was assigned a destination, and the script refuses to run unless
+the assigned ranges cover the file's 23,244 lines exactly once. Afterwards
+the multiset of non-blank lines, whitespace-stripped, was diffed against
+the original. The whole difference is 33 lines gone and 121 new, and every
+one of them is scaffolding: the eleven `//!` headers, the `mod`/`pub use`
+declarations, the per-module `use` lists, and **nineteen signatures
+promoted to `pub(crate)`** because their callers are now siblings —
+`guy_of`, `pos_of`, `start_of_game`, `same_start`, `compare_orders`, the
+four `debug_*`, `site_window`, `attributed_sites`, `Built`'s
+`phase_fold`/`build_ids`/`unit_ids`/`target_ids`, and the consts
+`PERSONALITY_BEFORE`/`AFTER`, `FARM`, `WOODCUTTER`. Two call sites that
+spelled `crate::diff::tests::trace` in full now spell
+`crate::diff::testkit::trace`. **No function body changed, no assertion
+changed, no label of a `("name", ours, theirs)` comparison row changed.**
+121 tests before and 121 after, 195 `fn` declarations before and after, and
+the multiset of test names is identical.
+
+**What the extractor found that a hand split would have lost.** One doc
+block of 339 lines — `run39_s_long_trace_says_where_the_second_map_s_word_
+parts`' changelog, the record of where East Indies' word has moved — is
+separated from its own `#[test]` by a blank line, so the first pass filed
+it with the *previous* test and left it stranded in `world.rs` in front of
+a test it does not describe. Clippy caught it, on a lint that does not fire
+when the stray block is followed by an attribute but does when it is
+followed by another doc block. The absorber now crosses a single blank line
+when what is above it is `///`, and the block travels with its test.
+
+**What changed for anyone reading the documents.** Test paths gained a
+level: `diff::tests::run64_s_caravan_road…` is now
+`diff::world::tests::run64_s_caravan_road…`, and `diff::army_tests::` is
+`diff::army::tests::`. The leaf names are untouched, so every citation in
+`docs/` still finds its test by `grep`; the prefixes were left alone rather
+than rewritten across a dozen documents, which would have been prose edits
+under the size guards for no gain.
+
+**Gates.** `cargo test` and `cargo test -p rondata --release`, both with
+`RON_INSTALL` set so the data layer is not vacuous; `cargo clippy
+--all-targets` and `cargo fmt` clean; `cargo run -p rondata -- <install>`
+exits zero. The score is untouched by construction — Great Lakes 6848, East
+Indies 7448 — and this item was booked to move no counter but to stop the
+two lanes colliding in one file.
