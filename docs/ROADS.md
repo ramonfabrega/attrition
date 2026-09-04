@@ -94,7 +94,7 @@ to a type §3 turns away.
 | `+0xa8` | 100 | stepping from land onto ocean |
 | `+0xac` | 540 | a cell owned by someone who is not a friend |
 | `+0xb0` | 240 | a cell nobody owns |
-| `+0xb4` | 200 | the ground term: `× 4` off a road, `>> 3` on one |
+| `+0xb4` | 200 | the ground term: friendly territory against not, applied on a road and off one alike (§5.2; *row corrected 2026-09-05* — it used to contradict §5.2) |
 | `+0xb8` | 60 | rough going — `× 2` for rock, `× 1` for a river tile |
 | `+0xbc` | 600 | the climb's clamp, before `× 3` |
 | `+0xc0` | 8 | **not read** by the cost function |
@@ -191,8 +191,11 @@ What is its own:
 - **The neighbour that *is* the goal has its cost halved**, as on the unit
   grid.
 - **Reconstruction** starts at the arrived node's *parent* and stops before
-  the root, so neither endpoint's own tile is laid; a blocked tile stays on
-  the chain but takes no road.
+  the root, so neither endpoint's own tile is laid; a blocked tile
+  (`mask & 0x4000`) is **not pushed** onto the chain at all
+  (`astar_caravan_road+0x996`; `roads.rs`'s `reconstruct`). *Corrected
+  2026-09-05 from the docs-versus-code pass; this sentence used to say the
+  tile stayed on the chain and took no road.*
 
 ### 5.1 `PathFinderData::valid_roadcoord@00688740`
 
@@ -326,7 +329,9 @@ whose own teardown arm remains; ~~the caravan itself~~
 (§8, 2026-09-02); the alliance arm of the territory test;
 ~~`was_seen`'s ally-territory shortcut, which on every capture so far agrees
 with the fog bit because the search never leaves its own ground~~ — **it does
-not agree**, §7.3; and ~~the road mesh, which lays road tiles of its own~~
+not agree**, §7.3, and **the `reg_forts` half of §7.3's disjunction is still
+unmodelled** (2026-09-05: disclosed in `ai_sites.rs`, not here, and no
+capture reaches it); and ~~the road mesh, which lays road tiles of its own~~
 (§9, 2026-09-03), of which the rendering passes and the removal branch
 remain — §9.4 lists them one by one.
 
@@ -550,10 +555,12 @@ and it is walked twice:
   whole terraform, which is how a building on the shore leaves the water
   alone;
 - **the write**: the interior takes the mean outright, the box's own border
-  takes `(h + mean) / 2`, and three predicates hold a corner back — the cell
-  is water by `is_ocean`'s own predicate (`flags & 0x100 == 0` and land 1 or
-  2), a mountain or cliff tile stands in the corner's own 3×3
-  (`mask & 3` is 1 or 2), or the cell carries a good
+  takes `(h + mean) / 2`, and **four** predicates hold a corner back — the
+  cell is water by `is_ocean`'s own predicate (`flags & 0x100 == 0` and
+  land 1 or 2), a mountain or cliff tile stands in the corner's own 3×3
+  (`mask & 3` is 1 or 2), the cell's `land` byte is not 0 (`terrain.rs`,
+  between the 3×3 test and the good test; *added 2026-09-05*, run72's
+  921,600 tiles back it), or the cell carries a good
   (`mask & 0x200` and `find_good_at(…, −1) ≥ 0`).
 
 `World` therefore carries the **corner** grid now, not only the per-tile

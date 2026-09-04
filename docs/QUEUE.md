@@ -78,9 +78,10 @@ journal is indexed by them.
     other three `mil_trainers` writers: a trainer that changes city, upgrades
     in place or is captured is filed by neither.
 
-203. **`Wall::mark_behind_tiles`' `0x4`.** The residue is **32** at 4802 and
-    **45** at 5565, every bit `0x4` — `set_behind@006b4230`'s low arm, which
-    nothing reads (ROADS §9.5). (192) **A merchant has never been seen to
+203. **`Wall::mark_behind_tiles`' `0x4` is a building *finishing*.** 32 at
+    4802, **45** at 4803: the thirteen ring the Market at [223, 227] ×
+    [78, 81], `set_behind@006b4230`'s `0x4` alone; nothing in `Roads` writes
+    it, nothing reads it. Pinned by count and kind (ROADS §6, 2026-09-05). (192) **A merchant has never been seen to
     unpack.** run68 ends eleven frames
     short of `1/19`'s deploy spot (MERCHANT §7) — the cast, the `PLACED`
     two-by-two, `unit_masks & 0x80000`, `do_gather`'s pair; a `[6730, 6800)`
