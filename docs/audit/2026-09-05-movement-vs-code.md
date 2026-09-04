@@ -253,3 +253,42 @@ the distance to the order's **goal** (`Order::move_dest` is `MoveOrder`'s
 strict `> 0x180`, `× 3 / 2` truncating, and `max(3)` — is
 `crates/sim/src/orders.rs:584`–`593`, with `is_gaia` as the stated stand-in for
 the class split.
+
+
+## Adjudication — 2026-09-05, Opus
+
+Every row re-checked against the source. **Seven confirmed, none struck.**
+Three (R2, R4, R5) are the document lagging the code and are the main lane's
+to correct. R1 and R3 are unreached: the corpus is openings, so no capture
+has a modern-infantry unit past age 6, and run56's scout and run67's merchant
+walk plain ground under a plain move. R7 is unreached — the corpus has no
+edge-of-map march.
+
+### R6 is confirmed, reached, and much larger than the row said
+
+The trace settles the row outright. `tools/trace/report.py rontrace-run65.log
+coverage 6206` has **no** `Unit::find_path` entry and `coverage 6207` has one
+— exactly the row's prediction: the original clears `unit_masks & 8` on the
+refused step and re-verifies its line on the frame after, where this crate
+leaves the bit and steps straight.
+
+And the code claim under it is worse than stated. `orders.rs:2894`'s SEAM
+comment says "the bit has no reader this crate models"; the crate has
+exactly one and it is on the hot path — `orders.rs:1782`, `if
+!self.units[u].line_ok { … find_path … }`. The comment is false where it
+stands.
+
+**Then the widening.** The dump has printed `unit_masks` all along and
+`run65_s_window_is_the_original_s_unit_for_unit` compared eleven fields of a
+unit and not that one. Comparing bit 3 against `sim::Unit::line_ok` over the
+window:
+
+> `unit_masks & 8`: 450 rows compared, **335 disagree**
+
+Three quarters, and the shape is not the refusal path at all: from the
+window's first block the original carries the bit **set** on standing units
+where this crate carries it clear. So `line_ok`'s whole lifecycle is wrong
+here, not merely its clear — and each of those frames is a `find_path` this
+crate may run and the original does not. Pinned in the test at 335 as a
+count that may only fall (made to fail at 334 before landing). The fix is
+`crate::orders`', not this lane's.
