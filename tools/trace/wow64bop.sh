@@ -19,7 +19,8 @@ RLLD=$(rustc --print sysroot)/lib/rustlib/$HOST/bin/rust-lld
 OUT=${1:-${TMPDIR:-/tmp}/rontrace-build}
 mkdir -p $OUT
 
-$LLVM/clang @$HERE/compile_flags.txt -O1 -c $HERE/wow64bop.c -o $OUT/wow64bop.obj
+$LLVM/clang @$HERE/compile_flags.txt -O1 ${ROUNDS:+-DROUNDS=$ROUNDS} \
+    -c $HERE/wow64bop.c -o $OUT/wow64bop.obj
 $LLVM/llvm-dlltool -m i386 -k -d $HERE/wow64bop.def -l $OUT/wow64bop-k32.lib
 $RLLD -flavor link /machine:x86 /entry:start /nodefaultlib /subsystem:console \
     /safeseh:no /out:$OUT/wow64bop.exe $OUT/wow64bop.obj $OUT/wow64bop-k32.lib

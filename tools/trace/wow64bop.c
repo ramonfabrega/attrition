@@ -21,13 +21,22 @@
  *
  * Reading the result:
  *
- *   A, C hits=1, PASS   the whole mechanism works here; `cover=1` is viable
- *                       on this host and the tracer's int3 forest would run
+ *   A, C hits=ROUNDS,   the whole mechanism works here; `cover=1` is viable
+ *   PASS                on this host and the tracer's int3 forest would run
  *   A only, then
  *   "Unhandled page fault … at address <wow64cpu+0x1139 or +0x123d>"
  *                       reproduced: the bop lost the mode switch
  *   A, C hits=0         a different failure — the breakpoint never reached
  *                       the handler; report the Eip convention, not this
+ *
+ * **This shape has been made to fail.** On the machine the finding came from
+ * it reproduces the game's fault — `7BF21139`, read of `0x00004ECD` — in 12
+ * runs out of 12 across four `-DROUNDS=` builds. That matters, because an
+ * *earlier* shape of this same file, doing one continue and one `WriteFile`
+ * with no loop around them, **passes there five runs out of five**. Wine's C
+ * cannot tell those two programs apart; a translator of 32-bit code can, and
+ * that difference is the sharpest open lead in the item. So a `PASS` is only
+ * evidence from the shape below, unmodified.
  *
  * Build: tools/trace/wow64bop.sh (no arguments, nothing to install).
  * Run:   wine wow64bop.exe        — the verdict is on stdout.
@@ -77,6 +86,9 @@ typedef struct {
 #define EXCEPTION_BREAKPOINT 0x80000003u
 #define PAGE_EXECUTE_READWRITE 0x40u
 #define STD_OUTPUT_HANDLE ((u32)-11)
+#ifndef ROUNDS
+#define ROUNDS 8 /* -DROUNDS=n to bisect: one round alone can pass here */
+#endif
 
 static HANDLE g_out;
 static u8 *g_target;
@@ -141,13 +153,21 @@ void WINAPI start(void) {
     g_orig = *g_target;
     *g_target = 0xCC;
 
-    /* B: the trap. If the handler never runs, the process dies here with an
-     * unhandled EXCEPTION_BREAKPOINT rather than a page fault. */
-    i32 r = target(41);
+    /* B: the trap, ROUNDS times. One continue is not enough: the game gets
+     * two clean ones and dies on the transition after them, at the same
+     * instruction with the same registers whichever functions are armed
+     * (probes 3 and 4, `docs/ORACLE.md` under 226), so the count is part of
+     * the shape and a single-shot probe would call a broken host healthy. */
+    i32 r = 0;
+    for (i32 i = 0; i < ROUNDS; i++) {
+        g_orig = *g_target;
+        *g_target = 0xCC;
+        r = target(41);
+        say(".");
+    }
 
-    /* C: the first syscall after the exception path. This is the one that
-     * faults on a host where the bop loses the mode switch. */
-    say("C: back from the breakpoint, hits=");
+    /* C: the syscalls above and this one are the transitions under test. */
+    say("\nC: back from the breakpoints, hits=");
     say_int(g_hits);
     say(" declined=");
     say_int(g_declined);
@@ -155,7 +175,7 @@ void WINAPI start(void) {
     say_int(r);
     say("\n");
 
-    if (g_hits == 1 && g_declined == 0 && r == 42) {
+    if (g_hits == ROUNDS && g_declined == 0 && r == 42) {
         say("PASS: a vectored handler can continue a 32-bit int3 here, and a\n"
             "      syscall afterwards still switches mode. cover=1 is viable.\n");
         ExitProcess(0);

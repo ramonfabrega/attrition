@@ -4396,15 +4396,40 @@ byte restored and `Eip` rewound** — and then the game dies on its *own* next
 bop, at `wow64cpu+0x123d`, with a 32-bit `esp` and the game's own registers
 live. So the handler is correct, and the broken thing outlives it.
 
-**The verdict.** Once a thread on this stack has been through the 32-bit
-vectored-exception path, its next 32→64 transition does not switch mode.
-That is below Wine's C code — the bop is eight bytes of patched 32-bit in
-`ntdll` (`0x7BC0E0C4`, which every `Nt*` stub `call`s through) reaching a
-call gate `BTCpuProcessInit` installs — and on this machine those eight
-bytes are executed by **Rosetta's 32-bit translation**, which is where a far
-transfer would have to be emulated. Two breakpoints is enough to trigger it,
-so it is not a volume or SMC-pressure effect, and narrowing
-`rontrace.funcs` to only the cited functions would not buy coverage back.
+**It is not a volume effect, and the two breakpoints are not special ones.**
+The first version of this section said "once a thread has been through the
+32-bit vectored-exception path, its next 32→64 transition does not switch
+mode", which is **too broad and was falsified within the hour** — see the
+reproducer below. What survives is narrower and measured:
+
+- The two breakpoints the shipped list reaches are `WinMainCRTStartup` and
+  `__security_init_cookie` — the exe's first two functions. So the game dies
+  a few instructions into its own entry point, and nothing about the
+  simulation is involved.
+- Truncating `rontrace.funcs` to the 38,664 entries at RVA ≥ 0x180000 moves
+  the two breakpoints to entirely different functions and changes nothing
+  else: **two continues, then the same fault, at the same instruction, with
+  the same `eax`/`ebx`/`ecx`/`edx` and the same `esp = 0x7ffc2000`.** So
+  arming fewer functions does not buy coverage back, and a cited-functions-
+  only list would not either.
+- The bop the game dies on is the **unix-call** one (`+0x1214`), not the
+  syscall one — the syscall entry is where it died when `veh` still called
+  `FlushInstructionCache`.
+
+**The reproducer, and what it costs to defend a claim.** `tools/trace/
+wow64bop.c` is 3,584 bytes: one vectored handler, one `int 3` on a function
+of its own, a continue, and a `WriteFile` afterwards. It reproduces the
+game's fault exactly — `7BF21139`, read of `0x00004ECD` — **12 runs out of
+12** across four builds. And a one-difference variant of the same program,
+the version committed an hour earlier, **passes 5 runs out of 5**: same
+handler, same single continue, same `WriteFile`, only a different shape
+around the call. Wine's C cannot see a difference between those two
+programs. **A JIT that translates 32-bit code can**, which is where the
+suspicion now points — the bop is eight bytes of patched 32-bit in `ntdll`
+(`0x7BC0E0C4`, which every `Nt*` stub `call`s through) reaching a call gate
+`BTCpuProcessInit` installs, and on this machine those eight bytes run under
+Rosetta's 32-bit translation. That is an inference from layout sensitivity,
+not proof, and the falsifier below is still what decides it.
 
 **What this costs and what it does not.** `cover=0` remains the floor for
 captures: the trampolines are plain jumps, the draw stream and the trace
@@ -4426,11 +4451,18 @@ seed 12345, 401 frame blocks, 66,459,736 bytes**, and
 invisible to a capture — and this says so rather than assuming it. Every
 capture on disk stays comparable to every capture taken from here on.
 
-**What is not established.** Whether it is Wine's call-gate setup or
-Rosetta's translation of the far transfer that loses the mode switch. The
-falsifying run is the same probe on an x86 host: if `cover=1` works there,
-it is Rosetta; if it faults the same way, it is Wine's wow64. Nothing on
-this machine can tell the two apart.
+**What is not established**, and it is two things now, not one.
+
+- **Wine's call-gate setup or Rosetta's translation of the far transfer.**
+  The falsifying run is `wow64bop.exe` on an x86 host: `PASS` there makes it
+  Rosetta's, the same fault makes it Wine's. Nothing on this machine can
+  tell the two apart, which is what the next section costs.
+- **Why one shape of the same program faults and another does not.** Both
+  do a continue and then a syscall; only one dies. The difference was not
+  chased past establishing that it exists, because it does not change what
+  the lane can do either way — but it is the sharpest lead anyone reading
+  Wine's dispatch would want, and the two builds are one `-DROUNDS=` apart
+  (`wow64bop.sh`), so reproducing the pair costs a minute.
 
 ## The falsifier for 226, costed — and it turned out to be 3.5 KB
 
@@ -4448,6 +4480,14 @@ entries, built by `tools/trace/wow64bop.sh` from the same clang /
 phase A (the output channel works), plants the breakpoint, continues from it
 in a vectored handler, and then prints phase C — and phase C is the syscall
 that dies here. Its header says how to read the three outcomes.
+
+**And it is a validated falsifier, not a hopeful one.** It was run here
+first, where the answer is known, and it reproduces the game's fault
+exactly — `7BF21139`, read of `0x00004ECD` — in **12 runs out of 12**. A
+falsifier that had not been made to fail would have been worth nothing, and
+this one nearly was: its first shape *passed* five runs out of five, which
+is how the over-broad verdict above got caught (see "the reproducer" there).
+`PASS` from the shipped shape on another host therefore means something.
 
 So the costed plan, cheapest first:
 
