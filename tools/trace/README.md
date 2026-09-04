@@ -34,6 +34,7 @@ the how-to.
 | `build.sh <install>` | clang (Homebrew LLVM) → `llvm-dlltool` → the pinned toolchain's `rust-lld -flavor link`; then `funcs.py` and `patch_exe.py`. Nothing to install. |
 | `funcs.py` | `INDEX.tsv` → `rontrace.funcs`, the function entries as u32 RVAs |
 | `patch_exe.py` | `riseofnations.exe` → `riseofnations_trace.exe`: a copy with one added section carrying a copy of the import table plus one descriptor for `rontrace.dll`. The install's own exe is never modified. |
+| `wow64bop.c`, `.def`, `.sh` | **not part of a trace** — a 3.5 KB standalone that decides whether `cover=1`'s fault is Wine's or the host's 32-bit emulation. One vectored handler, one `int 3`, one syscall afterwards; no install, no graphics, no display. `docs/ORACLE.md`, "The falsifier for 226, costed". |
 | `report.py` | the reader: `summary`, `draws`, `sites`, `coverage`, `functions`, `blind`. `draws` prints **the value each draw returned**: the record carries the seed *before* the step, so stepping the LCG once and applying `Random::get`'s scaling recovers an outcome no dump holds — a setup coin, a direction. |
 
 Everything staged lands in the install directory (`/game`, gitignored):
@@ -62,7 +63,13 @@ loses at most the current frame.
   arming is one-shot from attach, so the cumulative set is still complete;
   each function's record carries the frame it was first entered on.
 - `cover=0` — draws only, no `int 3`s. Fast; use it when the question is only
-  the stream.
+  the stream. **On this machine it is not a choice**: under free Wine the
+  int3 forest cannot run at all, because a thread that has been through the
+  32-bit vectored-exception path takes its next 32→64 transition without
+  switching mode (`docs/ORACLE.md`, "226: the fault is the bop, not the
+  handler"). Captures are unaffected — the draw hooks are plain jumps — but
+  `coverage`, `functions` and `blind` below have no new input until the
+  oracle runs where 32-bit x86 is native.
 - `callwin=LO-HI` — sim-frames over which the **proxied** sites log a record
   a call. Absent, nothing is patched and the run is byte-for-byte the
   instrument every capture up to run54 used, so leaving it out is how an

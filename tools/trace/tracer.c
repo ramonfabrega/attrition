@@ -457,8 +457,14 @@ static i32 WINAPI veh(EXCEPTION_POINTERS *ep) {
     }
     *(u8 *)a = g_orig[off];
     g_armed[off] = 0;
-    FlushInstructionCache(g_proc, (void *)a, 1);
-    emit(K_HIT, a, GetCurrentThreadId(), 0, 0, 0, 0);
+    /* No Win32 call here — see docs/ORACLE.md, item 226. Under free Wine's
+     * wow64 a syscall made from inside a vectored handler does not switch
+     * mode: the thread lands on `wow64cpu+0x1110` still in 32-bit code and
+     * dies at +0x1139 on the 64-bit `mov 0x4ecd(%rip),%edx` decoded as an
+     * absolute read of 0x4ECD. `FlushInstructionCache` was the first such
+     * call and `GetCurrentThreadId` the second; the thread id comes out of
+     * the TEB directly instead. */
+    emit(K_HIT, a, rd_fs(0x24), 0, 0, 0, 0);
     ep->ctx->Eip = a;
     return -1; /* EXCEPTION_CONTINUE_EXECUTION */
 }

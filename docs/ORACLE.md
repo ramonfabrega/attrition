@@ -4323,9 +4323,10 @@ real home, which a backup following links would have uploaded.
 
 ### What is not established
 
-- **Why VEH dispatch faults.** `7BF21139` sits between kernel32 and ntdll in
-  Wine's own DLL region. Worth one look before accepting `cover=0` forever,
-  because coverage is the queue of blind readings.
+- ~~**Why VEH dispatch faults.** `7BF21139` sits between kernel32 and ntdll in
+  Wine's own DLL region.~~ It is neither kernel32 nor ntdll and it is not the
+  handler: it is `wow64cpu.dll+0x1139`, and the answer is "226: the fault is
+  the bop, not the handler" below.
 - **Whether DXVK-macOS's 1.10.3 lineage costs anything in fidelity.** It
   renders the menu; nothing says the in-game frame is identical to
   CrossOver's, and the diff is against the *logger*, not the picture — so
@@ -4340,3 +4341,201 @@ has no announced ARM64EC equivalent. So the durable answer is still
 **getting the oracle off macOS**: any x86 machine runs the original
 natively, with no translation layer, no licence, and captures faster than
 the 3 frames/second `UNITS=3` costs here.
+
+## 226: the fault is the bop, not the handler (2026-09-04, capture lane)
+
+**Three probes, no lobby drive, six seconds each.** The fault lands during
+startup — after `Game::init_common_data`, before the window — so the
+discriminator needs no screen at all: set `rontrace.cfg` to
+`window=0-3` + `cover=1`, launch under `WINEDEBUG=+seh` with stderr to a
+file, and wait for the process to die.
+
+**The three bits the queue asked for.**
+
+- **(a) Did `arm_all` complete?** **Yes.** `INFO armed 0xffffffff 0xbc64` —
+  48,228 of the 48,233 entries planted, the five hook sites skipped. Arming
+  is not the problem: `VirtualProtect` over the 7 MB of `.text` succeeds and
+  the 0xCC writes all land.
+- **(b) Did the VEH ever complete a breakpoint?** **Not in the shipped
+  build** — zero `HIT` records. But the handler *is* reached: `+seh` shows
+  `call_vectored_handlers calling handler at 77FB2C70 code=80000003`, with
+  no matching "returned". It faults inside itself.
+- **(c) Is the `Eip` convention different here?** **No** — zero `DECLINED`
+  records, ever. Wine delivers `ExceptionRecord->ExceptionAddress` and
+  `Eip` **both equal to the int3's own address**, which is the first of the
+  two conventions `veh` already knows. That whole branch of the hypothesis
+  is dead.
+
+**What `7BF21139` actually is.** `WINEDEBUG=+loaddll` names the module:
+`wow64cpu.dll` loads at `0x7BF20000`, so the address is `wow64cpu+0x1139`.
+That module holds the two 32→64 **bop** entries — `+0x1110` for a syscall,
+`+0x1214` for a `__wine_unix_call` — and both begin
+
+    xchg  rsp, r14              ; 4c 87 f4
+    mov   [r13+0x9c], edi       ; the 32-bit context, saved
+    …
+    mov   edx, [rip+0x4ecd]     ; 8b 15 cd 4e 00 00   <- +0x1139
+                                ;   (+0x123d in the other, disp 0x4dc9)
+
+**The reported faulting address is the displacement.** `8b 15 …` is
+RIP-relative in 64-bit mode and **absolute** in 32-bit mode, so a thread that
+arrives at the bop entry *without the mode switch having happened* reads
+address `0x00004ECD` — exactly what Wine reports, and `0x00004DC9` for the
+other entry. So the fault is one thing and one thing only: **the 32-bit
+thread entered the 64-bit bop still in 32-bit mode**, and ran the 64-bit
+prologue as 32-bit code until the first RIP-relative operand.
+
+**It is not the handler's Win32 calls either, though those made it worse.**
+`veh` called `FlushInstructionCache` and `GetCurrentThreadId` before
+emitting; the first is a syscall, and it was the *first* bop attempt after
+the exception path was entered — hence the death inside the handler. With
+both removed (the thread id comes out of `fs:[0x24]` and the `HIT` record is
+buffered like every other), the run gets strictly further: **two
+breakpoints handled, `handler at 77FB2C70 returned ffffffff` both times, the
+byte restored and `Eip` rewound** — and then the game dies on its *own* next
+bop, at `wow64cpu+0x123d`, with a 32-bit `esp` and the game's own registers
+live. So the handler is correct, and the broken thing outlives it.
+
+**It is not a volume effect, and the two breakpoints are not special ones.**
+The first version of this section said "once a thread has been through the
+32-bit vectored-exception path, its next 32→64 transition does not switch
+mode", which is **too broad and was falsified within the hour** — see the
+reproducer below. What survives is narrower and measured:
+
+- The two breakpoints the shipped list reaches are `WinMainCRTStartup` and
+  `__security_init_cookie` — the exe's first two functions. So the game dies
+  a few instructions into its own entry point, and nothing about the
+  simulation is involved.
+- Truncating `rontrace.funcs` to the 38,664 entries at RVA ≥ 0x180000 moves
+  the two breakpoints to entirely different functions and changes nothing
+  else: **two continues, then the same fault, at the same instruction, with
+  the same `eax`/`ebx`/`ecx`/`edx` and the same `esp = 0x7ffc2000`.** So
+  arming fewer functions does not buy coverage back, and a cited-functions-
+  only list would not either.
+- The bop the game dies on is the **unix-call** one (`+0x1214`), not the
+  syscall one — the syscall entry is where it died when `veh` still called
+  `FlushInstructionCache`.
+
+**The reproducer, and what it costs to defend a claim.** `tools/trace/
+wow64bop.c` is 3,584 bytes: one vectored handler, one `int 3` on a function
+of its own, a continue, and a `WriteFile` afterwards. It reproduces the
+game's fault exactly — `7BF21139`, read of `0x00004ECD` — **12 runs out of
+12** across four builds. And a one-difference variant of the same program,
+the version committed an hour earlier, **passes 5 runs out of 5**: same
+handler, same single continue, same `WriteFile`, only a different shape
+around the call. Wine's C cannot see a difference between those two
+programs. **A JIT that translates 32-bit code can**, which is where the
+suspicion now points — the bop is eight bytes of patched 32-bit in `ntdll`
+(`0x7BC0E0C4`, which every `Nt*` stub `call`s through) reaching a call gate
+`BTCpuProcessInit` installs, and on this machine those eight bytes run under
+Rosetta's 32-bit translation. That is an inference from layout sensitivity,
+not proof, and the falsifier below is still what decides it.
+
+**What this costs and what it does not.** `cover=0` remains the floor for
+captures: the trampolines are plain jumps, the draw stream and the trace
+word are untouched, and `rngcmp.py` still pins every capture to run53.
+What stays blocked is `report.py … blind` — one third of `docs/DECISIONS.md`
+entry 29's counter 2 — until this is settled or the oracle moves to a
+machine that runs 32-bit x86 natively ("The clock nobody controls", below,
+which is the same answer for a second reason now).
+
+**run905 is the proof that the instrument did not move.** `tracer.c` changed,
+so the rebuilt `rontrace.dll` owes the same evidence run903 gave: a 400-frame
+Great Lakes `cover=0` capture, driven end to end, came back **MAP_STYLE 14,
+seed 12345, 401 frame blocks, 66,459,736 bytes**, and
+
+    rngcmp.py  rontrace-run53.log rontrace-run905.log
+      -> differing frames: 0, identical frames: 401
+
+`veh` is never registered with `cover=0`, so the change is structurally
+invisible to a capture — and this says so rather than assuming it. Every
+capture on disk stays comparable to every capture taken from here on.
+
+**What is not established**, and it is two things now, not one.
+
+- **Wine's call-gate setup or Rosetta's translation of the far transfer.**
+  The falsifying run is `wow64bop.exe` on an x86 host: `PASS` there makes it
+  Rosetta's, the same fault makes it Wine's. Nothing on this machine can
+  tell the two apart, which is what the next section costs.
+- **Why one shape of the same program faults and another does not.** Both
+  do a continue and then a syscall; only one dies. The difference was not
+  chased past establishing that it exists, because it does not change what
+  the lane can do either way — but it is the sharpest lead anyone reading
+  Wine's dispatch would want, and the two builds are one `-DROUNDS=` apart
+  (`wow64bop.sh`), so reproducing the pair costs a minute.
+
+## The falsifier for 226, costed — and it turned out to be 3.5 KB
+
+The open question above is one bit: **Wine's wow64, or this machine's 32-bit
+x86 emulation?** Nothing on this Mac separates them, because there is only
+one 32-bit executor here. The falsifier is therefore a second host — and the
+first thing to establish was how much of the oracle has to travel with it.
+
+**The answer is: none of it.** The mechanism needs one vectored handler, one
+`int 3` and one syscall afterwards. The game, the install, the renderer and
+the window are all incidental, and `tools/trace/wow64bop.c` is that and
+nothing else: a **3,584-byte** 32-bit console PE importing five kernel32
+entries, built by `tools/trace/wow64bop.sh` from the same clang /
+`llvm-dlltool` / `rust-lld` toolchain `build.sh` already uses. It prints
+phase A (the output channel works), plants the breakpoint, continues from it
+in a vectored handler, and then prints phase C — and phase C is the syscall
+that dies here. Its header says how to read the three outcomes.
+
+**And it is a validated falsifier, not a hopeful one.** It was run here
+first, where the answer is known, and it reproduces the game's fault
+exactly — `7BF21139`, read of `0x00004ECD` — in **12 runs out of 12**. A
+falsifier that had not been made to fail would have been worth nothing, and
+this one nearly was: its first shape *passed* five runs out of five, which
+is how the over-broad verdict above got caught (see "the reproducer" there).
+`PASS` from the shipped shape on another host therefore means something.
+
+So the costed plan, cheapest first:
+
+**1. `wow64bop.exe` on an x86_64 Linux box with Wine — free, minutes.**
+Copy one 3.5 KB file. No install, no `rontrace.funcs`, no ini, no profile,
+no prefix beyond a default one, **and no display**: it is a console
+subsystem binary that touches kernel32 only, so there is no `user32`, no
+X connection and no `DISPLAY` to arrange. Match the version to keep it a
+single-variable test — this machine is **WineHQ Stable 11.0**, which WineHQ
+also packages for Debian, Ubuntu and Fedora — and run
+
+    WINEPREFIX=/tmp/bop wine wow64bop.exe
+
+`PASS` means a 32-bit vectored handler can continue an `int 3` there and the
+next syscall still switches mode, which puts the fault on Rosetta; the same
+`Unhandled page fault … at address <wow64cpu+0x1139>` means it is Wine's,
+and the report goes upstream with this binary attached.
+
+**2. Only if the small one disagrees with the game: the game itself.**
+This is the expensive path and it is not the first move. It needs the
+install — **2.7 GB whole**, or roughly 1 GB once `conquest`, `scenario`,
+`credits` and `_CommonRedist` are left behind — plus
+`riseofnations_trace.exe`, `rontrace.dll`, `rontrace.funcs`, a
+`rontrace.cfg` of `window=0-3` / `cover=1`, and `check.ini`. **It does need
+a display**, unlike the small probe: the fault lands after
+`Game::init_common_data`, and `INIT_GRAPHICS` precedes that, so the D3D11
+device has to come up first — the MoltenVK banner is in the stderr of every
+faulting run here, ahead of the fault. On Linux that is easy and free
+(Mesa's GL satisfies wined3d, or lavapipe satisfies DXVK; `Xvfb` is enough
+of a display), so DXVK-macOS is a macOS problem only. Then
+
+    WINEDEBUG=+seh wine <install>/riseofnations_trace.exe -config check.ini -automation
+
+and `report.py rontrace.log summary` decides it: a non-zero `HIT` count is
+the answer.
+
+**QEMU TCG on this Mac would do it too, and is the honest fallback.**
+`qemu-system-x86_64` (Homebrew, free) emulates x86_64 on Apple Silicon in
+software, and **that is precisely why it is a discriminator**: TCG
+implements 32-bit protected mode and the far transfer through the call gate
+itself, with no Rosetta in the path. A minimal Debian guest with i386
+multiarch and WineHQ 11.0 is ~6 GB of disk and an hour or two of downloading,
+and after that `wow64bop.exe` runs in well under a minute even at TCG's
+speed, because it does almost nothing. The one caveat: a QEMU run changes
+*two* things at once — the executor and the Wine build — so pin the Wine
+version to 11.0 there, or a `PASS` is ambiguous. The game probe under TCG is
+possible but not worth it: software Vulkan under software x86 for a
+2.7 GB install is hours, and the small probe answers the same question.
+
+None of this is booked. It is Ramon's spend and Ramon's machine time, and
+nothing here has been rented, downloaded or installed.
