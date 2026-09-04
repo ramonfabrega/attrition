@@ -50,25 +50,26 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-227. **Where a squad member's exit spot comes from** (CITIES §6.5.1).
-    Great Lakes 6848 is the Archers born 144 units off, not the march:
-    the captain is exact, `1/28` and `1/29` are not candidates of the
-    building's ring from either centre, and `1/29`'s 11.25° bearing is
-    one the sweep never makes. Three suspects, all readable:
-    `find_nearby_spot`'s squad flag (`param_13`, `61deb8`), the local
-    `Group` `come_out` clears, `set_new_location`'s formation offset. The
-    falsifying capture is a second map's Barracks squad born inside a
-    `UNITS=3` window — one sample of two offsets is all there is.
+227. **Where a squad member's exit spot comes from** (CITIES §6.5.1). Great
+    Lakes 6848 is the Archers born 144 units off, not the march: the captain
+    is exact, `1/28` and `1/29` are not candidates of the building's ring
+    from either centre, and `1/29`'s 11.25° bearing is one the sweep never
+    makes. Three suspects: `find_nearby_spot`'s squad flag (`param_13`,
+    `61deb8`), the local `Group` `come_out` clears, `set_new_location`'s
+    formation offset. The squad chain is `UnitData +0x8e`/`+0x90`, **not**
+    the `up`/`down` the dump prints — that is the cell list, buildings and
+    all. Falsified by a second map's Barracks squad born in a `UNITS=3`
+    window; one sample of two offsets is all there is.
     **Takes 219**, `do_group_move`'s four seams (ORDERS §15): the group's
     speed pair and its cap, the flock an invalid slot near an ocean cell
     adds (**one sync draw**, the one with teeth), `cavarch_fight`, the
     attack hand-offs. 7448 (214) is the same shape.
 
 226. **`cover=1` page-faults under free Wine** (ORACLE, "Off CrossOver").
-    `riseofnations_trace.exe` dies at `7BF21139` — between kernel32 and ntdll
-    in Wine's own region — with the int3 forest on, and survives with
-    `cover=0`. Captures run either way; **function coverage does not**, and
-    that list is the queue of blind readings. One look before accepting it.
+    `riseofnations_trace.exe` dies at `7BF21139` — kernel32/ntdll in Wine's
+    own region — with the int3 forest on, and survives with `cover=0`.
+    Captures run either way; **function coverage does not**, and that list is
+    the queue of blind readings. One look before accepting it forever.
 
 220. **§13's twenty range blocks.** Every free-upgrade row whose candidates
     are a run of tech indices — Chinese herbal lore, the Red Fort's two, the
@@ -83,10 +84,9 @@ journal is indexed by them.
     in place or is captured is filed by neither.
 
 203. **`Wall::mark_behind_tiles`' `0x4`.** The residue is **32** at 4802 and
-    **45** at 5565, every bit `0x4` — `World::set_behind@006b4230`'s low arm
-    (ROADS §9.5).
-
-192. **A merchant has never been seen to unpack.** run68 ends eleven frames
+    **45** at 5565, every bit `0x4` — `set_behind@006b4230`'s low arm, which
+    nothing reads (ROADS §9.5). (192) **A merchant has never been seen to
+    unpack.** run68 ends eleven frames
     short of `1/19`'s deploy spot (MERCHANT §7) — the cast, the `PLACED`
     two-by-two, `unit_masks & 0x80000`, `do_gather`'s pair; a `[6730, 6800)`
     window buys it all. **Takes 184.** (216) **`create_buildings` offers a

@@ -1325,6 +1325,14 @@ which the counter never reaches. Nor does the captain's own position serve as
 the centre: from `(45144, 26424)`, `1/29` needs a bearing whose tangent is in
 `[1.0, 2.33]`, and neither 45° nor 67.5° lands in both coordinate windows.
 
+**And the dump cannot show the chain.** `UnitData::o_up`/`o_down` are
+`+0x8e`/`+0x90` (`types.txt`), and `is_captain` is the **sign bit of
+`o_up`** (`00617c10:172`) — a different pair from the `ObjectData`
+`up`/`down`/`down_who` the log prints, which is the per-cell object list and
+mixes units with buildings (run17's frame 1300 has `6 → 1 → 2001`). So the
+squad's own order is not readable from any capture, and a reader chasing it
+through `up`/`down` is reading the collision chain.
+
 **So a squad member's exit spot comes from somewhere this crate has not
 found.** The three are packed at 144, 152 and 173 units — 144 is one tile and
 the closest the original ever puts two of them — where the ring's own second
