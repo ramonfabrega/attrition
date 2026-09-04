@@ -24,6 +24,9 @@
 # The stanza supplies 1-3 as `cmd:` lines on frames this script's timings
 # match; 4 is this script's own drag. Read the four shots afterwards: the
 # bottom-centre panel names what is selected.
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 set -e
 N=${1:-47}
 T=${2:-/tmp/ron-runs}
@@ -50,7 +53,7 @@ wait_frame() {
 }
 
 focus() {
-  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+  zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
   sleep 0.4
 }
 

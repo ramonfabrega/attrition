@@ -9,7 +9,7 @@
 #     is a symlink at the old bottle's, so `rise.ini`, `gamelog.ini` and
 #     `Logs/` are the same files every other tool already knows.
 #   - **`d3d11`, `dxgi` and `d3d10core` are native** — DXVK-macOS, installed
-#     by `tools/gamelog/dxvk.sh`. RoN:EE's renderer is `d3dgl.dll`, which
+#     by `tools/gamelog/prefix.sh`. RoN:EE's renderer is `d3dgl.dll`, which
 #     despite the name imports **d3d11** and asks for feature level 10_0;
 #     Wine's own wined3d cannot serve that on macOS (winemac.drv refuses a
 #     3.2+ GL context), and stock DXVK refuses Apple's GPU for want of

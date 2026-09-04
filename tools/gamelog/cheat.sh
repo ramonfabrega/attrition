@@ -10,8 +10,11 @@
 # Aim with a jiggle. `cliclick m:` to the point the pointer is already on emits
 # no motion event, the game's cursor tile stays where it was, and an `add` at
 # the cursor lands nowhere at all. Always move somewhere else first.
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 x=$1; y=$2; shift 2
-zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
 sleep 0.6
 osascript -e 'tell application "System Events" to keystroke return' >/dev/null 2>&1
 sleep 0.8

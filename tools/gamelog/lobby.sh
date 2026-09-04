@@ -29,6 +29,9 @@
 # `mapstyles=`, both of which can be edited with the game closed
 # (`roadcapture.sh` does). That is also faster and cannot mis-click.
 
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 typeset -gA LOBBY
 typeset -g LOBBY_W LOBBY_H LOBBY_REGION LOBBY_STARTS
 
@@ -92,7 +95,7 @@ lobby_click() {
   fi
   local -a xy
   xy=(${=where})
-  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+  zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
   sleep 0.5
   cliclick m:${xy[1]},${xy[2]} w:400 c:${xy[1]},${xy[2]}
   sleep $settle

@@ -22,6 +22,9 @@
 #
 # The grid, measured off run47's 1920x1080 shot: five columns ~57 apart from
 # x 32, four rows at y 935, 976, 1017 and 1058.
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 set -e
 N=${1:-49}
 T=${2:-/tmp/ron-runs}
@@ -45,7 +48,7 @@ wait_frame() {
 }
 
 osa_focus() {
-  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+  zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
   sleep 0.3
 }
 

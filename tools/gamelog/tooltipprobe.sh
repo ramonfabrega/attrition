@@ -27,6 +27,9 @@
 # third row, at (32, 1017) on the 1920x1080 desktop — run48 identified it by
 # its own tooltip. **The dwell matters**: run48 got a tooltip after 1.5 s and
 # run49 got only a highlight after 1.2 s, so this waits 3 s and shoots twice.
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 set -e
 N=${1:-51}
 T=${2:-/tmp/ron-runs}
@@ -50,7 +53,7 @@ wait_frame() {
 }
 
 focus() {
-  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+  zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
   sleep 0.4
 }
 

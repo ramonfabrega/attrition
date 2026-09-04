@@ -18,6 +18,9 @@
 # again after the first march order. Then it marches the group back and
 # forth the way run46 did, so the mirror toggles inside an Echelon rather than
 # inside a Line.
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 set -e
 N=${1:-50}
 T=${2:-/tmp/ron-runs}
@@ -43,7 +46,7 @@ wait_frame() {
 }
 
 focus() {
-  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+  zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
   sleep 0.4
 }
 

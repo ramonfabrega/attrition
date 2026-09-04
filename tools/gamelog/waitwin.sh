@@ -11,17 +11,20 @@
 # **The window, though, is not found by that name.** System Events calls every
 # free-Wine GUI process `wine`, so the window is matched by its title;
 # `focus.sh` is the one place that knows how, and this waits on it.
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 proc=""
 while true; do
   proc=$(pgrep -fl 'riseofnations(_trace)?\.exe' | grep -o 'riseofnations[_a-z]*\.exe' | head -1)
   if [ -n "$proc" ]; then
-    w=$(zsh "${0:A:h}/focus.sh" --title 2>/dev/null)
+    w=$(zsh "$RON_TOOLS/focus.sh" --title 2>/dev/null)
     if [ -n "$w" ]; then break; fi
   fi
   sleep 3
 done
 sleep 8
-zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
 sleep 2
 out=${1:-/tmp/ron-runs/d1.png}
 small=${out%.png}s.png

@@ -26,6 +26,9 @@
 # keystroke` while System Events *clicks* do not, so this is worth checking
 # rather than assuming: a function key goes through `key code`, not
 # `keystroke`, and that is a different path.
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 set -e
 N=${1:-52}
 T=${2:-/tmp/ron-runs}
@@ -50,7 +53,7 @@ wait_frame() {
 }
 
 focus() {
-  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+  zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
   sleep 0.4
 }
 

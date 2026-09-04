@@ -913,7 +913,11 @@ frames: 6870
 mapstyle: 14
 end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1
 frame_window: 6640 6870
-cover: cover=1
+# ~~cover=1~~ — under free Wine the int3 forest page-faults at 7BF21139
+# (queue 226, ORACLE "Off CrossOver"), and this stanza does not need
+# coverage: its question is positions from the `UNITS=3` dump, and the
+# trace word `rngcmp.py` checks comes from the trampolines, which stay.
+cover: cover=0
 # run74/run75's floor, unchanged: the start dump is 10.9 MB on this map at
 # this detail and nothing grows until the window opens, so 14 MB sits above
 # the quiet run-up and below the finished file. 230 blocks, ~4 minutes of
@@ -922,8 +926,9 @@ settle_min: 14000000
 poll_max: 220
 # Same game: the trace word for word against run53 (run74's line).
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run76.log
-# NOT TAKEN 2026-09-04: two launches stalled before the game's window
-# existed. The cause is not the port and not a macOS grant — CrossOver's
-# licence for the `ron` bottle has expired, and the only window the visible
-# wine app has is titled `Expired Bottle: ron`. Renew CrossOver, then this
-# stanza runs unchanged. `docs/ORACLE.md`, "The window nobody can see".
+# NOT TAKEN 2026-09-04 (first attempt): two launches stalled before the
+# game's window existed, because CrossOver's licence for the `ron` bottle
+# had expired — the only window the visible wine app had was titled
+# `Expired Bottle: ron`. `docs/ORACLE.md`, "The window nobody can see".
+# **Unblocked the same day**: the lane moved to free Wine + DXVK-macOS
+# (queue 225), and the stanza runs with `cover` dropped to 0 above.

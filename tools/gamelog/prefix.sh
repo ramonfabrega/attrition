@@ -1,5 +1,7 @@
 #!/bin/zsh
-# dxvk.sh — put a D3D11 that Apple's GPU can serve into the capture prefix.
+# prefix.sh — make `~/wine-ron` a prefix the capture lane can run in: a D3D11
+# that Apple's GPU can serve, a `C:\users\crossover` that resolves, and a
+# debugger that writes to the log rather than the screen.
 #
 # RoN:EE's renderer DLL is `d3dgl.dll`, and the name is a lie: it imports
 # **d3d11.dll** and opens with
@@ -55,3 +57,19 @@ W=${RON_WINE_BIN:-/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine
 WINEPREFIX="$P" WINEDEBUG=-all "$W" reg add 'HKCU\Software\Wine\WineDbg' \
   /v ShowCrashDialog /t REG_DWORD /d 0 /f >/dev/null 2>&1
 echo "ShowCrashDialog=0"
+
+# **`C:\users\crossover` has to exist.** Every ini in the install carries
+# absolute Windows paths written under CrossOver, whose prefix user was
+# `crossover` — `gamelog.ini`'s `LogFile=` most of all. Free Wine's user is
+# the macOS one, so those paths point at nothing, and the game **does not
+# complain**: run903 played its 400 frames, quit cleanly, and wrote no
+# `gamelog.txt` at all. One symlink makes every stored path valid and costs
+# nothing; rewriting the inis would have to be redone each time the game
+# rewrites them itself.
+link="$P/drive_c/users/crossover"
+if [ ! -e "$link" ]; then
+  ln -s rf-studio "$link"
+  echo "linked C:\\users\\crossover -> rf-studio"
+else
+  echo "C:\\users\\crossover already there"
+fi

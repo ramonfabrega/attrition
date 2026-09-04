@@ -23,6 +23,9 @@
 # So: photograph the card, click the compass, photograph it again. If the card
 # changes, the second shot names the buttons and a second run can press one.
 # Nothing here issues an order, so a wrong guess costs a screenshot.
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 set -e
 N=${1:-48}
 T=${2:-/tmp/ron-runs}
@@ -54,7 +57,7 @@ shot() {
 }
 
 focus() {
-  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+  zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
   sleep 0.4
 }
 

@@ -13,14 +13,15 @@ lines, or lets the handoff pass 32.
 ## Where things stand
 
 *2026-09-04, Opus — item 225 done, no score moved.* **Both words unmoved:
-Great Lakes 6848, East Indies 7448.** No capture was driven; what moved is
-that captures are possible again.
+Great Lakes 6848, East Indies 7448.** What moved is that captures are
+possible again, and proven identical to the ones already on disk.
 
-- **The lane is off CrossOver.** Free WineHQ Stable 11.0 plus DXVK-macOS
-  draws the main menu at 1920x1080 and runs the traced executable. No
-  licence. `tools/gamelog/dxvk.sh` installs it,
-  `tools/gamelog/winelaunch.sh` is the one launch line, `focus.sh` the one
-  window query (System Events calls every free-Wine process `wine`).
+- **The lane is off CrossOver and driven end to end.** Free WineHQ Stable
+  11.0 + DXVK-macOS. run903 — 400 frames, MAP_STYLE 14, seed 12345 — is the
+  **same game** as the paid stack's: `rngcmp` 401/401 identical against
+  run53, `samegame` 400/400 against run10. No licence.
+  `tools/gamelog/prefix.sh` prepares the prefix, `winelaunch.sh` is the one
+  launch line, `focus.sh` the one window query.
 - **The blocker was one call, not a renderer.** `d3dgl.dll` imports
   **d3d11** and asks for a single feature level, `0xa000` = 10_0; wined3d
   cannot get a 3.2+ GL context on macOS and stock DXVK skips Apple's GPU
@@ -32,9 +33,9 @@ that captures are possible again.
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
 
-**Opener (Opus):** `Drive one capture end to end on free Wine — the lobby
-clicks, the fast-forward, !quit, gamelog.txt — before anything else; only
-the launch is proven. Then run 76, and 223 reads it.`
+**Opener (Opus):** `223: run76 was launched at the end of the last session —
+check it landed (rngcmp against run53 should be 6871/6871), then read the
+archers' march out of the [6640, 6870) window.`
 
 ## The queue
 

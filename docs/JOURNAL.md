@@ -16243,3 +16243,28 @@ calls every GUI process `wine`. Both are now one file each
 driven part is proven**: the lobby clicks, the fast-forward, `!quit` and
 `gamelog.txt` under free Wine are all still to run, and the user was at the
 machine, so nothing that moves their mouse was attempted.
+
+**And then it was driven, and it is the same game.** run903: 400 frames,
+`MAP_STYLE 14`, seed 12345, 401 frame blocks, 66 MB, archived and settled.
+`rngcmp.py` against run53 says **401 identical frames and none differing**;
+`samegame.py` against run10's own long dump says **400 frames in common and
+none differing**. The runner is invisible to the simulation, so every capture
+on disk stays comparable to every capture taken from here on — which is the
+whole reason the licence question was worth answering properly rather than
+renewing.
+
+**Two silent failures on the way, and both are the same lesson.** The first
+attempt died at the first lobby click having printed nothing: `lobby.sh` is
+*sourced*, and **`$0` inside a zsh function is the function's name**, so the
+`${0:A:h}/focus.sh` written an hour earlier resolved against nothing and
+`set -e` took the script down. The second attempt played all 400 frames,
+quit cleanly, and wrote **no `gamelog.txt` at all** — because `gamelog.ini`
+holds an absolute `LogFile=C:\users\crossover\…` from the CrossOver era
+and free Wine's prefix user is the macOS one; the logger opened nothing and
+did not complain. **A capture that looks perfect and produces no dump is
+what a wrong path looks like here**, and the tell was the trace: 8.5 MB and
+401 FRAME records said the sim had run fine, so the fault was downstream of
+the game entirely. One symlink (`tools/gamelog/prefix.sh`) makes every
+CrossOver-era absolute path valid rather than rewriting inis the game
+rewrites itself.
+

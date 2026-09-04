@@ -4231,7 +4231,8 @@ Two free translators can answer that call. Neither stock one does:
   level D3D_FEATURE_LEVEL_10_0"*. That is the level `d3dgl` asks for, and
   the game draws.
 
-`tools/gamelog/dxvk.sh` installs it (x32 `d3d11`, `dxgi`, `d3d10core` into
+`tools/gamelog/prefix.sh` prepares the prefix — the DLLs, and the
+`C:\users\crossover` symlink every CrossOver-era ini path needs (x32 `d3d11`, `dxgi`, `d3d10core` into
 the prefix's `syswow64`; nothing enters this repo), and
 `tools/gamelog/winelaunch.sh` is the single launch line every capture script
 now sources.
@@ -4258,12 +4259,41 @@ now sources.
   `tools/trace/report.py … blind` reads, so the blind-reading queue stops
   shrinking until VEH is fixed.
 
+### The proof: run903, and it is the same game
+
+A 400-frame capture was driven end to end on this stack — perm probe, launch,
+the three lobby clicks at the 1920x1080 table, `!ffwd`, the per-frame dump,
+`!quit`, settle, archive. It came back **MAP_STYLE 14, seed 12345, 401 frame
+blocks, 66 MB**, and both oracles agree it is the *same game* the paid stack
+produced:
+
+    rngcmp.py  rontrace-run53.log rontrace-run903.log
+      -> differing frames: 0, identical frames: 401
+    samegame.py gamelog-run10-world6-long.txt gamelog-run903-wineproof.txt
+      -> 400 frames in common, differ: 0
+
+So the runner is invisible to the simulation, which is the only property the
+lane actually needs. **Every capture on disk stays comparable to every capture
+taken from here on.**
+
+**Two things had to be fixed to get there, and both were silent.**
+
+- **`$0` inside a zsh function is the function's name.** `lobby.sh` is
+  *sourced*, so `${0:A:h}/focus.sh` inside `lobby_click` resolved against
+  nothing, and under `set -e` the capture died at the first click having
+  printed no error at all. Each script now captures `RON_TOOLS=${0:A:h}` at
+  load time, where `$0` is still the file.
+- **`C:\users\crossover` has to exist in the prefix.** Every ini in the
+  install carries absolute Windows paths written under CrossOver, whose
+  prefix user was `crossover` — `gamelog.ini`'s `LogFile=` above all. Free
+  Wine's user is the macOS one, so the logger opened nothing and **said
+  nothing**: run903's first attempt played its 400 frames, quit cleanly, and
+  produced no `gamelog.txt`. A capture that looks perfect and writes no dump
+  is what a wrong path looks like here. `tools/gamelog/prefix.sh` makes the
+  symlink.
+
 ### What is not established
 
-- **A full capture has not been driven end to end on this stack.** The lobby
-  clicks, the fast-forward, `!quit`, and `gamelog.txt` under free Wine are
-  unproven; the launch and the focus helper are ported but only the launch
-  has been run.
 - **Why VEH dispatch faults.** `7BF21139` sits between kernel32 and ntdll in
   Wine's own DLL region. Worth one look before accepting `cover=0` forever,
   because coverage is the queue of blind readings.

@@ -8,8 +8,11 @@
 # cannot. `StartConsole=1` in rise2.ini opens it at game start; it is invisible
 # until it has printed something, so a game where the chat box never opens is
 # usually a game where the console has the keyboard.
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
 x=$1; y=$2; shift 2
-zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
 sleep 0.6
 osascript -e "tell application \"System Events\" to keystroke \"$*\"" >/dev/null 2>&1
 sleep 0.4

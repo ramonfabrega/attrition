@@ -4,7 +4,10 @@
 # A fast `cliclick c:` often does not register: move first, then press and
 # release as separate events with a gap. Clicks must go through cliclick and
 # keys through osascript keystroke; the other way round does not reach the game.
-zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
+# `$0` inside a zsh *function* is the function's name, not the file's, so the
+# script's own directory is captured here at load time and used below.
+RON_TOOLS=${0:A:h}
+zsh "$RON_TOOLS/focus.sh" >/dev/null 2>&1
 sleep 0.5
 cliclick m:$1,$2
 sleep 0.8
