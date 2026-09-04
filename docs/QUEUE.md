@@ -172,10 +172,6 @@ reads `ages`**, `army.rs:769,1365`.
     0x162)`'s siege doubling; the group cap, whose `movement::group_capped`
     is uncalled — now 219's second half.
 
-228. **Split the diff harness by record.** `rondata/src/diff.rs` is
-    23,243 lines, touched in 121 of the last 197 commits, and both lanes
-    land in it. Mechanical, one commit, test count identical (DECISIONS 33).
-
 Older backlog: (39) a read-only 2D viewer over `Sim` state with the dump
 overlaid; (41) `scenario.py`'s fate — `zsh tools/fuzz/run.sh 424242 1000 1300`
 then `report.py … blind docs/` before deleting it; a `find_target` block;

@@ -34,8 +34,23 @@
 /// directory.
 #[cfg(test)]
 const GAMELOG: &str = include_str!("gamelog.rs");
+/// The differ is a spine and one module per dumped record family
+/// (item 228), so this is every one of them; the test concatenates them.
 #[cfg(test)]
-const DIFF: &str = include_str!("diff.rs");
+const DIFF: [&str; 12] = [
+    include_str!("diff.rs"),
+    include_str!("diff/army.rs"),
+    include_str!("diff/build.rs"),
+    include_str!("diff/city.rs"),
+    include_str!("diff/floors.rs"),
+    include_str!("diff/harness.rs"),
+    include_str!("diff/order.rs"),
+    include_str!("diff/report.rs"),
+    include_str!("diff/setup.rs"),
+    include_str!("diff/testkit.rs"),
+    include_str!("diff/unit.rs"),
+    include_str!("diff/world.rs"),
+];
 
 /// The parser's own containers, which carry no field the original writes:
 /// `Block` and `Log` are the reader's cursor and its index, `Initial` and
@@ -183,10 +198,11 @@ mod tests {
             "the parser's records did not parse: {} found",
             recs.len()
         );
-        let seen = named(DIFF);
+        let diff = DIFF.concat();
+        let seen = named(&diff);
         // One pass over the file, not one per record: `named` is a byte
         // scan and the differ is 800 KB.
-        let per_test: Vec<std::collections::HashSet<String>> = test_bodies(DIFF)
+        let per_test: Vec<std::collections::HashSet<String>> = test_bodies(&diff)
             .iter()
             .map(|(_, body)| named(body))
             .collect();
