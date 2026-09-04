@@ -9,7 +9,7 @@
 # until it has printed something, so a game where the chat box never opens is
 # usually a game where the console has the keyboard.
 x=$1; y=$2; shift 2
-osascript -e 'tell application "System Events" to set frontmost of process "riseofnations.exe" to true' >/dev/null 2>&1
+zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
 sleep 0.6
 osascript -e "tell application \"System Events\" to keystroke \"$*\"" >/dev/null 2>&1
 sleep 0.4

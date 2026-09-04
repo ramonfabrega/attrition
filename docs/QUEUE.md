@@ -12,31 +12,29 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 223 diagnosed, no score moved.* **Both words
-unmoved: Great Lakes 6848, East Indies 7448.** It was booked as the
-collision predicate and it is not one; the capture that settles it is
-run 76, and the whole capture lane is down.
+*2026-09-04, Opus — item 225 done, no score moved.* **Both words unmoved:
+Great Lakes 6848, East Indies 7448.** No capture was driven; what moved is
+that captures are possible again.
 
-- **6848 is forced by the positions.** The Archer `1/28`, a follower of
-  the marching squad, steps onto its slot one cell north and §4.2's
-  leading edge hits `(890, 511)` inside the citizen `1/13`'s block, where
-  run18b's dump puts it. **The blocks genuinely overlap**, so no predicate
-  saves it; the original is twelve frames back (its first blocked stand
-  there is 6860), and ORDERS §15's two seams are the candidates.
-- **One reading landed and is inert.** `UnitData::is_corner@0060a040`
-  walks the blocker's **figures**, measuring each corner against
-  `GuyData::x/y` where `is_here` four lines earlier reads the unit's
-  `x_internal`. `Sim::guy_corner`, COLLISION §4.3; neither word moved.
-- **The lane is down: CrossOver's trial expired** (`Expired Bottle: ron`).
-  Free Wine 11.0 runs the 32-bit exe and writes its logs but dies on the
-  game's own *"Could not initialize DirectX"* — D3DMetal's job. Item 225.
+- **The lane is off CrossOver.** Free WineHQ Stable 11.0 plus DXVK-macOS
+  draws the main menu at 1920x1080 and runs the traced executable. No
+  licence. `tools/gamelog/dxvk.sh` installs it,
+  `tools/gamelog/winelaunch.sh` is the one launch line, `focus.sh` the one
+  window query (System Events calls every free-Wine process `wine`).
+- **The blocker was one call, not a renderer.** `d3dgl.dll` imports
+  **d3d11** and asks for a single feature level, `0xa000` = 10_0; wined3d
+  cannot get a 3.2+ GL context on macOS and stock DXVK skips Apple's GPU
+  for want of `geometryShader` (ORACLE, "Off CrossOver"). GPTK was the
+  wrong answer — its D3DMetal ships **x86_64 only** and the game is PE32.
+- **`7BF21139` is real and `cover=0` clears it.** Item 226; the price is
+  function coverage, which is the queue of blind readings.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
 
-**Opener (Opus):** `225, and the answer is probably Apple's GPTK — it ships
-the D3DMetal the game's own DirectX check wants, and this account can
-download it. gfx.sh first, it is two minutes. Then run 76; 223 reads it.`
+**Opener (Opus):** `Drive one capture end to end on free Wine — the lobby
+clicks, the fast-forward, !quit, gamelog.txt — before anything else; only
+the launch is proven. Then run 76, and 223 reads it.`
 
 ## The queue
 
@@ -45,21 +43,20 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-225. **Get the capture lane off CrossOver** (ORACLE, "Off CrossOver").
-    Free Wine 11.0 runs the 32-bit exe and writes its logs; it dies on the
-    game's **own** dialog — *"Could not initialize DirectX! … DirectX 10
-    or higher"* — which is the job D3DMetal was doing. `gfx.sh` first (two
-    minutes, written), then **Apple's GPTK**, which ships that same
-    D3DMetal. The traced exe's fault at `7BF21139` may be downstream of
-    the same failure; leave it until the renderer works. **Blocks 223.**
-
 223. **Great Lakes 6848 is the marching squad, twelve frames ahead of the
     original's** — not the predicate (COLLISION §9). **Run 76 is the
-    capture**, booked, read-out written, waiting on 225. 7448 (214) is the
+    capture**, booked, read-out written; 225 unblocked it. 7448 (214) is the
     same shape. **Takes 219**, `do_group_move`'s four seams (ORDERS §15):
     the group's speed pair and its cap — which 223 points at — the flock
     an invalid slot near an ocean cell adds (**one sync draw**, the one
     with teeth), `cavarch_fight`, the attack hand-offs.
+
+226. **`cover=1` page-faults under free Wine** (ORACLE, "Off CrossOver").
+    `riseofnations_trace.exe` dies at `7BF21139` — between kernel32 and
+    ntdll in Wine's own region — with the int3 forest on, and survives with
+    `cover=0`. Captures run either way; **function coverage does not**, and
+    that list is the queue of blind readings (`tools/trace/report.py …
+    blind docs/`). Worth one look before accepting `cover=0` forever.
 
 220. **§13's twenty range blocks.** Every free-upgrade row whose candidates
     are a run of tech indices — Chinese herbal lore, the Red Fort's two,

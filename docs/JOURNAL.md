@@ -16176,3 +16176,70 @@ faces of one mistake: reasoning about a screen without looking at it. The
 window title cost one line and settled the first; the screenshot cost one
 line and settled the third. **Look at the screen before theorising about
 it** now sits in `docs/ORACLE.md` twice over.
+
+## 2026-09-04 (Opus) — item 225: the lane is off CrossOver, and the blocker was one call
+
+**The capture lane runs on free WineHQ Stable 11.0.** The main menu draws,
+the traced executable runs, and no licence is involved. The score did not
+move — no capture was driven — but the thing that blocks every future
+capture did.
+
+**The opener was wrong, and the disk said so in four minutes.** It named
+Apple's Game Porting Toolkit as "probably the answer", because D3DMetal was
+believed to be what CrossOver contributed. CrossOver's own bundle disproves
+it: `lib64/apple_gptk/wine/` holds `x86_64-unix` and `x86_64-windows` and
+**no `i386-windows`**. `riseofnations.exe` is PE32. D3DMetal was never
+serving this game, and GPTK could not have.
+
+**`gfx.sh` ran and both variants failed** — with `GraphicsDLL=` cleared the
+exe page-faults inside itself; with `d3dgl.dll` it reaches its own box. The
+lever the file was written to test was the wrong lever, and the script is
+deleted rather than kept, because its question is answered.
+
+**The blocker is one call, and reading beat guessing.** The message belongs
+to `d3dgl.dll`, whose import table names `d3d11.dll` — the name is a lie,
+it is a D3D11 renderer. `llvm-objdump` around the address the backtrace
+gave (`d3dgl+0x24183`, the instruction after the error call) shows the whole
+decision in eleven pushes:
+`D3D11CreateDevice(NULL, HARDWARE, NULL, 0, {0xa000}, 1, 7, …)` — one
+feature level, `0xa000` = `D3D_FEATURE_LEVEL_10_0` — and a box on any
+negative HRESULT. **A requirement that specific is a shopping list**, and
+three candidates were then measured against it rather than argued about:
+wined3d cannot get a 3.2+ GL context out of `winemac.drv` at all; stock
+DXVK 2.7 skips the M4 Max for want of `geometryShader`; DXVK-macOS 1.10.3
+answers with feature level 10_0 exactly. `docs/ORACLE.md`, "Off CrossOver",
+carries each verbatim.
+
+**Two instruments earned their keep and one did not.** `sample` is useless
+here — Rosetta-translated stacks unwind into a thousand frames of the same
+ntdll address — and `winedbg`'s `bt all` gave the answer instead, in one
+line naming `d3dgl`. A `+relay` trace then showed what the game called
+*around* the failure but never the failure itself, because **Wine's relay
+only instruments builtin DLLs** and the interesting call went into a native
+one. That is worth remembering: with a native override in place, relay goes
+blind exactly where the question is.
+
+**The empty log that was not empty.** DXVK's file log stayed zero bytes
+through four runs and the natural reading — "never called" — was wrong
+twice over; `DXVK_LOG_PATH=none` sends the same messages to stderr, where
+nothing buffers them, and they said `Skipping: Device does not support
+required feature 'geometryShader'` immediately. **A silent log is not
+evidence of silence.**
+
+**The `7BF21139` fault is real, and `cover=0` is the workaround.**
+`docs/ORACLE.md` had written it up as possibly downstream of the DirectX
+failure, to be re-taken once the renderer worked. It was re-taken: the
+traced copy still faults at the same address with the renderer fixed, and
+survives with `cover=0`. So it is VEH dispatch, as the diagnostic was
+designed to decide — captures work, at the cost of function coverage, which
+is the queue of blind readings. That is now item 226.
+
+**Ported, not yet driven.** Eight capture scripts had the same three-line
+CrossOver launch and thirteen had the same `osascript` focus line naming a
+process — `riseofnations.exe` — that only CrossOver ever used; free Wine
+calls every GUI process `wine`. Both are now one file each
+(`tools/gamelog/winelaunch.sh`, `tools/gamelog/focus.sh`), with
+`tools/gamelog/dxvk.sh` installing the DLLs into the prefix. **None of the
+driven part is proven**: the lobby clicks, the fast-forward, `!quit` and
+`gamelog.txt` under free Wine are all still to run, and the user was at the
+machine, so nothing that moves their mouse was attempted.

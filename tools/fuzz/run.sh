@@ -65,9 +65,8 @@ echo "=== seed $SEED, window [$LO, $HI) ==="; cat "$G/rontrace.cmd"
 
 rm -f "$G/rontrace.log" "$L/gamelog.txt"
 cd "$G"
-nohup /Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine \
-  --bottle ron --workdir "$G" --wait-children \
-  "$G/$P" -config check.ini -automation > "$T/wine-$SEED.log" 2>&1 &
+source "$W/tools/gamelog/winelaunch.sh"
+ron_wine "$T/wine-$SEED.log" "$G/$P" -config check.ini -automation
 
 zsh "$W/tools/gamelog/waitwin.sh" "$T/s$SEED-menu.png"
 sleep 4

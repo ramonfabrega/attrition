@@ -150,10 +150,9 @@ printf '%s\n' "${TRACE_COVER:-cover=1}" > "$G/rontrace.cfg"
 # --- run
 rm -f "$G/rontrace.log" "$L/gamelog.txt"
 cd "$G"
-nohup /Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine \
-  --bottle ron --workdir "$G" --wait-children \
-  "$G/$P" ${=CFG} -automation > "$T/wine$N.log" 2>&1 &
-echo "launched pid $!"
+source "$W/tools/gamelog/winelaunch.sh"
+ron_wine "$T/wine$N.log" "$G/$P" ${=CFG} -automation
+echo "launched pid $RON_WINE_PID"
 
 zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"
 sleep 4

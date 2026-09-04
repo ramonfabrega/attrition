@@ -4171,124 +4171,113 @@ window title is the diagnosis**, and it is the first thing to ask for, not
 the last.
 
 Two rules follow. `waitwin.sh` looks for a process name the app may not
-have — `wineloader` until the game names itself — so a stall there is
-always worth a window query rather than a second launch; and a driver-lane
+have — ~~`wineloader` until the game names itself~~ (under free Wine it is
+`wine` for *every* GUI process, whatever executable it runs; the window is
+matched by title in `tools/gamelog/focus.sh`, "Off CrossOver" below) — so a
+stall there is always worth a window query rather than a second launch;
+and a driver-lane
 stall is *not* automatically the permission story
 (`docs/ORACLE.md`, "The fourth permission"), which is what this session
 assumed for half an hour on the strength of `cliclick`'s own warning.
 
-## Off CrossOver — what free Wine can and cannot do (2026-09-04)
+## Off CrossOver — the lane runs on free Wine (2026-09-04)
 
-**Why this is a project question and not a purchasing one.** The capture lane
-is how every remaining mechanic gets settled (`docs/DECISIONS.md` 29, and
-both long words sit near 6,800 of 24,000), so the oracle is needed for
-months yet. A licence that renews is a dependency on somebody else's
-business decisions, on a project whose whole point is outliving its source
-material — the OpenTTD line in `CLAUDE.md`. So: what does CrossOver
-actually provide, and is any of it ours to lose?
+**Why this was a project question and not a purchasing one.** The capture lane
+is how every remaining mechanic gets settled (`docs/DECISIONS.md` 29, and both
+long words sit near 6,800 of 24,000), so the oracle is needed for months yet.
+A licence that renews is a dependency on somebody else's business decisions,
+on a project whose whole point is outliving its source material — the OpenTTD
+line in `CLAUDE.md`. **It is now off that dependency**: WineHQ Stable 11.0 plus
+two free, redistributable pieces reach the main menu and run the traced
+executable.
 
-**Two things, and only one of them is CodeWeavers'.**
+**What CrossOver was actually providing was neither of the two things we
+thought.** `wow64` is upstream Wine's, and D3DMetal — Apple's, in the free
+Game Porting Toolkit — is **x86_64-windows only** in CrossOver's own bundle
+(`lib64/apple_gptk/wine/` has no `i386-windows`), so it never served this
+PE32 game at all. The Game Porting Toolkit was the wrong answer to a
+32-bit question.
 
-| | what it does | theirs? |
-|---|---|---|
-| **wow64** — `lib/wine/{i386-windows, x86_64-unix, x86_64-windows}` | runs the **32-bit** `riseofnations.exe` in a 64-bit process so Rosetta can translate it | **no**, this is upstream Wine's architecture |
-| **D3DMetal** — `CX_GRAPHICS_BACKEND=d3dmetal` in `cxbottle.conf` | D3D → Metal | **no**, Apple's, also in the free Game Porting Toolkit |
+### The blocker had a name, and it was not the one on the box
 
-The executable is `PE32 … Intel 80386`, so 32-bit is the hard requirement
-and Rosetta 2 does not do 32-bit x86 on its own — that is *why* CrossOver
-was reached for. But **WineHQ Stable 11.0 is already on this machine**
-(`brew --cask wine-stable`, installed 2026-08-20) and ships the identical
-three-directory layout. The dependency we thought we had is upstream.
+`d3dgl.dll` owns the *"Could not initialize DirectX! … DirectX 10 or higher"*
+message, and despite the name it is **not** a D3D-to-OpenGL wrapper: its
+import table names `d3d11.dll` and `D3DCOMPILER_47.dll`, and at
+`d3dgl+0x240c0` it makes exactly one call —
 
-### What was established, by running it
+    D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0,
+                      {0xa000}, 1, 7, &device, &level, &context)
 
-- **The prefix boots clean.** `WINEPREFIX=~/wine-ron wineboot -u` on
-  Wine 11.0, exit 0, MoltenVK 1.4.1 up on the M4 Max.
-- **The paths need no re-plumbing.** Symlink the new prefix's
-  `drive_c/users/<me>/AppData/Roaming/Microsoft Games` at the bottle's own,
-  and `rise.ini`, `gamelog.ini` and `Logs/` are the same files
-  `setlog.py`, `longtrace.sh` and `rondata::diff`'s `dump()` already know.
-- **The stock game runs.** `riseofnations.exe -config check.ini -automation`
-  under free Wine reaches its own startup and writes
-  `Logs/connectionlog.txt` — `CrossplayNetLibSys INIT` — through that
-  symlink. It is not a compatibility failure.
-- **The game refuses to start, and it says so itself.** Re-taken with the
-  screen clear — the first two attempts ran behind a macOS consent dialog
-  and were void — the window never appears because the game puts up its own
-  modal error instead:
+— one feature level, `0xa000` = `D3D_FEATURE_LEVEL_10_0`, `SDKVersion` 7 —
+and boxes on any negative HRESULT (`d3dgl+0x24183` is the instruction after
+the error call, which is where the backtrace lands). So the requirement is
+precise and small: **one D3D11 device at feature level 10_0.**
 
-      BHG RTS run time FATAL
-      Could not initialize DirectX! Please make sure your system
-      supports DirectX 10 or higher!
-      [Click RETRY to debug, IGNORE to turn this message off and continue]
-      Safe to Ignore: NO
+Two free translators can answer that call. Neither stock one does:
 
-  So it is **not** a Wine incompatibility, a window-manager problem or a
-  translation failure — the 32-bit code runs, the game reaches its own
-  startup, and its D3D feature check fails. That is precisely the job
-  D3DMetal was doing under CrossOver, and it makes the fix a *named*
-  problem rather than a hunt.
-- **The traced copy page-faults**: `riseofnations_trace.exe` dies with
-  `Unhandled page fault on read access to 00004ECD at address 7BF21139`
-  where the stock copy does not — a near-null read from inside Wine's own
-  `0x7Bxxxxxx` DLL region. It is not a loading failure: `rontrace.cfg` and
-  `rontrace.cmd` were both in place and `rontrace.log` carries its `RONT`
-  header, so the DLL loaded and initialised before the fault.
+- **wined3d** asks `winemac.drv` for a 3.2+ GL context and upstream Wine
+  refuses on macOS — *"OS X only supports forward-compatible 3.2+
+  contexts"*, then *"None of the requested D3D feature levels is supported
+  on this GPU with the current shader backend"*. `MaxVersionGL` (a DWORD of
+  `(major<<16)|minor` under `HKCU\Software\Wine\Direct3D`) only changes
+  which version it is refused for: at the default it also complains
+  *"Profile version 4.4 not supported"*, and at `0x40001` it stops
+  complaining and still fails.
+- **stock DXVK** (2.7) skips the GPU outright: *"Found device: Apple M4 Max
+  … Skipping: Device does not support required feature 'geometryShader'"*,
+  then *"No adapters found"*. Apple's GPUs have no geometry shaders.
+- **DXVK-macOS** — Gcenx's fork of DXVK 1.10.3, the build Whisky used —
+  drops that requirement and answers *"D3D11CoreCreateDevice: Using feature
+  level D3D_FEATURE_LEVEL_10_0"*. That is the level `d3dgl` asks for, and
+  the game draws.
 
-  **And it may not be an independent problem at all.** The fault is
-  deterministic — the same address on two runs — and the stock exe reaches
-  its DirectX dialog while the traced one dies before showing anything. If
-  the fault is on the game's own *error* path (the one the stock copy
-  survives by putting up a message box), then fixing DirectX fixes both,
-  and there is nothing here to debug. **So do not chase this until the
-  renderer works**; re-take it afterwards and see whether it is still
-  there.
+`tools/gamelog/dxvk.sh` installs it (x32 `d3d11`, `dxgi`, `d3d10core` into
+the prefix's `syswow64`; nothing enters this repo), and
+`tools/gamelog/winelaunch.sh` is the single launch line every capture script
+now sources.
 
-  **If it is, it is one line of config.** The instrument plants
-  `int 3` on all 48,233 function entries and catches them in a **vectored
-  exception handler** (`tools/trace/README.md`), which is precisely the
-  path on which Wine forks differ most. `cover=1` is what turns that forest
-  on. So the first diagnostic is `rontrace.cfg` with **`cover=0`**: the
-  trampolines on `Random::get`, `rand_real`, `reseed` and `do_frame` stay,
-  the int3 forest goes. Surviving that puts the fault in VEH dispatch
-  rather than anywhere else, and the draw-site half of a capture — which
-  is what the *word* is computed from — needs only the trampolines.
+### What runs, established by running it
+
+- **The prefix boots and the paths need no re-plumbing.**
+  `WINEPREFIX=~/wine-ron`, and its `AppData\Roaming\Microsoft Games` is a
+  symlink at the old bottle's, so `rise.ini`, `gamelog.ini` and `Logs/` are
+  the same files `setlog.py`, `longtrace.sh` and `rondata::diff` already know.
+- **The stock executable reaches the main menu**, fullscreen, 1920x1080,
+  `VK_FORMAT_B8G8R8A8_UNORM`, exclusive. `profile_log.txt` runs the whole
+  way: `BIGHUGE_INIT`, `INIT_GRAPHICS (pass -1)`, `D3D11GL::INIT_DISPLAY_
+  QUICK`, both later passes, `Types::load_sound_tables`,
+  `Game::init_common_data`.
+- **The traced executable runs too — with `cover=0`.** The
+  `7BF21139` page fault predicted here as possibly downstream of the DirectX
+  failure is **not**: it survives the renderer being fixed, reproduces at the
+  same address, and disappears the moment `rontrace.cfg` says `cover=0`. So
+  the fault is in the int3 forest's **VEH dispatch**, exactly as the
+  `cover=0` diagnostic was written to decide, and the draw-site half of a
+  capture — which is what the *word* is computed from — needs only the
+  trampolines. **Function coverage is the price**, and it is what
+  `tools/trace/report.py … blind` reads, so the blind-reading queue stops
+  shrinking until VEH is fixed.
 
 ### What is not established
 
-**Which DirectX the game actually wants, and what can provide it.** The
-message asks for "DirectX 10 or higher", which is a surprise for a 2003
-title and is the Extended Edition's own renderer talking. The levers, in
-order of cost:
-
-- **`rise.ini`'s `GraphicsDLL=d3dgl.dll`.** RoN:EE selects its renderer by
-  name and ships `d3dgl.dll`, its own D3D-to-OpenGL wrapper — the thing
-  CrossOver was driving into D3DMetal. Clearing or repointing the key is
-  one edit; `tools/gamelog/`'s scratch `gfx.sh` does both variants and
-  restores the ini on the way out.
-- The prefix's own D3D: free Wine's `d3d10`/`d3d11` under wow64, and
-  whether `winetricks` has to supply `d3dcompiler_47` (which the install
-  also ships beside the exe).
-- `WINEDEBUG=+d3d,+win` for where the check fails.
-- **Apple's Game Porting Toolkit** — the *expected* answer rather than a
-  fallback: it carries the same D3DMetal that satisfied this check under
-  CrossOver, and **this account is a paid Apple Developer one**, so the
-  download is already available. Reach for it early; do not spend a session
-  fighting `wined3d` first.
-
-None of that was reached today.
+- **A full capture has not been driven end to end on this stack.** The lobby
+  clicks, the fast-forward, `!quit`, and `gamelog.txt` under free Wine are
+  unproven; the launch and the focus helper are ported but only the launch
+  has been run.
+- **Why VEH dispatch faults.** `7BF21139` sits between kernel32 and ntdll in
+  Wine's own DLL region. Worth one look before accepting `cover=0` forever,
+  because coverage is the queue of blind readings.
+- **Whether DXVK-macOS's 1.10.3 lineage costs anything in fidelity.** It
+  renders the menu; nothing says the in-game frame is identical to
+  CrossOver's, and the diff is against the *logger*, not the picture — so
+  this is a risk to the driven captures (a button in a different place),
+  not to the dumps.
 
 ### The clock nobody controls
 
 **Rosetta 2 ends with macOS 28, autumn 2027**, with a carve-out for
-unmaintained games; macOS 26.4 already warns on launch. Both paths ride on
-it — free Wine and paid CrossOver alike — to translate the x86-64 Wine host.
-CodeWeavers shipped a first Mac ARM64 preview in July 2026 (Wine 10's
-ARM64EC plus their own macOS port of FEX) so CrossOver has a route past it;
-free Wine on macOS has no announced equivalent.
-
-So the durable answer is not CrossOver-versus-Wine. It is **getting the
-oracle off macOS**: any x86 machine runs the original natively, with no
-translation layer, no licence and captures faster than the 3 frames/second
-`UNITS=3` costs here. That is the version of "not bound by an OS" that
-holds, and it is worth more than a year of licence either way.
+unmaintained games; macOS 26.4 already warns on launch. Free Wine on macOS
+has no announced ARM64EC equivalent. So the durable answer is still
+**getting the oracle off macOS**: any x86 machine runs the original
+natively, with no translation layer, no licence, and captures faster than
+the 3 frames/second `UNITS=3` costs here.

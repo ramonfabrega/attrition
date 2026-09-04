@@ -64,7 +64,7 @@ for target in ${=CLICK_FRAMES}; do
   done
   f=$(frame_now)
   echo "$(date +%H:%M:%S) frame $f — right-click at $CX,$CY (camera was frame $target)"
-  osascript -e 'tell application "System Events" to set frontmost of process "riseofnations_trace.exe" to true' >/dev/null 2>&1
+  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
   sleep 0.4
   cliclick m:$CX,$CY
   sleep 0.5

@@ -92,7 +92,7 @@ lobby_click() {
   fi
   local -a xy
   xy=(${=where})
-  osascript -e "tell application \"System Events\" to set frontmost of process \"${P:-riseofnations_trace.exe}\" to true" >/dev/null 2>&1
+  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
   sleep 0.5
   cliclick m:${xy[1]},${xy[2]} w:400 c:${xy[1]},${xy[2]}
   sleep $settle

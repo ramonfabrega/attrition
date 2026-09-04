@@ -4,7 +4,7 @@
 # A fast `cliclick c:` often does not register: move first, then press and
 # release as separate events with a gap. Clicks must go through cliclick and
 # keys through osascript keystroke; the other way round does not reach the game.
-osascript -e 'tell application "System Events" to set frontmost of process "riseofnations.exe" to true' >/dev/null 2>&1
+zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
 sleep 0.5
 cliclick m:$1,$2
 sleep 0.8

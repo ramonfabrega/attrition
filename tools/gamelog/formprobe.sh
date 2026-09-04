@@ -54,7 +54,7 @@ shot() {
 }
 
 focus() {
-  osascript -e 'tell application "System Events" to set frontmost of process "riseofnations_trace.exe" to true' >/dev/null 2>&1
+  zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
   sleep 0.4
 }
 

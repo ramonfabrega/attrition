@@ -11,7 +11,7 @@
 # no motion event, the game's cursor tile stays where it was, and an `add` at
 # the cursor lands nowhere at all. Always move somewhere else first.
 x=$1; y=$2; shift 2
-osascript -e 'tell application "System Events" to set frontmost of process "riseofnations.exe" to true' >/dev/null 2>&1
+zsh "${0:A:h}/focus.sh" >/dev/null 2>&1
 sleep 0.6
 osascript -e 'tell application "System Events" to keystroke return' >/dev/null 2>&1
 sleep 0.8
