@@ -78,8 +78,21 @@ case $mode in
         src="s3://$BUCKET/$prefix"; dst="$local_dir"; mkdir -p "$local_dir"
       fi
       echo "== $mode: $src -> $dst"
-      aws s3 sync "$src" "$dst" "${common[@]}" ${=extra} --no-progress
+      # **One tree's failure must not skip the others.** R2 hands back a
+      # transient `ServiceUnavailable` or `InvalidPart` on a large multipart
+      # upload often enough that the first run of 2026-09-04 aborted under
+      # `set -e` with two of the three trees never started. A sync is
+      # idempotent and resumable, so the useful behaviour is to carry on and
+      # report at the end; the exit code still says something went wrong.
+      if ! aws s3 sync "$src" "$dst" "${common[@]}" ${=extra} --no-progress; then
+        echo "!! $mode failed for $prefix — re-run, it resumes" >&2
+        failed=1
+      fi
     done
+    if [ "${failed:-0}" = 1 ]; then
+      echo "$mode finished with failures — re-run \`backup.sh $mode\`, then \`ls\`" >&2
+      exit 1
+    fi
     echo "$mode done"
     ;;
   *)
