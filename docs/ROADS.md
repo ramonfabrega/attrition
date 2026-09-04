@@ -270,6 +270,11 @@ begins on a road does not get the bonus on its first step.
   on: run32's Granary at (6, 171) and Smelter at (33, 161), 62 tiles
   including both rings (§7).
 - **The placement-time plan** (§1), against those same 2,913 draws.
+- **The height grid the search reads, whole** — run72's `FRAME 4803`, all
+  921,600 tiles of Great Lakes at sim-frame 4802, which is what put the
+  terraform in the right frame (§7.6). The ring is diff-backed there too:
+  the sixteen tiles `place_roads` lays for the Market `1/2015` are the
+  original's exactly, and the seventeenth the original lays is §9's.
 - **Every node those 2,913 draws priced**, since run62: tile, direction and
   cost, for both of run32's placement searches, against
   `calc_road_cost`'s own proxied answers (§7.2). This is the record the
@@ -501,6 +506,32 @@ The arithmetic is in **millionths**, the scale the dump prints, not the
 original's `f32`. The two part on a truncation on three tiles in 58,081
 (`docs/QUEUE.md` item 58), none of them near any search measured so far.
 
+### 7.6 The terraform runs at **placement**, not at start — run72
+
+§7.4 read the call correctly and this module put it in the wrong frame for
+a month, because until run72 no capture could tell the two apart.
+`TerrainOut::terraform_for_building` is `Wall::init@0063e9b0:70`'s, under
+`param_6 == 0` and `TVar10 != FARM`; `Wall::start@0063e810` calls
+`Terrain::object_placed@00850c40`, which moves no height. For a building
+**placed and started at once** — run32's two cheat-channel enhancers, the
+only ones any capture had — both land on the same frame, so the
+implementation's `start_building` was indistinguishable from the truth.
+
+A building the AI **builds** is placed and started **226 frames apart**.
+Player 1's Market `o 2015` on Great Lakes is placed on frame 4577 and
+finishes on 4803, and run72's `FRAME 4803` block — the world the Market's
+own road search is about to read — carries the original's height grid
+whole. The original's is already flat at **175** across the Market's
+4 × 4 and tapered around it; this crate's was still the map generator's on
+**62 tiles**, from (223, 78) to (230, 85).
+
+`Sim::init_build` is where the call is now, after `update_hits` and before
+`find_city`, gated on `!restore` (the original's `param_6`, which
+`Wall::swap_team` passes) and on the type not being a farm. The road
+search reads the flattened grid either way; what changed is *when*, and
+the diff is `run72_s_road_nodes_are_where_great_lakes_word_parts`:
+**921,600 tiles, none off**.
+
 ### 7.5 What is still not established here
 
 - The `f32` residue above: the exact-millionths mean and the original's
@@ -509,7 +540,7 @@ original's `f32`. The two part on a truncation on three tiles in 58,081
   `terraform_for_building` call it makes for a building being placed;
   `prep_terrain_lighting`, `calculate_norms`, `calculate_tangents` and
   `TerrainVis::invalidate_wcoord` are visual and unmodelled by design.
-- The terraform's own callers other than `Wall::start`: map generation and
+- The terraform's own callers other than `Wall::init`: map generation and
   the scenario editor, neither of which a traced game reaches.
 - `find_good_at`'s `who = −1` arm is modelled as "a live good that is not
   oil", which is the fast path with the availability test dropped; no
@@ -592,3 +623,48 @@ never read back, so each resumed frame starts its budget again at
 `can_transport` comes alive with the caravan too (`docs/CARAVAN.md`
 §5.1): an ocean tile stops being refused, and §5.2's ocean arm — dead for
 every building road — prices one at `jitter + 55 + 100`.
+
+## 9. The road **mesh** — `Roads::add_roads`, and the tiles it lays
+
+Not modelled at all, and it writes real road tiles that §5.2 prices.
+
+`World::set_road_at@006b43b0` is two statements and a call. With `set != 0`
+it puts `0x10` in the tile's surface field and `0x80` in the cell's, and
+then — when the tile was **not** already a road and its sixth argument is
+zero — calls `Roads::road_added@008954d0`. That queues a
+`RoadModification` and calls `Roads::add_roads@0088f4b0`, whose
+`Roads::set_diags@0088e9d0` **lays road of its own**:
+
+```
+set_road_at(this->x + corner_x[i], this->y, 1, 0, 1)
+road_added(this, x + corner_x[i], y, 0, 0)
+```
+
+— under `RoadsOut::get_orthog_connects(corner) >= 2` and four emptiness
+tests on the neighbour arrays at `+0xfc` and `+0x128`. The sixth argument
+of `1` is what stops it recursing.
+
+**What says it is real.** run72's frame 4803 is the Market `1/2015`'s
+`place_roads`. Its ring is the border of `[224, 228] × [79, 83]` and this
+crate lays all sixteen of those tiles, the original's exactly. The
+original lays **seventeen**: `(223, 79)` as well, which is the corner
+between the ring's brand-new `(224, 79)` and the road already standing at
+`(223, 80)` — a corner a road mesh cannot draw and so fills. The tile is
+node 81 of the search that follows, and the search prices it as **plain
+ground at 387** here against the original's **road at 27**: the eleven
+nodes Great Lakes' word is short all follow from that one tile
+(`docs/QUEUE.md` item 202).
+
+**And a second mark of the same absence.** 33 of run72's tile masks carry
+bit `0x4` that this crate never sets — at (211–219, 123–130) and
+(224–226, 135–137), both beside standing roads and both long predating
+frame 4802. Nothing in `calc_road_cost` or `valid_roadcoord` reads it, so
+it costs nothing today; it is pinned as a count that may only fall,
+because it is the same mechanic seen from the other end.
+
+**What is not established.** Everything: `RoadsOut`'s neighbour state, the
+order `add_roads` walks its modification list in, `get_orthog_connects`,
+`set_neighbor`, and which of the two — the diagonal fill or the `0x4`
+mark — needs which. The two functions are 449 and 364 decompiled lines and
+the oracle for both is already on disk (run72's three road proxies plus
+its `DUMP_ALL` window), so this is a reading with a diff waiting for it.

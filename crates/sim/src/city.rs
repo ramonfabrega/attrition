@@ -926,6 +926,29 @@ impl Sim {
         self.buildings[b].constr_time =
             build::construct_base(&self.tuning, &self.build_types, ty, &mods);
         self.update_hits(b);
+        // **The flattening, at placement** — `Wall::init@0063e9b0:70`,
+        // after `check_ever_seen` and under `param_6 == 0`, which is
+        // `restore`. It moved here from `Wall::start` on run72
+        // (`docs/ROADS.md` §7.6): the two calls land on the same frame for
+        // a building placed and started at once — run32's two cheat-channel
+        // enhancers, which is why no capture before could tell them apart —
+        // and **226 frames apart** for one the AI builds. The AI's Market
+        // `1/2015` is placed on Great Lakes' frame 4577 and finishes on
+        // 4803, and the original's height grid is already flat under it at
+        // 4802 where this crate's was still the map generator's on 62
+        // tiles.
+        //
+        // **A farm never terraforms.** `Wall::init`'s test is
+        // `TVar10 != FARM`, an identity on the type rather than a lineage,
+        // and it takes `Terrain::refresh_good_z` and
+        // `Farms::recalc_heights` out with it. run64's frame 6166 is the
+        // measurement: the AI's three farms had moved 182 tiles of height
+        // that the original leaves exactly where the map generator put
+        // them.
+        if !restore && self.build_types[ty].ident != Ident::Farm {
+            let (bw, bh) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+            self.terraform_for_building(corner, bw, bh);
+        }
         // Membership is decided at placement, restoring or not.
         if !build::is_city(&self.build_types, ty) {
             self.find_city(b);
@@ -1103,28 +1126,12 @@ impl Sim {
         for o in victims {
             self.disband_building(o, true);
         }
-        // The flattening. `Wall::start@0063e810`'s own statement here is
-        // `Terrain::object_placed@00850c40`, which is the **renderer's**
-        // (`spot_update_land`, `invalidate_wcoord`) and moves no height;
-        // the terraform is `Wall::init@0063e9b0:70`'s, one call earlier in
-        // the building's life and gated on the type. Both land on the same
-        // frame for a building placed and started at once — run32's two
-        // enhancers, which is why run62 could not tell them apart — and
-        // the road planned four lines below prices its climbs off the
-        // flattened grid either way (`crate::terrain`, `docs/ROADS.md`
-        // §7.4).
-        //
-        // **A farm never terraforms.** `Wall::init`'s test is
-        // `TVar10 != FARM`, an identity on the type rather than a lineage,
-        // and it takes `Terrain::refresh_good_z` and
-        // `Farms::recalc_heights` out with it. run64's frame 6166 is the
-        // measurement: the AI's three farms had moved 182 tiles of height
-        // that the original leaves exactly where the map generator put
-        // them.
-        if self.build_types[ty].ident != Ident::Farm {
-            let (bw, bh) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
-            self.terraform_for_building(corner, bw, bh);
-        }
+        // **The flattening is not here.** `Wall::start@0063e810`'s own
+        // statement at this point is `Terrain::object_placed@00850c40`,
+        // which is the **renderer's** (`spot_update_land`,
+        // `invalidate_wcoord`) and moves no height; the terraform belongs
+        // to `Wall::init@0063e9b0:70`, which runs when the *site* is
+        // created ([`Sim::init_build`], `docs/ROADS.md` §7.4).
         self.mask_building(b, true);
         // `Wall::start@0063e810` passes **`REGEN_FORCE`** to `mask_me`, and
         // `BuildType::mask_me@006312a0`'s tail is `place_roads` — so a

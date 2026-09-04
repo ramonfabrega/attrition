@@ -14890,3 +14890,78 @@ new subsection was paid for by compressing §2.20's older prose — the
 run20 draw-count history, the stride's consequence paragraph, and
 `buildings_allowed`'s closing story, all of which are here now. The pin
 came down 71,929 → 71,928 with it.
+
+## 2026-09-03 — item 201 was a symptom, and the flattening was in the wrong frame (Opus)
+
+**The item as booked was not a defect.** `1/15` re-picks a cell of its own
+farm on Great Lakes' 4827, and the queue had it as the farm work-spot pick.
+The pick is right. Sim-frame 4825 spends the two `GameAccess::rnd+0x20 <
+Unit::do_job+0x67` draws `docs/ORDERS.md` §6.5 names, and the trace says
+what they read: 26899 and 16738, whose `% 4` is (3, 2) — the tile the
+original walks to, `corner + (3, 2)` snapped, (42936, 22776). This crate
+reads different numbers because it is drawing from a stream that parted
+**twenty-four frames earlier**, at the word.
+
+**The word is a road search.** Frame 4803 is 277 draws at
+`PathFinder::calc_road_cost+0x46 < PathFinder::astar_caravan_road+0x52b <
+PathFinder::find_road+0x3a8` against this crate's 266 — one search, and the
+building is player 1's Market `o 2015`, which finishes on that frame and
+plans its road from its far corner tile (228, 83) to London's (220, 84).
+Everything from 4809 on, the position parting included, is downstream of
+eleven nodes.
+
+**run72 is run62's instrument on Great Lakes' own word** — the `DUMP_ALL`
+window on `[4800, 4806)` and the three road proxies over `[4799, 4807]`,
+fourteen minutes and 430 MB, `rngcmp` against run53 zero differing across
+4,811 frames (`docs/ORACLE.md`). Booked because nothing on disk could
+answer it: run71 is the map's only long dump and carries no tile masks, no
+heights and no call records.
+
+**What it found before the sequence did.** run64's lesson is that a
+`DUMP_ALL` block carries `master_land_heights` whole, and comparing the
+whole grid said in one run that **62 tiles** of the Market's own ground
+were still the map generator's here where the original had already
+flattened them — flat 175 across the 4 × 4, tapering to (223, 78) and
+(230, 85). `docs/ROADS.md` §7.4 had read the call correctly a day earlier:
+the terraform is `Wall::init@0063e9b0:70`'s, under `param_6 == 0` and
+`TVar10 != FARM`, and `Wall::start`'s own statement is
+`Terrain::object_placed`, which moves no height. The **implementation** had
+it in `Wall::start`, and nothing could tell: for a building placed and
+started at once — run32's two cheat-channel enhancers, the only ones any
+capture had — the two land on the same frame. A building the AI *builds*
+is placed on 4577 and started on 4803, **226 frames apart**. With the call
+moved to `Sim::init_build`, the height grid is the original's on all
+**921,600** tiles.
+
+**And what is left is a mechanic this crate does not have.** The node
+records agree for 80 nodes and part on the 81st: the same tile (223, 79),
+the same direction, priced **387** here against **27** — plain ground
+against road. The ring is not the difference; this crate lays the Market's
+sixteen ring tiles exactly, the border of `[224, 228] × [79, 83]`. The
+original lays a **seventeenth**. `World::set_road_at@006b43b0` ends, for a
+tile that was not already a road, in `Roads::road_added@008954d0` →
+`Roads::add_roads@0088f4b0` → `Roads::set_diags@0088e9d0`, which lays road
+of its own to close the corner between the ring's new (224, 79) and the
+road already standing at (223, 80). 33 tile masks carrying a `0x4` bit
+nothing here writes are the same absence seen from the other end.
+`docs/ROADS.md` §9 is the booking, and run72 is its oracle, already on
+disk.
+
+**This session moved no score.** Great Lakes' word is still 4803 and its
+position parting still 4827; the whole suite is green and 921,600 tiles of
+height that were wrong are right. That is the honest shape of it: the
+capture converted a number into a named mechanic and a pinned node, and
+the mechanic is the next item.
+
+**A lane note, because it cost forty minutes.** The first two launches of
+run72 hung with the game at 0 % CPU and **the wineserver blocked inside
+`open()`** — every other thread waiting on it, the trace stopped at 1,552
+records in the CRT's static initialisers. That is the shape
+`docs/QUEUE.md`'s memory calls a consent dialog, and it was not one: no
+TCC request for the bottle appears in `tccd`'s log at all, and three
+controls — run71's recipe bare, then plus the proxies, then run72's exact
+configuration with the window moved to frame 50 — all reached the lobby,
+after which run72 itself did too, unchanged. A cold bottle can hang on its
+first launch. `sample <wineserver-pid>` is the one-minute check that says
+so, and the run71-recipe control is the discriminator: if it reaches the
+lobby, relaunch rather than diagnose.

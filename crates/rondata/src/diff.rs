@@ -10391,6 +10391,215 @@ mod tests {
         );
     }
 
+    /// **run72 — Great Lakes' word, node for node** (2026-09-03, item 202).
+    ///
+    /// run71's game to 4,810 frames with a `DUMP_ALL` window on
+    /// `[4800, 4806)` and the three `docs/ROADS.md` §7.2 proxies over
+    /// `[4799, 4807]` — run64's instrument, one map over.
+    ///
+    /// What it is for: Great Lakes' word parts at **4803**, and the frame
+    /// is a **building's** road plan. Player 1's Market `o 2015` finishes
+    /// there and `place_roads` runs the cardinal search from its far
+    /// corner tile (228, 83) to London's centre tile (220, 84); the
+    /// original prices **277** nodes and this crate prices **266**.
+    /// Everything from 4809 on is downstream of those eleven — the
+    /// position parting at 4827 included, where `1/15` re-picks its farm
+    /// cell off a seed that is nobody's (`docs/QUEUE.md`, item 201's
+    /// re-diagnosis).
+    ///
+    /// A count is not a sequence (run62's lesson), so this asks the
+    /// original for every node: the gate carries the candidate's world
+    /// coordinate and the price carries the answer, and the difference's
+    /// arithmetic names the term — a multiple of three is the climb,
+    /// exactly twice is `was_seen`.
+    ///
+    /// And the world beside it, for run64's reason: this is the first road
+    /// search on a **mid-game** grid — 4,800 frames of border growth, of
+    /// roads other buildings laid, and of terraforms this crate ran
+    /// itself.
+    #[test]
+    fn run72_s_road_nodes_are_where_great_lakes_word_parts() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r72)) = (
+            dump("gamelog-run71-greatlakes-5k.txt"),
+            dump("gamelog-run72-greatlakes-marketroad.txt"),
+        ) else {
+            eprintln!("skipping: no run71/run72 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let Some(t72) = trace("rontrace-run72.log") else {
+            eprintln!("skipping: no run72 trace");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let log = Log::parse(&text);
+        let texts = sibling_texts();
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(tr) = trace("rontrace-run71.log") {
+            borrow_pasture(&mut init, &tr);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Sim-frame 4803 is the 4,804th tick, so this stops at the end of
+        // 4802 — the world the search is about to read, and the state
+        // run72's `FRAME 4803` block prints.
+        for _ in 0..4_803 {
+            built.tick();
+        }
+
+        // **The world the search reads, whole** — the height grid first,
+        // because a mid-game building re-terraforms it and this is the
+        // first search on a grid this crate wrote rather than borrowed.
+        let text72 = std::fs::read_to_string(&r72).unwrap();
+        let l72 = Log::parse(&text72);
+        let block = l72
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == 4_803)
+            .map(|(_, b)| b)
+            .expect("run72 dumped frame 4803");
+        let w = block
+            .kid("FULL DUMP")
+            .unwrap_or(block)
+            .kid("WORLD")
+            .expect("a WORLD block");
+        let mut notes = Vec::new();
+        let heights = l72.frame_heights(4_803);
+        assert!(
+            heights.len() > 1_000,
+            "run72's block carries the height grid"
+        );
+        let (theirs_world, _) = world_from(&w.fields, &heights, &mut notes);
+        let (xs, ys) = (theirs_world.width(), theirs_world.height());
+        let mut z_off = Vec::new();
+        let mut mask_off = Vec::new();
+        for ty in 0..ys * 4 {
+            for tx in 0..xs * 4 {
+                let q = Pos::new(tx, ty);
+                if built.sim.world.tile_z(q) != theirs_world.tile_z(q) {
+                    z_off.push(format!(
+                        "t({tx},{ty}) ours {} theirs {}",
+                        built.sim.world.tile_z(q),
+                        theirs_world.tile_z(q)
+                    ));
+                }
+                let (om, tm) = (built.sim.world.tile_mask(q), theirs_world.tile_mask(q));
+                if om != tm {
+                    mask_off.push(format!("t({tx},{ty}) ours {om:#x} theirs {tm:#x}"));
+                }
+            }
+        }
+        let owners: Vec<String> = (0..ys)
+            .flat_map(|y| (0..xs).map(move |x| sim::world::Cell::new(x, y)))
+            .filter(|&c| built.sim.world.owner(c) != theirs_world.owner(c))
+            .map(|c| {
+                format!(
+                    "cell ({}, {}) ours {:?} theirs {:?}",
+                    c.x,
+                    c.y,
+                    built.sim.world.owner(c),
+                    theirs_world.owner(c)
+                )
+            })
+            .collect();
+        eprintln!(
+            "run72 world at 4802: {} height rows, {} tiles off, {} masks off, {} cells off",
+            heights.len(),
+            z_off.len(),
+            mask_off.len(),
+            owners.len()
+        );
+        for l in z_off
+            .iter()
+            .take(400)
+            .chain(mask_off.iter().take(60))
+            .chain(owners.iter().take(60))
+        {
+            eprintln!("  {l}");
+        }
+
+        // The search itself, node for node.
+        built.sim.trace_costs = true;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = built.sim.road_marks.clone();
+        let theirs = t72.road_nodes(4_803);
+        eprintln!(
+            "run72 road nodes on 4803: ours {} theirs {}",
+            ours.len(),
+            theirs.len()
+        );
+        let at = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i));
+        if let Some(i) = at {
+            for j in i.saturating_sub(4)..(i + 6).min(ours.len().max(theirs.len())) {
+                eprintln!(
+                    "  {j:>4} ours   {:?}\n       theirs {:?}",
+                    ours.get(j),
+                    theirs.get(j)
+                );
+            }
+        }
+        // **The height grid is the original's, all 921,600 tiles of it.**
+        // It was 62 tiles out — the Market's own 4 × 4 and the taper around
+        // it, the map generator's ground where the original had already
+        // flattened — until the terraform moved from `Wall::start` to
+        // `Wall::init` ([`sim::Sim::init_build`], §7.6). Nothing weaker
+        // than the whole grid finds that: the road touches one tile of the
+        // 62.
+        assert!(
+            z_off.is_empty(),
+            "the height grid parted from the original's by 4802: {z_off:?}"
+        );
+        assert!(owners.is_empty(), "the borders parted by 4802: {owners:?}");
+
+        // **What is left is one mechanic, and it is not the search.**
+        // `World::set_road_at@006b43b0` ends in
+        // `Roads::road_added@008954d0` → `Roads::add_roads@0088f4b0` →
+        // `Roads::set_diags@0088e9d0`, the road *mesh* builder — and
+        // `set_diags` lays road tiles of its own
+        // (`set_road_at(x + corner_x[i], y, 1, 0, 1)`) to close a corner
+        // the mesh cannot otherwise draw. This crate has none of it.
+        //
+        // The two residues below are that one absence, seen twice:
+        //
+        // - **33 tile masks**, all of them bit `0x4` — a mark nothing in
+        //   this crate writes and nothing in `calc_road_cost` or
+        //   `valid_roadcoord` reads. Pinned as a count that may only fall.
+        // - **Node 81 of the Market's 277.** The ring `place_roads` lays
+        //   is the original's, tile for tile — sixteen of them, the border
+        //   of `[224, 228] × [79, 83]` — and the original lays a
+        //   **seventeenth**, `(223, 79)`, which is `set_diags` closing the
+        //   corner between the ring's new `(224, 79)` and the road already
+        //   at `(223, 80)`. So the search prices that tile as plain ground
+        //   at 387 where the original prices it as road at 27, and the
+        //   eleven nodes the count is short follow from it.
+        //
+        // Pinned exactly as they stand, so the day the mesh is modelled
+        // this fails rather than passing quietly.
+        assert_eq!(
+            mask_off.len(),
+            33,
+            "the tile-mask residue is `set_diags`' `0x4` mark and only \
+             falls: {mask_off:?}"
+        );
+        assert_eq!(
+            (at, ours.len(), theirs.len()),
+            (Some(81), 266, 277),
+            "the Market's road parts at node {at:?} — ours {:?}, theirs {:?}",
+            at.and_then(|i| ours.get(i)),
+            at.and_then(|i| theirs.get(i)),
+        );
+        assert_eq!(
+            (ours[81].to, ours[81].cost, theirs[81].cost),
+            ((42_912, 15_264), 387, 27),
+            "tile (223, 79): plain ground here, the mesh's own road there"
+        );
+    }
+
     /// **run64 — the caravan's road, node for node, and the world it
     /// reads** (2026-09-02).
     ///

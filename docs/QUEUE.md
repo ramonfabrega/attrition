@@ -12,31 +12,33 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-03, Opus — items 198, 199 and 200 closed together: they were one
-defect, and it was the builder pick.* **East Indies 6739; Great Lakes
-4803 by draw, 4827 by position.**
+*2026-09-03, Opus — item 201 was a symptom, and run72 named what it is a
+symptom of.* **East Indies 6739; Great Lakes 4803 by draw, 4827 by
+position — neither moved.**
 
-- **Frame 4177 was a farm being placed, not two units mis-moving.** The
-  AI puts up `1/2014` and pulls a citizen onto it; both sides place the
-  same farm on the same tile and pull a **different citizen**. `1/11`
-  "stopping" was the one never given the job and `1/19` "turning wrong"
-  was walking to a job that was not its.
-- **`produce_building`'s builder distance is corner-tile to unit-tile,
-  each coordinate floored on its own** (`006e28b2`–`006e28ec`), not the
-  world-unit difference divided once. `1/11` and `1/19` tie at 27 and the
-  earlier unit keeps the tie; the wrong form read 28 against 25. AI §2.20.
-- **run71 is now 0 wrong buildings in 180,076 fields and 0 wrong
-  collision fields in 513,465**, and 11 units ever off position where
-  there were 19. Item 200's `1/2015` came right untouched.
-- **The paperwork tax was paid in §2.20's old prose**, which is in the
-  journal; the AI.md section pin came down 71,929 → 71,928.
+- **The farm re-pick at 4827 is right.** Sim-frame 4825's two
+  `GameAccess::rnd(4)` draws read 26899 and 16738, `% 4` = (3, 2), which
+  is the original's tile. This crate reads other numbers because the
+  stream parted at the word, twenty-four frames earlier. 201 is deleted.
+- **The word is one road search**: 277 `calc_road_cost` draws against 266,
+  the Market `1/2015` finishing on 4803 and planning its road to London.
+- **run72** is run62's instrument here — `DUMP_ALL` on `[4800, 4806)` plus
+  the three road proxies, fourteen minutes, `rngcmp` zero differing over
+  4,811 frames (ORACLE, ROADS §7.6, §9).
+- **The terraform was in the wrong frame.** `Wall::init`, not
+  `Wall::start` — the same frame for a building placed and started at
+  once, **226 apart** for one the AI builds. run72's height grid went from
+  **62 tiles wrong to 0 of 921,600**.
+- **What is left is a mechanic**: node 81 of 277, tile (223, 79), 387 here
+  against 27 — `Roads::set_diags` laying the ring's seventeenth tile.
+  That is item 202, and its oracle is already on disk.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w6739 of 24,000 · GreatLakes w4803 of 24,000
 
-**Opener (Opus):** `201 is the default and it is the lower map's own first
-divergence: 1/15 leaves the original's point at 4827 over which tile of
-farm 2013 it walks to. No capture needed — run71 is on disk.`
+**Opener (Opus):** `202 is the default and it is the whole of Great Lakes'
+word: read Roads::add_roads and set_diags, write ROADS §9, and diff it
+against run72 — no capture needed.`
 
 ## The queue
 
@@ -45,14 +47,17 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted unle
 better order is obvious — and say so. Numbers are stable; the journal is
 indexed by them.
 
-201. **`1/15` walks to a different tile of its own farm at 4827.** run71,
-    the lower map's first position parting now. The citizen has been at
-    farm `2013` (centre (42624,22656)) with `been_there 1`; on 4826 the
-    original gives it a move to **(42936,22776)** where this crate gives
-    it a move to its own point, and on 4828 one to **(42360,22968)**.
-    Same farm, same two-frame cadence, different tile — so it is the farm
-    work-spot pick, not a route. Pinned in
-    `run71_s_five_thousand_frames_reach_past_the_word`.
+202. **The road mesh lays tiles, and this crate has none of it.**
+    ROADS §9. `World::set_road_at` ends in `Roads::road_added@008954d0` →
+    `add_roads@0088f4b0` → `set_diags@0088e9d0`, which lays road of its
+    own to close a corner. run72's frame 4803: this crate lays the Market
+    `1/2015`'s sixteen ring tiles exactly and the original lays a
+    seventeenth, `(223, 79)` — node 81 of the search that follows, priced
+    **387** here against **27**, and the eleven nodes Great Lakes' word is
+    short. 33 tile masks carrying an unwritten `0x4` are the same absence
+    from the other end. **The oracle is on disk** (run72's proxies and its
+    `DUMP_ALL` window); this is a reading with a diff waiting for it.
+    Pinned in `run72_s_road_nodes_are_where_great_lakes_word_parts`.
 
 192. **A merchant has never been seen to unpack.** run68 ends eleven
     frames short of `1/19`'s deploy spot (MERCHANT §7): nothing on disk

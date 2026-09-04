@@ -710,3 +710,54 @@ poll_max: 900
 # run69 over the 3,000 frames they share.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run71.log
 check: python3 tools/gamelog/samegame.py gamelog-run69-greatlakes-3k.txt gamelog-run71-greatlakes-5k.txt
+
+# TAKEN 2026-09-03. Fourteen minutes, 430 MB, rngcmp against run53 zero
+# differing over 4,811 frames. It moved the terraform to `Wall::init`
+# (ROADS §7.6, 921,600 tiles of height now the original's) and named what
+# is left: `Roads::set_diags` laying the ring's seventeenth tile, item 202
+# (ROADS §9, ORACLE "run72").
+#
+# **A lane note.** Its first two launches hung with the game at 0 % CPU and
+# the *wineserver* blocked inside `open()` — no TCC request for the bottle
+# anywhere in `tccd`'s log, and three controls (run71's recipe bare, then
+# plus the proxies, then this configuration with the window at frame 50)
+# all reached the lobby, after which this one did too, unchanged. A cold
+# bottle can hang on its first launch: `sample <wineserver-pid>` says so in
+# a minute, and the run71-recipe control is the discriminator. Relaunch
+# rather than diagnose.
+run: 72
+tag: greatlakes-marketroad
+item: 202
+why: Great Lakes' word is a road search 11 nodes short — the Market 1/2015's plan to London on 4803, node for node
+# run62 and run64's instrument on Great Lakes' own word. The frame is a
+# **building's** road plan: player 1's Market `o 2015` finishes on sim-frame
+# 4803 and `place_roads` runs the cardinal search from its far corner tile
+# (228, 83) to London's centre tile (220, 84). The original prices **277**
+# nodes there and this crate prices **266**, and that count is the whole of
+# the mechanic's presence in the stream — so everything from 4809 on, the
+# position parting at 4827 included, is downstream of it.
+#
+# A count is not a sequence (run62's lesson): six searches matched the
+# original's count before the two that did not survived three readings and
+# five measurements, because nothing on the record could say *which node*.
+# The three proxies are what say it — the gate carries the candidate's world
+# coordinate and the price carries the answer — and the difference's
+# arithmetic then names the term: a multiple of three is the climb, exactly
+# twice is `was_seen`.
+#
+# And the `DUMP_ALL` window beside it, for run64's reason: a block carries
+# `master_land_heights` whole, and this is the first road search on a
+# **mid-game** grid — 4,800 frames of border growth, of roads laid by other
+# buildings, and of terraforms this crate ran itself.
+frames: 4810
+mapstyle: 14
+window: 4800 4806
+cover: cover=1
+cover: window=4799-4807
+cover: callwin=4799-4807
+# run64's line exactly: MISC at `[End Frame]` keeps the log growing every
+# frame, which is what stops the poll calling the long quiet run-up to the
+# window a settled run.
+end: MISC
+poll_max: 200
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run72.log

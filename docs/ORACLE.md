@@ -3918,3 +3918,50 @@ approve the Screen Recording and Automation prompts on the first capture.
 Nothing in the path is version-numbered, so the three survive every Claude
 Code update. **Do not rebuild it casually** — a new cdhash costs a re-grant,
 which is the tax being abolished; `build.sh` refuses without `--force`.
+
+## run72 — Great Lakes' word, node for node (2026-09-03)
+
+run64's instrument one map over, and the capture that owed Great Lakes'
+own word. `MAP_STYLE 14`, seed 12345, run10's `-config check.ini` lobby,
+no input, to 4,810 frames, with a `DUMP_ALL` window on `[4800, 4806)` and
+the three `docs/ROADS.md` §7.2 proxies over `[4799, 4807]`:
+
+    DETAIL_END=MISC WINDOW="4800 4806" POLL_MAX=200 \
+    TRACE_COVER=$'cover=1\nwindow=4799-4807\ncallwin=4799-4807' \
+    zsh tools/gamelog/longtrace.sh 72 4810 greatlakes-marketroad 14
+
+Fourteen minutes, 430 MB of dump, 12 MB of trace, eight frame blocks.
+`rngcmp.py rontrace-run53.log rontrace-run72.log`: **4,811 frames, zero
+differing** — the fifth capture in a row for which a window and three
+proxies cost the stream nothing.
+
+**Why it was booked.** Great Lakes' word is **4803** and its position
+parting **4827**, and the queue's item 201 had booked the second: `1/15`
+re-picking a different cell of its own farm. The re-pick is not wrong.
+The frame's two `GameAccess::rnd(4)` draws read 26899 and 16738 — `% 4` is
+(3, 2), which is the tile the original walks to — and this crate reads
+different numbers because the *stream* parted twenty-four frames earlier.
+Frame 4803 is **277 `PathFinder::calc_road_cost` draws against this
+crate's 266**, one road search: player 1's Market `o 2015` finishing and
+planning its road to London. Everything from 4809 on, 4827 included, is
+downstream of it.
+
+**What it settled, in one run, and the shape is run62's exactly.** A count
+is not a sequence. The node records agree for **80** nodes and part on the
+**81st** — the same tile, the same direction, priced 387 here against 27 —
+and the block's `master_land_heights` said why before the sequence did:
+**62 tiles** of the Market's own ground were still the map generator's
+here where the original had already flattened them. The terraform belongs
+to `Wall::init`, not `Wall::start` — the same frame for a building placed
+and started at once, **226 frames apart** for one the AI builds
+(`docs/ROADS.md` §7.6). With it moved, the height grid is the original's
+on all **921,600** tiles.
+
+**And what is left is a mechanic, not a residue.** Node 81's tile
+`(223, 79)` is a road in the original and plain ground here, and it is not
+the ring: this crate lays the Market's sixteen ring tiles exactly, and the
+original lays a seventeenth. `World::set_road_at` ends in
+`Roads::road_added` → `Roads::add_roads` → `Roads::set_diags`, the road
+*mesh* builder, which fills the corner between a new road tile and one
+already standing. `docs/ROADS.md` §9 is the reading, and this capture is
+its oracle — already on disk.
