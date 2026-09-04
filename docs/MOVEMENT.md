@@ -335,6 +335,52 @@ Two consequences worth stating because they are easy to get backwards:
   unit that arrives and is given the order's angle swings onto it over the
   frames after it stops, rather than snapping on the frame it arrives.
 
+## The docs-versus-code pass, 2026-09-05
+
+`docs/audit/2026-09-05-movement-vs-code.md` (Opus reader, Opus
+adjudication). 96 stated rules traced to the code that implements them;
+seven disagree, all seven confirmed, none struck.
+
+**Three are this document lagging the code**, and are the lane's to correct:
+the body step's sea / `SPECIAL_ANIM` arm sets `stopped` and the pseudocode
+clears it (`Guy::move@005d9240` settles it, and the code is right); "the
+turn arm … is not modelled yet" is stale (`Sim::guy_follow_anim` implements
+it); and "`CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` … which this crate does not
+model at all" is stale (`Sim::guy_do_turn_anim`, `guy_flags & 8` gate and
+all).
+
+**Two are stated, unimplemented and unreached.** The modern-infantry × 5/4
+on the unit's step is stated twice here and implemented nowhere —
+`do_move` hands `get_speed`'s answer straight to `unit_step`, and no caller
+of `is_modern_infantry` scales a speed; the corpus is openings, so nothing
+reaches the predicate's true arm. And a crew guy's step speed is the cached
+layer-1/2 value rather than `get_speed`, so it skips the action scale and
+the river halving as well; run56's scout and run67's merchant walk plain
+ground under a plain move, which is why both their tests pass.
+
+**One is stated, unimplemented, and reached** — the out-of-world refusal
+clears the verified-line bit and returns `Did::Nothing` where the original
+leaves the bit and returns 1. Unreached in fact: the corpus has no
+edge-of-map march. It matters because `group_move_leader` ungroups a
+formation on `Did::Nothing`, so a marching group whose leader steps out of
+the world dissolves here and does not there.
+
+**And one turned out to be much larger than the row.** The SEAM at
+`unit_step`'s tile-permission refusal says of `unit_masks & 8` that "the bit
+has no reader this crate models"; `crate::orders` has exactly one, on the
+hot path — `do_move` re-paths when it is clear. The trace confirms the
+consequence directly: run65 enters `Unit::find_path@005fb910` on sim-frame
+6207 and not on 6206, which is the refused step and the re-verification
+after it. Then the widening: the dump has printed `unit_masks` all along and
+run65's window compared eleven fields of a unit and not that one. Comparing
+bit 3 against `Unit::line_ok` over the window gives **335 disagreements in
+450 unit-frames**, and the shape is not the refusal at all — from the first
+block the original carries the bit *set* on standing units where this crate
+carries it clear. `line_ok`'s whole lifecycle is wrong, and each of those
+frames is a `find_path` this crate may run and the original does not.
+`run65_s_window_is_the_original_s_unit_for_unit` pins it at 335 as a count
+that may only fall.
+
 ## The unit step — `Unit::move_step`
 
 Once per frame, given the order's destination and a step already computed by
