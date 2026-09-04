@@ -714,11 +714,26 @@ impl Sim {
         self.update_action(u);
     }
 
-    /// `clear_partial_path`: there is no suspended search here; the scratch
-    /// it would clear is the verified-line bit.
-    pub(crate) fn clear_partial_path(&mut self, u: usize) {
-        self.units[u].line_ok = false;
-    }
+    /// `Unit::clear_partial_path@005e3920`, and it is a **no-op here**.
+    ///
+    /// The original's body is the suspended pathfinder search and nothing
+    /// else: `UnitData +0x104` and `+0x10c`, the two `Tree<PathNode *>`s
+    /// it hands back to `PathFinder::kill_tree` and the recycler, and the
+    /// `Tree<CollBlock *>` beside them. It does **not** touch
+    /// `unit_masks` — grep the function for `0x68` and there is no hit —
+    /// so an order teardown, a `close_orders`, an animal's give-up in
+    /// `resolve_unit_collision` step 0 and every other caller leave the
+    /// verified-line bit exactly as `do_move` last wrote it.
+    ///
+    /// This crate used to clear [`crate::Unit::line_ok`] here, and that
+    /// one line was most of `line_ok`'s wrong lifecycle: a unit that
+    /// finished a walk kept the bit **set** over there and lost it here,
+    /// which is 335 of run65's 450 unit-frames (`docs/MOVEMENT.md`,
+    /// "The verified line's lifecycle", 2026-09-05).
+    ///
+    /// SEAM: the suspended search itself is not modelled, so there is
+    /// nothing left to free.
+    pub(crate) fn clear_partial_path(&mut self, _u: usize) {}
 
     /// `Unit::kill_current_order(0)` (§3.2): the per-kind teardown, then the
     /// pop, the path segment, `update_action`.
@@ -2891,11 +2906,17 @@ impl Sim {
             // `docs/MOVEMENT.md`'s `move_step` section listed as not
             // modelled.
             //
-            // SEAM: the original also clears `unit_masks & 8` here; the
-            // bit has no reader this crate models.
+            // **And it clears the verified line on the way out**
+            // (`005fb7c1`-`005fb7fd`: the `& 0xfffffff7` and the
+            // `return 0` are the same two lines), which is what makes the
+            // next frame re-verify rather than step straight again. This
+            // crate's one reader is `do_move`'s `if !line_ok` above, so
+            // leaving the bit standing cost run65 a `Unit::find_path` the
+            // original enters on 6207 and this crate did not.
             if target.tile() != from.tile()
                 && self.invalid_loc(u, target.tile(), false, false, false, false, false) != 0
             {
+                self.units[u].line_ok = false;
                 return Did::Nothing;
             }
             // **`move_step`'s own `set_anim`, and it is a clock and not
@@ -2959,10 +2980,14 @@ impl Sim {
                 }
             }
         } else {
-            // A step the world refuses: re-plan next frame.
-            self.units[u].line_ok = false;
+            // A step outside the world. The original's four bounds tests
+            // each `return 1` on their own and none of them touches
+            // `unit_masks`, so the line stays verified and the unit tries
+            // the same step again next frame; answering `Did::Nothing`
+            // here ungrouped a marching formation whose leader reached
+            // the edge (`group_move_leader`, 2026-09-05's R7).
             self.units[u].movement.dest = None;
-            return Did::Nothing;
+            return Did::Something;
         }
         self.units[u].movement.dest = Some(mo.waypoint);
         if !arrived {
@@ -2977,7 +3002,11 @@ impl Sim {
         self.units[u].movement.dest = None;
         if popped.is_none_or(|p| p.flags & path_flag::FINAL == 0) {
             // Next frame takes the next waypoint and re-checks the line.
-            self.units[u].line_ok = false;
+            // The clear belongs to *that* frame: the original writes
+            // `MoveOrder::dest = 0` here and nothing else, and it is
+            // `do_move`'s `dest == 0` arm (`005f7b30:428`) that clears
+            // the bit when it lifts the next entry off the stack —
+            // which is `mo.has_waypoint = false` and the clear above.
             return Did::Something;
         }
         self.arrive(u, mo, snapped_in);
