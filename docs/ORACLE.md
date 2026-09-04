@@ -4323,14 +4323,93 @@ real home, which a backup following links would have uploaded.
 
 ### What is not established
 
-- **Why VEH dispatch faults.** `7BF21139` sits between kernel32 and ntdll in
-  Wine's own DLL region. Worth one look before accepting `cover=0` forever,
-  because coverage is the queue of blind readings.
+- ~~**Why VEH dispatch faults.** `7BF21139` sits between kernel32 and ntdll in
+  Wine's own DLL region.~~ It is neither kernel32 nor ntdll and it is not the
+  handler: it is `wow64cpu.dll+0x1139`, and the answer is "226: the fault is
+  the bop, not the handler" below.
 - **Whether DXVK-macOS's 1.10.3 lineage costs anything in fidelity.** It
   renders the menu; nothing says the in-game frame is identical to
   CrossOver's, and the diff is against the *logger*, not the picture — so
   this is a risk to the driven captures (a button in a different place),
   not to the dumps.
+
+### 226: the fault is the bop, not the handler (2026-09-04, capture lane)
+
+**Three probes, no lobby drive, six seconds each.** The fault lands during
+startup — after `Game::init_common_data`, before the window — so the
+discriminator needs no screen at all: set `rontrace.cfg` to
+`window=0-3` + `cover=1`, launch under `WINEDEBUG=+seh` with stderr to a
+file, and wait for the process to die.
+
+**The three bits the queue asked for.**
+
+- **(a) Did `arm_all` complete?** **Yes.** `INFO armed 0xffffffff 0xbc64` —
+  48,228 of the 48,233 entries planted, the five hook sites skipped. Arming
+  is not the problem: `VirtualProtect` over the 7 MB of `.text` succeeds and
+  the 0xCC writes all land.
+- **(b) Did the VEH ever complete a breakpoint?** **Not in the shipped
+  build** — zero `HIT` records. But the handler *is* reached: `+seh` shows
+  `call_vectored_handlers calling handler at 77FB2C70 code=80000003`, with
+  no matching "returned". It faults inside itself.
+- **(c) Is the `Eip` convention different here?** **No** — zero `DECLINED`
+  records, ever. Wine delivers `ExceptionRecord->ExceptionAddress` and
+  `Eip` **both equal to the int3's own address**, which is the first of the
+  two conventions `veh` already knows. That whole branch of the hypothesis
+  is dead.
+
+**What `7BF21139` actually is.** `WINEDEBUG=+loaddll` names the module:
+`wow64cpu.dll` loads at `0x7BF20000`, so the address is `wow64cpu+0x1139`.
+That module holds the two 32→64 **bop** entries — `+0x1110` for a syscall,
+`+0x1214` for a `__wine_unix_call` — and both begin
+
+    xchg  rsp, r14              ; 4c 87 f4
+    mov   [r13+0x9c], edi       ; the 32-bit context, saved
+    …
+    mov   edx, [rip+0x4ecd]     ; 8b 15 cd 4e 00 00   <- +0x1139
+                                ;   (+0x123d in the other, disp 0x4dc9)
+
+**The reported faulting address is the displacement.** `8b 15 …` is
+RIP-relative in 64-bit mode and **absolute** in 32-bit mode, so a thread that
+arrives at the bop entry *without the mode switch having happened* reads
+address `0x00004ECD` — exactly what Wine reports, and `0x00004DC9` for the
+other entry. So the fault is one thing and one thing only: **the 32-bit
+thread entered the 64-bit bop still in 32-bit mode**, and ran the 64-bit
+prologue as 32-bit code until the first RIP-relative operand.
+
+**It is not the handler's Win32 calls either, though those made it worse.**
+`veh` called `FlushInstructionCache` and `GetCurrentThreadId` before
+emitting; the first is a syscall, and it was the *first* bop attempt after
+the exception path was entered — hence the death inside the handler. With
+both removed (the thread id comes out of `fs:[0x24]` and the `HIT` record is
+buffered like every other), the run gets strictly further: **two
+breakpoints handled, `handler at 77FB2C70 returned ffffffff` both times, the
+byte restored and `Eip` rewound** — and then the game dies on its *own* next
+bop, at `wow64cpu+0x123d`, with a 32-bit `esp` and the game's own registers
+live. So the handler is correct, and the broken thing outlives it.
+
+**The verdict.** Once a thread on this stack has been through the 32-bit
+vectored-exception path, its next 32→64 transition does not switch mode.
+That is below Wine's C code — the bop is eight bytes of patched 32-bit in
+`ntdll` (`0x7BC0E0C4`, which every `Nt*` stub `call`s through) reaching a
+call gate `BTCpuProcessInit` installs — and on this machine those eight
+bytes are executed by **Rosetta's 32-bit translation**, which is where a far
+transfer would have to be emulated. Two breakpoints is enough to trigger it,
+so it is not a volume or SMC-pressure effect, and narrowing
+`rontrace.funcs` to only the cited functions would not buy coverage back.
+
+**What this costs and what it does not.** `cover=0` remains the floor for
+captures: the trampolines are plain jumps, the draw stream and the trace
+word are untouched, and `rngcmp.py` still pins every capture to run53.
+What stays blocked is `report.py … blind` — one third of `docs/DECISIONS.md`
+entry 29's counter 2 — until this is settled or the oracle moves to a
+machine that runs 32-bit x86 natively ("The clock nobody controls", below,
+which is the same answer for a second reason now).
+
+**What is not established.** Whether it is Wine's call-gate setup or
+Rosetta's translation of the far transfer that loses the mode switch. The
+falsifying run is the same probe on an x86 host: if `cover=1` works there,
+it is Rosetta; if it faults the same way, it is Wine's wow64. Nothing on
+this machine can tell the two apart.
 
 ### The clock nobody controls
 

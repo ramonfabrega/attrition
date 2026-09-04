@@ -21,7 +21,17 @@
 #   start:      `[Start Game]` detail, setlog.py's `start:` list
 #   dump_all:   DUMP_ALL, default 0
 #   window:     "LO HI" for a DUMP_ALL window instead of the cheap dump
-#   cover:      rontrace.cfg's body, default `cover=1`
+#   cover:      rontrace.cfg's body, default `cover=1`. **On this machine
+#               every stanza must say `cover: cover=0`.** The int3 forest
+#               cannot run under free Wine: a thread that has been through
+#               the 32-bit vectored-exception path takes its next 32->64
+#               transition without switching mode and dies inside
+#               `wow64cpu`'s bop entry — settled 2026-09-04, `docs/ORACLE.md`,
+#               "226: the fault is the bop, not the handler". Captures are
+#               unaffected (the draw hooks are plain jumps and the trace word
+#               still matches run53); **function coverage is what is lost**,
+#               so `report.py … blind` cannot shrink until the oracle runs on
+#               a host with native 32-bit x86.
 #   cmd:        one `rontrace.cmd` line, repeatable, in file order
 #   driver:     a script driven while the game runs, for the right-clicks the
 #               cheat channel cannot issue — `move` is a teleport and **no
