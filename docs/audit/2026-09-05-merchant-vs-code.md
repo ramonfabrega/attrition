@@ -265,7 +265,16 @@ the asker. So the merchant's **second** friendly search is own-leader-only
 whatever `SEARCH_FRIENDLY` resolves to, and `merchant.rs:205`–`211`'s
 `is_ally` is wrong there outright.
 
-**FABLE: the first search's half is not settled.** It rests on identifying
+~~**FABLE: the first search's half is not settled.**~~ **Ratified 2026-09-05,
+Fable, from the PDB's own record**: `llvm-pdbutil dump --types` on
+`rise.pdb`, `LF_ENUM` type index `0x1EE3` `SearchIndexBH`, field list
+`0x1EE2`: `SEARCH_INDEX_SEARCH_ALL = 0`, **`SEARCH_FRIENDLY = 1`**,
+`SEARCH_PEACE = 2`, `SEARCH_ENEMY = 3`, `SEARCH_INDEX_SEARCH_ALLIED = 4`,
+`SEARCH_NON_ALLIED = 5`, `SEARCH_NON_FRIENDLY = 6`, `SEARCH_NON_ENEMY = 7`,
+`NUM_SEARCH = 8`. The reader's pairs were right; the record settles it.
+Both friendly searches are own-leader-only, and `merchant.rs`'s `is_ally`
+is replaced by an owner test in the same commit. The marked text follows
+as written. It rested on identifying
 `SEARCH_FRIENDLY` as case 1, and the reader's argument for that is a
 complementary-pairs read of the call sites (1↔6, 4↔5, 3↔7) — good
 reasoning, and exactly the kind `CLAUDE.md` says is not enough: *a name is

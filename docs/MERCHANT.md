@@ -498,9 +498,13 @@ own argument, and case 1 is `param_2 != this → 0` — the iterated leader must
 
 For the **first** search the same conclusion needs `SEARCH_FRIENDLY` to be
 case 1, and that is a *name*, which the surrounding code does not settle
-(`CLAUDE.md`). The export carries no `SearchIndexBH` record. Marked
-`FABLE:` in the audit file rather than asserted; the enumerator's own record
-via the PDB field-list type index would close it.
+(`CLAUDE.md`). The export carries no `SearchIndexBH` record; the PDB does:
+`LF_ENUM 0x1EE3`, field list `0x1EE2`, **`SEARCH_FRIENDLY = 1`** (with
+`SEARCH_ALL 0`, `PEACE 2`, `ENEMY 3`, `ALLIED 4`, `NON_ALLIED 5`,
+`NON_FRIENDLY 6`, `NON_ENEMY 7`). *Ratified 2026-09-05, Fable.* So both
+friendly searches admit the merchant's **own leader's** units only, and
+`crate::merchant` now tests the owner, not `is_ally`; unobserved on the
+corpus, where no capture has an ally.
 
 ## 7. What is not established
 
