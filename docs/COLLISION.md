@@ -888,6 +888,17 @@ buildings join the chain, which is why §8 does not claim it.
   stand in that neighbourhood is at **6860, twelve frames later**, and
   another at 6892.
 
+  East Indies 7448 is the same shape read from the other side. Five units
+  are moving there — `0/3`, `1/0`, `1/10`, `1/18`, `1/20`, none of them
+  within a thousand units of another — and **four of the five propose a
+  point inside their own unit cell**, where §4.1's gate 6 refuses the test
+  before it starts. Only `1/0`'s step and `1/10`'s `do_move` waypoint
+  probe cross a boundary at all, and both miss. So for the original to
+  spend two blocked stands on that frame at least two of its units must be
+  crossing a cell this crate's are not: a position again, and not a
+  predicate. (`1/18` lands on `x = 36480 = 760 × 48`, the boundary exactly,
+  and crosses on 7449.)
+
   Twelve frames at 26 units a frame is ~330 units, about 1.7 tiles: the
   squad marches slower there, or starts later, or walks a different line.
   §15's own two seams are the candidates — the group's `speed`/`new_speed`
