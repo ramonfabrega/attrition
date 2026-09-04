@@ -94,6 +94,150 @@ const EXEMPT: &[(&str, &str, &str)] = &[
     ),
 ];
 
+/// **The no-reader ledger**: a field `crates/sim` writes that nothing
+/// reads. The mirror of [`EXEMPT`]'s vacuity, and the cheaper half — it
+/// needs no dump at all.
+///
+/// `docs/ORDERS.md` §6.9's packer drop rule is what earned it.
+/// `AttackOrder::ever_in_range` is written once and read nowhere, so the
+/// rule that consumes it is absent and nothing said so; the docs-versus-code
+/// wave found it by hand, and this finds the rest.
+///
+/// Three exemptions are **computed, not listed**, so they cannot rot:
+///
+/// - read anywhere in `crates/sim` outside its tests — not a candidate;
+/// - read in `crates/rondata` — the harness compares it, which is what a
+///   dumped field it holds is *for*;
+/// - read only in `crates/sim`'s own tests — an observation hook, written
+///   by the simulation so a test can assert on it.
+///
+/// What is left is this list, and every row must carry a note: a queue
+/// item's name once one is filed, or a reason. A row with no note fails,
+/// which is what keeps the ledger from becoming a list nobody triages.
+/// [`NO_READER_PIN`] may only fall.
+const NO_READER: &[(&str, &str, &str)] = &[
+    // --- The AI census. `Leaders::census` writes these because
+    // `LeaderData`'s sweep writes them; the consumers that read them are
+    // the parts of the AI not built yet. They are one class and they move
+    // together — when a consumer lands, its row goes.
+    (
+        "allies",
+        "Census",
+        "the census's war bookkeeping (step 14-15); no consumer built",
+    ),
+    (
+        "attacked",
+        "Census",
+        "the census's unit sweep (step 3); no consumer built",
+    ),
+    (
+        "collected",
+        "Ledger",
+        "the lifetime total, for a score screen that does not exist yet",
+    ),
+    (
+        "cruise",
+        "Census",
+        "the census's unit sweep (step 3); no consumer built",
+    ),
+    (
+        "fishermen",
+        "Census",
+        "the census's unit sweep (step 3); no consumer built",
+    ),
+    (
+        "nuke",
+        "Census",
+        "the census's unit sweep (step 3); no consumer built",
+    ),
+    (
+        "transports",
+        "Census",
+        "the census's unit sweep (step 3); no consumer built",
+    ),
+    (
+        "resources_controlled",
+        "Census",
+        "the census's maxima (step 12); no consumer built",
+    ),
+    (
+        "reg_allies",
+        "Census",
+        "a per-region census counter; no consumer built",
+    ),
+    (
+        "reg_attack",
+        "Census",
+        "a per-region census counter; no consumer built",
+    ),
+    (
+        "reg_naval",
+        "Census",
+        "a per-region census counter; no consumer built",
+    ),
+    (
+        "reg_transports",
+        "Census",
+        "a per-region census counter; no consumer built",
+    ),
+    (
+        "reg_unpack_merch",
+        "Census",
+        "a per-region census counter; no consumer built",
+    ),
+    // --- The rest, one at a time.
+    (
+        "estimate",
+        "Node",
+        "the road search's heuristic, stored on the node and never consulted \
+         again — the open list keys on `value` and `metric`. Either it is \
+         dead weight or a tie-break reads it in the original; \
+         `PathFinderData::get_estimate@00688310` is on the blind list, so no \
+         run has settled which",
+    ),
+    (
+        "hit_frame",
+        "Building",
+        "the frame of the last hit by another player, for the repair gate — \
+         and the repair gate does not ask it",
+    ),
+    (
+        "ignore_cap",
+        "PopBonuses",
+        "leader flag `0x100000`, the scenario editor's \"ignore population \
+         cap\". No capture is a scenario; the population cap never asks",
+    ),
+    (
+        "num_guys",
+        "Projectile",
+        "the shooting unit's figure count, carried on the ammo and never read \
+         by the hit",
+    ),
+    (
+        "no_governments",
+        "PlayerTech",
+        "the lobby's \"no governments\" veto, loaded and never asked",
+    ),
+    (
+        "tech_cost",
+        "Lobby",
+        "the lobby's tech-cost setting, defaulted to 3 and never asked. \
+         `docs/ECONOMY.md`'s knowledge penalty is the rule that would read it \
+         (that pass's R2), and it is not implemented either — so the field \
+         and its only consumer are missing together",
+    ),
+    (
+        "removed",
+        "Sim",
+        "\"buildings disbanded or died this frame, for tests\", says its own \
+         doc — and no test reads it",
+    ),
+];
+
+/// The ledger's length, pinned. It may only fall: a new write-only field is
+/// a new row *and* a lower pin is the proof one was retired.
+const NO_READER_PIN: usize = 20;
+
 /// The floor on how many labelled rows the extractor finds. `diff.rs` had
 /// 269 on 2026-09-05. If the idiom changes and the scanner stops seeing
 /// them, the guard would pass by checking nothing — which is the failure a
@@ -804,4 +948,261 @@ fn the_scanner_follows_the_harness_into_a_directory() {
     assert_eq!(labels, vec!["race".to_string(), "pop".to_string()]);
 
     std::fs::remove_dir_all(&root).ok();
+}
+
+/// Whether `src` reads `field` — any `.field` that is not a write.
+///
+/// A compound assignment (`x.f += 1`) is deliberately **not** a read: a
+/// counter that only ever increments itself and is never otherwise consulted
+/// is exactly the vacuity this is looking for, and counting its own
+/// increment as a read would hide it. A mutating method and a `&mut` borrow
+/// are likewise writes here, for the same reason — `x.f.push(v)` on a `Vec`
+/// nothing ever walks is a write-only field.
+fn reads_field(src: &str, field: &str) -> bool {
+    let bytes = src.as_bytes();
+    for (at, _) in src.match_indices('.') {
+        let (name, end) = ident_at(bytes, at + 1);
+        if name != field {
+            continue;
+        }
+        let mut k = end;
+        if bytes.get(k) == Some(&b'[') {
+            let mut depth = 0i32;
+            while k < bytes.len() {
+                match bytes[k] {
+                    b'[' => depth += 1,
+                    b']' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            k += 1;
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+                k += 1;
+            }
+        }
+        while k < bytes.len() && bytes[k] == b' ' {
+            k += 1;
+        }
+        let mut j = k;
+        while j < bytes.len()
+            && matches!(
+                bytes[j],
+                b'+' | b'-' | b'*' | b'/' | b'%' | b'|' | b'&' | b'^' | b'<' | b'>'
+            )
+        {
+            j += 1;
+        }
+        let assigns =
+            j < bytes.len() && bytes[j] == b'=' && bytes.get(j + 1) != Some(&b'=') && j <= k + 2;
+        // The methods that hand the contents *back* — `take`, `pop`,
+        // `remove` and their kin — are reads as well as writes, so only the
+        // ones that consume a value and return nothing useful count here.
+        // A `Vec` that is pushed to, sorted, and never walked is still
+        // write-only.
+        const WRITE_ONLY: &[&str] = &[
+            "push",
+            "clear",
+            "insert",
+            "extend",
+            "truncate",
+            "resize",
+            "fill",
+            "push_str",
+            "set",
+            "set_len",
+            "extend_from_slice",
+            "sort",
+            "sort_by",
+            "sort_by_key",
+            "sort_unstable",
+            "sort_unstable_by",
+            "dedup",
+            "retain",
+            "append",
+            "swap",
+            "rotate_left",
+            "rotate_right",
+            "reserve",
+        ];
+        let mutates = bytes.get(k) == Some(&b'.') && {
+            let (m, _) = ident_at(bytes, k + 1);
+            WRITE_ONLY.contains(&m)
+        };
+        let borrowed = {
+            let mut b0 = at;
+            while b0 > 0
+                && (is_ident(bytes[b0 - 1])
+                    || matches!(bytes[b0 - 1], b'.' | b'[' | b']' | b'(' | b')'))
+            {
+                b0 -= 1;
+            }
+            let mut t = b0;
+            while t > 0 && (bytes[t - 1] as char).is_whitespace() {
+                t -= 1;
+            }
+            t >= 4 && &bytes[t - 4..t] == b"&mut"
+        };
+        if !(assigns || mutates || borrowed) {
+            return true;
+        }
+    }
+    false
+}
+
+/// The simulation's sources in three views: production (tests blanked),
+/// tests alone (production blanked), and the harness's own crate.
+fn three_views() -> (String, String, String) {
+    let mut prod = String::new();
+    let mut tests = String::new();
+    for entry in std::fs::read_dir(sim_dir()).expect("crates/sim/src") {
+        let path = entry.expect("entry").path();
+        if path.extension().and_then(|e| e.to_str()) != Some("rs") {
+            continue;
+        }
+        let raw = std::fs::read_to_string(&path).expect("read");
+        let mut p = raw.clone().into_bytes();
+        blank_tests(&mut p);
+        // The complement: whatever `blank_tests` blanked is the test source.
+        let mut t: Vec<u8> = raw
+            .bytes()
+            .zip(p.iter())
+            .map(|(a, &b)| if b == b' ' && a != b' ' { a } else { b' ' })
+            .collect();
+        t.push(b'\n');
+        prod.push_str(std::str::from_utf8(&p).unwrap_or(""));
+        prod.push('\n');
+        tests.push_str(std::str::from_utf8(&t).unwrap_or(""));
+    }
+    let mut harness = String::new();
+    fn walk(dir: &std::path::Path, out: &mut String) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        let mut paths: Vec<PathBuf> = entries.map(|e| e.expect("entry").path()).collect();
+        paths.sort();
+        for path in paths {
+            if path.is_dir() {
+                walk(&path, out);
+            } else if path.extension().and_then(|e| e.to_str()) == Some("rs") {
+                out.push_str(&std::fs::read_to_string(&path).expect("read"));
+                out.push('\n');
+            }
+        }
+    }
+    walk(
+        &PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/src")),
+        &mut harness,
+    );
+    (prod, tests, harness)
+}
+
+/// A field the simulation writes that nothing reads.
+///
+/// The sibling of [`compared_fields_have_writers`], and the half that needs
+/// no capture: a write with no consumer is a rule that is not implemented,
+/// whatever the field's name suggests. `AttackOrder::ever_in_range` is the
+/// case that earned it — written once, read nowhere, and the drop rule that
+/// consumes it absent from `crates/sim` entirely.
+///
+/// Made to fail first: with [`NO_READER`] emptied it reports twenty-four
+/// rows, which is the list that was triaged into the queue.
+#[test]
+fn a_field_the_sim_writes_is_read_by_something() {
+    let sim = read_sim();
+    let (prod, tests, harness) = three_views();
+
+    let mut orphans: Vec<(&str, String)> = Vec::new();
+    for (field, owners) in &sim.declared {
+        let written = sim.name_writes.contains(field)
+            || owners.iter().any(|o| sim.literal_writes.contains(o));
+        if !written {
+            continue;
+        }
+        // Computed exemption 1: the simulation itself reads it.
+        if reads_field(&prod, field) {
+            continue;
+        }
+        // 2: the harness reads it — a dumped field it holds is *for* that.
+        if reads_field(&harness, field) {
+            continue;
+        }
+        // 3: an observation hook, read by the simulation's own tests.
+        if reads_field(&tests, field) {
+            continue;
+        }
+        orphans.push((
+            field.as_str(),
+            owners.iter().cloned().collect::<Vec<_>>().join(", "),
+        ));
+    }
+    orphans.sort();
+
+    eprintln!(
+        "the no-reader ledger: {} field(s) crates/sim writes and nothing reads",
+        orphans.len()
+    );
+    for (field, owners) in &orphans {
+        let note = NO_READER
+            .iter()
+            .find(|(f, _, _)| f == field)
+            .map_or("**UNTRIAGED**", |&(_, _, note)| note);
+        eprintln!("  {field:<22} {owners:<34} {note}");
+    }
+
+    let untriaged: Vec<&(&str, String)> = orphans
+        .iter()
+        .filter(|(field, owners)| {
+            !NO_READER.iter().any(|(f, owner, _)| {
+                f == field && owners.split(", ").any(|o| o == format!("{owner}::{field}"))
+            })
+        })
+        .collect();
+    assert!(
+        untriaged.is_empty(),
+        "the simulation writes {} field(s) nothing reads, and they are not on \
+         writers::NO_READER: {untriaged:#?}\n\nEach needs a row with a note — a \
+         queue item's name, or the reason it is written with no consumer. A \
+         ledger nobody triages is a list nobody reads",
+        untriaged.len()
+    );
+    assert!(
+        orphans.len() <= NO_READER_PIN,
+        "the no-reader ledger is {} rows against a pin of {NO_READER_PIN}; it may \
+         only fall",
+        orphans.len()
+    );
+    // And the pin is exact when it can be: a row retired without lowering the
+    // pin leaves the ledger looking longer than it is.
+    if orphans.len() < NO_READER_PIN {
+        eprintln!(
+            "the ledger has shrunk to {}; lower NO_READER_PIN from {NO_READER_PIN} \
+             and delete the retired row(s) from NO_READER",
+            orphans.len()
+        );
+    }
+}
+
+/// A row on the ledger that no longer names a write-only field is stale, and
+/// a stale row is how the ledger stops being read.
+#[test]
+fn every_no_reader_row_still_names_a_field() {
+    let sim = read_sim();
+    let mut failures = Vec::new();
+    for (field, owner, note) in NO_READER {
+        match sim.declared.get(*field) {
+            Some(owners) if owners.contains(&format!("{owner}::{field}")) => {}
+            _ => failures.push(format!(
+                "writers::NO_READER names `{owner}::{field}`, which no struct in \
+                 crates/sim declares — delete the row or fix the name"
+            )),
+        }
+        assert!(
+            note.len() > 20,
+            "writers::NO_READER `{owner}::{field}` has no real note"
+        );
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
