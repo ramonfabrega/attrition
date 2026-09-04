@@ -4270,9 +4270,11 @@ order of cost:
   whether `winetricks` has to supply `d3dcompiler_47` (which the install
   also ships beside the exe).
 - `WINEDEBUG=+d3d,+win` for where the check fails.
-- **Apple's Game Porting Toolkit** — free with a developer account, and now
-  the *most likely* answer rather than a fallback: it carries the same
-  D3DMetal that satisfied this check under CrossOver.
+- **Apple's Game Porting Toolkit** — the *expected* answer rather than a
+  fallback: it carries the same D3DMetal that satisfied this check under
+  CrossOver, and **this account is a paid Apple Developer one**, so the
+  download is already available. Reach for it early; do not spend a session
+  fighting `wined3d` first.
 
 None of that was reached today.
 

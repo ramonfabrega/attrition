@@ -34,9 +34,9 @@ run 76, and the whole capture lane is down.
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
 
-**Opener (Opus):** `225 first — the lane is worth more than any one item,
-and a clear screen is all the next test needs. If it is still down, take
-220 or 203; neither wants a screen.`
+**Opener (Opus):** `225, and the answer is probably Apple's GPTK — it ships
+the D3DMetal the game's own DirectX check wants, and this account can
+download it. gfx.sh first, it is two minutes. Then run 76; 223 reads it.`
 
 ## The queue
 
@@ -48,11 +48,10 @@ journal is indexed by them.
 225. **Get the capture lane off CrossOver** (ORACLE, "Off CrossOver").
     Free Wine 11.0 runs the 32-bit exe and writes its logs; it dies on the
     game's **own** dialog — *"Could not initialize DirectX! … DirectX 10
-    or higher"* — which is the job D3DMetal was doing. Levers:
-    `rise.ini`'s `GraphicsDLL=d3dgl.dll` (`tools/gamelog/gfx.sh`), the
-    prefix's `d3d10`/`d3d11`, then **Apple's GPTK**, now the likeliest
-    answer. The traced exe's fault at `7BF21139` — VEH dispatch, try
-    `cover=0` — is the second half. **Blocks 223.**
+    or higher"* — which is the job D3DMetal was doing. `gfx.sh` first (two
+    minutes, written), then **Apple's GPTK**, which ships that same
+    D3DMetal. The traced exe's fault at `7BF21139` may be downstream of
+    the same failure; leave it until the renderer works. **Blocks 223.**
 
 223. **Great Lakes 6848 is the marching squad, twelve frames ahead of the
     original's** — not the predicate (COLLISION §9). **Run 76 is the
