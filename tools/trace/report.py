@@ -16,6 +16,11 @@
                                                that no given trace entered
     report.py <log> functions                  every function ever entered, with the
                                                frame it was first entered on
+    report.py <log> when NAME [MIN] [FROM]     per-frame count of the draws made from
+                                               one function — how a whole 24,000-frame
+                                               trace is asked *when* something happened.
+                                               `when Guy::init_real 2` dates every
+                                               multi-unit birth in the game
 
 Addresses are named through the Ghidra export's INDEX.tsv (default
 ~/ghidra-projects/decomp/INDEX.tsv): a return address is reported as
@@ -171,6 +176,37 @@ def main():
             f"{s32(r[1])}:{draws[s32(r[1])]}@{r[2]:08x}" for r in frames[:12])
               + (" ..." if len(frames) > 12 else ""))
         print(f"setup draws (before frame 0): {draws[-1]}")
+        return
+
+    if cmd == "when":
+        # Per-frame count of the draws made from one function — how a *whole*
+        # 24,000-frame trace is asked when something happened, without taking
+        # a capture to find out. `Guy::init_real` is one draw per unit
+        # created, so `when Guy::init_real 2` dates every squad birth in the
+        # game: three at once on Great Lakes 6612 is run76's Archers, and the
+        # same count over East Indies names 15782 (docs/ORACLE.md, run77).
+        # The match is on the *containing* function, so a call site anywhere
+        # inside it counts.
+        if not rest:
+            print("report.py <log> when <Class::method> [min-per-frame] [from-frame]")
+            return
+        want_name = rest[0]
+        least = int(rest[1]) if len(rest) > 1 else 1
+        since = int(rest[2]) if len(rest) > 2 else -(1 << 30)
+        per_frame = Counter()
+        for r in recs:
+            if r[0] not in (1, 3, 4, 6):
+                continue
+            f = frame_of(r)
+            if f < since:
+                continue
+            if nm(r[1]).split("+")[0] == want_name:
+                per_frame[f] += 1
+        for f in sorted(per_frame):
+            if per_frame[f] >= least:
+                print(f"f{f:<7} {per_frame[f]}")
+        if not per_frame:
+            print(f"no draw in this trace is made from {want_name}")
         return
 
     want = set(frame_arg(a) for a in rest) if rest and cmd != "blind" else None

@@ -4134,6 +4134,56 @@ run to `~/bin/RonDriver.app`, a fixed path that holds all three
 permanently, and it went first time. Re-granting the version path by hand
 buys one session; the bundle is the standing answer.
 
+## run77 — the frame that was not a birth, and the instrument that dates one (2026-09-04)
+
+**What it is.** East Indies, seed 12345, 251 frame blocks over `[10150,
+10400)` at run10's `[End Frame]` detail, 96,807,137 bytes, `cover=0`. Same
+game as this map's own 24,000-frame run: `rngcmp.py rontrace-run54.log
+rontrace-run77.log` → **differing frames: 0, identical frames: 10401**.
+
+**What it was for, and why it missed.** Item 227 needs a squad born from a
+building on a *second* map — one sample of two member offsets cannot tell a
+formation from a search. The window was placed off **function coverage**:
+run53 and run54 were both taken with `cover=1` under CrossOver, so each
+carries about 6,900 records of "the frame this function was first entered
+on", and the nine functions that first execute on Great Lakes 6612 —
+`Unit::set_group`, `think_attack`, `find_melee_target`, `on_duty`,
+`UnitData::get_activity`, `get_combat_stance`, `Army::add_group`, `member`,
+`add_unit` — first execute on East Indies **10187**.
+
+They do. It is still the wrong frame, because **`set_group` and `add_unit`
+fire for a singleton group too**, so those nine date "a group was formed",
+not "a squad was born". `FRAME 10188` holds 168 objects and so does 10187;
+nothing is created. The only change of substance is unit `1/32` (guy 340,
+180 hits, internal `(45192, 41880)`) gaining `flags & 0x8`, the captain bit,
+and every grouped unit on the frame is alone in its group — `1/0` in 65,
+`1/15` in 67, `1/31` in 64, `1/32` in 66. No Barracks among the 25
+buildings, no Archers anywhere.
+
+**The tell was in the same two lists.** `UnitData::get_captain` first runs on
+Great Lakes at 6612 and on East Indies at **12794**. A singleton group never
+asks for a captain, so the gap between those two numbers is exactly the
+distinction the nine functions cannot draw.
+
+**The instrument that does date a birth is the draw stream.** A unit's
+creation draws once, at `Guy::init_real+0x52 < Unit::init+0xb97 <
+Objects::init_unit+0xbd`. `rontrace-run53.log` carries exactly **three** of
+them on Great Lakes 6612 — run76's Archer squad, independently confirmed —
+so counting that one site per frame over a 24,000-frame trace dates every
+birth in the game without taking a capture at all. On East Indies: a pair on
+**11652** (whose group order is the 12794 `get_captain`), then three at once
+on **15782**, 17112, 17362, 17574, 17793, 18064, three on 20249 and five on
+23420. **15782 is the analogue of 6612**, and run78's stanza is that window.
+
+Two rules earned their keep here and one was nearly broken. Grepping the
+disk before booking a capture is what found 15782, and it cost a minute
+against a fifteen-minute run. And a first reading of run54 said "no Barracks
+on East Indies at frame 24,001" — **wrong**, because run54's `BUILDS` detail
+never prints `otype` and every building came back `otype= -`. The
+no-Barracks statement above is from run77's own `BUILDS=7` dump and is only
+about `FRAME 10188`. A field that is not in the dump reads exactly like a
+field that is zero.
+
 ## The window nobody can see — CrossOver's expired bottle (2026-09-04)
 
 **run 76 did not run, and the reason had nothing to do with permissions.**

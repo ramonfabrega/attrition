@@ -999,3 +999,45 @@ settle_min: 14000000
 poll_max: 300
 # Same game: the trace word for word against run54, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run77.log
+
+run: 78
+tag: eastindies-threeborn
+item: 227
+why: East Indies' first three-at-once birth, 15782 — the real analogue of Great Lakes 6612
+# **run77 dated this wrong, and the fix is a better instrument.** The nine
+# functions that first execute on Great Lakes 6612 do first execute on East
+# Indies 10187 — but `Unit::set_group` and `Army::add_unit` fire for a
+# *singleton* group too, so they date "a group was formed", not "a squad was
+# born". run77's FRAME 10188 holds 168 objects before and after, four
+# singleton groups, no Barracks and no Archers. The tell was in the same two
+# coverage lists: `UnitData::get_captain` first runs on Great Lakes at 6612
+# and on East Indies at **12794**, because a singleton never asks for a
+# captain.
+#
+# The instrument that does date a birth is the **draw stream**, which run54
+# carries for all 24,001 frames. A unit's creation draws once at
+# `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`;
+# rontrace-run53.log has exactly **three** of them on Great Lakes 6612, which
+# is run76's Archer squad. Counting that site per frame over run54 gives East
+# Indies' births: a pair on 11652 (whose group order is the 12794
+# `get_captain`), then three at once on **15782**, 17112, 17362, 17574,
+# 17793, 18064, 20249, and five on 23420.
+#
+# 15782 is the analogue of 6612. The window opens 82 frames ahead of it and
+# closes far enough past to see the squad settle; the labels are FRAME
+# labels, one ahead of the sim-frame, so the birth lands in `FRAME 15783`.
+frames: 15950
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1
+frame_window: 15700 15900
+# cover=0 is not a choice on this machine — the `cover:` key's note above.
+cover: cover=0
+# The East Indies start dump is 11,053,655 bytes and nothing grows until the
+# window opens (measured on run77, which came in at exactly that figure).
+settle_min: 14000000
+# run77 covered 10,150 frames of run-up in about ninety seconds under !ffwd
+# and 250 dumped frames in three minutes; this is half again as much run-up
+# and a slightly narrower window.
+poll_max: 300
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run78.log
