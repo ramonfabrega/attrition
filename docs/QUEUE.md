@@ -12,34 +12,35 @@ lines, or lets the handoff pass 32.
 
 ## Where things stand
 
-*2026-09-04, Opus — item 222 landed.* **Great Lakes 6782 → 6848; East
-Indies unmoved at 7448.** No capture and no blind reading: the draw
-sequence named the buy, the buy named the head it followed, and the head
-named a field with no writer.
+*2026-09-04, Opus — item 223 diagnosed, no score moved.* **Both words
+unmoved: Great Lakes 6848, East Indies 7448.** It was booked as the
+collision predicate and it is not one; run 76 is the capture that settles
+it and it is running.
 
-- **`mil_trainers` (`LeaderData+0x6e50`) was never written here.**
-  `Leader::new` set it to `Vec::new()` and only the unit tests pushed to
-  it, so `produce_unit`'s military-trainer arm and `produce_tech`'s found
-  no Barracks for the whole 24,000 frames. **The AI has never queued a
-  military unit in this crate.**
-- **The symptom was one slot down.** At 6782 the head is two Longbowmen,
-  which the original queues and pays 62 timber / 102 metal for; this crate
-  queued nothing, kept the money, and could afford the University in slot
-  1 — the two `+0x1805` and two `+0x63d` the original never spends.
-- **Two writers, the pair that keeps `reg_buildings`:**
-  `Wall::increment_stats@00643270`'s active arm and
-  `Wall::decrement_stats@00642da0` through `SimpleArray<int>::remove`,
-  which shifts rather than swaps — the list is in activation order
-  (AI §29).
+- **6848 is forced by the positions.** The AI's Archer `1/28`, a follower
+  of the marching squad (ORDERS §15), steps onto its slot one cell north
+  and §4.2's leading edge hits `(890, 511)` inside the standing citizen
+  `1/13`'s block — `1/13` is at `(42744, 24504)`, exactly where run18b's
+  dump puts it. **The blocks genuinely overlap**, so no predicate saves it.
+- **The original is twelve frames back** — its own first blocked stand
+  there is 6860, the next 6892, ~1.7 tiles. So it is *where the squad is*,
+  and ORDERS §15's two open seams (the group's `speed`/`new_speed` pair,
+  no reader here; `Group::update_positions`' slots) are the candidates.
+- **One reading landed and is inert.** `UnitData::is_corner@0060a040`
+  walks the blocker's **figures**, measuring each corner against
+  `GuyData::x/y` where `is_here` four lines earlier reads the unit's
+  `x_internal`. `Sim::guy_corner`, COLLISION §4.3; neither word moved.
+- **Run 76 is booked in `captures.txt` and running** — Great Lakes, 6870
+  frames, `frame_window 6640 6870`, opened before the group order on 6650,
+  through `viadriver.sh` (a bare `cliclick p` warns and means nothing).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w7448 of 24,000 · GreatLakes w6848 of 24,000
 
-**Opener (Opus):** `223 is the default, and it is 214 on the other map:
-Great Lakes 6848 is one extra Guy::set_anim+0x97a < Unit::move_step+0x823,
-a step this crate refuses and the original takes; East Indies 7448 is two
-of the same site with the sign reversed. COLLISION §5 — the predicate,
-not the site.`
+**Opener (Opus):** `223 is run 76's to read: the archers' positions from
+6640, against this crate's, for the frame the original's squad first
+refuses a step. If it did not land, relaunch it through viadriver.sh —
+never diagnose the lane from cliclick's own warning.`
 
 ## The queue
 
@@ -48,12 +49,11 @@ captures' word**, lower map first — Great Lakes. Take the first unstarted
 unless a better order is obvious — and say so. Numbers are stable; the
 journal is indexed by them.
 
-223. **Both words are now `Unit::move_step+0x823`, and they disagree in
-    opposite directions.** Great Lakes 6848 spends one blocked stand this
-    crate takes and the original does not; East Indies 7448 spends two the
-    original takes and this crate does not (214). The site fires 347 times
-    in run54, so it is the **predicate** — COLLISION §5, and the two signs
-    together are what one reading has to explain.
+223. **Great Lakes 6848 is the marching squad, twelve frames ahead of the
+    original's** — not the collision predicate, which is forced once the
+    blocks overlap (COLLISION §9, first entry). **Run 76 is the capture**,
+    booked in `captures.txt` and taken 2026-09-04. East Indies 7448 (214)
+    is the same site with the sign reversed and unexamined.
 
 220. **§13's twenty range blocks.** Every free-upgrade row whose
     candidates are a run of tech indices — Chinese herbal lore, the Red

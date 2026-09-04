@@ -880,3 +880,45 @@ poll_max: 200
 # map's only full-detail dump stops at 3,000, so `samegame.py` has no shared
 # frame block to speak from).
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run75.log
+
+run: 76
+tag: greatlakes-archermarch
+item: 223
+why: Great Lakes' word is one blocked stand at 6848 and the original's first is at 6860 — twelve frames of squad, and no dump reaches the squad at all
+# **The predicate is not in doubt and the position is.** run53's word parts
+# at 6848 on one `Guy::set_anim+0x97a < Unit::move_step+0x823`: the AI's
+# Archer `1/28`, a follower of the marching squad, steps onto its formation
+# slot at `(42773, 24617)` and the leading edge of `docs/COLLISION.md` §4.2
+# hits `(890, 511)` — a cell of the standing citizen `1/13`'s block, and
+# run18b's dump has `1/13` on exactly `(42744, 24504)`. The two blocks
+# overlap; every step from there is forced. The original simply is not
+# there: the trace's own first blocked stand in that neighbourhood is
+# **6860**, and another at 6892.
+#
+# Twelve frames at 26 units a frame is about 1.7 tiles, so the squad marches
+# slower, starts later, or walks a different line — and `docs/ORDERS.md`
+# §15's two open seams (the group's `speed`/`new_speed` pair, which has no
+# reader here, and `Group::update_positions`' slot table) are the
+# candidates. Neither can be told from the other without positions.
+#
+# No dump on this map reaches the squad. The three archers are born on 6612
+# and run18b's `DUMP_ALL` window closes at 6590; run75, the longest, stops
+# at 6160. So: run75's recipe with the window moved, opened before
+# `Army::do_forming` issues the group order on 6650 so the whole march is on
+# disk. `UNITS=3` writes each archer's position, `angle`, `orders_x/y`, the
+# `MOVEORDER`'s `dest`/`coll_x`/`coll_y` and the path stack, and
+# `collide_o`/`collide_who`/`collide_frame` say on which frame the
+# original's squad first refuses a step.
+frames: 6870
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1
+frame_window: 6640 6870
+cover: cover=1
+# run74/run75's floor, unchanged: the start dump is 10.9 MB on this map at
+# this detail and nothing grows until the window opens, so 14 MB sits above
+# the quiet run-up and below the finished file. 230 blocks, ~4 minutes of
+# dumping on top of the run-up.
+settle_min: 14000000
+poll_max: 220
+# Same game: the trace word for word against run53 (run74's line).
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run76.log

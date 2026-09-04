@@ -301,6 +301,42 @@ the hit cell is exactly a diagonal corner of the block, and 0 otherwise. A
 difference of 4 is the two opposite diagonals: the units touch at one
 corner from opposite sides, and pass.
 
+#### The two halves are not centred on the same thing (2026-09-04)
+
+`UnitData::will_be_corner@00609fa0` measures the hit cell against the
+**proposed** cell — `param_3`/`param_4` are the proposal, and the block is
+the asking unit's — which is what the rule wants and what the code above
+does.
+
+`UnitData::is_corner@0060a040` does **not** measure against the other
+unit's `x_internal`/`y_internal`. It walks that unit's figures
+`0 .. guy_mark` and returns the **first non-zero**
+`GuyData::is_corner@005de270`, which measures the hit cell against that
+figure's own `GuyData::x/y` (`div_3_table[x >> 4]`, the same `ucell`). The
+`coll_size` is still the unit's type's `+0x248`, so only the centre moves.
+It returns 0 outright when the unit fails vfunc `+8` or `+0xbc`
+(`is_on_map`) — both already filtered by the chain walk that reached it.
+
+So the original mixes two frames of reference within four lines:
+`UnitData::is_here`, immediately before, reads the **unit's** position, and
+`is_corner` reads its **figures'**. The two answers come apart for a crew
+figure standing on a track offset (`docs/ANIM.md` §4.8's packing types —
+merchants, caravans), and for guy 0 itself on any frame its body has not
+caught up with the unit's point (`docs/ANIM.md` §4 step 1). Since
+`is_corner` returns the *first* non-zero and guy 0 is usually on the unit,
+the effect is one-directional: a figure can only turn a hard collision
+**soft**, never the other way.
+
+`Sim::guy_corner`, and
+`collide::tests::the_corner_rule_reads_the_blocker_s_figures_and_not_the_blocker`.
+**Reading only, and no capture reaches it**: neither long word moved when
+it landed (Great Lakes 6848, East Indies 7448, both unchanged), so what it
+rests on is the two decompiled functions and nothing else. SEAM: a unit
+this crate has stood up without figures — `Sim::add_unit` does not call
+`init_guys` — falls back to its own cell, because a live unit's `guy_mark`
+is never 0 in the original and the fallback stands in for a state the
+original does not have.
+
 A hard collision writes `collide_o`, `collide_who`, `collide_guy = 0`,
 stores the proposed point in the move order's `coll_x`/`coll_y`
 (`MoveOrder +0x3c/+0x40` — the dump prints them), and returns 1.
@@ -809,6 +845,10 @@ buildings join the chain, which is why §8 does not claim it.
 
 - §4.3's `TRADE_ROUTE` and `0xc` arms, and the soft half-step flag. ~~The
   group arm~~ — landed 2026-09-04, §9.
+- §4.3's **figure-centred `is_corner`** (2026-09-04). Both long words are
+  unmoved by it, so no run on disk has a blocker whose figures answer
+  differently from the blocker — which is what one would expect while the
+  only colliders a capture reaches are one-figure citizens standing still.
 - §5.1's tolerance-widening arm. Every hit a capture has reached there was
   a final waypoint under a gather, so the parked-collider branch rests on
   the decompile; `collide.rs`'s own test is what exercises it, and it was
@@ -828,6 +868,45 @@ buildings join the chain, which is why §8 does not claim it.
 **The captures that would settle them** are in §9.
 
 ## 9. What is not established
+
+- **Where both long words now part, and it is a *position* and not a
+  predicate** (2026-09-04, queue item 223). Great Lakes 6848 is one
+  `SITE_BLOCKED` this crate spends and the original does not; East Indies
+  7448 is two the original spends and this crate does not.
+
+  Great Lakes' is named whole. The blocked unit is the AI's Archer `1/28`,
+  a **follower of the marching squad** `1/27`/`1/28`/`1/29`
+  (`docs/ORDERS.md` §15); the blocker is the standing citizen `1/13` at
+  `(42744, 24504)` — exactly where run18b's dump has it, so the blocker is
+  not in doubt. `1/28` stands on unit cell `(891, 513)`, its slot this
+  frame is `(42773, 24617)` on cell `(891, 512)`, `dy = −1` takes §4.2's
+  leading edge, and the row `y = 511` hits `(890, 511)`, a cell of `1/13`'s
+  block. `will_be_corner` NW against `is_corner` 0 → hard. Every step of
+  that is forced once the two blocks overlap, and they do overlap: **the
+  predicate is not what is wrong**. What the original has to be is
+  somewhere else, and the trace says by how much — its own first blocked
+  stand in that neighbourhood is at **6860, twelve frames later**, and
+  another at 6892.
+
+  Twelve frames at 26 units a frame is ~330 units, about 1.7 tiles: the
+  squad marches slower there, or starts later, or walks a different line.
+  §15's own two seams are the candidates — the group's `speed`/`new_speed`
+  pair, which has no reader here, and `Group::update_positions`' slot
+  table — and neither can be told from the other without positions.
+
+  *Capture, owed and not run:* Great Lakes, `frames 6870`,
+  `frame_window 6640 6870`, `end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,
+  DEATHS=1,LEADERS=1` — run75's recipe with the window moved, opened
+  before `Army::do_forming` issues the group order on 6650 so the whole
+  march is on disk. `UNITS=3` writes each archer's position, `angle`,
+  `orders_x/y`, the `MOVEORDER`'s `dest`/`coll_x`/`coll_y` and the path
+  stack, and `collide_o`/`collide_who`/`collide_frame` say on which frame
+  the original's squad first refuses a step. It is stanza **run 76** in
+  `tools/gamelog/captures.txt`, launched through
+  `tools/gamelog/viadriver.sh` — a bare `cliclick p` from a Claude Code
+  shell still warns that Accessibility is off and that is **not** the
+  lane's answer; `RonDriver.app` holds the three grants and its probe
+  reported "synthetic move landed".
 
 - **`ObjectType +0x2b4 & 0x2000`** — the "attack what you bump into" bit.
   Read as a flag, not traced to its XML column.

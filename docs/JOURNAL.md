@@ -16037,3 +16037,71 @@ Unit::move_step+0x823` — the blocked walker's stand, `sim::anim::
 SITE_BLOCKED` — a step this crate refuses and the original takes. East
 Indies' 7448 is two of the same site with the sign the other way round,
 so for the first time both maps' words are the same predicate (item 223).
+
+## 2026-09-04 — item 223: the word at 6848 is a squad's position, not a predicate (Opus)
+
+**Booked as the collision predicate and it is not one.** Both long words
+now part on `Guy::set_anim+0x97a < Unit::move_step+0x823` with opposite
+signs — Great Lakes 6848 one blocked stand this crate spends and the
+original does not, East Indies 7448 two the original spends and this
+crate does not — and the queue read the two signs as one predicate to be
+explained. Great Lakes' half is now named whole and it is arithmetic
+nobody has to explain: **the two blocks overlap.**
+
+The blocked unit is the AI's Archer `1/28`, a follower of the marching
+squad `1/27`/`1/28`/`1/29` (`docs/ORDERS.md` §15). On 6848
+`Group::update_positions` puts its slot at `(42773, 24617)`, one unit
+cell north of where it stands; `dy = −1` takes §4.2's leading edge, the
+row `y = 511` is swept from `x = 890`, and `(890, 511)` is a cell of the
+standing citizen `1/13`'s block. `will_be_corner` answers NW and
+`is_corner` answers 0, so it is hard. Every step of that is forced.
+
+**And the blocker is not in doubt.** `1/13` stands at `(42744, 24504)` —
+`ucell_centre(890, 510)` exactly — for the whole neighbourhood of frames,
+and run18b's dump has the original's `1/13` on the same point with the
+same `angle`. So the question is where the *archers* are, and the trace
+answers it from the other side: the original's own first blocked stand in
+that neighbourhood is **6860**, and the next 6892. Twelve frames at 26
+units a frame is about 1.7 tiles.
+
+**No record on disk can place them.** The three archers are born on 6612;
+run18b's `DUMP_ALL` window closes at 6590 and run75, this map's longest,
+stops at 6160. A walk spends no draws, so the trace cannot help either.
+Stanza **run 76** is booked in `tools/gamelog/captures.txt` — run75's
+recipe with `frame_window 6640 6870`, opened before `Army::do_forming`
+issues the group order on 6650 so the whole march is on disk.
+
+**And the lane was nearly written off on the wrong evidence.** `cliclick
+p` from a Claude Code shell answers *"WARNING: Accessibility privileges
+not enabled"*, and this session read that as a permission-shaped failure,
+wrote it into three documents and prepared to hand the turn back. It is
+not the lane's answer: the capture runs through `~/bin/RonDriver.app`
+(`tools/gamelog/viadriver.sh`), a fixed path that holds the three grants
+permanently, and its own probe reported *"synthetic move landed"* on the
+first try. The rule already existed in this session's memory — **probe
+the lane by launching it, not by testing Claude Code's own binary** — and
+was reached for one step too late. A warning printed by the wrong process
+is not evidence about a different one.
+
+**One reading landed on the way, and it is inert.**
+`UnitData::is_corner@0060a040` is not the unit's own block:
+it walks the unit's figures `0 .. guy_mark` and returns the first
+non-zero `GuyData::is_corner@005de270`, which measures the hit cell
+against that figure's `GuyData::x/y`. `UnitData::is_here`, four lines
+earlier in `detect_unit_collision`, reads the unit's own `x_internal` —
+so the original mixes two frames of reference inside one predicate.
+Because the first non-zero wins and guy 0 usually stands on its unit, the
+effect is one-directional: a crew figure can only turn a hard collision
+**soft**. `Sim::guy_corner` and
+`the_corner_rule_reads_the_blocker_s_figures_and_not_the_blocker`, which
+was made to fail against the old form before it was kept. Neither long
+word moved — no capture yet has a blocker whose figures disagree with it
+— so it is a reading-only claim and `docs/COLLISION.md` §8 says so.
+
+**The lesson.** "Both signs are one predicate" was a plausible reading of
+two numbers and it cost the session's direction: the diff that settles
+which of *predicate* or *position* is wrong is the one that prints the
+proposal and the blocker, and it took twenty minutes to write and one run
+to answer. Print the two operands before theorising about the operator.
+The residue is that the queue's own framing of an item is a hypothesis
+like any other, and the item's first job is to falsify it.

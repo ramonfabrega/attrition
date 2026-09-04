@@ -477,9 +477,10 @@ impl Sim {
     /// unit cell `at` that is occupied, outside the caller's own block, and
     /// passes the parity filter. `None` when nothing is in the way.
     ///
-    /// SEAM: `collide_here`'s two leading-edge fast paths — taken when the
-    /// proposal is exactly one cell away on one axis — sweep a different
-    /// set of cells and are not modelled; the disc is always walked.
+    /// ~~SEAM: `collide_here`'s two leading-edge fast paths are not
+    /// modelled.~~ They are, since item 183 — see the block below, and
+    /// §4.2's "the fast path is not an optimisation". The disc is walked
+    /// only when neither arm applies or `nocoll` is set.
     pub(crate) fn collide_here(&self, u: usize, at: Pos, nocoll: bool) -> Option<Pos> {
         let size = self.coll_size(u);
         if size == 0 {
@@ -543,7 +544,43 @@ impl Sim {
         (cell.x - c.x).abs() <= size && (cell.y - c.y).abs() <= size
     }
 
-    /// `UnitData::will_be_corner` / `is_corner`: `1, 3, 5, 7` for NW, NE,
+    /// `UnitData::is_corner@0060a040` — **and it is not the unit's own
+    /// block** (§4.3, 2026-09-04). The function walks the unit's figures
+    /// `0 .. guy_mark` and returns the first non-zero
+    /// `GuyData::is_corner@005de270`, which measures the corner against
+    /// that **figure's** own `GuyData::x/y` rather than the unit's
+    /// `x_internal`/`y_internal`. The type's `coll_size` is the unit's for
+    /// every figure, so only the centre moves.
+    ///
+    /// The two answers come apart twice: for a **crew** figure, which
+    /// stands on a track offset a whole cell or more from its leader; and
+    /// for guy 0 itself on any frame its body has not caught up with the
+    /// unit's point (`docs/ANIM.md` §4 step 1) — `is_here`, the test
+    /// immediately before, reads the **unit's** position, so the original
+    /// genuinely mixes the two.
+    fn guy_corner(&self, o: usize, cell: Pos) -> i32 {
+        let size = self.coll_size(o);
+        // SEAM: a unit this crate has stood up **without figures** —
+        // `Sim::add_unit` does not call `init_guys`, so a hand-built one
+        // has an empty list — answers from its own cell, which is what
+        // this rule read before the guys were consulted at all. A live
+        // unit's `guy_mark` is never 0 in the original, so the fallback
+        // stands in for a state the original does not have rather than
+        // for one it does.
+        if self.units[o].guys.is_empty() {
+            return Self::corner_of(size, ucell(self.units[o].pos), cell);
+        }
+        let body = self.units[o].movement.body.pos;
+        self.units[o]
+            .guys
+            .iter()
+            .map(|g| g.follow.map_or(body, |f| f.body.pos))
+            .map(|p| Self::corner_of(size, ucell(p), cell))
+            .find(|&c| c != 0)
+            .unwrap_or(0)
+    }
+
+    /// `UnitData::will_be_corner`: `1, 3, 5, 7` for NW, NE,
     /// SE, SW when `cell` is exactly a diagonal corner of the block centred
     /// on `centre`, else 0.
     const fn corner_of(size: i32, centre: Pos, cell: Pos) -> i32 {
@@ -648,7 +685,7 @@ impl Sim {
                     soft = true;
                     continue;
                 }
-                let theirs = Self::corner_of(self.coll_size(o), ucell(self.units[o].pos), cell);
+                let theirs = self.guy_corner(o, cell);
                 if will == 0 || (will - theirs).abs() != 4 {
                     return Some(o);
                 }
@@ -1833,6 +1870,57 @@ mod tests {
         assert!(
             sim.detect_unit_collision(x, into).is_some(),
             "an attacker gets no exemption"
+        );
+    }
+
+    /// §4.3: **the corner rule is decided on the blocker's *figures*, not
+    /// on the blocker.** `UnitData::is_corner@0060a040` walks
+    /// `0 .. guy_mark` and returns the first non-zero
+    /// `GuyData::is_corner@005de270`, which measures against that figure's
+    /// own `GuyData::x/y`. The test immediately before it —
+    /// `UnitData::is_here` — reads the **unit's** `x_internal`, so the
+    /// original genuinely mixes the two, and a crew figure standing on a
+    /// track offset can turn a hard collision into a slip-past its leader
+    /// alone never would.
+    ///
+    /// The blocker stands on unit cell `(28, 28)`, whose own corner
+    /// against the hit cell `(28, 29)` is **0** — a face, not a diagonal —
+    /// so the unit-centred reading is a hard collision. Its crew figure
+    /// stands a cell west, on `(27, 28)`, for which the same hit cell is
+    /// the **SE** corner: `|NW − SE| = |1 − 5| = 4`, the two opposite
+    /// diagonals, and the two slip past.
+    #[test]
+    fn the_corner_rule_reads_the_blocker_s_figures_and_not_the_blocker() {
+        let at_cell = |x: i32, y: i32| ucell_centre(Pos::new(x, y));
+        let (mut sim, x, y) = pair(at_cell(30, 30), at_cell(28, 28));
+        // Guy 0 stands on its unit, which is what leaves the corner at 0.
+        sim.units[y].guys = vec![crate::anim::Guy::fresh(1)];
+        sim.units[x].guys = vec![crate::anim::Guy::fresh(1)];
+        sim.units[y].movement.body.pos = sim.units[y].pos;
+        let into = at_cell(29, 30);
+        assert_eq!(
+            sim.detect_unit_collision(x, into),
+            Some(y),
+            "guy 0 alone: the hit cell is a face of the blocker, so it is hard"
+        );
+        // The crew figure, a cell west of its leader and cornered on the
+        // same hit cell from the opposite side.
+        let mut crew = crate::anim::Guy::fresh(2);
+        crew.follow = Some(crate::anim::Follow {
+            body: crate::movement::Body {
+                pos: at_cell(27, 28),
+                ..crate::movement::Body::default()
+            },
+            des: at_cell(27, 28),
+            facing: crate::movement::Angle(0),
+            des_angle: crate::movement::Angle(0),
+            track: (-48, 0),
+        });
+        sim.units[y].guys.push(crew);
+        assert_eq!(
+            sim.detect_unit_collision(x, into),
+            None,
+            "with the crew figure, `is_corner` answers SE and the two slip past"
         );
     }
 
